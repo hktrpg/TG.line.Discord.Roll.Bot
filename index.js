@@ -90,7 +90,7 @@ function parseInput(rplyToken, inputStr) {
   let mainMsg = inputStr.split(msgSplitor);
   let trigger = mainMsg[0];
   console.log(trigger);
-  if (trigger != '李孟儒') return null;
+  if (trigger != 'roll') return null;
 
   _isNaN = function(obj) {
     return isNaN(parseInt(obj));

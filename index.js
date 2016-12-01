@@ -90,6 +90,7 @@ function parseInput(rplyToken, inputStr) {
   let mainMsg = inputStr.split(msgSplitor);
   let trigger = mainMsg[0];
   console.log(trigger);
+  console.log(mainMsg[2]);
   if (trigger != 'roll') return null;
 
   _isNaN = function(obj) {

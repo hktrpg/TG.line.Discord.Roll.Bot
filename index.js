@@ -83,59 +83,89 @@ function replyMsgToLine(rplyToken, rplyVal) {
 }
 
 function parseInput(rplyToken, inputStr) {
-  console.log('InputStr: ' + inputStr);
-  let msgSplitor = ' ';
-  let comSplitor = 'd';
+        console.log('InputStr: ' + inputStr);
+        let msgSplitor = ' ';
+        let cuntSplitor = '+';
+        let comSplitor = 'd';
+        
 
-  let mainMsg = inputStr.split(msgSplitor);
-  let trigger = mainMsg[0];
-  //console.log(trigger);
-  let secCommand = mainMsg[2];
-  console.log('2nd Command = ' + secCommand);
-  if (trigger != 'roll') return null;
+        let mainMsg = inputStr.split(msgSplitor); //定義輸入字串，以空格切開
+        let trigger = mainMsg[0]; //指定啟動詞在第一個詞
+        //console.log(trigger);
+        let secCommand = mainMsg[2]; //第三個詞是第二控制項
+        console.log('2nd Command = ' + secCommand);
+        if (trigger != 'roll') return null;
 
-  _isNaN = function(obj) {
-    return isNaN(parseInt(obj));
-  }
+        _isNaN = function(obj) {
+          return isNaN(parseInt(obj));
+        }
 
-  let commandArr = mainMsg[1].split(comSplitor);
-  if (commandArr.length != 2 || _isNaN(commandArr[0]) || _isNaN(commandArr[1])) return randomReply();
-   
-  let countOfNum = commandArr[0];
-  let randomRange = commandArr[1];
-  
-  // if ( mainMsg[2].split(comSplitor) != null) {
-  //      let timesSplit = '*';
-  //      let timesArr = mainMsg[2].split(timesSplit);
-  //      let timesNum = timesArr[1];
-  //  }
-      
-  
-  
-    let countStr = '';
-    let count = 0;
-  
-    for (let idx = 1; idx <= countOfNum; idx ++) {
-      let temp = random(1, randomRange);
-      countStr = countStr + temp + '+';
-      count += temp; 
-    }
-  
-    if (countOfNum == 1) {
-      countStr = count;
-    } else {
-      countStr = countStr.substring(0, countStr.length - 1) + '=' + count;
-    }
-    return countStr;
- 
+        let CuntArr = mainMsg[1].split(cuntSplitor); //先以加號分開彼此
+        let chackOnce = CuntArr[0].split(comSplitor);
+        //return CuntArr[0];
+        //return chackOnce;
+       // return CuntArr.length;
+        if (chackOnce.length != 2 || _isNaN(chackOnce[0]) || _isNaN(chackOnce[1])) return randomReply(); //只檢查第一項看看是否打錯
 
-}
+        let numMax = CuntArr.length - 1 ; //設定要做的加法的大次數
+        
+        var count = 0;
+        let countStr = '';
+        
+        for (let i = 0; i <= numMax; i++) {
+          let commandArr = CuntArr[i].split(comSplitor);
+            if (commandArr.length != 2) {
+              var ttemp = parseInt(commandArr[0]);
+                countStr = countStr + ttemp + '+';
+                
+                count += ttemp;
+              }
+          else
+            {
+          let countOfNum = commandArr[0];
+          let randomRange = commandArr[1];
+        
 
-function random(min, max) {
-  return Math.floor((Math.random() * max) + min);
-}
 
-function randomReply() {
-  let rplyArr = ['格式錯啦，d要小寫！', '幹，你這學不會的豬！d要小寫！', '誒誒，你這學不會的X，d要小寫。'];
-  return rplyArr[Math.floor((Math.random() * (rplyArr.length - 1)) + 0)];
-}
+            for (let idx = 1; idx <= countOfNum; idx ++) {
+              let temp = random(1, randomRange);
+              countStr = countStr + temp + '+';
+              count += temp; 
+            }
+          }
+        }
+        
+        
+        // if ( mainMsg[2].split(comSplitor) != null) {
+        //      let timesSplit = '*';
+        //      let timesArr = mainMsg[2].split(timesSplit);
+        //      let timesNum = timesArr[1];
+        //  }
+
+
+
+
+
+        
+        
+        //if (countOfNum == 1) {
+       //   countStr = count;
+       //  // countStr = count + '|2c=' + secCommand;
+          
+       // } else {
+          countStr = countStr.substring(0, countStr.length - 1) + '=' + count;
+         // countStr = countStr.substring(0, countStr.length - 1) + '=' + count + '|2c=' + secCommand;
+      //  }
+        return countStr;
+
+
+      }
+
+      function random(min, max) {
+        return Math.floor((Math.random() * max) + min);
+      }
+
+      function randomReply() {
+        let rplyArr = ['格式錯啦，d要小寫！', '幹，你這學不會的豬！d要小寫！', '誒誒，你這學不會的X，d要小寫。'];
+        return rplyArr[Math.floor((Math.random() * (rplyArr.length - 1)) + 0)];
+      }

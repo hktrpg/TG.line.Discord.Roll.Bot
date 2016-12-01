@@ -91,7 +91,7 @@ function parseInput(rplyToken, inputStr) {
   let trigger = mainMsg[0];
   //console.log(trigger);
   let secCommand = mainMsg[2];
-  console.log(secCommand);
+  console.log('2nd Command = ' + secCommand);
   if (trigger != 'roll') return null;
 
   _isNaN = function(obj) {

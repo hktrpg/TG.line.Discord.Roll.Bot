@@ -105,21 +105,28 @@ function parseInput(rplyToken, inputStr) {
   let timesArr = mainMsg[2].split(timesSplit);
   let timesNum = timesArr[1];
   
-  let countStr = '';
-  let count = 0;
+    
   
-  for (let idx = 1; idx <= countOfNum; idx ++) {
-    let temp = random(1, randomRange);
-    countStr = countStr + temp + '+';
-    count += temp; 
-  }
+    let countStr = '';
+    let count = 0;
   
-  if (countOfNum == 1) {
-    countStr = count;
-  } else {
-    countStr = countStr.substring(0, countStr.length - 1) + '=' + count;
-  }
-  return countStr;
+    for (let idx = 1; idx <= countOfNum; idx ++) {
+      let temp = random(1, randomRange);
+      countStr = countStr + temp + '+';
+      count += temp; 
+    }
+  
+    if (countOfNum == 1) {
+      countStr = count;
+    } else {
+      countStr = countStr.substring(0, countStr.length - 1) + '=' + count;
+    }
+    return countStr;
+ 
+   if (timesNum != null){
+     return timesNum;
+   }     
+
 }
 
 function random(min, max) {

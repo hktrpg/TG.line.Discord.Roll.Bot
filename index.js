@@ -136,6 +136,6 @@ function random(min, max) {
 }
 
 function randomReply() {
-  let rplyArr = ['格式錯啦，d要小寫！', '誒誒，你這學不會的X，d要小寫。'];
+  let rplyArr = ['格式錯啦，d要小寫！', '幹，你這學不會的豬！d要小寫！', '誒誒，你這學不會的X，d要小寫。'];
   return rplyArr[Math.floor((Math.random() * (rplyArr.length - 1)) + 0)];
 }

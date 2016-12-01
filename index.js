@@ -97,20 +97,16 @@ function parseInput(rplyToken, inputStr) {
   }
 
   let commandArr = mainMsg[1].split(comSplitor);
-  // if (commandArr.length != 2 || _isNaN(commandArr[0]) || _isNaN(commandArr[1])) return randomReply();
-  if (commandArr.length != 2 || _isNaN(commandArr[0]) || _isNaN(commandArr[1])){ 
-    return commandArr.length;
-    console.log（'commandArr.length');
-  } 
+  if (commandArr.length != 2 || _isNaN(commandArr[0]) || _isNaN(commandArr[1])) return randomReply();
    
   let countOfNum = commandArr[0];
   let randomRange = commandArr[1];
   
-    if ( mainMsg[2].split(comSplitor) != null) {
-        let timesSplit = '*';
-        let timesArr = mainMsg[2].split(timesSplit);
-        let timesNum = timesArr[1];
-    }
+  // if ( mainMsg[2].split(comSplitor) != null) {
+  //      let timesSplit = '*';
+  //      let timesArr = mainMsg[2].split(timesSplit);
+  //      let timesNum = timesArr[1];
+  //  }
       
   
   

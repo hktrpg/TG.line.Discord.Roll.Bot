@@ -99,6 +99,7 @@ function parseInput(rplyToken, inputStr) {
         
         if (trigger == 'roll'){        
                   
+          if (inputStr.split(msgSplitor).length == 1) return '擲骰格式範例：1d6，2d100，2d6+6 \n 若要輸出多筆，可空一格打*號，如：3d6 *5';
           if (inputStr.split(msgSplitor).length == 3){
             
             if (mainMsg[2].split('*').length == 2) {
@@ -106,8 +107,13 @@ function parseInput(rplyToken, inputStr) {
                //secCommand = parseInt(tempArr[1]);
               return MutiRollDice(mainMsg[1],parseInt(tempArr[1]));
             }
+            return NomalRollDice(mainMsg[1],mainMsg[2]);
           }
-          return NomalRollDice(mainMsg[1]);
+          if (inputStr.split(msgSplitor).length == 2){
+            return NomalRollDice(mainMsg[1],mainMsg[2]);
+          }
+          
+          
         }
         
         
@@ -137,10 +143,12 @@ function MutiRollDice(DiceToCal,timesNum){
 
   var count = 0;
   let countStr = '';
-
+  if (DiceToCal.match('D') != null) return '格式錯啦，d要小寫！';
+  
   for (let j = 1 ; j <= timesNum ; j++){
     count = 0;
       for (let i = 0; i <= numMax; i++) {
+          
           let commandArr = CuntArr[i].split(comSplitor);
           let countOfNum = commandArr[0];
           let randomRange = commandArr[1];
@@ -166,7 +174,7 @@ function MutiRollDice(DiceToCal,timesNum){
 }        
         
         
-function NomalRollDice(DiceToCal){
+function NomalRollDice(DiceToCal,text){
     let cuntSplitor = '+';
     let comSplitor = 'd';
     let CuntArr = DiceToCal.split(cuntSplitor);
@@ -174,8 +182,9 @@ function NomalRollDice(DiceToCal){
 
     var count = 0;
     let countStr = '';
-    
+    if (DiceToCal.match('D') != null) return '格式錯啦，d要小寫！';
     for (let i = 0; i <= numMax; i++) {
+      
       let commandArr = CuntArr[i].split(comSplitor);
       let countOfNum = commandArr[0];
       let randomRange = commandArr[1];
@@ -190,12 +199,18 @@ function NomalRollDice(DiceToCal){
           let temp = Dice(randomRange);
           countStr = countStr + temp + '+';
           count += temp; 
-        }
-      }
+        }      }
     }
   
-
-countStr = countStr.substring(0, countStr.length - 1) + '=' + count;
+    
+  if (countStr.split(cuntSplitor).length == 2) {
+    if (text == null ) countStr = count;
+    else countStr = count + '；' + text;
+  } 
+  else {
+    if (text == null ) countStr = countStr.substring(0, countStr.length - 1) + '=' + count;
+    else countStr = countStr.substring(0, countStr.length - 1) + '=' + count + '；' + text;
+  }
 return countStr;
           
 }

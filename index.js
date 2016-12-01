@@ -88,16 +88,32 @@ function parseInput(rplyToken, inputStr) {
 
         let mainMsg = inputStr.split(msgSplitor); //定義輸入字串，以空格切開
         let trigger = mainMsg[0]; //指定啟動詞在第一個詞
-        let secCommand = mainMsg[2]; //第三個詞是第二控制項
-        console.log('2nd Command = ' + secCommand);
-        if (trigger != 'roll') return null;
+        
+        
+
+        
 
         _isNaN = function(obj) {
           return isNaN(parseInt(obj));
+        }            
+        
+        if (trigger == 'roll'){        
+                  
+          if (inputStr.split(msgSplitor).length == 3){
+            
+            if (mainMsg[2].split('*').length == 2) {
+              let tempArr = mainMsg[2].split('*');
+               //secCommand = parseInt(tempArr[1]);
+              return MutiRollDice(mainMsg[1],parseInt(tempArr[1]));
+            }
+          }
+          return NomalRollDice(mainMsg[1]);
         }
         
         
-        if (trigger == 'roll') return rollTheDice(mainMsg[1],mainMsg[2]);
+        if (trigger != 'roll') return null;
+        
+
         
         //先以加號分開彼此
         //let chackOnce = CuntArr[0].split(comSplitor);
@@ -111,15 +127,6 @@ function parseInput(rplyToken, inputStr) {
 
       }
 
-function rollTheDice(DiceToCal,plusCom){
-  let plusSplitor = '*';
-  let timesNum = plusCom[1].split(plusSplitor);
-  if(plusCom[1].split(plusSplitor) == null||plusCom == null) return NomalRollDice(DiceToCal);
-  if(plusCom[1].split(plusSplitor) != null) return MutiRollDice(DiceToCal,timesNum);
-  
-  
-  return '格式可能有誤，你確定不查查看嘛？';
-}
 
         
 function MutiRollDice(DiceToCal,timesNum){

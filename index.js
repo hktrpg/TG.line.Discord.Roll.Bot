@@ -97,7 +97,8 @@ function parseInput(rplyToken, inputStr) {
   }
 
   let commandArr = mainMsg[1].split(comSplitor);
-  if (commandArr.length != 2) return randomReply();
+  // if (commandArr.length != 2 || _isNaN(commandArr[0]) || _isNaN(commandArr[1])) return randomReply();
+  if (commandArr.length != 2 || _isNaN(commandArr[0]) || _isNaN(commandArr[1])) return commandArr.length;
   let countOfNum = commandArr[0];
   let randomRange = commandArr[1];
   

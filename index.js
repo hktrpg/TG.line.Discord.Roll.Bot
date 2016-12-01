@@ -123,9 +123,6 @@ function parseInput(rplyToken, inputStr) {
     }
     return countStr;
  
-   if (timesNum != null){
-     return timesNum;
-   }     
 
 }
 

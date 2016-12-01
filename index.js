@@ -101,8 +101,14 @@ function parseInput(rplyToken, inputStr) {
   let countOfNum = commandArr[0];
   let randomRange = commandArr[1];
   
-
-    
+    if ( mainMsg[2].split(comSplitor) != null) {
+        let timesSplit = '*';
+        let timesArr = mainMsg[2].split(timesSplit);
+        let timesNum = timesArr[1];
+        return timesNum;
+    }
+      
+  
   
     let countStr = '';
     let count = 0;

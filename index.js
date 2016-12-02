@@ -13,9 +13,9 @@ var options = {
   headers: {
     'Content-Type': 'application/json',
     //巴獸
-    //'Authorization': 'Bearer EA1/i9foINj2mS/xle59b1Jv9IWtjW8KImFrcG6iE2tUVBld6p13eyZXJrTjYYcw60U8LAXyrQ+fcuBW2V+Lo8mKJ7LtwsUex2diCcDXObgEME8gm3vTvZ7ZaYobjJL9E7L6UdsTujp7VSJwZq9PDwdB04t89/1O/w1cDnyilFU='
+    'Authorization': 'Bearer EA1/i9foINj2mS/xle59b1Jv9IWtjW8KImFrcG6iE2tUVBld6p13eyZXJrTjYYcw60U8LAXyrQ+fcuBW2V+Lo8mKJ7LtwsUex2diCcDXObgEME8gm3vTvZ7ZaYobjJL9E7L6UdsTujp7VSJwZq9PDwdB04t89/1O/w1cDnyilFU='
     //自用
-    'Authorization': 'Bearer 5jaJz9O+Kf3hFiQSRD3LxFdBW6MNlJDoOZDgADH91+TFRw5fYoeLV1g3yDWt0ePExIygLzmvdkL0RRAAqbWhulZtkQuVVRuMRvgl1g/QqFAPkmJlwAyFDwewx3fgqpbNIGnmnVr9w7KZdfpmvfFI7AdB04t89/1O/w1cDnyilFU='
+    //'Authorization': 'Bearer 5jaJz9O+Kf3hFiQSRD3LxFdBW6MNlJDoOZDgADH91+TFRw5fYoeLV1g3yDWt0ePExIygLzmvdkL0RRAAqbWhulZtkQuVVRuMRvgl1g/QqFAPkmJlwAyFDwewx3fgqpbNIGnmnVr9w7KZdfpmvfFI7AdB04t89/1O/w1cDnyilFU='
   
   }
 }
@@ -107,6 +107,23 @@ function parseInput(rplyToken, inputStr) {
 \n不要打成大寫D，不要逼我嗆你';
         if (inputStr.match('鴨霸獸') != null) return randomReply() ;
         
+        //cc指令開始於此
+        if (inputStr.split('=')[0] == 'cc<') 
+        {
+          let cctext = null;
+          if (mainMsg[1] != undefined ) cctext = mainMsg[1];
+          return coc7(parseInt(inputStr.split('=')[1]),cctext);
+        }
+        
+        //ccb指令開始於此
+        if (inputStr.split('=')[0] == 'ccb<') 
+        {
+          let cctext = null;
+          if (mainMsg[1] != undefined ) cctext = mainMsg[1];
+          return coc6(parseInt(inputStr.split('=')[1]),cctext);
+        }
+
+        
         //roll 指令開始於此
         if (trigger == 'roll'){        
                   
@@ -147,7 +164,45 @@ function parseInput(rplyToken, inputStr) {
 
       }
 
+function coc6(chack,text){
+          let temp = Dice(100);
 
+
+          if (text == null ) {
+            if (temp == 100) return temp + '→啊！大失敗！';
+            if (temp <= chack) return temp + '→成功';
+            else return temp + '→失敗' ;
+          }
+          else
+    {
+            if (temp == 100) return temp + '→啊！大失敗！；' + text;
+            if (temp <= chack) return temp + '→成功；' + text;
+            else return temp + '→失敗；' + text;
+    }
+}        
+        
+function coc7(chack,text){
+  let temp = Dice(100);
+  
+  
+  if (text == null ) {
+    if (temp == 1) return temp + '→恭喜！大成功！';
+    if (temp == 100) return temp + '→啊！大失敗！';
+    if (temp <= chack/5) return temp + '→極限成功';
+    if (temp <= chack/2) return temp + '→困難成功';
+    if (temp <= chack) return temp + '→通常成功';
+    else return temp + '→失敗' ;
+  }
+  else
+  {
+  if (temp == 1) return temp + '→恭喜！大成功！；' + text;
+  if (temp == 100) return temp + '→啊！大失敗！；' + text;
+  if (temp <= chack/5) return temp + '→極限成功；' + text;
+  if (temp <= chack/2) return temp + '→困難成功；' + text;
+  if (temp <= chack) return temp + '→通常成功；' + text;
+  else return temp + '→失敗；' + text;
+  }
+}
         
 function MutiRollDice(DiceToCal,timesNum){
   let cuntSplitor = '+';

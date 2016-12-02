@@ -104,7 +104,9 @@ function parseInput(rplyToken, inputStr) {
         if (inputStr.match('鴨霸獸') != null && inputStr.match('說明') != null) return randomReply() + '\n' + '\
 總之你要擲骰前就先打roll，後面接像是2d6，1d6+3，2d6+1d3之類的就好。  \
 \n要多筆輸出就是先空一格再打像是 *5 之類的。  \
-\n不要打成大寫D，不要逼我嗆你';
+\n不要打成大寫D，不要逼我嗆你 \
+\n如果是CoC系的話，有初步支援cc擲骰了，獎懲骰也支援了。 \
+';
         if (inputStr.match('鴨霸獸') != null) return randomReply() ;
         
         //cc指令開始於此
@@ -115,8 +117,16 @@ function parseInput(rplyToken, inputStr) {
           return coc7(parseInt(inputStr.split('=')[1]),cctext);
         }
         
+        //獎懲骰設定於此
+        if (inputStr.split('=')[0] == 'cc(1)<'||inputStr.split('=')[0] == 'cc(2)<'||inputStr.split('=')[0] == 'cc(-1)<'||inputStr.split('=')[0] == 'cc(-2)<') 
+        {
+          let cctext = null;
+          if (mainMsg[1] != undefined ) cctext = mainMsg[1];
+          return coc7bp(parseInt(inputStr.split('=')[1]),parseInt(inputStr.split('(')[1]),cctext);
+        }
+        
         //ccb指令開始於此
-        if (inputStr.split('=')[0] == 'ccb<') 
+       if (inputStr.split('=')[0] == 'ccb<') 
         {
           let cctext = null;
           if (mainMsg[1] != undefined ) cctext = mainMsg[1];
@@ -182,9 +192,7 @@ function coc6(chack,text){
 }        
         
 function coc7(chack,text){
-  let temp = Dice(100);
-  
-  
+  let temp = Dice(100);  
   if (text == null ) {
     if (temp == 1) return temp + '→恭喜！大成功！';
     if (temp == 100) return temp + '→啊！大失敗！';
@@ -202,6 +210,72 @@ function coc7(chack,text){
   if (temp <= chack) return temp + '→通常成功；' + text;
   else return temp + '→失敗；' + text;
   }
+}
+        
+function coc7chack(temp,chack,text){
+  if (text == null ) {
+    if (temp == 1) return temp + '→恭喜！大成功！';
+    if (temp == 100) return temp + '→啊！大失敗！';
+    if (temp <= chack/5) return temp + '→極限成功';
+    if (temp <= chack/2) return temp + '→困難成功';
+    if (temp <= chack) return temp + '→通常成功';
+    else return temp + '→失敗' ;
+  }
+else
+  {
+    if (temp == 1) return temp + '→恭喜！大成功！；' + text;
+    if (temp == 100) return temp + '→啊！大失敗！；' + text;
+    if (temp <= chack/5) return temp + '→極限成功；' + text;
+    if (temp <= chack/2) return temp + '→困難成功；' + text;
+    if (temp <= chack) return temp + '→通常成功；' + text;
+    else return temp + '→失敗；' + text;
+  }
+}
+
+
+function coc7bp (chack,bpdiceNum,text){
+  let temp0 = Dice(10) - 1;
+  let countStr = '';
+  
+  if (bpdiceNum > 0){
+  for (let i = 0; i <= bpdiceNum; i++ ){
+    let temp = Dice(10);
+    let temp2 = temp.toString() + temp0.toString();
+    if (temp2 > 100) temp2 = parseInt(temp2) - 100;  
+    countStr = countStr + temp2 + '、';
+  }
+  countStr = countStr.substring(0, countStr.length - 1) 
+    let countArr = countStr.split('、'); 
+    
+  countStr = countStr + '→' + coc7chack(Math.min(...countArr),chack,text);
+  return countStr;
+  }
+  
+  if (bpdiceNum < 0){
+    bpdiceNum = Math.abs(bpdiceNum);
+    for (let i = 0; i <= bpdiceNum; i++ ){
+      let temp = Dice(10);
+      let temp2 = temp.toString() + temp0.toString();
+      if (temp2 > 100) temp2 = parseInt(temp2) - 100;  
+      countStr = countStr + temp2 + '、';
+    }
+    countStr = countStr.substring(0, countStr.length - 1) 
+    let countArr = countStr.split('、'); 
+
+    countStr = countStr + '→' + coc7chack(Math.max(...countArr),chack,text);
+    return countStr;
+  }
+  
+}
+        
+function ArrMax (Arr){
+  var max = this[0];
+  this.forEach (function(ele,index,arr){
+    if(ele > max) {
+      max = ele;
+    }
+  })
+  return max;
 }
         
 function MutiRollDice(DiceToCal,timesNum){

@@ -95,11 +95,21 @@ function parseInput(rplyToken, inputStr) {
 
         _isNaN = function(obj) {
           return isNaN(parseInt(obj));
-        }            
+        }                   
+        //鴨霸獸指令開始於此
+        if (inputStr.match('鴨霸獸') != null && inputStr.match('說明') != null) return randomReply() + '\n' + '\
+總之你要擲骰前就先打roll，後面接像是2d6，1d6+3，2d6+1d3之類的就好。 \n \
+要多筆輸出就是先空一格再打像是 *5 之類的。 \n \
+不要打成大寫D，不要吧我嗆你';
+        if (inputStr.match('鴨霸獸') != null) return randomReply() ;
         
+        //roll 指令開始於此
         if (trigger == 'roll'){        
                   
-          if (inputStr.split(msgSplitor).length == 1) return '擲骰格式範例：1d6，2d100，2d6+6 \n 若要輸出多筆，可空一格打*號，如：3d6 *5';
+          if (inputStr.split(msgSplitor).length == 1) return '\
+總之你要擲骰前就先打roll，後面接像是2d6，1d6+3，2d6+1d3之類的就好。 \n \
+要多筆輸出就是先空一格再打像是 *5 之類的。 \n \
+不要打成大寫D，不要吧我嗆你';
           if (inputStr.split(msgSplitor).length == 3){
             
             if (mainMsg[2].split('*').length == 2) {
@@ -143,7 +153,7 @@ function MutiRollDice(DiceToCal,timesNum){
 
   var count = 0;
   let countStr = '';
-  if (DiceToCal.match('D') != null) return '格式錯啦，d要小寫！';
+  if (DiceToCal.match('D') != null) return randomReply() + '\n 格式錯啦，d要小寫！';
   
   for (let j = 1 ; j <= timesNum ; j++){
     count = 0;
@@ -182,7 +192,7 @@ function NomalRollDice(DiceToCal,text){
 
     var count = 0;
     let countStr = '';
-    if (DiceToCal.match('D') != null) return '格式錯啦，d要小寫！';
+  if (DiceToCal.match('D') != null) return randomReply() + '\n 格式錯啦，d要小寫！';
     for (let i = 0; i <= numMax; i++) {
       
       let commandArr = CuntArr[i].split(comSplitor);
@@ -222,6 +232,6 @@ return countStr;
 
 
         function randomReply() {
-          let rplyArr = ['格式錯啦，d要小寫！', '幹，你這學不會的豬！d要小寫！', '誒誒，你這學不會的X，d要小寫。'];
-          return rplyArr[Math.floor((Math.random() * (rplyArr.length - 1)) + 0)];
+          let rplyArr = ['你們死定了呃呃呃不要糾結這些……所以是在糾結哪些？', '在澳洲，每過一分鐘就有一隻鴨嘴獸被拔嘴。 \n我到底在共三小。', '嗚噁噁噁噁噁噁，不要隨便叫我。', '幹，你這學不會的豬！', '嘎嘎嘎。', 'wwwwwwwwwwwwwwwww', '為什麼你們每天都可以一直玩；玩就算了還玩我。', '好棒，整點了！咦？不是嗎？', '不要打擾我挖坑！', '好棒，誤點了！', '在南半球，一隻鴨嘴獸拍打他的鰭，他的嘴就會掉下來。 \n我到底在共三小。', '什麼東西你共三小。', '哈哈哈哈哈哈哈哈！'];
+          return rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
         }

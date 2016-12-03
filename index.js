@@ -159,6 +159,17 @@ function parseInput(rplyToken, inputStr) {
         if (trigger != 'roll') return null;
         
 
+        
+        //先以加號分開彼此
+        //let chackOnce = CuntArr[0].split(comSplitor);
+        //return CuntArr[0];
+        //return chackOnce;
+        // return CuntArr.length;
+        //if (chackOnce.length != 2 || _isNaN(chackOnce[0]) || _isNaN(chackOnce[1])) return randomReply(); //只檢查第一項看看是否打錯
+
+       
+
+
       }
 
 function coc6(chack,text){
@@ -265,74 +276,73 @@ function ArrMax (Arr){
   return max;
 }
         
-function MutiRollDice(DiceToCal,timesNum,text){
-  let cuntSplitor = '+';
-  let comSplitor = 'd';
-  let CuntArr = DiceToCal.split(cuntSplitor);
-  let numMax = CuntArr.length - 1 ; //設定要做的加法的大次數
 
-  var count = 0;
-  let countStr = '';
-  if (DiceToCal.match('D') != null) return randomReply() + '\n格式錯啦，d要小寫！';
-  
-  if (text == null) {
-  for (let j = 1 ; j <= timesNum ; j++){
-    count = 0;
-      for (let i = 0; i <= numMax; i++) {
-          
-          let commandArr = CuntArr[i].split(comSplitor);
-          let countOfNum = commandArr[0];
-          let randomRange = commandArr[1];
-          if (randomRange == null) {
-              let temp = parseInt(countOfNum);
-              //countStr = countStr + temp + '+';
-              count += temp; 
-            }
-          else{
-              
-              for (let idx = 1; idx <= countOfNum; idx ++) {
-                  let temp = Dice(randomRange);
+        function MutiRollDice(DiceToCal,timesNum,text){
+          let cuntSplitor = '+';
+          let comSplitor = 'd';
+          let CuntArr = DiceToCal.split(cuntSplitor);
+          let numMax = CuntArr.length - 1 ; //設定要做的加法的大次數
+
+          var count = 0;
+          let countStr = '';
+          if (DiceToCal.match('D') != null) return randomReply() + '\n格式錯啦，d要小寫！';
+
+          if (text == null) {
+            for (let j = 1 ; j <= timesNum ; j++){
+              count = 0;
+              for (let i = 0; i <= numMax; i++) {
+
+                let commandArr = CuntArr[i].split(comSplitor);
+                let countOfNum = commandArr[0];
+                let randomRange = commandArr[1];
+                if (randomRange == null) {
+                  let temp = parseInt(countOfNum);
                   //countStr = countStr + temp + '+';
                   count += temp; 
                 }
+                else{
+
+                  for (let idx = 1; idx <= countOfNum; idx ++) {
+                    let temp = Dice(randomRange);
+                    //countStr = countStr + temp + '+';
+                    count += temp; 
+                  }
+                }
+              }
+              countStr = countStr + count + '、';
             }
-        }
-    countStr = countStr + count + '；';
-}
-  countStr = countStr.substring(0, countStr.length - 1) ;
-  return countStr;
-  }
-  
-  if (text != null) {
-    for (let j = 1 ; j <= timesNum ; j++){
-      count = 0;
-      for (let i = 0; i <= numMax; i++) {
+            countStr = countStr.substring(0, countStr.length - 1) ;
+            return countStr;
+          }
 
-        let commandArr = CuntArr[i].split(comSplitor);
-        let countOfNum = commandArr[0];
-        let randomRange = commandArr[1];
-        if (randomRange == null) {
-          let temp = parseInt(countOfNum);
-          //countStr = countStr + temp + '+';
-          count += temp; 
-        }
-        else{
+          if (text != null) {
+            for (let j = 1 ; j <= timesNum ; j++){
+              count = 0;
+              for (let i = 0; i <= numMax; i++) {
 
-          for (let idx = 1; idx <= countOfNum; idx ++) {
-            let temp = Dice(randomRange);
-            //countStr = countStr + temp + '+';
-            count += temp; 
+                let commandArr = CuntArr[i].split(comSplitor);
+                let countOfNum = commandArr[0];
+                let randomRange = commandArr[1];
+                if (randomRange == null) {
+                  let temp = parseInt(countOfNum);
+                  //countStr = countStr + temp + '+';
+                  count += temp; 
+                }
+                else{
+
+                  for (let idx = 1; idx <= countOfNum; idx ++) {
+                    let temp = Dice(randomRange);
+                    //countStr = countStr + temp + '+';
+                    count += temp; 
+                  }
+                }
+              }
+              countStr = countStr + count + '、';
+            }
+            countStr = countStr.substring(0, countStr.length - 1) + '；' + text;
+            return countStr;
           }
         }
-      }
-      countStr = countStr + count + '；';
-    }
-    countStr = countStr + text;
-    return countStr;
-  }
-  
-  
-}        
         
         
 function NomalRollDice(DiceToCal,text){

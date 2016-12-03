@@ -138,12 +138,13 @@ function parseInput(rplyToken, inputStr) {
 總之你要擲骰前就先打roll，後面接像是2d6，1d6+3，2d6+1d3之類的就好。  \
 \n要多筆輸出就是先空一格再打像是 *5 之類的。  \
 \n不要打成大寫D，不要逼我嗆你';
-          if (inputStr.split(msgSplitor).length == 3){
+          if (inputStr.split(msgSplitor).length >= 3){
             
             if (mainMsg[2].split('*').length == 2) {
               let tempArr = mainMsg[2].split('*');
-               //secCommand = parseInt(tempArr[1]);
-              return MutiRollDice(mainMsg[1],parseInt(tempArr[1]));
+              let text = inputStr.split(msgSplitor)[3];
+              //secCommand = parseInt(tempArr[1]);
+              return MutiRollDice(mainMsg[1],parseInt(tempArr[1]),text);
             }
             return NomalRollDice(mainMsg[1],mainMsg[2]);
           }
@@ -157,6 +158,7 @@ function parseInput(rplyToken, inputStr) {
         
         if (trigger != 'roll') return null;
         
+
       }
 
 function coc6(chack,text){
@@ -263,7 +265,7 @@ function ArrMax (Arr){
   return max;
 }
         
-function MutiRollDice(DiceToCal,timesNum){
+function MutiRollDice(DiceToCal,timesNum,text){
   let cuntSplitor = '+';
   let comSplitor = 'd';
   let CuntArr = DiceToCal.split(cuntSplitor);
@@ -273,6 +275,7 @@ function MutiRollDice(DiceToCal,timesNum){
   let countStr = '';
   if (DiceToCal.match('D') != null) return randomReply() + '\n格式錯啦，d要小寫！';
   
+  if (text == null) {
   for (let j = 1 ; j <= timesNum ; j++){
     count = 0;
       for (let i = 0; i <= numMax; i++) {
@@ -298,7 +301,37 @@ function MutiRollDice(DiceToCal,timesNum){
 }
   countStr = countStr.substring(0, countStr.length - 1) ;
   return countStr;
+  }
+  
+  if (text != null) {
+    for (let j = 1 ; j <= timesNum ; j++){
+      count = 0;
+      for (let i = 0; i <= numMax; i++) {
 
+        let commandArr = CuntArr[i].split(comSplitor);
+        let countOfNum = commandArr[0];
+        let randomRange = commandArr[1];
+        if (randomRange == null) {
+          let temp = parseInt(countOfNum);
+          //countStr = countStr + temp + '+';
+          count += temp; 
+        }
+        else{
+
+          for (let idx = 1; idx <= countOfNum; idx ++) {
+            let temp = Dice(randomRange);
+            //countStr = countStr + temp + '+';
+            count += temp; 
+          }
+        }
+      }
+      countStr = countStr + count + '；';
+    }
+    countStr = countStr + text;
+    return countStr;
+  }
+  
+  
 }        
         
         

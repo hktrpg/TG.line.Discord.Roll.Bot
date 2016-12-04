@@ -158,18 +158,6 @@ function parseInput(rplyToken, inputStr) {
         
         if (trigger != 'roll') return null;
         
-
-        
-        //先以加號分開彼此
-        //let chackOnce = CuntArr[0].split(comSplitor);
-        //return CuntArr[0];
-        //return chackOnce;
-        // return CuntArr.length;
-        //if (chackOnce.length != 2 || _isNaN(chackOnce[0]) || _isNaN(chackOnce[1])) return randomReply(); //只檢查第一項看看是否打錯
-
-       
-
-
       }
 
 function coc6(chack,text){
@@ -177,56 +165,56 @@ function coc6(chack,text){
 
 
           if (text == null ) {
-            if (temp == 100) return temp + '→啊！大失敗！';
-            if (temp <= chack) return temp + '→成功';
-            else return temp + '→失敗' ;
+            if (temp == 100) return temp + ' → 啊！大失敗！';
+            if (temp <= chack) return temp + ' → 成功';
+            else return temp + ' → 失敗' ;
           }
           else
     {
-            if (temp == 100) return temp + '→啊！大失敗！；' + text;
-            if (temp <= chack) return temp + '→成功；' + text;
-            else return temp + '→失敗；' + text;
+            if (temp == 100) return temp + ' → 啊！大失敗！；' + text;
+            if (temp <= chack) return temp + ' → 成功；' + text;
+            else return temp + ' → 失敗；' + text;
     }
 }        
         
 function coc7(chack,text){
   let temp = Dice(100);  
   if (text == null ) {
-    if (temp == 1) return temp + '→恭喜！大成功！';
-    if (temp == 100) return temp + '→啊！大失敗！';
-    if (temp <= chack/5) return temp + '→極限成功';
-    if (temp <= chack/2) return temp + '→困難成功';
-    if (temp <= chack) return temp + '→通常成功';
-    else return temp + '→失敗' ;
+    if (temp == 1) return temp + ' → 恭喜！大成功！';
+    if (temp == 100) return temp + ' → 啊！大失敗！';
+    if (temp <= chack/5) return temp + ' → 極限成功';
+    if (temp <= chack/2) return temp + ' → 困難成功';
+    if (temp <= chack) return temp + ' → 通常成功';
+    else return temp + ' → 失敗' ;
   }
   else
   {
-  if (temp == 1) return temp + '→恭喜！大成功！；' + text;
-  if (temp == 100) return temp + '→啊！大失敗！；' + text;
-  if (temp <= chack/5) return temp + '→極限成功；' + text;
-  if (temp <= chack/2) return temp + '→困難成功；' + text;
-  if (temp <= chack) return temp + '→通常成功；' + text;
-  else return temp + '→失敗；' + text;
+  if (temp == 1) return temp + ' → 恭喜！大成功！；' + text;
+  if (temp == 100) return temp + ' → 啊！大失敗！；' + text;
+  if (temp <= chack/5) return temp + ' → 極限成功；' + text;
+  if (temp <= chack/2) return temp + ' → 困難成功；' + text;
+  if (temp <= chack) return temp + ' → 通常成功；' + text;
+  else return temp + ' → 失敗；' + text;
   }
 }
         
 function coc7chack(temp,chack,text){
   if (text == null ) {
-    if (temp == 1) return temp + '→恭喜！大成功！';
-    if (temp == 100) return temp + '→啊！大失敗！';
-    if (temp <= chack/5) return temp + '→極限成功';
-    if (temp <= chack/2) return temp + '→困難成功';
-    if (temp <= chack) return temp + '→通常成功';
-    else return temp + '→失敗' ;
+    if (temp == 1) return temp + ' → 恭喜！大成功！';
+    if (temp == 100) return temp + ' → 啊！大失敗！';
+    if (temp <= chack/5) return temp + ' → 極限成功';
+    if (temp <= chack/2) return temp + ' → 困難成功';
+    if (temp <= chack) return temp + ' → 通常成功';
+    else return temp + ' → 失敗' ;
   }
 else
   {
-    if (temp == 1) return temp + '→恭喜！大成功！；' + text;
-    if (temp == 100) return temp + '→啊！大失敗！；' + text;
-    if (temp <= chack/5) return temp + '→極限成功；' + text;
-    if (temp <= chack/2) return temp + '→困難成功；' + text;
-    if (temp <= chack) return temp + '→通常成功；' + text;
-    else return temp + '→失敗；' + text;
+    if (temp == 1) return temp + ' → 恭喜！大成功！；' + text;
+    if (temp == 100) return temp + ' → 啊！大失敗！；' + text;
+    if (temp <= chack/5) return temp + ' → 極限成功；' + text;
+    if (temp <= chack/2) return temp + ' → 困難成功；' + text;
+    if (temp <= chack) return temp + ' → 通常成功；' + text;
+    else return temp + ' → 失敗；' + text;
   }
 }
 
@@ -245,7 +233,7 @@ function coc7bp (chack,bpdiceNum,text){
   countStr = countStr.substring(0, countStr.length - 1) 
     let countArr = countStr.split('、'); 
     
-  countStr = countStr + '→' + coc7chack(Math.min(...countArr),chack,text);
+  countStr = countStr + ' → ' + coc7chack(Math.min(...countArr),chack,text);
   return countStr;
   }
   
@@ -260,7 +248,7 @@ function coc7bp (chack,bpdiceNum,text){
     countStr = countStr.substring(0, countStr.length - 1) 
     let countArr = countStr.split('、'); 
 
-    countStr = countStr + '→' + coc7chack(Math.max(...countArr),chack,text);
+    countStr = countStr + ' → ' + coc7chack(Math.max(...countArr),chack,text);
     return countStr;
   }
   

@@ -365,7 +365,8 @@ function NomalRollDice(DiceToCal,text){
     if (text == null ) countStr = countStr.substring(0, countStr.length - 1) + '=' + count;
     else countStr = countStr.substring(0, countStr.length - 1) + '=' + count + '；' + text;
   }
-return countStr;
+  let temp2 = mainMsg[1];
+return temp2 + ' ' + countStr;
           
 }
 

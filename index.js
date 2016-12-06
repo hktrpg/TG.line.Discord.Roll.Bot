@@ -99,7 +99,7 @@ function parseInput(rplyToken, inputStr) {
         }                   
         //鴨霸獸指令開始於此
         if (inputStr.match('help') != null || inputStr.match('Help') != null) return randomReply() + '\n' + '\
-總之你要擲骰前就先打roll，後面接像是2d6，1d6+3，2d6+1d3之類的就好。  \
+總之你要擲骰前就先打r，後面接像是2d6，1d6+3，2d6+1d3之類的就好。  \
 \n要多筆輸出就是先空一格再打像是 *5 之類的。  \
 \n不要打成大寫D，不要逼我嗆你 \
 \n如果是CoC系的話，有初步支援cc擲骰了，獎懲骰也支援了。 \
@@ -135,7 +135,7 @@ function parseInput(rplyToken, inputStr) {
         if (trigger == 'r' || 'R'){        
                   
           if (inputStr.split(msgSplitor).length == 1) return '\
-總之你要擲骰前就先打roll，後面接像是2d6，1d6+3，2d6+1d3之類的就好。  \
+總之你要擲骰前就先打r，後面接像是2d6，1d6+3，2d6+1d3之類的就好。  \
 \n要多筆輸出就是先空一格再打像是 *5 之類的。  \
 \n不要打成大寫D，不要逼我嗆你';
           if (inputStr.split(msgSplitor).length >= 3){
@@ -156,7 +156,7 @@ function parseInput(rplyToken, inputStr) {
         }
         
         
-        if (trigger != 'roll') return null;
+        if (trigger != 'r' || 'R') return null;
         
       }
 

@@ -99,9 +99,19 @@ function parseInput(rplyToken, inputStr) {
         }                   
         //鴨霸獸指令開始於此
         if (trigger.match('help') != null) return randomReply() + '\n' + '\
-總之你要擲骰前就先打r，後面接像是2d6，1d6+3，2d6+1d3之類的就好。  \
-\n要多筆輸出就是先空一格再打像是 *5 之類的。  \
-\n如果是CoC系的話，有初步支援cc擲骰了，獎懲骰也支援了。 \
+【擲骰BOT】你可以在聊天中進行自定義的擲骰 \
+\n 例如輸入）r 2d6+1　攻撃！\
+\n 會輸出）   10+1=11；攻撃！\
+\n 如上面一樣,在骰子數字後方隔空白位打字,就可以進行發言。\
+\n 以下還有其他例子\
+\n 3D6 *5 ：分別骰出5次3d6\
+\n ・七版判定　CC(x)<=（目標値）\
+\n　x：獎勵骰/懲罰骰：Bonus/Penalty Dice (2～－2)。沒有的話可以省略。\
+\n　致命的失敗：Fumble／失敗：Failure／通常成功：Regular success／\
+\n　困難成功：Hard success／極限成功：Extreme success／\
+\n　決定性的成功：Critical success　\
+\n例）CC<=30　CC(2)<=50　CC(-1)<=75\
+\n ・六版判定　CCb<=（目標値）：做出成功或失敗的判定\
 ';
         if (trigger.match('鴨霸獸') != null) return randomReply() ;
         

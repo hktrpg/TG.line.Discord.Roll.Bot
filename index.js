@@ -159,15 +159,15 @@ function coc6(chack,text){
 
 
           if (text == null ) {
-            if (temp == 100) return temp + ' → 啊！大失敗！';
-            if (temp <= chack) return temp + ' → 成功';
-            else return temp + ' → 失敗' ;
+            if (temp == 100) return 'ccb<=' + chack  + ' ' + temp + ' → 啊！大失敗！';
+            if (temp <= chack) return 'ccb<=' + chack + ' '  + temp + ' → 成功';
+            else return 'ccb<=' + chack  + ' ' + temp + ' → 失敗' ;
           }
           else
     {
-            if (temp == 100) return temp + ' → 啊！大失敗！；' + text;
-            if (temp <= chack) return temp + ' → 成功；' + text;
-            else return temp + ' → 失敗；' + text;
+            if (temp == 100) return 'ccb<=' + chack + ' ' + temp + ' → 啊！大失敗！；' + text;
+            if (temp <= chack) return 'ccb<=' + chack +  ' ' + temp + ' → 成功；' + text;
+            else return 'ccb<=' + chack  + ' ' +  temp + ' → 失敗；' + text;
     }
 }        
         
@@ -323,7 +323,7 @@ function ArrMax (Arr){
               countStr = countStr + count + '、';
             }
             countStr = countStr.substring(0, countStr.length - 1) + '；' + text;
-            return countStr;
+            return DiceToCal + ' → ' +countStr;
           }
         }
         
@@ -365,7 +365,7 @@ function NomalRollDice(DiceToCal,text){
     if (text == null ) countStr = countStr.substring(0, countStr.length - 1) + '=' + count;
     else countStr = countStr.substring(0, countStr.length - 1) + '=' + count + '；' + text;
   }
-return countStr;
+return DiceToCal + ' → ' + countStr;
           
 }
 

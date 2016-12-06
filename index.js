@@ -132,7 +132,7 @@ function parseInput(rplyToken, inputStr) {
 
         
         //roll 指令開始於此
-        if (trigger == 'r' || 'R'){        
+        if (trigger == 'r' || trigger == 'R'){        
                   
           if (inputStr.split(msgSplitor).length == 1) return '\
 總之你要擲骰前就先打r，後面接像是2d6，1d6+3，2d6+1d3之類的就好。  \
@@ -156,7 +156,7 @@ function parseInput(rplyToken, inputStr) {
         }
         
         
-        if (trigger != 'r' || 'R') return null;
+        if (trigger != 'r' || trigger != 'R') return null;
         
       }
 

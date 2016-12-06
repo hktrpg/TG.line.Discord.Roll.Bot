@@ -323,7 +323,7 @@ function ArrMax (Arr){
               countStr = countStr + count + '、';
             }
             countStr = countStr.substring(0, countStr.length - 1) + '；' + text;
-            return countStr;
+            return DiceToCal + ' ' +countStr;
           }
         }
         
@@ -365,8 +365,7 @@ function NomalRollDice(DiceToCal,text){
     if (text == null ) countStr = countStr.substring(0, countStr.length - 1) + '=' + count;
     else countStr = countStr.substring(0, countStr.length - 1) + '=' + count + '；' + text;
   }
-  let temp2 = mainMsg[1];
-return temp2 + ' ' + countStr;
+return DiceToCal + ' ' + countStr;
           
 }
 

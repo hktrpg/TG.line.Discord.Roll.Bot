@@ -166,7 +166,7 @@ function coc6(chack,text){
           else
     {
             if (temp == 100) return 'ccb<=' + chack + ' ' + temp + ' → 啊！大失敗！；' + text;
-            if (temp <= chack) return 'ccb<=' + chack + + ' ' temp + ' → 成功；' + text;
+            if (temp <= chack) return 'ccb<=' + chack +  ' ' + temp + ' → 成功；' + text;
             else return 'ccb<=' + chack  + ' ' +  temp + ' → 失敗；' + text;
     }
 }        

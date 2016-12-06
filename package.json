@@ -1,7 +1,7 @@
 {
   "name": "leoli",
-  "version": "0.2.0",
-  "description": "LeoLi Line Bot",
+  "version": "0.3.0",
+  "description": "Zetetic Line Bot",
   "engines": {
     "node": "6.9.1"
   },
@@ -14,7 +14,7 @@
     "body-parser": "1.15.2"
   },
   "keywords": [
-    "LeoLi",
+    "Zetetic",
     "Line"
   ],
   "license": "MIT"

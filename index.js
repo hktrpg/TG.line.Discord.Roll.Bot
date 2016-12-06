@@ -12,7 +12,7 @@ var options = {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer [C7TLbB0VbkW9ee9rHzAQ1mxkbDtT6JaWvUwqJKagp/Jcv4thqaz0S1qFsGmigrBDyfCf3ak0QfsZBuKk9XrX7shkSuao1SnM4CX1vrQphARnWVMUTNDMcq5wP2xoml9rJPFMCInqhG/Q1KYr1OZ11QdB04t89/1O/w1cDnyilFU=]'
+    'Authorization': 'Bearer [L/rv6DxG3fHK7SOuQOz4mvHxX5mjN7+Axpy1IJJBg6ENFEKVV1Z+kApbryOPP77P03OF7O80JNHmjl6Ncxt/dgIml8n4UOD71jQPhI+wiEKhnagEmiqxC2sLKROX/GSrLcbxa0fei67hhh5QyfDLngdB04t89/1O/w1cDnyilFU=]'
   
   }
 }
@@ -84,11 +84,11 @@ function replyMsgToLine(rplyToken, rplyVal) {
 }
 
 function parseInput(rplyToken, inputStr) {
+        
         console.log('InputStr: ' + inputStr);
-        let msgSplitor = ' ';
-
-        let mainMsg = inputStr.split(msgSplitor); //定義輸入字串，以空格切開
-        let trigger = mainMsg[0]; //指定啟動詞在第一個詞
+        let msgSplitor = ' ';        
+        let mainMsg = inputStr.split(msgSplitor); //定義輸入字串，以空格切開     
+        let trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
         
         
 
@@ -98,16 +98,15 @@ function parseInput(rplyToken, inputStr) {
           return isNaN(parseInt(obj));
         }                   
         //鴨霸獸指令開始於此
-        if (inputStr.match('help') != null || inputStr.match('Help') != null) return randomReply() + '\n' + '\
+        if (trigger.match('help') != null) return randomReply() + '\n' + '\
 總之你要擲骰前就先打r，後面接像是2d6，1d6+3，2d6+1d3之類的就好。  \
 \n要多筆輸出就是先空一格再打像是 *5 之類的。  \
-\n不要打成大寫D，不要逼我嗆你 \
 \n如果是CoC系的話，有初步支援cc擲骰了，獎懲骰也支援了。 \
 ';
-        if (inputStr.match('鴨霸獸') != null) return randomReply() ;
+        if (trigger.match('鴨霸獸') != null) return randomReply() ;
         
         //cc指令開始於此
-        if (inputStr.split('=')[0] == 'cc<') 
+        if (trigger.split('=')[0] == 'cc<') 
         {
           let cctext = null;
           if (mainMsg[1] != undefined ) cctext = mainMsg[1];
@@ -115,7 +114,7 @@ function parseInput(rplyToken, inputStr) {
         }
         
         //獎懲骰設定於此
-        if (inputStr.split('=')[0] == 'cc(1)<'||inputStr.split('=')[0] == 'cc(2)<'||inputStr.split('=')[0] == 'cc(-1)<'||inputStr.split('=')[0] == 'cc(-2)<') 
+        if (trigger.split('=')[0] == 'cc(1)<'||inputStr.split('=')[0] == 'cc(2)<'||inputStr.split('=')[0] == 'cc(-1)<'||inputStr.split('=')[0] == 'cc(-2)<') 
         {
           let cctext = null;
           if (mainMsg[1] != undefined ) cctext = mainMsg[1];
@@ -123,7 +122,7 @@ function parseInput(rplyToken, inputStr) {
         }
         
         //ccb指令開始於此
-       if (inputStr.split('=')[0] == 'ccb<') 
+       if (trigger.split('=')[0] == 'ccb<') 
         {
           let cctext = null;
           if (mainMsg[1] != undefined ) cctext = mainMsg[1];
@@ -132,7 +131,7 @@ function parseInput(rplyToken, inputStr) {
 
         
         //roll 指令開始於此
-        if (trigger == 'r' || trigger == 'R'){        
+        if (trigger == 'r'){        
                   
           if (inputStr.split(msgSplitor).length == 1) return '\
 總之你要擲骰前就先打r，後面接像是2d6，1d6+3，2d6+1d3之類的就好。  \
@@ -156,7 +155,7 @@ function parseInput(rplyToken, inputStr) {
         }
         
         
-        if (trigger != 'r' || trigger != 'R') return null;
+        if (trigger != 'r') return null;
         
       }
 
@@ -268,6 +267,7 @@ function ArrMax (Arr){
         function MutiRollDice(DiceToCal,timesNum,text){
           let cuntSplitor = '+';
           let comSplitor = 'd';
+          
           let CuntArr = DiceToCal.split(cuntSplitor);
           let numMax = CuntArr.length - 1 ; //設定要做的加法的大次數
 

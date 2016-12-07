@@ -380,7 +380,7 @@ return DiceToCal + ' → ' + countStr;
           let rplyArr = ['你們死定了呃呃呃不要糾結這些……所以是在糾結哪些？', '在澳洲，每過一分鐘就有一隻鴨嘴獸被拔嘴。 \n我到底在共三小。', '嗚噁噁噁噁噁噁，不要隨便叫我。', '幹，你這學不會的豬！', '嘎嘎嘎。', 'wwwwwwwwwwwwwwwww', '為什麼你們每天都可以一直玩；玩就算了還玩我。', '好棒，整點了！咦？不是嗎？', '不要打擾我挖坑！', '好棒，誤點了！', '在南半球，一隻鴨嘴獸拍打他的鰭，他的嘴就會掉下來。 \n我到底在共三小。', '什麼東西你共三小。', '哈哈哈哈哈哈哈哈！', '一直叫，你4不4想拔嘴人家？', '一直叫，你想被淨灘嗎？', '幫主你也敢嘴？'];
           return rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
         }
-       function randomluck() {
+       function randomLuck() {
           let rplyArr = ['大吉','吉','中吉','小吉','末吉','凶'];
           return rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
         }

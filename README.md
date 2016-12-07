@@ -1,4 +1,6 @@
 # RoboYabaso
+# 占卜運氣功能
+# 支持大小細
 # 【擲骰BOT】你可以在聊天中進行自定義的擲骰 
 #  例如輸入）r 2d6+1 攻撃！
 #  會輸出）2d6+1 → 4+3+1=8；攻擊
@@ -13,5 +15,4 @@
 #  困難成功：Hard success／極限成功：Extreme success／
 #  大成功：Critical success 
 # 例）CC 30 CC1 50 CCn2 75
-# ・占卜運氣功能
-# 支持大小細
+

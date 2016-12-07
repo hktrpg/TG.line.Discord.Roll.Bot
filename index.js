@@ -140,12 +140,12 @@ function parseInput(rplyToken, inputStr) {
               let tempArr = mainMsg[2].split('*');
               let text = inputStr.split(msgSplitor)[3];
               //secCommand = parseInt(tempArr[1]);
-              return MutiRollDice(mainMsg[1],parseInt(tempArr[1]),text);
+              return MutiRollDice(mainMsg[1].toString().toLowerCase(),parseInt(tempArr[1]),text);
             }
-            return NomalRollDice(mainMsg[1],mainMsg[2]);
+            return NomalRollDice(mainMsg[1].toString().toLowerCase(),mainMsg[2]);
           }
           if (inputStr.split(msgSplitor).length == 2){
-            return NomalRollDice(mainMsg[1],mainMsg[2]);
+            return NomalRollDice(mainMsg[1].toString().toLowerCase(),mainMsg[2]);
           }
           
           
@@ -270,7 +270,7 @@ function ArrMax (Arr){
 
           var count = 0;
           let countStr = '';
-          if (DiceToCal.match('D') != null) return randomReply() + '\n格式錯啦，d要小寫！';
+    //      if (DiceToCal.match('D') != null) return randomReply() + '\n格式錯啦，d要小寫！';
 
           if (text == null) {
             for (let j = 1 ; j <= timesNum ; j++){
@@ -338,7 +338,7 @@ function NomalRollDice(DiceToCal,text){
 
     var count = 0;
     let countStr = '';
-  if (DiceToCal.match('D') != null) return randomReply() + '\n格式錯啦，d要小寫！';
+//  if (DiceToCal.match('D') != null) return randomReply() + '\n格式錯啦，d要小寫！';
     for (let i = 0; i <= numMax; i++) {
       
       let commandArr = CuntArr[i].split(comSplitor);

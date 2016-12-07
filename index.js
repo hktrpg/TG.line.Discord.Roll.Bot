@@ -96,12 +96,12 @@ function parseInput(rplyToken, inputStr) {
         //鴨霸獸指令開始於此
 
         if (trigger.match('鴨霸獸') != null) return randomReply() ;        
-        if (trigger.match('運氣') != null || trigger.match('運勢') != null) return randomLuck(trigger) ; //占卜運氣        
+        if (trigger.match('運氣') != null || trigger.match('運勢') != null) return randomLuck(mainMsg) ; //占卜運氣        
         
         if (trigger == 'help') return randomReply() + '\n' + '\
 【擲骰BOT】你可以在聊天中進行自定義的擲骰 \
 \n 例如輸入）r 2d6+1　攻撃！\
-\n 會輸出）   10+1=11；攻撃！\
+\n 會輸出）2d6+1 → 4+3+1=8；攻擊\
 \n 如上面一樣,在骰子數字後方隔空白位打字,就可以進行發言。\
 \n 以下還有其他例子\
 \n 3D6 *5 ：分別骰出5次3d6\
@@ -113,6 +113,7 @@ function parseInput(rplyToken, inputStr) {
 \n　困難成功：Hard success／極限成功：Extreme success／\
 \n　大成功：Critical success　\
 \n例）CC 30　CC1 50　CCn2 75\
+\n・占卜運氣功能\
 ';
         
         //roll 指令開始於此
@@ -382,5 +383,5 @@ return DiceToCal + ' → ' + countStr;
         }
        function randomLuck(TEXT) {
           let rplyArr = ['大吉','吉','中吉','小吉','末吉','凶'];
-          return TEXT + ' ： ' + rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
+          return TEXT[0] + ' ： ' + rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
         }

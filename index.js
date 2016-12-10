@@ -95,15 +95,16 @@ function parseInput(rplyToken, inputStr) {
         }                   
         //鴨霸獸指令開始於此
 
-        if (trigger.match('鴨霸獸') != null ||trigger.match('巴獸') != null) return randomReply() ;        
-        if (trigger.match('運氣') != null || trigger.match('運勢') != null) return randomLuck(mainMsg) ; //占卜運氣        
+        if (trigger.match(/鴨霸獸|巴獸/) != null) return randomReply() ;        
+        if (trigger.match(/運氣|運勢/) != null) return randomLuck(mainMsg) ; //占卜運氣        
         
   
   //nc指令開始於此 來自Rainsting/TarotLineBot 
-  if (trigger.match(/^[1-4]+nc/)!= null||trigger.match(/^[1-4]+na/)!= null) return nechronica(trigger,mainMsg[1]);
+  if (trigger.match(/^[1-4]n[c|a][+|-][1-99]$|^[1-4]n[c|a]$/)!= null ) return nechronica(trigger,mainMsg[1]);
 
   
-  if (trigger == 'help'||trigger == '幫助') return randomReply() + '\n' + '\
+ 
+	if (trigger.match(/^help$|^幫助$/)!= null ) return randomReply() + '\n' + '\
 【擲骰BOT】你可以在聊天中進行自定義的擲骰 \
 \n 例如輸入）r 2d6+1　攻撃！\
 \n 會輸出）2d6+1 → 4+3+1=8；攻擊\
@@ -121,13 +122,9 @@ function parseInput(rplyToken, inputStr) {
 \n 例如 1NC 2Na+4 3na-2\
 ';
         
-        //roll 指令開始於此
-        if (trigger == 'r' || trigger == 'ccb' || trigger == 'cc'|| trigger == 'ccn1'|| trigger == 'cc1'|| trigger == 'cc2'|| trigger == 'ccn2' ){        
-                  
-          if (inputStr.split(msgSplitor).length == 1) return '\
-擲骰前請先打r 或cc，後面接像是2d6，1d6+3，2d6+1d3就好。  \
-\n詳情請打help\
-          ';
+
+	if (trigger.match(/^ccb$|^cc$|^ccn$[1-2]$|^cc[1-2]$/)!= null )
+	{       		  
           //ccb指令開始於此
        if (trigger == 'ccb') return coc6(mainMsg[1],mainMsg[2]);
           
@@ -139,27 +136,47 @@ function parseInput(rplyToken, inputStr) {
           if (trigger == 'cc2') return coc7bp(mainMsg[1],'2',mainMsg[2]);   
           if (trigger == 'ccn1') return coc7bp(mainMsg[1],'-1',mainMsg[2]);   
           if (trigger == 'ccn2') return coc7bp(mainMsg[1],'-2',mainMsg[2]);   
-          if (inputStr.split(msgSplitor).length >= 3){
+
+	}
+	
+	        //roll 指令開始於此
+        if (trigger.match(/^r$/)!= null )
+	{        
+                  
+          if (inputStr.split(msgSplitor).length == 1) 
+	  {
+	  return NomalRollDice("1d100",mainMsg[2]); 
+	  }
+		
+	
+	if (inputStr.split(msgSplitor).length >= 3)
+	{
             
-            if (mainMsg[2].split('*').length == 2) {
+            if (mainMsg[2].split('*').length == 2) 
+	    {
               let tempArr = mainMsg[2].split('*');
               let text = inputStr.split(msgSplitor)[3];
               //secCommand = parseInt(tempArr[1]);
               return MutiRollDice(mainMsg[1].toString().toLowerCase(),parseInt(tempArr[1]),text);
             }
             return NomalRollDice(mainMsg[1].toString().toLowerCase(),mainMsg[2]);
-          }
-          if (inputStr.split(msgSplitor).length == 2){
-            return NomalRollDice(mainMsg[1].toString().toLowerCase(),mainMsg[2]);
-          }
+          
+	}
+          if (inputStr.split(msgSplitor).length == 2)
+	  {
+            return NomalRollDice(mainMsg[1].toString().toLowerCase(),mainMsg[2]);          
+	  }
           
           
-        }
-        
-        
-        if (trigger != 'r') return null;
-        
-      }
+        // if (trigger != 'r') return null;
+	
+	}
+}
+
+
+               
+      
+    
 
 function coc6(chack,text){
           let temp = Dice(100);
@@ -369,8 +386,8 @@ function NomalRollDice(DiceToCal,text){
     else countStr = count + '；' + text;
   } 
   else {
-    if (text == null ) countStr = countStr.substring(0, countStr.length - 1) + '=' + count;
-    else countStr = countStr.substring(0, countStr.length - 1) + '=' + count + '；' + text;
+    if (text == null ) countStr = countStr.substring(0, countStr.length - 1) + ' = ' + count;
+    else countStr = countStr.substring(0, countStr.length - 1) + ' = ' + count + '；' + text;
   }
 return DiceToCal + ' → ' + countStr;
           

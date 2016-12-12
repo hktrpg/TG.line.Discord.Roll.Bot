@@ -12,8 +12,7 @@ var options = {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer [LineAuthorization]'
-  
+    'Authorization': 'Bearer [LineAuthorization]'  
   }
 }
 app.set('port', (process.env.PORT || 5000));
@@ -39,7 +38,7 @@ app.post('/', jsonParser, function(req, res) {
       rplyVal = parseInput(rplyToken, msg); 
     } 
     catch(e) {
-      rplyVal = randomReply();
+      console.log('catch error');
     }
   }
 

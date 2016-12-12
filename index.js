@@ -109,21 +109,24 @@ function parseInput(rplyToken, inputStr) {
 \n 例如輸入）r 2d6+1　攻撃！\
 \n 會輸出）2d6+1 → 4+3+1=8；攻擊\
 \n 如上面一樣,在骰子數字後方隔空白位打字,就可以進行發言。\
-\n 以下還有其他例子\
-\n r 3D6 *5 ：分別骰出5次3d6\
+\n r 3D6 *5 ：分別骰出5次3d6；r 直接輸出1D100  \
+\n r d100 r d66：輸出1D100 1D66\
 \n ・COC六版判定　CCb （目標値）：做出成功或失敗的判定\
 \n例）CCb 30　CCb 80\
 \n ・COC七版判定　CCx（目標値）\
 \n　x：獎勵骰/懲罰骰 (2～n2)。沒有的話可以省略。\
 \n例）CC 30　CC1 50　CCn2 75\
-\n・占卜運氣功能\
+\n・占卜運氣功能 \
 \n・NC 永遠的後日談擲骰\
 \n(骰數)NC/NA (問題)\
 \n 例如 1NC 2Na+4 3na-2\
 ';
         
-
-	if (trigger.match(/^ccb$|^cc$|^ccn$[1-2]$|^cc[1-2]$/)!= null )
+	if (trigger.match(/^ccb$|^cc$|^ccn$[1-2]$|^cc[1-2]$/)!= null && inputStr.split(msgSplitor).length == 1) return randomReply() + '\n' + '\
+CC後請輸入目標數字\
+\n 詳情請輸入help\
+';
+if (trigger.match(/^ccb$|^cc$|^ccn$[1-2]$|^cc[1-2]$/)!= null )
 	{       		  
           //ccb指令開始於此
        if (trigger == 'ccb') return coc6(mainMsg[1],mainMsg[2]);
@@ -355,29 +358,38 @@ function ArrMax (Arr){
 function NomalRollDice(DiceToCal,text){
     let cuntSplitor = '+';
     let comSplitor = 'd';
-    let CuntArr = DiceToCal.split(cuntSplitor);
+		if (DiceToCal.match(/^[d]/) != null) 
+	{
+		DiceToCal = '1'+ DiceToCal;
+	}
+    let CuntArr = DiceToCal.split(cuntSplitor);		    
     let numMax = CuntArr.length - 1 ; //設定要做的加法的大次數
-
-    var count = 0;
+    let count = 0;
+    let commandArr =0;
     let countStr = '';
+
+	
 //  if (DiceToCal.match('D') != null) return randomReply() + '\n格式錯啦，d要小寫！';
-    for (let i = 0; i <= numMax; i++) {
-      
-      let commandArr = CuntArr[i].split(comSplitor);
+    for (let i = 0; i <= numMax; i++)
+    {      	
+	    commandArr = CuntArr[i].split(comSplitor);		
       let countOfNum = commandArr[0];
       let randomRange = commandArr[1];
-      if (randomRange == null) {
+      if (randomRange == null) 
+      {
         let temp = parseInt(countOfNum);
         countStr = countStr + temp + '+';
         count += temp; 
        }
-       else{
+       else
+       {
           
         for (let idx = 1; idx <= countOfNum; idx ++) {
           let temp = Dice(randomRange);
           countStr = countStr + temp + '+';
           count += temp; 
-        }      }
+	}      
+       }    
     }
   
     

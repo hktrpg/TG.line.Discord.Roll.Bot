@@ -86,9 +86,17 @@ function replyMsgToLine(rplyToken, rplyVal) {
 function parseInput(rplyToken, inputStr) {
         
         console.log('InputStr: ' + inputStr);
-        let msgSplitor = ' ';        
-        let mainMsg = inputStr.split(msgSplitor); //定義輸入字串，以空格切開     
-        let trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
+        let msgSplitor = ' ';	
+	let mainMsg = inputStr.split(msgSplitor); //定義輸入字串，以空格切開     
+	let trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
+
+        if (trigger.toLowerCase().match(/^\d+d\d+/) != null && trigger.toLowerCase().match(/\d$/) != null) 
+	{
+		
+		inputStr = 'r ' + inputStr;
+		mainMsg = inputStr.split(msgSplitor);
+	 	trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
+	}
                        
         _isNaN = function(obj) {
           return isNaN(parseInt(obj));
@@ -141,23 +149,30 @@ if (trigger.match(/^ccb$|^cc$|^ccn$[1-2]$|^cc[1-2]$/)!= null )
           if (trigger == 'ccn2') return coc7bp(mainMsg[1],'-2',mainMsg[2]);   
 
 	}
+	//wod 指令開始於此
+	if (trigger.match(/^wod$/)!= null && mainMsg[1].match(/^[\d]+[\d]$/) !=null)
+	{        
+	return null;
+	}
 	
-	        //roll 指令開始於此
         if (trigger.match(/^r$/)!= null )
 	{        
+if (mainMsg[1].match(/^[d]|[+][d]/) != null)
+{
+          mainMsg[1] = mainMsg[1].replace(/^[d]/gi, "1d");
+        mainMsg[1] = mainMsg[1].replace(/[+][d]/gi, "+1d");
+		
+                  }
 
-		mainMsg[1] = mainMsg[1].replace(/^[d]/gi, "1d");
-		mainMsg[1] = mainMsg[1].replace(/[+][d]/gi, "+1d");
-                  
-          if (inputStr.split(msgSplitor).length == 1) 
+                    if (inputStr.split(msgSplitor).length == 1)
 	  {
-	  return NomalRollDice("1d100",mainMsg[2]); 
+            return NomalRollDice('1d100',mainMsg[2]);          
 	  }
 		
 	
 	if (inputStr.split(msgSplitor).length >= 3)
 	{
-            
+
             if (mainMsg[2].split('*').length == 2) 
 	    {
               let tempArr = mainMsg[2].split('*');
@@ -174,7 +189,7 @@ if (trigger.match(/^ccb$|^cc$|^ccn$[1-2]$|^cc[1-2]$/)!= null )
 	  }
           
           
-        // if (trigger != 'r') return null;
+        return NomalRollDice('1d100','');
 	
 	}
 }
@@ -186,8 +201,6 @@ if (trigger.match(/^ccb$|^cc$|^ccn$[1-2]$|^cc[1-2]$/)!= null )
 
 function coc6(chack,text){
           let temp = Dice(100);
-
-
           if (text == null ) {
             if (temp == 100) return 'ccb<=' + chack  + ' ' + temp + ' → 啊！大失敗！';
             if (temp <= chack) return 'ccb<=' + chack + ' '  + temp + ' → 成功';
@@ -460,11 +473,12 @@ function nechronica(triggermsg ,text) {
 	return returnStr;
 }
 
+
         function randomReply() {
           let rplyArr = ['你們死定了呃呃呃不要糾結這些……所以是在糾結哪些？', '在澳洲，每過一分鐘就有一隻鴨嘴獸被拔嘴。 \n我到底在共三小。', '嗚噁噁噁噁噁噁，不要隨便叫我。', '幹，你這學不會的豬！', '嘎嘎嘎。', 'wwwwwwwwwwwwwwwww', '為什麼你們每天都可以一直玩；玩就算了還玩我。', '好棒，整點了！咦？不是嗎？', '不要打擾我挖坑！', '好棒，誤點了！', '在南半球，一隻鴨嘴獸拍打他的鰭，他的嘴就會掉下來。 \n我到底在共三小。', '什麼東西你共三小。', '哈哈哈哈哈哈哈哈！', '一直叫，你4不4想拔嘴人家？', '一直叫，你想被淨灘嗎？', '幫主你也敢嘴？'];
           return rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
         }
        function randomLuck(TEXT) {
-           let rplyArr = ['超吉','超級上吉','大吉','吉','中吉','小吉','吉','中吉','小吉','末吉','吉','中吉','吉','中吉','吉','中吉','吉','中吉','小吉','末吉','吉','中吉','小吉','末吉','中吉','小吉','小吉','吉','小吉','末吉','中吉','小吉','凶','小凶','沒凶','大凶','很凶'];
+           let rplyArr = ['超吉','超級上吉','大吉','吉','中吉','小吉','吉','小吉','吉','吉','中吉','吉','中吉','吉','中吉','小吉','末吉','吉','中吉','小吉','末吉','中吉','小吉','小吉','吉','小吉','末吉','中吉','小吉','凶','小凶','沒凶','大凶','很凶'];
            return TEXT[0] + ' ： ' + rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
         }

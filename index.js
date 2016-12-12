@@ -122,10 +122,13 @@ function parseInput(rplyToken, inputStr) {
 \n ・COC七版判定　CCx（目標値）\
 \n　x：獎勵骰/懲罰骰 (2～n2)。沒有的話可以省略。\
 \n例）CC 30　CC1 50　CCn2 75\
-\n・占卜運氣功能\
+\n・占卜運氣功能 字句中包括運氣即可\
 \n・NC 永遠的後日談擲骰\
 \n(骰數)NC/NA (問題)\
 \n 例如 1NC 2Na+4 3na-2\
+\n・WOD 黑暗世界擲骰\
+\n(骰數)WOD/Wd(加骰)(+成功數) (問題)\
+\n 例如 2wod 3wd8 15wd9+2\
 ';
         
 	if (trigger.match(/^ccb$|^cc$|^ccn$[1-2]$|^cc[1-2]$/)!= null && inputStr.split(msgSplitor).length == 1) return randomReply() + '\n' + '\
@@ -483,14 +486,15 @@ function wod(triggermsg ,text) {
 	var varcou = 0;
 	var varsu = 0;
 	var match = /^(\d+)(wd|wod)(\d|)((\+|-)(\d+)|)$/i.exec(triggermsg);   //判斷式  [0]3wd8+10,[1]3,[2]wd,[3]8,[4]+10,[5]+,[6]10  
-
+	if (match[3]=="") { match[3] =10 }
+	if (match[3]<=1) { return '加骰最少比1高'; }
 			
 for (var i = 0; i < Number(match[1]); i++)	
 	{
              varcou =  Math.floor(Math.random() * 10) + 1;
              returnStr += varcou +', ';
-             if (match[3]=="") { match[3] =10 }
-		if (match[3]<=1) { return '加骰最少比1高'; }
+             
+		
              if (varcou >=match[3]) { i--}
              if (varcou >=8) 
 	     {
@@ -498,9 +502,20 @@ for (var i = 0; i < Number(match[1]); i++)
 	     }
 
 	}
+
+	    if(match[5]=='+'){
+    
     for (var i = 0; i < Number(match[6]); i++)	{
 	    varsu++;
     }
+    }
+    if(match[5]=='-'){
+    
+    for (var i = 0; i < Number(match[6]); i++)	{
+	    varsu--;
+    }
+    }
+	
     returnStr = returnStr.replace(/[,][ ]$/,'] → '+varsu+'成功');
 	if (text != null){
 	returnStr += ' ; ' + text;

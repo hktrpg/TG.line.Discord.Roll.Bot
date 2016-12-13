@@ -1,6 +1,6 @@
 {
   "name": "leoli",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "description": "Zetetic Line Bot",
   "engines": {
     "node": "6.9.1"
@@ -17,5 +17,5 @@
     "Zetetic",
     "Line"
   ],
-  "license": "MIT"
+  "license": "HKTRPG"
 }

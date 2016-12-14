@@ -56,7 +56,6 @@ app.listen(app.get('port'), function() {
 });
 
 function replyMsgToLine(rplyToken, rplyVal) {
-	rplyVal.match
 	let rplyObj = {
     replyToken: rplyToken,
     messages: [

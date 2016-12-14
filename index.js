@@ -56,7 +56,8 @@ app.listen(app.get('port'), function() {
 });
 
 function replyMsgToLine(rplyToken, rplyVal) {
-  let rplyObj = {
+	rplyVal.match
+	let rplyObj = {
     replyToken: rplyToken,
     messages: [
       {
@@ -91,8 +92,8 @@ function parseInput(rplyToken, inputStr) {
 		_isNaN = function(obj) {
 			return isNaN(parseInt(obj));
         }                   
-        let msgSplitor = ' ';	
-		let mainMsg = inputStr.split(msgSplitor); //定義輸入字串，以空格切開     
+        let msgSplitor = (/\S+/ig);	
+		let mainMsg = inputStr.match(msgSplitor); //定義輸入字串，以空格切開     
 		let trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
                        
         //鴨霸獸指令開始於此
@@ -134,6 +135,11 @@ CC後請輸入目標數字\
 		return wod(trigger,mainMsg[1]);
 	}
 	
+	//choice 指令開始於此
+		if (trigger.match(/^choice$/i)!= null && mainMsg.length >= 3) 
+	{        
+		return choice(inputStr,msgSplitor);
+	}
 
 	//tarot 指令
 	if (trigger.match(/tarot|塔羅牌|塔羅/) != null) {
@@ -289,7 +295,7 @@ function ArrMax (Arr){
   if (inputStr.toLowerCase().match(/\d+d\d+/) == null) return undefined;
   
   //再來先把第一個分段拆出來，待會判斷是否是複數擲骰
-  let mutiOrNot = inputStr.toLowerCase().match(/\S+/);
+  let mutiOrNot = text0;
   
   //排除小數點
   if (mutiOrNot.toString().match(/\./)!=null)return undefined;
@@ -309,7 +315,7 @@ function ArrMax (Arr){
     if(mutiOrNot>30) return '不支援30次以上的複數擲骰。';
     
     for (i=1 ; i<=mutiOrNot ;i++){
-    let DiceToRoll = inputStr.toLowerCase().split(' ',2)[1];
+    let DiceToRoll = text1.toLowerCase();
     if (DiceToRoll.match('d') == null) return undefined;
 
     //寫出算式
@@ -739,6 +745,11 @@ function tarotRevReply(count) {
 	if (count == 1) returnStr = '－';
 
 	return returnStr;
+}
+
+function choice(input,Splitor) {
+	let a = input.replace( /choice / ,'').split(Splitor);
+	return '隨機選項 ['+ a + '] → ' + a[Dice(a.length)-1];
 }
 
 function tarotCardReply(count) {

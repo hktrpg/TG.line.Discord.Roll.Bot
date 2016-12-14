@@ -108,7 +108,7 @@ function parseInput(rplyToken, inputStr) {
         if (trigger.match(/^d66$/)!= null ) return d66(mainMsg[1]);
 	
 		if (trigger.match(/^d66s$/)!= null ) return d66s(mainMsg[1]);
-		if (trigger.match(/^ccb$|^cc$|^ccn$[1-2]$|^cc[1-2]$/)!= null )
+		if (trigger.match(/^ccb$|^cc$|^ccn$[1-2]$|^cc[1-2]$/)!= null && mainMsg[1]<=1000 )
 	{       		
 
 		if (inputStr.split(msgSplitor).length == 1) return randomReply() + '\n' + '\
@@ -116,16 +116,16 @@ CC後請輸入目標數字\
 \n 詳情請輸入help\
 ';
         //ccb指令開始於此
-		if (trigger == 'ccb') return coc6(mainMsg[1],mainMsg[2]);
+		if (trigger == 'ccb'&& mainMsg[1]<=99) return coc6(mainMsg[1],mainMsg[2]);
           
         //cc指令開始於此
-        if (trigger == 'cc') return coc7(mainMsg[1],mainMsg[2]);
+        if (trigger == 'cc'&& mainMsg[1]<=1000) return coc7(mainMsg[1],mainMsg[2]);
         
         //獎懲骰設定於此    
-          if (trigger == 'cc1') return coc7bp(mainMsg[1],'1',mainMsg[2]);        
-          if (trigger == 'cc2') return coc7bp(mainMsg[1],'2',mainMsg[2]);   
-          if (trigger == 'ccn1') return coc7bp(mainMsg[1],'-1',mainMsg[2]);   
-          if (trigger == 'ccn2') return coc7bp(mainMsg[1],'-2',mainMsg[2]);   
+          if (trigger == 'cc1'&& mainMsg[1]<=1000) return coc7bp(mainMsg[1],'1',mainMsg[2]);        
+          if (trigger == 'cc2'&& mainMsg[1]<=1000) return coc7bp(mainMsg[1],'2',mainMsg[2]);   
+          if (trigger == 'ccn1'&& mainMsg[1]<=1000) return coc7bp(mainMsg[1],'-1',mainMsg[2]);   
+          if (trigger == 'ccn2'&& mainMsg[1]<=1000) return coc7bp(mainMsg[1],'-2',mainMsg[2]);   
 
 	}
 	//wod 指令開始於此
@@ -845,7 +845,7 @@ function tarotCardReply(count) {
 }
 		function Help() {
 			return randomReply() + '\n' + '\
-【擲骰BOT】v1.0 \
+【擲骰BOT】v1.1 \
 \n 例如輸入2d6+1　攻撃！\
 \n 會輸出）2d6+1：攻撃  9[6+3]+1 = 10\
 \n 如上面一樣,在骰子數字後方隔空白位打字,可以進行發言。\

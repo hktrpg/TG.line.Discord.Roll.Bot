@@ -135,9 +135,9 @@ CC後請輸入目標數字\
 	}
 	
 	//choice 指令開始於此
-		if (trigger.match(/^choice$/i)!= null && mainMsg.length >= 3) 
+		if (trigger.match(/choice|隨機|選項|選1/)!= null && mainMsg.length >= 3) 
 	{        
-		return choice(inputStr,msgSplitor);
+		return choice(inputStr,mainMsg);
 	}
 
 	//tarot 指令
@@ -746,9 +746,9 @@ function tarotRevReply(count) {
 	return returnStr;
 }
 
-function choice(input,Splitor) {
-	let a = input.replace( /choice / ,'').split(Splitor);
-	return '隨機選項 ['+ a + '] → ' + a[Dice(a.length)-1];
+function choice(input,str) {
+	let a = input.replace(str[0], '').match(/\S+/ig);
+	return str[0] + '['+ a + '] → ' + a[Dice(a.length)-1];
 }
 
 function tarotCardReply(count) {
@@ -852,7 +852,10 @@ function tarotCardReply(count) {
 \n 以下還有其他例子\
 \n 5 3D6 	：分別骰出5次3d6\
 \n D66 D66s ：骰出D66 s小者固定在前\
-\n  \
+\n Choice：啓動語choice/隨機/選項/選1\
+\n (問題)(啓動語)(問題)  (選項1) (選項2) \
+\n 例子 隨機收到聖誕禮物數 1 2 3 >4  \
+\n \
 \n ・COC六版判定　CCb （目標値）：做出成功或失敗的判定\
 \n例）CCb 30　CCb 80\
 \n ・COC七版判定　CCx（目標値）\
@@ -861,15 +864,14 @@ function tarotCardReply(count) {
 \n  \
 \n・NC 永遠的後日談擲骰\
 \n (骰數)NC/NA (問題)\
-\n  例如 1NC 2Na+4 3na-2\
+\n  例子 1NC 2Na+4 3na-2\
 \n・WOD 黑暗世界擲骰\
 \n (骰數)WOD/Wd(加骰)(+成功數) (問題)\
-\n  例如 2wod 3wd8 15wd9+2\
+\n  例子 2wod 3wd8 15wd9+2\
 \n・占卜運氣功能 字句中包括運氣即可\
 \n・塔羅牌占卜 塔羅/大十字塔羅/每日塔羅牌\
 \n  時間tarot 等關键字可啓動\
-';
-			
+';		
 		}
 		
 		

@@ -134,6 +134,15 @@ CC後請輸入目標數字\
 		return wod(trigger,mainMsg[1]);
 	}
 	
+	/**
+	* Fisher–Yates shuffle
+	  SortIt 指令開始於此
+	*/
+			if (trigger.match(/排序/)!= null && mainMsg.length >= 3) 
+	{        
+		return SortIt(inputStr,mainMsg);
+	}
+	
 	//choice 指令開始於此
 		if (trigger.match(/choice|隨機|選項|選1/)!= null && mainMsg.length >= 3) 
 	{        
@@ -845,7 +854,7 @@ function tarotCardReply(count) {
 }
 		function Help() {
 			return randomReply() + '\n' + '\
-【擲骰BOT】v1.1 \
+【擲骰BOT】v1.2 \
 \n 例如輸入2d6+1　攻撃！\
 \n 會輸出）2d6+1：攻撃  9[6+3]+1 = 10\
 \n 如上面一樣,在骰子數字後方隔空白位打字,可以進行發言。\
@@ -855,6 +864,9 @@ function tarotCardReply(count) {
 \n Choice：啓動語choice/隨機/選項/選1\
 \n (問題)(啓動語)(問題)  (選項1) (選項2) \
 \n 例子 隨機收到聖誕禮物數 1 2 3 >4  \
+\n 隨機排序：啓動語 排序\
+\n (問題)(啓動語)(問題)  (選項1) (選項2) \
+\n 例子 來排序 1 2 3 4 5 6  \
 \n \
 \n ・COC六版判定　CCb （目標値）：做出成功或失敗的判定\
 \n例）CCb 30　CCb 80\
@@ -874,4 +886,18 @@ function tarotCardReply(count) {
 ';		
 		}
 		
+		
+ function SortIt(input,mainMsg) {   
+
+	let a = input.replace(mainMsg[0], '').match(/\S+/ig);
+    for (var i = a.length-1; i >=0; i--) {
+
+        var randomIndex = Math.floor(Math.random()*(i+1));
+        var itemAtIndex = a[randomIndex];
+        a[randomIndex] = a[i];
+        a[i] = itemAtIndex;
+    }
+    	return mainMsg[0] + ' → ['+ a + ']' ;
+}
+
 		

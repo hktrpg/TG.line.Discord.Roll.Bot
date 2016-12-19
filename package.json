@@ -1,6 +1,6 @@
 {
   "name": "leoli",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "Zetetic Line Bot",
   "engines": {
     "node": "6.9.1"

@@ -92,7 +92,7 @@ function parseInput(rplyToken, inputStr) {
 			return isNaN(parseInt(obj));
         }                   
         let msgSplitor = (/\S+/ig);	
-		let mainMsg = inputStr.match(msgSplitor); //定義輸入字串，以空格切開     
+		let mainMsg = inputStr.match(msgSplitor); //定義輸入字串
 		let trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
                        
         //鴨霸獸指令開始於此
@@ -104,6 +104,16 @@ function parseInput(rplyToken, inputStr) {
 
   
 		if (trigger.match(/^help$|^幫助$/)!= null ) return Help();
+		
+			/**
+ 	* Fisher–Yates shuffle
+ 	  SortIt 指令開始於此
+ 	*/
+ 			if (trigger.match(/排序/)!= null && mainMsg.length >= 3) 
+ 	{        
+ 		return SortIt(inputStr,mainMsg);
+ 	}
+ 	
 		
         if (trigger.match(/^d66$/)!= null ) return d66(mainMsg[1]);
 	
@@ -159,6 +169,19 @@ CC後請輸入目標數字\
 			return RockPaperScissors(inputStr, mainMsg[1]);
 		}
 */
+
+	//xBy>A 指令開始於此
+	if (trigger.match(/^(\d+)(b)(\d+)$/i)!= null)
+	{        
+		return xBy(trigger,mainMsg[1],mainMsg[2]);
+	}
+	//xUy 指令開始於此	
+	if (trigger.match(/^(\d+)(u)(\d+)$/i)!= null && isNaN(mainMsg[1])== false)
+	{        
+		return xUy(trigger,mainMsg[1],mainMsg[2],mainMsg[3]);
+	}
+
+
          //普通ROLL擲骰判定在此        
      if (inputStr.match(/\w/)!=null && inputStr.toLowerCase().match(/\d+d+\d/)!=null) {
           return nomalDiceRoller(inputStr,mainMsg[0],mainMsg[1],mainMsg[2]);
@@ -326,9 +349,9 @@ function ArrMax (Arr){
 
     //計算算式
     let aaa = equation;
-	//aaa = aaa.replace(/\d+[[]/, '(' );
-	//aaa = aaa.replace(']', ')' );
-	aaa = aaa.replace(/[[]\d+|]/ig, "");
+	aaa = aaa.replace(/\d+[[]/ig, '(' );
+	aaa = aaa.replace(/]/ig, ')' );
+	//aaa = aaa.replace(/[[]\d+|]/ig, "");
 	let answer = eval(aaa.toString());
 	
     finalStr = finalStr + i + '# ' + equation + ' = ' + answer + '\n';
@@ -339,7 +362,8 @@ function ArrMax (Arr){
   else
   {
   //一般單次擲骰
-  let DiceToRoll = mutiOrNot.toString();  
+  let DiceToRoll = mutiOrNot.toString();
+  
   if (DiceToRoll.match('d') == null) return undefined;
   
   //寫出算式
@@ -355,9 +379,8 @@ function ArrMax (Arr){
   
   //計算算式
 	let aaa = equation;
-	//aaa = aaa.replace(/\d+[[]/, '(' );
-	//aaa = aaa.replace(']', ')' );
-	aaa = aaa.replace(/[[]\d+|]/ig, "");
+	aaa = aaa.replace(/\d+[[]/ig, '(' );
+	aaa = aaa.replace(/]/ig, ')' );
 	let answer = eval(aaa.toString());
       
   if(text1 != null){
@@ -378,6 +401,12 @@ function ArrMax (Arr){
 ////////////////////////////////////////
 //////////////// 擲骰子運算
 ////////////////////////////////////////
+
+function sortNumber(a,b)
+{
+return a - b
+}
+
 
         function Dice(diceSided){          
           return Math.floor((Math.random() * diceSided) + 1)
@@ -497,6 +526,117 @@ function d66s(text) {
 	
 }
 
+////////////////////////////////////////
+//////////////// xBy
+////////////////////////////////////////
+function xBy(triggermsg ,text01, text02) {
+
+let returnStr = '(' + triggermsg +')';
+let match = /^(\d+)(B)(\d+)$/i.exec(triggermsg);  //判斷式  [0]3B8,[1]3,[2]B,[3]8
+let varcou =  new Array();
+let varsu = 0;
+for (var i = 0; i < Number(match[1]); i++)	
+	{
+             varcou[i] =  Dice(match[3]);
+	}
+varcou.sort(sortNumber);
+//(5B7>6) → 7,5,6,4,4 → 成功数1
+
+if(isNaN(text01) ==false &&Number(text01) <= Number(match[3]))
+{
+for (let i = 0; i < Number(match[1]); i++)	
+	{
+             if(Number(varcou[i])>=Number(text01)) varsu++;        
+	}
+	if (text02 ==undefined) text02 ='';
+
+    returnStr+= ' → ' + varcou + ' → 成功數'+varsu + ' ' +text02 ;
+	
+}
+else{
+	if (text01 ==undefined) text01 ='';
+	returnStr+=  ' → ' + varcou + ' ' +text01 ;
+
+	}
+	
+
+return returnStr;
+}
+
+////////////////////////////////////////
+//////////////// xUy
+////////////////  (5U10[8]) → 17[10,7],4,5,7,4 → 17/37(最大/合計)
+////////////////  (5U10[8]>8) → 1,30[9,8,8,5],1,3,4 → 成功数1
+////////////////////////////////////////
+
+function xUy(triggermsg ,text01, text02, text03) {
+	var match = /^(\d+)(u)(\d+)/i.exec(triggermsg);   //判斷式  5u19,5,u,19, 
+	var returnStr = '('+triggermsg+'['+text01+']';
+	if(Number(text02) <= Number(match[3]) && text02 != undefined) 
+	{
+		returnStr+= '>'+text02+ ') → ';
+		if(text03!=undefined) returnStr += text03 +' → ';
+	}
+	else{
+	returnStr+= ') → ';
+		if(text02!=undefined) returnStr += text02 +' → ';	
+	}	
+	let varcou =  new Array();
+	let varcouloop =  new Array();
+	let varcoufanl =  new Array();
+	let varcounew =  new Array();
+	var varsu = 0;
+	if (text01<=2) { return  '加骰最少比2高'; }
+
+for (var i = 0; i < Number(match[1]); i++)	
+	{
+			varcou[i] =  Dice(match[3]);
+			varcounew[i] = varcou[i];
+			varcouloop[i] = varcounew[i];
+			for(;varcounew[i]>=text01;)
+			{
+				varcounew[i] =Dice(match[3]);
+				varcouloop[i] += ', ' +varcounew[i];
+				varcou[i] += varcounew[i];
+			}
+
+	}
+
+    for(var i = 0; i < varcouloop.length; i++)	
+  {
+	if(varcouloop[i]==varcou[i])   {returnStr += varcou[i]+', ';}
+    else     returnStr += varcou[i]+'['+varcouloop[i]+ '], '; 
+    
+  }
+		returnStr = returnStr.replace(/, $/ig,'');
+ 
+ 
+ 
+ if(Number(text02) <= Number(match[3]) ){
+let suc =0;
+
+////////////////  (5U10[8]>8) → 1,30[9,8,8,5],1,3,4 → 成功数1
+for(var i=0;i<varcou.length;i++)
+{
+if(Number(varcou[i])>=Number(text02)) suc++;
+}
+
+returnStr  += ' → 成功数' +suc;
+
+ }
+ else
+  ////////////////  (5U10[8]) → 17[10,7],4,5,7,4 → 17/37(最大/合計)
+
+	 {
+ returnStr  +=' → ' + Math.max.apply(null, varcou)
+returnStr  += '/' + varcou.reduce(function(previousValue,currentValue){
+        return previousValue + currentValue;} ) +'(最大/合計)';
+
+	}
+	return returnStr;
+	
+	}
+
 
 ////////////////////////////////////////
 //////////////// WOD黑暗世界
@@ -508,7 +648,7 @@ function wod(triggermsg ,text) {
 	var varsu = 0;
 	var match = /^(\d+)(wd|wod)(\d|)((\+|-)(\d+)|)$/i.exec(triggermsg);   //判斷式  [0]3wd8+10,[1]3,[2]wd,[3]8,[4]+10,[5]+,[6]10  
 	if (match[3]=="") { match[3] =10 }
-	if (match[3]<=1) { return '加骰最少比1高'; }
+	if (match[3]<=2) { return '加骰最少比2高'; }
 			
 for (var i = 0; i < Number(match[1]); i++)	
 	{
@@ -734,9 +874,22 @@ function NomalDrawTarot(CardToCal, text) {
 		returnStr = tarotCardReply(FunnyDice(22)) + ' ' + tarotRevReply(FunnyDice(2));
 	else
 		returnStr = tarotCardReply(FunnyDice(22)) + ' ' + tarotRevReply(FunnyDice(2)) + ' ; ' + text;
-
 	return returnStr;
 }
+
+
+ function SortIt(input,mainMsg) {   
+ 
+ 	let a = input.replace(mainMsg[0], '').match(/\S+/ig);
+     for (var i = a.length-1; i >=0; i--) {
+ 
+         var randomIndex = Math.floor(Math.random()*(i+1));
+         var itemAtIndex = a[randomIndex];
+         a[randomIndex] = a[i];
+         a[i] = itemAtIndex;
+     }
+     	return mainMsg[0] + ' → ['+ a + ']' ;
+ }
 
 function tarotRevReply(count) {
 	let returnStr = '';
@@ -754,7 +907,6 @@ function choice(input,str) {
 
 function tarotCardReply(count) {
 	let returnStr = '';
-
 	// returnStr = count + '愚者';
 	if (count == 0) returnStr = '愚者';
 	if (count == 1) returnStr = '魔術師';
@@ -778,7 +930,6 @@ function tarotCardReply(count) {
 	if (count == 19) returnStr = '太陽';
 	if (count == 20) returnStr = '審判';
 	if (count == 21) returnStr = '世界';
-
 	if (count == 22) returnStr = '權杖一';
 	if (count == 23) returnStr = '權杖二';
 	if (count == 24) returnStr = '權杖三';
@@ -793,7 +944,6 @@ function tarotCardReply(count) {
 	if (count == 33) returnStr = '權杖騎士';
 	if (count == 34) returnStr = '權杖皇后';
 	if (count == 35) returnStr = '權杖國王';
-
 	if (count == 36) returnStr = '聖杯一';
 	if (count == 37) returnStr = '聖杯二';
 	if (count == 38) returnStr = '聖杯三';
@@ -808,7 +958,6 @@ function tarotCardReply(count) {
 	if (count == 47) returnStr = '聖杯騎士';
 	if (count == 48) returnStr = '聖杯皇后';
 	if (count == 49) returnStr = '聖杯國王';
-
 	if (count == 50) returnStr = '寶劍一';
 	if (count == 51) returnStr = '寶劍二';
 	if (count == 52) returnStr = '寶劍三';
@@ -823,7 +972,6 @@ function tarotCardReply(count) {
 	if (count == 61) returnStr = '寶劍騎士';
 	if (count == 62) returnStr = '寶劍皇后';
 	if (count == 63) returnStr = '寶劍國王';
-
 	if (count == 64) returnStr = '錢幣一';
 	if (count == 65) returnStr = '錢幣二';
 	if (count == 66) returnStr = '錢幣三';
@@ -838,7 +986,6 @@ function tarotCardReply(count) {
 	if (count == 75) returnStr = '錢幣騎士';
 	if (count == 76) returnStr = '錢幣皇后';
 	if (count == 77) returnStr = '錢幣國王';
-
 	if (count == 78) returnStr = '空白牌';
 
 	return returnStr;
@@ -853,9 +1000,15 @@ function tarotCardReply(count) {
 \n 以下還有其他例子\
 \n 5 3D6 	：分別骰出5次3d6\
 \n D66 D66s ：骰出D66 s小者固定在前\
+\n 5B10：不加總的擲骰 會進行小至大排序 \
+\n 5U10 8：進行5D10 每骰出一粒8會有一粒獎勵骰 \
+\n 5U10 8 9：如上,另外計算其中有多少粒大過9 \
 \n Choice：啓動語choice/隨機/選項/選1\
 \n (問題)(啓動語)(問題)  (選項1) (選項2) \
 \n 例子 隨機收到聖誕禮物數 1 2 3 >4  \
+\n 隨機排序：啓動語　排序\
+\n (問題)(啓動語)(問題)  (選項1) (選項2)(選項3) \
+\n 例子 交換禮物排序 A君 C君 F君 G君\
 \n \
 \n ・COC六版判定　CCb （目標値）：做出成功或失敗的判定\
 \n例）CCb 30　CCb 80\

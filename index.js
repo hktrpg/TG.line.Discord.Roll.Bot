@@ -45,7 +45,7 @@ app.post('/', jsonParser, function(req, res) {
   if (rplyVal) {
     replyMsgToLine(rplyToken, rplyVal); 
   } else {
-    console.log('Do not trigger'); 
+  //  console.log('Do not trigger'); 
   }
 
   res.send('ok');
@@ -87,7 +87,7 @@ function replyMsgToLine(rplyToken, rplyVal) {
 ////////////////////////////////////////
 function parseInput(rplyToken, inputStr) {
           
-		console.log('InputStr: ' + inputStr);
+	//	console.log('InputStr: ' + inputStr);
 		_isNaN = function(obj) {
 			return isNaN(parseInt(obj));
         }                   

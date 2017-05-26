@@ -32,7 +32,7 @@ app.post('/', jsonParser, function(req, res) {
   let rplyToken = event.replyToken;
 
   let rplyVal = null;
-  console.log(msg);
+  //console.log(msg);
   if (type == 'message' && msgType == 'text') {
     try {
       rplyVal = parseInput(rplyToken, msg); 

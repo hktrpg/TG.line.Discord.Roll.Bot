@@ -73,7 +73,7 @@ function replyMsgToLine(rplyToken, rplyVal) {
     console.log('Headers: ' + JSON.stringify(response.headers));
     response.setEncoding('utf8');
     response.on('data', function(body) {
-      console.log(body); 
+    //  console.log(body); 
     });
   });
   request.on('error', function(e) {

@@ -1,6 +1,6 @@
 {
-  "name": "leoli",
-  "version": "1.2.0",
+  "name": "Zetetic",
+  "version": "1.0.0",
   "description": "Zetetic Line Bot",
   "engines": {
     "node": "6.9.1"
@@ -14,8 +14,9 @@
     "body-parser": "1.15.2"
   },
   "keywords": [
-    "Zetetic",
+    "LeoLi",
+	"Zetetic",
     "Line"
   ],
-  "license": "HKTRPG"
+  "license": "MIT"
 }

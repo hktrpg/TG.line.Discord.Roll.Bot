@@ -30,7 +30,6 @@ app.post('/', jsonParser, function(req, res) {
 	let msg = event.message.text;
 	let rplyToken = event.replyToken;
 	let rplyVal = {};
-	console.log(msg);
 	//如果有訊息,掉到analytics.js 分析需不要 自動回應
 	if (type == 'message' && msgType == 'text') {
 	try {

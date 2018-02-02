@@ -1,13 +1,8 @@
 var https = require('https');	
-function replyMsgToLine(rplyToken, rplyVal, options, rplyType) {
+function replyMsgToLine(rplyToken, rplyVal, options) {
 	let rplyObj = {
 	replyToken: rplyToken,
-	messages: [
-		{
-	type: rplyType,
-	text: rplyVal
-		}
-	]
+	messages: [rplyVal]
 	
 	}
 	let rplyJson = JSON.stringify(rplyObj); 

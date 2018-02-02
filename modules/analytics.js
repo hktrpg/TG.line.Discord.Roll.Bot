@@ -5,7 +5,7 @@ var nc = require('../roll/nc.js');
 var wod = require('../roll/wod.js');
 var funny = require('../roll/funny.js');
 var help = require('../roll/help.js');
-//用來呼叫骰組
+//用來呼叫骰組,新增骰組檔案的話,要寫到上面
 function parseInput(rplyToken, inputStr) {
 	//console.log('InputStr: ' + inputStr);
 	_isNaN = function(obj) 	{

@@ -4,6 +4,7 @@ var app = express();
 var jsonParser = bodyParser.json();
 var analytics = require('./modules/analytics.js');
 var replyMsgToLine = require('./modules/replyMsgToLine.js');
+//需要安全性,Authorization可以用process.env 取代,明文因為減少設定步驟
 var options = {
 	host: 'api.line.me',
 	port: 443,
@@ -28,7 +29,8 @@ app.post('/', jsonParser, function(req, res) {
 	let rplyToken = event.replyToken;
 	let rplyVal = {};
 	console.log(msg);
-	//如果有訊息, 呼叫handleEvent 分類	
+	//訊息來到後, 會自動呼叫handleEvent 分類,然後跳到analytics.js進行骰組分析
+	//如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
 	try {
 	rplyVal = handleEvent(event);
 	} 
@@ -48,11 +50,6 @@ app.post('/', jsonParser, function(req, res) {
 app.listen(app.get('port'), function() {
 	console.log('Node app is running on port', app.get('port'));
 });
-
-
-////////////////////////////////////////
-///////// 骰組分析放到analytics.js 
-////////////////////////////////////////	
 
 
 function handleEvent(event) {

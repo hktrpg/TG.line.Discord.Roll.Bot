@@ -2,8 +2,14 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var app = express();
 var jsonParser = bodyParser.json();
-var analytics = require('./modules/analytics.js');
-var replyMsgToLine = require('./modules/replyMsgToLine.js');
+// Load `*.js` under modules directory as properties
+//  i.e., `User.js` will become `exports['User']` or `exports.User`
+require('fs').readdirSync(__dirname + '/modules/').forEach(function(file) {
+  if (file.match(/\.js$/) !== null && file !== 'index.js') {
+    var name = file.replace('.js', '');
+    exports[name] = require('./modules/' + file);
+  }
+});
 //需要安全性,Authorization可以用process.env 取代,明文因為減少設定步驟
 var options = {
 	host: 'api.line.me',
@@ -12,7 +18,7 @@ var options = {
 	method: 'POST',
 	headers: {
 	'Content-Type': 'application/json',
-	'Authorization': 'Bearer [LineAuthorization]'
+	'Authorization':'Bearer [LineAuthorization]'
 	}
 }
 app.set('port', (process.env.PORT || 5000));
@@ -40,7 +46,7 @@ app.post('/', jsonParser, function(req, res) {
 	}
 	//把回應的內容,掉到replyMsgToLine.js傳出去
 	if (rplyVal) {
-	replyMsgToLine.replyMsgToLine(rplyToken, rplyVal, options); 
+	exports.replyMsgToLine.replyMsgToLine(rplyToken, rplyVal, options); 
 	} else {
 	//console.log('Do not trigger'); 
 	}
@@ -51,14 +57,13 @@ app.listen(app.get('port'), function() {
 	console.log('Node app is running on port', app.get('port'));
 });
 
-
 function handleEvent(event) {
   switch (event.type) {
     case 'message':
       const message = event.message;
       switch (message.type) {
         case 'text':
-          return analytics.parseInput(event.rplyToken, event.message.text); 
+          return exports.analytics.parseInput(event.rplyToken, event.message.text); 
         default:
            break;
       }
@@ -78,4 +83,3 @@ break;
        break;
   }
 }
-	

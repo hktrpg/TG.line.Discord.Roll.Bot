@@ -22,17 +22,16 @@ RoboYabaso@HKTRPG 的LineID是：@utr0641o
 招技術人員
 </br></br></br>
 
-特色介紹</br></br></br>
-
+特色介紹</br>
 ==
-占卜運氣功能。
-支持大小階。
-增加HELP功能。
-支持直接 1d100 5d20。
-cc<= 改成 cc cc1 cc2 ccn1 ccn2。
-增加永遠後日談的NC擲骰 來自Rainsting/TarotLineBot。
-增加wod 黑暗世界的擲骰。
-模組化設計。</br></br></br>
+占卜運氣功能。</br>
+支持大小階。</br>
+增加HELP功能。</br>
+支持直接 1d100 5d20。</br>
+cc<= 改成 cc cc1 cc2 ccn1 ccn2。</br>
+增加永遠後日談的NC擲骰 來自Rainsting/TarotLineBot。</br>
+增加wod 黑暗世界的擲骰。</br>
+模組化設計。</br></br>
 </br></br></br>
 
 ==
@@ -94,7 +93,7 @@ Step4：取得Channel Access Token和Channel Secret
 --
 * 先取得Channel Secret，按右邊的按鈕</br>
 ![Channel Secret](http://i.imgur.com/oNN9gUx.jpg)</br>
-把取得的字串複製到Step3的LINE_CHANNEL_SECRET</br></br></br>
+把取得的字串複製到index.js的'Authorization':'Bearer [LineAuthorization]'</br></br></br>
 ---
 * 再取得Channel Access Token，按右邊的按鈕</br>
 ![Channel Access Token](http://i.imgur.com/UJ4AQlJ.jpg)</br>

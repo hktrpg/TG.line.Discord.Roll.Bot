@@ -93,8 +93,8 @@ Step4：取得Channel Access Token和Channel Secret
 --
 * 先取得Channel Secret，按右邊的按鈕</br>
 ![Channel Secret](http://i.imgur.com/oNN9gUx.jpg)</br>
-把取得的字串取代index.js的'[Authorization]':'Bearer [LineAuthorization]'
-變成 'Bearer gp/Jcv4thqaz0S1qFsGmigrBDyfCf3ak0QfsZBu'
+把取得的字串取代index.js的'[Authorization]':'Bearer [LineAuthorization]'</br>
+變成 'Bearer gp/Jcv4thqaz0S1qFsGmigrBDyfCf3ak0QfsZBu'</br>
 </br></br></br>
 ---
 * 再取得Channel Access Token，按右邊的按鈕</br>

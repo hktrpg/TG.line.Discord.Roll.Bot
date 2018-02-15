@@ -84,7 +84,7 @@ Step3：將LineBot部署到Heroku
 
 * 你會看到這個</br>
 ![Heroku](http://i.imgur.com/sbCVOcW.jpg)</br></br></br>
-當然，先取一個App name，那底下兩個要在哪裡找呢，回到上個步驟的LINE Developers網頁</br></br></br></br>
+當然，先取一個App name，回到上個步驟的LINE Developers網頁</br></br></br></br>
 
 
 

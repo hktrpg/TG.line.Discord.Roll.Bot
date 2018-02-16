@@ -12,7 +12,7 @@ require('fs').readdirSync(__dirname + '/modules/').forEach(function(file) {
     exports[name] = require('./modules/' + file);
   }
 });
-//需要安全性,Authorization可以用process.env 取代,明文因為減少設定步驟
+
 var options = {
 	host: 'api.line.me',
 	port: 443,

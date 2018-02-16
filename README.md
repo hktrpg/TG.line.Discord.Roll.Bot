@@ -89,12 +89,15 @@ Step3：將LineBot部署到Heroku
 
 
 
-Step4：取得Channel Access Token
+Step4：取得Channel Access Token和Channel Secret
 --
-取得Channel Access Token，按右邊的按鈕</br>
-!把取得的字串取代index.js的'[Authorization]':'Bearer [LineAuthorization]'</br>
-變成 'Bearer gp/Jcv4thqaz0S1qFsGmigrBDyfCf3ak0QfsZBu'</br>
-不需要保留[ ]</br>
+* 先取得Channel Secret，按右邊的按鈕</br>
+![Channel Secret](http://i.imgur.com/oNN9gUx.jpg)</br>
+把取得的字串複製到Step3的LINE_CHANNEL_SECRET</br></br></br>
+---
+* 再取得Channel Access Token，按右邊的按鈕</br>
+![Channel Access Token](http://i.imgur.com/UJ4AQlJ.jpg)</br>
+把取得的字串複製到Step3的LINE_CHANNEL_ACCESSTOKEN</br></br>
 接著，按下Deploy app，等他跑完之後按下Manage App</br>
 距離部署完機器人只差一步啦！
 </br></br></br></br>

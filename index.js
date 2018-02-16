@@ -20,7 +20,7 @@ var options = {
 	method: 'POST',
 	headers: {
 	'Content-Type': 'application/json',
-	'Authorization':'Bearer ' + channelAccessToken,
+	'Authorization':'Bearer ' + channelAccessToken
 	}
 }
 app.set('port', (process.env.PORT || 5000));

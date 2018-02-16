@@ -55,22 +55,22 @@ Step1：先把這個專案Fork回去
 
 Step2：建立lineBot賬號
 --
-* 到[https://developers.line.me/en/ ](https://developers.line.me/en/ )申請一個帳號，</br>
-點選「開始使用Messaging API」，按照指示建立你的line賬號。</br>
+* 到[https://developers.line.me/en/ ](https://developers.line.me/en/ )登入一個Line帳號，</br>
+點選「開始使用Messaging API」，按照指示註冊你的line Bot賬號。</br>
 ![開始使用Messaging API](http://i.imgur.com/Zb2Oboy.jpg)</br></br></br>
 ---
 
-* 當你看到這個畫面的時候，點右邊那個「前往LINE@MANAGER」</br>
-![前往LINE@MANAGER](http://i.imgur.com/C2mzamX.jpg)</br></br></br>
+* 點下方那個「免費帳號」</br>
+</br></br></br>
 ---
 
-* 你會看到這個，總之還是點下去</br>
-![警告](http://i.imgur.com/XfRa9UU.jpg)</br></br></br>
+* 進入你剛註冊的line Bot賬號</br>
 ---
-* 照著這個畫面設定</br>
+
+* 照著這個畫面設定,把Use webhooks 定為開啓，Auto-reply messages  及Greeting messages 定為Disable</br>
 ![設定](http://i.imgur.com/PXf10Qs.jpg)</br></br></br>
 ---
-* 接下來移到上面，看到「LINE Developers」了嗎？按下去，然後開著網頁不要關。</br>
+* 然後開著網頁不要關。</br>
 ![LINE Developers](http://i.imgur.com/aks55p4.jpg)</br></br></br></br>
 ---
 

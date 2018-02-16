@@ -55,7 +55,7 @@ Step1：先把這個專案Fork回去
 
 Step2：建立lineBot賬號
 --
-* 到[https://business.line.me/accounts ](https://business.line.me/accounts )申請一個帳號，</br>
+* 到[https://developers.line.me/en/ ](https://developers.line.me/en/ )申請一個帳號，</br>
 點選「開始使用Messaging API」，按照指示建立你的line賬號。</br>
 ![開始使用Messaging API](http://i.imgur.com/Zb2Oboy.jpg)</br></br></br>
 ---

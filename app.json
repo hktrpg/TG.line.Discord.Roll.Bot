@@ -1,17 +1,17 @@
 {
-  "name": "RoboYabaso TrpgLineBot",
-  "description": "簡單的、模組化的TrpgLineBot",
-  "repository": "https://github.com/zeteticl/RoboYabaso.git",
-  "keywords": ["RoboYabaso","Line Bot", "TRPG"],
-  "env": {
-    "LINE_CHANNEL_SECRET": {
-      "description": "LINE_Channel_Secret"
-    },
-    "LINE_CHANNEL_ACCESSTOKEN": {
-      "description": "LINE_Channel_Accesstoken"
-    },
-    "KEY_WORD": {
-      "description": "你的機器人的名字．"
-    },            
-  }
+	"name": "RoboYabaso TrpgLineBot",
+	"description": "簡單的、模組化的TrpgLineBot",
+	"repository": "https://github.com/zeteticl/RoboYabaso.git",
+	"keywords": ["RoboYabaso", "Line Bot", "TRPG"],
+	"env": {
+		"LINE_CHANNEL_SECRET": {
+			"description": "LINE_Channel_Secret"
+		},
+		"LINE_CHANNEL_ACCESSTOKEN": {
+			"description": "LINE_Channel_Accesstoken"
+		},
+		"KEY_WORD": {
+			"description": "你的機器人的名字"
+		}
+	}
 }

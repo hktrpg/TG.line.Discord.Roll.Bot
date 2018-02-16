@@ -2,8 +2,8 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var app = express();
 var jsonParser = bodyParser.json();
-var channelAccessToken = getenv('LINE_CHANNEL_ACCESSTOKEN');
-var channelSecret = getenv('LINE_CHANNEL_SECRET');
+var channelAccessToken = process.env.LINE_CHANNEL_ACCESSTOKEN;
+var channelSecret = process.env.LINE_CHANNEL_SECRET;
 // Load `*.js` under modules directory as properties
 //  i.e., `User.js` will become `exports['User']` or `exports.User`
 require('fs').readdirSync(__dirname + '/modules/').forEach(function(file) {

@@ -2,6 +2,8 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var app = express();
 var jsonParser = bodyParser.json();
+var channelAccessToken = getenv('LINE_CHANNEL_ACCESSTOKEN');
+var channelSecret = getenv('LINE_CHANNEL_SECRET');
 // Load `*.js` under modules directory as properties
 //  i.e., `User.js` will become `exports['User']` or `exports.User`
 require('fs').readdirSync(__dirname + '/modules/').forEach(function(file) {
@@ -18,7 +20,7 @@ var options = {
 	method: 'POST',
 	headers: {
 	'Content-Type': 'application/json',
-	'Authorization':'Bearer [LineAuthorization]'
+	'Authorization':'Bearer ' + channelAccessToken,
 	}
 }
 app.set('port', (process.env.PORT || 5000));

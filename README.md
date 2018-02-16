@@ -112,7 +112,7 @@ Step5：鏈接Line與Heroku
 * 找到Domains and certificates這個條目，旁邊會有個「Your app can be found at……」加一串網址，把網址複製起來。</br>
 ![Domain](http://i.imgur.com/dcgyeZa.jpg)</br></br></br>
 ---
-* 回到LINE Developers網頁，選取最底下的edit，找到Webhook URL，把那串網址複製上去，尾巴加上 /LINE/</br>
+* 回到LINE Developers網頁，選取最底下的edit，找到Webhook URL，把那串網址去除https://複製上去</br>
 ![webhook](http://i.imgur.com/tn2EN6l.jpg)</br></br></br>
 ---
 * 按下Save。看到在 Webhook URL 旁邊有個 VERIFY 按鈕嗎，按下去。</br>

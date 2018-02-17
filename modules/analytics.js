@@ -64,7 +64,7 @@ function parseInput(rplyToken, inputStr) {
 
 	//Fisher–Yates shuffle
  	//SortIt 指令開始於此
- 	if (trigger.match(/排序/)!= null && mainMsg.length >= 3) return exports.funny.SortIt(inputStr,mainMsg);
+ 	if (trigger.match(/排序/)!= null && mainMsg.length >= 4) return exports.funny.SortIt(inputStr,mainMsg);
  	if (trigger.match(/^d66$/)!= null ) return exports.advroll.d66(mainMsg[1]);
 	if (trigger.match(/^d66s$/)!= null ) return exports.advroll.d66s(mainMsg[1]);
 

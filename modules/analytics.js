@@ -70,14 +70,14 @@ function parseInput(rplyToken, inputStr) {
 
 	
 	//choice 指令開始於此
-	if (trigger.match(/choice|隨機|選項|選1/)!= null && mainMsg.length >= 3) return exports.funny.choice(inputStr,mainMsg);
+	if (trigger.match(/choice|隨機|選項|選1/)!= null && mainMsg.length >= 4) return exports.funny.choice(inputStr,mainMsg);
 	//tarot 指令
-	if (trigger.match(/tarot|塔羅牌|塔羅/) != null) {
-		if (trigger.match(/每日|daily/)!= null) return exports.funny.NomalDrawTarot(mainMsg[1], mainMsg[2]);
-		if (trigger.match(/時間|time/)!= null) 	return exports.funny.MultiDrawTarot(mainMsg[1], mainMsg[2], 1);
-		if (trigger.match(/大十字|cross/)!= null) return exports.funny.MultiDrawTarot(mainMsg[1], mainMsg[2], 2);
-		return exports.funny.MultiDrawTarot(mainMsg[1], mainMsg[2], 3); //預設抽 79 張
-	}
+//	if (trigger.match(/tarot|塔羅牌|塔羅/) != null) {
+//		if (trigger.match(/每日|daily/)!= null) return exports.funny.NomalDrawTarot(mainMsg[1], mainMsg[2]);
+//		if (trigger.match(/時間|time/)!= null) 	return exports.funny.MultiDrawTarot(mainMsg[1], mainMsg[2], 1);
+//		if (trigger.match(/大十字|cross/)!= null) return exports.funny.MultiDrawTarot(mainMsg[1], mainMsg[2], 2);
+//		return exports.funny.MultiDrawTarot(mainMsg[1], mainMsg[2], 3); //預設抽 79 張
+//	}
 	
 	//FLAG指令開始於此
 	if (trigger.match(/立flag|死亡flag/) != null) return exports.funny.BStyleFlagSCRIPTS() ;	

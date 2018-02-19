@@ -112,12 +112,12 @@ rply =		{
 		},
 		{
 			"title": "《附加功能2》",
-			"text": "塔羅牌,運氣占卜,死亡FLAG",
+			"text": "塔羅牌,運氣占卜,死亡FLAG. ",
 			"actions": [
 				{
 					"type": "message",
 					"label": "塔羅占卜",
-					"text": "單張塔羅/大十字塔羅/每日塔羅牌/時間tarot"
+					"text": "單張塔羅/大十字塔羅/每日塔羅牌/時間tarot 單張,大十字,每日及時間必須放頭"
 				},
 				{
 					"type": "message",

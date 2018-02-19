@@ -117,7 +117,7 @@ rply =		{
 				{
 					"type": "message",
 					"label": "塔羅占卜",
-					"text": "塔羅/大十字塔羅/每日塔羅牌/時間tarot"
+					"text": "單張塔羅/大十字塔羅/每日塔羅牌/時間tarot"
 				},
 				{
 					"type": "message",

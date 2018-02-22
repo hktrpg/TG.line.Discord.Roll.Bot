@@ -79,7 +79,7 @@ Step3：將LineBot部署到Heroku
 --
 
 * 按一下下面這個按鈕</br>
-按它→[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)←按它</br></br></br>
+按它→[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy?template=https://github.com/zeteticl/RoboYabaso)←按它</br></br></br>
 ---
 
 * 你會看到這個</br>

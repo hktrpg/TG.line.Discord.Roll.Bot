@@ -89,6 +89,28 @@ function Help() {
 					]
 				},
 				{
+					"title": "《其他系統02》",
+					"text": "DX3雙重十字",
+					"actions": [
+						{
+							"type": "message",
+							"label": "DX3 擲骰範例",
+							"text": "5DX8-1+8"
+						},
+						{
+							"type": "message",
+							"label": "NM 依戀擲骰範例",
+							"text": "nm"
+						},
+						{
+							"type": "message",
+							"label": "WOD擲骰範例",
+							"text": "5wd8 投擲5次D10 每有一粒大於8,得到一粒獎勵骰"
+						}
+
+					]
+				},
+				{
 					"title": "《附加功能》",
 					"text": "排序及隨機功能,D66, D66s",
 					"actions": [

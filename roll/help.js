@@ -90,7 +90,7 @@ function Help() {
 				},
 				{
 					"title": "《其他系統02》",
-					"text": "DX3雙重十字",
+					"text": "DX3雙重十字 nDXc+m n=骰數 c=暴擊值 m=其他修正",
 					"actions": [
 						{
 							"type": "message",
@@ -100,12 +100,12 @@ function Help() {
 						{
 							"type": "message",
 							"label": "DX3 擲骰範例",
-							"text": "8DX9+1"
+							"text": "8DX+1"
 						},
 						{
 							"type": "message",
 							"label": "DX3 擲骰範例",
-							"text": "2DX4-1"
+							"text": "2DX5-1"
 						}
 
 					]

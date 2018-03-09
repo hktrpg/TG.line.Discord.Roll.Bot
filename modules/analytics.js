@@ -62,6 +62,9 @@ function parseInput(rplyToken, inputStr) {
 	//wod 指令開始於此
 	if (trigger.match(/^(\d+)(wd|wod)(\d|)((\+|-)(\d+)|)$/i)!= null)return exports.wod.wod(trigger,mainMsg[1]);
 
+	//Dx3 指令開始於此
+	if (trigger.match(/^(\d+)(dx)(\d|)(((\+|-)(\d+)|)((\+|-)(\d+)|))$/i)!= null)return exports.dx3.dx(trigger);
+
 	//Fisher–Yates shuffle
  	//SortIt 指令開始於此
  	if (trigger.match(/排序/)!= null && mainMsg.length >= 3) return exports.funny.SortIt(inputStr,mainMsg);

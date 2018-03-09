@@ -96,6 +96,16 @@ function Help() {
 							"type": "message",
 							"label": "DX3 擲骰範例",
 							"text": "5DX8+8-3 擲5粒D10 爆擊值8 修正值 +8-3"
+						},
+						{
+							"type": "message",
+							"label": "",
+							"text": ""
+						},
+						{
+							"type": "message",
+							"label": "",
+							"text": ""
 						}
 					]
 				},

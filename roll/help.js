@@ -89,27 +89,6 @@ function Help() {
 					]
 				},
 				{
-					"title": "《其他系統02》",
-					"text": "DX3 雙重十字",
-					"actions": [
-						{
-							"type": "message",
-							"label": "DX3 擲骰範例",
-							"text": "5DX8+8-3 擲5粒D10 爆擊值8 修正值 +8-3"
-						},
-						{
-							"type": "message",
-							"label": "",
-							"text": ""
-						},
-						{
-							"type": "message",
-							"label": "",
-							"text": ""
-						}
-					]
-				},
-				{
 					"title": "《附加功能》",
 					"text": "排序及隨機功能,D66, D66s",
 					"actions": [

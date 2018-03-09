@@ -99,13 +99,13 @@ function Help() {
 						},
 						{
 							"type": "message",
-							"label": "",
-							"text": ""
+							"label": "DX3 擲骰範例",
+							"text": "8DX9+1"
 						},
 						{
 							"type": "message",
-							"label": "",
-							"text": ""
+							"label": "DX3 擲骰範例",
+							"text": "2DX4-1"
 						}
 
 					]

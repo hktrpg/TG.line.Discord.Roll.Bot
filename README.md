@@ -26,11 +26,11 @@ RoboYabaso@HKTRPG 的LineID是：@utr0641o
 ==
 占卜運氣功能。</br>
 支持大小階。</br>
-增加HELP功能。</br>
+增加HELP功能。詳情BOT內輸入bothelp 查看說明</br>
 支持直接 1d100 5d20。</br>
 cc<= 改成 cc cc1 cc2 ccn1 ccn2。</br>
 增加永遠後日談的NC擲骰 來自Rainsting/TarotLineBot。</br>
-增加wod 黑暗世界的擲骰。</br>
+增加wod 黑暗世界 DX3 SW2.0的擲骰。</br>
 模組化設計。</br></br>
 </br></br></br>
 

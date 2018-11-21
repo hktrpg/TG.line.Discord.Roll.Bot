@@ -144,6 +144,7 @@ https://github.com/zeteticl/TrpgLineBot-php
 
 2018/02/17 
 發現說明有BUG,已修正
+
 2018/03/09
 更新DX3了
 

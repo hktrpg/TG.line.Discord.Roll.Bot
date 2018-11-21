@@ -1,4 +1,4 @@
-# RoboYabaso@HKTRPG  V1.40：開放原始碼的LINE骰子機器人
+# RoboYabaso@HKTRPG  V1.50：開放原始碼的LINE骰子機器人
 
 關於RoboYabaso
 ==
@@ -146,3 +146,6 @@ https://github.com/zeteticl/TrpgLineBot-php
 發現說明有BUG,已修正
 2018/03/09
 更新DX3了
+
+2018/11/22
+更新SW2.0

@@ -65,6 +65,10 @@ function parseInput(rplyToken, inputStr) {
 	//Dx3 指令開始於此
 	if (trigger.match(/^(\d+)(dx)(\d|)(((\+|-)(\d+)|)((\+|-)(\d+)|))$/i)!= null)return exports.dx3.dx(trigger);
 
+	//SW 指令開始於此
+	if (trigger.match(/^(kk)0*([0-9][0-9]?|100)(|\+(\d+))(|\-(\d+))(|\@(\d+))$/i) != null) return exports.sw.sw(trigger);
+
+	
 	//Fisher–Yates shuffle
  	//SortIt 指令開始於此
  	if (trigger.match(/排序/)!= null && mainMsg.length >= 3) return exports.funny.SortIt(inputStr,mainMsg);

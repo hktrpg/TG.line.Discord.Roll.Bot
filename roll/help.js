@@ -5,7 +5,7 @@ var rply = { type: 'text' }; //type是必需的,但可以更改
 function Help() {
 	rply = {
 		"type": "template",
-		"altText": "【擲骰BOT】v1.40 \
+		"altText": "【擲骰BOT】v1.50 \
 \n 例如輸入2d6+1　攻撃！\
 \n 會輸出）2d6+1：攻撃  9[6+3]+1 = 10\
 \n 如上面一樣,在骰子數字後方隔空白位打字,可以進行發言。\
@@ -25,7 +25,7 @@ function Help() {
 			"columns": [
 				{
 					"title": "《基本擲骰系統》",
-					"text": "【擲骰BOT】v1.40 指令包括1D100, 5B10 ,5U10 8 9",
+					"text": "【擲骰BOT】v1.50 指令包括1D100, 5B10 ,5U10 8 9",
 					"actions": [
 						{
 							"type": "message",

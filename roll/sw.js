@@ -196,6 +196,9 @@ function swroll(match, round, returnStr, finallynum) {
         if (varcou > 12) {
             varcou = 12;
         }
+		if (varcou <= 2) {
+            varcou = 2;
+        }
         result = rate_sw2_0[match[2]][varcou - 2];
         if (varcou >= Number(match[11])) {
             match[1]++;

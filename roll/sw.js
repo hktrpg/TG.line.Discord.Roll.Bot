@@ -162,7 +162,7 @@ function sw(triggermsg) {
         }
 
         if (match[0] > 0) returnStr += '→' + match[0] + '迴轉';
-        if ((match[0] <= 1) && (/[*]/.test(returnStr))) returnStr += ' → 大失敗'
+        if ((match[0] = 0) && (/[*]/.test(returnStr))) returnStr += ' → 大失敗'
         else {
             returnStr += ' → ' + finallynum;
         }

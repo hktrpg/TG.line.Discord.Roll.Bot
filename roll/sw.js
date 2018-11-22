@@ -185,11 +185,13 @@ function swroll(match, round, returnStr, finallynum) {
         varcoua = Math.floor(Math.random() * 6) + 1;
         varcoub = Math.floor(Math.random() * 6) + 1;
         var varcou = varcoua + varcoub;
-        if (match[13] != null) {
+        if (match[13] >= 1) {
             varcou = match[13];
         }
-        if (match[15] != null) {
-            varcou = Number(match[15]+varcou);
+        if (match[15] >=1) {
+			for (var i = 0; i < Number(match[15]); i++) {
+                varcou++;
+            }
         }
         if (varcou > 12) {
             varcou = 12;

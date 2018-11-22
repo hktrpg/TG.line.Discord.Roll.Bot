@@ -112,22 +112,22 @@ function Help() {
 				},
 				{
 					"title": "《其他系統03》",
-					"text": "SW2.0 劍世界 KKn+m-m@c n=骰數 c=暴擊值 m=其他修正",
+					"text": "SW2.0 劍世界 KKn+m-m@c$d$+x n=骰數 c=暴擊值 m=其他修正 d=固定值 x=增加值",
 					"actions": [
 						{
 							"type": "message",
 							"label": "SW2.0 擲骰範例",
-							"text": "KK28+8"
+							"text": "KK28-8+1"
 						},
 						{
 							"type": "message",
 							"label": "SW2.0 擲骰範例",
-							"text": "KK050+8-1"
+							"text": "KK050+8-1@8"
 						},
 						{
 							"type": "message",
 							"label": "SW2.0 擲骰範例",
-							"text": "KK050+8@8"
+							"text": "KK050+8@8$9"
 						}
 
 					]

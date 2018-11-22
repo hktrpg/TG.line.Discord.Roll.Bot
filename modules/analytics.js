@@ -66,7 +66,7 @@ function parseInput(rplyToken, inputStr) {
 	if (trigger.match(/^(\d+)(dx)(\d|)(((\+|-)(\d+)|)((\+|-)(\d+)|))$/i)!= null)return exports.dx3.dx(trigger);
 
 	//SW 指令開始於此
-	if (trigger.match(/^(kk)0*([0-9][0-9]?|100)(|\+(\d+))(|\-(\d+))(|\@(\d+))$/i) != null) return exports.sw.sw(trigger);
+	if (trigger.match(/^(kk)0*([0-9][0-9]?|100)(((\+|-)(\d+)|)((\+|-)(\d+)|))(|\@(\d+))(|\$(\d+))(|\$\+(\d+))$/i) != null) return exports.sw.sw(trigger);
 
 	
 	//Fisher–Yates shuffle

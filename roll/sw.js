@@ -188,7 +188,7 @@ function swroll(match, round, returnStr, finallynum) {
         if (match[13] != null) {
             varcou = match[13];
         }
-        if (match[15] >= 1) {
+        if (match[15] != null) {
             varcou += match[15];
         }
         if (varcou > 12) {

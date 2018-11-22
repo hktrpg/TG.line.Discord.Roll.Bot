@@ -25,7 +25,7 @@ function Help() {
 			"columns": [
 				{
 					"title": "《基本擲骰系統》",
-					"text": "【擲骰BOT】v1.50 指令包括1D100, 5B10 ,5U10 8 9",
+					"text": "【擲骰BOT】v1.52 指令包括1D100, 5B10 ,5U10 8 9",
 					"actions": [
 						{
 							"type": "message",

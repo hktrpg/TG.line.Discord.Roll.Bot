@@ -123,11 +123,11 @@ function sw(triggermsg) {
 
     //判斷式  [0]K013+21-5@8,[1]K,[2]13,[3]+21,[4]21,[5]-5,[6]5,[7]@8,[8]8
 
-    if (triggermsg.match(/^(kk)0*([0-9][0-9]?|100)(((\+|-)(\d+)|)((\+|-)(\d+)|))(|\@(\d+))(|\$(\d+))(|\$\+(\d+))$/i) != null) {
+    if (triggermsg.match(/^(kk)0*([0-9][0-9]?|100)(((\+|-)(\d+)|)((\+|-)(\d+)|))(|\@(\d+))(|\$(\d+))(|\$\+(\d+))(|gf)$/i) != null) {
         //var varcou = 0;
         var finallynum = 0;
         var returnStr = triggermsg + '(SW 威力表) → ';
-        var match = /^(kk)0*([0-9][0-9]?|100)(((\+|-)(\d+)|)((\+|-)(\d+)|))(|\@(\d+))(|\$(\d+))(|\$\+(\d+))$/i.exec(triggermsg);
+        var match = /^(kk)0*([0-9][0-9]?|100)(((\+|-)(\d+)|)((\+|-)(\d+)|))(|\@(\d+))(|\$(\d+))(|\$\+(\d+))(|gf)$/i.exec(triggermsg);
         //	console.log(match);
         if (match[11] == null) { match[11] = 10 }
         if (match[11] <= 2) {
@@ -137,7 +137,7 @@ function sw(triggermsg) {
         for (var round = 1; round > 0; round--) {
             [match, round, returnStr, finallynum] = swroll(match, round, returnStr, finallynum);
         }
-        //判斷式  [0]KK1+5-5@5$5$+5,[1]KK,[2]1,[3]+5-5,[4]+5,[5]+,[6]5,[7]-5,[8]-,[9]5,[10]@5,[11]5,[12]$5,[13]5,[14]$+5,[15]5 
+        //判斷式  [0]KK1+5-5@5$5$+5,[1]KK,[2]1,[3]+5-5,[4]+5,[5]+,[6]5,[7]-5,[8]-,[9]5,[10]@5,[11]5,[12]$5,[13]5,[14]$+5,[15]5,[16]gf
 
         returnStr = returnStr.replace(/[,][ ]+]/ig, ']');
         if (match[5] == '+') {
@@ -184,6 +184,7 @@ function swroll(match, round, returnStr, finallynum) {
     for (var i = 0; i < rollnum; i++) {
         varcoua = Math.floor(Math.random() * 6) + 1;
         varcoub = Math.floor(Math.random() * 6) + 1;
+        if(match[16] == 'gf') varcoub = varcoua;
         var varcou = varcoua + varcoub;
         if (match[13] >= 1) {
             varcou = match[13];

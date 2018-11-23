@@ -34,6 +34,8 @@ function parseInput(rplyToken, inputStr) {
 	//ccb指令開始於此
 	if (trigger == 'ccb'&& mainMsg[1]<=99) return exports.coc.coc6(mainMsg[1],mainMsg[2]);
 	
+	if (trigger.match(/(^ccrt$)/) != null) return exports.coc.ccrt();
+	
 	//cc指令開始於此
 	if (trigger == 'cc'&& mainMsg[1]<=1000) return exports.coc.coc7(mainMsg[1],mainMsg[2]);
 	//獎懲骰設定於此	
@@ -66,7 +68,7 @@ function parseInput(rplyToken, inputStr) {
 	if (trigger.match(/^(\d+)(dx)(\d|)(((\+|-)(\d+)|)((\+|-)(\d+)|))$/i)!= null)return exports.dx3.dx(trigger);
 
 	//SW 指令開始於此
-	if (trigger.match(/^(kk)0*([0-9][0-9]?|100)(((\+|-)(\d+)|)((\+|-)(\d+)|))(|\@(\d+))(|\$(\d+))(|\$\+(\d+))$/i) != null) return exports.sw.sw(trigger);
+	if (trigger.match(/^(kk)0*([0-9][0-9]?|100)(((\+|-)(\d+)|)((\+|-)(\d+)|))(|\@(\d+))(|\$(\d+))(|\$\+(\d+))(|gf)$/i) != null) return exports.sw.sw(trigger);
 
 	
 	//Fisher–Yates shuffle

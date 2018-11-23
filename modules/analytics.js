@@ -20,7 +20,7 @@ function parseInput(rplyToken, inputStr) {
 	let trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
 
 	//在下面位置開始分析trigger
-
+	if (trigger.match(/(^ccrt$)/) != null) return exports.coc.ccrt();
 	//普通ROLL擲骰判定在此	
 	if (inputStr.match(/\w/)!=null && inputStr.toLowerCase().match(/\d+d+\d/)!=null) return exports.rollbase.nomalDiceRoller(inputStr,mainMsg[0],mainMsg[1],mainMsg[2]);
 
@@ -34,7 +34,7 @@ function parseInput(rplyToken, inputStr) {
 	//ccb指令開始於此
 	if (trigger == 'ccb'&& mainMsg[1]<=99) return exports.coc.coc6(mainMsg[1],mainMsg[2]);
 	
-	if (trigger.match(/(^ccrt$)/) != null) return exports.coc.ccrt();
+	
 	
 	//cc指令開始於此
 	if (trigger == 'cc'&& mainMsg[1]<=1000) return exports.coc.coc7(mainMsg[1],mainMsg[2]);

@@ -5,7 +5,7 @@ var rply = { type: 'text' }; //type是必需的,但可以更改
 function Help() {
 	rply = {
 		"type": "template",
-		"altText": "【擲骰BOT】v1.52 \
+		"altText": "【擲骰BOT】v1.60 \
 \n 例如輸入2d6+1　攻撃！\
 \n 會輸出）2d6+1：攻撃  9[6+3]+1 = 10\
 \n 如上面一樣,在骰子數字後方隔空白位打字,可以進行發言。\
@@ -25,7 +25,7 @@ function Help() {
 			"columns": [
 				{
 					"title": "《基本擲骰系統》",
-					"text": "【擲骰BOT】v1.52 指令包括1D100, 5B10 ,5U10 8 9",
+					"text": "【擲骰BOT】v1.60 指令包括1D100, 5B10 ,5U10 8 9",
 					"actions": [
 						{
 							"type": "message",
@@ -62,6 +62,28 @@ function Help() {
 							"type": "message",
 							"label": "cc7版創角 50歲",
 							"text": "cc7版創角 50"
+						}
+
+					]
+				},
+				{
+					"title": "《COC7版 擲骰系統》",
+					"text": "指令包括 即時型瘋狂 總結型瘋狂",
+					"actions": [
+						{
+							"type": "message",
+							"label": "即時型瘋狂",
+							"text": "ccrt"
+						},
+						{
+							"type": "message",
+							"label": "總結型瘋狂",
+							"text": "ccsu"
+						},
+						{
+							"type": "message",
+							"label": "內容來自純美蘋果園COC區",
+							"text": "http://www.goddessfantasy.net/bbs/index.php?topic=89557.0"
 						}
 
 					]
@@ -112,7 +134,7 @@ function Help() {
 				},
 				{
 					"title": "《其他系統03》",
-					"text": "SW2.0 劍世界 KKn+m-m@c$d$+x n=骰數 c=暴擊值 m=其他修正 d=固定值 x=增加值",
+					"text": "SW2.0 劍世界 KKn+m-m@c$d$+xGF n=骰數 c=暴擊值 m=其他修正 d=固定值 x=增加值",
 					"actions": [
 						{
 							"type": "message",
@@ -127,7 +149,7 @@ function Help() {
 						{
 							"type": "message",
 							"label": "SW2.0 擲骰範例",
-							"text": "KK050+8@8$9"
+							"text": "KK050+8@8$9gf"
 						}
 
 					]

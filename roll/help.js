@@ -55,8 +55,8 @@ function Help() {
 						},
 						{
 							"type": "message",
-							"label": "7版擲骰 cc((n)1-2) d n代表懲罰 1-2數量 d 目標值",
-							"text": "ccn2 80 7版擲骰技能80 -2懲罰"
+							"label": "7版擲骰 cc((n)1-2) d ",
+							"text": "ccn2 80 7版擲骰 n代表懲罰 1-2數量 d 目標值"
 						},
 						{
 							"type": "message",

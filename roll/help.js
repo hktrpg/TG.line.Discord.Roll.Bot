@@ -5,7 +5,7 @@ var rply = { type: 'text' }; //type是必需的,但可以更改
 function Help() {
 	rply = {
 		"type": "template",
-		"altText": "【擲骰BOT】v1.60 \
+		"altText": "【擲骰BOT】v1.61 \
 \n 例如輸入2d6+1　攻撃！\
 \n 會輸出）2d6+1：攻撃  9[6+3]+1 = 10\
 \n 如上面一樣,在骰子數字後方隔空白位打字,可以進行發言。\
@@ -25,12 +25,12 @@ function Help() {
 			"columns": [
 				{
 					"title": "《基本擲骰系統》",
-					"text": "【擲骰BOT】v1.60 指令包括1D100, 5B10 ,5U10 8 9",
+					"text": "【擲骰BOT】v1.61 指令包括1D100, 5B10 ,5U10 8 9",
 					"actions": [
 						{
 							"type": "message",
 							"label": "1d100擲骰範例",
-							"text": "5 1d100 示範"
+							"text": "5 1d100 骰出5次1D100"
 						},
 						{
 							"type": "message",
@@ -55,7 +55,7 @@ function Help() {
 						},
 						{
 							"type": "message",
-							"label": "7版擲骰 技能80 -2懲罰",
+							"label": "7版擲骰 cc((n)1-2) d n代表懲罰 1-2數量 d 目標值",
 							"text": "ccn2 80 7版擲骰技能80 -2懲罰"
 						},
 						{

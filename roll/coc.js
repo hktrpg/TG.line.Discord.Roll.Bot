@@ -247,10 +247,10 @@ function ccrt() {
 		rply.text = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數';
 	} else
 	if (rollcc == 8) {
-		rply.text = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數' + ' \n' + cocPhobias[PP];
+		rply.text = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數' + ' \n' + cocManias[PP];
 	} else
 	if (rollcc == 9) {
-		rply.text = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數' + ' \n' + cocManias[PP];
+		rply.text = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數' + ' \n' + cocPhobias[PP];
 	};
 	return rply;
 }
@@ -262,10 +262,10 @@ function ccsu() {
 		rply.text = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時';
 	} else
 	if (rollcc == 8) {
-		rply.text = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時' + ' \n' + cocPhobias[PP];
+		rply.text = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時' + ' \n' + cocManias[PP];
 	} else
 	if (rollcc == 9) {
-		rply.text = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時' + ' \n' + cocManias[PP];
+		rply.text = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時' + ' \n' + cocPhobias[PP];
 	};
 	return rply;
 }

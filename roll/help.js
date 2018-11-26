@@ -72,12 +72,12 @@ function Help() {
 					"actions": [
 						{
 							"type": "message",
-							"label": "即時型瘋狂",
+							"label": "即時型瘋狂Real Time",
 							"text": "ccrt"
 						},
 						{
 							"type": "message",
-							"label": "總結型瘋狂",
+							"label": "總結型瘋狂Summary",
 							"text": "ccsu"
 						},
 						{
@@ -193,7 +193,7 @@ function Help() {
 						{
 							"type": "message",
 							"label": "回報問題",
-							"text": "請到 www.hktrpg.com 留言"
+							"text": "請到 www.hktrpg.com 留言或此擲骰Bot主頁留言"
 						}
 
 					]

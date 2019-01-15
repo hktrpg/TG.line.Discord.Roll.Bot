@@ -192,30 +192,8 @@ function Help() {
 						},
 						{
 							"type": "message",
-							"label": "回報問題",
-							"text": "請到 www.hktrpg.com 留言或此擲骰Bot主頁留言"
-						}
-
-					]
-				},
-				{
-					"title": "《機器人介紹》",
-					"text": "開放原始碼的LINE骰子機器人. ",
-					"actions": [
-						{
-							"type": "message",
-							"label": "原始碼",
+							"label": "骰子機器人原始碼",
 							"text": "https://github.com/zeteticl/RoboYabaso"
-						},
-						{
-							"type": "message",
-							"label": "開發者介紹",
-							"text": "RoboYabaso是一個開放源碼的line骰子機器人計畫。 最早由LarryLo Retsnimle開發。"
-						},
-						{
-							"type": "message",
-							"label": "",
-							"text": ""
 						}
 
 					]

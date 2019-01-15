@@ -210,7 +210,7 @@ function Help() {
 						{
 							"type": "message",
 							"label": "開發者介紹",
-							"text": "RoboYabaso是一個開放源碼的line骰子機器人計畫。 最早由LarryLo Retsnimle開發。\n這是建立在Heroku的免費伺服器上，所以大家都可以按照下面的教程，客制化做一個自己的LINEBOT！ "
+							"text": "RoboYabaso是一個開放源碼的line骰子機器人計畫。 最早由LarryLo Retsnimle開發。"
 						}
 
 					]

@@ -211,6 +211,11 @@ function Help() {
 							"type": "message",
 							"label": "開發者介紹",
 							"text": "RoboYabaso是一個開放源碼的line骰子機器人計畫。 最早由LarryLo Retsnimle開發。"
+						},
+						{
+							"type": "message",
+							"label": "",
+							"text": ""
 						}
 
 					]

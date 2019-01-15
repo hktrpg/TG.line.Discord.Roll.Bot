@@ -19,7 +19,7 @@ function Help() {
 \n Choice：啓動語choice/隨機/選項/選1\
 \n (問題)(啓動語)(問題)  (選項1) (選項2) \
 \n 例子 隨機收到聖誕禮物數 1 2 3 >4  \
-更多請到 www.hktrpg.com查詢",
+更多請到 https://github.com/zeteticl/RoboYabaso 查詢",
 		"template": {
 			"type": "carousel",
 			"columns": [

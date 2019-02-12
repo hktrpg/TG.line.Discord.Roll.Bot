@@ -20,7 +20,7 @@ function Help() {
 \n (問題)(啓動語)(問題)  (選項1) (選項2) \
 \n 例子 隨機收到聖誕禮物數 1 2 3 >4  \
 \n COC7ed：cc 80 技能小於等於80  \
-其他指令請到 https://github.com/zeteticl/RoboYabaso 最底下查詢",
+\n 其他指令請到 https://github.com/zeteticl/RoboYabaso 最底下查詢",
 		"template": {
 			"type": "carousel",
 			"columns": [

@@ -15,8 +15,8 @@ RoboYabaso@HKTRPG 的LineID是：@utr0641o
 ![QR](http://truth.bahamut.com.tw/s01/201612/c50dc2bd02de285983e7cf1c48926a61.JPG)  
 
 或是點這裡：<a href="https://line.me/R/ti/p/svMLqy9Mik"><img height="36" border="0" alt="加入好友" src="https://scdn.line-apps.com/n/line_add_friends/btn/zh-Hant.png"></a>
-</br>
-骰組指令在最底下</br>
+</br></br>
+骰組指令說明在最底下</br>
 
 
 順便宣傳

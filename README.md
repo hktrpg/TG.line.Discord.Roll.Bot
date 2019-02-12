@@ -37,7 +37,6 @@ cc<= 改成 cc cc1 cc2 ccn1 ccn2。</br>
 模組化設計。</br></br>
 </br></br></br>
 
-==
 
 如何建立自己的Line骰子機器人
 ==

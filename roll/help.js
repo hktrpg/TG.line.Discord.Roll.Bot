@@ -5,7 +5,7 @@ var rply = { type: 'text' }; //type是必需的,但可以更改
 function Help() {
 	rply = {
 		"type": "template",
-		"altText": "【擲骰BOT】v1.6.1 \
+		"altText": "【擲骰BOT】v1.7.1 \
 \n 例如輸入2d6+1　攻撃！\
 \n 會輸出）2d6+1：攻撃  9[6+3]+1 = 10\
 \n 如上面一樣,在骰子數字後方隔空白位打字,可以進行發言。\
@@ -83,8 +83,8 @@ function Help() {
 						},
 						{
 							"type": "message",
-							"label": "內容來自純美蘋果園COC區",
-							"text": "http://www.goddessfantasy.net/bbs/index.php?topic=89557.0"
+							"label": "成長或增強檢定 Development Phase",
+							"text": "DP 80 偵查"
 						}
 
 					]

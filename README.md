@@ -1,4 +1,4 @@
-# RoboYabaso@HKTRPG  V1.60：開放原始碼的LINE骰子機器人
+# RoboYabaso@HKTRPG  V1.7.1：開放原始碼的LINE骰子機器人
 
 關於RoboYabaso
 ==
@@ -179,6 +179,8 @@ Choice：啓動語choice/隨機/選項/選1</br>
 　x：獎勵骰/懲罰骰 (2～n2)。沒有的話可以省略。</br>
 例）CC 30　CC1 50　CCn2 75</br></br>
 ・coc7角色背景：啓動語 coc7角色背景</br>
+・coc7 成長或增長檢定：dp (技能) (名稱)</br>
+例）DP 80 偵查</br></br>
   
 
 ・NC 永遠的後日談擲骰</br>

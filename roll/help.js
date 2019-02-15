@@ -1,6 +1,8 @@
 var rollbase = require('./rollbase.js');
 var funny = require('./funny.js');
-var rply = { type: 'text' }; //type是必需的,但可以更改
+var rply = {
+	type: 'text'
+}; //type是必需的,但可以更改
 
 function Help() {
 	rply = {
@@ -23,12 +25,10 @@ function Help() {
 \n 其他指令請到 https://github.com/zeteticl/RoboYabaso 最底下查詢",
 		"template": {
 			"type": "carousel",
-			"columns": [
-				{
+			"columns": [{
 					"title": "《基本擲骰系統》",
 					"text": "【擲骰BOT】v1.61 指令包括1D100, 5B10 ,5U10 8 9",
-					"actions": [
-						{
+					"actions": [{
 							"type": "message",
 							"label": "1d100擲骰範例",
 							"text": "5 1d100 骰出5次1D100"
@@ -48,8 +48,7 @@ function Help() {
 				}, {
 					"title": "《COC 6 7版 擲骰系統》",
 					"text": "指令包括 6版ccb, 7版cc, cc(n)1~2, cc6版創角, cc7版創角, coc7角色背景",
-					"actions": [
-						{
+					"actions": [{
 							"type": "message",
 							"label": "6版擲骰 技能80",
 							"text": "ccb 80 擒抱!"
@@ -70,8 +69,7 @@ function Help() {
 				{
 					"title": "《COC7版 擲骰系統》",
 					"text": "指令包括 即時型瘋狂 總結型瘋狂",
-					"actions": [
-						{
+					"actions": [{
 							"type": "message",
 							"label": "即時型瘋狂Real Time",
 							"text": "ccrt"
@@ -83,8 +81,8 @@ function Help() {
 						},
 						{
 							"type": "message",
-							"label": "成長或增強檢定 Development Phase",
-							"text": "DP 80 偵查"
+							"label": "成長或增強檢定",
+							"text": "DP 80 偵查 Development Phase"
 						}
 
 					]
@@ -92,8 +90,7 @@ function Help() {
 				{
 					"title": "《其他系統01》",
 					"text": "NC死靈年代記之永遠的後日談, WoD黑暗世界",
-					"actions": [
-						{
+					"actions": [{
 							"type": "message",
 							"label": "1NC 擲骰範例",
 							"text": "2NC"
@@ -114,8 +111,7 @@ function Help() {
 				{
 					"title": "《其他系統02》",
 					"text": "DX3雙重十字 nDXc+m n=骰數 c=暴擊值 m=其他修正",
-					"actions": [
-						{
+					"actions": [{
 							"type": "message",
 							"label": "DX3 擲骰範例",
 							"text": "5DX8-1+8"
@@ -136,8 +132,7 @@ function Help() {
 				{
 					"title": "《其他系統03》",
 					"text": "SW2.0 劍世界 KKn+m-m@c$d$+xGF n=骰數 c=暴擊值 m=其他修正 d=固定值 x=增加值",
-					"actions": [
-						{
+					"actions": [{
 							"type": "message",
 							"label": "SW2.0 擲骰範例",
 							"text": "KK28-8+1"
@@ -158,8 +153,7 @@ function Help() {
 				{
 					"title": "《附加功能》",
 					"text": "排序及隨機功能,D66, D66s",
-					"actions": [
-						{
+					"actions": [{
 							"type": "message",
 							"label": "排序功能範例",
 							"text": "交換禮物排序 A君 C君 F君 G君"
@@ -180,8 +174,7 @@ function Help() {
 				{
 					"title": "《附加功能2》",
 					"text": "塔羅牌,運氣占卜,死亡FLAG. ",
-					"actions": [
-						{
+					"actions": [{
 							"type": "message",
 							"label": "塔羅占卜",
 							"text": "單張塔羅/大十字塔羅/每日塔羅牌/時間tarot 單張,大十字,每日及時間必須放頭"

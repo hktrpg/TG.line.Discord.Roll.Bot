@@ -153,6 +153,9 @@ https://github.com/zeteticl/TrpgLineBot-php </br>
 2018/11/22</br>
 更新SW2.0</br></br>
 
+*2019/02/15</br>
+新增成長或增長檢定：dp (數值) (名字)</br></br>
+
 【擲骰BOT】
 --
 例如輸入2d6+1　攻撃！</br>
@@ -181,7 +184,8 @@ Choice：啓動語choice/隨機/選項/選1</br>
 ・coc7角色背景：啓動語 coc7角色背景</br>
 ・coc7 成長或增長檢定：dp (技能) (名稱)</br>
 例）DP 80 偵查</br></br>
-  
+・coc7 成長或增長檢定：dp (技能) (名稱)</br>
+例）DP 80 偵查</br></br>
 
 ・NC 永遠的後日談擲骰</br>
 (骰數)NC/NA (問題)</br>

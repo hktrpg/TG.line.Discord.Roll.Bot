@@ -1,8 +1,7 @@
 var rollbase = require('./rollbase.js');
 let rply = {
 	type: 'text'
-}; //type是必需的,但可以更改
-////////////////////////////////////////
+}; //type是必需的,但可以更改////////////////////////////////////////
 //////////////// 恐懼
 ////////////////////////////////////////
 var cocmadnessrt = [
@@ -239,9 +238,9 @@ var cocManias = [
 ];
 
 function DevelopmentPhase(chack, text) {
+	if (text == undefined) text = "";
 	let skill = rollbase.Dice(100);
 	let improved = rollbase.Dice(10);
-	if (text == undefined) text = "";
 	if (skill >= 96 || skill > chack) {
 		rply.text = "成長或增強檢定: " + text + "\n1D100=" + skill + " 成功!\n 你的技能增加" + improved + "點!";
 	} else {
@@ -257,12 +256,12 @@ function ccrt() {
 	if (rollcc <= 7) {
 		rply.text = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數';
 	} else
-	if (rollcc == 8) {
-		rply.text = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數' + ' \n' + cocManias[PP];
-	} else
-	if (rollcc == 9) {
-		rply.text = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數' + ' \n' + cocPhobias[PP];
-	};
+		if (rollcc == 8) {
+			rply.text = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數' + ' \n' + cocManias[PP];
+		} else
+			if (rollcc == 9) {
+				rply.text = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數' + ' \n' + cocPhobias[PP];
+			};
 	return rply;
 }
 
@@ -273,12 +272,12 @@ function ccsu() {
 	if (rollcc <= 7) {
 		rply.text = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時';
 	} else
-	if (rollcc == 8) {
-		rply.text = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時' + ' \n' + cocManias[PP];
-	} else
-	if (rollcc == 9) {
-		rply.text = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時' + ' \n' + cocPhobias[PP];
-	};
+		if (rollcc == 8) {
+			rply.text = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時' + ' \n' + cocManias[PP];
+		} else
+			if (rollcc == 9) {
+				rply.text = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時' + ' \n' + cocPhobias[PP];
+			};
 	return rply;
 }
 
@@ -307,23 +306,14 @@ function coc6(chack, text) {
 
 function coc7(chack, text) {
 	let temp = rollbase.Dice(100);
-	if (text == null) {
-		if (temp > chack) rply.text = temp + ' → 失敗';
-		if (temp <= chack) rply.text = temp + ' → 通常成功';
-		if (temp <= chack / 2) rply.text = temp + ' → 困難成功';
-		if (temp <= chack / 5) rply.text = temp + ' → 極限成功';
-		if (temp == 1) rply.text = temp + ' → 恭喜！大成功！';
-		if (temp == 100) rply.text = temp + ' → 啊！大失敗！';
-		if (temp >= 96 && chack <= 49) rply.text = temp + ' → 啊！大失敗！';
-	} else {
-		if (temp > chack) rply.text = temp + ' → 失敗；' + text;
-		if (temp <= chack) rply.text = temp + ' → 通常成功；' + text;
-		if (temp <= chack / 2) rply.text = temp + ' → 困難成功；' + text;
-		if (temp <= chack / 5) rply.text = temp + ' → 極限成功；' + text;
-		if (temp == 1) rply.text = temp + ' → 恭喜！大成功！；' + text;
-		if (temp == 100) rply.text = temp + ' → 啊！大失敗！；' + text;
-		if (temp >= 96 && chack <= 49) rply.text = temp + ' → 啊！大失敗！；' + text;
-	}
+	if (temp > chack) rply.text = '1D100 ＜＝ ' + chack + "：\n" + temp + ' → 失敗';
+	if (temp <= chack) rply.text = '1D100 ＜＝ ' + chack + "：\n" + temp + ' → 通常成功';
+	if (temp <= chack / 2) rply.text = '1D100 ＜＝ ' + chack + "：\n" + temp + ' → 困難成功';
+	if (temp <= chack / 5) rply.text = '1D100 ＜＝ ' + chack + "：\n" + temp + ' → 極限成功';
+	if (temp == 1) rply.text = '1D100 ＜＝ ' + chack + "：\n" + temp + ' → 恭喜！大成功！';
+	if (temp == 100) rply.text = '1D100 ＜＝ ' + chack + "：\n" + temp + ' → 啊！大失敗！';
+	if (temp >= 96 && chack <= 49) rply.text = '1D100 ＜＝ ' + chack + "：\n" + temp + ' → 啊！大失敗！';
+	if (text != null) rply.text += '：' + text;
 	return rply;
 }
 
@@ -337,13 +327,13 @@ function coc7chack(temp, chack, text) {
 		if (temp <= chack) return temp + ' → 通常成功';
 		else return temp + ' → 失敗';
 	} else {
-		if (temp == 1) return temp + ' → 恭喜！大成功！；' + text;
-		if (temp == 100) return temp + ' → 啊！大失敗！；' + text;
-		if (temp >= 96 && chack <= 49) return temp + ' → 啊！大失敗！；' + text;
-		if (temp <= chack / 5) return temp + ' → 極限成功；' + text;
-		if (temp <= chack / 2) return temp + ' → 困難成功；' + text;
-		if (temp <= chack) return temp + ' → 通常成功；' + text;
-		else return temp + ' → 失敗；' + text;
+		if (temp == 1) return temp + ' → 恭喜！大成功！：' + text;
+		if (temp == 100) return temp + ' → 啊！大失敗！：' + text;
+		if (temp >= 96 && chack <= 49) return temp + ' → 啊！大失敗！：' + text;
+		if (temp <= chack / 5) return temp + ' → 極限成功：' + text;
+		if (temp <= chack / 2) return temp + ' → 困難成功：' + text;
+		if (temp <= chack) return temp + ' → 通常成功：' + text;
+		else return temp + ' → 失敗：' + text;
 	}
 }
 
@@ -362,7 +352,7 @@ function coc7bp(chack, bpdiceNum, text) {
 		countStr = countStr.substring(0, countStr.length - 1)
 		let countArr = countStr.split('、');
 		countStr = countStr + ' → ' + coc7chack(Math.min(...countArr), chack, text);
-		rply.text = countStr;
+		rply.text = '1D100 ＜＝ ' + chack + "：\n" + countStr;
 		return rply;
 	}
 
@@ -377,7 +367,7 @@ function coc7bp(chack, bpdiceNum, text) {
 		countStr = countStr.substring(0, countStr.length - 1)
 		let countArr = countStr.split('、');
 		countStr = countStr + ' → ' + coc7chack(Math.max(...countArr), chack, text);
-		rply.text = countStr;
+		rply.text = '1D100 ＜＝ ' + chack + "：\n" + countStr;
 		return rply;
 	}
 }
@@ -425,8 +415,8 @@ function build7char(text01) {
 	ReStr = ReStr + '==\n';
 	if (old < 20) ReStr = ReStr + '年齡調整：從STR、SIZ擇一減去' + Debuff + '點\n（請自行手動選擇計算）。\n將EDU減去5點。LUK可擲兩次取高。';
 	else
-	if (old >= 40) ReStr = ReStr + '年齡調整：從STR、CON或DEX中「總共」減去' + Debuff + '點\n（請自行手動選擇計算）。\n將APP減去' + AppDebuff + '點。可做' + EDUinc + '次EDU的成長擲骰。';
-	else ReStr = ReStr + '年齡調整：可做' + EDUinc + '次EDU的成長擲骰。';
+		if (old >= 40) ReStr = ReStr + '年齡調整：從STR、CON或DEX中「總共」減去' + Debuff + '點\n（請自行手動選擇計算）。\n將APP減去' + AppDebuff + '點。可做' + EDUinc + '次EDU的成長擲骰。';
+		else ReStr = ReStr + '年齡調整：可做' + EDUinc + '次EDU的成長擲骰。';
 	ReStr = ReStr + '\n==';
 	if (old >= 40) ReStr = ReStr + '\n（以下箭號三項，自選共減' + Debuff + '點。）';
 	if (old < 20) ReStr = ReStr + '\n（以下箭號兩項，擇一減去' + Debuff + '點。）';

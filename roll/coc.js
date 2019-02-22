@@ -2,6 +2,7 @@ var rollbase = require('./rollbase.js');
 let rply = {
 	type: 'text'
 }; //type是必需的,但可以更改////////////////////////////////////////
+////////////////////////////////////////
 //////////////// 恐懼
 ////////////////////////////////////////
 var cocmadnessrt = [
@@ -306,13 +307,13 @@ function coc6(chack, text) {
 
 function coc7(chack, text) {
 	let temp = rollbase.Dice(100);
-	if (temp > chack) rply.text = '1D100 ＜＝ ' + chack + "：\n" + temp + ' → 失敗';
-	if (temp <= chack) rply.text = '1D100 ＜＝ ' + chack + "：\n" + temp + ' → 通常成功';
-	if (temp <= chack / 2) rply.text = '1D100 ＜＝ ' + chack + "：\n" + temp + ' → 困難成功';
-	if (temp <= chack / 5) rply.text = '1D100 ＜＝ ' + chack + "：\n" + temp + ' → 極限成功';
-	if (temp == 1) rply.text = '1D100 ＜＝ ' + chack + "：\n" + temp + ' → 恭喜！大成功！';
-	if (temp == 100) rply.text = '1D100 ＜＝ ' + chack + "：\n" + temp + ' → 啊！大失敗！';
-	if (temp >= 96 && chack <= 49) rply.text = '1D100 ＜＝ ' + chack + "：\n" + temp + ' → 啊！大失敗！';
+	if (temp > chack) rply.text = '1D100 ≦ ' + chack + "：\n" + temp + ' → 失敗';
+	if (temp <= chack) rply.text = '1D100 ≦ ' + chack + "：\n" + temp + ' → 通常成功';
+	if (temp <= chack / 2) rply.text = '1D100 ≦ ' + chack + "：\n" + temp + ' → 困難成功';
+	if (temp <= chack / 5) rply.text = '1D100 ≦ ' + chack + "：\n" + temp + ' → 極限成功';
+	if (temp == 1) rply.text = '1D100 ≦ ' + chack + "：\n" + temp + ' → 恭喜！大成功！';
+	if (temp == 100) rply.text = '1D100 ≦ ' + chack + "：\n" + temp + ' → 啊！大失敗！';
+	if (temp >= 96 && chack <= 49) rply.text = '1D100 ≦ ' + chack + "：\n" + temp + ' → 啊！大失敗！';
 	if (text != null) rply.text += '：' + text;
 	return rply;
 }
@@ -352,7 +353,7 @@ function coc7bp(chack, bpdiceNum, text) {
 		countStr = countStr.substring(0, countStr.length - 1)
 		let countArr = countStr.split('、');
 		countStr = countStr + ' → ' + coc7chack(Math.min(...countArr), chack, text);
-		rply.text = '1D100 ＜＝ ' + chack + "：\n" + countStr;
+		rply.text = '1D100 ≦ ' + chack + "：\n" + countStr;
 		return rply;
 	}
 
@@ -367,7 +368,7 @@ function coc7bp(chack, bpdiceNum, text) {
 		countStr = countStr.substring(0, countStr.length - 1)
 		let countArr = countStr.split('、');
 		countStr = countStr + ' → ' + coc7chack(Math.max(...countArr), chack, text);
-		rply.text = '1D100 ＜＝ ' + chack + "：\n" + countStr;
+		rply.text = '1D100 ≦ ' + chack + "：\n" + countStr;
 		return rply;
 	}
 }

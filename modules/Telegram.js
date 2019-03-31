@@ -1,48 +1,55 @@
-const TeleBot = require('telebot')
-const TGclient = new TeleBot(process.env.CHANNEL_SECRET)
-const channelKeyword = process.env.CHANNEL_KEYWORD || ''
-TGclient.start();
-TGclient.on('text', message => {
-	console.log(message);
-	// if (message.User.is_bot === false && message.text != '') {
-	//	console.log('message.content ' + message.content)
-	//	console.log('channelKeyword ' + channelKeyword)
-	let rplyVal = {}
-	let msgSplitor = (/\S+/ig)
-	let mainMsg = message.text.match(msgSplitor); // 定義輸入字串
-	let trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
-	let privatemsg = 0
-	// 訊息來到後, 會自動跳到analytics.js進行骰組分析
-	// 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
-
+if (process.env.Telegram_CHANNEL_SECRET != undefined) {
+	const TeleBot = require('telebot')
+	const TGclient = new TeleBot(process.env.Telegram_CHANNEL_SECRET)
+	const channelKeyword = process.env.Telegram_CHANNEL_KEYWORD || ''
 	try {
-		if (trigger == 'dr') {
-			privatemsg = 1
-			mainMsg.shift()
-			trigger = mainMsg[0].toString().toLowerCase()
-		}
-		if (channelKeyword != '' && trigger == channelKeyword) {
-			mainMsg.shift()
-			rplyVal = exports.analytics.parseInput(mainMsg.join(' '))
-		} else {
-			if (channelKeyword == '') {
-				rplyVal = exports.analytics.parseInput(mainMsg.join(' '))
+
+
+		TGclient.start();
+		TGclient.on('text', message => {
+			console.log(message);
+			// if (message.User.is_bot === false && message.text != '') {
+			//	console.log('message.content ' + message.content)
+			//	console.log('channelKeyword ' + channelKeyword)
+			let rplyVal = {}
+			let msgSplitor = (/\S+/ig)
+			let mainMsg = message.text.match(msgSplitor); // 定義輸入字串
+			let trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
+			let privatemsg = 0
+			// 訊息來到後, 會自動跳到analytics.js進行骰組分析
+			// 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+
+
+			if (trigger == 'dr') {
+				privatemsg = 1
+				mainMsg.shift()
+				trigger = mainMsg[0].toString().toLowerCase()
 			}
-		}
+			if (channelKeyword != '' && trigger == channelKeyword) {
+				mainMsg.shift()
+				rplyVal = exports.analytics.parseInput(mainMsg.join(' '))
+			} else {
+				if (channelKeyword == '') {
+					rplyVal = exports.analytics.parseInput(mainMsg.join(' '))
+				}
+			}
+
+			if (rplyVal) {
+				if (privatemsg == 1) {
+					message.reply.text(message.from.first_name + ' 暗骰進行中')
+					return TGclient.sendMessage(message.from.id, rplyVal.text)
+				} else {
+					return message.reply.text(rplyVal.text)
+				}
+				// console.log("rplyVal: " + rplyVal)
+			} else {
+				console.log('Do not trigger')
+			}
+			//  }
+		})
+
 	} catch (e) {
 		console.log('catch error')
 		console.log('Request error: ' + e.message)
 	}
-	if (rplyVal) {
-		if (privatemsg == 1) {
-			message.reply.text(message.from.first_name + ' 暗骰進行中')
-			return TGclient.sendMessage(message.from.id, rplyVal.text)
-		} else {
-			return message.reply.text(rplyVal.text)
-		}
-		// console.log("rplyVal: " + rplyVal)
-	} else {
-		console.log('Do not trigger')
-	}
-	//  }
-})
+}

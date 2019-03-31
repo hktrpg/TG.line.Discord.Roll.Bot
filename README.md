@@ -1,4 +1,4 @@
-# RoboYabaso@HKTRPG  V1.7.1：開放原始碼的骰子機器人
+# RoboYabaso@HKTRPG  V0.0.0：開放原始碼的骰子機器人
 
 關於RoboYabaso
 ==

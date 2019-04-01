@@ -52,7 +52,7 @@ function parseInput(inputStr) {
 
 	if (trigger.match(/^coc7角色背景$/) != null) return exports.coc.PcBG();
 
-	if (trigger.match(/^bothelp$|^bot幫助$/) != null) return exports.help.Help();
+	if (trigger.match(/^bothelp$|^bot幫助$|^\/start$/) != null) return exports.help.Help();
 
 
 	//nc指令開始於此 來自Rainsting/TarotLineBot 

@@ -6,7 +6,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				exports[name] = require('../modules/' + file);
 			}
 		});
-		var channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD.toString().toLowerCase() || "";
+		var channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 		var channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 		const Discord = require('discord.js');
 		const client = new Discord.Client();

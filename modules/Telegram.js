@@ -9,7 +9,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 		});
 		const TeleBot = require('telebot')
 		const TGclient = new TeleBot(process.env.TELEGRAM_CHANNEL_SECRET)
-		const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD.toString().toLowerCase() || ''
+		const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || ''
 		var TGcountroll = 0;
 		var TGcounttext = 0;
 		TGclient.start();

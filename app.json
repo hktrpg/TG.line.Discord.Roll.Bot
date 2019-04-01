@@ -1,17 +1,40 @@
 {
-	"name": "RoboYabaso TrpgLineBot",
-	"description": "簡單的、模組化的TrpgLineBot",
-	"repository": "https://github.com/zeteticl/RoboYabaso.git",
-	"keywords": ["RoboYabaso", "Line Bot", "TRPG"],
+	"name": "RoboYabaso 三合一 Trpg Bot",
+	"description": "簡單的、模組化的Trpg Bot, Telegram Discord Line 三合一",
+	"repository": "https://github.com/hktrpg/TG.line.Discord.Roll.Bot.git",
+	"keywords": [
+		"RoboYabaso",
+		"Line Bot",
+		"TRPG"
+	],
 	"env": {
+		"KEY_WORD": {
+			"description": "你的機器人的名字",
+			"required": false
+		},
 		"LINE_CHANNEL_SECRET": {
-			"description": "LINE_Channel_Secret"
+			"description": "LINE_Channel_Secret",
+			"required": false
 		},
 		"LINE_CHANNEL_ACCESSTOKEN": {
-			"description": "LINE_Channel_Accesstoken"
+			"description": "LINE_Channel_Accesstoken",
+			"required": false
 		},
-		"KEY_WORD": {
-			"description": "你的機器人的名字"
+		"DISCORD_CHANNEL_KEYWORD": {
+			"description": "Discord Bot的啓動語 如 !trpg 可留空",
+			"required": false
+		},
+		"DISCORD_CHANNEL_SECRET": {
+			"description": "「Token」 ",
+			"required": false
+		},
+		"Telegram_CHANNEL_KEYWORD": {
+			"description": "Telegram Bot的啓動語 如 !trpg 可留空",
+			"required": false
+		},
+		"Telegram_CHANNEL_SECRET": {
+			"description": "「Token」 ",
+			"required": false
 		}
 	}
 }

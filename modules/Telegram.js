@@ -10,9 +10,6 @@ if (process.env.Telegram_CHANNEL_SECRET) {
 		const TeleBot = require('telebot')
 		const TGclient = new TeleBot(process.env.Telegram_CHANNEL_SECRET)
 		const channelKeyword = process.env.Telegram_CHANNEL_KEYWORD || ''
-
-
-
 		TGclient.start();
 		TGclient.on('text', message => {
 			console.log(message);

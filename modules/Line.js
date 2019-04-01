@@ -65,7 +65,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 					const message = event.message;
 					switch (message.type) {
 						case 'text':
-							return exports.analytics.parseInput(event.rplyToken, event.message.text);
+							return exports.analytics.parseInput(event.message.text);
 						default:
 							break;
 					}

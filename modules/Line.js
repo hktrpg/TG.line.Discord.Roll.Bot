@@ -6,16 +6,17 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				exports[name] = require('../modules/' + file);
 			}
 		});
-		var express = require('express');
-		var bodyParser = require('body-parser');
+		const express = require('express');
+		const bodyParser = require('body-parser');
 		var app = express();
 		var jsonParser = bodyParser.json();
-		var channelAccessToken = process.env.LINE_CHANNEL_ACCESSTOKEN;
+		const channelAccessToken = process.env.LINE_CHANNEL_ACCESSTOKEN;
+		const channelKeyword = process.env.LINE_CHANNEL_KEYWORD.toString().toLowerCase() || '';
 		//	var channelSecret = process.env.LINE_CHANNEL_SECRET;
 		// Load `*.js` under modules directory as properties
 		//  i.e., `User.js` will become `exports['User']` or `exports.User`
-		var Linecountroll =0;
-		var Linecounttext =0;
+		var Linecountroll = 0;
+		var Linecounttext = 0;
 		var options = {
 			host: 'api.line.me',
 			port: 443,
@@ -39,20 +40,33 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			let msg = event.message.text;
 			let rplyToken = event.replyToken;
 			let rplyVal = {};
+			let msgSplitor = (/\S+/ig);
+			let mainMsg = event.message.text.match(msgSplitor); //定義輸入字串
+			let trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
+			if (channelKeyword != "" && trigger == channelKeyword) {
+				mainMsg.shift();
+				event.message.text = mainMsg.join(' ');
+				rplyVal = handleEvent(event);
+			} else {
+				if (channelKeyword == "") {
+					rplyVal = handleEvent(event);
+				}
+			}
+
 			//console.log(msg);
 			//訊息來到後, 會自動呼叫handleEvent 分類,然後跳到analytics.js進行骰組分析
 			//如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
 
-			rplyVal = handleEvent(event);
+
 
 			//把回應的內容,掉到replyMsgToLine.js傳出去
 			if (rplyVal) {
 				Linecountroll++;
-				console.log('Line Roll: '+Linecountroll); 
+				console.log('Line Roll: ' + Linecountroll);
 				exports.replyMsgToLine.replyMsgToLine(rplyToken, rplyVal, options);
 			} else {
 				Linecounttext++;
-				console.log('Line Text: '+Linecounttext); 
+				console.log('Line Text: ' + Linecounttext);
 			}
 			res.send('ok');
 		});
@@ -88,9 +102,10 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			}
 		}
 
-	}
-	catch (e) {
+	} catch (e) {
 		console.log('catch error');
 		console.log('Request error: ' + e.message);
+		console.log(event);
+
 	}
 }

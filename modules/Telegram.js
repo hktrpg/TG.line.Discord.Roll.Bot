@@ -1,4 +1,4 @@
-if (process.env.Telegram_CHANNEL_SECRET) {
+if (process.env.TELEGRAM_CHANNEL_SECRET) {
 
 	try {
 		require('fs').readdirSync('./modules/').forEach(function (file) {
@@ -8,8 +8,8 @@ if (process.env.Telegram_CHANNEL_SECRET) {
 			}
 		});
 		const TeleBot = require('telebot')
-		const TGclient = new TeleBot(process.env.Telegram_CHANNEL_SECRET)
-		const channelKeyword = process.env.Telegram_CHANNEL_KEYWORD || ''
+		const TGclient = new TeleBot(process.env.TELEGRAM_CHANNEL_SECRET)
+		const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD.toString().toLowerCase() || ''
 		var TGcountroll = 0;
 		var TGcounttext = 0;
 		TGclient.start();

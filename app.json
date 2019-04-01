@@ -8,8 +8,8 @@
 		"TRPG"
 	],
 	"env": {
-		"KEY_WORD": {
-			"description": "你的機器人的名字",
+		"LINE_CHANNEL_KEYWORD": {
+			"description": "Line Bot的啓動語 如 !trpg 可留空",
 			"required": false
 		},
 		"LINE_CHANNEL_SECRET": {
@@ -28,11 +28,11 @@
 			"description": "「Token」 ",
 			"required": false
 		},
-		"Telegram_CHANNEL_KEYWORD": {
+		"TELEGRAM_CHANNEL_KEYWORD": {
 			"description": "Telegram Bot的啓動語 如 !trpg 可留空",
 			"required": false
 		},
-		"Telegram_CHANNEL_SECRET": {
+		"TELEGRAM_CHANNEL_SECRET": {
 			"description": "「Token」 ",
 			"required": false
 		}

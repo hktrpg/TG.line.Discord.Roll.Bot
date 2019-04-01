@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "Zetetic Line Bot",
   "engines": {
-    "node": "6.9.1"
+    "node": "6.9.1",
+    "npm": "*"
   },
   "main": "index.js",
   "scripts": {

@@ -35,9 +35,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		});
 		app.post('/', jsonParser, function (req, res) {
 			let event = req.body.events[0];
-			let type = event.type;
-			let msgType = event.message.type;
-			let msg = event.message.text;
+			//let type = event.type;
+			//let msgType = event.message.type;
+			//let msg = event.message.text;
 			let rplyToken = event.replyToken;
 			let rplyVal = {};
 			//console.log(msg);

@@ -8,10 +8,6 @@
 		"TRPG"
 	],
 	"env": {
-		"LINE_CHANNEL_KEYWORD": {
-			"description": "Line Bot的啓動語 如 !trpg 可留空",
-			"required": false
-		},
 		"LINE_CHANNEL_SECRET": {
 			"description": "LINE_Channel_Secret",
 			"required": false

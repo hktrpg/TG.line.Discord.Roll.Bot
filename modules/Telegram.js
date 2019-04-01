@@ -32,7 +32,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				mainMsg.shift()
 				trigger = mainMsg[0].toString().toLowerCase()
 			}
-			if (channelKeyword != '' && trigger == channelKeyword) {
+			if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 				mainMsg.shift()
 				rplyVal = exports.analytics.parseInput(mainMsg.join(' '))
 			} else {

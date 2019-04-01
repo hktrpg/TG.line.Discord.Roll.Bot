@@ -1,4 +1,6 @@
-if (process.env.DISCORD_CHANNEL_SECRET) {
+console.log(process.env.DISCORD_CHANNEL_SECRET);
+
+if (process.env.DISCORD_CHANNEL_SECRET != undefined) {
 	try {
 		require('fs').readdirSync('./modules/').forEach(function (file) {
 			if (file.match(/\.js$/) !== null && file !== 'index.js') {

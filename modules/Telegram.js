@@ -1,8 +1,16 @@
-if (process.env.Telegram_CHANNEL_SECRET != undefined) {
-	const TeleBot = require('telebot')
-	const TGclient = new TeleBot(process.env.Telegram_CHANNEL_SECRET)
-	const channelKeyword = process.env.Telegram_CHANNEL_KEYWORD || ''
+if (process.env.Telegram_CHANNEL_SECRET) {
+
 	try {
+		require('fs').readdirSync('./modules/').forEach(function (file) {
+			if (file.match(/\.js$/) !== null && file !== 'index.js') {
+				var name = file.replace('.js', '');
+				exports[name] = require('../modules/' + file);
+			}
+		});
+		const TeleBot = require('telebot')
+		const TGclient = new TeleBot(process.env.Telegram_CHANNEL_SECRET)
+		const channelKeyword = process.env.Telegram_CHANNEL_KEYWORD || ''
+
 
 
 		TGclient.start();

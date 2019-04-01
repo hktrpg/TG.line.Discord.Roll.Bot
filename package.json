@@ -11,11 +11,14 @@
   },
   "dependencies": {
     "express": "4.13.3",
-    "body-parser": "1.15.2"
+    "body-parser": "1.15.2",
+    "mongoose": ">=5.0.6",
+    "discord.js": "11.4.2",
+    "telebot": "1.2.6"
   },
   "keywords": [
     "LeoLi",
-	"Zetetic",
+    "Zetetic",
     "Line"
   ],
   "license": "MIT"

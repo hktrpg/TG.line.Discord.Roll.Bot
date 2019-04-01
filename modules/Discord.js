@@ -1,17 +1,17 @@
-if (process.env.DISCORD_CHANNEL_SECRET != undefined) {
+if (process.env.DISCORD_CHANNEL_SECRET) {
 	try {
+		require('fs').readdirSync('./modules/').forEach(function (file) {
+			if (file.match(/\.js$/) !== null && file !== 'index.js') {
+				var name = file.replace('.js', '');
+				exports[name] = require('../modules/' + file);
+			}
+		});
 		var channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 		var channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 		const Discord = require('discord.js');
 		const client = new Discord.Client();
 		// Load `*.js` under modules directory as properties
 		//  i.e., `User.js` will become `exports['User']` or `exports.User`
-		require('fs').readdirSync(__dirname + '/modules/').forEach(function (file) {
-			if (file.match(/\.js$/) !== null && file !== 'index.js') {
-				var name = file.replace('.js', '');
-				exports[name] = require('./modules/' + file);
-			}
-		});
 
 		client.once('ready', () => {
 			console.log('Ready!');

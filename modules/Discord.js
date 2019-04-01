@@ -74,5 +74,6 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 	} catch (e) {
 		console.log('catch error');
 		console.log('Request error: ' + e.message);
+		
 	}
 }

@@ -11,7 +11,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		var app = express();
 		var jsonParser = bodyParser.json();
 		const channelAccessToken = process.env.LINE_CHANNEL_ACCESSTOKEN;
-		
+
 		//	var channelSecret = process.env.LINE_CHANNEL_SECRET;
 		// Load `*.js` under modules directory as properties
 		//  i.e., `User.js` will become `exports['User']` or `exports.User`
@@ -92,5 +92,6 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	} catch (e) {
 		console.log('catch error');
 		console.log('Request error: ' + e.message);
+		console.log('event error: ' + event);
 	}
 }

@@ -10,9 +10,11 @@ if (process.env.Telegram_CHANNEL_SECRET) {
 		const TeleBot = require('telebot')
 		const TGclient = new TeleBot(process.env.Telegram_CHANNEL_SECRET)
 		const channelKeyword = process.env.Telegram_CHANNEL_KEYWORD || ''
+		var TGcountroll = 0;
+		var TGcounttext = 0;
 		TGclient.start();
 		TGclient.on('text', message => {
-			console.log(message);
+			//console.log(message);
 			// if (message.User.is_bot === false && message.text != '') {
 			//	console.log('message.content ' + message.content)
 			//	console.log('channelKeyword ' + channelKeyword)
@@ -41,14 +43,22 @@ if (process.env.Telegram_CHANNEL_SECRET) {
 
 			if (rplyVal) {
 				if (privatemsg == 1) {
+
+					TGcountroll++;
+					console.log('TG: ' + TGcountroll);
 					message.reply.text(message.from.first_name + ' 暗骰進行中')
 					return TGclient.sendMessage(message.from.id, rplyVal.text)
 				} else {
+
+					TGcountroll++;
+					console.log('TG: ' + TGcountroll);
 					return message.reply.text(rplyVal.text)
+
 				}
 				// console.log("rplyVal: " + rplyVal)
 			} else {
-				console.log('Do not trigger')
+				TGcounttext++;
+				console.log('TG: ' + TGcounttext);
 			}
 			//  }
 		})

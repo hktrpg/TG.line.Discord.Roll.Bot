@@ -1,5 +1,3 @@
-console.log(process.env.DISCORD_CHANNEL_SECRET);
-
 if (process.env.DISCORD_CHANNEL_SECRET != undefined) {
 	try {
 		require('fs').readdirSync('./modules/').forEach(function (file) {
@@ -14,6 +12,8 @@ if (process.env.DISCORD_CHANNEL_SECRET != undefined) {
 		const client = new Discord.Client();
 		// Load `*.js` under modules directory as properties
 		//  i.e., `User.js` will become `exports['User']` or `exports.User`
+		var Discordcountroll = 0;
+		var Discordcounttext = 0;
 
 		client.once('ready', () => {
 			console.log('Ready!');
@@ -52,13 +52,20 @@ if (process.env.DISCORD_CHANNEL_SECRET != undefined) {
 				if (rplyVal) {
 					if (privatemsg == 1) {
 						message.channel.send("暗骰進行中");
-						message.author.send(rplyVal.text);;
+						message.author.send(rplyVal.text);
+
+						Discordcountroll++;
+						console.log('Discord: ' + Discordcountroll);
 					} else {
+
+						Discordcountroll++;
+						console.log('Discord:' + Discordcountroll);
 						message.channel.send(rplyVal.text)
 					}
 					//console.log("rplyVal: " + rplyVal);
 				} else {
-					console.log('Do not trigger');
+					Discordcounttext++;
+					console.log('Discord: ' + Discordcounttext);
 				}
 			}
 		});

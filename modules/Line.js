@@ -6,7 +6,6 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				exports[name] = require('../modules/' + file);
 			}
 		});
-
 		var express = require('express');
 		var bodyParser = require('body-parser');
 		var app = express();
@@ -15,8 +14,8 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		//	var channelSecret = process.env.LINE_CHANNEL_SECRET;
 		// Load `*.js` under modules directory as properties
 		//  i.e., `User.js` will become `exports['User']` or `exports.User`
-
-
+		var Linecountroll =0;
+		var Linecounttext =0;
 		var options = {
 			host: 'api.line.me',
 			port: 443,
@@ -48,9 +47,12 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 			//把回應的內容,掉到replyMsgToLine.js傳出去
 			if (rplyVal) {
+				Linecountroll++;
+				console.log('Line: '+Linecountroll); 
 				exports.replyMsgToLine.replyMsgToLine(rplyToken, rplyVal, options);
 			} else {
-				//console.log('Do not trigger'); 
+				Linecounttext++;
+				console.log('Line: '+Linecounttext); 
 			}
 			res.send('ok');
 		});

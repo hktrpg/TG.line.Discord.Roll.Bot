@@ -6,7 +6,7 @@ var rply = {
 
 function Help() {
 	rply = {
-		"text": "【HKTRPG擲骰BOT】v1.0.0 \
+		"text": "【HKTRPG擲骰BOT】v1.0.3 \
 		\n  \
 		\n 支援基本擲骰, COC, 永遠的後日談, 黑暗世界, DX3, SW2.0 \
 		\n 暗骰功能 在指令前打dr 結果會私訊你\
@@ -49,7 +49,7 @@ function Help() {
 \n \
 \n 其他指令請到 https://github.com/hktrpg/TG.line.Discord.Roll.Bot  最底下查詢",
 		"type": "template",
-		"altText": "【HKTRPG擲骰BOT】v1.0.0 \
+		"altText": "【HKTRPG擲骰BOT】v1.0.3 \
 \n 例如輸入2d6+1　攻撃！\
 \n 會輸出）2d6+1：攻撃  9[6+3]+1 = 10\
 \n 如上面一樣,在骰子數字後方隔空白位打字,可以進行發言。\
@@ -69,7 +69,7 @@ function Help() {
 			"type": "carousel",
 			"columns": [{
 					"title": "《基本擲骰系統》",
-					"text": "【擲骰BOT】v1.61 指令包括1D100, 5B10 ,5U10 8 9",
+					"text": "【擲骰BOT】v1.0.3 指令包括1D100, 5B10 ,5U10 8 9",
 					"actions": [{
 							"type": "message",
 							"label": "1d100擲骰範例",

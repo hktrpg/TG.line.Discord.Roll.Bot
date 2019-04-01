@@ -1,21 +1,32 @@
-# RoboYabaso@HKTRPG  V0.0.0：開放原始碼的骰子機器人
+# RoboYabaso@HKTRPG  V1.0.3：開放原始碼的三合一骰子機器人
 
 關於RoboYabaso
 ==
-RoboYabaso是一個開放源碼的line骰子機器人計畫。
-最早由LarryLo  Retsnimle開發。  
+RoboYabaso最早由LarryLo  Retsnimle開發。 </br> 
+是一個開放源碼的line骰子機器人計畫。</br></br>
+
+現在改成三合一Line x Discord x Telegram。</br>
+不然的話沒這麼多伺服器開這麼多ＢＯＴ。</br>
+最期待Whatsapp快開放權限，香港都是比較多使用Whatsapp</br></br>
+
 
 這是建立在Heroku的免費伺服器上，所以大家都可以按照下面的教程，客制化做一個自己的BOT！
-</br></br></br>
+</br></br>
 
 試用
 ==
-RoboYabaso@HKTRPG 的LineID是：@utr0641o  
+RoboYabaso@HKTRPG </br>
+LineID是：@utr0641o  
 你也可以使用QR扣：  
 ![QR](http://truth.bahamut.com.tw/s01/201612/c50dc2bd02de285983e7cf1c48926a61.JPG)  
 
 或是點這裡：<a href="https://line.me/R/ti/p/svMLqy9Mik"><img height="36" border="0" alt="加入好友" src="https://scdn.line-apps.com/n/line_add_friends/btn/zh-Hant.png"></a>
 </br></br>
+
+ Discord版 https://discordapp.com/oauth2/authorize?&client_id=544462904037081138&scope=bot&permissions=8
+ </br>
+ Telegram版 http://t.me/hktrpg_bot
+ </br>
 骰組指令說明在最底下</br>
 
 
@@ -37,7 +48,9 @@ cc<= 改成 cc cc1 cc2 ccn1 ccn2。</br>
 模組化設計。</br></br>
 </br></br></br>
 
-
+以下分別有Line Discord 和telegram 的說明</br>
+用那個就看那個吧
+</br></br>
 如何建立自己的Line骰子機器人
 ==
 
@@ -134,6 +147,72 @@ Step5：鏈接Line與Heroku
 
 
 
+準備動作：
+--
+* 先申請好Discord帳號（廢話）</br>
+* 先申請好Github帳號</br>
+* 先申請好Heroku帳號</br>
+以下全部選擇用免費的服務就夠了，請不要手殘選到付費。
+</br></br></br>
+
+Step1：先把這個專案Fork回去
+--
+* 到右上角的 ![Fork](http://i.imgur.com/g5VmzkC.jpg) 按鈕嗎，按下去。</br>
+把這個專案存到你的Github裡。
+</br></br></br></br>
+
+Step2：建立DiscordBot賬號
+--
+* 到[http://discordapp.com/developers/applications/me](http://discordapp.com/developers/applications/me )登入一個Discord帳號，</br>
+點選「New Application」，按照指示註冊你的Discord Bot。</br>
+---
+
+* 記下那個「CLIENT ID」</br>
+
+
+* 進入左方Setting 的Bot</br>
+
+
+* 在BUILD-A-BOT中點選Add Bot->Yes Do It. 接著把「Token」複製(Copy)下來</br>
+</br></br></br>
+Step3：將DiscordBot部署到Heroku
+--
+
+* 按一下下面這個按鈕</br>
+按它→[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy?template=https://github.com/zeteticl/DiscordRollBot_HKTRPG)←按它</br></br></br>
+---
+
+* 你會看到這個</br>
+![Heroku](http://i.imgur.com/sbCVOcW.jpg)</br></br></br>
+當然，先取一個App name，然後把以前記下的「Token」貼上.</br></br>
+如果想要啓動語,可以順便打上. 例如啓動語!trpg 便會變成!trpg 1d100 
+接著，按下Deploy app，等他跑完之後按下Manage App</br>
+距離部署完機器人只差一步啦！
+</br></br></br></br>
+
+
+
+Step4：把機器人邀請到你的頻道
+--
+* 剛剛複製了一個「CLIENT ID」把它取代到以下網址中間</br>
+
+[https://discordapp.com/oauth2/authorize?&client_id=CLIENTID&scope=bot&permissions=8](https://discordapp.com/oauth2/authorize?&client_id=CLIENTID&scope=bot&permissions=8)</br></br>
+
+* 點擊然後選擇你的頻道</br>
+* 然後就可以在頻道中使用你的Bot了.
+---
+</br></br></br>
+
+
+Telegram......</br>
+是最簡單的,和上面一樣,先註冊Telegram ACC</br>
+然後到 https://telegram.me/botfather</br>
+使用 /new bot 輸入BotName 和UserName</br>
+會得到Token 和邀請碼，Token 就是輸入到Heroku 中</br>
+邀請碼就是給Telegram 用家連到Bot的。</br></br>
+
+
+
 以上說明參考</br>
 https://github.com/zeteticl/TrpgLineBot-php </br>
 
@@ -154,7 +233,12 @@ https://github.com/zeteticl/TrpgLineBot-php </br>
 更新SW2.0</br></br>
 
 *2019/02/15</br>
-新增成長或增長檢定：dp (數值) (名字)</br></br>
+新增成長或增長檢定：dp (數值) (名字)</br>
+
+*2019/4/2
+趕不及4月1日發佈,可惡! 三合一版完成</br>
+
+
 
 【擲骰BOT】
 --

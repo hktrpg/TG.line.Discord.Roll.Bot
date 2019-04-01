@@ -45,20 +45,20 @@ if (process.env.Telegram_CHANNEL_SECRET) {
 				if (privatemsg == 1) {
 
 					TGcountroll++;
-					console.log('TG: ' + TGcountroll);
+					console.log('TG Roll: ' + TGcountroll);
 					message.reply.text(message.from.first_name + ' 暗骰進行中')
 					return TGclient.sendMessage(message.from.id, rplyVal.text)
 				} else {
 
 					TGcountroll++;
-					console.log('TG: ' + TGcountroll);
+					console.log('TG Roll: ' + TGcountroll);
 					return message.reply.text(rplyVal.text)
 
 				}
 				// console.log("rplyVal: " + rplyVal)
 			} else {
 				TGcounttext++;
-				console.log('TG: ' + TGcounttext);
+				console.log('TG Text: ' + TGcounttext);
 			}
 			//  }
 		})

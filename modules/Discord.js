@@ -53,19 +53,17 @@ if (process.env.DISCORD_CHANNEL_SECRET != undefined) {
 					if (privatemsg == 1) {
 						message.channel.send("暗骰進行中");
 						message.author.send(rplyVal.text);
-
 						Discordcountroll++;
-						console.log('Discord: ' + Discordcountroll);
+						console.log('Discord Roll: ' + Discordcountroll);
 					} else {
-
 						Discordcountroll++;
-						console.log('Discord:' + Discordcountroll);
+						console.log('Discord Roll:' + Discordcountroll);
 						message.channel.send(rplyVal.text)
 					}
 					//console.log("rplyVal: " + rplyVal);
 				} else {
 					Discordcounttext++;
-					console.log('Discord: ' + Discordcounttext);
+					console.log('Discord Text: ' + Discordcounttext);
 				}
 			}
 		});

@@ -48,11 +48,11 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			//把回應的內容,掉到replyMsgToLine.js傳出去
 			if (rplyVal) {
 				Linecountroll++;
-				console.log('Line: '+Linecountroll); 
+				console.log('Line Roll: '+Linecountroll); 
 				exports.replyMsgToLine.replyMsgToLine(rplyToken, rplyVal, options);
 			} else {
 				Linecounttext++;
-				console.log('Line: '+Linecounttext); 
+				console.log('Line Text: '+Linecounttext); 
 			}
 			res.send('ok');
 		});

@@ -42,6 +42,11 @@ function Help() {
 \n coc7版創角：	啓動語 cc7版創角 (歲數) \
 \n coc7 成長或增長檢定：	dp (技能) (名稱) \
 \n 例）DP 80 偵查 \
+\n \
+\n Line版 https://line.me/R/ti/p/svMLqy9Mik\
+\n Discord版 https://discordapp.com/oauth2/authorize?&client_id=544462904037081138&scope=bot&permissions=8\
+\n Telegram版 http://t.me/hktrpg_bot\
+\n \
 \n 其他指令請到 https://github.com/hktrpg/TG.line.Discord.Roll.Bot  最底下查詢",
 		"type": "template",
 		"altText": "【HKTRPG擲骰BOT】v1.0.0 \
@@ -57,9 +62,9 @@ function Help() {
 \n 5U10 8 9：如上,另外計算其中有多少粒大於9 \
 \n Choice：啓動語choice/隨機/選項/選1\
 \n (問題)(啓動語)(問題)  (選項1) (選項2) \
-\n 例子 隨機收到聖誕禮物數 1 2 3 >4  \
-\n COC7ed：cc 80 技能小於等於80  \
-\n 其他指令請到 https://github.com/hktrpg/TG.line.Discord.Roll.Bot 最底下查詢",
+\n COC7th：cc 80 技能小於等於80  \
+\n 其他指令或Telegram Discord版請到\
+\n  https://github.com/hktrpg/TG.line.Discord.Roll.Bot 最底下查詢",
 		"template": {
 			"type": "carousel",
 			"columns": [{
@@ -220,6 +225,27 @@ function Help() {
 							"type": "message",
 							"label": "死亡FLAG",
 							"text": "立Flag/死亡flag"
+						},
+						{
+							"type": "message",
+							"label": "運氣占卜",
+							"text": "內容包含運勢"
+						}
+
+					]
+				},
+				{
+					"title": "《介紹》",
+					"text": "Discord版,Telegram版及源碼 ",
+					"actions": [{
+							"type": "message",
+							"label": "Discord版",
+							"text": "https://discordapp.com/oauth2/authorize?&client_id=544462904037081138&scope=bot&permissions=8"
+						},
+						{
+							"type": "message",
+							"label": "Telegram版",
+							"text": "http://t.me/hktrpg_bot"
 						},
 						{
 							"type": "message",

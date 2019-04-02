@@ -389,12 +389,12 @@ function build7char(text01) {
 	let old = "";
 	let ReStr = '調查員年齡設為：';
 	//讀取年齡
-	if (text01 == undefined) {
-		old = 18;
-		ReStr = ReStr + old + '(沒有填寫使用預設值)\n';
-	} else {
-		old = text01;
+	if (text01) old = text01.replace(/\D/g, '');
+	if (old) {
 		ReStr = ReStr + old + '\n';
+	} else {
+		old = 18;
+		ReStr = ReStr + old + ' (沒有填寫歲數,使用預設值)\n';
 	}
 	//設定 因年齡減少的點數 和 EDU加骰次數
 	let Debuff = 0;
@@ -405,8 +405,8 @@ function build7char(text01) {
 	let AppDebuffArr = [0, 0, 5, 10, 15, 20, 25]
 	let EDUincArr = [0, 1, 2, 3, 4, 4, 4]
 
-	if (old < 15) rply.text = ReStr + '等等，核心規則沒有適用小於15歲的人物哦。';
-	if (old >= 90) rply.text = ReStr + '等等，核心規則沒有適用於90歲以上的人物哦。';
+	if (old < 15) ReStr = ReStr + '等等，核心規則沒有適用小於15歲的人物哦。';
+	if (old >= 90) ReStr = ReStr + '等等，核心規則沒有適用於90歲以上的人物哦。';
 
 	for (i = 0; old >= oldArr[i]; i++) {
 		Debuff = DebuffArr[i];

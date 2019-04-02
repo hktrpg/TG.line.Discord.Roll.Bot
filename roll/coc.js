@@ -242,6 +242,7 @@ function DevelopmentPhase(target, text) {
 	if (text == undefined) text = "";
 	let skill = rollbase.Dice(100);
 	let improved = rollbase.Dice(10);
+	if (target > 96) target = 96;
 	if (skill >= 96 || skill > target) {
 		rply.text = "成長或增強檢定: " + text + "\n1D100 > " + target + "\n" + skill + " → 成功!\n你的技能增加" + improved + "點!";
 	} else {

@@ -43,7 +43,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 
 			if (rplyVal) {
 				TGcountroll++;
-				console.log('TG Roll: ' + TGcountroll + '; ' + rplyVal.text);
+				console.log('TG Roll: ' + TGcountroll);
 				if (privatemsg == 1) {
 					message.reply.text(message.from.first_name + ' 暗骰進行中')
 					return TGclient.sendMessage(message.from.id, rplyVal.text)

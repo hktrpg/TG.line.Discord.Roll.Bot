@@ -1,5 +1,5 @@
 var rollbase = require('./rollbase.js');
-var rply ={type : 'text'}; //type是必需的,但可以更改
+var rply = { type: 'text' }; //type是必需的,但可以更改
 
 ////////////////////////////////////////
 //////////////// DX3
@@ -9,7 +9,7 @@ function dx(triggermsg) {
 	var finallynum = 0;
 	var returnStr = triggermsg + ' → ';
 	var match = /^(\d+)(dx)(\d|)(((\+|-)(\d+)|)((\+|-)(\d+)|))$/i.exec(triggermsg);	//判斷式  [0]2dx8-2+10,[1]2,[2]dx,[3]8,[4]-2+10,[5]-2,[6]-,[7]2,[8]+10,[9]+,[10]10  
-//	console.log(match);
+	//	console.log(match);
 	if (match[3] == "") { match[3] = 10 }
 	if (match[3] <= 2) {
 		rply.text = '加骰最少比2高';
@@ -71,5 +71,5 @@ function dxroll(match, round, returnStr, finallynum) {
 }
 
 module.exports = {
-	dx:dx
+	dx: dx
 };

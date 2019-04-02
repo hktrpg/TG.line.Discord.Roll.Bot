@@ -1,5 +1,5 @@
 var rollbase = require('./rollbase.js');
-var rply ={type : 'text'}; //type是必需的,但可以更改
+var rply = { type: 'text' }; //type是必需的,但可以更改
 
 ////////////////////////////////////////
 //////////////// 占卜&其他
@@ -7,7 +7,7 @@ var rply ={type : 'text'}; //type是必需的,但可以更改
 
 
 function BStyleFlagSCRIPTS() {
-let rplyArr = ['\
+	let rplyArr = ['\
 「打完這仗我就回老家結婚（この戦いが終わったら、故郷に帰って結婚するんだ）」', '\
 「打完這一仗後我請你喝酒」', '\
 「你、你要錢嗎！要什麼我都能給你！/我可以給你更多的錢！」', '\
@@ -61,12 +61,12 @@ let rplyArr = ['\
 「騙人的吧，我們不是朋友嗎？」', '\
 「我老爸是....你有種就....」', '\
 「我可以好好利用這件事」'];
-rply.text = rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
-return rply;
+	rply.text = rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
+	return rply;
 }
-	
+
 function randomReply() {
-let rplyArr = ['\
+	let rplyArr = ['\
 你們死定了呃呃呃不要糾結這些……所以是在糾結哪些？', '\
 在澳洲，每過一分鐘就有一隻鴨嘴獸被拔嘴。 \n我到底在共三小。', '\
 嗚噁噁噁噁噁噁，不要隨便叫我。', '\
@@ -91,17 +91,17 @@ wwwwwwwwwwwwwwwww', '\
 公道價，八萬一（伸手）。', '\
 你的嘴裡有異音（指）', '\
 幫主說，有人打你的左臉，你就要用肉食性猛擊咬斷他的小腿。'];
-rply.text = rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
-return rply;
+	rply.text = rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
+	return rply;
 }
-	
+
 function randomLuck(TEXT) {
-let rplyArr = ['超吉','超級上吉','大吉','吉','中吉','小吉','吉','小吉','吉','吉','中吉','吉','中吉','吉','中吉','小吉','末吉','吉','中吉','小吉','末吉','中吉','小吉','小吉','吉','小吉','末吉','中吉','小吉','凶','小凶','沒凶','大凶','很凶','你不要知道比較好呢','命運在手中,何必問我'];
-rply.text = TEXT[0] + ' ： ' + rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
-return rply;
+	let rplyArr = ['超吉', '超級上吉', '大吉', '吉', '中吉', '小吉', '吉', '小吉', '吉', '吉', '中吉', '吉', '中吉', '吉', '中吉', '小吉', '末吉', '吉', '中吉', '小吉', '末吉', '中吉', '小吉', '小吉', '吉', '小吉', '末吉', '中吉', '小吉', '凶', '小凶', '沒凶', '大凶', '很凶', '你不要知道比較好呢', '命運在手中,何必問我'];
+	rply.text = TEXT[0] + ' ： ' + rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
+	return rply;
 }
-	
-	
+
+
 ////////////////////////////////////////
 //////////////// Funny
 ////////////////////////////////////////
@@ -109,45 +109,45 @@ return rply;
 function RockPaperScissors(HandToCal, text) {
 	let returnStr = '';
 	if (HandToCal.match(/石頭|布|剪刀|1|2|3/) != null) {
-	let aHand = ['石頭','布','剪刀'];
-	HandToCal = aHand[Math.floor((Math.random() * (aHand.length)) + 0)];
+		let aHand = ['石頭', '布', '剪刀'];
+		HandToCal = aHand[Math.floor((Math.random() * (aHand.length)) + 0)];
 	}
 	var hand = rollbase.FunnyDice(3); // 0:石頭 1:布 2:剪刀
 
 	switch (hand) {
-	case 0: //石頭
-		returnStr = '我出石頭！\n';
+		case 0: //石頭
+			returnStr = '我出石頭！\n';
 
-		if (HandToCal.match(/剪刀|1/) != null) returnStr += '哼哼你輸惹';
-		else if (HandToCal.match(/石頭|2/) != null) returnStr += '看來我們不相上下阿';
-		else if (HandToCal.match(/布|3/) != null) returnStr += '你好像有點強！';
-		else returnStr += '欸不對喔你亂出！';
+			if (HandToCal.match(/剪刀|1/) != null) returnStr += '哼哼你輸惹';
+			else if (HandToCal.match(/石頭|2/) != null) returnStr += '看來我們不相上下阿';
+			else if (HandToCal.match(/布|3/) != null) returnStr += '你好像有點強！';
+			else returnStr += '欸不對喔你亂出！';
 
-		break;
+			break;
 
-	case 1: //布
-		returnStr = '我出布！\n';
+		case 1: //布
+			returnStr = '我出布！\n';
 
-		if (HandToCal.match(/剪刀|1/) != null) returnStr += '讓你一次而已啦！';
-		else if (HandToCal.match(/布|2/) != null) returnStr += '原來平手...沒什麼嘛！';
-		else if (HandToCal.match(/石頭|3/) != null) returnStr += '哈哈你看看你！';
-		else returnStr += '別亂出阿會壞掉的';
+			if (HandToCal.match(/剪刀|1/) != null) returnStr += '讓你一次而已啦！';
+			else if (HandToCal.match(/布|2/) != null) returnStr += '原來平手...沒什麼嘛！';
+			else if (HandToCal.match(/石頭|3/) != null) returnStr += '哈哈你看看你！';
+			else returnStr += '別亂出阿會壞掉的';
 
-		break;
+			break;
 
-	case 2: //剪刀
-		returnStr = '我出剪刀！\n';
+		case 2: //剪刀
+			returnStr = '我出剪刀！\n';
 
-		if (HandToCal.match(/剪刀|1/) != null) returnStr += '平手 (  艸)';
-		else if (HandToCal.match(/布|2/) != null) returnStr += '贏了 (｀・ω・´)b';
-		else if (HandToCal.match(/石頭|3/) != null) returnStr += '輸惹 ゜。。゜(ノД‵)ノ・゜';
-		else returnStr += '亂出打你喔 (｀・ω・´)凸';
+			if (HandToCal.match(/剪刀|1/) != null) returnStr += '平手 (  艸)';
+			else if (HandToCal.match(/布|2/) != null) returnStr += '贏了 (｀・ω・´)b';
+			else if (HandToCal.match(/石頭|3/) != null) returnStr += '輸惹 ゜。。゜(ノД‵)ノ・゜';
+			else returnStr += '亂出打你喔 (｀・ω・´)凸';
 
-		break;
+			break;
 
-	default:
-		returnStr = '我出的是...欸不對你沒出喔！\n';
-		break;
+		default:
+			returnStr = '我出的是...欸不對你沒出喔！\n';
+			break;
 	}
 
 	rply.text = returnStr;
@@ -168,80 +168,80 @@ function MultiDrawTarot(CardToCal, text, type) {
 
 	if (type == 1) //時間之流
 	{
-	cards[0] = rollbase.FunnyDice(79); //先抽第0張
-	revs[0] = rollbase.FunnyDice(2);
+		cards[0] = rollbase.FunnyDice(79); //先抽第0張
+		revs[0] = rollbase.FunnyDice(2);
 
-	for (i = 1; i < 3; i++) {
-		for (;;) {
-		tmpcard = rollbase.FunnyDice(79);
-		if (cards.indexOf(tmpcard) === -1) //沒有重複，就這張了
-		{
-			cards.push(tmpcard);
-			revs[i] = rollbase.FunnyDice(2);
-			break;
+		for (i = 1; i < 3; i++) {
+			for (; ;) {
+				tmpcard = rollbase.FunnyDice(79);
+				if (cards.indexOf(tmpcard) === -1) //沒有重複，就這張了
+				{
+					cards.push(tmpcard);
+					revs[i] = rollbase.FunnyDice(2);
+					break;
+				}
+			}
 		}
+
+		if (text != null)
+			returnStr += text + ': \n';
+
+		for (i = 0; i < 3; i++) {
+			if (i == 0) returnStr += '過去: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
+			if (i == 1) returnStr += '現在: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
+			if (i == 2) returnStr += '未來: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]);
 		}
-	}
-
-	if (text != null)
-		returnStr += text + ': \n';
-
-	for (i = 0; i < 3; i++) {
-		if (i == 0) returnStr += '過去: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
-		if (i == 1) returnStr += '現在: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
-		if (i == 2) returnStr += '未來: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]);
-	}
 
 	} else if (type == 2) //塞爾特大十字
 	{
-	cards[0] = rollbase.FunnyDice(79); //先抽第0張
-	revs[0] = rollbase.FunnyDice(2);
+		cards[0] = rollbase.FunnyDice(79); //先抽第0張
+		revs[0] = rollbase.FunnyDice(2);
 
-	for (i = 1; i < 10; i++) {
-		for (;;) {
-		tmpcard = rollbase.FunnyDice(79);
-		if (cards.indexOf(tmpcard) === -1) //沒有重複，就這張了
-		{
-			cards.push(tmpcard);
-			revs[i] = rollbase.FunnyDice(2);
-			break;
+		for (i = 1; i < 10; i++) {
+			for (; ;) {
+				tmpcard = rollbase.FunnyDice(79);
+				if (cards.indexOf(tmpcard) === -1) //沒有重複，就這張了
+				{
+					cards.push(tmpcard);
+					revs[i] = rollbase.FunnyDice(2);
+					break;
+				}
+			}
 		}
-		}
-	}
 
-	if (text != null)
-		returnStr += text + ': \n';
+		if (text != null)
+			returnStr += text + ': \n';
 
-	for (i = 0; i < 10; i++) {
-		if (i == 0) returnStr += '現況: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
-		if (i == 1) {
-		if (revs[i] == 0) //正位
-			returnStr += '助力: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
-		else
-			returnStr += '阻力: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
-		}
-		if (i == 2) returnStr += '目標: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
-		if (i == 3) returnStr += '基礎: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
-		if (i == 4) returnStr += '過去: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
-		if (i == 5) returnStr += '未來: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
-		if (i == 6) returnStr += '自我: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
-		if (i == 7) returnStr += '環境: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
-		if (i == 8) {
-		if (revs[i] == 0) //正位
-			returnStr += '希望: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
-		else
-			returnStr += '恐懼: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
-		}
-		if (i == 9) returnStr += '結論: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]);
+		for (i = 0; i < 10; i++) {
+			if (i == 0) returnStr += '現況: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
+			if (i == 1) {
+				if (revs[i] == 0) //正位
+					returnStr += '助力: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
+				else
+					returnStr += '阻力: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
+			}
+			if (i == 2) returnStr += '目標: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
+			if (i == 3) returnStr += '基礎: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
+			if (i == 4) returnStr += '過去: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
+			if (i == 5) returnStr += '未來: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
+			if (i == 6) returnStr += '自我: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
+			if (i == 7) returnStr += '環境: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
+			if (i == 8) {
+				if (revs[i] == 0) //正位
+					returnStr += '希望: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
+				else
+					returnStr += '恐懼: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
+			}
+			if (i == 9) returnStr += '結論: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]);
 
-	}
+		}
 
 	} else {
 
-	if (text == null)
-		returnStr = tarotCardReply(rollbase.FunnyDice(79)) + ' ' + tarotRevReply(rollbase.FunnyDice(2));
-	else
-		returnStr = tarotCardReply(rollbase.FunnyDice(79)) + ' ' + tarotRevReply(rollbase.FunnyDice(2)) + ' ; ' + text;
+		if (text == null)
+			returnStr = tarotCardReply(rollbase.FunnyDice(79)) + ' ' + tarotRevReply(rollbase.FunnyDice(2));
+		else
+			returnStr = tarotCardReply(rollbase.FunnyDice(79)) + ' ' + tarotRevReply(rollbase.FunnyDice(2)) + ' ; ' + text;
 	}
 
 
@@ -253,9 +253,9 @@ function NomalDrawTarot(CardToCal, text) {
 	let returnStr = '';
 
 	if (text == null)
-	returnStr = tarotCardReply(rollbase.FunnyDice(22)) + ' ' + tarotRevReply(rollbase.FunnyDice(2));
+		returnStr = tarotCardReply(rollbase.FunnyDice(22)) + ' ' + tarotRevReply(rollbase.FunnyDice(2));
 	else
-	returnStr = tarotCardReply(rollbase.FunnyDice(22)) + ' ' + tarotRevReply(rollbase.FunnyDice(2)) + ' ; ' + text;
+		returnStr = tarotCardReply(rollbase.FunnyDice(22)) + ' ' + tarotRevReply(rollbase.FunnyDice(2)) + ' ; ' + text;
 	rply.text = returnStr;
 	return rply;
 }
@@ -361,25 +361,25 @@ function tarotCardReply(count) {
 ////////////////////////////////////////
 //////////////// choice 及SORT
 ////////////////////////////////////////
-function choice(input,str) {
+function choice(input, str) {
 	let a = input.replace(str[0], '').match(/\S+/ig);
-	rply.text = str[0] + '['+ a + '] → ' + a[rollbase.Dice(a.length)-1];
+	rply.text = str[0] + '[' + a + '] → ' + a[rollbase.Dice(a.length) - 1];
 	return rply;
 }
 
- function SortIt(input,mainMsg) {	
- 
- 	let a = input.replace(mainMsg[0], '').match(/\S+/ig);
-	for (var i = a.length-1; i >=0; i--) {
- 
-	var randomIndex = Math.floor(Math.random()*(i+1));
-	var itemAtIndex = a[randomIndex];
-	a[randomIndex] = a[i];
-	a[i] = itemAtIndex;
+function SortIt(input, mainMsg) {
+
+	let a = input.replace(mainMsg[0], '').match(/\S+/ig);
+	for (var i = a.length - 1; i >= 0; i--) {
+
+		var randomIndex = Math.floor(Math.random() * (i + 1));
+		var itemAtIndex = a[randomIndex];
+		a[randomIndex] = a[i];
+		a[i] = itemAtIndex;
 	}
-	rply.text = mainMsg[0] + ' → ['+ a + ']' ;
+	rply.text = mainMsg[0] + ' → [' + a + ']';
 	return rply;
- }
+}
 
 module.exports = {
 	BStyleFlagSCRIPTS,
@@ -391,5 +391,5 @@ module.exports = {
 	SortIt,
 	tarotRevReply,
 	choice,
-	tarotCardReply	
+	tarotCardReply
 };

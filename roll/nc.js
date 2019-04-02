@@ -1,28 +1,25 @@
 var rollbase = require('./rollbase.js');
-var rply ={type : 'text'}; //type是必需的,但可以更改
+var rply = { type: 'text' }; //type是必需的,但可以更改
 
 ////////////////////////////////////////
 //////////////// nechronica (NC)
 ////////////////////////////////////////
-function nechronica(triggermsg ,text) {
+function nechronica(triggermsg, text) {
 	let returnStr = '';
 	var ncarray = [];
 	var dicemax = 0, dicemin = 0, dicenew = 0;
 	var match = /^(\d+)(NC|NA)((\+|-)(\d+)|)$/i.exec(triggermsg);	//判斷式
-	for (var i = 0; i < Number(match[1]); i++)	
-	{
+	for (var i = 0; i < Number(match[1]); i++) {
 		dicenew = rollbase.Dice(10) + Number(match[3]);
 		ncarray.push(dicenew);
 	}
 	dicemax = Math.max(...ncarray);	//判斷最大最小值
 	dicemin = Math.min(...ncarray);
 	if (Number(match[1]) == 1)
-		returnStr += dicemax + '[' + ncarray.pop() + ']'; 
-	else
-	{
+		returnStr += dicemax + '[' + ncarray.pop() + ']';
+	else {
 		returnStr += dicemax + '[';
-		for (i = 0; i < Number(match[1]); i++)
-		{
+		for (i = 0; i < Number(match[1]); i++) {
 			if (i != Number(match[1]) - 1)
 				returnStr += ncarray.pop() + ',';
 			else
@@ -53,12 +50,12 @@ function nechronica(triggermsg ,text) {
 function nechronica_mirenn(text) {
 	let returnStr = '';
 	var dicenew = 0;
-	dicenew = rollbase.Dice(10)-1;
+	dicenew = rollbase.Dice(10) - 1;
 	// 產生格式
 	if (text != null)
-		returnStr = text + ': \n' + '依戀 (' + (dicenew+1) + '[' + (dicenew+1) + ']) → ' + nechronica_mirenn_table(dicenew);
+		returnStr = text + ': \n' + '依戀 (' + (dicenew + 1) + '[' + (dicenew + 1) + ']) → ' + nechronica_mirenn_table(dicenew);
 	else
-		returnStr = '依戀 (' + (dicenew+1) + '[' + (dicenew+1) + ']) → ' + nechronica_mirenn_table(dicenew);
+		returnStr = '依戀 (' + (dicenew + 1) + '[' + (dicenew + 1) + ']) → ' + nechronica_mirenn_table(dicenew);
 	rply.text = returnStr;
 	return rply;
 }
@@ -75,13 +72,13 @@ function nechronica_mirenn_table(mode) {
 	if (mode == 7) returnStr = '【保護】\n[發狂：過度保護] 戰鬥當中，妳跟「依戀的對象」處於不同區域的時候，無法宣告「移動以外的戰鬥宣言」，此外妳沒有辦法把「自身」與「依戀對象」以外的單位當成移動對象。';
 	if (mode == 8) returnStr = '【憧憬】\n[發狂：贗作妄想] 戰鬥當中，妳跟「依戀的對象」處於同樣區域的時候，無法宣告「移動以外的戰鬥宣言」，此外妳沒有辦法把「自身」與「依戀對象」以外的單位當成移動對象。';
 	if (mode == 9) returnStr = '【信賴】\n[發狂：疑心暗鬼] 除了妳以外的所有姊妹，最大行動值減少1。';
-	
+
 	return returnStr;
 }
 
 
 module.exports = {
-	nechronica:nechronica,
+	nechronica: nechronica,
 	nechronica_mirenn: nechronica_mirenn,
 	nechronica_mirenn_table: nechronica_mirenn_table
 };

@@ -50,14 +50,12 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 
 
 				if (rplyVal) {
+					Discordcountroll++;
+					console.log('Discord Roll: ' + Discordcountroll + '; ' + rplyVal.text);
 					if (privatemsg == 1) {
 						message.channel.send("暗骰進行中");
 						message.author.send(rplyVal.text);
-						Discordcountroll++;
-						console.log('Discord Roll: ' + Discordcountroll);
 					} else {
-						Discordcountroll++;
-						console.log('Discord Roll:' + Discordcountroll);
 						message.channel.send(rplyVal.text)
 					}
 					//console.log("rplyVal: " + rplyVal);

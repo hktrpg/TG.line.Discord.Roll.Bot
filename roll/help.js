@@ -229,7 +229,7 @@ function Help() {
 						{
 							"type": "message",
 							"label": "運氣占卜",
-							"text": "內容包含運勢"
+							"text": "來吧運勢!"
 						}
 
 					]

@@ -103,6 +103,8 @@ try {
 
 		//是複數擲骰喔
 		if (mutiOrNot.toString().match(/\D/) == null) {
+			if (text1.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[.]/g, '')) return undefined;
+			if (a) document.writeln(a);
 			if (text2 != null) {
 				finalStr = text0 + '次擲骰：\n' + text1 + ' ' + text2 + '\n';
 			} else {
@@ -138,6 +140,7 @@ try {
 			let DiceToRoll = mutiOrNot.toString().toLowerCase();
 			DiceToRoll = DiceToRoll.toLowerCase();
 			if (DiceToRoll.match('d') == null) return undefined;
+			if (text0.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[.]/g, '')) return undefined;
 
 			//寫出算式
 			let equation = DiceToRoll;

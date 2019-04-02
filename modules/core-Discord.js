@@ -1,7 +1,7 @@
 if (process.env.DISCORD_CHANNEL_SECRET) {
 	try {
 		require('fs').readdirSync('./modules/').forEach(function (file) {
-			if (file.match(/\.js$/) !== null && file !== 'index.js') {
+			if (file.match(/\.js$/) !== null && file !== 'index.js' && file.match(/^core-/) == null) {
 				var name = file.replace('.js', '');
 				exports[name] = require('../modules/' + file);
 			}
@@ -74,6 +74,6 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 	} catch (e) {
 		console.log('catch error');
 		console.log('Request error: ' + e.message);
-		
+
 	}
 }

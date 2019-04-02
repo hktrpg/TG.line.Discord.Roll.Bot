@@ -1,7 +1,7 @@
 if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	try {
 		require('fs').readdirSync('./modules/').forEach(function (file) {
-			if (file.match(/\.js$/) !== null && file !== 'index.js') {
+			if (file.match(/\.js$/) !== null && file !== 'index.js' && file.match(/^core-/) == null) {
 				var name = file.replace('.js', '');
 				exports[name] = require('../modules/' + file);
 			}

@@ -18,7 +18,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			// if (message.User.is_bot === false && message.text != '') {
 			//	console.log('message.content ' + message.content)
 			//	console.log('channelKeyword ' + channelKeyword)
-			let rplyVal = {}
+			let rplyVal = { type: 'text', text: '' }
 			let msgSplitor = (/\S+/ig)
 			let mainMsg = message.text.match(msgSplitor); // 定義輸入字串
 			let trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
@@ -41,8 +41,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				}
 			}
 
-			if (rplyVal) {
-				TGcountroll++;
+			if (rplyVal.text && typeof rplyVal.text === 'string') {
 				console.log('TG Roll: ' + TGcountroll);
 				if (privatemsg == 1) {
 					message.reply.text(message.from.first_name + ' 暗骰進行中')

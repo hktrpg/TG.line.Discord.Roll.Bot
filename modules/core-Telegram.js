@@ -41,7 +41,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				}
 			}
 
-			if (typeof rplyVal.text === 'string' || rplyVal.text instanceof String) {
+			if (rplyVal) {
 				TGcountroll++;
 				console.log('TG Roll: ' + TGcountroll);
 				if (privatemsg == 1) {

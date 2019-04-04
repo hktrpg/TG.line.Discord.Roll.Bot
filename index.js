@@ -4,7 +4,7 @@ require('fs').readdirSync(__dirname + '/modules/').forEach(function(file) {
     exports[name] = require('./modules/' + file);
   }
 });
-
+console.log('VERSION: '+process.env.HEROKU_RELEASE_VERSION||'404')
 /*
 流程解釋
 

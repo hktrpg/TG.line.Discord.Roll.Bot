@@ -4,7 +4,7 @@
   "description": "Zetetic Line Bot",
   "engines": {
     "node": "^10",
-    "npm": "*"
+    "npm": "^6"
   },
   "main": "index.js",
   "scripts": {

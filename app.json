@@ -4,7 +4,7 @@
 	"repository": "https://github.com/hktrpg/TG.line.Discord.Roll.Bot.git",
 	"keywords": [
 		"RoboYabaso",
-		"Line Bot",
+		"RollingBot",
 		"TRPG"
 	],
 	"env": {

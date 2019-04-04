@@ -1,3 +1,19 @@
+
+const webpack = require('webpack')
+
+module.exports = {
+	configureWebpack: {
+		plugins: [
+			new webpack.EnvironmentPlugin([
+				'HEROKU_RELEASE_VERSION',
+			]),
+		]
+	}
+}
+console.log('VERSION: ')
+console.log(process.env.HEROKU_RELEASE_VERSION || '404')
+
+
 if (process.env.TELEGRAM_CHANNEL_SECRET) {
 
 	try {
@@ -52,6 +68,9 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				}
 				// console.log("rplyVal: " + rplyVal)
 			} else {
+				console.log('VERSION: ')
+				console.log(process.env.HEROKU_RELEASE_VERSION || '404')
+
 				TGcounttext++;
 				console.log('TG Text: ' + TGcounttext);
 			}

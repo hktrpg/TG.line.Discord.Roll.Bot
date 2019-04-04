@@ -4,18 +4,6 @@ require('fs').readdirSync(__dirname + '/modules/').forEach(function (file) {
     exports[name] = require('./modules/' + file);
   }
 });
-const webpack = require('webpack')
-
-module.exports = {
-  configureWebpack: {
-    plugins: [
-      new webpack.EnvironmentPlugin([
-        'HEROKU_RELEASE_VERSION',
-      ]),
-    ]
-  }
-}
-console.log('VERSION: ' + process.env.HEROKU_RELEASE_VERSION || '404')
 /*
 流程解釋
 

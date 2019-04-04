@@ -1,10 +1,21 @@
-require('fs').readdirSync(__dirname + '/modules/').forEach(function(file) {
+require('fs').readdirSync(__dirname + '/modules/').forEach(function (file) {
   if (file.match(/\.js$/) !== null && file !== 'index.js') {
     var name = file.replace('.js', '');
     exports[name] = require('./modules/' + file);
   }
 });
-console.log('VERSION: '+process.env.HEROKU_RELEASE_VERSION||'404')
+const webpack = require('webpack')
+
+module.exports = {
+  configureWebpack: {
+    plugins: [
+      new webpack.EnvironmentPlugin([
+        'HEROKU_RELEASE_VERSION',
+      ]),
+    ]
+  }
+}
+console.log('VERSION: ' + process.env.HEROKU_RELEASE_VERSION || '404')
 /*
 流程解釋
 

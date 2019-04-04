@@ -47,7 +47,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			rplyVal = handleEvent(event);
 
 			//把回應的內容,掉到replyMsgToLine.js傳出去
-			if (rplyVal) {
+			if (rplyVal && rplyVal.text) {
 				Linecountroll++;
 				console.log('Line Roll: ' + Linecountroll);
 				exports.replyMsgToLine.replyMsgToLine(rplyToken, rplyVal, options);

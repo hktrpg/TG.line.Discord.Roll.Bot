@@ -49,7 +49,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				}
 
 
-				if (rplyVal) {
+				if (rplyVal && rplyVal.text) {
 					Discordcountroll++;
 					console.log('Discord Roll: ' + Discordcountroll);
 					if (privatemsg == 1) {

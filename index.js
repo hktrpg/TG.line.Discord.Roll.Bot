@@ -23,3 +23,7 @@ Discord line Telegram三套BOT 都會統一呼叫analytics.js
 感謝
 
 */
+
+
+
+console.log(process.env.HEROKU_RELEASE_VERSION)

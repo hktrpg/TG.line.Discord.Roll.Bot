@@ -52,11 +52,13 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				if (rplyVal && rplyVal.text) {
 					Discordcountroll++;
 					console.log('Discord Roll: ' + Discordcountroll);
-					if (privatemsg == 1) {
-						message.channel.send("暗骰進行中");
-						message.author.send(rplyVal.text);
-					} else {
-						message.channel.send(rplyVal.text)
+					for (var i = 0; i < rplyVal.text.match(/.{1,1000}/g).length; i++) {
+						if (privatemsg == 1) {
+							message.channel.send("暗骰進行中");
+							message.author.send(rplyVal.text.match(/.{1,1000}/g)[i]);
+						} else {
+							message.channel.send(rplyVal.text.match(/.{1,1000}/g)[i])
+						}
 					}
 					//console.log("rplyVal: " + rplyVal);
 				} else {

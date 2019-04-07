@@ -125,20 +125,14 @@ try {
         aaa = aaa.replace(/]/ig, ')')
         // aaa = aaa.replace(/[[]\d+|]/ig, "")
         let answer = eval(aaa.toString())
-
-        finalStr = finalStr + i + '# ' + equation + ' = ' + answer + '\n'
-
         if (finalStr.match(/[\s\S]{1,500}/g).length > 1) {
-          if (text2 != null) {
-            finalStr = finalStr + text0 + '次擲骰：\n' + text1 + ' ' + text2 + '\n'
-          } else {
-            finalStr = finalStr + text0 + '次擲骰：\n' + text1 + '\n'
-          }
+          finalStr = finalStr + i + '# ' + ' = ' + answer + '（骰數過多或面數過大，僅顯示結果）\n'
 
+        } else {
+          finalStr = finalStr + i + '# ' + equation + ' = ' + answer + '\n'
         }
-
       }
-      finalStr = finalStr + answer + '\n（骰數過多或面數過大，僅顯示結果）';
+
     } else {
       // 一般單次擲骰
       let DiceToRoll = mutiOrNot.toString().toLowerCase()

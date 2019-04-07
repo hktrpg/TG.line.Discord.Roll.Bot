@@ -1,6 +1,11 @@
 if (process.env.TELEGRAM_CHANNEL_SECRET) {
 
 	try {
+		function timer(ms) {
+			return new Promise(res => setTimeout(res, ms));
+		}
+
+
 		require('fs').readdirSync('./modules/').forEach(function (file) {
 			if (file.match(/\.js$/) !== null && file !== 'index.js' && file.match(/^core-/) == null) {
 				var name = file.replace('.js', '');
@@ -47,13 +52,23 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 
 				if (privatemsg == 1) {
 					message.reply.text(message.from.first_name + ' 暗骰進行中')
-					for (var i = 0; i < rplyVal.text.match(/.{1,1000}/g).length; i++) {
-						TGclient.sendMessage(message.from.id, rplyVal.text.match(/.{1,1000}/g)[i])
+					async function load() {
+						for (var i = 0; i < rplyVal.text.match(/.{1,1000}/g).length; i++) {
+							TGclient.sendMessage(message.from.id, rplyVal.text.match(/.{1,1000}/g)[i])
+							await timer(10);
+						}
 					}
-				} else {
-					for (var i = 0; i < rplyVal.text.match(/.{1,1000}/g).length; i++) {
-						message.reply.text(rplyVal.text.match(/.{1,1000}/g)[i])
+					load();
+				}
+				else {
+					async function load() {
+						for (var i = 0; i < rplyVal.text.match(/.{1,1000}/g).length; i++) {
+							message.reply.text(rplyVal.text.match(/.{1,1000}/g)[i])
+							await timer(10);
+						}
 					}
+					load();
+
 				}
 
 				// console.log("rplyVal: " + rplyVal)

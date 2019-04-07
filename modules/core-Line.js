@@ -50,10 +50,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			if (rplyVal && rplyVal.text) {
 				Linecountroll++;
 				console.log('Line Roll: ' + Linecountroll);
-				for (var i = 0; i < rplyVal.text.match(/.{1,1000}/g).length; i++) {
-
-					exports.replyMsgToLine.replyMsgToLine(rplyToken, rplyVal, options);
-				}
+				exports.replyMsgToLine.replyMsgToLine(rplyToken, rplyVal, options);
 			} else {
 				Linecounttext++;
 				console.log('Line Text: ' + Linecounttext);

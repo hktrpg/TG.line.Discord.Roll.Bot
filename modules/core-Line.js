@@ -1,97 +1,79 @@
+'use strict';
 if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
-	try {
-		require('fs').readdirSync('./modules/').forEach(function (file) {
-			if (file.match(/\.js$/) !== null && file !== 'index.js' && file.match(/^core-/) == null) {
-				var name = file.replace('.js', '');
-				exports[name] = require('../modules/' + file);
-			}
-		});
-		const express = require('express');
-		const bodyParser = require('body-parser');
-		var app = express();
-		var jsonParser = bodyParser.json();
-		const channelAccessToken = process.env.LINE_CHANNEL_ACCESSTOKEN;
-
-		//	var channelSecret = process.env.LINE_CHANNEL_SECRET;
-		// Load `*.js` under modules directory as properties
-		//  i.e., `User.js` will become `exports['User']` or `exports.User`
-		var Linecountroll = 0;
-		var Linecounttext = 0;
-		var options = {
-			host: 'api.line.me',
-			port: 443,
-			path: '/v2/bot/message/reply',
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'Authorization': 'Bearer ' + channelAccessToken
-			}
+	//	var channelSecret = process.env.LINE_CHANNEL_SECRET;
+	// Load `*.js` under modules directory as properties
+	//  i.e., `User.js` will become `exports['User']` or `exports.User`
+	require('fs').readdirSync('./modules/').forEach(function (file) {
+		if (file.match(/\.js$/) !== null && file !== 'index.js' && file.match(/^core-/) == null) {
+			var name = file.replace('.js', '');
+			exports[name] = require('../modules/' + file);
 		}
-		app.set('port', (process.env.PORT || 5000));
-		// views is directory for all template files
-		app.get('/', function (req, res) {
-			//	res.send(parseInput(req.query.input));
-			res.send('Hello');
-		});
-		app.post('/', jsonParser, function (req, res) {
-			let event = req.body.events[0];
-			//let type = event.type;
-			//let msgType = event.message.type;
-			//let msg = event.message.text;
-			let rplyToken = event.replyToken;
-			let rplyVal = {};
-			//console.log(msg);
-			//訊息來到後, 會自動呼叫handleEvent 分類,然後跳到analytics.js進行骰組分析
-			//如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+	});
+	var Linecountroll = 0;
+	var Linecounttext = 0;
+	const line = require('@line/bot-sdk');
+	const express = require('express');
 
-			rplyVal = handleEvent(event);
+	// create LINE SDK config from env variables
+	const config = {
+		channelAccessToken: process.env.LINE_CHANNEL_ACCESSTOKEN,
+		channelSecret: process.env.LINE_CHANNEL_SECRET,
+	};
 
-			//把回應的內容,掉到replyMsgToLine.js傳出去
-			if (rplyVal && rplyVal.text) {
-				Linecountroll++;
-				console.log('Line Roll: ' + Linecountroll);
-				exports.replyMsgToLine.replyMsgToLine(rplyToken, rplyVal, options);
-			} else {
-				Linecounttext++;
-				console.log('Line Text: ' + Linecounttext);
-			}
-			res.send('ok');
-		});
+	// create LINE SDK client
+	const client = new line.Client(config);
 
-		app.listen(app.get('port'), function () {
-			console.log('Node app is running on port', app.get('port'));
-		});
+	// create Express app
+	// about Express itself: https://expressjs.com/
+	const app = express();
 
-		function handleEvent(event) {
-			switch (event.type) {
-				case 'message':
-					const message = event.message;
-					switch (message.type) {
-						case 'text':
-							return exports.analytics.parseInput(event.message.text);
-						default:
-							break;
-					}
-				case 'follow':
-					break;
-				case 'unfollow':
-					break;
-				case 'join':
-					break;
-				case 'leave':
-					break;
-				case 'postback':
-					break;
-				case 'beacon':
-					break;
-				default:
-					break;
-			}
+	// register a webhook handler with middleware
+	// about the middleware, please refer to doc
+	app.post('/callback', line.middleware(config), (req, res) => {
+		Promise
+			.all(req.body.events.map(handleEvent))
+			.then((result) => res.json(result))
+			.catch((err) => {
+				console.error(err);
+				res.status(500).end();
+			});
+	});
+
+	// event handler
+	function handleEvent(event) {
+		if (event.type !== 'message' || event.message.type !== 'text') {
+			// ignore non-text-message event
+			return Promise.resolve(null);
 		}
 
-	} catch (e) {
-		console.log('catch error');
-		console.log('Request error: ' + e.message);
-		console.log('event error: ' + event);
+		// create a echoing text message
+		//exports.analytics.parseInput(event.message.text)
+		let rplyVal = {};
+		rplyVal = event.message.text;
+
+		if (rplyVal && rplyVal.text) {
+			Linecountroll++;
+			console.log('Line Roll: ' + Linecountroll);
+			return client.replyMessage(event.replyToken, rplyVal);
+		} else {
+			Linecounttext++;
+			console.log('Line Text: ' + Linecounttext);
+		}
+		// use reply API
+
 	}
+
+	// listen on port
+	const port = process.env.PORT || 5000;
+	app.listen(port, () => {
+		console.log(`Line BOT listening on ${port}`);
+	});
+
+	app.get('/', function (req, res) {
+		//	res.send(parseInput(req.query.input));
+		res.send('Hello');
+	});
+
+
 }
+

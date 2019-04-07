@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Zetetic Line Bot",
   "engines": {
-    "node": "^10",
+    "node": "^11",
     "npm": "^6"
   },
   "main": "index.js",
@@ -15,7 +15,8 @@
     "body-parser": "^1.15.2",
     "mongoose": "^5.0.6",
     "discord.js": "^11.4.2",
-    "telebot": "^1.2.6"
+    "telebot": "^1.2.6",
+    "@line/bot-sdk":"^6.6.0"
   },
   "keywords": [
     "LeoLi",

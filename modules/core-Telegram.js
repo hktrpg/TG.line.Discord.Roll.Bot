@@ -44,11 +44,14 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			if (rplyVal && rplyVal.text) {
 				TGcountroll++;
 				console.log('TG Roll: ' + TGcountroll);
-				if (privatemsg == 1) {
-					message.reply.text(message.from.first_name + ' 暗骰進行中')
-					return TGclient.sendMessage(message.from.id, rplyVal.text)
-				} else {
-					return message.reply.text(rplyVal.text)
+				for (var i = 0; i < rplyVal.text.match(/.{1,1000}/g).length; i++) {
+
+					if (privatemsg == 1) {
+						message.reply.text(message.from.first_name + ' 暗骰進行中')
+						TGclient.sendMessage(message.from.id, rplyVal.text.match(/.{1,1000}/g)[i])
+					} else {
+						message.reply.text(rplyVal.text.match(/.{1,1000}/g)[i])
+					}
 				}
 				// console.log("rplyVal: " + rplyVal)
 			} else {

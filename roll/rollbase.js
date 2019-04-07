@@ -127,6 +127,16 @@ try {
         let answer = eval(aaa.toString())
 
         finalStr = finalStr + i + '# ' + equation + ' = ' + answer + '\n'
+
+        if(finalStr.match(/[\s\S]{1,800}/g)>1){
+          if (text2 != null) {
+            finalStr = text0 + '次擲骰：\n' + text1 + ' ' + text2 + '\n'
+          } else {
+            finalStr = text0 + '次擲骰：\n' + text1 + '\n'
+          }
+          finalStr =  finalStr + answer +'\n（骰數過多或面數過大，僅顯示結果）';
+        }
+
       }
     } else {
       // 一般單次擲骰

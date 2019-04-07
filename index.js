@@ -26,4 +26,4 @@ Discord line Telegram三套BOT 都會統一呼叫analytics.js
 
 
 
-console.log('version' + process.env.HEROKU_RELEASE_VERSION)
+console.log('version:  ' + process.env.HEROKU_RELEASE_VERSION)

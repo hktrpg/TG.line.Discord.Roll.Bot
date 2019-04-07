@@ -125,7 +125,7 @@ try {
         aaa = aaa.replace(/]/ig, ')')
         // aaa = aaa.replace(/[[]\d+|]/ig, "")
         let answer = eval(aaa.toString())
-        if (equation.match(/[\s\S]{1,300}/g).length > 1) {
+        if (equation.match(/[\s\S]{1,400}/g).length > 1) {
           finalStr = finalStr + i + '# ' + ' = ' + answer + '（計算過程太長，僅顯示結果）\n'
 
         } else {
@@ -161,7 +161,7 @@ try {
       } else {
         finalStr = text0 + '\n' + equation + ' = ' + answer
       }
-      if (equation.match(/[\s\S]{1,300}/g).length > 1) {
+      if (equation.match(/[\s\S]{1,400}/g).length > 1) {
         if (text1 != null) {
           finalStr = text0 + '：' + text1 + '\n' + ' = ' + answer
         } else {

@@ -128,16 +128,17 @@ try {
 
         finalStr = finalStr + i + '# ' + equation + ' = ' + answer + '\n'
 
-        if (finalStr.match(/[\s\S]{1,500}/g).length > 0) {
+        if (finalStr.match(/[\s\S]{1,500}/g).length > 1) {
           if (text2 != null) {
-            finalStr = text0 + '次擲骰：\n' + text1 + ' ' + text2 + '\n'
+            finalStr = finalStr + text0 + '次擲骰：\n' + text1 + ' ' + text2 + '\n'
           } else {
-            finalStr = text0 + '次擲骰：\n' + text1 + '\n'
+            finalStr = finalStr + text0 + '次擲骰：\n' + text1 + '\n'
           }
-          finalStr = finalStr + answer + '\n（骰數過多或面數過大，僅顯示結果）';
+
         }
 
       }
+      finalStr = finalStr + answer + '\n（骰數過多或面數過大，僅顯示結果）';
     } else {
       // 一般單次擲骰
       let DiceToRoll = mutiOrNot.toString().toLowerCase()
@@ -164,13 +165,13 @@ try {
       if (text1 != null) {
         finalStr = text0 + '：' + text1 + '\n' + equation + ' = ' + answer
       } else {
-        finalStr = text0 + '：\n' + equation + ' = ' + answer
+        finalStr = text0 + '\n' + equation + ' = ' + answer
       }
-      if (finalStr.match(/[\s\S]{1,500}/g).length > 0) {
+      if (finalStr.match(/[\s\S]{1,500}/g).length > 1) {
         if (text1 != null) {
           finalStr = text0 + '：' + text1 + '\n' + ' = ' + answer
         } else {
-          finalStr = text0 + '：\n' + ' = ' + answer
+          finalStr = text0 + '\n' + ' = ' + answer
         }
         finalStr = finalStr + '\n（骰數過多或面數過大，僅顯示結果）';
       }

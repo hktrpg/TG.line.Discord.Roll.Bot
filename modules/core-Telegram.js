@@ -54,8 +54,8 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 					message.reply.text(message.from.first_name + ' 暗骰進行中')
 					async function load() {
 						for (var i = 0; i < rplyVal.text.match(/.{1,1000}/g).length; i++) {
-							TGclient.sendMessage(message.from.id, rplyVal.text.match(/.{1,1000}/g)[i])
-							await timer(10);
+							await TGclient.sendMessage(message.from.id, rplyVal.text.match(/.{1,1000}/g)[i])
+
 						}
 					}
 					load();
@@ -63,8 +63,8 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				else {
 					async function load() {
 						for (var i = 0; i < rplyVal.text.match(/.{1,1000}/g).length; i++) {
-							message.reply.text(rplyVal.text.match(/.{1,1000}/g)[i])
-							await timer(10);
+							await message.reply.text(rplyVal.text.match(/.{1,1000}/g)[i])
+
 						}
 					}
 					load();

@@ -54,13 +54,21 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					console.log('Discord Roll: ' + Discordcountroll);
 					if (privatemsg == 1) {
 						message.channel.send("暗骰進行中");
-						for (var i = 0; i < rplyVal.text.match(/.{1,1000}/g).length; i++) {
-							message.author.send(rplyVal.text.match(/.{1,1000}/g)[i]);
+						async function load() {
+							for (var i = 0; i < rplyVal.text.match(/.{1,1000}/g).length; i++) {
+								await message.author.send(rplyVal.text.match(/.{1,1000}/g)[i]);
+							}
 						}
+						load();
 					} else {
-						for (var i = 0; i < rplyVal.text.match(/.{1,1000}/g).length; i++) {
-							message.channel.send(rplyVal.text.match(/.{1,1000}/g)[i])
+						async function load() {
+							for (var i = 0; i < rplyVal.text.match(/.{1,1000}/g).length; i++) {
+								await message.channel.send(rplyVal.text.match(/.{1,1000}/g)[i])
+							}
 						}
+						load();
+
+
 					}
 					//console.log("rplyVal: " + rplyVal);
 				} else {

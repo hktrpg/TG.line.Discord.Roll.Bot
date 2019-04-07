@@ -125,8 +125,8 @@ try {
         aaa = aaa.replace(/]/ig, ')')
         // aaa = aaa.replace(/[[]\d+|]/ig, "")
         let answer = eval(aaa.toString())
-        if (finalStr.match(/[\s\S]{1,500}/g).length > 1) {
-          finalStr = finalStr + i + '# ' + ' = ' + answer + '（骰數過多或面數過大，僅顯示結果）\n'
+        if (equation.match(/[\s\S]{1,500}/g).length > 1) {
+          finalStr = finalStr + i + '# ' + ' = ' + answer + '（計算過程太長，僅顯示結果）\n'
 
         } else {
           finalStr = finalStr + i + '# ' + equation + ' = ' + answer + '\n'
@@ -161,13 +161,13 @@ try {
       } else {
         finalStr = text0 + '\n' + equation + ' = ' + answer
       }
-      if (finalStr.match(/[\s\S]{1,500}/g).length > 1) {
+      if (equation.match(/[\s\S]{1,500}/g).length > 1) {
         if (text1 != null) {
           finalStr = text0 + '：' + text1 + '\n' + ' = ' + answer
         } else {
           finalStr = text0 + '\n' + ' = ' + answer
         }
-        finalStr = finalStr + '\n（骰數過多或面數過大，僅顯示結果）';
+        finalStr = finalStr + '\n（計算過程太長，僅顯示結果）';
       }
     }
 

@@ -3,9 +3,12 @@
 關於RoboYabaso
 ==
 RoboYabaso最早由LarryLo  Retsnimle開發。 </br> 
-是一個開放源碼的line骰子機器人計畫。</br></br>
+是一個開放源碼骰子機器人計畫。</br></br>
 
 現在改成三合一Line x Discord x Telegram。</br>
+雖然是三合一，但可以單獨使用，只是共用骰組，</br>
+啓動條件是在HEROUKU 輸入BOT的 CHANNEL_SECRET</br>
+
 不然的話沒這麼多伺服器開這麼多ＢＯＴ。</br>
 最期待Whatsapp快開放權限，香港都是比較多使用Whatsapp</br></br>
 
@@ -218,7 +221,8 @@ https://github.com/zeteticl/TrpgLineBot-php </br>
 
 下一部希望更新是</br>
 1. MONGODB (但好難啊....會有高手幫忙嗎....不想用GOOGLE SHEET.....</br>
-2. COC 成長,瘋狂骰表</br>
+2. 骰組方法學習凍豆腐</br>
+3. Help的優化
 
 2018/02/01</br>
 更新模組化</br></br>

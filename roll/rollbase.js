@@ -98,7 +98,7 @@ try {
 
     // 是複數擲骰喔
     if (mutiOrNot.toString().match(/\D/) == null) {
-      if (text1.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[D]/g, '') || text1.match(/([d]|[+]|[-]|[*]|[/]|[D])([d]|[+]|[-]|[*]|[/]|[D])/g) || text1.match(/[d]$|[D]$/g) || text1.toLowerCase().match(/\d+[d]+\d+[d]/g)) return undefined;
+      if (text1.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[D]/g, '') || text1.match(/([d]|[+]|[-]|[*]|[/]|[D])([d]|[+]|[-]|[*]|[/]|[D])/g) || text1.match(/[d]$|[+]$|[-]$|[*]$|[/]$|[D]$/g) || text1.toLowerCase().match(/\d+[d]+\d+[d]/g)) return undefined;
       if (text2 != null) {
         finalStr = text0 + '次擲骰：\n' + text1 + ' ' + text2 + '\n'
       } else {
@@ -125,15 +125,20 @@ try {
         aaa = aaa.replace(/]/ig, ')')
         // aaa = aaa.replace(/[[]\d+|]/ig, "")
         let answer = eval(aaa.toString())
+        if (equation.match(/[\s\S]{1,400}/g).length > 1) {
+          finalStr = finalStr + i + '# ' + ' = ' + answer + '（計算過程太長，僅顯示結果）\n'
 
-        finalStr = finalStr + i + '# ' + equation + ' = ' + answer + '\n'
+        } else {
+          finalStr = finalStr + i + '# ' + equation + ' = ' + answer + '\n'
+        }
       }
+
     } else {
       // 一般單次擲骰
       let DiceToRoll = mutiOrNot.toString().toLowerCase()
       DiceToRoll = DiceToRoll.toLowerCase()
       if (DiceToRoll.match('d') == null) return undefined
-      if (text0.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[D]/g, '') || text0.match(/([d]|[+]|[-]|[*]|[/]|[D]$)([d]|[+]|[-]|[*]|[/]|[D])/g) || text0.match(/[d]$|[D]$/g) || text0.toLowerCase().match(/\d+[d]+\d+[d]/g)) return undefined;
+      if (text0.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[D]/g, '') || text0.match(/([d]|[+]|[-]|[*]|[/]|[D]$)([d]|[+]|[-]|[*]|[/]|[D])/g) || text0.match(/[d]$|[+]$|[-]$|[*]$|[/]$|[D]$/g) || text0.toLowerCase().match(/\d+[d]+\d+[d]/g)) return undefined;
 
       // 寫出算式
       let equation = DiceToRoll
@@ -154,7 +159,15 @@ try {
       if (text1 != null) {
         finalStr = text0 + '：' + text1 + '\n' + equation + ' = ' + answer
       } else {
-        finalStr = text0 + '：\n' + equation + ' = ' + answer
+        finalStr = text0 + '\n' + equation + ' = ' + answer
+      }
+      if (equation.match(/[\s\S]{1,400}/g).length > 1) {
+        if (text1 != null) {
+          finalStr = text0 + '：' + text1 + '\n' + ' = ' + answer
+        } else {
+          finalStr = text0 + '\n' + ' = ' + answer
+        }
+        finalStr = finalStr + '\n（計算過程太長，僅顯示結果）';
       }
     }
 

@@ -4,8 +4,6 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 		function timer(ms) {
 			return new Promise(res => setTimeout(res, ms));
 		}
-
-
 		require('fs').readdirSync('./modules/').forEach(function (file) {
 			if (file.match(/\.js$/) !== null && file !== 'index.js' && file.match(/^core-/) == null) {
 				var name = file.replace('.js', '');
@@ -17,7 +15,9 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 		const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || ''
 		var TGcountroll = 0;
 		var TGcounttext = 0;
-		TGclient.start();
+		TGclient.start(() => {
+			console.log('Telegram is Ready!');
+		});
 		TGclient.on('text', message => {
 			//console.log(message);
 			// if (message.User.is_bot === false && message.text != '') {
@@ -48,7 +48,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 
 			if (rplyVal && rplyVal.text) {
 				TGcountroll++;
-				console.log('TG Roll: ' + TGcountroll);
+				console.log('Telegram Roll: ' + TGcountroll);
 				if (privatemsg == 1) {
 					message.reply.text(message.from.first_name + ' 暗骰進行中')
 					async function load() {
@@ -57,8 +57,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 						}
 					}
 					load();
-				}
-				else {
+				} else {
 					async function load() {
 						for (var i = 0; i < rplyVal.text.match(/[\s\S]{1,1500}/g).length; i++) {
 							await message.reply.text(rplyVal.text.match(/[\s\S]{1,1500}/g)[i])
@@ -71,7 +70,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				// console.log("rplyVal: " + rplyVal)
 			} else {
 				TGcounttext++;
-				console.log('TG Text: ' + TGcounttext);
+				console.log('Telegram Text: ' + TGcounttext);
 			}
 			//  }
 		})

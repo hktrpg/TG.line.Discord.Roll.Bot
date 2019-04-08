@@ -16,7 +16,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 		var Discordcounttext = 0;
 
 		client.once('ready', () => {
-			console.log('Ready!');
+			console.log('Discord is Ready!');
 		});
 
 		client.login(channelSecret);

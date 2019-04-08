@@ -49,7 +49,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		// create a echoing text message
 		//exports.analytics.parseInput(event.message.text)
 		let rplyVal = {};
-		rplyVal = event.message.text;
+		rplyVal = exports.analytics.parseInput(event.message.text);
 
 		if (rplyVal && rplyVal.text) {
 			Linecountroll++;

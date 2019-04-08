@@ -13,8 +13,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	var Linecounttext = 0;
 	const line = require('@line/bot-sdk');
 	const express = require('express');
-	const time = new Date().getTime();
-	const date = new Date(time);
+
+
+	const BootTime = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Shanghai" }));
 
 
 	// create LINE SDK config from env variables
@@ -56,11 +57,11 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 		if (rplyVal && rplyVal.text) {
 			Linecountroll++;
-			console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext + ' Boot Time: ' + date.toString());
+			console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext + ' Boot Time: ' + BootTime.toLocaleString());
 			return client.replyMessage(event.replyToken, rplyVal);
 		} else {
 			Linecounttext++;
-			console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext + ' Boot Time: ' + date.toString());
+			console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext + ' Boot Time: ' + BootTime.toLocaleString());
 		}
 		// use reply API
 

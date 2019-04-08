@@ -29,7 +29,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 	// register a webhook handler with middleware
 	// about the middleware, please refer to doc
-	app.post('/callback', line.middleware(config), (req, res) => {
+	app.post('/', line.middleware(config), (req, res) => {
 		Promise
 			.all(req.body.events.map(handleEvent))
 			.then((result) => res.json(result))
@@ -38,7 +38,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				res.status(500).end();
 			});
 	});
-
+	let rplyVal = {};
 	// event handler
 	function handleEvent(event) {
 		if (event.type !== 'message' || event.message.type !== 'text') {
@@ -48,7 +48,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 		// create a echoing text message
 		//exports.analytics.parseInput(event.message.text)
-		let rplyVal = {};
+
 		rplyVal = exports.analytics.parseInput(event.message.text);
 
 		if (rplyVal && rplyVal.text) {
@@ -68,12 +68,12 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	app.listen(port, () => {
 		console.log(`Line BOT listening on ${port}`);
 	});
-
-	app.get('/', function (req, res) {
-		//	res.send(parseInput(req.query.input));
-		res.send('Hello');
-	});
-
+	/*
+		app.get('/', function (req, res) {
+			//	res.send(parseInput(req.query.input));
+			res.send('Hello');
+		});
+	*/
 
 }
 

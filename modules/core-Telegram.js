@@ -48,7 +48,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 
 			if (rplyVal && rplyVal.text) {
 				TGcountroll++;
-				console.log('Telegram Roll: ' + TGcountroll);
+				console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext);
 				if (privatemsg == 1) {
 					message.reply.text(message.from.first_name + ' 暗骰進行中')
 					async function load() {
@@ -70,7 +70,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				// console.log("rplyVal: " + rplyVal)
 			} else {
 				TGcounttext++;
-				console.log('Telegram Text: ' + TGcounttext);
+				console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext);
 			}
 			//  }
 		})

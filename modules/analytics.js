@@ -19,8 +19,12 @@ try {
 		let msgSplitor = (/\S+/ig);
 		let mainMsg = inputStr.match(msgSplitor); //定義輸入字串
 		let trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
-		//console.log(exports.bcdice.prefixs);
+		//https://stackoverflow.com/questions/35969974/foreach-is-not-a-function-error-with-javascript-array
+		exports.forEach(function (entry) {
+			console.log(entry);
+		});
 		//在下面位置開始分析trigger
+
 		if (trigger.match(exports.bcdice.prefixs()) != null) return { text: exports.bcdice.getHelpMessage() };
 
 		if (trigger.match(/(^ccrt$)/) != null) return exports.coc.ccrt();

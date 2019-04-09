@@ -1,14 +1,10 @@
 const BCDice = require('bcdice-js').BCDice; // CommonJS
-
 const bcdice = new BCDice();
-
 function calldice(gameType, message) {
   bcdice.setGameByTitle(gameType)
   bcdice.setMessage(message)
   return bcdice.dice_command()
-
 }
-
 
 var rollbase = require('./rollbase.js')
 var rply = { type: 'text' }; // type是必需的,但可以更改
@@ -25,7 +21,7 @@ gameType = function () {
   return 'bcdice:hktrpg'
 }
 prefixs = function () {
-  return '/^bcd$/i'
+  return /^bcd$/i
 }
 getHelpMessage = function () {
   return '・bcDice 擲骰\
@@ -75,3 +71,11 @@ try {
 }
 
 */
+module.exports = {
+  rollDiceCommand: rollDiceCommand,
+  initialize: initialize,
+  getHelpMessage: getHelpMessage,
+  prefixs: prefixs,
+  gameType: gameType,
+  gameName: gameName
+};

@@ -20,9 +20,14 @@ try {
 		let mainMsg = inputStr.match(msgSplitor); //定義輸入字串
 		let trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
 		//https://stackoverflow.com/questions/35969974/foreach-is-not-a-function-error-with-javascript-array
-		exports.forEach(function (entry) {
-			console.log(entry);
-		});
+		//exports.forEach(function (entry) {
+		//	console.log(entry);
+		//});
+		console.log(exports.length);
+		for (var i = 0; i < exports.length; i++) {
+			//	if (exports[i].prefixs) 
+			console.log(exports[i]);
+		}
 		//在下面位置開始分析trigger
 
 		if (trigger.match(exports.bcdice.prefixs()) != null) return { text: exports.bcdice.getHelpMessage() };

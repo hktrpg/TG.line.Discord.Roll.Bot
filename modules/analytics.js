@@ -23,14 +23,20 @@ try {
 		//exports.forEach(function (entry) {
 		//	console.log(entry);
 		//});
-		console.log(exports.length);
-		for (var i = 0; i < exports.length; i++) {
+		
+		
+		
+		console.log('length: ' + exports);
+		//console.log(name)
+		for (var i = 0; i < Object.keys(exports).length; i++) {
 			//	if (exports[i].prefixs) 
-			console.log(exports[i]);
+			console.log(Object.keys(exports)[i]);
 		}
 		//在下面位置開始分析trigger
 
-		if (trigger.match(exports.bcdice.prefixs()) != null) return { text: exports.bcdice.getHelpMessage() };
+		if (trigger.match(exports.bcdice.prefixs()) != null) return {
+			text: exports.bcdice.getHelpMessage()
+		};
 
 		if (trigger.match(/(^ccrt$)/) != null) return exports.coc.ccrt();
 		if (trigger.match(/(^ccsu$)/) != null) return exports.coc.ccsu();

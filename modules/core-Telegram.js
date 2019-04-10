@@ -58,6 +58,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 					}
 					load();
 				} else {
+
 					async function load() {
 						for (var i = 0; i < rplyVal.text.match(/[\s\S]{1,1500}/g).length; i++) {
 							await message.reply.text(rplyVal.text.match(/[\s\S]{1,1500}/g)[i])
@@ -69,6 +70,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 
 				// console.log("rplyVal: " + rplyVal)
 			} else {
+				console.log(rplyVal, " ", rplyVal.text)
 				TGcounttext++;
 				console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext);
 			}

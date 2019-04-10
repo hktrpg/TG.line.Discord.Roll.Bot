@@ -24,11 +24,7 @@ try {
 		//	console.log(entry);
 		//});
 
-		Object.keys(exports).forEach(v => {
-			if (exports[v].gameName)
-				console.log(exports[v].getHelpMessage())
-			//console.log(v)
-		});
+
 
 		//console.log('length: ' + exports);
 		//console.log(name)
@@ -38,10 +34,21 @@ try {
 		//}
 		//在下面位置開始分析trigger
 
-		if (trigger.match(exports.bcdice.prefixs()) != null) return {
-			text: exports.bcdice.getHelpMessage()
-		};
+		Object.keys(exports).forEach(v => {
+			if (exports[v].prefixs && trigger.match(exports[v].prefixs()) != null) {
+				console.log(exports[v].getHelpMessage());
+				//console.log(exports[v].prefixs);
+				return {
+					text: exports.bcdice.getHelpMessage()
+				};
 
+			}
+		});
+		/*
+				if (trigger.match(exports.bcdice.prefixs()) != null) return {
+					text: exports.bcdice.getHelpMessage()
+				};
+		*/
 		if (trigger.match(/(^ccrt$)/) != null) return exports.coc.ccrt();
 		if (trigger.match(/(^ccsu$)/) != null) return exports.coc.ccsu();
 		//普通ROLL擲骰判定在此	

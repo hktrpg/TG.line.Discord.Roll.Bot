@@ -43,9 +43,11 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			} else {
 				if (channelKeyword == '') {
 					rplyVal = exports.analytics.parseInput(mainMsg.join(' '))
-				}
-			}
 
+				}
+
+			}
+			
 			if (rplyVal && rplyVal.text) {
 				TGcountroll++;
 				console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext);
@@ -70,7 +72,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 
 				// console.log("rplyVal: " + rplyVal)
 			} else {
-				console.log(rplyVal, " ", rplyVal.text)
+				//console.log(rplyVal.text, " ")
 				TGcounttext++;
 				console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext);
 			}

@@ -19,36 +19,20 @@ try {
 		let msgSplitor = (/\S+/ig);
 		let mainMsg = inputStr.match(msgSplitor); //定義輸入字串
 		let trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
-		//https://stackoverflow.com/questions/35969974/foreach-is-not-a-function-error-with-javascript-array
-		//exports.forEach(function (entry) {
-		//	console.log(entry);
-		//});
-
-
-
-		//console.log('length: ' + exports);
-		//console.log(name)
-		//for (var i = 0; i < Object.keys(exports).length; i++) {
-		//	if (exports[i].prefixs) 
-		//	console.log(Object.keys(exports)[i]);
-		//}
+		let result = { type: 'text' };
 		//在下面位置開始分析trigger
+
+
+
 
 		Object.keys(exports).forEach(v => {
 			if (exports[v].prefixs && trigger.match(exports[v].prefixs()) != null) {
-				console.log(exports[v].getHelpMessage());
-				//console.log(exports[v].prefixs);
-				return {
-					text: exports.bcdice.getHelpMessage()
-				};
-
+				result.text = exports[v].getHelpMessage()
+				result.type = exports[v].initialize().type
 			}
-		});
-		/*
-				if (trigger.match(exports.bcdice.prefixs()) != null) return {
-					text: exports.bcdice.getHelpMessage()
-				};
-		*/
+		})
+		if (result && result.text)
+			return result
 		if (trigger.match(/(^ccrt$)/) != null) return exports.coc.ccrt();
 		if (trigger.match(/(^ccsu$)/) != null) return exports.coc.ccsu();
 		//普通ROLL擲骰判定在此	
@@ -129,7 +113,7 @@ try {
 	if (trigger.match(/猜拳/) != null) {
 		return RockPaperScissors(inputStr, mainMsg[1]);
 	}
-*/
+	*/
 
 
 	}

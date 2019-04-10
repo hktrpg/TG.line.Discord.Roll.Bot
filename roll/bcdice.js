@@ -29,7 +29,10 @@ getHelpMessage = function () {
   \n'
 }
 initialize = function () {
-  return { default: 'on' }
+  return {
+    default: 'on',
+    type: 'text'
+  }
 }
 
 rollDiceCommand = function (abc) {

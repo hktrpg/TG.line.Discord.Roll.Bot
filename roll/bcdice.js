@@ -34,21 +34,19 @@ initialize = function () {
     type: 'text'
   }
 }
-//迷宮, 神我狩, 永遠的後日談,忍神,COC7, COC,SW , DX3 ,PF,守護神,朱之孤塔
+//迷宮キングダム, 神我狩, 永遠的後日談,忍神,COC7, COC,SW , DX3 ,PF,守護神,朱之孤塔,ShadowRun,DND
 
-rollDiceCommand = function (abc) {
+rollDiceCommand = function (mainMsg) {
   switch (true) {
-    case /xyz/.test(abc):
-      display("• Matched 'xyz' test");
-      break;
-    case /test/.test(str):
-      display("• Matched 'test' test");
-      break;
-    case /ing/.test(str):
-      display("• Matched 'ing' test");
-      break;
+    case /(\d+)MK6|(\d+)MK|^NAMEA|^NAMEB|^NAMEEX|^NAMEFA|^NAME(\d*)|^PNT(\d*)|^MLT(\d*)|^DFT(\d*)|^LRT|^ORT|^CRT|^ART|^FRT|^THT|^TBT|^CBT|^SBT|^VBT|^FBT|^CHT|^SHT|^VHT|^MPT|^T1T/i.test(mainMsg[1]):
+    //迷宮キングダム MeikyuKingdom
+      if (calldice("MeikyuKingdom", mainMsg[1])[0] != 1)
+        return mainMsg[1] + calldice("MeikyuKingdom", mainMsg[1])[0];
+    case /test/.test(mainMsg[1]):
+      return calldice();
+    case /ing/.test(mainMsg[1]):
+      return calldice();
     default:
-      display("• Didn't match any test");
       break;
   }
 }

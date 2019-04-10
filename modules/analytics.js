@@ -27,7 +27,7 @@ try {
 
 		Object.keys(exports).forEach(v => {
 			if (exports[v].prefixs && trigger.match(exports[v].prefixs()) != null) {
-				result.text = exports[v].getHelpMessage()
+				result.text = exports[v].rollDiceCommand(mainMsg)
 				result.type = exports[v].initialize().type
 			}
 		})

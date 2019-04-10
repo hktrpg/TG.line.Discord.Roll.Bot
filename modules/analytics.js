@@ -23,15 +23,19 @@ try {
 		//exports.forEach(function (entry) {
 		//	console.log(entry);
 		//});
-		
-		
-		
-		console.log('length: ' + exports);
+
+		Object.keys(exports).forEach(v => {
+			if (exports[v].gameName)
+				console.log(exports[v].getHelpMessage())
+			//console.log(v)
+		});
+
+		//console.log('length: ' + exports);
 		//console.log(name)
-		for (var i = 0; i < Object.keys(exports).length; i++) {
-			//	if (exports[i].prefixs) 
-			console.log(Object.keys(exports)[i]);
-		}
+		//for (var i = 0; i < Object.keys(exports).length; i++) {
+		//	if (exports[i].prefixs) 
+		//	console.log(Object.keys(exports)[i]);
+		//}
 		//在下面位置開始分析trigger
 
 		if (trigger.match(exports.bcdice.prefixs()) != null) return {

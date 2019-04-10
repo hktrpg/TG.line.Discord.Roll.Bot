@@ -34,6 +34,7 @@ initialize = function () {
     type: 'text'
   }
 }
+//迷宮, 神我狩, 永遠的後日談,忍神,COC7, COC,SW , DX3 ,PF,守護神,朱之孤塔
 
 rollDiceCommand = function (abc) {
   switch (true) {

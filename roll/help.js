@@ -7,12 +7,86 @@ var rply = {
 	type: 'text'
 }; //type是必需的,但可以更改
 require('fs').readdirSync(__dirname).forEach(function (file) {
-	if (file.match(/\.js$/) !== null && file !== 'index.js') {
+	if (file.match(/\.js$/) !== null && file !== 'index.js' && file !== 'help.js') {
 		var name = file.replace('.js', '');
 		exports[name] = require('./' + file);
 	}
 });
 var version = "v1." + Object.keys(exports).length + "." + (process.env.HEROKU_RELEASE_VERSION || 0).replace(/v/, '');
+
+gameName = function () {
+	return '骰子機器人HKTRPG說明'
+}
+
+gameType = function () {
+	return 'bohelp:hktrpg'
+}
+prefixs = function () {
+	return /^bothelp$/i
+}
+getHelpMessage = function () {
+	return '・骰子機器人HKTRPG說明\
+	\n'
+}
+initialize = function () {
+	return {
+		default: 'on',
+		type: 'text'
+	}
+}
+
+rollDiceCommand = function (mainMsg) {
+	let result = null;
+	switch (true) {
+		case /^\d+$/i.test(mainMsg[1]):
+			if (mainMsg[1] <= (Object.keys(exports).length + 1))
+				result = calldice("MeikyuKingdom", mainMsg[1])
+			else
+				break;
+		case /^MT(\d*)$|^RT$/i.test(mainMsg[1]):
+			result = calldice("Kamigakari", mainMsg[1])
+			if (result && result[0] != 1)
+				return mainMsg[1] + result[0];
+		case /(\d+)NC(10)?([\+\-][\+\-\d]+)/i.test(mainMsg[1]):
+			result = calldice("Nechronica", mainMsg[1])
+			if (result && result[0] != 1)
+				return mainMsg[1] + result[0];
+		default:
+			break;
+	}
+}
+
+/*
+try {
+  var resultroll =calldice('DoubleCross', '100d1000+100d1000+100d1000+100d1000+100d1000+100d1000+100d1000')[0 ];
+ 
+  //console.log(resultroll);
+  switch(1) {
+	case x:
+	  // code block
+	  break;
+	case y:
+	  // code block
+	  break;
+	default:
+	  // code block
+  }
+ 
+ 
+} catch (e) {
+  console.log(e)
+}
+ 
+*/
+module.exports = {
+	rollDiceCommand: rollDiceCommand,
+	initialize: initialize,
+	getHelpMessage: getHelpMessage,
+	prefixs: prefixs,
+	gameType: gameType,
+	gameName: gameName
+};
+
 
 function Help() {
 	rply = {
@@ -271,8 +345,3 @@ function Help() {
 	return rply;
 }
 
-
-
-module.exports = {
-	Help: Help
-};

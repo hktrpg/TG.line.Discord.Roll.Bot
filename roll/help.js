@@ -1,12 +1,21 @@
 var rollbase = require('./rollbase.js');
 var funny = require('./funny.js');
+if (!process.env.HEROKU_RELEASE_VERSION)
+	require('dotenv').config()
 var rply = {
 	type: 'text'
 }; //type是必需的,但可以更改
+require('fs').readdirSync(__dirname).forEach(function (file) {
+	if (file.match(/\.js$/) !== null && file !== 'index.js') {
+		var name = file.replace('.js', '');
+		exports[name] = require('./' + file);
+	}
+});
+var version = "v1." + Object.keys(exports).length + "." + (process.env.HEROKU_RELEASE_VERSION).replace(/v/, '');
 
 function Help() {
 	rply = {
-		"text": "【HKTRPG擲骰BOT】v1.0.3 \
+		"text": "【HKTRPG擲骰BOT】" + version + "\
 		\n  \
 		\n 支援基本擲骰, COC, 永遠的後日談, 黑暗世界, DX3, SW2.0 \
 		\n 暗骰功能 在指令前打dr 結果會私訊你\

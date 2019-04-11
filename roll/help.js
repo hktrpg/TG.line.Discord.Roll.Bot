@@ -2,6 +2,7 @@ var rollbase = require('./rollbase.js');
 var funny = require('./funny.js');
 if (!process.env.HEROKU_RELEASE_VERSION)
 	require('dotenv').config()
+//heroku labs:enable runtime-dyno-metadata -a <app name>
 var rply = {
 	type: 'text'
 }; //type是必需的,但可以更改
@@ -11,7 +12,7 @@ require('fs').readdirSync(__dirname).forEach(function (file) {
 		exports[name] = require('./' + file);
 	}
 });
-var version = "v1." + Object.keys(exports).length + "." + (process.env.HEROKU_RELEASE_VERSION).replace(/v/, '');
+var version = "v1." + Object.keys(exports).length + "." + (process.env.HEROKU_RELEASE_VERSION || 0).replace(/v/, '');
 
 function Help() {
 	rply = {

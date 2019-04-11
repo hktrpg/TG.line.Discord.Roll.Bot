@@ -152,8 +152,14 @@ function Help() {
 		"template": {
 			"type": "carousel",
 			"columns": [{
+				//Array of columns
+				//Max: 10
 				"title": "《基本擲骰系統》",
+				//Title Max: 40 characters
 				"text": "【擲骰BOT】v1.0.3 指令包括1D100, 5B10 ,5U10 8 9",
+				//Message text
+				//Max: 120 characters (no image or title)
+				//Max: 60 characters (message with an image or title)
 				"actions": [{
 					"type": "message",
 					"label": "1d100擲骰範例",
@@ -169,7 +175,8 @@ function Help() {
 					"label": "5U10 8 9擲骰範例",
 					"text": "5U10 8 9 每骰出一粒8會有一粒獎勵骰及計算有多少粒大於9"
 				}
-
+					//Action when tapped
+					//Max: 3
 				]
 			}, {
 				"title": "《COC 6 7版 擲骰系統》",

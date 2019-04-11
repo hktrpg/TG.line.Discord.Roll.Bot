@@ -64,7 +64,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext + ' Boot Time: ' + BootTime.toLocaleString());
 		}
 		// use reply API
-
+		//Reply Max: 2000 characters
 	}
 
 	// listen on port

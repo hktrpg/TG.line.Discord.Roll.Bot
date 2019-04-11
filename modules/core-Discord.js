@@ -10,6 +10,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 		var channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 		const Discord = require('discord.js');
 		const client = new Discord.Client();
+		const BootTime = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Shanghai" }));
 		// Load `*.js` under modules directory as properties
 		//  i.e., `User.js` will become `exports['User']` or `exports.User`
 		var Discordcountroll = 0;
@@ -56,7 +57,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				}
 				if (rplyVal && rplyVal.text) {
 					Discordcountroll++;
-					console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext);
+					console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString());
 					if (privatemsg == 1) {
 						message.channel.send("暗骰進行中");
 						async function load() {
@@ -76,7 +77,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					//console.log("rplyVal: " + rplyVal);
 				} else {
 					Discordcounttext++;
-					console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext);
+					console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString());
 				}
 			}
 		});

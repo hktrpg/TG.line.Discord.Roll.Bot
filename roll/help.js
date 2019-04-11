@@ -40,7 +40,8 @@ rollDiceCommand = function (mainMsg) {
 	switch (true) {
 		case /^\d+$/i.test(mainMsg[1]):
 			if (mainMsg[1] <= (Object.keys(exports).length + 1))
-				result = calldice("MeikyuKingdom", mainMsg[1])
+				result += exports[Object.keys(exports)[mainMsg[1]]].gameName +
+					'\n'
 			else
 				break;
 		case /^MT(\d*)$|^RT$/i.test(mainMsg[1]):

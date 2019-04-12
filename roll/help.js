@@ -19,7 +19,7 @@ gameName = function () {
 }
 
 gameType = function () {
-	return 'bohelp:hktrpg'
+	return 'bothelp:hktrpg'
 }
 prefixs = function () {
 	return /^bothelp$/i
@@ -29,10 +29,11 @@ getHelpMessage = function () {
 	\n'
 }
 initialize = function () {
-	return {
+	var setting = {
 		default: 'on',
 		type: 'text'
 	}
+	return setting;
 }
 
 rollDiceCommand = function (mainMsg) {

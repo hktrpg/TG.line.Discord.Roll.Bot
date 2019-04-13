@@ -19,7 +19,9 @@ try {
 		let msgSplitor = (/\S+/ig);
 		let mainMsg = inputStr.match(msgSplitor); //定義輸入字串
 		let trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
-		let result = { type: 'text' };
+		let result = {
+			type: 'text'
+		};
 		//在下面位置開始分析trigger
 
 
@@ -27,7 +29,7 @@ try {
 
 		Object.keys(exports).forEach(v => {
 			if (exports[v].prefixs && trigger.match(exports[v].prefixs()) != null) {
-				result.text = exports[v].rollDiceCommand(mainMsg)
+				result = exports[v].rollDiceCommand(mainMsg)
 				result.type = exports[v].initialize().type
 			}
 		})
@@ -63,7 +65,7 @@ try {
 
 		if (trigger.match(/^coc7角色背景$/) != null) return exports.coc.PcBG();
 
-		if (trigger.match(/^bothelp$|^bot幫助$|^\/start$/) != null) return exports.help.Help();
+		//		if (trigger.match(/^bothelp$|^bot幫助$|^\/start$/) != null) return exports.help.Help();
 
 
 		//nc指令開始於此 來自Rainsting/TarotLineBot 

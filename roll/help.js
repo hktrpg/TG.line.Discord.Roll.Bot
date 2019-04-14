@@ -54,9 +54,9 @@ rollDiceCommand = function (mainMsg) {
 	//let result = {};
 	switch (true) {
 		case /^\d$/i.test(mainMsg[1]):
-			if (mainMsg[1] <= (Object.keys(exports).length + 1)) {
+			if (mainMsg[1] <= (Object.keys(exports).length + 1) && mainMsg[1] >= 1) {
 
-				rply.text = exports[Object.keys(exports)[mainMsg[1]]].gameName +
+				rply.text = exports[Object.keys(exports)[mainMsg[1]]].getHelpMessage() +
 					'\n'
 				return rply;
 			} else
@@ -66,6 +66,7 @@ rollDiceCommand = function (mainMsg) {
 			for (i = 0; i < Object.keys(exports).length; i++) {
 				if (exports[Object.keys(exports)[i]] && exports[Object.keys(exports)[i]].gameName)
 					rply.text += "\n" +
+					i + ": " +
 					exports[Object.keys(exports)[i]].gameName()
 			}
 			console.log(rply)

@@ -29,8 +29,8 @@ try {
 
 		Object.keys(exports).forEach(v => {
 			if (exports[v].prefixs && trigger.match(exports[v].prefixs()) != null) {
-				result.text = exports[v].rollDiceCommand(mainMsg).text
-				result.type = exports[v].initialize().type
+				result.text = exports[v].rollDiceCommand(mainMsg).text ;
+				result.type = exports[v].initialize().type ;
 			}
 		})
 		if (result && result.text)

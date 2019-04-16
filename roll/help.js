@@ -54,6 +54,7 @@ initialize = function () {
 }
 
 rollDiceCommand = function (mainMsg) {
+	rply.text = '';
 	//let result = {};
 	switch (true) {
 		case /^\d+$/i.test(mainMsg[1]):
@@ -70,12 +71,16 @@ rollDiceCommand = function (mainMsg) {
 				if (exports[Object.keys(exports)[i]] && exports[Object.keys(exports)[i]].gameName)
 					rply.text += "\n" +
 						i + ": " +
-						exports[Object.keys(exports)[i]].gameName() +
+						//exports[Object.keys(exports)[i]].gameName() +
 						exports[Object.keys(exports)[i]].getHelpMessage()
 			}
 			return rply;
 
 		case /^(?![\s\S])/.test(mainMsg[1] || ''):
+
+			Object.keys(linehelp()).forEach(v => {
+				rply[v] = linehelp()[v]
+			})
 			rply.text = getHelpMessage() + '現支援系統: 【了解骰組詳情,請輸入 bothelp (編號) 或 all 顯示全部】';
 			for (i = 0; i < Object.keys(exports).length; i++) {
 				if (exports[Object.keys(exports)[i]] && exports[Object.keys(exports)[i]].gameName)
@@ -83,7 +88,8 @@ rollDiceCommand = function (mainMsg) {
 						i + ": " +
 						exports[Object.keys(exports)[i]].gameName()
 			}
-			console.log(rply)
+
+			console.log('case: ', rply)
 			return rply;
 
 		default:
@@ -102,8 +108,8 @@ module.exports = {
 };
 
 
-function Help() {
-	rply = {
+function linehelp() {
+	var help = {
 		"type": "template",
 		"altText": "【HKTRPG擲骰BOT】v1.0.3 \
 \n 例如輸入2d6+1　攻撃！\
@@ -321,5 +327,5 @@ function Help() {
 			]
 		}
 	};
-	return rply;
+	return help;
 }

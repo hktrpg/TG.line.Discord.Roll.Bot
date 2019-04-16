@@ -3,17 +3,18 @@ var funny = require('./funny.js');
 if (!process.env.HEROKU_RELEASE_VERSION)
 	require('dotenv').config()
 //heroku labs:enable runtime-dyno-metadata -a <app name>
-var rply = {
-	default: 'on',
-	type: 'text',
-	text: ''
-}; //type是必需的,但可以更改
+
 require('fs').readdirSync(__dirname).forEach(function (file) {
 	if (file.match(/\.js$/) !== null && file !== 'index.js' && file !== 'help.js') {
 		var name = file.replace('.js', '');
 		exports[name] = require('./' + file);
 	}
 });
+var rply = {
+	default: 'on',
+	type: 'text',
+	text: ''
+}; //type是必需的,但可以更改
 var version = "v1." + Object.keys(exports).length + "." + (process.env.HEROKU_RELEASE_VERSION || 0).replace(/v/, '');
 
 gameName = function () {

@@ -30,12 +30,15 @@ try {
 
 		Object.keys(exports).forEach(v => {
 			if (exports[v].prefixs && trigger.match(exports[v].prefixs()) != null) {
-				return exports[v].rollDiceCommand(mainMsg);
-				//result.type = exports[v].initialize().type ;
+				let save = exports[v].rollDiceCommand(mainMsg)
+				if (save && save.text) result.text = save.text;
+				result.type = exports[v].initialize().type;
+				//不這樣寫會出錯, 好難看.....
+
 			}
 		})
-		//if (result && result.text)
-		// result
+		if (result && result.text)
+			return result;
 		if (trigger.match(/(^ccrt$)/) != null) return exports.coc.ccrt();
 		if (trigger.match(/(^ccsu$)/) != null) return exports.coc.ccsu();
 		//普通ROLL擲骰判定在此	

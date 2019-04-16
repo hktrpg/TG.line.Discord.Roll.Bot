@@ -20,6 +20,7 @@ try {
 		let mainMsg = inputStr.match(msgSplitor); //定義輸入字串
 		let trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
 		let result = {
+			text: '',
 			type: 'text'
 		};
 		//在下面位置開始分析trigger
@@ -29,12 +30,12 @@ try {
 
 		Object.keys(exports).forEach(v => {
 			if (exports[v].prefixs && trigger.match(exports[v].prefixs()) != null) {
-				result.text = exports[v].rollDiceCommand(mainMsg).text ;
-				result.type = exports[v].initialize().type ;
+				return exports[v].rollDiceCommand(mainMsg);
+				//result.type = exports[v].initialize().type ;
 			}
 		})
-		if (result && result.text)
-			return result
+		//if (result && result.text)
+		// result
 		if (trigger.match(/(^ccrt$)/) != null) return exports.coc.ccrt();
 		if (trigger.match(/(^ccsu$)/) != null) return exports.coc.ccsu();
 		//普通ROLL擲骰判定在此	

@@ -60,7 +60,7 @@ rollDiceCommand = function (mainMsg) {
 	switch (true) {
 		case /^\d+$/i.test(mainMsg[1]):
 			//console.log(exports[Object.keys(exports)[mainMsg[1]]].getHelpMessage)
-			if (exports[Object.keys(exports)[mainMsg[1]]] && exports[Object.keys(exports)[mainMsg[1]]].getHelpMessage()) {
+			if (exports[Object.keys(exports)[mainMsg[1]]] && exports[Object.keys(exports)[mainMsg[1]]].getHelpMessage) {
 				rply.text = exports[Object.keys(exports)[mainMsg[1]]].getHelpMessage() +
 					'\n'
 				return rply;

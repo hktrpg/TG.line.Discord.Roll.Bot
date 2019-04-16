@@ -31,9 +31,10 @@ try {
 		Object.keys(exports).forEach(v => {
 			if (exports[v].prefixs && trigger.match(exports[v].prefixs()) != null) {
 				let save = exports[v].rollDiceCommand(mainMsg)
-				Object.keys(save).forEach(v => {
-					result[v] = save[v]
-				})
+				if (save)
+					Object.keys(save).forEach(v => {
+						result[v] = save[v]
+					})
 			}
 		})
 		if (result && result.text)

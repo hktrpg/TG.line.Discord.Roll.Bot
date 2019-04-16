@@ -1,7 +1,7 @@
 // Load `*.js` under roll directory as properties
 //  i.e., `User.js` will become `exports['User']` or `exports.User`
 require('fs').readdirSync('./roll/').forEach(function (file) {
-	if (file.match(/\.js$/) !== null && file !== 'index.js') {
+	if (file.match(/\.js$/) !== null && file !== 'index.js' && file !== 'demo.js') {
 		var name = file.replace('.js', '');
 		exports[name] = require('../roll/' + file);
 	}

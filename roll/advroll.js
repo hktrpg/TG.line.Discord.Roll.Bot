@@ -6,7 +6,7 @@ var rply = {
 };
 
 gameName = function () {
-	return '進階擲骰'
+	return '進階擲骰 .D66 .5B10 .5U10 8'
 }
 
 gameType = function () {

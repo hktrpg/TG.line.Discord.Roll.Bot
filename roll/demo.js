@@ -23,9 +23,8 @@ initialize = function () {
     return rply;
 }
 
-rollDiceCommand = function (mainMsg) {
+rollDiceCommand = function (inputStr, mainMsg) {
     rply.text = '';
-    //let result = {};
     switch (true) {
         case /^\d+$/i.test(mainMsg[1]):
             rply.text = 'Demo' + mainMsg[1]

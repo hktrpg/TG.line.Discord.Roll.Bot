@@ -1,6 +1,41 @@
 var rply = {
-  type: 'text'
-}; // type是必需的,但可以更改
+  default: 'on',
+  type: 'text',
+  text: ''
+};
+
+gameName = function () {
+  return '基本擲骰'
+}
+
+gameType = function () {
+  return 'rollbase:hktrpg'
+}
+prefixs = function () {
+  return /(^\d+d\d+)|(^\d+)|(^\(\d+d\d+)|(^\(\d+)/i
+}
+getHelpMessage = function () {
+  return "【基本擲骰】1d100\
+  \n 例如輸入2d6+1　攻撃！\
+  \n 會輸出）2d6+1：攻撃  9[6+3]+1 = 10\
+  \n 如上面一樣,在骰子數字後方隔空白位打字,可以進行發言。\
+  \n 5 3D6 ：	分別骰出5次3d6\
+  \n "
+}
+initialize = function () {
+  return rply;
+}
+
+rollDiceCommand = function (inputStr, mainMsg) {
+  rply.text = '';
+  //let result = {};
+  switch (true) {
+    default:
+      return nomalDiceRoller(mainMsg[0], mainMsg[1], mainMsg[2])
+  }
+}
+
+
 
 // //////////////////////////////////////
 // ////////////// 擲骰子運算
@@ -34,55 +69,54 @@ try {
   function FunnyDice(diceSided) {
     return Math.floor((Math.random() * diceSided)) // 猜拳，從0開始
   }
-
-  function BuildDiceCal(inputStr) {
-
-    // 首先判斷是否是誤啟動（檢查是否有符合骰子格式）
-    if (inputStr.toLowerCase().match(/\d+d\d+/) == null) return undefined
-
-    // 排除小數點
-    if (inputStr.toString().match(/\./) != null) return undefined
-
-    // 先定義要輸出的Str
-    let finalStr = ''
-
-    // 一般單次擲骰
-    let DiceToRoll = inputStr.toString().toLowerCase()
-    if (DiceToRoll.match('d') == null) return undefined
-
-    // 寫出算式
-    let equation = DiceToRoll
-    while (equation.match(/\d+d\d+/) != null) {
-      let tempMatch = equation.match(/\d+d\d+/)
-      if (tempMatch.toString().split('d')[0] > 200) return '欸欸，不支援200D以上擲骰；哪個時候會骰到兩百次以上？想被淨灘嗎？'
-      if (tempMatch.toString().split('d')[1] == 1 || tempMatch.toString().split('d')[1] > 500) return '不支援D1和超過D500的擲骰；想被淨灘嗎？'
-      equation = equation.replace(/\d+d\d+/, BuildRollDice(tempMatch))
+  
+    function BuildDiceCal(inputStr) {
+  
+      // 首先判斷是否是誤啟動（檢查是否有符合骰子格式）
+      if (inputStr.toLowerCase().match(/\d+d\d+/) == null) return undefined
+  
+      // 排除小數點
+      if (inputStr.toString().match(/\./) != null) return undefined
+  
+      // 先定義要輸出的Str
+      let finalStr = ''
+  
+      // 一般單次擲骰
+      let DiceToRoll = inputStr.toString().toLowerCase()
+      if (DiceToRoll.match('d') == null) return undefined
+  
+      // 寫出算式
+      let equation = DiceToRoll
+      while (equation.match(/\d+d\d+/) != null) {
+        let tempMatch = equation.match(/\d+d\d+/)
+        if (tempMatch.toString().split('d')[0] > 200) return '欸欸，不支援200D以上擲骰；哪個時候會骰到兩百次以上？想被淨灘嗎？'
+        if (tempMatch.toString().split('d')[1] == 1 || tempMatch.toString().split('d')[1] > 500) return '不支援D1和超過D500的擲骰；想被淨灘嗎？'
+        equation = equation.replace(/\d+d\d+/, BuildRollDice(tempMatch))
+      }
+  
+      // 計算算式
+      let answer = eval(equation.toString())
+      finalStr = equation + ' = ' + answer
+  
+      return finalStr
     }
-
-    // 計算算式
-    let answer = eval(equation.toString())
-    finalStr = equation + ' = ' + answer
-
-    return finalStr
-  }
-
-  function BuildRollDice(inputStr) {
-    // 先把inputStr變成字串（不知道為什麼非這樣不可）
-    let comStr = inputStr.toString().toLowerCase()
-    let finalStr = '('
-
-    for (let i = 1; i <= comStr.split('d')[0]; i++) {
-      finalStr = finalStr + Dice(comStr.split('d')[1]) + '+'
+  
+    function BuildRollDice(inputStr) {
+      // 先把inputStr變成字串（不知道為什麼非這樣不可）
+      let comStr = inputStr.toString().toLowerCase()
+      let finalStr = '('
+  
+      for (let i = 1; i <= comStr.split('d')[0]; i++) {
+        finalStr = finalStr + Dice(comStr.split('d')[1]) + '+'
+      }
+  
+      finalStr = finalStr.substring(0, finalStr.length - 1) + ')'
+      return finalStr
     }
-
-    finalStr = finalStr.substring(0, finalStr.length - 1) + ')'
-    return finalStr
-  }
-
   // //////////////////////////////////////
   // ////////////// 普通ROLL
   // //////////////////////////////////////
-  function nomalDiceRoller(inputStr, text0, text1, text2) {
+  function nomalDiceRoller(text0, text1, text2) {
 
     // 首先判斷是否是誤啟動（檢查是否有符合骰子格式）
     // if (inputStr.toLowerCase().match(/\d+d\d+/) == null) return undefined
@@ -91,14 +125,14 @@ try {
     let mutiOrNot = text0.toLowerCase()
 
     // 排除小數點
-    if (mutiOrNot.toString().match(/\./) != null) return undefined
+    if (mutiOrNot.toString().match(/\./) != null) return
 
     // 先定義要輸出的Str
     let finalStr = ''
 
     // 是複數擲骰喔
     if (mutiOrNot.toString().match(/\D/) == null) {
-      if (text1.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[D]/g, '') || text1.match(/([d]|[+]|[-]|[*]|[/]|[D])([d]|[+]|[-]|[*]|[/]|[D])/g) || text1.match(/[d]$|[+]$|[-]$|[*]$|[/]$|[D]$/g) || text1.toLowerCase().match(/\d+[d]+\d+[d]/g)) return undefined;
+      if (text1.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[D]/ig, '') || text1.match(/([d]|[+]|[-]|[*]|[/]|[D])([d]|[+]|[-]|[*]|[/]|[D])/ig) || text1.match(/[d]$|[+]$|[-]$|[*]$|[/]$|[D]$/ig) || text1.match(/\d+[d]+\d+[d]/ig)) return;
       if (text2 != null) {
         finalStr = text0 + '次擲骰：\n' + text1 + ' ' + text2 + '\n'
       } else {
@@ -110,7 +144,7 @@ try {
       }
       for (i = 1; i <= mutiOrNot; i++) {
         let DiceToRoll = text1.toLowerCase()
-        if (DiceToRoll.match('d') == null) return undefined
+        if (DiceToRoll.match('d') == null) return
 
         // 寫出算式
         let equation = DiceToRoll
@@ -137,16 +171,16 @@ try {
       // 一般單次擲骰
       let DiceToRoll = mutiOrNot.toString().toLowerCase()
       DiceToRoll = DiceToRoll.toLowerCase()
-      if (DiceToRoll.match('d') == null) return undefined
-      if (text0.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[D]/g, '') || text0.match(/([d]|[+]|[-]|[*]|[/]|[D]$)([d]|[+]|[-]|[*]|[/]|[D])/g) || text0.match(/[d]$|[+]$|[-]$|[*]$|[/]$|[D]$/g) || text0.toLowerCase().match(/\d+[d]+\d+[d]/g)) return undefined;
+      if (DiceToRoll.match('d') == null) return
+      if (text0.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[D]/g, '') || text0.match(/([d]|[+]|[-]|[*]|[/]|[D]$)([d]|[+]|[-]|[*]|[/]|[D])/g) || text0.match(/[d]$|[+]$|[-]$|[*]$|[/]$|[D]$/g) || text0.toLowerCase().match(/\d+[d]+\d+[d]/g)) return;
 
       // 寫出算式
       let equation = DiceToRoll
       while (equation.match(/\d+d\d+/) != null) {
         // let totally = 0
         let tempMatch = equation.match(/\d+d\d+/)
-        if (tempMatch.toString().split('d')[0] > 300) return undefined
-        if (tempMatch.toString().split('d')[1] == 1 || tempMatch.toString().split('d')[1] > 1000000) return undefined
+        if (tempMatch.toString().split('d')[0] > 300) return
+        if (tempMatch.toString().split('d')[1] == 1 || tempMatch.toString().split('d')[1] > 1000000) return
         equation = equation.replace(/\d+d\d+/, RollDice(tempMatch))
       }
 
@@ -183,5 +217,11 @@ module.exports = {
   FunnyDice: FunnyDice,
   BuildDiceCal: BuildDiceCal,
   BuildRollDice: BuildRollDice,
-  nomalDiceRoller: nomalDiceRoller
-}
+  nomalDiceRoller: nomalDiceRoller,
+  rollDiceCommand: rollDiceCommand,
+  initialize: initialize,
+  getHelpMessage: getHelpMessage,
+  prefixs: prefixs,
+  gameType: gameType,
+  gameName: gameName
+};

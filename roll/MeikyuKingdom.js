@@ -50,7 +50,7 @@ initialize = function () {
     return rply;
 }
 
-rollDiceCommand = function (mainMsg) {
+rollDiceCommand = function (inputStr, mainMsg) {
     rply.text = '';
     //let result = {};
     switch (true) {

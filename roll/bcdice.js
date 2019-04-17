@@ -139,26 +139,7 @@ rollDiceCommand = function (mainMsg) {
       result = calldice("SwordWorld2_0", mainMsg[1])
       if (result && result[0] != 1)
         return mainMsg[1] + result[0];
-    case /^MT(\d*)$|^RT$/i.test(mainMsg[1]):
-      //神我狩 Kamigakari 
-      result = calldice("Kamigakari", mainMsg[1])
-      if (result && result[0] != 1)
-        return mainMsg[1] + result[0];
-    case /^MT(\d*)$|^RT$/i.test(mainMsg[1]):
-      //神我狩 Kamigakari 
-      result = calldice("Kamigakari", mainMsg[1])
-      if (result && result[0] != 1)
-        return mainMsg[1] + result[0];
-    case /^MT(\d*)$|^RT$/i.test(mainMsg[1]):
-      //神我狩 Kamigakari 
-      result = calldice("Kamigakari", mainMsg[1])
-      if (result && result[0] != 1)
-        return mainMsg[1] + result[0];
-    case /^MT(\d*)$|^RT$/i.test(mainMsg[1]):
-      //神我狩 Kamigakari 
-      result = calldice("Kamigakari", mainMsg[1])
-      if (result && result[0] != 1)
-        return mainMsg[1] + result[0];
+
     default:
       break;
   }

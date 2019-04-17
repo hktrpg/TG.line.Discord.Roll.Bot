@@ -18,9 +18,9 @@ prefixs = function () {
     return /^[.]kk$/i
 }
 getHelpMessage = function () {
-    return "【迷宮王國MeikyuKingdom】" + "\
+    return "【神我狩 Kamigakari】" + "\
 	\n・啓動語 .kk (指令) 如 .kk ET\
-    \n神我狩 Kamigakari \
+    \n \
     \n・感情表(ET)\
     \n・霊紋消費の代償表(RT)\
     \n・伝奇名字・名前決定表(NT)\
@@ -33,7 +33,7 @@ initialize = function () {
     return rply;
 }
 
-rollDiceCommand = function (mainMsg) {
+rollDiceCommand = function (inputStr, mainMsg) {
     rply.text = '';
     //let result = {};
     switch (true) {

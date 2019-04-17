@@ -57,7 +57,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 		if (rplyVal && rplyVal.text) {
 			Linecountroll++;
-			console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext + ' Boot Time: ' + BootTime.toLocaleString()+ 'event.message.text: ' +event.message.text);
+			console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext + ' Boot Time: ' + BootTime.toLocaleString()+ ' event.message.text: ' +event.message.text);
 			return client.replyMessage(event.replyToken, rplyVal);
 		} else {
 			Linecounttext++;

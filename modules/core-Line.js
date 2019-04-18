@@ -23,8 +23,8 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			text: message
 		}
 	};
-	//events.source.userId
-	//events.source.groupId
+	//event.source.userId
+	//event.source.groupId
 	/*
 	client.pushMessage('<to>', message)
 		.then(() => {
@@ -104,7 +104,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			//console.log('rplyVal.text:' + rplyVal.text)
 			console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
 			if (privatemsg == 1) {
-				client.pushMessage(events.source.groupId, replymessage(' 暗骰進行中'))
+				client.pushMessage(event.source.groupId, replymessage(' 暗骰進行中'))
 					.then(() => {})
 					.catch((err) => {
 						// error handling
@@ -112,7 +112,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				//message.reply.text(message.from.first_name + ' 暗骰進行中')
 				async function loada() {
 					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-						await client.pushMessage(events.source.userId, replymessage(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]))
+						await client.pushMessage(event.source.userId, replymessage(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]))
 							.then(() => {})
 							.catch((err) => {
 								// error handling
@@ -123,9 +123,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			} else {
 				async function loadb() {
 					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-						if (events.source.groupId)
-							var replyTarget = events.source.groupId
-						else replyTarget = events.source.userId
+						if (event.source.groupId)
+							var replyTarget = event.source.groupId
+						else replyTarget = event.source.userId
 						await client.pushMessage(replyTarget, replymessage(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]))
 							.then(() => {})
 							.catch((err) => {

@@ -12,14 +12,14 @@ gameType = function () {
   return 'rollbase:hktrpg'
 }
 prefixs = function () {
-  return /(^\d+d\d+)|(^[1-30]$)|(^\(\d+d\d+)|(^\(\d+)/i
+  return /(^\d+d\d+)|(^[1-9]$|^[1-2][0-9]$|^[3][0]$)|(^\(\d+d\d+)|(^\(\d+)/i
 }
 getHelpMessage = function () {
   return "【基本擲骰】1d100\
   \n 例如輸入2d6+1　攻撃！\
   \n 會輸出）2d6+1：攻撃  9[6+3]+1 = 10\
   \n 如上面一樣,在骰子數字後方隔空白位打字,可以進行發言。\
-  \n 5 3D6 ：	分別骰出5次3d6\
+  \n 5 3D6 ：	分別骰出5次3d6 最多30次\
   \n "
 }
 initialize = function () {

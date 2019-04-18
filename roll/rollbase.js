@@ -131,7 +131,7 @@ try {
     let finalStr = ''
 
     // 是複數擲骰喔
-    if (mutiOrNot.toString().match(/\D/) == null) {
+    if (mutiOrNot.toString().match(/\D/) == null && text1) {
       if (text1.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[D]/ig, '') || text1.match(/([d]|[+]|[-]|[*]|[/]|[D])([d]|[+]|[-]|[*]|[/]|[D])/ig) || text1.match(/[d]$|[+]$|[-]$|[*]$|[/]$|[D]$/ig) || text1.match(/\d+[d]+\d+[d]/ig)) return;
       if (text2 != null) {
         finalStr = text0 + '次擲骰：\n' + text1 + ' ' + text2 + '\n'

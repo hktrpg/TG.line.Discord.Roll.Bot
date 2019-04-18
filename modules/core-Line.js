@@ -17,9 +17,11 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 
 
-	const message = {
-		type: 'text',
-		text: 'Hello World!'
+	function replymessage(message) {
+		return {
+			type: 'text',
+			text: message
+		}
 	};
 	//events.source.userId
 	//events.source.groupId
@@ -33,7 +35,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		});
 
 	*/
-	const BootTime = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Shanghai" }));
+	const BootTime = new Date(new Date().toLocaleString("en-US", {
+		timeZone: "Asia/Shanghai"
+	}));
 
 
 	// create LINE SDK config from env variables
@@ -68,8 +72,8 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		}
 		let rplyVal = {};
 		let msgSplitor = (/\S+/ig)
-		if (message.text)
-			var mainMsg = message.text.match(msgSplitor); // 定義輸入字串
+		if (event.message.text)
+			var mainMsg = event.message.text.match(msgSplitor); // 定義輸入字串
 		if (mainMsg && mainMsg[0])
 			var trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
 
@@ -94,41 +98,53 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		}
 
 		if (rplyVal && rplyVal.text) {
-			TGcountroll++;
+			Linecountroll++;
 			//console.log('rplyVal.text:' + rplyVal.text)
-			console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext, " content: ", message.text);
+			console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", message.text);
 			if (privatemsg == 1) {
-				message.reply.text(message.from.first_name + ' 暗骰進行中')
+				client.pushMessage(events.source.groupId, replymessage(' 暗骰進行中'))
+					.then(() => {})
+					.catch((err) => {
+						// error handling
+					});
+				//message.reply.text(message.from.first_name + ' 暗骰進行中')
 				async function loada() {
 					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-						await TGclient.sendMessage(message.from.id, rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])
+						await client.pushMessage(events.source.userId, replymessage(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]))
+							.then(() => {})
+							.catch((err) => {
+								// error handling
+							});
 					}
 				}
 				loada();
 			} else {
-
 				async function loadb() {
 					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-						await message.reply.text(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])
+						if (events.source.groupId)
+							var replyTarget = events.source.groupId
+						else replyTarget = events.source.userId
+						await client.pushMessage(replyTarget, replymessage(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]))
+							.then(() => {})
+							.catch((err) => {
+								// error handling
+							});
 					}
 				}
 				loadb();
 
 			}
 
+
+
+
+
+
+
+
 			// create a echoing text message
 			//exports.analytics.parseInput(event.message.text)
-			if (event.message.text)
-				rplyVal = exports.analytics.parseInput(event.message.text);
 
-			if (rplyVal && rplyVal.text) {
-				Linecountroll++;
-				console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext + ' Boot Time: ' + BootTime.toLocaleString(), " content: ", event.message.text);
-				return client.replyMessage(event.replyToken, rplyVal);
-			} else {
-				Linecounttext++;
-				console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext + ' Boot Time: ' + BootTime.toLocaleString());
-			}
 			// use reply API
 			//Reply Max: 2000 characters
 		}
@@ -146,3 +162,4 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 	}
 
+}

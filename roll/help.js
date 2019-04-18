@@ -14,10 +14,9 @@ var rply = {
 	text: ''
 }; //type是必需的,但可以更改
 //heroku labs:enable runtime-dyno-metadata -a <app name>
-var heroku_version
-if (!process.env.HEROKU_RELEASE_VERSION)
-	heroku_version = 0;
-else heroku_version = process.env.HEROKU_RELEASE_VERSION;
+var heroku_version 'v0'
+if (process.env.HEROKU_RELEASE_VERSION)
+	heroku_version = process.env.HEROKU_RELEASE_VERSION;
 var version = "v1." + Object.keys(exports).length + "." + (heroku_version).replace(/v/, '');
 if (process.env.HEROKU_RELEASE_CREATED_AT)
 	version += '\n最後更新時間' + process.env.HEROKU_RELEASE_CREATED_AT;

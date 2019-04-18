@@ -101,7 +101,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		if (rplyVal && rplyVal.text) {
 			Linecountroll++;
 			//console.log('rplyVal.text:' + rplyVal.text)
-			console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", message.text);
+			console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
 			if (privatemsg == 1) {
 				client.pushMessage(events.source.groupId, replymessage(' 暗骰進行中'))
 					.then(() => {})

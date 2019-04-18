@@ -25,14 +25,16 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			//	console.log('channelKeyword ' + channelKeyword)
 			let rplyVal = {}
 			let msgSplitor = (/\S+/ig)
-			let mainMsg = message.text.match(msgSplitor); // 定義輸入字串
-			let trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
+			if (message.text)
+				var mainMsg = message.text.match(msgSplitor); // 定義輸入字串
+			if (mainMsg && mainMsg[0])
+				var trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
 			let privatemsg = 0
 			// 訊息來到後, 會自動跳到analytics.js進行骰組分析
 			// 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
 
 
-			if (trigger == 'dr') {
+			if (trigger == 'dr' && mainMsg && mainMsg[1]) {
 				privatemsg = 1
 				mainMsg.shift()
 				trigger = mainMsg[0].toString().toLowerCase()
@@ -43,32 +45,37 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			} else {
 				if (channelKeyword == '') {
 					rplyVal = exports.analytics.parseInput(mainMsg.join(' '))
+
 				}
+
 			}
 
 			if (rplyVal && rplyVal.text) {
 				TGcountroll++;
-				console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext);
+				//console.log('rplyVal.text:' + rplyVal.text)
+				console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext, " content: ", message.text);
 				if (privatemsg == 1) {
 					message.reply.text(message.from.first_name + ' 暗骰進行中')
-					async function load() {
-						for (var i = 0; i < rplyVal.text.match(/[\s\S]{1,1500}/g).length; i++) {
-							await TGclient.sendMessage(message.from.id, rplyVal.text.match(/[\s\S]{1,1500}/g)[i])
+					async function loada() {
+						for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+							await TGclient.sendMessage(message.from.id, rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])
 						}
 					}
-					load();
+					loada();
 				} else {
-					async function load() {
-						for (var i = 0; i < rplyVal.text.match(/[\s\S]{1,1500}/g).length; i++) {
-							await message.reply.text(rplyVal.text.match(/[\s\S]{1,1500}/g)[i])
+
+					async function loadb() {
+						for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+							await message.reply.text(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])
 						}
 					}
-					load();
+					loadb();
 
 				}
 
 				// console.log("rplyVal: " + rplyVal)
 			} else {
+				//console.log(rplyVal.text, " ")
 				TGcounttext++;
 				console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext);
 			}

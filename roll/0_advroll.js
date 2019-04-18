@@ -1,7 +1,67 @@
 var rollbase = require('./rollbase.js');
-var rply = { type: 'text' }; //type是必需的,但可以更改
+var rply = {
+	default: 'on',
+	type: 'text',
+	text: ''
+};
+
+gameName = function () {
+	return '進階擲骰 D66 5B10 5U10 8'
+}
+
+gameType = function () {
+	return 'advroll:hktrpg'
+}
+prefixs = function () {
+	return /^(\d+)(b)(\d+)$|^(\d+)(u)(\d+)$|^d66$|^d66s$/i
+}
+getHelpMessage = function () {
+	return "【進階擲骰】" + "\
+	\n D66 D66s：	骰出D66 s小者固定在前\
+	\n 5B10：	不加總的擲骰 會進行小至大排序 \
+	\n 5B10 9：	如上,另外計算其中有多少粒大於9 \
+	\n 5U10 8：	進行5D10 每骰出一粒8會有一粒獎勵骰 \
+	\n 5U10 8 9：	如上,另外計算其中有多少粒大於9 \
+		\n "
+}
+initialize = function () {
+	return rply;
+}
+
+rollDiceCommand = function (inputStr, mainMsg) {
+	rply.text = '';
+	//let result = {};
+	switch (true) {
+		case /^d66$/i.test(mainMsg[0]):
+			return d66(mainMsg[1]);
+		case /^d66s$/i.test(mainMsg[0]):
+			return d66s(mainMsg[1])
+		case /^(\d+)(b)(\d+)$/i.test(mainMsg[0]):
+			return xBy(mainMsg[0], mainMsg[1], mainMsg[2])
+		case /^(\d+)(u)(\d+)$/i.test(mainMsg[0]) && mainMsg[1] <= 10000:
+			return xUy(mainMsg[0], mainMsg[1], mainMsg[2], mainMsg[3]);
+		default:
+			break;
+	}
+}
 
 
+module.exports = {
+	rollDiceCommand: rollDiceCommand,
+	initialize: initialize,
+	getHelpMessage: getHelpMessage,
+	prefixs: prefixs,
+	gameType: gameType,
+	gameName: gameName
+};
+/*
+ \n D66 D66s：	骰出D66 s小者固定在前\
+  \n 5B10：	不加總的擲骰 會進行小至大排序 \
+  \n 5B10 9：	如上,另外計算其中有多少粒大於9 \
+  \n 5U10 8：	進行5D10 每骰出一粒8會有一粒獎勵骰 \
+  \n 5U10 8 9：	如上,另外計算其中有多少粒大於9 \  
+ 
+  */
 ////////////////////////////////////////
 //////////////// D66
 ////////////////////////////////////////
@@ -131,9 +191,3 @@ function xUy(triggermsg, text01, text02, text03) {
 	rply.text = returnStr;
 	return rply;
 }
-module.exports = {
-	d66: d66,
-	d66s: d66s,
-	xBy: xBy,
-	xUy: xUy
-};

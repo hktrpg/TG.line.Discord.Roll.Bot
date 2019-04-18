@@ -4,6 +4,7 @@ require('fs').readdirSync(__dirname + '/modules/').forEach(function (file) {
     exports[name] = require('./modules/' + file);
   }
 });
+
 /*
 流程解釋
 
@@ -15,7 +16,7 @@ Discord line Telegram三套BOT 都會統一呼叫analytics.js
 再由analytics.js 呼叫roll/ 中各個的骰檔
 
 所以基本上,要增加骰組
-都要修改analytics.js 及把新骰組放在Roll中
+參考/roll中的DEMO骰組就好
 
 以上, 有不明可以在GITHUB問我
 
@@ -23,7 +24,3 @@ Discord line Telegram三套BOT 都會統一呼叫analytics.js
 感謝
 
 */
-
-
-
-console.log('version:  ' + process.env.HEROKU_RELEASE_VERSION)

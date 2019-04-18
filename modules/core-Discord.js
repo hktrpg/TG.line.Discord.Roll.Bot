@@ -10,6 +10,9 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 		var channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 		const Discord = require('discord.js');
 		const client = new Discord.Client();
+		const BootTime = new Date(new Date().toLocaleString("en-US", {
+			timeZone: "Asia/Shanghai"
+		}));
 		// Load `*.js` under modules directory as properties
 		//  i.e., `User.js` will become `exports['User']` or `exports.User`
 		var Discordcountroll = 0;
@@ -22,6 +25,11 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 		client.login(channelSecret);
 		// handle the error event
 		client.on('error', console.error);
+		client.on('unhandledRejection', error => {
+			// Will print "unhandledRejection err is not defined"
+			console.log('unhandledRejection: ', error.message);
+		});
+
 
 		client.on('message', message => {
 			if (message.author.bot === false && message.content != "") {
@@ -30,13 +38,15 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				let rplyVal = {};
 				let msgSplitor = (/\S+/ig);
 				let mainMsg = message.content.match(msgSplitor); //定義輸入字串
-				let trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
+				if (mainMsg && mainMsg[0])
+					var trigger = mainMsg[0].toString().toLowerCase()
+				//指定啟動詞在第一個詞&把大階強制轉成細階
 				let privatemsg = 0;
 				//訊息來到後, 會自動跳到analytics.js進行骰組分析
 				//如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
 
 
-				if (trigger == "dr") {
+				if (trigger == "dr" && mainMsg && mainMsg[1]) {
 					privatemsg = 1;
 					mainMsg.shift();
 					trigger = mainMsg[0].toString().toLowerCase();
@@ -51,27 +61,28 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				}
 				if (rplyVal && rplyVal.text) {
 					Discordcountroll++;
-					console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext+' message.content: '+ message.content);
+					console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString(), " content: ", message.content);
+
 					if (privatemsg == 1) {
 						message.channel.send("暗骰進行中");
-						async function load() {
-							for (var i = 0; i < rplyVal.text.match(/[\s\S]{1,1500}/g).length; i++) {
-								await message.author.send(rplyVal.text.match(/[\s\S]{1,1500}/g)[i]);
+						async function loada() {
+							for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+								await message.author.send(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);
 							}
 						}
-						load();
+						loada();
 					} else {
-						async function load() {
-							for (var i = 0; i < rplyVal.text.match(/[\s\S]{1,1500}/g).length; i++) {
-								await message.channel.send(rplyVal.text.match(/[\s\S]{1,1500}/g)[i])
+						async function loadb() {
+							for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+								await message.channel.send(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])
 							}
 						}
-						load();
+						loadb();
 					}
 					//console.log("rplyVal: " + rplyVal);
 				} else {
 					Discordcounttext++;
-					console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext);
+					console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString());
 				}
 			}
 		});

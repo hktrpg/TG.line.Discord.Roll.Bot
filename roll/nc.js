@@ -1,5 +1,82 @@
+const BCDice = require('bcdice-js').BCDice; // CommonJS
+const bcdice = new BCDice();
+function calldice(gameType, message) {
+	bcdice.setGameByTitle(gameType)
+	bcdice.setMessage(message)
+	return bcdice.dice_command()
+}
+
 var rollbase = require('./rollbase.js');
-var rply = { type: 'text' }; //type是必需的,但可以更改
+var rply = {
+	default: 'on',
+	type: 'text',
+	text: ''
+};
+
+gameName = function () {
+	return '永遠的後日談 Nechronica .nc (NM xNC+m xNA+m)'
+}
+
+gameType = function () {
+	return 'Nechronica:hktrpg'
+}
+prefixs = function () {
+	return /(^[.]nc$)$/i
+}
+getHelpMessage = function () {
+	return "【永遠的後日談 Nechronica】" + "\
+	\n・依戀 .NC NM (問題)\
+	\n例子 .NC NM 我的依戀\
+	\n・判定　(.NC nNC+m)\
+	　\nダイス数n、修正値mで判定ロールを行います。\
+	　\nダイス数が2以上の時のパーツ破損数も表示します。\
+	\n・攻撃判定　(.NC nNA+m)\
+	　\nダイス数n、修正値mで攻撃判定ロールを行います。\
+	　\n命中部位とダイス数が2以上の時のパーツ破損数も表示します。*\
+		\n "
+}
+initialize = function () {
+	return rply;
+}
+//nc指令開始於此 來自Rainsting/TarotLineBot 
+//if (trigger.match(/^[1-4]n[c|a][+|-][1-99]$|^[1-4]n[c|a]$/) != null) return exports.nc.nechronica(trigger, mainMsg[1]);
+
+//依戀
+//if (trigger.match(/(^nm$)/) != null) return exports.nc.nechronica_mirenn(mainMsg[1]);
+
+rollDiceCommand = function (inputStr, mainMsg) {
+	rply.text = '';
+	switch (true) {
+		case /(^nm$)/i.test(mainMsg[1]):
+			return nechronica_mirenn(mainMsg[2]);
+		case /(\d+)N[C|A]/i.test(mainMsg[1]):
+
+			//永遠的後日談 Nechronica
+			/*
+			・判定　(nNC+m)
+	  　ダイス数n、修正値mで判定ロールを行います。
+	  　ダイス数が2以上の時のパーツ破損数も表示します。
+	  ・攻撃判定　(nNA+m)
+	  　ダイス数n、修正値mで攻撃判定ロールを行います。
+	  　命中部位とダイス数が2以上の時のパーツ破損数も表示します。*/
+			result = calldice("Nechronica", mainMsg[1])
+			if (result && result[0] != 1)
+				rply.text = mainMsg[1] + result[0];
+			return rply;
+		default:
+			break;
+	}
+}
+
+
+module.exports = {
+	rollDiceCommand: rollDiceCommand,
+	initialize: initialize,
+	getHelpMessage: getHelpMessage,
+	prefixs: prefixs,
+	gameType: gameType,
+	gameName: gameName
+};
 
 ////////////////////////////////////////
 //////////////// nechronica (NC)
@@ -76,9 +153,3 @@ function nechronica_mirenn_table(mode) {
 	return returnStr;
 }
 
-
-module.exports = {
-	nechronica: nechronica,
-	nechronica_mirenn: nechronica_mirenn,
-	nechronica_mirenn_table: nechronica_mirenn_table
-};

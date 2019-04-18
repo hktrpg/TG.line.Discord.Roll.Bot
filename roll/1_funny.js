@@ -1,5 +1,89 @@
 var rollbase = require('./rollbase.js');
-var rply = { type: 'text' }; //type是必需的,但可以更改
+var rply = {
+	default: 'on',
+	type: 'text',
+	text: ''
+};
+
+gameName = function () {
+	return '趣味擲骰 排序(3個選項) choice/隨機(3個選項) 每日塔羅 運勢 立flag'
+}
+
+gameType = function () {
+	return 'funny:hktrpg'
+}
+prefixs = function () {
+	return /排序|隨機|choice|^每日塔羅|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸/i
+}
+getHelpMessage = function () {
+	return "【趣味擲骰】" + "\
+	\n  隨機選擇： 啓動語 choice 隨機\
+	\n(問題)(啓動語)(問題)  (選項1) (選項2)(選項3) \
+	\n例子 收到聖誕禮物隨機數 1 2 3 >4  \
+	\n\
+	\n隨機排序：啓動語 排序\
+	\n(問題)(啓動語)(問題) (選項1) (選項2)(選項3)\
+	\n例子 交換禮物排序 A君 C君 F君 G君\
+	\n\
+	\n占卜運氣功能： 字句中包括「運勢」兩字即可  \
+	\n塔羅牌占卜 大十字塔羅 每日塔羅\
+	\n時間塔羅 等關键字可啓動  \
+		\n "
+}
+initialize = function () {
+	return rply;
+}
+
+rollDiceCommand = function (inputStr, mainMsg) {
+	rply.text = '';
+	//let result = {};
+	//		if (trigger.match(/排序/) != null && mainMsg.length >= 3) return exports.funny.SortIt(inputStr, mainMsg);
+	//choice 指令開始於此
+	//	if (trigger.match(/choice|隨機|選項|選1/) != null && mainMsg.length >= 3) return exports.funny.choice(inputStr, mainMsg);
+	//tarot 指令
+	/*
+	if (trigger.match(/tarot|塔羅牌|塔羅/) != null) {
+		if (trigger.match(/^單張|^每日|^daily/) != null) return exports.funny.NomalDrawTarot(mainMsg[1], mainMsg[2]); //預設抽 79 張
+		if (trigger.match(/^時間|^time/) != null) return exports.funny.MultiDrawTarot(mainMsg[1], mainMsg[2], 1);
+		if (trigger.match(/^大十字|^cross/) != null) return exports.funny.MultiDrawTarot(mainMsg[1], mainMsg[2], 2);
+	}
+	*/
+
+	//FLAG指令開始於此
+	//		if (trigger.match(/立flag|死亡flag/) != null) return exports.funny.BStyleFlagSCRIPTS();
+
+	//鴨霸獸指令開始於此
+	//		if (trigger.match(/鴨霸獸/) != null) return exports.funny.randomReply();
+	//		if (trigger.match(/運勢/) != null) return exports.funny.randomLuck(mainMsg); //占卜運氣		
+	/*猜拳指令
+	if (trigger.match(/猜拳/) != null) {
+	return RockPaperScissors(inputStr, mainMsg[1]);
+	}
+*/
+
+	switch (true) {
+		case /排序/i.test(mainMsg[0]) && (mainMsg.length >= 4):
+			return SortIt(inputStr, mainMsg);
+		case /隨機/i.test(mainMsg[0]) && (mainMsg.length >= 4):
+			return choice(inputStr, mainMsg);
+		case /塔羅/i.test(mainMsg[0]):
+			if (mainMsg[0].match(/^每日塔羅/) != null) return NomalDrawTarot(mainMsg[1], mainMsg[2]); //預設抽 79 張
+			if (mainMsg[0].match(/^時間塔羅/) != null) return MultiDrawTarot(mainMsg[1], mainMsg[2], 1);
+			if (mainMsg[0].match(/^大十字塔羅/) != null) return MultiDrawTarot(mainMsg[1], mainMsg[2], 2);
+			break;
+		case /立flag/i.test(mainMsg[0]):
+			return BStyleFlagSCRIPTS()
+		case /鴨霸獸/i.test(mainMsg[0]):
+			return randomReply();
+		case /運勢/i.test(mainMsg[0]):
+			return randomLuck(mainMsg)
+		default:
+			break;
+	}
+}
+
+
+
 
 ////////////////////////////////////////
 //////////////// 占卜&其他
@@ -382,14 +466,10 @@ function SortIt(input, mainMsg) {
 }
 
 module.exports = {
-	BStyleFlagSCRIPTS,
-	randomReply,
-	randomLuck,
-	RockPaperScissors,
-	MultiDrawTarot,
-	NomalDrawTarot,
-	SortIt,
-	tarotRevReply,
-	choice,
-	tarotCardReply
+	rollDiceCommand: rollDiceCommand,
+	initialize: initialize,
+	getHelpMessage: getHelpMessage,
+	prefixs: prefixs,
+	gameType: gameType,
+	gameName: gameName
 };

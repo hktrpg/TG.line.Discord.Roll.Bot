@@ -111,8 +111,8 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 					});
 				//message.reply.text(message.from.first_name + ' 暗骰進行中')
 				async function loada() {
-					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-						await client.pushMessage(event.source.userId, replymessage(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]))
+					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1200}/g).length; i++) {
+						await client.pushMessage(event.source.userId, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
 							.then(() => {})
 							.catch((err) => {
 								// error handling
@@ -122,11 +122,11 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				loada();
 			} else {
 				async function loadb() {
-					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1200}/g).length; i++) {
 						if (event.source.groupId)
 							var replyTarget = event.source.groupId
 						else replyTarget = event.source.userId
-						await client.pushMessage(replyTarget, replymessage(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]))
+						await client.pushMessage(replyTarget, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
 							.then(() => {})
 							.catch((err) => {
 								// error handling
@@ -148,7 +148,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		//exports.analytics.parseInput(event.message.text)
 
 		// use reply API
-		//Reply Max: 2000 characters
+		//Reply Max: 1200 characters
 	}
 
 	// listen on port

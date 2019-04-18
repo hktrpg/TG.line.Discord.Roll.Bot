@@ -52,12 +52,12 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 		// create a echoing text message
 		//exports.analytics.parseInput(event.message.text)
-
-		rplyVal = exports.analytics.parseInput(event.message.text);
+		if (event.message.text)
+			rplyVal = exports.analytics.parseInput(event.message.text);
 
 		if (rplyVal && rplyVal.text) {
 			Linecountroll++;
-			console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext + ' Boot Time: ' + BootTime.toLocaleString());
+			console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext + ' Boot Time: ' + BootTime.toLocaleString(), " content: ", event.message.text);
 			return client.replyMessage(event.replyToken, rplyVal);
 		} else {
 			Linecounttext++;

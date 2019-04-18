@@ -25,7 +25,8 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			//	console.log('channelKeyword ' + channelKeyword)
 			let rplyVal = {}
 			let msgSplitor = (/\S+/ig)
-			let mainMsg = message.text.match(msgSplitor); // 定義輸入字串
+			if (message.text)
+				var mainMsg = message.text.match(msgSplitor); // 定義輸入字串
 			if (mainMsg && mainMsg[0])
 				var trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
 			let privatemsg = 0
@@ -52,7 +53,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			if (rplyVal && rplyVal.text) {
 				TGcountroll++;
 				//console.log('rplyVal.text:' + rplyVal.text)
-				console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext);
+				console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext, " content: ", message.text);
 				if (privatemsg == 1) {
 					message.reply.text(message.from.first_name + ' 暗骰進行中')
 					async function loada() {

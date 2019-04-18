@@ -60,41 +60,89 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				res.status(500).end();
 			});
 	});
-	let rplyVal = {};
 	// event handler
 	function handleEvent(event) {
 		if (event.type !== 'message' || event.message.type !== 'text') {
 			// ignore non-text-message event
 			return Promise.resolve(null);
 		}
+		let rplyVal = {};
+		let msgSplitor = (/\S+/ig)
+		if (message.text)
+			var mainMsg = message.text.match(msgSplitor); // 定義輸入字串
+		if (mainMsg && mainMsg[0])
+			var trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
 
-		// create a echoing text message
-		//exports.analytics.parseInput(event.message.text)
-		if (event.message.text)
-			rplyVal = exports.analytics.parseInput(event.message.text);
+		// 訊息來到後, 會自動跳到analytics.js進行骰組分析
+		// 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+
+		let privatemsg = 0
+		if (trigger == 'dr' && mainMsg && mainMsg[1]) {
+			privatemsg = 1
+			mainMsg.shift()
+			trigger = mainMsg[0].toString().toLowerCase()
+		}
+		if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
+			mainMsg.shift()
+			rplyVal = exports.analytics.parseInput(mainMsg.join(' '))
+		} else {
+			if (channelKeyword == '') {
+				rplyVal = exports.analytics.parseInput(mainMsg.join(' '))
+
+			}
+
+		}
 
 		if (rplyVal && rplyVal.text) {
-			Linecountroll++;
-			console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext + ' Boot Time: ' + BootTime.toLocaleString(), " content: ", event.message.text);
-			return client.replyMessage(event.replyToken, rplyVal);
-		} else {
-			Linecounttext++;
-			console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext + ' Boot Time: ' + BootTime.toLocaleString());
+			TGcountroll++;
+			//console.log('rplyVal.text:' + rplyVal.text)
+			console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext, " content: ", message.text);
+			if (privatemsg == 1) {
+				message.reply.text(message.from.first_name + ' 暗骰進行中')
+				async function loada() {
+					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+						await TGclient.sendMessage(message.from.id, rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])
+					}
+				}
+				loada();
+			} else {
+
+				async function loadb() {
+					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+						await message.reply.text(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])
+					}
+				}
+				loadb();
+
+			}
+
+			// create a echoing text message
+			//exports.analytics.parseInput(event.message.text)
+			if (event.message.text)
+				rplyVal = exports.analytics.parseInput(event.message.text);
+
+			if (rplyVal && rplyVal.text) {
+				Linecountroll++;
+				console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext + ' Boot Time: ' + BootTime.toLocaleString(), " content: ", event.message.text);
+				return client.replyMessage(event.replyToken, rplyVal);
+			} else {
+				Linecounttext++;
+				console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext + ' Boot Time: ' + BootTime.toLocaleString());
+			}
+			// use reply API
+			//Reply Max: 2000 characters
 		}
-		// use reply API
-		//Reply Max: 2000 characters
+
+		// listen on port
+		const port = process.env.PORT || 5000;
+		app.listen(port, () => {
+			console.log(`Line BOT listening on ${port}`);
+		});
+
+		app.get('/', function (req, res) {
+			//	res.send(parseInput(req.query.input));
+			res.send('Hello');
+		});
+
 	}
-
-	// listen on port
-	const port = process.env.PORT || 5000;
-	app.listen(port, () => {
-		console.log(`Line BOT listening on ${port}`);
-	});
-
-	app.get('/', function (req, res) {
-		//	res.send(parseInput(req.query.input));
-		res.send('Hello');
-	});
-
-}
 

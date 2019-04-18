@@ -6,28 +6,28 @@ var rply = {
 };
 
 gameName = function () {
-	return '趣味擲骰 .排序 .隨機 .choice .每日塔羅 運勢 .立flag'
+	return '趣味擲骰 排序 隨機 choice 每日塔羅 運勢 立flag'
 }
 
 gameType = function () {
 	return 'funny:hktrpg'
 }
 prefixs = function () {
-	return /[.](\S|)+排序|[.](\S|)+隨機|[.](\S|)+choice|^[.]每日塔羅|^[.]時間塔羅|^[.]大十字塔羅|[.](\S|)+立flag|[.](\S|)+死亡flag|運勢|鴨霸獸/i
+	return /排序|隨機|choice|^每日塔羅|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸/i
 }
 getHelpMessage = function () {
 	return "【趣味擲骰】" + "\
-	\n  隨機選擇： 啓動語 .choice/ .隨機/\
+	\n  隨機選擇： 啓動語 choice 隨機\
 	\n(問題)(啓動語)(問題)  (選項1) (選項2)(選項3) \
-	\n例子 .收到聖誕禮物隨機數 1 2 3 >4  \
+	\n例子 收到聖誕禮物隨機數 1 2 3 >4  \
 	\n\
-	\n隨機排序：啓動語 .排序\
+	\n隨機排序：啓動語 排序\
 	\n(問題)(啓動語)(問題) (選項1) (選項2)(選項3)\
-	\n例子 .交換禮物排序 A君 C君 F君 G君\
+	\n例子 交換禮物排序 A君 C君 F君 G君\
 	\n\
 	\n占卜運氣功能： 字句中包括「運勢」兩字即可  \
-	\n塔羅牌占卜 .大十字塔羅 .每日塔羅\
-	\n.時間塔羅 等關键字可啓動  \
+	\n塔羅牌占卜 大十字塔羅 每日塔羅\
+	\n時間塔羅 等關键字可啓動  \
 		\n "
 }
 initialize = function () {
@@ -62,17 +62,17 @@ rollDiceCommand = function (inputStr, mainMsg) {
 */
 
 	switch (true) {
-		case /[.](\S|)+排序/i.test(mainMsg[0]) && (mainMsg.length >= 4):
+		case /排序/i.test(mainMsg[0]) && (mainMsg.length >= 4):
 			console.log(mainMsg.length)
 			return SortIt(inputStr, mainMsg);
-		case /[.](\S|)+隨機/i.test(mainMsg[0]) && (mainMsg.length >= 4):
+		case /隨機/i.test(mainMsg[0]) && (mainMsg.length >= 4):
 			return choice(inputStr, mainMsg);
 		case /塔羅/i.test(mainMsg[0]):
-			if (mainMsg[0].match(/^[.]每日塔羅$/) != null) return NomalDrawTarot(mainMsg[1], mainMsg[2]); //預設抽 79 張
-			if (mainMsg[0].match(/^[.]時間塔羅$/) != null) return MultiDrawTarot(mainMsg[1], mainMsg[2], 1);
-			if (mainMsg[0].match(/^[.]大十字塔羅$/) != null) return MultiDrawTarot(mainMsg[1], mainMsg[2], 2);
+			if (mainMsg[0].match(/^每日塔羅/) != null) return NomalDrawTarot(mainMsg[1], mainMsg[2]); //預設抽 79 張
+			if (mainMsg[0].match(/^時間塔羅/) != null) return MultiDrawTarot(mainMsg[1], mainMsg[2], 1);
+			if (mainMsg[0].match(/^大十字塔羅/) != null) return MultiDrawTarot(mainMsg[1], mainMsg[2], 2);
 			break;
-		case /[.](\S|)+立flag|[.](\S|)+死亡flag/i.test(mainMsg[0]):
+		case /立flag/i.test(mainMsg[0]):
 			return BStyleFlagSCRIPTS()
 		case /鴨霸獸/i.test(mainMsg[0]):
 			return randomReply();

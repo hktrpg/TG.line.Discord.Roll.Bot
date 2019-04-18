@@ -65,15 +65,15 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					if (privatemsg == 1) {
 						message.channel.send("暗骰進行中");
 						async function loada() {
-							for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1500}/g).length; i++) {
-								await message.author.send(rplyVal.text.toString().match(/[\s\S]{1,1500}/g)[i]);
+							for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+								await message.author.send(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);
 							}
 						}
 						loada();
 					} else {
 						async function loadb() {
-							for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1500}/g).length; i++) {
-								await message.channel.send(rplyVal.text.toString().match(/[\s\S]{1,1500}/g)[i])
+							for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+								await message.channel.send(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])
 							}
 						}
 						loadb();

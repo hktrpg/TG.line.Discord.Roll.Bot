@@ -1,5 +1,72 @@
-var rollbase = require('./rollbase.js');
-var rply = { type: 'text' }; //type是必需的,但可以更改
+const BCDice = require('bcdice-js').BCDice; // CommonJS
+const bcdice = new BCDice();
+
+function calldice(gameType, message) {
+	bcdice.setGameByTitle(gameType)
+	bcdice.setMessage(message)
+	return bcdice.dice_command()
+}
+
+var rply = {
+	default: 'on',
+	type: 'text',
+	text: ''
+};
+
+gameName = function () {
+	return 'DX2nd,3rd .dx xDX+y@c ET'
+}
+
+gameType = function () {
+	return 'Dx2,3:hktrpg'
+}
+prefixs = function () {
+	return /^[.]dx$/i
+}
+getHelpMessage = function () {
+	return "【Double Cross 2nd,3rd】" + "\
+	\n・判定コマンド　(.dx xDX+y@c or xDXc+y)\
+    　\n (個数)DX(修正)@(クリティカル値) もしくは (個数)DX(クリティカル値)(修正)で指定します。\
+    　\n加算減算のみ修正値も付けられます。\
+    　\n内部で読み替えています。\
+    　\n例）.dx 10dx　　　10dx+5@8(OD tool式)　　　5DX7+7-3(疾風怒濤式)\
+    \n\
+    \n・各種表\
+    　\n・感情表(.dx ET)\
+    　　\nポジティブとネガティブの両方を振って、表になっている側に○を付けて表示します。もちろん任意で選ぶ部分は変更して構いません。\
+		\n "
+}
+initialize = function () {
+	return rply;
+}
+
+rollDiceCommand = function (inputStr, mainMsg) {
+	rply.text = '';
+	switch (true) {
+		case /(\d+dx|ET)/i.test(mainMsg[1]):
+			result = calldice("DoubleCross", mainMsg[1])
+			if (result && result[0] != 1)
+				rply.text = mainMsg[1] + result[0];
+			return rply;
+		default:
+			break;
+	}
+}
+
+
+module.exports = {
+	rollDiceCommand: rollDiceCommand,
+	initialize: initialize,
+	getHelpMessage: getHelpMessage,
+	prefixs: prefixs,
+	gameType: gameType,
+	gameName: gameName
+};
+
+
+
+//Dx3 指令開始於此
+//	if (trigger.match(/^(\d+)(dx)(\d|)(((\+|-)(\d+)|)((\+|-)(\d+)|))$/i) != null) return exports.dx3.dx(trigger);
 
 ////////////////////////////////////////
 //////////////// DX3
@@ -70,6 +137,3 @@ function dxroll(match, round, returnStr, finallynum) {
 	return [match, round, returnStr, finallynum];
 }
 
-module.exports = {
-	dx: dx
-};

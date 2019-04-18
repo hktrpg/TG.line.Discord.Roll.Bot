@@ -26,11 +26,11 @@ initialize = function () {
 rollDiceCommand = function (inputStr, mainMsg) {
     rply.text = '';
     switch (true) {
-        case /^\d+$/i.test(mainMsg[1]):
+        case /^\d+$/i.test(mainMsg[0]):
             rply.text = 'Demo' + mainMsg[1]
             return rply;
 
-        case /^(?![\s\S])/.test(mainMsg[1] || ''):
+        case /^(?![\s\S])/.test(mainMsg[0] || ''):
             rply.text = 'Demo'
             return rply;
         default:

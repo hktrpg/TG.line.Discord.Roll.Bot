@@ -8,7 +8,7 @@ var rply = {
 };
 
 gameName = function () {
-    return '迷宮王國 .mk'
+    return '迷宮王國 .mk (nMK+m 及各種表)'
 }
 
 gameType = function () {

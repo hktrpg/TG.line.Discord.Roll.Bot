@@ -133,7 +133,6 @@ function xBy(triggermsg, text01, text02) {
 
 function xUy(triggermsg, text01, text02, text03) {
 	var match = /^(\d+)(u)(\d+)/i.exec(triggermsg);	//判斷式  5u19,5,u,19, 
-	console.log(match)
 	var returnStr = '(' + triggermsg + '[' + text01 + ']';
 	if (Number(text02) <= Number(match[3]) && text02 != undefined) {
 		returnStr += '>' + text02 + ') → ';

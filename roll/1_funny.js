@@ -63,7 +63,6 @@ rollDiceCommand = function (inputStr, mainMsg) {
 
 	switch (true) {
 		case /排序/i.test(mainMsg[0]) && (mainMsg.length >= 4):
-			console.log(mainMsg.length)
 			return SortIt(inputStr, mainMsg);
 		case /隨機/i.test(mainMsg[0]) && (mainMsg.length >= 4):
 			return choice(inputStr, mainMsg);

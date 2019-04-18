@@ -60,7 +60,6 @@ rollDiceCommand = function (inputStr, mainMsg) {
 	  　ダイス数n、修正値mで攻撃判定ロールを行います。
 	  　命中部位とダイス数が2以上の時のパーツ破損数も表示します。*/
 			result = calldice("Nechronica", mainMsg[1])
-			console.log(result)
 			if (result && result[0] != 1)
 				rply.text = mainMsg[1] + result[0];
 			return rply;

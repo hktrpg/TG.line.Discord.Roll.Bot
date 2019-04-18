@@ -36,10 +36,8 @@ initialize = function () {
 
 rollDiceCommand = function (inputStr, mainMsg) {
     rply.text = '';
-    console.log(mainMsg)
     if (mainMsg && mainMsg[1])
         result = calldice("Airgetlamh", mainMsg[1])
-    console.log(result)
     if (result && result[0] != 1)
         rply.text = mainMsg[1] + ' ' + result[0];
     return rply;

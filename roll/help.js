@@ -83,7 +83,7 @@ rollDiceCommand = function (inputStr, mainMsg) {
 						exports[Object.keys(exports)[i]].gameName()
 			}
 
-			console.log('case: ', rply)
+			//console.log('case: ', rply)
 			return rply;
 
 		default:

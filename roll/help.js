@@ -34,7 +34,7 @@ prefixs = function () {
 getHelpMessage = function () {
 	return "【HKTRPG擲骰BOT】" + version + "\
 	\n  \
-	\n 暗骰功能 在指令前打dr 結果會私訊你(TG及Discord限定)\
+	\n 暗骰功能 在指令前打dr 結果會私訊你\
 \n【基本擲骰】1d100\
 \n 例如輸入2d6+1　攻撃！\
 \n 會輸出）2d6+1：攻撃  9[6+3]+1 = 10\
@@ -80,7 +80,7 @@ rollDiceCommand = function (inputStr, mainMsg) {
 			Object.keys(linehelp()).forEach(v => {
 				rply[v] = linehelp()[v]
 			})
-			rply.text = getHelpMessage() + '\n現支援系統: \n【了解骰組詳情,請輸入 bothelp (編號) 或 all 顯示全部 (TG及Discord限定)】';
+			rply.text = getHelpMessage() + '\n現支援系統: \n【了解骰組詳情,請輸入 bothelp (編號) 或 all 顯示全部】';
 			for (i = 0; i < Object.keys(exports).length; i++) {
 				if (exports[Object.keys(exports)[i]] && exports[Object.keys(exports)[i]].gameName)
 					rply.text += "\n" +

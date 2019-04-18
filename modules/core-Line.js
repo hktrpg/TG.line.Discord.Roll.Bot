@@ -15,7 +15,29 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	const express = require('express');
 
 
-	const BootTime = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Shanghai" }));
+
+
+	function replymessage(message) {
+		return {
+			type: 'text',
+			text: message
+		}
+	};
+	//event.source.userId
+	//event.source.groupId
+	/*
+	client.pushMessage('<to>', message)
+		.then(() => {
+
+		})
+		.catch((err) => {
+			// error handling
+		});
+
+	*/
+	const BootTime = new Date(new Date().toLocaleString("en-US", {
+		timeZone: "Asia/Shanghai"
+	}));
 
 
 	// create LINE SDK config from env variables
@@ -25,6 +47,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	};
 
 	// create LINE SDK client
+	const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 	const client = new line.Client(config);
 
 	// create Express app
@@ -42,29 +65,90 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				res.status(500).end();
 			});
 	});
-	let rplyVal = {};
 	// event handler
 	function handleEvent(event) {
 		if (event.type !== 'message' || event.message.type !== 'text') {
 			// ignore non-text-message event
 			return Promise.resolve(null);
 		}
-
-		// create a echoing text message
-		//exports.analytics.parseInput(event.message.text)
+		console.log(event)
+		let rplyVal = {};
+		let msgSplitor = (/\S+/ig)
 		if (event.message.text)
-			rplyVal = exports.analytics.parseInput(event.message.text);
+			var mainMsg = event.message.text.match(msgSplitor); // 定義輸入字串
+		if (mainMsg && mainMsg[0])
+			var trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
+
+		// 訊息來到後, 會自動跳到analytics.js進行骰組分析
+		// 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+
+		let privatemsg = 0
+		if (trigger == 'dr' && mainMsg && mainMsg[1]) {
+			privatemsg = 1
+			mainMsg.shift()
+			trigger = mainMsg[0].toString().toLowerCase()
+		}
+		if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
+			mainMsg.shift()
+			rplyVal = exports.analytics.parseInput(mainMsg.join(' '))
+		} else {
+			if (channelKeyword == '') {
+				rplyVal = exports.analytics.parseInput(mainMsg.join(' '))
+
+			}
+
+		}
 
 		if (rplyVal && rplyVal.text) {
 			Linecountroll++;
-			console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext + ' Boot Time: ' + BootTime.toLocaleString(), " content: ", event.message.text);
-			return client.replyMessage(event.replyToken, rplyVal);
-		} else {
-			Linecounttext++;
-			console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext + ' Boot Time: ' + BootTime.toLocaleString());
+			//console.log('rplyVal.text:' + rplyVal.text)
+			console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
+			if (privatemsg == 1) {
+				client.pushMessage(event.source.groupId, replymessage(' 暗骰進行中'))
+					.then(() => {})
+					.catch((err) => {
+						// error handling
+					});
+				//message.reply.text(message.from.first_name + ' 暗骰進行中')
+				async function loada() {
+					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1200}/g).length; i++) {
+						await client.pushMessage(event.source.userId, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
+							.then(() => {})
+							.catch((err) => {
+								// error handling
+							});
+					}
+				}
+				loada();
+			} else {
+				async function loadb() {
+					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1200}/g).length; i++) {
+						if (event.source.groupId)
+							var replyTarget = event.source.groupId
+						else replyTarget = event.source.userId
+						await client.pushMessage(replyTarget, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
+							.then(() => {})
+							.catch((err) => {
+								// error handling
+							});
+					}
+				}
+				loadb();
+
+			}
+
+
+
 		}
+
+
+
+
+		// create a echoing text message
+		//exports.analytics.parseInput(event.message.text)
+
 		// use reply API
-		//Reply Max: 2000 characters
+		//Reply Max: 1200 characters
 	}
 
 	// listen on port
@@ -78,5 +162,6 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		res.send('Hello');
 	});
 
-}
 
+
+}

@@ -14,11 +14,11 @@ var rply = {
 };
 
 gameName = function () {
-    return '劍世界2.5 .SW (Kx Gr FT TT)'
+    return '劍世界2.5 .sw (Kx Gr FT TT)'
 }
 
 gameType = function () {
-    return 'Demo:hktrpg'
+    return 'sw2.5:hktrpg'
 }
 prefixs = function () {
     return /^[.]sw$/i

@@ -71,6 +71,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			// ignore non-text-message event
 			return Promise.resolve(null);
 		}
+		console.log(event)
 		let rplyVal = {};
 		let msgSplitor = (/\S+/ig)
 		if (event.message.text)

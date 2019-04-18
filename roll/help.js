@@ -36,8 +36,7 @@ getHelpMessage = function () {
 \n 例如輸入2d6+1　攻撃！\
 \n 會輸出）2d6+1：攻撃  9[6+3]+1 = 10\
 \n 如上面一樣,在骰子數字後方隔空白位打字,可以進行發言。\
-\n 5 3D6 ：	分別骰出5次3d6\
-\n (1d100+999)：(35[35]+999)*2 = 2068\
+\n 5 3D6 ：	分別骰出5次3d6 \
 \n  \
 \n Line版 https://line.me/R/ti/p/svMLqy9Mik\
 \n Discord版 https://discordapp.com/oauth2/authorize?&client_id=544462904037081138&scope=bot&permissions=8\

@@ -15,6 +15,23 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	const express = require('express');
 
 
+
+
+	const message = {
+		type: 'text',
+		text: 'Hello World!'
+	};
+	//events.source.userId
+	//events.source.groupId
+	client.pushMessage('<to>', message)
+		.then(() => {
+
+		})
+		.catch((err) => {
+			// error handling
+		});
+
+
 	const BootTime = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Shanghai" }));
 
 

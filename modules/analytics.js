@@ -28,7 +28,7 @@ try {
 
 		Object.keys(exports).forEach(v => {
 			if (exports[v].prefixs && trigger.match(exports[v].prefixs()) != null) {
-				console.log(trigger)
+				console.log('trigger: ', trigger, ' v: ', v)
 				let temp = exports[v].rollDiceCommand(inputStr, mainMsg)
 				if (temp)
 					Object.keys(temp).forEach(v => {
@@ -82,10 +82,10 @@ try {
 		//	if (trigger.match(/^(\d+)(wd|wod)(\d|)((\+|-)(\d+)|)$/i) != null) return exports.wod.wod(trigger, mainMsg[1]);
 
 		//Dx3 指令開始於此
-	//	if (trigger.match(/^(\d+)(dx)(\d|)(((\+|-)(\d+)|)((\+|-)(\d+)|))$/i) != null) return exports.dx3.dx(trigger);
+		//	if (trigger.match(/^(\d+)(dx)(\d|)(((\+|-)(\d+)|)((\+|-)(\d+)|))$/i) != null) return exports.dx3.dx(trigger);
 
 		//SW 指令開始於此
-	//	if (trigger.match(/^(kk)0*([0-9][0-9]?|100)(((\+|-)(\d+)|)((\+|-)(\d+)|))(|\@(\d+))(|\$(\d+))(|\$\+(\d+))(|gf)$/i) != null) return exports.sw.sw(trigger);
+		//	if (trigger.match(/^(kk)0*([0-9][0-9]?|100)(((\+|-)(\d+)|)((\+|-)(\d+)|))(|\@(\d+))(|\$(\d+))(|\$\+(\d+))(|gf)$/i) != null) return exports.sw.sw(trigger);
 
 
 		//Fisher–Yates shuffle

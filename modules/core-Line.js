@@ -23,6 +23,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	};
 	//events.source.userId
 	//events.source.groupId
+	/*
 	client.pushMessage('<to>', message)
 		.then(() => {
 
@@ -31,7 +32,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			// error handling
 		});
 
-
+	*/
 	const BootTime = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Shanghai" }));
 
 

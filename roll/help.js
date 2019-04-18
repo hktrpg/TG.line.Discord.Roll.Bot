@@ -1,6 +1,6 @@
 if (!process.env.HEROKU_RELEASE_VERSION)
 	require('dotenv').config()
-//heroku labs:enable runtime-dyno-metadata -a <app name>
+
 
 require('fs').readdirSync(__dirname).forEach(function (file) {
 	if (file.match(/\.js$/) !== null && file !== 'index.js' && file !== 'help.js' && file !== 'demo.js' && file !== 'rollbase.js') {
@@ -13,6 +13,7 @@ var rply = {
 	type: 'text',
 	text: ''
 }; //type是必需的,但可以更改
+//heroku labs:enable runtime-dyno-metadata -a <app name>
 var version = "v1." + Object.keys(exports).length + "." + (process.env.HEROKU_RELEASE_VERSION || 0).replace(/v/, '');
 
 gameName = function () {

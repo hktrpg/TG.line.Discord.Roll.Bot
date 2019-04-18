@@ -62,6 +62,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				if (rplyVal && rplyVal.text) {
 					Discordcountroll++;
 					console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString(), " content: ", message.content);
+
 					if (privatemsg == 1) {
 						message.channel.send("暗骰進行中");
 						async function loada() {

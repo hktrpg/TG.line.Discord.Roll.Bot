@@ -137,29 +137,29 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 
 
-
-
-
-
-
-			// create a echoing text message
-			//exports.analytics.parseInput(event.message.text)
-
-			// use reply API
-			//Reply Max: 2000 characters
 		}
 
-		// listen on port
-		const port = process.env.PORT || 5000;
-		app.listen(port, () => {
-			console.log(`Line BOT listening on ${port}`);
-		});
 
-		app.get('/', function (req, res) {
-			//	res.send(parseInput(req.query.input));
-			res.send('Hello');
-		});
 
+
+		// create a echoing text message
+		//exports.analytics.parseInput(event.message.text)
+
+		// use reply API
+		//Reply Max: 2000 characters
 	}
+
+	// listen on port
+	const port = process.env.PORT || 5000;
+	app.listen(port, () => {
+		console.log(`Line BOT listening on ${port}`);
+	});
+
+	app.get('/', function (req, res) {
+		//	res.send(parseInput(req.query.input));
+		res.send('Hello');
+	});
+
+
 
 }

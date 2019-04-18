@@ -1,5 +1,5 @@
-if (!process.env.HEROKU_RELEASE_VERSION)
-	require('dotenv').config()
+//if (!process.env.HEROKU_RELEASE_VERSION)
+//require('dotenv').config()
 
 
 require('fs').readdirSync(__dirname).forEach(function (file) {
@@ -17,7 +17,7 @@ var rply = {
 var heroku_version = 'v0'
 if (process.env.HEROKU_RELEASE_VERSION)
 	heroku_version = process.env.HEROKU_RELEASE_VERSION;
-var version = "v1." + Object.keys(exports).length + "." + (heroku_version).replace(/v/, '');
+var version = "v1." + Object.keys(exports).length + "." + heroku_version.replace(/[v]/, '');
 if (process.env.HEROKU_RELEASE_CREATED_AT)
 	version += '\n最後更新時間' + process.env.HEROKU_RELEASE_CREATED_AT;
 

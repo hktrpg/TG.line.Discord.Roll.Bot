@@ -71,6 +71,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			// ignore non-text-message event
 			return Promise.resolve(null);
 		}
+		let groupid, userid = ''
+		if (event.source.groupId) groupid = event.source.groupId
+		if (event.source.userId) userid = event.source.userId
 		let rplyVal = {};
 		let msgSplitor = (/\S+/ig)
 		if (event.message.text)
@@ -89,10 +92,10 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		}
 		if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 			mainMsg.shift()
-			rplyVal = exports.analytics.parseInput(mainMsg.join(' '))
+			rplyVal = exports.analytics.parseInput(mainMsg.join(' '), groupid, userid)
 		} else {
 			if (channelKeyword == '') {
-				rplyVal = exports.analytics.parseInput(mainMsg.join(' '))
+				rplyVal = exports.analytics.parseInput(mainMsg.join(' '), groupid, userid)
 
 			}
 
@@ -104,7 +107,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
 			if (privatemsg == 1) {
 				client.pushMessage(event.source.groupId, replymessage(' 暗骰進行中'))
-					.then(() => {})
+					.then(() => { })
 					.catch((err) => {
 						// error handling
 					});
@@ -112,7 +115,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				async function loada() {
 					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1200}/g).length; i++) {
 						await client.pushMessage(event.source.userId, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
-							.then(() => {})
+							.then(() => { })
 							.catch((err) => {
 								// error handling
 							});
@@ -126,7 +129,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 							var replyTarget = event.source.groupId
 						else replyTarget = event.source.userId
 						await client.pushMessage(replyTarget, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
-							.then(() => {})
+							.then(() => { })
 							.catch((err) => {
 								// error handling
 							});

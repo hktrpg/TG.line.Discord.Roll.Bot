@@ -1,7 +1,7 @@
-const mongoose = require('mongoose');
 if (process.env.mongoURL) {
+    const mongoose = require('mongoose');
     let uristring = process.env.mongoURL;
-    mongoose.connect(uristring);
+    mongoose.connect(uristring, { useNewUrlParser: true });
     //export 
     var switchJson;
     mongoose.connect(uristring, function (err, res) {

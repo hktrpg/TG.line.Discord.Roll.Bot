@@ -19,7 +19,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			console.log('Telegram is Ready!');
 		});
 		TGclient.on('text', message => {
-			console.log(message)
+			//console.log(message)
 			let groupid, userid = ''
 			if (message.chat.type) groupid = message.chat.id
 			if (message.from.id) userid = message.from.id

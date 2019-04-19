@@ -71,8 +71,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			// ignore non-text-message event
 			return Promise.resolve(null);
 		}
-		let groupid, userid = ''
-		if (event.source.groupId) groupid = event.source.groupId
+		let roomorgroupid, userid = ''
+		if (event.source.groupId) roomorgroupid = event.source.groupId
+		if (event.source.roomId) roomorgroupid = event.source.roomId
 		if (event.source.userId) userid = event.source.userId
 		let rplyVal = {};
 		let msgSplitor = (/\S+/ig)
@@ -92,19 +93,24 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		}
 		if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 			mainMsg.shift()
-			rplyVal = exports.analytics.parseInput(mainMsg.join(' '), groupid, userid)
+			rplyVal = exports.analytics.parseInput(mainMsg.join(' '), roomorgroupid, userid)
 		} else {
 			if (channelKeyword == '') {
-				rplyVal = exports.analytics.parseInput(mainMsg.join(' '), groupid, userid)
+				rplyVal = exports.analytics.parseInput(mainMsg.join(' '), roomorgroupid, userid)
+
 			}
+
 		}
 
 		if (rplyVal && rplyVal.text) {
 			Linecountroll++;
 			//console.log('rplyVal.text:' + rplyVal.text)
 			console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
+
 			if (privatemsg == 1) {
-				client.pushMessage(event.source.groupId, replymessage(' 暗骰進行中'))
+
+
+				client.pushMessage(roomorgroupid, replymessage('暗骰進行中'))
 					.then(() => {})
 					.catch((err) => {
 						// error handling
@@ -112,7 +118,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				//message.reply.text(message.from.first_name + ' 暗骰進行中')
 				async function loada() {
 					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1200}/g).length; i++) {
-						await client.pushMessage(event.source.userId, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
+						await client.pushMessage(userid, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
 							.then(() => {})
 							.catch((err) => {
 								// error handling
@@ -122,13 +128,13 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				loada();
 			} else {
 				Linecounttext++;
-				//console.log('rplyVal.text:' + rplyVal.text)
-				console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext);
+				console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
+
 				async function loadb() {
 					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1200}/g).length; i++) {
-						if (event.source.groupId)
-							var replyTarget = event.source.groupId
-						else replyTarget = event.source.userId
+						if (roomorgroupid)
+							var replyTarget = roomorgroupid
+						else replyTarget = userid
 						await client.pushMessage(replyTarget, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
 							.then(() => {})
 							.catch((err) => {
@@ -139,12 +145,21 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				loadb();
 
 			}
+
+
+
 		}
+
+
+
+
 		// create a echoing text message
 		//exports.analytics.parseInput(event.message.text)
+
 		// use reply API
 		//Reply Max: 1200 characters
 	}
+
 	// listen on port
 	const port = process.env.PORT || 5000;
 	app.listen(port, () => {

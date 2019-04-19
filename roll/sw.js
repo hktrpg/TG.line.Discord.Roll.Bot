@@ -79,14 +79,11 @@ initialize = function () {
 rollDiceCommand = function (inputStr, mainMsg) {
     rply.text = '';
     switch (true) {
-        case /(K\d+.*)|(Gr(\d+))|(FT)|(TT)/i.test(mainMsg[1]):
+        default:
             result = calldice("SwordWorld2_5", mainMsg[1])
             if (result && result[0] != 1)
                 rply.text = mainMsg[1] + result[0];
             return rply;
-
-        default:
-            break;
     }
 }
 

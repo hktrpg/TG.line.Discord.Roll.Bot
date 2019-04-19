@@ -1,4 +1,4 @@
-if (process.env.mongoURL) {
+if (process.env.mongoU2RL) {
     const mongoose = require('mongoose');
     let uristring = process.env.mongoURL;
     mongoose.connect(uristring, { useNewUrlParser: true });
@@ -22,9 +22,10 @@ if (process.env.mongoURL) {
         }
     });
 
-    var functionSchema = new mongoose.Schema({
-        groupid: String,
-        function_name: String,
+    var functionSchema = new Schema({
+        group: { groupid: String },
+        user: { userid: String, admin: Boolean },
+        function_name: Array,
         switch: String
     });
 

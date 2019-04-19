@@ -12,7 +12,7 @@ gameType = function () {
   return 'rollbase:hktrpg'
 }
 prefixs = function () {
-  return /(^\d+d\d+)|(^[1-9]$|^[1-2][0-9]$|^[3][0]$)|(^\(\d+d\d+)|(^\(\d+)/i
+  return /(\d+d\d+)|(^[1-9]$)|(^[1-2][0-9]$)|(^[3][0]$)/i
 }
 getHelpMessage = function () {
   return "【基本擲骰】1d100\
@@ -132,7 +132,7 @@ try {
 
     // 是複數擲骰喔
     if (mutiOrNot.toString().match(/\D/) == null && text1) {
-      if (text1.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[D]/ig, '') || text1.match(/([d]|[+]|[-]|[*]|[/]|[D])([d]|[+]|[-]|[*]|[/]|[D])/ig) || text1.match(/[d]$|[+]$|[-]$|[*]$|[/]$|[D]$/ig) || text1.match(/\d+[d]+\d+[d]/ig)) return;
+      if (text1.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]/ig, '') || text1.match(/([d]|[+]|[-]|[*]|[/]|[D])([d]|[+]|[-]|[*]|[/]|[D])/ig) || text1.match(/[d]$|[+]$|[-]$|[*]$|[/]$|[D]$/ig) || text1.match(/\d+[d]+\d+[d]/ig)) return;
       if (text2 != null) {
         finalStr = text0 + '次擲骰：\n' + text1 + ' ' + text2 + '\n'
       } else {
@@ -172,15 +172,15 @@ try {
       let DiceToRoll = mutiOrNot.toString().toLowerCase()
       DiceToRoll = DiceToRoll.toLowerCase()
       if (DiceToRoll.match('d') == null) return
-      if (text0.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[D]/g, '') || text0.match(/([d]|[+]|[-]|[*]|[/]|[D]$)([d]|[+]|[-]|[*]|[/]|[D])/g) || text0.match(/[d]$|[+]$|[-]$|[*]$|[/]$|[D]$/g) || text0.toLowerCase().match(/\d+[d]+\d+[d]/g)) return;
+      if (text0.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]/g, '') || text0.match(/([d]|[+]|[-]|[*]|[/]|[D]$)([d]|[+]|[-]|[*]|[/]|[D])/g) || text0.match(/[d]$|[+]$|[-]$|[*]$|[/]$|[D]$/g) || text0.toLowerCase().match(/\d+[d]+\d+[d]/g)) return;
 
       // 寫出算式
       let equation = DiceToRoll
       while (equation.match(/\d+d\d+/) != null) {
         // let totally = 0
         let tempMatch = equation.match(/\d+d\d+/)
-        if (tempMatch.toString().split('d')[0] > 300) return
-        if (tempMatch.toString().split('d')[1] == 1 || tempMatch.toString().split('d')[1] > 1000000) return
+        if (tempMatch.toString().split('d')[0] > 500 || tempMatch.toString().split('d')[0] <= 0) return
+        if (tempMatch.toString().split('d')[1] <= 1 || tempMatch.toString().split('d')[1] > 1000000) return
         equation = equation.replace(/\d+d\d+/, RollDice(tempMatch))
       }
 

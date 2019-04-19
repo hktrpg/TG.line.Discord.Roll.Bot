@@ -24,62 +24,69 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			if (message.chat.type) groupid = message.chat.id
 			if (message.from.id) userid = message.from.id
 			let rplyVal = {}
-			let msgSplitor = (/\S+/ig)
+			let msgPerLine = /^(.*)$/mg
 			if (message.text && message.from.is_bot == false)
-				var mainMsg = message.text.match(msgSplitor); // 定義輸入字串
-			if (mainMsg && mainMsg[0])
-				var trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
+				var mainMsgLine = message.text.match(msgPerLine);
+			let msgSplitor = (/\S+/ig)
+			mainMsgLine.forEach(v => {
 
-			// 訊息來到後, 會自動跳到analytics.js進行骰組分析
-			// 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
 
-			let privatemsg = 0
-			if (trigger == 'dr' && mainMsg && mainMsg[1]) {
-				privatemsg = 1
-				mainMsg.shift()
-				trigger = mainMsg[0].toString().toLowerCase()
-			}
-			if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
-				mainMsg.shift()
-				rplyVal = exports.analytics.parseInput(mainMsg.join(' '), groupid, userid)
-			} else {
-				if (channelKeyword == '') {
+
+				var mainMsg = v.match(msgSplitor); // 定義輸入字串
+				if (mainMsg && mainMsg[0])
+					var trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
+
+				// 訊息來到後, 會自動跳到analytics.js進行骰組分析
+				// 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+
+				let privatemsg = 0
+				if (trigger == 'dr' && mainMsg && mainMsg[1]) {
+					privatemsg = 1
+					mainMsg.shift()
+					trigger = mainMsg[0].toString().toLowerCase()
+				}
+				if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
+					mainMsg.shift()
 					rplyVal = exports.analytics.parseInput(mainMsg.join(' '), groupid, userid)
-
-				}
-
-			}
-
-			if (rplyVal && rplyVal.text) {
-				TGcountroll++;
-				//console.log('rplyVal.text:' + rplyVal.text)
-				console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext, " content: ", message.text);
-				if (privatemsg == 1) {
-					message.reply.text(message.from.first_name + ' 暗骰進行中')
-					async function loada() {
-						for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-							await TGclient.sendMessage(message.from.id, rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])
-						}
-					}
-					loada();
 				} else {
+					if (channelKeyword == '') {
+						rplyVal = exports.analytics.parseInput(mainMsg.join(' '), groupid, userid)
 
-					async function loadb() {
-						for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-							await message.reply.text(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])
-						}
 					}
-					loadb();
 
 				}
 
-				// console.log("rplyVal: " + rplyVal)
-			} else {
-				//console.log(rplyVal.text, " ")
-				TGcounttext++;
-				console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext);
-			}
-			//  }
+				if (rplyVal && rplyVal.text) {
+					TGcountroll++;
+					//console.log('rplyVal.text:' + rplyVal.text)
+					console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext, " content: ", message.text);
+					if (privatemsg == 1) {
+						message.reply.text(message.from.first_name + ' 暗骰進行中')
+						async function loada() {
+							for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+								await TGclient.sendMessage(message.from.id, rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])
+							}
+						}
+						loada();
+					} else {
+
+						async function loadb() {
+							for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+								await message.reply.text(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])
+							}
+						}
+						loadb();
+
+					}
+
+					// console.log("rplyVal: " + rplyVal)
+				} else {
+					//console.log(rplyVal.text, " ")
+					TGcounttext++;
+					console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext);
+				}
+				//  }	}
+			})
 		})
 
 	} catch (e) {

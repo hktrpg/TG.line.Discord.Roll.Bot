@@ -179,7 +179,7 @@ try {
       while (equation.match(/\d+d\d+/) != null) {
         // let totally = 0
         let tempMatch = equation.match(/\d+d\d+/)
-        if (tempMatch.toString().split('d')[0] > 300 || tempMatch.toString().split('d')[0] == 0) return
+        if (tempMatch.toString().split('d')[0] > 500 || tempMatch.toString().split('d')[0] <= 0) return
         if (tempMatch.toString().split('d')[1] <= 1 || tempMatch.toString().split('d')[1] > 1000000) return
         equation = equation.replace(/\d+d\d+/, RollDice(tempMatch))
       }

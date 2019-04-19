@@ -52,7 +52,6 @@ initialize = function () {
 
 rollDiceCommand = function (inputStr, mainMsg) {
     rply.text = '';
-    //let result = {};
     switch (true) {
         case /(\d+)MK6|(\d+)MK|^NAMEA|^NAMEB|^NAMEEX|^NAMEFA|^NAME(\d*)|^PNT(\d*)|^MLT(\d*)|^DFT(\d*)|^LRT|^ORT|^CRT|^ART|^FRT|^TBT|^CBT|^SBT|^VBT|^FBT|^THT|^CHT|^SHT|^VHT|^MPT|^T1T|^T2T|^T3T|^T4T|^T5T|^RWIT|^RUIT|^WIT|^LIT|^RIT|^SIT|^IFT|^IDT|^1RET|^2RET|^3RET|^4RET|^5RET|^6RET|^KDT|^KCT|^KMT|^CAT|^FWT|^CFT|^TT|^NT|^ET|^KNT(\d+)|^WORD(\d+)|^ABT|^WBT|^LBT/i.test(mainMsg[1]):
             bcdice.setGameByTitle("MeikyuKingdom")

@@ -46,6 +46,7 @@ initialize = function () {
 
 rollDiceCommand = function (inputStr, mainMsg) {
     rply.text = '';
+    let result = '';
     if (mainMsg && mainMsg[1])
         result = calldice("ShinobiGami", mainMsg[1])
     if (result && result[0] != 1)

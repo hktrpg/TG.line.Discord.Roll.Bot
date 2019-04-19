@@ -1,5 +1,6 @@
 const BCDice = require('bcdice-js').BCDice; // CommonJS
 const bcdice = new BCDice();
+
 function calldice(gameType, message) {
 	bcdice.setGameByTitle(gameType)
 	bcdice.setMessage(message)
@@ -46,6 +47,7 @@ initialize = function () {
 
 rollDiceCommand = function (inputStr, mainMsg) {
 	rply.text = '';
+	let result = '';
 	switch (true) {
 		case /(^nm$)/i.test(mainMsg[1]):
 			return nechronica_mirenn(mainMsg[2]);
@@ -84,13 +86,15 @@ module.exports = {
 function nechronica(triggermsg, text) {
 	let returnStr = '';
 	var ncarray = [];
-	var dicemax = 0, dicemin = 0, dicenew = 0;
-	var match = /^(\d+)(NC|NA)((\+|-)(\d+)|)$/i.exec(triggermsg);	//判斷式
+	var dicemax = 0,
+		dicemin = 0,
+		dicenew = 0;
+	var match = /^(\d+)(NC|NA)((\+|-)(\d+)|)$/i.exec(triggermsg); //判斷式
 	for (var i = 0; i < Number(match[1]); i++) {
 		dicenew = rollbase.Dice(10) + Number(match[3]);
 		ncarray.push(dicenew);
 	}
-	dicemax = Math.max(...ncarray);	//判斷最大最小值
+	dicemax = Math.max(...ncarray); //判斷最大最小值
 	dicemin = Math.min(...ncarray);
 	if (Number(match[1]) == 1)
 		returnStr += dicemax + '[' + ncarray.pop() + ']';
@@ -111,10 +115,10 @@ function nechronica(triggermsg, text) {
 		else
 			returnStr += ' → 成功';
 	else
-		if (dicemin <= 1)
-			returnStr += ' → 大失敗';
-		else
-			returnStr += ' → 失敗';
+	if (dicemin <= 1)
+		returnStr += ' → 大失敗';
+	else
+		returnStr += ' → 失敗';
 	if (text != null)
 		returnStr += ' ; ' + text;
 	rply.text = returnStr;
@@ -152,4 +156,3 @@ function nechronica_mirenn_table(mode) {
 
 	return returnStr;
 }
-

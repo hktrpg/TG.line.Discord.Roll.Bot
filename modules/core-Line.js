@@ -127,6 +127,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				}
 				loada();
 			} else {
+				Linecounttext++;
+				console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
+
 				async function loadb() {
 					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1200}/g).length; i++) {
 						if (roomorgroupid)

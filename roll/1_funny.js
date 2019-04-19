@@ -6,14 +6,14 @@ var rply = {
 };
 
 gameName = function () {
-	return '趣味擲骰 排序(至少3個選項) choice/隨機(至少3個選項) 每日塔羅 運勢 立flag'
+	return '趣味擲骰 排序(至少3個選項) choice/隨機(至少3個選項) 每日塔羅 運勢 立flag .me'
 }
 
 gameType = function () {
 	return 'funny:hktrpg'
 }
 prefixs = function () {
-	return /排序|隨機|choice|^每日塔羅|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸/i
+	return /^[.]me$|排序|隨機|choice|^每日塔羅|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸/i
 }
 getHelpMessage = function () {
 	return "【趣味擲骰】" + "\
@@ -24,6 +24,10 @@ getHelpMessage = function () {
 	\n隨機排序：啓動語 排序\
 	\n(問題)(啓動語)(問題) (選項1) (選項2)(選項3)\
 	\n例子 交換禮物排序 A君 C君 F君 G君\
+	\n\
+	\n複述功能：啓動語 .me (模擬系統說話)\
+	\n(啓動語) (句子)(句子)(句子)\
+	\n例子 .me C君殺死了NPC 村民, 受到尼什村通緝!\
 	\n\
 	\n占卜運氣功能： 字句中包括「運勢」兩字即可  \
 	\n塔羅牌占卜 大十字塔羅 每日塔羅\
@@ -77,13 +81,22 @@ rollDiceCommand = function (inputStr, mainMsg) {
 			return randomReply();
 		case /運勢/i.test(mainMsg[0]):
 			return randomLuck(mainMsg)
+		case /^[.]me$/i.test(mainMsg[0]):
+			return me(inputStr)
 		default:
 			break;
 	}
 }
 
 
+////////////////////////////////////////
+//////////////// .ME
+////////////////////////////////////////
 
+function me(inputStr) {
+	rply.text = inputStr.replace(/^[.]me/, '')
+	return rply;
+}
 
 ////////////////////////////////////////
 //////////////// 占卜&其他
@@ -256,7 +269,7 @@ function MultiDrawTarot(CardToCal, text, type) {
 		revs[0] = rollbase.FunnyDice(2);
 
 		for (i = 1; i < 3; i++) {
-			for (; ;) {
+			for (;;) {
 				tmpcard = rollbase.FunnyDice(79);
 				if (cards.indexOf(tmpcard) === -1) //沒有重複，就這張了
 				{
@@ -282,7 +295,7 @@ function MultiDrawTarot(CardToCal, text, type) {
 		revs[0] = rollbase.FunnyDice(2);
 
 		for (i = 1; i < 10; i++) {
-			for (; ;) {
+			for (;;) {
 				tmpcard = rollbase.FunnyDice(79);
 				if (cards.indexOf(tmpcard) === -1) //沒有重複，就這張了
 				{

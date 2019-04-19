@@ -78,13 +78,13 @@ initialize = function () {
 
 rollDiceCommand = function (inputStr, mainMsg) {
     rply.text = '';
+    let result = '';
     switch (true) {
         case /(K\d+.*)|(Gr(\d+))|(FT)|(TT)/i.test(mainMsg[1]):
             result = calldice("SwordWorld2_5", mainMsg[1])
             if (result && result[0] != 1)
                 rply.text = mainMsg[1] + result[0];
             return rply;
-
         default:
             break;
     }
@@ -230,7 +230,9 @@ function sw(triggermsg) {
         var returnStr = triggermsg + '(SW 威力表) → ';
         var match = /^(kk)0*([0-9][0-9]?|100)(((\+|-)(\d+)|)((\+|-)(\d+)|))(|\@(\d+))(|\$(\d+))(|\$\+(\d+))(|gf)$/i.exec(triggermsg);
         //	console.log(match);
-        if (match[11] == null) { match[11] = 10 }
+        if (match[11] == null) {
+            match[11] = 10
+        }
         if (match[11] <= 2) {
             match[11] = 3
         }
@@ -271,6 +273,7 @@ function sw(triggermsg) {
         return rply;
     }
 }
+
 function swroll(match, round, returnStr, finallynum) {
     //判斷式  [0]K013+21-5@8,[1]K,[2]13,[3]+21,[4]21,[5]-5,[6]5,[7]@8,[8]8
     //判斷式  [0]KK1+5-5@5$,[1]KK,[2]1,[3]+5-5,[4]+5,[5]+,[6]5,[7]-5,[8]-,[9]5,[10]@5,[11]5,[12]$5,[13]5,[14]$+5,[15]5 
@@ -309,8 +312,7 @@ function swroll(match, round, returnStr, finallynum) {
         if (match[13] != null) {
             varsu += match[13];
 
-        }
-        else {
+        } else {
             varsu += varcoua + ',' + varcoub;
         }
         if (match[15] != null) {
@@ -321,8 +323,7 @@ function swroll(match, round, returnStr, finallynum) {
         match[15] = null;
     }
     returnStr += result + '[' + varsu + '] ';
-    if (isNaN(result)) { }
-    else {
+    if (isNaN(result)) {} else {
         finallynum += Number(result);
     }
     if (match[1] >= 1) {
@@ -332,5 +333,3 @@ function swroll(match, round, returnStr, finallynum) {
     }
     return [match, round, returnStr, finallynum];
 }
-
-

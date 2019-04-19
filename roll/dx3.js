@@ -14,7 +14,7 @@ var rply = {
 };
 
 gameName = function () {
-	return 'DX2nd,3rd .dx xDX+y@c ET'
+	return 'DX2nd,3rd .dx (xDX+y@c ET)'
 }
 
 gameType = function () {
@@ -42,6 +42,7 @@ initialize = function () {
 
 rollDiceCommand = function (inputStr, mainMsg) {
 	rply.text = '';
+	let result = '';
 	switch (true) {
 		case /(\d+dx|ET)/i.test(mainMsg[1]):
 			result = calldice("DoubleCross", mainMsg[1])
@@ -75,9 +76,11 @@ function dx(triggermsg) {
 	//var varcou = 0;
 	var finallynum = 0;
 	var returnStr = triggermsg + ' → ';
-	var match = /^(\d+)(dx)(\d|)(((\+|-)(\d+)|)((\+|-)(\d+)|))$/i.exec(triggermsg);	//判斷式  [0]2dx8-2+10,[1]2,[2]dx,[3]8,[4]-2+10,[5]-2,[6]-,[7]2,[8]+10,[9]+,[10]10  
+	var match = /^(\d+)(dx)(\d|)(((\+|-)(\d+)|)((\+|-)(\d+)|))$/i.exec(triggermsg); //判斷式  [0]2dx8-2+10,[1]2,[2]dx,[3]8,[4]-2+10,[5]-2,[6]-,[7]2,[8]+10,[9]+,[10]10  
 	//	console.log(match);
-	if (match[3] == "") { match[3] = 10 }
+	if (match[3] == "") {
+		match[3] = 10
+	}
 	if (match[3] <= 2) {
 		rply.text = '加骰最少比2高';
 		return rply;
@@ -121,7 +124,9 @@ function dxroll(match, round, returnStr, finallynum) {
 	var varsu = "";
 	for (var i = 0; i < rollnum; i++) {
 		varcou = Math.floor(Math.random() * 10) + 1;
-		if (varcou > result) { result = varcou }
+		if (varcou > result) {
+			result = varcou
+		}
 		if (varcou >= Number(match[3])) {
 			result = 10;
 			match[1]++;
@@ -136,4 +141,3 @@ function dxroll(match, round, returnStr, finallynum) {
 	}
 	return [match, round, returnStr, finallynum];
 }
-

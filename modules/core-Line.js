@@ -96,9 +96,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		} else {
 			if (channelKeyword == '') {
 				rplyVal = exports.analytics.parseInput(mainMsg.join(' '), groupid, userid)
-
 			}
-
 		}
 
 		if (rplyVal && rplyVal.text) {
@@ -107,7 +105,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
 			if (privatemsg == 1) {
 				client.pushMessage(event.source.groupId, replymessage(' 暗骰進行中'))
-					.then(() => { })
+					.then(() => {})
 					.catch((err) => {
 						// error handling
 					});
@@ -115,7 +113,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				async function loada() {
 					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1200}/g).length; i++) {
 						await client.pushMessage(event.source.userId, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
-							.then(() => { })
+							.then(() => {})
 							.catch((err) => {
 								// error handling
 							});
@@ -123,13 +121,16 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				}
 				loada();
 			} else {
+				Linecounttext++;
+				//console.log('rplyVal.text:' + rplyVal.text)
+				console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext);
 				async function loadb() {
 					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1200}/g).length; i++) {
 						if (event.source.groupId)
 							var replyTarget = event.source.groupId
 						else replyTarget = event.source.userId
 						await client.pushMessage(replyTarget, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
-							.then(() => { })
+							.then(() => {})
 							.catch((err) => {
 								// error handling
 							});
@@ -138,21 +139,12 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				loadb();
 
 			}
-
-
-
 		}
-
-
-
-
 		// create a echoing text message
 		//exports.analytics.parseInput(event.message.text)
-
 		// use reply API
 		//Reply Max: 1200 characters
 	}
-
 	// listen on port
 	const port = process.env.PORT || 5000;
 	app.listen(port, () => {

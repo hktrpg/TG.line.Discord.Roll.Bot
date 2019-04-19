@@ -35,6 +35,9 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 			if (message.author.bot === false && message.content != "") {
 				//	console.log('message.content ' + message.content);
 				//	console.log('channelKeyword ' + channelKeyword);
+				let groupid, userid = ''
+				if (message.channel_id) groupid = message.channel_id
+				if (message.author.id) userid = message.author.id
 				let rplyVal = {};
 				let msgSplitor = (/\S+/ig);
 				let mainMsg = message.content.match(msgSplitor); //定義輸入字串
@@ -53,10 +56,10 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				}
 				if (channelKeyword != "" && trigger == channelKeyword.toString().toLowerCase()) {
 					mainMsg.shift();
-					rplyVal = exports.analytics.parseInput(mainMsg.join(' '));
+					rplyVal = exports.analytics.parseInput(mainMsg.join(' '), groupid, userid);
 				} else {
 					if (channelKeyword == "") {
-						rplyVal = exports.analytics.parseInput(mainMsg.join(' '));
+						rplyVal = exports.analytics.parseInput(mainMsg.join(' '), groupid, userid);
 					}
 				}
 				if (rplyVal && rplyVal.text) {

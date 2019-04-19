@@ -19,9 +19,13 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			console.log('Telegram is Ready!');
 		});
 		TGclient.on('text', message => {
+			//console.log(message)
+			let groupid, userid = ''
+			if (message.chat.type) groupid = message.chat.id
+			if (message.from.id) userid = message.from.id
 			let rplyVal = {}
 			let msgSplitor = (/\S+/ig)
-			if (message.text)
+			if (message.text && message.from.is_bot == false)
 				var mainMsg = message.text.match(msgSplitor); // 定義輸入字串
 			if (mainMsg && mainMsg[0])
 				var trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
@@ -37,10 +41,10 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			}
 			if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 				mainMsg.shift()
-				rplyVal = exports.analytics.parseInput(mainMsg.join(' '))
+				rplyVal = exports.analytics.parseInput(mainMsg.join(' '), groupid, userid)
 			} else {
 				if (channelKeyword == '') {
-					rplyVal = exports.analytics.parseInput(mainMsg.join(' '))
+					rplyVal = exports.analytics.parseInput(mainMsg.join(' '), groupid, userid)
 
 				}
 

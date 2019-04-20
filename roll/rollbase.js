@@ -16,8 +16,8 @@ prefixs = function () {
 }
 getHelpMessage = function () {
   return "【基本擲骰】1d100\
-  \n 例如輸入2d6+1　攻撃！\
-  \n 會輸出）2d6+1：攻撃  9[6+3]+1 = 10\
+  \n 例如輸入(2d6+1)*2　攻撃！\
+  \n 會輸出）(2d6+1)*2：攻撃！  (10[5+5]+1)2 = 22\
   \n 如上面一樣,在骰子數字後方隔空白位打字,可以進行發言。\
   \n 5 3D6 ：	分別骰出5次3d6 最多30次\
   \n "
@@ -132,7 +132,7 @@ try {
 
     // 是複數擲骰喔
     if (mutiOrNot.toString().match(/\D/) == null && text1) {
-      if (text1.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]/ig, '') || text1.match(/([d]|[+]|[-]|[*]|[/]|[D])([d]|[+]|[-]|[*]|[/]|[D])/ig) || text1.match(/[d]$|[+]$|[-]$|[*]$|[/]$|[D]$/ig) || text1.match(/\d+[d]+\d+[d]/ig)) return;
+      if (text1.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]/ig, '') || text1.match(/([d]|[+]|[-]|[*]|[/]|[D])([d]|[+]|[-]|[*]|[/]|[D])/ig) || text1.match(/[d]$|[+]$|[-]$|[*]$|[/]$|[D]$/ig) || text1.match(/\d+[d]+\d+[d]/ig) || text0.match(/[)]\d/g)) return;
       if (text2 != null) {
         finalStr = text0 + '次擲骰：\n' + text1 + ' ' + text2 + '\n'
       } else {
@@ -172,7 +172,7 @@ try {
       let DiceToRoll = mutiOrNot.toString().toLowerCase()
       DiceToRoll = DiceToRoll.toLowerCase()
       if (DiceToRoll.match('d') == null) return
-      if (text0.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]/g, '') || text0.match(/([d]|[+]|[-]|[*]|[/]|[D]$)([d]|[+]|[-]|[*]|[/]|[D])/g) || text0.match(/[d]$|[+]$|[-]$|[*]$|[/]$|[D]$/g) || text0.toLowerCase().match(/\d+[d]+\d+[d]/g)) return;
+      if (text0.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]/g, '') || text0.match(/([d]|[+]|[-]|[*]|[/]|[D]$)([d]|[+]|[-]|[*]|[/]|[D])/g) || text0.match(/[d]$|[+]$|[-]$|[*]$|[/]$|[D]$/g) || text0.toLowerCase().match(/\d+[d]+\d+[d]/g) || text0.match(/[)]\d/g)) return;
 
       // 寫出算式
       let equation = DiceToRoll

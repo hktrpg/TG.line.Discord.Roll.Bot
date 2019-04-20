@@ -147,7 +147,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 		} else {
 			Linecounttext++;
-			console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
+			console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext);
 		}
 
 

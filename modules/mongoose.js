@@ -1,9 +1,12 @@
 if (process.env.mongoU2RL) {
     const mongoose = require('mongoose');
     let uristring = process.env.mongoURL;
-    mongoose.connect(uristring, { useNewUrlParser: true });
+    mongoose.connect(uristring, {
+        useNewUrlParser: true
+    });
     //export 
     var switchJson;
+    var ObjectId = mongoose.Schema.Types.ObjectId;
     mongoose.connect(uristring, function (err, res) {
         if (err) {
             console.log('ERROR connecting to: ' + uristring + '. ' + err);
@@ -22,9 +25,25 @@ if (process.env.mongoU2RL) {
         }
     });
 
-    var functionSchema = new Schema({
-        group: { groupid: String },
-        user: { userid: String, admin: Boolean },
+    const functionSchema = new Schema({
+
+        groupid: ObjectId,
+
+        user: {
+            userid: String,
+            admin: Boolean
+        },
+        function_name: Array,
+        switch: String
+    });
+    const GroupSchema = new Schema({
+        group: {
+            groupid: String
+        },
+        user: {
+            userid: String,
+            admin: Boolean
+        },
         function_name: Array,
         switch: String
     });

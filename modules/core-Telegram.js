@@ -53,7 +53,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			if (rplyVal && rplyVal.text) {
 				TGcountroll++;
 				//console.log('rplyVal.text:' + rplyVal.text)
-				console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext, " content: ", message.text);
+				//console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext, " content: ", message.text);
 				if (privatemsg == 1) {
 					message.reply.text(message.from.first_name + ' 暗骰進行中')
 					async function loada() {
@@ -77,7 +77,8 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			} else {
 				//console.log(rplyVal.text, " ")
 				TGcounttext++;
-				console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext);
+				if (TGcounttext % 500 == 0)
+					console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext);
 			}
 			//  }
 		})

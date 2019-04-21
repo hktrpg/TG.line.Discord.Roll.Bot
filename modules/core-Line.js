@@ -105,7 +105,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		if (rplyVal && rplyVal.text) {
 			Linecountroll++;
 			//console.log('rplyVal.text:' + rplyVal.text)
-			console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
+			//console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
 
 			if (privatemsg == 1) {
 
@@ -147,7 +147,8 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 		} else {
 			Linecounttext++;
-			console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext);
+			if (Linecounttext % 500 == 0)
+				console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext);
 		}
 
 

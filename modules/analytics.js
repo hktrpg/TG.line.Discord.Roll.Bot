@@ -27,7 +27,18 @@ try {
 
 
 		Object.keys(exports).forEach(v => {
-			if (exports[v].prefixs && trigger.match(exports[v].prefixs()) != null) {
+			console.log(exports[v].prefixs()[0])
+			console.log(exports[v].prefixs()[1])
+			let checkmainMsg0 = 1;
+			let checkmainMsg1 = 1;
+			if (exports[v].prefixs && trigger.match(exports[v].prefixs()[0])) {
+				checkmainMsg0 = 2;
+			}
+			if (exports[v].prefixs && trigger.match(exports[v].prefixs()[1])) {
+				checkmainMsg0 = 2;
+			}
+			
+			if (exports[v].prefixs && trigger.match(exports[v].prefixs()[1]) != null) {
 				console.log('trigger: ', trigger, ' v: ', v)
 				let temp = exports[v].rollDiceCommand(inputStr, mainMsg)
 				if (temp)

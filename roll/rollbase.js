@@ -1,3 +1,4 @@
+const math = require('mathjs');
 var rply = {
   default: 'on',
   type: 'text',
@@ -95,7 +96,7 @@ try {
     }
 
     // 計算算式
-    let answer = eval(equation.toString())
+    let answer = math.eval(equation.toString())
     finalStr = equation + ' = ' + answer
 
     return finalStr
@@ -158,7 +159,7 @@ try {
         aaa = aaa.replace(/\d+[[]/ig, '(')
         aaa = aaa.replace(/]/ig, ')')
         // aaa = aaa.replace(/[[]\d+|]/ig, "")
-        let answer = eval(aaa.toString())
+        let answer = math.eval(aaa.toString())
         if (equation.match(/[\s\S]{1,400}/g).length > 1) {
           finalStr = finalStr + i + '# ' + ' = ' + answer + '（計算過程太長，僅顯示結果）\n'
 
@@ -174,6 +175,7 @@ try {
       if (DiceToRoll.match('d') == null) return
       if (text0.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]/g, '') || text0.match(/([d]|[+]|[-]|[*]|[/]|[D]$)([d]|[+]|[-]|[*]|[/]|[D])/g) || text0.match(/[d]$|[+]$|[-]$|[*]$|[/]$|[D]$/g) || text0.toLowerCase().match(/\d+[d]+\d+[d]/g) || text0.match(/[)]\d/g) || text0.match(/^([d]|[+]|[-]|[*]|[/]|[D])/g)) return;
 
+      //if ((text0.match(/[(]/g) || text0.match(/[)]/g)) && text0.match(/[(]/g).length != text0.match(/[)]/g).length) return;
       // 寫出算式
       let equation = DiceToRoll
       while (equation.match(/\d+d\d+/) != null) {
@@ -188,7 +190,7 @@ try {
       let aaa = equation
       aaa = aaa.replace(/\d+[[]/ig, '(')
       aaa = aaa.replace(/]/ig, ')')
-      let answer = eval(aaa.toString())
+      let answer = math.eval(aaa.toString())
 
       if (text1 != null) {
         finalStr = text0 + '：' + text1 + '\n' + equation + ' = ' + answer

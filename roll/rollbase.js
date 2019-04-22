@@ -1,3 +1,4 @@
+const math = require('mathjs');
 var rply = {
   default: 'on',
   type: 'text',
@@ -12,7 +13,7 @@ gameType = function () {
   return 'rollbase:hktrpg'
 }
 prefixs = function () {
-  return /(\d+d\d+)|(^[1-9]$)|(^[1-2][0-9]$)|(^[3][0]$)/i
+  return [/(\d+d\d+)|(^[1-9]$)|(^[1-2][0-9]$)|(^[3][0]$)/i]
 }
 getHelpMessage = function () {
   return "【基本擲骰】1d100\
@@ -42,7 +43,7 @@ rollDiceCommand = function (inputStr, mainMsg) {
 // //////////////////////////////////////
 try {
   function Dice(diceSided) {
-    return Math.floor((Math.random() * diceSided) + 1)
+    return math.floor((math.random() * diceSided) + 1)
   }
 
   function sortNumber(a, b) {
@@ -67,13 +68,13 @@ try {
   }
 
   function FunnyDice(diceSided) {
-    return Math.floor((Math.random() * diceSided)) // 猜拳，從0開始
+    return math.floor((math.random() * diceSided)) // 猜拳，從0開始
   }
 
   function BuildDiceCal(inputStr) {
 
     // 首先判斷是否是誤啟動（檢查是否有符合骰子格式）
-    if (inputStr.toLowerCase().match(/\d+d\d+/) == null) return undefined
+    if (inputStr.toLowerCase().match(/\d+d\d+/i) == null) return undefined
 
     // 排除小數點
     if (inputStr.toString().match(/\./) != null) return undefined
@@ -95,7 +96,7 @@ try {
     }
 
     // 計算算式
-    let answer = eval(equation.toString())
+    let answer = math.eval(equation.toString())
     finalStr = equation + ' = ' + answer
 
     return finalStr
@@ -131,7 +132,9 @@ try {
     let finalStr = ''
 
     // 是複數擲骰喔
-    if (mutiOrNot.toString().match(/\D/) == null && text1) {
+
+    if (mutiOrNot.toString().match(/\D/i) == null && text1) {
+
       if (text1.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]/ig, '') || text1.match(/([d]|[+]|[-]|[*]|[/]|[D])([d]|[+]|[-]|[*]|[/]|[D])/ig) || text1.match(/[d]$|[+]$|[-]$|[*]$|[/]$|[D]$/ig) || text1.match(/\d+[d]+\d+[d]/ig) || text1.match(/[)]\d/ig) || text1.match(/^([d]|[+]|[-]|[*]|[/]|[D])/ig)) return;
       if (text2 != null) {
         finalStr = text0 + '次擲骰：\n' + text1 + ' ' + text2 + '\n'
@@ -158,7 +161,7 @@ try {
         aaa = aaa.replace(/\d+[[]/ig, '(')
         aaa = aaa.replace(/]/ig, ')')
         // aaa = aaa.replace(/[[]\d+|]/ig, "")
-        let answer = eval(aaa.toString())
+        let answer = math.eval(aaa.toString())
         if (equation.match(/[\s\S]{1,400}/g).length > 1) {
           finalStr = finalStr + i + '# ' + ' = ' + answer + '（計算過程太長，僅顯示結果）\n'
 
@@ -174,6 +177,7 @@ try {
       if (DiceToRoll.match('d') == null) return
       if (text0.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]/ig, '') || text0.match(/([d]|[+]|[-]|[*]|[/]|[D]$)([d]|[+]|[-]|[*]|[/]|[D])/ig) || text0.match(/[d]$|[+]$|[-]$|[*]$|[/]$|[D]$/ig) || text0.toLowerCase().match(/\d+[d]+\d+[d]/ig) || text0.match(/[)]\d/ig) || text0.match(/^([d]|[+]|[-]|[*]|[/]|[D])/ig)) return;
 
+      //if ((text0.match(/[(]/g) || text0.match(/[)]/g)) && text0.match(/[(]/g).length != text0.match(/[)]/g).length) return;
       // 寫出算式
       let equation = DiceToRoll
       while (equation.match(/\d+d\d+/i) != null) {
@@ -188,7 +192,7 @@ try {
       let aaa = equation
       aaa = aaa.replace(/\d+[[]/ig, '(')
       aaa = aaa.replace(/]/ig, ')')
-      let answer = eval(aaa.toString())
+      let answer = math.eval(aaa.toString())
 
       if (text1 != null) {
         finalStr = text0 + '：' + text1 + '\n' + equation + ' = ' + answer

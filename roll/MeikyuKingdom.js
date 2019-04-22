@@ -15,7 +15,7 @@ gameType = function () {
     return 'MeikyuKingdom:hktrpg'
 }
 prefixs = function () {
-    return /^[.]mk$/i
+    return [/^[.]mk$/i]
 }
 getHelpMessage = function () {
     return "【迷宮王國MeikyuKingdom】" + "\

@@ -27,7 +27,25 @@ try {
 
 
 		Object.keys(exports).forEach(v => {
-			if (exports[v].prefixs && trigger.match(exports[v].prefixs()) != null) {
+			//0 = 不存在
+			//1 = 符合
+			//2 = 不符合
+			let checkmainMsg0 = 0;
+			let checkmainMsg1 = 0;
+			if (exports[v].prefixs()[0] && exports[v].prefixs()[0]) {
+				checkmainMsg0 = 2;
+			}
+			if (exports[v].prefixs()[1] && exports[v].prefixs()[1]) {
+				checkmainMsg1 = 2;
+			}
+			if (exports[v].prefixs()[0] && exports[v].prefixs()[0].test(mainMsg[0])) {
+				checkmainMsg0 = 1;
+			}
+			if (exports[v].prefixs()[1] && exports[v].prefixs()[1].test(mainMsg[1])) {
+				checkmainMsg1 = 1;
+			}
+
+			if (checkmainMsg0 <= 1 && checkmainMsg1 <= 1 && checkmainMsg0 + checkmainMsg1 >= 1) {
 				console.log('trigger: ', trigger, ' v: ', v)
 				let temp = exports[v].rollDiceCommand(inputStr, mainMsg)
 				if (temp)

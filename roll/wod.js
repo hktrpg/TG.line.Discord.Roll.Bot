@@ -13,7 +13,7 @@ gameType = function () {
 	return 'WOD:hktrpg'
 }
 prefixs = function () {
-	return /^[.](\d+)(wd)(\d|)((\+|-)(\d+)|)$/i
+	return [/^[.](\d+)(wd)(\d|)((\+|-)(\d+)|)$/i]
 }
 getHelpMessage = function () {
 	return "【WOD 黑暗世界擲骰】" + "\

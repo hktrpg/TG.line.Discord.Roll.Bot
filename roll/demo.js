@@ -12,7 +12,7 @@ gameType = function () {
     return 'Demo:hktrpg'
 }
 prefixs = function () {
-    return /^Demo$/i
+    return [/^Demo$/i,/^啊$/i]
 }
 getHelpMessage = function () {
     return "【示範】" + "\

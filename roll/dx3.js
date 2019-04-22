@@ -21,7 +21,7 @@ gameType = function () {
 	return 'Dx2,3:hktrpg'
 }
 prefixs = function () {
-	return /^[.]dx$/i
+	return [/^[.]dx$/i]
 }
 getHelpMessage = function () {
 	return "【Double Cross 2nd,3rd】" + "\

@@ -17,6 +17,7 @@
     "discord.js": "^11.4.2",
     "dotenv": "^7.0.0",
     "express": "^4.13.3",
+    "mathjs": "^5.9.0",
     "mongoose": "^5.0.6",
     "telebot": "^1.2.6"
   },

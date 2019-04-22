@@ -20,7 +20,7 @@ if (process.env.HEROKU_RELEASE_VERSION)
 	heroku_version = process.env.HEROKU_RELEASE_VERSION;
 var version = "v1." + Object.keys(exports).length + "." + heroku_version.replace(/[v]/, '');
 if (process.env.HEROKU_RELEASE_CREATED_AT)
-	version += '\n最後更新時間' + Date(process.env.HEROKU_RELEASE_CREATED_AT).toLocaleString("en-US", {
+	version += '\n最後更新時間' + new Date(process.env.HEROKU_RELEASE_CREATED_AT).toLocaleString("en-US", {
 		timeZone: "Asia/Shanghai"
 	}).replace('GMT+0800 (GMT+08:00)', '');
 

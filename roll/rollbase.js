@@ -74,7 +74,7 @@ try {
   function BuildDiceCal(inputStr) {
 
     // 首先判斷是否是誤啟動（檢查是否有符合骰子格式）
-    if (inputStr.toLowerCase().match(/\d+d\d+/) == null) return undefined
+    if (inputStr.toLowerCase().match(/\d+d\d+/i) == null) return undefined
 
     // 排除小數點
     if (inputStr.toString().match(/\./) != null) return undefined
@@ -88,11 +88,11 @@ try {
 
     // 寫出算式
     let equation = DiceToRoll
-    while (equation.match(/\d+d\d+/) != null) {
-      let tempMatch = equation.match(/\d+d\d+/)
+    while (equation.match(/\d+d\d+/i) != null) {
+      let tempMatch = equation.match(/\d+d\d+/i)
       if (tempMatch.toString().split('d')[0] > 200) return '欸欸，不支援200D以上擲骰；哪個時候會骰到兩百次以上？想被淨灘嗎？'
       if (tempMatch.toString().split('d')[1] == 1 || tempMatch.toString().split('d')[1] > 500) return '不支援D1和超過D500的擲骰；想被淨灘嗎？'
-      equation = equation.replace(/\d+d\d+/, BuildRollDice(tempMatch))
+      equation = equation.replace(/\d+d\d+/i, BuildRollDice(tempMatch))
     }
 
     // 計算算式
@@ -132,8 +132,8 @@ try {
     let finalStr = ''
 
     // 是複數擲骰喔
-    if (mutiOrNot.toString().match(/\D/) == null && text1) {
-      if (text1.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]/ig, '') || text1.match(/([d]|[+]|[-]|[*]|[/]|[D])([d]|[+]|[-]|[*]|[/]|[D])/ig) || text1.match(/[d]$|[+]$|[-]$|[*]$|[/]$|[D]$/ig) || text1.match(/\d+[d]+\d+[d]/ig) || text1.match(/[)]\d/g) || text1.match(/^([d]|[+]|[-]|[*]|[/]|[D])/g)) return;
+    if (mutiOrNot.toString().match(/\D/i) == null && text1) {
+      if (text1.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]/ig, '') || text1.match(/([d]|[+]|[-]|[*]|[/]|[D])([d]|[+]|[-]|[*]|[/]|[D])/ig) || text1.match(/[d]$|[+]$|[-]$|[*]$|[/]$|[D]$/ig) || text1.match(/\d+[d]+\d+[d]/ig) || text1.match(/[)]\d/ig) || text1.match(/^([d]|[+]|[-]|[*]|[/]|[D])/ig)) return;
       if (text2 != null) {
         finalStr = text0 + '次擲骰：\n' + text1 + ' ' + text2 + '\n'
       } else {
@@ -149,9 +149,9 @@ try {
 
         // 寫出算式
         let equation = DiceToRoll
-        while (equation.match(/\d+d\d+/) != null) {
-          let tempMatch = equation.match(/\d+d\d+/)
-          equation = equation.replace(/\d+d\d+/, RollDice(tempMatch))
+        while (equation.match(/\d+d\d+/i) != null) {
+          let tempMatch = equation.match(/\d+d\d+/i)
+          equation = equation.replace(/\d+d\d+/i, RollDice(tempMatch))
         }
 
         // 計算算式
@@ -173,17 +173,17 @@ try {
       let DiceToRoll = mutiOrNot.toString().toLowerCase()
       DiceToRoll = DiceToRoll.toLowerCase()
       if (DiceToRoll.match('d') == null) return
-      if (text0.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]/g, '') || text0.match(/([d]|[+]|[-]|[*]|[/]|[D]$)([d]|[+]|[-]|[*]|[/]|[D])/g) || text0.match(/[d]$|[+]$|[-]$|[*]$|[/]$|[D]$/g) || text0.toLowerCase().match(/\d+[d]+\d+[d]/g) || text0.match(/[)]\d/g) || text0.match(/^([d]|[+]|[-]|[*]|[/]|[D])/g)) return;
+      if (text0.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]/ig, '') || text0.match(/([d]|[+]|[-]|[*]|[/]|[D]$)([d]|[+]|[-]|[*]|[/]|[D])/ig) || text0.match(/[d]$|[+]$|[-]$|[*]$|[/]$|[D]$/ig) || text0.toLowerCase().match(/\d+[d]+\d+[d]/ig) || text0.match(/[)]\d/ig) || text0.match(/^([d]|[+]|[-]|[*]|[/]|[D])/ig)) return;
 
       //if ((text0.match(/[(]/g) || text0.match(/[)]/g)) && text0.match(/[(]/g).length != text0.match(/[)]/g).length) return;
       // 寫出算式
       let equation = DiceToRoll
-      while (equation.match(/\d+d\d+/) != null) {
+      while (equation.match(/\d+d\d+/i) != null) {
         // let totally = 0
-        let tempMatch = equation.match(/\d+d\d+/)
+        let tempMatch = equation.match(/\d+d\d+/i)
         if (tempMatch.toString().split('d')[0] > 500 || tempMatch.toString().split('d')[0] <= 0) return
         if (tempMatch.toString().split('d')[1] <= 1 || tempMatch.toString().split('d')[1] > 1000000) return
-        equation = equation.replace(/\d+d\d+/, RollDice(tempMatch))
+        equation = equation.replace(/\d+d\d+/i, RollDice(tempMatch))
       }
 
       // 計算算式

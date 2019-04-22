@@ -14,12 +14,15 @@ var rply = {
 	text: ''
 }; //type是必需的,但可以更改
 //heroku labs:enable runtime-dyno-metadata -a <app name>
+
 var heroku_version = 'v0'
 if (process.env.HEROKU_RELEASE_VERSION)
 	heroku_version = process.env.HEROKU_RELEASE_VERSION;
 var version = "v1." + Object.keys(exports).length + "." + heroku_version.replace(/[v]/, '');
 if (process.env.HEROKU_RELEASE_CREATED_AT)
-	version += '\n最後更新時間' + process.env.HEROKU_RELEASE_CREATED_AT;
+	version += '\n最後更新時間' + Date(process.env.HEROKU_RELEASE_CREATED_AT).toLocaleString("en-US", {
+		timeZone: "Asia/Shanghai"
+	}).replace('GMT+0800 (GMT+08:00)', '');
 
 gameName = function () {
 	return '骰子機器人HKTRPG說明'

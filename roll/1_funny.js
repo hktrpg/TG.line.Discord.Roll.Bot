@@ -13,7 +13,7 @@ gameType = function () {
 	return 'funny:hktrpg'
 }
 prefixs = function () {
-	return [/^[.]me$|排序|隨機|choice|^每日塔羅|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸/i,]
+	return [/^[.]me$|排序|隨機|choice|^每日塔羅|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸/i, ]
 }
 getHelpMessage = function () {
 	return "【趣味擲骰】" + "\
@@ -29,7 +29,7 @@ getHelpMessage = function () {
 	\n(啓動語) (句子)(句子)(句子)\
 	\n例子 .me C君殺死了NPC 村民, 受到尼什村通緝!\
 	\n\
-	\n占卜運氣功能： 字句中包括「運勢」兩字即可  \
+	\n占卜運氣功能： 字句中包括「運勢」兩字及四十字以內  \
 	\n塔羅牌占卜 大十字塔羅 每日塔羅\
 	\n時間塔羅 等關键字可啓動  \
 		\n "
@@ -75,11 +75,11 @@ rollDiceCommand = function (inputStr, mainMsg) {
 			if (mainMsg[0].match(/^時間塔羅/) != null) return MultiDrawTarot(mainMsg[1], mainMsg[2], 1);
 			if (mainMsg[0].match(/^大十字塔羅/) != null) return MultiDrawTarot(mainMsg[1], mainMsg[2], 2);
 			break;
-		case /立flag/i.test(mainMsg[0]):
+		case /立flag/i.test(mainMsg[0] && mainMsg[0].toString().match(/[\s\S]{1,20}/g).length <= 1):
 			return BStyleFlagSCRIPTS()
-		case /鴨霸獸/i.test(mainMsg[0]):
+		case /^鴨霸獸$/i.test(mainMsg[0]):
 			return randomReply();
-		case /運勢/i.test(mainMsg[0]):
+		case (/運勢/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,40}/g).length <= 1):
 			return randomLuck(mainMsg)
 		case /^[.]me$/i.test(mainMsg[0]):
 			return me(inputStr)

@@ -20,7 +20,7 @@ gameType = function () {
     return 'Airgetlamh:hktrpg'
 }
 prefixs = function () {
-    return /^[.]al$/i
+    return [/^[.]al$/i]
 }
 getHelpMessage = function () {
     return "【朱の孤塔のエアゲトラム】" + "\

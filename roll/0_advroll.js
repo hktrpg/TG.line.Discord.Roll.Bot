@@ -13,7 +13,7 @@ gameType = function () {
 	return 'advroll:hktrpg'
 }
 prefixs = function () {
-	return [/^(\d+)(b)(\d+)$|^(\d+)(u)(\d+)$|^d66s$/i, /^d66$/i]
+	return [/^(\d+)(b)(\d+)$|^(\d+)(u)(\d+)$|^d66s$|^d66$/i,]
 }
 getHelpMessage = function () {
 	return "【進階擲骰】" + "\

@@ -13,7 +13,7 @@ gameType = function () {
 	return 'CoC:hktrpg'
 }
 prefixs = function () {
-	return /(^ccrt$)|(^ccsu$)|(^ccb$)|(^cc$)|(^ccn[1-2]$)|(^cc[1-2]$)|(^[.]dp$)|(^成長檢定$)|(^幕間成長$)|(^cc7版創角$)|(^cc6版創角$)|(^cc7版角色背景$)/i
+	return [/(^ccrt$)|(^ccsu$)|(^ccb$)|(^cc$)|(^ccn[1-2]$)|(^cc[1-2]$)|(^[.]dp$)|(^成長檢定$)|(^幕間成長$)|(^cc7版創角$)|(^cc6版創角$)|(^cc7版角色背景$)/i]
 }
 getHelpMessage = function () {
 	return "【克蘇魯神話】" + "\

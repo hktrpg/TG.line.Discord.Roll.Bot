@@ -13,7 +13,7 @@ gameType = function () {
   return 'rollbase:hktrpg'
 }
 prefixs = function () {
-  return /(\d+d\d+)|(^[1-9]$)|(^[1-2][0-9]$)|(^[3][0]$)/i
+  return [/(\d+d\d+)|(^[1-9]$)|(^[1-2][0-9]$)|(^[3][0]$)/i]
 }
 getHelpMessage = function () {
   return "【基本擲骰】1d100\
@@ -43,7 +43,7 @@ rollDiceCommand = function (inputStr, mainMsg) {
 // //////////////////////////////////////
 try {
   function Dice(diceSided) {
-    return Math.floor((Math.random() * diceSided) + 1)
+    return math.floor((math.random() * diceSided) + 1)
   }
 
   function sortNumber(a, b) {
@@ -68,7 +68,7 @@ try {
   }
 
   function FunnyDice(diceSided) {
-    return Math.floor((Math.random() * diceSided)) // 猜拳，從0開始
+    return math.floor((math.random() * diceSided)) // 猜拳，從0開始
   }
 
   function BuildDiceCal(inputStr) {

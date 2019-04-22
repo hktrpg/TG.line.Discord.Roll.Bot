@@ -13,7 +13,7 @@ gameType = function () {
 	return 'funny:hktrpg'
 }
 prefixs = function () {
-	return /^[.]me$|排序|隨機|choice|^每日塔羅|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸/i
+	return [/^[.]me$|排序|隨機|choice|^每日塔羅|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸/i,]
 }
 getHelpMessage = function () {
 	return "【趣味擲骰】" + "\

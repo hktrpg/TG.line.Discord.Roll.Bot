@@ -28,6 +28,7 @@ try {
 			//0 = 不存在
 			//1 = 符合
 			//2 = 不符合
+			if (!mainMsg[1]) mainMsg[1] = '';
 			let checkmainMsg0 = 0;
 			let checkmainMsg1 = 0;
 			var findprefixs = 0;

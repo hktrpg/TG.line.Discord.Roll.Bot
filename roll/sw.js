@@ -21,7 +21,7 @@ gameType = function () {
     return 'sw2.5:hktrpg'
 }
 prefixs = function () {
-    return [/^[.]sw$/i]
+return [/^[.]sw$/i, /\S/]
 }
 getHelpMessage = function () {
     return "【劍世界2.5】" + "\

@@ -15,7 +15,8 @@ gameType = function () {
 prefixs = function () {
   return [
     /(\d+d\d+)/i, ,
-    /(^[1-9]$)|(^[1-2][0-9]$)|(^[3][0]$)/i, /(\d+d\d+)/i]
+    /(^[1-9]$)|(^[1-2][0-9]$)|(^[3][0]$)/i, /(\d+d\d+)/i
+  ]
 }
 getHelpMessage = function () {
   return "【基本擲骰】1d100\
@@ -134,10 +135,15 @@ try {
     let finalStr = ''
 
     // 是複數擲骰喔
+    let mathcheck =
+      /(([d]|[+]|[-]|[*]|[/])([d]|[+]|[-]|[*]|[/]))|(([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[(])$)|(\d+[d]+\d+[d])|([)]\d)|(^([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[)]))|([(][)])|([<][<])|([>][>])/ig
+
 
     if (mutiOrNot.toString().match(/\D/i) == null && text1) {
-
-      if (text1.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]/ig, '') || text1.match(/([d]|[+]|[-]|[*]|[/]|[D])([d]|[+]|[-]|[*]|[/]|[D])/ig) || text1.match(/[d]$|[+]$|[-]$|[*]$|[/]$|[D]$/ig) || text1.match(/\d+[d]+\d+[d]/ig) || text1.match(/[)]\d/ig) || text1.match(/^([d]|[+]|[-]|[*]|[/]|[D])/ig)) return;
+      if (text1.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]/ig, '') || text1.match(mathcheck)) return;
+      let test1 = text1.match(/[(]/g) || '';
+      let test2 = text1.match(/[)]/g) || '';
+      if (test2.length != test1.length) return;
       if (text2 != null) {
         finalStr = text0 + '次擲骰：\n' + text1 + ' ' + text2 + '\n'
       } else {
@@ -177,7 +183,10 @@ try {
       let DiceToRoll = mutiOrNot.toString().toLowerCase()
       DiceToRoll = DiceToRoll.toLowerCase()
       if (DiceToRoll.match('d') == null) return
-      if (text0.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]/ig, '') || text0.match(/([d]|[+]|[-]|[*]|[/]|[D]$)([d]|[+]|[-]|[*]|[/]|[D])/ig) || text0.match(/[d]$|[+]$|[-]$|[*]$|[/]$|[D]$/ig) || text0.toLowerCase().match(/\d+[d]+\d+[d]/ig) || text0.match(/[)]\d/ig) || text0.match(/^([d]|[+]|[-]|[*]|[/]|[D])/ig)) return;
+      if (text0.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]/ig, '') || text0.match(mathcheck)) return;
+      let test1 = text0.match(/[(]/g) || '';
+      let test2 = text0.match(/[)]/g) || '';
+      if (test2.length != test1.length) return;
 
       //if ((text0.match(/[(]/g) || text0.match(/[)]/g)) && text0.match(/[(]/g).length != text0.match(/[)]/g).length) return;
       // 寫出算式

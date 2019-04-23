@@ -1,9 +1,10 @@
-if (process.env.mongoU2RL) {
+if (process.env.mongoURL) {
     const mongoose = require('mongoose');
     let uristring = process.env.mongoURL;
     mongoose.connect(uristring, {
         useNewUrlParser: true
     });
+    var Schema = mongoose.Schema;
     //export 
     var switchJson;
     var ObjectId = mongoose.Schema.Types.ObjectId;
@@ -54,7 +55,8 @@ if (process.env.mongoU2RL) {
     var functionSwitch = mongoose.model('functionSwitchs', functionSchema);
 
     module.exports = {
-        functionSwitch: functionSwitch
+        functionSwitch: functionSwitch,
+        Schema: Schema
     };
 
 }

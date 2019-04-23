@@ -24,28 +24,37 @@ try {
 			type: 'text'
 		};
 		//在下面位置開始分析trigger
-
-
 		Object.keys(exports).forEach(v => {
 			//0 = 不存在
 			//1 = 符合
 			//2 = 不符合
 			let checkmainMsg0 = 0;
 			let checkmainMsg1 = 0;
+			var findprefixs = 0;
 			if (exports[v].prefixs()[0] && exports[v].prefixs()[0]) {
-				checkmainMsg0 = 2;
-			}
-			if (exports[v].prefixs()[1] && exports[v].prefixs()[1]) {
-				checkmainMsg1 = 2;
-			}
-			if (exports[v].prefixs()[0] && exports[v].prefixs()[0].test(mainMsg[0])) {
-				checkmainMsg0 = 1;
-			}
-			if (exports[v].prefixs()[1] && exports[v].prefixs()[1].test(mainMsg[1])) {
-				checkmainMsg1 = 1;
+				for (i = 0; i <= exports[v].prefixs().length - 1; i = i + 2) {
+					checkmainMsg0 = 0;
+					checkmainMsg1 = 0;
+					if (exports[v].prefixs()[i] && exports[v].prefixs()[i]) {
+						checkmainMsg0 = 2;
+						if (exports[v].prefixs()[i + 1] && exports[v].prefixs()[i + 1]) {
+							checkmainMsg1 = 2;
+						}
+						if (exports[v].prefixs()[i] && exports[v].prefixs()[i].test(mainMsg[0])) {
+							checkmainMsg0 = 1;
+						}
+						if (exports[v].prefixs()[i + 1] && exports[v].prefixs()[i + 1].test(mainMsg[1])) {
+							checkmainMsg1 = 1;
+						}
+						if (checkmainMsg0 <= 1 && checkmainMsg1 <= 1 && checkmainMsg0 + checkmainMsg1 >= 1) {
+							findprefixs = 1;
+							i = 99999;
+						}
+					}
+				}
 			}
 
-			if (checkmainMsg0 <= 1 && checkmainMsg1 <= 1 && checkmainMsg0 + checkmainMsg1 >= 1) {
+			if (findprefixs == 1) {
 				console.log('trigger: ', trigger, ' v: ', v)
 				let temp = exports[v].rollDiceCommand(inputStr, mainMsg)
 				if (temp)

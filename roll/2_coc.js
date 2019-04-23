@@ -13,7 +13,8 @@ gameType = function () {
 	return 'CoC:hktrpg'
 }
 prefixs = function () {
-	return [/(^ccrt$)|(^ccsu$)|(^ccb$)|(^cc$)|(^ccn[1-2]$)|(^cc[1-2]$)|(^[.]dp$)|(^成長檢定$)|(^幕間成長$)|(^cc7版創角$)|(^cc6版創角$)|(^cc7版角色背景$)/i]
+	return [/(^ccrt$)|(^ccsu$)|(^cc7版創角$)|(^cc6版創角$)|(^cc7版角色背景$)/i, ,
+		/(^ccb$)|(^cc$)|(^ccn[1-2]$)|(^cc[1-2]$)|(^[.]dp$)|(^成長檢定$)|(^幕間成長$)/i, /^\d+$/]
 }
 getHelpMessage = function () {
 	return "【克蘇魯神話】" + "\
@@ -328,12 +329,12 @@ function ccrt() {
 	if (rollcc <= 7) {
 		rply.text = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數';
 	} else
-	if (rollcc == 8) {
-		rply.text = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數' + ' \n' + cocManias[PP];
-	} else
-	if (rollcc == 9) {
-		rply.text = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數' + ' \n' + cocPhobias[PP];
-	};
+		if (rollcc == 8) {
+			rply.text = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數' + ' \n' + cocManias[PP];
+		} else
+			if (rollcc == 9) {
+				rply.text = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數' + ' \n' + cocPhobias[PP];
+			};
 	return rply;
 }
 
@@ -344,12 +345,12 @@ function ccsu() {
 	if (rollcc <= 7) {
 		rply.text = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時';
 	} else
-	if (rollcc == 8) {
-		rply.text = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時' + ' \n' + cocManias[PP];
-	} else
-	if (rollcc == 9) {
-		rply.text = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時' + ' \n' + cocPhobias[PP];
-	};
+		if (rollcc == 8) {
+			rply.text = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時' + ' \n' + cocManias[PP];
+		} else
+			if (rollcc == 9) {
+				rply.text = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時' + ' \n' + cocPhobias[PP];
+			};
 	return rply;
 }
 
@@ -492,8 +493,8 @@ function build7char(text01) {
 	ReStr = ReStr + '==\n';
 	if (old < 20) ReStr = ReStr + '年齡調整：從STR、SIZ擇一減去' + Debuff + '點\n（請自行手動選擇計算）。\n將EDU減去5點。LUK可擲兩次取高。';
 	else
-	if (old >= 40) ReStr = ReStr + '年齡調整：從STR、CON或DEX中「總共」減去' + Debuff + '點\n（請自行手動選擇計算）。\n將APP減去' + AppDebuff + '點。可做' + EDUinc + '次EDU的成長擲骰。';
-	else ReStr = ReStr + '年齡調整：可做' + EDUinc + '次EDU的成長擲骰。';
+		if (old >= 40) ReStr = ReStr + '年齡調整：從STR、CON或DEX中「總共」減去' + Debuff + '點\n（請自行手動選擇計算）。\n將APP減去' + AppDebuff + '點。可做' + EDUinc + '次EDU的成長擲骰。';
+		else ReStr = ReStr + '年齡調整：可做' + EDUinc + '次EDU的成長擲骰。';
 	ReStr = ReStr + '\n==';
 	if (old >= 40) ReStr = ReStr + '\n（以下箭號三項，自選共減' + Debuff + '點。）';
 	if (old < 20) ReStr = ReStr + '\n（以下箭號兩項，擇一減去' + Debuff + '點。）';

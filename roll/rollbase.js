@@ -13,7 +13,9 @@ gameType = function () {
   return 'rollbase:hktrpg'
 }
 prefixs = function () {
-  return [/(\d+d\d+)|(^[1-9]$)|(^[1-2][0-9]$)|(^[3][0]$)/i]
+  return [
+    /(\d+d\d+)/i, ,
+    /(^[1-9]$)|(^[1-2][0-9]$)|(^[3][0]$)/i, /(\d+d\d+)/i]
 }
 getHelpMessage = function () {
   return "【基本擲骰】1d100\

@@ -30,8 +30,9 @@ getHelpMessage = function () {
 	\n例子 .me C君殺死了NPC 村民, 受到尼什村通緝!\
 	\n\
 	\n占卜運氣功能： 字句中包括「運勢」兩字及四十字以內  \
-	\n塔羅牌占卜 大十字塔羅 每日塔羅\
-	\n時間塔羅 等關键字可啓動  \
+	\n塔羅牌占卜： 「大十字塔羅 每日塔羅 時間塔羅」 等關键字可啓動  \
+	\n\
+	\n隨機死亡FLAG 「立FLAG」可啓動  \
 		\n "
 }
 initialize = function () {
@@ -75,12 +76,12 @@ rollDiceCommand = function (inputStr, mainMsg) {
 			if (mainMsg[0].match(/^時間塔羅/) != null) return MultiDrawTarot(mainMsg[1], mainMsg[2], 1);
 			if (mainMsg[0].match(/^大十字塔羅/) != null) return MultiDrawTarot(mainMsg[1], mainMsg[2], 2);
 			break;
-		case /立flag/i.test(mainMsg[0] && mainMsg[0].toString().match(/[\s\S]{1,20}/g).length <= 1):
-			return BStyleFlagSCRIPTS()
+		case (/立flag/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,30}/g).length <= 1):
+			return BStyleFlagSCRIPTS();
 		case /^鴨霸獸$/i.test(mainMsg[0]):
 			return randomReply();
 		case (/運勢/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,40}/g).length <= 1):
-			return randomLuck(mainMsg)
+			return randomLuck(mainMsg);
 		case /^[.]me$/i.test(mainMsg[0]):
 			return me(inputStr)
 		default:
@@ -159,6 +160,7 @@ function BStyleFlagSCRIPTS() {
 「我老爸是....你有種就....」', '\
 「我可以好好利用這件事」'];
 	rply.text = rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
+	console.log(rply)
 	return rply;
 }
 

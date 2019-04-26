@@ -14,10 +14,13 @@ gameType = function () {
 }
 prefixs = function () {
   return [
-    /(\d+d\d+)/i, ,
-    /(^[1-9]$)|(^[1-2][0-9]$)|(^[3][0]$)/i, /(\d+d\d+)/i
+    /^(?=.*\d+d\d+)(?!.*[a-c])(?!.*[e-z])(?!.*(([d]|[+]|[-]|[*]|[/])([d]|[+]|[-]|[*]|[/])))(?!.*(^([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[)])))(?!.*([(][)]))(?!.*([<][<]))(?!.*([>][>]))(?!.*([<][>]))(?!.*([>][<]))(?!.*(\d+[d]+\d+[d])|([)]\d))(?!.*(([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[(])$))(?!.*([@]|[!]|[#]|[$]|[%]|[&]|[_]|[~]|[`]|[']|\.)).*$/ig, ,
+    /(^[1-9]$)|(^[1-2][0-9]$)|(^[3][0]$)/i,
+    /^(?=.*\d+d\d+)(?!.*[a-c])(?!.*[e-z])(?!.*(([d]|[+]|[-]|[*]|[/])([d]|[+]|[-]|[*]|[/])))(?!.*(^([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[)])))(?!.*([(][)]))(?!.*([<][<]))(?!.*([>][>]))(?!.*(\d+[d]+\d+[d])|([)]\d))(?!.*([<][>]))(?!.*([>][<]))(?!.*(([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[(])$))(?!.*([@]|[!]|[#]|[$]|[%]|[&]|[_]|[~]|[`]|[']|\.)).*$/ig,
   ]
 }
+
+
 
 ///^(?=.*he)(?!.*da).*$/ig
 getHelpMessage = function () {
@@ -137,12 +140,12 @@ try {
     let finalStr = ''
 
     // 是複數擲骰喔
-    let mathcheck =
+    /*let mathcheck =
       /(([d]|[+]|[-]|[*]|[/])([d]|[+]|[-]|[*]|[/]))|(([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[(])$)|(\d+[d]+\d+[d])|([)]\d)|(^([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[)]))|([(][)])|([<][<])|([>][>])/ig
-
+*/
 
     if (mutiOrNot.toString().match(/\D/i) == null && text1) {
-      if (text1.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]/ig, '') || text1.match(mathcheck)) return;
+      if (text1.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]/ig, '')) return;
       let test1 = text1.match(/[(]/g) || '';
       let test2 = text1.match(/[)]/g) || '';
       if (test2.length != test1.length) return;
@@ -163,6 +166,8 @@ try {
         let equation = DiceToRoll
         while (equation.match(/\d+d\d+/i) != null) {
           let tempMatch = equation.match(/\d+d\d+/i)
+          if (tempMatch.toString().split('d')[0] > 500 || tempMatch.toString().split('d')[0] <= 0) return
+          if (tempMatch.toString().split('d')[1] <= 1 || tempMatch.toString().split('d')[1] > 1000000) return
           equation = equation.replace(/\d+d\d+/i, RollDice(tempMatch))
         }
 
@@ -185,7 +190,7 @@ try {
       let DiceToRoll = mutiOrNot.toString().toLowerCase()
       DiceToRoll = DiceToRoll.toLowerCase()
       if (DiceToRoll.match('d') == null) return
-      if (text0.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]/ig, '') || text0.match(mathcheck)) return;
+      if (text0.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]/ig, '')) return;
       let test1 = text0.match(/[(]/g) || '';
       let test2 = text0.match(/[)]/g) || '';
       if (test2.length != test1.length) return;

@@ -18,6 +18,8 @@ prefixs = function () {
     /(^[1-9]$)|(^[1-2][0-9]$)|(^[3][0]$)/i, /(\d+d\d+)/i
   ]
 }
+
+///^(?=.*he)(?!.*da).*$/ig
 getHelpMessage = function () {
   return "【基本擲骰】1d100\
   \n 例如輸入(2d6+1)*2　攻撃！\

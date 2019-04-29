@@ -2,6 +2,11 @@ const {
     EventEmitter
 } = require("events");
 
+const mongoose = require('./db-connector');
+const schema = require('./schema');
+
+const Message = mongoose.model('Message', schema);
+
 let instance;
 let data = [];
 let MAX = 50000;
@@ -12,18 +17,28 @@ class Records extends EventEmitter {
     }
 
     push(msg) {
-        data.push(msg);
+        data.push('a');
         console.log(data)
         if (data.length > MAX) {
             data.splice(0, 1);
+
         }
+        // 將聊天資料轉成資料模型
+        const m = new Message(msg);
+        // 存至資料庫
+        m.save();
+
 
         //  this.emit("new_message", msg);
     }
-
-    get() {
-        return data;
+    
+    get(callback) {
+        // 取出所有資料
+        Message.find((err, msgs) => {
+            callback(msgs);
+        });
     }
+
 
     setMax(max) {
         MAX = max;

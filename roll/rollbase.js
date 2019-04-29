@@ -105,7 +105,7 @@ try {
     }
 
     // 計算算式
-    let answer = math.eval(equation.toString())
+    let answer = math.eval(equation.toString()).toString().replace(/true/i, "成功").replace(/false/i, "失敗")
     finalStr = equation + ' = ' + answer
 
     return finalStr
@@ -177,7 +177,7 @@ try {
         aaa = aaa.replace(/\d+[[]/ig, '(')
         aaa = aaa.replace(/]/ig, ')')
         // aaa = aaa.replace(/[[]\d+|]/ig, "")
-        let answer = math.eval(aaa.toString())
+        let answer = math.eval(aaa.toString()).toString().replace(/true/i, "成功").replace(/false/i, "失敗").replace('false', '失敗')
         if (equation.match(/[\s\S]{1,400}/g).length > 1) {
           finalStr = finalStr + i + '# ' + ' = ' + answer + '（計算過程太長，僅顯示結果）\n'
 
@@ -211,7 +211,7 @@ try {
       let aaa = equation
       aaa = aaa.replace(/\d+[[]/ig, '(')
       aaa = aaa.replace(/]/ig, ')')
-      let answer = math.eval(aaa.toString())
+      let answer = math.eval(aaa.toString()).toString().replace(/true/i, "成功").replace(/false/i, "失敗");
 
       if (text1 != null) {
         finalStr = text0 + '：' + text1 + '\n' + equation + ' = ' + answer

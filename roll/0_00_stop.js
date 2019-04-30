@@ -3,11 +3,19 @@ var rply = {
     type: 'text',
     text: ''
 };
-const db = require('../modules/db-connector.js');
-const schema = require('../modules/schema.js'); // 新增這行
+
+
+//const db = require('../modules/db-connector.js');
+//const schema = require('../modules/schema.js'); // 新增這行
 
 //const mongoose = require('mongoose');
 const records = require('../modules/records.js'); // 新增這行
+
+var save;
+records.get((msgs) => {
+    console.log('exports.records.get():', msgs);
+    save = msgs
+})
 gameName = function () {
     return 'Block'
 }
@@ -16,7 +24,7 @@ gameType = function () {
     return 'Block:hktrpg'
 }
 prefixs = function () {
-    return /[.]block/ig
+    return /[.]t/ig
 }
 getHelpMessage = function () {
     return "【示範】" + "\
@@ -33,11 +41,14 @@ rollDiceCommand = function (inputStr, mainMsg) {
         case /^dev$/i.test(mainMsg[1]):
             //rply.text = exports.records.get();
             //console.log(exports.records.get())
-            //			records.push('rplyVal ', rplyVal)
+            rply.text = mainMsg[2];
+            records.push(rply)
             console.log('dev')
             records.get((msgs) => {
                 console.log('exports.records.get():', msgs.toString());
             })
+
+            console.log('save:  ', save)
             break;
         case /^(?![\s\S])/.test(mainMsg[0] || ''):
             rply.text = 'Demo'

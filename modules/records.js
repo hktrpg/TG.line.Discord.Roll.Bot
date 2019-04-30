@@ -1,7 +1,9 @@
-const { EventEmitter } = require("events");
+const {
+    EventEmitter
+} = require("events");
 const mongoose = require('mongoose');
 const schema = require('./schema.js');
-const Message = mongoose.model('Message', schema);
+//const Message = mongoose.model('Message', schema);
 
 let instance;
 let data = [];
@@ -14,14 +16,16 @@ class Records extends EventEmitter {
 
     push(msg) {
         //   data.push({ msg });
-        console.log('data: ', data)
+        //console.log('data: ', msg)
         if (data.length > MAX) {
             data.splice(0, 1);
-
         }
         // 將聊天資料轉成資料模型
-        const m = new Message({ text: msg.text });
+        const m = new schema.chattest(
+            msg
+        );
         // 存至資料庫
+        console.log('m: ', msg)
         m.save();
 
 
@@ -30,7 +34,7 @@ class Records extends EventEmitter {
 
     get(callback) {
         // 取出所有資料
-        Message.find({}, (err, msgs) => {
+        schema.chattest.find({}, (err, msgs) => {
             callback(msgs);
         });
     }

@@ -1,10 +1,6 @@
-const {
-    EventEmitter
-} = require("events");
-
-const mongoose = require('./db-connector');
-const schema = require('./schema');
-
+const { EventEmitter } = require("events");
+const mongoose = require('./db-connector.js');
+const schema = require('./schema.js');
 const Message = mongoose.model('Message', schema);
 
 let instance;
@@ -31,7 +27,7 @@ class Records extends EventEmitter {
 
         //  this.emit("new_message", msg);
     }
-    
+
     get(callback) {
         // 取出所有資料
         Message.find((err, msgs) => {

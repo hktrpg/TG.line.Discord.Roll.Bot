@@ -1,20 +1,21 @@
+//const records = require('../modules/records.js'); // 新增這行
+
 var rply = {
     default: 'on',
     type: 'text',
     text: ''
 };
 
+
 gameName = function () {
-    return 'Demo'
+    return 'Block'
 }
 
 gameType = function () {
-    return 'Demo:hktrpg'
+    return 'Block:hktrpg'
 }
 prefixs = function () {
-    return records.get((msgs) => {
-        //socket.emit("chatRecord", msgs);
-    });
+    return /[.]block/ig
 }
 getHelpMessage = function () {
     return "【示範】" + "\
@@ -28,8 +29,9 @@ initialize = function () {
 rollDiceCommand = function (inputStr, mainMsg) {
     rply.text = '';
     switch (true) {
-        case /^\d+$/i.test(mainMsg[0]):
-            rply.text = 'Demo' + mainMsg[1]
+        case /^dev+$/i.test(mainMsg[0]):
+            rply.text = records.get();
+            console.log(records.get())
             return rply;
 
         case /^(?![\s\S])/.test(mainMsg[0] || ''):

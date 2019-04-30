@@ -14,14 +14,14 @@ class Records extends EventEmitter {
         super();
     }
 
-    push(msg) {
+    push(msg,dbbase) {
         //   data.push({ msg });
         //console.log('data: ', msg)
         if (data.length > MAX) {
             data.splice(0, 1);
         }
         // 將聊天資料轉成資料模型
-        const m = new schema.chattest(
+        const m = new schema[dbbase](
             msg
         );
         // 存至資料庫

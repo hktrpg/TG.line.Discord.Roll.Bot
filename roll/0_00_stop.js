@@ -1,5 +1,3 @@
-//const records = require('../modules/records.js'); // 新增這行
-
 var rply = {
     default: 'on',
     type: 'text',
@@ -30,8 +28,8 @@ rollDiceCommand = function (inputStr, mainMsg) {
     rply.text = '';
     switch (true) {
         case /^dev+$/i.test(mainMsg[0]):
-            rply.text = records.get();
-            console.log(records.get())
+           // rply.text = exports.records.get();
+            //console.log(exports.records.get())
             return rply;
 
         case /^(?![\s\S])/.test(mainMsg[0] || ''):

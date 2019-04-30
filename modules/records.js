@@ -13,7 +13,7 @@ class Records extends EventEmitter {
     }
 
     push(msg) {
-        data.push('a');
+        data.push(msg);
         console.log(data)
         if (data.length > MAX) {
             data.splice(0, 1);

@@ -1,6 +1,7 @@
 if (process.env.TELEGRAM_CHANNEL_SECRET) {
 
 	try {
+		const records = require('./records.js'); // 新增這行
 		function timer(ms) {
 			return new Promise(res => setTimeout(res, ms));
 		}
@@ -49,7 +50,10 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				}
 
 			}
-
+			// rply.text = exports.records.get();
+			records.get((msgs) => {
+				console.log('exports.records.get():', msgs.toString());
+			})
 			if (rplyVal && rplyVal.text) {
 				TGcountroll++;
 				//console.log('rplyVal.text:' + rplyVal.text)

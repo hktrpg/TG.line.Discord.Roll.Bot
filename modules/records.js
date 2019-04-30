@@ -13,7 +13,7 @@ class Records extends EventEmitter {
     }
 
     push(msg) {
-     //   data.push({ msg });
+        //   data.push({ msg });
         console.log('data: ', data)
         if (data.length > MAX) {
             data.splice(0, 1);
@@ -30,7 +30,7 @@ class Records extends EventEmitter {
 
     get(callback) {
         // 取出所有資料
-        Message.find((err, msgs) => {
+        Message.find({}, (err, msgs) => {
             callback(msgs);
         });
     }

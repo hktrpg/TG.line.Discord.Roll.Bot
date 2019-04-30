@@ -30,17 +30,15 @@ initialize = function () {
 rollDiceCommand = function (inputStr, mainMsg) {
     rply.text = '';
     switch (true) {
-        case /^dev+$/i.test(mainMsg[0]):
-            // rply.text = exports.records.get();
+        case /^dev$/i.test(mainMsg[1]):
+            //rply.text = exports.records.get();
             //console.log(exports.records.get())
             //			records.push('rplyVal ', rplyVal)
-
-            /*records.get((msgs) => {
-				console.log('exports.records.get():', msgs.toString());
+            console.log('dev')
+            records.get((msgs) => {
+                console.log('exports.records.get():', msgs.toString());
             })
-            */
-            return rply;
-
+            break;
         case /^(?![\s\S])/.test(mainMsg[0] || ''):
             rply.text = 'Demo'
             return rply;

@@ -3,8 +3,11 @@ var rply = {
     type: 'text',
     text: ''
 };
+const db = require('../modules/db-connector.js');
+const schema = require('../modules/schema.js'); // 新增這行
+
 //const mongoose = require('mongoose');
-//const records = require('../modules/records.js'); // 新增這行
+const records = require('../modules/records.js'); // 新增這行
 gameName = function () {
     return 'Block'
 }
@@ -28,8 +31,14 @@ rollDiceCommand = function (inputStr, mainMsg) {
     rply.text = '';
     switch (true) {
         case /^dev+$/i.test(mainMsg[0]):
-           // rply.text = exports.records.get();
+            // rply.text = exports.records.get();
             //console.log(exports.records.get())
+            //			records.push('rplyVal ', rplyVal)
+
+            /*records.get((msgs) => {
+				console.log('exports.records.get():', msgs.toString());
+            })
+            */
             return rply;
 
         case /^(?![\s\S])/.test(mainMsg[0] || ''):

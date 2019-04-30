@@ -1,5 +1,5 @@
 const { EventEmitter } = require("events");
-const mongoose = require('./db-connector.js');
+const mongoose = require('mongoose');
 const schema = require('./schema.js');
 const Message = mongoose.model('Message', schema);
 
@@ -13,7 +13,7 @@ class Records extends EventEmitter {
     }
 
     push(msg) {
-        data.push({ msg });
+     //   data.push({ msg });
         console.log('data: ', data)
         if (data.length > MAX) {
             data.splice(0, 1);

@@ -1,5 +1,4 @@
 if (process.env.TELEGRAM_CHANNEL_SECRET) {
-
 	try {
 		const records = require('./records.js'); // 新增這行
 		function timer(ms) {
@@ -50,6 +49,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				}
 
 			}
+			records.push('rplyVal ', rplyVal)
 			// rply.text = exports.records.get();
 			records.get((msgs) => {
 				console.log('exports.records.get():', msgs.toString());

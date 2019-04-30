@@ -13,14 +13,14 @@ class Records extends EventEmitter {
     }
 
     push(msg) {
-        data.push(msg);
-        console.log(data)
+        data.push({ msg });
+        console.log('data: ', data)
         if (data.length > MAX) {
             data.splice(0, 1);
 
         }
         // 將聊天資料轉成資料模型
-        const m = new Message(msg);
+        const m = new Message({ text: msg.text });
         // 存至資料庫
         m.save();
 

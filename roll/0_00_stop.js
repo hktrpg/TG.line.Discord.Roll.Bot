@@ -3,8 +3,8 @@ var rply = {
     type: 'text',
     text: ''
 };
-
-
+//const mongoose = require('mongoose');
+//const records = require('../modules/records.js'); // 新增這行
 gameName = function () {
     return 'Block'
 }

@@ -1,6 +1,6 @@
 const BCDice = require('bcdice-js').BCDice; // CommonJS
 const bcdice = new BCDice();
-//const records = require('../modules/records.js'); // 新增這行
+
 function calldice(gameType, message) {
     bcdice.setGameByTitle(gameType)
     bcdice.setMessage(message)

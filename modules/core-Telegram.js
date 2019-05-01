@@ -1,4 +1,5 @@
 if (process.env.TELEGRAM_CHANNEL_SECRET) {
+
 	try {
 		function timer(ms) {
 			return new Promise(res => setTimeout(res, ms));
@@ -48,7 +49,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				}
 
 			}
-			// rply.text = exports.records.get();
+
 			if (rplyVal && rplyVal.text) {
 				TGcountroll++;
 				//console.log('rplyVal.text:' + rplyVal.text)

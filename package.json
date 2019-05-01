@@ -21,7 +21,8 @@
     "mongoose": "^5.0.6",
     "telebot": "^1.2.6",
     "event": "^1.0.0",
-    "bufferutil": "^3.0.3"
+    "bufferutil": "^3.0.3",
+    "zlib-sync": "^0.1.4"
   },
   "keywords": [
     "LeoLi",

@@ -19,7 +19,9 @@
     "express": "^4.13.3",
     "mathjs": "^5.9.0",
     "mongoose": "^5.0.6",
-    "telebot": "^1.2.6"
+    "telebot": "^1.2.6",
+    "event": "^1.0.0",
+    "bufferutil": "^3.0.3"
   },
   "keywords": [
     "LeoLi",

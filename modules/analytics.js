@@ -6,6 +6,7 @@ require('fs').readdirSync('./roll/').forEach(function (file) {
 		exports[name] = require('../roll/' + file);
 	}
 });
+const records = require('./records.js'); // 新增這行
 try {
 
 	//用來呼叫骰組,新增骰組的話,要寫條件式到下面呼叫 
@@ -65,6 +66,7 @@ try {
 			}
 		})
 		if (result && result.text) {
+
 			console.log('inputStr: ', inputStr)
 			return result
 		}
@@ -257,6 +259,7 @@ try {
 		return RockPaperScissors(inputStr, mainMsg[1]);
 	}
 	*/
+
 
 
 	}

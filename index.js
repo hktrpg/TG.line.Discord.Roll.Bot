@@ -24,3 +24,5 @@ Discord line Telegram三套BOT 都會統一呼叫analytics.js
 感謝
 
 */
+
+const records = require('./modules/records.js'); // 新增這行

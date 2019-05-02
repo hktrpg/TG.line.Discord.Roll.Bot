@@ -14,7 +14,7 @@ class Records extends EventEmitter {
         super();
     }
 
-    push(msg,dbbase) {
+    push(dbbase, msg) {
         //   data.push({ msg });
         //console.log('data: ', msg)
         if (data.length > MAX) {
@@ -26,15 +26,22 @@ class Records extends EventEmitter {
         );
         // 存至資料庫
         console.log('m: ', msg)
-        m.save();
+        //m.save();
+        schema[dbbase].findOneAndUpdate({ groupid: msg.groupid }, { $set: { blockfunction: msg.blockfunction } }, { new: true, upsert: true }, (err, doc) => {
+            if (err) {
+                console.log("Something wrong when updating data!");
+            }
 
+            console.log(doc);
+        });
 
         //  this.emit("new_message", msg);
     }
 
-    get(callback) {
+    get(target, callback, ) {
         // 取出所有資料
-        schema.chattest.find({}, (err, msgs) => {
+
+        schema[target].find({}, (err, msgs) => {
             callback(msgs);
         });
     }

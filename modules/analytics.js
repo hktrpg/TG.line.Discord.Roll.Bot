@@ -57,7 +57,7 @@ try {
 
 			if (findprefixs == 1) {
 				console.log('trigger: ', trigger, ' v: ', v)
-				let temp = exports[v].rollDiceCommand(inputStr, mainMsg)
+				let temp = exports[v].rollDiceCommand(inputStr, mainMsg, groupid, userid)
 				if (temp)
 					Object.keys(temp).forEach(v => {
 						result[v] = temp[v]

@@ -7,8 +7,9 @@ const chattest = mongoose.model('chattest', {
     text: String,
     type: String
 });
-const Cat = mongoose.model('Cat', {
-    name: String
+const block = mongoose.model('block', {
+    groupid: String,
+    blockfunction: String
 });
 
 const dog = mongoose.model('Dog', {
@@ -17,7 +18,7 @@ const dog = mongoose.model('Dog', {
 
 module.exports = {
     dog,
-    Cat,
+    block,
     chattest
 }
 //const Cat = mongoose.model('Cat', { name: String });

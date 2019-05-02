@@ -74,7 +74,12 @@ rollDiceCommand = function (inputStr, mainMsg, groupid, userid) {
             if (groupid && mainMsg[2]) {
                 let temp = { groupid: groupid, blockfunction: mainMsg[2] }
                 records.push('block', temp)
-                rply.text = '新增成功' + mainMsg[2]
+
+                records.get('block', (msgs) => {
+                    console.log('exports.records.get(): 0 0 stop', msgs);
+                    save = JSON.stringify(msgs)
+                })
+                rply.text = '新增成功: ' + mainMsg[2]
             }
             else {
                 rply.text = '新增失敗.'

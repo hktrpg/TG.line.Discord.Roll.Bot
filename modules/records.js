@@ -39,11 +39,11 @@ class Records extends EventEmitter {
             if (err) {
                 console.log("Something wrong when updating data!");
             }
-
-            console.log(doc);
+            console.log(JSON.stringify(doc).toString());
+           // return JSON.stringify(doc).toString();
         });
-
         //  this.emit("new_message", msg);
+
     }
 
     get(target, callback) {

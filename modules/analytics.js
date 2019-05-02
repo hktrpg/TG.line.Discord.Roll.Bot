@@ -58,7 +58,28 @@ try {
 					}
 				}
 			}
+			//console.log('exports[v].initialize().save: ', exports[v].initialize().save)
+			if (exports[v].initialize().save) {
+				console.log('exports[v].initialize().save ',exports[v].initialize())
+				exports[v].initialize().findOne({
+						groupid: groupid
+					})
+					.then((guild) => {
+						console.log('find!!!! ', guild);
+					})
+					.catch((err) => {
+						console.log(err);
+						// TODO: Add Embedded message here.
 
+					});
+			}
+
+			/*if (exports[v].initialize().save) {
+				var findLike = exports[v].initialize().save.find(function (item, index, array) {
+					return item.groupid === groupid; // 取得陣列 like === '蘿蔔泥'
+				});
+				console.log('find', findLike);
+			}*/
 			if (findprefixs == 1) {
 				console.log('trigger: ', trigger, ' v: ', v)
 				let temp = exports[v].rollDiceCommand(inputStr, mainMsg, groupid, userid)

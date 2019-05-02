@@ -29,10 +29,11 @@ var unforgivable = [
 //const mongoose = require('mongoose');
 const records = require('../modules/records.js'); // 新增這行
 
-var save;
+//var save;
 records.get('block', (msgs) => {
     console.log('exports.records.get(): 0 0 stop', msgs);
-    save = JSON.stringify(msgs)
+    rply.save = msgs
+    //console.log(rply)
 })
 gameName = function () {
     return '阻擋關鍵字 .block'
@@ -42,7 +43,7 @@ gameType = function () {
     return 'Block:hktrpg'
 }
 prefixs = function () {
-    return [/[.]t/ig,]
+    return [/[.]t/ig, ]
 }
 getHelpMessage = function () {
     return "【Block】" + "\
@@ -72,7 +73,10 @@ rollDiceCommand = function (inputStr, mainMsg, groupid, userid) {
         case /^add$/i.test(mainMsg[1]):
             //增加阻檔用關鍵字
             if (groupid && mainMsg[2]) {
-                let temp = { groupid: groupid, blockfunction: mainMsg[2] }
+                let temp = {
+                    groupid: groupid,
+                    blockfunction: mainMsg[2]
+                }
                 records.push('block', temp)
 
                 records.get('block', (msgs) => {
@@ -80,8 +84,7 @@ rollDiceCommand = function (inputStr, mainMsg, groupid, userid) {
                     save = JSON.stringify(msgs)
                 })
                 rply.text = '新增成功: ' + mainMsg[2]
-            }
-            else {
+            } else {
                 rply.text = '新增失敗.'
                 if (!mainMsg[2])
                     rply.text += '沒有關鍵字.'

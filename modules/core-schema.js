@@ -9,7 +9,7 @@ const chattest = mongoose.model('chattest', {
 });
 const block = mongoose.model('block', {
     groupid: String,
-    blockfunction: String
+    blockfunction: Array
 });
 
 const dog = mongoose.model('Dog', {

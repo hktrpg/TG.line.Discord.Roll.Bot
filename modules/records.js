@@ -29,8 +29,13 @@ class Records extends EventEmitter {
          // 存至資料庫
          console.log('m: ', msg)
          //m.save();
+
+            提醒:
+            $push 加入新的
+            $set  重置舊的
+
          */
-        schema[dbbase].findOneAndUpdate({ groupid: msg.groupid }, { $set: { blockfunction: msg.blockfunction } }, { new: true, upsert: true }, (err, doc) => {
+        schema[dbbase].findOneAndUpdate({ groupid: msg.groupid }, { $push: { blockfunction: msg.blockfunction } }, { new: true, upsert: true }, (err, doc) => {
             if (err) {
                 console.log("Something wrong when updating data!");
             }

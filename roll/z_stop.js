@@ -30,9 +30,9 @@ var unforgivable = [
 const records = require('../modules/records.js'); // 新增這行
 
 var save;
-records.get('chattest', (msgs) => {
+records.get('block', (msgs) => {
     console.log('exports.records.get(): 0 0 stop', msgs);
-    save = msgs
+    save = JSON.stringify(msgs)
 })
 gameName = function () {
     return '阻擋關鍵字 .block'

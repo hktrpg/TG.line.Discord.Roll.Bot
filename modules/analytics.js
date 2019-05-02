@@ -28,6 +28,10 @@ try {
 			//0 = 不存在
 			//1 = 符合
 			//2 = 不符合
+			//以下是分析每組rolling prefixs的資料
+			//以每次同步檢查第一第二個 
+			//例如第一組是 cc  第二組是 80 
+			//那條件式就是 /^cc$/i 和/^\d+$/
 			if (!mainMsg[1]) mainMsg[1] = '';
 			let checkmainMsg0 = 0;
 			let checkmainMsg1 = 0;

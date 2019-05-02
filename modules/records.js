@@ -46,7 +46,7 @@ class Records extends EventEmitter {
         //  this.emit("new_message", msg);
     }
 
-    get(target, callback, ) {
+    get(target, callback) {
         // 取出所有資料
 
         schema[target].find({}, (err, msgs) => {

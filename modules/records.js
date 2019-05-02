@@ -17,16 +17,19 @@ class Records extends EventEmitter {
     push(dbbase, msg) {
         //   data.push({ msg });
         //console.log('data: ', msg)
+        // 將聊天資料轉成資料模型
+        /* 
         if (data.length > MAX) {
             data.splice(0, 1);
         }
-        // 將聊天資料轉成資料模型
+        
         const m = new schema[dbbase](
-            msg
-        );
-        // 存至資料庫
-        console.log('m: ', msg)
-        //m.save();
+             msg
+         );
+         // 存至資料庫
+         console.log('m: ', msg)
+         //m.save();
+         */
         schema[dbbase].findOneAndUpdate({ groupid: msg.groupid }, { $set: { blockfunction: msg.blockfunction } }, { new: true, upsert: true }, (err, doc) => {
             if (err) {
                 console.log("Something wrong when updating data!");

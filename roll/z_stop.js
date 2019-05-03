@@ -53,7 +53,7 @@ if (process.env.mongoURL) {
         \n 所以注意如果用了D, 那麼1D100, .1WD 都會全部沒反應.\
     \n 輸入.block add xxxxx 即可增加關鍵字 每次一個\
     \n 輸入.block show 顯示關鍵字\
-    \n 輸入.block del (編號) 即可刪除\
+    \n 輸入.block del (編號)或all 即可刪除\
     \n "
     }
     initialize = function () {
@@ -102,6 +102,34 @@ if (process.env.mongoURL) {
                     //console.log('exports.records.get(): 0 0 stop', msgs);
                     rply.save = msgs
                     //  console.log('new: 01: ', rply)
+                })
+                return rply;
+            case /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
+                //刪除阻擋用關鍵字
+                if (groupid && mainMsg[2] && rply.save) {
+                    for (var i = 0; i < rply.save.length; i++) {
+                        if (rply.save[i].groupid == groupid) {
+                            let temp = rply.save[i]
+                            temp.blockfunction = ''
+                            //console.log(rply.save[i])
+                            records.set('block', temp)
+                            rply.text = '刪除所有成功 '
+
+
+                        }
+                    }
+
+                    //records.push('block', temp)
+
+                } else {
+                    rply.text = '新增失敗.'
+                    if (!groupid)
+                        rply.text += '不在群組. '
+                }
+                records.get('block', (msgs) => {
+                    //console.log('exports.records.get(): 0 0 stop', msgs);
+                    rply.save = msgs
+                    //console.log('new: ', rply)
                 })
                 return rply;
             case /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):

@@ -36,7 +36,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				//	console.log('message.content ' + message.content);
 				//	console.log('channelKeyword ' + channelKeyword);
 				let groupid, userid = ''
-				if (message.TextChannel.id) groupid = message.TextChannel.id
+				if (message.TextChannel && message.TextChannel.id) groupid = message.TextChannel.id
 				if (message.author.id) userid = message.author.id
 				let rplyVal = {};
 				let msgSplitor = (/\S+/ig);

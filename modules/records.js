@@ -23,7 +23,7 @@ class Records extends EventEmitter {
         });
     }
 
-    push(dbbase, msg) {
+    pushblockfunction(dbbase, msg) {
         //   data.push({ msg });
         //console.log('data: ', msg)
         // 將聊天資料轉成資料模型

@@ -96,7 +96,7 @@ try {
 			if (process.env.mongoURL) {
 				if (exports[v].initialize().save && exports[v].initialize().save[0].blockfunction && exports[v].initialize().save[0].blockfunction.length > 0) {
 					for (var i = 0; i < exports[v].initialize().save.length; i++) {
-						//console.log('exports[v].initialize().save: ', new RegExp(exports[v].initialize().save[i].blockfunction.join("|"), "i"))
+						console.log('exports[v].initialize().save: ', new RegExp(exports[v].initialize().save[i].blockfunction.join("|"), "i"))
 						//console.log('ABC', (new RegExp(exports[v].initialize().save[i].blockfunction.join("|"), "i")).test(mainMsg[0]))
 						//console.log('CDE', exports[v].initialize().save[i].groupid == groupid)
 						if ((new RegExp(exports[v].initialize().save[i].blockfunction.join("|"), "i")).test(mainMsg[0]) && exports[v].initialize().save[i].groupid == groupid && exports[v].initialize().save[i].blockfunction.length > 0) {

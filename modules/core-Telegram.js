@@ -21,7 +21,39 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 		TGclient.on('text', message => {
 			//console.log(message)
 			let groupid, userid = ''
-			console.log('TG: ', message)
+			//console.log('TG: ', message)
+
+			/*
+			2019-05-03T14:57:17.095268+00:00 app[web.1]: TG:  { message_id: 3563,
+			2019-05-03T14:57:17.095287+00:00 app[web.1]:   from:
+			2019-05-03T14:57:17.095289+00:00 app[web.1]:    { id: 398728508,
+			2019-05-03T14:57:17.095290+00:00 app[web.1]:      is_bot: false,
+			2019-05-03T14:57:17.095292+00:00 app[web.1]:      first_name: 'Art',
+			2019-05-03T14:57:17.095294+00:00 app[web.1]:      username: 'sssss',
+			2019-05-03T14:57:17.095296+00:00 app[web.1]:      language_code: 'zh-hans' },
+			2019-05-03T14:57:17.095298+00:00 app[web.1]:   chat:
+			2019-05-03T14:57:17.095300+00:00 app[web.1]:    { id: 398728508,
+			2019-05-03T14:57:17.095301+00:00 app[web.1]:      first_name: 'wer',
+			2019-05-03T14:57:17.095303+00:00 app[web.1]:      username: 'sssss',
+			2019-05-03T14:57:17.095305+00:00 app[web.1]:      type: 'private' },
+			2019-05-03T14:57:17.095306+00:00 app[web.1]:   date: 23233,
+			2019-05-03T14:57:17.095308+00:00 app[web.1]:   text: '.block add 100',
+			2019-05-03T14:57:17.095310+00:00 app[web.1]:   reply:
+			2019-05-03T14:57:17.095311+00:00 app[web.1]:    { text: [Function],
+			2019-05-03T14:57:17.095312+00:00 app[web.1]:      photo: [Function],
+			2019-05-03T14:57:17.095314+00:00 app[web.1]:      video: [Function],
+			2019-05-03T14:57:17.095315+00:00 app[web.1]:      videoNote: [Function],
+			2019-05-03T14:57:17.095316+00:00 app[web.1]:      file: [Function],
+			2019-05-03T14:57:17.095317+00:00 app[web.1]:      sticker: [Function],
+			2019-05-03T14:57:17.095319+00:00 app[web.1]:      audio: [Function],
+			2019-05-03T14:57:17.095321+00:00 app[web.1]:      voice: [Function],
+			2019-05-03T14:57:17.095322+00:00 app[web.1]:      game: [Function],
+			2019-05-03T14:57:17.095323+00:00 app[web.1]:      action: [Function],
+			2019-05-03T14:57:17.095324+00:00 app[web.1]:      location: [Function],
+			2019-05-03T14:57:17.095326+00:00 app[web.1]:      place: [Function: bound place] } }
+			*/
+
+
 			if (message.chat.type == 'group') groupid = message.chat.id
 			if (message.from.id) userid = message.from.id
 			let rplyVal = {}

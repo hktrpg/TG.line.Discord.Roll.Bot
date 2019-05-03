@@ -35,7 +35,7 @@ try {
 			if (!mainMsg[1]) mainMsg[1] = '';
 			let checkmainMsg0 = 0;
 			let checkmainMsg1 = 0;
-			var findprefixs = 0;
+			let findprefixs = 0;
 			if (exports[v].prefixs()[0] && exports[v].prefixs()[0]) {
 				for (i = 0; i <= exports[v].prefixs().length - 1; i = i + 2) {
 					checkmainMsg0 = 0;
@@ -58,7 +58,10 @@ try {
 					}
 				}
 			}
+
+
 			//console.log('exports[v].initialize().save: ', exports[v].initialize().save)
+			/*
 			if (exports[v].initialize().save) {
 				console.log('exports[v].initialize().save ',exports[v].initialize())
 				exports[v].initialize().findOne({
@@ -70,10 +73,10 @@ try {
 					.catch((err) => {
 						console.log(err);
 						// TODO: Add Embedded message here.
-
+	
 					});
 			}
-
+	*/
 			/*if (exports[v].initialize().save) {
 				var findLike = exports[v].initialize().save.find(function (item, index, array) {
 					return item.groupid === groupid; // 取得陣列 like === '蘿蔔泥'
@@ -88,7 +91,30 @@ try {
 						result[v] = temp[v]
 					})
 			}
+
+
+
+			if (exports[v].initialize().save && exports[v].initialize().save[0].blockfunction && exports[v].initialize().save[0].blockfunction.length > 0) {
+				for (var i = 0; i < exports[v].initialize().save.length; i++) {
+					//console.log('exports[v].initialize().save: ', new RegExp(exports[v].initialize().save[i].blockfunction.join("|"), "i"))
+					//console.log('ABC', (new RegExp(exports[v].initialize().save[i].blockfunction.join("|"), "i")).test(mainMsg[0]))
+					//console.log('CDE', exports[v].initialize().save[i].groupid == groupid)
+					if ((new RegExp(exports[v].initialize().save[i].blockfunction.join("|"), "i")).test(mainMsg[0]) && exports[v].initialize().save[i].groupid == groupid) {
+						//findprefixs = 1;
+						console.log('Done?')
+						result.text = '';
+					}
+					//if( exports[v].initialize().save[i].groupid==groupid &&)
+				}
+			}
 		})
+
+
+
+
+
+
+
 		if (result && result.text) {
 			console.log('inputStr: ', inputStr)
 			return result
@@ -231,34 +257,34 @@ try {
 		
 		
 		//		if (trigger.match(/^bothelp$|^bot幫助$|^\/start$/) != null) return exports.help.Help();
-
+	
 		//nc指令開始於此 來自Rainsting/TarotLineBot 
 		//if (trigger.match(/^[1-4]n[c|a][+|-][1-99]$|^[1-4]n[c|a]$/) != null) return exports.nc.nechronica(trigger, mainMsg[1]);
-
+	
 		//依戀
 		//if (trigger.match(/(^nm$)/) != null) return exports.nc.nechronica_mirenn(mainMsg[1]);
-
-
+	
+	
 		//wod 指令開始於此
 		//	if (trigger.match(/^(\d+)(wd|wod)(\d|)((\+|-)(\d+)|)$/i) != null) return exports.wod.wod(trigger, mainMsg[1]);
-
+	
 		//Dx3 指令開始於此
 		//	if (trigger.match(/^(\d+)(dx)(\d|)(((\+|-)(\d+)|)((\+|-)(\d+)|))$/i) != null) return exports.dx3.dx(trigger);
-
+	
 		//SW 指令開始於此
 		//	if (trigger.match(/^(kk)0*([0-9][0-9]?|100)(((\+|-)(\d+)|)((\+|-)(\d+)|))(|\@(\d+))(|\$(\d+))(|\$\+(\d+))(|gf)$/i) != null) return exports.sw.sw(trigger);
-
-
+	
+	
 		//Fisher–Yates shuffle
 		//SortIt 指令開始於此
 		//		if (trigger.match(/排序/) != null && mainMsg.length >= 3) return exports.funny.SortIt(inputStr, mainMsg);
 		//if (trigger.match(/^d66$/) != null) return exports.advroll.d66(mainMsg[1]);
 		//if (trigger.match(/^d66s$/) != null) return exports.advroll.d66s(mainMsg[1]);
-
-
+	
+	
 		//choice 指令開始於此
 		//	if (trigger.match(/choice|隨機|選項|選1/) != null && mainMsg.length >= 3) return exports.funny.choice(inputStr, mainMsg);
-
+	
 		//tarot 指令
 		
 		if (trigger.match(/tarot|塔羅牌|塔羅/) != null) {
@@ -267,16 +293,16 @@ try {
 			if (trigger.match(/^大十字|^cross/) != null) return exports.funny.MultiDrawTarot(mainMsg[1], mainMsg[2], 2);
 		}
 		
-
+	
 		//FLAG指令開始於此
 		//		if (trigger.match(/立flag|死亡flag/) != null) return exports.funny.BStyleFlagSCRIPTS();
-
+	
 		//鴨霸獸指令開始於此
 		//		if (trigger.match(/鴨霸獸/) != null) return exports.funny.randomReply();
 		//		if (trigger.match(/運勢/) != null) return exports.funny.randomLuck(mainMsg); //占卜運氣		
-
-
-
+	
+	
+	
 		猜拳指令
 	if (trigger.match(/猜拳/) != null) {
 		return RockPaperScissors(inputStr, mainMsg[1]);

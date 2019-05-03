@@ -13,6 +13,15 @@ class Records extends EventEmitter {
     constructor() {
         super();
     }
+    set(dbbase, msg) {
+        schema[dbbase].findOneAndUpdate({ groupid: msg.groupid }, { $set: { blockfunction: msg.blockfunction } }, { upsert: true }, (err, doc) => {
+            if (err) {
+                console.log("Something wrong when updating data!");
+            }
+            console.log(JSON.stringify(doc).toString());
+            // return JSON.stringify(doc).toString();
+        });
+    }
 
     push(dbbase, msg) {
         //   data.push({ msg });
@@ -40,7 +49,7 @@ class Records extends EventEmitter {
                 console.log("Something wrong when updating data!");
             }
             console.log(JSON.stringify(doc).toString());
-           // return JSON.stringify(doc).toString();
+            // return JSON.stringify(doc).toString();
         });
         //  this.emit("new_message", msg);
 
@@ -48,7 +57,6 @@ class Records extends EventEmitter {
 
     get(target, callback) {
         // 取出所有資料
-
         schema[target].find({}, (err, msgs) => {
             callback(msgs);
         });

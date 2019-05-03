@@ -21,7 +21,8 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 		TGclient.on('text', message => {
 			//console.log(message)
 			let groupid, userid = ''
-			if (message.chat.type) groupid = message.chat.id
+			console.log('TG: ', message)
+			if (message.chat.type == 'group') groupid = message.chat.id
 			if (message.from.id) userid = message.from.id
 			let rplyVal = {}
 			let msgSplitor = (/\S+/ig)

@@ -71,7 +71,7 @@ if (process.env.mongoURL) {
                 })
                 console.log('save:  ', save)
                 break;
-            case /^add$/i.test(mainMsg[1]) && /^(?!.*([+]|[-]|[*]|[/]|[=]))$/ig.test(mainMsg[2]):
+            case /^add$/i.test(mainMsg[1]) && /^.*(?!.*([+]|[-]|[*]|[/]|[=])).*$/ig.test(mainMsg[2]):
                 //增加阻擋用關鍵字
                 console.log('step1: ', (groupid && mainMsg[2]))
                 if (groupid && mainMsg[2]) {

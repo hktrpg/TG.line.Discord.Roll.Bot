@@ -94,7 +94,7 @@ try {
 
 			//對比mongoose資料
 			if (process.env.mongoURL) {
-				if (exports[v].initialize().save && exports[v].initialize().save[0].blockfunction && exports[v].initialize().save[0].blockfunction[0] && exports[v].initialize().save[0].blockfunction.length > 0) {
+				if (exports[v].initialize().save && exports[v].initialize().save[0].blockfunction && exports[v].initialize().save[0].blockfunction.length > 0) {
 					for (var i = 0; i < exports[v].initialize().save.length; i++) {
 						//console.log('exports[v].initialize().save: ', new RegExp(exports[v].initialize().save[i].blockfunction.join("|"), "i"))
 						//console.log('ABC', (new RegExp(exports[v].initialize().save[i].blockfunction.join("|"), "i")).test(mainMsg[0]))

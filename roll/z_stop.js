@@ -101,6 +101,7 @@ if (process.env.mongoURL) {
                 return rply;
             case /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
                 //刪除阻擋用關鍵字
+                console.log('mainMsg[2]:', /^\d+$/i.test(mainMsg[2]))
                 if (groupid && mainMsg[2] && rply.save) {
                     for (var i = 0; i < rply.save.length; i++) {
                         if (rply.save[i].groupid == groupid && rply.save[i].blockfunction.length < mainMsg[2] && rply.save[i].blockfunction.length >= 0) {

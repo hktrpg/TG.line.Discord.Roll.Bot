@@ -78,13 +78,11 @@ if (process.env.mongoURL) {
                 */
             case /^add$/i.test(mainMsg[1]) && /^[\u4e00-\u9fa5a-zA-Z0-9]+$/ig.test(mainMsg[2]):
                 //增加阻擋用關鍵字
-                console.log('step1: ', (groupid && mainMsg[2]))
                 if (groupid && mainMsg[2]) {
                     let temp = {
                         groupid: groupid,
                         blockfunction: mainMsg[2]
                     }
-                    console.log('step2: ', (temp))
 
                     records.pushblockfunction('block', temp, 'blockfunction', temp.blockfunction)
 
@@ -113,7 +111,7 @@ if (process.env.mongoURL) {
                             temp.blockfunction = []
                             //console.log(rply.save[i])
                             records.set('block', temp)
-                            rply.text = '刪除所有成功 '
+                            rply.text = '刪除所有關鍵字'
 
 
                         }
@@ -134,22 +132,14 @@ if (process.env.mongoURL) {
                 return rply;
             case /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
                 //刪除阻擋用關鍵字
-                console.log('mainMsg[2]:', /^\d+$/i.test(mainMsg[2]))
                 if (groupid && mainMsg[2] && rply.save) {
                     for (var i = 0; i < rply.save.length; i++) {
-                        console.log('step[2]: ', rply.save.length)
-                        console.log('step[2]2: ', rply.save[i].groupid == groupid)
-                        console.log('step[2]3: ', rply.save[i].blockfunction.length)
-                        console.log('step[2]4: ', mainMsg[2] < rply.save[i].blockfunction.length)
                         if (rply.save[i].groupid == groupid && mainMsg[2] < rply.save[i].blockfunction.length && mainMsg[2] >= 0) {
-                            console.log('step[3]:', rply.save[i])
                             let temp = rply.save[i]
                             temp.blockfunction.splice(mainMsg[2], 1)
                             //console.log(rply.save[i])
                             records.set('block', temp)
-                            console.log('rply.save[i].blockfunction.length ', rply.save[i].blockfunction.length)
                             rply.text = '刪除成功: ' + mainMsg[2]
-                            console.log('step[4]: 刪除成功?', rply.save[i].blockfunction.length)
 
 
 
@@ -173,7 +163,6 @@ if (process.env.mongoURL) {
                 return rply;
             case /^show$/i.test(mainMsg[1]):
                 if (groupid) {
-                    console.log(groupid)
                     let temp = 0;
                     for (var i = 0; i < rply.save.length; i++) {
                         if (rply.save[i].groupid == groupid) {

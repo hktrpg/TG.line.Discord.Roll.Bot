@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Zetetic Line Discord Telegram Rolling Bot",
   "engines": {
-    "node": "^12",
+    "node": "^11",
     "npm": "^6"
   },
   "main": "index.js",

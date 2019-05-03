@@ -104,13 +104,20 @@ if (process.env.mongoURL) {
                 console.log('mainMsg[2]:', /^\d+$/i.test(mainMsg[2]))
                 if (groupid && mainMsg[2] && rply.save) {
                     for (var i = 0; i < rply.save.length; i++) {
-                        if (rply.save[i].groupid == groupid && rply.save[i].blockfunction.length < mainMsg[2] && rply.save[i].blockfunction.length >= 0) {
+                        console.log('step[2]:',  rply.save.length)
+
+                        if (rply.save[i].groupid == groupid && rply.save[i].blockfunction.length < mainMsg[2] && mainMsg[2] >= 0) {
+                            console.log('step[3]:',  rply.save[i])
                             let temp = rply.save[i]
                             temp.blockfunction.splice(mainMsg[2], 1)
                             //console.log(rply.save[i])
                             records.set('block', temp)
                             console.log('rply.save[i].blockfunction.length ', rply.save[i].blockfunction.length)
                             rply.text = '刪除成功: ' + mainMsg[2]
+                            console.log('step[4]: 刪除成功?',  rply.save[i].blockfunction.length)
+
+
+                            
                         }
                     }
 

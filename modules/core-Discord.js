@@ -36,9 +36,6 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				//	console.log('message.content ' + message.content);
 				//	console.log('channelKeyword ' + channelKeyword);
 				let groupid, userid = ''
-				console.log('message.channel', message.channel)
-				console.log('message.channel', message.channel.TextChannel)
-
 				if (message.channel && message.channel.TextChannel && message.channel.TextChannel.id) groupid = message.channel.TextChannel.id
 				if (message.author.id) userid = message.author.id
 				let rplyVal = {};

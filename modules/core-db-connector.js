@@ -11,6 +11,6 @@ if (process.env.mongoURL) {
         console.log('mlab  connected!');
     });
 
-    module.exports = { mongoose, db };
+    module.exports = { mongoose };
 
 }

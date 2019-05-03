@@ -110,7 +110,7 @@ if (process.env.mongoURL) {
                     for (var i = 0; i < rply.save.length; i++) {
                         if (rply.save[i].groupid == groupid) {
                             let temp = rply.save[i]
-                            temp.blockfunction = null
+                            temp.blockfunction = []
                             //console.log(rply.save[i])
                             records.set('block', temp)
                             rply.text = '刪除所有成功 '

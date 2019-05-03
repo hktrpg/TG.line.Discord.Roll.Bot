@@ -37,23 +37,24 @@ if (process.env.mongoURL) {
         // console.log(rply)
     })
     gameName = function () {
-        return '擲骰開關功能 .block (add del show)'
+        return '擲骰開關功能 .bk (add del show)'
     }
 
     gameType = function () {
         return 'Block:hktrpg'
     }
     prefixs = function () {
-        return [/^[.]block$/ig, ]
+        return [/^[.]bk$/ig, ]
     }
     getHelpMessage = function () {
         return "【Block】" + "\
         \n 這是根據關鍵字來開關功能,只要符合內容,\
         \n 例如運勢,那麼只要字句中包括,就不會讓Bot有反應\
         \n 所以注意如果用了D, 那麼1D100, .1WD 都會全部沒反應.\
-    \n 輸入.block add xxxxx 即可增加關鍵字 每次一個\
-    \n 輸入.block show 顯示關鍵字\
-    \n 輸入.block del (編號)或all 即可刪除\
+        \n 因為原理是擋了回應, 所以如果擋了bk 其中一個字, 只要用.bk del all就好\
+    \n 輸入.bk add xxxxx 即可增加關鍵字 每次一個\
+    \n 輸入.bk show 顯示關鍵字\
+    \n 輸入.bk del (編號)或all 即可刪除\
     \n "
     }
     initialize = function () {
@@ -120,7 +121,7 @@ if (process.env.mongoURL) {
                     //records.push('block', temp)
 
                 } else {
-                    rply.text = '新增失敗.'
+                    rply.text = '刪除失敗.'
                     if (!groupid)
                         rply.text += '不在群組. '
                 }
@@ -149,7 +150,7 @@ if (process.env.mongoURL) {
                     //records.push('block', temp)
 
                 } else {
-                    rply.text = '新增失敗.'
+                    rply.text = '刪除失敗.'
                     if (!mainMsg[2])
                         rply.text += '沒有關鍵字. '
                     if (!groupid)

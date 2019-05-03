@@ -73,11 +73,14 @@ if (process.env.mongoURL) {
                 break;
             case /^add$/i.test(mainMsg[1]) && /^(?!.*([+]|[-]|[*]|[/]|[=]))$/ig.test(mainMsg[2]):
                 //增加阻擋用關鍵字
+                console.log('step1: ', (groupid && mainMsg[2]))
                 if (groupid && mainMsg[2]) {
                     let temp = {
                         groupid: groupid,
                         blockfunction: mainMsg[2]
                     }
+                    console.log('step2: ', (temp))
+
                     records.push('block', temp)
 
 
@@ -127,7 +130,7 @@ if (process.env.mongoURL) {
                 return rply;
             case /^show$/i.test(mainMsg[1]):
                 if (groupid) {
-                    //console.log(groupid)
+                    console.log(groupid)
                     let temp = 0;
                     for (var i = 0; i < rply.save.length; i++) {
                         if (rply.save[i].groupid == groupid) {

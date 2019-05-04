@@ -39,7 +39,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				let userrole = 1;
 				if (message.channel && message.channel.id) groupid = message.channel.id
 				if (message.author.id) userid = message.author.id
-				if (message.member.hasPermission("ADMINISTRATOR")) userrole = 3
+				if (message.member && message.member.hasPermission("ADMINISTRATOR")) userrole = 3
 				//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin 
 				let rplyVal = {};
 				let msgSplitor = (/\S+/ig);

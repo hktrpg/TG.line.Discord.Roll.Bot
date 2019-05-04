@@ -20,7 +20,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 		});
 		TGclient.on('text', message => {
 			//console.log(message)
-			let groupid, userid = ''
+			let groupid, userid, userrole = ''
 			//console.log('TG: ', message)
 
 			/*
@@ -54,7 +54,11 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			*/
 
 
-			if (message.chat.type == 'group') groupid = message.chat.id
+			if (message.chat.type == 'group') {
+				groupid = message.chat.id
+				if ((message.ChatMember.status == ("creator" || "administrator")) || message.chat.all_members_are_administrators == true) userrole = 3
+			}
+
 			if (message.from.id) userid = message.from.id
 			let rplyVal = {}
 			let msgSplitor = (/\S+/ig)

@@ -35,7 +35,8 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 			if (message.author.bot === false && message.content != "") {
 				//	console.log('message.content ' + message.content);
 				//	console.log('channelKeyword ' + channelKeyword);
-				let groupid, userid, userrole = ''
+				let groupid, userid = ''
+				let userrole = 1;
 				if (message.channel && message.channel.id) groupid = message.channel.id
 				if (message.author.id) userid = message.author.id
 				if (message.member.hasPermission("ADMINISTRATOR")) userrole = 3

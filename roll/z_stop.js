@@ -61,7 +61,7 @@ if (process.env.mongoURL) {
         return rply;
     }
 
-    rollDiceCommand = function (inputStr, mainMsg, groupid, userid) {
+    rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole) {
         rply.text = '';
         switch (true) {
             /*
@@ -79,7 +79,7 @@ if (process.env.mongoURL) {
                 */
             case /^add$/i.test(mainMsg[1]) && /^[\u4e00-\u9fa5a-zA-Z0-9]+$/ig.test(mainMsg[2]):
                 //增加阻擋用關鍵字
-                if (groupid && mainMsg[2]) {
+                if (groupid && mainMsg[2] && userrole >= 2) {
                     let temp = {
                         groupid: groupid,
                         blockfunction: mainMsg[2]
@@ -95,6 +95,9 @@ if (process.env.mongoURL) {
                         rply.text += '沒有關鍵字. '
                     if (!groupid)
                         rply.text += '不在群組. '
+                    if (userrole < 2)
+                        rply.text += '只有DM以上才可新增. '
+
                 }
 
                 records.get('block', (msgs) => {
@@ -105,7 +108,7 @@ if (process.env.mongoURL) {
                 return rply;
             case /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
                 //刪除阻擋用關鍵字
-                if (groupid && mainMsg[2] && rply.save) {
+                if (groupid && mainMsg[2] && rply.save && userrole >= 2) {
                     for (var i = 0; i < rply.save.length; i++) {
                         if (rply.save[i].groupid == groupid) {
                             let temp = rply.save[i]
@@ -124,6 +127,9 @@ if (process.env.mongoURL) {
                     rply.text = '刪除失敗.'
                     if (!groupid)
                         rply.text += '不在群組. '
+                    if (userrole < 2)
+                        rply.text += '只有DM以上才可刪除. '
+
                 }
                 records.get('block', (msgs) => {
                     //console.log('exports.records.get(): 0 0 stop', msgs);
@@ -133,7 +139,7 @@ if (process.env.mongoURL) {
                 return rply;
             case /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
                 //刪除阻擋用關鍵字
-                if (groupid && mainMsg[2] && rply.save) {
+                if (groupid && mainMsg[2] && rply.save && userrole >= 2) {
                     for (var i = 0; i < rply.save.length; i++) {
                         if (rply.save[i].groupid == groupid && mainMsg[2] < rply.save[i].blockfunction.length && mainMsg[2] >= 0) {
                             let temp = rply.save[i]
@@ -155,6 +161,8 @@ if (process.env.mongoURL) {
                         rply.text += '沒有關鍵字. '
                     if (!groupid)
                         rply.text += '不在群組. '
+                    if (userrole < 2)
+                        rply.text += '只有DM以上才可刪除. '
                 }
                 records.get('block', (msgs) => {
                     //console.log('exports.records.get(): 0 0 stop', msgs);

@@ -1,7 +1,8 @@
 if (process.env.mongoURL) {
     const mongoose = require('mongoose');
     mongoose.connect(process.env.mongoURL, {
-        useNewUrlParser: true
+        useNewUrlParser: true,
+        useFindAndModify: false
     });
 
     const db = mongoose.connection;
@@ -11,6 +12,8 @@ if (process.env.mongoURL) {
         console.log('mlab  connected!');
     });
 
-    module.exports = { mongoose };
+    module.exports = {
+        mongoose
+    };
 
 }

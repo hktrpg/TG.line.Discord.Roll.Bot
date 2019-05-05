@@ -44,7 +44,8 @@ if (process.env.mongoURL) {
                         groupid: groupid,
                         blockfunction: mainMsg[2]
                     }
-                    records.pushblockfunction('block', temp)
+                   await records.pushblockfunction('block', temp)
+                   console.log('push')
                     rply.text = '新增成功: ' + mainMsg[2]
                 } else {
                     rply.text = '新增失敗.'
@@ -56,9 +57,11 @@ if (process.env.mongoURL) {
                         rply.text += '只有DM以上才可新增. '
 
                 }
-                records.get('block', (msgs) => {
+                await records.get('block', (msgs) => {
                     rply.save = msgs
+                    console.log('get')
                 })
+                console.log('return')
                 return rply;
             case /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
                 //刪除阻擋用關鍵字

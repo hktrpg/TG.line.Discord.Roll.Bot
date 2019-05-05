@@ -51,7 +51,6 @@ if (process.env.mongoURL) {
                     records.pushblockfunction('block', temp, () => {
                         records.get('block', (msgs) => {
                             rply.save = msgs
-                            console.log('update')
                         })
 
                     })
@@ -101,9 +100,7 @@ if (process.env.mongoURL) {
                             //console.log(rply.save[i])
                             records.set('block', temp, () => {
                                 records.get('block', (msgs) => {
-                                    console.log('del num')
                                     rply.save = msgs
-
                                 })
                             })
 

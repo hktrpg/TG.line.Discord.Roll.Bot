@@ -34,7 +34,7 @@ if (process.env.mongoURL) {
         return rply;
     }
 
-    rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole) {
+    rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole) {
         rply.text = '';
         switch (true) {
             case /^add$/i.test(mainMsg[1]) && /^[\u4e00-\u9fa5a-zA-Z0-9]+$/ig.test(mainMsg[2]) && /^((?!^(b|k|bk)$).)*$/ig.test(mainMsg[2]):
@@ -67,7 +67,7 @@ if (process.env.mongoURL) {
                         if (rply.save[i].groupid == groupid) {
                             let temp = rply.save[i]
                             temp.blockfunction = []
-                            records.set('block', temp)
+                            await records.set('block', temp)
                             rply.text = '刪除所有關鍵字'
                         }
                     }
@@ -80,9 +80,12 @@ if (process.env.mongoURL) {
                         rply.text += '只有DM以上才可刪除. '
 
                 }
-                records.get('block', (msgs) => {
+                await records.get('block', (msgs) => {
                     rply.save = msgs
+                    console.log('get:', rply)
+
                 })
+                console.log('return:', rply)
                 return rply;
             case /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
                 //刪除阻擋用關鍵字

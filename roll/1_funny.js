@@ -18,8 +18,8 @@ prefixs = function () {
 getHelpMessage = function () {
 	return "【趣味擲骰】" + "\
 	\n  隨機選擇： 啓動語 choice 隨機\
-	\n(問題)(啓動語)(問題)  (選項1) (選項2)(選項3) \
-	\n例子 收到聖誕禮物隨機數 1 2 3 >4  \
+	\n(問題)(啓動語)(問題)  (選項1) (選項2) \
+	\n例子 收到聖誕禮物隨機數 1 2 >3  \
 	\n\
 	\n隨機排序：啓動語 排序\
 	\n(問題)(啓動語)(問題) (選項1) (選項2)(選項3)\
@@ -69,7 +69,7 @@ rollDiceCommand = function (inputStr, mainMsg) {
 	switch (true) {
 		case /排序/i.test(mainMsg[0]) && (mainMsg.length >= 4):
 			return SortIt(inputStr, mainMsg);
-		case /隨機/i.test(mainMsg[0]) && (mainMsg.length >= 4):
+		case /隨機|choice/i.test(mainMsg[0]) && (mainMsg.length >= 3):
 			return choice(inputStr, mainMsg);
 		case /塔羅/i.test(mainMsg[0]):
 			if (mainMsg[0].match(/^每日塔羅/) != null) return NomalDrawTarot(mainMsg[1], mainMsg[2]); //預設抽 79 張

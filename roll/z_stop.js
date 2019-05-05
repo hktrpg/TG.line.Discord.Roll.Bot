@@ -58,7 +58,6 @@ if (process.env.mongoURL) {
                         rply.text += '不在群組. '
                     if (groupid && userrole < 2)
                         rply.text += '只有DM以上才可新增. '
-
                 }
                 records.get('block', (msgs) => {
                     rply.save = msgs
@@ -75,14 +74,12 @@ if (process.env.mongoURL) {
                             rply.text = '刪除所有關鍵字'
                         }
                     }
-
                 } else {
                     rply.text = '刪除失敗.'
                     if (!groupid)
                         rply.text += '不在群組. '
                     if (groupid && userrole < 2)
                         rply.text += '只有DM以上才可刪除. '
-
                 }
                 records.get('block', (msgs) => {
                     rply.save = msgs
@@ -100,9 +97,6 @@ if (process.env.mongoURL) {
                             rply.text = '刪除成功: ' + mainMsg[2]
                         }
                     }
-
-                    //records.push('block', temp)
-
                 } else {
                     rply.text = '刪除失敗.'
                     if (!mainMsg[2])
@@ -154,7 +148,4 @@ if (process.env.mongoURL) {
         gameType: gameType,
         gameName: gameName
     };
-
-    // socket.emit("chatRecord", records.get()); // 砍掉這行
-    // 改成下面這個
 }

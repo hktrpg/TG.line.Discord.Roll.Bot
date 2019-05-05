@@ -24,35 +24,17 @@ class Records extends EventEmitter {
     }
 
     pushblockfunction(dbbase, msg) {
-        //   data.push({ msg });
-        //console.log('data: ', msg)
-        // 將聊天資料轉成資料模型
-        /* 
-        if (data.length > MAX) {
-            data.splice(0, 1);
-        }
-        
-        const m = new schema[dbbase](
-             msg
-         );
-         // 存至資料庫
-         console.log('m: ', msg)
-         //m.save();
-
+        /*
             提醒:
             $push 加入新的
             $set  重置舊的
-
          */
         schema[dbbase].findOneAndUpdate({ groupid: msg.groupid }, { $push: { blockfunction: msg.blockfunction } }, { new: true, upsert: true }, (err, doc) => {
             if (err) {
                 console.log("Something wrong when updating data!");
             }
-            console.log(JSON.stringify(doc).toString());
-            // return JSON.stringify(doc).toString();
+//            console.log(JSON.stringify(doc).toString());
         });
-        //  this.emit("new_message", msg);
-
     }
 
     get(target, callback) {

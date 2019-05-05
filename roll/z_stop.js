@@ -44,8 +44,8 @@ if (process.env.mongoURL) {
                         groupid: groupid,
                         blockfunction: mainMsg[2]
                     }
-                   await records.pushblockfunction('block', temp)
-                   console.log('push')
+                    await records.pushblockfunction('block', temp)
+                    console.log('push')
                     rply.text = '新增成功: ' + mainMsg[2]
                 } else {
                     rply.text = '新增失敗.'
@@ -61,7 +61,7 @@ if (process.env.mongoURL) {
                     rply.save = msgs
                     console.log('get')
                 })
-                console.log('return')
+                console.log('return: ', rply)
                 return rply;
             case /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
                 //刪除阻擋用關鍵字
@@ -86,6 +86,7 @@ if (process.env.mongoURL) {
                 await records.get('block', (msgs) => {
                     rply.save = msgs
                     console.log('get:', rply)
+                    return rply;
 
                 })
                 console.log('return:', rply)

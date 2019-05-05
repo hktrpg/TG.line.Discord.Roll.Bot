@@ -9,12 +9,12 @@ let instance;
 let data = [];
 let MAX = 50000;
 
-class Records extends EventEmitter {
+async class Records extends EventEmitter {
     constructor() {
         super();
     }
     set(dbbase, msg) {
-        schema[dbbase].findOneAndUpdate({ groupid: msg.groupid }, { $set: { blockfunction: msg.blockfunction } }, { upsert: true }, (err, doc) => {
+        await schema[dbbase].findOneAndUpdate({ groupid: msg.groupid }, { $set: { blockfunction: msg.blockfunction } }, { upsert: true }, (err, doc) => {
             if (err) {
                 console.log("Something wrong when updating data!");
             }
@@ -44,7 +44,7 @@ class Records extends EventEmitter {
             $set  重置舊的
 
          */
-        schema[dbbase].findOneAndUpdate({ groupid: msg.groupid }, { $push: { blockfunction: msg.blockfunction } }, { new: true, upsert: true }, (err, doc) => {
+        await schema[dbbase].findOneAndUpdate({ groupid: msg.groupid }, { $push: { blockfunction: msg.blockfunction } }, { new: true, upsert: true }, (err, doc) => {
             if (err) {
                 console.log("Something wrong when updating data!");
             }
@@ -57,7 +57,7 @@ class Records extends EventEmitter {
 
     get(target, callback) {
         // 取出所有資料
-        schema[target].find({}, (err, msgs) => {
+        await schema[target].find({}, (err, msgs) => {
             callback(msgs);
         });
     }

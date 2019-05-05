@@ -10,7 +10,7 @@ if (process.env.mongoURL) {
         rply.save = msgs
     })
     gameName = function () {
-        return '擲骰開關功能 .bk (add del show)'
+        return '(公測中)擲骰開關功能 .bk (add del show)'
     }
 
     gameType = function () {
@@ -20,11 +20,11 @@ if (process.env.mongoURL) {
         return [/^[.]bk$/ig,]
     }
     getHelpMessage = function () {
-        return "【Block】" + "\
+        return "【擲骰開關功能】" + "\
         \n 這是根據關鍵字來開關功能,只要符合內容,\
         \n 例如運勢,那麼只要字句中包括,就不會讓Bot有反應\
         \n 所以注意如果用了D, 那麼1D100, .1WD 都會全部沒反應.\
-        \n 因為原理是擋了回應, 所以如果擋了bk 其中一個字, 只要用.bk del all就好\
+        \n 另外不可擋b,k,bk, 只可以擋漢字,數字和英文\
     \n 輸入.bk add xxxxx 即可增加關鍵字 每次一個\
     \n 輸入.bk show 顯示關鍵字\
     \n 輸入.bk del (編號)或all 即可刪除\
@@ -34,17 +34,17 @@ if (process.env.mongoURL) {
         return rply;
     }
 
-    rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole) {
+    rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole) {
         rply.text = '';
         switch (true) {
-            case /^add$/i.test(mainMsg[1]) && /^[\u4e00-\u9fa5a-zA-Z0-9]+$/ig.test(mainMsg[2]):
+            case /^add$/i.test(mainMsg[1]) && /^[\u4e00-\u9fa5a-zA-Z0-9]+$/ig.test(mainMsg[2]) && /^((?!^(b|k|bk)$).)*$/ig.test(mainMsg[2]):
                 //增加阻擋用關鍵字
                 if (groupid && mainMsg[2] && userrole >= 2) {
                     let temp = {
                         groupid: groupid,
                         blockfunction: mainMsg[2]
                     }
-                    await records.pushblockfunction('block', temp, 'blockfunction', temp.blockfunction)
+                    records.pushblockfunction('block', temp)
                     rply.text = '新增成功: ' + mainMsg[2]
                 } else {
                     rply.text = '新增失敗.'
@@ -114,6 +114,7 @@ if (process.env.mongoURL) {
                     //console.log('new: ', rply)
                 })
                 return rply;
+
             case /^show$/i.test(mainMsg[1]):
                 if (groupid) {
                     let temp = 0;

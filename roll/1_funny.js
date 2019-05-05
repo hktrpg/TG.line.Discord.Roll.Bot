@@ -6,7 +6,7 @@ var rply = {
 };
 
 gameName = function () {
-	return '趣味擲骰 排序(至少3個選項) choice/隨機(至少3個選項) 每日塔羅 運勢 立flag .me'
+	return '趣味擲骰 排序(至少3個選項) choice/隨機(至少2個選項) 每日塔羅 運勢 立flag .me'
 }
 
 gameType = function () {

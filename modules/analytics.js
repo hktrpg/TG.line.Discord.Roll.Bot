@@ -78,12 +78,12 @@ try {
 
 
 
-		if (!process.env.mongoURL) {
-			if (result && result.text) {
-				console.log('inputStr: ', inputStr)
-				return result
-			}
-		} else return callback(mainMsg, groupid, result);
+
+		if (result && result.text) {
+			console.log('inputStr: ', inputStr)
+			return callback(mainMsg, groupid, result);
+
+		}
 
 	}
 
@@ -96,7 +96,7 @@ try {
 				if (exports[v].initialize().save && exports[v].initialize().save[0].blockfunction && exports[v].initialize().save[0].blockfunction.length > 0) {
 					for (var i = 0; i < exports[v].initialize().save.length; i++) {
 						if ((new RegExp(exports[v].initialize().save[i].blockfunction.join("|"), "i")).test(mainMsg[0]) && exports[v].initialize().save[i].groupid == groupid && exports[v].initialize().save[i].blockfunction.length > 0) {
-							console.log('Done?')
+							console.log('Match AND STOP')
 							result.text = '';
 
 						}

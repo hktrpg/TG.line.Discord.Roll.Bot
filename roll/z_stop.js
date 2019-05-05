@@ -34,7 +34,7 @@ if (process.env.mongoURL) {
         return rply;
     }
 
-    rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole) {
+    rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole) {
         rply.text = '';
         switch (true) {
             case /^add$/i.test(mainMsg[1]) && /^[\u4e00-\u9fa5a-zA-Z0-9]+$/ig.test(mainMsg[2]) && /^((?!^(b|k|bk)$).)*$/ig.test(mainMsg[2]):
@@ -44,8 +44,7 @@ if (process.env.mongoURL) {
                         groupid: groupid,
                         blockfunction: mainMsg[2]
                     }
-                    await records.pushblockfunction('block', temp)
-                    console.log('push')
+                    records.pushblockfunction('block', temp)
                     rply.text = '新增成功: ' + mainMsg[2]
                 } else {
                     rply.text = '新增失敗.'
@@ -57,11 +56,9 @@ if (process.env.mongoURL) {
                         rply.text += '只有DM以上才可新增. '
 
                 }
-                await records.get('block', (msgs) => {
+                records.get('block', (msgs) => {
                     rply.save = msgs
-                    console.log('get')
                 })
-                console.log('return: ', rply)
                 return rply;
             case /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
                 //刪除阻擋用關鍵字
@@ -70,7 +67,7 @@ if (process.env.mongoURL) {
                         if (rply.save[i].groupid == groupid) {
                             let temp = rply.save[i]
                             temp.blockfunction = []
-                            await records.set('block', temp)
+                            records.set('block', temp)
                             rply.text = '刪除所有關鍵字'
                         }
                     }
@@ -83,13 +80,9 @@ if (process.env.mongoURL) {
                         rply.text += '只有DM以上才可刪除. '
 
                 }
-                await records.get('block', (msgs) => {
+                records.get('block', (msgs) => {
                     rply.save = msgs
-                    console.log('get:', rply)
-                    return rply;
-
                 })
-                console.log('return:', rply)
                 return rply;
             case /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
                 //刪除阻擋用關鍵字

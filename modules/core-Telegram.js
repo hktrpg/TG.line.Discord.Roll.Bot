@@ -55,10 +55,10 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			}
 			if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 				mainMsg.shift()
-				rplyVal = exports.analytics.parseInput(mainMsg.join(' '), groupid, userid, userrole)
+				rplyVal = exports.analytics.parseInput(mainMsg.join(' '), groupid, userid, userrole, exports.analytics.stop)
 			} else {
 				if (channelKeyword == '') {
-					rplyVal = exports.analytics.parseInput(mainMsg.join(' '), groupid, userid, userrole)
+					rplyVal = exports.analytics.parseInput(mainMsg.join(' '), groupid, userid, userrole, exports.analytics.stop)
 
 				}
 

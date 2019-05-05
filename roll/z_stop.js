@@ -5,36 +5,9 @@ if (process.env.mongoURL) {
         text: ''
     };
 
-
-    /*
-    var unforgivable = [
-            "password",
-            "12345678",
-            "8675309",
-            "[a-z]{8,}",
-            "qwerty",
-            "asdfg",
-            "qazwsx",
-            "zxcvb",
-            "letmein",
-            "trustno1",
-            "omnicloud",
-            "monkey"
-        ];
-        var re = new RegExp(unforgivable.join("|"), "i");
-     */
-
-    //const db = require('../modules/db-connector.js');
-    //const schema = require('../modules/schema.js'); // 新增這行
-
-    //const mongoose = require('mongoose');
-    const records = require('../modules/records.js'); // 新增這行
-
-    //var save;
+    const records = require('../modules/records.js');
     records.get('block', (msgs) => {
-        //console.log('exports.records.get(): 0 0 stop', msgs);
         rply.save = msgs
-        // console.log(rply)
     })
     gameName = function () {
         return '擲骰開關功能 .bk (add del show)'
@@ -64,19 +37,6 @@ if (process.env.mongoURL) {
     rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole) {
         rply.text = '';
         switch (true) {
-            /*
-            case /^dev$/i.test(mainMsg[1]):
-                //rply.text = exports.records.get();
-                //console.log(exports.records.get())
-                rply.text = mainMsg[3];
-                records.push(mainMsg[2], rply, 'blockfunction', rply.blockfunction)
-                console.log('dev')
-                records.get((msgs) => {
-                    console.log('exports.records.get():', msgs.toString());
-                })
-                console.log('save:  ', save)
-                break;
-                */
             case /^add$/i.test(mainMsg[1]) && /^[\u4e00-\u9fa5a-zA-Z0-9]+$/ig.test(mainMsg[2]):
                 //增加阻擋用關鍵字
                 if (groupid && mainMsg[2] && userrole >= 2) {
@@ -84,10 +44,7 @@ if (process.env.mongoURL) {
                         groupid: groupid,
                         blockfunction: mainMsg[2]
                     }
-
                     records.pushblockfunction('block', temp, 'blockfunction', temp.blockfunction)
-
-
                     rply.text = '新增成功: ' + mainMsg[2]
                 } else {
                     rply.text = '新增失敗.'
@@ -95,15 +52,12 @@ if (process.env.mongoURL) {
                         rply.text += '沒有關鍵字. '
                     if (!groupid)
                         rply.text += '不在群組. '
-                    if (userrole < 2)
+                    if (groupid && userrole < 2)
                         rply.text += '只有DM以上才可新增. '
 
                 }
-
                 records.get('block', (msgs) => {
-                    //console.log('exports.records.get(): 0 0 stop', msgs);
-                    rply.save = msgs
-                    //  console.log('new: 01: ', rply)
+                     rply.save = msgs
                 })
                 return rply;
             case /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
@@ -113,28 +67,21 @@ if (process.env.mongoURL) {
                         if (rply.save[i].groupid == groupid) {
                             let temp = rply.save[i]
                             temp.blockfunction = []
-                            //console.log(rply.save[i])
                             records.set('block', temp)
                             rply.text = '刪除所有關鍵字'
-
-
                         }
                     }
-
-                    //records.push('block', temp)
 
                 } else {
                     rply.text = '刪除失敗.'
                     if (!groupid)
                         rply.text += '不在群組. '
-                    if (userrole < 2)
+                    if (groupid && userrole < 2)
                         rply.text += '只有DM以上才可刪除. '
 
                 }
                 records.get('block', (msgs) => {
-                    //console.log('exports.records.get(): 0 0 stop', msgs);
                     rply.save = msgs
-                    //console.log('new: ', rply)
                 })
                 return rply;
             case /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
@@ -147,9 +94,6 @@ if (process.env.mongoURL) {
                             //console.log(rply.save[i])
                             records.set('block', temp)
                             rply.text = '刪除成功: ' + mainMsg[2]
-
-
-
                         }
                     }
 
@@ -161,7 +105,7 @@ if (process.env.mongoURL) {
                         rply.text += '沒有關鍵字. '
                     if (!groupid)
                         rply.text += '不在群組. '
-                    if (userrole < 2)
+                    if (groupid && userrole < 2)
                         rply.text += '只有DM以上才可刪除. '
                 }
                 records.get('block', (msgs) => {

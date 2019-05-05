@@ -13,12 +13,13 @@ if (process.env.mongoURL) {
         blockfunction: Array
     });
 
-    const dog = mongoose.model('Dog', {
-        name: String
+    const randomAns = mongoose.model('randomAns', {
+        groupid: String,
+        randomAnsfunction: Array
     });
 
     module.exports = {
-        dog,
+        randomAns,
         block,
         chattest
     }

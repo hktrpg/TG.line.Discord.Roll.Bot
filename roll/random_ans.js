@@ -6,21 +6,21 @@ if (process.env.mongoURL) {
     };
 
     const records = require('../modules/records.js');
-    records.get('block', (msgs) => {
-        rply.save = msgs
+    records.get('randomAns', (msgs) => {
+        rply.randomAns = msgs
     })
     gameName = function () {
-        return '(公測中)擲骰開關功能 .bk (add del show)'
+        return '(公測中)自定義隨機回答 .ra (add del 編號 名稱)'
     }
 
     gameType = function () {
-        return 'Block:hktrpg'
+        return 'RandomAns:hktrpg'
     }
     prefixs = function () {
-        return [/^[.]bk$/ig, ]
+        return [/^[.]ra$/ig, ]
     }
     getHelpMessage = function () {
-        return "【擲骰開關功能】" + "\
+        return "【自定義回答功能】" + "\
         \n 這是根據關鍵字來開關功能,只要符合內容,\
         \n 例如運勢,那麼只要字句中包括,就不會讓Bot有反應\
         \n 所以注意如果用了D, 那麼1D100, .1WD 都會全部沒反應.\
@@ -36,8 +36,8 @@ if (process.env.mongoURL) {
     }
 
     rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole) {
-        records.get('block', (msgs) => {
-            rply.save = msgs
+        records.get('randomAns', (msgs) => {
+            rply.randomAns = msgs
         })
         rply.text = '';
         switch (true) {
@@ -46,15 +46,9 @@ if (process.env.mongoURL) {
                 if (groupid && mainMsg[2] && userrole >= 2) {
                     let temp = {
                         groupid: groupid,
-                        blockfunction: mainMsg[2]
+                        randomAnsfunction: mainMsg[2]
                     }
-                    records.pushblockfunction('block', temp, () => {
-                        records.get('block', (msgs) => {
-                            rply.save = msgs
-                            console.log('update')
-                        })
-
-                    })
+                    records.pushrandomAnsfunction('randomAns', temp)
                     rply.text = '新增成功: ' + mainMsg[2]
                 } else {
                     rply.text = '新增失敗.'
@@ -65,20 +59,18 @@ if (process.env.mongoURL) {
                     if (groupid && userrole < 2)
                         rply.text += '只有DM以上才可新增. '
                 }
+                records.get('randomAns', (msgs) => {
+                    rply.randomAns = msgs
+                })
                 return rply;
-
             case /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
                 //刪除阻擋用關鍵字
-                if (groupid && mainMsg[2] && rply.save && userrole >= 2) {
-                    for (var i = 0; i < rply.save.length; i++) {
-                        if (rply.save[i].groupid == groupid) {
-                            let temp = rply.save[i]
-                            temp.blockfunction = []
-                            records.set('block', temp, () => {
-                                records.get('block', (msgs) => {
-                                    rply.save = msgs
-                                })
-                            })
+                if (groupid && mainMsg[2] && rply.randomAns && userrole >= 2) {
+                    for (var i = 0; i < rply.randomAns.length; i++) {
+                        if (rply.randomAns[i].groupid == groupid) {
+                            let temp = rply.randomAns[i]
+                            temp.randomAnsfunction = []
+                            records.set('randomAns', temp)
                             rply.text = '刪除所有關鍵字'
                         }
                     }
@@ -89,26 +81,21 @@ if (process.env.mongoURL) {
                     if (groupid && userrole < 2)
                         rply.text += '只有DM以上才可刪除. '
                 }
-
+                records.get('randomAns', (msgs) => {
+                    rply.randomAns = msgs
+                })
                 return rply;
             case /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
                 //刪除阻擋用關鍵字
-                if (groupid && mainMsg[2] && rply.save && userrole >= 2) {
-                    for (var i = 0; i < rply.save.length; i++) {
-                        if (rply.save[i].groupid == groupid && mainMsg[2] < rply.save[i].blockfunction.length && mainMsg[2] >= 0) {
-                            let temp = rply.save[i]
-                            temp.blockfunction.splice(mainMsg[2], 1)
+                if (groupid && mainMsg[2] && rply.randomAns && userrole >= 2) {
+                    for (var i = 0; i < rply.randomAns.length; i++) {
+                        if (rply.randomAns[i].groupid == groupid && mainMsg[2] < rply.randomAns[i].randomAnsfunction.length && mainMsg[2] >= 0) {
+                            let temp = rply.randomAns[i]
+                            temp.randomAnsfunction.splice(mainMsg[2], 1)
                             //console.log(rply.save[i])
-                            records.set('block', temp, () => {
-                                records.get('block', (msgs) => {
-                                    console.log('del num')
-                                    rply.save = msgs
-
-                                })
-                            })
-
+                            records.set('randomAns', temp)
+                            rply.text = '刪除成功: ' + mainMsg[2]
                         }
-                        rply.text = '刪除成功: ' + mainMsg[2]
                     }
                 } else {
                     rply.text = '刪除失敗.'
@@ -119,20 +106,25 @@ if (process.env.mongoURL) {
                     if (groupid && userrole < 2)
                         rply.text += '只有DM以上才可刪除. '
                 }
+                records.get('randomAns', (msgs) => {
+                    //console.log('exports.records.get(): 0 0 stop', msgs);
+                    rply.randomAns = msgs
+                    //console.log('new: ', rply)
+                })
                 return rply;
 
             case /^show$/i.test(mainMsg[1]):
-                records.get('block', (msgs) => {
-                    rply.save = msgs
+                records.get('randomAns', (msgs) => {
+                    rply.randomAns = msgs
                 })
                 if (groupid) {
                     let temp = 0;
-                    for (var i = 0; i < rply.save.length; i++) {
-                        if (rply.save[i].groupid == groupid) {
+                    for (var i = 0; i < rply.randomAns.length; i++) {
+                        if (rply.randomAns[i].groupid == groupid) {
                             rply.text += '阻擋用關鍵字列表:'
-                            for (var a = 0; a < rply.save[i].blockfunction.length; a++) {
+                            for (var a = 0; a < rply.save[i].randomAnsfunction.length; a++) {
                                 temp = 1
-                                rply.text += ("\n") + a + '. ' + rply.save[i].blockfunction[a]
+                                rply.text += ("\n") + a + '. ' + rply.save[i].randomAnsfunction[a]
                             }
                         }
                     }

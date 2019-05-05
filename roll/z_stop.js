@@ -17,7 +17,7 @@ if (process.env.mongoURL) {
         return 'Block:hktrpg'
     }
     prefixs = function () {
-        return [/^[.]bk$/ig, ]
+        return [/^[.]bk$/ig,]
     }
     getHelpMessage = function () {
         return "【Block】" + "\
@@ -34,7 +34,7 @@ if (process.env.mongoURL) {
         return rply;
     }
 
-    rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole) {
+    rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole) {
         rply.text = '';
         switch (true) {
             case /^add$/i.test(mainMsg[1]) && /^[\u4e00-\u9fa5a-zA-Z0-9]+$/ig.test(mainMsg[2]):
@@ -44,7 +44,7 @@ if (process.env.mongoURL) {
                         groupid: groupid,
                         blockfunction: mainMsg[2]
                     }
-                    records.pushblockfunction('block', temp, 'blockfunction', temp.blockfunction)
+                    await records.pushblockfunction('block', temp, 'blockfunction', temp.blockfunction)
                     rply.text = '新增成功: ' + mainMsg[2]
                 } else {
                     rply.text = '新增失敗.'
@@ -57,7 +57,7 @@ if (process.env.mongoURL) {
 
                 }
                 records.get('block', (msgs) => {
-                     rply.save = msgs
+                    rply.save = msgs
                 })
                 return rply;
             case /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):

@@ -89,7 +89,7 @@ try {
 
 	function stop(mainMsg, groupid) {
 		//對比mongoose資料
-		console.log('stop')
+		//console.log('stop')
 		if (process.env.mongoURL) {
 			Object.keys(exports).forEach(v => {
 

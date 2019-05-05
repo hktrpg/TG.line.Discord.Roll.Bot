@@ -11,6 +11,7 @@ try {
 		text: '',
 		type: 'text'
 	};
+
 	//用來呼叫骰組,新增骰組的話,要寫條件式到下面呼叫 
 	//格式是 exports.骰組檔案名字.function名
 	function parseInput(inputStr, groupid, userid, userrole, callback) {
@@ -22,12 +23,40 @@ try {
 			text: '',
 			type: 'text'
 		};
-
+		let stopmark = 0;
 		let msgSplitor = (/\S+/ig);
 		let mainMsg = inputStr.match(msgSplitor); //定義輸入字串
 		let trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
 
+
+		//對比mongoose資料
+		//console.log('stop')
+		Object.keys(exports).forEach(v => {
+			if (exports[v].initialize().save && exports[v].initialize().save[0].blockfunction && exports[v].initialize().save[0].blockfunction.length > 0) {
+				for (var i = 0; i < exports[v].initialize().save.length; i++) {
+					if ((new RegExp(exports[v].initialize().save[i].blockfunction.join("|"), "i")).test(mainMsg[0]) && exports[v].initialize().save[i].groupid == groupid && exports[v].initialize().save[i].blockfunction.length > 0) {
+						console.log('Match AND STOP')
+						stopmark = 1
+
+					}
+				}
+			}
+		})
+
+
+		result = callback(inputStr, groupid, userid, userrole, mainMsg, trigger, stopmark)
+		if (result && result.text) {
+			console.log('inputStr: ', inputStr)
+			return result;
+
+		}
+
+
+	}
+
+	function stop(inputStr, groupid, userid, userrole, mainMsg, trigger, stopmark) {
 		//在下面位置開始分析trigger
+
 		Object.keys(exports).forEach(v => {
 			//0 = 不存在
 			//1 = 符合
@@ -40,7 +69,7 @@ try {
 			let checkmainMsg0 = 0;
 			let checkmainMsg1 = 0;
 			let findprefixs = 0;
-			if (exports[v].prefixs()[0] && exports[v].prefixs()[0]) {
+			if (exports[v].prefixs()[0] && exports[v].prefixs()[0] && stopmark == 0) {
 				for (i = 0; i <= exports[v].prefixs().length - 1; i = i + 2) {
 					checkmainMsg0 = 0;
 					checkmainMsg1 = 0;
@@ -65,7 +94,7 @@ try {
 
 
 
-			if (findprefixs == 1) {
+			if (findprefixs == 1 && stopmark == 0) {
 				console.log('trigger: ', trigger, ' v: ', v)
 				let temp = exports[v].rollDiceCommand(inputStr, mainMsg, groupid, userid, userrole)
 				if (temp)
@@ -75,36 +104,8 @@ try {
 			}
 		})
 
+		return result
 
-
-
-
-		if (result && result.text) {
-			console.log('inputStr: ', inputStr)
-			return callback(mainMsg, groupid, result);
-
-		}
-
-	}
-
-	function stop(mainMsg, groupid) {
-		//對比mongoose資料
-		//console.log('stop')
-		if (process.env.mongoURL) {
-			Object.keys(exports).forEach(v => {
-
-				if (exports[v].initialize().save && exports[v].initialize().save[0].blockfunction && exports[v].initialize().save[0].blockfunction.length > 0) {
-					for (var i = 0; i < exports[v].initialize().save.length; i++) {
-						if ((new RegExp(exports[v].initialize().save[i].blockfunction.join("|"), "i")).test(mainMsg[0]) && exports[v].initialize().save[i].groupid == groupid && exports[v].initialize().save[i].blockfunction.length > 0) {
-							console.log('Match AND STOP')
-							result.text = '';
-
-						}
-					}
-				}
-			})
-			return result
-		}
 	}
 
 

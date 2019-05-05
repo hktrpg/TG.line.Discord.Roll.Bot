@@ -17,7 +17,7 @@ if (process.env.mongoURL) {
         return 'Block:hktrpg'
     }
     prefixs = function () {
-        return [/^[.]bk$/ig,]
+        return [/^[.]bk$/ig, ]
     }
     getHelpMessage = function () {
         return "【擲骰開關功能】" + "\
@@ -35,6 +35,9 @@ if (process.env.mongoURL) {
     }
 
     rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole) {
+        records.get('block', (msgs) => {
+            rply.save = msgs
+        })
         rply.text = '';
         switch (true) {
             case /^add$/i.test(mainMsg[1]) && /^[\u4e00-\u9fa5a-zA-Z0-9]+$/ig.test(mainMsg[2]) && /^((?!^(b|k|bk)$).)*$/ig.test(mainMsg[2]):
@@ -116,6 +119,9 @@ if (process.env.mongoURL) {
                 return rply;
 
             case /^show$/i.test(mainMsg[1]):
+                records.get('block', (msgs) => {
+                    rply.save = msgs
+                })
                 if (groupid) {
                     let temp = 0;
                     for (var i = 0; i < rply.save.length; i++) {

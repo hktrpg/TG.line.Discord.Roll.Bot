@@ -96,10 +96,10 @@ try {
 
 			if (findprefixs == 1 && stopmark == 0) {
 				console.log('trigger: ', trigger, ' v: ', v)
-				let temp = exports[v].rollDiceCommand(inputStr, mainMsg, groupid, userid, userrole)
-				if (temp)
-					Object.keys(temp).forEach(v => {
-						result[v] = temp[v]
+				let tempsave = exports[v].rollDiceCommand(inputStr, mainMsg, groupid, userid, userrole)
+				if (tempsave)
+					Object.keys(tempsave).forEach(v => {
+						result[v] = tempsave[v]
 					})
 			}
 		})

@@ -95,6 +95,42 @@ class Records extends EventEmitter {
         });
     }
 
+    pushrandomAnsAllgroup(dbbase, msg, callback) {
+        /*
+            提醒:
+            $push 加入新的
+            $set  重置舊的
+         */
+        schema[dbbase].findOneAndUpdate({}, {
+            $push: {
+                randomAnsAllgroup: msg.randomAnsAllgroup
+            }
+        }, {
+            new: true,
+            upsert: true
+        }, (err, doc) => {
+            if (err) {
+                console.log("Something wrong when updating data!");
+            } else
+                callback();
+        });
+    }
+    setrandomAnsAllgroup(dbbase, msg, callback) {
+        schema[dbbase].findOneAndUpdate({}, {
+            $set: {
+                randomAnsAllgroup: msg.randomAnsAllgroup
+            }
+        }, {
+            upsert: true
+        }, (err, doc) => {
+            if (err) {
+                console.log("Something wrong when updating data!");
+            } else
+                callback();
+            // return JSON.stringify(doc).toString();
+        });
+    }
+
     get(target, callback) {
         // 取出所有資料
         schema[target].find({}, (err, msgs) => {

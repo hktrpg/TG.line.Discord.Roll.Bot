@@ -18,10 +18,15 @@ if (process.env.mongoURL) {
         randomAnsfunction: Array
     });
 
+    const randomAnsAllgroup = mongoose.model('randomAnsAllgroup', {
+        randomAnsAllgroup: Array
+    });
+
     module.exports = {
         randomAns,
         block,
-        chattest
+        chattest,
+        randomAnsAllgroup
     }
     //const Cat = mongoose.model('Cat', { name: String });
     //const kitty = new Cat({ name: 'Zildjian' });

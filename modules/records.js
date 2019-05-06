@@ -54,6 +54,30 @@ class Records extends EventEmitter {
         });
     }
 
+
+    pushrandomAnsfunction(dbbase, msg, callback) {
+        /*
+            提醒:
+            $push 加入新的
+            $set  重置舊的
+         */
+        schema[dbbase].findOneAndUpdate({
+            groupid: msg.groupid
+        }, {
+            $push: {
+                randomAnsfunction: msg.randomAnsfunction
+            }
+        }, {
+            new: true,
+            upsert: true
+        }, (err, doc) => {
+            if (err) {
+                console.log("Something wrong when updating data!");
+            } else
+                callback();
+        });
+    }
+
     get(target, callback) {
         // 取出所有資料
         schema[target].find({}, (err, msgs) => {

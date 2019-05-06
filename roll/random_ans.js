@@ -44,7 +44,7 @@ try {
             case /^add$/i.test(mainMsg[1]) && /^(([\u4e00-\u9fa5a-z0-9])|(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff]))+$/ig.test(mainMsg[2]):
                 //增加自定義關鍵字
                 //(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])
-                console.log('step 1: ')
+                // console.log('step 1: ')
                 if (groupid && userrole >= 2 && mainMsg[3] && mainMsg[4]) {
                     ;
                     let temp = {
@@ -54,7 +54,7 @@ try {
                     records.pushrandomAnsfunction('randomAns', temp, () => {
                         records.get('randomAns', (msgs) => {
                             rply.randomAnsfunction = msgs
-                            console.log(rply);
+                            // console.log(rply);
                         })
 
                     })
@@ -103,7 +103,7 @@ try {
                         if (rply.randomAnsfunction[i].groupid == groupid && mainMsg[2] < rply.randomAnsfunction[i].randomAnsfunction.length && mainMsg[2] >= 0) {
                             let temp = rply.randomAnsfunction[i]
                             temp.randomAnsfunction.splice(mainMsg[2], 1)
-                            console.log('rply.randomAnsfunction: ', temp)
+                            //console.log('rply.randomAnsfunction: ', temp)
                             records.setrandomAnsfunction('randomAns', temp, () => {
                                 records.get('randomAns', (msgs) => {
                                     rply.randomAnsfunction = msgs
@@ -149,14 +149,14 @@ try {
                 return rply
             default:
                 if (mainMsg[1]) {
-                    console.log(mainMsg[1])
+                    //  console.log(mainMsg[1])
                     if (groupid) {
-                        console.log(mainMsg[1])
+                        //    console.log(mainMsg[1])
                         let temp = 0;
                         if (rply.randomAnsfunction)
                             for (var i = 0; i < rply.randomAnsfunction.length; i++) {
                                 if (rply.randomAnsfunction[i].groupid == groupid) {
-                                    console.log(rply.randomAnsfunction[i])
+                                    // console.log(rply.randomAnsfunction[i])
                                     //rply.text += '自定義關鍵字列表:'
                                     for (var a = 0; a < rply.randomAnsfunction[i].randomAnsfunction.length; a++) {
                                         if (rply.randomAnsfunction[i].randomAnsfunction[a][0] == mainMsg[1]) {

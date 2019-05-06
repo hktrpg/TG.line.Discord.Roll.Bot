@@ -11,24 +11,26 @@ try {
         rply.randomAnsfunction = msgs
     })
     gameName = function () {
-        return '(公測中)自定義回應功能 .ra (add del show 自定關鍵字)'
+        return '(公測中)自定義回應功能 .ra(次數) (add del show 自定關鍵字)'
     }
     gameType = function () {
         return 'randomAns:hktrpg'
     }
     prefixs = function () {
-        return [/^[.]ra$/ig,]
+        return [/(^[.]ra(\d+|)$)/ig, ]
     }
     getHelpMessage = function () {
         return "【自定義回應功能】" + "\
         \n 這是根據關鍵字來隨機抽選功能,只要符合內容,以後就會隨機抽選\
         \n 例如輸入 .ra add 九大陣營 守序善良 (...太長省略) 中立邪惡 混亂邪惡 \
         \n 再輸入.ra 九大陣營  就會輸出 九大陣營中其中一個\
+        \n 如果輸入.ra3 九大陣營  就會輸出 3次九大陣營\
         \n add 後面第一個是關鍵字, 可以是漢字,數字和英文或emoji\
         \n P.S.如果沒立即生效 用.bk show 刷新一下\
-    \n 輸入.ra add xxx (選項1) (選項2) (選項3)即可增加關鍵字\
+    \n 輸入.ra add (關鍵字) (選項1) (選項2) (選項3)即可增加關鍵字\
     \n 輸入.ra show 顯示所有關鍵字\
     \n 輸入.ra del(編號)或all 即可刪除\
+    \n 輸入.ra(次數,最多30次) (關鍵字) 即可隨機抽選 \
     \n "
     }
     initialize = function () {
@@ -150,6 +152,11 @@ try {
             default:
                 if (mainMsg[1]) {
                     //  console.log(mainMsg[1])
+                    let times = /^[.]ra(\d+|)/.exec(mainMsg[0])[1] || 1
+
+                    if (times > 30) times = 30;
+                    if (times < 1) times = 1
+                    //console.log(times)
                     if (groupid) {
                         //    console.log(mainMsg[1])
                         let temp = 0;
@@ -161,8 +168,10 @@ try {
                                     for (var a = 0; a < rply.randomAnsfunction[i].randomAnsfunction.length; a++) {
                                         if (rply.randomAnsfunction[i].randomAnsfunction[a][0] == mainMsg[1]) {
                                             temp = 1
-
                                             rply.text += rply.randomAnsfunction[i].randomAnsfunction[a][0] + ' → ' + rply.randomAnsfunction[i].randomAnsfunction[a][(Math.floor(Math.random() * (rply.randomAnsfunction[i].randomAnsfunction[a].length - 1))) + 1];
+                                            for (let t = 1; t < times; t++) {
+                                                rply.text += ' , ' + rply.randomAnsfunction[i].randomAnsfunction[a][(Math.floor(Math.random() * (rply.randomAnsfunction[i].randomAnsfunction[a].length - 1))) + 1];
+                                            }
                                         }
 
                                     }
@@ -173,8 +182,7 @@ try {
                         rply.text = '不在群組. '
                     }
                     return rply;
-                }
-                else
+                } else
                     break;
         }
     }

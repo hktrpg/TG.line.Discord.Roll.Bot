@@ -52,10 +52,10 @@ try {
                     if (rply.randomAnsfunction)
                         for (var i = 0; i < rply.randomAnsfunction.length; i++) {
                             if (rply.randomAnsfunction[i].groupid == groupid) {
-                                console.log('checked1')
+                               // console.log('checked1')
                                 for (var a = 0; a < rply.randomAnsfunction[i].randomAnsfunction.length; a++) {
                                     if (rply.randomAnsfunction[i].randomAnsfunction[a][0] == mainMsg[2]) {
-                                        console.log('checked')
+                                     //   console.log('checked')
                                         checkifsamename = 1
                                     }
                                 }
@@ -252,7 +252,7 @@ try {
             case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
                 records.get('randomAnsAllgroup', (msgs) => {
                     rply.randomAnsAllgroup = msgs
-                    console.log(rply)
+                  //  console.log(rply)
                 })
                 let tempshow = 0;
                 if (rply.randomAnsAllgroup)

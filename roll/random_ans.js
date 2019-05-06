@@ -178,7 +178,7 @@ try {
                                 for (var a = 0; a < rply.randomAnsfunction[i].randomAnsfunction.length; a++) {
                                     if (rply.randomAnsfunction[i].randomAnsfunction[a][0] == mainMsg[1]) {
                                         temp = 1
-                                        rply.text += rply.randomAnsfunction[i].randomAnsfunction[a][0] + ' → ' + rply.randomAnsfunction[i].randomAnsfunction[a][(Math.floor(Math.random() * (rply.randomAnsfunction[i].randomAnsfunction[a].length - 1))) + 1];
+                                        rply.text = rply.randomAnsfunction[i].randomAnsfunction[a][0] + ' → ' + rply.randomAnsfunction[i].randomAnsfunction[a][(Math.floor(Math.random() * (rply.randomAnsfunction[i].randomAnsfunction[a].length - 1))) + 1];
                                         for (let t = 1; t < times; t++) {
                                             rply.text += ' , ' + rply.randomAnsfunction[i].randomAnsfunction[a][(Math.floor(Math.random() * (rply.randomAnsfunction[i].randomAnsfunction[a].length - 1))) + 1];
                                         }
@@ -278,7 +278,7 @@ try {
                         for (var a = 0; a < rply.randomAnsAllgroup[i].randomAnsAllgroup.length; a++) {
                             if (rply.randomAnsAllgroup[i].randomAnsAllgroup[a][0] == mainMsg[1]) {
                                 temp2 = 1
-                                rply.text += rply.randomAnsAllgroup[i].randomAnsAllgroup[a][0] + ' → ' + rply.randomAnsAllgroup[i].randomAnsAllgroup[a][(Math.floor(Math.random() * (rply.randomAnsAllgroup[i].randomAnsAllgroup[a].length - 1))) + 1];
+                                rply.text = rply.randomAnsAllgroup[i].randomAnsAllgroup[a][0] + ' → ' + rply.randomAnsAllgroup[i].randomAnsAllgroup[a][(Math.floor(Math.random() * (rply.randomAnsAllgroup[i].randomAnsAllgroup[a].length - 1))) + 1];
                                 for (let t = 1; t < timesgp; t++) {
                                     rply.text += ' , ' + rply.randomAnsAllgroup[i].randomAnsAllgroup[a][(Math.floor(Math.random() * (rply.randomAnsAllgroup[i].randomAnsAllgroup[a].length - 1))) + 1];
                                 }

@@ -1,4 +1,4 @@
-if (process.env.mongoURL) {
+try {
     var rply = {
         default: 'on',
         type: 'text',
@@ -83,7 +83,7 @@ if (process.env.mongoURL) {
                         if (rply.randomAnsfunction[i].groupid == groupid) {
                             let temp = rply.randomAnsfunction[i]
                             temp.randomAnsfunction = []
-                            records.set('randomAns', temp, () => {
+                            records.setrandomAnsfunction('randomAns', temp, () => {
                                 records.get('randomAns', (msgs) => {
                                     rply.randomAnsfunction = msgs
                                 })
@@ -107,8 +107,8 @@ if (process.env.mongoURL) {
                         if (rply.randomAnsfunction[i].groupid == groupid && mainMsg[2] < rply.randomAnsfunction[i].randomAnsfunction.length && mainMsg[2] >= 0) {
                             let temp = rply.randomAnsfunction[i]
                             temp.randomAnsfunction.splice(mainMsg[2], 1)
-                            //console.log(rply.randomAns[i])
-                            records.set('randomAns', temp, () => {
+                            console.log('rply.randomAnsfunction: ', temp)
+                            records.setrandomAnsfunction('randomAns', temp, () => {
                                 records.get('randomAns', (msgs) => {
                                     rply.randomAnsfunction = msgs
                                 })
@@ -134,23 +134,52 @@ if (process.env.mongoURL) {
                 })
                 if (groupid) {
                     let temp = 0;
-                    for (var i = 0; i < rply.randomAnsfunction.length; i++) {
-                        if (rply.randomAnsfunction[i].groupid == groupid) {
-                            rply.text += '自定義關鍵字列表:'
-                            for (var a = 0; a < rply.randomAnsfunction[i].randomAnsfunction.length; a++) {
-                                temp = 1
-                                rply.text += ("\n") + a + '. ' + rply.randomAnsfunction[i].randomAnsfunction[a]
+                    if (rply.randomAnsfunction)
+                        for (var i = 0; i < rply.randomAnsfunction.length; i++) {
+                            if (rply.randomAnsfunction[i].groupid == groupid) {
+                                rply.text += '自定義關鍵字列表:'
+                                for (var a = 0; a < rply.randomAnsfunction[i].randomAnsfunction.length; a++) {
+                                    temp = 1
+                                    rply.text += ("\n") + a + '. ' + rply.randomAnsfunction[i].randomAnsfunction[a]
+                                }
                             }
                         }
-                    }
                     if (temp == 0) rply.text = '沒有自定義關鍵字. '
                 } else {
                     rply.text = '不在群組. '
                 }
                 //顯示自定義關鍵字
-                return rply;
+                rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
+                return rply
             default:
-                break;
+                if (mainMsg[1]) {
+                    console.log(mainMsg[1])
+                    if (groupid) {
+                        console.log(mainMsg[1])
+                        let temp = 0;
+                        if (rply.randomAnsfunction)
+                            for (var i = 0; i < rply.randomAnsfunction.length; i++) {
+                                if (rply.randomAnsfunction[i].groupid == groupid) {
+                                    console.log(rply.randomAnsfunction[i])
+                                    //rply.text += '自定義關鍵字列表:'
+                                    for (var a = 0; a < rply.randomAnsfunction[i].randomAnsfunction.length; a++) {
+                                        if (rply.randomAnsfunction[i].randomAnsfunction[a][0] == mainMsg[1]) {
+                                            temp = 1
+                                            console.log(rply.randomAnsfunction[i].randomAnsfunction[a])
+                                            rply.text += rply.randomAnsfunction[i].randomAnsfunction[a][Math.floor((Math.random() * (rply.randomAnsfunction[i].randomAnsfunction[a].length-2)))+2];
+                                        }
+
+                                    }
+                                }
+                            }
+                        if (temp == 0) rply.text = '沒有自定義關鍵字. '
+                    } else {
+                        rply.text = '不在群組. '
+                    }
+                    return rply;
+                }
+                else
+                    break;
         }
     }
 
@@ -163,4 +192,6 @@ if (process.env.mongoURL) {
         gameType: gameType,
         gameName: gameName
     };
+} catch (e) {
+    console.log(e)
 }

@@ -77,6 +77,23 @@ class Records extends EventEmitter {
                 callback();
         });
     }
+    setrandomAnsfunction(dbbase, msg, callback) {
+        schema[dbbase].findOneAndUpdate({
+            groupid: msg.groupid
+        }, {
+            $set: {
+                randomAnsfunction: msg.randomAnsfunction
+            }
+        }, {
+            upsert: true
+        }, (err, doc) => {
+            if (err) {
+                console.log("Something wrong when updating data!");
+            } else
+                callback();
+            // return JSON.stringify(doc).toString();
+        });
+    }
 
     get(target, callback) {
         // 取出所有資料

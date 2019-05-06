@@ -6,11 +6,12 @@ try {
     };
 
     const records = require('../modules/records.js');
+    const math = require('mathjs')
     records.get('randomAns', (msgs) => {
         rply.randomAnsfunction = msgs
     })
     gameName = function () {
-        return '(公測中)自定義回應功能 .ra (add del show 編號 標題)'
+        return '(公測中)自定義回應功能 .ra (add del show 自定關鍵字)'
     }
     gameType = function () {
         return 'randomAns:hktrpg'
@@ -20,14 +21,14 @@ try {
     }
     getHelpMessage = function () {
         return "【自定義回應功能】" + "\
-        \n 這是根據關鍵字來隨機抽選功能,只要符合內容,\
-        \n 例如.運勢,那麼只要字句中包括,就不會讓Bot有反應\
-        \n 所以注意如果用了D, 那麼1D100, .1WD 都會全部沒反應.\
-        \n 另外不可擋b,k,bk, 只可以擋漢字,數字和英文,emoji\
+        \n 這是根據關鍵字來隨機抽選功能,只要符合內容,以後就會隨機抽選\
+        \n 例如輸入 .ra add 九大陣營 守序善良 (...太長省略) 中立邪惡 混亂邪惡 \
+        \n 再輸入.ra 九大陣營  就會輸出 九大陣營中其中一個\
+        \n add 後面第一個是關鍵字, 可以是漢字,數字和英文或emoji\
         \n P.S.如果沒立即生效 用.bk show 刷新一下\
-    \n 輸入.ra add xxxxx 即可增加關鍵字 每次一個\
-    \n 輸入.ra show 顯示關鍵字\
-    \n 輸入.ra del (編號)或all 即可刪除\
+    \n 輸入.ra add xxx (選項1) (選項2) (選項3)即可增加關鍵字\
+    \n 輸入.ra show 顯示所有關鍵字\
+    \n 輸入.ra del(編號)或all 即可刪除\
     \n "
     }
     initialize = function () {
@@ -39,11 +40,6 @@ try {
             rply.randomAnsfunction = msgs
         })
         rply.text = '';
-        console.log(/^add$/i.test(mainMsg[1]))
-        console.log(/^[\u4e00-\u9fa5a-z0-9]+$/ig.test(mainMsg[2]))
-        console.log(/^\S+$/ig.test(mainMsg[3]))
-        console.log(/^\S+$/ig.test(mainMsg[4]))
-
         switch (true) {
             case /^add$/i.test(mainMsg[1]) && /^(([\u4e00-\u9fa5a-z0-9])|(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff]))+$/ig.test(mainMsg[2]):
                 //增加自定義關鍵字
@@ -165,14 +161,14 @@ try {
                                     for (var a = 0; a < rply.randomAnsfunction[i].randomAnsfunction.length; a++) {
                                         if (rply.randomAnsfunction[i].randomAnsfunction[a][0] == mainMsg[1]) {
                                             temp = 1
-                                            console.log(rply.randomAnsfunction[i].randomAnsfunction[a])
-                                            rply.text += rply.randomAnsfunction[i].randomAnsfunction[a][Math.floor((Math.random() * (rply.randomAnsfunction[i].randomAnsfunction[a].length-2)))+2];
+
+                                            rply.text += rply.randomAnsfunction[i].randomAnsfunction[a][0] + ' → ' + rply.randomAnsfunction[i].randomAnsfunction[a][(Math.floor(Math.random() * (rply.randomAnsfunction[i].randomAnsfunction[a].length - 1))) + 1];
                                         }
 
                                     }
                                 }
                             }
-                        if (temp == 0) rply.text = '沒有自定義關鍵字. '
+                        if (temp == 0) rply.text = '沒有相關關鍵字. '
                     } else {
                         rply.text = '不在群組. '
                     }

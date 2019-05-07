@@ -32,7 +32,7 @@ try {
     \n 輸入.ra show 顯示所有關鍵字\
     \n 輸入.ra del(編號)或all 即可刪除\
     \n 輸入.ra(次數,最多30次) (關鍵字) 即可隨機抽選 \
-    \n 如使用輸入.rap 會變成全服版,全服可看 \
+    \n 如使用輸入.rap 會變成全服版,全服可看, 可用add show功能 \
     \n "
     }
     initialize = function () {
@@ -80,11 +80,11 @@ try {
                     if (!mainMsg[2])
                         rply.text += ' 沒有關鍵字.'
                     if (!mainMsg[3] && !mainMsg[4])
-                        rply.text += ' 沒有自定應回應,至少兩個.'
+                        rply.text += ' 沒有自定義回應,至少兩個.'
                     if (!groupid)
                         rply.text += ' 不在群組.'
                     if (groupid && userrole < 2)
-                        rply.text += ' 只有DM以上才可新增.'
+                        rply.text += ' 只有GM以上才可新增.'
                 }
                 return rply;
 
@@ -108,7 +108,7 @@ try {
                     if (!groupid)
                         rply.text += '不在群組. '
                     if (groupid && userrole < 2)
-                        rply.text += '只有DM以上才可刪除. '
+                        rply.text += '只有GM以上才可刪除. '
                 }
 
                 return rply;
@@ -135,7 +135,7 @@ try {
                     if (!groupid)
                         rply.text += '不在群組. '
                     if (groupid && userrole < 2)
-                        rply.text += '只有DM以上才可刪除. '
+                        rply.text += '只有GM以上才可刪除. '
                 }
                 return rply;
 
@@ -155,7 +155,7 @@ try {
                                 }
                             }
                         }
-                    if (temp == 0) rply.text = '沒有自定義關鍵字. '
+                    if (temp == 0) rply.text = '沒有已設定的關鍵字. '
                 } else {
                     rply.text = '不在群組. '
                 }
@@ -222,7 +222,7 @@ try {
                     if (!mainMsg[2])
                         rply.text += ' 沒有關鍵字.'
                     if (!mainMsg[3] && !mainMsg[4])
-                        rply.text += ' 沒有自定應回應,至少兩個.'
+                        rply.text += ' 沒有自定義回應,至少兩個.'
                 }
                 return rply;
                 /* case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
@@ -263,7 +263,7 @@ try {
                             rply.text += ("\n") + a + '. ' + rply.randomAnsAllgroup[i].randomAnsAllgroup[a][0]
                         }
                     }
-                if (tempshow == 0) rply.text = '沒有自定義關鍵字. '
+                if (tempshow == 0) rply.text = '沒有已設定的關鍵字. '
                 //顯示自定義關鍵字
                 rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
                 return rply

@@ -22,11 +22,28 @@ if (process.env.mongoURL) {
         randomAnsAllgroup: Array
     });
 
+    const Permission = mongoose.model('Permission', {
+        groupid: String,
+        user: [{
+            userid: String,
+            name: String,
+            Permission: String
+        }],
+
+        date: {
+            type: Date,
+            default: Date.now
+        },
+
+    });
+
+
     module.exports = {
         randomAns,
         block,
         chattest,
-        randomAnsAllgroup
+        randomAnsAllgroup,
+        Permission
     }
     //const Cat = mongoose.model('Cat', { name: String });
     //const kitty = new Cat({ name: 'Zildjian' });

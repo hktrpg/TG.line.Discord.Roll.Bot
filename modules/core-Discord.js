@@ -36,8 +36,12 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				//	console.log('message.content ' + message.content);
 				//	console.log('channelKeyword ' + channelKeyword);
 				let groupid, userid = ''
-				if (message.channel_id) groupid = message.channel_id
+				let userrole = 1;
+				//console.log(message.guild)
+				if (message.guild && message.guild.id) groupid = message.guild.id
 				if (message.author.id) userid = message.author.id
+				if (message.member && message.member.hasPermission("ADMINISTRATOR")) userrole = 3
+				//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin 
 				let rplyVal = {};
 				let msgSplitor = (/\S+/ig);
 				let mainMsg = message.content.match(msgSplitor); //定義輸入字串
@@ -56,10 +60,10 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				}
 				if (channelKeyword != "" && trigger == channelKeyword.toString().toLowerCase()) {
 					mainMsg.shift();
-					rplyVal = exports.analytics.parseInput(mainMsg.join(' '), groupid, userid);
+					rplyVal = exports.analytics.parseInput(mainMsg.join(' '), groupid, userid, userrole, exports.analytics.stop);
 				} else {
 					if (channelKeyword == "") {
-						rplyVal = exports.analytics.parseInput(mainMsg.join(' '), groupid, userid);
+						rplyVal = exports.analytics.parseInput(mainMsg.join(' '), groupid, userid, userrole, exports.analytics.stop);
 					}
 				}
 				if (rplyVal && rplyVal.text) {

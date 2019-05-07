@@ -10,23 +10,37 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				exports[name] = require('../modules/' + file);
 			}
 		});
-		const TeleBot = require('telebot')
-		const TGclient = new TeleBot(process.env.TELEGRAM_CHANNEL_SECRET)
+		const Telegraf = require('telegraf')
+		const TGclient = new Telegraf(process.env.TELEGRAM_CHANNEL_SECRET)
 		const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || ''
 		var TGcountroll = 0;
 		var TGcounttext = 0;
+		const telegrafGetChatMembers = require('telegraf-getchatmembers')
 		TGclient.start(() => {
 			console.log('Telegram is Ready!');
 		});
-		TGclient.on('text', message => {
-			//console.log(message)
+
+		TGclient.use(telegrafGetChatMembers)
+
+		TGclient.on('text', async (ctx) => {
+			//console.log(ctx.getChatMembers(ctx.chat.id) //[Members]
+			//	ctx.getChatMembers() //[Members]
+			//	telegrafGetChatMembers.check(ctx.chat.id) //[Members]
+			//	telegrafGetChatMembers.all //[Chats]
 			let groupid, userid = ''
-			if (message.chat.type) groupid = message.chat.id
-			if (message.from.id) userid = message.from.id
+			let userrole = 1;
+			//console.log('TG: ', message)
+
+
+			if (ctx.message.chat.type == 'group') {
+				groupid = ctx.message.chat.id
+				if ((telegrafGetChatMembers.check(ctx.chat.id)[0].status == ("creator" || "administrator")) || ctx.message.chat.all_members_are_administrators == true) userrole = 3
+			}
+			if (ctx.message.from.id) userid = ctx.message.from.id
 			let rplyVal = {}
 			let msgSplitor = (/\S+/ig)
-			if (message.text && message.from.is_bot == false)
-				var mainMsg = message.text.match(msgSplitor); // 定義輸入字串
+			if (ctx.message.text && ctx.message.from.is_bot == false)
+				var mainMsg = ctx.message.text.match(msgSplitor); // 定義輸入字串
 			if (mainMsg && mainMsg[0])
 				var trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
 
@@ -41,10 +55,10 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			}
 			if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 				mainMsg.shift()
-				rplyVal = exports.analytics.parseInput(mainMsg.join(' '), groupid, userid)
+				rplyVal = exports.analytics.parseInput(mainMsg.join(' '), groupid, userid, userrole, exports.analytics.stop)
 			} else {
 				if (channelKeyword == '') {
-					rplyVal = exports.analytics.parseInput(mainMsg.join(' '), groupid, userid)
+					rplyVal = exports.analytics.parseInput(mainMsg.join(' '), groupid, userid, userrole, exports.analytics.stop)
 
 				}
 
@@ -55,10 +69,11 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				//console.log('rplyVal.text:' + rplyVal.text)
 				//console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext, " content: ", message.text);
 				if (privatemsg == 1) {
-					message.reply.text(message.from.first_name + ' 暗骰進行中')
+					if (ctx.chat.type == 'group')
+						ctx.reply(ctx.message.from.first_name + ' 暗骰進行中')
 					async function loada() {
 						for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-							await TGclient.sendMessage(message.from.id, rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])
+							await ctx.telegram.sendMessage(ctx.message.from.id, rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])
 						}
 					}
 					loada();
@@ -66,7 +81,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 
 					async function loadb() {
 						for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-							await message.reply.text(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])
+							await ctx.reply(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])
 						}
 					}
 					loadb();
@@ -81,8 +96,10 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 					console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext);
 			}
 			//  }
+
 		})
 
+		TGclient.launch()
 	} catch (e) {
 		console.log('catch error')
 		console.log('Request error: ' + e.message)

@@ -31,6 +31,10 @@
 		"TELEGRAM_CHANNEL_SECRET": {
 			"description": "「Token」 ",
 			"required": false
+		},
+		"mongoURL": {
+			"description": "「mLab 的KEY」 ",
+			"required": true
 		}
 	}
 }

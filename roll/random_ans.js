@@ -18,7 +18,7 @@ try {
         return 'randomAns:hktrpg'
     }
     prefixs = function () {
-        return [/(^[.]ra(\d+|p|p\d+|)$)/ig, ]
+        return [/(^[.]ra(\d+|p|p\d+|)$)/ig,]
     }
     getHelpMessage = function () {
         return "【自定義回應功能】" + "\
@@ -52,10 +52,10 @@ try {
                     if (rply.randomAnsfunction)
                         for (var i = 0; i < rply.randomAnsfunction.length; i++) {
                             if (rply.randomAnsfunction[i].groupid == groupid) {
-                               // console.log('checked1')
+                                // console.log('checked1')
                                 for (var a = 0; a < rply.randomAnsfunction[i].randomAnsfunction.length; a++) {
                                     if (rply.randomAnsfunction[i].randomAnsfunction[a][0] == mainMsg[2]) {
-                                     //   console.log('checked')
+                                        //   console.log('checked')
                                         checkifsamename = 1
                                     }
                                 }
@@ -151,7 +151,7 @@ try {
                                 rply.text += '自定義關鍵字列表:'
                                 for (var a = 0; a < rply.randomAnsfunction[i].randomAnsfunction.length; a++) {
                                     temp = 1
-                                    rply.text += ("\n") + a + '. ' + rply.randomAnsfunction[i].randomAnsfunction[a]
+                                    rply.text += ("\n") + a + '. ' + rply.randomAnsfunction[i].randomAnsfunction[a] + ("\n")
                                 }
                             }
                         }
@@ -225,34 +225,34 @@ try {
                         rply.text += ' 沒有自定義回應,至少兩個.'
                 }
                 return rply;
-                /* case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
-                     //刪除自定義關鍵字
-                     if (mainMsg[2] && rply.randomAnsAllgroup) {
-                         for (var i = 0; i < rply.randomAnsAllgroup.length; i++) {
-                             if (mainMsg[2] < rply.randomAnsAllgroup[i].randomAnsAllgroup.length && mainMsg[2] >= 0) {
-                                 let temp = rply.randomAnsAllgroup[i]
-                                 temp.randomAnsAllgroup.splice(mainMsg[2], 1)
-                                 //console.log('rply.randomAnsAllgroup: ', temp)
-                                 records.setrandomAnsAllgroup('randomAnsAllgroup', temp, () => {
-                                     records.get('randomAnsAllgroup', (msgs) => {
-                                         rply.randomAnsAllgroup = msgs
-                                     })
+            /* case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
+                 //刪除自定義關鍵字
+                 if (mainMsg[2] && rply.randomAnsAllgroup) {
+                     for (var i = 0; i < rply.randomAnsAllgroup.length; i++) {
+                         if (mainMsg[2] < rply.randomAnsAllgroup[i].randomAnsAllgroup.length && mainMsg[2] >= 0) {
+                             let temp = rply.randomAnsAllgroup[i]
+                             temp.randomAnsAllgroup.splice(mainMsg[2], 1)
+                             //console.log('rply.randomAnsAllgroup: ', temp)
+                             records.setrandomAnsAllgroup('randomAnsAllgroup', temp, () => {
+                                 records.get('randomAnsAllgroup', (msgs) => {
+                                     rply.randomAnsAllgroup = msgs
                                  })
-                             }
-                             rply.text = '刪除成功: ' + mainMsg[2]
+                             })
                          }
-                     } else {
-                         rply.text = '刪除失敗.'
-                         if (!mainMsg[2])
-                             rply.text += '沒有關鍵字. '
-
+                         rply.text = '刪除成功: ' + mainMsg[2]
                      }
-                     return rply;
-                     */
+                 } else {
+                     rply.text = '刪除失敗.'
+                     if (!mainMsg[2])
+                         rply.text += '沒有關鍵字. '
+
+                 }
+                 return rply;
+                 */
             case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
                 records.get('randomAnsAllgroup', (msgs) => {
                     rply.randomAnsAllgroup = msgs
-                  //  console.log(rply)
+                    //  console.log(rply)
                 })
                 let tempshow = 0;
                 if (rply.randomAnsAllgroup)

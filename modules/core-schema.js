@@ -22,18 +22,20 @@ if (process.env.mongoURL) {
         randomAnsAllgroup: Array
     });
 
-    const Permission = mongoose.model('Permission', {
+    const GpPermission = mongoose.model('GpPermission', {
         groupid: String,
         user: [{
             userid: String,
             name: String,
-            Permission: String
-        }],
+            date: {
+                type: Date,
+                default: Date.now
+            },
+            Permission: String,
+            Abiliy: Array
+        }]
 
-        date: {
-            type: Date,
-            default: Date.now
-        },
+
 
     });
 
@@ -43,7 +45,7 @@ if (process.env.mongoURL) {
         block,
         chattest,
         randomAnsAllgroup,
-        Permission
+        GpPermission
     }
     //const Cat = mongoose.model('Cat', { name: String });
     //const kitty = new Cat({ name: 'Zildjian' });

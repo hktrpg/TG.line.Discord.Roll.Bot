@@ -31,6 +31,7 @@ if (process.env.mongoURL) {
                 type: Date,
                 default: Date.now
             },
+            limit: Number,
             Permission: String,
             Abiliy: Array
         }]

@@ -25,16 +25,25 @@ if (process.env.mongoURL) {
 
     const trpgDatabase = mongoose.model('trpgDatabase', {
         groupid: String,
-        trpgDatabasefunction: [{ topic: String, contact: String }]
+        trpgDatabasefunction: [{
+            topic: String,
+            contact: String
+        }]
     });
 
     const trpgDatabaseAllgroup = mongoose.model('trpgDatabaseAllgroup', {
-        trpgDatabaseAllgroup: [{ topic: String, contact: String }]
+        trpgDatabaseAllgroup: [{
+            topic: String,
+            contact: String
+        }]
     });
     const GpPermission = mongoose.model('GpPermission', {
         groupid: String,
         user: [{
-            userid: { type: String, required: true, index: { unique: true } },
+            userid: {
+                type: String,
+                required: true
+            },
             name: String,
             date: {
                 type: Date,

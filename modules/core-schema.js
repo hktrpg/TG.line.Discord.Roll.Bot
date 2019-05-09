@@ -25,11 +25,11 @@ if (process.env.mongoURL) {
 
     const trpgDatabase = mongoose.model('trpgDatabase', {
         groupid: String,
-        trpgDatabasefunction: Array
+        trpgDatabasefunction: [{ topic: String, contact: String }]
     });
 
     const trpgDatabaseAllgroup = mongoose.model('trpgDatabaseAllgroup', {
-        trpgDatabaseAllgroup: Array
+        trpgDatabaseAllgroup: [{ topic: String, contact: String }]
     });
     const GpPermission = mongoose.model('GpPermission', {
         groupid: String,

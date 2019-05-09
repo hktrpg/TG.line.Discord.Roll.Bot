@@ -44,25 +44,28 @@ try {
         })
         rply.text = '';
         switch (true) {
-            case /(^[.]db(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(([\u4e00-\u9fa5a-z0-9])|(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff]))+$/ig.test(mainMsg[2]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
+            // .DB(0) ADD(1) TOPIC(2) CONTACT(3)
+            case /(^[.]db$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(([\u4e00-\u9fa5a-z0-9])|(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff]))+$/ig.test(mainMsg[2]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
                 //增加自定義關鍵字
+                //檢查有沒有重覆
                 let checkifsamename = 0
                 if (groupid && userrole >= 2 && mainMsg[3]) {
                     if (rply.trpgDatabasefunction)
                         for (var i = 0; i < rply.trpgDatabasefunction.length; i++) {
                             if (rply.trpgDatabasefunction[i].groupid == groupid) {
                                 // console.log('checked1')
-                                for (var a = 0; a < rply.trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
-                                    if (rply.trpgDatabasefunction[i].trpgDatabasefunction[a][0] == mainMsg[2]) {
-                                        //   console.log('checked')
-                                        checkifsamename = 1
+                                if (rply.trpgDatabasefunction[0] && rply.trpgDatabasefunction[0].trpgDatabasefunction[0])
+                                    for (var a = 0; a < rply.trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
+                                        if (rply.trpgDatabasefunction[i].trpgDatabasefunction[a].topic == mainMsg[2]) {
+                                            //   console.log('checked')
+                                            checkifsamename = 1
+                                        }
                                     }
-                                }
                             }
                         }
                     let temp = {
                         groupid: groupid,
-                        trpgDatabasefunction: [mainMsg.slice(2)]
+                        trpgDatabasefunction: [{ topic: mainMsg[2], contact: inputStr.replace(/\.db add/i, '').replace(mainMsg[2], '') }]
                     }
                     if (checkifsamename == 0) {
                         records.pushtrpgDatabasefunction('trpgDatabase', temp, () => {
@@ -87,7 +90,7 @@ try {
                 }
                 return rply;
 
-            case /(^[.]db(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
+            case /(^[.]db$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
                 //刪除自定義關鍵字
                 if (groupid && mainMsg[2] && rply.trpgDatabasefunction && userrole >= 2) {
                     for (var i = 0; i < rply.trpgDatabasefunction.length; i++) {
@@ -111,7 +114,7 @@ try {
                 }
 
                 return rply;
-            case /(^[.]db(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
+            case /(^[.]db$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
                 //刪除自定義關鍵字
                 if (groupid && mainMsg[2] && rply.trpgDatabasefunction && userrole >= 2) {
                     for (var i = 0; i < rply.trpgDatabasefunction.length; i++) {
@@ -138,7 +141,7 @@ try {
                 }
                 return rply;
 
-            case /(^[.]db(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+            case /(^[.]db$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
                 records.get('trpgDatabase', (msgs) => {
                     rply.trpgDatabasefunction = msgs
                 })
@@ -150,7 +153,7 @@ try {
                                 rply.text += '自定義關鍵字列表:'
                                 for (var a = 0; a < rply.trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
                                     temp = 1
-                                    rply.text += ("\n") + a + '. ' + rply.trpgDatabasefunction[i].trpgDatabasefunction[a] + ("\n")
+                                    rply.text += ("\n") + a + '. ' + rply.trpgDatabasefunction[i].trpgDatabasefunction[a][0] + ("\n")
                                 }
                             }
                         }
@@ -161,10 +164,10 @@ try {
                 //顯示自定義關鍵字
                 rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
                 return rply
-            case /(^[.]db(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
-                let times = /^[.]db(\d+|)/.exec(mainMsg[0])[1] || 1
-                if (times > 30) times = 30;
-                if (times < 1) times = 1
+            case /(^[.]db$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
+                //let times = /^[.]db(\d+|)/.exec(mainMsg[0])[1] || 1
+                //if (times > 30) times = 30;
+                //if (times < 1) times = 1
                 //console.log(times)
                 if (groupid) {
                     //    console.log(mainMsg[1])
@@ -177,10 +180,8 @@ try {
                                 for (var a = 0; a < rply.trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
                                     if (rply.trpgDatabasefunction[i].trpgDatabasefunction[a][0] == mainMsg[1]) {
                                         temp = 1
-                                        rply.text = rply.trpgDatabasefunction[i].trpgDatabasefunction[a][0] + ' → ' + rply.trpgDatabasefunction[i].trpgDatabasefunction[a][(Math.floor(Math.random() * (rply.trpgDatabasefunction[i].trpgDatabasefunction[a].length - 1))) + 1];
-                                        for (let t = 1; t < times; t++) {
-                                            rply.text += ' , ' + rply.trpgDatabasefunction[i].trpgDatabasefunction[a][(Math.floor(Math.random() * (rply.trpgDatabasefunction[i].trpgDatabasefunction[a].length - 1))) + 1];
-                                        }
+                                        rply.text = rply.trpgDatabasefunction[i].trpgDatabasefunction[a][0] + ' \n ' + rply.trpgDatabasefunction[i].trpgDatabasefunction[a].slice(1);
+
                                     }
 
                                 }
@@ -190,6 +191,7 @@ try {
                 } else {
                     rply.text = '不在群組. '
                 }
+                rply.text = rply.text.replace(/\,/mg, ' ')
                 return rply;
             case /(^[.]dbp(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(([\u4e00-\u9fa5a-z0-9])|(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff]))+$/ig.test(mainMsg[2]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
                 let checkifsamenamegroup = 0

@@ -12,7 +12,7 @@ try {
         rply.trpgDatabaseAllgroup = msgs
     })
     gameName = function () {
-        return '(公測中)資料庫功能 .db (add del show 自定關鍵字)'
+        return '(公測中)資料庫功能 .db(p) (add del show 自定關鍵字)'
     }
     gameType = function () {
         return 'trpgDatabase:hktrpg'

@@ -12,7 +12,7 @@ try {
         rply.randomAnsAllgroup = msgs
     })
     gameName = function () {
-        return '(公測中)自定義回應功能 .ra(次數) (add del show 自定關鍵字)'
+        return '(公測中)自定義回應功能 .ra(p)(次數) (add del show 自定關鍵字)'
     }
     gameType = function () {
         return 'randomAns:hktrpg'

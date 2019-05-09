@@ -25,7 +25,7 @@ if (process.env.mongoURL) {
     const GpPermission = mongoose.model('GpPermission', {
         groupid: String,
         user: [{
-            userid: String,
+            userid: { type: String, required: true, index: { unique: true } },
             name: String,
             date: {
                 type: Date,

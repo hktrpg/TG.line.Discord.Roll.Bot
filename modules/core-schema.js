@@ -22,6 +22,15 @@ if (process.env.mongoURL) {
         randomAnsAllgroup: Array
     });
 
+
+    const trpgDatabase = mongoose.model('trpgDatabase', {
+        groupid: String,
+        trpgDatabasefunction: Array
+    });
+
+    const trpgDatabaseAllgroup = mongoose.model('trpgDatabaseAllgroup', {
+        trpgDatabaseAllgroup: Array
+    });
     const GpPermission = mongoose.model('GpPermission', {
         groupid: String,
         user: [{
@@ -46,7 +55,9 @@ if (process.env.mongoURL) {
         block,
         chattest,
         randomAnsAllgroup,
-        GpPermission
+        GpPermission,
+        trpgDatabaseAllgroup,
+        trpgDatabase
     }
     //const Cat = mongoose.model('Cat', { name: String });
     //const kitty = new Cat({ name: 'Zildjian' });

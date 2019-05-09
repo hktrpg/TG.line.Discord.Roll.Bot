@@ -17,18 +17,18 @@ class Records extends EventEmitter {
         schema[dbbase].findOneAndUpdate({
             groupid: msg.groupid
         }, {
-            $set: {
-                blockfunction: msg.blockfunction
-            }
-        }, {
-            upsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.log("Something wrong when updating data!");
-            } else
-                callback();
-            // return JSON.stringify(doc).toString();
-        });
+                $set: {
+                    blockfunction: msg.blockfunction
+                }
+            }, {
+                upsert: true
+            }, (err, doc) => {
+                if (err) {
+                    console.log("Something wrong when updating data!");
+                } else
+                    callback();
+                // return JSON.stringify(doc).toString();
+            });
     }
 
     pushblockfunction(dbbase, msg, callback) {
@@ -40,21 +40,21 @@ class Records extends EventEmitter {
         schema[dbbase].findOneAndUpdate({
             groupid: msg.groupid
         }, {
-            $push: {
-                blockfunction: msg.blockfunction
-            }
-        }, {
-            new: true,
-            upsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.log("Something wrong when updating data!");
-            } else
-                callback();
-        });
+                $push: {
+                    blockfunction: msg.blockfunction
+                }
+            }, {
+                new: true,
+                upsert: true
+            }, (err, doc) => {
+                if (err) {
+                    console.log("Something wrong when updating data!");
+                } else
+                    callback();
+            });
     }
 
-
+    //randomAns開始
     pushrandomAnsfunction(dbbase, msg, callback) {
         /*
             提醒:
@@ -64,35 +64,35 @@ class Records extends EventEmitter {
         schema[dbbase].findOneAndUpdate({
             groupid: msg.groupid
         }, {
-            $push: {
-                randomAnsfunction: msg.randomAnsfunction
-            }
-        }, {
-            new: true,
-            upsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.log("Something wrong when updating data!");
-            } else
-                callback();
-        });
+                $push: {
+                    randomAnsfunction: msg.randomAnsfunction
+                }
+            }, {
+                new: true,
+                upsert: true
+            }, (err, doc) => {
+                if (err) {
+                    console.log("Something wrong when updating data!");
+                } else
+                    callback();
+            });
     }
     setrandomAnsfunction(dbbase, msg, callback) {
         schema[dbbase].findOneAndUpdate({
             groupid: msg.groupid
         }, {
-            $set: {
-                randomAnsfunction: msg.randomAnsfunction
-            }
-        }, {
-            upsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.log("Something wrong when updating data!");
-            } else
-                callback();
-            // return JSON.stringify(doc).toString();
-        });
+                $set: {
+                    randomAnsfunction: msg.randomAnsfunction
+                }
+            }, {
+                upsert: true
+            }, (err, doc) => {
+                if (err) {
+                    console.log("Something wrong when updating data!");
+                } else
+                    callback();
+                // return JSON.stringify(doc).toString();
+            });
     }
 
     pushrandomAnsAllgroup(dbbase, msg, callback) {
@@ -106,14 +106,14 @@ class Records extends EventEmitter {
                 randomAnsAllgroup: msg.randomAnsAllgroup
             }
         }, {
-            new: true,
-            upsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.log("Something wrong when updating data!");
-            } else
-                callback();
-        });
+                new: true,
+                upsert: true
+            }, (err, doc) => {
+                if (err) {
+                    console.log("Something wrong when updating data!");
+                } else
+                    callback();
+            });
     }
     setrandomAnsAllgroup(dbbase, msg, callback) {
         schema[dbbase].findOneAndUpdate({}, {
@@ -121,14 +121,14 @@ class Records extends EventEmitter {
                 randomAnsAllgroup: msg.randomAnsAllgroup
             }
         }, {
-            upsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.log("Something wrong when updating data!");
-            } else
-                callback();
-            // return JSON.stringify(doc).toString();
-        });
+                upsert: true
+            }, (err, doc) => {
+                if (err) {
+                    console.log("Something wrong when updating data!");
+                } else
+                    callback();
+                // return JSON.stringify(doc).toString();
+            });
     }
 
     get(target, callback) {
@@ -138,14 +138,85 @@ class Records extends EventEmitter {
         });
     }
 
-
-    setMax(max) {
-        MAX = max;
+    /*
+        trpgDatabase開始
+    */
+    pushtrpgDatabasefunction(dbbase, msg, callback) {
+        /*
+            提醒:
+            $push 加入新的
+            $set  重置舊的
+         */
+        schema[dbbase].findOneAndUpdate({
+            groupid: msg.groupid
+        }, {
+                $push: {
+                    trpgDatabasefunction: msg.trpgDatabasefunction
+                }
+            }, {
+                new: true,
+                upsert: true
+            }, (err, doc) => {
+                if (err) {
+                    console.log("Something wrong when updating data!");
+                } else
+                    callback();
+            });
+    }
+    settrpgDatabasefunction(dbbase, msg, callback) {
+        schema[dbbase].findOneAndUpdate({
+            groupid: msg.groupid
+        }, {
+                $set: {
+                    trpgDatabasefunction: msg.trpgDatabasefunction
+                }
+            }, {
+                upsert: true
+            }, (err, doc) => {
+                if (err) {
+                    console.log("Something wrong when updating data!");
+                } else
+                    callback();
+                // return JSON.stringify(doc).toString();
+            });
     }
 
-    getMax() {
-        return MAX;
+    pushtrpgDatabaseAllgroup(dbbase, msg, callback) {
+        /*
+            提醒:
+            $push 加入新的
+            $set  重置舊的
+         */
+        schema[dbbase].findOneAndUpdate({}, {
+            $push: {
+                trpgDatabaseAllgroup: msg.trpgDatabaseAllgroup
+            }
+        }, {
+                new: true,
+                upsert: true
+            }, (err, doc) => {
+                if (err) {
+                    console.log("Something wrong when updating data!");
+                } else
+                    callback();
+            });
     }
+    settrpgDatabaseAllgroup(dbbase, msg, callback) {
+        schema[dbbase].findOneAndUpdate({}, {
+            $set: {
+                trpgDatabaseAllgroup: msg.trpgDatabaseAllgroup
+            }
+        }, {
+                upsert: true
+            }, (err, doc) => {
+                if (err) {
+                    console.log("Something wrong when updating data!");
+                } else
+                    callback();
+                // return JSON.stringify(doc).toString();
+            });
+    }
+
 }
 
 module.exports = (function () {

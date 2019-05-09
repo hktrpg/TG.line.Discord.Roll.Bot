@@ -33,6 +33,7 @@ try {
     \n 輸入.ra del(編號)或all 即可刪除\
     \n 輸入.ra(次數,最多30次) (關鍵字) 即可隨機抽選 \
     \n 如使用輸入.rap 會變成全服版,全服可看, 可用add show功能 \
+    \n 例如輸入 .rap10 聖晶石召喚 即可十連抽了 \
     \n "
     }
     initialize = function () {

@@ -54,8 +54,11 @@ try {
 
 	function stop(inputStr, groupid, userid, userrole, mainMsg, trigger, stopmark) {
 		//在下面位置開始分析trigger
-
+		var breakFlag = false;
 		Object.keys(exports).forEach(v => {
+			if (breakFlag === true) {
+				return false;
+			}
 			//0 = 不存在
 			//1 = 符合
 			//2 = 不符合
@@ -68,7 +71,7 @@ try {
 			let checkmainMsg1 = 0;
 			let findprefixs = 0;
 			if (exports[v].prefixs()[0] && exports[v].prefixs()[0] && stopmark == 0) {
-				for (i = 0; i <= exports[v].prefixs().length - 1; i = i + 2) {
+				for (var i = 0; i <= exports[v].prefixs().length - 1; i = i + 2) {
 					checkmainMsg0 = 0;
 					checkmainMsg1 = 0;
 					if (exports[v].prefixs()[i] && exports[v].prefixs()[i]) {
@@ -84,7 +87,8 @@ try {
 						}
 						if (checkmainMsg0 <= 1 && checkmainMsg1 <= 1 && checkmainMsg0 + checkmainMsg1 >= 1) {
 							findprefixs = 1;
-							i = 99999;
+							i = exports[v].prefixs().length + 1;
+							breakFlag = true
 						}
 					}
 				}

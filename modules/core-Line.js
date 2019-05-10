@@ -84,13 +84,15 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		// 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
 
 		let privatemsg = 0
-		if (trigger == 'dr' && mainMsg && mainMsg[1]) {
+		if (trigger.match(/^dr/i) && mainMsg && mainMsg[1]) {
 			privatemsg = 1
-			mainMsg.shift()
-			trigger = mainMsg[0].toString().toLowerCase()
+
+			//mainMsg.shift()
+			//trigger = mainMsg[0].toString().toLowerCase()
+			event.message.text = event.message.text.replace(/^[d][r][ ]/i, '')
 		}
 		if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
-			mainMsg.shift()
+			//mainMsg.shift()
 			rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, exports.analytics.stop)
 		} else {
 			if (channelKeyword == '') {

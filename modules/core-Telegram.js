@@ -48,10 +48,13 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			// 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
 
 			let privatemsg = 0
-			if (trigger == 'dr' && mainMsg && mainMsg[1]) {
+			if (trigger.match(/^dr/i) && mainMsg && mainMsg[1]) {
 				privatemsg = 1
-				mainMsg.shift()
-				trigger = mainMsg[0].toString().toLowerCase()
+
+				//mainMsg.shift()
+				//trigger = mainMsg[0].toString().toLowerCase()
+				ctx.message.text = ctx.message.text.replace(/^[d][r][ ]/i, '')
+			
 			}
 			if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 				mainMsg.shift()
@@ -69,6 +72,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				//console.log('rplyVal.text:' + rplyVal.text)
 				//console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext, " content: ", message.text);
 				if (privatemsg == 1) {
+					console.log('DR2')
 					if (ctx.chat.type == 'group')
 						ctx.reply(ctx.message.from.first_name + ' 暗骰進行中')
 					async function loada() {

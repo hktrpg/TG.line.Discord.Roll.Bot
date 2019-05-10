@@ -12,13 +12,13 @@ try {
         rply.randomAnsAllgroup = msgs
     })
     gameName = function () {
-        return '(公測中)自定義回應功能 .ra(次數) (add del show 自定關鍵字)'
+        return '(公測中)自定義回應功能 .ra(p)(次數) (add del show 自定關鍵字)'
     }
     gameType = function () {
         return 'randomAns:hktrpg'
     }
     prefixs = function () {
-        return [/(^[.]ra(\d+|p|p\d+|)$)/ig,]
+        return [/(^[.]ra(\d+|p|p\d+|)$)/ig, ]
     }
     getHelpMessage = function () {
         return "【自定義回應功能】" + "\
@@ -33,6 +33,7 @@ try {
     \n 輸入.ra del(編號)或all 即可刪除\
     \n 輸入.ra(次數,最多30次) (關鍵字) 即可隨機抽選 \
     \n 如使用輸入.rap 會變成全服版,全服可看, 可用add show功能 \
+    \n 例如輸入 .rap10 聖晶石召喚 即可十連抽了 \
     \n "
     }
     initialize = function () {
@@ -45,7 +46,7 @@ try {
         })
         rply.text = '';
         switch (true) {
-            case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(([\u4e00-\u9fa5a-z0-9])|(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff]))+$/ig.test(mainMsg[2]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
+            case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
                 //增加自定義關鍵字
                 let checkifsamename = 0
                 if (groupid && userrole >= 2 && mainMsg[3] && mainMsg[4]) {
@@ -192,7 +193,7 @@ try {
                     rply.text = '不在群組. '
                 }
                 return rply;
-            case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(([\u4e00-\u9fa5a-z0-9])|(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff]))+$/ig.test(mainMsg[2]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
+            case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
                 let checkifsamenamegroup = 0
                 if (rply.randomAnsAllgroup)
                     for (var i = 0; i < rply.randomAnsAllgroup.length; i++) {
@@ -225,30 +226,30 @@ try {
                         rply.text += ' 沒有自定義回應,至少兩個.'
                 }
                 return rply;
-            /* case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
-                 //刪除自定義關鍵字
-                 if (mainMsg[2] && rply.randomAnsAllgroup) {
-                     for (var i = 0; i < rply.randomAnsAllgroup.length; i++) {
-                         if (mainMsg[2] < rply.randomAnsAllgroup[i].randomAnsAllgroup.length && mainMsg[2] >= 0) {
-                             let temp = rply.randomAnsAllgroup[i]
-                             temp.randomAnsAllgroup.splice(mainMsg[2], 1)
-                             //console.log('rply.randomAnsAllgroup: ', temp)
-                             records.setrandomAnsAllgroup('randomAnsAllgroup', temp, () => {
-                                 records.get('randomAnsAllgroup', (msgs) => {
-                                     rply.randomAnsAllgroup = msgs
+                /* case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
+                     //刪除自定義關鍵字
+                     if (mainMsg[2] && rply.randomAnsAllgroup) {
+                         for (var i = 0; i < rply.randomAnsAllgroup.length; i++) {
+                             if (mainMsg[2] < rply.randomAnsAllgroup[i].randomAnsAllgroup.length && mainMsg[2] >= 0) {
+                                 let temp = rply.randomAnsAllgroup[i]
+                                 temp.randomAnsAllgroup.splice(mainMsg[2], 1)
+                                 //console.log('rply.randomAnsAllgroup: ', temp)
+                                 records.setrandomAnsAllgroup('randomAnsAllgroup', temp, () => {
+                                     records.get('randomAnsAllgroup', (msgs) => {
+                                         rply.randomAnsAllgroup = msgs
+                                     })
                                  })
-                             })
+                             }
+                             rply.text = '刪除成功: ' + mainMsg[2]
                          }
-                         rply.text = '刪除成功: ' + mainMsg[2]
-                     }
-                 } else {
-                     rply.text = '刪除失敗.'
-                     if (!mainMsg[2])
-                         rply.text += '沒有關鍵字. '
+                     } else {
+                         rply.text = '刪除失敗.'
+                         if (!mainMsg[2])
+                             rply.text += '沒有關鍵字. '
 
-                 }
-                 return rply;
-                 */
+                     }
+                     return rply;
+                     */
             case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
                 records.get('randomAnsAllgroup', (msgs) => {
                     rply.randomAnsAllgroup = msgs

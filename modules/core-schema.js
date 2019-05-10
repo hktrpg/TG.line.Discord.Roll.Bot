@@ -22,11 +22,49 @@ if (process.env.mongoURL) {
         randomAnsAllgroup: Array
     });
 
+
+    const trpgDatabase = mongoose.model('trpgDatabase', {
+        groupid: String,
+        trpgDatabasefunction: [{
+            topic: String,
+            contact: String
+        }]
+    });
+
+    const trpgDatabaseAllgroup = mongoose.model('trpgDatabaseAllgroup', {
+        trpgDatabaseAllgroup: [{
+            topic: String,
+            contact: String
+        }]
+    });
+    const GroupSetting = mongoose.model('GroupSetting', {
+        groupid: String,
+        togm: Array,
+        user: [{
+            userid: {
+                type: String,
+                required: true
+            },
+            name: String,
+            date: {
+                type: Date,
+                default: Date.now
+            },
+            limit: Number,
+            Permission: String,
+            Abiliy: Array
+        }]
+    });
+
+
     module.exports = {
         randomAns,
         block,
         chattest,
-        randomAnsAllgroup
+        randomAnsAllgroup,
+        GroupSetting,
+        trpgDatabaseAllgroup,
+        trpgDatabase
     }
     //const Cat = mongoose.model('Cat', { name: String });
     //const kitty = new Cat({ name: 'Zildjian' });

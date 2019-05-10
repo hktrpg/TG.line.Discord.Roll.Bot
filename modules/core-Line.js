@@ -14,9 +14,6 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	const line = require('@line/bot-sdk');
 	const express = require('express');
 
-
-
-
 	function replymessage(message) {
 		return {
 			type: 'text',
@@ -94,10 +91,10 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		}
 		if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 			mainMsg.shift()
-			rplyVal = exports.analytics.parseInput(mainMsg.join(' '), roomorgroupid, userid, userrole, exports.analytics.stop)
+			rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, exports.analytics.stop)
 		} else {
 			if (channelKeyword == '') {
-				rplyVal = exports.analytics.parseInput(mainMsg.join(' '), roomorgroupid, userid, userrole, exports.analytics.stop)
+				rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, exports.analytics.stop)
 
 			}
 

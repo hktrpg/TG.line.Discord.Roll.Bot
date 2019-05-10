@@ -72,7 +72,6 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				//console.log('rplyVal.text:' + rplyVal.text)
 				//console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext, " content: ", message.text);
 				if (privatemsg == 1) {
-					console.log('DR2')
 					if (ctx.chat.type == 'group')
 						ctx.reply(ctx.message.from.first_name + ' 暗骰進行中')
 					async function loada() {

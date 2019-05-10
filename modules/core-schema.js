@@ -37,8 +37,9 @@ if (process.env.mongoURL) {
             contact: String
         }]
     });
-    const GpPermission = mongoose.model('GpPermission', {
+    const GroupSetting = mongoose.model('GroupSetting', {
         groupid: String,
+        togm: Array,
         user: [{
             userid: {
                 type: String,
@@ -53,9 +54,6 @@ if (process.env.mongoURL) {
             Permission: String,
             Abiliy: Array
         }]
-
-
-
     });
 
 
@@ -64,7 +62,7 @@ if (process.env.mongoURL) {
         block,
         chattest,
         randomAnsAllgroup,
-        GpPermission,
+        GroupSetting,
         trpgDatabaseAllgroup,
         trpgDatabase
     }

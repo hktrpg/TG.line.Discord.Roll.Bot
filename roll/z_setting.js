@@ -57,27 +57,28 @@ try {
                 //設定如果暗骰, 也私訊給自己(too)(dr 普通私 drgm同時私GM drto只有GM收到 )
                 let checkifsamename = 0
                 if (groupid && userrole >= 2) {
+                    let temp = {
+                        groupid: groupid,
+                        togm: []
+                    }
                     if (rply.GroupSettingfunction)
                         for (var i = 0; i < rply.GroupSettingfunction.length; i++) {
                             if (rply.GroupSettingfunction[i].groupid == groupid) {
                                 // console.log('checked1')
-                                if (rply.GroupSettingfunction[0] && rply.GroupSettingfunction[0].GroupSettingfunction[0])
-                                    for (var a = 0; a < rply.GroupSettingfunction[i].GroupSettingfunction.length; a++) {
-                                        if (rply.GroupSettingfunction[i].GroupSettingfunction[a].topic == mainMsg[2]) {
-                                            //   console.log('checked')
-                                            checkifsamename = 1
-                                        }
+                                for (var a = 0; a < rply.GroupSettingfunction[i].GroupSettingfunction.length; a++) {
+                                    if (rply.GroupSettingfunction[i].GroupSettingfunction[a].topic == mainMsg[2]) {
+                                        //   console.log('checked')
+                                        checkifsamename = 1
                                     }
+                                }
                             }
                         }
-                    let temp = {
-                        groupid: groupid,
-                        GroupSettingfunction: [{
-                            topic: mainMsg[2],
-                            contact: inputStr.replace(/\.db add /i, '').replace(mainMsg[2], '').replace(/^\s+/, '')
-                        }]
-                    }
+
                     if (checkifsamename == 0) {
+                        temp = {
+                            groupid: groupid,
+                            togm: []
+                        }
                         records.pushGroupSettingfunction('GroupSetting', temp, () => {
                             records.get('GroupSetting', (msgs) => {
                                 rply.GroupSettingfunction = msgs

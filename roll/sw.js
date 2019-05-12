@@ -21,7 +21,7 @@ gameType = function () {
     return 'sw2.5:hktrpg'
 }
 prefixs = function () {
-return [/^[.]sw$/i, /\S/]
+    return [/^[.]sw$/i, /\S/]
 }
 getHelpMessage = function () {
     return "【劍世界2.5】" + "\
@@ -82,6 +82,7 @@ rollDiceCommand = function (inputStr, mainMsg) {
     switch (true) {
         default:
             result = calldice("SwordWorld2_5", mainMsg[1])
+            console.log(result)
             if (result && result[0] != 1)
                 rply.text = mainMsg[1] + result[0];
             return rply;

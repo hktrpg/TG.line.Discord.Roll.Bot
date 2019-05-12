@@ -53,7 +53,7 @@ try {
                 rply.text = userid;
                 return rply;
 
-            case /(^[.]set$)/i.test(mainMsg[0]) && /^togm$/i.test(mainMsg[1]):
+            case /(^[.]set$)/i.test(mainMsg[0]) && /^too$/i.test(mainMsg[1]):
                 //設定如果暗骰, 也私訊給自己(too)(dr 普通私 drgm同時私GM drto只有GM收到 )
                 let existed = false
                 if (groupid && userrole >= 2) {

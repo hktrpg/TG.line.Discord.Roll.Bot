@@ -18,7 +18,7 @@ try {
         return 'randomAns:hktrpg'
     }
     prefixs = function () {
-        return [/(^[.]ra(\d+|p|p\d+|)$)/ig, ]
+        return [/(^[.]ra(\d+|p|p\d+|)$)/ig,]
     }
     getHelpMessage = function () {
         return "【自定義回應功能】" + "\
@@ -55,7 +55,7 @@ try {
                             if (rply.randomAnsfunction[i].groupid == groupid) {
                                 // console.log('checked1')
                                 for (var a = 0; a < rply.randomAnsfunction[i].randomAnsfunction.length; a++) {
-                                    if (rply.randomAnsfunction[i].randomAnsfunction[a][0] == mainMsg[2]) {
+                                    if (rply.randomAnsfunction[i].randomAnsfunction[a][0].toLowerCase() == mainMsg[2].toLowerCase()) {
                                         //   console.log('checked')
                                         checkifsamename = 1
                                     }
@@ -177,7 +177,7 @@ try {
                                 // console.log(rply.randomAnsfunction[i])
                                 //rply.text += '自定義關鍵字列表:'
                                 for (var a = 0; a < rply.randomAnsfunction[i].randomAnsfunction.length; a++) {
-                                    if (rply.randomAnsfunction[i].randomAnsfunction[a][0] == mainMsg[1]) {
+                                    if (rply.randomAnsfunction[i].randomAnsfunction[a][0].toLowerCase() == mainMsg[1].toLowerCase()) {
                                         temp = 1
                                         rply.text = rply.randomAnsfunction[i].randomAnsfunction[a][0] + ' → ' + rply.randomAnsfunction[i].randomAnsfunction[a][(Math.floor(Math.random() * (rply.randomAnsfunction[i].randomAnsfunction[a].length - 1))) + 1];
                                         for (let t = 1; t < times; t++) {
@@ -198,7 +198,7 @@ try {
                 if (rply.randomAnsAllgroup)
                     for (var i = 0; i < rply.randomAnsAllgroup.length; i++) {
                         for (var a = 0; a < rply.randomAnsAllgroup[i].randomAnsAllgroup.length; a++) {
-                            if (rply.randomAnsAllgroup[i].randomAnsAllgroup[a][0] == mainMsg[2]) {
+                            if (rply.randomAnsAllgroup[i].randomAnsAllgroup[a][0].toLowerCase() == mainMsg[2].toLowerCase()) {
                                 checkifsamenamegroup = 1
                             }
                         }
@@ -226,30 +226,30 @@ try {
                         rply.text += ' 沒有自定義回應,至少兩個.'
                 }
                 return rply;
-                /* case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
-                     //刪除自定義關鍵字
-                     if (mainMsg[2] && rply.randomAnsAllgroup) {
-                         for (var i = 0; i < rply.randomAnsAllgroup.length; i++) {
-                             if (mainMsg[2] < rply.randomAnsAllgroup[i].randomAnsAllgroup.length && mainMsg[2] >= 0) {
-                                 let temp = rply.randomAnsAllgroup[i]
-                                 temp.randomAnsAllgroup.splice(mainMsg[2], 1)
-                                 //console.log('rply.randomAnsAllgroup: ', temp)
-                                 records.setrandomAnsAllgroup('randomAnsAllgroup', temp, () => {
-                                     records.get('randomAnsAllgroup', (msgs) => {
-                                         rply.randomAnsAllgroup = msgs
-                                     })
+            /* case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
+                 //刪除自定義關鍵字
+                 if (mainMsg[2] && rply.randomAnsAllgroup) {
+                     for (var i = 0; i < rply.randomAnsAllgroup.length; i++) {
+                         if (mainMsg[2] < rply.randomAnsAllgroup[i].randomAnsAllgroup.length && mainMsg[2] >= 0) {
+                             let temp = rply.randomAnsAllgroup[i]
+                             temp.randomAnsAllgroup.splice(mainMsg[2], 1)
+                             //console.log('rply.randomAnsAllgroup: ', temp)
+                             records.setrandomAnsAllgroup('randomAnsAllgroup', temp, () => {
+                                 records.get('randomAnsAllgroup', (msgs) => {
+                                     rply.randomAnsAllgroup = msgs
                                  })
-                             }
-                             rply.text = '刪除成功: ' + mainMsg[2]
+                             })
                          }
-                     } else {
-                         rply.text = '刪除失敗.'
-                         if (!mainMsg[2])
-                             rply.text += '沒有關鍵字. '
-
+                         rply.text = '刪除成功: ' + mainMsg[2]
                      }
-                     return rply;
-                     */
+                 } else {
+                     rply.text = '刪除失敗.'
+                     if (!mainMsg[2])
+                         rply.text += '沒有關鍵字. '
+
+                 }
+                 return rply;
+                 */
             case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
                 records.get('randomAnsAllgroup', (msgs) => {
                     rply.randomAnsAllgroup = msgs
@@ -277,7 +277,7 @@ try {
                 if (rply.randomAnsAllgroup)
                     for (var i = 0; i < rply.randomAnsAllgroup.length; i++) {
                         for (var a = 0; a < rply.randomAnsAllgroup[i].randomAnsAllgroup.length; a++) {
-                            if (rply.randomAnsAllgroup[i].randomAnsAllgroup[a][0] == mainMsg[1]) {
+                            if (rply.randomAnsAllgroup[i].randomAnsAllgroup[a][0].toLowerCase() == mainMsg[1].toLowerCase()) {
                                 temp2 = 1
                                 rply.text = rply.randomAnsAllgroup[i].randomAnsAllgroup[a][0] + ' → ' + rply.randomAnsAllgroup[i].randomAnsAllgroup[a][(Math.floor(Math.random() * (rply.randomAnsAllgroup[i].randomAnsAllgroup[a].length - 1))) + 1];
                                 for (let t = 1; t < timesgp; t++) {

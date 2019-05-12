@@ -18,7 +18,7 @@ try {
         return 'trpgDatabase:hktrpg'
     }
     prefixs = function () {
-        return [/(^[.]db(p|)$)/ig, ]
+        return [/(^[.]db(p|)$)/ig,]
     }
     getHelpMessage = function () {
         return "【資料庫功能】" + "\
@@ -56,7 +56,7 @@ try {
                                 // console.log('checked1')
                                 if (rply.trpgDatabasefunction[0] && rply.trpgDatabasefunction[0].trpgDatabasefunction[0])
                                     for (var a = 0; a < rply.trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
-                                        if (rply.trpgDatabasefunction[i].trpgDatabasefunction[a].topic == mainMsg[2]) {
+                                        if (rply.trpgDatabasefunction[i].trpgDatabasefunction[a].topic.toLowerCase() == mainMsg[2].toLowerCase()) {
                                             //   console.log('checked')
                                             checkifsamename = 1
                                         }
@@ -184,7 +184,7 @@ try {
                                 // console.log(rply.trpgDatabasefunction[i])
                                 //rply.text += '資料庫列表:'
                                 for (var a = 0; a < rply.trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
-                                    if (rply.trpgDatabasefunction[i].trpgDatabasefunction[a].topic == mainMsg[1]) {
+                                    if (rply.trpgDatabasefunction[i].trpgDatabasefunction[a].topic.toLowerCase() == mainMsg[1].toLowerCase()) {
                                         temp = 1
                                         rply.text = rply.trpgDatabasefunction[i].trpgDatabasefunction[a].topic + '\n' + rply.trpgDatabasefunction[i].trpgDatabasefunction[a].contact;
 
@@ -205,7 +205,7 @@ try {
                     if (rply.trpgDatabaseAllgroup[0].trpgDatabaseAllgroup[0])
                         for (var i = 0; i < rply.trpgDatabaseAllgroup.length; i++) {
                             for (var a = 0; a < rply.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup.length; a++) {
-                                if (rply.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic == mainMsg[2]) {
+                                if (rply.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic.toLowerCase() == mainMsg[2].toLowerCase()) {
                                     checkifsamenamegroup = 1
                                 }
                             }
@@ -217,7 +217,7 @@ try {
                             contact: inputStr.replace(/\.dbp add /i, '').replace(mainMsg[2], '').replace(/^\s+/, '')
                         }]
                     }
-                    console.log('tempA: ', tempA)
+                    // console.log('tempA: ', tempA)
                     if (checkifsamenamegroup == 0) {
                         records.pushtrpgDatabaseAllgroup('trpgDatabaseAllgroup', tempA, () => {
                             records.get('trpgDatabaseAllgroup', (msgs) => {
@@ -263,7 +263,7 @@ try {
                 if (rply.trpgDatabaseAllgroup)
                     for (var i = 0; i < rply.trpgDatabaseAllgroup.length; i++) {
                         for (var a = 0; a < rply.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup.length; a++) {
-                            if (rply.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic == mainMsg[1]) {
+                            if (rply.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic.toLowerCase() == mainMsg[1].toLowerCase()) {
                                 temp2 = 1
                                 rply.text = rply.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic + '\n' + rply.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].contact;
 

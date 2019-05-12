@@ -65,19 +65,16 @@ try {
                         for (var i = 0; i < rply.GroupSettingfunction.length; i++) {
                             if (rply.GroupSettingfunction[i].groupid == groupid) {
                                 // console.log('checked1')
-                                for (var a = 0; a < rply.GroupSettingfunction[i].GroupSettingfunction.length; a++) {
-                                    if (rply.GroupSettingfunction[i].GroupSettingfunction[a].topic == mainMsg[2]) {
-                                        //   console.log('checked')
-                                        checkifsamename = 1
-                                    }
-                                }
+                                temp = rply.GroupSettingfunction[i];
+
+
                             }
                         }
 
                     if (checkifsamename == 0) {
                         temp = {
                             groupid: groupid,
-                            togm: []
+                            togm: [userid]
                         }
                         records.pushGroupSettingfunction('GroupSetting', temp, () => {
                             records.get('GroupSetting', (msgs) => {

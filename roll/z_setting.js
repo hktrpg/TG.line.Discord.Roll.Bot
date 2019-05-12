@@ -55,7 +55,7 @@ try {
 
             case /(^[.]set$)/i.test(mainMsg[0]) && /^togm$/i.test(mainMsg[1]):
                 //設定如果暗骰, 也私訊給自己(too)(dr 普通私 drgm同時私GM drto只有GM收到 )
-                let checkifsamename = 0
+                let existed = false
                 if (groupid && userrole >= 2) {
                     let temp = {
                         groupid: groupid,
@@ -66,16 +66,13 @@ try {
                             if (rply.GroupSettingfunction[i].groupid == groupid) {
                                 // console.log('checked1')
                                 temp = rply.GroupSettingfunction[i];
-
+                                existed = true
 
                             }
                         }
 
-                    if (checkifsamename == 0) {
-                        temp = {
-                            groupid: groupid,
-                            togm: [userid]
-                        }
+                    if (existed == false) {
+                        temp.togm = [userid]
                         records.pushGroupSettingfunction('GroupSetting', temp, () => {
                             records.get('GroupSetting', (msgs) => {
                                 rply.GroupSettingfunction = msgs

@@ -67,7 +67,7 @@ try {
                                 // console.log('checked1')
                                 temp = rply.GroupSettingfunction[i];
                                 existed = true
-
+                                //a.push('addd')
                             }
                         }
 

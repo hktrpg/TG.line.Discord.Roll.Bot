@@ -41,6 +41,17 @@ try {
         return rply;
     }
 
+
+    /*
+    var index = a.findIndex(x => x.name=="bob")
+// here you can check specific property for an object whether it exist in your array or not
+
+if (index === -1){
+    a.push({newItem});
+}
+else document.write("object already exists")
+
+*/
     rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole) {
         records.get('GroupSetting', (msgs) => {
             rply.GroupSettingfunction = msgs

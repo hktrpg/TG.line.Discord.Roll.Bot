@@ -21,7 +21,7 @@ try {
         return 'GroupSetting:hktrpg'
     }
     prefixs = function () {
-        return [/(^[.]set$)/ig,]
+        return [/(^[.]set$)/ig, ]
     }
     getHelpMessage = function () {
         return "【資料庫功能】" + "\
@@ -96,7 +96,7 @@ else document.write("object already exists")
                             })
 
                         })
-                        rply.text = '新增成功: ' + mainMsg[2]
+                        rply.text = '新增成功  userid: ' + userid
                     } else rply.text = '新增失敗. 重複標題'
                 } else {
                     rply.text = '新增失敗.'

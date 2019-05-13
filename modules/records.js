@@ -228,23 +228,25 @@ class Records extends EventEmitter {
             $push 加入新的
             $set  重置舊的
          */
+        console.log('msg: ', msg)
         schema[dbbase].findOneAndUpdate({
             groupid: msg.groupid
         }, {
                 $push: {
-                    GroupSettingfunction: msg.GroupSettingfunction
+                    togm: msg.togm
                 }
             }, {
                 new: true,
                 upsert: true
             }, (err, doc) => {
                 if (err) {
-                    console.log("Something wrong when updating data!");
+                    console.log("ERROR .set too", err);
                 } else
                     callback();
             });
     }
     setGroupSettingfunction(dbbase, msg, callback) {
+        console.log('msg: ', msg)
         schema[dbbase].findOneAndUpdate({
             groupid: msg.groupid
         }, {
@@ -255,7 +257,7 @@ class Records extends EventEmitter {
                 upsert: true
             }, (err, doc) => {
                 if (err) {
-                    console.log("Something wrong when updating data!");
+                    console.log(err);
                 } else
                     callback();
                 // return JSON.stringify(doc).toString();

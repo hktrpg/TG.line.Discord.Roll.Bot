@@ -66,25 +66,29 @@ else document.write("object already exists")
 
             case /(^[.]set$)/i.test(mainMsg[0]) && /^too$/i.test(mainMsg[1]):
                 //設定如果暗骰, 也私訊給自己(too)(dr 普通私 drgm同時私GM drto只有GM收到 )
-
-                let existed = false
+                //增加資料庫
+                //檢查有沒有重覆
+                let temp = {
+                    groupid: groupid,
+                    togm: [userid]
+                }
+                let checkifsamename = 0
                 if (groupid && userrole >= 2) {
-                    let temp = {
-                        groupid: groupid,
-                        togm: []
-                    }
                     if (rply.GroupSettingfunction)
                         for (var i = 0; i < rply.GroupSettingfunction.length; i++) {
                             if (rply.GroupSettingfunction[i].groupid == groupid) {
-                                // console.log('checked1')
-                                temp = rply.GroupSettingfunction[i];
-                                existed = true
-                                //a.push('addd')
+                                console.log('rply.GroupSettingfunction: ', rply.GroupSettingfunction)
+                                if (rply.GroupSettingfunction[0] && rply.GroupSettingfunction[0].togm[0])
+                                    for (var a = 0; a < rply.GroupSettingfunction[i].togm.length; a++) {
+                                        if (rply.GroupSettingfunction[i].togm[a] == userid) {
+                                            console.log('checked')
+                                            checkifsamename = 1
+                                        }
+                                    }
                             }
                         }
 
-                    if (existed == false) {
-                        temp.togm = [userid]
+                    if (checkifsamename == 0) {
                         records.pushGroupSettingfunction('GroupSetting', temp, () => {
                             records.get('GroupSetting', (msgs) => {
                                 rply.GroupSettingfunction = msgs
@@ -106,6 +110,7 @@ else document.write("object already exists")
                         rply.text += ' 只有GM以上才可新增.'
                 }
                 return rply;
+
             default:
                 break;
 

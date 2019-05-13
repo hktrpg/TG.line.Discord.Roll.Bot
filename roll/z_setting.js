@@ -66,6 +66,27 @@ else document.write("object already exists")
 
             case /(^[.]set$)/i.test(mainMsg[0]) && /^too$/i.test(mainMsg[1]):
                 //設定如果暗骰, 也私訊給自己(too)(dr 普通私 drgm同時私GM drto只有GM收到 )
+
+
+
+                // here you can check specific property for an object whether it exist in your array or not
+                let findid = temp.find(x => rply.GroupSettingfunction.groupid == groupid)
+                if (findid)
+                    let found = findid.togm.find((istogm) => {
+                        return istogm == userid;
+                    });
+                if (found)
+                    document.write(found)
+
+
+                var indexgroupid = rply.GroupSettingfunction.findIndex(x => x.groupid == groupid)
+                // here you can check specific property for an object whether it exist in your array or not
+
+                if (indexgroupid === -1) {
+                    a.push({ newItem });
+                }
+                else document.write("object already exists")
+
                 let existed = false
                 if (groupid && userrole >= 2) {
                     let temp = {

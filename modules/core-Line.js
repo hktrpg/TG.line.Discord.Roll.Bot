@@ -11,7 +11,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	});
 	var Linecountroll = 0;
 	var Linecounttext = 0;
-	const line = require('@line/bot-sdk');
+	const line = require('linebot');
 	const express = require('express');
 
 	function replymessage(message) {
@@ -39,6 +39,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 	// create LINE SDK config from env variables
 	const config = {
+		channelId: process.env.LINE_CHANNEL_ID,
 		channelAccessToken: process.env.LINE_CHANNEL_ACCESSTOKEN,
 		channelSecret: process.env.LINE_CHANNEL_SECRET,
 	};

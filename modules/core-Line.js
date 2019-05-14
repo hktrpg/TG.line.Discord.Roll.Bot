@@ -28,7 +28,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	//event.source.userId
 	//event.source.groupId
 	/*
-	client.pushMessage('<to>', message)
+	app.pushMessage('<to>', message)
 		.then(() => {
 
 		})
@@ -131,7 +131,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			if (privatemsg == 1) {
 
 
-				client.pushMessage(roomorgroupid, replymessage('暗骰進行中'))
+				app.pushMessage(roomorgroupid, replymessage('暗骰進行中'))
 					.then(() => {})
 					.catch((err) => {
 						// error handling
@@ -139,7 +139,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				//message.reply.text(message.from.first_name + ' 暗骰進行中')
 				async function loada() {
 					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1200}/g).length; i++) {
-						await client.pushMessage(userid, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
+						await app.push(userid, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
 							.then(() => {})
 							.catch((err) => {
 								// error handling
@@ -153,7 +153,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						if (roomorgroupid)
 							var replyTarget = roomorgroupid
 						else replyTarget = userid
-						await client.pushMessage(replyTarget, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
+						await app.push(replyTarget, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
 							.then(() => {})
 							.catch((err) => {
 								// error handling

@@ -69,17 +69,10 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 
 	app.on('message', function (event) {
-		switch (event.message.type) {
-			case 'text':
-				event.source.profile().then(function (profile) {
-					handleEvent(event, profile);
-				});
-				break;
 
-			default:
-				//event.reply('Unknow message: ' + JSON.stringify(event));
-				break;
-		}
+		event.source.profile().then(function (profile) {
+			handleEvent(event, profile);
+		});
 
 	});
 
@@ -94,7 +87,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	function handleEvent(event) {
 		if (event.type !== 'message' || event.message.type !== 'text') {
 			// ignore non-text-message event
-			return Promise.resolve(null);
+			return null;
 		}
 		let roomorgroupid, userid = ''
 		let userrole = 2;

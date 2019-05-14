@@ -83,7 +83,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 
 	// event handler
-	function handleEvent(event) {
+	function handleEvent(event, profile) {
 		if (event.type !== 'message' || event.message.type !== 'text') {
 			// ignore non-text-message event
 			return null;
@@ -93,13 +93,15 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		if (event.source.groupId) roomorgroupid = event.source.groupId
 		if (event.source.roomId) roomorgroupid = event.source.roomId
 		if (event.source.userId) userid = event.source.userId
+		if (profile.displayName) userName = profile.displayName
 		let rplyVal = {};
 		let msgSplitor = (/\S+/ig)
 		if (event.message.text)
 			var mainMsg = event.message.text.match(msgSplitor); // 定義輸入字串
 		if (mainMsg && mainMsg[0])
 			var trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
-		console.log(profile.displayName);
+		console.log('profile:', profile);
+		console.log(userName);
 		// 訊息來到後, 會自動跳到analytics.js進行骰組分析
 		// 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
 

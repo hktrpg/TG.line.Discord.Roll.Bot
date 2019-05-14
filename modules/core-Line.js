@@ -68,7 +68,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		*/
 
 
-	bot.on('message', function (event) {
+	app.on('message', function (event) {
 		switch (event.message.type) {
 			case 'text':
 				switch (event.message.text) {

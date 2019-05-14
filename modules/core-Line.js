@@ -71,18 +71,16 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	app.on('message', function (event) {
 		switch (event.message.type) {
 			case 'text':
-				switch (event.message.text) {
-					case 'Me':
-						event.source.profile().then(function (profile) {
-							handleEvent(event, profile);
-						});
-						break;
+				event.source.profile().then(function (profile) {
+					handleEvent(event, profile);
+				});
+				break;
 
-					default:
-						//event.reply('Unknow message: ' + JSON.stringify(event));
-						break;
-				}
+			default:
+				//event.reply('Unknow message: ' + JSON.stringify(event));
+				break;
 		}
+
 	});
 
 

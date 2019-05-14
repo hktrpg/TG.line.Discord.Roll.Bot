@@ -28,7 +28,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	//event.source.userId
 	//event.source.groupId
 	/*
-	app.pushMessage('<to>', message)
+	app.push('<to>', message)
 		.then(() => {
 
 		})
@@ -69,7 +69,6 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 
 	app.on('message', function (event) {
-
 		event.source.profile().then(function (profile) {
 			handleEvent(event, profile);
 		});
@@ -131,7 +130,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			if (privatemsg == 1) {
 
 
-				app.pushMessage(roomorgroupid, replymessage('暗骰進行中'))
+				app.push(roomorgroupid, replymessage('暗骰進行中'))
 					.then(() => {})
 					.catch((err) => {
 						// error handling

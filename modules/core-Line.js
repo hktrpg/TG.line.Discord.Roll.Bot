@@ -183,7 +183,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 	// listen on port
 	const port = process.env.PORT || 5000;
-	app.listen('/linewebhook', port, () => {
+	app.listen('/', port, () => {
 		console.log(`Line BOT listening on ${port}`);
 	});
 

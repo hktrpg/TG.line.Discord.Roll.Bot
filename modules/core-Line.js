@@ -138,7 +138,7 @@ try {
 				//console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
 
 				if (privatemsg == 1) {
-					app.push(roomorgroupid, replymessage('暗骰進行中'))
+					app.push(roomorgroupid, replymessage(userName + '暗骰進行中'))
 						.then(() => { })
 						.catch((err) => {
 							// error handling

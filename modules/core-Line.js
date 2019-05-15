@@ -19,6 +19,25 @@ try {
 			channelSecret: process.env.LINE_CHANNEL_SECRET,
 		});
 
+		const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
+
+		const BootTime = new Date(new Date().toLocaleString("en-US", {
+			timeZone: "Asia/Shanghai"
+		}));
+
+
+		app.on('message', function (event) {
+			switch (event.message.type) {
+				case 'text':
+					event.source.profile().then(function (profile) {
+						handleEvent(event, profile);
+					});
+					break;
+				default:
+					break;
+			}
+		});
+
 		function replymessage(message) {
 			return {
 				type: 'text',
@@ -37,16 +56,12 @@ try {
 			});
 
 		*/
-		const BootTime = new Date(new Date().toLocaleString("en-US", {
-			timeZone: "Asia/Shanghai"
-		}));
 
 
 		// create LINE SDK config from env variables
 
 
 		// create LINE SDK client
-		const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 		//	const client = new line.Client(config);
 
 		// create Express app
@@ -66,20 +81,6 @@ try {
 			});
 
 			*/
-
-
-		app.on('message', function (event) {
-			event.source.profile().then(function (profile) {
-				handleEvent(event, profile);
-			});
-
-		});
-
-
-
-
-
-
 
 
 		// event handler
@@ -137,10 +138,8 @@ try {
 				//console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
 
 				if (privatemsg == 1) {
-
-
 					app.push(roomorgroupid, replymessage('暗骰進行中'))
-						.then(() => {})
+						.then(() => { })
 						.catch((err) => {
 							// error handling
 						});
@@ -148,7 +147,9 @@ try {
 					async function loada() {
 						for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1200}/g).length; i++) {
 							await app.push(userid, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
-								.then(() => {})
+								.then(() => {
+									return null
+								})
 								.catch((err) => {
 									// error handling
 								});
@@ -162,7 +163,9 @@ try {
 								var replyTarget = roomorgroupid
 							else replyTarget = userid
 							await app.push(replyTarget, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
-								.then(() => {})
+								.then(() => {
+									return null
+								})
 								.catch((err) => {
 									// error handling
 								});
@@ -178,6 +181,7 @@ try {
 				Linecounttext++;
 				if (Linecounttext % 500 == 0)
 					console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext);
+				return null
 			}
 
 

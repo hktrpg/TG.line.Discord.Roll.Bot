@@ -18,7 +18,9 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 		const telegrafGetChatMembers = require('telegraf-getchatmembers')
 
 
-		TGclient.use(telegrafGetChatMembers)
+		TGclient.use(telegrafGetChatMembers, () => {
+			console.log('Telegram is Ready!?');
+		})
 
 		TGclient.on('text', async (ctx) => {
 			//console.log(ctx.getChatMembers(ctx.chat.id) //[Members]

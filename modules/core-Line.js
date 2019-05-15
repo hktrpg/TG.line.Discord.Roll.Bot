@@ -208,5 +208,5 @@ try {
 
 	}
 } catch (e) {
-	console.log(e)
+	console.log('Line Request error: ', e)
 }

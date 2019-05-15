@@ -103,8 +103,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 			client.user.setGame('bothelp |運氣占卜「運勢」')
 		})
 	} catch (e) {
-		console.log('catch error');
-		console.log('Request error: ' + e.message);
+		console.log('Discrod Request error: ' + e.message);
 
 	}
 }

@@ -35,11 +35,13 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 			if (message.author.bot === false && message.content != "") {
 				//	console.log('message.content ' + message.content);
 				//	console.log('channelKeyword ' + channelKeyword);
-				let groupid, userid = ''
+				let groupid, userid, userName = ''
 				let userrole = 1;
 				//console.log(message.guild)
 				if (message.guild && message.guild.id) groupid = message.guild.id
 				if (message.author.id) userid = message.author.id
+				if (message.member.displayname) userName = message.member.displayname
+
 				if (message.member && message.member.hasPermission("ADMINISTRATOR")) userrole = 3
 				//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin 
 				let rplyVal = {};
@@ -61,10 +63,10 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				}
 				if (channelKeyword != "" && trigger == channelKeyword.toString().toLowerCase()) {
 					//mainMsg.shift();
-					rplyVal = exports.analytics.parseInput(message.content, groupid, userid, userrole, exports.analytics.stop);
+					rplyVal = exports.analytics.parseInput(message.content, groupid, userid, userName, userrole, exports.analytics.stop);
 				} else {
 					if (channelKeyword == "") {
-						rplyVal = exports.analytics.parseInput(message.content, groupid, userid, userrole, exports.analytics.stop);
+						rplyVal = exports.analytics.parseInput(message.content, groupid, userid, userName, userrole, exports.analytics.stop);
 					}
 				}
 				if (rplyVal && rplyVal.text) {
@@ -73,7 +75,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					//console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString(), " content: ", message.content);
 
 					if (privatemsg == 1) {
-						message.channel.send("暗骰進行中");
+						message.channel.send(userName + "暗骰進行中");
 						async function loada() {
 							for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 								await message.author.send(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);

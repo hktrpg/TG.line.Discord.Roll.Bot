@@ -38,7 +38,7 @@ try {
         return rply;
     }
 
-    rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole) {
+    rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userName, userrole) {
         records.get('trpgDatabase', (msgs) => {
             rply.trpgDatabasefunction = msgs
         })

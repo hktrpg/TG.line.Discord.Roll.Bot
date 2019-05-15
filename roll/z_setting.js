@@ -21,7 +21,7 @@ try {
         return 'GroupSetting:hktrpg'
     }
     prefixs = function () {
-        return [/(^[.]set$)/ig, ]
+        return [/(^[.]set$)/ig,]
     }
     getHelpMessage = function () {
         return "【資料庫功能】" + "\
@@ -52,7 +52,7 @@ if (index === -1){
 else document.write("object already exists")
 
 */
-    rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole) {
+    rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userName, userrole) {
         records.get('GroupSetting', (msgs) => {
             rply.GroupSettingfunction = msgs
         })

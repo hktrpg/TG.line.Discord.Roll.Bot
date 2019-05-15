@@ -14,7 +14,7 @@ try {
 
 	//用來呼叫骰組,新增骰組的話,要寫條件式到下面呼叫 
 	//格式是 exports.骰組檔案名字.function名
-	function parseInput(inputStr, groupid, userid, userrole, callback) {
+	function parseInput(inputStr, groupid, userid, userName, userrole, callback) {
 		//console.log('InputStr: ' + inputStr);
 		_isNaN = function (obj) {
 			return isNaN(parseInt(obj));
@@ -42,7 +42,7 @@ try {
 		})
 
 
-		result = callback(inputStr, groupid, userid, userrole, mainMsg, trigger, stopmark)
+		result = callback(inputStr, groupid, userid, userName, userrole, mainMsg, trigger, stopmark)
 		if (result && result.text) {
 			console.log('inputStr: ', inputStr)
 			return result;
@@ -52,7 +52,7 @@ try {
 
 	}
 
-	function stop(inputStr, groupid, userid, userrole, mainMsg, trigger, stopmark) {
+	function stop(inputStr, groupid, userid, userrole, userName, mainMsg, trigger, stopmark) {
 		//在下面位置開始分析trigger
 		var breakFlag = false;
 		Object.keys(exports).forEach(v => {
@@ -98,7 +98,7 @@ try {
 
 			if (findprefixs == 1 && stopmark == 0) {
 				console.log('trigger: ', trigger, ' v: ', v)
-				let tempsave = exports[v].rollDiceCommand(inputStr, mainMsg, groupid, userid, userrole)
+				let tempsave = exports[v].rollDiceCommand(inputStr, mainMsg, groupid, userid, userName, userrole)
 				if (tempsave)
 					Object.keys(tempsave).forEach(v => {
 						result[v] = tempsave[v]

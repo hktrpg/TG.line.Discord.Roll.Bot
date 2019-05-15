@@ -27,9 +27,10 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			//	ctx.getChatMembers() //[Members]
 			//	telegrafGetChatMembers.check(ctx.chat.id) //[Members]
 			//	telegrafGetChatMembers.all //[Chats]
-			let groupid, userid = ''
+			let groupid, userid, userName = ''
 			let userrole = 1;
 			//console.log('TG: ', message)
+			if (ctx.message.from.first_name) userName = ctx.message.from.first_name
 
 
 			if (ctx.message.chat.type == 'group') {
@@ -54,14 +55,14 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				//mainMsg.shift()
 				//trigger = mainMsg[0].toString().toLowerCase()
 				ctx.message.text = ctx.message.text.replace(/^[d][r][ ]/i, '')
-			
+
 			}
 			if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 				mainMsg.shift()
-				rplyVal = exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, exports.analytics.stop)
+				rplyVal = exports.analytics.parseInput(ctx.message.text, groupid, userid, userName, userrole, exports.analytics.stop)
 			} else {
 				if (channelKeyword == '') {
-					rplyVal = exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, exports.analytics.stop)
+					rplyVal = exports.analytics.parseInput(ctx.message.text, groupid, userid, userName, userrole, exports.analytics.stop)
 
 				}
 
@@ -73,7 +74,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				//console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext, " content: ", message.text);
 				if (privatemsg == 1) {
 					if (ctx.chat.type == 'group')
-						ctx.reply(ctx.message.from.first_name + ' 暗骰進行中')
+						ctx.reply(userName + ' 暗骰進行中')
 					async function loada() {
 						for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 							await ctx.telegram.sendMessage(ctx.message.from.id, rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])

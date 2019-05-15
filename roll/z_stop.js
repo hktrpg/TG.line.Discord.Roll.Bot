@@ -17,7 +17,7 @@ if (process.env.mongoURL) {
         return 'Block:hktrpg'
     }
     prefixs = function () {
-        return [/^[.]bk$/ig, ]
+        return [/^[.]bk$/ig,]
     }
     getHelpMessage = function () {
         return "【擲骰開關功能】" + "\
@@ -35,7 +35,7 @@ if (process.env.mongoURL) {
         return rply;
     }
 
-    rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole) {
+    rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userName, userrole) {
         records.get('block', (msgs) => {
             rply.save = msgs
         })

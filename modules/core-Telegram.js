@@ -16,9 +16,6 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 		var TGcountroll = 0;
 		var TGcounttext = 0;
 		const telegrafGetChatMembers = require('telegraf-getchatmembers')
-		TGclient.start(() => {
-			console.log('Telegram is Ready!');
-		});
 
 		TGclient.use(telegrafGetChatMembers)
 

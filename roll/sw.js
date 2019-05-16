@@ -81,7 +81,7 @@ rollDiceCommand = function (inputStr, mainMsg) {
     let result = '';
     switch (true) {
         default:
-            result = calldice("SwordWorld2_5", mainMsg[1])
+            result = calldice("SwordWorld", mainMsg[1])
             console.log(result)
             if (result && result[0] != 1)
                 rply.text = mainMsg[1] + result[0];

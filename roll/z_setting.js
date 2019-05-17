@@ -21,7 +21,7 @@ try {
         return 'GroupSetting:hktrpg'
     }
     prefixs = function () {
-        return [/(^[.]set$)/ig,]
+        return [/(^[.]set$)/ig, ]
     }
     getHelpMessage = function () {
         return "【資料庫功能】" + "\
@@ -70,7 +70,11 @@ else document.write("object already exists")
                 //檢查有沒有重覆
                 let temp = {
                     groupid: groupid,
-                    togm: [userid]
+                    user: [{
+                        userid: userid
+                    }, {
+                        togm: true
+                    }]
                 }
                 let checkifsamename = 0
                 if (groupid && userrole >= 2) {
@@ -78,9 +82,9 @@ else document.write("object already exists")
                         for (var i = 0; i < rply.GroupSettingfunction.length; i++) {
                             if (rply.GroupSettingfunction[i].groupid == groupid) {
                                 console.log('rply.GroupSettingfunction: ', rply.GroupSettingfunction)
-                                if (rply.GroupSettingfunction[0] && rply.GroupSettingfunction[0].togm[0])
-                                    for (var a = 0; a < rply.GroupSettingfunction[i].togm.length; a++) {
-                                        if (rply.GroupSettingfunction[i].togm[a] == userid) {
+                                if (rply.GroupSettingfunction[0] && rply.GroupSettingfunction[0].user[0])
+                                    for (var a = 0; a < rply.GroupSettingfunction[i].user.length; a++) {
+                                        if (rply.GroupSettingfunction[i].user[a].userid == userid) {
                                             console.log('checked')
                                             checkifsamename = 1
                                         }

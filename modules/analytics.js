@@ -52,7 +52,7 @@ try {
 
 	}
 
-	function stop(inputStr, groupid, userid, userrole, userName, mainMsg, trigger, stopmark) {
+	function stop(inputStr, groupid, userid, userName, userrole, mainMsg, trigger, stopmark) {
 		//在下面位置開始分析trigger
 		var breakFlag = false;
 		Object.keys(exports).forEach(v => {

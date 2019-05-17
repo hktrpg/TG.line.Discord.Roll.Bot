@@ -233,7 +233,7 @@ class Records extends EventEmitter {
             groupid: msg.groupid
         }, {
                 $push: {
-                    togm: msg.togm
+                    user: msg.user
                 }
             }, {
                 new: true,

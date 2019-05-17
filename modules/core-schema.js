@@ -39,12 +39,9 @@ if (process.env.mongoURL) {
     });
     const GroupSetting = mongoose.model('GroupSetting', {
         groupid: String,
-        togm: Array,
         user: [{
-            userid: {
-                type: String,
-                required: true
-            },
+            userid: String,
+            togm: Boolean,
             name: String,
             date: {
                 type: Date,

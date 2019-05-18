@@ -41,18 +41,19 @@ try {
 			}
 		})
 
-
-		result = callback(inputStr, groupid, userid, userName, userrole, mainMsg, trigger, stopmark)
+		if (stopmark == 0)
+			result = callback(inputStr, groupid, userid, userName, userrole, mainMsg, trigger, stopmark)
 		if (result && result.text) {
 			console.log('inputStr: ', inputStr)
 			return result;
 
-		}
+		} else return null;
+
 
 
 	}
 
-	function stop(inputStr, groupid, userid, userName, userrole, mainMsg, trigger, stopmark) {
+	function stop(inputStr, groupid, userid, userName, userrole, mainMsg, trigger) {
 		//在下面位置開始分析trigger
 		var breakFlag = false;
 		Object.keys(exports).forEach(v => {
@@ -70,7 +71,7 @@ try {
 			let checkmainMsg0 = 0;
 			let checkmainMsg1 = 0;
 			let findprefixs = 0;
-			if (exports[v].prefixs()[0] && exports[v].prefixs()[0] && stopmark == 0) {
+			if (exports[v].prefixs()[0] && exports[v].prefixs()[0]) {
 				for (var i = 0; i <= exports[v].prefixs().length - 1; i = i + 2) {
 					checkmainMsg0 = 0;
 					checkmainMsg1 = 0;
@@ -96,7 +97,7 @@ try {
 
 
 
-			if (findprefixs == 1 && stopmark == 0) {
+			if (findprefixs == 1) {
 				console.log('trigger: ', trigger, ' v: ', v)
 				let tempsave = exports[v].rollDiceCommand(inputStr, mainMsg, groupid, userid, userName, userrole)
 				if (tempsave)

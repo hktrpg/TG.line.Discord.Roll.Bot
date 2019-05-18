@@ -32,7 +32,7 @@ try {
 		Object.keys(exports).forEach(v => {
 			if (exports[v].initialize().save && exports[v].initialize().save[0].blockfunction && exports[v].initialize().save[0].blockfunction.length > 0) {
 				for (var i = 0; i < exports[v].initialize().save.length; i++) {
-					if ((new RegExp(exports[v].initialize().save[i].blockfunction.join("|"), "i")).test(mainMsg[0]) && exports[v].initialize().save[i].groupid == groupid && exports[v].initialize().save[i].blockfunction.length > 0) {
+					if ((new RegExp(exports[v].initialize().save[i].blockfunction.join("|").replace(/[.*+?^${}()[\]\\]/g, '\\$&'), "i")).test(mainMsg[0]) && exports[v].initialize().save[i].groupid == groupid && exports[v].initialize().save[i].blockfunction.length > 0) {
 						console.log('Match AND STOP')
 						stopmark = 1
 

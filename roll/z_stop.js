@@ -17,14 +17,15 @@ if (process.env.mongoURL) {
         return 'Block:hktrpg'
     }
     prefixs = function () {
-        return [/^[.]bk$/ig,]
+        return [/^[.]bk$/ig, ]
     }
     getHelpMessage = function () {
         return "【擲骰開關功能】" + "\
         \n 這是根據關鍵字來開關功能,只要符合內容,\
         \n 例如運勢,那麼只要字句中包括,就不會讓Bot有反應\
         \n 所以注意如果用了D, 那麼1D100, .1WD 都會全部沒反應.\
-        \n 另外不可擋b,k,bk, 只可以擋漢字,數字和英文\
+        \n 另外不可擋[.], b, k, bk\
+        \n 因此, 可以用這個功能去擋/ 然後帶有/的都用不了, 例如/運勢\
         \n P.S.如果沒立即生效 用.bk show 刷新一下\
     \n 輸入.bk add xxxxx 即可增加關鍵字 每次一個\
     \n 輸入.bk show 顯示關鍵字\
@@ -41,7 +42,7 @@ if (process.env.mongoURL) {
         })
         rply.text = '';
         switch (true) {
-            case /^add$/i.test(mainMsg[1]) && /^[\u4e00-\u9fa5a-zA-Z0-9]+$/ig.test(mainMsg[2]) && /^((?!^(b|k|bk)$).)*$/ig.test(mainMsg[2]):
+            case /^add$/i.test(mainMsg[1]) && /^((?!^([|]|[.]|b|k|bk)$).)*$/ig.test(mainMsg[2]) && /^((?!^.*([|]).*$).)*$/ig.test(mainMsg[2]):
                 //增加阻擋用關鍵字
                 if (groupid && mainMsg[2] && userrole >= 2) {
                     let temp = {

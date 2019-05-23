@@ -48,7 +48,7 @@ rollDiceCommand = function (inputStr, mainMsg) {
                 // console.log('ans: ', ans, 'temp: ', temp)
                 temp = temp.replace('-1', '－').replace('0', '▉').replace('1', '＋')
             }
-            rply.text = 'Fate ' + mainMsg[0] + '\n' + temp + '　　=　　' + ans
+            rply.text = 'Fate ' + inputStr.toString().replace(/\r/g, " ").replace(/\n/g, " ") + '\n' + temp + '　　=　　' + ans
 
             if (match[2] && (match[2].toLowerCase() == 'm' || match[2].toLowerCase() == '-')) {
                 rply.text += '　　-　　' + match[3] + '　　=　　' + (Number(ans) - Number(match[3]))

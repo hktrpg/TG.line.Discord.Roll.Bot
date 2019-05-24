@@ -49,6 +49,9 @@ if (process.env.mongoURL) {
             },
             limit: Number,
             Permission: String,
+            XP: String,
+            Level: String,
+            Class: String,
             Abiliy: Array
         }]
     });

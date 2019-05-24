@@ -67,7 +67,8 @@ cc<= 改成 cc cc1 cc2 ccn1 ccn2。</br>
 </br></br></br>
 
 以下分別有Line Discord 和telegram 的說明</br>
-用那個就看那個吧
+用那個就看那個吧</br>
+另外要申請一個mlab ACC, 教學遲些再寫
 </br></br>
 如何建立自己的Line骰子機器人
 ==

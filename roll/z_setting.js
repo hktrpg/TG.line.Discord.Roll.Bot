@@ -8,6 +8,7 @@ try {
         2. 設定如果暗骰, 也私訊給自己(too)(dr 普通私 drgm同時私GM drto只有GM收到 )
         3. 設定擲骰前有名字(name XXXXX)
         4. 更改PL 身份 (GM XXXXXX)
+        5. XP LEVEL 系統, 需要GraphicsMagick and ImageMagick for node? aheckmann/gm
         
     */
     const records = require('../modules/records.js');
@@ -21,7 +22,7 @@ try {
         return 'GroupSetting:hktrpg'
     }
     prefixs = function () {
-        return [/(^[.]set$)/ig, ]
+        return [/(^[.]set$)/ig,]
     }
     getHelpMessage = function () {
         return "【資料庫功能】" + "\

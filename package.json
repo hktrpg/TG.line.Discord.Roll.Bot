@@ -24,7 +24,8 @@
     "mongoose": "^5.0.6",
     "telebot": "^1.2.6",
     "telegraf": "^3.29.0",
-    "telegraf-getchatmembers": "^1.0.0"
+    "telegraf-getchatmembers": "^1.0.0",
+    "axios": "^0.18.0"
   },
   "keywords": [
     "LeoLi",

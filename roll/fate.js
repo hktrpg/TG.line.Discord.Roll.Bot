@@ -17,7 +17,7 @@ prefixs = function () {
     //mainMSG[0]的prefixs,mainMSG[1]的prefixs  ]  <---這裡是一對
     //如前面是 /^1$/ig, 後面是/^1D100$/ig, 即 prefixs 變成 1 1D100 
     ///^(?=.*he)(?!.*da).*$/ig
-    return [/^[.]4df(\d+|(m|-)(\d+)|)$/i, ]
+    return [/^[.]4df(\d+|(m|-)(\d+)|)$/i,]
 }
 getHelpMessage = function () {
     return "【命運Fate】" + "\
@@ -33,6 +33,9 @@ initialize = function () {
 rollDiceCommand = function (inputStr, mainMsg) {
     rply.text = '';
     switch (true) {
+        case /^help$/i.test(mainMsg[1]):
+            rply.text = this.getHelpMessage();
+            return rply;
         default:
             var match = /^[.]4df(\d+|(m|-)(\d+)|)$/i.exec(mainMsg[0])
             //.4dfm23,m23,m,23

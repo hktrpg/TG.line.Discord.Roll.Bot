@@ -46,6 +46,10 @@ try {
         })
         rply.text = '';
         switch (true) {
+            case /^help$/i.test(mainMsg[1]):
+                rply.text = this.getHelpMessage();
+                return rply;
+
             case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
                 //增加自定義關鍵字
                 let checkifsamename = 0

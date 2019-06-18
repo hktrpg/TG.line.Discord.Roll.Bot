@@ -44,6 +44,9 @@ rollDiceCommand = function (inputStr, mainMsg) {
 	rply.text = '';
 	let result = '';
 	switch (true) {
+		case /^help$/i.test(mainMsg[1]):
+			rply.text = this.getHelpMessage();
+			return rply;
 		case /(\d+dx|ET)/i.test(mainMsg[1]):
 			result = calldice("DoubleCross", mainMsg[1])
 			if (result && result[0] != 1)

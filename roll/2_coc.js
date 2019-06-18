@@ -38,6 +38,7 @@ initialize = function () {
 rollDiceCommand = function (inputStr, mainMsg) {
 	rply.text = '';
 	let trigger = mainMsg[0].toLowerCase();
+	
 	if (trigger.match(/(^ccrt$)/) != null) return ccrt();
 	if (trigger.match(/(^ccsu$)/) != null) return ccsu();
 

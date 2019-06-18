@@ -49,6 +49,9 @@ rollDiceCommand = function (inputStr, mainMsg) {
 	rply.text = '';
 	let result = '';
 	switch (true) {
+		case /^help$/i.test(mainMsg[1]):
+			rply.text = this.getHelpMessage();
+			return rply;
 		case /(^nm$)/i.test(mainMsg[1]):
 			return nechronica_mirenn(mainMsg[2]);
 		case /(\d+)N[C|A]/i.test(mainMsg[1]):
@@ -115,10 +118,10 @@ function nechronica(triggermsg, text) {
 		else
 			returnStr += ' → 成功';
 	else
-	if (dicemin <= 1)
-		returnStr += ' → 大失敗';
-	else
-		returnStr += ' → 失敗';
+		if (dicemin <= 1)
+			returnStr += ' → 大失敗';
+		else
+			returnStr += ' → 失敗';
 	if (text != null)
 		returnStr += ' ; ' + text;
 	rply.text = returnStr;

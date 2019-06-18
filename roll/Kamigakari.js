@@ -37,6 +37,9 @@ rollDiceCommand = function (inputStr, mainMsg) {
     rply.text = '';
     //let result = {};
     switch (true) {
+        case /^help$/i.test(mainMsg[1]):
+            rply.text = this.getHelpMessage();
+            return rply;
         case /^MT(\d*)$|^RT$|^ET$|^NT$|^KT$/i.test(mainMsg[1]):
             bcdice.setGameByTitle("Kamigakari")
             bcdice.setMessage(mainMsg[1])

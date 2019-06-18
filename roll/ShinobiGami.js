@@ -13,7 +13,7 @@ var rply = {
 };
 
 gameName = function () {
-    return '忍神 .sg (ST FT ET等各種表)'
+    return '忍神 .sg (ST FT ET等各種表) (help 說明)'
 }
 
 gameType = function () {
@@ -47,11 +47,18 @@ initialize = function () {
 rollDiceCommand = function (inputStr, mainMsg) {
     rply.text = '';
     let result = '';
-    if (mainMsg && mainMsg[1])
-        result = calldice("ShinobiGami", mainMsg[1])
-    if (result && result[0] != 1)
-        rply.text = mainMsg[1] + ' ' + result[0];
-    return rply;
+
+    switch (true) {
+        case /^help$/i.test(mainMsg[1]):
+            rply.text = this.getHelpMessage();
+            return rply;
+        default:
+            result = calldice("ShinobiGami", mainMsg[1])
+            if (result && result[0] != 1)
+                rply.text = mainMsg[1] + result[0];
+            return rply;
+    }
+
 
 }
 

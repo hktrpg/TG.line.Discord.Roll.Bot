@@ -86,7 +86,7 @@ rollDiceCommand = function (inputStr, mainMsg) {
 			Object.keys(linehelp()).forEach(v => {
 				rply[v] = linehelp()[v]
 			})
-			rply.text = getHelpMessage() + '\n現支援系統: \n【了解骰組詳情,請輸入 bothelp (編號) 或 all 顯示全部】';
+			rply.text = getHelpMessage() + '\n現支援系統: \n【了解骰組詳情,請輸入 bothelp (編號) 或all 或 在指令後輸入help 如 .sg help】';
 			for (i = 0; i < Object.keys(exports).length; i++) {
 				if (exports[Object.keys(exports)[i]] && exports[Object.keys(exports)[i]].gameName)
 					rply.text += "\n" +

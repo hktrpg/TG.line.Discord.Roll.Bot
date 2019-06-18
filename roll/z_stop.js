@@ -17,7 +17,7 @@ if (process.env.mongoURL) {
         return 'Block:hktrpg'
     }
     prefixs = function () {
-        return [/^[.]bk$/ig, ]
+        return [/^[.]bk$/ig,]
     }
     getHelpMessage = function () {
         return "【擲骰開關功能】" + "\
@@ -41,6 +41,11 @@ if (process.env.mongoURL) {
         })
         rply.text = '';
         switch (true) {
+
+            case /^help$/i.test(mainMsg[1]):
+                rply.text = this.getHelpMessage();
+                return rply;
+
             case /^add$/i.test(mainMsg[1]) && /^[\u4e00-\u9fa5a-zA-Z0-9]+$/ig.test(mainMsg[2]) && /^((?!^(b|k|bk)$).)*$/ig.test(mainMsg[2]):
                 //增加阻擋用關鍵字
                 if (groupid && mainMsg[2] && userrole >= 2) {

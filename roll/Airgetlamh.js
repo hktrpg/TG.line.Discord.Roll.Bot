@@ -37,11 +37,16 @@ initialize = function () {
 rollDiceCommand = function (inputStr, mainMsg) {
     rply.text = '';
     let result = '';
-    if (mainMsg && mainMsg[1])
-        result = calldice("Airgetlamh", mainMsg[1])
-    if (result && result[0] != 1)
-        rply.text = mainMsg[1] + ' ' + result[0];
-    return rply;
+    switch (true) {
+        case /^help$/i.test(mainMsg[1]):
+            rply.text = this.getHelpMessage();
+            return rply;
+        default:
+            result = calldice("Airgetlamh", mainMsg[1])
+            if (result && result[0] != 1)
+                rply.text = mainMsg[1] + result[0];
+            return rply;
+    }
 
 }
 

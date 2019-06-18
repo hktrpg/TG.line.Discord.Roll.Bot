@@ -14,14 +14,14 @@ var rply = {
 };
 
 gameName = function () {
-    return '亞俠必死的冒險 .ss (nR>=x[y,z,c] SRx+y FumbleT)'
+    return '亞俠必死的冒險 .ss (nR>=x[y,z,c] SRx+y FumbleT) (help 說明)'
 }
 
 gameType = function () {
     return 'Satasupe:hktrpg'
 }
 prefixs = function () {
-return [/^[.]ss$/i, /\S/]
+    return [/^[.]ss$/i, /\S/]
 }
 getHelpMessage = function () {
     return "【亞俠必死的冒險】" + "\
@@ -58,6 +58,9 @@ rollDiceCommand = function (inputStr, mainMsg) {
     rply.text = '';
     let result = '';
     switch (true) {
+        case /^help$/i.test(mainMsg[1]):
+            rply.text = this.getHelpMessage();
+            return rply;
         default:
             result = calldice("Satasupe", mainMsg[1])
             if (result && result[0] != 1)

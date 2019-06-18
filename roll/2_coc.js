@@ -14,7 +14,7 @@ gameType = function () {
 }
 prefixs = function () {
 	return [/(^ccrt$)|(^ccsu$)|(^cc7版創角$)|(^cc6版創角$)|(^cc7版角色背景$)/i, ,
-		/(^ccb$)|(^cc$)|(^ccn[1-2]$)|(^cc[1-2]$)|(^[.]dp$)|(^成長檢定$)|(^幕間成長$)/i, /^\d+$/]
+		/(^ccb$)|(^cc$)|(^ccn[1-2]$)|(^cc[1-2]$)|(^[.]dp$)|(^成長檢定$)|(^幕間成長$)/i, /^(\d+)|(help)$/i]
 }
 getHelpMessage = function () {
 	return "【克蘇魯神話】" + "\
@@ -38,7 +38,11 @@ initialize = function () {
 rollDiceCommand = function (inputStr, mainMsg) {
 	rply.text = '';
 	let trigger = mainMsg[0].toLowerCase();
-	
+	console.log(mainMsg[1].toLowerCase())
+	if (mainMsg[1].toLowerCase() == "help") {
+		rply.text = this.getHelpMessage();
+		return rply;
+	}
 	if (trigger.match(/(^ccrt$)/) != null) return ccrt();
 	if (trigger.match(/(^ccsu$)/) != null) return ccsu();
 

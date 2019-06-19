@@ -21,9 +21,12 @@ prefixs = function () {
 getHelpMessage = function () {
 	return "【進階擲骰】" + "\
 	\n .c 只進行數學計算 \
+	\n 例如: 1.2 * (2 + 4.5) ， 12.7 米 to inch \
+	\n sin(45 deg) ^ 2\
 	\n D66 D66s D66n：	骰出D66 s小者固定在前 n大在前\
 	\n 5B10：	不加總的擲骰 \
-	\n 5B10<>=X ：	如上,另外計算其中有多少粒大於9 \
+	\n 5B10<>=X ：	如上,另外計算其中有多少粒大於小於X \
+	\n 5B10 dX ：	可用空格取代, 即大於, 使用d即小於\
 	\n 5U10 8：	進行5D10 每骰出一粒8會有一粒獎勵骰 \
 	\n 5U10 8 9：	如上,另外計算其中有多少粒大於9 \
 		\n "
@@ -39,7 +42,7 @@ rollDiceCommand = function (inputStr, mainMsg) {
 		case /^[.][c]$/i.test(mainMsg[0]):
 			console.log(/^[.][c]$/i.test(mainMsg[0]))
 			try {
-				rply.text = mathjs.eval(inputStr.replace(/\.c/i, '').replace(/磅/g,'lb').replace(/公斤/g,'kg').replace(/盎司/g,'oz').replace(/英吋/g,'inch').replace(/公分/g,'cm').replace(/公釐/g,'mm').replace(/克/g,'g').replace(/公尺/g,'m').replace(/碼/g,'yd').replace(/桿/g,'rd').replace(/英里/g,'mi').replace(/千米/g,'km').replace(/厘米/g,'cm').replace(/毫米/g,'mm').replace(/微米/g,'µm').replace(/毫克/g,'mg').replace(/公克/g,'hg').replace(/斤/g,'kg').replace(/米/g,'m').replace(/英尺/g,'ft').replace(/尺/g,'ft'))
+				rply.text = mathjs.eval(inputStr.replace(/\.c/i, '').replace(/磅/g, 'lb').replace(/公斤/g, 'kg').replace(/盎司/g, 'oz').replace(/英吋/g, 'inch').replace(/公分/g, 'cm').replace(/公釐/g, 'mm').replace(/克/g, 'g').replace(/公尺/g, 'm').replace(/碼/g, 'yd').replace(/桿/g, 'rd').replace(/英里/g, 'mi').replace(/千米/g, 'km').replace(/厘米/g, 'cm').replace(/毫米/g, 'mm').replace(/微米/g, 'µm').replace(/毫克/g, 'mg').replace(/公克/g, 'hg').replace(/斤/g, 'kg').replace(/米/g, 'm').replace(/英尺/g, 'ft').replace(/尺/g, 'ft'))
 			} catch (e) {
 				rply.text = e;
 			} return rply;
@@ -107,7 +110,9 @@ function d66s(text) {
 	return rply;
 }
 ////////////////////////////////////////
-//////////////// xBy
+//////////////// xBy 
+////////////////  xBy <>= z  成功数1
+////////////////  xBy Dz   成功数1
 ////////////////////////////////////////
 function xBy(triggermsg, text01, text02) {
 	let returnStr = '(' + triggermsg + ')';
@@ -117,7 +122,7 @@ function xBy(triggermsg, text01, text02) {
 	for (var i = 0; i < Number(match[1]); i++) {
 		varcou[i] = rollbase.Dice(match[3]);
 	}
-	varcou.sort(rollbase.sortNumber);
+	//varcou.sort(rollbase.sortNumber);
 	//(5B7>6) → 7,5,6,4,4 → 成功数1
 	if (isNaN(text01) == false && Number(text01) <= Number(match[3])) {
 		for (let i = 0; i < Number(match[1]); i++) {

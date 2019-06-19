@@ -16,8 +16,8 @@ gameType = function () {
 prefixs = function () {
 	return [/^[.][c][a]$/i, ,
 		/^d66s$|^d66$|^d66n$/i, ,
-		/^(\d+)(u)(\d+)$/i, /\d+/, ,
-		/^(\d+)(b)(\d+)(((|[<]|[>])(|[=]))(\d+))$/, ,]
+		/^(\d+)(u)(\d+)$/i, /\d+/,
+		/^(\d+)(b)(\d+)(((|[<]|[>])(|[=]))(\d+))$/i, ,]
 }
 getHelpMessage = function () {
 	return "【進階擲骰】" + "\
@@ -41,10 +41,9 @@ rollDiceCommand = function (inputStr, mainMsg) {
 	rply.text = '';
 	//let result = {};
 	switch (true) {
-		case /^[.][c]$/i.test(mainMsg[0]):
-			console.log(/^[.][c][a]$/i.test(mainMsg[0]))
+		case /^[.][c][a]$/i.test(mainMsg[0]):
 			try {
-				rply.text = mathjs.eval(inputStr.replace(/\.c/i, '').replace(/磅/g, 'lb').replace(/公斤/g, 'kg').replace(/盎司/g, 'oz').replace(/英吋/g, 'inch').replace(/公分/g, 'cm').replace(/公釐/g, 'mm').replace(/克/g, 'g').replace(/公尺/g, 'm').replace(/碼/g, 'yd').replace(/桿/g, 'rd').replace(/英里/g, 'mi').replace(/千米/g, 'km').replace(/厘米/g, 'cm').replace(/毫米/g, 'mm').replace(/微米/g, 'µm').replace(/毫克/g, 'mg').replace(/公克/g, 'hg').replace(/斤/g, 'kg').replace(/米/g, 'm').replace(/英尺/g, 'ft').replace(/尺/g, 'ft').replace(/角度/g, 'deg').replace(/度/g, 'deg'))
+				rply.text = mathjs.eval(inputStr.replace(/\.ca/i, '').replace(/磅/g, 'lb').replace(/公斤/g, 'kg').replace(/盎司/g, 'oz').replace(/英吋/g, 'inch').replace(/公分/g, 'cm').replace(/公釐/g, 'mm').replace(/克/g, 'g').replace(/公尺/g, 'm').replace(/碼/g, 'yd').replace(/桿/g, 'rd').replace(/英里/g, 'mi').replace(/千米/g, 'km').replace(/厘米/g, 'cm').replace(/毫米/g, 'mm').replace(/微米/g, 'µm').replace(/毫克/g, 'mg').replace(/公克/g, 'hg').replace(/斤/g, 'kg').replace(/米/g, 'm').replace(/英尺/g, 'ft').replace(/尺/g, 'ft').replace(/角度/g, 'deg').replace(/度/g, 'deg'))
 			} catch (e) {
 				rply.text = e;
 			} return rply;
@@ -54,7 +53,7 @@ rollDiceCommand = function (inputStr, mainMsg) {
 			return d66n(mainMsg[1]);
 		case /^d66s$/i.test(mainMsg[0]):
 			return d66s(mainMsg[1])
-		case /^(\d+)(b)(\d+)$/i.test(mainMsg[0]):
+		case /^(\d+)(b)(\d+)(((|[<]|[>])(|[=]))(\d+))$/i.test(mainMsg[0]):
 			return xBy(mainMsg[0], mainMsg[1], mainMsg[2])
 		case /^(\d+)(u)(\d+)$/i.test(mainMsg[0]) && mainMsg[1] <= 10000:
 			return xUy(mainMsg[0], mainMsg[1], mainMsg[2], mainMsg[3]);
@@ -139,8 +138,11 @@ function d66n(text) {
 ////////////////  xBy Dz   成功数1
 ////////////////////////////////////////
 function xBy(triggermsg, text01, text02) {
+//	console.log('dd')
+
 	let returnStr = '(' + triggermsg + ')';
-	let match = /^(\d+)(B)(\d+)$/i.exec(triggermsg); //判斷式  [0]3B8,[1]3,[2]B,[3]8
+	let match = /^(\d+)(b)(\d+)(((|[<]|[>])(|[=]))(\d+))$/i.exec(triggermsg); 
+	//判斷式 0:"5b10<=80"  1:"5" 2:"b" 3:"10" 	4:"<=80" 5:"<=" 	6:"<" 7:"=" 	8:"80"
 	let varcou = new Array();
 	let varsu = 0;
 	for (var i = 0; i < Number(match[1]); i++) {

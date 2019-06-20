@@ -7,7 +7,7 @@ var rply = {
 };
 
 gameName = function () {
-	return '進階擲骰 .ca (計算) D66(sn) 5B10 5U10 8'
+	return '進階擲骰 .ca (計算) D66(sn) 5B10 Dx 5U10 x y'
 }
 
 gameType = function () {
@@ -17,7 +17,7 @@ prefixs = function () {
 	return [/^[.][c][a]$/i, ,
 		/^d66s$|^d66$|^d66n$/i, ,
 		/^(\d+)(u)(\d+)$/i, /\d+/,
-		/^(\d+)(b)(\d+)(((|[<]|[>])(|[=]))(\d+))$/i, ,]
+		/^((\d+)(b)(\d+))(|(([<]|[>]|)(|[=]))(\d+))$/i,]
 }
 getHelpMessage = function () {
 	return "【進階擲骰】" + "\
@@ -26,12 +26,13 @@ getHelpMessage = function () {
 	\n sin(45 deg) ^ 2\
 	\n D66 D66s D66n：	骰出D66 s數字小在前 n大在前\
 	\n 5B10：	不加總的擲骰 \
+	\n 5B10<>=x ：	如上,另外計算其中有多少粒大於小於X \
+	\n 5B10 (D)x ：	如上,用空格取代, 即大於, 使用D即小於\
+	\n 即 5B10 5 相當於 5B10>=5　 5B10 D5 相當於 5B10<=5  \
 	\n 5U10 8：	進行5D10 每骰出一粒8會有一粒獎勵骰 \
 	\n 5U10 8 9：	如上,另外計算其中有多少粒大於9 \
 		\n "
 }
-//	\n 5B10<>=X ：	如上,另外計算其中有多少粒大於小於X \
-//	\n 5B10 dX ：	可用空格取代, 即大於, 使用d即小於\
 
 initialize = function () {
 	return rply;
@@ -138,29 +139,56 @@ function d66n(text) {
 ////////////////  xBy Dz   成功数1
 ////////////////////////////////////////
 function xBy(triggermsg, text01, text02) {
-//	console.log('dd')
-
+	//	console.log('dd')
+	let match = /^((\d+)(b)(\d+))(|(([<]|[>]|)(|[=]))(\d+))$/i.exec(triggermsg);
+	//判斷式 0:"5b10<=80" 1:"5b10" 2:"5" 3:"b" 4:"10" 5:"<=80" 6:"<=" 	7:"<" 8:"=" 	9:"80"
+	let match01 = /^((|d)(\d+))$/i.exec(text01);
+	//判斷式 0:"d5"  1:"d5" 2:"d" 3:"5" 
+	let text = "";
+	if (text01) text = text01
+	if (!match[5] && match01 && match01[2].toLowerCase() == 'd' && !isNaN(match01[3])) {
+		match[6] = "<";
+		match[7] = "=";
+		match[8] = match01[3]
+		triggermsg += "<=" + match01[3]
+		match = /^((\d+)(b)(\d+))(|(([<]|[>]|)(|[=]))(\d+))$/i.exec(triggermsg);
+		text = ""
+		if (text02) text = text02
+	}
+	if (!match[5] && match01 && !match01[2] && !isNaN(match01[3])) {
+		match[6] = ">";
+		match[7] = "=";
+		match[8] = match01[3]
+		triggermsg += ">=" + match01[3]
+		match = /^((\d+)(b)(\d+))(|(([<]|[>]|)(|[=]))(\d+))$/i.exec(triggermsg);
+		text = ""
+		if (text02) text = text02
+	}
 	let returnStr = '(' + triggermsg + ')';
-	let match = /^(\d+)(b)(\d+)(((|[<]|[>])(|[=]))(\d+))$/i.exec(triggermsg); 
-	//判斷式 0:"5b10<=80"  1:"5" 2:"b" 3:"10" 	4:"<=80" 5:"<=" 	6:"<" 7:"=" 	8:"80"
+	console.log(match)
+	//	console.log(match01)
 	let varcou = new Array();
 	let varsu = 0;
-	for (var i = 0; i < Number(match[1]); i++) {
-		varcou[i] = rollbase.Dice(match[3]);
+	for (var i = 0; i < Number(match[2]); i++) {
+		varcou[i] = rollbase.Dice(match[4]);
 	}
+	//	console.log(varcou)
 	//varcou.sort(rollbase.sortNumber);
 	//(5B7>6) → 7,5,6,4,4 → 成功数1
-	if (isNaN(text01) == false && Number(text01) <= Number(match[3])) {
-		for (let i = 0; i < Number(match[1]); i++) {
-			if (Number(varcou[i]) >= Number(text01)) varsu++;
+	for (var i = 0; i < varcou.length; i++) {
+		if (match[7] == "<" && varcou[i] < match[9]) {
+			varsu++;
 		}
-		if (text02 == undefined) text02 = '';
-
-		returnStr += ' → ' + varcou + ' → 成功數' + varsu + ' ' + text02;
-	} else {
-		if (text01 == undefined) text01 = '';
-		returnStr += ' → ' + varcou + ' ' + text01;
+		if (match[7] == ">" && varcou[i] > match[9]) {
+			varsu++;
+		}
+		if (match[8] == "=" && varcou[i] == match[9]) {
+			varsu++;
+		}
 	}
+	returnStr += ' → ' + varcou;
+	if (match[5]) returnStr += ' → 成功數' + varsu
+	if (text) returnStr += ' ；　' + text
 	rply.text = returnStr;
 	return rply;
 }

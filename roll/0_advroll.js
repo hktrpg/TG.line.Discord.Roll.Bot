@@ -23,7 +23,7 @@ getHelpMessage = function () {
 	return "【進階擲骰】" + "\
 	\n .ca 只進行數學計算 \
 	\n 例如: 1.2 * (2 + 4.5) ， 12.7 米 to inch \
-	\n sin(45 deg) ^ 2\
+	\n sin(45 deg) ^ 2  5磅轉斤 10米轉呎\
 	\n D66 D66s D66n：	骰出D66 s數字小在前 n大在前\
 	\n 5B10：	不加總的擲骰 \
 	\n 5B10<>=x ：	如上,另外計算其中有多少粒大於小於X \

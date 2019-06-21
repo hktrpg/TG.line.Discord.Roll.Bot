@@ -111,52 +111,17 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			Linecountroll++;
 
 			try {
-				client.getProfile(userid).then(function (profile) {
-					displayname = profile.displayName;
-					if (roomorgroupid && userid && displaynamecheck)
+				if (roomorgroupid && userid && displaynamecheck)
+					client.getProfile(userid).then(function (profile) {
+						displayname = profile.displayName;
 						rplyVal.text = "@" + displayname + " " + rplyVal.text
-					//console.log(profile.displayName)
-					//console.log(profile)
-
-
-					//console.log('rplyVal.text:' + rplyVal.text)
-					//console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
-
-					if (privatemsg == 1) {
-						client.pushMessage(roomorgroupid, replymessage(displayname + ' 暗骰進行中'))
-							.then(() => { })
-							.catch((err) => {
-								// error handling
-							});
-						//message.reply.text(message.from.first_name + ' 暗骰進行中')
-						async function loada() {
-							for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1200}/g).length; i++) {
-								await client.pushMessage(userid, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
-									.then(() => { })
-									.catch((err) => {
-										// error handling
-									});
-							}
-						}
-						loada();
-					} else {
-						async function loadb() {
-							for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1200}/g).length; i++) {
-								if (roomorgroupid)
-									var replyTarget = roomorgroupid
-								else replyTarget = userid
-								await client.pushMessage(replyTarget, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
-									.then(() => { })
-									.catch((err) => {
-										// error handling
-									});
-							}
-						}
-						loadb();
-
-					}
-
-				});
+						//console.log(profile.displayName)
+						//console.log(profile)
+						//console.log('rplyVal.text:' + rplyVal.text)
+						//console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
+						sendmessage()
+					});
+				else sendmessage()
 			}
 			catch (e) { console.log(e) }
 			//console.log("LINE:" , event)
@@ -176,7 +141,41 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		// use reply API
 		//Reply Max: 1200 characters
 	}
+	function sendmessage() {
+		if (privatemsg == 1) {
+			client.pushMessage(roomorgroupid, replymessage(displayname + ' 暗骰進行中'))
+				.then(() => { })
+				.catch((err) => {
+					// error handling
+				});
+			//message.reply.text(message.from.first_name + ' 暗骰進行中')
+			async function loada() {
+				for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1200}/g).length; i++) {
+					await client.pushMessage(userid, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
+						.then(() => { })
+						.catch((err) => {
+							// error handling
+						});
+				}
+			}
+			loada();
+		} else {
+			async function loadb() {
+				for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1200}/g).length; i++) {
+					if (roomorgroupid)
+						var replyTarget = roomorgroupid
+					else replyTarget = userid
+					await client.pushMessage(replyTarget, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
+						.then(() => { })
+						.catch((err) => {
+							// error handling
+						});
+				}
+			}
+			loadb();
 
+		}
+	}
 	// listen on port
 	const port = process.env.PORT || 5000;
 	app.listen(port, () => {

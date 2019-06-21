@@ -81,7 +81,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					//console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString(), " content: ", message.content);
 
 					if (privatemsg == 1) {
-						message.channel.send(displayname, " 暗骰進行中");
+						message.channel.send(displayname + " 暗骰進行中");
 						async function loada() {
 							for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 								await message.author.send(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);

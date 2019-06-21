@@ -67,7 +67,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			if (rplyVal && rplyVal.text) {
 				TGcountroll++;
 				if (groupid && userid) {
-					console.log("TG:" , userid)
+					//285083923223
 				}
 
 				//console.log('rplyVal.text:' + rplyVal.text)

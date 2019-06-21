@@ -104,7 +104,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 		if (rplyVal && rplyVal.text) {
 			Linecountroll++;
-			if (groupid && userid) {
+			if (roomorgroupid && userid) {
 				console.log("LINE:" , userid)
 			}
 

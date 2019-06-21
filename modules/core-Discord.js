@@ -71,7 +71,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				if (rplyVal && rplyVal.text) {
 					Discordcountroll++;
 					if (groupid && userid) {
-						console.log("DISCORD:", userid)
+					//DISCORD: 585040823232320107
 					}
 
 

@@ -32,7 +32,7 @@ gameType = function () {
 	return 'bothelp:hktrpg'
 }
 prefixs = function () {
-	return [/^bothelp$|^[/]start$/i, /^$|\d+|^all$/i]
+	return [/^bothelp$|^[/]start$|^[/]help$/i, /^$|\d+|^all$/i]
 }
 getHelpMessage = function () {
 	return "【HKTRPG擲骰BOT】" + version + "\
@@ -45,6 +45,7 @@ getHelpMessage = function () {
 \n 5 3D6 ：	分別骰出5次3d6 (最多三十次)\
 \n ((2d6+1)*2)-5/2>=10 ：	支援括號加減乘除及大於小於(>,<,>=,<=)計算\
 \n  \
+\n TRPG百科 https://www.hktrpg.com/\
 \n 意見留言版 https://www.hktrpg.com/board/viewforum.php?f=3\
 \n  \
 \n Line版 https://line.me/R/ti/p/svMLqy9Mik\

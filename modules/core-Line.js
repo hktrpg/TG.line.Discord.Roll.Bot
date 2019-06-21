@@ -119,7 +119,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 					//console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
 
 					if (privatemsg == 1) {
-						client.pushMessage(roomorgroupid, replymessage(displayname, ' 暗骰進行中'))
+						client.pushMessage(roomorgroupid, replymessage(displayname + ' 暗骰進行中'))
 							.then(() => { })
 							.catch((err) => {
 								// error handling

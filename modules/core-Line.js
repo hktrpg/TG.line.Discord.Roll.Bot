@@ -107,7 +107,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			Linecountroll++;
 			if (roomorgroupid && userid) {
 				try {
-					client.getProfile(userId).then(function (profile) {
+					client.getProfile(userid).then(function (profile) {
 						console.log(profile.displayName)
 					});
 				}

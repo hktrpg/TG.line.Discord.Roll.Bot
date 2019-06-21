@@ -24,7 +24,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			//	ctx.getChatMembers() //[Members]
 			//	telegrafGetChatMembers.check(ctx.chat.id) //[Members]
 			//	telegrafGetChatMembers.all //[Chats]
-			let groupid, userid = ''
+			let groupid, userid, displayname = ''
 			let userrole = 1;
 			//console.log('TG: ', message)
 
@@ -69,7 +69,8 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				TGcountroll++;
 				if (groupid && userid) {
 					//285083923223
-					rplyVal.text = "@" + ctx.message.from.username + " " + rplyVal.text
+					displayname = "@" + ctx.message.from.username + " ";
+					rplyVal.text = displayname + rplyVal.text
 				}
 
 				//console.log('rplyVal.text:' + rplyVal.text)

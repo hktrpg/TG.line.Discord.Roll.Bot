@@ -68,7 +68,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			// ignore non-text-message event
 			return Promise.resolve(null);
 		}
-		let roomorgroupid, userid = ''
+		let roomorgroupid, userid, displayname = ''
 		let userrole = 2;
 		if (event.source.groupId) roomorgroupid = event.source.groupId
 		if (event.source.roomId) roomorgroupid = event.source.roomId
@@ -108,7 +108,10 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			if (roomorgroupid && userid) {
 				try {
 					client.getProfile(userid).then(function (profile) {
-						console.log(profile.displayName)
+						displayname = profile.displayName;
+						rplyVal.text = "@" + displayname + " " + rplyVal.text
+						//console.log(profile.displayName)
+						console.log(profile)
 					});
 				}
 				catch (e) { console.log(e) }
@@ -121,7 +124,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			if (privatemsg == 1) {
 
 
-				client.pushMessage(roomorgroupid, replymessage('暗骰進行中'))
+				client.pushMessage(roomorgroupid, replymessage(displayname, ' 暗骰進行中'))
 					.then(() => { })
 					.catch((err) => {
 						// error handling

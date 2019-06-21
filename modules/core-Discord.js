@@ -35,7 +35,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 			if (message.author.bot === false && message.content != "") {
 				//	console.log('message.content ' + message.content);
 				//	console.log('channelKeyword ' + channelKeyword);
-				let groupid, userid = ''
+				let groupid, userid, displayname = ''
 				let userrole = 1;
 				//console.log(message.guild)
 				if (message.guild && message.guild.id) groupid = message.guild.id
@@ -73,14 +73,15 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					Discordcountroll++;
 					if (groupid && userid) {
 						//DISCORD: 585040823232320107
-						rplyVal.text = "<@" + userid + "> " + rplyVal.text
+						displayname = "<@" + userid + "> "
+						rplyVal.text = displayname + rplyVal.text
 					}
 
 
 					//console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString(), " content: ", message.content);
 
 					if (privatemsg == 1) {
-						message.channel.send("暗骰進行中");
+						message.channel.send(displayname, " 暗骰進行中");
 						async function loada() {
 							for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 								await message.author.send(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);

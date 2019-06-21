@@ -104,6 +104,10 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 		if (rplyVal && rplyVal.text) {
 			Linecountroll++;
+			if (groupid && userid) {
+				console.log("LINE:" , userid)
+			}
+
 			//console.log('rplyVal.text:' + rplyVal.text)
 			//console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
 
@@ -111,7 +115,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 
 				client.pushMessage(roomorgroupid, replymessage('暗骰進行中'))
-					.then(() => {})
+					.then(() => { })
 					.catch((err) => {
 						// error handling
 					});
@@ -119,7 +123,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				async function loada() {
 					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1200}/g).length; i++) {
 						await client.pushMessage(userid, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
-							.then(() => {})
+							.then(() => { })
 							.catch((err) => {
 								// error handling
 							});
@@ -133,7 +137,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 							var replyTarget = roomorgroupid
 						else replyTarget = userid
 						await client.pushMessage(replyTarget, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
-							.then(() => {})
+							.then(() => { })
 							.catch((err) => {
 								// error handling
 							});

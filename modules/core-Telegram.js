@@ -66,6 +66,10 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 
 			if (rplyVal && rplyVal.text) {
 				TGcountroll++;
+				if (groupid && userid) {
+					console.log("TG:" , userid)
+				}
+
 				//console.log('rplyVal.text:' + rplyVal.text)
 				//console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext, " content: ", message.text);
 				if (privatemsg == 1) {

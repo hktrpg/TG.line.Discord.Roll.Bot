@@ -67,8 +67,13 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 						rplyVal = exports.analytics.parseInput(message.content, groupid, userid, userrole, exports.analytics.stop);
 					}
 				}
+
 				if (rplyVal && rplyVal.text) {
 					Discordcountroll++;
+					if (groupid && userid) {
+						console.log("DISCORD:", userid)
+					}
+
 
 					//console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString(), " content: ", message.content);
 

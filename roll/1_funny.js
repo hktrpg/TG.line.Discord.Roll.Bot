@@ -13,7 +13,7 @@ gameType = function () {
 	return 'funny:hktrpg'
 }
 prefixs = function () {
-	return [/^[.]me$|排序|隨機|choice|^每日塔羅|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸/i, ]
+	return [/^[.]me$|排序|隨機|choice|^每日塔羅|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸/i,]
 }
 getHelpMessage = function () {
 	return "【趣味擲骰】" + "\
@@ -95,7 +95,7 @@ rollDiceCommand = function (inputStr, mainMsg) {
 ////////////////////////////////////////
 
 function me(inputStr) {
-	rply.text = inputStr.replace(/^[.]me/, '')
+	rply.text = inputStr.replace(/^[.]me/i, '')
 	return rply;
 }
 
@@ -280,7 +280,7 @@ function MultiDrawTarot(CardToCal, text, type) {
 		revs[0] = rollbase.FunnyDice(2);
 
 		for (i = 1; i < 3; i++) {
-			for (;;) {
+			for (; ;) {
 				tmpcard = rollbase.FunnyDice(79);
 				if (cards.indexOf(tmpcard) === -1) //沒有重複，就這張了
 				{
@@ -306,7 +306,7 @@ function MultiDrawTarot(CardToCal, text, type) {
 		revs[0] = rollbase.FunnyDice(2);
 
 		for (i = 1; i < 10; i++) {
-			for (;;) {
+			for (; ;) {
 				tmpcard = rollbase.FunnyDice(79);
 				if (cards.indexOf(tmpcard) === -1) //沒有重複，就這張了
 				{

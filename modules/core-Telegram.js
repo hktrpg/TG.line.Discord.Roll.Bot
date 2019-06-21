@@ -24,7 +24,8 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			//	ctx.getChatMembers() //[Members]
 			//	telegrafGetChatMembers.check(ctx.chat.id) //[Members]
 			//	telegrafGetChatMembers.all //[Chats]
-			let groupid, userid = ''
+			let groupid, userid, displayname = ''
+			let displaynamecheck = true;
 			let userrole = 1;
 			//console.log('TG: ', message)
 
@@ -34,13 +35,16 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				if ((telegrafGetChatMembers.check(ctx.chat.id)[0].status == ("creator" || "administrator")) || ctx.message.chat.all_members_are_administrators == true) userrole = 3
 			}
 			if (ctx.message.from.id) userid = ctx.message.from.id
+			//285083923223
 			let rplyVal = {}
 			let msgSplitor = (/\S+/ig)
 			if (ctx.message.text && ctx.message.from.is_bot == false)
 				var mainMsg = ctx.message.text.match(msgSplitor); // 定義輸入字串
 			if (mainMsg && mainMsg[0])
 				var trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
-
+			if (trigger == ".me") {
+				displaynamecheck = false
+			}
 			// 訊息來到後, 會自動跳到analytics.js進行骰組分析
 			// 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
 
@@ -51,7 +55,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				//mainMsg.shift()
 				//trigger = mainMsg[0].toString().toLowerCase()
 				ctx.message.text = ctx.message.text.replace(/^[d][r][ ]/i, '')
-			
+
 			}
 			if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 				mainMsg.shift()
@@ -66,12 +70,20 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 
 			if (rplyVal && rplyVal.text) {
 				TGcountroll++;
+				if (groupid && userid) {
+					//285083923223
+					displayname = "@" + ctx.message.from.username + " ";
+					if (displaynamecheck)
+						rplyVal.text = displayname + rplyVal.text
+				}
+
 				//console.log('rplyVal.text:' + rplyVal.text)
 				//console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext, " content: ", message.text);
 				if (privatemsg == 1) {
-					console.log('DR2')
+					//console.log('DR2')
 					if (ctx.chat.type == 'group')
-						ctx.reply(ctx.message.from.first_name + ' 暗骰進行中')
+						ctx.reply(displayname + ' 暗骰進行中')
+					//ctx.reply(ctx.message.from.first_name + ' 暗骰進行中')
 					async function loada() {
 						for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 							await ctx.telegram.sendMessage(ctx.message.from.id, rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])

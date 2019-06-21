@@ -35,11 +35,13 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 			if (message.author.bot === false && message.content != "") {
 				//	console.log('message.content ' + message.content);
 				//	console.log('channelKeyword ' + channelKeyword);
-				let groupid, userid = ''
+				let groupid, userid, displayname = ''
+				let displaynamecheck = true;
 				let userrole = 1;
 				//console.log(message.guild)
 				if (message.guild && message.guild.id) groupid = message.guild.id
 				if (message.author.id) userid = message.author.id
+				////DISCORD: 585040823232320107
 				if (message.member && message.member.hasPermission("ADMINISTRATOR")) userrole = 3
 				//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin 
 				let rplyVal = {};
@@ -48,6 +50,9 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				if (mainMsg && mainMsg[0])
 					var trigger = mainMsg[0].toString().toLowerCase()
 				//指定啟動詞在第一個詞&把大階強制轉成細階
+				if (trigger == ".me") {
+					displaynamecheck = false
+				}
 				let privatemsg = 0;
 				//訊息來到後, 會自動跳到analytics.js進行骰組分析
 				//如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
@@ -67,13 +72,21 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 						rplyVal = exports.analytics.parseInput(message.content, groupid, userid, userrole, exports.analytics.stop);
 					}
 				}
+
 				if (rplyVal && rplyVal.text) {
 					Discordcountroll++;
+					if (groupid && userid) {
+						//DISCORD: 585040823232320107
+						displayname = "<@" + userid + "> "
+						if (displaynamecheck)
+							rplyVal.text = displayname + rplyVal.text
+					}
+
 
 					//console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString(), " content: ", message.content);
 
 					if (privatemsg == 1) {
-						message.channel.send("暗骰進行中");
+						message.channel.send(displayname + " 暗骰進行中");
 						async function loada() {
 							for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 								await message.author.send(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);

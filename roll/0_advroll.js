@@ -169,7 +169,7 @@ function xBy(triggermsg, text01, text02) {
 		if (text02) text = text02
 	}
 	let returnStr = '(' + triggermsg + ')';
-	console.log(match)
+	//console.log(match)
 	//	console.log(match01)
 	let varcou = new Array();
 	let varsu = 0;

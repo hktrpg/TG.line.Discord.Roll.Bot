@@ -68,11 +68,13 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			// ignore non-text-message event
 			return Promise.resolve(null);
 		}
-		let roomorgroupid, userid = ''
+		let roomorgroupid, userid, displayname = ''
+		let displaynamecheck = true;
 		let userrole = 2;
 		if (event.source.groupId) roomorgroupid = event.source.groupId
 		if (event.source.roomId) roomorgroupid = event.source.roomId
 		if (event.source.userId) userid = event.source.userId
+		//Ub23daads22a2131312334645349a3 
 		let rplyVal = {};
 		let msgSplitor = (/\S+/ig)
 		if (event.message.text)
@@ -82,6 +84,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 		// 訊息來到後, 會自動跳到analytics.js進行骰組分析
 		// 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+		if (trigger == ".me") {
+			displaynamecheck = false
+		}
 
 		let privatemsg = 0
 		if (trigger.match(/^dr/i) && mainMsg && mainMsg[1]) {
@@ -104,14 +109,34 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 		if (rplyVal && rplyVal.text) {
 			Linecountroll++;
-			//console.log('rplyVal.text:' + rplyVal.text)
-			//console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
 
+			try {
+				if (roomorgroupid && userid && displaynamecheck)
+					client.getProfile(userid).then(function (profile) {
+						displayname = profile.displayName;
+						rplyVal.text = "@" + displayname + " " + rplyVal.text
+						//console.log(profile.displayName)
+						//console.log(profile)
+						//console.log('rplyVal.text:' + rplyVal.text)
+						//console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
+						sendmessage()
+					});
+				else sendmessage()
+			}
+			catch (e) { console.log(e) }
+			//console.log("LINE:" , event)
+
+
+		} else {
+			Linecounttext++;
+			if (Linecounttext % 500 == 0)
+				console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext);
+		}
+
+		function sendmessage() {
 			if (privatemsg == 1) {
-
-
-				client.pushMessage(roomorgroupid, replymessage('暗骰進行中'))
-					.then(() => {})
+				client.pushMessage(roomorgroupid, replymessage(displayname + ' 暗骰進行中'))
+					.then(() => { })
 					.catch((err) => {
 						// error handling
 					});
@@ -119,7 +144,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				async function loada() {
 					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1200}/g).length; i++) {
 						await client.pushMessage(userid, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
-							.then(() => {})
+							.then(() => { })
 							.catch((err) => {
 								// error handling
 							});
@@ -133,7 +158,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 							var replyTarget = roomorgroupid
 						else replyTarget = userid
 						await client.pushMessage(replyTarget, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
-							.then(() => {})
+							.then(() => { })
 							.catch((err) => {
 								// error handling
 							});
@@ -142,15 +167,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				loadb();
 
 			}
-
-
-
-		} else {
-			Linecounttext++;
-			if (Linecounttext % 500 == 0)
-				console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext);
 		}
-
 
 
 		// create a echoing text message
@@ -159,7 +176,6 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		// use reply API
 		//Reply Max: 1200 characters
 	}
-
 	// listen on port
 	const port = process.env.PORT || 5000;
 	app.listen(port, () => {

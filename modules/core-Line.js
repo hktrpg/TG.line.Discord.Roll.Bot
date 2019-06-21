@@ -111,7 +111,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						displayname = profile.displayName;
 						rplyVal.text = "@" + displayname + " " + rplyVal.text
 						//console.log(profile.displayName)
-						console.log(profile)
+						//console.log(profile)
 					});
 				}
 				catch (e) { console.log(e) }

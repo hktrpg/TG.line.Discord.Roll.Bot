@@ -78,7 +78,8 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				if (privatemsg == 1) {
 					//console.log('DR2')
 					if (ctx.chat.type == 'group')
-						ctx.reply(ctx.message.from.first_name + ' 暗骰進行中')
+						ctx.reply(displayname + ' 暗骰進行中')
+					//ctx.reply(ctx.message.from.first_name + ' 暗骰進行中')
 					async function loada() {
 						for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 							await ctx.telegram.sendMessage(ctx.message.from.id, rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])

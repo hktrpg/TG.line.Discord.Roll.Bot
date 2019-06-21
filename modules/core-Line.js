@@ -105,9 +105,14 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 		if (rplyVal && rplyVal.text) {
 			Linecountroll++;
-			if (roomorgroupid && userid && event.source) {
-
-					//console.log("LINE:" , event)
+			if (roomorgroupid && userid) {
+				try {
+					client.getProfile(userId).then(function (profile) {
+						console.log(profile.displayName)
+					});
+				}
+				catch (e) { console.log(e) }
+				//console.log("LINE:" , event)
 			}
 
 			//console.log('rplyVal.text:' + rplyVal.text)

@@ -25,6 +25,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			//	telegrafGetChatMembers.check(ctx.chat.id) //[Members]
 			//	telegrafGetChatMembers.all //[Chats]
 			let groupid, userid, displayname = ''
+			let displaynamecheck = true;
 			let userrole = 1;
 			//console.log('TG: ', message)
 
@@ -41,7 +42,9 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				var mainMsg = ctx.message.text.match(msgSplitor); // 定義輸入字串
 			if (mainMsg && mainMsg[0])
 				var trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
-
+			if (trigger == ".me") {
+				displaynamecheck = false
+			}
 			// 訊息來到後, 會自動跳到analytics.js進行骰組分析
 			// 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
 
@@ -70,7 +73,8 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				if (groupid && userid) {
 					//285083923223
 					displayname = "@" + ctx.message.from.username + " ";
-					rplyVal.text = displayname + rplyVal.text
+					if (displaynamecheck)
+						rplyVal.text = displayname + rplyVal.text
 				}
 
 				//console.log('rplyVal.text:' + rplyVal.text)

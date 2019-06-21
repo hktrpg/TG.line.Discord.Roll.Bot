@@ -36,6 +36,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				//	console.log('message.content ' + message.content);
 				//	console.log('channelKeyword ' + channelKeyword);
 				let groupid, userid, displayname = ''
+				let displaynamecheck = true;
 				let userrole = 1;
 				//console.log(message.guild)
 				if (message.guild && message.guild.id) groupid = message.guild.id
@@ -49,6 +50,9 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				if (mainMsg && mainMsg[0])
 					var trigger = mainMsg[0].toString().toLowerCase()
 				//指定啟動詞在第一個詞&把大階強制轉成細階
+				if (trigger == ".me") {
+					displaynamecheck = false
+				}
 				let privatemsg = 0;
 				//訊息來到後, 會自動跳到analytics.js進行骰組分析
 				//如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
@@ -74,7 +78,8 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					if (groupid && userid) {
 						//DISCORD: 585040823232320107
 						displayname = "<@" + userid + "> "
-						rplyVal.text = displayname + rplyVal.text
+						if (displaynamecheck)
+							rplyVal.text = displayname + rplyVal.text
 					}
 
 

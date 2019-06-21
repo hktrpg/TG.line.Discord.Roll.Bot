@@ -69,6 +69,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			return Promise.resolve(null);
 		}
 		let roomorgroupid, userid, displayname = ''
+		let displaynamecheck = true;
 		let userrole = 2;
 		if (event.source.groupId) roomorgroupid = event.source.groupId
 		if (event.source.roomId) roomorgroupid = event.source.roomId
@@ -83,6 +84,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 		// 訊息來到後, 會自動跳到analytics.js進行骰組分析
 		// 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+		if (trigger == ".me") {
+			displaynamecheck = false
+		}
 
 		let privatemsg = 0
 		if (trigger.match(/^dr/i) && mainMsg && mainMsg[1]) {
@@ -109,7 +113,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			try {
 				client.getProfile(userid).then(function (profile) {
 					displayname = profile.displayName;
-					if (roomorgroupid && userid)
+					if (roomorgroupid && userid && displaynamecheck)
 						rplyVal.text = "@" + displayname + " " + rplyVal.text
 					//console.log(profile.displayName)
 					//console.log(profile)

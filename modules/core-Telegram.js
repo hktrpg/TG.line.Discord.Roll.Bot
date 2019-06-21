@@ -34,6 +34,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				if ((telegrafGetChatMembers.check(ctx.chat.id)[0].status == ("creator" || "administrator")) || ctx.message.chat.all_members_are_administrators == true) userrole = 3
 			}
 			if (ctx.message.from.id) userid = ctx.message.from.id
+			//285083923223
 			let rplyVal = {}
 			let msgSplitor = (/\S+/ig)
 			if (ctx.message.text && ctx.message.from.is_bot == false)
@@ -51,7 +52,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				//mainMsg.shift()
 				//trigger = mainMsg[0].toString().toLowerCase()
 				ctx.message.text = ctx.message.text.replace(/^[d][r][ ]/i, '')
-			
+
 			}
 			if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 				mainMsg.shift()
@@ -68,6 +69,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				TGcountroll++;
 				if (groupid && userid) {
 					//285083923223
+					rplyVal.text = "@" + ctx.message.from.username + " " + rplyVal.text
 				}
 
 				//console.log('rplyVal.text:' + rplyVal.text)

@@ -40,6 +40,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				//console.log(message.guild)
 				if (message.guild && message.guild.id) groupid = message.guild.id
 				if (message.author.id) userid = message.author.id
+				////DISCORD: 585040823232320107
 				if (message.member && message.member.hasPermission("ADMINISTRATOR")) userrole = 3
 				//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin 
 				let rplyVal = {};
@@ -71,7 +72,8 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				if (rplyVal && rplyVal.text) {
 					Discordcountroll++;
 					if (groupid && userid) {
-					//DISCORD: 585040823232320107
+						//DISCORD: 585040823232320107
+						rplyVal.text = "<@" + userid + "> " + rplyVal.text
 					}
 
 

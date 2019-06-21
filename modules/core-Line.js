@@ -73,6 +73,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		if (event.source.groupId) roomorgroupid = event.source.groupId
 		if (event.source.roomId) roomorgroupid = event.source.roomId
 		if (event.source.userId) userid = event.source.userId
+		//Ub23daads22a2131312334645349a3 
 		let rplyVal = {};
 		let msgSplitor = (/\S+/ig)
 		if (event.message.text)
@@ -104,8 +105,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 		if (rplyVal && rplyVal.text) {
 			Linecountroll++;
-			if (roomorgroupid && userid) {
-				console.log("LINE:" , userid)
+			if (roomorgroupid && userid && event.source.displayName) {
+
+					console.log("LINE:" , event.source.displayName)
 			}
 
 			//console.log('rplyVal.text:' + rplyVal.text)

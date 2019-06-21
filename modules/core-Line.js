@@ -133,6 +133,41 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext);
 		}
 
+		function sendmessage() {
+			if (privatemsg == 1) {
+				client.pushMessage(roomorgroupid, replymessage(displayname + ' 暗骰進行中'))
+					.then(() => { })
+					.catch((err) => {
+						// error handling
+					});
+				//message.reply.text(message.from.first_name + ' 暗骰進行中')
+				async function loada() {
+					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1200}/g).length; i++) {
+						await client.pushMessage(userid, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
+							.then(() => { })
+							.catch((err) => {
+								// error handling
+							});
+					}
+				}
+				loada();
+			} else {
+				async function loadb() {
+					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1200}/g).length; i++) {
+						if (roomorgroupid)
+							var replyTarget = roomorgroupid
+						else replyTarget = userid
+						await client.pushMessage(replyTarget, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
+							.then(() => { })
+							.catch((err) => {
+								// error handling
+							});
+					}
+				}
+				loadb();
+
+			}
+		}
 
 
 		// create a echoing text message
@@ -140,41 +175,6 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 		// use reply API
 		//Reply Max: 1200 characters
-	}
-	function sendmessage() {
-		if (privatemsg == 1) {
-			client.pushMessage(roomorgroupid, replymessage(displayname + ' 暗骰進行中'))
-				.then(() => { })
-				.catch((err) => {
-					// error handling
-				});
-			//message.reply.text(message.from.first_name + ' 暗骰進行中')
-			async function loada() {
-				for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1200}/g).length; i++) {
-					await client.pushMessage(userid, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
-						.then(() => { })
-						.catch((err) => {
-							// error handling
-						});
-				}
-			}
-			loada();
-		} else {
-			async function loadb() {
-				for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1200}/g).length; i++) {
-					if (roomorgroupid)
-						var replyTarget = roomorgroupid
-					else replyTarget = userid
-					await client.pushMessage(replyTarget, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
-						.then(() => { })
-						.catch((err) => {
-							// error handling
-						});
-				}
-			}
-			loadb();
-
-		}
 	}
 	// listen on port
 	const port = process.env.PORT || 5000;

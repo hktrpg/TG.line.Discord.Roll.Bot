@@ -20,7 +20,7 @@ gameType = function () {
     return 'ShinobiGami:hktrpg'
 }
 prefixs = function () {
-    return [/^[.]sg$/i]
+    return [/^[.]sg$/i, /\S/]
 }
 getHelpMessage = function () {
     return "【忍神 ShinobiGami】" + "\

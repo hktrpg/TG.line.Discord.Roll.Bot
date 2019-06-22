@@ -15,7 +15,7 @@ gameType = function () {
     return 'Kamigakari:hktrpg'
 }
 prefixs = function () {
-    return [/^[.]kk$/i]
+    return [/^[.]kk$/i, /\S/]
 }
 getHelpMessage = function () {
     return "【神我狩 Kamigakari】" + "\

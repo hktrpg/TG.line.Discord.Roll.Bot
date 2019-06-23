@@ -6,7 +6,7 @@ var rply = {
 };
 
 gameName = function () {
-	return '克蘇魯神話 cc cc1~2 ccn1~2 ccb ccrt ccsu .dp 成長檢定 cc7版創角'
+	return '克蘇魯神話 cc cc(n)1~2 ccb ccrt ccsu .dp 成長檢定 cc7版創角'
 }
 
 gameType = function () {
@@ -38,7 +38,7 @@ initialize = function () {
 rollDiceCommand = function (inputStr, mainMsg) {
 	rply.text = '';
 	let trigger = mainMsg[0].toLowerCase();
-	console.log(mainMsg[1].toLowerCase())
+	//console.log(mainMsg[1].toLowerCase())
 	if (mainMsg[1].toLowerCase() == "help") {
 		rply.text = this.getHelpMessage();
 		return rply;

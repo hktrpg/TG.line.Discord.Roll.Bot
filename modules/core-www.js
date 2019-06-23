@@ -7,7 +7,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
     //var www = require('express')();
     //var http = require('http').createServer(www);
     const io = require('socket.io')(server);
-    const records = require('./core-records.js');
+    const records = require('./core-webrecords.js');
     const port = process.env.PORT || 5000;
     var channelKeyword = '';
     let WWWcounttext = 0;
@@ -123,6 +123,6 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
     });
 
     server.listen(port, () => {
-        console.log("WWW Server Started. port:" + port);
+        console.log("Web Server Started. port:" + port);
     });
 }

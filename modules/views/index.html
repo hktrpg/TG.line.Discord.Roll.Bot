@@ -19,7 +19,7 @@
 
         #container {
             top: 50px;
-            width: 400px;
+            width: 500px;
             margin: 0 auto;
             display: block;
             position: relative;
@@ -31,34 +31,12 @@
         }
 
         #content {
-            width: 100% auto;
-            height: 400px ;
-            border: solid #9c9c9c 10px;
-            border-radius: 8px;
+            width: 100%;
+            height: 350px;
+            border: 1px solid darkolivegreen;
+            border-radius: 5px;
             overflow: auto;
-            -webkit-box-sizing: border-box;
-            -moz-box-sizing: border-box;
-            box-sizing: border-box;
-            padding: 50px;
-
-        }
-
-        #content::nth-child(odd) {
-            background-color: #eee;
-        }
-
-        #content::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        #content::-webkit-scrollbar-track {
-            box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-        }
-
-        #content::-webkit-scrollbar-thumb {
-            border-radius: 10px;
-            box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+            padding: 5%;
         }
 
         #send-box {
@@ -118,7 +96,9 @@
             <form id="send-form">
                 <input type="text" name="name" id="name" placeholder="暱稱">
                 <input type="text" name="msg" id="msg" placeholder="說點什麼？">
-                <input type="submit" value="送出" onclick="aa()">
+                <input type="submit" value="送出" onclick="setTimeout(function() {
+                   aa();
+                }, 100);">
             </form>
         </div>
     </div>
@@ -131,27 +111,34 @@
         }
         document.addEventListener("DOMContentLoaded", () => {
             var max_record;
+
             var status = document.getElementById("status");
             var online = document.getElementById("online");
             var sendForm = document.getElementById("send-form");
             var content = document.getElementById("content");
             var nameInputBox = document.getElementById("name");
             var name = getCookie("name");
+
             if (name) {
                 nameInputBox.value = name;
             }
+
             socket.on("connect", function () {
                 status.innerText = "Connected.";
             });
+
             socket.on("disconnect", function () {
                 status.innerText = "Disconnected.";
             });
+
             socket.on("online", function (amount) {
                 online.innerText = amount;
             });
+
             socket.on("maxRecord", function (amount) {
                 max_record = amount;
             });
+
             socket.on("chatRecord", function (msgs) {
                 for (var i = 0; i < msgs.length; i++) {
                     (function () {
@@ -159,14 +146,19 @@
                     })();
                 }
             });
+
             socket.on("msg", addMsgToBox);
+
             sendForm.addEventListener("submit", function (e) {
                 e.preventDefault();
+
+
                 var ok = true;
                 var formData = {
                     time: new Date().toUTCString()
                 };
                 var formChild = sendForm.children;
+
                 for (var i = 0; i < sendForm.childElementCount; i++) {
                     var child = formChild[i];
                     if (child.name !== "") {
@@ -180,6 +172,7 @@
                         }
                     }
                 }
+
                 if (ok) {
                     socket.emit("send", formData);
                     setCookie("name", nameInputBox.value);
@@ -193,10 +186,12 @@
                 nameBox.className = "name";
                 var name = document.createTextNode(d.name);
                 var msg = document.createTextNode(d.msg);
+
                 nameBox.appendChild(name);
                 msgBox.appendChild(nameBox);
                 msgBox.appendChild(msg);
                 content.appendChild(msgBox);
+
                 if (content.children.length > max_record) {
                     rmMsgFromBox();
                 }

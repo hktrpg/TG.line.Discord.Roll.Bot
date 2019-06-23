@@ -96,9 +96,7 @@
             <form id="send-form">
                 <input type="text" name="name" id="name" placeholder="暱稱">
                 <input type="text" name="msg" id="msg" placeholder="說點什麼？">
-                <input type="submit" value="送出" onclick="setTimeout(function() {
-                   aa();
-                }, 250);">
+                <input type="submit" value="送出" onclick="">
             </form>
         </div>
     </div>
@@ -185,7 +183,9 @@
                 var nameBox = document.createElement("span");
                 nameBox.className = "name";
                 var name = document.createTextNode(d.name);
-                var msg = document.createTextNode(d.msg);
+                var msg = document.createTextNode(d.msg, setTimeout(function () {
+                    aa();
+                }, 50));
 
                 nameBox.appendChild(name);
                 msgBox.appendChild(nameBox);

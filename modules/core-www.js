@@ -61,7 +61,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
         if (message.msg && message.name.match(/HKTRPG/ig)) {
 
         } else {
-            console.log(message)
+           // console.log(message)
             io.emit("msg", message);
             let rplyVal = {}
             let msgSplitor = (/\S+/ig)

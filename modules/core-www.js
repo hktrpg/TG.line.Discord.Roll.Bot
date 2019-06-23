@@ -45,6 +45,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
             // 如果 msg 內容鍵值小於 2 等於是訊息傳送不完全
             // 因此我們直接 return ，終止函式執行。
             if (Object.keys(msg).length < 2) return;
+            msg.msg = '\n' + msg.msg
             records.push(msg);
         });
 
@@ -61,7 +62,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
         if (message.msg && message.name.match(/HKTRPG/ig)) {
 
         } else {
-           // console.log(message)
+            // console.log(message)
             io.emit("msg", message);
             let rplyVal = {}
             let msgSplitor = (/\S+/ig)
@@ -92,7 +93,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
                 WWWcountroll++;
                 //console.log('rplyVal.text:' + rplyVal.text)
                 //console.log('Telegram Roll: ' + WWWcountroll + ', Telegram Text: ' + WWWcounttext, " content: ", message.text);
-
+                rplyVal.text = '\n' + rplyVal.text
                 async function loadb() {
 
                     for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {

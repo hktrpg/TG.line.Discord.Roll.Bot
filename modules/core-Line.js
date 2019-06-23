@@ -188,6 +188,14 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			res.send('Hello');
 		});
 	*/
+	app.on('UnhandledPromiseRejection', error => {
+		// Will print "unhandledRejection err is not defined"
+		console.log('UnhandledPromiseRejection: ', error.message);
+	});
+	app.on('unhandledRejection', error => {
+		// Will print "unhandledRejection err is not defined"
+		console.log('unhandledRejection: ', error.message);
+	});
 	module.exports = {
 		app,
 		express

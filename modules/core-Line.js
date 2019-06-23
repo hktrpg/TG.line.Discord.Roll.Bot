@@ -122,8 +122,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						sendmessage()
 					});
 				else sendmessage()
+			} catch (e) {
+				console.log(e)
 			}
-			catch (e) { console.log(e) }
 			//console.log("LINE:" , event)
 
 
@@ -136,7 +137,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		function sendmessage() {
 			if (privatemsg == 1) {
 				client.pushMessage(roomorgroupid, replymessage(displayname + ' 暗骰進行中'))
-					.then(() => { })
+					.then(() => {})
 					.catch((err) => {
 						// error handling
 					});
@@ -144,7 +145,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				async function loada() {
 					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1200}/g).length; i++) {
 						await client.pushMessage(userid, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
-							.then(() => { })
+							.then(() => {})
 							.catch((err) => {
 								// error handling
 							});
@@ -158,7 +159,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 							var replyTarget = roomorgroupid
 						else replyTarget = userid
 						await client.pushMessage(replyTarget, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
-							.then(() => { })
+							.then(() => {})
 							.catch((err) => {
 								// error handling
 							});
@@ -178,15 +179,15 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	}
 	// listen on port
 	const port = process.env.PORT || 5000;
-	app.listen(port, () => {
-		console.log(`Line BOT listening on ${port}`);
-	});
+	/*	app.listen(port, () => {
+			console.log(`Line BOT listening on ${port}`);
+		});
 
-	app.get('/', function (req, res) {
-		//	res.send(parseInput(req.query.input));
-		res.send('Hello');
-	});
-
+		app.get('/aa', function (req, res) {
+			//	res.send(parseInput(req.query.input));
+			res.send('Hello');
+		});
+	*/
 	module.exports = {
 		app,
 		express

@@ -79,11 +79,10 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
                 trigger = mainMsg[0].toString().toLowerCase()
             }
             if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
-                mainMsg.shift()
-                rplyVal = exports.analytics.parseInput(mainMsg.join(' '))
+                rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, exports.analytics.stop)
             } else {
                 if (channelKeyword == '') {
-                    rplyVal = exports.analytics.parseInput(mainMsg.join(' '))
+                    rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, exports.analytics.stop)
 
                 }
 

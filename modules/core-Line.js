@@ -187,6 +187,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		res.send('Hello');
 	});
 
-
+	module.exports = {
+		app,
+		express
+	}
 
 }

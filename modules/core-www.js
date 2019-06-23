@@ -22,7 +22,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
     let onlineCount = 0;
 
     www.get('/', (req, res) => {
-        console.log('req: ', req, 'res: ', res)
+      //  console.log('req: ', req, 'res: ', res)
         res.sendFile(__dirname + '/views/index.html');
     });
 
@@ -123,6 +123,6 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
     });
 
     server.listen(port, () => {
-        console.log("Server Started. port:" + port);
+        console.log("WWW Server Started. port:" + port);
     });
 }

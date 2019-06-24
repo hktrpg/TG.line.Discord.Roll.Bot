@@ -121,9 +121,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 					//console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
 					sendmessage();
 					console.log('a');
-				}, {
-					sendmessage();
-
+				}, function () {
+					sendmessage()
+					console.log('b');
 				})
 			else {
 				sendmessage()

@@ -119,9 +119,12 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 					//console.log(profile)
 					//console.log('rplyVal.text:' + rplyVal.text)
 					//console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
-					//sendmessage()
-					console.log('a')
-				}).catch(sendmessage());
+					sendmessage();
+					console.log('a');
+				}, {
+					sendmessage();
+
+				})
 			else {
 				sendmessage()
 				console.log('c')

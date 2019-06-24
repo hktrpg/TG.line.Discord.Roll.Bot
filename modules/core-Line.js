@@ -110,20 +110,24 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		if (rplyVal && rplyVal.text) {
 			Linecountroll++;
 
-			try {
-				if (roomorgroupid && userid && displaynamecheck)
-					client.getProfile(userid).then(function (profile) {
-						displayname = profile.displayName;
-						rplyVal.text = "@" + displayname + " " + rplyVal.text
-						//console.log(profile.displayName)
-						//console.log(profile)
-						//console.log('rplyVal.text:' + rplyVal.text)
-						//console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
-						sendmessage()
-					});
-				else sendmessage()
-			} catch (e) {
-				console.log(e)
+
+			if (roomorgroupid && userid && displaynamecheck)
+				client.getProfile(userid).then(function (profile) {
+					displayname = profile.displayName;
+					rplyVal.text = "@" + displayname + " " + rplyVal.text
+					//console.log(profile.displayName)
+					//console.log(profile)
+					//console.log('rplyVal.text:' + rplyVal.text)
+					//console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
+					sendmessage();
+				//	在GP 而有加好友的話,顯示名字
+				}, function () {
+					sendmessage()
+			//		如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
+				})
+			else {
+				sendmessage()
+			//	對方不在GP CHANNEL的話就跳到這裡
 			}
 			//console.log("LINE:" , event)
 

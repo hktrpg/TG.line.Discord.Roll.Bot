@@ -120,14 +120,14 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 					//console.log('rplyVal.text:' + rplyVal.text)
 					//console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
 					sendmessage();
-					console.log('a');
+				//	在GP 而有加好友的話,顯示名字
 				}, function () {
 					sendmessage()
-					console.log('b');
+			//		如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
 				})
 			else {
 				sendmessage()
-				console.log('c')
+			//	對方不在GP CHANNEL的話就跳到這裡
 			}
 			//console.log("LINE:" , event)
 

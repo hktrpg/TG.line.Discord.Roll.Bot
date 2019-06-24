@@ -110,21 +110,19 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		if (rplyVal && rplyVal.text) {
 			Linecountroll++;
 
-			try {
-				if (roomorgroupid && userid && displaynamecheck)
-					client.getProfile(userid).then(function (profile) {
-						displayname = profile.displayName;
-						rplyVal.text = "@" + displayname + " " + rplyVal.text
-						//console.log(profile.displayName)
-						//console.log(profile)
-						//console.log('rplyVal.text:' + rplyVal.text)
-						//console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
-						sendmessage()
-					});
-				else sendmessage()
-			} catch (e) {
-				console.log(e)
-			}
+
+			if (roomorgroupid && userid && displaynamecheck)
+				client.getProfile(userid).then(function (profile) {
+					displayname = profile.displayName;
+					rplyVal.text = "@" + displayname + " " + rplyVal.text
+					//console.log(profile.displayName)
+					//console.log(profile)
+					//console.log('rplyVal.text:' + rplyVal.text)
+					//console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
+					sendmessage()
+				}).catch(sendmessage());
+			else sendmessage()
+
 			//console.log("LINE:" , event)
 
 

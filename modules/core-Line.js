@@ -114,20 +114,20 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			if (roomorgroupid && userid && displaynamecheck)
 				client.getProfile(userid).then(function (profile) {
 					displayname = profile.displayName;
-					rplyVal.text = "@" + displayname + " " + rplyVal.text
+					rplyVal.text = "@" + displayname + "\n" + rplyVal.text
 					//console.log(profile.displayName)
 					//console.log(profile)
 					//console.log('rplyVal.text:' + rplyVal.text)
 					//console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
 					sendmessage();
-				//	在GP 而有加好友的話,顯示名字
+					//	在GP 而有加好友的話,顯示名字
 				}, function () {
 					sendmessage()
-			//		如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
+					//		如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
 				})
 			else {
 				sendmessage()
-			//	對方不在GP CHANNEL的話就跳到這裡
+				//	對方不在GP CHANNEL的話就跳到這裡
 			}
 			//console.log("LINE:" , event)
 
@@ -141,7 +141,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		function sendmessage() {
 			if (privatemsg == 1) {
 				client.pushMessage(roomorgroupid, replymessage(displayname + ' 暗骰進行中'))
-					.then(() => {})
+					.then(() => { })
 					.catch((err) => {
 						// error handling
 					});
@@ -149,7 +149,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				async function loada() {
 					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1200}/g).length; i++) {
 						await client.pushMessage(userid, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
-							.then(() => {})
+							.then(() => { })
 							.catch((err) => {
 								// error handling
 							});
@@ -163,7 +163,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 							var replyTarget = roomorgroupid
 						else replyTarget = userid
 						await client.pushMessage(replyTarget, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
-							.then(() => {})
+							.then(() => { })
 							.catch((err) => {
 								// error handling
 							});

@@ -147,8 +147,8 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 					});
 				//message.reply.text(message.from.first_name + ' 暗骰進行中')
 				async function loada() {
-					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1200}/g).length; i++) {
-						await client.pushMessage(userid, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
+					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
+						await client.pushMessage(userid, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1900}/g)[i]))
 							.then(() => { })
 							.catch((err) => {
 								// error handling
@@ -158,11 +158,11 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				loada();
 			} else {
 				async function loadb() {
-					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1200}/g).length; i++) {
+					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 						if (roomorgroupid)
 							var replyTarget = roomorgroupid
 						else replyTarget = userid
-						await client.pushMessage(replyTarget, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1200}/g)[i]))
+						await client.pushMessage(replyTarget, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1900}/g)[i]))
 							.then(() => { })
 							.catch((err) => {
 								// error handling
@@ -179,7 +179,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		//exports.analytics.parseInput(event.message.text)
 
 		// use reply API
-		//Reply Max: 1200 characters
+		//Reply Max: 1900 characters
 	}
 	// listen on port
 	const port = process.env.PORT || 5000;

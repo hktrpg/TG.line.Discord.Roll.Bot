@@ -53,7 +53,7 @@ try {
                 //增加資料庫
                 //檢查有沒有重覆
                 let checkifsamename = 0
-                if (groupid && userrole >= 2 && mainMsg[3]) {
+                if (groupid && userrole >= 1 && mainMsg[3]) {
                     if (rply.trpgDatabasefunction)
                         for (var i = 0; i < rply.trpgDatabasefunction.length; i++) {
                             if (rply.trpgDatabasefunction[i].groupid == groupid) {
@@ -92,14 +92,14 @@ try {
                         rply.text += ' 沒有內容'
                     if (!groupid)
                         rply.text += ' 不在群組.'
-                    if (groupid && userrole < 2)
+                    if (groupid && userrole < 1)
                         rply.text += ' 只有GM以上才可新增.'
                 }
                 return rply;
 
             case /(^[.]db$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
                 //刪除資料庫
-                if (groupid && mainMsg[2] && rply.trpgDatabasefunction && userrole >= 2) {
+                if (groupid && mainMsg[2] && rply.trpgDatabasefunction && userrole >= 1) {
                     for (var i = 0; i < rply.trpgDatabasefunction.length; i++) {
                         if (rply.trpgDatabasefunction[i].groupid == groupid) {
                             let temp = rply.trpgDatabasefunction[i]
@@ -116,14 +116,14 @@ try {
                     rply.text = '刪除失敗.'
                     if (!groupid)
                         rply.text += '不在群組. '
-                    if (groupid && userrole < 2)
+                    if (groupid && userrole < 1)
                         rply.text += '只有GM以上才可刪除. '
                 }
 
                 return rply;
             case /(^[.]db$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
                 //刪除資料庫
-                if (groupid && mainMsg[2] && rply.trpgDatabasefunction && userrole >= 2) {
+                if (groupid && mainMsg[2] && rply.trpgDatabasefunction && userrole >= 1) {
                     for (var i = 0; i < rply.trpgDatabasefunction.length; i++) {
                         if (rply.trpgDatabasefunction[i].groupid == groupid && mainMsg[2] < rply.trpgDatabasefunction[i].trpgDatabasefunction.length && mainMsg[2] >= 0) {
                             let temp = rply.trpgDatabasefunction[i]
@@ -143,7 +143,7 @@ try {
                         rply.text += '沒有關鍵字. '
                     if (!groupid)
                         rply.text += '不在群組. '
-                    if (groupid && userrole < 2)
+                    if (groupid && userrole < 1)
                         rply.text += '只有GM以上才可刪除. '
                 }
                 return rply;

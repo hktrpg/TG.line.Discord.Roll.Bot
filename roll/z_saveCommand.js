@@ -52,7 +52,7 @@ try {
                 //增加資料庫
                 //檢查有沒有重覆
                 let checkifsamename = 0
-                if (groupid && userrole >= 2 && mainMsg[3]) {
+                if (groupid && userrole >= 2 && mainMsg[3] && mainMsg[3].toLowerCase() != ".cmd") {
                     if (rply.trpgCommandfunction)
                         for (var i = 0; i < rply.trpgCommandfunction.length; i++) {
                             if (rply.trpgCommandfunction[i].groupid == groupid) {
@@ -89,6 +89,8 @@ try {
                         rply.text += ' 沒有標題.'
                     if (!mainMsg[3])
                         rply.text += ' 沒有擲骰指令'
+                    if (mainMsg[3].toLowerCase() == ".cmd")
+                        rply.text += '指令不可以儲存.cmd啊'
                     if (!groupid)
                         rply.text += ' 不在群組.'
                     if (groupid && userrole < 2)

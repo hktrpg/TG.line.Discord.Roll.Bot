@@ -47,8 +47,9 @@ try {
 		if (mainMsg && mainMsg[0].toLowerCase() == ".cmd" && mainMsg[1] && mainMsg[1].toLowerCase() != "help" && mainMsg[1].toLowerCase() != "add" && mainMsg[1].toLowerCase() != "show" && mainMsg[1].toLowerCase() != "del" && result.text) {
 			//console.log('result.text', result.text.toString().replace(mainMsg[1], ""))
 			inputStr = result.text.toString().replace(mainMsg[1], "")
-			mainMsg = result.text.toString().replace(mainMsg[1], "").match(msgSplitor); //定義輸入字串
 			trigger = result.text.toString().toLowerCase().replace(mainMsg[1], "");
+			mainMsg = result.text.toString().replace(mainMsg[1], "").match(msgSplitor); //定義輸入字串
+
 			result.text = ""
 			z_stop();
 			result = stop(inputStr, groupid, userid, userrole, mainMsg, trigger, stopmark)

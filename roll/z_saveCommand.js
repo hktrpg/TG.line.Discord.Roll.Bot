@@ -48,6 +48,7 @@ try {
 
                 // .cmd(0) ADD(1) TOPIC(2) CONTACT(3)
             case /(^[.]cmd$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
+                console.log('mainMsg: ', mainMsg)
                 //增加資料庫
                 //檢查有沒有重覆
                 let checkifsamename = 0
@@ -69,7 +70,7 @@ try {
                         groupid: groupid,
                         trpgCommandfunction: [{
                             topic: mainMsg[2],
-                            contact: inputStr.replace(/\.cmd add /i, '').replace(mainMsg[2], '').replace(/^\s+/, '')
+                            contact: inputStr.replace(/\.cmd\s+add\s+/i, '').replace(mainMsg[2], '').replace(/^\s+/, '')
                         }]
                     }
                     if (checkifsamename == 0) {
@@ -80,7 +81,7 @@ try {
                             })
 
                         })
-                        rply.text = '新增成功: ' + mainMsg[2]
+                        rply.text = '新增成功: ' + mainMsg[2] + '\n' + inputStr.replace(/\.cmd\s+add\s+/i, '').replace(mainMsg[2], '').replace(/^\s+/, '')
                     } else rply.text = '新增失敗. 重複標題'
                 } else {
                     rply.text = '新增失敗.'

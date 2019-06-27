@@ -71,7 +71,7 @@ try {
                         groupid: groupid,
                         trpgDatabasefunction: [{
                             topic: mainMsg[2],
-                            contact: inputStr.replace(/\.db add /i, '').replace(mainMsg[2], '').replace(/^\s+/, '')
+                            contact: inputStr.replace(/\.db\s+add\s+/i, '').replace(mainMsg[2], '').replace(/^\s+/, '')
                         }]
                     }
                     if (checkifsamename == 0) {

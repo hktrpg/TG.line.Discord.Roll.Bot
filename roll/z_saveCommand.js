@@ -48,7 +48,7 @@ try {
 
                 // .cmd(0) ADD(1) TOPIC(2) CONTACT(3)
             case /(^[.]cmd$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
-                console.log('mainMsg: ', mainMsg)
+                //console.log('mainMsg: ', mainMsg)
                 //增加資料庫
                 //檢查有沒有重覆
                 let checkifsamename = 0

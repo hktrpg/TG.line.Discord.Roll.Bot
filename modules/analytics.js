@@ -40,7 +40,7 @@ try {
 			}
 		}
 		z_stop();
-		console.log('mainMsgAA',mainMsg)
+		//console.log('mainMsgAA',mainMsg)
 		if (stopmark != 1)
 			result = stop(inputStr, groupid, userid, userrole, mainMsg, trigger, stopmark)
 
@@ -48,16 +48,16 @@ try {
 		if (mainMsg && mainMsg[0].toLowerCase() == ".cmd" && mainMsg[1] && mainMsg[1].toLowerCase() != "help" && mainMsg[1].toLowerCase() != "add" && mainMsg[1].toLowerCase() != "show" && mainMsg[1].toLowerCase() != "del" && result.text) {
 			//console.log('result.text', result.text.toString().replace(mainMsg[1], ""))
 			inputStr = result.text.toString().replace(mainMsg[1], "")
-			console.log(inputStr)
+			//console.log(inputStr)
 			mainMsg = inputStr.match(msgSplitor); //定義輸入字串
 			trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
-			console.log('inputStr2: ', inputStr)
+			//console.log('inputStr2: ', inputStr)
 
 
 			result.text = ""
 			z_stop();
 			result = stop(inputStr, groupid, userid, userrole, mainMsg, trigger, stopmark)
-			//console.log('inputStr2: ', inputStr, result)
+			console.log('inputStr2: ', inputStr)
 		}
 		if (result && result.text) {
 			console.log('inputStr: ', inputStr)
@@ -113,7 +113,7 @@ try {
 
 
 			if (findprefixs == 1 && stopmark == 0) {
-				console.log('trigger: ', trigger, ' v: ', v)
+				console.log('trigger: ', trigger)
 				let tempsave = exports[v].rollDiceCommand(inputStr, mainMsg, groupid, userid, userrole)
 				if (tempsave)
 					Object.keys(tempsave).forEach(v => {

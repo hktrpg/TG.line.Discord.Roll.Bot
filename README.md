@@ -1,8 +1,8 @@
 # RoboYabaso@HKTRPG </br> 
-【HKTRPG擲骰BOT】v1.11.240</br> 
-最後更新時間2019-04-19T 11:49:35Z</br> 
+【HKTRPG擲骰BOT】v1.17.419</br> 
+最後更新時間6/28/2019, 1:47:48 PM </br> </br> 
 
-關於RoboYabaso
+關於RoboYabaso</br> 
 ==
 RoboYabaso最早由LarryLo  Retsnimle開發。 </br> 
 是一個開放源碼骰子機器人計畫。</br></br>
@@ -12,10 +12,14 @@ RoboYabaso最早由LarryLo  Retsnimle開發。 </br>
 啓動條件是在HEROUKU 輸入BOT的 CHANNEL_SECRET</br>
 
 不然的話沒這麼多伺服器開這麼多ＢＯＴ。</br>
-最期待Whatsapp快開放權限，香港都是比較多使用Whatsapp</br></br>
+最期待Whatsapp快開放權限，香港都是比較多使用Whatsapp</br></br></br>
 
 
-這是建立在Heroku的免費伺服器上，所以大家都可以按照下面的教程，客制化做一個自己的BOT！
+這是建立在Heroku的免費伺服器上，所以大家都可以按照下面的教程，客制化做一個自己的BOT！</br>
+現支援普通擲骰，純計算，趣味擲機擲骰，運勢，克蘇魯神話</br>
+朱の孤塔，神我狩，迷宮王國，亞俠必死的冒險，忍神，DX2nd,3rd</br>
+命運Fate，永遠的後日談，劍世界2.5，WOD黑暗世界，</br>
+自定義回應功能，儲存擲骰指令功能，擲骰開關功能及資料庫功能</br>
 </br></br>
 
 試用
@@ -32,7 +36,7 @@ LineID是：@utr0641o
  </br>
  Telegram版 http://t.me/hktrpg_bot
  </br>
-骰組指令說明在最底下</br>
+骰組指令說明在對bot輸入/help 或bothelp 或看文章最底下</br>
 
 
 順便宣傳
@@ -48,7 +52,7 @@ LineID是：@utr0641o
 - [ ] 設定名字, 每次擲骰時顯示
 - [ ] 定時功能. GM 可以發佈任務, 定時提示時限, 玩家查詢等等
 - [ ] 投票功能
-- [ ] 存好指定擲骰方法, 輸入指定即可快速打出來
+- [O] 存好指定擲骰方法, 輸入指定即可快速打出來
 - [ ] 選擇圖書式遊戲(好像COC 單人TRPG 「向火獨行」一樣, 輸入頁碼, 就會顯示故事, 好像跑團一樣,以後不怕沒有同伴了,不過首先要有故事ORZ)
 - [ ] 增加 mee6式 LV 排名升級 功能(需修改觸法方法)
 
@@ -263,6 +267,7 @@ https://github.com/zeteticl/TrpgLineBot-php </br>
 
 【擲骰BOT】
 --
+暗骰功能 在指令前輸入dr 結果會私訊你</br>
 例如輸入2d6+1　攻撃！</br>
 會輸出）2d6+1：攻撃  9[6+3]+1 = 10</br>
 如上面一樣,在骰子數字後方隔空白位打字,可以進行發言。</br>
@@ -291,26 +296,23 @@ Choice：啓動語choice/隨機/選項/選1</br>
 例）DP 80 偵查</br></br>
 ・coc7 成長或增長檢定：dp (技能) (名稱)</br>
 例）DP 80 偵查</br></br>
-
-・NC 永遠的後日談擲骰</br>
-(骰數)NC/NA (問題)</br>
-  例子 1NC 2Na+4 3na-2</br>
-依戀  NM (問題)</br>
-  例子 NM 我的依戀</br></br>
-  
-・WOD 黑暗世界擲骰</br>
-(骰數)WOD/Wd(加骰)(+成功數) (問題)</br>
-  例子 2wod 3wd8 15wd9+2</br></br>
-
-・SW2.0</br>
-KKn+m-m@c$d$+xGF n=骰數 c=暴擊值 m=其他修正 d=固定值 x=增加值</br>
-例子 KK050+8-1@8 KK050+8@8$9gf</br></br>
-
-・DX3 </br>
-nDXc+m-m  n=骰數 c=暴擊值 m=其他修正</br>
-例子 5DX8-1+8</br></br>
-
-・占卜運氣功能 字句中包括運氣即可</br>
-・塔羅牌占卜 塔羅/大十字塔羅/每日塔羅牌</br>
-  時間tarot 等關键字可啓動</br>
-・死亡FLAG：啓動語 立Flag/死亡flag</br>
+</br>
+現支援系統: </br>
+【了解骰組詳情,請輸入 bothelp (編號) 或all 或 在指令後輸入help 如 .sg help】</br>
+0: 進階擲骰 .ca (計算) D66(sn) 5B10 Dx 5U10 x y</br>
+1: 趣味擲骰 排序(至少3個選項) choice/隨機(至少2個選項) 每日塔羅 運勢 立flag .me</br>
+2: 克蘇魯神話 cc cc(n)1~2 ccb ccrt ccsu .dp 成長檢定 cc7版創角</br>
+3: 朱の孤塔 .al (nALx*p)</br>
+4: 神我狩 .kk (ET RT NT KT MTx)</br>
+5: 迷宮王國 .mk (nMK+m 及各種表)</br>
+6: 亞俠必死的冒險 .ss (nR>=x[y,z,c] SRx+y FumbleT) (help 說明)</br>
+7: 忍神 .sg (ST FT ET等各種表) (help 說明)</br>
+8: DX2nd,3rd .dx (xDX+y@c ET)</br>
+9: 命運Fate .4df(m|-)(加值)</br>
+10: 永遠的後日談 .nc (NM xNC+m xNA+m)</br>
+11: 劍世界2.5 .sw (Kx Gr FT TT)</br>
+12: WOD黑暗世界 .xWDy</br>
+13: (公測中)自定義回應功能 .ra(p)(次數) (add del show 自定關鍵字)</br>
+14: (公測中)儲存擲骰指令功能 .cmd (add del show 自定關鍵字)</br>
+15: (公測中)擲骰開關功能 .bk (add del show)</br>
+16: (公測中)資料庫功能 .db(p) (add del show 自定關鍵字)</br>

@@ -58,7 +58,7 @@ rollDiceCommand = function (inputStr, mainMsg) {
 			return d66n(mainMsg[1]);
 		case /^d66s$/i.test(mainMsg[0]):
 			return d66s(mainMsg[1])
-		case /^(\d+)(b)(\d+)(((|[<]|[>])(|[=]))(\d+))$/i.test(mainMsg[0]):
+		case /^((\d+)(b)(\d+))(|(([<]|[>]|)(|[=]))(\d+))$/i.test(mainMsg[0]):
 			return xBy(mainMsg[0], mainMsg[1], mainMsg[2])
 		case /^(\d+)(u)(\d+)$/i.test(mainMsg[0]) && mainMsg[1] <= 10000:
 			return xUy(mainMsg[0], mainMsg[1], mainMsg[2], mainMsg[3]);
@@ -146,7 +146,9 @@ function xBy(triggermsg, text01, text02) {
 	//	console.log('dd')
 	let match = /^((\d+)(b)(\d+))(|(([<]|[>]|)(|[=]))(\d+))$/i.exec(triggermsg);
 	//判斷式 0:"5b10<=80" 1:"5b10" 2:"5" 3:"b" 4:"10" 5:"<=80" 6:"<=" 	7:"<" 8:"=" 	9:"80"
+	console.log('match', match)
 	let match01 = /^((|d)(\d+))$/i.exec(text01);
+	console.log('match01', match01)
 	//判斷式 0:"d5"  1:"d5" 2:"d" 3:"5" 
 	let text = "";
 	if (text01) text = text01

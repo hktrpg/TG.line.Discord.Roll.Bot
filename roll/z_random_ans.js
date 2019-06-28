@@ -53,7 +53,7 @@ try {
             case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
                 //增加自定義關鍵字
                 let checkifsamename = 0
-                if (groupid && userrole >= 2 && mainMsg[3] && mainMsg[4]) {
+                if (groupid && userrole >= 1 && mainMsg[3] && mainMsg[4]) {
                     if (rply.randomAnsfunction)
                         for (var i = 0; i < rply.randomAnsfunction.length; i++) {
                             if (rply.randomAnsfunction[i].groupid == groupid) {
@@ -88,14 +88,14 @@ try {
                         rply.text += ' 沒有自定義回應,至少兩個.'
                     if (!groupid)
                         rply.text += ' 不在群組.'
-                    if (groupid && userrole < 2)
+                    if (groupid && userrole < 1)
                         rply.text += ' 只有GM以上才可新增.'
                 }
                 return rply;
 
             case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
                 //刪除自定義關鍵字
-                if (groupid && mainMsg[2] && rply.randomAnsfunction && userrole >= 2) {
+                if (groupid && mainMsg[2] && rply.randomAnsfunction && userrole >= 1) {
                     for (var i = 0; i < rply.randomAnsfunction.length; i++) {
                         if (rply.randomAnsfunction[i].groupid == groupid) {
                             let temp = rply.randomAnsfunction[i]
@@ -112,14 +112,14 @@ try {
                     rply.text = '刪除失敗.'
                     if (!groupid)
                         rply.text += '不在群組. '
-                    if (groupid && userrole < 2)
+                    if (groupid && userrole < 1)
                         rply.text += '只有GM以上才可刪除. '
                 }
 
                 return rply;
             case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
                 //刪除自定義關鍵字
-                if (groupid && mainMsg[2] && rply.randomAnsfunction && userrole >= 2) {
+                if (groupid && mainMsg[2] && rply.randomAnsfunction && userrole >= 1) {
                     for (var i = 0; i < rply.randomAnsfunction.length; i++) {
                         if (rply.randomAnsfunction[i].groupid == groupid && mainMsg[2] < rply.randomAnsfunction[i].randomAnsfunction.length && mainMsg[2] >= 0) {
                             let temp = rply.randomAnsfunction[i]
@@ -139,7 +139,7 @@ try {
                         rply.text += '沒有關鍵字. '
                     if (!groupid)
                         rply.text += '不在群組. '
-                    if (groupid && userrole < 2)
+                    if (groupid && userrole < 1)
                         rply.text += '只有GM以上才可刪除. '
                 }
                 return rply;

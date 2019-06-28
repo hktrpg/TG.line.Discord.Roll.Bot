@@ -29,20 +29,36 @@ try {
 		let trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
 		//對比mongoose資料
 		//console.log('stop')
-		Object.keys(exports).forEach(v => {
-			if (exports[v].initialize().save && exports[v].initialize().save[0].blockfunction && exports[v].initialize().save[0].blockfunction.length > 0) {
-				for (var i = 0; i < exports[v].initialize().save.length; i++) {
-					if ((new RegExp(exports[v].initialize().save[i].blockfunction.join("|"), "i")).test(mainMsg[0]) && exports[v].initialize().save[i].groupid == groupid && exports[v].initialize().save[i].blockfunction.length > 0) {
+		function z_stop() {
+			if (exports.z_stop && exports.z_stop.initialize() && exports.z_stop.initialize().save && exports.z_stop.initialize().save[0].blockfunction && exports.z_stop.initialize().save[0].blockfunction.length > 0) {
+				for (var i = 0; i < exports.z_stop.initialize().save.length; i++) {
+					if ((new RegExp(exports.z_stop.initialize().save[i].blockfunction.join("|"), "i")).test(mainMsg[0]) && exports.z_stop.initialize().save[i].groupid == groupid && exports.z_stop.initialize().save[i].blockfunction.length > 0) {
 						console.log('Match AND STOP')
 						stopmark = 1
-
 					}
 				}
 			}
-		})
+		}
+		z_stop();
+		//console.log('mainMsgAA',mainMsg)
+		if (stopmark != 1)
+			result = stop(inputStr, groupid, userid, userrole, mainMsg, trigger, stopmark)
+
+		//z_saveCommand 功能
+		if (mainMsg && mainMsg[0].toLowerCase() == ".cmd" && mainMsg[1] && mainMsg[1].toLowerCase() != "help" && mainMsg[1].toLowerCase() != "add" && mainMsg[1].toLowerCase() != "show" && mainMsg[1].toLowerCase() != "del" && result.text) {
+			//console.log('result.text', result.text.toString().replace(mainMsg[1], ""))
+			inputStr = result.text.toString().replace(mainMsg[1], "")
+			//console.log(inputStr)
+			mainMsg = inputStr.match(msgSplitor); //定義輸入字串
+			trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
+			//console.log('inputStr2: ', inputStr)
 
 
-		result = callback(inputStr, groupid, userid, userrole, mainMsg, trigger, stopmark)
+			result.text = ""
+			z_stop();
+			result = stop(inputStr, groupid, userid, userrole, mainMsg, trigger, stopmark)
+			console.log('inputStr2: ', inputStr)
+		}
 		if (result && result.text) {
 			console.log('inputStr: ', inputStr)
 			return result;
@@ -97,7 +113,7 @@ try {
 
 
 			if (findprefixs == 1 && stopmark == 0) {
-				console.log('trigger: ', trigger, ' v: ', v)
+				console.log('trigger: ', trigger)
 				let tempsave = exports[v].rollDiceCommand(inputStr, mainMsg, groupid, userid, userrole)
 				if (tempsave)
 					Object.keys(tempsave).forEach(v => {

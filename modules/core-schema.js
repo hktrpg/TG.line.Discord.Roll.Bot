@@ -55,6 +55,13 @@ if (process.env.mongoURL) {
             Abiliy: Array
         }]
     });
+    const trpgCommand = mongoose.model('trpgCommand', {
+        groupid: String,
+        trpgCommandfunction: [{
+            topic: String,
+            contact: String
+        }]
+    });
 
 
     module.exports = {
@@ -64,7 +71,8 @@ if (process.env.mongoURL) {
         randomAnsAllgroup,
         GroupSetting,
         trpgDatabaseAllgroup,
-        trpgDatabase
+        trpgDatabase,
+        trpgCommand
     }
     //const Cat = mongoose.model('Cat', { name: String });
     //const kitty = new Cat({ name: 'Zildjian' });

@@ -51,7 +51,9 @@ try {
                 return rply;
 
             case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
+                //
                 //增加自定義關鍵字
+                //
                 let checkifsamename = 0
                 if (groupid && userrole >= 1 && mainMsg[3] && mainMsg[4]) {
                     if (rply.randomAnsfunction)
@@ -94,8 +96,10 @@ try {
                 return rply;
 
             case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
-                //刪除自定義關鍵字
-                if (groupid && mainMsg[2] && rply.randomAnsfunction && userrole >= 1) {
+                //    
+                //刪除所有自定義關鍵字
+                //
+                if (groupid && mainMsg[2] && rply.randomAnsfunction && userrole >= 2) {
                     for (var i = 0; i < rply.randomAnsfunction.length; i++) {
                         if (rply.randomAnsfunction[i].groupid == groupid) {
                             let temp = rply.randomAnsfunction[i]
@@ -112,13 +116,15 @@ try {
                     rply.text = '刪除失敗.'
                     if (!groupid)
                         rply.text += '不在群組. '
-                    if (groupid && userrole < 1)
-                        rply.text += '只有GM以上才可刪除. '
+                    if (groupid && userrole < 2)
+                        rply.text += '只有GM以上才可刪除所有關鍵字. '
                 }
 
                 return rply;
             case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
+                //
                 //刪除自定義關鍵字
+                //
                 if (groupid && mainMsg[2] && rply.randomAnsfunction && userrole >= 1) {
                     for (var i = 0; i < rply.randomAnsfunction.length; i++) {
                         if (rply.randomAnsfunction[i].groupid == groupid && mainMsg[2] < rply.randomAnsfunction[i].randomAnsfunction.length && mainMsg[2] >= 0) {
@@ -145,6 +151,9 @@ try {
                 return rply;
 
             case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+                //
+                //顯示列表
+                //
                 records.get('randomAns', (msgs) => {
                     rply.randomAnsfunction = msgs
                 })
@@ -168,6 +177,9 @@ try {
                 rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
                 return rply
             case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
+                //
+                //使用抽選功能
+                //
                 let times = /^[.]ra(\d+|)/.exec(mainMsg[0])[1] || 1
                 if (times > 30) times = 30;
                 if (times < 1) times = 1
@@ -183,9 +195,22 @@ try {
                                 for (var a = 0; a < rply.randomAnsfunction[i].randomAnsfunction.length; a++) {
                                     if (rply.randomAnsfunction[i].randomAnsfunction[a][0].toLowerCase() == mainMsg[1].toLowerCase()) {
                                         temp = 1
-                                        rply.text = rply.randomAnsfunction[i].randomAnsfunction[a][0] + ' → ' + rply.randomAnsfunction[i].randomAnsfunction[a][(Math.floor(Math.random() * (rply.randomAnsfunction[i].randomAnsfunction[a].length - 1))) + 1];
+                                        let temptitle = rply.randomAnsfunction[i].randomAnsfunction[a][0];
+                                        let tempcontact = rply.randomAnsfunction[i].randomAnsfunction[a];
+                                        tempcontact.shift();
+
+                                        for (; tempcontact.length < times;) {
+                                            tempcontact = tempcontact.concat(tempcontact);
+                                        }
+                                        rply.text = temptitle + ' → ';
+                                        let result = tempcontact.sort(function (a, b) {
+                                            return 0.5 - Math.random()  // <— sort needs a number and this makes it work
+                                        });
+                                        rply.text += result[0];
+                                        console.log('rply.randomAnsfunction[i].randomAnsfunction[a]', rply.randomAnsfunction[i].randomAnsfunction[a])
                                         for (let t = 1; t < times; t++) {
-                                            rply.text += ' , ' + rply.randomAnsfunction[i].randomAnsfunction[a][(Math.floor(Math.random() * (rply.randomAnsfunction[i].randomAnsfunction[a].length - 1))) + 1];
+                                            //
+                                            rply.text += ' , ' + result[t];
                                         }
                                     }
 
@@ -198,6 +223,9 @@ try {
                 }
                 return rply;
             case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
+                //
+                //增加
+                //
                 let checkifsamenamegroup = 0
                 if (rply.randomAnsAllgroup)
                     for (var i = 0; i < rply.randomAnsAllgroup.length; i++) {
@@ -255,6 +283,9 @@ try {
                  return rply;
                  */
             case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+                //
+                //顯示列表
+                //
                 records.get('randomAnsAllgroup', (msgs) => {
                     rply.randomAnsAllgroup = msgs
                     //  console.log(rply)
@@ -273,7 +304,9 @@ try {
                 rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
                 return rply
             case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[0]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
-
+                //
+                //顯示抽選功能
+                //
                 let timesgp = /^[.]rap(\d+|)/.exec(mainMsg[0])[1] || 1
                 if (timesgp > 30) timesgp = 30;
                 if (timesgp < 1) timesgp = 1
@@ -283,9 +316,20 @@ try {
                         for (var a = 0; a < rply.randomAnsAllgroup[i].randomAnsAllgroup.length; a++) {
                             if (rply.randomAnsAllgroup[i].randomAnsAllgroup[a][0].toLowerCase() == mainMsg[1].toLowerCase()) {
                                 temp2 = 1
-                                rply.text = rply.randomAnsAllgroup[i].randomAnsAllgroup[a][0] + ' → ' + rply.randomAnsAllgroup[i].randomAnsAllgroup[a][(Math.floor(Math.random() * (rply.randomAnsAllgroup[i].randomAnsAllgroup[a].length - 1))) + 1];
+                                let temptitlegp = rply.randomAnsAllgroup[i].randomAnsAllgroup[a][0]
+                                let tempcontactgp = rply.randomAnsAllgroup[i].randomAnsAllgroup[a];
+                                console.log('rply.randomAnsAllgroup[i].randomAnsAllgroup[a];01', rply.randomAnsAllgroup[i].randomAnsAllgroup[a])
+                                tempcontactgp.shift();
+                                console.log('rply.randomAnsAllgroup[i].randomAnsAllgroup[a];01', rply.randomAnsAllgroup[i].randomAnsAllgroup[a])
+
+                                let resultgp = tempcontactgp.sort(function (a, b) {
+                                    return 0.5 - Math.random()  // <— sort needs a number and this makes it work
+                                });
+
+
+                                rply.text = temptitlegp + ' → ' + resultgp[0];
                                 for (let t = 1; t < timesgp; t++) {
-                                    rply.text += ' , ' + rply.randomAnsAllgroup[i].randomAnsAllgroup[a][(Math.floor(Math.random() * (rply.randomAnsAllgroup[i].randomAnsAllgroup[a].length - 1))) + 1];
+                                    rply.text += ' , ' + resultgp[t];
                                 }
                             }
                         }

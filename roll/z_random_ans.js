@@ -178,7 +178,7 @@ try {
                 return rply
             case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
                 //
-                //使用抽選功能
+                //RA使用抽選功能
                 //
                 let times = /^[.]ra(\d+|)/.exec(mainMsg[0])[1] || 1
                 if (times > 30) times = 30;
@@ -196,20 +196,17 @@ try {
                                     if (rply.randomAnsfunction[i].randomAnsfunction[a][0].toLowerCase() == mainMsg[1].toLowerCase()) {
                                         temp = 1
                                         let temptitle = rply.randomAnsfunction[i].randomAnsfunction[a][0];
-                                        let tempcontact = rply.randomAnsfunction[i].randomAnsfunction[a];
+                                        let tempcontact = [...rply.randomAnsfunction[i].randomAnsfunction[a]];
                                         tempcontact.shift();
-
-                                        for (; tempcontact.length < times;) {
-                                            tempcontact = tempcontact.concat(tempcontact);
-                                        }
                                         rply.text = temptitle + ' → ';
-                                        let result = tempcontact.sort(function (a, b) {
-                                            return 0.5 - Math.random()  // <— sort needs a number and this makes it work
-                                        });
+                                        let result = [];
+
+
+                                        for (; result.length < times;) {
+                                            result = result.concat(shuffle([...tempcontact]))
+                                        }
                                         rply.text += result[0];
-                                        console.log('rply.randomAnsfunction[i].randomAnsfunction[a]', rply.randomAnsfunction[i].randomAnsfunction[a])
                                         for (let t = 1; t < times; t++) {
-                                            //
                                             rply.text += ' , ' + result[t];
                                         }
                                     }
@@ -305,7 +302,7 @@ try {
                 return rply
             case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[0]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
                 //
-                //顯示抽選功能
+                //RAP顯示抽選功能
                 //
                 let timesgp = /^[.]rap(\d+|)/.exec(mainMsg[0])[1] || 1
                 if (timesgp > 30) timesgp = 30;
@@ -316,20 +313,17 @@ try {
                         for (var a = 0; a < rply.randomAnsAllgroup[i].randomAnsAllgroup.length; a++) {
                             if (rply.randomAnsAllgroup[i].randomAnsAllgroup[a][0].toLowerCase() == mainMsg[1].toLowerCase()) {
                                 temp2 = 1
-                                let temptitlegp = rply.randomAnsAllgroup[i].randomAnsAllgroup[a][0]
-                                let tempcontactgp = rply.randomAnsAllgroup[i].randomAnsAllgroup[a];
-                                console.log('rply.randomAnsAllgroup[i].randomAnsAllgroup[a];01', rply.randomAnsAllgroup[i].randomAnsAllgroup[a])
-                                tempcontactgp.shift();
-                                console.log('rply.randomAnsAllgroup[i].randomAnsAllgroup[a];01', rply.randomAnsAllgroup[i].randomAnsAllgroup[a])
-
-                                let resultgp = tempcontactgp.sort(function (a, b) {
-                                    return 0.5 - Math.random()  // <— sort needs a number and this makes it work
-                                });
-
-
-                                rply.text = temptitlegp + ' → ' + resultgp[0];
+                                let GPtemp = rply.randomAnsAllgroup[i].randomAnsAllgroup[a];
+                                let GPtempcontact = [...rply.randomAnsAllgroup[i].randomAnsAllgroup[a]];
+                                GPtempcontact.shift();
+                                rply.text = GPtemp[0] + ' → ';
+                                let result = [];
+                                for (; result.length < timesgp;) {
+                                    result = result.concat(shuffle([...GPtempcontact]))
+                                }
+                                rply.text += result[0];
                                 for (let t = 1; t < timesgp; t++) {
-                                    rply.text += ' , ' + resultgp[t];
+                                    rply.text += ' , ' + result[t];
                                 }
                             }
                         }
@@ -338,11 +332,28 @@ try {
                 return rply;
             default:
                 break;
-
         }
     }
 
 
+    function shuffle(array) {
+        let currentIndex = array.length, temporaryValue, randomIndex;
+
+        // While there remain elements to shuffle...
+        while (0 !== currentIndex) {
+
+            // Pick a remaining element...
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex -= 1;
+
+            // And swap it with the current element.
+            temporaryValue = array[currentIndex];
+            array[currentIndex] = array[randomIndex];
+            array[randomIndex] = temporaryValue;
+        }
+
+        return array;
+    }
     module.exports = {
         rollDiceCommand: rollDiceCommand,
         initialize: initialize,

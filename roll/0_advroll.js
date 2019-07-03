@@ -180,19 +180,59 @@ function xBy(triggermsg, text01, text02) {
 	}
 	//	console.log(varcou)
 	//varcou.sort(rollbase.sortNumber);
-	//(5B7>6) → 7,5,6,4,4 → 成功数1
+	//(5B7>6) → 7,5,6,4,4 → 
+
 	for (var i = 0; i < varcou.length; i++) {
-		if (match[7] == "<" && varcou[i] < match[9]) {
-			varsu++;
-		}
-		if (match[7] == ">" && varcou[i] > match[9]) {
-			varsu++;
-		}
-		if (match[8] == "=" && varcou[i] == match[9]) {
-			varsu++;
+		switch (true) {
+			case (match[7] == "<" && !match[8]):
+				if (varcou[i] < match[9])
+					varsu++;
+				else {
+					console.log('01: ', varcou[i])
+					varcou[i] = strikeThrough(varcou[i])
+				}
+				break;
+			case (match[7] == ">" && !match[8]):
+				if (varcou[i] > match[9])
+					varsu++;
+				else {
+					console.log('02: ', varcou[i])
+
+					varcou[i] = strikeThrough(varcou[i])
+				}
+				break;
+			case (match[7] == "<" && match[8] == "="):
+				if (varcou[i] < match[9] || varcou[i] == match[9])
+					varsu++;
+				else {
+					console.log('03: ', varcou[i])
+
+					varcou[i] = strikeThrough(varcou[i])
+				}
+				break;
+			case (match[7] == ">" && match[8] == "="):
+				if (varcou[i] > match[9] || varcou[i] == match[9])
+					varsu++;
+				else {
+					console.log('04: ', varcou[i])
+
+					varcou[i] = strikeThrough(varcou[i])
+				}
+				break;
+			case (match[7] == "" && match[8] == "="):
+				if (varcou[i] == match[9])
+					varsu++;
+				else {
+					console.log('05: ', varcou[i])
+					console.log('match[7]: ', match[7])
+					varcou[i] = strikeThrough(varcou[i])
+				}
+				break;
+			default:
+				break;
 		}
 	}
-	returnStr += ' → ' + varcou;
+	returnStr += ' → ' + varcou.join(', ');
 	if (match[5]) returnStr += ' → 成功數' + varsu
 	if (text) returnStr += ' ；　' + text
 	rply.text = returnStr;
@@ -262,4 +302,11 @@ function xUy(triggermsg, text01, text02, text03) {
 	}
 	rply.text = returnStr;
 	return rply;
+}
+function strikeThrough(text) {
+	if (text)
+		return text.toString()
+			.split('')
+			.map(char => '\u0336' + char + '\u0336')
+			.join('')
 }

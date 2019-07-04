@@ -26,12 +26,13 @@ try {
         \n 例如輸入 .ra add 九大陣營 守序善良 (...太長省略) 中立邪惡 混亂邪惡 \
         \n 再輸入.ra 九大陣營  就會輸出 九大陣營中其中一個\
         \n 如果輸入.ra3 九大陣營  就會輸出 3次九大陣營\
+        \n 如果輸入.ra3 九大陣營 天干 地支 就會輸出 3次九大陣營 天干 地支\
         \n add 後面第一個是關鍵字, 可以是漢字,數字和英文或emoji\
         \n P.S.如果沒立即生效 用.ra show 刷新一下\
     \n 輸入.ra add (關鍵字) (選項1) (選項2) (選項3)即可增加關鍵字\
     \n 輸入.ra show 顯示所有關鍵字\
     \n 輸入.ra del(編號)或all 即可刪除\
-    \n 輸入.ra(次數,最多30次) (關鍵字) 即可隨機抽選 \
+    \n 輸入.ra(次數,最多30次) (關鍵字1)(關鍵字2)(關鍵字n) 即可隨機抽選 \
     \n 如使用輸入.rap 會變成全服版,全服可看, 可用add show功能 \
     \n 例如輸入 .rap10 聖晶石召喚 即可十連抽了 \
     \n "
@@ -192,26 +193,28 @@ try {
                             if (rply.randomAnsfunction[i].groupid == groupid) {
                                 // console.log(rply.randomAnsfunction[i])
                                 //rply.text += '自定義關鍵字列表:'
-                                for (var a = 0; a < rply.randomAnsfunction[i].randomAnsfunction.length; a++) {
-                                    if (rply.randomAnsfunction[i].randomAnsfunction[a][0].toLowerCase() == mainMsg[1].toLowerCase()) {
-                                        temp = 1
-                                        let temptitle = rply.randomAnsfunction[i].randomAnsfunction[a][0];
-                                        let tempcontact = [...rply.randomAnsfunction[i].randomAnsfunction[a]];
-                                        tempcontact.shift();
-                                        rply.text = temptitle + ' → ';
-                                        let result = [];
+                                for (let aa = 1; aa < mainMsg.length; aa++)
+                                    for (var a = 0; a < rply.randomAnsfunction[i].randomAnsfunction.length; a++) {
+                                        if (rply.randomAnsfunction[i].randomAnsfunction[a][0].toLowerCase() == mainMsg[aa].toLowerCase()) {
+                                            temp = 1
+                                            let temptitle = rply.randomAnsfunction[i].randomAnsfunction[a][0];
+                                            let tempcontact = [...rply.randomAnsfunction[i].randomAnsfunction[a]];
+                                            tempcontact.shift();
+                                            rply.text += temptitle + ' → ';
+                                            let result = [];
 
 
-                                        for (; result.length < times;) {
-                                            result = result.concat(shuffle([...tempcontact]))
+                                            for (; result.length < times;) {
+                                                result = result.concat(shuffle([...tempcontact]))
+                                            }
+                                            rply.text += result[0];
+                                            for (let t = 1; t < times; t++) {
+                                                rply.text += ' , ' + result[t];
+                                            }
+                                            rply.text += '\n'
                                         }
-                                        rply.text += result[0];
-                                        for (let t = 1; t < times; t++) {
-                                            rply.text += ' , ' + result[t];
-                                        }
+
                                     }
-
-                                }
                             }
                         }
                     if (temp == 0) rply.text = '沒有相關關鍵字. '
@@ -310,13 +313,14 @@ try {
                 let temp2 = 0;
                 if (rply.randomAnsAllgroup)
                     for (var i = 0; i < rply.randomAnsAllgroup.length; i++) {
+                        for (let aa = 1; aa < mainMsg.length; aa++)
                         for (var a = 0; a < rply.randomAnsAllgroup[i].randomAnsAllgroup.length; a++) {
-                            if (rply.randomAnsAllgroup[i].randomAnsAllgroup[a][0].toLowerCase() == mainMsg[1].toLowerCase()) {
+                            if (rply.randomAnsAllgroup[i].randomAnsAllgroup[a][0].toLowerCase() == mainMsg[aa].toLowerCase()) {
                                 temp2 = 1
                                 let GPtemp = rply.randomAnsAllgroup[i].randomAnsAllgroup[a];
                                 let GPtempcontact = [...rply.randomAnsAllgroup[i].randomAnsAllgroup[a]];
                                 GPtempcontact.shift();
-                                rply.text = GPtemp[0] + ' → ';
+                                rply.text += GPtemp[0] + ' → ';
                                 let result = [];
                                 for (; result.length < timesgp;) {
                                     result = result.concat(shuffle([...GPtempcontact]))
@@ -325,6 +329,7 @@ try {
                                 for (let t = 1; t < timesgp; t++) {
                                     rply.text += ' , ' + result[t];
                                 }
+                                rply.text += '\n';
                             }
                         }
                     }

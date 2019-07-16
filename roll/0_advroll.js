@@ -146,9 +146,9 @@ function xBy(triggermsg, text01, text02) {
 	//	console.log('dd')
 	let match = /^((\d+)(b)(\d+))(|(([<]|[>]|)(|[=]))(\d+))$/i.exec(triggermsg);
 	//判斷式 0:"5b10<=80" 1:"5b10" 2:"5" 3:"b" 4:"10" 5:"<=80" 6:"<=" 	7:"<" 8:"=" 	9:"80"
-	console.log('match', match)
+	//console.log('match', match)
 	let match01 = /^((|d)(\d+))$/i.exec(text01);
-	console.log('match01', match01)
+	//console.log('match01', match01)
 	//判斷式 0:"d5"  1:"d5" 2:"d" 3:"5" 
 	let text = "";
 	if (text01) text = text01
@@ -188,7 +188,7 @@ function xBy(triggermsg, text01, text02) {
 				if (varcou[i] < match[9])
 					varsu++;
 				else {
-					console.log('01: ', varcou[i])
+					//console.log('01: ', varcou[i])
 					varcou[i] = strikeThrough(varcou[i])
 				}
 				break;
@@ -196,7 +196,7 @@ function xBy(triggermsg, text01, text02) {
 				if (varcou[i] > match[9])
 					varsu++;
 				else {
-					console.log('02: ', varcou[i])
+				//	console.log('02: ', varcou[i])
 
 					varcou[i] = strikeThrough(varcou[i])
 				}
@@ -205,7 +205,7 @@ function xBy(triggermsg, text01, text02) {
 				if (varcou[i] < match[9] || varcou[i] == match[9])
 					varsu++;
 				else {
-					console.log('03: ', varcou[i])
+				//	console.log('03: ', varcou[i])
 
 					varcou[i] = strikeThrough(varcou[i])
 				}
@@ -214,7 +214,7 @@ function xBy(triggermsg, text01, text02) {
 				if (varcou[i] > match[9] || varcou[i] == match[9])
 					varsu++;
 				else {
-					console.log('04: ', varcou[i])
+				//	console.log('04: ', varcou[i])
 
 					varcou[i] = strikeThrough(varcou[i])
 				}
@@ -223,8 +223,8 @@ function xBy(triggermsg, text01, text02) {
 				if (varcou[i] == match[9])
 					varsu++;
 				else {
-					console.log('05: ', varcou[i])
-					console.log('match[7]: ', match[7])
+				//	console.log('05: ', varcou[i])
+				//	console.log('match[7]: ', match[7])
 					varcou[i] = strikeThrough(varcou[i])
 				}
 				break;

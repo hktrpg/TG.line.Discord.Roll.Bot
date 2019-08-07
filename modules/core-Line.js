@@ -98,10 +98,10 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		}
 		if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 			//mainMsg.shift()
-			rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, exports.analytics.stop)
+			rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line")
 		} else {
 			if (channelKeyword == '') {
-				rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, exports.analytics.stop)
+				rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line")
 
 			}
 

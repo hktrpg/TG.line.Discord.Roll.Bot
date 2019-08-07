@@ -80,10 +80,10 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
                 trigger = mainMsg[0].toString().toLowerCase()
             }
             if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
-                rplyVal = exports.analytics.parseInput(mainMsg.join(' '), '', '', '', exports.analytics.stop)
+                rplyVal = exports.analytics.parseInput(mainMsg.join(' '), '', '', '', "www")
             } else {
                 if (channelKeyword == '') {
-                    rplyVal = exports.analytics.parseInput(mainMsg.join(' '), '', '', '', exports.analytics.stop)
+                    rplyVal = exports.analytics.parseInput(mainMsg.join(' '), '', '', '',"www")
 
                 }
 

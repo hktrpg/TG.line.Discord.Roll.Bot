@@ -34,7 +34,7 @@ try {
 		//console.log('mainMsgAA',mainMsg)
 		if (stopmark != 1) {
 			result = rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, stopmark)
-			console.log("OK")
+			//console.log("OK")
 		}
 
 		//z_saveCommand 功能

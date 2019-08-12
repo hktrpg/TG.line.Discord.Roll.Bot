@@ -25,6 +25,7 @@ prefixs = function () {
 }
 getHelpMessage = function () {
 	return "【Double Cross 2nd,3rd】" + "\
+	\n・啓動語 .dx (指令) 如 .dx xDX+y\
 	\n・判定コマンド　(.dx xDX+y@c or xDXc+y)\
     　\n (個数)DX(修正)@(クリティカル値) もしくは (個数)DX(クリティカル値)(修正)で指定します。\
     　\n加算減算のみ修正値も付けられます。\

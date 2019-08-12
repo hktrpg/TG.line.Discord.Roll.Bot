@@ -24,6 +24,7 @@ prefixs = function () {
 }
 getHelpMessage = function () {
     return "【朱の孤塔のエアゲトラム】" + "\
+    \n・啓動語 .al (指令) 如 .al nALx*p\
 	\n・命中判定\
     \n.al [n]AL[X]*[p]：「n」で連射数を指定、「X」で目標値を指定、「p」で威力を指定。\
     \n「*」は「x」でも代用化。\

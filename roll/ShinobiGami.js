@@ -24,6 +24,7 @@ prefixs = function () {
 }
 getHelpMessage = function () {
     return "【忍神 ShinobiGami】" + "\
+    \n・啓動語 .sg (指令) 如 .sg ST\
 	\n・(無印)シーン表　ST／ファンブル表　FT／感情表　ET\
     　　　\n／変調表　WT／戦場表　BT／異形表　MT／ランダム特技決定表　RTT\
     　\n・(弐)都市シーン表　CST／館シーン表　　MST／出島シーン表　DST\

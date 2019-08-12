@@ -25,6 +25,7 @@ prefixs = function () {
 }
 getHelpMessage = function () {
     return "【劍世界2.5】" + "\
+    \n・啓動語 .sw (指令) 如 .sw K20\
 	\n  自動的成功、成功、失敗、自動的失敗の自動判定を行います。\
 \n\
    \n ・レーティング表　(Kx)\

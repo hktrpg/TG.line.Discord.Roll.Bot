@@ -25,6 +25,7 @@ prefixs = function () {
 }
 getHelpMessage = function () {
     return "【亞俠必死的冒險】" + "\
+    \n・啓動語 .ss (指令) 如 .ss nR>=x\
 	\n  ・判定コマンド　(nR>=x[y,z,c] or nR>=x or nR>=[,,c] etc)\
     \n　nが最大ロール回数、xが難易度、yが目標成功度、zがファンブル値、cが必殺値。\
     \n　y と z と c は省略可能です。(省略時、y＝無制限、z＝1、c=13(なし))\

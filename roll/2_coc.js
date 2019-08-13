@@ -6,14 +6,14 @@ var rply = {
 };
 
 gameName = function () {
-	return '克蘇魯神話 cc cc(n)1~2 ccb ccrt ccsu .dp 成長檢定 cc7版創角'
+	return '克蘇魯神話 cc cc(n)1~2 ccb ccrt ccsu .dp .cc7build .cc6build .cc7bg'
 }
 
 gameType = function () {
 	return 'CoC:hktrpg'
 }
 prefixs = function () {
-	return [/(^ccrt$)|(^ccsu$)|(^cc7版創角$)|(^cc6版創角$)|(^cc7版角色背景$)/i, ,
+	return [/(^ccrt$)|(^ccsu$)|(^cc7版創角$)|(^[.]cc7build$)|(^[.]cc6build$)|(^[.]cc7bg$)|(^cc6版創角$)|(^cc7版角色背景$)/i, ,
 		/(^ccb$)|(^cc$)|(^ccn[1-2]$)|(^cc[1-2]$)|(^[.]dp$)|(^成長檢定$)|(^幕間成長$)/i, /^(\d+)|(help)$/i]
 }
 getHelpMessage = function () {
@@ -24,11 +24,11 @@ getHelpMessage = function () {
 	\ncoc7版懲罰骰： ccn(1~2) ccn2 80 兩粒懲罰骰 \
 	\ncoc7版 即時型瘋狂： 啓動語 ccrt  \
 	\ncoc7版 總結型瘋狂： 啓動語 ccsu  \
-	\ncoc6版創角： 啓動語 cc6版創角 \
-	\ncoc7版創角： 啓動語 cc7版創角 (歲數) \
+	\ncoc6版創角： 啓動語 .cc6build \
+	\ncoc7版創角： 啓動語 .cc7build (歲數) \
 	\ncoc7 成長或增長檢定： .dp 或 成長檢定 或 幕間成長 (技能%) (名稱) \
 	\n例）.DP 50 騎馬 | 成長檢定 45 頭槌 | 幕間成長 40 單車\
-	\ncoc7版角色背景隨機生成： 啓動語 cc7版角色背景 \
+	\ncoc7版角色背景隨機生成： 啓動語 .cc7bg \
 		\n "
 }
 initialize = function () {
@@ -59,11 +59,11 @@ rollDiceCommand = function (inputStr, mainMsg) {
 	if (trigger == 'ccn2' && mainMsg[1] <= 1000) return coc7bp(mainMsg[1], '-2', mainMsg[2]);
 
 
-	if (trigger.match(/(^cc7版創角$)/i) != null) return build7char(mainMsg[1]);
+	if (trigger.match(/(^cc7版創角$)|(^[.]cc7build$)/i) != null) return build7char(mainMsg[1]);
 
-	if (trigger.match(/(^cc6版創角$)/i) != null) return build6char(mainMsg[1]);
+	if (trigger.match(/(^cc6版創角$)|(^[.]cc6build$)/i) != null) return build6char(mainMsg[1]);
 
-	if (trigger.match(/^cc7版角色背景$/i) != null) return PcBG();
+	if (trigger.match(/(^cc7版角色背景$)|(^[.]cc7bg$)/i) != null) return PcBG();
 
 	return;
 

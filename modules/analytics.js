@@ -117,7 +117,7 @@ try {
 
 
 			if (findprefixs == 1) {
-				console.log('trigger: ', trigger)
+				console.log('trigger: ', inputStr)
 				let tempsave = exports[v].rollDiceCommand(inputStr, mainMsg, groupid, userid, userrole)
 				if (tempsave)
 					Object.keys(tempsave).forEach(v => {

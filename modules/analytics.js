@@ -47,7 +47,7 @@ try {
 			//console.log('inputStr2: ', inputStr)
 			result.text = ""
 			//檢查是不是要停止
-			z_stop();
+			z_stop(mainMsg, groupid);
 			result = rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger)
 			console.log('inputStr2: ', inputStr)
 		}
@@ -74,6 +74,7 @@ try {
 
 	function rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger) {
 		//在下面位置開始分析trigger
+		if (!groupid) groupid = 0
 		var breakFlag = false;
 		Object.keys(exports).forEach(v => {
 			if (breakFlag === true) {

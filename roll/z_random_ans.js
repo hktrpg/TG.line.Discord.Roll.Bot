@@ -18,7 +18,7 @@ try {
         return 'randomAns:hktrpg'
     }
     prefixs = function () {
-        return [/(^[.]ra(\d+|p|p\d+|)$)/ig,]
+        return [/(^[.]ra(\d+|p|p\d+|)$)/ig, ]
     }
     getHelpMessage = function () {
         return "【自定義回應功能】" + "\
@@ -50,6 +50,7 @@ try {
             case /^help$/i.test(mainMsg[1]):
                 rply.text = this.getHelpMessage();
                 return rply;
+                break;
 
             case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
                 //
@@ -95,7 +96,7 @@ try {
                         rply.text += ' 只有GM以上才可新增.'
                 }
                 return rply;
-
+                break;
             case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
                 //    
                 //刪除所有自定義關鍵字
@@ -122,6 +123,7 @@ try {
                 }
 
                 return rply;
+                break;
             case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
                 //
                 //刪除自定義關鍵字
@@ -150,7 +152,7 @@ try {
                         rply.text += '只有GM以上才可刪除. '
                 }
                 return rply;
-
+                break;
             case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
                 //
                 //顯示列表
@@ -177,6 +179,7 @@ try {
                 //顯示自定義關鍵字
                 rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
                 return rply
+                break;
             case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
                 //
                 //RA使用抽選功能
@@ -222,6 +225,7 @@ try {
                     rply.text = '不在群組. '
                 }
                 return rply;
+                break;
             case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
                 //
                 //增加
@@ -258,30 +262,31 @@ try {
                         rply.text += ' 沒有自定義回應,至少兩個.'
                 }
                 return rply;
-            /* case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
-                 //刪除自定義關鍵字
-                 if (mainMsg[2] && rply.randomAnsAllgroup) {
-                     for (var i = 0; i < rply.randomAnsAllgroup.length; i++) {
-                         if (mainMsg[2] < rply.randomAnsAllgroup[i].randomAnsAllgroup.length && mainMsg[2] >= 0) {
-                             let temp = rply.randomAnsAllgroup[i]
-                             temp.randomAnsAllgroup.splice(mainMsg[2], 1)
-                             //console.log('rply.randomAnsAllgroup: ', temp)
-                             records.setrandomAnsAllgroup('randomAnsAllgroup', temp, () => {
-                                 records.get('randomAnsAllgroup', (msgs) => {
-                                     rply.randomAnsAllgroup = msgs
+                /* case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
+                     //刪除自定義關鍵字
+                     if (mainMsg[2] && rply.randomAnsAllgroup) {
+                         for (var i = 0; i < rply.randomAnsAllgroup.length; i++) {
+                             if (mainMsg[2] < rply.randomAnsAllgroup[i].randomAnsAllgroup.length && mainMsg[2] >= 0) {
+                                 let temp = rply.randomAnsAllgroup[i]
+                                 temp.randomAnsAllgroup.splice(mainMsg[2], 1)
+                                 //console.log('rply.randomAnsAllgroup: ', temp)
+                                 records.setrandomAnsAllgroup('randomAnsAllgroup', temp, () => {
+                                     records.get('randomAnsAllgroup', (msgs) => {
+                                         rply.randomAnsAllgroup = msgs
+                                     })
                                  })
-                             })
+                             }
+                             rply.text = '刪除成功: ' + mainMsg[2]
                          }
-                         rply.text = '刪除成功: ' + mainMsg[2]
-                     }
-                 } else {
-                     rply.text = '刪除失敗.'
-                     if (!mainMsg[2])
-                         rply.text += '沒有關鍵字. '
+                     } else {
+                         rply.text = '刪除失敗.'
+                         if (!mainMsg[2])
+                             rply.text += '沒有關鍵字. '
 
-                 }
-                 return rply;
-                 */
+                     }
+                     return rply;
+                     */
+                break;
             case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
                 //
                 //顯示列表
@@ -303,6 +308,7 @@ try {
                 //顯示自定義關鍵字
                 rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
                 return rply
+                break;
             case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[0]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
                 //
                 //RAP顯示抽選功能
@@ -314,27 +320,28 @@ try {
                 if (rply.randomAnsAllgroup)
                     for (var i = 0; i < rply.randomAnsAllgroup.length; i++) {
                         for (let aa = 1; aa < mainMsg.length; aa++)
-                        for (var a = 0; a < rply.randomAnsAllgroup[i].randomAnsAllgroup.length; a++) {
-                            if (rply.randomAnsAllgroup[i].randomAnsAllgroup[a][0].toLowerCase() == mainMsg[aa].toLowerCase()) {
-                                temp2 = 1
-                                let GPtemp = rply.randomAnsAllgroup[i].randomAnsAllgroup[a];
-                                let GPtempcontact = [...rply.randomAnsAllgroup[i].randomAnsAllgroup[a]];
-                                GPtempcontact.shift();
-                                rply.text += GPtemp[0] + ' → ';
-                                let result = [];
-                                for (; result.length < timesgp;) {
-                                    result = result.concat(shuffle([...GPtempcontact]))
+                            for (var a = 0; a < rply.randomAnsAllgroup[i].randomAnsAllgroup.length; a++) {
+                                if (rply.randomAnsAllgroup[i].randomAnsAllgroup[a][0].toLowerCase() == mainMsg[aa].toLowerCase()) {
+                                    temp2 = 1
+                                    let GPtemp = rply.randomAnsAllgroup[i].randomAnsAllgroup[a];
+                                    let GPtempcontact = [...rply.randomAnsAllgroup[i].randomAnsAllgroup[a]];
+                                    GPtempcontact.shift();
+                                    rply.text += GPtemp[0] + ' → ';
+                                    let result = [];
+                                    for (; result.length < timesgp;) {
+                                        result = result.concat(shuffle([...GPtempcontact]))
+                                    }
+                                    rply.text += result[0];
+                                    for (let t = 1; t < timesgp; t++) {
+                                        rply.text += ' , ' + result[t];
+                                    }
+                                    rply.text += '\n';
                                 }
-                                rply.text += result[0];
-                                for (let t = 1; t < timesgp; t++) {
-                                    rply.text += ' , ' + result[t];
-                                }
-                                rply.text += '\n';
                             }
-                        }
                     }
                 if (temp2 == 0) rply.text = '沒有相關關鍵字. '
                 return rply;
+                break;
             default:
                 break;
         }
@@ -342,7 +349,8 @@ try {
 
 
     function shuffle(array) {
-        let currentIndex = array.length, temporaryValue, randomIndex;
+        let currentIndex = array.length,
+            temporaryValue, randomIndex;
 
         // While there remain elements to shuffle...
         while (0 !== currentIndex) {

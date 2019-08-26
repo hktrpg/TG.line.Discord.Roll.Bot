@@ -26,7 +26,10 @@ initialize = function () {
 }
 
 rollDiceCommand = function (inputStr, mainMsg) {
-	return wod(mainMsg[0], mainMsg[1]);
+	let matchwod = /^[.](\d+)(wd|wod)(\d|)((\+|-)(\d+)|)$/i.exec(inputStr);	//判斷式  [0]3wd8+10,[1]3,[2]wd,[3]8,[4]+10,[5]+,[6]10  
+	if (matchwod && matchwod[1] > 1 && matchwod[1] <= 5000)
+		return wod(mainMsg[0], mainMsg[1]);
+	else return null;
 }
 
 

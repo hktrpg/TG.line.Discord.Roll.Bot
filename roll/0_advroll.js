@@ -59,9 +59,17 @@ rollDiceCommand = function (inputStr, mainMsg) {
 		case /^d66s$/i.test(mainMsg[0]):
 			return d66s(mainMsg[1])
 		case /^((\d+)(b)(\d+))(|(([<]|[>]|)(|[=]))(\d+))$/i.test(mainMsg[0]):
-			return xBy(mainMsg[0], mainMsg[1], mainMsg[2])
+			let matchxby = /^((\d+)(b)(\d+))(|(([<]|[>]|)(|[=]))(\d+))$/i.exec(mainMsg[0]);
+			//判斷式 0:"5b10<=80" 1:"5b10" 2:"5" 3:"b" 4:"10" 5:"<=80" 6:"<=" 	7:"<" 8:"=" 	9:"80"
+			//console.log('match', match)
+			if (matchxby && matchxby[4] > 1 && matchxby[2] > 0 && matchxby[2] <= 5000)
+				return xBy(mainMsg[0], mainMsg[1], mainMsg[2])
+			break;
 		case /^(\d+)(u)(\d+)$/i.test(mainMsg[0]) && mainMsg[1] <= 10000:
-			return xUy(mainMsg[0], mainMsg[1], mainMsg[2], mainMsg[3]);
+			let matchxuy = /^(\d+)(u)(\d+)/i.exec(mainMsg[0]); //判斷式  5u19,5,u,19, 
+			if (matchxuy && matchxuy[1] > 0 && matchxuy[1] <= 5000)
+				return xUy(mainMsg[0], mainMsg[1], mainMsg[2], mainMsg[3]);
+			break;
 		default:
 			break;
 	}
@@ -196,7 +204,7 @@ function xBy(triggermsg, text01, text02) {
 				if (varcou[i] > match[9])
 					varsu++;
 				else {
-				//	console.log('02: ', varcou[i])
+					//	console.log('02: ', varcou[i])
 
 					varcou[i] = strikeThrough(varcou[i])
 				}
@@ -205,7 +213,7 @@ function xBy(triggermsg, text01, text02) {
 				if (varcou[i] < match[9] || varcou[i] == match[9])
 					varsu++;
 				else {
-				//	console.log('03: ', varcou[i])
+					//	console.log('03: ', varcou[i])
 
 					varcou[i] = strikeThrough(varcou[i])
 				}
@@ -214,7 +222,7 @@ function xBy(triggermsg, text01, text02) {
 				if (varcou[i] > match[9] || varcou[i] == match[9])
 					varsu++;
 				else {
-				//	console.log('04: ', varcou[i])
+					//	console.log('04: ', varcou[i])
 
 					varcou[i] = strikeThrough(varcou[i])
 				}
@@ -223,8 +231,8 @@ function xBy(triggermsg, text01, text02) {
 				if (varcou[i] == match[9])
 					varsu++;
 				else {
-				//	console.log('05: ', varcou[i])
-				//	console.log('match[7]: ', match[7])
+					//	console.log('05: ', varcou[i])
+					//	console.log('match[7]: ', match[7])
 					varcou[i] = strikeThrough(varcou[i])
 				}
 				break;

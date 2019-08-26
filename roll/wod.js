@@ -78,7 +78,7 @@ function wod(triggermsg, text) {
 	}
 	returnStr = returnStr.replace(/[,][ ]$/, '] → ' + varsu + '成功');
 	if (text != null) {
-		console.log(returnStr)
+		//console.log(returnStr)
 		returnStr += ' ; ' + text;
 	}
 	rply.text = returnStr;

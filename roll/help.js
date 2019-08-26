@@ -36,7 +36,7 @@ prefixs = function () {
 }
 getHelpMessage = function () {
 	return "【HKTRPG擲骰BOT】" + version + "\
-\n2019/07/22 香港警黑合作 黑ICON紀念\
+\n2019/07/21 香港克警合作 黑ICON紀念\
 	\n  \
 	\n 暗骰功能 在指令前輸入dr 結果會私訊你\
 \n【基本擲骰】1d100\

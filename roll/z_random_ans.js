@@ -184,7 +184,6 @@ try {
                 //
                 //RA使用抽選功能
                 //
-                if()
                 let times = /^[.]ra(\d+|)/i.exec(mainMsg[0])[1] || 1
                 if (times > 30) times = 30;
                 if (times < 1) times = 1

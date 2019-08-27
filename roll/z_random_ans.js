@@ -184,7 +184,8 @@ try {
                 //
                 //RA使用抽選功能
                 //
-                let times = /^[.]ra(\d+|)/.exec(mainMsg[0])[1] || 1
+                if()
+                let times = /^[.]ra(\d+|)/i.exec(mainMsg[0])[1] || 1
                 if (times > 30) times = 30;
                 if (times < 1) times = 1
                 //console.log(times)
@@ -313,7 +314,7 @@ try {
                 //
                 //RAP顯示抽選功能
                 //
-                let timesgp = /^[.]rap(\d+|)/.exec(mainMsg[0])[1] || 1
+                let timesgp = /^[.]rap(\d+|)/i.exec(mainMsg[0])[1] || 1
                 if (timesgp > 30) timesgp = 30;
                 if (timesgp < 1) timesgp = 1
                 let temp2 = 0;

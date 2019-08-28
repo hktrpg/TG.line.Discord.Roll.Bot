@@ -18,7 +18,7 @@ try {
         return 'randomAns:hktrpg'
     }
     prefixs = function () {
-        return [/(^[.]ra(\d+|p|p\d+|)$)/ig, ]
+        return [/(^[.]ra(\d+|p|p\d+|)$)/ig,]
     }
     getHelpMessage = function () {
         return "【自定義回應功能】" + "\
@@ -56,6 +56,7 @@ try {
                 //
                 //增加自定義關鍵字
                 //
+                if (!mainMsg[2]) return;
                 let checkifsamename = 0
                 if (groupid && userrole >= 1 && mainMsg[3] && mainMsg[4]) {
                     if (rply.randomAnsfunction)
@@ -230,6 +231,7 @@ try {
                 //
                 //增加
                 //
+                if (!mainMsg[2]) return;
                 let checkifsamenamegroup = 0
                 if (rply.randomAnsAllgroup)
                     for (var i = 0; i < rply.randomAnsAllgroup.length; i++) {

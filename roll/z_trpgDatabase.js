@@ -52,6 +52,7 @@ try {
             case /(^[.]db$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
                 //增加資料庫
                 //檢查有沒有重覆
+                if (!mainMsg[2]) return;
                 let checkifsamename = 0
                 if (groupid && userrole >= 1 && mainMsg[3]) {
                     if (rply.trpgDatabasefunction)
@@ -204,6 +205,7 @@ try {
                 rply.text = rply.text.replace(/\,/mg, ' ')
                 return rply;
             case /(^[.]dbp$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
+                if (!mainMsg[2]) return;
                 let checkifsamenamegroup = 0
                 if (rply.trpgDatabaseAllgroup)
                     if (rply.trpgDatabaseAllgroup[0].trpgDatabaseAllgroup[0])

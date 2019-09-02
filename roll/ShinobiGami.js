@@ -25,20 +25,18 @@ prefixs = function () {
 getHelpMessage = function () {
     return "【忍神 ShinobiGami】" + "\
     \n・啓動語 .sg (指令) 如 .sg ST\
-	\n・(無印)シーン表　ST／ファンブル表　FT／感情表　ET\
-    　　　\n／変調表　WT／戦場表　BT／異形表　MT／ランダム特技決定表　RTT\
-    　\n・(弐)都市シーン表　CST／館シーン表　　MST／出島シーン表　DST\
-    　\n・(参)トラブルシーン表　TST／日常シーン表　NST／回想シーン表　KST\
-    　\n・(死)東京シーン表　TKST／戦国シーン表　GST\
-    　\n・(乱)戦国変調表　GWT\
-    　\n・(リプレイ戦1〜2巻)学校シーン表　GAST／京都シーン表　KYST\
-    　　　\n／神社仏閣シーン表　JBST\
-    　\n・(怪)怪ファンブル表　KFT／怪変調表　KWT\
-    　\n・（その他）秋空に雪舞えばシーン表　AKST／災厄シーン表　CLST\
-    　　\n／出島EXシーン表　DXST／斜歯ラボシーン表　HLST\
-    　　\n／夏の終わりシーン表　NTST／培養プラントシーン表　　PLST\
-    　　\n・忍秘伝　　中忍試験シーン表　HC/滅びの塔シーン表　HT/影の街でシーン表　HK\
-    　　\n/夜行列車シーン表　HY/病院シーン表　HO/龍動シーン表　HR/密室シーン表　HM/催眠シーン表　HS\
+    \n・ 各種表・(無印) 場景表 ST／ 大失敗表 FUMBLE／ 感情表 ET／ 變調表 WRONG／ \
+    \n戰場表 BT／ 異形表 MT／ 隨機特技決定表 RTT・(弐) 都市場景表 CITY／ \
+   \n 館場景表 MST／ 出島場景表 DST・(参) トラブル場景表 TST／ 日常場景表 NST／ \
+    \n回想場景表 KST・(死) 東京場景表 TKST／\
+     \n戰國場景表 GST・(乱) 戰国變調表 GWT・(リプレイ戰1〜 2 巻) 學校場景表 GAST／\
+      \n京都場景表 KYST／ 神社仏閣場景表 JBST・(怪) 怪ファンブル表 KFT／\
+       \n怪變調表 KWT・（ その他） 秋空に雪舞えば場景表 AKST／ 災厄場景表 CLST／\
+        \n出島EX場景表 DXST／ 斜歯ラボ場景表 HLST／ 夏の終わり場景表 NTST／ \
+        \n培養プラント場景表 PLST・ 忍秘伝 中忍試験場景表 HC／ \
+        \n滅びの塔場景表 HT／ 影の街で場景表 HK／ 夜行列車場景表 HY／\
+         \n病院場景表 HO／ 龍動場景表 HR／ 密室場景表 CHAMBER／ 催眠場景表 HS／ \
+         \n基地突破情景表 BASE／(自創) 遊樂場情景表 OMG／ 文化祭 SH／ 村 TW\
 		\n "
 }
 initialize = function () {

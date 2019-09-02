@@ -21,7 +21,7 @@ gameType = function () {
     return 'Satasupe:hktrpg'
 }
 prefixs = function () {
-    return [/^[.]ss$/i, /\S/]
+    return [/^[.]ss$/i, ]
 }
 getHelpMessage = function () {
     return "【亞俠必死的冒險】" + "\
@@ -59,7 +59,7 @@ rollDiceCommand = function (inputStr, mainMsg) {
     rply.text = '';
     let result = '';
     switch (true) {
-        case /^help$/i.test(mainMsg[1]):
+        case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
             return rply;
         default:

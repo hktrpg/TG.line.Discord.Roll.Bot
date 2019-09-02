@@ -22,7 +22,7 @@ gameType = function () {
 	return 'Nechronica:hktrpg'
 }
 prefixs = function () {
-	return [/(^[.]nc$)$/i, /\S/]
+	return [/(^[.]nc$)$/i, ]
 }
 getHelpMessage = function () {
 	return "【永遠的後日談 Nechronica】" + "\
@@ -49,7 +49,7 @@ rollDiceCommand = function (inputStr, mainMsg) {
 	rply.text = '';
 	let result = '';
 	switch (true) {
-		case /^help$/i.test(mainMsg[1]):
+		case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
 			rply.text = this.getHelpMessage();
 			return rply;
 		case /(^nm$)/i.test(mainMsg[1]):

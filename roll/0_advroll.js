@@ -42,7 +42,7 @@ rollDiceCommand = function (inputStr, mainMsg) {
 	rply.text = '';
 	//let result = {};
 	switch (true) {
-		case /^[.][c][a]$/i.test(mainMsg[0]) && /^help$/i.test(mainMsg[1]):
+		case /^[.][c][a]$/i.test(mainMsg[0]) && (/^help$/i.test(mainMsg[1]) || !mainMsg[1]):
 			rply.text = this.getHelpMessage();
 			return rply;
 		case /^[.][c][a]$/i.test(mainMsg[0]):

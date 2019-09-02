@@ -42,7 +42,7 @@ try {
         })
         rply.text = '';
         switch (true) {
-            case /^help$/i.test(mainMsg[1]):
+            case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
                 rply.text = this.getHelpMessage();
                 return rply;
 

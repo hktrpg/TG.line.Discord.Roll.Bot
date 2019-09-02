@@ -21,7 +21,7 @@ gameType = function () {
 	return 'UK:hktrpg'
 }
 prefixs = function () {
-return [/^[.]UK$/i, /.*UK.*/i]
+return [/^[.]UK$/i, ]
 }
 getHelpMessage = function () {
 	return "【歌風】" + "\
@@ -44,7 +44,7 @@ rollDiceCommand = function (inputStr, mainMsg) {
 	rply.text = '';
 	let result = '';
 	switch (true) {
-		case /^help$/i.test(mainMsg[1]):
+		case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
 			rply.text = this.getHelpMessage();
 			return rply;
 		case /.*UK.*/i.test(mainMsg[1]):

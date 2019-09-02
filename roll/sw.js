@@ -21,7 +21,7 @@ gameType = function () {
     return 'sw2.5:hktrpg'
 }
 prefixs = function () {
-    return [/^[.]sw$/i, /\S/]
+    return [/^[.]sw$/i, ]
 }
 getHelpMessage = function () {
     return "【劍世界2.5】" + "\
@@ -81,7 +81,7 @@ rollDiceCommand = function (inputStr, mainMsg) {
     rply.text = '';
     let result = '';
     switch (true) {
-        case /^help$/i.test(mainMsg[1]):
+        case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
             return rply;
         default:

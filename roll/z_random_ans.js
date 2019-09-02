@@ -18,7 +18,7 @@ try {
         return 'randomAns:hktrpg'
     }
     prefixs = function () {
-        return [/(^[.]ra(\d+|p|p\d+|)$)/ig,]
+        return [/(^[.]ra(\d+|p|p\d+|)$)/ig, ]
     }
     getHelpMessage = function () {
         return "【自定義回應功能】" + "\
@@ -47,7 +47,7 @@ try {
         })
         rply.text = '';
         switch (true) {
-            case /^help$/i.test(mainMsg[1]):
+            case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
                 rply.text = this.getHelpMessage();
                 return rply;
                 break;

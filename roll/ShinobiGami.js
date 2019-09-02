@@ -20,7 +20,7 @@ gameType = function () {
     return 'ShinobiGami:hktrpg'
 }
 prefixs = function () {
-    return [/^[.]sg$/i, /\S/]
+    return [/^[.]sg$/i, ]
 }
 getHelpMessage = function () {
     return "【忍神 ShinobiGami】" + "\
@@ -50,7 +50,7 @@ rollDiceCommand = function (inputStr, mainMsg) {
     let result = '';
 
     switch (true) {
-        case /^help$/i.test(mainMsg[1]):
+        case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
             return rply;
         default:

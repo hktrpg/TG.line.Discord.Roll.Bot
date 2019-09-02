@@ -20,7 +20,7 @@ gameType = function () {
     return 'Airgetlamh:hktrpg'
 }
 prefixs = function () {
-    return [/^[.]al$/i, /\S/]
+    return [/^[.]al$/i, ]
 }
 getHelpMessage = function () {
     return "【朱の孤塔のエアゲトラム】" + "\
@@ -39,7 +39,7 @@ rollDiceCommand = function (inputStr, mainMsg) {
     rply.text = '';
     let result = '';
     switch (true) {
-        case /^help$/i.test(mainMsg[1]):
+        case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
             return rply;
         default:

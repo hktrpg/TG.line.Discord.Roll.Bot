@@ -21,7 +21,7 @@ gameType = function () {
 	return 'Dx2,3:hktrpg'
 }
 prefixs = function () {
-	return [/^[.]dx$/i, /\S/]
+	return [/^[.]dx$/i,]
 }
 getHelpMessage = function () {
 	return "【Double Cross 2nd,3rd】" + "\
@@ -45,7 +45,7 @@ rollDiceCommand = function (inputStr, mainMsg) {
 	rply.text = '';
 	let result = '';
 	switch (true) {
-		case /^help$/i.test(mainMsg[1]):
+		case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
 			rply.text = this.getHelpMessage();
 			return rply;
 		case /(\d+dx|ET)/i.test(mainMsg[1]):

@@ -15,7 +15,7 @@ gameType = function () {
     return 'Kamigakari:hktrpg'
 }
 prefixs = function () {
-    return [/^[.]kk$/i, /\S/]
+    return [/^[.]kk$/i, ]
 }
 getHelpMessage = function () {
     return "【神我狩 Kamigakari】" + "\
@@ -37,7 +37,7 @@ rollDiceCommand = function (inputStr, mainMsg) {
     rply.text = '';
     //let result = {};
     switch (true) {
-        case /^help$/i.test(mainMsg[1]):
+        case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
             return rply;
         case /^MT(\d*)$|^RT$|^ET$|^NT$|^KT$/i.test(mainMsg[1]):

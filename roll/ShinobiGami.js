@@ -36,7 +36,6 @@ getHelpMessage = function () {
         \n培養プラント場景表 PLST・ 忍秘伝 中忍試験場景表 HC／ \
         \n滅びの塔場景表 HT／ 影の街で場景表 HK／ 夜行列車場景表 HY／\
          \n病院場景表 HO／ 龍動場景表 HR／ 密室場景表 CHAMBER／ 催眠場景表 HS／ \
-         \n基地突破情景表 BASE／(自創) 遊樂場情景表 OMG／ 文化祭 SH／ 村 TW\
 		\n "
 }
 initialize = function () {

@@ -89,7 +89,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 						message.channel.send(displayname + " 暗骰進行中");
 						async function loada() {
 							for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-								if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 1)
+								if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 2)
 									await message.author.send(rplyVal.text.toString().match(/[\s\S]{1,1900}/g)[i]);
 							}
 						}
@@ -97,7 +97,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					} else {
 						async function loadb() {
 							for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-								if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 1)
+								if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 2)
 									await message.channel.send(rplyVal.text.toString().match(/[\s\S]{1,1900}/g)[i])
 							}
 						}

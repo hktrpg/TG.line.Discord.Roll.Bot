@@ -55,8 +55,7 @@ try {
             case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
                 //
                 //增加自定義關鍵字
-                //
-                if (!mainMsg[2]) return;
+                // .ra[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
                 let checkifsamename = 0
                 if (groupid && userrole >= 1 && mainMsg[3] && mainMsg[4]) {
                     if (rply.randomAnsfunction)
@@ -102,6 +101,7 @@ try {
                 //    
                 //刪除所有自定義關鍵字
                 //
+                if (!mainMsg[2]) return;
                 if (groupid && mainMsg[2] && rply.randomAnsfunction && userrole >= 2) {
                     for (var i = 0; i < rply.randomAnsfunction.length; i++) {
                         if (rply.randomAnsfunction[i].groupid == groupid) {
@@ -231,9 +231,9 @@ try {
                 //
                 //增加
                 //
-                if (!mainMsg[2]) return;
+                
                 let checkifsamenamegroup = 0
-                if (rply.randomAnsAllgroup)
+                if (rply.randomAnsAllgroup && mainMsg[2] && mainMsg[3] && mainMsg[4])
                     for (var i = 0; i < rply.randomAnsAllgroup.length; i++) {
                         for (var a = 0; a < rply.randomAnsAllgroup[i].randomAnsAllgroup.length; a++) {
                             if (rply.randomAnsAllgroup[i].randomAnsAllgroup[a][0].toLowerCase() == mainMsg[2].toLowerCase()) {

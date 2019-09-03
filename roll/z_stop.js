@@ -48,7 +48,7 @@ if (process.env.mongoURL) {
 
             case /^add$/i.test(mainMsg[1]) && /^[\u4e00-\u9fa5a-zA-Z0-9]+$/ig.test(mainMsg[2]) && /^((?!^(b|k|bk)$).)*$/ig.test(mainMsg[2]):
                 //增加阻擋用關鍵字
-                if (!mainMsg[2]) return;
+                //if (!mainMsg[2]) return;
                 if (groupid && mainMsg[2] && userrole >= 2) {
                     let temp = {
                         groupid: groupid,

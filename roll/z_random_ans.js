@@ -56,9 +56,6 @@ try {
                 //
                 //增加自定義關鍵字
                 // .ra[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
-                if (!mainMsg[2]) return;
-                if (!mainMsg[3]) return;
-                if (!mainMsg[4]) return;
                 let checkifsamename = 0
                 if (groupid && userrole >= 1 && mainMsg[3] && mainMsg[4]) {
                     if (rply.randomAnsfunction)
@@ -234,11 +231,9 @@ try {
                 //
                 //增加
                 //
-                if (!mainMsg[2]) return;
-                if (!mainMsg[3]) return;
-                if (!mainMsg[4]) return;
+                
                 let checkifsamenamegroup = 0
-                if (rply.randomAnsAllgroup)
+                if (rply.randomAnsAllgroup && mainMsg[2] && mainMsg[3] && mainMsg[4])
                     for (var i = 0; i < rply.randomAnsAllgroup.length; i++) {
                         for (var a = 0; a < rply.randomAnsAllgroup[i].randomAnsAllgroup.length; a++) {
                             if (rply.randomAnsAllgroup[i].randomAnsAllgroup[a][0].toLowerCase() == mainMsg[2].toLowerCase()) {

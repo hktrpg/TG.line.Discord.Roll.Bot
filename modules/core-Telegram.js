@@ -86,7 +86,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 					//ctx.reply(ctx.message.from.first_name + ' 暗骰進行中')
 					async function loada() {
 						for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-							if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 1)
+							if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 1)
 								await ctx.telegram.sendMessage(ctx.message.from.id, rplyVal.text.toString().match(/[\s\S]{1,1900}/g)[i])
 						}
 					}
@@ -95,7 +95,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 
 					async function loadb() {
 						for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-							if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 1)
+							if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 1)
 								await ctx.reply(rplyVal.text.toString().match(/[\s\S]{1,1900}/g)[i])
 						}
 					}

@@ -53,6 +53,7 @@ try {
                 //增加資料庫
                 //檢查有沒有重覆
                 if (!mainMsg[2]) return;
+                if (!mainMsg[3]) return;
                 let checkifsamename = 0
                 if (groupid && userrole >= 1 && mainMsg[3]) {
                     if (rply.trpgDatabasefunction)

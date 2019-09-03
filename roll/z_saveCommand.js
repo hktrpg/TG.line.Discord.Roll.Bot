@@ -51,9 +51,9 @@ try {
                 //console.log('mainMsg: ', mainMsg)
                 //增加資料庫
                 //檢查有沒有重覆
-                if (!mainMsg[2]) return;
+                
                 let checkifsamename = 0
-                if (groupid && userrole >= 1 && mainMsg[3] && mainMsg[3].toLowerCase() != ".cmd") {
+                if (groupid && userrole >= 1 && mainMsg[3] && mainMsg[2] && mainMsg[3].toLowerCase() != ".cmd") {
                     if (rply.trpgCommandfunction)
                         for (var i = 0; i < rply.trpgCommandfunction.length; i++) {
                             if (rply.trpgCommandfunction[i].groupid == groupid) {

@@ -3,30 +3,30 @@
   "version": "1.0.0",
   "description": "Zetetic Line Discord Telegram Rolling Bot",
   "engines": {
-    "node": "^11",
-    "npm": "^6"
+    "node": "~11",
+    "npm": "~6"
   },
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "@line/bot-sdk": "^6.6.0",
-    "babel-core": "^7.0.0-0",
-    "bcdice-js": "^0.11.0",
-    "body-parser": "^1.15.2",
-    "bufferutil": "^3.0.3",
-    "discord.js": "^11.4.2",
-    "dotenv": "^7.0.0",
-    "event": "^1.0.0",
-    "express": "^4.13.3",
-    "mathjs": "^5.9.0",
-    "mongoose": "^5.0.6",
-    "telebot": "^1.2.6",
-    "telegraf": "^3.29.0",
-    "telegraf-getchatmembers": "^1.0.0",
-    "axios": "^0.18.0",
-    "socket.io": "^2.2.0"
+    "@line/bot-sdk": "~6.6.0",
+    "babel-core": "~7.0.0-0",
+    "bcdice-js": "~0.11.0",
+    "body-parser": "~1.15.2",
+    "bufferutil": "~3.0.3",
+    "discord.js": "~11.4.2",
+    "dotenv": "~7.0.0",
+    "event": "~1.0.0",
+    "express": "~4.13.3",
+    "mathjs": "~5.9.0",
+    "mongoose": "~5.0.6",
+    "telebot": "~1.2.6",
+    "telegraf": "~3.29.0",
+    "telegraf-getchatmembers": "~1.0.0",
+    "axios": "~0.18.0",
+    "socket.io": "~2.2.0"
   },
   "keywords": [
     "LeoLi",

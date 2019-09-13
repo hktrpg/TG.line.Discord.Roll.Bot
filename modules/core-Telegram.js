@@ -15,9 +15,9 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 		const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || ''
 		var TGcountroll = 0;
 		var TGcounttext = 0;
-		const telegrafGetChatMembers = require('telegraf-getchatmembers')
+		//const telegrafGetChatMembers = require('telegraf-getchatmembers')
 
-		TGclient.use(telegrafGetChatMembers)
+		//TGclient.use(telegrafGetChatMembers)
 
 		TGclient.on('text', async (ctx) => {
 			//console.log(ctx.getChatMembers(ctx.chat.id) //[Members]

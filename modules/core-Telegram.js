@@ -33,9 +33,9 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			if (ctx.message.chat.type == 'group') {
 				groupid = ctx.message.chat.id
 				if (ctx.chat && ctx.chat.id)
-					if ((telegrafGetChatMembers.check(ctx.chat.id) && telegrafGetChatMembers.check(ctx.chat.id)[0].status == ("creator" || "administrator")) || ctx.message.chat.all_members_are_administrators == true) {
+					if ((telegrafGetChatMembers.check(ctx.chat.id) && telegrafGetChatMembers.check(ctx.chat.id)[0] && telegrafGetChatMembers.check(ctx.chat.id)[0].status == ("creator" || "administrator")) || ctx.message.chat.all_members_are_administrators == true) {
 						userrole = 3
-						console.log(telegrafGetChatMembers.check(ctx.chat.id))
+						//console.log(telegrafGetChatMembers.check(ctx.chat.id))
 					}
 			}
 

@@ -15,9 +15,9 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 		const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || ''
 		var TGcountroll = 0;
 		var TGcounttext = 0;
-		//const telegrafGetChatMembers = require('telegraf-getchatmembers')
+		const telegrafGetChatMembers = require('telegraf-getchatmembers')
 
-		//TGclient.use(telegrafGetChatMembers)
+		TGclient.use(telegrafGetChatMembers)
 
 		TGclient.on('text', async (ctx) => {
 			//console.log(ctx.getChatMembers(ctx.chat.id) //[Members]
@@ -32,13 +32,17 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 
 			if (ctx.message.chat.type == 'group') {
 				groupid = ctx.message.chat.id
-				//if ((telegrafGetChatMembers.check(ctx.chat.id)[0].status == ("creator" || "administrator")) || ctx.message.chat.all_members_are_administrators == true) userrole = 3
+				if (ctx.chat && ctx.chat.id)
+					if ((telegrafGetChatMembers.check(ctx.chat.id) && telegrafGetChatMembers.check(ctx.chat.id)[0].status == ("creator" || "administrator")) || ctx.message.chat.all_members_are_administrators == true) {
+						userrole = 3
+						console.log(telegrafGetChatMembers.check(ctx.chat.id))
+					}
 			}
 
 
 			if (ctx.message.from.id) userid = ctx.message.from.id
 			//285083923223
-			userrole = 3
+			//userrole = 3
 			let rplyVal = {}
 			let msgSplitor = (/\S+/ig)
 			if (ctx.message.text && ctx.message.from.is_bot == false)

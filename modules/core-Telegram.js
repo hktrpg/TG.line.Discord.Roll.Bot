@@ -30,12 +30,12 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			//console.log('TG: ', message)
 
 
-			/* if (ctx.message.chat.type == 'group') {
+			if (ctx.message.chat.type == 'group') {
 				groupid = ctx.message.chat.id
-				if ((telegrafGetChatMembers.check(ctx.chat.id)[0].status == ("creator" || "administrator")) || ctx.message.chat.all_members_are_administrators == true) userrole = 3
+				//if ((telegrafGetChatMembers.check(ctx.chat.id)[0].status == ("creator" || "administrator")) || ctx.message.chat.all_members_are_administrators == true) userrole = 3
 			}
-			if (ctx.message.from.id) userid = ctx.message.from.id
-			*/
+
+
 			if (ctx.message.from.id) userid = ctx.message.from.id
 			//285083923223
 			userrole = 3

@@ -17,13 +17,14 @@ prefixs = function () {
 	return [/^[.][c][a]$/i, ,
 		/^d66s$|^d66$|^d66n$/i, ,
 		/^(\d+)(u)(\d+)$/i, /\d+/,
-		/^((\d+)(b)(\d+))(|(([<]|[>]|)(|[=]))(\d+))$/i,]
+		/^((\d+)(b)(\d+))(|(([<]|[>]|)(|[=]))(\d+))$/i,
+	]
 }
 getHelpMessage = function () {
 	return "【進階擲骰】" + "\
 	\n .ca 只進行數學計算 \
-	\n 例如: 1.2 * (2 + 4.5) ， 12.7 米 to inch \
-	\n sin(45 deg) ^ 2  5磅轉斤 10米轉呎\
+	\n 例如: .ca 1.2 * (2 + 4.5) ， 12.7 米 to inch \
+	\n sin(45 deg) ^ 2  5磅轉斤 10米轉呎 10米=吋\
 	\n D66 D66s D66n：	骰出D66 s數字小在前 n大在前\
 	\n 5B10：	不加總的擲骰 \
 	\n 5B10<>=x ：	如上,另外計算其中有多少粒大於小於X \
@@ -47,11 +48,12 @@ rollDiceCommand = function (inputStr, mainMsg) {
 			return rply;
 		case /^[.][c][a]$/i.test(mainMsg[0]):
 			try {
-				rply.text = mathjs.eval(inputStr.replace(/\.ca/i, '').replace(/磅/g, 'lb').replace(/公斤/g, 'kg').replace(/盎司/g, 'oz').replace(/英吋/g, 'inch').replace(/公分/g, 'cm').replace(/公釐/g, 'mm').replace(/克/g, 'g').replace(/公尺/g, 'm').replace(/碼/g, 'yd').replace(/桿/g, 'rd').replace(/英里/g, 'mi').replace(/千米/g, 'km').replace(/厘米/g, 'cm').replace(/毫米/g, 'mm').replace(/微米/g, 'µm').replace(/毫克/g, 'mg').replace(/公克/g, 'hg').replace(/斤/g, 'kg').replace(/米/g, 'm').replace(/英尺/g, 'ft').replace(/尺/g, 'ft').replace(/角度/g, 'deg').replace(/度/g, 'deg').replace(/呎/g, 'ft').replace(/吋/g, 'inch').replace(/轉換/g, ' to ').replace(/轉/g, ' to ').replace(/換/g, ' to '))
+				rply.text = mathjs.eval(inputStr.toLowerCase().replace(/\.ca/i, '').replace(/磅/g, 'lb').replace(/公斤/g, 'kg').replace(/盎司/g, 'oz').replace(/英吋/g, 'inch').replace(/公分/g, 'cm').replace(/公釐/g, 'mm').replace(/克/g, 'g').replace(/公尺/g, 'm').replace(/碼/g, 'yd').replace(/桿/g, 'rd').replace(/英里/g, 'mi').replace(/千米/g, 'km').replace(/厘米/g, 'cm').replace(/毫米/g, 'mm').replace(/微米/g, 'µm').replace(/毫克/g, 'mg').replace(/公克/g, 'hg').replace(/斤/g, 'kg').replace(/米/g, 'm').replace(/英尺/g, 'ft').replace(/尺/g, 'ft').replace(/角度/g, 'deg').replace(/度/g, 'deg').replace(/呎/g, 'ft').replace(/吋/g, 'inch').replace(/轉換/g, ' to ').replace(/轉/g, ' to ').replace(/換/g, ' to ').replace(/[=]/g, ' to '))
 				rply.text = inputStr.replace(/\.ca/i, '') + ' → ' + rply.text;
 			} catch (e) {
 				rply.text = e;
-			} return rply;
+			}
+			return rply;
 		case /^d66$/i.test(mainMsg[0]):
 			return d66(mainMsg[1]);
 		case /^d66n$/i.test(mainMsg[0]):
@@ -311,6 +313,7 @@ function xUy(triggermsg, text01, text02, text03) {
 	rply.text = returnStr;
 	return rply;
 }
+
 function strikeThrough(text) {
 	if (text)
 		return text.toString()

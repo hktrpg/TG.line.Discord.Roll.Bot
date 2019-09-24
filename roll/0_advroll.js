@@ -68,12 +68,12 @@ rollDiceCommand = function (inputStr, mainMsg) {
 			let matchxby = /^((\d+)(b)(\d+))(|(([<]|[>]|)(|[=]))(\d+))$/i.exec(mainMsg[0]);
 			//判斷式 0:"5b10<=80" 1:"5b10" 2:"5" 3:"b" 4:"10" 5:"<=80" 6:"<=" 	7:"<" 8:"=" 	9:"80"
 			//console.log('match', match)
-			if (matchxby && matchxby[4] > 1 && matchxby[2] > 0 && matchxby[2] <= 5000)
+			if (matchxby && matchxby[4] > 1 && matchxby[4] < 10000 && matchxby[2] > 0 && matchxby[2] <= 1000)
 				return xBy(mainMsg[0], mainMsg[1], mainMsg[2])
 			break;
 		case /^(\d+)(u)(\d+)$/i.test(mainMsg[0]) && mainMsg[1] <= 10000:
 			let matchxuy = /^(\d+)(u)(\d+)/i.exec(mainMsg[0]); //判斷式  5u19,5,u,19, 
-			if (matchxuy && matchxuy[1] > 0 && matchxuy[1] <= 5000)
+			if (matchxuy && matchxuy[1] > 0 && matchxuy[1] <= 1000 && matchxuy[3] > 0 && matchxuy[3] <= 10000)
 				return xUy(mainMsg[0], mainMsg[1], mainMsg[2], mainMsg[3]);
 			break;
 		default:

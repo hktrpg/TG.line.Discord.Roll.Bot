@@ -9,28 +9,28 @@ try {
         rply.trpgDarkRollingfunction = msgs
     })
     gameName = function () {
-        return '(公測中)暗骰GM功能 .drgm  (add del show 自定關鍵字)'
+        return '(公測中)暗骰GM功能 .drgm  (addgm del show)'
     }
     gameType = function () {
         return 'trpgDarkRolling:hktrpg'
     }
     prefixs = function () {
-        return [/(^[.]drgm$)/ig, ]
+        return [/(^[.]drgm$)/ig,]
     }
     getHelpMessage = function () {
-        return "【暗骰GM功能】.drgm .dr .ddr .dddr" + "\
+        return "【暗骰GM功能】.drgm dr ddr dddr" + "\
         \n 這是讓你可以私骰GM的功能,\
-        \n 例如輸入 .ddr cc 80 鬥毆 \
+        \n 例如輸入 ddr cc 80 鬥毆 \
         \n 就會把結果私訊GM及自己\
-        \n 例如輸入 .dddr cc 80 鬥毆 \
+        \n 例如輸入 dddr cc 80 鬥毆 \
         \n 就會把結果只私訊GM\
         \n P.S.如果沒立即生效 用.drgm show 刷新一下\
     \n 輸入.drgm addgm 即可成為GM\
     \n 輸入.drgm show 顯示所有GM\
     \n 輸入.drgm del(編號)或all 即可刪除\
-    \n 輸入.dr  (指令) 私訊自己 \
-    \n 輸入.ddr (指令) 私訊GM及自己\
-    \n 輸入.dddr(指令) 私訊GM\
+    \n 輸入dr  (指令) 私訊自己 \
+    \n 輸入ddr (指令) 私訊GM及自己\
+    \n 輸入dddr(指令) 私訊GM\
     \n "
     }
     initialize = function () {
@@ -48,10 +48,10 @@ try {
                 return rply;
                 break;
 
-            case /(^[.]drgm$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
+            case /(^[.]drgm$)/i.test(mainMsg[0]) && /^addgm$/i.test(mainMsg[1]):
                 //
                 //增加自定義關鍵字
-                // .ra[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
+                // .drgm[0] addgm[1] 代替名字[2]  
                 let checkifsamename = 0
                 if (groupid && userrole >= 1 && mainMsg[3] && mainMsg[4]) {
                     if (rply.trpgDarkRollingfunction)

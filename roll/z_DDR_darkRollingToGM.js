@@ -18,7 +18,7 @@ try {
         return [/(^[.]drgm$)/ig,]
     }
     getHelpMessage = function () {
-        return "【暗骰GM功能】.drgm .dr .ddr .dddr" + "\
+        return "【暗骰GM功能】.drgm dr ddr dddr" + "\
         \n 這是讓你可以私骰GM的功能,\
         \n 例如輸入 .ddr cc 80 鬥毆 \
         \n 就會把結果私訊GM及自己\
@@ -48,7 +48,7 @@ try {
                 return rply;
                 break;
 
-            case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
+            case /(^[.]drgm$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
                 //
                 //增加自定義關鍵字
                 // .ra[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
@@ -93,7 +93,7 @@ try {
                 }
                 return rply;
                 break;
-            case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
+            case /(^[.]drgm$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
                 //    
                 //刪除所有自定義關鍵字
                 //
@@ -121,7 +121,7 @@ try {
 
                 return rply;
                 break;
-            case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
+            case /(^[.]drgm$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
                 //
                 //刪除自定義關鍵字
                 //
@@ -150,7 +150,7 @@ try {
                 }
                 return rply;
                 break;
-            case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+            case /(^[.]drgm$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
                 //
                 //顯示列表
                 //
@@ -177,7 +177,7 @@ try {
                 rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
                 return rply
                 break;
-            case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
+            case /(^[.]drgm$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
                 //
                 //RA使用抽選功能
                 //

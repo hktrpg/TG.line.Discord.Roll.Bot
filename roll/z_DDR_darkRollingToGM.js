@@ -37,75 +37,75 @@ try {
         return rply;
     }
 
-    rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole) {
-        records.get('randomAns', (msgs) => {
-            rply.randomAnsfunction = msgs
+    rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, sourcename, channelid, displayname) {
+        records.get('trpgDarkRolling', (msgs) => {
+            rply.trpgDarkRollingfunction = msgs
         })
         rply.text = '';
         switch (true) {
             case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
                 rply.text = this.getHelpMessage();
                 return rply;
-                break;
-
-            case /(^[.]drgm$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
-                //
-                //增加自定義關鍵字
-                // .ra[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
+            // .drgm(0) addgm(1) GM名字(2) 
+            case /(^[.]drgm$)/i.test(mainMsg[0]) && /^addgm$/i.test(mainMsg[1]):
+                //console.log('mainMsg: ', mainMsg)
+                //增加資料庫
+                //檢查有沒有重覆
+                if (mainMsg && mainMsg[2])
+                    mainMsg[2] = ""
                 let checkifsamename = 0
-                if (groupid && userrole >= 1 && mainMsg[3] && mainMsg[4]) {
-                    if (rply.randomAnsfunction)
-                        for (var i = 0; i < rply.randomAnsfunction.length; i++) {
-                            if (rply.randomAnsfunction[i].groupid == groupid) {
+                if (groupid && userrole >= 1 && userid) {
+                    if (rply.trpgDarkRollingfunction)
+                        for (var i = 0; i < rply.trpgDarkRollingfunction.length; i++) {
+                            if (rply.trpgDarkRollingfunction[i].groupid == groupid) {
                                 // console.log('checked1')
-                                for (var a = 0; a < rply.randomAnsfunction[i].randomAnsfunction.length; a++) {
-                                    if (rply.randomAnsfunction[i].randomAnsfunction[a][0].toLowerCase() == mainMsg[2].toLowerCase()) {
-                                        //   console.log('checked')
-                                        checkifsamename = 1
+                                if (rply.trpgDarkRollingfunction[0] && rply.trpgDarkRollingfunction[0].trpgDarkRollingfunction[0])
+                                    for (var a = 0; a < rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
+                                        if (rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].topic == userid) {
+                                            //   console.log('checked')
+                                            checkifsamename = 1
+                                        }
                                     }
-                                }
                             }
                         }
                     let temp = {
-                        groupid: groupid,
-                        randomAnsfunction: [mainMsg.slice(2)]
+                        groupid: channelid || groupid,
+                        trpgDarkRollingfunction: [{
+                            topic: userid,
+                            contact: mainMsg[2] || displayname
+                        }]
                     }
                     if (checkifsamename == 0) {
-                        records.pushrandomAnsfunction('randomAns', temp, () => {
-                            records.get('randomAns', (msgs) => {
-                                rply.randomAnsfunction = msgs
+                        records.pushtrpgDarkRollingfunction('trpgDarkRolling', temp, () => {
+                            records.get('trpgDarkRolling', (msgs) => {
+                                rply.trpgDarkRollingfunction = msgs
                                 // console.log(rply);
                             })
 
                         })
-                        rply.text = '新增成功: ' + mainMsg[2]
-                    } else rply.text = '新增失敗. 重複關鍵字'
+                        rply.text = '新增成功: ' + mainMsg[2] + '\n' + inputStr.replace(/\.drgm\s+add\s+/i, '').replace(mainMsg[2], '').replace(/^\s+/, '')
+                    } else rply.text = '新增失敗. 重覆登記GM.'
                 } else {
                     rply.text = '新增失敗.'
-                    if (!mainMsg[2])
-                        rply.text += ' 沒有關鍵字.'
-                    if (!mainMsg[3] && !mainMsg[4])
-                        rply.text += ' 沒有自定義回應,至少兩個.'
-                    if (!groupid)
+                    if (!userid)
+                        rply.text += ' 沒有個人ID....如果是LINE的話, 要先LIKE 這個BOT.'
+                    if (!groupid && !channelid)
                         rply.text += ' 不在群組.'
                     if (groupid && userrole < 1)
                         rply.text += ' 只有GM以上才可新增.'
                 }
                 return rply;
-                break;
+
             case /(^[.]drgm$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
-                //    
-                //刪除所有自定義關鍵字
-                //
-                if (!mainMsg[2]) return;
-                if (groupid && mainMsg[2] && rply.randomAnsfunction && userrole >= 2) {
-                    for (var i = 0; i < rply.randomAnsfunction.length; i++) {
-                        if (rply.randomAnsfunction[i].groupid == groupid) {
-                            let temp = rply.randomAnsfunction[i]
-                            temp.randomAnsfunction = []
-                            records.setrandomAnsfunction('randomAns', temp, () => {
-                                records.get('randomAns', (msgs) => {
-                                    rply.randomAnsfunction = msgs
+                //刪除資料庫
+                if (groupid && mainMsg[2] && rply.trpgDarkRollingfunction && userrole >= 1) {
+                    for (var i = 0; i < rply.trpgDarkRollingfunction.length; i++) {
+                        if (rply.trpgDarkRollingfunction[i].groupid == groupid) {
+                            let temp = rply.trpgDarkRollingfunction[i]
+                            temp.trpgDarkRollingfunction = []
+                            records.settrpgDarkRollingfunction('trpgDarkRolling', temp, () => {
+                                records.get('trpgDarkRolling', (msgs) => {
+                                    rply.trpgDarkRollingfunction = msgs
                                 })
                             })
                             rply.text = '刪除所有關鍵字'
@@ -113,27 +113,24 @@ try {
                     }
                 } else {
                     rply.text = '刪除失敗.'
-                    if (!groupid)
+                    if (!groupid && !channelid)
                         rply.text += '不在群組. '
-                    if (groupid && userrole < 2)
-                        rply.text += '只有GM以上才可刪除所有關鍵字. '
+                    if (groupid && userrole < 1)
+                        rply.text += '只有GM以上才可刪除. '
                 }
 
                 return rply;
-                break;
             case /(^[.]drgm$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
-                //
-                //刪除自定義關鍵字
-                //
-                if (groupid && mainMsg[2] && rply.randomAnsfunction && userrole >= 1) {
-                    for (var i = 0; i < rply.randomAnsfunction.length; i++) {
-                        if (rply.randomAnsfunction[i].groupid == groupid && mainMsg[2] < rply.randomAnsfunction[i].randomAnsfunction.length && mainMsg[2] >= 0) {
-                            let temp = rply.randomAnsfunction[i]
-                            temp.randomAnsfunction.splice(mainMsg[2], 1)
-                            //console.log('rply.randomAnsfunction: ', temp)
-                            records.setrandomAnsfunction('randomAns', temp, () => {
-                                records.get('randomAns', (msgs) => {
-                                    rply.randomAnsfunction = msgs
+                //刪除資料庫
+                if (groupid && mainMsg[2] && rply.trpgDarkRollingfunction && userrole >= 1) {
+                    for (var i = 0; i < rply.trpgDarkRollingfunction.length; i++) {
+                        if (rply.trpgDarkRollingfunction[i].groupid == groupid && mainMsg[2] < rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length && mainMsg[2] >= 0) {
+                            let temp = rply.trpgDarkRollingfunction[i]
+                            temp.trpgDarkRollingfunction.splice(mainMsg[2], 1)
+                            //console.log('rply.trpgDarkRollingfunction: ', temp)
+                            records.settrpgDarkRollingfunction('trpgDarkRolling', temp, () => {
+                                records.get('trpgDarkRolling', (msgs) => {
+                                    rply.trpgDarkRollingfunction = msgs
                                 })
                             })
                         }
@@ -142,30 +139,29 @@ try {
                 } else {
                     rply.text = '刪除失敗.'
                     if (!mainMsg[2])
-                        rply.text += '沒有關鍵字. '
-                    if (!groupid)
+                        rply.text += '沒有刪除目標. '
+                    if (!groupid && !channelid)
                         rply.text += '不在群組. '
                     if (groupid && userrole < 1)
                         rply.text += '只有GM以上才可刪除. '
                 }
                 return rply;
-                break;
+
             case /(^[.]drgm$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
-                //
-                //顯示列表
-                //
-                records.get('randomAns', (msgs) => {
-                    rply.randomAnsfunction = msgs
+                //顯示
+                records.get('trpgDarkRolling', (msgs) => {
+                    rply.trpgDarkRollingfunction = msgs
                 })
+                //console.log(rply.trpgDarkRollingfunction)
                 if (groupid) {
                     let temp = 0;
-                    if (rply.randomAnsfunction)
-                        for (var i = 0; i < rply.randomAnsfunction.length; i++) {
-                            if (rply.randomAnsfunction[i].groupid == groupid) {
-                                rply.text += '自定義關鍵字列表:'
-                                for (var a = 0; a < rply.randomAnsfunction[i].randomAnsfunction.length; a++) {
+                    if (rply.trpgDarkRollingfunction)
+                        for (var i = 0; i < rply.trpgDarkRollingfunction.length; i++) {
+                            if (rply.trpgDarkRollingfunction[i].groupid == groupid) {
+                                rply.text += 'GM列表:'
+                                for (var a = 0; a < rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
                                     temp = 1
-                                    rply.text += ("\n") + a + '. ' + rply.randomAnsfunction[i].randomAnsfunction[a] + ("\n")
+                                    rply.text += ("\n") + a + '. ' + rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].contact + '\n'
                                 }
                             }
                         }
@@ -173,60 +169,46 @@ try {
                 } else {
                     rply.text = '不在群組. '
                 }
-                //顯示自定義關鍵字
+                //顯示資料庫
                 rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
                 return rply
-                break;
             case /(^[.]drgm$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
-                //
-                //RA使用抽選功能
-                //
-                let times = /^[.]ra(\d+|)/i.exec(mainMsg[0])[1] || 1
-                if (times > 30) times = 30;
-                if (times < 1) times = 1
+                //顯示關鍵字
+                //let times = /^[.]drgm/.exec(mainMsg[0])[1] || 1
+                //if (times > 30) times = 30;
+                //if (times < 1) times = 1
                 //console.log(times)
                 if (groupid) {
                     //    console.log(mainMsg[1])
                     let temp = 0;
-                    if (rply.randomAnsfunction)
-                        for (var i = 0; i < rply.randomAnsfunction.length; i++) {
-                            if (rply.randomAnsfunction[i].groupid == groupid) {
-                                // console.log(rply.randomAnsfunction[i])
-                                //rply.text += '自定義關鍵字列表:'
-                                for (let aa = 1; aa < mainMsg.length; aa++)
-                                    for (var a = 0; a < rply.randomAnsfunction[i].randomAnsfunction.length; a++) {
-                                        if (rply.randomAnsfunction[i].randomAnsfunction[a][0].toLowerCase() == mainMsg[aa].toLowerCase()) {
-                                            temp = 1
-                                            let temptitle = rply.randomAnsfunction[i].randomAnsfunction[a][0];
-                                            let tempcontact = [...rply.randomAnsfunction[i].randomAnsfunction[a]];
-                                            tempcontact.shift();
-                                            rply.text += temptitle + ' → ';
-                                            let result = [];
-
-
-                                            for (; result.length < times;) {
-                                                result = result.concat(shuffle([...tempcontact]))
-                                            }
-                                            rply.text += result[0];
-                                            for (let t = 1; t < times; t++) {
-                                                rply.text += ' , ' + result[t];
-                                            }
-                                            rply.text += '\n'
-                                        }
+                    if (rply.trpgDarkRollingfunction)
+                        for (var i = 0; i < rply.trpgDarkRollingfunction.length; i++) {
+                            if (rply.trpgDarkRollingfunction[i].groupid == groupid) {
+                                // console.log(rply.trpgDarkRollingfunction[i])
+                                //rply.text += '資料庫列表:'
+                                for (var a = 0; a < rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
+                                    if (rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].topic.toLowerCase() == mainMsg[1].toLowerCase()) {
+                                        temp = 1
+                                        rply.text = rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].topic + '\n' + rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].contact;
 
                                     }
+
+                                }
                             }
                         }
                     if (temp == 0) rply.text = '沒有相關關鍵字. '
                 } else {
                     rply.text = '不在群組. '
                 }
+                rply.text = rply.text.replace(/\,/mg, ' ')
                 return rply;
-                break;
+
             default:
                 break;
+
         }
     }
+
 
 
     module.exports = {

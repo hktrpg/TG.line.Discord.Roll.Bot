@@ -311,27 +311,28 @@ class Records extends EventEmitter {
     /*
             trpgDarkRollingfunction開始
         */
+
     pushtrpgDarkRollingfunction(dbbase, msg, callback) {
         /*
             提醒:
             $push 加入新的
             $set  重置舊的
          */
-        schema[dbbase].findOneAndUpdate({
-            groupid: msg.groupid
-        }, {
-            $push: {
-                trpgDarkRollingfunction: msg.trpgDarkRollingfunction
-            }
-        }, {
-            new: true,
-            upsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.log("Something wrong when updating data!");
-            } else
-                callback();
-        });
+            schema[dbbase].findOneAndUpdate({
+                groupid: msg.groupid
+            }, {
+                $push: {
+                    trpgDarkRollingfunction: msg.trpgDarkRollingfunction
+                }
+            }, {
+                new: true,
+                upsert: true
+            }, (err, doc) => {
+                if (err) {
+                    console.log("Something wrong when updating data!");
+                } else
+                    callback();
+            });
     }
     settrpgDarkRollingfunction(dbbase, msg, callback) {
         schema[dbbase].findOneAndUpdate({

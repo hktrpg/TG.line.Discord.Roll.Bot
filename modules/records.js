@@ -318,22 +318,22 @@ class Records extends EventEmitter {
             $push 加入新的
             $set  重置舊的
          */
-        console.log('dbbase: ',dbbase, 'msg ',msg,)
-            schema[dbbase].findOneAndUpdate({
-                groupid: msg.groupid
-            }, {
-                $push: {
-                    trpgDarkRollingfunction: msg.trpgDarkRollingfunction
-                }
-            }, {
-                new: true,
-                upsert: true
-            }, (err, doc) => {
-                if (err) {
-                    console.log("Something wrong when updating data!");
-                } else
-                    callback();
-            });
+        console.log('schema[dbbase]: ', schema[dbbase])
+        schema[dbbase].findOneAndUpdate({
+            groupid: msg.groupid
+        }, {
+            $push: {
+                trpgDarkRollingfunction: msg.trpgDarkRollingfunction
+            }
+        }, {
+            new: true,
+            upsert: true
+        }, (err, doc) => {
+            if (err) {
+                console.log("Something wrong when updating data!");
+            } else
+                callback();
+        });
     }
     settrpgDarkRollingfunction(dbbase, msg, callback) {
         schema[dbbase].findOneAndUpdate({

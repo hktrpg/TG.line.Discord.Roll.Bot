@@ -47,7 +47,6 @@ try {
                 rply.text = this.getHelpMessage();
                 return rply;
                 break;
-
             case /(^[.]drgm$)/i.test(mainMsg[0]) && /^addgm$/i.test(mainMsg[1]):
                 //
                 //增加自定義關鍵字

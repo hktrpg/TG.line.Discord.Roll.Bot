@@ -8,6 +8,7 @@ try {
     records.get('trpgDarkRolling', (msgs) => {
         rply.trpgDarkRollingfunction = msgs
     })
+    console.log('rply ', rply)
     gameName = function () {
         return '(公測中)暗骰GM功能 .drgm  (addgm del show)'
     }
@@ -52,13 +53,13 @@ try {
                 //增加自定義關鍵字
                 // .drgm[0] addgm[1] 代替名字[2]  
                 let checkifsamename = 0
-                if (groupid && userrole >= 1 && mainMsg[3] && mainMsg[4]) {
+                if (groupid && userrole >= 1 && userid) {
                     if (rply.trpgDarkRollingfunction)
                         for (var i = 0; i < rply.trpgDarkRollingfunction.length; i++) {
                             if (rply.trpgDarkRollingfunction[i].groupid == groupid) {
                                 // console.log('checked1')
                                 for (var a = 0; a < rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
-                                    if (rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a][0].toLowerCase() == mainMsg[2].toLowerCase()) {
+                                    if (rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].topic == userid) {
                                         //   console.log('checked')
                                         checkifsamename = 1
                                     }
@@ -67,8 +68,11 @@ try {
                         }
                     let temp = {
                         groupid: groupid,
-                        trpgDarkRollingfunction: [mainMsg.slice(2)]
+                        trpgDarkRollingfunction: userid
+                        //|| displayname
+
                     }
+                    console.log(temp)
                     if (checkifsamename == 0) {
                         records.pushtrpgDarkRollingfunction('trpgDarkRolling', temp, () => {
                             records.get('trpgDarkRolling', (msgs) => {
@@ -81,11 +85,10 @@ try {
                     } else rply.text = '新增失敗. 重複關鍵字'
                 } else {
                     rply.text = '新增失敗.'
-                    if (!mainMsg[2])
-                        rply.text += ' 沒有關鍵字.'
-                    if (!mainMsg[3] && !mainMsg[4])
-                        rply.text += ' 沒有自定義回應,至少兩個.'
+                    if (!userid)
+                        rply.text += ' 沒有個人ID....如果是LINE的話, 要先LIKE 這個BOT.'
                     if (!groupid)
+                        //&& !channelid
                         rply.text += ' 不在群組.'
                     if (groupid && userrole < 1)
                         rply.text += ' 只有GM以上才可新增.'

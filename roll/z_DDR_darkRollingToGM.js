@@ -16,7 +16,7 @@ try {
         return 'trpgDarkRolling:hktrpg'
     }
     prefixs = function () {
-        return [/(^[.]drgm$)/ig,]
+        return [/(^[.]drgm$)/ig, ]
     }
     getHelpMessage = function () {
         return "【暗骰GM功能】.drgm dr ddr dddr" + "\
@@ -68,7 +68,10 @@ try {
                         }
                     let temp = {
                         groupid: groupid,
-                        trpgDarkRollingfunction: userid
+                        trpgDarkRollingfunction: [{
+                            topic: userid,
+                            contact: mainMsg[2] || ""
+                        }]
                         //|| displayname
 
                     }
@@ -185,25 +188,7 @@ try {
     }
 
 
-    function shuffle(array) {
-        let currentIndex = array.length,
-            temporaryValue, randomIndex;
 
-        // While there remain elements to shuffle...
-        while (0 !== currentIndex) {
-
-            // Pick a remaining element...
-            randomIndex = Math.floor(Math.random() * currentIndex);
-            currentIndex -= 1;
-
-            // And swap it with the current element.
-            temporaryValue = array[currentIndex];
-            array[currentIndex] = array[randomIndex];
-            array[randomIndex] = temporaryValue;
-        }
-
-        return array;
-    }
     module.exports = {
         rollDiceCommand: rollDiceCommand,
         initialize: initialize,

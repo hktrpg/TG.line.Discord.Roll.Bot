@@ -70,12 +70,12 @@ try {
                         groupid: groupid,
                         trpgDarkRollingfunction: [{
                             topic: userid,
-                            contact: mainMsg[2] || ""
+                            contact: mainMsg[2] || "無名"
                         }]
                         //|| displayname
 
                     }
-                    console.log(temp)
+                    //console.log(temp)
                     if (checkifsamename == 0) {
                         records.pushtrpgDarkRollingfunction('trpgDarkRolling', temp, () => {
                             records.get('trpgDarkRolling', (msgs) => {
@@ -84,8 +84,8 @@ try {
                             })
 
                         })
-                        rply.text = '新增成功: ' + mainMsg[2]
-                    } else rply.text = '新增失敗. 重複關鍵字'
+                        rply.text = '新增成功: ' + (mainMsg[2] || "無名")
+                    } else rply.text = '新增失敗. 你已在列表'
                 } else {
                     rply.text = '新增失敗.'
                     if (!userid)
@@ -170,7 +170,7 @@ try {
                                 rply.text += '自定義關鍵字列表:'
                                 for (var a = 0; a < rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
                                     temp = 1
-                                    rply.text += ("\n") + a + '. ' + rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a] + ("\n")
+                                    rply.text += ("\n") + a + '. ' + rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].contact + ("\n")
                                 }
                             }
                         }

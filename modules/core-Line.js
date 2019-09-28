@@ -69,12 +69,14 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		let roomorgroupid, userid, displayname = ''
 		client.getProfile(userid).then(function (profile) {
 			displayname = profile.displayName;
-			rplyVal.text = "@" + displayname + "\n" + rplyVal.text
+			console.log('displayname:', displayname)
+			//rplyVal.text = "@" + displayname + "\n" + rplyVal.text
 			//sendmessage();
 			CHECKNAME();
 			//	在GP 而有加好友的話,顯示名字
 		}, function () {
 			//sendmessage()
+			console.log('NOdisplayname:', displayname)
 			CHECKNAME();
 			//如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
 		})
@@ -125,7 +127,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 			if (rplyVal && rplyVal.text) {
 				Linecountroll++;
-				if (roomorgroupid && userid && displaynamecheck) {
+				if (roomorgroupid && userid && displaynamecheck && displayname) {
 					//displayname = profile.displayName;
 					rplyVal.text = "@" + displayname + "\n" + rplyVal.text
 					//console.log(profile.displayName)
@@ -144,6 +146,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				if (Linecounttext % 500 == 0)
 					console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext);
 			}
+
 			function sendmessage() {
 				if (privatemsg == 1) {
 					client.pushMessage(roomorgroupid, replymessage(displayname + ' 暗骰進行中'))

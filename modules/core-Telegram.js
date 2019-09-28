@@ -25,6 +25,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			//	telegrafGetChatMembers.check(ctx.chat.id) //[Members]
 			//	telegrafGetChatMembers.all //[Chats]
 			let groupid, userid, displayname = ''
+			if (ctx.message.from.username) displayname = ctx.message.from.username
 			let displaynamecheck = true;
 			let userrole = 1;
 			//console.log('TG: ', message)
@@ -66,10 +67,10 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			}
 			if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 				mainMsg.shift()
-				rplyVal = exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram")
+				rplyVal = exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram", displayname)
 			} else {
 				if (channelKeyword == '') {
-					rplyVal = exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram")
+					rplyVal = exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram", displayname)
 
 				}
 

@@ -111,7 +111,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			Linecountroll++;
 
 
-			if (roomorgroupid && userid && displaynamecheck)
+			if (roomorgroupid && userid && displaynamecheck)3
 				client.getProfile(userid).then(function (profile) {
 					displayname = profile.displayName;
 					rplyVal.text = "@" + displayname + "\n" + rplyVal.text

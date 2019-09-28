@@ -67,6 +67,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 	function handleEvent(event) {
 		let roomorgroupid, userid, displayname = ''
+		if (event.source.groupId) roomorgroupid = event.source.groupId
+		if (event.source.roomId) roomorgroupid = event.source.roomId
+		if (event.source.userId) userid = event.source.userId
 		client.getProfile(userid).then(function (profile) {
 			displayname = profile.displayName;
 			console.log('displayname:', displayname)
@@ -89,9 +92,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 			let displaynamecheck = true;
 			let userrole = 2;
-			if (event.source.groupId) roomorgroupid = event.source.groupId
-			if (event.source.roomId) roomorgroupid = event.source.roomId
-			if (event.source.userId) userid = event.source.userId
+			
 			//Ub23daads22a2131312334645349a3 
 			let rplyVal = {};
 			let msgSplitor = (/\S+/ig)

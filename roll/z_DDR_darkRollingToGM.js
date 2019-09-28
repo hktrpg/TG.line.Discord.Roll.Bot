@@ -8,7 +8,6 @@ try {
     records.get('trpgDarkRolling', (msgs) => {
         rply.trpgDarkRollingfunction = msgs
     })
-    console.log('rply ', rply)
     gameName = function () {
         return '(公測中)暗骰GM功能 .drgm  (addgm del show)'
     }

@@ -85,7 +85,7 @@ try {
 
                         })
                         rply.text = '新增成功: ' + (mainMsg[2] || "無名")
-                    } else rply.text = '新增失敗. 你已在列表'
+                    } else rply.text = '新增失敗. 你已在GM列表'
                 } else {
                     rply.text = '新增失敗.'
                     if (!userid)
@@ -113,7 +113,7 @@ try {
                                     rply.trpgDarkRollingfunction = msgs
                                 })
                             })
-                            rply.text = '刪除所有關鍵字'
+                            rply.text = '刪除所有在表GM'
                         }
                     }
                 } else {
@@ -121,14 +121,14 @@ try {
                     if (!groupid)
                         rply.text += '不在群組. '
                     if (groupid && userrole < 2)
-                        rply.text += '只有GM以上才可刪除所有關鍵字. '
+                        rply.text += '只有GM以上才可刪除所有在表GM. '
                 }
 
                 return rply;
                 break;
             case /(^[.]drgm$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
                 //
-                //刪除自定義關鍵字
+                //刪除GM
                 //
                 if (groupid && mainMsg[2] && rply.trpgDarkRollingfunction && userrole >= 1) {
                     for (var i = 0; i < rply.trpgDarkRollingfunction.length; i++) {
@@ -147,7 +147,7 @@ try {
                 } else {
                     rply.text = '刪除失敗.'
                     if (!mainMsg[2])
-                        rply.text += '沒有關鍵字. '
+                        rply.text += '沒有已註冊GM. '
                     if (!groupid)
                         rply.text += '不在群組. '
                     if (groupid && userrole < 1)
@@ -167,18 +167,18 @@ try {
                     if (rply.trpgDarkRollingfunction)
                         for (var i = 0; i < rply.trpgDarkRollingfunction.length; i++) {
                             if (rply.trpgDarkRollingfunction[i].groupid == groupid) {
-                                rply.text += '自定義關鍵字列表:'
+                                rply.text += '已註冊暗骰GM列表:'
                                 for (var a = 0; a < rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
                                     temp = 1
                                     rply.text += ("\n") + a + '. ' + rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].contact + ("\n")
                                 }
                             }
                         }
-                    if (temp == 0) rply.text = '沒有已設定的關鍵字. '
+                    if (temp == 0) rply.text = '沒有已註冊的暗骰GM. '
                 } else {
                     rply.text = '不在群組. '
                 }
-                //顯示自定義關鍵字
+                //顯示GM
                 rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
                 return rply
                 break;

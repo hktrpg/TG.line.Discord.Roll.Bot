@@ -75,16 +75,16 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			console.log('displayname:', displayname)
 			//rplyVal.text = "@" + displayname + "\n" + rplyVal.text
 			//sendmessage();
-			CHECKNAME();
+			AfterCheckName();
 			//	在GP 而有加好友的話,顯示名字
 		}, function () {
 			//sendmessage()
 			console.log('NOdisplayname:', displayname)
-			CHECKNAME();
+			AfterCheckName();
 			//如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
 		})
 
-		function CHECKNAME() {
+		function AfterCheckName() {
 			if (event.type !== 'message' || event.message.type !== 'text') {
 				// ignore non-text-message event
 				return Promise.resolve(null);

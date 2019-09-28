@@ -71,7 +71,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		if (event.source.roomId) roomorgroupid = event.source.roomId
 		if (event.source.userId) userid = event.source.userId
 		client.getProfile(userid).then(function (profile) {
-			displayname = profile.displayName;
+			//displayname = profile.displayName;
 			console.log('displayname:', displayname)
 			//rplyVal.text = "@" + displayname + "\n" + rplyVal.text
 			//sendmessage();
@@ -79,7 +79,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			//	在GP 而有加好友的話,顯示名字
 		}, function () {
 			//sendmessage()
-			console.log('NOdisplayname:', displayname)
+			//console.log('NOdisplayname:', displayname)
 			AfterCheckName();
 			//如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
 		})
@@ -92,7 +92,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 			let displaynamecheck = true;
 			let userrole = 2;
-			
+
 			//Ub23daads22a2131312334645349a3 
 			let rplyVal = {};
 			let msgSplitor = (/\S+/ig)
@@ -117,10 +117,10 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			}
 			if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 				//mainMsg.shift()
-				rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line")
+				rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname)
 			} else {
 				if (channelKeyword == '') {
-					rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line")
+					rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname)
 
 				}
 

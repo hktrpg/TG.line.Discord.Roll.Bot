@@ -63,57 +63,70 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			});
 	});
 	// event handler
+
+
 	function handleEvent(event) {
-		if (event.type !== 'message' || event.message.type !== 'text') {
-			// ignore non-text-message event
-			return Promise.resolve(null);
-		}
 		let roomorgroupid, userid, displayname = ''
-		let displaynamecheck = true;
-		let userrole = 2;
-		if (event.source.groupId) roomorgroupid = event.source.groupId
-		if (event.source.roomId) roomorgroupid = event.source.roomId
-		if (event.source.userId) userid = event.source.userId
-		//Ub23daads22a2131312334645349a3 
-		let rplyVal = {};
-		let msgSplitor = (/\S+/ig)
-		if (event.message.text)
-			var mainMsg = event.message.text.match(msgSplitor); // 定義輸入字串
-		if (mainMsg && mainMsg[0])
-			var trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
+		client.getProfile(userid).then(function (profile) {
+			displayname = profile.displayName;
+			rplyVal.text = "@" + displayname + "\n" + rplyVal.text
+			//sendmessage();
+			CHECKNAME();
+			//	在GP 而有加好友的話,顯示名字
+		}, function () {
+			//sendmessage()
+			CHECKNAME();
+			//如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
+		})
 
-		// 訊息來到後, 會自動跳到analytics.js進行骰組分析
-		// 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
-		if (trigger == ".me") {
-			displaynamecheck = false
-		}
+		function CHECKNAME() {
+			if (event.type !== 'message' || event.message.type !== 'text') {
+				// ignore non-text-message event
+				return Promise.resolve(null);
+			}
 
-		let privatemsg = 0
-		if (trigger.match(/^dr/i) && mainMsg && mainMsg[1]) {
-			privatemsg = 1
+			let displaynamecheck = true;
+			let userrole = 2;
+			if (event.source.groupId) roomorgroupid = event.source.groupId
+			if (event.source.roomId) roomorgroupid = event.source.roomId
+			if (event.source.userId) userid = event.source.userId
+			//Ub23daads22a2131312334645349a3 
+			let rplyVal = {};
+			let msgSplitor = (/\S+/ig)
+			if (event.message.text)
+				var mainMsg = event.message.text.match(msgSplitor); // 定義輸入字串
+			if (mainMsg && mainMsg[0])
+				var trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
 
-			//mainMsg.shift()
-			//trigger = mainMsg[0].toString().toLowerCase()
-			event.message.text = event.message.text.replace(/^[d][r][ ]/i, '')
-		}
-		if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
-			//mainMsg.shift()
-			rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line")
-		} else {
-			if (channelKeyword == '') {
+			// 訊息來到後, 會自動跳到analytics.js進行骰組分析
+			// 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+			if (trigger == ".me") {
+				displaynamecheck = false
+			}
+
+			let privatemsg = 0
+			if (trigger.match(/^dr/i) && mainMsg && mainMsg[1]) {
+				privatemsg = 1
+
+				//mainMsg.shift()
+				//trigger = mainMsg[0].toString().toLowerCase()
+				event.message.text = event.message.text.replace(/^[d][r][ ]/i, '')
+			}
+			if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
+				//mainMsg.shift()
 				rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line")
+			} else {
+				if (channelKeyword == '') {
+					rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line")
+
+				}
 
 			}
 
-		}
-
-		if (rplyVal && rplyVal.text) {
-			Linecountroll++;
-
-
-			if (roomorgroupid && userid && displaynamecheck)3
-				client.getProfile(userid).then(function (profile) {
-					displayname = profile.displayName;
+			if (rplyVal && rplyVal.text) {
+				Linecountroll++;
+				if (roomorgroupid && userid && displaynamecheck) {
+					//displayname = profile.displayName;
 					rplyVal.text = "@" + displayname + "\n" + rplyVal.text
 					//console.log(profile.displayName)
 					//console.log(profile)
@@ -121,67 +134,61 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 					//console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
 					sendmessage();
 					//	在GP 而有加好友的話,顯示名字
-				}, function () {
+				} else {
 					sendmessage()
-					//		如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
-				})
-			else {
-				sendmessage()
-				//	對方不在GP CHANNEL的話就跳到這裡
-			}
-			//console.log("LINE:" , event)
-
-
-		} else {
-			Linecounttext++;
-			if (Linecounttext % 500 == 0)
-				console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext);
-		}
-
-		function sendmessage() {
-			if (privatemsg == 1) {
-				client.pushMessage(roomorgroupid, replymessage(displayname + ' 暗骰進行中'))
-					.then(() => { })
-					.catch((err) => {
-						// error handling
-					});
-				//message.reply.text(message.from.first_name + ' 暗骰進行中')
-				async function loada() {
-					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-						if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 2)
-							await client.pushMessage(userid, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1900}/g)[i]))
-								.then(() => { })
-								.catch((err) => {
-									// error handling
-								});
-					}
+					//	對方不在GP CHANNEL的話就跳到這裡
 				}
-				loada();
+				//console.log("LINE:" , event)
 			} else {
-				async function loadb() {
-					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-						if (roomorgroupid)
-							var replyTarget = roomorgroupid
-						else replyTarget = userid
-						if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 2)
-							await client.pushMessage(replyTarget, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1900}/g)[i]))
-								.then(() => { })
+				Linecounttext++;
+				if (Linecounttext % 500 == 0)
+					console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext);
+			}
+			function sendmessage() {
+				if (privatemsg == 1) {
+					client.pushMessage(roomorgroupid, replymessage(displayname + ' 暗骰進行中'))
+						.then(() => {})
+						.catch((err) => {
+							// error handling
+						});
+					//message.reply.text(message.from.first_name + ' 暗骰進行中')
+					async function loada() {
+						for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
+							if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 2)
+								await client.pushMessage(userid, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1900}/g)[i]))
+								.then(() => {})
 								.catch((err) => {
 									// error handling
 								});
+						}
 					}
+					loada();
+				} else {
+					async function loadb() {
+						for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
+							if (roomorgroupid)
+								var replyTarget = roomorgroupid
+							else replyTarget = userid
+							if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 2)
+								await client.pushMessage(replyTarget, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1900}/g)[i]))
+								.then(() => {})
+								.catch((err) => {
+									// error handling
+								});
+						}
+					}
+					loadb();
+
 				}
-				loadb();
-
 			}
+
+
+			// create a echoing text message
+			//exports.analytics.parseInput(event.message.text)
+
+			// use reply API
+			//Reply Max: 1900 characters
 		}
-
-
-		// create a echoing text message
-		//exports.analytics.parseInput(event.message.text)
-
-		// use reply API
-		//Reply Max: 1900 characters
 	}
 	// listen on port
 	const port = process.env.PORT || 5000;

@@ -24,7 +24,8 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			//	ctx.getChatMembers() //[Members]
 			//	telegrafGetChatMembers.check(ctx.chat.id) //[Members]
 			//	telegrafGetChatMembers.all //[Chats]
-			let groupid, userid, displayname, channelid, TargetGM = ''
+			let groupid, userid, displayname, channelid = ''
+			let TargetGM = {}
 			TargetGM = require('../roll/z_DDR_darkRollingToGM').initialize()
 			if (ctx.message.from.username) displayname = ctx.message.from.username
 			let displaynamecheck = true;
@@ -90,8 +91,31 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 						rplyVal.text = displayname + rplyVal.text
 				}
 				if (privatemsg >= 1) {
-					console.log(TargetGM)
+					console.log("TargetGM: ", TargetGM)
 					//FORRRRRRRRRRRRRRRRRRR
+					var TargetGMTempName = []
+					var TargetGMTempID = []
+					if (TargetGM && TargetGM.trpgDarkRollingfunction)
+						for (var i = 0; i < TargetGM.trpgDarkRollingfunction.length; i++) {
+							if (TargetGM.trpgDarkRollingfunction[i].groupid == groupid) {
+								// console.log('checked1')
+								//console.log('TargetGM.trpgDarkRollingfunction[i]: ', TargetGM.trpgDarkRollingfunction[i])
+								for (var a = 0; a < TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
+									//if (TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].topic == userid) {
+									//   console.log('checked')
+									//console.log('contact', TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].contact)
+									//checkifsamename = 1
+									TargetGMTempID[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].topic
+									TargetGMTempName[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].contact
+									//TargetGMTemp[a]. channelid contact topic
+
+								}
+								//}
+							}
+
+
+						}
+
 				}
 				//console.log('rplyVal.text:' + rplyVal.text)
 				//console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext, " content: ", message.text);
@@ -108,9 +132,13 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 
 
 						if (ctx.chat.type == 'group')
-							ctx.reply(displayname + ' 暗骰進行中 \n目標: 自己')
+							ctx.reply(displayname + ' 暗骰進行中 \n目標: 自己' + TargetGMTempName)
 						SendToId(ctx.message.from.id);
+						for (var i = 0; i < TargetGMTempID.length; i++)
+							console.log("TargetGMTempID:", TargetGMTempID[i])
 						console.log(privatemsg)
+						SendToId(ctx.message.from.id);
+
 						break;
 					case privatemsg == 3:
 						//輸入dddr(指令) 私訊GM

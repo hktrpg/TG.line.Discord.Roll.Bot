@@ -66,7 +66,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 
 	function handleEvent(event) {
-		let roomorgroupid, userid, displayname = ''
+		let roomorgroupid, userid, displayname, channelid = ''
 		if (event.source.groupId) roomorgroupid = event.source.groupId
 		if (event.source.roomId) roomorgroupid = event.source.roomId
 		if (event.source.userId) userid = event.source.userId
@@ -117,10 +117,10 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			}
 			if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 				//mainMsg.shift()
-				rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname)
+				rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid)
 			} else {
 				if (channelKeyword == '') {
-					rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname)
+					rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid)
 
 				}
 

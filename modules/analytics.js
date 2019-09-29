@@ -14,7 +14,7 @@ try {
 
 	//用來呼叫骰組,新增骰組的話,要寫條件式到下面呼叫 
 	//格式是 exports.骰組檔案名字.function名
-	function parseInput(inputStr, groupid, userid, userrole, name) {
+	function parseInput(inputStr, groupid, userid, userrole, botname, displayname, channelid) {
 		//console.log('InputStr: ' + inputStr);
 		_isNaN = function (obj) {
 			return isNaN(parseInt(obj));
@@ -33,7 +33,7 @@ try {
 		stopmark = z_stop(mainMsg, groupid);
 		//console.log('mainMsgAA',mainMsg)
 		if (stopmark != 1) {
-			result = rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, stopmark)
+			result = rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid)
 			//console.log("OK")
 		}
 
@@ -48,7 +48,7 @@ try {
 			result.text = ""
 			//檢查是不是要停止
 			z_stop(mainMsg, groupid);
-			result = rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger)
+			result = rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid)
 			console.log('inputStr2: ', inputStr)
 		}
 		if (result && result.text) {
@@ -72,7 +72,7 @@ try {
 		}
 	}
 
-	function rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger) {
+	function rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid) {
 		//在下面位置開始分析trigger
 		if (!groupid) groupid = 0
 		var breakFlag = false;
@@ -119,7 +119,7 @@ try {
 
 			if (findprefixs == 1) {
 				console.log('trigger: ', inputStr)
-				let tempsave = exports[v].rollDiceCommand(inputStr, mainMsg, groupid, userid, userrole)
+				let tempsave = exports[v].rollDiceCommand(inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid)
 				if (tempsave)
 					Object.keys(tempsave).forEach(v => {
 						result[v] = tempsave[v]

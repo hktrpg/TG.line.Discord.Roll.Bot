@@ -24,7 +24,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			//	ctx.getChatMembers() //[Members]
 			//	telegrafGetChatMembers.check(ctx.chat.id) //[Members]
 			//	telegrafGetChatMembers.all //[Chats]
-			let groupid, userid, displayname = ''
+			let groupid, userid, displayname, channelid = ''
 			if (ctx.message.from.username) displayname = ctx.message.from.username
 			let displaynamecheck = true;
 			let userrole = 1;
@@ -70,7 +70,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				rplyVal = exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram", displayname)
 			} else {
 				if (channelKeyword == '') {
-					rplyVal = exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram", displayname)
+					rplyVal = exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram", displayname, channelid)
 
 				}
 

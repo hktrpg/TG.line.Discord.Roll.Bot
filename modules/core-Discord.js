@@ -35,10 +35,11 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 			if (message.author.bot === false && message.content != "") {
 				//	console.log('message.content ' + message.content);
 				//	console.log('channelKeyword ' + channelKeyword);
-				let groupid, userid, displayname = ''
+				let groupid, userid, displayname, channelid = ''
 				let displaynamecheck = true;
 				let userrole = 1;
 				//console.log(message.guild)
+				if (message.channel && message.channel.id) channelid = message.channel.id
 				if (message.guild && message.guild.id) groupid = message.guild.id
 				if (message.author.id) userid = message.author.id
 				if (message.member.user.tag) displayname = message.member.user.tag
@@ -67,10 +68,10 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				}
 				if (channelKeyword != "" && trigger == channelKeyword.toString().toLowerCase()) {
 					//mainMsg.shift();
-					rplyVal = exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname);
+					rplyVal = exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid);
 				} else {
 					if (channelKeyword == "") {
-						rplyVal = exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname);
+						rplyVal = exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid);
 					}
 				}
 

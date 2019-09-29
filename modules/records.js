@@ -188,7 +188,7 @@ class Records extends EventEmitter {
             $push 加入新的
             $set  重置舊的
          */
-        console.log('msg: ', msg)
+       // console.log('msg: ', msg)
         schema[dbbase].findOneAndUpdate({}, {
             $push: {
                 trpgDatabaseAllgroup: msg.trpgDatabaseAllgroup

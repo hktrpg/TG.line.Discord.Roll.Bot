@@ -71,8 +71,8 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		if (event.source.roomId) roomorgroupid = event.source.roomId
 		if (event.source.userId) userid = event.source.userId
 		client.getProfile(userid).then(function (profile) {
-			//displayname = profile.displayName;
-			console.log('displayname:', displayname)
+			displayname = profile.displayName;
+			//console.log('displayname:', displayname)
 			//rplyVal.text = "@" + displayname + "\n" + rplyVal.text
 			//sendmessage();
 			AfterCheckName();

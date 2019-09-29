@@ -70,7 +70,8 @@ try {
                         groupid: groupid,
                         trpgDarkRollingfunction: [{
                             topic: userid,
-                            contact: mainMsg[2] || displayname || "無名"
+                            contact: mainMsg[2] || displayname || "無名",
+                            channelid: channelid
                         }]
                         //|| displayname
 

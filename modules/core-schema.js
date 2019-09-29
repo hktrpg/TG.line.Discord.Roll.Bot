@@ -66,7 +66,8 @@ if (process.env.mongoURL) {
         groupid: String,
         trpgDarkRollingfunction: [{
             topic: String,
-            contact: String
+            contact: String,
+            channelid: String
         }]
     });
 

@@ -88,8 +88,9 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				if (privatemsg >= 1) {
 					console.log("TargetGM: ", TargetGM)
 					//FORRRRRRRRRRRRRRRRRRR
-					var TargetGMTempName = []
 					var TargetGMTempID = []
+					var TargetGMTempdiyName = []
+					var TargetGMTempdisplayname = []
 					if (TargetGM && TargetGM.trpgDarkRollingfunction)
 						for (var i = 0; i < TargetGM.trpgDarkRollingfunction.length; i++) {
 							if (TargetGM.trpgDarkRollingfunction[i].groupid == groupid) {
@@ -100,8 +101,10 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 									//   console.log('checked')
 									//console.log('contact', TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].contact)
 									//checkifsamename = 1
-									TargetGMTempID[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].topic
-									TargetGMTempName[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].contact
+									TargetGMTempID[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].userid
+									TargetGMTempdiyName[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].diyName
+									TargetGMTempdisplayname[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].displayname
+
 									//TargetGMTemp[a]. channelid contact topic
 
 								}
@@ -117,50 +120,51 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				switch (true) {
 					case privatemsg == 1:
 						// 輸入dr  (指令) 私訊自己
+						//
 						console.log(privatemsg)
 						if (ctx.chat.type == 'group')
-							ctx.reply(displayname + ' 暗骰給自己')
-						if (groupid && userid) {
-							//285083923223
-							displayname = "@" + ctx.message.from.username + "\n";
-							if (displaynamecheck)
-								rplyVal.text = displayname + rplyVal.text
-						}
+							ctx.reply("@" + displayname + ' 暗骰給自己')
+
 						SendToId(ctx.message.from.id);
 						break;
 					case privatemsg == 2:
 						//輸入ddr(指令) 私訊GM及自己
 
-
-						if (groupid && userid) {
-							//285083923223
-							displayname = "@" + ctx.message.from.username + "\n";
-							if (displaynamecheck)
-								rplyVal.text = displayname + rplyVal.text
+						if (ctx.chat.type == 'group') {
+							let targetGMNameTemp = "";
+							for (var i = 0; i < TargetGMTempID.length; i++)
+								targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
+							ctx.reply("@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
 						}
-						if (ctx.chat.type == 'group')
-							ctx.reply(displayname + ' 暗骰進行中 \n目標: 自己 ' + TargetGMTempName)
-						rplyVal.text = displayname + "的暗骰\n" + rplyVal.text
+						rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
 						SendToId(ctx.message.from.id);
 						for (var i = 0; i < TargetGMTempID.length; i++) {
-							SendToId(TargetGMTempID[i]);
+							if (ctx.message.from.id != TargetGMTempID[i])
+								SendToId(TargetGMTempID[i]);
 						}
-						console.log("TargetGMTempID:", TargetGMTempID[i])
-						console.log(privatemsg)
+						//console.log("TargetGMTempID:", TargetGMTempID[i])
+						//console.log(privatemsg)
 						//SendToId(ctx.message.from.id);
 
 						break;
 					case privatemsg == 3:
 						//輸入dddr(指令) 私訊GM
-
-
-
-						if (ctx.chat.type == 'group')
-							ctx.reply(displayname + ' 暗骰進行中 \n目標: ' + TargetGMTempName)
-						rplyVal.text = displayname + "的暗骰\n" + rplyVal.text
+						if (ctx.chat.type == 'group') {
+							let targetGMNameTemp = "";
+							for (var i = 0; i < TargetGMTempID.length; i++)
+								targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
+							ctx.reply("@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
+						}
+						rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
 						//SendToId(ctx.message.from.id);
-						for (var i = 0; i < TargetGMTempID.length; i++)
-							SendToId(TargetGMTempID[i]);
+						for (var i = 0; i < TargetGMTempID.length; i++) {
+							if (ctx.message.from.id != TargetGMTempID[i])
+								SendToId(TargetGMTempID[i]);
+						}
+						//console.log("TargetGMTempID:", TargetGMTempID[i])
+						//console.log(privatemsg)
+						//SendToId(ctx.message.from.id);
+
 						break;
 					default:
 						if (groupid && userid) {
@@ -169,7 +173,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 							if (displaynamecheck)
 								rplyVal.text = displayname + rplyVal.text
 						}
-						console.log(privatemsg)
+						//console.log(privatemsg)
 						SendToReply();
 						break;
 				}

@@ -59,7 +59,7 @@ try {
                             if (rply.trpgDarkRollingfunction[i].groupid == groupid) {
                                 // console.log('checked1')
                                 for (var a = 0; a < rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
-                                    if (rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].topic == userid) {
+                                    if (rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].userid == userid) {
                                         //   console.log('checked')
                                         checkifsamename = 1
                                     }
@@ -69,8 +69,9 @@ try {
                     let temp = {
                         groupid: groupid,
                         trpgDarkRollingfunction: [{
-                            topic: userid,
-                            contact: mainMsg[2] || displayname || "無名",
+                            userid: userid,
+                            diyName: mainMsg[2] || "",
+                            displayname: displayname,
                             channelid: channelid
                         }]
                         //|| displayname
@@ -86,7 +87,7 @@ try {
 
                         })
                         rply.text = '新增成功: ' + (mainMsg[2] || displayname ||
-                            "無名")
+                            "")
                     } else rply.text = '新增失敗. 你已在GM列表'
                 } else {
                     rply.text = '新增失敗.'
@@ -172,7 +173,7 @@ try {
                                 rply.text += '已註冊暗骰GM列表:'
                                 for (var a = 0; a < rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
                                     temp = 1
-                                    rply.text += ("\n") + a + '. ' + rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].contact + ("\n")
+                                    rply.text += ("\n") + a + '. ' + (rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].diyName || rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].displayname) + ("\n")
                                 }
                             }
                         }

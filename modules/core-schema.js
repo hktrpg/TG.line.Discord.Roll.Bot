@@ -65,8 +65,9 @@ if (process.env.mongoURL) {
     const trpgDarkRolling = mongoose.model('trpgDarkRolling', {
         groupid: String,
         trpgDarkRollingfunction: [{
-            topic: String,
-            contact: String,
+            userid: String,
+            diyName: String,
+            displayname: String,
             channelid: String
         }]
     });

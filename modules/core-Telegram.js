@@ -24,7 +24,8 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			//	ctx.getChatMembers() //[Members]
 			//	telegrafGetChatMembers.check(ctx.chat.id) //[Members]
 			//	telegrafGetChatMembers.all //[Chats]
-			let groupid, userid, displayname, channelid = ''
+			let groupid, userid, displayname, channelid, TargetGM = ''
+			TargetGM = require('../roll/z_DDR_darkRollingToGM').initialize()
 			if (ctx.message.from.username) displayname = ctx.message.from.username
 			let displaynamecheck = true;
 			let userrole = 1;
@@ -57,13 +58,17 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			// 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
 
 			let privatemsg = 0
-			if (trigger.match(/^dr/i) && mainMsg && mainMsg[1]) {
+			if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
 				privatemsg = 1
-
-				//mainMsg.shift()
-				//trigger = mainMsg[0].toString().toLowerCase()
 				ctx.message.text = ctx.message.text.replace(/^[d][r][ ]/i, '')
-
+			}
+			if (trigger.match(/^ddr$/i) && mainMsg && mainMsg[1]) {
+				privatemsg = 2
+				ctx.message.text = ctx.message.text.replace(/^[d][d][r][ ]/i, '')
+			}
+			if (trigger.match(/^dddr$/i) && mainMsg && mainMsg[1]) {
+				privatemsg = 3
+				ctx.message.text = ctx.message.text.replace(/^[d][d][d][r][ ]/i, '')
 			}
 			if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 				mainMsg.shift()
@@ -84,33 +89,54 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 					if (displaynamecheck)
 						rplyVal.text = displayname + rplyVal.text
 				}
-
+				if (privatemsg >= 1) {
+					console.log(TargetGM)
+				}
 				//console.log('rplyVal.text:' + rplyVal.text)
 				//console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext, " content: ", message.text);
-				if (privatemsg == 1) {
-					//console.log('DR2')
-					if (ctx.chat.type == 'group')
-						ctx.reply(displayname + ' 暗骰進行中')
-					//ctx.reply(ctx.message.from.first_name + ' 暗骰進行中')
-					async function loada() {
-						for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-							if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 1)
-								await ctx.telegram.sendMessage(ctx.message.from.id, rplyVal.text.toString().match(/[\s\S]{1,1900}/g)[i])
-						}
-					}
-					loada();
-				} else {
+				switch (true) {
+					case privatemsg == 1:
+						// 輸入dr  (指令) 私訊自己
+						console.log(privatemsg)
+						if (ctx.chat.type == 'group')
+							ctx.reply(displayname + ' 暗骰給自己')
+						SendToId(ctx.message.from.id);
+						break;
+					case privatemsg == 2:
+						//輸入ddr(指令) 私訊GM及自己
 
-					async function loadb() {
-						for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-							if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 1)
-								await ctx.reply(rplyVal.text.toString().match(/[\s\S]{1,1900}/g)[i])
-						}
-					}
-					loadb();
 
+						if (ctx.chat.type == 'group')
+							ctx.reply(displayname + ' 暗骰進行中 \n目標: ')
+						SendToId(ctx.message.from.id);
+						console.log(privatemsg)
+						break;
+					case privatemsg == 3:
+						//輸入dddr(指令) 私訊GM
+
+
+						if (ctx.chat.type == 'group')
+							ctx.reply(displayname + ' 暗骰進行中 \n目標: ')
+						console.log(privatemsg)
+						break;
+					default:
+						console.log(privatemsg)
+						SendToReply();
+						break;
 				}
 
+				async function SendToId(targetid) {
+					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
+						if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 1)
+							await ctx.telegram.sendMessage(targetid, rplyVal.text.toString().match(/[\s\S]{1,1900}/g)[i])
+					}
+				}
+				async function SendToReply() {
+					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
+						if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 1)
+							await ctx.reply(rplyVal.text.toString().match(/[\s\S]{1,1900}/g)[i])
+					}
+				}
 				// console.log("rplyVal: " + rplyVal)
 			} else {
 				//console.log(rplyVal.text, " ")

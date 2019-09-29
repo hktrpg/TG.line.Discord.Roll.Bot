@@ -91,6 +91,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				}
 				if (privatemsg >= 1) {
 					console.log(TargetGM)
+					//FORRRRRRRRRRRRRRRRRRR
 				}
 				//console.log('rplyVal.text:' + rplyVal.text)
 				//console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext, " content: ", message.text);
@@ -107,7 +108,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 
 
 						if (ctx.chat.type == 'group')
-							ctx.reply(displayname + ' 暗骰進行中 \n目標: ')
+							ctx.reply(displayname + ' 暗骰進行中 \n目標: 自己')
 						SendToId(ctx.message.from.id);
 						console.log(privatemsg)
 						break;

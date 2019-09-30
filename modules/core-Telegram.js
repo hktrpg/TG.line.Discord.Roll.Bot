@@ -109,8 +109,10 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 					case privatemsg == 1:
 						// 輸入dr  (指令) 私訊自己
 						//
-						if (ctx.message.chat.type == ("group" || "supergroup"))
+						if (ctx.message.chat.type == ("group" || "supergroup")) {
 							ctx.reply("@" + displayname + ' 暗骰給自己')
+							console.log('ctx.message.chat.type: ', ctx.message.chat.type)
+						}
 						rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
 						SendToId(ctx.message.from.id);
 						break;

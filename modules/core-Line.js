@@ -70,16 +70,13 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		if (event.source.groupId) roomorgroupid = event.source.groupId
 		if (event.source.roomId) roomorgroupid = event.source.roomId
 		if (event.source.userId) userid = event.source.userId
+		let TargetGM = require('../roll/z_DDR_darkRollingToGM').initialize()
+
 		client.getProfile(userid).then(function (profile) {
+			//	在GP 而有加好友的話,得到名字
 			displayname = profile.displayName;
-			//console.log('displayname:', displayname)
-			//rplyVal.text = "@" + displayname + "\n" + rplyVal.text
-			//sendmessage();
 			AfterCheckName();
-			//	在GP 而有加好友的話,顯示名字
 		}, function () {
-			//sendmessage()
-			//console.log('NOdisplayname:', displayname)
 			AfterCheckName();
 			//如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
 		})
@@ -89,7 +86,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				// ignore non-text-message event
 				return Promise.resolve(null);
 			}
-
+			//是不是自己.ME 訊息
 			let displaynamecheck = true;
 			let userrole = 2;
 
@@ -108,13 +105,21 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			}
 
 			let privatemsg = 0
+			//設定私訊的模式 0-普通 1-自己 2-自己+GM 3-GM
 			if (trigger.match(/^dr/i) && mainMsg && mainMsg[1]) {
 				privatemsg = 1
-
-				//mainMsg.shift()
-				//trigger = mainMsg[0].toString().toLowerCase()
 				event.message.text = event.message.text.replace(/^[d][r][ ]/i, '')
 			}
+			if (trigger.match(/^ddr$/i) && mainMsg && mainMsg[1]) {
+				//設定私訊的模式2
+				privatemsg = 2
+				event.message.text = event.message.text.replace(/^[d][d][r][ ]/i, '')
+			}
+			if (trigger.match(/^dddr$/i) && mainMsg && mainMsg[1]) {
+				privatemsg = 3
+				event.message.text = event.message.text.replace(/^[d][d][d][r][ ]/i, '')
+			}
+
 			if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 				//mainMsg.shift()
 				rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid)
@@ -128,13 +133,85 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 			if (rplyVal && rplyVal.text) {
 				Linecountroll++;
+				if (privatemsg >= 1) {
+					//當是私訊模式1-3時
+					var TargetGMTempID = []
+					var TargetGMTempdiyName = []
+					var TargetGMTempdisplayname = []
+					if (TargetGM && TargetGM.trpgDarkRollingfunction)
+						for (var i = 0; i < TargetGM.trpgDarkRollingfunction.length; i++) {
+							if (TargetGM.trpgDarkRollingfunction[i].groupid == groupid) {
+								for (var a = 0; a < TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
+									//checkifsamename = 1
+									TargetGMTempID[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].userid
+									TargetGMTempdiyName[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].diyName
+									TargetGMTempdisplayname[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].displayname
+									//TargetGMTemp[a]. channelid displayname diyName userid
+
+								}
+							}
+						}
+				}
+
+				switch (true) {
+					case privatemsg == 1:
+						// 輸入dr  (指令) 私訊自己
+						//
+						if (roomorgroupid && userid && displaynamecheck && displayname)
+							SendToId(roomorgroupid, "@" + displayname + ' 暗骰給自己')
+
+						SendToId(userid);
+						break;
+					case privatemsg == 2:
+						//輸入ddr(指令) 私訊GM及自己
+						if (ctx.chat.type == 'group') {
+							let targetGMNameTemp = "";
+							for (var i = 0; i < TargetGMTempID.length; i++)
+								targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
+							ctx.reply("@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
+						}
+						rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
+						SendToId(ctx.message.from.id);
+						for (var i = 0; i < TargetGMTempID.length; i++) {
+							if (ctx.message.from.id != TargetGMTempID[i])
+								SendToId(TargetGMTempID[i]);
+						}
+						break;
+					case privatemsg == 3:
+						//輸入dddr(指令) 私訊GM
+						if (ctx.chat.type == 'group') {
+							let targetGMNameTemp = "";
+							for (var i = 0; i < TargetGMTempID.length; i++)
+								targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
+							ctx.reply("@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
+						}
+						rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
+						for (var i = 0; i < TargetGMTempID.length; i++) {
+							if (ctx.message.from.id != TargetGMTempID[i])
+								SendToId(TargetGMTempID[i]);
+						}
+
+						break;
+					default:
+						if (groupid && userid) {
+							//285083923223
+							displayname = "@" + ctx.message.from.username + "\n";
+							if (displaynamecheck)
+								rplyVal.text = displayname + rplyVal.text
+						}
+						//console.log(privatemsg)
+						SendToReply();
+						break;
+				}
+
+
+
+
+
+
 				if (roomorgroupid && userid && displaynamecheck && displayname) {
 					//displayname = profile.displayName;
 					rplyVal.text = "@" + displayname + "\n" + rplyVal.text
-					//console.log(profile.displayName)
-					//console.log(profile)
-					//console.log('rplyVal.text:' + rplyVal.text)
-					//console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
 					sendmessage();
 					//	在GP 而有加好友的話,顯示名字
 				} else {
@@ -147,46 +224,61 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				if (Linecounttext % 500 == 0)
 					console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext);
 			}
-
-			function sendmessage() {
-				if (privatemsg == 1) {
-					client.pushMessage(roomorgroupid, replymessage(displayname + ' 暗骰進行中'))
-						.then(() => {})
-						.catch((err) => {
-							// error handling
-						});
-					//message.reply.text(message.from.first_name + ' 暗骰進行中')
-					async function loada() {
-						for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-							if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 2)
-								await client.pushMessage(userid, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1900}/g)[i]))
-								.then(() => {})
-								.catch((err) => {
-									// error handling
-								});
-						}
-					}
-					loada();
-				} else {
-					async function loadb() {
-						for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-							if (roomorgroupid)
-								var replyTarget = roomorgroupid
-							else replyTarget = userid
-							if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 2)
-								await client.pushMessage(replyTarget, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1900}/g)[i]))
-								.then(() => {})
-								.catch((err) => {
-									// error handling
-								});
-						}
-					}
-					loadb();
-
+			//rplyVal.text
+			async function SendToId(targetid, ReplyText) {
+				for (var i = 0; i < ReplyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
+					if (i == 0 || i == 1 || i == ReplyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == ReplyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
+						await client.pushMessage(targetid, replymessage(ReplyText.toString().match(/[\s\S]{1,1900}/g)[i]))
+							.then(() => { })
+							.catch((err) => {
+								// error handling
+							});
 				}
 			}
 
 
+
+
+			/*
+						function sendmessage() {
+							if (privatemsg == 1) {
+								client.pushMessage(roomorgroupid, replymessage(displayname + ' 暗骰進行中'))
+									.then(() => { })
+									.catch((err) => {
+										// error handling
+									});
+								//message.reply.text(message.from.first_name + ' 暗骰進行中')
+								async function loada() {
+									for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
+										if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 2)
+											await client.pushMessage(userid, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1900}/g)[i]))
+												.then(() => { })
+												.catch((err) => {
+													// error handling
+												});
+									}
+								}
+								loada();
+							} else {
+								async function loadb() {
+									for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
+										if (roomorgroupid)
+											var replyTarget = roomorgroupid
+										else replyTarget = userid
+										if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 2)
+											await client.pushMessage(replyTarget, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1900}/g)[i]))
+												.then(() => { })
+												.catch((err) => {
+													// error handling
+												});
+									}
+								}
+								loadb();
+			
+							}
+						}
+			
+			*/
 			// create a echoing text message
 			//exports.analytics.parseInput(event.message.text)
 

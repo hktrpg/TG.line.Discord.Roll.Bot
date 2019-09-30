@@ -25,9 +25,10 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			//	telegrafGetChatMembers.check(ctx.chat.id) //[Members]
 			//	telegrafGetChatMembers.all //[Chats]
 			let groupid, userid, displayname, channelid = ''
-			let TargetGM = {}
-			TargetGM = require('../roll/z_DDR_darkRollingToGM').initialize()
+			let TargetGM = require('../roll/z_DDR_darkRollingToGM').initialize()
 			if (ctx.message.from.username) displayname = ctx.message.from.username
+			//是不是自己.ME 訊息
+			//TRUE 即正常
 			let displaynamecheck = true;
 			let userrole = 1;
 			//console.log('TG: ', message)
@@ -59,6 +60,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			// 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
 
 			let privatemsg = 0
+			//設定私訊的模式 0-普通 1-自己 2-自己+GM 3-GM
 			if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
 				privatemsg = 1
 				ctx.message.text = ctx.message.text.replace(/^[d][r][ ]/i, '')
@@ -73,7 +75,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			}
 			if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 				mainMsg.shift()
-				rplyVal = exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram", displayname)
+				rplyVal = exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram", displayname, channelid)
 			} else {
 				if (channelKeyword == '') {
 					rplyVal = exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram", displayname, channelid)
@@ -86,42 +88,27 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				TGcountroll++;
 
 				if (privatemsg >= 1) {
-					console.log("TargetGM: ", TargetGM)
-					//FORRRRRRRRRRRRRRRRRRR
+					//當是私訊模式1-3時
 					var TargetGMTempID = []
 					var TargetGMTempdiyName = []
 					var TargetGMTempdisplayname = []
 					if (TargetGM && TargetGM.trpgDarkRollingfunction)
 						for (var i = 0; i < TargetGM.trpgDarkRollingfunction.length; i++) {
 							if (TargetGM.trpgDarkRollingfunction[i].groupid == groupid) {
-								// console.log('checked1')
-								//console.log('TargetGM.trpgDarkRollingfunction[i]: ', TargetGM.trpgDarkRollingfunction[i])
 								for (var a = 0; a < TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
-									//if (TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].topic == userid) {
-									//   console.log('checked')
-									//console.log('contact', TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].contact)
 									//checkifsamename = 1
 									TargetGMTempID[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].userid
 									TargetGMTempdiyName[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].diyName
 									TargetGMTempdisplayname[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].displayname
-
-									//TargetGMTemp[a]. channelid contact topic
-
+									//TargetGMTemp[a]. channelid displayname diyName userid
 								}
-								//}
 							}
-
-
 						}
-
 				}
-				//console.log('rplyVal.text:' + rplyVal.text)
-				//console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext, " content: ", message.text);
 				switch (true) {
 					case privatemsg == 1:
 						// 輸入dr  (指令) 私訊自己
 						//
-						console.log(privatemsg)
 						if (ctx.chat.type == 'group')
 							ctx.reply("@" + displayname + ' 暗骰給自己')
 
@@ -129,7 +116,6 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 						break;
 					case privatemsg == 2:
 						//輸入ddr(指令) 私訊GM及自己
-
 						if (ctx.chat.type == 'group') {
 							let targetGMNameTemp = "";
 							for (var i = 0; i < TargetGMTempID.length; i++)
@@ -142,10 +128,6 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 							if (ctx.message.from.id != TargetGMTempID[i])
 								SendToId(TargetGMTempID[i]);
 						}
-						//console.log("TargetGMTempID:", TargetGMTempID[i])
-						//console.log(privatemsg)
-						//SendToId(ctx.message.from.id);
-
 						break;
 					case privatemsg == 3:
 						//輸入dddr(指令) 私訊GM
@@ -156,15 +138,10 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 							ctx.reply("@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
 						}
 						rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
-						//SendToId(ctx.message.from.id);
 						for (var i = 0; i < TargetGMTempID.length; i++) {
 							if (ctx.message.from.id != TargetGMTempID[i])
 								SendToId(TargetGMTempID[i]);
 						}
-						//console.log("TargetGMTempID:", TargetGMTempID[i])
-						//console.log(privatemsg)
-						//SendToId(ctx.message.from.id);
-
 						break;
 					default:
 						if (groupid && userid) {
@@ -173,7 +150,6 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 							if (displaynamecheck)
 								rplyVal.text = displayname + rplyVal.text
 						}
-						//console.log(privatemsg)
 						SendToReply();
 						break;
 				}

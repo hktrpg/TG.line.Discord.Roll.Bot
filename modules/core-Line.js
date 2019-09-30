@@ -164,7 +164,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 							else
 								SendToId(roomorgroupid, '正在暗骰給自己')
 						if (userid)
-							if (displayname)
+							if (displayname && displaynamecheck)
 								SendToId(userid, "@" + displayname + '的暗骰\n' + rplyVal.text);
 							else
 								SendToId(userid, rplyVal.text);
@@ -199,7 +199,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						if (roomorgroupid) {
 							let targetGMNameTemp = "";
 							for (var i = 0; i < TargetGMTempID.length; i++)
-								targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
+								targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
 							if (displayname)
 								SendToId(roomorgroupid, "@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
 							else

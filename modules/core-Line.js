@@ -172,6 +172,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 								targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
 							SendToId(roomorgroupid, "@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
 						}
+						
+						//DDFFFFF
+
 						rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
 						SendToId(userid, rplyVal.text);
 						for (var i = 0; i < TargetGMTempID.length; i++) {

@@ -64,10 +64,12 @@ if (process.env.mongoURL) {
     });
     const trpgLevelSystem = mongoose.model('trpgLevelSystem', {
         groupid: String,
-        groupid: String,
+        LevelUpWord: String,
+        RankWord: String,
         trpgLevelSystemfunction: [{
-            topic: String,
-            contact: String
+            userid: String,
+            EXP: Number,
+            LastSpeakTime: Date
         }]
     });
     const trpgDarkRolling = mongoose.model('trpgDarkRolling', {

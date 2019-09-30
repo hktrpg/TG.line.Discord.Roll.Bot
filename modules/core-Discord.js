@@ -99,7 +99,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 						var TargetGMTempdisplayname = []
 						if (TargetGM && TargetGM.trpgDarkRollingfunction)
 							for (var i = 0; i < TargetGM.trpgDarkRollingfunction.length; i++) {
-								if (TargetGM.trpgDarkRollingfunction[i].groupid == groupid) {
+								if (TargetGM.trpgDarkRollingfunction[i].groupid == channelid) {
 									for (var a = 0; a < TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
 										//checkifsamename = 1
 										TargetGMTempID[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].userid

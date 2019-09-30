@@ -139,7 +139,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 					var TargetGMTempID = []
 					var TargetGMTempdiyName = []
 					var TargetGMTempdisplayname = []
-					if (TargetGM && TargetGM.trpgDarkRollingfunction&&roomorgroupid)
+					if (TargetGM && TargetGM.trpgDarkRollingfunction && roomorgroupid)
 						for (var i = 0; i < TargetGM.trpgDarkRollingfunction.length; i++) {
 							if (TargetGM.trpgDarkRollingfunction[i].groupid == roomorgroupid) {
 								for (var a = 0; a < TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
@@ -164,7 +164,11 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 							else
 								SendToId(roomorgroupid, '正在暗骰給自己')
 						if (userid)
-							SendToId(userid, rplyVal.text);
+							if (displayname)
+								SendToId(userid, "@" + displayname + '的暗骰\n' + rplyVal.text);
+							else
+								SendToId(userid, rplyVal.text);
+
 						break;
 					case privatemsg == 2:
 						//輸入ddr(指令) 私訊GM及自己

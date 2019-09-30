@@ -62,6 +62,14 @@ if (process.env.mongoURL) {
             contact: String
         }]
     });
+    const trpgLevelSystem = mongoose.model('trpgLevelSystem', {
+        groupid: String,
+        groupid: String,
+        trpgLevelSystemfunction: [{
+            topic: String,
+            contact: String
+        }]
+    });
     const trpgDarkRolling = mongoose.model('trpgDarkRolling', {
         groupid: String,
         trpgDarkRollingfunction: [{
@@ -81,6 +89,7 @@ if (process.env.mongoURL) {
         trpgDatabaseAllgroup,
         trpgDatabase,
         trpgCommand,
+        trpgLevelSystem,
         trpgDarkRolling
     }
     //const Cat = mongoose.model('Cat', { name: String });

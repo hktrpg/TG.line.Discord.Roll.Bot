@@ -188,7 +188,7 @@ class Records extends EventEmitter {
             $push 加入新的
             $set  重置舊的
          */
-       // console.log('msg: ', msg)
+        // console.log('msg: ', msg)
         schema[dbbase].findOneAndUpdate({}, {
             $push: {
                 trpgDatabaseAllgroup: msg.trpgDatabaseAllgroup
@@ -351,7 +351,48 @@ class Records extends EventEmitter {
             // return JSON.stringify(doc).toString();
         });
     }
-
+    /*
+            trpgLevelSystem開始
+        */
+    pushtrpgLevelSystemfunction(dbbase, msg, callback) {
+        /*
+            提醒:
+            $push 加入新的
+            $set  重置舊的
+         */
+        schema[dbbase].findOneAndUpdate({
+            groupid: msg.groupid
+        }, {
+            $push: {
+                trpgLevelSystemfunction: msg.trpgLevelSystemfunction
+            }
+        }, {
+            new: true,
+            upsert: true
+        }, (err, doc) => {
+            if (err) {
+                console.log("Something wrong when updating data!");
+            } else
+                callback();
+        });
+    }
+    settrpgLevelSystemfunction(dbbase, msg, callback) {
+        schema[dbbase].findOneAndUpdate({
+            groupid: msg.groupid
+        }, {
+            $set: {
+                trpgLevelSystemfunction: msg.trpgLevelSystemfunction
+            }
+        }, {
+            upsert: true
+        }, (err, doc) => {
+            if (err) {
+                console.log("Something wrong when updating data!");
+            } else
+                callback();
+            // return JSON.stringify(doc).toString();
+        });
+    }
 
 }
 

@@ -34,8 +34,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			let userrole = 1;
 			//console.log('TG: ', message)
 
-			console.log('ctx.message.chat', ctx.message.chat.type)
-			if (ctx.message.chat.type == 'group') {
+			if (ctx.message.chat.type == 'group' || 'supergroup') {
 
 				groupid = ctx.message.chat.id
 				if (ctx.chat && ctx.chat.id)

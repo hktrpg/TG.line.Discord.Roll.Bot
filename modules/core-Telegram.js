@@ -34,8 +34,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			let userrole = 1;
 			//console.log('TG: ', message)
 
-			if (ctx.message.chat.type == 'group' || 'supergroup') {
-
+			if (ctx.message.chat.type == ("group" || "supergroup")) {
 				groupid = ctx.message.chat.id
 				if (ctx.chat && ctx.chat.id)
 					if ((telegrafGetChatMembers.check(ctx.chat.id) && telegrafGetChatMembers.check(ctx.chat.id)[0] && telegrafGetChatMembers.check(ctx.chat.id)[0].status == ("creator" || "administrator")) || ctx.message.chat.all_members_are_administrators == true) {
@@ -112,7 +111,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 						//
 						if (groupid)
 							ctx.reply("@" + displayname + ' 暗骰給自己')
-
+						rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
 						SendToId(ctx.message.from.id);
 						break;
 					case privatemsg == 2:

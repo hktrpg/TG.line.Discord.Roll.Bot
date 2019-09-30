@@ -87,6 +87,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				return Promise.resolve(null);
 			}
 			//是不是自己.ME 訊息
+			//TRUE 即正常
 			let displaynamecheck = true;
 			let userrole = 2;
 
@@ -164,17 +165,18 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						break;
 					case privatemsg == 2:
 						//輸入ddr(指令) 私訊GM及自己
-						if (ctx.chat.type == 'group') {
+						//房間訊息
+						if (roomorgroupid) {
 							let targetGMNameTemp = "";
 							for (var i = 0; i < TargetGMTempID.length; i++)
 								targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
-							ctx.reply("@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
+							SendToId(roomorgroupid, "@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
 						}
 						rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
-						SendToId(ctx.message.from.id);
+						SendToId(userid, rplyVal.text);
 						for (var i = 0; i < TargetGMTempID.length; i++) {
 							if (ctx.message.from.id != TargetGMTempID[i])
-								SendToId(TargetGMTempID[i]);
+								SendToId(TargetGMTempID[i], rplyVal.text);
 						}
 						break;
 					case privatemsg == 3:

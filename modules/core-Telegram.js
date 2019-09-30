@@ -110,14 +110,14 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 					case privatemsg == 1:
 						// 輸入dr  (指令) 私訊自己
 						//
-						if (ctx.chat.type == 'group')
+						if (groupid)
 							ctx.reply("@" + displayname + ' 暗骰給自己')
 
 						SendToId(ctx.message.from.id);
 						break;
 					case privatemsg == 2:
 						//輸入ddr(指令) 私訊GM及自己
-						if (ctx.chat.type == 'group') {
+						if (groupid) {
 							let targetGMNameTemp = "";
 							for (var i = 0; i < TargetGMTempID.length; i++)
 								targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
@@ -132,7 +132,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 						break;
 					case privatemsg == 3:
 						//輸入dddr(指令) 私訊GM
-						if (ctx.chat.type == 'group') {
+						if (groupid) {
 							let targetGMNameTemp = "";
 							for (var i = 0; i < TargetGMTempID.length; i++)
 								targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])

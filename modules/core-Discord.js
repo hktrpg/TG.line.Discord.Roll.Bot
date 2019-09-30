@@ -46,7 +46,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				if (message.channel && message.channel.id) channelid = message.channel.id
 				if (message.guild && message.guild.id) groupid = message.guild.id
 				if (message.author.id) userid = message.author.id
-				if (message.member.user.tag) displayname = message.member.user.tag
+				if (message.member && message.member.user && message.member.user.tag) displayname = message.member.user.tag
 				////DISCORD: 585040823232320107
 				if (message.member && message.member.hasPermission("ADMINISTRATOR")) userrole = 3
 				//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin 
@@ -113,20 +113,20 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 
 
 
-
-					if (groupid && userid) {
-						//DISCORD: 585040823232320107
-						displayname = "<@" + userid + "> \n"
-						if (displaynamecheck)
-							rplyVal.text = displayname + rplyVal.text
-					}
-
+					/*
+										if (groupid && userid) {
+											//DISCORD: 585040823232320107
+											displayname = "<@" + userid + "> \n"
+											if (displaynamecheck)
+												rplyVal.text = displayname + rplyVal.text
+										}
+					*/
 					switch (true) {
 						case privatemsg == 1:
 							// 輸入dr  (指令) 私訊自己
 							//
 							if (groupid)
-								SendToReplychannel(displayname + ' 暗骰給自己')
+								SendToReplychannel("<@" + userid + '> 暗骰給自己')
 							SendToReply(rplyVal.text);
 							break;
 						case privatemsg == 2:
@@ -134,10 +134,10 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 							if (groupid) {
 								let targetGMNameTemp = "";
 								for (var i = 0; i < TargetGMTempID.length; i++)
-									targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempdisplayname[i] + ">")
-								SendToReplychannel("@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
+									targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
+								SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + TargetGMTempID)
 							}
-							rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
+							rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
 							SendToReply(rplyVal.text);
 							for (var i = 0; i < TargetGMTempID.length; i++) {
 								if (userid != TargetGMTempID[i])
@@ -149,19 +149,19 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 							if (groupid) {
 								let targetGMNameTemp = "";
 								for (var i = 0; i < TargetGMTempID.length; i++)
-									targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempdisplayname[i] + ">")
-								SendToReplychannel("@" + displayname + ' 暗骰進行中 \n目標:  ' + targetGMNameTemp)
+									targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
+								SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp)
 							}
-							rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
+							rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
 							for (var i = 0; i < TargetGMTempID.length; i++) {
 								if (userid != TargetGMTempID[i])
 									SendToId(TargetGMTempID[i], rplyVal.text);
 							}
 							break;
 						default:
-							if (displaynamecheck && displayname) {
+							if (displaynamecheck && userid) {
 								//285083923223
-								displayname = "@" + displayname + "\n";
+								displayname = "<@" + userid + ">\n";
 								rplyVal.text = displayname + rplyVal.text
 							}
 							if (groupid)

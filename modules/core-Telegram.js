@@ -144,11 +144,10 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 						}
 						break;
 					default:
-						if (groupid && userid) {
+						if (displaynamecheck && displayname) {
 							//285083923223
 							displayname = "@" + ctx.message.from.username + "\n";
-							if (displaynamecheck)
-								rplyVal.text = displayname + rplyVal.text
+							rplyVal.text = displayname + rplyVal.text
 						}
 						SendToReply();
 						break;

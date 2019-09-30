@@ -209,14 +209,16 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						}
 						break;
 					default:
-						if (roomorgroupid && userid) {
+						if (displaynamecheck && displayname) {
 							//285083923223
 							displayname = "@" + displayname + "\n";
-							if (displaynamecheck)
-								rplyVal.text = displayname + rplyVal.text
+							rplyVal.text = displayname + rplyVal.text
 						}
 						//console.log(privatemsg)
-						SendToId(userid, rplyVal.text);
+						if (roomorgroupid)
+							SendToId(roomorgroupid, rplyVal.text);
+						else if (userid)
+							SendToId(userid, rplyVal.text);
 						break;
 				}
 			} else {

@@ -26,6 +26,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			//	telegrafGetChatMembers.all //[Chats]
 			let groupid, userid, displayname, channelid = ''
 			let TargetGM = require('../roll/z_DDR_darkRollingToGM').initialize()
+			//得到暗骰的數據, 那個是GM
 			if (ctx.message.from.username) displayname = ctx.message.from.username
 			//是不是自己.ME 訊息
 			//TRUE 即正常

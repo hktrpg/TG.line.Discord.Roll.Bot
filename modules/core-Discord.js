@@ -111,8 +111,6 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 							}
 					}
 
-
-
 					/*
 										if (groupid && userid) {
 											//DISCORD: 585040823232320107

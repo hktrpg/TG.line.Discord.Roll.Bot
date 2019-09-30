@@ -67,8 +67,7 @@ if (process.env.mongoURL) {
         trpgDarkRollingfunction: [{
             userid: String,
             diyName: String,
-            displayname: String,
-            channelid: String
+            displayname: String
         }]
     });
 

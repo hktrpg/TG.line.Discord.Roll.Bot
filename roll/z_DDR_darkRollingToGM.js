@@ -56,6 +56,9 @@ try {
                 //增加自定義關鍵字
                 // .drgm[0] addgm[1] 代替名字[2]  
                 let checkifsamename = 0
+                if (channelid)
+                    groupid = channelid
+                //因為在DISCROD以頻道作單位
                 if (groupid && userrole >= 1 && userid) {
                     if (rply.trpgDarkRollingfunction)
                         for (var i = 0; i < rply.trpgDarkRollingfunction.length; i++) {
@@ -74,8 +77,7 @@ try {
                         trpgDarkRollingfunction: [{
                             userid: userid,
                             diyName: mainMsg[2] || "",
-                            displayname: displayname,
-                            channelid: channelid
+                            displayname: displayname
                         }]
                         //|| displayname
 
@@ -108,6 +110,8 @@ try {
                 //    
                 //刪除所有自定義關鍵字
                 //
+                if (channelid)
+                    groupid = channelid
                 if (!mainMsg[2]) return;
                 if (groupid && mainMsg[2] && rply.trpgDarkRollingfunction && userrole >= 2) {
                     for (var i = 0; i < rply.trpgDarkRollingfunction.length; i++) {
@@ -136,6 +140,8 @@ try {
                 //
                 //刪除GM
                 //
+                if (channelid)
+                    groupid = channelid
                 if (groupid && mainMsg[2] && rply.trpgDarkRollingfunction && userrole >= 1) {
                     for (var i = 0; i < rply.trpgDarkRollingfunction.length; i++) {
                         if (rply.trpgDarkRollingfunction[i].groupid == groupid && mainMsg[2] < rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length && mainMsg[2] >= 0) {
@@ -165,6 +171,8 @@ try {
                 //
                 //顯示列表
                 //
+                if (channelid)
+                    groupid = channelid
                 records.get('trpgDarkRolling', (msgs) => {
                     rply.trpgDarkRollingfunction = msgs
                 })

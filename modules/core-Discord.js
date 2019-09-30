@@ -131,6 +131,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 							break;
 						case privatemsg == 2:
 							//輸入ddr(指令) 私訊GM及自己
+							console.log('AAA', TargetGMTempID)
 							if (groupid) {
 								let targetGMNameTemp = "";
 								for (var i = 0; i < TargetGMTempID.length; i++)

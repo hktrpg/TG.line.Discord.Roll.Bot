@@ -318,7 +318,6 @@ class Records extends EventEmitter {
             $push 加入新的
             $set  重置舊的
          */
-        console.log('schema[dbbase]: ', schema[dbbase])
         schema[dbbase].findOneAndUpdate({
             groupid: msg.groupid
         }, {

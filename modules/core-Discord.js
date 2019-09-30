@@ -127,6 +127,8 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 							//
 							if (groupid)
 								SendToReplychannel("<@" + userid + '> 暗骰給自己')
+							if (userid)
+								rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
 							SendToReply(rplyVal.text);
 							break;
 						case privatemsg == 2:
@@ -135,9 +137,10 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 								let targetGMNameTemp = "";
 								for (var i = 0; i < TargetGMTempID.length; i++)
 									targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
-								SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + TargetGMTempID)
+								SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
 							}
-							rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
+							if (userid)
+								rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
 							SendToReply(rplyVal.text);
 							for (var i = 0; i < TargetGMTempID.length; i++) {
 								if (userid != TargetGMTempID[i])

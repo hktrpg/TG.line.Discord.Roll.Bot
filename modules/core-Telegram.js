@@ -140,8 +140,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 						}
 						rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
 						for (var i = 0; i < TargetGMTempID.length; i++) {
-							if (ctx.message.from.id != TargetGMTempID[i])
-								SendToId(TargetGMTempID[i]);
+							SendToId(TargetGMTempID[i]);
 						}
 						break;
 					default:

@@ -157,8 +157,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 							}
 							rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
 							for (var i = 0; i < TargetGMTempID.length; i++) {
-								if (userid != TargetGMTempID[i])
-									SendToId(TargetGMTempID[i], rplyVal.text);
+								SendToId(TargetGMTempID[i], rplyVal.text);
 							}
 							break;
 						default:

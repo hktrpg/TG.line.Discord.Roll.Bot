@@ -208,8 +208,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						if (displayname)
 							rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
 						for (var i = 0; i < TargetGMTempID.length; i++) {
-							if (userid != TargetGMTempID[i])
-								SendToId(TargetGMTempID[i], rplyVal.text);
+							SendToId(TargetGMTempID[i], rplyVal.text);
 						}
 						break;
 					default:

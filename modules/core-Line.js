@@ -63,125 +63,189 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			});
 	});
 	// event handler
+
+
 	function handleEvent(event) {
-		if (event.type !== 'message' || event.message.type !== 'text') {
-			// ignore non-text-message event
-			return Promise.resolve(null);
-		}
-		let roomorgroupid, userid, displayname = ''
-		let displaynamecheck = true;
-		let userrole = 2;
+		let roomorgroupid, userid, displayname, channelid = ''
 		if (event.source.groupId) roomorgroupid = event.source.groupId
 		if (event.source.roomId) roomorgroupid = event.source.roomId
 		if (event.source.userId) userid = event.source.userId
-		//Ub23daads22a2131312334645349a3 
-		let rplyVal = {};
-		let msgSplitor = (/\S+/ig)
-		if (event.message.text)
-			var mainMsg = event.message.text.match(msgSplitor); // 定義輸入字串
-		if (mainMsg && mainMsg[0])
-			var trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
+		let TargetGM = require('../roll/z_DDR_darkRollingToGM').initialize()
 
-		// 訊息來到後, 會自動跳到analytics.js進行骰組分析
-		// 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
-		if (trigger == ".me") {
-			displaynamecheck = false
-		}
+		client.getProfile(userid).then(function (profile) {
+			//	在GP 而有加好友的話,得到名字
+			displayname = profile.displayName;
+			AfterCheckName();
+		}, function () {
+			AfterCheckName();
+			//如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
+		})
 
-		let privatemsg = 0
-		if (trigger.match(/^dr/i) && mainMsg && mainMsg[1]) {
-			privatemsg = 1
+		function AfterCheckName() {
+			if (event.type !== 'message' || event.message.type !== 'text') {
+				// ignore non-text-message event
+				return Promise.resolve(null);
+			}
+			//是不是自己.ME 訊息
+			//TRUE 即正常
+			let displaynamecheck = true;
+			let userrole = 2;
 
-			//mainMsg.shift()
-			//trigger = mainMsg[0].toString().toLowerCase()
-			event.message.text = event.message.text.replace(/^[d][r][ ]/i, '')
-		}
-		if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
-			//mainMsg.shift()
-			rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line")
-		} else {
-			if (channelKeyword == '') {
-				rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line")
+			//Ub23daads22a2131312334645349a3 
+			let rplyVal = {};
+			let msgSplitor = (/\S+/ig)
+			if (event.message.text)
+				var mainMsg = event.message.text.match(msgSplitor); // 定義輸入字串
+			if (mainMsg && mainMsg[0])
+				var trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
 
+			// 訊息來到後, 會自動跳到analytics.js進行骰組分析
+			// 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+			if (trigger == ".me") {
+				displaynamecheck = false
 			}
 
-		}
-
-		if (rplyVal && rplyVal.text) {
-			Linecountroll++;
-
-
-			if (roomorgroupid && userid && displaynamecheck)
-				client.getProfile(userid).then(function (profile) {
-					displayname = profile.displayName;
-					rplyVal.text = "@" + displayname + "\n" + rplyVal.text
-					//console.log(profile.displayName)
-					//console.log(profile)
-					//console.log('rplyVal.text:' + rplyVal.text)
-					//console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext, " content: ", event.message.text);
-					sendmessage();
-					//	在GP 而有加好友的話,顯示名字
-				}, function () {
-					sendmessage()
-					//		如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
-				})
-			else {
-				sendmessage()
-				//	對方不在GP CHANNEL的話就跳到這裡
+			let privatemsg = 0
+			//設定私訊的模式 0-普通 1-自己 2-自己+GM 3-GM
+			if (trigger.match(/^dr/i) && mainMsg && mainMsg[1]) {
+				privatemsg = 1
+				event.message.text = event.message.text.replace(/^[d][r][ ]/i, '')
 			}
-			//console.log("LINE:" , event)
+			if (trigger.match(/^ddr$/i) && mainMsg && mainMsg[1]) {
+				//設定私訊的模式2
+				privatemsg = 2
+				event.message.text = event.message.text.replace(/^[d][d][r][ ]/i, '')
+			}
+			if (trigger.match(/^dddr$/i) && mainMsg && mainMsg[1]) {
+				privatemsg = 3
+				event.message.text = event.message.text.replace(/^[d][d][d][r][ ]/i, '')
+			}
 
-
-		} else {
-			Linecounttext++;
-			if (Linecounttext % 500 == 0)
-				console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext);
-		}
-
-		function sendmessage() {
-			if (privatemsg == 1) {
-				client.pushMessage(roomorgroupid, replymessage(displayname + ' 暗骰進行中'))
-					.then(() => { })
-					.catch((err) => {
-						// error handling
-					});
-				//message.reply.text(message.from.first_name + ' 暗骰進行中')
-				async function loada() {
-					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-						if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 2)
-							await client.pushMessage(userid, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1900}/g)[i]))
-								.then(() => { })
-								.catch((err) => {
-									// error handling
-								});
-					}
-				}
-				loada();
+			if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
+				//mainMsg.shift()
+				rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid)
 			} else {
-				async function loadb() {
-					for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-						if (roomorgroupid)
-							var replyTarget = roomorgroupid
-						else replyTarget = userid
-						if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 2)
-							await client.pushMessage(replyTarget, replymessage(rplyVal.text.toString().match(/[\s\S]{1,1900}/g)[i]))
-								.then(() => { })
-								.catch((err) => {
-									// error handling
-								});
-					}
+				if (channelKeyword == '') {
+					rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid)
+
 				}
-				loadb();
 
 			}
+
+			if (rplyVal && rplyVal.text) {
+				Linecountroll++;
+				if (privatemsg >= 1) {
+					//當是私訊模式1-3時
+					var TargetGMTempID = []
+					var TargetGMTempdiyName = []
+					var TargetGMTempdisplayname = []
+					if (TargetGM && TargetGM.trpgDarkRollingfunction && roomorgroupid)
+						for (var i = 0; i < TargetGM.trpgDarkRollingfunction.length; i++) {
+							if (TargetGM.trpgDarkRollingfunction[i].groupid == roomorgroupid) {
+								for (var a = 0; a < TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
+									//checkifsamename = 1
+									TargetGMTempID[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].userid
+									TargetGMTempdiyName[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].diyName
+									TargetGMTempdisplayname[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].displayname
+									//TargetGMTemp[a]. channelid displayname diyName userid
+
+								}
+							}
+						}
+				}
+
+				switch (true) {
+					case privatemsg == 1:
+						// 輸入dr  (指令) 私訊自己
+						//
+						if (roomorgroupid && userid && displaynamecheck)
+							if (displayname)
+								SendToId(roomorgroupid, "@" + displayname + ' 暗骰給自己')
+							else
+								SendToId(roomorgroupid, '正在暗骰給自己')
+						if (userid)
+							if (displayname && displaynamecheck)
+								SendToId(userid, "@" + displayname + '的暗骰\n' + rplyVal.text);
+							else
+								SendToId(userid, rplyVal.text);
+
+						break;
+					case privatemsg == 2:
+						//輸入ddr(指令) 私訊GM及自己
+						//房間訊息
+						if (roomorgroupid) {
+							let targetGMNameTemp = "";
+							for (var i = 0; i < TargetGMTempID.length; i++)
+								targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
+							if (displayname)
+								SendToId(roomorgroupid, "@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
+							else
+								SendToId(roomorgroupid, ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
+						}
+
+						//有名字就顯示
+						if (displayname)
+							rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
+						//傳給自己
+						SendToId(userid, rplyVal.text);
+						for (var i = 0; i < TargetGMTempID.length; i++) {
+							if (userid != TargetGMTempID[i])
+								SendToId(TargetGMTempID[i], rplyVal.text);
+						}
+						break;
+					case privatemsg == 3:
+						//輸入dddr(指令) 私訊GM
+						//如在房中
+						if (roomorgroupid) {
+							let targetGMNameTemp = "";
+							for (var i = 0; i < TargetGMTempID.length; i++)
+								targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
+							if (displayname)
+								SendToId(roomorgroupid, "@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
+							else
+								SendToId(roomorgroupid, ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
+						}
+						if (displayname)
+							rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
+						for (var i = 0; i < TargetGMTempID.length; i++) {
+							SendToId(TargetGMTempID[i], rplyVal.text);
+						}
+						break;
+					default:
+						if (displaynamecheck && displayname) {
+							//285083923223
+							displayname = "@" + displayname + "\n";
+							rplyVal.text = displayname + rplyVal.text
+						}
+						//console.log(privatemsg)
+						if (roomorgroupid)
+							SendToId(roomorgroupid, rplyVal.text);
+						else if (userid)
+							SendToId(userid, rplyVal.text);
+						break;
+				}
+			} else {
+				Linecounttext++;
+				if (Linecounttext % 500 == 0)
+					console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext);
+			}
+			//rplyVal.text
+			async function SendToId(targetid, ReplyText) {
+				for (var i = 0; i < ReplyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
+					if (i == 0 || i == 1 || i == ReplyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == ReplyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
+						await client.pushMessage(targetid, replymessage(ReplyText.toString().match(/[\s\S]{1,1900}/g)[i]))
+							.then(() => { })
+							.catch((err) => {
+								// error handling
+							});
+				}
+			}
+			// create a echoing text message
+			//exports.analytics.parseInput(event.message.text)
+
+			// use reply API
+			//Reply Max: 1900 characters
 		}
-
-
-		// create a echoing text message
-		//exports.analytics.parseInput(event.message.text)
-
-		// use reply API
-		//Reply Max: 1900 characters
 	}
 	// listen on port
 	const port = process.env.PORT || 5000;

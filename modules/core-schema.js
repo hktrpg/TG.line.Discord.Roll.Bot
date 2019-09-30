@@ -62,6 +62,14 @@ if (process.env.mongoURL) {
             contact: String
         }]
     });
+    const trpgDarkRolling = mongoose.model('trpgDarkRolling', {
+        groupid: String,
+        trpgDarkRollingfunction: [{
+            userid: String,
+            diyName: String,
+            displayname: String
+        }]
+    });
 
 
     module.exports = {
@@ -72,7 +80,8 @@ if (process.env.mongoURL) {
         GroupSetting,
         trpgDatabaseAllgroup,
         trpgDatabase,
-        trpgCommand
+        trpgCommand,
+        trpgDarkRolling
     }
     //const Cat = mongoose.model('Cat', { name: String });
     //const kitty = new Cat({ name: 'Zildjian' });

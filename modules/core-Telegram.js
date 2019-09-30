@@ -33,13 +33,14 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			let displaynamecheck = true;
 			let userrole = 1;
 			//console.log('TG: ', message)
-			//console.log(ctx.chat.type)
+			//console.log('ctx.chat.id', ctx.chat.id)
+
 			if (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') {
 				groupid = ctx.message.chat.id
 				if (ctx.chat && ctx.chat.id)
 					if ((telegrafGetChatMembers.check(ctx.chat.id) && telegrafGetChatMembers.check(ctx.chat.id)[0] && telegrafGetChatMembers.check(ctx.chat.id)[0].status == ("creator" || "administrator")) || ctx.message.chat.all_members_are_administrators == true) {
 						userrole = 3
-						console.log(userrole)
+						//console.log(userrole)
 						//console.log(telegrafGetChatMembers.check(ctx.chat.id))
 					}
 			}
@@ -110,7 +111,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 					case privatemsg == 1:
 						// 輸入dr  (指令) 私訊自己
 						//
-						console.log('ctx.message.chat.type: ', ctx.message.chat.type)
+						//console.log('ctx.message.chat.type: ', ctx.message.chat.type)
 						if (ctx.message.chat.type != 'private') {
 							ctx.reply("@" + displayname + ' 暗骰給自己')
 

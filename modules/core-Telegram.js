@@ -33,8 +33,8 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			let displaynamecheck = true;
 			let userrole = 1;
 			//console.log('TG: ', message)
-
-			if (ctx.message.chat.type == ("group" || "supergroup")) {
+			console.log(ctx.message.chat.type)
+			if (ctx.message.chat.type != 'private') {
 				groupid = ctx.message.chat.id
 				if (ctx.chat && ctx.chat.id)
 					if ((telegrafGetChatMembers.check(ctx.chat.id) && telegrafGetChatMembers.check(ctx.chat.id)[0] && telegrafGetChatMembers.check(ctx.chat.id)[0].status == ("creator" || "administrator")) || ctx.message.chat.all_members_are_administrators == true) {
@@ -110,7 +110,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 						// 輸入dr  (指令) 私訊自己
 						//
 						console.log('ctx.message.chat.type: ', ctx.message.chat.type)
-						if (ctx.message.chat.type == ("group" || "supergroup")) {
+						if (ctx.message.chat.type != 'private') {
 							ctx.reply("@" + displayname + ' 暗骰給自己')
 
 						}
@@ -119,7 +119,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 						break;
 					case privatemsg == 2:
 						//輸入ddr(指令) 私訊GM及自己
-						if (ctx.message.chat.type == ("group" || "supergroup")) {
+						if (ctx.message.chat.type != 'private') {
 							let targetGMNameTemp = "";
 							for (var i = 0; i < TargetGMTempID.length; i++)
 								targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
@@ -134,7 +134,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 						break;
 					case privatemsg == 3:
 						//輸入dddr(指令) 私訊GM
-						if (ctx.message.chat.type == ("group" || "supergroup")) {
+						if (ctx.message.chat.type != 'private') {
 							let targetGMNameTemp = "";
 							for (var i = 0; i < TargetGMTempID.length; i++)
 								targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])

@@ -36,6 +36,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 
 
 			if (ctx.message.chat.type == 'group') {
+				console.log('ctx.message.chat', ctx.message.chat)
 				groupid = ctx.message.chat.id
 				if (ctx.chat && ctx.chat.id)
 					if ((telegrafGetChatMembers.check(ctx.chat.id) && telegrafGetChatMembers.check(ctx.chat.id)[0] && telegrafGetChatMembers.check(ctx.chat.id)[0].status == ("creator" || "administrator")) || ctx.message.chat.all_members_are_administrators == true) {

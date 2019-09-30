@@ -17,7 +17,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 		var TGcounttext = 0;
 		const telegrafGetChatMembers = require('telegraf-getchatmembers')
 
-		TGclient.use(telegrafGetChatMembers)
+		//TGclient.use(telegrafGetChatMembers)
 
 		TGclient.on('text', async (ctx) => {
 			//console.log(ctx.getChatMembers(ctx.chat.id) //[Members]
@@ -33,12 +33,13 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			let displaynamecheck = true;
 			let userrole = 1;
 			//console.log('TG: ', message)
-			console.log(ctx.message.chat.type)
-			if (ctx.message.chat.type != 'private') {
+			//console.log(ctx.chat.type)
+			if (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') {
 				groupid = ctx.message.chat.id
 				if (ctx.chat && ctx.chat.id)
 					if ((telegrafGetChatMembers.check(ctx.chat.id) && telegrafGetChatMembers.check(ctx.chat.id)[0] && telegrafGetChatMembers.check(ctx.chat.id)[0].status == ("creator" || "administrator")) || ctx.message.chat.all_members_are_administrators == true) {
 						userrole = 3
+						console.log(userrole)
 						//console.log(telegrafGetChatMembers.check(ctx.chat.id))
 					}
 			}

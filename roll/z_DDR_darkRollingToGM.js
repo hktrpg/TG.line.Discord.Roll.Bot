@@ -18,7 +18,7 @@ try {
         return [/(^[.]drgm$)/ig, ]
     }
     getHelpMessage = function () {
-        return "【暗骰GM功能】.drgm dr ddr dddr" + "\
+        return "【暗骰GM功能】.drgm(addgm del show) dr ddr dddr" + "\
         \n 這是讓你可以私骰GM的功能\
         \n 想成為GM的人先輸入.drgm addgm\
         \n 然後別人DDR 或DDDR (指令)即可以私訊給這位GM\

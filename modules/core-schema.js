@@ -69,9 +69,9 @@ if (process.env.mongoURL) {
         RankWord: String,
         //在這群組查詢等級時的回應
         Switch: String,
-        //是否啓動功能
+        //是否啓動功能 config 1X 則1
         Hidden: String,
-        //是否顯示升級語
+        //是否顯示升級語 config X1 則1
         trpgLevelSystemfunction: [{
             userid: String,
             EXP: Number,

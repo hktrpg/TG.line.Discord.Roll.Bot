@@ -11,7 +11,7 @@ try {
     })
 
     gameName = function () {
-        return '(公測中)經驗值功能 .level (help show config LevelUpWord RankWord)'
+        return '(公測中)經驗值功能 .level (show config LevelUpWord RankWord)'
     }
     gameType = function () {
         return 'trpgLevelSystem:hktrpg'
@@ -21,7 +21,7 @@ try {
     }
     getHelpMessage = function () {
         return "【經驗值功能】" + "\
-        \n 這是根據發言增加經驗實現排名的歡樂功能,\
+        \n 這是根據發言增加經驗實現排名的歡樂功能\
         \n 首先輸入.level config 11 啓動功能 \
         \n 數字11代表等級升級時會進行通知，10代表不會通知，\
         \n 00的話代表不啓動功能，預設為不啟動功能\
@@ -50,7 +50,6 @@ try {
             case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
                 rply.text = this.getHelpMessage();
                 return rply;
-
                 // .level(0) ADD(1) TOPIC(2) CONTACT(3)
             case /(^[.]level$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
                 //console.log('mainMsg: ', mainMsg)
@@ -180,36 +179,7 @@ try {
                 //顯示資料庫
                 rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
                 return rply
-            case /(^[.]level$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
-                //顯示關鍵字
-                //let times = /^[.]level/.exec(mainMsg[0])[1] || 1
-                //if (times > 30) times = 30;
-                //if (times < 1) times = 1
-                //console.log(times)
-                if (groupid) {
-                    //    console.log(mainMsg[1])
-                    let temp = 0;
-                    if (rply.trpgLevelSystemfunction && mainMsg[1])
-                        for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
-                            if (rply.trpgLevelSystemfunction[i].groupid == groupid) {
-                                // console.log(rply.trpgLevelSystemfunction[i])
-                                //rply.text += '資料庫列表:'
-                                for (var a = 0; a < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
-                                    if (rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].topic.toLowerCase() == mainMsg[1].toLowerCase()) {
-                                        temp = 1
-                                        rply.text = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].topic + '\n' + rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].contact;
 
-                                    }
-
-                                }
-                            }
-                        }
-                    if (temp == 0) rply.text = '沒有相關關鍵字. '
-                } else {
-                    rply.text = '不在群組. '
-                }
-                rply.text = rply.text.replace(/\,/mg, ' ')
-                return rply;
 
             default:
                 break;

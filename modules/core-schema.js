@@ -65,12 +65,19 @@ if (process.env.mongoURL) {
     const trpgLevelSystem = mongoose.model('trpgLevelSystem', {
         groupid: String,
         LevelUpWord: String,
+        //在這群組升級時的升級語
         RankWord: String,
+        //在這群組查詢等級時的回應
         Hidden: String,
+        //是否顯示升級語
         trpgLevelSystemfunction: [{
             userid: String,
             EXP: Number,
+            //現在經驗值
+            Level: String,
+            //等級
             LastSpeakTime: Date
+            //最後說話時間, 間隔一分鐘才提升經驗
         }]
     });
     const trpgDarkRolling = mongoose.model('trpgDarkRolling', {

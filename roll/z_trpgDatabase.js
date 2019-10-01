@@ -38,9 +38,13 @@ try {
         return rply;
     }
 
-    rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole) {
+    rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
         records.get('trpgDatabase', (msgs) => {
             rply.trpgDatabasefunction = msgs
+        })
+        records.get('trpgDatabaseAllgroup', (msgs) => {
+            rply.trpgDatabaseAllgroup = msgs
+            // console.log(rply);
         })
         rply.text = '';
         switch (true) {

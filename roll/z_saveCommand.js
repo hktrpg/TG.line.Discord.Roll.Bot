@@ -36,7 +36,7 @@ try {
         return rply;
     }
 
-    rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole) {
+    rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
         records.get('trpgCommand', (msgs) => {
             rply.trpgCommandfunction = msgs
         })

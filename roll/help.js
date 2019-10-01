@@ -39,6 +39,7 @@ getHelpMessage = function () {
 \n2019/07/21 香港克警合作 黑ICON紀念\
 	\n  \
 	\n 暗骰功能 在指令前輸入dr 結果會私訊你\
+	\n ddr dddr 可以私訊已設定GM, 詳情可打.drgm查詢\
 \n【基本擲骰】1d100\
 \n 例如輸入2d6+1　攻撃！\
 \n 會輸出）2d6+1：攻撃  9[6+3]+1 = 10\
@@ -60,7 +61,7 @@ initialize = function () {
 	return rply;
 }
 
-rollDiceCommand = function (inputStr, mainMsg) {
+rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 	rply.text = '';
 	//let result = {};
 	switch (true) {
@@ -95,6 +96,8 @@ rollDiceCommand = function (inputStr, mainMsg) {
 					i + ": " +
 					exports[Object.keys(exports)[i]].gameName()
 			}
+			if (botname == "Line")
+				rply.text += "因為Line的機制, 如擲骰時並無顯示用家名字, 請到下列網址,和機器人任意說一句話. \n https://line.me/R/ti/p/svMLqy9Mik"
 
 			//console.log('case: ', rply)
 			return rply;

@@ -25,7 +25,7 @@ initialize = function () {
 	return rply;
 }
 
-rollDiceCommand = function (inputStr, mainMsg) {
+rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 	let matchwod = /^[.](\d+)(wd|wod)(\d|)((\+|-)(\d+)|)$/i.exec(mainMsg[0]);	//判斷式  [0]3wd8+10,[1]3,[2]wd,[3]8,[4]+10,[5]+,[6]10  
 	//console.log(matchwod)
 	if (matchwod && matchwod[1] >= 1 && matchwod[1] <= 5000)

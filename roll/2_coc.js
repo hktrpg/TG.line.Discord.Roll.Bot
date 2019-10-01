@@ -35,7 +35,7 @@ initialize = function () {
 	return rply;
 }
 
-rollDiceCommand = function (inputStr, mainMsg) {
+rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 	rply.text = '';
 	let trigger = mainMsg[0].toLowerCase();
 	//console.log(mainMsg[1].toLowerCase())

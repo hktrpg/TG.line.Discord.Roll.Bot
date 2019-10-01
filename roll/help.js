@@ -32,7 +32,7 @@ gameType = function () {
 	return 'bothelp:hktrpg'
 }
 prefixs = function () {
-	return [/^bothelp$|^[/]start$|^[/]help$/i, /^$|\d+|^all$/i]
+	return [/^bothelp$|^[/]start$|^[/]help$/i, /^$|^\d+$/i]
 }
 getHelpMessage = function () {
 	return "【HKTRPG擲骰BOT】" + version + "\
@@ -72,23 +72,24 @@ rollDiceCommand = function (inputStr, mainMsg) {
 				return rply;
 			}
 			break;
-		case /^all$/i.test(mainMsg[1]):
-			//rply.text = getHelpMessage();
-			for (i = 0; i < Object.keys(exports).length; i++) {
-				if (exports[Object.keys(exports)[i]] && exports[Object.keys(exports)[i]].gameName)
-					rply.text += "\n" +
-					i + ": " +
-					//exports[Object.keys(exports)[i]].gameName() +
-					exports[Object.keys(exports)[i]].getHelpMessage()
-			}
-			return rply;
-
+			/*
+					case /^all$/i.test(mainMsg[1]):
+						//rply.text = getHelpMessage();
+						for (i = 0; i < Object.keys(exports).length; i++) {
+							if (exports[Object.keys(exports)[i]] && exports[Object.keys(exports)[i]].gameName)
+								rply.text += "\n" +
+								i + ": " +
+								//exports[Object.keys(exports)[i]].gameName() +
+								exports[Object.keys(exports)[i]].getHelpMessage()
+						}
+						return rply;
+			*/
 		case /^(?![\s\S])/.test(mainMsg[1] || ''):
 
 			Object.keys(linehelp()).forEach(v => {
 				rply[v] = linehelp()[v]
 			})
-			rply.text = getHelpMessage() + '\n現支援系統: \n【了解骰組詳情,請輸入 bothelp (編號) 或all 或 在指令後輸入help 如 .sg help】';
+			rply.text = getHelpMessage() + '\n現支援系統: \n【了解骰組詳情,請輸入 bothelp (編號) 或 在指令後輸入help 如 .sg help】';
 			for (i = 0; i < Object.keys(exports).length; i++) {
 				if (exports[Object.keys(exports)[i]] && exports[Object.keys(exports)[i]].gameName)
 					rply.text += "\n" +

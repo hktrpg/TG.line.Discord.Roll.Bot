@@ -66,6 +66,7 @@ if (process.env.mongoURL) {
         groupid: String,
         LevelUpWord: String,
         RankWord: String,
+        Hidden: String,
         trpgLevelSystemfunction: [{
             userid: String,
             EXP: Number,

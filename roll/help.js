@@ -32,7 +32,7 @@ gameType = function () {
 	return 'bothelp:hktrpg'
 }
 prefixs = function () {
-	return [/^bothelp$|^[/]start$|^[/]help$/i, /^$|\d+|^all$/i]
+	return [/^bothelp$|^[/]start$|^[/]help$/i, /^$|^\d+$/i]
 }
 getHelpMessage = function () {
 	return "【HKTRPG擲骰BOT】" + version + "\
@@ -73,6 +73,7 @@ rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botnam
 				return rply;
 			}
 			break;
+			/*
 		case /^all$/i.test(mainMsg[1]):
 			//rply.text = getHelpMessage();
 			for (i = 0; i < Object.keys(exports).length; i++) {
@@ -83,7 +84,7 @@ rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botnam
 					exports[Object.keys(exports)[i]].getHelpMessage()
 			}
 			return rply;
-
+        */
 		case /^(?![\s\S])/.test(mainMsg[1] || ''):
 
 			Object.keys(linehelp()).forEach(v => {

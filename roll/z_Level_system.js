@@ -11,7 +11,7 @@ try {
     })
 
     gameName = function () {
-        return '(公測中)儲存擲骰指令功能 .level (add del show 自定關鍵字)'
+        return '(公測中)經驗值功能 .level (show)'
     }
     gameType = function () {
         return 'trpgLevelSystem:hktrpg'

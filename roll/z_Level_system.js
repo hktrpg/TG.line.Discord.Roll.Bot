@@ -11,7 +11,7 @@ try {
     })
 
     gameName = function () {
-        return '(公測中)經驗值功能 .level (show)'
+        return '(公測中)經驗值功能 .level (help show config LevelUpWord RankWord)'
     }
     gameType = function () {
         return 'trpgLevelSystem:hktrpg'
@@ -20,23 +20,28 @@ try {
         return [/(^[.]level$)/ig, ]
     }
     getHelpMessage = function () {
-        return "【儲存擲骰指令功能】" + "\
-        \n 這是根據關鍵字來再現擲骰指令,\
-        \n 例如輸入 .level add  pc1鬥毆 cc 80 鬥毆 \
-        \n 再輸入.level pc1鬥毆  就會執行後方的指令\
-        \n add 後面第一個是關鍵字, 可以是符號或任何字\
+        return "【經驗值功能】" + "\
+        \n 這是根據發言增加經驗實現排名的歡樂功能,\
+        \n 首先輸入.level config 11 啓動功能 \
+        \n 數字11代表等級升級時會通知你，10代表不會通知，\
+        \n 00的話代表不啓動功能\
         \n P.S.如果沒立即生效 用.level show 刷新一下\
-    \n 輸入.level add (關鍵字) (指令)即可增加關鍵字\
-    \n 輸入.level show 顯示所有關鍵字\
-    \n 輸入.level del(編號)或all 即可刪除\
-    \n 輸入.level  (關鍵字) 即可執行 \
-    \n "
+        \n 輸入.level LevelUpWord (內容) 修改在這群組升級時彈出的升級語\
+        \n 輸入.level RankWord (內容) 修改在這群組查詢等級時的回應\
+        \n 輸入.level RankWord/LevelUpWord del 即使用預設字句\
+        \n 輸入.level show 可以查詢你現在的等級\
+        \n 修改內容可使用不同代碼\
+        \n {user.name} 名字 {user.level} 等級 \
+        \n {user.exp} 經驗值 {user.Ranking} 現在排名 \
+        \n {user.Ranking%} 現在排名百分比 \
+        \n {server.member_count} 現在排名中總人數 \
+        \n "
     }
     initialize = function () {
         return rply;
     }
 
-    rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole) {
+    rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
         records.get('trpgLevelSystem', (msgs) => {
             rply.trpgLevelSystemfunction = msgs
         })

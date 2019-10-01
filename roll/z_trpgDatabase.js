@@ -105,7 +105,7 @@ try {
 
             case /(^[.]db$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
                 //刪除資料庫
-                if (groupid && mainMsg[2] && rply.trpgDatabasefunction && userrole >= 1) {
+                if (groupid && mainMsg[2] && rply.trpgDatabasefunction && userrole >= 2) {
                     for (var i = 0; i < rply.trpgDatabasefunction.length; i++) {
                         if (rply.trpgDatabasefunction[i].groupid == groupid) {
                             let temp = rply.trpgDatabasefunction[i]

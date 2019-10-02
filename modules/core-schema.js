@@ -68,7 +68,10 @@ if (process.env.mongoURL) {
         //在這群組升級時的升級語
         RankWord: String,
         //在這群組查詢等級時的回應
-        Switch: String,
+        Switch: {
+            type: String,
+            default: "0"
+        },
         //是否啓動功能 config 1X 則1
         Hidden: String,
         //是否顯示升級語 config X1 則1

@@ -381,6 +381,14 @@ class Records extends EventEmitter {
             groupid: msg.groupid
         }, {
             $set: {
+                LevelUpWord: msg.LevelUpWord,
+                //在這群組升級時的升級語
+                RankWord: msg.RankWord,
+                //在這群組查詢等級時的回應
+                Switch: msg.Switch,
+                //是否啓動功能 config 1X 則1
+                Hidden: msg.Hidden,
+                //是否顯示升級語 config X1 則1
                 trpgLevelSystemfunction: msg.trpgLevelSystemfunction
             }
         }, {

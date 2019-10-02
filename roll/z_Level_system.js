@@ -17,7 +17,7 @@ try {
         return 'trpgLevelSystem:hktrpg'
     }
     prefixs = function () {
-        return [/(^[.]level$)/ig, ]
+        return [/(^[.]level$)/ig,]
     }
     getHelpMessage = function () {
         return "【經驗值功能】" + "\
@@ -50,33 +50,26 @@ try {
             case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
                 rply.text = this.getHelpMessage();
                 return rply;
-                // .level(0) ADD(1) TOPIC(2) CONTACT(3)
-            case /(^[.]level$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
+            // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
+            case /(^[.]level$)/i.test(mainMsg[0]) && /^LevelUpWord$/i.test(mainMsg[1]):
                 //console.log('mainMsg: ', mainMsg)
                 //增加資料庫
                 //檢查有沒有重覆
-
-                let checkifsamename = 0
-                if (groupid && userrole >= 1 && mainMsg[3] && mainMsg[2] && mainMsg[3].toLowerCase() != ".level") {
+                if (groupid && userrole >= 1 && mainMsg[2]) {
                     if (rply.trpgLevelSystemfunction)
                         for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
                             if (rply.trpgLevelSystemfunction[i].groupid == groupid) {
                                 // console.log('checked1')
-                                if (rply.trpgLevelSystemfunction[0] && rply.trpgLevelSystemfunction[0].trpgLevelSystemfunction[0])
-                                    for (var a = 0; a < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
-                                        if (rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].topic == mainMsg[2]) {
-                                            //   console.log('checked')
-                                            checkifsamename = 1
-                                        }
-                                    }
+                                if (rply.trpgLevelSystemfunction[i].LevelUpWord) {
+                                    //   console.log('checked')
+                                    checkifsamename = 1
+                                }
                             }
                         }
                     let temp = {
                         groupid: groupid,
-                        trpgLevelSystemfunction: [{
-                            topic: mainMsg[2],
-                            contact: inputStr.replace(/\.level\s+add\s+/i, '').replace(mainMsg[2], '').replace(/^\s+/, '')
-                        }]
+                        LevelUpWord: inputStr
+
                     }
                     if (checkifsamename == 0) {
                         records.pushtrpgLevelSystemfunction('trpgLevelSystem', temp, () => {

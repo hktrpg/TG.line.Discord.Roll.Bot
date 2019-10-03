@@ -376,7 +376,7 @@ class Records extends EventEmitter {
                 callback();
         });
     }
-    settrpgLevelSystemfunction(dbbase, msg, callback) {
+    settrpgLevelSystemfunctionLevelUpWord(dbbase, msg, callback) {
         schema[dbbase].findOneAndUpdate({
             groupid: msg.groupid
         }, {

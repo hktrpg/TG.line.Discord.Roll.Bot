@@ -3,13 +3,19 @@
 
 <head>
     <meta charset="UTF-8">
-  
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
     <title>My Chatroom</title>
     <script src="/socket.io/socket.io.js"></script>
     <script>
         var socket = io();
     </script>
     <style>
+        @charset "UTF-8";
+
+        * {
+            box-sizing: border-box;
+        }
+
         html {
             font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, "Hiragino Sans GB", "PingFang SC", "Heiti SC", "Microsoft YaHei UI", "Microsoft YaHei", "Source Han Sans", sans-serif;
             font-size: 18px;
@@ -25,21 +31,21 @@
         #container {
             top: 90%;
             width: 90%;
-            margin: 2 auto;
+            margin: 2 0.15em;
             display: block;
             position: relative;
         }
 
         #status-box {
             text-align: right;
-            font-size: .6em;
+            font-size: 1.2em;
         }
 
         #content {
             width: 100%;
-            height: 350px;
-            border: 1px solid darkolivegreen;
-            border-radius: 5px;
+            height: 30em;
+            border: 0.1em solid darkolivegreen;
+            border-radius: 0.1em;
             overflow: auto;
             padding: 5%;
         }

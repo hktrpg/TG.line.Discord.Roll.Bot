@@ -11,10 +11,16 @@
         var socket = io();
     </script>
     <style>
-        html,
+        html {
+            font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, "Hiragino Sans GB", "PingFang SC", "Heiti SC", "Microsoft YaHei UI", "Microsoft YaHei", "Source Han Sans", sans-serif;
+            font-size: 18px;
+            background-color: #FFFFFF;
+            color: #111111;
+        }
+
         body {
-            padding: 0;
-            margin: 0;
+            max-width: 40rem;
+            padding: 1rem;
         }
 
         #container {
@@ -71,7 +77,7 @@
             white-space: pre-wrap;
         }
 
-      
+
         .msg>span::before {
             color: darkred;
             content: " { ";

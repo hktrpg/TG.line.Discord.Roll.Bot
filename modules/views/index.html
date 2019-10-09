@@ -3,40 +3,53 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densityDpi=device-dpi" />
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
     <title>My Chatroom</title>
     <script src="/socket.io/socket.io.js"></script>
     <script>
         var socket = io();
     </script>
     <style>
-        html,
+        @charset "UTF-8";
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, "Hiragino Sans GB", "PingFang SC", "Heiti SC", "Microsoft YaHei UI", "Microsoft YaHei", "Source Han Sans", sans-serif;
+            font-size: 18px;
+            background-color: #FFFFFF;
+            color: #111111;
+        }
+
         body {
-            padding: 0;
-            margin: 0;
+            max-width: 40rem;
+            padding: 1rem;
         }
 
         #container {
-            top: 50px;
-            width: 500px;
-            margin: 0 auto;
+            top: 90%;
+            width: 90%;
+            margin: 2 0.15em;
             display: block;
             position: relative;
+
         }
 
         #status-box {
             text-align: right;
-            font-size: .6em;
+            font-size: 1.2em;
         }
 
         #content {
             width: 100%;
-            height: 350px;
-            border: 1px solid darkolivegreen;
-            border-radius: 5px;
+            height: 20em;
+            border: 0.1em solid darkolivegreen;
+            border-radius: 0.1em;
             overflow: auto;
             padding: 5%;
+            
         }
 
         #send-box {
@@ -46,6 +59,7 @@
 
         #send-box input {
             display: inline-block;
+            
         }
 
         #send-box input.error {
@@ -58,7 +72,10 @@
 
         input[name="msg"] {
             width: 70%;
+
         }
+
+
 
         input[type="button"] {
             width: 10%;
@@ -69,9 +86,10 @@
             display: inline-block;
             padding: 5px 0 5px 10px;
             white-space: pre-wrap;
+            
         }
 
-      
+
         .msg>span::before {
             color: darkred;
             content: " { ";
@@ -80,6 +98,7 @@
         .msg>span::after {
             color: darkred;
             content: " } ";
+            
         }
     </style>
 </head>

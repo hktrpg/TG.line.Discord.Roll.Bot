@@ -49,7 +49,7 @@
             border-radius: 0.1em;
             overflow: auto;
             padding: 5%;
-            
+
         }
 
         #send-box {
@@ -59,7 +59,7 @@
 
         #send-box input {
             display: inline-block;
-            
+
         }
 
         #send-box input.error {
@@ -86,7 +86,7 @@
             display: inline-block;
             padding: 5px 0 5px 10px;
             white-space: pre-wrap;
-            
+
         }
 
 
@@ -98,7 +98,113 @@
         .msg>span::after {
             color: darkred;
             content: " } ";
-            
+
+        }
+
+        /* ROLL DICE        
+        */
+        button {
+            cursor: pointer;
+        }
+
+        .row {
+            width: 460px;
+            margin: 10px auto;
+            clear: both;
+            overflow: hidden;
+        }
+
+        .dice-box {
+            width: 200px;
+            height: 100px;
+            margin: 10px;
+            position: relative;
+            float: left;
+            overflow: hidden;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+        }
+
+        .dice-up {
+            width: 50px;
+            height: 50px;
+            padding: 0;
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: #FFFFFF;
+            /*White*/
+            background-color: #DD5555;
+            /*Red*/
+            border: 0px solid;
+            text-align: center;
+            line-height: 50px;
+            z-index: 600;
+        }
+
+        .dice-up:hover {
+            color: #FFFFFF;
+            /*White*/
+            background-color: #D84848;
+            /*Darker red then #DD5555*/
+        }
+
+        .dice-down {
+            width: 50px;
+            height: 50px;
+            padding: 0;
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            color: #FFFFFF;
+            /*White*/
+            background-color: #DD5555;
+            /*Red*/
+            border: 0px solid;
+            text-align: center;
+            line-height: 50px;
+            border-radius: 0 0 0 6px;
+        }
+
+        .dice-down:hover {
+            color: #FFFFFF;
+            /*White*/
+            background-color: #D84848;
+            /*Darker red then #DD5555*/
+        }
+
+        .dice {
+            width: 150px;
+            height: 100px;
+            position: absolute;
+            top: 0;
+            right: 0;
+            color: #FFFFFF;
+            /*White*/
+            background-color: #EF5858;
+            /*Red*/
+            border: 0px solid;
+            text-align: center;
+            line-height: 100px;
+            font-size: 18pt;
+        }
+
+        .dice:hover {
+            color: #FFFFFF;
+            /*White*/
+            background-color: #E84848;
+            /*Dark red then #EF5858*/
+        }
+
+        .dice-box span {
+            display: inline-block;
+            vertical-align: middle;
+            line-height: normal;
+            outline-color: red;
+        }
+
+        span::selection {
+            background-color:
         }
     </style>
 </head>
@@ -116,131 +222,140 @@
             </form>
         </div>
     </div>
+    <div class="row">
+        <div class="dice-box">
+            <!--Array Position: 0-->
+            <button class="dice-up" type="button" onclick="dNumPlus(0, 1, 'd2')"> <span> Up </span> </button>
+            <button class="dice-down" type="button" onclick="dNumTake(0, 1, 'd2')"> <span> Down </span></button>
+            <button class="dice" type="button" onclick="resultRoll(0, 2)"> <span id="d2">3</span><span> d2 </span>
+            </button>
 
-    <script>
-        function aa() {
-            var content = document.getElementById("content");
-            content.scrollTop = content.scrollHeight;
+        </div>
 
-        }
-        document.addEventListener("DOMContentLoaded", () => {
-            var max_record;
+        <script>
+            function aa() {
+                var content = document.getElementById("content");
+                content.scrollTop = content.scrollHeight;
 
-            var status = document.getElementById("status");
-            var online = document.getElementById("online");
-            var sendForm = document.getElementById("send-form");
-            var content = document.getElementById("content");
-            var nameInputBox = document.getElementById("name");
-            var name = getCookie("name");
-
-            if (name) {
-                nameInputBox.value = name;
             }
+            document.addEventListener("DOMContentLoaded", () => {
+                var max_record;
 
-            socket.on("connect", function () {
-                status.innerText = "Connected.";
-            });
+                var status = document.getElementById("status");
+                var online = document.getElementById("online");
+                var sendForm = document.getElementById("send-form");
+                var content = document.getElementById("content");
+                var nameInputBox = document.getElementById("name");
+                var name = getCookie("name");
 
-            socket.on("disconnect", function () {
-                status.innerText = "Disconnected.";
-            });
-
-            socket.on("online", function (amount) {
-                online.innerText = amount;
-            });
-
-            socket.on("maxRecord", function (amount) {
-                max_record = amount;
-            });
-
-            socket.on("chatRecord", function (msgs) {
-                for (var i = 0; i < msgs.length; i++) {
-                    (function () {
-                        addMsgToBox(msgs[i]);
-                    })();
+                if (name) {
+                    nameInputBox.value = name;
                 }
-            });
 
-            socket.on("msg", addMsgToBox);
+                socket.on("connect", function () {
+                    status.innerText = "Connected.";
+                });
 
-            sendForm.addEventListener("submit", function (e) {
-                e.preventDefault();
+                socket.on("disconnect", function () {
+                    status.innerText = "Disconnected.";
+                });
+
+                socket.on("online", function (amount) {
+                    online.innerText = amount;
+                });
+
+                socket.on("maxRecord", function (amount) {
+                    max_record = amount;
+                });
+
+                socket.on("chatRecord", function (msgs) {
+                    for (var i = 0; i < msgs.length; i++) {
+                        (function () {
+                            addMsgToBox(msgs[i]);
+                        })();
+                    }
+                });
+
+                socket.on("msg", addMsgToBox);
+
+                sendForm.addEventListener("submit", function (e) {
+                    e.preventDefault();
 
 
-                var ok = true;
-                var formData = {
-                    time: new Date().toUTCString()
-                };
-                var formChild = sendForm.children;
+                    var ok = true;
+                    var formData = {
+                        time: new Date().toUTCString()
+                    };
+                    var formChild = sendForm.children;
 
-                for (var i = 0; i < sendForm.childElementCount; i++) {
-                    var child = formChild[i];
-                    if (child.name !== "") {
-                        var val = child.value;
-                        if (val === "" || !val) {
-                            ok = false;
-                            child.classList.add("error");
-                        } else {
-                            child.classList.remove("error");
-                            formData[child.name] = val;
+                    for (var i = 0; i < sendForm.childElementCount; i++) {
+                        var child = formChild[i];
+                        if (child.name !== "") {
+                            var val = child.value;
+                            if (val === "" || !val) {
+                                ok = false;
+                                child.classList.add("error");
+                            } else {
+                                child.classList.remove("error");
+                                formData[child.name] = val;
+                            }
                         }
                     }
+
+                    if (ok) {
+                        socket.emit("send", formData);
+                        setCookie("name", nameInputBox.value);
+                    }
+                });
+
+                function addMsgToBox(d) {
+                    var msgBox = document.createElement("div")
+                    msgBox.className = "msg";
+                    var nameBox = document.createElement("span");
+                    nameBox.className = "name";
+                    var name = document.createTextNode(d.name);
+                    var msg = document.createTextNode(d.msg, setTimeout(function () {
+                        aa();
+                    }, 50));
+
+                    nameBox.appendChild(name);
+                    msgBox.appendChild(nameBox);
+                    msgBox.appendChild(msg);
+                    content.appendChild(msgBox);
+
+                    if (content.children.length > max_record) {
+                        rmMsgFromBox();
+                    }
                 }
 
-                if (ok) {
-                    socket.emit("send", formData);
-                    setCookie("name", nameInputBox.value);
+                function rmMsgFromBox() {
+                    var childs = content.children;
+                    childs[0].remove();
+                }
+
+                function setCookie(cname, cvalue, exdays) {
+                    var d = new Date();
+                    d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+                    var expires = "expires=" + d.toUTCString();
+                    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+                }
+
+                function getCookie(cname) {
+                    var name = cname + "=";
+                    var ca = document.cookie.split(';');
+                    for (var i = 0; i < ca.length; i++) {
+                        var c = ca[i];
+                        while (c.charAt(0) == ' ') {
+                            c = c.substring(1);
+                        }
+                        if (c.indexOf(name) == 0) {
+                            return c.substring(name.length, c.length);
+                        }
+                    }
+                    return "";
                 }
             });
-
-            function addMsgToBox(d) {
-                var msgBox = document.createElement("div")
-                msgBox.className = "msg";
-                var nameBox = document.createElement("span");
-                nameBox.className = "name";
-                var name = document.createTextNode(d.name);
-                var msg = document.createTextNode(d.msg, setTimeout(function () {
-                    aa();
-                }, 50));
-
-                nameBox.appendChild(name);
-                msgBox.appendChild(nameBox);
-                msgBox.appendChild(msg);
-                content.appendChild(msgBox);
-
-                if (content.children.length > max_record) {
-                    rmMsgFromBox();
-                }
-            }
-
-            function rmMsgFromBox() {
-                var childs = content.children;
-                childs[0].remove();
-            }
-
-            function setCookie(cname, cvalue, exdays) {
-                var d = new Date();
-                d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
-                var expires = "expires=" + d.toUTCString();
-                document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
-            }
-
-            function getCookie(cname) {
-                var name = cname + "=";
-                var ca = document.cookie.split(';');
-                for (var i = 0; i < ca.length; i++) {
-                    var c = ca[i];
-                    while (c.charAt(0) == ' ') {
-                        c = c.substring(1);
-                    }
-                    if (c.indexOf(name) == 0) {
-                        return c.substring(name.length, c.length);
-                    }
-                }
-                return "";
-            }
-        });
-    </script>
+        </script>
 </body>
 
 </html>

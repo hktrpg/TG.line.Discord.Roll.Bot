@@ -216,7 +216,7 @@
         </div>
         <div id="send-box">
             <form id="send-form">
-                <input type="text" name="name" id="name" placeholder="暱稱">
+                <input type="text" name="name" id="name" value="調查員" placeholder="暱稱">
                 <input type="text" name="msg" id="msg" placeholder="說點什麼？">
                 <input type="submit" value="送出" onclick="">
             </form>
@@ -227,135 +227,166 @@
             <!--Array Position: 0-->
             <button class="dice-up" type="button" onclick="dNumPlus(0, 1, 'd2')"> <span> Up </span> </button>
             <button class="dice-down" type="button" onclick="dNumTake(0, 1, 'd2')"> <span> Down </span></button>
-            <button class="dice" type="button" onclick="resultRoll(0, 2)"> <span id="d2">3</span><span> d2 </span>
+            <button class="dice" type="submit" onclick="resultRoll(0, 2)"> <span id="d2">3</span><span> d2 </span>
             </button>
 
         </div>
+        <div class="dice-box">
+            <!--Array Position: 2-->
+            <button class="dice-up" type="button" onclick="dNumPlus(2, 1, 'd6')"> <span> Up </span> </button>
+            <button class="dice-down" type="button" onclick="dNumTake(2, 1, 'd6')"> <span> Down </span></button>
+            <button class="dice" type="button" onclick="resultRoll(2, 6)"> <span id="d6"> 1 </span><span> d6 </span>
+            </button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="dice-box">
+            <!--Array Position: 4-->
+            <button class="dice-up" type="button" onclick="dNumPlus(4, 1, 'd10')"> <span> Up </span> </button>
+            <button class="dice-down" type="button" onclick="dNumTake(4, 1, 'd10')"> <span> Down </span></button>
+            <button class="dice" type="button" onclick="resultRoll(4, 10)"> <span id="d10"> 1 </span><span> d10 </span>
+            </button>
+        </div>
 
-        <script>
-            function aa() {
-                var content = document.getElementById("content");
-                content.scrollTop = content.scrollHeight;
+        <div class="dice-box">
+            <!--Array Position: 11-->
+            <button class="dice-up" type="button" onclick="dNumPlus(11, 1, 'd100')"> <span> Up </span> </button>
+            <button class="dice-down" type="button" onclick="dNumTake(11, 1, 'd100')"> <span> Down </span></button>
+            <button class="dice" type="button" onclick="resultRoll(11, 100)"> <span id="d100"> 1 </span><span> d100
+                </span>
+            </button>
+        </div>
 
+    </div>
+    <div class="row">
+        <div class="dice-box">
+            <!--Array Position: 8-->
+            <input class="dice-up" value="2" type="number" id="numDice"> <span> </span>
+            <input class="dice-down" value="6" type="number" id="diceMax"> <span> </span>
+            <button class="dice" type="button" onclick="resultRoll2()"> <span id="dother"> 2 d6 </span>
+            </button></div>
+    </div>
+
+    <script>
+        function aa() {
+            var content = document.getElementById("content");
+            content.scrollTop = content.scrollHeight;
+
+        }
+        document.addEventListener("DOMContentLoaded", () => {
+            var max_record;
+
+            var status = document.getElementById("status");
+            var online = document.getElementById("online");
+            var sendForm = document.getElementById("send-form");
+            var content = document.getElementById("content");
+            var nameInputBox = document.getElementById("name");
+            var name = getCookie("name");
+
+            if (name) {
+                nameInputBox.value = name;
             }
-            document.addEventListener("DOMContentLoaded", () => {
-                var max_record;
 
-                var status = document.getElementById("status");
-                var online = document.getElementById("online");
-                var sendForm = document.getElementById("send-form");
-                var content = document.getElementById("content");
-                var nameInputBox = document.getElementById("name");
-                var name = getCookie("name");
+            socket.on("connect", function () {
+                status.innerText = "Connected.";
+            });
 
-                if (name) {
-                    nameInputBox.value = name;
-                }
+            socket.on("disconnect", function () {
+                status.innerText = "Disconnected.";
+            });
 
-                socket.on("connect", function () {
-                    status.innerText = "Connected.";
-                });
+            socket.on("online", function (amount) {
+                online.innerText = amount;
+            });
 
-                socket.on("disconnect", function () {
-                    status.innerText = "Disconnected.";
-                });
+            socket.on("maxRecord", function (amount) {
+                max_record = amount;
+            });
 
-                socket.on("online", function (amount) {
-                    online.innerText = amount;
-                });
-
-                socket.on("maxRecord", function (amount) {
-                    max_record = amount;
-                });
-
-                socket.on("chatRecord", function (msgs) {
-                    for (var i = 0; i < msgs.length; i++) {
-                        (function () {
-                            addMsgToBox(msgs[i]);
-                        })();
-                    }
-                });
-
-                socket.on("msg", addMsgToBox);
-
-                sendForm.addEventListener("submit", function (e) {
-                    e.preventDefault();
-
-
-                    var ok = true;
-                    var formData = {
-                        time: new Date().toUTCString()
-                    };
-                    var formChild = sendForm.children;
-
-                    for (var i = 0; i < sendForm.childElementCount; i++) {
-                        var child = formChild[i];
-                        if (child.name !== "") {
-                            var val = child.value;
-                            if (val === "" || !val) {
-                                ok = false;
-                                child.classList.add("error");
-                            } else {
-                                child.classList.remove("error");
-                                formData[child.name] = val;
-                            }
-                        }
-                    }
-
-                    if (ok) {
-                        socket.emit("send", formData);
-                        setCookie("name", nameInputBox.value);
-                    }
-                });
-
-                function addMsgToBox(d) {
-                    var msgBox = document.createElement("div")
-                    msgBox.className = "msg";
-                    var nameBox = document.createElement("span");
-                    nameBox.className = "name";
-                    var name = document.createTextNode(d.name);
-                    var msg = document.createTextNode(d.msg, setTimeout(function () {
-                        aa();
-                    }, 50));
-
-                    nameBox.appendChild(name);
-                    msgBox.appendChild(nameBox);
-                    msgBox.appendChild(msg);
-                    content.appendChild(msgBox);
-
-                    if (content.children.length > max_record) {
-                        rmMsgFromBox();
-                    }
-                }
-
-                function rmMsgFromBox() {
-                    var childs = content.children;
-                    childs[0].remove();
-                }
-
-                function setCookie(cname, cvalue, exdays) {
-                    var d = new Date();
-                    d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
-                    var expires = "expires=" + d.toUTCString();
-                    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
-                }
-
-                function getCookie(cname) {
-                    var name = cname + "=";
-                    var ca = document.cookie.split(';');
-                    for (var i = 0; i < ca.length; i++) {
-                        var c = ca[i];
-                        while (c.charAt(0) == ' ') {
-                            c = c.substring(1);
-                        }
-                        if (c.indexOf(name) == 0) {
-                            return c.substring(name.length, c.length);
-                        }
-                    }
-                    return "";
+            socket.on("chatRecord", function (msgs) {
+                for (var i = 0; i < msgs.length; i++) {
+                    (function () {
+                        addMsgToBox(msgs[i]);
+                    })();
                 }
             });
-        </script>
+
+            socket.on("msg", addMsgToBox);
+
+            sendForm.addEventListener("submit", function (e) {
+                e.preventDefault();
+                var ok = true;
+                var formData = {
+                    time: new Date().toUTCString()
+                };
+                var formChild = sendForm.children;
+                for (var i = 0; i < sendForm.childElementCount; i++) {
+                    var child = formChild[i];
+                    if (child.name !== "") {
+                        var val = child.value;
+                        if (val === "" || !val) {
+                            ok = false;
+                            child.classList.add("error");
+                        } else {
+                            child.classList.remove("error");
+                            formData[child.name] = val;
+                        }
+                    }
+                }
+                if (ok) {
+                    socket.emit("send", formData);
+                    setCookie("name", nameInputBox.value);
+                }
+            });
+
+            function addMsgToBox(d) {
+                var msgBox = document.createElement("div")
+                msgBox.className = "msg";
+                var nameBox = document.createElement("span");
+                nameBox.className = "name";
+                var name = document.createTextNode(d.name);
+                var msg = document.createTextNode(d.msg, setTimeout(function () {
+                    aa();
+                }, 50));
+
+                nameBox.appendChild(name);
+                msgBox.appendChild(nameBox);
+                msgBox.appendChild(msg);
+                content.appendChild(msgBox);
+
+                if (content.children.length > max_record) {
+                    rmMsgFromBox();
+                }
+            }
+
+            function rmMsgFromBox() {
+                var childs = content.children;
+                childs[0].remove();
+            }
+
+            function setCookie(cname, cvalue, exdays) {
+                var d = new Date();
+                d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+                var expires = "expires=" + d.toUTCString();
+                document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+            }
+
+            function getCookie(cname) {
+                var name = cname + "=";
+                var ca = document.cookie.split(';');
+                for (var i = 0; i < ca.length; i++) {
+                    var c = ca[i];
+                    while (c.charAt(0) == ' ') {
+                        c = c.substring(1);
+                    }
+                    if (c.indexOf(name) == 0) {
+                        return c.substring(name.length, c.length);
+                    }
+                }
+                return "";
+            }
+        });
+    </script>
 </body>
 
 </html>

@@ -136,7 +136,6 @@
             clear: both;
             overflow: hidden;
             margin: 0 auto;
-
             border: 1px solid black;
 
         }
@@ -203,7 +202,7 @@
 
         .dice {
             width: 5rem;
-            height: 6rem;
+            height: 4rem;
             position: absolute;
             top: 0;
             right: 0;
@@ -213,8 +212,7 @@
             /*Red*/
             border: 0px solid;
             text-align: center;
-            line-height: 100px;
-            font-size: 18pt;
+            font-size: 1.5em;
         }
 
         .dice:hover {
@@ -242,7 +240,7 @@
             <form id="send-form">
                 <input type="text" name="name" id="name" value="調查員" placeholder="暱稱">
                 <input type="text" name="msg" id="msg" placeholder="說點什麼？">
-                <input type="submit" value="送出" onclick="">
+                <input type="submit" id="submit" value="送出" onclick="">
             </form>
         </div>
     </div>
@@ -364,6 +362,7 @@
             });
 
 
+
             function addMsgToBox(d) {
                 var msgBox = document.createElement("div")
                 msgBox.className = "msg";
@@ -396,6 +395,7 @@
                 document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
             }
 
+
             function getCookie(cname) {
                 var name = cname + "=";
                 var ca = document.cookie.split(';');
@@ -411,8 +411,12 @@
                 return "";
             }
         });
+
+
         function resultRoll() {
             document.getElementById("msg").value = "My value";
+
+
 
         }
     </script>

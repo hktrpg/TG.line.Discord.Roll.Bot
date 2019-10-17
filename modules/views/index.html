@@ -12,6 +12,21 @@
     <style>
         @charset "UTF-8";
 
+        @media screen and (max-width: 600px) {
+            body {
+                max-width: 100%;
+                padding: 1rem;
+                margin: 0 auto;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                min-height: 100vh;
+            }
+
+        }
+
+
+
         * {
             box-sizing: border-box;
         }
@@ -26,7 +41,7 @@
         }
 
         body {
-            max-width: 30rem;
+            max-width: 40rem;
             padding: 1rem;
             margin: 0 auto;
             display: flex;
@@ -115,7 +130,7 @@
         }
 
         .row {
-            width: 20rem;
+            width: 30rem;
             margin: 2 0.15em;
             clear: both;
             overflow: hidden;
@@ -210,8 +225,6 @@
             line-height: normal;
             outline-color: red;
         }
-
-        
     </style>
 </head>
 

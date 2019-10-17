@@ -19,13 +19,20 @@
         html {
             font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, "Hiragino Sans GB", "PingFang SC", "Heiti SC", "Microsoft YaHei UI", "Microsoft YaHei", "Source Han Sans", sans-serif;
             font-size: 18px;
-            background-color: #111111;
-            color: #FFFFFF;
+            background-color: rgb(0, 0, 0);
+            color: #ffffff;
+
+
         }
 
         body {
             max-width: 40rem;
             padding: 1rem;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 100vh;
         }
 
         #container {
@@ -112,6 +119,7 @@
             margin: 2 0.15em;
             clear: both;
             overflow: hidden;
+            margin: 0 auto;
         }
 
         .dice-box {
@@ -389,7 +397,7 @@
         });
         function resultRoll() {
             document.getElementById("msg").value = "My value";
-           
+
         }
     </script>
 </body>

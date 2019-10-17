@@ -238,14 +238,18 @@
         </div>
         <div id="send-box">
             <form id="send-form">
-                <input type="text" name="name" id="name" value="調查員" placeholder="暱稱">
+                <input type="text" name="name" id="name" value="" placeholder="暱稱">
                 <input type="text" name="msg" id="msg" value="1d100" placeholder="說點什麼？">
-                <input type="submit" id="submit" value="送出" onclick="">
+                <input type="submit" id="submit" value="送出" onclick="genName()">
             </form>
         </div>
     </div>
-   
+
     <script>
+        function genName() {
+            if (document.getElementById("name").value == "")
+                document.getElementById("name").value = "調查員"+ Math.floor(Math.random() * 1000) + 1;;
+        }
         function aa() {
             var content = document.getElementById("content");
             content.scrollTop = content.scrollHeight;
@@ -369,7 +373,7 @@
         });
 
 
-        
+
     </script>
 </body>
 

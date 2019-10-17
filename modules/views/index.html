@@ -127,19 +127,22 @@
         */
         button {
             cursor: pointer;
+
         }
 
         .row {
-            width: 30rem;
+            width: 100%;
             margin: 2 0.15em;
             clear: both;
             overflow: hidden;
             margin: 0 auto;
+            border: 1px solid black;
+
         }
 
         .dice-box {
-            width: 9rem;
-            height: 100px;
+            width: 8rem;
+            height: 4rem;
             margin: 2 0.15em;
             position: relative;
             float: left;
@@ -150,7 +153,7 @@
 
         .dice-up {
             width: 3rem;
-            height: 50px;
+            height: 2rem;
             padding: 0;
             position: absolute;
             left: 0;
@@ -163,6 +166,7 @@
             text-align: center;
             line-height: 50px;
             z-index: 600;
+
         }
 
         .dice-up:hover {
@@ -174,7 +178,7 @@
 
         .dice-down {
             width: 3rem;
-            height: 50px;
+            height: 2.5rem;
             padding: 0;
             position: absolute;
             left: 0;
@@ -197,8 +201,8 @@
         }
 
         .dice {
-            width: 6rem;
-            height: 100px;
+            width: 5rem;
+            height: 4rem;
             position: absolute;
             top: 0;
             right: 0;
@@ -208,8 +212,7 @@
             /*Red*/
             border: 0px solid;
             text-align: center;
-            line-height: 100px;
-            font-size: 18pt;
+            font-size: 1.5em;
         }
 
         .dice:hover {
@@ -236,56 +239,12 @@
         <div id="send-box">
             <form id="send-form">
                 <input type="text" name="name" id="name" value="調查員" placeholder="暱稱">
-                <input type="text" name="msg" id="msg" placeholder="說點什麼？">
-                <input type="submit" value="送出" onclick="">
+                <input type="text" name="msg" id="msg" value="1d100" placeholder="說點什麼？">
+                <input type="submit" id="submit" value="送出" onclick="">
             </form>
         </div>
     </div>
-    <div class="row">
-        <div class="dice-box">
-            <!--Array Position: 0-->
-            <button class="dice-up" type="button" onclick="dNumPlus(0, 1, 'd2')"> <span> Up </span> </button>
-            <button class="dice-down" type="button" onclick="dNumTake(0, 1, 'd2')"> <span> Down </span></button>
-            <button class="dice" type="submit" onclick="resultRoll(0, 2)"> <span id="d2">3</span><span> d2 </span>
-            </button>
-
-        </div>
-        <div class="dice-box">
-            <!--Array Position: 2-->
-            <button class="dice-up" type="button" onclick="dNumPlus(2, 1, 'd6')"> <span> Up </span> </button>
-            <button class="dice-down" type="button" onclick="dNumTake(2, 1, 'd6')"> <span> Down </span></button>
-            <button class="dice" type="button" onclick="resultRoll(2, 6)"> <span id="d6"> 1 </span><span> d6 </span>
-            </button>
-        </div>
-    </div>
-    <div class="row">
-        <div class="dice-box">
-            <!--Array Position: 4-->
-            <button class="dice-up" type="button" onclick="dNumPlus(4, 1, 'd10')"> <span> Up </span> </button>
-            <button class="dice-down" type="button" onclick="dNumTake(4, 1, 'd10')"> <span> Down </span></button>
-            <button class="dice" type="button" onclick="resultRoll(4, 10)"> <span id="d10"> 1 </span><span> d10 </span>
-            </button>
-        </div>
-
-        <div class="dice-box">
-            <!--Array Position: 11-->
-            <button class="dice-up" type="button" onclick="dNumPlus(11, 1, 'd100')"> <span> Up </span> </button>
-            <button class="dice-down" type="button" onclick="dNumTake(11, 1, 'd100')"> <span> Down </span></button>
-            <button class="dice" type="button" onclick="resultRoll(11, 100)"> <span id="d100"> 1 </span><span> d100
-                </span>
-            </button>
-        </div>
-
-    </div>
-    <div class="row">
-        <div class="dice-box">
-            <!--Array Position: 8-->
-            <input class="dice-up" value="2" type="number" id="numDice"> <span> </span>
-            <input class="dice-down" value="6" type="number" id="diceMax"> <span> </span>
-            <button class="dice" type="button" onclick="resultRoll2()"> <span id="dother"> 2 d6 </span>
-            </button></div>
-    </div>
-
+   
     <script>
         function aa() {
             var content = document.getElementById("content");
@@ -359,6 +318,7 @@
             });
 
 
+
             function addMsgToBox(d) {
                 var msgBox = document.createElement("div")
                 msgBox.className = "msg";
@@ -391,6 +351,7 @@
                 document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
             }
 
+
             function getCookie(cname) {
                 var name = cname + "=";
                 var ca = document.cookie.split(';');
@@ -406,10 +367,9 @@
                 return "";
             }
         });
-        function resultRoll() {
-            document.getElementById("msg").value = "My value";
 
-        }
+
+        
     </script>
 </body>
 

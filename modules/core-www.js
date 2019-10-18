@@ -22,7 +22,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
     let onlineCount = 0;
 
     www.get('/', (req, res) => {
-      //  console.log('req: ', req, 'res: ', res)
+        //  console.log('req: ', req, 'res: ', res)
         res.sendFile(__dirname + '/views/index.html');
     });
 
@@ -80,10 +80,11 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
                 trigger = mainMsg[0].toString().toLowerCase()
             }
             if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
-                rplyVal = exports.analytics.parseInput(mainMsg.join(' '), '', '', '', "www")
+                rplyVal = exports.analytics.parseInput(mainMsg.join(' '), '', '', '', "www", "", "")
+                //rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid)
             } else {
                 if (channelKeyword == '') {
-                    rplyVal = exports.analytics.parseInput(mainMsg.join(' '), '', '', '',"www")
+                    rplyVal = exports.analytics.parseInput(mainMsg.join(' '), '', '', '', "www", "", "")
 
                 }
 

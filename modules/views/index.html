@@ -90,8 +90,16 @@
 
 
 
-        input[type="button"] {
-            width: 10%;
+        input[type="submit"] {
+            width: 5rem;
+            height: 4rem;
+            margin: 2 0.15em;
+            position: relative;
+            overflow: hidden;
+            color: #FFFFFF;
+            background-color: #EF5858;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
         }
 
         .msg {
@@ -231,7 +239,7 @@
             <form id="send-form">
                 <input style="width:8em" type="text" name="name" id="name" value="" placeholder="暱稱">
                 <input type="text" name="msg" id="msg" value="1d100" placeholder="說點什麼？">
-                <input type="submit"style="width:8em;height:2em;"  id="submit" value="送出" onclick="genName()">
+                <input type="submit"  id="submit" value="送出" onclick="genName()">
             </form>
         </div>
     </div>

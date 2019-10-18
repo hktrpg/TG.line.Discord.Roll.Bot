@@ -61,7 +61,7 @@ try {
                         for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
                             if (rply.trpgLevelSystemfunction[i].groupid == groupid) {
                                 // console.log('checked1')
-                                if (rply.trpgLevelSystemfunction[i].RankWord) {
+                                if (rply.trpgLevelSystemfunction[i].LevelUpWord) {
                                     //   console.log('checked')
                                     checkifsamename = 1
                                 }
@@ -69,11 +69,11 @@ try {
                         }
                     let temp = {
                         groupid: groupid,
-                        RankWord: inputStr.replace(mainMsg[0], "").replace(mainMsg[1], "").replace("  ", "")
+                        LevelUpWord: inputStr.replace(mainMsg[0], "").replace(mainMsg[1], "").replace("  ", "")
                         //在這群組升級時的升級語
                     }
                     if (checkifsamename == 0) {
-                        records.settrpgLevelSystemfunction('trpgLevelSystem', temp, () => {
+                        records.settrpgLevelSystemfunctionLevelUpWord('trpgLevelSystem', temp, () => {
                             records.get('trpgLevelSystem', (msgs) => {
                                 rply.trpgLevelSystemfunction = msgs
                                 //  console.log(rply.trpgLevelSystemfunction)

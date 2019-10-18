@@ -12,18 +12,7 @@
     <style>
         @charset "UTF-8";
 
-        @media screen and (max-width: 600px) {
-            body {
-                max-width: 100%;
-                padding: 1rem;
-                margin: 0 auto;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                min-height: 100vh;
-            }
-
-        }
+      
 
 
 
@@ -41,13 +30,14 @@
         }
 
         body {
+            max-height : 30em;
             max-width: 40rem;
             padding: 1rem;
             margin: 0 auto;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            min-height: 100vh;
+            
         }
 
         #container {
@@ -66,7 +56,8 @@
 
         #content {
             width: 100%;
-            height: 20em;
+            min-height:100%;
+            height: 20em;            
             border: 0.1em solid darkolivegreen;
             border-radius: 0.1em;
             overflow: auto;
@@ -99,8 +90,16 @@
 
 
 
-        input[type="button"] {
-            width: 10%;
+        input[type="submit"] {
+            width: 5rem;
+            height: 4rem;
+            margin: 2 0.15em;
+            position: relative;
+            overflow: hidden;
+            color: #FFFFFF;
+            background-color: #EF5858;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
         }
 
         .msg {
@@ -238,9 +237,9 @@
         </div>
         <div id="send-box">
             <form id="send-form">
-                <input type="text" name="name" id="name" value="" placeholder="暱稱">
+                <input style="width:8em" type="text" name="name" id="name" value="" placeholder="暱稱">
                 <input type="text" name="msg" id="msg" value="1d100" placeholder="說點什麼？">
-                <input type="submit" id="submit" value="送出" onclick="genName()">
+                <input type="submit"  id="submit" value="送出" onclick="genName()">
             </form>
         </div>
     </div>

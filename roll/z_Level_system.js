@@ -17,7 +17,7 @@ try {
         return 'trpgLevelSystem:hktrpg'
     }
     prefixs = function () {
-        return [/(^[.]level$)/ig, ]
+        return [/(^[.]level$)/ig,]
     }
     getHelpMessage = function () {
         return "【經驗值功能】" + "\
@@ -50,7 +50,7 @@ try {
             case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
                 rply.text = this.getHelpMessage();
                 return rply;
-                // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
+            // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
             case /(^[.]level$)/i.test(mainMsg[0]) && /^LevelUpWord$/i.test(mainMsg[1]):
                 //console.log('mainMsg: ', mainMsg)
                 //增加資料庫
@@ -72,7 +72,13 @@ try {
                         LevelUpWord: inputStr.replace(mainMsg[0], "").replace(mainMsg[1], "").replace("  ", "")
                         //在這群組升級時的升級語
                     }
+
                     if (checkifsamename == 0) {
+                        rply.text = '新增成功: ' + mainMsg[2] + '\n' + inputStr.replace(/\.level\s+add\s+/i, '').replace(mainMsg[2], '').replace(/^\s+/, '')
+                        if (mainMsg[2].match(/^del$/ig)) {
+                            temp.LevelUpWord = ""
+                            rply.text = "刪除成功."
+                        }
                         records.settrpgLevelSystemfunctionLevelUpWord('trpgLevelSystem', temp, () => {
                             records.get('trpgLevelSystem', (msgs) => {
                                 rply.trpgLevelSystemfunction = msgs
@@ -81,7 +87,7 @@ try {
                             })
 
                         })
-                        rply.text = '新增成功: ' + mainMsg[2] + '\n' + inputStr.replace(/\.level\s+add\s+/i, '').replace(mainMsg[2], '').replace(/^\s+/, '')
+
                     } else rply.text = '修改失敗. 已有升級語, 先使用.level LevelUpWord del 刪除舊升級語'
                 } else {
                     rply.text = '新增失敗.'

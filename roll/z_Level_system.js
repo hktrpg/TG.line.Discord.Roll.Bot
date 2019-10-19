@@ -278,56 +278,7 @@ try {
                     }
                 }
                 return rply;
-            case /(^[.]level$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
-                //刪除資料庫
-                if (groupid && mainMsg[2] && rply.trpgLevelSystemfunction && userrole >= 1) {
-                    for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
-                        if (rply.trpgLevelSystemfunction[i].groupid == groupid) {
-                            let temp = rply.trpgLevelSystemfunction[i]
-                            temp.trpgLevelSystemfunction = []
-                            records.settrpgLevelSystemfunction('trpgLevelSystem', temp, () => {
-                                records.get('trpgLevelSystem', (msgs) => {
-                                    rply.trpgLevelSystemfunction = msgs
-                                })
-                            })
-                            rply.text = '刪除所有關鍵字'
-                        }
-                    }
-                } else {
-                    rply.text = '刪除失敗.'
-                    if (!groupid)
-                        rply.text += '不在群組. '
-                    if (groupid && userrole < 1)
-                        rply.text += '只有GM以上才可刪除. '
-                }
-
-                return rply;
-            case /(^[.]level$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
-                //刪除資料庫
-                if (groupid && mainMsg[2] && rply.trpgLevelSystemfunction && userrole >= 1) {
-                    for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
-                        if (rply.trpgLevelSystemfunction[i].groupid == groupid && mainMsg[2] < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length && mainMsg[2] >= 0) {
-                            let temp = rply.trpgLevelSystemfunction[i]
-                            temp.trpgLevelSystemfunction.splice(mainMsg[2], 1)
-                            //console.log('rply.trpgLevelSystemfunction: ', temp)
-                            records.settrpgLevelSystemfunction('trpgLevelSystem', temp, () => {
-                                records.get('trpgLevelSystem', (msgs) => {
-                                    rply.trpgLevelSystemfunction = msgs
-                                })
-                            })
-                        }
-                        rply.text = '刪除成功: ' + mainMsg[2]
-                    }
-                } else {
-                    rply.text = '刪除失敗.'
-                    if (!mainMsg[2])
-                        rply.text += '沒有關鍵字. '
-                    if (!groupid)
-                        rply.text += '不在群組. '
-                    if (groupid && userrole < 1)
-                        rply.text += '只有GM以上才可刪除. '
-                }
-                return rply;
+          
 
             case /(^[.]level$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
                 //顯示

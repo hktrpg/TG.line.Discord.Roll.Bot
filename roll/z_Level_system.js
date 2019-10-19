@@ -56,7 +56,7 @@ try {
                 //增加資料庫
                 //檢查有沒有重覆
                 let checkifsamename = 0
-                if (groupid && userrole >= 1 && mainMsg[2]) {
+                if (groupid && userrole >= 1 && mainMsg[2] && inputStr.toString().match(/[\s\S]{1,1900}/g).length <= 1 && !mainMsg[2].match(/^show$/)) {
                     if (rply.trpgLevelSystemfunction)
                         for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
                             if (rply.trpgLevelSystemfunction[i].groupid == groupid) {
@@ -75,7 +75,6 @@ try {
                     if (mainMsg[2].match(/^del$/ig)) {
                         checkifsamename = 0
                     }
-
                     if (checkifsamename == 0) {
                         rply.text = '新增成功: ' + '\n' + inputStr.replace(mainMsg[0], '').replace(mainMsg[1], '').replace(/^\s+/, '').replace(/^\s+/, '')
                         if (mainMsg[2].match(/^del$/ig)) {
@@ -104,6 +103,24 @@ try {
                         rply.text += ' 不在群組.'
                     if (groupid && userrole < 1)
                         rply.text += ' 只有GM以上才可新增.'
+                    if (inputStr.toString().match(/[\s\S]{1,1900}/g).length <= 1)
+                        rply.text += ' 內容太長,只可以1900字元以內.'
+                }
+                if (mainMsg[2].match(/^show$/)) {
+                    if (groupid) {
+                        let temp = 0;
+                        if (rply.trpgLevelSystemfunction)
+                            for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
+                                if (rply.trpgLevelSystemfunction[i].groupid == groupid && rply.trpgLevelSystemfunction[i].LevelUpWord) {
+                                    rply.text = '現在升級語:'
+                                    temp = 1
+                                    rply.text += ("\n") + rply.trpgLevelSystemfunction[i].LevelUpWord
+                                }
+                            }
+                        if (temp == 0) rply.text = '正在使用預設升級語. '
+                    } else {
+                        rply.text = '不在群組. '
+                    }
                 }
                 return rply;
 

@@ -246,8 +246,10 @@ try {
 
                 } else {
                     rply.text = '修改失敗.'
-                    if (!mainMsg[2])
-                        rply.text += ' 沒有內容.'
+                    if (!mainMsg[2] || !(mainMsg[2] == "00" || mainMsg[2] == "01" || mainMsg[2] == "10" || mainMsg[2] == "11"))
+                        rply.text += '\nconfig 11 代表啓動功能 \
+                        \n 數字11代表等級升級時會進行通知，10代表不會自動通知，\
+                        \n 00的話代表不啓動功能\n'
                     if (!groupid)
                         rply.text += ' 不在群組.'
                     if (groupid && userrole < 1)
@@ -258,13 +260,13 @@ try {
                         let temp = 0;
                         if (rply.trpgLevelSystemfunction)
                             for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
-                                if (rply.trpgLevelSystemfunction[i].groupid == groupid && rply.trpgLevelSystemfunction[i].Config) {
-                                    rply.text = '現在設定:'
+                                if (rply.trpgLevelSystemfunction[i].groupid == groupid && rply.trpgLevelSystemfunction[i].Switch) {
+                                    rply.text = '現在設定:\n開關: '
                                     temp = 1
-                                    if (Switch == 1) rply.text += '啓動\n通知: '
-                                    if (Switch == 0) rply.text += '關閉\n通知: '
-                                    if (Hidden == 1) rply.text += '啓動'
-                                    if (Hidden == 0) rply.text += '關閉'
+                                    if (rply.trpgLevelSystemfunction[i].Switch == 1) rply.text += '啓動\n通知: '
+                                    if (rply.trpgLevelSystemfunction[i].Switch == 0) rply.text += '關閉\n通知: '
+                                    if (rply.trpgLevelSystemfunction[i].Hidden == 1) rply.text += '啓動'
+                                    if (rply.trpgLevelSystemfunction[i].Hidden == 0) rply.text += '關閉'
 
                                     //'\n開關: ' + rply.trpgLevelSystemfunction[i].Switch.replace(1, '啓動').replace(0, '關閉')+ '\n通知: ' + rply.trpgLevelSystemfunction[i].Hidden.replace(1, '啓動').replace(0, '關閉')
                                 }

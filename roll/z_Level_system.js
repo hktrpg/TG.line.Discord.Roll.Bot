@@ -94,19 +94,15 @@ try {
                 } else {
                     rply.text = '新增失敗.'
                     if (!mainMsg[2])
-                        rply.text += ' 沒有標題.'
-                    if (!mainMsg[3])
-                        rply.text += ' 沒有擲骰指令'
-                    if (mainMsg[3] && mainMsg[3].toLowerCase() == ".level")
-                        rply.text += '指令不可以儲存.level啊'
+                        rply.text += ' 沒有內容.'
                     if (!groupid)
                         rply.text += ' 不在群組.'
                     if (groupid && userrole < 1)
                         rply.text += ' 只有GM以上才可新增.'
-                    if (inputStr.toString().match(/[\s\S]{1,1900}/g).length <= 1)
+                    if (inputStr.toString().match(/[\s\S]{1,1900}/g).length > 1)
                         rply.text += ' 內容太長,只可以1900字元以內.'
                 }
-                if (mainMsg[2].match(/^show$/)) {
+                if (mainMsg[2] && mainMsg[2].match(/^show$/)) {
                     if (groupid) {
                         let temp = 0;
                         if (rply.trpgLevelSystemfunction)
@@ -118,6 +114,81 @@ try {
                                 }
                             }
                         if (temp == 0) rply.text = '正在使用預設升級語. '
+                    } else {
+                        rply.text = '不在群組. '
+                    }
+                }
+                return rply;
+
+
+            //
+            //
+            //查詢語
+            //
+            //
+            case /(^[.]level$)/i.test(mainMsg[0]) && /^RankWord$/i.test(mainMsg[1]):
+                //console.log('mainMsg: ', mainMsg)
+                //增加資料庫
+                //檢查有沒有重覆
+                let checkifsamenameRankWord = 0
+                if (groupid && userrole >= 1 && mainMsg[2] && inputStr.toString().match(/[\s\S]{1,1900}/g).length <= 1 && !mainMsg[2].match(/^show$/)) {
+                    if (rply.trpgLevelSystemfunction)
+                        for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
+                            if (rply.trpgLevelSystemfunction[i].groupid == groupid) {
+                                // console.log('checked1')
+                                if (rply.trpgLevelSystemfunction[i].RankWord) {
+                                    //   console.log('checked')
+                                    checkifsamenameRankWord = 1
+                                }
+                            }
+                        }
+                    let temp = {
+                        groupid: groupid,
+                        RankWord: inputStr.replace(mainMsg[0], "").replace(mainMsg[1], "").replace("  ", "")
+                        //在這群組查詢等級時的回應
+                    }
+                    if (mainMsg[2].match(/^del$/ig)) {
+                        checkifsamenameRankWord = 0
+                    }
+                    if (checkifsamenameRankWord == 0) {
+                        rply.text = '新增成功: ' + '\n' + inputStr.replace(mainMsg[0], '').replace(mainMsg[1], '').replace(/^\s+/, '').replace(/^\s+/, '')
+                        if (mainMsg[2].match(/^del$/ig)) {
+                            temp.RankWord = ""
+                            rply.text = "刪除成功."
+                        }
+                        records.settrpgLevelSystemfunctionRankWord('trpgLevelSystem', temp, () => {
+                            records.get('trpgLevelSystem', (msgs) => {
+                                rply.trpgLevelSystemfunction = msgs
+                                //  console.log(rply.trpgLevelSystemfunction)
+                                // console.log(rply);
+                            })
+
+                        })
+
+                    } else rply.text = '修改失敗. 已有查詢語, 先使用.level RankWord del 刪除舊查詢語'
+                } else {
+                    rply.text = '新增失敗.'
+                    if (!mainMsg[2])
+                        rply.text += ' 沒有內容.'
+                    if (!groupid)
+                        rply.text += ' 不在群組.'
+                    if (groupid && userrole < 1)
+                        rply.text += ' 只有GM以上才可新增.'
+                    if (inputStr.toString().match(/[\s\S]{1,1900}/g).length > 1)
+                        rply.text += ' 內容太長,只可以1900字元以內.'
+                }
+                if (mainMsg[2] && mainMsg[2].match(/^show$/)) {
+                    if (groupid) {
+                        let temp = 0;
+                        if (rply.trpgLevelSystemfunction)
+                            for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
+                                if (rply.trpgLevelSystemfunction[i].groupid == groupid && rply.trpgLevelSystemfunction[i].RankWord) {
+                                    rply.text = '現在查詢語:'
+                                    temp = 1
+                                    rply.text += ("\n") + rply.trpgLevelSystemfunction[i].RankWord
+                                }
+                            }
+                        if (temp == 0) rply.text = '正在使用預設查詢語. '
                     } else {
                         rply.text = '不在群組. '
                     }

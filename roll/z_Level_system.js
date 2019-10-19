@@ -72,9 +72,12 @@ try {
                         LevelUpWord: inputStr.replace(mainMsg[0], "").replace(mainMsg[1], "").replace("  ", "")
                         //在這群組升級時的升級語
                     }
+                    if (mainMsg[2].match(/^del$/ig)) {
+                        checkifsamename = 0
+                    }
 
                     if (checkifsamename == 0) {
-                        rply.text = '新增成功: ' + mainMsg[2] + '\n' + inputStr.replace(/\.level\s+add\s+/i, '').replace(mainMsg[2], '').replace(/^\s+/, '')
+                        rply.text = '新增成功: ' + '\n' + inputStr.replace(mainMsg[0], '').replace(mainMsg[1], '').replace(/^\s+/, '').replace(/^\s+/, '')
                         if (mainMsg[2].match(/^del$/ig)) {
                             temp.LevelUpWord = ""
                             rply.text = "刪除成功."

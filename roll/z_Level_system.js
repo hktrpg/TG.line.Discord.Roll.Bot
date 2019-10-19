@@ -195,6 +195,86 @@ try {
                 }
                 return rply;
 
+            //
+            //
+            //設定
+            //
+            //
+            case /(^[.]level$)/i.test(mainMsg[0]) && /^config$/i.test(mainMsg[1]):
+                //console.log('mainMsg: ', mainMsg)
+                //增加資料庫
+                //檢查有沒有重覆
+                if (groupid && userrole >= 1 && mainMsg[2] && (mainMsg[2] == "00" || mainMsg[2] == "01" || mainMsg[2] == "10" || mainMsg[2] == "11")) {
+
+                    let Switch, Hidden = 0;
+                    if (mainMsg[2] == "00") {
+                        Switch = 0;
+                        Hidden = 0;
+                    }
+                    if (mainMsg[2] == "01") {
+                        Switch = 0;
+                        Hidden = 1;
+                    }
+                    if (mainMsg[2] == "10") {
+                        Switch = 1;
+                        Hidden = 0;
+                    }
+                    if (mainMsg[2] == "11") {
+                        Switch = 1;
+                        Hidden = 1;
+                    }
+
+                    let temp = {
+                        groupid: groupid,
+                        Switch: Switch,
+                        Hidden: Hidden
+                        //在這群組查詢等級時的回應
+                    }
+                    rply.text = '修改成功: ' + '\n開關: ';
+                    if (Switch == 1) rply.text += '啓動\n通知: '
+                    if (Switch == 0) rply.text += '關閉\n通知: '
+                    if (Hidden == 1) rply.text += '啓動'
+                    if (Hidden == 0) rply.text += '關閉'
+                    records.settrpgLevelSystemfunctionConfig('trpgLevelSystem', temp, () => {
+                        records.get('trpgLevelSystem', (msgs) => {
+                            rply.trpgLevelSystemfunction = msgs
+                            //  console.log(rply.trpgLevelSystemfunction)
+                            // console.log(rply);
+                        })
+
+                    })
+
+                } else {
+                    rply.text = '修改失敗.'
+                    if (!mainMsg[2])
+                        rply.text += ' 沒有內容.'
+                    if (!groupid)
+                        rply.text += ' 不在群組.'
+                    if (groupid && userrole < 1)
+                        rply.text += ' 只有GM以上才可新增.'
+                }
+                if (mainMsg[2] && mainMsg[2].match(/^show$/)) {
+                    if (groupid) {
+                        let temp = 0;
+                        if (rply.trpgLevelSystemfunction)
+                            for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
+                                if (rply.trpgLevelSystemfunction[i].groupid == groupid && rply.trpgLevelSystemfunction[i].Config) {
+                                    rply.text = '現在設定:'
+                                    temp = 1
+                                    if (Switch == 1) rply.text += '啓動\n通知: '
+                                    if (Switch == 0) rply.text += '關閉\n通知: '
+                                    if (Hidden == 1) rply.text += '啓動'
+                                    if (Hidden == 0) rply.text += '關閉'
+
+                                    //'\n開關: ' + rply.trpgLevelSystemfunction[i].Switch.replace(1, '啓動').replace(0, '關閉')+ '\n通知: ' + rply.trpgLevelSystemfunction[i].Hidden.replace(1, '啓動').replace(0, '關閉')
+                                }
+                            }
+                        if (temp == 0) rply.text = '現在設定: \n開關: 關閉\n通知: 關閉'
+                    } else {
+                        rply.text = '不在群組. '
+                    }
+                }
+                return rply;
             case /(^[.]level$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
                 //刪除資料庫
                 if (groupid && mainMsg[2] && rply.trpgLevelSystemfunction && userrole >= 1) {

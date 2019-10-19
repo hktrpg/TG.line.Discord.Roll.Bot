@@ -29,6 +29,7 @@ try {
         \n 輸入.level LevelUpWord (內容) 修改在這群組升級時彈出的升級語\
         \n 輸入.level RankWord (內容) 修改在這群組查詢等級時的回應\
         \n 輸入.level RankWord/LevelUpWord del 即使用預設字句\
+        \n 輸入.level RankWord/LevelUpWord show 即顯示現在設定\
         \n 輸入.level show 可以查詢你現在的等級\
         \n 修改內容可使用不同代碼\
         \n {user.name} 名字 {user.level} 等級 \

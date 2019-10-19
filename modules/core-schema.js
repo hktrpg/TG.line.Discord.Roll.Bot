@@ -70,7 +70,7 @@ if (process.env.mongoURL) {
         //在這群組查詢等級時的回應
         Switch: {
             type: String,
-            default: "0"
+            default: "00"
         },
         //是否啓動功能 config 1X 則1
         Hidden: String,

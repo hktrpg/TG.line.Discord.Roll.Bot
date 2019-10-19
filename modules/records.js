@@ -392,7 +392,8 @@ class Records extends EventEmitter {
                 //trpgLevelSystemfunction: msg.trpgLevelSystemfunction
             }
         }, {
-            upsert: true
+            upsert: true,
+            setDefaultsOnInsert: true
         }, (err, doc) => {
             if (err) {
                 console.log("Something wrong when updating data!");
@@ -417,7 +418,8 @@ class Records extends EventEmitter {
                 //trpgLevelSystemfunction: msg.trpgLevelSystemfunction
             }
         }, {
-            upsert: true
+            upsert: true,
+            setDefaultsOnInsert: true
         }, (err, doc) => {
             if (err) {
                 console.log("Something wrong when updating data!");

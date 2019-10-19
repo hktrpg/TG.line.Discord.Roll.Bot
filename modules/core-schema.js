@@ -73,7 +73,10 @@ if (process.env.mongoURL) {
             default: "0"
         },
         //是否啓動功能 config 1X 則1
-        Hidden: String,
+        Hidden: {
+            type: String,
+            default: "0"
+        },
         //是否顯示升級語 config X1 則1
         trpgLevelSystemfunction: [{
             userid: String,
@@ -81,8 +84,11 @@ if (process.env.mongoURL) {
             //現在經驗值
             Level: String,
             //等級
-            LastSpeakTime: Date
-            //最後說話時間, 間隔一分鐘才提升經驗
+            LastSpeakTime: {
+                type: Date,
+                default: Date.now
+                //最後說話時間, 間隔一分鐘才提升經驗
+            }
         }]
     });
     const trpgDarkRolling = mongoose.model('trpgDarkRolling', {

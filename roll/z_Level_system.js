@@ -278,10 +278,23 @@ try {
                     }
                 }
                 return rply;
-          
+
 
             case /(^[.]level$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
-                //顯示
+                //
+                //顯示現在排名
+                //1.    讀取 群組有沒有開啓功能
+                //2.    ->沒有 告知開啓
+                //3.    ->有   檢查有沒有個人資料
+                //4.    沒有則新增一個, 隨機1-5 給經驗值.
+                //5.    讀取群組的排名語
+                //6.    ->沒有 使用預設排名語
+                //7.    使用排名語, 根據內容進行替換.
+                //8.    
+                //{user.name} 名字 {user.level} 等級 \
+                // { user.exp } 經驗值 { user.Ranking } 現在排名 \
+                // { user.Ranking %} 現在排名百分比 \
+                // { server.member_count } 現在頻道中總人數 \
                 records.get('trpgLevelSystem', (msgs) => {
                     rply.trpgLevelSystemfunction = msgs
                 })

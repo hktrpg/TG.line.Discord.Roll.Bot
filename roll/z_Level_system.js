@@ -308,10 +308,19 @@ try {
                                 //1.    讀取 群組有沒有開啓功能
                                 if (rply.trpgLevelSystemfunction[i].Switch == 1) {
                                     temp = 1;
+                                    //5.    讀取群組的排名語
+                                    //6.    ->沒有 使用預設排名語
+                                    let rankWord = "恭喜 @{user.name}, 你的克蘇魯神話知識已經有 {user.level}點了!"
+                                    if (rply.trpgLevelSystemfunction[i].RankWord) {
+                                        rankWord = rply.trpgLevelSystemfunction[i].RankWord
+                                    }
                                     //3.    ->有   檢查有沒有個人資料
                                     for (var a = 0; a < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
-                                        temp = 1
-                                        rply.text += ("\n") + a + '. ' + rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].topic + '\n' + rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].contact + '\n'
+                                        if (rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].userid == userid) {
+                                            rply.text = rankWord
+
+
+                                        }
                                     }
                                 }
 

@@ -302,6 +302,9 @@ try {
                 if (groupid) {
                     let temp = 0;
                     let tempHaveUser = 0;
+                    //6.    ->沒有 使用預設排名語
+                    let rankWord = "恭喜 @{user.name}, 你的克蘇魯神話知識已經有 {user.level}點了!"
+
                     if (rply.trpgLevelSystemfunction)
                         for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
                             if (rply.trpgLevelSystemfunction[i].groupid == groupid) {
@@ -310,8 +313,6 @@ try {
                                 if (rply.trpgLevelSystemfunction[i].Switch == 1) {
                                     temp = 1;
                                     //5.    讀取群組的排名語
-                                    //6.    ->沒有 使用預設排名語
-                                    let rankWord = "恭喜 @{user.name}, 你的克蘇魯神話知識已經有 {user.level}點了!"
                                     if (rply.trpgLevelSystemfunction[i].RankWord) {
                                         rankWord = rply.trpgLevelSystemfunction[i].RankWord
                                     }
@@ -319,6 +320,10 @@ try {
                                     for (var a = 0; a < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
                                         if (rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].userid == userid) {
                                             tempHaveUser = 1;
+                                            //{user.name} 名字 {user.level} 等級 \
+                                            // { user.exp } 經驗值 { user.Ranking } 現在排名 \
+                                            // { user.Ranking %} 現在排名百分比 \
+                                            // { server.member_count } 現在頻道中總人數 \
                                             rply.text = rankWord;
 
                                         }

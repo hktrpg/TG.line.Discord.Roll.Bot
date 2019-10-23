@@ -304,14 +304,19 @@ try {
                     if (rply.trpgLevelSystemfunction)
                         for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
                             if (rply.trpgLevelSystemfunction[i].groupid == groupid) {
-                                rply.text += '資料庫列表:'
+                                //rply.text += '資料庫列表:'
+                                //1.    讀取 群組有沒有開啓功能
+                                if (rply.trpgLevelSystemfunction[i].Switch == 1) {
+                                    temp = 1;
+                                }
                                 for (var a = 0; a < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
                                     temp = 1
                                     rply.text += ("\n") + a + '. ' + rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].topic + '\n' + rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].contact + '\n'
                                 }
                             }
                         }
-                    if (temp == 0) rply.text = '沒有已設定的關鍵字. '
+                    //2.    ->沒有 告知開啓
+                    if (temp == 0) rply.text = '此群組並有沒有開啓LEVEL功能. \n請輸入 .level config 11 開啓. '
                 } else {
                     rply.text = '不在群組. '
                 }

@@ -301,6 +301,7 @@ try {
                 //console.log(rply.trpgLevelSystemfunction)
                 if (groupid) {
                     let temp = 0;
+                    let tempHaveUser = 0;
                     if (rply.trpgLevelSystemfunction)
                         for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
                             if (rply.trpgLevelSystemfunction[i].groupid == groupid) {
@@ -317,8 +318,8 @@ try {
                                     //3.    ->有   檢查有沒有個人資料
                                     for (var a = 0; a < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
                                         if (rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].userid == userid) {
-                                            rply.text = rankWord
-
+                                            tempHaveUser = 1;
+                                            rply.text = rankWord;
 
                                         }
                                     }
@@ -326,7 +327,10 @@ try {
 
                             }
                         }
-                    //2.    ->沒有 告知開啓
+                    if (tempHaveUser == 0) {
+                        //4.    沒有則新增一個, 隨機1-5 給經驗值.
+                        rply.text = rankWord;
+                    } //2.    ->沒有 告知開啓
                     if (temp == 0) rply.text = '此群組並有沒有開啓LEVEL功能. \n請輸入 .level config 11 開啓. '
                 } else {
                     rply.text = '不在群組. '

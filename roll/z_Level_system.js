@@ -308,11 +308,13 @@ try {
                                 //1.    讀取 群組有沒有開啓功能
                                 if (rply.trpgLevelSystemfunction[i].Switch == 1) {
                                     temp = 1;
+                                    //3.    ->有   檢查有沒有個人資料
+                                    for (var a = 0; a < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
+                                        temp = 1
+                                        rply.text += ("\n") + a + '. ' + rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].topic + '\n' + rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].contact + '\n'
+                                    }
                                 }
-                                for (var a = 0; a < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
-                                    temp = 1
-                                    rply.text += ("\n") + a + '. ' + rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].topic + '\n' + rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].contact + '\n'
-                                }
+
                             }
                         }
                     //2.    ->沒有 告知開啓

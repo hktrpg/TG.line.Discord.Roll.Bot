@@ -297,7 +297,7 @@ try {
                 // { user.exp } 經驗值 { user.Ranking } 現在排名 \
                 // { user.RankingPer} 現在排名百分比 \
                 // { server.member_count } 現在頻道中總人數 \
-                
+
                 //console.log(rply.trpgLevelSystemfunction)
                 if (groupid) {
                     let temp = 0;
@@ -332,7 +332,7 @@ try {
                                             //console.log('rply.trpgLevelSystemfunction[i]',
 
                                             let userRanking = ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);
-                                            let userRankingPer = Math.ceil(userRanking / rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length * 100)  + '%';
+                                            let userRankingPer = Math.ceil(userRanking / rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length * 10000) / 100 + '%';
                                             let usermember_count = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length;
                                             //{user.name} 名字 {user.level} 等級 \
                                             // { user.exp } 經驗值 { user.Ranking } 現在排名 \

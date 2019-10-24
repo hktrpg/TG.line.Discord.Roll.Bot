@@ -509,12 +509,12 @@ class Records extends EventEmitter {
             // return JSON.stringify(doc).toString();
         });
     }
-    settrpgLevelSystemfunctionEXPup(dbbase,msgA, msg, callback) {
-        console.log("MSG", msgA.groupid)
-        console.log("MSG", msg.userid)
+    settrpgLevelSystemfunctionEXPup(dbbase, msgA, msg, callback) {
         schema[dbbase].findOneAndUpdate({
-            groupid: msgA.groupid,
-            trpgLevelSystemfunction: { userid: msg.userid }
+            "$and": [
+                { groupid: msgA.groupid },
+                { trpgLevelSystemfunction: { userid: msg.userid } }
+            ]
         }, {
             $set: {
                 //LevelUpWord: msg.LevelUpWord
@@ -525,17 +525,18 @@ class Records extends EventEmitter {
                 //是否啓動功能 config 1X 則1
                 //Hidden: msg.Hidden,
                 //是否顯示升級語 config X1 則1
-                trpgLevelSystemfunction: msg.trpgLevelSystemfunction
+                trpgLevelSystemfunction: msg
             }
         }, {
-            //upsert: true,
             //   setDefaultsOnInsert: true
         }, (err, doc) => {
             if (err) {
                 console.log(err);
                 console.log("Something wrong when updating data!");
-            } else
+            } else {
                 callback();
+                console.log('DONE?')
+            }
             // return JSON.stringify(doc).toString();
         });
     }

@@ -59,11 +59,13 @@ try {
 
 
 	}
-	function levelUP() {
-
+	function EXPUP() {
+		//如果
 	}
 
+	function LevelUP() {
 
+	}
 	function z_stop(mainMsg, groupid) {
 		if (exports.z_stop && exports.z_stop.initialize() && exports.z_stop.initialize().save && exports.z_stop.initialize().save[0].blockfunction && exports.z_stop.initialize().save[0].blockfunction.length > 0) {
 			for (var i = 0; i < exports.z_stop.initialize().save.length; i++) {

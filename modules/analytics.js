@@ -60,7 +60,7 @@ try {
 
 	}
 	function EXPUP() {
-		//如果
+		//1. 假如有
 	}
 
 	function LevelUP() {

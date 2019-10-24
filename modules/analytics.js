@@ -31,6 +31,7 @@ try {
 		//console.log('stop')
 		//檢查是不是要停止
 		stopmark = z_stop(mainMsg, groupid);
+		EXPUP();
 		//console.log('mainMsgAA',mainMsg)
 		if (stopmark != 1) {
 			result = rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid)
@@ -59,21 +60,42 @@ try {
 
 
 	}
+	
 	function EXPUP() {
+		let tempEXPconfig = 0;
+		let tempGPID = 0;
+		console.log('CCC')
 		//1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
-		if (exports.z_Level_system && exports.z_Level_system.initialize() && exports.z_Level_system.initialize().trpgLevelSystemfunction && exports.z_Level_system.initialize().trpgLevelSystemfunction[0].groupid) {
-			let tempEXPconfig = 0;
-			for (let a = 0; a < exports.z_Level_system.initialize().trpgLevelSystemfunction[a].groupid; a++) {
-				if (exports.z_Level_system.initialize().trpgLevelSystemfunction[a].groupid == groupid && exports.z_Level_system.initialize().trpgLevelSystemfunction[a].Switch == "1")
+		if (exports.z_Level_system && exports.z_Level_system.initialize() && exports.z_Level_system.initialize().trpgLevelSystemfunction && exports.z_Level_system.initialize().trpgLevelSystemfunction[0]) {
+			console.log(exports.z_Level_system.initialize().trpgLevelSystemfunction[0])
+			for (let a = 0; a < exports.z_Level_system.initialize().trpgLevelSystemfunction[a].length; a++) {
+				console.log(a)
+				if (exports.z_Level_system.initialize().trpgLevelSystemfunction[a].groupid == groupid && exports.z_Level_system.initialize().trpgLevelSystemfunction[a].Switch == "1") {
 					tempEXPconfig = 1;
+					tempGPID = a;
+					console.log('DDD')
+				}
 				//檢查CONFIG開啓
 			}
 		}
-		if (tempEXPconfig == 1) {
-			//2. 有 -> 檢查有沒USER 資料
-			//3. 沒有 -> 新增
-			//4. 有-> 檢查上次紀錄的時間 超過60001 (1分鐘) 即增加1-10 經驗值
 
+		if (tempEXPconfig == 1) {
+			let tempIsUser = 0;
+			//2. 有 -> 檢查有沒USER 資料
+			for (let b = 0; b < exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.length; b++) {
+				if (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.userid == userid) {
+					tempIsUser = userid;
+					console.log('EEE')
+				}
+			}
+
+			//3. 沒有 -> 新增
+			if (tempIsUser == 0) {
+				console.log('AAA')
+			} else if (tempIsUser != 0) {
+				//4. 有-> 檢查上次紀錄的時間 超過60001 (1分鐘) 即增加1-10 經驗值
+				console.log('BBB')
+			}
 
 		}
 		//5. 檢查現LEVEL 需不需要上升.  5 * (lvl ^ 2) + 50 * lvl + 100

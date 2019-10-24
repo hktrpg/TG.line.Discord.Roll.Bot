@@ -61,14 +61,26 @@ try {
 	}
 	function EXPUP() {
 		//1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
-		//2. 有 -> 檢查有沒USER 資料
-		//3. 沒有 -> 新增
-		//4. 有-> 檢查上次紀錄的時間 超過60001 (1分鐘) 即增加1-10 經驗值
+		if (exports.z_Level_system && exports.z_Level_system.initialize() && exports.z_Level_system.initialize().trpgLevelSystemfunction && exports.z_Level_system.initialize().trpgLevelSystemfunction[0].groupid) {
+			let tempEXPconfig = 0;
+			for (let a = 0; a < exports.z_Level_system.initialize().trpgLevelSystemfunction[a].groupid; a++) {
+				if (exports.z_Level_system.initialize().trpgLevelSystemfunction[a].groupid == groupid && exports.z_Level_system.initialize().trpgLevelSystemfunction[a].Switch == "1")
+					tempEXPconfig = 1;
+				//檢查CONFIG開啓
+			}
+		}
+		if (tempEXPconfig == 1) {
+			//2. 有 -> 檢查有沒USER 資料
+			//3. 沒有 -> 新增
+			//4. 有-> 檢查上次紀錄的時間 超過60001 (1分鐘) 即增加1-10 經驗值
+
+
+		}
 		//5. 檢查現LEVEL 需不需要上升.  5 * (lvl ^ 2) + 50 * lvl + 100
 		//6. 需要 -> 檢查有沒有開啓通知
 		//7. 有則呼叫LEVELUP
 		//8. 更新MLAB資料
-		 
+
 	}
 
 	function LevelUP() {

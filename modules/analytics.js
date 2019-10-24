@@ -157,6 +157,7 @@ try {
 
 
 		}
+
 		function LevelUP(tempGPID) {
 			//1. 讀取LEVELUP語
 			result.LevelUp = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].LevelUpWord || "恭喜 @{user.name}，你的克蘇魯神話知識現在是 {user.level}點了！";

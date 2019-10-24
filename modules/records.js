@@ -511,10 +511,10 @@ class Records extends EventEmitter {
     }
     settrpgLevelSystemfunctionEXPup(dbbase, msgA, msg, callback) {
         schema[dbbase].findOneAndUpdate({
-            "$and": [
-                {groupid: msgA.groupid},
-               { trpgLevelSystemfunction: { userid: msg.userid }}
-            ]
+
+            groupid: msgA.groupid,
+            'trpgLevelSystemfunction.userid': msg.userid
+
         }, {
             $set: {
                 //LevelUpWord: msg.LevelUpWord

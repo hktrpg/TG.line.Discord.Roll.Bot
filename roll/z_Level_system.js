@@ -316,10 +316,17 @@ try {
                                     if (rply.trpgLevelSystemfunction[i].RankWord) {
                                         rankWord = rply.trpgLevelSystemfunction[i].RankWord
                                     }
+                                    let username = displayname;
+                                    
                                     //3.    ->有   檢查有沒有個人資料
                                     for (var a = 0; a < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
                                         if (rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].userid == userid) {
                                             tempHaveUser = 1;
+                                            let userlevel = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level;
+                                            let userexp = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].EXP;
+                                            let userRanking = displayname;
+                                            let userRankingB = displayname;
+                                            let usermember_count = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].length;
                                             //{user.name} 名字 {user.level} 等級 \
                                             // { user.exp } 經驗值 { user.Ranking } 現在排名 \
                                             // { user.Ranking %} 現在排名百分比 \
@@ -363,3 +370,56 @@ try {
 } catch (e) {
     console.log(e)
 }
+
+/*
+var trpgLevelSystemfunction = [{
+        nickname: "Bob",
+        EXP: 100
+    },
+    {
+        nickname: "Amy",
+        EXP: 200
+    },
+    {
+        nickname: "Grant",
+        EXP: 1300
+    },
+    {
+        nickname: "Steve",
+        EXP: 4200
+    },
+    {
+        nickname: "Joe",
+        EXP: 500
+    }
+];
+
+function ranking(who) {
+    var array = [];
+
+    for (var key in trpgLevelSystemfunction) {
+        array.push(trpgLevelSystemfunction[key]);
+
+    }
+
+    array.sort(function (a, b) {
+        return b.EXP - a.EXP;
+    });
+
+    var rank = 1;
+    for (var i = 0; i < array.length; i++) {
+        if (i > 0 && array[i].EXP < array[i - 1].EXP) {
+            rank++;
+        }
+        array[i].rank = rank;
+    }
+    for (var b = 0; b < array.length; b++) {
+        if (array[b].nickname == who)
+            document.write(b + 1);
+
+    }
+
+
+}
+ranking('Joe');
+*/

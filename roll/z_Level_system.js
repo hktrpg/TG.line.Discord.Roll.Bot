@@ -342,7 +342,7 @@ try {
                                         //4.    沒有則新增一個, 隨機1-5 給經驗值.
                                         let username = displayname || "無名"
                                         let userlevel = 0;
-                                        let userexp = Math.floor(Math.random() * 5) + 1
+                                        let userexp = Math.floor(Math.random() * 10) + 1
                                         //console.log('rply.trpgLevelSystemfunction[i]',
 
                                         let userRanking = ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);

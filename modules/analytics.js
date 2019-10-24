@@ -60,11 +60,20 @@ try {
 
 	}
 	function EXPUP() {
-		//1. 假如有
+		//1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
+		//2. 有 -> 檢查有沒USER 資料
+		//3. 沒有 -> 新增
+		//4. 有-> 檢查上次紀錄的時間 超過60001 (1分鐘) 即增加1-10 經驗值
+		//5. 檢查現LEVEL 需不需要上升.  5 * (lvl ^ 2) + 50 * lvl + 100
+		//6. 需要 -> 檢查有沒有開啓通知
+		//7. 有則呼叫LEVELUP
+		//8. 更新MLAB資料
+		 
 	}
 
 	function LevelUP() {
-
+		//1. 讀取LEVELUP語
+		//2. 回應BOT
 	}
 	function z_stop(mainMsg, groupid) {
 		if (exports.z_stop && exports.z_stop.initialize() && exports.z_stop.initialize().save && exports.z_stop.initialize().save[0].blockfunction && exports.z_stop.initialize().save[0].blockfunction.length > 0) {

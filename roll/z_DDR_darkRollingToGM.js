@@ -43,9 +43,6 @@ try {
 
     rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 
-        records.get('trpgDarkRolling', (msgs) => {
-            rply.trpgDarkRollingfunction = msgs
-        })
         rply.text = '';
         switch (true) {
             case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:

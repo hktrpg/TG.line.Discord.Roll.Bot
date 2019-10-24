@@ -36,9 +36,7 @@ if (process.env.mongoURL) {
     }
 
     rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-        records.get('block', (msgs) => {
-            rply.save = msgs
-        })
+        
         rply.text = '';
         switch (true) {
 

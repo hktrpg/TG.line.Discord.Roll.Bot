@@ -324,7 +324,9 @@ try {
                                             tempHaveUser = 1;
                                             let userlevel = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level;
                                             let userexp = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].EXP;
-                                            let userRanking = ranking('Joe', rply.trpgLevelSystemfunction[i]);
+
+                                            let userRanking = ranking(userid, rply.trpgLevelSystemfunction[i]);
+                                            console.log(ranking(userid, rply.trpgLevelSystemfunction[i]))
                                             let userRankingB = displayname;
                                             let usermember_count = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].length;
                                             //{user.name} 名字 {user.level} 等級 \
@@ -377,7 +379,7 @@ try {
                 array[i].rank = rank;
             }
             for (var b = 0; b < array.length; b++) {
-                if (array[b].nickname == who)
+                if (array[b].userid == who)
                     answer = b + 1;
                 //  document.write(b + 1);
 

@@ -51,7 +51,7 @@ try {
 
             case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
                 rply.text = this.getHelpMessage();
-                console.log(userid);
+                //console.log(userid);
                 return rply;
             // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
             case /(^[.]level$)/i.test(mainMsg[0]) && /^LevelUpWord$/i.test(mainMsg[1]):
@@ -307,7 +307,7 @@ try {
                     // {user.exp} 經驗值 {user.Ranking} 現在排名 \
                     // {user.RankingPer} 現在排名百分比 \
                     // {server.member_count} 現在頻道中總人數 \
-                    let rankWord = "恭喜 @{user.name}，你的克蘇魯神話知識已經有 {user.level}點了！"
+                    let rankWord = "恭喜 @{user.name}，你的克蘇魯神話知識已經有 {user.level}點了！{user.exp}"
 
                     if (rply.trpgLevelSystemfunction)
                         for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
@@ -341,15 +341,29 @@ try {
                                             rply.text = rankWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count)
 
                                         }
+
+                                    } //2.    ->沒有 告知開啓
+                                    if (tempHaveUser == 0) {
+                                        //4.    沒有則新增一個, 隨機1-5 給經驗值.
+                                        let username = displayname || "無名"
+                                        let userlevel = 0;
+                                        let userexp = Math.floor(Math.random() * 5) + 1
+                                        //console.log('rply.trpgLevelSystemfunction[i]',
+
+                                        let userRanking = ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);
+                                        let userRankingPer = Math.ceil(userRanking / rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length * 10000) / 100 + '%';
+                                        let usermember_count = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length;
+                                        //{user.name} 名字 {user.level} 等級 \
+                                        // { user.exp } 經驗值 { user.Ranking } 現在排名 \
+                                        // { user.RankingPer} 現在排名百分比 \
+                                        // { server.member_count } 現在頻道中總人數 \
+                                        rply.text = rankWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count)
                                     }
                                 }
 
                             }
                         }
-                    if (tempHaveUser == 0) {
-                        //4.    沒有則新增一個, 隨機1-5 給經驗值.
-                        rply.text = rankWord;
-                    } //2.    ->沒有 告知開啓
+
                     if (temp == 0) rply.text = '此群組並有沒有開啓LEVEL功能. \n請輸入 .level config 11 開啓. '
                 } else {
                     rply.text = '不在群組. '
@@ -377,8 +391,8 @@ try {
             });
 
             var rank = 1;
-            console.log('array.length', array.length)
-            console.log('array', array)
+            //console.log('array.length', array.length)
+            //console.log('array', array)
             for (var i = 0; i < array.length; i++) {
                 if (i > 0 && array[i].EXP < array[i - 1].EXP) {
                     rank++;
@@ -391,7 +405,7 @@ try {
                 //  document.write(b + 1);
 
             }
-            console.log('answer', answer)
+            //console.log('answer', answer)
             return answer;
         }
     }

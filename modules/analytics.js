@@ -130,7 +130,7 @@ try {
 							if (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Hidden == 1) {
 								//6. 需要 -> 檢查有沒有開啓通知
 
-								LevelUP();
+								LevelUP(tempGPID);
 
 
 							}
@@ -157,7 +157,7 @@ try {
 
 
 		}
-		function LevelUP() {
+		function LevelUP(tempGPID) {
 			//1. 讀取LEVELUP語
 			result.LevelUp = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].LevelUpWord || "恭喜 @{user.name}，你的克蘇魯神話知識現在是 {user.level}點了！";
 			//2. 回應BOT

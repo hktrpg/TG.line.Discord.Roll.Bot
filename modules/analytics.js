@@ -35,13 +35,13 @@ try {
 		//檢查是不是要停止
 		stopmark = z_stop(mainMsg, groupid);
 		//檢查是不是開啓LV 功能
-		EXPUP();
+
 		//console.log('mainMsgAA',mainMsg)
 		if (stopmark != 1) {
 			result = rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid)
 			//console.log("OK")
 		}
-
+		
 		//z_saveCommand 功能
 		if (mainMsg && mainMsg[0].toLowerCase() == ".cmd" && mainMsg[1] && mainMsg[1].toLowerCase() != "help" && mainMsg[1].toLowerCase() != "add" && mainMsg[1].toLowerCase() != "show" && mainMsg[1].toLowerCase() != "del" && result.text) {
 			//console.log('result.text', result.text.toString().replace(mainMsg[1], ""))
@@ -56,7 +56,8 @@ try {
 			result = rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid)
 			console.log('inputStr2: ', inputStr)
 		}
-		if (result && result.text) {
+		EXPUP();
+		if (result && (result.text || result.LevelUp)) {
 			console.log('inputStr: ', inputStr)
 			return result;
 
@@ -130,7 +131,7 @@ try {
 							if (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Hidden == 1) {
 								//6. 需要 -> 檢查有沒有開啓通知
 
-								LevelUP(tempGPID);
+								result.LevelUp = LevelUP(tempGPID);
 
 
 							}
@@ -160,9 +161,9 @@ try {
 
 		function LevelUP(tempGPID) {
 			//1. 讀取LEVELUP語
-			result.LevelUp = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].LevelUpWord || "恭喜 @{user.name}，你的克蘇魯神話知識現在是 {user.level}點了！";
+			return exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].LevelUpWord || "恭喜 @{user.name}，你的克蘇魯神話知識現在是 {user.level}點了！";
 			//2. 回應BOT
-			console.log('result.LevelUp ', result.LevelUp)
+
 		}
 	}
 

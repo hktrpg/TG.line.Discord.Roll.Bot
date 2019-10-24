@@ -39,7 +39,7 @@ try {
         \n "
     }
     initialize = function () {
-        return rply.trpgLevelSystemfunction;
+        return rply;
     }
 
     rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {

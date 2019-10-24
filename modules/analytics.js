@@ -6,6 +6,7 @@ require('fs').readdirSync('./roll/').forEach(function (file) {
 		exports[name] = require('../roll/' + file);
 	}
 });
+const records = require('../modules/records.js');
 try {
 	let result = {
 		text: '',
@@ -59,51 +60,105 @@ try {
 		}
 
 
-	}
-	
-	function EXPUP() {
-		let tempEXPconfig = 0;
-		let tempGPID = 0;
-		console.log('CCC')
-		//1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
-		if (exports.z_Level_system && exports.z_Level_system.initialize() && exports.z_Level_system.initialize().trpgLevelSystemfunction && exports.z_Level_system.initialize().trpgLevelSystemfunction[0]) {
-			console.log(exports.z_Level_system.initialize().trpgLevelSystemfunction[0])
-			for (let a = 0; a < exports.z_Level_system.initialize().trpgLevelSystemfunction[a].length; a++) {
-				console.log(a)
-				if (exports.z_Level_system.initialize().trpgLevelSystemfunction[a].groupid == groupid && exports.z_Level_system.initialize().trpgLevelSystemfunction[a].Switch == "1") {
-					tempEXPconfig = 1;
-					tempGPID = a;
-					console.log('DDD')
-				}
-				//檢查CONFIG開啓
-			}
-		}
-
-		if (tempEXPconfig == 1) {
-			let tempIsUser = 0;
-			//2. 有 -> 檢查有沒USER 資料
-			for (let b = 0; b < exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.length; b++) {
-				if (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.userid == userid) {
-					tempIsUser = userid;
-					console.log('EEE')
+		function EXPUP() {
+			let tempEXPconfig = 0;
+			let tempGPID = 0;
+			let tempGPuserID = 0;
+			let tempGPHidden = 0;
+			console.log('CCC')
+			//1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
+			if (groupid && exports.z_Level_system && exports.z_Level_system.initialize() && exports.z_Level_system.initialize().trpgLevelSystemfunction && exports.z_Level_system.initialize().trpgLevelSystemfunction[0]) {
+				console.log(exports.z_Level_system.initialize().trpgLevelSystemfunction[0])
+				for (let a = 0; a < exports.z_Level_system.initialize().trpgLevelSystemfunction.length; a++) {
+					console.log(a)
+					if (exports.z_Level_system.initialize().trpgLevelSystemfunction[a].groupid == groupid && exports.z_Level_system.initialize().trpgLevelSystemfunction[a].Switch == "1") {
+						tempEXPconfig = 1;
+						tempGPID = a;
+						console.log('DDD')
+					}
+					//檢查CONFIG開啓
 				}
 			}
 
-			//3. 沒有 -> 新增
-			if (tempIsUser == 0) {
-				console.log('AAA')
-			} else if (tempIsUser != 0) {
-				//4. 有-> 檢查上次紀錄的時間 超過60001 (1分鐘) 即增加1-10 經驗值
-				console.log('BBB')
+			if (tempEXPconfig == 1) {
+				let tempIsUser = 0;
+				//2. 有 -> 檢查有沒USER 資料
+				for (let b = 0; b < exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.length; b++) {
+					if (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[b].userid == userid) {
+						tempIsUser = userid;
+						console.log('EEE')
+						tempGPuserID = b;
+					}
+				}
+
+				//3. 沒有 -> 新增
+				if (tempIsUser == 0) {
+					let temp = {
+						groupid: groupid,
+						trpgLevelSystemfunction: {
+							userid: userid,
+							name: displayname || '無名',
+							EXP: Math.floor(Math.random() * 10) + 1,
+							Level: "0",
+							LastSpeakTime: Date.now()
+						}
+					}
+
+
+					records.settrpgLevelSystemfunctionNewUser('trpgLevelSystem', temp, () => {
+						records.get('trpgLevelSystem', (msgs) => {
+							exports.z_Level_system.initialize().trpgLevelSystemfunction = msgs
+							//  console.log(rply.trpgLevelSystemfunction)
+							// console.log(rply);
+						})
+
+					})
+
+				} else if (tempIsUser != 0) {
+					//4. 有-> 檢查上次紀錄的時間 超過60001 (1分鐘) 即增加1-10 經驗值
+					if (new Date(Date.now()) - new Date(exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].LastSpeakTime) > 60001) {
+						exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP + Math.floor(Math.random() * 10) + 1;
+						exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].LastSpeakTime = Date.now();
+
+
+						//5. 檢查現LEVEL 需不需要上升.  100 * (lvl ^ 2) + 50 * lvl + 100
+						if ((100 * (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level ^ 2) + 50 * exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level + 100) <= exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP) {
+							//現EXP >於需求LV
+							//LVUP
+							exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level++;
+							if (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Hidden == 1) {
+								//6. 需要 -> 檢查有沒有開啓通知
+								//7. 
+								LevelUP();
+
+
+							}
+						}
+
+						//8. 更新MLAB資料
+						records.settrpgLevelSystemfunctionEXPup('trpgLevelSystem', exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID], exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID], () => {
+							records.get('trpgLevelSystem', (msgs) => {
+								exports.z_Level_system.initialize().trpgLevelSystemfunction = msgs
+								//  console.log(rply.trpgLevelSystemfunction)
+								// console.log(rply);
+							})
+
+						})
+
+					}
+
+					console.log('BBB')
+
+				}
+
 			}
 
+
 		}
-		//5. 檢查現LEVEL 需不需要上升.  5 * (lvl ^ 2) + 50 * lvl + 100
-		//6. 需要 -> 檢查有沒有開啓通知
-		//7. 有則呼叫LEVELUP
-		//8. 更新MLAB資料
 
 	}
+
+
 
 	function LevelUP() {
 		//1. 讀取LEVELUP語

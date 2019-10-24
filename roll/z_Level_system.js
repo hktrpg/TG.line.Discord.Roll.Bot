@@ -303,7 +303,7 @@ try {
                     // {user.exp} 經驗值 {user.Ranking} 現在排名 \
                     // {user.RankingPer} 現在排名百分比 \
                     // {server.member_count} 現在頻道中總人數 \
-                    let rankWord = "恭喜 @{user.name}，你的克蘇魯神話知識已經有 {user.level}點了！{user.exp}"
+                    let rankWord = " @{user.name}，你的克蘇魯神話知識現在是 {user.level}點！{user.exp}"
 
                     if (rply.trpgLevelSystemfunction)
                         for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {

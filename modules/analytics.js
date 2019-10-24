@@ -32,6 +32,7 @@ try {
 		//console.log('stop')
 		//檢查是不是要停止
 		stopmark = z_stop(mainMsg, groupid);
+		//檢查是不是開啓LV 功能
 		EXPUP();
 		//console.log('mainMsgAA',mainMsg)
 		if (stopmark != 1) {
@@ -86,7 +87,6 @@ try {
 				for (let b = 0; b < exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.length; b++) {
 					if (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[b].userid == userid) {
 						tempIsUser = userid;
-						console.log('EEE')
 						tempGPuserID = b;
 					}
 				}
@@ -127,7 +127,7 @@ try {
 							exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level++;
 							if (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Hidden == 1) {
 								//6. 需要 -> 檢查有沒有開啓通知
-								//7. 
+							
 								LevelUP();
 
 

@@ -17,7 +17,7 @@ try {
         return 'trpgLevelSystem:hktrpg'
     }
     prefixs = function () {
-        return [/(^[.]level$)/ig,]
+        return [/(^[.]level$)/ig, ]
     }
     getHelpMessage = function () {
         return "【經驗值功能】" + "\
@@ -51,7 +51,7 @@ try {
             case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
                 rply.text = this.getHelpMessage();
                 return rply;
-            // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
+                // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
             case /(^[.]level$)/i.test(mainMsg[0]) && /^LevelUpWord$/i.test(mainMsg[1]):
                 //console.log('mainMsg: ', mainMsg)
                 //增加資料庫
@@ -122,11 +122,11 @@ try {
                 return rply;
 
 
-            //
-            //
-            //查詢語
-            //
-            //
+                //
+                //
+                //查詢語
+                //
+                //
             case /(^[.]level$)/i.test(mainMsg[0]) && /^RankWord$/i.test(mainMsg[1]):
                 //console.log('mainMsg: ', mainMsg)
                 //增加資料庫
@@ -196,11 +196,11 @@ try {
                 }
                 return rply;
 
-            //
-            //
-            //設定
-            //
-            //
+                //
+                //
+                //設定
+                //
+                //
             case /(^[.]level$)/i.test(mainMsg[0]) && /^config$/i.test(mainMsg[1]):
                 //console.log('mainMsg: ', mainMsg)
                 //增加資料庫
@@ -317,14 +317,14 @@ try {
                                         rankWord = rply.trpgLevelSystemfunction[i].RankWord
                                     }
                                     let username = displayname;
-                                    
+
                                     //3.    ->有   檢查有沒有個人資料
                                     for (var a = 0; a < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
                                         if (rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].userid == userid) {
                                             tempHaveUser = 1;
                                             let userlevel = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level;
                                             let userexp = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].EXP;
-                                            let userRanking = displayname;
+                                            let userRanking = ranking('Joe', rply.trpgLevelSystemfunction[i]);
                                             let userRankingB = displayname;
                                             let usermember_count = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].length;
                                             //{user.name} 名字 {user.level} 等級 \
@@ -355,6 +355,35 @@ try {
             default:
                 break;
 
+        }
+
+        function ranking(who, data) {
+            var array = [];
+            let answer = "0"
+            for (var key in data) {
+                array.push(data[key]);
+
+            }
+
+            array.sort(function (a, b) {
+                return b.EXP - a.EXP;
+            });
+
+            var rank = 1;
+            for (var i = 0; i < array.length; i++) {
+                if (i > 0 && array[i].EXP < array[i - 1].EXP) {
+                    rank++;
+                }
+                array[i].rank = rank;
+            }
+            for (var b = 0; b < array.length; b++) {
+                if (array[b].nickname == who)
+                    answer = b + 1;
+                //  document.write(b + 1);
+
+            }
+
+            return answer;
         }
     }
 

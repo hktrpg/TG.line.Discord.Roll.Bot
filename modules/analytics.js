@@ -59,6 +59,9 @@ try {
 
 
 	}
+	function levelUP() {
+
+	}
 
 
 	function z_stop(mainMsg, groupid) {

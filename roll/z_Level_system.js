@@ -17,7 +17,7 @@ try {
         return 'trpgLevelSystem:hktrpg'
     }
     prefixs = function () {
-        return [/(^[.]level$)/ig, ]
+        return [/(^[.]level$)/ig,]
     }
     getHelpMessage = function () {
         return "【經驗值功能】" + "\
@@ -34,7 +34,7 @@ try {
         \n 修改內容可使用不同代碼\
         \n {user.name} 名字 {user.level} 等級 \
         \n {user.exp} 經驗值 {user.Ranking} 現在排名 \
-        \n {user.Ranking%} 現在排名百分比 \
+        \n {user.RankingPer} 現在排名百分比 \
         \n {server.member_count} 現在頻道中總人數 \
         \n "
     }
@@ -53,7 +53,7 @@ try {
                 rply.text = this.getHelpMessage();
                 console.log(userid);
                 return rply;
-                // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
+            // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
             case /(^[.]level$)/i.test(mainMsg[0]) && /^LevelUpWord$/i.test(mainMsg[1]):
                 //console.log('mainMsg: ', mainMsg)
                 //增加資料庫
@@ -124,11 +124,11 @@ try {
                 return rply;
 
 
-                //
-                //
-                //查詢語
-                //
-                //
+            //
+            //
+            //查詢語
+            //
+            //
             case /(^[.]level$)/i.test(mainMsg[0]) && /^RankWord$/i.test(mainMsg[1]):
                 //console.log('mainMsg: ', mainMsg)
                 //增加資料庫
@@ -198,11 +198,11 @@ try {
                 }
                 return rply;
 
-                //
-                //
-                //設定
-                //
-                //
+            //
+            //
+            //設定
+            //
+            //
             case /(^[.]level$)/i.test(mainMsg[0]) && /^config$/i.test(mainMsg[1]):
                 //console.log('mainMsg: ', mainMsg)
                 //增加資料庫
@@ -295,17 +295,19 @@ try {
                 //8.    
                 //{user.name} 名字 {user.level} 等級 \
                 // { user.exp } 經驗值 { user.Ranking } 現在排名 \
-                // { user.Ranking %} 現在排名百分比 \
+                // { user.RankingPer} 現在排名百分比 \
                 // { server.member_count } 現在頻道中總人數 \
-                records.get('trpgLevelSystem', (msgs) => {
-                    rply.trpgLevelSystemfunction = msgs
-                })
+                
                 //console.log(rply.trpgLevelSystemfunction)
                 if (groupid) {
                     let temp = 0;
                     let tempHaveUser = 0;
                     //6.    ->沒有 使用預設排名語
-                    let rankWord = "恭喜 @{user.name}, 你的克蘇魯神話知識已經有 {user.level}點了!"
+                    //{user.name} 名字 {user.level} 等級 \
+                    // {user.exp} 經驗值 {user.Ranking} 現在排名 \
+                    // {user.RankingPer} 現在排名百分比 \
+                    // {server.member_count} 現在頻道中總人數 \
+                    let rankWord = "恭喜 @{user.name}，你的克蘇魯神話知識已經有 {user.level}點了！"
 
                     if (rply.trpgLevelSystemfunction)
                         for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
@@ -324,18 +326,19 @@ try {
                                     for (var a = 0; a < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
                                         if (rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].userid == userid) {
                                             tempHaveUser = 1;
+                                            let username = displayname || "無名"
                                             let userlevel = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level;
                                             let userexp = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].EXP;
                                             //console.log('rply.trpgLevelSystemfunction[i]',
 
                                             let userRanking = ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);
-                                            let userRankingB = displayname;
-                                            let usermember_count = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].length;
+                                            let userRankingPer = Math.ceil(userRanking / rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length * 100)  + '%';
+                                            let usermember_count = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length;
                                             //{user.name} 名字 {user.level} 等級 \
                                             // { user.exp } 經驗值 { user.Ranking } 現在排名 \
-                                            // { user.Ranking %} 現在排名百分比 \
+                                            // { user.RankingPer} 現在排名百分比 \
                                             // { server.member_count } 現在頻道中總人數 \
-                                            rply.text = rankWord;
+                                            rply.text = rankWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count)
 
                                         }
                                     }

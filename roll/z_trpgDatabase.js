@@ -39,13 +39,7 @@ try {
     }
 
     rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-        records.get('trpgDatabase', (msgs) => {
-            rply.trpgDatabasefunction = msgs
-        })
-        records.get('trpgDatabaseAllgroup', (msgs) => {
-            rply.trpgDatabaseAllgroup = msgs
-            // console.log(rply);
-        })
+        
         rply.text = '';
         switch (true) {
             case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
@@ -228,7 +222,6 @@ try {
                             contact: inputStr.replace(/\.dbp add /i, '').replace(mainMsg[2], '').replace(/^\s+/, '')
                         }]
                     }
-                    console.log('tempA: ', tempA)
                     if (checkifsamenamegroup == 0) {
                         records.pushtrpgDatabaseAllgroup('trpgDatabaseAllgroup', tempA, () => {
                             records.get('trpgDatabaseAllgroup', (msgs) => {

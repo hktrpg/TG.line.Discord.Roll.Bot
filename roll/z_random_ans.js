@@ -42,13 +42,7 @@ try {
     }
 
     rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-        records.get('randomAns', (msgs) => {
-            rply.randomAnsfunction = msgs
-        })
-        records.get('randomAnsAllgroup', (msgs) => {
-            rply.randomAnsAllgroup = msgs
-            //  console.log(rply)
-        })
+       
         rply.text = '';
         switch (true) {
             case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:

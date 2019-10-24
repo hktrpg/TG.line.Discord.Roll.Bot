@@ -80,6 +80,7 @@ if (process.env.mongoURL) {
         //是否顯示升級語 config X1 則1
         trpgLevelSystemfunction: [{
             userid: String,
+            name: String,
             EXP: Number,
             //現在經驗值
             Level: String,

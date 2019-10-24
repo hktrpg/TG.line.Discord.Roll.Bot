@@ -39,13 +39,11 @@ try {
         \n "
     }
     initialize = function () {
-        return rply;
+        return rply.trpgLevelSystemfunction;
     }
 
     rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-        records.get('trpgLevelSystem', (msgs) => {
-            rply.trpgLevelSystemfunction = msgs
-        })
+
         rply.text = '';
         switch (true) {
 
@@ -122,8 +120,6 @@ try {
                     }
                 }
                 return rply;
-
-
             //
             //
             //查詢語
@@ -320,7 +316,6 @@ try {
                                     if (rply.trpgLevelSystemfunction[i].RankWord) {
                                         rankWord = rply.trpgLevelSystemfunction[i].RankWord
                                     }
-                                    let username = displayname;
 
                                     //3.    ->有   檢查有沒有個人資料
                                     for (var a = 0; a < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
@@ -358,13 +353,35 @@ try {
                                         // { user.RankingPer} 現在排名百分比 \
                                         // { server.member_count } 現在頻道中總人數 \
                                         rply.text = rankWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count)
+                                        let temp = {
+                                            groupid: groupid,
+                                            trpgLevelSystemfunction: {
+                                                userid: userid,
+                                                name: username,
+                                                EXP: userexp,
+                                                Level: "0",
+                                                LastSpeakTime: Date.now()
+                                            }
+
+
+                                        }
+                                        records.settrpgLevelSystemfunctionNewUser('trpgLevelSystem', temp, () => {
+                                            records.get('trpgLevelSystem', (msgs) => {
+                                                rply.trpgLevelSystemfunction = msgs
+                                                //  console.log(rply.trpgLevelSystemfunction)
+                                                // console.log(rply);
+                                            })
+
+                                        })
                                     }
                                 }
 
                             }
                         }
 
-                    if (temp == 0) rply.text = '此群組並有沒有開啓LEVEL功能. \n請輸入 .level config 11 開啓. '
+                    if (temp == 0) rply.text = '此群組並有沒有開啓LEVEL功能. \nconfig 11 代表啓動功能 \
+                    \n 數字11代表等級升級時會進行通知，10代表不會自動通知，\
+                    \n 00的話代表不啓動功能\n'
                 } else {
                     rply.text = '不在群組. '
                 }

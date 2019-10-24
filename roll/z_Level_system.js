@@ -48,8 +48,10 @@ try {
         })
         rply.text = '';
         switch (true) {
+
             case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
                 rply.text = this.getHelpMessage();
+                console.log(userid);
                 return rply;
                 // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
             case /(^[.]level$)/i.test(mainMsg[0]) && /^LevelUpWord$/i.test(mainMsg[1]):
@@ -324,9 +326,9 @@ try {
                                             tempHaveUser = 1;
                                             let userlevel = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level;
                                             let userexp = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].EXP;
+                                            //console.log('rply.trpgLevelSystemfunction[i]',
 
-                                            let userRanking = ranking(userid, rply.trpgLevelSystemfunction[i]);
-                                            console.log(ranking(userid, rply.trpgLevelSystemfunction[i]))
+                                            let userRanking = ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);
                                             let userRankingB = displayname;
                                             let usermember_count = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].length;
                                             //{user.name} 名字 {user.level} 等級 \
@@ -372,6 +374,8 @@ try {
             });
 
             var rank = 1;
+            console.log('array.length', array.length)
+            console.log('array', array)
             for (var i = 0; i < array.length; i++) {
                 if (i > 0 && array[i].EXP < array[i - 1].EXP) {
                     rank++;
@@ -384,7 +388,7 @@ try {
                 //  document.write(b + 1);
 
             }
-
+            console.log('answer', answer)
             return answer;
         }
     }

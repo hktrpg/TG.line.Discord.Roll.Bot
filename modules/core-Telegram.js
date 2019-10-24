@@ -86,7 +86,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 
 			}
 
-			if (rplyVal && rplyVal.text) {
+			if (rplyVal && (rplyVal.text || rplyVal.LevelUp)) {
 				TGcountroll++;
 
 				if (privatemsg >= 1) {

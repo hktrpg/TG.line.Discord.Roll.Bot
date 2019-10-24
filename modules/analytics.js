@@ -10,7 +10,8 @@ const records = require('../modules/records.js');
 try {
 	let result = {
 		text: '',
-		type: 'text'
+		type: 'text',
+		LevelUp: ''
 	};
 
 	//用來呼叫骰組,新增骰組的話,要寫條件式到下面呼叫 
@@ -22,7 +23,8 @@ try {
 		}
 		result = {
 			text: '',
-			type: 'text'
+			type: 'text',
+			LevelUp: ''
 		};
 		let stopmark = 0;
 		let msgSplitor = (/\S+/ig);
@@ -127,7 +129,7 @@ try {
 							exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level++;
 							if (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Hidden == 1) {
 								//6. 需要 -> 檢查有沒有開啓通知
-							
+
 								LevelUP();
 
 
@@ -155,15 +157,17 @@ try {
 
 
 		}
-
+		function LevelUP() {
+			//1. 讀取LEVELUP語
+			result.LevelUp = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].LevelUpWord || "恭喜 @{user.name}，你的克蘇魯神話知識現在是 {user.level}點了！";
+			//2. 回應BOT
+			console.log('result.LevelUp ', result.LevelUp)
+		}
 	}
 
 
 
-	function LevelUP() {
-		//1. 讀取LEVELUP語
-		//2. 回應BOT
-	}
+
 	function z_stop(mainMsg, groupid) {
 		if (exports.z_stop && exports.z_stop.initialize() && exports.z_stop.initialize().save && exports.z_stop.initialize().save[0].blockfunction && exports.z_stop.initialize().save[0].blockfunction.length > 0) {
 			for (var i = 0; i < exports.z_stop.initialize().save.length; i++) {

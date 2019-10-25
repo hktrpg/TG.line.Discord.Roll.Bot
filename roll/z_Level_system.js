@@ -303,7 +303,7 @@ try {
                     // {user.exp} 經驗值 {user.Ranking} 現在排名 \
                     // {user.RankingPer} 現在排名百分比 \
                     // {server.member_count} 現在頻道中總人數 \
-                    let rankWord = " @{user.name}，你的克蘇魯神話知識現在是 {user.level}點！"
+                    let rankWord = " @{user.name}，你的克蘇魯神話知識現在是 {user.level}點！現在排名 {user.Ranking}！"
 
                     if (rply.trpgLevelSystemfunction)
                         for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
@@ -386,7 +386,7 @@ try {
                             }
                         }
 
-                    if (temp == 0) rply.text = '此群組並有沒有開啓LEVEL功能. \nconfig 11 代表啓動功能 \
+                    if (temp == 0) rply.text = '此群組並有沒有開啓LEVEL功能. \n.level config 11 代表啓動功能 \
                     \n 數字11代表等級升級時會進行通知，10代表不會自動通知，\
                     \n 00的話代表不啓動功能\n'
                 } else {

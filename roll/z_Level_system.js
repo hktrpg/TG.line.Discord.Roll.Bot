@@ -56,7 +56,7 @@ try {
                 //增加資料庫
                 //檢查有沒有重覆
                 let checkifsamename = 0
-                if (groupid && userrole >= 3 && mainMsg[2] && inputStr.toString().match(/[\s\S]{1,1900}/g).length <= 1 && !mainMsg[2].match(/^show$/)) {
+                if (groupid && userrole >= 2 && mainMsg[2] && inputStr.toString().match(/[\s\S]{1,1900}/g).length <= 1 && !mainMsg[2].match(/^show$/)) {
                     if (rply.trpgLevelSystemfunction)
                         for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
                             if (rply.trpgLevelSystemfunction[i].groupid == groupid) {
@@ -97,7 +97,7 @@ try {
                         rply.text += ' 沒有內容.'
                     if (!groupid)
                         rply.text += ' 不在群組.'
-                    if (groupid && userrole < 3)
+                    if (groupid && userrole < 2)
                         rply.text += ' 只有GM以上才可新增.'
                     if (inputStr.toString().match(/[\s\S]{1,1900}/g).length > 1)
                         rply.text += ' 內容太長,只可以1900字元以內.'
@@ -129,7 +129,7 @@ try {
                 //增加資料庫
                 //檢查有沒有重覆
                 let checkifsamenameRankWord = 0
-                if (groupid && userrole >= 3 && mainMsg[2] && inputStr.toString().match(/[\s\S]{1,1900}/g).length <= 1 && !mainMsg[2].match(/^show$/)) {
+                if (groupid && userrole >= 2 && mainMsg[2] && inputStr.toString().match(/[\s\S]{1,1900}/g).length <= 1 && !mainMsg[2].match(/^show$/)) {
                     if (rply.trpgLevelSystemfunction)
                         for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
                             if (rply.trpgLevelSystemfunction[i].groupid == groupid) {
@@ -170,7 +170,7 @@ try {
                         rply.text += ' 沒有內容.'
                     if (!groupid)
                         rply.text += ' 不在群組.'
-                    if (groupid && userrole < 3)
+                    if (groupid && userrole < 2)
                         rply.text += ' 只有GM以上才可新增.'
                     if (inputStr.toString().match(/[\s\S]{1,1900}/g).length > 1)
                         rply.text += ' 內容太長,只可以1900字元以內.'
@@ -202,7 +202,7 @@ try {
                 //console.log('mainMsg: ', mainMsg)
                 //增加資料庫
                 //檢查有沒有重覆
-                if (groupid && userrole >= 3 && mainMsg[2] && (mainMsg[2] == "00" || mainMsg[2] == "01" || mainMsg[2] == "10" || mainMsg[2] == "11")) {
+                if (groupid && userrole >= 2 && mainMsg[2] && (mainMsg[2] == "00" || mainMsg[2] == "01" || mainMsg[2] == "10" || mainMsg[2] == "11")) {
 
                     let Switch, Hidden = 0;
                     if (mainMsg[2] == "00") {
@@ -250,7 +250,7 @@ try {
                         \n 00的話代表不啓動功能\n'
                     if (!groupid)
                         rply.text += ' 不在群組.'
-                    if (groupid && userrole < 3)
+                    if (groupid && userrole < 2)
                         rply.text += ' 只有GM以上才可新增.'
                 }
                 if (mainMsg[2] && mainMsg[2].match(/^show$/)) {

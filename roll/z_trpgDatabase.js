@@ -38,10 +38,8 @@ try {
         return rply;
     }
 
-    rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole) {
-        records.get('trpgDatabase', (msgs) => {
-            rply.trpgDatabasefunction = msgs
-        })
+    rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+        
         rply.text = '';
         switch (true) {
             case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
@@ -101,7 +99,7 @@ try {
 
             case /(^[.]db$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
                 //刪除資料庫
-                if (groupid && mainMsg[2] && rply.trpgDatabasefunction && userrole >= 1) {
+                if (groupid && mainMsg[2] && rply.trpgDatabasefunction && userrole >= 2) {
                     for (var i = 0; i < rply.trpgDatabasefunction.length; i++) {
                         if (rply.trpgDatabasefunction[i].groupid == groupid) {
                             let temp = rply.trpgDatabasefunction[i]
@@ -224,7 +222,6 @@ try {
                             contact: inputStr.replace(/\.dbp add /i, '').replace(mainMsg[2], '').replace(/^\s+/, '')
                         }]
                     }
-                    console.log('tempA: ', tempA)
                     if (checkifsamenamegroup == 0) {
                         records.pushtrpgDatabaseAllgroup('trpgDatabaseAllgroup', tempA, () => {
                             records.get('trpgDatabaseAllgroup', (msgs) => {

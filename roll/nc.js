@@ -45,7 +45,7 @@ initialize = function () {
 //依戀
 //if (trigger.match(/(^nm$)/) != null) return exports.nc.nechronica_mirenn(mainMsg[1]);
 
-rollDiceCommand = function (inputStr, mainMsg) {
+rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 	rply.text = '';
 	let result = '';
 	switch (true) {

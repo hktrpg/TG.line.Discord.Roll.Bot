@@ -41,10 +41,8 @@ try {
         return rply;
     }
 
-    rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole) {
-        records.get('randomAns', (msgs) => {
-            rply.randomAnsfunction = msgs
-        })
+    rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+       
         rply.text = '';
         switch (true) {
             case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
@@ -231,7 +229,7 @@ try {
                 //
                 //增加
                 //
-                
+
                 let checkifsamenamegroup = 0
                 if (rply.randomAnsAllgroup && mainMsg[2] && mainMsg[3] && mainMsg[4])
                     for (var i = 0; i < rply.randomAnsAllgroup.length; i++) {

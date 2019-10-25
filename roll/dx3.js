@@ -41,7 +41,7 @@ initialize = function () {
 	return rply;
 }
 
-rollDiceCommand = function (inputStr, mainMsg) {
+rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 	rply.text = '';
 	let result = '';
 	switch (true) {

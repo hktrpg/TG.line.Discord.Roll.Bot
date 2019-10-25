@@ -29,6 +29,7 @@ try {
         \n P.S.如果沒立即生效 用.drgm show 刷新一下\
     \n 輸入.drgm addgm (代名) 即可成為GM,如果想化名一下,\
         \n 可以在addgm 後輸入一個名字, 暗骰時就會顯示\
+        \n 不輸入就會顯示原名\
     \n 輸入.drgm show 顯示所有GM\
     \n 輸入.drgm del(編號)或all 即可刪除\
     \n 輸入dr  (指令) 私訊自己 \
@@ -42,13 +43,12 @@ try {
 
     rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 
-        records.get('trpgDarkRolling', (msgs) => {
-            rply.trpgDarkRollingfunction = msgs
-        })
         rply.text = '';
         switch (true) {
             case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
                 rply.text = this.getHelpMessage();
+                if (botname == "Line")
+                    rply.text += "因為Line的機制, 如擲骰時並無顯示用家名字, 請到下列網址,和機器人任意說一句話,成為好友. \n https://line.me/R/ti/p/svMLqy9Mik"
                 return rply;
                 break;
             case /(^[.]drgm$)/i.test(mainMsg[0]) && /^addgm$/i.test(mainMsg[1]):

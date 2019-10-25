@@ -3,40 +3,66 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densityDpi=device-dpi" />
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
     <title>My Chatroom</title>
     <script src="/socket.io/socket.io.js"></script>
     <script>
         var socket = io();
     </script>
     <style>
-        html,
+        @charset "UTF-8";
+
+      
+
+
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, "Hiragino Sans GB", "PingFang SC", "Heiti SC", "Microsoft YaHei UI", "Microsoft YaHei", "Source Han Sans", sans-serif;
+            font-size: 18px;
+            background-color: rgb(0, 0, 0);
+            color: #ffffff;
+
+
+        }
+
         body {
-            padding: 0;
-            margin: 0;
+            max-height : 30em;
+            max-width: 40rem;
+            padding: 1rem;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            
         }
 
         #container {
-            top: 50px;
-            width: 500px;
-            margin: 0 auto;
+            top: 90%;
+            width: 90%;
+            margin: 2 0.15em;
             display: block;
             position: relative;
+
         }
 
         #status-box {
             text-align: right;
-            font-size: .6em;
+            font-size: 1.2em;
         }
 
         #content {
             width: 100%;
-            height: 350px;
-            border: 1px solid darkolivegreen;
-            border-radius: 5px;
+            min-height:100%;
+            height: 20em;            
+            border: 0.1em solid darkolivegreen;
+            border-radius: 0.1em;
             overflow: auto;
             padding: 5%;
+
         }
 
         #send-box {
@@ -46,6 +72,7 @@
 
         #send-box input {
             display: inline-block;
+
         }
 
         #send-box input.error {
@@ -58,10 +85,21 @@
 
         input[name="msg"] {
             width: 70%;
+
         }
 
-        input[type="button"] {
-            width: 10%;
+
+
+        input[type="submit"] {
+            width: 5rem;
+            height: 4rem;
+            margin: 2 0.15em;
+            position: relative;
+            overflow: hidden;
+            color: #FFFFFF;
+            background-color: #EF5858;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
         }
 
         .msg {
@@ -69,9 +107,10 @@
             display: inline-block;
             padding: 5px 0 5px 10px;
             white-space: pre-wrap;
+
         }
 
-      
+
         .msg>span::before {
             color: darkred;
             content: " { ";
@@ -80,6 +119,113 @@
         .msg>span::after {
             color: darkred;
             content: " } ";
+
+        }
+
+        /* ROLL DICE        
+        */
+        button {
+            cursor: pointer;
+
+        }
+
+        .row {
+            width: 100%;
+            margin: 2 0.15em;
+            clear: both;
+            overflow: hidden;
+            margin: 0 auto;
+            border: 1px solid black;
+
+        }
+
+        .dice-box {
+            width: 8rem;
+            height: 4rem;
+            margin: 2 0.15em;
+            position: relative;
+            float: left;
+            overflow: hidden;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+        }
+
+        .dice-up {
+            width: 3rem;
+            height: 2rem;
+            padding: 0;
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: #FFFFFF;
+            /*White*/
+            background-color: #DD5555;
+            /*Red*/
+            border: 0px solid;
+            text-align: center;
+            line-height: 50px;
+            z-index: 600;
+
+        }
+
+        .dice-up:hover {
+            color: #FFFFFF;
+            /*White*/
+            background-color: #D84848;
+            /*Darker red then #DD5555*/
+        }
+
+        .dice-down {
+            width: 3rem;
+            height: 2.5rem;
+            padding: 0;
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            color: #FFFFFF;
+            /*White*/
+            background-color: #DD5555;
+            /*Red*/
+            border: 0px solid;
+            text-align: center;
+            line-height: 50px;
+            border-radius: 0 0 0 6px;
+        }
+
+        .dice-down:hover {
+            color: #FFFFFF;
+            /*White*/
+            background-color: #D84848;
+            /*Darker red then #DD5555*/
+        }
+
+        .dice {
+            width: 5rem;
+            height: 4rem;
+            position: absolute;
+            top: 0;
+            right: 0;
+            color: #FFFFFF;
+            /*White*/
+            background-color: #EF5858;
+            /*Red*/
+            border: 0px solid;
+            text-align: center;
+            font-size: 1.5em;
+        }
+
+        .dice:hover {
+            color: #FFFFFF;
+            /*White*/
+            background-color: #E84848;
+            /*Dark red then #EF5858*/
+        }
+
+        .dice-box span {
+            display: inline-block;
+            vertical-align: middle;
+            line-height: normal;
+            outline-color: red;
         }
     </style>
 </head>
@@ -89,16 +235,20 @@
         <div id="status-box">Server: <span id="status">-</span> / <span id="online">0</span> online.</div>
         <div id="content">
         </div>
-        <div id="send-box">
+        <div id="send-box" style="margin-top:6px;">
             <form id="send-form">
-                <input type="text" name="name" id="name" placeholder="暱稱">
-                <input type="text" name="msg" id="msg" placeholder="說點什麼？">
-                <input type="submit" value="送出" onclick="">
+                <input style="width:8em;font-size: 1em;" type="text" name="name" id="name"  value="" placeholder="暱稱">
+                <input style="font-size: 1em;" type="text" name="msg" id="msg" value="1d100" placeholder="說點什麼？">
+                <input type="submit" style="margin-top:4px;" id="submit" value="送出" onclick="genName()">
             </form>
         </div>
     </div>
 
     <script>
+        function genName() {
+            if (document.getElementById("name").value == "")
+                document.getElementById("name").value = "調查員"+ Math.floor(Math.random() * 1000) + 1;;
+        }
         function aa() {
             var content = document.getElementById("content");
             content.scrollTop = content.scrollHeight;
@@ -146,14 +296,11 @@
 
             sendForm.addEventListener("submit", function (e) {
                 e.preventDefault();
-
-
                 var ok = true;
                 var formData = {
                     time: new Date().toUTCString()
                 };
                 var formChild = sendForm.children;
-
                 for (var i = 0; i < sendForm.childElementCount; i++) {
                     var child = formChild[i];
                     if (child.name !== "") {
@@ -167,12 +314,13 @@
                         }
                     }
                 }
-
                 if (ok) {
                     socket.emit("send", formData);
                     setCookie("name", nameInputBox.value);
                 }
             });
+
+
 
             function addMsgToBox(d) {
                 var msgBox = document.createElement("div")
@@ -206,6 +354,7 @@
                 document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
             }
 
+
             function getCookie(cname) {
                 var name = cname + "=";
                 var ca = document.cookie.split(';');
@@ -221,6 +370,9 @@
                 return "";
             }
         });
+
+
+
     </script>
 </body>
 

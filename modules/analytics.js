@@ -127,10 +127,7 @@ try {
 							exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level++;
 							if (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Hidden == 1) {
 								//6. 需要 -> 檢查有沒有開啓通知
-
 								result.LevelUp = LevelUP(tempGPID, tempGPuserID);
-
-
 							}
 						}
 

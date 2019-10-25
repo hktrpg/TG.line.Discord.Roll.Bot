@@ -323,6 +323,12 @@ try {
                                             tempHaveUser = 1;
                                             let username = displayname || "無名"
                                             let userlevel = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level;
+                                            if ((100 * Math.pow(rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level, 2) + 50 * rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level + 100) <= rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].EXP) {
+                                                //現EXP >於需求LV
+                                                //LVUP
+                                                rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level++;
+                                            }
+
                                             let userexp = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].EXP;
                                             //console.log('rply.trpgLevelSystemfunction[i]',
 

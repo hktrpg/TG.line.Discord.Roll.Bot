@@ -46,7 +46,6 @@ try {
 
         rply.text = '';
         switch (true) {
-
             case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
                 rply.text = this.getHelpMessage();
                 //console.log(userid);
@@ -57,7 +56,7 @@ try {
                 //增加資料庫
                 //檢查有沒有重覆
                 let checkifsamename = 0
-                if (groupid && userrole >= 1 && mainMsg[2] && inputStr.toString().match(/[\s\S]{1,1900}/g).length <= 1 && !mainMsg[2].match(/^show$/)) {
+                if (groupid && userrole >= 3 && mainMsg[2] && inputStr.toString().match(/[\s\S]{1,1900}/g).length <= 1 && !mainMsg[2].match(/^show$/)) {
                     if (rply.trpgLevelSystemfunction)
                         for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
                             if (rply.trpgLevelSystemfunction[i].groupid == groupid) {
@@ -98,7 +97,7 @@ try {
                         rply.text += ' 沒有內容.'
                     if (!groupid)
                         rply.text += ' 不在群組.'
-                    if (groupid && userrole < 1)
+                    if (groupid && userrole < 3)
                         rply.text += ' 只有GM以上才可新增.'
                     if (inputStr.toString().match(/[\s\S]{1,1900}/g).length > 1)
                         rply.text += ' 內容太長,只可以1900字元以內.'
@@ -130,7 +129,7 @@ try {
                 //增加資料庫
                 //檢查有沒有重覆
                 let checkifsamenameRankWord = 0
-                if (groupid && userrole >= 1 && mainMsg[2] && inputStr.toString().match(/[\s\S]{1,1900}/g).length <= 1 && !mainMsg[2].match(/^show$/)) {
+                if (groupid && userrole >= 3 && mainMsg[2] && inputStr.toString().match(/[\s\S]{1,1900}/g).length <= 1 && !mainMsg[2].match(/^show$/)) {
                     if (rply.trpgLevelSystemfunction)
                         for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
                             if (rply.trpgLevelSystemfunction[i].groupid == groupid) {
@@ -171,7 +170,7 @@ try {
                         rply.text += ' 沒有內容.'
                     if (!groupid)
                         rply.text += ' 不在群組.'
-                    if (groupid && userrole < 1)
+                    if (groupid && userrole < 3)
                         rply.text += ' 只有GM以上才可新增.'
                     if (inputStr.toString().match(/[\s\S]{1,1900}/g).length > 1)
                         rply.text += ' 內容太長,只可以1900字元以內.'
@@ -203,7 +202,7 @@ try {
                 //console.log('mainMsg: ', mainMsg)
                 //增加資料庫
                 //檢查有沒有重覆
-                if (groupid && userrole >= 1 && mainMsg[2] && (mainMsg[2] == "00" || mainMsg[2] == "01" || mainMsg[2] == "10" || mainMsg[2] == "11")) {
+                if (groupid && userrole >= 3 && mainMsg[2] && (mainMsg[2] == "00" || mainMsg[2] == "01" || mainMsg[2] == "10" || mainMsg[2] == "11")) {
 
                     let Switch, Hidden = 0;
                     if (mainMsg[2] == "00") {
@@ -251,7 +250,7 @@ try {
                         \n 00的話代表不啓動功能\n'
                     if (!groupid)
                         rply.text += ' 不在群組.'
-                    if (groupid && userrole < 1)
+                    if (groupid && userrole < 3)
                         rply.text += ' 只有GM以上才可新增.'
                 }
                 if (mainMsg[2] && mainMsg[2].match(/^show$/)) {
@@ -303,7 +302,7 @@ try {
                     // {user.exp} 經驗值 {user.Ranking} 現在排名 \
                     // {user.RankingPer} 現在排名百分比 \
                     // {server.member_count} 現在頻道中總人數 \
-                    let rankWord = " @{user.name}，你的克蘇魯神話知識現在是 {user.level}點！現在排名 {user.Ranking}！"
+                    let rankWord = " @{user.name}，你的克蘇魯神話知識現在是 {user.level}點！現在排名第{user.Ranking}名！"
 
                     if (rply.trpgLevelSystemfunction)
                         for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
@@ -360,26 +359,7 @@ try {
                                         // { user.RankingPer} 現在排名百分比 \
                                         // { server.member_count } 現在頻道中總人數 \
                                         rply.text = rankWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count)
-                                        let temp = {
-                                            groupid: groupid,
-                                            trpgLevelSystemfunction: {
-                                                userid: userid,
-                                                name: username,
-                                                EXP: userexp,
-                                                Level: "0",
-                                                LastSpeakTime: Date.now()
-                                            }
-
-
-                                        }
-                                        records.settrpgLevelSystemfunctionNewUser('trpgLevelSystem', temp, () => {
-                                            records.get('trpgLevelSystem', (msgs) => {
-                                                rply.trpgLevelSystemfunction = msgs
-                                                //  console.log(rply.trpgLevelSystemfunction)
-                                                // console.log(rply);
-                                            })
-
-                                        })
+                                        
                                     }
                                 }
 

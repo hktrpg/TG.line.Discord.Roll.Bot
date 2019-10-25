@@ -89,7 +89,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			//是不是自己.ME 訊息
 			//TRUE 即正常
 			let displaynamecheck = true;
-			let userrole = 2;
+			let userrole = 3;
 
 			//Ub23daads22a2131312334645349a3 
 			let rplyVal = {};
@@ -130,6 +130,14 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 				}
 
+			}
+			//LevelUp功能
+			if (roomorgroupid && rplyVal && rplyVal.LevelUp) {
+			//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
+				if (displayname)
+					SendToId(roomorgroupid, "@" + displayname + ' \n' + rplyVal.LevelUp)
+				else
+					SendToId(roomorgroupid, rplyVal.LevelUp)
 			}
 
 			if (rplyVal && rplyVal.text) {

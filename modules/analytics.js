@@ -6,10 +6,12 @@ require('fs').readdirSync('./roll/').forEach(function (file) {
 		exports[name] = require('../roll/' + file);
 	}
 });
+const records = require('../modules/records.js');
 try {
 	let result = {
 		text: '',
-		type: 'text'
+		type: 'text',
+		LevelUp: ''
 	};
 
 	//用來呼叫骰組,新增骰組的話,要寫條件式到下面呼叫 
@@ -21,7 +23,8 @@ try {
 		}
 		result = {
 			text: '',
-			type: 'text'
+			type: 'text',
+			LevelUp: ''
 		};
 		let stopmark = 0;
 		let msgSplitor = (/\S+/ig);
@@ -31,6 +34,8 @@ try {
 		//console.log('stop')
 		//檢查是不是要停止
 		stopmark = z_stop(mainMsg, groupid);
+		//檢查是不是開啓LV 功能
+
 		//console.log('mainMsgAA',mainMsg)
 		if (stopmark != 1) {
 			result = rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid)
@@ -51,14 +56,144 @@ try {
 			result = rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid)
 			console.log('inputStr2: ', inputStr)
 		}
-		if (result && result.text) {
+		//LEVEL功能
+		if (groupid)
+			EXPUP();
+		if (result && (result.text || result.LevelUp)) {
 			console.log('inputStr: ', inputStr)
 			return result;
 
 		}
 
 
+		function EXPUP() {
+			let tempEXPconfig = 0;
+			let tempGPID = 0;
+			let tempGPuserID = 0;
+			let tempGPHidden = 0;
+			//1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
+			if (exports.z_Level_system && exports.z_Level_system.initialize() && exports.z_Level_system.initialize().trpgLevelSystemfunction && exports.z_Level_system.initialize().trpgLevelSystemfunction[0]) {
+				for (let a = 0; a < exports.z_Level_system.initialize().trpgLevelSystemfunction.length; a++) {
+					if (exports.z_Level_system.initialize().trpgLevelSystemfunction[a].groupid == groupid && exports.z_Level_system.initialize().trpgLevelSystemfunction[a].Switch == "1") {
+						tempEXPconfig = 1;
+						tempGPID = a;
+					}
+					//檢查CONFIG開啓
+				}
+			}
+
+			if (tempEXPconfig == 1) {
+				let tempIsUser = 0;
+				//2. 有 -> 檢查有沒USER 資料
+				for (let b = 0; b < exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.length; b++) {
+					if (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[b].userid == userid) {
+						tempIsUser = userid;
+						tempGPuserID = b;
+					}
+				}
+
+				//3. 沒有 -> 新增
+				if (tempIsUser == 0) {
+					let temp = {
+						groupid: groupid,
+						trpgLevelSystemfunction: {
+							userid: userid,
+							name: displayname || '無名',
+							EXP: Math.floor(Math.random() * 10) + 1,
+							Level: "0",
+							LastSpeakTime: Date.now()
+						}
+					}
+
+
+					records.settrpgLevelSystemfunctionNewUser('trpgLevelSystem', temp, () => {
+						records.get('trpgLevelSystem', (msgs) => {
+							exports.z_Level_system.initialize().trpgLevelSystemfunction = msgs
+							//  console.log(rply.trpgLevelSystemfunction)
+							// console.log(rply);
+						})
+
+					})
+
+				} else if (tempIsUser != 0) {
+					//4. 有-> 檢查上次紀錄的時間 超過60001 (1分鐘) 即增加1-10 經驗值
+					if (new Date(Date.now()) - new Date(exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].LastSpeakTime) > 60001) {
+						exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP + Math.floor(Math.random() * 10) + 1;
+						exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].LastSpeakTime = Date.now();
+						//5. 檢查現LEVEL 需不需要上升.  100 * (lvl ^ 2) + 50 * lvl + 100
+						if ((100 * Math.pow(exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level, 2) + 50 * exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level + 100) <= exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP) {
+							//現EXP >於需求LV
+							//LVUP
+							exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level++;
+							if (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Hidden == 1) {
+								//6. 需要 -> 檢查有沒有開啓通知
+								result.LevelUp = LevelUP(tempGPID, tempGPuserID);
+							}
+						}
+
+
+						//8. 更新MLAB資料
+						records.settrpgLevelSystemfunctionEXPup('trpgLevelSystem', exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID], exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID], () => {
+							
+
+						})
+
+					}
+				}
+
+			}
+
+
+		}
+
+		function LevelUP(tempGPID, tempGPuserID) {
+			//1. 讀取LEVELUP語
+			let username = displayname || "無名"
+			let userlevel = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level;
+			let userexp = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP;
+			//console.log('rply.trpgLevelSystemfunction[i]',
+
+			let userRanking = ranking(userid, exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction);
+			let userRankingPer = Math.ceil(userRanking / exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.length * 10000) / 100 + '%';
+			let usermember_count = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.length;
+			let tempUPWord = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].LevelUpWord || "恭喜 @{user.name}，你的克蘇魯神話知識現在是 {user.level}點了！現在排名第{user.Ranking}名！"
+
+			return tempUPWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count)
+			//2. 回應BOT
+
+		}
 	}
+	function ranking(who, data) {
+		var array = [];
+		let answer = "0"
+		for (var key in data) {
+			array.push(data[key]);
+
+		}
+
+		array.sort(function (a, b) {
+			return b.EXP - a.EXP;
+		});
+
+		var rank = 1;
+		//console.log('array.length', array.length)
+		//console.log('array', array)
+		for (var i = 0; i < array.length; i++) {
+			if (i > 0 && array[i].EXP < array[i - 1].EXP) {
+				rank++;
+			}
+			array[i].rank = rank;
+		}
+		for (var b = 0; b < array.length; b++) {
+			if (array[b].userid == who)
+				answer = b + 1;
+			//  document.write(b + 1);
+
+		}
+		//console.log('answer', answer)
+		return answer;
+	}
+
 
 
 	function z_stop(mainMsg, groupid) {

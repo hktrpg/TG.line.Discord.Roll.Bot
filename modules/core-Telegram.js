@@ -85,10 +85,13 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				}
 
 			}
-
+			//LevelUp功能
+			if (groupid && rplyVal && rplyVal.LevelUp) {
+			//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
+				ctx.reply("@" + displayname + '\n' + rplyVal.LevelUp)
+			}
 			if (rplyVal && rplyVal.text) {
 				TGcountroll++;
-
 				if (privatemsg >= 1) {
 					//當是私訊模式1-3時
 					var TargetGMTempID = []
@@ -114,7 +117,6 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 						//console.log('ctx.message.chat.type: ', ctx.message.chat.type)
 						if (ctx.message.chat.type != 'private') {
 							ctx.reply("@" + displayname + ' 暗骰給自己')
-
 						}
 						rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
 						SendToId(ctx.message.from.id);

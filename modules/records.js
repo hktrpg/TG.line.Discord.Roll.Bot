@@ -188,7 +188,7 @@ class Records extends EventEmitter {
             $push 加入新的
             $set  重置舊的
          */
-       // console.log('msg: ', msg)
+        // console.log('msg: ', msg)
         schema[dbbase].findOneAndUpdate({}, {
             $push: {
                 trpgDatabaseAllgroup: msg.trpgDatabaseAllgroup
@@ -351,7 +351,195 @@ class Records extends EventEmitter {
             // return JSON.stringify(doc).toString();
         });
     }
+    /*
+            trpgLevelSystem開始
+        */
+    pushtrpgLevelSystemfunction(dbbase, msg, callback) {
+        /*
+            提醒:
+            $push 加入新的
+            $set  重置舊的
+         */
+        schema[dbbase].findOneAndUpdate({
+            groupid: msg.groupid
+        }, {
+            $push: {
+                trpgLevelSystemfunction: msg.trpgLevelSystemfunction
+            }
+        }, {
+            new: true,
+            upsert: true
+        }, (err, doc) => {
+            if (err) {
+                console.log("Something wrong when updating data!");
+            } else
+                callback();
+        });
+    }
+    settrpgLevelSystemfunctionLevelUpWord(dbbase, msg, callback) {
+        schema[dbbase].findOneAndUpdate({
+            groupid: msg.groupid
+        }, {
+            $set: {
+                LevelUpWord: msg.LevelUpWord
+                //在這群組升級時的升級語
+                //RankWord: msg.RankWord,
+                //在這群組查詢等級時的回應
+                //Switch: msg.Switch,
+                //是否啓動功能 config 1X 則1
+                //Hidden: msg.Hidden,
+                //是否顯示升級語 config X1 則1
+                //trpgLevelSystemfunction: msg.trpgLevelSystemfunction
+            }
+        }, {
+            upsert: true,
+            setDefaultsOnInsert: true
+        }, (err, doc) => {
+            if (err) {
+                console.log("Something wrong when updating data!");
+            } else
+                callback();
+            // return JSON.stringify(doc).toString();
+        });
+    }
+    settrpgLevelSystemfunctionRankWord(dbbase, msg, callback) {
+        schema[dbbase].findOneAndUpdate({
+            groupid: msg.groupid
+        }, {
+            $set: {
+                //LevelUpWord: msg.LevelUpWord
+                //在這群組升級時的升級語
+                RankWord: msg.RankWord
+                //在這群組查詢等級時的回應
+                //Switch: msg.Switch,
+                //是否啓動功能 config 1X 則1
+                //Hidden: msg.Hidden,
+                //是否顯示升級語 config X1 則1
+                //trpgLevelSystemfunction: msg.trpgLevelSystemfunction
+            }
+        }, {
+            upsert: true,
+            setDefaultsOnInsert: true
+        }, (err, doc) => {
+            if (err) {
+                console.log("Something wrong when updating data!");
+            } else
+                callback();
+            // return JSON.stringify(doc).toString();
+        });
+    }
+    settrpgLevelSystemfunctionConfig(dbbase, msg, callback) {
+        schema[dbbase].findOneAndUpdate({
+            groupid: msg.groupid
+        }, {
+            $set: {
+                //LevelUpWord: msg.LevelUpWord
+                //在這群組升級時的升級語
+                //RankWord: msg.RankWord
+                //在這群組查詢等級時的回應
+                Switch: msg.Switch,
+                //是否啓動功能 config 1X 則1
+                Hidden: msg.Hidden,
+                //是否顯示升級語 config X1 則1
+                //trpgLevelSystemfunction: msg.trpgLevelSystemfunction
+            }
+        }, {
+            upsert: true,
+            setDefaultsOnInsert: true
+        }, (err, doc) => {
+            if (err) {
+                console.log("Something wrong when updating data!");
+            } else
+                callback();
+            // return JSON.stringify(doc).toString();
+        });
+    }
+    settrpgLevelSystemfunctionNewUser(dbbase, msg, callback) {
+        schema[dbbase].findOneAndUpdate({
+            groupid: msg.groupid
+        }, {
+            $push: {
+                //LevelUpWord: msg.LevelUpWord
+                //在這群組升級時的升級語
+                //RankWord: msg.RankWord
+                //在這群組查詢等級時的回應
+                //Switch: msg.Switch,
+                //是否啓動功能 config 1X 則1
+                //Hidden: msg.Hidden,
+                //是否顯示升級語 config X1 則1
+                trpgLevelSystemfunction: msg.trpgLevelSystemfunction
+            }
+        }, {
+            upsert: true,
+            //   setDefaultsOnInsert: true
+        }, (err, doc) => {
+            if (err) {
+                console.log(err);
+                console.log("Something wrong when updating data!");
+            } else
+                callback();
+            // return JSON.stringify(doc).toString();
+        });
+    }
 
+
+    settrpgLevelSystemfunctionConfig(dbbase, msg, callback) {
+        schema[dbbase].findOneAndUpdate({
+            groupid: msg.groupid
+        }, {
+            $set: {
+                //LevelUpWord: msg.LevelUpWord
+                //在這群組升級時的升級語
+                //RankWord: msg.RankWord
+                //在這群組查詢等級時的回應
+                Switch: msg.Switch,
+                //是否啓動功能 config 1X 則1
+                Hidden: msg.Hidden,
+                //是否顯示升級語 config X1 則1
+                //trpgLevelSystemfunction: msg.trpgLevelSystemfunction
+            }
+        }, {
+            upsert: true,
+            setDefaultsOnInsert: true
+        }, (err, doc) => {
+            if (err) {
+                console.log("Something wrong when updating data!");
+            } else
+                callback();
+            // return JSON.stringify(doc).toString();
+        });
+    }
+    settrpgLevelSystemfunctionEXPup(dbbase, msgA, msg, callback) {
+        schema[dbbase].findOneAndUpdate({
+
+            groupid: msgA.groupid,
+            'trpgLevelSystemfunction.userid': msg.userid
+
+        }, {
+            $set: {
+                //LevelUpWord: msg.LevelUpWord
+                //在這群組升級時的升級語
+                //RankWord: msg.RankWord
+                //在這群組查詢等級時的回應
+                //Switch: msg.Switch,
+                //是否啓動功能 config 1X 則1
+                //Hidden: msg.Hidden,
+                //是否顯示升級語 config X1 則1
+                trpgLevelSystemfunction: msg
+            }
+        }, {
+            //   setDefaultsOnInsert: true
+        }, (err, doc) => {
+            if (err) {
+                console.log(err);
+                console.log("Something wrong when updating data!");
+            } else {
+                callback();
+               // console.log('DONE?')
+            }
+            // return JSON.stringify(doc).toString();
+        });
+    }
 
 }
 

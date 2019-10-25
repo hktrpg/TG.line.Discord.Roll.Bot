@@ -88,6 +88,11 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 						rplyVal = exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid);
 					}
 				}
+				//LevelUp功能
+				if (groupid && rplyVal && rplyVal.LevelUp) {
+				//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
+					SendToReplychannel("<@" + userid + '>\n' + rplyVal.LevelUp)
+				}
 
 				if (rplyVal && rplyVal.text) {
 					Discordcountroll++;
@@ -171,25 +176,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 								SendToReply(rplyVal.text);
 							break;
 					}
-					async function SendToId(targetid, replyText) {
-						for (var i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-							if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
-								await client.users.get(targetid).send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
-						}
-					}
 
-					async function SendToReply(replyText) {
-						for (var i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-							if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
-								await message.author.send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
-						}
-					}
-					async function SendToReplychannel(replyText) {
-						for (var i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-							if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
-								await message.channel.send(replyText.toString().match(/[\s\S]{1,1900}/g)[i])
-						}
-					}
 
 					//console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString(), " content: ", message.content);
 
@@ -198,6 +185,25 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					Discordcounttext++;
 					if (Discordcounttext % 500 == 0)
 						console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString());
+				}
+				async function SendToId(targetid, replyText) {
+					for (var i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
+						if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
+							await client.users.get(targetid).send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
+					}
+				}
+
+				async function SendToReply(replyText) {
+					for (var i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
+						if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
+							await message.author.send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
+					}
+				}
+				async function SendToReplychannel(replyText) {
+					for (var i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
+						if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
+							await message.channel.send(replyText.toString().match(/[\s\S]{1,1900}/g)[i])
+					}
 				}
 			}
 		});

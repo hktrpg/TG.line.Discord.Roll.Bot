@@ -17,7 +17,7 @@ try {
         return 'trpgLevelSystem:hktrpg'
     }
     prefixs = function () {
-        return [/(^[.]level$)/ig,]
+        return [/(^[.]level$)/ig, ]
     }
     getHelpMessage = function () {
         return "【經驗值功能】" + "\
@@ -50,7 +50,7 @@ try {
                 rply.text = this.getHelpMessage();
                 //console.log(userid);
                 return rply;
-            // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
+                // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
             case /(^[.]level$)/i.test(mainMsg[0]) && /^LevelUpWord$/i.test(mainMsg[1]):
                 //console.log('mainMsg: ', mainMsg)
                 //增加資料庫
@@ -119,11 +119,11 @@ try {
                     }
                 }
                 return rply;
-            //
-            //
-            //查詢語
-            //
-            //
+                //
+                //
+                //查詢語
+                //
+                //
             case /(^[.]level$)/i.test(mainMsg[0]) && /^RankWord$/i.test(mainMsg[1]):
                 //console.log('mainMsg: ', mainMsg)
                 //增加資料庫
@@ -193,11 +193,11 @@ try {
                 }
                 return rply;
 
-            //
-            //
-            //設定
-            //
-            //
+                //
+                //
+                //設定
+                //
+                //
             case /(^[.]level$)/i.test(mainMsg[0]) && /^config$/i.test(mainMsg[1]):
                 //console.log('mainMsg: ', mainMsg)
                 //增加資料庫
@@ -321,6 +321,9 @@ try {
                                         if (rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].userid == userid) {
                                             tempHaveUser = 1;
                                             let username = displayname || "無名"
+                                            if (botname == "Discord" && userid) {
+                                                username = userid
+                                            }
                                             let userlevel = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level;
                                             let userexp = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].EXP;
                                             //console.log('rply.trpgLevelSystemfunction[i]',
@@ -335,7 +338,7 @@ try {
                                             if ((100 * Math.pow(rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level, 2) + 50 * rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level + 100) <= rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].EXP) {
                                                 //現EXP >於需求LV
                                                 //LVUP
-                                                let TMEPuserlevel = Number(userlevel)+1
+                                                let TMEPuserlevel = Number(userlevel) + 1
                                                 rply.text = rankWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, TMEPuserlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count)
                                             } else {
                                                 rply.text = rankWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count)
@@ -359,7 +362,7 @@ try {
                                         // { user.RankingPer} 現在排名百分比 \
                                         // { server.member_count } 現在頻道中總人數 \
                                         rply.text = rankWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count)
-                                        
+
                                     }
                                 }
 

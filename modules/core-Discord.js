@@ -176,25 +176,6 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 								SendToReply(rplyVal.text);
 							break;
 					}
-					async function SendToId(targetid, replyText) {
-						for (var i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-							if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
-								await client.users.get(targetid).send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
-						}
-					}
-
-					async function SendToReply(replyText) {
-						for (var i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-							if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
-								await message.author.send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
-						}
-					}
-					async function SendToReplychannel(replyText) {
-						for (var i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-							if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
-								await message.channel.send(replyText.toString().match(/[\s\S]{1,1900}/g)[i])
-						}
-					}
 
 					//console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString(), " content: ", message.content);
 
@@ -206,6 +187,25 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				}
 			}
 		});
+		async function SendToId(targetid, replyText) {
+			for (var i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
+				if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
+					await client.users.get(targetid).send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
+			}
+		}
+
+		async function SendToReply(replyText) {
+			for (var i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
+				if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
+					await message.author.send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
+			}
+		}
+		async function SendToReplychannel(replyText) {
+			for (var i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
+				if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
+					await message.channel.send(replyText.toString().match(/[\s\S]{1,1900}/g)[i])
+			}
+		}
 		//Set Activity 可以自定義正在玩什麼  
 		client.on('ready', () => {
 			client.user.setGame('/help | hktrpg.com')

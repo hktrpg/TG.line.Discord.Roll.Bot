@@ -41,7 +41,7 @@ try {
 			result = rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid)
 			//console.log("OK")
 		}
-		
+
 		//z_saveCommand 功能
 		if (mainMsg && mainMsg[0].toLowerCase() == ".cmd" && mainMsg[1] && mainMsg[1].toLowerCase() != "help" && mainMsg[1].toLowerCase() != "add" && mainMsg[1].toLowerCase() != "show" && mainMsg[1].toLowerCase() != "del" && result.text) {
 			//console.log('result.text', result.text.toString().replace(mainMsg[1], ""))
@@ -59,6 +59,7 @@ try {
 		EXPUP();
 		if (result && (result.text || result.LevelUp)) {
 			console.log('inputStr: ', inputStr)
+			console.log('result: ', result)
 			return result;
 
 		}
@@ -131,7 +132,7 @@ try {
 							if (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Hidden == 1) {
 								//6. 需要 -> 檢查有沒有開啓通知
 
-								result.LevelUp = LevelUP(tempGPID);
+								result.LevelUp = LevelUP(tempGPID, tempGPuserID);
 
 
 							}
@@ -159,14 +160,53 @@ try {
 
 		}
 
-		function LevelUP(tempGPID) {
+		function LevelUP(tempGPID, tempGPuserID) {
 			//1. 讀取LEVELUP語
-			return exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].LevelUpWord || "恭喜 @{user.name}，你的克蘇魯神話知識現在是 {user.level}點了！";
+			let username = displayname || "無名"
+			let userlevel = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level;
+			let userexp = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP;
+			//console.log('rply.trpgLevelSystemfunction[i]',
+
+			let userRanking = ranking(userid, exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction);
+			let userRankingPer = Math.ceil(userRanking / exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.length * 10000) / 100 + '%';
+			let usermember_count = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.length;
+			let tempUPWord = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].LevelUpWord || "恭喜 @{user.name}，你的克蘇魯神話知識現在是 {user.level}點了！"
+
+			return tempUPWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count)
 			//2. 回應BOT
 
 		}
 	}
+	function ranking(who, data) {
+		var array = [];
+		let answer = "0"
+		for (var key in data) {
+			array.push(data[key]);
 
+		}
+
+		array.sort(function (a, b) {
+			return b.EXP - a.EXP;
+		});
+
+		var rank = 1;
+		//console.log('array.length', array.length)
+		//console.log('array', array)
+		for (var i = 0; i < array.length; i++) {
+			if (i > 0 && array[i].EXP < array[i - 1].EXP) {
+				rank++;
+			}
+			array[i].rank = rank;
+		}
+		for (var b = 0; b < array.length; b++) {
+			if (array[b].userid == who)
+				answer = b + 1;
+			//  document.write(b + 1);
+
+		}
+		//console.log('answer', answer)
+		return answer;
+	}
 
 
 

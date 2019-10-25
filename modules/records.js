@@ -535,7 +535,7 @@ class Records extends EventEmitter {
                 console.log("Something wrong when updating data!");
             } else {
                 callback();
-                console.log('DONE?')
+               // console.log('DONE?')
             }
             // return JSON.stringify(doc).toString();
         });

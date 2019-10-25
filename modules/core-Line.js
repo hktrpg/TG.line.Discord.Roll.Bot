@@ -131,6 +131,14 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				}
 
 			}
+			//LevelUp功能
+			if (roomorgroupid && rplyVal && rplyVal.LevelUp) {
+				console.log('result.LevelUp 2:', rplyVal.LevelUp)
+				if (displayname)
+					SendToId(roomorgroupid, "@" + displayname + ' \n' + rplyVal.LevelUp)
+				else
+					SendToId(roomorgroupid, rplyVal.LevelUp)
+			}
 
 			if (rplyVal && rplyVal.text) {
 				Linecountroll++;

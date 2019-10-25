@@ -56,10 +56,11 @@ try {
 			result = rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid)
 			console.log('inputStr2: ', inputStr)
 		}
-		EXPUP();
+		//LEVEL功能
+		if (groupid)
+			EXPUP();
 		if (result && (result.text || result.LevelUp)) {
 			console.log('inputStr: ', inputStr)
-			console.log('result: ', result)
 			return result;
 
 		}
@@ -70,16 +71,12 @@ try {
 			let tempGPID = 0;
 			let tempGPuserID = 0;
 			let tempGPHidden = 0;
-			console.log('CCC')
 			//1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
-			if (groupid && exports.z_Level_system && exports.z_Level_system.initialize() && exports.z_Level_system.initialize().trpgLevelSystemfunction && exports.z_Level_system.initialize().trpgLevelSystemfunction[0]) {
-				console.log(exports.z_Level_system.initialize().trpgLevelSystemfunction[0])
+			if (exports.z_Level_system && exports.z_Level_system.initialize() && exports.z_Level_system.initialize().trpgLevelSystemfunction && exports.z_Level_system.initialize().trpgLevelSystemfunction[0]) {
 				for (let a = 0; a < exports.z_Level_system.initialize().trpgLevelSystemfunction.length; a++) {
-					console.log(a)
 					if (exports.z_Level_system.initialize().trpgLevelSystemfunction[a].groupid == groupid && exports.z_Level_system.initialize().trpgLevelSystemfunction[a].Switch == "1") {
 						tempEXPconfig = 1;
 						tempGPID = a;
-						console.log('DDD')
 					}
 					//檢查CONFIG開啓
 				}
@@ -120,14 +117,13 @@ try {
 
 				} else if (tempIsUser != 0) {
 					//4. 有-> 檢查上次紀錄的時間 超過60001 (1分鐘) 即增加1-10 經驗值
-					if (new Date(Date.now()) - new Date(exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].LastSpeakTime) > 60001) {
+					if (new Date(Date.now()) - new Date(exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].LastSpeakTime) > 1) {
 						exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP + Math.floor(Math.random() * 10) + 1;
 						exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].LastSpeakTime = Date.now();
 						//5. 檢查現LEVEL 需不需要上升.  100 * (lvl ^ 2) + 50 * lvl + 100
 						if ((100 * Math.pow(exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level, 2) + 50 * exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level + 100) <= exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP) {
 							//現EXP >於需求LV
 							//LVUP
-							console.log('LV UP')
 							exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level++;
 							if (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Hidden == 1) {
 								//6. 需要 -> 檢查有沒有開啓通知
@@ -150,9 +146,6 @@ try {
 						})
 
 					}
-
-					console.log('BBB')
-
 				}
 
 			}
@@ -170,7 +163,7 @@ try {
 			let userRanking = ranking(userid, exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction);
 			let userRankingPer = Math.ceil(userRanking / exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.length * 10000) / 100 + '%';
 			let usermember_count = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.length;
-			let tempUPWord = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].LevelUpWord || "恭喜 @{user.name}，你的克蘇魯神話知識現在是 {user.level}點了！"
+			let tempUPWord = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].LevelUpWord || "恭喜 @{user.name}，你的克蘇魯神話知識現在是 {user.level}點了！{user.name}|{user.exp}|{user.Ranking}|{user.RankingPer}|{server.member_count}"
 
 			return tempUPWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count)
 			//2. 回應BOT

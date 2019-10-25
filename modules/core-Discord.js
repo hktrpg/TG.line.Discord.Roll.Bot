@@ -88,6 +88,11 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 						rplyVal = exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid);
 					}
 				}
+				//LevelUp功能
+				if (groupid && rplyVal && rplyVal.LevelUp) {
+					console.log('result.LevelUp 2:', rplyVal.LevelUp)
+					SendToReplychannel("<@" + userid + '> \n' + rplyVal.LevelUp)
+				}
 
 				if (rplyVal && rplyVal.text) {
 					Discordcountroll++;

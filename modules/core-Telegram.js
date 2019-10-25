@@ -85,7 +85,8 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				}
 
 			}
-			if (rplyVal && rplyVal.LevelUp) {
+			//LevelUp功能
+			if (groupid && rplyVal && rplyVal.LevelUp) {
 				console.log('result.LevelUp 2:', rplyVal.LevelUp)
 				ctx.reply("@" + displayname + '\n' + rplyVal.LevelUp)
 			}

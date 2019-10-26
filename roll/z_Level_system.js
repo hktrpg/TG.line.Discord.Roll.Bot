@@ -307,7 +307,6 @@ try {
                     // {user.RankingPer} 現在排名百分比 \
                     // {server.member_count} 現在頻道中總人數 \
                     let rankWord = "@{user.name}，你的克蘇魯神話知識現在是 {user.level}點！現在排名第{user.Ranking}名！"
-
                     if (rply.trpgLevelSystemfunction)
                         for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
                             if (rply.trpgLevelSystemfunction[i].groupid == groupid) {
@@ -380,7 +379,7 @@ try {
                     rply.text = '不在群組. '
                 }
                 //顯示資料庫
-                rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
+               // rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
                 return rply
 
 

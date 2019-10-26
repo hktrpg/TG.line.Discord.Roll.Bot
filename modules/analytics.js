@@ -111,11 +111,11 @@ try {
 
 
 					records.settrpgLevelSystemfunctionNewUser('trpgLevelSystem', temp, () => {
-						records.get('trpgLevelSystem', (msgs) => {
-							exports.z_Level_system.initialize().trpgLevelSystemfunction = msgs
-							//  console.log(rply.trpgLevelSystemfunction)
-							// console.log(rply);
-						})
+						//records.get('trpgLevelSystem', (msgs) => {
+						//	exports.z_Level_system.initialize().trpgLevelSystemfunction = msgs
+						//  console.log(rply.trpgLevelSystemfunction)
+						// console.log(rply);
+						//})
 
 					})
 
@@ -138,7 +138,7 @@ try {
 
 						//8. 更新MLAB資料
 						records.settrpgLevelSystemfunctionEXPup('trpgLevelSystem', exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID], exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID], () => {
-							
+
 
 						})
 
@@ -167,6 +167,7 @@ try {
 
 		}
 	}
+
 	function ranking(who, data) {
 		var array = [];
 		let answer = "0"

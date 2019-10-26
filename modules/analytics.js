@@ -26,10 +26,16 @@ try {
 			type: 'text',
 			LevelUp: ''
 		};
+		let trigger = ""
 		let stopmark = 0;
 		let msgSplitor = (/\S+/ig);
-		let mainMsg = inputStr.match(msgSplitor); //定義輸入字串
-		let trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
+		let mainMsg = "";
+		mainMsg[0] = ""
+		mainMsg[1] = ""
+		mainMsg[2] = ""
+		mainMsg = inputStr.match(msgSplitor); //定義輸入字串
+		if (mainMsg)
+			trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
 		//對比mongoose資料
 		//console.log('stop')
 		//檢查是不是要停止
@@ -204,7 +210,7 @@ try {
 
 
 	function z_stop(mainMsg, groupid) {
-		if (exports.z_stop && exports.z_stop.initialize() && exports.z_stop.initialize().save && exports.z_stop.initialize().save[0].blockfunction && exports.z_stop.initialize().save[0].blockfunction.length > 0) {
+		if (exports.z_stop && exports.z_stop.initialize() && exports.z_stop.initialize().save && exports.z_stop.initialize().save[0].blockfunction && exports.z_stop.initialize().save[0].blockfunction.length > 0 && mainMsg && mainMsg[0]) {
 			for (var i = 0; i < exports.z_stop.initialize().save.length; i++) {
 				if ((new RegExp(exports.z_stop.initialize().save[i].blockfunction.join("|"), "i")).test(mainMsg[0]) && exports.z_stop.initialize().save[i].groupid == groupid && exports.z_stop.initialize().save[i].blockfunction.length > 0) {
 					console.log('Match AND STOP')
@@ -229,7 +235,7 @@ try {
 			//以每次同步檢查第一第二個 
 			//例如第一組是 cc  第二組是 80 
 			//那條件式就是 /^cc$/i 和/^\d+$/
-			if (!mainMsg[1]) mainMsg[1] = '';
+			if (mainMsg && !mainMsg[1]) mainMsg[1] = '';
 			let checkmainMsg0 = 0;
 			let checkmainMsg1 = 0;
 			let findprefixs = 0;
@@ -242,10 +248,10 @@ try {
 						if (exports[v].prefixs()[i + 1] && exports[v].prefixs()[i + 1]) {
 							checkmainMsg1 = 2;
 						}
-						if (exports[v].prefixs()[i] && exports[v].prefixs()[i].test(mainMsg[0])) {
+						if (mainMsg && exports[v].prefixs()[i] && exports[v].prefixs()[i].test(mainMsg[0])) {
 							checkmainMsg0 = 1;
 						}
-						if (exports[v].prefixs()[i + 1] && exports[v].prefixs()[i + 1].test(mainMsg[1])) {
+						if (mainMsg && exports[v].prefixs()[i + 1] && exports[v].prefixs()[i + 1].test(mainMsg[1])) {
 							checkmainMsg1 = 1;
 						}
 						if (checkmainMsg0 <= 1 && checkmainMsg1 <= 1 && checkmainMsg0 + checkmainMsg1 >= 1) {

@@ -104,22 +104,24 @@ try {
 							LastSpeakTime: Date.now()
 						}
 					}
+
 					exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.push(temp.trpgLevelSystemfunction)
 
 					//console.log('a', exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID])
 
+
 					records.settrpgLevelSystemfunctionNewUser('trpgLevelSystem', temp, () => {
-						//records.get('trpgLevelSystem', (msgs) => {
-						//	exports.z_Level_system.initialize().trpgLevelSystemfunction = msgs
-						//  console.log(rply.trpgLevelSystemfunction)
-						// console.log(rply);
-						//})
+						records.get('trpgLevelSystem', (msgs) => {
+							exports.z_Level_system.initialize().trpgLevelSystemfunction = msgs
+							//  console.log(rply.trpgLevelSystemfunction)
+							// console.log(rply);
+						})
 
 					})
 
 				} else if (tempIsUser != 0) {
-					//4. 有-> 檢查上次紀錄的時間 超過 60000 (1分鐘) 即增加1-10 經驗值
-					if (new Date(Date.now()) - new Date(exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].LastSpeakTime) > 60000) {
+					//4. 有-> 檢查上次紀錄的時間 超過60001 (1分鐘) 即增加1-10 經驗值
+					if (new Date(Date.now()) - new Date(exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].LastSpeakTime) > 60001) {
 						exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP + Math.floor(Math.random() * 10) + 1;
 						exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].LastSpeakTime = Date.now();
 						//5. 檢查現LEVEL 需不需要上升.  100 * (lvl ^ 2) + 50 * lvl + 100
@@ -136,7 +138,7 @@ try {
 
 						//8. 更新MLAB資料
 						records.settrpgLevelSystemfunctionEXPup('trpgLevelSystem', exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID], exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID], () => {
-							//console.log('EXP', exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP)
+							
 
 						})
 
@@ -165,7 +167,6 @@ try {
 
 		}
 	}
-
 	function ranking(who, data) {
 		var array = [];
 		let answer = "0"

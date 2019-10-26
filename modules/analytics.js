@@ -95,16 +95,18 @@ try {
 				//3. 沒有 -> 新增
 				if (tempIsUser == 0) {
 					let temp = {
-						userid: userid,
-						name: displayname || '無名',
-						EXP: Math.floor(Math.random() * 10) + 1,
-						Level: "0",
-						LastSpeakTime: Date.now()
-
+						groupid: groupid,
+						trpgLevelSystemfunction: {
+							userid: userid,
+							name: displayname || '無名',
+							EXP: Math.floor(Math.random() * 10) + 1,
+							Level: "0",
+							LastSpeakTime: Date.now()
+						}
 					}
-					exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.push(temp)
+					exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.push(temp.trpgLevelSystemfunction)
 
-					console.log('a', exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID])
+					//console.log('a', exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID])
 
 					records.settrpgLevelSystemfunctionNewUser('trpgLevelSystem', temp, () => {
 						//records.get('trpgLevelSystem', (msgs) => {

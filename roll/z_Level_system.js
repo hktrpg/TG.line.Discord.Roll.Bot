@@ -339,7 +339,7 @@ try {
                                             // { user.exp } 經驗值 { user.Ranking } 現在排名 \
                                             // { user.RankingPer} 現在排名百分比 \
                                             // { server.member_count } 現在頻道中總人數 \
-                                            if ((100 * Math.pow(rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level, 2) + 50 * rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level + 100) <= rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].EXP) {
+                                            if ((5 / 6 * (rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level + 1) * (2 * (rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level + 1) * (rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level + 1) + 27 * (rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level + 1) + 91)) <= rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].EXP) {
                                                 //現EXP >於需求LV
                                                 //LVUP
                                                 let TMEPuserlevel = Number(userlevel) + 1

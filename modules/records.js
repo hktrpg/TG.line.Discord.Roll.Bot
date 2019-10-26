@@ -512,8 +512,7 @@ class Records extends EventEmitter {
     settrpgLevelSystemfunctionEXPup(dbbase, msgA, msg, callback) {
         schema[dbbase].findOneAndUpdate({
 
-            groupid: msgA.groupid,
-            'trpgLevelSystemfunction.userid': msg.userid
+            groupid: msgA.groupid
 
         }, {
             $set: {
@@ -535,7 +534,7 @@ class Records extends EventEmitter {
                 console.log("Something wrong when updating data!");
             } else {
                 callback();
-               // console.log('DONE?')
+                // console.log('DONE?')
             }
             // return JSON.stringify(doc).toString();
         });

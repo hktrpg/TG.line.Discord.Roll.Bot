@@ -137,7 +137,7 @@ try {
 
 
 						//8. 更新MLAB資料
-						records.settrpgLevelSystemfunctionEXPup('trpgLevelSystem', exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID], exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID], () => {
+						records.settrpgLevelSystemfunctionEXPup('trpgLevelSystem', exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID], exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction, () => {
 
 
 						})

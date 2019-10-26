@@ -21,11 +21,15 @@ try {
     }
     getHelpMessage = function () {
         return "【經驗值功能】" + "\
-        \n 這是根據發言增加經驗實現排名的歡樂功能\
-        \n 首先輸入.level config 11 啓動功能 \
+        \n 這是根據發言次數增加經驗，提升等級，實現服務器內排名的歡樂功能\
+        \n 當經驗達到要求，就會彈出通知，提示你已提升等級。\
+        \n 預設並不開啓，需要輸入.level config 11 啓動功能 \
         \n 數字11代表等級升級時會進行通知，10代表不會通知，\
         \n 00的話代表不啓動功能，預設為不啟動功能\
+        \n 預設回應是「 XXXX， 你的克蘇魯神話知識現在是 X點！\
+        \n 現在排名第X名！」\
         \n P.S.如果沒立即生效 用.level show 刷新一下\
+        \n\
         \n 輸入.level LevelUpWord (內容) 修改在這群組升級時彈出的升級語\
         \n 輸入.level RankWord (內容) 修改在這群組查詢等級時的回應\
         \n 輸入.level RankWord/LevelUpWord del 即使用預設字句\

@@ -105,6 +105,10 @@ try {
 						}
 					}
 
+					exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.push(temp.trpgLevelSystemfunction)
+
+					//console.log('a', exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID])
+
 
 					records.settrpgLevelSystemfunctionNewUser('trpgLevelSystem', temp, () => {
 						records.get('trpgLevelSystem', (msgs) => {

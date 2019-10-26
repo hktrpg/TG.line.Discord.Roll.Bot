@@ -39,7 +39,7 @@ try {
         \n {user.name} 名字 {user.level} 等級 \
         \n {user.exp} 經驗值 {user.Ranking} 現在排名 \
         \n {user.RankingPer} 現在排名百分比 \
-        \n {server.member_count} 現在頻道中總人數 \
+        \n {server.member_count} 現在排名榜中總人數 \
         \n "
     }
     initialize = function () {

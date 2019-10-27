@@ -18,6 +18,83 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 		const telegrafGetChatMembers = require('telegraf-getchatmembers')
 
 		//TGclient.use(telegrafGetChatMembers)
+		TGclient.on('audio', async (ctx) => {
+			if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
+				let groupid, userid, displayname, channelid = ''
+				groupid = ctx.message.chat.id
+				if (ctx.message.from.username) displayname = ctx.message.from.username
+				if (ctx.message.from.id) userid = ctx.message.from.id
+				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid)
+
+			}
+			return null
+		})
+		TGclient.on('document', async (ctx) => {
+			if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
+				let groupid, userid, displayname, channelid = ''
+				groupid = ctx.message.chat.id
+				if (ctx.message.from.username) displayname = ctx.message.from.username
+				if (ctx.message.from.id) userid = ctx.message.from.id
+				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid)
+
+			}
+			return null
+		})
+		TGclient.on('photo', async (ctx) => {
+			if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
+				let groupid, userid, displayname, channelid = ''
+				groupid = ctx.message.chat.id
+				if (ctx.message.from.username) displayname = ctx.message.from.username
+				if (ctx.message.from.id) userid = ctx.message.from.id
+				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid)
+
+			}
+			return null
+		})
+		TGclient.on('sticker', async (ctx) => {
+			if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
+				let groupid, userid, displayname, channelid = ''
+				groupid = ctx.message.chat.id
+				if (ctx.message.from.username) displayname = ctx.message.from.username
+				if (ctx.message.from.id) userid = ctx.message.from.id
+				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid)
+
+			}
+			return null
+		})
+		TGclient.on('video', async (ctx) => {
+			if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
+				let groupid, userid, displayname, channelid = ''
+				groupid = ctx.message.chat.id
+				if (ctx.message.from.username) displayname = ctx.message.from.username
+				if (ctx.message.from.id) userid = ctx.message.from.id
+				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid)
+
+			}
+			return null
+		})
+		TGclient.on('voice', async (ctx) => {
+			if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
+				let groupid, userid, displayname, channelid = ''
+				groupid = ctx.message.chat.id
+				if (ctx.message.from.username) displayname = ctx.message.from.username
+				if (ctx.message.from.id) userid = ctx.message.from.id
+				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid)
+
+			}
+			return null
+		})
+		TGclient.on('forward', async (ctx) => {
+			if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
+				let groupid, userid, displayname, channelid = ''
+				groupid = ctx.message.chat.id
+				if (ctx.message.from.username) displayname = ctx.message.from.username
+				if (ctx.message.from.id) userid = ctx.message.from.id
+				exports.analytics.parseInput("", groupid, userid, userrole, "Telegram", displayname, channelid)
+
+			}
+			return null
+		})
 
 		TGclient.on('text', async (ctx) => {
 			//console.log(ctx.getChatMembers(ctx.chat.id) //[Members]
@@ -87,7 +164,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			}
 			//LevelUp功能
 			if (groupid && rplyVal && rplyVal.LevelUp) {
-			//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
+				//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
 				ctx.reply("@" + displayname + '\n' + rplyVal.LevelUp)
 			}
 			if (rplyVal && rplyVal.text) {

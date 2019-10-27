@@ -208,6 +208,8 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					}
 				} else if (message.attachments.length > 0) {
 					exports.analytics.parseInput("", groupid, userid, userrole, "Discord", displayname, channelid)
+					console.log('+++')
+					return null
 				}
 			}
 		});

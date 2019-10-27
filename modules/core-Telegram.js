@@ -45,6 +45,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				if (ctx.message.from.username) displayname = ctx.message.from.username
 				if (ctx.message.from.id) userid = ctx.message.from.id
 				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid)
+				console.log('+++')
 			}
 			return null
 		})
@@ -75,6 +76,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				if (ctx.message.from.username) displayname = ctx.message.from.username
 				if (ctx.message.from.id) userid = ctx.message.from.id
 				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid)
+				console.log('+++')
 			}
 			return null
 		})

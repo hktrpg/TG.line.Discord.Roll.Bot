@@ -134,7 +134,7 @@ try {
 						//5. 檢查現LEVEL 需不需要上升. =(5 / 6 * (B1+1) * (2 * (B1+1) * (B1+1) + (27 * (B1+1)) + 91))
 
 						if ((5 / 6 * (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level + 1) * (2 * (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level + 1) * (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level + 1) + (27 * (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level + 1)) + 91)) <= exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP) {
-							//現EXP >於需求LV
+							//於需求EXP <現EXP 
 							//LVUP
 							exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level++;
 							if (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Hidden == 1) {

@@ -24,7 +24,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				groupid = ctx.message.chat.id
 				if (ctx.message.from.username) displayname = ctx.message.from.username
 				if (ctx.message.from.id) userid = ctx.message.from.id
-				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid)
+				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "")
 
 			}
 			return null
@@ -35,7 +35,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				groupid = ctx.message.chat.id
 				if (ctx.message.from.username) displayname = ctx.message.from.username
 				if (ctx.message.from.id) userid = ctx.message.from.id
-				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid)
+				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "")
 
 			}
 			return null
@@ -46,7 +46,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				groupid = ctx.message.chat.id
 				if (ctx.message.from.username) displayname = ctx.message.from.username
 				if (ctx.message.from.id) userid = ctx.message.from.id
-				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid)
+				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "")
 
 			}
 			return null
@@ -57,7 +57,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				groupid = ctx.message.chat.id
 				if (ctx.message.from.username) displayname = ctx.message.from.username
 				if (ctx.message.from.id) userid = ctx.message.from.id
-				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid)
+				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "")
 
 			}
 			return null
@@ -68,7 +68,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				groupid = ctx.message.chat.id
 				if (ctx.message.from.username) displayname = ctx.message.from.username
 				if (ctx.message.from.id) userid = ctx.message.from.id
-				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid)
+				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "")
 
 			}
 			return null
@@ -79,7 +79,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				groupid = ctx.message.chat.id
 				if (ctx.message.from.username) displayname = ctx.message.from.username
 				if (ctx.message.from.id) userid = ctx.message.from.id
-				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid)
+				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "")
 
 			}
 			return null
@@ -90,7 +90,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				groupid = ctx.message.chat.id
 				if (ctx.message.from.username) displayname = ctx.message.from.username
 				if (ctx.message.from.id) userid = ctx.message.from.id
-				exports.analytics.parseInput("", groupid, userid, userrole, "Telegram", displayname, channelid)
+				exports.analytics.parseInput("", groupid, userid, userrole, "Telegram", displayname, channelid, "")
 
 			}
 			return null
@@ -154,10 +154,10 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			}
 			if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 				mainMsg.shift()
-				rplyVal = exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram", displayname, channelid)
+				rplyVal = exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram", displayname, channelid, "")
 			} else {
 				if (channelKeyword == '') {
-					rplyVal = exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram", displayname, channelid)
+					rplyVal = exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram", displayname, channelid, "")
 
 				}
 

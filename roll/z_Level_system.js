@@ -46,7 +46,7 @@ try {
         return rply;
     }
 
-    rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+    rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord) {
 
         rply.text = '';
         switch (true) {
@@ -307,7 +307,7 @@ try {
                     // {user.exp} 經驗值 {user.Ranking} 現在排名 \
                     // {user.RankingPer} 現在排名百分比 \
                     // {server.member_count} 現在頻道中總人數 \
-                    let rankWord = "@{user.name}，你的克蘇魯神話知識現在是 {user.level}點！現在排名第{user.Ranking}名！"
+                    let rankWord = "{user.name}，你的克蘇魯神話知識現在是 {user.level}點！\n現在排名是{server.member_count}人中的第{user.Ranking}名！"
 
                     if (rply.trpgLevelSystemfunction)
                         for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
@@ -325,10 +325,8 @@ try {
                                     for (var a = 0; a < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
                                         if (rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].userid == userid) {
                                             tempHaveUser = 1;
-                                            let username = displayname || "無名"
-                                            if (botname == "Discord" && userid) {
-                                                username = userid
-                                            }
+                                            let username = displaynameDiscord || displayname || "無名"
+
                                             let userlevel = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level;
                                             let userexp = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].EXP;
                                             //console.log('rply.trpgLevelSystemfunction[i]',
@@ -340,7 +338,7 @@ try {
                                             // { user.exp } 經驗值 { user.Ranking } 現在排名 \
                                             // { user.RankingPer} 現在排名百分比 \
                                             // { server.member_count } 現在頻道中總人數 \
-                                            
+
                                             if ((5 / 6 * (Number(rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level) + 1) * (2 * (Number(rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level) + 1) * (Number(rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level) + 1) + 27 * (Number(rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level) + 1) + 91)) <= rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].EXP) {
                                                 //現EXP >於需求LV
                                                 //LVUP
@@ -355,9 +353,9 @@ try {
                                     } //2.    ->沒有 告知開啓
                                     if (tempHaveUser == 0) {
                                         //4.    沒有則新增一個, 隨機1-10 給經驗值.
-                                        let username = displayname || "無名"
+                                        let username = displaynameDiscord || displayname || "無名"
                                         let userlevel = 0;
-                                        let userexp = Math.floor(Math.random() * 10) + 1
+                                        let userexp = Math.floor(Math.random() * 15) + 10
                                         //console.log('rply.trpgLevelSystemfunction[i]',
 
                                         let userRanking = ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);

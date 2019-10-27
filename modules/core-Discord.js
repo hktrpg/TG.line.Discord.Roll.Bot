@@ -35,7 +35,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 			if (message.author.bot === false) {
 				//	console.log('message.content ' + message.content);
 				//	console.log('channelKeyword ' + channelKeyword);
-				let groupid, userid, displayname, channelid = ''
+				let groupid, userid, displayname, channelid, displaynameDiscord = ''
 				let TargetGM = require('../roll/z_DDR_darkRollingToGM').initialize()
 				//得到暗骰的數據, GM的位置
 				let displaynamecheck = true;
@@ -46,7 +46,10 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				if (message.channel && message.channel.id) channelid = message.channel.id
 				if (message.guild && message.guild.id) groupid = message.guild.id
 				if (message.author.id) userid = message.author.id
-				if (message.member && message.member.user && message.member.user.tag) displayname = message.member.user.tag
+				if (message.member && message.member.user && message.member.user.tag)
+					displayname = message.member.user.tag
+				if (message.member && message.member.user && message.member.user.username)
+					displaynameDiscord = message.member.user.username
 				////DISCORD: 585040823232320107
 				if (message.member && message.member.hasPermission("ADMINISTRATOR")) userrole = 3
 				//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin 
@@ -83,10 +86,10 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 
 					if (channelKeyword != "" && trigger == channelKeyword.toString().toLowerCase()) {
 						//mainMsg.shift();
-						rplyVal = exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid);
+						rplyVal = exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord);
 					} else {
 						if (channelKeyword == "") {
-							rplyVal = exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid);
+							rplyVal = exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord);
 						}
 					}
 					//LevelUp功能
@@ -207,7 +210,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 						}
 					}
 				} else if (groupid && userid) {
-					exports.analytics.parseInput("", groupid, userid, userrole, "Discord", displayname, channelid)
+					exports.analytics.parseInput("", groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord)
 					return null
 				}
 			}

@@ -87,8 +87,8 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			if (event.type !== 'message' || event.message.type !== 'text') {
 				// ignore non-text-message event
 				if (roomorgroupid, userid) {
-					exports.analytics.parseInput("", roomorgroupid, userid, userrole, "Line", displayname, channelid)
-					
+					exports.analytics.parseInput("", roomorgroupid, userid, userrole, "Line", displayname, channelid, "")
+
 				}
 				return Promise.resolve(null);
 			}
@@ -128,10 +128,10 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 			if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 				//mainMsg.shift()
-				rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid)
+				rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid, "")
 			} else {
 				if (channelKeyword == '') {
-					rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid)
+					rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid, "")
 
 				}
 

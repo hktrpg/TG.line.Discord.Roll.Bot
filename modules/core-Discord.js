@@ -206,11 +206,11 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 								await message.channel.send(replyText.toString().match(/[\s\S]{1,1900}/g)[i])
 						}
 					}
-				} else if (message.attachments.length > 0) {
-					exports.analytics.parseInput("", groupid, userid, userrole, "Discord", displayname, channelid)
-					console.log('+++')
-					return null
 				}
+			} else if (message.attachments.length > 0) {
+				exports.analytics.parseInput("", groupid, userid, userrole, "Discord", displayname, channelid)
+				console.log('+++')
+				return null
 			}
 		});
 		//Set Activity 可以自定義正在玩什麼  

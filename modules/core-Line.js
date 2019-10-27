@@ -86,9 +86,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			let userrole = 3;
 			if (event.type !== 'message' || event.message.type !== 'text') {
 				// ignore non-text-message event
-				if (roomorgroupid) {
+				if (roomorgroupid, userid) {
 					exports.analytics.parseInput("", roomorgroupid, userid, userrole, "Line", displayname, channelid)
-					console.log('+++')
+					
 				}
 				return Promise.resolve(null);
 			}

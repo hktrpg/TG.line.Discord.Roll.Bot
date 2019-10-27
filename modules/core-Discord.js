@@ -50,7 +50,6 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					displayname = message.member.user.tag
 				if (message.member && message.member.user && message.member.user.username)
 					displaynameDiscord = message.member.user.username
-				console.log(message.member.user.username)
 				////DISCORD: 585040823232320107
 				if (message.member && message.member.hasPermission("ADMINISTRATOR")) userrole = 3
 				//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin 

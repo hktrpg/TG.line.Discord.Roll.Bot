@@ -159,6 +159,7 @@ try {
 
 		function LevelUP(tempGPID, tempGPuserID) {
 			//1. 讀取LEVELUP語
+			console.log('displaynameDiscord2', displaynameDiscord)
 			let username = displayname || "無名"
 
 			let userlevel = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level;

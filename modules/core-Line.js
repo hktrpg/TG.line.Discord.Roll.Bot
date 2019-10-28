@@ -66,6 +66,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 
 	function handleEvent(event) {
+		console.log(event.toString())
 		let roomorgroupid, userid, displayname, channelid, membercount = ''
 		if (event.source.groupId) roomorgroupid = event.source.groupId
 		if (event.source.roomId) roomorgroupid = event.source.roomId

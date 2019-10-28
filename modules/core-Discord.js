@@ -51,7 +51,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				if (message.member && message.member.user && message.member.user.username)
 					displaynameDiscord = message.member.user.username
 				console.log(message.guild)
-				membercount = message.guilds.get(guildID).members.size()
+				membercount = message.guilds.memberCount
 				console.log(membercount)
 				//var memberCount = discord.bot.guilds.get(guildID).members.size()
 				////DISCORD: 585040823232320107

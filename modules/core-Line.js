@@ -78,7 +78,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				ids.forEach((id) => console.log(id, ids));
 			})
 			.catch((err) => {
-				// error handling
+				console.log(err)
 			});
 
 		client.getProfile(userid).then(function (profile) {

@@ -66,7 +66,10 @@ try {
 		if (groupid)
 			EXPUP();
 		if (result && (result.text || result.LevelUp)) {
-			console.log('inputStr: ', inputStr)
+			if (result.text)
+				console.log('inputStr: ', inputStr)
+			if (result.LevelUp)
+				console.log('LV UP')
 			return result;
 
 		}

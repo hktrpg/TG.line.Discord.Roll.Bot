@@ -73,6 +73,14 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		if (event.source.userId) userid = event.source.userId
 		let TargetGM = require('../roll/z_DDR_darkRollingToGM').initialize()
 
+		client.getGroupMemberIds(roomorgroupid)
+			.then((ids) => {
+				ids.forEach((id) => console.log(id, ids));
+			})
+			.catch((err) => {
+				// error handling
+			});
+
 		client.getProfile(userid).then(function (profile) {
 			//	在GP 而有加好友的話,得到名字
 			displayname = profile.displayName;
@@ -172,8 +180,8 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						if (roomorgroupid && userid && displaynamecheck)
 							if (displayname)
 								SendToId(roomorgroupid, "@" + displayname + ' 暗骰給自己')
-							else
-								SendToId(roomorgroupid, '正在暗骰給自己')
+						else
+							SendToId(roomorgroupid, '正在暗骰給自己')
 						if (userid)
 							if (displayname && displaynamecheck)
 								SendToId(userid, "@" + displayname + '的暗骰\n' + rplyVal.text);
@@ -245,10 +253,10 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				for (var i = 0; i < ReplyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 					if (i == 0 || i == 1 || i == ReplyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == ReplyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
 						await client.pushMessage(targetid, replymessage(ReplyText.toString().match(/[\s\S]{1,1900}/g)[i]))
-							.then(() => { })
-							.catch((err) => {
-								// error handling
-							});
+						.then(() => {})
+						.catch((err) => {
+							// error handling
+						});
 				}
 			}
 			// create a echoing text message

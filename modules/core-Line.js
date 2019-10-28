@@ -66,7 +66,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 
 	function handleEvent(event) {
-		console.log(JSON.stringify(event))
+		//event {"type":"message","replyToken":"232132133","source":{"userId":"U1a17e51fSDADASD0293d","groupId":"C6432427423847234cd3","type":"group"},"timestamp":323232323,"message":{"type":"text","id":"232131233123","text":"5!@@!"}}
 		let roomorgroupid, userid, displayname, channelid, membercount = ''
 		if (event.source.groupId) roomorgroupid = event.source.groupId
 		if (event.source.roomId) roomorgroupid = event.source.roomId
@@ -95,9 +95,6 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			}
 			//是不是自己.ME 訊息
 			//TRUE 即正常
-
-
-			//Ub23daads22a2131312334645349a3 
 			let rplyVal = {};
 			let msgSplitor = (/\S+/ig)
 			if (event.message.text)

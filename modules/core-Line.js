@@ -73,14 +73,6 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		if (event.source.userId) userid = event.source.userId
 		let TargetGM = require('../roll/z_DDR_darkRollingToGM').initialize()
 
-		client.getGroupMemberIds(roomorgroupid)
-			.then((ids) => {
-				ids.forEach((id) => console.log(id, ids));
-			})
-			.catch((err) => {
-				console.log(err)
-			});
-
 		client.getProfile(userid).then(function (profile) {
 			//	在GP 而有加好友的話,得到名字
 			displayname = profile.displayName;

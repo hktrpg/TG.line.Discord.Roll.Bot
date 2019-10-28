@@ -329,10 +329,10 @@ try {
                                             let userlevel = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level;
                                             let userexp = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].EXP;
                                             //console.log('rply.trpgLevelSystemfunction[i]',
-
-                                            let userRanking = ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);
-                                            let userRankingPer = Math.ceil(userRanking / rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length * 10000) / 100 + '%';
                                             let usermember_count = membercount || rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length;
+                                            let userRanking = ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);
+                                            let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
+                                            
                                             //{user.name} 名字 {user.level} 等級 \
                                             // { user.exp } 經驗值 { user.Ranking } 現在排名 \
                                             // { user.RankingPer} 現在排名百分比 \
@@ -356,10 +356,10 @@ try {
                                         let userlevel = 0;
                                         let userexp = Math.floor(Math.random() * 15) + 10
                                         //console.log('rply.trpgLevelSystemfunction[i]',
-
-                                        let userRanking = ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);
-                                        let userRankingPer = Math.ceil(userRanking / rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length * 10000) / 100 + '%';
                                         let usermember_count = membercount || rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length;
+                                        let userRanking = ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);
+                                        let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
+
                                         //{user.name} 名字 {user.level} 等級 \
                                         // { user.exp } 經驗值 { user.Ranking } 現在排名 \
                                         // { user.RankingPer} 現在排名百分比 \

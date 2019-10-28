@@ -113,16 +113,12 @@ try {
 
 					exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.push(temp.trpgLevelSystemfunction)
 
-					//console.log('a', exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID])
-
-
 					records.settrpgLevelSystemfunctionNewUser('trpgLevelSystem', temp, () => {
 						//records.get('trpgLevelSystem', (msgs) => {
 						//	exports.z_Level_system.initialize().trpgLevelSystemfunction = msgs
 						//  console.log(rply.trpgLevelSystemfunction)
 						// console.log(rply);
 						//})
-
 					})
 
 				} else if (tempIsUser != 0) {
@@ -167,7 +163,6 @@ try {
 			let userRankingPer = Math.ceil(userRanking / exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.length * 10000) / 100 + '%';
 			let usermember_count = membercount || exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.length;
 			let tempUPWord = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].LevelUpWord || "恭喜 {user.name}，你的克蘇魯神話知識現在是 {user.level}點了！\n現在排名是{server.member_count}人中的第{user.Ranking}名！"
-			console.log('M: ', usermember_count)
 			return tempUPWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count)
 			//2. 回應BOT
 

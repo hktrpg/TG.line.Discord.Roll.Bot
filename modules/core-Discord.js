@@ -52,6 +52,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					displaynameDiscord = message.member.user.username
 				if (message.guild && message.guild.members)
 					membercount = message.guild.members.filter(member => !member.user.bot).size;
+				console.log(membercount)
 				//var memberCount = discord.bot.guilds.get(guildID).members.size()
 				////DISCORD: 585040823232320107
 				if (message.member && message.member.hasPermission("ADMINISTRATOR")) userrole = 3

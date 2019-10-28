@@ -35,7 +35,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 			if (message.author.bot === false) {
 				//	console.log('message.content ' + message.content);
 				//	console.log('channelKeyword ' + channelKeyword);
-				let groupid, userid, displayname, channelid, displaynameDiscord = ''
+				let groupid, userid, displayname, channelid, displaynameDiscord, membercount = ''
 				let TargetGM = require('../roll/z_DDR_darkRollingToGM').initialize()
 				//得到暗骰的數據, GM的位置
 				let displaynamecheck = true;
@@ -50,6 +50,8 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					displayname = message.member.user.tag
 				if (message.member && message.member.user && message.member.user.username)
 					displaynameDiscord = message.member.user.username
+				if (message.guild && message.guild.members)
+					membercount = message.guild.members.filter(member => !member.user.bot).size;
 				////DISCORD: 585040823232320107
 				if (message.member && message.member.hasPermission("ADMINISTRATOR")) userrole = 3
 				//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin 
@@ -86,10 +88,10 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 
 					if (channelKeyword != "" && trigger == channelKeyword.toString().toLowerCase()) {
 						//mainMsg.shift();
-						rplyVal = exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord);
+						rplyVal = exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount);
 					} else {
 						if (channelKeyword == "") {
-							rplyVal = exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord);
+							rplyVal = exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount);
 						}
 					}
 					//LevelUp功能
@@ -210,7 +212,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 						}
 					}
 				} else if (groupid && userid) {
-					exports.analytics.parseInput("", groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord)
+					exports.analytics.parseInput("", groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount)
 					return null
 				}
 			}

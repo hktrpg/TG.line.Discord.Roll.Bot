@@ -16,7 +16,7 @@ try {
 
 	//用來呼叫骰組,新增骰組的話,要寫條件式到下面呼叫 
 	//格式是 exports.骰組檔案名字.function名
-	function parseInput(inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord) {
+	function parseInput(inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
 		//console.log('InputStr: ' + inputStr);
 		_isNaN = function (obj) {
 			return isNaN(parseInt(obj));
@@ -44,7 +44,7 @@ try {
 
 		//console.log('mainMsgAA',mainMsg)
 		if (stopmark != 1) {
-			result = rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord)
+			result = rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount)
 			//console.log("OK")
 		}
 
@@ -59,7 +59,7 @@ try {
 			result.text = ""
 			//檢查是不是要停止
 			z_stop(mainMsg, groupid);
-			result = rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord)
+			result = rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount)
 			console.log('inputStr2: ', inputStr)
 		}
 		//LEVEL功能
@@ -113,16 +113,12 @@ try {
 
 					exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.push(temp.trpgLevelSystemfunction)
 
-					//console.log('a', exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID])
-
-
 					records.settrpgLevelSystemfunctionNewUser('trpgLevelSystem', temp, () => {
 						//records.get('trpgLevelSystem', (msgs) => {
 						//	exports.z_Level_system.initialize().trpgLevelSystemfunction = msgs
 						//  console.log(rply.trpgLevelSystemfunction)
 						// console.log(rply);
 						//})
-
 					})
 
 				} else if (tempIsUser != 0) {
@@ -163,11 +159,10 @@ try {
 			let userlevel = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level;
 			let userexp = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP;
 			//console.log('rply.trpgLevelSystemfunction[i]',
+			let usermember_count = membercount || exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.length;
 			let userRanking = ranking(userid, exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction);
-			let userRankingPer = Math.ceil(userRanking / exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.length * 10000) / 100 + '%';
-			let usermember_count = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.length;
+			let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
 			let tempUPWord = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].LevelUpWord || "恭喜 {user.name}，你的克蘇魯神話知識現在是 {user.level}點了！\n現在排名是{server.member_count}人中的第{user.Ranking}名！"
-
 			return tempUPWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count)
 			//2. 回應BOT
 
@@ -218,7 +213,7 @@ try {
 		}
 	}
 
-	function rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord) {
+	function rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount) {
 		//在下面位置開始分析trigger
 		if (!groupid) groupid = 0
 		var breakFlag = false;
@@ -265,7 +260,7 @@ try {
 
 			if (findprefixs == 1) {
 				console.log('trigger: ', inputStr)
-				let tempsave = exports[v].rollDiceCommand(inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord)
+				let tempsave = exports[v].rollDiceCommand(inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount)
 				if (tempsave)
 					Object.keys(tempsave).forEach(v => {
 						result[v] = tempsave[v]

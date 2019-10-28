@@ -20,77 +20,91 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 		//TGclient.use(telegrafGetChatMembers)
 		TGclient.on('audio', async (ctx) => {
 			if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
-				let groupid, userid, displayname, channelid = ''
+				let groupid, userid, displayname, channelid, membercount = ''
 				groupid = ctx.message.chat.id
 				if (ctx.message.from.username) displayname = ctx.message.from.username
 				if (ctx.message.from.id) userid = ctx.message.from.id
-				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "")
+				if (ctx.chat && ctx.chat.id)
+					membercount = await ctx.getChatMembersCount(ctx.chat.id)
+				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "", membercount)
 
 			}
 			return null
 		})
 		TGclient.on('document', async (ctx) => {
 			if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
-				let groupid, userid, displayname, channelid = ''
+				let groupid, userid, displayname, channelid, membercount = ''
 				groupid = ctx.message.chat.id
 				if (ctx.message.from.username) displayname = ctx.message.from.username
 				if (ctx.message.from.id) userid = ctx.message.from.id
-				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "")
+				if (ctx.chat && ctx.chat.id)
+					membercount = await ctx.getChatMembersCount(ctx.chat.id)
+				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "", membercount)
 
 			}
 			return null
 		})
 		TGclient.on('photo', async (ctx) => {
 			if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
-				let groupid, userid, displayname, channelid = ''
+				let groupid, userid, displayname, channelid, membercount = ''
 				groupid = ctx.message.chat.id
 				if (ctx.message.from.username) displayname = ctx.message.from.username
 				if (ctx.message.from.id) userid = ctx.message.from.id
-				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "")
+				if (ctx.chat && ctx.chat.id)
+					membercount = await ctx.getChatMembersCount(ctx.chat.id)
+				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "", membercount)
 
 			}
 			return null
 		})
 		TGclient.on('sticker', async (ctx) => {
 			if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
-				let groupid, userid, displayname, channelid = ''
+				let groupid, userid, displayname, channelid, membercount = ''
 				groupid = ctx.message.chat.id
 				if (ctx.message.from.username) displayname = ctx.message.from.username
 				if (ctx.message.from.id) userid = ctx.message.from.id
-				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "")
+				if (ctx.chat && ctx.chat.id)
+					membercount = await ctx.getChatMembersCount(ctx.chat.id)
+				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "", membercount)
 
 			}
 			return null
 		})
 		TGclient.on('video', async (ctx) => {
 			if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
-				let groupid, userid, displayname, channelid = ''
+				let groupid, userid, displayname, channelid, membercount = ''
 				groupid = ctx.message.chat.id
 				if (ctx.message.from.username) displayname = ctx.message.from.username
 				if (ctx.message.from.id) userid = ctx.message.from.id
-				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "")
+				if (ctx.chat && ctx.chat.id)
+					membercount = await ctx.getChatMembersCount(ctx.chat.id)
+				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "", membercount)
 
 			}
 			return null
 		})
 		TGclient.on('voice', async (ctx) => {
 			if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
-				let groupid, userid, displayname, channelid = ''
+				let groupid, userid, displayname, channelid, membercount = ''
 				groupid = ctx.message.chat.id
 				if (ctx.message.from.username) displayname = ctx.message.from.username
 				if (ctx.message.from.id) userid = ctx.message.from.id
-				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "")
+				if (ctx.chat && ctx.chat.id)
+					membercount = await ctx.getChatMembersCount(ctx.chat.id)
+				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "", membercount)
 
 			}
 			return null
 		})
 		TGclient.on('forward', async (ctx) => {
 			if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
-				let groupid, userid, displayname, channelid = ''
+				let groupid, userid, displayname, channelid, membercount = ''
 				groupid = ctx.message.chat.id
 				if (ctx.message.from.username) displayname = ctx.message.from.username
 				if (ctx.message.from.id) userid = ctx.message.from.id
-				exports.analytics.parseInput("", groupid, userid, userrole, "Telegram", displayname, channelid, "")
+				if (ctx.chat && ctx.chat.id)
+					membercount = await ctx.getChatMembersCount(ctx.chat.id)
+				exports.analytics.parseInput("", groupid, userid, userrole, "Telegram", displayname, channelid, "", membercount)
 
 			}
 			return null
@@ -101,7 +115,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			//	ctx.getChatMembers() //[Members]
 			//	telegrafGetChatMembers.check(ctx.chat.id) //[Members]
 			//	telegrafGetChatMembers.all //[Chats]
-			let groupid, userid, displayname, channelid = ''
+			let groupid, userid, displayname, channelid, membercount = ''
 			let TargetGM = require('../roll/z_DDR_darkRollingToGM').initialize()
 			//得到暗骰的數據, GM的位置
 			if (ctx.message.from.username) displayname = ctx.message.from.username
@@ -111,7 +125,9 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			let userrole = 1;
 			//console.log('TG: ', message)
 			//console.log('ctx.chat.id', ctx.chat.id)
-
+			//頻道人數
+			if (ctx.chat && ctx.chat.id)
+				membercount = await ctx.getChatMembersCount(ctx.chat.id)
 			if (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') {
 				groupid = ctx.message.chat.id
 				if (ctx.chat && ctx.chat.id)
@@ -154,10 +170,10 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			}
 			if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 				mainMsg.shift()
-				rplyVal = exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram", displayname, channelid, "")
+				rplyVal = exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram", displayname, channelid, "", membercount)
 			} else {
 				if (channelKeyword == '') {
-					rplyVal = exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram", displayname, channelid, "")
+					rplyVal = exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram", displayname, channelid, "", membercount)
 
 				}
 

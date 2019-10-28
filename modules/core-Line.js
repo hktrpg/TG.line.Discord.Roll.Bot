@@ -66,7 +66,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 
 	function handleEvent(event) {
-		let roomorgroupid, userid, displayname, channelid = ''
+		let roomorgroupid, userid, displayname, channelid, membercount = ''
 		if (event.source.groupId) roomorgroupid = event.source.groupId
 		if (event.source.roomId) roomorgroupid = event.source.roomId
 		if (event.source.userId) userid = event.source.userId
@@ -87,7 +87,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			if (event.type !== 'message' || event.message.type !== 'text') {
 				// ignore non-text-message event
 				if (roomorgroupid, userid) {
-					exports.analytics.parseInput("", roomorgroupid, userid, userrole, "Line", displayname, channelid, "")
+					exports.analytics.parseInput("", roomorgroupid, userid, userrole, "Line", displayname, channelid, "", "")
 
 				}
 				return Promise.resolve(null);
@@ -174,8 +174,8 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						if (roomorgroupid && userid && displaynamecheck)
 							if (displayname)
 								SendToId(roomorgroupid, "@" + displayname + ' 暗骰給自己')
-						else
-							SendToId(roomorgroupid, '正在暗骰給自己')
+							else
+								SendToId(roomorgroupid, '正在暗骰給自己')
 						if (userid)
 							if (displayname && displaynamecheck)
 								SendToId(userid, "@" + displayname + '的暗骰\n' + rplyVal.text);
@@ -247,10 +247,10 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				for (var i = 0; i < ReplyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 					if (i == 0 || i == 1 || i == ReplyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == ReplyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
 						await client.pushMessage(targetid, replymessage(ReplyText.toString().match(/[\s\S]{1,1900}/g)[i]))
-						.then(() => {})
-						.catch((err) => {
-							// error handling
-						});
+							.then(() => { })
+							.catch((err) => {
+								// error handling
+							});
 				}
 			}
 			// create a echoing text message

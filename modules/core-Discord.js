@@ -50,9 +50,8 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					displayname = message.member.user.tag
 				if (message.member && message.member.user && message.member.user.username)
 					displaynameDiscord = message.member.user.username
-				console.log(message.guild.members)
-				membercount = message.guild.members.filter(member => !member.user.bot).size;
-				console.log(membercount)
+				if (message.guild && message.guild.members)
+					membercount = message.guild.members.filter(member => !member.user.bot).size;
 				//var memberCount = discord.bot.guilds.get(guildID).members.size()
 				////DISCORD: 585040823232320107
 				if (message.member && message.member.hasPermission("ADMINISTRATOR")) userrole = 3
@@ -90,10 +89,10 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 
 					if (channelKeyword != "" && trigger == channelKeyword.toString().toLowerCase()) {
 						//mainMsg.shift();
-						rplyVal = exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord);
+						rplyVal = exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount);
 					} else {
 						if (channelKeyword == "") {
-							rplyVal = exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord);
+							rplyVal = exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount);
 						}
 					}
 					//LevelUp功能
@@ -214,7 +213,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 						}
 					}
 				} else if (groupid && userid) {
-					exports.analytics.parseInput("", groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord)
+					exports.analytics.parseInput("", groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount)
 					return null
 				}
 			}

@@ -57,10 +57,11 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin 
 				if (message.content != "") {
 					let rplyVal = {};
+					let trigger = ""
 					let msgSplitor = (/\S+/ig);
 					let mainMsg = message.content.match(msgSplitor); //定義輸入字串
 					if (mainMsg && mainMsg[0])
-						var trigger = mainMsg[0].toString().toLowerCase()
+						trigger = mainMsg[0].toString().toLowerCase()
 					//指定啟動詞在第一個詞&把大階強制轉成細階
 					if (trigger == ".me") {
 						displaynamecheck = false

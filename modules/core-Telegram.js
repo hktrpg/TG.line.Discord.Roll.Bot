@@ -144,10 +144,11 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			//userrole = 3
 			let rplyVal = {}
 			let msgSplitor = (/\S+/ig)
+			let trigger = ""
 			if (ctx.message.text && ctx.message.from.is_bot == false)
 				var mainMsg = ctx.message.text.match(msgSplitor); // 定義輸入字串
 			if (mainMsg && mainMsg[0])
-				var trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
+				trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
 			if (trigger == ".me") {
 				displaynamecheck = false
 			}

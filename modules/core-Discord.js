@@ -71,7 +71,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					//如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
 
 
-					if (trigger.match(/^dr/i) && mainMsg && mainMsg[1]) {
+					if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
 						privatemsg = 1;
 						message.content = message.content.replace(/^[d][r][ ]/i, '')
 						//mainMsg.shift();

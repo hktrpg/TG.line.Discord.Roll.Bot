@@ -66,6 +66,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 
 	function handleEvent(event) {
+		//event {"type":"message","replyToken":"232132133","source":{"userId":"U1a17e51fSDADASD0293d","groupId":"C6432427423847234cd3","type":"group"},"timestamp":323232323,"message":{"type":"text","id":"232131233123","text":"5!@@!"}}
 		let roomorgroupid, userid, displayname, channelid, membercount = ''
 		if (event.source.groupId) roomorgroupid = event.source.groupId
 		if (event.source.roomId) roomorgroupid = event.source.roomId
@@ -94,9 +95,6 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			}
 			//是不是自己.ME 訊息
 			//TRUE 即正常
-
-
-			//Ub23daads22a2131312334645349a3 
 			let rplyVal = {};
 			let msgSplitor = (/\S+/ig)
 			if (event.message.text)
@@ -174,8 +172,8 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						if (roomorgroupid && userid && displaynamecheck)
 							if (displayname)
 								SendToId(roomorgroupid, "@" + displayname + ' 暗骰給自己')
-							else
-								SendToId(roomorgroupid, '正在暗骰給自己')
+						else
+							SendToId(roomorgroupid, '正在暗骰給自己')
 						if (userid)
 							if (displayname && displaynamecheck)
 								SendToId(userid, "@" + displayname + '的暗骰\n' + rplyVal.text);
@@ -247,10 +245,10 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				for (var i = 0; i < ReplyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 					if (i == 0 || i == 1 || i == ReplyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == ReplyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
 						await client.pushMessage(targetid, replymessage(ReplyText.toString().match(/[\s\S]{1,1900}/g)[i]))
-							.then(() => { })
-							.catch((err) => {
-								// error handling
-							});
+						.then(() => {})
+						.catch((err) => {
+							// error handling
+						});
 				}
 			}
 			// create a echoing text message

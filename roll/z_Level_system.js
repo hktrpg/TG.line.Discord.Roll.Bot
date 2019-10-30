@@ -36,7 +36,6 @@ try {
         \n 輸入.level RankWord/LevelUpWord show 即顯示現在設定\
         \n 輸入.level show 可以查詢你現在的等級\
         \n 輸入.level showMe (數字)可以查詢這群組排名\
-        \n 輸入.level showMeTheWorld (數字)可以查詢全世界排名(誤\
         \n 修改內容可使用不同代碼\
         \n {user.name} 名字 {user.level} 等級 \
         \n {user.exp} 經驗值 {user.Ranking} 現在排名 \
@@ -356,7 +355,7 @@ try {
                                         //4.    沒有則新增一個, 隨機1-10 給經驗值.
                                         let username = displaynameDiscord || displayname || "無名"
                                         let userlevel = 0;
-                                        let userexp = Math.floor(Math.random() * 15) + 10
+                                        let userexp = Math.floor(Math.random() * 10) + 15
                                         //console.log('rply.trpgLevelSystemfunction[i]',
                                         let usermember_count = membercount || rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length;
                                         let userRanking = ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);
@@ -418,6 +417,7 @@ try {
                 //顯示資料庫
                 //rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
                 return rply
+                /*
             case /(^[.]level$)/i.test(mainMsg[0]) && /^showMeTheWorld$/i.test(mainMsg[1]):
                 //顯示全世界頭六名排名
                 if (rply.trpgLevelSystemfunction) {
@@ -436,6 +436,8 @@ try {
                     rply.text = rankingList(tempPush, RankNumber, "世界排行榜");
                 }
                 return rply
+
+                */
             default:
                 break;
 

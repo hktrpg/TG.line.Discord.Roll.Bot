@@ -35,6 +35,8 @@ try {
         \n 輸入.level RankWord/LevelUpWord del 即使用預設字句\
         \n 輸入.level RankWord/LevelUpWord show 即顯示現在設定\
         \n 輸入.level show 可以查詢你現在的等級\
+        \n 輸入.level showMe 可以查詢這群組排名\
+        \n 輸入.level showMeTheWorld 可以查詢全世界排名(誤\
         \n 修改內容可使用不同代碼\
         \n {user.name} 名字 {user.level} 等級 \
         \n {user.exp} 經驗值 {user.Ranking} 現在排名 \
@@ -332,7 +334,7 @@ try {
                                             let usermember_count = membercount || rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length;
                                             let userRanking = ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);
                                             let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
-                                            
+
                                             //{user.name} 名字 {user.level} 等級 \
                                             // { user.exp } 經驗值 { user.Ranking } 現在排名 \
                                             // { user.RankingPer} 現在排名百分比 \
@@ -381,7 +383,90 @@ try {
                 //顯示資料庫
                 //rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
                 return rply
+            case /(^[.]level$)/i.test(mainMsg[0]) && /^showMe$/i.test(mainMsg[1]):
+                //顯示群組頭五名排名
+                if (groupid) {
+                    let temp = 0;
+                    let tempHaveUser = 0;
+                    // let rankWord = "{user.name}，你的克蘇魯神話知識現在是 {user.level}點！\n現在排名是{server.member_count}人中的第{user.Ranking}名！{user.RankingPer}！\n調查經驗是{user.exp}點。 "
 
+                    if (rply.trpgLevelSystemfunction)
+                        for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
+                            if (rply.trpgLevelSystemfunction[i].groupid == groupid) {
+                                //rply.text += '資料庫列表:'
+                                //1.    讀取 群組有沒有開啓功能
+                                if (rply.trpgLevelSystemfunction[i].Switch == 1) {
+                                    temp = 1;
+                                    //5.    讀取群組的排名語
+                                    if (rply.trpgLevelSystemfunction[i].RankWord) {
+                                        rankWord = rply.trpgLevelSystemfunction[i].RankWord
+                                    }
+
+                                    //3.    ->有   檢查有沒有個人資料
+                                    for (var a = 0; a < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
+                                        if (rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].userid == userid) {
+                                            tempHaveUser = 1;
+                                            let username = displaynameDiscord || displayname || "無名"
+
+                                            let userlevel = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level;
+                                            let userexp = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].EXP;
+                                            //console.log('rply.trpgLevelSystemfunction[i]',
+                                            let usermember_count = membercount || rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length;
+                                            let userRanking = ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);
+                                            let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
+
+                                            //{user.name} 名字 {user.level} 等級 \
+                                            // { user.exp } 經驗值 { user.Ranking } 現在排名 \
+                                            // { user.RankingPer} 現在排名百分比 \
+                                            // { server.member_count } 現在頻道中總人數 \
+
+                                            if ((5 / 6 * (Number(rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level) + 1) * (2 * (Number(rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level) + 1) * (Number(rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level) + 1) + 27 * (Number(rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level) + 1) + 91)) <= rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].EXP) {
+                                                //現EXP >於需求LV
+                                                //LVUP
+                                                let TMEPuserlevel = Number(userlevel) + 1
+                                                rply.text = rankWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, TMEPuserlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count)
+                                            } else {
+                                                rply.text = rankWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count)
+                                            }
+
+                                        }
+
+                                    } //2.    ->沒有 告知開啓
+                                    if (tempHaveUser == 0) {
+                                        //4.    沒有則新增一個, 隨機1-10 給經驗值.
+                                        let username = displaynameDiscord || displayname || "無名"
+                                        let userlevel = 0;
+                                        let userexp = Math.floor(Math.random() * 15) + 10
+                                        //console.log('rply.trpgLevelSystemfunction[i]',
+                                        let usermember_count = membercount || rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length;
+                                        let userRanking = ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);
+                                        let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
+
+                                        //{user.name} 名字 {user.level} 等級 \
+                                        // { user.exp } 經驗值 { user.Ranking } 現在排名 \
+                                        // { user.RankingPer} 現在排名百分比 \
+                                        // { server.member_count } 現在頻道中總人數 \
+                                        rply.text = rankWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count)
+
+                                    }
+                                }
+
+                            }
+                        }
+
+                    if (temp == 0) rply.text = '此群組並有沒有開啓LEVEL功能. \n.level config 11 代表啓動功能 \
+                    \n 數字11代表等級升級時會進行通知，10代表不會自動通知，\
+                    \n 00的話代表不啓動功能\n'
+                } else {
+                    rply.text = '不在群組. '
+                }
+                //顯示資料庫
+                //rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
+                return rply
+            case /(^[.]level$)/i.test(mainMsg[0]) && /^showMeTheWorld$/i.test(mainMsg[1]):
+                //顯示全世界頭六名排名
+
+                break;
 
             default:
                 break;

@@ -32,12 +32,15 @@ try {
         \n\
         \n 輸入.level LevelUpWord (內容) 修改在這群組升級時彈出的升級語\
         \n 輸入.level RankWord (內容) 修改在這群組查詢等級時的回應\
+        \n 輸入.level Title -(LV) (內容) 修改稱號，大於LV數即會套用\
+        \n 建議由-0開始\
         \n 輸入.level RankWord/LevelUpWord del 即使用預設字句\
         \n 輸入.level RankWord/LevelUpWord show 即顯示現在設定\
         \n 輸入.level show 可以查詢你現在的等級\
         \n 輸入.level showMe (數字)可以查詢這群組排名\
         \n 修改內容可使用不同代碼\
         \n {user.name} 名字 {user.level} 等級 \
+        \n {user.title} 稱號 \
         \n {user.exp} 經驗值 {user.Ranking} 現在排名 \
         \n {user.RankingPer} 現在排名百分比 \
         \n {server.member_count} 現在頻道中總人數 \
@@ -417,27 +420,27 @@ try {
                 //顯示資料庫
                 //rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
                 return rply
-                /*
-            case /(^[.]level$)/i.test(mainMsg[0]) && /^showMeTheWorld$/i.test(mainMsg[1]):
-                //顯示全世界頭六名排名
-                if (rply.trpgLevelSystemfunction) {
-                    let tempPush = [];
-                    let RankNumber = "6"
-                    if (mainMsg[2]) {
-                        if (mainMsg[2] > 5 && mainMsg[2] < 21)
-                            RankNumber = mainMsg[2]
-                    }
-                    for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
-                        for (var a = 0; a < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
-                            tempPush.push(rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a])
-                        }
-
-                    }
-                    rply.text = rankingList(tempPush, RankNumber, "世界排行榜");
+            /*
+        case /(^[.]level$)/i.test(mainMsg[0]) && /^showMeTheWorld$/i.test(mainMsg[1]):
+            //顯示全世界頭六名排名
+            if (rply.trpgLevelSystemfunction) {
+                let tempPush = [];
+                let RankNumber = "6"
+                if (mainMsg[2]) {
+                    if (mainMsg[2] > 5 && mainMsg[2] < 21)
+                        RankNumber = mainMsg[2]
                 }
-                return rply
+                for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
+                    for (var a = 0; a < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
+                        tempPush.push(rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a])
+                    }
 
-                */
+                }
+                rply.text = rankingList(tempPush, RankNumber, "世界排行榜");
+            }
+            return rply
+
+            */
             default:
                 break;
 

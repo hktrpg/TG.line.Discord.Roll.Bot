@@ -424,9 +424,9 @@ try {
         }
         function rankingList(who) {
             var array = [];
-
-            for (var key in trpgLevelSystemfunction) {
-                array.push(trpgLevelSystemfunction[key]);
+            let answer = ""
+            for (var key in who) {
+                array.push(who[key]);
 
             }
 
@@ -442,18 +442,18 @@ try {
                 array[i].rank = rank;
             }
             for (var b = 0; b < 5; b++) {
-                if (array[b]) {
+                if (array && array[b]) {
                     if (b == 0) {
                         answer += "群組排行榜\n┌"
                     } else
-                        if (b < 5 || b < array.length) {
+                        if (b < 5 && b < array.length - 1) {
                             answer += "├"
                         }
                         else
-                            if (b == 5 || b == array.length) {
+                            if (b == 5 || b == array.length - 1) {
                                 answer += "└"
                             }
-                    answer += ("第", Number([b]) + 1, "名 ", array[b].nickname, " ", array[b].EXP, "\n");
+                    answer += "第" + (Number([b]) + 1) + "名 " + array[b].name + " " + array[b].EXP + "點經驗\n";
                 }
             }
             return answer;

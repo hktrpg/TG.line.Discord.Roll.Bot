@@ -540,7 +540,6 @@ var trpgLevelSystemfunction = [{
         EXP: 500
     }
 ];
-
 function rankingList(who) {
     var array = [];
 
@@ -561,12 +560,11 @@ function rankingList(who) {
         array[i].rank = rank;
     }
     for (var b = 0; b < array.length; b++) {
-        if (array[b].nickname == who)
-            document.write(b + 1);
+            document.write("第",Number([b])+1, "名 ",array[b].nickname ," ",array[b].EXP," <br\>");
 
     }
 
 
 }
-ranking('Joe');
+rankingList('Joe');
 */

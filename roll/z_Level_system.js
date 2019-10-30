@@ -397,7 +397,7 @@ try {
                                     //3.    ->有   檢查有沒有個人資料
                                     for (var a = 0; a < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
                                         if (rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].userid == userid) {
-                                            rply.text = rankingList(rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);
+                                            rply.text = rankingList(rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction, 5, "群組排行榜");
                                         }
                                     } //2.    ->沒有 告知開啓
                                 }
@@ -415,6 +415,19 @@ try {
                 return rply
             case /(^[.]level$)/i.test(mainMsg[0]) && /^showMeTheWorld$/i.test(mainMsg[1]):
                 //顯示全世界頭六名排名
+                if (rply.trpgLevelSystemfunction) {
+                    let tempPush = [];
+
+                    for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
+                        for (var a = 0; a < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
+                            tempPush.push(rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a])
+                        }
+
+                    }
+                    console.log(tempPush[0].name)
+                    rply.text = rankingList(tempPush, 6, "世界排行榜");
+                }
+                return rply
 
                 break;
 
@@ -422,7 +435,7 @@ try {
                 break;
 
         }
-        function rankingList(who) {
+        function rankingList(who, RankNumber, Title) {
             var array = [];
             let answer = ""
             for (var key in who) {
@@ -441,19 +454,19 @@ try {
                 }
                 array[i].rank = rank;
             }
-            for (var b = 0; b < 5; b++) {
+            for (var b = 0; b < RankNumber; b++) {
                 if (array && array[b]) {
                     if (b == 0) {
-                        answer += "群組排行榜\n┌"
+                        answer += Title + "\n┌"
                     } else
-                        if (b < 5 && b < array.length - 1) {
+                        if (b < RankNumber - 1 && b < array.length - 1) {
                             answer += "├"
                         }
                         else
-                            if (b == 5 || b == array.length - 1) {
+                            if (b == RankNumber - 1 || b == array.length - 1) {
                                 answer += "└"
                             }
-                    answer += "第" + (Number([b]) + 1) + "名 " + array[b].name + " " + array[b].EXP + "點經驗\n";
+                    answer += "第" + (Number([b]) + 1) + "名 " + array[b].name + " " + array[b].Level + "級\n";
                 }
             }
             return answer;
@@ -462,7 +475,7 @@ try {
 
         function ranking(who, data) {
             var array = [];
-            let answer = "0"
+            let answer = ""
             for (var key in data) {
                 array.push(data[key]);
 

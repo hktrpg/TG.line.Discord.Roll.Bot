@@ -446,7 +446,7 @@ try {
                     if (b == 0) {
                         answer += "群組排行榜\n┌"
                     } else
-                        if (b < 5 && b < array.length - 1) {
+                        if (b < 4 && b < array.length - 1) {
                             answer += "├"
                         }
                         else

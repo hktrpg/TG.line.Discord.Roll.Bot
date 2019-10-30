@@ -541,7 +541,7 @@ var trpgLevelSystemfunction = [{
     }
 ];
 
-function ranking(who) {
+function rankingList(who) {
     var array = [];
 
     for (var key in trpgLevelSystemfunction) {

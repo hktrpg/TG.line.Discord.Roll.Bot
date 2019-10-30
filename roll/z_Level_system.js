@@ -35,8 +35,8 @@ try {
         \n 輸入.level RankWord/LevelUpWord del 即使用預設字句\
         \n 輸入.level RankWord/LevelUpWord show 即顯示現在設定\
         \n 輸入.level show 可以查詢你現在的等級\
-        \n 輸入.level showMe 可以查詢這群組排名\
-        \n 輸入.level showMeTheWorld 可以查詢全世界排名(誤\
+        \n 輸入.level showMe (數字)可以查詢這群組排名\
+        \n 輸入.level showMeTheWorld (數字)可以查詢全世界排名(誤\
         \n 修改內容可使用不同代碼\
         \n {user.name} 名字 {user.level} 等級 \
         \n {user.exp} 經驗值 {user.Ranking} 現在排名 \
@@ -387,6 +387,11 @@ try {
                 //顯示群組頭五名排名
                 if (groupid) {
                     let temp = 0;
+                    let RankNumber = "5"
+                    if (mainMsg[2]) {
+                        if (mainMsg[2] > 5 && mainMsg[2] < 21)
+                            RankNumber = mainMsg[2]
+                    }
                     if (rply.trpgLevelSystemfunction)
                         for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
                             if (rply.trpgLevelSystemfunction[i].groupid == groupid) {
@@ -397,7 +402,7 @@ try {
                                     //3.    ->有   檢查有沒有個人資料
                                     for (var a = 0; a < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
                                         if (rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].userid == userid) {
-                                            rply.text = rankingList(rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction, 5, "群組排行榜");
+                                            rply.text = rankingList(rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction, RankNumber, "群組排行榜");
                                         }
                                     } //2.    ->沒有 告知開啓
                                 }
@@ -417,20 +422,20 @@ try {
                 //顯示全世界頭六名排名
                 if (rply.trpgLevelSystemfunction) {
                     let tempPush = [];
-
+                    let RankNumber = "6"
+                    if (mainMsg[2]) {
+                        if (mainMsg[2] > 5 && mainMsg[2] < 21)
+                            RankNumber = mainMsg[2]
+                    }
                     for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
                         for (var a = 0; a < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
                             tempPush.push(rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a])
                         }
 
                     }
-                    console.log(tempPush[0].name)
-                    rply.text = rankingList(tempPush, 6, "世界排行榜");
+                    rply.text = rankingList(tempPush, RankNumber, "世界排行榜");
                 }
                 return rply
-
-                break;
-
             default:
                 break;
 
@@ -466,11 +471,17 @@ try {
                             if (b == RankNumber - 1 || b == array.length - 1) {
                                 answer += "└"
                             }
-                    answer += "第" + (Number([b]) + 1) + "名 " + array[b].name + " " + array[b].Level + "級\n";
+                    answer += "第" + (Number([b]) + 1) + "名 " + array[b].name + " " + array[b].Level + "級 " + kMGTPE(array[b].EXP, 2) + "經驗\n";
                 }
             }
             return answer;
 
+        }
+        //將千位以上變成約數
+        function kMGTPE(n, d) {
+            x = ('' + n).length, p = Math.pow, d = p(10, d)
+            x -= x % 3
+            return Math.round(n * d / p(10, x)) / d + " kMGTPE"[x / 3]
         }
 
         function ranking(who, data) {

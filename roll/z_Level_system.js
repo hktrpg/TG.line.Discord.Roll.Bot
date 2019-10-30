@@ -472,6 +472,42 @@ try {
                 break;
 
         }
+        function rankingList(who) {
+            var array = [];
+
+            for (var key in trpgLevelSystemfunction) {
+                array.push(trpgLevelSystemfunction[key]);
+
+            }
+
+            array.sort(function (a, b) {
+                return b.EXP - a.EXP;
+            });
+
+            var rank = 1;
+            for (var i = 0; i < array.length; i++) {
+                if (i > 0 && array[i].EXP < array[i - 1].EXP) {
+                    rank++;
+                }
+                array[i].rank = rank;
+            }
+            for (var b = 0; b < 5; b++) {
+                if (array[b]) {
+                    if (b == 0) {
+                        answer += "群組排行榜\n┌"
+                    } else
+                        if (b == 1) {
+
+                        }
+                    if (b == 5 || b == array.length) {
+
+                    }
+                    answer += ("第", Number([b]) + 1, "名 ", array[b].nickname, " ", array[b].EXP, "\n");
+                }
+            }
+
+
+        }
 
         function ranking(who, data) {
             var array = [];
@@ -567,4 +603,10 @@ function rankingList(who) {
 
 }
 rankingList('Joe');
+
+┌
+├
+├
+├
+└
 */

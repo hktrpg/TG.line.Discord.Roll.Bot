@@ -77,6 +77,13 @@ if (process.env.mongoURL) {
             type: String,
             default: "0"
         },
+        //大於此Lvl即為稱號.
+        Title: [
+            {
+                Lvl: String,
+                Title: String
+            }
+        ],
         //是否顯示升級語 config X1 則1
         trpgLevelSystemfunction: [{
             userid: String,

@@ -589,4 +589,27 @@ rankingList('Joe');
 ├
 ├
 └
+
+
+
+let a = ".lev  -3 a -34 bc -1 DEF -2   Gh i -30 JK -45 ab 23"
+let b = /-(\d+)\s+(\S+)/ig
+let e = /-(\d+)\s+(\S+)/
+
+
+
+let c = a.match(b);
+document.write(c,"<br\>");
+for (var z=0 ;z<c.length;z++)
+{
+document.write(z," ", c[z],"<br\>");
+}
+document.write("<br\>");
+let d=[];
+for (var i=0 ;i<c.length;i++)
+{
+d[i]=e.exec(c[i])
+
+document.write(i,"",b.lastIndex," ",d[i],"<br\>");
+}
 */

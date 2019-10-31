@@ -48,11 +48,13 @@ getHelpMessage = function () {
 \n ((2d6+1)*2)-5/2>=10 ：	支援括號加減乘除及大於小於(>,<,>=,<=)計算\
 \n  \
 \n TRPG百科 https://www.hktrpg.com/\
-\n 意見留言版 https://www.hktrpg.com/board/viewforum.php?f=3\
+\n 意見留言版 https://www.hktrpg.com/board/\
 \n  \
 \n Line版 https://line.me/R/ti/p/svMLqy9Mik\
 \n Discord版 https://discordapp.com/oauth2/authorize?&client_id=544462904037081138&scope=bot&permissions=8\
 \n Telegram版 http://t.me/hktrpg_bot\
+\n 網頁版 https://www.hktrpg.com/tool/rollbot.html\
+\n 簡易骰子 https://www.hktrpg.com/tool/roll.html\
 \n \
 \n 源代碼 https://github.com/hktrpg/TG.line.Discord.Roll.Bot\
 		\n "

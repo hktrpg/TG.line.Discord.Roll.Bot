@@ -9,8 +9,8 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			exports[name] = require('../modules/' + file);
 		}
 	});
-	var Linecountroll = 0;
-	var Linecounttext = 0;
+	//var Linecountroll = 0;
+	//var Linecounttext = 0;
 	const line = require('@line/bot-sdk');
 	const express = require('express');
 
@@ -32,9 +32,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		});
 
 	*/
-	const BootTime = new Date(new Date().toLocaleString("en-US", {
-		timeZone: "Asia/Shanghai"
-	}));
+	//const BootTime = new Date(new Date().toLocaleString("en-US", {
+	//	timeZone: "Asia/Shanghai"
+	//}));
 
 
 	// create LINE SDK config from env variables
@@ -145,7 +145,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			}
 
 			if (rplyVal && rplyVal.text) {
-				Linecountroll++;
+				//Linecountroll++;
 				if (privatemsg >= 1) {
 					//當是私訊模式1-3時
 					var TargetGMTempID = []
@@ -173,8 +173,8 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						if (roomorgroupid && userid && displaynamecheck)
 							if (displayname)
 								SendToId(roomorgroupid, "@" + displayname + ' 暗骰給自己')
-							else
-								SendToId(roomorgroupid, '正在暗骰給自己')
+						else
+							SendToId(roomorgroupid, '正在暗骰給自己')
 						if (userid)
 							if (displayname && displaynamecheck)
 								SendToId(userid, "@" + displayname + '的暗骰\n' + rplyVal.text);
@@ -237,19 +237,19 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						break;
 				}
 			} else {
-				Linecounttext++;
-				if (Linecounttext % 500 == 0)
-					console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext);
+				//Linecounttext++;
+				//if (Linecounttext % 500 == 0)
+				//	console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext);
 			}
 			//rplyVal.text
 			async function SendToId(targetid, ReplyText) {
 				for (var i = 0; i < ReplyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 					if (i == 0 || i == 1 || i == ReplyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == ReplyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
 						await client.pushMessage(targetid, replymessage(ReplyText.toString().match(/[\s\S]{1,1900}/g)[i]))
-							.then(() => { })
-							.catch((err) => {
-								// error handling
-							});
+						.then(() => {})
+						.catch((err) => {
+							// error handling
+						});
 				}
 			}
 			// create a echoing text message

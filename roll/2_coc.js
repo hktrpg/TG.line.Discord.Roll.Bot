@@ -14,7 +14,8 @@ gameType = function () {
 }
 prefixs = function () {
 	return [/(^ccrt$)|(^ccsu$)|(^cc7版創角$)|(^[.]cc7build$)|(^[.]cc6build$)|(^[.]cc7bg$)|(^cc6版創角$)|(^cc7版角色背景$)/i, ,
-		/(^ccb$)|(^cc$)|(^ccn[1-2]$)|(^cc[1-2]$)|(^[.]dp$)|(^成長檢定$)|(^幕間成長$)/i, /^(\d+)|(help)$/i]
+		/(^ccb$)|(^cc$)|(^ccn[1-2]$)|(^cc[1-2]$)|(^[.]dp$)|(^成長檢定$)|(^幕間成長$)/i, /^(\d+)|(help)$/i
+	]
 }
 getHelpMessage = function () {
 	return "【克蘇魯神話】" + "\
@@ -328,34 +329,37 @@ function DevelopmentPhase(target, text) {
 }
 
 function ccrt() {
-	var rollcc = Math.floor(Math.random() * 10);
-	var time = Math.floor(Math.random() * 10) + 1;
-	var PP = Math.floor(Math.random() * 100);
+	//var rollcc = Math.floor(Math.random() * 10);
+	//var time = Math.floor(Math.random() * 10) + 1;
+	//var PP = Math.floor(Math.random() * 100);
+	let rollcc = rollbase.Dice(10) - 1
+	let time = rollbase.Dice(10)
+	let PP = rollbase.Dice(100) - 1
 	if (rollcc <= 7) {
 		rply.text = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數';
 	} else
-		if (rollcc == 8) {
-			rply.text = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數' + ' \n' + cocManias[PP];
-		} else
-			if (rollcc == 9) {
-				rply.text = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數' + ' \n' + cocPhobias[PP];
-			};
+	if (rollcc == 8) {
+		rply.text = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數' + ' \n' + cocManias[PP];
+	} else
+	if (rollcc == 9) {
+		rply.text = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數' + ' \n' + cocPhobias[PP];
+	};
 	return rply;
 }
 
 function ccsu() {
-	var rollcc = Math.floor(Math.random() * 10);
-	var time = Math.floor(Math.random() * 10) + 1;
-	var PP = Math.floor(Math.random() * 100);
+	let rollcc = rollbase.Dice(10) - 1
+	let time = rollbase.Dice(10)
+	let PP = rollbase.Dice(100) - 1
 	if (rollcc <= 7) {
 		rply.text = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時';
 	} else
-		if (rollcc == 8) {
-			rply.text = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時' + ' \n' + cocManias[PP];
-		} else
-			if (rollcc == 9) {
-				rply.text = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時' + ' \n' + cocPhobias[PP];
-			};
+	if (rollcc == 8) {
+		rply.text = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時' + ' \n' + cocManias[PP];
+	} else
+	if (rollcc == 9) {
+		rply.text = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時' + ' \n' + cocPhobias[PP];
+	};
 	return rply;
 }
 
@@ -498,8 +502,8 @@ function build7char(text01) {
 	ReStr = ReStr + '==\n';
 	if (old < 20) ReStr = ReStr + '年齡調整：從STR、SIZ擇一減去' + Debuff + '點\n（請自行手動選擇計算）。\n將EDU減去5點。LUK可擲兩次取高。';
 	else
-		if (old >= 40) ReStr = ReStr + '年齡調整：從STR、CON或DEX中「總共」減去' + Debuff + '點\n（請自行手動選擇計算）。\n將APP減去' + AppDebuff + '點。可做' + EDUinc + '次EDU的成長擲骰。';
-		else ReStr = ReStr + '年齡調整：可做' + EDUinc + '次EDU的成長擲骰。';
+	if (old >= 40) ReStr = ReStr + '年齡調整：從STR、CON或DEX中「總共」減去' + Debuff + '點\n（請自行手動選擇計算）。\n將APP減去' + AppDebuff + '點。可做' + EDUinc + '次EDU的成長擲骰。';
+	else ReStr = ReStr + '年齡調整：可做' + EDUinc + '次EDU的成長擲骰。';
 	ReStr = ReStr + '\n==';
 	if (old >= 40) ReStr = ReStr + '\n（以下箭號三項，自選共減' + Debuff + '點。）';
 	if (old < 20) ReStr = ReStr + '\n（以下箭號兩項，擇一減去' + Debuff + '點。）';
@@ -608,7 +612,8 @@ function PcBG() {
 	let MeaningfulLocationsArr = ['過去就讀的學校', '他的故鄉', '與他的初戀之人相遇之處', '某個可以安靜沉思的地方', '某個類似酒吧或是熟人的家那樣的社交場所', '與他的信念息息相關的地方', '埋葬著某個對調查員別具意義的人的墓地', '他從小長大的那個家', '他生命中最快樂時的所在', '他的工作場所'];
 	let TreasuredPossessionsArr = ['一個與他最擅長的技能（點數最高的職業技能）相關的物品', '一件他的在工作上需要用到的必需品', '一個從他童年時就保存至今的寶物', '一樣由調查員最重要的人給予他的物品', '一件調查員珍視的蒐藏品', '一件調查員無意間發現，但不知道到底是什麼的東西，調查員正努力尋找答案', '某種體育用品', '一把特別的武器', '他的寵物'];
 	let TraitsArr = ['慷慨大方的人', '對動物很友善的人', '善於夢想的人', '享樂主義者', '甘冒風險的賭徒或冒險者', '善於料理的人', '萬人迷', '忠心耿耿的人', '有好名聲的人', '充滿野心的人'];
-
-	rply.text = '背景描述生成器（僅供娛樂用，不具實際參考價值）\n==\n調查員是一個' + PersonalDescriptionArr[Math.floor((Math.random() * (PersonalDescriptionArr.length)) + 0)] + '人。\n【信念】：說到這個人，他' + IdeologyBeliefsArr[Math.floor((Math.random() * (IdeologyBeliefsArr.length)) + 0)] + '。\n【重要之人】：對他來說，最重要的人是' + SignificantPeopleArr[Math.floor((Math.random() * (SignificantPeopleArr.length)) + 0)] + '，這個人對他來說之所以重要，是因為' + SignificantPeopleWhyArr[Math.floor((Math.random() * (SignificantPeopleWhyArr.length)) + 0)] + '。\n【意義非凡之地】：對他而言，最重要的地點是' + MeaningfulLocationsArr[Math.floor((Math.random() * (MeaningfulLocationsArr.length)) + 0)] + '。\n【寶貴之物】：他最寶貴的東西就是' + TreasuredPossessionsArr[Math.floor((Math.random() * (TreasuredPossessionsArr.length)) + 0)] + '。\n【特徵】：總括來說，調查員是一個' + TraitsArr[Math.floor((Math.random() * (TraitsArr.length)) + 0)] + '。';
+	//PersonalDescriptionArr.length
+	//IdeologyBeliefsArr.length
+	rply.text = '背景描述生成器（僅供娛樂用，不具實際參考價值）\n==\n調查員是一個' + PersonalDescriptionArr[rollbase.Dice(PersonalDescriptionArr.length) - 1] + '人。\n【信念】：說到這個人，他' + IdeologyBeliefsArr[rollbase.Dice(IdeologyBeliefsArr.length) - 1] + '。\n【重要之人】：對他來說，最重要的人是' + SignificantPeopleArr[rollbase.Dice(SignificantPeopleArr.length) - 1] + '，這個人對他來說之所以重要，是因為' + SignificantPeopleWhyArr[rollbase.Dice(SignificantPeopleWhyArr.length) - 1] + '。\n【意義非凡之地】：對他而言，最重要的地點是' + MeaningfulLocationsArr[rollbase.Dice(MeaningfulLocationsArr.length) - 1] + '。\n【寶貴之物】：他最寶貴的東西就是' + TreasuredPossessionsArr[rollbase.Dice(TreasuredPossessionsArr.length) - 1] + '。\n【特徵】：總括來說，調查員是一個' + TraitsArr[rollbase.Dice(TraitsArr.length) - 1] + '。';
 	return rply;
 }

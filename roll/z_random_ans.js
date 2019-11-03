@@ -4,6 +4,7 @@ try {
         type: 'text',
         text: ''
     };
+    const math = require('mathjs');
     const records = require('../modules/records.js');
     records.get('randomAns', (msgs) => {
         rply.randomAnsfunction = msgs
@@ -42,7 +43,7 @@ try {
     }
 
     rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-       
+
         rply.text = '';
         switch (true) {
             case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
@@ -356,7 +357,9 @@ try {
         while (0 !== currentIndex) {
 
             // Pick a remaining element...
-            randomIndex = Math.floor(Math.random() * currentIndex);
+            //currentIndex 
+            randomIndex = math.floor(math.random() * currentIndex);
+            //randomIndex = rollbase.Dice(currentIndex) - 1
             currentIndex -= 1;
 
             // And swap it with the current element.

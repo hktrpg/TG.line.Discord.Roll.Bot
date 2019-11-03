@@ -7,6 +7,14 @@ require('fs').readdirSync('./roll/').forEach(function (file) {
 	}
 });
 const records = require('../modules/records.js');
+const math = require('mathjs');
+const BootTime = new Date(new Date().toLocaleString("en-US", {
+	timeZone: "Asia/Shanghai"
+}));
+var CountTime = {};
+//Log everyday 01:00
+//Format: 
+//TG
 try {
 	let result = {
 		text: '',
@@ -108,7 +116,7 @@ try {
 						trpgLevelSystemfunction: {
 							userid: userid,
 							name: displayname || '無名',
-							EXP: Math.floor(Math.random() * 10) + 15,
+							EXP: math.floor(math.random() * 10) + 15,
 							Level: "0",
 							LastSpeakTime: Date.now()
 						}
@@ -127,7 +135,7 @@ try {
 				} else if (tempIsUser != 0) {
 					//4. 有-> 檢查上次紀錄的時間 超過60001 (1分鐘) 即增加1-10 經驗值
 					if (new Date(Date.now()) - new Date(exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].LastSpeakTime) > 60001) {
-						exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP + Math.floor(Math.random() * 10) + 15;
+						exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP + math.floor(math.random() * 10) + 15;
 						exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].LastSpeakTime = Date.now();
 						exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].name = displaynameDiscord || displayname || '無名'
 						//5. 檢查現LEVEL 需不需要上升. =5 / 6 * LVL * (2 * LVL * LVL + 27 * LVL + 91)
@@ -164,7 +172,7 @@ try {
 			//console.log('rply.trpgLevelSystemfunction[i]',
 			let usermember_count = membercount || exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.length;
 			let userRanking = ranking(userid, exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction);
-			let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
+			let userRankingPer = math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
 			let tempUPWord = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].LevelUpWord || "恭喜 {user.name}，你的克蘇魯神話知識現在是 {user.level}點了！\n現在排名是{server.member_count}人中的第{user.Ranking}名！"
 			return tempUPWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count)
 			//2. 回應BOT

@@ -1,6 +1,7 @@
 # RoboYabaso@HKTRPG </br> 
-【HKTRPG擲骰BOT】v1.17.419</br> 
-最後更新時間6/28/2019, 1:47:48 PM </br> </br> 
+【HKTRPG擲骰BOT】v1.20</br> 
+最後更新時間10/31/2019, 8:59:11 PM</br> 
+2019/07/21 香港克警合作 黑ICON紀念 </br> </br> 
 
 關於RoboYabaso</br> 
 ==

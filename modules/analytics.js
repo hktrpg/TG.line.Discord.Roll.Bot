@@ -6,7 +6,36 @@ require('fs').readdirSync('./roll/').forEach(function (file) {
 		exports[name] = require('../roll/' + file);
 	}
 });
+
+var RollingLog = {
+	RealTimeRollingLogfunction: {
+		StartTime: "",
+		DiscordCountRoll: 0,
+		DiscordCountText: 0,
+		LineCountRoll: 0,
+		LineCountText: 0,
+		TelegramCountRoll: 0,
+		TelegramCountText: 0
+	},
+	RollingLogfunction: [{
+		LogTime: "",
+		DiscordCountRoll: 0,
+		DiscordCountText: 0,
+		LineCountRoll: 0,
+		LineCountText: 0,
+		TelegramCountRoll: 0,
+		TelegramCountText: 0
+	}]
+};
 const records = require('../modules/records.js');
+
+records.get('RollingLog', (msgs) => {
+	console.log(msgs)
+	if (msgs && msgs.RealTimeRollingLogfunction)
+		RollingLog = msgs
+
+})
+
 const math = require('mathjs');
 const BootTime = new Date(new Date().toLocaleString("en-US", {
 	timeZone: "Asia/Shanghai"
@@ -74,13 +103,46 @@ try {
 		if (groupid)
 			EXPUP();
 		if (result && (result.text || result.LevelUp)) {
-			if (result.text)
+			if (result.text) {
 				console.log('inputStr: ', inputStr)
+				if (!RollingLog.RealTimeRollingLogfunction.StartTime) {
+					RollingLog.RealTimeRollingLogfunction.StartTime = BootTime
+				}
+				switch (botname) {
+					case "Discord":
+						RollingLog.RealTimeRollingLogfunction.DiscordCountRoll++
+						break;
+					case "Line":
+						RollingLog.RealTimeRollingLogfunction.LineCountRoll++;
+						break;
+					case "Telegram":
+						RollingLog.RealTimeRollingLogfunction.TelegramCountRoll++
+						break;
+					default:
+						break;
+				}
+			}
 			if (result.LevelUp)
 				console.log('LV UP')
 			return result;
 
+		} else {
+			switch (botname) {
+				case "Discord":
+					RollingLog.RealTimeRollingLogfunction.DiscordCountText++
+					break;
+				case "Line":
+					RollingLog.RealTimeRollingLogfunction.LineCountText++;
+					break;
+				case "Telegram":
+					RollingLog.RealTimeRollingLogfunction.TelegramCountText++
+					break;
+				default:
+					break;
+			}
 		}
+		console.log(RollingLog)
+		return null;
 
 
 		function EXPUP() {

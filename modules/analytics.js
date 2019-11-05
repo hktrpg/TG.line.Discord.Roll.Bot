@@ -6,7 +6,7 @@ require('fs').readdirSync('./roll/').forEach(function (file) {
 		exports[name] = require('../roll/' + file);
 	}
 });
-
+let simpleCourt = 0;
 var RollingLog = {
 	RealTimeRollingLogfunction: {
 		StartTime: "",
@@ -105,20 +105,26 @@ try {
 		if (result && (result.text || result.LevelUp)) {
 			if (result.text) {
 				console.log('inputStr: ', inputStr)
+
+				//SAVE THE LOG
 				if (!RollingLog.RealTimeRollingLogfunction.StartTime) {
 					RollingLog.RealTimeRollingLogfunction.StartTime = BootTime
 				}
 				switch (botname) {
 					case "Discord":
 						RollingLog.RealTimeRollingLogfunction.DiscordCountRoll++
-						break;
+
 					case "Line":
 						RollingLog.RealTimeRollingLogfunction.LineCountRoll++;
-						break;
+
 					case "Telegram":
 						RollingLog.RealTimeRollingLogfunction.TelegramCountRoll++
-						break;
+
 					default:
+						simpleCourt++;
+						if (simpleCourt % 500 == 0) {
+
+						}
 						break;
 				}
 			}
@@ -130,14 +136,18 @@ try {
 			switch (botname) {
 				case "Discord":
 					RollingLog.RealTimeRollingLogfunction.DiscordCountText++
-					break;
+
 				case "Line":
 					RollingLog.RealTimeRollingLogfunction.LineCountText++;
-					break;
+
 				case "Telegram":
 					RollingLog.RealTimeRollingLogfunction.TelegramCountText++
-					break;
+
 				default:
+					simpleCourt++;
+					if (simpleCourt % 500 == 0) {
+
+					}
 					break;
 			}
 		}

@@ -49,32 +49,33 @@ try {
     initialize = function () {
         return rply;
     }
-    const Title = [
-        { Lvl: 0, Title: "無名調查員" }, { Lvl: 4, Title: "調查員" }, { Lvl: 8, Title: "記者" },
-        { Lvl: 11, Title: "偵探" }, { Lvl: 14, Title: "考古家" }, { Lvl: 18, Title: "神秘學家" },
-        { Lvl: 21, Title: "狂信徒" }, { Lvl: 24, Title: "教主" }, { Lvl: 28, Title: "眷族" },
-        { Lvl: 31, Title: "眷族首領" }, { Lvl: 34, Title: "化身" }, { Lvl: 38, Title: "舊神" },
-        { Lvl: 41, Title: "舊日支配者" }, { Lvl: 44, Title: "外神" }, { Lvl: 48, Title: "門" }
-    ]
-    /*
-    稱號
+    var Title = []
 
-    0-3     無名調查員
-    4-7     調查員
-    8-10    記者    
-    11-13   偵探
-    14-17   考古家
-    18-20   神秘學家
-    21-23   狂信徒
-    24-27   教主
-    28-30   眷族
-    31-33   眷族首領
-    34-37   化身
-    38-40   舊神
-    41-43   舊日支配者
-    44-47   外神
-    48-50   門
-    */
+    Title[0] = "無名調查員"; Title[4] = "調查員"; Title[8] = "記者";
+    Title[11] = "偵探"; Title[14] = "考古家"; Title[18] = "神秘學家";
+    Title[21] = "狂信徒"; Title[24] = "教主"; Title[28] = "眷族";
+    Title[31] = "眷族首領"; Title[34] = "化身"; Title[38] = "舊神";
+    Title[41] = "舊日支配者"; Title[44] = "外神"; Title[48] = "門";
+    console.log(Title)
+    /*
+        稱號
+    
+        0-3     無名調查員
+        4-7     調查員
+        8-10    記者    
+        11-13   偵探
+        14-17   考古家
+        18-20   神秘學家
+        21-23   狂信徒
+        24-27   教主
+        28-30   眷族
+        31-33   眷族首領
+        34-37   化身
+        38-40   舊神
+        41-43   舊日支配者
+        44-47   外神
+        48-50   門
+        */
     rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
         rply.text = '';
         switch (true) {
@@ -85,15 +86,13 @@ try {
                 return rply;
             // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
             //
-            //
             //稱號
-            //
             //
             case /(^[.]level$)/i.test(mainMsg[0]) && /^TitleWord$/i.test(mainMsg[1]):
                 //console.log('mainMsg: ', mainMsg)
                 //增加資料庫
                 //檢查有沒有重覆
-                let checkifsamename = 0
+                let checkifsamenameTitle = 0
                 if (groupid && userrole >= 2 && mainMsg[2] && inputStr.toString().match(/[\s\S]{1,1900}/g).length <= 1 && !mainMsg[2].match(/^show$/)) {
                     if (rply.trpgLevelSystemfunction)
                         for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
@@ -101,7 +100,7 @@ try {
                                 // console.log('checked1')
                                 if (rply.trpgLevelSystemfunction[i].LevelUpWord) {
                                     //   console.log('checked')
-                                    checkifsamename = 1
+                                    checkifsamenameTitle = 1
                                 }
                             }
                         }
@@ -111,9 +110,9 @@ try {
                         //在這群組升級時的升級語
                     }
                     if (mainMsg[2].match(/^del$/ig)) {
-                        checkifsamename = 0
+                        checkifsamenameTitle = 0
                     }
-                    if (checkifsamename == 0) {
+                    if (checkifsamenameTitle == 0) {
                         rply.text = '新增成功: ' + '\n' + inputStr.replace(mainMsg[0], '').replace(mainMsg[1], '').replace(/^\s+/, '').replace(/^\s+/, '')
                         if (mainMsg[2].match(/^del$/ig)) {
                             temp.LevelUpWord = ""
@@ -555,31 +554,36 @@ try {
                 break;
 
         }
+        function setNew() {
+
+        }
         function checkTitle(userlvl, DBTitle) {
             let templvl = 0;
             let temptitle = ""
             console.log("DBTitle: ", DBTitle)
             if (DBTitle && DBTitle.length > 0) {
                 for (let g = 0; g < DBTitle.length; g++) {
-                    if (userlvl >= DBTitle[g].Lvl) {
-                        if (templvl < DBTitle[g].Lvl) {
-                            templvl = DBTitle[g].Lvl
-                            temptitle = DBTitle[g].Title;
+                    if (userlvl >= g) {
+                        if (templvl < g && DBTitle[g]) {
+                            templvl = g
+                            temptitle = DBTitle[g];
                         }
                     }
                 }
-            } if (!temptitle)
+            }
+            if (!temptitle)
                 for (let g = 0; g < Title.length; g++) {
-                    if (userlvl >= Title[g].Lvl) {
-                        if (templvl < Title[g].Lvl) {
-                            templvl = Title[g].Lvl
-                            temptitle = Title[g].Title;
+                    if (userlvl >= g) {
+                        if (templvl < g && Title[g]) {
+                            templvl = g
+                            temptitle = Title[g];
                         }
                     }
                 }
             console.log(temptitle)
             return temptitle;
         }
+
         function rankingList(who, RankNumber, Title) {
             var array = [];
             let answer = ""

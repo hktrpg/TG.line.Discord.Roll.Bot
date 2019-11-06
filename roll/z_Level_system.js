@@ -551,16 +551,17 @@ try {
                 d[i] = e.exec(c[i])
             }
             for (let i = 0; i < d.length; i++) {
-                if (d[i][1] && d[i][2])
+                //限制0-500以內
+                if (d[i][1] && d[i][2] && d[i][1] <= 500 && d[i][1] >= 0)
                     rply.trpgLevelSystemfunction[which].Title[d[i][1]] = d[i][2]
-                console.log(rply.trpgLevelSystemfunction[which].Title)
+                //  console.log(rply.trpgLevelSystemfunction[which].Title)
             }
 
         }
         function checkTitle(userlvl, DBTitle) {
             let templvl = 0;
             let temptitle = ""
-            console.log("DBTitle: ", DBTitle)
+            //console.log("DBTitle: ", DBTitle)
             if (DBTitle && DBTitle.length > 0) {
                 for (let g = 0; g < DBTitle.length; g++) {
                     if (userlvl >= g) {

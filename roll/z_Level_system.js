@@ -95,17 +95,15 @@ try {
                         for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
                             if (rply.trpgLevelSystemfunction[i].groupid == groupid) {
                                 // console.log('checked1')
-                                if (rply.trpgLevelSystemfunction[i].TitleWord) {
-                                    //   console.log('checked')
+                                if (rply.trpgLevelSystemfunction[i].Title) {
+                                    console.log('checked')
                                     checkifsamenameTitle = 1
+                                    setNew(inputStr, i);
                                 }
                             }
                         }
-                    let temp = {
-                        groupid: groupid,
-                        Title: inputStr.replace(mainMsg[0], "").replace(mainMsg[1], "").replace("  ", "")
-                        //在這群組升級時的升級語
-                    }
+                    //設定內容
+                    //限制500內
                     if (mainMsg[2].match(/^del$/ig)) {
                         checkifsamenameTitle = 0
                     }
@@ -115,14 +113,6 @@ try {
                             temp.TitleWord = ""
                             rply.text = "刪除成功."
                         }
-                        records.settrpgLevelSystemfunctionTitleWord('trpgLevelSystem', temp, () => {
-                            records.get('trpgLevelSystem', (msgs) => {
-                                rply.trpgLevelSystemfunction = msgs
-                                //  console.log(rply.trpgLevelSystemfunction)
-                                // console.log(rply);
-                            })
-
-                        })
 
                     } else rply.text = '修改失敗. 已有升級語, 先使用.level TitleWord del 刪除舊升級語'
                 } else {
@@ -551,7 +541,7 @@ try {
                 break;
 
         }
-        function setNew(a) {
+        function setNew(a, which) {
             let b = /-(\d+)\s+(\S+)/ig
             let e = /-(\d+)\s+(\S+)/
             //let f = [];
@@ -559,7 +549,12 @@ try {
             let d = [];
             for (let i = 0; i < c.length; i++) {
                 d[i] = e.exec(c[i])
-              }
+            }
+            for (let i = 0; i < d.length; i++) {
+                if (d[i][1] && d[i][2])
+                    rply.trpgLevelSystemfunction[which].Title[d[i][1]] = d[i][2]
+                console.log(rply.trpgLevelSystemfunction[which].Title)
+            }
 
         }
         function checkTitle(userlvl, DBTitle) {

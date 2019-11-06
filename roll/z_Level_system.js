@@ -551,7 +551,15 @@ try {
                 break;
 
         }
-        function setNew() {
+        function setNew(a) {
+            let b = /-(\d+)\s+(\S+)/ig
+            let e = /-(\d+)\s+(\S+)/
+            //let f = [];
+            let c = a.match(b);
+            let d = [];
+            for (let i = 0; i < c.length; i++) {
+                d[i] = e.exec(c[i])
+              }
 
         }
         function checkTitle(userlvl, DBTitle) {

@@ -50,16 +50,13 @@ try {
         return rply;
     }
     var Title = []
-
     Title[0] = "無名調查員"; Title[4] = "調查員"; Title[8] = "記者";
     Title[11] = "偵探"; Title[14] = "考古家"; Title[18] = "神秘學家";
     Title[21] = "狂信徒"; Title[24] = "教主"; Title[28] = "眷族";
     Title[31] = "眷族首領"; Title[34] = "化身"; Title[38] = "舊神";
     Title[41] = "舊日支配者"; Title[44] = "外神"; Title[48] = "門";
-    console.log(Title)
     /*
         稱號
-    
         0-3     無名調查員
         4-7     調查員
         8-10    記者    
@@ -98,7 +95,7 @@ try {
                         for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
                             if (rply.trpgLevelSystemfunction[i].groupid == groupid) {
                                 // console.log('checked1')
-                                if (rply.trpgLevelSystemfunction[i].LevelUpWord) {
+                                if (rply.trpgLevelSystemfunction[i].TitleWord) {
                                     //   console.log('checked')
                                     checkifsamenameTitle = 1
                                 }
@@ -115,10 +112,10 @@ try {
                     if (checkifsamenameTitle == 0) {
                         rply.text = '新增成功: ' + '\n' + inputStr.replace(mainMsg[0], '').replace(mainMsg[1], '').replace(/^\s+/, '').replace(/^\s+/, '')
                         if (mainMsg[2].match(/^del$/ig)) {
-                            temp.LevelUpWord = ""
+                            temp.TitleWord = ""
                             rply.text = "刪除成功."
                         }
-                        records.settrpgLevelSystemfunctionLevelUpWord('trpgLevelSystem', temp, () => {
+                        records.settrpgLevelSystemfunctionTitleWord('trpgLevelSystem', temp, () => {
                             records.get('trpgLevelSystem', (msgs) => {
                                 rply.trpgLevelSystemfunction = msgs
                                 //  console.log(rply.trpgLevelSystemfunction)
@@ -127,7 +124,7 @@ try {
 
                         })
 
-                    } else rply.text = '修改失敗. 已有升級語, 先使用.level LevelUpWord del 刪除舊升級語'
+                    } else rply.text = '修改失敗. 已有升級語, 先使用.level TitleWord del 刪除舊升級語'
                 } else {
                     rply.text = '新增失敗.'
                     if (!mainMsg[2])
@@ -144,10 +141,10 @@ try {
                         let temp = 0;
                         if (rply.trpgLevelSystemfunction)
                             for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
-                                if (rply.trpgLevelSystemfunction[i].groupid == groupid && rply.trpgLevelSystemfunction[i].LevelUpWord) {
+                                if (rply.trpgLevelSystemfunction[i].groupid == groupid && rply.trpgLevelSystemfunction[i].TitleWord) {
                                     rply.text = '現在升級語:'
                                     temp = 1
-                                    rply.text += ("\n") + rply.trpgLevelSystemfunction[i].LevelUpWord
+                                    rply.text += ("\n") + rply.trpgLevelSystemfunction[i].TitleWord
                                 }
                             }
                         if (temp == 0) rply.text = '正在使用預設升級語. '
@@ -580,7 +577,6 @@ try {
                         }
                     }
                 }
-            console.log(temptitle)
             return temptitle;
         }
 

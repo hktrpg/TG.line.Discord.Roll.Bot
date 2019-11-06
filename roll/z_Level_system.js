@@ -49,7 +49,32 @@ try {
     initialize = function () {
         return rply;
     }
+    const Title = [
+        { Lvl: 0, Title: 無名調查員 }, { Lvl: 4, Title: 調查員 }, { Lvl: 8, Title: 記者 },
+        { Lvl: 11, Title: 偵探 }, { Lvl: 14, Title: 考古家 }, { Lvl: 18, Title: 神秘學家 },
+        { Lvl: 21, Title: 狂信徒 }, { Lvl: 24, Title: 教主 }, { Lvl: 28, Title: 眷族 },
+        { Lvl: 31, Title: 眷族首領 }, { Lvl: 34, Title: 化身 }, { Lvl: 38, Title: 舊神 },
+        { Lvl: 41, Title: 舊日支配者 }, { Lvl: 44, Title: 外神 }, { Lvl: 48, Title: 門 }
+    ]
+    /*
+    稱號
 
+    0-3     無名調查員
+    4-7     調查員
+    8-10    記者    
+    11-13   偵探
+    14-17   考古家
+    18-20   神秘學家
+    21-23   狂信徒
+    24-27   教主
+    28-30   眷族
+    31-33   眷族首領
+    34-37   化身
+    38-40   舊神
+    41-43   舊日支配者
+    44-47   外神
+    48-50   門
+    */
     rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
         rply.text = '';
         switch (true) {
@@ -297,6 +322,7 @@ try {
                 //7.    使用排名語, 根據內容進行替換.
                 //8.    
                 //{user.name} 名字 {user.level} 等級 \
+                //{user.title} 稱號
                 // { user.exp } 經驗值 { user.Ranking } 現在排名 \
                 // { user.RankingPer} 現在排名百分比 \
                 // { server.member_count } 現在頻道中總人數 \
@@ -307,10 +333,11 @@ try {
                     let tempHaveUser = 0;
                     //6.    ->沒有 使用預設排名語
                     //{user.name} 名字 {user.level} 等級 \
+                    //{user.title} 稱號
                     // {user.exp} 經驗值 {user.Ranking} 現在排名 \
                     // {user.RankingPer} 現在排名百分比 \
                     // {server.member_count} 現在頻道中總人數 \
-                    let rankWord = "{user.name}，你的克蘇魯神話知識現在是 {user.level}點！\n現在排名是{server.member_count}人中的第{user.Ranking}名！{user.RankingPer}！\n調查經驗是{user.exp}點。 "
+                    let rankWord = "{user.name}{user.title}，你的克蘇魯神話知識現在是 {user.level}點！\n現在排名是{server.member_count}人中的第{user.Ranking}名！{user.RankingPer}！\n調查經驗是{user.exp}點。 "
 
                     if (rply.trpgLevelSystemfunction)
                         for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
@@ -336,8 +363,10 @@ try {
                                             let usermember_count = membercount || rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length;
                                             let userRanking = ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);
                                             let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
+                                            let userTitle;
 
                                             //{user.name} 名字 {user.level} 等級 \
+                                            ////{user.title} 稱號
                                             // { user.exp } 經驗值 { user.Ranking } 現在排名 \
                                             // { user.RankingPer} 現在排名百分比 \
                                             // { server.member_count } 現在頻道中總人數 \
@@ -365,6 +394,7 @@ try {
                                         let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
 
                                         //{user.name} 名字 {user.level} 等級 \
+                                        //{user.title} 稱號
                                         // { user.exp } 經驗值 { user.Ranking } 現在排名 \
                                         // { user.RankingPer} 現在排名百分比 \
                                         // { server.member_count } 現在頻道中總人數 \

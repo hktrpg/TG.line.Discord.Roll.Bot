@@ -363,7 +363,9 @@ try {
                                             let usermember_count = membercount || rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length;
                                             let userRanking = ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);
                                             let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
-                                            let userTitle;
+                                            let userTitle = checkTitle(userlevel);
+                                            //Title 首先檢查  rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Title[0].Lvl 有沒有那個LV的TITLE
+                                            //沒有  則使用預設 
 
                                             //{user.name} 名字 {user.level} 等級 \
                                             ////{user.title} 稱號
@@ -375,9 +377,9 @@ try {
                                                 //現EXP >於需求LV
                                                 //LVUP
                                                 let TMEPuserlevel = Number(userlevel) + 1
-                                                rply.text = rankWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, TMEPuserlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count)
+                                                rply.text = rankWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, TMEPuserlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count).replace(/{user.title}/ig, userTitle)
                                             } else {
-                                                rply.text = rankWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count)
+                                                rply.text = rankWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count).replace(/{user.title}/ig, userTitle)
                                             }
 
                                         }
@@ -392,13 +394,13 @@ try {
                                         let usermember_count = membercount || rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length;
                                         let userRanking = ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);
                                         let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
-
+                                        let userTitle = checkTitle(userlevel);
                                         //{user.name} 名字 {user.level} 等級 \
                                         //{user.title} 稱號
                                         // { user.exp } 經驗值 { user.Ranking } 現在排名 \
                                         // { user.RankingPer} 現在排名百分比 \
                                         // { server.member_count } 現在頻道中總人數 \
-                                        rply.text = rankWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count)
+                                        rply.text = rankWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count).replace(/{user.title}/ig, userTitle)
 
                                     }
                                 }
@@ -474,6 +476,20 @@ try {
             default:
                 break;
 
+        }
+        function checkTitle(userlvl) {
+            let templvl = 0;
+            let temptitle = ""
+            for (let g = 0; g < Title.length; g++) {
+                if (userlvl >= Title[g].Lvl) {
+                    if (templvl < Title[g].Lvl) {
+                        templvl = Title[g].Lvl
+                        temptitle = Title[g].Title;
+                    }
+                }
+            }
+            console.log(temptitle)
+            return temptitle;
         }
         function rankingList(who, RankNumber, Title) {
             var array = [];

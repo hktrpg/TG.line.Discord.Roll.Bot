@@ -235,7 +235,7 @@ try {
 			let checkmainMsg0 = 0;
 			let checkmainMsg1 = 0;
 			let findprefixs = 0;
-			if (exports[v].prefixs()[0] && exports[v].prefixs()[0]) {
+			if (exports[v].prefixs && exports[v].prefixs()[0]) {
 				for (var i = 0; i <= exports[v].prefixs().length - 1; i = i + 2) {
 					checkmainMsg0 = 0;
 					checkmainMsg1 = 0;

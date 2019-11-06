@@ -17,7 +17,7 @@ try {
         return 'trpgLevelSystem:hktrpg'
     }
     prefixs = function () {
-        return [/(^[.]level$)/ig,]
+        return [/(^[.]level$)/ig, ]
     }
     getHelpMessage = function () {
         return "【經驗值功能】" + "\
@@ -50,11 +50,24 @@ try {
         return rply;
     }
     var Title = []
-    Title[0] = "無名調查員"; Title[4] = "調查員"; Title[8] = "記者";
-    Title[11] = "偵探"; Title[14] = "考古家"; Title[18] = "神秘學家";
-    Title[21] = "狂信徒"; Title[24] = "教主"; Title[28] = "眷族";
-    Title[31] = "眷族首領"; Title[34] = "化身"; Title[38] = "舊神";
-    Title[41] = "舊日支配者"; Title[44] = "外神"; Title[48] = "門";
+    Title[0] = "無名調查員";
+    Title[4] = "調查員";
+    Title[8] = "記者";
+    Title[11] = "偵探";
+    Title[13] = "小熊";
+    Title[14] = "考古家";
+    Title[18] = "神秘學家";
+    Title[21] = "狂信徒";
+    Title[24] = "教主";
+    Title[28] = "眷族";
+    Title[31] = "眷族首領";
+    Title[33] = "南";
+    Title[34] = "化身";
+    Title[38] = "舊神";
+    Title[41] = "舊日支配者";
+    Title[43] = "門";
+    Title[44] = "外神";
+    Title[48] = "KP";
     /*
         稱號
         0-3     無名調查員
@@ -81,10 +94,10 @@ try {
                 if (botname == "Line")
                     rply.text += "\n因為Line的機制, 如擲骰時並無顯示用家名字, 請到下列網址,和機器人任意說一句話,成為好友. \n https://line.me/R/ti/p/svMLqy9Mik"
                 return rply;
-            // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
-            //
-            //稱號
-            //
+                // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
+                //
+                //稱號
+                //
             case /(^[.]level$)/i.test(mainMsg[0]) && /^TitleWord$/i.test(mainMsg[1]):
                 //console.log('mainMsg: ', mainMsg)
                 //增加資料庫
@@ -143,11 +156,11 @@ try {
                     }
                 }
                 return rply;
-            //
-            //
-            //升級語
-            //
-            //
+                //
+                //
+                //升級語
+                //
+                //
             case /(^[.]level$)/i.test(mainMsg[0]) && /^LevelUpWord$/i.test(mainMsg[1]):
                 //console.log('mainMsg: ', mainMsg)
                 //增加資料庫
@@ -216,11 +229,11 @@ try {
                     }
                 }
                 return rply;
-            //
-            //
-            //查詢語
-            //
-            //
+                //
+                //
+                //查詢語
+                //
+                //
             case /(^[.]level$)/i.test(mainMsg[0]) && /^RankWord$/i.test(mainMsg[1]):
                 //console.log('mainMsg: ', mainMsg)
                 //增加資料庫
@@ -290,11 +303,11 @@ try {
                 }
                 return rply;
 
-            //
-            //
-            //設定
-            //
-            //
+                //
+                //
+                //設定
+                //
+                //
             case /(^[.]level$)/i.test(mainMsg[0]) && /^config$/i.test(mainMsg[1]):
                 //console.log('mainMsg: ', mainMsg)
                 //增加資料庫
@@ -516,7 +529,7 @@ try {
                 //顯示資料庫
                 //rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
                 return rply
-            /*
+                /*
         case /(^[.]level$)/i.test(mainMsg[0]) && /^showMeTheWorld$/i.test(mainMsg[1]):
             //顯示全世界頭六名排名
             if (rply.trpgLevelSystemfunction) {
@@ -541,6 +554,7 @@ try {
                 break;
 
         }
+
         function setNew(a, which) {
             let b = /-(\d+)\s+(\S+)/ig
             let e = /-(\d+)\s+(\S+)/
@@ -558,6 +572,7 @@ try {
             }
 
         }
+
         function checkTitle(userlvl, DBTitle) {
             let templvl = 0;
             let temptitle = ""
@@ -608,13 +623,12 @@ try {
                     if (b == 0) {
                         answer += Title + "\n┌"
                     } else
-                        if (b < RankNumber - 1 && b < array.length - 1) {
-                            answer += "├"
-                        }
-                        else
-                            if (b == RankNumber - 1 || b == array.length - 1) {
-                                answer += "└"
-                            }
+                    if (b < RankNumber - 1 && b < array.length - 1) {
+                        answer += "├"
+                    } else
+                    if (b == RankNumber - 1 || b == array.length - 1) {
+                        answer += "└"
+                    }
                     answer += "第" + (Number([b]) + 1) + "名 " + array[b].name + " " + array[b].Level + "級 " + kMGTPE(array[b].EXP, 2) + "經驗\n";
                 }
             }
@@ -625,7 +639,7 @@ try {
         function kMGTPE(n, d) {
             x = ('' + n).length, p = Math.pow, d = p(10, d)
             x -= x % 3
-            return Math.round(n * d / p(10, x)) / d + " kMGTPE"[x / 3]
+            return Math.round(n * d / p(10, x)) / d + " kMGTPE" [x / 3]
         }
 
         function ranking(who, data) {

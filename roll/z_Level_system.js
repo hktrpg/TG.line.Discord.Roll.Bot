@@ -559,7 +559,7 @@ try {
             let templvl = 0;
             let temptitle = ""
             console.log("DBTitle: ", DBTitle)
-            if (DBTitle) {
+            if (DBTitle && DBTitle.length > 0) {
                 for (let g = 0; g < DBTitle.length; g++) {
                     if (userlvl >= DBTitle[g].Lvl) {
                         if (templvl < DBTitle[g].Lvl) {
@@ -725,13 +725,11 @@ rankingList('Joe');
 ├
 └
 
-
-
 let a = ".lev  -3 a -34 bc -1 DEF -2   Gh i -30 JK -45 ab 23"
 let b = /-(\d+)\s+(\S+)/ig
 let e = /-(\d+)\s+(\S+)/
 
-
+let f = [];
 
 let c = a.match(b);
 document.write(c,"<br\>");
@@ -744,7 +742,11 @@ let d=[];
 for (var i=0 ;i<c.length;i++)
 {
 d[i]=e.exec(c[i])
+f.push({lvl:d[i][1],Title:d[i][2]})
 
-document.write(i,"",b.lastIndex," ",d[i],"<br\>");
+document.write(i," ",d[i],"<br\>");
 }
+document.write("<br\>");
+for(let dd=0;dd<f.length;dd++)
+document.write(f[dd].lvl," ",f[dd].Title,"<br\>");
 */

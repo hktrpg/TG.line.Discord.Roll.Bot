@@ -66,7 +66,7 @@ try {
         if (!temptitle)
             for (let g = 0; g < Title().length; g++) {
                 if (userlvl >= g) {
-                    if (templvl < g && Title()[g]) {
+                    if (templvl <= g && Title()[g]) {
                         templvl = g
                         temptitle = Title()[g];
                     }
@@ -138,9 +138,21 @@ try {
                                 if (mainMsg[2].match(/^del$/ig)) {
                                     rply.trpgLevelSystemfunction[i].Title = []
                                     rply.text = "刪除成功."
+                                    let temp = { groupid: groupid, Title: [] }
+                                    records.settrpgLevelSystemfunctionTitleWord('trpgLevelSystem', temp, () => {
+                                    })
                                 } else
                                     if (rply.trpgLevelSystemfunction[i].Title) {
                                         temprply = setNew(inputStr, i);
+                                        if (temprply && temprply.length > 0) {
+                                            rply.text = '新增成功: \n'
+                                            for (let te = 0; te < temprply.length; te++) {
+                                                rply.text += temprply[te][1] + '等級: ' + temprply[te][2] + '\n'
+                                            }
+                                            let temp = { groupid: groupid, Title: rply.trpgLevelSystemfunction[i].Title }
+                                            records.settrpgLevelSystemfunctionTitleWord('trpgLevelSystem', temp, () => {
+                                            })
+                                        }
 
                                     }
 
@@ -148,12 +160,7 @@ try {
                         }
                     //設定內容
                     //限制500LVL內
-                    if (temprply && temprply.length > 0) {
-                        rply.text = '新增成功: \n'
-                        for (let te = 0; te < temprply.length; te++) {
-                            rply.text += temprply[te][1] + '等級: ' + temprply[te][2] + '\n'
-                        }
-                    }
+
                 } else {
                     rply.text = '新增失敗.'
                     if (!temprply)

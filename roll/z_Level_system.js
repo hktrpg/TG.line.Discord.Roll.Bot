@@ -125,7 +125,7 @@ try {
                     if (temprply && temprply.length > 0) {
                         rply.text = '新增成功: \n'
                         for (let te = 0; te < temprply.length; te++) {
-                            rply.text += temprply[te][1] + ': ' + temprply[te][2]
+                            rply.text += temprply[te][1] + ': ' + temprply[te][2] + '\n'
                         }
                     }
                 } else {
@@ -144,13 +144,17 @@ try {
                         let temp = 0;
                         if (rply.trpgLevelSystemfunction)
                             for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
-                                if (rply.trpgLevelSystemfunction[i].groupid == groupid && rply.trpgLevelSystemfunction[i].TitleWord) {
-                                    rply.text = '現在升級語:'
+                                if (rply.trpgLevelSystemfunction[i].groupid == groupid && rply.trpgLevelSystemfunction[i].Title && rply.trpgLevelSystemfunction[i].Title.length > 0) {
+                                    rply.text = '稱號:\n'
                                     temp = 1
-                                    rply.text += ("\n") + rply.trpgLevelSystemfunction[i].TitleWord
+                                    console.log(rply.trpgLevelSystemfunction[i].Title)
+                                    for (let te = 0; te < rply.trpgLevelSystemfunction[i].Title.length; te++) {
+                                        if (rply.trpgLevelSystemfunction[i].Title[te])
+                                            rply.text += [te] + ': ' + rply.trpgLevelSystemfunction[i].Title[te] + "\n"
+                                    }
                                 }
                             }
-                        if (temp == 0) rply.text = '正在使用預設升級語. '
+                        if (temp == 0) rply.text = '正在使用預設稱號. '
                     } else {
                         rply.text = '不在群組. '
                     }

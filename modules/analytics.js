@@ -144,9 +144,9 @@ try {
 
 
 						//8. 更新MLAB資料 
-						//每20次
+						//每10次
 						courtEXP++
-						if (courtEXP % 20 == 0)
+						if (courtEXP % 10 == 0)
 							records.settrpgLevelSystemfunctionEXPup('trpgLevelSystem', exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID], exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction, () => {
 							})
 

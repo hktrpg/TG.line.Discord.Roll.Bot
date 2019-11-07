@@ -49,25 +49,54 @@ try {
     initialize = function () {
         return rply;
     }
-    var Title = []
-    Title[0] = "無名調查員";
-    Title[4] = "調查員";
-    Title[8] = "記者";
-    Title[11] = "偵探";
-    Title[13] = "小熊";
-    Title[14] = "考古家";
-    Title[18] = "神秘學家";
-    Title[21] = "狂信徒";
-    Title[24] = "教主";
-    Title[28] = "眷族";
-    Title[31] = "眷族首領";
-    Title[33] = "南";
-    Title[34] = "化身";
-    Title[38] = "舊神";
-    Title[41] = "舊日支配者";
-    Title[43] = "門";
-    Title[44] = "外神";
-    Title[48] = "KP";
+    checkTitle = function (userlvl, DBTitle) {
+        let templvl = 0;
+        let temptitle = ""
+        //console.log("DBTitle: ", DBTitle)
+        if (DBTitle && DBTitle.length > 0) {
+            for (let g = 0; g < DBTitle.length; g++) {
+                if (userlvl >= g) {
+                    if (templvl <= g && DBTitle[g]) {
+                        templvl = g
+                        temptitle = DBTitle[g];
+                    }
+                }
+            }
+        }
+        if (!temptitle)
+            for (let g = 0; g < Title().length; g++) {
+                if (userlvl >= g) {
+                    if (templvl < g && Title()[g]) {
+                        templvl = g
+                        temptitle = Title()[g];
+                    }
+                }
+            }
+        return temptitle;
+    }
+    Title = function () {
+        var Title = []
+        Title[0] = "無名調查員";
+        Title[4] = "調查員";
+        Title[8] = "記者";
+        Title[11] = "偵探";
+        Title[13] = "小熊";
+        Title[14] = "考古家";
+        Title[18] = "神秘學家";
+        Title[21] = "狂信徒";
+        Title[24] = "教主";
+        Title[28] = "眷族";
+        Title[31] = "眷族首領";
+        Title[33] = "南";
+        Title[34] = "化身";
+        Title[38] = "舊神";
+        Title[41] = "舊日支配者";
+        Title[43] = "門";
+        Title[44] = "外神";
+        Title[48] = "KP";
+        return Title;
+    }
+
     /*
         稱號
         0-3     無名調查員
@@ -101,7 +130,6 @@ try {
                 //稱號Title
                 //
                 let temprply = []
-                let checkdel = 0
                 if (groupid && userrole >= 2 && mainMsg[2] && inputStr.toString().match(/[\s\S]{1,1900}/g).length <= 1 && !mainMsg[2].match(/^show$/)) {
                     if (rply.trpgLevelSystemfunction)
                         for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
@@ -109,11 +137,9 @@ try {
                                 // console.log('checked1')
                                 if (mainMsg[2].match(/^del$/ig)) {
                                     rply.trpgLevelSystemfunction[i].Title = []
-                                    checkdel = 1
                                     rply.text = "刪除成功."
                                 } else
                                     if (rply.trpgLevelSystemfunction[i].Title) {
-                                        console.log('checked')
                                         temprply = setNew(inputStr, i);
 
                                     }
@@ -125,7 +151,7 @@ try {
                     if (temprply && temprply.length > 0) {
                         rply.text = '新增成功: \n'
                         for (let te = 0; te < temprply.length; te++) {
-                            rply.text += temprply[te][1] + ': ' + temprply[te][2] + '\n'
+                            rply.text += temprply[te][1] + '等級: ' + temprply[te][2] + '\n'
                         }
                     }
                 } else {
@@ -150,7 +176,7 @@ try {
                                     console.log(rply.trpgLevelSystemfunction[i].Title)
                                     for (let te = 0; te < rply.trpgLevelSystemfunction[i].Title.length; te++) {
                                         if (rply.trpgLevelSystemfunction[i].Title[te])
-                                            rply.text += [te] + ': ' + rply.trpgLevelSystemfunction[i].Title[te] + "\n"
+                                            rply.text += [te] + '等級: ' + rply.trpgLevelSystemfunction[i].Title[te] + "\n"
                                     }
                                 }
                             }
@@ -160,13 +186,10 @@ try {
                     }
                 }
                 return rply;
-            //
-            //
-            //升級語
-            //
-            //
             case /(^[.]level$)/i.test(mainMsg[0]) && /^LevelUpWord$/i.test(mainMsg[1]):
-                //console.log('mainMsg: ', mainMsg)
+                //
+                //升級語
+                //
                 //增加資料庫
                 //檢查有沒有重覆
                 let checkifsamename = 0
@@ -444,7 +467,7 @@ try {
                                             let usermember_count = membercount || rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length;
                                             let userRanking = ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);
                                             let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
-                                            let userTitle = checkTitle(userlevel, rply.trpgLevelSystemfunction[i].Title);
+                                            let userTitle = this.checkTitle(userlevel, rply.trpgLevelSystemfunction[i].Title);
                                             //Title 首先檢查  rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Title[0].Lvl 有沒有那個LV的TITLE
                                             //沒有  則使用預設 
 
@@ -475,7 +498,7 @@ try {
                                         let usermember_count = membercount || rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length;
                                         let userRanking = ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);
                                         let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
-                                        let userTitle = checkTitle(userlevel);
+                                        let userTitle = this.checkTitle(userlevel, rply.trpgLevelSystemfunction[i].Title);
                                         //{user.name} 名字 {user.level} 等級 \
                                         //{user.title} 稱號
                                         // { user.exp } 經驗值 { user.Ranking } 現在排名 \
@@ -579,31 +602,7 @@ try {
             return d;
         }
 
-        function checkTitle(userlvl, DBTitle) {
-            let templvl = 0;
-            let temptitle = ""
-            //console.log("DBTitle: ", DBTitle)
-            if (DBTitle && DBTitle.length > 0) {
-                for (let g = 0; g < DBTitle.length; g++) {
-                    if (userlvl >= g) {
-                        if (templvl < g && DBTitle[g]) {
-                            templvl = g
-                            temptitle = DBTitle[g];
-                        }
-                    }
-                }
-            }
-            if (!temptitle)
-                for (let g = 0; g < Title.length; g++) {
-                    if (userlvl >= g) {
-                        if (templvl < g && Title[g]) {
-                            templvl = g
-                            temptitle = Title[g];
-                        }
-                    }
-                }
-            return temptitle;
-        }
+
 
         function rankingList(who, RankNumber, Title) {
             var array = [];
@@ -687,7 +686,9 @@ try {
         getHelpMessage: getHelpMessage,
         prefixs: prefixs,
         gameType: gameType,
-        gameName: gameName
+        gameName: gameName,
+        Title: Title,
+        checkTitle: checkTitle
     };
 } catch (e) {
     console.log(e)

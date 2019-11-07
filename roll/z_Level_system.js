@@ -550,7 +550,7 @@ try {
                                     //3.    ->有   檢查有沒有個人資料
                                     for (var a = 0; a < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
                                         if (rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].userid == userid) {
-                                            rply.text = rankingList(rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction, RankNumber, "群組排行榜");
+                                            rply.text = rankingList(rply.trpgLevelSystemfunction[i], RankNumber, "群組排行榜");
                                         }
                                     } //2.    ->沒有 告知開啓
                                 }
@@ -569,7 +569,7 @@ try {
             case /(^[.]level$)/i.test(mainMsg[0]) && /^showMeTheWorld$/i.test(mainMsg[1]):
                 //顯示全世界頭六名排名
                 if (rply.trpgLevelSystemfunction) {
-                    let tempPush = [];
+                    let tempPush = { trpgLevelSystemfunction: [] };
                     let RankNumber = 6
                     if (mainMsg[2]) {
                         if (mainMsg[2] > 6 && mainMsg[2] < 21)
@@ -579,7 +579,7 @@ try {
                     }
                     for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
                         for (var a = 0; a < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
-                            tempPush.push(rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a])
+                            tempPush.trpgLevelSystemfunction.push(rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a])
                         }
 
                     }
@@ -615,11 +615,12 @@ try {
         function rankingList(who, RankNumber, Title) {
             var array = [];
             let answer = ""
-            for (var key in who) {
-                array.push(who[key]);
-
+            let tempTitleAll = who.Title;
+            console.log('tempTitleAll ', tempTitleAll)
+            console.log('who ', who)
+            for (var key in who.trpgLevelSystemfunction) {
+                array.push(who.trpgLevelSystemfunction[key]);
             }
-
             array.sort(function (a, b) {
                 return b.EXP - a.EXP;
             });
@@ -631,6 +632,7 @@ try {
                 }
                 array[i].rank = rank;
             }
+            //checkTitle(lVL,Title)
             for (var b = 0; b < RankNumber; b++) {
                 if (array && array[b]) {
                     if (b == 0) {
@@ -642,7 +644,9 @@ try {
                             if (b == RankNumber - 1 || b == array.length - 1) {
                                 answer += "└"
                             }
-                    answer += "第" + (Number([b]) + 1) + "名 " + array[b].name + " " + array[b].Level + "級 " + kMGTPE(array[b].EXP, 2) + "經驗\n";
+                    answer += "第" + (Number([b]) + 1) + "名 "
+                    answer += "《" + checkTitle(array[b].Level, tempTitleAll) + "》 "
+                    answer += array[b].name + " " + array[b].Level + "級 " + kMGTPE(array[b].EXP, 2) + "經驗\n";
                 }
             }
             return answer;

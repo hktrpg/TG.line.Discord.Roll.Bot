@@ -33,8 +33,8 @@ try {
         \n\
         \n 輸入.level LevelUpWord (內容) 修改在這群組升級時彈出的升級語\
         \n 輸入.level RankWord (內容) 修改在這群組查詢等級時的回應\
-        \n 輸入.level TitleWord -(LV) (內容) 修改稱號，大於等於LV數即會套用\
-        \n 建議由-0開始\
+        \n 輸入.level TitleWord -(LV) (內容)，修改稱號，大於等級即會套用\
+        \n 建議由-0開始，可一次輸入多個，如 .level TitleWord -0 幼童 -5 學徒 -10 武士 \
         \n 輸入.level RankWord/LevelUpWord/TitleWord del 即使用預設字句\
         \n 輸入.level RankWord/LevelUpWord/TitleWord show 即顯示現在設定\
         \n 輸入.level show 可以查詢你現在的等級\

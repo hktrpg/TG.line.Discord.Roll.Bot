@@ -137,7 +137,7 @@ try {
                                 // console.log('checked1')
                                 if (mainMsg[2].match(/^del$/ig)) {
                                     rply.trpgLevelSystemfunction[i].Title = []
-                                    rply.text = "刪除成功."
+                                    rply.text = "刪除稱號成功."
                                     let temp = { groupid: groupid, Title: [] }
                                     records.settrpgLevelSystemfunctionTitleWord('trpgLevelSystem', temp, () => {
                                     })
@@ -145,7 +145,7 @@ try {
                                     if (rply.trpgLevelSystemfunction[i].Title) {
                                         temprply = setNew(inputStr, i);
                                         if (temprply && temprply.length > 0) {
-                                            rply.text = '新增成功: \n'
+                                            rply.text = '新增稱號成功: \n'
                                             for (let te = 0; te < temprply.length; te++) {
                                                 rply.text += temprply[te][1] + '等級: ' + temprply[te][2] + '\n'
                                             }
@@ -220,10 +220,10 @@ try {
                         checkifsamename = 0
                     }
                     if (checkifsamename == 0) {
-                        rply.text = '新增成功: ' + '\n' + inputStr.replace(mainMsg[0], '').replace(mainMsg[1], '').replace(/^\s+/, '').replace(/^\s+/, '')
+                        rply.text = '新增升級語成功: ' + '\n' + inputStr.replace(mainMsg[0], '').replace(mainMsg[1], '').replace(/^\s+/, '').replace(/^\s+/, '')
                         if (mainMsg[2].match(/^del$/ig)) {
                             temp.LevelUpWord = ""
-                            rply.text = "刪除成功."
+                            rply.text = "刪除升級語成功."
                         }
                         records.settrpgLevelSystemfunctionLevelUpWord('trpgLevelSystem', temp, () => {
                             records.get('trpgLevelSystem', (msgs) => {
@@ -293,10 +293,10 @@ try {
                         checkifsamenameRankWord = 0
                     }
                     if (checkifsamenameRankWord == 0) {
-                        rply.text = '新增成功: ' + '\n' + inputStr.replace(mainMsg[0], '').replace(mainMsg[1], '').replace(/^\s+/, '').replace(/^\s+/, '')
+                        rply.text = '新增查詢語成功: ' + '\n' + inputStr.replace(mainMsg[0], '').replace(mainMsg[1], '').replace(/^\s+/, '').replace(/^\s+/, '')
                         if (mainMsg[2].match(/^del$/ig)) {
                             temp.RankWord = ""
-                            rply.text = "刪除成功."
+                            rply.text = "刪除查詢語成功."
                         }
                         records.settrpgLevelSystemfunctionRankWord('trpgLevelSystem', temp, () => {
                             records.get('trpgLevelSystem', (msgs) => {
@@ -309,7 +309,7 @@ try {
 
                     } else rply.text = '修改失敗. 已有查詢語, 先使用.level RankWord del 刪除舊查詢語'
                 } else {
-                    rply.text = '新增失敗.'
+                    rply.text = '新增查詢語失敗.'
                     if (!mainMsg[2])
                         rply.text += ' 沒有內容.'
                     if (!groupid)
@@ -387,7 +387,7 @@ try {
                     })
 
                 } else {
-                    rply.text = '修改失敗.'
+                    rply.text = '修改開關失敗.'
                     if (!mainMsg[2] || !(mainMsg[2] == "00" || mainMsg[2] == "01" || mainMsg[2] == "10" || mainMsg[2] == "11"))
                         rply.text += '\nconfig 11 代表啓動功能 \
                         \n 數字11代表等級升級時會進行通知，10代表不會自動通知，\
@@ -565,13 +565,11 @@ try {
                 //顯示資料庫
                 //rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
                 return rply
-
-
             case /(^[.]level$)/i.test(mainMsg[0]) && /^showMeTheWorld$/i.test(mainMsg[1]):
                 //顯示全世界頭六名排名
                 if (rply.trpgLevelSystemfunction) {
                     let tempPush = [];
-                    let RankNumber = "6"
+                    let RankNumber = 6
                     if (mainMsg[2]) {
                         if (mainMsg[2] > 6 && mainMsg[2] < 21)
                             RankNumber = mainMsg[2]
@@ -585,13 +583,10 @@ try {
 
                     }
                     rply.text = rankingList(tempPush, RankNumber, "世界排行榜");
-
                 }
-
-
+                return rply
             default:
                 break;
-
         }
 
         function setNew(a, which) {

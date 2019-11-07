@@ -165,12 +165,14 @@ try {
 			let usermember_count = membercount || exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.length;
 			let userRanking = ranking(userid, exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction);
 			let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
-			let tempUPWord = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].LevelUpWord || "恭喜 {user.name}，你的克蘇魯神話知識現在是 {user.level}點了！\n現在排名是{server.member_count}人中的第{user.Ranking}名！"
-			return tempUPWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count)
+			let userTitle = exports.z_Level_system.checkTitle(userlevel, exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Title);
+			let tempUPWord = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].LevelUpWord || "恭喜 {user.name}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點了！\n現在排名是{server.member_count}人中的第{user.Ranking}名！"
+			return tempUPWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count).replace(/{user.title}/ig, userTitle)
 			//2. 回應BOT
 
 		}
 	}
+
 
 	function ranking(who, data) {
 		var array = [];
@@ -235,7 +237,7 @@ try {
 			let checkmainMsg0 = 0;
 			let checkmainMsg1 = 0;
 			let findprefixs = 0;
-			if (exports[v].prefixs()[0] && exports[v].prefixs()[0]) {
+			if (exports[v].prefixs && exports[v].prefixs()[0]) {
 				for (var i = 0; i <= exports[v].prefixs().length - 1; i = i + 2) {
 					checkmainMsg0 = 0;
 					checkmainMsg1 = 0;
@@ -279,6 +281,7 @@ try {
 } catch (e) {
 	console.log('error: ' + e)
 }
+
 
 module.exports = {
 	parseInput: parseInput,

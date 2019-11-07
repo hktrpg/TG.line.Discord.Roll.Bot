@@ -17,7 +17,7 @@ try {
         return 'trpgLevelSystem:hktrpg'
     }
     prefixs = function () {
-        return [/(^[.]level$)/ig, ]
+        return [/(^[.]level$)/ig,]
     }
     getHelpMessage = function () {
         return "【經驗值功能】" + "\
@@ -94,44 +94,44 @@ try {
                 if (botname == "Line")
                     rply.text += "\n因為Line的機制, 如擲骰時並無顯示用家名字, 請到下列網址,和機器人任意說一句話,成為好友. \n https://line.me/R/ti/p/svMLqy9Mik"
                 return rply;
-                // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
-                //
-                //稱號
-                //
+            // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
+
             case /(^[.]level$)/i.test(mainMsg[0]) && /^TitleWord$/i.test(mainMsg[1]):
-                //console.log('mainMsg: ', mainMsg)
-                //增加資料庫
-                //檢查有沒有重覆
-                let checkifsamenameTitle = 0
+                //
+                //稱號Title
+                //
+                let temprply = []
+                let checkdel = 0
                 if (groupid && userrole >= 2 && mainMsg[2] && inputStr.toString().match(/[\s\S]{1,1900}/g).length <= 1 && !mainMsg[2].match(/^show$/)) {
                     if (rply.trpgLevelSystemfunction)
                         for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
                             if (rply.trpgLevelSystemfunction[i].groupid == groupid) {
                                 // console.log('checked1')
-                                if (rply.trpgLevelSystemfunction[i].Title) {
-                                    console.log('checked')
-                                    checkifsamenameTitle = 1
-                                    setNew(inputStr, i);
-                                }
+                                if (mainMsg[2].match(/^del$/ig)) {
+                                    rply.trpgLevelSystemfunction[i].Title = []
+                                    checkdel = 1
+                                    rply.text = "刪除成功."
+                                } else
+                                    if (rply.trpgLevelSystemfunction[i].Title) {
+                                        console.log('checked')
+                                        temprply = setNew(inputStr, i);
+
+                                    }
+
                             }
                         }
                     //設定內容
-                    //限制500內
-                    if (mainMsg[2].match(/^del$/ig)) {
-                        checkifsamenameTitle = 0
-                    }
-                    if (checkifsamenameTitle == 0) {
-                        rply.text = '新增成功: ' + '\n' + inputStr.replace(mainMsg[0], '').replace(mainMsg[1], '').replace(/^\s+/, '').replace(/^\s+/, '')
-                        if (mainMsg[2].match(/^del$/ig)) {
-                            temp.TitleWord = ""
-                            rply.text = "刪除成功."
+                    //限制500LVL內
+                    if (temprply && temprply.length > 0) {
+                        rply.text = '新增成功: \n'
+                        for (let te = 0; te < temprply.length; te++) {
+                            rply.text += temprply[te][1] + ': ' + temprply[te][2]
                         }
-
-                    } else rply.text = '修改失敗. 已有升級語, 先使用.level TitleWord del 刪除舊升級語'
+                    }
                 } else {
                     rply.text = '新增失敗.'
-                    if (!mainMsg[2])
-                        rply.text += ' 沒有內容.'
+                    if (!temprply)
+                        rply.text += ' 未有稱號輸入，格式為 .level TitleWord -(等級) (稱號).'
                     if (!groupid)
                         rply.text += ' 不在群組.'
                     if (groupid && userrole < 2)
@@ -156,11 +156,11 @@ try {
                     }
                 }
                 return rply;
-                //
-                //
-                //升級語
-                //
-                //
+            //
+            //
+            //升級語
+            //
+            //
             case /(^[.]level$)/i.test(mainMsg[0]) && /^LevelUpWord$/i.test(mainMsg[1]):
                 //console.log('mainMsg: ', mainMsg)
                 //增加資料庫
@@ -229,11 +229,11 @@ try {
                     }
                 }
                 return rply;
-                //
-                //
-                //查詢語
-                //
-                //
+            //
+            //
+            //查詢語
+            //
+            //
             case /(^[.]level$)/i.test(mainMsg[0]) && /^RankWord$/i.test(mainMsg[1]):
                 //console.log('mainMsg: ', mainMsg)
                 //增加資料庫
@@ -303,11 +303,11 @@ try {
                 }
                 return rply;
 
-                //
-                //
-                //設定
-                //
-                //
+            //
+            //
+            //設定
+            //
+            //
             case /(^[.]level$)/i.test(mainMsg[0]) && /^config$/i.test(mainMsg[1]):
                 //console.log('mainMsg: ', mainMsg)
                 //增加資料庫
@@ -529,27 +529,27 @@ try {
                 //顯示資料庫
                 //rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
                 return rply
-                /*
-        case /(^[.]level$)/i.test(mainMsg[0]) && /^showMeTheWorld$/i.test(mainMsg[1]):
-            //顯示全世界頭六名排名
-            if (rply.trpgLevelSystemfunction) {
-                let tempPush = [];
-                let RankNumber = "6"
-                if (mainMsg[2]) {
-                    if (mainMsg[2] > 5 && mainMsg[2] < 21)
-                        RankNumber = mainMsg[2]
-                }
-                for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
-                    for (var a = 0; a < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
-                        tempPush.push(rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a])
-                    }
-
-                }
-                rply.text = rankingList(tempPush, RankNumber, "世界排行榜");
+            /*
+    case /(^[.]level$)/i.test(mainMsg[0]) && /^showMeTheWorld$/i.test(mainMsg[1]):
+        //顯示全世界頭六名排名
+        if (rply.trpgLevelSystemfunction) {
+            let tempPush = [];
+            let RankNumber = "6"
+            if (mainMsg[2]) {
+                if (mainMsg[2] > 5 && mainMsg[2] < 21)
+                    RankNumber = mainMsg[2]
             }
-            return rply
+            for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
+                for (var a = 0; a < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
+                    tempPush.push(rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a])
+                }
 
-            */
+            }
+            rply.text = rankingList(tempPush, RankNumber, "世界排行榜");
+        }
+        return rply
+
+        */
             default:
                 break;
 
@@ -561,16 +561,18 @@ try {
             //let f = [];
             let c = a.match(b);
             let d = [];
-            for (let i = 0; i < c.length; i++) {
-                d[i] = e.exec(c[i])
-            }
-            for (let i = 0; i < d.length; i++) {
-                //限制0-500以內
-                if (d[i][1] && d[i][2] && d[i][1] <= 500 && d[i][1] >= 0)
-                    rply.trpgLevelSystemfunction[which].Title[d[i][1]] = d[i][2]
-                //  console.log(rply.trpgLevelSystemfunction[which].Title)
-            }
-
+            if (c)
+                for (let i = 0; i < c.length; i++) {
+                    d[i] = e.exec(c[i])
+                }
+            if (d)
+                for (let i = 0; i < d.length; i++) {
+                    //限制0-500以內
+                    if (d[i][1] && d[i][2] && d[i][1] <= 500 && d[i][1] >= 0)
+                        rply.trpgLevelSystemfunction[which].Title[d[i][1]] = d[i][2]
+                    //  console.log(rply.trpgLevelSystemfunction[which].Title)
+                }
+            return d;
         }
 
         function checkTitle(userlvl, DBTitle) {
@@ -623,12 +625,12 @@ try {
                     if (b == 0) {
                         answer += Title + "\n┌"
                     } else
-                    if (b < RankNumber - 1 && b < array.length - 1) {
-                        answer += "├"
-                    } else
-                    if (b == RankNumber - 1 || b == array.length - 1) {
-                        answer += "└"
-                    }
+                        if (b < RankNumber - 1 && b < array.length - 1) {
+                            answer += "├"
+                        } else
+                            if (b == RankNumber - 1 || b == array.length - 1) {
+                                answer += "└"
+                            }
                     answer += "第" + (Number([b]) + 1) + "名 " + array[b].name + " " + array[b].Level + "級 " + kMGTPE(array[b].EXP, 2) + "經驗\n";
                 }
             }
@@ -639,7 +641,7 @@ try {
         function kMGTPE(n, d) {
             x = ('' + n).length, p = Math.pow, d = p(10, d)
             x -= x % 3
-            return Math.round(n * d / p(10, x)) / d + " kMGTPE" [x / 3]
+            return Math.round(n * d / p(10, x)) / d + " kMGTPE"[x / 3]
         }
 
         function ranking(who, data) {

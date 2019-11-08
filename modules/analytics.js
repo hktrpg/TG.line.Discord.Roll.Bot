@@ -179,7 +179,7 @@ try {
 					TelegramCountText: RollingLog.RealTimeRollingLogfunction.TelegramCountText
 				}
 				if (!RollingLog.RealTimeRollingLogfunction.StartTime) {
-					temp.StartTime = Date(Date.now());
+					temp.StartTime = Date.now();
 				}
 
 			}

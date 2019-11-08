@@ -161,7 +161,7 @@ try {
 				//MLAB
 				//RealTimeRollingLogfunction
 				let temp = {
-					LogTime: Date(Date.now()),
+					LogTime: RollingLog.RealTimeRollingLogfunction.LogTime,
 					DiscordCountRoll: RollingLog.RealTimeRollingLogfunction.DiscordCountRoll,
 					DiscordCountText: RollingLog.RealTimeRollingLogfunction.DiscordCountText,
 					LineCountRoll: RollingLog.RealTimeRollingLogfunction.LineCountRoll,

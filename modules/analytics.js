@@ -154,12 +154,34 @@ try {
 				RollingLog.RealTimeRollingLogfunction.StartTime = Date.now();
 				//上傳中途紀錄MLAB
 				//RollingLogfunction
+				let temp = {
+					LogTime: Date(Date.now()),
+					DiscordCountRoll: RollingLog.RealTimeRollingLogfunction.DiscordCountRoll,
+					DiscordCountText: RollingLog.RealTimeRollingLogfunction.DiscordCountText,
+					LineCountRoll: RollingLog.RealTimeRollingLogfunction.LineCountRoll,
+					LineCountText: RollingLog.RealTimeRollingLogfunction.LineCountText,
+					TelegramCountRoll: RollingLog.RealTimeRollingLogfunction.TelegramCountRoll,
+					TelegramCountText: RollingLog.RealTimeRollingLogfunction.TelegramCountText
+				}
 			}
-			RollingLog.RealTimeRollingLogfunction.LogTime = Date.now();
+			RollingLog.RealTimeRollingLogfunction.LogTime = Date(Date.now());
 			//每50次上傳即時紀錄到MLAB
 			if (simpleCourt % 50 == 0 || simpleCourt == 1) {
 				//MLAB
 				//RealTimeRollingLogfunction
+				let temp = {
+					LogTime: Date(Date.now()),
+					DiscordCountRoll: RollingLog.RealTimeRollingLogfunction.DiscordCountRoll,
+					DiscordCountText: RollingLog.RealTimeRollingLogfunction.DiscordCountText,
+					LineCountRoll: RollingLog.RealTimeRollingLogfunction.LineCountRoll,
+					LineCountText: RollingLog.RealTimeRollingLogfunction.LineCountText,
+					TelegramCountRoll: RollingLog.RealTimeRollingLogfunction.TelegramCountRoll,
+					TelegramCountText: RollingLog.RealTimeRollingLogfunction.TelegramCountText
+				}
+				if (!RollingLog.RealTimeRollingLogfunction.StartTime) {
+					temp.StartTime = Date(Date.now());
+				}
+
 			}
 			console.log("RollingLog: ", RollingLog)
 		}

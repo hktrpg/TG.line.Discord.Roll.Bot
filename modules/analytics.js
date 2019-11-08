@@ -6,10 +6,12 @@ require('fs').readdirSync('./roll/').forEach(function (file) {
 		exports[name] = require('../roll/' + file);
 	}
 });
+var myDate = new Date();
 let simpleCourt = 0;
 var RollingLog = {
 	RealTimeRollingLogfunction: {
 		StartTime: "",
+		LogTime: "",
 		DiscordCountRoll: 0,
 		DiscordCountText: 0,
 		LineCountRoll: 0,
@@ -105,11 +107,7 @@ try {
 		if (result && (result.text || result.LevelUp)) {
 			if (result.text) {
 				console.log('inputStr: ', inputStr)
-
 				//SAVE THE LOG
-				if (!RollingLog.RealTimeRollingLogfunction.StartTime) {
-					RollingLog.RealTimeRollingLogfunction.StartTime = BootTime
-				}
 				switch (botname) {
 					case "Discord":
 						RollingLog.RealTimeRollingLogfunction.DiscordCountRoll++
@@ -122,9 +120,7 @@ try {
 
 					default:
 						simpleCourt++;
-						if (simpleCourt % 500 == 0) {
-
-						}
+						saveLog();
 						break;
 				}
 			}
@@ -145,16 +141,28 @@ try {
 
 				default:
 					simpleCourt++;
-					if (simpleCourt % 500 == 0) {
-
-					}
+					saveLog();
 					break;
 			}
 		}
-		console.log(RollingLog)
+
 		return null;
 
-
+		function saveLog() {
+			//假如沒有StartTime 或過了一天則上載中途紀錄到MLAB
+			if (!RollingLog.RealTimeRollingLogfunction.StartTime || Date.now() - RollingLog.RealTimeRollingLogfunction.StartTime >= (24 * 60 * 60 * 1000)) {
+				RollingLog.RealTimeRollingLogfunction.StartTime = Date.now();
+				//上傳中途紀錄MLAB
+				//RollingLogfunction
+			}
+			RollingLog.RealTimeRollingLogfunction.LogTime = Date.now();
+			//每50次上傳即時紀錄到MLAB
+			if (simpleCourt % 50 == 0 || simpleCourt == 1) {
+				//MLAB
+				//RealTimeRollingLogfunction
+			}
+			console.log("RollingLog: ", RollingLog)
+		}
 		function EXPUP() {
 			let tempEXPconfig = 0;
 			let tempGPID = 0;

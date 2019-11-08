@@ -8,7 +8,18 @@ require('fs').readdirSync('./roll/').forEach(function (file) {
 });
 var myDate = new Date();
 let simpleCourt = 0;
-var RollingLog = {};
+var RollingLog = {
+	RealTimeRollingLogfunction: {
+		StartTime: "",
+		LogTime: "",
+		DiscordCountRoll: 0,
+		DiscordCountText: 0,
+		LineCountRoll: 0,
+		LineCountText: 0,
+		TelegramCountRoll: 0,
+		TelegramCountText: 0
+	}
+};
 const records = require('../modules/records.js');
 
 records.get('RollingLog', (msgs) => {

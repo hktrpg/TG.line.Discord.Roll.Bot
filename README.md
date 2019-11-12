@@ -3,6 +3,22 @@
 最後更新時間10/31/2019, 8:59:11 PM</br> 
 2019/07/21 香港克警合作 黑ICON紀念 </br> </br> 
 
+</br>
+想試用這機械人的話，請按以下連結，輸入bothelp顯示教學.</br>
+</br>
+Line版：</br>
+![QR](http://truth.bahamut.com.tw/s01/201612/c50dc2bd02de285983e7cf1c48926a61.JPG)  </br>
+https://line.me/R/ti/p/svMLqy9Mik</br></br>
+Discord版： </br>
+https://discordapp.com/oauth2/authorize?&client_id=544462904037081138&scope=bot&permissions=8</br></br>
+Telegram版： </br>
+http://t.me/hktrpg_bot</br>
+網頁版：</br>
+https://www.hktrpg.com/tool/rollbot.html</br></br>
+簡易版網上擲骰工具 — 兩面 六面 十面 二十面 百面 自定</br>
+https://www.hktrpg.com/tool/roll.html</br></br></br>
+
+
 關於RoboYabaso</br> 
 ==
 RoboYabaso最早由LarryLo  Retsnimle開發。 </br> 
@@ -23,21 +39,6 @@ RoboYabaso最早由LarryLo  Retsnimle開發。 </br>
 自定義回應功能，儲存擲骰指令功能，擲骰開關功能及資料庫功能</br>
 </br></br>
 
-試用
-==
-RoboYabaso@HKTRPG </br>
-LineID是：@utr0641o  
-你也可以使用QR扣：  
-![QR](http://truth.bahamut.com.tw/s01/201612/c50dc2bd02de285983e7cf1c48926a61.JPG)  
-
-或是點這裡：<a href="https://line.me/R/ti/p/svMLqy9Mik"><img height="36" border="0" alt="加入好友" src="https://scdn.line-apps.com/n/line_add_friends/btn/zh-Hant.png"></a>
-</br></br>
-
- Discord版 https://discordapp.com/oauth2/authorize?&client_id=544462904037081138&scope=bot&permissions=8
- </br>
- Telegram版 http://t.me/hktrpg_bot
- </br>
-骰組指令說明在對bot輸入/help 或bothelp 或看文章最底下</br>
 
 
 順便宣傳

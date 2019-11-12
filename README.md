@@ -7,7 +7,6 @@
 想試用這機械人的話，請按以下連結，輸入bothelp顯示教學.</br>
 </br>
 Line版：</br>
-![QR](http://truth.bahamut.com.tw/s01/201612/c50dc2bd02de285983e7cf1c48926a61.JPG)  </br>
 https://line.me/R/ti/p/svMLqy9Mik</br></br>
 Discord版： </br>
 https://discordapp.com/oauth2/authorize?&client_id=544462904037081138&scope=bot&permissions=8</br></br>

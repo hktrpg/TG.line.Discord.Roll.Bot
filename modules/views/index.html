@@ -4,17 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
-    <title>My Chatroom</title>
+    <title>HKTRPG 擲骰機器人 1D100 2D6 查詢輸入Bothelp</title>
     <script src="/socket.io/socket.io.js"></script>
     <script>
         var socket = io();
     </script>
     <style>
         @charset "UTF-8";
-
-      
-
-
 
         * {
             box-sizing: border-box;
@@ -30,14 +26,14 @@
         }
 
         body {
-            max-height : 30em;
+            max-height: 30em;
             max-width: 40rem;
             padding: 1rem;
             margin: 0 auto;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            
+
         }
 
         #container {
@@ -56,8 +52,8 @@
 
         #content {
             width: 100%;
-            min-height:100%;
-            height: 20em;            
+            min-height: 100%;
+            height: 20em;
             border: 0.1em solid darkolivegreen;
             border-radius: 0.1em;
             overflow: auto;
@@ -237,7 +233,7 @@
         </div>
         <div id="send-box" style="margin-top:6px;">
             <form id="send-form">
-                <input style="width:8em;font-size: 1em;" type="text" name="name" id="name"  value="" placeholder="暱稱">
+                <input style="width:8em;font-size: 1em;" type="text" name="name" id="name" value="" placeholder="暱稱">
                 <input style="font-size: 1em;" type="text" name="msg" id="msg" value="1d100" placeholder="說點什麼？">
                 <input type="submit" style="margin-top:4px;" id="submit" value="送出" onclick="genName()">
             </form>
@@ -247,7 +243,7 @@
     <script>
         function genName() {
             if (document.getElementById("name").value == "")
-                document.getElementById("name").value = "調查員"+ Math.floor(Math.random() * 1000) + 1;;
+                document.getElementById("name").value = "調查員" + Math.floor(Math.random() * 1000) + 1;;
         }
         function aa() {
             var content = document.getElementById("content");

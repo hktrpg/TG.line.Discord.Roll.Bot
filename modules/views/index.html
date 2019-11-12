@@ -234,7 +234,6 @@
     <div id="container">
         <div id="status-box" style="font-size: 0.9em">Server: <span id="status">-</span> / <span id="online">0</span>
             online.</div>
-        <center>
             <div id="content">
             </div>
             <div id="send-box" style="margin-top:6px;">
@@ -246,8 +245,17 @@
                 </form>
             </div>
     </div>
-    </center>
     <center>輸入Bothelp 顯示教學</center>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-111430056-7"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'UA-111430056-7');
+    </script>
+
     <script>
         function genName() {
             if (document.getElementById("name").value == "")

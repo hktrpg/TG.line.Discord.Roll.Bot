@@ -232,17 +232,21 @@
 <body>
     <center><a href="https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81">HKTRPG 擲骰工具</a></center>
     <div id="container">
-        <div id="status-box"style="font-size: 0.9em">Server: <span id="status">-</span> / <span id="online">0</span> online.</div>
-        <div id="content">
-        </div>
-        <div id="send-box" style="margin-top:6px;">
-            <form id="send-form">
-                <input style="width:8em;font-size: 1em;" type="text" name="name" id="name" value="" placeholder="暱稱">
-                <input style="font-size: 1em;" type="text" name="msg" id="msg" value="1d100" placeholder="說點什麼？">
-                <input type="submit" style="margin-top:4px;" id="submit" value="送出" onclick="genName()">
-            </form>
-        </div>
+        <div id="status-box" style="font-size: 0.9em">Server: <span id="status">-</span> / <span id="online">0</span>
+            online.</div>
+        <center>
+            <div id="content">
+            </div>
+            <div id="send-box" style="margin-top:6px;">
+                <form id="send-form">
+                    <input style="width:8em;font-size: 1em;" type="text" name="name" id="name" value=""
+                        placeholder="暱稱">
+                    <input style="font-size: 1em;" type="text" name="msg" id="msg" value="1d100" placeholder="說點什麼？">
+                    <input type="submit" style="margin-top:4px;" id="submit" value="送出" onclick="genName()">
+                </form>
+            </div>
     </div>
+    </center>
     <center>輸入Bothelp 顯示教學</center>
     <script>
         function genName() {

@@ -150,7 +150,6 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 					ctx.message.text = ctx.message.text.replace(
 						new RegExp('\@' + ctx.botInfo.username + '$', 'i'), '')
 				var mainMsg = ctx.message.text.match(msgSplitor); // 定義輸入字串
-				console.log(ctx.message.text)
 
 			}
 			if (mainMsg && mainMsg[0])

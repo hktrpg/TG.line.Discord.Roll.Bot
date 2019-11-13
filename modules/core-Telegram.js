@@ -145,8 +145,14 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			let rplyVal = {}
 			let msgSplitor = (/\S+/ig)
 			let trigger = ""
-			if (ctx.message.text && ctx.message.from.is_bot == false)
+			if (ctx.message.text && ctx.message.from.is_bot == false) {
+				if (ctx.botInfo && ctx.botInfo.username && ctx.message.text.match(/^[/]/))
+					ctx.message.text = ctx.message.text
+					.replace(new RegExp('\@' + ctx.botInfo.username + '$', 'i'), '')
+					.replace(new RegExp('^\/', 'i'), '')
 				var mainMsg = ctx.message.text.match(msgSplitor); // 定義輸入字串
+
+			}
 			if (mainMsg && mainMsg[0])
 				trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
 			if (trigger == ".me") {

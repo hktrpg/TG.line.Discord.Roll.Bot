@@ -59,10 +59,7 @@ try {
 		let trigger = ""
 		let stopmark = 0;
 		let msgSplitor = (/\S+/ig);
-		let mainMsg = "";
-		mainMsg[0] = ""
-		mainMsg[1] = ""
-		mainMsg[2] = ""
+		let mainMsg = {};
 		mainMsg = inputStr.match(msgSplitor); //定義輸入字串
 		if (mainMsg)
 			trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階

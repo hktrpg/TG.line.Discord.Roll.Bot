@@ -6,26 +6,13 @@ require('fs').readdirSync('./roll/').forEach(function (file) {
 		exports[name] = require('../roll/' + file);
 	}
 });
-var myDate = new Date();
-let simpleCourt = 0;
-var RollingLog = {
-	RealTimeRollingLogfunction: {
-		StartTime: "",
-		LogTime: "",
-		DiscordCountRoll: 0,
-		DiscordCountText: 0,
-		LineCountRoll: 0,
-		LineCountText: 0,
-		TelegramCountRoll: 0,
-		TelegramCountText: 0
-	}
-};
+
+var RollingLog = {};
 const records = require('../modules/records.js');
 
 records.get('RollingLog', (msgs) => {
-	console.log(msgs)
-	if (msgs && msgs.RealTimeRollingLogfunction)
-		RollingLog = msgs
+	RollingLog = msgs
+	console.log('RollingLog', RollingLog)
 
 })
 
@@ -35,6 +22,8 @@ var CountTime = {};
 //Format: 
 //TG
 try {
+
+	var simpleCourt = 0;
 	let result = {
 		text: '',
 		type: 'text',
@@ -93,42 +82,44 @@ try {
 			if (result.text) {
 				console.log('inputStr: ', inputStr)
 				//SAVE THE LOG
-				switch (botname) {
-					case "Discord":
-						RollingLog.RealTimeRollingLogfunction.DiscordCountRoll++
+				if (RollingLog)
+					switch (botname) {
+						case "Discord":
+							RollingLog.RealTimeRollingLogfunction.DiscordCountRoll++
 
-					case "Line":
-						RollingLog.RealTimeRollingLogfunction.LineCountRoll++;
+						case "Line":
+							RollingLog.RealTimeRollingLogfunction.LineCountRoll++;
 
-					case "Telegram":
-						RollingLog.RealTimeRollingLogfunction.TelegramCountRoll++
+						case "Telegram":
+							RollingLog.RealTimeRollingLogfunction.TelegramCountRoll++
 
-					default:
-						simpleCourt++;
-						saveLog();
-						break;
-				}
+						default:
+							simpleCourt++;
+							saveLog();
+							break;
+					}
 			}
 			if (result.LevelUp)
 				console.log('LV UP')
 			return result;
 
 		} else {
-			switch (botname) {
-				case "Discord":
-					RollingLog.RealTimeRollingLogfunction.DiscordCountText++
+			if (RollingLog)
+				switch (botname) {
+					case "Discord":
+						RollingLog.RealTimeRollingLogfunction.DiscordCountText++
 
-				case "Line":
-					RollingLog.RealTimeRollingLogfunction.LineCountText++;
+					case "Line":
+						RollingLog.RealTimeRollingLogfunction.LineCountText++;
 
-				case "Telegram":
-					RollingLog.RealTimeRollingLogfunction.TelegramCountText++
+					case "Telegram":
+						RollingLog.RealTimeRollingLogfunction.TelegramCountText++
 
-				default:
-					simpleCourt++;
-					saveLog();
-					break;
-			}
+					default:
+						simpleCourt++;
+						saveLog();
+						break;
+				}
 		}
 
 		return null;
@@ -150,15 +141,17 @@ try {
 					TelegramCountRoll: RollingLog.RealTimeRollingLogfunction.TelegramCountRoll,
 					TelegramCountText: RollingLog.RealTimeRollingLogfunction.TelegramCountText
 				}
+				records.pushtrpgSaveLogfunction('RollingLog', temp, () => {
+				})
 			}
-			RollingLog.RealTimeRollingLogfunction.LogTime = Date(Date.now());
 			//每50次上傳即時紀錄到MLAB
-			if (simpleCourt % 50 == 0 || simpleCourt == 1) {
+			if (1 == 1) {
+				//simpleCourt % 50 == 0 || simpleCourt == 1
 				//MLAB
 				//RealTimeRollingLogfunction
 				//SET 紀錄
 				let temp = {
-					LogTime: RollingLog.RealTimeRollingLogfunction.LogTime,
+					LogTime: Date(Date.now()),
 					DiscordCountRoll: RollingLog.RealTimeRollingLogfunction.DiscordCountRoll,
 					DiscordCountText: RollingLog.RealTimeRollingLogfunction.DiscordCountText,
 					LineCountRoll: RollingLog.RealTimeRollingLogfunction.LineCountRoll,
@@ -169,6 +162,8 @@ try {
 				if (!RollingLog.RealTimeRollingLogfunction.StartTime) {
 					temp.StartTime = Date.now();
 				}
+				records.settrpgSaveLogfunctionRealTime('RollingLog', temp, () => {
+				})
 
 			}
 			console.log("RollingLog: ", RollingLog)

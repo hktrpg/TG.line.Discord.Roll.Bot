@@ -544,9 +544,8 @@ class Records extends EventEmitter {
     SAVE THE LOG
     SAVELOG功能
     */
-    settrpgSaveLogfunctionRealTime(dbbase, msgA, msg, callback) {
+    settrpgSaveLogfunctionRealTime(dbbase, msg, callback) {
         schema[dbbase].findOneAndUpdate({
-            groupid: msgA.groupid
         }, {
             $set: {
                 //實時資料 使用SET
@@ -557,6 +556,8 @@ class Records extends EventEmitter {
                 //Sided: msg
             }
         }, {
+            upsert: true,
+            setDefaultsOnInsert: true
             //   setDefaultsOnInsert: true
         }, (err, doc) => {
             if (err) {
@@ -569,9 +570,8 @@ class Records extends EventEmitter {
             // return JSON.stringify(doc).toString();
         });
     }
-    pushtrpgSaveLogfunction(dbbase, msgA, msg, callback) {
+    pushtrpgSaveLogfunction(dbbase, msg, callback) {
         schema[dbbase].findOneAndUpdate({
-            groupid: msgA.groupid
         }, {
             $push: {
                 //實時資料 使用SET
@@ -582,6 +582,8 @@ class Records extends EventEmitter {
                 //Sided: msg
             }
         }, {
+            upsert: true,
+            setDefaultsOnInsert: true
             //   setDefaultsOnInsert: true
         }, (err, doc) => {
             if (err) {
@@ -594,9 +596,8 @@ class Records extends EventEmitter {
             // return JSON.stringify(doc).toString();
         });
     }
-    settrpgSaveLogfunctionRoll(dbbase, msgA, msg, callback) {
+    settrpgSaveLogfunctionRoll(dbbase, msg, callback) {
         schema[dbbase].findOneAndUpdate({
-            groupid: msgA.groupid
         }, {
             $set: {
                 //實時資料 使用SET
@@ -607,6 +608,8 @@ class Records extends EventEmitter {
                 Sided: msg
             }
         }, {
+            upsert: true,
+            setDefaultsOnInsert: true
             //   setDefaultsOnInsert: true
         }, (err, doc) => {
             if (err) {

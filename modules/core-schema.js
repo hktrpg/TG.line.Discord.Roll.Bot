@@ -108,7 +108,7 @@ if (process.env.mongoURL) {
     //
     const RollingLog = mongoose.model('RollingLog', {
         RealTimeRollingLogfunction: {
-            //上次紀錄RollingLogfunction的時間
+            //第一次運行紀錄RollingLogfunction的時間
             StartTime: Date,
             //現在時間
             LogTime: Date,

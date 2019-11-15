@@ -30,9 +30,6 @@ records.get('RollingLog', (msgs) => {
 })
 
 const math = require('mathjs');
-const BootTime = new Date(new Date().toLocaleString("en-US", {
-	timeZone: "Asia/Shanghai"
-}));
 var CountTime = {};
 //Log everyday 01:00
 //Format: 
@@ -138,10 +135,12 @@ try {
 
 		function saveLog() {
 			//假如沒有StartTime 或過了一天則上載中途紀錄到MLAB
+			console.log(Date.now() - RollingLog.RealTimeRollingLogfunction.StartTime)
 			if (!RollingLog.RealTimeRollingLogfunction.StartTime || Date.now() - RollingLog.RealTimeRollingLogfunction.StartTime >= (24 * 60 * 60 * 1000)) {
 				RollingLog.RealTimeRollingLogfunction.StartTime = Date.now();
 				//上傳中途紀錄MLAB
 				//RollingLogfunction
+				//PUSH 推送
 				let temp = {
 					LogTime: Date(Date.now()),
 					DiscordCountRoll: RollingLog.RealTimeRollingLogfunction.DiscordCountRoll,
@@ -157,6 +156,7 @@ try {
 			if (simpleCourt % 50 == 0 || simpleCourt == 1) {
 				//MLAB
 				//RealTimeRollingLogfunction
+				//SET 紀錄
 				let temp = {
 					LogTime: RollingLog.RealTimeRollingLogfunction.LogTime,
 					DiscordCountRoll: RollingLog.RealTimeRollingLogfunction.DiscordCountRoll,

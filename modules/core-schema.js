@@ -127,7 +127,8 @@ if (process.env.mongoURL) {
             LineCountText: Number,
             TelegramCountRoll: Number,
             TelegramCountText: Number
-        }]
+        }],
+        Sided: Array
     });
 
 

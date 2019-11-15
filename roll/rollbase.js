@@ -187,8 +187,8 @@ try {
         let equation = DiceToRoll
         while (equation.match(/\d+d\d+/i) != null) {
           let tempMatch = equation.match(/\d+d\d+/i)
-          if (tempMatch.toString().split('d')[0] > 500 || tempMatch.toString().split('d')[0] <= 0) return
-          if (tempMatch.toString().split('d')[1] <= 1 || tempMatch.toString().split('d')[1] > 1000000) return
+          if (tempMatch.toString().split('d')[0] > 600 || tempMatch.toString().split('d')[0] <= 0) return
+          if (tempMatch.toString().split('d')[1] <= 1 || tempMatch.toString().split('d')[1] > 100000) return
           equation = equation.replace(/\d+d\d+/i, RollDice(tempMatch))
         }
 
@@ -222,8 +222,8 @@ try {
       while (equation.match(/\d+d\d+/i) != null) {
         // let totally = 0
         let tempMatch = equation.match(/\d+d\d+/i)
-        if (tempMatch.toString().split('d')[0] > 500 || tempMatch.toString().split('d')[0] <= 0) return
-        if (tempMatch.toString().split('d')[1] <= 1 || tempMatch.toString().split('d')[1] > 1000000) return
+        if (tempMatch.toString().split('d')[0] > 600 || tempMatch.toString().split('d')[0] <= 0) return
+        if (tempMatch.toString().split('d')[1] <= 1 || tempMatch.toString().split('d')[1] > 100000) return
         equation = equation.replace(/\d+d\d+/i, RollDice(tempMatch))
       }
 

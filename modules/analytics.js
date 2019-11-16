@@ -6,19 +6,28 @@ require('fs').readdirSync('./roll/').forEach(function (file) {
 		exports[name] = require('../roll/' + file);
 	}
 });
-
-var RollingLog;
+var RollingLog = {
+	RealTimeRollingLogfunction: {
+		StartTime: "",
+		LogTime: "",
+		DiscordCountRoll: 0,
+		DiscordCountText: 0,
+		LineCountRoll: 0,
+		LineCountText: 0,
+		TelegramCountRoll: 0,
+		TelegramCountText: 0
+	}
+};
 const records = require('../modules/records.js');
-
+var simpleCourt = "";
 records.get('RollingLog', (msgs) => {
 	RollingLog = msgs
 	console.log('RollingLog', RollingLog)
-
+	simpleCourt = 0;
 })
 
 const math = require('mathjs');
-var CountTime = {};
-var simpleCourt = 0;
+
 //Log everyday 01:00
 //Format: 
 //TG
@@ -83,7 +92,7 @@ try {
 			if (result.text) {
 				console.log('inputStr: ', inputStr)
 				//SAVE THE LOG
-				if (RollingLog)
+				if (simpleCourt == 0)
 					switch (botname) {
 						case "Discord":
 							RollingLog.RealTimeRollingLogfunction.DiscordCountRoll++
@@ -92,6 +101,7 @@ try {
 							RollingLog.RealTimeRollingLogfunction.LineCountRoll++;
 
 						case "Telegram":
+							console.log(RollingLog)
 							RollingLog.RealTimeRollingLogfunction.TelegramCountRoll++
 
 						default:
@@ -105,7 +115,7 @@ try {
 			return result;
 
 		} else {
-			if (RollingLog)
+			if (RollingLog == 0)
 				switch (botname) {
 					case "Discord":
 						RollingLog.RealTimeRollingLogfunction.DiscordCountText++

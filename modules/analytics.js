@@ -21,7 +21,18 @@ var RollingLog = {
 const records = require('../modules/records.js');
 var simpleCourt = "";
 records.get('RollingLog', (msgs) => {
-	RollingLog = msgs
+	RollingLog = {
+		RealTimeRollingLogfunction: {
+			StartTime: msgs[0].RealTimeRollingLogfunction.StartTime || "",
+			LogTime: msgs[0].RealTimeRollingLogfunction.LogTime || "",
+			DiscordCountRoll: msgs[0].RealTimeRollingLogfunction.DiscordCountRoll || 0,
+			DiscordCountText: msgs[0].RealTimeRollingLogfunction.DiscordCountText || 0,
+			LineCountRoll: msgs[0].RealTimeRollingLogfunction.LineCountRoll || 0,
+			LineCountText: msgs[0].RealTimeRollingLogfunction.LineCountText || 0,
+			TelegramCountRoll: msgs[0].RealTimeRollingLogfunction.TelegramCountRoll || 0,
+			TelegramCountText: msgs[0].RealTimeRollingLogfunction.TelegramCountText || 0
+		}
+	};
 	console.log('RollingLog', RollingLog)
 	simpleCourt = 0;
 })
@@ -92,7 +103,7 @@ try {
 			if (result.text) {
 				console.log('inputStr: ', inputStr)
 				//SAVE THE LOG
-				if (simpleCourt == 0)
+				if (simpleCourt != null)
 					switch (botname) {
 						case "Discord":
 							RollingLog.RealTimeRollingLogfunction.DiscordCountRoll++
@@ -115,7 +126,7 @@ try {
 			return result;
 
 		} else {
-			if (RollingLog == 0)
+			if (simpleCourt != null)
 				switch (botname) {
 					case "Discord":
 						RollingLog.RealTimeRollingLogfunction.DiscordCountText++
@@ -144,7 +155,9 @@ try {
 				//RollingLogfunction
 				//PUSH 推送
 				let temp = {
-					LogTime: Date(Date.now()),
+					LogTime: Date(Date.now()).toLocaleString("en-US", {
+						timeZone: "Asia/HongKong"
+					}),
 					DiscordCountRoll: RollingLog.RealTimeRollingLogfunction.DiscordCountRoll,
 					DiscordCountText: RollingLog.RealTimeRollingLogfunction.DiscordCountText,
 					LineCountRoll: RollingLog.RealTimeRollingLogfunction.LineCountRoll,
@@ -161,7 +174,9 @@ try {
 				//RealTimeRollingLogfunction
 				//SET 紀錄
 				let temp = {
-					LogTime: Date(Date.now()),
+					LogTime: Date(Date.now()).toLocaleString("en-US", {
+						timeZone: "Asia/HongKong"
+					}),
 					DiscordCountRoll: RollingLog.RealTimeRollingLogfunction.DiscordCountRoll,
 					DiscordCountText: RollingLog.RealTimeRollingLogfunction.DiscordCountText,
 					LineCountRoll: RollingLog.RealTimeRollingLogfunction.LineCountRoll,

@@ -150,13 +150,12 @@ try {
 		function saveLog() {
 			//假如沒有StartTime 或過了一天則上載中途紀錄到MLAB
 			console.log(Date.now() - RollingLog.RealTimeRollingLogfunction.StartTime)
-			if (!RollingLog.RealTimeRollingLogfunction.StartTime || Date.now() - RollingLog.RealTimeRollingLogfunction.StartTime >= (24 * 60 * 60 * 1000)) {
+			if (!RollingLog.RealTimeRollingLogfunction.StartTime || Date.now() - RollingLog.RealTimeRollingLogfunction.StartTime >= (0 * 24 * 60 * 60 * 1000)) {
 				RollingLog.RealTimeRollingLogfunction.StartTime = Date.now();
 				//上傳中途紀錄MLAB
 				//RollingLogfunction
 				//PUSH 推送
 				let temp = {
-					StartTime: Date.now(),
 					LogTime: Date(Date.now()).toLocaleString("en-US", {
 						timeZone: "Asia/HongKong"
 					}),
@@ -167,10 +166,12 @@ try {
 					TelegramCountRoll: RollingLog.RealTimeRollingLogfunction.TelegramCountRoll,
 					TelegramCountText: RollingLog.RealTimeRollingLogfunction.TelegramCountText
 				}
-				records.pushtrpgSaveLogfunction('RollingLog', temp, () => {})
+				records.pushtrpgSaveLogfunction('RollingLog', temp, () => {
+					console.log('SAVE LOG')
+				})
 			}
 			//每50次上傳即時紀錄到MLAB
-			if (1 == 1) {
+			if (!RollingLog.RealTimeRollingLogfunction.StartTime || Date.now() - RollingLog.RealTimeRollingLogfunction.StartTime >= (24 * 60 * 60 * 1000) || simpleCourt % 50 == 0 || simpleCourt == 1) {
 				//simpleCourt % 50 == 0 || simpleCourt == 1
 				//MLAB
 				//RealTimeRollingLogfunction
@@ -179,6 +180,7 @@ try {
 					LogTime: Date(Date.now()).toLocaleString("en-US", {
 						timeZone: "Asia/HongKong"
 					}),
+					StartTime: RollingLog.RealTimeRollingLogfunction.StartTime,
 					DiscordCountRoll: RollingLog.RealTimeRollingLogfunction.DiscordCountRoll,
 					DiscordCountText: RollingLog.RealTimeRollingLogfunction.DiscordCountText,
 					LineCountRoll: RollingLog.RealTimeRollingLogfunction.LineCountRoll,
@@ -186,10 +188,9 @@ try {
 					TelegramCountRoll: RollingLog.RealTimeRollingLogfunction.TelegramCountRoll,
 					TelegramCountText: RollingLog.RealTimeRollingLogfunction.TelegramCountText
 				}
-				if (!RollingLog.RealTimeRollingLogfunction.StartTime) {
-					temp.StartTime = Date.now();
-				}
-				records.settrpgSaveLogfunctionRealTime('RealTimeRollingLog', temp, () => {})
+				records.settrpgSaveLogfunctionRealTime('RealTimeRollingLog', temp, () => {
+					console.log('SAVE REAL TIMELOG')
+				})
 
 			}
 			console.log("RollingLog: ", RollingLog)

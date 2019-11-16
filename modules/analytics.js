@@ -7,7 +7,7 @@ require('fs').readdirSync('./roll/').forEach(function (file) {
 	}
 });
 
-var RollingLog = {};
+var RollingLog;
 const records = require('../modules/records.js');
 
 records.get('RollingLog', (msgs) => {
@@ -18,12 +18,13 @@ records.get('RollingLog', (msgs) => {
 
 const math = require('mathjs');
 var CountTime = {};
+var simpleCourt = 0;
 //Log everyday 01:00
 //Format: 
 //TG
 try {
 
-	var simpleCourt = 0;
+
 	let result = {
 		text: '',
 		type: 'text',
@@ -141,8 +142,7 @@ try {
 					TelegramCountRoll: RollingLog.RealTimeRollingLogfunction.TelegramCountRoll,
 					TelegramCountText: RollingLog.RealTimeRollingLogfunction.TelegramCountText
 				}
-				records.pushtrpgSaveLogfunction('RollingLog', temp, () => {
-				})
+				records.pushtrpgSaveLogfunction('RollingLog', temp, () => {})
 			}
 			//每50次上傳即時紀錄到MLAB
 			if (1 == 1) {
@@ -162,12 +162,12 @@ try {
 				if (!RollingLog.RealTimeRollingLogfunction.StartTime) {
 					temp.StartTime = Date.now();
 				}
-				records.settrpgSaveLogfunctionRealTime('RollingLog', temp, () => {
-				})
+				records.settrpgSaveLogfunctionRealTime('RollingLog', temp, () => {})
 
 			}
 			console.log("RollingLog: ", RollingLog)
 		}
+
 		function EXPUP() {
 			let tempEXPconfig = 0;
 			let tempGPID = 0;

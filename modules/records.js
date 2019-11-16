@@ -545,8 +545,7 @@ class Records extends EventEmitter {
     SAVELOG功能
     */
     settrpgSaveLogfunctionRealTime(dbbase, msg, callback) {
-        schema[dbbase].findOneAndUpdate({
-        }, {
+        schema[dbbase].findOneAndUpdate({}, {
             $set: {
                 //實時資料 使用SET
                 RealTimeRollingLogfunction: msg
@@ -571,34 +570,14 @@ class Records extends EventEmitter {
         });
     }
     pushtrpgSaveLogfunction(dbbase, msg, callback) {
-        schema[dbbase].findOneAndUpdate({
-        }, {
-            $push: {
-                //實時資料 使用SET
-                // RealTimeRollingLogfunction: msg,
-                //中途紀錄資料 使用PUSH 每天紀錄一次
-                RollingLogfunction: msg
-                //擲骰的結果紀錄
-                //Sided: msg
-            }
-        }, {
-            upsert: true,
-            setDefaultsOnInsert: true
-            //   setDefaultsOnInsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.log(err);
-                console.log("Something wrong when updating data!");
-            } else {
-                callback();
-                // console.log('DONE?')
-            }
-            // return JSON.stringify(doc).toString();
+        new schema[dbbase]({
+            RollingLogfunction: msg
+        }).save(function (err) {
+            if (err) return console.error(err);
         });
     }
     settrpgSaveLogfunctionRoll(dbbase, msg, callback) {
-        schema[dbbase].findOneAndUpdate({
-        }, {
+        schema[dbbase].findOneAndUpdate({}, {
             $set: {
                 //實時資料 使用SET
                 // RealTimeRollingLogfunction: msg,

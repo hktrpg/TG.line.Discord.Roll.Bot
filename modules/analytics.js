@@ -20,19 +20,20 @@ var RollingLog = {
 };
 const records = require('../modules/records.js');
 var simpleCourt = "";
-records.get('RollingLog', (msgs) => {
-	RollingLog = {
-		RealTimeRollingLogfunction: {
-			StartTime: msgs[0].RealTimeRollingLogfunction.StartTime || "",
-			LogTime: msgs[0].RealTimeRollingLogfunction.LogTime || "",
-			DiscordCountRoll: msgs[0].RealTimeRollingLogfunction.DiscordCountRoll || 0,
-			DiscordCountText: msgs[0].RealTimeRollingLogfunction.DiscordCountText || 0,
-			LineCountRoll: msgs[0].RealTimeRollingLogfunction.LineCountRoll || 0,
-			LineCountText: msgs[0].RealTimeRollingLogfunction.LineCountText || 0,
-			TelegramCountRoll: msgs[0].RealTimeRollingLogfunction.TelegramCountRoll || 0,
-			TelegramCountText: msgs[0].RealTimeRollingLogfunction.TelegramCountText || 0
-		}
-	};
+records.get('RealTimeRollingLog', (msgs) => {
+	if (msgs && msgs[0] && msgs[0].RealTimeRollingLogfunction)
+		RollingLog = {
+			RealTimeRollingLogfunction: {
+				StartTime: msgs[0].RealTimeRollingLogfunction.StartTime || "",
+				LogTime: msgs[0].RealTimeRollingLogfunction.LogTime || "",
+				DiscordCountRoll: msgs[0].RealTimeRollingLogfunction.DiscordCountRoll || 0,
+				DiscordCountText: msgs[0].RealTimeRollingLogfunction.DiscordCountText || 0,
+				LineCountRoll: msgs[0].RealTimeRollingLogfunction.LineCountRoll || 0,
+				LineCountText: msgs[0].RealTimeRollingLogfunction.LineCountText || 0,
+				TelegramCountRoll: msgs[0].RealTimeRollingLogfunction.TelegramCountRoll || 0,
+				TelegramCountText: msgs[0].RealTimeRollingLogfunction.TelegramCountText || 0
+			}
+		};
 	console.log('RollingLog', RollingLog)
 	simpleCourt = 0;
 })
@@ -155,6 +156,7 @@ try {
 				//RollingLogfunction
 				//PUSH 推送
 				let temp = {
+					StartTime: Date.now(),
 					LogTime: Date(Date.now()).toLocaleString("en-US", {
 						timeZone: "Asia/HongKong"
 					}),
@@ -187,7 +189,7 @@ try {
 				if (!RollingLog.RealTimeRollingLogfunction.StartTime) {
 					temp.StartTime = Date.now();
 				}
-				records.settrpgSaveLogfunctionRealTime('RollingLog', temp, () => {})
+				records.settrpgSaveLogfunctionRealTime('RealTimeRollingLog', temp, () => {})
 
 			}
 			console.log("RollingLog: ", RollingLog)

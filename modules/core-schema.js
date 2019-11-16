@@ -106,7 +106,7 @@ if (process.env.mongoURL) {
     //每日上傳一次
     //同時每500次顯示一次
     //
-    const RollingLog = mongoose.model('RollingLog', {
+    const RealTimeRollingLog = mongoose.model('RealTimeRollingLog', {
         RealTimeRollingLogfunction: {
             //第一次運行紀錄RollingLogfunction的時間
             StartTime: Date,
@@ -119,7 +119,10 @@ if (process.env.mongoURL) {
             TelegramCountRoll: Number,
             TelegramCountText: Number
         },
-        RollingLogfunction: [{
+        Sided: Array
+    });
+    const RollingLog = mongoose.model('RollingLog', {
+        RollingLogfunction: {
             LogTime: Date,
             DiscordCountRoll: Number,
             DiscordCountText: Number,
@@ -127,8 +130,7 @@ if (process.env.mongoURL) {
             LineCountText: Number,
             TelegramCountRoll: Number,
             TelegramCountText: Number
-        }],
-        Sided: Array
+        }
     });
 
 
@@ -143,6 +145,7 @@ if (process.env.mongoURL) {
         trpgCommand,
         trpgLevelSystem,
         trpgDarkRolling,
+        RealTimeRollingLog,
         RollingLog
     }
     //const Cat = mongoose.model('Cat', { name: String });

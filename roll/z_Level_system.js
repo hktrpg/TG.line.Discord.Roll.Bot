@@ -5,6 +5,7 @@ try {
         text: '',
         save: ''
     };
+    const math = require('mathjs');
     const records = require('../modules/records.js');
     records.get('trpgLevelSystem', (msgs) => {
         rply.trpgLevelSystemfunction = msgs
@@ -501,12 +502,13 @@ try {
                                         //4.    沒有則新增一個, 隨機1-10 給經驗值.
                                         let username = displaynameDiscord || displayname || "無名"
                                         let userlevel = 0;
-                                        let userexp = Math.floor(Math.random() * 10) + 15
+                                        let userexp = math.floor(math.random() * 10) + 15
                                         //console.log('rply.trpgLevelSystemfunction[i]',
                                         let usermember_count = membercount || rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length;
                                         let userRanking = ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);
                                         let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
                                         let userTitle = this.checkTitle(userlevel, rply.trpgLevelSystemfunction[i].Title);
+
                                         //{user.name} 名字 {user.level} 等級 \
                                         //{user.title} 稱號
                                         // { user.exp } 經驗值 { user.Ranking } 現在排名 \
@@ -654,9 +656,9 @@ try {
         }
         //將千位以上變成約數
         function kMGTPE(n, d) {
-            x = ('' + n).length, p = Math.pow, d = p(10, d)
+            x = ('' + n).length, p = math.pow, d = p(10, d)
             x -= x % 3
-            return Math.round(n * d / p(10, x)) / d + " kMGTPE"[x / 3]
+            return math.round(n * d / p(10, x)) / d + " kMGTPE" [x / 3]
         }
 
         function ranking(who, data) {

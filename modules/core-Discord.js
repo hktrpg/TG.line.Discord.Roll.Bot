@@ -10,13 +10,13 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 		var channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 		const Discord = require('discord.js');
 		const client = new Discord.Client();
-		const BootTime = new Date(new Date().toLocaleString("en-US", {
-			timeZone: "Asia/Shanghai"
-		}));
+		//const BootTime = new Date(new Date().toLocaleString("en-US", {
+		//	timeZone: "Asia/Shanghai"
+		//}));
 		// Load `*.js` under modules directory as properties
 		//  i.e., `User.js` will become `exports['User']` or `exports.User`
-		var Discordcountroll = 0;
-		var Discordcounttext = 0;
+		//var Discordcountroll = 0;
+		//var Discordcounttext = 0;
 
 		client.once('ready', () => {
 			console.log('Discord is Ready!');
@@ -102,7 +102,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					}
 
 					if (rplyVal && rplyVal.text) {
-						Discordcountroll++;
+						//Discordcountroll++;
 						//簡單使用數字計算器
 						if (privatemsg >= 1) {
 							//當是私訊模式1-3時
@@ -189,9 +189,9 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 
 						//console.log("rplyVal: " + rplyVal);
 					} else {
-						Discordcounttext++;
-						if (Discordcounttext % 500 == 0)
-							console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString());
+						//	Discordcounttext++;
+						//	if (Discordcounttext % 500 == 0)
+						//console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString());
 					}
 					async function SendToId(targetid, replyText) {
 						for (var i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {

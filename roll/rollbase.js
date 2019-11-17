@@ -1,4 +1,6 @@
 const math = require('mathjs');
+//var Sided = [];
+//Sided[10000] = [];
 var rply = {
   default: 'on',
   type: 'text',
@@ -52,7 +54,28 @@ rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botnam
 // //////////////////////////////////////
 try {
   function Dice(diceSided) {
-    return math.floor((math.random() * diceSided) + 1)
+    let result = '';
+
+    result = math.floor((math.random() * diceSided) + 1)
+    /*
+    if (diceSided <= 10000) {
+      if (!Sided[diceSided]) {
+        Sided[diceSided] = []
+        //console.log('a')
+      }
+      if (Sided[diceSided] && !Sided[diceSided][result]) {
+        Sided[diceSided][result] = 1
+        //console.log('b')
+      } else
+      if (Sided[diceSided] && Sided[diceSided][result]) {
+        Sided[diceSided][result]++
+        //console.log('c')
+      }
+    
+
+  }
+*/
+    return result
   }
 
   function sortNumber(a, b) {
@@ -167,8 +190,8 @@ try {
         let equation = DiceToRoll
         while (equation.match(/\d+d\d+/i) != null) {
           let tempMatch = equation.match(/\d+d\d+/i)
-          if (tempMatch.toString().split('d')[0] > 500 || tempMatch.toString().split('d')[0] <= 0) return
-          if (tempMatch.toString().split('d')[1] <= 1 || tempMatch.toString().split('d')[1] > 1000000) return
+          if (tempMatch.toString().split('d')[0] > 600 || tempMatch.toString().split('d')[0] <= 0) return
+          if (tempMatch.toString().split('d')[1] <= 1 || tempMatch.toString().split('d')[1] > 100000) return
           equation = equation.replace(/\d+d\d+/i, RollDice(tempMatch))
         }
 
@@ -202,8 +225,8 @@ try {
       while (equation.match(/\d+d\d+/i) != null) {
         // let totally = 0
         let tempMatch = equation.match(/\d+d\d+/i)
-        if (tempMatch.toString().split('d')[0] > 500 || tempMatch.toString().split('d')[0] <= 0) return
-        if (tempMatch.toString().split('d')[1] <= 1 || tempMatch.toString().split('d')[1] > 1000000) return
+        if (tempMatch.toString().split('d')[0] > 600 || tempMatch.toString().split('d')[0] <= 0) return
+        if (tempMatch.toString().split('d')[1] <= 1 || tempMatch.toString().split('d')[1] > 100000) return
         equation = equation.replace(/\d+d\d+/i, RollDice(tempMatch))
       }
 

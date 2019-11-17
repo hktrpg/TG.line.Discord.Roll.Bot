@@ -439,7 +439,7 @@ class Records extends EventEmitter {
                 //在這群組查詢等級時的回應
                 Switch: msg.Switch,
                 //是否啓動功能 config 1X 則1
-                Hidden: msg.Hidden,
+                Hidden: msg.Hidden
                 //是否顯示升級語 config X1 則1
                 //trpgLevelSystemfunction: msg.trpgLevelSystemfunction
             }
@@ -521,7 +521,7 @@ class Records extends EventEmitter {
                 //在這群組查詢等級時的回應
                 Switch: msg.Switch,
                 //是否啓動功能 config 1X 則1
-                Hidden: msg.Hidden,
+                Hidden: msg.Hidden
                 //是否顯示升級語 config X1 則1
                 //trpgLevelSystemfunction: msg.trpgLevelSystemfunction
             }
@@ -538,9 +538,7 @@ class Records extends EventEmitter {
     }
     settrpgLevelSystemfunctionEXPup(dbbase, msgA, msg, callback) {
         schema[dbbase].findOneAndUpdate({
-
             groupid: msgA.groupid
-
         }, {
             $set: {
                 //LevelUpWord: msg.LevelUpWord
@@ -564,6 +562,46 @@ class Records extends EventEmitter {
                 // console.log('DONE?')
             }
             // return JSON.stringify(doc).toString();
+        });
+    }
+
+    /*
+    SAVE THE LOG
+    SAVELOG功能
+    */
+    settrpgSaveLogfunctionRealTime(dbbase, msg, callback) {
+        schema[dbbase].findOneAndUpdate({}, {
+            $set: {
+                //實時資料 使用SET
+                RealTimeRollingLogfunction: msg
+                //中途紀錄資料 使用PUSH 每天紀錄一次
+                // RollingLogfunction: msg,
+                //擲骰的結果紀錄
+                //Sided: msg
+            }
+        }, {
+            upsert: true,
+            setDefaultsOnInsert: true
+            //   setDefaultsOnInsert: true
+        }, (err, doc) => {
+            if (err) {
+                console.log(err);
+                console.log("Something wrong when updating data!");
+            } else {
+                callback();
+                // console.log('DONE?')
+            }
+            // return JSON.stringify(doc).toString();
+        });
+    }
+    pushtrpgSaveLogfunction(dbbase, msg, callback) {
+        new schema[dbbase]({
+            RollingLogfunction: msg
+        }).save(function (err) {
+            if (err) return console.error(err);
+            else {
+                callback();
+            }
         });
     }
 

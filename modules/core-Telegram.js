@@ -13,8 +13,8 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 		const Telegraf = require('telegraf')
 		const TGclient = new Telegraf(process.env.TELEGRAM_CHANNEL_SECRET)
 		const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || ''
-		var TGcountroll = 0;
-		var TGcounttext = 0;
+		//var TGcountroll = 0;
+		//var TGcounttext = 0;
 		const telegrafGetChatMembers = require('telegraf-getchatmembers')
 
 		//TGclient.use(telegrafGetChatMembers)
@@ -191,7 +191,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				ctx.reply("@" + displayname + '\n' + rplyVal.LevelUp)
 			}
 			if (rplyVal && rplyVal.text) {
-				TGcountroll++;
+				//TGcountroll++;
 				if (privatemsg >= 1) {
 					//當是私訊模式1-3時
 					var TargetGMTempID = []
@@ -274,9 +274,9 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				// console.log("rplyVal: " + rplyVal)
 			} else {
 				//console.log(rplyVal.text, " ")
-				TGcounttext++;
-				if (TGcounttext % 500 == 0)
-					console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext);
+				//TGcounttext++;
+				//if (TGcounttext % 500 == 0)
+				//console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext);
 			}
 			//  }
 

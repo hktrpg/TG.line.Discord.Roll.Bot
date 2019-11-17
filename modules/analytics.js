@@ -8,6 +8,7 @@ require('fs').readdirSync('./roll/').forEach(function (file) {
 });
 var RollingLog = {
 	RealTimeRollingLogfunction: {
+		LastTimeLog: "",
 		StartTime: "",
 		LogTime: "",
 		DiscordCountRoll: 0,
@@ -19,11 +20,12 @@ var RollingLog = {
 	}
 };
 const records = require('../modules/records.js');
-var simpleCourt = "";
+var simpleCourt = null;
 records.get('RealTimeRollingLog', (msgs) => {
 	if (msgs && msgs[0] && msgs[0].RealTimeRollingLogfunction)
 		RollingLog = {
 			RealTimeRollingLogfunction: {
+				LastTimeLog: msgs[0].RealTimeRollingLogfunction.LastTimeLog || "",
 				StartTime: msgs[0].RealTimeRollingLogfunction.StartTime || "",
 				LogTime: msgs[0].RealTimeRollingLogfunction.LogTime || "",
 				DiscordCountRoll: msgs[0].RealTimeRollingLogfunction.DiscordCountRoll || 0,
@@ -34,7 +36,7 @@ records.get('RealTimeRollingLog', (msgs) => {
 				TelegramCountText: msgs[0].RealTimeRollingLogfunction.TelegramCountText || 0
 			}
 		};
-	console.log('RollingLog', RollingLog)
+	//console.log('RollingLog', RollingLog)
 	simpleCourt = 0;
 })
 
@@ -44,8 +46,6 @@ const math = require('mathjs');
 //Format: 
 //TG
 try {
-
-
 	let result = {
 		text: '',
 		type: 'text',
@@ -113,9 +113,7 @@ try {
 							RollingLog.RealTimeRollingLogfunction.LineCountRoll++;
 
 						case "Telegram":
-							console.log(RollingLog)
 							RollingLog.RealTimeRollingLogfunction.TelegramCountRoll++
-
 						default:
 							simpleCourt++;
 							saveLog();
@@ -149,9 +147,14 @@ try {
 
 		function saveLog() {
 			//假如沒有StartTime 或過了一天則上載中途紀錄到MLAB
-			console.log(Date.now() - RollingLog.RealTimeRollingLogfunction.StartTime)
-			if (!RollingLog.RealTimeRollingLogfunction.StartTime || Date.now() - RollingLog.RealTimeRollingLogfunction.StartTime >= (0 * 24 * 60 * 60 * 1000)) {
-				RollingLog.RealTimeRollingLogfunction.StartTime = Date.now();
+			//console.log(Date.now() - RollingLog.RealTimeRollingLogfunction.StartTime)
+			if (!RollingLog.RealTimeRollingLogfunction.StartTime) {
+				RollingLog.RealTimeRollingLogfunction.StartTime = Date(Date.now()).toLocaleString("en-US", {
+					timeZone: "Asia/HongKong"
+				})
+			}
+			if (!RollingLog.RealTimeRollingLogfunction.LastTimeLog || Date.now() - RollingLog.RealTimeRollingLogfunction.LastTimeLog >= (24 * 60 * 60 * 1000)) {
+				RollingLog.RealTimeRollingLogfunction.LastTimeLog = Date.now();
 				//上傳中途紀錄MLAB
 				//RollingLogfunction
 				//PUSH 推送
@@ -167,11 +170,11 @@ try {
 					TelegramCountText: RollingLog.RealTimeRollingLogfunction.TelegramCountText
 				}
 				records.pushtrpgSaveLogfunction('RollingLog', temp, () => {
-					console.log('SAVE LOG')
+					//console.log('SAVE LOG')
 				})
 			}
 			//每50次上傳即時紀錄到MLAB
-			if (!RollingLog.RealTimeRollingLogfunction.StartTime || Date.now() - RollingLog.RealTimeRollingLogfunction.StartTime >= (24 * 60 * 60 * 1000) || simpleCourt % 50 == 0 || simpleCourt == 1) {
+			if (!RollingLog.RealTimeRollingLogfunction.LastTimeLog || Date.now() - RollingLog.RealTimeRollingLogfunction.LastTimeLog >= (24 * 60 * 60 * 1000) || simpleCourt % 50 == 0 || simpleCourt == 1) {
 				//simpleCourt % 50 == 0 || simpleCourt == 1
 				//MLAB
 				//RealTimeRollingLogfunction
@@ -181,6 +184,7 @@ try {
 						timeZone: "Asia/HongKong"
 					}),
 					StartTime: RollingLog.RealTimeRollingLogfunction.StartTime,
+					LastTimeLog: RollingLog.RealTimeRollingLogfunction.LastTimeLog,
 					DiscordCountRoll: RollingLog.RealTimeRollingLogfunction.DiscordCountRoll,
 					DiscordCountText: RollingLog.RealTimeRollingLogfunction.DiscordCountText,
 					LineCountRoll: RollingLog.RealTimeRollingLogfunction.LineCountRoll,
@@ -189,11 +193,11 @@ try {
 					TelegramCountText: RollingLog.RealTimeRollingLogfunction.TelegramCountText
 				}
 				records.settrpgSaveLogfunctionRealTime('RealTimeRollingLog', temp, () => {
-					console.log('SAVE REAL TIMELOG')
+					//console.log('SAVE REAL TIME LOG')
 				})
 
 			}
-			console.log("RollingLog: ", RollingLog)
+			//console.log("RollingLog: ", RollingLog)
 		}
 
 		function EXPUP() {

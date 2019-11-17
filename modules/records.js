@@ -511,9 +511,7 @@ class Records extends EventEmitter {
     }
     settrpgLevelSystemfunctionEXPup(dbbase, msgA, msg, callback) {
         schema[dbbase].findOneAndUpdate({
-
             groupid: msgA.groupid
-
         }, {
             $set: {
                 //LevelUpWord: msg.LevelUpWord
@@ -574,31 +572,9 @@ class Records extends EventEmitter {
             RollingLogfunction: msg
         }).save(function (err) {
             if (err) return console.error(err);
-        });
-    }
-    settrpgSaveLogfunctionRoll(dbbase, msg, callback) {
-        schema[dbbase].findOneAndUpdate({}, {
-            $set: {
-                //實時資料 使用SET
-                // RealTimeRollingLogfunction: msg,
-                //中途紀錄資料 使用PUSH 每天紀錄一次
-                //RollingLogfunction: msg,
-                //擲骰的結果紀錄
-                Sided: msg
-            }
-        }, {
-            upsert: true,
-            setDefaultsOnInsert: true
-            //   setDefaultsOnInsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.log(err);
-                console.log("Something wrong when updating data!");
-            } else {
+            else {
                 callback();
-                // console.log('DONE?')
             }
-            // return JSON.stringify(doc).toString();
         });
     }
 

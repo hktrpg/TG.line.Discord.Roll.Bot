@@ -109,21 +109,22 @@ if (process.env.mongoURL) {
     const RealTimeRollingLog = mongoose.model('RealTimeRollingLog', {
         RealTimeRollingLogfunction: {
             //第一次運行紀錄RollingLogfunction的時間
-            StartTime: Date,
+            StartTime: String,
+            LastTimeLog: Date,
             //現在時間
-            LogTime: Date,
+            LogTime: String,
             DiscordCountRoll: Number,
             DiscordCountText: Number,
             LineCountRoll: Number,
             LineCountText: Number,
             TelegramCountRoll: Number,
             TelegramCountText: Number
-        },
-        Sided: Array
+        }
     });
+
     const RollingLog = mongoose.model('RollingLog', {
         RollingLogfunction: {
-            LogTime: Date,
+            LogTime: String,
             DiscordCountRoll: Number,
             DiscordCountText: Number,
             LineCountRoll: Number,

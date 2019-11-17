@@ -27,18 +27,22 @@ try {
         \n 預設並不開啓，需要輸入.level config 11 啓動功能 \
         \n 數字11代表等級升級時會進行通知，10代表不會通知，\
         \n 00的話代表關閉功能，\
-        \n 預設回應是「 XXXX， 你的克蘇魯神話知識現在是 X點！\
-        \n 現在排名第X名！」\
+        \n 預設回應是「 XXXX 《稱號》， 你的克蘇魯神話知識現在是 X點！\
+        \n 現在排名是XX人中的第XX名！XX%！\
+        \n 調查經驗是XX點。」\
         \n P.S.如果沒立即生效 用.level show 刷新一下\
         \n\
         \n 輸入.level LevelUpWord (內容) 修改在這群組升級時彈出的升級語\
         \n 輸入.level RankWord (內容) 修改在這群組查詢等級時的回應\
-        \n 輸入.level RankWord/LevelUpWord del 即使用預設字句\
-        \n 輸入.level RankWord/LevelUpWord show 即顯示現在設定\
+        \n 輸入.level TitleWord -(LV) (內容)，修改稱號，大於等級即會套用\
+        \n 建議由-0開始，可一次輸入多個，如 .level TitleWord -0 幼童 -5 學徒 -10 武士 \
+        \n 輸入.level RankWord/LevelUpWord/TitleWord del 即使用預設字句\
+        \n 輸入.level RankWord/LevelUpWord/TitleWord show 即顯示現在設定\
         \n 輸入.level show 可以查詢你現在的等級\
-        \n 輸入.level showMe (數字)可以查詢這群組排名\
+        \n 輸入.level showMe (數字) 可以查詢這群組排名 預設頭5名\
         \n 修改內容可使用不同代碼\
         \n {user.name} 名字 {user.level} 等級 \
+        \n {user.title} 稱號 \
         \n {user.exp} 經驗值 {user.Ranking} 現在排名 \
         \n {user.RankingPer} 現在排名百分比 \
         \n {server.member_count} 現在頻道中總人數 \
@@ -47,7 +51,72 @@ try {
     initialize = function () {
         return rply;
     }
+    checkTitle = function (userlvl, DBTitle) {
+        let templvl = 0;
+        let temptitle = ""
+        //console.log("DBTitle: ", DBTitle)
+        if (DBTitle && DBTitle.length > 0) {
+            for (let g = 0; g < DBTitle.length; g++) {
+                if (userlvl >= g) {
+                    if (templvl <= g && DBTitle[g]) {
+                        templvl = g
+                        temptitle = DBTitle[g];
+                    }
+                }
+            }
+        }
+        if (!temptitle)
+            for (let g = 0; g < Title().length; g++) {
+                if (userlvl >= g) {
+                    if (templvl <= g && Title()[g]) {
+                        templvl = g
+                        temptitle = Title()[g];
+                    }
+                }
+            }
+        return temptitle;
+    }
+    Title = function () {
+        var Title = []
+        Title[0] = "無名調查員";
+        Title[4] = "調查員";
+        Title[8] = "記者";
+        Title[11] = "偵探";
+        Title[13] = "小熊";
+        Title[14] = "考古家";
+        Title[18] = "神秘學家";
+        Title[21] = "狂信徒";
+        Title[24] = "教主";
+        Title[28] = "眷族";
+        Title[31] = "眷族首領";
+        Title[33] = "南";
+        Title[34] = "化身";
+        Title[38] = "舊神";
+        Title[41] = "舊日支配者";
+        Title[43] = "門";
+        Title[44] = "外神";
+        Title[48] = "KP";
+        return Title;
+    }
 
+    /*
+        稱號
+        0-3     無名調查員
+        4-7     調查員
+        8-10    記者    
+        11-13   偵探
+        14-17   考古家
+        18-20   神秘學家
+        21-23   狂信徒
+        24-27   教主
+        28-30   眷族
+        31-33   眷族首領
+        34-37   化身
+        38-40   舊神
+        41-43   舊日支配者
+        44-47   外神
+        48-50   門
+        */
     rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
         rply.text = '';
         switch (true) {
@@ -57,8 +126,79 @@ try {
                     rply.text += "\n因為Line的機制, 如擲骰時並無顯示用家名字, 請到下列網址,和機器人任意說一句話,成為好友. \n https://line.me/R/ti/p/svMLqy9Mik"
                 return rply;
             // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
+
+            case /(^[.]level$)/i.test(mainMsg[0]) && /^TitleWord$/i.test(mainMsg[1]):
+                //
+                //稱號Title
+                //
+                let temprply = []
+                if (groupid && userrole >= 2 && mainMsg[2] && inputStr.toString().match(/[\s\S]{1,1900}/g).length <= 1 && !mainMsg[2].match(/^show$/)) {
+                    if (rply.trpgLevelSystemfunction)
+                        for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
+                            if (rply.trpgLevelSystemfunction[i].groupid == groupid) {
+                                // console.log('checked1')
+                                if (mainMsg[2].match(/^del$/ig)) {
+                                    rply.trpgLevelSystemfunction[i].Title = []
+                                    rply.text = "刪除稱號成功."
+                                    let temp = { groupid: groupid, Title: [] }
+                                    records.settrpgLevelSystemfunctionTitleWord('trpgLevelSystem', temp, () => {
+                                    })
+                                } else
+                                    if (rply.trpgLevelSystemfunction[i].Title) {
+                                        temprply = setNew(inputStr, i);
+                                        if (temprply && temprply.length > 0) {
+                                            rply.text = '新增稱號成功: \n'
+                                            for (let te = 0; te < temprply.length; te++) {
+                                                rply.text += temprply[te][1] + '等級: ' + temprply[te][2] + '\n'
+                                            }
+                                            let temp = { groupid: groupid, Title: rply.trpgLevelSystemfunction[i].Title }
+                                            records.settrpgLevelSystemfunctionTitleWord('trpgLevelSystem', temp, () => {
+                                            })
+                                        }
+
+                                    }
+
+                            }
+                        }
+                    //設定內容
+                    //限制500LVL內
+
+                } else {
+                    rply.text = '新增失敗.'
+                    if (!temprply)
+                        rply.text += ' 未有稱號輸入，格式為 .level TitleWord -(等級) (稱號).'
+                    if (!groupid)
+                        rply.text += ' 不在群組.'
+                    if (groupid && userrole < 2)
+                        rply.text += ' 只有GM以上才可新增.'
+                    if (inputStr.toString().match(/[\s\S]{1,1900}/g).length > 1)
+                        rply.text += ' 內容太長,只可以1900字元以內.'
+                }
+                if (mainMsg[2] && mainMsg[2].match(/^show$/)) {
+                    if (groupid) {
+                        let temp = 0;
+                        if (rply.trpgLevelSystemfunction)
+                            for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
+                                if (rply.trpgLevelSystemfunction[i].groupid == groupid && rply.trpgLevelSystemfunction[i].Title && rply.trpgLevelSystemfunction[i].Title.length > 0) {
+                                    rply.text = '稱號:\n'
+                                    temp = 1
+                                    console.log(rply.trpgLevelSystemfunction[i].Title)
+                                    for (let te = 0; te < rply.trpgLevelSystemfunction[i].Title.length; te++) {
+                                        if (rply.trpgLevelSystemfunction[i].Title[te])
+                                            rply.text += [te] + '等級: ' + rply.trpgLevelSystemfunction[i].Title[te] + "\n"
+                                    }
+                                }
+                            }
+                        if (temp == 0) rply.text = '正在使用預設稱號. '
+                    } else {
+                        rply.text = '不在群組. '
+                    }
+                }
+                return rply;
             case /(^[.]level$)/i.test(mainMsg[0]) && /^LevelUpWord$/i.test(mainMsg[1]):
-                //console.log('mainMsg: ', mainMsg)
+                //
+                //升級語
+                //
                 //增加資料庫
                 //檢查有沒有重覆
                 let checkifsamename = 0
@@ -82,10 +222,10 @@ try {
                         checkifsamename = 0
                     }
                     if (checkifsamename == 0) {
-                        rply.text = '新增成功: ' + '\n' + inputStr.replace(mainMsg[0], '').replace(mainMsg[1], '').replace(/^\s+/, '').replace(/^\s+/, '')
+                        rply.text = '新增升級語成功: ' + '\n' + inputStr.replace(mainMsg[0], '').replace(mainMsg[1], '').replace(/^\s+/, '').replace(/^\s+/, '')
                         if (mainMsg[2].match(/^del$/ig)) {
                             temp.LevelUpWord = ""
-                            rply.text = "刪除成功."
+                            rply.text = "刪除升級語成功."
                         }
                         records.settrpgLevelSystemfunctionLevelUpWord('trpgLevelSystem', temp, () => {
                             records.get('trpgLevelSystem', (msgs) => {
@@ -155,10 +295,10 @@ try {
                         checkifsamenameRankWord = 0
                     }
                     if (checkifsamenameRankWord == 0) {
-                        rply.text = '新增成功: ' + '\n' + inputStr.replace(mainMsg[0], '').replace(mainMsg[1], '').replace(/^\s+/, '').replace(/^\s+/, '')
+                        rply.text = '新增查詢語成功: ' + '\n' + inputStr.replace(mainMsg[0], '').replace(mainMsg[1], '').replace(/^\s+/, '').replace(/^\s+/, '')
                         if (mainMsg[2].match(/^del$/ig)) {
                             temp.RankWord = ""
-                            rply.text = "刪除成功."
+                            rply.text = "刪除查詢語成功."
                         }
                         records.settrpgLevelSystemfunctionRankWord('trpgLevelSystem', temp, () => {
                             records.get('trpgLevelSystem', (msgs) => {
@@ -171,7 +311,7 @@ try {
 
                     } else rply.text = '修改失敗. 已有查詢語, 先使用.level RankWord del 刪除舊查詢語'
                 } else {
-                    rply.text = '新增失敗.'
+                    rply.text = '新增查詢語失敗.'
                     if (!mainMsg[2])
                         rply.text += ' 沒有內容.'
                     if (!groupid)
@@ -249,7 +389,7 @@ try {
                     })
 
                 } else {
-                    rply.text = '修改失敗.'
+                    rply.text = '修改開關失敗.'
                     if (!mainMsg[2] || !(mainMsg[2] == "00" || mainMsg[2] == "01" || mainMsg[2] == "10" || mainMsg[2] == "11"))
                         rply.text += '\nconfig 11 代表啓動功能 \
                         \n 數字11代表等級升級時會進行通知，10代表不會自動通知，\
@@ -295,6 +435,7 @@ try {
                 //7.    使用排名語, 根據內容進行替換.
                 //8.    
                 //{user.name} 名字 {user.level} 等級 \
+                //{user.title} 稱號
                 // { user.exp } 經驗值 { user.Ranking } 現在排名 \
                 // { user.RankingPer} 現在排名百分比 \
                 // { server.member_count } 現在頻道中總人數 \
@@ -305,10 +446,11 @@ try {
                     let tempHaveUser = 0;
                     //6.    ->沒有 使用預設排名語
                     //{user.name} 名字 {user.level} 等級 \
+                    //{user.title} 稱號
                     // {user.exp} 經驗值 {user.Ranking} 現在排名 \
                     // {user.RankingPer} 現在排名百分比 \
                     // {server.member_count} 現在頻道中總人數 \
-                    let rankWord = "{user.name}，你的克蘇魯神話知識現在是 {user.level}點！\n現在排名是{server.member_count}人中的第{user.Ranking}名！{user.RankingPer}！\n調查經驗是{user.exp}點。 "
+                    let rankWord = "{user.name}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點！\n現在排名是{server.member_count}人中的第{user.Ranking}名！{user.RankingPer}！\n調查經驗是{user.exp}點。 "
 
                     if (rply.trpgLevelSystemfunction)
                         for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
@@ -333,9 +475,13 @@ try {
                                             //console.log('rply.trpgLevelSystemfunction[i]',
                                             let usermember_count = membercount || rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length;
                                             let userRanking = ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);
-                                            let userRankingPer = math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
+                                            let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
+                                            let userTitle = this.checkTitle(userlevel, rply.trpgLevelSystemfunction[i].Title);
+                                            //Title 首先檢查  rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Title[0].Lvl 有沒有那個LV的TITLE
+                                            //沒有  則使用預設 
 
                                             //{user.name} 名字 {user.level} 等級 \
+                                            ////{user.title} 稱號
                                             // { user.exp } 經驗值 { user.Ranking } 現在排名 \
                                             // { user.RankingPer} 現在排名百分比 \
                                             // { server.member_count } 現在頻道中總人數 \
@@ -344,9 +490,9 @@ try {
                                                 //現EXP >於需求LV
                                                 //LVUP
                                                 let TMEPuserlevel = Number(userlevel) + 1
-                                                rply.text = rankWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, TMEPuserlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count)
+                                                rply.text = rankWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, TMEPuserlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count).replace(/{user.title}/ig, userTitle)
                                             } else {
-                                                rply.text = rankWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count)
+                                                rply.text = rankWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count).replace(/{user.title}/ig, userTitle)
                                             }
 
                                         }
@@ -360,13 +506,15 @@ try {
                                         //console.log('rply.trpgLevelSystemfunction[i]',
                                         let usermember_count = membercount || rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length;
                                         let userRanking = ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);
-                                        let userRankingPer = math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
+                                        let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
+                                        let userTitle = this.checkTitle(userlevel, rply.trpgLevelSystemfunction[i].Title);
 
                                         //{user.name} 名字 {user.level} 等級 \
+                                        //{user.title} 稱號
                                         // { user.exp } 經驗值 { user.Ranking } 現在排名 \
                                         // { user.RankingPer} 現在排名百分比 \
                                         // { server.member_count } 現在頻道中總人數 \
-                                        rply.text = rankWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count)
+                                        rply.text = rankWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count).replace(/{user.title}/ig, userTitle)
 
                                     }
                                 }
@@ -391,6 +539,8 @@ try {
                     if (mainMsg[2]) {
                         if (mainMsg[2] > 5 && mainMsg[2] < 21)
                             RankNumber = mainMsg[2]
+                        if (mainMsg[2] > 20)
+                            RankNumber = 20
                     }
                     if (rply.trpgLevelSystemfunction)
                         for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
@@ -418,15 +568,16 @@ try {
                 //顯示資料庫
                 //rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
                 return rply
-                /*
             case /(^[.]level$)/i.test(mainMsg[0]) && /^showMeTheWorld$/i.test(mainMsg[1]):
                 //顯示全世界頭六名排名
                 if (rply.trpgLevelSystemfunction) {
                     let tempPush = [];
-                    let RankNumber = "6"
+                    let RankNumber = 6
                     if (mainMsg[2]) {
-                        if (mainMsg[2] > 5 && mainMsg[2] < 21)
+                        if (mainMsg[2] > 6 && mainMsg[2] < 21)
                             RankNumber = mainMsg[2]
+                        if (mainMsg[2] > 20)
+                            RankNumber = 20
                     }
                     for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
                         for (var a = 0; a < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
@@ -437,12 +588,32 @@ try {
                     rply.text = rankingList(tempPush, RankNumber, "世界排行榜");
                 }
                 return rply
-
-                */
             default:
                 break;
-
         }
+
+        function setNew(a, which) {
+            let b = /-(\d+)\s+(\S+)/ig
+            let e = /-(\d+)\s+(\S+)/
+            //let f = [];
+            let c = a.match(b);
+            let d = [];
+            if (c)
+                for (let i = 0; i < c.length; i++) {
+                    d[i] = e.exec(c[i])
+                }
+            if (d)
+                for (let i = 0; i < d.length; i++) {
+                    //限制0-500以內
+                    if (d[i][1] && d[i][2] && d[i][1] <= 500 && d[i][1] >= 0)
+                        rply.trpgLevelSystemfunction[which].Title[d[i][1]] = d[i][2]
+                    //  console.log(rply.trpgLevelSystemfunction[which].Title)
+                }
+            return d;
+        }
+
+
+
         function rankingList(who, RankNumber, Title) {
             var array = [];
             let answer = ""
@@ -469,8 +640,7 @@ try {
                     } else
                         if (b < RankNumber - 1 && b < array.length - 1) {
                             answer += "├"
-                        }
-                        else
+                        } else
                             if (b == RankNumber - 1 || b == array.length - 1) {
                                 answer += "└"
                             }
@@ -526,7 +696,9 @@ try {
         getHelpMessage: getHelpMessage,
         prefixs: prefixs,
         gameType: gameType,
-        gameName: gameName
+        gameName: gameName,
+        Title: Title,
+        checkTitle: checkTitle
     };
 } catch (e) {
     console.log(e)
@@ -587,4 +759,29 @@ rankingList('Joe');
 ├
 ├
 └
+
+let a = ".lev  -3 a -34 bc -1 DEF -2   Gh i -30 JK -45 ab 23"
+let b = /-(\d+)\s+(\S+)/ig
+let e = /-(\d+)\s+(\S+)/
+
+let f = [];
+
+let c = a.match(b);
+document.write(c,"<br\>");
+for (var z=0 ;z<c.length;z++)
+{
+document.write(z," ", c[z],"<br\>");
+}
+document.write("<br\>");
+let d=[];
+for (var i=0 ;i<c.length;i++)
+{
+d[i]=e.exec(c[i])
+f.push({lvl:d[i][1],Title:d[i][2]})
+
+document.write(i," ",d[i],"<br\>");
+}
+document.write("<br\>");
+for(let dd=0;dd<f.length;dd++)
+document.write(f[dd].lvl," ",f[dd].Title,"<br\>");
 */

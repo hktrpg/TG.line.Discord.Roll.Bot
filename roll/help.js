@@ -33,6 +33,7 @@ gameType = function () {
 }
 prefixs = function () {
 	return [/^bothelp$/i, /^$|^\d+$/i]
+
 }
 getHelpMessage = function () {
 	return "【HKTRPG擲骰BOT】" + version + "\

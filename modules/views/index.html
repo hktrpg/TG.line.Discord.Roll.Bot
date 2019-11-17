@@ -4,17 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
-    <title>My Chatroom</title>
+    <title>HKTRPG 擲骰機器人 1D100 2D6 查詢輸入Bothelp</title>
     <script src="/socket.io/socket.io.js"></script>
     <script>
         var socket = io();
     </script>
     <style>
         @charset "UTF-8";
-
-      
-
-
 
         * {
             box-sizing: border-box;
@@ -25,19 +21,18 @@
             font-size: 18px;
             background-color: rgb(0, 0, 0);
             color: #ffffff;
-
-
+            touch-action: manipulation;
         }
 
         body {
-            max-height : 30em;
+            max-height: 100%;
             max-width: 40rem;
             padding: 1rem;
             margin: 0 auto;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            
+
         }
 
         #container {
@@ -56,8 +51,8 @@
 
         #content {
             width: 100%;
-            min-height:100%;
-            height: 20em;            
+            min-height: 100%;
+            height: 20em;
             border: 0.1em solid darkolivegreen;
             border-radius: 0.1em;
             overflow: auto;
@@ -175,6 +170,10 @@
             /*Darker red then #DD5555*/
         }
 
+        a {
+            color: #EF5858;
+        }
+
         .dice-down {
             width: 3rem;
             height: 2.5rem;
@@ -231,23 +230,35 @@
 </head>
 
 <body>
+    <center><a href="https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81">HKTRPG 擲骰工具</a></center>
     <div id="container">
-        <div id="status-box">Server: <span id="status">-</span> / <span id="online">0</span> online.</div>
+        <div id="status-box" style="font-size: 0.9em">Server: <span id="status">-</span> / <span id="online">0</span>
+            online.</div>
         <div id="content">
         </div>
         <div id="send-box" style="margin-top:6px;">
             <form id="send-form">
-                <input style="width:8em;font-size: 1em;" type="text" name="name" id="name"  value="" placeholder="暱稱">
+                <input style="width:8em;font-size: 1em;" type="text" name="name" id="name" value="" placeholder="暱稱">
                 <input style="font-size: 1em;" type="text" name="msg" id="msg" value="1d100" placeholder="說點什麼？">
                 <input type="submit" style="margin-top:4px;" id="submit" value="送出" onclick="genName()">
             </form>
         </div>
     </div>
+    <center>輸入Bothelp 顯示教學</center>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-111430056-7"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'UA-111430056-7');
+    </script>
 
     <script>
         function genName() {
             if (document.getElementById("name").value == "")
-                document.getElementById("name").value = "調查員"+ Math.floor(Math.random() * 1000) + 1;;
+                document.getElementById("name").value = "調查員" + Math.floor(Math.random() * 1000) + 1;;
         }
         function aa() {
             var content = document.getElementById("content");
@@ -256,7 +267,6 @@
         }
         document.addEventListener("DOMContentLoaded", () => {
             var max_record;
-
             var status = document.getElementById("status");
             var online = document.getElementById("online");
             var sendForm = document.getElementById("send-form");

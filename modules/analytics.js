@@ -104,43 +104,47 @@ try {
 			if (result.text) {
 				console.log('inputStr: ', inputStr)
 				//SAVE THE LOG
-				if (simpleCourt != null)
+				if (simpleCourt != null) {
 					switch (botname) {
 						case "Discord":
 							RollingLog.RealTimeRollingLogfunction.DiscordCountRoll++
-
+							break;
 						case "Line":
 							RollingLog.RealTimeRollingLogfunction.LineCountRoll++;
-
+							break;
 						case "Telegram":
 							RollingLog.RealTimeRollingLogfunction.TelegramCountRoll++
+							break;
 						default:
-							simpleCourt++;
-							saveLog();
 							break;
 					}
+					simpleCourt++;
+					saveLog();
+				}
 			}
 			if (result.LevelUp)
 				console.log('LV UP')
 			return result;
 
 		} else {
-			if (simpleCourt != null)
+			if (simpleCourt != null) {
 				switch (botname) {
 					case "Discord":
 						RollingLog.RealTimeRollingLogfunction.DiscordCountText++
-
+						break;
 					case "Line":
 						RollingLog.RealTimeRollingLogfunction.LineCountText++;
-
+						break;
 					case "Telegram":
 						RollingLog.RealTimeRollingLogfunction.TelegramCountText++
-
-					default:
-						simpleCourt++;
-						saveLog();
 						break;
+					default:
+						break;
+
 				}
+				simpleCourt++;
+				saveLog();
+			}
 		}
 
 		return null;
@@ -268,8 +272,7 @@ try {
 
 
 						//8. 更新MLAB資料 
-							records.settrpgLevelSystemfunctionEXPup('trpgLevelSystem', exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID], exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction, () => {
-							})
+						records.settrpgLevelSystemfunctionEXPup('trpgLevelSystem', exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID], exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction, () => {})
 
 					}
 				}

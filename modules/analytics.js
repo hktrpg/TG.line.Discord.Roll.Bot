@@ -6,7 +6,45 @@ require('fs').readdirSync('./roll/').forEach(function (file) {
 		exports[name] = require('../roll/' + file);
 	}
 });
+var RollingLog = {
+	RealTimeRollingLogfunction: {
+		LastTimeLog: "",
+		StartTime: "",
+		LogTime: "",
+		DiscordCountRoll: 0,
+		DiscordCountText: 0,
+		LineCountRoll: 0,
+		LineCountText: 0,
+		TelegramCountRoll: 0,
+		TelegramCountText: 0
+	}
+};
 const records = require('../modules/records.js');
+var simpleCourt = null;
+records.get('RealTimeRollingLog', (msgs) => {
+	if (msgs && msgs[0] && msgs[0].RealTimeRollingLogfunction)
+		RollingLog = {
+			RealTimeRollingLogfunction: {
+				LastTimeLog: msgs[0].RealTimeRollingLogfunction.LastTimeLog || "",
+				StartTime: msgs[0].RealTimeRollingLogfunction.StartTime || "",
+				LogTime: msgs[0].RealTimeRollingLogfunction.LogTime || "",
+				DiscordCountRoll: msgs[0].RealTimeRollingLogfunction.DiscordCountRoll || 0,
+				DiscordCountText: msgs[0].RealTimeRollingLogfunction.DiscordCountText || 0,
+				LineCountRoll: msgs[0].RealTimeRollingLogfunction.LineCountRoll || 0,
+				LineCountText: msgs[0].RealTimeRollingLogfunction.LineCountText || 0,
+				TelegramCountRoll: msgs[0].RealTimeRollingLogfunction.TelegramCountRoll || 0,
+				TelegramCountText: msgs[0].RealTimeRollingLogfunction.TelegramCountText || 0
+			}
+		};
+	//console.log('RollingLog', RollingLog)
+	simpleCourt = 0;
+})
+
+const math = require('mathjs');
+
+//Log everyday 01:00
+//Format: 
+//TG
 try {
 	let result = {
 		text: '',
@@ -29,10 +67,7 @@ try {
 		let trigger = ""
 		let stopmark = 0;
 		let msgSplitor = (/\S+/ig);
-		let mainMsg = "";
-		mainMsg[0] = ""
-		mainMsg[1] = ""
-		mainMsg[2] = ""
+		let mainMsg = {};
 		mainMsg = inputStr.match(msgSplitor); //定義輸入字串
 		if (mainMsg)
 			trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
@@ -66,14 +101,104 @@ try {
 		if (groupid)
 			EXPUP();
 		if (result && (result.text || result.LevelUp)) {
-			if (result.text)
+			if (result.text) {
 				console.log('inputStr: ', inputStr)
+				//SAVE THE LOG
+				if (simpleCourt != null)
+					switch (botname) {
+						case "Discord":
+							RollingLog.RealTimeRollingLogfunction.DiscordCountRoll++
+
+						case "Line":
+							RollingLog.RealTimeRollingLogfunction.LineCountRoll++;
+
+						case "Telegram":
+							RollingLog.RealTimeRollingLogfunction.TelegramCountRoll++
+						default:
+							simpleCourt++;
+							saveLog();
+							break;
+					}
+			}
 			if (result.LevelUp)
 				console.log('LV UP')
 			return result;
 
+		} else {
+			if (simpleCourt != null)
+				switch (botname) {
+					case "Discord":
+						RollingLog.RealTimeRollingLogfunction.DiscordCountText++
+
+					case "Line":
+						RollingLog.RealTimeRollingLogfunction.LineCountText++;
+
+					case "Telegram":
+						RollingLog.RealTimeRollingLogfunction.TelegramCountText++
+
+					default:
+						simpleCourt++;
+						saveLog();
+						break;
+				}
 		}
 
+		return null;
+
+		function saveLog() {
+			//假如沒有StartTime 或過了一天則上載中途紀錄到MLAB
+			//console.log(Date.now() - RollingLog.RealTimeRollingLogfunction.StartTime)
+			if (!RollingLog.RealTimeRollingLogfunction.StartTime) {
+				RollingLog.RealTimeRollingLogfunction.StartTime = Date(Date.now()).toLocaleString("en-US", {
+					timeZone: "Asia/HongKong"
+				})
+			}
+			if (!RollingLog.RealTimeRollingLogfunction.LastTimeLog || Date.now() - RollingLog.RealTimeRollingLogfunction.LastTimeLog >= (24 * 60 * 60 * 1000)) {
+				RollingLog.RealTimeRollingLogfunction.LastTimeLog = Date.now();
+				//上傳中途紀錄MLAB
+				//RollingLogfunction
+				//PUSH 推送
+				let temp = {
+					LogTime: Date(Date.now()).toLocaleString("en-US", {
+						timeZone: "Asia/HongKong"
+					}),
+					DiscordCountRoll: RollingLog.RealTimeRollingLogfunction.DiscordCountRoll,
+					DiscordCountText: RollingLog.RealTimeRollingLogfunction.DiscordCountText,
+					LineCountRoll: RollingLog.RealTimeRollingLogfunction.LineCountRoll,
+					LineCountText: RollingLog.RealTimeRollingLogfunction.LineCountText,
+					TelegramCountRoll: RollingLog.RealTimeRollingLogfunction.TelegramCountRoll,
+					TelegramCountText: RollingLog.RealTimeRollingLogfunction.TelegramCountText
+				}
+				records.pushtrpgSaveLogfunction('RollingLog', temp, () => {
+					//console.log('SAVE LOG')
+				})
+			}
+			//每50次上傳即時紀錄到MLAB
+			if (!RollingLog.RealTimeRollingLogfunction.LastTimeLog || Date.now() - RollingLog.RealTimeRollingLogfunction.LastTimeLog >= (24 * 60 * 60 * 1000) || simpleCourt % 50 == 0 || simpleCourt == 1) {
+				//simpleCourt % 50 == 0 || simpleCourt == 1
+				//MLAB
+				//RealTimeRollingLogfunction
+				//SET 紀錄
+				let temp = {
+					LogTime: Date(Date.now()).toLocaleString("en-US", {
+						timeZone: "Asia/HongKong"
+					}),
+					StartTime: RollingLog.RealTimeRollingLogfunction.StartTime,
+					LastTimeLog: RollingLog.RealTimeRollingLogfunction.LastTimeLog,
+					DiscordCountRoll: RollingLog.RealTimeRollingLogfunction.DiscordCountRoll,
+					DiscordCountText: RollingLog.RealTimeRollingLogfunction.DiscordCountText,
+					LineCountRoll: RollingLog.RealTimeRollingLogfunction.LineCountRoll,
+					LineCountText: RollingLog.RealTimeRollingLogfunction.LineCountText,
+					TelegramCountRoll: RollingLog.RealTimeRollingLogfunction.TelegramCountRoll,
+					TelegramCountText: RollingLog.RealTimeRollingLogfunction.TelegramCountText
+				}
+				records.settrpgSaveLogfunctionRealTime('RealTimeRollingLog', temp, () => {
+					//console.log('SAVE REAL TIME LOG')
+				})
+
+			}
+			//console.log("RollingLog: ", RollingLog)
+		}
 
 		function EXPUP() {
 			let tempEXPconfig = 0;
@@ -108,7 +233,7 @@ try {
 						trpgLevelSystemfunction: {
 							userid: userid,
 							name: displayname || '無名',
-							EXP: Math.floor(Math.random() * 10) + 15,
+							EXP: math.floor(math.random() * 10) + 15,
 							Level: "0",
 							LastSpeakTime: Date.now()
 						}
@@ -127,7 +252,7 @@ try {
 				} else if (tempIsUser != 0) {
 					//4. 有-> 檢查上次紀錄的時間 超過60001 (1分鐘) 即增加1-10 經驗值
 					if (new Date(Date.now()) - new Date(exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].LastSpeakTime) > 60001) {
-						exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP + Math.floor(Math.random() * 10) + 15;
+						exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP + math.floor(math.random() * 10) + 15;
 						exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].LastSpeakTime = Date.now();
 						exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].name = displaynameDiscord || displayname || '無名'
 						//5. 檢查現LEVEL 需不需要上升. =5 / 6 * LVL * (2 * LVL * LVL + 27 * LVL + 91)
@@ -162,10 +287,12 @@ try {
 			//console.log('rply.trpgLevelSystemfunction[i]',
 			let usermember_count = membercount || exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.length;
 			let userRanking = ranking(userid, exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction);
+
 			let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
 			let userTitle = exports.z_Level_system.checkTitle(userlevel, exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Title);
 			let tempUPWord = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].LevelUpWord || "恭喜 {user.name}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點了！\n現在排名是{server.member_count}人中的第{user.Ranking}名！"
 			return tempUPWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count).replace(/{user.title}/ig, userTitle)
+
 			//2. 回應BOT
 
 		}

@@ -13,7 +13,7 @@ gameType = function () {
 	return 'WOD:hktrpg'
 }
 prefixs = function () {
-	return [/^[.](\d+)(wd)(\d|)((\+|-)(\d+)|)$/i,]
+	return [/^[.](\d+)(wd)(\d|)((\+|-)(\d+)|)$/i, ]
 }
 getHelpMessage = function () {
 	return "【WOD 黑暗世界擲骰】" + "\
@@ -26,9 +26,9 @@ initialize = function () {
 }
 
 rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-	let matchwod = /^[.](\d+)(wd|wod)(\d|)((\+|-)(\d+)|)$/i.exec(mainMsg[0]);	//判斷式  [0]3wd8+10,[1]3,[2]wd,[3]8,[4]+10,[5]+,[6]10  
+	let matchwod = /^[.](\d+)(wd|wod)(\d|)((\+|-)(\d+)|)$/i.exec(mainMsg[0]); //判斷式  [0]3wd8+10,[1]3,[2]wd,[3]8,[4]+10,[5]+,[6]10  
 	//console.log(matchwod)
-	if (matchwod && matchwod[1] >= 1 && matchwod[1] <= 5000)
+	if (matchwod && matchwod[1] >= 1 && matchwod[1] <= 600)
 		return wod(mainMsg[0], mainMsg[1]);
 	else return null;
 }
@@ -50,17 +50,22 @@ function wod(triggermsg, text) {
 	var returnStr = triggermsg + ' [';
 	var varcou = 0;
 	var varsu = 0;
-	var match = /^[.](\d+)(wd|wod)(\d|)((\+|-)(\d+)|)$/i.exec(triggermsg);	//判斷式  [0]3wd8+10,[1]3,[2]wd,[3]8,[4]+10,[5]+,[6]10  
-	if (match[3] == "") { match[3] = 10 }
-	if (match[3] <= 2) {
-		rply.text = '加骰最少比2高';
+	var match = /^[.](\d+)(wd|wod)(\d|)((\+|-)(\d+)|)$/i.exec(triggermsg); //判斷式  [0]3wd8+10,[1]3,[2]wd,[3]8,[4]+10,[5]+,[6]10  
+	if (match[3] == "") {
+		match[3] = 10
+	}
+	if (match[3] <= 3) {
+		rply.text = '加骰最少比3高';
 		return rply;
 	}
 
 	for (var i = 0; i < Number(match[1]); i++) {
-		varcou = Math.floor(Math.random() * 10) + 1;
+		//varcou = Math.floor(Math.random() * 10) + 1;
+		varcou = rollbase.Dice(10)
 		returnStr += varcou + ', ';
-		if (varcou >= match[3]) { i-- }
+		if (varcou >= match[3]) {
+			i--
+		}
 		if (varcou >= 8) {
 			varsu++;
 		}

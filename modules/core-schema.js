@@ -102,6 +102,39 @@ if (process.env.mongoURL) {
             displayname: String
         }]
     });
+    //
+    //目的: 記錄發言數量及擲骰數量
+    //紀錄擲骰結果
+    //每日上傳一次
+    //同時每500次顯示一次
+    //
+    const RealTimeRollingLog = mongoose.model('RealTimeRollingLog', {
+        RealTimeRollingLogfunction: {
+            //第一次運行紀錄RollingLogfunction的時間
+            StartTime: String,
+            LastTimeLog: Date,
+            //現在時間
+            LogTime: String,
+            DiscordCountRoll: Number,
+            DiscordCountText: Number,
+            LineCountRoll: Number,
+            LineCountText: Number,
+            TelegramCountRoll: Number,
+            TelegramCountText: Number
+        }
+    });
+
+    const RollingLog = mongoose.model('RollingLog', {
+        RollingLogfunction: {
+            LogTime: String,
+            DiscordCountRoll: Number,
+            DiscordCountText: Number,
+            LineCountRoll: Number,
+            LineCountText: Number,
+            TelegramCountRoll: Number,
+            TelegramCountText: Number
+        }
+    });
 
 
     module.exports = {
@@ -114,7 +147,9 @@ if (process.env.mongoURL) {
         trpgDatabase,
         trpgCommand,
         trpgLevelSystem,
-        trpgDarkRolling
+        trpgDarkRolling,
+        RealTimeRollingLog,
+        RollingLog
     }
     //const Cat = mongoose.model('Cat', { name: String });
     //const kitty = new Cat({ name: 'Zildjian' });

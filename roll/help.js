@@ -55,7 +55,7 @@ getHelpMessage = function () {
 \n Discord版 https://discordapp.com/oauth2/authorize?&client_id=544462904037081138&scope=bot&permissions=8\
 \n Telegram版 http://t.me/hktrpg_bot\
 \n 網頁版 https://www.hktrpg.com/tool/rollbot.html\
-\n 簡易骰子 https://www.hktrpg.com/tool/roll.html\
+\n 簡易網上擲骰 https://roll.hktrpg.com/\
 \n \
 \n 源代碼 https://github.com/hktrpg/TG.line.Discord.Roll.Bot\
 		\n "

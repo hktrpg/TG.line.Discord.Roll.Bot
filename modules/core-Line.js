@@ -178,7 +178,6 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 								await SendToId(userid, "@" + displayname + '的暗骰\n' + rplyVal.text);
 							else
 								await SendToId(userid, rplyVal.text);
-
 						break;
 					case privatemsg == 2:
 						//輸入ddr(指令) 私訊GM及自己
@@ -241,6 +240,8 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			}
 			//rplyVal.text
 			async function SendToId(targetid, ReplyText) {
+				console.log('function SendToId',
+					ReplyText)
 				for (var i = 0; i < ReplyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 					if (i == 0 || i == 1 || i == ReplyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == ReplyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
 						await client.pushMessage(targetid, replymessage(ReplyText.toString().match(/[\s\S]{1,1900}/g)[i]))

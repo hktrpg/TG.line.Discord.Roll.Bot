@@ -127,7 +127,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			} else {
 				if (channelKeyword == '') {
 					rplyVal = await exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid, "")
-
+					console.log('channelKeyword', rplyVal)
 				}
 
 			}
@@ -141,6 +141,8 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			}
 
 			if (rplyVal && rplyVal.text) {
+				console.log('rplyVal && rplyVal.text',
+					rplyVal)
 				//Linecountroll++;
 				if (privatemsg >= 1) {
 					//當是私訊模式1-3時

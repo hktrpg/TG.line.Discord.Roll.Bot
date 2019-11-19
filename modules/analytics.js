@@ -6,6 +6,7 @@ require('fs').readdirSync('./roll/').forEach(function (file) {
 		exports[name] = require('../roll/' + file);
 	}
 });
+const messageTimethenUpload = 50;
 const oneDay = 24 * 60 * 60 * 1000;
 var RollingLog = {
 	RealTimeRollingLogfunction: {
@@ -177,7 +178,7 @@ try {
 				})
 			}
 			//每50次上傳即時紀錄到MLAB
-			if (!RollingLog.RealTimeRollingLogfunction.LastTimeLog || Date.now() - RollingLog.RealTimeRollingLogfunction.LastTimeLog >= (oneDay) || simpleCourt % 50 == 0 || simpleCourt == 1) {
+			if (!RollingLog.RealTimeRollingLogfunction.LastTimeLog || Date.now() - RollingLog.RealTimeRollingLogfunction.LastTimeLog >= (oneDay) || simpleCourt % messageTimethenUpload == 0 || simpleCourt == 1) {
 				//simpleCourt % 50 == 0 || simpleCourt == 1
 				//MLAB
 				//RealTimeRollingLogfunction

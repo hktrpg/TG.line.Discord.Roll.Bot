@@ -1,5 +1,3 @@
-
-
 var rply = {
 	default: 'on',
 	type: 'text',
@@ -9,14 +7,14 @@ var rply = {
 
 const wiki = require('wikijs').default;
 gameName = function () {
-	return 'TEST ONLINE'
+	return 'Wiki查詢'
 }
 
 gameType = function () {
-	return 'ONLINE:hktrpg'
+	return 'Wiki:hktrpg'
 }
 prefixs = function () {
-	return [/^online$/i,]
+	return [/^[.]wiki$/i, ]
 
 }
 
@@ -32,13 +30,20 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 	rply.text = '';
 	//let result = {};
 	switch (true) {
+		case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
+			rply.text = this.getHelpMessage();
+			return rply;
 		case /\S/.test(mainMsg[1]):
-			rply.text = await wiki({ apiUrl: 'https://zh.wikipedia.org/w/api.php' }).page(mainMsg[1].toLowerCase())
-				.then(page => page.summary())//console.log('case: ', rply)
+			rply.text = await wiki({
+					apiUrl: 'https://zh.wikipedia.org/w/api.php'
+				}).page(mainMsg[1].toLowerCase())
+				.then(page => page.summary()) //console.log('case: ', rply)
 				.catch(error => {
 					if (error == 'Error: No article found')
 						return '沒有此條目'
-					else { return error }
+					else {
+						return error
+					}
 				})
 			return rply;
 
@@ -56,4 +61,3 @@ module.exports = {
 	gameType: gameType,
 	gameName: gameName
 };
-

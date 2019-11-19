@@ -102,7 +102,7 @@ try {
 		}
 		//LEVEL功能
 		if (groupid)
-			EXPUP();
+			await EXPUP();
 		if (result && (result.text || result.LevelUp)) {
 			if (result.text) {
 				console.log('inputStr: ', inputStr)
@@ -245,13 +245,7 @@ try {
 
 					exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.push(temp.trpgLevelSystemfunction)
 
-					records.settrpgLevelSystemfunctionNewUser('trpgLevelSystem', temp, () => {
-						//records.get('trpgLevelSystem', (msgs) => {
-						//	exports.z_Level_system.initialize().trpgLevelSystemfunction = msgs
-						//  console.log(rply.trpgLevelSystemfunction)
-						// console.log(rply);
-						//})
-					})
+					records.settrpgLevelSystemfunctionNewUser('trpgLevelSystem', temp, () => {})
 
 				} else if (tempIsUser != 0) {
 					//4. 有-> 檢查上次紀錄的時間 超過60001 (1分鐘) 即增加1-10 經驗值
@@ -266,7 +260,10 @@ try {
 							exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level++;
 							if (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Hidden == 1) {
 								//6. 需要 -> 檢查有沒有開啓通知
-								result.LevelUp = LevelUP(tempGPID, tempGPuserID).catch(error => {})
+								result.LevelUp = await LevelUP(tempGPID, tempGPuserID).catch(error => {
+									console.log(error)
+								})
+								console.log('levelup', result)
 								//console.log('result.LevelUp: ', result.LevelUp)
 							}
 						}

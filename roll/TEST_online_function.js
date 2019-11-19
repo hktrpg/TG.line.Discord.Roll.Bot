@@ -6,6 +6,7 @@ var rply = {
 //heroku labs:enable runtime-dyno-metadata -a <app name>
 
 const wiki = require('wikijs').default;
+const timer = require('timer');
 gameName = function () {
 	return 'Wiki查詢'
 }
@@ -34,6 +35,7 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 			rply.text = this.getHelpMessage();
 			return rply;
 		case /\S/.test(mainMsg[1]):
+			await timer(3000);
 			rply.text = await wiki({
 					apiUrl: 'https://zh.wikipedia.org/w/api.php'
 				}).page(mainMsg[1].toLowerCase())

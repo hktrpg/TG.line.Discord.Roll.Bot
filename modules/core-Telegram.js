@@ -4,12 +4,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 		function timer(ms) {
 			return new Promise(res => setTimeout(res, ms));
 		}
-		require('fs').readdirSync('./modules/').forEach(function (file) {
-			if (file.match(/\.js$/) !== null && file !== 'index.js' && file.match(/^core-/) == null) {
-				var name = file.replace('.js', '');
-				exports[name] = require('../modules/' + file);
-			}
-		});
+		exports.analytics = require('../modules/analytics');
 		const Telegraf = require('telegraf')
 		const TGclient = new Telegraf(process.env.TELEGRAM_CHANNEL_SECRET)
 		const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || ''
@@ -177,10 +172,10 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			}
 			if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 				mainMsg.shift()
-				rplyVal = exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram", displayname, channelid, "", membercount)
+				rplyVal = await exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram", displayname, channelid, "", membercount)
 			} else {
 				if (channelKeyword == '') {
-					rplyVal = exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram", displayname, channelid, "", membercount)
+					rplyVal = await exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram", displayname, channelid, "", membercount)
 
 				}
 

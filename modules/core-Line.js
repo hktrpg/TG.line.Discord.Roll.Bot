@@ -168,14 +168,14 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						//
 						if (roomorgroupid && userid && displaynamecheck)
 							if (displayname)
-								SendToId(roomorgroupid, "@" + displayname + ' 暗骰給自己')
+								await SendToId(roomorgroupid, "@" + displayname + ' 暗骰給自己')
 						else
-							SendToId(roomorgroupid, '正在暗骰給自己')
+							await SendToId(roomorgroupid, '正在暗骰給自己')
 						if (userid)
 							if (displayname && displaynamecheck)
-								SendToId(userid, "@" + displayname + '的暗骰\n' + rplyVal.text);
+								await SendToId(userid, "@" + displayname + '的暗骰\n' + rplyVal.text);
 							else
-								SendToId(userid, rplyVal.text);
+								await SendToId(userid, rplyVal.text);
 
 						break;
 					case privatemsg == 2:
@@ -186,19 +186,19 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 							for (var i = 0; i < TargetGMTempID.length; i++)
 								targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
 							if (displayname)
-								SendToId(roomorgroupid, "@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
+								await SendToId(roomorgroupid, "@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
 							else
-								SendToId(roomorgroupid, ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
+								await SendToId(roomorgroupid, ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
 						}
 
 						//有名字就顯示
 						if (displayname)
 							rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
 						//傳給自己
-						SendToId(userid, rplyVal.text);
+						await SendToId(userid, rplyVal.text);
 						for (var i = 0; i < TargetGMTempID.length; i++) {
 							if (userid != TargetGMTempID[i])
-								SendToId(TargetGMTempID[i], rplyVal.text);
+								await SendToId(TargetGMTempID[i], rplyVal.text);
 						}
 						break;
 					case privatemsg == 3:
@@ -209,14 +209,14 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 							for (var i = 0; i < TargetGMTempID.length; i++)
 								targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
 							if (displayname)
-								SendToId(roomorgroupid, "@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
+								await SendToId(roomorgroupid, "@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
 							else
-								SendToId(roomorgroupid, ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
+								await SendToId(roomorgroupid, ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
 						}
 						if (displayname)
 							rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
 						for (var i = 0; i < TargetGMTempID.length; i++) {
-							SendToId(TargetGMTempID[i], rplyVal.text);
+							await SendToId(TargetGMTempID[i], rplyVal.text);
 						}
 						break;
 					default:
@@ -227,9 +227,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						}
 						//console.log(privatemsg)
 						if (roomorgroupid)
-							SendToId(roomorgroupid, rplyVal.text);
+							await SendToId(roomorgroupid, rplyVal.text);
 						else if (userid)
-							SendToId(userid, rplyVal.text);
+							await SendToId(userid, rplyVal.text);
 						break;
 				}
 			} else {

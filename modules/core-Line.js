@@ -244,10 +244,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 					ReplyText)
 				for (var i = 0; i < ReplyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 					if (i == 0 || i == 1 || i == ReplyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == ReplyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
-						client.pushMessage(targetid, replymessage(ReplyText.toString().match(/[\s\S]{1,1900}/g)[i]))
-						.then(() => {})
+						await client.pushMessage(targetid, await replymessage(ReplyText.toString().match(/[\s\S]{1,1900}/g)[i]))
 						.catch((err) => {
-							// error handling
+							console.log(err)
 						});
 				}
 			}

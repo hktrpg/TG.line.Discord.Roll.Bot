@@ -79,6 +79,7 @@ try {
     Title = function () {
         var Title = []
         Title[0] = "無名調查員";
+        Title[3] = "雀";
         Title[4] = "調查員";
         Title[8] = "記者";
         Title[11] = "偵探";
@@ -96,6 +97,8 @@ try {
         Title[43] = "門";
         Title[44] = "外神";
         Title[48] = "KP";
+        Title[53] = "東";
+        Title[54] = "作者";
         return Title;
     }
 

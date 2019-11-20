@@ -6,6 +6,12 @@ require('fs').readdirSync('./roll/').forEach(function (file) {
 		exports[name] = require('../roll/' + file);
 	}
 });
+const messageTimethenUpload = 50;
+//50次 多少條訊息會上傳一次LOG
+const oneDay = 24 * 60 * 60 * 1000;
+//一日 多久會上傳一次LOG紀錄
+const oneMinuts = 60000;
+//60000 多久可以升級及增加經驗
 var RollingLog = {
 	RealTimeRollingLogfunction: {
 		LastTimeLog: "",
@@ -46,7 +52,7 @@ const math = require('mathjs');
 //Format: 
 //TG
 try {
-	let result = {
+	var result = {
 		text: '',
 		type: 'text',
 		LevelUp: ''
@@ -54,7 +60,7 @@ try {
 
 	//用來呼叫骰組,新增骰組的話,要寫條件式到下面呼叫 
 	//格式是 exports.骰組檔案名字.function名
-	function parseInput(inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
+	var parseInput = async function (inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
 		//console.log('InputStr: ' + inputStr);
 		_isNaN = function (obj) {
 			return isNaN(parseInt(obj));
@@ -74,13 +80,16 @@ try {
 		//對比mongoose資料
 		//console.log('stop')
 		//檢查是不是要停止
-		stopmark = z_stop(mainMsg, groupid);
+		stopmark = await z_stop(mainMsg, groupid);
 		//檢查是不是開啓LV 功能
 
 		//console.log('mainMsgAA',mainMsg)
 		if (stopmark != 1) {
-			result = rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount)
-			//console.log("OK")
+			let tempResut = await rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount)
+			if (typeof tempResut === 'object' && tempResut !== null)
+				result = tempResut
+			//console.log("result2", result)
+			//return result;
 		}
 
 		//z_saveCommand 功能
@@ -94,12 +103,21 @@ try {
 			result.text = ""
 			//檢查是不是要停止
 			z_stop(mainMsg, groupid);
-			result = rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount)
+			let tempResut = await rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount)
+			if (typeof tempResut === 'object' && tempResut !== null)
+				result = tempResut
 			console.log('inputStr2: ', inputStr)
 		}
 		//LEVEL功能
-		if (groupid)
-			EXPUP();
+		if (groupid) {
+			//console.log(await EXPUP());
+			let tempEXPUP = await EXPUP();
+			if (tempEXPUP)
+				result.LevelUp = tempEXPUP
+			else
+				result.LevelUp = ""
+			//result.LevelUp
+		}
 		if (result && (result.text || result.LevelUp)) {
 			if (result.text) {
 				console.log('inputStr: ', inputStr)
@@ -119,13 +137,10 @@ try {
 							break;
 					}
 					simpleCourt++;
-					saveLog();
+					//await saveLog();
 				}
+				return result;
 			}
-			if (result.LevelUp)
-				console.log('LV UP')
-			return result;
-
 		} else {
 			if (simpleCourt != null) {
 				switch (botname) {
@@ -140,14 +155,13 @@ try {
 						break;
 					default:
 						break;
-
 				}
 				simpleCourt++;
 				saveLog();
 			}
+			return null;
 		}
 
-		return null;
 
 		function saveLog() {
 			//假如沒有StartTime 或過了一天則上載中途紀錄到MLAB
@@ -157,7 +171,8 @@ try {
 					timeZone: "Asia/HongKong"
 				})
 			}
-			if (!RollingLog.RealTimeRollingLogfunction.LastTimeLog || Date.now() - RollingLog.RealTimeRollingLogfunction.LastTimeLog >= (24 * 60 * 60 * 1000)) {
+
+			if (!RollingLog.RealTimeRollingLogfunction.LastTimeLog || Date.now() - RollingLog.RealTimeRollingLogfunction.LastTimeLog >= (oneDay)) {
 				RollingLog.RealTimeRollingLogfunction.LastTimeLog = Date.now();
 				//上傳中途紀錄MLAB
 				//RollingLogfunction
@@ -178,7 +193,7 @@ try {
 				})
 			}
 			//每50次上傳即時紀錄到MLAB
-			if (!RollingLog.RealTimeRollingLogfunction.LastTimeLog || Date.now() - RollingLog.RealTimeRollingLogfunction.LastTimeLog >= (24 * 60 * 60 * 1000) || simpleCourt % 50 == 0 || simpleCourt == 1) {
+			if (!RollingLog.RealTimeRollingLogfunction.LastTimeLog || Date.now() - RollingLog.RealTimeRollingLogfunction.LastTimeLog >= (oneDay) || simpleCourt % messageTimethenUpload == 0 || simpleCourt == 1) {
 				//simpleCourt % 50 == 0 || simpleCourt == 1
 				//MLAB
 				//RealTimeRollingLogfunction
@@ -204,7 +219,7 @@ try {
 			//console.log("RollingLog: ", RollingLog)
 		}
 
-		function EXPUP() {
+		async function EXPUP() {
 			let tempEXPconfig = 0;
 			let tempGPID = 0;
 			let tempGPuserID = 0;
@@ -245,17 +260,11 @@ try {
 
 					exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.push(temp.trpgLevelSystemfunction)
 
-					records.settrpgLevelSystemfunctionNewUser('trpgLevelSystem', temp, () => {
-						//records.get('trpgLevelSystem', (msgs) => {
-						//	exports.z_Level_system.initialize().trpgLevelSystemfunction = msgs
-						//  console.log(rply.trpgLevelSystemfunction)
-						// console.log(rply);
-						//})
-					})
+					records.settrpgLevelSystemfunctionNewUser('trpgLevelSystem', temp, () => { })
 
 				} else if (tempIsUser != 0) {
 					//4. 有-> 檢查上次紀錄的時間 超過60001 (1分鐘) 即增加1-10 經驗值
-					if (new Date(Date.now()) - new Date(exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].LastSpeakTime) > 60001) {
+					if (new Date(Date.now()) - new Date(exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].LastSpeakTime) > oneMinuts) {
 						exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP + math.floor(math.random() * 10) + 15;
 						exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].LastSpeakTime = Date.now();
 						exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].name = displaynameDiscord || displayname || '無名'
@@ -264,15 +273,24 @@ try {
 							//現EXP >於需求LV
 							//LVUP
 							exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level++;
+
+							//8. 更新MLAB資料 
+							records.settrpgLevelSystemfunctionEXPup('trpgLevelSystem', exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID], exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction, () => { })
+
 							if (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Hidden == 1) {
 								//6. 需要 -> 檢查有沒有開啓通知
-								result.LevelUp = LevelUP(tempGPID, tempGPuserID);
+								//console.log('levelup', result)
+								/*
+								result.LevelUp = await LevelUP(tempGPID, tempGPuserID).catch(error => {
+									console.log(error)
+								})
+								*/
+								return LevelUP(tempGPID, tempGPuserID);
+								//console.log('result.LevelUp: ', result.LevelUp)
 							}
 						}
 
 
-						//8. 更新MLAB資料 
-						records.settrpgLevelSystemfunctionEXPup('trpgLevelSystem', exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID], exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction, () => {})
 
 					}
 				}
@@ -282,7 +300,7 @@ try {
 
 		}
 
-		function LevelUP(tempGPID, tempGPuserID) {
+		async function LevelUP(tempGPID, tempGPuserID) {
 			//1. 讀取LEVELUP語
 			let username = displaynameDiscord || displayname || "無名"
 			let userlevel = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level;
@@ -346,62 +364,78 @@ try {
 		}
 	}
 
-	function rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount) {
+	var rolldice = async function (inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount) {
+		//console.log(exports)
 		//在下面位置開始分析trigger
 		if (!groupid) groupid = 0
 		var breakFlag = false;
-		Object.keys(exports).forEach(v => {
-			if (breakFlag === true) {
-				return false;
-			}
-			//0 = 不存在
-			//1 = 符合
-			//2 = 不符合
-			//以下是分析每組rolling prefixs的資料
-			//以每次同步檢查第一第二個 
-			//例如第一組是 cc  第二組是 80 
-			//那條件式就是 /^cc$/i 和/^\d+$/
-			if (mainMsg && !mainMsg[1]) mainMsg[1] = '';
-			let checkmainMsg0 = 0;
-			let checkmainMsg1 = 0;
-			let findprefixs = 0;
-			if (exports[v].prefixs && exports[v].prefixs()[0]) {
-				for (var i = 0; i <= exports[v].prefixs().length - 1; i = i + 2) {
-					checkmainMsg0 = 0;
-					checkmainMsg1 = 0;
-					if (exports[v].prefixs()[i] && exports[v].prefixs()[i]) {
-						checkmainMsg0 = 2;
-						if (exports[v].prefixs()[i + 1] && exports[v].prefixs()[i + 1]) {
-							checkmainMsg1 = 2;
-						}
-						if (mainMsg && exports[v].prefixs()[i] && exports[v].prefixs()[i].test(mainMsg[0])) {
-							checkmainMsg0 = 1;
-						}
-						if (mainMsg && exports[v].prefixs()[i + 1] && exports[v].prefixs()[i + 1].test(mainMsg[1])) {
-							checkmainMsg1 = 1;
-						}
-						if (checkmainMsg0 <= 1 && checkmainMsg1 <= 1 && checkmainMsg0 + checkmainMsg1 >= 1) {
-							findprefixs = 1;
-							i = exports[v].prefixs().length + 1;
-							breakFlag = true
+		for (var v in exports) {
+			//console.log('v: ', v)
+			if (exports.hasOwnProperty(v)) {
+				if (breakFlag === true) {
+					return false;
+				}
+				//0 = 不存在
+				//1 = 符合
+				//2 = 不符合
+				//以下是分析每組rolling prefixs的資料
+				//以每次同步檢查第一第二個 
+				//例如第一組是 cc  第二組是 80 
+				//那條件式就是 /^cc$/i 和/^\d+$/
+				if (mainMsg && !mainMsg[1]) mainMsg[1] = '';
+				let checkmainMsg0 = 0;
+				let checkmainMsg1 = 0;
+				let findprefixs = 0;
+				if (exports[v].prefixs && exports[v].prefixs()[0]) {
+					for (var i = 0; i <= exports[v].prefixs().length - 1; i = i + 2) {
+						checkmainMsg0 = 0;
+						checkmainMsg1 = 0;
+						if (exports[v].prefixs()[i] && exports[v].prefixs()[i]) {
+							checkmainMsg0 = 2;
+							if (exports[v].prefixs()[i + 1] && exports[v].prefixs()[i + 1]) {
+								checkmainMsg1 = 2;
+							}
+							if (mainMsg && exports[v].prefixs()[i] && exports[v].prefixs()[i].test(mainMsg[0])) {
+								checkmainMsg0 = 1;
+							}
+							if (mainMsg && exports[v].prefixs()[i + 1] && exports[v].prefixs()[i + 1].test(mainMsg[1])) {
+								checkmainMsg1 = 1;
+							}
+							if (checkmainMsg0 <= 1 && checkmainMsg1 <= 1 && checkmainMsg0 + checkmainMsg1 >= 1) {
+								findprefixs = 1;
+								i = exports[v].prefixs().length + 1;
+								breakFlag = true
+							}
 						}
 					}
 				}
+
+
+
+				if (findprefixs == 1) {
+					console.log('trigger: ', inputStr)
+					var tempsave = await exports[v].rollDiceCommand(inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount)
+					//console.log('tempsave: ', tempsave)
+					return await tempS();
+
+					async function tempS() {
+						if (tempsave) {
+							for (var key in tempsave) {
+								if (tempsave.hasOwnProperty(key)) {
+									result[key] = tempsave[key]
+								}
+							}
+
+						}
+
+						if (result.text)
+							return result
+					}
+				}
 			}
+		}
 
 
-
-			if (findprefixs == 1) {
-				console.log('trigger: ', inputStr)
-				let tempsave = exports[v].rollDiceCommand(inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount)
-				if (tempsave)
-					Object.keys(tempsave).forEach(v => {
-						result[v] = tempsave[v]
-					})
-			}
-		})
-
-		return result
 
 	}
 
@@ -409,9 +443,5 @@ try {
 } catch (e) {
 	console.log('error: ' + e)
 }
-
-
-module.exports = {
-	parseInput: parseInput,
-	rolldice: rolldice
-};
+module.exports.parseInput = parseInput;
+module.exports.rolldice = rolldice;

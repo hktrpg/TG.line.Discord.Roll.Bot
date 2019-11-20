@@ -3,18 +3,13 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	//	var channelSecret = process.env.LINE_CHANNEL_SECRET;
 	// Load `*.js` under modules directory as properties
 	//  i.e., `User.js` will become `exports['User']` or `exports.User`
-	require('fs').readdirSync('./modules/').forEach(function (file) {
-		if (file.match(/\.js$/) !== null && file !== 'index.js' && file.match(/^core-/) == null) {
-			var name = file.replace('.js', '');
-			exports[name] = require('../modules/' + file);
-		}
-	});
+	exports.analytics = require('../modules/analytics');
 	//var Linecountroll = 0;
 	//var Linecounttext = 0;
 	const line = require('@line/bot-sdk');
 	const express = require('express');
 
-	function replymessage(message) {
+	async function replymessage(message) {
 		return {
 			type: 'text',
 			text: message
@@ -65,7 +60,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	// event handler
 
 
-	function handleEvent(event) {
+	async function handleEvent(event) {
 		//event {"type":"message","replyToken":"232132133","source":{"userId":"U1a17e51fSDADASD0293d","groupId":"C6432427423847234cd3","type":"group"},"timestamp":323232323,"message":{"type":"text","id":"232131233123","text":"5!@@!"}}
 		let roomorgroupid, userid, displayname, channelid, membercount = ''
 		if (event.source.groupId) roomorgroupid = event.source.groupId
@@ -73,22 +68,23 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		if (event.source.userId) userid = event.source.userId
 		let TargetGM = require('../roll/z_DDR_darkRollingToGM').initialize()
 
-		client.getProfile(userid).then(function (profile) {
-			//	在GP 而有加好友的話,得到名字
-			displayname = profile.displayName;
-			AfterCheckName();
-		}, function () {
-			AfterCheckName();
-			//如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
-		})
+		client.getProfile(userid).then(async function (profile) {
+				//	在GP 而有加好友的話,得到名字
+				displayname = profile.displayName;
+				await AfterCheckName();
+			},
+			async function () {
+				await AfterCheckName();
+				//如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
+			})
 
-		function AfterCheckName() {
+		async function AfterCheckName() {
 			let displaynamecheck = true;
 			let userrole = 3;
 			if (event.type !== 'message' || event.message.type !== 'text') {
 				// ignore non-text-message event
 				if (roomorgroupid, userid) {
-					exports.analytics.parseInput("", roomorgroupid, userid, userrole, "Line", displayname, channelid, "", "")
+					await exports.analytics.parseInput("", roomorgroupid, userid, userrole, "Line", displayname, channelid, "", "")
 
 				}
 				return Promise.resolve(null);
@@ -127,11 +123,11 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 			if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 				//mainMsg.shift()
-				rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid, "")
+				rplyVal = await exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid, "")
 			} else {
 				if (channelKeyword == '') {
-					rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid, "")
-
+					rplyVal = await exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid, "")
+					//console.log('channelKeyword', rplyVal)
 				}
 
 			}
@@ -172,15 +168,14 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						//
 						if (roomorgroupid && userid && displaynamecheck)
 							if (displayname)
-								SendToId(roomorgroupid, "@" + displayname + ' 暗骰給自己')
+								await SendToId(roomorgroupid, "@" + displayname + ' 暗骰給自己')
 						else
-							SendToId(roomorgroupid, '正在暗骰給自己')
+							await SendToId(roomorgroupid, '正在暗骰給自己')
 						if (userid)
 							if (displayname && displaynamecheck)
-								SendToId(userid, "@" + displayname + '的暗骰\n' + rplyVal.text);
+								await SendToId(userid, "@" + displayname + '的暗骰\n' + rplyVal.text);
 							else
-								SendToId(userid, rplyVal.text);
-
+								await SendToId(userid, rplyVal.text);
 						break;
 					case privatemsg == 2:
 						//輸入ddr(指令) 私訊GM及自己
@@ -190,19 +185,19 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 							for (var i = 0; i < TargetGMTempID.length; i++)
 								targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
 							if (displayname)
-								SendToId(roomorgroupid, "@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
+								await SendToId(roomorgroupid, "@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
 							else
-								SendToId(roomorgroupid, ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
+								await SendToId(roomorgroupid, ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
 						}
 
 						//有名字就顯示
 						if (displayname)
 							rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
 						//傳給自己
-						SendToId(userid, rplyVal.text);
+						await SendToId(userid, rplyVal.text);
 						for (var i = 0; i < TargetGMTempID.length; i++) {
 							if (userid != TargetGMTempID[i])
-								SendToId(TargetGMTempID[i], rplyVal.text);
+								await SendToId(TargetGMTempID[i], rplyVal.text);
 						}
 						break;
 					case privatemsg == 3:
@@ -213,14 +208,14 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 							for (var i = 0; i < TargetGMTempID.length; i++)
 								targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
 							if (displayname)
-								SendToId(roomorgroupid, "@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
+								await SendToId(roomorgroupid, "@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
 							else
-								SendToId(roomorgroupid, ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
+								await SendToId(roomorgroupid, ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
 						}
 						if (displayname)
 							rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
 						for (var i = 0; i < TargetGMTempID.length; i++) {
-							SendToId(TargetGMTempID[i], rplyVal.text);
+							await SendToId(TargetGMTempID[i], rplyVal.text);
 						}
 						break;
 					default:
@@ -231,9 +226,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						}
 						//console.log(privatemsg)
 						if (roomorgroupid)
-							SendToId(roomorgroupid, rplyVal.text);
+							await SendToId(roomorgroupid, rplyVal.text);
 						else if (userid)
-							SendToId(userid, rplyVal.text);
+							await SendToId(userid, rplyVal.text);
 						break;
 				}
 			} else {
@@ -245,15 +240,14 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			async function SendToId(targetid, ReplyText) {
 				for (var i = 0; i < ReplyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 					if (i == 0 || i == 1 || i == ReplyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == ReplyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
-						await client.pushMessage(targetid, replymessage(ReplyText.toString().match(/[\s\S]{1,1900}/g)[i]))
-						.then(() => {})
+						await client.pushMessage(targetid, await replymessage(ReplyText.toString().match(/[\s\S]{1,1900}/g)[i]))
 						.catch((err) => {
-							// error handling
+							console.log(err)
 						});
 				}
 			}
 			// create a echoing text message
-			//exports.analytics.parseInput(event.message.text)
+			//await exports.analytics.parseInput(event.message.text)
 
 			// use reply API
 			//Reply Max: 1900 characters

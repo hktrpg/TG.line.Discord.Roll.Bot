@@ -1,11 +1,6 @@
 if (process.env.DISCORD_CHANNEL_SECRET) {
 	try {
-		require('fs').readdirSync('./modules/').forEach(function (file) {
-			if (file.match(/\.js$/) !== null && file !== 'index.js' && file.match(/^core-/) == null) {
-				var name = file.replace('.js', '');
-				exports[name] = require('../modules/' + file);
-			}
-		});
+		exports.analytics = require('../modules/analytics');
 		var channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 		var channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 		const Discord = require('discord.js');
@@ -31,7 +26,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 		});
 
 
-		client.on('message', message => {
+		client.on('message', async (message) => {
 			if (message.author.bot === false) {
 				//	console.log('message.content ' + message.content);
 				//	console.log('channelKeyword ' + channelKeyword);
@@ -89,10 +84,10 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 
 					if (channelKeyword != "" && trigger == channelKeyword.toString().toLowerCase()) {
 						//mainMsg.shift();
-						rplyVal = exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount);
+						rplyVal = await exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount);
 					} else {
 						if (channelKeyword == "") {
-							rplyVal = exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount);
+							rplyVal = await exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount);
 						}
 					}
 					//LevelUp功能
@@ -213,7 +208,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 						}
 					}
 				} else if (groupid && userid) {
-					exports.analytics.parseInput("", groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount)
+					await exports.analytics.parseInput("", groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount)
 					return null
 				}
 			}

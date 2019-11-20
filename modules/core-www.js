@@ -12,12 +12,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
     var channelKeyword = '';
     let WWWcounttext = 0;
     let WWWcountroll = 0
-    require('fs').readdirSync('./modules/').forEach(function (file) {
-        if (file.match(/\.js$/) !== null && file !== 'index.js' && file.match(/^core-/) == null) {
-            var name = file.replace('.js', '');
-            exports[name] = require('../modules/' + file);
-        }
-    });
+    exports.analytics = require('../modules/analytics');
     // 加入線上人數計數
     let onlineCount = 0;
 
@@ -56,7 +51,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
         });
     });
 
-    records.on("new_message", (message) => {
+    records.on("new_message", async (message) => {
         // 廣播訊息到聊天室
 
         if (message.msg && message.name.match(/HKTRPG/ig)) {
@@ -80,11 +75,11 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
                 trigger = mainMsg[0].toString().toLowerCase()
             }
             if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
-                rplyVal = exports.analytics.parseInput(mainMsg.join(' '), '', '', '', "www", "", "")
-                //rplyVal = exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid)
+                rplyVal = await exports.analytics.parseInput(mainMsg.join(' '), '', '', '', "www", "", "")
+                //rplyVal = await exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid)
             } else {
                 if (channelKeyword == '') {
-                    rplyVal = exports.analytics.parseInput(mainMsg.join(' '), '', '', '', "www", "", "")
+                    rplyVal = await exports.analytics.parseInput(mainMsg.join(' '), '', '', '', "www", "", "")
 
                 }
 

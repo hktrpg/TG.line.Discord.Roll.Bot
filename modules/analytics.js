@@ -85,7 +85,9 @@ try {
 
 		//console.log('mainMsgAA',mainMsg)
 		if (stopmark != 1) {
-			result = await rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount)
+			let tempResut = await rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount)
+			if (typeof tempResut === 'object' && tempResut !== null)
+				result = tempResut
 			//console.log("result2", result)
 			//return result;
 		}
@@ -103,15 +105,15 @@ try {
 			z_stop(mainMsg, groupid);
 			let tempResut = await rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount)
 			if (typeof tempResut === 'object' && tempResut !== null)
-				result = temp
+				result = tempResut
 			console.log('inputStr2: ', inputStr)
 		}
 		//LEVEL功能
 		if (groupid) {
 			//console.log(await EXPUP());
-			let temp = await EXPUP();
+			let tempEXPUP = await EXPUP();
 			if (temp)
-				result.LevelUp = temp
+				result.LevelUp = tempEXPUP
 			else
 				result.LevelUp = ""
 			//result.LevelUp

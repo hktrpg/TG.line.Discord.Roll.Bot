@@ -7,15 +7,16 @@ var rply = {
 
 const wiki = require('wikijs').default;
 const timer = require('timer');
+const translate = require('@vitalets/google-translate-api');
 gameName = function () {
-	return 'Wiki查詢'
+	return 'Wiki查詢/即時翻譯'
 }
 
 gameType = function () {
 	return 'Wiki:hktrpg'
 }
 prefixs = function () {
-	return [/^[.]wiki$/i, ]
+	return [/^[.]wiki$|^[.]tran$|^[.]tran[.]\S+$/i,]
 
 }
 
@@ -34,11 +35,10 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 		case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
 			rply.text = this.getHelpMessage();
 			return rply;
-		case /\S/.test(mainMsg[1]):
-			await timer(3000);
+		case /\S+/.test(mainMsg[1]) && /[.]wiki/.test(mainMsg[0]):
 			rply.text = await wiki({
-					apiUrl: 'https://zh.wikipedia.org/w/api.php'
-				}).page(mainMsg[1].toLowerCase())
+				apiUrl: 'https://zh.wikipedia.org/w/api.php'
+			}).page(mainMsg[1].toLowerCase())
 				.then(page => page.summary()) //console.log('case: ', rply)
 				.catch(error => {
 					if (error == 'Error: No article found')
@@ -48,7 +48,24 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 					}
 				})
 			return rply;
-
+		case /\S+/.test(mainMsg[1]) && /^[.]tran$/.test(mainMsg[0]):
+			rply.text = await translate(inputStr.replace(mainMsg[0], ""), { to: 'zh-TW' }).then(res => {
+				return res.text
+			}).catch(err => {
+				return err.message;
+			});
+			return rply;
+		case /\S+/.test(mainMsg[1]) && /^[.]tran[.]\S+$/.test(mainMsg[0]):
+			let lang = /.tran.(\S+)/;
+			let test = mainMsg[0].match(lang)
+			rply.text = await translate(inputStr.replace(mainMsg[0], ""), { to: test[1] }).then(res => {
+				//console.log(res.from.language.iso);
+				return res.text
+			}).catch(err => {
+				console.log(err.message)
+				return err.message;
+			});
+			return rply;
 		default:
 			break;
 	}

@@ -52,7 +52,7 @@ const math = require('mathjs');
 //Format: 
 //TG
 try {
-	let result = {
+	var result = {
 		text: '',
 		type: 'text',
 		LevelUp: ''
@@ -100,14 +100,18 @@ try {
 			//console.log('inputStr2: ', inputStr)
 			result.text = ""
 			//檢查是不是要停止
-			await z_stop(mainMsg, groupid);
+			z_stop(mainMsg, groupid);
 			result = await rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount)
 			console.log('inputStr2: ', inputStr)
 		}
 		//LEVEL功能
 		if (groupid) {
 			//console.log(await EXPUP());
-			result.LevelUp = await EXPUP();
+			let temp = await EXPUP();
+			if (temp)
+				result.LevelUp = temp
+			else
+				result.LevelUp = ""
 			//result.LevelUp
 		}
 		if (result && (result.text || result.LevelUp)) {
@@ -345,7 +349,7 @@ try {
 
 
 
-	async function z_stop(mainMsg, groupid) {
+	function z_stop(mainMsg, groupid) {
 		if (exports.z_stop && exports.z_stop.initialize() && exports.z_stop.initialize().save && exports.z_stop.initialize().save[0].blockfunction && exports.z_stop.initialize().save[0].blockfunction.length > 0 && mainMsg && mainMsg[0]) {
 			for (var i = 0; i < exports.z_stop.initialize().save.length; i++) {
 				if ((new RegExp(exports.z_stop.initialize().save[i].blockfunction.join("|"), "i")).test(mainMsg[0]) && exports.z_stop.initialize().save[i].groupid == groupid && exports.z_stop.initialize().save[i].blockfunction.length > 0) {

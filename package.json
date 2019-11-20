@@ -28,7 +28,8 @@
     "telegraf": "^3.29.0",
     "telegraf-getchatmembers": "^1.0.0",
     "wikijs": "6.0.1",
-    "timer": "^1.0.1"
+    "timer": "^1.0.1",
+    "@vitalets/google-translate-api": "^3.0.0"
   },
   "keywords": [
     "LeoLi",

@@ -112,7 +112,7 @@ try {
 		if (groupid) {
 			//console.log(await EXPUP());
 			let tempEXPUP = await EXPUP();
-			if (temp)
+			if (tempEXPUP)
 				result.LevelUp = tempEXPUP
 			else
 				result.LevelUp = ""

@@ -101,7 +101,9 @@ try {
 			result.text = ""
 			//檢查是不是要停止
 			z_stop(mainMsg, groupid);
-			result = await rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount)
+			let tempResut = await rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount)
+			if (typeof tempResut === 'object' && tempResut !== null)
+				result = temp
 			console.log('inputStr2: ', inputStr)
 		}
 		//LEVEL功能

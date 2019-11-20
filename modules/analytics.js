@@ -7,7 +7,11 @@ require('fs').readdirSync('./roll/').forEach(function (file) {
 	}
 });
 const messageTimethenUpload = 50;
+//50次 多少條訊息會上傳一次LOG
 const oneDay = 24 * 60 * 60 * 1000;
+//一日 多久會上傳一次LOG紀錄
+const oneMinuts = 60000;
+//60000 多久可以升級及增加經驗
 var RollingLog = {
 	RealTimeRollingLogfunction: {
 		LastTimeLog: "",
@@ -101,8 +105,11 @@ try {
 			console.log('inputStr2: ', inputStr)
 		}
 		//LEVEL功能
-		if (groupid)
-			await EXPUP();
+		if (groupid) {
+			//console.log(await EXPUP());
+			result.LevelUp = await EXPUP();
+			//result.LevelUp
+		}
 		if (result && (result.text || result.LevelUp)) {
 			if (result.text) {
 				console.log('inputStr: ', inputStr)
@@ -124,7 +131,7 @@ try {
 					simpleCourt++;
 					//await saveLog();
 				}
-				return await result;
+				return result;
 			}
 		} else {
 			if (simpleCourt != null) {
@@ -245,11 +252,11 @@ try {
 
 					exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.push(temp.trpgLevelSystemfunction)
 
-					records.settrpgLevelSystemfunctionNewUser('trpgLevelSystem', temp, () => {})
+					records.settrpgLevelSystemfunctionNewUser('trpgLevelSystem', temp, () => { })
 
 				} else if (tempIsUser != 0) {
 					//4. 有-> 檢查上次紀錄的時間 超過60001 (1分鐘) 即增加1-10 經驗值
-					if (new Date(Date.now()) - new Date(exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].LastSpeakTime) > 60001) {
+					if (new Date(Date.now()) - new Date(exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].LastSpeakTime) > oneMinuts) {
 						exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP + math.floor(math.random() * 10) + 15;
 						exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].LastSpeakTime = Date.now();
 						exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].name = displaynameDiscord || displayname || '無名'
@@ -258,19 +265,24 @@ try {
 							//現EXP >於需求LV
 							//LVUP
 							exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level++;
+
+							//8. 更新MLAB資料 
+							records.settrpgLevelSystemfunctionEXPup('trpgLevelSystem', exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID], exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction, () => { })
+
 							if (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Hidden == 1) {
 								//6. 需要 -> 檢查有沒有開啓通知
+								//console.log('levelup', result)
+								/*
 								result.LevelUp = await LevelUP(tempGPID, tempGPuserID).catch(error => {
 									console.log(error)
 								})
-								console.log('levelup', result)
+								*/
+								return LevelUP(tempGPID, tempGPuserID);
 								//console.log('result.LevelUp: ', result.LevelUp)
 							}
 						}
 
 
-						//8. 更新MLAB資料 
-						records.settrpgLevelSystemfunctionEXPup('trpgLevelSystem', exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID], exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction, () => {})
 
 					}
 				}
@@ -282,7 +294,6 @@ try {
 
 		async function LevelUP(tempGPID, tempGPuserID) {
 			//1. 讀取LEVELUP語
-			await Promise.reject(new Error('test'));
 			let username = displaynameDiscord || displayname || "無名"
 			let userlevel = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level;
 			let userexp = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP;
@@ -293,7 +304,7 @@ try {
 			let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
 			let userTitle = exports.z_Level_system.checkTitle(userlevel, exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Title);
 			let tempUPWord = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].LevelUpWord || "恭喜 {user.name}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點了！\n現在排名是{server.member_count}人中的第{user.Ranking}名！"
-			return await tempUPWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count).replace(/{user.title}/ig, userTitle)
+			return tempUPWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count).replace(/{user.title}/ig, userTitle)
 
 			//2. 回應BOT
 

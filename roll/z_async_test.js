@@ -8,6 +8,17 @@ var rply = {
 const wiki = require('wikijs').default;
 const timer = require('timer');
 const translate = require('@vitalets/google-translate-api');
+var gis = require('g-i-s');
+gis('cats', logResults);
+
+function logResults(error, results) {
+	if (error) {
+		console.log(error);
+	}
+	else {
+		console.log(JSON.stringify(results, null, '  '));
+	}
+}
 gameName = function () {
 	return '(公測中)Wiki查詢/即時翻譯 .wiki .tran'
 }

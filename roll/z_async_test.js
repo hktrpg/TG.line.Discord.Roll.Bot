@@ -8,7 +8,7 @@ var rply = {
 const wiki = require('wikijs').default;
 const timer = require('timer');
 const translate = require('@vitalets/google-translate-api');
-const shutterSearch = require('node-shutter-search');
+var freeGoogleImageSearch = require("free-google-image-search")
 
 gameName = function () {
 	return '(公測中)Wiki查詢/即時翻譯 .wiki .tran'

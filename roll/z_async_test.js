@@ -8,17 +8,8 @@ var rply = {
 const wiki = require('wikijs').default;
 const timer = require('timer');
 const translate = require('@vitalets/google-translate-api');
-var gis = require('g-i-s');
-gis('cats', logResults);
+const shutterSearch = require('node-shutter-search');
 
-function logResults(error, results) {
-	if (error) {
-		console.log(error);
-	}
-	else {
-		console.log(JSON.stringify(results, null, '  '));
-	}
-}
 gameName = function () {
 	return '(公測中)Wiki查詢/即時翻譯 .wiki .tran'
 }
@@ -27,7 +18,7 @@ gameType = function () {
 	return 'Wiki:hktrpg'
 }
 prefixs = function () {
-	return [/^[.]wiki$|^[.]tran$|^[.]tran[.]\S+$/i,]
+	return [/^[.]wiki$|^[.]tran$|^[.]tran[.]\S+$|^[.]image$/i,]
 
 }
 
@@ -88,10 +79,19 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 				return err.message + "\n常用語言代碼: 英=en, 簡=zh-cn, 德=de, 日=ja\n例子: .tran.英\n.tran.日\n.tran.de";
 			});
 			return rply;
+		case /\S+/.test(mainMsg[1]) && /^[.]image$/.test(mainMsg[0]):
+			//rply.text = 
+			new shutterSearch(mainMsg[1]).then((data) => {
+				console.log(data);
+			}).catch(err => console.log(err));
+			return rply;
+		//	console.log(gis(mainMsg[1]))
+
 		default:
 			break;
 	}
 }
+
 
 
 module.exports = {

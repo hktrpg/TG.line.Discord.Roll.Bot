@@ -30,7 +30,7 @@
     "wikijs": "6.0.1",
     "timer": "^1.0.1",
     "@vitalets/google-translate-api": "^3.0.0",
-    "node-shutter-search": "^1"
+    "duckduckgo-images-api": "^1"
   },
   "keywords": [
     "LeoLi",

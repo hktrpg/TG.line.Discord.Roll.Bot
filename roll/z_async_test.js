@@ -8,7 +8,7 @@ var rply = {
 const wiki = require('wikijs').default;
 const timer = require('timer');
 const translate = require('@vitalets/google-translate-api');
-var freeGoogleImageSearch = require("free-google-image-search")
+const { image_search } = require('duckduckgo-images-api')
 
 gameName = function () {
 	return '(公測中)Wiki查詢/即時翻譯 .wiki .tran'
@@ -80,10 +80,13 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 			});
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /^[.]image$/.test(mainMsg[0]):
-			//rply.text = 
-			new shutterSearch(mainMsg[1]).then((data) => {
-				console.log(data);
-			}).catch(err => console.log(err));
+			rply.text = await image_search({ query: inputStr.replace(mainMsg[0], ""), moderate: true, iterations: 1, retries: 1 })
+				.then(results => {
+					//thumbnail
+					return results[Math.floor((Math.random() * (results.length)) + 0)].image;
+				}).catch(err => {
+					return null
+				})
 			return rply;
 		//	console.log(gis(mainMsg[1]))
 
@@ -91,7 +94,6 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 			break;
 	}
 }
-
 
 
 module.exports = {

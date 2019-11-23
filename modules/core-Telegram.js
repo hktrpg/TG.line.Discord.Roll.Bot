@@ -283,3 +283,8 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 		console.log('Request error: ' + e.message)
 	}
 }
+/*
+bot.command('pipe', (ctx) => ctx.replyWithPhoto({
+	url: 'https://picsum.photos/200/300/?random'
+}))
+*/

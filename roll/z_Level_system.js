@@ -185,7 +185,7 @@ try {
                                 if (rply.trpgLevelSystemfunction[i].groupid == groupid && rply.trpgLevelSystemfunction[i].Title && rply.trpgLevelSystemfunction[i].Title.length > 0) {
                                     rply.text = '稱號:\n'
                                     temp = 1
-                                    console.log(rply.trpgLevelSystemfunction[i].Title)
+                                    //console.log(rply.trpgLevelSystemfunction[i].Title)
                                     for (let te = 0; te < rply.trpgLevelSystemfunction[i].Title.length; te++) {
                                         if (rply.trpgLevelSystemfunction[i].Title[te])
                                             rply.text += [te] + '等級: ' + rply.trpgLevelSystemfunction[i].Title[te] + "\n"

@@ -8,30 +8,34 @@ var rply = {
 const wiki = require('wikijs').default;
 const timer = require('timer');
 const translate = require('@vitalets/google-translate-api');
+const {
+	image_search
+} = require('duckduckgo-images-api')
+
 gameName = function () {
-	return '(公測中)Wiki查詢/即時翻譯 .wiki .tran'
+	return '(公測中)Wiki查詢/圖片搜索/翻譯 .wiki .image .tran'
 }
 
 gameType = function () {
 	return 'Wiki:hktrpg'
 }
 prefixs = function () {
-	return [/^[.]wiki$|^[.]tran$|^[.]tran[.]\S+$/i,]
+	return [/^[.]wiki$|^[.]tran$|^[.]tran[.]\S+$|^[.]image$/i, ]
 
 }
 
 getHelpMessage = function () {
-	return "【Wiki查詢/即時翻譯】.wiki .tran .tran.(目標語言) (內容)\
-		\n 新增即時網上Wiki查詢及即時翻譯功能\
-		\n Wiki功能: .wiki (條目)  \
+	return "【Wiki查詢/即時翻譯】.wiki .image .tran .tran.(目標語言)\
+		\n 1) Wiki功能: .wiki (條目)  \
 		\n EG: .wiki BATMAN  \
-		\n 即時翻譯功能: .Tran (內容)  \
+		\n 2) 圖片搜尋功能: .Image (內容)  \
+		\n 從Duckduckgo 得到相關隨機圖片Link\
+		\n 3) 即時翻譯功能: .Tran (內容)  \
 		\n 預設翻譯成正體中文\
 		\n EG: .tran BATMAN  \
-		\n 可翻譯成其他語言: .tran.(語系) (內容)\
-		\n EG: .tran.ja BATMAN  \
+		\n 4) 可翻譯成其他語言: .tran.(語系) (內容)\
+		\n EG: .tran.ja BATMAN  .tran.日 BATMAN\
 		\n 常用語言代碼: 英=en, 簡=zh-cn, 德=de, 日=ja\
-		\n 常用代碼可用中文字, 例子: .tran.英\n.tran.日\n.tran.de \
 		\n 語系代碼 https://github.com/vitalets/google-translate-api/blob/master/languages.js\
 		"
 }
@@ -48,8 +52,8 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /[.]wiki/.test(mainMsg[0]):
 			rply.text = await wiki({
-				apiUrl: 'https://zh.wikipedia.org/w/api.php'
-			}).page(mainMsg[1].toLowerCase())
+					apiUrl: 'https://zh.wikipedia.org/w/api.php'
+				}).page(mainMsg[1].toLowerCase())
 				.then(page => page.summary()) //console.log('case: ', rply)
 				.catch(error => {
 					if (error == 'Error: No article found')
@@ -60,7 +64,9 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 				})
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /^[.]tran$/.test(mainMsg[0]):
-			rply.text = await translate(inputStr.replace(mainMsg[0], ""), { to: 'zh-TW' }).then(res => {
+			rply.text = await translate(inputStr.replace(mainMsg[0], ""), {
+				to: 'zh-TW'
+			}).then(res => {
 				return res.text
 			}).catch(err => {
 				return err.message;
@@ -69,7 +75,9 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 		case /\S+/.test(mainMsg[1]) && /^[.]tran[.]\S+$/.test(mainMsg[0]):
 			let lang = /.tran.(\S+)/;
 			let test = mainMsg[0].match(lang)
-			rply.text = await translate(inputStr.replace(mainMsg[0], ""), { to: test[1].replace("簡中", "zh-CN").replace("簡體", "zh-CN").replace(/zh-cn/ig, "zh-CN").replace("英", "en").replace("簡", "zh-CN").replace("德", "de").replace("日", "ja") }).then(res => {
+			rply.text = await translate(inputStr.replace(mainMsg[0], ""), {
+				to: test[1].replace("簡中", "zh-CN").replace("簡體", "zh-CN").replace(/zh-cn/ig, "zh-CN").replace("英", "en").replace("簡", "zh-CN").replace("德", "de").replace("日", "ja")
+			}).then(res => {
 				//console.log(res.from.language.iso);
 				return res.text
 			}).catch(err => {
@@ -77,6 +85,22 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 				return err.message + "\n常用語言代碼: 英=en, 簡=zh-cn, 德=de, 日=ja\n例子: .tran.英\n.tran.日\n.tran.de";
 			});
 			return rply;
+		case /\S+/.test(mainMsg[1]) && /^[.]image$/.test(mainMsg[0]):
+			rply.text = await image_search({
+					query: inputStr.replace(mainMsg[0], ""),
+					moderate: true,
+					iterations: 1,
+					retries: 1
+				})
+				.then(results => {
+					//thumbnail
+					return results[Math.floor((Math.random() * (results.length)) + 0)].image;
+				}).catch(err => {
+					return null
+				})
+			return rply;
+			//	console.log(gis(mainMsg[1]))
+
 		default:
 			break;
 	}

@@ -8,27 +8,6 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	//var Linecounttext = 0;
 	const line = require('@line/bot-sdk');
 	const express = require('express');
-
-	async function replymessage(message) {
-		/*
-		{
-			"type": "image",
-			"originalContentUrl": "https://example.com/original.jpg",
-			"previewImageUrl": "https://example.com/preview.jpg"
-		}
-
-
-		return {
-			type: 'text',
-			text: message
-		}
-		*/
-		return {
-			type: "image",
-			originalContentUrl: "http://www.goddessfantasy.net/bbs/Themes/celeste/images/logo/logo7e.png",
-			previewImageUrl: "http://www.goddessfantasy.net/bbs/Themes/celeste/images/logo/logo7e.png"
-		}
-	};
 	//event.source.userId
 	//event.source.groupId
 	/*
@@ -275,6 +254,49 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				})
 
 			}
+			async function replyMessagebyReplyToken(targetid, Reply) {
+				console.log(Reply)
+				let messages = [{
+						"type": "text",
+						"text": "Hello, user001"
+					},
+					{
+						"type": "text",
+						"text": "May I help you?002"
+					}
+				]
+				client.replyMessage(event.replyToken, messages)
+				client.pushMessage(targetid, {
+					type: 'text',
+					text: 'hello, world003',
+				})
+				client.pushMessage(targetid, {
+					"type": "image",
+					"originalContentUrl": "https://developers.line.biz/assets/images/common/logo-black.png",
+					"previewImageUrl": "https://developers.line.biz/assets/images/common/logo-black.png"
+				})
+
+			}
+			async function HandleMessage(message) {
+				/*
+				{
+					"type": "image",
+					"originalContentUrl": "https://example.com/original.jpg",
+					"previewImageUrl": "https://example.com/preview.jpg"
+				}
+
+
+				return {
+					type: 'text',
+					text: message
+				}
+				*/
+				return {
+					type: "image",
+					originalContentUrl: "http://www.goddessfantasy.net/bbs/Themes/celeste/images/logo/logo7e.png",
+					previewImageUrl: "http://www.goddessfantasy.net/bbs/Themes/celeste/images/logo/logo7e.png"
+				}
+			};
 			/**pushMessage
 			 * client.pushImage(USER_ID, {
 			 	originalContentUrl: 'https://example.com/original.jpg',

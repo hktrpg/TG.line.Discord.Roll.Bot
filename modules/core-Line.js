@@ -246,6 +246,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			}
 			//rplyVal.text
 			async function SendToId(targetid, Reply) {
+				console.log(Reply)
 				for (var i = 0; i < Reply.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 					if (i == 0 || i == 1 || i == Reply.text.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == Reply.text.toString().match(/[\s\S]{1,1900}/g).length - 2)
 						await client.pushMessage(targetid, Reply)

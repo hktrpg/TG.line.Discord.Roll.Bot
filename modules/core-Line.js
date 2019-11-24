@@ -16,10 +16,17 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			"originalContentUrl": "https://example.com/original.jpg",
 			"previewImageUrl": "https://example.com/preview.jpg"
 		}
-		*/
+
+
 		return {
 			type: 'text',
 			text: message
+		}
+		*/
+		return {
+			"type": "image",
+			"originalContentUrl": "http://www.goddessfantasy.net/bbs/Themes/celeste/images/logo/logo7e.png",
+			"previewImageUrl": "http://www.goddessfantasy.net/bbs/Themes/celeste/images/logo/logo7e.png"
 		}
 	};
 	//event.source.userId
@@ -249,7 +256,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				console.log(Reply)
 				for (var i = 0; i < Reply.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 					if (i == 0 || i == 1 || i == Reply.text.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == Reply.text.toString().match(/[\s\S]{1,1900}/g).length - 2)
-						await client.pushMessage(targetid, Reply)
+						await client.pushMessage(targetid, replymessage())
 						.catch((err) => {
 							console.log(err)
 						});

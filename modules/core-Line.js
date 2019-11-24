@@ -254,13 +254,19 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			//rplyVal.text
 			async function SendToId(targetid, Reply) {
 				console.log(Reply)
-				client.replyMessage(event.replyToken, {
-					type: 'text',
-					text: 'hello, world1',
-				})
+				let messages = [{
+						"type": "text",
+						"text": "Hello, user001"
+					},
+					{
+						"type": "text",
+						"text": "May I help you?002"
+					}
+				]
+				client.replyMessage(event.replyToken, messages)
 				client.pushMessage(targetid, {
 					type: 'text',
-					text: 'hello, world',
+					text: 'hello, world003',
 				})
 				client.pushMessage(targetid, {
 					"type": "image",

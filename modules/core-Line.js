@@ -254,13 +254,20 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			//rplyVal.text
 			async function SendToId(targetid, Reply) {
 				console.log(Reply)
-				for (var i = 0; i < Reply.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-					if (i == 0 || i == 1 || i == Reply.text.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == Reply.text.toString().match(/[\s\S]{1,1900}/g).length - 2)
-						await client.pushImage(targetid, replymessage())
-						.catch((err) => {
-							console.log(err)
-						});
-				}
+				client.replyMessage(event.replyToken, {
+					type: 'text',
+					text: 'hello, world1',
+				})
+				client.pushMessage(targetid, {
+					type: 'text',
+					text: 'hello, world',
+				})
+				client.pushMessage(targetid, {
+					"type": "image",
+					"originalContentUrl": "https://developers.line.biz/assets/images/common/logo-black.png",
+					"previewImageUrl": "https://developers.line.biz/assets/images/common/logo-black.png"
+				})
+
 			}
 			/**pushMessage
 			 * client.pushImage(USER_ID, {

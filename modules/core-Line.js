@@ -256,12 +256,18 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				console.log(Reply)
 				for (var i = 0; i < Reply.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 					if (i == 0 || i == 1 || i == Reply.text.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == Reply.text.toString().match(/[\s\S]{1,1900}/g).length - 2)
-						await client.pushMessage(targetid, replymessage())
+						await client.pushImage(targetid, replymessage())
 						.catch((err) => {
 							console.log(err)
 						});
 				}
 			}
+			/**pushMessage
+			 * client.pushImage(USER_ID, {
+			 	originalContentUrl: 'https://example.com/original.jpg',
+			 	previewImageUrl: 'https://example.com/preview.jpg',
+			 });
+			 */
 			// create a echoing text message
 			//await exports.analytics.parseInput(event.message.text)
 

@@ -98,6 +98,7 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 				}).catch(err => {
 					return null
 				})
+			rply.type = 'image'
 			return rply;
 			//	console.log(gis(mainMsg[1]))
 

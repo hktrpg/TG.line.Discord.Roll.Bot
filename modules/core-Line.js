@@ -10,10 +10,24 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	const express = require('express');
 
 	async function replymessage(message) {
-		return {
-			type: 'text',
-			text: message
+		/*
+		{
+			"type": "image",
+			"originalContentUrl": "https://example.com/original.jpg",
+			"previewImageUrl": "https://example.com/preview.jpg"
 		}
+		*/
+		if (message && message.type == 'text')
+			return {
+				type: 'text',
+				text: message
+			}
+		else if (message && message.text && message.type == 'image')
+			return {
+				type: "image",
+				originalContentUrl: message.text,
+				previewImageUrl: message.text
+			}
 	};
 	//event.source.userId
 	//event.source.groupId
@@ -278,11 +292,3 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	}
 
 }
-
-/*
-{
-	"type": "image",
-	"originalContentUrl": "https://example.com/original.jpg",
-	"previewImageUrl": "https://example.com/preview.jpg"
-}
-*/

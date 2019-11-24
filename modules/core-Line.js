@@ -279,14 +279,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			}
 			async function HandleMessage(message) {
 				/*
-				{
-					"type": "image",
-					"originalContentUrl": "https://example.com/original.jpg",
-					"previewImageUrl": "https://example.com/preview.jpg"
-				}
-
-
-				return {
+					return {
 					type: 'text',
 					text: message
 				}

@@ -24,9 +24,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		}
 		*/
 		return {
-			"type": "image",
-			"originalContentUrl": "http://www.goddessfantasy.net/bbs/Themes/celeste/images/logo/logo7e.png",
-			"previewImageUrl": "http://www.goddessfantasy.net/bbs/Themes/celeste/images/logo/logo7e.png"
+			type: "image",
+			originalContentUrl: "http://www.goddessfantasy.net/bbs/Themes/celeste/images/logo/logo7e.png",
+			previewImageUrl: "http://www.goddessfantasy.net/bbs/Themes/celeste/images/logo/logo7e.png"
 		}
 	};
 	//event.source.userId

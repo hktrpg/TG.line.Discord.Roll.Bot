@@ -10,24 +10,10 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	const express = require('express');
 
 	async function replymessage(message) {
-		/*
-		{
-			"type": "image",
-			"originalContentUrl": "https://example.com/original.jpg",
-			"previewImageUrl": "https://example.com/preview.jpg"
+		return {
+			type: 'text',
+			text: message
 		}
-		*/
-		if (message && message.type == 'text' && message.text)
-			return {
-				type: 'text',
-				text: message.text
-			}
-		else if (message && message.text && message.type == 'image')
-			return {
-				type: "image",
-				originalContentUrl: message.text,
-				previewImageUrl: message.text
-			}
 	};
 	//event.source.userId
 	//event.source.groupId
@@ -240,9 +226,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						}
 						//console.log(privatemsg)
 						if (roomorgroupid)
-							await SendToId(roomorgroupid, rplyVal);
+							await SendToId(roomorgroupid, rplyVal.text);
 						else if (userid)
-							await SendToId(userid, rplyVal);
+							await SendToId(userid, rplyVal.text);
 						break;
 				}
 			} else {
@@ -251,15 +237,14 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				//	console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext);
 			}
 			//rplyVal.text
-			async function SendToId(targetid, Reply) {
-				if (Reply && Reply.text)
-					for (var i = 0; i < Reply.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-						if (i == 0 || i == 1 || i == Reply.text.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == Reply.text.toString().match(/[\s\S]{1,1900}/g).length - 2)
-							await client.pushMessage(targetid, replymessage(Reply).toString().match(/[\s\S]{1,1900}/g)[i])
-							.catch((err) => {
-								console.log(err)
-							});
-					}
+			async function SendToId(targetid, ReplyText) {
+				for (var i = 0; i < ReplyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
+					if (i == 0 || i == 1 || i == ReplyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == ReplyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
+						await client.pushMessage(targetid, await replymessage(ReplyText.toString().match(/[\s\S]{1,1900}/g)[i]))
+						.catch((err) => {
+							console.log(err)
+						});
+				}
 			}
 			// create a echoing text message
 			//await exports.analytics.parseInput(event.message.text)
@@ -293,3 +278,11 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	}
 
 }
+
+/*
+{
+	"type": "image",
+	"originalContentUrl": "https://example.com/original.jpg",
+	"previewImageUrl": "https://example.com/preview.jpg"
+}
+*/

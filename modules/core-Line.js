@@ -248,7 +248,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			async function SendToId(targetid, Reply) {
 				for (var i = 0; i < Reply.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 					if (i == 0 || i == 1 || i == Reply.text.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == Reply.text.toString().match(/[\s\S]{1,1900}/g).length - 2)
-						await client.pushMessage(targetid, await replymessage(Reply.text.toString().match(/[\s\S]{1,1900}/g)[i]))
+						await client.pushMessage(targetid, Reply)
 						.catch((err) => {
 							console.log(err)
 						});

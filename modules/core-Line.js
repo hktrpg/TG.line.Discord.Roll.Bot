@@ -290,7 +290,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				}
 				*/
 				switch (true) {
-					case message && message.type == 'text' && message.text尸:
+					case message && message.type == 'text' && message.text:
 						return;
 					case message && message.type == 'image' && message.text:
 						return;

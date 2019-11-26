@@ -62,10 +62,10 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		let TargetGM = require('../roll/z_DDR_darkRollingToGM').initialize()
 
 		client.getProfile(userid).then(async function (profile) {
-				//	在GP 而有加好友的話,得到名字
-				displayname = profile.displayName;
-				await AfterCheckName();
-			},
+			//	在GP 而有加好友的話,得到名字
+			displayname = profile.displayName;
+			await AfterCheckName();
+		},
 			async function () {
 				await AfterCheckName();
 				//如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
@@ -162,8 +162,8 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						if (roomorgroupid && userid && displaynamecheck)
 							if (displayname)
 								await SendToId(roomorgroupid, "@" + displayname + ' 暗骰給自己')
-						else
-							await SendToId(roomorgroupid, '正在暗骰給自己')
+							else
+								await SendToId(roomorgroupid, '正在暗骰給自己')
 						if (userid)
 							if (displayname && displaynamecheck)
 								await SendToId(userid, "@" + displayname + '的暗骰\n' + rplyVal.text);
@@ -234,13 +234,13 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			async function SendToId(targetid, Reply) {
 				console.log(Reply)
 				let messages = [{
-						"type": "text",
-						"text": "Hello, user001"
-					},
-					{
-						"type": "text",
-						"text": "May I help you?002"
-					}
+					"type": "text",
+					"text": "Hello, user001"
+				},
+				{
+					"type": "text",
+					"text": "May I help you?002"
+				}
 				]
 				client.replyMessage(event.replyToken, messages)
 				client.pushMessage(targetid, {
@@ -257,13 +257,13 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			async function replyMessagebyReplyToken(targetid, Reply) {
 				console.log(Reply)
 				let messages = [{
-						"type": "text",
-						"text": "Hello, user001"
-					},
-					{
-						"type": "text",
-						"text": "May I help you?002"
-					}
+					"type": "text",
+					"text": "Hello, user001"
+				},
+				{
+					"type": "text",
+					"text": "May I help you?002"
+				}
 				]
 				client.replyMessage(event.replyToken, messages)
 				client.pushMessage(targetid, {
@@ -278,12 +278,29 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 			}
 			async function HandleMessage(message) {
+				//有三種情況,
+				//A)type:text
+				//B)type:image
+				//C)typeOF STRING
+				//
 				/*
 					return {
 					type: 'text',
 					text: message
 				}
 				*/
+				switch (true) {
+					case message && message.type == 'text' && message.text尸:
+						return;
+					case message && message.type == 'image' && message.text:
+						return;
+					case typeof message == 'string' || message instanceof String:
+						break;
+					case message.text:
+						break;
+					default:
+						break;
+				}
 				return {
 					type: "image",
 					originalContentUrl: "http://www.goddessfantasy.net/bbs/Themes/celeste/images/logo/logo7e.png",

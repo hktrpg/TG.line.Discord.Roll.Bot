@@ -282,7 +282,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				//A)type:text
 				//B)type:image
 				//C)typeOF STRING
-				//
+				//用來確保信息正確?
 				/*
 					return {
 					type: 'text',

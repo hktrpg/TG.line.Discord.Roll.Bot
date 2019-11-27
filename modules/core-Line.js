@@ -278,6 +278,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				}
 			}
 			function HandleMessage(message) {
+				console.log('message: ', message)
 				//有三種情況,
 				//A)type:text
 				//B)type:image

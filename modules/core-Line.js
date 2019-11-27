@@ -240,7 +240,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				console.log('replyMessagebyReplyToken: ', HHH)
 				return client.replyMessage(event.replyToken, HHH)
 			}
-			async function HandleMessage(message) {
+			function HandleMessage(message) {
 				console.log('message: ', message)
 				//有三種情況,
 				//A)type:text

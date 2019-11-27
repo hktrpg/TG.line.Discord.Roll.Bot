@@ -262,6 +262,13 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 					test++
 					return client.replyMessage(event.replyToken, adb2())
 				}
+				if (test >= 4) {
+					let aaa = HandleMessage(Reply);
+					console.log(test, ': ', aaa)
+
+					test++
+					return client.replyMessage(event.replyToken, aaa)
+				}
 			}
 			function adb() {
 				return {

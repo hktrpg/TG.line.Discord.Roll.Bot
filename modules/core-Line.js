@@ -237,7 +237,8 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			function replyMessagebyReplyToken(targetid, Reply) {
 				let messages = [{
 					"type": "text",
-					"text": "Hello, user001"
+					"text": "Hello, user001",
+					"LevelUp": 'AAAA'
 				},
 				{
 					"type": "text",

@@ -219,9 +219,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						}
 						console.log('rplyVal: ', rplyVal)
 						if (roomorgroupid)
-							return replyMessagebyReplyToken(roomorgroupid, rplyVal);
+							return SendToId(roomorgroupid, rplyVal);
 						else if (userid)
-							return replyMessagebyReplyToken(userid, rplyVal);
+							return SendToId(userid, rplyVal);
 						break;
 				}
 			} else {
@@ -230,12 +230,12 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				//	console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext);
 			}
 			//rplyVal.text
-			function SendToId(targetid, Reply) {
+			async function SendToId(targetid, Reply) {
 				let HHH = HandleMessage(Reply)
 				console.log('SendToId: ', HHH)
 				return client.pushMessage(targetid, HandleMessage(Reply))
 			}
-			function replyMessagebyReplyToken(targetid, Reply) {
+			async function replyMessagebyReplyToken(targetid, Reply) {
 				let HHH = HandleMessage(Reply)
 				console.log('replyMessagebyReplyToken: ', HHH)
 				return client.replyMessage(event.replyToken, HHH)

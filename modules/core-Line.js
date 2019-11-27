@@ -260,7 +260,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				}
 				if (test == 3) {
 					test++
-					return client.replyMessage(event.replyToken, await adb2())
+					return client.replyMessage(event.replyToken, adb2())
 				}
 			}
 			function adb() {

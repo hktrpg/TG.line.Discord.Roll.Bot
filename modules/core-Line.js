@@ -1,5 +1,6 @@
 'use strict';
 if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
+	let test = 0
 	//	var channelSecret = process.env.LINE_CHANNEL_SECRET;
 	// Load `*.js` under modules directory as properties
 	//  i.e., `User.js` will become `exports['User']` or `exports.User`
@@ -234,8 +235,47 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				return client.pushMessage(targetid, HandleMessage(Reply))
 			}
 			function replyMessagebyReplyToken(targetid, Reply) {
-
-				return client.replyMessage(event.replyToken, HandleMessage(Reply))
+				let messages = [{
+					"type": "text",
+					"text": "Hello, user001"
+				},
+				{
+					"type": "text",
+					"text": "May I help you?002"
+				}
+				]
+				if (test == 0) {
+					test++
+					return client.replyMessage(event.replyToken, messages)
+				}
+				if (test == 1) {
+					test++
+					let aaa = HandleMessage(messages);
+					console.log(aaa)
+					return client.replyMessage(event.replyToken, aaa)
+				}
+				if (test == 2) {
+					test++
+					return client.replyMessage(event.replyToken, adb())
+				}
+				if (test == 3) {
+					test++
+					return client.replyMessage(event.replyToken, await adb2())
+				}
+			}
+			function adb() {
+				return {
+					"type": "image",
+					"originalContentUrl": "https://developers.line.biz/assets/images/common/logo-black.png",
+					"previewImageUrl": "https://developers.line.biz/assets/images/common/logo-black.png"
+				}
+			}
+			async function adb2() {
+				return {
+					"type": "image",
+					"originalContentUrl": "https://developers.line.biz/assets/images/common/logo-black.png",
+					"previewImageUrl": "https://developers.line.biz/assets/images/common/logo-black.png"
+				}
 			}
 			function HandleMessage(message) {
 				//有三種情況,

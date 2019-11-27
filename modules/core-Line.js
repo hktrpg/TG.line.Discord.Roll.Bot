@@ -16,9 +16,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	});
 
 	// create LINE SDK client
-	const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
-	const client = new line.Client(config);
-
+	
 	const app = express();
 
 	const linebotParser = bot.parser();

@@ -16,7 +16,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	});
 
 	// create LINE SDK client
-
+	
 	const app = express();
 
 	const linebotParser = bot.parser();
@@ -38,7 +38,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		});
 	});
 
-
+	app.listen(process.env.PORT || 80, function () {
+		console.log('LineBot is running.');
+	});
 	module.exports = {
 		app,
 		express

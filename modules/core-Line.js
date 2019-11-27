@@ -219,9 +219,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						}
 						console.log('rplyVal: ', rplyVal)
 						if (roomorgroupid)
-							return await replyMessagebyReplyToken(roomorgroupid, rplyVal);
+							return replyMessagebyReplyToken(roomorgroupid, rplyVal);
 						else if (userid)
-							return await replyMessagebyReplyToken(userid, rplyVal);
+							return replyMessagebyReplyToken(userid, rplyVal);
 						break;
 				}
 			} else {
@@ -230,14 +230,14 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				//	console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext);
 			}
 			//rplyVal.text
-			async function SendToId(targetid, Reply) {
+			function SendToId(targetid, Reply) {
 				return client.pushMessage(targetid, HandleMessage(Reply))
 			}
-			async function replyMessagebyReplyToken(targetid, Reply) {
+			function replyMessagebyReplyToken(targetid, Reply) {
 
 				return client.replyMessage(event.replyToken, HandleMessage(Reply))
 			}
-			async function HandleMessage(message) {
+			function HandleMessage(message) {
 				//有三種情況,
 				//A)type:text
 				//B)type:image
@@ -282,15 +282,14 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 									text: message.text.toString().match(/[\s\S]{1,1900}/g)[i]
 								})
 						}
-						message = temp;
-						return message;
+						return temp;
 					case message && message.type == 'image' && message.text:
 						return {
 							"type": "image",
 							"originalContentUrl": message.text,
 							"previewImageUrl": message.text
 						};
-						;
+
 					case typeof message == 'string' || message instanceof String:
 						for (var i = 0; i < message.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 							if (i == 0 || i == 1 || i == message.toString().match(/[\s\S]{1,1900}/g).length - 2 || i == message.toString().match(/[\s\S]{1,1900}/g).length - 1)
@@ -299,8 +298,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 									text: message.toString().match(/[\s\S]{1,1900}/g)[i]
 								})
 						}
-						message = temp;
-						return message;
+						return temp;
 					case message.text:
 						for (var i = 0; i < message.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 							if (i == 0 || i == 1 || i == message.text.toString().match(/[\s\S]{1,1900}/g).length - 2 || i == message.text.toString().match(/[\s\S]{1,1900}/g).length - 1)
@@ -309,8 +307,8 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 									text: message.text.toString().match(/[\s\S]{1,1900}/g)[i]
 								})
 						}
-						message = temp;
-						return message;
+						return temp;
+
 					default:
 						break;
 				}

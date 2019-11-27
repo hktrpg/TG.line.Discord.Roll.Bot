@@ -219,9 +219,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						}
 						console.log('rplyVal: ', rplyVal)
 						if (roomorgroupid)
-							return replyMessagebyReplyToken(roomorgroupid, rplyVal);
+							return SendToId(roomorgroupid, rplyVal);
 						else if (userid)
-							return replyMessagebyReplyToken(userid, rplyVal);
+							return SendToId(userid, rplyVal);
 						break;
 				}
 			} else {

@@ -212,16 +212,16 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						}
 						break;
 					default:
-						if (displaynamecheck && displayname && rplyVal.type != 'image') {
+						if (displaynamecheck && displayname && rplyVal && rplyVal.type != 'image') {
 							//285083923223
 							displayname = "@" + displayname + "\n";
 							rplyVal.text = displayname + rplyVal.text
 						}
 						console.log('rplyVal: ', rplyVal)
 						if (roomorgroupid)
-							return await replyMessagebyReplyToken(roomorgroupid, rplyVal);
+							return replyMessagebyReplyToken(roomorgroupid, rplyVal);
 						else if (userid)
-							return await replyMessagebyReplyToken(userid, rplyVal);
+							return replyMessagebyReplyToken(userid, rplyVal);
 						break;
 				}
 			} else {
@@ -231,11 +231,13 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			}
 			//rplyVal.text
 			function SendToId(targetid, Reply) {
+				let HHH = HandleMessage(Reply)
+				console.log('SendToId: ', HHH)
 				return client.pushMessage(targetid, HandleMessage(Reply))
 			}
 			function replyMessagebyReplyToken(targetid, Reply) {
 				let HHH = HandleMessage(Reply)
-				console.log(HHH)
+				console.log('replyMessagebyReplyToken: ', HHH)
 				return client.replyMessage(event.replyToken, HHH)
 			}
 			function HandleMessage(message) {
@@ -310,7 +312,6 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 								})
 						}
 						return temp;
-
 					default:
 						break;
 				}

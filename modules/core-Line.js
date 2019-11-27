@@ -271,9 +271,10 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 					"previewImageUrl": "https://developers.line.biz/assets/images/common/logo-black.png"
 				})
 				*/
+
+				let temp = [];
 				switch (true) {
 					case message && message.type == 'text' && message.text:
-						let temp = [];
 						for (var i = 0; i < message.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 							if (i == 0 || i == 1 || i == message.text.toString().match(/[\s\S]{1,1900}/g).length - 2 || i == message.text.toString().match(/[\s\S]{1,1900}/g).length - 1)
 								temp.push({
@@ -291,7 +292,6 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						};
 						;
 					case typeof message == 'string' || message instanceof String:
-						let temp = [];
 						for (var i = 0; i < message.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 							if (i == 0 || i == 1 || i == message.toString().match(/[\s\S]{1,1900}/g).length - 2 || i == message.toString().match(/[\s\S]{1,1900}/g).length - 1)
 								temp.push({
@@ -302,7 +302,6 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						message = temp;
 						return message;
 					case message.text:
-						let temp = [];
 						for (var i = 0; i < message.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 							if (i == 0 || i == 1 || i == message.text.toString().match(/[\s\S]{1,1900}/g).length - 2 || i == message.text.toString().match(/[\s\S]{1,1900}/g).length - 1)
 								temp.push({
@@ -318,8 +317,8 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			};
 			/**pushMessage
 			 * client.pushImage(USER_ID, {
-			 	originalContentUrl: 'https://example.com/original.jpg',
-			 	previewImageUrl: 'https://example.com/preview.jpg',
+				  originalContentUrl: 'https://example.com/original.jpg',
+				  previewImageUrl: 'https://example.com/preview.jpg',
 			 });
 			 */
 			// create a echoing text message
@@ -334,7 +333,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	/*	app.listen(port, () => {
 			console.log(`Line BOT listening on ${port}`);
 		});
-
+	
 		app.get('/aa', function (req, res) {
 			//	res.send(parseInput(req.query.input));
 			res.send('Hello');

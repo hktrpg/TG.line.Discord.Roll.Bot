@@ -1,6 +1,5 @@
 'use strict';
 if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
-	let test = 0
 	//	var channelSecret = process.env.LINE_CHANNEL_SECRET;
 	// Load `*.js` under modules directory as properties
 	//  i.e., `User.js` will become `exports['User']` or `exports.User`
@@ -213,16 +212,16 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						}
 						break;
 					default:
-						if (displaynamecheck && displayname) {
+						if (displaynamecheck && displayname && rplyVal.type != 'image') {
 							//285083923223
 							displayname = "@" + displayname + "\n";
 							rplyVal.text = displayname + rplyVal.text
 						}
 						console.log('rplyVal: ', rplyVal)
 						if (roomorgroupid)
-							return replyMessagebyReplyToken(roomorgroupid, rplyVal);
+							return await replyMessagebyReplyToken(roomorgroupid, rplyVal);
 						else if (userid)
-							return replyMessagebyReplyToken(userid, rplyVal);
+							return await replyMessagebyReplyToken(userid, rplyVal);
 						break;
 				}
 			} else {
@@ -231,62 +230,14 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				//	console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext);
 			}
 			//rplyVal.text
-			function SendToId(targetid, Reply) {
+			async function SendToId(targetid, Reply) {
 				return client.pushMessage(targetid, HandleMessage(Reply))
 			}
-			function replyMessagebyReplyToken(targetid, Reply) {
-				let messages = [{
-					"type": "text",
-					"text": "Hello, user001",
-					"LevelUp": 'AAAA'
-				},
-				{
-					"type": "text",
-					"text": "May I help you?002"
-				}
-				]
-				if (test == 0) {
-					test++
-					return client.replyMessage(event.replyToken, messages)
-				}
-				if (test == 1) {
-					test++
-					let aaa = HandleMessage(messages);
-					console.log(aaa)
-					return client.replyMessage(event.replyToken, aaa)
-				}
-				if (test == 2) {
-					test++
-					return client.replyMessage(event.replyToken, adb())
-				}
-				if (test == 3) {
-					test++
-					return client.replyMessage(event.replyToken, adb2())
-				}
-				if (test >= 4) {
-					let aaa = HandleMessage(Reply);
-					console.log(test, ': ', aaa)
+			async function replyMessagebyReplyToken(targetid, Reply) {
 
-					test++
-					return client.replyMessage(event.replyToken, aaa)
-				}
+				return client.replyMessage(event.replyToken, HandleMessage(Reply))
 			}
-			function adb() {
-				return {
-					"type": "image",
-					"originalContentUrl": "https://developers.line.biz/assets/images/common/logo-black.png",
-					"previewImageUrl": "https://developers.line.biz/assets/images/common/logo-black.png"
-				}
-			}
-			async function adb2() {
-				return {
-					"type": "image",
-					"originalContentUrl": "https://developers.line.biz/assets/images/common/logo-black.png",
-					"previewImageUrl": "https://developers.line.biz/assets/images/common/logo-black.png"
-				}
-			}
-			function HandleMessage(message) {
-				console.log('message: ', message)
+			async function HandleMessage(message) {
 				//有三種情況,
 				//A)type:text
 				//B)type:image

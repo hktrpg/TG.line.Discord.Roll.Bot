@@ -323,7 +323,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 				let temp = [];
 				switch (true) {
-					case  && message.type == 'text' && message.text != '':
+					case message.type == 'text' && message.text != '':
 						for (var i = 0; i < message.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 							if (i == 0 || i == 1 || i == message.text.toString().match(/[\s\S]{1,1900}/g).length - 2 || i == message.text.toString().match(/[\s\S]{1,1900}/g).length - 1)
 								temp.push({

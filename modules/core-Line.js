@@ -219,9 +219,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						}
 						console.log('rplyVal: ', rplyVal)
 						if (roomorgroupid)
-							return SendToId(roomorgroupid, rplyVal);
+							return await SendToId(roomorgroupid, rplyVal);
 						else if (userid)
-							return SendToId(userid, rplyVal);
+							return await SendToId(userid, rplyVal);
 						break;
 				}
 			} else {
@@ -231,16 +231,16 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			}
 			//rplyVal.text
 			async function SendToId(targetid, Reply) {
-				let HHH = HandleMessage(Reply)
+				let HHH = await HandleMessage(Reply)
 				console.log('SendToId: ', HHH)
 				return client.pushMessage(targetid, HandleMessage(Reply))
 			}
 			async function replyMessagebyReplyToken(targetid, Reply) {
-				let HHH = HandleMessage(Reply)
+				let HHH = await HandleMessage(Reply)
 				console.log('replyMessagebyReplyToken: ', HHH)
 				return client.replyMessage(event.replyToken, HHH)
 			}
-			function HandleMessage(message) {
+			async function HandleMessage(message) {
 				console.log('message: ', message)
 				//有三種情況,
 				//A)type:text

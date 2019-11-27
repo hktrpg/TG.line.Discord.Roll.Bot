@@ -219,9 +219,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						}
 						console.log('rplyVal: ', rplyVal)
 						if (roomorgroupid)
-							return await SendToId(roomorgroupid, rplyVal);
+							return await replyMessagebyReplyToken(roomorgroupid, rplyVal);
 						else if (userid)
-							return await SendToId(userid, rplyVal);
+							return await replyMessagebyReplyToken(userid, rplyVal);
 						break;
 				}
 			} else {

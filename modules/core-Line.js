@@ -218,11 +218,10 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 							rplyVal.text = displayname + rplyVal.text
 						}
 						console.log('rplyVal: ', rplyVal)
-
 						if (roomorgroupid)
-							await SendToId(roomorgroupid, rplyVal);
+							return await replyMessagebyReplyToken(roomorgroupid, rplyVal);
 						else if (userid)
-							await SendToId(userid, rplyVal);
+							return await replyMessagebyReplyToken(userid, rplyVal);
 						break;
 				}
 			} else {
@@ -232,50 +231,11 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			}
 			//rplyVal.text
 			async function SendToId(targetid, Reply) {
-				console.log(Reply)
-				let messages = [{
-					"type": "text",
-					"text": "Hello, user001"
-				},
-				{
-					"type": "text",
-					"text": "May I help you?002"
-				}
-				]
-				client.replyMessage(event.replyToken, messages)
-				client.pushMessage(targetid, {
-					type: 'text',
-					text: 'hello, world003',
-				})
-				client.pushMessage(targetid, {
-					"type": "image",
-					"originalContentUrl": "https://developers.line.biz/assets/images/common/logo-black.png",
-					"previewImageUrl": "https://developers.line.biz/assets/images/common/logo-black.png"
-				})
-
+				return client.pushMessage(targetid, HandleMessage(Reply))
 			}
 			async function replyMessagebyReplyToken(targetid, Reply) {
-				console.log(Reply)
-				let messages = [{
-					"type": "text",
-					"text": "Hello, user001"
-				},
-				{
-					"type": "text",
-					"text": "May I help you?002"
-				}
-				]
-				client.replyMessage(event.replyToken, messages)
-				client.pushMessage(targetid, {
-					type: 'text',
-					text: 'hello, world003',
-				})
-				client.pushMessage(targetid, {
-					"type": "image",
-					"originalContentUrl": "https://developers.line.biz/assets/images/common/logo-black.png",
-					"previewImageUrl": "https://developers.line.biz/assets/images/common/logo-black.png"
-				})
 
+				return client.replyMessage(event.replyToken, HandleMessage(Reply))
 			}
 			async function HandleMessage(message) {
 				//有三種情況,
@@ -288,23 +248,72 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 					type: 'text',
 					text: message
 				}
+
+
+				console.log(Reply)
+				let messages = [{
+					"type": "text",
+					"text": "Hello, user001"
+				},
+				{
+					"type": "text",
+					"text": "May I help you?002"
+				}
+				]
+				client.replyMessage(event.replyToken, messages)
+				client.pushMessage(targetid, {
+					type: 'text',
+					text: 'hello, world003',
+				})
+				client.pushMessage(targetid, {
+					"type": "image",
+					"originalContentUrl": "https://developers.line.biz/assets/images/common/logo-black.png",
+					"previewImageUrl": "https://developers.line.biz/assets/images/common/logo-black.png"
+				})
 				*/
 				switch (true) {
 					case message && message.type == 'text' && message.text:
-						return;
+						let temp = [];
+						for (var i = 0; i < message.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
+							if (i == 0 || i == 1 || i == message.text.toString().match(/[\s\S]{1,1900}/g).length - 2 || i == message.text.toString().match(/[\s\S]{1,1900}/g).length - 1)
+								temp.push({
+									type: 'text',
+									text: message.text.toString().match(/[\s\S]{1,1900}/g)[i]
+								})
+						}
+						message = temp;
+						return message;
 					case message && message.type == 'image' && message.text:
-						return;
+						return {
+							"type": "image",
+							"originalContentUrl": message.text,
+							"previewImageUrl": message.text
+						};
+						;
 					case typeof message == 'string' || message instanceof String:
-						break;
+						let temp = [];
+						for (var i = 0; i < message.toString().match(/[\s\S]{1,1900}/g).length; i++) {
+							if (i == 0 || i == 1 || i == message.toString().match(/[\s\S]{1,1900}/g).length - 2 || i == message.toString().match(/[\s\S]{1,1900}/g).length - 1)
+								temp.push({
+									type: 'text',
+									text: message.toString().match(/[\s\S]{1,1900}/g)[i]
+								})
+						}
+						message = temp;
+						return message;
 					case message.text:
-						break;
+						let temp = [];
+						for (var i = 0; i < message.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
+							if (i == 0 || i == 1 || i == message.text.toString().match(/[\s\S]{1,1900}/g).length - 2 || i == message.text.toString().match(/[\s\S]{1,1900}/g).length - 1)
+								temp.push({
+									type: 'text',
+									text: message.text.toString().match(/[\s\S]{1,1900}/g)[i]
+								})
+						}
+						message = temp;
+						return message;
 					default:
 						break;
-				}
-				return {
-					type: "image",
-					originalContentUrl: "http://www.goddessfantasy.net/bbs/Themes/celeste/images/logo/logo7e.png",
-					previewImageUrl: "http://www.goddessfantasy.net/bbs/Themes/celeste/images/logo/logo7e.png"
 				}
 			};
 			/**pushMessage

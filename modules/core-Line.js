@@ -234,10 +234,12 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				return client.pushMessage(targetid, HandleMessage(Reply))
 			}
 			async function replyMessagebyReplyToken(targetid, Reply) {
-
-				return client.replyMessage(event.replyToken, HandleMessage(Reply))
+				let HHH = HandleMessage(Reply)
+				console.log(HHH)
+				return client.replyMessage(event.replyToken, HHH)
 			}
 			async function HandleMessage(message) {
+				console.log('message: ', message)
 				//有三種情況,
 				//A)type:text
 				//B)type:image

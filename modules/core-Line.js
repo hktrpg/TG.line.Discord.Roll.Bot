@@ -219,9 +219,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						}
 						console.log('rplyVal: ', rplyVal)
 						if (roomorgroupid)
-							return SendToId(roomorgroupid, rplyVal);
+							return replyMessagebyReplyToken(roomorgroupid, rplyVal);
 						else if (userid)
-							return SendToId(userid, rplyVal);
+							return replyMessagebyReplyToken(userid, rplyVal);
 						break;
 				}
 			} else {
@@ -240,7 +240,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				console.log('replyMessagebyReplyToken: ', HHH)
 				return client.replyMessage(event.replyToken, HHH)
 			}
-			function HandleMessage(message) {
+			async function HandleMessage(message) {
 				console.log('message: ', message)
 				//有三種情況,
 				//A)type:text

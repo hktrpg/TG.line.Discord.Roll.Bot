@@ -233,12 +233,12 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			async function SendToId(targetid, Reply) {
 				let HHH = await HandleMessage(Reply)
 				console.log('SendToId: ', HHH)
-				return client.pushMessage(targetid, HandleMessage(Reply))
+				return await client.pushMessage(targetid, HandleMessage(Reply))
 			}
 			async function replyMessagebyReplyToken(targetid, Reply) {
 				let HHH = await HandleMessage(Reply)
 				console.log('replyMessagebyReplyToken: ', HHH)
-				return client.replyMessage(event.replyToken, HHH)
+				return await client.replyMessage(event.replyToken, HHH)
 			}
 			async function HandleMessage(message) {
 				console.log('message: ', message)

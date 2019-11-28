@@ -248,8 +248,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				return await client.replyMessage(event.replyToken, HHH).catch((err) => {
 					console.log("ERR", err)
 					console.log(" err.config.data.messages: ", err.config.data.messages)
-					console.log("err.data.messages: ", err.data.messages)
-
+					
 					console.log("err.length: ", err.length())
 
 					console.log("err.config.data.messages: ", err.config.data.messages)

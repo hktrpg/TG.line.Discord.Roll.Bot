@@ -251,7 +251,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 					//if (err.originalError.config.data.messages[0].type == 'image') {
 					let A = {
 						type: 'text',
-						text: 'hello, world003',
+						text: err.originalError.config.data.messages[0].originalContentUrl
 					}
 					client.replyMessage(event.replyToken, A)
 					//	}

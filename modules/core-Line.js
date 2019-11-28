@@ -8,9 +8,17 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	//var Linecounttext = 0;
 	const line = require('linebot');
 	const express = require('express');
-
+	/*
+	let HHH = {
+	type: 'image',
+		originalContentUrl:
+	'http://abcletters.org/26alphabets/english-alphabet-letter-a.jpg',
+		previewImageUrl:
+	'http://abcletters.org/26alphabets/english-alphabet-letter-a.jpg'
+}
+*/
 	// create LINE SDK config from env variables
-	var bot = line({
+	var bot = linebot({
 		channelSecret: process.env.LINE_CHANNEL_SECRET,
 		channelAccessToken: process.env.LINE_CHANNEL_ACCESSTOKEN
 	});

@@ -11,7 +11,7 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "linebot": "^1.6.2",
+    "@line/bot-sdk": "^6.8.2",
     "axios": "^0.18.0",
     "babel-core": "^7.0.0-0",
     "bcdice-js": "^0.11.0",

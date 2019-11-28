@@ -242,14 +242,15 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 					originalContentUrl:
 						'http://abcletters.org/26alphabets/english-alphabet-letter-a.jpg',
 					previewImageUrl:
-						'http://abcletters.org/26alphabets/english-alphabet-letter-a.jpg'
+						'http://abcletters.org/26alphabets/english-alphabet-letter-a.jpg',
+					targetid: targetid
 				}
 				console.log('replyMessagebyReplyToken: ', HHH)
 				return await client.replyMessage(event.replyToken, HHH).catch((err) => {
 					console.log("ERR", err.originalError.config.data)
-					
-			
-			
+
+
+
 				})
 			}
 			async function HandleMessage(message) {

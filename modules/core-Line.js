@@ -237,8 +237,17 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			}
 			async function replyMessagebyReplyToken(targetid, Reply) {
 				let HHH = await HandleMessage(Reply)
+				HHH = {
+					type: 'image',
+					originalContentUrl:
+						'http://abcletters.org/26alphabets/english-alphabet-letter-a.jpg',
+					previewImageUrl:
+						'http://abcletters.org/26alphabets/english-alphabet-letter-a.jpg'
+				}
 				console.log('replyMessagebyReplyToken: ', HHH)
-				return await client.replyMessage(event.replyToken, HHH)
+				return await client.replyMessage(event.replyToken, HHH).catch((err) => {
+					console.log(err)
+				})
 			}
 			async function HandleMessage(message) {
 				console.log('message: ', message)

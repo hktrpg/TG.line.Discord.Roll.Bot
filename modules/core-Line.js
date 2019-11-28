@@ -248,7 +248,13 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				console.log('replyMessagebyReplyToken: ', HHH)
 				return await client.replyMessage(event.replyToken, HHH).catch((err) => {
 					console.log("ERR", err.originalError.config.data)
-
+					if (err.originalError.config.data.messages.type == 'image') {
+						let A = {
+							type: 'text',
+							text: 'hello, world003',
+						}
+						client.replyMessage(event.replyToken, A)
+					}
 
 
 				})

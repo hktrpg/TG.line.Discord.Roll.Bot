@@ -195,7 +195,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 							displayname = "@" + displayname + "\n";
 							rplyVal.text = displayname + rplyVal.text
 						}
-						console.log('rplyVal: ', rplyVal)
+						//	console.log('rplyVal: ', rplyVal)
 						if (roomorgroupid)
 							return await replyMessagebyReplyToken(roomorgroupid, rplyVal);
 						else if (userid)
@@ -210,7 +210,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			//rplyVal.text
 			async function SendToId(targetid, Reply) {
 				let temp = await HandleMessage(Reply)
-			//	console.log('SendToId: ', temp)
+				//	console.log('SendToId: ', temp)
 				return await client.pushMessage(targetid, HandleMessage(Reply))
 			}
 			async function replyMessagebyReplyToken(targetid, Reply) {

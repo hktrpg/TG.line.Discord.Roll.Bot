@@ -247,6 +247,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				console.log('replyMessagebyReplyToken: ', HHH)
 				return await client.replyMessage(event.replyToken, HHH).catch((err) => {
 					console.log(err)
+					console.log("originalError: ", err.originalError.config.data.messages)
 				})
 			}
 			async function HandleMessage(message) {

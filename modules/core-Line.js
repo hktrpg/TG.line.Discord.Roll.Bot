@@ -1,30 +1,8 @@
 'use strict';
 if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
-	//	var channelSecret = process.env.LINE_CHANNEL_SECRET;
-	// Load `*.js` under modules directory as properties
-	//  i.e., `User.js` will become `exports['User']` or `exports.User`
 	exports.analytics = require('../modules/analytics');
-	//var Linecountroll = 0;
-	//var Linecounttext = 0;
 	const line = require('@line/bot-sdk');
 	const express = require('express');
-	//event.source.userId
-	//event.source.groupId
-	/*
-	client.pushMessage('<to>', message)
-		.then(() => {
-
-		})
-		.catch((err) => {
-			// error handling
-		});
-
-	*/
-	//const BootTime = new Date(new Date().toLocaleString("en-US", {
-	//	timeZone: "Asia/Shanghai"
-	//}));
-
-
 	// create LINE SDK config from env variables
 	const config = {
 		channelAccessToken: process.env.LINE_CHANNEL_ACCESSTOKEN,
@@ -231,70 +209,24 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			}
 			//rplyVal.text
 			async function SendToId(targetid, Reply) {
-				let HHH = await HandleMessage(Reply)
-				console.log('SendToId: ', HHH)
+				let temp = await HandleMessage(Reply)
+				console.log('SendToId: ', temp)
 				return await client.pushMessage(targetid, HandleMessage(Reply))
 			}
 			async function replyMessagebyReplyToken(targetid, Reply) {
-				let HHH = await HandleMessage(Reply)
-				HHH = {
-					type: 'image',
-					originalContentUrl:
-						'http://abcletters.org/26alphabets/english-alphabet-letter-a.jpg',
-					previewImageUrl:
-						'http://abcletters.org/26alphabets/english-alphabet-letter-a.jpg',
-					targetid: targetid
-				}
-				console.log('replyMessagebyReplyToken: ', HHH)
-				return await client.replyMessage(event.replyToken, HHH).catch((err) => {
-					if (HHH.type == 'image') {
-						//if (err.originalError.config.data.messages[0].type == 'image') {
-						let A = {
+				let temp = await HandleMessage(Reply)
+				return await client.replyMessage(event.replyToken, temp).catch((err) => {
+					if (temp.type == 'image') {
+						let tempB = {
 							type: 'text',
-							text: HHH.originalContentUrl
+							text: temp.originalContentUrl
 						}
-						client.replyMessage(event.replyToken, A)
+						client.replyMessage(event.replyToken, tempB)
 						//	}
 					}
-
 				})
 			}
 			async function HandleMessage(message) {
-				console.log('message: ', message)
-				//有三種情況,
-				//A)type:text
-				//B)type:image
-				//C)typeOF STRING
-				//用來確保信息正確?
-				/*
-					return {
-					type: 'text',
-					text: message
-				}
-
-
-				console.log(Reply)
-				let messages = [{
-					"type": "text",
-					"text": "Hello, user001"
-				},
-				{
-					"type": "text",
-					"text": "May I help you?002"
-				}
-				]
-				client.replyMessage(event.replyToken, messages)
-				client.pushMessage(targetid, {
-					type: 'text',
-					text: 'hello, world003',
-				})
-				client.pushMessage(targetid, {
-					"type": "image",
-					"originalContentUrl": "https://developers.line.biz/assets/images/common/logo-black.png",
-					"previewImageUrl": "https://developers.line.biz/assets/images/common/logo-black.png"
-				})
-				*/
-
 				let temp = [];
 				switch (true) {
 					case message.type == 'text' && message.text != '':
@@ -374,10 +306,32 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 }
 
-/*
-{
-	"type": "image",
-	"originalContentUrl": "https://example.com/original.jpg",
-	"previewImageUrl": "https://example.com/preview.jpg"
-}
-*/
+
+				/*
+					return {
+					type: 'text',
+					text: message
+				}
+
+
+				console.log(Reply)
+				let messages = [{
+					"type": "text",
+					"text": "Hello, user001"
+				},
+				{
+					"type": "text",
+					"text": "May I help you?002"
+				}
+				]
+				client.replyMessage(event.replyToken, messages)
+				client.pushMessage(targetid, {
+					type: 'text',
+					text: 'hello, world003',
+				})
+				client.pushMessage(targetid, {
+					"type": "image",
+					"originalContentUrl": "https://developers.line.biz/assets/images/common/logo-black.png",
+					"previewImageUrl": "https://developers.line.biz/assets/images/common/logo-black.png"
+				})
+				*/

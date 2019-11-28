@@ -247,15 +247,12 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				}
 				console.log('replyMessagebyReplyToken: ', HHH)
 				return await client.replyMessage(event.replyToken, HHH).catch((err) => {
-					console.log("ERR", err.originalError.config.data);
-					console.log("ERR", err.originalError.config.data.messages);
-					console.log("ERR", err.originalError.config.data.messages[0].originalContentUrl);
-					console.log("ERR", err.originalError.config.data.messages[0].type);
-					//if (err.originalError.config.data.messages[0].type == 'image') {
-					let A = {
-						type: 'text',
-						text: err.originalError.config.data.messages
-					}
+					if (HHH.type == 'image')
+						//if (err.originalError.config.data.messages[0].type == 'image') {
+						let A = {
+							type: 'text',
+							text: HHH.originalContentUrl
+						}
 					client.replyMessage(event.replyToken, A)
 					//	}
 

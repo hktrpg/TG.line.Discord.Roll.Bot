@@ -241,8 +241,8 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 					case message.type == 'image' && message.text != '':
 						return {
 							"type": "image",
-							"originalContentUrl": message.text,
-							"previewImageUrl": message.text
+							"originalContentUrl": message.text.replace('http://', 'https://'),
+							"previewImageUrl": message.text.replace('http://', 'https://')
 						};
 
 					case typeof message == 'string' || message instanceof String:
@@ -307,31 +307,31 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 }
 
 
-				/*
-					return {
-					type: 'text',
-					text: message
-				}
+/*
+	return {
+	type: 'text',
+	text: message
+}
 
 
-				console.log(Reply)
-				let messages = [{
-					"type": "text",
-					"text": "Hello, user001"
-				},
-				{
-					"type": "text",
-					"text": "May I help you?002"
-				}
-				]
-				client.replyMessage(event.replyToken, messages)
-				client.pushMessage(targetid, {
-					type: 'text',
-					text: 'hello, world003',
-				})
-				client.pushMessage(targetid, {
-					"type": "image",
-					"originalContentUrl": "https://developers.line.biz/assets/images/common/logo-black.png",
-					"previewImageUrl": "https://developers.line.biz/assets/images/common/logo-black.png"
-				})
-				*/
+console.log(Reply)
+let messages = [{
+	"type": "text",
+	"text": "Hello, user001"
+},
+{
+	"type": "text",
+	"text": "May I help you?002"
+}
+]
+client.replyMessage(event.replyToken, messages)
+client.pushMessage(targetid, {
+	type: 'text',
+	text: 'hello, world003',
+})
+client.pushMessage(targetid, {
+	"type": "image",
+	"originalContentUrl": "https://developers.line.biz/assets/images/common/logo-black.png",
+	"previewImageUrl": "https://developers.line.biz/assets/images/common/logo-black.png"
+})
+*/

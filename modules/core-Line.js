@@ -31,7 +31,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			previewImageUrl:
 				'http://abcletters.org/26alphabets/english-alphabet-letter-a.jpg'
 		}
-		event.reply(event.message.text).then(function (data) {
+		event.reply(HHH).then(function (data) {
 			console.log('Success', data);
 		}).catch(function (error) {
 			console.log('Error', error);

@@ -11,13 +11,12 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 	// create LINE SDK config from env variables
 	var bot = line({
-		channelId: process.env.CHANNEL_ID,
 		channelSecret: process.env.LINE_CHANNEL_SECRET,
 		channelAccessToken: process.env.LINE_CHANNEL_ACCESSTOKEN
 	});
 
 	// create LINE SDK client
-
+	
 	const app = express();
 
 	const linebotParser = bot.parser();

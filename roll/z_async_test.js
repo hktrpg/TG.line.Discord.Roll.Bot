@@ -20,7 +20,7 @@ gameType = function () {
 	return 'Wiki:hktrpg'
 }
 prefixs = function () {
-	return [/^[.]wiki$|^[.]tran$|^[.]tran[.]\S+$|^[.]image$/i, ]
+	return [/^[.]wiki$|^[.]tran$|^[.]tran[.]\S+$|^[.]image$|^[.]imagee$/i,]
 
 }
 
@@ -52,8 +52,8 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /[.]wiki/.test(mainMsg[0]):
 			rply.text = await wiki({
-					apiUrl: 'https://zh.wikipedia.org/w/api.php'
-				}).page(mainMsg[1].toLowerCase())
+				apiUrl: 'https://zh.wikipedia.org/w/api.php'
+			}).page(mainMsg[1].toLowerCase())
 				.then(page => page.summary()) //console.log('case: ', rply)
 				.catch(error => {
 					if (error == 'Error: No article found')
@@ -87,19 +87,34 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /^[.]image$/.test(mainMsg[0]):
 			rply.text = await image_search({
-					query: inputStr.replace(mainMsg[0], ""),
-					moderate: true,
-					iterations: 1,
-					retries: 1
-				})
+				query: inputStr.replace(mainMsg[0], ""),
+				moderate: true,
+				iterations: 1,
+				retries: 1
+			})
 				.then(results => {
 					//thumbnail
 					return results[Math.floor((Math.random() * (results.length)) + 0)].image;
 				}).catch(err => {
 					return null
 				})
+			rply.type = 'image'
 			return rply;
-			//	console.log(gis(mainMsg[1]))
+		case /\S+/.test(mainMsg[1]) && /^[.]imagee$/.test(mainMsg[0]):
+			rply.text = await image_search({
+				query: inputStr.replace(mainMsg[0], ""),
+				moderate: false,
+				iterations: 1,
+				retries: 1
+			})
+				.then(results => {
+					//thumbnail
+					return results[Math.floor((Math.random() * (results.length)) + 0)].image;
+				}).catch(err => {
+					return null
+				})
+			rply.type = 'image'
+			return rply;
 
 		default:
 			break;

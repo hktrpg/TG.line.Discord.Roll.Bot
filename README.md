@@ -1,4 +1,5 @@
-# RoboYabaso@HKTRPG </br> 
+# RoboYabaso@HKTRPG </br>
+
 【HKTRPG擲骰BOT】v1.20</br> 
 最後更新時間10/31/2019, 8:59:11 PM</br> 
 2019/07/21 香港克警合作 黑ICON紀念 </br> </br> 
@@ -15,7 +16,7 @@ http://t.me/hktrpg_bot</br>
 網頁版：</br>
 https://www.hktrpg.com/tool/rollbot.html</br></br>
 簡易版網上擲骰工具 — 兩面 六面 十面 二十面 百面 自定</br>
-https://www.hktrpg.com/tool/roll.html</br></br></br>
+https://roll.hktrpg.com/</br></br></br>
 
 
 關於RoboYabaso</br> 

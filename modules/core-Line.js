@@ -1,37 +1,8 @@
 'use strict';
 if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
-	//	var channelSecret = process.env.LINE_CHANNEL_SECRET;
-	// Load `*.js` under modules directory as properties
-	//  i.e., `User.js` will become `exports['User']` or `exports.User`
 	exports.analytics = require('../modules/analytics');
-	//var Linecountroll = 0;
-	//var Linecounttext = 0;
 	const line = require('@line/bot-sdk');
 	const express = require('express');
-
-	async function replymessage(message) {
-		return {
-			type: 'text',
-			text: message
-		}
-	};
-	//event.source.userId
-	//event.source.groupId
-	/*
-	client.pushMessage('<to>', message)
-		.then(() => {
-
-		})
-		.catch((err) => {
-			// error handling
-		});
-
-	*/
-	//const BootTime = new Date(new Date().toLocaleString("en-US", {
-	//	timeZone: "Asia/Shanghai"
-	//}));
-
-
 	// create LINE SDK config from env variables
 	const config = {
 		channelAccessToken: process.env.LINE_CHANNEL_ACCESSTOKEN,
@@ -69,10 +40,10 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		let TargetGM = require('../roll/z_DDR_darkRollingToGM').initialize()
 
 		client.getProfile(userid).then(async function (profile) {
-				//	在GP 而有加好友的話,得到名字
-				displayname = profile.displayName;
-				await AfterCheckName();
-			},
+			//	在GP 而有加好友的話,得到名字
+			displayname = profile.displayName;
+			await AfterCheckName();
+		},
 			async function () {
 				await AfterCheckName();
 				//如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
@@ -169,8 +140,8 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						if (roomorgroupid && userid && displaynamecheck)
 							if (displayname)
 								await SendToId(roomorgroupid, "@" + displayname + ' 暗骰給自己')
-						else
-							await SendToId(roomorgroupid, '正在暗骰給自己')
+							else
+								await SendToId(roomorgroupid, '正在暗骰給自己')
 						if (userid)
 							if (displayname && displaynamecheck)
 								await SendToId(userid, "@" + displayname + '的暗骰\n' + rplyVal.text);
@@ -219,16 +190,16 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						}
 						break;
 					default:
-						if (displaynamecheck && displayname) {
+						if (displaynamecheck && displayname && rplyVal && rplyVal.type != 'image') {
 							//285083923223
 							displayname = "@" + displayname + "\n";
 							rplyVal.text = displayname + rplyVal.text
 						}
-						//console.log(privatemsg)
+						//	console.log('rplyVal: ', rplyVal)
 						if (roomorgroupid)
-							await SendToId(roomorgroupid, rplyVal.text);
+							return await replyMessagebyReplyToken(roomorgroupid, rplyVal);
 						else if (userid)
-							await SendToId(userid, rplyVal.text);
+							return await replyMessagebyReplyToken(userid, rplyVal);
 						break;
 				}
 			} else {
@@ -237,15 +208,71 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				//	console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext);
 			}
 			//rplyVal.text
-			async function SendToId(targetid, ReplyText) {
-				for (var i = 0; i < ReplyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-					if (i == 0 || i == 1 || i == ReplyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == ReplyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
-						await client.pushMessage(targetid, await replymessage(ReplyText.toString().match(/[\s\S]{1,1900}/g)[i]))
-						.catch((err) => {
-							console.log(err)
-						});
-				}
+			async function SendToId(targetid, Reply) {
+				let temp = await HandleMessage(Reply)
+				//	console.log('SendToId: ', temp)
+				return await client.pushMessage(targetid, HandleMessage(Reply))
 			}
+			async function replyMessagebyReplyToken(targetid, Reply) {
+				let temp = await HandleMessage(Reply)
+				return await client.replyMessage(event.replyToken, temp).catch((err) => {
+					if (temp.type == 'image') {
+						let tempB = {
+							type: 'text',
+							text: temp.originalContentUrl
+						}
+						client.replyMessage(event.replyToken, tempB)
+						//	}
+					}
+				})
+			}
+			async function HandleMessage(message) {
+				let temp = [];
+				switch (true) {
+					case message.type == 'text' && message.text != '':
+						for (var i = 0; i < message.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
+							if (i == 0 || i == 1 || i == message.text.toString().match(/[\s\S]{1,1900}/g).length - 2 || i == message.text.toString().match(/[\s\S]{1,1900}/g).length - 1)
+								temp.push({
+									type: 'text',
+									text: message.text.toString().match(/[\s\S]{1,1900}/g)[i]
+								})
+						}
+						return temp;
+					case message.type == 'image' && message.text != '':
+						return {
+							"type": "image",
+							"originalContentUrl": message.text.replace('http://', 'https://'),
+							"previewImageUrl": message.text.replace('http://', 'https://')
+						};
+
+					case typeof message == 'string' || message instanceof String:
+						for (var i = 0; i < message.toString().match(/[\s\S]{1,1900}/g).length; i++) {
+							if (i == 0 || i == 1 || i == message.toString().match(/[\s\S]{1,1900}/g).length - 2 || i == message.toString().match(/[\s\S]{1,1900}/g).length - 1)
+								temp.push({
+									type: 'text',
+									text: message.toString().match(/[\s\S]{1,1900}/g)[i]
+								})
+						}
+						return temp;
+					case message.text != '':
+						for (var i = 0; i < message.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
+							if (i == 0 || i == 1 || i == message.text.toString().match(/[\s\S]{1,1900}/g).length - 2 || i == message.text.toString().match(/[\s\S]{1,1900}/g).length - 1)
+								temp.push({
+									type: 'text',
+									text: message.text.toString().match(/[\s\S]{1,1900}/g)[i]
+								})
+						}
+						return temp;
+					default:
+						break;
+				}
+			};
+			/**pushMessage
+			 * client.pushImage(USER_ID, {
+				  originalContentUrl: 'https://example.com/original.jpg',
+				  previewImageUrl: 'https://example.com/preview.jpg',
+			 });
+			 */
 			// create a echoing text message
 			//await exports.analytics.parseInput(event.message.text)
 
@@ -258,7 +285,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	/*	app.listen(port, () => {
 			console.log(`Line BOT listening on ${port}`);
 		});
-
+	
 		app.get('/aa', function (req, res) {
 			//	res.send(parseInput(req.query.input));
 			res.send('Hello');
@@ -278,3 +305,33 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	}
 
 }
+
+
+/*
+	return {
+	type: 'text',
+	text: message
+}
+
+
+console.log(Reply)
+let messages = [{
+	"type": "text",
+	"text": "Hello, user001"
+},
+{
+	"type": "text",
+	"text": "May I help you?002"
+}
+]
+client.replyMessage(event.replyToken, messages)
+client.pushMessage(targetid, {
+	type: 'text',
+	text: 'hello, world003',
+})
+client.pushMessage(targetid, {
+	"type": "image",
+	"originalContentUrl": "https://developers.line.biz/assets/images/common/logo-black.png",
+	"previewImageUrl": "https://developers.line.biz/assets/images/common/logo-black.png"
+})
+*/

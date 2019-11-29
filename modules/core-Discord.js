@@ -223,3 +223,12 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 
 	}
 }
+/**
+ * 
+ * bot.on('message'
+ 	message => {
+ 		message.channel.send("My Bot's message", {
+ 			files: ["https://i.imgur.com/XxxXxXX.jpg"]
+ 		});
+ 	});
+ */

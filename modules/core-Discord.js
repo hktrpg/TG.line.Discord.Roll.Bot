@@ -215,7 +215,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 		});
 		//Set Activity 可以自定義正在玩什麼  
 		client.on('ready', () => {
-			client.user.setGame('/help | hktrpg.com')
+			client.user.setGame('bothelp | hktrpg.com')
 		})
 	} catch (e) {
 		console.log('catch error');

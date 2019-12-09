@@ -42,6 +42,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		client.getProfile(userid).then(async function (profile) {
 			//	在GP 而有加好友的話,得到名字
 			displayname = profile.displayName;
+			console.log(displayname)
 			await AfterCheckName();
 		},
 			async function () {

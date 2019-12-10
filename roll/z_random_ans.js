@@ -168,7 +168,7 @@ try {
                                 rply.text += '自定義關鍵字列表:'
                                 for (var a = 0; a < rply.randomAnsfunction[i].randomAnsfunction.length; a++) {
                                     temp = 1
-                                    rply.text += ("\n") + a + '. ' + rply.randomAnsfunction[i].randomAnsfunction[a] + ("\n")
+                                    rply.text += ("\n") + a + '. ' + rply.randomAnsfunction[i].randomAnsfunction[a][0]
                                 }
                             }
                         }

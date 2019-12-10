@@ -621,8 +621,8 @@ try {
             var array = [];
             let answer = ""
             let tempTitleAll = who.Title;
-            console.log('tempTitleAll ', tempTitleAll)
-            console.log('who ', who)
+            //console.log('tempTitleAll ', tempTitleAll)
+            //console.log('who ', who)
             for (var key in who.trpgLevelSystemfunction) {
                 array.push(who.trpgLevelSystemfunction[key]);
             }

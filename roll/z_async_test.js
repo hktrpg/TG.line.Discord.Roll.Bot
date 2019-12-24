@@ -20,7 +20,7 @@ gameType = function () {
 	return 'Wiki:hktrpg'
 }
 prefixs = function () {
-	return [/^[.]wiki$|^[.]tran$|^[.]tran[.]\S+$|^[.]image$|^[.]imagee$/i,]
+	return [/^[.]wiki$|^[.]tran$|^[.]tran[.]\S+$|^[.]image$|^[.]imagee$/i, ]
 
 }
 
@@ -30,6 +30,7 @@ getHelpMessage = function () {
 		\n EG: .wiki BATMAN  \
 		\n 2) 圖片搜尋功能: .Image (內容)  \
 		\n 從Duckduckgo 得到相關隨機圖片Link\
+		\n 隨機YES NO: 如.image yesno 會得到yes 或NO 結果\
 		\n 3) 即時翻譯功能: .Tran (內容)  \
 		\n 預設翻譯成正體中文\
 		\n EG: .tran BATMAN  \
@@ -52,8 +53,8 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /[.]wiki/.test(mainMsg[0]):
 			rply.text = await wiki({
-				apiUrl: 'https://zh.wikipedia.org/w/api.php'
-			}).page(mainMsg[1].toLowerCase())
+					apiUrl: 'https://zh.wikipedia.org/w/api.php'
+				}).page(mainMsg[1].toLowerCase())
 				.then(page => page.summary()) //console.log('case: ', rply)
 				.catch(error => {
 					if (error == 'Error: No article found')
@@ -86,12 +87,18 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 			});
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /^[.]image$/.test(mainMsg[0]):
+			if (mainMsg[1].match(/^yesno$/i)) {
+				//隨機YES NO
+				let A = ['yes', 'no']
+				inputStr = A[Math.floor((Math.random() * (A.length)))] + " GIF";
+				console.log(inputStr)
+			}
 			rply.text = await image_search({
-				query: inputStr.replace(mainMsg[0], ""),
-				moderate: true,
-				iterations: 1,
-				retries: 1
-			})
+					query: inputStr.replace(mainMsg[0], ""),
+					moderate: true,
+					iterations: 1,
+					retries: 1
+				})
 				.then(results => {
 					//thumbnail
 					return results[Math.floor((Math.random() * (results.length)) + 0)].image;
@@ -101,12 +108,13 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 			rply.type = 'image'
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /^[.]imagee$/.test(mainMsg[0]):
+			//成人版
 			rply.text = await image_search({
-				query: inputStr.replace(mainMsg[0], ""),
-				moderate: false,
-				iterations: 1,
-				retries: 1
-			})
+					query: inputStr.replace(mainMsg[0], ""),
+					moderate: false,
+					iterations: 1,
+					retries: 1
+				})
 				.then(results => {
 					//thumbnail
 					return results[Math.floor((Math.random() * (results.length)) + 0)].image;

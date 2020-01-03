@@ -38,7 +38,19 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
             return rply;
-        case /^\d+$/i.test(mainMsg[0]):
+        case /^[|5|4]d+((\d+)|)$/i.test(mainMsg[1]):
+            let f = 1
+            let g = 2
+            let h = 1
+            if ([f, g, h].every(function (v, i, a) {
+                    return (
+                        v === a[0] &&
+                        v !== null
+                    );
+                })) {
+                // Do something
+                console.log('a')
+            }
             rply.text = 'Demo' + mainMsg[1]
             return rply;
         case /^(?![\s\S])/.test(mainMsg[0] || ''):

@@ -57,6 +57,12 @@ function compareAllValues(RollResult) {
     for (var i = 0; i < temp.length; i++) {
         for (var j = 0; j < i; j++) {
             if (temp[j] == temp[i]) {
+                //找到一樣->report  剩下最大兩粒
+                //如果5D 不會出現大失敗,  但211 會得到11
+                //4D ->21 大失敗
+                if (temp.length == 5) {
+
+                }
                 return false
             }
         }

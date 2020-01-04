@@ -49,13 +49,14 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
     }
 }
 
-function compareAllValues(a) {
-    for (var i = 0; i < a.length; i++) {
-        if (a[i] === null) {
-            return false
-        }
+function compareAllValues(RollResult) {
+    let temp = RollResult
+    temp.sort(function (a, b) {
+        return a - b
+    });
+    for (var i = 0; i < temp.length; i++) {
         for (var j = 0; j < i; j++) {
-            if (a[j] !== a[i]) {
+            if (temp[j] == temp[i]) {
                 return false
             }
         }

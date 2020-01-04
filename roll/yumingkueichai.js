@@ -16,7 +16,7 @@ prefixs = function () {
     //mainMSG[0]的prefixs,mainMSG[1]的prefixs  ]  <---這裡是一對
     //如前面是 /^1$/ig, 後面是/^1D100$/ig, 即 prefixs 變成 1 1D100 
     ///^(?=.*he)(?!.*da).*$/ig
-    return [/^.KC$/i, /^[|5|4]d+((\d+)|)$/i]
+    return [/^.KC$/i, /^(|4|5)d+((\d+)|)$/i]
 }
 getHelpMessage = function () {
     return "【貓貓鬼差】" + "\
@@ -38,19 +38,7 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
             return rply;
-        case /^[|5|4]d+((\d+)|)$/i.test(mainMsg[1]):
-            let f = 1
-            let g = 2
-            let h = 1
-            if ([f, g, h].every(function (v, i, a) {
-                    return (
-                        v === a[0] &&
-                        v !== null
-                    );
-                })) {
-                // Do something
-                console.log('a')
-            }
+        case /^(|4|5)d+((\d+)|)$/i.test(mainMsg[1]):
             rply.text = 'Demo' + mainMsg[1]
             return rply;
         case /^(?![\s\S])/.test(mainMsg[0] || ''):
@@ -61,6 +49,20 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
     }
 }
 
+function compareAllValues(a) {
+    for (var i = 0; i < a.length; i++) {
+        if (a[i] === null) {
+            return false
+        }
+        for (var j = 0; j < i; j++) {
+            if (a[j] !== a[i]) {
+                return false
+            }
+        }
+    }
+
+    return true;
+}
 
 module.exports = {
     rollDiceCommand: rollDiceCommand,

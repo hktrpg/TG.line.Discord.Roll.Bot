@@ -50,17 +50,27 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 }
 
 function compareAllValues(RollResult) {
-    let temp = RollResult
+    let temp = [1, 3, 5, 3, 3]
+    let result = ""
     temp.sort(function (a, b) {
         return a - b
     });
+    console.log(temp)
     for (var i = 0; i < temp.length; i++) {
         for (var j = 0; j < i; j++) {
             if (temp[j] == temp[i]) {
                 //找到一樣->report  剩下最大兩粒
                 //如果5D 不會出現大失敗,  但211 會得到11
                 //4D ->21 大失敗
+                //成功 →
+                //失敗 →
+                // [1, 3, 5, 3, 3] \n→ 達成值 [5,1] → 6
+                // [2, 3, 4, 5, 3] \n→ 
+                //
                 if (temp.length == 5) {
+                    if (temp[3] == 2 && temp[3] == 1) {
+                        result = "成功 -> "
+                    }
 
                 }
                 return false

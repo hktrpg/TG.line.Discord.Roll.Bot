@@ -40,7 +40,7 @@ getHelpMessage = function () {
 \n2019/07/21 香港克警合作 黑ICON紀念\
 	\n  \
 	\n 暗骰功能 在指令前輸入dr 結果會私訊你\
-	\n ddr dddr 可以私訊已設定GM, 詳情可打.drgm查詢\
+	\n ddr dddr 可以私訊已設定的群組GM, 詳情可打.drgm查詢\
 \n【基本擲骰】1d100\
 \n 例如輸入2d6+1　攻撃！\
 \n 會輸出）2d6+1：攻撃  9[6+3]+1 = 10\
@@ -51,13 +51,13 @@ getHelpMessage = function () {
 \n TRPG百科 https://www.hktrpg.com/\
 \n 意見留言版 https://www.hktrpg.com/board/\
 \n  \
-\n Line版 https://line.me/R/ti/p/svMLqy9Mik\
-\n Discord版 https://discordapp.com/oauth2/authorize?&client_id=544462904037081138&scope=bot&permissions=8\
+\n Line版 http://bit.ly/HKTRPG_LINE\
+\n Discord版 http://bit.ly/HKTRPG_DISCORD\
 \n Telegram版 http://t.me/hktrpg_bot\
-\n 網頁版 https://www.hktrpg.com/tool/rollbot.html\
+\n 網頁版 http://bit.ly/HKTRPG_HTML\
 \n 簡易網上擲骰 https://roll.hktrpg.com/\
 \n \
-\n 源代碼 https://github.com/hktrpg/TG.line.Discord.Roll.Bot\
+\n 源代碼 http://bit.ly/HKTRPG_GITHUB\
 		\n "
 }
 initialize = function () {

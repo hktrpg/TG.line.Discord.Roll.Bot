@@ -50,6 +50,14 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 }
 
 function compareAllValues(RollResult) {
+    //找到一樣->report  剩下最大兩粒
+    //如果5D 不會出現大失敗,  但211 會得到11
+    //目標值 ≧ 12：
+    //[1, 3, 5, 3, 3] → 達成值 6 [5,1] → 成功
+    //[1, 3, 5, 3, 3] → 達成值 6 [5,1] → 失敗
+    //[1, 3, 5, 3, 3] → 達成值 3 [1,2] → 戲劇性失敗
+    //[1, 3, 5, 3, 3] → 達成值 [5,1] → 6
+    //
     let temp = [1, 3, 5, 3, 3]
     let result = ""
     temp.sort(function (a, b) {
@@ -59,24 +67,14 @@ function compareAllValues(RollResult) {
     for (var i = 0; i < temp.length; i++) {
         for (var j = 0; j < i; j++) {
             if (temp[j] == temp[i]) {
-                //找到一樣->report  剩下最大兩粒
-                //如果5D 不會出現大失敗,  但211 會得到11
-                //4D ->21 大失敗
-                //目標值 ≧ 12：
-                //[1, 3, 5, 3, 3] → 達成值 [5,1]→ 通常成功
-                //[1, 3, 5, 3, 3] → 達成值 [5,1] → 6
-                //失敗 →
-                //戲劇性失敗 →
-                // [1, 3, 5, 3, 3] \n→ 達成值 [5,1] → 6
-                // [2, 3, 4, 5, 3] \n→ 
-                //
+
                 if (temp.length == 5) {
                     if (temp[3] == 2 && temp[3] == 1) {
                         result = "成功 -> "
                     }
 
-                }
-                return false
+                } else
+                    return false
             }
         }
     }

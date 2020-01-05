@@ -6,7 +6,7 @@ var rply = {
 };
 
 gameName = function () {
-    return '貓貓鬼差'
+    return '貓貓鬼差 .kc xDy z'
 }
 
 gameType = function () {
@@ -17,11 +17,11 @@ prefixs = function () {
     //mainMSG[0]的prefixs,mainMSG[1]的prefixs  ]  <---這裡是一對
     //如前面是 /^1$/ig, 後面是/^1D100$/ig, 即 prefixs 變成 1 1D100 
     ///^(?=.*he)(?!.*da).*$/ig
-    return [/^.KC$/i, /^(|4|5)d+((\d+)|)$/i]
+    return [/^.KC$/i, /^(|4|5)d+((\d+)|)$/i, /^.KC$/i, ]
 }
 getHelpMessage = function () {
     return "【貓貓鬼差】" + "\
-	\n .kr xDy z \
+	\n .kc xDy z \
     \n x 投擲多少粒六面骰 留空為4, 只可輸入4,5或留空 \
     \n y 修正值 1-20\
         \n z 目標值 1-20\
@@ -42,22 +42,21 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
         case /^(|4|5)d+((\d+)|)$/i.test(mainMsg[1]):
             rply.text = compareAllValues(mainMsg[1], "" || mainMsg[2])
             return rply;
-        case /^(?![\s\S])/.test(mainMsg[0] || ''):
-            rply.text = 'Demo'
-            return rply;
         default:
             break;
     }
 }
 
 function compareAllValues(triggermsg, msg) {
-    let result = ""
+    var result = ""
     let rollresult = []
     var match = /^(|4|5)(d)(\d+|)$/i.exec(triggermsg);
     //判斷式  [0]4d3,[1]4,[2]d,[3]3  
-    let x = 4 || match[1];
-    let y = 0 || match[3]
-    let z = 0 || msg
+    let x = match[1] || 4;
+    let y = match[3] || 0
+    let z = msg || 0
+    if (y > 20) y = 20
+    if (z > 20) z = 20
     if (z >= 1) {
         result = "目標值 ≧ " + z + " ：\n"
     }
@@ -67,7 +66,6 @@ function compareAllValues(triggermsg, msg) {
     result += "[ " + rollresult + " ] → "
     //console.log(match);
     //找到一樣->report  剩下最大兩粒
-    //如果5D 不會出現大失敗,  但211 會得到11
     //目標值 ≧ 12：
     //[1, 3, 5, 3, 3] → 達成值 6 [5,1] → 成功
     //[1, 3, 5, 3, 3] → 達成值 6 [5,1] → 失敗
@@ -80,21 +78,60 @@ function compareAllValues(triggermsg, msg) {
     temp.sort(function (a, b) {
         return a - b
     });
+
+    let first = true;
     for (var i = 0; i < temp.length; i++) {
         for (var j = 0; j < i; j++) {
-            if (temp[j] == temp[i]) {
-                if (temp.length == 5) {
-                    if (temp[3] == 2 && temp[3] == 1) {
-                        result = "成功 -> "
+            //如果有對子, 輸出達成值
+            if (temp[j] == temp[i] && first == true) {
+                first = false
+                result += "達成值 "
+                let tempresult = 0;
+                let tempa = 0;
+                let tempb = 0;
+                let sum = 0;
+                for (let a = temp.length; a >= 0; a--) {
+                    if ((a != i && a != j && sum < 2) && temp[a] > 0) {
+                        sum++
+                        tempresult += temp[a]
+                        if (sum == 1) {
+                            tempa = temp[a]
+                        }
+                        if (sum == 2) {
+                            tempb = temp[a]
+                        }
                     }
-
-                } else
-                    return false
+                }
+                //如果5D 11112 會變成大失敗, 修正變成 達成值11
+                if (x == 5 && tempa == 2 && tempb == 1 && temp[0] == 1 && temp[1] == 1 && temp[2] == 1 && temp[3] == 1 && temp[4] == 2) {
+                    tempa = 1;
+                    tempb = 1
+                    tempresult = 2
+                }
+                if (y > 0) {
+                    tempresult = Number(tempresult) + Number(y)
+                }
+                result += tempresult + " [" + tempa + "," + tempb + "]"
+                if (y > 0) result += " +" + y
+                if (tempa == 2 && tempb == 1) {
+                    result += " → 戲劇性失敗"
+                } else if (z >= 1) {
+                    result += " → "
+                    if (z > tempresult)
+                        result += "失敗"
+                    if (z <= tempresult)
+                        result += "成功"
+                }
             }
         }
     }
-
-    return true;
+    if (first == true) {
+        result += "失敗"
+    }
+    if (isNaN(z)) {
+        result += "；" + z
+    }
+    return result;
 }
 
 module.exports = {

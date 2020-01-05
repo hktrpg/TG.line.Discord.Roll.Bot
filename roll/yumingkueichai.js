@@ -1,3 +1,4 @@
+var rollbase = require('./rollbase.js');
 var rply = {
     default: 'on',
     type: 'text',
@@ -39,7 +40,7 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
             rply.text = this.getHelpMessage();
             return rply;
         case /^(|4|5)d+((\d+)|)$/i.test(mainMsg[1]):
-            rply.text = 'Demo' + mainMsg[1]
+            rply.text = compareAllValues(mainMsg[1], "" || mainMsg[2])
             return rply;
         case /^(?![\s\S])/.test(mainMsg[0] || ''):
             rply.text = 'Demo'
@@ -49,25 +50,39 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
     }
 }
 
-function compareAllValues(RollResult) {
+function compareAllValues(triggermsg, msg) {
+    let result = ""
+    let rollresult = []
+    var match = /^(|4|5)(d)(\d+|)$/i.exec(triggermsg);
+    //判斷式  [0]4d3,[1]4,[2]d,[3]3  
+    let x = 4 || match[1];
+    let y = 0 || match[3]
+    let z = 0 || msg
+    if (z >= 1) {
+        result = "目標值 ≧ " + z + " ：\n"
+    }
+    for (let i = 0; i < x; i++) {
+        rollresult[i] = rollbase.Dice(6)
+    }
+    result += "[ " + rollresult + " ] → "
+    //console.log(match);
     //找到一樣->report  剩下最大兩粒
     //如果5D 不會出現大失敗,  但211 會得到11
     //目標值 ≧ 12：
     //[1, 3, 5, 3, 3] → 達成值 6 [5,1] → 成功
     //[1, 3, 5, 3, 3] → 達成值 6 [5,1] → 失敗
+    //============================
+    //[1, 3, 5, 3, 3] → 失敗
     //[1, 3, 5, 3, 3] → 達成值 3 [1,2] → 戲劇性失敗
-    //[1, 3, 5, 3, 3] → 達成值 [5,1] → 6
+    //[1, 3, 5, 3, 3] → 達成值 6 [5,1]  
     //
-    let temp = [1, 3, 5, 3, 3]
-    let result = ""
+    let temp = rollresult
     temp.sort(function (a, b) {
         return a - b
     });
-    console.log(temp)
     for (var i = 0; i < temp.length; i++) {
         for (var j = 0; j < i; j++) {
             if (temp[j] == temp[i]) {
-
                 if (temp.length == 5) {
                     if (temp[3] == 2 && temp[3] == 1) {
                         result = "成功 -> "

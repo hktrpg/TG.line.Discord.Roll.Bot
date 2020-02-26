@@ -11,7 +11,9 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 		//var TGcountroll = 0;
 		//var TGcounttext = 0;
 		const telegrafGetChatMembers = require('telegraf-getchatmembers')
-
+		TGclient.catch((err) => {
+			console.log('bot error: ', err);
+		});
 		//TGclient.use(telegrafGetChatMembers)
 		TGclient.on('audio', async (ctx) => {
 			if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {

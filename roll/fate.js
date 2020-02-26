@@ -40,7 +40,7 @@ rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botnam
             var match = /^[.]4df(\d+|(m|-)(\d+)|)$/i.exec(mainMsg[0])
             //.4dfm23,m23,m,23
             //＋∎－
-            console.log(match)
+            //console.log(match)
             var i, random, temp = '';
             var ans = 0
 

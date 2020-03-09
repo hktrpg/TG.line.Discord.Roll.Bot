@@ -18,7 +18,7 @@ try {
         return 'trpgLevelSystem:hktrpg'
     }
     prefixs = function () {
-        return [/(^[.]level$)/ig,]
+        return [/(^[.]level$)/ig, ]
     }
     getHelpMessage = function () {
         return "【經驗值功能】" + "\
@@ -128,7 +128,7 @@ try {
                 if (botname == "Line")
                     rply.text += "\n因為Line的機制, 如擲骰時並無顯示用家名字, 請到下列網址,和機器人任意說一句話,成為好友. \n https://line.me/R/ti/p/svMLqy9Mik"
                 return rply;
-            // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
+                // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
 
             case /(^[.]level$)/i.test(mainMsg[0]) && /^TitleWord$/i.test(mainMsg[1]):
                 //
@@ -143,23 +143,27 @@ try {
                                 if (mainMsg[2].match(/^del$/ig)) {
                                     rply.trpgLevelSystemfunction[i].Title = []
                                     rply.text = "刪除稱號成功."
-                                    let temp = { groupid: groupid, Title: [] }
-                                    records.settrpgLevelSystemfunctionTitleWord('trpgLevelSystem', temp, () => {
-                                    })
-                                } else
-                                    if (rply.trpgLevelSystemfunction[i].Title) {
-                                        temprply = setNew(inputStr, i);
-                                        if (temprply && temprply.length > 0) {
-                                            rply.text = '新增稱號成功: \n'
-                                            for (let te = 0; te < temprply.length; te++) {
-                                                rply.text += temprply[te][1] + '等級: ' + temprply[te][2] + '\n'
-                                            }
-                                            let temp = { groupid: groupid, Title: rply.trpgLevelSystemfunction[i].Title }
-                                            records.settrpgLevelSystemfunctionTitleWord('trpgLevelSystem', temp, () => {
-                                            })
-                                        }
-
+                                    let temp = {
+                                        groupid: groupid,
+                                        Title: []
                                     }
+                                    records.settrpgLevelSystemfunctionTitleWord('trpgLevelSystem', temp, () => {})
+                                } else
+                                if (rply.trpgLevelSystemfunction[i].Title) {
+                                    temprply = setNew(inputStr, i);
+                                    if (temprply && temprply.length > 0) {
+                                        rply.text = '新增稱號成功: \n'
+                                        for (let te = 0; te < temprply.length; te++) {
+                                            rply.text += temprply[te][1] + '等級: ' + temprply[te][2] + '\n'
+                                        }
+                                        let temp = {
+                                            groupid: groupid,
+                                            Title: rply.trpgLevelSystemfunction[i].Title
+                                        }
+                                        records.settrpgLevelSystemfunctionTitleWord('trpgLevelSystem', temp, () => {})
+                                    }
+
+                                }
 
                             }
                         }
@@ -268,11 +272,11 @@ try {
                     }
                 }
                 return rply;
-            //
-            //
-            //查詢語
-            //
-            //
+                //
+                //
+                //查詢語
+                //
+                //
             case /(^[.]level$)/i.test(mainMsg[0]) && /^RankWord$/i.test(mainMsg[1]):
                 //console.log('mainMsg: ', mainMsg)
                 //增加資料庫
@@ -342,11 +346,11 @@ try {
                 }
                 return rply;
 
-            //
-            //
-            //設定
-            //
-            //
+                //
+                //
+                //設定
+                //
+                //
             case /(^[.]level$)/i.test(mainMsg[0]) && /^config$/i.test(mainMsg[1]):
                 //console.log('mainMsg: ', mainMsg)
                 //增加資料庫
@@ -574,7 +578,9 @@ try {
             case /(^[.]level$)/i.test(mainMsg[0]) && /^showMeTheWorld$/i.test(mainMsg[1]):
                 //顯示全世界頭六名排名
                 if (rply.trpgLevelSystemfunction) {
-                    let tempPush = { trpgLevelSystemfunction: [] };
+                    let tempPush = {
+                        trpgLevelSystemfunction: []
+                    };
                     let RankNumber = 6
                     if (mainMsg[2]) {
                         if (mainMsg[2] > 6 && mainMsg[2] < 21)
@@ -643,27 +649,44 @@ try {
                     if (b == 0) {
                         answer += Title + "\n┌"
                     } else
-                        if (b < RankNumber - 1 && b < array.length - 1) {
-                            answer += "├"
-                        } else
-                            if (b == RankNumber - 1 || b == array.length - 1) {
-                                answer += "└"
-                            }
+                    if (b < RankNumber - 1 && b < array.length - 1) {
+                        answer += "├"
+                    } else
+                    if (b == RankNumber - 1 || b == array.length - 1) {
+                        answer += "└"
+                    }
                     answer += "第" + (Number([b]) + 1) + "名 "
                     answer += "《" + checkTitle(array[b].Level, tempTitleAll) + "》 "
-                    answer += array[b].name + " " + array[b].Level + "級 " + kMGTPE(array[b].EXP, 2) + "經驗\n";
+                    answer += array[b].name + " " + array[b].Level + "級 " + kMGTPE(parseInt(array[b].EXP), 0) + "經驗\n";
                 }
             }
             return answer;
 
         }
-        //將千位以上變成約數
-        function kMGTPE(n, d) {
-            x = ('' + n).length, p = math.pow, d = p(10, d)
-            x -= x % 3
-            return math.round(n * d / p(10, x)) / d + " kMGTPE" [x / 3]
-        }
 
+        //將千位以上變成約數
+        function kMGTPE(num, fixed) {
+            if (num === null) {
+                return null;
+            } // terminate early
+            if (num === 0) {
+                return '0';
+            } // terminate early
+            fixed = (!fixed || fixed < 0) ? 0 : fixed; // number of decimal places to show
+            var b = (num).toPrecision(2).split("e"), // get power
+                k = b.length === 1 ? 0 : Math.floor(Math.min(b[1].slice(1), 14) / 3), // floor at decimals, ceiling at trillions
+                c = k < 1 ? num.toFixed(0 + fixed) : (num / Math.pow(10, k * 3)).toFixed(1 + fixed), // divide by power
+                d = c < 0 ? c : Math.abs(c), // enforce -0 is 0
+                e = d + ['', 'K', 'M', 'B', 'T'][k]; // append power
+            return e;
+        }
+        /*
+                function kMGTPE(n, d) {
+                    x = ('' + n).length, p = math.pow, d = p(10, d)
+                    x -= x % 3
+                    return math.round(n * d / p(10, x)) / d + " kMGTPE" [x / 3]
+                }
+        */
         function ranking(who, data) {
             var array = [];
             let answer = ""

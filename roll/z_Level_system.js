@@ -40,6 +40,7 @@ try {
         \n 輸入.level RankWord/LevelUpWord/TitleWord show 即顯示現在設定\
         \n 輸入.level show 可以查詢你現在的等級\
         \n 輸入.level showMe (數字) 可以查詢這群組排名 預設頭5名\
+        \n 輸入.level showMeTheworld (數字) 可以查詢這群組排名 預設頭6名\
         \n 修改內容可使用不同代碼\
         \n {user.name} 名字 {user.level} 等級 \
         \n {user.title} 稱號 \

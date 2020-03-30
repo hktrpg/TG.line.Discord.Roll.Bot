@@ -31,7 +31,7 @@ getHelpMessage = function () {
 		\n 1) Wiki功能: .wiki (條目)  \
 		\n EG: .wiki BATMAN  \
 		\n 2) 圖片搜尋功能: .Image (內容)  \
-		\n 從Duckduckgo 得到相關隨機圖片Link\
+		\n 從Google 得到相關隨機圖片Link\
 		\n 隨機YES NO: 如.image yesno 會得到yes 或NO 結果\
 		\n 3) 即時翻譯功能: .Tran (內容)  \
 		\n 預設翻譯成正體中文\
@@ -113,7 +113,7 @@ async function now(a, b, c) {
 
 async function googleimage(inputStr, mainMsg, safe) {
 	let keyword = inputStr.replace(mainMsg[0] + " ", "")
-	let page = Math.floor((Math.random() * (5)) + 1);
+	let page = Math.floor((Math.random() * (10)) + 1)*10;
 	if (mainMsg[1].match(/^yesno$/i)) {
 		//隨機YES NO
 		let A = ['yes', 'no']

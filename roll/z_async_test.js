@@ -114,7 +114,7 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 					"page": Math.floor((Math.random() * (10)) + 1)
 				})
 				.then(async images => {
-					//console.log(images)
+					console.log(images)
 					if (images[0])
 						return images[Math.floor((Math.random() * (images.length)) + 0)].url;
 					else
@@ -122,7 +122,7 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 								"safe": "high"
 							})
 							.then(async images => {
-								//console.log(images)
+								console.log(images)
 								if (images[0])
 									return images[Math.floor((Math.random() * (images.length)) + 0)].url;
 							})
@@ -148,13 +148,13 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /^[.]imagee$/.test(mainMsg[0]):
 			//成人版
-			let keyword = inputStr.replace(mainMsg[0] + " ", "")
+			let keyword2 = inputStr.replace(mainMsg[0] + " ", "")
 			if (mainMsg[1].match(/^yesno$/i)) {
 				//隨機YES NO
 				let A = ['yes', 'no']
 				inputStr = A[Math.floor((Math.random() * (A.length)))] + " GIF";
 			}
-			rply.text = await client.search(keyword, {
+			rply.text = await client.search(keyword2, {
 					"safe": "off",
 					"page": Math.floor((Math.random() * (10)) + 1)
 				})
@@ -163,7 +163,7 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 					if (images[0])
 						return images[Math.floor((Math.random() * (images.length)) + 0)].url;
 					else
-						return await client.search(keyword, {
+						return await client.search(keyword2, {
 								"safe": "off"
 							})
 							.then(async images => {

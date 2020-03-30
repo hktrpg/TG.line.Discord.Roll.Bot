@@ -5,6 +5,7 @@ var rply = {
 }; //type是必需的,但可以更改
 //heroku labs:enable runtime-dyno-metadata -a <app name>
 const GoogleImages = require('google-images');
+const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 const client = new GoogleImages(process.env.CSE_ID, process.env.CSE_API_KEY);
 const wiki = require('wikijs').default;
 const timer = require('timer');
@@ -88,129 +89,84 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 			});
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /^[.]image$/.test(mainMsg[0]):
-			let keyword = inputStr.replace(mainMsg[0] + " ", "")
-			//console.log(keyword)
-			if (mainMsg[1].match(/^yesno$/i)) {
-				//隨機YES NO
-				let A = ['yes', 'no']
-				inputStr = A[Math.floor((Math.random() * (A.length)))] + " GIF";
-			}
-			rply.text = await client.search(keyword, {
-					"safe": "high",
-					"page": Math.floor((Math.random() * (10)) + 1)
-				})
-				.then(async images => {
-					console.log(images)
-					if (images[0]) {
-						let resultnum = Math.floor((Math.random() * (images.length)) + 0)
-						console.log('resultnum: ', resultnum)
-						for (let i = 0; i < images.length; i++) {
-							console.log('i: ', i)
-							if (images[resultnum].url.match(/\.(jpeg|jpg|gif|png)$/) != null) {
-								i = images.length
-								return images[resultnum].url;
-							} else {
-								resultnum++
-								console.log('resultnum: ', resultnum, ' images.length: ', images.length)
-								if (resultnum = images.length)
-									resultnum = 0
-							}
-						}
-
-					} else
-						return await client.search(keyword, {
-								"safe": "high"
-							})
-							.then(async images => {
-								console.log(images)
-								if (images[0]) {
-									let resultnum = Math.floor((Math.random() * (images.length)) + 0)
-									console.log('resultnum', resultnum)
-									for (let i = 0; i < images.length; i++) {
-										if (images[resultnum].url.match(/\.(jpeg|jpg|gif|png)$/) != null) {
-											i = images.length + 1
-											return images[resultnum].url;
-										} else {
-											resultnum++
-											console.log('resultnum: ', resultnum, ' images.length: ', images.length)
-											if (resultnum > images.length)
-												resultnum = 0
-										}
-									}
-								}
-							})
-					/*
-					[{
-						"url": "http://steveangello.com/boss.jpg",
-						"type": "image/jpeg",
-						"width": 1024,
-						"height": 768,
-						"size": 102451,
-						"thumbnail": {
-							"url": "http://steveangello.com/thumbnail.jpg",
-							"width": 512,
-							"height": 512
-						}
-					}]
-					 */
-				}).catch(err => {
-					console.log(err)
-				})
-
+			rply.text = await googleimage(inputStr, mainMsg, "high")
 			rply.type = 'image'
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /^[.]imagee$/.test(mainMsg[0]):
 			//成人版
-			let keyword2 = inputStr.replace(mainMsg[0] + " ", "")
-			if (mainMsg[1].match(/^yesno$/i)) {
-				//隨機YES NO
-				let A = ['yes', 'no']
-				inputStr = A[Math.floor((Math.random() * (A.length)))] + " GIF";
-			}
-			rply.text = await client.search(keyword2, {
-					"safe": "off",
-					"page": Math.floor((Math.random() * (10)) + 1)
-				})
-				.then(async images => {
-					//console.log(images)
-					if (images[0])
-						return images[Math.floor((Math.random() * (images.length)) + 0)].url;
-					else
-						return await client.search(keyword2, {
-								"safe": "off"
-							})
-							.then(async images => {
-								//console.log(images)
-								if (images[0])
-									return images[Math.floor((Math.random() * (images.length)) + 0)].url;
-							})
-					/*
-					[{
-						"url": "http://steveangello.com/boss.jpg",
-						"type": "image/jpeg",
-						"width": 1024,
-						"height": 768,
-						"size": 102451,
-						"thumbnail": {
-							"url": "http://steveangello.com/thumbnail.jpg",
-							"width": 512,
-							"height": 512
-						}
-					}]
-					 */
-				}).catch(err => {
-					console.log(err)
-				})
-
+			rply.text = await googleimage(inputStr, mainMsg, "off")
 			rply.type = 'image'
 			return rply;
+
 
 		default:
 			break;
 	}
 }
 
+async function now(a, b, c) {
+	let now = a + b
+	if (now >= c)
+		now = now - c
+	return now
+}
 
+async function googleimage(inputStr, mainMsg, safe) {
+	let keyword = inputStr.replace(mainMsg[0] + " ", "")
+	let page = Math.floor((Math.random() * (5)) + 1);
+	if (mainMsg[1].match(/^yesno$/i)) {
+		//隨機YES NO
+		let A = ['yes', 'no']
+		keyword = A[Math.floor((Math.random() * (A.length)))] + " GIF";
+	}
+	return await client.search(keyword, {
+			"safe": safe,
+			"page": page
+		})
+		.then(async images => {
+			if (images[0]) {
+				let resultnum = Math.floor((Math.random() * (images.length)) + 0)
+				for (let i = 0; i < images.length; i++) {
+					let nows = await now(resultnum, i, images.length)
+					if (await imageExists(images[nows].url) && images[nows].url != 'https://c8.alamy.com/comp/HKTRPG/los-angeles-usa-29th-jan-2017-danielle-brooks-seen-arriving-at-the-HKTRPG.jpg') {
+						i = images.length
+						return images[nows].url;
+					}
+				}
+			} else
+				return client.search(keyword, {
+						"safe": "high"
+					})
+					.then(async images => {
+						{
+							let resultnum = Math.floor((Math.random() * (images.length)) + 0)
+							for (let i = 0; i < images.length; i++) {
+								if (images[resultnum].url.match(/\.(jpeg|jpg|gif|png)$/) != null) {
+									i = images.length
+									return images[resultnum].url;
+								} else {
+									resultnum++
+									if (resultnum = images.length)
+										resultnum = 0
+								}
+							}
+
+						}
+					})
+		}).catch(err => {
+			console.log(err)
+		})
+}
+
+async function imageExists(image_url) {
+
+	var http = new XMLHttpRequest();
+
+	http.open('HEAD', image_url, false);
+	http.send();
+	return http.status != 404;
+
+}
 module.exports = {
 	rollDiceCommand: rollDiceCommand,
 	initialize: initialize,

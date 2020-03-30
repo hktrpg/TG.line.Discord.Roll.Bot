@@ -95,36 +95,49 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 				let A = ['yes', 'no']
 				inputStr = A[Math.floor((Math.random() * (A.length)))] + " GIF";
 			}
-			/*
-						rply.text = await image_search({
-								query: inputStr.replace(mainMsg[0], ""),
-								moderate: true,
-								iterations: 1,
-								retries: 1
-							})
-							.then(results => {
-								//thumbnail
-								return results[Math.floor((Math.random() * (results.length)) + 0)].image;
-							}).catch(err => {
-								return null
-							})
-							*/
 			rply.text = await client.search(keyword, {
 					"safe": "high",
 					"page": Math.floor((Math.random() * (10)) + 1)
 				})
 				.then(async images => {
 					console.log(images)
-					if (images[0])
-						return images[Math.floor((Math.random() * (images.length)) + 0)].url;
-					else
+					if (images[0]) {
+						let resultnum = Math.floor((Math.random() * (images.length)) + 0)
+						console.log('resultnum: ', resultnum)
+						for (let i = 0; i < images.length; i++) {
+							console.log('i: ', i)
+							if (images[resultnum].url.match(/\.(jpeg|jpg|gif|png)$/) != null) {
+								i = images.length
+								return images[resultnum].url;
+							} else {
+								resultnum++
+								console.log('resultnum: ', resultnum, ' images.length: ', images.length)
+								if (resultnum = images.length)
+									resultnum = 0
+							}
+						}
+
+					} else
 						return await client.search(keyword, {
 								"safe": "high"
 							})
 							.then(async images => {
 								console.log(images)
-								if (images[0])
-									return images[Math.floor((Math.random() * (images.length)) + 0)].url;
+								if (images[0]) {
+									let resultnum = Math.floor((Math.random() * (images.length)) + 0)
+									console.log('resultnum', resultnum)
+									for (let i = 0; i < images.length; i++) {
+										if (images[resultnum].url.match(/\.(jpeg|jpg|gif|png)$/) != null) {
+											i = images.length + 1
+											return images[resultnum].url;
+										} else {
+											resultnum++
+											console.log('resultnum: ', resultnum, ' images.length: ', images.length)
+											if (resultnum > images.length)
+												resultnum = 0
+										}
+									}
+								}
 							})
 					/*
 					[{

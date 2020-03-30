@@ -4,7 +4,8 @@ var rply = {
 	text: ''
 }; //type是必需的,但可以更改
 //heroku labs:enable runtime-dyno-metadata -a <app name>
-
+const GoogleImages = require('google-images');
+const client = new GoogleImages(process.env.CSE_ID, process.env.CSE_API_KEY);
 const wiki = require('wikijs').default;
 const timer = require('timer');
 const translate = require('@vitalets/google-translate-api');
@@ -91,36 +92,92 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 				//隨機YES NO
 				let A = ['yes', 'no']
 				inputStr = A[Math.floor((Math.random() * (A.length)))] + " GIF";
-				console.log(inputStr)
 			}
-			rply.text = await image_search({
-					query: inputStr.replace(mainMsg[0], ""),
-					moderate: true,
-					iterations: 1,
-					retries: 1
+			/*
+						rply.text = await image_search({
+								query: inputStr.replace(mainMsg[0], ""),
+								moderate: true,
+								iterations: 1,
+								retries: 1
+							})
+							.then(results => {
+								//thumbnail
+								return results[Math.floor((Math.random() * (results.length)) + 0)].image;
+							}).catch(err => {
+								return null
+							})
+							*/
+			rply.text = await client.search(inputStr.replace(mainMsg[0], ""), {
+					"safe": "high",
+					"page": Math.floor((Math.random() * (10)) + 1)
 				})
-				.then(results => {
-					//thumbnail
-					return results[Math.floor((Math.random() * (results.length)) + 0)].image;
+				.then(images => {
+					console.log(images)
+					return images[Math.floor((Math.random() * (images.length)) + 0)].url;
+					/*
+					[{
+						"url": "http://steveangello.com/boss.jpg",
+						"type": "image/jpeg",
+						"width": 1024,
+						"height": 768,
+						"size": 102451,
+						"thumbnail": {
+							"url": "http://steveangello.com/thumbnail.jpg",
+							"width": 512,
+							"height": 512
+						}
+					}]
+					 */
 				}).catch(err => {
-					return null
+					console.log(err)
+					return client.search(inputStr.replace(mainMsg[0], ""), {
+							"safe": "high",
+							"page": 1
+						})
+						.then(images => {
+							console.log(images)
+							return images[Math.floor((Math.random() * (images.length)) + 0)].url;
+						})
+
 				})
+
 			rply.type = 'image'
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /^[.]imagee$/.test(mainMsg[0]):
 			//成人版
-			rply.text = await image_search({
-					query: inputStr.replace(mainMsg[0], ""),
-					moderate: false,
-					iterations: 1,
-					retries: 1
-				})
-				.then(results => {
-					//thumbnail
-					return results[Math.floor((Math.random() * (results.length)) + 0)].image;
-				}).catch(err => {
-					return null
-				})
+			rply.text = await client.search(inputStr.replace(mainMsg[0], ""), {
+				"safe": "off",
+				"page": Math.floor((Math.random() * (10)) + 1)
+			})
+			.then(images => {
+				console.log(images)
+				return images[Math.floor((Math.random() * (images.length)) + 0)].url;
+				/*
+				[{
+					"url": "http://steveangello.com/boss.jpg",
+					"type": "image/jpeg",
+					"width": 1024,
+					"height": 768,
+					"size": 102451,
+					"thumbnail": {
+						"url": "http://steveangello.com/thumbnail.jpg",
+						"width": 512,
+						"height": 512
+					}
+				}]
+				 */
+			}).catch(err => {
+				console.log(err)
+				return client.search(inputStr.replace(mainMsg[0], ""), {
+						"safe": "high",
+						"page": 1
+					})
+					.then(images => {
+						console.log(images)
+						return images[Math.floor((Math.random() * (images.length)) + 0)].url;
+					})
+
+			})
 			rply.type = 'image'
 			return rply;
 

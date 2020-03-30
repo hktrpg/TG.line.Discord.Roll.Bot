@@ -113,7 +113,7 @@ async function now(a, b, c) {
 
 async function googleimage(inputStr, mainMsg, safe) {
 	let keyword = inputStr.replace(mainMsg[0] + " ", "")
-	let page = Math.floor((Math.random() * (10)) + 1)*10;
+	let page = Math.floor((Math.random() * (10)) * 10) + 1;
 	if (mainMsg[1].match(/^yesno$/i)) {
 		//隨機YES NO
 		let A = ['yes', 'no']

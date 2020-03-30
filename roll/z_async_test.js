@@ -88,6 +88,8 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 			});
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /^[.]image$/.test(mainMsg[0]):
+			let keyword = inputStr.replace(mainMsg[0] + " ", "")
+			//console.log(keyword)
 			if (mainMsg[1].match(/^yesno$/i)) {
 				//隨機YES NO
 				let A = ['yes', 'no']
@@ -107,20 +109,20 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 								return null
 							})
 							*/
-			rply.text = await client.search(inputStr.replace(mainMsg[0], ""), {
+			rply.text = await client.search(keyword, {
 					"safe": "high",
 					"page": Math.floor((Math.random() * (10)) + 1)
 				})
 				.then(async images => {
-					console.log(images)
+					//console.log(images)
 					if (images[0])
 						return images[Math.floor((Math.random() * (images.length)) + 0)].url;
 					else
-						return await client.search(inputStr.replace(mainMsg[0], ""), {
+						return await client.search(keyword, {
 								"safe": "high"
 							})
 							.then(async images => {
-								console.log(images)
+								//console.log(images)
 								if (images[0])
 									return images[Math.floor((Math.random() * (images.length)) + 0)].url;
 							})
@@ -146,25 +148,26 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /^[.]imagee$/.test(mainMsg[0]):
 			//成人版
+			let keyword = inputStr.replace(mainMsg[0] + " ", "")
 			if (mainMsg[1].match(/^yesno$/i)) {
 				//隨機YES NO
 				let A = ['yes', 'no']
 				inputStr = A[Math.floor((Math.random() * (A.length)))] + " GIF";
 			}
-			rply.text = await client.search(inputStr.replace(mainMsg[0], ""), {
+			rply.text = await client.search(keyword, {
 					"safe": "off",
 					"page": Math.floor((Math.random() * (10)) + 1)
 				})
 				.then(async images => {
-					console.log(images)
+					//console.log(images)
 					if (images[0])
 						return images[Math.floor((Math.random() * (images.length)) + 0)].url;
 					else
-						return await client.search(inputStr.replace(mainMsg[0], ""), {
-								"safe": "high"
+						return await client.search(keyword, {
+								"safe": "off"
 							})
 							.then(async images => {
-								console.log(images)
+								//console.log(images)
 								if (images[0])
 									return images[Math.floor((Math.random() * (images.length)) + 0)].url;
 							})

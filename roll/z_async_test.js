@@ -111,9 +111,19 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 					"safe": "high",
 					"page": Math.floor((Math.random() * (10)) + 1)
 				})
-				.then(images => {
+				.then(async images => {
 					console.log(images)
-					return images[Math.floor((Math.random() * (images.length)) + 0)].url;
+					if (images[0])
+						return images[Math.floor((Math.random() * (images.length)) + 0)].url;
+					else
+						return await client.search(inputStr.replace(mainMsg[0], ""), {
+								"safe": "high"
+							})
+							.then(async images => {
+								console.log(images)
+								if (images[0])
+									return images[Math.floor((Math.random() * (images.length)) + 0)].url;
+							})
 					/*
 					[{
 						"url": "http://steveangello.com/boss.jpg",
@@ -130,15 +140,6 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 					 */
 				}).catch(err => {
 					console.log(err)
-					return client.search(inputStr.replace(mainMsg[0], ""), {
-							"safe": "high",
-							"page": 1
-						})
-						.then(images => {
-							console.log(images)
-							return images[Math.floor((Math.random() * (images.length)) + 0)].url;
-						})
-
 				})
 
 			rply.type = 'image'
@@ -146,38 +147,40 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 		case /\S+/.test(mainMsg[1]) && /^[.]imagee$/.test(mainMsg[0]):
 			//成人版
 			rply.text = await client.search(inputStr.replace(mainMsg[0], ""), {
-				"safe": "off",
-				"page": Math.floor((Math.random() * (10)) + 1)
-			})
-			.then(images => {
-				console.log(images)
-				return images[Math.floor((Math.random() * (images.length)) + 0)].url;
-				/*
-				[{
-					"url": "http://steveangello.com/boss.jpg",
-					"type": "image/jpeg",
-					"width": 1024,
-					"height": 768,
-					"size": 102451,
-					"thumbnail": {
-						"url": "http://steveangello.com/thumbnail.jpg",
-						"width": 512,
-						"height": 512
-					}
-				}]
-				 */
-			}).catch(err => {
-				console.log(err)
-				return client.search(inputStr.replace(mainMsg[0], ""), {
-						"safe": "high",
-						"page": 1
-					})
-					.then(images => {
-						console.log(images)
+					"safe": "off",
+					"page": Math.floor((Math.random() * (10)) + 1)
+				})
+				.then(async images => {
+					console.log(images)
+					if (images[0])
 						return images[Math.floor((Math.random() * (images.length)) + 0)].url;
-					})
+					else
+						return await client.search(inputStr.replace(mainMsg[0], ""), {
+								"safe": "high"
+							})
+							.then(async images => {
+								console.log(images)
+								if (images[0])
+									return images[Math.floor((Math.random() * (images.length)) + 0)].url;
+							})
+					/*
+					[{
+						"url": "http://steveangello.com/boss.jpg",
+						"type": "image/jpeg",
+						"width": 1024,
+						"height": 768,
+						"size": 102451,
+						"thumbnail": {
+							"url": "http://steveangello.com/thumbnail.jpg",
+							"width": 512,
+							"height": 512
+						}
+					}]
+					 */
+				}).catch(err => {
+					console.log(err)
+				})
 
-			})
 			rply.type = 'image'
 			return rply;
 

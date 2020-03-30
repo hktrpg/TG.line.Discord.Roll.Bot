@@ -146,6 +146,11 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /^[.]imagee$/.test(mainMsg[0]):
 			//成人版
+			if (mainMsg[1].match(/^yesno$/i)) {
+				//隨機YES NO
+				let A = ['yes', 'no']
+				inputStr = A[Math.floor((Math.random() * (A.length)))] + " GIF";
+			}
 			rply.text = await client.search(inputStr.replace(mainMsg[0], ""), {
 					"safe": "off",
 					"page": Math.floor((Math.random() * (10)) + 1)

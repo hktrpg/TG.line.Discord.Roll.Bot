@@ -129,8 +129,8 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 						*/
 						let animals = ['🐶汪汪', '🐱喵', '🐭吱吱', '🐰', '🦊', '🐻', '🐯', '🦁', '🐮', '🐷呠呠', '🐸呱呱', '🐒嘰嘰', '🐔', '🦆', '🐺', '🐝嗡嗡', '🐋🦈', '🦉', '🦄', '🦌呦呦'];
 						let sum = 0;
-						for (i = 0; i < displayname.length; i++) {
-							sum += displayname.charCodeAt(i)
+						for (i = 0; i < userid.length; i++) {
+							sum += userid.charCodeAt(i)
 						}
 						switch (true) {
 							case privatemsg == 1:

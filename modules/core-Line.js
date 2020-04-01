@@ -135,18 +135,22 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						}
 				}
 				let animals = ['🐶汪汪', '🐱喵', '🐭吱吱', '🐰', '🦊', '🐻', '🐯', '🦁', '🐮', '🐷呠呠', '🐸呱呱', '🐒嘰嘰', '🐔', '🦆', '🐺', '🐝嗡嗡', '🐋🦈', '🦉', '🦄', '🦌呦呦'];
+				let sum = 0;
+				for (i = 0; i < displayname.length; i++) {
+					sum += displayname.charCodeAt(i)
+				}
 				switch (true) {
 					case privatemsg == 1:
 						// 輸入dr  (指令) 私訊自己
 						//
 						if (roomorgroupid && userid && displaynamecheck)
 							if (displayname)
-								await SendToId(roomorgroupid, "@" + displayname + " " + animals[math.floor(math.random() * animals.length)] + " 暗骰給自己")
+								await SendToId(roomorgroupid, "@" + displayname + " " + animals[sum%animals.length] + " 暗骰給自己")
 							else
-								await SendToId(roomorgroupid, "正在暗骰給自己 " + animals[math.floor(math.random() * animals.length)] + " ")
+								await SendToId(roomorgroupid, "正在暗骰給自己 " + animals[sum%animals.length] + " ")
 						if (userid)
 							if (displayname && displaynamecheck)
-								await SendToId(userid, "@" + displayname + " " + animals[math.floor(math.random() * animals.length)] + "的暗骰\n" + rplyVal.text);
+								await SendToId(userid, "@" + displayname + " " + animals[sum%animals.length] + "的暗骰\n" + rplyVal.text);
 							else
 								await SendToId(userid, rplyVal.text);
 						break;
@@ -158,14 +162,14 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 							for (var i = 0; i < TargetGMTempID.length; i++)
 								targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
 							if (displayname)
-								await SendToId(roomorgroupid, "@" + displayname + " " + animals[math.floor(math.random() * animals.length)] + " 暗骰進行中 \n目標: 自己 " + targetGMNameTemp)
+								await SendToId(roomorgroupid, "@" + displayname + " " + animals[sum%animals.length] + " 暗骰進行中 \n目標: 自己 " + targetGMNameTemp)
 							else
-								await SendToId(roomorgroupid, " " + animals[math.floor(math.random() * animals.length)] + " 暗骰進行中 \n目標: 自己 " + targetGMNameTemp)
+								await SendToId(roomorgroupid, " " + animals[sum%animals.length] + " 暗骰進行中 \n目標: 自己 " + targetGMNameTemp)
 						}
 
 						//有名字就顯示
 						if (displayname)
-							rplyVal.text = "@" + displayname + " " + animals[math.floor(math.random() * animals.length)] + " 的暗骰\n" + rplyVal.text
+							rplyVal.text = "@" + displayname + " " + animals[sum%animals.length] + " 的暗骰\n" + rplyVal.text
 						//傳給自己
 						await SendToId(userid, rplyVal.text);
 						for (var i = 0; i < TargetGMTempID.length; i++) {
@@ -181,12 +185,12 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 							for (var i = 0; i < TargetGMTempID.length; i++)
 								targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
 							if (displayname)
-								await SendToId(roomorgroupid, "@" + displayname + " " + animals[math.floor(math.random() * animals.length)] + " 暗骰進行中 \n目標: " + targetGMNameTemp)
+								await SendToId(roomorgroupid, "@" + displayname + " " + animals[sum%animals.length] + " 暗骰進行中 \n目標: " + targetGMNameTemp)
 							else
-								await SendToId(roomorgroupid, " " + animals[math.floor(math.random() * animals.length)] + " 暗骰進行中 \n目標: " + targetGMNameTemp)
+								await SendToId(roomorgroupid, " " + animals[sum%animals.length] + " 暗骰進行中 \n目標: " + targetGMNameTemp)
 						}
 						if (displayname)
-							rplyVal.text = "@" + displayname + " " + animals[math.floor(math.random() * animals.length)] + " 的暗骰\n" + rplyVal.text
+							rplyVal.text = "@" + displayname + " " + animals[sum%animals.length] + " 的暗骰\n" + rplyVal.text
 						for (var i = 0; i < TargetGMTempID.length; i++) {
 							await SendToId(TargetGMTempID[i], rplyVal.text);
 						}
@@ -194,7 +198,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 					default:
 						if (displaynamecheck && displayname && rplyVal && rplyVal.type != 'image') {
 							//285083923223
-							displayname = "@" + displayname + " " + animals[math.floor(math.random() * animals.length)] + "\n";
+							displayname = "@" + displayname + " " + animals[sum%animals.length] + "\n";
 							rplyVal.text = displayname + rplyVal.text
 						}
 						//	console.log('rplyVal: ', rplyVal)

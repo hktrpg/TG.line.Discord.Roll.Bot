@@ -128,14 +128,18 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 											}
 						*/
 						let animals = ['🐶汪汪', '🐱喵', '🐭吱吱', '🐰', '🦊', '🐻', '🐯', '🦁', '🐮', '🐷呠呠', '🐸呱呱', '🐒嘰嘰', '🐔', '🦆', '🐺', '🐝嗡嗡', '🐋🦈', '🦉', '🦄', '🦌呦呦'];
+						let sum = 0;
+						for (i = 0; i < displayname.length; i++) {
+							sum += displayname.charCodeAt(i)
+						}
 						switch (true) {
 							case privatemsg == 1:
 								// 輸入dr  (指令) 私訊自己
 								//
 								if (groupid)
-									SendToReplychannel("<@" + userid + ">  " + animals[math.floor(math.random() * animals.length)] + " 暗骰給自己")
+									SendToReplychannel("<@" + userid + ">  " + animals[sum%animals.length] + " 暗骰給自己")
 								if (userid)
-									rplyVal.text = "<@" + userid + "> " + animals[math.floor(math.random() * animals.length)] + " 的暗骰\n" + rplyVal.text
+									rplyVal.text = "<@" + userid + "> " + animals[sum%animals.length] + " 的暗骰\n" + rplyVal.text
 								SendToReply(rplyVal.text);
 								break;
 							case privatemsg == 2:
@@ -144,11 +148,11 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 								if (groupid) {
 									let targetGMNameTemp = "";
 									for (var i = 0; i < TargetGMTempID.length; i++)
-										targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + "> " + animals[math.floor(math.random() * animals.length)] + "")
-									SendToReplychannel("<@" + userid + "> " + animals[math.floor(math.random() * animals.length)] + " 暗骰進行中 \n目標: 自己 " + targetGMNameTemp)
+										targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + "> " + animals[sum%animals.length] + "")
+									SendToReplychannel("<@" + userid + "> " + animals[sum%animals.length] + " 暗骰進行中 \n目標: 自己 " + targetGMNameTemp)
 								}
 								if (userid)
-									rplyVal.text = "<@" + userid + "> " + animals[math.floor(math.random() * animals.length)] + " 的暗骰\n" + rplyVal.text
+									rplyVal.text = "<@" + userid + "> " + animals[sum%animals.length] + " 的暗骰\n" + rplyVal.text
 								SendToReply(rplyVal.text);
 								for (var i = 0; i < TargetGMTempID.length; i++) {
 									if (userid != TargetGMTempID[i])
@@ -160,10 +164,10 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 								if (groupid) {
 									let targetGMNameTemp = "";
 									for (var i = 0; i < TargetGMTempID.length; i++)
-										targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + "> " + animals[math.floor(math.random() * animals.length)] + "")
-									SendToReplychannel("<@" + userid + "> " + animals[math.floor(math.random() * animals.length)] + " 暗骰進行中 \n目標:  " + targetGMNameTemp)
+										targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + "> " + animals[sum%animals.length] + "")
+									SendToReplychannel("<@" + userid + "> " + animals[sum%animals.length] + " 暗骰進行中 \n目標:  " + targetGMNameTemp)
 								}
-								rplyVal.text = "<@" + userid + "> " + animals[math.floor(math.random() * animals.length)] + " 的暗骰\n" + rplyVal.text
+								rplyVal.text = "<@" + userid + "> " + animals[sum%animals.length] + " 的暗骰\n" + rplyVal.text
 								for (var i = 0; i < TargetGMTempID.length; i++) {
 									SendToId(TargetGMTempID[i], rplyVal.text);
 								}
@@ -171,7 +175,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 							default:
 								if (displaynamecheck && userid) {
 									//285083923223
-									displayname = "<@" + userid + "> " + animals[math.floor(math.random() * animals.length)] + "\n";
+									displayname = "<@" + userid + "> " + animals[sum%animals.length] + "\n";
 									rplyVal.text = displayname + rplyVal.text
 								}
 								if (groupid)

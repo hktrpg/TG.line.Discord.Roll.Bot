@@ -185,7 +185,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			//LevelUp功能
 			if (groupid && rplyVal && rplyVal.LevelUp) {
 				//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
-				ctx.reply("@" + displayname + '\n' + rplyVal.LevelUp)
+				ctx.reply("@" + displayname + ' 🐱喵~\n' + rplyVal.LevelUp)
 			}
 			if (rplyVal && rplyVal.text) {
 				//TGcountroll++;
@@ -213,9 +213,9 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 						//
 						//console.log('ctx.message.chat.type: ', ctx.message.chat.type)
 						if (ctx.message.chat.type != 'private') {
-							ctx.reply("@" + displayname + ' 暗骰給自己')
+							ctx.reply("@" + displayname + ' 🐱喵~ 暗骰給自己')
 						}
-						rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
+						rplyVal.text = "@" + displayname + " 🐱喵~ 的暗骰\n" + rplyVal.text
 						SendToId(ctx.message.from.id);
 						break;
 					case privatemsg == 2:
@@ -224,9 +224,9 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 							let targetGMNameTemp = "";
 							for (var i = 0; i < TargetGMTempID.length; i++)
 								targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
-							ctx.reply("@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
+							ctx.reply("@" + displayname + ' 🐱喵~ 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
 						}
-						rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
+						rplyVal.text = "@" + displayname + " 🐱喵~ 的暗骰\n" + rplyVal.text
 						SendToId(ctx.message.from.id);
 						for (var i = 0; i < TargetGMTempID.length; i++) {
 							if (ctx.message.from.id != TargetGMTempID[i])
@@ -239,9 +239,9 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 							let targetGMNameTemp = "";
 							for (var i = 0; i < TargetGMTempID.length; i++)
 								targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
-							ctx.reply("@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
+							ctx.reply("@" + displayname + ' 🐱喵~ 暗骰進行中 \n目標: ' + targetGMNameTemp)
 						}
-						rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
+						rplyVal.text = "@" + displayname + " 🐱喵~ 的暗骰\n" + rplyVal.text
 						for (var i = 0; i < TargetGMTempID.length; i++) {
 							SendToId(TargetGMTempID[i]);
 						}
@@ -249,7 +249,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 					default:
 						if (displaynamecheck && displayname) {
 							//285083923223
-							displayname = "@" + ctx.message.from.username + "\n";
+							displayname = "@" + ctx.message.from.username + " 🐱喵~\n";
 							rplyVal.text = displayname + rplyVal.text
 						}
 						SendToReply();

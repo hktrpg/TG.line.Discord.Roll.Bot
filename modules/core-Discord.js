@@ -131,9 +131,9 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 								// 輸入dr  (指令) 私訊自己
 								//
 								if (groupid)
-									SendToReplychannel("<@" + userid + '> 暗骰給自己')
+									SendToReplychannel("<@" + userid + '>  🐱喵~ 暗骰給自己')
 								if (userid)
-									rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
+									rplyVal.text = "<@" + userid + "> 🐱喵~ 的暗骰\n" + rplyVal.text
 								SendToReply(rplyVal.text);
 								break;
 							case privatemsg == 2:
@@ -142,11 +142,11 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 								if (groupid) {
 									let targetGMNameTemp = "";
 									for (var i = 0; i < TargetGMTempID.length; i++)
-										targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
-									SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
+										targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + "> 🐱喵~")
+									SendToReplychannel("<@" + userid + '> 🐱喵~ 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
 								}
 								if (userid)
-									rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
+									rplyVal.text = "<@" + userid + "> 🐱喵~ 的暗骰\n" + rplyVal.text
 								SendToReply(rplyVal.text);
 								for (var i = 0; i < TargetGMTempID.length; i++) {
 									if (userid != TargetGMTempID[i])
@@ -158,10 +158,10 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 								if (groupid) {
 									let targetGMNameTemp = "";
 									for (var i = 0; i < TargetGMTempID.length; i++)
-										targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
-									SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp)
+										targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + "> 🐱喵~")
+									SendToReplychannel("<@" + userid + '> 🐱喵~ 暗骰進行中 \n目標:  ' + targetGMNameTemp)
 								}
-								rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
+								rplyVal.text = "<@" + userid + "> 🐱喵~ 的暗骰\n" + rplyVal.text
 								for (var i = 0; i < TargetGMTempID.length; i++) {
 									SendToId(TargetGMTempID[i], rplyVal.text);
 								}
@@ -169,7 +169,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 							default:
 								if (displaynamecheck && userid) {
 									//285083923223
-									displayname = "<@" + userid + ">\n";
+									displayname = "<@" + userid + "> 🐱喵~\n";
 									rplyVal.text = displayname + rplyVal.text
 								}
 								if (groupid)

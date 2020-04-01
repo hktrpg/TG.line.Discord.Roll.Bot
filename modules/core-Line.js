@@ -141,12 +141,12 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						//
 						if (roomorgroupid && userid && displaynamecheck)
 							if (displayname)
-								await SendToId(roomorgroupid, "@" + displayname + ' " + animals[math.floor(math.random() * animals.length)] + " 暗骰給自己')
+								await SendToId(roomorgroupid, "@" + displayname + " " + animals[math.floor(math.random() * animals.length)] + " 暗骰給自己")
 							else
-								await SendToId(roomorgroupid, '正在暗骰給自己 " + animals[math.floor(math.random() * animals.length)] + "')
+								await SendToId(roomorgroupid, "正在暗骰給自己 " + animals[math.floor(math.random() * animals.length)] + " ")
 						if (userid)
 							if (displayname && displaynamecheck)
-								await SendToId(userid, "@" + displayname + ' " + animals[math.floor(math.random() * animals.length)] + "的暗骰\n' + rplyVal.text);
+								await SendToId(userid, "@" + displayname + " " + animals[math.floor(math.random() * animals.length)] + "的暗骰\n" + rplyVal.text);
 							else
 								await SendToId(userid, rplyVal.text);
 						break;
@@ -158,9 +158,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 							for (var i = 0; i < TargetGMTempID.length; i++)
 								targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
 							if (displayname)
-								await SendToId(roomorgroupid, "@" + displayname + ' " + animals[math.floor(math.random() * animals.length)] + " 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
+								await SendToId(roomorgroupid, "@" + displayname + " " + animals[math.floor(math.random() * animals.length)] + " 暗骰進行中 \n目標: 自己 " + targetGMNameTemp)
 							else
-								await SendToId(roomorgroupid, ' " + animals[math.floor(math.random() * animals.length)] + " 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
+								await SendToId(roomorgroupid, " " + animals[math.floor(math.random() * animals.length)] + " 暗骰進行中 \n目標: 自己 " + targetGMNameTemp)
 						}
 
 						//有名字就顯示
@@ -181,9 +181,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 							for (var i = 0; i < TargetGMTempID.length; i++)
 								targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
 							if (displayname)
-								await SendToId(roomorgroupid, "@" + displayname + ' " + animals[math.floor(math.random() * animals.length)] + " 暗骰進行中 \n目標: ' + targetGMNameTemp)
+								await SendToId(roomorgroupid, "@" + displayname + " " + animals[math.floor(math.random() * animals.length)] + " 暗骰進行中 \n目標: " + targetGMNameTemp)
 							else
-								await SendToId(roomorgroupid, ' " + animals[math.floor(math.random() * animals.length)] + " 暗骰進行中 \n目標: ' + targetGMNameTemp)
+								await SendToId(roomorgroupid, " " + animals[math.floor(math.random() * animals.length)] + " 暗骰進行中 \n目標: " + targetGMNameTemp)
 						}
 						if (displayname)
 							rplyVal.text = "@" + displayname + " " + animals[math.floor(math.random() * animals.length)] + " 的暗骰\n" + rplyVal.text

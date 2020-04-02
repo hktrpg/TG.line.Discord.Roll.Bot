@@ -288,8 +288,10 @@ function swroll(match, round, returnStr, finallynum) {
     var varcoub = "";
     var varsu = "";
     for (var i = 0; i < rollnum; i++) {
-        varcoua = Math.floor(Math.random() * 6) + 1;
-        varcoub = Math.floor(Math.random() * 6) + 1;
+        //varcoua = Math.floor(Math.random() * 6) + 1;
+        //varcoub = Math.floor(Math.random() * 6) + 1;
+        varcoua = rollbase.Dice(6)
+        varcoub = rollbase.Dice(6)
         if (match[16] == 'gf') varcoub = varcoua;
         var varcou = varcoua + varcoub;
         if (match[13] >= 1) {
@@ -325,7 +327,7 @@ function swroll(match, round, returnStr, finallynum) {
         match[15] = null;
     }
     returnStr += result + '[' + varsu + '] ';
-    if (isNaN(result)) { } else {
+    if (isNaN(result)) {} else {
         finallynum += Number(result);
     }
     if (match[1] >= 1) {

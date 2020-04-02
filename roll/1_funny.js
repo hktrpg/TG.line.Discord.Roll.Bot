@@ -13,7 +13,7 @@ gameType = function () {
 	return 'funny:hktrpg'
 }
 prefixs = function () {
-	return [/^[.]me$|排序|隨機|choice|^每日塔羅|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸/i,]
+	return [/^[.]me$|排序|隨機|choice|^每日塔羅|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸/i, ]
 }
 getHelpMessage = function () {
 	return "【趣味擲骰】" + "\
@@ -169,7 +169,10 @@ function BStyleFlagSCRIPTS() {
 「外面怎麼這麼吵」', '\
 「我老爸是....你有種就....」', '\
 「我可以好好利用這件事」'];
-	rply.text = rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
+
+	//	rply.text = rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
+	rply.text = rplyArr[rollbase.Dice(rplyArr.length) - 1]
+
 	return rply;
 }
 
@@ -199,13 +202,15 @@ wwwwwwwwwwwwwwwww', '\
 公道價，八萬一（伸手）。', '\
 你的嘴裡有異音（指）', '\
 幫主說，有人打你的左臉，你就要用肉食性猛擊咬斷他的小腿。'];
-	rply.text = rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
+	//	rply.text = rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
+	rply.text = rplyArr[rollbase.Dice(rplyArr.length) - 1]
 	return rply;
 }
 
 function randomLuck(TEXT) {
 	let rplyArr = ['超吉', '超級上吉', '大吉', '吉', '中吉', '小吉', '吉', '小吉', '吉', '吉', '中吉', '吉', '中吉', '吉', '中吉', '小吉', '末吉', '吉', '中吉', '小吉', '末吉', '中吉', '小吉', '小吉', '吉', '小吉', '末吉', '中吉', '小吉', '凶', '小凶', '沒凶', '大凶', '很凶', '你不要知道比較好呢', '命運在手中,何必問我'];
-	rply.text = TEXT[0] + ' ： ' + rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
+	//	rply.text = TEXT[0] + ' ： ' + rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
+	rply.text = TEXT[0] + ' ： ' + rplyArr[rollbase.Dice(rplyArr.length) - 1]
 	return rply;
 }
 
@@ -280,7 +285,7 @@ function MultiDrawTarot(CardToCal, text, type) {
 		revs[0] = rollbase.FunnyDice(2);
 
 		for (i = 1; i < 3; i++) {
-			for (; ;) {
+			for (;;) {
 				tmpcard = rollbase.FunnyDice(79);
 				if (cards.indexOf(tmpcard) === -1) //沒有重複，就這張了
 				{
@@ -306,7 +311,7 @@ function MultiDrawTarot(CardToCal, text, type) {
 		revs[0] = rollbase.FunnyDice(2);
 
 		for (i = 1; i < 10; i++) {
-			for (; ;) {
+			for (;;) {
 				tmpcard = rollbase.FunnyDice(79);
 				if (cards.indexOf(tmpcard) === -1) //沒有重複，就這張了
 				{
@@ -476,11 +481,13 @@ function choice(input, str) {
 }
 
 function SortIt(input, mainMsg) {
-
 	let a = input.replace(mainMsg[0], '').match(/\S+/ig);
 	for (var i = a.length - 1; i >= 0; i--) {
-
-		var randomIndex = Math.floor(Math.random() * (i + 1));
+		//var randomIndex = Math.floor(Math.random() * (i + 1));  
+		//3 -> 210 , 10, 0
+		var randomIndex = rollbase.Dice(i + 1) - 1
+		//3 ->
+		console.log('randomIndex: ', randomIndex)
 		var itemAtIndex = a[randomIndex];
 		a[randomIndex] = a[i];
 		a[i] = itemAtIndex;

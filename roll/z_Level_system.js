@@ -10,6 +10,8 @@ try {
     records.get('trpgLevelSystem', (msgs) => {
         rply.trpgLevelSystemfunction = msgs
     })
+    const rollbase = require('./rollbase.js');
+
 
     gameName = function () {
         return '(公測中)經驗值功能 .level (show config LevelUpWord RankWord)'
@@ -510,7 +512,8 @@ try {
                                         //4.    沒有則新增一個, 隨機1-10 給經驗值.
                                         let username = displaynameDiscord || displayname || "無名"
                                         let userlevel = 0;
-                                        let userexp = math.floor(math.random() * 10) + 15
+                                        //let userexp = math.floor(math.random() * 10) + 15
+                                        let userexp = (rollbase.Dice(10) - 1) + 15
                                         //console.log('rply.trpgLevelSystemfunction[i]',
                                         let usermember_count = membercount || rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length;
                                         let userRanking = ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);

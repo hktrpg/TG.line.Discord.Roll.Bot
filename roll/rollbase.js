@@ -1,4 +1,11 @@
 const math = require('mathjs');
+const {
+  Random,
+  MersenneTwister19937
+} = require("random-js");
+const random = new Random(MersenneTwister19937.autoSeed());
+//value = random.integer(1, 100);
+
 //var Sided = [];
 //Sided[10000] = [];
 var rply = {
@@ -55,26 +62,8 @@ rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botnam
 try {
   function Dice(diceSided) {
     let result = '';
-
-    result = math.floor((math.random() * diceSided) + 1)
-    /*
-    if (diceSided <= 10000) {
-      if (!Sided[diceSided]) {
-        Sided[diceSided] = []
-        //console.log('a')
-      }
-      if (Sided[diceSided] && !Sided[diceSided][result]) {
-        Sided[diceSided][result] = 1
-        //console.log('b')
-      } else
-      if (Sided[diceSided] && Sided[diceSided][result]) {
-        Sided[diceSided][result]++
-        //console.log('c')
-      }
-    
-
-  }
-*/
+    //result = math.floor((math.random() * diceSided) + 1)
+    result = random.integer(1, Math.floor(diceSided))
     return result
   }
 
@@ -100,7 +89,7 @@ try {
   }
 
   function FunnyDice(diceSided) {
-    return math.floor((math.random() * diceSided)) // 猜拳，從0開始
+    return random.integer(0, Math.floor(diceSided)) // 猜拳，從0開始
   }
 
   function BuildDiceCal(inputStr) {

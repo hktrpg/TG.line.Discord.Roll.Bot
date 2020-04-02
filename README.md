@@ -270,6 +270,10 @@ https://github.com/zeteticl/TrpgLineBot-php </br>
 *2019/4/2
 趕不及4月1日發佈,可惡! 三合一版完成</br>
 
+*2020/4/2
+聽說MersenneTwister19937 隨機方法比較好，試著改成這偽隨機方法。</br>
+
+
 
 
 【擲骰BOT】
@@ -308,18 +312,23 @@ Choice：啓動語choice/隨機/選項/選1</br>
 【了解骰組詳情,請輸入 bothelp (編號) 或all 或 在指令後輸入help 如 .sg help】</br>
 0: 進階擲骰 .ca (計算) D66(sn) 5B10 Dx 5U10 x y</br>
 1: 趣味擲骰 排序(至少3個選項) choice/隨機(至少2個選項) 每日塔羅 運勢 立flag .me</br>
-2: 克蘇魯神話 cc cc(n)1~2 ccb ccrt ccsu .dp 成長檢定 cc7版創角</br>
+2: 克蘇魯神話 cc cc(n)1~2 ccb ccrt ccsu .dp .cc7build .cc6build .cc7bg</br>
 3: 朱の孤塔 .al (nALx*p)</br>
-4: 神我狩 .kk (ET RT NT KT MTx)</br>
-5: 迷宮王國 .mk (nMK+m 及各種表)</br>
-6: 亞俠必死的冒險 .ss (nR>=x[y,z,c] SRx+y FumbleT) (help 說明)</br>
-7: 忍神 .sg (ST FT ET等各種表) (help 說明)</br>
-8: DX2nd,3rd .dx (xDX+y@c ET)</br>
-9: 命運Fate .4df(m|-)(加值)</br>
-10: 永遠的後日談 .nc (NM xNC+m xNA+m)</br>
+4: DX2nd,3rd .dx (xDX+y@c ET)</br>
+5: 命運Fate .4df(m|-)(加值)</br>
+6: 神我狩 .kk (ET RT NT KT MTx)</br>
+7: 迷宮王國 .mk (nMK+m 及各種表)</br>
+8: 永遠的後日談 .nc (NM xNC+m xNA+m)</br>
+9: 亞俠必死的冒險 .ss (nR>=x[y,z,c] SRx+y FumbleT) </br>
+10: 忍神 .sg (ST FT ET等各種表) </br>
 11: 劍世界2.5 .sw (Kx Gr FT TT)</br>
-12: WOD黑暗世界 .xWDy</br>
-13: (公測中)自定義回應功能 .ra(p)(次數) (add del show 自定關鍵字)</br>
-14: (公測中)儲存擲骰指令功能 .cmd (add del show 自定關鍵字)</br>
-15: (公測中)擲骰開關功能 .bk (add del show)</br>
-16: (公測中)資料庫功能 .db(p) (add del show 自定關鍵字)</br>
+12: 歌風 .UK (nUK nUK@c or nUKc)</br>
+13: WOD黑暗世界 .xWDy</br>
+14: 貓貓鬼差 .kc xDy z</br>
+15: (公測中)Wiki查詢/圖片搜索/翻譯 .wiki .image .tran</br>
+16: (公測中)暗骰GM功能 .drgm (addgm del show) dr ddr dddr</br>
+17: (公測中)經驗值功能 .level (show config LevelUpWord RankWord)</br>
+18: (公測中)自定義回應功能 .ra(p)(次數) (add del show 自定關鍵字)</br>
+19: (公測中)儲存擲骰指令功能 .cmd (add del show 自定關鍵字)</br>
+20: (公測中)擲骰開關功能 .bk (add del show)</br>
+21: (公測中)資料庫功能 .db(p) (add del show 自定關鍵字)</br></br>

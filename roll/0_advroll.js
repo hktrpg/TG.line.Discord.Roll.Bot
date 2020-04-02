@@ -17,7 +17,8 @@ prefixs = function () {
 	return [/^[.][c][a]$/i, ,
 		/^d66s$|^d66$|^d66n$/i, ,
 		/^(\d+)(u)(\d+)$/i, /\d+/,
-		/^((\d+)(b)(\d+))(|(([<]|[>]|)(|[=]))(\d+))$/i,
+		/^((\d+)(b)(\d+))(|(([<]|[>]|)(|[=]))(\d+))$/i, ,
+		/^[.][i][n][t]$/i, /\d+/,
 	]
 }
 getHelpMessage = function () {
@@ -32,6 +33,7 @@ getHelpMessage = function () {
 	\n 即 5B10 5 相當於 5B10>=5　 5B10 D5 相當於 5B10<=5  \
 	\n 5U10 8：	進行5D10 每骰出一粒8會有一粒獎勵骰 \
 	\n 5U10 8 9：	如上,另外計算其中有多少粒大於9 \
+	\n .int 20 30: 即骰出20-30\
 		\n "
 }
 
@@ -75,6 +77,14 @@ rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botnam
 			let matchxuy = /^(\d+)(u)(\d+)/i.exec(mainMsg[0]); //判斷式  5u19,5,u,19, 
 			if (matchxuy && matchxuy[1] > 0 && matchxuy[1] <= 600 && matchxuy[3] > 0 && matchxuy[3] <= 10000)
 				return xUy(mainMsg[0], mainMsg[1], mainMsg[2], mainMsg[3]);
+			break;
+		case /^[.][i][n][t]$/i.test(mainMsg[0]) && mainMsg[1] <= 100000 && mainMsg[2] <= 100000:
+			let points = [Math.floor(mainMsg[1]), Math.floor(mainMsg[2])]
+			points.sort(function (a, b) {
+				return a - b
+			});
+			rply.text = rollbase.DiceINT(points[0], points[1]);
+			return rply
 			break;
 		default:
 			break;

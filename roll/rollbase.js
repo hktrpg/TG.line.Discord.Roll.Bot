@@ -67,6 +67,13 @@ try {
     return result
   }
 
+  function DiceINT(start, end) {
+    let result = '';
+    //result = math.floor((math.random() * diceSided) + 1)
+    result = random.integer(start, end)
+    return result
+  }
+
   function sortNumber(a, b) {
     return a - b
   }
@@ -253,6 +260,7 @@ module.exports = {
   BuildDiceCal: BuildDiceCal,
   BuildRollDice: BuildRollDice,
   nomalDiceRoller: nomalDiceRoller,
+  DiceINT: DiceINT,
   rollDiceCommand: rollDiceCommand,
   initialize: initialize,
   getHelpMessage: getHelpMessage,

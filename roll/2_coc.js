@@ -1,4 +1,4 @@
-var rollbase = require('./rollbase.js');
+const rollbase = require('./rollbase.js');
 var rply = {
 	default: 'on',
 	type: 'text',

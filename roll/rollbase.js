@@ -1,9 +1,9 @@
 const math = require('mathjs');
 const {
   Random,
-  MersenneTwister19937
+  nodeCrypto
 } = require("random-js");
-const random = new Random(MersenneTwister19937.autoSeed());
+const random = new Random(nodeCrypto);
 //value = random.integer(1, 100);
 
 //var Sided = [];

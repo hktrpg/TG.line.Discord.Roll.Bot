@@ -1,5 +1,7 @@
 const BCDice = require('bcdice-js').BCDice; // CommonJS
 const bcdice = new BCDice();
+const rollbase = require('./rollbase.js');
+
 
 function calldice(gameType, message) {
 	bcdice.setGameByTitle(gameType)
@@ -21,7 +23,7 @@ gameType = function () {
 	return 'Dx2,3:hktrpg'
 }
 prefixs = function () {
-	return [/^[.]dx$/i,]
+	return [/^[.]dx$/i, ]
 }
 getHelpMessage = function () {
 	return "【Double Cross 2nd,3rd】" + "\
@@ -127,7 +129,8 @@ function dxroll(match, round, returnStr, finallynum) {
 	var varcou = "";
 	var varsu = "";
 	for (var i = 0; i < rollnum; i++) {
-		varcou = Math.floor(Math.random() * 10) + 1;
+		//varcou = Math.floor(Math.random() * 10) + 1;
+		varcou = rollbase.Dice(10)
 		if (varcou > result) {
 			result = varcou
 		}

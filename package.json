@@ -28,6 +28,7 @@
     "libsodium-wrappers": "^0.7.3",
     "mathjs": "^5.9.0",
     "mongoose": ">=5.7.5",
+    "random-js": "^2.1.0",
     "socket.io": "^2.2.0",
     "telebot": "^1.2.6",
     "telegraf": "^3.29.0",

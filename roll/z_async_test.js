@@ -9,6 +9,7 @@ const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 const client = new GoogleImages(process.env.CSE_ID, process.env.CSE_API_KEY);
 const wiki = require('wikijs').default;
 const timer = require('timer');
+const rollbase = require('./rollbase.js');
 const translate = require('@vitalets/google-translate-api');
 const {
 	image_search
@@ -113,11 +114,12 @@ async function now(a, b, c) {
 
 async function googleimage(inputStr, mainMsg, safe) {
 	let keyword = inputStr.replace(mainMsg[0] + " ", "")
-	let page = Math.floor((Math.random() * (10)) * 10) + 1;
+	//let page = Math.floor((Math.random() * (10)) * 10) + 1;
+	let page = ((rollbase.Dice(10) - 1) * 10) + 1
 	if (mainMsg[1].match(/^yesno$/i)) {
 		//隨機YES NO
 		let A = ['yes', 'no']
-		keyword = A[Math.floor((Math.random() * (A.length)))] + " GIF";
+		keyword = A[rollbase.Dice(A.length) - 1] + " GIF";
 	}
 	return await client.search(keyword, {
 			"safe": safe,
@@ -125,7 +127,8 @@ async function googleimage(inputStr, mainMsg, safe) {
 		})
 		.then(async images => {
 			if (images[0]) {
-				let resultnum = Math.floor((Math.random() * (images.length)) + 0)
+				//let resultnum = Math.floor((Math.random() * (images.length)) + 0)
+				let resultnum = rollbase.Dice(images.length) - 1
 				for (let i = 0; i < images.length; i++) {
 					let nows = await now(resultnum, i, images.length)
 					if (await imageExists(images[nows].url) && images[nows].url != 'https://c8.alamy.com/comp/HKTRPG/los-angeles-usa-29th-jan-2017-danielle-brooks-seen-arriving-at-the-HKTRPG.jpg') {
@@ -139,7 +142,8 @@ async function googleimage(inputStr, mainMsg, safe) {
 					})
 					.then(async images => {
 						{
-							let resultnum = Math.floor((Math.random() * (images.length)) + 0)
+							//let resultnum = Math.floor((Math.random() * (images.length)) + 0)
+							let resultnum = rollbase.Dice(images.length) - 1
 							for (let i = 0; i < images.length; i++) {
 								if (images[resultnum].url.match(/\.(jpeg|jpg|gif|png)$/) != null) {
 									i = images.length

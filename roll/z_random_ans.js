@@ -1,3 +1,4 @@
+const rollbase = require('./rollbase.js');
 try {
     var rply = {
         default: 'on',
@@ -358,7 +359,8 @@ try {
 
             // Pick a remaining element...
             //currentIndex 
-            randomIndex = math.floor(math.random() * currentIndex);
+            //randomIndex = math.floor(math.random() * currentIndex);
+            randomIndex = rollbase.Dice(currentIndex) - 1
             //randomIndex = rollbase.Dice(currentIndex) - 1
             currentIndex -= 1;
 

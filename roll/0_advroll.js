@@ -7,7 +7,7 @@ var rply = {
 };
 
 gameName = function () {
-	return '進階擲骰 .ca (計算) D66(sn) 5B10 Dx 5U10 x y'
+	return '進階擲骰 .ca (計算)|D66(sn)|5B10 Dx|5U10 x y|.int x y'
 }
 
 gameType = function () {
@@ -83,7 +83,7 @@ rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botnam
 			points.sort(function (a, b) {
 				return a - b
 			});
-			rply.text = rollbase.DiceINT(points[0], points[1]);
+			rply.text = '投擲 ' + points[0] + ' - ' + points[1] + '：\n→ ' + rollbase.DiceINT(points[0], points[1]);
 			return rply
 			break;
 		default:

@@ -1,9 +1,9 @@
 const math = require('mathjs');
 const {
   Random,
-  MersenneTwister19937
+  nodeCrypto
 } = require("random-js");
-const random = new Random(MersenneTwister19937.autoSeed());
+const random = new Random(nodeCrypto);
 //value = random.integer(1, 100);
 
 //var Sided = [];
@@ -64,6 +64,13 @@ try {
     let result = '';
     //result = math.floor((math.random() * diceSided) + 1)
     result = random.integer(1, Math.floor(diceSided))
+    return result
+  }
+
+  function DiceINT(start, end) {
+    let result = '';
+    //result = math.floor((math.random() * diceSided) + 1)
+    result = random.integer(start, end)
     return result
   }
 
@@ -253,6 +260,7 @@ module.exports = {
   BuildDiceCal: BuildDiceCal,
   BuildRollDice: BuildRollDice,
   nomalDiceRoller: nomalDiceRoller,
+  DiceINT: DiceINT,
   rollDiceCommand: rollDiceCommand,
   initialize: initialize,
   getHelpMessage: getHelpMessage,

@@ -272,104 +272,47 @@ function RockPaperScissors(HandToCal, text) {
 ////////////////////////////////////////
 //////////////// Tarot塔羅牌
 ////////////////////////////////////////
-function MultiDrawTarot(CardToCal, text, type) {
+function MultiDrawTarot(text, text2, type) {
 	let returnStr = '';
-	var tmpcard = 0;
-	var cards = [];
-	var revs = [];
-	var i = 0;
+	let cards = []
+	switch (type) {
+		case 1:
+			rply.text = '時間塔羅'
+			cards = rollbase.shuffleTarget(TarotList);
+			returnStr += '過去: ' + cards[0] + '\n'
+			returnStr += '現在: ' + cards[1] + '\n'
+			returnStr += '未來: ' + cards[2] + '\n'
+			break;
+		case 2:
+			rply.text = '大十字塔羅'
+			cards = rollbase.shuffleTarget(TarotList2);
+			returnStr += '現況: ' + cards[0] + '\n'
+			returnStr += '助力: ' + cards[1] + '\n'
+			returnStr += '目標: ' + cards[2] + '\n'
+			returnStr += '基礎: ' + cards[3] + '\n'
+			returnStr += '過去: ' + cards[4] + '\n'
+			returnStr += '未來: ' + cards[5] + '\n'
+			returnStr += '自我: ' + cards[6] + '\n'
+			returnStr += '環境: ' + cards[7] + '\n'
+			returnStr += '恐懼: ' + cards[8] + '\n'
+			returnStr += '結論: ' + cards[9] + '\n'
+			break;
+		default:
+			break;
 
-	if (type == 1) //時間之流
-	{
-		cards[0] = rollbase.FunnyDice(79); //先抽第0張
-		revs[0] = rollbase.FunnyDice(2);
-
-		for (i = 1; i < 3; i++) {
-			for (;;) {
-				tmpcard = rollbase.FunnyDice(79);
-				if (cards.indexOf(tmpcard) === -1) //沒有重複，就這張了
-				{
-					cards.push(tmpcard);
-					revs[i] = rollbase.FunnyDice(2);
-					break;
-				}
-			}
-		}
-
-		if (text != null)
-			returnStr += text + ': \n';
-
-		for (i = 0; i < 3; i++) {
-			if (i == 0) returnStr += '過去: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
-			if (i == 1) returnStr += '現在: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
-			if (i == 2) returnStr += '未來: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]);
-		}
-
-	} else if (type == 2) //塞爾特大十字
-	{
-		cards[0] = rollbase.FunnyDice(79); //先抽第0張
-		revs[0] = rollbase.FunnyDice(2);
-
-		for (i = 1; i < 10; i++) {
-			for (;;) {
-				tmpcard = rollbase.FunnyDice(79);
-				if (cards.indexOf(tmpcard) === -1) //沒有重複，就這張了
-				{
-					cards.push(tmpcard);
-					revs[i] = rollbase.FunnyDice(2);
-					break;
-				}
-			}
-		}
-
-		if (text != null)
-			returnStr += text + ': \n';
-
-		for (i = 0; i < 10; i++) {
-			if (i == 0) returnStr += '現況: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
-			if (i == 1) {
-				if (revs[i] == 0) //正位
-					returnStr += '助力: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
-				else
-					returnStr += '阻力: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
-			}
-			if (i == 2) returnStr += '目標: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
-			if (i == 3) returnStr += '基礎: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
-			if (i == 4) returnStr += '過去: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
-			if (i == 5) returnStr += '未來: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
-			if (i == 6) returnStr += '自我: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
-			if (i == 7) returnStr += '環境: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
-			if (i == 8) {
-				if (revs[i] == 0) //正位
-					returnStr += '希望: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
-				else
-					returnStr += '恐懼: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]) + '\n';
-			}
-			if (i == 9) returnStr += '結論: ' + tarotCardReply(cards[i]) + ' ' + tarotRevReply(revs[i]);
-
-		}
-
-	} else {
-
-		if (text == null)
-			returnStr = tarotCardReply(rollbase.FunnyDice(79)) + ' ' + tarotRevReply(rollbase.FunnyDice(2));
-		else
-			returnStr = tarotCardReply(rollbase.FunnyDice(79)) + ' ' + tarotRevReply(rollbase.FunnyDice(2)) + ' ; ' + text;
 	}
-
-
-	rply.text = returnStr;
+	if (text)
+		rply.text += "；" + text + " " + text2
+	rply.text += "\n" + returnStr
 	return rply;
+
+
 }
 
-function NomalDrawTarot(CardToCal, text) {
-	let returnStr = '';
-
-	if (text == null)
-		returnStr = tarotCardReply(rollbase.FunnyDice(22)) + ' ' + tarotRevReply(rollbase.FunnyDice(2));
-	else
-		returnStr = tarotCardReply(rollbase.FunnyDice(22)) + ' ' + tarotRevReply(rollbase.FunnyDice(2)) + ' ; ' + text;
-	rply.text = returnStr;
+function NomalDrawTarot(text, text2) {
+	rply.text = rollbase.shuffleTarget(TarotList.slice(0, 44))[0]
+	if (text)
+		rply.text += "；" + text + " " + text2
 	return rply;
 }
 
@@ -385,8 +328,328 @@ function tarotRevReply(count) {
 }
 
 
+const TarotList = ["愚者 ＋\nhttps://www.hktrpg.com/tool/tarot/00.jpg",
+	"魔術師 ＋\nhttps://www.hktrpg.com/tool/tarot/01.jpg",
+	"女祭司 ＋\nhttps://www.hktrpg.com/tool/tarot/02.jpg",
+	"女皇 ＋\nhttps://www.hktrpg.com/tool/tarot/03.jpg",
+	"皇帝 ＋\nhttps://www.hktrpg.com/tool/tarot/04.jpg",
+	"教皇 ＋\nhttps://www.hktrpg.com/tool/tarot/05.jpg",
+	"戀人 ＋\nhttps://www.hktrpg.com/tool/tarot/06.jpg",
+	"戰車 ＋\nhttps://www.hktrpg.com/tool/tarot/07.jpg",
+	"力量 ＋\nhttps://www.hktrpg.com/tool/tarot/08.jpg",
+	"隱者 ＋\nhttps://www.hktrpg.com/tool/tarot/09.jpg",
+	"命運之輪 ＋\nhttps://www.hktrpg.com/tool/tarot/10.jpg",
+	"正義 ＋\nhttps://www.hktrpg.com/tool/tarot/11.jpg",
+	"吊人 ＋\nhttps://www.hktrpg.com/tool/tarot/12.jpg",
+	"死神 ＋\nhttps://www.hktrpg.com/tool/tarot/13.jpg",
+	"節制 ＋\nhttps://www.hktrpg.com/tool/tarot/14.jpg",
+	"惡魔 ＋\nhttps://www.hktrpg.com/tool/tarot/15.jpg",
+	"高塔 ＋\nhttps://www.hktrpg.com/tool/tarot/16.jpg",
+	"星星 ＋\nhttps://www.hktrpg.com/tool/tarot/17.jpg",
+	"月亮 ＋\nhttps://www.hktrpg.com/tool/tarot/18.jpg",
+	"太陽 ＋\nhttps://www.hktrpg.com/tool/tarot/19.jpg",
+	"審判 ＋\nhttps://www.hktrpg.com/tool/tarot/20.jpg",
+	"世界 ＋\nhttps://www.hktrpg.com/tool/tarot/21.jpg",
+	"愚者 －\nhttps://www.hktrpg.com/tool/tarot/00-Re.jpg",
+	"魔術師 －\nhttps://www.hktrpg.com/tool/tarot/01-Re.jpg",
+	"女祭司 －\nhttps://www.hktrpg.com/tool/tarot/02-Re.jpg",
+	"女皇 －\nhttps://www.hktrpg.com/tool/tarot/03-Re.jpg",
+	"皇帝 －\nhttps://www.hktrpg.com/tool/tarot/04-Re.jpg",
+	"教皇 －\nhttps://www.hktrpg.com/tool/tarot/05-Re.jpg",
+	"戀人 －\nhttps://www.hktrpg.com/tool/tarot/06-Re.jpg",
+	"戰車 －\nhttps://www.hktrpg.com/tool/tarot/07-Re.jpg",
+	"力量 －\nhttps://www.hktrpg.com/tool/tarot/08-Re.jpg",
+	"隱者 －\nhttps://www.hktrpg.com/tool/tarot/09-Re.jpg",
+	"命運之輪 －\nhttps://www.hktrpg.com/tool/tarot/10-Re.jpg",
+	"正義 －\nhttps://www.hktrpg.com/tool/tarot/11-Re.jpg",
+	"吊人 －\nhttps://www.hktrpg.com/tool/tarot/12-Re.jpg",
+	"死神 －\nhttps://www.hktrpg.com/tool/tarot/13-Re.jpg",
+	"節制 －\nhttps://www.hktrpg.com/tool/tarot/14-Re.jpg",
+	"惡魔 －\nhttps://www.hktrpg.com/tool/tarot/15-Re.jpg",
+	"高塔 －\nhttps://www.hktrpg.com/tool/tarot/16-Re.jpg",
+	"星星 －\nhttps://www.hktrpg.com/tool/tarot/17-Re.jpg",
+	"月亮 －\nhttps://www.hktrpg.com/tool/tarot/18-Re.jpg",
+	"太陽 －\nhttps://www.hktrpg.com/tool/tarot/19-Re.jpg",
+	"審判 －\nhttps://www.hktrpg.com/tool/tarot/20-Re.jpg",
+	"世界 －\nhttps://www.hktrpg.com/tool/tarot/21-Re.jpg",
+	"聖杯一 ＋\nhttps://www.hktrpg.com/tool/tarot/CUPS_01.jpg",
+	"聖杯二 ＋\nhttps://www.hktrpg.com/tool/tarot/CUPS_02.jpg",
+	"聖杯三 ＋\nhttps://www.hktrpg.com/tool/tarot/CUPS_03.jpg",
+	"聖杯四 ＋\nhttps://www.hktrpg.com/tool/tarot/CUPS_04.jpg",
+	"聖杯五 ＋\nhttps://www.hktrpg.com/tool/tarot/CUPS_05.jpg",
+	"聖杯六 ＋\nhttps://www.hktrpg.com/tool/tarot/CUPS_06.jpg",
+	"聖杯七 ＋\nhttps://www.hktrpg.com/tool/tarot/CUPS_07.jpg",
+	"聖杯八 ＋\nhttps://www.hktrpg.com/tool/tarot/CUPS_08.jpg",
+	"聖杯九 ＋\nhttps://www.hktrpg.com/tool/tarot/CUPS_09.jpg",
+	"聖杯十 ＋\nhttps://www.hktrpg.com/tool/tarot/CUPS_10.jpg",
+	"聖杯國王 ＋\nhttps://www.hktrpg.com/tool/tarot/CUPS_KING.jpg",
+	"聖杯騎士 ＋\nhttps://www.hktrpg.com/tool/tarot/CUPS_KNIGHT.jpg",
+	"聖杯侍者 ＋\nhttps://www.hktrpg.com/tool/tarot/CUPS_PAGE.jpg",
+	"聖杯皇后 ＋\nhttps://www.hktrpg.com/tool/tarot/CUPS_QUEEN.jpg",
+	"錢幣一 ＋\nhttps://www.hktrpg.com/tool/tarot/PANTA_01.jpg",
+	"錢幣二 ＋\nhttps://www.hktrpg.com/tool/tarot/PANTA_02.jpg",
+	"錢幣三 ＋\nhttps://www.hktrpg.com/tool/tarot/PANTA_03.jpg",
+	"錢幣四 ＋\nhttps://www.hktrpg.com/tool/tarot/PANTA_04.jpg",
+	"錢幣五 ＋\nhttps://www.hktrpg.com/tool/tarot/PANTA_05.jpg",
+	"錢幣六 ＋\nhttps://www.hktrpg.com/tool/tarot/PANTA_06.jpg",
+	"錢幣七 ＋\nhttps://www.hktrpg.com/tool/tarot/PANTA_07.jpg",
+	"錢幣八 ＋\nhttps://www.hktrpg.com/tool/tarot/PANTA_08.jpg",
+	"錢幣九 ＋\nhttps://www.hktrpg.com/tool/tarot/PANTA_09.jpg",
+	"錢幣十 ＋\nhttps://www.hktrpg.com/tool/tarot/PANTA_10.jpg",
+	"錢幣國王 ＋\nhttps://www.hktrpg.com/tool/tarot/PANTA_KING.jpg",
+	"錢幣騎士 ＋\nhttps://www.hktrpg.com/tool/tarot/PANTA_KNIGHT.jpg",
+	"錢幣侍者 ＋\nhttps://www.hktrpg.com/tool/tarot/PANTA_PAGE.jpg",
+	"錢幣皇后 ＋\nhttps://www.hktrpg.com/tool/tarot/PANTA_QUEEN.jpg",
+	"寶劍一 ＋\nhttps://www.hktrpg.com/tool/tarot/SWORDS_01.jpg",
+	"寶劍二 ＋\nhttps://www.hktrpg.com/tool/tarot/SWORDS_02.jpg",
+	"寶劍三 ＋\nhttps://www.hktrpg.com/tool/tarot/SWORDS_03.jpg",
+	"寶劍四 ＋\nhttps://www.hktrpg.com/tool/tarot/SWORDS_04.jpg",
+	"寶劍五 ＋\nhttps://www.hktrpg.com/tool/tarot/SWORDS_05.jpg",
+	"寶劍六 ＋\nhttps://www.hktrpg.com/tool/tarot/SWORDS_06.jpg",
+	"寶劍七 ＋\nhttps://www.hktrpg.com/tool/tarot/SWORDS_07.jpg",
+	"寶劍八 ＋\nhttps://www.hktrpg.com/tool/tarot/SWORDS_08.jpg",
+	"寶劍九 ＋\nhttps://www.hktrpg.com/tool/tarot/SWORDS_09.jpg",
+	"寶劍十 ＋\nhttps://www.hktrpg.com/tool/tarot/SWORDS_10.jpg",
+	"寶劍國王 ＋\nhttps://www.hktrpg.com/tool/tarot/SWORDS_KING.jpg",
+	"寶劍騎士 ＋\nhttps://www.hktrpg.com/tool/tarot/SWORDS_KNIGHT.jpg",
+	"寶劍侍者 ＋\nhttps://www.hktrpg.com/tool/tarot/SWORDS_PAGE.jpg",
+	"寶劍皇后 ＋\nhttps://www.hktrpg.com/tool/tarot/SWORDS_QUEEN.jpg",
+	"權杖一 ＋\nhttps://www.hktrpg.com/tool/tarot/WANDS_01.jpg",
+	"權杖二 ＋\nhttps://www.hktrpg.com/tool/tarot/WANDS_02.jpg",
+	"權杖三 ＋\nhttps://www.hktrpg.com/tool/tarot/WANDS_03.jpg",
+	"權杖四 ＋\nhttps://www.hktrpg.com/tool/tarot/WANDS_04.jpg",
+	"權杖五 ＋\nhttps://www.hktrpg.com/tool/tarot/WANDS_05.jpg",
+	"權杖六 ＋\nhttps://www.hktrpg.com/tool/tarot/WANDS_06.jpg",
+	"權杖七 ＋\nhttps://www.hktrpg.com/tool/tarot/WANDS_07.jpg",
+	"權杖八 ＋\nhttps://www.hktrpg.com/tool/tarot/WANDS_08.jpg",
+	"權杖九 ＋\nhttps://www.hktrpg.com/tool/tarot/WANDS_09.jpg",
+	"權杖十 ＋\nhttps://www.hktrpg.com/tool/tarot/WANDS_10.jpg",
+	"權杖國王 ＋\nhttps://www.hktrpg.com/tool/tarot/WANDS_KING.jpg",
+	"權杖騎士 ＋\nhttps://www.hktrpg.com/tool/tarot/WANDS_KNIGHT.jpg",
+	"權杖侍者 ＋\nhttps://www.hktrpg.com/tool/tarot/WANDS_PAGE.jpg",
+	"權杖皇后 ＋\nhttps://www.hktrpg.com/tool/tarot/WANDS_QUEEN.jpg",
+	"聖杯一 －\nhttps://www.hktrpg.com/tool/tarot/CUPS_01-Re.jpg",
+	"聖杯二 －\nhttps://www.hktrpg.com/tool/tarot/CUPS_02-Re.jpg",
+	"聖杯三 －\nhttps://www.hktrpg.com/tool/tarot/CUPS_03-Re.jpg",
+	"聖杯四 －\nhttps://www.hktrpg.com/tool/tarot/CUPS_04-Re.jpg",
+	"聖杯五 －\nhttps://www.hktrpg.com/tool/tarot/CUPS_05-Re.jpg",
+	"聖杯六 －\nhttps://www.hktrpg.com/tool/tarot/CUPS_06-Re.jpg",
+	"聖杯七 －\nhttps://www.hktrpg.com/tool/tarot/CUPS_07-Re.jpg",
+	"聖杯八 －\nhttps://www.hktrpg.com/tool/tarot/CUPS_08-Re.jpg",
+	"聖杯九 －\nhttps://www.hktrpg.com/tool/tarot/CUPS_09-Re.jpg",
+	"聖杯十 －\nhttps://www.hktrpg.com/tool/tarot/CUPS_10-Re.jpg",
+	"聖杯國王 －\nhttps://www.hktrpg.com/tool/tarot/CUPS_KING-Re.jpg",
+	"聖杯騎士 －\nhttps://www.hktrpg.com/tool/tarot/CUPS_KNIGHT-Re.jpg",
+	"聖杯侍者 －\nhttps://www.hktrpg.com/tool/tarot/CUPS_PAGE-Re.jpg",
+	"聖杯皇后 －\nhttps://www.hktrpg.com/tool/tarot/CUPS_QUEEN-Re.jpg",
+	"錢幣一 －\nhttps://www.hktrpg.com/tool/tarot/PANTA_01-Re.jpg",
+	"錢幣二 －\nhttps://www.hktrpg.com/tool/tarot/PANTA_02-Re.jpg",
+	"錢幣三 －\nhttps://www.hktrpg.com/tool/tarot/PANTA_03-Re.jpg",
+	"錢幣四 －\nhttps://www.hktrpg.com/tool/tarot/PANTA_04-Re.jpg",
+	"錢幣五 －\nhttps://www.hktrpg.com/tool/tarot/PANTA_05-Re.jpg",
+	"錢幣六 －\nhttps://www.hktrpg.com/tool/tarot/PANTA_06-Re.jpg",
+	"錢幣七 －\nhttps://www.hktrpg.com/tool/tarot/PANTA_07-Re.jpg",
+	"錢幣八 －\nhttps://www.hktrpg.com/tool/tarot/PANTA_08-Re.jpg",
+	"錢幣九 －\nhttps://www.hktrpg.com/tool/tarot/PANTA_09-Re.jpg",
+	"錢幣十 －\nhttps://www.hktrpg.com/tool/tarot/PANTA_10-Re.jpg",
+	"錢幣國王 －\nhttps://www.hktrpg.com/tool/tarot/PANTA_KING-Re.jpg",
+	"錢幣騎士 －\nhttps://www.hktrpg.com/tool/tarot/PANTA_KNIGHT-Re.jpg",
+	"錢幣侍者 －\nhttps://www.hktrpg.com/tool/tarot/PANTA_PAGE-Re.jpg",
+	"錢幣皇后 －\nhttps://www.hktrpg.com/tool/tarot/PANTA_QUEEN-Re.jpg",
+	"寶劍一 －\nhttps://www.hktrpg.com/tool/tarot/SWORDS_01-Re.jpg",
+	"寶劍二 －\nhttps://www.hktrpg.com/tool/tarot/SWORDS_02-Re.jpg",
+	"寶劍三 －\nhttps://www.hktrpg.com/tool/tarot/SWORDS_03-Re.jpg",
+	"寶劍四 －\nhttps://www.hktrpg.com/tool/tarot/SWORDS_04-Re.jpg",
+	"寶劍五 －\nhttps://www.hktrpg.com/tool/tarot/SWORDS_05-Re.jpg",
+	"寶劍六 －\nhttps://www.hktrpg.com/tool/tarot/SWORDS_06-Re.jpg",
+	"寶劍七 －\nhttps://www.hktrpg.com/tool/tarot/SWORDS_07-Re.jpg",
+	"寶劍八 －\nhttps://www.hktrpg.com/tool/tarot/SWORDS_08-Re.jpg",
+	"寶劍九 －\nhttps://www.hktrpg.com/tool/tarot/SWORDS_09-Re.jpg",
+	"寶劍十 －\nhttps://www.hktrpg.com/tool/tarot/SWORDS_10-Re.jpg",
+	"寶劍國王 －\nhttps://www.hktrpg.com/tool/tarot/SWORDS_KING-Re.jpg",
+	"寶劍騎士 －\nhttps://www.hktrpg.com/tool/tarot/SWORDS_KNIGHT-Re.jpg",
+	"寶劍侍者 －\nhttps://www.hktrpg.com/tool/tarot/SWORDS_PAGE-Re.jpg",
+	"寶劍皇后 －\nhttps://www.hktrpg.com/tool/tarot/SWORDS_QUEEN-Re.jpg",
+	"權杖一 －\nhttps://www.hktrpg.com/tool/tarot/WANDS_01-Re.jpg",
+	"權杖二 －\nhttps://www.hktrpg.com/tool/tarot/WANDS_02-Re.jpg",
+	"權杖三 －\nhttps://www.hktrpg.com/tool/tarot/WANDS_03-Re.jpg",
+	"權杖四 －\nhttps://www.hktrpg.com/tool/tarot/WANDS_04-Re.jpg",
+	"權杖五 －\nhttps://www.hktrpg.com/tool/tarot/WANDS_05-Re.jpg",
+	"權杖六 －\nhttps://www.hktrpg.com/tool/tarot/WANDS_06-Re.jpg",
+	"權杖七 －\nhttps://www.hktrpg.com/tool/tarot/WANDS_07-Re.jpg",
+	"權杖八 －\nhttps://www.hktrpg.com/tool/tarot/WANDS_08-Re.jpg",
+	"權杖九 －\nhttps://www.hktrpg.com/tool/tarot/WANDS_09-Re.jpg",
+	"權杖十 －\nhttps://www.hktrpg.com/tool/tarot/WANDS_10-Re.jpg",
+	"權杖國王 －\nhttps://www.hktrpg.com/tool/tarot/WANDS_KING-Re.jpg",
+	"權杖騎士 －\nhttps://www.hktrpg.com/tool/tarot/WANDS_KNIGHT-Re.jpg",
+	"權杖侍者 －\nhttps://www.hktrpg.com/tool/tarot/WANDS_PAGE-Re.jpg",
+	"權杖皇后 －\nhttps://www.hktrpg.com/tool/tarot/WANDS_QUEEN-Re.jpg",
+	"空白"
+]
+
+const TarotList2 = ["愚者 ＋",
+	"魔術師 ＋",
+	"女祭司 ＋",
+	"女皇 ＋",
+	"皇帝 ＋",
+	"教皇 ＋",
+	"戀人 ＋",
+	"戰車 ＋",
+	"力量 ＋",
+	"隱者 ＋",
+	"命運之輪 ＋",
+	"正義 ＋",
+	"吊人 ＋",
+	"死神 ＋",
+	"節制 ＋",
+	"惡魔 ＋",
+	"高塔 ＋",
+	"星星 ＋",
+	"月亮 ＋",
+	"太陽 ＋",
+	"審判 ＋",
+	"世界 ＋",
+	"聖杯一 ＋",
+	"聖杯二 ＋",
+	"聖杯三 ＋",
+	"聖杯四 ＋",
+	"聖杯五 ＋",
+	"聖杯六 ＋",
+	"聖杯七 ＋",
+	"聖杯八 ＋",
+	"聖杯九 ＋",
+	"聖杯十 ＋",
+	"聖杯國王 ＋",
+	"聖杯騎士 ＋",
+	"聖杯侍者 ＋",
+	"聖杯皇后 ＋",
+	"錢幣一 ＋",
+	"錢幣二 ＋",
+	"錢幣三 ＋",
+	"錢幣四 ＋",
+	"錢幣五 ＋",
+	"錢幣六 ＋",
+	"錢幣七 ＋",
+	"錢幣八 ＋",
+	"錢幣九 ＋",
+	"錢幣十 ＋",
+	"錢幣國王 ＋",
+	"錢幣騎士 ＋",
+	"錢幣侍者 ＋",
+	"錢幣皇后 ＋",
+	"寶劍一 ＋",
+	"寶劍二 ＋",
+	"寶劍三 ＋",
+	"寶劍四 ＋",
+	"寶劍五 ＋",
+	"寶劍六 ＋",
+	"寶劍七 ＋",
+	"寶劍八 ＋",
+	"寶劍九 ＋",
+	"寶劍十 ＋",
+	"寶劍國王 ＋",
+	"寶劍騎士 ＋",
+	"寶劍侍者 ＋",
+	"寶劍皇后 ＋",
+	"權杖一 ＋",
+	"權杖二 ＋",
+	"權杖三 ＋",
+	"權杖四 ＋",
+	"權杖五 ＋",
+	"權杖六 ＋",
+	"權杖七 ＋",
+	"權杖八 ＋",
+	"權杖九 ＋",
+	"權杖十 ＋",
+	"權杖國王 ＋",
+	"權杖騎士 ＋",
+	"權杖侍者 ＋",
+	"權杖皇后 ＋",
+	"愚者 －",
+	"魔術師 －",
+	"女祭司 －",
+	"女皇 －",
+	"皇帝 －",
+	"教皇 －",
+	"戀人 －",
+	"戰車 －",
+	"力量 －",
+	"隱者 －",
+	"命運之輪 －",
+	"正義 －",
+	"吊人 －",
+	"死神 －",
+	"節制 －",
+	"惡魔 －",
+	"高塔 －",
+	"星星 －",
+	"月亮 －",
+	"太陽 －",
+	"審判 －",
+	"世界 －",
+	"聖杯一 －",
+	"聖杯二 －",
+	"聖杯三 －",
+	"聖杯四 －",
+	"聖杯五 －",
+	"聖杯六 －",
+	"聖杯七 －",
+	"聖杯八 －",
+	"聖杯九 －",
+	"聖杯十 －",
+	"聖杯國王 －",
+	"聖杯騎士 －",
+	"聖杯侍者 －",
+	"聖杯皇后 －",
+	"錢幣一 －",
+	"錢幣二 －",
+	"錢幣三 －",
+	"錢幣四 －",
+	"錢幣五 －",
+	"錢幣六 －",
+	"錢幣七 －",
+	"錢幣八 －",
+	"錢幣九 －",
+	"錢幣十 －",
+	"錢幣國王 －",
+	"錢幣騎士 －",
+	"錢幣侍者 －",
+	"錢幣皇后 －",
+	"寶劍一 －",
+	"寶劍二 －",
+	"寶劍三 －",
+	"寶劍四 －",
+	"寶劍五 －",
+	"寶劍六 －",
+	"寶劍七 －",
+	"寶劍八 －",
+	"寶劍九 －",
+	"寶劍十 －",
+	"寶劍國王 －",
+	"寶劍騎士 －",
+	"寶劍侍者 －",
+	"寶劍皇后 －",
+	"權杖一 －",
+	"權杖二 －",
+	"權杖三 －",
+	"權杖四 －",
+	"權杖五 －",
+	"權杖六 －",
+	"權杖七 －",
+	"權杖八 －",
+	"權杖九 －",
+	"權杖十 －",
+	"權杖國王 －",
+	"權杖騎士 －",
+	"權杖侍者 －",
+	"權杖皇后 －",
+	"空白"
+]
+
+
 function tarotCardReply(count) {
 	let returnStr = '';
+	//https://www.flickr.com/photos/circasassy/page5
 	// returnStr = count + '愚者';
 	if (count == 0) returnStr = '愚者';
 	if (count == 1) returnStr = '魔術師';

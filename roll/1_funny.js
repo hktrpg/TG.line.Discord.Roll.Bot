@@ -278,7 +278,7 @@ function MultiDrawTarot(text, text2, type) {
 	switch (type) {
 		case 1:
 			rply.text = '時間塔羅'
-			cards = rollbase.shuffleTarget(TarotList);
+			cards = rollbase.shuffleTarget(TarotList2);
 			returnStr += '過去: ' + cards[0] + '\n'
 			returnStr += '現在: ' + cards[1] + '\n'
 			returnStr += '未來: ' + cards[2] + '\n'
@@ -305,185 +305,173 @@ function MultiDrawTarot(text, text2, type) {
 		rply.text += "；" + text + " " + text2
 	rply.text += "\n" + returnStr
 	return rply;
-
-
 }
 
 function NomalDrawTarot(text, text2) {
-	rply.text = rollbase.shuffleTarget(TarotList.slice(0, 44))[0]
+	rply.text = '每日塔羅'
 	if (text)
 		rply.text += "；" + text + " " + text2
+	rply.text += '\n' + rollbase.shuffleTarget(TarotList.slice(0, 44))[0]
 	return rply;
 }
 
 
-function tarotRevReply(count) {
-	let returnStr = '';
-
-	if (count == 0) returnStr = '＋';
-	if (count == 1) returnStr = '－';
-
-	return returnStr;
-	//return rply;
-}
-
-
-const TarotList = ["愚者 ＋\nhttps://www.hktrpg.com/tool/tarot/00.jpg",
-	"魔術師 ＋\nhttps://www.hktrpg.com/tool/tarot/01.jpg",
-	"女祭司 ＋\nhttps://www.hktrpg.com/tool/tarot/02.jpg",
-	"女皇 ＋\nhttps://www.hktrpg.com/tool/tarot/03.jpg",
-	"皇帝 ＋\nhttps://www.hktrpg.com/tool/tarot/04.jpg",
-	"教皇 ＋\nhttps://www.hktrpg.com/tool/tarot/05.jpg",
-	"戀人 ＋\nhttps://www.hktrpg.com/tool/tarot/06.jpg",
-	"戰車 ＋\nhttps://www.hktrpg.com/tool/tarot/07.jpg",
-	"力量 ＋\nhttps://www.hktrpg.com/tool/tarot/08.jpg",
-	"隱者 ＋\nhttps://www.hktrpg.com/tool/tarot/09.jpg",
-	"命運之輪 ＋\nhttps://www.hktrpg.com/tool/tarot/10.jpg",
-	"正義 ＋\nhttps://www.hktrpg.com/tool/tarot/11.jpg",
-	"吊人 ＋\nhttps://www.hktrpg.com/tool/tarot/12.jpg",
-	"死神 ＋\nhttps://www.hktrpg.com/tool/tarot/13.jpg",
-	"節制 ＋\nhttps://www.hktrpg.com/tool/tarot/14.jpg",
-	"惡魔 ＋\nhttps://www.hktrpg.com/tool/tarot/15.jpg",
-	"高塔 ＋\nhttps://www.hktrpg.com/tool/tarot/16.jpg",
-	"星星 ＋\nhttps://www.hktrpg.com/tool/tarot/17.jpg",
-	"月亮 ＋\nhttps://www.hktrpg.com/tool/tarot/18.jpg",
-	"太陽 ＋\nhttps://www.hktrpg.com/tool/tarot/19.jpg",
-	"審判 ＋\nhttps://www.hktrpg.com/tool/tarot/20.jpg",
-	"世界 ＋\nhttps://www.hktrpg.com/tool/tarot/21.jpg",
-	"愚者 －\nhttps://www.hktrpg.com/tool/tarot/00-Re.jpg",
-	"魔術師 －\nhttps://www.hktrpg.com/tool/tarot/01-Re.jpg",
-	"女祭司 －\nhttps://www.hktrpg.com/tool/tarot/02-Re.jpg",
-	"女皇 －\nhttps://www.hktrpg.com/tool/tarot/03-Re.jpg",
-	"皇帝 －\nhttps://www.hktrpg.com/tool/tarot/04-Re.jpg",
-	"教皇 －\nhttps://www.hktrpg.com/tool/tarot/05-Re.jpg",
-	"戀人 －\nhttps://www.hktrpg.com/tool/tarot/06-Re.jpg",
-	"戰車 －\nhttps://www.hktrpg.com/tool/tarot/07-Re.jpg",
-	"力量 －\nhttps://www.hktrpg.com/tool/tarot/08-Re.jpg",
-	"隱者 －\nhttps://www.hktrpg.com/tool/tarot/09-Re.jpg",
-	"命運之輪 －\nhttps://www.hktrpg.com/tool/tarot/10-Re.jpg",
-	"正義 －\nhttps://www.hktrpg.com/tool/tarot/11-Re.jpg",
-	"吊人 －\nhttps://www.hktrpg.com/tool/tarot/12-Re.jpg",
-	"死神 －\nhttps://www.hktrpg.com/tool/tarot/13-Re.jpg",
-	"節制 －\nhttps://www.hktrpg.com/tool/tarot/14-Re.jpg",
-	"惡魔 －\nhttps://www.hktrpg.com/tool/tarot/15-Re.jpg",
-	"高塔 －\nhttps://www.hktrpg.com/tool/tarot/16-Re.jpg",
-	"星星 －\nhttps://www.hktrpg.com/tool/tarot/17-Re.jpg",
-	"月亮 －\nhttps://www.hktrpg.com/tool/tarot/18-Re.jpg",
-	"太陽 －\nhttps://www.hktrpg.com/tool/tarot/19-Re.jpg",
-	"審判 －\nhttps://www.hktrpg.com/tool/tarot/20-Re.jpg",
-	"世界 －\nhttps://www.hktrpg.com/tool/tarot/21-Re.jpg",
-	"聖杯一 ＋\nhttps://www.hktrpg.com/tool/tarot/CUPS_01.jpg",
-	"聖杯二 ＋\nhttps://www.hktrpg.com/tool/tarot/CUPS_02.jpg",
-	"聖杯三 ＋\nhttps://www.hktrpg.com/tool/tarot/CUPS_03.jpg",
-	"聖杯四 ＋\nhttps://www.hktrpg.com/tool/tarot/CUPS_04.jpg",
-	"聖杯五 ＋\nhttps://www.hktrpg.com/tool/tarot/CUPS_05.jpg",
-	"聖杯六 ＋\nhttps://www.hktrpg.com/tool/tarot/CUPS_06.jpg",
-	"聖杯七 ＋\nhttps://www.hktrpg.com/tool/tarot/CUPS_07.jpg",
-	"聖杯八 ＋\nhttps://www.hktrpg.com/tool/tarot/CUPS_08.jpg",
-	"聖杯九 ＋\nhttps://www.hktrpg.com/tool/tarot/CUPS_09.jpg",
-	"聖杯十 ＋\nhttps://www.hktrpg.com/tool/tarot/CUPS_10.jpg",
-	"聖杯國王 ＋\nhttps://www.hktrpg.com/tool/tarot/CUPS_KING.jpg",
-	"聖杯騎士 ＋\nhttps://www.hktrpg.com/tool/tarot/CUPS_KNIGHT.jpg",
-	"聖杯侍者 ＋\nhttps://www.hktrpg.com/tool/tarot/CUPS_PAGE.jpg",
-	"聖杯皇后 ＋\nhttps://www.hktrpg.com/tool/tarot/CUPS_QUEEN.jpg",
-	"錢幣一 ＋\nhttps://www.hktrpg.com/tool/tarot/PANTA_01.jpg",
-	"錢幣二 ＋\nhttps://www.hktrpg.com/tool/tarot/PANTA_02.jpg",
-	"錢幣三 ＋\nhttps://www.hktrpg.com/tool/tarot/PANTA_03.jpg",
-	"錢幣四 ＋\nhttps://www.hktrpg.com/tool/tarot/PANTA_04.jpg",
-	"錢幣五 ＋\nhttps://www.hktrpg.com/tool/tarot/PANTA_05.jpg",
-	"錢幣六 ＋\nhttps://www.hktrpg.com/tool/tarot/PANTA_06.jpg",
-	"錢幣七 ＋\nhttps://www.hktrpg.com/tool/tarot/PANTA_07.jpg",
-	"錢幣八 ＋\nhttps://www.hktrpg.com/tool/tarot/PANTA_08.jpg",
-	"錢幣九 ＋\nhttps://www.hktrpg.com/tool/tarot/PANTA_09.jpg",
-	"錢幣十 ＋\nhttps://www.hktrpg.com/tool/tarot/PANTA_10.jpg",
-	"錢幣國王 ＋\nhttps://www.hktrpg.com/tool/tarot/PANTA_KING.jpg",
-	"錢幣騎士 ＋\nhttps://www.hktrpg.com/tool/tarot/PANTA_KNIGHT.jpg",
-	"錢幣侍者 ＋\nhttps://www.hktrpg.com/tool/tarot/PANTA_PAGE.jpg",
-	"錢幣皇后 ＋\nhttps://www.hktrpg.com/tool/tarot/PANTA_QUEEN.jpg",
-	"寶劍一 ＋\nhttps://www.hktrpg.com/tool/tarot/SWORDS_01.jpg",
-	"寶劍二 ＋\nhttps://www.hktrpg.com/tool/tarot/SWORDS_02.jpg",
-	"寶劍三 ＋\nhttps://www.hktrpg.com/tool/tarot/SWORDS_03.jpg",
-	"寶劍四 ＋\nhttps://www.hktrpg.com/tool/tarot/SWORDS_04.jpg",
-	"寶劍五 ＋\nhttps://www.hktrpg.com/tool/tarot/SWORDS_05.jpg",
-	"寶劍六 ＋\nhttps://www.hktrpg.com/tool/tarot/SWORDS_06.jpg",
-	"寶劍七 ＋\nhttps://www.hktrpg.com/tool/tarot/SWORDS_07.jpg",
-	"寶劍八 ＋\nhttps://www.hktrpg.com/tool/tarot/SWORDS_08.jpg",
-	"寶劍九 ＋\nhttps://www.hktrpg.com/tool/tarot/SWORDS_09.jpg",
-	"寶劍十 ＋\nhttps://www.hktrpg.com/tool/tarot/SWORDS_10.jpg",
-	"寶劍國王 ＋\nhttps://www.hktrpg.com/tool/tarot/SWORDS_KING.jpg",
-	"寶劍騎士 ＋\nhttps://www.hktrpg.com/tool/tarot/SWORDS_KNIGHT.jpg",
-	"寶劍侍者 ＋\nhttps://www.hktrpg.com/tool/tarot/SWORDS_PAGE.jpg",
-	"寶劍皇后 ＋\nhttps://www.hktrpg.com/tool/tarot/SWORDS_QUEEN.jpg",
-	"權杖一 ＋\nhttps://www.hktrpg.com/tool/tarot/WANDS_01.jpg",
-	"權杖二 ＋\nhttps://www.hktrpg.com/tool/tarot/WANDS_02.jpg",
-	"權杖三 ＋\nhttps://www.hktrpg.com/tool/tarot/WANDS_03.jpg",
-	"權杖四 ＋\nhttps://www.hktrpg.com/tool/tarot/WANDS_04.jpg",
-	"權杖五 ＋\nhttps://www.hktrpg.com/tool/tarot/WANDS_05.jpg",
-	"權杖六 ＋\nhttps://www.hktrpg.com/tool/tarot/WANDS_06.jpg",
-	"權杖七 ＋\nhttps://www.hktrpg.com/tool/tarot/WANDS_07.jpg",
-	"權杖八 ＋\nhttps://www.hktrpg.com/tool/tarot/WANDS_08.jpg",
-	"權杖九 ＋\nhttps://www.hktrpg.com/tool/tarot/WANDS_09.jpg",
-	"權杖十 ＋\nhttps://www.hktrpg.com/tool/tarot/WANDS_10.jpg",
-	"權杖國王 ＋\nhttps://www.hktrpg.com/tool/tarot/WANDS_KING.jpg",
-	"權杖騎士 ＋\nhttps://www.hktrpg.com/tool/tarot/WANDS_KNIGHT.jpg",
-	"權杖侍者 ＋\nhttps://www.hktrpg.com/tool/tarot/WANDS_PAGE.jpg",
-	"權杖皇后 ＋\nhttps://www.hktrpg.com/tool/tarot/WANDS_QUEEN.jpg",
-	"聖杯一 －\nhttps://www.hktrpg.com/tool/tarot/CUPS_01-Re.jpg",
-	"聖杯二 －\nhttps://www.hktrpg.com/tool/tarot/CUPS_02-Re.jpg",
-	"聖杯三 －\nhttps://www.hktrpg.com/tool/tarot/CUPS_03-Re.jpg",
-	"聖杯四 －\nhttps://www.hktrpg.com/tool/tarot/CUPS_04-Re.jpg",
-	"聖杯五 －\nhttps://www.hktrpg.com/tool/tarot/CUPS_05-Re.jpg",
-	"聖杯六 －\nhttps://www.hktrpg.com/tool/tarot/CUPS_06-Re.jpg",
-	"聖杯七 －\nhttps://www.hktrpg.com/tool/tarot/CUPS_07-Re.jpg",
-	"聖杯八 －\nhttps://www.hktrpg.com/tool/tarot/CUPS_08-Re.jpg",
-	"聖杯九 －\nhttps://www.hktrpg.com/tool/tarot/CUPS_09-Re.jpg",
-	"聖杯十 －\nhttps://www.hktrpg.com/tool/tarot/CUPS_10-Re.jpg",
-	"聖杯國王 －\nhttps://www.hktrpg.com/tool/tarot/CUPS_KING-Re.jpg",
-	"聖杯騎士 －\nhttps://www.hktrpg.com/tool/tarot/CUPS_KNIGHT-Re.jpg",
-	"聖杯侍者 －\nhttps://www.hktrpg.com/tool/tarot/CUPS_PAGE-Re.jpg",
-	"聖杯皇后 －\nhttps://www.hktrpg.com/tool/tarot/CUPS_QUEEN-Re.jpg",
-	"錢幣一 －\nhttps://www.hktrpg.com/tool/tarot/PANTA_01-Re.jpg",
-	"錢幣二 －\nhttps://www.hktrpg.com/tool/tarot/PANTA_02-Re.jpg",
-	"錢幣三 －\nhttps://www.hktrpg.com/tool/tarot/PANTA_03-Re.jpg",
-	"錢幣四 －\nhttps://www.hktrpg.com/tool/tarot/PANTA_04-Re.jpg",
-	"錢幣五 －\nhttps://www.hktrpg.com/tool/tarot/PANTA_05-Re.jpg",
-	"錢幣六 －\nhttps://www.hktrpg.com/tool/tarot/PANTA_06-Re.jpg",
-	"錢幣七 －\nhttps://www.hktrpg.com/tool/tarot/PANTA_07-Re.jpg",
-	"錢幣八 －\nhttps://www.hktrpg.com/tool/tarot/PANTA_08-Re.jpg",
-	"錢幣九 －\nhttps://www.hktrpg.com/tool/tarot/PANTA_09-Re.jpg",
-	"錢幣十 －\nhttps://www.hktrpg.com/tool/tarot/PANTA_10-Re.jpg",
-	"錢幣國王 －\nhttps://www.hktrpg.com/tool/tarot/PANTA_KING-Re.jpg",
-	"錢幣騎士 －\nhttps://www.hktrpg.com/tool/tarot/PANTA_KNIGHT-Re.jpg",
-	"錢幣侍者 －\nhttps://www.hktrpg.com/tool/tarot/PANTA_PAGE-Re.jpg",
-	"錢幣皇后 －\nhttps://www.hktrpg.com/tool/tarot/PANTA_QUEEN-Re.jpg",
-	"寶劍一 －\nhttps://www.hktrpg.com/tool/tarot/SWORDS_01-Re.jpg",
-	"寶劍二 －\nhttps://www.hktrpg.com/tool/tarot/SWORDS_02-Re.jpg",
-	"寶劍三 －\nhttps://www.hktrpg.com/tool/tarot/SWORDS_03-Re.jpg",
-	"寶劍四 －\nhttps://www.hktrpg.com/tool/tarot/SWORDS_04-Re.jpg",
-	"寶劍五 －\nhttps://www.hktrpg.com/tool/tarot/SWORDS_05-Re.jpg",
-	"寶劍六 －\nhttps://www.hktrpg.com/tool/tarot/SWORDS_06-Re.jpg",
-	"寶劍七 －\nhttps://www.hktrpg.com/tool/tarot/SWORDS_07-Re.jpg",
-	"寶劍八 －\nhttps://www.hktrpg.com/tool/tarot/SWORDS_08-Re.jpg",
-	"寶劍九 －\nhttps://www.hktrpg.com/tool/tarot/SWORDS_09-Re.jpg",
-	"寶劍十 －\nhttps://www.hktrpg.com/tool/tarot/SWORDS_10-Re.jpg",
-	"寶劍國王 －\nhttps://www.hktrpg.com/tool/tarot/SWORDS_KING-Re.jpg",
-	"寶劍騎士 －\nhttps://www.hktrpg.com/tool/tarot/SWORDS_KNIGHT-Re.jpg",
-	"寶劍侍者 －\nhttps://www.hktrpg.com/tool/tarot/SWORDS_PAGE-Re.jpg",
-	"寶劍皇后 －\nhttps://www.hktrpg.com/tool/tarot/SWORDS_QUEEN-Re.jpg",
-	"權杖一 －\nhttps://www.hktrpg.com/tool/tarot/WANDS_01-Re.jpg",
-	"權杖二 －\nhttps://www.hktrpg.com/tool/tarot/WANDS_02-Re.jpg",
-	"權杖三 －\nhttps://www.hktrpg.com/tool/tarot/WANDS_03-Re.jpg",
-	"權杖四 －\nhttps://www.hktrpg.com/tool/tarot/WANDS_04-Re.jpg",
-	"權杖五 －\nhttps://www.hktrpg.com/tool/tarot/WANDS_05-Re.jpg",
-	"權杖六 －\nhttps://www.hktrpg.com/tool/tarot/WANDS_06-Re.jpg",
-	"權杖七 －\nhttps://www.hktrpg.com/tool/tarot/WANDS_07-Re.jpg",
-	"權杖八 －\nhttps://www.hktrpg.com/tool/tarot/WANDS_08-Re.jpg",
-	"權杖九 －\nhttps://www.hktrpg.com/tool/tarot/WANDS_09-Re.jpg",
-	"權杖十 －\nhttps://www.hktrpg.com/tool/tarot/WANDS_10-Re.jpg",
-	"權杖國王 －\nhttps://www.hktrpg.com/tool/tarot/WANDS_KING-Re.jpg",
-	"權杖騎士 －\nhttps://www.hktrpg.com/tool/tarot/WANDS_KNIGHT-Re.jpg",
-	"權杖侍者 －\nhttps://www.hktrpg.com/tool/tarot/WANDS_PAGE-Re.jpg",
-	"權杖皇后 －\nhttps://www.hktrpg.com/tool/tarot/WANDS_QUEEN-Re.jpg",
+const TarotList = ["愚者 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/00.jpg",
+	"魔術師 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/01.jpg",
+	"女祭司 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/02.jpg",
+	"女皇 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/03.jpg",
+	"皇帝 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/04.jpg",
+	"教皇 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/05.jpg",
+	"戀人 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/06.jpg",
+	"戰車 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/07.jpg",
+	"力量 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/08.jpg",
+	"隱者 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/09.jpg",
+	"命運之輪 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/10.jpg",
+	"正義 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/11.jpg",
+	"吊人 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/12.jpg",
+	"死神 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/13.jpg",
+	"節制 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/14.jpg",
+	"惡魔 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/15.jpg",
+	"高塔 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/16.jpg",
+	"星星 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/17.jpg",
+	"月亮 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/18.jpg",
+	"太陽 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/19.jpg",
+	"審判 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/20.jpg",
+	"世界 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/21.jpg",
+	"愚者 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/00-Re.jpg",
+	"魔術師 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/01-Re.jpg",
+	"女祭司 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/02-Re.jpg",
+	"女皇 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/03-Re.jpg",
+	"皇帝 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/04-Re.jpg",
+	"教皇 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/05-Re.jpg",
+	"戀人 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/06-Re.jpg",
+	"戰車 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/07-Re.jpg",
+	"力量 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/08-Re.jpg",
+	"隱者 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/09-Re.jpg",
+	"命運之輪 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/10-Re.jpg",
+	"正義 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/11-Re.jpg",
+	"吊人 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/12-Re.jpg",
+	"死神 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/13-Re.jpg",
+	"節制 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/14-Re.jpg",
+	"惡魔 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/15-Re.jpg",
+	"高塔 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/16-Re.jpg",
+	"星星 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/17-Re.jpg",
+	"月亮 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/18-Re.jpg",
+	"太陽 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/19-Re.jpg",
+	"審判 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/20-Re.jpg",
+	"世界 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/21-Re.jpg",
+	"聖杯一 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/CUPS_01.jpg",
+	"聖杯二 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/CUPS_02.jpg",
+	"聖杯三 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/CUPS_03.jpg",
+	"聖杯四 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/CUPS_04.jpg",
+	"聖杯五 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/CUPS_05.jpg",
+	"聖杯六 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/CUPS_06.jpg",
+	"聖杯七 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/CUPS_07.jpg",
+	"聖杯八 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/CUPS_08.jpg",
+	"聖杯九 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/CUPS_09.jpg",
+	"聖杯十 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/CUPS_10.jpg",
+	"聖杯國王 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/CUPS_KING.jpg",
+	"聖杯騎士 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/CUPS_KNIGHT.jpg",
+	"聖杯侍者 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/CUPS_PAGE.jpg",
+	"聖杯皇后 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/CUPS_QUEEN.jpg",
+	"錢幣一 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/PANTA_01.jpg",
+	"錢幣二 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/PANTA_02.jpg",
+	"錢幣三 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/PANTA_03.jpg",
+	"錢幣四 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/PANTA_04.jpg",
+	"錢幣五 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/PANTA_05.jpg",
+	"錢幣六 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/PANTA_06.jpg",
+	"錢幣七 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/PANTA_07.jpg",
+	"錢幣八 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/PANTA_08.jpg",
+	"錢幣九 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/PANTA_09.jpg",
+	"錢幣十 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/PANTA_10.jpg",
+	"錢幣國王 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/PANTA_KING.jpg",
+	"錢幣騎士 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/PANTA_KNIGHT.jpg",
+	"錢幣侍者 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/PANTA_PAGE.jpg",
+	"錢幣皇后 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/PANTA_QUEEN.jpg",
+	"寶劍一 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/SWORDS_01.jpg",
+	"寶劍二 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/SWORDS_02.jpg",
+	"寶劍三 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/SWORDS_03.jpg",
+	"寶劍四 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/SWORDS_04.jpg",
+	"寶劍五 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/SWORDS_05.jpg",
+	"寶劍六 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/SWORDS_06.jpg",
+	"寶劍七 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/SWORDS_07.jpg",
+	"寶劍八 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/SWORDS_08.jpg",
+	"寶劍九 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/SWORDS_09.jpg",
+	"寶劍十 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/SWORDS_10.jpg",
+	"寶劍國王 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/SWORDS_KING.jpg",
+	"寶劍騎士 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/SWORDS_KNIGHT.jpg",
+	"寶劍侍者 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/SWORDS_PAGE.jpg",
+	"寶劍皇后 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/SWORDS_QUEEN.jpg",
+	"權杖一 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/WANDS_01.jpg",
+	"權杖二 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/WANDS_02.jpg",
+	"權杖三 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/WANDS_03.jpg",
+	"權杖四 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/WANDS_04.jpg",
+	"權杖五 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/WANDS_05.jpg",
+	"權杖六 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/WANDS_06.jpg",
+	"權杖七 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/WANDS_07.jpg",
+	"權杖八 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/WANDS_08.jpg",
+	"權杖九 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/WANDS_09.jpg",
+	"權杖十 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/WANDS_10.jpg",
+	"權杖國王 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/WANDS_KING.jpg",
+	"權杖騎士 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/WANDS_KNIGHT.jpg",
+	"權杖侍者 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/WANDS_PAGE.jpg",
+	"權杖皇后 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/WANDS_QUEEN.jpg",
+	"聖杯一 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/CUPS_01-Re.jpg",
+	"聖杯二 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/CUPS_02-Re.jpg",
+	"聖杯三 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/CUPS_03-Re.jpg",
+	"聖杯四 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/CUPS_04-Re.jpg",
+	"聖杯五 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/CUPS_05-Re.jpg",
+	"聖杯六 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/CUPS_06-Re.jpg",
+	"聖杯七 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/CUPS_07-Re.jpg",
+	"聖杯八 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/CUPS_08-Re.jpg",
+	"聖杯九 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/CUPS_09-Re.jpg",
+	"聖杯十 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/CUPS_10-Re.jpg",
+	"聖杯國王 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/CUPS_KING-Re.jpg",
+	"聖杯騎士 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/CUPS_KNIGHT-Re.jpg",
+	"聖杯侍者 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/CUPS_PAGE-Re.jpg",
+	"聖杯皇后 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/CUPS_QUEEN-Re.jpg",
+	"錢幣一 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/PANTA_01-Re.jpg",
+	"錢幣二 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/PANTA_02-Re.jpg",
+	"錢幣三 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/PANTA_03-Re.jpg",
+	"錢幣四 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/PANTA_04-Re.jpg",
+	"錢幣五 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/PANTA_05-Re.jpg",
+	"錢幣六 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/PANTA_06-Re.jpg",
+	"錢幣七 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/PANTA_07-Re.jpg",
+	"錢幣八 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/PANTA_08-Re.jpg",
+	"錢幣九 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/PANTA_09-Re.jpg",
+	"錢幣十 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/PANTA_10-Re.jpg",
+	"錢幣國王 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/PANTA_KING-Re.jpg",
+	"錢幣騎士 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/PANTA_KNIGHT-Re.jpg",
+	"錢幣侍者 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/PANTA_PAGE-Re.jpg",
+	"錢幣皇后 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/PANTA_QUEEN-Re.jpg",
+	"寶劍一 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/SWORDS_01-Re.jpg",
+	"寶劍二 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/SWORDS_02-Re.jpg",
+	"寶劍三 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/SWORDS_03-Re.jpg",
+	"寶劍四 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/SWORDS_04-Re.jpg",
+	"寶劍五 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/SWORDS_05-Re.jpg",
+	"寶劍六 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/SWORDS_06-Re.jpg",
+	"寶劍七 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/SWORDS_07-Re.jpg",
+	"寶劍八 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/SWORDS_08-Re.jpg",
+	"寶劍九 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/SWORDS_09-Re.jpg",
+	"寶劍十 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/SWORDS_10-Re.jpg",
+	"寶劍國王 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/SWORDS_KING-Re.jpg",
+	"寶劍騎士 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/SWORDS_KNIGHT-Re.jpg",
+	"寶劍侍者 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/SWORDS_PAGE-Re.jpg",
+	"寶劍皇后 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/SWORDS_QUEEN-Re.jpg",
+	"權杖一 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/WANDS_01-Re.jpg",
+	"權杖二 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/WANDS_02-Re.jpg",
+	"權杖三 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/WANDS_03-Re.jpg",
+	"權杖四 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/WANDS_04-Re.jpg",
+	"權杖五 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/WANDS_05-Re.jpg",
+	"權杖六 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/WANDS_06-Re.jpg",
+	"權杖七 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/WANDS_07-Re.jpg",
+	"權杖八 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/WANDS_08-Re.jpg",
+	"權杖九 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/WANDS_09-Re.jpg",
+	"權杖十 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/WANDS_10-Re.jpg",
+	"權杖國王 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/WANDS_KING-Re.jpg",
+	"權杖騎士 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/WANDS_KNIGHT-Re.jpg",
+	"權杖侍者 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/WANDS_PAGE-Re.jpg",
+	"權杖皇后 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/tool/tarot/WANDS_QUEEN-Re.jpg",
 	"空白"
 ]
 
@@ -646,94 +634,6 @@ const TarotList2 = ["愚者 ＋",
 	"空白"
 ]
 
-
-function tarotCardReply(count) {
-	let returnStr = '';
-	//https://www.flickr.com/photos/circasassy/page5
-	// returnStr = count + '愚者';
-	if (count == 0) returnStr = '愚者';
-	if (count == 1) returnStr = '魔術師';
-	if (count == 2) returnStr = '女祭司';
-	if (count == 3) returnStr = '女皇';
-	if (count == 4) returnStr = '皇帝';
-	if (count == 5) returnStr = '教皇';
-	if (count == 6) returnStr = '戀人';
-	if (count == 7) returnStr = '戰車';
-	if (count == 8) returnStr = '力量';
-	if (count == 9) returnStr = '隱者';
-	if (count == 10) returnStr = '命運之輪';
-	if (count == 11) returnStr = '正義';
-	if (count == 12) returnStr = '吊人';
-	if (count == 13) returnStr = '死神';
-	if (count == 14) returnStr = '節制';
-	if (count == 15) returnStr = '惡魔';
-	if (count == 16) returnStr = '高塔';
-	if (count == 17) returnStr = '星星';
-	if (count == 18) returnStr = '月亮';
-	if (count == 19) returnStr = '太陽';
-	if (count == 20) returnStr = '審判';
-	if (count == 21) returnStr = '世界';
-	if (count == 22) returnStr = '權杖一';
-	if (count == 23) returnStr = '權杖二';
-	if (count == 24) returnStr = '權杖三';
-	if (count == 25) returnStr = '權杖四';
-	if (count == 26) returnStr = '權杖五';
-	if (count == 27) returnStr = '權杖六';
-	if (count == 28) returnStr = '權杖七';
-	if (count == 29) returnStr = '權杖八';
-	if (count == 30) returnStr = '權杖九';
-	if (count == 31) returnStr = '權杖十';
-	if (count == 32) returnStr = '權杖侍者';
-	if (count == 33) returnStr = '權杖騎士';
-	if (count == 34) returnStr = '權杖皇后';
-	if (count == 35) returnStr = '權杖國王';
-	if (count == 36) returnStr = '聖杯一';
-	if (count == 37) returnStr = '聖杯二';
-	if (count == 38) returnStr = '聖杯三';
-	if (count == 39) returnStr = '聖杯四';
-	if (count == 40) returnStr = '聖杯五';
-	if (count == 41) returnStr = '聖杯六';
-	if (count == 42) returnStr = '聖杯七';
-	if (count == 43) returnStr = '聖杯八';
-	if (count == 44) returnStr = '聖杯九';
-	if (count == 45) returnStr = '聖杯十';
-	if (count == 46) returnStr = '聖杯侍者';
-	if (count == 47) returnStr = '聖杯騎士';
-	if (count == 48) returnStr = '聖杯皇后';
-	if (count == 49) returnStr = '聖杯國王';
-	if (count == 50) returnStr = '寶劍一';
-	if (count == 51) returnStr = '寶劍二';
-	if (count == 52) returnStr = '寶劍三';
-	if (count == 53) returnStr = '寶劍四';
-	if (count == 54) returnStr = '寶劍五';
-	if (count == 55) returnStr = '寶劍六';
-	if (count == 56) returnStr = '寶劍七';
-	if (count == 57) returnStr = '寶劍八';
-	if (count == 58) returnStr = '寶劍九';
-	if (count == 59) returnStr = '寶劍十';
-	if (count == 60) returnStr = '寶劍侍者';
-	if (count == 61) returnStr = '寶劍騎士';
-	if (count == 62) returnStr = '寶劍皇后';
-	if (count == 63) returnStr = '寶劍國王';
-	if (count == 64) returnStr = '錢幣一';
-	if (count == 65) returnStr = '錢幣二';
-	if (count == 66) returnStr = '錢幣三';
-	if (count == 67) returnStr = '錢幣四';
-	if (count == 68) returnStr = '錢幣五';
-	if (count == 69) returnStr = '錢幣六';
-	if (count == 70) returnStr = '錢幣七';
-	if (count == 71) returnStr = '錢幣八';
-	if (count == 72) returnStr = '錢幣九';
-	if (count == 73) returnStr = '錢幣十';
-	if (count == 74) returnStr = '錢幣侍者';
-	if (count == 75) returnStr = '錢幣騎士';
-	if (count == 76) returnStr = '錢幣皇后';
-	if (count == 77) returnStr = '錢幣國王';
-	if (count == 78) returnStr = '空白牌';
-	return returnStr;
-	//return rply;
-
-}
 ////////////////////////////////////////
 //////////////// choice 及SORT
 ////////////////////////////////////////

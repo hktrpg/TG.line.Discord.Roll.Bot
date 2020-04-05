@@ -130,6 +130,10 @@ try {
     return finalStr
   }
 
+  function shuffleTarget(target) {
+    return random.shuffle(target)
+  }
+
   function BuildRollDice(inputStr) {
     // 先把inputStr變成字串（不知道為什麼非這樣不可）
     let comStr = inputStr.toString().toLowerCase()
@@ -261,6 +265,7 @@ module.exports = {
   BuildRollDice: BuildRollDice,
   nomalDiceRoller: nomalDiceRoller,
   DiceINT: DiceINT,
+  shuffleTarget: shuffleTarget,
   rollDiceCommand: rollDiceCommand,
   initialize: initialize,
   getHelpMessage: getHelpMessage,

@@ -100,7 +100,7 @@ rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botnam
 					exports[Object.keys(exports)[i]].gameName()
 			}
 			if (botname == "Line")
-				rply.text += "\n因為Line的機制, 如擲骰時並無顯示用家名字, 請到下列網址,和機器人任意說一句話,成為好友. \n https://line.me/R/ti/p/svMLqy9Mik\n P.S. Line 有500次的私訊限制，所以超過時，DR等私訊功能會失效。"
+				rply.text += "\n因為Line的機制, 如擲骰時並無顯示用家名字, 請到下列網址,和機器人任意說一句話,成為好友. \n https://line.me/R/ti/p/svMLqy9Mik\nP.S. Line 現在有每月500次的私訊限制，所以超過時DR等私訊功能會失效。(可以認為這功能在Line已失效，除非有人付每月50美元的月費ORZ)"
 
 			//console.log('case: ', rply)
 			return rply;

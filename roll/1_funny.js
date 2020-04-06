@@ -639,7 +639,7 @@ const TarotList2 = ["愚者 ＋",
 ////////////////////////////////////////
 function choice(input, str) {
 	let a = input.replace(str[0], '').match(/\S+/ig);
-	rply.text = str[0] + '[' + a + '] → ' + a[rollbase.Dice(a.length) - 1];
+	rply.text = str[0] + ' [' + a + '] \n→ ' + a[rollbase.Dice(a.length) - 1];
 	return rply;
 }
 
@@ -650,12 +650,12 @@ function SortIt(input, mainMsg) {
 		//3 -> 210 , 10, 0
 		var randomIndex = rollbase.Dice(i + 1) - 1
 		//3 ->
-		console.log('randomIndex: ', randomIndex)
+		//console.log('randomIndex: ', randomIndex)
 		var itemAtIndex = a[randomIndex];
 		a[randomIndex] = a[i];
 		a[i] = itemAtIndex;
 	}
-	rply.text = mainMsg[0] + ' → [' + a + ']';
+	rply.text = mainMsg[0] + ' \n→ [ ' + a + ' ]';
 	return rply;
 }
 

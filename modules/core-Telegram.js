@@ -183,7 +183,6 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 
 			}
 			//LevelUp功能
-			console.log(rplyVal)
 			if (rplyVal) {
 				if (groupid && rplyVal && rplyVal.LevelUp) {
 					//	console.log('result.LevelUp 2:', rplyVal.LevelUp)

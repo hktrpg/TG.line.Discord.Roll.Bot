@@ -44,19 +44,18 @@ getHelpMessage = function () {
 \n【基本擲骰】1d100\
 \n 例如輸入2d6+1　攻撃！\
 \n 會輸出）2d6+1：攻撃  9[6+3]+1 = 10\
-\n 如上面一樣,在骰子數字後方,可以進行發言。\
 \n 5 3D6 ：	分別骰出5次3d6 (最多三十次)\
 \n ((2d6+1)*2)-5/2>=10 ：	支援括號加減乘除及大於小於(>,<,>=,<=)計算\
 \n  \
 \n TRPG百科 https://www.hktrpg.com/\
-\n 意見留言版 https://www.hktrpg.com/board/\
+\n 意見留言群 https://discord.gg/vx4kcm7\
 \n  \
 \n Line版 http://bit.ly/HKTRPG_LINE\
 \n Discord版 http://bit.ly/HKTRPG_DISCORD\
 \n Telegram版 http://t.me/hktrpg_bot\
-\n 網頁版 http://bit.ly/HKTRPG_HTML\
 \n 簡易網上擲骰 https://roll.hktrpg.com/\
 \n \
+\n 開發支援 https://www.patreon.com/HKTRPG\
 \n 源代碼 http://bit.ly/HKTRPG_GITHUB\
 		\n "
 }

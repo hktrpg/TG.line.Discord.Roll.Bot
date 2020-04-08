@@ -93,7 +93,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					//LevelUp功能
 					if (groupid && rplyVal && rplyVal.LevelUp) {
 						//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
-						SendToReplychannel("<@" + userid + '>\n' + rplyVal.LevelUp)
+						await SendToReplychannel("<@" + userid + '>\n' + rplyVal.LevelUp)
 					}
 
 					if (rplyVal && rplyVal.text) {
@@ -131,10 +131,10 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 								// 輸入dr  (指令) 私訊自己
 								//
 								if (groupid)
-									SendToReplychannel("<@" + userid + '> 暗骰給自己')
+									await SendToReplychannel("<@" + userid + '> 暗骰給自己')
 								if (userid)
 									rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
-								SendToReply(rplyVal.text);
+								await SendToReply(rplyVal.text);
 								break;
 							case privatemsg == 2:
 								//輸入ddr(指令) 私訊GM及自己
@@ -143,14 +143,14 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 									let targetGMNameTemp = "";
 									for (var i = 0; i < TargetGMTempID.length; i++)
 										targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
-									SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
+									await SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
 								}
 								if (userid)
 									rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
-								SendToReply(rplyVal.text);
+								await SendToReply(rplyVal.text);
 								for (var i = 0; i < TargetGMTempID.length; i++) {
 									if (userid != TargetGMTempID[i])
-										SendToId(TargetGMTempID[i], rplyVal.text);
+										await SendToId(TargetGMTempID[i], rplyVal.text);
 								}
 								break;
 							case privatemsg == 3:
@@ -159,11 +159,11 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 									let targetGMNameTemp = "";
 									for (var i = 0; i < TargetGMTempID.length; i++)
 										targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
-									SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp)
+									await SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp)
 								}
 								rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
 								for (var i = 0; i < TargetGMTempID.length; i++) {
-									SendToId(TargetGMTempID[i], rplyVal.text);
+									await SendToId(TargetGMTempID[i], rplyVal.text);
 								}
 								break;
 							default:
@@ -173,9 +173,9 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 									rplyVal.text = displayname + rplyVal.text
 								}
 								if (groupid)
-									SendToReplychannel(rplyVal.text);
+									await SendToReplychannel(rplyVal.text);
 								else
-									SendToReply(rplyVal.text);
+									await SendToReply(rplyVal.text);
 								break;
 						}
 
@@ -187,6 +187,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 						//	Discordcounttext++;
 						//	if (Discordcounttext % 500 == 0)
 						//console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString());
+						return;
 					}
 					async function SendToId(targetid, replyText) {
 						for (var i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
@@ -211,7 +212,8 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					await exports.analytics.parseInput("", groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount)
 					return null
 				}
-			}
+			} else
+				return;
 		});
 		//Set Activity 可以自定義正在玩什麼  
 		client.on('ready', () => {

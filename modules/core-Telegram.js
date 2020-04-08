@@ -23,7 +23,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				if (ctx.message.from.id) userid = ctx.message.from.id
 				if (ctx.chat && ctx.chat.id)
 					membercount = await ctx.getChatMembersCount(ctx.chat.id)
-				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "", membercount)
+				await exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "", membercount)
 
 			}
 			return null
@@ -36,7 +36,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				if (ctx.message.from.id) userid = ctx.message.from.id
 				if (ctx.chat && ctx.chat.id)
 					membercount = await ctx.getChatMembersCount(ctx.chat.id)
-				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "", membercount)
+				await exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "", membercount)
 
 			}
 			return null
@@ -49,7 +49,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				if (ctx.message.from.id) userid = ctx.message.from.id
 				if (ctx.chat && ctx.chat.id)
 					membercount = await ctx.getChatMembersCount(ctx.chat.id)
-				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "", membercount)
+				await exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "", membercount)
 
 			}
 			return null
@@ -62,7 +62,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				if (ctx.message.from.id) userid = ctx.message.from.id
 				if (ctx.chat && ctx.chat.id)
 					membercount = await ctx.getChatMembersCount(ctx.chat.id)
-				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "", membercount)
+				await exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "", membercount)
 
 			}
 			return null
@@ -75,7 +75,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				if (ctx.message.from.id) userid = ctx.message.from.id
 				if (ctx.chat && ctx.chat.id)
 					membercount = await ctx.getChatMembersCount(ctx.chat.id)
-				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "", membercount)
+				await exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "", membercount)
 
 			}
 			return null
@@ -88,7 +88,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				if (ctx.message.from.id) userid = ctx.message.from.id
 				if (ctx.chat && ctx.chat.id)
 					membercount = await ctx.getChatMembersCount(ctx.chat.id)
-				exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "", membercount)
+				await exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "", membercount)
 
 			}
 			return null
@@ -101,7 +101,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				if (ctx.message.from.id) userid = ctx.message.from.id
 				if (ctx.chat && ctx.chat.id)
 					membercount = await ctx.getChatMembersCount(ctx.chat.id)
-				exports.analytics.parseInput("", groupid, userid, userrole, "Telegram", displayname, channelid, "", membercount)
+				await exports.analytics.parseInput("", groupid, userid, userrole, "Telegram", displayname, channelid, "", membercount)
 
 			}
 			return null
@@ -128,7 +128,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			if (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') {
 				groupid = ctx.message.chat.id
 				if (ctx.chat && ctx.chat.id)
-					if ((telegrafGetChatMembers.check(ctx.chat.id) && telegrafGetChatMembers.check(ctx.chat.id)[0] && telegrafGetChatMembers.check(ctx.chat.id)[0].status == ("creator" || "administrator")) || ctx.message.chat.all_members_are_administrators == true) {
+					if ((await telegrafGetChatMembers.check(ctx.chat.id) && telegrafGetChatMembers.check(ctx.chat.id)[0] && await telegrafGetChatMembers.check(ctx.chat.id)[0].status == ("creator" || "administrator")) || ctx.message.chat.all_members_are_administrators == true) {
 						userrole = 3
 						//console.log(userrole)
 						//console.log(telegrafGetChatMembers.check(ctx.chat.id))
@@ -185,7 +185,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			//LevelUp功能
 			if (groupid && rplyVal && rplyVal.LevelUp) {
 				//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
-				ctx.reply("@" + displayname + '\n' + rplyVal.LevelUp)
+				await ctx.reply("@" + displayname + '\n' + rplyVal.LevelUp)
 			}
 			if (rplyVal && rplyVal.text) {
 				//TGcountroll++;
@@ -216,7 +216,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 							ctx.reply("@" + displayname + ' 暗骰給自己')
 						}
 						rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
-						SendToId(ctx.message.from.id);
+						await SendToId(ctx.message.from.id);
 						break;
 					case privatemsg == 2:
 						//輸入ddr(指令) 私訊GM及自己
@@ -227,10 +227,10 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 							ctx.reply("@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
 						}
 						rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
-						SendToId(ctx.message.from.id);
+						await SendToId(ctx.message.from.id);
 						for (var i = 0; i < TargetGMTempID.length; i++) {
 							if (ctx.message.from.id != TargetGMTempID[i])
-								SendToId(TargetGMTempID[i]);
+								await SendToId(TargetGMTempID[i]);
 						}
 						break;
 					case privatemsg == 3:
@@ -239,11 +239,11 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 							let targetGMNameTemp = "";
 							for (var i = 0; i < TargetGMTempID.length; i++)
 								targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
-							ctx.reply("@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
+							await ctx.reply("@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
 						}
 						rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
 						for (var i = 0; i < TargetGMTempID.length; i++) {
-							SendToId(TargetGMTempID[i]);
+							await SendToId(TargetGMTempID[i]);
 						}
 						break;
 					default:
@@ -252,7 +252,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 							displayname = "@" + ctx.message.from.username + "\n";
 							rplyVal.text = displayname + rplyVal.text
 						}
-						SendToReply();
+						await SendToReply();
 						break;
 				}
 
@@ -274,6 +274,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				//TGcounttext++;
 				//if (TGcounttext % 500 == 0)
 				//console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext);
+				return;
 			}
 			//  }
 

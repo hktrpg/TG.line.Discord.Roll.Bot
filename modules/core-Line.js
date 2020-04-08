@@ -40,11 +40,11 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		let TargetGM = require('../roll/z_DDR_darkRollingToGM').initialize()
 
 		client.getProfile(userid).then(async function (profile) {
-			//	在GP 而有加好友的話,得到名字
-			displayname = profile.displayName;
-			//console.log(displayname)
-			await AfterCheckName();
-		},
+				//	在GP 而有加好友的話,得到名字
+				displayname = profile.displayName;
+				//console.log(displayname)
+				await AfterCheckName();
+			},
 			async function () {
 				await AfterCheckName();
 				//如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
@@ -107,9 +107,9 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			if (roomorgroupid && rplyVal && rplyVal.LevelUp) {
 				//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
 				if (displayname)
-					SendToId(roomorgroupid, "@" + displayname + ' \n' + rplyVal.LevelUp)
+					await SendToId(roomorgroupid, "@" + displayname + ' \n' + rplyVal.LevelUp)
 				else
-					SendToId(roomorgroupid, rplyVal.LevelUp)
+					await SendToId(roomorgroupid, rplyVal.LevelUp)
 			}
 
 			if (rplyVal && rplyVal.text) {
@@ -141,8 +141,8 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						if (roomorgroupid && userid && displaynamecheck)
 							if (displayname)
 								await replyMessagebyReplyToken(roomorgroupid, "@" + displayname + ' 暗骰給自己')
-							else
-								await replyMessagebyReplyToken(roomorgroupid, '正在暗骰給自己')
+						else
+							await replyMessagebyReplyToken(roomorgroupid, '正在暗骰給自己')
 						if (userid)
 							if (displayname && displaynamecheck)
 								await SendToId(userid, "@" + displayname + '的暗骰\n' + rplyVal.text);
@@ -180,7 +180,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 							for (var i = 0; i < TargetGMTempID.length; i++)
 								targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
 							if (displayname)
-								await replyMessagebyReplyToken  (roomorgroupid, "@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
+								await replyMessagebyReplyToken(roomorgroupid, "@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
 							else
 								await replyMessagebyReplyToken(roomorgroupid, ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
 						}
@@ -207,6 +207,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				//Linecounttext++;
 				//if (Linecounttext % 500 == 0)
 				//	console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext);
+				return;
 			}
 			//rplyVal.text
 			async function SendToId(targetid, Reply) {
@@ -243,7 +244,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						return {
 							"type": "image",
 							"originalContentUrl": message.text.replace('http://', 'https://'),
-							"previewImageUrl": message.text.replace('http://', 'https://')
+								"previewImageUrl": message.text.replace('http://', 'https://')
 						};
 
 					case typeof message == 'string' || message instanceof String:

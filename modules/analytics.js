@@ -140,8 +140,9 @@ try {
 					simpleCourt++;
 					//await saveLog();
 				}
-				return result;
+
 			}
+			return result;
 		} else {
 			if (simpleCourt != null) {
 				switch (botname) {
@@ -265,7 +266,7 @@ try {
 					records.settrpgLevelSystemfunctionNewUser('trpgLevelSystem', temp, () => {})
 
 				} else if (tempIsUser != 0) {
-					//4. 有-> 檢查上次紀錄的時間 超過60001 (1分鐘) 即增加1-10 經驗值
+					//4. 有-> 檢查上次紀錄的時間 超過60000 (1分鐘) 即增加1-10 經驗值
 					if (new Date(Date.now()) - new Date(exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].LastSpeakTime) > oneMinuts) {
 						exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP + exports.rollbase.Dice(9) + 15;
 						exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].LastSpeakTime = Date.now();

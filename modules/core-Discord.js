@@ -91,102 +91,105 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 						}
 					}
 					//LevelUp功能
-					if (groupid && rplyVal && rplyVal.LevelUp) {
-						//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
-						SendToReplychannel("<@" + userid + '>\n' + rplyVal.LevelUp)
-					}
 
-					if (rplyVal && rplyVal.text) {
-						//Discordcountroll++;
-						//簡單使用數字計算器
-						if (privatemsg >= 1) {
-							//當是私訊模式1-3時
-							var TargetGMTempID = []
-							var TargetGMTempdiyName = []
-							var TargetGMTempdisplayname = []
-							if (TargetGM && TargetGM.trpgDarkRollingfunction)
-								for (var i = 0; i < TargetGM.trpgDarkRollingfunction.length; i++) {
-									if (TargetGM.trpgDarkRollingfunction[i].groupid == channelid) {
-										for (var a = 0; a < TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
-											//checkifsamename = 1
-											TargetGMTempID[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].userid
-											TargetGMTempdiyName[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].diyName
-											TargetGMTempdisplayname[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].displayname
-											//TargetGMTemp[a]. channelid displayname diyName userid
+					if (rplyVal) {
+						if (groupid && rplyVal && rplyVal.LevelUp) {
+							//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
+							await SendToReplychannel("<@" + userid + '>\n' + rplyVal.LevelUp)
+						}
+						if (rplyVal.text) {
+							//Discordcountroll++;
+							//簡單使用數字計算器
+							if (privatemsg >= 1) {
+								//當是私訊模式1-3時
+								var TargetGMTempID = []
+								var TargetGMTempdiyName = []
+								var TargetGMTempdisplayname = []
+								if (TargetGM && TargetGM.trpgDarkRollingfunction)
+									for (var i = 0; i < TargetGM.trpgDarkRollingfunction.length; i++) {
+										if (TargetGM.trpgDarkRollingfunction[i].groupid == channelid) {
+											for (var a = 0; a < TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
+												//checkifsamename = 1
+												TargetGMTempID[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].userid
+												TargetGMTempdiyName[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].diyName
+												TargetGMTempdisplayname[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].displayname
+												//TargetGMTemp[a]. channelid displayname diyName userid
+											}
 										}
 									}
-								}
-						}
+							}
 
-						/*
-											if (groupid && userid) {
-												//DISCORD: 585040823232320107
-												displayname = "<@" + userid + "> \n"
-												if (displaynamecheck)
-													rplyVal.text = displayname + rplyVal.text
-											}
-						*/
-						switch (true) {
-							case privatemsg == 1:
-								// 輸入dr  (指令) 私訊自己
-								//
-								if (groupid)
-									SendToReplychannel("<@" + userid + '> 暗骰給自己')
-								if (userid)
+							/*
+												if (groupid && userid) {
+													//DISCORD: 585040823232320107
+													displayname = "<@" + userid + "> \n"
+													if (displaynamecheck)
+														rplyVal.text = displayname + rplyVal.text
+												}
+							*/
+							switch (true) {
+								case privatemsg == 1:
+									// 輸入dr  (指令) 私訊自己
+									//
+									if (groupid)
+										await SendToReplychannel("<@" + userid + '> 暗骰給自己')
+									if (userid)
+										rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
+									await SendToReply(rplyVal.text);
+									break;
+								case privatemsg == 2:
+									//輸入ddr(指令) 私訊GM及自己
+									//console.log('AAA', TargetGMTempID)
+									if (groupid) {
+										let targetGMNameTemp = "";
+										for (var i = 0; i < TargetGMTempID.length; i++)
+											targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
+										await SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
+									}
+									if (userid)
+										rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
+									await SendToReply(rplyVal.text);
+									for (var i = 0; i < TargetGMTempID.length; i++) {
+										if (userid != TargetGMTempID[i])
+											await SendToId(TargetGMTempID[i], rplyVal.text);
+									}
+									break;
+								case privatemsg == 3:
+									//輸入dddr(指令) 私訊GM
+									if (groupid) {
+										let targetGMNameTemp = "";
+										for (var i = 0; i < TargetGMTempID.length; i++)
+											targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
+										await SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp)
+									}
 									rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
-								SendToReply(rplyVal.text);
-								break;
-							case privatemsg == 2:
-								//輸入ddr(指令) 私訊GM及自己
-								//console.log('AAA', TargetGMTempID)
-								if (groupid) {
-									let targetGMNameTemp = "";
-									for (var i = 0; i < TargetGMTempID.length; i++)
-										targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
-									SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
-								}
-								if (userid)
-									rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
-								SendToReply(rplyVal.text);
-								for (var i = 0; i < TargetGMTempID.length; i++) {
-									if (userid != TargetGMTempID[i])
-										SendToId(TargetGMTempID[i], rplyVal.text);
-								}
-								break;
-							case privatemsg == 3:
-								//輸入dddr(指令) 私訊GM
-								if (groupid) {
-									let targetGMNameTemp = "";
-									for (var i = 0; i < TargetGMTempID.length; i++)
-										targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
-									SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp)
-								}
-								rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
-								for (var i = 0; i < TargetGMTempID.length; i++) {
-									SendToId(TargetGMTempID[i], rplyVal.text);
-								}
-								break;
-							default:
-								if (displaynamecheck && userid) {
-									//285083923223
-									displayname = "<@" + userid + ">\n";
-									rplyVal.text = displayname + rplyVal.text
-								}
-								if (groupid)
-									SendToReplychannel(rplyVal.text);
-								else
-									SendToReply(rplyVal.text);
-								break;
+									for (var i = 0; i < TargetGMTempID.length; i++) {
+										await SendToId(TargetGMTempID[i], rplyVal.text);
+									}
+									break;
+								default:
+									if (displaynamecheck && userid) {
+										//285083923223
+										displayname = "<@" + userid + ">\n";
+										rplyVal.text = displayname + rplyVal.text
+									}
+									if (groupid)
+										await SendToReplychannel(rplyVal.text);
+									else
+										await SendToReply(rplyVal.text);
+									break;
+							}
+
+
+							//console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString(), " content: ", message.content);
+
+							//console.log("rplyVal: " + rplyVal);
 						}
-
-
-						//console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString(), " content: ", message.content);
-
-						//console.log("rplyVal: " + rplyVal);
 					} else {
 						//	Discordcounttext++;
 						//	if (Discordcounttext % 500 == 0)
 						//console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString());
+						return;
 					}
 					async function SendToId(targetid, replyText) {
 						for (var i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
@@ -211,7 +214,8 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					await exports.analytics.parseInput("", groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount)
 					return null
 				}
-			}
+			} else
+				return;
 		});
 		//Set Activity 可以自定義正在玩什麼  
 		client.on('ready', () => {

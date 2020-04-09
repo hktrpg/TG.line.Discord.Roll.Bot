@@ -34,10 +34,12 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 		});
 
 		client.on('message', async (message) => {
-				console.log((message.guild.me.hasPermission("SEND_MESSAGES")))
-
+			//console.log((message.guild.me.hasPermission("SEND_MESSAGES")))
+			let hasSendPermission = true;
 			//			console.log((member.guild.me.hasPermission("SEND_MESSAGES")))
-
+			if (member.guild && member.guild.me) {
+				hasSendPermission = await member.guild.me.hasPermission("SEND_MESSAGES")
+			}
 
 			if (message.author.bot === false) {
 				//	console.log('message.content ' + message.content);
@@ -104,7 +106,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					}
 					//LevelUp功能
 
-					if (rplyVal) {
+					if (rplyVal && hasSendPermission) {
 						if (groupid && rplyVal && rplyVal.LevelUp) {
 							//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
 							await SendToReplychannel("<@" + userid + '>\n' + rplyVal.LevelUp)

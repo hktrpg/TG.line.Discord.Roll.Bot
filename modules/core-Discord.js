@@ -29,7 +29,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 			//console.log((message.guild.me.hasPermission("SEND_MESSAGES")))
 			let hasSendPermission = true;
 			if (message.guild && message.guild.me) {
-				console.log(message.guild.me.hasPermission("SEND_MESSAGES"))
+			//	console.log(message.guild.me.hasPermission("SEND_MESSAGES"))
 				hasSendPermission = await message.guild.me.hasPermission("SEND_MESSAGES")
 			}
 
@@ -205,7 +205,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 								await client.users.get(targetid).send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
 							}
 							catch(e){
-								console.log('error SendtoID: ', e)
+								console.log('error SendtoID: ', e.message)
 							}
 						}
 
@@ -219,7 +219,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 						
 							}
 							catch(e){
-								console.log('error SendToReply: ', e)
+								console.log('error SendToReply: ', e.message)
 							}
 						}
 					}
@@ -229,7 +229,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 							try{
 								await message.channel.send(replyText.toString().match(/[\s\S]{1,1900}/g)[i])}
 								catch(e){
-									console.log('error SendToReplychannel: ', e)
+									console.log('error SendToReplychannel: ', e.message)
 								}
 						}
 					}

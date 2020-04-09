@@ -37,6 +37,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 			if (member)
 				console.log((member.guild))
 
+			//			console.log((member.guild.me.hasPermission("SEND_MESSAGES")))
 
 
 			if (message.author.bot === false) {

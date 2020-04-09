@@ -26,16 +26,6 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 		});
 
 		client.on('message', async (message) => {
-			//console.log((message.guild.me.hasPermission("SEND_MESSAGES")))
-			let hasSendPermission = true;
-			if (message.guild && message.guild.me) {
-				//	console.log(message.guild.me.hasPermission("SEND_MESSAGES"))
-				hasSendPermission = await message.guild.me.hasPermission("SEND_MESSAGES")
-			}
-			if (message.channel.type !== "dm")
-				//console.log(message.channel.permissionsFor(client.user).has("SEND_MESSAGES"))
-				hasSendPermission = await message.channel.permissionsFor(client.user).has("SEND_MESSAGES")
-
 			if (message.author.bot === false) {
 				//	console.log('message.content ' + message.content);
 				//	console.log('channelKeyword ' + channelKeyword);
@@ -43,10 +33,16 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				let TargetGM = require('../roll/z_DDR_darkRollingToGM').initialize()
 				//得到暗骰的數據, GM的位置
 				let displaynamecheck = true;
+				let hasSendPermission = true;
+
 				//是不是自己.ME 訊息
 				//TRUE 即正常
 				let userrole = 1;
 				//console.log(message.guild)
+				if (message.guild && message.guild.me)
+					hasSendPermission = await message.guild.me.hasPermission("SEND_MESSAGES")
+				if (message.channel.type !== "dm")
+					hasSendPermission = await message.channel.permissionsFor(client.user).has("SEND_MESSAGES")
 				if (message.channel && message.channel.id) channelid = message.channel.id
 				if (message.guild && message.guild.id) groupid = message.guild.id
 				if (message.author.id) userid = message.author.id

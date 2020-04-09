@@ -20,17 +20,9 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 		client.login(channelSecret);
 		// handle the error event
 		client.on('error', console.error);
-		client.on('unhandledRejection', error => {
+		client.on('Missing Permissions', error => {
 			// Will print "unhandledRejection err is not defined"
-			console.log('unhandledRejection: ', error.message);
-		});
-		client.on('UnhandledPromiseRejection', error => {
-			// Will print "unhandledRejection err is not defined"
-			console.log('UnhandledPromiseRejectionWarning: ', error.message);
-		});
-		client.on('PromiseRejection', error => {
-			// Will print "unhandledRejection err is not defined"
-			console.log('PromiseRejectionWarning: ', error.message);
+			console.log('It is Missing Permissions: ', error.message);
 		});
 
 		client.on('message', async (message) => {

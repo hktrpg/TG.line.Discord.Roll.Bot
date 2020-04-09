@@ -108,11 +108,11 @@ try {
 		}
 		//LEVEL功能
 		if (groupid) {
-			//console.log(await EXPUP());
 			let tempEXPUP = await EXPUP();
-			if (tempEXPUP)
+			if (tempEXPUP) {
+				console.log('tempEXPUP: ', tempEXPUP)
 				result.LevelUp = tempEXPUP
-			else
+			} else
 				result.LevelUp = ""
 			//result.LevelUp
 		}

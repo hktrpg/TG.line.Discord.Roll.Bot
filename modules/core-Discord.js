@@ -34,8 +34,8 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 		});
 
 		client.on('message', async (message) => {
+			
 			if (message.author.bot === false) {
-				console.log((member.guild.me.hasPermission("SEND_MESSAGES")))
 				//	console.log('message.content ' + message.content);
 				//	console.log('channelKeyword ' + channelKeyword);
 				let groupid, userid, displayname, channelid, displaynameDiscord, membercount = ''

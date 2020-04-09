@@ -132,59 +132,64 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 														rplyVal.text = displayname + rplyVal.text
 												}
 							*/
-							switch (true) {
-								case privatemsg == 1:
-									// 輸入dr  (指令) 私訊自己
-									//
-									if (groupid)
-										await SendToReplychannel("<@" + userid + '> 暗骰給自己')
-									if (userid)
-										rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
-									await SendToReply(rplyVal.text);
-									break;
-								case privatemsg == 2:
-									//輸入ddr(指令) 私訊GM及自己
-									//console.log('AAA', TargetGMTempID)
-									if (groupid) {
-										let targetGMNameTemp = "";
-										for (var i = 0; i < TargetGMTempID.length; i++)
-											targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
-										await SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
-									}
-									if (userid)
-										rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
-									await SendToReply(rplyVal.text);
-									for (var i = 0; i < TargetGMTempID.length; i++) {
-										if (userid != TargetGMTempID[i])
-											await SendToId(TargetGMTempID[i], rplyVal.text);
-									}
-									break;
-								case privatemsg == 3:
-									//輸入dddr(指令) 私訊GM
-									if (groupid) {
-										let targetGMNameTemp = "";
-										for (var i = 0; i < TargetGMTempID.length; i++)
-											targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
-										await SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp)
-									}
-									rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
-									for (var i = 0; i < TargetGMTempID.length; i++) {
-										await SendToId(TargetGMTempID[i], rplyVal.text);
-									}
-									break;
-								default:
-									if (displaynamecheck && userid) {
-										//285083923223
-										displayname = "<@" + userid + ">\n";
-										rplyVal.text = displayname + rplyVal.text
-									}
-									if (groupid)
-										await SendToReplychannel(rplyVal.text);
-									else
+							await SendMessageSwitch()
+							async function SendMessageSwitch() {
+								switch (true) {
+									case privatemsg == 1:
+										// 輸入dr  (指令) 私訊自己
+										//
+										if (groupid)
+											await SendToReplychannel("<@" + userid + '> 暗骰給自己')
+										if (userid)
+											rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
 										await SendToReply(rplyVal.text);
-									break;
+										return
+										break;
+									case privatemsg == 2:
+										//輸入ddr(指令) 私訊GM及自己
+										//console.log('AAA', TargetGMTempID)
+										if (groupid) {
+											let targetGMNameTemp = "";
+											for (var i = 0; i < TargetGMTempID.length; i++)
+												targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
+											await SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
+										}
+										if (userid)
+											rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
+										await SendToReply(rplyVal.text);
+										for (var i = 0; i < TargetGMTempID.length; i++) {
+											if (userid != TargetGMTempID[i])
+												await SendToId(TargetGMTempID[i], rplyVal.text);
+										}
+										return;
+										break;
+									case privatemsg == 3:
+										//輸入dddr(指令) 私訊GM
+										if (groupid) {
+											let targetGMNameTemp = "";
+											for (var i = 0; i < TargetGMTempID.length; i++)
+												targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
+											await SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp)
+										}
+										rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
+										for (var i = 0; i < TargetGMTempID.length; i++) {
+											await SendToId(TargetGMTempID[i], rplyVal.text);
+										}
+										return;
+										break;
+									default:
+										if (displaynamecheck && userid) {
+											//285083923223
+											displayname = "<@" + userid + ">\n";
+											rplyVal.text = displayname + rplyVal.text
+										}
+										if (groupid)
+											return await SendToReplychannel(rplyVal.text);
+										else
+											return await SendToReply(rplyVal.text);
+										break;
+								}
 							}
-
 
 							//console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString(), " content: ", message.content);
 

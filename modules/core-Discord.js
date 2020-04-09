@@ -32,7 +32,8 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				//	console.log(message.guild.me.hasPermission("SEND_MESSAGES"))
 				hasSendPermission = await message.guild.me.hasPermission("SEND_MESSAGES")
 			}
-			if (message.channel)
+			console.log(message.channel.type)
+			if (message.channel.type === "dm")
 				console.log(message.channel.permissionsFor(client.user).has("SEND_MESSAGES"))
 			//hasSendPermission = await message.channel.permissionsFor(client.user).has("SEND_MESSAGES")
 

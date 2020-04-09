@@ -35,7 +35,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 
 		client.on('message', async (message) => {
 			if (message)
-				console.log((message.member.guild.me))
+				console.log((message.member.guild.me.hasPermission("SEND_MESSAGES")))
 
 			//			console.log((member.guild.me.hasPermission("SEND_MESSAGES")))
 

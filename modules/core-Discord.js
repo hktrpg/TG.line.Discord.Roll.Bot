@@ -34,7 +34,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				//得到暗骰的數據, GM的位置
 				let displaynamecheck = true;
 				let hasSendPermission = true;
-
+				//檢查是不是有權限可以傳信訊
 				//是不是自己.ME 訊息
 				//TRUE 即正常
 				let userrole = 1;

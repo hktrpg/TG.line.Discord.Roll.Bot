@@ -239,9 +239,8 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 						}
 					}
 				} else if (groupid && userid) {
-					await exports.analytics.parseInput("", groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount)
-					return null
-				}
+					return await exports.analytics.parseInput("", groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount)
+				} else return;
 			} else
 				return;
 		});

@@ -29,7 +29,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 			//console.log((message.guild.me.hasPermission("SEND_MESSAGES")))
 			let hasSendPermission = true;
 			if (message.guild && message.guild.me) {
-			//	console.log(message.guild.me.hasPermission("SEND_MESSAGES"))
+				//	console.log(message.guild.me.hasPermission("SEND_MESSAGES"))
 				hasSendPermission = await message.guild.me.hasPermission("SEND_MESSAGES")
 			}
 
@@ -197,16 +197,11 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 						//console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString());
 						return;
 					}
-					
+
 					async function SendToId(targetid, replyText) {
 						for (var i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 							if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
-							try{
 								await client.users.get(targetid).send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
-							}
-							catch(e){
-								console.log('error SendtoID: ', e.message)
-							}
 						}
 
 					}
@@ -214,23 +209,13 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					async function SendToReply(replyText) {
 						for (var i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 							if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
-							try{
 								await message.author.send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
-						
-							}
-							catch(e){
-								console.log('error SendToReply: ', e.message)
-							}
 						}
 					}
 					async function SendToReplychannel(replyText) {
 						for (var i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 							if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
-							try{
-								await message.channel.send(replyText.toString().match(/[\s\S]{1,1900}/g)[i])}
-								catch(e){
-									console.log('error SendToReplychannel: ', e.message)
-								}
+								await message.channel.send(replyText.toString().match(/[\s\S]{1,1900}/g)[i])
 						}
 					}
 				} else if (groupid && userid) {

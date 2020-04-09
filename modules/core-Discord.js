@@ -34,7 +34,11 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 		});
 
 		client.on('message', async (message) => {
-			
+			if (member)
+				console.log((member.guild))
+
+
+
 			if (message.author.bot === false) {
 				//	console.log('message.content ' + message.content);
 				//	console.log('channelKeyword ' + channelKeyword);

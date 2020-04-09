@@ -63,9 +63,6 @@ try {
 	//格式是 exports.骰組檔案名字.function名
 	var parseInput = async function (inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
 		//console.log('InputStr: ' + inputStr);
-		_isNaN = function (obj) {
-			return isNaN(parseInt(obj));
-		}
 		result = {
 			text: '',
 			type: 'text',
@@ -91,7 +88,7 @@ try {
 				result = tempResut
 			//console.log("result2", result)
 			//return result;
-		}
+		} else return;
 
 		//z_saveCommand 功能
 		if (mainMsg && mainMsg[0].toLowerCase() == ".cmd" && mainMsg[1] && mainMsg[1].toLowerCase() != "help" && mainMsg[1].toLowerCase() != "add" && mainMsg[1].toLowerCase() != "show" && mainMsg[1].toLowerCase() != "del" && result.text) {
@@ -161,7 +158,7 @@ try {
 				simpleCourt++;
 				saveLog();
 			}
-			return null;
+			return;
 		}
 
 

@@ -20,21 +20,12 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 		client.login(channelSecret);
 		// handle the error event
 		client.on('error', console.error);
-		client.on('unhandledRejection', error => {
+		client.on('Missing Permissions', error => {
 			// Will print "unhandledRejection err is not defined"
-			console.log('unhandledRejection: ', error.message);
-		});
-		client.on('UnhandledPromiseRejection', error => {
-			// Will print "unhandledRejection err is not defined"
-			console.log('UnhandledPromiseRejectionWarning: ', error.message);
-		});
-		client.on('PromiseRejection', error => {
-			// Will print "unhandledRejection err is not defined"
-			console.log('PromiseRejectionWarning: ', error.message);
+			console.log('It is Missing Permissions: ', error.message);
 		});
 
 		client.on('message', async (message) => {
-			
 			if (message.author.bot === false) {
 				//	console.log('message.content ' + message.content);
 				//	console.log('channelKeyword ' + channelKeyword);
@@ -42,10 +33,16 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				let TargetGM = require('../roll/z_DDR_darkRollingToGM').initialize()
 				//得到暗骰的數據, GM的位置
 				let displaynamecheck = true;
+				let hasSendPermission = true;
+				//檢查是不是有權限可以傳信訊
 				//是不是自己.ME 訊息
 				//TRUE 即正常
 				let userrole = 1;
 				//console.log(message.guild)
+				if (message.guild && message.guild.me)
+					hasSendPermission = await message.guild.me.hasPermission("SEND_MESSAGES")
+				if (message.channel.type !== "dm")
+					hasSendPermission = await message.channel.permissionsFor(client.user).has("SEND_MESSAGES")
 				if (message.channel && message.channel.id) channelid = message.channel.id
 				if (message.guild && message.guild.id) groupid = message.guild.id
 				if (message.author.id) userid = message.author.id
@@ -100,7 +97,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					}
 					//LevelUp功能
 
-					if (rplyVal) {
+					if (rplyVal && hasSendPermission) {
 						if (groupid && rplyVal && rplyVal.LevelUp) {
 							//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
 							await SendToReplychannel("<@" + userid + '>\n' + rplyVal.LevelUp)
@@ -199,23 +196,41 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 						//console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString());
 						return;
 					}
+
 					async function SendToId(targetid, replyText) {
 						for (var i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 							if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
-								await client.users.get(targetid).send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
+								try {
+									await client.users.get(targetid).send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
+								}
+							catch (e) {
+								console.log('error SendtoID: ', e.message)
+							}
 						}
+
 					}
 
 					async function SendToReply(replyText) {
 						for (var i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 							if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
-								await message.author.send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
+								try {
+									await message.author.send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
+
+								}
+							catch (e) {
+								console.log('error SendToReply: ', e.message)
+							}
 						}
 					}
 					async function SendToReplychannel(replyText) {
 						for (var i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 							if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
-								await message.channel.send(replyText.toString().match(/[\s\S]{1,1900}/g)[i])
+								try {
+									await message.channel.send(replyText.toString().match(/[\s\S]{1,1900}/g)[i])
+								}
+							catch (e) {
+								console.log('error SendToReplychannel: ', e.message)
+							}
 						}
 					}
 				} else if (groupid && userid) {

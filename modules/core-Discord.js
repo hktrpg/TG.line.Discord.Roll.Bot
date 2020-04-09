@@ -36,8 +36,8 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 		client.on('message', async (message) => {
 			//console.log((message.guild.me.hasPermission("SEND_MESSAGES")))
 			let hasSendPermission = true;
-			//			console.log((member.guild.me.hasPermission("SEND_MESSAGES")))
 			if (message.guild && message.guild.me) {
+				console.log(message.guild.me.hasPermission("SEND_MESSAGES"))
 				hasSendPermission = await message.guild.me.hasPermission("SEND_MESSAGES")
 			}
 

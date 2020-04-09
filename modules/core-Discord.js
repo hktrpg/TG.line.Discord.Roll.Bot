@@ -4,12 +4,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 		var channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 		var channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 		const Discord = require('discord.js');
-		const { Permissions } = require('discord.js');
 		const client = new Discord.Client();
-		const permissions = new Permissions([
-			'VIEW_CHANNEL',
-			'SEND_MESSAGES',
-		]);
 		//const BootTime = new Date(new Date().toLocaleString("en-US", {
 		//	timeZone: "Asia/Shanghai"
 		//}));
@@ -40,7 +35,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 
 		client.on('message', async (message) => {
 			if (message.author.bot === false) {
-				console.log('SEND_MESSAGES: ',permissions.has('SEND_MESSAGES'));
+				console.log((member.guild.me.hasPermission("SEND_MESSAGES")))
 				//	console.log('message.content ' + message.content);
 				//	console.log('channelKeyword ' + channelKeyword);
 				let groupid, userid, displayname, channelid, displaynameDiscord, membercount = ''

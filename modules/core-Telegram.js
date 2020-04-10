@@ -195,10 +195,8 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				if (CAPTCHA != rplyVal.CAPTCHA) {
 					console.log('rplyVal: ', rplyVal)
 					console.log('text: ', ctx.message.text)
-					console.log('CAPTCHA != rplyVal.CAPTCHA', CAPTCHA, ' &&', rplyVal.CAPTCHA)
+					console.log('CAPTCHA false', CAPTCHA, ' &&', rplyVal.CAPTCHA)
 					return;
-				} else {
-					console.log('CAPTCHA true')
 				}
 				if (groupid && rplyVal && rplyVal.LevelUp) {
 					//	console.log('result.LevelUp 2:', rplyVal.LevelUp)

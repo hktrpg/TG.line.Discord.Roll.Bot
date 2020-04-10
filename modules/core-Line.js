@@ -109,10 +109,14 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			if (rplyVal) {
 				if (roomorgroupid && rplyVal && rplyVal.LevelUp) {
 					//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
-					if (displayname)
-						await SendToId(roomorgroupid, "@" + displayname + ' \n' + rplyVal.LevelUp)
-					else
-						await SendToId(roomorgroupid, rplyVal.LevelUp)
+					if (displayname) {
+						rplyVal.text = rplyVal.LevelUp + '\n' + rplyVal.text
+						//await SendToId(roomorgroupid, "@" + displayname + ' \n' + rplyVal.LevelUp
+
+					} else {
+						//await SendToId(roomorgroupid, rplyVal.LevelUp)
+						rplyVal.text = rplyVal.LevelUp + '\n' + rplyVal.text
+					}
 				}
 				//Linecountroll++;
 				if (rplyVal.text) {
@@ -291,7 +295,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	/*	app.listen(port, () => {
 			console.log(`Line BOT listening on ${port}`);
 		});
-	
+
 		app.get('/aa', function (req, res) {
 			//	res.send(parseInput(req.query.input));
 			res.send('Hello');

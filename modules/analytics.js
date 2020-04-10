@@ -61,7 +61,7 @@ try {
 
 	//用來呼叫骰組,新增骰組的話,要寫條件式到下面呼叫 
 	//格式是 exports.骰組檔案名字.function名
-	var parseInput = async function (inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
+	var parseInput = async function (inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount, CAPTCHA) {
 		//console.log('InputStr: ' + inputStr);
 		result = {
 			text: '',
@@ -118,7 +118,7 @@ try {
 		}
 		if (result && (result.text || result.LevelUp)) {
 			if (result.text) {
-				console.log('inputStr: ', inputStr)
+				console.log(botname, '\'s inputStr: ', inputStr)
 				//SAVE THE LOG
 				if (simpleCourt != null) {
 					switch (botname) {
@@ -139,6 +139,7 @@ try {
 				}
 
 			}
+			result.CAPTCHA = CAPTCHA
 			return result;
 		} else {
 			if (simpleCourt != null) {

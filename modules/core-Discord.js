@@ -5,6 +5,12 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 		var channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 		const Discord = require('discord.js');
 		const client = new Discord.Client();
+
+		const {
+			Random,
+			nodeCrypto
+		} = require("random-js");
+		const random = new Random(nodeCrypto);
 		//const BootTime = new Date(new Date().toLocaleString("en-US", {
 		//	timeZone: "Asia/Shanghai"
 		//}));
@@ -39,9 +45,9 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				//TRUE 即正常
 				let userrole = 1;
 				//console.log(message.guild)
-				if (message.guild && message.guild.me)
+				if (message.guild && message.guild.me && message.content != "")
 					hasSendPermission = await message.guild.me.hasPermission("SEND_MESSAGES")
-				if (message.channel.type !== "dm")
+				if (message.channel.type !== "dm" && message.content != "")
 					hasSendPermission = await message.channel.permissionsFor(client.user).has("SEND_MESSAGES")
 				if (message.channel && message.channel.id) channelid = message.channel.id
 				if (message.guild && message.guild.id) groupid = message.guild.id
@@ -50,12 +56,13 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					displayname = message.member.user.tag
 				if (message.member && message.member.user && message.member.user.username)
 					displaynameDiscord = message.member.user.username
-				if (message.guild && message.guild.members)
+				if (message.guild && message.guild.members && message.content != "")
 					membercount = message.guild.members.filter(member => !member.user.bot).size;
 				////DISCORD: 585040823232320107
-				if (message.member && message.member.hasPermission("ADMINISTRATOR")) userrole = 3
+				if (message.member && message.member.hasPermission("ADMINISTRATOR" && message.content != "")) userrole = 3
 				//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin 
 				if (message.content != "") {
+					let CAPTCHA = random.string(20);
 					let rplyVal = {};
 					let trigger = ""
 					let msgSplitor = (/\S+/ig);
@@ -89,15 +96,20 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 
 					if (channelKeyword != "" && trigger == channelKeyword.toString().toLowerCase()) {
 						//mainMsg.shift();
-						rplyVal = await exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount);
+						rplyVal = await exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount, CAPTCHA);
 					} else {
 						if (channelKeyword == "") {
-							rplyVal = await exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount);
+							rplyVal = await exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount, CAPTCHA);
 						}
 					}
 					//LevelUp功能
 
 					if (rplyVal && hasSendPermission) {
+						if (CAPTCHA != rplyVal.CAPTCHA) {
+							console.log('rplyVal: ', rplyVal)
+							console.log("TEXT", message.content)
+							return;
+						}
 						if (groupid && rplyVal && rplyVal.LevelUp) {
 							//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
 							await SendToReplychannel("<@" + userid + '>\n' + rplyVal.LevelUp)

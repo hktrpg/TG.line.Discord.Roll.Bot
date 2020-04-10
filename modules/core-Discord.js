@@ -109,6 +109,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 						if (CAPTCHA != rplyVal.CAPTCHA) {
 							console.log('rplyVal: ', rplyVal)
 							console.log("TEXT", message.content)
+							console.log('CAPTCHA != rplyVal.CAPTCHA', CAPTCHA, ' &&', rplyVal.CAPTCHA)
 							return;
 						} else {
 							console.log('CAPTCHA true')

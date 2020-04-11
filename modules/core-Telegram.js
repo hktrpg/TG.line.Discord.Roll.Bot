@@ -193,9 +193,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			//LevelUp功能
 			if (rplyVal) {
 				if (CAPTCHA != rplyVal.CAPTCHA) {
-					console.log('rplyVal: ', rplyVal)
-					console.log('text: ', ctx.message.text)
-					console.log('CAPTCHA false', CAPTCHA, ' &&', rplyVal.CAPTCHA)
+					console.log('TG CAPTCHA false', CAPTCHA, ' &&', rplyVal.CAPTCHA, 'text: ', ctx.message.text, 'rplyVal: ', rplyVal)
 					return;
 				}
 				if (groupid && rplyVal && rplyVal.LevelUp) {

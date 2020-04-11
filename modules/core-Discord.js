@@ -107,11 +107,9 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 
 					if (rplyVal && hasSendPermission) {
 						if (CAPTCHA != rplyVal.CAPTCHA) {
-							console.log('rplyVal: ', rplyVal)
-							console.log("TEXT", message.content)
-							console.log('CAPTCHA false', CAPTCHA, ' &&', rplyVal.CAPTCHA)
+							console.log('Discord CAPTCHA false', CAPTCHA, ' &&', rplyVal.CAPTCHA, "TEXT", message.content, 'rplyVal: ', rplyVal)
 							return;
-						} 
+						}
 						if (groupid && rplyVal && rplyVal.LevelUp) {
 							//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
 							await SendToReplychannel("<@" + userid + '>\n' + rplyVal.LevelUp)

@@ -1,8 +1,8 @@
 if (process.env.DISCORD_CHANNEL_SECRET) {
 	try {
 		exports.analytics = require('../modules/analytics');
-		var channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
-		var channelSecret = process.env.DISCORD_CHANNEL_SECRET;
+		const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
+		const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 		const Discord = require('discord.js');
 		const client = new Discord.Client();
 
@@ -119,13 +119,13 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 							//簡單使用數字計算器
 							if (privatemsg >= 1) {
 								//當是私訊模式1-3時
-								var TargetGMTempID = []
-								var TargetGMTempdiyName = []
-								var TargetGMTempdisplayname = []
+								let TargetGMTempID = []
+								let TargetGMTempdiyName = []
+								let TargetGMTempdisplayname = []
 								if (TargetGM && TargetGM.trpgDarkRollingfunction)
-									for (var i = 0; i < TargetGM.trpgDarkRollingfunction.length; i++) {
+									for (let i = 0; i < TargetGM.trpgDarkRollingfunction.length; i++) {
 										if (TargetGM.trpgDarkRollingfunction[i].groupid == channelid) {
-											for (var a = 0; a < TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
+											for (let a = 0; a < TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
 												//checkifsamename = 1
 												TargetGMTempID[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].userid
 												TargetGMTempdiyName[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].diyName
@@ -162,14 +162,14 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 										//console.log('AAA', TargetGMTempID)
 										if (groupid) {
 											let targetGMNameTemp = "";
-											for (var i = 0; i < TargetGMTempID.length; i++)
+											for (let i = 0; i < TargetGMTempID.length; i++)
 												targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
 											await SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
 										}
 										if (userid)
 											rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
 										await SendToReply(rplyVal.text);
-										for (var i = 0; i < TargetGMTempID.length; i++) {
+										for (let i = 0; i < TargetGMTempID.length; i++) {
 											if (userid != TargetGMTempID[i])
 												await SendToId(TargetGMTempID[i], rplyVal.text);
 										}
@@ -179,12 +179,12 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 										//輸入dddr(指令) 私訊GM
 										if (groupid) {
 											let targetGMNameTemp = "";
-											for (var i = 0; i < TargetGMTempID.length; i++)
+											for (let i = 0; i < TargetGMTempID.length; i++)
 												targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
 											await SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp)
 										}
 										rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
-										for (var i = 0; i < TargetGMTempID.length; i++) {
+										for (let i = 0; i < TargetGMTempID.length; i++) {
 											await SendToId(TargetGMTempID[i], rplyVal.text);
 										}
 										return;
@@ -215,7 +215,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					}
 
 					async function SendToId(targetid, replyText) {
-						for (var i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
+						for (let i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 							if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
 								try {
 									return await client.users.get(targetid).send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
@@ -228,7 +228,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					}
 
 					async function SendToReply(replyText) {
-						for (var i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
+						for (let i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 							if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
 								try {
 									return await message.author.send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
@@ -240,7 +240,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 						}
 					}
 					async function SendToReplychannel(replyText) {
-						for (var i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
+						for (let i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 							if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
 								try {
 									return await message.channel.send(replyText.toString().match(/[\s\S]{1,1900}/g)[i])

@@ -2,7 +2,7 @@
 //  i.e., `User.js` will become `exports['User']` or `exports.User`
 require('fs').readdirSync('./roll/').forEach(function (file) {
 	if (file.match(/\.js$/) !== null && file !== 'index.js' && file !== 'demo.js') {
-		var name = file.replace('.js', '');
+		const name = file.replace('.js', '');
 		exports[name] = require('../roll/' + file);
 	}
 });
@@ -53,7 +53,7 @@ const math = require('mathjs');
 //Format: 
 //TG
 try {
-	var result = {
+	let result = {
 		text: '',
 		type: 'text',
 		LevelUp: ''
@@ -322,9 +322,9 @@ try {
 
 
 	function ranking(who, data) {
-		var array = [];
+		let array = [];
 		let answer = "0"
-		for (var key in data) {
+		for (let key in data) {
 			array.push(data[key]);
 
 		}
@@ -333,16 +333,16 @@ try {
 			return b.EXP - a.EXP;
 		});
 
-		var rank = 1;
+		let rank = 1;
 		//console.log('array.length', array.length)
 		//console.log('array', array)
-		for (var i = 0; i < array.length; i++) {
+		for (let i = 0; i < array.length; i++) {
 			if (i > 0 && array[i].EXP < array[i - 1].EXP) {
 				rank++;
 			}
 			array[i].rank = rank;
 		}
-		for (var b = 0; b < array.length; b++) {
+		for (let b = 0; b < array.length; b++) {
 			if (array[b].userid == who)
 				answer = b + 1;
 			//  document.write(b + 1);
@@ -356,7 +356,7 @@ try {
 
 	function z_stop(mainMsg, groupid) {
 		if (exports.z_stop && exports.z_stop.initialize() && exports.z_stop.initialize().save && exports.z_stop.initialize().save[0] && exports.z_stop.initialize().save[0].blockfunction && exports.z_stop.initialize().save[0].blockfunction.length > 0 && mainMsg && mainMsg[0]) {
-			for (var i = 0; i < exports.z_stop.initialize().save.length; i++) {
+			for (let i = 0; i < exports.z_stop.initialize().save.length; i++) {
 				if ((new RegExp(exports.z_stop.initialize().save[i].blockfunction.join("|"), "i")).test(mainMsg[0]) && exports.z_stop.initialize().save[i].groupid == groupid && exports.z_stop.initialize().save[i].blockfunction.length > 0) {
 					console.log('Match AND STOP')
 					return 1
@@ -369,8 +369,8 @@ try {
 		//console.log(exports)
 		//在下面位置開始分析trigger
 		if (!groupid) groupid = 0
-		var breakFlag = false;
-		for (var v in exports) {
+		let breakFlag = false;
+		for (let v in exports) {
 			//console.log('v: ', v)
 			if (exports.hasOwnProperty(v)) {
 				if (breakFlag === true) {
@@ -388,7 +388,7 @@ try {
 				let checkmainMsg1 = 0;
 				let findprefixs = 0;
 				if (exports[v].prefixs && exports[v].prefixs()[0]) {
-					for (var i = 0; i <= exports[v].prefixs().length - 1; i = i + 2) {
+					for (let i = 0; i <= exports[v].prefixs().length - 1; i = i + 2) {
 						checkmainMsg0 = 0;
 						checkmainMsg1 = 0;
 						if (exports[v].prefixs()[i] && exports[v].prefixs()[i]) {
@@ -415,13 +415,13 @@ try {
 
 				if (findprefixs == 1) {
 					console.log('trigger: ', inputStr)
-					var tempsave = await exports[v].rollDiceCommand(inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount)
+					let tempsave = await exports[v].rollDiceCommand(inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount)
 					//console.log('tempsave: ', tempsave)
 					return await tempS();
 
 					async function tempS() {
 						if (tempsave) {
-							for (var key in tempsave) {
+							for (let key in tempsave) {
 								if (tempsave.hasOwnProperty(key)) {
 									result[key] = tempsave[key]
 								}

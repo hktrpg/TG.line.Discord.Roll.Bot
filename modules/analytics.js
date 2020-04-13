@@ -13,7 +13,7 @@ const oneDay = 24 * 60 * 60 * 1000;
 //一日 多久會上傳一次LOG紀錄
 const oneMinuts = 60000;
 //60000 多久可以升級及增加經驗
-var RollingLog = {
+const RollingLog = {
 	RealTimeRollingLogfunction: {
 		LastTimeLog: "",
 		StartTime: "",
@@ -30,18 +30,17 @@ const records = require('../modules/records.js');
 var simpleCourt = null;
 records.get('RealTimeRollingLog', (msgs) => {
 	if (msgs && msgs[0] && msgs[0].RealTimeRollingLogfunction)
-		RollingLog = {
-			RealTimeRollingLogfunction: {
-				LastTimeLog: msgs[0].RealTimeRollingLogfunction.LastTimeLog || "",
-				StartTime: msgs[0].RealTimeRollingLogfunction.StartTime || "",
-				LogTime: msgs[0].RealTimeRollingLogfunction.LogTime || "",
-				DiscordCountRoll: msgs[0].RealTimeRollingLogfunction.DiscordCountRoll || 0,
-				DiscordCountText: msgs[0].RealTimeRollingLogfunction.DiscordCountText || 0,
-				LineCountRoll: msgs[0].RealTimeRollingLogfunction.LineCountRoll || 0,
-				LineCountText: msgs[0].RealTimeRollingLogfunction.LineCountText || 0,
-				TelegramCountRoll: msgs[0].RealTimeRollingLogfunction.TelegramCountRoll || 0,
-				TelegramCountText: msgs[0].RealTimeRollingLogfunction.TelegramCountText || 0
-			}
+		RollingLog.RealTimeRollingLogfunction = {
+			LastTimeLog: msgs[0].RealTimeRollingLogfunction.LastTimeLog || "",
+			StartTime: msgs[0].RealTimeRollingLogfunction.StartTime || "",
+			LogTime: msgs[0].RealTimeRollingLogfunction.LogTime || "",
+			DiscordCountRoll: msgs[0].RealTimeRollingLogfunction.DiscordCountRoll || 0,
+			DiscordCountText: msgs[0].RealTimeRollingLogfunction.DiscordCountText || 0,
+			LineCountRoll: msgs[0].RealTimeRollingLogfunction.LineCountRoll || 0,
+			LineCountText: msgs[0].RealTimeRollingLogfunction.LineCountText || 0,
+			TelegramCountRoll: msgs[0].RealTimeRollingLogfunction.TelegramCountRoll || 0,
+			TelegramCountText: msgs[0].RealTimeRollingLogfunction.TelegramCountText || 0
+
 		};
 	//console.log('RollingLog', RollingLog)
 	simpleCourt = 0;
@@ -157,13 +156,13 @@ try {
 						break;
 				}
 				simpleCourt++;
-				saveLog();
+				await saveLog();
 			}
 			return;
 		}
 
 
-		function saveLog() {
+		async function saveLog() {
 			//假如沒有StartTime 或過了一天則上載中途紀錄到MLAB
 			//console.log(Date.now() - RollingLog.RealTimeRollingLogfunction.StartTime)
 			if (!RollingLog.RealTimeRollingLogfunction.StartTime) {
@@ -308,7 +307,7 @@ try {
 			let userexp = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP;
 			//console.log('rply.trpgLevelSystemfunction[i]',
 			let usermember_count = membercount || exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.length;
-			let userRanking = ranking(userid, exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction);
+			let userRanking = await ranking(userid, exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction);
 
 			let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
 			let userTitle = exports.z_Level_system.checkTitle(userlevel, exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Title);
@@ -321,15 +320,14 @@ try {
 	}
 
 
-	function ranking(who, data) {
+	async function ranking(who, data) {
 		let array = [];
 		let answer = "0"
 		for (let key in data) {
-			array.push(data[key]);
-
+			await array.push(data[key]);
 		}
 
-		array.sort(function (a, b) {
+		array.sort(async function (a, b) {
 			return b.EXP - a.EXP;
 		});
 
@@ -354,7 +352,7 @@ try {
 
 
 
-	function z_stop(mainMsg, groupid) {
+	async function z_stop(mainMsg, groupid) {
 		if (exports.z_stop && exports.z_stop.initialize() && exports.z_stop.initialize().save && exports.z_stop.initialize().save[0] && exports.z_stop.initialize().save[0].blockfunction && exports.z_stop.initialize().save[0].blockfunction.length > 0 && mainMsg && mainMsg[0]) {
 			for (let i = 0; i < exports.z_stop.initialize().save.length; i++) {
 				if ((new RegExp(exports.z_stop.initialize().save[i].blockfunction.join("|"), "i")).test(mainMsg[0]) && exports.z_stop.initialize().save[i].groupid == groupid && exports.z_stop.initialize().save[i].blockfunction.length > 0) {

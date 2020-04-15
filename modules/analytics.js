@@ -46,7 +46,6 @@ records.get('RealTimeRollingLog', (msgs) => {
 	simpleCourt = 0;
 })
 
-const math = require('mathjs');
 
 //Log everyday 01:00
 //Format: 
@@ -285,7 +284,7 @@ try {
 									console.log(error)
 								})
 								*/
-								return LevelUP(tempGPID, tempGPuserID);
+								return await LevelUP(tempGPID, tempGPuserID);
 								//console.log('result.LevelUp: ', result.LevelUp)
 							}
 						}

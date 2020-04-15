@@ -58,7 +58,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				if (message.member && message.member.user && message.member.user.username)
 					displaynameDiscord = message.member.user.username
 				if (message.guild && message.guild.members)
-					membercount = message.guild.members.filter(member => !member.user.bot).size;
+					membercount = await message.guild.members.filter(member => !member.user.bot).size;
 				////DISCORD: 585040823232320107
 				if (message.member && message.member.hasPermission("ADMINISTRATOR"))
 					userrole = 3
@@ -162,8 +162,8 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 											await SendToReplychannel("<@" + userid + '> 暗骰給自己')
 										if (userid)
 											rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
-										await SendToReply(rplyVal.text);
-										return
+										return await SendToReply(rplyVal.text);
+
 										break;
 									case privatemsg == 2:
 										//輸入ddr(指令) 私訊GM及自己
@@ -198,11 +198,16 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 										return;
 										break;
 									default:
-										if (displaynamecheck && userid) {
-											//285083923223
-											displayname = "<@" + userid + ">\n";
-											rplyVal.text = displayname + rplyVal.text
+										async function displayname() {
+											if (displaynamecheck && userid) {
+												//285083923223
+												displayname = "<@" + userid + ">\n";
+												rplyVal.text = displayname + rplyVal.text
+											}
+											return rplyVal;
+
 										}
+										rplyVal = await displayname();
 										if (groupid)
 											return await SendToReplychannel(rplyVal.text);
 										else

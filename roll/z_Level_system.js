@@ -123,7 +123,7 @@ try {
         44-47   外神
         48-50   門
         */
-    rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
+    rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
         rply.text = '';
         switch (true) {
             case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
@@ -513,7 +513,7 @@ try {
                                         let username = displaynameDiscord || displayname || "無名"
                                         let userlevel = 0;
                                         //let userexp = math.floor(math.random() * 10) + 15
-                                        let userexp = (rollbase.Dice(10) - 1) + 15
+                                        let userexp = (await rollbase.Dice(10) - 1) + 15
                                         //console.log('rply.trpgLevelSystemfunction[i]',
                                         let usermember_count = membercount || rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length;
                                         let userRanking = ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);

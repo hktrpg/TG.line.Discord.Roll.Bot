@@ -77,7 +77,7 @@ initialize = function () {
     return rply;
 }
 
-rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
     rply.text = '';
     let result = '';
     switch (true) {
@@ -276,7 +276,7 @@ function sw(triggermsg) {
     }
 }
 
-function swroll(match, round, returnStr, finallynum) {
+async function swroll(match, round, returnStr, finallynum) {
     //判斷式  [0]K013+21-5@8,[1]K,[2]13,[3]+21,[4]21,[5]-5,[6]5,[7]@8,[8]8
     //判斷式  [0]KK1+5-5@5$,[1]KK,[2]1,[3]+5-5,[4]+5,[5]+,[6]5,[7]-5,[8]-,[9]5,[10]@5,[11]5,[12]$5,[13]5,[14]$+5,[15]5 
 
@@ -290,8 +290,8 @@ function swroll(match, round, returnStr, finallynum) {
     for (var i = 0; i < rollnum; i++) {
         //varcoua = Math.floor(Math.random() * 6) + 1;
         //varcoub = Math.floor(Math.random() * 6) + 1;
-        varcoua = rollbase.Dice(6)
-        varcoub = rollbase.Dice(6)
+        varcoua =await rollbase.Dice(6)
+        varcoub =await rollbase.Dice(6)
         if (match[16] == 'gf') varcoub = varcoua;
         var varcou = varcoua + varcoub;
         if (match[13] >= 1) {

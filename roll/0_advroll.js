@@ -41,7 +41,7 @@ initialize = function () {
 	return rply;
 }
 
-rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 	rply.text = '';
 	//let result = {};
 	switch (true) {
@@ -83,7 +83,7 @@ rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botnam
 			points.sort(function (a, b) {
 				return a - b
 			});
-			rply.text = '投擲 ' + points[0] + ' - ' + points[1] + '：\n→ ' + rollbase.DiceINT(points[0], points[1]);
+			rply.text = '投擲 ' + points[0] + ' - ' + points[1] + '：\n→ ' + await rollbase.DiceINT(points[0], points[1]);
 			return rply
 			break;
 		default:
@@ -111,12 +111,12 @@ module.exports = {
 ////////////////////////////////////////
 //////////////// D66
 ////////////////////////////////////////
-function d66(text) {
+async function d66(text) {
 	let returnStr = '';
 	if (text != null) {
-		returnStr = 'D66：' + text + ' → ' + rollbase.Dice(6) + rollbase.Dice(6);
+		returnStr = 'D66：' + text + ' → ' + await rollbase.Dice(6) + await rollbase.Dice(6);
 	} else {
-		returnStr = 'D66 → ' + rollbase.Dice(6) + rollbase.Dice(6);
+		returnStr = 'D66 → ' + await rollbase.Dice(6) + await rollbase.Dice(6);
 	}
 	rply.text = returnStr;
 	return rply;
@@ -124,9 +124,9 @@ function d66(text) {
 ////////////////////////////////////////
 //////////////// D66s
 ////////////////////////////////////////
-function d66s(text) {
-	let temp0 = rollbase.Dice(6);
-	let temp1 = rollbase.Dice(6);
+async function d66s(text) {
+	let temp0 = await rollbase.Dice(6);
+	let temp1 = await rollbase.Dice(6);
 	let returnStr = '';
 	if (temp0 >= temp1) {
 		let temp2 = temp0;
@@ -144,9 +144,9 @@ function d66s(text) {
 ////////////////////////////////////////
 //////////////// D66n
 ////////////////////////////////////////
-function d66n(text) {
-	let temp0 = rollbase.Dice(6);
-	let temp1 = rollbase.Dice(6);
+async function d66n(text) {
+	let temp0 = await rollbase.Dice(6);
+	let temp1 = await rollbase.Dice(6);
 	let returnStr = '';
 	if (temp0 <= temp1) {
 		let temp2 = temp0;
@@ -166,7 +166,7 @@ function d66n(text) {
 ////////////////  xBy<>=z  成功数1
 ////////////////  xBy Dz   成功数1
 ////////////////////////////////////////
-function xBy(triggermsg, text01, text02) {
+async function xBy(triggermsg, text01, text02) {
 	//	console.log('dd')
 	let match = /^((\d+)(b)(\d+))(|(([<]|[>]|)(|[=]))(\d+))$/i.exec(triggermsg);
 	//判斷式 0:"5b10<=80" 1:"5b10" 2:"5" 3:"b" 4:"10" 5:"<=80" 6:"<=" 	7:"<" 8:"=" 	9:"80"
@@ -200,7 +200,7 @@ function xBy(triggermsg, text01, text02) {
 	let varcou = new Array();
 	let varsu = 0;
 	for (var i = 0; i < Number(match[2]); i++) {
-		varcou[i] = rollbase.Dice(match[4]);
+		varcou[i] = await rollbase.Dice(match[4]);
 	}
 	//	console.log(varcou)
 	//varcou.sort(rollbase.sortNumber);
@@ -213,7 +213,7 @@ function xBy(triggermsg, text01, text02) {
 					varsu++;
 				else {
 					//console.log('01: ', varcou[i])
-					varcou[i] = strikeThrough(varcou[i])
+					varcou[i] = await strikeThrough(varcou[i])
 				}
 				break;
 			case (match[7] == ">" && !match[8]):
@@ -222,7 +222,7 @@ function xBy(triggermsg, text01, text02) {
 				else {
 					//	console.log('02: ', varcou[i])
 
-					varcou[i] = strikeThrough(varcou[i])
+					varcou[i] = await strikeThrough(varcou[i])
 				}
 				break;
 			case (match[7] == "<" && match[8] == "="):
@@ -231,7 +231,7 @@ function xBy(triggermsg, text01, text02) {
 				else {
 					//	console.log('03: ', varcou[i])
 
-					varcou[i] = strikeThrough(varcou[i])
+					varcou[i] = await strikeThrough(varcou[i])
 				}
 				break;
 			case (match[7] == ">" && match[8] == "="):
@@ -240,7 +240,7 @@ function xBy(triggermsg, text01, text02) {
 				else {
 					//	console.log('04: ', varcou[i])
 
-					varcou[i] = strikeThrough(varcou[i])
+					varcou[i] = await strikeThrough(varcou[i])
 				}
 				break;
 			case (match[7] == "" && match[8] == "="):
@@ -249,7 +249,7 @@ function xBy(triggermsg, text01, text02) {
 				else {
 					//	console.log('05: ', varcou[i])
 					//	console.log('match[7]: ', match[7])
-					varcou[i] = strikeThrough(varcou[i])
+					varcou[i] = await strikeThrough(varcou[i])
 				}
 				break;
 			default:
@@ -268,7 +268,7 @@ function xBy(triggermsg, text01, text02) {
 ////////////////  (5U10[8]>8) → 1,30[9,8,8,5],1,3,4 → 成功数1
 ////////////////////////////////////////
 
-function xUy(triggermsg, text01, text02, text03) {
+async function xUy(triggermsg, text01, text02, text03) {
 	var match = /^(\d+)(u)(\d+)/i.exec(triggermsg); //判斷式  5u19,5,u,19, 
 	var returnStr = '(' + triggermsg + '[' + text01 + ']';
 	if (Number(text02) <= Number(match[3]) && text02 != undefined) {
@@ -289,11 +289,11 @@ function xUy(triggermsg, text01, text02, text03) {
 	}
 
 	for (var i = 0; i < Number(match[1]); i++) {
-		varcou[i] = rollbase.Dice(match[3]);
+		varcou[i] = await rollbase.Dice(match[3]);
 		varcounew[i] = varcou[i];
 		varcouloop[i] = varcounew[i];
 		for (; varcounew[i] >= text01;) {
-			varcounew[i] = rollbase.Dice(match[3]);
+			varcounew[i] = await rollbase.Dice(match[3]);
 			varcouloop[i] += ', ' + varcounew[i];
 			varcou[i] += varcounew[i];
 		}
@@ -328,7 +328,7 @@ function xUy(triggermsg, text01, text02, text03) {
 	return rply;
 }
 
-function strikeThrough(text) {
+async function strikeThrough(text) {
 	if (text)
 		return text.toString()
 			.split('')

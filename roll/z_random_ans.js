@@ -43,7 +43,7 @@ try {
         return rply;
     }
 
-    rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+    rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 
         rply.text = '';
         switch (true) {
@@ -350,7 +350,7 @@ try {
     }
 
 
-    function shuffle(array) {
+    async function shuffle(array) {
         let currentIndex = array.length,
             temporaryValue, randomIndex;
 
@@ -360,8 +360,8 @@ try {
             // Pick a remaining element...
             //currentIndex 
             //randomIndex = math.floor(math.random() * currentIndex);
-            randomIndex = rollbase.Dice(currentIndex) - 1
-            //randomIndex = rollbase.Dice(currentIndex) - 1
+            randomIndex =await rollbase.Dice(currentIndex) - 1
+            //randomIndex =await rollbase.Dice(currentIndex) - 1
             currentIndex -= 1;
 
             // And swap it with the current element.

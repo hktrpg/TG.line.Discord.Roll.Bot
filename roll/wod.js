@@ -25,7 +25,7 @@ initialize = function () {
 	return rply;
 }
 
-rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 	let matchwod = /^[.](\d+)(wd|wod)(\d|)((\+|-)(\d+)|)$/i.exec(mainMsg[0]); //判斷式  [0]3wd8+10,[1]3,[2]wd,[3]8,[4]+10,[5]+,[6]10  
 	//console.log(matchwod)
 	if (matchwod && matchwod[1] >= 1 && matchwod[1] <= 600)
@@ -46,7 +46,7 @@ module.exports = {
 ////////////////////////////////////////
 //////////////// WOD黑暗世界
 ////////////////////////////////////////
-function wod(triggermsg, text) {
+async function wod(triggermsg, text) {
 	var returnStr = triggermsg + ' [';
 	var varcou = 0;
 	var varsu = 0;
@@ -61,7 +61,7 @@ function wod(triggermsg, text) {
 
 	for (var i = 0; i < Number(match[1]); i++) {
 		//varcou = Math.floor(Math.random() * 10) + 1;
-		varcou = rollbase.Dice(10)
+		varcou =await rollbase.Dice(10)
 		returnStr += varcou + ', ';
 		if (varcou >= match[3]) {
 			i--

@@ -128,7 +128,7 @@ async function googleimage(inputStr, mainMsg, safe) {
 		.then(async images => {
 			if (images[0]) {
 				//let resultnum = Math.floor((Math.random() * (images.length)) + 0)
-				let resultnum = rollbase.Dice(images.length) - 1
+				let resultnum =await rollbase.Dice(images.length) - 1
 				for (let i = 0; i < images.length; i++) {
 					let nows = await now(resultnum, i, images.length)
 					if (await imageExists(images[nows].url) && images[nows].url != 'https://c8.alamy.com/comp/HKTRPG/los-angeles-usa-29th-jan-2017-danielle-brooks-seen-arriving-at-the-HKTRPG.jpg') {
@@ -143,7 +143,7 @@ async function googleimage(inputStr, mainMsg, safe) {
 					.then(async images => {
 						{
 							//let resultnum = Math.floor((Math.random() * (images.length)) + 0)
-							let resultnum = rollbase.Dice(images.length) - 1
+							let resultnum =await rollbase.Dice(images.length) - 1
 							for (let i = 0; i < images.length; i++) {
 								if (images[resultnum].url.match(/\.(jpeg|jpg|gif|png)$/) != null) {
 									i = images.length

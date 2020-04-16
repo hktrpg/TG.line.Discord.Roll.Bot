@@ -5,7 +5,6 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 		const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 		const Discord = require('discord.js');
 		const client = new Discord.Client();
-
 		const {
 			Random,
 			nodeCrypto
@@ -155,7 +154,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 							count++;
 							if (count > 3)
 								console.log('3 count: ' && count && 'rplyVal: ', rplyVal)
-		
+
 							await SendMessageSwitch()
 							async function SendMessageSwitch() {
 								switch (true) {
@@ -203,15 +202,13 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 										break;
 									default:
 										async function displayname() {
-											if (displaynamecheck && userid) {
-												//285083923223
-												displayname = "<@" + userid + ">\n";
-												rplyVal.text = displayname + rplyVal.text
-											}
+											//285083923223
+											displayname = "<@" + userid + ">\n";
+											rplyVal.text = displayname + rplyVal.text
 											return rplyVal;
-
 										}
-										rplyVal = await displayname();
+										if (displaynamecheck && userid)
+											rplyVal = await displayname();
 										if (groupid)
 											return await SendToReplychannel(rplyVal.text);
 										else

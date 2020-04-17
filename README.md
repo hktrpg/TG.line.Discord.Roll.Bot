@@ -24,7 +24,8 @@ https://roll.hktrpg.com/</br></br>
 關於RoboYabaso</br> 
 ==
 RoboYabaso最早由LarryLo  Retsnimle開發。 </br> 
-是一個開放源碼骰子機器人計畫。</br></br>
+是一個開放源碼骰子機器人計畫。</br>
+來源自 https://docs.google.com/document/d/1dYnJqF2_QTp90ld4YXj6X8kgxvjUoHrB4E2seqlDlAk/edit</br>
 
 現在改成三合一Line x Discord x Telegram。</br>
 雖然是三合一，但可以單獨使用，只是共用骰組，</br>

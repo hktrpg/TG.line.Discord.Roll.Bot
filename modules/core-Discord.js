@@ -1,10 +1,15 @@
 if (process.env.DISCORD_CHANNEL_SECRET) {
 	try {
 		exports.analytics = require('../modules/analytics');
-		var channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
-		var channelSecret = process.env.DISCORD_CHANNEL_SECRET;
+		const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
+		const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 		const Discord = require('discord.js');
 		const client = new Discord.Client();
+		const {
+			Random,
+			nodeCrypto
+		} = require("random-js");
+		const random = new Random(nodeCrypto);
 		//const BootTime = new Date(new Date().toLocaleString("en-US", {
 		//	timeZone: "Asia/Shanghai"
 		//}));
@@ -51,11 +56,15 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				if (message.member && message.member.user && message.member.user.username)
 					displaynameDiscord = message.member.user.username
 				if (message.guild && message.guild.members)
-					membercount = message.guild.members.filter(member => !member.user.bot).size;
+					membercount = await message.guild.members.filter(member => !member.user.bot).size;
 				////DISCORD: 585040823232320107
-				if (message.member && message.member.hasPermission("ADMINISTRATOR")) userrole = 3
+				if (message.member && message.member.hasPermission("ADMINISTRATOR"))
+					userrole = 3
 				//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin 
+			
+				
 				if (message.content != "") {
+					let CAPTCHA = random.string(20);
 					let rplyVal = {};
 					let trigger = ""
 					let msgSplitor = (/\S+/ig);
@@ -89,15 +98,18 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 
 					if (channelKeyword != "" && trigger == channelKeyword.toString().toLowerCase()) {
 						//mainMsg.shift();
-						rplyVal = await exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount);
+						rplyVal = await exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount, CAPTCHA);
 					} else {
 						if (channelKeyword == "") {
-							rplyVal = await exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount);
+							rplyVal = await exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount, CAPTCHA);
 						}
 					}
 					//LevelUp功能
-
 					if (rplyVal && hasSendPermission) {
+						if (CAPTCHA != rplyVal.CAPTCHA) {
+							console.log('Discord CAPTCHA false', CAPTCHA, ' &&', rplyVal.CAPTCHA, "TEXT", message.content, 'rplyVal: ', rplyVal)
+							return;
+						}
 						if (groupid && rplyVal && rplyVal.LevelUp) {
 							//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
 							await SendToReplychannel("<@" + userid + '>\n' + rplyVal.LevelUp)
@@ -107,13 +119,13 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 							//簡單使用數字計算器
 							if (privatemsg >= 1) {
 								//當是私訊模式1-3時
-								var TargetGMTempID = []
-								var TargetGMTempdiyName = []
-								var TargetGMTempdisplayname = []
+								let TargetGMTempID = []
+								let TargetGMTempdiyName = []
+								let TargetGMTempdisplayname = []
 								if (TargetGM && TargetGM.trpgDarkRollingfunction)
-									for (var i = 0; i < TargetGM.trpgDarkRollingfunction.length; i++) {
+									for (let i = 0; i < TargetGM.trpgDarkRollingfunction.length; i++) {
 										if (TargetGM.trpgDarkRollingfunction[i].groupid == channelid) {
-											for (var a = 0; a < TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
+											for (let a = 0; a < TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
 												//checkifsamename = 1
 												TargetGMTempID[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].userid
 												TargetGMTempdiyName[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].diyName
@@ -132,59 +144,67 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 														rplyVal.text = displayname + rplyVal.text
 												}
 							*/
-							switch (true) {
-								case privatemsg == 1:
-									// 輸入dr  (指令) 私訊自己
-									//
-									if (groupid)
-										await SendToReplychannel("<@" + userid + '> 暗骰給自己')
-									if (userid)
-										rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
-									await SendToReply(rplyVal.text);
-									break;
-								case privatemsg == 2:
-									//輸入ddr(指令) 私訊GM及自己
-									//console.log('AAA', TargetGMTempID)
-									if (groupid) {
-										let targetGMNameTemp = "";
-										for (var i = 0; i < TargetGMTempID.length; i++)
-											targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
-										await SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
-									}
-									if (userid)
-										rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
-									await SendToReply(rplyVal.text);
-									for (var i = 0; i < TargetGMTempID.length; i++) {
-										if (userid != TargetGMTempID[i])
-											await SendToId(TargetGMTempID[i], rplyVal.text);
-									}
-									break;
-								case privatemsg == 3:
-									//輸入dddr(指令) 私訊GM
-									if (groupid) {
-										let targetGMNameTemp = "";
-										for (var i = 0; i < TargetGMTempID.length; i++)
-											targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
-										await SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp)
-									}
-									rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
-									for (var i = 0; i < TargetGMTempID.length; i++) {
-										await SendToId(TargetGMTempID[i], rplyVal.text);
-									}
-									break;
-								default:
-									if (displaynamecheck && userid) {
-										//285083923223
-										displayname = "<@" + userid + ">\n";
-										rplyVal.text = displayname + rplyVal.text
-									}
-									if (groupid)
-										await SendToReplychannel(rplyVal.text);
-									else
-										await SendToReply(rplyVal.text);
-									break;
-							}
+							await SendMessageSwitch()
+							async function SendMessageSwitch() {
+								switch (true) {
+									case privatemsg == 1:
+										// 輸入dr  (指令) 私訊自己
+										//
+										if (groupid)
+											await SendToReplychannel("<@" + userid + '> 暗骰給自己')
+										if (userid)
+											rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
+										return await SendToReply(rplyVal.text);
 
+										break;
+									case privatemsg == 2:
+										//輸入ddr(指令) 私訊GM及自己
+										//console.log('AAA', TargetGMTempID)
+										if (groupid) {
+											let targetGMNameTemp = "";
+											for (let i = 0; i < TargetGMTempID.length; i++)
+												targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
+											await SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
+										}
+										if (userid)
+											rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
+										await SendToReply(rplyVal.text);
+										for (let i = 0; i < TargetGMTempID.length; i++) {
+											if (userid != TargetGMTempID[i])
+												await SendToId(TargetGMTempID[i], rplyVal.text);
+										}
+										return;
+										break;
+									case privatemsg == 3:
+										//輸入dddr(指令) 私訊GM
+										if (groupid) {
+											let targetGMNameTemp = "";
+											for (let i = 0; i < TargetGMTempID.length; i++)
+												targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
+											await SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp)
+										}
+										rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
+										for (let i = 0; i < TargetGMTempID.length; i++) {
+											await SendToId(TargetGMTempID[i], rplyVal.text);
+										}
+										return;
+										break;
+									default:
+										async function displayname() {
+											//285083923223
+											displayname = "<@" + userid + ">\n";
+											rplyVal.text = displayname + rplyVal.text
+											return rplyVal;
+										}
+										if (displaynamecheck && userid)
+											rplyVal = await displayname();
+										if (groupid)
+											return await SendToReplychannel(rplyVal.text);
+										else
+											return await SendToReply(rplyVal.text);
+										break;
+								}
+							}
 
 							//console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString(), " content: ", message.content);
 
@@ -198,10 +218,10 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					}
 
 					async function SendToId(targetid, replyText) {
-						for (var i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
+						for (let i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 							if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
 								try {
-									await client.users.get(targetid).send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
+									return await client.users.get(targetid).send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
 								}
 							catch (e) {
 								console.log('error SendtoID: ', e.message)
@@ -211,10 +231,10 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					}
 
 					async function SendToReply(replyText) {
-						for (var i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
+						for (let i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 							if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
 								try {
-									await message.author.send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
+									return await message.author.send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
 
 								}
 							catch (e) {
@@ -223,10 +243,10 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 						}
 					}
 					async function SendToReplychannel(replyText) {
-						for (var i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
+						for (let i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 							if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
 								try {
-									await message.channel.send(replyText.toString().match(/[\s\S]{1,1900}/g)[i])
+									return await message.channel.send(replyText.toString().match(/[\s\S]{1,1900}/g)[i])
 								}
 							catch (e) {
 								console.log('error SendToReplychannel: ', e.message)
@@ -234,9 +254,8 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 						}
 					}
 				} else if (groupid && userid) {
-					await exports.analytics.parseInput("", groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount)
-					return null
-				}
+					return await exports.analytics.parseInput("", groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount)
+				} else return;
 			} else
 				return;
 		});

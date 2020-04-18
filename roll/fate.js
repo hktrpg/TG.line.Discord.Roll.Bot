@@ -30,7 +30,7 @@ initialize = function () {
     return rply;
 }
 
-rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
     rply.text = '';
     switch (true) {
         case /^help$/i.test(mainMsg[1]):
@@ -45,7 +45,7 @@ rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botnam
             var ans = 0
 
             for (i = 0; i < 4; i++) {
-                random = (rollbase.Dice(3) - 2)
+                random = (await rollbase.Dice(3) - 2)
                 ans += random
                 temp += random
                 // console.log('ans: ', ans, 'temp: ', temp)

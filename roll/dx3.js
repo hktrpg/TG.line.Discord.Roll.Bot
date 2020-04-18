@@ -43,7 +43,7 @@ initialize = function () {
 	return rply;
 }
 
-rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 	rply.text = '';
 	let result = '';
 	switch (true) {
@@ -122,7 +122,7 @@ function dx(triggermsg) {
 
 }
 
-function dxroll(match, round, returnStr, finallynum) {
+async function dxroll(match, round, returnStr, finallynum) {
 	var result = 0;
 	var rollnum = match[1];
 	match[1] = 0;
@@ -130,7 +130,7 @@ function dxroll(match, round, returnStr, finallynum) {
 	var varsu = "";
 	for (var i = 0; i < rollnum; i++) {
 		//varcou = Math.floor(Math.random() * 10) + 1;
-		varcou = rollbase.Dice(10)
+		varcou =await rollbase.Dice(10)
 		if (varcou > result) {
 			result = varcou
 		}

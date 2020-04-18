@@ -43,7 +43,7 @@ try {
         return rply;
     }
 
-    rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+    rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 
         rply.text = '';
         switch (true) {
@@ -209,7 +209,7 @@ try {
 
 
                                             for (; result.length < times;) {
-                                                result = result.concat(shuffle([...tempcontact]))
+                                                result = result.concat(await shuffle([...tempcontact]))
                                             }
                                             rply.text += result[0];
                                             for (let t = 1; t < times; t++) {
@@ -331,7 +331,7 @@ try {
                                     rply.text += GPtemp[0] + ' → ';
                                     let result = [];
                                     for (; result.length < timesgp;) {
-                                        result = result.concat(shuffle([...GPtempcontact]))
+                                        result = result.concat(await shuffle([...GPtempcontact]))
                                     }
                                     rply.text += result[0];
                                     for (let t = 1; t < timesgp; t++) {
@@ -350,7 +350,7 @@ try {
     }
 
 
-    function shuffle(array) {
+    async function shuffle(array) {
         let currentIndex = array.length,
             temporaryValue, randomIndex;
 
@@ -360,8 +360,8 @@ try {
             // Pick a remaining element...
             //currentIndex 
             //randomIndex = math.floor(math.random() * currentIndex);
-            randomIndex = rollbase.Dice(currentIndex) - 1
-            //randomIndex = rollbase.Dice(currentIndex) - 1
+            randomIndex = await rollbase.Dice(currentIndex) - 1
+            //randomIndex =await rollbase.Dice(currentIndex) - 1
             currentIndex -= 1;
 
             // And swap it with the current element.

@@ -32,7 +32,6 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 
 		client.on('message', async (message) => {
 			if (message.author.bot === false) {
-				let count = 0;
 				//	console.log('message.content ' + message.content);
 				//	console.log('channelKeyword ' + channelKeyword);
 				let groupid, userid, displayname, channelid, displaynameDiscord, membercount = ''
@@ -62,11 +61,9 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				if (message.member && message.member.hasPermission("ADMINISTRATOR"))
 					userrole = 3
 				//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin 
-				count++;
-				if (count > 1)
-					console.log('1 count: ' && count)
+			
+				
 				if (message.content != "") {
-
 					let CAPTCHA = random.string(20);
 					let rplyVal = {};
 					let trigger = ""
@@ -108,10 +105,6 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 						}
 					}
 					//LevelUp功能
-					count++;
-					if (count > 2)
-						console.log('2 count: ' && count && 'rplyVal: ', rplyVal)
-
 					if (rplyVal && hasSendPermission) {
 						if (CAPTCHA != rplyVal.CAPTCHA) {
 							console.log('Discord CAPTCHA false', CAPTCHA, ' &&', rplyVal.CAPTCHA, "TEXT", message.content, 'rplyVal: ', rplyVal)
@@ -151,10 +144,6 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 														rplyVal.text = displayname + rplyVal.text
 												}
 							*/
-							count++;
-							if (count > 3)
-								console.log('3 count: ' && count && 'rplyVal: ', rplyVal)
-
 							await SendMessageSwitch()
 							async function SendMessageSwitch() {
 								switch (true) {

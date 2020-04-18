@@ -2,7 +2,7 @@
 //  i.e., `User.js` will become `exports['User']` or `exports.User`
 require('fs').readdirSync('./roll/').forEach(function (file) {
 	if (file.match(/\.js$/) !== null && file !== 'index.js' && file !== 'demo.js') {
-		var name = file.replace('.js', '');
+		const name = file.replace('.js', '');
 		exports[name] = require('../roll/' + file);
 	}
 });
@@ -13,7 +13,7 @@ const oneDay = 24 * 60 * 60 * 1000;
 //一日 多久會上傳一次LOG紀錄
 const oneMinuts = 60000;
 //60000 多久可以升級及增加經驗
-var RollingLog = {
+const RollingLog = {
 	RealTimeRollingLogfunction: {
 		LastTimeLog: "",
 		StartTime: "",
@@ -30,30 +30,28 @@ const records = require('../modules/records.js');
 var simpleCourt = null;
 records.get('RealTimeRollingLog', (msgs) => {
 	if (msgs && msgs[0] && msgs[0].RealTimeRollingLogfunction)
-		RollingLog = {
-			RealTimeRollingLogfunction: {
-				LastTimeLog: msgs[0].RealTimeRollingLogfunction.LastTimeLog || "",
-				StartTime: msgs[0].RealTimeRollingLogfunction.StartTime || "",
-				LogTime: msgs[0].RealTimeRollingLogfunction.LogTime || "",
-				DiscordCountRoll: msgs[0].RealTimeRollingLogfunction.DiscordCountRoll || 0,
-				DiscordCountText: msgs[0].RealTimeRollingLogfunction.DiscordCountText || 0,
-				LineCountRoll: msgs[0].RealTimeRollingLogfunction.LineCountRoll || 0,
-				LineCountText: msgs[0].RealTimeRollingLogfunction.LineCountText || 0,
-				TelegramCountRoll: msgs[0].RealTimeRollingLogfunction.TelegramCountRoll || 0,
-				TelegramCountText: msgs[0].RealTimeRollingLogfunction.TelegramCountText || 0
-			}
+		RollingLog.RealTimeRollingLogfunction = {
+			LastTimeLog: msgs[0].RealTimeRollingLogfunction.LastTimeLog || "",
+			StartTime: msgs[0].RealTimeRollingLogfunction.StartTime || "",
+			LogTime: msgs[0].RealTimeRollingLogfunction.LogTime || "",
+			DiscordCountRoll: msgs[0].RealTimeRollingLogfunction.DiscordCountRoll || 0,
+			DiscordCountText: msgs[0].RealTimeRollingLogfunction.DiscordCountText || 0,
+			LineCountRoll: msgs[0].RealTimeRollingLogfunction.LineCountRoll || 0,
+			LineCountText: msgs[0].RealTimeRollingLogfunction.LineCountText || 0,
+			TelegramCountRoll: msgs[0].RealTimeRollingLogfunction.TelegramCountRoll || 0,
+			TelegramCountText: msgs[0].RealTimeRollingLogfunction.TelegramCountText || 0
+
 		};
 	//console.log('RollingLog', RollingLog)
 	simpleCourt = 0;
 })
 
-const math = require('mathjs');
 
 //Log everyday 01:00
 //Format: 
 //TG
 try {
-	var result = {
+	let result = {
 		text: '',
 		type: 'text',
 		LevelUp: ''
@@ -61,7 +59,7 @@ try {
 
 	//用來呼叫骰組,新增骰組的話,要寫條件式到下面呼叫 
 	//格式是 exports.骰組檔案名字.function名
-	var parseInput = async function (inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
+	var parseInput = async function (inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount, CAPTCHA) {
 		//console.log('InputStr: ' + inputStr);
 		result = {
 			text: '',
@@ -108,17 +106,17 @@ try {
 		}
 		//LEVEL功能
 		if (groupid) {
-			//console.log(await EXPUP());
 			let tempEXPUP = await EXPUP();
-			if (tempEXPUP)
+			if (tempEXPUP) {
+				console.log('tempEXPUP: ', tempEXPUP)
 				result.LevelUp = tempEXPUP
-			else
+			} else
 				result.LevelUp = ""
 			//result.LevelUp
 		}
 		if (result && (result.text || result.LevelUp)) {
 			if (result.text) {
-				console.log('inputStr: ', inputStr)
+				console.log(botname, '\'s inputStr: ', inputStr)
 				//SAVE THE LOG
 				if (simpleCourt != null) {
 					switch (botname) {
@@ -139,6 +137,7 @@ try {
 				}
 
 			}
+			result.CAPTCHA = CAPTCHA
 			return result;
 		} else {
 			if (simpleCourt != null) {
@@ -156,13 +155,13 @@ try {
 						break;
 				}
 				simpleCourt++;
-				saveLog();
+				await saveLog();
 			}
 			return;
 		}
 
 
-		function saveLog() {
+		async function saveLog() {
 			//假如沒有StartTime 或過了一天則上載中途紀錄到MLAB
 			//console.log(Date.now() - RollingLog.RealTimeRollingLogfunction.StartTime)
 			if (!RollingLog.RealTimeRollingLogfunction.StartTime) {
@@ -251,7 +250,7 @@ try {
 						trpgLevelSystemfunction: {
 							userid: userid,
 							name: displayname || '無名',
-							EXP: exports.rollbase.Dice(9) + 15,
+							EXP: await exports.rollbase.Dice(9) + 15,
 							//EXP: math.floor(math.random() * 10) + 15,
 							Level: "0",
 							LastSpeakTime: Date.now()
@@ -265,7 +264,7 @@ try {
 				} else if (tempIsUser != 0) {
 					//4. 有-> 檢查上次紀錄的時間 超過60000 (1分鐘) 即增加1-10 經驗值
 					if (new Date(Date.now()) - new Date(exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].LastSpeakTime) > oneMinuts) {
-						exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP + exports.rollbase.Dice(9) + 15;
+						exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP + await exports.rollbase.Dice(9) + 15;
 						exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].LastSpeakTime = Date.now();
 						exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].name = displaynameDiscord || displayname || '無名'
 						//5. 檢查現LEVEL 需不需要上升. =5 / 6 * LVL * (2 * LVL * LVL + 27 * LVL + 91)
@@ -285,7 +284,7 @@ try {
 									console.log(error)
 								})
 								*/
-								return LevelUP(tempGPID, tempGPuserID);
+								return await LevelUP(tempGPID, tempGPuserID);
 								//console.log('result.LevelUp: ', result.LevelUp)
 							}
 						}
@@ -307,7 +306,7 @@ try {
 			let userexp = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP;
 			//console.log('rply.trpgLevelSystemfunction[i]',
 			let usermember_count = membercount || exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.length;
-			let userRanking = ranking(userid, exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction);
+			let userRanking = await ranking(userid, exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction);
 
 			let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
 			let userTitle = exports.z_Level_system.checkTitle(userlevel, exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Title);
@@ -320,28 +319,27 @@ try {
 	}
 
 
-	function ranking(who, data) {
-		var array = [];
+	async function ranking(who, data) {
+		let array = [];
 		let answer = "0"
-		for (var key in data) {
-			array.push(data[key]);
-
+		for (let key in data) {
+			await array.push(data[key]);
 		}
 
-		array.sort(function (a, b) {
+		array.sort(async function (a, b) {
 			return b.EXP - a.EXP;
 		});
 
-		var rank = 1;
+		let rank = 1;
 		//console.log('array.length', array.length)
 		//console.log('array', array)
-		for (var i = 0; i < array.length; i++) {
+		for (let i = 0; i < array.length; i++) {
 			if (i > 0 && array[i].EXP < array[i - 1].EXP) {
 				rank++;
 			}
 			array[i].rank = rank;
 		}
-		for (var b = 0; b < array.length; b++) {
+		for (let b = 0; b < array.length; b++) {
 			if (array[b].userid == who)
 				answer = b + 1;
 			//  document.write(b + 1);
@@ -353,9 +351,9 @@ try {
 
 
 
-	function z_stop(mainMsg, groupid) {
+	async function z_stop(mainMsg, groupid) {
 		if (exports.z_stop && exports.z_stop.initialize() && exports.z_stop.initialize().save && exports.z_stop.initialize().save[0] && exports.z_stop.initialize().save[0].blockfunction && exports.z_stop.initialize().save[0].blockfunction.length > 0 && mainMsg && mainMsg[0]) {
-			for (var i = 0; i < exports.z_stop.initialize().save.length; i++) {
+			for (let i = 0; i < exports.z_stop.initialize().save.length; i++) {
 				if ((new RegExp(exports.z_stop.initialize().save[i].blockfunction.join("|"), "i")).test(mainMsg[0]) && exports.z_stop.initialize().save[i].groupid == groupid && exports.z_stop.initialize().save[i].blockfunction.length > 0) {
 					console.log('Match AND STOP')
 					return 1
@@ -368,8 +366,8 @@ try {
 		//console.log(exports)
 		//在下面位置開始分析trigger
 		if (!groupid) groupid = 0
-		var breakFlag = false;
-		for (var v in exports) {
+		let breakFlag = false;
+		for (let v in exports) {
 			//console.log('v: ', v)
 			if (exports.hasOwnProperty(v)) {
 				if (breakFlag === true) {
@@ -387,7 +385,7 @@ try {
 				let checkmainMsg1 = 0;
 				let findprefixs = 0;
 				if (exports[v].prefixs && exports[v].prefixs()[0]) {
-					for (var i = 0; i <= exports[v].prefixs().length - 1; i = i + 2) {
+					for (let i = 0; i <= exports[v].prefixs().length - 1; i = i + 2) {
 						checkmainMsg0 = 0;
 						checkmainMsg1 = 0;
 						if (exports[v].prefixs()[i] && exports[v].prefixs()[i]) {
@@ -414,13 +412,13 @@ try {
 
 				if (findprefixs == 1) {
 					console.log('trigger: ', inputStr)
-					var tempsave = await exports[v].rollDiceCommand(inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount)
+					let tempsave = await exports[v].rollDiceCommand(inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount)
 					//console.log('tempsave: ', tempsave)
 					return await tempS();
 
 					async function tempS() {
 						if (tempsave) {
-							for (var key in tempsave) {
+							for (let key in tempsave) {
 								if (tempsave.hasOwnProperty(key)) {
 									result[key] = tempsave[key]
 								}

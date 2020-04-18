@@ -1,6 +1,12 @@
 if (process.env.TELEGRAM_CHANNEL_SECRET) {
 
 	try {
+		const {
+			Random,
+			nodeCrypto
+		} = require("random-js");
+		const random = new Random(nodeCrypto);
+
 		function timer(ms) {
 			return new Promise(res => setTimeout(res, ms));
 		}
@@ -108,6 +114,8 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 		})
 
 		TGclient.on('text', async (ctx) => {
+			let count = 0
+			let CAPTCHA = random.string(20);
 			//console.log(ctx.getChatMembers(ctx.chat.id) //[Members]
 			//	ctx.getChatMembers() //[Members]
 			//	telegrafGetChatMembers.check(ctx.chat.id) //[Members]
@@ -177,13 +185,22 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				rplyVal = await exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram", displayname, channelid, "", membercount)
 			} else {
 				if (channelKeyword == '') {
-					rplyVal = await exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram", displayname, channelid, "", membercount)
+					rplyVal = await exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram", displayname, channelid, "", membercount, CAPTCHA)
 
 				}
+				count++
 
 			}
+			if (count >= 2) {
+				console.log('TG count false count=', count, 'rplyVal: ', rplyVal)
+				return;
+			}
 			//LevelUp功能
-			if (rplyVal) {
+			if (rplyVal && count == 1) {
+				if (CAPTCHA != rplyVal.CAPTCHA) {
+					console.log('TG CAPTCHA false', CAPTCHA, ' &&', rplyVal.CAPTCHA, 'text: ', ctx.message.text, 'rplyVal: ', rplyVal)
+					return;
+				}
 				if (groupid && rplyVal && rplyVal.LevelUp) {
 					//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
 					await ctx.reply("@" + displayname + '\n' + rplyVal.LevelUp)

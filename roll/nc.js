@@ -45,7 +45,7 @@ initialize = function () {
 //依戀
 //if (trigger.match(/(^nm$)/) != null) return exports.nc.nechronica_mirenn(mainMsg[1]);
 
-rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 	rply.text = '';
 	let result = '';
 	switch (true) {
@@ -86,7 +86,7 @@ module.exports = {
 ////////////////////////////////////////
 //////////////// nechronica (NC)
 ////////////////////////////////////////
-function nechronica(triggermsg, text) {
+async function nechronica(triggermsg, text) {
 	let returnStr = '';
 	var ncarray = [];
 	var dicemax = 0,
@@ -94,7 +94,7 @@ function nechronica(triggermsg, text) {
 		dicenew = 0;
 	var match = /^(\d+)(NC|NA)((\+|-)(\d+)|)$/i.exec(triggermsg); //判斷式
 	for (var i = 0; i < Number(match[1]); i++) {
-		dicenew = rollbase.Dice(10) + Number(match[3]);
+		dicenew =await rollbase.Dice(10) + Number(match[3]);
 		ncarray.push(dicenew);
 	}
 	dicemax = Math.max(...ncarray); //判斷最大最小值
@@ -131,10 +131,10 @@ function nechronica(triggermsg, text) {
 ////////////////////////////////////////
 //////////////// nechronica (NM依戀)
 ////////////////////////////////////////
-function nechronica_mirenn(text) {
+async function nechronica_mirenn(text) {
 	let returnStr = '';
 	var dicenew = 0;
-	dicenew = rollbase.Dice(10) - 1;
+	dicenew =await rollbase.Dice(10) - 1;
 	// 產生格式
 	if (text != null)
 		returnStr = text + ': \n' + '依戀 (' + (dicenew + 1) + '[' + (dicenew + 1) + ']) → ' + nechronica_mirenn_table(dicenew);

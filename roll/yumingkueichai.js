@@ -40,14 +40,14 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
             rply.text = this.getHelpMessage();
             return rply;
         case /^(|4|5)d+((\d+)|)$/i.test(mainMsg[1]):
-            rply.text = compareAllValues(mainMsg[1], "" || mainMsg[2])
+            rply.text = await compareAllValues(mainMsg[1], "" || mainMsg[2])
             return rply;
         default:
             break;
     }
 }
 
-function compareAllValues(triggermsg, msg) {
+async function compareAllValues(triggermsg, msg) {
     var result = ""
     let rollresult = []
     var match = /^(|4|5)(d)(\d+|)$/i.exec(triggermsg);
@@ -61,7 +61,7 @@ function compareAllValues(triggermsg, msg) {
         result = "目標值 ≧ " + z + " ：\n"
     }
     for (let i = 0; i < x; i++) {
-        rollresult[i] = rollbase.Dice(6)
+        rollresult[i] = await rollbase.Dice(6)
     }
     result += "[ " + rollresult + " ] → "
     //console.log(match);

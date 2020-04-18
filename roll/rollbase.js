@@ -45,12 +45,12 @@ initialize = function () {
   return rply;
 }
 
-rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
   rply.text = '';
   //let result = {};
   switch (true) {
     default:
-      return nomalDiceRoller(mainMsg[0], mainMsg[1], mainMsg[2])
+      return await nomalDiceRoller(mainMsg[0], mainMsg[1], mainMsg[2])
   }
 }
 
@@ -60,32 +60,32 @@ rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botnam
 // ////////////// 擲骰子運算
 // //////////////////////////////////////
 try {
-  function Dice(diceSided) {
+  Dice = async function (diceSided) {
     let result = '';
     //result = math.floor((math.random() * diceSided) + 1)
-    result = random.integer(1, Math.floor(diceSided))
+    result = await random.integer(1, Math.floor(diceSided))
     return result
   }
 
-  function DiceINT(start, end) {
+  DiceINT = async function (start, end) {
     let result = '';
     //result = math.floor((math.random() * diceSided) + 1)
-    result = random.integer(start, end)
+    result = await random.integer(start, end)
     return result
   }
 
-  function sortNumber(a, b) {
+  sortNumber = async function (a, b) {
     return a - b
   }
 
-  function RollDice(inputStr) {
+  RollDice = async function (inputStr) {
     // 先把inputStr變成字串（不知道為什麼非這樣不可）
     let comStr = inputStr.toString()
     let finalStr = '['
     let temp = 0
     var totally = 0
     for (let i = 1; i <= comStr.split('d')[0]; i++) {
-      temp = Dice(comStr.split('d')[1])
+      temp = await Dice(comStr.split('d')[1])
       totally += temp
       finalStr = finalStr + temp + '+'
     }
@@ -95,11 +95,11 @@ try {
     return finalStr
   }
 
-  function FunnyDice(diceSided) {
-    return random.integer(0, Math.floor(diceSided)) // 猜拳，從0開始
+  FunnyDice = async function (diceSided) {
+    return await random.integer(0, Math.floor(diceSided)) // 猜拳，從0開始
   }
 
-  function BuildDiceCal(inputStr) {
+  BuildDiceCal = async function (inputStr) {
 
     // 首先判斷是否是誤啟動（檢查是否有符合骰子格式）
     if (inputStr.toLowerCase().match(/\d+d\d+/i) == null) return undefined
@@ -118,9 +118,11 @@ try {
     let equation = DiceToRoll
     while (equation.match(/\d+d\d+/i) != null) {
       let tempMatch = equation.match(/\d+d\d+/i)
-      if (tempMatch.toString().split('d')[0] > 200) return '欸欸，不支援200D以上擲骰；哪個時候會骰到兩百次以上？想被淨灘嗎？'
-      if (tempMatch.toString().split('d')[1] == 1 || tempMatch.toString().split('d')[1] > 500) return '不支援D1和超過D500的擲骰；想被淨灘嗎？'
-      equation = equation.replace(/\d+d\d+/i, BuildRollDice(tempMatch))
+      if (tempMatch.toString().split('d')[0] > 200) return 
+      //不支援200D以上擲骰
+
+      if (tempMatch.toString().split('d')[1] == 1 || tempMatch.toString().split('d')[1] > 500) return;
+      equation = equation.replace(/\d+d\d+/i, await BuildRollDice(tempMatch))
     }
 
     // 計算算式
@@ -130,17 +132,17 @@ try {
     return finalStr
   }
 
-  function shuffleTarget(target) {
-    return random.shuffle(target)
+  shuffleTarget = async function (target) {
+    return await random.shuffle(target)
   }
 
-  function BuildRollDice(inputStr) {
+  BuildRollDice = async function (inputStr) {
     // 先把inputStr變成字串（不知道為什麼非這樣不可）
     let comStr = inputStr.toString().toLowerCase()
     let finalStr = '('
 
     for (let i = 1; i <= comStr.split('d')[0]; i++) {
-      finalStr = finalStr + Dice(comStr.split('d')[1]) + '+'
+      finalStr = finalStr + await Dice(comStr.split('d')[1]) + '+'
     }
 
     finalStr = finalStr.substring(0, finalStr.length - 1) + ')'
@@ -149,7 +151,7 @@ try {
   // //////////////////////////////////////
   // ////////////// 普通ROLL
   // //////////////////////////////////////
-  function nomalDiceRoller(text0, text1, text2) {
+  nomalDiceRoller = async function (text0, text1, text2) {
 
     // 首先判斷是否是誤啟動（檢查是否有符合骰子格式）
     // if (inputStr.toLowerCase().match(/\d+d\d+/) == null) return undefined
@@ -192,7 +194,7 @@ try {
           let tempMatch = equation.match(/\d+d\d+/i)
           if (tempMatch.toString().split('d')[0] > 600 || tempMatch.toString().split('d')[0] <= 0) return
           if (tempMatch.toString().split('d')[1] <= 1 || tempMatch.toString().split('d')[1] > 100000) return
-          equation = equation.replace(/\d+d\d+/i, RollDice(tempMatch))
+          equation = equation.replace(/\d+d\d+/i, await RollDice(tempMatch))
         }
 
         // 計算算式
@@ -227,7 +229,7 @@ try {
         let tempMatch = equation.match(/\d+d\d+/i)
         if (tempMatch.toString().split('d')[0] > 600 || tempMatch.toString().split('d')[0] <= 0) return
         if (tempMatch.toString().split('d')[1] <= 1 || tempMatch.toString().split('d')[1] > 100000) return
-        equation = equation.replace(/\d+d\d+/i, RollDice(tempMatch))
+        equation = equation.replace(/\d+d\d+/i, await RollDice(tempMatch))
       }
 
       // 計算算式

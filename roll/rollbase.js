@@ -208,6 +208,9 @@ try {
     if (mutiOrNot.toString().match(/\./) != null) return
     // 先定義要輸出的Str
     let finalStr = ''
+    let test1 = text0.match(/[(]/g) || '';
+    let test2 = text0.match(/[)]/g) || '';
+    if (test2.length != test1.length) return;
     //d h k l 
     //for (i = 0; i < mutiOrNot; i++) {
     if (mutiOrNot.toString().match(/\D/i) == null && text1) {
@@ -231,9 +234,6 @@ async function onetimeroll(text0) {
   //DiceToRoll = DiceToRoll.toLowerCase()
   //if (DiceToRoll.match('d') == null) return
   //if (text0.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]|[h]|[k]|[l]/ig, '')) return;
-  let test1 = text0.match(/[(]/g) || '';
-  let test2 = text0.match(/[)]/g) || '';
-  if (test2.length != test1.length) return;
   //if ((text0.match(/[(]/g) || text0.match(/[)]/g)) && text0.match(/[(]/g).length != text0.match(/[)]/g).length) return;
   // 寫出算式
   let equation = text0

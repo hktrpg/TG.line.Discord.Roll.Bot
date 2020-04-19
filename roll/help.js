@@ -94,7 +94,7 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 			Object.keys(linehelp()).forEach(v => {
 				rply[v] = linehelp()[v]
 			})
-			rply.text = getHelpMessage() + '\n現支援系統: \n【了解骰組詳情,請輸入 bothelp (編號) 或 在指令後輸入help 如 .sg help】';
+			rply.text = getHelpMessage() + '\n現支援系統: \n【了解骰組詳情,請輸入 bothelp (編號) 或 只輸入前置指令 如 .sg】';
 			for (i = 0; i < Object.keys(exports).length; i++) {
 				if (exports[Object.keys(exports)[i]] && exports[Object.keys(exports)[i]].gameName)
 					rply.text += "\n" +

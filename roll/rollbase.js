@@ -207,7 +207,6 @@ try {
     // 排除小數點
     if (mutiOrNot.toString().match(/\./) != null) return
     // 先定義要輸出的Str
-    if (text1.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]|[k]|[h]|[l]/ig, '')) return;
     let finalStr = ''
     let test1 = text0.match(/[(]/g) || '';
     let test2 = text0.match(/[)]/g) || '';
@@ -215,11 +214,13 @@ try {
     //d h k l 
     //for (i = 0; i < mutiOrNot; i++) {
     if (mutiOrNot.toString().match(/\D/i) == null && text1) {
+      if (text1.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]|[k]|[h]|[l]/ig, '')) return;
       finalStr = text0 + '次擲骰：\n' + text1 + ' ' + (text2 || '') + '\n'
       for (i = 0; i < mutiOrNot; i++) {
         finalStr += i + 1 + '# ' + await onetimeroll(text1) + '\n'
       }
     } else {
+      if (text0.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]|[k]|[h]|[l]/ig, '')) return;
       finalStr = text0 + '：' + (text1 || '') + '\n'
       finalStr += await onetimeroll(text0)
     }

@@ -411,7 +411,7 @@ try {
 
 
 				if (findprefixs == 1) {
-					console.log('trigger: ', inputStr)
+					console.log('             trigger: ', inputStr)
 					let tempsave = await exports[v].rollDiceCommand(inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount)
 					//console.log('tempsave: ', tempsave)
 					return await tempS();

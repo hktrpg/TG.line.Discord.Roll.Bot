@@ -88,18 +88,16 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
         default:
             // result = calldice("SwordWorld2_5", mainMsg[1])
             //https://bcdice.herokuapp.com/v1/diceroll?system=Cthulhu&command=4d10%3E=15
-            result = await axios.get('https://bcdice.herokuapp.com/v1/diceroll?system=SwordWorld2.5&command=' + mainMsg[1])
+            result = await axios.get('https://bcdice.herokuapp.com/v1/diceroll?system=SwordWorld2.5&command=' + mainMsg[1].replace('#', '%23'))
                 .then(function (response) {
                     // handle success
-                    console.log(response.data.result);
                     return response.data.result;
                 })
                 .catch(function (error) {
                     // handle error
-                    console.log(error);
+                    if (error.response.status != 400)
+                        console.log(error);
                 })
-                
-            console.log('result', result)
             if (result)
                 rply.text = mainMsg[1] + result;
             return rply;

@@ -41,11 +41,14 @@ getHelpMessage = function () {
 	\n  \
 	\n 暗骰功能 在指令前輸入dr 結果會私訊你\
 	\n ddr dddr 可以私訊已設定的群組GM, 詳情可打.drgm查詢\
-\n【基本擲骰】1d100\
-\n 例如輸入2d6+1　攻撃！\
-\n 會輸出）2d6+1：攻撃  9[6+3]+1 = 10\
-\n 5 3D6 ：	分別骰出5次3d6 (最多三十次)\
-\n ((2d6+1)*2)-5/2>=10 ：	支援括號加減乘除及大於小於(>,<,>=,<=)計算\
+\n【基本擲骰】1d100(khN|klN|dhN|dlN)\
+  \n 例如輸入(2d6+1)*2　攻撃！\
+  \n 會輸出）(2d6+1)*2：攻撃！  (10[5+5]+1)2 = 22\
+  \n 如上面一樣,在骰子數字後方隔空白位打字,可以進行發言。\
+  \n 5 3D6 ：	分別骰出5次3d6 最多30次\
+  \n ((2d6+1)*2)-5/2>=10 支援括號加減乘除及大於小於(>,<,>=,<=)計算\
+  \n 支援kh|kl|dh|dl，k keep保留，d drop 放棄，h highest最高，l lowest最低\
+  \n 如3d6kh 保留最大的1粒骰，3d6dl2 放棄最小的2粒骰\
 \n  \
 \n TRPG百科 https://www.hktrpg.com/\
 \n 意見留言群 https://discord.gg/vx4kcm7\
@@ -100,10 +103,8 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 			}
 			if (botname == "Line")
 				rply.text += "\n因為Line的機制, 如擲骰時並無顯示用家名字, 請到下列網址,和機器人任意說一句話,成為好友. \n https://line.me/R/ti/p/svMLqy9Mik\nP.S. Line 修改政策，免費帳號的Line Bot現在有每月500次的私訊限制，超過時DR等私訊功能會失效。(可以認為這功能在Line已失效，半天已400個DR私訊要求)"
-
 			//console.log('case: ', rply)
 			return rply;
-
 		default:
 			break;
 	}

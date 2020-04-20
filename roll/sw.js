@@ -1,6 +1,7 @@
 var rollbase = require('./rollbase.js');
 const BCDice = require('bcdice-js').BCDice; // CommonJS
 const bcdice = new BCDice();
+const axios = require('axios');
 
 function calldice(gameType, message) {
     bcdice.setGameByTitle(gameType)
@@ -85,9 +86,22 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
             rply.text = this.getHelpMessage();
             return rply;
         default:
-            result = calldice("SwordWorld2_5", mainMsg[1])
-            if (result && result[0] != 1)
-                rply.text = mainMsg[1] + result[0];
+            // result = calldice("SwordWorld2_5", mainMsg[1])
+            //https://bcdice.herokuapp.com/v1/diceroll?system=Cthulhu&command=4d10%3E=15
+            result = await axios.get('https://bcdice.herokuapp.com/v1/diceroll?system=SwordWorld2.5&command=' + mainMsg[1])
+                .then(function (response) {
+                    // handle success
+                    console.log(response.data.result);
+                    return response.data.result;
+                })
+                .catch(function (error) {
+                    // handle error
+                    console.log(error);
+                })
+                
+            console.log('result', result)
+            if (result)
+                rply.text = mainMsg[1] + result;
             return rply;
     }
 }
@@ -290,8 +304,8 @@ async function swroll(match, round, returnStr, finallynum) {
     for (var i = 0; i < rollnum; i++) {
         //varcoua = Math.floor(Math.random() * 6) + 1;
         //varcoub = Math.floor(Math.random() * 6) + 1;
-        varcoua =await rollbase.Dice(6)
-        varcoub =await rollbase.Dice(6)
+        varcoua = await rollbase.Dice(6)
+        varcoub = await rollbase.Dice(6)
         if (match[16] == 'gf') varcoub = varcoua;
         var varcou = varcoua + varcoub;
         if (match[13] >= 1) {

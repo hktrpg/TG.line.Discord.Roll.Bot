@@ -81,85 +81,95 @@ try {
 
 		//console.log('mainMsgAA',mainMsg)
 		if (stopmark != 1) {
-			let tempResut = await rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount)
-			if (typeof tempResut === 'object' && tempResut !== null)
-				result = tempResut
+			return await rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount)
+				.then(
+					async function (result) {
+						//console.log('result', result)
+						let tempResut = await step2()
+						if (typeof tempResut === 'object' && tempResut !== null) {
+							return tempResut
+						}
+						//console.log('step2', a)
+					}
+				)
+
 			//console.log("result2", result)
 			//return result;
 		} else return;
 
 		//z_saveCommand 功能
-		if (mainMsg && mainMsg[0].toLowerCase() == ".cmd" && mainMsg[1] && mainMsg[1].toLowerCase() != "help" && mainMsg[1].toLowerCase() != "add" && mainMsg[1].toLowerCase() != "show" && mainMsg[1].toLowerCase() != "del" && result.text) {
-			//console.log('result.text', result.text.toString().replace(mainMsg[1], ""))
-			inputStr = result.text.toString().replace(mainMsg[1], "")
-			//console.log(inputStr)
-			mainMsg = inputStr.match(msgSplitor); //定義輸入字串
-			trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
-			//console.log('inputStr2: ', inputStr)
-			result.text = ""
-			//檢查是不是要停止
-			z_stop(mainMsg, groupid);
-			let tempResut = await rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount)
-			if (typeof tempResut === 'object' && tempResut !== null)
-				result = tempResut
-			console.log('inputStr2: ', inputStr)
-		}
-		//LEVEL功能
-		if (groupid) {
-			let tempEXPUP = await EXPUP();
-			if (tempEXPUP) {
-				console.log('tempEXPUP: ', tempEXPUP)
-				result.LevelUp = tempEXPUP
-			} else
-				result.LevelUp = ""
-			//result.LevelUp
-		}
-		if (result && (result.text || result.LevelUp)) {
-			if (result.text) {
-				console.log(botname, '\'s inputStr: ', inputStr)
-				//SAVE THE LOG
+		async function step2() {
+			if (mainMsg && mainMsg[0].toLowerCase() == ".cmd" && mainMsg[1] && mainMsg[1].toLowerCase() != "help" && mainMsg[1].toLowerCase() != "add" && mainMsg[1].toLowerCase() != "show" && mainMsg[1].toLowerCase() != "del" && result.text) {
+				//console.log('result.text', result.text.toString().replace(mainMsg[1], ""))
+				inputStr = result.text.toString().replace(mainMsg[1], "")
+				//console.log(inputStr)
+				mainMsg = inputStr.match(msgSplitor); //定義輸入字串
+				trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
+				//console.log('inputStr2: ', inputStr)
+				result.text = ""
+				//檢查是不是要停止
+				z_stop(mainMsg, groupid);
+				let tempResut = await rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount)
+				if (typeof tempResut === 'object' && tempResut !== null)
+					result = tempResut
+				console.log('inputStr2: ', inputStr)
+			}
+			//LEVEL功能
+			if (groupid) {
+				let tempEXPUP = await EXPUP();
+				if (tempEXPUP) {
+					console.log('tempEXPUP: ', tempEXPUP)
+					result.LevelUp = tempEXPUP
+				} else
+					result.LevelUp = ""
+				//result.LevelUp
+			}
+			if (result && (result.text || result.LevelUp)) {
+				if (result.text) {
+					console.log(botname, '\'s inputStr: ', inputStr)
+					//SAVE THE LOG
+					if (simpleCourt != null) {
+						switch (botname) {
+							case "Discord":
+								RollingLog.RealTimeRollingLogfunction.DiscordCountRoll++
+								break;
+							case "Line":
+								RollingLog.RealTimeRollingLogfunction.LineCountRoll++;
+								break;
+							case "Telegram":
+								RollingLog.RealTimeRollingLogfunction.TelegramCountRoll++
+								break;
+							default:
+								break;
+						}
+						simpleCourt++;
+						//await saveLog();
+					}
+
+				}
+				result.CAPTCHA = CAPTCHA
+				return result;
+			} else {
 				if (simpleCourt != null) {
 					switch (botname) {
 						case "Discord":
-							RollingLog.RealTimeRollingLogfunction.DiscordCountRoll++
+							RollingLog.RealTimeRollingLogfunction.DiscordCountText++
 							break;
 						case "Line":
-							RollingLog.RealTimeRollingLogfunction.LineCountRoll++;
+							RollingLog.RealTimeRollingLogfunction.LineCountText++;
 							break;
 						case "Telegram":
-							RollingLog.RealTimeRollingLogfunction.TelegramCountRoll++
+							RollingLog.RealTimeRollingLogfunction.TelegramCountText++
 							break;
 						default:
 							break;
 					}
 					simpleCourt++;
-					//await saveLog();
+					await saveLog();
 				}
-
+				return;
 			}
-			result.CAPTCHA = CAPTCHA
-			return result;
-		} else {
-			if (simpleCourt != null) {
-				switch (botname) {
-					case "Discord":
-						RollingLog.RealTimeRollingLogfunction.DiscordCountText++
-						break;
-					case "Line":
-						RollingLog.RealTimeRollingLogfunction.LineCountText++;
-						break;
-					case "Telegram":
-						RollingLog.RealTimeRollingLogfunction.TelegramCountText++
-						break;
-					default:
-						break;
-				}
-				simpleCourt++;
-				await saveLog();
-			}
-			return;
 		}
-
 
 		async function saveLog() {
 			//假如沒有StartTime 或過了一天則上載中途紀錄到MLAB

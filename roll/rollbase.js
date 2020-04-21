@@ -243,13 +243,14 @@ async function onetimeroll(text0) {
     // let totally = 0
     let tempMatch = equation.match(regex)
     if (tempMatch[1] > 1000 || tempMatch[1] <= 0) return '不支援一次一千顆骰以上'
+    if (tempMatch[2] <= 1 || tempMatch[2] > 100000000000000000000000) return '不支援一次一或以下'
     equation = equation.replace(regex, await RollDice(tempMatch))
   }
   // 計算算式
   let aaa = equation
   aaa = aaa.replace(/\[.+?\]/ig, '')
   let answer = math.eval(aaa.toString()).toString().replace(/true/i, "成功").replace(/false/i, "失敗");
-  if (equation.match(/[\s\S]{1,200}/g).length > 1) {
+  if (equation.match(/[\s\S]{1,250}/g).length > 1) {
 
     finalStr = answer + '（計算過程太長，僅顯示結果）';
   } else {

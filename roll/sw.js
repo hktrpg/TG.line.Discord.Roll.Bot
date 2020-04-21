@@ -1,13 +1,5 @@
 var rollbase = require('./rollbase.js');
-const BCDice = require('bcdice-js').BCDice; // CommonJS
-const bcdice = new BCDice();
 const axios = require('axios');
-
-function calldice(gameType, message) {
-    bcdice.setGameByTitle(gameType)
-    bcdice.setMessage(message)
-    return bcdice.dice_command()
-}
 var rply = {
     default: 'on',
     type: 'text',

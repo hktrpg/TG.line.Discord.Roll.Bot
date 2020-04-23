@@ -243,7 +243,7 @@ async function onetimeroll(text0) {
     // let totally = 0
     let tempMatch = equation.match(regex)
     if (tempMatch[1] > 1000 || tempMatch[1] <= 0) return '不支援一次一千顆骰以上'
-    if (tempMatch[2] < 1 || tempMatch[2] > 9000000000000000) return '不支援一以下'
+    if (tempMatch[2] < 1 || tempMatch[2] > 9000000000000000) return '不支援一以下或九千兆以上'
     equation = equation.replace(regex, await RollDice(tempMatch))
   }
   // 計算算式

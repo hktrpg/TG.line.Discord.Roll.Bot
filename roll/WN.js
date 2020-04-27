@@ -40,7 +40,7 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
     }
 }
 
-function WN(message) {
+async function WN(message) {
     //x@n(+-y)(D)
     //xD(D)n(+-y)
 
@@ -54,8 +54,39 @@ function WN(message) {
     //5@5d
     //5@5-5
     //5@6-5D
-    let regex = /^(\d+)(@|D)/ig
+
+    //[0]5 [1]^@|^D [2]D [3]!+-5 [4]+-5
+    let key = [];
+    let tempmessage = message;
+    let regex = /^(\d+)/ig
+    key[0] = tempmessage.match(regex)
+    tempmessage = tempmessage.replace(regex, '')
+    let regex1 = /^([@]|[d])/ig
+    key[1] = tempmessage.match(regex1)
+    tempmessage = tempmessage.replace(regex1, '')
+    let regex2 = /d/ig
+    key[2] = tempmessage.match(regex2)
+    tempmessage = tempmessage.replace(regex2, '')
+    let regex3 = /^\d+/
+    key[3] = tempmessage.match(regex3)
+    tempmessage = tempmessage.replace(regex3, '')
+    key[4] = tempmessage
+
+
+
+    return key
 }
+async function WN2(key) {
+    for (let i = 0; i < key[0]; i++)
+        document.write('A')
+    return 1
+}
+WN('5@2D+2').then((result) =>
+    WN2(result)
+);
+
+
+
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,

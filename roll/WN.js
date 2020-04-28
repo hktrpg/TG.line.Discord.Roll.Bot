@@ -85,7 +85,10 @@ async function WN2(key) {
     let time = key[0];
     let method = key[1];
     let special = key[2];
-    let betterthan = key[3];
+    let betterthan = 4;
+
+
+    
     let Adjustment = key[4];
     for (let i = 0; i < time; i++) {
         document.write('A')

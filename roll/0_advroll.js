@@ -175,33 +175,38 @@ async function xBy(triggermsg, text01, text02, botname) {
 	temptriggermsg = temptriggermsg.replace(regexxBy, '')
 	let match02 = temptriggermsg.match(regex2)
 	if (match02) {
-		match[5] = match02[0]
-		match[6] = match02[1]
-		match[7] = match02[2]
-		match[8] = match02[3]
-		match[9] = match02[4]
+		match[5] = match02[0] || ""
+		match[6] = match02[1] || ""
+		match[7] = match02[2] || ""
+		match[8] = match02[3] || ""
+		match[9] = match02[4] || ""
 	}
 	temptriggermsg = temptriggermsg.replace(regex2, '')
+	if (temptriggermsg.replace(/\d/ig, '').replace(/[+]|[-]|[*]|[/]/ig, '')) {
+		return;
+	}
 	let match01 = /^((|d)(\d+))$/i.exec(text01);
 	//console.log('match01', match01)
 	//判斷式 0:"d5"  1:"d5" 2:"d" 3:"5" 
 	let text = "";
 	if (text01) text = text01
-	if (!match[5] && match01 && match01[2].toLowerCase() == 'd' && !isNaN(match01[3])) {
-		match[6] = "<";
-		match[7] = "=";
-		match[8] = match01[3]
+	if (!match[5] && match01 && match01[2] && !isNaN(match01[3])) {
+		match[5] = "<=";
+		match[7] = "<";
+		match[8] = "=";
+		match[9] = match01[3]
 		triggermsg += "<=" + match01[3]
-		match = /^((\d+)(b)(\d+))(|(([<]|[>]|)(|[=]))(\d+))$/i.exec(triggermsg);
+		//match = /^((\d+)(b)(\d+))(|(([<]|[>]|)(|[=]))(\d+))$/i.exec(triggermsg);
 		text = ""
 		if (text02) text = text02
 	}
 	if (!match[5] && match01 && !match01[2] && !isNaN(match01[3])) {
-		match[6] = ">";
-		match[7] = "=";
-		match[8] = match01[3]
+		match[5] = ">=";
+		match[7] = ">";
+		match[8] = "=";
+		match[9] = match01[3]
 		triggermsg += ">=" + match01[3]
-		match = /^((\d+)(b)(\d+))(|(([<]|[>]|)(|[=]))(\d+))$/i.exec(triggermsg);
+		//match = /^((\d+)(b)(\d+))(|(([<]|[>]|)(|[=]))(\d+))$/i.exec(triggermsg);
 		text = ""
 		if (text02) text = text02
 	}
@@ -268,7 +273,8 @@ async function xBy(triggermsg, text01, text02, botname) {
 		}
 	}
 	returnStr += ' → ' + varcou.join(', ');
-	if (match[5]) returnStr += ' \n→ 成功數' + mathjs.eval(Number(temptriggermsg || 0) + Number(varsu))
+	console.log(temptriggermsg)
+	if (match[5]) returnStr += ' \n→ 成功數' + mathjs.eval(Number(varsu) + (temptriggermsg || 0))
 	if (text) returnStr += ' ；　' + text
 	rply.text = returnStr;
 	return rply;

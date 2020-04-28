@@ -17,9 +17,9 @@ prefixs = function () {
 }
 getHelpMessage = function () {
     return "【魔女狩獵之夜】" + "\
-    \n  .wn xD(D)n(+-y)  x骰池 n罪業值 y調整值 \
+    \n.wn xD(D)n(+-y)  x骰池 n罪業值 y調整值 \
     \n有第二個D會使用成功數減去失敗數為最後的成功數(可負數)\
-\可以沒有D\
+\可以沒有D，預設成功值為4\
     \n.wn x@n(+-)y(D) 魔改版 x骰池 n罪業值 y調整值\
 		\n 魔改版 少於等於罪業值為失敗"
 }
@@ -83,17 +83,29 @@ async function WN2(key) {
     let success = 0
     let False = 0;
     let time = key[0];
-    let method = key[1];
-    let special = key[2];
+    let method = key[1] || "d";
+    let special = key[2] || "";
     let betterthan = 4;
-
-
-    
-    let Adjustment = key[4];
+    if (method == "@") {
+        betterthan = key[3] || 3
+    }
+    if (method.toLowerCase() == "d") {
+        if (key[3] > 4)
+            betterthan = 5
+    }
+    let Adjustment = key[4] || "";
     for (let i = 0; i < time; i++) {
         document.write('A')
         result[i] = rollbase.Dice(6);
+        if (result[i] > betterthan)
+            success++
+        else
+            False++
     }
+    if (special) {
+        return ">" + betterthan + " [" + result + "] ->" + Mathjs.eval(success - False + Adjustment) + "成功"
+    } else return "> " + betterthan + " [" + result + "] ->" + Mathjs.eval(success + Adjustment) + "成功"
+
     //export ->
     //6@6-5D
     //6D6D>3-5 -> X 成功

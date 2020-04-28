@@ -1,3 +1,4 @@
+const rollbase = require('./rollbase.js');
 var rply = {
     default: 'on',
     type: 'text',
@@ -33,7 +34,9 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
             rply.text = this.getHelpMessage();
             return rply;
         case /^\d/i.test(mainMsg[1]):
-            rply.text = WN(mainMsg[1])
+            rply.text = WN('5@2D+2').then((result) =>
+                WN2(result)
+            );
             return rply;
         default:
             break;
@@ -72,18 +75,27 @@ async function WN(message) {
     tempmessage = tempmessage.replace(regex3, '')
     key[4] = tempmessage
 
-
-
     return key
 }
 async function WN2(key) {
-    for (let i = 0; i < key[0]; i++)
+    //[0]5 [1]^@|^D [2]D [3]!+-5 [4]+-5
+    let result = [];
+    let success = 0
+    let False = 0;
+    let time = key[0];
+    let method = key[1];
+    let special = key[2];
+    let betterthan = key[3];
+    let Adjustment = key[4];
+    for (let i = 0; i < time; i++) {
         document.write('A')
-    return 1
+        result[i] = rollbase.Dice(6);
+    }
+    //export ->
+    //6@6-5D
+    //6D6D>3-5 -> X 成功
 }
-WN('5@2D+2').then((result) =>
-    WN2(result)
-);
+
 
 
 

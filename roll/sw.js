@@ -1,4 +1,4 @@
-var rollbase = require('./rollbase.js');
+const rollbase = require('./rollbase.js');
 const axios = require('axios');
 var rply = {
     default: 'on',

@@ -4,7 +4,7 @@ var rply = {
     type: 'text',
     text: ''
 };
-
+const mathjs = require('mathjs')
 gameName = function () {
     return '【魔女狩獵之夜】.wn xDn(+-)y'
 }
@@ -34,9 +34,11 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
             rply.text = this.getHelpMessage();
             return rply;
         case /^\d/i.test(mainMsg[1]):
-            rply.text = WN('5@2D+2').then((result) =>
-                WN2(result)
-            );
+            rply.text = await WN(mainMsg[1]).then(async (result) => {
+                console.log(result)
+                return mainMsg[1] + await WN2(result)
+            });
+            console.log('rply.text', rply.text)
             return rply;
         default:
             break;
@@ -46,7 +48,7 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 async function WN(message) {
     //x@n(+-y)(D)
     //xD(D)n(+-y)
-
+    //4
     //5d6
     //5d6d
     //5dd6
@@ -62,19 +64,19 @@ async function WN(message) {
     let key = [];
     let tempmessage = message;
     let regex = /^(\d+)/ig
-    key[0] = tempmessage.match(regex)
+    key[0] = tempmessage.match(regex) || 1
     tempmessage = tempmessage.replace(regex, '')
     let regex1 = /^([@]|[d])/ig
-    key[1] = tempmessage.match(regex1)
+    key[1] = tempmessage.match(regex1) || 'd'
     tempmessage = tempmessage.replace(regex1, '')
     let regex2 = /d/ig
-    key[2] = tempmessage.match(regex2)
+    key[2] = tempmessage.match(regex2) || ''
     tempmessage = tempmessage.replace(regex2, '')
     let regex3 = /^\d+/
-    key[3] = tempmessage.match(regex3)
+    key[3] = tempmessage.match(regex3) || '4'
     tempmessage = tempmessage.replace(regex3, '')
-    key[4] = tempmessage
-
+    key[4] = tempmessage || ''
+    console.log(key)
     return key
 }
 async function WN2(key) {
@@ -89,23 +91,26 @@ async function WN2(key) {
     if (method == "@") {
         betterthan = key[3] || 3
     }
-    if (method.toLowerCase() == "d") {
+    if (method.toString().toLowerCase() == "d") {
         if (key[3] > 4)
             betterthan = 5
     }
     let Adjustment = key[4] || "";
+    if (betterthan > 5)
+        betterthan = 5
     for (let i = 0; i < time; i++) {
-        document.write('A')
-        result[i] = rollbase.Dice(6);
+        result[i] = await rollbase.Dice(6);
         if (result[i] > betterthan)
             success++
         else
             False++
     }
     if (special) {
-        return ">" + betterthan + " [" + result + "] ->" + Mathjs.eval(success - False + Adjustment) + "成功"
-    } else return "> " + betterthan + " [" + result + "] ->" + Mathjs.eval(success + Adjustment) + "成功"
-
+        let temp = ">" + betterthan + " \n[" + result + "] -> " + mathjs.eval(success - False + Adjustment) + "成功"
+        return temp
+    }
+    let temp = "> " + betterthan + " \n[" + result + "] -> " + mathjs.eval(success + Adjustment) + "成功"
+    return temp
     //export ->
     //6@6-5D
     //6D6D>3-5 -> X 成功

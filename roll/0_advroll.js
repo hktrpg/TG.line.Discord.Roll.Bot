@@ -5,7 +5,7 @@ var rply = {
 	type: 'text',
 	text: ''
 };
-
+const regexxBy = /^((\d+)(b)(\d+))/i
 gameName = function () {
 	return '進階擲骰 .ca (計算)|D66(sn)|5B10 Dx|5U10 x y|.int x y'
 }
@@ -17,7 +17,7 @@ prefixs = function () {
 	return [/^[.][c][a]$/i, ,
 		/^d66s$|^d66$|^d66n$/i, ,
 		/^(\d+)(u)(\d+)$/i, /\d+/,
-		/^((\d+)(b)(\d+))(|(([<]|[>]|)(|[=]))(\d+))$/i, ,
+		regexxBy, ,
 		/^[.][i][n][t]$/i, /\d+/,
 	]
 }
@@ -66,15 +66,15 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 			return d66n(mainMsg[1]);
 		case /^d66s$/i.test(mainMsg[0]):
 			return d66s(mainMsg[1])
-		case /^((\d+)(b)(\d+))(|(([<]|[>]|)(|[=]))(\d+))$/i.test(mainMsg[0]):
-			let matchxby = /^((\d+)(b)(\d+))(|(([<]|[>]|)(|[=]))(\d+))$/i.exec(mainMsg[0]);
+		case /^((\d+)(b)(\d+))/i.test(mainMsg[0]):
+			let matchxby = /^((\d+)(b)(\d+))/i.exec(mainMsg[0]);
 			//判斷式 0:"5b10<=80" 1:"5b10" 2:"5" 3:"b" 4:"10" 5:"<=80" 6:"<=" 	7:"<" 8:"=" 	9:"80"
 			//console.log('match', match)
 			if (matchxby && matchxby[4] > 1 && matchxby[4] < 10000 && matchxby[2] > 0 && matchxby[2] <= 600)
-				return xBy(mainMsg[0], mainMsg[1], mainMsg[2])
+				return xBy(mainMsg[0], mainMsg[1], mainMsg[2], botname)
 			break;
-		case /^(\d+)(u)(\d+)$/i.test(mainMsg[0]) && mainMsg[1] <= 10000:
-			let matchxuy = /^(\d+)(u)(\d+)/i.exec(mainMsg[0]); //判斷式  5u19,5,u,19, 
+		case regexxBy.test(mainMsg[0]) && mainMsg[1] <= 10000:
+			let matchxuy = regexxBy.exec(mainMsg[0]); //判斷式  5u19,5,u,19, 
 			if (matchxuy && matchxuy[1] > 0 && matchxuy[1] <= 600 && matchxuy[3] > 0 && matchxuy[3] <= 10000)
 				return xUy(mainMsg[0], mainMsg[1], mainMsg[2], mainMsg[3]);
 			break;
@@ -166,31 +166,47 @@ async function d66n(text) {
 ////////////////  xBy<>=z  成功数1
 ////////////////  xBy Dz   成功数1
 ////////////////////////////////////////
-async function xBy(triggermsg, text01, text02) {
+async function xBy(triggermsg, text01, text02, botname) {
 	//	console.log('dd')
-	let match = /^((\d+)(b)(\d+))(|(([<]|[>]|)(|[=]))(\d+))$/i.exec(triggermsg);
-	//判斷式 0:"5b10<=80" 1:"5b10" 2:"5" 3:"b" 4:"10" 5:"<=80" 6:"<=" 	7:"<" 8:"=" 	9:"80"
-	//console.log('match', match)
+	let regex2 = /(([<]|[>])(|[=]))(\d+)/i
+	let temptriggermsg = triggermsg;
+	let match = regexxBy.exec(temptriggermsg);
+	//判斷式 0:"5b10+3<=6" 1:"5b10" 2:"5" 3:"b" 4:"10" 5:"<=80" 6:"<=" 	7:"<" 8:"=" 	9:"6"
+	temptriggermsg = temptriggermsg.replace(regexxBy, '')
+	let match02 = temptriggermsg.match(regex2)
+	if (match02) {
+		match[5] = match02[0] || ""
+		match[6] = match02[1] || ""
+		match[7] = match02[2] || ""
+		match[8] = match02[3] || ""
+		match[9] = match02[4] || ""
+	}
+	temptriggermsg = temptriggermsg.replace(regex2, '')
+	if (temptriggermsg.replace(/\d/ig, '').replace(/[+]|[-]|[*]|[/]/ig, '')) {
+		return;
+	}
 	let match01 = /^((|d)(\d+))$/i.exec(text01);
 	//console.log('match01', match01)
 	//判斷式 0:"d5"  1:"d5" 2:"d" 3:"5" 
 	let text = "";
 	if (text01) text = text01
-	if (!match[5] && match01 && match01[2].toLowerCase() == 'd' && !isNaN(match01[3])) {
-		match[6] = "<";
-		match[7] = "=";
-		match[8] = match01[3]
+	if (!match[5] && match01 && match01[2] && !isNaN(match01[3])) {
+		match[5] = "<=";
+		match[7] = "<";
+		match[8] = "=";
+		match[9] = match01[3]
 		triggermsg += "<=" + match01[3]
-		match = /^((\d+)(b)(\d+))(|(([<]|[>]|)(|[=]))(\d+))$/i.exec(triggermsg);
+		//match = /^((\d+)(b)(\d+))(|(([<]|[>]|)(|[=]))(\d+))$/i.exec(triggermsg);
 		text = ""
 		if (text02) text = text02
 	}
 	if (!match[5] && match01 && !match01[2] && !isNaN(match01[3])) {
-		match[6] = ">";
-		match[7] = "=";
-		match[8] = match01[3]
+		match[5] = ">=";
+		match[7] = ">";
+		match[8] = "=";
+		match[9] = match01[3]
 		triggermsg += ">=" + match01[3]
-		match = /^((\d+)(b)(\d+))(|(([<]|[>]|)(|[=]))(\d+))$/i.exec(triggermsg);
+		//match = /^((\d+)(b)(\d+))(|(([<]|[>]|)(|[=]))(\d+))$/i.exec(triggermsg);
 		text = ""
 		if (text02) text = text02
 	}
@@ -213,7 +229,7 @@ async function xBy(triggermsg, text01, text02) {
 					varsu++;
 				else {
 					//console.log('01: ', varcou[i])
-					varcou[i] = await strikeThrough(varcou[i])
+					varcou[i] = await strikeThrough(varcou[i], botname)
 				}
 				break;
 			case (match[7] == ">" && !match[8]):
@@ -222,7 +238,7 @@ async function xBy(triggermsg, text01, text02) {
 				else {
 					//	console.log('02: ', varcou[i])
 
-					varcou[i] = await strikeThrough(varcou[i])
+					varcou[i] = await strikeThrough(varcou[i], botname)
 				}
 				break;
 			case (match[7] == "<" && match[8] == "="):
@@ -231,7 +247,7 @@ async function xBy(triggermsg, text01, text02) {
 				else {
 					//	console.log('03: ', varcou[i])
 
-					varcou[i] = await strikeThrough(varcou[i])
+					varcou[i] = await strikeThrough(varcou[i], botname)
 				}
 				break;
 			case (match[7] == ">" && match[8] == "="):
@@ -240,7 +256,7 @@ async function xBy(triggermsg, text01, text02) {
 				else {
 					//	console.log('04: ', varcou[i])
 
-					varcou[i] = await strikeThrough(varcou[i])
+					varcou[i] = await strikeThrough(varcou[i], botname)
 				}
 				break;
 			case (match[7] == "" && match[8] == "="):
@@ -249,7 +265,7 @@ async function xBy(triggermsg, text01, text02) {
 				else {
 					//	console.log('05: ', varcou[i])
 					//	console.log('match[7]: ', match[7])
-					varcou[i] = await strikeThrough(varcou[i])
+					varcou[i] = await strikeThrough(varcou[i], botname)
 				}
 				break;
 			default:
@@ -257,7 +273,8 @@ async function xBy(triggermsg, text01, text02) {
 		}
 	}
 	returnStr += ' → ' + varcou.join(', ');
-	if (match[5]) returnStr += ' → 成功數' + varsu
+	console.log(temptriggermsg)
+	if (match[5]) returnStr += ' \n→ 成功數' + mathjs.eval(Number(varsu) + (temptriggermsg || 0))
 	if (text) returnStr += ' ；　' + text
 	rply.text = returnStr;
 	return rply;
@@ -328,7 +345,7 @@ async function xUy(triggermsg, text01, text02, text03) {
 	return rply;
 }
 
-async function strikeThrough(text) {
+async function strikeThrough(text, botname) {
 	if (text)
 		return text.toString()
 			.split('')

@@ -17,10 +17,10 @@ prefixs = function () {
 }
 getHelpMessage = function () {
     return "【魔女狩獵之夜】" + "\
-    \n.wn xD(D)n(+-y)  x骰池 n罪業值 y調整值 \
+    \n.wn xDDn+-y  x骰池 n罪業值 y調整值 \
     \n有第二個D會使用成功數減去失敗數為最後的成功數(可負數)\
 \可以沒有D，預設成功值為4\
-    \n.wn x@n(+-)y(D) 魔改版 x骰池 n罪業值 y調整值\
+    \n.wn x@n+-yD 魔改版 x骰池 n罪業值 y調整值\
 		\n 魔改版 少於等於罪業值為失敗"
 }
 initialize = function () {

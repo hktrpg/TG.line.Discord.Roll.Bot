@@ -110,12 +110,17 @@ async function WN2(key, message) {
     }
     // time method special > betterthan ; 
     let temp = time + method + special + theSins + '>' + betterthan
-
     if (message)
         temp += '； ' + message
     temp += " \n[" + result + "]"
-    if (Adjustment)
-        temp += ' ' + mathjs.eval(Adjustment) + '修正'
+    let tempAdj = ''
+    try {
+        tempAdj = mathjs.eval(Adjustment)
+    } catch (error) {
+        tempAdj = Adjustment
+    }
+    if (tempAdj)
+        temp += ' ' + tempAdj + '修正'
     if (special) {
         //xD(D)n(+-y)
         temp += " -> " + mathjs.eval(success - False + Adjustment) + "成功"

@@ -36,7 +36,7 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
         case /^\d/i.test(mainMsg[1]):
             rply.text = await WN(mainMsg[1]).then(async (result) => {
                 // console.log(result)
-                return mainMsg[1] + await WN2(result)
+                return await WN2(result, mainMsg[2])
             });
             //console.log('rply.text', rply.text)
             return rply;
@@ -79,7 +79,7 @@ async function WN(message) {
     // console.log(key)
     return key
 }
-async function WN2(key) {
+async function WN2(key, message) {
     //[0]5 [1]^@|^D [2]D [3]!+-5 [4]+-5
     let result = [];
     let success = 0
@@ -88,9 +88,11 @@ async function WN2(key) {
     let method = key[1] || "d";
     let special = key[2] || "";
     let betterthan = 4;
+    let theSins = key[3] || 4
     if (method == "@") {
         betterthan = key[3] || 3
     }
+
     if (method.toString().toLowerCase() == "d") {
         if (key[3] > 4)
             betterthan = 5
@@ -98,6 +100,7 @@ async function WN2(key) {
     let Adjustment = key[4] || "";
     if (betterthan > 5)
         betterthan = 5
+    if (time > 200) time = 200 //限制次數
     for (let i = 0; i < time; i++) {
         result[i] = await rollbase.Dice(6);
         if (result[i] > betterthan)
@@ -105,11 +108,21 @@ async function WN2(key) {
         else
             False++
     }
+    // time method special > betterthan ; 
+    let temp = time + method + special + theSins + '>' + betterthan
+
+    if (message)
+        temp += '； ' + message
+    temp += " \n[" + result + "]"
+    if (Adjustment)
+        temp += ' ' + mathjs.eval(Adjustment) + '修正'
     if (special) {
-        let temp = ">" + betterthan + " \n[" + result + "] -> " + mathjs.eval(success - False + Adjustment) + "成功"
+        //xD(D)n(+-y)
+        temp += " -> " + mathjs.eval(success - False + Adjustment) + "成功"
         return temp
     }
-    let temp = "> " + betterthan + " \n[" + result + "] -> " + mathjs.eval(success + Adjustment) + "成功"
+
+    temp += " - > " + mathjs.eval(success + Adjustment) + "成功"
     return temp
     //export ->
     //6@6-5D

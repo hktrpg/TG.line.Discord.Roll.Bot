@@ -13,7 +13,7 @@ var rply = {
 };
 
 gameName = function () {
-    return '朱の孤塔 .al (nALx*p)'
+    return '【朱の孤塔】 .al (nALx*p)'
 }
 
 gameType = function () {

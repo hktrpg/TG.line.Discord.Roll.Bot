@@ -8,12 +8,8 @@ const GoogleImages = require('google-images');
 const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 const client = new GoogleImages(process.env.CSE_ID, process.env.CSE_API_KEY);
 const wiki = require('wikijs').default;
-const timer = require('timer');
 const rollbase = require('./rollbase.js');
 const translate = require('@vitalets/google-translate-api');
-const {
-	image_search
-} = require('duckduckgo-images-api')
 
 gameName = function () {
 	return '(公測中)Wiki查詢/圖片搜索/翻譯 .wiki .image .tran'

@@ -13,7 +13,7 @@ var rply = {
 };
 
 gameName = function () {
-    return '忍神 .sg (ST FT ET等各種表) (help 說明)'
+    return '【忍神】 .sg (ST FT ET等各種表)'
 }
 
 gameType = function () {

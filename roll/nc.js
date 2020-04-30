@@ -15,7 +15,7 @@ var rply = {
 };
 
 gameName = function () {
-	return '永遠的後日談 .nc (NM xNC+m xNA+m)'
+	return '【永遠的後日談】 .nc (NM xNC+m xNA+m)'
 }
 
 gameType = function () {

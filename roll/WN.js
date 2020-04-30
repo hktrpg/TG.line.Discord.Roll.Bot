@@ -17,13 +17,15 @@ prefixs = function () {
 }
 getHelpMessage = function () {
     return "【魔女狩獵之夜】" + "\
-    \n.wn xDn+-y  x骰池 n罪業值 y調整值 \
-    \n .wn 3 骰3次D6,大於3成功 .wn 5D6+3 骰3次D6,大於5成功然後+3\
-    \n .wn 3DD6+2 有第二個D，會使用成功數減去失敗數得出結果(可負數)\
+    \n.wn xDDn+-y  x骰池 n罪業值 y調整值 \
+    \n.wn 3 骰3次D6,大於3成功 .wn 5D6+3 骰3次D6,大於5成功然後+3\
+    \n.wn 3DD6+2 有第二個D，會使用成功數減去失敗數得出結果(可負數)\
     \n預設值>3\
 \n \
-    \n.wn x@n+-yD 魔改版 x骰池 n罪業值 y調整值\
-		\n 魔改版 少於等於罪業值為失敗"
+    \n.wn x@Dn+-yD 魔改版 x骰池 n罪業值 y調整值\
+        \n 魔改版 少於等於罪業值為失敗\
+         \n.wn 3@3+3 骰3次D6,大於3成功 \
+    \n.wn 3@D3+2 有第二個D，會使用成功數減去失敗數得出結果(可負數)"
 }
 initialize = function () {
     return rply;
@@ -89,7 +91,7 @@ async function WN2(key, message) {
     let time = key[0];
     let method = key[1] || "d";
     let special = key[2] || "";
-    let betterthan = 4;
+    let betterthan = 3;
     let theSins = key[3] || 4
     if (method == "@") {
         betterthan = key[3] || 3

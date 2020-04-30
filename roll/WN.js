@@ -94,16 +94,20 @@ async function WN2(key, message) {
     let betterthan = 3;
     let theSins = key[3] || 3
     if (method == "@") {
-        betterthan = key[3] || 3
+        betterthan = key[3] || 4
+        if (betterthan > 5)
+            return "罪業6以上扣除5點罪業，增加一點代價"
     }
 
     if (method.toString().toLowerCase() == "d") {
-        if (key[3] > 4)
+        if (theSins > 6)
+            return "罪業7以上扣除6點罪業，增加一點代價"
+        else
+        if (theSins > 4)
             betterthan = 5
     }
     let Adjustment = key[4] || "";
-    if (betterthan > 5)
-        betterthan = 5
+
     if (time > 200) time = 200 //限制次數
     for (let i = 0; i < time; i++) {
         result[i] = await rollbase.Dice(6);

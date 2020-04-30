@@ -1,4 +1,4 @@
-var rollbase = require('./rollbase.js');
+const rollbase = require('./rollbase.js');
 const axios = require('axios');
 var rply = {
     default: 'on',
@@ -7,7 +7,7 @@ var rply = {
 };
 
 gameName = function () {
-    return '劍世界2.5 .sw (Kx Gr FT TT)'
+    return '【劍世界2.5】.sw (Kx Gr FT TT)'
 }
 
 gameType = function () {

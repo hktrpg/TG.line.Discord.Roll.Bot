@@ -5,7 +5,7 @@ var rply = {
 };
 
 gameName = function () {
-    return 'Demo'
+    return '【Demo】'
 }
 
 gameType = function () {

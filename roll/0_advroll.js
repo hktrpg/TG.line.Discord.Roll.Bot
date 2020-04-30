@@ -7,7 +7,7 @@ var rply = {
 };
 const regexxBy = /^((\d+)(b)(\d+))/i
 gameName = function () {
-	return '進階擲骰 .ca (計算)|D66(sn)|5B10 Dx|5U10 x y|.int x y'
+	return '【進階擲骰】 .ca (計算)|D66(sn)|5B10 Dx|5U10 x y|.int x y'
 }
 
 gameType = function () {

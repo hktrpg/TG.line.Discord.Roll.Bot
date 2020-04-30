@@ -6,7 +6,7 @@ var rply = {
 };
 
 gameName = function () {
-	return '克蘇魯神話 cc cc(n)1~2 ccb ccrt ccsu .dp .cc7build .cc6build .cc7bg'
+	return '【克蘇魯神話】 cc cc(n)1~2 ccb ccrt ccsu .dp .cc7build .cc6build .cc7bg'
 }
 
 gameType = function () {
@@ -40,7 +40,11 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 	rply.text = '';
 	let trigger = mainMsg[0].toLowerCase();
 	//console.log(mainMsg[1].toLowerCase())
-	if (mainMsg[1].toLowerCase() == "help") {
+	if (trigger.toLowerCase() == "cc" && mainMsg[1].toLowerCase() == "help") {
+		rply.text = this.getHelpMessage();
+		return rply;
+	}
+	if (trigger == ".dp" && (mainMsg[1].toLowerCase() == "help" || !mainMsg[1])) {
 		rply.text = this.getHelpMessage();
 		return rply;
 	}

@@ -6,7 +6,7 @@ var rply = {
 };
 
 gameName = function () {
-	return 'WOD黑暗世界 .xWDy'
+	return '【WOD黑暗世界】.xWDy'
 }
 
 gameType = function () {

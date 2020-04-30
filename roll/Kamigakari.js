@@ -8,7 +8,7 @@ var rply = {
 };
 
 gameName = function () {
-    return '神我狩 .kk (ET RT NT KT MTx)'
+    return '【神我狩】 .kk (ET RT NT KT MTx)'
 }
 
 gameType = function () {

@@ -92,7 +92,7 @@ async function WN2(key, message) {
     let method = key[1] || "d";
     let special = key[2] || "";
     let betterthan = 3;
-    let theSins = key[3] || 4
+    let theSins = key[3] || 3
     if (method == "@") {
         betterthan = key[3] || 3
     }

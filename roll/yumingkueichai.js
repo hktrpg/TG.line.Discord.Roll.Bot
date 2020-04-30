@@ -6,7 +6,7 @@ var rply = {
 };
 
 gameName = function () {
-    return '貓貓鬼差 .kc xDy z'
+    return '【貓貓鬼差】.kc xDy z'
 }
 
 gameType = function () {

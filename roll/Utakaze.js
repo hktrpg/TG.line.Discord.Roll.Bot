@@ -14,7 +14,7 @@ var rply = {
 };
 
 gameName = function () {
-	return '歌風 .UK (nUK nUK@c or nUKc)'
+	return '【歌風】 .UK (nUK nUK@c or nUKc)'
 }
 
 gameType = function () {

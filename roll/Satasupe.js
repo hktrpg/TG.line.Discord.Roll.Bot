@@ -14,7 +14,7 @@ var rply = {
 };
 
 gameName = function () {
-    return '亞俠必死的冒險 .ss (nR>=x[y,z,c] SRx+y FumbleT) (help 說明)'
+    return '【亞俠必死的冒險】 .ss (nR>=x[y,z,c] SRx+y FumbleT)'
 }
 
 gameType = function () {

@@ -13,7 +13,7 @@ gameType = function () {
     return 'witch-hunting-night:hktrpg'
 }
 prefixs = function () {
-    return [/^.wn$/i, /^\d/i]
+    return [/^.wn$/i, ]
 }
 getHelpMessage = function () {
     return "【魔女狩獵之夜】" + "\
@@ -35,10 +35,10 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
             return rply;
         case /^\d/i.test(mainMsg[1]):
             rply.text = await WN(mainMsg[1]).then(async (result) => {
-                console.log(result)
+                // console.log(result)
                 return mainMsg[1] + await WN2(result)
             });
-            console.log('rply.text', rply.text)
+            //console.log('rply.text', rply.text)
             return rply;
         default:
             break;
@@ -76,7 +76,7 @@ async function WN(message) {
     key[3] = tempmessage.match(regex3) || '4'
     tempmessage = tempmessage.replace(regex3, '')
     key[4] = tempmessage || ''
-    console.log(key)
+    // console.log(key)
     return key
 }
 async function WN2(key) {

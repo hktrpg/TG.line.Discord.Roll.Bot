@@ -16,7 +16,7 @@ var rply = {
 };
 
 gameName = function () {
-	return 'DX2nd,3rd .dx (xDX+y@c ET)'
+	return '【DX2nd,3rd】 .dx (xDX+y@c ET)'
 }
 
 gameType = function () {

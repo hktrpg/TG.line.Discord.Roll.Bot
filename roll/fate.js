@@ -6,7 +6,7 @@ var rply = {
 };
 
 gameName = function () {
-    return '命運Fate .4df(m|-)(加值)'
+    return '【命運Fate】 .4df(m|-)(加值)'
 }
 
 gameType = function () {

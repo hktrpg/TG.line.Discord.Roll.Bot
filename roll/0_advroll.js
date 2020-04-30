@@ -168,23 +168,29 @@ async function d66n(text) {
 ////////////////////////////////////////
 async function xBy(triggermsg, text01, text02, botname) {
 	//	console.log('dd')
-	let regex2 = /(([<]|[>])(|[=]))(\d+)/i
+	let regex2 = /(([<]|[>])(|[=]))(\d+.*)/i
+
 	let temptriggermsg = triggermsg;
 	let match = regexxBy.exec(temptriggermsg);
 	//判斷式 0:"5b10+3<=6" 1:"5b10" 2:"5" 3:"b" 4:"10" 5:"<=80" 6:"<=" 	7:"<" 8:"=" 	9:"6"
 	temptriggermsg = temptriggermsg.replace(regexxBy, '')
 	let match02 = temptriggermsg.match(regex2)
+	//["<=1+1", "<=", "<", "=", "1+1"]
+	temptriggermsg = temptriggermsg.replace(regex2, '')
+	if (temptriggermsg.replace(/\d/ig, '').replace(/[+]|[-]|[*]|[/]/ig, '')) {
+		return;
+	}
+	if (match02 && match02[4].replace(/\d/ig, '').replace(/[+]|[-]|[*]|[/]/ig, '')) {
+		return;
+	}
 	if (match02) {
 		match[5] = match02[0] || ""
 		match[6] = match02[1] || ""
 		match[7] = match02[2] || ""
 		match[8] = match02[3] || ""
-		match[9] = match02[4] || ""
+		match[9] = mathjs.eval(match02[4]) || ""
 	}
-	temptriggermsg = temptriggermsg.replace(regex2, '')
-	if (temptriggermsg.replace(/\d/ig, '').replace(/[+]|[-]|[*]|[/]/ig, '')) {
-		return;
-	}
+
 	let match01 = /^((|d)(\d+))$/i.exec(text01);
 	//console.log('match01', match01)
 	//判斷式 0:"d5"  1:"d5" 2:"d" 3:"5" 

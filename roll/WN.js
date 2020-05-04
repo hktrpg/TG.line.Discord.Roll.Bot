@@ -38,6 +38,8 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
             rply.text = this.getHelpMessage();
             return rply;
         case /^\d/i.test(mainMsg[1]):
+            if (mainMsg[1].replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]|[@]/ig, '')) return;
+
             rply.text = await WN(mainMsg[1]).then(async (result) => {
                 // console.log(result)
                 return await WN2(result, mainMsg[2])
@@ -50,6 +52,7 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 }
 
 async function WN(message) {
+
     //x@n(+-y)(D)
     //xD(D)n(+-y)
     //4
@@ -73,6 +76,15 @@ async function WN(message) {
     let regex1 = /^([@]|[d])/ig
     key[1] = tempmessage.match(regex1) || 'd'
     tempmessage = tempmessage.replace(regex1, '')
+    let regex999 = /\d+d\d+/ig;
+    while (tempmessage.match(regex999) != null) {
+        // let totally = 0
+        let tempMatch = tempmessage.match(regex999)
+        if (tempMatch[1] > 1000 || tempMatch[1] <= 0) return
+        if (tempMatch[2] < 1 || tempMatch[2] > 9000000000000000) return
+        tempmessage = tempmessage.replace(/\d+d\d+/i, await Dice(tempmessage.match(/\d+d\d+/i)));
+    }
+
     let regex2 = /d/ig
     key[2] = tempmessage.match(regex2) || ''
     tempmessage = tempmessage.replace(regex2, '')
@@ -80,8 +92,12 @@ async function WN(message) {
     key[3] = tempmessage.match(regex3) || '4'
     tempmessage = tempmessage.replace(regex3, '')
     key[4] = tempmessage || ''
-    // console.log(key)
     return key
+}
+async function Dice(msg) {
+    if (msg)
+        return rollbase.BuildRollDice(msg)
+    else msg
 }
 async function WN2(key, message) {
     //[0]5 [1]^@|^D [2]D [3]!+-5 [4]+-5
@@ -98,8 +114,7 @@ async function WN2(key, message) {
         if (betterthan > 5)
             return "罪業6以上扣除5點罪業，增加一點代價"
     }
-
-    if (method.toString().toLowerCase() == "d") {
+    if (method && method.toString().toLowerCase() == "d") {
         if (theSins > 6)
             return "罪業7以上扣除6點罪業，增加一點代價"
         else

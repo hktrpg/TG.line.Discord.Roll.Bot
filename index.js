@@ -6,7 +6,7 @@ app.get('/hello', function (req, res, next) {
   res.send('hello');
 });
 const port = 5000;
-app.listen(8082);
+app.listen(port);
 
 require('fs').readdirSync(__dirname + '/modules/').forEach(function (file) {
   if (file.match(/\.js$/) !== null && file !== 'index.js') {

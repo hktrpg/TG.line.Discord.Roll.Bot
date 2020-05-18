@@ -1,3 +1,4 @@
+"use strict";
 const math = require('mathjs');
 const {
   Random,
@@ -22,7 +23,7 @@ var gameType = function () {
   return 'rollbase:hktrpg'
 }
 var prefixs = function () {
-  let temp = /^(?=.*\d+d\d+)(?!.*[a-c])(?!.*[e-g])(?!.*[i-j])(?!.*[m-z])(?!.*(([d]|[+]|[-]|[*]|[/])([d]|[+]|[-]|[*]|[/])))(?!.*(^([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[)])))(?!.*([(][)]))(?!.*([<][<]))(?!.*([>][>]))(?!.*([<][>]))(?!.*([>][<]))(?!.*(\d+[d]+\d+[d]([^h|l]))|([)]\d))(?!.*(([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[(])$))(?!.*([@]|[!]|[#]|[$]|[%]|[&]|[_]|[~]|[`]|[']|[?]|\.))(?!.*([\u4e00-\u9fa5]))(?!.*([=].*[=]))(?!.*([+]|[-]|[*]|[/])[=])(?!.*[=]([+]|[-]|[*]|[/]|[>]|[<]))(?!.*(\d)[=](\d))(?!.*([-][>])|([-][<])|([<][-])|([>][-]))(?!.*(d)[(]).*$/ig
+  const temp = /^(?=.*\d+d\d+)(?!.*[a-c])(?!.*[e-g])(?!.*[i-j])(?!.*[m-z])(?!.*(([d]|[+]|[-]|[*]|[/])([d]|[+]|[-]|[*]|[/])))(?!.*(^([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[)])))(?!.*([(][)]))(?!.*([<][<]))(?!.*([>][>]))(?!.*([<][>]))(?!.*([>][<]))(?!.*(\d+[d]+\d+[d]([^h|l]))|([)]\d))(?!.*(([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[(])$))(?!.*([@]|[!]|[#]|[$]|[%]|[&]|[_]|[~]|[`]|[']|[?]|\.))(?!.*([\u4e00-\u9fa5]))(?!.*([=].*[=]))(?!.*([+]|[-]|[*]|[/])[=])(?!.*[=]([+]|[-]|[*]|[/]|[>]|[<]))(?!.*(\d)[=](\d))(?!.*([-][>])|([-][<])|([<][-])|([>][-]))(?!.*(d)[(]).*$/ig
   return [
     temp, ,
     /(^[1-9]$)|(^[1-2][0-9]$)|(^[3][0]$)/i, temp
@@ -32,7 +33,7 @@ var prefixs = function () {
 
 
 ///^(?=.*he)(?!.*da).*$/ig
-var getHelpMessage = function () {
+const getHelpMessage = function () {
   return "【基本擲骰】1d100(khN|klN|dhN|dlN)\
   \n 例如輸入(2d6+1)*2　攻撃！\
   \n 會輸出）(2d6+1)*2：攻撃！  (10[5+5]+1)2 = 22\
@@ -46,7 +47,7 @@ var initialize = function () {
   return rply;
 }
 
-var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+const rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
   rply.text = '';
   //let result = {};
   switch (true) {
@@ -232,6 +233,7 @@ try {
 }
 // 單次擲骰
 async function onetimeroll(text0) {
+  let Str = ''
   //let DiceToRoll = mutiOrNot.toString().toLowerCase()
   //DiceToRoll = DiceToRoll.toLowerCase()
   //if (DiceToRoll.match('d') == null) return
@@ -252,11 +254,11 @@ async function onetimeroll(text0) {
   let answer = math.eval(aaa.toString()).toString().replace(/true/i, "成功").replace(/false/i, "失敗");
   if (equation.match(/[\s\S]{1,250}/g).length > 1) {
 
-    finalStr = answer + '（計算過程太長，僅顯示結果）';
+    Str = answer + '（計算過程太長，僅顯示結果）';
   } else {
-    finalStr = equation + ' = ' + answer
+    Str = equation + ' = ' + answer
   }
-  return finalStr
+  return Str
 }
 module.exports = {
   Dice: Dice,

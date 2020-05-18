@@ -1,3 +1,4 @@
+"use strict";
 const rollbase = require('./rollbase.js');
 var rply = {
 	default: 'on',
@@ -5,19 +6,19 @@ var rply = {
 	text: ''
 };
 
-gameName = function () {
+var gameName = function () {
 	return '【克蘇魯神話】 cc cc(n)1~2 ccb ccrt ccsu .dp .cc7build .cc6build .cc7bg'
 }
 
-gameType = function () {
+var gameType = function() {
 	return 'CoC:hktrpg'
 }
-prefixs = function () {
+var prefixs = function () {
 	return [/(^ccrt$)|(^ccsu$)|(^cc7版創角$)|(^[.]cc7build$)|(^[.]cc6build$)|(^[.]cc7bg$)|(^cc6版創角$)|(^cc7版角色背景$)/i, ,
 		/(^ccb$)|(^cc$)|(^ccn[1-2]$)|(^cc[1-2]$)|(^[.]dp$)|(^成長檢定$)|(^幕間成長$)/i, /^(\d+)|(help)$/i
 	]
 }
-getHelpMessage = function () {
+var getHelpMessage = function () {
 	return "【克蘇魯神話】" + "\
 	\ncoc6版擲骰： ccb 80 技能小於等於80 \
 	\ncoc7版擲骰： cc 80 技能小於等於80 \
@@ -32,11 +33,11 @@ getHelpMessage = function () {
 	\ncoc7版角色背景隨機生成： 啓動語 .cc7bg \
 		\n "
 }
-initialize = function () {
+var initialize = function () {
 	return rply;
 }
 
-rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 	rply.text = '';
 	let trigger = mainMsg[0].toLowerCase();
 	//console.log(mainMsg[1].toLowerCase())

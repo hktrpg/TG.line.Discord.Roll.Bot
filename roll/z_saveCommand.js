@@ -1,3 +1,4 @@
+"use strict";
 try {
     var rply = {
         default: 'on',
@@ -10,16 +11,16 @@ try {
         rply.trpgCommandfunction = msgs
     })
 
-    gameName = function () {
+    var gameName = function () {
         return '(公測中)儲存擲骰指令功能 .cmd (add del show 自定關鍵字)'
     }
-    gameType = function () {
+    var gameType = function () {
         return 'trpgCommand:hktrpg'
     }
-    prefixs = function () {
+    var prefixs = function () {
         return [/(^[.]cmd$)/ig, ]
     }
-    getHelpMessage = function () {
+    var getHelpMessage = function () {
         return "【儲存擲骰指令功能】" + "\
         \n 這是根據關鍵字來再現擲骰指令,\
         \n 例如輸入 .cmd add  pc1鬥毆 cc 80 鬥毆 \
@@ -32,11 +33,11 @@ try {
     \n 輸入.cmd  (關鍵字) 即可執行 \
     \n "
     }
-    initialize = function () {
+    var initialize = function () {
         return rply;
     }
 
-    rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+    var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
        
         rply.text = '';
         switch (true) {

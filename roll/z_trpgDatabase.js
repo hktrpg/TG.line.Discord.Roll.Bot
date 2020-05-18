@@ -1,3 +1,4 @@
+"use strict";
 try {
     var rply = {
         default: 'on',
@@ -11,16 +12,16 @@ try {
     records.get('trpgDatabaseAllgroup', (msgs) => {
         rply.trpgDatabaseAllgroup = msgs
     })
-    gameName = function () {
+    var gameName = function () {
         return '(公測中)資料庫功能 .db(p) (add del show 自定關鍵字)'
     }
-    gameType = function () {
+    var gameType = function () {
         return 'trpgDatabase:hktrpg'
     }
-    prefixs = function () {
+    var prefixs = function () {
         return [/(^[.]db(p|)$)/ig, ]
     }
-    getHelpMessage = function () {
+    var getHelpMessage = function () {
         return "【資料庫功能】" + "\
         \n 這是根據關鍵字來顯示數據的,\
         \n 例如輸入 .db add 九大陣營 守序善良 (...太長省略) 中立邪惡 混亂邪惡 \
@@ -34,12 +35,12 @@ try {
     \n 如使用輸入.dbp 會變成全服版,全服可看, 可用add show功能 \
     \n "
     }
-    initialize = function () {
+    var initialize = function () {
         return rply;
     }
 
-    rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-        
+    var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+
         rply.text = '';
         switch (true) {
             case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:

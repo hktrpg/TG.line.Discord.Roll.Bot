@@ -1,33 +1,34 @@
+"use strict";
 var rply = {
     default: 'on',
     type: 'text',
     text: ''
 };
 
-gameName = function () {
+var gameName = function () {
     return '【Demo】'
 }
 
-gameType = function () {
+var gameType = function() {
     return 'Demo:hktrpg'
 }
-prefixs = function () {
+var prefixs = function () {
     //[mainMSG[0]的prefixs,mainMSG[1]的prefixs,   <---這裡是一對  
     //mainMSG[0]的prefixs,mainMSG[1]的prefixs  ]  <---這裡是一對
     //如前面是 /^1$/ig, 後面是/^1D100$/ig, 即 prefixs 變成 1 1D100 
     ///^(?=.*he)(?!.*da).*$/ig
     return [/^Demo$/i, /^啊$/i]
 }
-getHelpMessage = function () {
+var getHelpMessage = function () {
     return "【示範】" + "\
 	\n  只是一個Demo\
 		\n "
 }
-initialize = function () {
+var initialize = function () {
     return rply;
 }
 
-rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
+var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
     rply.text = '';
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:

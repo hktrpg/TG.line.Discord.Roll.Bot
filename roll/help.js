@@ -1,3 +1,4 @@
+"use strict";
 if (!process.env.HEROKU_RELEASE_VERSION)
 	require('dotenv').config()
 
@@ -24,18 +25,18 @@ if (process.env.HEROKU_RELEASE_CREATED_AT)
 		timeZone: "Asia/Shanghai"
 	}).replace('GMT+0800 (GMT+08:00)', '');
 
-gameName = function () {
+var gameName = function () {
 	return '骰子機器人HKTRPG說明'
 }
 
-gameType = function () {
+var gameType = function() {
 	return 'bothelp:hktrpg'
 }
-prefixs = function () {
+var prefixs = function () {
 	return [/^bothelp$/i, /^$|^\d+$/i]
 
 }
-getHelpMessage = function () {
+var getHelpMessage = function () {
 	return "【HKTRPG擲骰BOT】" + version + "\
 \n2019/07/21 香港克警合作 黑ICON紀念\
 	\n  \
@@ -62,11 +63,11 @@ getHelpMessage = function () {
 \n 源代碼 http://bit.ly/HKTRPG_GITHUB\
 		\n "
 }
-initialize = function () {
+var initialize = function () {
 	return rply;
 }
 
-rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 	rply.text = '';
 	//let result = {};
 	switch (true) {
@@ -95,7 +96,7 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 				rply[v] = linehelp()[v]
 			})
 			rply.text = getHelpMessage() + '\n現支援系統: \n【了解骰組詳情,請輸入 bothelp (編號) 或 在指令後輸入help 如 .sg help】';
-			for (i = 0; i < Object.keys(exports).length; i++) {
+			for (let i = 0; i < Object.keys(exports).length; i++) {
 				if (exports[Object.keys(exports)[i]] && exports[Object.keys(exports)[i]].gameName)
 					rply.text += "\n" +
 					i + ": " +

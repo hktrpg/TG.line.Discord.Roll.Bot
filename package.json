@@ -19,6 +19,7 @@
     "bcdice-js": "^0.11.0",
     "body-parser": "^1.19.0",
     "bufferutil": "^3.0.3",
+    "chinese-conv": "^1.0.1",
     "discord.js": "^11.4.2",
     "dotenv": "^7.0.0",
     "duckduckgo-images-api": "^1",

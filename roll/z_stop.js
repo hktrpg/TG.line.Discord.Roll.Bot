@@ -1,3 +1,4 @@
+"use strict";
 if (process.env.mongoURL) {
     var rply = {
         default: 'on',
@@ -9,17 +10,17 @@ if (process.env.mongoURL) {
     records.get('block', (msgs) => {
         rply.save = msgs
     })
-    gameName = function () {
+    var gameName = function () {
         return '(公測中)擲骰開關功能 .bk (add del show)'
     }
 
-    gameType = function () {
+    var gameType = function () {
         return 'Block:hktrpg'
     }
-    prefixs = function () {
+    var prefixs = function () {
         return [/^[.]bk$/ig, ]
     }
-    getHelpMessage = function () {
+    var getHelpMessage = function () {
         return "【擲骰開關功能】" + "\
         \n 這是根據關鍵字來開關功能,只要符合內容,\
         \n 例如運勢,那麼只要字句中包括,就不會讓Bot有反應\
@@ -31,11 +32,11 @@ if (process.env.mongoURL) {
     \n 輸入.bk del (編號)或all 即可刪除\
     \n "
     }
-    initialize = function () {
+    var initialize = function () {
         return rply;
     }
 
-    rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+    var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
         
         rply.text = '';
         switch (true) {

@@ -1,3 +1,4 @@
+"use strict";
 var rollbase = require('./rollbase.js');
 var rply = {
     default: 'on',
@@ -5,21 +6,21 @@ var rply = {
     text: ''
 };
 
-gameName = function () {
+var gameName = function () {
     return '【貓貓鬼差】.kc xDy z'
 }
 
-gameType = function () {
+var gameType = function() {
     return 'yumingkueichai:hktrpg'
 }
-prefixs = function () {
+var prefixs = function () {
     //[mainMSG[0]的prefixs,mainMSG[1]的prefixs,   <---這裡是一對  
     //mainMSG[0]的prefixs,mainMSG[1]的prefixs  ]  <---這裡是一對
     //如前面是 /^1$/ig, 後面是/^1D100$/ig, 即 prefixs 變成 1 1D100 
     ///^(?=.*he)(?!.*da).*$/ig
     return [/^[.]KC$/i, /^(|4|5)d+((\d+)|)$/i, /^[.]KC$/i, ]
 }
-getHelpMessage = function () {
+var getHelpMessage = function () {
     return "【貓貓鬼差】" + "\
 	\n .kc xDy z \
     \n x 投擲多少粒六面骰 留空為4, 只可輸入4,5或留空 \
@@ -29,11 +30,11 @@ getHelpMessage = function () {
         \n 若出現兩對子, 則選較高者\
         \n 另外, 若達成值為3, 視為戲劇性失敗."
 }
-initialize = function () {
+var initialize = function () {
     return rply;
 }
 
-rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
+var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
     rply.text = '';
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:

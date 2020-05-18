@@ -1,3 +1,4 @@
+"use strict";
 var rollbase = require('./rollbase.js');
 var rply = {
     default: 'on',
@@ -5,32 +6,32 @@ var rply = {
     text: ''
 };
 
-gameName = function () {
+var gameName = function () {
     return '【命運Fate】 .4df(m|-)(加值)'
 }
 
-gameType = function () {
+var gameType = function() {
     return 'Fate:hktrpg'
 }
-prefixs = function () {
+var prefixs = function () {
     //[mainMSG[0]的prefixs,mainMSG[1]的prefixs,   <---這裡是一對  
     //mainMSG[0]的prefixs,mainMSG[1]的prefixs  ]  <---這裡是一對
     //如前面是 /^1$/ig, 後面是/^1D100$/ig, 即 prefixs 變成 1 1D100 
     ///^(?=.*he)(?!.*da).*$/ig
     return [/^[.]4df(\d+|(m|-)(\d+)|)$/i,]
 }
-getHelpMessage = function () {
+var getHelpMessage = function () {
     return "【命運Fate】" + "\
 	\n命運骰，又稱胡扯骰，是由兩面「＋」號、兩面「－」號，以及兩面空白▉組成的六面骰\
         \n「＋」號代表＋１，「－」號－１，▉則代表０\
         \n.4df(m|-)(加值) 指令: .4df 如常骰出四粒命運骰\
         \n.4df3  四粒命運骰結果+3  .4dfm4 或.4df-4  四粒命運骰結果-4  "
 }
-initialize = function () {
+var initialize = function () {
     return rply;
 }
 
-rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
     rply.text = '';
     switch (true) {
         case /^help$/i.test(mainMsg[1]):

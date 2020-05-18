@@ -1,5 +1,5 @@
+"use strict";
 if (process.env.TELEGRAM_CHANNEL_SECRET) {
-
 	try {
 		const {
 			Random,

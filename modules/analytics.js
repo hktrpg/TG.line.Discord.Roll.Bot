@@ -1,3 +1,4 @@
+"use strict"; 
 // Load `*.js` under roll directory as properties
 //  i.e., `User.js` will become `exports['User']` or `exports.User`
 require('fs').readdirSync('./roll/').forEach(function (file) {

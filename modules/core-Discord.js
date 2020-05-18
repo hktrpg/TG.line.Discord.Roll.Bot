@@ -1,3 +1,4 @@
+"use strict";
 if (process.env.DISCORD_CHANNEL_SECRET) {
 	try {
 		exports.analytics = require('../modules/analytics');

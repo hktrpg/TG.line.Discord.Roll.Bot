@@ -3,7 +3,7 @@
   "version": "1.21.568",
   "description": "Sad's a TRPG dice rolling bot for Telegram Line and Discord. 現支援TRPG基本擲骰1D100, COC, 永遠的後日談, 黑暗世界, DX3, SW2.0,運勢",
   "engines": {
-    "node": "^11",
+    "node": "^12",
     "npm": "^6"
   },
   "main": "index.js",

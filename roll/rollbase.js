@@ -217,7 +217,7 @@ try {
     if (mutiOrNot.toString().match(/\D/i) == null && text1) {
       if (text1.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]|[k]|[h]|[l]/ig, '')) return;
       finalStr = text0 + '次擲骰：\n' + text1 + ' ' + (text2 || '') + '\n'
-      for (i = 0; i < mutiOrNot; i++) {
+      for (let i = 0; i < mutiOrNot; i++) {
         finalStr += i + 1 + '# ' + await onetimeroll(text1) + '\n'
       }
     } else {

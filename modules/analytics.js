@@ -1,4 +1,4 @@
-"use strict"; 
+"use strict";
 // Load `*.js` under roll directory as properties
 //  i.e., `User.js` will become `exports['User']` or `exports.User`
 require('fs').readdirSync('./roll/').forEach(function (file) {
@@ -86,9 +86,9 @@ try {
 				.then(
 					async function (result) {
 						//console.log('result', result)
-						let tempResut = await step2()
+						let tempResut = await step2();
 						if (typeof tempResut === 'object' && tempResut !== null) {
-							return tempResut
+							return tempResut;
 						}
 						//console.log('step2', a)
 					}
@@ -102,43 +102,44 @@ try {
 		async function step2() {
 			if (mainMsg && mainMsg[0].toLowerCase() == ".cmd" && mainMsg[1] && mainMsg[1].toLowerCase() != "help" && mainMsg[1].toLowerCase() != "add" && mainMsg[1].toLowerCase() != "show" && mainMsg[1].toLowerCase() != "del" && result.text) {
 				//console.log('result.text', result.text.toString().replace(mainMsg[1], ""))
-				inputStr = result.text.toString().replace(mainMsg[1], "")
+				inputStr = result.text.toString().replace(mainMsg[1], "");
 				//console.log(inputStr)
 				mainMsg = inputStr.match(msgSplitor); //定義輸入字串
 				trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
 				//console.log('inputStr2: ', inputStr)
-				result.text = ""
+				result.text = "";
 				//檢查是不是要停止
 				z_stop(mainMsg, groupid);
 				let tempResut = await rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount)
-				if (typeof tempResut === 'object' && tempResut !== null)
-					result = tempResut
-				console.log('inputStr2: ', inputStr)
+				if (typeof tempResut === 'object' && tempResut !== null) {
+					result = tempResut;
+				}
+				console.log('inputStr2: ', inputStr);
 			}
 			//LEVEL功能
 			if (groupid) {
 				let tempEXPUP = await EXPUP();
 				if (tempEXPUP) {
-					console.log('tempEXPUP: ', tempEXPUP)
-					result.LevelUp = tempEXPUP
+					console.log('tempEXPUP: ', tempEXPUP);
+					result.LevelUp = tempEXPUP;
 				} else
-					result.LevelUp = ""
+					result.LevelUp = "";
 				//result.LevelUp
 			}
 			if (result && (result.text || result.LevelUp)) {
 				if (result.text) {
-					console.log(botname, '\'s inputStr: ', inputStr)
+					console.log(botname, '\'s inputStr: ', inputStr);
 					//SAVE THE LOG
 					if (simpleCourt != null) {
 						switch (botname) {
 							case "Discord":
-								RollingLog.RealTimeRollingLogfunction.DiscordCountRoll++
+								RollingLog.RealTimeRollingLogfunction.DiscordCountRoll++;
 								break;
 							case "Line":
 								RollingLog.RealTimeRollingLogfunction.LineCountRoll++;
 								break;
 							case "Telegram":
-								RollingLog.RealTimeRollingLogfunction.TelegramCountRoll++
+								RollingLog.RealTimeRollingLogfunction.TelegramCountRoll++;
 								break;
 							default:
 								break;
@@ -148,19 +149,19 @@ try {
 					}
 
 				}
-				result.CAPTCHA = CAPTCHA
+				result.CAPTCHA = CAPTCHA;
 				return result;
 			} else {
 				if (simpleCourt != null) {
 					switch (botname) {
 						case "Discord":
-							RollingLog.RealTimeRollingLogfunction.DiscordCountText++
+							RollingLog.RealTimeRollingLogfunction.DiscordCountText++;
 							break;
 						case "Line":
 							RollingLog.RealTimeRollingLogfunction.LineCountText++;
 							break;
 						case "Telegram":
-							RollingLog.RealTimeRollingLogfunction.TelegramCountText++
+							RollingLog.RealTimeRollingLogfunction.TelegramCountText++;
 							break;
 						default:
 							break;
@@ -196,7 +197,7 @@ try {
 					LineCountText: RollingLog.RealTimeRollingLogfunction.LineCountText,
 					TelegramCountRoll: RollingLog.RealTimeRollingLogfunction.TelegramCountRoll,
 					TelegramCountText: RollingLog.RealTimeRollingLogfunction.TelegramCountText
-				}
+				};
 				records.pushtrpgSaveLogfunction('RollingLog', temp, () => {
 					//console.log('SAVE LOG')
 				})
@@ -219,10 +220,10 @@ try {
 					LineCountText: RollingLog.RealTimeRollingLogfunction.LineCountText,
 					TelegramCountRoll: RollingLog.RealTimeRollingLogfunction.TelegramCountRoll,
 					TelegramCountText: RollingLog.RealTimeRollingLogfunction.TelegramCountText
-				}
+				};
 				records.settrpgSaveLogfunctionRealTime('RealTimeRollingLog', temp, () => {
 					//console.log('SAVE REAL TIME LOG')
-				})
+				});
 
 			}
 			//console.log("RollingLog: ", RollingLog)
@@ -268,9 +269,9 @@ try {
 						}
 					}
 
-					exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.push(temp.trpgLevelSystemfunction)
+					exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.push(temp.trpgLevelSystemfunction);
 
-					records.settrpgLevelSystemfunctionNewUser('trpgLevelSystem', temp, () => {})
+					records.settrpgLevelSystemfunctionNewUser('trpgLevelSystem', temp, () => {});
 
 				} else if (tempIsUser != 0) {
 					//4. 有-> 檢查上次紀錄的時間 超過60000 (1分鐘) 即增加1-10 經驗值
@@ -285,7 +286,7 @@ try {
 							exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level++;
 
 							//8. 更新MLAB資料 
-							records.settrpgLevelSystemfunctionEXPup('trpgLevelSystem', exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID], exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction, () => {})
+							records.settrpgLevelSystemfunctionEXPup('trpgLevelSystem', exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID], exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction, () => {});
 
 							if (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Hidden == 1) {
 								//6. 需要 -> 檢查有沒有開啓通知
@@ -321,8 +322,8 @@ try {
 
 			let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
 			let userTitle = exports.z_Level_system.checkTitle(userlevel, exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Title);
-			let tempUPWord = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].LevelUpWord || "恭喜 {user.name}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點了！\n現在排名是{server.member_count}人中的第{user.Ranking}名！"
-			return tempUPWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count).replace(/{user.title}/ig, userTitle)
+			let tempUPWord = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].LevelUpWord || "恭喜 {user.name}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點了！\n現在排名是{server.member_count}人中的第{user.Ranking}名！";
+			return tempUPWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count).replace(/{user.title}/ig, userTitle);
 
 			//2. 回應BOT
 
@@ -332,7 +333,7 @@ try {
 
 	async function ranking(who, data) {
 		let array = [];
-		let answer = "0"
+		let answer = "0";
 		for (let key in data) {
 			await array.push(data[key]);
 		}
@@ -366,8 +367,8 @@ try {
 		if (exports.z_stop && exports.z_stop.initialize() && exports.z_stop.initialize().save && exports.z_stop.initialize().save[0] && exports.z_stop.initialize().save[0].blockfunction && exports.z_stop.initialize().save[0].blockfunction.length > 0 && mainMsg && mainMsg[0]) {
 			for (let i = 0; i < exports.z_stop.initialize().save.length; i++) {
 				if ((new RegExp(exports.z_stop.initialize().save[i].blockfunction.join("|"), "i")).test(mainMsg[0]) && exports.z_stop.initialize().save[i].groupid == groupid && exports.z_stop.initialize().save[i].blockfunction.length > 0) {
-					console.log('Match AND STOP')
-					return 1
+					console.log('Match AND STOP');
+					return 1;
 				}
 			}
 		}
@@ -376,7 +377,9 @@ try {
 	var rolldice = async function (inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount) {
 		//console.log(exports)
 		//在下面位置開始分析trigger
-		if (!groupid) groupid = 0
+		if (!groupid) {
+			groupid = 0
+		};
 		let breakFlag = false;
 		for (let v in exports) {
 			//console.log('v: ', v)
@@ -413,7 +416,7 @@ try {
 							if (checkmainMsg0 <= 1 && checkmainMsg1 <= 1 && checkmainMsg0 + checkmainMsg1 >= 1) {
 								findprefixs = 1;
 								i = exports[v].prefixs().length + 1;
-								breakFlag = true
+								breakFlag = true;
 							}
 						}
 					}
@@ -422,8 +425,8 @@ try {
 
 
 				if (findprefixs == 1) {
-					console.log('             trigger: ', inputStr)
-					let tempsave = await exports[v].rollDiceCommand(inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount)
+					console.log('             trigger: ', inputStr);
+					let tempsave = await exports[v].rollDiceCommand(inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount);
 					//console.log('tempsave: ', tempsave)
 					return await tempS();
 
@@ -431,14 +434,14 @@ try {
 						if (tempsave) {
 							for (let key in tempsave) {
 								if (tempsave.hasOwnProperty(key)) {
-									result[key] = tempsave[key]
+									result[key] = tempsave[key];
 								}
 							}
 
 						}
 
 						if (result.text)
-							return result
+							return result;
 					}
 				}
 			}
@@ -450,7 +453,7 @@ try {
 
 
 } catch (e) {
-	console.log('error: ' + e)
+	console.log('error: ' + e);
 }
 module.exports.parseInput = parseInput;
 module.exports.rolldice = rolldice;

@@ -35,8 +35,8 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 			if (message.author.bot === false) {
 				//	console.log('message.content ' + message.content);
 				//	console.log('channelKeyword ' + channelKeyword);
-				let groupid, userid, displayname, channelid, displaynameDiscord, membercount = ''
-				let TargetGM = require('../roll/z_DDR_darkRollingToGM').initialize()
+				let groupid, userid, displayname, channelid, displaynameDiscord, membercount = '';
+				let TargetGM = require('../roll/z_DDR_darkRollingToGM').initialize();
 				//得到暗骰的數據, GM的位置
 				let displaynamecheck = true;
 				let hasSendPermission = true;
@@ -45,36 +45,49 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 				//TRUE 即正常
 				let userrole = 1;
 				//console.log(message.guild)
-				if (message.guild && message.guild.me)
-					hasSendPermission = await message.guild.me.hasPermission("SEND_MESSAGES")
-				if (message.channel.type !== "dm")
+				if (message.guild && message.guild.me) {
+					hasSendPermission = await message.guild.me.hasPermission("SEND_MESSAGES");
+				}
+				if (message.channel.type !== "dm") {
 					hasSendPermission = await message.channel.permissionsFor(client.user).has("SEND_MESSAGES")
-				if (message.channel && message.channel.id) channelid = message.channel.id
-				if (message.guild && message.guild.id) groupid = message.guild.id
-				if (message.author.id) userid = message.author.id
-				if (message.member && message.member.user && message.member.user.tag)
-					displayname = message.member.user.tag
-				if (message.member && message.member.user && message.member.user.username)
-					displaynameDiscord = message.member.user.username
-				if (message.guild && message.guild.members)
+				}
+				if (message.channel && message.channel.id) {
+					channelid = message.channel.id;
+				}
+				if (message.guild && message.guild.id) {
+					groupid = message.guild.id;
+				}
+				if (message.author.id) {
+					userid = message.author.id;
+				}
+				if (message.member && message.member.user && message.member.user.tag) {
+					displayname = message.member.user.tag;
+				}
+				if (message.member && message.member.user && message.member.user.username) {
+					displaynameDiscord = message.member.user.username;
+				}
+				if (message.guild && message.guild.members) {
 					membercount = await message.guild.members.filter(member => !member.user.bot).size;
+				}
 				////DISCORD: 585040823232320107
-				if (message.member && message.member.hasPermission("ADMINISTRATOR"))
+				if (message.member && message.member.hasPermission("ADMINISTRATOR")) {
 					userrole = 3
+				}
 				//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin 
-			
-				
+
+
 				if (message.content != "") {
 					let CAPTCHA = random.string(20);
 					let rplyVal = {};
-					let trigger = ""
+					let trigger = "";
 					let msgSplitor = (/\S+/ig);
 					let mainMsg = message.content.match(msgSplitor); //定義輸入字串
-					if (mainMsg && mainMsg[0])
-						trigger = mainMsg[0].toString().toLowerCase()
+					if (mainMsg && mainMsg[0]) {
+						trigger = mainMsg[0].toString().toLowerCase();
+					}
 					//指定啟動詞在第一個詞&把大階強制轉成細階
 					if (trigger == ".me") {
-						displaynamecheck = false
+						displaynamecheck = false;
 					}
 					let privatemsg = 0;
 					//設定私訊的模式 0-普通 1-自己 2-自己+GM 3-GM
@@ -84,17 +97,17 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 
 					if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
 						privatemsg = 1;
-						message.content = message.content.replace(/^[d][r][ ]/i, '')
+						message.content = message.content.replace(/^[d][r][ ]/i, '');
 						//mainMsg.shift();
 						//trigger = mainMsg[0].toString().toLowerCase();
 					}
 					if (trigger.match(/^ddr$/i) && mainMsg && mainMsg[1]) {
-						privatemsg = 2
-						message.content = message.content.replace(/^[d][d][r][ ]/i, '')
+						privatemsg = 2;
+						message.content = message.content.replace(/^[d][d][r][ ]/i, '');
 					}
 					if (trigger.match(/^dddr$/i) && mainMsg && mainMsg[1]) {
-						privatemsg = 3
-						message.content = message.content.replace(/^[d][d][d][r][ ]/i, '')
+						privatemsg = 3;
+						message.content = message.content.replace(/^[d][d][d][r][ ]/i, '');
 					}
 
 					if (channelKeyword != "" && trigger == channelKeyword.toString().toLowerCase()) {
@@ -108,29 +121,29 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					//LevelUp功能
 					if (rplyVal && hasSendPermission) {
 						if (CAPTCHA != rplyVal.CAPTCHA) {
-							console.log('Discord CAPTCHA false', CAPTCHA, ' &&', rplyVal.CAPTCHA, "TEXT", message.content, 'rplyVal: ', rplyVal)
+							console.log('Discord CAPTCHA false', CAPTCHA, ' &&', rplyVal.CAPTCHA, "TEXT", message.content, 'rplyVal: ', rplyVal);
 							return;
 						}
 						if (groupid && rplyVal && rplyVal.LevelUp) {
 							//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
-							await SendToReplychannel("<@" + userid + '>\n' + rplyVal.LevelUp)
+							await SendToReplychannel("<@" + userid + '>\n' + rplyVal.LevelUp);
 						}
 						if (rplyVal.text) {
 							//Discordcountroll++;
 							//簡單使用數字計算器
 							if (privatemsg >= 1) {
 								//當是私訊模式1-3時
-								let TargetGMTempID = []
-								let TargetGMTempdiyName = []
-								let TargetGMTempdisplayname = []
+								let TargetGMTempID = [];
+								let TargetGMTempdiyName = [];
+								let TargetGMTempdisplayname = [];
 								if (TargetGM && TargetGM.trpgDarkRollingfunction)
 									for (let i = 0; i < TargetGM.trpgDarkRollingfunction.length; i++) {
 										if (TargetGM.trpgDarkRollingfunction[i].groupid == channelid) {
 											for (let a = 0; a < TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
 												//checkifsamename = 1
-												TargetGMTempID[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].userid
-												TargetGMTempdiyName[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].diyName
-												TargetGMTempdisplayname[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].displayname
+												TargetGMTempID[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].userid;
+												TargetGMTempdiyName[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].diyName;
+												TargetGMTempdisplayname[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].displayname;
 												//TargetGMTemp[a]. channelid displayname diyName userid
 											}
 										}
@@ -163,16 +176,19 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 										//console.log('AAA', TargetGMTempID)
 										if (groupid) {
 											let targetGMNameTemp = "";
-											for (let i = 0; i < TargetGMTempID.length; i++)
+											for (let i = 0; i < TargetGMTempID.length; i++) {
 												targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
-											await SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp)
+											}
+											await SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
 										}
-										if (userid)
-											rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
+										if (userid) {
+											rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text;
+										}
 										await SendToReply(rplyVal.text);
 										for (let i = 0; i < TargetGMTempID.length; i++) {
-											if (userid != TargetGMTempID[i])
+											if (userid != TargetGMTempID[i]) {
 												await SendToId(TargetGMTempID[i], rplyVal.text);
+											}
 										}
 										return;
 										break;
@@ -180,8 +196,9 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 										//輸入dddr(指令) 私訊GM
 										if (groupid) {
 											let targetGMNameTemp = "";
-											for (let i = 0; i < TargetGMTempID.length; i++)
+											for (let i = 0; i < TargetGMTempID.length; i++) {
 												targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
+											}
 											await SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp)
 										}
 										rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
@@ -247,22 +264,22 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 						for (let i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 							if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
 								try {
-									return await message.channel.send(replyText.toString().match(/[\s\S]{1,1900}/g)[i])
+									return await message.channel.send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
 								}
 							catch (e) {
-								console.log('error SendToReplychannel: ', e.message)
+								console.log('error SendToReplychannel: ', e.message);
 							}
 						}
 					}
 				} else if (groupid && userid) {
-					return await exports.analytics.parseInput("", groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount)
+					return await exports.analytics.parseInput("", groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount);
 				} else return;
 			} else
 				return;
 		});
 		//Set Activity 可以自定義正在玩什麼  
 		client.on('ready', () => {
-			client.user.setGame('bothelp | hktrpg.com')
+			client.user.setGame('bothelp | hktrpg.com');
 		})
 	} catch (e) {
 		console.log('catch error');

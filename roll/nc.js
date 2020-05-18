@@ -104,7 +104,7 @@ async function nechronica(triggermsg, text) {
 		returnStr += dicemax + '[' + ncarray.pop() + ']';
 	else {
 		returnStr += dicemax + '[';
-		for (i = 0; i < Number(match[1]); i++) {
+		for (let i = 0; i < Number(match[1]); i++) {
 			if (i != Number(match[1]) - 1)
 				returnStr += ncarray.pop() + ',';
 			else

@@ -45,7 +45,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             var i, random, temp = '';
             var ans = 0
 
-            for (i = 0; i < 4; i++) {
+            for (let i = 0; i < 4; i++) {
                 random = (await rollbase.Dice(3) - 2)
                 ans += random
                 temp += random

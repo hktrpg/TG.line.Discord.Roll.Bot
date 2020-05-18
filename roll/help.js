@@ -82,7 +82,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 			/*
 					case /^all$/i.test(mainMsg[1]):
 						//rply.text = getHelpMessage();
-						for (i = 0; i < Object.keys(exports).length; i++) {
+						let i = 0; i < Object.keys(exports).length; i++) {
 							if (exports[Object.keys(exports)[i]] && exports[Object.keys(exports)[i]].gameName)
 								rply.text += "\n" +
 								i + ": " +

@@ -10,7 +10,7 @@ var gameName = function () {
 	return '【克蘇魯神話】 cc cc(n)1~2 ccb ccrt ccsu .dp .cc7build .cc6build .cc7bg'
 }
 
-var gameType = function() {
+var gameType = function () {
 	return 'CoC:hktrpg'
 }
 var prefixs = function () {
@@ -496,7 +496,7 @@ async function build7char(text01) {
 		ReStr = ReStr + '\n等等，核心規則沒有適用於90歲以上的人物哦。\n先當成89歲處理\n';
 		old = 89;
 	}
-	for (i = 0; old >= oldArr[i]; i++) {
+	for (let i = 0; old >= oldArr[i]; i++) {
 		Debuff = DebuffArr[i];
 		AppDebuff = AppDebuffArr[i];
 		EDUinc = EDUincArr[i];
@@ -530,7 +530,7 @@ async function build7char(text01) {
 
 		let tempEDU = eval(firstEDU);
 
-		for (i = 1; i <= EDUinc; i++) {
+		for (let i = 1; i <= EDUinc; i++) {
 			let EDURoll = await rollbase.Dice(100);
 			ReStr = ReStr + '\n第' + i + '次EDU成長 → ' + EDURoll;
 			if (EDURoll > tempEDU) {
@@ -577,7 +577,7 @@ async function build6char() {
 		if (old < 15) rply.text = ReStr + '等等，核心規則不允許小於15歲的人物哦。';	
 		if (old >= 90) rply.text = ReStr + '等等，核心規則不允許90歲以上的人物哦。'; 
 
-		for ( i=0 ; old >= oldArr[i] ; i ++){
+		for (let i=0 ; old >= oldArr[i] ; i ++){
 			Debuff = DebuffArr[i];
 			AppDebuff = AppDebuffArr[i];
 			EDUinc = EDUincArr[i];

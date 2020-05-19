@@ -133,9 +133,9 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 							//簡單使用數字計算器
 							if (privatemsg >= 1) {
 								//當是私訊模式1-3時
-								let TargetGMTempID = [];
-								let TargetGMTempdiyName = [];
-								let TargetGMTempdisplayname = [];
+								var TargetGMTempID = [];
+								var TargetGMTempdiyName = [];
+								var TargetGMTempdisplayname = [];
 								if (TargetGM && TargetGM.trpgDarkRollingfunction)
 									for (let i = 0; i < TargetGM.trpgDarkRollingfunction.length; i++) {
 										if (TargetGM.trpgDarkRollingfunction[i].groupid == channelid) {

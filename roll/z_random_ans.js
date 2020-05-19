@@ -1,3 +1,4 @@
+"use strict";
 const rollbase = require('./rollbase.js');
 try {
     var rply = {
@@ -13,16 +14,16 @@ try {
     records.get('randomAnsAllgroup', (msgs) => {
         rply.randomAnsAllgroup = msgs
     })
-    gameName = function () {
+    var gameName = function () {
         return '(公測中)自定義回應功能 .ra(p)(次數) (add del show 自定關鍵字)'
     }
-    gameType = function () {
+    var gameType = function () {
         return 'randomAns:hktrpg'
     }
-    prefixs = function () {
+    var prefixs = function () {
         return [/(^[.]ra(\d+|p|p\d+|)$)/ig, ]
     }
-    getHelpMessage = function () {
+    var getHelpMessage = function () {
         return "【自定義回應功能】" + "\
         \n 這是根據關鍵字來隨機抽選功能,只要符合內容,以後就會隨機抽選\
         \n 例如輸入 .ra add 九大陣營 守序善良 (...太長省略) 中立邪惡 混亂邪惡 \
@@ -39,11 +40,11 @@ try {
     \n 例如輸入 .rap10 聖晶石召喚 即可十連抽了 \
     \n "
     }
-    initialize = function () {
+    var initialize = function () {
         return rply;
     }
 
-    rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+    var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 
         rply.text = '';
         switch (true) {

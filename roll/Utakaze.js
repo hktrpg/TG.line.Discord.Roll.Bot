@@ -1,3 +1,4 @@
+"use strict";
 const BCDice = require('bcdice-js').BCDice; // CommonJS
 const bcdice = new BCDice();
 
@@ -13,17 +14,17 @@ var rply = {
 	text: ''
 };
 
-gameName = function () {
+var gameName = function () {
 	return '【歌風】 .UK (nUK nUK@c or nUKc)'
 }
 
-gameType = function () {
+var gameType = function() {
 	return 'UK:hktrpg'
 }
-prefixs = function () {
+var prefixs = function () {
 return [/^[.]UK$/i, ]
 }
-getHelpMessage = function () {
+var getHelpMessage = function () {
 	return "【歌風】" + "\
 	\n・行為判定ロール（nUK）\
 	\nn個のサイコロで行為判定ロール。ゾロ目の最大個数を成功レベルとして表示。nを省略すると2UK扱い。\
@@ -36,11 +37,11 @@ getHelpMessage = function () {
 	\n例）3UK@5 ：龍のダイス「月」でクリティカルコール宣言したサイコロ3個の行為判定\
 		\n "
 }
-initialize = function () {
+var initialize = function () {
 	return rply;
 }
 
-rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 	rply.text = '';
 	let result = '';
 	switch (true) {

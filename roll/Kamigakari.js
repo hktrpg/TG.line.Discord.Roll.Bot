@@ -1,3 +1,4 @@
+"use strict";
 const BCDice = require('bcdice-js').BCDice; // CommonJS
 const bcdice = new BCDice();
 
@@ -7,17 +8,17 @@ var rply = {
     text: ''
 };
 
-gameName = function () {
+var gameName = function () {
     return '【神我狩】 .kk (ET RT NT KT MTx)'
 }
 
-gameType = function () {
+var gameType = function() {
     return 'Kamigakari:hktrpg'
 }
-prefixs = function () {
+var prefixs = function () {
     return [/^[.]kk$/i, ]
 }
-getHelpMessage = function () {
+var getHelpMessage = function () {
     return "【神我狩 Kamigakari】" + "\
 	\n・啓動語 .kk (指令) 如 .kk ET\
     \n \
@@ -29,11 +30,11 @@ getHelpMessage = function () {
     　　\n例） MT　MT3　MT9\
 		\n"
 }
-initialize = function () {
+var initialize = function () {
     return rply;
 }
 
-rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
     rply.text = '';
     //let result = {};
     switch (true) {

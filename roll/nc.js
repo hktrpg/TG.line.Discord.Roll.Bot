@@ -1,3 +1,4 @@
+"use strict";
 const BCDice = require('bcdice-js').BCDice; // CommonJS
 const bcdice = new BCDice();
 
@@ -14,17 +15,17 @@ var rply = {
 	text: ''
 };
 
-gameName = function () {
+var gameName = function () {
 	return '【永遠的後日談】 .nc (NM xNC+m xNA+m)'
 }
 
-gameType = function () {
+var gameType = function () {
 	return 'Nechronica:hktrpg'
 }
-prefixs = function () {
+var prefixs = function () {
 	return [/(^[.]nc$)$/i, ]
 }
-getHelpMessage = function () {
+var getHelpMessage = function () {
 	return "【永遠的後日談 Nechronica】" + "\
 	\n・依戀 .NC NM (問題)\
 	\n例子 .NC NM 我的依戀\
@@ -36,7 +37,7 @@ getHelpMessage = function () {
 	　\n命中部位とダイス数が2以上の時のパーツ破損数も表示します。*\
 		\n "
 }
-initialize = function () {
+var initialize = function () {
 	return rply;
 }
 //nc指令開始於此 來自Rainsting/TarotLineBot 
@@ -45,7 +46,7 @@ initialize = function () {
 //依戀
 //if (trigger.match(/(^nm$)/) != null) return exports.nc.nechronica_mirenn(mainMsg[1]);
 
-rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 	rply.text = '';
 	let result = '';
 	switch (true) {
@@ -94,7 +95,7 @@ async function nechronica(triggermsg, text) {
 		dicenew = 0;
 	var match = /^(\d+)(NC|NA)((\+|-)(\d+)|)$/i.exec(triggermsg); //判斷式
 	for (var i = 0; i < Number(match[1]); i++) {
-		dicenew =await rollbase.Dice(10) + Number(match[3]);
+		dicenew = await rollbase.Dice(10) + Number(match[3]);
 		ncarray.push(dicenew);
 	}
 	dicemax = Math.max(...ncarray); //判斷最大最小值
@@ -103,7 +104,7 @@ async function nechronica(triggermsg, text) {
 		returnStr += dicemax + '[' + ncarray.pop() + ']';
 	else {
 		returnStr += dicemax + '[';
-		for (i = 0; i < Number(match[1]); i++) {
+		for (let i = 0; i < Number(match[1]); i++) {
 			if (i != Number(match[1]) - 1)
 				returnStr += ncarray.pop() + ',';
 			else
@@ -118,10 +119,10 @@ async function nechronica(triggermsg, text) {
 		else
 			returnStr += ' → 成功';
 	else
-		if (dicemin <= 1)
-			returnStr += ' → 大失敗';
-		else
-			returnStr += ' → 失敗';
+	if (dicemin <= 1)
+		returnStr += ' → 大失敗';
+	else
+		returnStr += ' → 失敗';
 	if (text != null)
 		returnStr += ' ; ' + text;
 	rply.text = returnStr;
@@ -134,7 +135,7 @@ async function nechronica(triggermsg, text) {
 async function nechronica_mirenn(text) {
 	let returnStr = '';
 	var dicenew = 0;
-	dicenew =await rollbase.Dice(10) - 1;
+	dicenew = await rollbase.Dice(10) - 1;
 	// 產生格式
 	if (text != null)
 		returnStr = text + ': \n' + '依戀 (' + (dicenew + 1) + '[' + (dicenew + 1) + ']) → ' + nechronica_mirenn_table(dicenew);
@@ -146,6 +147,7 @@ async function nechronica_mirenn(text) {
 
 /* 這邊預留 mode 以便未來可以加入其他依戀 */
 function nechronica_mirenn_table(mode) {
+	let returnStr;
 	if (mode == 0) returnStr = '【嫌惡】\n[發狂：敵對認識] 戰鬥中，沒有命中敵方的攻擊，全部都會擊中嫌惡的對象。(如果有在射程內的話)';
 	if (mode == 1) returnStr = '【獨占】\n[發狂：獨占衝動] 戰鬥開始與戰鬥結束，各別選擇損傷1個對象的部件。';
 	if (mode == 2) returnStr = '【依存】\n[發狂：幼兒退行] 妳的最大行動值減少2。';

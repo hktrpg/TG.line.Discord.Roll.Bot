@@ -1,3 +1,4 @@
+"use strict";
 const rollbase = require('./rollbase.js');
 const mathjs = require('mathjs')
 var rply = {
@@ -6,14 +7,14 @@ var rply = {
 	text: ''
 };
 const regexxBy = /^((\d+)(b)(\d+))/i
-gameName = function () {
+var gameName = function () {
 	return '【進階擲骰】 .ca (計算)|D66(sn)|5B10 Dx|5U10 x y|.int x y'
 }
 
-gameType = function () {
+var gameType = function() {
 	return 'advroll:hktrpg'
 }
-prefixs = function () {
+var prefixs = function () {
 	return [/^[.][c][a]$/i, ,
 		/^d66s$|^d66$|^d66n$/i, ,
 		/^(\d+)(u)(\d+)$/i, /\d+/,
@@ -21,7 +22,7 @@ prefixs = function () {
 		/^[.][i][n][t]$/i, /\d+/,
 	]
 }
-getHelpMessage = function () {
+var getHelpMessage = function () {
 	return "【進階擲骰】" + "\
 	\n .ca 只進行數學計算 \
 	\n 例如: .ca 1.2 * (2 + 4.5) ， 12.7 米 to inch \
@@ -37,11 +38,11 @@ getHelpMessage = function () {
 		\n "
 }
 
-initialize = function () {
+var initialize = function () {
 	return rply;
 }
 
-rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 	rply.text = '';
 	//let result = {};
 	switch (true) {

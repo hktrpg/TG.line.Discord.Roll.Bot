@@ -1,3 +1,4 @@
+"use strict";
 var rollbase = require('./rollbase.js');
 var rply = {
 	default: 'on',
@@ -5,27 +6,27 @@ var rply = {
 	text: ''
 };
 
-gameName = function () {
+var gameName = function () {
 	return '【WOD黑暗世界】.xWDy'
 }
 
-gameType = function () {
+var gameType = function() {
 	return 'WOD:hktrpg'
 }
-prefixs = function () {
+var prefixs = function () {
 	return [/^[.](\d+)(wd)(\d|)((\+|-)(\d+)|)$/i, ]
 }
-getHelpMessage = function () {
+var getHelpMessage = function () {
 	return "【WOD 黑暗世界擲骰】" + "\
 	\n [.](骰數)Wd(加骰)(+成功數) (問題)\
 	\n例子 .3wd8 .15wd9+2\
 		\n "
 }
-initialize = function () {
+var initialize = function () {
 	return rply;
 }
 
-rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 	let matchwod = /^[.](\d+)(wd|wod)(\d|)((\+|-)(\d+)|)$/i.exec(mainMsg[0]); //判斷式  [0]3wd8+10,[1]3,[2]wd,[3]8,[4]+10,[5]+,[6]10  
 	//console.log(matchwod)
 	if (matchwod && matchwod[1] >= 1 && matchwod[1] <= 600)

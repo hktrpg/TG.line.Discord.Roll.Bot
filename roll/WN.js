@@ -1,3 +1,4 @@
+"use strict";
 const rollbase = require('./rollbase.js');
 var rply = {
     default: 'on',
@@ -5,17 +6,17 @@ var rply = {
     text: ''
 };
 const mathjs = require('mathjs')
-gameName = function () {
+var gameName = function () {
     return '【魔女狩獵之夜】.wn xDn+-y'
 }
 
-gameType = function () {
+var gameType = function() {
     return 'witch-hunting-night:hktrpg'
 }
-prefixs = function () {
+var prefixs = function () {
     return [/^.wn$/i, ]
 }
-getHelpMessage = function () {
+var getHelpMessage = function () {
     return "【魔女狩獵之夜】" + "\
     \n.wn xDDn+-y  x骰池 n罪業值 y調整值 \
     \n.wn 3 骰3次D6,大於3成功 .wn 5D6+3 骰3次D6,大於5成功然後+3\
@@ -27,11 +28,11 @@ getHelpMessage = function () {
          \n.wn 3@3+3 骰3次D6,大於3成功 \
     \n.wn 3@D3+2 有第二個D，會使用成功數減去失敗數得出結果(可負數)"
 }
-initialize = function () {
+var initialize = function () {
     return rply;
 }
 
-rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
+var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
     rply.text = '';
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:

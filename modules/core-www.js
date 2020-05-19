@@ -1,3 +1,4 @@
+"use strict";
 if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
     const express = require('./core-Line').express;
     const www = require('./core-Line').app;

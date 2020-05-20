@@ -115,11 +115,11 @@ async function now(a, b, c) {
 async function googleimage(inputStr, mainMsg, safe) {
 	let keyword = inputStr.replace(mainMsg[0] + " ", "")
 	//let page = Math.floor((Math.random() * (10)) * 10) + 1;
-	let page = ((rollbase.Dice(10) - 1) * 10) + 1
+	let page = ((await rollbase.Dice(10) - 1) * 10) + 1
 	if (mainMsg[1].match(/^yesno$/i)) {
 		//隨機YES NO
 		let A = ['yes', 'no']
-		keyword = A[rollbase.Dice(A.length) - 1] + " GIF";
+		keyword = A[await rollbase.Dice(A.length) - 1] + " GIF";
 	}
 	return await client.search(keyword, {
 			"safe": safe,
@@ -136,40 +136,18 @@ async function googleimage(inputStr, mainMsg, safe) {
 						return images[nows].url;
 					}
 				}
-			} else
-				return client.search(keyword, {
-						"safe": "high"
-					})
-					.then(async images => {
-						{
-							//let resultnum = Math.floor((Math.random() * (images.length)) + 0)
-							let resultnum = await rollbase.Dice(images.length) - 1
-							for (let i = 0; i < images.length; i++) {
-								if (images[resultnum].url.match(/\.(jpeg|jpg|gif|png)$/) != null) {
-									i = images.length
-									return images[resultnum].url;
-								} else {
-									resultnum++
-									if (resultnum = images.length)
-										resultnum = 0
-								}
-							}
+			}
 
-						}
-					})
 		}).catch(err => {
 			console.log(err)
 		})
 }
 
 async function imageExists(image_url) {
-
 	var http = new XMLHttpRequest();
-
 	http.open('HEAD', image_url, false);
 	http.send();
-	return http.status != 404;
-
+	return http.status == 200;
 }
 module.exports = {
 	rollDiceCommand: rollDiceCommand,

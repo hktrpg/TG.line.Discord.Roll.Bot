@@ -97,7 +97,7 @@ async function WN(message) {
 }
 async function Dice(msg) {
     if (msg)
-        return rollbase.BuildRollDice(msg)
+        return await rollbase.BuildRollDice(msg)
     else msg
 }
 async function WN2(key, message) {

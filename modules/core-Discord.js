@@ -67,7 +67,8 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					displaynameDiscord = message.member.user.username;
 				}
 				if (message.guild && message.guild.members) {
-					membercount = await message.guild.members.filter(member => !member.user.bot).size;
+					//membercount = await message.guild.members.filter(member => !member.user.bot).size;
+					membercount = await message.guild.channels.cache.filter(m => m.type === 'text').size
 				}
 				////DISCORD: 585040823232320107
 				if (message.member && message.member.hasPermission("ADMINISTRATOR")) {
@@ -279,8 +280,17 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 		});
 		//Set Activity 可以自定義正在玩什麼  
 		client.on('ready', () => {
-			client.user.setGame('bothelp | hktrpg.com');
-		})
+			client.user.setActivity('bothelp | hktrpg.com');
+		});
+		/*
+		 *client.on('ready', () => {
+		 *client.user.setActivity(actvs[Math.floor(Math.random() * (actvs.length - 1) + 1)]);
+		 *setInterval(() => {
+		 *	client.user.setActivity(actvs[Math.floor(Math.random() * (actvs.length - 1) + 1)]);
+		 *}, 10000);
+		 *});
+		 */
+
 	} catch (e) {
 		console.log('catch error');
 		console.log('Request error: ' + e.message);

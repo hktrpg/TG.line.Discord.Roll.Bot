@@ -20,10 +20,11 @@
     "body-parser": "^1.19.0",
     "bufferutil": "^4.0.1",
     "chinese-conv": "^1.0.1",
-    "discord.js": "^11.4.2",
+    "discord.js": "^12.2.0",
     "dotenv": "^7.0.0",
     "duckduckgo-images-api": "^1",
     "easy-monitor": "^2.2.8",
+    "erlpack": "github:discordapp/erlpack",
     "event": "^1.0.0",
     "express": "^4.17.1",
     "google-images": "^2.1.0",
@@ -36,9 +37,11 @@
     "telegraf": "^3.29.0",
     "telegraf-getchatmembers": "^1.0.0",
     "timer": "^1.0.1",
+    "utf-8-validate": "^5.0.2",
     "uws": "^9.14.0",
     "wikijs": "6.0.1",
-    "xmlhttprequest": "^1.8.0"
+    "xmlhttprequest": "^1.8.0",
+    "zlib-sync": "^0.1.6"
   },
   "keywords": [
     "LeoLi",

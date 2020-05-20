@@ -136,39 +136,21 @@ async function googleimage(inputStr, mainMsg, safe) {
 						return images[nows].url;
 					}
 				}
-			} else
-				return client.search(keyword, {
-						"safe": "high"
-					})
-					.then(async images => {
-						{
-							//let resultnum = Math.floor((Math.random() * (images.length)) + 0)
-							let resultnum = await rollbase.Dice(images.length) - 1
-							for (let i = 0; i < images.length; i++) {
-								if (images[resultnum].url.match(/\.(jpeg|jpg|gif|png)$/) != null) {
-									i = images.length
-									return images[resultnum].url;
-								} else {
-									resultnum++
-									if (resultnum = images.length)
-										resultnum = 0
-								}
-							}
-
-						}
-					})
+			}
 		}).catch(err => {
 			console.log(err)
 		})
 }
 
 async function imageExists(image_url) {
-
 	var http = new XMLHttpRequest();
-
-	http.open('HEAD', image_url, false);
-	http.send();
-	return http.status != 404;
+	http.open('HEAD', image_url, false).catch(err => {
+		console.log(err)
+	})
+	http.send().catch(err => {
+		console.log(err)
+	})
+	return http.status == 200
 
 }
 module.exports = {

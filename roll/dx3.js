@@ -1,3 +1,4 @@
+"use strict";
 const BCDice = require('bcdice-js').BCDice; // CommonJS
 const bcdice = new BCDice();
 const rollbase = require('./rollbase.js');
@@ -15,17 +16,17 @@ var rply = {
 	text: ''
 };
 
-gameName = function () {
+var gameName = function () {
 	return '【DX2nd,3rd】 .dx (xDX+y@c ET)'
 }
 
-gameType = function () {
+var gameType = function() {
 	return 'Dx2,3:hktrpg'
 }
-prefixs = function () {
+var prefixs = function () {
 	return [/^[.]dx$/i, ]
 }
-getHelpMessage = function () {
+var getHelpMessage = function () {
 	return "【Double Cross 2nd,3rd】" + "\
 	\n・啓動語 .dx (指令) 如 .dx xDX+y\
 	\n・判定コマンド　(.dx xDX+y@c or xDXc+y)\
@@ -39,11 +40,11 @@ getHelpMessage = function () {
     　　\nポジティブとネガティブの両方を振って、表になっている側に○を付けて表示します。もちろん任意で選ぶ部分は変更して構いません。\
 		\n "
 }
-initialize = function () {
+var initialize = function () {
 	return rply;
 }
 
-rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 	rply.text = '';
 	let result = '';
 	switch (true) {

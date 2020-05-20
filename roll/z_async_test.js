@@ -1,9 +1,11 @@
+"use strict";
 var rply = {
 	default: 'on',
 	type: 'text',
 	text: ''
 }; //type是必需的,但可以更改
 //heroku labs:enable runtime-dyno-metadata -a <app name>
+var chineseConv = require('chinese-conv'); //繁簡轉換
 const GoogleImages = require('google-images');
 const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 const client = new GoogleImages(process.env.CSE_ID, process.env.CSE_API_KEY);
@@ -11,19 +13,19 @@ const wiki = require('wikijs').default;
 const rollbase = require('./rollbase.js');
 const translate = require('@vitalets/google-translate-api');
 
-gameName = function () {
+var gameName = function () {
 	return '(公測中)Wiki查詢/圖片搜索/翻譯 .wiki .image .tran'
 }
 
-gameType = function () {
+var gameType = function () {
 	return 'Wiki:hktrpg'
 }
-prefixs = function () {
+var prefixs = function () {
 	return [/^[.]wiki$|^[.]tran$|^[.]tran[.]\S+$|^[.]image$|^[.]imagee$/i, ]
 
 }
 
-getHelpMessage = function () {
+var getHelpMessage = function () {
 	return "【Wiki查詢/即時翻譯】.wiki .image .tran .tran.(目標語言)\
 		\n 1) Wiki功能: .wiki (條目)  \
 		\n EG: .wiki BATMAN  \
@@ -39,11 +41,11 @@ getHelpMessage = function () {
 		\n 語系代碼 https://github.com/vitalets/google-translate-api/blob/master/languages.js\
 		"
 }
-initialize = function () {
+var initialize = function () {
 	return rply;
 }
 
-rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 	rply.text = '';
 	//let result = {};
 	switch (true) {
@@ -54,7 +56,9 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 			rply.text = await wiki({
 					apiUrl: 'https://zh.wikipedia.org/w/api.php'
 				}).page(mainMsg[1].toLowerCase())
-				.then(page => page.summary()) //console.log('case: ', rply)
+				.then(async page => {
+					return chineseConv.tify(await page.summary())
+				}) //console.log('case: ', rply)
 				.catch(error => {
 					if (error == 'Error: No article found')
 						return '沒有此條目'

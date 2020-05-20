@@ -1,4 +1,4 @@
-var rollbase = require('./rollbase.js');
+"use strict";
 const BCDice = require('bcdice-js').BCDice; // CommonJS
 const bcdice = new BCDice();
 
@@ -13,17 +13,17 @@ var rply = {
     text: ''
 };
 
-gameName = function () {
+var gameName = function () {
     return '【亞俠必死的冒險】 .ss (nR>=x[y,z,c] SRx+y FumbleT)'
 }
 
-gameType = function () {
+var gameType = function() {
     return 'Satasupe:hktrpg'
 }
-prefixs = function () {
+var prefixs = function () {
     return [/^[.]ss$/i, ]
 }
-getHelpMessage = function () {
+var getHelpMessage = function () {
     return "【亞俠必死的冒險】" + "\
     \n・啓動語 .ss (指令) 如 .ss nR>=x\
 	\n・ 判定指令 nR >= x[y, z, c] / nR >= x / nR >= [, , c]\
@@ -38,11 +38,11 @@ getHelpMessage = function () {
 	\n戀愛表(LoveIHT)、 教養表(CultureIHT)、 戰鬥表(CombatIHT)・ D66骰表\
 		\n "
 }
-initialize = function () {
+var initialize = function () {
     return rply;
 }
 
-rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
     rply.text = '';
     let result = '';
     switch (true) {

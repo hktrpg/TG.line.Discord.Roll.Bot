@@ -1,3 +1,4 @@
+"use strict";
 if (process.env.mongoURL) {
     const mongoose = require('mongoose');
     mongoose.connect(process.env.mongoURL, {

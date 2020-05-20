@@ -1,3 +1,4 @@
+"use strict";
 try {
     var rply = {
         default: 'on',
@@ -8,16 +9,16 @@ try {
     records.get('trpgDarkRolling', (msgs) => {
         rply.trpgDarkRollingfunction = msgs
     })
-    gameName = function () {
+    var gameName = function () {
         return '(公測中)暗骰GM功能 .drgm (addgm del show) dr ddr dddr'
     }
-    gameType = function () {
+    var gameType = function () {
         return 'trpgDarkRolling:hktrpg'
     }
-    prefixs = function () {
+    var prefixs = function () {
         return [/(^[.]drgm$)/ig, ]
     }
-    getHelpMessage = function () {
+   var getHelpMessage = function () {
         return "【暗骰GM功能】.drgm(addgm del show) dr ddr dddr" + "\
         \n 這是讓你可以私骰GM的功能\
         \n 想成為GM的人先輸入.drgm addgm\
@@ -37,11 +38,11 @@ try {
     \n 輸入dddr(指令) 私訊GM\
     \n "
     }
-    initialize = function () {
+    var initialize = function () {
         return rply;
     }
 
-    rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+    var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 
         rply.text = '';
         switch (true) {

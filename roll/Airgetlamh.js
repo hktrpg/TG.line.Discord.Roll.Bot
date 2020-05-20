@@ -1,3 +1,4 @@
+"use strict";
 const BCDice = require('bcdice-js').BCDice; // CommonJS
 const bcdice = new BCDice();
 
@@ -12,17 +13,17 @@ var rply = {
     text: ''
 };
 
-gameName = function () {
+var gameName = function () {
     return '【朱の孤塔】 .al (nALx*p)'
 }
 
-gameType = function () {
+var gameType = function() {
     return 'Airgetlamh:hktrpg'
 }
-prefixs = function () {
+var prefixs = function () {
     return [/^[.]al$/i, ]
 }
-getHelpMessage = function () {
+var getHelpMessage = function () {
     return "【朱の孤塔のエアゲトラム】" + "\
     \n・啓動語 .al (指令) 如 .al nALx*p\
 	\n・命中判定\
@@ -31,11 +32,11 @@ getHelpMessage = function () {
     \n例：.al 3AL7*5 → 3連射で目標値7、威力5、5AL5x3 → 5連射で目標値5、威力3\
 		\n "
 }
-initialize = function () {
+var initialize = function () {
     return rply;
 }
 
-rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
     rply.text = '';
     let result = '';
     switch (true) {

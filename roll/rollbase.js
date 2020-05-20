@@ -1,3 +1,4 @@
+"use strict";
 const math = require('mathjs');
 const {
   Random,
@@ -14,15 +15,15 @@ var rply = {
   text: ''
 };
 
-gameName = function () {
+var gameName = function () {
   return '基本擲骰'
 }
 
-gameType = function () {
+var gameType = function () {
   return 'rollbase:hktrpg'
 }
-prefixs = function () {
-  let temp = /^(?=.*\d+d\d+)(?!.*[a-c])(?!.*[e-g])(?!.*[i-j])(?!.*[m-z])(?!.*(([d]|[+]|[-]|[*]|[/])([d]|[+]|[-]|[*]|[/])))(?!.*(^([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[)])))(?!.*([(][)]))(?!.*([<][<]))(?!.*([>][>]))(?!.*([<][>]))(?!.*([>][<]))(?!.*(\d+[d]+\d+[d]([^h|l]))|([)]\d))(?!.*(([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[(])$))(?!.*([@]|[!]|[#]|[$]|[%]|[&]|[_]|[~]|[`]|[']|[?]|\.))(?!.*([\u4e00-\u9fa5]))(?!.*([=].*[=]))(?!.*([+]|[-]|[*]|[/])[=])(?!.*[=]([+]|[-]|[*]|[/]|[>]|[<]))(?!.*(\d)[=](\d))(?!.*([-][>])|([-][<])|([<][-])|([>][-]))(?!.*(d)[(]).*$/ig
+var prefixs = function () {
+  const temp = /^(?=.*\d+d\d+)(?!.*[a-c])(?!.*[e-g])(?!.*[i-j])(?!.*[m-z])(?!.*(([d]|[+]|[-]|[*]|[/])([d]|[+]|[-]|[*]|[/])))(?!.*(^([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[)])))(?!.*([(][)]))(?!.*([<][<]))(?!.*([>][>]))(?!.*([<][>]))(?!.*([>][<]))(?!.*(\d+[d]+\d+[d]([^h|l]))|([)]\d))(?!.*(([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[(])$))(?!.*([@]|[!]|[#]|[$]|[%]|[&]|[_]|[~]|[`]|[']|[?]|\.))(?!.*([\u4e00-\u9fa5]))(?!.*([=].*[=]))(?!.*([+]|[-]|[*]|[/])[=])(?!.*[=]([+]|[-]|[*]|[/]|[>]|[<]))(?!.*(\d)[=](\d))(?!.*([-][>])|([-][<])|([<][-])|([>][-]))(?!.*(d)[(]).*$/ig
   return [
     temp, ,
     /(^[1-9]$)|(^[1-2][0-9]$)|(^[3][0]$)/i, temp
@@ -32,7 +33,7 @@ prefixs = function () {
 
 
 ///^(?=.*he)(?!.*da).*$/ig
-getHelpMessage = function () {
+const getHelpMessage = function () {
   return "【基本擲骰】1d100(khN|klN|dhN|dlN)\
   \n 例如輸入(2d6+1)*2　攻撃！\
   \n 會輸出）(2d6+1)*2：攻撃！  (10[5+5]+1)2 = 22\
@@ -42,11 +43,11 @@ getHelpMessage = function () {
   \n 支援kh|kl|dh|dl，k keep保留，d drop 放棄，h highest最高，l lowest最低\
   \n 如3d6kh 保留最大的1粒骰，3d6dl2 放拋最小的2粒骰"
 }
-initialize = function () {
+var initialize = function () {
   return rply;
 }
 
-rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+const rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
   rply.text = '';
   //let result = {};
   switch (true) {
@@ -61,25 +62,25 @@ rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, 
 // ////////////// 擲骰子運算
 // //////////////////////////////////////
 try {
-  Dice = async function (diceSided) {
+  var Dice = async function (diceSided) {
     let result = '';
     //result = math.floor((math.random() * diceSided) + 1)
     result = await random.integer(1, Math.floor(diceSided))
     return result
   }
 
-  DiceINT = async function (start, end) {
+  var DiceINT = async function (start, end) {
     let result = '';
     //result = math.floor((math.random() * diceSided) + 1)
     result = await random.integer(start, end)
     return result
   }
 
-  sortNumber = async function (a, b) {
+  var sortNumber = async function (a, b) {
     return a - b
   }
 
-  RollDice = async function (inputStr) {
+  var RollDice = async function (inputStr) {
     // 先把inputStr變成字串（不知道為什麼非這樣不可）
     //kh kl dh dl
     //kh or khN Keeps highest N
@@ -149,11 +150,11 @@ try {
     return finalStr
   }
 
-  FunnyDice = async function (diceSided) {
+  var FunnyDice = async function (diceSided) {
     return await random.integer(0, Math.floor(diceSided)) // 猜拳，從0開始
   }
 
-  BuildDiceCal = async function (inputStr) {
+  var BuildDiceCal = async function (inputStr) {
     // 首先判斷是否是誤啟動（檢查是否有符合骰子格式）
     if (inputStr.toLowerCase().match(/\d+d\d+/i) == null) return undefined
     // 排除小數點
@@ -181,11 +182,11 @@ try {
     return finalStr
   }
 
-  shuffleTarget = async function (target) {
+  var shuffleTarget = async function (target) {
     return await random.shuffle(target)
   }
 
-  BuildRollDice = async function (inputStr) {
+  var BuildRollDice = async function (inputStr) {
     // 先把inputStr變成字串（不知道為什麼非這樣不可）
     let comStr = inputStr.toString().toLowerCase()
     let finalStr = '('
@@ -199,7 +200,7 @@ try {
   // //////////////////////////////////////
   // ////////////// 普通ROLL
   // //////////////////////////////////////
-  nomalDiceRoller = async function (text0, text1, text2) {
+  var nomalDiceRoller = async function (text0, text1, text2) {
     // 首先判斷是否是誤啟動（檢查是否有符合骰子格式）
     // if (inputStr.toLowerCase().match(/\d+d\d+/) == null) return undefined
     // 再來先把第一個分段拆出來，待會判斷是否是複數擲骰
@@ -216,7 +217,7 @@ try {
     if (mutiOrNot.toString().match(/\D/i) == null && text1) {
       if (text1.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]|[k]|[h]|[l]/ig, '')) return;
       finalStr = text0 + '次擲骰：\n' + text1 + ' ' + (text2 || '') + '\n'
-      for (i = 0; i < mutiOrNot; i++) {
+      for (let i = 0; i < mutiOrNot; i++) {
         finalStr += i + 1 + '# ' + await onetimeroll(text1) + '\n'
       }
     } else {
@@ -232,6 +233,7 @@ try {
 }
 // 單次擲骰
 async function onetimeroll(text0) {
+  let Str = ''
   //let DiceToRoll = mutiOrNot.toString().toLowerCase()
   //DiceToRoll = DiceToRoll.toLowerCase()
   //if (DiceToRoll.match('d') == null) return
@@ -252,11 +254,11 @@ async function onetimeroll(text0) {
   let answer = math.eval(aaa.toString()).toString().replace(/true/i, "成功").replace(/false/i, "失敗");
   if (equation.match(/[\s\S]{1,250}/g).length > 1) {
 
-    finalStr = answer + '（計算過程太長，僅顯示結果）';
+    Str = answer + '（計算過程太長，僅顯示結果）';
   } else {
-    finalStr = equation + ' = ' + answer
+    Str = equation + ' = ' + answer
   }
-  return finalStr
+  return Str
 }
 module.exports = {
   Dice: Dice,

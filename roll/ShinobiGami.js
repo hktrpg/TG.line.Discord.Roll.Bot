@@ -1,3 +1,4 @@
+"use strict";
 const BCDice = require('bcdice-js').BCDice; // CommonJS
 const bcdice = new BCDice();
 
@@ -12,17 +13,17 @@ var rply = {
     text: ''
 };
 
-gameName = function () {
+var gameName = function () {
     return '【忍神】 .sg (ST FT ET等各種表)'
 }
 
-gameType = function () {
+var gameType = function() {
     return 'ShinobiGami:hktrpg'
 }
-prefixs = function () {
+var prefixs = function () {
     return [/^[.]sg$/i, ]
 }
-getHelpMessage = function () {
+var getHelpMessage = function () {
     return "【忍神 ShinobiGami】" + "\
     \n・啓動語 .sg (指令) 如 .sg ST\
     \n・ 各種表・(無印) 場景表 ST／ 大失敗表 FUMBLE／ 感情表 ET／ 變調表 WRONG／ \
@@ -38,11 +39,11 @@ getHelpMessage = function () {
          \n病院場景表 HO／ 龍動場景表 HR／ 密室場景表 CHAMBER／ 催眠場景表 HS／ \
 		\n "
 }
-initialize = function () {
+var initialize = function () {
     return rply;
 }
 
-rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
     rply.text = '';
     let result = '';
 

@@ -1,3 +1,4 @@
+"use strict";
 var rollbase = require('./rollbase.js');
 var rply = {
 	default: 'on',
@@ -5,17 +6,17 @@ var rply = {
 	text: ''
 };
 
-gameName = function () {
+var gameName = function () {
 	return '【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 每日塔羅 運勢 立flag .me'
 }
 
-gameType = function () {
+var gameType = function() {
 	return 'funny:hktrpg'
 }
-prefixs = function () {
+var prefixs = function () {
 	return [/^[.]me$|排序|隨機|choice|^每日塔羅|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸/i, ]
 }
-getHelpMessage = function () {
+var getHelpMessage = function () {
 	return "【趣味擲骰】" + "\
 	\n  隨機選擇： 啓動語 choice 隨機\
 	\n(問題)(啓動語)(問題)  (選項1) (選項2) \
@@ -35,11 +36,11 @@ getHelpMessage = function () {
 	\n隨機死亡FLAG 「立FLAG」可啓動  \
 		\n "
 }
-initialize = function () {
+var initialize = function () {
 	return rply;
 }
 
-rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 	rply.text = '';
 	//let result = {};
 	//		if (trigger.match(/排序/) != null && mainMsg.length >= 3) return exports.funny.SortIt(inputStr, mainMsg);

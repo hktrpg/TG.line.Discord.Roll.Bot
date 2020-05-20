@@ -1,3 +1,4 @@
+"use strict";
 const rollbase = require('./rollbase.js');
 var rply = {
 	default: 'on',
@@ -5,19 +6,19 @@ var rply = {
 	text: ''
 };
 
-gameName = function () {
+var gameName = function () {
 	return '【克蘇魯神話】 cc cc(n)1~2 ccb ccrt ccsu .dp .cc7build .cc6build .cc7bg'
 }
 
-gameType = function () {
+var gameType = function () {
 	return 'CoC:hktrpg'
 }
-prefixs = function () {
+var prefixs = function () {
 	return [/(^ccrt$)|(^ccsu$)|(^cc7版創角$)|(^[.]cc7build$)|(^[.]cc6build$)|(^[.]cc7bg$)|(^cc6版創角$)|(^cc7版角色背景$)/i, ,
 		/(^ccb$)|(^cc$)|(^ccn[1-2]$)|(^cc[1-2]$)|(^[.]dp$)|(^成長檢定$)|(^幕間成長$)/i, /^(\d+)|(help)$/i
 	]
 }
-getHelpMessage = function () {
+var getHelpMessage = function () {
 	return "【克蘇魯神話】" + "\
 	\ncoc6版擲骰： ccb 80 技能小於等於80 \
 	\ncoc7版擲骰： cc 80 技能小於等於80 \
@@ -32,11 +33,11 @@ getHelpMessage = function () {
 	\ncoc7版角色背景隨機生成： 啓動語 .cc7bg \
 		\n "
 }
-initialize = function () {
+var initialize = function () {
 	return rply;
 }
 
-rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 	rply.text = '';
 	let trigger = mainMsg[0].toLowerCase();
 	//console.log(mainMsg[1].toLowerCase())
@@ -495,7 +496,7 @@ async function build7char(text01) {
 		ReStr = ReStr + '\n等等，核心規則沒有適用於90歲以上的人物哦。\n先當成89歲處理\n';
 		old = 89;
 	}
-	for (i = 0; old >= oldArr[i]; i++) {
+	for (let i = 0; old >= oldArr[i]; i++) {
 		Debuff = DebuffArr[i];
 		AppDebuff = AppDebuffArr[i];
 		EDUinc = EDUincArr[i];
@@ -529,7 +530,7 @@ async function build7char(text01) {
 
 		let tempEDU = eval(firstEDU);
 
-		for (i = 1; i <= EDUinc; i++) {
+		for (let i = 1; i <= EDUinc; i++) {
 			let EDURoll = await rollbase.Dice(100);
 			ReStr = ReStr + '\n第' + i + '次EDU成長 → ' + EDURoll;
 			if (EDURoll > tempEDU) {
@@ -576,7 +577,7 @@ async function build6char() {
 		if (old < 15) rply.text = ReStr + '等等，核心規則不允許小於15歲的人物哦。';	
 		if (old >= 90) rply.text = ReStr + '等等，核心規則不允許90歲以上的人物哦。'; 
 
-		for ( i=0 ; old >= oldArr[i] ; i ++){
+		for (let i=0 ; old >= oldArr[i] ; i ++){
 			Debuff = DebuffArr[i];
 			AppDebuff = AppDebuffArr[i];
 			EDUinc = EDUincArr[i];

@@ -1,3 +1,4 @@
+"use strict";
 try {
     var rply = {
         default: 'on',
@@ -13,16 +14,16 @@ try {
     const rollbase = require('./rollbase.js');
 
 
-    gameName = function () {
+    var gameName = function () {
         return '(公測中)經驗值功能 .level (show config LevelUpWord RankWord)'
     }
-    gameType = function () {
+    var gameType = function () {
         return 'trpgLevelSystem:hktrpg'
     }
-    prefixs = function () {
+    var prefixs = function () {
         return [/(^[.]level$)/ig, ]
     }
-    getHelpMessage = function () {
+    var getHelpMessage = function () {
         return "【經驗值功能】" + "\
         \n 這是根據發言次數增加經驗，提升等級，實現服務器內排名的歡樂功能\
         \n 當經驗達到要求，就會彈出通知，提示你已提升等級。\
@@ -51,10 +52,10 @@ try {
         \n {server.member_count} 現在頻道中總人數 \
         \n "
     }
-    initialize = function () {
+    var initialize = function () {
         return rply;
     }
-    checkTitle = function (userlvl, DBTitle) {
+    var checkTitle = function (userlvl, DBTitle) {
         let templvl = 0;
         let temptitle = ""
         //console.log("DBTitle: ", DBTitle)
@@ -79,7 +80,7 @@ try {
             }
         return temptitle;
     }
-    Title = function () {
+    var Title = function () {
         var Title = []
         Title[0] = "無名調查員";
         Title[3] = "雀";
@@ -123,7 +124,7 @@ try {
         44-47   外神
         48-50   門
         */
-    rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
+    var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
         rply.text = '';
         switch (true) {
             case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:

@@ -1,3 +1,4 @@
+"use strict";
 const BCDice = require('bcdice-js').BCDice; // CommonJS
 const bcdice = new BCDice();
 
@@ -7,17 +8,17 @@ var rply = {
     text: ''
 };
 
-gameName = function () {
+var gameName = function () {
     return '【迷宮王國】 .mk (nMK+m 及各種表)'
 }
 
-gameType = function () {
+var gameType = function() {
     return 'MeikyuKingdom:hktrpg'
 }
-prefixs = function () {
+var prefixs = function () {
     return [/^[.]mk$/i, ]
 }
-getHelpMessage = function () {
+var getHelpMessage = function () {
     return "【迷宮王國MeikyuKingdom】" + "\
 	\n・啓動語 .mk (指令) 如 .mk 5mk\
     \n・判定　(nMK+m)\
@@ -46,11 +47,11 @@ getHelpMessage = function () {
     　\n・単語表１／２／３／４　WORD1／WORD2／WORD3／WORD4\
 		\n"
 }
-initialize = function () {
+var initialize = function () {
     return rply;
 }
 
-rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
     rply.text = '';
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:

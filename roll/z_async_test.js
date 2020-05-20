@@ -137,6 +137,7 @@ async function googleimage(inputStr, mainMsg, safe) {
 					}
 				}
 			}
+
 		}).catch(err => {
 			console.log(err)
 		})
@@ -144,14 +145,9 @@ async function googleimage(inputStr, mainMsg, safe) {
 
 async function imageExists(image_url) {
 	var http = new XMLHttpRequest();
-	http.open('HEAD', image_url, false).catch(err => {
-		console.log(err)
-	})
-	http.send().catch(err => {
-		console.log(err)
-	})
-	return http.status == 200
-
+	http.open('HEAD', image_url, false);
+	http.send();
+	return http.status == 200;
 }
 module.exports = {
 	rollDiceCommand: rollDiceCommand,

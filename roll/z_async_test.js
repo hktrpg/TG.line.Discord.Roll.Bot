@@ -115,7 +115,7 @@ async function now(a, b, c) {
 async function googleimage(inputStr, mainMsg, safe) {
 	let keyword = inputStr.replace(mainMsg[0] + " ", "")
 	//let page = Math.floor((Math.random() * (10)) * 10) + 1;
-	let page = ((await rollbase.Dice(10) - 1) * 10) + 1
+	let page = await rollbase.DiceINT(0, 91)
 	if (mainMsg[1].match(/^yesno$/i)) {
 		//隨機YES NO
 		let A = ['yes', 'no']
@@ -131,7 +131,7 @@ async function googleimage(inputStr, mainMsg, safe) {
 				let resultnum = await rollbase.Dice(images.length) - 1
 				for (let i = 0; i < images.length; i++) {
 					let nows = await now(resultnum, i, images.length)
-					if (await imageExists(images[nows].url) && images[nows].url != 'https://c8.alamy.com/comp/HKTRPG/los-angeles-usa-29th-jan-2017-danielle-brooks-seen-arriving-at-the-HKTRPG.jpg') {
+					if (await imageExists(images[nows].url)) {
 						i = images.length
 						return images[nows].url;
 					}

@@ -116,7 +116,6 @@ async function googleimage(inputStr, mainMsg, safe) {
 	let keyword = inputStr.replace(mainMsg[0] + " ", "")
 	//let page = Math.floor((Math.random() * (10)) * 10) + 1;
 	let page = await rollbase.DiceINT(0, 91)
-	console.log('page', page)
 	if (mainMsg[1].match(/^yesno$/i)) {
 		//隨機YES NO
 		let A = ['yes', 'no']
@@ -130,7 +129,6 @@ async function googleimage(inputStr, mainMsg, safe) {
 			if (images[0]) {
 				//let resultnum = Math.floor((Math.random() * (images.length)) + 0)
 				let resultnum = await rollbase.Dice(images.length - 1)
-				console.log('resultnum', resultnum)
 				return images[resultnum].url;
 			}
 

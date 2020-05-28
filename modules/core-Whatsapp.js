@@ -42,6 +42,7 @@ hasQuotedMsg:false
 	*/
 	client.on('message', async msg => {
 		console.log('msg: ', msg)
+
 		//msg.body
 		//msg.reply('pong');
 		if (msg.body && !msg.fromMe && !msg.isForwarded) {
@@ -62,15 +63,20 @@ hasQuotedMsg:false
 			//頻道人數
 			//	if (ctx.chat && ctx.chat.id)
 			//		membercount = await ctx.getChatMembersCount(ctx.chat.id);
-			await client.getChats().then(getChatDetail => {
+
+			userid = msg.id.participant || msg.id.remote;
+			console.log('userid:', userid)
+			displayname = await client.getContactById(userid).then(a => {
+				return a.pushname
+			})
+			await client.getChats().then(async getChatDetail => {
 				console.log('getChatDetail: ', getChatDetail)
-				userid = msg.id.participant || msg.id.remote;
-				console.log('userid:', userid)
 				if (getChatDetail[0].isGroup) {
 					groupid = getChatDetail[0].groupMetadata.creation;
 					console.log('groupid:', groupid)
 					//displayname = getChatDetail[1].name;
 					membercount = getChatDetail[0].participants.length;
+
 
 				}
 			});
@@ -123,7 +129,7 @@ hasQuotedMsg:false
 				}
 				if (groupid && rplyVal && rplyVal.LevelUp) {
 					//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
-					await client.sendMessage("@" + displayname + '\n' + rplyVal.LevelUp);
+					await client.sendMessage(msg.from, "@" + displayname + '\n' + rplyVal.LevelUp);
 				}
 				if (rplyVal.text) {
 					//TGcountroll++;
@@ -151,9 +157,9 @@ hasQuotedMsg:false
 							//
 							//console.log('ctx.message.chat.type: ', ctx.message.chat.type)
 							if (groupid) {
-								await SendDR('暗骰給自己');
+								await SendDR("@" + displayname + '暗骰給自己');
 							}
-							rplyVal.text = "@暗骰\n" + rplyVal.text
+							rplyVal.text = "@" + displayname + "的暗骰\n" + rplyVal.text
 							await SendToId(userid);
 							break;
 						case privatemsg == 2:
@@ -163,7 +169,7 @@ hasQuotedMsg:false
 								for (var i = 0; i < TargetGMTempID.length; i++) {
 									targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
 								};
-								await SendDR(' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
+								await SendDR("@" + displayname + '暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
 							}
 							rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
 							await SendToId(userid);
@@ -179,9 +185,9 @@ hasQuotedMsg:false
 								for (var i = 0; i < TargetGMTempID.length; i++) {
 									targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
 								};
-								await SendDR('暗骰進行中 \n目標: ' + targetGMNameTemp);
+								await SendDR("@" + displayname + '暗骰進行中 \n目標: ' + targetGMNameTemp);
 							}
-							rplyVal.text = "暗骰\n" + rplyVal.text;
+							rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
 							for (var i = 0; i < TargetGMTempID.length; i++) {
 								await SendToId(TargetGMTempID[i]);
 							}

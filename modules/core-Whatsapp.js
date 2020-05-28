@@ -40,12 +40,12 @@ hasQuotedMsg:false
 	to:"852******@c.us"
 	type:"chat"
 	*/
-	client.on('message', msg => {
+	client.on('message', async msg => {
 		console.log('msg: ', msg)
 		//msg.body
 		//msg.reply('pong');
+		console.log('getChats', )
 		if (msg.body && !msg.fromMe && msg.isForwarded) {
-			let count = 0;
 			let CAPTCHA = random.string(20);
 			//console.log(ctx.getChatMembers(ctx.chat.id) //[Members]
 			//	ctx.getChatMembers() //[Members]
@@ -53,41 +53,34 @@ hasQuotedMsg:false
 			//	telegrafGetChatMembers.all //[Chats]
 			let groupid, userid, displayname, channelid, membercount = '';
 			//得到暗骰的數據, GM的位置
-			if (msg.author) displayname = msg.author;
+
 			//是不是自己.ME 訊息
 			//TRUE 即正常
 			let displaynamecheck = true;
-			let userrole = 1;
+			let userrole = 3;
 			//console.log('TG: ', message)
 			//console.log('ctx.chat.id', ctx.chat.id)
 			//頻道人數
 			//	if (ctx.chat && ctx.chat.id)
 			//		membercount = await ctx.getChatMembersCount(ctx.chat.id);
-			if (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') {
-				groupid = ctx.message.chat.id;
-				if (ctx.chat && ctx.chat.id)
-					if ((await telegrafGetChatMembers.check(ctx.chat.id) && telegrafGetChatMembers.check(ctx.chat.id)[0] && await telegrafGetChatMembers.check(ctx.chat.id)[0].status == ("creator" || "administrator")) || ctx.message.chat.all_members_are_administrators == true) {
-						userrole = 3;
-						//console.log(userrole)
-						//console.log(telegrafGetChatMembers.check(ctx.chat.id))
-					}
-			}
+			await client.getChats().then(getChatDetail => {
+				console.log('getChatDetail: ', getChatDetail)
+				if (getChatDetail[0].isGroup) {
+					groupid = getChatDetail.isGroup;
+				}
+				if (getChatDetail[0].name) displayname = getChatDetail[0].name;
 
 
-			if (ctx.message.from.id) userid = ctx.message.from.id;
+				//	if (ctx.message.from.id) userid = ctx.message.from.id;
+
+			});
+
 			//285083923223
 			//userrole = 3
 			let rplyVal = {};
 			let msgSplitor = (/\S+/ig);
 			let trigger = "";
-			if (ctx.message.text && ctx.message.from.is_bot == false) {
-				if (ctx.botInfo && ctx.botInfo.username && ctx.message.text.match(/^[/]/))
-					ctx.message.text = ctx.message.text
-					.replace(new RegExp('\@' + ctx.botInfo.username + '$', 'i'), '')
-					.replace(new RegExp('^\/', 'i'), '');
-				var mainMsg = ctx.message.text.match(msgSplitor); // 定義輸入字串
-
-			}
+			var mainMsg = msg.body.match(msgSplitor); // 定義輸入字串
 			if (mainMsg && mainMsg[0])
 				trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
 			if (trigger == ".me") {
@@ -100,35 +93,32 @@ hasQuotedMsg:false
 			//設定私訊的模式 0-普通 1-自己 2-自己+GM 3-GM
 			if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
 				privatemsg = 1;
-				ctx.message.text = ctx.message.text.replace(/^[d][r][ ]/i, '');
+				msg.body = msg.body.replace(/^[d][r][ ]/i, '');
 			}
 			if (trigger.match(/^ddr$/i) && mainMsg && mainMsg[1]) {
 				privatemsg = 2;
-				ctx.message.text = ctx.message.text.replace(/^[d][d][r][ ]/i, '');
+				msg.body = msg.body.replace(/^[d][d][r][ ]/i, '');
 			}
 			if (trigger.match(/^dddr$/i) && mainMsg && mainMsg[1]) {
 				privatemsg = 3;
-				ctx.message.text = ctx.message.text.replace(/^[d][d][d][r][ ]/i, '');
+				msg.body = msg.body.replace(/^[d][d][d][r][ ]/i, '');
 			}
 			if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 				mainMsg.shift();
-				rplyVal = await exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram", displayname, channelid, "", membercount);
+				rplyVal = await exports.analytics.parseInput(msg.body, groupid, userid, userrole, "Whatsapp", displayname, channelid, "", membercount);
 			} else {
 				if (channelKeyword == '') {
-					rplyVal = await exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram", displayname, channelid, "", membercount, CAPTCHA);
+					rplyVal = await exports.analytics.parseInput(msg.body, groupid, userid, userrole, "Whatsapp", displayname, channelid, "", membercount, CAPTCHA);
 
 				}
-				count++;
+
 
 			}
-			if (count >= 2) {
-				console.log('TG count false count=', count, 'rplyVal: ', rplyVal);
-				return;
-			}
+
 			//LevelUp功能
-			if (rplyVal && count == 1) {
+			if (rplyVal) {
 				if (CAPTCHA != rplyVal.CAPTCHA) {
-					console.log('TG CAPTCHA false', CAPTCHA, ' &&', rplyVal.CAPTCHA, 'text: ', ctx.message.text, 'rplyVal: ', rplyVal);
+					console.log('Whatsapp CAPTCHA false', CAPTCHA, ' &&', rplyVal.CAPTCHA, 'text: ', msg.body, 'rplyVal: ', rplyVal);
 					return;
 				}
 				if (groupid && rplyVal && rplyVal.LevelUp) {
@@ -164,7 +154,7 @@ hasQuotedMsg:false
 								ctx.reply("@" + displayname + ' 暗骰給自己');
 							}
 							rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
-							await SendToId(ctx.message.from.id);
+							await SendToId(msg.from);
 							break;
 						case privatemsg == 2:
 							//輸入ddr(指令) 私訊GM及自己
@@ -176,7 +166,7 @@ hasQuotedMsg:false
 								ctx.reply("@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
 							}
 							rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
-							await SendToId(ctx.message.from.id);
+							await SendToId(msg.from);
 							for (var i = 0; i < TargetGMTempID.length; i++) {
 								if (ctx.message.from.id != TargetGMTempID[i])
 									await SendToId(TargetGMTempID[i]);
@@ -199,7 +189,7 @@ hasQuotedMsg:false
 						default:
 							if (displaynamecheck && displayname) {
 								//285083923223
-								displayname = "@" + ctx.message.from.username + "\n";
+								displayname = "@" + displayname + "\n";
 								rplyVal.text = displayname + rplyVal.text;
 							}
 							await SendToReply();
@@ -209,14 +199,14 @@ hasQuotedMsg:false
 					async function SendToId(targetid) {
 						for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 							if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 1) {
-								await ctx.telegram.sendMessage(targetid, rplyVal.text.toString().match(/[\s\S]{1,1900}/g)[i]);
+								await client.sendMessage(targetid, rplyVal.text.toString().match(/[\s\S]{1,1900}/g)[i]);
 							}
 						}
 					}
 					async function SendToReply() {
 						for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 							if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 1) {
-								await ctx.reply(rplyVal.text.toString().match(/[\s\S]{1,1900}/g)[i]);
+								await msg.reply(rplyVal.text.toString().match(/[\s\S]{1,1900}/g)[i]);
 							}
 						}
 					}

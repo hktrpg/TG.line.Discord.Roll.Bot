@@ -52,7 +52,7 @@ hasQuotedMsg:false
 			//	telegrafGetChatMembers.all //[Chats]
 			let groupid, userid, displayname, channelid, membercount, channelKeyword = '';
 			//得到暗骰的數據, GM的位置
-
+			let TargetGM = require('../roll/z_DDR_darkRollingToGM').initialize();
 			//是不是自己.ME 訊息
 			//TRUE 即正常
 			let displaynamecheck = true;
@@ -62,14 +62,15 @@ hasQuotedMsg:false
 			//頻道人數
 			//	if (ctx.chat && ctx.chat.id)
 			//		membercount = await ctx.getChatMembersCount(ctx.chat.id);
-
-			await client.getChatById(msg.id.id).then(getChatDetail => {
-				userid = msg.from;
+			await client.getChats().then(getChatDetail => {
 				console.log('getChatDetail: ', getChatDetail)
+				userid = msg.id.participant || msg.id.remote;
+				console.log('userid:', userid)
 				if (getChatDetail[0].isGroup) {
-					groupid = msg.from;
+					groupid = getChatDetail[0].groupMetadata.creation;
+					console.log('groupid:', groupid)
 					//displayname = getChatDetail[1].name;
-					membercount = getChatDetail[0].id.participants.length
+					membercount = getChatDetail[0].participants.length;
 
 				}
 			});
@@ -122,7 +123,7 @@ hasQuotedMsg:false
 				}
 				if (groupid && rplyVal && rplyVal.LevelUp) {
 					//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
-					await ctx.reply("@" + displayname + '\n' + rplyVal.LevelUp);
+					await client.sendMessage("@" + displayname + '\n' + rplyVal.LevelUp);
 				}
 				if (rplyVal.text) {
 					//TGcountroll++;
@@ -149,23 +150,23 @@ hasQuotedMsg:false
 							// 輸入dr  (指令) 私訊自己
 							//
 							//console.log('ctx.message.chat.type: ', ctx.message.chat.type)
-							if (ctx.message.chat.type != 'private') {
-								ctx.reply("@" + displayname + ' 暗骰給自己');
+							if (groupid) {
+								await SendDR('暗骰給自己');
 							}
-							rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
-							await SendToId(msg.from);
+							rplyVal.text = "@暗骰\n" + rplyVal.text
+							await SendToId(userid);
 							break;
 						case privatemsg == 2:
 							//輸入ddr(指令) 私訊GM及自己
-							if (ctx.message.chat.type != 'private') {
+							if (groupid) {
 								let targetGMNameTemp = "";
 								for (var i = 0; i < TargetGMTempID.length; i++) {
 									targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
 								};
-								ctx.reply("@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
+								await SendDR(' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
 							}
 							rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
-							await SendToId(msg.from);
+							await SendToId(userid);
 							for (var i = 0; i < TargetGMTempID.length; i++) {
 								if (ctx.message.from.id != TargetGMTempID[i])
 									await SendToId(TargetGMTempID[i]);
@@ -173,14 +174,14 @@ hasQuotedMsg:false
 							break;
 						case privatemsg == 3:
 							//輸入dddr(指令) 私訊GM
-							if (ctx.message.chat.type != 'private') {
+							if (groupid) {
 								let targetGMNameTemp = "";
 								for (var i = 0; i < TargetGMTempID.length; i++) {
 									targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
 								};
-								await ctx.reply("@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp);
+								await SendDR('暗骰進行中 \n目標: ' + targetGMNameTemp);
 							}
-							rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
+							rplyVal.text = "暗骰\n" + rplyVal.text;
 							for (var i = 0; i < TargetGMTempID.length; i++) {
 								await SendToId(TargetGMTempID[i]);
 							}
@@ -190,6 +191,9 @@ hasQuotedMsg:false
 							break;
 					}
 
+					async function SendDR(text) {
+						return await msg.reply(text);
+					}
 					async function SendToId(targetid) {
 						for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 							if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 1) {

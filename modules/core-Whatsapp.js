@@ -44,14 +44,13 @@ hasQuotedMsg:false
 		console.log('msg: ', msg)
 		//msg.body
 		//msg.reply('pong');
-		console.log('getChats', )
-		if (msg.body && !msg.fromMe && msg.isForwarded) {
+		if (msg.body && !msg.fromMe && !msg.isForwarded) {
 			let CAPTCHA = random.string(20);
 			//console.log(ctx.getChatMembers(ctx.chat.id) //[Members]
 			//	ctx.getChatMembers() //[Members]
 			//	telegrafGetChatMembers.check(ctx.chat.id) //[Members]
 			//	telegrafGetChatMembers.all //[Chats]
-			let groupid, userid, displayname, channelid, membercount = '';
+			let groupid, userid, displayname, channelid, membercount, channelKeyword = '';
 			//得到暗骰的數據, GM的位置
 
 			//是不是自己.ME 訊息
@@ -63,16 +62,16 @@ hasQuotedMsg:false
 			//頻道人數
 			//	if (ctx.chat && ctx.chat.id)
 			//		membercount = await ctx.getChatMembersCount(ctx.chat.id);
+
 			await client.getChats().then(getChatDetail => {
+				userid = msg.from;
 				console.log('getChatDetail: ', getChatDetail)
 				if (getChatDetail[0].isGroup) {
-					groupid = getChatDetail.isGroup;
+					groupid = msg.from;
+					//displayname = getChatDetail[1].name;
+					membercount = getChatDetail[0].id.participants.length
+
 				}
-				if (getChatDetail[0].name) displayname = getChatDetail[0].name;
-
-
-				//	if (ctx.message.from.id) userid = ctx.message.from.id;
-
 			});
 
 			//285083923223
@@ -187,11 +186,6 @@ hasQuotedMsg:false
 							}
 							break;
 						default:
-							if (displaynamecheck && displayname) {
-								//285083923223
-								displayname = "@" + displayname + "\n";
-								rplyVal.text = displayname + rplyVal.text;
-							}
 							await SendToReply();
 							break;
 					}

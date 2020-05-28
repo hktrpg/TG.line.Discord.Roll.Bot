@@ -63,6 +63,10 @@ try {
                         for (var i = 0; i < rply.randomAnsfunction.length; i++) {
                             if (rply.randomAnsfunction[i].groupid == groupid) {
                                 // console.log('checked1')
+                                if (rply.randomAnsfunction[i].randomAnsfunction.length > 30) {
+                                    rply.text = '只可以有30個關鍵字啊'
+                                    return rply;
+                                }
                                 for (var a = 0; a < rply.randomAnsfunction[i].randomAnsfunction.length; a++) {
                                     if (rply.randomAnsfunction[i].randomAnsfunction[a][0].toLowerCase() == mainMsg[2].toLowerCase()) {
                                         //   console.log('checked')
@@ -232,10 +236,13 @@ try {
                 //
                 //增加
                 //
-
                 let checkifsamenamegroup = 0
                 if (rply.randomAnsAllgroup && mainMsg[2] && mainMsg[3] && mainMsg[4])
                     for (var i = 0; i < rply.randomAnsAllgroup.length; i++) {
+                        if (rply.randomAnsAllgroup[i].randomAnsAllgroup.length > 30) {
+                            rply.text = '防呆，只可以有100個關鍵字啊'
+                            return rply;
+                        }
                         for (var a = 0; a < rply.randomAnsAllgroup[i].randomAnsAllgroup.length; a++) {
                             if (rply.randomAnsAllgroup[i].randomAnsAllgroup[a][0].toLowerCase() == mainMsg[2].toLowerCase()) {
                                 checkifsamenamegroup = 1

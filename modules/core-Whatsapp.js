@@ -63,7 +63,7 @@ hasQuotedMsg:false
 			//	if (ctx.chat && ctx.chat.id)
 			//		membercount = await ctx.getChatMembersCount(ctx.chat.id);
 
-			await client.getChats().then(getChatDetail => {
+			await client.getChatById(msg.id.id).then(getChatDetail => {
 				userid = msg.from;
 				console.log('getChatDetail: ', getChatDetail)
 				if (getChatDetail[0].isGroup) {

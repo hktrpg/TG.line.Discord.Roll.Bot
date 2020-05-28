@@ -41,7 +41,7 @@ hasQuotedMsg:false
 	type:"chat"
 	*/
 	client.on('message', async msg => {
-		console.log('msg: ', msg)
+		//console.log('msg: ', msg)
 
 		//msg.body
 		//msg.reply('pong');
@@ -65,15 +65,15 @@ hasQuotedMsg:false
 			//		membercount = await ctx.getChatMembersCount(ctx.chat.id);
 
 			userid = msg.id.participant || msg.id.remote;
-			console.log('userid:', userid)
+			//console.log('userid:', userid)
 			displayname = await client.getContactById(userid).then(a => {
 				return a.pushname
 			})
 			await client.getChats().then(async getChatDetail => {
-				console.log('getChatDetail: ', getChatDetail)
+				//console.log('getChatDetail: ', getChatDetail)
 				if (getChatDetail[0].isGroup) {
 					groupid = getChatDetail[0].groupMetadata.creation;
-					console.log('groupid:', groupid)
+					//console.log('groupid:', groupid)
 					//displayname = getChatDetail[1].name;
 					membercount = getChatDetail[0].participants.length;
 

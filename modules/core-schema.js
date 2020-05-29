@@ -121,7 +121,9 @@ if (process.env.mongoURL) {
             LineCountRoll: Number,
             LineCountText: Number,
             TelegramCountRoll: Number,
-            TelegramCountText: Number
+            TelegramCountText: Number,
+            WhatsappCountRoll: Number,
+            WhatsappCountText: Number
         }
     });
 
@@ -133,7 +135,9 @@ if (process.env.mongoURL) {
             LineCountRoll: Number,
             LineCountText: Number,
             TelegramCountRoll: Number,
-            TelegramCountText: Number
+            TelegramCountText: Number,
+            WhatsappCountRoll: Number,
+            WhatsappCountText: Number
         }
     });
 

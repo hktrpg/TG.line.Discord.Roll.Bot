@@ -74,15 +74,11 @@ hasQuotedMsg:false
 				displayname = await client.getContactById(userid).then(a => {
 					return a.pushname
 				})
-				await client.getChats().then(async getChatDetail => {
-					//console.log('getChatDetail: ', getChatDetail)
-					if (getChatDetail[0].isGroup) {
-						groupid = getChatDetail[0].groupMetadata.creation;
+				await client.getChatById(msg.from).then(async getChatDetail => {
+					if (getChatDetail.isGroup) {
+						groupid = getChatDetail.groupMetadata.creation;
 						//console.log('groupid:', groupid)
-						//displayname = getChatDetail[1].name;
-						membercount = getChatDetail[0].participants.length;
-
-
+						membercount = getChatDetail.participants.length;
 					}
 				});
 

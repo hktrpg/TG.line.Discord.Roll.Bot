@@ -652,7 +652,8 @@ try {
             for (var b = 0; b < RankNumber; b++) {
                 if (array && array[b]) {
                     if (b == 0) {
-                        answer += Title + " (人口: " + array.length + "人)\n┌"
+                        answer += Title
+                        answer += (Title == "世界排行榜") ? " (人口: " + array.length + "人)\n┌" : "\n┌";
                     } else
                     if (b < RankNumber - 1 && b < array.length - 1) {
                         answer += "├"

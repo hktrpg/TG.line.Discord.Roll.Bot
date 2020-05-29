@@ -55,7 +55,7 @@ try {
     var initialize = function () {
         return rply;
     }
-    var checkTitle = function (userlvl, DBTitle) {
+    var checkTitle = async function (userlvl, DBTitle) {
         let templvl = 0;
         let temptitle = ""
         //console.log("DBTitle: ", DBTitle)
@@ -154,7 +154,7 @@ try {
                                     records.settrpgLevelSystemfunctionTitleWord('trpgLevelSystem', temp, () => {})
                                 } else
                                 if (rply.trpgLevelSystemfunction[i].Title) {
-                                    temprply = setNew(inputStr, i);
+                                    temprply = await setNew(inputStr, i);
                                     if (temprply && temprply.length > 0) {
                                         rply.text = '新增稱號成功: \n'
                                         for (let te = 0; te < temprply.length; te++) {
@@ -485,9 +485,9 @@ try {
                                             let userexp = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].EXP;
                                             //console.log('rply.trpgLevelSystemfunction[i]',
                                             let usermember_count = membercount || rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length;
-                                            let userRanking = ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);
+                                            let userRanking = await ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);
                                             let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
-                                            let userTitle = this.checkTitle(userlevel, rply.trpgLevelSystemfunction[i].Title);
+                                            let userTitle = await this.checkTitle(userlevel, rply.trpgLevelSystemfunction[i].Title);
                                             //Title 首先檢查  rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Title[0].Lvl 有沒有那個LV的TITLE
                                             //沒有  則使用預設 
 
@@ -517,9 +517,9 @@ try {
                                         let userexp = (await rollbase.Dice(10) - 1) + 15
                                         //console.log('rply.trpgLevelSystemfunction[i]',
                                         let usermember_count = membercount || rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length;
-                                        let userRanking = ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);
+                                        let userRanking = await ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);
                                         let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
-                                        let userTitle = this.checkTitle(userlevel, rply.trpgLevelSystemfunction[i].Title);
+                                        let userTitle = await this.checkTitle(userlevel, rply.trpgLevelSystemfunction[i].Title);
 
                                         //{user.name} 名字 {user.level} 等級 \
                                         //{user.title} 稱號
@@ -564,7 +564,7 @@ try {
                                     //3.    ->有   檢查有沒有個人資料
                                     for (var a = 0; a < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
                                         if (rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].userid == userid) {
-                                            rply.text = rankingList(rply.trpgLevelSystemfunction[i], RankNumber, "群組排行榜");
+                                            rply.text = await rankingList(rply.trpgLevelSystemfunction[i], RankNumber, "群組排行榜");
                                         }
                                     } //2.    ->沒有 告知開啓
                                 }
@@ -599,14 +599,14 @@ try {
                         }
 
                     }
-                    rply.text = rankingList(tempPush, RankNumber, "世界排行榜");
+                    rply.text = await rankingList(tempPush, RankNumber, "世界排行榜");
                 }
                 return rply
             default:
                 break;
         }
 
-        function setNew(a, which) {
+        async function setNew(a, which) {
             let b = /-(\d+)\s+(\S+)/ig
             let e = /-(\d+)\s+(\S+)/
             //let f = [];
@@ -628,7 +628,7 @@ try {
 
 
 
-        function rankingList(who, RankNumber, Title) {
+        async function rankingList(who, RankNumber, Title) {
             var array = [];
             let answer = ""
             let tempTitleAll = who.Title;
@@ -661,8 +661,8 @@ try {
                         answer += "└"
                     }
                     answer += "第" + (Number([b]) + 1) + "名 "
-                    answer += "《" + checkTitle(array[b].Level, tempTitleAll) + "》 "
-                    answer += array[b].name + " " + array[b].Level + "級 " + kMGTPE(parseInt(array[b].EXP), 0) + "經驗\n";
+                    answer += "《" + await checkTitle(array[b].Level, tempTitleAll) + "》 "
+                    answer += array[b].name + " " + array[b].Level + "級 " + await kMGTPE(parseInt(array[b].EXP), 0) + "經驗\n";
                 }
             }
             return answer;
@@ -670,7 +670,7 @@ try {
         }
 
         //將千位以上變成約數
-        function kMGTPE(num, fixed) {
+        async function kMGTPE(num, fixed) {
             if (num === null) {
                 return null;
             } // terminate early
@@ -692,7 +692,7 @@ try {
                     return math.round(n * d / p(10, x)) / d + " kMGTPE" [x / 3]
                 }
         */
-        function ranking(who, data) {
+        async function ranking(who, data) {
             var array = [];
             let answer = ""
             for (var key in data) {

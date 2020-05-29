@@ -66,6 +66,7 @@ try {
 	//格式是 exports.骰組檔案名字.function名
 	var parseInput = async function (inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount, CAPTCHA) {
 		//console.log('InputStr: ' + inputStr);
+		if (membercount) membercount--
 		result = {
 			text: '',
 			type: 'text',

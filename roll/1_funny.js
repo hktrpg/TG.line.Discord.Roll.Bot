@@ -10,7 +10,7 @@ var gameName = function () {
 	return '【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 每日塔羅 運勢 立flag .me'
 }
 
-var gameType = function() {
+var gameType = function () {
 	return 'funny:hktrpg'
 }
 var prefixs = function () {
@@ -30,10 +30,10 @@ var getHelpMessage = function () {
 	\n(啓動語) (句子)(句子)(句子)\
 	\n例子 .me C君殺死了NPC 村民, 受到尼什村通緝!\
 	\n\
-	\n占卜運氣功能： 字句中包括「運勢」兩字及四十字以內  \
+	\n占卜運氣功能： 字句開頭或結尾包括「運勢」兩字及四十字以內  \
 	\n塔羅牌占卜： 「大十字塔羅 每日塔羅 時間塔羅」 等關键字可啓動  \
 	\n\
-	\n隨機死亡FLAG 「立FLAG」可啓動  \
+	\n隨機死亡FLAG 字句開頭或結尾包括「立FLAG」可啓動  \
 		\n "
 }
 var initialize = function () {
@@ -68,20 +68,20 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 */
 
 	switch (true) {
-		case /排序/i.test(mainMsg[0]) && (mainMsg.length >= 4):
+		case /^排序|排序$/i.test(mainMsg[0]) && (mainMsg.length >= 4):
 			return SortIt(inputStr, mainMsg);
-		case /隨機|choice/i.test(mainMsg[0]) && (mainMsg.length >= 3):
+		case /^隨機|^choice|隨機$|choice$/i.test(mainMsg[0]) && (mainMsg.length >= 3):
 			return choice(inputStr, mainMsg);
 		case /塔羅/i.test(mainMsg[0]):
 			if (mainMsg[0].match(/^每日塔羅/) != null) return await NomalDrawTarot(mainMsg[1], mainMsg[2]); //預設抽 79 張
 			if (mainMsg[0].match(/^時間塔羅/) != null) return await MultiDrawTarot(mainMsg[1], mainMsg[2], 1);
 			if (mainMsg[0].match(/^大十字塔羅/) != null) return await MultiDrawTarot(mainMsg[1], mainMsg[2], 2);
 			break;
-		case (/立flag/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,25}/g).length <= 1):
+		case (/立flag$|^立flag/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,25}/g).length <= 1):
 			return BStyleFlagSCRIPTS();
 		case /^鴨霸獸$/i.test(mainMsg[0]):
 			return randomReply();
-		case (/運勢/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,40}/g).length <= 1):
+		case (/運勢$|^運勢/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,40}/g).length <= 1):
 			return randomLuck(mainMsg);
 		case /^[.]me$/i.test(mainMsg[0]):
 			return me(inputStr)
@@ -312,8 +312,8 @@ async function NomalDrawTarot(text, text2) {
 	rply.text = '每日塔羅'
 	if (text)
 		rply.text += "；" + text + " " + text2
-		let ans = await rollbase.shuffleTarget(TarotList.slice(0, 44))
-	rply.text += '\n' +  ans[0]
+	let ans = await rollbase.shuffleTarget(TarotList.slice(0, 44))
+	rply.text += '\n' + ans[0]
 	return rply;
 }
 

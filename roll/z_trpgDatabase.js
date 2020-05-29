@@ -59,13 +59,18 @@ try {
                         for (var i = 0; i < rply.trpgDatabasefunction.length; i++) {
                             if (rply.trpgDatabasefunction[i].groupid == groupid) {
                                 // console.log('checked1')
-                                if (rply.trpgDatabasefunction[0] && rply.trpgDatabasefunction[0].trpgDatabasefunction[0])
+                                if (rply.trpgDatabasefunction[0] && rply.trpgDatabasefunction[0].trpgDatabasefunction[0]) {
+                                    if (rply.trpgDatabasefunction[i].trpgDatabasefunction.length > 30) {
+                                        rply.text = '只可以有30個關鍵字啊'
+                                        return rply;
+                                    }
                                     for (var a = 0; a < rply.trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
                                         if (rply.trpgDatabasefunction[i].trpgDatabasefunction[a].topic == mainMsg[2]) {
                                             //   console.log('checked')
                                             checkifsamename = 1
                                         }
                                     }
+                                }
                             }
                         }
                     let temp = {
@@ -208,7 +213,11 @@ try {
                 //if (!mainMsg[2]) return;
                 let checkifsamenamegroup = 0
                 if (rply.trpgDatabaseAllgroup && mainMsg[2])
-                    if (rply.trpgDatabaseAllgroup[0].trpgDatabaseAllgroup[0])
+                    if (rply.trpgDatabaseAllgroup[0].trpgDatabaseAllgroup[0]) {
+                        if (rply.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup.length > 100) {
+                            rply.text = '只可以有100個關鍵字啊'
+                            return rply;
+                        }
                         for (var i = 0; i < rply.trpgDatabaseAllgroup.length; i++) {
                             for (var a = 0; a < rply.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup.length; a++) {
                                 if (rply.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic.toLowerCase() == mainMsg[2].toLowerCase()) {
@@ -216,6 +225,7 @@ try {
                                 }
                             }
                         }
+                    }
                 if (mainMsg[3]) {
                     let tempA = {
                         trpgDatabaseAllgroup: [{

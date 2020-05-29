@@ -652,7 +652,7 @@ try {
             for (var b = 0; b < RankNumber; b++) {
                 if (array && array[b]) {
                     if (b == 0) {
-                        answer += Title + "\n┌"
+                        answer += Title + " (人口: " + array.length + "人)\n┌"
                     } else
                     if (b < RankNumber - 1 && b < array.length - 1) {
                         answer += "├"

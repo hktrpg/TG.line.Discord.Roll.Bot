@@ -24,7 +24,9 @@ const RollingLog = {
 		LineCountRoll: 0,
 		LineCountText: 0,
 		TelegramCountRoll: 0,
-		TelegramCountText: 0
+		TelegramCountText: 0,
+		WhatsappCountRoll: 0,
+		WhatsappCountText: 0
 	}
 };
 const records = require('../modules/records.js');
@@ -40,7 +42,9 @@ records.get('RealTimeRollingLog', (msgs) => {
 			LineCountRoll: msgs[0].RealTimeRollingLogfunction.LineCountRoll || 0,
 			LineCountText: msgs[0].RealTimeRollingLogfunction.LineCountText || 0,
 			TelegramCountRoll: msgs[0].RealTimeRollingLogfunction.TelegramCountRoll || 0,
-			TelegramCountText: msgs[0].RealTimeRollingLogfunction.TelegramCountText || 0
+			TelegramCountText: msgs[0].RealTimeRollingLogfunction.TelegramCountText || 0,
+			WhatsappCountRoll: msgs[0].RealTimeRollingLogfunction.WhatsappCountRoll || 0,
+			WhatsappCountText: msgs[0].RealTimeRollingLogfunction.WhatsappCountText || 0
 
 		};
 	//console.log('RollingLog', RollingLog)
@@ -141,6 +145,9 @@ try {
 							case "Telegram":
 								RollingLog.RealTimeRollingLogfunction.TelegramCountRoll++;
 								break;
+							case "Whatsapp":
+								RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll++;
+								break;
 							default:
 								break;
 						}
@@ -162,6 +169,9 @@ try {
 							break;
 						case "Telegram":
 							RollingLog.RealTimeRollingLogfunction.TelegramCountText++;
+							break;
+						case "Whatsapp":
+							RollingLog.RealTimeRollingLogfunction.WhatsappCountText++;
 							break;
 						default:
 							break;
@@ -196,7 +206,9 @@ try {
 					LineCountRoll: RollingLog.RealTimeRollingLogfunction.LineCountRoll,
 					LineCountText: RollingLog.RealTimeRollingLogfunction.LineCountText,
 					TelegramCountRoll: RollingLog.RealTimeRollingLogfunction.TelegramCountRoll,
-					TelegramCountText: RollingLog.RealTimeRollingLogfunction.TelegramCountText
+					TelegramCountText: RollingLog.RealTimeRollingLogfunction.TelegramCountText,
+					WhatsappCountRoll: RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll,
+					WhatsappCountText: RollingLog.RealTimeRollingLogfunction.WhatsappCountText
 				};
 				records.pushtrpgSaveLogfunction('RollingLog', temp, () => {
 					//console.log('SAVE LOG')
@@ -219,7 +231,9 @@ try {
 					LineCountRoll: RollingLog.RealTimeRollingLogfunction.LineCountRoll,
 					LineCountText: RollingLog.RealTimeRollingLogfunction.LineCountText,
 					TelegramCountRoll: RollingLog.RealTimeRollingLogfunction.TelegramCountRoll,
-					TelegramCountText: RollingLog.RealTimeRollingLogfunction.TelegramCountText
+					TelegramCountText: RollingLog.RealTimeRollingLogfunction.TelegramCountText,
+					WhatsappCountRoll: RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll,
+					WhatsappCountText: RollingLog.RealTimeRollingLogfunction.WhatsappCountText
 				};
 				records.settrpgSaveLogfunctionRealTime('RealTimeRollingLog', temp, () => {
 					//console.log('SAVE REAL TIME LOG')

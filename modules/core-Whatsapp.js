@@ -46,17 +46,9 @@ hasQuotedMsg:false
 	type:"chat"
 	*/
 		client.on('message', async msg => {
-			//console.log('msg: ', msg)
-
-			//msg.body
-			//msg.reply('pong');
 			if (msg.body && !msg.fromMe && !msg.isForwarded) {
 				let CAPTCHA = random.string(20);
-				//console.log(ctx.getChatMembers(ctx.chat.id) //[Members]
-				//	ctx.getChatMembers() //[Members]
-				//	telegrafGetChatMembers.check(ctx.chat.id) //[Members]
-				//	telegrafGetChatMembers.all //[Chats]
-				let groupid, userid, displayname, channelid, membercount, channelKeyword = '';
+				var groupid, userid, displayname, channelid, membercount, channelKeyword = '';
 				//得到暗骰的數據, GM的位置
 				let TargetGM = require('../roll/z_DDR_darkRollingToGM').initialize();
 				//是不是自己.ME 訊息
@@ -76,14 +68,11 @@ hasQuotedMsg:false
 				})
 				await client.getChatById(msg.from).then(async getChatDetail => {
 					if (getChatDetail.isGroup) {
-						groupid = getChatDetail.groupMetadata.creation;
+						groupid = getChatDetail.id._serialized;
 						//console.log('groupid:', groupid)
 						membercount = getChatDetail.participants.length;
 					}
 				});
-
-				//285083923223
-				//userrole = 3
 				let rplyVal = {};
 				let msgSplitor = (/\S+/ig);
 				let trigger = "";
@@ -116,12 +105,8 @@ hasQuotedMsg:false
 				} else {
 					if (channelKeyword == '') {
 						rplyVal = await exports.analytics.parseInput(msg.body, groupid, userid, userrole, "Whatsapp", displayname, channelid, "", membercount, CAPTCHA);
-
 					}
-
-
 				}
-
 				//LevelUp功能
 				if (rplyVal) {
 					if (CAPTCHA != rplyVal.CAPTCHA) {
@@ -216,16 +201,19 @@ hasQuotedMsg:false
 							}
 						}
 					}
-					// console.log("rplyVal: " + rplyVal)
+
 				} else {
-					//console.log(rplyVal.text, " ")
-					//TGcounttext++;
-					//if (TGcounttext % 500 == 0)
-					//console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext);
+
 					return;
 				}
 				//  }
 
+			}
+
+		})
+		client.on('message_ack', async (msg, ack) => {
+			if (ack > 0) {
+				msg.delete();
 			}
 		});
 

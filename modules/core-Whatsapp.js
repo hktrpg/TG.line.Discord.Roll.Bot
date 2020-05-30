@@ -202,15 +202,18 @@ hasQuotedMsg:false
 						}
 					}
 
-				} else {}
+				} else {
+					await msg.delete();
+				}
 				//  }
 
 			}
-			await msg.delete();
+
 		})
 		client.on('message_ack', async (msg, ack) => {
 			if (ack > 0) {
-				await msg.delete();
+				const chat = await msg.getChat();
+				chat.clearMessages();
 			}
 		});
 

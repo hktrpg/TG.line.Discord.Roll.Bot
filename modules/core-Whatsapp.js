@@ -202,10 +202,7 @@ hasQuotedMsg:false
 						}
 					}
 
-				} else {
-
-					return;
-				}
+				} else {}
 				//  }
 
 			}

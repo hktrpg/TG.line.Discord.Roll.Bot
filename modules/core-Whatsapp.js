@@ -210,7 +210,7 @@ hasQuotedMsg:false
 		})
 		client.on('message_ack', async (msg, ack) => {
 			if (ack > 0) {
-				msg.delete();
+				await msg.delete();
 			}
 		});
 

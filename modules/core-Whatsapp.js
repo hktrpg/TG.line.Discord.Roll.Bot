@@ -202,13 +202,10 @@ hasQuotedMsg:false
 						}
 					}
 
-				} else {
-					await msg.delete();
-				}
+				} else {}
 				//  }
-
 			}
-
+			await msg.delete();
 		})
 		client.on('message_ack', async (msg, ack) => {
 			if (ack > 0) {

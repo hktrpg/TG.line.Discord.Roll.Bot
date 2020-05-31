@@ -179,7 +179,10 @@ hasQuotedMsg:false
 								}
 								break;
 							default:
-								await SendToReply();
+								if (displaynamecheck == false) {
+									await SendToId(userid);
+								} else
+									await SendToReply();
 								break;
 						}
 

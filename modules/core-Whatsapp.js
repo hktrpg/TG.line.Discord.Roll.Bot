@@ -180,7 +180,8 @@ hasQuotedMsg:false
 								break;
 							default:
 								if (displaynamecheck == false) {
-									await SendToId(userid);
+									console.log('displaynamecheck False')
+									await SendToId(msg.from);
 								} else
 									await SendToReply();
 								break;

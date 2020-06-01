@@ -179,7 +179,11 @@ hasQuotedMsg:false
 								}
 								break;
 							default:
-								await SendToReply();
+								if (displaynamecheck == false) {
+									console.log('displaynamecheck False')
+									await SendToId(msg.from);
+								} else
+									await SendToReply();
 								break;
 						}
 
@@ -202,18 +206,15 @@ hasQuotedMsg:false
 						}
 					}
 
-				} else {
-
-					return;
-				}
+				} else {}
 				//  }
-
 			}
-
+			await msg.delete();
 		})
 		client.on('message_ack', async (msg, ack) => {
 			if (ack > 0) {
-				msg.delete();
+				const chat = await msg.getChat();
+				chat.clearMessages();
 			}
 		});
 

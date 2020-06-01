@@ -336,7 +336,7 @@ try {
 			let userRanking = await ranking(userid, exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction);
 
 			let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
-			let userTitle = exports.z_Level_system.checkTitle(userlevel, exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Title);
+			let userTitle = await exports.z_Level_system.checkTitle(userlevel, exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Title);
 			let tempUPWord = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].LevelUpWord || "恭喜 {user.name}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點了！\n現在排名是{server.member_count}人中的第{user.Ranking}名！";
 			return tempUPWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count).replace(/{user.title}/ig, userTitle);
 

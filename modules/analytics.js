@@ -392,14 +392,26 @@ try {
 		if (!groupid) {
 			groupid = 0
 		};
+		if (mainMsg && !mainMsg[1]) mainMsg[1] = '';
+		//把exports objest => Array
+		const idList = await Object.keys(exports).map(i => exports[i]);
 
-		const idList = await Object.keys(exports).map(i => exports[i])
-		var findLike = idList.find(function (item, index, array) {
-			if (item.gameName && item.gameName()) {
-				return item.gameName() == '【WOD黑暗世界】.xWDy'; // 取得陣列 like === '蘿蔔泥'
+		const findTarget = await idList.find(function (item) {
+			if (item.prefixs && item.prefixs()) {
+				item.prefixs().find(function (regex, i) {
+					console.log(a)
+					if (a && a[b] && (b % 2 == 0 || b == 0)) {
+
+						return a[b] == mainMsg[0] && a[b + 1] == mainMsg[1]
+					}
+				})
+
+
 			}
 		});
-		console.log(findLike.getHelpMessage());
+
+
+		console.log(findTarget);
 
 		/*
 		let breakFlag = false;

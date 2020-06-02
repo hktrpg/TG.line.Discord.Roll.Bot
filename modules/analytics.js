@@ -1,10 +1,10 @@
 "use strict";
 // Load `*.js` under roll directory as properties
 //  i.e., `User.js` will become `exports['User']` or `exports.User`
-require('fs').readdirSync('./roll/').forEach(function (file) {
+require('fs').readdirSync('./roll/').forEach(async function (file) {
 	if (file.match(/\.js$/) !== null && file !== 'index.js' && file !== 'demo.js') {
 		const name = file.replace('.js', '');
-		exports[name] = require('../roll/' + file);
+		exports[name] = await require('../roll/' + file);
 	}
 });
 
@@ -84,9 +84,10 @@ try {
 		//檢查是不是要停止
 		stopmark = await z_stop(mainMsg, groupid);
 		//檢查是不是開啓LV 功能
+		if (stopmark == 1) return
+		else
+			//console.log('mainMsgAA',mainMsg)
 
-		//console.log('mainMsgAA',mainMsg)
-		if (stopmark != 1) {
 			return await rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount)
 				.then(
 					async function (result) {
@@ -95,13 +96,9 @@ try {
 						if (typeof tempResut === 'object' && tempResut !== null) {
 							return tempResut;
 						}
-						//console.log('step2', a)
 					}
 				)
 
-			//console.log("result2", result)
-			//return result;
-		} else return;
 
 		//z_saveCommand 功能
 		async function step2() {
@@ -390,11 +387,21 @@ try {
 	}
 
 	var rolldice = async function (inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount) {
-		//console.log(exports)
+		console.log(exports)
 		//在下面位置開始分析trigger
 		if (!groupid) {
 			groupid = 0
 		};
+
+		const idList = await Object.keys(exports).map(i => exports[i])
+		var findLike = idList.find(function (item, index, array) {
+			if (item.gameName && item.gameName()) {
+				return item.gameName() == '【WOD黑暗世界】.xWDy'; // 取得陣列 like === '蘿蔔泥'
+			}
+		});
+		console.log(findLike.getHelpMessage());
+
+		/*
 		let breakFlag = false;
 		for (let v in exports) {
 			//console.log('v: ', v)
@@ -462,7 +469,7 @@ try {
 			}
 		}
 
-
+*/
 
 	}
 

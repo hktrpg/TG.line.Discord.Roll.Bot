@@ -392,16 +392,37 @@ try {
 		if (!groupid) {
 			groupid = 0
 		};
+
+
+		[{
+			prefixs: [{
+				first: /^[.]al$/i,
+				second: /\d+/
+			}, {
+				first: /^[.]al$/i,
+				second: /\abc\d+/
+			}],
+			name: 'Alevel'
+		}, {
+			prefixs: [{
+				first: /^[.]CC$/i,
+				second: /\d+/
+			}, {
+				first: /^[.]ef$/i,
+				second: /bc\d+/
+			}],
+			name: 'CC'
+		}]
 		if (mainMsg && !mainMsg[1]) mainMsg[1] = '';
 		//把exports objest => Array
 		const idList = await Object.keys(exports).map(i => exports[i]);
-
+		console.log('idList: ', idList)
 		const findTarget = await idList.find(function (item) {
 			if (item.prefixs && item.prefixs()) {
 				console.log(item.prefixs())
 				for (let index = 0; index < item.prefixs().length; index++) {
 					return
-					
+
 				}
 			}
 		});

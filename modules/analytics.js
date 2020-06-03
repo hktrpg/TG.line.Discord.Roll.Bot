@@ -398,15 +398,11 @@ try {
 
 		const findTarget = await idList.find(function (item) {
 			if (item.prefixs && item.prefixs()) {
-				item.prefixs().find(function (regex, i) {
-					console.log(a)
-					if (a && a[b] && (b % 2 == 0 || b == 0)) {
-
-						return a[b] == mainMsg[0] && a[b + 1] == mainMsg[1]
-					}
-				})
-
-
+				console.log(item.prefixs())
+				for (let index = 0; index < item.prefixs().length; index++) {
+					return
+					
+				}
 			}
 		});
 

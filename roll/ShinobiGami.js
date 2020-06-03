@@ -17,11 +17,14 @@ var gameName = function () {
     return '【忍神】 .sg (ST FT ET等各種表)'
 }
 
-var gameType = function() {
+var gameType = function () {
     return 'ShinobiGami:hktrpg'
 }
 var prefixs = function () {
-    return [/^[.]sg$/i, ]
+    return [{
+        first: /^[.]sg$/i,
+        second: null
+    }]
 }
 var getHelpMessage = function () {
     return "【忍神 ShinobiGami】" + "\

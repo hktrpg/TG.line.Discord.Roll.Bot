@@ -16,9 +16,12 @@ try {
         return 'trpgDarkRolling:hktrpg'
     }
     var prefixs = function () {
-        return [/(^[.]drgm$)/ig, ]
+        return [{
+            first: /(^[.]drgm$)/ig,
+            second: null
+        }]
     }
-   var getHelpMessage = function () {
+    var getHelpMessage = function () {
         return "【暗骰GM功能】.drgm(addgm del show) dr ddr dddr" + "\
         \n 這是讓你可以私骰GM的功能\
         \n 想成為GM的人先輸入.drgm addgm\

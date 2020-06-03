@@ -18,7 +18,10 @@ if (process.env.mongoURL) {
         return 'Block:hktrpg'
     }
     var prefixs = function () {
-        return [/^[.]bk$/ig, ]
+        return [{
+            first: /^[.]bk$/ig,
+            second: null
+        }]
     }
     var getHelpMessage = function () {
         return "【擲骰開關功能】" + "\
@@ -37,7 +40,7 @@ if (process.env.mongoURL) {
     }
 
     var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-        
+
         rply.text = '';
         switch (true) {
 

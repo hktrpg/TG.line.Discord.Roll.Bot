@@ -387,7 +387,7 @@ try {
 	}
 
 	var rolldice = async function (inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount) {
-		console.log(exports)
+		//	console.log(exports)
 		//在下面位置開始分析trigger
 		if (!groupid) {
 			groupid = 0
@@ -417,18 +417,17 @@ try {
 		if (mainMsg && !mainMsg[1]) mainMsg[1] = '';
 		//把exports objest => Array
 		const idList = await Object.keys(exports).map(i => exports[i]);
-		console.log('idList: ', idList[3])
 		const findTarget = await idList.find(function (item, i, array) {
 			if (item.prefixs && item.prefixs()) {
 				for (let index = 0; index < item.prefixs().length; index++) {
-					console.log('item.prefixs().length:', item.prefixs().length, item.prefixs()[index].first)
-					return mainMsg[0].match(new RegExp(item.prefixs()[index].first)) && (mainMsg[1].match(new RegExp(item.prefixs()[index].second)) || !item.prefixs()[index].second)
+					if (mainMsg[0].match(item.prefixs()[index].first) && (mainMsg[1].match(item.prefixs()[index].second) || item.prefixs()[index].second == null))
+						return true
 				}
 			}
 		});
 
 
-		console.log('findTarget', findTarget.prefixs());
+		console.log('findTarget', findTarget.gameName());
 
 		/*
 		let breakFlag = false;

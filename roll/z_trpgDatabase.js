@@ -19,7 +19,10 @@ try {
         return 'trpgDatabase:hktrpg'
     }
     var prefixs = function () {
-        return [/(^[.]db(p|)$)/ig, ]
+        return [{
+            first: /(^[.]db(p|)$)/ig,
+            second: null
+        }]
     }
     var getHelpMessage = function () {
         return "【資料庫功能】" + "\

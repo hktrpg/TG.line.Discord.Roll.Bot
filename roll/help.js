@@ -29,11 +29,14 @@ var gameName = function () {
 	return '骰子機器人HKTRPG說明'
 }
 
-var gameType = function() {
+var gameType = function () {
 	return 'bothelp:hktrpg'
 }
 var prefixs = function () {
-	return [/^bothelp$/i, /^$|^\d+$/i]
+	return [{
+		first: /^bothelp$/i,
+		second: /^$|^\d+$/i
+	}]
 
 }
 var getHelpMessage = function () {

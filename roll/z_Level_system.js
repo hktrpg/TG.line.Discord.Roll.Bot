@@ -21,7 +21,10 @@ try {
         return 'trpgLevelSystem:hktrpg'
     }
     var prefixs = function () {
-        return [/(^[.]level$)/ig, ]
+        return [{
+            first: /(^[.]level$)/ig,
+            second: null
+        }]
     }
     var getHelpMessage = function () {
         return "【經驗值功能】" + "\

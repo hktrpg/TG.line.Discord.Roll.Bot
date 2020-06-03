@@ -17,11 +17,14 @@ var gameName = function () {
     return '【亞俠必死的冒險】 .ss (nR>=x[y,z,c] SRx+y FumbleT)'
 }
 
-var gameType = function() {
+var gameType = function () {
     return 'Satasupe:hktrpg'
 }
 var prefixs = function () {
-    return [/^[.]ss$/i, ]
+    return [{
+        first: /^[.]ss$/i,
+        second: null
+    }]
 }
 var getHelpMessage = function () {
     return "【亞俠必死的冒險】" + "\

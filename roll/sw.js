@@ -11,11 +11,14 @@ var gameName = function () {
     return '【劍世界2.5】.sw (Kx Gr FT TT)'
 }
 
-var gameType = function() {
+var gameType = function () {
     return 'sw2.5:hktrpg'
 }
 var prefixs = function () {
-    return [/^[.]sw$/i, ]
+    return [{
+        first: /^[.]sw$/i,
+        second: null
+    }]
 }
 var getHelpMessage = function () {
     return "【劍世界2.5】" + "\

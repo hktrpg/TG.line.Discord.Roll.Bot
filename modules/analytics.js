@@ -78,10 +78,12 @@ try {
 		mainMsg = inputStr.match(msgSplitor); //定義輸入字串
 		if (mainMsg)
 			trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
-		//對比mongoose資料
-		//檢查是不是開啓LV 功能
 
-		//EXPUP ->  LevelUP ->  z_stop -> rolldice -> cmdfunction -> courtMessage ->saveLog
+		/*	程序
+		 *	EXPUP ->  LevelUP ->  z_stop -> rolldice -> cmdfunction -> courtMessage ->saveLog
+		 *	EXPUP ->  LevelUP ->	發言得到EXP
+		 *
+		 */
 
 
 		//EXPUP ->  LevelUP 功能
@@ -93,35 +95,37 @@ try {
 			}
 		}
 
-
 		//檢查是不是要停止  z_stop功能
 		stopmark = await z_stop(mainMsg, groupid);
 		if (stopmark == 1) return
 
 
 		//rolldice
-
+		let rollDiceResult = await rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount)
+		result = Object.assign(result, rollDiceResult)
 
 
 
 		//cmdfunction  .cmd 功能   z_saveCommand 功能
 		if (mainMsg && mainMsg[0].toLowerCase() == ".cmd" && mainMsg[1] && mainMsg[1].toLowerCase() != "help" && mainMsg[1].toLowerCase() != "add" && mainMsg[1].toLowerCase() != "show" && mainMsg[1].toLowerCase() != "del" && result.text) {
-			tempResut = await cmdfunction(inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount, CAPTCHA, mainMsg);
+			let cmdFunctionResult = await cmdfunction(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount, result);
+			if (typeof cmdFunctionResult === 'object' && cmdFunctionResult !== null) {
+				result = Object.assign(result, cmdFunctionResult)
+			}
+
 		}
-		console.log('tempResut', tempResut)
-		if (typeof tempResut === 'object' && tempResut !== null) {
-			return tempResut;
-		}
-
-		//courtMessage
 
 
-		//saveLog
 
+		//courtMessage + saveLog
+		await courtMessage(result, botname, inputStr)
 
+		//return result
+		result.CAPTCHA = CAPTCHA;
+		return result;
 	}
 
-	async function courtMessage() {
+	async function courtMessage(result, botname, inputStr) {
 		if (result && (result.text || result.LevelUp)) {
 			if (result.text) {
 				console.log(botname, '\'s inputStr: ', inputStr);
@@ -148,7 +152,7 @@ try {
 				}
 
 			}
-			result.CAPTCHA = CAPTCHA;
+
 			return result;
 		} else {
 			if (simpleCourt != null) {
@@ -169,13 +173,15 @@ try {
 						break;
 				}
 				simpleCourt++;
-				await saveLog();
+
 			}
-			return;
+
 		}
+		await saveLog();
+		return null;
 	}
 
-	async function cmdfunction(inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount, CAPTCHA, mainMsg) {
+	async function cmdfunction(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount, result) {
 		//console.log('result.text', result.text.toString().replace(mainMsg[1], ""))
 		inputStr = result.text.toString().replace(mainMsg[1], "");
 		//console.log(inputStr)
@@ -186,7 +192,7 @@ try {
 		//檢查是不是要停止
 		let tempResut = await rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount)
 		if (typeof tempResut === 'object' && tempResut !== null) {
-			result = tempResut;
+			return tempResut;
 		}
 		console.log('inputStr2: ', inputStr);
 	}
@@ -251,6 +257,7 @@ try {
 
 		}
 		//console.log("RollingLog: ", RollingLog)
+		return null;
 	}
 
 	async function EXPUP(inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount, CAPTCHA) {

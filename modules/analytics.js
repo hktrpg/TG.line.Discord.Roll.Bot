@@ -12,7 +12,7 @@ const messageTimethenUpload = 50;
 //50次 多少條訊息會上傳一次LOG
 const oneDay = 24 * 60 * 60 * 1000;
 //一日 多久會上傳一次LOG紀錄
-const oneMinuts = 60000;
+const oneMinuts = 1;
 //60000 多久可以升級及增加經驗
 const RollingLog = {
 	RealTimeRollingLogfunction: {
@@ -86,14 +86,18 @@ try {
 		 */
 
 
-		//EXPUP ->  LevelUP 功能
+		//EXPUP 功能
 		if (groupid) {
-			let tempEXPUP = await EXPUP(inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount, CAPTCHA);
+			let tempEXPUP = await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount);
 			if (tempEXPUP) {
 				console.log('tempEXPUP: ', tempEXPUP);
 				result.LevelUp = tempEXPUP;
 			}
 		}
+
+
+		//LevelUP 功能
+		//!!!LevelUp 提示未出現
 
 		//檢查是不是要停止  z_stop功能
 		stopmark = await z_stop(mainMsg, groupid);
@@ -101,7 +105,7 @@ try {
 
 
 		//rolldice
-		let rollDiceResult = await rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount)
+		let rollDiceResult = await rolldice(inputStr, groupid, userid, userrole, mainMsg, botname, displayname, channelid, displaynameDiscord, membercount)
 		result = Object.assign(result, rollDiceResult)
 
 
@@ -190,7 +194,7 @@ try {
 		//console.log('inputStr2: ', inputStr)
 		result.text = "";
 		//檢查是不是要停止
-		let tempResut = await rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount)
+		let tempResut = await rolldice(inputStr, groupid, userid, userrole, mainMsg, botname, displayname, channelid, displaynameDiscord, membercount)
 		if (typeof tempResut === 'object' && tempResut !== null) {
 			return tempResut;
 		}
@@ -260,7 +264,7 @@ try {
 		return null;
 	}
 
-	async function EXPUP(inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount, CAPTCHA) {
+	async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercount) {
 		let tempEXPconfig = 0;
 		let tempGPID = 0;
 		let tempGPuserID = 0;
@@ -327,7 +331,7 @@ try {
 								console.log(error)
 							})
 							*/
-							return await LevelUP(tempGPID, tempGPuserID);
+							return await LevelUP(userid, displayname, displaynameDiscord, membercount);
 							//console.log('result.LevelUp: ', result.LevelUp)
 						}
 					}
@@ -342,7 +346,7 @@ try {
 
 	}
 
-	async function LevelUP(tempGPID, tempGPuserID) {
+	async function LevelUP(userid, displayname, displaynameDiscord, membercount) {
 		//1. 讀取LEVELUP語
 		let username = displaynameDiscord || displayname || "無名"
 		let userlevel = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level;
@@ -403,7 +407,7 @@ try {
 		}
 	}
 
-	var rolldice = async function (inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount) {
+	var rolldice = async function (inputStr, groupid, userid, userrole, mainMsg, botname, displayname, channelid, displaynameDiscord, membercount) {
 		//	console.log(exports)
 		//在下面位置開始分析trigger
 		if (!groupid) {

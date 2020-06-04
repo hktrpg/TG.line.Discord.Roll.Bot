@@ -84,16 +84,27 @@ try {
 		//檢查是不是開啓LV 功能
 
 		//courtMessage
-		//findDice ->	EXPUP -> LevelUP ->	saveLog-> z_stop -> rolldice -> step2 	
+		//findDice ->	EXPUP -> LevelUP ->	saveLog-> z_stop -> rolldice -> cmdfunction 	
 
+
+		//LEVEL功能
+		if (groupid) {
+			let tempEXPUP = await EXPUP();
+			if (tempEXPUP) {
+				console.log('tempEXPUP: ', tempEXPUP);
+				result.LevelUp = tempEXPUP;
+			} else
+				result.LevelUp = "";
+			//result.LevelUp
+		}
 
 		//檢查是不是要停止z_stop
 		stopmark = await z_stop(mainMsg, groupid);
 		if (stopmark == 1) return
-		//step2  .cmd 功能
+		//cmdfunction  .cmd 功能
 		else {
 			//console.log('mainMsgAA',mainMsg)
-			tempResut = await step2(inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount, CAPTCHA, mainMsg);
+			tempResut = await cmdfunction(inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount, CAPTCHA, mainMsg);
 			console.log('tempResut', tempResut)
 			if (typeof tempResut === 'object' && tempResut !== null) {
 				return tempResut;
@@ -158,7 +169,7 @@ try {
 		}
 	}
 
-	async function step2(inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount, CAPTCHA, mainMsg) {
+	async function cmdfunction(inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount, CAPTCHA, mainMsg) {
 		if (mainMsg && mainMsg[0].toLowerCase() == ".cmd" && mainMsg[1] && mainMsg[1].toLowerCase() != "help" && mainMsg[1].toLowerCase() != "add" && mainMsg[1].toLowerCase() != "show" && mainMsg[1].toLowerCase() != "del" && result.text) {
 			//console.log('result.text', result.text.toString().replace(mainMsg[1], ""))
 			inputStr = result.text.toString().replace(mainMsg[1], "");
@@ -174,16 +185,7 @@ try {
 			}
 			console.log('inputStr2: ', inputStr);
 		}
-		//LEVEL功能
-		if (groupid) {
-			let tempEXPUP = await EXPUP();
-			if (tempEXPUP) {
-				console.log('tempEXPUP: ', tempEXPUP);
-				result.LevelUp = tempEXPUP;
-			} else
-				result.LevelUp = "";
-			//result.LevelUp
-		}
+
 
 	}
 

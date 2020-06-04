@@ -424,9 +424,16 @@ try {
 				}
 			}
 		});
+		if (!findTarget) {
+			return null;
+		} else {
+			console.log('             trigger: ', inputStr);
+			const tempsave = await findTarget.rollDiceCommand(inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount);
+			console.log('tempsave: ', tempsave)
+			return tempsave;
+		}
 
 
-		console.log('findTarget', findTarget.gameName());
 
 		/*
 		let breakFlag = false;

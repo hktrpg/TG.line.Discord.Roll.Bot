@@ -116,7 +116,7 @@ try {
 
 
 		//courtMessage + saveLog
-		//await courtMessage(result, botname, inputStr)
+		courtMessage(result, botname, inputStr)
 
 		//return result
 		result.CAPTCHA = CAPTCHA;
@@ -442,7 +442,7 @@ try {
 		if (!findTarget) {
 			return null;
 		} else {
-			console.log('             trigger: ', inputStr);
+			console.log('            trigger: ', inputStr);
 			const tempsave = await findTarget.rollDiceCommand(inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount);
 			//console.log('tempsave: ', tempsave)
 			return tempsave;

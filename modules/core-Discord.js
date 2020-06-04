@@ -121,7 +121,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					}
 					//LevelUp功能
 					if (rplyVal && hasSendPermission) {
-						if (CAPTCHA != rplyVal.CAPTCHA) {
+						if (CAPTCHA != rplyVal.CAPTCHA && rplyVal.text) {
 							console.log('Discord CAPTCHA false', CAPTCHA, ' &&', rplyVal.CAPTCHA, "TEXT", message.content, 'rplyVal: ', rplyVal);
 							return;
 						}

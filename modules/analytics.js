@@ -80,13 +80,12 @@ try {
 			trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
 
 		/*	程序
-		 *	EXPUP ->  LevelUP ->  z_stop -> rolldice -> cmdfunction -> courtMessage ->saveLog
-		 *	EXPUP ->  LevelUP ->	發言得到EXP
+		 *	EXPUP ->  LevelUP ->  z_stop -> rolldice -> cmdfunction -> courtMessage -> saveLog
 		 *
 		 */
 
 
-		//EXPUP 功能
+		//EXPUP 功能 + LevelUP 功能
 		if (groupid) {
 			let tempEXPUP = await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount);
 			if (tempEXPUP) {
@@ -96,9 +95,6 @@ try {
 		}
 
 
-		//LevelUP 功能
-		//!!!LevelUp 提示未出現
-
 		//檢查是不是要停止  z_stop功能
 		stopmark = await z_stop(mainMsg, groupid);
 		if (stopmark == 1) return
@@ -107,7 +103,6 @@ try {
 		//rolldice
 		let rollDiceResult = await rolldice(inputStr, groupid, userid, userrole, mainMsg, botname, displayname, channelid, displaynameDiscord, membercount)
 		result = Object.assign(result, rollDiceResult)
-
 
 
 		//cmdfunction  .cmd 功能   z_saveCommand 功能
@@ -322,7 +317,7 @@ try {
 
 						//8. 更新MLAB資料 
 						records.settrpgLevelSystemfunctionEXPup('trpgLevelSystem', exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID], exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction, () => {});
-
+						console.log('AAA', exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Hidden)
 						if (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Hidden == 1) {
 							//6. 需要 -> 檢查有沒有開啓通知
 							//console.log('levelup', result)
@@ -331,7 +326,7 @@ try {
 								console.log(error)
 							})
 							*/
-							return await LevelUP(userid, displayname, displaynameDiscord, membercount);
+							return await LevelUP(userid, displayname, displaynameDiscord, membercount, tempGPID, tempGPuserID);
 							//console.log('result.LevelUp: ', result.LevelUp)
 						}
 					}
@@ -346,7 +341,7 @@ try {
 
 	}
 
-	async function LevelUP(userid, displayname, displaynameDiscord, membercount) {
+	async function LevelUP(userid, displayname, displaynameDiscord, membercount, tempGPID, tempGPuserID) {
 		//1. 讀取LEVELUP語
 		let username = displaynameDiscord || displayname || "無名"
 		let userlevel = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level;

@@ -96,8 +96,8 @@ try {
 
 		//檢查是不是要停止  z_stop功能
 		stopmark = await z_stop(mainMsg, groupid);
-		if (stopmark == 1) return null;
-		if (!inputStr) return null;
+		if (stopmark == 1) return result;
+		if (!inputStr) return result;
 
 		//rolldice
 		let rollDiceResult = await rolldice(inputStr, groupid, userid, userrole, mainMsg, botname, displayname, channelid, displaynameDiscord, membercount)

@@ -53,8 +53,6 @@ records.get('RealTimeRollingLog', (msgs) => {
 
 
 //Log everyday 01:00
-//Format: 
-//TG
 try {
 	let result = {
 		text: '',
@@ -83,35 +81,43 @@ try {
 		//對比mongoose資料
 		//檢查是不是開啓LV 功能
 
-		//courtMessage
-		//findDice ->	EXPUP -> LevelUP ->	saveLog-> z_stop -> rolldice -> cmdfunction 	
+		//EXPUP ->  LevelUP ->  z_stop -> rolldice -> cmdfunction -> courtMessage ->saveLog
 
 
-		//LEVEL功能
+		//EXPUP ->  LevelUP 功能
 		if (groupid) {
-			let tempEXPUP = await EXPUP();
+			let tempEXPUP = await EXPUP(inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount, CAPTCHA);
 			if (tempEXPUP) {
 				console.log('tempEXPUP: ', tempEXPUP);
 				result.LevelUp = tempEXPUP;
-			} else
-				result.LevelUp = "";
-			//result.LevelUp
-		}
-
-		//檢查是不是要停止z_stop
-		stopmark = await z_stop(mainMsg, groupid);
-		if (stopmark == 1) return
-		//cmdfunction  .cmd 功能
-		else {
-			//console.log('mainMsgAA',mainMsg)
-			tempResut = await cmdfunction(inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount, CAPTCHA, mainMsg);
-			console.log('tempResut', tempResut)
-			if (typeof tempResut === 'object' && tempResut !== null) {
-				return tempResut;
 			}
 		}
 
-		//z_saveCommand 功能
+
+		//檢查是不是要停止  z_stop功能
+		stopmark = await z_stop(mainMsg, groupid);
+		if (stopmark == 1) return
+
+
+		//rolldice
+
+
+
+
+		//cmdfunction  .cmd 功能   z_saveCommand 功能
+		if (mainMsg && mainMsg[0].toLowerCase() == ".cmd" && mainMsg[1] && mainMsg[1].toLowerCase() != "help" && mainMsg[1].toLowerCase() != "add" && mainMsg[1].toLowerCase() != "show" && mainMsg[1].toLowerCase() != "del" && result.text) {
+			tempResut = await cmdfunction(inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount, CAPTCHA, mainMsg);
+		}
+		console.log('tempResut', tempResut)
+		if (typeof tempResut === 'object' && tempResut !== null) {
+			return tempResut;
+		}
+
+		//courtMessage
+
+
+		//saveLog
+
 
 	}
 
@@ -170,23 +176,19 @@ try {
 	}
 
 	async function cmdfunction(inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount, CAPTCHA, mainMsg) {
-		if (mainMsg && mainMsg[0].toLowerCase() == ".cmd" && mainMsg[1] && mainMsg[1].toLowerCase() != "help" && mainMsg[1].toLowerCase() != "add" && mainMsg[1].toLowerCase() != "show" && mainMsg[1].toLowerCase() != "del" && result.text) {
-			//console.log('result.text', result.text.toString().replace(mainMsg[1], ""))
-			inputStr = result.text.toString().replace(mainMsg[1], "");
-			//console.log(inputStr)
-			mainMsg = inputStr.match(msgSplitor); //定義輸入字串
-			trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
-			//console.log('inputStr2: ', inputStr)
-			result.text = "";
-			//檢查是不是要停止
-			let tempResut = await rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount)
-			if (typeof tempResut === 'object' && tempResut !== null) {
-				result = tempResut;
-			}
-			console.log('inputStr2: ', inputStr);
+		//console.log('result.text', result.text.toString().replace(mainMsg[1], ""))
+		inputStr = result.text.toString().replace(mainMsg[1], "");
+		//console.log(inputStr)
+		mainMsg = inputStr.match(msgSplitor); //定義輸入字串
+		trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
+		//console.log('inputStr2: ', inputStr)
+		result.text = "";
+		//檢查是不是要停止
+		let tempResut = await rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount)
+		if (typeof tempResut === 'object' && tempResut !== null) {
+			result = tempResut;
 		}
-
-
+		console.log('inputStr2: ', inputStr);
 	}
 
 
@@ -251,7 +253,7 @@ try {
 		//console.log("RollingLog: ", RollingLog)
 	}
 
-	async function EXPUP() {
+	async function EXPUP(inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount, CAPTCHA) {
 		let tempEXPconfig = 0;
 		let tempGPID = 0;
 		let tempGPuserID = 0;
@@ -427,8 +429,9 @@ try {
 		const findTarget = await idList.find(item => {
 			if (item.prefixs && item.prefixs()) {
 				for (let index = 0; index < item.prefixs().length; index++) {
-					if (mainMsg[0].match(item.prefixs()[index].first) && (mainMsg[1].match(item.prefixs()[index].second) || item.prefixs()[index].second == null))
+					if (mainMsg[0].match(item.prefixs()[index].first) && (mainMsg[1].match(item.prefixs()[index].second) || item.prefixs()[index].second == null)) {
 						return true
+					}
 				}
 			}
 		});

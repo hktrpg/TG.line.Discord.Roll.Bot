@@ -393,7 +393,6 @@ try {
 			groupid = 0
 		};
 		/*
-
 				[{
 					prefixs: [{
 						first: /^[.]al$/i,
@@ -417,7 +416,7 @@ try {
 		if (mainMsg && !mainMsg[1]) mainMsg[1] = '';
 		//把exports objest => Array
 		const idList = await Object.keys(exports).map(i => exports[i]);
-		const findTarget = await idList.find(function (item, i, array) {
+		const findTarget = await idList.find(item => {
 			if (item.prefixs && item.prefixs()) {
 				for (let index = 0; index < item.prefixs().length; index++) {
 					if (mainMsg[0].match(item.prefixs()[index].first) && (mainMsg[1].match(item.prefixs()[index].second) || item.prefixs()[index].second == null))

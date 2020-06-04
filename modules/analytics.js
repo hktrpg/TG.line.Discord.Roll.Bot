@@ -83,13 +83,10 @@ try {
 		//對比mongoose資料
 		//檢查是不是開啓LV 功能
 
+		//courtMessage
+		//findDice ->	EXPUP -> LevelUP ->	saveLog-> z_stop -> rolldice -> step2 	
 
-		//EXPUP
-		//LevelUP
 
-
-		//saveLog
-		saveLog();
 		//檢查是不是要停止z_stop
 		stopmark = await z_stop(mainMsg, groupid);
 		if (stopmark == 1) return
@@ -107,32 +104,7 @@ try {
 
 	}
 
-	async function step2(inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount, CAPTCHA, mainMsg) {
-		if (mainMsg && mainMsg[0].toLowerCase() == ".cmd" && mainMsg[1] && mainMsg[1].toLowerCase() != "help" && mainMsg[1].toLowerCase() != "add" && mainMsg[1].toLowerCase() != "show" && mainMsg[1].toLowerCase() != "del" && result.text) {
-			//console.log('result.text', result.text.toString().replace(mainMsg[1], ""))
-			inputStr = result.text.toString().replace(mainMsg[1], "");
-			//console.log(inputStr)
-			mainMsg = inputStr.match(msgSplitor); //定義輸入字串
-			trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
-			//console.log('inputStr2: ', inputStr)
-			result.text = "";
-			//檢查是不是要停止
-			let tempResut = await rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount)
-			if (typeof tempResut === 'object' && tempResut !== null) {
-				result = tempResut;
-			}
-			console.log('inputStr2: ', inputStr);
-		}
-		//LEVEL功能
-		if (groupid) {
-			let tempEXPUP = await EXPUP();
-			if (tempEXPUP) {
-				console.log('tempEXPUP: ', tempEXPUP);
-				result.LevelUp = tempEXPUP;
-			} else
-				result.LevelUp = "";
-			//result.LevelUp
-		}
+	async function courtMessage() {
 		if (result && (result.text || result.LevelUp)) {
 			if (result.text) {
 				console.log(botname, '\'s inputStr: ', inputStr);
@@ -186,6 +158,37 @@ try {
 		}
 	}
 
+	async function step2(inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount, CAPTCHA, mainMsg) {
+		if (mainMsg && mainMsg[0].toLowerCase() == ".cmd" && mainMsg[1] && mainMsg[1].toLowerCase() != "help" && mainMsg[1].toLowerCase() != "add" && mainMsg[1].toLowerCase() != "show" && mainMsg[1].toLowerCase() != "del" && result.text) {
+			//console.log('result.text', result.text.toString().replace(mainMsg[1], ""))
+			inputStr = result.text.toString().replace(mainMsg[1], "");
+			//console.log(inputStr)
+			mainMsg = inputStr.match(msgSplitor); //定義輸入字串
+			trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
+			//console.log('inputStr2: ', inputStr)
+			result.text = "";
+			//檢查是不是要停止
+			let tempResut = await rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount)
+			if (typeof tempResut === 'object' && tempResut !== null) {
+				result = tempResut;
+			}
+			console.log('inputStr2: ', inputStr);
+		}
+		//LEVEL功能
+		if (groupid) {
+			let tempEXPUP = await EXPUP();
+			if (tempEXPUP) {
+				console.log('tempEXPUP: ', tempEXPUP);
+				result.LevelUp = tempEXPUP;
+			} else
+				result.LevelUp = "";
+			//result.LevelUp
+		}
+
+	}
+
+
+	//上傳用
 	async function saveLog() {
 		//假如沒有StartTime 或過了一天則上載中途紀錄到MLAB
 		//console.log(Date.now() - RollingLog.RealTimeRollingLogfunction.StartTime)

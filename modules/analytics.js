@@ -116,7 +116,7 @@ try {
 
 
 		//courtMessage + saveLog
-
+		//await courtMessage(result, botname, inputStr)
 
 		//return result
 		result.CAPTCHA = CAPTCHA;

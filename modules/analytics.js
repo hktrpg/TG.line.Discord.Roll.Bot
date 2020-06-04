@@ -85,20 +85,13 @@ try {
 		stopmark = await z_stop(mainMsg, groupid);
 		//檢查是不是開啓LV 功能
 		if (stopmark == 1) return
-		else
+		else {
 			//console.log('mainMsgAA',mainMsg)
-
-			return await rolldice(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount)
-				.then(
-					async function (result) {
-						//console.log('result', result)
-						let tempResut = await step2();
-						if (typeof tempResut === 'object' && tempResut !== null) {
-							return tempResut;
-						}
-					}
-				)
-
+			let tempResut = await step2();
+			if (typeof tempResut === 'object' && tempResut !== null) {
+				return tempResut;
+			}
+		}
 
 		//z_saveCommand 功能
 		async function step2() {
@@ -386,7 +379,7 @@ try {
 		}
 	}
 
-	var rolldice = async function (inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount) {
+	const rolldice = async function (inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount) {
 		//	console.log(exports)
 		//在下面位置開始分析trigger
 		if (!groupid) {

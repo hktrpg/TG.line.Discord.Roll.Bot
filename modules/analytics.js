@@ -12,7 +12,7 @@ const messageTimethenUpload = 50;
 //50次 多少條訊息會上傳一次LOG
 const oneDay = 24 * 60 * 60 * 1000;
 //一日 多久會上傳一次LOG紀錄
-const oneMinuts = 1;
+const oneMinuts = 60000;
 //60000 多久可以升級及增加經驗
 const RollingLog = {
 	RealTimeRollingLogfunction: {

@@ -273,10 +273,10 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 						}
 					}
 				} else if (groupid && userid) {
-					return await exports.analytics.parseInput("", groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount);
-				} else return;
+					return await exports.analytics.parseInput("", groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount, CAPTCHA);
+				} else return null;
 			} else
-				return;
+				return null;
 		});
 		//Set Activity 可以自定義正在玩什麼  
 		client.on('ready', () => {

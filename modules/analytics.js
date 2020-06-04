@@ -101,14 +101,14 @@ try {
 
 		//rolldice
 		let rollDiceResult = await rolldice(inputStr, groupid, userid, userrole, mainMsg, botname, displayname, channelid, displaynameDiscord, membercount)
-		result = Object.assign(result, rollDiceResult)
+		result = await Object.assign(result, rollDiceResult)
 
 
 		//cmdfunction  .cmd 功能   z_saveCommand 功能
 		if (mainMsg && mainMsg[0].toLowerCase() == ".cmd" && mainMsg[1] && mainMsg[1].toLowerCase() != "help" && mainMsg[1].toLowerCase() != "add" && mainMsg[1].toLowerCase() != "show" && mainMsg[1].toLowerCase() != "del" && result.text) {
 			let cmdFunctionResult = await cmdfunction(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount, result);
 			if (typeof cmdFunctionResult === 'object' && cmdFunctionResult !== null) {
-				result = Object.assign(result, cmdFunctionResult)
+				result = await Object.assign(result, cmdFunctionResult)
 			}
 
 		}
@@ -116,7 +116,7 @@ try {
 
 
 		//courtMessage + saveLog
-		await courtMessage(result, botname, inputStr)
+
 
 		//return result
 		result.CAPTCHA = CAPTCHA;

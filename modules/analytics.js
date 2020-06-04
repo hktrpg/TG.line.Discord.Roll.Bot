@@ -74,7 +74,6 @@ try {
 		let stopmark = 0;
 		let msgSplitor = (/\S+/ig);
 		let mainMsg = {};
-		let tempResut = {}
 		mainMsg = inputStr.match(msgSplitor); //定義輸入字串
 		if (mainMsg)
 			trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
@@ -98,7 +97,7 @@ try {
 		//檢查是不是要停止  z_stop功能
 		stopmark = await z_stop(mainMsg, groupid);
 		if (stopmark == 1) return
-
+		if (!inputStr) return
 
 		//rolldice
 		let rollDiceResult = await rolldice(inputStr, groupid, userid, userrole, mainMsg, botname, displayname, channelid, displaynameDiscord, membercount)
@@ -317,7 +316,6 @@ try {
 
 						//8. 更新MLAB資料 
 						records.settrpgLevelSystemfunctionEXPup('trpgLevelSystem', exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID], exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction, () => {});
-						console.log('AAA', exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Hidden)
 						if (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Hidden == 1) {
 							//6. 需要 -> 檢查有沒有開啓通知
 							//console.log('levelup', result)
@@ -446,7 +444,7 @@ try {
 		} else {
 			console.log('             trigger: ', inputStr);
 			const tempsave = await findTarget.rollDiceCommand(inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount);
-			console.log('tempsave: ', tempsave)
+			//console.log('tempsave: ', tempsave)
 			return tempsave;
 		}
 

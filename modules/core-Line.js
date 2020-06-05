@@ -110,7 +110,8 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 			}
 			//LevelUp功能
-
+			if (!rplyVal.text && !rplyVal.LevelUp)
+				return;
 
 			if (rplyVal) {
 				if (roomorgroupid && rplyVal && rplyVal.LevelUp) {

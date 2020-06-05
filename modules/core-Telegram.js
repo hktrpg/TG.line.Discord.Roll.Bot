@@ -124,7 +124,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 		})
 
 		TGclient.on('text', async (ctx) => {
-			let count = 0;
+			
 			let CAPTCHA = random.string(20);
 			//console.log(ctx.getChatMembers(ctx.chat.id) //[Members]
 			//	ctx.getChatMembers() //[Members]
@@ -198,15 +198,12 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 					rplyVal = await exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram", displayname, channelid, "", membercount, CAPTCHA);
 
 				}
-				count++;
 
 			}
-			if (count >= 2) {
-				console.log('TG count false count=', count, 'rplyVal: ', rplyVal);
+			if (!rplyVal.text && !rplyVal.LevelUp)
 				return;
-			}
 			//LevelUp功能
-			if (rplyVal && count == 1) {
+			if (rplyVal) {
 				if (CAPTCHA != rplyVal.CAPTCHA) {
 					console.log('TG CAPTCHA false', CAPTCHA, ' &&', rplyVal.CAPTCHA, 'text: ', ctx.message.text, 'rplyVal: ', rplyVal);
 					return;

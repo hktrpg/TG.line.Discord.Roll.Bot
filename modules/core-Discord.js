@@ -99,8 +99,6 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
 						privatemsg = 1;
 						message.content = message.content.replace(/^[d][r][ ]/i, '');
-						//mainMsg.shift();
-						//trigger = mainMsg[0].toString().toLowerCase();
 					}
 					if (trigger.match(/^ddr$/i) && mainMsg && mainMsg[1]) {
 						privatemsg = 2;
@@ -119,8 +117,14 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 							rplyVal = await exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount, CAPTCHA);
 						}
 					}
+
+
+					if (!rplyVal.text && !rplyVal.LevelUp)
+						return;
+
+
 					//LevelUp功能
-					if (rplyVal && hasSendPermission) {
+					if (hasSendPermission) {
 						if (CAPTCHA != rplyVal.CAPTCHA) {
 							console.log('Discord CAPTCHA false', CAPTCHA, ' &&', rplyVal.CAPTCHA, "TEXT", message.content, 'rplyVal: ', rplyVal);
 							return;
@@ -240,7 +244,9 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 						for (let i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 							if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
 								try {
-									return await client.users.get(targetid).send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
+									//V12ERROR return await client.users.get(targetid).send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
+									return await client.users.cache.get(targetid).send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
+
 								}
 							catch (e) {
 								console.log('error SendtoID: ', e.message)
@@ -274,9 +280,9 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					}
 				} else if (groupid && userid) {
 					return await exports.analytics.parseInput("", groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount);
-				} else return;
+				} else return null;
 			} else
-				return;
+				return null;
 		});
 		//Set Activity 可以自定義正在玩什麼  
 		client.on('ready', () => {

@@ -23,7 +23,10 @@ var gameType = function () {
 	return 'Nechronica:hktrpg'
 }
 var prefixs = function () {
-	return [/(^[.]nc$)$/i, ]
+	return [{
+		first: /(^[.]nc$)$/i,
+		second: null
+	}]
 }
 var getHelpMessage = function () {
 	return "【永遠的後日談 Nechronica】" + "\

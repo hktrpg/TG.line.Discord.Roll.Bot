@@ -21,7 +21,10 @@ try {
         return 'randomAns:hktrpg'
     }
     var prefixs = function () {
-        return [/(^[.]ra(\d+|p|p\d+|)$)/ig, ]
+        return [{
+            first: /(^[.]ra(\d+|p|p\d+|)$)/ig,
+            second: null
+        }]
     }
     var getHelpMessage = function () {
         return "【自定義回應功能】" + "\

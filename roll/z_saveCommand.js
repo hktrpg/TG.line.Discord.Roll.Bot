@@ -18,7 +18,10 @@ try {
         return 'trpgCommand:hktrpg'
     }
     var prefixs = function () {
-        return [/(^[.]cmd$)/ig, ]
+        return [{
+            first: /(^[.]cmd$)/ig,
+            second: null
+        }]
     }
     var getHelpMessage = function () {
         return "【儲存擲骰指令功能】" + "\
@@ -38,7 +41,7 @@ try {
     }
 
     var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-       
+
         rply.text = '';
         switch (true) {
             case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:

@@ -12,11 +12,14 @@ var gameName = function () {
     return '【神我狩】 .kk (ET RT NT KT MTx)'
 }
 
-var gameType = function() {
+var gameType = function () {
     return 'Kamigakari:hktrpg'
 }
 var prefixs = function () {
-    return [/^[.]kk$/i, ]
+    return [{
+        first: /^[.]kk$/i,
+        second: null
+    }]
 }
 var getHelpMessage = function () {
     return "【神我狩 Kamigakari】" + "\

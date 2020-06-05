@@ -21,7 +21,10 @@ var gameType = function () {
 	return 'Wiki:hktrpg'
 }
 var prefixs = function () {
-	return [/^[.]wiki$|^[.]tran$|^[.]tran[.]\S+$|^[.]image$|^[.]imagee$/i, ]
+	return [{
+		first: /^[.]wiki$|^[.]tran$|^[.]tran[.]\S+$|^[.]image$|^[.]imagee$/i,
+		second: null
+	}]
 
 }
 

@@ -25,6 +25,8 @@ const RollingLog = {
 		LineCountText: 0,
 		TelegramCountRoll: 0,
 		TelegramCountText: 0,
+		WWWCountRoll: 0,
+		WWWCountText: 0,
 		WhatsappCountRoll: 0,
 		WhatsappCountText: 0
 	}
@@ -43,6 +45,8 @@ records.get('RealTimeRollingLog', (msgs) => {
 			LineCountText: msgs[0].RealTimeRollingLogfunction.LineCountText || 0,
 			TelegramCountRoll: msgs[0].RealTimeRollingLogfunction.TelegramCountRoll || 0,
 			TelegramCountText: msgs[0].RealTimeRollingLogfunction.TelegramCountText || 0,
+			WWWCountRoll: msgs[0].RealTimeRollingLogfunction.WWWCountRoll || 0,
+			WWWCountText: msgs[0].RealTimeRollingLogfunction.WWWCountText || 0,
 			WhatsappCountRoll: msgs[0].RealTimeRollingLogfunction.WhatsappCountRoll || 0,
 			WhatsappCountText: msgs[0].RealTimeRollingLogfunction.WhatsappCountText || 0
 
@@ -124,32 +128,38 @@ try {
 	}
 
 	async function courtMessage(result, botname, inputStr) {
-		if (result && (result.text || result.LevelUp)) {
-			if (result.text) {
-				console.log(botname, '\'s inputStr: ', inputStr);
-				//SAVE THE LOG
-				if (simpleCourt != null) {
-					switch (botname) {
-						case "Discord":
-							RollingLog.RealTimeRollingLogfunction.DiscordCountRoll++;
-							break;
-						case "Line":
-							RollingLog.RealTimeRollingLogfunction.LineCountRoll++;
-							break;
-						case "Telegram":
-							RollingLog.RealTimeRollingLogfunction.TelegramCountRoll++;
-							break;
-						case "Whatsapp":
-							RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll++;
-							break;
-						default:
-							break;
-					}
-					simpleCourt++;
-					//await saveLog();
+		if (result && result.text) {
+			//SAVE THE LOG
+			if (simpleCourt != null) {
+				switch (botname) {
+					case "Discord":
+						console.log('Discord \'s inputStr: ', inputStr);
+						RollingLog.RealTimeRollingLogfunction.DiscordCountRoll++;
+						break;
+					case "Line":
+						console.log('   Line \'s inputStr: ', inputStr);
+						RollingLog.RealTimeRollingLogfunction.LineCountRoll++;
+						break;
+					case "Telegram":
+						console.log('Telegram\'s inputStr: ', inputStr);
+						RollingLog.RealTimeRollingLogfunction.TelegramCountRoll++;
+						break;
+					case "Whatsapp":
+						console.log('Whatsapp\'s inputStr: ', inputStr);
+						RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll++;
+						break;
+					case "Whatsapp":
+						console.log('     WWW\'s inputStr: ', inputStr);
+						RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll++;
+						break;
+					default:
+						break;
 				}
-
+				simpleCourt++;
+				//await saveLog();
 			}
+
+
 
 			return result;
 		} else {
@@ -166,6 +176,9 @@ try {
 						break;
 					case "Whatsapp":
 						RollingLog.RealTimeRollingLogfunction.WhatsappCountText++;
+						break;
+					case "WWW":
+						RollingLog.RealTimeRollingLogfunction.WWWCountText++;
 						break;
 					default:
 						break;
@@ -221,6 +234,8 @@ try {
 				LineCountText: RollingLog.RealTimeRollingLogfunction.LineCountText,
 				TelegramCountRoll: RollingLog.RealTimeRollingLogfunction.TelegramCountRoll,
 				TelegramCountText: RollingLog.RealTimeRollingLogfunction.TelegramCountText,
+				WWWCountRoll: RollingLog.RealTimeRollingLogfunction.WWWCountRoll,
+				WWWCountText: RollingLog.RealTimeRollingLogfunction.WWWCountText,
 				WhatsappCountRoll: RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll,
 				WhatsappCountText: RollingLog.RealTimeRollingLogfunction.WhatsappCountText
 			};
@@ -246,6 +261,8 @@ try {
 				LineCountText: RollingLog.RealTimeRollingLogfunction.LineCountText,
 				TelegramCountRoll: RollingLog.RealTimeRollingLogfunction.TelegramCountRoll,
 				TelegramCountText: RollingLog.RealTimeRollingLogfunction.TelegramCountText,
+				WWWCountRoll: RollingLog.RealTimeRollingLogfunction.WWWCountRoll,
+				WWWCountText: RollingLog.RealTimeRollingLogfunction.WWWCountText,
 				WhatsappCountRoll: RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll,
 				WhatsappCountText: RollingLog.RealTimeRollingLogfunction.WhatsappCountText
 			};

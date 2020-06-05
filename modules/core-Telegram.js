@@ -124,7 +124,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 		})
 
 		TGclient.on('text', async (ctx) => {
-			
+
 			let CAPTCHA = random.string(20);
 			//console.log(ctx.getChatMembers(ctx.chat.id) //[Members]
 			//	ctx.getChatMembers() //[Members]
@@ -300,10 +300,6 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				}
 				// console.log("rplyVal: " + rplyVal)
 			} else {
-				//console.log(rplyVal.text, " ")
-				//TGcounttext++;
-				//if (TGcounttext % 500 == 0)
-				//console.log('Telegram Roll: ' + TGcountroll + ', Telegram Text: ' + TGcounttext);
 				return;
 			}
 			//  }

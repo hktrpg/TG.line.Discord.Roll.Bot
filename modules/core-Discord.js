@@ -244,7 +244,9 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 						for (let i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
 							if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
 								try {
-									return await client.users.get(targetid).send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
+									//V12ERROR return await client.users.get(targetid).send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
+									return await client.users.cache.get(targetid).send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
+
 								}
 							catch (e) {
 								console.log('error SendtoID: ', e.message)

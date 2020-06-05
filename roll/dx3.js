@@ -20,11 +20,14 @@ var gameName = function () {
 	return '【DX2nd,3rd】 .dx (xDX+y@c ET)'
 }
 
-var gameType = function() {
+var gameType = function () {
 	return 'Dx2,3:hktrpg'
 }
 var prefixs = function () {
-	return [/^[.]dx$/i, ]
+	return [{
+		first: /^[.]dx$/i,
+		second: null
+	}]
 }
 var getHelpMessage = function () {
 	return "【Double Cross 2nd,3rd】" + "\
@@ -131,7 +134,7 @@ async function dxroll(match, round, returnStr, finallynum) {
 	var varsu = "";
 	for (var i = 0; i < rollnum; i++) {
 		//varcou = Math.floor(Math.random() * 10) + 1;
-		varcou =await rollbase.Dice(10)
+		varcou = await rollbase.Dice(10)
 		if (varcou > result) {
 			result = varcou
 		}

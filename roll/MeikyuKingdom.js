@@ -12,11 +12,14 @@ var gameName = function () {
     return '【迷宮王國】 .mk (nMK+m 及各種表)'
 }
 
-var gameType = function() {
+var gameType = function () {
     return 'MeikyuKingdom:hktrpg'
 }
 var prefixs = function () {
-    return [/^[.]mk$/i, ]
+    return [{
+        first: /^[.]mk$/i,
+        second: null
+    }]
 }
 var getHelpMessage = function () {
     return "【迷宮王國MeikyuKingdom】" + "\

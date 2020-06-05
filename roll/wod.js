@@ -10,11 +10,14 @@ var gameName = function () {
 	return '【WOD黑暗世界】.xWDy'
 }
 
-var gameType = function() {
+var gameType = function () {
 	return 'WOD:hktrpg'
 }
 var prefixs = function () {
-	return [/^[.](\d+)(wd)(\d|)((\+|-)(\d+)|)$/i, ]
+	return [{
+		first: /^[.](\d+)(wd)(\d|)((\+|-)(\d+)|)$/i,
+		second: null
+	}]
 }
 var getHelpMessage = function () {
 	return "【WOD 黑暗世界擲骰】" + "\
@@ -62,7 +65,7 @@ async function wod(triggermsg, text) {
 
 	for (var i = 0; i < Number(match[1]); i++) {
 		//varcou = Math.floor(Math.random() * 10) + 1;
-		varcou =await rollbase.Dice(10)
+		varcou = await rollbase.Dice(10)
 		returnStr += varcou + ', ';
 		if (varcou >= match[3]) {
 			i--

@@ -17,11 +17,14 @@ var gameName = function () {
     return '【朱の孤塔】 .al (nALx*p)'
 }
 
-var gameType = function() {
+var gameType = function () {
     return 'Airgetlamh:hktrpg'
 }
 var prefixs = function () {
-    return [/^[.]al$/i, ]
+    return [{
+        first: /^[.]al$/i,
+        second: null
+    }]
 }
 var getHelpMessage = function () {
     return "【朱の孤塔のエアゲトラム】" + "\

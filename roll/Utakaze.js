@@ -18,11 +18,14 @@ var gameName = function () {
 	return '【歌風】 .UK (nUK nUK@c or nUKc)'
 }
 
-var gameType = function() {
+var gameType = function () {
 	return 'UK:hktrpg'
 }
 var prefixs = function () {
-return [/^[.]UK$/i, ]
+	return [{
+		first: /^[.]UK$/i,
+		second: null
+	}]
 }
 var getHelpMessage = function () {
 	return "【歌風】" + "\

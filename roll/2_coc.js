@@ -14,8 +14,14 @@ var gameType = function () {
 	return 'CoC:hktrpg'
 }
 var prefixs = function () {
-	return [/(^ccrt$)|(^ccsu$)|(^cc7版創角$)|(^[.]cc7build$)|(^[.]cc6build$)|(^[.]cc7bg$)|(^cc6版創角$)|(^cc7版角色背景$)/i, ,
-		/(^ccb$)|(^cc$)|(^ccn[1-2]$)|(^cc[1-2]$)|(^[.]dp$)|(^成長檢定$)|(^幕間成長$)/i, /^(\d+)|(help)$/i
+	return [{
+			first: /(^ccrt$)|(^ccsu$)|(^cc7版創角$)|(^[.]cc7build$)|(^[.]cc6build$)|(^[.]cc7bg$)|(^cc6版創角$)|(^cc7版角色背景$)/i,
+			second: null
+		},
+		{
+			first: /(^ccb$)|(^cc$)|(^ccn[1-2]$)|(^cc[1-2]$)|(^[.]dp$)|(^成長檢定$)|(^幕間成長$)/i,
+			second: /^(\d+)|(help)$}/i
+		}
 	]
 }
 var getHelpMessage = function () {

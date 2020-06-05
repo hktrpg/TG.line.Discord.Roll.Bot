@@ -10,11 +10,14 @@ var gameName = function () {
     return '【魔女狩獵之夜】.wn xDn+-y'
 }
 
-var gameType = function() {
+var gameType = function () {
     return 'witch-hunting-night:hktrpg'
 }
 var prefixs = function () {
-    return [/^.wn$/i, ]
+    return [{
+        first: /^.wn$/i,
+        second: null
+    }]
 }
 var getHelpMessage = function () {
     return "【魔女狩獵之夜】" + "\

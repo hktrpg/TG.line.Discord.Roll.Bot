@@ -11,15 +11,30 @@ var gameName = function () {
 	return '【進階擲骰】 .ca (計算)|D66(sn)|5B10 Dx|5U10 x y|.int x y'
 }
 
-var gameType = function() {
+var gameType = function () {
 	return 'advroll:hktrpg'
 }
 var prefixs = function () {
-	return [/^[.][c][a]$/i, ,
-		/^d66s$|^d66$|^d66n$/i, ,
-		/^(\d+)(u)(\d+)$/i, /\d+/,
-		regexxBy, ,
-		/^[.][i][n][t]$/i, /\d+/,
+	return [{
+			first: /^[.][c][a]$/i,
+			second: null
+		},
+		{
+			first: /^d66s$|^d66$|^d66n$/i,
+			second: null
+		},
+		{
+			first: /^(\d+)(u)(\d+)$/i,
+			second: /\d+/
+		},
+		{
+			first: regexxBy,
+			second: null
+		},
+		{
+			first: /^[.][i][n][t]$/i,
+			second: /\d+/
+		}
 	]
 }
 var getHelpMessage = function () {

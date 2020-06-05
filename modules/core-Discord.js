@@ -99,8 +99,6 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
 						privatemsg = 1;
 						message.content = message.content.replace(/^[d][r][ ]/i, '');
-						//mainMsg.shift();
-						//trigger = mainMsg[0].toString().toLowerCase();
 					}
 					if (trigger.match(/^ddr$/i) && mainMsg && mainMsg[1]) {
 						privatemsg = 2;
@@ -119,9 +117,15 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 							rplyVal = await exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount, CAPTCHA);
 						}
 					}
+
+
+					if (!rplyVal.text && !rplyVal.LevelUp)
+						return;
+
+
 					//LevelUp功能
-					if (rplyVal && hasSendPermission) {
-						if (CAPTCHA != rplyVal.CAPTCHA && rplyVal.text) {
+					if (hasSendPermission) {
+						if (CAPTCHA != rplyVal.CAPTCHA) {
 							console.log('Discord CAPTCHA false', CAPTCHA, ' &&', rplyVal.CAPTCHA, "TEXT", message.content, 'rplyVal: ', rplyVal);
 							return;
 						}

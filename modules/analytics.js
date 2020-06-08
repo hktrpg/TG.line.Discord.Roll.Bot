@@ -381,7 +381,7 @@ try {
 			await array.push(data[key]);
 		}
 
-		array.sort(async function (a, b) {
+		array.sort(function (a, b) {
 			return b.EXP - a.EXP;
 		});
 

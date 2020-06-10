@@ -1,3 +1,5 @@
+//參考
+//https://github.com/cookkkie/mee6
 "use strict";
 try {
     var rply = {
@@ -28,7 +30,8 @@ try {
     }
     var getHelpMessage = function () {
         return "【經驗值功能】" + "\
-        \n 這是根據發言次數增加經驗，提升等級，實現服務器內排名的歡樂功能\
+        \n 這是根據開源Discord bot Mee6開發的功能\
+        \n 按發言次數增加經驗，提升等級，實現服務器內排名等歡樂功能\
         \n 當經驗達到要求，就會彈出通知，提示你已提升等級。\
         \n 預設並不開啓，需要輸入.level config 11 啓動功能 \
         \n 數字11代表等級升級時會進行通知，10代表不會通知，\

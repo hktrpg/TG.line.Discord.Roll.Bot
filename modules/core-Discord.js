@@ -241,11 +241,11 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					}
 
 					async function SendToId(targetid, replyText) {
-						for (let i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-							if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
+						for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+							if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
 								try {
-									//V12ERROR return await client.users.get(targetid).send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
-									return await client.users.cache.get(targetid).send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
+									//V12ERROR return await client.users.get(targetid).send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
+									await client.users.cache.get(targetid).send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 
 								}
 							catch (e) {
@@ -256,10 +256,10 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 					}
 
 					async function SendToReply(replyText) {
-						for (let i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-							if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
+						for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+							if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
 								try {
-									return await message.author.send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
+									await message.author.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 
 								}
 							catch (e) {
@@ -268,10 +268,10 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 						}
 					}
 					async function SendToReplychannel(replyText) {
-						for (let i = 0; i < replyText.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-							if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,1900}/g).length - 2)
+						for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+							if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
 								try {
-									return await message.channel.send(replyText.toString().match(/[\s\S]{1,1900}/g)[i]);
+									await message.channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 								}
 							catch (e) {
 								console.log('error SendToReplychannel: ', e.message);

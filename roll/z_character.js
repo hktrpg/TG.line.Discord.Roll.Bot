@@ -18,10 +18,10 @@ try {
             second: null
         }]
     }
-    const characterName = new RegExp(/name\[.+?\]/, 'i');
-    const characterState = new RegExp(/state\[.+?\]/, 'i');
-    const characterRoll = new RegExp(/roll\[.+?\]/, 'i');
-    const characterNotes = new RegExp(/notes\[.+?\]/, 'i');
+    const regexName = new RegExp(/name\[(.*?)\]/, 'i');
+    const regexState = new RegExp(/state\[(.*?)\]/, 'i');
+    const regexRoll = new RegExp(/roll\[(.*?)\]/, 'i');
+    const regexNotes = new RegExp(/notes\[(.*?)\]/, 'i');
     /*
     
 
@@ -114,7 +114,15 @@ cc 80 投擲
                 rply.text = this.getHelpMessage();
                 return rply;
                 // .ch(0) ADD(1) TOPIC(2) CONTACT(3)
-            case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) :
+            case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && mainMsg[2]:
+                let characterName = inputStr.match(regexName)
+                let characterState = inputStr.match(regexState)
+                let characterRoll = inputStr.match(regexRoll)
+                let characterNotes = inputStr.match(regexNotes)
+                if (characterName && characterName[1]) {
+
+                }
+
                 //console.log('mainMsg: ', mainMsg)
                 //增加資料庫
                 //檢查有沒有重覆

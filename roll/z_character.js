@@ -15,10 +15,10 @@ try {
     var prefixs = function () {
         return [/(^[.]char$)|(^[.]ch$)/ig, ]
     }
-    const characterName = new RegExp();
-    const characterName = new RegExp();
-    const characterName = new RegExp();
-    const characterName = new RegExp();
+    const characterName = new RegExp(/name\[.+?\]/, 'i');
+    const characterState = new RegExp(/state\[.+?\]/, 'i');
+    const characterRoll = new RegExp(/roll\[.+?\]/, 'i');
+    const characterNotes = new RegExp(/notes\[.+?\]/, 'i');
     /*
     
 

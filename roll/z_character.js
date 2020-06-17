@@ -13,7 +13,10 @@ try {
         return 'trpgcharacter:hktrpg'
     }
     var prefixs = function () {
-        return [/(^[.]char$)|(^[.]ch$)/ig, ]
+        return [{
+            first: /(^[.]char$)|(^[.]ch$)/ig,
+            second: null
+        }]
     }
     const characterName = new RegExp(/name\[.+?\]/, 'i');
     const characterState = new RegExp(/state\[.+?\]/, 'i');
@@ -111,7 +114,7 @@ cc 80 投擲
                 rply.text = this.getHelpMessage();
                 return rply;
                 // .ch(0) ADD(1) TOPIC(2) CONTACT(3)
-            case /(^[.]ch$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
+            case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) :
                 //console.log('mainMsg: ', mainMsg)
                 //增加資料庫
                 //檢查有沒有重覆

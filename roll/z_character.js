@@ -115,13 +115,7 @@ cc 80 投擲
                 return rply;
                 // .ch(0) ADD(1) TOPIC(2) CONTACT(3)
             case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && mainMsg[2]:
-                let characterName = inputStr.match(regexName)
-                let characterState = inputStr.match(regexState)
-                let characterRoll = inputStr.match(regexRoll)
-                let characterNotes = inputStr.match(regexNotes)
-                if (characterName && characterName[1]) {
-
-                }
+                let Card = analysicInputCharacterCard(inputStr);
 
                 //console.log('mainMsg: ', mainMsg)
                 //增加資料庫
@@ -155,6 +149,15 @@ cc 80 投擲
 
             default:
                 break;
+
+        }
+    }
+    async function analysicInputCharacterCard(inputStr) {
+        let characterName = inputStr.match(regexName)
+        let characterState = inputStr.match(regexState)
+        let characterRoll = inputStr.match(regexRoll)
+        let characterNotes = inputStr.match(regexNotes)
+        if (characterName && characterName[1]) {
 
         }
     }

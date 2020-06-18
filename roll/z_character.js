@@ -1,34 +1,28 @@
-try {
-    var rply = {
-        default: 'on',
-        type: 'text',
-        text: '',
-        save: ''
-    };
-    const records = require('../modules/records.js');
-    var gameName = function () {
-        return '(公測中)儲存角色卡功能 .ch (add del show 自定關鍵字)'
-    }
-    var gameType = function () {
-        return 'trpgcharacter:hktrpg'
-    }
-    var prefixs = function () {
-        return [{
-            first: /(^[.]char$)|(^[.]ch$)/ig,
-            second: null
-        }]
-    }
-    const regexName = new RegExp(/name\[(.*?)\]/, 'i');
-    const regexState = new RegExp(/state\[(.*?)\]/, 'i');
-    const regexRoll = new RegExp(/roll\[(.*?)\]/, 'i');
-    const regexNotes = new RegExp(/notes\[(.*?)\]/, 'i');
-
-    try {
-
-    } catch (error) {
-
-    }
-    /*
+var rply = {
+    default: 'on',
+    type: 'text',
+    text: '',
+    save: ''
+};
+const records = require('../modules/records.js');
+var gameName = function () {
+    return '(公測中)儲存角色卡功能 .ch (add del show 自定關鍵字)'
+}
+var gameType = function () {
+    return 'trpgcharacter:hktrpg'
+}
+var prefixs = function () {
+    return [{
+        first: /(^[.]char$)|(^[.]ch$)/ig,
+        second: null
+    }]
+}
+const regexName = new RegExp(/name\[(.*?)\]/, 'i');
+const regexState = new RegExp(/state\[(.*?)\]/, 'i');
+const regexRoll = new RegExp(/roll\[(.*?)\]/, 'i');
+const regexNotes = new RegExp(/notes\[(.*?)\]/, 'i');
+const re = new RegExp(/(.*?)\:(.*?)(\;|$)/, 'ig');
+/*
     
 
 .char add 的輸入格式,用來增建角色卡
@@ -95,8 +89,8 @@ cc 80 投擲
 
 */
 
-    var getHelpMessage = function () {
-        return "【儲存擲骰指令功能】" + "\
+var getHelpMessage = function () {
+    return "【儲存擲骰指令功能】" + "\
         \n 這是根據關鍵字來再現擲骰指令,\
         \n 例如輸入 .ch add  pc1鬥毆 cc 80 鬥毆 \
         \n 再輸入.ch pc1鬥毆  就會執行後方的指令\
@@ -107,97 +101,119 @@ cc 80 投擲
     \n 輸入.ch del(編號)或all 即可刪除\
     \n 輸入.ch  (關鍵字) 即可執行 \
     \n "
+}
+
+var initialize = function () {
+    return rply;
+}
+
+var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+    rply.text = '';
+    console.log(mainMsg)
+    switch (true) {
+        case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
+            rply.text = this.getHelpMessage();
+            return rply;
+            // .ch(0) ADD(1) TOPIC(2) CONTACT(3)
+        case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /\S+/.test(mainMsg[2]):
+            let Card = await analysicInputCharacterCard(inputStr);
+            console.log('Card: ', Card)
+            //增加資料庫
+            //檢查有沒有重覆
+
+            return rply;
+
+        case /(^[.]ch$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
+            //刪除資料庫
+
+
+            return rply;
+        case /(^[.]ch$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
+            //刪除資料庫
+            return rply;
+
+        case /(^[.]ch$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+            //顯示
+
+            //顯示資料庫
+            rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
+            return rply
+        case /(^[.]ch$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
+            //顯示關鍵字
+            //let times = /^[.]ch/.exec(mainMsg[0])[1] || 1
+            //if (times > 30) times = 30;
+            //if (times < 1) times = 1
+            //console.log(times)
+
+            return rply;
+
+        default:
+            break;
+
+    }
+}
+async function analysicInputCharacterCard(inputStr) {
+    let characterName = (inputStr.match(regexName)) ? inputStr.match(regexName)[1] : '';
+    let characterStateTemp = (inputStr.match(regexState)) ? inputStr.match(regexState)[1] : '';
+    let characterRollTemp = (inputStr.match(regexRoll)) ? inputStr.match(regexRoll)[1] : '';
+    let characterNotesTemp = (inputStr.match(regexNotes)) ? inputStr.match(regexNotes)[1] : '';
+
+    let characterState = (characterStateTemp) ? await analysicStr(characterStateTemp, true) : null;
+    let characterRoll = (characterRollTemp) ? await analysicStr(characterRollTemp, false) : null;
+    let characterNotes = (characterNotesTemp) ? await analysicStr(characterNotesTemp, false) : null;
+    let character = {
+        name: characterName,
+        state: characterState,
+        roll: characterRoll,
+        notes: characterNotes
+    }
+    return character;
+}
+
+async function analysicStr(inputStr, state) {
+    let character = [];
+    let myArray;
+    while ((myArray = re.exec(inputStr)) !== null) {
+        if (myArray[2].match(/\w\/\w/) && state) {
+            let temp2 = /(\w)\/(\w)/.exec(myArray[2])
+            myArray[2] = temp2[1]
+            myArray[3] = temp2[2]
+        }
+        myArray[3] = (myArray[3] == ';') ? '' : myArray[3];
+        character.push({
+            name: myArray[1],
+            itemA: myArray[2],
+            itemB: myArray[3]
+        })
     }
 
-    var initialize = function () {
-        return rply;
-    }
-
-    var rollDiceCommand = function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-        rply.text = '';
-        switch (true) {
-            case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
-                rply.text = this.getHelpMessage();
-                return rply;
-                // .ch(0) ADD(1) TOPIC(2) CONTACT(3)
-            case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && mainMsg[2]:
-                let Card = analysicInputCharacterCard(inputStr);
-
-                //console.log('mainMsg: ', mainMsg)
-                //增加資料庫
-                //檢查有沒有重覆
-
-                return rply;
-
-            case /(^[.]ch$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
-                //刪除資料庫
-
-
-                return rply;
-            case /(^[.]ch$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
-                //刪除資料庫
-                return rply;
-
-            case /(^[.]ch$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
-                //顯示
-
-                //顯示資料庫
-                rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
-                return rply
-            case /(^[.]ch$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
-                //顯示關鍵字
-                //let times = /^[.]ch/.exec(mainMsg[0])[1] || 1
-                //if (times > 30) times = 30;
-                //if (times < 1) times = 1
-                //console.log(times)
-
-                return rply;
-
-            default:
-                break;
+    return character;
+}
+/*
+character = {
+            gpid: String,
+            id: String,
+            acrossGroup: boolem,
+            active:boolem, 
+            acrossActive:boolem,
+            name: String,
+            nameShow:boolem,
+            state: [{name:String,itemA:String,itemB:String}],
+            roll: [{name:String,itemA:String}],
+            notes: [{name:String,itemA:String}]
 
         }
-    }
-    async function analysicInputCharacterCard(inputStr) {
-        const re = new RegExp(/(.*?)\:(.*?)(\;|$)/, 'ig');
-        let characterName = inputStr.match(regexName)
-        let characterStateTemp = inputStr.match(regexState).match(re)
-        let characterRollTemp = inputStr.match(regexRoll).match(re)
-        let characterNotesTemp = inputStr.match(regexNotes).match(re)
+*/
 
-        let characterState;
-        let characterRoll;
-        let characterNotes;
+module.exports = {
+    rollDiceCommand: rollDiceCommand,
+    initialize: initialize,
+    getHelpMessage: getHelpMessage,
+    prefixs: prefixs,
+    gameType: gameType,
+    gameName: gameName
+};
 
-
-    }
-    /*
-    character = {
-                gpid: String,
-                id: String,
-                acrossGroup: boolem,
-                active:boolem, 
-                acrossActive:boolem,
-                name: String,
-                nameShow:boolem,
-                state: [{name:String,stateA:String,stateB:String}],
-                roll: [{name:String,roll:String}],
-                notes: [{name:String,note:String}]
-
-            }
-    */
-
-    module.exports = {
-        rollDiceCommand: rollDiceCommand,
-        initialize: initialize,
-        getHelpMessage: getHelpMessage,
-        prefixs: prefixs,
-        gameType: gameType,
-        gameName: gameName
-    };
-} catch (e) {
-    console.log(e)
-}
 
 /*
 https://js.do/code/457118

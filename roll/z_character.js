@@ -200,7 +200,7 @@ cc 80 投擲
 }
 
 /*
-
+https://js.do/code/457118
 <script>
     const regexName = new RegExp(/name\[(.*?)\]/, 'i');
     const regexState = new RegExp(/state\[(.*?)\]/, 'i');

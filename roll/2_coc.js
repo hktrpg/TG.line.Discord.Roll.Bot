@@ -508,25 +508,44 @@ async function build7char(text01) {
 		EDUinc = EDUincArr[i];
 	}
 	ReStr = ReStr + '==\n';
-	if (old < 20) ReStr = ReStr + '年齡調整：從STR、SIZ擇一減去' + Debuff + '點\n（請自行手動選擇計算）。\n將EDU減去5點。LUK可擲兩次取高。';
-	else
-	if (old >= 40) ReStr = ReStr + '年齡調整：從STR、CON或DEX中「總共」減去' + Debuff + '點\n（請自行手動選擇計算）。\n將APP減去' + AppDebuff + '點。可做' + EDUinc + '次EDU的成長擲骰。';
-	else ReStr = ReStr + '年齡調整：可做' + EDUinc + '次EDU的成長擲骰。';
-	ReStr = ReStr + '\n==';
-	if (old >= 40) ReStr = ReStr + '\n（以下箭號三項，自選共減' + Debuff + '點。）';
-	if (old < 20) ReStr = ReStr + '\n（以下箭號兩項，擇一減去' + Debuff + '點。）';
+	switch (true) {
+		case (old >= 15 && old <= 19):
+			ReStr = ReStr + '年齡調整：從STR或SIZ中減去' + Debuff + '點\n（請自行手動選擇計算）。\nEDU減去5點。LUK骰兩次取高。';
+			ReStr = ReStr + '\n==';
+			ReStr = ReStr + '\n（以下箭號兩項，減值' + Debuff + '點。）';
+			break;
+		case (old >= 20 && old <= 39):
+			ReStr = ReStr + '年齡調整：可做' + EDUinc + '次EDU的成長擲骰。';
+			ReStr = ReStr + '\n==';
+			break;
+		case (old >= 40 && old <= 49):
+			ReStr = ReStr + '年齡調整：從STR、CON或DEX中減去' + Debuff + '點\n（請自行手動選擇計算）。\nAPP減去' + AppDebuff + '點。進行' + EDUinc + '次EDU的成長擲骰。';
+			ReStr = ReStr + '\n==';
+			ReStr = ReStr + '\n（以下箭號三項，自選減去' + Debuff + '點。）';
+			break;
+		case (old >= 50):
+			ReStr = ReStr + '年齡調整：從STR、CON或DEX中減去' + Debuff + '點\n（從一，二或全部三項中選擇）\n（請自行手動選擇計算）。\nAPP減去' + AppDebuff + '點。進行' + EDUinc + '次EDU的成長擲骰。';
+			ReStr = ReStr + '\n==';
+			ReStr = ReStr + '\n（以下箭號三項，自選減去' + Debuff + '點。）';
+			break;
+
+		default:
+			break;
+	}
 	ReStr = ReStr + '\nＳＴＲ：' + await rollbase.BuildDiceCal('3d6*5');
-	if (old >= 40) ReStr = ReStr + ' ← 共減' + Debuff;
-	if (old < 20) ReStr = ReStr + ' ←擇一減' + Debuff;
+
+
+	if (old >= 40) ReStr = ReStr + ' ←（可選） '
+	if (old < 20) ReStr = ReStr + ' ←（可選）'
 	ReStr = ReStr + '\nＣＯＮ：' + await rollbase.BuildDiceCal('3d6*5');
-	if (old >= 40) ReStr = ReStr + ' ← 共減' + Debuff;
+	if (old >= 40) ReStr = ReStr + ' ← （可選）'
 	ReStr = ReStr + '\nＤＥＸ：' + await rollbase.BuildDiceCal('3d6*5');
-	if (old >= 40) ReStr = ReStr + ' ← 共減' + Debuff;
+	if (old >= 40) ReStr = ReStr + ' ← （可選）'
 	if (old >= 40) ReStr = ReStr + '\nＡＰＰ：' + await rollbase.BuildDiceCal('3d6*5-' + AppDebuff);
 	else ReStr = ReStr + '\nＡＰＰ：' + await rollbase.BuildDiceCal('3d6*5');
 	ReStr = ReStr + '\nＰＯＷ：' + await rollbase.BuildDiceCal('3d6*5');
 	ReStr = ReStr + '\nＳＩＺ：' + await rollbase.BuildDiceCal('(2d6+6)*5');
-	if (old < 20) ReStr = ReStr + ' ←擇一減' + Debuff;
+	if (old < 20) ReStr = ReStr + ' ←（可選）'
 	ReStr = ReStr + '\nＩＮＴ：' + await rollbase.BuildDiceCal('(2d6+6)*5');
 	if (old < 20) ReStr = ReStr + '\nＥＤＵ：' + await rollbase.BuildDiceCal('3d6*5-5');
 	else {

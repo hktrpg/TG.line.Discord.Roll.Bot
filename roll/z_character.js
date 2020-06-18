@@ -22,6 +22,12 @@ try {
     const regexState = new RegExp(/state\[(.*?)\]/, 'i');
     const regexRoll = new RegExp(/roll\[(.*?)\]/, 'i');
     const regexNotes = new RegExp(/notes\[(.*?)\]/, 'i');
+
+    try {
+
+    } catch (error) {
+
+    }
     /*
     
 
@@ -153,20 +159,27 @@ cc 80 投擲
         }
     }
     async function analysicInputCharacterCard(inputStr) {
+        const re = new RegExp(/(.*?)\:(.*?)(\;|$)/, 'ig');
         let characterName = inputStr.match(regexName)
-        let characterState = inputStr.match(regexState)
-        let characterRoll = inputStr.match(regexRoll)
-        let characterNotes = inputStr.match(regexNotes)
+        let characterStateTemp = inputStr.match(regexState).match(re)
+        let characterRollTemp = inputStr.match(regexRoll).match(re)
+        let characterNotesTemp = inputStr.match(regexNotes).match(re)
 
+        let characterState;
+        let characterRoll;
+        let characterNotes;
 
 
     }
     /*
     character = {
-
                 gpid: String,
                 id: String,
                 acrossGroup: boolem,
+                active:boolem, 
+                acrossActive:boolem,
+                name: String,
+                nameShow:boolem,
                 state: [{name:String,stateA:String,stateB:String}],
                 roll: [{name:String,roll:String}],
                 notes: [{name:String,note:String}]
@@ -185,3 +198,48 @@ cc 80 投擲
 } catch (e) {
     console.log(e)
 }
+
+/*
+
+<script>
+    const regexName = new RegExp(/name\[(.*?)\]/, 'i');
+    const regexState = new RegExp(/state\[(.*?)\]/, 'i');
+    const regexRoll = new RegExp(/roll\[(.*?)\]/, 'i');
+    const regexNotes = new RegExp(/notes\[(.*?)\]/, 'i');
+let characterName 
+        let characterStateTemp 
+        let characterRollTemp 
+       let characterNotesTemp 
+       
+       
+        const re = new RegExp(/(.*?)\:(.*?)(\;|$)/, 'ig');
+        
+        const inputStr = '.char add name[hi] state[hp:;san:36/99;str:90;str:90] roll[格鬥:cc 80 鬥歐;sc: cc {san}] note[筆記:這是Demo]'
+    try{
+     characterName = inputStr.match(regexName)[1]
+         characterStateTemp = inputStr.match(regexState)[1]
+         characterRollTemp = inputStr.match(regexRoll)[1]
+        characterNotesTemp = inputStr.match(regexNotes)[1]
+}
+catch(error){}
+let temp;
+let characterState=[];
+let myArray;
+while (( myArray = re.exec(characterStateTemp)) !== null) {
+if(myArray[2].match(/\w\/\w/)){
+let temp2 = /(\w)\/(\w)/.exec(myArray[2])
+document.write()
+myArray[2] = temp2[1]
+myArray[3] = temp2[2]
+}
+myArray[3]= (myArray[3] ==';' )? '':myArray[3];
+  characterState.push({name:myArray[1],stateA:myArray[2],stateB:myArray[3]})
+}
+
+document.write('characterStateTemp===',characterStateTemp+"<br>"+characterRollTemp+"<br>"+characterNotesTemp+"<br>")
+document.write(JSON.stringify(characterState)+"<br>")
+
+</script>
+
+
+*/

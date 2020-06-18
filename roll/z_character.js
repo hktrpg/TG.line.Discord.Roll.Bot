@@ -157,11 +157,22 @@ cc 80 投擲
         let characterState = inputStr.match(regexState)
         let characterRoll = inputStr.match(regexRoll)
         let characterNotes = inputStr.match(regexNotes)
-        if (characterName && characterName[1]) {
 
-        }
+
+
     }
+    /*
+    character = {
 
+                gpid: String,
+                id: String,
+                acrossGroup: boolem,
+                state: [{name:String,stateA:String,stateB:String}],
+                roll: [{name:String,roll:String}],
+                notes: [{name:String,note:String}]
+
+            }
+    */
 
     module.exports = {
         rollDiceCommand: rollDiceCommand,

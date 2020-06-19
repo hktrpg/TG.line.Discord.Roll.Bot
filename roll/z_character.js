@@ -1,10 +1,11 @@
+"use strict";
 var rply = {
     default: 'on',
     type: 'text',
     text: '',
     save: ''
 };
-const records = require('../modules/records.js');
+const schema = require('../modules/core-schema.js');
 var gameName = function () {
     return '(公測中)儲存角色卡功能 .ch (add del show 自定關鍵字)'
 }
@@ -109,7 +110,6 @@ var initialize = function () {
 
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
     rply.text = '';
-    console.log(mainMsg)
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
@@ -118,17 +118,54 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
         case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /\S+/.test(mainMsg[2]):
             let Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
             console.log('Card: ', Card)
-            //取得本來的資料, 如有重覆, 以新的覆蓋
-            let a = {}
+            if (!groupid) {
+                rply.text = '請在群組內新增角色卡'
+                return rply;
+            }
+            if (!Card.name) {
+                rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 name[XXXX]'
+                return rply;
+            }
+            /*
+            只限六張角色卡.
+            */
+            let check = await schema.characterCard.find({
+                id: userid
+            });
+            if (check.length > 6) {
+                rply.text = '每人角色卡上限為6'
+                return rply;
+            }
 
+
+
+            //取得本來的資料, 如有重覆, 以新的覆蓋
+            let filter = {
+                gpid: groupid,
+                id: userid,
+                name: Card.name
+            }
+            let doc = await schema.characterCard.findOne({
+                filter
+            });
             //把舊和新的合併
-            Card.state = await Merge(a.state, Card.state, 'name');
-            Card.roll = await Merge(a.roll, Card.roll, 'name');
-            Card.notes = await Merge(a.notes, Card.notes, 'name');
-            console.log('mergedCard: ', Card)
+            if (doc) {
+                Card.state = await Merge(doc.state, Card.state, 'name');
+                Card.roll = await Merge(doc.roll, Card.roll, 'name');
+                Card.notes = await Merge(doc.notes, Card.notes, 'name');
+            }
+            try {
+                await schema.characterCard.updateOne(filter, Card, {
+                    upsert: true
+                });
+            } catch (error) {
+                console.log('新增角色卡失敗: ', error)
+                rply.text = '新增角色卡失敗'
+                return rply;
+            }
             //增加資料庫
             //檢查有沒有重覆
-            rply.text = JSON.stringify(Card)
+            rply.text = await showCharecter(Card);
             return rply;
 
         case /(^[.]ch$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
@@ -159,6 +196,24 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             break;
 
     }
+}
+
+async function showCharecter(Card) {
+    /*
+    角色名字
+    HP: 5/5 MP: 3/3 SAN: 50/90 護甲: 6
+    -------
+    投擲: cc 80 投擲 
+    空手: cc 50
+    -------
+    筆記: SAD
+    心靈支柱: 特質
+
+    ======
+    */
+    let returnStr = '';
+    returnStr = Card.name + '\n';
+
 }
 async function analysicInputCharacterCard(inputStr) {
     let characterName = (inputStr.match(regexName)) ? inputStr.match(regexName)[1] : '';

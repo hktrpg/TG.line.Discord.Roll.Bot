@@ -144,6 +144,28 @@ if (process.env.mongoURL) {
             WhatsappCountText: Number
         }
     });
+    const characterCard = mongoose.model('characterCard', new mongoose.Schema({
+        gpid: String,
+        id: String,
+        acrossGroup: Boolean,
+        active: Boolean,
+        acrossActive: Boolean,
+        name: String,
+        nameShow: Boolean,
+        state: [{
+            name: String,
+            itemA: String,
+            itemB: String
+        }],
+        roll: [{
+            name: String,
+            itemA: String
+        }],
+        notes: [{
+            name: String,
+            itemA: String
+        }]
+    }));
 
 
     module.exports = {
@@ -158,7 +180,8 @@ if (process.env.mongoURL) {
         trpgLevelSystem,
         trpgDarkRolling,
         RealTimeRollingLog,
-        RollingLog
+        RollingLog,
+        characterCard
     }
     //const Cat = mongoose.model('Cat', { name: String });
     //const kitty = new Cat({ name: 'Zildjian' });

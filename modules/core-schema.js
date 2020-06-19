@@ -145,11 +145,8 @@ if (process.env.mongoURL) {
         }
     });
     const characterCard = mongoose.model('characterCard', new mongoose.Schema({
-        gpid: String,
+        gpid: Array,
         id: String,
-        acrossGroup: Boolean,
-        active: Boolean,
-        acrossActive: Boolean,
         name: String,
         nameShow: Boolean,
         state: [{

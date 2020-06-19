@@ -138,7 +138,6 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 
             //取得本來的資料, 如有重覆, 以新的覆蓋
             let filter = {
-                gpid: groupid,
                 id: userid,
                 name: Card.name
             }
@@ -210,7 +209,23 @@ async function showCharecter(Card) {
     */
     let returnStr = '';
     returnStr = Card.name + '\n';
-
+    for (let i = 0; i < Card.state.length; i++) {
+        returnStr += (Card.state[i].itemA) ? Card.state[i].name + ': ' + Card.state[i].itemA : ' ';
+        returnStr += (Card.state[i].itemB) ? '/ ' + Card.state[i].itemB : ' ';
+        if (i % 3)
+            returnStr += '\n'
+    }
+    returnStr += '-------\n'
+    for (let i = 0; i < Card.roll.length; i++) {
+        returnStr += (Card.roll[i].itemA) ? Card.roll[i].name + ': ' + Card.roll[i].itemA : '';
+        returnStr += '\n'
+    }
+    returnStr += '-------\n'
+    for (let i = 0; i < Card.notes.length; i++) {
+        returnStr += (Card.notes[i].itemA) ? Card.notes[i].name + ': ' + Card.notes[i].itemA : '';
+        returnStr += '\n'
+    }
+    return returnStr;
 }
 async function analysicInputCharacterCard(inputStr) {
     let characterName = (inputStr.match(regexName)) ? inputStr.match(regexName)[1] : '';

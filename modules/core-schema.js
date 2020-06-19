@@ -144,6 +144,14 @@ if (process.env.mongoURL) {
             WhatsappCountText: Number
         }
     });
+
+    const veryImportantPerson = mongoose.model('veryImportantPerson', {
+        gpid: Array,
+        persionid: Number,
+        level: Number,
+        startTime: Date,
+        endTime: Date
+    });
     const characterCard = mongoose.model('characterCard', new mongoose.Schema({
         gpid: Array,
         id: String,
@@ -178,7 +186,8 @@ if (process.env.mongoURL) {
         trpgDarkRolling,
         RealTimeRollingLog,
         RollingLog,
-        characterCard
+        characterCard,
+        veryImportantPerson
     }
     //const Cat = mongoose.model('Cat', { name: String });
     //const kitty = new Cat({ name: 'Zildjian' });

@@ -78,17 +78,19 @@ HP: 5/5 MP: 3/3 SAN: 50/90 護甲: 6
 
 功能 使用角色卡的state 和notes
 
+.ch set HP  10 直接把現在值變成10
+.ch set HP  10 20 直接把現在值變成10 最大值變成20
+.ch set HP  . 20 直接把現在值變成空白 最大值變成20
+
 .ch HP MP 顯示該內容 
 HP 5/5 MP 3/3  
+
 
 .ch HP -5 如果HP是State 自動減5 
 .ch HP +5  如果HP是State 自動加5 如果是
 .ch HP . +5  如果HP是State 後面的數字加5 變成5/10
 .ch HP +5 +5  如果HP是State 前面和後面的數字加5 變成10/10
 
-.ch set HP  10 直接把現在值變成10
-.ch set HP  10 20 直接把現在值變成10 最大值變成20
-.ch set HP  . 20 直接把現在值變成空白 最大值變成20
 
 ============
 .ch 輸出指令

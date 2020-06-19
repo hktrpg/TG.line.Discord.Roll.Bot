@@ -219,28 +219,24 @@ module.exports = {
     gameType: gameType,
     gameName: gameName
 };
+//https://stackoverflow.com/questions/7146217/merge-2-arrays-of-objects
+function Merge(obj1, obj2, prop) {
+    /*var odd = [
+        { name : "1", arr: "in odd" },
+        { name : "3", arr: "in odd" }
+    ];
 
-function Merge(obj1, obj2) {
+    var even = [
+        { name : "1", arr: "in even" },
+        { name : "2", arr: "in even" },
+        { name : "4", arr: "in even" }
+    ];
+    */
+    //var merge = (obj1, obj2, prop) => obj1.filter( aa => ! obj2.find ( bb => aa[p] === bb[p]) ).concat(obj2);
 
-    for (var p in obj2) {
-        try {
-            // Property in destination object set; update its value.
-            if (obj2[p].constructor == Object) {
-                obj1[p] = MergeRecursive(obj1[p], obj2[p]);
+    var reduced = obj1.filter(aitem => !obj2.find(bitem => aitem[prop] === bitem[prop]))
+    return reduced.concat(b);
 
-            } else {
-                obj1[p] = obj2[p];
-
-            }
-
-        } catch (e) {
-            // Property in destination object not set; create it and set its value.
-            obj1[p] = obj2[p];
-
-        }
-    }
-
-    return obj1;
 }
 /*
 https://js.do/code/457118

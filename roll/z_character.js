@@ -24,7 +24,8 @@ const regexRoll = new RegExp(/roll\[(.*?)\]/, 'i');
 const regexNotes = new RegExp(/notes\[(.*?)\]/, 'i');
 const re = new RegExp(/(.*?)\:(.*?)(\;|$)/, 'ig');
 /*
-    
+以個人為單位, 一張咭可以在不同的群組使用    
+
 
 .char add 的輸入格式,用來增建角色卡
 .char add name[Sad]
@@ -118,10 +119,6 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
         case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /\S+/.test(mainMsg[2]):
             let Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
             console.log('Card: ', Card)
-            if (!groupid) {
-                rply.text = '請在群組內新增角色卡'
-                return rply;
-            }
             if (!Card.name) {
                 rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 name[XXXX]'
                 return rply;

@@ -118,6 +118,12 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
         case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /\S+/.test(mainMsg[2]):
             let Card = await analysicInputCharacterCard(inputStr);
             console.log('Card: ', Card)
+            let a = {
+                name: '22',
+                roll: [2]
+            }
+            let merged = Merge(Card, a);
+            console.log('merged: ', merged)
             //增加資料庫
             //檢查有沒有重覆
 
@@ -214,7 +220,28 @@ module.exports = {
     gameName: gameName
 };
 
+function Merge(obj1, obj2) {
 
+    for (var p in obj2) {
+        try {
+            // Property in destination object set; update its value.
+            if (obj2[p].constructor == Object) {
+                obj1[p] = MergeRecursive(obj1[p], obj2[p]);
+
+            } else {
+                obj1[p] = obj2[p];
+
+            }
+
+        } catch (e) {
+            // Property in destination object not set; create it and set its value.
+            obj1[p] = obj2[p];
+
+        }
+    }
+
+    return obj1;
+}
 /*
 https://js.do/code/457118
 <script>

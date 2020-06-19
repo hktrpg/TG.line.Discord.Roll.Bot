@@ -116,17 +116,33 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             return rply;
             // .ch(0) ADD(1) TOPIC(2) CONTACT(3)
         case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /\S+/.test(mainMsg[2]):
-            let Card = await analysicInputCharacterCard(inputStr);
+            let Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
             console.log('Card: ', Card)
+
+            //取得本來的資料, 如有重覆, 以新的覆蓋
             let a = {
                 name: '22',
-                roll: [2]
+                roll: [{
+                    name: 'String',
+                    itemA: 'String',
+                    itemB: 'String'
+                }],
+                notes: [{
+                    name: '筆記',
+                    itemA: 'StringQAQ'
+                }],
+                state: [{
+                    name: '筆記',
+                    itemA: 'StringQAQ'
+                }]
             }
-            let merged = Merge(Card, a);
-            console.log('merged: ', merged)
+            Card.state = await Merge(a.state, Card.state, 'name');
+            Card.roll = await Merge(a.roll, Card.roll, 'name');
+            Card.notes = await Merge(a.notes, Card.notes, 'name');
+            console.log('mergedCard: ', Card)
             //增加資料庫
             //檢查有沒有重覆
-
+            rply.text = JSON.stringify(Card)
             return rply;
 
         case /(^[.]ch$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
@@ -186,11 +202,17 @@ async function analysicStr(inputStr, state) {
             myArray[3] = temp2[2]
         }
         myArray[3] = (myArray[3] == ';') ? '' : myArray[3];
-        character.push({
-            name: myArray[1],
-            itemA: myArray[2],
-            itemB: myArray[3]
-        })
+        if (state)
+            character.push({
+                name: myArray[1],
+                itemA: myArray[2],
+                itemB: myArray[3]
+            })
+        else
+            character.push({
+                name: myArray[1],
+                itemA: myArray[2]
+            })
     }
 
     return character;
@@ -220,7 +242,7 @@ module.exports = {
     gameName: gameName
 };
 //https://stackoverflow.com/questions/7146217/merge-2-arrays-of-objects
-function Merge(obj1, obj2, prop) {
+async function Merge(obj1, obj2, prop) {
     /*var odd = [
         { name : "1", arr: "in odd" },
         { name : "3", arr: "in odd" }
@@ -235,7 +257,7 @@ function Merge(obj1, obj2, prop) {
     //var merge = (obj1, obj2, prop) => obj1.filter( aa => ! obj2.find ( bb => aa[p] === bb[p]) ).concat(obj2);
 
     var reduced = obj1.filter(aitem => !obj2.find(bitem => aitem[prop] === bitem[prop]))
-    return reduced.concat(b);
+    return reduced.concat(obj2);
 
 }
 /*

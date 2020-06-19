@@ -6,6 +6,7 @@ var rply = {
     save: ''
 };
 const schema = require('../modules/core-schema.js');
+const VIP = require('../modules/veryImportantPerson');
 var gameName = function () {
     return '(公測中)儲存角色卡功能 .ch (add del show 自定關鍵字)'
 }
@@ -23,14 +24,13 @@ const regexState = new RegExp(/state\[(.*?)\]/, 'i');
 const regexRoll = new RegExp(/roll\[(.*?)\]/, 'i');
 const regexNotes = new RegExp(/notes\[(.*?)\]/, 'i');
 const re = new RegExp(/(.*?)\:(.*?)(\;|$)/, 'ig');
+const limitArr = [4, 10, 30, 100, 200, 999]
 /*
 以個人為單位, 一張咭可以在不同的群組使用    
-
-
 .char add 的輸入格式,用來增建角色卡
 .char add name[Sad]
-state[HP:5/5;MP:3/3;SAN:50/99;護甲:6;]
-roll[投擲:cc 80 投擲;空手 cc 50;]
+state[HP:5/5;MP:3/3;SAN:50/99;護甲:6]
+roll[投擲:cc 80 投擲;空手鬥毆: cc 50]
 notes[筆記:SAD;心靈支柱: 特質]
 
 // state 可以進行增減
@@ -41,10 +41,21 @@ notes[筆記:SAD;心靈支柱: 特質]
 但沒有的話,  就會出錯
 ============
 
+
 ===
 .char use 使用角色卡
-.ch use sad
+.char use sad
 會自動使用名叫Sad 的角色卡
+====
+.char nonuse 
+.char use 
+會取消在此群組使用角色卡
+
+====
+.char delete  角色卡
+.char delete Sad
+刪除角色卡
+
 ====
 
 顯示SHOW 功能:
@@ -89,6 +100,7 @@ cc 80 投擲
 
 ======
 
+
 */
 
 var getHelpMessage = function () {
@@ -111,6 +123,7 @@ var initialize = function () {
 
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
     rply.text = '';
+
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
@@ -118,32 +131,25 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             // .ch(0) ADD(1) TOPIC(2) CONTACT(3)
         case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /\S+/.test(mainMsg[2]):
             let Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
-            console.log('Card: ', Card)
             if (!Card.name) {
                 rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 name[XXXX]'
-                return rply;
             }
             /*
             只限六張角色卡.
+            使用VIPCHECK
             */
-            let check = await schema.characterCard.find({
-                id: userid
-            });
-            if (check.length > 6) {
-                rply.text = '每人角色卡上限為6'
+            rply.text = await VIP.viplevelCheck(userid, limitArr)
+            if (rply.text) {
                 return rply;
             }
 
-
-
-            //取得本來的資料, 如有重覆, 以新的覆蓋
             let filter = {
                 id: userid,
                 name: Card.name
             }
-            let doc = await schema.characterCard.findOne({
-                filter
-            });
+            //取得本來的資料, 如有重覆, 以新的覆蓋
+
+            let doc = await schema.characterCard.findOne(filter);
             //把舊和新的合併
             if (doc) {
                 Card.state = await Merge(doc.state, Card.state, 'name');
@@ -162,6 +168,77 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             //增加資料庫
             //檢查有沒有重覆
             rply.text = await showCharecter(Card);
+            return rply;
+
+        case /(^[.]char$)/i.test(mainMsg[0]) && /^use$/i.test(mainMsg[1]) && /\S+/.test(mainMsg[2]):
+            if (!groupid) {
+                rply.text = '不在群組'
+                return rply
+            }
+            let filterUse = {
+                id: userid,
+                name: mainMsg[2]
+            }
+            let docUse = await schema.characterCard.findOne(filterUse);
+            if (!docUse) {
+                rply.text = '沒有此角色卡'
+                return rply
+            }
+
+            await schema.characterGpSwitch.findOneAndUpdate({
+                gpid: channelid || groupid,
+                id: userid,
+            }, {
+                name: mainMsg[2]
+            }, {
+                upsert: true
+            });
+            rply.text = '修改成功\n現在使用角色卡: ' + mainMsg[2];
+            return rply;
+        case /(^[.]char$)/i.test(mainMsg[0]) && /^nonuse$/i.test(mainMsg[1]):
+            if (!groupid) {
+                rply.text = '不在群組'
+                return rply
+            }
+            await schema.characterGpSwitch.findOneAndUpdate({
+                gpid: channelid || groupid,
+                id: userid,
+            }, {
+                name: ''
+            }, {
+                upsert: true
+            });
+            rply.text = '修改成功'
+            return rply;
+
+        case /(^[.]char$)/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]) && /\S+/.test(mainMsg[2]):
+            if (!groupid) {
+                rply.text = '不在群組'
+                return rply
+            }
+
+
+            let filterDelete = {
+                id: userid,
+                name: mainMsg[2]
+            }
+
+            let docDelete = await schema.characterCard.findOne(filterDelete);
+            if (!docDelete) {
+                rply.text = '沒有此角色卡'
+                return rply
+            }
+            try {
+                await schema.characterCard.findOneAndRemove(filterDelete);
+                await schema.characterGpSwitch.deleteMany(filterDelete);
+            } catch (error) {
+                console.log('刪除角色卡失敗: ', error)
+                rply.text = '刪除角色卡失敗'
+                return rply;
+            }
+            //增加資料庫
+            //檢查有沒有重覆
+            rply.text = '刪除角色卡成功: ' + mainMsg[2]
             return rply;
 
         case /(^[.]ch$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
@@ -207,24 +284,30 @@ async function showCharecter(Card) {
 
     ======
     */
-    let returnStr = '';
-    returnStr = Card.name + '\n';
+    let returnStr = '新增/修改成功\n';
+    returnStr += Card.name + '\n';
+    let a = 1
     for (let i = 0; i < Card.state.length; i++) {
-        returnStr += (Card.state[i].itemA) ? Card.state[i].name + ': ' + Card.state[i].itemA : ' ';
-        returnStr += (Card.state[i].itemB) ? '/ ' + Card.state[i].itemB : ' ';
-        if (i % 3)
+        if ((a) % 4 == 0) {
             returnStr += '\n'
+        }
+        returnStr += (Card.state[i].itemA) ? Card.state[i].name + ': ' + Card.state[i].itemA : '';
+        returnStr += (Card.state[i].itemB) ? '/' + Card.state[i].itemB : '';
+        if (Card.state[i].itemA || Card.state[i].itemB) {
+            a++
+            returnStr += ' '
+        }
     }
-    returnStr += '-------\n'
+    returnStr += '\n-------\n'
     for (let i = 0; i < Card.roll.length; i++) {
-        returnStr += (Card.roll[i].itemA) ? Card.roll[i].name + ': ' + Card.roll[i].itemA : '';
-        returnStr += '\n'
+        returnStr += (Card.roll[i].itemA) ? Card.roll[i].name + ': ' + Card.roll[i].itemA + '\n' : '';
+
     }
     returnStr += '-------\n'
     for (let i = 0; i < Card.notes.length; i++) {
-        returnStr += (Card.notes[i].itemA) ? Card.notes[i].name + ': ' + Card.notes[i].itemA : '';
-        returnStr += '\n'
+        returnStr += (Card.notes[i].itemA) ? Card.notes[i].name + ': ' + Card.notes[i].itemA + '\n' : '';
     }
+    returnStr += '-------'
     return returnStr;
 }
 async function analysicInputCharacterCard(inputStr) {
@@ -236,7 +319,6 @@ async function analysicInputCharacterCard(inputStr) {
     let characterState = (characterStateTemp) ? await analysicStr(characterStateTemp, true) : [];
     let characterRoll = (characterRollTemp) ? await analysicStr(characterRollTemp, false) : [];
     let characterNotes = (characterNotesTemp) ? await analysicStr(characterNotesTemp, false) : [];
-
 
     //Remove duplicates from an array of objects in JavaScript
     // if (characterState)
@@ -260,8 +342,8 @@ async function analysicStr(inputStr, state) {
     let character = [];
     let myArray;
     while ((myArray = re.exec(inputStr)) !== null) {
-        if (myArray[2].match(/\w\/\w/) && state) {
-            let temp2 = /(\w)\/(\w)/.exec(myArray[2])
+        if (myArray[2].match(/\w+\/\w+/) && state) {
+            let temp2 = /(\w+)\/(\w+)/.exec(myArray[2])
             myArray[2] = temp2[1]
             myArray[3] = temp2[2]
         }
@@ -306,7 +388,7 @@ module.exports = {
     gameName: gameName
 };
 //https://stackoverflow.com/questions/7146217/merge-2-arrays-of-objects
-async function Merge(obj1, obj2, prop) {
+async function Merge(target, source, prop) {
     /*var odd = [
         { name : "1", arr: "in odd" },
         { name : "3", arr: "in odd" }
@@ -318,13 +400,23 @@ async function Merge(obj1, obj2, prop) {
         { name : "4", arr: "in even" }
     ];
     */
-    //var merge = (obj1, obj2, prop) => obj1.filter( aa => ! obj2.find ( bb => aa[p] === bb[p]) ).concat(obj2);
-    if (!obj1) obj1 = []
-    if (!obj2) obj2 = []
-    var reduced = obj1.filter(aitem => !obj2.find(bitem => aitem[prop] === bitem[prop]))
-    return reduced.concat(obj2);
+    if (!target) target = []
+    if (!source) source = []
+    const mergeByProperty = (target, source, prop) => {
+        source.forEach(sourceElement => {
+            let targetElement = target.find(targetElement => {
+                return sourceElement[prop] === targetElement[prop];
+            })
+            targetElement ? Object.assign(targetElement, sourceElement) : target.push(sourceElement);
+        })
+    }
+
+    mergeByProperty(target, source, prop);
+    return target;
 
 }
+
+
 /*
 https://js.do/code/457118
 <script>

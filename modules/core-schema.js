@@ -147,13 +147,20 @@ if (process.env.mongoURL) {
 
     const veryImportantPerson = mongoose.model('veryImportantPerson', {
         gpid: Array,
-        persionid: Number,
+        id: Array,
         level: Number,
         startTime: Date,
-        endTime: Date
+        endTime: Date,
+        name: String,
+        notes: String
     });
-    const characterCard = mongoose.model('characterCard', new mongoose.Schema({
+    const characterGpSwitch = mongoose.model('characterGpSwitch', new mongoose.Schema({
         gpid: Array,
+        id: String,
+        name: String
+    }));
+
+    const characterCard = mongoose.model('characterCard', new mongoose.Schema({
         id: String,
         name: String,
         nameShow: Boolean,
@@ -187,7 +194,8 @@ if (process.env.mongoURL) {
         RealTimeRollingLog,
         RollingLog,
         characterCard,
-        veryImportantPerson
+        veryImportantPerson,
+        characterGpSwitch
     }
     //const Cat = mongoose.model('Cat', { name: String });
     //const kitty = new Cat({ name: 'Zildjian' });

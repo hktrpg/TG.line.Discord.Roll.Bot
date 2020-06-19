@@ -118,24 +118,10 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
         case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /\S+/.test(mainMsg[2]):
             let Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
             console.log('Card: ', Card)
-
             //取得本來的資料, 如有重覆, 以新的覆蓋
-            let a = {
-                name: '22',
-                roll: [{
-                    name: 'String',
-                    itemA: 'String',
-                    itemB: 'String'
-                }],
-                notes: [{
-                    name: '筆記',
-                    itemA: 'StringQAQ'
-                }],
-                state: [{
-                    name: '筆記',
-                    itemA: 'StringQAQ'
-                }]
-            }
+            let a = {}
+
+            //把舊和新的合併
             Card.state = await Merge(a.state, Card.state, 'name');
             Card.roll = await Merge(a.roll, Card.roll, 'name');
             Card.notes = await Merge(a.notes, Card.notes, 'name');
@@ -180,15 +166,26 @@ async function analysicInputCharacterCard(inputStr) {
     let characterRollTemp = (inputStr.match(regexRoll)) ? inputStr.match(regexRoll)[1] : '';
     let characterNotesTemp = (inputStr.match(regexNotes)) ? inputStr.match(regexNotes)[1] : '';
 
-    let characterState = (characterStateTemp) ? await analysicStr(characterStateTemp, true) : null;
-    let characterRoll = (characterRollTemp) ? await analysicStr(characterRollTemp, false) : null;
-    let characterNotes = (characterNotesTemp) ? await analysicStr(characterNotesTemp, false) : null;
+    let characterState = (characterStateTemp) ? await analysicStr(characterStateTemp, true) : [];
+    let characterRoll = (characterRollTemp) ? await analysicStr(characterRollTemp, false) : [];
+    let characterNotes = (characterNotesTemp) ? await analysicStr(characterNotesTemp, false) : [];
+
+
+    //Remove duplicates from an array of objects in JavaScript
+    // if (characterState)
+    characterState = characterState.filter((v, i, a) => a.findIndex(t => (t.name === v.name)) === i)
+    //if (characterRoll)
+    characterRoll = characterRoll.filter((v, i, a) => a.findIndex(t => (t.name === v.name)) === i)
+    //if (characterNotes)
+    characterNotes = characterNotes.filter((v, i, a) => a.findIndex(t => (t.name === v.name)) === i)
+
     let character = {
         name: characterName,
         state: characterState,
         roll: characterRoll,
         notes: characterNotes
     }
+
     return character;
 }
 
@@ -255,7 +252,8 @@ async function Merge(obj1, obj2, prop) {
     ];
     */
     //var merge = (obj1, obj2, prop) => obj1.filter( aa => ! obj2.find ( bb => aa[p] === bb[p]) ).concat(obj2);
-
+    if (!obj1) obj1 = []
+    if (!obj2) obj2 = []
     var reduced = obj1.filter(aitem => !obj2.find(bitem => aitem[prop] === bitem[prop]))
     return reduced.concat(obj2);
 

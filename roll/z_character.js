@@ -188,13 +188,19 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 rply.text = '沒有此角色卡'
                 return rply
             }
+            try {
+                await schema.characterGpSwitch.findOneAndUpdate({
+                    gpid: channelid || groupid,
+                    id: userid,
+                }, {
+                    name: mainMsg[2]
+                }, opt);
+            } catch (error) {
+                console.log('ERROR 修改失敗' + error)
+                rply.text = '修改失敗\n' + error;
+                return rply;
+            }
 
-            await schema.characterGpSwitch.findOneAndUpdate({
-                gpid: channelid || groupid,
-                id: userid,
-            }, {
-                name: mainMsg[2]
-            }, opt);
             rply.text = '修改成功\n現在使用角色卡: ' + mainMsg[2];
             return rply;
         case /(^[.]char$)/i.test(mainMsg[0]) && /^nonuse$/i.test(mainMsg[1]):
@@ -202,12 +208,18 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 rply.text = '不在群組'
                 return rply
             }
-            await schema.characterGpSwitch.findOneAndUpdate({
-                gpid: channelid || groupid,
-                id: userid,
-            }, {
-                name: ''
-            }, opt);
+            try {
+                await schema.characterGpSwitch.findOneAndUpdate({
+                    gpid: channelid || groupid,
+                    id: userid,
+                }, {
+                    name: ''
+                }, opt);
+            } catch (error) {
+                console.log('ERROR 修改失敗' + error)
+                rply.text = '修改失敗\n' + error;
+                return rply;
+            }
             rply.text = '修改成功'
             return rply;
 

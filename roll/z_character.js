@@ -260,6 +260,8 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 return rply
             }
 
+            
+
 
 
             return rply;

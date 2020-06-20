@@ -99,7 +99,7 @@ HP 5/5 MP 3/3
 .ch 輸出指令
 .ch  投擲
 cc 80 投擲 
-在指令中可以加上 +{HP} -{san}  (X)
+在指令中可以加上 +{HP} -{san}  
 在結果中會進行運算。
 
 
@@ -361,7 +361,7 @@ async function analysicStr(inputStr, state) {
         myArray[1] = myArray[1].replace(/^\s+/, '').replace(/\s+$/, '');
         myArray[2] = myArray[2].replace(/^\s+/, '').replace(/\s+$/, '');
         myArray[3] = myArray[3].replace(/^\s+/, '').replace(/\s+$/, '');
-        
+
         if (state)
             character.push({
                 name: myArray[1],

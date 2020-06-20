@@ -25,6 +25,10 @@ const regexRoll = new RegExp(/roll\[(.*?)\]/, 'i');
 const regexNotes = new RegExp(/notes\[(.*?)\]/, 'i');
 const re = new RegExp(/(.*?)\:(.*?)(\;|$)/, 'ig');
 const limitArr = [4, 10, 30, 100, 200, 999]
+const opt = {
+    upsert: true,
+    runValidators: true
+}
 /*
 以個人為單位, 一張咭可以在不同的群組使用    
 .char add 的輸入格式,用來增建角色卡
@@ -79,17 +83,16 @@ HP: 5/5 MP: 3/3 SAN: 50/90 護甲: 6
 功能 使用角色卡的state 和notes
 
 .ch set HP  10 直接把現在值變成10
-.ch set HP  10 20 直接把現在值變成10 最大值變成20
-.ch set HP  . 20 直接把現在值變成空白 最大值變成20
+.ch set HP  10/20 直接把現在值變成10 最大值變成20
+
+
 
 .ch HP MP 顯示該內容 
 HP 5/5 MP 3/3  
 
-
 .ch HP -5 如果HP是State 自動減5 
 .ch HP +5  如果HP是State 自動加5 如果是
-.ch HP . +5  如果HP是State 後面的數字加5 變成5/10
-.ch HP +5 +5  如果HP是State 前面和後面的數字加5 變成10/10
+
 
 
 ============
@@ -159,12 +162,11 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 Card.notes = await Merge(doc.notes, Card.notes, 'name');
             }
             try {
-                await schema.characterCard.updateOne(filter, Card, {
-                    upsert: true
-                });
+                await schema.characterCard.updateOne(filter,
+                    Card, opt);
             } catch (error) {
                 console.log('新增角色卡失敗: ', error)
-                rply.text = '新增角色卡失敗'
+                rply.text = '新增角色卡失敗\n因為 ' + error.message
                 return rply;
             }
             //增加資料庫
@@ -192,9 +194,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 id: userid,
             }, {
                 name: mainMsg[2]
-            }, {
-                upsert: true
-            });
+            }, opt);
             rply.text = '修改成功\n現在使用角色卡: ' + mainMsg[2];
             return rply;
         case /(^[.]char$)/i.test(mainMsg[0]) && /^nonuse$/i.test(mainMsg[1]):
@@ -207,9 +207,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 id: userid,
             }, {
                 name: ''
-            }, {
-                upsert: true
-            });
+            }, opt);
             rply.text = '修改成功'
             return rply;
 
@@ -243,8 +241,13 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             rply.text = '刪除角色卡成功: ' + mainMsg[2]
             return rply;
 
-        case /(^[.]ch$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
-            //刪除資料庫
+        case /(^[.]ch$)/i.test(mainMsg[0]) && /^set$/i.test(mainMsg[1]) && /^\S$/i.test(mainMsg[2]):
+            //修改
+            if (!groupid) {
+                rply.text = '不在群組'
+                return rply
+            }
+
 
 
             return rply;
@@ -290,7 +293,7 @@ async function showCharecter(Card) {
     returnStr += Card.name + '\n';
     let a = 1
     for (let i = 0; i < Card.state.length; i++) {
-        if ((a) % 4 == 0) {
+        if ((a) % 4 == 0 && (Card.state[i].itemA || Card.state[i].itemB)) {
             returnStr += '\n'
         }
         returnStr += (Card.state[i].itemA) ? Card.state[i].name + ': ' + Card.state[i].itemA : '';
@@ -300,16 +303,19 @@ async function showCharecter(Card) {
             returnStr += ' '
         }
     }
-    returnStr += '\n-------\n'
+    if (Card.state.length > 0)
+        returnStr += '\n-------\n'
     for (let i = 0; i < Card.roll.length; i++) {
         returnStr += (Card.roll[i].itemA) ? Card.roll[i].name + ': ' + Card.roll[i].itemA + '\n' : '';
 
     }
-    returnStr += '-------\n'
+    if (Card.roll.length > 0)
+        returnStr += '-------\n'
     for (let i = 0; i < Card.notes.length; i++) {
         returnStr += (Card.notes[i].itemA) ? Card.notes[i].name + ': ' + Card.notes[i].itemA + '\n' : '';
     }
-    returnStr += '-------'
+    if (Card.notes.length > 0)
+        returnStr += '-------'
     return returnStr;
 }
 async function analysicInputCharacterCard(inputStr) {
@@ -349,7 +355,13 @@ async function analysicStr(inputStr, state) {
             myArray[2] = temp2[1]
             myArray[3] = temp2[2]
         }
+
+        //防止誤輸入
         myArray[3] = (myArray[3] == ';') ? '' : myArray[3];
+        myArray[1] = myArray[1].replace(/^\s+/, '').replace(/\s+$/, '');
+        myArray[2] = myArray[2].replace(/^\s+/, '').replace(/\s+$/, '');
+        myArray[3] = myArray[3].replace(/^\s+/, '').replace(/\s+$/, '');
+        
         if (state)
             character.push({
                 name: myArray[1],

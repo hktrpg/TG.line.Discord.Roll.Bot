@@ -162,20 +162,44 @@ if (process.env.mongoURL) {
 
     const characterCard = mongoose.model('characterCard', new mongoose.Schema({
         id: String,
-        name: String,
+        name: {
+            type: String,
+            maxlength: 50
+        },
         nameShow: Boolean,
         state: [{
-            name: String,
-            itemA: String,
-            itemB: String
+            name: {
+                type: String,
+                maxlength: 50
+            },
+            itemA: {
+                type: String,
+                maxlength: 50
+            },
+            itemB: {
+                type: String,
+                maxlength: 50
+            }
         }],
         roll: [{
-            name: String,
-            itemA: String
+            name: {
+                type: String,
+                maxlength: 50
+            },
+            itemA: {
+                type: String,
+                maxlength: 150
+            }
         }],
         notes: [{
-            name: String,
-            itemA: String
+            name: {
+                type: String,
+                maxlength: 50
+            },
+            itemA: {
+                type: String,
+                maxlength: 1500
+            }
         }]
     }));
 

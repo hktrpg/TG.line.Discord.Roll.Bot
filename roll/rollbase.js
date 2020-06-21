@@ -6,7 +6,7 @@ const {
 } = require("random-js");
 const random = new Random(nodeCrypto);
 //value = random.integer(1, 100);
-const regex = /(\d+)d(\d+)(kh|kl|dh|dl|)(\d+|)/i;
+const regex = /(\d+)d(\d+)(kh|kl|dh|dl|k|d|)(\d+|)/i;
 //var Sided = [];
 //Sided[10000] = [];
 var rply = {
@@ -23,7 +23,7 @@ var gameType = function () {
   return 'rollbase:hktrpg'
 }
 var prefixs = function () {
-  const tempregex = /^(?=.*\d+d\d+)(?!.*[a-c])(?!.*[e-g])(?!.*[i-j])(?!.*[m-z])(?!.*(([d]|[+]|[-]|[*]|[/])([d]|[+]|[-]|[*]|[/])))(?!.*(^([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[)])))(?!.*([(][)]))(?!.*([<][<]))(?!.*([>][>]))(?!.*([<][>]))(?!.*([>][<]))(?!.*(\d+[d]+\d+[d]([^h|l]))|([)]\d))(?!.*(([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[(])$))(?!.*([@]|[!]|[#]|[$]|[%]|[&]|[_]|[~]|[`]|[']|[?]|\.))(?!.*([\u4e00-\u9fa5]))(?!.*([=].*[=]))(?!.*([+]|[-]|[*]|[/])[=])(?!.*[=]([+]|[-]|[*]|[/]|[>]|[<]))(?!.*(\d)[=](\d))(?!.*([-][>])|([-][<])|([<][-])|([>][-]))(?!.*(d)[(]).*$/ig
+  const tempregex = /^(?=.*\d+d\d+)(?!.*^[a-z])(?!.*[a-c])(?!.*[e-g])(?!.*[i-j])(?!.*[m-z])(?!.*(([d]|[+]|[-]|[*]|[/])([d]|[+]|[-]|[*]|[/])))(?!.*(^([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[)])))(?!.*([(][)]))(?!.*([<][<]))(?!.*([>][>]))(?!.*([<][>]))(?!.*([>][<]))(?!.*(\d+[d]+\d+[d]([^h|l]))|([)]\d))(?!.*(([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[(])$))(?!.*([@]|[!]|[#]|[$]|[%]|[&]|[_]|[~]|[`]|[']|[?]|\.))(?!.*([\u4e00-\u9fa5]))(?!.*([=].*[=]))(?!.*([+]|[-]|[*]|[/])[=])(?!.*[=]([+]|[-]|[*]|[/]|[>]|[<]))(?!.*(\d)[=](\d))(?!.*([-][>])|([-][<])|([<][-])|([>][-]))(?!.*(d)[(]).*$/ig
   return [{
       first: tempregex,
       second: null
@@ -55,10 +55,14 @@ var initialize = function () {
 const rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
   rply.text = '';
   //let result = {};
-  switch (true) {
-    default:
-      return await nomalDiceRoller(mainMsg[0], mainMsg[1], mainMsg[2])
+  try {
+    let result = await nomalDiceRoller(mainMsg[0], mainMsg[1], mainMsg[2])
+    return result;
+  } catch (error) {
+    console.log('nomalDiceRoller error: ', error)
+    return;
   }
+
 }
 
 
@@ -105,6 +109,10 @@ try {
       temp2[i] = temp[i]
     }
     if (comStr[3]) {
+      console.log('comStr', comStr)
+      if (comStr[3].match(/^k$/)) {
+        comStr[3] == 'kh'
+      }
       //由大至細
       temp2.sort(function (a, b) {
         return b - a
@@ -256,6 +264,7 @@ async function onetimeroll(text0) {
   // 計算算式
   let aaa = equation
   aaa = aaa.replace(/\[.+?\]/ig, '')
+  console.log('aaa', aaa)
   let answer = math.eval(aaa.toString()).toString().replace(/true/i, "成功").replace(/false/i, "失敗");
   if (equation.match(/[\s\S]{1,250}/g).length > 1) {
 

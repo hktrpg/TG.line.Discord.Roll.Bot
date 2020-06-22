@@ -29,6 +29,12 @@ const opt = {
     upsert: true,
     runValidators: true
 }
+
+/*
+TODO?
+COC export to roll20?
+
+*/
 /*
 以個人為單位, 一張咭可以在不同的群組使用    
 .char add 的輸入格式,用來增建角色卡
@@ -128,7 +134,6 @@ var initialize = function () {
 
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
     rply.text = '';
-
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
@@ -150,13 +155,14 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 
             let filter = {
                 id: userid,
-                name: Card.name
+                name: new RegExp(Card.name, "i")
             }
             //取得本來的資料, 如有重覆, 以新的覆蓋
 
             let doc = await schema.characterCard.findOne(filter);
             //把舊和新的合併
             if (doc) {
+                doc.name = Card.name;
                 Card.state = await Merge(doc.state, Card.state, 'name');
                 Card.roll = await Merge(doc.roll, Card.roll, 'name');
                 Card.notes = await Merge(doc.notes, Card.notes, 'name');
@@ -181,7 +187,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             }
             let filterUse = {
                 id: userid,
-                name: mainMsg[2]
+                name: new RegExp(mainMsg[2], "i")
             }
             let docUse = await schema.characterCard.findOne(filterUse);
             if (!docUse) {
@@ -193,7 +199,8 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                     gpid: channelid || groupid,
                     id: userid,
                 }, {
-                    name: mainMsg[2]
+                    name: docUse.name,
+                    cardId: docUse._id
                 }, opt);
             } catch (error) {
                 console.log('ERROR 修改失敗' + error)
@@ -201,7 +208,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 return rply;
             }
 
-            rply.text = '修改成功\n現在使用角色卡: ' + mainMsg[2];
+            rply.text = '修改成功\n現在使用角色卡: ' + docUse.name;
             return rply;
         case /(^[.]char$)/i.test(mainMsg[0]) && /^nonuse$/i.test(mainMsg[1]):
             if (!groupid) {
@@ -213,14 +220,15 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                     gpid: channelid || groupid,
                     id: userid,
                 }, {
-                    name: ''
+                    name: '',
+                    cardId: ''
                 }, opt);
             } catch (error) {
                 console.log('ERROR 修改失敗' + error)
                 rply.text = '修改失敗\n' + error;
                 return rply;
             }
-            rply.text = '修改成功'
+            rply.text = '修改成功。\n現在這群組沒有使用角色卡，.ch 沒有效果。'
             return rply;
 
         case /(^[.]char$)/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]) && /\S+/.test(mainMsg[2]):
@@ -237,12 +245,15 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 
             let docDelete = await schema.characterCard.findOne(filterDelete);
             if (!docDelete) {
-                rply.text = '沒有此角色卡'
+                rply.text = '沒有此角色卡, 刪除角色卡需要名字大小階完全相同'
                 return rply
             }
             try {
+                let filterRemove = {
+                    cardId: docDelete._id
+                }
                 await schema.characterCard.findOneAndRemove(filterDelete);
-                await schema.characterGpSwitch.deleteMany(filterDelete);
+                await schema.characterGpSwitch.deleteMany(filterRemove);
             } catch (error) {
                 console.log('刪除角色卡失敗: ', error)
                 rply.text = '刪除角色卡失敗'
@@ -250,21 +261,88 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             }
             //增加資料庫
             //檢查有沒有重覆
-            rply.text = '刪除角色卡成功: ' + mainMsg[2]
+            rply.text = '刪除角色卡成功: ' + docDelete.name
             return rply;
 
-        case /(^[.]ch$)/i.test(mainMsg[0]) && /^set$/i.test(mainMsg[1]) && /^\S$/i.test(mainMsg[2]):
+        case /(^[.]ch$)/i.test(mainMsg[0]) && /^set$/i.test(mainMsg[1]) && /^\S+$/i.test(mainMsg[2]) && /^\S+$/i.test(mainMsg[3]):
             //修改
+            console.log('set')
             if (!groupid) {
                 rply.text = '不在群組'
                 return rply
             }
+            /**
+             * 流程
+             * .ch 功能需要在charactergpswitches 中, 找出現在在使用那張角色卡
+             * 再用charactergpswitches 中的名字, 到charactercard 使用那張咭的資料
+             * 
+             * 
+             * SET 直接改變數據
+             * 
+             */
+
+
+            let filterSet = {
+                id: userid,
+                gpid: channelid || groupid,
+            }
+
+            let docSwitchSet = await schema.characterGpSwitch.findOne(
+                filterSet);
+            //取得本來的資料, 如有重覆, 以新的覆蓋
+            /**
+             * $or: [{
+                                    "roll.name": mainMsg[2]
+                                },
+                                {
+                                    "state.name": mainMsg[2]
+                                },
+                                {
+                                    "notes.name": mainMsg[2]
+                                }
+
+                            ]
+             */
+            let docSet;
+            if (docSwitchSet) {
+                docSet = await schema.characterCard.findOne({
+                    _id: docSwitchSet.cardId
+                });
+            }
+            if (docSet) {
+
+            }
+
+            //把舊和新的合併
+            /**
+             * Person.update({'items.id': 2}, {'$set': {
+    'items.$.name': 'updated item2',
+    'items.$.value': 'two updated'
+}}, function(err) { ...
+             */
+            /*
 
             
-
-
-
+                        if (doc) {
+                            Card.state = await Merge(doc.state, Card.state, 'name');
+                            Card.roll = await Merge(doc.roll, Card.roll, 'name');
+                            Card.notes = await Merge(doc.notes, Card.notes, 'name');
+                        }
+                        try {
+                            await schema.characterCard.updateOne(filter,
+                                Card, opt);
+                        } catch (error) {
+                            console.log('新增角色卡失敗: ', error)
+                            rply.text = '新增角色卡失敗\n因為 ' + error.message
+                            return rply;
+                        }
+                        //增加資料庫
+                        //檢查有沒有重覆
+            */
+            rply.text = docSwitchSet;
             return rply;
+
+
         case /(^[.]ch$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
             //刪除資料庫
             return rply;
@@ -433,7 +511,7 @@ async function Merge(target, source, prop) {
     const mergeByProperty = (target, source, prop) => {
         source.forEach(sourceElement => {
             let targetElement = target.find(targetElement => {
-                return sourceElement[prop] === targetElement[prop];
+                return sourceElement[prop].match(new RegExp(targetElement[prop], 'i'));
             })
             targetElement ? Object.assign(targetElement, sourceElement) : target.push(sourceElement);
         })

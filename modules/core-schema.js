@@ -157,7 +157,8 @@ if (process.env.mongoURL) {
     const characterGpSwitch = mongoose.model('characterGpSwitch', new mongoose.Schema({
         gpid: Array,
         id: String,
-        name: String
+        name: String,
+        cardId: String
     }));
 
     const characterCard = mongoose.model('characterCard', new mongoose.Schema({

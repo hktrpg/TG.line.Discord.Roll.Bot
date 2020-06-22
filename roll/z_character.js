@@ -309,61 +309,71 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                     _id: docSwitchSet.cardId
                 });
             }
+            console.log(docSet)
             if (docSet) {
-
-            }
-
-            //把舊和新的合併
-            /**
+                let useTarget = new RegExp(mainMsg[0] + '\s+' + mainMsg[1] + '\s+' + mainMsg[2] + '\s+')
+                let useName = mainMsg[2];
+                let useItemA = inputStr.replace(useTarget, '')
+                let useCard = [{
+                    name: useName,
+                    itemA: useItemA
+                }]
+                docSet.state = await Merge(useCard, docSet.state, 'name');
+                docSet.roll = await Merge(useCard, docSet.roll, 'name');
+                docSet.notes = await Merge(useCard, docSet.notes, 'name');
+                let a = await docSet.save();
+                //把舊和新的合併
+                /**
              * Person.update({'items.id': 2}, {'$set': {
     'items.$.name': 'updated item2',
     'items.$.value': 'two updated'
 }}, function(err) { ...
              */
-            /*
+                /*
 
-            
-                        if (doc) {
-                            Card.state = await Merge(doc.state, Card.state, 'name');
-                            Card.roll = await Merge(doc.roll, Card.roll, 'name');
-                            Card.notes = await Merge(doc.notes, Card.notes, 'name');
-                        }
-                        try {
-                            await schema.characterCard.updateOne(filter,
-                                Card, opt);
-                        } catch (error) {
-                            console.log('新增角色卡失敗: ', error)
-                            rply.text = '新增角色卡失敗\n因為 ' + error.message
-                            return rply;
-                        }
-                        //增加資料庫
-                        //檢查有沒有重覆
-            */
-            rply.text = docSwitchSet;
-            return rply;
+                
+                            if (doc) {
+                                Card.state = await Merge(doc.state, Card.state, 'name');
+                                Card.roll = await Merge(doc.roll, Card.roll, 'name');
+                                Card.notes = await Merge(doc.notes, Card.notes, 'name');
+                            }
+                            try {
+                                await schema.characterCard.updateOne(filter,
+                                    Card, opt);
+                            } catch (error) {
+                                console.log('新增角色卡失敗: ', error)
+                                rply.text = '新增角色卡失敗\n因為 ' + error.message
+                                return rply;
+                            }
+                            //增加資料庫
+                            //檢查有沒有重覆
+                */
 
+                rply.text = JSON.stringify(a);
+                return rply;
+            }
 
-        case /(^[.]ch$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
-            //刪除資料庫
-            return rply;
+            case /(^[.]ch$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
+                //刪除資料庫
+                return rply;
 
-        case /(^[.]ch$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
-            //顯示
+            case /(^[.]ch$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+                //顯示
 
-            //顯示資料庫
-            rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
-            return rply
-        case /(^[.]ch$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
-            //顯示關鍵字
-            //let times = /^[.]ch/.exec(mainMsg[0])[1] || 1
-            //if (times > 30) times = 30;
-            //if (times < 1) times = 1
-            //console.log(times)
+                //顯示資料庫
+                rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
+                return rply
+            case /(^[.]ch$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
+                //顯示關鍵字
+                //let times = /^[.]ch/.exec(mainMsg[0])[1] || 1
+                //if (times > 30) times = 30;
+                //if (times < 1) times = 1
+                //console.log(times)
 
-            return rply;
+                return rply;
 
-        default:
-            break;
+            default:
+                break;
 
     }
 }

@@ -311,16 +311,16 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             }
             console.log(docSet)
             if (docSet) {
-                let useTarget = new RegExp(mainMsg[0] + '\s+' + mainMsg[1] + '\s+' + mainMsg[2] + '\s+')
+                let useTarget = new RegExp(mainMsg[0] + '\\s+' + mainMsg[1] + '\\s+' + mainMsg[2] + '\\s+')
                 let useName = mainMsg[2];
                 let useItemA = inputStr.replace(useTarget, '')
                 let useCard = [{
                     name: useName,
                     itemA: useItemA
                 }]
-                docSet.state = await Merge(useCard, docSet.state, 'name');
-                docSet.roll = await Merge(useCard, docSet.roll, 'name');
-                docSet.notes = await Merge(useCard, docSet.notes, 'name');
+                docSet.state = await Merge(docSet.state, useCard, 'name');
+                docSet.roll = await Merge(docSet.roll, useCard, 'name');
+                docSet.notes = await Merge(docSet.notes, useCard, 'name');
                 let a = await docSet.save();
                 //把舊和新的合併
                 /**

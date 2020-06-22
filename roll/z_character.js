@@ -505,17 +505,12 @@ module.exports = {
 };
 //https://stackoverflow.com/questions/7146217/merge-2-arrays-of-objects
 async function Merge(target, source, prop, updateMode) {
-    /*var odd = [
-        { name : "1", arr: "in odd" },
-        { name : "3", arr: "in odd" }
-    ];
-
-    var even = [
-        { name : "1", arr: "in even" },
-        { name : "2", arr: "in even" },
-        { name : "4", arr: "in even" }
-    ];
-    */
+    /**
+     * target 本來的資料
+     * source 新資料
+     * prop  以什麼項目作比較對像
+     * updateMode True 只會更新已有資料 False 沒有的話, 加上去
+     */
     if (!target) target = []
     if (!source) source = []
     const mergeByProperty = (target, source, prop) => {

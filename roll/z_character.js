@@ -318,9 +318,9 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                     name: useName,
                     itemA: useItemA
                 }]
-                docSet.state = await Merge(docSet.state, useCard, 'name');
-                docSet.roll = await Merge(docSet.roll, useCard, 'name');
-                docSet.notes = await Merge(docSet.notes, useCard, 'name');
+                docSet.state = await Merge(docSet.state, useCard, 'name', true);
+                docSet.roll = await Merge(docSet.roll, useCard, 'name', true);
+                docSet.notes = await Merge(docSet.notes, useCard, 'name', true);
                 let a = await docSet.save();
                 //把舊和新的合併
                 /**
@@ -504,7 +504,7 @@ module.exports = {
     gameName: gameName
 };
 //https://stackoverflow.com/questions/7146217/merge-2-arrays-of-objects
-async function Merge(target, source, prop) {
+async function Merge(target, source, prop, updateMode) {
     /*var odd = [
         { name : "1", arr: "in odd" },
         { name : "3", arr: "in odd" }
@@ -523,7 +523,10 @@ async function Merge(target, source, prop) {
             let targetElement = target.find(targetElement => {
                 return sourceElement[prop].match(new RegExp(targetElement[prop], 'i'));
             })
-            targetElement ? Object.assign(targetElement, sourceElement) : target.push(sourceElement);
+            if (updateMode)
+                targetElement ? Object.assign(targetElement, sourceElement) : '';
+            else
+                targetElement ? Object.assign(targetElement, sourceElement) : target.push(sourceElement);
         })
     }
 

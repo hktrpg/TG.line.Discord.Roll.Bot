@@ -399,7 +399,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
              * 
              */
 
-            rply.text = await mainCharacter(doc, inputStr)
+            rply.text = await mainCharacter(doc, inputStr, mainMsg)
             return rply;
 
         default:
@@ -408,7 +408,18 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
     }
 }
 
-async function mainCharacter(doc, inputStr) {
+async function mainCharacter(doc, inputStr, mainMsg) {
+    let regex = /\s+/
+    let newInput = inputStr.replace(mainMsg[0], '').replace(regex, '')
+    //如果是roll的, 就變成擲骰MODE(最優先)
+    console.log(doc)
+    const findState = doc.state.find(element =>
+        element.name == newInput
+    );
+    console.log(findState)
+    return findState;
+
+
 
 }
 

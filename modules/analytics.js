@@ -1,13 +1,15 @@
 "use strict";
 // Load `*.js` under roll directory as properties
 //  i.e., `User.js` will become `exports['User']` or `exports.User`
-require('fs').readdirSync('./roll/').forEach(async function (file) {
-	if (file.match(/\.js$/) !== null && file !== 'index.js' && file !== 'demo.js') {
-		const name = file.replace('.js', '');
-		exports[name] = await require('../roll/' + file);
-	}
-});
-
+const start = async () => {
+	await require('fs').readdirSync('./roll/').forEach(async function (file) {
+		if (file.match(/\.js$/) !== null && file !== 'index.js' && file !== 'demo.js') {
+			const name = file.replace('.js', '');
+			exports[name] = await require('../roll/' + file);
+		}
+	})
+}
+start();
 const messageTimethenUpload = 50;
 //50次 多少條訊息會上傳一次LOG
 const oneDay = 24 * 60 * 60 * 1000;

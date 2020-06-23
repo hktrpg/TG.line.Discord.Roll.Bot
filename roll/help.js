@@ -3,12 +3,15 @@ if (!process.env.HEROKU_RELEASE_VERSION)
 	require('dotenv').config()
 
 
-require('fs').readdirSync(__dirname).forEach(function (file) {
-	if (file.match(/\.js$/) !== null && file !== 'index.js' && file !== 'help.js' && file !== 'demo.js' && file !== 'rollbase.js') {
-		var name = file.replace('.js', '');
-		exports[name] = require('./' + file);
-	}
-});
+const start = async () => {
+	await require('fs').readdirSync(__dirname).forEach(async function (file) {
+		if (file.match(/\.js$/) !== null && file !== 'index.js' && file !== 'help.js' && file !== 'demo.js' && file !== 'rollbase.js') {
+			var name = file.replace('.js', '');
+			exports[name] = await require('./' + file);
+		}
+	})
+}
+start();
 var rply = {
 	default: 'on',
 	type: 'text',
@@ -95,7 +98,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 						return rply;
 			*/
 		case /^(?![\s\S])/.test(mainMsg[1] || ''):
-			Object.keys(linehelp()).forEach(v => {
+			await Object.keys(linehelp()).forEach(v => {
 				rply[v] = linehelp()[v]
 			})
 			rply.text = getHelpMessage() + '\n現支援系統: \n【了解骰組詳情,請輸入 bothelp (編號) 或 在指令後輸入help 如 .sg help】';

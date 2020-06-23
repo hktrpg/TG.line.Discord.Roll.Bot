@@ -3,7 +3,7 @@ var rply = {
     default: 'on',
     type: 'text',
     text: '',
-    reRoll: ''
+    characterRoll: ''
 };
 const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
@@ -374,7 +374,6 @@ async function showCharecter(Card, mode) {
 
     ======
     */
-
     let returnStr = '';
     if (mode == 'addMode') {
         returnStr += '新增/修改成功\n'

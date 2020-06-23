@@ -3,7 +3,7 @@ var rply = {
     default: 'on',
     type: 'text',
     text: '',
-    save: ''
+    reRoll: ''
 };
 const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
@@ -134,6 +134,9 @@ var initialize = function () {
 
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
     rply.text = '';
+    let filter = {};
+    let doc = {};
+    let docSwitch = {};
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
@@ -153,13 +156,13 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 return rply;
             }
 
-            let filter = {
+            filter = {
                 id: userid,
                 name: new RegExp(Card.name, "i")
             }
             //取得本來的資料, 如有重覆, 以新的覆蓋
 
-            let doc = await schema.characterCard.findOne(filter);
+            doc = await schema.characterCard.findOne(filter);
             //把舊和新的合併
             if (doc) {
                 doc.name = Card.name;
@@ -177,7 +180,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             }
             //增加資料庫
             //檢查有沒有重覆
-            rply.text = await showCharecter(Card);
+            rply.text = await showCharecter(Card, 'addMode');
             return rply;
 
         case /(^[.]char$)/i.test(mainMsg[0]) && /^use$/i.test(mainMsg[1]) && /\S+/.test(mainMsg[2]):
@@ -185,12 +188,12 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 rply.text = '不在群組'
                 return rply
             }
-            let filterUse = {
+            filter = {
                 id: userid,
                 name: new RegExp(mainMsg[2], "i")
             }
-            let docUse = await schema.characterCard.findOne(filterUse);
-            if (!docUse) {
+            doc = await schema.characterCard.findOne(filter);
+            if (!doc) {
                 rply.text = '沒有此角色卡'
                 return rply
             }
@@ -199,8 +202,8 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                     gpid: channelid || groupid,
                     id: userid,
                 }, {
-                    name: docUse.name,
-                    cardId: docUse._id
+                    name: doc.name,
+                    cardId: doc._id
                 }, opt);
             } catch (error) {
                 console.log('ERROR 修改失敗' + error)
@@ -208,7 +211,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 return rply;
             }
 
-            rply.text = '修改成功\n現在使用角色卡: ' + docUse.name;
+            rply.text = '修改成功\n現在使用角色卡: ' + doc.name;
             return rply;
         case /(^[.]char$)/i.test(mainMsg[0]) && /^nonuse$/i.test(mainMsg[1]):
             if (!groupid) {
@@ -236,21 +239,19 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 rply.text = '不在群組'
                 return rply
             }
-
-
-            let filterDelete = {
+            filter = {
                 id: userid,
                 name: mainMsg[2]
             }
 
-            let docDelete = await schema.characterCard.findOne(filterDelete);
-            if (!docDelete) {
+            doc = await schema.characterCard.findOne(filter);
+            if (!doc) {
                 rply.text = '沒有此角色卡, 刪除角色卡需要名字大小階完全相同'
                 return rply
             }
             try {
                 let filterRemove = {
-                    cardId: docDelete._id
+                    cardId: doc._id
                 }
                 await schema.characterCard.findOneAndRemove(filterDelete);
                 await schema.characterGpSwitch.deleteMany(filterRemove);
@@ -261,12 +262,11 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             }
             //增加資料庫
             //檢查有沒有重覆
-            rply.text = '刪除角色卡成功: ' + docDelete.name
+            rply.text = '刪除角色卡成功: ' + doc.name
             return rply;
 
         case /(^[.]ch$)/i.test(mainMsg[0]) && /^set$/i.test(mainMsg[1]) && /^\S+$/i.test(mainMsg[2]) && /^\S+$/i.test(mainMsg[3]):
-            //修改
-            console.log('set')
+            //更新功能
             if (!groupid) {
                 rply.text = '不在群組'
                 return rply
@@ -281,104 +281,87 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
              * 
              */
 
-
-            let filterSet = {
+            filter = {
                 id: userid,
                 gpid: channelid || groupid,
             }
 
-            let docSwitchSet = await schema.characterGpSwitch.findOne(
-                filterSet);
-            //取得本來的資料, 如有重覆, 以新的覆蓋
-            /**
-             * $or: [{
-                                    "roll.name": mainMsg[2]
-                                },
-                                {
-                                    "state.name": mainMsg[2]
-                                },
-                                {
-                                    "notes.name": mainMsg[2]
-                                }
-
-                            ]
-             */
-            let docSet;
-            if (docSwitchSet) {
-                docSet = await schema.characterCard.findOne({
-                    _id: docSwitchSet.cardId
+            docSwitch = await schema.characterGpSwitch.findOne(
+                filter);
+            if (docSwitch && docSwitch.cardId) {
+                doc = await schema.characterCard.findOne({
+                    _id: docSwitch.cardId
                 });
+            } else {
+                rply.text = "未有登記的角色卡, \n請輸入.char use 角色卡名字  \n進行登記"
             }
-            console.log(docSet)
-            if (docSet) {
-                let useTarget = new RegExp(mainMsg[0] + '\\s+' + mainMsg[1] + '\\s+' + mainMsg[2] + '\\s+')
+            if (doc) {
+                let useTarget = new RegExp(mainMsg[0] + '\\s+' + mainMsg[1] + '\\s+' + mainMsg[2])
                 let useName = mainMsg[2];
-                let useItemA = inputStr.replace(useTarget, '')
+                let useItemA = inputStr.replace(useTarget, '').replace(/^\s+/, '')
                 let useCard = [{
                     name: useName,
                     itemA: useItemA
                 }]
-                docSet.state = await Merge(docSet.state, useCard, 'name', true);
-                docSet.roll = await Merge(docSet.roll, useCard, 'name', true);
-                docSet.notes = await Merge(docSet.notes, useCard, 'name', true);
-                let a = await docSet.save();
-                //把舊和新的合併
-                /**
-             * Person.update({'items.id': 2}, {'$set': {
-    'items.$.name': 'updated item2',
-    'items.$.value': 'two updated'
-}}, function(err) { ...
-             */
-                /*
+                doc.state = await Merge(doc.state, useCard, 'name', true);
+                doc.roll = await Merge(doc.roll, useCard, 'name', true);
+                doc.notes = await Merge(doc.notes, useCard, 'name', true);
+                try {
+                    let a = await doc.save();
+                    if (a) {
+                        rply.text = a.name + ' 更新角色卡成功'
+                        return rply;
+                    }
+                } catch (error) {
+                    console.log('更新角色卡失敗: ', error)
+                    rply.text = '更新角色卡失敗'
+                    return rply;
+                }
+            }
+            return;
 
-                
-                            if (doc) {
-                                Card.state = await Merge(doc.state, Card.state, 'name');
-                                Card.roll = await Merge(doc.roll, Card.roll, 'name');
-                                Card.notes = await Merge(doc.notes, Card.notes, 'name');
-                            }
-                            try {
-                                await schema.characterCard.updateOne(filter,
-                                    Card, opt);
-                            } catch (error) {
-                                console.log('新增角色卡失敗: ', error)
-                                rply.text = '新增角色卡失敗\n因為 ' + error.message
-                                return rply;
-                            }
-                            //增加資料庫
-                            //檢查有沒有重覆
-                */
 
-                rply.text = JSON.stringify(a);
-                return rply;
+        case /(^[.]ch$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+            if (!groupid) {
+                rply.text = '不在群組'
+                return rply
+            }
+            filter = {
+                id: userid,
+                gpid: channelid || groupid,
             }
 
-            case /(^[.]ch$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
-                //刪除資料庫
+            docSwitch = await schema.characterGpSwitch.findOne(
+                filter);
+            if (docSwitch && docSwitch.cardId) {
+                doc = await schema.characterCard.findOne({
+                    _id: docSwitch.cardId
+                });
+            } else {
+                rply.text = "未有登記的角色卡, \n請輸入.char use 角色卡名字  \n進行登記"
                 return rply;
+            }
+            rply.text = await showCharecter(doc, 'showMode');
+            return rply;
 
-            case /(^[.]ch$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
-                //顯示
 
-                //顯示資料庫
-                rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
-                return rply
-            case /(^[.]ch$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
-                //顯示關鍵字
-                //let times = /^[.]ch/.exec(mainMsg[0])[1] || 1
-                //if (times > 30) times = 30;
-                //if (times < 1) times = 1
-                //console.log(times)
+        case /(^[.]ch$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]):
 
-                return rply;
+            //顯示關鍵字
+            //let times = /^[.]ch/.exec(mainMsg[0])[1] || 1
+            //if (times > 30) times = 30;
+            //if (times < 1) times = 1
+            //console.log(times)
 
-            default:
-                break;
+            return rply;
+
+        default:
+            break;
 
     }
 }
 
-async function showCharecter(Card) {
+async function showCharecter(Card, mode) {
     /*
     角色名字
     HP: 5/5 MP: 3/3 SAN: 50/90 護甲: 6
@@ -391,7 +374,11 @@ async function showCharecter(Card) {
 
     ======
     */
-    let returnStr = '新增/修改成功\n';
+
+    let returnStr = '';
+    if (mode == 'addMode') {
+        returnStr += '新增/修改成功\n'
+    }
     returnStr += Card.name + '\n';
     let a = 1
     for (let i = 0; i < Card.state.length; i++) {
@@ -495,14 +482,6 @@ character = {
         }
 */
 
-module.exports = {
-    rollDiceCommand: rollDiceCommand,
-    initialize: initialize,
-    getHelpMessage: getHelpMessage,
-    prefixs: prefixs,
-    gameType: gameType,
-    gameName: gameName
-};
 //https://stackoverflow.com/questions/7146217/merge-2-arrays-of-objects
 async function Merge(target, source, prop, updateMode) {
     /**
@@ -531,47 +510,12 @@ async function Merge(target, source, prop, updateMode) {
 }
 
 
-/*
-https://js.do/code/457118
-<script>
-    const regexName = new RegExp(/name\[(.*?)\]/, 'i');
-    const regexState = new RegExp(/state\[(.*?)\]/, 'i');
-    const regexRoll = new RegExp(/roll\[(.*?)\]/, 'i');
-    const regexNotes = new RegExp(/notes\[(.*?)\]/, 'i');
-let characterName 
-        let characterStateTemp 
-        let characterRollTemp 
-       let characterNotesTemp 
-       
-       
-        const re = new RegExp(/(.*?)\:(.*?)(\;|$)/, 'ig');
-        
-        const inputStr = '.char add name[hi] state[hp:;san:36/99;str:90;str:90] roll[格鬥:cc 80 鬥歐;sc: cc {san}] note[筆記:這是Demo]'
-    try{
-     characterName = inputStr.match(regexName)[1]
-         characterStateTemp = inputStr.match(regexState)[1]
-         characterRollTemp = inputStr.match(regexRoll)[1]
-        characterNotesTemp = inputStr.match(regexNotes)[1]
-}
-catch(error){}
-let temp;
-let characterState=[];
-let myArray;
-while (( myArray = re.exec(characterStateTemp)) !== null) {
-if(myArray[2].match(/\w\/\w/)){
-let temp2 = /(\w)\/(\w)/.exec(myArray[2])
-document.write()
-myArray[2] = temp2[1]
-myArray[3] = temp2[2]
-}
-myArray[3]= (myArray[3] ==';' )? '':myArray[3];
-  characterState.push({name:myArray[1],stateA:myArray[2],stateB:myArray[3]})
-}
 
-document.write('characterStateTemp===',characterStateTemp+"<br>"+characterRollTemp+"<br>"+characterNotesTemp+"<br>")
-document.write(JSON.stringify(characterState)+"<br>")
-
-</script>
-
-
-*/
+module.exports = {
+    rollDiceCommand: rollDiceCommand,
+    initialize: initialize,
+    getHelpMessage: getHelpMessage,
+    prefixs: prefixs,
+    gameType: gameType,
+    gameName: gameName
+};

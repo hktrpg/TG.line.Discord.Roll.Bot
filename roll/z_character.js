@@ -180,7 +180,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             }
             //增加資料庫
             //檢查有沒有重覆
-            rply.text = await showCharecter(Card, 'addMode');
+            rply.text = await showCharacter(Card, 'addMode');
             return rply;
 
         case /(^[.]char$)/i.test(mainMsg[0]) && /^use$/i.test(mainMsg[1]) && /\S+/.test(mainMsg[2]):
@@ -341,7 +341,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 rply.text = "未有登記的角色卡, \n請輸入.char use 角色卡名字  \n進行登記"
                 return rply;
             }
-            rply.text = await showCharecter(doc, 'showMode');
+            rply.text = await showCharacter(doc, 'showMode');
             return rply;
         case /(^[.]ch$)/i.test(mainMsg[0]) && /^showall$/i.test(mainMsg[1]):
             if (!groupid) {
@@ -363,7 +363,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 rply.text = "未有登記的角色卡, \n請輸入.char use 角色卡名字  \n進行登記"
                 return rply;
             }
-            rply.text = await showCharecter(doc, 'showAllMode');
+            rply.text = await showCharacter(doc, 'showAllMode');
             return rply;
 
 
@@ -414,7 +414,7 @@ async function mainCharacter(doc) {
 }
 
 
-async function showCharecter(Card, mode) {
+async function showCharacter(Card, mode) {
     /*
     角色名字
     HP: 5/5 MP: 3/3 SAN: 50/90 護甲: 6

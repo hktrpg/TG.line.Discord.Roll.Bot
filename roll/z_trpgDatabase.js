@@ -215,8 +215,8 @@ try {
             case /(^[.]dbp$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
                 //if (!mainMsg[2]) return;
                 let checkifsamenamegroup = 0
-                if (rply.trpgDatabaseAllgroup && mainMsg[2])
-                    if (rply.trpgDatabaseAllgroup[0].trpgDatabaseAllgroup[0]) {
+                if (rply && rply.trpgDatabaseAllgroup && mainMsg[2])
+                    if (rply && rply.trpgDatabaseAllgroup && rply.trpgDatabaseAllgroup[0] && rply.trpgDatabaseAllgroup[0].trpgDatabaseAllgroup[0]) {
                         if (rply.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup.length > 100) {
                             rply.text = '只可以有100個關鍵字啊'
                             return rply;

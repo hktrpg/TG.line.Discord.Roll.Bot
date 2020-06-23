@@ -8,7 +8,7 @@ var rply = {
 const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
 var gameName = function () {
-    return '(公測中)角色卡功能 .char (add delete 名字).ch '
+    return '(公測中)角色卡功能 .char (add delete use nonuse) .ch (set show showall)'
 }
 var gameType = function () {
     return 'trpgcharacter:hktrpg'
@@ -399,8 +399,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
              * 
              */
 
-
-
+            rply.text = await mainCharacter(doc, inputStr)
             return rply;
 
         default:
@@ -409,7 +408,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
     }
 }
 
-async function mainCharacter(doc) {
+async function mainCharacter(doc, inputStr) {
 
 }
 
@@ -556,9 +555,9 @@ async function Merge(target, source, prop, updateMode) {
                 return sourceElement[prop].match(new RegExp(targetElement[prop], 'i'));
             })
             if (updateMode)
-                targetElement ? Object.assign(targetElement, sourceElement) : '';
+                targetElement ? Object.assign({}, targetElement, sourceElement) : '';
             else
-                targetElement ? Object.assign(targetElement, sourceElement) : target.push(sourceElement);
+                targetElement ? Object.assign({}, targetElement, sourceElement) : target.push(sourceElement);
         })
     }
 

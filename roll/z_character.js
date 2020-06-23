@@ -148,7 +148,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 name[XXXX]'
             }
             /*
-            只限六張角色卡.
+            只限四張角色卡.
             使用VIPCHECK
             */
             rply.text = await VIP.viplevelCheck(userid, limitArr)
@@ -368,11 +368,37 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 
 
         case /(^[.]ch$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]):
+            if (!groupid) {
+                rply.text = '不在群組'
+                return rply
+            }
+            filter = {
+                id: userid,
+                gpid: channelid || groupid,
+            }
 
+            docSwitch = await schema.characterGpSwitch.findOne(
+                filter);
+            if (docSwitch && docSwitch.cardId) {
+                doc = await schema.characterCard.findOne({
+                    _id: docSwitch.cardId
+                });
+            } else {
+                rply.text = "未有登記的角色卡, \n請輸入.char use 角色卡名字  \n進行登記"
+                return rply;
+            }
             //顯示關鍵字
             /**
+             * 對mainMsg 1以後的內容全部進行對比
+             * 如果是roll的, 就變成擲骰MODE(最優先)
+             * 在roll指令中, 如果有{\w+} 轉換成數字
+             * 沒有的話, 再對比所有, 如果有state 的內容
+             * 而且後面跟著數字 +3 -3, 會進行+-運算
+             * 然後顯示State
+             * 如果只有一個, 則顯示該項目
              * 
              */
+
 
 
             return rply;
@@ -382,6 +408,11 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 
     }
 }
+
+async function mainCharacter(doc) {
+
+}
+
 
 async function showCharecter(Card, mode) {
     /*

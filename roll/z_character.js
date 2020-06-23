@@ -8,7 +8,7 @@ var rply = {
 const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
 var gameName = function () {
-    return '(公測中)儲存角色卡功能 .ch (add del show 自定關鍵字)'
+    return '(公測中)角色卡功能 .char (add delete 名字).ch '
 }
 var gameType = function () {
     return 'trpgcharacter:hktrpg'
@@ -343,15 +343,37 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             }
             rply.text = await showCharecter(doc, 'showMode');
             return rply;
+        case /(^[.]ch$)/i.test(mainMsg[0]) && /^showall$/i.test(mainMsg[1]):
+            if (!groupid) {
+                rply.text = '不在群組'
+                return rply
+            }
+            filter = {
+                id: userid,
+                gpid: channelid || groupid,
+            }
+
+            docSwitch = await schema.characterGpSwitch.findOne(
+                filter);
+            if (docSwitch && docSwitch.cardId) {
+                doc = await schema.characterCard.findOne({
+                    _id: docSwitch.cardId
+                });
+            } else {
+                rply.text = "未有登記的角色卡, \n請輸入.char use 角色卡名字  \n進行登記"
+                return rply;
+            }
+            rply.text = await showCharecter(doc, 'showAllMode');
+            return rply;
 
 
         case /(^[.]ch$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]):
 
             //顯示關鍵字
-            //let times = /^[.]ch/.exec(mainMsg[0])[1] || 1
-            //if (times > 30) times = 30;
-            //if (times < 1) times = 1
-            //console.log(times)
+            /**
+             * 
+             */
+
 
             return rply;
 
@@ -380,30 +402,36 @@ async function showCharecter(Card, mode) {
     }
     returnStr += Card.name + '\n';
     let a = 1
-    for (let i = 0; i < Card.state.length; i++) {
-        if ((a) % 4 == 0 && (Card.state[i].itemA || Card.state[i].itemB)) {
-            returnStr += '\n'
+    if (Card.state.length > 0) {
+        for (let i = 0; i < Card.state.length; i++) {
+            if ((a) % 4 == 0 && (Card.state[i].itemA || Card.state[i].itemB)) {
+                returnStr += '\n'
+            }
+            returnStr += (Card.state[i].itemA) ? Card.state[i].name + ': ' + Card.state[i].itemA : '';
+            returnStr += (Card.state[i].itemB) ? '/' + Card.state[i].itemB : '';
+            if (Card.state[i].itemA || Card.state[i].itemB) {
+                a++
+                returnStr += ' '
+            }
         }
-        returnStr += (Card.state[i].itemA) ? Card.state[i].name + ': ' + Card.state[i].itemA : '';
-        returnStr += (Card.state[i].itemB) ? '/' + Card.state[i].itemB : '';
-        if (Card.state[i].itemA || Card.state[i].itemB) {
-            a++
-            returnStr += ' '
-        }
-    }
-    if (Card.state.length > 0)
         returnStr += '\n-------\n'
-    for (let i = 0; i < Card.roll.length; i++) {
-        returnStr += (Card.roll[i].itemA) ? Card.roll[i].name + ': ' + Card.roll[i].itemA + '\n' : '';
+    }
 
-    }
-    if (Card.roll.length > 0)
+    if (Card.roll.length > 0) {
+        for (let i = 0; i < Card.roll.length; i++) {
+            returnStr += (Card.roll[i].itemA) ? Card.roll[i].name + ': ' + Card.roll[i].itemA + '\n' : '';
+
+        }
         returnStr += '-------\n'
-    for (let i = 0; i < Card.notes.length; i++) {
-        returnStr += (Card.notes[i].itemA) ? Card.notes[i].name + ': ' + Card.notes[i].itemA + '\n' : '';
     }
-    if (Card.notes.length > 0)
-        returnStr += '-------'
+    if (mode == 'addMode' || mode == 'showAllMode')
+        if (Card.notes.length > 0) {
+            for (let i = 0; i < Card.notes.length; i++) {
+                returnStr += (Card.notes[i].itemA) ? Card.notes[i].name + ': ' + Card.notes[i].itemA + '\n' : '';
+            }
+
+            returnStr += '-------'
+        }
     return returnStr;
 }
 async function analysicInputCharacterCard(inputStr) {

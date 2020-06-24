@@ -410,13 +410,39 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 
 async function mainCharacter(doc, inputStr, mainMsg) {
     let regex = /\s+/
-    let newInput = inputStr.replace(mainMsg[0], '').replace(regex, '')
+    mainMsg.shift();
+    let findState = {};
+    let findNotes = {};
+    let findRoll = {};
+
     //如果是roll的, 就變成擲骰MODE(最優先)
     console.log(doc)
-    const findState = doc.state.find(element =>
-        element.name == newInput
-    );
+    for (let name in mainMsg) {
+        console.log(name)
+        let resutltState = doc.state.find(element => {
+            return element.name.match(new RegExp(mainMsg[name], 'i'))
+        });
+        if (resutltState) {
+            findState = resutltState;
+        }
+        let resutltNotes = doc.notes.find(element => {
+            return element.name.match(new RegExp(mainMsg[name], 'i'))
+        });
+        if (resutltNotes) {
+            findNotes = resutltNotes;
+        }
+        let resutltRoll = doc.roll.find(element => {
+            return element.name.match(new RegExp(mainMsg[name], 'i'))
+        });
+        if (resutltRoll) {
+            findRoll = resutltRoll;
+        }
+
+    }
     console.log(findState)
+    console.log(findNotes)
+    console.log(findRoll)
+
     return findState;
 
 

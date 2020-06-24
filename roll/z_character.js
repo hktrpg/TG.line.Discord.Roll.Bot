@@ -421,6 +421,7 @@ async function mainCharacter(doc, mainMsg) {
         let resutltRoll = await findObject(doc.roll, mainMsg[name])
         if (resutltNotes) {
             findNotes = resutltNotes;
+            //PUSH
         }
         if (resutltState) {
             findState = resutltState;

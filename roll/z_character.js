@@ -411,23 +411,28 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 
 async function mainCharacter(doc, mainMsg) {
     mainMsg.shift();
-    let findState = {};
-    let findNotes = {};
+    let findState = [];
+    let findNotes = [];
     let findRoll = {};
+    let last = ""
     //如果是roll的, 就變成擲骰MODE(最優先)
     for (let name in mainMsg) {
         let resutltState = await findObject(doc.state, mainMsg[name])
         let resutltNotes = await findObject(doc.notes, mainMsg[name])
         let resutltRoll = await findObject(doc.roll, mainMsg[name])
         if (resutltNotes) {
-            findNotes = resutltNotes;
-            //PUSH
-        }
+            await findNotes.push(resutltNotes);
+            last = 'notes'
+        } else
         if (resutltState) {
-            findState = resutltState;
-        }
+            await findState.push(resutltState);
+            last = 'state'
+        } else
         if (resutltRoll) {
             findRoll = resutltRoll;
+            last = 'roll'
+        } else if (mainMsg[name].match(/[+-]\d/) && last == 'state') {
+            await findState.push(mainMsg[name]);
         }
 
     }

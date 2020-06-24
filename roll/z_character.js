@@ -1,5 +1,5 @@
 "use strict";
-var rply = {
+const rply = {
     default: 'on',
     type: 'text',
     text: '',
@@ -399,7 +399,8 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
              * 
              */
 
-            rply.text = await mainCharacter(doc, inputStr, mainMsg)
+            let tempMain = await mainCharacter(doc, mainMsg);
+            rply.text = tempMain
             return rply;
 
         default:
@@ -408,47 +409,51 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
     }
 }
 
-async function mainCharacter(doc, inputStr, mainMsg) {
-    let regex = /\s+/
+async function mainCharacter(doc, mainMsg) {
     mainMsg.shift();
     let findState = {};
     let findNotes = {};
     let findRoll = {};
-
     //如果是roll的, 就變成擲骰MODE(最優先)
-    console.log(doc)
     for (let name in mainMsg) {
-        console.log(name)
-        let resutltState = doc.state.find(element => {
-            return element.name.match(new RegExp(mainMsg[name], 'i'))
-        });
-        if (resutltState) {
-            findState = resutltState;
-        }
-        let resutltNotes = doc.notes.find(element => {
-            return element.name.match(new RegExp(mainMsg[name], 'i'))
-        });
+        let resutltState = await findObject(doc.state, mainMsg[name])
+        let resutltNotes = await findObject(doc.notes, mainMsg[name])
+        let resutltRoll = await findObject(doc.roll, mainMsg[name])
         if (resutltNotes) {
             findNotes = resutltNotes;
         }
-        let resutltRoll = doc.roll.find(element => {
-            return element.name.match(new RegExp(mainMsg[name], 'i'))
-        });
+        if (resutltState) {
+            findState = resutltState;
+        }
         if (resutltRoll) {
             findRoll = resutltRoll;
         }
 
     }
-    console.log(findState)
-    console.log(findNotes)
-    console.log(findRoll)
-
-    return findState;
-
+    switch (true) {
+        case Object.keys(findRoll).length > 0:
+            console.log('A')
+            return findRoll;
+        case Object.keys(findState).length > 0:
+            console.log('B')
+            return findState;
+        case Object.keys(findNotes).length > 0:
+            console.log('C')
+            return findNotes;
+        default:
+            break;
+    }
 
 
 }
 
+
+async function findObject(doc, mainMsg) {
+    let resutlt = doc.find(element => {
+        return element.name.match(new RegExp(mainMsg, 'i'))
+    });
+    return resutlt;
+}
 
 async function showCharacter(Card, mode) {
     /*

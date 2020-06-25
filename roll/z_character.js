@@ -3,7 +3,9 @@ const rply = {
     default: 'on',
     type: 'text',
     text: '',
-    characterRoll: false
+    characterReRoll: false,
+    characterName: '',
+    characterReRollName: ''
 };
 const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
@@ -134,7 +136,8 @@ var initialize = function () {
 
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
     rply.text = '';
-    rply.characterRoll = ''
+    rply.characterReRoll = false;
+    rply.characterName = ''
     let filter = {};
     let doc = {};
     let docSwitch = {};
@@ -376,7 +379,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             filter = {
                 id: userid,
                 gpid: channelid || groupid,
-            }
+            };
 
             docSwitch = await schema.characterGpSwitch.findOne(
                 filter);
@@ -402,7 +405,9 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 
             let tempMain = await mainCharacter(doc, mainMsg);
             rply.text = tempMain.text;
-            rply.characterRoll = tempMain.characterRoll
+            rply.characterReRoll = tempMain.characterReRoll;
+            rply.characterReRollName = tempMain.characterReRollName;
+            rply.characterName = doc.name;
             return rply;
 
         default:
@@ -418,8 +423,9 @@ async function mainCharacter(doc, mainMsg) {
     let findRoll = {};
     let last = ""
     let rply = {
-        characterRoll: false,
-        text: ''
+        characterReRoll: false,
+        text: '',
+        characterReRollName: ''
     }
     for (let name in mainMsg) {
         let resutltState = await findObject(doc.state, mainMsg[name])
@@ -447,26 +453,41 @@ async function mainCharacter(doc, mainMsg) {
     }
     //如果是roll的, 就變成擲骰MODE(最優先)
     //如果是另外兩個
-    console.log('Object.keys(findState).length: ', findState)
-    console.log('Object.keys(findNotes).length: ', findNotes)
     switch (true) {
         case Object.keys(findRoll).length > 0:
-            rply.text = findRoll.itemA
-            rply.characterRoll = true;
+            rply.text = findRoll.itemA;
+            rply.characterReRollName = findRoll.name;
+            rply.characterReRoll = true;
             return rply;
         case Object.keys(findState).length > 0:
             for (let i = 0; i < findState.length; i++) {
                 //如果i 是object , i+1 是STRING 和數字, 就進行加減
                 //否則就正常輸出
-                console.log(typeof (findState[i]))
                 if (typeof (findState[i]) == 'object' && typeof (findState[i + 1]) == 'string') {
+                    doc.state.forEach(async (element, index) => {
+                        if (element.name === findState[i].name) {
+                            try {
+                                doc.state[index].itemA = eval(findState[i + 1]) + parseFloat(doc.state[index].itemA);
+                            } catch (error) {
+                                doc.state[index].itemA = parseFloat(findState[i + 1]) + parseFloat(doc.state[index].itemA);
+                            }
+                            try {
+                                await doc.save();
+                            } catch (error) {
+                                console.log('doc SAVE error:', error)
+                            }
+                        }
+                    });
 
-                } else {
-                    rply.text += findState[i].name + ': ' + findState[i].itemA;
-                    if (findState[i].itemB)
-                        rply.text += "/" + findState[i].itemB;
+
                 }
-                rply.text += '\n'
+                if (typeof (findState[i]) == 'object') {
+                    rply.text += findState[i].name + ': ' + findState[i].itemA;
+                    if (findState[i].itemB) {
+                        rply.text += "/" + findState[i].itemB;
+                    }
+                    rply.text += '\n'
+                }
 
             }
             case findNotes.length > 0:

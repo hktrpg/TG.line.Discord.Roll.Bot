@@ -3,7 +3,7 @@ const rply = {
     default: 'on',
     type: 'text',
     text: '',
-    characterRoll: ''
+    characterRoll: false
 };
 const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
@@ -134,6 +134,7 @@ var initialize = function () {
 
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
     rply.text = '';
+    rply.characterRoll = ''
     let filter = {};
     let doc = {};
     let docSwitch = {};
@@ -400,7 +401,8 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
              */
 
             let tempMain = await mainCharacter(doc, mainMsg);
-            rply.text = tempMain
+            rply.text = tempMain.text;
+            rply.characterRoll = tempMain.characterRoll
             return rply;
 
         default:
@@ -415,39 +417,71 @@ async function mainCharacter(doc, mainMsg) {
     let findNotes = [];
     let findRoll = {};
     let last = ""
-    //如果是roll的, 就變成擲骰MODE(最優先)
+    let rply = {
+        characterRoll: false,
+        text: ''
+    }
     for (let name in mainMsg) {
         let resutltState = await findObject(doc.state, mainMsg[name])
         let resutltNotes = await findObject(doc.notes, mainMsg[name])
         let resutltRoll = await findObject(doc.roll, mainMsg[name])
         if (resutltNotes) {
+            last = 'notes';
             await findNotes.push(resutltNotes);
-            last = 'notes'
+
         } else
         if (resutltState) {
+            last = 'state';
             await findState.push(resutltState);
-            last = 'state'
         } else
         if (resutltRoll) {
             findRoll = resutltRoll;
-            last = 'roll'
+            last = 'roll';
         } else if (mainMsg[name].match(/[+-]\d/) && last == 'state') {
+            last = '';
             await findState.push(mainMsg[name]);
+        } else {
+            last = '';
         }
 
     }
+    //如果是roll的, 就變成擲骰MODE(最優先)
+    //如果是另外兩個
+    console.log('Object.keys(findState).length: ', findState)
+    console.log('Object.keys(findNotes).length: ', findNotes)
     switch (true) {
         case Object.keys(findRoll).length > 0:
-            console.log('A')
-            return findRoll;
+            rply.text = findRoll.itemA
+            rply.characterRoll = true;
+            return rply;
         case Object.keys(findState).length > 0:
-            console.log('B')
-            return findState;
-        case Object.keys(findNotes).length > 0:
-            console.log('C')
-            return findNotes;
-        default:
-            break;
+            for (let i = 0; i < findState.length; i++) {
+                //如果i 是object , i+1 是STRING 和數字, 就進行加減
+                //否則就正常輸出
+                console.log(typeof (findState[i]))
+                if (typeof (findState[i]) == 'object' && typeof (findState[i + 1]) == 'string') {
+
+                } else {
+                    rply.text += findState[i].name + ': ' + findState[i].itemA;
+                    if (findState[i].itemB)
+                        rply.text += "/" + findState[i].itemB;
+                }
+                rply.text += '\n'
+
+            }
+            case findNotes.length > 0:
+                for (let i = 0; i < findNotes.length; i++) {
+                    //如果i 是object , i+1 是STRING 和數字, 就進行加減
+                    //否則就正常輸出
+                    rply.text += findNotes[i].name + ': ' + findNotes[i].itemA + '\n';
+                }
+
+                if (findState.length > 0 || findNotes.length > 0) {
+                    rply.text = doc.name + '\n' + rply.text;
+                }
+                return rply;
+            default:
+                break;
     }
 
 
@@ -455,8 +489,9 @@ async function mainCharacter(doc, mainMsg) {
 
 
 async function findObject(doc, mainMsg) {
+    let re = mainMsg.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
     let resutlt = doc.find(element => {
-        return element.name.match(new RegExp(mainMsg, 'i'))
+        return element.name.match(new RegExp(re, 'i'))
     });
     return resutlt;
 }

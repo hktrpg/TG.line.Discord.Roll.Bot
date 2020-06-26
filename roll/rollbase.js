@@ -6,7 +6,7 @@ const {
 } = require("random-js");
 const random = new Random(nodeCrypto);
 //value = random.integer(1, 100);
-const regex = /(\d+)d(\d+)(kh|kl|dh|dl|)(\d+|)/i;
+const regex = /(\d+)d(\d+)(kh|kl|dh|dl|k|)(\d+|)/i;
 //var Sided = [];
 //Sided[10000] = [];
 var rply = {
@@ -108,7 +108,7 @@ var RollDice = async function (inputStr) {
     temp2[i] = temp[i]
   }
   if (comStr[3]) {
-    if (comStr[3].match(/^k$/)) {
+    if (comStr[3].match(/^k$/, i)) {
       comStr[3] == 'kh'
     }
     //由大至細

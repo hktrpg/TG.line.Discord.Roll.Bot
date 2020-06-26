@@ -529,7 +529,11 @@ async function mainCharacter(doc, mainMsg) {
     //如果是另外兩個
     switch (true) {
         case Object.keys(findRoll).length > 0:
-            rply.text = findRoll.itemA;
+            //把{}進行replace
+
+            rply.text = findRoll.itemA.replace(/\{(\w+)\}/, function (match, p1) {
+                return replacer(doc, p1);
+            });
             rply.characterReRollName = findRoll.name;
             rply.characterReRoll = true;
             return rply;
@@ -541,6 +545,8 @@ async function mainCharacter(doc, mainMsg) {
                     doc.state.forEach(async (element, index) => {
                         if (element.name === findState[i].name) {
                             //如果是一個數字, 取代本來的數值
+                            //不然就嘗試計算它
+                            //還是失敗就強制變成一個數字,進行運算
                             if (findState[i + 1].match(/^\d*\.?\d*$/i)) {
                                 doc.state[index].itemA = findState[i + 1];
                             } else {
@@ -647,6 +653,12 @@ async function showCharacter(Card, mode) {
             returnStr += '-------'
         }
     return returnStr;
+}
+
+
+function replacer(doc, match) {
+    console.log('doc:', doc, ' match:', match)
+    return;
 }
 async function analysicInputCharacterCard(inputStr) {
     let characterName = (inputStr.match(regexName)) ? inputStr.match(regexName)[1] : '';

@@ -54,7 +54,7 @@ records.get('RealTimeRollingLog', (msgs) => {
 	//console.log('RollingLog', RollingLog)
 	simpleCourt = 0;
 })
-
+const msgSplitor = (/\S+/ig);
 
 //Log everyday 01:00
 try {
@@ -76,7 +76,7 @@ try {
 		};
 		let trigger = ""
 		let stopmark = 0;
-		let msgSplitor = (/\S+/ig);
+
 		let mainMsg = {};
 		mainMsg = inputStr.match(msgSplitor); //定義輸入字串
 		if (mainMsg)

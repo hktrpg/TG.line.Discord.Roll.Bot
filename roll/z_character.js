@@ -531,11 +531,14 @@ async function mainCharacter(doc, mainMsg) {
         case Object.keys(findRoll).length > 0:
             //把{}進行replace
 
-            rply.text = findRoll.itemA.replace(/\{(\w+)\}/, function (match, p1) {
-                return replacer(doc, p1);
+            rply.text = await findRoll.itemA.replace(/\{(\w+)\}/ig, function (match, p1) {
+                let result = await replacer(doc, p1);
+                console.log(result)
+                return result;
             });
             rply.characterReRollName = findRoll.name;
             rply.characterReRoll = true;
+            console.log('rply')
             return rply;
         case Object.keys(findState).length > 0:
             for (let i = 0; i < findState.length; i++) {
@@ -656,9 +659,13 @@ async function showCharacter(Card, mode) {
 }
 
 
-function replacer(doc, match) {
-    console.log('doc:', doc, ' match:', match)
-    return;
+async function replacer(doc, match) {
+    let result = ""
+    let state = await findObject(doc.state, match);
+    let note = await findObject(doc.notes, match);
+    result = state.itemA || note.itemA || '';
+    console.log('result:', result)
+    return result;
 }
 async function analysicInputCharacterCard(inputStr) {
     let characterName = (inputStr.match(regexName)) ? inputStr.match(regexName)[1] : '';

@@ -516,9 +516,10 @@ async function mainCharacter(doc, mainMsg) {
         if (resutltRoll) {
             findRoll = resutltRoll;
             last = 'roll';
-        } else if (mainMsg[name].match(/[+-]\d/) && last == 'state') {
+        } else if (mainMsg[name].match(/^[0-9+\-\*\/\.]*$/i) && last == 'state') {
             last = '';
             await findState.push(mainMsg[name]);
+            console.log(mainMsg[name])
         } else {
             last = '';
         }
@@ -539,16 +540,17 @@ async function mainCharacter(doc, mainMsg) {
                 if (typeof (findState[i]) == 'object' && typeof (findState[i + 1]) == 'string') {
                     doc.state.forEach(async (element, index) => {
                         if (element.name === findState[i].name) {
-                            try {
-                                doc.state[index].itemA = eval(findState[i + 1]) + parseFloat(doc.state[index].itemA);
-                            } catch (error) {
-                                doc.state[index].itemA = parseFloat(findState[i + 1]) + parseFloat(doc.state[index].itemA);
+                            //如果是一個數字, 取代本來的數值
+                            if (findState[i + 1].match(/^\d*\.?\d*$/i)) {
+                                doc.state[index].itemA = findState[i + 1];
+                            } else {
+                                try {
+                                    doc.state[index].itemA = eval(findState[i + 1]) + parseFloat(doc.state[index].itemA);
+                                } catch (error) {
+                                    doc.state[index].itemA = parseFloat(findState[i + 1]) + parseFloat(doc.state[index].itemA);
+                                }
                             }
-                            try {
-                                await doc.save();
-                            } catch (error) {
-                                console.log('doc SAVE error:', error)
-                            }
+
                         }
                     });
 
@@ -562,6 +564,11 @@ async function mainCharacter(doc, mainMsg) {
                     rply.text += '\n'
                 }
 
+            }
+            try {
+                await doc.save();
+            } catch (error) {
+                console.log('doc SAVE error:', error)
             }
             case findNotes.length > 0:
                 for (let i = 0; i < findNotes.length; i++) {

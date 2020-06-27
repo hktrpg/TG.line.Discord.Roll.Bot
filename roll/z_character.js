@@ -130,9 +130,9 @@ var getHelpMessage = function () {
     \nroll[投擲:cc 80 投擲;空手鬥毆: cc 50]\
     \nnotes[筆記:SAD;心靈支柱: 無]\
     \n-----------範例-----------\
-    \n state 是用來儲存浮動數據, 進行運算 如: .ch HP +3\
-    \n roll 是用來儲存擲骰指令, 快速使用 如 .ch 空手鬥毆\
-    \n notes 是用來儲存數據, 以後可以查看 如 .ch 筆記\
+    \nstate 是用來儲存浮動數據, 進行運算 如: .ch HP +3\
+    \nroll 是用來儲存擲骰指令, 快速使用 如 .ch 空手鬥毆\
+    \nnotes 是用來儲存數據, 以後可以查看 如 .ch 筆記\
     \n.char use 角色卡名字 - 可以在該群組中使用指定角色卡\
     \n.char nonuse - 可以在該群組中取消使用角色卡\
     \n.char delete 角色卡名字 - 可以刪除指定角色卡\

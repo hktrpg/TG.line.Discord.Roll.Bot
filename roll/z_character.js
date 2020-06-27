@@ -21,10 +21,10 @@ var prefixs = function () {
         second: null
     }]
 }
-const regexName = new RegExp(/name\[(.*?)\]/, 'i');
-const regexState = new RegExp(/state\[(.*?)\]/, 'i');
-const regexRoll = new RegExp(/roll\[(.*?)\]/, 'i');
-const regexNotes = new RegExp(/notes\[(.*?)\]/, 'i');
+const regexName = new RegExp(/name\[(.*?)\]\~/, 'i');
+const regexState = new RegExp(/state\[(.*?)\]\~/, 'i');
+const regexRoll = new RegExp(/roll\[(.*?)\]\~/, 'i');
+const regexNotes = new RegExp(/notes\[(.*?)\]\~/, 'i');
 const re = new RegExp(/(.*?)\:(.*?)(\;|$)/, 'ig');
 const limitArr = [4, 10, 30, 100, 200, 999]
 const opt = {
@@ -43,10 +43,10 @@ COC export to roll20?
 /*
 以個人為單位, 一張咭可以在不同的群組使用    
 .char add 的輸入格式,用來增建角色卡
-.char add name[Sad]
-state[HP:5/5;MP:3/3;SAN:50/99;護甲:6]
-roll[投擲:cc 80 投擲;空手鬥毆: cc 50]
-notes[筆記:SAD;心靈支柱: 特質]
+.char add name[Sad]~
+state[HP:5/5;MP:3/3;SAN:50/99;護甲:6]~
+roll[投擲:cc 80 投擲;空手鬥毆: cc [[50 +{hp}]]]~
+notes[筆記:SAD;心靈支柱: 特質]~
 
 // state 可以進行增減
 // notes 文字筆記
@@ -501,9 +501,9 @@ async function mainCharacter(doc, mainMsg) {
         characterReRollName: ''
     }
     for (let name in mainMsg) {
-        let resutltState = await findObject(doc.state, mainMsg[name])
-        let resutltNotes = await findObject(doc.notes, mainMsg[name])
-        let resutltRoll = await findObject(doc.roll, mainMsg[name])
+        let resutltState = await findObject(doc.state, mainMsg[name]);
+        let resutltNotes = await findObject(doc.notes, mainMsg[name]);
+        let resutltRoll = await findObject(doc.roll, mainMsg[name]);
         if (resutltNotes) {
             last = 'notes';
             await findNotes.push(resutltNotes);
@@ -592,7 +592,7 @@ async function mainCharacter(doc, mainMsg) {
                 }
                 return rply;
             default:
-                break;
+                return rply;
     }
 
 
@@ -665,7 +665,6 @@ async function replacer(doc, match) {
     let state = await findObject(doc.state, match);
     let note = await findObject(doc.notes, match);
     result = state.itemA || note.itemA || '';
-    console.log('result:', result)
     return result;
 }
 async function analysicInputCharacterCard(inputStr) {
@@ -673,7 +672,6 @@ async function analysicInputCharacterCard(inputStr) {
     let characterStateTemp = (inputStr.match(regexState)) ? inputStr.match(regexState)[1] : '';
     let characterRollTemp = (inputStr.match(regexRoll)) ? inputStr.match(regexRoll)[1] : '';
     let characterNotesTemp = (inputStr.match(regexNotes)) ? inputStr.match(regexNotes)[1] : '';
-
     let characterState = (characterStateTemp) ? await analysicStr(characterStateTemp, true) : [];
     let characterRoll = (characterRollTemp) ? await analysicStr(characterRollTemp, false) : [];
     let characterNotes = (characterNotesTemp) ? await analysicStr(characterNotesTemp, false) : [];

@@ -530,15 +530,16 @@ async function mainCharacter(doc, mainMsg) {
     switch (true) {
         case Object.keys(findRoll).length > 0:
             //把{}進行replace
-
-            rply.text = await findRoll.itemA.replace(/\{(\w+)\}/ig, function (match, p1) {
+            //https://stackoverflow.com/questions/33631041/javascript-async-await-in-replace
+            //ref source
+            async function myAsyncFn(match, p1) {
                 let result = await replacer(doc, p1);
-                console.log(result)
                 return result;
-            });
+            }
+            rply.text = await replaceAsync(findRoll.itemA, /\{(.*?)\}/ig, await myAsyncFn);
+            rply.text = await replaceAsync(rply.text, /\[\[(.*?)\]\]/ig, await myAsyncFn2);
             rply.characterReRollName = findRoll.name;
             rply.characterReRoll = true;
-            console.log('rply')
             return rply;
         case Object.keys(findState).length > 0:
             for (let i = 0; i < findState.length; i++) {
@@ -769,8 +770,25 @@ async function Merge(target, source, prop, updateMode) {
 
 }
 
+async function replaceAsync(str, regex, asyncFn) {
+    const promises = [];
+    str.replace(regex, (match, ...args) => {
+        const promise = asyncFn(match, ...args);
+        promises.push(promise);
+    });
+    const data = await Promise.all(promises);
+    return str.replace(regex, () => data.shift());
+}
 
-
+async function myAsyncFn2(match, p1) {
+    let result = ''
+    try {
+        result = eval(p1)
+    } catch (error) {
+        result = p1
+    }
+    return result;
+}
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,

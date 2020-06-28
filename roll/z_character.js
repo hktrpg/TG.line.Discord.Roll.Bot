@@ -10,7 +10,7 @@ const rply = {
 const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
 var gameName = function () {
-    return '(公測中)角色卡功能 .char (add delete use nonuse) .ch (set show showall)'
+    return '(公測中)角色卡功能 .char (add edit delete use nonuse) .ch (set show showall)'
 }
 var gameType = function () {
     return 'trpgcharacter:hktrpg'
@@ -125,14 +125,15 @@ var getHelpMessage = function () {
     \n-----------.char-----------\
     \n.char add 的輸入格式,用來創建及更新角色卡\
     \n-----------範例-----------\
-    \n.char add name[Sad]\
-    \nstate[HP:15/5;MP:3/3;SAN:50/99;護甲:6]\
-    \nroll[投擲:cc 80 投擲;空手鬥毆: cc 50]\
-    \nnotes[筆記:SAD;心靈支柱: 無]\
+    \n.char add name[Sad]~\
+    \nstate[HP:15/15;MP:8/8;SAN:25/99;護甲:1;DB:1d3;]~\
+    \nroll[投擲:cc 80 投擲;鬥毆: cc 50;刀:[[1D4+{db}]];小刀:1D4+{db}]~\
+    \nnotes[筆記:這是測試,請試試在群組輸入 .char use sad;心靈支柱: 無]~\
     \n-----------範例-----------\
     \nstate 是用來儲存浮動數據, 進行運算 如: .ch HP +3\
     \nroll 是用來儲存擲骰指令, 快速使用 如 .ch 空手鬥毆\
     \nnotes 是用來儲存數據, 以後可以查看 如 .ch 筆記\
+    \n.char edit 角色卡名字 - 可以以add的格式修改指定角色卡\
     \n.char use 角色卡名字 - 可以在該群組中使用指定角色卡\
     \n.char nonuse - 可以在該群組中取消使用角色卡\
     \n.char delete 角色卡名字 - 可以刪除指定角色卡\
@@ -190,10 +191,10 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 
             filter = {
                 id: userid,
-                name: new RegExp(convertRegex(Card.name), "i")
+                name: new RegExp('^' + convertRegex(Card.name) + '$', "i")
             }
             //取得本來的資料, 如有重覆, 以新的覆蓋
-
+            console.log('Card.roll 01: ', Card.roll)
             doc = await schema.characterCard.findOne(filter);
             //把舊和新的合併
             if (doc) {
@@ -202,6 +203,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 Card.roll = await Merge(doc.roll, Card.roll, 'name');
                 Card.notes = await Merge(doc.notes, Card.notes, 'name');
             }
+            console.log('Card.roll 02: ', Card.roll)
             try {
                 await schema.characterCard.updateOne(filter,
                     Card, opt);
@@ -227,7 +229,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 
             filter = {
                 id: userid,
-                name: new RegExp(convertRegex(Card.name), "i")
+                name: new RegExp('^' + convertRegex(Card.name) + "$", "i")
             }
             //取得本來的資料, 如有重覆, 以新的覆蓋
 
@@ -263,7 +265,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             }
             filter = {
                 id: userid,
-                name: new RegExp(convertRegex(mainMsg[2]), "i")
+                name: new RegExp('^' + convertRegex(mainMsg[2]) + '$', "i")
             }
             doc = await schema.characterCard.findOne(filter);
             if (!doc) {
@@ -602,7 +604,7 @@ async function mainCharacter(doc, mainMsg) {
 async function findObject(doc, mainMsg) {
     let re = mainMsg.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
     let resutlt = doc.find(element => {
-        return element.name.match(new RegExp(re, 'i'))
+        return element.name.match(new RegExp('^' + re + '$', 'i'))
     });
     return resutlt;
 }
@@ -675,7 +677,6 @@ async function analysicInputCharacterCard(inputStr) {
     let characterState = (characterStateTemp) ? await analysicStr(characterStateTemp, true) : [];
     let characterRoll = (characterRollTemp) ? await analysicStr(characterRollTemp, false) : [];
     let characterNotes = (characterNotesTemp) ? await analysicStr(characterNotesTemp, false) : [];
-
     //Remove duplicates from an array of objects in JavaScript
     // if (characterState)
     characterState = characterState.filter((v, i, a) => a.findIndex(t => (t.name === v.name)) === i)
@@ -683,23 +684,21 @@ async function analysicInputCharacterCard(inputStr) {
     characterRoll = characterRoll.filter((v, i, a) => a.findIndex(t => (t.name === v.name)) === i)
     //if (characterNotes)
     characterNotes = characterNotes.filter((v, i, a) => a.findIndex(t => (t.name === v.name)) === i)
-
     let character = {
         name: characterName,
         state: characterState,
         roll: characterRoll,
         notes: characterNotes
     }
-
     return character;
 }
 
 async function analysicStr(inputStr, state) {
     let character = [];
-    let myArray;
+    let myArray = [];
     while ((myArray = re.exec(inputStr)) !== null) {
-        if (myArray[2].match(/\w+\/\w+/) && state) {
-            let temp2 = /(\w+)\/(\w+)/.exec(myArray[2])
+        if (myArray[2].match(/.*?\/.*/) && state) {
+            let temp2 = /(.*)\/(.*)/.exec(myArray[2])
             myArray[2] = temp2[1]
             myArray[3] = temp2[2]
         }
@@ -754,7 +753,7 @@ async function Merge(target, source, prop, updateMode) {
     const mergeByProperty = (target, source, prop) => {
         source.forEach(sourceElement => {
             let targetElement = target.find(targetElement => {
-                return sourceElement[prop].match(new RegExp(convertRegex(targetElement[prop]), 'i'));
+                return sourceElement[prop].match(new RegExp('^' + convertRegex(targetElement[prop]) + '$', 'i'));
             })
             if (updateMode)
                 targetElement ? Object.assign(targetElement, sourceElement) : '';

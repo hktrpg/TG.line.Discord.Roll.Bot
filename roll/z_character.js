@@ -306,7 +306,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 rply.text = '修改失敗\n' + error;
                 return rply;
             }
-            rply.text = '修改成功。\n現在這群組沒有使用角色卡，.ch 沒有效果。'
+            rply.text = '修改成功。\n現在這群組沒有使用角色卡， .ch 不會出現效果。'
             return rply;
 
         case /(^[.]char$)/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]) && /\S+/.test(mainMsg[2]):

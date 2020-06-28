@@ -121,18 +121,21 @@ cc 80 投擲
 
 var getHelpMessage = function () {
     return "【角色卡功能】" + "\
-    \n以個人為單位, 一張咭可以在不同的群組使用\
+    \n以個人為單位, 一張卡可以在不同的群組使用\
     \n-----------.char-----------\
     \n.char add 的輸入格式,用來創建及更新角色卡\
-    \n-----------範例-----------\
+    \n-----------範例開始-----------\
     \n.char add name[Sad]~\
     \nstate[HP:15/15;MP:8/8;SAN:25/99;護甲:1;DB:1d3;]~\
-    \nroll[投擲:cc 80 投擲;鬥毆: cc 50;刀:[[1D4+{db}]];小刀:1D4+{db}]~\
+    \nroll[投擲:cc 80 投擲;鬥毆: cc 50;魔法:1D4+[[1+{HP}]];小刀:1D4+{db}]~\
     \nnotes[筆記:這是測試,請試試在群組輸入 .char use sad;心靈支柱: 無]~\
-    \n-----------範例-----------\
+    \n-----------範例結束-----------\
     \nstate 是用來儲存浮動數據, 進行運算 如: .ch HP +3\
     \nroll 是用來儲存擲骰指令, 快速使用 如 .ch 空手鬥毆\
+    \n {}符號可以用來指定state 的參數, 如{db} 就會變成 1d3\
+    \n [[ ]] 可以進行簡單運算 如[[1+{HP}]] 就會變成 1+15 -> 16\
     \nnotes 是用來儲存數據, 以後可以查看 如 .ch 筆記\
+    \n.char Show - 可以顯示角色卡列表\
     \n.char edit 角色卡名字 - 可以以add的格式修改指定角色卡\
     \n.char use 角色卡名字 - 可以在該群組中使用指定角色卡\
     \n.char nonuse - 可以在該群組中取消使用角色卡\
@@ -181,10 +184,12 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             }
 
             return rply;
-        case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /\S+/.test(mainMsg[2]):
+        case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
+            console.log('Card', Card)
             if (!Card.name) {
-                rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 name[XXXX]'
+                rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 name[XXXX]~';
+                return rply;
             }
             /*
             只限四張角色卡.
@@ -200,7 +205,6 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 name: new RegExp('^' + convertRegex(Card.name) + '$', "i")
             }
             //取得本來的資料, 如有重覆, 以新的覆蓋
-            console.log('Card.roll 01: ', Card.roll)
             doc = await schema.characterCard.findOne(filter);
             //把舊和新的合併
             if (doc) {
@@ -223,10 +227,11 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             rply.text = await showCharacter(Card, 'addMode');
             return rply;
 
-        case /(^[.]char$)/i.test(mainMsg[0]) && /^edit$/i.test(mainMsg[1]) && /\S+/.test(mainMsg[2]):
+        case /(^[.]char$)/i.test(mainMsg[0]) && /^edit$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
             if (!Card.name) {
-                rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 name[XXXX]'
+                rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 name[XXXX]~';
+                return rply;
             }
             /*
             只限四張角色卡.
@@ -264,7 +269,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             return rply;
 
 
-        case /(^[.]char$)/i.test(mainMsg[0]) && /^use$/i.test(mainMsg[1]) && /\S+/.test(mainMsg[2]):
+        case /(^[.]char$)/i.test(mainMsg[0]) && /^use$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             if (!groupid) {
                 rply.text = '不在群組'
                 return rply
@@ -315,7 +320,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             rply.text = '修改成功。\n現在這群組沒有使用角色卡， .ch 不會出現效果。'
             return rply;
 
-        case /(^[.]char$)/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]) && /\S+/.test(mainMsg[2]):
+        case /(^[.]char$)/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             if (!groupid) {
                 rply.text = '不在群組'
                 return rply
@@ -327,7 +332,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 
             doc = await schema.characterCard.findOne(filter);
             if (!doc) {
-                rply.text = '沒有此角色卡, 刪除角色卡需要名字大小階完全相同'
+                rply.text = '沒有此角色卡. 注意:刪除角色卡需要名字大小寫完全相同'
                 return rply
             }
             try {
@@ -462,7 +467,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             return rply;
 
 
-        case /(^[.]ch$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]):
+        case /(^[.]ch$)/i.test(mainMsg[0]) && /^\S+$/i.test(mainMsg[1]):
             if (!groupid) {
                 rply.text = '不在群組'
                 return rply

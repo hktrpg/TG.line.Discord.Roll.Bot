@@ -143,7 +143,13 @@ var getHelpMessage = function () {
     \n.ch show - 顯示角色卡的state 和roll 內容\
     \n.ch showall - 顯示角色卡的所有內容\
     \n.ch 項目名稱 (+-數) - 可以立即對如HP進行加減運算\
-    \n.ch 項目名稱 項目名稱 - 沒有加減的話, 會單純顯示數據"
+    \n.ch 項目名稱 項目名稱 - 沒有加減的話, 會單純顯示數據\
+    \n-----------範例-----------\
+    \n.ch set 護甲 3\
+    \n.ch set 護甲 \
+    \n.ch HP +3 MP 6 san -10\
+    \n.ch 鬥毆\
+    \n-----------範例-----------"
 }
 
 var initialize = function () {
@@ -383,12 +389,22 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 doc.notes = await Merge(doc.notes, useCard, 'name', true);
                 try {
                     let a = await doc.save();
+                    console.log(a)
                     if (a) {
-                        let resutltState = await findObject(doc.state, mainMsg[2]) || {};
-                        let resutltNotes = await findObject(doc.notes, mainMsg[2]) || {};
-                        let resutltRoll = await findObject(doc.roll, mainMsg[2]) || {};
-                        if (resutltState)
-                            rply.text += a.name + '\n' + resutltState.name + resutltNotes.name + resutltRoll.name;
+                        let resutltState = await findObject(doc.state, mainMsg[2]) || '';
+                        let resutltNotes = await findObject(doc.notes, mainMsg[2]) || '';
+                        let resutltRoll = await findObject(doc.roll, mainMsg[2]) || '';
+                        if (resutltState) {
+                            rply.text += a.name + '\n' + resutltState.name + ': ' + resutltState.itemA;
+                            rply.text += (resutltState.itemB) ? '/' + resutltState.itemB : '';
+                        }
+                        console.log(resutltNotes)
+                        if (resutltNotes) {
+                            rply.text += a.name + '\n' + resutltNotes.name + ': ' + resutltNotes.itemA;
+                        }
+                        if (resutltRoll) {
+                            rply.text += a.name + '\n' + resutltRoll.name + ': ' + resutltRoll.itemA;
+                        }
                         return rply;
                     }
                 } catch (error) {

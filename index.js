@@ -1,8 +1,8 @@
 "use strict";
-require('fs').readdirSync(__dirname + '/modules/').forEach(function (file) {
+require('fs').readdirSync(__dirname + '/modules/').forEach(async function (file) {
   if (file.match(/\.js$/) !== null && file !== 'index.js') {
     var name = file.replace('.js', '');
-    exports[name] = require('./modules/' + file);
+    exports[name] = await require('./modules/' + file);
   }
 });
 

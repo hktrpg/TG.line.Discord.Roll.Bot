@@ -59,6 +59,10 @@ try {
                     if (rply.trpgCommandfunction)
                         for (var i = 0; i < rply.trpgCommandfunction.length; i++) {
                             if (rply.trpgCommandfunction[i].groupid == groupid) {
+                                if (rply.trpgCommandfunction[i].trpgCommandfunction.length > 30) {
+                                    rply.text = '只可以有30個關鍵字啊'
+                                    return rply;
+                                }
                                 // console.log('checked1')
                                 if (rply.trpgCommandfunction[0] && rply.trpgCommandfunction[0].trpgCommandfunction[0])
                                     for (var a = 0; a < rply.trpgCommandfunction[i].trpgCommandfunction.length; a++) {

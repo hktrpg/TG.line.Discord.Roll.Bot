@@ -145,6 +145,65 @@ if (process.env.mongoURL) {
         }
     });
 
+    const veryImportantPerson = mongoose.model('veryImportantPerson', {
+        gpid: Array,
+        id: Array,
+        level: Number,
+        startTime: Date,
+        endTime: Date,
+        name: String,
+        notes: String
+    });
+    const characterGpSwitch = mongoose.model('characterGpSwitch', new mongoose.Schema({
+        gpid: Array,
+        id: String,
+        name: String,
+        cardId: String
+    }));
+
+    const characterCard = mongoose.model('characterCard', new mongoose.Schema({
+        id: String,
+        name: {
+            type: String,
+            maxlength: 50
+        },
+        nameShow: Boolean,
+        state: [{
+            name: {
+                type: String,
+                maxlength: 50
+            },
+            itemA: {
+                type: String,
+                maxlength: 50
+            },
+            itemB: {
+                type: String,
+                maxlength: 50
+            }
+        }],
+        roll: [{
+            name: {
+                type: String,
+                maxlength: 50
+            },
+            itemA: {
+                type: String,
+                maxlength: 150
+            }
+        }],
+        notes: [{
+            name: {
+                type: String,
+                maxlength: 50
+            },
+            itemA: {
+                type: String,
+                maxlength: 1500
+            }
+        }]
+    }));
+
 
     module.exports = {
         randomAns,
@@ -158,7 +217,10 @@ if (process.env.mongoURL) {
         trpgLevelSystem,
         trpgDarkRolling,
         RealTimeRollingLog,
-        RollingLog
+        RollingLog,
+        characterCard,
+        veryImportantPerson,
+        characterGpSwitch
     }
     //const Cat = mongoose.model('Cat', { name: String });
     //const kitty = new Cat({ name: 'Zildjian' });

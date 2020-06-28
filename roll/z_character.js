@@ -147,7 +147,7 @@ var getHelpMessage = function () {
     \n-----------範例-----------\
     \n.ch set 護甲 3\
     \n.ch set 護甲 \
-    \n.ch HP +3 MP 6 san -10\
+    \n.ch HP +3 MP 6 san -10 筆記\
     \n.ch 鬥毆\
     \n-----------範例-----------"
 }

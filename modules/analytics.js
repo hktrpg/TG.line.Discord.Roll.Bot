@@ -66,23 +66,23 @@ let result = {
 	LevelUp: ''
 };
 
-	//用來呼叫骰組,新增骰組的話,要寫條件式到下面呼叫 
-	//格式是 exports.骰組檔案名字.function名
-	var parseInput = async function (inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount, CAPTCHA) {
-		//console.log('InputStr: ' + inputStr);
-		if (membercount) await membercount--
-		result = {
-			text: '',
-			type: 'text',
-			LevelUp: ''
-		};
-		let trigger = ""
-		let stopmark = 0;
+//用來呼叫骰組,新增骰組的話,要寫條件式到下面呼叫 
+//格式是 exports.骰組檔案名字.function名
+var parseInput = async function (inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount, CAPTCHA) {
+	//console.log('InputStr: ' + inputStr);
+	if (membercount) await membercount--
+	result = {
+		text: '',
+		type: 'text',
+		LevelUp: ''
+	};
+	let trigger = ""
+	let stopmark = 0;
 
-		let mainMsg = {};
-		mainMsg = inputStr.match(msgSplitor); //定義輸入字串
-		if (mainMsg)
-			trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
+	let mainMsg = {};
+	mainMsg = inputStr.match(msgSplitor); //定義輸入字串
+	if (mainMsg)
+		trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
 
 
 

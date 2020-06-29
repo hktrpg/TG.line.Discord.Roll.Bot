@@ -146,8 +146,8 @@ if (process.env.mongoURL) {
     });
 
     const veryImportantPerson = mongoose.model('veryImportantPerson', {
-        gpid: Array,
-        id: Array,
+        gpid: String,
+        id: String,
         level: Number,
         startTime: Date,
         endTime: Date,

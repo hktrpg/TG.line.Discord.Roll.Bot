@@ -32,7 +32,7 @@ var initialize = function () {
 }
 
 /**
- * 
+ * 功能: 核對已有的
  * 
  * 
  * 

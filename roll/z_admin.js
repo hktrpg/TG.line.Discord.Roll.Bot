@@ -30,6 +30,7 @@ var getHelpMessage = function () {
 var initialize = function () {
     return rply;
 }
+const secret = process.env.ADMIN_SECRET;
 
 /**
  * 功能: 核對已有的

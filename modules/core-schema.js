@@ -154,6 +154,30 @@ if (process.env.mongoURL) {
         name: String,
         notes: String
     });
+    const veryImportantPerson = mongoose.model('veryImportantPerson', new mongoose.Schema({
+        gpid: String,
+        id: String,
+        level: Number,
+        startDate: Date,
+        endDate: Date,
+        name: String,
+        notes: String,
+        code: String
+    }));
+    const codelist = mongoose.model('codelist', new mongoose.Schema({
+        code: String,
+        level: Number,
+        endDate: Date,
+        renew: Number,
+        allowTime: Number,
+        usedTime: Number,
+        usedGpid: Array,
+        usedId: Array,
+        name: String,
+        notes: String,
+    }));
+
+
     const characterGpSwitch = mongoose.model('characterGpSwitch', new mongoose.Schema({
         gpid: Array,
         id: String,
@@ -220,7 +244,8 @@ if (process.env.mongoURL) {
         RollingLog,
         characterCard,
         veryImportantPerson,
-        characterGpSwitch
+        characterGpSwitch,
+        codelist
     }
     //const Cat = mongoose.model('Cat', { name: String });
     //const kitty = new Cat({ name: 'Zildjian' });

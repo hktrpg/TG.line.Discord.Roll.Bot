@@ -401,7 +401,6 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                             rply.text += a.name + '\n' + resutltState.name + ': ' + resutltState.itemA;
                             rply.text += (resutltState.itemB) ? '/' + resutltState.itemB : '';
                         }
-                        console.log(resutltNotes)
                         if (resutltNotes) {
                             rply.text += a.name + '\n' + resutltNotes.name + ': ' + resutltNotes.itemA;
                         }
@@ -543,7 +542,6 @@ async function mainCharacter(doc, mainMsg) {
         } else if (mainMsg[name].match(/^[0-9+\-\*\/\.]*$/i) && last == 'state') {
             last = '';
             await findState.push(mainMsg[name]);
-            console.log(mainMsg[name])
         } else {
             last = '';
         }

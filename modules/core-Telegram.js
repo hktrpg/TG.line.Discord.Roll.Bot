@@ -16,11 +16,21 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 		const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || '';
 		//var TGcountroll = 0;
 		//var TGcounttext = 0;
+		const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
+						\n輸入 1D100 可以進行最簡單的擲骰.\
+						\n輸入 Bothelp 去觀看詳細使用說明.\
+						\n如果你需要幫助, 加入支援頻道.\
+						\n(http://bit.ly/HKTRPG_DISCORD)\
+						\n有關TRPG資訊, 可以到網站\
+						\n(http://www.hktrpg.com/)";
+
 		const telegrafGetChatMembers = require('telegraf-getchatmembers');
 		TGclient.catch((err) => {
 			console.log('bot error: ', err);
 		});
 		//TGclient.use(telegrafGetChatMembers)
+
+
 		TGclient.on('audio', async (ctx) => {
 			if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
 				let groupid, userid, displayname, channelid, membercount = '';
@@ -124,7 +134,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 		})
 
 		TGclient.on('text', async (ctx) => {
-
+			console.log('message');
 			let CAPTCHA = random.string(20);
 			//console.log(ctx.getChatMembers(ctx.chat.id) //[Members]
 			//	ctx.getChatMembers() //[Members]
@@ -305,7 +315,12 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			//  }
 
 		})
-
+		TGclient.on('message', async (ctx) => {
+			if (ctx.message.new_chat_member && ctx.message.new_chat_member.username == ctx.me) {
+				console.log("Telegram joined");
+				await ctx.reply(joinMessage);
+			}
+		});
 		TGclient.launch();
 	} catch (e) {
 		console.log('catch error');

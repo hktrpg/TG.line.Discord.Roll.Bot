@@ -41,13 +41,18 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 		client.on("guildCreate", async (message) => {
 			console.log("Discord joined");
 			//Your other stuff like adding to guildArray
-			console.log('message', message)
-			try {
-				await message.channel.send(joinMessage);
-			} catch (e) {
-				console.log('error SendToReplychannel: ', e.message);
 
-			}
+			let defaultChannel = "";
+			guild.channels.cache.forEach((channel) => {
+				if (channel.type == "text" && defaultChannel == "") {
+					if (channel.permissionsFor(guild.me).has("SEND_MESSAGES")) {
+						defaultChannel = channel;
+					}
+				}
+			})
+			//defaultChannel will be the channel object that the bot first finds permissions for
+			defaultChannel.send(joinMessage);
+
 
 
 		})

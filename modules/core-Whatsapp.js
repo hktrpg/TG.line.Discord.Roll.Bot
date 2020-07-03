@@ -6,6 +6,13 @@ if (process.env.WHATSAPP_SWITCH) {
 			nodeCrypto
 		} = require("random-js");
 		const random = new Random(nodeCrypto);
+		const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
+		\n輸入 1D100 可以進行最簡單的擲骰.\
+		\n輸入 Bothelp 去觀看詳細使用說明.\
+		\n如果你需要幫助, 加入支援頻道.\
+		\n(http://bit.ly/HKTRPG_DISCORD)\
+		\n有關TRPG資訊, 可以到網站\
+		\n(http://www.hktrpg.com/)";
 
 		function timer(ms) {
 			return new Promise(res => setTimeout(res, ms));
@@ -216,6 +223,10 @@ hasQuotedMsg:false
 				const chat = await msg.getChat();
 				chat.clearMessages();
 			}
+		});
+		client.on('group_join', async (msg) => {
+			console.log("Whatsapp joined");
+			await msg.reply(joinMessage);
 		});
 
 		client.initialize();

@@ -743,7 +743,7 @@ async function analysicStr(inputStr, state) {
 
         //防止誤輸入
         myArray[3] = (myArray[3] == ';') ? '' : myArray[3];
-        myArray[1] = myArray[1].replace(/\s+/g, '')
+        myArray[1] = myArray[1].replace(/\s+/g, '');
         myArray[2] = myArray[2].replace(/^\s+/, '').replace(/\s+$/, '');
         myArray[3] = myArray[3].replace(/^\s+/, '').replace(/\s+$/, '');
 

@@ -152,7 +152,7 @@ async function courtMessage(result, botname, inputStr) {
 					console.log('Whatsapp\'s inputStr: ', inputStr);
 					RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll++;
 					break;
-				case "Whatsapp":
+				case "www":
 					console.log('     WWW\'s inputStr: ', inputStr);
 					RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll++;
 					break;

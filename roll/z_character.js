@@ -132,11 +132,12 @@ var getHelpMessage = function () {
     \n-----------範例結束-----------\
     \nstate 是用來儲存浮動數據, 進行運算 如: .ch HP +3\
     \nroll 是用來儲存擲骰指令, 快速使用 如 .ch 空手鬥毆\
+    \n注意項目名稱請不要有空格\
     \n {}符號可以用來指定state 的參數, 如{db} 就會變成 1d3\
     \n [[ ]] 可以進行簡單運算 如[[1+{HP}]] 就會變成 1+15 -> 16\
     \nnotes 是用來儲存數據, 以後可以查看 如 .ch 筆記\
     \n.char Show - 可以顯示角色卡列表\
-    \n.char edit 角色卡名字 - 可以以add的格式修改指定角色卡\
+    \n.char edit name[角色卡名字]~ - 可以以add的格式修改指定角色卡\
     \n.char use 角色卡名字 - 可以在該群組中使用指定角色卡\
     \n.char nonuse - 可以在該群組中取消使用角色卡\
     \n.char delete 角色卡名字 - 可以刪除指定角色卡\
@@ -152,6 +153,7 @@ var getHelpMessage = function () {
     \n.ch set 護甲 \
     \n.ch HP +3 MP 6 san -10 筆記\
     \n.ch 鬥毆\
+    \ndr .ch 魔法\
     \n-----------範例-----------"
 }
 
@@ -186,7 +188,6 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             return rply;
         case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
-            console.log('Card', Card)
             if (!Card.name) {
                 rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 name[XXXX]~';
                 return rply;
@@ -213,7 +214,6 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 Card.roll = await Merge(doc.roll, Card.roll, 'name');
                 Card.notes = await Merge(doc.notes, Card.notes, 'name');
             }
-            console.log('Card.roll 02: ', Card.roll)
             try {
                 await schema.characterCard.updateOne(filter,
                     Card, opt);
@@ -274,9 +274,10 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 rply.text = '不在群組'
                 return rply
             }
+
             filter = {
                 id: userid,
-                name: new RegExp('^' + convertRegex(mainMsg[2]) + '$', "i")
+                name: new RegExp('^' + convertRegex(inputStr.replace(/^\.char use /i, '')) + '$', "i")
             }
             doc = await schema.characterCard.findOne(filter);
             if (!doc) {
@@ -327,7 +328,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             }
             filter = {
                 id: userid,
-                name: mainMsg[2]
+                name: inputStr.replace(/^\.char delete /ig, '')
             }
 
             doc = await schema.characterCard.findOne(filter);
@@ -382,19 +383,18 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 rply.text = "未有登記的角色卡, \n請輸入.char use 角色卡名字  \n進行登記"
             }
             if (doc) {
-                let useTarget = new RegExp(mainMsg[0] + '\\s+' + mainMsg[1] + '\\s+' + convertRegex(mainMsg[2]))
-                let useName = mainMsg[2];
-                let useItemA = inputStr.replace(useTarget, '').replace(/^\s+/, '')
+                let useTarget = new RegExp(mainMsg[0] + '\\s+' + mainMsg[1] + '\\s+' + convertRegex(mainMsg[2]));
+                let useName = inputStr.replace(/^\.char delete /ig, '');
+                let useItemA = inputStr.replace(useTarget, '').replace(/^\s+/, '');
                 let useCard = [{
                     name: useName,
                     itemA: useItemA
-                }]
+                }];
                 doc.state = await Merge(doc.state, useCard, 'name', true);
                 doc.roll = await Merge(doc.roll, useCard, 'name', true);
                 doc.notes = await Merge(doc.notes, useCard, 'name', true);
                 try {
                     let a = await doc.save();
-                    console.log(a)
                     if (a) {
                         let resutltState = await findObject(doc.state, mainMsg[2]) || '';
                         let resutltNotes = await findObject(doc.notes, mainMsg[2]) || '';
@@ -403,7 +403,6 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                             rply.text += a.name + '\n' + resutltState.name + ': ' + resutltState.itemA;
                             rply.text += (resutltState.itemB) ? '/' + resutltState.itemB : '';
                         }
-                        console.log(resutltNotes)
                         if (resutltNotes) {
                             rply.text += a.name + '\n' + resutltNotes.name + ': ' + resutltNotes.itemA;
                         }
@@ -413,6 +412,9 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                         return rply;
                     }
                 } catch (error) {
+                    console.log('doc ', doc)
+                    console.log('inputSTR: ', inputStr)
+                    console.log('doc SAVE error:', error)
                     console.log('更新角色卡失敗: ', error)
                     rply.text = '更新角色卡失敗'
                     return rply;
@@ -542,7 +544,6 @@ async function mainCharacter(doc, mainMsg) {
         } else if (mainMsg[name].match(/^[0-9+\-\*\/\.]*$/i) && last == 'state') {
             last = '';
             await findState.push(mainMsg[name]);
-            console.log(mainMsg[name])
         } else {
             last = '';
         }
@@ -601,6 +602,8 @@ async function mainCharacter(doc, mainMsg) {
             try {
                 await doc.save();
             } catch (error) {
+                console.log('doc ', doc)
+                console.log('inputSTR: ', inputStr)
                 console.log('doc SAVE error:', error)
             }
             case findNotes.length > 0:
@@ -654,11 +657,20 @@ async function showCharacter(Card, mode) {
             if ((a) % 4 == 0 && (Card.state[i].itemA || Card.state[i].itemB)) {
                 returnStr += '\n'
             }
-            returnStr += (Card.state[i].itemA) ? Card.state[i].name + ': ' + Card.state[i].itemA : '';
-            returnStr += (Card.state[i].itemB) ? '/' + Card.state[i].itemB : '';
+            if (mode == 'addMode' || mode == 'showAllMode') {
+                returnStr += Card.state[i].name + ': ' + Card.state[i].itemA;
+                returnStr += (Card.state[i].itemB) ? '/' + Card.state[i].itemB : '';
+            } else {
+                returnStr += (Card.state[i].itemA) ? Card.state[i].name + ': ' + Card.state[i].itemA : '';
+                returnStr += (Card.state[i].itemA && Card.state[i].itemB) ? '/' + Card.state[i].itemB : '';
+            }
             if (Card.state[i].itemA || Card.state[i].itemB) {
                 a++
-                returnStr += ' '
+            }
+            if ((Card.state[i].itemA || Card.state[i].itemB) && mode == 'addMode' || mode == 'showAllMode') {
+                returnStr += ' ';
+            } else if (Card.state[i].itemA) {
+                returnStr += ' ';
             }
         }
         returnStr += '\n-------\n'
@@ -666,15 +678,20 @@ async function showCharacter(Card, mode) {
 
     if (Card.roll.length > 0) {
         for (let i = 0; i < Card.roll.length; i++) {
-            returnStr += (Card.roll[i].itemA) ? Card.roll[i].name + ': ' + Card.roll[i].itemA + '\n' : '';
+            if (mode == 'addMode' || mode == 'showAllMode') {
+                returnStr += Card.roll[i].name + ': ' + Card.roll[i].itemA + '\n';
 
+            } else {
+                returnStr += (Card.roll[i].itemA) ? Card.roll[i].name + ': ' + Card.roll[i].itemA + '\n' : '';
+            }
         }
         returnStr += '-------\n'
     }
     if (mode == 'addMode' || mode == 'showAllMode')
         if (Card.notes.length > 0) {
             for (let i = 0; i < Card.notes.length; i++) {
-                returnStr += (Card.notes[i].itemA) ? Card.notes[i].name + ': ' + Card.notes[i].itemA + '\n' : '';
+                //returnStr += (Card.notes[i].itemA) ? Card.notes[i].name + ': ' + Card.notes[i].itemA + '\n' : '';
+                returnStr += Card.notes[i].name + ': ' + Card.notes[i].itemA + '\n';
             }
 
             returnStr += '-------'
@@ -726,7 +743,7 @@ async function analysicStr(inputStr, state) {
 
         //防止誤輸入
         myArray[3] = (myArray[3] == ';') ? '' : myArray[3];
-        myArray[1] = myArray[1].replace(/^\s+/, '').replace(/\s+$/, '');
+        myArray[1] = myArray[1].replace(/\s+/g, '');
         myArray[2] = myArray[2].replace(/^\s+/, '').replace(/\s+$/, '');
         myArray[3] = myArray[3].replace(/^\s+/, '').replace(/\s+$/, '');
 

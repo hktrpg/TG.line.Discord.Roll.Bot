@@ -42,7 +42,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 			console.log("Discord joined");
 			//Your other stuff like adding to guildArray
 			try {
-				await message.channel.send(joinMessage);
+				await guild.channel.send(joinMessage);
 			} catch (e) {
 				console.log('error SendToReplychannel: ', e.message);
 

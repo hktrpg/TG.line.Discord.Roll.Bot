@@ -38,23 +38,10 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 			console.log('It is Missing Permissions: ', error.message);
 		});
 
-		client.on("guildCreate", async (message) => {
+		client.on('guildCreate', guild => {
 			console.log("Discord joined");
-			//Your other stuff like adding to guildArray
-
-			let defaultChannel = "";
-			guild.channels.cache.forEach((channel) => {
-				if (channel.type == "text" && defaultChannel == "") {
-					if (channel.permissionsFor(guild.me).has("SEND_MESSAGES")) {
-						defaultChannel = channel;
-					}
-				}
-			})
-			//defaultChannel will be the channel object that the bot first finds permissions for
-			defaultChannel.send(joinMessage);
-
-
-
+			const channel = guild.channels.cache.find(channel => channel.type === 'text' && channel.permissionsFor(guild.me).has('SEND_MESSAGES'));
+			channel.send(joinMessage);
 		})
 
 		client.on('message', async (message) => {

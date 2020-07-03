@@ -80,6 +80,7 @@ var parseInput = async function (inputStr, groupid, userid, userrole, botname, d
 	let stopmark = 0;
 
 	let mainMsg = {};
+	inputStr = inputStr.replace(/^\s/g, '')
 	mainMsg = inputStr.match(msgSplitor); //定義輸入字串
 	if (mainMsg)
 		trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階

@@ -277,7 +277,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 
             filter = {
                 id: userid,
-                name: new RegExp('^' + convertRegex(inputStr.replace(/^\.char use /i, '')) + '$', "i")
+                name: new RegExp('^' + convertRegex(inputStr.replace(/^\.char\s+use\s+/i, '')) + '$', "i")
             }
             doc = await schema.characterCard.findOne(filter);
             if (!doc) {
@@ -322,13 +322,9 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             return rply;
 
         case /(^[.]char$)/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
-            if (!groupid) {
-                rply.text = '不在群組'
-                return rply
-            }
             filter = {
                 id: userid,
-                name: inputStr.replace(/^\.char delete /ig, '')
+                name: inputStr.replace(/^\.char\s+delete\s+/ig, '')
             }
 
             doc = await schema.characterCard.findOne(filter);
@@ -384,7 +380,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             }
             if (doc) {
                 let useTarget = new RegExp(mainMsg[0] + '\\s+' + mainMsg[1] + '\\s+' + convertRegex(mainMsg[2]));
-                let useName = inputStr.replace(/^\.char delete /ig, '');
+                let useName = inputStr.replace(/^\.char\s+delete\s+/ig, '');
                 let useItemA = inputStr.replace(useTarget, '').replace(/^\s+/, '');
                 let useCard = [{
                     name: useName,

@@ -134,7 +134,6 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 		})
 
 		TGclient.on('text', async (ctx) => {
-			console.log('message');
 			let CAPTCHA = random.string(20);
 			//console.log(ctx.getChatMembers(ctx.chat.id) //[Members]
 			//	ctx.getChatMembers() //[Members]
@@ -316,7 +315,11 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 
 		})
 		TGclient.on('message', async (ctx) => {
+			console.log(ctx)
 			if (ctx.message.new_chat_member && ctx.message.new_chat_member.username == ctx.me) {
+				console.log("Telegram joined");
+				await ctx.reply(joinMessage);
+			} else if (ctx.message.group_chat_created) {
 				console.log("Telegram joined");
 				await ctx.reply(joinMessage);
 			}

@@ -132,11 +132,12 @@ var getHelpMessage = function () {
     \n-----------範例結束-----------\
     \nstate 是用來儲存浮動數據, 進行運算 如: .ch HP +3\
     \nroll 是用來儲存擲骰指令, 快速使用 如 .ch 空手鬥毆\
+    \n注意項目名稱請不要有空格\
     \n {}符號可以用來指定state 的參數, 如{db} 就會變成 1d3\
     \n [[ ]] 可以進行簡單運算 如[[1+{HP}]] 就會變成 1+15 -> 16\
     \nnotes 是用來儲存數據, 以後可以查看 如 .ch 筆記\
     \n.char Show - 可以顯示角色卡列表\
-    \n.char edit 角色卡名字 - 可以以add的格式修改指定角色卡\
+    \n.char edit name[角色卡名字]~ - 可以以add的格式修改指定角色卡\
     \n.char use 角色卡名字 - 可以在該群組中使用指定角色卡\
     \n.char nonuse - 可以在該群組中取消使用角色卡\
     \n.char delete 角色卡名字 - 可以刪除指定角色卡\
@@ -742,7 +743,7 @@ async function analysicStr(inputStr, state) {
 
         //防止誤輸入
         myArray[3] = (myArray[3] == ';') ? '' : myArray[3];
-        myArray[1] = myArray[1].replace(/^\s+/, '').replace(/\s+$/, '');
+        myArray[1] = myArray[1].replace(/\s+/g, '')
         myArray[2] = myArray[2].replace(/^\s+/, '').replace(/\s+$/, '');
         myArray[3] = myArray[3].replace(/^\s+/, '').replace(/\s+$/, '');
 

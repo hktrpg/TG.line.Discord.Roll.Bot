@@ -33,7 +33,7 @@ var initialize = function () {
 const secret = process.env.ADMIN_SECRET;
 
 /**
- * 功能: 核對已有的
+ * 功能: 核對已有的secret
  * 
  * 
  * 

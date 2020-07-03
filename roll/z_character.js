@@ -187,7 +187,6 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             return rply;
         case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
-            console.log('Card', Card)
             if (!Card.name) {
                 rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 name[XXXX]~';
                 return rply;
@@ -214,7 +213,6 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 Card.roll = await Merge(doc.roll, Card.roll, 'name');
                 Card.notes = await Merge(doc.notes, Card.notes, 'name');
             }
-            console.log('Card.roll 02: ', Card.roll)
             try {
                 await schema.characterCard.updateOne(filter,
                     Card, opt);
@@ -395,7 +393,6 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 doc.notes = await Merge(doc.notes, useCard, 'name', true);
                 try {
                     let a = await doc.save();
-                    console.log(a)
                     if (a) {
                         let resutltState = await findObject(doc.state, mainMsg[2]) || '';
                         let resutltNotes = await findObject(doc.notes, mainMsg[2]) || '';
@@ -414,6 +411,9 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                         return rply;
                     }
                 } catch (error) {
+                    console.log('doc ', doc)
+                    console.log('inputSTR: ', inputStr)
+                    console.log('doc SAVE error:', error)
                     console.log('更新角色卡失敗: ', error)
                     rply.text = '更新角色卡失敗'
                     return rply;
@@ -602,6 +602,8 @@ async function mainCharacter(doc, mainMsg) {
             try {
                 await doc.save();
             } catch (error) {
+                console.log('doc ', doc)
+                console.log('inputSTR: ', inputStr)
                 console.log('doc SAVE error:', error)
             }
             case findNotes.length > 0:

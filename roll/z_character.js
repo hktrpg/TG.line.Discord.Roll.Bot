@@ -655,11 +655,20 @@ async function showCharacter(Card, mode) {
             if ((a) % 4 == 0 && (Card.state[i].itemA || Card.state[i].itemB)) {
                 returnStr += '\n'
             }
-            returnStr += (Card.state[i].itemA) ? Card.state[i].name + ': ' + Card.state[i].itemA : '';
-            returnStr += (Card.state[i].itemB) ? '/' + Card.state[i].itemB : '';
+            if (mode == 'addMode' || mode == 'showAllMode') {
+                returnStr += Card.state[i].name + ': ' + Card.state[i].itemA;
+                returnStr += (Card.state[i].itemB) ? '/' + Card.state[i].itemB : '';
+            } else {
+                returnStr += (Card.state[i].itemA) ? Card.state[i].name + ': ' + Card.state[i].itemA : '';
+                returnStr += (Card.state[i].itemA && Card.state[i].itemB) ? '/' + Card.state[i].itemB : '';
+            }
             if (Card.state[i].itemA || Card.state[i].itemB) {
                 a++
-                returnStr += ' '
+            }
+            if ((Card.state[i].itemA || Card.state[i].itemB) && mode == 'addMode' || mode == 'showAllMode') {
+                returnStr += ' ';
+            } else if (Card.state[i].itemA) {
+                returnStr += ' ';
             }
         }
         returnStr += '\n-------\n'
@@ -667,15 +676,20 @@ async function showCharacter(Card, mode) {
 
     if (Card.roll.length > 0) {
         for (let i = 0; i < Card.roll.length; i++) {
-            returnStr += (Card.roll[i].itemA) ? Card.roll[i].name + ': ' + Card.roll[i].itemA + '\n' : '';
+            if (mode == 'addMode' || mode == 'showAllMode') {
+                returnStr += Card.roll[i].name + ': ' + Card.roll[i].itemA + '\n';
 
+            } else {
+                returnStr += (Card.roll[i].itemA) ? Card.roll[i].name + ': ' + Card.roll[i].itemA + '\n' : '';
+            }
         }
         returnStr += '-------\n'
     }
     if (mode == 'addMode' || mode == 'showAllMode')
         if (Card.notes.length > 0) {
             for (let i = 0; i < Card.notes.length; i++) {
-                returnStr += (Card.notes[i].itemA) ? Card.notes[i].name + ': ' + Card.notes[i].itemA + '\n' : '';
+                //returnStr += (Card.notes[i].itemA) ? Card.notes[i].name + ': ' + Card.notes[i].itemA + '\n' : '';
+                returnStr += Card.notes[i].name + ': ' + Card.notes[i].itemA + '\n';
             }
 
             returnStr += '-------'

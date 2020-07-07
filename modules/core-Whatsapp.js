@@ -198,16 +198,16 @@ hasQuotedMsg:false
 							return await msg.reply(text);
 						}
 						async function SendToId(targetid) {
-							for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-								if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 1) {
-									await client.sendMessage(targetid, rplyVal.text.toString().match(/[\s\S]{1,1900}/g)[i]);
+							for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+								if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
+									await client.sendMessage(targetid, rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);
 								}
 							}
 						}
 						async function SendToReply() {
-							for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-								if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,1900}/g).length - 1) {
-									await msg.reply(rplyVal.text.toString().match(/[\s\S]{1,1900}/g)[i]);
+							for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+								if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
+									await msg.reply(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);
 								}
 							}
 						}

@@ -267,11 +267,11 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				let temp = [];
 				switch (true) {
 					case message.type == 'text' && message.text != '':
-						for (var i = 0; i < message.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-							if (i == 0 || i == 1 || i == message.text.toString().match(/[\s\S]{1,1900}/g).length - 2 || i == message.text.toString().match(/[\s\S]{1,1900}/g).length - 1)
+						for (var i = 0; i < message.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+							if (i == 0 || i == 1 || i == message.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == message.text.toString().match(/[\s\S]{1,2000}/g).length - 1)
 								temp.push({
 									type: 'text',
-									text: message.text.toString().match(/[\s\S]{1,1900}/g)[i]
+									text: message.text.toString().match(/[\s\S]{1,2000}/g)[i]
 								})
 						}
 						return temp;
@@ -283,20 +283,20 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						};
 
 					case typeof message == 'string' || message instanceof String:
-						for (var i = 0; i < message.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-							if (i == 0 || i == 1 || i == message.toString().match(/[\s\S]{1,1900}/g).length - 2 || i == message.toString().match(/[\s\S]{1,1900}/g).length - 1)
+						for (var i = 0; i < message.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+							if (i == 0 || i == 1 || i == message.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == message.toString().match(/[\s\S]{1,2000}/g).length - 1)
 								temp.push({
 									type: 'text',
-									text: message.toString().match(/[\s\S]{1,1900}/g)[i]
+									text: message.toString().match(/[\s\S]{1,2000}/g)[i]
 								});
 						};
 						return temp;
 					case message.text != '':
-						for (var i = 0; i < message.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-							if (i == 0 || i == 1 || i == message.text.toString().match(/[\s\S]{1,1900}/g).length - 2 || i == message.text.toString().match(/[\s\S]{1,1900}/g).length - 1)
+						for (var i = 0; i < message.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+							if (i == 0 || i == 1 || i == message.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == message.text.toString().match(/[\s\S]{1,2000}/g).length - 1)
 								temp.push({
 									type: 'text',
-									text: message.text.toString().match(/[\s\S]{1,1900}/g)[i]
+									text: message.text.toString().match(/[\s\S]{1,2000}/g)[i]
 								})
 						}
 						return temp;
@@ -314,7 +314,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			//await exports.analytics.parseInput(event.message.text)
 
 			// use reply API
-			//Reply Max: 1900 characters
+			//Reply Max: 2000 characters
 		}
 	}
 	// listen on port

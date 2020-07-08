@@ -357,7 +357,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
 		}
 
 	}
-
+	return;
 
 }
 

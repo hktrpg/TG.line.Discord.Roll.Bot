@@ -18,6 +18,13 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 		//  i.e., `User.js` will become `exports['User']` or `exports.User`
 		//var Discordcountroll = 0;
 		//var Discordcounttext = 0;
+		const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
+		\n輸入 1D100 可以進行最簡單的擲骰.\
+		\n輸入 Bothelp 去觀看詳細使用說明.\
+		\n如果你需要幫助, 加入支援頻道.\
+		\n(http://bit.ly/HKTRPG_DISCORD)\
+		\n有關TRPG資訊, 可以到網站\
+		\n(http://www.hktrpg.com/)";
 
 		client.once('ready', () => {
 			console.log('Discord is Ready!');
@@ -30,6 +37,12 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 			// Will print "unhandledRejection err is not defined"
 			console.log('It is Missing Permissions: ', error.message);
 		});
+
+		client.on('guildCreate', guild => {
+			console.log("Discord joined");
+			const channel = guild.channels.cache.find(channel => channel.type === 'text' && channel.permissionsFor(guild.me).has('SEND_MESSAGES'));
+			channel.send(joinMessage);
+		})
 
 		client.on('message', async (message) => {
 			if (message.author.bot === false) {
@@ -279,7 +292,8 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 						}
 					}
 				} else if (groupid && userid) {
-					return await exports.analytics.parseInput("", groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount);
+					await exports.analytics.parseInput("", groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount);
+					return null;
 				} else return null;
 			} else
 				return null;

@@ -573,7 +573,7 @@ async function build7char(text01) {
 
 	ReStr = ReStr + '\nＬＵＫ：' + await rollbase.BuildDiceCal('3d6*5');
 	if (old < 20) ReStr = ReStr + '\nＬＵＫ加骰：' + await rollbase.BuildDiceCal('3D6*5');
-
+	ReStr += '\n==\n煤油燈特徵: 1D6&1D20 → ' + await rollbase.Dice(6) + ',' + await rollbase.Dice(20);
 
 	rply.text = ReStr;
 	return rply;

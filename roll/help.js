@@ -10,6 +10,11 @@ const start = async () => {
 			exports[name] = await require('./' + file);
 		}
 	})
+	version = "v1." + Object.keys(exports).length + "." + heroku_version.replace(/[v]/, '');
+	if (process.env.HEROKU_RELEASE_CREATED_AT)
+		version += '\n最後更新時間' + new Date(process.env.HEROKU_RELEASE_CREATED_AT).toLocaleString("en-US", {
+			timeZone: "Asia/Shanghai"
+		}).replace('GMT+0800 (GMT+08:00)', '');
 }
 start();
 var rply = {
@@ -22,11 +27,8 @@ var rply = {
 var heroku_version = 'v0'
 if (process.env.HEROKU_RELEASE_VERSION)
 	heroku_version = process.env.HEROKU_RELEASE_VERSION;
-var version = "v1." + Object.keys(exports).length + "." + heroku_version.replace(/[v]/, '');
-if (process.env.HEROKU_RELEASE_CREATED_AT)
-	version += '\n最後更新時間' + new Date(process.env.HEROKU_RELEASE_CREATED_AT).toLocaleString("en-US", {
-		timeZone: "Asia/Shanghai"
-	}).replace('GMT+0800 (GMT+08:00)', '');
+var version = "";
+
 
 var gameName = function () {
 	return '骰子機器人HKTRPG說明'

@@ -29,6 +29,13 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			});
 	});
 	// event handler
+	const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
+						\n輸入 1D100 可以進行最簡單的擲骰.\
+						\n輸入 Bothelp 去觀看詳細使用說明.\
+						\n如果你需要幫助, 加入支援頻道.\
+						\n(http://bit.ly/HKTRPG_DISCORD)\
+						\n有關TRPG資訊, 可以到網站\
+						\n(http://www.hktrpg.com/)";
 
 
 	async function handleEvent(event) {
@@ -60,11 +67,17 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			let displaynamecheck = true;
 			let userrole = 3;
 			if (event.type !== 'message' || event.message.type !== 'text') {
-				// ignore non-text-message event
-				if (roomorgroupid, userid) {
-					await exports.analytics.parseInput("", roomorgroupid, userid, userrole, "Line", displayname, channelid, "", "");
+				if (event.type == "join" && roomorgroupid) {
+					// 新加入群組時, 傳送MESSAGE
+					console.log("Line joined");
+					await replyMessagebyReplyToken(roomorgroupid, joinMessage);
+				} else
 
-				}
+					// ignore non-text-message event
+					if (roomorgroupid && userid) {
+						await exports.analytics.parseInput("", roomorgroupid, userid, userrole, "Line", displayname, channelid, "", "");
+
+					}
 				return Promise.resolve(null);
 			}
 			//是不是自己.ME 訊息
@@ -254,11 +267,11 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 				let temp = [];
 				switch (true) {
 					case message.type == 'text' && message.text != '':
-						for (var i = 0; i < message.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-							if (i == 0 || i == 1 || i == message.text.toString().match(/[\s\S]{1,1900}/g).length - 2 || i == message.text.toString().match(/[\s\S]{1,1900}/g).length - 1)
+						for (var i = 0; i < message.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+							if (i == 0 || i == 1 || i == message.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == message.text.toString().match(/[\s\S]{1,2000}/g).length - 1)
 								temp.push({
 									type: 'text',
-									text: message.text.toString().match(/[\s\S]{1,1900}/g)[i]
+									text: message.text.toString().match(/[\s\S]{1,2000}/g)[i]
 								})
 						}
 						return temp;
@@ -270,20 +283,20 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						};
 
 					case typeof message == 'string' || message instanceof String:
-						for (var i = 0; i < message.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-							if (i == 0 || i == 1 || i == message.toString().match(/[\s\S]{1,1900}/g).length - 2 || i == message.toString().match(/[\s\S]{1,1900}/g).length - 1)
+						for (var i = 0; i < message.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+							if (i == 0 || i == 1 || i == message.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == message.toString().match(/[\s\S]{1,2000}/g).length - 1)
 								temp.push({
 									type: 'text',
-									text: message.toString().match(/[\s\S]{1,1900}/g)[i]
+									text: message.toString().match(/[\s\S]{1,2000}/g)[i]
 								});
 						};
 						return temp;
 					case message.text != '':
-						for (var i = 0; i < message.text.toString().match(/[\s\S]{1,1900}/g).length; i++) {
-							if (i == 0 || i == 1 || i == message.text.toString().match(/[\s\S]{1,1900}/g).length - 2 || i == message.text.toString().match(/[\s\S]{1,1900}/g).length - 1)
+						for (var i = 0; i < message.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+							if (i == 0 || i == 1 || i == message.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == message.text.toString().match(/[\s\S]{1,2000}/g).length - 1)
 								temp.push({
 									type: 'text',
-									text: message.text.toString().match(/[\s\S]{1,1900}/g)[i]
+									text: message.text.toString().match(/[\s\S]{1,2000}/g)[i]
 								})
 						}
 						return temp;
@@ -301,7 +314,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			//await exports.analytics.parseInput(event.message.text)
 
 			// use reply API
-			//Reply Max: 1900 characters
+			//Reply Max: 2000 characters
 		}
 	}
 	// listen on port

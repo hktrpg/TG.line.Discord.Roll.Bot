@@ -34,7 +34,7 @@ const RollingLog = {
 	}
 };
 const records = require('../modules/records.js');
-var simpleCourt = null;
+var simpleCourt = 0;
 records.get('RealTimeRollingLog', (msgs) => {
 	if (msgs && msgs[0] && msgs[0].RealTimeRollingLogfunction)
 		RollingLog.RealTimeRollingLogfunction = {
@@ -104,27 +104,32 @@ var parseInput = async function (inputStr, groupid, userid, userrole, botname, d
 
 	//rolldice
 	let rollDiceResult = await rolldice(inputStr, groupid, userid, userrole, mainMsg, botname, displayname, channelid, displaynameDiscord, membercount)
-	result = await Object.assign(result, rollDiceResult)
-
+	if (rollDiceResult) {
+		result = await JSON.parse(JSON.stringify(Object.assign({}, result, rollDiceResult)));
+	} else {
+		result.text = "";
+	}
 
 	//cmdfunction  .cmd 功能   z_saveCommand 功能
 	if (mainMsg && mainMsg[0].toLowerCase() == ".cmd" && mainMsg[1] && mainMsg[1].toLowerCase() != "help" && mainMsg[1].toLowerCase() != "add" && mainMsg[1].toLowerCase() != "show" && mainMsg[1].toLowerCase() != "del" && result.text) {
 		let cmdFunctionResult = await cmdfunction(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount, result);
 		if (typeof cmdFunctionResult === 'object' && cmdFunctionResult !== null) {
-			result = await Object.assign(result, cmdFunctionResult)
+			result = await Object.assign({}, result, cmdFunctionResult)
+		} else {
+			result.text = "";
 		}
 
 	}
 	if (result.characterReRoll) {
 		let characterReRoll = await cmdfunction(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount, result)
-		result = await Object.assign(result, characterReRoll)
+		result = await Object.assign({}, result, characterReRoll)
 		if (result.text && result.characterName) {
 			result.text = result.characterName + ' 投擲 ' + result.characterReRollName + ':\n' + result.text
 		}
 	}
 
 	//courtMessage + saveLog
-	courtMessage(result, botname, inputStr)
+	await courtMessage(result, botname, inputStr)
 
 	//return result
 	result.CAPTCHA = CAPTCHA;
@@ -152,7 +157,7 @@ async function courtMessage(result, botname, inputStr) {
 					console.log('Whatsapp\'s inputStr: ', inputStr);
 					RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll++;
 					break;
-				case "Whatsapp":
+				case "www":
 					console.log('     WWW\'s inputStr: ', inputStr);
 					RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll++;
 					break;
@@ -357,7 +362,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
 		}
 
 	}
-
+	return;
 
 }
 
@@ -451,8 +456,8 @@ var rolldice = async function (inputStr, groupid, userid, userrole, mainMsg, bot
 			*/
 	if (mainMsg && !mainMsg[1]) mainMsg[1] = '';
 	//把exports objest => Array
-	const idList = await Object.keys(exports).map(i => exports[i]);
-	const findTarget = await idList.find(item => {
+	let idList = await Object.keys(exports).map(i => exports[i]);
+	let findTarget = await idList.find(item => {
 		if (item.prefixs && item.prefixs()) {
 			for (let index = 0; index < item.prefixs().length; index++) {
 				if (mainMsg[0].match(item.prefixs()[index].first) && (mainMsg[1].match(item.prefixs()[index].second) || item.prefixs()[index].second == null)) {
@@ -465,7 +470,7 @@ var rolldice = async function (inputStr, groupid, userid, userrole, mainMsg, bot
 		return null;
 	} else {
 		console.log('            trigger: ', inputStr);
-		const tempsave = await findTarget.rollDiceCommand(inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount);
+		let tempsave = await findTarget.rollDiceCommand(inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount);
 		//console.log('tempsave: ', tempsave)
 		return tempsave;
 	}

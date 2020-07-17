@@ -67,7 +67,7 @@ var getHelpMessage = function () {
 \n Telegram版 http://t.me/hktrpg_bot\
 \n 簡易網上擲骰 https://roll.hktrpg.com/\
 \n \
-\n 開發支援 https://www.patreon.com/HKTRPG\
+\n 解鎖新功能及開發支援 https://www.patreon.com/HKTRPG \
 \n 源代碼 http://bit.ly/HKTRPG_GITHUB\
 		\n "
 }

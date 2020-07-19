@@ -5,9 +5,10 @@ try {
         type: 'text',
         text: ''
     };
+    var trpgDarkRollingfunction = [];
     const records = require('../modules/records.js');
     records.get('trpgDarkRolling', (msgs) => {
-        rply.trpgDarkRollingfunction = msgs
+        trpgDarkRollingfunction = msgs
     })
     var gameName = function () {
         return '(公測中)暗骰GM功能 .drgm (addgm del show) dr ddr dddr'
@@ -64,12 +65,12 @@ try {
                     groupid = channelid
                 //因為在DISCROD以頻道作單位
                 if (groupid && userrole >= 1 && userid) {
-                    if (rply.trpgDarkRollingfunction)
-                        for (var i = 0; i < rply.trpgDarkRollingfunction.length; i++) {
-                            if (rply.trpgDarkRollingfunction[i].groupid == groupid) {
+                    if (trpgDarkRollingfunction)
+                        for (var i = 0; i < trpgDarkRollingfunction.length; i++) {
+                            if (trpgDarkRollingfunction[i].groupid == groupid) {
                                 // console.log('checked1')
-                                for (var a = 0; a < rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
-                                    if (rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].userid == userid) {
+                                for (var a = 0; a < trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
+                                    if (trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].userid == userid) {
                                         //   console.log('checked')
                                         checkifsamename = 1
                                     }
@@ -90,7 +91,7 @@ try {
                     if (checkifsamename == 0) {
                         records.pushtrpgDarkRollingfunction('trpgDarkRolling', temp, () => {
                             records.get('trpgDarkRolling', (msgs) => {
-                                rply.trpgDarkRollingfunction = msgs
+                                trpgDarkRollingfunction = msgs
                                 // console.log(rply);
                             })
 
@@ -117,14 +118,14 @@ try {
                 if (channelid)
                     groupid = channelid
                 if (!mainMsg[2]) return;
-                if (groupid && mainMsg[2] && rply.trpgDarkRollingfunction && userrole >= 2) {
-                    for (var i = 0; i < rply.trpgDarkRollingfunction.length; i++) {
-                        if (rply.trpgDarkRollingfunction[i].groupid == groupid) {
-                            let temp = rply.trpgDarkRollingfunction[i]
+                if (groupid && mainMsg[2] && trpgDarkRollingfunction && userrole >= 2) {
+                    for (var i = 0; i < trpgDarkRollingfunction.length; i++) {
+                        if (trpgDarkRollingfunction[i].groupid == groupid) {
+                            let temp = trpgDarkRollingfunction[i]
                             temp.trpgDarkRollingfunction = []
                             records.settrpgDarkRollingfunction('trpgDarkRolling', temp, () => {
                                 records.get('trpgDarkRolling', (msgs) => {
-                                    rply.trpgDarkRollingfunction = msgs
+                                    trpgDarkRollingfunction = msgs
                                 })
                             })
                             rply.text = '刪除所有在表GM'
@@ -146,15 +147,15 @@ try {
                 //
                 if (channelid)
                     groupid = channelid
-                if (groupid && mainMsg[2] && rply.trpgDarkRollingfunction && userrole >= 1) {
-                    for (var i = 0; i < rply.trpgDarkRollingfunction.length; i++) {
-                        if (rply.trpgDarkRollingfunction[i].groupid == groupid && mainMsg[2] < rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length && mainMsg[2] >= 0) {
-                            let temp = rply.trpgDarkRollingfunction[i]
+                if (groupid && mainMsg[2] && trpgDarkRollingfunction && userrole >= 1) {
+                    for (var i = 0; i < trpgDarkRollingfunction.length; i++) {
+                        if (trpgDarkRollingfunction[i].groupid == groupid && mainMsg[2] < trpgDarkRollingfunction[i].trpgDarkRollingfunction.length && mainMsg[2] >= 0) {
+                            let temp = trpgDarkRollingfunction[i]
                             temp.trpgDarkRollingfunction.splice(mainMsg[2], 1)
-                            //console.log('rply.trpgDarkRollingfunction: ', temp)
+                            //console.log('trpgDarkRollingfunction: ', temp)
                             records.settrpgDarkRollingfunction('trpgDarkRolling', temp, () => {
                                 records.get('trpgDarkRolling', (msgs) => {
-                                    rply.trpgDarkRollingfunction = msgs
+                                    trpgDarkRollingfunction = msgs
                                 })
                             })
                         }
@@ -178,17 +179,17 @@ try {
                 if (channelid)
                     groupid = channelid
                 records.get('trpgDarkRolling', (msgs) => {
-                    rply.trpgDarkRollingfunction = msgs
+                    trpgDarkRollingfunction = msgs
                 })
                 if (groupid) {
                     let temp = 0;
-                    if (rply.trpgDarkRollingfunction)
-                        for (var i = 0; i < rply.trpgDarkRollingfunction.length; i++) {
-                            if (rply.trpgDarkRollingfunction[i].groupid == groupid) {
+                    if (trpgDarkRollingfunction)
+                        for (var i = 0; i < trpgDarkRollingfunction.length; i++) {
+                            if (trpgDarkRollingfunction[i].groupid == groupid) {
                                 rply.text += '已註冊暗骰GM列表:'
-                                for (var a = 0; a < rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
+                                for (var a = 0; a < trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
                                     temp = 1
-                                    rply.text += ("\n") + a + '. ' + (rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].diyName || rply.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].displayname) + ("\n")
+                                    rply.text += ("\n") + a + '. ' + (trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].diyName || trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].displayname) + ("\n")
                                 }
                             }
                         }

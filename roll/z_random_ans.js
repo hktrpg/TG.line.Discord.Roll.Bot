@@ -6,13 +6,15 @@ try {
         type: 'text',
         text: ''
     };
+    var randomAnsfunction = [];
+    var randomAnsAllgroup = [];
     const math = require('mathjs');
     const records = require('../modules/records.js');
     records.get('randomAns', (msgs) => {
-        rply.randomAnsfunction = msgs
+        randomAnsfunction = msgs
     })
     records.get('randomAnsAllgroup', (msgs) => {
-        rply.randomAnsAllgroup = msgs
+        randomAnsAllgroup = msgs
     })
     var gameName = function () {
         return '(公測中)自定義回應功能 .ra(p)(次數) (add del show 自定關鍵字)'
@@ -62,16 +64,16 @@ try {
                 // .ra[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
                 let checkifsamename = 0
                 if (groupid && userrole >= 1 && mainMsg[3] && mainMsg[4]) {
-                    if (rply.randomAnsfunction)
-                        for (var i = 0; i < rply.randomAnsfunction.length; i++) {
-                            if (rply.randomAnsfunction[i].groupid == groupid) {
+                    if (randomAnsfunction)
+                        for (var i = 0; i < randomAnsfunction.length; i++) {
+                            if (randomAnsfunction[i].groupid == groupid) {
                                 // console.log('checked1')
-                                if (rply.randomAnsfunction[i].randomAnsfunction.length > 30) {
+                                if (randomAnsfunction[i].randomAnsfunction.length > 30) {
                                     rply.text = '只可以有30個關鍵字啊'
                                     return rply;
                                 }
-                                for (var a = 0; a < rply.randomAnsfunction[i].randomAnsfunction.length; a++) {
-                                    if (rply.randomAnsfunction[i].randomAnsfunction[a][0].toLowerCase() == mainMsg[2].toLowerCase()) {
+                                for (var a = 0; a < randomAnsfunction[i].randomAnsfunction.length; a++) {
+                                    if (randomAnsfunction[i].randomAnsfunction[a][0].toLowerCase() == mainMsg[2].toLowerCase()) {
                                         //   console.log('checked')
                                         checkifsamename = 1
                                     }
@@ -85,7 +87,7 @@ try {
                     if (checkifsamename == 0) {
                         records.pushrandomAnsfunction('randomAns', temp, () => {
                             records.get('randomAns', (msgs) => {
-                                rply.randomAnsfunction = msgs
+                                randomAnsfunction = msgs
                                 // console.log(rply);
                             })
 
@@ -110,14 +112,14 @@ try {
                 //刪除所有自定義關鍵字
                 //
                 if (!mainMsg[2]) return;
-                if (groupid && mainMsg[2] && rply.randomAnsfunction && userrole >= 2) {
-                    for (var i = 0; i < rply.randomAnsfunction.length; i++) {
-                        if (rply.randomAnsfunction[i].groupid == groupid) {
-                            let temp = rply.randomAnsfunction[i]
+                if (groupid && mainMsg[2] && randomAnsfunction && userrole >= 2) {
+                    for (var i = 0; i < randomAnsfunction.length; i++) {
+                        if (randomAnsfunction[i].groupid == groupid) {
+                            let temp = randomAnsfunction[i]
                             temp.randomAnsfunction = []
                             records.setrandomAnsfunction('randomAns', temp, () => {
                                 records.get('randomAns', (msgs) => {
-                                    rply.randomAnsfunction = msgs
+                                    randomAnsfunction = msgs
                                 })
                             })
                             rply.text = '刪除所有關鍵字'
@@ -137,15 +139,15 @@ try {
                 //
                 //刪除自定義關鍵字
                 //
-                if (groupid && mainMsg[2] && rply.randomAnsfunction && userrole >= 1) {
-                    for (var i = 0; i < rply.randomAnsfunction.length; i++) {
-                        if (rply.randomAnsfunction[i].groupid == groupid && mainMsg[2] < rply.randomAnsfunction[i].randomAnsfunction.length && mainMsg[2] >= 0) {
-                            let temp = rply.randomAnsfunction[i]
+                if (groupid && mainMsg[2] && randomAnsfunction && userrole >= 1) {
+                    for (var i = 0; i < randomAnsfunction.length; i++) {
+                        if (randomAnsfunction[i].groupid == groupid && mainMsg[2] < randomAnsfunction[i].randomAnsfunction.length && mainMsg[2] >= 0) {
+                            let temp = randomAnsfunction[i]
                             temp.randomAnsfunction.splice(mainMsg[2], 1)
-                            //console.log('rply.randomAnsfunction: ', temp)
+                            //console.log('randomAnsfunction: ', temp)
                             records.setrandomAnsfunction('randomAns', temp, () => {
                                 records.get('randomAns', (msgs) => {
-                                    rply.randomAnsfunction = msgs
+                                    randomAnsfunction = msgs
                                 })
                             })
                         }
@@ -167,17 +169,17 @@ try {
                 //顯示列表
                 //
                 records.get('randomAns', (msgs) => {
-                    rply.randomAnsfunction = msgs
+                    randomAnsfunction = msgs
                 })
                 if (groupid) {
                     let temp = 0;
-                    if (rply.randomAnsfunction)
-                        for (var i = 0; i < rply.randomAnsfunction.length; i++) {
-                            if (rply.randomAnsfunction[i].groupid == groupid) {
+                    if (randomAnsfunction)
+                        for (var i = 0; i < randomAnsfunction.length; i++) {
+                            if (randomAnsfunction[i].groupid == groupid) {
                                 rply.text += '自定義關鍵字列表:'
-                                for (var a = 0; a < rply.randomAnsfunction[i].randomAnsfunction.length; a++) {
+                                for (var a = 0; a < randomAnsfunction[i].randomAnsfunction.length; a++) {
                                     temp = 1
-                                    rply.text += ("\n") + a + '. ' + rply.randomAnsfunction[i].randomAnsfunction[a][0]
+                                    rply.text += ("\n") + a + '. ' + randomAnsfunction[i].randomAnsfunction[a][0]
                                 }
                             }
                         }
@@ -200,17 +202,17 @@ try {
                 if (groupid) {
                     //    console.log(mainMsg[1])
                     let temp = 0;
-                    if (rply.randomAnsfunction)
-                        for (var i = 0; i < rply.randomAnsfunction.length; i++) {
-                            if (rply.randomAnsfunction[i].groupid == groupid) {
-                                // console.log(rply.randomAnsfunction[i])
+                    if (randomAnsfunction)
+                        for (var i = 0; i < randomAnsfunction.length; i++) {
+                            if (randomAnsfunction[i].groupid == groupid) {
+                                // console.log(randomAnsfunction[i])
                                 //rply.text += '自定義關鍵字列表:'
                                 for (let aa = 1; aa < mainMsg.length; aa++)
-                                    for (var a = 0; a < rply.randomAnsfunction[i].randomAnsfunction.length; a++) {
-                                        if (rply.randomAnsfunction[i].randomAnsfunction[a][0].toLowerCase() == mainMsg[aa].toLowerCase()) {
+                                    for (var a = 0; a < randomAnsfunction[i].randomAnsfunction.length; a++) {
+                                        if (randomAnsfunction[i].randomAnsfunction[a][0].toLowerCase() == mainMsg[aa].toLowerCase()) {
                                             temp = 1
-                                            let temptitle = rply.randomAnsfunction[i].randomAnsfunction[a][0];
-                                            let tempcontact = [...rply.randomAnsfunction[i].randomAnsfunction[a]];
+                                            let temptitle = randomAnsfunction[i].randomAnsfunction[a][0];
+                                            let tempcontact = [...randomAnsfunction[i].randomAnsfunction[a]];
                                             tempcontact.shift();
                                             rply.text += temptitle + ' → ';
                                             let result = [];
@@ -240,14 +242,14 @@ try {
                 //增加
                 //
                 let checkifsamenamegroup = 0
-                if (rply.randomAnsAllgroup && mainMsg[2] && mainMsg[3] && mainMsg[4])
-                    for (var i = 0; i < rply.randomAnsAllgroup.length; i++) {
-                        if (rply.randomAnsAllgroup[i].randomAnsAllgroup.length > 30) {
+                if (randomAnsAllgroup && mainMsg[2] && mainMsg[3] && mainMsg[4])
+                    for (var i = 0; i < randomAnsAllgroup.length; i++) {
+                        if (randomAnsAllgroup[i].randomAnsAllgroup.length > 30) {
                             rply.text = '防呆，只可以有100個關鍵字啊'
                             return rply;
                         }
-                        for (var a = 0; a < rply.randomAnsAllgroup[i].randomAnsAllgroup.length; a++) {
-                            if (rply.randomAnsAllgroup[i].randomAnsAllgroup[a][0].toLowerCase() == mainMsg[2].toLowerCase()) {
+                        for (var a = 0; a < randomAnsAllgroup[i].randomAnsAllgroup.length; a++) {
+                            if (randomAnsAllgroup[i].randomAnsAllgroup[a][0].toLowerCase() == mainMsg[2].toLowerCase()) {
                                 checkifsamenamegroup = 1
                             }
                         }
@@ -259,7 +261,7 @@ try {
                     if (checkifsamenamegroup == 0) {
                         records.pushrandomAnsAllgroup('randomAnsAllgroup', tempA, () => {
                             records.get('randomAnsAllgroup', (msgs) => {
-                                rply.randomAnsAllgroup = msgs
+                                randomAnsAllgroup = msgs
                                 // console.log(rply);
                             })
                         })
@@ -277,15 +279,15 @@ try {
                 return rply;
                 /* case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
                      //刪除自定義關鍵字
-                     if (mainMsg[2] && rply.randomAnsAllgroup) {
-                         for (var i = 0; i < rply.randomAnsAllgroup.length; i++) {
-                             if (mainMsg[2] < rply.randomAnsAllgroup[i].randomAnsAllgroup.length && mainMsg[2] >= 0) {
-                                 let temp = rply.randomAnsAllgroup[i]
+                     if (mainMsg[2] && randomAnsAllgroup) {
+                         for (var i = 0; i < randomAnsAllgroup.length; i++) {
+                             if (mainMsg[2] < randomAnsAllgroup[i].randomAnsAllgroup.length && mainMsg[2] >= 0) {
+                                 let temp = randomAnsAllgroup[i]
                                  temp.randomAnsAllgroup.splice(mainMsg[2], 1)
-                                 //console.log('rply.randomAnsAllgroup: ', temp)
+                                 //console.log('randomAnsAllgroup: ', temp)
                                  records.setrandomAnsAllgroup('randomAnsAllgroup', temp, () => {
                                      records.get('randomAnsAllgroup', (msgs) => {
-                                         rply.randomAnsAllgroup = msgs
+                                         randomAnsAllgroup = msgs
                                      })
                                  })
                              }
@@ -305,16 +307,16 @@ try {
                 //顯示列表
                 //
                 records.get('randomAnsAllgroup', (msgs) => {
-                    rply.randomAnsAllgroup = msgs
+                    randomAnsAllgroup = msgs
                     //  console.log(rply)
                 })
                 let tempshow = 0;
-                if (rply.randomAnsAllgroup)
-                    for (var i = 0; i < rply.randomAnsAllgroup.length; i++) {
+                if (randomAnsAllgroup)
+                    for (var i = 0; i < randomAnsAllgroup.length; i++) {
                         rply.text += '自定義關鍵字列表:'
-                        for (var a = 0; a < rply.randomAnsAllgroup[i].randomAnsAllgroup.length; a++) {
+                        for (var a = 0; a < randomAnsAllgroup[i].randomAnsAllgroup.length; a++) {
                             tempshow = 1
-                            rply.text += ("\n") + a + '. ' + rply.randomAnsAllgroup[i].randomAnsAllgroup[a][0]
+                            rply.text += ("\n") + a + '. ' + randomAnsAllgroup[i].randomAnsAllgroup[a][0]
                         }
                     }
                 if (tempshow == 0) rply.text = '沒有已設定的關鍵字. '
@@ -330,14 +332,14 @@ try {
                 if (timesgp > 30) timesgp = 30;
                 if (timesgp < 1) timesgp = 1
                 let temp2 = 0;
-                if (rply.randomAnsAllgroup)
-                    for (var i = 0; i < rply.randomAnsAllgroup.length; i++) {
+                if (randomAnsAllgroup)
+                    for (var i = 0; i < randomAnsAllgroup.length; i++) {
                         for (let aa = 1; aa < mainMsg.length; aa++)
-                            for (var a = 0; a < rply.randomAnsAllgroup[i].randomAnsAllgroup.length; a++) {
-                                if (rply.randomAnsAllgroup[i].randomAnsAllgroup[a][0].toLowerCase() == mainMsg[aa].toLowerCase()) {
+                            for (var a = 0; a < randomAnsAllgroup[i].randomAnsAllgroup.length; a++) {
+                                if (randomAnsAllgroup[i].randomAnsAllgroup[a][0].toLowerCase() == mainMsg[aa].toLowerCase()) {
                                     temp2 = 1
-                                    let GPtemp = rply.randomAnsAllgroup[i].randomAnsAllgroup[a];
-                                    let GPtempcontact = [...rply.randomAnsAllgroup[i].randomAnsAllgroup[a]];
+                                    let GPtemp = randomAnsAllgroup[i].randomAnsAllgroup[a];
+                                    let GPtempcontact = [...randomAnsAllgroup[i].randomAnsAllgroup[a]];
                                     GPtempcontact.shift();
                                     rply.text += GPtemp[0] + ' → ';
                                     let result = [];

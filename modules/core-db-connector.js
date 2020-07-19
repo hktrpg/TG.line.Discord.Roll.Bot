@@ -12,12 +12,9 @@ if (process.env.mongoURL) {
         try {
             await mongoose.connect(process.env.mongoURL, {
                 useNewUrlParser: true,
-                useFindAndModify: true,
+                useFindAndModify: false,
                 useUnifiedTopology: true
             });
-            mongoose.set('useNewUrlParser', true);
-            mongoose.set('useFindAndModify', false);
-            mongoose.set('useUnifiedTopology', true);
         } catch (err) {
             console.log('error: ' + err)
         }

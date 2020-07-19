@@ -5,12 +5,14 @@ try {
         type: 'text',
         text: ''
     };
+    var trpgDatabasefunction = [];
+    var trpgDatabaseAllgroup = [];
     const records = require('../modules/records.js');
     records.get('trpgDatabase', (msgs) => {
-        rply.trpgDatabasefunction = msgs
+        trpgDatabasefunction = msgs
     })
     records.get('trpgDatabaseAllgroup', (msgs) => {
-        rply.trpgDatabaseAllgroup = msgs
+        trpgDatabaseAllgroup = msgs
     })
     var gameName = function () {
         return '(公測中)資料庫功能 .db(p) (add del show 自定關鍵字)'
@@ -58,17 +60,17 @@ try {
                 //if (!mainMsg[3]) return;
                 let checkifsamename = 0
                 if (groupid && userrole >= 1 && mainMsg[3]) {
-                    if (rply.trpgDatabasefunction)
-                        for (var i = 0; i < rply.trpgDatabasefunction.length; i++) {
-                            if (rply.trpgDatabasefunction[i].groupid == groupid) {
+                    if (trpgDatabasefunction)
+                        for (var i = 0; i < trpgDatabasefunction.length; i++) {
+                            if (trpgDatabasefunction[i].groupid == groupid) {
                                 // console.log('checked1')
-                                if (rply.trpgDatabasefunction[0] && rply.trpgDatabasefunction[0].trpgDatabasefunction[0]) {
-                                    if (rply.trpgDatabasefunction[i].trpgDatabasefunction.length > 30) {
+                                if (trpgDatabasefunction[0] && trpgDatabasefunction[0].trpgDatabasefunction[0]) {
+                                    if (trpgDatabasefunction[i].trpgDatabasefunction.length > 30) {
                                         rply.text = '只可以有30個關鍵字啊'
                                         return rply;
                                     }
-                                    for (var a = 0; a < rply.trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
-                                        if (rply.trpgDatabasefunction[i].trpgDatabasefunction[a].topic == mainMsg[2]) {
+                                    for (var a = 0; a < trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
+                                        if (trpgDatabasefunction[i].trpgDatabasefunction[a].topic == mainMsg[2]) {
                                             //   console.log('checked')
                                             checkifsamename = 1
                                         }
@@ -86,7 +88,7 @@ try {
                     if (checkifsamename == 0) {
                         records.pushtrpgDatabasefunction('trpgDatabase', temp, () => {
                             records.get('trpgDatabase', (msgs) => {
-                                rply.trpgDatabasefunction = msgs
+                                trpgDatabasefunction = msgs
                                 // console.log(rply);
                             })
 
@@ -108,14 +110,14 @@ try {
 
             case /(^[.]db$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
                 //刪除資料庫
-                if (groupid && mainMsg[2] && rply.trpgDatabasefunction && userrole >= 2) {
-                    for (var i = 0; i < rply.trpgDatabasefunction.length; i++) {
-                        if (rply.trpgDatabasefunction[i].groupid == groupid) {
-                            let temp = rply.trpgDatabasefunction[i]
+                if (groupid && mainMsg[2] && trpgDatabasefunction && userrole >= 2) {
+                    for (var i = 0; i < trpgDatabasefunction.length; i++) {
+                        if (trpgDatabasefunction[i].groupid == groupid) {
+                            let temp = trpgDatabasefunction[i]
                             temp.trpgDatabasefunction = []
                             records.settrpgDatabasefunction('trpgDatabase', temp, () => {
                                 records.get('trpgDatabase', (msgs) => {
-                                    rply.trpgDatabasefunction = msgs
+                                    trpgDatabasefunction = msgs
                                 })
                             })
                             rply.text = '刪除所有關鍵字'
@@ -132,15 +134,15 @@ try {
                 return rply;
             case /(^[.]db$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
                 //刪除資料庫
-                if (groupid && mainMsg[2] && rply.trpgDatabasefunction && userrole >= 1) {
-                    for (var i = 0; i < rply.trpgDatabasefunction.length; i++) {
-                        if (rply.trpgDatabasefunction[i].groupid == groupid && mainMsg[2] < rply.trpgDatabasefunction[i].trpgDatabasefunction.length && mainMsg[2] >= 0) {
-                            let temp = rply.trpgDatabasefunction[i]
+                if (groupid && mainMsg[2] && trpgDatabasefunction && userrole >= 1) {
+                    for (var i = 0; i < trpgDatabasefunction.length; i++) {
+                        if (trpgDatabasefunction[i].groupid == groupid && mainMsg[2] < trpgDatabasefunction[i].trpgDatabasefunction.length && mainMsg[2] >= 0) {
+                            let temp = trpgDatabasefunction[i]
                             temp.trpgDatabasefunction.splice(mainMsg[2], 1)
-                            //console.log('rply.trpgDatabasefunction: ', temp)
+                            //console.log('trpgDatabasefunction: ', temp)
                             records.settrpgDatabasefunction('trpgDatabase', temp, () => {
                                 records.get('trpgDatabase', (msgs) => {
-                                    rply.trpgDatabasefunction = msgs
+                                    trpgDatabasefunction = msgs
                                 })
                             })
                         }
@@ -160,18 +162,18 @@ try {
             case /(^[.]db$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
                 //顯示
                 records.get('trpgDatabase', (msgs) => {
-                    rply.trpgDatabasefunction = msgs
+                    trpgDatabasefunction = msgs
                 })
-                //console.log(rply.trpgDatabasefunction)
+                //console.log(trpgDatabasefunction)
                 if (groupid) {
                     let temp = 0;
-                    if (rply.trpgDatabasefunction)
-                        for (var i = 0; i < rply.trpgDatabasefunction.length; i++) {
-                            if (rply.trpgDatabasefunction[i].groupid == groupid) {
+                    if (trpgDatabasefunction)
+                        for (var i = 0; i < trpgDatabasefunction.length; i++) {
+                            if (trpgDatabasefunction[i].groupid == groupid) {
                                 rply.text += '資料庫列表:'
-                                for (var a = 0; a < rply.trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
+                                for (var a = 0; a < trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
                                     temp = 1
-                                    rply.text += ("\n") + a + '. ' + rply.trpgDatabasefunction[i].trpgDatabasefunction[a].topic
+                                    rply.text += ("\n") + a + '. ' + trpgDatabasefunction[i].trpgDatabasefunction[a].topic
                                 }
                             }
                         }
@@ -191,15 +193,15 @@ try {
                 if (groupid) {
                     //    console.log(mainMsg[1])
                     let temp = 0;
-                    if (rply.trpgDatabasefunction && mainMsg[1])
-                        for (var i = 0; i < rply.trpgDatabasefunction.length; i++) {
-                            if (rply.trpgDatabasefunction[i].groupid == groupid) {
-                                // console.log(rply.trpgDatabasefunction[i])
+                    if (trpgDatabasefunction && mainMsg[1])
+                        for (var i = 0; i < trpgDatabasefunction.length; i++) {
+                            if (trpgDatabasefunction[i].groupid == groupid) {
+                                // console.log(trpgDatabasefunction[i])
                                 //rply.text += '資料庫列表:'
-                                for (var a = 0; a < rply.trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
-                                    if (rply.trpgDatabasefunction[i].trpgDatabasefunction[a].topic.toLowerCase() == mainMsg[1].toLowerCase()) {
+                                for (var a = 0; a < trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
+                                    if (trpgDatabasefunction[i].trpgDatabasefunction[a].topic.toLowerCase() == mainMsg[1].toLowerCase()) {
                                         temp = 1
-                                        rply.text = rply.trpgDatabasefunction[i].trpgDatabasefunction[a].topic + '\n' + rply.trpgDatabasefunction[i].trpgDatabasefunction[a].contact;
+                                        rply.text = trpgDatabasefunction[i].trpgDatabasefunction[a].topic + '\n' + trpgDatabasefunction[i].trpgDatabasefunction[a].contact;
 
                                     }
 
@@ -215,15 +217,15 @@ try {
             case /(^[.]dbp$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
                 //if (!mainMsg[2]) return;
                 let checkifsamenamegroup = 0
-                if (rply && rply.trpgDatabaseAllgroup && mainMsg[2])
-                    if (rply && rply.trpgDatabaseAllgroup && rply.trpgDatabaseAllgroup[0] && rply.trpgDatabaseAllgroup[0].trpgDatabaseAllgroup[0]) {
-                        if (rply.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup.length > 100) {
+                if (rply && trpgDatabaseAllgroup && mainMsg[2])
+                    if (rply && trpgDatabaseAllgroup && trpgDatabaseAllgroup[0] && trpgDatabaseAllgroup[0].trpgDatabaseAllgroup[0]) {
+                        if (trpgDatabaseAllgroup[i].trpgDatabaseAllgroup.length > 100) {
                             rply.text = '只可以有100個關鍵字啊'
                             return rply;
                         }
-                        for (var i = 0; i < rply.trpgDatabaseAllgroup.length; i++) {
-                            for (var a = 0; a < rply.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup.length; a++) {
-                                if (rply.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic.toLowerCase() == mainMsg[2].toLowerCase()) {
+                        for (var i = 0; i < trpgDatabaseAllgroup.length; i++) {
+                            for (var a = 0; a < trpgDatabaseAllgroup[i].trpgDatabaseAllgroup.length; a++) {
+                                if (trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic.toLowerCase() == mainMsg[2].toLowerCase()) {
                                     checkifsamenamegroup = 1
                                 }
                             }
@@ -239,7 +241,7 @@ try {
                     if (checkifsamenamegroup == 0) {
                         records.pushtrpgDatabaseAllgroup('trpgDatabaseAllgroup', tempA, () => {
                             records.get('trpgDatabaseAllgroup', (msgs) => {
-                                rply.trpgDatabaseAllgroup = msgs
+                                trpgDatabaseAllgroup = msgs
                                 // console.log(rply);
                             })
                         })
@@ -257,15 +259,15 @@ try {
                 return rply;
             case /(^[.]dbp$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
                 records.get('trpgDatabaseAllgroup', (msgs) => {
-                    rply.trpgDatabaseAllgroup = msgs
+                    trpgDatabaseAllgroup = msgs
                 })
                 let tempshow = 0;
-                if (rply.trpgDatabaseAllgroup)
-                    for (var i = 0; i < rply.trpgDatabaseAllgroup.length; i++) {
+                if (trpgDatabaseAllgroup)
+                    for (var i = 0; i < trpgDatabaseAllgroup.length; i++) {
                         rply.text += '資料庫列表:'
-                        for (var a = 0; a < rply.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup.length; a++) {
+                        for (var a = 0; a < trpgDatabaseAllgroup[i].trpgDatabaseAllgroup.length; a++) {
                             tempshow = 1
-                            rply.text += ("\n") + a + '. ' + rply.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic
+                            rply.text += ("\n") + a + '. ' + trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic
                         }
                     }
                 if (tempshow == 0) rply.text = '沒有已設定的關鍵字. '
@@ -278,12 +280,12 @@ try {
                 //  if (timesgp > 30) timesgp = 30;
                 //  if (timesgp < 1) timesgp = 1
                 let temp2 = 0;
-                if (rply.trpgDatabaseAllgroup && mainMsg[1])
-                    for (var i = 0; i < rply.trpgDatabaseAllgroup.length; i++) {
-                        for (var a = 0; a < rply.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup.length; a++) {
-                            if (rply.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic.toLowerCase() == mainMsg[1].toLowerCase()) {
+                if (trpgDatabaseAllgroup && mainMsg[1])
+                    for (var i = 0; i < trpgDatabaseAllgroup.length; i++) {
+                        for (var a = 0; a < trpgDatabaseAllgroup[i].trpgDatabaseAllgroup.length; a++) {
+                            if (trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic.toLowerCase() == mainMsg[1].toLowerCase()) {
                                 temp2 = 1
-                                rply.text = rply.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic + '\n' + rply.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].contact;
+                                rply.text = trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic + '\n' + trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].contact;
 
 
                             }

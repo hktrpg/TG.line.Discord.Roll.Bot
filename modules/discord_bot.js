@@ -30,13 +30,11 @@ const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
 
 client.once('ready', () => {
 	console.log('Discord is Ready!');
-	console.log(`Server count: ${client.guilds.cache.size}`);
 });
 
 client.login(channelSecret);
 // handle the error event
 client.on('error', error => {
-	console.log(`Server count: ${client.guilds.cache.size}`);
 	console.error(error);
 });
 client.on('Missing Permissions', error => {
@@ -53,9 +51,6 @@ client.on('guildCreate', guild => {
 
 client.on('message', async (message) => {
 	if (message.author.bot) return;
-
-	console.log(`Server count: ${client.guilds.cache.size}`);
-
 	//	console.log('message.content ' + message.content);
 	//	console.log('channelKeyword ' + channelKeyword);
 	let groupid, userid, displayname, channelid, displaynameDiscord, membercount = '';

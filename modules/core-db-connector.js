@@ -12,7 +12,7 @@ if (process.env.mongoURL) {
         try {
             await mongoose.connect(process.env.mongoURL, {
                 useNewUrlParser: true,
-                useFindAndModify: false,
+                useFindAndModify: true,
                 useUnifiedTopology: true
             });
         } catch (err) {

@@ -8,10 +8,11 @@ try {
         text: '',
         save: ''
     };
+    var trpgLevelSystemfunction = [];
     const math = require('mathjs');
     const records = require('../modules/records.js');
     records.get('trpgLevelSystem', (msgs) => {
-        rply.trpgLevelSystemfunction = msgs
+        trpgLevelSystemfunction = msgs
     })
     const rollbase = require('./rollbase.js');
 
@@ -59,7 +60,7 @@ try {
         \n "
     }
     var initialize = function () {
-        return rply;
+        return trpgLevelSystemfunction;
     }
     var checkTitle = async function (userlvl, DBTitle) {
         let templvl = 0;
@@ -146,12 +147,12 @@ try {
                 //
                 let temprply = []
                 if (groupid && userrole >= 2 && mainMsg[2] && inputStr.toString().match(/[\s\S]{1,2000}/g).length <= 1 && !mainMsg[2].match(/^show$/)) {
-                    if (rply.trpgLevelSystemfunction)
-                        for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
-                            if (rply.trpgLevelSystemfunction[i].groupid == groupid) {
+                    if (trpgLevelSystemfunction)
+                        for (var i = 0; i < trpgLevelSystemfunction.length; i++) {
+                            if (trpgLevelSystemfunction[i].groupid == groupid) {
                                 // console.log('checked1')
                                 if (mainMsg[2].match(/^del$/ig)) {
-                                    rply.trpgLevelSystemfunction[i].Title = []
+                                    trpgLevelSystemfunction[i].Title = []
                                     rply.text = "刪除稱號成功."
                                     let temp = {
                                         groupid: groupid,
@@ -159,7 +160,7 @@ try {
                                     }
                                     records.settrpgLevelSystemfunctionTitleWord('trpgLevelSystem', temp, () => {})
                                 } else
-                                if (rply.trpgLevelSystemfunction[i].Title) {
+                                if (trpgLevelSystemfunction[i].Title) {
                                     temprply = await setNew(inputStr, i);
                                     if (temprply && temprply.length > 0) {
                                         rply.text = '新增稱號成功: \n'
@@ -168,7 +169,7 @@ try {
                                         }
                                         let temp = {
                                             groupid: groupid,
-                                            Title: rply.trpgLevelSystemfunction[i].Title
+                                            Title: trpgLevelSystemfunction[i].Title
                                         }
                                         records.settrpgLevelSystemfunctionTitleWord('trpgLevelSystem', temp, () => {})
                                     }
@@ -194,15 +195,15 @@ try {
                 if (mainMsg[2] && mainMsg[2].match(/^show$/)) {
                     if (groupid) {
                         let temp = 0;
-                        if (rply.trpgLevelSystemfunction)
-                            for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
-                                if (rply.trpgLevelSystemfunction[i].groupid == groupid && rply.trpgLevelSystemfunction[i].Title && rply.trpgLevelSystemfunction[i].Title.length > 0) {
+                        if (trpgLevelSystemfunction)
+                            for (var i = 0; i < trpgLevelSystemfunction.length; i++) {
+                                if (trpgLevelSystemfunction[i].groupid == groupid && trpgLevelSystemfunction[i].Title && trpgLevelSystemfunction[i].Title.length > 0) {
                                     rply.text = '稱號:\n'
                                     temp = 1
-                                    //console.log(rply.trpgLevelSystemfunction[i].Title)
-                                    for (let te = 0; te < rply.trpgLevelSystemfunction[i].Title.length; te++) {
-                                        if (rply.trpgLevelSystemfunction[i].Title[te])
-                                            rply.text += [te] + '等級: ' + rply.trpgLevelSystemfunction[i].Title[te] + "\n"
+                                    //console.log(trpgLevelSystemfunction[i].Title)
+                                    for (let te = 0; te < trpgLevelSystemfunction[i].Title.length; te++) {
+                                        if (trpgLevelSystemfunction[i].Title[te])
+                                            rply.text += [te] + '等級: ' + trpgLevelSystemfunction[i].Title[te] + "\n"
                                     }
                                 }
                             }
@@ -220,11 +221,11 @@ try {
                 //檢查有沒有重覆
                 let checkifsamename = 0
                 if (groupid && userrole >= 2 && mainMsg[2] && inputStr.toString().match(/[\s\S]{1,2000}/g).length <= 1 && !mainMsg[2].match(/^show$/)) {
-                    if (rply.trpgLevelSystemfunction)
-                        for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
-                            if (rply.trpgLevelSystemfunction[i].groupid == groupid) {
+                    if (trpgLevelSystemfunction)
+                        for (var i = 0; i < trpgLevelSystemfunction.length; i++) {
+                            if (trpgLevelSystemfunction[i].groupid == groupid) {
                                 // console.log('checked1')
-                                if (rply.trpgLevelSystemfunction[i].LevelUpWord) {
+                                if (trpgLevelSystemfunction[i].LevelUpWord) {
                                     //   console.log('checked')
                                     checkifsamename = 1
                                 }
@@ -246,8 +247,8 @@ try {
                         }
                         records.settrpgLevelSystemfunctionLevelUpWord('trpgLevelSystem', temp, () => {
                             records.get('trpgLevelSystem', (msgs) => {
-                                rply.trpgLevelSystemfunction = msgs
-                                //  console.log(rply.trpgLevelSystemfunction)
+                                trpgLevelSystemfunction = msgs
+                                //  console.log(trpgLevelSystemfunction)
                                 // console.log(rply);
                             })
 
@@ -268,12 +269,12 @@ try {
                 if (mainMsg[2] && mainMsg[2].match(/^show$/)) {
                     if (groupid) {
                         let temp = 0;
-                        if (rply.trpgLevelSystemfunction)
-                            for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
-                                if (rply.trpgLevelSystemfunction[i].groupid == groupid && rply.trpgLevelSystemfunction[i].LevelUpWord) {
+                        if (trpgLevelSystemfunction)
+                            for (var i = 0; i < trpgLevelSystemfunction.length; i++) {
+                                if (trpgLevelSystemfunction[i].groupid == groupid && trpgLevelSystemfunction[i].LevelUpWord) {
                                     rply.text = '現在升級語:'
                                     temp = 1
-                                    rply.text += ("\n") + rply.trpgLevelSystemfunction[i].LevelUpWord
+                                    rply.text += ("\n") + trpgLevelSystemfunction[i].LevelUpWord
                                 }
                             }
                         if (temp == 0) rply.text = '正在使用預設升級語. '
@@ -293,11 +294,11 @@ try {
                 //檢查有沒有重覆
                 let checkifsamenameRankWord = 0
                 if (groupid && userrole >= 2 && mainMsg[2] && inputStr.toString().match(/[\s\S]{1,2000}/g).length <= 1 && !mainMsg[2].match(/^show$/)) {
-                    if (rply.trpgLevelSystemfunction)
-                        for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
-                            if (rply.trpgLevelSystemfunction[i].groupid == groupid) {
+                    if (trpgLevelSystemfunction)
+                        for (var i = 0; i < trpgLevelSystemfunction.length; i++) {
+                            if (trpgLevelSystemfunction[i].groupid == groupid) {
                                 // console.log('checked1')
-                                if (rply.trpgLevelSystemfunction[i].RankWord) {
+                                if (trpgLevelSystemfunction[i].RankWord) {
                                     //   console.log('checked')
                                     checkifsamenameRankWord = 1
                                 }
@@ -319,8 +320,8 @@ try {
                         }
                         records.settrpgLevelSystemfunctionRankWord('trpgLevelSystem', temp, () => {
                             records.get('trpgLevelSystem', (msgs) => {
-                                rply.trpgLevelSystemfunction = msgs
-                                //  console.log(rply.trpgLevelSystemfunction)
+                                trpgLevelSystemfunction = msgs
+                                //  console.log(trpgLevelSystemfunction)
                                 // console.log(rply);
                             })
 
@@ -341,12 +342,12 @@ try {
                 if (mainMsg[2] && mainMsg[2].match(/^show$/)) {
                     if (groupid) {
                         let temp = 0;
-                        if (rply.trpgLevelSystemfunction)
-                            for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
-                                if (rply.trpgLevelSystemfunction[i].groupid == groupid && rply.trpgLevelSystemfunction[i].RankWord) {
+                        if (trpgLevelSystemfunction)
+                            for (var i = 0; i < trpgLevelSystemfunction.length; i++) {
+                                if (trpgLevelSystemfunction[i].groupid == groupid && trpgLevelSystemfunction[i].RankWord) {
                                     rply.text = '現在查詢語:'
                                     temp = 1
-                                    rply.text += ("\n") + rply.trpgLevelSystemfunction[i].RankWord
+                                    rply.text += ("\n") + trpgLevelSystemfunction[i].RankWord
                                 }
                             }
                         if (temp == 0) rply.text = '正在使用預設查詢語. '
@@ -398,8 +399,8 @@ try {
                     if (Hidden == 0) rply.text += '關閉'
                     records.settrpgLevelSystemfunctionConfig('trpgLevelSystem', temp, () => {
                         records.get('trpgLevelSystem', (msgs) => {
-                            rply.trpgLevelSystemfunction = msgs
-                            //  console.log(rply.trpgLevelSystemfunction)
+                            trpgLevelSystemfunction = msgs
+                            //  console.log(trpgLevelSystemfunction)
                             // console.log(rply);
                         })
 
@@ -419,17 +420,17 @@ try {
                 if (mainMsg[2] && mainMsg[2].match(/^show$/)) {
                     if (groupid) {
                         let temp = 0;
-                        if (rply.trpgLevelSystemfunction)
-                            for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
-                                if (rply.trpgLevelSystemfunction[i].groupid == groupid && rply.trpgLevelSystemfunction[i].Switch) {
+                        if (trpgLevelSystemfunction)
+                            for (var i = 0; i < trpgLevelSystemfunction.length; i++) {
+                                if (trpgLevelSystemfunction[i].groupid == groupid && trpgLevelSystemfunction[i].Switch) {
                                     rply.text = '現在設定:\n開關: '
                                     temp = 1
-                                    if (rply.trpgLevelSystemfunction[i].Switch == 1) rply.text += '啓動\n通知: '
-                                    if (rply.trpgLevelSystemfunction[i].Switch == 0) rply.text += '關閉\n通知: '
-                                    if (rply.trpgLevelSystemfunction[i].Hidden == 1) rply.text += '啓動'
-                                    if (rply.trpgLevelSystemfunction[i].Hidden == 0) rply.text += '關閉'
+                                    if (trpgLevelSystemfunction[i].Switch == 1) rply.text += '啓動\n通知: '
+                                    if (trpgLevelSystemfunction[i].Switch == 0) rply.text += '關閉\n通知: '
+                                    if (trpgLevelSystemfunction[i].Hidden == 1) rply.text += '啓動'
+                                    if (trpgLevelSystemfunction[i].Hidden == 0) rply.text += '關閉'
 
-                                    //'\n開關: ' + rply.trpgLevelSystemfunction[i].Switch.replace(1, '啓動').replace(0, '關閉')+ '\n通知: ' + rply.trpgLevelSystemfunction[i].Hidden.replace(1, '啓動').replace(0, '關閉')
+                                    //'\n開關: ' + trpgLevelSystemfunction[i].Switch.replace(1, '啓動').replace(0, '關閉')+ '\n通知: ' + trpgLevelSystemfunction[i].Hidden.replace(1, '啓動').replace(0, '關閉')
                                 }
                             }
                         if (temp == 0) rply.text = '現在設定: \n開關: 關閉\n通知: 關閉'
@@ -457,7 +458,7 @@ try {
                 // { user.RankingPer} 現在排名百分比 \
                 // { server.member_count } 現在頻道中總人數 \
 
-                //console.log(rply.trpgLevelSystemfunction)
+                //console.log(trpgLevelSystemfunction)
                 if (groupid) {
                     let temp = 0;
                     let tempHaveUser = 0;
@@ -469,32 +470,32 @@ try {
                     // {server.member_count} 現在頻道中總人數 \
                     let rankWord = "{user.name}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點！\n現在排名是{server.member_count}人中的第{user.Ranking}名！{user.RankingPer}！\n調查經驗是{user.exp}點。 "
 
-                    if (rply.trpgLevelSystemfunction)
-                        for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
-                            if (rply.trpgLevelSystemfunction[i].groupid == groupid) {
+                    if (trpgLevelSystemfunction)
+                        for (var i = 0; i < trpgLevelSystemfunction.length; i++) {
+                            if (trpgLevelSystemfunction[i].groupid == groupid) {
                                 //rply.text += '資料庫列表:'
                                 //1.    讀取 群組有沒有開啓功能
-                                if (rply.trpgLevelSystemfunction[i].Switch == 1) {
+                                if (trpgLevelSystemfunction[i].Switch == 1) {
                                     temp = 1;
                                     //5.    讀取群組的排名語
-                                    if (rply.trpgLevelSystemfunction[i].RankWord) {
-                                        rankWord = rply.trpgLevelSystemfunction[i].RankWord
+                                    if (trpgLevelSystemfunction[i].RankWord) {
+                                        rankWord = trpgLevelSystemfunction[i].RankWord
                                     }
 
                                     //3.    ->有   檢查有沒有個人資料
-                                    for (var a = 0; a < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
-                                        if (rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].userid == userid) {
+                                    for (var a = 0; a < trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
+                                        if (trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].userid == userid) {
                                             tempHaveUser = 1;
                                             let username = displaynameDiscord || displayname || "無名"
 
-                                            let userlevel = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level;
-                                            let userexp = rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].EXP;
-                                            //console.log('rply.trpgLevelSystemfunction[i]',
-                                            let usermember_count = membercount || rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length;
-                                            let userRanking = await ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);
+                                            let userlevel = trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level;
+                                            let userexp = trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].EXP;
+                                            //console.log('trpgLevelSystemfunction[i]',
+                                            let usermember_count = membercount || trpgLevelSystemfunction[i].trpgLevelSystemfunction.length;
+                                            let userRanking = await ranking(userid, trpgLevelSystemfunction[i].trpgLevelSystemfunction);
                                             let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
-                                            let userTitle = await this.checkTitle(userlevel, rply.trpgLevelSystemfunction[i].Title);
-                                            //Title 首先檢查  rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Title[0].Lvl 有沒有那個LV的TITLE
+                                            let userTitle = await this.checkTitle(userlevel, trpgLevelSystemfunction[i].Title);
+                                            //Title 首先檢查  trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Title[0].Lvl 有沒有那個LV的TITLE
                                             //沒有  則使用預設 
 
                                             //{user.name} 名字 {user.level} 等級 \
@@ -503,7 +504,7 @@ try {
                                             // { user.RankingPer} 現在排名百分比 \
                                             // { server.member_count } 現在頻道中總人數 \
 
-                                            if ((5 / 6 * (Number(rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level) + 1) * (2 * (Number(rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level) + 1) * (Number(rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level) + 1) + 27 * (Number(rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level) + 1) + 91)) <= rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].EXP) {
+                                            if ((5 / 6 * (Number(trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level) + 1) * (2 * (Number(trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level) + 1) * (Number(trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level) + 1) + 27 * (Number(trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level) + 1) + 91)) <= trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].EXP) {
                                                 //現EXP >於需求LV
                                                 //LVUP
                                                 let TMEPuserlevel = Number(userlevel) + 1
@@ -521,11 +522,11 @@ try {
                                         let userlevel = 0;
                                         //let userexp = math.floor(math.random() * 10) + 15
                                         let userexp = (await rollbase.Dice(10) - 1) + 15
-                                        //console.log('rply.trpgLevelSystemfunction[i]',
-                                        let usermember_count = membercount || rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length;
-                                        let userRanking = await ranking(userid, rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction);
+                                        //console.log('trpgLevelSystemfunction[i]',
+                                        let usermember_count = membercount || trpgLevelSystemfunction[i].trpgLevelSystemfunction.length;
+                                        let userRanking = await ranking(userid, trpgLevelSystemfunction[i].trpgLevelSystemfunction);
                                         let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
-                                        let userTitle = await this.checkTitle(userlevel, rply.trpgLevelSystemfunction[i].Title);
+                                        let userTitle = await this.checkTitle(userlevel, trpgLevelSystemfunction[i].Title);
 
                                         //{user.name} 名字 {user.level} 等級 \
                                         //{user.title} 稱號
@@ -560,17 +561,17 @@ try {
                         if (mainMsg[2] > 20)
                             RankNumber = 20
                     }
-                    if (rply.trpgLevelSystemfunction)
-                        for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
-                            if (rply.trpgLevelSystemfunction[i].groupid == groupid) {
+                    if (trpgLevelSystemfunction)
+                        for (var i = 0; i < trpgLevelSystemfunction.length; i++) {
+                            if (trpgLevelSystemfunction[i].groupid == groupid) {
                                 //rply.text += '資料庫列表:'
                                 //1.    讀取 群組有沒有開啓功能
-                                if (rply.trpgLevelSystemfunction[i].Switch == 1) {
+                                if (trpgLevelSystemfunction[i].Switch == 1) {
                                     temp = 1;
                                     //3.    ->有   檢查有沒有個人資料
-                                    for (var a = 0; a < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
-                                        if (rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].userid == userid) {
-                                            rply.text = await rankingList(rply.trpgLevelSystemfunction[i], RankNumber, "群組排行榜");
+                                    for (var a = 0; a < trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
+                                        if (trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].userid == userid) {
+                                            rply.text = await rankingList(trpgLevelSystemfunction[i], RankNumber, "群組排行榜");
                                         }
                                     } //2.    ->沒有 告知開啓
                                 }
@@ -588,7 +589,7 @@ try {
                 return rply
             case /(^[.]level$)/i.test(mainMsg[0]) && /^showMeTheWorld$/i.test(mainMsg[1]):
                 //顯示全世界頭六名排名
-                if (rply.trpgLevelSystemfunction) {
+                if (trpgLevelSystemfunction) {
                     let tempPush = {
                         trpgLevelSystemfunction: []
                     };
@@ -599,9 +600,9 @@ try {
                         if (mainMsg[2] > 20)
                             RankNumber = 20
                     }
-                    for (var i = 0; i < rply.trpgLevelSystemfunction.length; i++) {
-                        for (var a = 0; a < rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
-                            tempPush.trpgLevelSystemfunction.push(rply.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a])
+                    for (var i = 0; i < trpgLevelSystemfunction.length; i++) {
+                        for (var a = 0; a < trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
+                            tempPush.trpgLevelSystemfunction.push(trpgLevelSystemfunction[i].trpgLevelSystemfunction[a])
                         }
 
                     }
@@ -626,8 +627,8 @@ try {
                 for (let i = 0; i < d.length; i++) {
                     //限制0-500以內
                     if (d[i][1] && d[i][2] && d[i][1] <= 500 && d[i][1] >= 0)
-                        rply.trpgLevelSystemfunction[which].Title[d[i][1]] = d[i][2]
-                    //  console.log(rply.trpgLevelSystemfunction[which].Title)
+                        trpgLevelSystemfunction[which].Title[d[i][1]] = d[i][2]
+                    //  console.log(trpgLevelSystemfunction[which].Title)
                 }
             return d;
         }

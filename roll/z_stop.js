@@ -5,10 +5,10 @@ if (process.env.mongoURL) {
         type: 'text',
         text: ''
     };
-
+    var save = [];
     const records = require('../modules/records.js');
     records.get('block', (msgs) => {
-        rply.save = msgs
+        save = msgs
     })
     var gameName = function () {
         return '(公測中)擲骰開關功能 .bk (add del show)'
@@ -36,7 +36,7 @@ if (process.env.mongoURL) {
     \n "
     }
     var initialize = function () {
-        return rply;
+        return save;
     }
 
     var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
@@ -58,7 +58,7 @@ if (process.env.mongoURL) {
                     }
                     records.pushblockfunction('block', temp, () => {
                         records.get('block', (msgs) => {
-                            rply.save = msgs
+                            save = msgs
                         })
 
                     })
@@ -76,14 +76,14 @@ if (process.env.mongoURL) {
 
             case /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
                 //刪除阻擋用關鍵字
-                if (groupid && mainMsg[2] && rply.save && userrole >= 2) {
-                    for (var i = 0; i < rply.save.length; i++) {
-                        if (rply.save[i].groupid == groupid) {
-                            let temp = rply.save[i]
+                if (groupid && mainMsg[2] && save && userrole >= 2) {
+                    for (var i = 0; i < save.length; i++) {
+                        if (save[i].groupid == groupid) {
+                            let temp = save[i]
                             temp.blockfunction = []
                             records.set('block', temp, () => {
                                 records.get('block', (msgs) => {
-                                    rply.save = msgs
+                                    save = msgs
                                 })
                             })
                             rply.text = '刪除所有關鍵字'
@@ -100,15 +100,15 @@ if (process.env.mongoURL) {
                 return rply;
             case /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
                 //刪除阻擋用關鍵字
-                if (groupid && mainMsg[2] && rply.save && userrole >= 2) {
-                    for (var i = 0; i < rply.save.length; i++) {
-                        if (rply.save[i].groupid == groupid && mainMsg[2] < rply.save[i].blockfunction.length && mainMsg[2] >= 0) {
-                            let temp = rply.save[i]
+                if (groupid && mainMsg[2] && save && userrole >= 2) {
+                    for (var i = 0; i < save.length; i++) {
+                        if (save[i].groupid == groupid && mainMsg[2] < save[i].blockfunction.length && mainMsg[2] >= 0) {
+                            let temp = save[i]
                             temp.blockfunction.splice(mainMsg[2], 1)
-                            //console.log(rply.save[i])
+                            //console.log(save[i])
                             records.set('block', temp, () => {
                                 records.get('block', (msgs) => {
-                                    rply.save = msgs
+                                    save = msgs
                                 })
                             })
 
@@ -128,16 +128,16 @@ if (process.env.mongoURL) {
 
             case /^show$/i.test(mainMsg[1]):
                 records.get('block', (msgs) => {
-                    rply.save = msgs
+                    save = msgs
                 })
                 if (groupid) {
                     let temp = 0;
-                    for (var i = 0; i < rply.save.length; i++) {
-                        if (rply.save[i].groupid == groupid) {
+                    for (var i = 0; i < save.length; i++) {
+                        if (save[i].groupid == groupid) {
                             rply.text += '阻擋用關鍵字列表:'
-                            for (var a = 0; a < rply.save[i].blockfunction.length; a++) {
+                            for (var a = 0; a < save[i].blockfunction.length; a++) {
                                 temp = 1
-                                rply.text += ("\n") + a + '. ' + rply.save[i].blockfunction[a]
+                                rply.text += ("\n") + a + '. ' + save[i].blockfunction[a]
                             }
                         }
                     }

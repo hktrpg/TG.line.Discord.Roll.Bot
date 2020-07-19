@@ -86,7 +86,6 @@ var parseInput = async function (inputStr, groupid, userid, userrole, botname, d
 		trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
 
 
-
 	//EXPUP 功能 + LevelUP 功能
 	if (groupid) {
 		let tempEXPUP = await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount);

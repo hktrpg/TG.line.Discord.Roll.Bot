@@ -2,7 +2,6 @@
 const {
     EventEmitter
 } = require("events");
-const mongoose = require('mongoose');
 const schema = require('./core-schema.js');
 //const Message = mongoose.model('Message', schema);
 

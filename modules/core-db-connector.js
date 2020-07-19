@@ -1,25 +1,11 @@
 "use strict";
 if (process.env.mongoURL) {
     const mongoose = require('mongoose');
-    /* mongoose.connect(process.env.mongoURL, {
+    mongoose.connect(process.env.mongoURL, {
         useNewUrlParser: true,
         useFindAndModify: false,
         useUnifiedTopology: true
     });
-*/
-
-    (async () => {
-        try {
-            await mongoose.connect(process.env.mongoURL, {
-                useNewUrlParser: true,
-                useFindAndModify: true,
-                useUnifiedTopology: true
-            });
-        } catch (err) {
-            console.log('error: ' + err)
-        }
-    })()
-
 
     const db = mongoose.connection;
 
@@ -28,7 +14,7 @@ if (process.env.mongoURL) {
         console.log('mlab  connected!');
     });
 
-    module.exports = {
+    module.exports = { 
         mongoose
     };
 

@@ -1,6 +1,6 @@
 "use strict";
 if (process.env.mongoURL) {
-    const mongoose = require('mongoose');
+    const mongoose = require('./core-db-connector.js').mongoose;
     //const Schema = mongoose.Schema;
     //const Message = mongoose.model('Message', schema);
 

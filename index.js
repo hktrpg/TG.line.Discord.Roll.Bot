@@ -1,6 +1,6 @@
 "use strict";
 require('fs').readdirSync(__dirname + '/modules/').forEach(async function (file) {
-  if ((file.match(/^core-.*\.js$/) !== null || file.match(/^analytics\.js$/) !== null) && file !== 'index.js') {
+  if (file.match(/\.js$/) !== null && file !== 'index.js') {
     var name = file.replace('.js', '');
     exports[name] = await require('./modules/' + file);
   }

@@ -37,13 +37,18 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 
 		client.once('ready', () => {
 			console.log('Discord is Ready!');
+			console.log(`Server count: ${client.guilds.cache.size}`);
 		});
 
 		client.login(channelSecret);
 		// handle the error event
-		client.on('error', console.error);
+		client.on('error', error => {
+			console.log(`Server count: ${client.guilds.cache.size}`);
+			console.error(error);
+		});
 		client.on('Missing Permissions', error => {
 			// Will print "unhandledRejection err is not defined"
+
 			console.log('It is Missing Permissions: ', error.message);
 		});
 

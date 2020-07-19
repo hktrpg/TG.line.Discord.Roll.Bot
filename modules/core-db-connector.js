@@ -15,9 +15,6 @@ if (process.env.mongoURL) {
                 useFindAndModify: true,
                 useUnifiedTopology: true
             });
-            mongoose.set('useNewUrlParser', true);
-            mongoose.set('useFindAndModify', false);
-            mongoose.set('useUnifiedTopology', true);
         } catch (err) {
             console.log('error: ' + err)
         }

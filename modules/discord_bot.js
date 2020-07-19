@@ -5,10 +5,6 @@ const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const Discord = require('discord.js');
 const client = new Discord.Client();
 const {
-	ShardingManager
-} = require('discord.js');
-
-const {
 	Random,
 	nodeCrypto
 } = require("random-js");
@@ -32,7 +28,7 @@ client.once('ready', () => {
 	console.log('Discord is Ready!');
 });
 
-client.login(channelSecret);
+
 // handle the error event
 client.on('error', error => {
 	console.error(error);
@@ -306,6 +302,7 @@ client.on('message', async (message) => {
 client.on('ready', () => {
 	client.user.setActivity('bothelp | hktrpg.com');
 });
+client.login(channelSecret);
 /*
  *client.on('ready', () => {
  *client.user.setActivity(actvs[Math.floor(Math.random() * (actvs.length - 1) + 1)]);

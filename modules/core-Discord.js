@@ -16,7 +16,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 		} catch (e) {
 			console.log(`Failed to spawn shards: ${e} ${Object.entries(e)}`);
 		}
-		await manager.on('shardCreate', shard => console.log(`Launched shard ${shard.id}`));
+		manager.on('shardCreate', shard => console.log(`Launched shard ${shard.id}`));
 	};
 
 	run();

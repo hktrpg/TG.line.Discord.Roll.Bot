@@ -88,10 +88,16 @@ client.on('message', async (message) => {
 	if (message.member && message.member.hasPermission("ADMINISTRATOR")) {
 		userrole = 3
 	}
-	//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin 
+	//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin
 
 
 	if (message.content != "") {
+		if (groupid && userid) {
+			await exports.analytics.parseInput("", groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount);
+		}
+		return null;
+	}
+
 		let CAPTCHA = random.string(20);
 		let rplyVal = {};
 		let trigger = "";
@@ -138,7 +144,13 @@ client.on('message', async (message) => {
 
 
 		//LevelUp功能
-		if (hasSendPermission) {
+		if (!hasSendPermission) {
+			//	Discordcounttext++;
+			//	if (Discordcounttext % 500 == 0)
+			//console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString());
+			return;
+		}
+
 			if (CAPTCHA != rplyVal.CAPTCHA) {
 				console.log('Discord CAPTCHA false', CAPTCHA, ' &&', rplyVal.CAPTCHA, "TEXT", message.content, 'rplyVal: ', rplyVal);
 				return;
@@ -147,7 +159,11 @@ client.on('message', async (message) => {
 				//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
 				await SendToReplychannel("<@" + userid + '>\n' + rplyVal.LevelUp);
 			}
-			if (rplyVal.text) {
+
+			if (!rplyVal.text) {
+				console.log('rplyVal.text is null.\n');
+				return;
+			}
 				//Discordcountroll++;
 				//簡單使用數字計算器
 				if (privatemsg >= 1) {
@@ -246,13 +262,7 @@ client.on('message', async (message) => {
 				//console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString(), " content: ", message.content);
 
 				//console.log("rplyVal: " + rplyVal);
-			}
-		} else {
-			//	Discordcounttext++;
-			//	if (Discordcounttext % 500 == 0)
-			//console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString());
-			return;
-		}
+
 
 		async function SendToId(targetid, replyText) {
 			for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
@@ -292,13 +302,8 @@ client.on('message', async (message) => {
 				}
 			}
 		}
-	} else if (groupid && userid) {
-		await exports.analytics.parseInput("", groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount);
-		return null;
-	} else return null;
-
 });
-//Set Activity 可以自定義正在玩什麼  
+//Set Activity 可以自定義正在玩什麼
 client.on('ready', () => {
 	client.user.setActivity('bothelp | hktrpg.com');
 });
@@ -315,7 +320,7 @@ client.login(channelSecret);
 
 
 /**
- * 
+ *
  * bot.on('message'
  	message => {
  		message.channel.send("My Bot's message", {

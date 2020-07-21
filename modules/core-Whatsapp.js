@@ -76,7 +76,7 @@ hasQuotedMsg:false
 				if (getChatDetail.isGroup) {
 					groupid = getChatDetail.id._serialized;
 					//console.log('groupid:', groupid)
-					membercount = getChatDetail.participants.length;
+					membercount = getChatDetail.participants.length - 1;
 				}
 			});
 			let rplyVal = {};

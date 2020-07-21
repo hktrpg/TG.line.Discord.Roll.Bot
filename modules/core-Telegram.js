@@ -45,8 +45,9 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 		//console.log('TG: ', message)
 		//console.log('ctx.chat.id', ctx.chat.id)
 		//頻道人數
-		if (ctx.chat && ctx.chat.id)
-			membercount = await ctx.getChatMembersCount(ctx.chat.id);
+		if (ctx.chat && ctx.chat.id) {
+			membercount = await ctx.getChatMembersCount(ctx.chat.id) - 1;
+		}
 		if (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') {
 			groupid = ctx.message.chat.id;
 			if (ctx.chat && ctx.chat.id)
@@ -231,7 +232,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			if (ctx.chat && ctx.chat.id) {
 				membercount = await ctx.getChatMembersCount(ctx.chat.id);
 			}
-			await exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "", membercount);
+			await exports.analytics.EXPUP(groupid, userid, displayname, "", membercount);
 
 		};
 		return null;
@@ -249,8 +250,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			if (ctx.chat && ctx.chat.id) {
 				membercount = await ctx.getChatMembersCount(ctx.chat.id);
 			}
-			await exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "", membercount);
-
+			await exports.analytics.EXPUP(groupid, userid, displayname, "", membercount);
 		}
 		return null
 	})
@@ -262,8 +262,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			if (ctx.message.from.id) userid = ctx.message.from.id
 			if (ctx.chat && ctx.chat.id)
 				membercount = await ctx.getChatMembersCount(ctx.chat.id)
-			await exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "", membercount)
-
+			await exports.analytics.EXPUP(groupid, userid, displayname, "", membercount);
 		}
 		return null
 	})
@@ -275,8 +274,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			if (ctx.message.from.id) userid = ctx.message.from.id
 			if (ctx.chat && ctx.chat.id)
 				membercount = await ctx.getChatMembersCount(ctx.chat.id)
-			await exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "", membercount)
-
+			await exports.analytics.EXPUP(groupid, userid, displayname, "", membercount);
 		}
 		return null
 	})
@@ -288,8 +286,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			if (ctx.message.from.id) userid = ctx.message.from.id
 			if (ctx.chat && ctx.chat.id)
 				membercount = await ctx.getChatMembersCount(ctx.chat.id)
-			await exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "", membercount)
-
+			await exports.analytics.EXPUP(groupid, userid, displayname, "", membercount);
 		}
 		return null
 	})
@@ -301,8 +298,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			if (ctx.message.from.id) userid = ctx.message.from.id
 			if (ctx.chat && ctx.chat.id)
 				membercount = await ctx.getChatMembersCount(ctx.chat.id)
-			await exports.analytics.parseInput("", groupid, userid, 1, "Telegram", displayname, channelid, "", membercount)
-
+			await exports.analytics.EXPUP(groupid, userid, displayname, "", membercount);
 		}
 		return null
 	})
@@ -314,8 +310,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			if (ctx.message.from.id) userid = ctx.message.from.id
 			if (ctx.chat && ctx.chat.id)
 				membercount = await ctx.getChatMembersCount(ctx.chat.id)
-			await exports.analytics.parseInput("", groupid, userid, userrole, "Telegram", displayname, channelid, "", membercount)
-
+			await exports.analytics.EXPUP(groupid, userid, displayname, "", membercount);
 		}
 		return null
 	})

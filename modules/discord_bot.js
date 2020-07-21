@@ -60,10 +60,10 @@ client.on('message', async (message) => {
 	let userrole = 1;
 	//console.log(message.guild)
 	if (message.guild && message.guild.me) {
-		hasSendPermission = await message.guild.me.hasPermission("SEND_MESSAGES");
+		hasSendPermission = message.guild.me.hasPermission("SEND_MESSAGES");
 	}
 	if (message.channel.type !== "dm") {
-		hasSendPermission = await message.channel.permissionsFor(client.user).has("SEND_MESSAGES")
+		hasSendPermission = message.channel.permissionsFor(client.user).has("SEND_MESSAGES")
 	}
 	if (message.channel && message.channel.id) {
 		channelid = message.channel.id;
@@ -80,19 +80,19 @@ client.on('message', async (message) => {
 	if (message.member && message.member.user && message.member.user.username) {
 		displaynameDiscord = message.member.user.username;
 	}
-	if (message.guild && message.guild.members) {
-		//membercount = await message.guild.members.filter(member => !member.user.bot).size;
-		membercount = await message.guild.channels.cache.filter(m => m.type === 'text').size
-	}
+
 	////DISCORD: 585040823232320107
 	if (message.member && message.member.hasPermission("ADMINISTRATOR")) {
 		userrole = 3
 	}
 	//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin
-
+	if (message.guild && message.guild.members) {
+		membercount = await message.guild.members.cache.filter(member => !member.user.bot).size;
+		//membercount = message.guild.channels.cache.filter(m => m.type === 'text').size
+	}
 	if (!message.content) {
 		if (groupid && userid) {
-			await exports.analytics.parseInput("", groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount);
+			await exports.analytics.EXPUP(groupid, userid, displayname, displaynameDiscord, membercount);
 		}
 		return null;
 	}

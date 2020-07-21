@@ -75,8 +75,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 
 					// ignore non-text-message event
 					if (roomorgroupid && userid) {
-						await exports.analytics.parseInput("", roomorgroupid, userid, userrole, "Line", displayname, channelid, "", "");
-
+						await exports.analytics.EXPUP(roomorgroupid, userid, displayname, "", membercount);
 					}
 				return Promise.resolve(null);
 			}

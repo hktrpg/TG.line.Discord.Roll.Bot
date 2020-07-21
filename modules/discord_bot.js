@@ -87,9 +87,14 @@ client.on('message', async (message) => {
 	}
 	//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin
 	if (message.guild && message.guild.members) {
-		membercount = await message.guild.members.cache.filter(member => !member.user.bot).size;
+		//membercount = await message.guild.members.cache.filter(member => !member.user.bot).size;
 		//membercount = message.guild.channels.cache.filter(m => m.type === 'text').size
+		membercount = await message.guild.members.fetch().then(member => {
+			// The member is available here.
+			return member.filter(member => !member.user.bot).size;
+		});
 	}
+
 	if (!message.content) {
 		if (groupid && userid) {
 			await exports.analytics.EXPUP(groupid, userid, displayname, displaynameDiscord, membercount);

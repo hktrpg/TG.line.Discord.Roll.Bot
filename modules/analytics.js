@@ -70,7 +70,6 @@ let result = {
 //格式是 exports.骰組檔案名字.function名
 var parseInput = async function (inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount, CAPTCHA) {
 	//console.log('InputStr: ' + inputStr);
-	if (membercount) await membercount--
 	result = {
 		text: '',
 		type: 'text',
@@ -549,6 +548,6 @@ var rolldice = async function (inputStr, groupid, userid, userrole, mainMsg, bot
 }
 
 
-
+module.exports.EXPUP = EXPUP;
 module.exports.parseInput = parseInput;
 module.exports.rolldice = rolldice;

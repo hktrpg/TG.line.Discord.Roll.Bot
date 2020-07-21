@@ -126,124 +126,120 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			if (!rplyVal.text && !rplyVal.LevelUp)
 				return;
 
-			if (rplyVal) {
-				if (roomorgroupid && rplyVal && rplyVal.LevelUp) {
-					//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
-					if (displayname) {
-						rplyVal.text = rplyVal.LevelUp + '\n' + rplyVal.text;
-						//await SendToId(roomorgroupid, "@" + displayname + ' \n' + rplyVal.LevelUp
 
-					} else {
-						//await SendToId(roomorgroupid, rplyVal.LevelUp)
-						rplyVal.text = rplyVal.LevelUp + '\n' + rplyVal.text;
-					}
+			if (roomorgroupid && rplyVal && rplyVal.LevelUp) {
+				//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
+				if (displayname) {
+					rplyVal.text = rplyVal.LevelUp + '\n' + rplyVal.text;
+					//await SendToId(roomorgroupid, "@" + displayname + ' \n' + rplyVal.LevelUp
+				} else {
+					//await SendToId(roomorgroupid, rplyVal.LevelUp)
+					rplyVal.text = rplyVal.LevelUp + '\n' + rplyVal.text;
 				}
-				//Linecountroll++;
-				if (rplyVal.text) {
-					if (privatemsg >= 1) {
-						//當是私訊模式1-3時
-						var TargetGMTempID = [];
-						var TargetGMTempdiyName = [];
-						var TargetGMTempdisplayname = [];
-						if (TargetGM && TargetGM.trpgDarkRollingfunction && roomorgroupid) {
-							for (var i = 0; i < TargetGM.trpgDarkRollingfunction.length; i++) {
-								if (TargetGM.trpgDarkRollingfunction[i].groupid == roomorgroupid) {
-									for (var a = 0; a < TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
-										//checkifsamename = 1
-										TargetGMTempID[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].userid
-										TargetGMTempdiyName[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].diyName
-										TargetGMTempdisplayname[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].displayname
-										//TargetGMTemp[a]. channelid displayname diyName userid
+			}
+			//Linecountroll++;
+			if (!rplyVal.text) {
+				return;
+			}
+			if (privatemsg >= 1) {
+				//當是私訊模式1-3時
+				var TargetGMTempID = [];
+				var TargetGMTempdiyName = [];
+				var TargetGMTempdisplayname = [];
+				if (TargetGM && TargetGM.trpgDarkRollingfunction && roomorgroupid) {
+					for (var i = 0; i < TargetGM.trpgDarkRollingfunction.length; i++) {
+						if (TargetGM.trpgDarkRollingfunction[i].groupid == roomorgroupid) {
+							for (var a = 0; a < TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
+								//checkifsamename = 1
+								TargetGMTempID[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].userid
+								TargetGMTempdiyName[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].diyName
+								TargetGMTempdisplayname[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].displayname
+								//TargetGMTemp[a]. channelid displayname diyName userid
 
-									};
-								};
 							};
 						};
 					};
+				};
+			};
 
-					switch (true) {
-						case privatemsg == 1:
-							// 輸入dr  (指令) 私訊自己
-							//
-							if (roomorgroupid && userid && displaynamecheck)
-								if (displayname)
-									await replyMessagebyReplyToken(roomorgroupid, "@" + displayname + ' 暗骰給自己');
-								else
-									await replyMessagebyReplyToken(roomorgroupid, '正在暗骰給自己');
-							if (userid)
-								if (displayname && displaynamecheck)
-									await SendToId(userid, "@" + displayname + '的暗骰\n' + rplyVal.text);
-								else
-									await SendToId(userid, rplyVal.text);
-							break;
-						case privatemsg == 2:
-							//輸入ddr(指令) 私訊GM及自己
-							//房間訊息
-							if (roomorgroupid) {
-								let targetGMNameTemp = "";
-								for (var i = 0; i < TargetGMTempID.length; i++) {
-									targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
-								}
-								if (displayname) {
-									await replyMessagebyReplyToken(roomorgroupid, "@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
-								} else
-									await replyMessagebyReplyToken(roomorgroupid, ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
-							}
-
-							//有名字就顯示
-							if (displayname) {
-								rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
-							}
-							//傳給自己
+			switch (true) {
+				case privatemsg == 1:
+					// 輸入dr  (指令) 私訊自己
+					//
+					if (roomorgroupid && userid && displaynamecheck)
+						if (displayname)
+							await replyMessagebyReplyToken(roomorgroupid, "@" + displayname + ' 暗骰給自己');
+						else
+							await replyMessagebyReplyToken(roomorgroupid, '正在暗骰給自己');
+					if (userid)
+						if (displayname && displaynamecheck)
+							await SendToId(userid, "@" + displayname + '的暗骰\n' + rplyVal.text);
+						else
 							await SendToId(userid, rplyVal.text);
-							for (var i = 0; i < TargetGMTempID.length; i++) {
-								if (userid != TargetGMTempID[i]) {
-									await SendToId(TargetGMTempID[i], rplyVal.text);
-								}
-							}
-							break;
-						case privatemsg == 3:
-							//輸入dddr(指令) 私訊GM
-							//如在房中
-							if (roomorgroupid) {
-								let targetGMNameTemp = "";
-								for (var i = 0; i < TargetGMTempID.length; i++) {
-									targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
-								}
-								if (displayname) {
-									await replyMessagebyReplyToken(roomorgroupid, "@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
-								} else {
-									await replyMessagebyReplyToken(roomorgroupid, ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
-								}
-							}
-							if (displayname)
-								rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
-							for (var i = 0; i < TargetGMTempID.length; i++) {
-								await SendToId(TargetGMTempID[i], rplyVal.text);
-							}
-							break;
-						default:
-							if (displaynamecheck && displayname && rplyVal && rplyVal.type != 'image') {
-								//285083923223
-								displayname = "@" + displayname + "\n";
-								rplyVal.text = displayname + rplyVal.text;
-							}
-							//	console.log('rplyVal: ', rplyVal)
-							if (roomorgroupid) {
-								return await replyMessagebyReplyToken(roomorgroupid, rplyVal);
-							} else if (userid) {
-								return await replyMessagebyReplyToken(userid, rplyVal);
-							}
-							break;
+					break;
+				case privatemsg == 2:
+					//輸入ddr(指令) 私訊GM及自己
+					//房間訊息
+					if (roomorgroupid) {
+						let targetGMNameTemp = "";
+						for (var i = 0; i < TargetGMTempID.length; i++) {
+							targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
+						}
+						if (displayname) {
+							await replyMessagebyReplyToken(roomorgroupid, "@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
+						} else
+							await replyMessagebyReplyToken(roomorgroupid, ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
 					}
-					return;
-				}
-			} else {
-				//Linecounttext++;
-				//if (Linecounttext % 500 == 0)
-				//	console.log('Line Roll: ' + Linecountroll + ', Line Text: ' + Linecounttext);
-				return;
+
+					//有名字就顯示
+					if (displayname) {
+						rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
+					}
+					//傳給自己
+					await SendToId(userid, rplyVal.text);
+					for (var i = 0; i < TargetGMTempID.length; i++) {
+						if (userid != TargetGMTempID[i]) {
+							await SendToId(TargetGMTempID[i], rplyVal.text);
+						}
+					}
+					break;
+				case privatemsg == 3:
+					//輸入dddr(指令) 私訊GM
+					//如在房中
+					if (roomorgroupid) {
+						let targetGMNameTemp = "";
+						for (var i = 0; i < TargetGMTempID.length; i++) {
+							targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
+						}
+						if (displayname) {
+							await replyMessagebyReplyToken(roomorgroupid, "@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
+						} else {
+							await replyMessagebyReplyToken(roomorgroupid, ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
+						}
+					}
+					if (displayname)
+						rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
+					for (var i = 0; i < TargetGMTempID.length; i++) {
+						await SendToId(TargetGMTempID[i], rplyVal.text);
+					}
+					break;
+				default:
+					if (displaynamecheck && displayname && rplyVal && rplyVal.type != 'image') {
+						//285083923223
+						displayname = "@" + displayname + "\n";
+						rplyVal.text = displayname + rplyVal.text;
+					}
+					//	console.log('rplyVal: ', rplyVal)
+					if (roomorgroupid) {
+						return await replyMessagebyReplyToken(roomorgroupid, rplyVal);
+					} else if (userid) {
+						return await replyMessagebyReplyToken(userid, rplyVal);
+					}
+					break;
 			}
+			return;
+
+
 			//rplyVal.text
 			async function SendToId(targetid, Reply) {
 				let temp = await HandleMessage(Reply);

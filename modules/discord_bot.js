@@ -90,14 +90,12 @@ client.on('message', async (message) => {
 	}
 	//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin
 
-
-	if (message.content != "") {
+	if (!message.content) {
 		if (groupid && userid) {
 			await exports.analytics.parseInput("", groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount);
 		}
 		return null;
 	}
-
 	let CAPTCHA = random.string(20);
 	let rplyVal = {};
 	let trigger = "";

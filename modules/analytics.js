@@ -548,6 +548,6 @@ var rolldice = async function (inputStr, groupid, userid, userrole, mainMsg, bot
 }
 
 
-
+module.exports.EXPUP = EXPUP;
 module.exports.parseInput = parseInput;
 module.exports.rolldice = rolldice;

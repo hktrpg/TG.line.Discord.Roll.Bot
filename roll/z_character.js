@@ -180,7 +180,13 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             }
             rply.text += '角色卡列表\n';
             //取得本來的資料, 如有重覆, 以新的覆蓋
-            doc = await schema.characterCard.find(filter);
+            try {
+                doc = await schema.characterCard.find(filter);
+            } catch (error) {
+                console.log(error);
+            }
+
+            console.log('doc', doc)
             for (let index = 0; index < doc.length; index++) {
                 rply.text += index + ': ' + doc[index].name + '\n';
             }

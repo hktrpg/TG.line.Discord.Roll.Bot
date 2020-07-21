@@ -139,28 +139,28 @@ async function courtMessage(result, botname, inputStr) {
 		//SAVE THE LOG
 		if (simpleCourt != null) {
 			switch (botname) {
-			case 'Discord':
-				console.log('Discord \'s inputStr: ', inputStr);
-				RollingLog.RealTimeRollingLogfunction.DiscordCountRoll++;
-				break;
-			case 'Line':
-				console.log('   Line \'s inputStr: ', inputStr);
-				RollingLog.RealTimeRollingLogfunction.LineCountRoll++;
-				break;
-			case 'Telegram':
-				console.log('Telegram\'s inputStr: ', inputStr);
-				RollingLog.RealTimeRollingLogfunction.TelegramCountRoll++;
-				break;
-			case 'Whatsapp':
-				console.log('Whatsapp\'s inputStr: ', inputStr);
-				RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll++;
-				break;
-			case 'www':
-				console.log('     WWW\'s inputStr: ', inputStr);
-				RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll++;
-				break;
-			default:
-				break;
+				case 'Discord':
+					console.log('Discord \'s inputStr: ', inputStr);
+					RollingLog.RealTimeRollingLogfunction.DiscordCountRoll++;
+					break;
+				case 'Line':
+					console.log('   Line \'s inputStr: ', inputStr);
+					RollingLog.RealTimeRollingLogfunction.LineCountRoll++;
+					break;
+				case 'Telegram':
+					console.log('Telegram\'s inputStr: ', inputStr);
+					RollingLog.RealTimeRollingLogfunction.TelegramCountRoll++;
+					break;
+				case 'Whatsapp':
+					console.log('Whatsapp\'s inputStr: ', inputStr);
+					RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll++;
+					break;
+				case 'www':
+					console.log('     WWW\'s inputStr: ', inputStr);
+					RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll++;
+					break;
+				default:
+					break;
 			}
 			simpleCourt++;
 			//await saveLog();
@@ -172,23 +172,23 @@ async function courtMessage(result, botname, inputStr) {
 	} else {
 		if (simpleCourt != null) {
 			switch (botname) {
-			case 'Discord':
-				RollingLog.RealTimeRollingLogfunction.DiscordCountText++;
-				break;
-			case 'Line':
-				RollingLog.RealTimeRollingLogfunction.LineCountText++;
-				break;
-			case 'Telegram':
-				RollingLog.RealTimeRollingLogfunction.TelegramCountText++;
-				break;
-			case 'Whatsapp':
-				RollingLog.RealTimeRollingLogfunction.WhatsappCountText++;
-				break;
-			case 'WWW':
-				RollingLog.RealTimeRollingLogfunction.WWWCountText++;
-				break;
-			default:
-				break;
+				case 'Discord':
+					RollingLog.RealTimeRollingLogfunction.DiscordCountText++;
+					break;
+				case 'Line':
+					RollingLog.RealTimeRollingLogfunction.LineCountText++;
+					break;
+				case 'Telegram':
+					RollingLog.RealTimeRollingLogfunction.TelegramCountText++;
+					break;
+				case 'Whatsapp':
+					RollingLog.RealTimeRollingLogfunction.WhatsappCountText++;
+					break;
+				case 'WWW':
+					RollingLog.RealTimeRollingLogfunction.WWWCountText++;
+					break;
+				default:
+					break;
 			}
 			simpleCourt++;
 
@@ -314,7 +314,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
 	}
 
 	let usrLevelSysFunc = levelSysFunc[gid].trpgLevelSystemfunction;
-	usrLevelSysFunc.forEach(function (val, idx) {
+	usrLevelSysFunc.forEach(async function (val, idx) {
 		//2. 有 -> 檢查有沒USER 資料
 		if (val.userid == userid) {
 			uid = userid;
@@ -329,9 +329,8 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
 					//現EXP >於需求LV
 					//LVUP
 					val.Level++;
-
 					//8. 更新MLAB資料
-					records.settrpgLevelSystemfunctionEXPup('trpgLevelSystem', levelSysFunc[gid], usrLevelSysFunc, () => { });
+					records.settrpgLevelSystemfunctionEXPup('trpgLevelSystem', levelSysFunc[gid], usrLevelSysFunc, () => {});
 					if (levelSysFunc[gid].Hidden == 1) {
 						return await LevelUP(userid, displayname, displaynameDiscord, membercount, tempGPID, tempGPuserID);
 					}
@@ -354,7 +353,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
 		};
 
 		usrLevelSysFunc.push(temp.trpgLevelSystemfunction);
-		records.settrpgLevelSystemfunctionNewUser('trpgLevelSystem', temp, () => { });
+		records.settrpgLevelSystemfunctionNewUser('trpgLevelSystem', temp, () => {});
 	}
 }
 

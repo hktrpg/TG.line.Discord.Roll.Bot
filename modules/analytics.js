@@ -66,7 +66,7 @@ let result = {
 	LevelUp: ''
 };
 
-//用來呼叫骰組,新增骰組的話,要寫條件式到下面呼叫 
+//用來呼叫骰組,新增骰組的話,要寫條件式到下面呼叫
 //格式是 exports.骰組檔案名字.function名
 var parseInput = async function (inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount, CAPTCHA) {
 	//console.log('InputStr: ' + inputStr);
@@ -284,84 +284,78 @@ async function saveLog() {
 }
 
 async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercount) {
-	let tempEXPconfig = 0;
-	let tempGPID = 0;
-	let tempGPuserID = 0;
-	let tempGPHidden = 0;
-	//1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
-	if (exports.z_Level_system && exports.z_Level_system.initialize() && exports.z_Level_system.initialize().trpgLevelSystemfunction && exports.z_Level_system.initialize().trpgLevelSystemfunction[0]) {
-		for (let a = 0; a < exports.z_Level_system.initialize().trpgLevelSystemfunction.length; a++) {
-			if (exports.z_Level_system.initialize().trpgLevelSystemfunction[a].groupid == groupid && exports.z_Level_system.initialize().trpgLevelSystemfunction[a].Switch == '1') {
-				tempEXPconfig = 1;
-				tempGPID = a;
-			}
-			//檢查CONFIG開啓
-		}
+	let levelSys = exports.z_Level_system;
+	let isConfigEnable = false;
+	let gid = 0;
+	let uid = 0;
+	//EXP: math.floor(math.random() * 10) + 15,
+	let expEarn = await exports.rollbase.Dice(9) + 15;
+
+	if (!levelSys) {
+		return;
 	}
 
-	if (tempEXPconfig == 1) {
-		let tempIsUser = 0;
-		//2. 有 -> 檢查有沒USER 資料
-		for (let b = 0; b < exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.length; b++) {
-			if (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[b].userid == userid) {
-				tempIsUser = userid;
-				tempGPuserID = b;
-			}
+	if (!levelSys.initialize()) {
+		return;
+	}
+
+	let levelSysFunc = levelSys.initialize().trpgLevelSystemfunction;
+
+	levelSysFunc.forEach(function (val, idx) {
+		//1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
+		if ((val.groupid == groupid) && (val.Switch == '1')) {
+			isConfigEnable = true;
+			gid = idx;
 		}
+	});
 
-		//3. 沒有 -> 新增
-		if (tempIsUser == 0) {
-			let temp = {
-				groupid: groupid,
-				trpgLevelSystemfunction: {
-					userid: userid,
-					name: displayname || '無名',
-					EXP: await exports.rollbase.Dice(9) + 15,
-					//EXP: math.floor(math.random() * 10) + 15,
-					Level: '0',
-					LastSpeakTime: Date.now()
-				}
-			};
+	if (!isConfigEnable) {
+		return;
+	}
 
-			exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction.push(temp.trpgLevelSystemfunction);
-
-			records.settrpgLevelSystemfunctionNewUser('trpgLevelSystem', temp, () => {});
-
-		} else if (tempIsUser != 0) {
+	let usrLevelSysFunc = levelSysFunc[gid].trpgLevelSystemfunction;
+	usrLevelSysFunc.forEach(function (val, idx) {
+		//2. 有 -> 檢查有沒USER 資料
+		if (val.userid == userid) {
+			uid = userid;
 			//4. 有-> 檢查上次紀錄的時間 超過60000 (1分鐘) 即增加1-10 經驗值
-			if (new Date(Date.now()) - new Date(exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].LastSpeakTime) > oneMinuts) {
-				exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP + await exports.rollbase.Dice(9) + 15;
-				exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].LastSpeakTime = Date.now();
-				exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].name = displaynameDiscord || displayname || '無名';
+			if (new Date(Date.now()) - new Date(val.LastSpeakTime) > oneMinuts) {
+				val.EXP = val.EXP + expEarn;
+				val.LastSpeakTime = Date.now();
+				val.name = displaynameDiscord || displayname || '無名';
 				//5. 檢查現LEVEL 需不需要上升. =5 / 6 * LVL * (2 * LVL * LVL + 27 * LVL + 91)
-				if ((5 / 6 * (Number(exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level) + 1) * (2 * (Number(exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level) + 1) * (Number(exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level) + 1) + 27 * (Number(exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level) + 1) + 91)) <= exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP) {
+				let cLevel = (Number(val.Level) + 1);
+				if ((5 / 6 * cLevel * (2 * cLevel * cLevel + 27 * cLevel + 91)) <= val.EXP) {
 					//現EXP >於需求LV
 					//LVUP
-					exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level++;
+					val.Level++;
 
-					//8. 更新MLAB資料 
-					records.settrpgLevelSystemfunctionEXPup('trpgLevelSystem', exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID], exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction, () => {});
-					if (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Hidden == 1) {
-						//6. 需要 -> 檢查有沒有開啓通知
-						//console.log('levelup', result)
-						/*
-						result.LevelUp = await LevelUP(tempGPID, tempGPuserID).catch(error => {
-							console.log(error)
-						})
-						*/
+					//8. 更新MLAB資料
+					records.settrpgLevelSystemfunctionEXPup('trpgLevelSystem', levelSysFunc[gid], usrLevelSysFunc, () => { });
+					if (levelSysFunc[gid].Hidden == 1) {
 						return await LevelUP(userid, displayname, displaynameDiscord, membercount, tempGPID, tempGPuserID);
-						//console.log('result.LevelUp: ', result.LevelUp)
 					}
 				}
-
-
-
 			}
 		}
+	});
 
+	//3. 沒有 -> 新增
+	if (!uid) {
+		let temp = {
+			groupid: groupid,
+			trpgLevelSystemfunction: {
+				userid: userid,
+				name: displayname || '無名',
+				EXP: expEarn,
+				Level: '0',
+				LastSpeakTime: Date.now()
+			}
+		};
+
+		usrLevelSysFunc.push(temp.trpgLevelSystemfunction);
+		records.settrpgLevelSystemfunctionNewUser('trpgLevelSystem', temp, () => { });
 	}
-	return;
-
 }
 
 async function LevelUP(userid, displayname, displaynameDiscord, membercount, tempGPID, tempGPuserID) {
@@ -487,8 +481,8 @@ var rolldice = async function (inputStr, groupid, userid, userrole, mainMsg, bot
 				//1 = 符合
 				//2 = 不符合
 				//以下是分析每組rolling prefixs的資料
-				//以每次同步檢查第一第二個 
-				//例如第一組是 cc  第二組是 80 
+				//以每次同步檢查第一第二個
+				//例如第一組是 cc  第二組是 80
 				//那條件式就是 /^cc$/i 和/^\d+$/
 				if (mainMsg && !mainMsg[1]) mainMsg[1] = '';
 				let checkmainMsg0 = 0;

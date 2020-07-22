@@ -105,7 +105,6 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			}
 
 		}
-
 		if (!rplyVal.text && !rplyVal.LevelUp)
 			return;
 		//LevelUp功能
@@ -117,10 +116,9 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
 			await ctx.reply("@" + displayname + '\n' + rplyVal.LevelUp);
 		}
-		if (!rplyVal.text) {
+		if (!rplyVal) {
 			return;
 		}
-
 		//TGcountroll++;
 		if (privatemsg >= 1) {
 			//當是私訊模式1-3時

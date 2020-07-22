@@ -286,6 +286,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
 	let levelSys = exports.z_Level_system;
 	let isConfigEnable = false;
 	let isUpdateMLAB = false;
+	let isLevelUP = false;
 	let gid = 0;
 	let uid = 0;
 	let uidx = 0;
@@ -333,6 +334,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
 			if ((5 / 6 * cLevel * (2 * cLevel * cLevel + 27 * cLevel + 91)) <= val.EXP) {
 				//現EXP >於需求LV
 				//LVUP
+				isLevelUP = true;
 				val.Level++;
 			}
 			return true;
@@ -343,6 +345,8 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
 		if (isUpdateMLAB) {
 			//8. 更新MLAB資料
 			records.settrpgLevelSystemfunctionEXPup('trpgLevelSystem', levelSysFunc[gid], usrLevelSysFunc, () => {});
+		}
+		if (isLevelUP) {
 			if (levelSysFunc[gid].Hidden == 1) {
 				return await LevelUP(userid, displayname, displaynameDiscord, membercount, gid, uidx);
 			}

@@ -332,7 +332,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
 					//8. 更新MLAB資料
 					records.settrpgLevelSystemfunctionEXPup('trpgLevelSystem', levelSysFunc[gid], usrLevelSysFunc, () => {});
 					if (levelSysFunc[gid].Hidden == 1) {
-						return await LevelUP(userid, displayname, displaynameDiscord, membercount, tempGPID, tempGPuserID);
+						return await LevelUP(userid, displayname, displaynameDiscord, membercount, gid, idx);
 					}
 				}
 			}

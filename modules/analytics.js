@@ -14,7 +14,7 @@ const messageTimethenUpload = 50;
 //50次 多少條訊息會上傳一次LOG
 const oneDay = 24 * 60 * 60 * 1000;
 //一日 多久會上傳一次LOG紀錄
-const oneMinuts = 60000;
+const oneMinuts = 1;
 //60000 多久可以升級及增加經驗
 const RollingLog = {
 	RealTimeRollingLogfunction: {
@@ -89,7 +89,6 @@ var parseInput = async function (inputStr, groupid, userid, userrole, botname, d
 	if (groupid) {
 		let tempEXPUP = await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount);
 		if (tempEXPUP) {
-			console.log('tempEXPUP: ', tempEXPUP);
 			result.LevelUp = tempEXPUP;
 		}
 	}
@@ -286,8 +285,10 @@ async function saveLog() {
 async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercount) {
 	let levelSys = exports.z_Level_system;
 	let isConfigEnable = false;
+	let isUpdateMLAB = false;
 	let gid = 0;
 	let uid = 0;
+	let uidx = 0;
 	//EXP: math.floor(math.random() * 10) + 15,
 	let expEarn = await exports.rollbase.Dice(9) + 15;
 
@@ -300,7 +301,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
 	}
 
 	let levelSysFunc = levelSys.initialize().trpgLevelSystemfunction;
-
+	if (!levelSysFunc) return;
 	levelSysFunc.forEach(function (val, idx) {
 		//1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
 		if ((val.groupid == groupid) && (val.Switch == '1')) {
@@ -314,47 +315,55 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
 	}
 
 	let usrLevelSysFunc = levelSysFunc[gid].trpgLevelSystemfunction;
-	usrLevelSysFunc.forEach(async function (val, idx) {
+	usrLevelSysFunc.some(async function (val, idx) {
 		//2. 有 -> 檢查有沒USER 資料
 		if (val.userid == userid) {
 			uid = userid;
+			uidx = idx;
 			//4. 有-> 檢查上次紀錄的時間 超過60000 (1分鐘) 即增加1-10 經驗值
-			if (new Date(Date.now()) - new Date(val.LastSpeakTime) > oneMinuts) {
-				val.EXP = val.EXP + expEarn;
-				val.LastSpeakTime = Date.now();
-				val.name = displaynameDiscord || displayname || '無名';
-				//5. 檢查現LEVEL 需不需要上升. =5 / 6 * LVL * (2 * LVL * LVL + 27 * LVL + 91)
-				let cLevel = (Number(val.Level) + 1);
-				if ((5 / 6 * cLevel * (2 * cLevel * cLevel + 27 * cLevel + 91)) <= val.EXP) {
-					//現EXP >於需求LV
-					//LVUP
-					val.Level++;
-					//8. 更新MLAB資料
-					records.settrpgLevelSystemfunctionEXPup('trpgLevelSystem', levelSysFunc[gid], usrLevelSysFunc, () => {});
-					if (levelSysFunc[gid].Hidden == 1) {
-						return await LevelUP(userid, displayname, displaynameDiscord, membercount, gid, idx);
-					}
-				}
+			if (new Date(Date.now()) - new Date(val.LastSpeakTime) <= oneMinuts) {
+				return true;
 			}
+			isUpdateMLAB = true;
+			val.EXP = val.EXP + expEarn;
+			val.LastSpeakTime = Date.now();
+			val.name = displaynameDiscord || displayname || '無名';
+			//5. 檢查現LEVEL 需不需要上升. =5 / 6 * LVL * (2 * LVL * LVL + 27 * LVL + 91)
+			let cLevel = (Number(val.Level) + 1);
+			if ((5 / 6 * cLevel * (2 * cLevel * cLevel + 27 * cLevel + 91)) <= val.EXP) {
+				//現EXP >於需求LV
+				//LVUP
+				val.Level++;
+			}
+			return true;
 		}
 	});
 
-	//3. 沒有 -> 新增
-	if (!uid) {
-		let temp = {
-			groupid: groupid,
-			trpgLevelSystemfunction: {
-				userid: userid,
-				name: displayname || '無名',
-				EXP: expEarn,
-				Level: '0',
-				LastSpeakTime: Date.now()
+	if (uid) {
+		if (isUpdateMLAB) {
+			//8. 更新MLAB資料
+			records.settrpgLevelSystemfunctionEXPup('trpgLevelSystem', levelSysFunc[gid], usrLevelSysFunc, () => {});
+			if (levelSysFunc[gid].Hidden == 1) {
+				return await LevelUP(userid, displayname, displaynameDiscord, membercount, gid, uidx);
 			}
-		};
-
-		usrLevelSysFunc.push(temp.trpgLevelSystemfunction);
-		records.settrpgLevelSystemfunctionNewUser('trpgLevelSystem', temp, () => {});
+		}
+		return;
 	}
+
+	//3. 沒有 -> 新增
+	let temp = {
+		groupid: groupid,
+		trpgLevelSystemfunction: {
+			userid: userid,
+			name: displayname || '無名',
+			EXP: expEarn,
+			Level: '0',
+			LastSpeakTime: Date.now()
+		}
+	};
+
+	usrLevelSysFunc.push(temp.trpgLevelSystemfunction);
+	records.settrpgLevelSystemfunctionNewUser('trpgLevelSystem', temp, () => {});
 }
 
 async function LevelUP(userid, displayname, displaynameDiscord, membercount, tempGPID, tempGPuserID) {

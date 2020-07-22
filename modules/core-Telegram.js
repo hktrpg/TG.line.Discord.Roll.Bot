@@ -116,7 +116,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 			//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
 			await ctx.reply("@" + displayname + '\n' + rplyVal.LevelUp);
 		}
-		if (!rplyVal) {
+		if (!rplyVal.text) {
 			return;
 		}
 		//TGcountroll++;

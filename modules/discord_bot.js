@@ -41,8 +41,9 @@ client.on('Missing Permissions', error => {
 
 client.on('guildCreate', guild => {
 	console.log("Discord joined");
-	const channel = guild.channels.cache.find(channel => channel.type === 'text' && channel.permissionsFor(guild.me).has('SEND_MESSAGES'));
-	channel.send(joinMessage);
+	let channel = guild.channels.cache.find(channel => channel.type === 'text' && channel.permissionsFor(guild.me).has('SEND_MESSAGES'));
+	if (channel)
+		channel.send(joinMessage);
 })
 
 client.on('message', async (message) => {

@@ -12,10 +12,6 @@ if (process.env.WHATSAPP_SWITCH) {
 		\n(http://bit.ly/HKTRPG_DISCORD)\
 		\n有關TRPG資訊, 可以到網站\
 		\n(http://www.hktrpg.com/)";
-
-	function timer(ms) {
-		return new Promise(res => setTimeout(res, ms));
-	}
 	exports.analytics = require('./analytics');
 	const {
 		Client
@@ -78,6 +74,7 @@ hasQuotedMsg:false
 					//console.log('groupid:', groupid)
 					membercount = getChatDetail.participants.length - 1;
 				}
+				return;
 			});
 			let rplyVal = {};
 			let msgSplitor = (/\S+/ig);
@@ -121,7 +118,7 @@ hasQuotedMsg:false
 			}
 			if (groupid && rplyVal && rplyVal.LevelUp) {
 				//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
-				await client.sendMessage(msg.from, "@" + displayname + '\n' + rplyVal.LevelUp);
+				client.sendMessage(msg.from, "@" + displayname + '\n' + rplyVal.LevelUp);
 			}
 			if (!rplyVal.text) {
 				return;
@@ -141,83 +138,68 @@ hasQuotedMsg:false
 								TargetGMTempdiyName[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].diyName
 								TargetGMTempdisplayname[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].displayname
 								//TargetGMTemp[a]. channelid displayname diyName userid
-							};
-						};
-					};
-			};
+							}
+						}
+					}
+			}
 			switch (true) {
 				case privatemsg == 1:
 					// 輸入dr  (指令) 私訊自己
 					//
 					//console.log('ctx.message.chat.type: ', ctx.message.chat.type)
 					if (groupid) {
-						await SendDR("@" + displayname + '暗骰給自己');
+						SendDR(msg, "@" + displayname + '暗骰給自己');
 					}
 					rplyVal.text = "@" + displayname + "的暗骰\n" + rplyVal.text
-					await SendToId(userid);
+					SendToId(userid, rplyVal, client);
 					break;
 				case privatemsg == 2:
 					//輸入ddr(指令) 私訊GM及自己
 					if (groupid) {
 						let targetGMNameTemp = "";
-						for (var i = 0; i < TargetGMTempID.length; i++) {
+						for (let i = 0; i < TargetGMTempID.length; i++) {
 							targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
-						};
-						await SendDR("@" + displayname + '暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
+						}
+						SendDR(msg, "@" + displayname + '暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
 					}
 					rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
-					await SendToId(userid);
-					for (var i = 0; i < TargetGMTempID.length; i++) {
-						if (ctx.message.from.id != TargetGMTempID[i])
-							await SendToId(TargetGMTempID[i]);
+					SendToId(userid, rplyVal, client);
+					for (let i = 0; i < TargetGMTempID.length; i++) {
+						if (userid != TargetGMTempID[i])
+							SendToId(TargetGMTempID[i], rplyVal, client);
 					}
 					break;
 				case privatemsg == 3:
 					//輸入dddr(指令) 私訊GM
 					if (groupid) {
 						let targetGMNameTemp = "";
-						for (var i = 0; i < TargetGMTempID.length; i++) {
+						for (let i = 0; i < TargetGMTempID.length; i++) {
 							targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
-						};
-						await SendDR("@" + displayname + '暗骰進行中 \n目標: ' + targetGMNameTemp);
+						}
+						SendDR(msg, "@" + displayname + '暗骰進行中 \n目標: ' + targetGMNameTemp);
 					}
 					rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
-					for (var i = 0; i < TargetGMTempID.length; i++) {
-						await SendToId(TargetGMTempID[i]);
+					for (let i = 0; i < TargetGMTempID.length; i++) {
+						SendToId(TargetGMTempID[i], rplyVal, client);
 					}
 					break;
 				default:
 					if (displaynamecheck == false) {
 						console.log('displaynamecheck False')
-						await SendToId(msg.from);
+						SendToId(msg.from, rplyVal, client);
 					} else
-						await SendToReply();
+						SendToReply(msg, rplyVal);
 					break;
 			}
 
-			async function SendDR(text) {
-				return await msg.reply(text);
-			}
-			async function SendToId(targetid) {
-				for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-					if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
-						await client.sendMessage(targetid, rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);
-					}
-				}
-			}
-			async function SendToReply() {
-				for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-					if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
-						await msg.reply(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);
-					}
-				}
-			}
+
 
 
 
 			//  }
 		}
 		await msg.delete();
+
 	})
 	client.on('message_ack', async (msg, ack) => {
 		if (ack > 0) {
@@ -232,4 +214,22 @@ hasQuotedMsg:false
 
 	client.initialize();
 
+
+}
+async function SendDR(msg, text) {
+	return msg.reply(text);
+}
+async function SendToId(targetid, rplyVal, client) {
+	for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+		if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
+			await client.sendMessage(targetid, rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);
+		}
+	}
+}
+async function SendToReply(msg, rplyVal) {
+	for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+		if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
+			await msg.reply(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);
+		}
+	}
 }

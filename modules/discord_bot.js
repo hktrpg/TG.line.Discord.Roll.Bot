@@ -50,7 +50,12 @@ client.on('message', async (message) => {
 	if (message.author.bot) return;
 	//	console.log('message.content ' + message.content);
 	//	console.log('channelKeyword ' + channelKeyword);
-	let groupid, userid, displayname, channelid, displaynameDiscord, membercount = '';
+	let groupid = '',
+		userid = '',
+		displayname = '',
+		channelid = '',
+		displaynameDiscord = '',
+		membercount = 0;
 	let TargetGM = require('../roll/z_DDR_darkRollingToGM').initialize();
 	//得到暗骰的數據, GM的位置
 	let displaynamecheck = true;
@@ -153,7 +158,7 @@ client.on('message', async (message) => {
 	}
 	if (groupid && rplyVal && rplyVal.LevelUp) {
 		//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
-		await SendToReplychannel("<@" + userid + '>\n' + rplyVal.LevelUp);
+		SendToReplychannel("<@" + userid + '>\n' + rplyVal.LevelUp);
 	}
 
 	if (!rplyVal.text) {
@@ -193,10 +198,10 @@ client.on('message', async (message) => {
 			// 輸入dr  (指令) 私訊自己
 			//
 			if (groupid)
-				await SendToReplychannel("<@" + userid + '> 暗骰給自己')
+				SendToReplychannel("<@" + userid + '> 暗骰給自己')
 			if (userid)
 				rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
-			return await SendToReply(rplyVal.text);
+			return SendToReply(rplyVal.text);
 		case privatemsg == 2:
 			//輸入ddr(指令) 私訊GM及自己
 			//console.log('AAA', TargetGMTempID)
@@ -205,15 +210,15 @@ client.on('message', async (message) => {
 				for (let i = 0; i < TargetGMTempID.length; i++) {
 					targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
 				}
-				await SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
+				SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
 			}
 			if (userid) {
 				rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text;
 			}
-			await SendToReply(rplyVal.text);
+			SendToReply(rplyVal.text);
 			for (let i = 0; i < TargetGMTempID.length; i++) {
 				if (userid != TargetGMTempID[i]) {
-					await SendToId(TargetGMTempID[i], rplyVal.text);
+					SendToId(TargetGMTempID[i], rplyVal.text);
 				}
 			}
 			return;
@@ -224,26 +229,21 @@ client.on('message', async (message) => {
 				for (let i = 0; i < TargetGMTempID.length; i++) {
 					targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
 				}
-				await SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp)
+				SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp)
 			}
 			rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
 			for (let i = 0; i < TargetGMTempID.length; i++) {
-				await SendToId(TargetGMTempID[i], rplyVal.text);
+				SendToId(TargetGMTempID[i], rplyVal.text);
 			}
 			return;
 		default:
-			async function displayname() {
-				//285083923223
-				displayname = "<@" + userid + ">\n";
-				rplyVal.text = displayname + rplyVal.text
-				return rplyVal;
+			if (displaynamecheck && userid) {
+				rplyVal.text = "<@" + userid + ">\n" + rplyVal.text;
 			}
-			if (displaynamecheck && userid)
-				rplyVal = await displayname();
 			if (groupid)
-				return await SendToReplychannel(rplyVal.text);
+				return SendToReplychannel(rplyVal.text);
 			else
-				return await SendToReply(rplyVal.text);
+				return SendToReply(rplyVal.text);
 	}
 
 
@@ -257,7 +257,7 @@ client.on('message', async (message) => {
 			if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
 				try {
 					//V12ERROR return await client.users.get(targetid).send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
-					await client.users.cache.get(targetid).send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
+					client.users.cache.get(targetid).send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 
 				}
 			catch (e) {

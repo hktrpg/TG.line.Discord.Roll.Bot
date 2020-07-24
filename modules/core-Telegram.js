@@ -34,7 +34,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 		//	ctx.getChatMembers() //[Members]
 		//	telegrafGetChatMembers.check(ctx.chat.id) //[Members]
 		//	telegrafGetChatMembers.all //[Chats]
-		let groupid, userid, displayname, channelid, membercount = '';
+		let groupid ='', userid, displayname, channelid, membercount = '';
 		let TargetGM = require('../roll/z_DDR_darkRollingToGM').initialize();
 		//得到暗骰的數據, GM的位置
 		if (ctx.message.from.username) displayname = ctx.message.from.username;

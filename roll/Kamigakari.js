@@ -30,7 +30,7 @@ var getHelpMessage = function () {
     \n・伝奇名字・名前決定表(NT)\
     \n・魔境臨界表(KT)\
     \n・獲得素材チャート(MTx xは［法則障害］の［強度］。省略時は１)\
-    　　\n例） MT　MT3　MT9\
+    \n例） MT MT3 MT9\
 		\n"
 }
 var initialize = function () {

@@ -155,7 +155,7 @@ var RollDice = async function (inputStr) {
   finalStr = finalStr + temp + '+';
 
   if (!comStr[3])
-    finalStr = finalStr.replace(/\,/ig, '+')
+    finalStr = finalStr.replace(/,/ig, '+')
   finalStr = finalStr.substring(0, finalStr.length - 1) + ']'
   finalStr = finalStr.replace('[', totally + '[')
   return finalStr

@@ -25,7 +25,7 @@ const regexName = new RegExp(/name\[(.*?)\]\~/, 'i');
 const regexState = new RegExp(/state\[(.*?)\]\~/, 'i');
 const regexRoll = new RegExp(/roll\[(.*?)\]\~/, 'i');
 const regexNotes = new RegExp(/notes\[(.*?)\]\~/, 'i');
-const re = new RegExp(/(.*?)\:(.*?)(\;|$)/, 'ig');
+const re = new RegExp(/(.*?):(.*?)(;|$)/, 'ig');
 const limitArr = [4, 10, 30, 100, 200, 999]
 const opt = {
     upsert: true,
@@ -169,6 +169,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
     let doc = {};
     let docSwitch = {};
     let Card = {};
+    let tempMain = {};
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
@@ -503,7 +504,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
              * 
              */
 
-            let tempMain = await mainCharacter(doc, mainMsg);
+            tempMain = await mainCharacter(doc, mainMsg);
             rply.text = tempMain.text;
             rply.characterReRoll = tempMain.characterReRoll;
             rply.characterReRollName = tempMain.characterReRollName;
@@ -543,7 +544,7 @@ async function mainCharacter(doc, mainMsg) {
         if (resutltRoll) {
             findRoll = resutltRoll;
             last = 'roll';
-        } else if (mainMsg[name].match(/^[0-9+\-\*\/\.]*$/i) && last == 'state') {
+        } else if (mainMsg[name].match(/^[0-9+\-*/.]*$/i) && last == 'state') {
             last = '';
             await findState.push(mainMsg[name]);
         } else {
@@ -553,15 +554,16 @@ async function mainCharacter(doc, mainMsg) {
     }
     //如果是roll的, 就變成擲骰MODE(最優先)
     //如果是另外兩個
+    async function myAsyncFn(match, p1) {
+        let result = await replacer(doc, p1);
+        return result;
+    }
     switch (true) {
         case Object.keys(findRoll).length > 0:
             //把{}進行replace
             //https://stackoverflow.com/questions/33631041/javascript-async-await-in-replace
             //ref source
-            async function myAsyncFn(match, p1) {
-                let result = await replacer(doc, p1);
-                return result;
-            }
+
             rply.text = await replaceAsync(findRoll.itemA, /\{(.*?)\}/ig, await myAsyncFn);
             rply.text = await replaceAsync(rply.text, /\[\[(.*?)\]\]/ig, await myAsyncFn2);
             rply.characterReRollName = findRoll.name;
@@ -605,22 +607,22 @@ async function mainCharacter(doc, mainMsg) {
                 await doc.save();
             } catch (error) {
                 console.log('doc ', doc)
-                console.log('inputSTR: ', inputStr)
                 console.log('doc SAVE error:', error)
             }
-            case findNotes.length > 0:
-                for (let i = 0; i < findNotes.length; i++) {
-                    //如果i 是object , i+1 是STRING 和數字, 就進行加減
-                    //否則就正常輸出
-                    rply.text += findNotes[i].name + ': ' + findNotes[i].itemA + '\n';
-                }
+            return rply;
+        case findNotes.length > 0:
+            for (let i = 0; i < findNotes.length; i++) {
+                //如果i 是object , i+1 是STRING 和數字, 就進行加減
+                //否則就正常輸出
+                rply.text += findNotes[i].name + ': ' + findNotes[i].itemA + '\n';
+            }
 
-                if (findState.length > 0 || findNotes.length > 0) {
-                    rply.text = doc.name + '\n' + rply.text;
-                }
-                return rply;
-            default:
-                return rply;
+            if (findState.length > 0 || findNotes.length > 0) {
+                rply.text = doc.name + '\n' + rply.text;
+            }
+            return rply;
+        default:
+            return rply;
     }
 
 

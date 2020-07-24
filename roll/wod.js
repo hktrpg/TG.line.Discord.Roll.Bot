@@ -75,13 +75,13 @@ async function wod(triggermsg, text) {
 		}
 	}
 	if (match[5] == '+') {
-		for (var i = 0; i < Number(match[6]); i++) {
+		for (let i = 0; i < Number(match[6]); i++) {
 			varsu++;
 		}
 	}
 	if (match[5] == '-') {
 
-		for (var i = 0; i < Number(match[6]); i++) {
+		for (let i = 0; i < Number(match[6]); i++) {
 			varsu--;
 		}
 	}

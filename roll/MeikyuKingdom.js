@@ -24,7 +24,7 @@ var prefixs = function () {
 var getHelpMessage = function () {
     return "【迷宮王國MeikyuKingdom】" + "\
 	\n・啓動語 .mk (指令) 如 .mk 5mk\
-    \n・判定　(nMK+m)\
+    \n・判定 (nMK+m)\
     \nn個のD6を振って大きい物二つだけみて達成値を算出します。修正mも可能です。\
     \n絶対成功と絶対失敗も自動判定します。\
     \n・各種表\
@@ -37,17 +37,17 @@ var getHelpMessage = function () {
     \n・痛打表 CAT／致命傷表 FWT／戦闘ファンブル表 CFT\
     \n・道中表 TT／交渉表 NT／感情表 ET／相場表 MPT\
     \n・お宝表１／２／３／４／５ T1T／T2T／T3T／T4T／T5T\
-    　\n・名前表 NAMEx (xは個数)\
-    　\n・名前表A NAMEA／名前表B NAMEB／エキゾチック名前表 NAMEEX／ファンタジック名前表 NAMEFA\
-    　\n・アイテム関連（猟奇戦役不使用の場合をカッコ書きで出力）\
-    　　\n・デバイスファクトリー　　DFT\
-    　　\n・アイテムカテゴリ決定表　IDT\
-    　　\n・アイテム表（〜IT)：武具 WIT／生活 LIT／回復 RIT／探索 SIT／レア武具 RWIT／レア一般 RUIT\
-    　　\n・アイテム特性決定表　　　IFT\
-    　\n・ランダムエンカウント表　nRET (nはレベル,1〜6)\
-    　\n・地名決定表　　　　PNTx (xは個数)\
-    　\n・迷宮風景表　　　　MLTx (xは個数)\
-    　\n・単語表１／２／３／４　WORD1／WORD2／WORD3／WORD4\
+     \n・名前表 NAMEx (xは個数)\
+     \n・名前表A NAMEA／名前表B NAMEB／エキゾチック名前表 NAMEEX／ファンタジック名前表 NAMEFA\
+     \n・アイテム関連（猟奇戦役不使用の場合をカッコ書きで出力）\
+      \n・デバイスファクトリー  DFT\
+      \n・アイテムカテゴリ決定表 IDT\
+      \n・アイテム表（〜IT)：武具 WIT／生活 LIT／回復 RIT／探索 SIT／レア武具 RWIT／レア一般 RUIT\
+      \n・アイテム特性決定表   IFT\
+     \n・ランダムエンカウント表 nRET (nはレベル,1〜6)\
+     \n・地名決定表    PNTx (xは個数)\
+     \n・迷宮風景表    MLTx (xは個数)\
+     \n・単語表１／２／３／４ WORD1／WORD2／WORD3／WORD4\
 		\n"
 }
 var initialize = function () {

@@ -19,7 +19,7 @@ var viplevelCheck = async function (userid, limitArr) {
         id: userid
     });
     if (check.length >= limit) {
-        rply = '你的角色卡上限為' + limit + '張'
+        rply = '你的角色卡上限為' + limit + '張' + '\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
         return rply
     } else return rply
 }

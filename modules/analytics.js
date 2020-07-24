@@ -35,27 +35,7 @@ const RollingLog = {
 };
 const records = require('../modules/records.js');
 var simpleCourt = 0;
-records.get('RealTimeRollingLog', (msgs) => {
-	if (msgs && msgs[0] && msgs[0].RealTimeRollingLogfunction)
-		RollingLog.RealTimeRollingLogfunction = {
-			LastTimeLog: msgs[0].RealTimeRollingLogfunction.LastTimeLog || "",
-			StartTime: msgs[0].RealTimeRollingLogfunction.StartTime || "",
-			LogTime: msgs[0].RealTimeRollingLogfunction.LogTime || "",
-			DiscordCountRoll: msgs[0].RealTimeRollingLogfunction.DiscordCountRoll || 0,
-			DiscordCountText: msgs[0].RealTimeRollingLogfunction.DiscordCountText || 0,
-			LineCountRoll: msgs[0].RealTimeRollingLogfunction.LineCountRoll || 0,
-			LineCountText: msgs[0].RealTimeRollingLogfunction.LineCountText || 0,
-			TelegramCountRoll: msgs[0].RealTimeRollingLogfunction.TelegramCountRoll || 0,
-			TelegramCountText: msgs[0].RealTimeRollingLogfunction.TelegramCountText || 0,
-			WWWCountRoll: msgs[0].RealTimeRollingLogfunction.WWWCountRoll || 0,
-			WWWCountText: msgs[0].RealTimeRollingLogfunction.WWWCountText || 0,
-			WhatsappCountRoll: msgs[0].RealTimeRollingLogfunction.WhatsappCountRoll || 0,
-			WhatsappCountText: msgs[0].RealTimeRollingLogfunction.WhatsappCountText || 0
 
-		};
-	//console.log('RollingLog', RollingLog)
-	simpleCourt = 0;
-})
 const msgSplitor = (/\S+/ig);
 
 //Log everyday 01:00
@@ -127,7 +107,7 @@ var parseInput = async function (inputStr, groupid, userid, userrole, botname, d
 	}
 
 	//courtMessage + saveLog
-	await courtMessage(result, botname, inputStr)
+	//await courtMessage(result, botname, inputStr)
 
 	//return result
 	result.CAPTCHA = CAPTCHA;

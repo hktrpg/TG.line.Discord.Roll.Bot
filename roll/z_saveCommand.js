@@ -59,8 +59,8 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 if (trpgCommandfunction.trpgCommandfunction)
                     for (var i = 0; i < trpgCommandfunction.trpgCommandfunction.length; i++) {
                         if (trpgCommandfunction.trpgCommandfunction[i].groupid == groupid) {
-                            if (trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction.length > 30) {
-                                rply.text = '只可以有30個關鍵字啊'
+                            if (trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction.length >= 30) {
+                                rply.text = '關鍵字上限30個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
                                 return rply;
                             }
                             // console.log('checked1')

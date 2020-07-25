@@ -1,4 +1,7 @@
 "use strict";
+if (!process.env.mongoURL) {
+    return;
+}
 var rply = {
     default: 'on',
     type: 'text',

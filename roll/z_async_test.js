@@ -13,7 +13,7 @@ const rollbase = require('./rollbase.js');
 const translate = require('translation-google');
 
 var gameName = function () {
-	return '(公測中)Wiki查詢/圖片搜索/翻譯 .wiki .image .tran'
+	return 'Wiki查詢/圖片搜索/翻譯 .wiki .image .tran'
 }
 
 var gameType = function () {

@@ -7,7 +7,6 @@ var rply = {
     text: '',
     save: ''
 };
-const math = require('mathjs');
 var trpgLevelSystemfunction = {};
 const records = require('../modules/records.js');
 records.get('trpgLevelSystem', (msgs) => {
@@ -132,6 +131,9 @@ var Title = function () {
     */
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
     rply.text = '';
+    let temprply = []
+    let checkifsamename = 0
+    let checkifsamenameRankWord = 0
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
@@ -144,7 +146,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             //
             //稱號Title
             //
-            let temprply = []
+            temprply = [];
             if (groupid && userrole >= 2 && mainMsg[2] && inputStr.toString().match(/[\s\S]{1,2000}/g).length <= 1 && !mainMsg[2].match(/^show$/)) {
                 if (trpgLevelSystemfunction.trpgLevelSystemfunction)
                     for (var i = 0; i < trpgLevelSystemfunction.trpgLevelSystemfunction.length; i++) {
@@ -195,7 +197,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 if (groupid) {
                     let temp = 0;
                     if (trpgLevelSystemfunction.trpgLevelSystemfunction)
-                        for (var i = 0; i < trpgLevelSystemfunction.trpgLevelSystemfunction.length; i++) {
+                        for (let i = 0; i < trpgLevelSystemfunction.trpgLevelSystemfunction.length; i++) {
                             if (trpgLevelSystemfunction.trpgLevelSystemfunction[i].groupid == groupid && trpgLevelSystemfunction.trpgLevelSystemfunction[i].Title && trpgLevelSystemfunction.trpgLevelSystemfunction[i].Title.length > 0) {
                                 rply.text = '稱號:\n'
                                 temp = 1
@@ -218,10 +220,10 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             //
             //增加資料庫
             //檢查有沒有重覆
-            let checkifsamename = 0
+            checkifsamename = 0
             if (groupid && userrole >= 2 && mainMsg[2] && inputStr.toString().match(/[\s\S]{1,2000}/g).length <= 1 && !mainMsg[2].match(/^show$/)) {
                 if (trpgLevelSystemfunction.trpgLevelSystemfunction)
-                    for (var i = 0; i < trpgLevelSystemfunction.trpgLevelSystemfunction.length; i++) {
+                    for (let i = 0; i < trpgLevelSystemfunction.trpgLevelSystemfunction.length; i++) {
                         if (trpgLevelSystemfunction.trpgLevelSystemfunction[i].groupid == groupid) {
                             // console.log('checked1')
                             if (trpgLevelSystemfunction.trpgLevelSystemfunction[i].LevelUpWord) {
@@ -269,7 +271,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 if (groupid) {
                     let temp = 0;
                     if (trpgLevelSystemfunction.trpgLevelSystemfunction)
-                        for (var i = 0; i < trpgLevelSystemfunction.trpgLevelSystemfunction.length; i++) {
+                        for (let i = 0; i < trpgLevelSystemfunction.trpgLevelSystemfunction.length; i++) {
                             if (trpgLevelSystemfunction.trpgLevelSystemfunction[i].groupid == groupid && trpgLevelSystemfunction.trpgLevelSystemfunction[i].LevelUpWord) {
                                 rply.text = '現在升級語:'
                                 temp = 1
@@ -291,10 +293,10 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             //console.log('mainMsg: ', mainMsg)
             //增加資料庫
             //檢查有沒有重覆
-            let checkifsamenameRankWord = 0
+            checkifsamenameRankWord = 0;
             if (groupid && userrole >= 2 && mainMsg[2] && inputStr.toString().match(/[\s\S]{1,2000}/g).length <= 1 && !mainMsg[2].match(/^show$/)) {
                 if (trpgLevelSystemfunction.trpgLevelSystemfunction)
-                    for (var i = 0; i < trpgLevelSystemfunction.trpgLevelSystemfunction.length; i++) {
+                    for (let i = 0; i < trpgLevelSystemfunction.trpgLevelSystemfunction.length; i++) {
                         if (trpgLevelSystemfunction.trpgLevelSystemfunction[i].groupid == groupid) {
                             // console.log('checked1')
                             if (trpgLevelSystemfunction.trpgLevelSystemfunction[i].RankWord) {
@@ -342,7 +344,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 if (groupid) {
                     let temp = 0;
                     if (trpgLevelSystemfunction.trpgLevelSystemfunction)
-                        for (var i = 0; i < trpgLevelSystemfunction.trpgLevelSystemfunction.length; i++) {
+                        for (let i = 0; i < trpgLevelSystemfunction.trpgLevelSystemfunction.length; i++) {
                             if (trpgLevelSystemfunction.trpgLevelSystemfunction[i].groupid == groupid && trpgLevelSystemfunction.trpgLevelSystemfunction[i].RankWord) {
                                 rply.text = '現在查詢語:'
                                 temp = 1
@@ -420,7 +422,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 if (groupid) {
                     let temp = 0;
                     if (trpgLevelSystemfunction.trpgLevelSystemfunction)
-                        for (var i = 0; i < trpgLevelSystemfunction.trpgLevelSystemfunction.length; i++) {
+                        for (let i = 0; i < trpgLevelSystemfunction.trpgLevelSystemfunction.length; i++) {
                             if (trpgLevelSystemfunction.trpgLevelSystemfunction[i].groupid == groupid && trpgLevelSystemfunction.trpgLevelSystemfunction[i].Switch) {
                                 rply.text = '現在設定:\n開關: '
                                 temp = 1
@@ -470,7 +472,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 let rankWord = "{user.name}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點！\n現在排名是{server.member_count}人中的第{user.Ranking}名！{user.RankingPer}！\n調查經驗是{user.exp}點。 "
 
                 if (trpgLevelSystemfunction.trpgLevelSystemfunction)
-                    for (var i = 0; i < trpgLevelSystemfunction.trpgLevelSystemfunction.length; i++) {
+                    for (let i = 0; i < trpgLevelSystemfunction.trpgLevelSystemfunction.length; i++) {
                         if (trpgLevelSystemfunction.trpgLevelSystemfunction[i].groupid == groupid) {
                             //rply.text += '資料庫列表:'
                             //1.    讀取 群組有沒有開啓功能
@@ -561,14 +563,14 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                         RankNumber = 20
                 }
                 if (trpgLevelSystemfunction.trpgLevelSystemfunction)
-                    for (var i = 0; i < trpgLevelSystemfunction.trpgLevelSystemfunction.length; i++) {
+                    for (let i = 0; i < trpgLevelSystemfunction.trpgLevelSystemfunction.length; i++) {
                         if (trpgLevelSystemfunction.trpgLevelSystemfunction[i].groupid == groupid) {
                             //rply.text += '資料庫列表:'
                             //1.    讀取 群組有沒有開啓功能
                             if (trpgLevelSystemfunction.trpgLevelSystemfunction[i].Switch == 1) {
                                 temp = 1;
                                 //3.    ->有   檢查有沒有個人資料
-                                for (var a = 0; a < trpgLevelSystemfunction.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
+                                for (let a = 0; a < trpgLevelSystemfunction.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
                                     if (trpgLevelSystemfunction.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].userid == userid) {
                                         rply.text = await rankingList(trpgLevelSystemfunction.trpgLevelSystemfunction[i], RankNumber, "群組排行榜");
                                     }
@@ -599,8 +601,8 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                     if (mainMsg[2] > 20)
                         RankNumber = 20
                 }
-                for (var i = 0; i < trpgLevelSystemfunction.trpgLevelSystemfunction.length; i++) {
-                    for (var a = 0; a < trpgLevelSystemfunction.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
+                for (let i = 0; i < trpgLevelSystemfunction.trpgLevelSystemfunction.length; i++) {
+                    for (let a = 0; a < trpgLevelSystemfunction.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length; a++) {
                         tempPush.trpgLevelSystemfunction.push(trpgLevelSystemfunction.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a])
                     }
 

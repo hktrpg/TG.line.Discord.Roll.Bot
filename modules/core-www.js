@@ -1,6 +1,5 @@
 "use strict";
 if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
-    const express = require('./core-Line').express;
     const www = require('./core-Line').app;
     var server = require('http').createServer(www);
     //const server = require('./www.js').http;

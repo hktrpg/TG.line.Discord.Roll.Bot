@@ -40,8 +40,9 @@ var initialize = function () {
     return trpgCommandfunction;
 }
 
+// eslint-disable-next-line no-unused-vars
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-
+    let checkifsamename = 0
     rply.text = '';
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
@@ -54,7 +55,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             //增加資料庫
             //檢查有沒有重覆
 
-            let checkifsamename = 0
+            checkifsamename = 0
             if (groupid && userrole >= 1 && mainMsg[3] && mainMsg[2] && mainMsg[3].toLowerCase() != ".cmd") {
                 if (trpgCommandfunction.trpgCommandfunction)
                     for (var i = 0; i < trpgCommandfunction.trpgCommandfunction.length; i++) {
@@ -108,7 +109,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
         case /(^[.]cmd$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
             //刪除資料庫
             if (groupid && mainMsg[2] && trpgCommandfunction.trpgCommandfunction && userrole >= 2) {
-                for (var i = 0; i < trpgCommandfunction.trpgCommandfunction.length; i++) {
+                for (let i = 0; i < trpgCommandfunction.trpgCommandfunction.length; i++) {
                     if (trpgCommandfunction.trpgCommandfunction[i].groupid == groupid) {
                         let temp = trpgCommandfunction.trpgCommandfunction[i]
                         temp.trpgCommandfunction = []
@@ -132,7 +133,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
         case /(^[.]cmd$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
             //刪除資料庫
             if (groupid && mainMsg[2] && trpgCommandfunction.trpgCommandfunction && userrole >= 1) {
-                for (var i = 0; i < trpgCommandfunction.trpgCommandfunction.length; i++) {
+                for (let i = 0; i < trpgCommandfunction.trpgCommandfunction.length; i++) {
                     if (trpgCommandfunction.trpgCommandfunction[i].groupid == groupid && mainMsg[2] < trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction.length && mainMsg[2] >= 0) {
                         let temp = trpgCommandfunction.trpgCommandfunction[i]
                         temp.trpgCommandfunction.splice(mainMsg[2], 1)
@@ -165,10 +166,10 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             if (groupid) {
                 let temp = 0;
                 if (trpgCommandfunction.trpgCommandfunction)
-                    for (var i = 0; i < trpgCommandfunction.trpgCommandfunction.length; i++) {
+                    for (let i = 0; i < trpgCommandfunction.trpgCommandfunction.length; i++) {
                         if (trpgCommandfunction.trpgCommandfunction[i].groupid == groupid) {
                             rply.text += '資料庫列表:'
-                            for (var a = 0; a < trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction.length; a++) {
+                            for (let a = 0; a < trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction.length; a++) {
                                 temp = 1
                                 rply.text += ("\n") + a + '. ' + trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction[a].topic + '\n' + trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction[a].contact + '\n'
                             }
@@ -179,7 +180,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 rply.text = '不在群組. '
             }
             //顯示資料庫
-            rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
+            rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
             return rply
         case /(^[.]cmd$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
             //顯示關鍵字
@@ -191,11 +192,11 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 //    console.log(mainMsg[1])
                 let temp = 0;
                 if (trpgCommandfunction.trpgCommandfunction && mainMsg[1])
-                    for (var i = 0; i < trpgCommandfunction.trpgCommandfunction.length; i++) {
+                    for (let i = 0; i < trpgCommandfunction.trpgCommandfunction.length; i++) {
                         if (trpgCommandfunction.trpgCommandfunction[i].groupid == groupid) {
                             // console.log(trpgCommandfunction.trpgCommandfunction[i])
                             //rply.text += '資料庫列表:'
-                            for (var a = 0; a < trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction.length; a++) {
+                            for (let a = 0; a < trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction.length; a++) {
                                 if (trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction[a].topic.toLowerCase() == mainMsg[1].toLowerCase()) {
                                     temp = 1
                                     rply.text = trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction[a].topic + '\n' + trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction[a].contact;
@@ -209,7 +210,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             } else {
                 rply.text = '不在群組. '
             }
-            rply.text = rply.text.replace(/\,/mg, ' ')
+            rply.text = rply.text.replace(/,/mg, ' ')
             return rply;
 
         default:

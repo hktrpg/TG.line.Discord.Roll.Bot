@@ -21,10 +21,10 @@ var prefixs = function () {
         second: null
     }]
 }
-const regexName = new RegExp(/name\[(.*?)\]\~/, 'i');
-const regexState = new RegExp(/state\[(.*?)\]\~/, 'i');
-const regexRoll = new RegExp(/roll\[(.*?)\]\~/, 'i');
-const regexNotes = new RegExp(/notes\[(.*?)\]\~/, 'i');
+const regexName = new RegExp(/name\[(.*?)\]~/, 'i');
+const regexState = new RegExp(/state\[(.*?)\]~/, 'i');
+const regexRoll = new RegExp(/roll\[(.*?)\]~/, 'i');
+const regexNotes = new RegExp(/notes\[(.*?)\]~/, 'i');
 const re = new RegExp(/(.*?):(.*?)(;|$)/, 'ig');
 const limitArr = [4, 10, 30, 100, 200, 999]
 const opt = {
@@ -161,6 +161,7 @@ var initialize = function () {
     return rply;
 }
 
+// eslint-disable-next-line no-unused-vars
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
     rply.text = '';
     rply.characterReRoll = false;
@@ -569,7 +570,7 @@ async function mainCharacter(doc, mainMsg) {
             rply.characterReRollName = findRoll.name;
             rply.characterReRoll = true;
             return rply;
-        case Object.keys(findState).length > 0:
+        case Object.keys(findState).length > 0 || Object.keys(findNotes).length > 0:
             for (let i = 0; i < findState.length; i++) {
                 //如果i 是object , i+1 是STRING 和數字, 就進行加減
                 //否則就正常輸出

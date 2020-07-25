@@ -1,4 +1,7 @@
 "use strict";
+if (!process.env.mongoURL) {
+    return;
+}
 const rollbase = require('./rollbase.js');
 var rply = {
     default: 'on',

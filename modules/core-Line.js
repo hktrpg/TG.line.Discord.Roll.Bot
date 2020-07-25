@@ -8,8 +8,10 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		channelAccessToken: process.env.LINE_CHANNEL_ACCESSTOKEN,
 		channelSecret: process.env.LINE_CHANNEL_SECRET,
 	};
-	const client = new line.Client(config);
+
 	// create LINE SDK client
+	const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
+	const client = new line.Client(config);
 
 	// create Express app
 	// about Express itself: https://expressjs.com/
@@ -27,17 +29,16 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			});
 	});
 	// event handler
-	var handleEvent = async function (event) {
-		const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
+	const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
+						\n輸入 1D100 可以進行最簡單的擲骰.\
+						\n輸入 Bothelp 觀看詳細使用說明.\
+						\n如果你需要幫助, 加入支援頻道.\
+						\n(http://bit.ly/HKTRPG_DISCORD)\
+						\n有關TRPG資訊, 可以到網站\
+						\n(http://www.hktrpg.com/)";
 
-		const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
-							\n輸入 1D100 可以進行最簡單的擲骰.\
-							\n輸入 Bothelp 觀看詳細使用說明.\
-							\n如果你需要幫助, 加入支援頻道.\
-							\n(http://bit.ly/HKTRPG_DISCORD)\
-							\n有關TRPG資訊, 可以到網站\
-							\n(http://www.hktrpg.com/)";
 
+	var handleEvent = async function handleEvent(event) {
 		//event {"type":"message","replyToken":"232132133","source":{"userId":"U1a17e51fSDADASD0293d","groupId":"C6432427423847234cd3","type":"group"},"timestamp":323232323,"message":{"type":"text","id":"232131233123","text":"5!@@!"}}
 		let roomorgroupid, userid, displayname, channelid, membercount = '';
 		if (event.source.groupId) {
@@ -311,8 +312,6 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 			//Reply Max: 2000 characters
 		}
 	}
-
-
 	// listen on port
 	/*	app.listen(port, () => {
 			console.log(`Line BOT listening on ${port}`);
@@ -336,12 +335,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 		express
 	};
 
-
-
-
-
 }
-
 
 
 /*

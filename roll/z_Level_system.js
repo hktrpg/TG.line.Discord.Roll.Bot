@@ -1,6 +1,9 @@
 //參考
 //https://github.com/cookkkie/mee6
 "use strict";
+if (!process.env.mongoURL) {
+    return;
+}
 var rply = {
     default: 'on',
     type: 'text',

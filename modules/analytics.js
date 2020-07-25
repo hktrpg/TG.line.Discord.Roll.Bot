@@ -219,6 +219,9 @@ async function cmdfunction(inputStr, groupid, userid, userrole, mainMsg, trigger
 
 //上傳用
 async function saveLog() {
+	if (!process.env.mongoURL) {
+		return;
+	}
 	//假如沒有StartTime 或過了一天則上載中途紀錄到MLAB
 	//console.log(Date.now() - RollingLog.RealTimeRollingLogfunction.StartTime)
 	if (!RollingLog.RealTimeRollingLogfunction.StartTime) {
@@ -284,6 +287,9 @@ async function saveLog() {
 }
 
 async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercount) {
+	if (!process.env.mongoURL || !Object.keys(exports.z_Level_system).length) {
+		return;
+	}
 	let tempEXPconfig = 0;
 	let tempGPID = 0;
 	let tempGPuserID = 0;

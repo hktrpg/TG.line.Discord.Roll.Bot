@@ -66,7 +66,7 @@ let result = {
 	LevelUp: ''
 };
 
-//用來呼叫骰組,新增骰組的話,要寫條件式到下面呼叫 
+//用來呼叫骰組,新增骰組的話,要寫條件式到下面呼叫
 //格式是 exports.骰組檔案名字.function名
 var parseInput = async function (inputStr, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount, CAPTCHA) {
 	//console.log('InputStr: ' + inputStr);
@@ -338,7 +338,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
 					//LVUP
 					exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level++;
 
-					//8. 更新MLAB資料 
+					//8. 更新MLAB資料
 					records.settrpgLevelSystemfunctionEXPup('trpgLevelSystem', exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID], exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction, () => {});
 					if (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Hidden == 1) {
 						//6. 需要 -> 檢查有沒有開啓通知
@@ -414,7 +414,11 @@ async function ranking(who, data) {
 
 
 async function z_stop(mainMsg, groupid) {
-	if (exports.z_stop && exports.z_stop.initialize() && exports.z_stop.initialize().save && exports.z_stop.initialize().save[0] && exports.z_stop.initialize().save[0].blockfunction && exports.z_stop.initialize().save[0].blockfunction.length > 0 && mainMsg && mainMsg[0]) {
+	if (!Object.keys(exports.z_stop).length) {
+		return 0;
+	}
+
+	if (exports.z_stop.initialize() && exports.z_stop.initialize().save && exports.z_stop.initialize().save[0] && exports.z_stop.initialize().save[0].blockfunction && exports.z_stop.initialize().save[0].blockfunction.length > 0 && mainMsg && mainMsg[0]) {
 		for (let i = 0; i < exports.z_stop.initialize().save.length; i++) {
 			if ((new RegExp(exports.z_stop.initialize().save[i].blockfunction.join("|"), "i")).test(mainMsg[0]) && exports.z_stop.initialize().save[i].groupid == groupid && exports.z_stop.initialize().save[i].blockfunction.length > 0) {
 				console.log('Match AND STOP');
@@ -486,8 +490,8 @@ var rolldice = async function (inputStr, groupid, userid, userrole, mainMsg, bot
 				//1 = 符合
 				//2 = 不符合
 				//以下是分析每組rolling prefixs的資料
-				//以每次同步檢查第一第二個 
-				//例如第一組是 cc  第二組是 80 
+				//以每次同步檢查第一第二個
+				//例如第一組是 cc  第二組是 80
 				//那條件式就是 /^cc$/i 和/^\d+$/
 				if (mainMsg && !mainMsg[1]) mainMsg[1] = '';
 				let checkmainMsg0 = 0;

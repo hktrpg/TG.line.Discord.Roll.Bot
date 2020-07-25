@@ -38,7 +38,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 						\n(http://www.hktrpg.com/)";
 
 
-	var handleEvent = async function handleEvent(event) {
+	var handleEvent = async function (event) {
 		//event {"type":"message","replyToken":"232132133","source":{"userId":"U1a17e51fSDADASD0293d","groupId":"C6432427423847234cd3","type":"group"},"timestamp":323232323,"message":{"type":"text","id":"232131233123","text":"5!@@!"}}
 		let roomorgroupid, userid, displayname, channelid, membercount = '';
 		if (event.source.groupId) {

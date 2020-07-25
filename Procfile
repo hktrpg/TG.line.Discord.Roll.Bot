@@ -1,1 +1,1 @@
-web: node --gc_interval=100 index.js
+web: node node --trace_gc --gc_interval=100 index.js index.js

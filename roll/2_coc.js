@@ -43,6 +43,7 @@ var initialize = function () {
 	return rply;
 }
 
+// eslint-disable-next-line no-unused-vars
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 	rply.text = '';
 	let trigger = mainMsg[0].toLowerCase();
@@ -354,7 +355,7 @@ async function ccrt() {
 	} else
 	if (rollcc == 9) {
 		rply.text = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數' + ' \n' + cocPhobias[PP];
-	};
+	}
 	return rply;
 }
 
@@ -370,7 +371,7 @@ async function ccsu() {
 	} else
 	if (rollcc == 9) {
 		rply.text = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時' + ' \n' + cocPhobias[PP];
-	};
+	}
 	return rply;
 }
 
@@ -462,15 +463,6 @@ async function coc7bp(chack, bpdiceNum, text) {
 	}
 }
 
-async function ArrMax(Arr) {
-	var max = this[0];
-	this.forEach(function (ele, index, arr) {
-		if (ele > max) {
-			max = ele;
-		}
-	})
-	return max;
-}
 ////////////////////////////////////////
 //////////////// COC7傳統創角
 ////////////////////////////////////////		

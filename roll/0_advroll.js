@@ -7,6 +7,7 @@ var rply = {
 	text: ''
 };
 const regexxBy = /^((\d+)(b)(\d+))/i
+const regexxUy = /^(\d+)(u)(\d+)/i
 var gameName = function () {
 	return '【進階擲骰】 .ca (計算)|D66(sn)|5B10 Dx|5U10 x y|.int x y'
 }
@@ -57,9 +58,13 @@ var initialize = function () {
 	return rply;
 }
 
+// eslint-disable-next-line no-unused-vars
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 	rply.text = '';
 	//let result = {};
+	let matchxby = {},
+		matchxuy = {},
+		points = {};
 	switch (true) {
 		case /^[.][c][a]$/i.test(mainMsg[0]) && (/^help$/i.test(mainMsg[1]) || !mainMsg[1]):
 			rply.text = this.getHelpMessage();
@@ -82,26 +87,26 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 			return d66n(mainMsg[1]);
 		case /^d66s$/i.test(mainMsg[0]):
 			return d66s(mainMsg[1])
-		case /^((\d+)(b)(\d+))/i.test(mainMsg[0]):
-			let matchxby = /^((\d+)(b)(\d+))/i.exec(mainMsg[0]);
+		case regexxBy.test(mainMsg[0]):
+			matchxby = regexxBy.exec(mainMsg[0]);
 			//判斷式 0:"5b10<=80" 1:"5b10" 2:"5" 3:"b" 4:"10" 5:"<=80" 6:"<=" 	7:"<" 8:"=" 	9:"80"
 			//console.log('match', match)
 			if (matchxby && matchxby[4] > 1 && matchxby[4] < 10000 && matchxby[2] > 0 && matchxby[2] <= 600)
 				return xBy(mainMsg[0], mainMsg[1], mainMsg[2], botname)
 			break;
-		case regexxBy.test(mainMsg[0]) && mainMsg[1] <= 10000:
-			let matchxuy = regexxBy.exec(mainMsg[0]); //判斷式  5u19,5,u,19, 
-			if (matchxuy && matchxuy[1] > 0 && matchxuy[1] <= 600 && matchxuy[3] > 0 && matchxuy[3] <= 10000)
-				return xUy(mainMsg[0], mainMsg[1], mainMsg[2], mainMsg[3]);
+		case regexxUy.test(mainMsg[0]) && mainMsg[1] <= 10000:
+			matchxuy = regexxUy.exec(mainMsg[0]); //判斷式  ['5U10',  '5', 'U', '10']
+			if (matchxuy && matchxuy[1] > 0 && matchxuy[1] <= 600 && matchxuy[3] > 0 && matchxuy[3] <= 10000) {
+				return xUy(matchxuy, mainMsg[1], mainMsg[2], mainMsg[3]);
+			}
 			break;
 		case /^[.][i][n][t]$/i.test(mainMsg[0]) && mainMsg[1] <= 100000 && mainMsg[2] <= 100000:
-			let points = [Math.floor(mainMsg[1]), Math.floor(mainMsg[2])]
+			points = [Math.floor(mainMsg[1]), Math.floor(mainMsg[2])]
 			points.sort(function (a, b) {
 				return a - b
 			});
 			rply.text = '投擲 ' + points[0] + ' - ' + points[1] + '：\n→ ' + await rollbase.DiceINT(points[0], points[1]);
 			return rply
-			break;
 		default:
 			break;
 	}
@@ -179,8 +184,8 @@ async function d66n(text) {
 }
 ////////////////////////////////////////
 //////////////// xBy 
-////////////////  xBy<>=z  成功数1
-////////////////  xBy Dz   成功数1
+////////////////  xBy<>=z  成功數1
+////////////////  xBy Dz   成功數1
 ////////////////////////////////////////
 async function xBy(triggermsg, text01, text02, botname) {
 	//	console.log('dd')
@@ -244,7 +249,7 @@ async function xBy(triggermsg, text01, text02, botname) {
 	//varcou.sort(rollbase.sortNumber);
 	//(5B7>6) → 7,5,6,4,4 → 
 
-	for (var i = 0; i < varcou.length; i++) {
+	for (let i = 0; i < varcou.length; i++) {
 		switch (true) {
 			case (match[7] == "<" && !match[8]):
 				if (varcou[i] < match[9])
@@ -295,7 +300,6 @@ async function xBy(triggermsg, text01, text02, botname) {
 		}
 	}
 	returnStr += ' → ' + varcou.join(', ');
-	console.log(temptriggermsg)
 	if (match[5]) returnStr += ' \n→ 成功數' + mathjs.eval(Number(varsu) + (temptriggermsg || 0))
 	if (text) returnStr += ' ；　' + text
 	rply.text = returnStr;
@@ -304,12 +308,12 @@ async function xBy(triggermsg, text01, text02, botname) {
 ////////////////////////////////////////
 //////////////// xUy
 ////////////////  (5U10[8]) → 17[10,7],4,5,7,4 → 17/37(最大/合計)
-////////////////  (5U10[8]>8) → 1,30[9,8,8,5],1,3,4 → 成功数1
+////////////////  (5U10[8]>8) → 1,30[9,8,8,5],1,3,4 → 成功數1
 ////////////////////////////////////////
 
 async function xUy(triggermsg, text01, text02, text03) {
-	var match = /^(\d+)(u)(\d+)/i.exec(triggermsg); //判斷式  5u19,5,u,19, 
-	var returnStr = '(' + triggermsg + '[' + text01 + ']';
+	let match = triggermsg//判斷式  5u19,5,u,19, 
+	let returnStr = '(' + triggermsg + '[' + text01 + ']';
 	if (Number(text02) <= Number(match[3]) && text02 != undefined) {
 		returnStr += '>' + text02 + ') → ';
 		if (text03 != undefined) returnStr += text03 + ' → ';
@@ -319,9 +323,7 @@ async function xUy(triggermsg, text01, text02, text03) {
 	}
 	let varcou = new Array();
 	let varcouloop = new Array();
-	let varcoufanl = new Array();
 	let varcounew = new Array();
-	var varsu = 0;
 	if (text01 <= 2) {
 		rply.text = '加骰最少比2高';
 		return rply;
@@ -338,7 +340,7 @@ async function xUy(triggermsg, text01, text02, text03) {
 		}
 
 	}
-	for (var i = 0; i < varcouloop.length; i++) {
+	for (let i = 0; i < varcouloop.length; i++) {
 		if (varcouloop[i] == varcou[i]) {
 			returnStr += varcou[i] + ', ';
 		} else returnStr += varcou[i] + '[' + varcouloop[i] + '], ';
@@ -349,11 +351,11 @@ async function xUy(triggermsg, text01, text02, text03) {
 	if (Number(text02) <= Number(match[3])) {
 		let suc = 0;
 
-		////////////////  (5U10[8]>8) → 1,30[9,8,8,5],1,3,4 → 成功数1
-		for (var i = 0; i < varcou.length; i++) {
+		////////////////  (5U10[8]>8) → 1,30[9,8,8,5],1,3,4 → 成功數1
+		for (let i = 0; i < varcou.length; i++) {
 			if (Number(varcou[i]) >= Number(text02)) suc++;
 		}
-		returnStr += ' → 成功数' + suc;
+		returnStr += ' → 成功數' + suc;
 	} else
 	////////////////  (5U10[8]) → 17[10,7],4,5,7,4 → 17/37(最大/合計)
 
@@ -367,6 +369,7 @@ async function xUy(triggermsg, text01, text02, text03) {
 	return rply;
 }
 
+// eslint-disable-next-line no-unused-vars
 async function strikeThrough(text, botname) {
 	if (text)
 		return text.toString()

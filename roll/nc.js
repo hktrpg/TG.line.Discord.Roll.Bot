@@ -32,12 +32,12 @@ var getHelpMessage = function () {
 	return "【永遠的後日談 Nechronica】" + "\
 	\n・依戀 .NC NM (問題)\
 	\n例子 .NC NM 我的依戀\
-	\n・判定　(.NC nNC+m)\
-	　\nダイス数n、修正値mで判定ロールを行います。\
-	　\nダイス数が2以上の時のパーツ破損数も表示します。\
-	\n・攻撃判定　(.NC nNA+m)\
-	　\nダイス数n、修正値mで攻撃判定ロールを行います。\
-	　\n命中部位とダイス数が2以上の時のパーツ破損数も表示します。*\
+	\n・判定 (.NC nNC+m)\
+	\nダイス数n、修正値mで判定ロールを行います。\
+	\nダイス数が2以上の時のパーツ破損数も表示します。\
+	\n・攻撃判定 (.NC nNA+m)\
+	\nダイス数n、修正値mで攻撃判定ロールを行います。\
+	\n命中部位とダイス数が2以上の時のパーツ破損数も表示します。*\
 		\n "
 }
 var initialize = function () {
@@ -62,12 +62,12 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 
 			//永遠的後日談 Nechronica
 			/*
-			・判定　(nNC+m)
-	  　ダイス数n、修正値mで判定ロールを行います。
-	  　ダイス数が2以上の時のパーツ破損数も表示します。
-	  ・攻撃判定　(nNA+m)
-	  　ダイス数n、修正値mで攻撃判定ロールを行います。
-	  　命中部位とダイス数が2以上の時のパーツ破損数も表示します。*/
+			・判定 (nNC+m)
+	   ダイス数n、修正値mで判定ロールを行います。
+	   ダイス数が2以上の時のパーツ破損数も表示します。
+	  ・攻撃判定 (nNA+m)
+	   ダイス数n、修正値mで攻撃判定ロールを行います。
+	   命中部位とダイス数が2以上の時のパーツ破損数も表示します。*/
 			result = calldice("Nechronica", mainMsg[1])
 			if (result && result[0] != 1)
 				rply.text = mainMsg[1] + result[0];

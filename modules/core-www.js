@@ -1,6 +1,5 @@
 "use strict";
 if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
-    const express = require('./core-Line').express;
     const www = require('./core-Line').app;
     var server = require('http').createServer(www);
     //const server = require('./www.js').http;
@@ -56,70 +55,65 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
         // 廣播訊息到聊天室
 
         if (message.msg && message.name.match(/HKTRPG/ig)) {
+            return;
+        }
+        // console.log(message)
+        io.emit("msg", message);
+        let rplyVal = {}
+        let msgSplitor = (/\S+/ig)
+        var mainMsg = message.msg.match(msgSplitor); // 定義輸入字串
+        if (mainMsg && mainMsg[0])
+            var trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
 
+        // 訊息來到後, 會自動跳到analytics.js進行骰組分析
+        // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+
+
+        if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
+            rplyVal = await exports.analytics.parseInput(mainMsg.join(' '), '', '', '', "www", "", "")
+            //rplyVal = await exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid)
         } else {
-            // console.log(message)
-            io.emit("msg", message);
-            let rplyVal = {}
-            let msgSplitor = (/\S+/ig)
-            var mainMsg = message.msg.match(msgSplitor); // 定義輸入字串
-            if (mainMsg && mainMsg[0])
-                var trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
-
-            // 訊息來到後, 會自動跳到analytics.js進行骰組分析
-            // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
-
-            let privatemsg = 0
-            if (trigger == 'dr' && mainMsg && mainMsg[1]) {
-                privatemsg = 1
-                mainMsg.shift()
-                trigger = mainMsg[0].toString().toLowerCase()
-            }
-            if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
+            if (channelKeyword == '') {
                 rplyVal = await exports.analytics.parseInput(mainMsg.join(' '), '', '', '', "www", "", "")
-                //rplyVal = await exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid)
-            } else {
-                if (channelKeyword == '') {
-                    rplyVal = await exports.analytics.parseInput(mainMsg.join(' '), '', '', '', "www", "", "")
 
-                }
-
-            }
-
-            if (rplyVal && rplyVal.text) {
-                WWWcountroll++;
-                //console.log('rplyVal.text:' + rplyVal.text)
-                //console.log('Telegram Roll: ' + WWWcountroll + ', Telegram Text: ' + WWWcounttext, " content: ", message.text);
-                rplyVal.text = '\n' + rplyVal.text
-                async function loadb() {
-
-                    for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-                        await io.emit("msg", {
-                            name: 'HKTRPG',
-                            msg: rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]
-                        });
-                        records.push({
-                            name: 'HKTRPG',
-                            msg: rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]
-                        });
-                        //message.reply.text(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])
-                    }
-                }
-                loadb();
-
-
-                // console.log("rplyVal: " + rplyVal)
-            } else {
-                //console.log(rplyVal.text, " ")
-                WWWcounttext++;
-                if (WWWcounttext % 500 == 0)
-                    console.log('WWW Roll: ' + WWWcountroll + ', WWW Text: ' + WWWcounttext);
             }
 
         }
+
+        if (rplyVal && rplyVal.text) {
+            WWWcountroll++;
+            //console.log('rplyVal.text:' + rplyVal.text)
+            //console.log('Telegram Roll: ' + WWWcountroll + ', Telegram Text: ' + WWWcounttext, " content: ", message.text);
+            rplyVal.text = '\n' + rplyVal.text
+
+            loadb(io, records, rplyVal);
+
+
+            // console.log("rplyVal: " + rplyVal)
+        } else {
+            //console.log(rplyVal.text, " ")
+            WWWcounttext++;
+            if (WWWcounttext % 500 == 0)
+                console.log('WWW Roll: ' + WWWcountroll + ', WWW Text: ' + WWWcounttext);
+        }
+
+
     });
 
     server.listen(port, () => {
         console.log("Web Server Started. port:" + port);
     });
+}
+async function loadb(io, records, rplyVal) {
+    for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+        await io.emit("msg", {
+            name: 'HKTRPG',
+            msg: rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]
+        });
+        records.push({
+            name: 'HKTRPG',
+            msg: rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]
+        });
+        //message.reply.text(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])
+    }
 }

@@ -47,7 +47,7 @@ var initialize = function () {
 }
 
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-
+    let checkifsamename = 0;
     rply.text = '';
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
@@ -55,12 +55,11 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             if (botname == "Line")
                 rply.text += "\n因為Line的機制, 如擲骰時並無顯示用家名字, 請到下列網址,和機器人任意說一句話,成為好友. \n https://line.me/R/ti/p/svMLqy9Mik"
             return rply;
-            break;
         case /(^[.]drgm$)/i.test(mainMsg[0]) && /^addgm$/i.test(mainMsg[1]):
             //
             //增加自定義關鍵字
             // .drgm[0] addgm[1] 代替名字[2]  
-            let checkifsamename = 0
+            checkifsamename = 0
             if (channelid)
                 groupid = channelid
             //因為在DISCROD以頻道作單位
@@ -110,7 +109,6 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                     rply.text += ' 只有GM以上才可新增.'
             }
             return rply;
-            break;
         case /(^[.]drgm$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
             //    
             //刪除所有自定義關鍵字
@@ -119,7 +117,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 groupid = channelid
             if (!mainMsg[2]) return;
             if (groupid && mainMsg[2] && trpgDarkRollingfunction.trpgDarkRollingfunction && userrole >= 2) {
-                for (var i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
+                for (let i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
                     if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid) {
                         let temp = trpgDarkRollingfunction.trpgDarkRollingfunction[i]
                         temp.trpgDarkRollingfunction = []
@@ -140,7 +138,6 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             }
 
             return rply;
-            break;
         case /(^[.]drgm$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
             //
             //刪除GM
@@ -148,7 +145,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             if (channelid)
                 groupid = channelid
             if (groupid && mainMsg[2] && trpgDarkRollingfunction.trpgDarkRollingfunction && userrole >= 1) {
-                for (var i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
+                for (let i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
                     if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid && mainMsg[2] < trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length && mainMsg[2] >= 0) {
                         let temp = trpgDarkRollingfunction.trpgDarkRollingfunction[i]
                         temp.trpgDarkRollingfunction.splice(mainMsg[2], 1)
@@ -171,7 +168,6 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                     rply.text += '只有GM以上才可刪除. '
             }
             return rply;
-            break;
         case /(^[.]drgm$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
             //
             //顯示列表
@@ -184,10 +180,10 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             if (groupid) {
                 let temp = 0;
                 if (trpgDarkRollingfunction.trpgDarkRollingfunction)
-                    for (var i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
+                    for (let i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
                         if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid) {
                             rply.text += '已註冊暗骰GM列表:'
-                            for (var a = 0; a < trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
+                            for (let a = 0; a < trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
                                 temp = 1
                                 rply.text += ("\n") + a + '. ' + (trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].diyName || trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].displayname) + ("\n")
                             }
@@ -198,9 +194,8 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 rply.text = '不在群組. '
             }
             //顯示GM
-            rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
+            rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
             return rply
-            break;
         default:
             break;
     }

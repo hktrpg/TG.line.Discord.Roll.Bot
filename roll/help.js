@@ -47,11 +47,11 @@ var prefixs = function () {
 var getHelpMessage = function () {
 	return "【HKTRPG擲骰BOT】" + version + "\
 \n2019/07/21 香港克警合作 黑ICON紀念\
-	\n  \
+	\n\
 	\n 暗骰功能 在指令前輸入dr 結果會私訊你\
 	\n ddr dddr 可以私訊已設定的群組GM, 詳情可打.drgm查詢\
 \n【基本擲骰】1d100(khN|klN|dhN|dlN)\
-  \n 例如輸入(2d6+1)*2　攻撃！\
+  \n 例如輸入(2d6+1)*2 攻撃！\
   \n 會輸出）(2d6+1)*2：攻撃！  (10[5+5]+1)2 = 22\
   \n 如上面一樣,在骰子數字後方隔空白位打字,可以進行發言。\
   \n 5 3D6 ：	分別骰出5次3d6 最多30次\
@@ -134,7 +134,7 @@ function linehelp() {
 	var help = {
 		"type": "text",
 		"altText": "【HKTRPG擲骰BOT】v1.0.3 \
-\n 例如輸入2d6+1　攻撃！\
+\n 例如輸入2d6+1 攻撃！\
 \n 會輸出）2d6+1：攻撃  9[6+3]+1 = 10\
 \n 如上面一樣,在骰子數字後方隔空白位打字,可以進行發言。\
 \n 以下還有其他例子\

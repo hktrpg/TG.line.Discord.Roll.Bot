@@ -287,7 +287,6 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
 	let tempEXPconfig = 0;
 	let tempGPID = 0;
 	let tempGPuserID = 0;
-	let tempGPHidden = 0;
 	//1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
 	if (exports.z_Level_system && exports.z_Level_system.initialize() && exports.z_Level_system.initialize().trpgLevelSystemfunction && exports.z_Level_system.initialize().trpgLevelSystemfunction[0]) {
 		for (let a = 0; a < exports.z_Level_system.initialize().trpgLevelSystemfunction.length; a++) {
@@ -430,7 +429,7 @@ var rolldice = async function (inputStr, groupid, userid, userrole, mainMsg, bot
 	//在下面位置開始分析trigger
 	if (!groupid) {
 		groupid = 0
-	};
+	}
 	/*
 			[{
 				prefixs: [{

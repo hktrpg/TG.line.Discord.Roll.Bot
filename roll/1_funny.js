@@ -43,6 +43,7 @@ var initialize = function () {
 	return rply;
 }
 
+// eslint-disable-next-line no-unused-vars
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 	rply.text = '';
 	//let result = {};
@@ -223,6 +224,7 @@ async function randomLuck(TEXT) {
 //////////////// Funny
 ////////////////////////////////////////
 /* 猜拳功能 */
+// eslint-disable-next-line no-unused-vars
 async function RockPaperScissors(HandToCal, text) {
 	let returnStr = '';
 	if (HandToCal.match(/石頭|布|剪刀|1|2|3/) != null) {

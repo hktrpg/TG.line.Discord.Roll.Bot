@@ -5,10 +5,6 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 		nodeCrypto
 	} = require("random-js");
 	const random = new Random(nodeCrypto);
-
-	function timer(ms) {
-		return new Promise(res => setTimeout(res, ms));
-	}
 	exports.analytics = require('../modules/analytics');
 	const Telegraf = require('telegraf');
 	const TGclient = new Telegraf(process.env.TELEGRAM_CHANNEL_SECRET);
@@ -34,7 +30,11 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 		//	ctx.getChatMembers() //[Members]
 		//	telegrafGetChatMembers.check(ctx.chat.id) //[Members]
 		//	telegrafGetChatMembers.all //[Chats]
-		let groupid, userid, displayname, channelid, membercount = '';
+		let groupid = '',
+			userid = '',
+			displayname = '',
+			channelid = '',
+			membercount = 0;
 		let TargetGM = require('../roll/z_DDR_darkRollingToGM').initialize();
 		//得到暗骰的數據, GM的位置
 		if (ctx.message.from.username) displayname = ctx.message.from.username;
@@ -68,8 +68,8 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 		if (ctx.message.text && ctx.message.from.is_bot == false) {
 			if (ctx.botInfo && ctx.botInfo.username && ctx.message.text.match(/^[/]/))
 				ctx.message.text = ctx.message.text
-				.replace(new RegExp('\@' + ctx.botInfo.username + '$', 'i'), '')
-				.replace(new RegExp('^\/', 'i'), '');
+				.replace(new RegExp('@' + ctx.botInfo.username + '$', 'i'), '')
+				.replace(new RegExp('^/', 'i'), '');
 			var mainMsg = ctx.message.text.match(msgSplitor); // 定義輸入字串
 
 		}
@@ -114,7 +114,7 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 		}
 		if (groupid && rplyVal && rplyVal.LevelUp) {
 			//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
-			await ctx.reply("@" + displayname + '\n' + rplyVal.LevelUp);
+			ctx.reply("@" + displayname + '\n' + rplyVal.LevelUp);
 		}
 		if (!rplyVal.text) {
 			return;
@@ -134,10 +134,10 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 							TargetGMTempdiyName[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].diyName
 							TargetGMTempdisplayname[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].displayname
 							//TargetGMTemp[a]. channelid displayname diyName userid
-						};
-					};
-				};
-		};
+						}
+					}
+				}
+		}
 		switch (true) {
 			case privatemsg == 1:
 				// 輸入dr  (指令) 私訊自己
@@ -153,30 +153,30 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				//輸入ddr(指令) 私訊GM及自己
 				if (ctx.message.chat.type != 'private') {
 					let targetGMNameTemp = "";
-					for (var i = 0; i < TargetGMTempID.length; i++) {
+					for (let i = 0; i < TargetGMTempID.length; i++) {
 						targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
-					};
+					}
 					ctx.reply("@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
 				}
 				rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
-				await SendToId(ctx.message.from.id);
-				for (var i = 0; i < TargetGMTempID.length; i++) {
+				SendToId(ctx.message.from.id);
+				for (let i = 0; i < TargetGMTempID.length; i++) {
 					if (ctx.message.from.id != TargetGMTempID[i])
-						await SendToId(TargetGMTempID[i]);
+						SendToId(TargetGMTempID[i]);
 				}
 				break;
 			case privatemsg == 3:
 				//輸入dddr(指令) 私訊GM
 				if (ctx.message.chat.type != 'private') {
 					let targetGMNameTemp = "";
-					for (var i = 0; i < TargetGMTempID.length; i++) {
+					for (let i = 0; i < TargetGMTempID.length; i++) {
 						targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
-					};
-					await ctx.reply("@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp);
+					}
+					ctx.reply("@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp);
 				}
 				rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
-				for (var i = 0; i < TargetGMTempID.length; i++) {
-					await SendToId(TargetGMTempID[i]);
+				for (let i = 0; i < TargetGMTempID.length; i++) {
+					SendToId(TargetGMTempID[i]);
 				}
 				break;
 			default:
@@ -185,21 +185,21 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 					displayname = "@" + ctx.message.from.username + "\n";
 					rplyVal.text = displayname + rplyVal.text;
 				}
-				await SendToReply();
+				SendToReply();
 				break;
 		}
 
 		async function SendToId(targetid) {
 			for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 				if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
-					await ctx.telegram.sendMessage(targetid, rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);
+					ctx.telegram.sendMessage(targetid, rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);
 				}
 			}
 		}
 		async function SendToReply() {
 			for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 				if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
-					await ctx.reply(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);
+					ctx.reply(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);
 				}
 			}
 		}
@@ -212,16 +212,19 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 	TGclient.on('message', async (ctx) => {
 		if (ctx.message.new_chat_member && ctx.message.new_chat_member.username == ctx.me) {
 			console.log("Telegram joined");
-			await ctx.reply(joinMessage);
+			ctx.reply(joinMessage);
 		} else if (ctx.message.group_chat_created) {
 			console.log("Telegram joined");
-			await ctx.reply(joinMessage);
+			ctx.reply(joinMessage);
 		} else return null;
 	});
 
 	TGclient.on('audio', async (ctx) => {
 		if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
-			let groupid, userid, displayname, channelid, membercount = '';
+			let groupid = '',
+				userid = '',
+				displayname = '',
+				membercount = '';
 			groupid = ctx.message.chat.id;
 			if (ctx.message.from.username) {
 				displayname = ctx.message.from.username;
@@ -233,13 +236,15 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 				membercount = await ctx.getChatMembersCount(ctx.chat.id);
 			}
 			await exports.analytics.EXPUP(groupid, userid, displayname, "", membercount);
-
-		};
+		}
 		return null;
 	});
 	TGclient.on('document', async (ctx) => {
 		if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
-			let groupid, userid, displayname, channelid, membercount = '';
+			let groupid = '',
+				userid = '',
+				displayname = '',
+				membercount = '';
 			groupid = ctx.message.chat.id;
 			if (ctx.message.from.username) {
 				displayname = ctx.message.from.username;
@@ -256,7 +261,10 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 	})
 	TGclient.on('photo', async (ctx) => {
 		if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
-			let groupid, userid, displayname, channelid, membercount = ''
+			let groupid = '',
+				userid = '',
+				displayname = '',
+				membercount = ''
 			groupid = ctx.message.chat.id
 			if (ctx.message.from.username) displayname = ctx.message.from.username
 			if (ctx.message.from.id) userid = ctx.message.from.id
@@ -268,7 +276,10 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 	})
 	TGclient.on('sticker', async (ctx) => {
 		if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
-			let groupid, userid, displayname, channelid, membercount = ''
+			let groupid = '',
+				userid = '',
+				displayname = '',
+				membercount = ''
 			groupid = ctx.message.chat.id
 			if (ctx.message.from.username) displayname = ctx.message.from.username
 			if (ctx.message.from.id) userid = ctx.message.from.id
@@ -280,7 +291,10 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 	})
 	TGclient.on('video', async (ctx) => {
 		if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
-			let groupid, userid, displayname, channelid, membercount = ''
+			let groupid = '',
+				userid = '',
+				displayname = '',
+				membercount = ''
 			groupid = ctx.message.chat.id
 			if (ctx.message.from.username) displayname = ctx.message.from.username
 			if (ctx.message.from.id) userid = ctx.message.from.id
@@ -292,7 +306,10 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 	})
 	TGclient.on('voice', async (ctx) => {
 		if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
-			let groupid, userid, displayname, channelid, membercount = ''
+			let groupid = '',
+				userid = '',
+				displayname = '',
+				membercount = ''
 			groupid = ctx.message.chat.id
 			if (ctx.message.from.username) displayname = ctx.message.from.username
 			if (ctx.message.from.id) userid = ctx.message.from.id
@@ -304,7 +321,10 @@ if (process.env.TELEGRAM_CHANNEL_SECRET) {
 	})
 	TGclient.on('forward', async (ctx) => {
 		if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
-			let groupid, userid, displayname, channelid, membercount = ''
+			let groupid = '',
+				userid = '',
+				displayname = '',
+				membercount = ''
 			groupid = ctx.message.chat.id
 			if (ctx.message.from.username) displayname = ctx.message.from.username
 			if (ctx.message.from.id) userid = ctx.message.from.id

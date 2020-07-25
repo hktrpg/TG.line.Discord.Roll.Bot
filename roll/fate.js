@@ -45,7 +45,8 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             //.4dfm23,m23,m,23
             //＋∎－
             //console.log(match)
-            var i, random, temp = '';
+            var random = '',
+                temp = '';
             var ans = 0
 
             for (let i = 0; i < 4; i++) {

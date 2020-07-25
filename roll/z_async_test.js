@@ -7,7 +7,6 @@ var rply = {
 //heroku labs:enable runtime-dyno-metadata -a <app name>
 var chineseConv = require('chinese-conv'); //繁簡轉換
 const GoogleImages = require('google-images');
-const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 const client = new GoogleImages(process.env.CSE_ID, process.env.CSE_API_KEY);
 const wiki = require('wikijs').default;
 const rollbase = require('./rollbase.js');
@@ -50,6 +49,8 @@ var initialize = function () {
 
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 	rply.text = '';
+	let lang = '',
+		test = '';
 	//let result = {};
 	switch (true) {
 		case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
@@ -80,8 +81,8 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 			});
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /^[.]tran[.]\S+$/.test(mainMsg[0]):
-			let lang = /.tran.(\S+)/;
-			let test = mainMsg[0].match(lang)
+			lang = /.tran.(\S+)/;
+			test = mainMsg[0].match(lang)
 			rply.text = await translate(inputStr.replace(mainMsg[0], ""), {
 				to: test[1].replace("簡中", "zh-CN").replace("簡體", "zh-CN").replace(/zh-cn/ig, "zh-CN").replace("英", "en").replace("簡", "zh-CN").replace("德", "de").replace("日", "ja")
 			}).then(res => {
@@ -106,13 +107,6 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 		default:
 			break;
 	}
-}
-
-async function now(a, b, c) {
-	let now = a + b
-	if (now >= c)
-		now = now - c
-	return now
 }
 
 async function googleimage(inputStr, mainMsg, safe) {
@@ -140,12 +134,7 @@ async function googleimage(inputStr, mainMsg, safe) {
 		})
 }
 
-async function imageExists(image_url) {
-	var http = new XMLHttpRequest();
-	http.open('HEAD', image_url, false);
-	http.send();
-	return http.status == 200;
-}
+
 module.exports = {
 	rollDiceCommand: rollDiceCommand,
 	initialize: initialize,

@@ -6,9 +6,7 @@ var rply = {
     text: ''
 };
 var randomAnsfunction = {};
-const math = require('mathjs');
 const records = require('../modules/records.js');
-var randomAnsfunction = {};
 records.get('randomAns', (msgs) => {
     randomAnsfunction.randomAnsfunction = msgs
 })
@@ -48,20 +46,24 @@ var initialize = function () {
     return rply;
 }
 
+// eslint-disable-next-line no-unused-vars
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-
+    let checkifsamename = 0;
     rply.text = '';
+    let times = (/^[.]ra(\d+|)/i.exec(mainMsg[0])) ? /^[.]ra(\d+|)/i.exec(mainMsg[0])[1] : 1;
+    let timesgp = (/^[.]rap(\d+|)/i.exec(mainMsg[0])) ? /^[.]rap(\d+|)/i.exec(mainMsg[0])[1] : 1;
+    let temp2 = 0;
+    let checkifsamenamegroup = 0;
+    let tempshow = 0;
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
             return rply;
-            break;
-
         case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
             //
             //增加自定義關鍵字
             // .ra[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
-            let checkifsamename = 0
+            checkifsamename = 0
             if (groupid && userrole >= 1 && mainMsg[3] && mainMsg[4]) {
                 if (randomAnsfunction.randomAnsfunction)
                     for (var i = 0; i < randomAnsfunction.randomAnsfunction.length; i++) {
@@ -105,14 +107,13 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                     rply.text += ' 只有GM以上才可新增.'
             }
             return rply;
-            break;
         case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
             //    
             //刪除所有自定義關鍵字
             //
             if (!mainMsg[2]) return;
             if (groupid && mainMsg[2] && randomAnsfunction.randomAnsfunction && userrole >= 2) {
-                for (var i = 0; i < randomAnsfunction.randomAnsfunction.length; i++) {
+                for (let i = 0; i < randomAnsfunction.randomAnsfunction.length; i++) {
                     if (randomAnsfunction.randomAnsfunction[i].groupid == groupid) {
                         let temp = randomAnsfunction.randomAnsfunction[i]
                         temp.randomAnsfunction = []
@@ -133,13 +134,12 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             }
 
             return rply;
-            break;
         case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
             //
             //刪除自定義關鍵字
             //
             if (groupid && mainMsg[2] && randomAnsfunction.randomAnsfunction && userrole >= 1) {
-                for (var i = 0; i < randomAnsfunction.randomAnsfunction.length; i++) {
+                for (let i = 0; i < randomAnsfunction.randomAnsfunction.length; i++) {
                     if (randomAnsfunction.randomAnsfunction[i].groupid == groupid && mainMsg[2] < randomAnsfunction.randomAnsfunction[i].randomAnsfunction.length && mainMsg[2] >= 0) {
                         let temp = randomAnsfunction.randomAnsfunction[i]
                         temp.randomAnsfunction.splice(mainMsg[2], 1)
@@ -162,7 +162,6 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                     rply.text += '只有GM以上才可刪除. '
             }
             return rply;
-            break;
         case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
             //
             //顯示列表
@@ -173,10 +172,10 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             if (groupid) {
                 let temp = 0;
                 if (randomAnsfunction.randomAnsfunction)
-                    for (var i = 0; i < randomAnsfunction.randomAnsfunction.length; i++) {
+                    for (let i = 0; i < randomAnsfunction.randomAnsfunction.length; i++) {
                         if (randomAnsfunction.randomAnsfunction[i].groupid == groupid) {
                             rply.text += '自定義關鍵字列表:'
-                            for (var a = 0; a < randomAnsfunction.randomAnsfunction[i].randomAnsfunction.length; a++) {
+                            for (let a = 0; a < randomAnsfunction.randomAnsfunction[i].randomAnsfunction.length; a++) {
                                 temp = 1
                                 rply.text += ("\n") + a + '. ' + randomAnsfunction.randomAnsfunction[i].randomAnsfunction[a][0]
                             }
@@ -187,14 +186,13 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 rply.text = '不在群組. '
             }
             //顯示自定義關鍵字
-            rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
+            rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
             return rply
-            break;
         case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
             //
             //RA使用抽選功能
             //
-            let times = /^[.]ra(\d+|)/i.exec(mainMsg[0])[1] || 1
+            times = /^[.]ra(\d+|)/i.exec(mainMsg[0])[1] || 1
             if (times > 30) times = 30;
             if (times < 1) times = 1
             //console.log(times)
@@ -202,12 +200,12 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 //    console.log(mainMsg[1])
                 let temp = 0;
                 if (randomAnsfunction.randomAnsfunction)
-                    for (var i = 0; i < randomAnsfunction.randomAnsfunction.length; i++) {
+                    for (let i = 0; i < randomAnsfunction.randomAnsfunction.length; i++) {
                         if (randomAnsfunction.randomAnsfunction[i].groupid == groupid) {
                             // console.log(randomAnsfunction.randomAnsfunction[i])
                             //rply.text += '自定義關鍵字列表:'
                             for (let aa = 1; aa < mainMsg.length; aa++)
-                                for (var a = 0; a < randomAnsfunction.randomAnsfunction[i].randomAnsfunction.length; a++) {
+                                for (let a = 0; a < randomAnsfunction.randomAnsfunction[i].randomAnsfunction.length; a++) {
                                     if (randomAnsfunction.randomAnsfunction[i].randomAnsfunction[a][0].toLowerCase() == mainMsg[aa].toLowerCase()) {
                                         temp = 1
                                         let temptitle = randomAnsfunction.randomAnsfunction[i].randomAnsfunction[a][0];
@@ -235,19 +233,18 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 rply.text = '不在群組. '
             }
             return rply;
-            break;
         case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
             //
             //增加
             //
-            let checkifsamenamegroup = 0
+            checkifsamenamegroup = 0
             if (randomAnsfunction.randomAnsAllgroup && mainMsg[2] && mainMsg[3] && mainMsg[4])
-                for (var i = 0; i < randomAnsfunction.randomAnsAllgroup.length; i++) {
+                for (let i = 0; i < randomAnsfunction.randomAnsAllgroup.length; i++) {
                     if (randomAnsfunction.randomAnsAllgroup[i].randomAnsAllgroup.length > 30) {
                         rply.text = '防呆，只可以有100個關鍵字啊'
                         return rply;
                     }
-                    for (var a = 0; a < randomAnsfunction.randomAnsAllgroup[i].randomAnsAllgroup.length; a++) {
+                    for (let a = 0; a < randomAnsfunction.randomAnsAllgroup[i].randomAnsAllgroup.length; a++) {
                         if (randomAnsfunction.randomAnsAllgroup[i].randomAnsAllgroup[a][0].toLowerCase() == mainMsg[2].toLowerCase()) {
                             checkifsamenamegroup = 1
                         }
@@ -300,7 +297,6 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                  }
                  return rply;
                  */
-            break;
         case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
             //
             //顯示列表
@@ -309,32 +305,31 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 randomAnsfunction.randomAnsAllgroup = msgs
                 //  console.log(rply)
             })
-            let tempshow = 0;
+            tempshow = 0;
             if (randomAnsfunction.randomAnsAllgroup)
-                for (var i = 0; i < randomAnsfunction.randomAnsAllgroup.length; i++) {
+                for (let i = 0; i < randomAnsfunction.randomAnsAllgroup.length; i++) {
                     rply.text += '自定義關鍵字列表:'
-                    for (var a = 0; a < randomAnsfunction.randomAnsAllgroup[i].randomAnsAllgroup.length; a++) {
+                    for (let a = 0; a < randomAnsfunction.randomAnsAllgroup[i].randomAnsAllgroup.length; a++) {
                         tempshow = 1
                         rply.text += ("\n") + a + '. ' + randomAnsfunction.randomAnsAllgroup[i].randomAnsAllgroup[a][0]
                     }
                 }
             if (tempshow == 0) rply.text = '沒有已設定的關鍵字. '
             //顯示自定義關鍵字
-            rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/\,/gm, ', ')
+            rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
             return rply
-            break;
         case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[0]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
             //
             //RAP顯示抽選功能
             //
-            let timesgp = /^[.]rap(\d+|)/i.exec(mainMsg[0])[1] || 1
+            timesgp = /^[.]rap(\d+|)/i.exec(mainMsg[0])[1] || 1
             if (timesgp > 30) timesgp = 30;
             if (timesgp < 1) timesgp = 1
-            let temp2 = 0;
+            temp2 = 0;
             if (randomAnsfunction.randomAnsAllgroup)
-                for (var i = 0; i < randomAnsfunction.randomAnsAllgroup.length; i++) {
+                for (let i = 0; i < randomAnsfunction.randomAnsAllgroup.length; i++) {
                     for (let aa = 1; aa < mainMsg.length; aa++)
-                        for (var a = 0; a < randomAnsfunction.randomAnsAllgroup[i].randomAnsAllgroup.length; a++) {
+                        for (let a = 0; a < randomAnsfunction.randomAnsAllgroup[i].randomAnsAllgroup.length; a++) {
                             if (randomAnsfunction.randomAnsAllgroup[i].randomAnsAllgroup[a][0].toLowerCase() == mainMsg[aa].toLowerCase()) {
                                 temp2 = 1
                                 let GPtemp = randomAnsfunction.randomAnsAllgroup[i].randomAnsAllgroup[a];
@@ -355,7 +350,6 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 }
             if (temp2 == 0) rply.text = '沒有相關關鍵字. '
             return rply;
-            break;
         default:
             break;
     }

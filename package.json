@@ -8,7 +8,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "start": "node --gc_interval=100 index.js"
+    "start": "node --trace_gc --gc_interval=100 index.js"
   },
   "dependencies": {
     "@babel/core": "7.7.4",

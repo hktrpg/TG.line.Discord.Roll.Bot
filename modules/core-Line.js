@@ -19,7 +19,7 @@ if (process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	// about the middleware, please refer to doc
 	app.post('/', line.middleware(config), (req, res) => {
 		Promise
-			.all(req.body.events.map(handleEvent(event, client)))
+			.all(req.body.events.map(handleEvent))
 			.then((result) => res.json(result))
 			.catch((err) => {
 				console.error(err);

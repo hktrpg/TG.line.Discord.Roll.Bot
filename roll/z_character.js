@@ -609,12 +609,13 @@ async function mainCharacter(doc, mainMsg) {
                 console.log('doc ', doc)
                 console.log('doc SAVE error:', error)
             }
-            return rply;
-        case findNotes.length > 0:
-            for (let i = 0; i < findNotes.length; i++) {
-                //如果i 是object , i+1 是STRING 和數字, 就進行加減
-                //否則就正常輸出
-                rply.text += findNotes[i].name + ': ' + findNotes[i].itemA + '\n';
+
+            if (findNotes.length > 0) {
+                for (let i = 0; i < findNotes.length; i++) {
+                    //如果i 是object , i+1 是STRING 和數字, 就進行加減
+                    //否則就正常輸出
+                    rply.text += findNotes[i].name + ': ' + findNotes[i].itemA + '\n';
+                }
             }
 
             if (findState.length > 0 || findNotes.length > 0) {

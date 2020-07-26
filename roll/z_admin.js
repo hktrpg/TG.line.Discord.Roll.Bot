@@ -4,7 +4,7 @@ var rply = {
     type: 'text',
     text: ''
 };
-
+const Discord = require("discord.js")
 var gameName = function () {
     return '【Admin Tool】'
 }
@@ -27,6 +27,7 @@ var getHelpMessage = function () {
 	\n  用來Debug 及調整VIP工具\
 		\n "
 }
+
 var initialize = function () {
     return rply;
 }
@@ -56,7 +57,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             rply.text += (membercount) ? '\nmembercount: ' + membercount : '';
             console.log("Debug function ", "inputStr: " + inputStr + '\ngroupid: ' + groupid + "\nuserid: " + userid + '\nuserrole: ' + userrole, '\nbotname: ', botname, '\ndisplayname: ', displayname, '\nchannelid: ', channelid, '\ndisplaynameDiscord: ', displaynameDiscord, '\nmembercount: ', membercount)
             return rply;
-        case /^(?![\s\S])/.test(mainMsg[0] || ''):
+        case /\s+)/.test(mainMsg[1] || ''):
             rply.text = 'Demo'
             return rply;
         default:

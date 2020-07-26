@@ -190,8 +190,6 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             } catch (error) {
                 console.log(error);
             }
-
-            console.log('doc', doc)
             for (let index = 0; index < doc.length; index++) {
                 rply.text += index + ': ' + doc[index].name + '\n';
             }
@@ -688,10 +686,13 @@ async function showCharacter(Card, mode) {
     if (Card.roll.length > 0) {
         for (let i = 0; i < Card.roll.length; i++) {
             if (mode == 'addMode' || mode == 'showAllMode') {
-                returnStr += Card.roll[i].name + ': ' + Card.roll[i].itemA + '\n';
+                returnStr += Card.roll[i].name + ': ' + Card.roll[i].itemA + '  ';
 
             } else {
-                returnStr += (Card.roll[i].itemA) ? Card.roll[i].name + ': ' + Card.roll[i].itemA + '\n' : '';
+                returnStr += (Card.roll[i].itemA) ? Card.roll[i].name + ': ' + Card.roll[i].itemA + '  ' : '';
+            }
+            if (i % 2 || i == Card.roll.length - 1) {
+                returnStr += '\n';
             }
         }
         returnStr += '-------\n'

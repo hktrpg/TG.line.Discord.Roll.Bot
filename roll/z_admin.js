@@ -57,7 +57,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             rply.text += (membercount) ? '\nmembercount: ' + membercount : '';
             console.log("Debug function ", "inputStr: " + inputStr + '\ngroupid: ' + groupid + "\nuserid: " + userid + '\nuserrole: ' + userrole, '\nbotname: ', botname, '\ndisplayname: ', displayname, '\nchannelid: ', channelid, '\ndisplaynameDiscord: ', displaynameDiscord, '\nmembercount: ', membercount)
             return rply;
-        case /\s+)/.test(mainMsg[1] || ''):
+        case /\s+/.test(mainMsg[1] || ''):
             rply.text = 'Demo'
             return rply;
         default:

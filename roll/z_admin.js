@@ -4,7 +4,7 @@ var rply = {
     type: 'text',
     text: ''
 };
-const Discord = require("discord.js")
+
 var gameName = function () {
     return '【Admin Tool】'
 }
@@ -56,7 +56,14 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             rply.text += (displaynameDiscord) ? '\ndisplaynameDiscord: ' + displaynameDiscord : '';
             rply.text += (membercount) ? '\nmembercount: ' + membercount : '';
             console.log("Debug function ", "inputStr: " + inputStr + '\ngroupid: ' + groupid + "\nuserid: " + userid + '\nuserrole: ' + userrole, '\nbotname: ', botname, '\ndisplayname: ', displayname, '\nchannelid: ', channelid, '\ndisplaynameDiscord: ', displaynameDiscord, '\nmembercount: ', membercount)
+
+            rply.text += client.shard.fetchClientValues('guilds.cache.size')
+                .then(results => {
+                    return 'Server count: ${results.reduce((acc, guildCount) => acc + guildCount, 0)}';
+                })
+                .catch(console.error);
             return rply;
+
         case /\s+/.test(mainMsg[1] || ''):
             rply.text = 'Demo'
             return rply;

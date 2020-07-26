@@ -54,7 +54,7 @@ client.on('message', async msg => {
 		let CAPTCHA = random.string(20);
 		var groupid, userid, displayname, channelid, membercount, channelKeyword = '';
 		//得到暗骰的數據, GM的位置
-		let TargetGM = require('../roll/z_DDR_darkRollingToGM').initialize();
+		let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 		//是不是自己.ME 訊息
 		//TRUE 即正常
 		let displaynamecheck = true;

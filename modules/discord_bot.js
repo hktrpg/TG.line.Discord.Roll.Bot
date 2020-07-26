@@ -56,7 +56,7 @@ client.on('message', async (message) => {
 		channelid = '',
 		displaynameDiscord = '',
 		membercount = 0;
-	let TargetGM = require('../roll/z_DDR_darkRollingToGM').initialize();
+	let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 	//得到暗骰的數據, GM的位置
 	let displaynamecheck = true;
 	let hasSendPermission = true;

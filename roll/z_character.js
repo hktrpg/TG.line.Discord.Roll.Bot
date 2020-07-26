@@ -391,7 +391,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             }
             if (doc) {
                 let useTarget = new RegExp(mainMsg[0] + '\\s+' + mainMsg[1] + '\\s+' + convertRegex(mainMsg[2]));
-                let useName = inputStr.replace(/^\.char\s+delete\s+/ig, '');
+                let useName = convertRegex(mainMsg[2]);
                 let useItemA = inputStr.replace(useTarget, '').replace(/^\s+/, '');
                 let useCard = [{
                     name: useName,

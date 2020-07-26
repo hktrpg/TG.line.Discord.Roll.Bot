@@ -190,8 +190,6 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             } catch (error) {
                 console.log(error);
             }
-
-            console.log('doc', doc)
             for (let index = 0; index < doc.length; index++) {
                 rply.text += index + ': ' + doc[index].name + '\n';
             }

@@ -52,7 +52,7 @@ var handleEvent = async function (event) {
 	if (event.source.userId) {
 		userid = event.source.userId;
 	}
-	let TargetGM = require('../roll/z_DDR_darkRollingToGM').initialize();
+	let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 
 	client.getProfile(userid).then(async function (profile) {
 			//	在GP 而有加好友的話,得到名字

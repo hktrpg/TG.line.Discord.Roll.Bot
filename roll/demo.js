@@ -38,10 +38,10 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
             return rply;
-        case /^\d+$/i.test(mainMsg[0]):
+        case /^\d+$/i.test(mainMsg[1]):
             rply.text = 'Demo' + mainMsg[1]
             return rply;
-        case /^(?![\s\S])/.test(mainMsg[0] || ''):
+        case /^\S/.test(mainMsg[1] || ''):
             rply.text = 'Demo'
             return rply;
         default:

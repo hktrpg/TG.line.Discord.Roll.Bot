@@ -686,10 +686,13 @@ async function showCharacter(Card, mode) {
     if (Card.roll.length > 0) {
         for (let i = 0; i < Card.roll.length; i++) {
             if (mode == 'addMode' || mode == 'showAllMode') {
-                returnStr += Card.roll[i].name + ': ' + Card.roll[i].itemA + '\n';
+                returnStr += Card.roll[i].name + ': ' + Card.roll[i].itemA + '  ';
 
             } else {
-                returnStr += (Card.roll[i].itemA) ? Card.roll[i].name + ': ' + Card.roll[i].itemA + '\n' : '';
+                returnStr += (Card.roll[i].itemA) ? Card.roll[i].name + ': ' + Card.roll[i].itemA + '  ' : '';
+            }
+            if (i % 2 || i == Card.roll.length - 1) {
+                returnStr += '\n';
             }
         }
         returnStr += '-------\n'

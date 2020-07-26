@@ -534,19 +534,19 @@ async function mainCharacter(doc, mainMsg) {
         let resutltState = await findObject(doc.state, mainMsg[name]);
         let resutltNotes = await findObject(doc.notes, mainMsg[name]);
         let resutltRoll = await findObject(doc.roll, mainMsg[name]);
+        if (resutltRoll) {
+            findRoll = resutltRoll;
+            last = 'roll';
+        } else
         if (resutltNotes) {
             last = 'notes';
             await findNotes.push(resutltNotes);
-
         } else
         if (resutltState) {
             last = 'state';
             await findState.push(resutltState);
         } else
-        if (resutltRoll) {
-            findRoll = resutltRoll;
-            last = 'roll';
-        } else if (mainMsg[name].match(/^[0-9+\-*/.]*$/i) && last == 'state') {
+        if (mainMsg[name].match(/^[0-9+\-*/.]*$/i) && last == 'state') {
             last = '';
             await findState.push(mainMsg[name]);
         } else {

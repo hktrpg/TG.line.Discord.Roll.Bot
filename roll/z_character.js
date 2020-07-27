@@ -123,41 +123,41 @@ cc 80 投擲
 */
 
 var getHelpMessage = function () {
-    return "【角色卡功能】" + "\
-    \n以個人為單位, 一張卡可以在不同的群組使用\
-    \n-----------.char-----------\
-    \n.char add 的輸入格式,用來創建及更新角色卡\
-    \n-----------範例開始-----------\
-    \n.char add name[Sad]~\
-    \nstate[HP:15/15;MP:8/8;SAN:25/99;護甲:1;DB:1d3;]~\
-    \nroll[投擲:cc 80 投擲;鬥毆: cc 50;魔法:1D4+[[1+{HP}]];小刀:1D4+{db}]~\
-    \nnotes[筆記:這是測試,請試試在群組輸入 .char use sad;心靈支柱: 無]~\
-    \n-----------範例結束-----------\
-    \nstate 是用來儲存浮動數據, 進行運算 如: .ch HP +3\
-    \nroll 是用來儲存擲骰指令, 快速使用 如 .ch 空手鬥毆\
-    \n注意項目名稱請不要有空格\
-    \n {}符號可以用來指定state 的參數, 如{db} 就會變成 1d3\
-    \n [[ ]] 可以進行簡單運算 如[[1+{HP}]] 就會變成 1+15 -> 16\
-    \nnotes 是用來儲存數據, 以後可以查看 如 .ch 筆記\
-    \n.char Show - 可以顯示角色卡列表\
-    \n.char edit name[角色卡名字]~ - 可以以add的格式修改指定角色卡\
-    \n.char use 角色卡名字 - 可以在該群組中使用指定角色卡\
-    \n.char nonuse - 可以在該群組中取消使用角色卡\
-    \n.char delete 角色卡名字 - 可以刪除指定角色卡\
-    \n-----------.ch 功能-----------\
-    \n在群組中使用.char use 指定角色卡後, 就可以啟動角色卡功能\
-    \n.ch set 項目名稱 新內容  直接更改內容\
-    \n.ch show - 顯示角色卡的state 和roll 內容\
-    \n.ch showall - 顯示角色卡的所有內容\
-    \n.ch 項目名稱 (+-數) - 可以立即對如HP進行加減運算\
-    \n.ch 項目名稱 項目名稱 - 沒有加減的話, 會單純顯示數據\
-    \n-----------範例-----------\
-    \n.ch set 護甲 3\
-    \n.ch set 護甲 \
-    \n.ch HP +3 MP 6 san -10 筆記\
-    \n.ch 鬥毆\
-    \ndr .ch 魔法\
-    \n-----------範例-----------"
+    return "【角色卡功能】" + "\n\
+以個人為單位, 一張卡可以在不同的群組使用\n\
+-----.char-----\n\
+.char add 的輸入格式,用來創建及更新角色卡\n\
+-----範例開始-----\n\
+.char add name[Sad]~\n\
+state[HP:15/15;MP:8/8;SAN:25/99;護甲:1;DB:1d3;]~\n\
+roll[投擲:cc 80 投擲;鬥毆: cc 50;魔法:1D4+[[1+{HP}]];小刀:1D4+{db}]~\n\
+notes[筆記:這是測試,請試試在群組輸入 .char use sad;心靈支柱: 無]~\n\
+-----範例結束-----\n\
+state 是用來儲存浮動數據, 進行運算 如: .ch HP +3\n\
+roll 是用來儲存擲骰指令, 快速使用 如 .ch 空手鬥毆\n\
+注意項目名稱請不要有空格\n\
+ {}符號可以用來指定state 的參數, 如{db} 就會變成 1d3\n\
+ [[ ]] 可以進行簡單運算 如[[1+{HP}]] 就會變成 1+15 -> 16\n\
+notes 是用來儲存數據, 以後可以查看 如 .ch 筆記\n\
+.char Show - 可以顯示角色卡列表\n\
+.char edit name[角色卡名字]~ - 可以以add的格式修改指定角色卡\n\
+.char use 角色卡名字 - 可以在該群組中使用指定角色卡\n\
+.char nonuse - 可以在該群組中取消使用角色卡\n\
+.char delete 角色卡名字 - 可以刪除指定角色卡\n\
+-----.ch 功能-----\n\
+在群組中使用.char use 指定角色卡後, 就可以啟動角色卡功能\n\
+.ch set 項目名稱 新內容  直接更改內容\n\
+.ch show - 顯示角色卡的state 和roll 內容\n\
+.ch showall - 顯示角色卡的所有內容\n\
+.ch 項目名稱 (+-數) - 可以立即對如HP進行加減運算\n\
+.ch 項目名稱 項目名稱 - 沒有加減的話, 會單純顯示數據\n\
+-----範例-----\n\
+.ch set 護甲 3\n\
+.ch set 護甲 \n\
+.ch HP +3 MP 6 san -10 筆記\n\
+.ch 鬥毆\n\
+dr .ch 魔法\n\
+-----範例-----"
 }
 
 var initialize = function () {
@@ -191,7 +191,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 console.log(error);
             }
             for (let index = 0; index < doc.length; index++) {
-                rply.text += index + ': ' + doc[index].name + '\n';
+                rply.text += index + ': ' + doc[index].name + '　\n';
             }
 
             return rply;
@@ -601,7 +601,7 @@ async function mainCharacter(doc, mainMsg) {
                     if (findState[i].itemB) {
                         rply.text += "/" + findState[i].itemB;
                     }
-                    rply.text += '\n'
+                    rply.text += '　\n'
                 }
 
             }
@@ -616,12 +616,12 @@ async function mainCharacter(doc, mainMsg) {
                 for (let i = 0; i < findNotes.length; i++) {
                     //如果i 是object , i+1 是STRING 和數字, 就進行加減
                     //否則就正常輸出
-                    rply.text += findNotes[i].name + ': ' + findNotes[i].itemA + '\n';
+                    rply.text += findNotes[i].name + ': ' + findNotes[i].itemA + '　\n';
                 }
             }
 
             if (findState.length > 0 || findNotes.length > 0) {
-                rply.text = doc.name + '\n' + rply.text;
+                rply.text = doc.name + '　\n' + rply.text;
             }
             return rply;
         default:
@@ -657,12 +657,12 @@ async function showCharacter(Card, mode) {
     if (mode == 'addMode') {
         returnStr += '新增/修改成功\n'
     }
-    returnStr += Card.name + '\n';
+    returnStr += Card.name + '　\n';
     let a = 1
     if (Card.state.length > 0) {
         for (let i = 0; i < Card.state.length; i++) {
             if ((a) % 4 == 0 && (Card.state[i].itemA || Card.state[i].itemB)) {
-                returnStr += '\n'
+                returnStr += '　\n'
             }
             if (mode == 'addMode' || mode == 'showAllMode') {
                 returnStr += Card.state[i].name + ': ' + Card.state[i].itemA;
@@ -692,7 +692,7 @@ async function showCharacter(Card, mode) {
                 returnStr += (Card.roll[i].itemA) ? Card.roll[i].name + ': ' + Card.roll[i].itemA + '  ' : '';
             }
             if (i % 2 || i == Card.roll.length - 1) {
-                returnStr += '\n';
+                returnStr += '　\n';
             }
         }
         returnStr += '-------\n'
@@ -700,8 +700,8 @@ async function showCharacter(Card, mode) {
     if (mode == 'addMode' || mode == 'showAllMode')
         if (Card.notes.length > 0) {
             for (let i = 0; i < Card.notes.length; i++) {
-                //returnStr += (Card.notes[i].itemA) ? Card.notes[i].name + ': ' + Card.notes[i].itemA + '\n' : '';
-                returnStr += Card.notes[i].name + ': ' + Card.notes[i].itemA + '\n';
+                //returnStr += (Card.notes[i].itemA) ? Card.notes[i].name + ': ' + Card.notes[i].itemA + '　\n' : '';
+                returnStr += Card.notes[i].name + ': ' + Card.notes[i].itemA + '　\n';
             }
 
             returnStr += '-------'

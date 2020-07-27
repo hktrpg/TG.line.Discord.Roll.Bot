@@ -39,14 +39,14 @@ var prefixs = function () {
 
 ///^(?=.*he)(?!.*da).*$/ig
 const getHelpMessage = function () {
-  return "【基本擲骰】1d100(khN|klN|dhN|dlN)\
-  \n 例如輸入(2d6+1)*2　攻撃！\
-  \n 會輸出）(2d6+1)*2：攻撃！  (10[5+5]+1)2 = 22\
-  \n 如上面一樣,在骰子數字後方隔空白位打字,可以進行發言。\
-  \n 5 3D6 ：	分別骰出5次3d6 最多30次\
-  \n ((2d6+1)*2)-5/2>=10 支援括號加減乘除及大於小於(>,<,>=,<=)計算\
-  \n 支援kh|kl|dh|dl，k keep保留，d drop 放棄，h highest最高，l lowest最低\
-  \n 如3d6kh 保留最大的1粒骰，3d6dl2 放棄最小的2粒骰"
+  return "【基本擲骰】1d100(khN|klN|dhN|dlN)\n\
+例如輸入(2d6+1)*2　攻撃！\n\
+會輸出）(2d6+1)*2：攻撃！  (10[5+5]+1)2 = 22\n\
+如上面一樣,在骰子數字後方隔空白位打字,可以進行發言。\n\
+5 3D6 ：	分別骰出5次3d6 最多30次\n\
+((2d6+1)*2)-5/2>=10 支援括號加減乘除及大於小於(>,<,>=,<=)計算\n\
+支援kh|kl|dh|dl，k keep保留，d drop 放棄，h highest最高，l lowest最低\n\
+如3d6kh 保留最大的1粒骰，3d6dl2 放棄最小的2粒骰"
 }
 var initialize = function () {
   return rply;

@@ -45,31 +45,30 @@ var prefixs = function () {
 
 }
 var getHelpMessage = function () {
-	return "【HKTRPG擲骰BOT】" + version + "\
-\n2019/07/21 香港克警合作 黑ICON紀念\
-	\n\
-	\n 暗骰功能 在指令前輸入dr 結果會私訊你\
-	\n ddr dddr 可以私訊已設定的群組GM, 詳情可打.drgm查詢\
-\n【基本擲骰】1d100(khN|klN|dhN|dlN)\
-  \n 例如輸入(2d6+1)*2 攻撃！\
-  \n 會輸出）(2d6+1)*2：攻撃！  (10[5+5]+1)2 = 22\
-  \n 如上面一樣,在骰子數字後方隔空白位打字,可以進行發言。\
-  \n 5 3D6 ：	分別骰出5次3d6 最多30次\
-  \n ((2d6+1)*2)-5/2>=10 支援括號加減乘除及大於小於(>,<,>=,<=)計算\
-  \n 支援kh|kl|dh|dl，k keep保留，d drop 放棄，h highest最高，l lowest最低\
-  \n 如3d6kh 保留最大的1粒骰，3d6dl2 放棄最小的2粒骰\
-\n  \
-\n TRPG百科 https://www.hktrpg.com/\
-\n 意見留言群 https://discord.gg/vx4kcm7\
-\n  \
-\n Line版 http://bit.ly/HKTRPG_LINE\
-\n Discord版 http://bit.ly/HKTRPG_DISCORD\
-\n Telegram版 http://t.me/hktrpg_bot\
-\n 簡易網上擲骰 https://roll.hktrpg.com/\
-\n \
-\n 解鎖功能及開發支援 https://www.patreon.com/HKTRPG \
-\n 源代碼 http://bit.ly/HKTRPG_GITHUB\
-		\n "
+	return "【HKTRPG擲骰BOT】" + version + "\n\
+2019/07/21 香港克警合作 黑ICON紀念\n\
+\n\
+暗骰功能 在指令前輸入dr 結果會私訊你\n\
+ddr dddr 可以私訊已設定的群組GM, 詳情可打.drgm查詢\n\
+【基本擲骰】1d100(khN|klN|dhN|dlN)\n\
+例如輸入(2d6+1)*2 攻撃！\n\
+會輸出）(2d6+1)*2：攻撃！  (10[5+5]+1)2 = 22\n\
+如上面一樣,在骰子數字後方隔空白位打字,可以進行發言。\n\
+5 3D6 ：	分別骰出5次3d6 最多30次\n\
+((2d6+1)*2)-5/2>=10 支援括號加減乘除及大於小於(>,<,>=,<=)計算\n\
+支援kh|kl|dh|dl，k keep保留，d drop 放棄，h highest最高，l lowest最低\n\
+如3d6kh 保留最大的1粒骰，3d6dl2 放棄最小的2粒骰\n\
+\n\
+TRPG百科 https://www.hktrpg.com/\n\
+意見留言群 https://discord.gg/vx4kcm7\n\
+\n\
+Line版 http://bit.ly/HKTRPG_LINE\n\
+Discord版 http://bit.ly/HKTRPG_DISCORD\n\
+Telegram版 http://t.me/hktrpg_bot\n\
+簡易網上擲骰 https://roll.hktrpg.com/\n\
+\n\
+解鎖功能及開發支援 https://www.patreon.com/HKTRPG \n\
+源代碼 http://bit.ly/HKTRPG_GITHUB\n"
 }
 var initialize = function () {
 	return rply;

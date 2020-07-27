@@ -25,19 +25,18 @@ var prefixs = function () {
 	]
 }
 var getHelpMessage = function () {
-	return "【克蘇魯神話】" + "\
-	\ncoc6版擲骰： ccb 80 技能小於等於80 \
-	\ncoc7版擲骰： cc 80 技能小於等於80 \
-	\ncoc7版獎勵骰： cc(1~2) cc1 80 一粒獎勵骰 \
-	\ncoc7版懲罰骰： ccn(1~2) ccn2 80 兩粒懲罰骰 \
-	\ncoc7版 即時型瘋狂： 啓動語 ccrt  \
-	\ncoc7版 總結型瘋狂： 啓動語 ccsu  \
-	\ncoc6版創角： 啓動語 .cc6build \
-	\ncoc7版創角： 啓動語 .cc7build (歲數) \
-	\ncoc7 成長或增長檢定： .dp 或 成長檢定 或 幕間成長 (技能%) (名稱) \
-	\n例）.DP 50 騎馬 | 成長檢定 45 頭槌 | 幕間成長 40 單車\
-	\ncoc7版角色背景隨機生成： 啓動語 .cc7bg \
-		\n "
+	return "【克蘇魯神話】" + "\n\
+coc6版擲骰： ccb 80 技能小於等於80 \n\
+coc7版擲骰： cc 80 技能小於等於80 \n\
+coc7版獎勵骰： cc(1~2) cc1 80 一粒獎勵骰 \n\
+coc7版懲罰骰： ccn(1~2) ccn2 80 兩粒懲罰骰 \n\
+coc7版 即時型瘋狂： 啓動語 ccrt  \n\
+coc7版 總結型瘋狂： 啓動語 ccsu  \n\
+coc6版創角： 啓動語 .cc6build \n\
+coc7版創角： 啓動語 .cc7build (歲數) \n\
+coc7 成長或增長檢定： .dp 或 成長檢定 或 幕間成長 (技能%) (名稱) \n\
+例）.DP 50 騎馬 | 成長檢定 45 頭槌 | 幕間成長 40 單車\n\
+coc7版角色背景隨機生成： 啓動語 .cc7bg \n"
 }
 var initialize = function () {
 	return rply;

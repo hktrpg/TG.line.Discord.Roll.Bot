@@ -23,9 +23,9 @@ var prefixs = function () {
     }]
 }
 var getHelpMessage = function () {
-    return "【示範】" + "\
-	\n  只是一個Demo\
-		\n "
+    return "【示範】" + "\n\
+只是一個Demo的第一行\n\
+只是一個Demo末行"
 }
 var initialize = function () {
     return rply;

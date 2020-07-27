@@ -29,16 +29,15 @@ var prefixs = function () {
 	}]
 }
 var getHelpMessage = function () {
-	return "【永遠的後日談 Nechronica】" + "\
-	\n・依戀 .NC NM (問題)\
-	\n例子 .NC NM 我的依戀\
-	\n・判定 (.NC nNC+m)\
-	\nダイス数n、修正値mで判定ロールを行います。\
-	\nダイス数が2以上の時のパーツ破損数も表示します。\
-	\n・攻撃判定 (.NC nNA+m)\
-	\nダイス数n、修正値mで攻撃判定ロールを行います。\
-	\n命中部位とダイス数が2以上の時のパーツ破損数も表示します。*\
-		\n "
+	return "【永遠的後日談 Nechronica】" + "\n\
+・依戀 .NC NM (問題)\n\
+例子 .NC NM 我的依戀\n\
+・判定 (.NC nNC+m)\n\
+ダイス数n、修正値mで判定ロールを行います。\n\
+ダイス数が2以上の時のパーツ破損数も表示します。\n\
+・攻撃判定 (.NC nNA+m)\n\
+ダイス数n、修正値mで攻撃判定ロールを行います。\n\
+命中部位とダイス数が2以上の時のパーツ破損数も表示します。*\n"
 }
 var initialize = function () {
 	return rply;

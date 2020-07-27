@@ -25,24 +25,24 @@ var prefixs = function () {
     }]
 }
 var getHelpMessage = function () {
-    return "【暗骰GM功能】.drgm(addgm del show) dr ddr dddr" + "\
-        \n 這是讓你可以私骰GM的功能\
-        \n 想成為GM的人先輸入.drgm addgm\
-        \n 然後別人DDR 或DDDR (指令)即可以私訊給這位GM\
-        \n 例如輸入 ddr cc 80 鬥毆 \
-        \n 就會把結果私訊GM及自己\
-        \n 例如輸入 dddr cc 80 鬥毆 \
-        \n 就會把結果只私訊GM\
-        \n P.S.如果沒立即生效 用.drgm show 刷新一下\
-    \n 輸入.drgm addgm (代名) 即可成為GM,如果想化名一下,\
-        \n 可以在addgm 後輸入一個名字, 暗骰時就會顯示\
-        \n 不輸入就會顯示原名\
-    \n 輸入.drgm show 顯示所有GM\
-    \n 輸入.drgm del(編號)或all 即可刪除\
-    \n 輸入dr  (指令) 私訊自己 \
-    \n 輸入ddr (指令) 私訊GM及自己\
-    \n 輸入dddr(指令) 私訊GM\
-    \n "
+    return "【暗骰GM功能】.drgm(addgm del show) dr ddr dddr" + "\n\
+這是讓你可以私骰GM的功能\n\
+想成為GM的人先輸入.drgm addgm\n\
+然後別人DDR 或DDDR (指令)即可以私訊給這位GM\n\
+例如輸入 ddr cc 80 鬥毆 \n\
+就會把結果私訊GM及自己\n\
+例如輸入 dddr cc 80 鬥毆 \n\
+就會把結果只私訊GM\n\
+P.S.如果沒立即生效 用.drgm show 刷新一下\n\
+輸入.drgm addgm (代名) 即可成為GM,如果想化名一下,\n\
+可以在addgm 後輸入一個名字, 暗骰時就會顯示\n\
+不輸入就會顯示原名\n\
+輸入.drgm show 顯示所有GM\n\
+輸入.drgm del(編號)或all 即可刪除\n\
+輸入dr  (指令) 私訊自己 \n\
+輸入ddr (指令) 私訊GM及自己\n\
+輸入dddr(指令) 私訊GM\n\
+"
 }
 var initialize = function () {
     return trpgDarkRollingfunction;

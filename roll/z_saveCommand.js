@@ -27,17 +27,17 @@ var prefixs = function () {
     }]
 }
 var getHelpMessage = function () {
-    return "【儲存擲骰指令功能】" + "\
-        \n 這是根據關鍵字來再現擲骰指令,\
-        \n 例如輸入 .cmd add  pc1鬥毆 cc 80 鬥毆 \
-        \n 再輸入.cmd pc1鬥毆  就會執行後方的指令\
-        \n add 後面第一個是關鍵字, 可以是符號或任何字\
-        \n P.S.如果沒立即生效 用.cmd show 刷新一下\
-    \n 輸入.cmd add (關鍵字) (指令)即可增加關鍵字\
-    \n 輸入.cmd show 顯示所有關鍵字\
-    \n 輸入.cmd del(編號)或all 即可刪除\
-    \n 輸入.cmd  (關鍵字) 即可執行 \
-    \n "
+    return "【儲存擲骰指令功能】" + "\n\
+這是根據關鍵字來再現擲骰指令,\n\
+例如輸入 .cmd add  pc1鬥毆 cc 80 鬥毆 \n\
+再輸入.cmd pc1鬥毆  就會執行後方的指令\n\
+add 後面第一個是關鍵字, 可以是符號或任何字\n\
+P.S.如果沒立即生效 用.cmd show 刷新一下\n\
+輸入.cmd add (關鍵字) (指令)即可增加關鍵字\n\
+輸入.cmd show 顯示所有關鍵字\n\
+輸入.cmd del(編號)或all 即可刪除\n\
+輸入.cmd  (關鍵字) 即可執行 \n\
+"
 }
 var initialize = function () {
     return trpgCommandfunction;

@@ -7,7 +7,7 @@ var rply = {
 //heroku labs:enable runtime-dyno-metadata -a <app name>
 var chineseConv = require('chinese-conv'); //繁簡轉換
 const GoogleImages = require('google-images');
-const client = new GoogleImages(process.env.CSE_ID, process.env.CSE_API_KEY);
+const client = (process.env.CSE_ID && process.env.CSE_API_KEY) ? new GoogleImages(process.env.CSE_ID, process.env.CSE_API_KEY) : '';
 const wiki = require('wikijs').default;
 const rollbase = require('./rollbase.js');
 const translate = require('translation-google');
@@ -110,6 +110,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 }
 
 async function googleimage(inputStr, mainMsg, safe) {
+	if (!process.env.CSE_ID && !process.env.CSE_API_KEY) return;
 	let keyword = inputStr.replace(mainMsg[0] + " ", "")
 	//let page = Math.floor((Math.random() * (10)) * 10) + 1;
 	let page = await rollbase.DiceINT(0, 91)

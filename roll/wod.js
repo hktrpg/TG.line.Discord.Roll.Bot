@@ -20,10 +20,9 @@ var prefixs = function () {
 	}]
 }
 var getHelpMessage = function () {
-	return "【WOD 黑暗世界擲骰】" + "\
-	\n [.](骰數)Wd(加骰)(+成功數) (問題)\
-	\n例子 .3wd8 .15wd9+2\
-		\n "
+	return "【WOD 黑暗世界擲骰】" + "\n\
+[.](骰數)Wd(加骰)(+成功數) (問題)\n\
+例子 .3wd8 .15wd9+2\n"
 }
 var initialize = function () {
 	return rply;

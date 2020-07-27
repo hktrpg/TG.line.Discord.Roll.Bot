@@ -39,19 +39,18 @@ var prefixs = function () {
 	]
 }
 var getHelpMessage = function () {
-	return "【進階擲骰】" + "\
-	\n .ca 只進行數學計算 \
-	\n 例如: .ca 1.2 * (2 + 4.5) ， 12.7 米 to inch \
-	\n sin(45 deg) ^ 2  5磅轉斤 10米轉呎 10米=吋\
-	\n D66 D66s D66n：	骰出D66 s數字小在前 n大在前\
-	\n 5B10：	不加總的擲骰 \
-	\n 5B10<>=x ：	如上,另外計算其中有多少粒大於小於X \
-	\n 5B10 (D)x ：	如上,用空格取代, 即大於, 使用D即小於\
-	\n 即 5B10 5 相當於 5B10>=5　 5B10 D5 相當於 5B10<=5  \
-	\n 5U10 8：	進行5D10 每骰出一粒8會有一粒獎勵骰 \
-	\n 5U10 8 9：	如上,另外計算其中有多少粒大於9 \
-	\n .int 20 30: 即骰出20-30\
-		\n "
+	return "【進階擲骰】" + "\n\
+.ca 只進行數學計算 \n\
+例如: .ca 1.2 * (2 + 4.5) ， 12.7 米 to inch \n\
+sin(45 deg) ^ 2  5磅轉斤 10米轉呎 10米=吋\n\
+D66 D66s D66n：	骰出D66 s數字小在前 n大在前\n\
+5B10：	不加總的擲骰 \n\
+5B10<>=x ：	如上,另外計算其中有多少粒大於小於X \n\
+5B10 (D)x ：	如上,用空格取代, 即大於, 使用D即小於\n\
+即 5B10 5 相當於 5B10>=5　 5B10 D5 相當於 5B10<=5  \n\
+5U10 8：	進行5D10 每骰出一粒8會有一粒獎勵骰 \n\
+5U10 8 9：	如上,另外計算其中有多少粒大於9 \n\
+.int 20 30: 即骰出20-30\n"
 }
 
 var initialize = function () {
@@ -312,7 +311,7 @@ async function xBy(triggermsg, text01, text02, botname) {
 ////////////////////////////////////////
 
 async function xUy(triggermsg, text01, text02, text03) {
-	let match = triggermsg//判斷式  5u19,5,u,19, 
+	let match = triggermsg //判斷式  5u19,5,u,19, 
 	let returnStr = '(' + triggermsg + '[' + text01 + ']';
 	if (Number(text02) <= Number(match[3]) && text02 != undefined) {
 		returnStr += '>' + text02 + ') → ';

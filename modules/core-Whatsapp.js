@@ -211,7 +211,8 @@ client.on('message_ack', async (msg, ack) => {
 });
 client.on('group_join', async (msg) => {
 	console.log("Whatsapp joined");
-	await msg.reply(joinMessage);
+	if (msg.client.info.me._serialized == msg.id.participant)
+		await msg.reply(joinMessage);
 });
 
 client.initialize();

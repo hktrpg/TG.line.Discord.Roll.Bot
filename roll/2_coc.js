@@ -532,13 +532,13 @@ async function build7char(text01) {
 	if (old >= 40) ReStr = ReStr + ' ← （可選）'
 	ReStr = ReStr + '\nＤＥＸ：' + await rollbase.BuildDiceCal('3d6*5');
 	if (old >= 40) ReStr = ReStr + ' ← （可選）'
-	if (old >= 40) ReStr = ReStr + '\nＡＰＰ：' + await rollbase.BuildDiceCal('3d6*5-' + AppDebuff);
+	if (old >= 40) ReStr = ReStr + '\nＡＰＰ：' + await rollbase.BuildDiceCal('(3d6*5)-' + AppDebuff);
 	else ReStr = ReStr + '\nＡＰＰ：' + await rollbase.BuildDiceCal('3d6*5');
 	ReStr = ReStr + '\nＰＯＷ：' + await rollbase.BuildDiceCal('3d6*5');
 	ReStr = ReStr + '\nＳＩＺ：' + await rollbase.BuildDiceCal('(2d6+6)*5');
 	if (old < 20) ReStr = ReStr + ' ←（可選）'
 	ReStr = ReStr + '\nＩＮＴ：' + await rollbase.BuildDiceCal('(2d6+6)*5');
-	if (old < 20) ReStr = ReStr + '\nＥＤＵ：' + await rollbase.BuildDiceCal('2d6*5');
+	if (old < 20) ReStr = ReStr + '\nＥＤＵ：' + await rollbase.BuildDiceCal('((2d6+6)*5)-5');
 	else {
 		let firstEDU = '(' + await rollbase.BuildRollDice('2d6') + '+6)*5';
 		ReStr = ReStr + '\n==';

@@ -10,8 +10,11 @@ const rply = {
     characterName: '',
     characterReRollName: ''
 };
+
+
 const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
+const limitArr = [4, 20, 30];
 var gameName = function () {
     return '(公測中)角色卡功能 .char (add edit show delete use nonuse) .ch (set show showall)'
 }

@@ -11,10 +11,12 @@ const records = require('../modules/records.js');
 var trpgDatabasefunction = {};
 records.get('trpgDatabase', (msgs) => {
     trpgDatabasefunction.trpgDatabasefunction = msgs
-})
+});
 records.get('trpgDatabaseAllgroup', (msgs) => {
     trpgDatabasefunction.trpgDatabaseAllgroup = msgs
-})
+});
+const VIP = require('../modules/veryImportantPerson');
+const limitArr = [30, 200, 300];
 var gameName = function () {
     return '(公測中)資料庫功能 .db(p) (add del show 自定關鍵字)'
 }

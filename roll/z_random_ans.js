@@ -10,6 +10,8 @@ var rply = {
 };
 var randomAnsfunction = {};
 const records = require('../modules/records.js');
+const VIP = require('../modules/veryImportantPerson');
+const limitArr = [30, 200, 300];
 records.get('randomAns', (msgs) => {
     randomAnsfunction.randomAnsfunction = msgs
 })

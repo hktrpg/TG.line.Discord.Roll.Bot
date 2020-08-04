@@ -1,8 +1,8 @@
 "use strict";
 const schema = require('./core-schema.js');
+var 
 var viplevelCheck = async function (userid, limitArr) {
-    const viplevelArr = [0, 3, 5, 10, 20, 99]
-
+    const viplevelArr = [0, 3, 5, 10, 20, 99];
     let limit;
     let rply = ''
     let viplevel = await schema.veryImportantPerson.find({

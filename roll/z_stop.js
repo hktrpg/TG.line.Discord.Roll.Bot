@@ -12,6 +12,8 @@ const records = require('../modules/records.js');
 records.get('block', (msgs) => {
     save.save = msgs
 })
+const VIP = require('../modules/veryImportantPerson');
+const limitArr = [30, 200, 300];
 var gameName = function () {
     return '(公測中)擲骰開關功能 .bk (add del show)'
 }

@@ -63,7 +63,8 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             //     .digest('hex');
             if (!password) return rply;
             rply.text = encrypt(rply.text);
-            console.log("Debug function: ", rply.text)
+            rply.text = 'Debug encrypt Date: \n'
+            console.log("Debug encrypt Date: \n", rply.text)
             return rply;
         case /^decrypt$/i.test(mainMsg[1]):
             if (!adminSecret) return rply;

@@ -10,11 +10,8 @@ var rply = {
 };
 var randomAnsfunction = {};
 const records = require('../modules/records.js');
-<<<<<<< Updated upstream
-=======
 const VIP = require('../modules/veryImportantPerson');
 const limitArr = [30, 200, 200, 300, 300, 300, 300, 300];
->>>>>>> Stashed changes
 records.get('randomAns', (msgs) => {
     randomAnsfunction.randomAnsfunction = msgs
 })
@@ -63,6 +60,8 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
     let temp2 = 0;
     let checkifsamenamegroup = 0;
     let tempshow = 0;
+    let lv;
+    let limit = limitArr[0];
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
@@ -71,14 +70,21 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             //
             //增加自定義關鍵字
             // .ra[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
+            /*
+            只限四張角色卡.
+            使用VIPCHECK
+            */
+            lv = await VIP.viplevelCheckGroup(groupid);
+            limit = limitArr[lv];
+
             checkifsamename = 0
             if (groupid && userrole >= 1 && mainMsg[3] && mainMsg[4]) {
                 if (randomAnsfunction.randomAnsfunction)
                     for (var i = 0; i < randomAnsfunction.randomAnsfunction.length; i++) {
                         if (randomAnsfunction.randomAnsfunction[i].groupid == groupid) {
                             // console.log('checked1')
-                            if (randomAnsfunction.randomAnsfunction[i].randomAnsfunction.length >= 30) {
-                                rply.text = '關鍵字上限30個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                            if (randomAnsfunction.randomAnsfunction[i].randomAnsfunction.length >= limit) {
+                                rply.text = '關鍵字上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
                                 return rply;
                             }
                             for (var a = 0; a < randomAnsfunction.randomAnsfunction[i].randomAnsfunction.length; a++) {
@@ -370,7 +376,6 @@ async function shuffle(array) {
 
     // While there remain elements to shuffle...
     while (0 !== currentIndex) {
-
         // Pick a remaining element...
         //currentIndex 
         //randomIndex = math.floor(math.random() * currentIndex);

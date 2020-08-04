@@ -4,12 +4,18 @@ var rply = {
     type: 'text',
     text: ''
 };
+const opt = {
+    upsert: true,
+    runValidators: true
+}
 const crypto = require('crypto');
 const password = process.env.CRYPTO_SECRET,
     algorithm = 'aes-256-ctr';
 //32bit ASCII
 const adminSecret = process.env.ADMIN_SECRET;
 //admin id
+const schema = require('../modules/core-schema.js');
+const VIP = require('../modules/veryImportantPerson');
 var gameName = function () {
     return '【Admin Tool】'
 }
@@ -48,6 +54,8 @@ var initialize = function () {
 
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
     rply.text = '';
+    let filter = {};
+    let doc = {};
     switch (true) {
         case /^help$/i.test(mainMsg[1]):
             rply.text = this.getHelpMessage();
@@ -62,8 +70,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             rply.text += (membercount) ? '\nmembercount: ' + membercount : '';
             //     .digest('hex');
             if (!password) return rply;
-            rply.text = 'Debug encrypt Date: \n' + encrypt(rply.text);
-            console.log(rply.text)
+            rply.text = 'Debug encrypt Data: \n' + encrypt(rply.text);
             return rply;
         case /^decrypt$/i.test(mainMsg[1]):
             if (!adminSecret) return rply;
@@ -72,10 +79,97 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             if (userid !== adminSecret) return rply;
             rply.text = decrypt(mainMsg[2]);
             return rply;
+        case /^addVipGroup$/i.test(mainMsg[1]):
+            if (!adminSecret) return rply;
+            if (userid !== adminSecret) return rply;
+            filter = await store(inputStr, 'gp');
+            if (!filter.gpid) return rply;
+            try {
+                doc = await schema.veryImportantPerson.findOne({
+                    gpid: filter.gpid
+                })
+            } catch (error) {
+                console.log('VIP檢查失敗: ', error)
+            }
+            if (!doc) {
+                filter.startDate = new Date()
+            }
+            try {
+                doc = await schema.veryImportantPerson.updateOne({
+                    gpid: filter.gpid
+                }, filter, opt)
+                if (doc) {
+                    await VIP.renew();
+                    rply.text = "更新成功";
+                }
+                //.admin addVipGroup -i  ID -l LV -n NAME -no NOTES -s SWITCH -d
+            } catch (error) {
+                console.log('新增VIP失敗: ', error)
+                rply.text = '新增VIP失敗\n因為 ' + error.message
+            }
+            return rply;
+        case /^addVipUser$/i.test(mainMsg[1]):
+
+            if (!adminSecret) return rply;
+            if (userid !== adminSecret) return rply;
+            filter = await store(inputStr, 'id');
+            if (!filter.id) return rply;
+            try {
+                doc = await schema.veryImportantPerson.findOne({
+                    id: filter.id
+                })
+            } catch (error) {
+                console.log('VIP檢查失敗: ', error)
+            }
+            if (!doc) {
+                filter.startDate = new Date()
+            }
+            try {
+                doc = await schema.veryImportantPerson.updateOne({
+                    id: filter.id
+                }, filter, opt)
+                if (doc) {
+                    await VIP.renew();
+                    rply.text = "更新成功";
+                }
+                //.admin addVipGroup -i  ID -l LV -n NAME -no NOTES -s SWITCH -d
+            } catch (error) {
+                console.log('新增VIP失敗: ', error)
+                rply.text = '新增VIP失敗\n因為 ' + error.message
+            }
+            return rply;
+
         default:
             break;
     }
 }
+
+async function store(mainMsg, mode) {
+    const pattId = /\s+-i\s+(\w+)/ig;
+    const pattGP = /\s+-g\s+(\w+)/ig;
+    const pattLv = /\s+-l\s+(\w+)/ig;
+    const pattName = /\s+-n\s+(\w+)/ig;
+    const pattNotes = /\s+-no\s+(\w+)/ig;
+    const pattSwitch = /\s+-s\s+(\w+)/ig;
+    var resultId = pattId.exec(mainMsg);
+    var resultGP = pattGP.exec(mainMsg);
+    var resultLv = pattLv.exec(mainMsg);
+    var resultName = pattName.exec(mainMsg);
+    var resultNotes = pattNotes.exec(mainMsg);
+    var resultSwitch = pattSwitch.exec(mainMsg);
+    let reply = {};
+    (resultId && mode == 'id') ? reply.id = resultId[1]: null;
+    (resultGP && mode == 'gp') ? reply.gpid = resultGP[1]: null;
+    (resultLv) ? reply.level = Number(resultLv[1]): null;
+    (resultName) ? reply.name = resultName[1]: null;
+    (resultNotes) ? reply.notes = resultNotes[1]: null;
+    (resultSwitch && resultSwitch[1].toLowerCase() == 'true') ? reply.switch = true: null;
+    (resultSwitch && resultSwitch[1].toLowerCase() == 'false') ? reply.switch = false: null;
+
+    return reply;
+}
+
+
 
 function encrypt(text) {
     let iv = crypto.randomBytes(16);

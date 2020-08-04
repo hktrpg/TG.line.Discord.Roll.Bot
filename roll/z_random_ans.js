@@ -10,6 +10,11 @@ var rply = {
 };
 var randomAnsfunction = {};
 const records = require('../modules/records.js');
+<<<<<<< Updated upstream
+=======
+const VIP = require('../modules/veryImportantPerson');
+const limitArr = [30, 200, 200, 300, 300, 300, 300, 300];
+>>>>>>> Stashed changes
 records.get('randomAns', (msgs) => {
     randomAnsfunction.randomAnsfunction = msgs
 })

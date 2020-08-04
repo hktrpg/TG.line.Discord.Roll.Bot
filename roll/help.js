@@ -5,7 +5,7 @@ if (!process.env.HEROKU_RELEASE_VERSION)
 
 const start = async () => {
 	await require('fs').readdirSync(__dirname).forEach(async function (file) {
-		if (file.match(/\.js$/) !== null && file !== 'index.js' && file !== 'help.js' && file !== 'demo.js' && file !== 'rollbase.js') {
+		if (file.match(/\.js$/) !== null && file !== 'index.js' && file !== 'z_admin.js' && file !== 'help.js' && file !== 'demo.js' && file !== 'rollbase.js') {
 			var name = file.replace('.js', '');
 			exports[name] = await require('./' + file);
 		}

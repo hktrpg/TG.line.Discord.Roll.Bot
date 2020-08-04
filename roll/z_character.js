@@ -13,7 +13,7 @@ const rply = {
 const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
 var gameName = function () {
-    return '(公測中)角色卡功能 .char (add edit delete use nonuse) .ch (set show showall)'
+    return '(公測中)角色卡功能 .char (add edit show delete use nonuse) .ch (set show showall)'
 }
 var gameType = function () {
     return 'trpgcharacter:hktrpg'

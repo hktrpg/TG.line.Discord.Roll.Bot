@@ -7,9 +7,8 @@ var viplevelCheckGroup = async function (groupID) {
         viplevel = await schema.veryImportantPerson.find({});
     }
     var findGP = viplevel.find(function (item) {
-        return item.gpid == groupID; // 取得大於五歲的
+        return item.gpid == groupID && item.switch !== false;
     });
-    console.log('findUser', findGP);
     rply = (findGP) ? findGP.level : 0;
     return rply;
 }
@@ -19,14 +18,17 @@ var viplevelCheckUser = async function (userid) {
         viplevel = await schema.veryImportantPerson.find({});
     }
     var findUser = viplevel.find(function (item) {
-        return item.id == userid; // 取得大於五歲的
+        return item.id == userid && item.switch !== false; // 
     });
-    console.log('findUser', findUser);
     rply = (findUser) ? findUser.level : 0;
     return rply;
+}
+async function renew() {
+    viplevel = await schema.veryImportantPerson.find({});
 }
 
 module.exports = {
     viplevelCheckGroup: viplevelCheckGroup,
-    viplevelCheckUser: viplevelCheckUser
+    viplevelCheckUser: viplevelCheckUser,
+    renew: renew
 }

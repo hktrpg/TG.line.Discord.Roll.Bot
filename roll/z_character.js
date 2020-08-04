@@ -14,7 +14,7 @@ const rply = {
 
 const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
-const limitArr = [4, 20, 20, 30];
+const limitArr = [4, 20, 20, 30, 30, 99, 99, 99];
 var gameName = function () {
     return '(公測中)角色卡功能 .char (add edit show delete use nonuse) .ch (set show showall)'
 }
@@ -211,9 +211,6 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             使用VIPCHECK
             */
             lv = await VIP.viplevelCheckUser(userid);
-            if (!lv) {
-                lv = 0
-            }
             limit = limitArr[lv];
             check = await schema.characterCard.find({
                 id: userid

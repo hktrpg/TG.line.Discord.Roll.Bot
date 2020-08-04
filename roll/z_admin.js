@@ -15,6 +15,7 @@ const password = process.env.CRYPTO_SECRET,
 const adminSecret = process.env.ADMIN_SECRET;
 //admin id
 const schema = require('../modules/core-schema.js');
+const VIP = require('../modules/veryImportantPerson');
 var gameName = function () {
     return '【Admin Tool】'
 }
@@ -98,6 +99,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                     gpid: filter.gpid
                 }, filter, opt)
                 if (doc) {
+                    await VIP.renew();
                     rply.text = "更新成功";
                 }
                 //.admin addVipGroup -i  ID -l LV -n NAME -no NOTES -s SWITCH -d
@@ -127,6 +129,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                     id: filter.id
                 }, filter, opt)
                 if (doc) {
+                    await VIP.renew();
                     rply.text = "更新成功";
                 }
                 //.admin addVipGroup -i  ID -l LV -n NAME -no NOTES -s SWITCH -d
@@ -142,7 +145,6 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 }
 
 async function store(mainMsg, mode) {
-
     const pattId = /\s+-i\s+(\w+)/ig;
     const pattGP = /\s+-g\s+(\w+)/ig;
     const pattLv = /\s+-l\s+(\w+)/ig;

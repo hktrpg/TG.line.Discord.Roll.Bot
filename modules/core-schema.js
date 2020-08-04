@@ -144,16 +144,6 @@ if (process.env.mongoURL) {
             WhatsappCountText: Number
         }
     });
-
-    const veryImportantPerson = mongoose.model('veryImportantPerson', {
-        gpid: String,
-        id: String,
-        level: Number,
-        startTime: Date,
-        endTime: Date,
-        name: String,
-        notes: String
-    });
     const veryImportantPerson = mongoose.model('veryImportantPerson', new mongoose.Schema({
         gpid: String,
         id: String,

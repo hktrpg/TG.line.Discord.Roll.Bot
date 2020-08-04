@@ -49,19 +49,20 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             rply.text = this.getHelpMessage();
             return rply;
         case /^debug$/i.test(mainMsg[1]):
-            rply.text = "Debug function \ninputStr: " + inputStr + '\ngroupid: ' + groupid + "\nuserid: " + userid + '\ngroupid: ' + groupid
+            rply.text = "Debug function" + '\ngroupid: ' + groupid + "\nuserid: " + userid;
             rply.text += (userrole) ? '\nuserrole: ' + userrole : '';
             rply.text += (botname) ? '\nbotname: ' + botname : '';
             rply.text += (displayname) ? '\ndisplayname: ' + displayname : '';
             rply.text += (displaynameDiscord) ? '\ndisplaynameDiscord: ' + displaynameDiscord : '';
             rply.text += (membercount) ? '\nmembercount: ' + membercount : '';
             console.log("Debug function ", "inputStr: " + inputStr + '\ngroupid: ' + groupid + "\nuserid: " + userid + '\nuserrole: ' + userrole, '\nbotname: ', botname, '\ndisplayname: ', displayname, '\nchannelid: ', channelid, '\ndisplaynameDiscord: ', displaynameDiscord, '\nmembercount: ', membercount)
-
-            rply.text += client.shard.fetchClientValues('guilds.cache.size')
-                .then(results => {
-                    return 'Server count: ${results.reduce((acc, guildCount) => acc + guildCount, 0)}';
-                })
-                .catch(console.error);
+            if (botname === "Discord") {
+                rply.text += client.shard.fetchClientValues('guilds.cache.size')
+                    .then(results => {
+                        return 'Server count: ${results.reduce((acc, guildCount) => acc + guildCount, 0)}';
+                    })
+                    .catch(console.error);
+            }
             return rply;
 
         case /\s+/.test(mainMsg[1] || ''):

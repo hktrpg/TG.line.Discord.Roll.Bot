@@ -7,7 +7,7 @@ var rply = {
 const crypto = require('crypto');
 const password = process.env.CRYPTO_SECRET,
     algorithm = 'aes-256-ctr';
-    //32bit ASCII
+//32bit ASCII
 const adminSecret = process.env.ADMIN_SECRET;
 //admin id
 var gameName = function () {
@@ -54,6 +54,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             return rply;
         case /^debug$/i.test(mainMsg[1]):
             rply.text = "Debug function" + '\ngroupid: ' + groupid + "\nuserid: " + userid;
+            rply.text += '\nchannelid: ' + channelid;
             rply.text += (userrole) ? '\nuserrole: ' + userrole : '';
             rply.text += (botname) ? '\nbotname: ' + botname : '';
             rply.text += (displayname) ? '\ndisplayname: ' + displayname : '';

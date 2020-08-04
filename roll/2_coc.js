@@ -510,12 +510,12 @@ async function build7char(text01) {
 			ReStr = ReStr + '\n==';
 			break;
 		case (old >= 40 && old <= 49):
-			ReStr = ReStr + '年齡調整：從STR、CON或DEX中減去' + Debuff + '點\n（請自行手動選擇計算）。\nAPP減去' + AppDebuff + '點。進行' + EDUinc + '次EDU的成長擲骰。';
+			ReStr = ReStr + '年齡調整：從STR、DEX或CON中減去' + Debuff + '點\n（請自行手動選擇計算）。\nAPP減去' + AppDebuff + '點。進行' + EDUinc + '次EDU的成長擲骰。';
 			ReStr = ReStr + '\n==';
 			ReStr = ReStr + '\n（以下箭號三項，自選減去' + Debuff + '點。）';
 			break;
 		case (old >= 50):
-			ReStr = ReStr + '年齡調整：從STR、CON或DEX中減去' + Debuff + '點\n（從一，二或全部三項中選擇）\n（請自行手動選擇計算）。\nAPP減去' + AppDebuff + '點。進行' + EDUinc + '次EDU的成長擲骰。';
+			ReStr = ReStr + '年齡調整：從STR、DEX或CON中減去' + Debuff + '點\n（從一，二或全部三項中選擇）\n（請自行手動選擇計算）。\nAPP減去' + AppDebuff + '點。進行' + EDUinc + '次EDU的成長擲骰。';
 			ReStr = ReStr + '\n==';
 			ReStr = ReStr + '\n（以下箭號三項，自選減去' + Debuff + '點。）';
 			break;
@@ -524,20 +524,29 @@ async function build7char(text01) {
 			break;
 	}
 	ReStr = ReStr + '\nＳＴＲ：' + await rollbase.BuildDiceCal('3d6*5');
+	if (old >= 40) ReStr = ReStr + ' ←（可選） ';
+	if (old < 20) ReStr = ReStr + ' ←（可選）';
 
+	ReStr = ReStr + '\nＤＥＸ：' + await rollbase.BuildDiceCal('3d6*5');
+	if (old >= 40) ReStr = ReStr + ' ← （可選）';
 
-	if (old >= 40) ReStr = ReStr + ' ←（可選） '
-	if (old < 20) ReStr = ReStr + ' ←（可選）'
+	ReStr = ReStr + '\nＰＯＷ：' + await rollbase.BuildDiceCal('3d6*5');
+
 	ReStr = ReStr + '\nＣＯＮ：' + await rollbase.BuildDiceCal('3d6*5');
 	if (old >= 40) ReStr = ReStr + ' ← （可選）'
-	ReStr = ReStr + '\nＤＥＸ：' + await rollbase.BuildDiceCal('3d6*5');
-	if (old >= 40) ReStr = ReStr + ' ← （可選）'
-	if (old >= 40) ReStr = ReStr + '\nＡＰＰ：' + await rollbase.BuildDiceCal('(3d6*5)-' + AppDebuff);
-	else ReStr = ReStr + '\nＡＰＰ：' + await rollbase.BuildDiceCal('3d6*5');
-	ReStr = ReStr + '\nＰＯＷ：' + await rollbase.BuildDiceCal('3d6*5');
+
+	if (old >= 40) {
+		ReStr = ReStr + '\nＡＰＰ：' + await rollbase.BuildDiceCal('(3d6*5)-' + AppDebuff)
+	} else ReStr = ReStr + '\nＡＰＰ：' + await rollbase.BuildDiceCal('3d6*5');
+
+
 	ReStr = ReStr + '\nＳＩＺ：' + await rollbase.BuildDiceCal('(2d6+6)*5');
-	if (old < 20) ReStr = ReStr + ' ←（可選）'
+	if (old < 20) {
+		ReStr = ReStr + ' ←（可選）';
+	}
+
 	ReStr = ReStr + '\nＩＮＴ：' + await rollbase.BuildDiceCal('(2d6+6)*5');
+
 	if (old < 20) ReStr = ReStr + '\nＥＤＵ：' + await rollbase.BuildDiceCal('((2d6+6)*5)-5');
 	else {
 		let firstEDU = '(' + await rollbase.BuildRollDice('2d6') + '+6)*5';

@@ -4,7 +4,10 @@ var rply = {
     type: 'text',
     text: ''
 };
-
+const crypto = require('crypto');
+const password = process.env.CRYPTO_SECRET,
+    algorithm = 'aes-256-ctr';
+const adminSecret = process.env.ADMIN_SECRET;
 var gameName = function () {
     return '【Admin Tool】'
 }
@@ -31,7 +34,6 @@ var getHelpMessage = function () {
 var initialize = function () {
     return rply;
 }
-const secret = process.env.ADMIN_SECRET;
 
 /**
  * 功能: 核對已有的secret
@@ -55,24 +57,40 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             rply.text += (displayname) ? '\ndisplayname: ' + displayname : '';
             rply.text += (displaynameDiscord) ? '\ndisplaynameDiscord: ' + displaynameDiscord : '';
             rply.text += (membercount) ? '\nmembercount: ' + membercount : '';
-            console.log("Debug function ", "inputStr: " + inputStr + '\ngroupid: ' + groupid + "\nuserid: " + userid + '\nuserrole: ' + userrole, '\nbotname: ', botname, '\ndisplayname: ', displayname, '\nchannelid: ', channelid, '\ndisplaynameDiscord: ', displaynameDiscord, '\nmembercount: ', membercount)
-            if (botname === "Discord") {
-                rply.text += client.shard.fetchClientValues('guilds.cache.size')
-                    .then(results => {
-                        return 'Server count: ${results.reduce((acc, guildCount) => acc + guildCount, 0)}';
-                    })
-                    .catch(console.error);
-            }
+            //     .digest('hex');
+            if (!password) return rply;
+            rply.text = encrypt(rply.text);
+            console.log("Debug function: ", rply.text)
             return rply;
-
-        case /\s+/.test(mainMsg[1] || ''):
-            rply.text = 'Demo'
+        case /^decrypt$/i.test(mainMsg[1]):
+            if (!adminSecret) return rply;
+            if (!mainMsg[2]) return rply;
+            if (!password) return rply;
+            if (userid !== adminSecret) return rply;
+            rply.text = decrypt(mainMsg[2]);
             return rply;
         default:
             break;
     }
 }
 
+function encrypt(text) {
+    let iv = crypto.randomBytes(16);
+    let cipher = crypto.createCipheriv(algorithm, Buffer.from(password, 'utf-8'), iv);
+    let encrypted = cipher.update(text);
+    encrypted = Buffer.concat([encrypted, cipher.final()]);
+    return iv.toString('hex') + ':' + encrypted.toString('hex');
+}
+
+function decrypt(text) {
+    let textParts = text.split(':');
+    let iv = Buffer.from(textParts.shift(), 'hex');
+    let encryptedText = Buffer.from(textParts.join(':'), 'hex');
+    let decipher = crypto.createDecipheriv(algorithm, Buffer.from(password, 'utf-8'), iv);
+    let decrypted = decipher.update(encryptedText);
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
+    return decrypted.toString();
+}
 
 module.exports = {
     rollDiceCommand: rollDiceCommand,

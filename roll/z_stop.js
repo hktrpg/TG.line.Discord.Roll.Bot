@@ -12,6 +12,8 @@ const records = require('../modules/records.js');
 records.get('block', (msgs) => {
     save.save = msgs
 })
+const VIP = require('../modules/veryImportantPerson');
+const limitArr = [30, 200, 200, 300, 300, 300, 300, 300];
 var gameName = function () {
     return '(公測中)擲骰開關功能 .bk (add del show)'
 }
@@ -41,8 +43,9 @@ var initialize = function () {
 }
 
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-
     rply.text = '';
+    let lv;
+    let limit = limitArr[0];
     switch (true) {
 
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:

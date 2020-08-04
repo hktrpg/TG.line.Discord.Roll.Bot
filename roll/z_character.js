@@ -10,8 +10,11 @@ const rply = {
     characterName: '',
     characterReRollName: ''
 };
+
+
 const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
+const limitArr = [4, 20, 20, 30, 30, 99, 99, 99];
 var gameName = function () {
     return '(公測中)角色卡功能 .char (add edit show delete use nonuse) .ch (set show showall)'
 }
@@ -29,7 +32,6 @@ const regexState = new RegExp(/state\[(.*?)\]~/, 'i');
 const regexRoll = new RegExp(/roll\[(.*?)\]~/, 'i');
 const regexNotes = new RegExp(/notes\[(.*?)\]~/, 'i');
 const re = new RegExp(/(.*?):(.*?)(;|$)/, 'ig');
-const limitArr = [4, 10, 30, 100, 200, 999]
 const opt = {
     upsert: true,
     runValidators: true
@@ -174,6 +176,9 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
     let docSwitch = {};
     let Card = {};
     let tempMain = {};
+    let lv;
+    let limit = limitArr[0];
+    let check;
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
@@ -198,17 +203,23 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
         case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
             if (!Card.name) {
-                rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 name[XXXX]~';
+                rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 \nname[XXXX]~ \nstate[HP:15/15;]~\nroll[投擲:cc 80 投擲;]~\nnotes[心靈支柱: 無]~\n'
                 return rply;
             }
             /*
             只限四張角色卡.
             使用VIPCHECK
             */
-            rply.text = await VIP.viplevelCheck(userid, limitArr)
-            if (rply.text) {
-                return rply;
+            lv = await VIP.viplevelCheckUser(userid);
+            limit = limitArr[lv];
+            check = await schema.characterCard.find({
+                id: userid
+            });
+            if (check.length >= limit) {
+                rply.text = '你的角色卡上限為' + limit + '張' + '\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                return rply
             }
+
 
             filter = {
                 id: userid,

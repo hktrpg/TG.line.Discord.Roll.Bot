@@ -11,7 +11,7 @@ var rply = {
 var randomAnsfunction = {};
 const records = require('../modules/records.js');
 const VIP = require('../modules/veryImportantPerson');
-const limitArr = [30, 200, 300];
+const limitArr = [30, 200, 200, 300];
 records.get('randomAns', (msgs) => {
     randomAnsfunction.randomAnsfunction = msgs
 })
@@ -367,7 +367,6 @@ async function shuffle(array) {
 
     // While there remain elements to shuffle...
     while (0 !== currentIndex) {
-
         // Pick a remaining element...
         //currentIndex 
         //randomIndex = math.floor(math.random() * currentIndex);

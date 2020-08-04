@@ -16,7 +16,7 @@ records.get('trpgDatabaseAllgroup', (msgs) => {
     trpgDatabasefunction.trpgDatabaseAllgroup = msgs
 });
 const VIP = require('../modules/veryImportantPerson');
-const limitArr = [30, 200, 300];
+const limitArr = [30, 200, 200, 300];
 var gameName = function () {
     return '(公測中)資料庫功能 .db(p) (add del show 自定關鍵字)'
 }

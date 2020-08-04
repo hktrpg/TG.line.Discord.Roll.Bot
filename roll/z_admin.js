@@ -7,7 +7,6 @@ var rply = {
 const crypto = require('crypto');
 const password = process.env.CRYPTO_SECRET,
     algorithm = 'aes-256-ctr';
-const key = Buffer.from(password, 'base64')
 const adminSecret = process.env.ADMIN_SECRET;
 var gameName = function () {
     return '【Admin Tool】'
@@ -50,7 +49,6 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
     switch (true) {
         case /^help$/i.test(mainMsg[1]):
             rply.text = this.getHelpMessage();
-            console.log(key)
             return rply;
         case /^debug$/i.test(mainMsg[1]):
             rply.text = "Debug function" + '\ngroupid: ' + groupid + "\nuserid: " + userid;
@@ -61,7 +59,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             rply.text += (membercount) ? '\nmembercount: ' + membercount : '';
             //     .digest('hex');
             if (!password) return rply;
-            rply.text = encrypt(rply.text)
+            rply.text = encrypt(rply.text);
             console.log("Debug function: ", rply.text)
             return rply;
         case /^decrypt$/i.test(mainMsg[1]):
@@ -69,11 +67,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             if (!mainMsg[2]) return rply;
             if (!password) return rply;
             if (userid !== adminSecret) return rply;
-            rply.text = decrypt(mainMsg[2])
-            return rply;
-
-        case /\s+/.test(mainMsg[1] || ''):
-            rply.text = 'Demo'
+            rply.text = decrypt(mainMsg[2]);
             return rply;
         default:
             break;

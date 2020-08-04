@@ -8,6 +8,7 @@ const crypto = require('crypto');
 const password = process.env.CRYPTO_SECRET,
     algorithm = 'aes-256-ctr';
 const adminSecret = process.env.ADMIN_SECRET;
+//32bit ASCII
 var gameName = function () {
     return '【Admin Tool】'
 }

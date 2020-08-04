@@ -24,9 +24,20 @@ const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
 		\n有關TRPG資訊, 可以到網站\
 		\n(http://www.hktrpg.com/)";
 
-client.once('ready', () => {
+client.once('ready', async () => {
 	console.log('Discord is Ready!');
+	await count();
 });
+
+async function count() {
+	if (!client.shard) return;
+	await client.shard.fetchClientValues('guilds.cache.size')
+		.then(results => {
+			console.log(`${results.reduce((acc, guildCount) => acc + guildCount, 0)} total Discord guilds`);
+		})
+		.catch(console.error);
+	return;
+}
 
 
 // handle the error event

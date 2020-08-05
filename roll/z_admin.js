@@ -85,16 +85,6 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             filter = await store(inputStr, 'gp');
             if (!filter.gpid) return rply;
             try {
-                doc = await schema.veryImportantPerson.findOne({
-                    gpid: filter.gpid
-                })
-            } catch (error) {
-                console.log('VIP檢查失敗: ', error)
-            }
-            if (!doc) {
-                filter.startDate = new Date()
-            }
-            try {
                 doc = await schema.veryImportantPerson.updateOne({
                     gpid: filter.gpid
                 }, filter, opt)
@@ -102,37 +92,33 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                     await VIP.renew();
                     rply.text = "更新成功";
                 }
-                //.admin addVipGroup -i  ID -l LV -n NAME -no NOTES -s SWITCH -d
+                //.admin addVipGroup -i  ID -l LV -n NAME -no NOTES -s SWITCH
             } catch (error) {
                 console.log('新增VIP失敗: ', error)
                 rply.text = '新增VIP失敗\n因為 ' + error.message
             }
             return rply;
         case /^addVipUser$/i.test(mainMsg[1]):
-
             if (!adminSecret) return rply;
             if (userid !== adminSecret) return rply;
             filter = await store(inputStr, 'id');
             if (!filter.id) return rply;
             try {
-                doc = await schema.veryImportantPerson.findOne({
-                    id: filter.id
-                })
-            } catch (error) {
-                console.log('VIP檢查失敗: ', error)
-            }
-            if (!doc) {
-                filter.startDate = new Date()
-            }
-            try {
                 doc = await schema.veryImportantPerson.updateOne({
                     id: filter.id
-                }, filter, opt)
+                }, {
+                    $set: {
+                        filter
+                    },
+                    $setOnInsert: {
+                        startDate: new Date()
+                    }
+                }, opt)
                 if (doc) {
                     await VIP.renew();
                     rply.text = "更新成功";
                 }
-                //.admin addVipGroup -i  ID -l LV -n NAME -no NOTES -s SWITCH -d
+                //.admin addVipGroup -i  ID -l LV -n NAME -no NOTES -s SWITCH
             } catch (error) {
                 console.log('新增VIP失敗: ', error)
                 rply.text = '新增VIP失敗\n因為 ' + error.message
@@ -165,7 +151,6 @@ async function store(mainMsg, mode) {
     (resultNotes) ? reply.notes = resultNotes[1]: null;
     (resultSwitch && resultSwitch[1].toLowerCase() == 'true') ? reply.switch = true: null;
     (resultSwitch && resultSwitch[1].toLowerCase() == 'false') ? reply.switch = false: null;
-
     return reply;
 }
 

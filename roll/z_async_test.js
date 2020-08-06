@@ -13,7 +13,7 @@ const rollbase = require('./rollbase.js');
 const translate = require('translation-google');
 
 var gameName = function () {
-	return 'Wiki查詢/圖片搜索/翻譯 .wiki .image .tran'
+	return 'Wiki查詢/圖片搜索 .wiki .image '
 }
 
 var gameType = function () {
@@ -72,6 +72,8 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 				})
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /^[.]tran$/.test(mainMsg[0]):
+			rply.text = "插件有漏洞, 現在下架功能"
+			return rply;
 			rply.text = await translate(inputStr.replace(mainMsg[0], ""), {
 				to: 'zh-TW'
 			}).then(res => {
@@ -81,6 +83,8 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 			});
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /^[.]tran[.]\S+$/.test(mainMsg[0]):
+			rply.text = "插件有漏洞, 現在下架功能"
+			return rply;
 			lang = /.tran.(\S+)/;
 			test = mainMsg[0].match(lang)
 			rply.text = await translate(inputStr.replace(mainMsg[0], ""), {

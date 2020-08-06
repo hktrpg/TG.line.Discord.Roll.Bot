@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@babel/core": "7.7.4",
-    "@line/bot-sdk": "^6.8.2",
+    "@line/bot-sdk": "^6.8.4",
     "axios": "^0.18.1",
     "babel-core": "^7.0.0-0",
     "bcdice-js": "^0.11.0",
@@ -21,27 +21,27 @@
     "chinese-conv": "^1.0.1",
     "discord.js": "^12.2.0",
     "dotenv": "^7.0.0",
-    "duckduckgo-images-api": "^1",
+    "duckduckgo-images-api": "^1.0.5",
     "easy-monitor": "^2.2.8",
     "erlpack": "github:discordapp/erlpack",
     "event": "^1.0.0",
     "express": "^4.17.1",
     "google-images": "^2.1.0",
-    "libsodium-wrappers": "^0.7.3",
-    "mathjs": "^5.9.0",
-    "mongoose": ">=5.7.5",
+    "libsodium-wrappers": "^0.7.8",
+    "mathjs": "^5.10.3",
+    "mongoose": "^5.9.27",
     "random-js": "^2.1.0",
-    "socket.io": "^2.2.0",
-    "telebot": "^1.2.6",
-    "telegraf": "^3.29.0",
+    "socket.io": "^2.3.0",
+    "telebot": "^1.4.1",
+    "telegraf": "^3.38.0",
     "telegraf-getchatmembers": "^1.0.0",
     "timer": "^1.0.1",
     "utf-8-validate": "^5.0.2",
     "uws": "^9.14.0",
-    "whatsapp-web.js": "^1.6.1",
+    "whatsapp-web.js": "^1.7.0",
     "wikijs": "6.0.1",
     "xmlhttprequest": "^1.8.0",
-    "zlib-sync": "^0.1.6"
+    "zlib-sync": "^0.1.7"
   },
   "keywords": [
     "LeoLi",
@@ -56,6 +56,6 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "eslint": "^7.5.0"
+    "eslint": "^7.6.0"
   }
 }

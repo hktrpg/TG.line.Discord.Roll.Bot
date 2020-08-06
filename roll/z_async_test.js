@@ -10,7 +10,7 @@ const GoogleImages = require('google-images');
 const client = (process.env.CSE_ID && process.env.CSE_API_KEY) ? new GoogleImages(process.env.CSE_ID, process.env.CSE_API_KEY) : '';
 const wiki = require('wikijs').default;
 const rollbase = require('./rollbase.js');
-const translate = require('translation-google');
+//const translate = require('translation-google');
 
 var gameName = function () {
 	return 'Wiki查詢/圖片搜索 .wiki .image '

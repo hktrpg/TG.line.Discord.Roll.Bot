@@ -545,7 +545,7 @@ class Records extends EventEmitter {
     */
     settrpgSaveLogfunctionRealTime(dbbase, msg, callback) {
         schema[dbbase].findOneAndUpdate({}, {
-            $set: {
+            $max: {
                 //實時資料 使用SET
                 RealTimeRollingLogfunction: msg
                 //中途紀錄資料 使用PUSH 每天紀錄一次

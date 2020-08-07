@@ -1,4 +1,9 @@
 "use strict";
+
+const {
+    boolean
+} = require('mathjs');
+
 if (process.env.mongoURL) {
     const mongoose = require('./core-db-connector.js').mongoose;
     //const Schema = mongoose.Schema;
@@ -152,7 +157,8 @@ if (process.env.mongoURL) {
         endDate: Date,
         name: String,
         notes: String,
-        code: String
+        code: String,
+        switch: Boolean
     }));
     const codelist = mongoose.model('codelist', new mongoose.Schema({
         code: String,

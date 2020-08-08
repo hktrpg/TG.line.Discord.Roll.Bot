@@ -12,7 +12,9 @@ const manager = new ShardingManager('./modules/discord_bot.js', {
 });
 const run = async () => {
 	try {
+		console.log(manager.totalShards);
 		await manager.spawn();
+		manager.on('shardCreate', shard => console.log(`Launched Discord shard ${shard.id}`));
 	} catch (e) {
 		console.log(`Failed to spawn shards: ${e} ${Object.entries(e)}`);
 	}
@@ -20,8 +22,3 @@ const run = async () => {
 };
 
 run();
-try {
-	manager.on('shardCreate', shard => console.log(`Launched Discord shard ${shard.id}`));
-} catch (error) {
-	console.error(error);
-}

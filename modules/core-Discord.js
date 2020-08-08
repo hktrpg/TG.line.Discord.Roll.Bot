@@ -16,7 +16,8 @@ const run = async () => {
 	} catch (e) {
 		console.log(`Failed to spawn shards: ${e} ${Object.entries(e)}`);
 	}
-	manager.on('shardCreate', shard => console.log(`Launched Discord shard ${shard.id}`));
+	
 };
 
 run();
+manager.on('shardCreate', shard => console.log(`Launched Discord shard ${shard.id}`));

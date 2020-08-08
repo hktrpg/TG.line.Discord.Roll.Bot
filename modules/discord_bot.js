@@ -26,7 +26,7 @@ const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
 
 client.once('ready', async () => {
 	console.log('Discord is Ready!');
-		await count();
+	await count();
 });
 
 async function count() {
@@ -35,7 +35,7 @@ async function count() {
 		.then(results => {
 			console.log(`${results.reduce((acc, guildCount) => acc + guildCount, 0)} total Discord guilds`);
 		})
-		.catch();
+		.catch(console.log());
 	return;
 }
 

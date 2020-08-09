@@ -2,11 +2,7 @@
 const BCDice = require('bcdice-js').BCDice; // CommonJS
 const bcdice = new BCDice();
 
-var rply = {
-    default: 'on',
-    type: 'text',
-    text: ''
-};
+var variables = {};
 
 var gameName = function () {
     return '【神我狩】 .kk (ET RT NT KT MTx)'
@@ -33,11 +29,15 @@ var getHelpMessage = function () {
 例） MT MT3 MT9\n"
 }
 var initialize = function () {
-    return rply;
+    return variables;
 }
 
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-    rply.text = '';
+    let rply = {
+        default: 'on',
+        type: 'text',
+        text: ''
+    };
     //let result = {};
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:

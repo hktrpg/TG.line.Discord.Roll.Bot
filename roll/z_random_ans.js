@@ -3,11 +3,6 @@ if (!process.env.mongoURL) {
     return;
 }
 const rollbase = require('./rollbase.js');
-var rply = {
-    default: 'on',
-    type: 'text',
-    text: ''
-};
 var randomAnsfunction = {};
 const records = require('../modules/records.js');
 const VIP = require('../modules/veryImportantPerson');
@@ -48,13 +43,17 @@ P.S.如果沒立即生效 用.ra show 刷新一下\n\
 "
 }
 var initialize = function () {
-    return rply;
+    return randomAnsfunction;
 }
 
 // eslint-disable-next-line no-unused-vars
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
     let checkifsamename = 0;
-    rply.text = '';
+    let rply = {
+        default: 'on',
+        type: 'text',
+        text: ''
+    };
     let times = (/^[.]ra(\d+|)/i.exec(mainMsg[0])) ? /^[.]ra(\d+|)/i.exec(mainMsg[0])[1] : 1;
     let timesgp = (/^[.]rap(\d+|)/i.exec(mainMsg[0])) ? /^[.]rap(\d+|)/i.exec(mainMsg[0])[1] : 1;
     let temp2 = 0;

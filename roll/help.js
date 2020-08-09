@@ -17,11 +17,7 @@ const start = async () => {
 		}).replace('GMT+0800 (GMT+08:00)', '');
 }
 start();
-var rply = {
-	default: 'on',
-	type: 'text',
-	text: ''
-}; //type是必需的,但可以更改
+var variables = {}; 
 //heroku labs:enable runtime-dyno-metadata -a <app name>
 
 var heroku_version = 'v0'
@@ -71,11 +67,15 @@ Telegram版 http://t.me/hktrpg_bot\n\
 源代碼 http://bit.ly/HKTRPG_GITHUB\n"
 }
 var initialize = function () {
-	return rply;
+	return variables;
 }
 
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-	rply.text = '';
+	let rply = {
+        default: 'on',
+        type: 'text',
+        text: ''
+    };
 	//let result = {};
 	switch (true) {
 		case /^\d+$/i.test(mainMsg[1]):

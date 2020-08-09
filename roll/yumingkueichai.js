@@ -1,11 +1,6 @@
 "use strict";
 var rollbase = require('./rollbase.js');
-var rply = {
-    default: 'on',
-    type: 'text',
-    text: ''
-};
-
+var variables = {};
 var gameName = function () {
     return '【貓貓鬼差】.kc xDy z'
 }
@@ -37,11 +32,15 @@ z 目標值 1-20\n\
 另外, 若達成值為3, 視為戲劇性失敗."
 }
 var initialize = function () {
-    return rply;
+    return variables;
 }
 
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
-    rply.text = '';
+    let rply = {
+        default: 'on',
+        type: 'text',
+        text: ''
+    };
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();

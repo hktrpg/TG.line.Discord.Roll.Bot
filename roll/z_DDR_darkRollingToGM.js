@@ -2,11 +2,6 @@
 if (!process.env.mongoURL) {
     return;
 }
-var rply = {
-    default: 'on',
-    type: 'text',
-    text: ''
-};
 const records = require('../modules/records.js');
 var trpgDarkRollingfunction = {};
 records.get('trpgDarkRolling', (msgs) => {
@@ -50,7 +45,11 @@ var initialize = function () {
 
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
     let checkifsamename = 0;
-    rply.text = '';
+    let rply = {
+        default: 'on',
+        type: 'text',
+        text: ''
+    };
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();

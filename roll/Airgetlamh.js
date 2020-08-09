@@ -7,11 +7,7 @@ function calldice(gameType, message) {
     bcdice.setMessage(message)
     return bcdice.dice_command()
 }
-var rply = {
-    default: 'on',
-    type: 'text',
-    text: ''
-};
+var variables = {};
 
 var gameName = function () {
     return '【朱の孤塔】 .al (nALx*p)'
@@ -35,11 +31,16 @@ var getHelpMessage = function () {
 例：.al 3AL7*5 → 3連射で目標値7、威力5、5AL5x3 → 5連射で目標値5、威力3\n"
 }
 var initialize = function () {
-    return rply;
+    return variables;
 }
 
+// eslint-disable-next-line no-unused-vars
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-    rply.text = '';
+    let rply = {
+        default: 'on',
+        type: 'text',
+        text: ''
+    };
     let result = '';
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:

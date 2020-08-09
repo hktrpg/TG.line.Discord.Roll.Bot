@@ -9,11 +9,7 @@ function calldice(gameType, message) {
 }
 
 var rollbase = require('./rollbase.js');
-var rply = {
-	default: 'on',
-	type: 'text',
-	text: ''
-};
+var variables = {};
 
 var gameName = function () {
 	return '【永遠的後日談】 .nc (NM xNC+m xNA+m)'
@@ -40,7 +36,7 @@ var getHelpMessage = function () {
 命中部位とダイス数が2以上の時のパーツ破損数も表示します。*\n"
 }
 var initialize = function () {
-	return rply;
+	return variables;
 }
 //nc指令開始於此 來自Rainsting/TarotLineBot 
 //if (trigger.match(/^[1-4]n[c|a][+|-][1-99]$|^[1-4]n[c|a]$/) != null) return exports.nc.nechronica(trigger, mainMsg[1]);
@@ -49,14 +45,19 @@ var initialize = function () {
 //if (trigger.match(/(^nm$)/) != null) return exports.nc.nechronica_mirenn(mainMsg[1]);
 
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-	rply.text = '';
+	let rply = {
+		default: 'on',
+		type: 'text',
+		text: ''
+	};
 	let result = '';
 	switch (true) {
 		case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
 			rply.text = this.getHelpMessage();
 			return rply;
 		case /(^nm$)/i.test(mainMsg[1]):
-			return nechronica_mirenn(mainMsg[2]);
+			rply.text = await nechronica_mirenn(mainMsg[2]);
+			return rply;
 		case /(\d+)N[C|A]/i.test(mainMsg[1]):
 
 			//永遠的後日談 Nechronica
@@ -143,8 +144,7 @@ async function nechronica_mirenn(text) {
 		returnStr = text + ': \n' + '依戀 (' + (dicenew + 1) + '[' + (dicenew + 1) + ']) → ' + nechronica_mirenn_table(dicenew);
 	else
 		returnStr = '依戀 (' + (dicenew + 1) + '[' + (dicenew + 1) + ']) → ' + nechronica_mirenn_table(dicenew);
-	rply.text = returnStr;
-	return rply;
+	return returnStr;
 }
 
 /* 這邊預留 mode 以便未來可以加入其他依戀 */

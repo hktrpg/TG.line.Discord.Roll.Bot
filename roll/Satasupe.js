@@ -7,12 +7,7 @@ function calldice(gameType, message) {
     bcdice.setMessage(message)
     return bcdice.dice_command()
 }
-var rply = {
-    default: 'on',
-    type: 'text',
-    text: ''
-};
-
+var variables = {};
 var gameName = function () {
     return '【亞俠必死的冒險】 .ss (nR>=x[y,z,c] SRx+y FumbleT)'
 }
@@ -41,11 +36,15 @@ Bad Trip表(BudTT)・ 報酬表(Get〜)： 寶物報酬(GetgT)、 實用品(Getz
 戀愛表(LoveIHT)、 教養表(CultureIHT)、 戰鬥表(CombatIHT)・ D66骰表\n"
 }
 var initialize = function () {
-    return rply;
+    return variables;
 }
 
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-    rply.text = '';
+    let rply = {
+        default: 'on',
+        type: 'text',
+        text: ''
+    };
     let result = '';
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:

@@ -1,10 +1,6 @@
 "use strict";
 var rollbase = require('./rollbase.js');
-var rply = {
-	default: 'on',
-	type: 'text',
-	text: ''
-};
+var variables = {};
 
 var gameName = function () {
 	return '【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 每日塔羅 運勢 立flag .me'
@@ -39,12 +35,16 @@ var getHelpMessage = function () {
 隨機死亡FLAG 字句開頭或結尾包括「立FLAG」可啓動\n"
 }
 var initialize = function () {
-	return rply;
+	return variables;
 }
 
 // eslint-disable-next-line no-unused-vars
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-	rply.text = '';
+	let rply = {
+		default: 'on',
+		type: 'text',
+		text: ''
+	}
 	//let result = {};
 	//		if (trigger.match(/排序/) != null && mainMsg.length >= 3) return exports.funny.SortIt(inputStr, mainMsg);
 	//choice 指令開始於此
@@ -72,22 +72,31 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 
 	switch (true) {
 		case /^排序|排序$/i.test(mainMsg[0]) && (mainMsg.length >= 4):
-			return SortIt(inputStr, mainMsg);
+			rply.text = await SortIt(inputStr, mainMsg);
+			return rply;
 		case /^隨機|^choice|隨機$|choice$/i.test(mainMsg[0]) && (mainMsg.length >= 3):
-			return choice(inputStr, mainMsg);
+			rply.text = await choice(inputStr, mainMsg);
+			return rply;
 		case /塔羅/i.test(mainMsg[0]):
-			if (mainMsg[0].match(/^每日塔羅/) != null) return await NomalDrawTarot(mainMsg[1], mainMsg[2]); //預設抽 79 張
-			if (mainMsg[0].match(/^時間塔羅/) != null) return await MultiDrawTarot(mainMsg[1], mainMsg[2], 1);
-			if (mainMsg[0].match(/^大十字塔羅/) != null) return await MultiDrawTarot(mainMsg[1], mainMsg[2], 2);
-			break;
+			if (mainMsg[0].match(/^每日塔羅/) != null)
+				rply.text = await NomalDrawTarot(mainMsg[1], mainMsg[2]); //預設抽 79 張
+			if (mainMsg[0].match(/^時間塔羅/) != null)
+				rply.text = await MultiDrawTarot(mainMsg[1], mainMsg[2], 1);
+			if (mainMsg[0].match(/^大十字塔羅/) != null)
+				rply.text = await MultiDrawTarot(mainMsg[1], mainMsg[2], 2);
+			return rply;
 		case (/立flag$|^立flag/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,25}/g).length <= 1):
-			return BStyleFlagSCRIPTS();
+			rply.text = await BStyleFlagSCRIPTS();
+			return rply;
 		case /^鴨霸獸$/i.test(mainMsg[0]):
-			return randomReply();
+			rply.text = randomReply();
+			return rply;
 		case (/運勢$|^運勢/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,40}/g).length <= 1):
-			return randomLuck(mainMsg);
+			rply.text = await randomLuck(mainMsg);
+			return rply;
 		case /^[.]me$/i.test(mainMsg[0]):
-			return me(inputStr)
+			rply.text = me(inputStr);
+			return rply;
 		default:
 			break;
 	}
@@ -98,9 +107,8 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 //////////////// .ME
 ////////////////////////////////////////
 
-async function me(inputStr) {
-	rply.text = inputStr.replace(/^[.]me/i, '')
-	return rply;
+function me(inputStr) {
+	return inputStr.replace(/^[.]me/i, '');
 }
 
 ////////////////////////////////////////
@@ -109,7 +117,7 @@ async function me(inputStr) {
 
 
 async function BStyleFlagSCRIPTS() {
-	let rplyArr = ['\
+	const rplyArr = ['\
 「打完這仗我就回老家結婚（この戦いが終わったら、故郷に帰って結婚するんだ）」', '\
 「打完這一仗後我請你喝酒」', '\
 「你、你要錢嗎！要什麼我都能給你！/我可以給你更多的錢！」', '\
@@ -175,13 +183,11 @@ async function BStyleFlagSCRIPTS() {
 「我可以好好利用這件事」'];
 
 	//	rply.text = rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
-	rply.text = rplyArr[await rollbase.Dice(rplyArr.length) - 1]
-
-	return rply;
+	return rplyArr[await rollbase.Dice(rplyArr.length) - 1]
 }
 
 async function randomReply() {
-	let rplyArr = ['\
+	const rplyArr = ['\
 你們死定了呃呃呃不要糾結這些……所以是在糾結哪些？', '\
 在澳洲，每過一分鐘就有一隻鴨嘴獸被拔嘴。 \n我到底在共三小。', '\
 嗚噁噁噁噁噁噁，不要隨便叫我。', '\
@@ -207,15 +213,13 @@ wwwwwwwwwwwwwwwww', '\
 你的嘴裡有異音（指）', '\
 幫主說，有人打你的左臉，你就要用肉食性猛擊咬斷他的小腿。'];
 	//	rply.text = rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
-	rply.text = rplyArr[await rollbase.Dice(rplyArr.length) - 1]
-	return rply;
+	return rplyArr[await rollbase.Dice(rplyArr.length) - 1];
 }
 
 async function randomLuck(TEXT) {
-	let rplyArr = ['超吉', '超級上吉', '大吉', '吉', '中吉', '小吉', '吉', '小吉', '吉', '吉', '中吉', '吉', '中吉', '吉', '中吉', '小吉', '末吉', '吉', '中吉', '小吉', '末吉', '中吉', '小吉', '小吉', '吉', '小吉', '末吉', '中吉', '小吉', '凶', '小凶', '沒凶', '大凶', '很凶', '你不要知道比較好呢', '命運在手中,何必問我'];
+	const rplyArr = ['超吉', '超級上吉', '大吉', '吉', '中吉', '小吉', '吉', '小吉', '吉', '吉', '中吉', '吉', '中吉', '吉', '中吉', '小吉', '末吉', '吉', '中吉', '小吉', '末吉', '中吉', '小吉', '小吉', '吉', '小吉', '末吉', '中吉', '小吉', '凶', '小凶', '沒凶', '大凶', '很凶', '你不要知道比較好呢', '命運在手中,何必問我'];
 	//	rply.text = TEXT[0] + ' ： ' + rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
-	rply.text = TEXT[0] + ' ： ' + rplyArr[await rollbase.Dice(rplyArr.length) - 1]
-	return rply;
+	return TEXT[0] + ' ： ' + rplyArr[await rollbase.Dice(rplyArr.length) - 1];
 }
 
 
@@ -268,8 +272,7 @@ async function RockPaperScissors(HandToCal, text) {
 			break;
 	}
 
-	rply.text = returnStr;
-	return rply;
+	return returnStr;
 }
 
 
@@ -282,14 +285,16 @@ async function MultiDrawTarot(text, text2, type) {
 	let cards = []
 	switch (type) {
 		case 1:
-			rply.text = '時間塔羅'
+			returnStr = '時間塔羅';
+			(text) ? returnStr += "；" + text + " " + text2: '';
 			cards = await rollbase.shuffleTarget(TarotList2);
 			returnStr += '過去: ' + cards[0] + '\n'
 			returnStr += '現在: ' + cards[1] + '\n'
 			returnStr += '未來: ' + cards[2] + '\n'
 			break;
 		case 2:
-			rply.text = '大十字塔羅'
+			returnStr = '大十字塔羅';
+			(text) ? returnStr += "；" + text + " " + text2: '';
 			cards = await rollbase.shuffleTarget(TarotList2);
 			returnStr += '現況: ' + cards[0] + '\n'
 			returnStr += '助力: ' + cards[1] + '\n'
@@ -306,19 +311,17 @@ async function MultiDrawTarot(text, text2, type) {
 			break;
 
 	}
-	if (text)
-		rply.text += "；" + text + " " + text2
-	rply.text += "\n" + returnStr
-	return rply;
+	return returnStr;
 }
 
 async function NomalDrawTarot(text, text2) {
-	rply.text = '每日塔羅'
+	let returnStr = '';
+	returnStr = '每日塔羅'
 	if (text)
-		rply.text += "；" + text + " " + text2
+		returnStr += "；" + text + " " + text2
 	let ans = await rollbase.shuffleTarget(TarotList.slice(0, 44))
-	rply.text += '\n' + ans[0]
-	return rply;
+	returnStr += '\n' + ans[0]
+	return returnStr;
 }
 
 
@@ -645,8 +648,8 @@ const TarotList2 = ["愚者 ＋",
 ////////////////////////////////////////
 async function choice(input, str) {
 	let a = input.replace(str[0], '').match(/\S+/ig);
-	rply.text = str[0] + ' [' + a + '] \n→ ' + a[await rollbase.Dice(a.length) - 1];
-	return rply;
+	return str[0] + ' [' + a + '] \n→ ' + a[await rollbase.Dice(a.length) - 1];
+
 }
 
 async function SortIt(input, mainMsg) {
@@ -661,8 +664,7 @@ async function SortIt(input, mainMsg) {
 		a[randomIndex] = a[i];
 		a[i] = itemAtIndex;
 	}
-	rply.text = mainMsg[0] + ' \n→ [ ' + a + ' ]';
-	return rply;
+	return mainMsg[0] + ' \n→ [ ' + a + ' ]';
 }
 
 module.exports = {

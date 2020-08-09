@@ -1,19 +1,15 @@
 "use strict";
-var rply = {
-	default: 'on',
-	type: 'text',
-	text: ''
-}; //type是必需的,但可以更改
+
 //heroku labs:enable runtime-dyno-metadata -a <app name>
 var chineseConv = require('chinese-conv'); //繁簡轉換
 const GoogleImages = require('google-images');
 const client = (process.env.CSE_ID && process.env.CSE_API_KEY) ? new GoogleImages(process.env.CSE_ID, process.env.CSE_API_KEY) : '';
 const wiki = require('wikijs').default;
 const rollbase = require('./rollbase.js');
-const translate = require('translation-google');
-
+//const translate = require('translation-google');
+var variables = {};
 var gameName = function () {
-	return 'Wiki查詢/圖片搜索/翻譯 .wiki .image .tran'
+	return 'Wiki查詢/圖片搜索 .wiki .image '
 }
 
 var gameType = function () {
@@ -44,11 +40,15 @@ EG: .tran.ja BATMAN  .tran.日 BATMAN\n\
 "
 }
 var initialize = function () {
-	return rply;
+	return variables;
 }
 
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-	rply.text = '';
+	let rply = {
+		default: 'on',
+		type: 'text',
+		text: ''
+	}; //type是必需的,但可以更改
 	let lang = '',
 		test = '';
 	//let result = {};
@@ -72,6 +72,8 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 				})
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /^[.]tran$/.test(mainMsg[0]):
+			rply.text = "插件有漏洞, 現在下架功能"
+			return rply;
 			rply.text = await translate(inputStr.replace(mainMsg[0], ""), {
 				to: 'zh-TW'
 			}).then(res => {
@@ -81,6 +83,8 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 			});
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /^[.]tran[.]\S+$/.test(mainMsg[0]):
+			rply.text = "插件有漏洞, 現在下架功能"
+			return rply;
 			lang = /.tran.(\S+)/;
 			test = mainMsg[0].match(lang)
 			rply.text = await translate(inputStr.replace(mainMsg[0], ""), {
@@ -96,6 +100,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 		case /\S+/.test(mainMsg[1]) && /^[.]image$/.test(mainMsg[0]):
 			rply.text = await googleimage(inputStr, mainMsg, "high")
 			rply.type = 'image'
+			console.log(rply)
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /^[.]imagee$/.test(mainMsg[0]):
 			//成人版

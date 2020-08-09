@@ -1,11 +1,7 @@
 "use strict";
 const rollbase = require('./rollbase.js');
 const axios = require('axios');
-var rply = {
-    default: 'on',
-    type: 'text',
-    text: ''
-};
+var variables = {};
 
 var gameName = function () {
     return '【劍世界2.5】.sw (Kx Gr FT TT)'
@@ -21,7 +17,7 @@ var prefixs = function () {
     }]
 }
 var getHelpMessage = function () {
-return "【劍世界2.5】" + "\n\
+    return "【劍世界2.5】" + "\n\
 ・啓動語 .sw (指令) 如 .sw K20\n\
 自動的成功、成功、失敗、自動的失敗の自動判定を行います。\n\
 \n\
@@ -71,11 +67,15 @@ $＋１と修正表記ならダイス目に＋修正、＄９のように固定�
 		 "
 }
 var initialize = function () {
-    return rply;
+    return variables;
 }
 
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-    rply.text = '';
+    let rply = {
+        default: 'on',
+        type: 'text',
+        text: ''
+    };
     let result = '',
         str = '';
     switch (true) {
@@ -278,8 +278,7 @@ function sw(triggermsg) {
         else {
             returnStr += ' → ' + finallynum;
         }
-        rply.text = returnStr;
-        return rply;
+        return returnStr;
     }
 }
 

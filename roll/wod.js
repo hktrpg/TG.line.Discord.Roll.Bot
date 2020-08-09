@@ -1,10 +1,6 @@
 "use strict";
 var rollbase = require('./rollbase.js');
-var rply = {
-	default: 'on',
-	type: 'text',
-	text: ''
-};
+var variables = {};
 
 var gameName = function () {
 	return '【WOD黑暗世界】.xWDy'
@@ -25,15 +21,20 @@ var getHelpMessage = function () {
 例子 .3wd8 .15wd9+2\n"
 }
 var initialize = function () {
-	return rply;
+	return variables;
 }
 
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+	let rply = {
+		default: 'on',
+		type: 'text',
+		text: ''
+	};
 	let matchwod = /^[.](\d+)(wd|wod)(\d|)((\+|-)(\d+)|)$/i.exec(mainMsg[0]); //判斷式  [0]3wd8+10,[1]3,[2]wd,[3]8,[4]+10,[5]+,[6]10  
 	//console.log(matchwod)
 	if (matchwod && matchwod[1] >= 1 && matchwod[1] <= 600)
-		return wod(mainMsg[0], mainMsg[1]);
-	else return null;
+		rply.text = await wod(mainMsg[0], mainMsg[1]);
+	return rply;
 }
 
 
@@ -50,6 +51,7 @@ module.exports = {
 //////////////// WOD黑暗世界
 ////////////////////////////////////////
 async function wod(triggermsg, text) {
+
 	var returnStr = triggermsg + ' [';
 	var varcou = 0;
 	var varsu = 0;
@@ -58,8 +60,7 @@ async function wod(triggermsg, text) {
 		match[3] = 10
 	}
 	if (match[3] <= 3) {
-		rply.text = '加骰最少比3高';
-		return rply;
+		return '加骰最少比3高';
 	}
 
 	for (var i = 0; i < Number(match[1]); i++) {
@@ -89,6 +90,5 @@ async function wod(triggermsg, text) {
 		//console.log(returnStr)
 		returnStr += ' ; ' + text;
 	}
-	rply.text = returnStr;
-	return rply;
+	return returnStr;
 }

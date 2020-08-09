@@ -1,9 +1,5 @@
 "use strict";
-var rply = {
-    default: 'on',
-    type: 'text',
-    text: ''
-};
+var variables = {};
 
 var gameName = function () {
     return '【Demo】'
@@ -28,12 +24,16 @@ var getHelpMessage = function () {
 只是一個Demo末行"
 }
 var initialize = function () {
-    return rply;
+    return variables;
 }
 
 // eslint-disable-next-line no-unused-vars
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
-    rply.text = '';
+    let rply = {
+        default: 'on',
+        type: 'text',
+        text: ''
+    };
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();

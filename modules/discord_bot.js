@@ -35,7 +35,9 @@ async function count() {
 		.then(results => {
 			console.log(`${results.reduce((acc, guildCount) => acc + guildCount, 0)} total Discord guilds`);
 		})
-		.catch(console.error);
+		.catch(() => {
+			return;
+		});
 	return;
 }
 

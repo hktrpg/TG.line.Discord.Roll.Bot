@@ -8,11 +8,7 @@ function calldice(gameType, message) {
 	return bcdice.dice_command()
 }
 
-var rply = {
-	default: 'on',
-	type: 'text',
-	text: ''
-};
+var variables = {};
 
 var gameName = function () {
 	return '【歌風】 .UK (nUK nUK@c or nUKc)'
@@ -41,11 +37,15 @@ cに「龍のダイス目」を指定した行為判定ロール。\n\
  "
 }
 var initialize = function () {
-	return rply;
+	return variables;
 }
 
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-	rply.text = '';
+	let rply = {
+		default: 'on',
+		type: 'text',
+		text: ''
+	};
 	let result = '';
 	switch (true) {
 		case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:

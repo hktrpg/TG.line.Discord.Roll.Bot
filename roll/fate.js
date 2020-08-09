@@ -1,10 +1,6 @@
 "use strict";
 var rollbase = require('./rollbase.js');
-var rply = {
-    default: 'on',
-    type: 'text',
-    text: ''
-};
+var variables = {};
 
 var gameName = function () {
     return '【命運Fate】 .4df(m|-)(加值)'
@@ -31,11 +27,15 @@ var getHelpMessage = function () {
 .4df3  四粒命運骰結果+3  .4dfm4 或.4df-4  四粒命運骰結果-4"
 }
 var initialize = function () {
-    return rply;
+    return variables;
 }
 
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-    rply.text = '';
+    let rply = {
+        default: 'on',
+        type: 'text',
+        text: ''
+    };
     switch (true) {
         case /^help$/i.test(mainMsg[1]):
             rply.text = this.getHelpMessage();

@@ -1,10 +1,6 @@
 "use strict";
 const rollbase = require('./rollbase.js');
-var rply = {
-    default: 'on',
-    type: 'text',
-    text: ''
-};
+var variables = {};
 const mathjs = require('mathjs')
 var gameName = function () {
     return '【魔女狩獵之夜】.wn xDn+-y'
@@ -32,11 +28,15 @@ var getHelpMessage = function () {
 .wn 3@D3+2 有第二個D，會使用成功數減去失敗數得出結果(可負數)"
 }
 var initialize = function () {
-    return rply;
+    return variables;
 }
 
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
-    rply.text = '';
+    let rply = {
+        default: 'on',
+        type: 'text',
+        text: ''
+    };
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();

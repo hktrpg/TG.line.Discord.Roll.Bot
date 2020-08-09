@@ -10,11 +10,7 @@ function calldice(gameType, message) {
 	return bcdice.dice_command()
 }
 
-var rply = {
-	default: 'on',
-	type: 'text',
-	text: ''
-};
+var variables = {};
 
 var gameName = function () {
 	return '【DX2nd,3rd】 .dx (xDX+y@c ET)'
@@ -43,11 +39,15 @@ var getHelpMessage = function () {
 ポジティブとネガティブの両方を振って、表になっている側に○を付けて表示します。もちろん任意で選ぶ部分は変更して構いません。\n"
 }
 var initialize = function () {
-	return rply;
+	return variables;
 }
 
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-	rply.text = '';
+	let rply = {
+		default: 'on',
+		type: 'text',
+		text: ''
+	};
 	let result = '';
 	switch (true) {
 		case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:

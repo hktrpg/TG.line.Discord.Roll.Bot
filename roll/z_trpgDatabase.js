@@ -184,10 +184,11 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 if (trpgDatabasefunction.trpgDatabasefunction)
                     for (let i = 0; i < trpgDatabasefunction.trpgDatabasefunction.length; i++) {
                         if (trpgDatabasefunction.trpgDatabasefunction[i].groupid == groupid) {
-                            rply.text += '資料庫列表:'
+                            rply.text += '資料庫列表:\n'
                             for (let a = 0; a < trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
-                                temp = 1
-                                rply.text += ("\n") + a + '. ' + trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic
+                                temp = 1;
+                                rply.text += a + '. ' + trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic + '        ';
+                                (a % 2) ? rply.text += '\n': '';
                             }
                         }
                     }
@@ -276,10 +277,11 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             })
             if (trpgDatabasefunction.trpgDatabaseAllgroup)
                 for (let i = 0; i < trpgDatabasefunction.trpgDatabaseAllgroup.length; i++) {
-                    rply.text += '資料庫列表:'
+                    rply.text += '資料庫列表:\n'
                     for (let a = 0; a < trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup.length; a++) {
-                        tempshow = 1
-                        rply.text += ("\n") + a + '. ' + trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic
+                        tempshow = 1;
+                        rply.text += a + '. ' + trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic + ("      ");
+                        (a % 2) ? rply.text += '\n': '';
                     }
                 }
             if (tempshow == 0) rply.text = '沒有已設定的關鍵字. '

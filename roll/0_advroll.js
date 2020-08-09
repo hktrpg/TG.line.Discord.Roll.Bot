@@ -1,11 +1,7 @@
 "use strict";
 const rollbase = require('./rollbase.js');
 const mathjs = require('mathjs')
-var rply = {
-	default: 'on',
-	type: 'text',
-	text: ''
-};
+var variables = {};
 const regexxBy = /^((\d+)(b)(\d+))/i
 const regexxUy = /^(\d+)(u)(\d+)/i
 var gameName = function () {
@@ -54,13 +50,16 @@ D66 D66s D66n：	骰出D66 s數字小在前 n大在前\n\
 }
 
 var initialize = function () {
-	return rply;
+	return variables;
 }
 
 // eslint-disable-next-line no-unused-vars
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-	rply.text = '';
-	//let result = {};
+	let rply = {
+		default: 'on',
+		type: 'text',
+		text: ''
+	} //let result = {};
 	let matchxby = {},
 		matchxuy = {},
 		points = {};
@@ -81,24 +80,27 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 			}
 			return rply;
 		case /^d66$/i.test(mainMsg[0]):
-			return d66(mainMsg[1]);
+			rply.text = await d66(mainMsg[1])
+			return rply;
 		case /^d66n$/i.test(mainMsg[0]):
-			return d66n(mainMsg[1]);
+			rply.text = await d66n(mainMsg[1])
+			return rply;
 		case /^d66s$/i.test(mainMsg[0]):
-			return d66s(mainMsg[1])
+			rply.text = await d66s(mainMsg[1])
+			return rply;
 		case regexxBy.test(mainMsg[0]):
 			matchxby = regexxBy.exec(mainMsg[0]);
 			//判斷式 0:"5b10<=80" 1:"5b10" 2:"5" 3:"b" 4:"10" 5:"<=80" 6:"<=" 	7:"<" 8:"=" 	9:"80"
 			//console.log('match', match)
 			if (matchxby && matchxby[4] > 1 && matchxby[4] < 10000 && matchxby[2] > 0 && matchxby[2] <= 600)
-				return xBy(mainMsg[0], mainMsg[1], mainMsg[2], botname)
-			break;
+				rply.text = await xBy(mainMsg[0], mainMsg[1], mainMsg[2], botname);
+			return rply;
 		case regexxUy.test(mainMsg[0]) && mainMsg[1] <= 10000:
 			matchxuy = regexxUy.exec(mainMsg[0]); //判斷式  ['5U10',  '5', 'U', '10']
 			if (matchxuy && matchxuy[1] > 0 && matchxuy[1] <= 600 && matchxuy[3] > 0 && matchxuy[3] <= 10000) {
-				return xUy(matchxuy, mainMsg[1], mainMsg[2], mainMsg[3]);
+				rply.text = await xUy(matchxuy, mainMsg[1], mainMsg[2], mainMsg[3]);
 			}
-			break;
+			return rply;
 		case /^[.][i][n][t]$/i.test(mainMsg[0]) && mainMsg[1] <= 100000 && mainMsg[2] <= 100000:
 			points = [Math.floor(mainMsg[1]), Math.floor(mainMsg[2])]
 			points.sort(function (a, b) {
@@ -132,19 +134,16 @@ module.exports = {
 //////////////// D66
 ////////////////////////////////////////
 async function d66(text) {
+	text = (text) ? '：' + text : '：';
 	let returnStr = '';
-	if (text != null) {
-		returnStr = 'D66：' + text + ' → ' + await rollbase.Dice(6) + await rollbase.Dice(6);
-	} else {
-		returnStr = 'D66 → ' + await rollbase.Dice(6) + await rollbase.Dice(6);
-	}
-	rply.text = returnStr;
-	return rply;
+	returnStr = 'D66' + text + '\n' + await rollbase.Dice(6) + await rollbase.Dice(6);
+	return returnStr;
 }
 ////////////////////////////////////////
 //////////////// D66s
 ////////////////////////////////////////
 async function d66s(text) {
+	text = (text) ? '：' + text : '：';
 	let temp0 = await rollbase.Dice(6);
 	let temp1 = await rollbase.Dice(6);
 	let returnStr = '';
@@ -153,18 +152,14 @@ async function d66s(text) {
 		temp0 = temp1;
 		temp1 = temp2;
 	}
-	if (text != null) {
-		returnStr = 'D66s：' + text + ' → ' + temp0 + temp1;
-	} else {
-		returnStr = 'D66s → ' + temp0 + temp1;
-	}
-	rply.text = returnStr;
-	return rply;
+	returnStr = 'D66s' + text + '\n' + temp0 + temp1;
+	return returnStr;
 }
 ////////////////////////////////////////
 //////////////// D66n
 ////////////////////////////////////////
 async function d66n(text) {
+	text = (text) ? '：' + text : '：';
 	let temp0 = await rollbase.Dice(6);
 	let temp1 = await rollbase.Dice(6);
 	let returnStr = '';
@@ -173,13 +168,9 @@ async function d66n(text) {
 		temp0 = temp1;
 		temp1 = temp2;
 	}
-	if (text != null) {
-		returnStr = 'D66n：' + text + ' → ' + temp0 + temp1;
-	} else {
-		returnStr = 'D66n → ' + temp0 + temp1;
-	}
-	rply.text = returnStr;
-	return rply;
+
+	returnStr = 'D66n' + text + '\n' + temp0 + temp1;
+	return returnStr;
 }
 ////////////////////////////////////////
 //////////////// xBy 
@@ -301,8 +292,7 @@ async function xBy(triggermsg, text01, text02, botname) {
 	returnStr += ' → ' + varcou.join(', ');
 	if (match[5]) returnStr += ' \n→ 成功數' + mathjs.eval(Number(varsu) + (temptriggermsg || 0))
 	if (text) returnStr += ' ；　' + text
-	rply.text = returnStr;
-	return rply;
+	return returnStr;
 }
 ////////////////////////////////////////
 //////////////// xUy
@@ -311,6 +301,7 @@ async function xBy(triggermsg, text01, text02, botname) {
 ////////////////////////////////////////
 
 async function xUy(triggermsg, text01, text02, text03) {
+
 	let match = triggermsg //判斷式  5u19,5,u,19, 
 	let returnStr = '(' + triggermsg + '[' + text01 + ']';
 	if (Number(text02) <= Number(match[3]) && text02 != undefined) {
@@ -324,8 +315,8 @@ async function xUy(triggermsg, text01, text02, text03) {
 	let varcouloop = new Array();
 	let varcounew = new Array();
 	if (text01 <= 2) {
-		rply.text = '加骰最少比2高';
-		return rply;
+		returnStr = '加骰最少比2高';
+		return returnStr;
 	}
 
 	for (var i = 0; i < Number(match[1]); i++) {
@@ -359,13 +350,12 @@ async function xUy(triggermsg, text01, text02, text03) {
 	////////////////  (5U10[8]) → 17[10,7],4,5,7,4 → 17/37(最大/合計)
 
 	{
-		returnStr += ' → ' + Math.max.apply(null, varcou)
+		returnStr += '\n → ' + Math.max.apply(null, varcou)
 		returnStr += '/' + varcou.reduce(function (previousValue, currentValue) {
 			return previousValue + currentValue;
 		}) + '(最大/合計)';
 	}
-	rply.text = returnStr;
-	return rply;
+	return returnStr;
 }
 
 // eslint-disable-next-line no-unused-vars

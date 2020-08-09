@@ -1,9 +1,5 @@
 "use strict";
-var rply = {
-    default: 'on',
-    type: 'text',
-    text: ''
-};
+var variables = {};
 const opt = {
     upsert: true,
     runValidators: true
@@ -40,7 +36,7 @@ var getHelpMessage = function () {
 }
 
 var initialize = function () {
-    return rply;
+    return variables;
 }
 
 /**
@@ -53,7 +49,11 @@ var initialize = function () {
  */
 
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
-    rply.text = '';
+    let rply = {
+        default: 'on',
+        type: 'text',
+        text: ''
+    };
     let filter = {};
     let doc = {};
     switch (true) {

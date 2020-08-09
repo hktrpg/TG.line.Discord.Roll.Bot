@@ -2,14 +2,7 @@
 if (!process.env.mongoURL) {
     return;
 }
-const rply = {
-    default: 'on',
-    type: 'text',
-    text: '',
-    characterReRoll: false,
-    characterName: '',
-    characterReRollName: ''
-};
+var variables = {};
 
 
 const schema = require('../modules/core-schema.js');
@@ -163,14 +156,19 @@ dr .ch 魔法\n\
 }
 
 var initialize = function () {
-    return rply;
+    return variables;
 }
 
 // eslint-disable-next-line no-unused-vars
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
-    rply.text = '';
-    rply.characterReRoll = false;
-    rply.characterName = ''
+    let rply = {
+        default: 'on',
+        type: 'text',
+        text: '',
+        characterReRoll: false,
+        characterName: '',
+        characterReRollName: ''
+    };
     let filter = {};
     let doc = {};
     let docSwitch = {};
@@ -711,7 +709,7 @@ async function showCharacter(Card, mode) {
     if (mode == 'addMode' || mode == 'showAllMode')
         if (Card.notes.length > 0) {
             for (let i = 0; i < Card.notes.length; i++) {
-                //returnStr += (Card.notes[i].itemA) ? Card.notes[i].name + ': ' + Card.notes[i].itemA + '　\n' : '';
+                //returnStr += (Card.notes[i].itemA) ? Card.notes[i].name + ': ' + Card.notes[i].itemA + ' \n' : '';
                 returnStr += Card.notes[i].name + ': ' + Card.notes[i].itemA + '　\n';
             }
 

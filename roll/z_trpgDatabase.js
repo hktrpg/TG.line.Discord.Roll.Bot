@@ -2,11 +2,6 @@
 if (!process.env.mongoURL) {
     return;
 }
-var rply = {
-    default: 'on',
-    type: 'text',
-    text: ''
-};
 const records = require('../modules/records.js');
 var trpgDatabasefunction = {};
 records.get('trpgDatabase', (msgs) => {
@@ -49,7 +44,11 @@ var initialize = function () {
 
 // eslint-disable-next-line no-unused-vars
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-    rply.text = '';
+    let rply = {
+        default: 'on',
+        type: 'text',
+        text: ''
+    };
     let checkifsamename = 0;
     let checkifsamenamegroup = 0;
     let tempshow = 0;
@@ -187,8 +186,8 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                         if (trpgDatabasefunction.trpgDatabasefunction[i].groupid == groupid) {
                             rply.text += '資料庫列表:'
                             for (let a = 0; a < trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
-                                temp = 1
-                                rply.text += ("\n") + a + '. ' + trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic
+                                temp = 1;
+                                rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + '. ' + trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic : '       ' + a + '. ' + trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic;
                             }
                         }
                     }
@@ -279,8 +278,9 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 for (let i = 0; i < trpgDatabasefunction.trpgDatabaseAllgroup.length; i++) {
                     rply.text += '資料庫列表:'
                     for (let a = 0; a < trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup.length; a++) {
-                        tempshow = 1
-                        rply.text += ("\n") + a + '. ' + trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic
+                        tempshow = 1;
+                        rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + '. ' + trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic : '      ' + a + '. ' + trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic;
+
                     }
                 }
             if (tempshow == 0) rply.text = '沒有已設定的關鍵字. '

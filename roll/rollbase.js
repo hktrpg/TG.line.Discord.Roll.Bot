@@ -9,11 +9,7 @@ const random = new Random(nodeCrypto);
 const regex = /(\d+)d(\d+)(kh|kl|dh|dl|k|)(\d+|)/i;
 //var Sided = [];
 //Sided[10000] = [];
-var rply = {
-  default: 'on',
-  type: 'text',
-  text: ''
-};
+var variables = {};
 
 var gameName = function () {
   return '基本擲骰'
@@ -49,15 +45,19 @@ const getHelpMessage = function () {
 如3d6kh 保留最大的1粒骰，3d6dl2 放棄最小的2粒骰"
 }
 var initialize = function () {
-  return rply;
+  return variables;
 }
 
 const rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-  rply.text = '';
+  let rply = {
+    default: 'on',
+    type: 'text',
+    text: ''
+  };
   //let result = {};
   try {
-    let result = await nomalDiceRoller(mainMsg[0], mainMsg[1], mainMsg[2])
-    return result;
+    rply.text = await nomalDiceRoller(mainMsg[0], mainMsg[1], mainMsg[2])
+    return rply;
   } catch (error) {
     console.log('nomalDiceRoller error: ', error)
     return;
@@ -236,8 +236,7 @@ var nomalDiceRoller = async function (text0, text1, text2) {
     finalStr = text0 + '：' + (text1 || '') + '\n'
     finalStr += await onetimeroll(text0)
   }
-  rply.text = finalStr
-  return rply
+  return finalStr;
 }
 
 // 單次擲骰

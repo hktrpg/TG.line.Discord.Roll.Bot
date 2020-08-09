@@ -2,12 +2,7 @@
 if (!process.env.mongoURL) {
     return;
 }
-var rply = {
-    default: 'on',
-    type: 'text',
-    text: '',
-    save: ''
-};
+
 const records = require('../modules/records.js');
 var trpgCommandfunction = {};
 records.get('trpgCommand', (msgs) => {
@@ -47,7 +42,11 @@ var initialize = function () {
 // eslint-disable-next-line no-unused-vars
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
     let checkifsamename = 0
-    rply.text = '';
+    let rply = {
+        default: 'on',
+        type: 'text',
+        text: ''
+    };
     let lv;
     let limit = limitArr[0];
     switch (true) {

@@ -187,11 +187,11 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 if (randomAnsfunction.randomAnsfunction)
                     for (let i = 0; i < randomAnsfunction.randomAnsfunction.length; i++) {
                         if (randomAnsfunction.randomAnsfunction[i].groupid == groupid) {
-                            rply.text += '自定義關鍵字列表:\n'
+                            rply.text += '自定義關鍵字列表:';
                             for (let a = 0; a < randomAnsfunction.randomAnsfunction[i].randomAnsfunction.length; a++) {
                                 temp = 1;
-                                rply.text += a + '. ' + randomAnsfunction.randomAnsfunction[i].randomAnsfunction[a][0] + ("     ");
-                                (a % 2) ? rply.text += '\n': '';
+                                rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + '. ' + randomAnsfunction.randomAnsfunction[i].randomAnsfunction[a][0] : "     " + a + '. ' + randomAnsfunction.randomAnsfunction[i].randomAnsfunction[a][0];
+
                             }
                         }
                     }
@@ -322,11 +322,10 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             tempshow = 0;
             if (randomAnsfunction.randomAnsAllgroup)
                 for (let i = 0; i < randomAnsfunction.randomAnsAllgroup.length; i++) {
-                    rply.text += '自定義關鍵字列表:\n'
+                    rply.text += '自定義關鍵字列表:'
                     for (let a = 0; a < randomAnsfunction.randomAnsAllgroup[i].randomAnsAllgroup.length; a++) {
                         tempshow = 1;
-                        rply.text += a + '. ' + randomAnsfunction.randomAnsAllgroup[i].randomAnsAllgroup[a][0] + ("      ");
-                        (a % 2) ? rply.text += '\n': '';
+                        rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + '. ' + randomAnsfunction.randomAnsAllgroup[i].randomAnsAllgroup[a][0] : '     ' + a + '. ' + randomAnsfunction.randomAnsAllgroup[i].randomAnsAllgroup[a][0];
                     }
                 }
             if (tempshow == 0) rply.text = '沒有已設定的關鍵字. '

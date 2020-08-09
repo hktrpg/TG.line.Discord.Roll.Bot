@@ -4,12 +4,6 @@
 if (!process.env.mongoURL) {
     return;
 }
-var rply = {
-    default: 'on',
-    type: 'text',
-    text: '',
-    save: ''
-};
 var trpgLevelSystemfunction = {};
 const records = require('../modules/records.js');
 records.get('trpgLevelSystem', (msgs) => {
@@ -133,7 +127,11 @@ var Title = function () {
     48-50   門
     */
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
-    rply.text = '';
+    let rply = {
+        default: 'on',
+        type: 'text',
+        text: ''
+    };
     let temprply = []
     let checkifsamename = 0
     let checkifsamenameRankWord = 0

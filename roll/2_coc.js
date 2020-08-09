@@ -1,10 +1,6 @@
 "use strict";
 const rollbase = require('./rollbase.js');
-var rply = {
-	default: 'on',
-	type: 'text',
-	text: ''
-};
+var variables = {};
 
 var gameName = function () {
 	return '【克蘇魯神話】 cc cc(n)1~2 ccb ccrt ccsu .dp .cc7build .cc6build .cc7bg'
@@ -39,46 +35,66 @@ coc7 成長或增長檢定： .dp 或 成長檢定 或 幕間成長 (技能%) (�
 coc7版角色背景隨機生成： 啓動語 .cc7bg \n"
 }
 var initialize = function () {
-	return rply;
+	return variables;
 }
 
 // eslint-disable-next-line no-unused-vars
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-	rply.text = '';
+	let rply = {
+		default: 'on',
+		type: 'text',
+		text: ''
+	};
 	let trigger = mainMsg[0].toLowerCase();
 	//console.log(mainMsg[1].toLowerCase())
 	if (trigger.toLowerCase() == "cc" && mainMsg[1].toLowerCase() == "help") {
 		rply.text = this.getHelpMessage();
-		return rply;
 	}
 	if (trigger == ".dp" && (mainMsg[1].toLowerCase() == "help" || !mainMsg[1])) {
 		rply.text = this.getHelpMessage();
-		return rply;
 	}
-	if (trigger.match(/(^ccrt$)/) != null) return await ccrt();
-	if (trigger.match(/(^ccsu$)/) != null) return await ccsu();
+	if (trigger.match(/(^ccrt$)/) != null) {
+		rply.text = await ccrt();
+	}
+	if (trigger.match(/(^ccsu$)/) != null) {
+		rply.text = await ccsu();
+	}
 
-	if (trigger == 'ccb' && mainMsg[1] <= 1000) return coc6(mainMsg[1], mainMsg[2]);
-
+	if (trigger == 'ccb' && mainMsg[1] <= 1000) {
+		rply.text = await coc6(mainMsg[1], mainMsg[2]);
+	}
 	//DevelopmentPhase幕間成長指令開始於此
-	if ((trigger == '.dp' || trigger == '成長檢定' || trigger == '幕間成長') && mainMsg[1] <= 1000) return await DevelopmentPhase(mainMsg[1], mainMsg[2]);
+	if ((trigger == '.dp' || trigger == '成長檢定' || trigger == '幕間成長') && mainMsg[1] <= 1000) {
+		rply.text = await DevelopmentPhase(mainMsg[1], mainMsg[2]);
+	}
+
 	//cc指令開始於此
-	if (trigger == 'cc' && mainMsg[1] <= 1000) return await coc7(mainMsg[1], mainMsg[2]);
+	if (trigger == 'cc' && mainMsg[1] <= 1000) {
+		rply.text = await coc7(mainMsg[1], mainMsg[2]);
+	}
 	//獎懲骰設定於此	
-	if (trigger == 'cc1' && mainMsg[1] <= 1000) return await coc7bp(mainMsg[1], '1', mainMsg[2]);
-	if (trigger == 'cc2' && mainMsg[1] <= 1000) return await coc7bp(mainMsg[1], '2', mainMsg[2]);
-	if (trigger == 'ccn1' && mainMsg[1] <= 1000) return await coc7bp(mainMsg[1], '-1', mainMsg[2]);
-	if (trigger == 'ccn2' && mainMsg[1] <= 1000) return await coc7bp(mainMsg[1], '-2', mainMsg[2]);
-
-
-	if (trigger.match(/(^cc7版創角$)|(^[.]cc7build$)/i) != null) return build7char(mainMsg[1]);
-
-	if (trigger.match(/(^cc6版創角$)|(^[.]cc6build$)/i) != null) return build6char(mainMsg[1]);
-
-	if (trigger.match(/(^cc7版角色背景$)|(^[.]cc7bg$)/i) != null) return PcBG();
-
-	return;
-
+	if (trigger == 'cc1' && mainMsg[1] <= 1000) {
+		rply.text = await coc7bp(mainMsg[1], '1', mainMsg[2]);
+	}
+	if (trigger == 'cc2' && mainMsg[1] <= 1000) {
+		rply.text = await coc7bp(mainMsg[1], '2', mainMsg[2]);
+	}
+	if (trigger == 'ccn1' && mainMsg[1] <= 1000) {
+		rply.text = await coc7bp(mainMsg[1], '-1', mainMsg[2]);
+	}
+	if (trigger == 'ccn2' && mainMsg[1] <= 1000) {
+		rply.text = await coc7bp(mainMsg[1], '-2', mainMsg[2]);
+	}
+	if (trigger.match(/(^cc7版創角$)|(^[.]cc7build$)/i) != null) {
+		rply.text = await build7char(mainMsg[1]);
+	}
+	if (trigger.match(/(^cc6版創角$)|(^[.]cc6build$)/i) != null) {
+		rply.text = await build6char(mainMsg[1]);
+	}
+	if (trigger.match(/(^cc7版角色背景$)|(^[.]cc7bg$)/i) != null) {
+		rply.text = await PcBG();
+	}
+	return rply;
 }
 
 
@@ -327,19 +343,21 @@ var cocManias = [
 ];
 
 async function DevelopmentPhase(target, text) {
+	let result = '';
 	if (text == undefined) text = "";
 	let skill = await rollbase.Dice(100);
 	let improved = await rollbase.Dice(10);
 	if (target > 95) target = 95;
 	if (skill >= 96 || skill > target) {
-		rply.text = "成長或增強檢定: " + text + "\n1D100 > " + target + "\n" + skill + " → 成功!\n你的技能增加" + improved + "點!";
+		result = "成長或增強檢定: " + text + "\n1D100 > " + target + "\n" + skill + " → 成功!\n你的技能增加" + improved + "點!";
 	} else {
-		rply.text = "成長或增強檢定: " + text + "\n1D100 > " + target + "\n" + skill + " → 失敗!\n你的技能沒有變化!";
+		result = "成長或增強檢定: " + text + "\n1D100 > " + target + "\n" + skill + " → 失敗!\n你的技能沒有變化!";
 	}
-	return rply;
+	return result;
 }
 
 async function ccrt() {
+	let result = '';
 	//var rollcc = Math.floor(Math.random() * 10);
 	//var time = Math.floor(Math.random() * 10) + 1;
 	//var PP = Math.floor(Math.random() * 100);
@@ -347,31 +365,32 @@ async function ccrt() {
 	let time = await rollbase.Dice(10)
 	let PP = await rollbase.Dice(100) - 1
 	if (rollcc <= 7) {
-		rply.text = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數';
+		result = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數';
 	} else
 	if (rollcc == 8) {
-		rply.text = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數' + ' \n' + cocManias[PP];
+		result = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數' + ' \n' + cocManias[PP];
 	} else
 	if (rollcc == 9) {
-		rply.text = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數' + ' \n' + cocPhobias[PP];
+		result = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數' + ' \n' + cocPhobias[PP];
 	}
-	return rply;
+	return result;
 }
 
 async function ccsu() {
+	let result = '';
 	let rollcc = await rollbase.Dice(10) - 1
 	let time = await rollbase.Dice(10)
 	let PP = await rollbase.Dice(100) - 1
 	if (rollcc <= 7) {
-		rply.text = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時';
+		result = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時';
 	} else
 	if (rollcc == 8) {
-		rply.text = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時' + ' \n' + cocManias[PP];
+		result = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時' + ' \n' + cocManias[PP];
 	} else
 	if (rollcc == 9) {
-		rply.text = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時' + ' \n' + cocPhobias[PP];
+		result = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時' + ' \n' + cocPhobias[PP];
 	}
-	return rply;
+	return result;
 }
 
 
@@ -379,14 +398,15 @@ async function ccsu() {
 //////////////// COC6
 ////////////////////////////////////////		
 async function coc6(chack, text) {
+	let result = '';
 	let temp = await rollbase.Dice(100);
-	if (temp == 100) rply.text = 'ccb<=' + chack + '\n' + temp + ' → 啊！大失敗！';
+	if (temp == 100) result = 'ccb<=' + chack + '\n' + temp + ' → 啊！大失敗！';
 	else
-	if (temp <= chack) rply.text = 'ccb<=' + chack + '\n' + temp + ' → 成功';
-	else rply.text = 'ccb<=' + chack + '\n' + temp + ' → 失敗';
+	if (temp <= chack) result = 'ccb<=' + chack + '\n' + temp + ' → 成功';
+	else result = 'ccb<=' + chack + '\n' + temp + ' → 失敗';
 	if (text)
-		rply.text += '；' + text;
-	return rply;
+		result += '；' + text;
+	return result;
 }
 
 ////////////////////////////////////////
@@ -395,16 +415,17 @@ async function coc6(chack, text) {
 
 
 async function coc7(chack, text) {
+	let result = '';
 	let temp = await rollbase.Dice(100);
-	if (temp > chack) rply.text = '1D100 ≦ ' + chack + "：\n" + temp + ' → 失敗';
-	if (temp <= chack) rply.text = '1D100 ≦ ' + chack + "：\n" + temp + ' → 通常成功';
-	if (temp <= chack / 2) rply.text = '1D100 ≦ ' + chack + "：\n" + temp + ' → 困難成功';
-	if (temp <= chack / 5) rply.text = '1D100 ≦ ' + chack + "：\n" + temp + ' → 極限成功';
-	if (temp == 1) rply.text = '1D100 ≦ ' + chack + "：\n" + temp + ' → 恭喜！大成功！';
-	if (temp == 100) rply.text = '1D100 ≦ ' + chack + "：\n" + temp + ' → 啊！大失敗！';
-	if (temp >= 96 && chack <= 49) rply.text = '1D100 ≦ ' + chack + "：\n" + temp + ' → 啊！大失敗！';
-	if (text != null) rply.text += '：' + text;
-	return rply;
+	if (temp > chack) result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 失敗';
+	if (temp <= chack) result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 通常成功';
+	if (temp <= chack / 2) result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 困難成功';
+	if (temp <= chack / 5) result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 極限成功';
+	if (temp == 1) result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 恭喜！大成功！';
+	if (temp == 100) result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 啊！大失敗！';
+	if (temp >= 96 && chack <= 49) result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 啊！大失敗！';
+	if (text != null) result += '：' + text;
+	return result;
 }
 
 async function coc7chack(temp, chack, text) {
@@ -430,6 +451,7 @@ async function coc7chack(temp, chack, text) {
 
 
 async function coc7bp(chack, bpdiceNum, text) {
+	let result = '';
 	let temp0 = await rollbase.Dice(10) - 1;
 	let countStr = '';
 	if (bpdiceNum > 0) {
@@ -442,8 +464,8 @@ async function coc7bp(chack, bpdiceNum, text) {
 		countStr = countStr.substring(0, countStr.length - 1)
 		let countArr = countStr.split('、');
 		countStr = countStr + ' → ' + await coc7chack(Math.min(...countArr), chack, text);
-		rply.text = '1D100 ≦ ' + chack + "：\n" + countStr;
-		return rply;
+		result = '1D100 ≦ ' + chack + "：\n" + countStr;
+		return result;
 	}
 
 	if (bpdiceNum < 0) {
@@ -457,8 +479,8 @@ async function coc7bp(chack, bpdiceNum, text) {
 		countStr = countStr.substring(0, countStr.length - 1)
 		let countArr = countStr.split('、');
 		countStr = countStr + ' → ' + await coc7chack(Math.max(...countArr), chack, text);
-		rply.text = '1D100 ≦ ' + chack + "：\n" + countStr;
-		return rply;
+		result = '1D100 ≦ ' + chack + "：\n" + countStr;
+		return result;
 	}
 }
 
@@ -574,9 +596,7 @@ async function build7char(text01) {
 	ReStr = ReStr + '\nＬＵＫ：' + await rollbase.BuildDiceCal('3d6*5');
 	if (old < 20) ReStr = ReStr + '\nＬＵＫ加骰：' + await rollbase.BuildDiceCal('3D6*5');
 	ReStr += '\n==\n煤油燈特徵: 1D6&1D20 → ' + await rollbase.Dice(6) + ',' + await rollbase.Dice(20);
-
-	rply.text = ReStr;
-	return rply;
+	return ReStr;
 }
 
 ////////////////////////////////////////
@@ -627,11 +647,11 @@ async function build6char() {
 	ReStr = ReStr + '\nＥＤＵ：' + await rollbase.BuildDiceCal('(3d6+3)');
 	ReStr = ReStr + '\n年收入：' + await rollbase.BuildDiceCal('(1d10)');
 	ReStr = ReStr + '\n調查員的最小起始年齡等於EDU+6，每比起始年齡年老十年，\n調查員增加一點EDU並且加20點職業技能點數。\n當超過40歲後，每老十年，\n從STR,CON,DEX,APP中選擇一個減少一點。';
-	rply.text = ReStr;
-	return rply;
+	return ReStr;
 }
 //隨機產生角色背景
 async function PcBG() {
+	let result = '';
 	let PersonalDescriptionArr = ['結實的', '英俊的', '粗鄙的', '機靈的', '迷人的', '娃娃臉的', '聰明的', '蓬頭垢面的', '愚鈍的', '骯髒的', '耀眼的', '有書卷氣的', '青春洋溢的', '感覺疲憊的', '豐滿的', '粗壯的', '毛髮茂盛的', '苗條的', '優雅的', '邋遢的', '敦實的', '蒼白的', '陰沉的', '平庸的', '臉色紅潤的', '皮膚黝黑色', '滿臉皺紋的', '古板的', '有狐臭的', '狡猾的', '健壯的', '嬌俏的', '筋肉發達的', '魁梧的', '遲鈍的', '虛弱的'];
 	let IdeologyBeliefsArr = ['虔誠信仰著某個神祈', '覺得人類不需要依靠宗教也可以好好生活', '覺得科學可以解釋所有事，並對某種科學領域有獨特的興趣', '相信因果循環與命運', '是一個政黨、社群或秘密結社的成員', '覺得這個社會已經病了，而其中某些病灶需要被剷除', '是神秘學的信徒', '是積極參與政治的人，有特定的政治立場', '覺得金錢至上，且為了金錢不擇手段', '是一個激進主義分子，活躍於社會運動'];
 	let SignificantPeopleArr = ['他的父母', '他的祖父母', '他的兄弟姐妹', '他的孩子', '他的另一半', '那位曾經教導調查員最擅長的技能（點數最高的職業技能）的人', '他的兒時好友', '他心目中的偶像或是英雄', '在遊戲中的另一位調查員', '一個由KP指定的NPC'];
@@ -641,6 +661,6 @@ async function PcBG() {
 	let TraitsArr = ['慷慨大方的人', '對動物很友善的人', '善於夢想的人', '享樂主義者', '甘冒風險的賭徒或冒險者', '善於料理的人', '萬人迷', '忠心耿耿的人', '有好名聲的人', '充滿野心的人'];
 	//PersonalDescriptionArr.length
 	//IdeologyBeliefsArr.length
-	rply.text = '背景描述生成器（僅供娛樂用，不具實際參考價值）\n==\n調查員是一個' + PersonalDescriptionArr[await rollbase.Dice(PersonalDescriptionArr.length) - 1] + '人。\n【信念】：說到這個人，他' + IdeologyBeliefsArr[await rollbase.Dice(IdeologyBeliefsArr.length) - 1] + '。\n【重要之人】：對他來說，最重要的人是' + SignificantPeopleArr[await rollbase.Dice(SignificantPeopleArr.length) - 1] + '，這個人對他來說之所以重要，是因為' + SignificantPeopleWhyArr[await rollbase.Dice(SignificantPeopleWhyArr.length) - 1] + '。\n【意義非凡之地】：對他而言，最重要的地點是' + MeaningfulLocationsArr[await rollbase.Dice(MeaningfulLocationsArr.length) - 1] + '。\n【寶貴之物】：他最寶貴的東西就是' + TreasuredPossessionsArr[await rollbase.Dice(TreasuredPossessionsArr.length) - 1] + '。\n【特徵】：總括來說，調查員是一個' + TraitsArr[await rollbase.Dice(TraitsArr.length) - 1] + '。';
-	return rply;
+	result = '背景描述生成器（僅供娛樂用，不具實際參考價值）\n==\n調查員是一個' + PersonalDescriptionArr[await rollbase.Dice(PersonalDescriptionArr.length) - 1] + '人。\n【信念】：說到這個人，他' + IdeologyBeliefsArr[await rollbase.Dice(IdeologyBeliefsArr.length) - 1] + '。\n【重要之人】：對他來說，最重要的人是' + SignificantPeopleArr[await rollbase.Dice(SignificantPeopleArr.length) - 1] + '，這個人對他來說之所以重要，是因為' + SignificantPeopleWhyArr[await rollbase.Dice(SignificantPeopleWhyArr.length) - 1] + '。\n【意義非凡之地】：對他而言，最重要的地點是' + MeaningfulLocationsArr[await rollbase.Dice(MeaningfulLocationsArr.length) - 1] + '。\n【寶貴之物】：他最寶貴的東西就是' + TreasuredPossessionsArr[await rollbase.Dice(TreasuredPossessionsArr.length) - 1] + '。\n【特徵】：總括來說，調查員是一個' + TraitsArr[await rollbase.Dice(TraitsArr.length) - 1] + '。';
+	return result;
 }

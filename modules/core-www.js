@@ -9,7 +9,7 @@ var server = require('http').createServer(www);
 //var www = require('express')();
 //var http = require('http').createServer(www);
 const io = require('socket.io')(server);
-const records = require('./core-webrecords.js');
+const records = require('./records.js');
 const port = process.env.PORT || 5000;
 var channelKeyword = '';
 let WWWcounttext = 0;
@@ -30,10 +30,10 @@ io.on('connection', (socket) => {
     // 發送人數給網頁
     io.emit("online", onlineCount);
     // 發送紀錄最大值
-    socket.emit("maxRecord", records.getMax());
+    socket.emit("maxRecord", records.chatRoomGetMax());
     // 發送紀錄
     //socket.emit("chatRecord", records.get());
-    records.get((msgs) => {
+    records.chatRoomGet((msgs) => {
         socket.emit("chatRecord", msgs);
     });
 
@@ -46,7 +46,7 @@ io.on('connection', (socket) => {
         // 因此我們直接 return ，終止函式執行。
         if (Object.keys(msg).length < 2) return;
         msg.msg = '\n' + msg.msg
-        records.push(msg);
+        records.chatRoomPush(msg);
     });
 
     socket.on('disconnect', () => {
@@ -116,7 +116,7 @@ async function loadb(io, records, rplyVal) {
             msg: rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i],
             time: new Date().toUTCString()
         });
-        records.push({
+        records.chatRoomPush({
             name: 'HKTRPG',
             msg: rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i],
             time: new Date().toUTCString()

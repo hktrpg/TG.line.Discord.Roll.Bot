@@ -27,6 +27,7 @@
         body {
             max-height: 100%;
             max-width: 100%;
+
             padding: 1rem;
             margin: 0 auto;
             flex-direction: column;
@@ -34,7 +35,8 @@
         }
 
         #container {
-            top: 90%;
+
+            top: 100%;
             width: 90%;
             margin: 2 0.15em;
             display: block;
@@ -49,6 +51,7 @@
         }
 
         #content {
+            font-size: 0.8em;
             width: 100%;
             min-height: 100%;
             height: 20em;
@@ -56,7 +59,8 @@
             border-radius: 0.1em;
             overflow: auto;
             padding: 5%;
-            word-break: break-all;/*必須*/
+            word-break: break-all;
+            /*必須*/
 
         }
 
@@ -100,20 +104,21 @@
         .msg {
             width: 90%;
             display: inline-block;
-            padding: 15px 0 5px 10px;
+            padding: 10px 10px 10px 10px;
             white-space: pre-wrap;
+            box-shadow: inset 0 -3px 0 0 cornflowerblue;
 
         }
 
 
         .msg>span::before {
             color: darkred;
-            content: " { ";
+            content: "●<";
         }
 
         .msg>span::after {
             color: darkred;
-            content: " } ";
+            content: "> ";
 
         }
 
@@ -237,9 +242,19 @@
         <div id="content">
         </div>
         <div id="send-box" style="margin-top:6px;">
+            <form id="changeRoomNumber-form">
+                <input style="width:8em;font-size: 1em;" type="text" name="roomNumber" id="roomNumber" value="公共房間"
+                    placeholder="房間名稱" maxlength="50">
+                <input type="submit" style="margin-top:4px;width: 4rem;
+                height: 2rem;" id="changeRoomNumber" value="變更">
+            </form>
+        </div>
+        <div id="send-box" style="margin-top:6px;">
             <form id="send-form">
-                <input style="width:8em;font-size: 1em;" type="text" name="name" id="name" value="" placeholder="暱稱" maxlength="50">
-                <input style="font-size: 1em;" type="text" name="msg" id="msg" value="1d100" placeholder="說點什麼？" maxlength="2000">
+                <input style="width:8em;font-size: 1em;" type="text" name="name" id="name" value="" placeholder="暱稱"
+                    maxlength="50">
+                <input style="font-size: 1em;" type="text" name="msg" id="msg" value="1d100" placeholder="說點什麼？"
+                    maxlength="2000">
                 <input type="submit" style="margin-top:4px;" id="submit" value="送出" onclick="genName()">
             </form>
         </div>
@@ -249,7 +264,10 @@
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-111430056-7"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
         gtag('js', new Date());
 
         gtag('config', 'UA-111430056-7');
@@ -260,15 +278,18 @@
             if (document.getElementById("name").value == "")
                 document.getElementById("name").value = "調查員" + Math.floor(Math.random() * 1000) + 1;;
         }
+
         function aa() {
             var content = document.getElementById("content");
             content.scrollTop = content.scrollHeight;
 
         }
         document.addEventListener("DOMContentLoaded", () => {
+            var roomNumber = "公共房間"
             var max_record;
             var status = document.getElementById("status");
             var online = document.getElementById("online");
+            var changeRoomNumber = document.getElementById("changeRoomNumber-form");
             var sendForm = document.getElementById("send-form");
             var content = document.getElementById("content");
             var nameInputBox = document.getElementById("name");
@@ -304,11 +325,20 @@
 
             socket.on("msg", addMsgToBox);
 
+            changeRoomNumber.addEventListener("submit", function (e) {
+                e.preventDefault();
+                roomNumber = changeRoomNumber.children[0].value;
+
+
+            });
+
+
+
             sendForm.addEventListener("submit", function (e) {
                 e.preventDefault();
                 var ok = true;
                 var formData = {
-                    time: new Date().toUTCString()
+                    time: new Date(Date.now())
                 };
                 var formChild = sendForm.children;
                 for (var i = 0; i < sendForm.childElementCount; i++) {
@@ -325,26 +355,32 @@
                     }
                 }
                 if (ok) {
+                    formData.roomNumber = roomNumber;
+                    console.log('formData', formData)
                     socket.emit("send", formData);
                     setCookie("name", nameInputBox.value);
                 }
             });
 
 
-
             function addMsgToBox(d) {
+
                 var msgBox = document.createElement("div")
                 msgBox.className = "msg";
                 var nameBox = document.createElement("span");
                 nameBox.className = "name";
                 var name = document.createTextNode(d.name);
+
+                var time = document.createTextNode(new Date(d.time).toLocaleString());
                 var msg = document.createTextNode(d.msg, setTimeout(function () {
                     aa();
                 }, 50));
 
                 nameBox.appendChild(name);
                 msgBox.appendChild(nameBox);
+                msgBox.appendChild(time);
                 msgBox.appendChild(msg);
+
                 content.appendChild(msgBox);
 
                 if (content.children.length > max_record) {
@@ -380,9 +416,6 @@
                 return "";
             }
         });
-
-
-
     </script>
 </body>
 

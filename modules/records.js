@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 "use strict";
 const {
     EventEmitter
@@ -8,6 +9,7 @@ const schema = require('./core-schema.js');
 let instance;
 let data = [];
 let MAX = 50000;
+const Message = schema.chatRoom;
 
 class Records extends EventEmitter {
     constructor() {
@@ -577,6 +579,41 @@ class Records extends EventEmitter {
                 callback();
             }
         });
+    }
+
+    //chatRoomWWW Record
+
+    chatRoomPush(msg) {
+        console.log('msg', msg)
+        const m = new Message(msg);
+
+        m.save();
+
+        this.emit("new_message", msg);
+
+        Message.count().then((count) => {
+            if (count >= MAX) {
+                Message.find().sort({
+                    'time': 1
+                }).limit(1).then((res) => {
+                    Message.findByIdAndRemove(res[0]._id);
+                });
+            }
+        });
+    }
+
+    chatRoomGet(callback) {
+        Message.find((err, msgs) => {
+            callback(msgs);
+        });
+    }
+
+    chatRoomSetMax(max) {
+        MAX = max;
+    }
+
+    chatRoomGetMax() {
+        return MAX;
     }
 
 }

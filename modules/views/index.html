@@ -26,13 +26,11 @@
 
         body {
             max-height: 100%;
-            max-width: 40rem;
+            max-width: 100%;
             padding: 1rem;
             margin: 0 auto;
-            display: flex;
             flex-direction: column;
             justify-content: center;
-
         }
 
         #container {
@@ -41,6 +39,7 @@
             margin: 2 0.15em;
             display: block;
             position: relative;
+            margin: 0 auto;
 
         }
 
@@ -57,6 +56,7 @@
             border-radius: 0.1em;
             overflow: auto;
             padding: 5%;
+            word-break: break-all;/*必須*/
 
         }
 
@@ -98,9 +98,9 @@
         }
 
         .msg {
-            width: 73%;
+            width: 90%;
             display: inline-block;
-            padding: 5px 0 5px 10px;
+            padding: 15px 0 5px 10px;
             white-space: pre-wrap;
 
         }

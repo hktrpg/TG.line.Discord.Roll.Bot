@@ -13,6 +13,7 @@ const records = require('./records.js');
 const port = process.env.PORT || 5000;
 var channelKeyword = '';
 let WWWcounttext = 0;
+var roomNumber = "公共房間";
 let WWWcountroll = 0
 exports.analytics = require('../modules/analytics');
 // 加入線上人數計數
@@ -24,7 +25,6 @@ www.get('/', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-
     // 有連線發生時增加人數
     onlineCount++;
     // 發送人數給網頁
@@ -59,7 +59,7 @@ io.on('connection', (socket) => {
 records.on("new_message", async (message) => {
     // 廣播訊息到聊天室
 
-    if (message.msg && message.name.match(/HKTRPG/ig)) {
+    if (message.msg && message.name.match(/^HKTRPG$/ig)) {
         return;
     }
     // console.log(message)
@@ -114,12 +114,14 @@ async function loadb(io, records, rplyVal) {
         await io.emit("msg", {
             name: 'HKTRPG',
             msg: rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i],
-            time: new Date().toUTCString()
+            time: new Date(Date.now() + 5),
+            roomNumber: roomNumber
         });
         records.chatRoomPush({
             name: 'HKTRPG',
             msg: rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i],
-            time: new Date().toUTCString()
+            time: new Date(Date.now() + 5),
+            roomNumber: roomNumber
         });
         //message.reply.text(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])
     }

@@ -32,7 +32,10 @@ io.on('connection', (socket) => {
     // 發送紀錄最大值
     socket.emit("maxRecord", records.getMax());
     // 發送紀錄
-    socket.emit("chatRecord", records.get());
+    //socket.emit("chatRecord", records.get());
+    records.get((msgs) => {
+        socket.emit("chatRecord", msgs);
+    });
 
     socket.on("greet", () => {
         socket.emit("greet", onlineCount);
@@ -110,11 +113,13 @@ async function loadb(io, records, rplyVal) {
     for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
         await io.emit("msg", {
             name: 'HKTRPG',
-            msg: rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]
+            msg: rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i],
+            time: new Date().toUTCString()
         });
         records.push({
             name: 'HKTRPG',
-            msg: rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]
+            msg: rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i],
+            time: new Date().toUTCString()
         });
         //message.reply.text(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])
     }

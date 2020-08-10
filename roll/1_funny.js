@@ -89,7 +89,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 			rply.text = await BStyleFlagSCRIPTS();
 			return rply;
 		case /^鴨霸獸$/i.test(mainMsg[0]):
-			rply.text = randomReply();
+			rply.text = await randomReply();
 			return rply;
 		case (/運勢$|^運勢/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,40}/g).length <= 1):
 			rply.text = await randomLuck(mainMsg);

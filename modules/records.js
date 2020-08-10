@@ -546,7 +546,6 @@ class Records extends EventEmitter {
     SAVELOG功能
     */
     settrpgSaveLogfunctionRealTime(dbbase, msg, callback) {
-        console.log(msg)
         schema[dbbase].findOneAndUpdate({}, {
             $set: {
                 "RealTimeRollingLogfunction.LogTime": msg.LogTime,

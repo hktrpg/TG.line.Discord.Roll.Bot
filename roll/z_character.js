@@ -372,6 +372,9 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 rply.text = '不在群組'
                 return rply
             }
+            if (!mainMsg[3]) {
+                return;
+            }
             /**
              * 流程
              * .ch 功能需要在charactergpswitches 中, 找出現在在使用那張角色卡

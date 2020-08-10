@@ -547,9 +547,23 @@ class Records extends EventEmitter {
     */
     settrpgSaveLogfunctionRealTime(dbbase, msg, callback) {
         schema[dbbase].findOneAndUpdate({}, {
+            $set: {
+                "RealTimeRollingLogfunction.LogTime": msg.LogTime,
+                "RealTimeRollingLogfunction.StartTime": msg.StartTime,
+                "RealTimeRollingLogfunction.LastTimeLog": msg.LastTimeLog
+            },
             $max: {
                 //實時資料 使用SET
-                RealTimeRollingLogfunction: msg
+                "RealTimeRollingLogfunction.DiscordCountRoll": msg.DiscordCountRoll,
+                "RealTimeRollingLogfunction.DiscordCountText": msg.DiscordCountText,
+                "RealTimeRollingLogfunction.LineCountRoll": msg.LineCountRoll,
+                "RealTimeRollingLogfunction.LineCountText": msg.LineCountText,
+                "RealTimeRollingLogfunction.TelegramCountRoll": msg.TelegramCountRoll,
+                "RealTimeRollingLogfunction.TelegramCountText": msg.TelegramCountText,
+                "RealTimeRollingLogfunction.WhatsappCountRoll": msg.WhatsappCountRoll,
+                "RealTimeRollingLogfunction.WhatsappCountText": msg.WhatsappCountText,
+                "RealTimeRollingLogfunction.WWWCountRoll": msg.WWWCountRoll,
+                "RealTimeRollingLogfunction.WWWCountText": msg.WWWCountText
                 //中途紀錄資料 使用PUSH 每天紀錄一次
                 // RollingLogfunction: msg,
                 //擲骰的結果紀錄

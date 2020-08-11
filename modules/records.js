@@ -616,8 +616,10 @@ class Records extends EventEmitter {
         });
     }
 
-    chatRoomGet(callback) {
-        Message.find((err, msgs) => {
+    chatRoomGet(roomNumber, callback) {
+        Message.find({
+            roomNumber: roomNumber
+        }, (err, msgs) => {
             callback(msgs);
         });
     }

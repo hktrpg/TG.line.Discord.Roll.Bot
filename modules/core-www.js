@@ -33,7 +33,7 @@ io.on('connection', (socket) => {
     socket.emit("maxRecord", records.chatRoomGetMax());
     // 發送紀錄
     //socket.emit("chatRecord", records.get());
-    records.chatRoomGet((msgs) => {
+    records.chatRoomGet(roomNumber, (msgs) => {
         socket.emit("chatRecord", msgs);
     });
 
@@ -47,6 +47,18 @@ io.on('connection', (socket) => {
         if (Object.keys(msg).length < 2) return;
         msg.msg = '\n' + msg.msg
         records.chatRoomPush(msg);
+    });
+
+    socket.on("newRoom", (msg) => {
+        // 如果 msg 內容鍵值小於 2 等於是訊息傳送不完全
+        // 因此我們直接 return ，終止函式執行。
+        if (!msg) return;
+        console.log(msg)
+        roomNumber = msg;
+        records.chatRoomGet(roomNumber, (msgs) => {
+            socket.emit("chatRecord", msgs);
+        });
+
     });
 
     socket.on('disconnect', () => {

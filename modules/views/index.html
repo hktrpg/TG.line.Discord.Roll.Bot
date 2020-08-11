@@ -19,8 +19,8 @@
         html {
             font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, "Hiragino Sans GB", "PingFang SC", "Heiti SC", "Microsoft YaHei UI", "Microsoft YaHei", "Source Han Sans", sans-serif;
             font-size: 18px;
-            background-color: rgb(0, 0, 0);
-            color: #ffffff;
+            background-color: rgb(255, 255, 255);
+            color: #000000;
             touch-action: manipulation;
         }
 
@@ -37,7 +37,7 @@
         #container {
 
             top: 100%;
-            width: 90%;
+            width: 80%;
             margin: 2 0.15em;
             display: block;
             position: relative;
@@ -231,12 +231,65 @@
             line-height: normal;
             outline-color: red;
         }
+
+
+
+
+
+        /* Chat containers */
+        .light {
+            border: 2px solid #dedede;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+
+            width: 90%;
+            display: inline-block;
+            padding: 10px 10px 10px 10px;
+            white-space: pre-wrap;
+
+        }
+
+        /* Darker chat container */
+        .darker {
+            border-color: #ccc;
+            background-color: #ddd;
+
+            width: 90%;
+            display: inline-block;
+            padding: 10px 10px 10px 10px;
+            white-space: pre-wrap;
+        }
+
+        /* Clear floats */
+        .light::after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+
+        /* Clear floats */
+        .darker::after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+
+        /* Style time text */
+        .time-right {
+            float: right;
+            color: #aaa;
+        }
     </style>
 </head>
 
 <body>
     <center><a href="https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81">HKTRPG 擲骰工具</a></center>
     <div id="container">
+        <center>
+            <div>現在房間: <span id="room">公共房間</span></div>
+        </center>
         <div id="status-box" style="font-size: 0.9em">Server: <span id="status">-</span> / <span id="online">0</span>
             online.</div>
         <div id="content">
@@ -285,10 +338,13 @@
 
         }
         document.addEventListener("DOMContentLoaded", () => {
+            var count = 10;
             var roomNumber = "公共房間"
             var max_record;
             var status = document.getElementById("status");
             var online = document.getElementById("online");
+            var room = document.getElementById("room");
+            var roomText = document.getElementById("roomNumber");
             var changeRoomNumber = document.getElementById("changeRoomNumber-form");
             var sendForm = document.getElementById("send-form");
             var content = document.getElementById("content");
@@ -318,7 +374,7 @@
             socket.on("chatRecord", function (msgs) {
                 for (var i = 0; i < msgs.length; i++) {
                     (function () {
-                        addMsgToBox(msgs[i]);
+                        addMsgToBox(msgs[i], i);
                     })();
                 }
             });
@@ -327,14 +383,21 @@
 
             changeRoomNumber.addEventListener("submit", function (e) {
                 e.preventDefault();
+                if (!changeRoomNumber.children[0].value) {
+                    roomNumber = "公共房間";
+                    roomText.value = "公共房間";
+                };
                 roomNumber = changeRoomNumber.children[0].value;
-
-
+                let myNode = document.getElementById("content");
+                myNode.innerHTML = '';
+                socket.emit("newRoom", roomNumber);
+                room.innerText = roomNumber;
             });
 
 
 
             sendForm.addEventListener("submit", function (e) {
+
                 e.preventDefault();
                 var ok = true;
                 var formData = {
@@ -356,19 +419,25 @@
                 }
                 if (ok) {
                     formData.roomNumber = roomNumber;
-                    console.log('formData', formData)
+
                     socket.emit("send", formData);
                     setCookie("name", nameInputBox.value);
                 }
             });
 
 
-            function addMsgToBox(d) {
+            function addMsgToBox(d, i) {
 
                 var msgBox = document.createElement("div")
-                msgBox.className = "msg";
+                if (i % 2)
+                    msgBox.className = "darker";
+                else {
+                    msgBox.className = "light";
+                }
                 var nameBox = document.createElement("span");
                 nameBox.className = "name";
+                var timeBox = document.createElement("div")
+                timeBox.className = "time-right";
                 var name = document.createTextNode(d.name);
 
                 var time = document.createTextNode(new Date(d.time).toLocaleString());
@@ -378,10 +447,12 @@
 
                 nameBox.appendChild(name);
                 msgBox.appendChild(nameBox);
-                msgBox.appendChild(time);
+                timeBox.appendChild(time);
                 msgBox.appendChild(msg);
 
+
                 content.appendChild(msgBox);
+                content.appendChild(timeBox);
 
                 if (content.children.length > max_record) {
                     rmMsgFromBox();

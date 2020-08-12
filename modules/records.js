@@ -4,11 +4,9 @@ const {
     EventEmitter
 } = require("events");
 const schema = require('./core-schema.js');
-//const Message = mongoose.model('Message', schema);
 
 let instance;
-let data = [];
-let MAX = 50000;
+let MAX = 1;
 const Message = schema.chatRoom;
 
 class Records extends EventEmitter {
@@ -598,20 +596,33 @@ class Records extends EventEmitter {
     //chatRoomWWW Record
 
     chatRoomPush(msg) {
-        console.log('msg', msg)
         const m = new Message(msg);
 
         m.save();
 
         this.emit("new_message", msg);
 
-        Message.count().then((count) => {
+        Message.count({
+            'roomNumber': msg.roomNumber
+        }).then((count) => {
+
             if (count >= MAX) {
-                Message.find().sort({
-                    'time': 1
-                }).limit(1).then((res) => {
-                    Message.findByIdAndRemove(res[0]._id);
+                let over = count - MAX;
+                console.log('Message', count, MAX, over)
+                Message.find({
+                    'roomNumber': msg.roomNumber
+                }).sort({
+                    'time': 1,
+                }).limit(over).then((res) => {
+                    for (let index = 0; index < res.length; index++) {
+                        Message.findByIdAndRemove(
+                            res[index].id
+                        )
+                    }
                 });
+
+
+
             }
         });
     }

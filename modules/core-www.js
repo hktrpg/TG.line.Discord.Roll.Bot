@@ -103,7 +103,7 @@ records.on("new_message", async (message) => {
         //console.log('Telegram Roll: ' + WWWcountroll + ', Telegram Text: ' + WWWcounttext, " content: ", message.text);
         rplyVal.text = '\n' + rplyVal.text
 
-        loadb(io, records, rplyVal);
+        loadb(io, records, rplyVal, message);
 
 
         // console.log("rplyVal: " + rplyVal)
@@ -121,19 +121,19 @@ server.listen(port, () => {
     console.log("Web Server Started. port:" + port);
 });
 
-async function loadb(io, records, rplyVal) {
+async function loadb(io, records, rplyVal, message) {
     for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-        await io.emit("msg", {
+        io.emit("msg", {
             name: 'HKTRPG',
             msg: rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i],
             time: new Date(Date.now() + 5),
-            roomNumber: roomNumber
+            roomNumber: message.roomNumber
         });
         records.chatRoomPush({
             name: 'HKTRPG',
             msg: rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i],
             time: new Date(Date.now() + 5),
-            roomNumber: roomNumber
+            roomNumber: message.roomNumber
         });
         //message.reply.text(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])
     }

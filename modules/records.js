@@ -6,7 +6,7 @@ const {
 const schema = require('./core-schema.js');
 
 let instance;
-let MAX = 1;
+let MAX = 100;
 const Message = schema.chatRoom;
 
 class Records extends EventEmitter {
@@ -595,36 +595,41 @@ class Records extends EventEmitter {
 
     //chatRoomWWW Record
 
-    chatRoomPush(msg) {
+    async chatRoomPush(msg) {
         const m = new Message(msg);
 
-        m.save();
+        await m.save();
 
         this.emit("new_message", msg);
 
-        Message.count({
+        let count = await Message.countDocuments({
             'roomNumber': msg.roomNumber
-        }).then((count) => {
-
-            if (count >= MAX) {
-                let over = count - MAX;
-                console.log('Message', count, MAX, over)
-                Message.find({
-                    'roomNumber': msg.roomNumber
-                }).sort({
-                    'time': 1,
-                }).limit(over).then((res) => {
-                    for (let index = 0; index < res.length; index++) {
-                        Message.findByIdAndRemove(
-                            res[index].id
-                        )
-                    }
-                });
-
-
-
-            }
         });
+        /**
+         * 計算有多少個
+         * 比較超出了多少個
+         * 找出那個的日子
+         * 之前的全部刪除
+         */
+        if (count < MAX) return;
+        let over = count - MAX;
+        let d = await Message.find({
+            'roomNumber': msg.roomNumber
+        }).sort({
+            'time': 1,
+        })
+        await Message.deleteMany({
+            'roomNumber': msg.roomNumber,
+            time: {
+                $lt: d[over - 1].time
+            }
+
+        })
+
+
+
+
+
     }
 
     chatRoomGet(roomNumber, callback) {

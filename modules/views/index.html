@@ -406,20 +406,26 @@
             }
         });
 
-        socket.on("msg", addMsgToBox);
+        socket.on(roomNumber, addMsgToBox);
 
-        changeRoomNumber.addEventListener("submit", function (e) {
+        changeRoomNumber.addEventListener("submit", async function (e) {
             e.preventDefault();
             color = 3;
             if (!changeRoomNumber.children[0].value) {
                 roomNumber = "公共房間";
                 roomText.value = "公共房間";
             };
+            if (changeRoomNumber.children[0].value == roomNumber) {
+                return;
+            }
+            await socket.off(roomNumber);
             roomNumber = changeRoomNumber.children[0].value;
             let myNode = document.getElementById("content");
             myNode.innerHTML = '';
             socket.emit("newRoom", roomNumber);
             room.innerText = roomNumber;
+            await socket.on(roomNumber, addMsgToBox);
+
         });
 
 

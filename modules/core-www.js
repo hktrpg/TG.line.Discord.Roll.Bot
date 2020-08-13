@@ -13,6 +13,7 @@ const records = require('./records.js');
 const port = process.env.PORT || 5000;
 var channelKeyword = '';
 let WWWcounttext = 0;
+var roomNumber = "公共房間";
 let WWWcountroll = 0
 exports.analytics = require('../modules/analytics');
 // 加入線上人數計數
@@ -24,7 +25,6 @@ www.get('/', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-
     // 有連線發生時增加人數
     onlineCount++;
     // 發送人數給網頁
@@ -33,7 +33,7 @@ io.on('connection', (socket) => {
     socket.emit("maxRecord", records.chatRoomGetMax());
     // 發送紀錄
     //socket.emit("chatRecord", records.get());
-    records.chatRoomGet((msgs) => {
+    records.chatRoomGet(roomNumber, (msgs) => {
         socket.emit("chatRecord", msgs);
     });
 
@@ -49,6 +49,18 @@ io.on('connection', (socket) => {
         records.chatRoomPush(msg);
     });
 
+    socket.on("newRoom", (msg) => {
+        // 如果 msg 內容鍵值小於 2 等於是訊息傳送不完全
+        // 因此我們直接 return ，終止函式執行。
+        if (!msg) return;
+        console.log(msg)
+        roomNumber = msg;
+        records.chatRoomGet(roomNumber, (msgs) => {
+            socket.emit("chatRecord", msgs);
+        });
+
+    });
+
     socket.on('disconnect', () => {
         // 有人離線了，扣人
         onlineCount = (onlineCount < 0) ? 0 : onlineCount -= 1;
@@ -59,7 +71,7 @@ io.on('connection', (socket) => {
 records.on("new_message", async (message) => {
     // 廣播訊息到聊天室
 
-    if (message.msg && message.name.match(/HKTRPG/ig)) {
+    if (message.msg && message.name.match(/^HKTRPG$/ig)) {
         return;
     }
     // console.log(message)
@@ -91,7 +103,7 @@ records.on("new_message", async (message) => {
         //console.log('Telegram Roll: ' + WWWcountroll + ', Telegram Text: ' + WWWcounttext, " content: ", message.text);
         rplyVal.text = '\n' + rplyVal.text
 
-        loadb(io, records, rplyVal);
+        loadb(io, records, rplyVal, message);
 
 
         // console.log("rplyVal: " + rplyVal)
@@ -109,17 +121,19 @@ server.listen(port, () => {
     console.log("Web Server Started. port:" + port);
 });
 
-async function loadb(io, records, rplyVal) {
+async function loadb(io, records, rplyVal, message) {
     for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-        await io.emit("msg", {
+        io.emit("msg", {
             name: 'HKTRPG',
             msg: rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i],
-            time: new Date().toUTCString()
+            time: new Date(Date.now() + 5),
+            roomNumber: message.roomNumber
         });
         records.chatRoomPush({
             name: 'HKTRPG',
             msg: rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i],
-            time: new Date().toUTCString()
+            time: new Date(Date.now() + 5),
+            roomNumber: message.roomNumber
         });
         //message.reply.text(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])
     }

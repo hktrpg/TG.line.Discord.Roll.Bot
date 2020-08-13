@@ -182,14 +182,20 @@ const chatRoom = mongoose.model('chatRoom', new mongoose.Schema({
     name: { // 欄位名稱
         type: String, // 欄位資料型別
         required: true, // 必須要有值
+        maxlength: 50
     },
     msg: {
         type: String,
-        required: true,
+        required: true
     },
     time: {
         type: Date,
         required: true
+    },
+    roomNumber: {
+        type: String,
+        required: true,
+        maxlength: 50
     }
 }));
 

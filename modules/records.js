@@ -4,11 +4,9 @@ const {
     EventEmitter
 } = require("events");
 const schema = require('./core-schema.js');
-//const Message = mongoose.model('Message', schema);
 
 let instance;
-let data = [];
-let MAX = 50000;
+let MAX = 100;
 const Message = schema.chatRoom;
 
 class Records extends EventEmitter {
@@ -597,27 +595,47 @@ class Records extends EventEmitter {
 
     //chatRoomWWW Record
 
-    chatRoomPush(msg) {
-        console.log('msg', msg)
+    async chatRoomPush(msg) {
         const m = new Message(msg);
 
-        m.save();
+        await m.save();
 
         this.emit("new_message", msg);
 
-        Message.count().then((count) => {
-            if (count >= MAX) {
-                Message.find().sort({
-                    'time': 1
-                }).limit(1).then((res) => {
-                    Message.findByIdAndRemove(res[0]._id);
-                });
-            }
+        let count = await Message.countDocuments({
+            'roomNumber': msg.roomNumber
         });
+        /**
+         * 計算有多少個
+         * 比較超出了多少個
+         * 找出那個的日子
+         * 之前的全部刪除
+         */
+        if (count < MAX) return;
+        let over = count - MAX;
+        let d = await Message.find({
+            'roomNumber': msg.roomNumber
+        }).sort({
+            'time': 1,
+        })
+        await Message.deleteMany({
+            'roomNumber': msg.roomNumber,
+            time: {
+                $lt: d[over - 1].time
+            }
+
+        })
+
+
+
+
+
     }
 
-    chatRoomGet(callback) {
-        Message.find((err, msgs) => {
+    chatRoomGet(roomNumber, callback) {
+        Message.find({
+            roomNumber: roomNumber
+        }, (err, msgs) => {
             callback(msgs);
         });
     }

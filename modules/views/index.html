@@ -42,7 +42,14 @@
             display: block;
             position: relative;
             margin: 0 auto;
-            height: 50vh;
+            height: 70vh;
+        }
+
+        @media (max-width:480px) {
+            #container {
+
+                height: 50vh;
+            }
         }
 
         #status-box {
@@ -52,13 +59,13 @@
 
         #content {
             font-size: 0.8em;
-            width: 100%;
+            width: auto;
             min-height: 100%;
             height: 20vh;
             border: 0.1em solid darkolivegreen;
             border-radius: 0.1em;
             overflow: auto;
-            padding: 5%;
+            padding: 2px 1em 0 1em;
             word-break: break-all;
             /*必須*/
 
@@ -241,12 +248,11 @@
             border: 2px solid #dedede;
             background-color: #f1f1f1;
             border-radius: 5px;
-            padding: 10px;
-            margin: 10px 0;
-
+            padding: 5px;
+            margin: 5px 0;
             width: 90%;
             display: inline-block;
-            padding: 10px 10px 10px 10px;
+            padding: 5px 5px 5px 10px;
             white-space: pre-wrap;
 
         }
@@ -280,7 +286,7 @@
 
             width: 90%;
             display: inline-block;
-            padding: 10px 10px 10px 10px;
+            padding: 5px 5px 5px 10px;
             white-space: pre-wrap;
         }
 
@@ -317,23 +323,21 @@
         </div>
         <div id="send-box" style="margin-top:6px;">
             <table style="margin-left: auto;
-            margin-right: auto;width:60%">
+            margin-right: auto;width:auto">
                 <tr>
-                    <th style="text-align: right;">
+                    <th>
                         <div style="font-size: 0.8em;"> 現在房間: <span id="room">公共房間</span></div>
                     </th>
                     <th style="text-align: center;">
                         <form id="changeRoomNumber-form">
                             <input style="width:8em;font-size: 0.8em;" type="text" name="roomNumber" id="roomNumber"
                                 value="公共房間" placeholder="房間名稱" maxlength="50">
-                            <input type="submit" style="margin-top:4px;width: 4rem;
-                    height: 2rem;" id="changeRoomNumber" value="變更">
-                        </form>
+                    <th> <input type="submit" style="margin-top:4px;width: 4rem;
+                            height: 2rem;" id="changeRoomNumber" value="變更"></th>
+                    </form>
                     </th>
                 </tr>
             </table>
-
-
         </div>
         <div id="send-box" style="margin-top:6px;">
             <form id="send-form">
@@ -422,7 +426,7 @@
             e.preventDefault();
             color = 3;
             if (!changeRoomNumber.children[0].value) {
-                roomNumber = "公共房間";
+                roomText.innerHTML = "公共房間";
                 roomText.value = "公共房間";
             };
             if (changeRoomNumber.children[0].value == roomNumber) {

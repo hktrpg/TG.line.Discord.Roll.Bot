@@ -75,7 +75,7 @@ records.on("new_message", async (message) => {
         return;
     }
     // console.log(message)
-    io.emit("msg", message);
+    io.emit(message.roomNumber, message);
     let rplyVal = {}
     let msgSplitor = (/\S+/ig)
     var mainMsg = message.msg.match(msgSplitor); // 定義輸入字串
@@ -123,7 +123,7 @@ server.listen(port, () => {
 
 async function loadb(io, records, rplyVal, message) {
     for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-        io.emit("msg", {
+        io.emit(message.roomNumber, {
             name: 'HKTRPG',
             msg: rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i],
             time: new Date(Date.now() + 5),

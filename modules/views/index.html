@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
+    <meta content="width=device-width,initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
     <title>HKTRPG 擲骰機器人 1D100 2D6 查詢輸入Bothelp</title>
     <script src="/socket.io/socket.io.js"></script>
     <script>
@@ -42,7 +42,7 @@
             display: block;
             position: relative;
             margin: 0 auto;
-            height: 55vh;
+            height: 50vh;
         }
 
         #status-box {
@@ -316,23 +316,33 @@
         <div id="content">
         </div>
         <div id="send-box" style="margin-top:6px;">
-            <center>
-                <div> 現在房間: <span id="room">公共房間</span></div>
-            </center>
-            <form id="changeRoomNumber-form">
-                <input style="width:8em;font-size: 1em;" type="text" name="roomNumber" id="roomNumber" value="公共房間"
-                    placeholder="房間名稱" maxlength="50">
-                <input type="submit" style="margin-top:4px;width: 4rem;
-                height: 2rem;" id="changeRoomNumber" value="變更">
-            </form>
+            <table style="margin-left: auto;
+            margin-right: auto;width:60%">
+                <tr>
+                    <th style="text-align: right;">
+                        <div style="font-size: 0.8em;"> 現在房間: <span id="room">公共房間</span></div>
+                    </th>
+                    <th style="text-align: center;">
+                        <form id="changeRoomNumber-form">
+                            <input style="width:8em;font-size: 0.8em;" type="text" name="roomNumber" id="roomNumber"
+                                value="公共房間" placeholder="房間名稱" maxlength="50">
+                            <input type="submit" style="margin-top:4px;width: 4rem;
+                    height: 2rem;" id="changeRoomNumber" value="變更">
+                        </form>
+                    </th>
+                </tr>
+            </table>
+
+
         </div>
         <div id="send-box" style="margin-top:6px;">
             <form id="send-form">
                 <input style="width:8em;font-size: 1em;" type="text" name="name" id="name" value="" placeholder="暱稱"
                     maxlength="50">
-                <input style="font-size: 1em;" type="text" name="msg" id="msg" value="1d100" placeholder="說點什麼？"
-                    maxlength="1000">
-                <input type="submit" style="margin-top:4px;" id="submit" value="送出" onclick="genName()">
+                <input style="width:30vw;font-size: 1em;" type="text" name="msg" id="msg" value="1d100"
+                    placeholder="說點什麼？" maxlength="1000">
+                <input type="submit" style="margin-top:4px;width: 4rem;
+                height: 2rem;" id="submit" value="送出" onclick="genName()">
             </form>
         </div>
     </div>

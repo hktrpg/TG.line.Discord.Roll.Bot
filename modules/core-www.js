@@ -52,7 +52,6 @@ io.on('connection', (socket) => {
         // 如果 msg 內容鍵值小於 2 等於是訊息傳送不完全
         // 因此我們直接 return ，終止函式執行。
         if (!msg) return;
-        console.log(msg)
         var roomNumber = msg || "公共房間";
         records.chatRoomGet(roomNumber, (msgs) => {
             socket.emit("chatRecord", msgs);

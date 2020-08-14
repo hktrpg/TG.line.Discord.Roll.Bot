@@ -248,7 +248,6 @@
             border: 2px solid #dedede;
             background-color: #f1f1f1;
             border-radius: 5px;
-            padding: 5px;
             margin: 5px 0;
             width: 90%;
             display: inline-block;
@@ -288,6 +287,12 @@
             display: inline-block;
             padding: 5px 5px 5px 10px;
             white-space: pre-wrap;
+
+
+            border: 2px solid #dedede;
+            border-radius: 5px;
+            margin: 5px 0;
+
         }
 
         /* Clear floats */
@@ -412,10 +417,15 @@
             max_record = amount;
         });
 
-        socket.on("chatRecord", function (msgs) {
+        socket.on("chatRecord", async function (msgs) {
+            console.log(msgs)
+            msgs.sort(function (a, b) {
+                return new Date(a.time) - new Date(b.time);
+            });
             for (var i = 0; i < msgs.length; i++) {
-                (function () {
-                    addMsgToBox(msgs[i]);
+                (async function () {
+                    console.log(msgs[i].time)
+                    await addMsgToBox(msgs[i]);
                 })();
             }
         });
@@ -439,6 +449,8 @@
             socket.emit("newRoom", roomNumber);
             room.innerText = roomNumber;
             await socket.on(roomNumber, addMsgToBox);
+            console.log('roomNumber', roomNumber)
+
 
         });
 
@@ -469,10 +481,11 @@
                 socket.emit("send", formData);
                 setCookie("name", nameInputBox.value);
             }
+            console.log('formData', formData)
         });
 
 
-        function addMsgToBox(d) {
+        async function addMsgToBox(d) {
             color++;
             var msgBox = document.createElement("div")
             if (color % 2)

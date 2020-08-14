@@ -418,13 +418,11 @@
         });
 
         socket.on("chatRecord", async function (msgs) {
-            console.log(msgs)
             msgs.sort(function (a, b) {
                 return new Date(a.time) - new Date(b.time);
             });
             for (var i = 0; i < msgs.length; i++) {
                 (async function () {
-                    console.log(msgs[i].time)
                     await addMsgToBox(msgs[i]);
                 })();
             }
@@ -449,9 +447,6 @@
             socket.emit("newRoom", roomNumber);
             room.innerText = roomNumber;
             await socket.on(roomNumber, addMsgToBox);
-            console.log('roomNumber', roomNumber)
-
-
         });
 
 
@@ -481,7 +476,6 @@
                 socket.emit("send", formData);
                 setCookie("name", nameInputBox.value);
             }
-            console.log('formData', formData)
         });
 
 

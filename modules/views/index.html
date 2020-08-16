@@ -44,7 +44,7 @@
                 <div class="badge badge-warning" id="status-box">Server: <span id="status">-</span> / <span id="online">0</span> online.</div>
             </div>
         </div>
-        <div class="row justify-content-md-center">
+        <div class="row">
             <div class="col-md-auto">
                 <div id="content">
                 </div>
@@ -208,16 +208,18 @@
 
         async function addMsgToBox(d) {
             color++;
-            var msgBox = document.createElement("div")
-            if (color % 2)
-                msgBox.className = "darker";
-            else {
-                msgBox.className = "light";
-            }
+            var msgBox = document.createElement("div");
+            msgBox.className = "card";
+            var msgBoxHeader = document.createElement("div");
+            msgBoxTitle.className = "card-header";
+            var msgBoxBody = document.createElement("div");
+            msgBoxBody.className = "card-body";
+
+            var space = document.createElement("span");
             var nameBox = document.createElement("span");
-            nameBox.className = "name";
+            nameBox.className = "badge badge-primary";
             var timeBox = document.createElement("span")
-            timeBox.className = "time-right";
+            timeBox.className = "badge badge-secondary";
             var name = document.createTextNode(d.name);
 
             var time = document.createTextNode(new Date(d.time).toLocaleString());
@@ -226,14 +228,15 @@
             }, 50));
 
             nameBox.appendChild(name);
-            msgBox.appendChild(nameBox);
+            msgBoxHeader.appendChild(nameBox);
+            msgBoxHeader.innerHTML += "&nbsp";
             timeBox.appendChild(time);
-            msgBox.appendChild(timeBox);
-            msgBox.appendChild(msg);
+            msgBoxHeader.appendChild(timeBox);
+            msgBoxBody.appendChild(msg);
 
-
+            msgBox.appendChild(msgBoxHeader);
+            msgBox.appendChild(msgBoxBody);
             content.appendChild(msgBox);
-
 
             if (content.children.length > max_record) {
                 rmMsgFromBox();

@@ -20,11 +20,12 @@
 </head>
 
 <body>
-    <div class="container" id="container">
+    <div class="container-sm" id="container">
         <div class="row justify-content-md-center">
             <div class="col-md-auto">
                 <h3>
-                    <a class="badge badge-pill badge-danger" href="https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81">
+                    <a class="badge badge-pill badge-danger"
+                        href="https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81">
                         HKTRPG 擲骰工具及聊天室
                     </a>
                 </h3>
@@ -41,14 +42,16 @@
         </div>
         <div class="row justify-content-md-end">
             <div class="col-md-auto">
-                <div class="badge badge-warning" id="status-box">Server: <span id="status">-</span> / <span id="online">0</span> online.</div>
+                <div class="badge badge-warning" id="status-box">Server: <span id="status">-</span> / <span
+                        id="online">0</span> online.</div>
             </div>
         </div>
         <div class="row">
-            <div class="col-md-auto">
-                <div id="content">
-                </div>
+            <div class="container-sm border" id="content">
             </div>
+        </div>
+        <div class="row justify-content-md-center">
+            <div class="col-md-auto">&nbsp</div>
         </div>
         <div class="row justify-content-md-center">
             <div class="col-md-auto">
@@ -68,7 +71,9 @@
                 </form>
             </div>
         </div>
-        <div class="row justify-content-md-center"><div class="col-md-auto">&nbsp</div></div>
+        <div class="row justify-content-md-center">
+            <div class="col-md-auto">&nbsp</div>
+        </div>
         <div class="row justify-content-md-center">
             <div class="col-md-auto">
                 <form id="send-form">
@@ -211,7 +216,7 @@
             var msgBox = document.createElement("div");
             msgBox.className = "card";
             var msgBoxHeader = document.createElement("div");
-            msgBoxTitle.className = "card-header";
+            msgBoxHeader.className = "card-header";
             var msgBoxBody = document.createElement("div");
             msgBoxBody.className = "card-body";
 

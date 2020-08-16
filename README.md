@@ -14,7 +14,7 @@ https://discordapp.com/oauth2/authorize?&client_id=544462904037081138&scope=bot&
 Telegram版： </br>
 http://t.me/hktrpg_bot</br>
 網頁版：</br>
-https://www.hktrpg.com/tool/rollbot.html</br></br>
+https://rollbot.hktrpg.com/</br></br>
 簡易版網上擲骰工具 — 兩面 六面 十面 二十面 百面 自定</br>
 https://roll.hktrpg.com/</br></br>
 開發支援：</br> https://www.patreon.com/HKTRPG

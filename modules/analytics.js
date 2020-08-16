@@ -13,7 +13,7 @@ start();
 const messageTimethenUpload = 50;
 //50次 多少條訊息會上傳一次LOG
 const oneDay = 24 * 60 * 60 * 1000;
-//一日 多久會上傳一次LOG紀錄
+//一日 24 * 60 * 60 * 1000 多久會上傳一次LOG紀錄 
 const oneMinuts = 60000;
 //60000 多久可以升級及增加經驗
 const RollingLog = {
@@ -334,29 +334,29 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
 				exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP + await exports.rollbase.Dice(9) + 15;
 				exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].LastSpeakTime = Date.now();
 				exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].name = displaynameDiscord || displayname || '無名'
-				//5. 檢查現LEVEL 需不需要上升. =5 / 6 * LVL * (2 * LVL * LVL + 27 * LVL + 91)
-				if ((5 / 6 * (Number(exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level) + 1) * (2 * (Number(exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level) + 1) * (Number(exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level) + 1) + 27 * (Number(exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level) + 1) + 91)) <= exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP) {
-					//現EXP >於需求LV
-					//LVUP
-					exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level++;
 
-					//8. 更新MLAB資料
-					records.settrpgLevelSystemfunctionEXPup('trpgLevelSystem', exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID], exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction, () => {});
-					if (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Hidden == 1) {
-						//6. 需要 -> 檢查有沒有開啓通知
-						//console.log('levelup', result)
-						/*
-						result.LevelUp = await LevelUP(tempGPID, tempGPuserID).catch(error => {
-							console.log(error)
-						})
-						*/
-						return await LevelUP(userid, displayname, displaynameDiscord, membercount, tempGPID, tempGPuserID);
-						//console.log('result.LevelUp: ', result.LevelUp)
-					}
+			}
+			//5. 檢查現LEVEL 需不需要上升. =5 / 6 * LVL * (2 * LVL * LVL + 27 * LVL + 91)
+			if ((5 / 6 * (Number(exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level) + 1) * (2 * (Number(exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level) + 1) * (Number(exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level) + 1) + 27 * (Number(exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level) + 1) + 91)) <= exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP) {
+				//現EXP >於需求LV
+				//LVUP
+				await exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level++;
+
+				let a = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].EXP;
+				let b = exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction[tempGPuserID].Level;
+				//8. 更新MLAB資料
+				await records.maxtrpgLevelSystemfunctionEXPup('trpgLevelSystem', userid, a, b, exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID], exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].trpgLevelSystemfunction, () => {});
+				if (exports.z_Level_system.initialize().trpgLevelSystemfunction[tempGPID].Hidden == 1) {
+					//6. 需要 -> 檢查有沒有開啓通知
+					//console.log('levelup', result)
+					/*
+					result.LevelUp = await LevelUP(tempGPID, tempGPuserID).catch(error => {
+						console.log(error)
+					})
+					*/
+					return await LevelUP(userid, displayname, displaynameDiscord, membercount, tempGPID, tempGPuserID);
+					//console.log('result.LevelUp: ', result.LevelUp)
 				}
-
-
-
 			}
 		}
 

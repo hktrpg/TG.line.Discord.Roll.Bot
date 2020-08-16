@@ -44,12 +44,11 @@
         <div class="row justify-content-md-center">
             <div class="col-md-auto">&nbsp</div>
         </div>
-        <div class="row w-100 h-50 d-inline-block overflow-auto">
-            <div class=" border">
-                <div class="container h-100" id="content">
+        <div class="row w-100 h-50 d-inline-block overflow-auto"  id="container-content">
+            <div class="col-md-auto">
+                <div class="container border h-100" id="content">
                 </div>
             </div>
-
         </div>
         <div class="row justify-content-md-center">
             <div class="col-md-auto">&nbsp</div>
@@ -75,8 +74,7 @@
         <div class="row justify-content-md-center">
             <div class="col-md-auto">
                 <form id="send-form">
-                    <div class="input-group">
-
+                    <div class="input-group text-center">
                         <input type="text" name="msg" id="msg" value="1d100" placeholder="說點什麼？" maxlength="1000">
                         <div class="input-group-append">
                             <input type="submit" class="btn btn-primary" id="submit" value="送出" onclick="genName()">
@@ -88,11 +86,11 @@
         </div>
         <div class="row justify-content-md-center">
             <div class="col-md-auto">
-                <h5>
+                <h6>
                     <span class="badge badge-info">
-                        每間房間上限100條信息 輸入名字可以進入自定的房間
+                        每間房間上限100條信息</br>輸入名字可以進入自定的房間
                     </span>
-                </h5>
+                </h6>
             </div>
         </div>
     </div>
@@ -116,10 +114,9 @@
             document.getElementById("name").value = "調查員" + Math.floor(Math.random() * 1000) + 1;;
     }
 
-    function aa() {
-        var content = document.getElementById("content");
+    function scorllToBottom() {
+        var content = document.getElementById("container-content");
         content.scrollTop = content.scrollHeight;
-
     }
     document.addEventListener("DOMContentLoaded", () => {
         var roomNumber = "公共房間"
@@ -132,6 +129,7 @@
         var sendForm = document.getElementById("send-form");
         var content = document.getElementById("content");
         var nameInputBox = document.getElementById("name");
+        var msgInputBox = document.getElementById("msg");
         var name = getCookie("name");
 
         if (name) {
@@ -189,35 +187,18 @@
 
 
         sendForm.addEventListener("submit", function (e) {
-            console.log('a')
             e.preventDefault();
-            var ok = true;
+            if (!msgInputBox) return;
             var formData = {
                 time: new Date(Date.now())
             };
-            var formChild = sendForm.children;
-            console.log('formChild', formChild)
-            for (var i = 0; i < sendForm.childElementCount; i++) {
-                var child = formChild[i];
-                console.log('child.name ', child.name)
-                if (child.name !== "") {
-                    var val = child.value;
-                    if (val === "" || !val) {
-                        ok = false;
-                        child.classList.add("error");
-                    } else {
-                        child.classList.remove("error");
-                        formData[child.name] = val;
-                    }
-                }
-            }
-            if (ok) {
-                formData.name = nameInputBox.value;
-                formData.roomNumber = roomNumber;
-                console.log(formData)
-                socket.emit("send", formData);
-                setCookie("name", nameInputBox.value);
-            }
+            formData.msg = msgInputBox.value;
+            formData.name = nameInputBox.value;
+            formData.roomNumber = roomNumber;
+            console.log(formData)
+            socket.emit("send", formData);
+            setCookie("name", nameInputBox.value);
+
         });
 
 
@@ -239,8 +220,9 @@
 
             var time = document.createTextNode(new Date(d.time).toLocaleString());
             var msg = document.createTextNode(d.msg, setTimeout(function () {
-                aa();
+                scorllToBottom();
             }, 50));
+
 
             nameBox.appendChild(name);
             msgBoxHeader.appendChild(nameBox);

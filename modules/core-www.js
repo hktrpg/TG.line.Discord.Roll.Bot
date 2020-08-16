@@ -20,7 +20,11 @@ let onlineCount = 0;
 
 www.get('/', (req, res) => {
     //  console.log('req: ', req, 'res: ', res)
-    res.sendFile(__dirname + '/views/index.html');
+    res.sendFile(process.cwd() + '/views/index.html');
+});
+
+www.get('/assets/icon/:id', (req, res) => {
+    res.sendFile(process.cwd() + '/assets/icon/' + req.originalUrl.replace('/assets/icon/', ''));
 });
 
 io.on('connection', (socket) => {
@@ -52,7 +56,6 @@ io.on('connection', (socket) => {
         // 如果 msg 內容鍵值小於 2 等於是訊息傳送不完全
         // 因此我們直接 return ，終止函式執行。
         if (!msg) return;
-        console.log(msg)
         var roomNumber = msg || "公共房間";
         records.chatRoomGet(roomNumber, (msgs) => {
             socket.emit("chatRecord", msgs);

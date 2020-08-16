@@ -24,36 +24,27 @@
         <div class="row justify-content-md-center">
             <div class="col-md-auto">
                 <h3><button type="button" class="btn btn-default" aria-label="Left Align">
-                    <span class="glyphicon glyphicon-align-left" aria-hidden="true"></span>
-                  </button><span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+                        <span class="glyphicon glyphicon-align-left" aria-hidden="true"></span>
+                    </button><span class="glyphicon glyphicon-search" aria-hidden="true"></span>
                     <a class="badge badge-pill badge-danger"
                         href="https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81">
-                        HKTRPG 擲骰工具及聊天室
+                        HKTRPG <img src="/assets/icon/dice-6.svg" width="32" height="32">
+                        <img src="/assets/icon/chat-square-text.svg" width="32" height="32">
                     </a>
                 </h3>
             </div>
         </div>
-        <div class="row justify-content-md-center">
-            <div class="col-md-auto">
-                <h4>
-                    <span class="badge badge-info">
-                        每間房間上限100條信息 輸入名字可以進入自定的房間
-                    </span>
-                </h4>
-            </div>
-        </div>
-        <div class="row justify-content-md-end">
-            <div class="col-md-auto">
-                <div class="badge badge-warning" id="status-box">Server: <span id="status">-</span> / <span
-                        id="online">0</span> online.</div>
-            </div>
+        <div class="row justify-content-md-end float-right">
+            <div class="input-group-text" id="status-box"> <img src="/assets/icon/house-door-fill.svg" width="32"
+                    height="32"> <span id="room">公共房間</span></div>
+            <div class="badge badge-warning" id="status-box"> <img src="/assets/icon/people.svg" width="32" height="32">
+                x <span id="online">0</span> online.</div>
         </div>
         <div class="row justify-content-md-center">
             <div class="col-md-auto">&nbsp</div>
         </div>
         <div class="row w-100 h-50 d-inline-block overflow-auto">
             <div class="container border h-100" id="content">
-
             </div>
         </div>
         <div class="row justify-content-md-center">
@@ -63,11 +54,10 @@
             <div class="col-md-auto">
                 <form id="changeRoomNumber-form">
                     <div class="input-group">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text">現在房間:</span>
-                            <span class="input-group-text" id="room">公共房間</span>
-                        </div>
-                        &nbsp&nbsp&nbsp&nbsp&nbsp
+                        <img src="/assets/icon/person-fill.svg" width="32" height="32">
+                        <input type="text" class="form-control" name="name" id="name" value="" placeholder="暱稱"
+                            maxlength="50">
+                        <img src="/assets/icon/house-door.svg" width="32" height="32">
                         <input type="text" class="form-control" name="roomNumber" id="roomNumber" value="公共房間"
                             placeholder="房間名稱" maxlength="50">
                         <div class="input-group-append">
@@ -77,23 +67,28 @@
                 </form>
             </div>
         </div>
-        <div class="row justify-content-md-center">
-            <div class="col-md-auto">&nbsp</div>
-        </div>
+
         <div class="row justify-content-md-center">
             <div class="col-md-auto">
                 <form id="send-form">
                     <div class="input-group">
-                        <div class="input-group-prepend">
-                            <input type="text" name="name" id="name" value="" placeholder="暱稱" maxlength="50">
-                        </div>
+
                         <input type="text" name="msg" id="msg" value="1d100" placeholder="說點什麼？" maxlength="1000">
                         <div class="input-group-append">
                             <input type="submit" class="btn btn-primary" id="submit" value="送出" onclick="genName()">
-                            <span class="input-group-text">輸入Bothelp 顯示教學</span>
+
                         </div>
                     </div>
                 </form>
+            </div>
+        </div>
+        <div class="row justify-content-md-center">
+            <div class="col-md-auto">
+                <h5>
+                    <span class="badge badge-info">
+                        每間房間上限100條信息 輸入名字可以進入自定的房間
+                    </span>
+                </h5>
             </div>
         </div>
     </div>
@@ -125,7 +120,7 @@
     document.addEventListener("DOMContentLoaded", () => {
         var roomNumber = "公共房間"
         var max_record = 100;
-        var status = document.getElementById("status");
+        //  var status = document.getElementById("status");
         var online = document.getElementById("online");
         var room = document.getElementById("room");
         var roomText = document.getElementById("roomNumber");
@@ -138,15 +133,15 @@
         if (name) {
             nameInputBox.value = name;
         }
+        /*
+                socket.on("connect", function () {
+                    status.innerText = "Connected.";
+                });
 
-        socket.on("connect", function () {
-            status.innerText = "Connected.";
-        });
-
-        socket.on("disconnect", function () {
-            status.innerText = "Disconnected.";
-        });
-
+                socket.on("disconnect", function () {
+                    status.innerText = "Disconnected.";
+                });
+        */
         socket.on("online", function (amount) {
             online.innerText = amount;
         });
@@ -190,14 +185,17 @@
 
 
         sendForm.addEventListener("submit", function (e) {
+            console.log('a')
             e.preventDefault();
             var ok = true;
             var formData = {
                 time: new Date(Date.now())
             };
             var formChild = sendForm.children;
+            console.log('formChild', formChild)
             for (var i = 0; i < sendForm.childElementCount; i++) {
                 var child = formChild[i];
+                console.log('child.name ', child.name)
                 if (child.name !== "") {
                     var val = child.value;
                     if (val === "" || !val) {
@@ -210,7 +208,9 @@
                 }
             }
             if (ok) {
+                formData.name = nameInputBox.value;
                 formData.roomNumber = roomNumber;
+                console.log(formData)
                 socket.emit("send", formData);
                 setCookie("name", nameInputBox.value);
             }

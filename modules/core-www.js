@@ -20,7 +20,11 @@ let onlineCount = 0;
 
 www.get('/', (req, res) => {
     //  console.log('req: ', req, 'res: ', res)
-    res.sendFile(__dirname + '/views/index.html');
+    res.sendFile(process.cwd() + '/views/index.html');
+});
+
+www.get('/assets/icon/:id', (req, res) => {
+    res.sendFile(process.cwd() + '/assets/icon/' + req.originalUrl.replace('/assets/icon/', ''));
 });
 
 io.on('connection', (socket) => {

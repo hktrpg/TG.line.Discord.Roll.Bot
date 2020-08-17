@@ -48,21 +48,14 @@ var initialize = function () {
   return variables;
 }
 
-const rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+const rollDiceCommand = async function (inputStr, mainMsg) {
   let rply = {
     default: 'on',
     type: 'text',
     text: ''
   };
-  //let result = {};
-  try {
-    rply.text = await nomalDiceRoller(mainMsg[0], mainMsg[1], mainMsg[2])
-    return rply;
-  } catch (error) {
-    console.log('nomalDiceRoller error: ', error)
-    return;
-  }
-
+  rply.text = await nomalDiceRoller(mainMsg[0], mainMsg[1], mainMsg[2])
+  return rply;
 }
 
 

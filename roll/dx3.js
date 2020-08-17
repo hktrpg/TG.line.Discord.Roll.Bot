@@ -78,9 +78,10 @@ module.exports = {
 //Dx3 指令開始於此
 //	if (trigger.match(/^(\d+)(dx)(\d|)(((\+|-)(\d+)|)((\+|-)(\d+)|))$/i) != null) return exports.dx3.dx(trigger);
 
-////////////////////////////////////////
-//////////////// DX3
-////////////////////////////////////////
+/**
+ * 自己寫的DX指令, 已放棄, 轉用凍豆版
+ * @param {指令} triggermsg 
+ */
 function dx(triggermsg) {
 	//var varcou = 0;
 	var finallynum = 0;

@@ -2,11 +2,6 @@
 if (!process.env.WHATSAPP_SWITCH) {
 	return;
 }
-const {
-	Random,
-	nodeCrypto
-} = require("random-js");
-const random = new Random(nodeCrypto);
 const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
 		\n輸入 1D100 可以進行最簡單的擲骰.\
 		\n輸入 Bothelp 觀看詳細使用說明.\
@@ -51,7 +46,6 @@ hasQuotedMsg:false
 	*/
 client.on('message', async msg => {
 	if (msg.body && !msg.fromMe && !msg.isForwarded) {
-		let CAPTCHA = random.string(20);
 		var groupid, userid, displayname, channelid, membercount, channelKeyword = '';
 		//得到暗骰的數據, GM的位置
 		let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
@@ -109,15 +103,10 @@ client.on('message', async msg => {
 			rplyVal = await exports.analytics.parseInput(msg.body, groupid, userid, userrole, "Whatsapp", displayname, channelid, "", membercount);
 		} else {
 			if (channelKeyword == '') {
-				rplyVal = await exports.analytics.parseInput(msg.body, groupid, userid, userrole, "Whatsapp", displayname, channelid, "", membercount, CAPTCHA);
+				rplyVal = await exports.analytics.parseInput(msg.body, groupid, userid, userrole, "Whatsapp", displayname, channelid, "", membercount);
 			}
 		}
 		//LevelUp功能
-
-		if (CAPTCHA != rplyVal.CAPTCHA) {
-			console.log('Whatsapp CAPTCHA false', CAPTCHA, ' &&', rplyVal.CAPTCHA, 'text: ', msg.body, 'rplyVal: ', rplyVal);
-			return;
-		}
 		if (groupid && rplyVal && rplyVal.LevelUp) {
 			//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
 			client.sendMessage(msg.from, "@" + displayname + '\n' + rplyVal.LevelUp);

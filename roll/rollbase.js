@@ -48,7 +48,7 @@ var initialize = function () {
   return variables;
 }
 
-const rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+const rollDiceCommand = async function (inputStr, mainMsg) {
   let rply = {
     default: 'on',
     type: 'text',
@@ -67,9 +67,11 @@ const rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, user
 
 
 
-// //////////////////////////////////////
-// ////////////// 擲骰子運算
-// //////////////////////////////////////
+/**
+ * 擲骰子運算
+ * @param {純數字, 10即骰出1D100} diceSided 
+ */
+
 var Dice = async function (diceSided) {
   let result = '';
   //result = math.floor((math.random() * diceSided) + 1)
@@ -208,9 +210,13 @@ var BuildRollDice = async function (inputStr) {
   finalStr = finalStr.substring(0, finalStr.length - 1) + ')'
   return finalStr
 }
-// //////////////////////////////////////
-// ////////////// 普通ROLL
-// //////////////////////////////////////
+
+/**
+ * 普通ROLL
+ * @param {1D100 || 5} text0 
+ * @param {文字描述 || 1D100} text1 
+ * @param {文字描述} text2 
+ */
 var nomalDiceRoller = async function (text0, text1, text2) {
   // 首先判斷是否是誤啟動（檢查是否有符合骰子格式）
   // if (inputStr.toLowerCase().match(/\d+d\d+/) == null) return undefined

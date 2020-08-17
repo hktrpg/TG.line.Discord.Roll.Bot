@@ -87,7 +87,12 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             try {
                 doc = await schema.veryImportantPerson.updateOne({
                     gpid: filter.gpid
-                }, filter, opt)
+                }, {
+                    $set: filter,
+                    $setOnInsert: {
+                        startDate: new Date()
+                    }
+                }, opt)
                 if (doc) {
                     await VIP.renew();
                     rply.text = "更新成功";
@@ -107,9 +112,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 doc = await schema.veryImportantPerson.updateOne({
                     id: filter.id
                 }, {
-                    $set: {
-                        filter
-                    },
+                    $set: filter,
                     $setOnInsert: {
                         startDate: new Date()
                     }

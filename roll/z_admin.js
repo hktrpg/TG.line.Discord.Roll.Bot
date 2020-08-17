@@ -99,7 +99,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 }
                 //.admin addVipGroup -i  ID -l LV -n NAME -no NOTES -s SWITCH
             } catch (error) {
-                console.log('新增VIP失敗: ', error)
+                console.log('新增VIP GET ERROR: ', error)
                 rply.text = '新增VIP失敗\n因為 ' + error.message
             }
             return rply;
@@ -123,7 +123,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 }
                 //.admin addVipGroup -i  ID -l LV -n NAME -no NOTES -s SWITCH
             } catch (error) {
-                console.log('新增VIP失敗: ', error)
+                console.log('新增VIP GET ERROR: ', error)
                 rply.text = '新增VIP失敗\n因為 ' + error.message
             }
             return rply;

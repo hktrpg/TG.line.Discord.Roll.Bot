@@ -54,15 +54,8 @@ const rollDiceCommand = async function (inputStr, mainMsg) {
     type: 'text',
     text: ''
   };
-  //let result = {};
-  try {
-    rply.text = await nomalDiceRoller(mainMsg[0], mainMsg[1], mainMsg[2])
-    return rply;
-  } catch (error) {
-    console.log('nomalDiceRoller error: ', error)
-    return;
-  }
-
+  rply.text = await nomalDiceRoller(mainMsg[0], mainMsg[1], mainMsg[2])
+  return rply;
 }
 
 

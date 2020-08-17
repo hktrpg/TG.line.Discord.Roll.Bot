@@ -261,10 +261,9 @@ client.on('message', async (message) => {
 				try {
 					//V12ERROR return await client.users.get(targetid).send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 					client.users.cache.get(targetid).send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
-
 				}
 			catch (e) {
-				console.log('error SendtoID: ', e.message)
+				console.log(' GET ERROR:  SendtoID: ', e.message)
 			}
 		}
 
@@ -275,10 +274,9 @@ client.on('message', async (message) => {
 			if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
 				try {
 					await message.author.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
-
 				}
 			catch (e) {
-				console.log('error SendToReply: ', e.message)
+				console.log(' GET ERROR:  SendToReply: ', e.message)
 			}
 		}
 	}
@@ -289,7 +287,7 @@ client.on('message', async (message) => {
 					await message.channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 				}
 			catch (e) {
-				console.log('error SendToReplychannel: ', e.message);
+				console.log(' GET ERROR: SendToReplychannel: ', e.message);
 			}
 		}
 	}

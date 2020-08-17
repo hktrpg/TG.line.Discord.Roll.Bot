@@ -9,6 +9,7 @@ const start = async () => {
 		}
 	})
 }
+var debugMode = false;
 start();
 const messageTimethenUpload = 50;
 //50次 多少條訊息會上傳一次LOG
@@ -85,7 +86,6 @@ var parseInput = async function (inputStr, groupid, userid, userrole, botname, d
 	if (groupid) {
 		let tempEXPUP = await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount);
 		if (tempEXPUP) {
-			console.log('tempEXPUP: ', tempEXPUP);
 			result.LevelUp = tempEXPUP;
 		}
 	}
@@ -97,7 +97,16 @@ var parseInput = async function (inputStr, groupid, userid, userrole, botname, d
 	if (!inputStr) return result;
 
 	//rolldice
-	let rollDiceResult = await rolldice(inputStr, groupid, userid, userrole, mainMsg, botname, displayname, channelid, displaynameDiscord, membercount)
+	let rollDiceResult = {};
+	try {
+		rollDiceResult = await rolldice(inputStr, groupid, userid, userrole, mainMsg, botname, displayname, channelid, displaynameDiscord, membercount)
+
+	} catch (error) {
+		console.log('rolldice GET ERROR:', error);
+		console.log('inputStr: ', inputStr);
+		console.log('botname: ', botname);
+		console.log('Time: ', new Date());
+	}
 	if (rollDiceResult) {
 		result = await JSON.parse(JSON.stringify(Object.assign({}, result, rollDiceResult)));
 	} else {
@@ -135,23 +144,23 @@ async function courtMessage(result, botname, inputStr) {
 		if (simpleCourt != null) {
 			switch (botname) {
 				case "Discord":
-					console.log('Discord \'s inputStr: ', inputStr);
+					(debugMode) ? console.log('Discord \'s inputStr: ', inputStr): '';
 					RollingLog.RealTimeRollingLogfunction.DiscordCountRoll++;
 					break;
 				case "Line":
-					console.log('   Line \'s inputStr: ', inputStr);
+					(debugMode) ? console.log('   Line \'s inputStr: ', inputStr): '';
 					RollingLog.RealTimeRollingLogfunction.LineCountRoll++;
 					break;
 				case "Telegram":
-					console.log('Telegram\'s inputStr: ', inputStr);
+					(debugMode) ? console.log('Telegram\'s inputStr: ', inputStr): '';
 					RollingLog.RealTimeRollingLogfunction.TelegramCountRoll++;
 					break;
 				case "Whatsapp":
-					console.log('Whatsapp\'s inputStr: ', inputStr);
+					(debugMode) ? console.log('Whatsapp\'s inputStr: ', inputStr): '';
 					RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll++;
 					break;
 				case "www":
-					console.log('     WWW\'s inputStr: ', inputStr);
+					(debugMode) ? console.log('     WWW\'s inputStr: ', inputStr): '';
 					RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll++;
 					break;
 				default:
@@ -204,11 +213,21 @@ async function cmdfunction(inputStr, groupid, userid, userrole, mainMsg, trigger
 	//console.log('inputStr2: ', inputStr)
 	result.text = "";
 	//檢查是不是要停止
-	let tempResut = await rolldice(inputStr, groupid, userid, userrole, mainMsg, botname, displayname, channelid, displaynameDiscord, membercount)
+	let tempResut = {};
+	try {
+		tempResut = await rolldice(inputStr, groupid, userid, userrole, mainMsg, botname, displayname, channelid, displaynameDiscord, membercount)
+	} catch (error) {
+		console.log('rolldice GET ERROR:', error);
+		console.log('inputStr: ', inputStr);
+		console.log('botname: ', botname);
+		console.log('Time: ', new Date());
+	}
+
 	if (typeof tempResut === 'object' && tempResut !== null) {
 		return tempResut;
 	}
-	console.log('inputStr2: ', inputStr);
+
+	(debugMode) ? console.log('inputStr2: ', inputStr): '';
 }
 
 
@@ -422,7 +441,7 @@ async function z_stop(mainMsg, groupid) {
 	if (exports.z_stop.initialize() && exports.z_stop.initialize().save && exports.z_stop.initialize().save[0] && exports.z_stop.initialize().save[0].blockfunction && exports.z_stop.initialize().save[0].blockfunction.length > 0 && mainMsg && mainMsg[0]) {
 		for (let i = 0; i < exports.z_stop.initialize().save.length; i++) {
 			if ((new RegExp(exports.z_stop.initialize().save[i].blockfunction.join("|"), "i")).test(mainMsg[0]) && exports.z_stop.initialize().save[i].groupid == groupid && exports.z_stop.initialize().save[i].blockfunction.length > 0) {
-				console.log('Match AND STOP');
+				(debugMode) ? console.log('Match AND STOP'): '';
 				return 1;
 			}
 		}
@@ -471,7 +490,7 @@ var rolldice = async function (inputStr, groupid, userid, userrole, mainMsg, bot
 	if (!findTarget) {
 		return null;
 	} else {
-		console.log('            trigger: ', inputStr);
+		(debugMode) ? console.log('            trigger: ', inputStr): '';
 		let tempsave = await findTarget.rollDiceCommand(inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount);
 		//console.log('tempsave: ', tempsave)
 		return tempsave;

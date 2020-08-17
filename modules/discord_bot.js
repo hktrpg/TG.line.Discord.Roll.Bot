@@ -4,11 +4,6 @@ const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const Discord = require('discord.js');
 const client = new Discord.Client();
-const {
-	Random,
-	nodeCrypto
-} = require("random-js");
-const random = new Random(nodeCrypto);
 //const BootTime = new Date(new Date().toLocaleString("en-US", {
 //	timeZone: "Asia/Shanghai"
 //}));
@@ -120,7 +115,6 @@ client.on('message', async (message) => {
 		}
 		return null;
 	}
-	let CAPTCHA = random.string(20);
 	let rplyVal = {};
 	let trigger = "";
 	let msgSplitor = (/\S+/ig);
@@ -153,20 +147,16 @@ client.on('message', async (message) => {
 
 	if (channelKeyword != "" && trigger == channelKeyword.toString().toLowerCase()) {
 		//mainMsg.shift();
-		rplyVal = await exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount, CAPTCHA);
+		rplyVal = await exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount);
 	} else {
 		if (channelKeyword == "") {
-			rplyVal = await exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount, CAPTCHA);
+			rplyVal = await exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount);
 		}
 	}
 	if (!rplyVal.text && !rplyVal.LevelUp) {
 		return;
 	}
 	if (!hasSendPermission) {
-		return;
-	}
-	if (CAPTCHA != rplyVal.CAPTCHA) {
-		console.log('Discord CAPTCHA false', CAPTCHA, ' &&', rplyVal.CAPTCHA, "TEXT", message.content, 'rplyVal: ', rplyVal);
 		return;
 	}
 	if (groupid && rplyVal && rplyVal.LevelUp) {

@@ -191,7 +191,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             try {
                 doc = await schema.characterCard.find(filter);
             } catch (error) {
-                console.log(error);
+                console.log('char  show GET ERROR: ', error);
             }
             for (let index = 0; index < doc.length; index++) {
                 rply.text += index + ': ' + doc[index].name + '　\n';
@@ -236,7 +236,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 await schema.characterCard.updateOne(filter,
                     Card, opt);
             } catch (error) {
-                console.log('新增角色卡失敗: ', error)
+                console.log('新增角色卡 GET ERROR: ', error)
                 rply.text = '新增角色卡失敗\n因為 ' + error.message
                 return rply;
             }
@@ -277,7 +277,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 await schema.characterCard.updateOne(filter,
                     Card);
             } catch (error) {
-                console.log('修改角色卡失敗: ', error)
+                console.log('修改角色卡 GET ERROR:  ', error)
                 rply.text = '修改角色卡失敗\n因為 ' + error.message
                 return rply;
             }
@@ -311,7 +311,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                     cardId: doc._id
                 }, opt);
             } catch (error) {
-                console.log('ERROR 修改失敗' + error)
+                console.log('GET ERROR 修改失敗' + error)
                 rply.text = '修改失敗\n' + error;
                 return rply;
             }
@@ -332,7 +332,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                     cardId: ''
                 }, opt);
             } catch (error) {
-                console.log('ERROR 修改失敗' + error)
+                console.log('GET ERROR 修改失敗' + error)
                 rply.text = '修改失敗\n' + error;
                 return rply;
             }
@@ -357,7 +357,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 await schema.characterCard.findOneAndRemove(filter);
                 await schema.characterGpSwitch.deleteMany(filterRemove);
             } catch (error) {
-                console.log('刪除角色卡失敗: ', error)
+                console.log('刪除角色卡 GET ERROR:  ', error)
                 rply.text = '刪除角色卡失敗'
                 return rply;
             }
@@ -431,7 +431,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 } catch (error) {
                     console.log('doc ', doc)
                     console.log('inputSTR: ', inputStr)
-                    console.log('doc SAVE error:', error)
+                    console.log('doc SAVE  GET ERROR:', error)
                     console.log('更新角色卡失敗: ', error)
                     rply.text = '更新角色卡失敗'
                     return rply;
@@ -621,7 +621,7 @@ async function mainCharacter(doc, mainMsg) {
                 await doc.save();
             } catch (error) {
                 console.log('doc ', doc)
-                console.log('doc SAVE error:', error)
+                console.log('doc SAVE GET ERROR:', error)
             }
 
             if (findNotes.length > 0) {

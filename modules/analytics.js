@@ -11,12 +11,13 @@ const start = async () => {
 }
 var debugMode = false;
 start();
+const moment = require("moment")
 const messageTimethenUpload = 50;
 //50次 多少條訊息會上傳一次LOG
-const oneDay = 24 * 60 * 60 * 1000;
-//一日 24 * 60 * 60 * 1000 多久會上傳一次LOG紀錄 
+const oneHour = 1 * 60 * 60 * 1000;
+//每一小時 24 * 60 * 60 * 1000 多久會上傳一次LOG紀錄 
 const oneMinuts = 60000;
-//60000 多久可以升級及增加經驗
+//60000 一分鐘多久可以升級及增加經驗
 const RollingLog = {
 	RealTimeRollingLogfunction: {
 		LastTimeLog: "",
@@ -92,7 +93,9 @@ var parseInput = async function (inputStr, groupid, userid, userrole, botname, d
 
 
 	//檢查是不是要停止  z_stop功能
-	stopmark = await z_stop(mainMsg, groupid);
+	if (groupid) {
+		stopmark = await z_stop(mainMsg, groupid);
+	}
 	if (stopmark == 1) return result;
 	if (!inputStr) return result;
 
@@ -159,9 +162,9 @@ async function courtMessage(result, botname, inputStr) {
 					(debugMode) ? console.log('Whatsapp\'s inputStr: ', inputStr): '';
 					RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll++;
 					break;
-				case "www":
+				case "WWW":
 					(debugMode) ? console.log('     WWW\'s inputStr: ', inputStr): '';
-					RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll++;
+					RollingLog.RealTimeRollingLogfunction.WWWCountRoll++;
 					break;
 				default:
 					break;
@@ -175,6 +178,7 @@ async function courtMessage(result, botname, inputStr) {
 		return result;
 	} else {
 		if (simpleCourt != null) {
+
 			switch (botname) {
 				case "Discord":
 					RollingLog.RealTimeRollingLogfunction.DiscordCountText++;
@@ -244,12 +248,19 @@ async function saveLog() {
 		})
 	}
 
-	if (!RollingLog.RealTimeRollingLogfunction.LastTimeLog || Date.now() - RollingLog.RealTimeRollingLogfunction.LastTimeLog >= (oneDay)) {
+	if (!RollingLog.RealTimeRollingLogfunction.LastTimeLog || Date.now() - RollingLog.RealTimeRollingLogfunction.LastTimeLog >= (oneHour)) {
 		RollingLog.RealTimeRollingLogfunction.LastTimeLog = Date.now();
 		//上傳中途紀錄MLAB
 		//RollingLogfunction
+
+		// start today
+		let start = moment().startOf('day');
+		// end today
+		let end = moment(start).endOf('day');
 		//PUSH 推送
 		let temp = {
+			start: start,
+			end: end,
 			LogTime: Date(Date.now()).toLocaleString("en-US", {
 				timeZone: "Asia/HongKong"
 			}),
@@ -264,12 +275,13 @@ async function saveLog() {
 			WhatsappCountRoll: RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll,
 			WhatsappCountText: RollingLog.RealTimeRollingLogfunction.WhatsappCountText
 		};
-		records.pushtrpgSaveLogfunction('RollingLog', temp, () => {
+		records.maxTrpgSaveLogfunction('RollingLog', temp, () => {
 			//console.log('SAVE LOG')
+
 		})
 	}
 	//每50次上傳即時紀錄到MLAB
-	if (!RollingLog.RealTimeRollingLogfunction.LastTimeLog || Date.now() - RollingLog.RealTimeRollingLogfunction.LastTimeLog >= (oneDay) || simpleCourt % messageTimethenUpload == 0 || simpleCourt == 1) {
+	if (!RollingLog.RealTimeRollingLogfunction.LastTimeLog || Date.now() - RollingLog.RealTimeRollingLogfunction.LastTimeLog >= (oneHour) || simpleCourt % messageTimethenUpload == 0 || simpleCourt == 1) {
 		//simpleCourt % 50 == 0 || simpleCourt == 1
 		//MLAB
 		//RealTimeRollingLogfunction

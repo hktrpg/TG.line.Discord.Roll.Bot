@@ -4,7 +4,6 @@ const {
     EventEmitter
 } = require("events");
 const schema = require('./core-schema.js');
-
 let instance;
 let MAX = 100;
 const Message = schema.chatRoom;
@@ -613,26 +612,57 @@ class Records extends EventEmitter {
             // return JSON.stringify(doc).toString();
         });
     }
-    pushtrpgSaveLogfunction(dbbase, msg, callback) {
-        new schema[dbbase]({
-            RollingLogfunction: msg
-        }).save(function (err) {
-            if (err) return console.error(err);
-            else {
-                callback();
-            }
-        });
+
+    maxTrpgSaveLogfunction(dbbase, msg, callback) {
+        schema[dbbase].findOneAndUpdate({
+                "RollingLogfunction.LogTime": {
+                    '$gte': msg.start,
+                    '$lte': msg.end
+                }
+            }, {
+                $set: {
+                    "RollingLogfunction.LogTime": msg.LogTime,
+                },
+                $max: {
+                    //大於則更新
+                    "RollingLogfunction.DiscordCountRoll": msg.DiscordCountRoll,
+                    "RollingLogfunction.DiscordCountText": msg.DiscordCountText,
+                    "RollingLogfunction.LineCountRoll": msg.LineCountRoll,
+                    "RollingLogfunction.LineCountText": msg.LineCountText,
+                    "RollingLogfunction.TelegramCountRoll": msg.TelegramCountRoll,
+                    "RollingLogfunction.TelegramCountText": msg.TelegramCountText,
+                    "RollingLogfunction.WhatsappCountRoll": msg.WhatsappCountRoll,
+                    "RollingLogfunction.WhatsappCountText": msg.WhatsappCountText,
+                    "RollingLogfunction.WWWCountRoll": msg.WWWCountRoll,
+                    "RollingLogfunction.WWWCountText": msg.WWWCountText
+                    //中途紀錄資料 使用PUSH 每天紀錄一次
+                    // RollingLogfunction: msg,
+                    //擲骰的結果紀錄
+                    //Sided: msg
+                }
+            }, {
+                upsert: true
+                //   setDefaultsOnInsert: true
+            },
+            (err, doc) => {
+                if (err) {
+                    console.log(err);
+                    console.log("Something wrong when updating data!");
+                } else {
+                    callback();
+                    // console.log('DONE?')
+                }
+                // return JSON.stringify(doc).toString();
+            });
     }
+
 
     //chatRoomWWW Record
 
     async chatRoomPush(msg) {
         const m = new Message(msg);
-
         await m.save();
-
         this.emit("new_message", msg);
-
         let count = await Message.countDocuments({
             'roomNumber': msg.roomNumber
         });
@@ -649,6 +679,7 @@ class Records extends EventEmitter {
         }).sort({
             'time': 1,
         })
+        if (!d[over - 1]) return;
         await Message.deleteMany({
             'roomNumber': msg.roomNumber,
             time: {
@@ -656,11 +687,6 @@ class Records extends EventEmitter {
             }
 
         })
-
-
-
-
-
     }
 
     chatRoomGet(roomNumber, callback) {

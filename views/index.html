@@ -105,11 +105,10 @@
     gtag('js', new Date());
     gtag('config', 'UA-111430056-7');
     var socket = io();
-
     var color = 3;
 
     function genName() {
-        if (document.getElementById("name").value == "")
+        if (!document.getElementById("name").value)
             document.getElementById("name").value = "調查員" + Math.floor(Math.random() * 1000) + 1;;
     }
 
@@ -129,10 +128,12 @@
         var content = document.getElementById("content");
         var nameInputBox = document.getElementById("name");
         var msgInputBox = document.getElementById("msg");
-        var name = getCookie("name");
+        var name = getLocalStorage("name");
 
         if (name) {
             nameInputBox.value = name;
+        } else {
+            genName()
         }
         /*
                 socket.on("connect", function () {
@@ -195,7 +196,8 @@
             formData.name = nameInputBox.value;
             formData.roomNumber = roomNumber;
             socket.emit("send", formData);
-            setCookie("name", nameInputBox.value);
+            setLocalStorage("name", nameInputBox.value);
+            console.log('nameInputBox', nameInputBox)
 
         });
 
@@ -243,27 +245,12 @@
             childs[0].remove();
         }
 
-        function setCookie(cname, cvalue, exdays) {
-            var d = new Date();
-            d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
-            var expires = "expires=" + d.toUTCString();
-            document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+        function setLocalStorage(cname, cvalue) {
+            localStorage.setItem(cname, cvalue);
         }
 
-
-        function getCookie(cname) {
-            var name = cname + "=";
-            var ca = document.cookie.split(';');
-            for (var i = 0; i < ca.length; i++) {
-                var c = ca[i];
-                while (c.charAt(0) == ' ') {
-                    c = c.substring(1);
-                }
-                if (c.indexOf(name) == 0) {
-                    return c.substring(name.length, c.length);
-                }
-            }
-            return "";
+        function getLocalStorage(cname) {
+            return localStorage.getItem(cname) || null;
         }
     });
 </script>

@@ -4,7 +4,6 @@ const {
     EventEmitter
 } = require("events");
 const schema = require('./core-schema.js');
-const moment = require("monent")
 let instance;
 let MAX = 100;
 const Message = schema.chatRoom;
@@ -615,14 +614,10 @@ class Records extends EventEmitter {
     }
 
     maxTrpgSaveLogfunction(dbbase, msg, callback) {
-        // start today
-        let start = moment().startOf('day');
-        // end today
-        let end = moment(start).endOf('day');
         schema[dbbase].findOneAndUpdate({
                 "RollingLogfunction.LogTime": {
-                    '$gte': start,
-                    '$lte': end
+                    '$gte': msg.start,
+                    '$lte': msg.end
                 }
             }, {
                 $set: {

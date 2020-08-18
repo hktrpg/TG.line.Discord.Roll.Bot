@@ -29,6 +29,7 @@
     "google-images": "^2.1.0",
     "libsodium-wrappers": "^0.7.8",
     "mathjs": "^5.10.3",
+    "moment": "^2.27.0",
     "mongoose": "^5.9.27",
     "random-js": "^2.1.0",
     "socket.io": "^2.3.0",

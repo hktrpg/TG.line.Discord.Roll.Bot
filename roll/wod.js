@@ -46,10 +46,12 @@ module.exports = {
 	gameType: gameType,
 	gameName: gameName
 };
+/**
+ * WOD黑暗世界
+ * @param {.5WD6} triggermsg 
+ * @param {文字描述} text 
+ */
 
-////////////////////////////////////////
-//////////////// WOD黑暗世界
-////////////////////////////////////////
 async function wod(triggermsg, text) {
 
 	var returnStr = triggermsg + ' [';

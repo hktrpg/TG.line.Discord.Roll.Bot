@@ -102,19 +102,16 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 	}
 }
 
-
-////////////////////////////////////////
-//////////////// .ME
-////////////////////////////////////////
-
+/**
+ * .ME
+ */
 function me(inputStr) {
 	return inputStr.replace(/^[.]me/i, '');
 }
 
-////////////////////////////////////////
-//////////////// 占卜&其他
-////////////////////////////////////////
-
+/**
+ * 占卜&其他
+ */
 
 async function BStyleFlagSCRIPTS() {
 	const rplyArr = ['\
@@ -222,64 +219,9 @@ async function randomLuck(TEXT) {
 	return TEXT[0] + ' ： ' + rplyArr[await rollbase.Dice(rplyArr.length) - 1];
 }
 
-
-////////////////////////////////////////
-//////////////// Funny
-////////////////////////////////////////
-/* 猜拳功能 */
-// eslint-disable-next-line no-unused-vars
-async function RockPaperScissors(HandToCal, text) {
-	let returnStr = '';
-	if (HandToCal.match(/石頭|布|剪刀|1|2|3/) != null) {
-		let aHand = ['石頭', '布', '剪刀'];
-		HandToCal = aHand[Math.floor((Math.random() * (aHand.length)) + 0)];
-	}
-	var hand = rollbase.FunnyDice(3); // 0:石頭 1:布 2:剪刀
-
-	switch (hand) {
-		case 0: //石頭
-			returnStr = '我出石頭！\n';
-
-			if (HandToCal.match(/剪刀|1/) != null) returnStr += '哼哼你輸惹';
-			else if (HandToCal.match(/石頭|2/) != null) returnStr += '看來我們不相上下阿';
-			else if (HandToCal.match(/布|3/) != null) returnStr += '你好像有點強！';
-			else returnStr += '欸不對喔你亂出！';
-
-			break;
-
-		case 1: //布
-			returnStr = '我出布！\n';
-
-			if (HandToCal.match(/剪刀|1/) != null) returnStr += '讓你一次而已啦！';
-			else if (HandToCal.match(/布|2/) != null) returnStr += '原來平手...沒什麼嘛！';
-			else if (HandToCal.match(/石頭|3/) != null) returnStr += '哈哈你看看你！';
-			else returnStr += '別亂出阿會壞掉的';
-
-			break;
-
-		case 2: //剪刀
-			returnStr = '我出剪刀！\n';
-
-			if (HandToCal.match(/剪刀|1/) != null) returnStr += '平手 (  艸)';
-			else if (HandToCal.match(/布|2/) != null) returnStr += '贏了 (｀・ω・´)b';
-			else if (HandToCal.match(/石頭|3/) != null) returnStr += '輸惹 ゜。。゜(ノД‵)ノ・゜';
-			else returnStr += '亂出打你喔 (｀・ω・´)凸';
-
-			break;
-
-		default:
-			returnStr = '我出的是...欸不對你沒出喔！\n';
-			break;
-	}
-
-	return returnStr;
-}
-
-
-
-////////////////////////////////////////
-//////////////// Tarot塔羅牌
-////////////////////////////////////////
+/**
+ * Tarot塔羅牌
+ */
 async function MultiDrawTarot(text, text2, type) {
 	let returnStr = '';
 	let cards = []
@@ -643,9 +585,9 @@ const TarotList2 = ["愚者 ＋",
 	"空白"
 ]
 
-////////////////////////////////////////
-//////////////// choice 及SORT
-////////////////////////////////////////
+/**
+ *  choice 及SORT
+ */
 async function choice(input, str) {
 	let a = input.replace(str[0], '').match(/\S+/ig);
 	return str[0] + ' [' + a + '] \n→ ' + a[await rollbase.Dice(a.length) - 1];

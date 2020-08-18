@@ -100,7 +100,6 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 		case /\S+/.test(mainMsg[1]) && /^[.]image$/.test(mainMsg[0]):
 			rply.text = await googleimage(inputStr, mainMsg, "high")
 			rply.type = 'image'
-			console.log(rply)
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /^[.]imagee$/.test(mainMsg[0]):
 			//成人版

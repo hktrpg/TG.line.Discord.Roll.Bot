@@ -20,10 +20,6 @@ var gameType = function () {
     return 'Admin:hktrpg'
 }
 var prefixs = function () {
-    //[mainMSG[0]的prefixs,mainMSG[1]的prefixs,   <---這裡是一對  
-    //mainMSG[0]的prefixs,mainMSG[1]的prefixs  ]  <---這裡是一對
-    //如前面是 /^1$/ig, 後面是/^1D100$/ig, 即 prefixs 變成 1 1D100 
-    ///^(?=.*he)(?!.*da).*$/ig
     return [{
         first: /^[.]admin$/i,
         second: null
@@ -32,7 +28,7 @@ var prefixs = function () {
 var getHelpMessage = function () {
     return "【Admin 工具】" + "\
 	\n  用來Debug 及調整VIP工具\
-		\n "
+		\n debug 用來取得群組資料"
 }
 
 var initialize = function () {
@@ -87,14 +83,21 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             try {
                 doc = await schema.veryImportantPerson.updateOne({
                     gpid: filter.gpid
-                }, filter, opt)
+                }, {
+                    $set: filter,
+                    $setOnInsert: {
+                        startDate: new Date()
+                    }
+                }, opt)
                 if (doc) {
                     await VIP.renew();
-                    rply.text = "更新成功";
+                    rply.text = "更新成功\n";
+                    rply.text += JSON.stringify(filter);
+
                 }
                 //.admin addVipGroup -i  ID -l LV -n NAME -no NOTES -s SWITCH
             } catch (error) {
-                console.log('新增VIP失敗: ', error)
+                console.log('新增VIP GET ERROR: ', error)
                 rply.text = '新增VIP失敗\n因為 ' + error.message
             }
             return rply;
@@ -107,20 +110,19 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 doc = await schema.veryImportantPerson.updateOne({
                     id: filter.id
                 }, {
-                    $set: {
-                        filter
-                    },
+                    $set: filter,
                     $setOnInsert: {
                         startDate: new Date()
                     }
                 }, opt)
                 if (doc) {
                     await VIP.renew();
-                    rply.text = "更新成功";
+                    rply.text = "更新成功\n";
+                    rply.text += JSON.stringify(filter);
                 }
                 //.admin addVipGroup -i  ID -l LV -n NAME -no NOTES -s SWITCH
             } catch (error) {
-                console.log('新增VIP失敗: ', error)
+                console.log('新增VIP GET ERROR: ', error)
                 rply.text = '新增VIP失敗\n因為 ' + error.message
             }
             return rply;
@@ -131,12 +133,12 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 }
 
 async function store(mainMsg, mode) {
-    const pattId = /\s+-i\s+(\w+)/ig;
-    const pattGP = /\s+-g\s+(\w+)/ig;
-    const pattLv = /\s+-l\s+(\w+)/ig;
-    const pattName = /\s+-n\s+(\w+)/ig;
-    const pattNotes = /\s+-no\s+(\w+)/ig;
-    const pattSwitch = /\s+-s\s+(\w+)/ig;
+    const pattId = /\s+-i\s+(\S+)/ig;
+    const pattGP = /\s+-g\s+(\S+)/ig;
+    const pattLv = /\s+-l\s+(\S+)/ig;
+    const pattName = /\s+-n\s+(\S+)/ig;
+    const pattNotes = /\s+-no\s+(\S+)/ig;
+    const pattSwitch = /\s+-s\s+(\S+)/ig;
     var resultId = pattId.exec(mainMsg);
     var resultGP = pattGP.exec(mainMsg);
     var resultLv = pattLv.exec(mainMsg);

@@ -76,6 +76,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 				rply.text = mathjs.eval(inputStr.toLowerCase().replace(/\.ca/i, '').replace(/磅/g, 'lb').replace(/公斤/g, 'kg').replace(/盎司/g, 'oz').replace(/英吋/g, 'inch').replace(/公分/g, 'cm').replace(/公釐/g, 'mm').replace(/克/g, 'g').replace(/公尺/g, 'm').replace(/碼/g, 'yd').replace(/桿/g, 'rd').replace(/英里/g, 'mi').replace(/千米/g, 'km').replace(/厘米/g, 'cm').replace(/毫米/g, 'mm').replace(/微米/g, 'µm').replace(/毫克/g, 'mg').replace(/公克/g, 'hg').replace(/斤/g, 'kg').replace(/米/g, 'm').replace(/英尺/g, 'ft').replace(/尺/g, 'ft').replace(/角度/g, 'deg').replace(/度/g, 'deg').replace(/呎/g, 'ft').replace(/吋/g, 'inch').replace(/轉換/g, ' to ').replace(/轉/g, ' to ').replace(/換/g, ' to '))
 				rply.text = inputStr.replace(/\.ca/i, '') + ' → ' + rply.text;
 			} catch (e) {
+				console.log('.cA GET ERROR:', e)
 				rply.text = e;
 			}
 			return rply;
@@ -128,20 +129,21 @@ module.exports = {
   \n 5B10 9：	如上,另外計算其中有多少粒大於9 \
   \n 5U10 8：	進行5D10 每骰出一粒8會有一粒獎勵骰 \
   \n 5U10 8 9：	如上,另外計算其中有多少粒大於9 \  
- 
   */
-////////////////////////////////////////
-//////////////// D66
-////////////////////////////////////////
+
+/**
+ * D66 
+ */
 async function d66(text) {
 	text = (text) ? '：' + text : '：';
 	let returnStr = '';
 	returnStr = 'D66' + text + '\n' + await rollbase.Dice(6) + await rollbase.Dice(6);
 	return returnStr;
 }
-////////////////////////////////////////
-//////////////// D66s
-////////////////////////////////////////
+/**
+ * 
+ * D66S 
+ */
 async function d66s(text) {
 	text = (text) ? '：' + text : '：';
 	let temp0 = await rollbase.Dice(6);
@@ -155,9 +157,9 @@ async function d66s(text) {
 	returnStr = 'D66s' + text + '\n' + temp0 + temp1;
 	return returnStr;
 }
-////////////////////////////////////////
-//////////////// D66n
-////////////////////////////////////////
+/**
+ * D66N 
+ */
 async function d66n(text) {
 	text = (text) ? '：' + text : '：';
 	let temp0 = await rollbase.Dice(6);
@@ -172,11 +174,11 @@ async function d66n(text) {
 	returnStr = 'D66n' + text + '\n' + temp0 + temp1;
 	return returnStr;
 }
-////////////////////////////////////////
-//////////////// xBy 
-////////////////  xBy<>=z  成功數1
-////////////////  xBy Dz   成功數1
-////////////////////////////////////////
+/***
+ *	xBy 
+ *  xBy<>=z  成功數1
+ *  xBy Dz   成功數1
+ */
 async function xBy(triggermsg, text01, text02, botname) {
 	//	console.log('dd')
 	let regex2 = /(([<]|[>])(|[=]))(\d+.*)/i
@@ -294,11 +296,16 @@ async function xBy(triggermsg, text01, text02, botname) {
 	if (text) returnStr += ' ；　' + text
 	return returnStr;
 }
-////////////////////////////////////////
-//////////////// xUy
-////////////////  (5U10[8]) → 17[10,7],4,5,7,4 → 17/37(最大/合計)
-////////////////  (5U10[8]>8) → 1,30[9,8,8,5],1,3,4 → 成功數1
-////////////////////////////////////////
+/**
+ * 
+ * @param {xUy} triggermsg  
+ * @param {*} text01 
+ * @param {*} text02 
+ * @param {*} text03
+ * xUy
+ * (5U10[8]) → 17[10,7],4,5,7,4 → 17/37(最大/合計)
+ * (5U10[8]>8) → 1,30[9,8,8,5],1,3,4 → 成功數1 
+ */
 
 async function xUy(triggermsg, text01, text02, text03) {
 
@@ -341,13 +348,13 @@ async function xUy(triggermsg, text01, text02, text03) {
 	if (Number(text02) <= Number(match[3])) {
 		let suc = 0;
 
-		////////////////  (5U10[8]>8) → 1,30[9,8,8,5],1,3,4 → 成功數1
+		// (5U10[8]>8) → 1,30[9,8,8,5],1,3,4 → 成功數1
 		for (let i = 0; i < varcou.length; i++) {
 			if (Number(varcou[i]) >= Number(text02)) suc++;
 		}
 		returnStr += ' → 成功數' + suc;
 	} else
-	////////////////  (5U10[8]) → 17[10,7],4,5,7,4 → 17/37(最大/合計)
+	//  (5U10[8]) → 17[10,7],4,5,7,4 → 17/37(最大/合計)
 
 	{
 		returnStr += '\n → ' + Math.max.apply(null, varcou)

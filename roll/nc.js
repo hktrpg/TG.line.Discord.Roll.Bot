@@ -87,9 +87,13 @@ module.exports = {
 	gameName: gameName
 };
 
-////////////////////////////////////////
-//////////////// nechronica (NC)
-////////////////////////////////////////
+/**
+ * nechronica (NC)
+ * 已放棄, 轉用凍豆版
+ * @param {指令} triggermsg 
+ * @param {描述} text 
+ */
+
 async function nechronica(triggermsg, text) {
 	let returnStr = '';
 	var ncarray = [];
@@ -128,13 +132,14 @@ async function nechronica(triggermsg, text) {
 		returnStr += ' → 失敗';
 	if (text != null)
 		returnStr += ' ; ' + text;
-	rply.text = returnStr;
-	return rply;
+	return returnStr;
 }
 
-////////////////////////////////////////
-//////////////// nechronica (NM依戀)
-////////////////////////////////////////
+/**
+ * nechronica (NM依戀)
+ * @param {描述} text 
+ */
+
 async function nechronica_mirenn(text) {
 	let returnStr = '';
 	var dicenew = 0;

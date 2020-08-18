@@ -89,11 +89,11 @@ records.on("new_message", async (message) => {
 
 
     if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
-        rplyVal = await exports.analytics.parseInput(mainMsg.join(' '), '', '', '', "www", "", "")
+        rplyVal = await exports.analytics.parseInput(mainMsg.join(' '), '', '', '', "WWW", "", "")
         //rplyVal = await exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid)
     } else {
         if (channelKeyword == '') {
-            rplyVal = await exports.analytics.parseInput(mainMsg.join(' '), '', '', '', "www", "", "")
+            rplyVal = await exports.analytics.parseInput(mainMsg.join(' '), '', '', '', "WWW", "", "")
 
         }
 

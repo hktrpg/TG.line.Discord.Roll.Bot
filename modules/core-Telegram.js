@@ -2,11 +2,6 @@
 if (!process.env.TELEGRAM_CHANNEL_SECRET) {
 	return;
 }
-const {
-	Random,
-	nodeCrypto
-} = require("random-js");
-const random = new Random(nodeCrypto);
 exports.analytics = require('../modules/analytics');
 const Telegraf = require('telegraf');
 const TGclient = new Telegraf(process.env.TELEGRAM_CHANNEL_SECRET);
@@ -27,7 +22,6 @@ TGclient.catch((err) => {
 });
 //TGclient.use(telegrafGetChatMembers)
 TGclient.on('text', async (ctx) => {
-	let CAPTCHA = random.string(20);
 	//console.log(ctx.getChatMembers(ctx.chat.id) //[Members]
 	//	ctx.getChatMembers() //[Members]
 	//	telegrafGetChatMembers.check(ctx.chat.id) //[Members]
@@ -102,7 +96,7 @@ TGclient.on('text', async (ctx) => {
 		rplyVal = await exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram", displayname, channelid, "", membercount);
 	} else {
 		if (channelKeyword == '') {
-			rplyVal = await exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram", displayname, channelid, "", membercount, CAPTCHA);
+			rplyVal = await exports.analytics.parseInput(ctx.message.text, groupid, userid, userrole, "Telegram", displayname, channelid, "", membercount);
 
 		}
 
@@ -110,10 +104,6 @@ TGclient.on('text', async (ctx) => {
 	if (!rplyVal.text && !rplyVal.LevelUp)
 		return;
 	//LevelUp功能
-	if (CAPTCHA != rplyVal.CAPTCHA) {
-		console.log('TG CAPTCHA false', CAPTCHA, ' &&', rplyVal.CAPTCHA, 'text: ', ctx.message.text, 'rplyVal: ', rplyVal);
-		return;
-	}
 	if (groupid && rplyVal && rplyVal.LevelUp) {
 		//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
 		ctx.reply("@" + displayname + '\n' + rplyVal.LevelUp);

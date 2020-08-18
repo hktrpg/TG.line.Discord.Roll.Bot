@@ -16,7 +16,7 @@ if (process.env.mongoURL) {
                 useUnifiedTopology: true
             });
         } catch (err) {
-            console.log('error: ' + err)
+            console.log(' GET ERROR: ' + err)
         }
     })()
 

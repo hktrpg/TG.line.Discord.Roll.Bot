@@ -661,11 +661,8 @@ class Records extends EventEmitter {
 
     async chatRoomPush(msg) {
         const m = new Message(msg);
-
         await m.save();
-
         this.emit("new_message", msg);
-
         let count = await Message.countDocuments({
             'roomNumber': msg.roomNumber
         });
@@ -682,6 +679,7 @@ class Records extends EventEmitter {
         }).sort({
             'time': 1,
         })
+        if (!d[over - 1]) return;
         await Message.deleteMany({
             'roomNumber': msg.roomNumber,
             time: {
@@ -689,11 +687,6 @@ class Records extends EventEmitter {
             }
 
         })
-
-
-
-
-
     }
 
     chatRoomGet(roomNumber, callback) {

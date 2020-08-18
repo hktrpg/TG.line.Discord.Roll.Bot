@@ -12,7 +12,7 @@ const start = async () => {
 var debugMode = false;
 start();
 const moment = require("moment")
-const messageTimethenUpload = 50;
+const messageTimethenUpload = 1;
 //50次 多少條訊息會上傳一次LOG
 const oneHour = 1 * 60 * 60 * 1000;
 //每一小時 24 * 60 * 60 * 1000 多久會上傳一次LOG紀錄 
@@ -165,7 +165,7 @@ async function courtMessage(result, botname, inputStr) {
 					break;
 				case "WWW":
 					(debugMode) ? console.log('     WWW\'s inputStr: ', inputStr): '';
-					RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll++;
+					RollingLog.RealTimeRollingLogfunction.WWWCountRoll++;
 					break;
 				default:
 					break;
@@ -179,6 +179,7 @@ async function courtMessage(result, botname, inputStr) {
 		return result;
 	} else {
 		if (simpleCourt != null) {
+
 			switch (botname) {
 				case "Discord":
 					RollingLog.RealTimeRollingLogfunction.DiscordCountText++;

@@ -12,12 +12,12 @@ const start = async () => {
 var debugMode = false;
 start();
 const moment = require("moment")
-const messageTimethenUpload = 1;
+const messageTimethenUpload = 50;
 //50次 多少條訊息會上傳一次LOG
 const oneHour = 1 * 60 * 60 * 1000;
 //每一小時 24 * 60 * 60 * 1000 多久會上傳一次LOG紀錄 
 const oneMinuts = 60000;
-//60000 多久可以升級及增加經驗
+//60000 一分鐘多久可以升級及增加經驗
 const RollingLog = {
 	RealTimeRollingLogfunction: {
 		LastTimeLog: "",

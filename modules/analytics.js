@@ -93,7 +93,9 @@ var parseInput = async function (inputStr, groupid, userid, userrole, botname, d
 
 
 	//檢查是不是要停止  z_stop功能
-	stopmark = await z_stop(mainMsg, groupid);
+	if (groupid) {
+		stopmark = await z_stop(mainMsg, groupid);
+	}
 	if (stopmark == 1) return result;
 	if (!inputStr) return result;
 
@@ -161,7 +163,7 @@ async function courtMessage(result, botname, inputStr) {
 					(debugMode) ? console.log('Whatsapp\'s inputStr: ', inputStr): '';
 					RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll++;
 					break;
-				case "www":
+				case "WWW":
 					(debugMode) ? console.log('     WWW\'s inputStr: ', inputStr): '';
 					RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll++;
 					break;

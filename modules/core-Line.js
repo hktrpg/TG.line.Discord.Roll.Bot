@@ -2,7 +2,8 @@
 if (!process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	return;
 }
-exports.analytics = require('../modules/analytics');
+exports.analytics = require('./core-analytics');
+const EXPUP = require('./level').EXPUP || function () {};
 const line = require('@line/bot-sdk');
 const express = require('express');
 // create LINE SDK config from env variables
@@ -10,7 +11,7 @@ const config = {
 	channelAccessToken: process.env.LINE_CHANNEL_ACCESSTOKEN,
 	channelSecret: process.env.LINE_CHANNEL_SECRET,
 };
-
+const courtMessage = require('./logs').courtMessage || function () {};
 // create LINE SDK client
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const client = new line.Client(config);
@@ -79,10 +80,10 @@ var handleEvent = async function (event) {
 				console.log("Line joined");
 				await replyMessagebyReplyToken(roomorgroupid, joinMessage);
 			} else
-
 				// ignore non-text-message event
 				if (roomorgroupid && userid) {
-					await exports.analytics.EXPUP(roomorgroupid, userid, displayname, "", membercount);
+					await EXPUP(roomorgroupid, userid, displayname, "", membercount);
+					await courtMessage("", "Line", "")
 				}
 			return Promise.resolve(null);
 		}
@@ -171,7 +172,6 @@ var handleEvent = async function (event) {
 		switch (true) {
 			case privatemsg == 1:
 				// 輸入dr  (指令) 私訊自己
-				//
 				if (roomorgroupid && userid && displaynamecheck)
 					if (displayname)
 						await replyMessagebyReplyToken(roomorgroupid, "@" + displayname + ' 暗骰給自己');

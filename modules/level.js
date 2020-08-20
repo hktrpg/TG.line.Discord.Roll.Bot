@@ -1,5 +1,5 @@
 if (!process.env.mongoURL) return;
-const oneMinuts = 1;
+const oneMinuts = 60000;
 //60000 一分鐘多久可以升級及增加經驗
 const records = require('./records.js');
 exports.rollbase = require('../roll/rollbase');

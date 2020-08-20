@@ -12,9 +12,8 @@ const io = require('socket.io')(server);
 const records = require('./records.js');
 const port = process.env.PORT || 5000;
 var channelKeyword = '';
-let WWWcounttext = 0;
-let WWWcountroll = 0
 exports.analytics = require('./core-analytics');
+
 // 加入線上人數計數
 let onlineCount = 0;
 
@@ -72,7 +71,6 @@ io.on('connection', (socket) => {
 
 records.on("new_message", async (message) => {
     // 廣播訊息到聊天室
-
     if (message.msg && message.name.match(/^HKTRPG/ig)) {
         return;
     }
@@ -86,37 +84,20 @@ records.on("new_message", async (message) => {
 
     // 訊息來到後, 會自動跳到analytics.js進行骰組分析
     // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
-
-
     if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
         rplyVal = await exports.analytics.parseInput(mainMsg.join(' '), '', '', '', "WWW", "", "")
         //rplyVal = await exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid)
     } else {
         if (channelKeyword == '') {
             rplyVal = await exports.analytics.parseInput(mainMsg.join(' '), '', '', '', "WWW", "", "")
-
         }
-
     }
-
     if (rplyVal && rplyVal.text) {
-        WWWcountroll++;
         //console.log('rplyVal.text:' + rplyVal.text)
         //console.log('Telegram Roll: ' + WWWcountroll + ', Telegram Text: ' + WWWcounttext, " content: ", message.text);
         rplyVal.text = '\n' + rplyVal.text
-
         loadb(io, records, rplyVal, message);
-
-
-        // console.log("rplyVal: " + rplyVal)
-    } else {
-        //console.log(rplyVal.text, " ")
-        WWWcounttext++;
-        if (WWWcounttext % 500 == 0)
-            console.log('WWW Roll: ' + WWWcountroll + ', WWW Text: ' + WWWcounttext);
     }
-
-
 });
 
 server.listen(port, () => {

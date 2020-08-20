@@ -9,6 +9,7 @@ const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || '';
 //var TGcountroll = 0;
 //var TGcounttext = 0;
 const EXPUP = require('./level').EXPUP || function () {};
+const courtMessage = require('./logs').courtMessage || function () {};
 const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
 						\n輸入 1D100 可以進行最簡單的擲骰.\
 						\n輸入 Bothelp 觀看詳細使用說明.\
@@ -235,6 +236,7 @@ TGclient.on('audio', async (ctx) => {
 			membercount = await ctx.getChatMembersCount(ctx.chat.id);
 		}
 		await EXPUP(groupid, userid, displayname, "", membercount);
+		await courtMessage("", "Line", "")
 	}
 	return null;
 });
@@ -255,6 +257,7 @@ TGclient.on('document', async (ctx) => {
 			membercount = await ctx.getChatMembersCount(ctx.chat.id);
 		}
 		await EXPUP(groupid, userid, displayname, "", membercount);
+		await courtMessage("", "Line", "")
 	}
 	return null
 })
@@ -270,6 +273,7 @@ TGclient.on('photo', async (ctx) => {
 		if (ctx.chat && ctx.chat.id)
 			membercount = await ctx.getChatMembersCount(ctx.chat.id)
 		await EXPUP(groupid, userid, displayname, "", membercount);
+		await courtMessage("", "Line", "")
 	}
 	return null
 })
@@ -285,6 +289,7 @@ TGclient.on('sticker', async (ctx) => {
 		if (ctx.chat && ctx.chat.id)
 			membercount = await ctx.getChatMembersCount(ctx.chat.id)
 		await EXPUP(groupid, userid, displayname, "", membercount);
+		await courtMessage("", "Line", "")
 	}
 	return null
 })
@@ -300,6 +305,7 @@ TGclient.on('video', async (ctx) => {
 		if (ctx.chat && ctx.chat.id)
 			membercount = await ctx.getChatMembersCount(ctx.chat.id)
 		await EXPUP(groupid, userid, displayname, "", membercount);
+		await courtMessage("", "Line", "")
 	}
 	return null
 })
@@ -315,6 +321,7 @@ TGclient.on('voice', async (ctx) => {
 		if (ctx.chat && ctx.chat.id)
 			membercount = await ctx.getChatMembersCount(ctx.chat.id)
 		await EXPUP(groupid, userid, displayname, "", membercount);
+		await courtMessage("", "Line", "")
 	}
 	return null
 })
@@ -330,6 +337,7 @@ TGclient.on('forward', async (ctx) => {
 		if (ctx.chat && ctx.chat.id)
 			membercount = await ctx.getChatMembersCount(ctx.chat.id)
 		await EXPUP(groupid, userid, displayname, "", membercount);
+		await courtMessage("", "Line", "")
 	}
 	return null
 })

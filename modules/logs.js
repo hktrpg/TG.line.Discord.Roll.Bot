@@ -84,7 +84,6 @@ async function courtMessage(result, botname, inputStr) {
         return result;
     } else {
         if (simpleCourt != null) {
-
             switch (botname) {
                 case "Discord":
                     RollingLog.RealTimeRollingLogfunction.DiscordCountText++;

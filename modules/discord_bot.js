@@ -12,6 +12,7 @@ const client = new Discord.Client();
 //var Discordcountroll = 0;
 //var Discordcounttext = 0;
 const EXPUP = require('./level').EXPUP || function () {};
+const courtMessage = require('./logs').courtMessage || function () {};
 const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
 		\n輸入 1D100 可以進行最簡單的擲骰.\
 		\n輸入 Bothelp 觀看詳細使用說明.\
@@ -117,6 +118,7 @@ client.on('message', async (message) => {
 	}
 
 	if (!message.content) {
+		await courtMessage("", "Discord", "")
 		if (groupid && userid) {
 			await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount);
 		}

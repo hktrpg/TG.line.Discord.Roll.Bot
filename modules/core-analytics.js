@@ -52,9 +52,7 @@ var parseInput = async function (inputStr, groupid, userid, userrole, botname, d
 	//rolldice 擲骰功能
 	let rollDiceResult = {};
 	try {
-		//如果沒有
-		if (inputStr)
-			rollDiceResult = await rolldice(inputStr, groupid, userid, userrole, mainMsg, botname, displayname, channelid, displaynameDiscord, membercount)
+		rollDiceResult = await rolldice(inputStr, groupid, userid, userrole, mainMsg, botname, displayname, channelid, displaynameDiscord, membercount)
 
 	} catch (error) {
 		console.log('rolldice GET ERROR:', error);
@@ -85,10 +83,8 @@ var parseInput = async function (inputStr, groupid, userid, userrole, botname, d
 			result.text = result.characterName + ' 投擲 ' + result.characterReRollName + ':\n' + result.text
 		}
 	}
-
 	//courtMessage + saveLog
 	await courtMessage(result, botname, inputStr)
-
 	//return result
 	return result;
 }

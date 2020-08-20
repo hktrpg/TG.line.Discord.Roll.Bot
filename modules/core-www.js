@@ -14,7 +14,7 @@ const port = process.env.PORT || 5000;
 var channelKeyword = '';
 let WWWcounttext = 0;
 let WWWcountroll = 0
-exports.analytics = require('../modules/analytics');
+exports.analytics = require('./core-analytics');
 // 加入線上人數計數
 let onlineCount = 0;
 

@@ -2,7 +2,8 @@
 if (!process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	return;
 }
-exports.analytics = require('../modules/analytics');
+exports.analytics = require('./core-analytics');
+const EXPUP = require('./level').EXPUP || function () {};
 const line = require('@line/bot-sdk');
 const express = require('express');
 // create LINE SDK config from env variables
@@ -82,7 +83,7 @@ var handleEvent = async function (event) {
 
 				// ignore non-text-message event
 				if (roomorgroupid && userid) {
-					await exports.analytics.EXPUP(roomorgroupid, userid, displayname, "", membercount);
+					await EXPUP(roomorgroupid, userid, displayname, "", membercount);
 				}
 			return Promise.resolve(null);
 		}

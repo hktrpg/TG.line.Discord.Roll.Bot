@@ -1,5 +1,4 @@
 if (!process.env.mongoURL) return;
-
 //Log everyday 01:00
 const moment = require("moment");
 var debugMode = require("./core-analytics").debugMode;
@@ -24,6 +23,9 @@ const RollingLog = {
         WhatsappCountText: 0
     }
 };
+var getState = async function () {
+    return RollingLog.RealTimeRollingLogfunction;
+}
 const records = require('./records.js');
 var simpleCourt = 0;
 records.get('RealTimeRollingLog', (msgs) => {
@@ -191,5 +193,6 @@ async function saveLog() {
 }
 
 module.exports = {
-    courtMessage
+    courtMessage,
+    getState
 };

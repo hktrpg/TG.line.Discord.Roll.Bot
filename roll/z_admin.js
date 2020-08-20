@@ -56,6 +56,9 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
         case /^help$/i.test(mainMsg[1]):
             rply.text = this.getHelpMessage();
             return rply;
+        case /^state$/i.test(mainMsg[1]):
+            rply.state = true;
+            return rply;
         case /^debug$/i.test(mainMsg[1]):
             rply.text = "Debug function" + '\ngroupid: ' + groupid + "\nuserid: " + userid;
             rply.text += '\nchannelid: ' + channelid;

@@ -14,6 +14,7 @@ start();
 var debugMode = false;
 const msgSplitor = (/\S+/ig);
 const courtMessage = require('./logs').courtMessage || function () {};
+const getState = require('./logs').getState || function () {};
 const EXPUP = require('./level').EXPUP || function () {};
 
 
@@ -26,13 +27,10 @@ var parseInput = async function (inputStr, groupid, userid, userrole, botname, d
 		type: 'text',
 		LevelUp: ''
 	};
-	let trigger = ""
-	let stopmark = 0;
+
 	let mainMsg = {};
 	inputStr = inputStr.replace(/^\s/g, '')
 	mainMsg = inputStr.match(msgSplitor); //定義輸入字串
-	if (mainMsg)
-		trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
 
 	//EXPUP 功能 + LevelUP 功能
 	if (groupid) {
@@ -44,8 +42,9 @@ var parseInput = async function (inputStr, groupid, userid, userrole, botname, d
 
 	//檢查是不是要停止  z_stop功能
 	if (groupid) {
+		let stopmark = false;
 		stopmark = await z_stop(mainMsg, groupid);
-		if (stopmark == 1) return result;
+		if (stopmark == true) return result;
 	}
 
 
@@ -68,20 +67,25 @@ var parseInput = async function (inputStr, groupid, userid, userrole, botname, d
 
 	//cmdfunction  .cmd 功能   z_saveCommand 功能
 	if (mainMsg && mainMsg[0].toLowerCase() == ".cmd" && mainMsg[1] && mainMsg[1].toLowerCase() != "help" && mainMsg[1].toLowerCase() != "add" && mainMsg[1].toLowerCase() != "show" && mainMsg[1].toLowerCase() != "del" && result.text) {
-		let cmdFunctionResult = await cmdfunction(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount, result);
+		let cmdFunctionResult = await cmdfunction(inputStr, groupid, userid, userrole, mainMsg, botname, displayname, channelid, displaynameDiscord, membercount, result);
 		if (typeof cmdFunctionResult === 'object' && cmdFunctionResult !== null) {
 			result = await Object.assign({}, result, cmdFunctionResult)
 		} else {
 			result.text = "";
 		}
-
 	}
+
+
 	if (result.characterReRoll) {
-		let characterReRoll = await cmdfunction(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount, result)
+		let characterReRoll = await cmdfunction(inputStr, groupid, userid, userrole, mainMsg, botname, displayname, channelid, displaynameDiscord, membercount, result)
 		result = await Object.assign({}, result, characterReRoll)
 		if (result.text && result.characterName) {
 			result.text = result.characterName + ' 投擲 ' + result.characterReRollName + ':\n' + result.text
 		}
+	}
+
+	if (result.state) {
+		result.text = await stateText();
 	}
 	//courtMessage + saveLog
 	await courtMessage(result, botname, inputStr)
@@ -120,15 +124,26 @@ var rolldice = async function (inputStr, groupid, userid, userrole, mainMsg, bot
 
 }
 
+async function stateText() {
+	let state = await getState() || '';
+	if (!Object.keys(state).length || !state.LogTime) return;
+	let text = "";
+	text = '開始紀錄時間: ' + state.StartTime.replace(' GMT+0800 (GMT+08:00)', '');
+	text += '\n 現在紀錄時間: ' + state.LogTime.replace(' GMT+0800 (GMT+08:00)', '');
+	text += '\n Discord擲骰次數: ' + state.DiscordCountRoll;
+	text += '\n Telegram擲骰次數: ' + state.TelegramCountRoll;
+	text += '\n Whatsapp擲骰次數: ' + state.WhatsappCountRoll;
+	text += '\n 網頁版擲骰次數: ' + state.WWWCountRoll;
+	return text;
+}
 
 
-async function cmdfunction(inputStr, groupid, userid, userrole, mainMsg, trigger, botname, displayname, channelid, displaynameDiscord, membercount, result) {
+async function cmdfunction(inputStr, groupid, userid, userrole, mainMsg, botname, displayname, channelid, displaynameDiscord, membercount, result) {
 	let msgSplitor = (/\S+/ig);
 	//console.log('result.text', result.text.toString().replace(mainMsg[1], ""))
 	inputStr = result.text.toString().replace(mainMsg[1], "");
 	//console.log(inputStr)
 	mainMsg = inputStr.match(msgSplitor); //定義輸入字串
-	trigger = mainMsg[0].toString().toLowerCase(); //指定啟動詞在第一個詞&把大階強制轉成細階
 	//console.log('inputStr2: ', inputStr)
 	result.text = "";
 	//檢查是不是要停止
@@ -154,14 +169,14 @@ async function cmdfunction(inputStr, groupid, userid, userrole, mainMsg, trigger
 
 async function z_stop(mainMsg, groupid) {
 	if (!Object.keys(exports.z_stop).length) {
-		return 0;
+		return false;
 	}
 
 	if (exports.z_stop.initialize() && exports.z_stop.initialize().save && exports.z_stop.initialize().save[0] && exports.z_stop.initialize().save[0].blockfunction && exports.z_stop.initialize().save[0].blockfunction.length > 0 && mainMsg && mainMsg[0]) {
 		for (let i = 0; i < exports.z_stop.initialize().save.length; i++) {
 			if ((new RegExp(exports.z_stop.initialize().save[i].blockfunction.join("|"), "i")).test(mainMsg[0]) && exports.z_stop.initialize().save[i].groupid == groupid && exports.z_stop.initialize().save[i].blockfunction.length > 0) {
 				(debugMode) ? console.log('Match AND STOP'): '';
-				return 1;
+				return true;
 			}
 		}
 	}

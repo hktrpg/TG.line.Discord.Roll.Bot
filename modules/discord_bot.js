@@ -1,5 +1,5 @@
 "use strict";
-exports.analytics = require('../modules/analytics');
+exports.analytics = require('./core-analytics');
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const Discord = require('discord.js');
@@ -11,6 +11,8 @@ const client = new Discord.Client();
 //  i.e., `User.js` will become `exports['User']` or `exports.User`
 //var Discordcountroll = 0;
 //var Discordcounttext = 0;
+const EXPUP = require('./level').EXPUP || function () {};
+const courtMessage = require('./logs').courtMessage || function () {};
 const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
 		\n輸入 1D100 可以進行最簡單的擲骰.\
 		\n輸入 Bothelp 觀看詳細使用說明.\
@@ -116,8 +118,9 @@ client.on('message', async (message) => {
 	}
 
 	if (!message.content) {
+		await courtMessage("", "Discord", "")
 		if (groupid && userid) {
-			await exports.analytics.EXPUP(groupid, userid, displayname, displaynameDiscord, membercount);
+			await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount);
 		}
 		return null;
 	}

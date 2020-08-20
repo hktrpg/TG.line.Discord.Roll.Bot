@@ -15,7 +15,7 @@ const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
 		\n如果完成問卷,可以提升上限半年WW\
 		\nhttps://forms.gle/JnHdGs4oRMd9SQhM6";
 
-exports.analytics = require('./analytics');
+exports.analytics = require('./core-analytics');
 const {
 	Client
 } = require('whatsapp-web.js');

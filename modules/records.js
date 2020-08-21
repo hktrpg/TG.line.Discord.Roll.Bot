@@ -575,9 +575,11 @@ class Records extends EventEmitter {
     */
     settrpgSaveLogfunctionRealTime(dbbase, msg, callback) {
         schema[dbbase].findOneAndUpdate({}, {
+            $setOnInsert: {
+                "RealTimeRollingLogfunction.StartTime": msg.StartTime,
+            },
             $set: {
                 "RealTimeRollingLogfunction.LogTime": msg.LogTime,
-                "RealTimeRollingLogfunction.StartTime": msg.StartTime,
                 "RealTimeRollingLogfunction.LastTimeLog": msg.LastTimeLog
             },
             $max: {
@@ -615,13 +617,13 @@ class Records extends EventEmitter {
 
     maxTrpgSaveLogfunction(dbbase, msg, callback) {
         schema[dbbase].findOneAndUpdate({
-                "RollingLogfunction.LogTime": {
+                "RollingLogfunction.LastTimeLog": {
                     '$gte': msg.start,
                     '$lte': msg.end
                 }
             }, {
                 $set: {
-                    "RollingLogfunction.LogTime": msg.LogTime,
+                    "RollingLogfunction.LastTimeLog": msg.LastTimeLog,
                 },
                 $max: {
                     //大於則更新

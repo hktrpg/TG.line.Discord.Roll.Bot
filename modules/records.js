@@ -617,13 +617,13 @@ class Records extends EventEmitter {
 
     maxTrpgSaveLogfunction(dbbase, msg, callback) {
         schema[dbbase].findOneAndUpdate({
-                "RollingLogfunction.LastTimeLog": {
+                "RollingLogfunction.LogTime": {
                     '$gte': msg.start,
                     '$lte': msg.end
                 }
             }, {
                 $set: {
-                    "RollingLogfunction.LastTimeLog": msg.LastTimeLog,
+                    "RollingLogfunction.LogTime": msg.LogTime,
                 },
                 $max: {
                     //大於則更新

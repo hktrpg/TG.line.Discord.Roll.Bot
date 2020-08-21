@@ -34,14 +34,15 @@ client.once('ready', async () => {
 
 async function count() {
 	if (!client.shard) return;
-	await client.shard.fetchClientValues('guilds.cache.size')
+	return await client.shard.fetchClientValues('guilds.cache.size')
 		.then(results => {
 			console.log(`${results.reduce((acc, guildCount) => acc + guildCount, 0)} total Discord guilds`);
+			return `正在${results.reduce((acc, guildCount) => acc + guildCount, 0)} 個Discord 頻道運行`;
 		})
 		.catch(() => {
 			return;
 		});
-	return;
+
 }
 
 
@@ -168,6 +169,11 @@ client.on('message', async (message) => {
 	if (!hasSendPermission) {
 		return;
 	}
+
+	if (rplyVal.state) {
+		rplyVal.text += '\n' + await count();
+	}
+
 	if (groupid && rplyVal && rplyVal.LevelUp) {
 		//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
 		SendToReplychannel("<@" + userid + '>\n' + rplyVal.LevelUp);

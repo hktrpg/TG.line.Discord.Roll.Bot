@@ -115,8 +115,9 @@ const RealTimeRollingLog = mongoose.model('RealTimeRollingLog', {
     RealTimeRollingLogfunction: {
         //第一次運行紀錄RollingLogfunction的時間
         StartTime: String,
+        //一小時一次
         LastTimeLog: Date,
-        //現在時間
+        //RealTimeLog
         LogTime: String,
         DiscordCountRoll: Number,
         DiscordCountText: Number,

@@ -57,10 +57,6 @@ async function courtMessage(result, botname, inputStr) {
         //SAVE THE LOG
         if (simpleCourt != null) {
             switch (botname) {
-                case "Discord":
-                    (debugMode) ? console.log('Discord \'s inputStr: ', inputStr): '';
-                    RollingLog.RealTimeRollingLogfunction.DiscordCountRoll++;
-                    break;
                 case "Line":
                     (debugMode) ? console.log('   Line \'s inputStr: ', inputStr): '';
                     RollingLog.RealTimeRollingLogfunction.LineCountRoll++;
@@ -77,6 +73,10 @@ async function courtMessage(result, botname, inputStr) {
                     (debugMode) ? console.log('     WWW\'s inputStr: ', inputStr): '';
                     RollingLog.RealTimeRollingLogfunction.WWWCountRoll++;
                     break;
+                case "Discord":
+                    (debugMode) ? console.log('Discord \'s inputStr: ', inputStr): '';
+                    RollingLog.RealTimeRollingLogfunction.DiscordCountRoll++;
+                    break;
                 default:
                     break;
             }
@@ -87,9 +87,6 @@ async function courtMessage(result, botname, inputStr) {
     } else {
         if (simpleCourt != null) {
             switch (botname) {
-                case "Discord":
-                    RollingLog.RealTimeRollingLogfunction.DiscordCountText++;
-                    break;
                 case "Line":
                     RollingLog.RealTimeRollingLogfunction.LineCountText++;
                     break;
@@ -101,6 +98,9 @@ async function courtMessage(result, botname, inputStr) {
                     break;
                 case "WWW":
                     RollingLog.RealTimeRollingLogfunction.WWWCountText++;
+                    break;
+                case "Discord":
+                    RollingLog.RealTimeRollingLogfunction.DiscordCountText++;
                     break;
                 default:
                     break;

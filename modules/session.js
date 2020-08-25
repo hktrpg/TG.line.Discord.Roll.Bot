@@ -34,24 +34,31 @@ bothelp
 14: 【WOD黑暗世界】.xWDy
 15: 【貓貓鬼差】.kc xDy z
 ------
-輸入 1 或 bothelp 公告 或 bothelp 版本
-【HKTRPG擲骰BOT】" + version 
-及公告
+輸入 3 或 bothelp Tool
+ (公測中)暗骰GM功能 .drgm (addgm del show) dr ddr dddr
+ (公測中)角色卡功能 .char (add edit show delete use nonuse) .ch (set show showall)
+ (公測中)儲存擲骰指令功能 .cmd (add del show 自定關鍵字)
 ------
-輸入 1 或 bothelp 公告 或 bothelp 版本
-【HKTRPG擲骰BOT】" + version 
-及公告
+輸入 4 或 bothelp admin 
+.admin state
+.admin 
+22: (公測中)擲骰開關功能 .bk (add del show)
 ------
-輸入 1 或 bothelp 公告 或 bothelp 版本
-【HKTRPG擲骰BOT】" + version 
-及公告
+輸入 5 或 bothelp funny
+1: 【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 每日塔羅 運勢 立flag .me
+17: (公測中)經驗值功能 .level (show config LevelUpWord RankWord)
+18: Wiki查詢/圖片搜索 .wiki .image 
+20: (公測中)自定義回應功能 .ra(p)(次數) (add del show 自定關鍵字)
+23: (公測中)資料庫功能 .db(p) (add del show 自定關鍵字)
 ------
-輸入 1 或 bothelp 公告 或 bothelp 版本
-【HKTRPG擲骰BOT】" + version 
-及公告
+輸入 6 或 bothelp link
+DISCORD
+TG
+LINE
+WWW
+GITHUB
 ------
-輸入 1 或 bothelp 公告 或 bothelp 版本
-【HKTRPG擲骰BOT】" + version 
-及公告
+輸入 7 或 bothelp report
+可以立即回應東西
 ------
  */

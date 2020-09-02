@@ -1,4 +1,30 @@
 "use strict";
+var session = [];
+
+
+var GET = async function (uid, channel) {
+    return;
+}
+var POST = async function (uid, channel) {
+    return;
+}
+
+var PATCH = async function (uid, channel) {
+    return;
+}
+
+var DELETE = async function (uid, channel) {
+    return;
+}
+
+module.exports = {
+    GET: GET,
+    POST: POST,
+    PATCH: PATCH,
+    DELETE: DELETE
+}
+
+
 /** 
 bothelp
 

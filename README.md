@@ -3,7 +3,7 @@
 <p align="center"><a href="https://www.hktrpg.com" target="_blank" rel="noopener noreferrer"><img width="200" src="https://avatars3.githubusercontent.com/u/48795428?s=200&v=4" alt="HKTRPG logo"></a></p>
 
 <p align="center">
-    <a href="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/releases"><img src="https://img.shields.io/github/downloads/hktrpg/TG.line.Discord.Roll.Bot/total.svg" alt="Downloads"></a>
+    <a href="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/fork"><img src="https://img.shields.io/github/forks/hktrpg/TG.line.Discord.Roll.Bot" alt="Forks"></a>
     <a href="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/releases/latest"><img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/hktrpg/TG.line.Discord.Roll.Bot"></a>
     <a href="https://discord.gg/vx4kcm7" title="Join the discord server!"><img src="https://img.shields.io/discord/278202347165974529?logo=discord" alt="Discord invite button" /></a>
     <a href="https://patreon.com/HKTRPG" title="Donate to this project using Patreon"><img src="https://img.shields.io/badge/patreon-donate-red.svg" alt="Patreon donate button" /></a>

@@ -1,5 +1,10 @@
 "use strict";
-var session = [];
+var session = [{
+    date: Date,
+    uid: Text,
+    channel: Text,
+    
+}];
 
 
 var GET = async function (uid, channel) {

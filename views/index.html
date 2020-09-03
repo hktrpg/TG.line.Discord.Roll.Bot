@@ -2,6 +2,28 @@
 <html lang="zh-tw">
 
 <head>
+    <style>
+        .card-body2 {
+            padding-left: 1.25rem;
+            padding-right: 1.25rem;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            flex: 1 1 auto;
+            min-height: 1px;
+        }
+
+        .card-header2 {
+            background-color: rgba(22, 23, 24, 0.03);
+            border-bottom-color: rgba(22, 23, 24, 0.13);
+            padding-left: 1.25rem;
+            padding-right: 1.25rem;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            margin-bottom: 0;
+            background-color: rgba(0, 0, 0, .03);
+            border-bottom: 1px solid rgba(0, 0, 0, .125);
+        }
+    </style>
     <meta charset="UTF-8">
     <meta content="width=device-width,initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
     <title>HKTRPG 擲骰機器人及聊天室 1D100 2D6 查詢指令輸入Bothelp</title>
@@ -11,76 +33,77 @@
 </head>
 
 <body>
-    <div class="container-sm vh-100 fixed-top" id="container">
-        <div class="row justify-content-center">
-            <div class="col-auto">
-                <h3><button type="button" class="btn btn-default" aria-label="Left Align">
-                        <span class="glyphicon glyphicon-align-left" aria-hidden="true"></span>
-                    </button><span class="glyphicon glyphicon-search" aria-hidden="true"></span>
-                    <a class="badge badge-pill badge-danger"
-                        href="https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81">
-                        HKTRPG <img src="/assets/icon/dice-6.svg" width="32" height="32">
-                        <img src="/assets/icon/chat-square-text.svg" width="32" height="32">
-                    </a>
-                </h3>
+    <div class="container-sm vh-100" id="container">
+        <div style="height: 13%;">
+            <div class="row justify-content-center">
+                <div class="col-auto">
+                    <h3><button type="button" class="btn btn-default" aria-label="Left Align">
+                            <span class="glyphicon glyphicon-align-left" aria-hidden="true"></span>
+                        </button><span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+                        <a class="badge badge-pill badge-danger"
+                            href="https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81">
+                            HKTRPG <img src="/assets/icon/dice-6.svg" width="32" height="32">
+                            <img src="/assets/icon/chat-square-text.svg" width="32" height="32">
+                        </a>
+                    </h3>
+                </div>
+            </div>
+
+            <div class="row justify-content-end">
+                <div class="input-group-text font-weight-bold" id="status-box"> <img
+                        src="/assets/icon/house-door-fill.svg" width="22" height="22"> <span id="room">公共房間</span></div>
+                <div class="badge-warning input-group-text font-weight-bold" id="status-box"> <img
+                        src="/assets/icon/people.svg" width="22" height="22">
+                    x <span id="online">0</span></div>
             </div>
         </div>
-
-        <div class="row justify-content-end">
-
-            <div class="input-group-text font-weight-bold" id="status-box"> <img src="/assets/icon/house-door-fill.svg"
-                    width="22" height="22"> <span id="room">公共房間</span></div>
-            <div class="badge-warning input-group-text font-weight-bold" id="status-box"> <img
-                    src="/assets/icon/people.svg" width="22" height="22">
-                x <span id="online">0</span></div>
-        </div>
-        <div class="row w-100 h-50 d-inline-block overflow-auto" id="container-content">
-            <div class="col-auto">
+        <div class="row w-100 d-inline-block overflow-auto " id="container-content"
+            style="white-space:pre-wrap; height: 60%;">
+            <div class="col-auto" style="height:100%">
                 <div class="container border h-100" id="content">
                 </div>
             </div>
         </div>
-        <div class="row justify-content-center">
-            <div class="col-auto">&nbsp</div>
-        </div>
-        <div class="row justify-content-center">
-            <div class="col-auto">
-                <form id="changeRoomNumber-form">
-                    <div class="input-group">
-                        <img src="/assets/icon/person-fill.svg" width="32" height="32">
-                        <input type="text" class="form-control" name="name" id="name" value="" placeholder="暱稱"
-                            maxlength="50">
-                        <img src="/assets/icon/house-door.svg" width="32" height="32">
-                        <input type="text" class="form-control" name="roomNumber" id="roomNumber" value="公共房間"
-                            placeholder="房間名稱" maxlength="50">
-                        <div class="input-group-append">
-                            <input type="submit" class="btn btn-danger mb-2" id="changeRoomNumber" value="變更">
+        <div class="h-25">
+            <div class="row justify-content-center">
+                <div class="col-auto">
+                    <form id="changeRoomNumber-form">
+                        <div class="input-group">
+                            <img src="/assets/icon/person-fill.svg" width="32" height="32">
+                            <input type="text" class="form-control" name="name" id="name" value="" placeholder="暱稱"
+                                maxlength="50">
+                            <img src="/assets/icon/house-door.svg" width="32" height="32">
+                            <input type="text" class="form-control" name="roomNumber" id="roomNumber" value="公共房間"
+                                placeholder="房間名稱" maxlength="50">
+                            <div class="input-group-append">
+                                <input type="submit" class="btn btn-danger mb-2" id="changeRoomNumber" value="變更">
+                            </div>
                         </div>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
-        </div>
 
-        <div class="row justify-content-center">
-            <div class="col-auto">
-                <form id="send-form">
-                    <div class="input-group text-center">
-                        <input type="text" name="msg" id="msg" value="1d100" placeholder="說點什麼？" maxlength="1000">
-                        <div class="input-group-append">
-                            <input type="submit" class="btn btn-primary" id="submit" value="送出" onclick="genName()">
+            <div class="row justify-content-center">
+                <div class="col-auto">
+                    <form id="send-form">
+                        <div class="input-group text-center">
+                            <input type="text" name="msg" id="msg" value="1d100" placeholder="說點什麼？" maxlength="1000">
+                            <div class="input-group-append">
+                                <input type="submit" class="btn btn-primary" id="submit" value="送出" onclick="genName()">
+                            </div>
                         </div>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
-        </div>
-        <div class="row justify-content-center">
-            <div class="col-auto">&nbsp</div>
-        </div>
-        <div class="row justify-content-center">
-            <div class="col-auto">
-                <span class="badge badge-info">
-                    每間房間上限100條信息</br>輸入名字可以進入自定的房間
-                </span>
+            <div class="row justify-content-center">
+                <div class="col-auto">&nbsp</div>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-auto">
+                    <span class="badge badge-info">
+                        每間房間上限100條信息</br>輸入名字可以進入自定的房間
+                    </span>
+                </div>
             </div>
         </div>
     </div>
@@ -207,9 +230,10 @@
             var msgBox = document.createElement("div");
             msgBox.className = "card";
             var msgBoxHeader = document.createElement("div");
-            msgBoxHeader.className = "card-header";
+            msgBoxHeader.className = "card-header2";
             var msgBoxBody = document.createElement("div");
-            msgBoxBody.className = "card-body";
+
+            msgBoxBody.classList.add("card-body2")
 
             var space = document.createElement("span");
             var nameBox = document.createElement("span");
@@ -219,7 +243,7 @@
             var name = document.createTextNode(d.name);
 
             var time = document.createTextNode(new Date(d.time).toLocaleString());
-            var msg = document.createTextNode(d.msg, setTimeout(function () {
+            var msg = document.createTextNode(d.msg.replace(/^\n/, ''), setTimeout(function () {
                 scorllToBottom();
             }, 50));
 

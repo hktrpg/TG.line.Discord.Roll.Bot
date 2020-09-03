@@ -3,7 +3,10 @@ var session = [{
     date: Date,
     uid: Text,
     channel: Text,
-    
+    response: {
+
+    }
+
 }];
 
 

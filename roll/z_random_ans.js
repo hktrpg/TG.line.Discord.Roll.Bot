@@ -3,10 +3,15 @@ if (!process.env.mongoURL) {
     return;
 }
 const rollbase = require('./rollbase.js');
-var randomAnsfunction = {
+const schema = require('../modules/core-schema.js');
+const randomAnsfunction = {
     randomAnsfunction: [],
     randomAnsAllgroup: []
 };
+const opt = {
+    upsert: true,
+    runValidators: true
+}
 const records = require('../modules/records.js');
 const VIP = require('../modules/veryImportantPerson');
 const limitArr = [30, 200, 200, 300, 300, 300, 300, 300];
@@ -28,7 +33,7 @@ var prefixs = function () {
         second: null
     }]
 }
-var getHelpMessage = function () {
+const getHelpMessage = function () {
     return "【自定義回應功能】" + "\n\
 這是根據關鍵字來隨機抽選功能,只要符合內容,以後就會隨機抽選\n\
 例如輸入 .ra add 九大陣營 守序善良 (...太長省略) 中立邪惡 混亂邪惡 \n\
@@ -45,7 +50,7 @@ P.S.如果沒立即生效 用.ra show 刷新一下\n\
 例如輸入 .rap10 聖晶石召喚 即可十連抽了 \n\
 "
 }
-var initialize = function () {
+const initialize = function () {
     return randomAnsfunction;
 }
 
@@ -66,6 +71,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
     let getData;
     let check;
     let temp;
+    let filter;
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
@@ -82,7 +88,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             limit = limitArr[lv];
             if (!mainMsg[2])
                 rply.text += ' 沒有關鍵字.'
-            if (!mainMsg[3] && !mainMsg[4])
+            if (!mainMsg[4])
                 rply.text += ' 沒有自定義回應,至少兩個.'
             if (!groupid)
                 rply.text += ' 不在群組.'
@@ -92,86 +98,70 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 rply.text = '新增失敗.\n' + rply.text;
                 return rply;
             }
-            check = await getData.randomAnsfunction.find(e =>
-                e[0].toLowerCase() == mainMsg[2].toLowerCase()
-            )
+            getData = await randomAnsfunction.randomAnsfunction.find(e => e.groupid == groupid)
+            if (getData)
+                check = await getData.randomAnsfunction.find(e =>
+                    e[0].toLowerCase() == mainMsg[2].toLowerCase()
+                )
             if (check) {
                 rply.text = '新增失敗. 重複關鍵字'
                 return rply;
             }
-            getData = await randomAnsfunction.randomAnsfunction.find(e => e.groupid == groupid)
-            if (getData.randomAnsfunction.length >= limit) {
+            if (getData && getData.randomAnsfunction.length >= limit) {
                 rply.text = '關鍵字上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
                 return rply;
             }
             temp = {
-                groupid: groupid,
                 randomAnsfunction: [mainMsg.slice(2)]
             }
-
-            records.pushrandomAnsfunction('randomAns', temp, () => {
+            check = await schema.randomAns.updateOne({
+                groupid: groupid
+            }, {
+                $push: temp
+            }, opt)
+            if (check.n == 1) {
                 records.get('randomAns', (msgs) => {
                     randomAnsfunction.randomAnsfunction = msgs
                     // console.log(rply);
                 })
-
-            })
-            rply.text = '新增成功: ' + mainMsg[2]
+                rply.text = '新增成功: ' + mainMsg[2]
+            } else rply.text = '新增失敗'
             return rply;
-
-        case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
-            //    
-            //刪除所有自定義關鍵字
-            //
-            if (!mainMsg[2]) return;
-            if (groupid && mainMsg[2] && randomAnsfunction.randomAnsfunction && userrole >= 2) {
-                for (let i = 0; i < randomAnsfunction.randomAnsfunction.length; i++) {
-                    if (randomAnsfunction.randomAnsfunction[i].groupid == groupid) {
-                        let temp = randomAnsfunction.randomAnsfunction[i]
-                        temp.randomAnsfunction = []
-                        records.setrandomAnsfunction('randomAns', temp, () => {
-                            records.get('randomAns', (msgs) => {
-                                randomAnsfunction.randomAnsfunction = msgs
-                            })
-                        })
-                        rply.text = '刪除所有關鍵字'
-                    }
-                }
-            } else {
-                rply.text = '刪除失敗.'
-                if (!groupid)
-                    rply.text += '不在群組. '
-                if (groupid && userrole < 2)
-                    rply.text += '只有GM以上才可刪除所有關鍵字. '
-            }
-
-            return rply;
-        case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
+        case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]):
             //
             //刪除自定義關鍵字
             //
-            if (groupid && mainMsg[2] && randomAnsfunction.randomAnsfunction && userrole >= 1) {
-                for (let i = 0; i < randomAnsfunction.randomAnsfunction.length; i++) {
-                    if (randomAnsfunction.randomAnsfunction[i].groupid == groupid && mainMsg[2] < randomAnsfunction.randomAnsfunction[i].randomAnsfunction.length && mainMsg[2] >= 0) {
-                        let temp = randomAnsfunction.randomAnsfunction[i]
-                        temp.randomAnsfunction.splice(mainMsg[2], 1)
-                        //console.log('randomAnsfunction.randomAnsfunction: ', temp)
-                        records.setrandomAnsfunction('randomAns', temp, () => {
-                            records.get('randomAns', (msgs) => {
-                                randomAnsfunction.randomAnsfunction = msgs
-                            })
-                        })
-                    }
-                    rply.text = '刪除成功: ' + mainMsg[2]
-                }
-            } else {
-                rply.text = '刪除失敗.'
-                if (!mainMsg[2])
-                    rply.text += '沒有關鍵字. '
-                if (!groupid)
-                    rply.text += '不在群組. '
-                if (groupid && userrole < 1)
-                    rply.text += '只有GM以上才可刪除. '
+            if (!mainMsg[2])
+                rply.text += '沒有關鍵字. '
+            if (!groupid)
+                rply.text += '不在群組. '
+            if (groupid && userrole < 1)
+                rply.text += '只有GM以上才可刪除. '
+            if (rply.text)
+                return rply;
+            filter = {
+                groupid: groupid,
+            };
+            getData = await schema.randomAns.findOne(filter)
+            if (!getData) {
+                rply.text += '沒有此關鍵字. '
+                return rply;
+            }
+            console.log(getData)
+            temp = getData.randomAnsfunction.filter(e => e[0].toLowerCase() === mainMsg[2].toLowerCase());
+            console.log(temp)
+            if (temp.length == 0) {
+                rply.text += '沒有此關鍵字. \n現在已更新刪除方式, 刪除請輸入 .ra del 名字'
+                return rply;
+            }
+            temp.forEach(f => getData.randomAnsfunction.splice(getData.randomAnsfunction.findIndex(e => e[0] === f[0]), 1));
+            check = await getData.save();
+            if (check) {
+                records.get('randomAns', (msgs) => {
+                    randomAnsfunction.randomAnsfunction = msgs
+                })
+                rply.text += '刪除成功\n' + temp;
+
             }
             return rply;
         case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
@@ -181,135 +171,121 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             records.get('randomAns', (msgs) => {
                 randomAnsfunction.randomAnsfunction = msgs
             })
-            if (groupid) {
-                let temp = 0;
-                if (randomAnsfunction.randomAnsfunction)
-                    for (let i = 0; i < randomAnsfunction.randomAnsfunction.length; i++) {
-                        if (randomAnsfunction.randomAnsfunction[i].groupid == groupid) {
-                            rply.text += '自定義關鍵字列表:';
-                            for (let a = 0; a < randomAnsfunction.randomAnsfunction[i].randomAnsfunction.length; a++) {
-                                temp = 1;
-                                rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + '. ' + randomAnsfunction.randomAnsfunction[i].randomAnsfunction[a][0] : "     " + a + '. ' + randomAnsfunction.randomAnsfunction[i].randomAnsfunction[a][0];
-
-                            }
-                        }
-                    }
-                if (temp == 0) rply.text = '沒有已設定的關鍵字. '
-            } else {
-                rply.text = '不在群組. '
+            if (!groupid) {
+                rply.text += '不在群組. '
+                return rply;
+            }
+            getData = await randomAnsfunction.randomAnsfunction.find(e => e.groupid == groupid);
+            if (!getData || getData.randomAnsfunction.length == 0) {
+                rply.text = '沒有已設定的關鍵字. '
+                return rply
+            }
+            if (mainMsg[2]) {
+                temp = getData.randomAnsfunction.find(e => e[0].toLowerCase() == mainMsg[2].toLowerCase())
+                for (let i in temp) {
+                    rply.text += (i == 0) ? '自定義關鍵字 ' + temp[i] : '\n' + i + '. ' + temp[i]
+                }
+            }
+            if (rply.text) {
+                return rply
+            }
+            rply.text += '自定義關鍵字列表:';
+            for (let a in getData.randomAnsfunction) {
+                rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + '. ' + getData.randomAnsfunction[a][0] : "     " + a + '. ' + getData.randomAnsfunction[a][0];
             }
             //顯示自定義關鍵字
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
+            rply.text += '\n在show [空格]後面輸入關鍵字名稱, 可以顯示詳細內容';
             return rply
-        case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
+        case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
             //
             //RA使用抽選功能
             //
-            times = /^[.]ra(\d+|)/i.exec(mainMsg[0])[1] || 1
+            if (!groupid) {
+                rply.text = '不在群組. '
+            }
+            times = /^[.](r|)ra(\d+|)/i.exec(mainMsg[0])[2] || 1;
+            check = /^[.](r|)ra(\d+|)/i.exec(mainMsg[0])[1] || '';
             if (times > 30) times = 30;
             if (times < 1) times = 1
-            //console.log(times)
-            if (groupid) {
-                //    console.log(mainMsg[1])
-                let temp = 0;
-                if (randomAnsfunction.randomAnsfunction)
-                    for (let i = 0; i < randomAnsfunction.randomAnsfunction.length; i++) {
-                        if (randomAnsfunction.randomAnsfunction[i].groupid == groupid) {
-                            // console.log(randomAnsfunction.randomAnsfunction[i])
-                            //rply.text += '自定義關鍵字列表:'
-                            for (let aa = 1; aa < mainMsg.length; aa++)
-                                for (let a = 0; a < randomAnsfunction.randomAnsfunction[i].randomAnsfunction.length; a++) {
-                                    if (randomAnsfunction.randomAnsfunction[i].randomAnsfunction[a][0].toLowerCase() == mainMsg[aa].toLowerCase()) {
-                                        temp = 1
-                                        let temptitle = randomAnsfunction.randomAnsfunction[i].randomAnsfunction[a][0];
-                                        let tempcontact = [...randomAnsfunction.randomAnsfunction[i].randomAnsfunction[a]];
-                                        tempcontact.shift();
-                                        rply.text += temptitle + ' → ';
-                                        let result = [];
-
-
-                                        for (; result.length < times;) {
-                                            result = result.concat(await shuffle([...tempcontact]))
-                                        }
-                                        rply.text += result[0];
-                                        for (let t = 1; t < times; t++) {
-                                            rply.text += ' , ' + result[t];
-                                        }
-                                        rply.text += '\n'
-                                    }
-
-                                }
-                        }
+            getData = randomAnsfunction.randomAnsfunction.find(e => e.groupid == groupid)
+            if (!getData) return;
+            for (let i in mainMsg) {
+                if (i == 0) continue;
+                temp = getData.randomAnsfunction.find(e => e[0].toLowerCase() == mainMsg[i].toLowerCase())
+                if (!temp) continue;
+                if (check) {
+                    //repeat mode
+                    rply.text += temp[0] + ' → ';
+                    for (let num = 0; num < times; num++) {
+                        let randomNumber = await rollbase.Dice(temp.length - 1);
+                        rply.text += (num == 0) ? temp[randomNumber] : ', ' + temp[randomNumber];
+                        rply.text += (num == times - 1) ? '\n' : '';
                     }
-                if (temp == 0) rply.text = '沒有相關關鍵字. '
-            } else {
-                rply.text = '不在群組. '
+                } else {
+                    //not repeat mode
+                    rply.text += temp[0] + ' → ';
+                    let items = [];
+                    let tempItems = [...temp]
+                    tempItems.splice(0, 1);
+                    while (items.length < times) {
+                        items = temp
+                            .map((a) => ({
+                                sort: Math.random(),
+                                value: a
+                            }))
+                            .sort((a, b) => a.sort - b.sort)
+                            .map((a) => a.value)
+                            .concat(items)
+                    }
+                    for (let num = 0; num < times; num++) {
+                        rply.text += (num == 0) ? items[num] : ', ' + items[num];
+                        rply.text += (num == times - 1) ? '\n' : '';
+                    }
+                }
+
             }
             return rply;
         case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
             //
-            //增加
-            //
-            checkifsamenamegroup = 0
-            if (randomAnsfunction.randomAnsAllgroup && mainMsg[2] && mainMsg[3] && mainMsg[4])
-                for (let i = 0; i < randomAnsfunction.randomAnsAllgroup.length; i++) {
-                    if (randomAnsfunction.randomAnsAllgroup[i].randomAnsAllgroup.length > 30) {
-                        rply.text = '防呆，只可以有100個關鍵字啊'
-                        return rply;
-                    }
-                    for (let a = 0; a < randomAnsfunction.randomAnsAllgroup[i].randomAnsAllgroup.length; a++) {
-                        if (randomAnsfunction.randomAnsAllgroup[i].randomAnsAllgroup[a][0].toLowerCase() == mainMsg[2].toLowerCase()) {
-                            checkifsamenamegroup = 1
-                        }
-                    }
-                }
-            if (mainMsg[3] && mainMsg[4]) {
-                let tempA = {
-                    randomAnsAllgroup: [mainMsg.slice(2)]
-                }
-                if (checkifsamenamegroup == 0) {
-                    records.pushrandomAnsAllgroup('randomAnsAllgroup', tempA, () => {
-                        records.get('randomAnsAllgroup', (msgs) => {
-                            randomAnsfunction.randomAnsAllgroup = msgs
-                            // console.log(rply);
-                        })
-                    })
-                    rply.text = '新增成功: ' + mainMsg[2]
-                } else {
-                    rply.text = '新增失敗. 重複關鍵字'
-                }
-            } else {
-                rply.text = '新增失敗.'
-                if (!mainMsg[2])
-                    rply.text += ' 沒有關鍵字.'
-                if (!mainMsg[3] && !mainMsg[4])
-                    rply.text += ' 沒有自定義回應,至少兩個.'
+            //增加自定義關鍵字
+            // .rap[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
+            if (!mainMsg[2])
+                rply.text += ' 沒有關鍵字.'
+            if (!mainMsg[4])
+                rply.text += ' 沒有自定義回應,至少兩個.'
+            if (rply.text) {
+                rply.text = '新增失敗.\n' + rply.text;
+                return rply;
             }
+            getData = await randomAnsfunction.randomAnsAllgroup.find(e => e)
+            console.log('getData.randomAnsAllgroup', getData.randomAnsAllgroup)
+            if (getData)
+                check = await getData.randomAnsAllgroup.find(e =>
+                    e[0].toLowerCase() == mainMsg[2].toLowerCase()
+                )
+            if (check) {
+                rply.text = '新增失敗. 重複關鍵字'
+                return rply;
+            }
+            if (getData.randomAnsAllgroup.length > 100) {
+                rply.text = '公共關鍵字上限' + 100 + '個';
+                return rply;
+            }
+            temp = {
+                randomAnsAllgroup: [mainMsg.slice(2)]
+            }
+            check = await schema.randomAnsAllgroup.updateOne({}, {
+                $push: temp
+            }, opt)
+            if (check.n == 1) {
+                records.get('randomAnsAllgroup', (msgs) => {
+                    randomAnsfunction.randomAnsAllgroup = msgs
+                    // console.log(rply);
+                })
+                rply.text = '新增成功: ' + mainMsg[2]
+            } else rply.text = '新增失敗'
             return rply;
-            /* case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
-                 //刪除自定義關鍵字
-                 if (mainMsg[2] && randomAnsfunction.randomAnsAllgroup) {
-                     for (var i = 0; i < randomAnsfunction.randomAnsAllgroup.length; i++) {
-                         if (mainMsg[2] < randomAnsfunction.randomAnsAllgroup[i].randomAnsAllgroup.length && mainMsg[2] >= 0) {
-                             let temp = randomAnsfunction.randomAnsAllgroup[i]
-                             temp.randomAnsAllgroup.splice(mainMsg[2], 1)
-                             //console.log('randomAnsfunction.randomAnsAllgroup: ', temp)
-                             records.setrandomAnsAllgroup('randomAnsAllgroup', temp, () => {
-                                 records.get('randomAnsAllgroup', (msgs) => {
-                                     randomAnsfunction.randomAnsAllgroup = msgs
-                                 })
-                             })
-                         }
-                         rply.text = '刪除成功: ' + mainMsg[2]
-                     }
-                 } else {
-                     rply.text = '刪除失敗.'
-                     if (!mainMsg[2])
-                         rply.text += '沒有關鍵字. '
-
-                 }
-                 return rply;
-                 */
         case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
             //
             //顯示列表

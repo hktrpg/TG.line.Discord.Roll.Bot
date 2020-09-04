@@ -64,7 +64,6 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
     let times = (/^[.](r|)ra(\d+|)/i.exec(mainMsg[0])) ? /^[.](r|)ra(\d+|)/i.exec(mainMsg[0])[1] : 1;
     let timesgp = (/^[.](r|)rap(\d+|)/i.exec(mainMsg[0])) ? /^[.](r|)rap(\d+|)/i.exec(mainMsg[0])[1] : 1;
     let temp2 = 0;
-    let checkifsamenamegroup = 0;
     let tempshow = 0;
     let lv;
     let limit = limitArr[0];
@@ -164,7 +163,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 
             }
             return rply;
-        case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+        case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
             //
             //顯示列表
             //
@@ -246,7 +245,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 
             }
             return rply;
-        case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
+        case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
             //
             //增加自定義關鍵字
             // .rap[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
@@ -259,7 +258,6 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 return rply;
             }
             getData = await randomAnsfunction.randomAnsAllgroup.find(e => e)
-            console.log('getData.randomAnsAllgroup', getData.randomAnsAllgroup)
             if (getData)
                 check = await getData.randomAnsAllgroup.find(e =>
                     e[0].toLowerCase() == mainMsg[2].toLowerCase()
@@ -286,7 +284,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 rply.text = '新增成功: ' + mainMsg[2]
             } else rply.text = '新增失敗'
             return rply;
-        case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+        case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
             //
             //顯示列表
             //
@@ -307,7 +305,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             //顯示自定義關鍵字
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
             return rply
-        case /(^[.]rap(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[0]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
+        case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[0]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
             //
             //RAP顯示抽選功能
             //

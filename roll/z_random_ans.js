@@ -3,7 +3,10 @@ if (!process.env.mongoURL) {
     return;
 }
 const rollbase = require('./rollbase.js');
-var randomAnsfunction = {};
+var randomAnsfunction = {
+    randomAnsfunction: [],
+    randomAnsAllgroup: []
+};
 const records = require('../modules/records.js');
 const VIP = require('../modules/veryImportantPerson');
 const limitArr = [30, 200, 200, 300, 300, 300, 300, 300];
@@ -21,7 +24,7 @@ var gameType = function () {
 }
 var prefixs = function () {
     return [{
-        first: /(^[.]ra(\d+|p|p\d+|)$)/ig,
+        first: /(^[.](r|)ra(\d+|p|p\d+|)$)/ig,
         second: null
     }]
 }
@@ -48,24 +51,26 @@ var initialize = function () {
 
 // eslint-disable-next-line no-unused-vars
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-    let checkifsamename = 0;
     let rply = {
         default: 'on',
         type: 'text',
         text: ''
     };
-    let times = (/^[.]ra(\d+|)/i.exec(mainMsg[0])) ? /^[.]ra(\d+|)/i.exec(mainMsg[0])[1] : 1;
-    let timesgp = (/^[.]rap(\d+|)/i.exec(mainMsg[0])) ? /^[.]rap(\d+|)/i.exec(mainMsg[0])[1] : 1;
+    let times = (/^[.](r|)ra(\d+|)/i.exec(mainMsg[0])) ? /^[.](r|)ra(\d+|)/i.exec(mainMsg[0])[1] : 1;
+    let timesgp = (/^[.](r|)rap(\d+|)/i.exec(mainMsg[0])) ? /^[.](r|)rap(\d+|)/i.exec(mainMsg[0])[1] : 1;
     let temp2 = 0;
     let checkifsamenamegroup = 0;
     let tempshow = 0;
     let lv;
     let limit = limitArr[0];
+    let getData;
+    let check;
+    let temp;
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
             return rply;
-        case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
+        case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
             //
             //增加自定義關鍵字
             // .ra[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
@@ -75,51 +80,45 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             */
             lv = await VIP.viplevelCheckGroup(groupid);
             limit = limitArr[lv];
-
-            checkifsamename = 0
-            if (groupid && userrole >= 1 && mainMsg[3] && mainMsg[4]) {
-                if (randomAnsfunction.randomAnsfunction)
-                    for (var i = 0; i < randomAnsfunction.randomAnsfunction.length; i++) {
-                        if (randomAnsfunction.randomAnsfunction[i].groupid == groupid) {
-                            // console.log('checked1')
-                            if (randomAnsfunction.randomAnsfunction[i].randomAnsfunction.length >= limit) {
-                                rply.text = '關鍵字上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
-                                return rply;
-                            }
-                            for (var a = 0; a < randomAnsfunction.randomAnsfunction[i].randomAnsfunction.length; a++) {
-                                if (randomAnsfunction.randomAnsfunction[i].randomAnsfunction[a][0].toLowerCase() == mainMsg[2].toLowerCase()) {
-                                    //   console.log('checked')
-                                    checkifsamename = 1
-                                }
-                            }
-                        }
-                    }
-                let temp = {
-                    groupid: groupid,
-                    randomAnsfunction: [mainMsg.slice(2)]
-                }
-                if (checkifsamename == 0) {
-                    records.pushrandomAnsfunction('randomAns', temp, () => {
-                        records.get('randomAns', (msgs) => {
-                            randomAnsfunction.randomAnsfunction = msgs
-                            // console.log(rply);
-                        })
-
-                    })
-                    rply.text = '新增成功: ' + mainMsg[2]
-                } else rply.text = '新增失敗. 重複關鍵字'
-            } else {
-                rply.text = '新增失敗.'
-                if (!mainMsg[2])
-                    rply.text += ' 沒有關鍵字.'
-                if (!mainMsg[3] && !mainMsg[4])
-                    rply.text += ' 沒有自定義回應,至少兩個.'
-                if (!groupid)
-                    rply.text += ' 不在群組.'
-                if (groupid && userrole < 1)
-                    rply.text += ' 只有GM以上才可新增.'
+            if (!mainMsg[2])
+                rply.text += ' 沒有關鍵字.'
+            if (!mainMsg[3] && !mainMsg[4])
+                rply.text += ' 沒有自定義回應,至少兩個.'
+            if (!groupid)
+                rply.text += ' 不在群組.'
+            if (groupid && userrole < 1)
+                rply.text += ' 只有GM以上才可新增.'
+            if (rply.text) {
+                rply.text = '新增失敗.\n' + rply.text;
+                return rply;
             }
+            check = await getData.randomAnsfunction.find(e =>
+                e[0].toLowerCase() == mainMsg[2].toLowerCase()
+            )
+            if (check) {
+                rply.text = '新增失敗. 重複關鍵字'
+                return rply;
+            }
+            getData = await randomAnsfunction.randomAnsfunction.find(e => e.groupid == groupid)
+            if (getData.randomAnsfunction.length >= limit) {
+                rply.text = '關鍵字上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                return rply;
+            }
+            temp = {
+                groupid: groupid,
+                randomAnsfunction: [mainMsg.slice(2)]
+            }
+
+            records.pushrandomAnsfunction('randomAns', temp, () => {
+                records.get('randomAns', (msgs) => {
+                    randomAnsfunction.randomAnsfunction = msgs
+                    // console.log(rply);
+                })
+
+            })
+            rply.text = '新增成功: ' + mainMsg[2]
             return rply;
+
         case /(^[.]ra(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
             //    
             //刪除所有自定義關鍵字

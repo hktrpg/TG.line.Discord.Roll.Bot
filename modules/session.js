@@ -1,11 +1,18 @@
 "use strict";
 var session = [{
     date: Date,
+    //兩分鐘後失效
     uid: Text,
     channel: Text,
-    response: {
-
-    }
+    //確認是同一CHANNEL，同一地方
+    response: [{
+        answer: '',
+        //如果是這個答案則做出反應
+        sendBack: "",
+        //
+        next: ''
+    }]
+    //
 
 }];
 

@@ -40,12 +40,15 @@ const getHelpMessage = function () {
 再輸入.ra 九大陣營  就會輸出 九大陣營中其中一個\n\
 如果輸入.ra3 九大陣營  就會輸出 3次九大陣營\n\
 如果輸入.ra3 九大陣營 天干 地支 就會輸出 3次九大陣營 天干 地支\n\
+如果輸入.rra3 九大陣營 就會輸出3次有可能重覆的九大陣營\n\
 add 後面第一個是關鍵字, 可以是漢字,數字和英文或emoji\n\
 P.S.如果沒立即生效 用.ra show 刷新一下\n\
 輸入.ra add (關鍵字) (選項1) (選項2) (選項3)即可增加關鍵字\n\
 輸入.ra show 顯示所有關鍵字\n\
-輸入.ra del(編號)或all 即可刪除\n\
-輸入.ra(次數,最多30次) (關鍵字1)(關鍵字2)(關鍵字n) 即可隨機抽選 \n\
+輸入.ra show (關鍵字)顯示內容\n\
+輸入.ra del (關鍵字) 即可刪除\n\
+輸入.ra(次數,最多30次) (關鍵字1)(關鍵字2)(關鍵字n) 即可不重覆隨機抽選 \n\
+輸入.rra(次數,最多30次) (關鍵字1)(關鍵字2)(關鍵字n) 即可重覆隨機抽選 \n\
 如使用輸入.rap 會變成全服版,全服可看, 可用add show功能 \n\
 例如輸入 .rap10 聖晶石召喚 即可十連抽了 \n\
 "
@@ -61,10 +64,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
         type: 'text',
         text: ''
     };
-    let times = (/^[.](r|)ra(\d+|)/i.exec(mainMsg[0])) ? /^[.](r|)ra(\d+|)/i.exec(mainMsg[0])[1] : 1;
-    let timesgp = (/^[.](r|)rap(\d+|)/i.exec(mainMsg[0])) ? /^[.](r|)rap(\d+|)/i.exec(mainMsg[0])[1] : 1;
-    let temp2 = 0;
-    let tempshow = 0;
+    let times = [];
     let lv;
     let limit = limitArr[0];
     let getData;
@@ -182,7 +182,8 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             if (mainMsg[2]) {
                 temp = getData.randomAnsfunction.find(e => e[0].toLowerCase() == mainMsg[2].toLowerCase())
                 for (let i in temp) {
-                    rply.text += (i == 0) ? '自定義關鍵字 ' + temp[i] : '\n' + i + '. ' + temp[i]
+                    rply.text += (i == 0) ? '自定義關鍵字 ' + temp[i] + '\n' : '';
+                    rply.text += ((i % 2 && i != 1) && i !== 0) ? ("\n") + i + '. ' + temp[i] + "        " : (i == 0) ? '' : i + '. ' + temp[i] + "        ";
                 }
             }
             if (rply.text) {
@@ -194,7 +195,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             }
             //顯示自定義關鍵字
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
-            rply.text += '\n在show [空格]後面輸入關鍵字名稱, 可以顯示詳細內容';
+            rply.text += '\n在show [空格]後面輸入關鍵字標題, 可以顯示詳細內容';
             return rply
         case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
             //
@@ -228,7 +229,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                     let tempItems = [...temp]
                     tempItems.splice(0, 1);
                     while (items.length < times) {
-                        items = temp
+                        items = tempItems
                             .map((a) => ({
                                 sort: Math.random(),
                                 value: a
@@ -290,52 +291,75 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             //
             records.get('randomAnsAllgroup', (msgs) => {
                 randomAnsfunction.randomAnsAllgroup = msgs
-                //  console.log(rply)
             })
-            tempshow = 0;
-            if (randomAnsfunction.randomAnsAllgroup)
-                for (let i = 0; i < randomAnsfunction.randomAnsAllgroup.length; i++) {
-                    rply.text += '自定義關鍵字列表:'
-                    for (let a = 0; a < randomAnsfunction.randomAnsAllgroup[i].randomAnsAllgroup.length; a++) {
-                        tempshow = 1;
-                        rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + '. ' + randomAnsfunction.randomAnsAllgroup[i].randomAnsAllgroup[a][0] : '     ' + a + '. ' + randomAnsfunction.randomAnsAllgroup[i].randomAnsAllgroup[a][0];
-                    }
+            getData = await randomAnsfunction.randomAnsAllgroup.find(e => e);
+            if (!getData || getData.randomAnsAllgroup.length == 0) {
+                rply.text = '沒有已設定的關鍵字. '
+                return rply
+            }
+            if (mainMsg[2]) {
+                temp = getData.randomAnsAllgroup.find(e => e[0].toLowerCase() == mainMsg[2].toLowerCase())
+                for (let i in temp) {
+                    rply.text += (i == 0) ? '自定義關鍵字 ' + temp[i] + '\n' : '';
+                    rply.text += ((i % 2 && i != 1) && i !== 0) ? ("\n") + i + '. ' + temp[i] + "        " : (i == 0) ? '' : i + '. ' + temp[i] + "        ";
                 }
-            if (tempshow == 0) rply.text = '沒有已設定的關鍵字. '
+            }
+            if (rply.text) {
+                return rply
+            }
+            rply.text += '自定義關鍵字列表:';
+            for (let a in getData.randomAnsAllgroup) {
+                rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + '. ' + getData.randomAnsAllgroup[a][0] : "     " + a + '. ' + getData.randomAnsAllgroup[a][0];
+            }
             //顯示自定義關鍵字
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
+            rply.text += '\n在show [空格]後面輸入關鍵字標題, 可以顯示詳細內容';
             return rply
         case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[0]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
             //
-            //RAP顯示抽選功能
+            //RAP使用抽選功能
             //
-            timesgp = /^[.]rap(\d+|)/i.exec(mainMsg[0])[1] || 1
-            if (timesgp > 30) timesgp = 30;
-            if (timesgp < 1) timesgp = 1
-            temp2 = 0;
-            if (randomAnsfunction.randomAnsAllgroup)
-                for (let i = 0; i < randomAnsfunction.randomAnsAllgroup.length; i++) {
-                    for (let aa = 1; aa < mainMsg.length; aa++)
-                        for (let a = 0; a < randomAnsfunction.randomAnsAllgroup[i].randomAnsAllgroup.length; a++) {
-                            if (randomAnsfunction.randomAnsAllgroup[i].randomAnsAllgroup[a][0].toLowerCase() == mainMsg[aa].toLowerCase()) {
-                                temp2 = 1
-                                let GPtemp = randomAnsfunction.randomAnsAllgroup[i].randomAnsAllgroup[a];
-                                let GPtempcontact = [...randomAnsfunction.randomAnsAllgroup[i].randomAnsAllgroup[a]];
-                                GPtempcontact.shift();
-                                rply.text += GPtemp[0] + ' → ';
-                                let result = [];
-                                for (; result.length < timesgp;) {
-                                    result = result.concat(await shuffle([...GPtempcontact]))
-                                }
-                                rply.text += result[0];
-                                for (let t = 1; t < timesgp; t++) {
-                                    rply.text += ' , ' + result[t];
-                                }
-                                rply.text += '\n';
-                            }
-                        }
+            times = /^[.](r|)rap(\d+|)/i.exec(mainMsg[0])[2] || 1;
+            check = /^[.](r|)rap(\d+|)/i.exec(mainMsg[0])[1] || '';
+            if (times > 30) times = 30;
+            if (times < 1) times = 1
+            getData = randomAnsfunction.randomAnsAllgroup.find(e => e)
+            if (!getData) return;
+            for (let i in mainMsg) {
+                if (i == 0) continue;
+                temp = getData.randomAnsAllgroup.find(e => e[0].toLowerCase() == mainMsg[i].toLowerCase())
+                if (!temp) continue;
+                if (check) {
+                    //repeat mode
+                    rply.text += temp[0] + ' → ';
+                    for (let num = 0; num < times; num++) {
+                        let randomNumber = await rollbase.Dice(temp.length - 1);
+                        rply.text += (num == 0) ? temp[randomNumber] : ', ' + temp[randomNumber];
+                        rply.text += (num == times - 1) ? '\n' : '';
+                    }
+                } else {
+                    //not repeat mode
+                    rply.text += temp[0] + ' → ';
+                    let items = [];
+                    let tempItems = [...temp]
+                    tempItems.splice(0, 1);
+                    while (items.length < times) {
+                        items = tempItems
+                            .map((a) => ({
+                                sort: Math.random(),
+                                value: a
+                            }))
+                            .sort((a, b) => a.sort - b.sort)
+                            .map((a) => a.value)
+                            .concat(items)
+                    }
+                    for (let num = 0; num < times; num++) {
+                        rply.text += (num == 0) ? items[num] : ', ' + items[num];
+                        rply.text += (num == times - 1) ? '\n' : '';
+                    }
                 }
-            if (temp2 == 0) rply.text = '沒有相關關鍵字. '
+
+            }
             return rply;
         default:
             break;
@@ -343,27 +367,6 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 }
 
 
-async function shuffle(array) {
-    let currentIndex = array.length,
-        temporaryValue, randomIndex;
-
-    // While there remain elements to shuffle...
-    while (0 !== currentIndex) {
-        // Pick a remaining element...
-        //currentIndex 
-        //randomIndex = math.floor(math.random() * currentIndex);
-        randomIndex = await rollbase.Dice(currentIndex) - 1
-        //randomIndex =await rollbase.Dice(currentIndex) - 1
-        currentIndex -= 1;
-
-        // And swap it with the current element.
-        temporaryValue = array[currentIndex];
-        array[currentIndex] = array[randomIndex];
-        array[randomIndex] = temporaryValue;
-    }
-
-    return array;
-}
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,

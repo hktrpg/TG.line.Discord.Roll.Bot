@@ -176,7 +176,7 @@ client.on('message', async (message) => {
 
 	if (groupid && rplyVal && rplyVal.LevelUp) {
 		//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
-		SendToReplychannel("<@" + userid + '>\n' + rplyVal.LevelUp);
+		SendToReplychannel("<@" + userid + '>\n' + rplyVal.LevelUp, message);
 	}
 
 	if (!rplyVal.text) {
@@ -216,10 +216,10 @@ client.on('message', async (message) => {
 			// 輸入dr  (指令) 私訊自己
 			//
 			if (groupid)
-				SendToReplychannel("<@" + userid + '> 暗骰給自己')
+				SendToReplychannel("<@" + userid + '> 暗骰給自己', message)
 			if (userid)
 				rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
-			return SendToReply(rplyVal.text);
+			return SendToReply(rplyVal.text, message);
 		case privatemsg == 2:
 			//輸入ddr(指令) 私訊GM及自己
 			//console.log('AAA', TargetGMTempID)
@@ -228,15 +228,15 @@ client.on('message', async (message) => {
 				for (let i = 0; i < TargetGMTempID.length; i++) {
 					targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
 				}
-				SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
+				SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp, message);
 			}
 			if (userid) {
 				rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text;
 			}
-			SendToReply(rplyVal.text);
+			SendToReply(rplyVal.text, message);
 			for (let i = 0; i < TargetGMTempID.length; i++) {
 				if (userid != TargetGMTempID[i]) {
-					SendToId(TargetGMTempID[i], rplyVal.text);
+					SendToId(TargetGMTempID[i], rplyVal.text, client);
 				}
 			}
 			return;
@@ -247,7 +247,7 @@ client.on('message', async (message) => {
 				for (let i = 0; i < TargetGMTempID.length; i++) {
 					targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
 				}
-				SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp)
+				SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp, message)
 			}
 			rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
 			for (let i = 0; i < TargetGMTempID.length; i++) {
@@ -259,54 +259,50 @@ client.on('message', async (message) => {
 				rplyVal.text = "<@" + userid + ">\n" + rplyVal.text;
 			}
 			if (groupid)
-				return SendToReplychannel(rplyVal.text);
+				return SendToReplychannel(rplyVal.text, message);
 			else
-				return SendToReply(rplyVal.text);
+				return SendToReply(rplyVal.text, message);
 	}
-
-
 	//console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString(), " content: ", message.content);
-
 	//console.log("rplyVal: " + rplyVal);
 
-
-	async function SendToId(targetid, replyText) {
-		for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-			if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
-				try {
-					//V12ERROR return await client.users.get(targetid).send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
-					client.users.cache.get(targetid).send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
-				}
-			catch (e) {
-				console.log(' GET ERROR:  SendtoID: ', e.message)
-			}
-		}
-
-	}
-
-	async function SendToReply(replyText) {
-		for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-			if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
-				try {
-					await message.author.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
-				}
-			catch (e) {
-				console.log(' GET ERROR:  SendToReply: ', e.message)
-			}
-		}
-	}
-	async function SendToReplychannel(replyText) {
-		for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-			if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
-				try {
-					await message.channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
-				}
-			catch (e) {
-				console.log(' GET ERROR: SendToReplychannel: ', e.message);
-			}
-		}
-	}
 });
+async function SendToId(targetid, replyText) {
+	for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+		if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
+			try {
+				//V12ERROR return await client.users.get(targetid).send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
+				client.users.cache.get(targetid).send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
+			}
+		catch (e) {
+			console.log(' GET ERROR:  SendtoID: ', e.message)
+		}
+	}
+
+}
+
+async function SendToReply(replyText, message) {
+	for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+		if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
+			try {
+				await message.author.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
+			}
+		catch (e) {
+			console.log(' GET ERROR:  SendToReply: ', e.message)
+		}
+	}
+}
+async function SendToReplychannel(replyText, message) {
+	for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+		if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
+			try {
+				await message.channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
+			}
+		catch (e) {
+			console.log(' GET ERROR: SendToReplychannel: ', e.message);
+		}
+	}
+}
 //Set Activity 可以自定義正在玩什麼
 client.on('ready', () => {
 	client.user.setActivity('bothelp | hktrpg.com');

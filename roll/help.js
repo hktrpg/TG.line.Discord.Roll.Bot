@@ -26,6 +26,7 @@ const start = async () => {
 			timeZone: "Asia/Shanghai"
 		}).replace('GMT+0800 (GMT+08:00)', '');
 	}
+	ver = 'v1.' + Object.keys(exports).length;
 	for (let name of Object.keys(exports)) {
 		if (name.match(/^DICE/i)) {
 			Dice.push(exports[name]);
@@ -52,7 +53,7 @@ var variables = {};
 //heroku labs:enable runtime-dyno-metadata -a <app name>
 
 var heroku_version = 'v0'
-var ver = 'v1.' + Object.keys(exports).length;
+var ver = '';
 if (process.env.HEROKU_RELEASE_VERSION)
 	heroku_version = process.env.HEROKU_RELEASE_VERSION;
 var version = "";

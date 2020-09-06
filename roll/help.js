@@ -26,6 +26,7 @@ const start = async () => {
 			timeZone: "Asia/Shanghai"
 		}).replace('GMT+0800 (GMT+08:00)', '');
 	}
+	ver = 'v1.' + Object.keys(exports).length;
 	for (let name of Object.keys(exports)) {
 		if (name.match(/^DICE/i)) {
 			Dice.push(exports[name]);
@@ -52,6 +53,7 @@ var variables = {};
 //heroku labs:enable runtime-dyno-metadata -a <app name>
 
 var heroku_version = 'v0'
+var ver = '';
 if (process.env.HEROKU_RELEASE_VERSION)
 	heroku_version = process.env.HEROKU_RELEASE_VERSION;
 var version = "";
@@ -102,7 +104,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 請問有什麼可以幫你?\n\
 請輸入你想查詢的項目名字.\n\
 -------\n\
-bothelp ver		- 查詢版本及公告\n\
+bothelp ver		- 查詢詳細版本及公告(" + ver + ")\n\
 bothelp Base	- 查詢trpg 基本擲骰指令\n\
 bothelp Dice	- 查詢trpg 不同系統擲骰指令\n\
 bothelp Tool	- 查詢trpg 輔助工具\n\
@@ -125,7 +127,7 @@ bothelp link	- 查詢hktrpg 不同平台連結\n\
 			return rply;
 		case /^Dice/i.test(mainMsg[1]):
 			if (mainMsg[1].match(/^DICE$/i)) {
-				rply.text = '輸入 bothelp Dice序號 如 Dice1 即可看到內容\n'
+				rply.text = '輸入 bothelp Dice序號 如bothelp Dice1 即可看到內容\n'
 				for (let num in Dice) {
 					rply.text += num + '. ' + Dice[num].gameName() + '\n';
 				}
@@ -138,7 +140,7 @@ bothelp link	- 查詢hktrpg 不同平台連結\n\
 			return rply;
 		case /^Tool/i.test(mainMsg[1]):
 			if (mainMsg[1].match(/^Tool$/i)) {
-				rply.text = '輸入 bothelp Tool序號 如 Tool1 即可看到內容\n'
+				rply.text = '輸入 bothelp Tool序號 如bothelp Tool1 即可看到內容\n'
 				for (let num in Tool) {
 					rply.text += num + '. ' + Tool[num].gameName() + '\n';
 				}
@@ -152,7 +154,7 @@ bothelp link	- 查詢hktrpg 不同平台連結\n\
 
 		case /^admin/i.test(mainMsg[1]):
 			if (mainMsg[1].match(/^admin$/i)) {
-				rply.text = '輸入 bothelp admin序號 如 admin1 即可看到內容\n'
+				rply.text = '輸入 bothelp admin序號 如bothelp admin1 即可看到內容\n'
 				for (let num in admin) {
 					rply.text += num + '. ' + admin[num].gameName() + '\n';
 				}
@@ -166,7 +168,7 @@ bothelp link	- 查詢hktrpg 不同平台連結\n\
 
 		case /^funny/i.test(mainMsg[1]):
 			if (mainMsg[1].match(/^funny$/i)) {
-				rply.text = '輸入 bothelp funny序號 如 funny1 即可看到內容\n'
+				rply.text = '輸入 bothelp funny序號 如bothelp funny1 即可看到內容\n'
 				for (let num in funny) {
 					rply.text += num + '. ' + funny[num].gameName() + '\n';
 				}
@@ -180,7 +182,7 @@ bothelp link	- 查詢hktrpg 不同平台連結\n\
 
 		case /^help/i.test(mainMsg[1]):
 			if (mainMsg[1].match(/^help$/i)) {
-				rply.text = '輸入 bothelp help序號 如 help1 即可看到內容\n'
+				rply.text = '輸入 bothelp help序號 如bothelp help1 即可看到內容\n'
 				for (let num in help) {
 					rply.text += num + '. ' + help[num].gameName() + '\n';
 				}

@@ -14,7 +14,7 @@ var gameName = function () {
     return '(公測中)儲存擲骰指令功能 .cmd (add del show 自定關鍵字)'
 }
 var gameType = function () {
-    return 'trpgCommand:hktrpg'
+    return 'Tool:trpgCommand:hktrpg'
 }
 var prefixs = function () {
     return [{

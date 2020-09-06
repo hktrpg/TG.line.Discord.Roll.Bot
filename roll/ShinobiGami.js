@@ -14,7 +14,7 @@ var gameName = function () {
 }
 
 var gameType = function () {
-    return 'ShinobiGami:hktrpg'
+    return 'Dice:ShinobiGami:hktrpg'
 }
 var prefixs = function () {
     return [{

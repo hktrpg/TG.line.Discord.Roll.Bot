@@ -7,7 +7,7 @@ var gameName = function () {
 }
 
 var gameType = function () {
-    return 'witch-hunting-night:hktrpg'
+    return 'Dice:witch-hunting-night:hktrpg'
 }
 var prefixs = function () {
     return [{

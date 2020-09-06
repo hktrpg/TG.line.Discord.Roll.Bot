@@ -13,7 +13,7 @@ var gameName = function () {
 }
 
 var gameType = function () {
-    return 'Satasupe:hktrpg'
+    return 'Dice:Satasupe:hktrpg'
 }
 var prefixs = function () {
     return [{

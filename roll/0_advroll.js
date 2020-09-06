@@ -9,7 +9,7 @@ var gameName = function () {
 }
 
 var gameType = function () {
-	return 'advroll:hktrpg'
+	return 'Dice:advRoll'
 }
 var prefixs = function () {
 	return [{

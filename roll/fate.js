@@ -7,7 +7,7 @@ var gameName = function () {
 }
 
 var gameType = function () {
-    return 'Fate:hktrpg'
+    return 'Dice:fate'
 }
 var prefixs = function () {
     //[mainMSG[0]的prefixs,mainMSG[1]的prefixs,   <---這裡是一對  

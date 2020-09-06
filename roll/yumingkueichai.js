@@ -6,7 +6,7 @@ var gameName = function () {
 }
 
 var gameType = function () {
-    return 'yumingkueichai:hktrpg'
+    return 'Dice:yumingkueichai:hktrpg'
 }
 var prefixs = function () {
     //[mainMSG[0]的prefixs,mainMSG[1]的prefixs,   <---這裡是一對  

@@ -17,7 +17,7 @@ var gameName = function () {
 }
 
 var gameType = function () {
-    return 'Admin:hktrpg'
+    return 'admin:Admin:hktrpg'
 }
 var prefixs = function () {
     return [{
@@ -28,7 +28,7 @@ var prefixs = function () {
 var getHelpMessage = function () {
     return "【Admin 工具】" + "\
 	\n  用來Debug 及調整VIP工具\
-		\n debug 用來取得群組資料"
+		\n .admin debug 用來取得群組資料"
 }
 
 var initialize = function () {

@@ -16,7 +16,7 @@ var gameName = function () {
 }
 
 var gameType = function () {
-	return 'Nechronica:hktrpg'
+	return 'Dice:Nechronica'
 }
 var prefixs = function () {
 	return [{

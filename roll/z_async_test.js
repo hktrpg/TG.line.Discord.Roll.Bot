@@ -13,7 +13,7 @@ var gameName = function () {
 }
 
 var gameType = function () {
-	return 'Wiki:hktrpg'
+	return 'funny:Wiki:hktrpg'
 }
 var prefixs = function () {
 	return [{

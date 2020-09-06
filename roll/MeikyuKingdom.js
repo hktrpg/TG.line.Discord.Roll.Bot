@@ -8,7 +8,7 @@ var gameName = function () {
 }
 
 var gameType = function () {
-    return 'MeikyuKingdom:hktrpg'
+    return 'Dice:meikyuKingdom'
 }
 var prefixs = function () {
     return [{

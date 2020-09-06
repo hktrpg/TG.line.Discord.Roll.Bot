@@ -7,7 +7,7 @@ var gameName = function () {
 }
 
 var gameType = function () {
-	return 'WOD:hktrpg'
+	return 'Dice:WOD:hktrpg'
 }
 var prefixs = function () {
 	return [{

@@ -16,7 +16,7 @@ var gameName = function () {
     return '(公測中)經驗值功能 .level (show config LevelUpWord RankWord)'
 }
 var gameType = function () {
-    return 'trpgLevelSystem:hktrpg'
+    return 'funny:trpgLevelSystem:hktrpg'
 }
 var prefixs = function () {
     return [{

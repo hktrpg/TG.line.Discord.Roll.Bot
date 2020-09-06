@@ -12,7 +12,7 @@ var gameName = function () {
     return '(公測中)角色卡功能 .char (add edit show delete use nonuse) .ch (set show showall)'
 }
 var gameType = function () {
-    return 'trpgcharacter:hktrpg'
+    return 'Tool:trpgcharacter:hktrpg'
 }
 var prefixs = function () {
     return [{

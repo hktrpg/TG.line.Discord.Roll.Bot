@@ -15,7 +15,7 @@ var gameName = function () {
 }
 
 var gameType = function () {
-	return 'UK:hktrpg'
+	return 'Dice:UK:hktrpg'
 }
 var prefixs = function () {
 	return [{

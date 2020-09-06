@@ -20,7 +20,7 @@
     "body-parser": "^1.19.0",
     "bufferutil": "^4.0.1",
     "chinese-conv": "^1.0.1",
-    "discord.js": "^12.2.0",
+    "discord.js": "^12.3.1",
     "dotenv": "^7.0.0",
     "duckduckgo-images-api": "^1.0.5",
     "easy-monitor": "^2.2.8",
@@ -31,7 +31,7 @@
     "libsodium-wrappers": "^0.7.8",
     "mathjs": "^5.10.3",
     "moment": "^2.27.0",
-    "mongoose": "^5.9.27",
+    "mongoose": "^5.10.3",
     "random-js": "^2.1.0",
     "socket.io": "^2.3.0",
     "telebot": "^1.4.1",
@@ -40,7 +40,7 @@
     "timer": "^1.0.1",
     "utf-8-validate": "^5.0.2",
     "uws": "^9.14.0",
-    "whatsapp-web.js": "^1.7.0",
+    "whatsapp-web.js": "^1.8.2",
     "wikijs": "6.0.1",
     "xmlhttprequest": "^1.8.0",
     "zlib-sync": "^0.1.7"
@@ -58,6 +58,6 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "eslint": "^7.6.0"
+    "eslint": "^7.8.1"
   }
 }

@@ -17,7 +17,7 @@ const start = async () => {
 		}).replace('GMT+0800 (GMT+08:00)', '');
 }
 start();
-var variables = {}; 
+var variables = {};
 //heroku labs:enable runtime-dyno-metadata -a <app name>
 
 var heroku_version = 'v0'
@@ -27,7 +27,7 @@ var version = "";
 
 
 var gameName = function () {
-	return '骰子機器人HKTRPG說明'
+	return '骰子機器人HKTRPG說明';
 }
 
 var gameType = function () {
@@ -72,12 +72,13 @@ var initialize = function () {
 
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
 	let rply = {
-        default: 'on',
-        type: 'text',
-        text: ''
-    };
+		default: 'on',
+		type: 'text',
+		text: ''
+	};
 	//let result = {};
-	switch (true) {
+	
+	switch (false) {
 		case /^\d+$/i.test(mainMsg[1]):
 			//console.log(exports[Object.keys(exports)[mainMsg[1]]].getHelpMessage)
 			if (exports[Object.keys(exports)[mainMsg[1]]] && exports[Object.keys(exports)[mainMsg[1]]].getHelpMessage) {

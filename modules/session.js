@@ -9,8 +9,9 @@ var session = [{
         answer: '',
         //如果是這個答案則做出反應
         sendBack: "",
-        //
+        //回應
         next: ''
+        //下一步指向那個行動
     }]
     //
 

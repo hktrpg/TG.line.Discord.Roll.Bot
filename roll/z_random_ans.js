@@ -17,7 +17,7 @@ var gameName = function () {
     return '(公測中)自定義回應功能 .ra(p)(次數) (add del show 自定關鍵字)'
 }
 var gameType = function () {
-    return 'randomAns:hktrpg'
+    return 'funny:randomAns:hktrpg'
 }
 var prefixs = function () {
     return [{

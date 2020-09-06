@@ -14,7 +14,7 @@ var gameName = function () {
 }
 
 var gameType = function () {
-    return 'Block:hktrpg'
+    return 'admin:Block:hktrpg'
 }
 var prefixs = function () {
     return [{

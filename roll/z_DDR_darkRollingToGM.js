@@ -11,7 +11,7 @@ var gameName = function () {
     return '(公測中)暗骰GM功能 .drgm (addgm del show) dr ddr dddr'
 }
 var gameType = function () {
-    return 'trpgDarkRolling:hktrpg'
+    return 'Tool:trpgDarkRolling:hktrpg'
 }
 var prefixs = function () {
     return [{

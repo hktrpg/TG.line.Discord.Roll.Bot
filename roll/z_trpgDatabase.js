@@ -16,7 +16,7 @@ var gameName = function () {
     return '(公測中)資料庫功能 .db(p) (add del show 自定關鍵字)'
 }
 var gameType = function () {
-    return 'trpgDatabase:hktrpg'
+    return 'funny:trpgDatabase:hktrpg'
 }
 var prefixs = function () {
     return [{

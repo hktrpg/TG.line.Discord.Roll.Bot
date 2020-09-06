@@ -7,7 +7,7 @@ var gameName = function () {
 }
 
 var gameType = function () {
-	return 'funny:hktrpg'
+	return 'funny:funny:hktrpg'
 }
 var prefixs = function () {
 	return [{

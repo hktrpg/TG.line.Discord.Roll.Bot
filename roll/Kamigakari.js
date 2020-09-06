@@ -9,7 +9,7 @@ var gameName = function () {
 }
 
 var gameType = function () {
-    return 'Kamigakari:hktrpg'
+    return 'Dice:kamigakari'
 }
 var prefixs = function () {
     return [{

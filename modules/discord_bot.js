@@ -19,12 +19,7 @@ const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
 		\n如果你需要幫助, 加入支援頻道.\
 		\n(http://bit.ly/HKTRPG_DISCORD)\
 		\n有關TRPG資訊, 可以到網站\
-		\n(http://www.hktrpg.com/)\
-		\n\n骰子機械人意見調查問卷\
-		\n引言: 我是HKTRPG骰子機械人的製作者，這份問卷的目的，是蒐集對骰子機械人的意見及HKTRPG的滿意度，改進使用體驗。\
-		\n另外, 最近因為資料庫開始爆滿，所以對關鍵字功能進行限制，每個GP 30個上限，\
-		\n如果完成問卷,可以提升上限半年WW\
-		\nhttps://forms.gle/JnHdGs4oRMd9SQhM6";
+		\n(http://www.hktrpg.com/)";
 
 
 client.once('ready', async () => {
@@ -45,33 +40,28 @@ async function count() {
 
 }
 
-
 // handle the error event
-client.on('error', error => {
-	console.error(error);
-});
-client.on('Missing Permissions', error => {
-	// Will print "unhandledRejection err is not defined"
-
-	console.log('It is Missing Permissions: ', error.message);
+process.on('unhandledRejection', error => {
+	console.error('Unhandled promise rejection:', error);
 });
 
 client.on('guildCreate', guild => {
 	console.log("Discord joined");
 	let channel = guild.channels.cache.find(channel => channel.type === 'text' && channel.permissionsFor(guild.me).has('SEND_MESSAGES'));
-	if (channel)
+	if (channel) {
 		channel.send(joinMessage);
+	}
 })
 
 client.on('message', async (message) => {
 	if (message.author.bot) return;
 	//	console.log('message.content ' + message.content);
 	//	console.log('channelKeyword ' + channelKeyword);
-	let groupid = '',
-		userid = '',
-		displayname = '',
-		channelid = '',
-		displaynameDiscord = '',
+	let groupid = message.guild.id || '',
+		userid = message.author.id || '',
+		displayname = message.member.user.tag || '',
+		channelid = message.channel.id || '',
+		displaynameDiscord = message.member.user.username || '',
 		membercount = 0;
 	let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 	//得到暗骰的數據, GM的位置
@@ -88,22 +78,6 @@ client.on('message', async (message) => {
 	if (message.channel.type !== "dm") {
 		hasSendPermission = message.channel.permissionsFor(client.user).has("SEND_MESSAGES")
 	}
-	if (message.channel && message.channel.id) {
-		channelid = message.channel.id;
-	}
-	if (message.guild && message.guild.id) {
-		groupid = message.guild.id;
-	}
-	if (message.author.id) {
-		userid = message.author.id;
-	}
-	if (message.member && message.member.user && message.member.user.tag) {
-		displayname = message.member.user.tag;
-	}
-	if (message.member && message.member.user && message.member.user.username) {
-		displaynameDiscord = message.member.user.username;
-	}
-
 	////DISCORD: 585040823232320107
 	if (message.member && message.member.hasPermission("ADMINISTRATOR")) {
 		userrole = 3
@@ -157,10 +131,30 @@ client.on('message', async (message) => {
 
 	if (channelKeyword != "" && trigger == channelKeyword.toString().toLowerCase()) {
 		//mainMsg.shift();
-		rplyVal = await exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount);
+		rplyVal = await exports.analytics.parseInput({
+			inputStr: message.content,
+			groupid: groupid,
+			userid: userid,
+			userrole: userrole,
+			botname: "Discord",
+			displayname: displayname,
+			channelid: channelid,
+			displaynameDiscord: displaynameDiscord,
+			membercount: membercount
+		})
 	} else {
 		if (channelKeyword == "") {
-			rplyVal = await exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount);
+			rplyVal = await exports.analytics.parseInput({
+				inputStr: message.content,
+				groupid: groupid,
+				userid: userid,
+				userrole: userrole,
+				botname: "Discord",
+				displayname: displayname,
+				channelid: channelid,
+				displaynameDiscord: displaynameDiscord,
+				membercount: membercount
+			});
 		}
 	}
 	if (!rplyVal.text && !rplyVal.LevelUp) {
@@ -258,10 +252,11 @@ client.on('message', async (message) => {
 			if (displaynamecheck && userid) {
 				rplyVal.text = "<@" + userid + ">\n" + rplyVal.text;
 			}
-			if (groupid)
+			if (groupid) {
 				return SendToReplychannel(rplyVal.text, message);
-			else
+			} else {
 				return SendToReply(rplyVal.text, message);
+			}
 	}
 	//console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString(), " content: ", message.content);
 	//console.log("rplyVal: " + rplyVal);

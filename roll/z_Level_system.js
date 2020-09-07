@@ -126,7 +126,7 @@ var Title = function () {
     44-47   外神
     48-50   門
     */
-var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
+var rollDiceCommand = async function ({inputStr, mainMsg, groupid, userid, userrole, botname, displayname,  displaynameDiscord, membercount}) {
     let rply = {
         default: 'on',
         type: 'text',

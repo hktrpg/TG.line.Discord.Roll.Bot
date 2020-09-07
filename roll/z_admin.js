@@ -44,7 +44,7 @@ var initialize = function () {
  * 
  */
 
-var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
+var rollDiceCommand = async function ({inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount}) {
     let rply = {
         default: 'on',
         type: 'text',

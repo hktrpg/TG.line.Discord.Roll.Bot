@@ -201,7 +201,7 @@ bothelp link	- 查詢hktrpg 不同平台連結\n\
 Line版 http://bit.ly/HKTRPG_LINE\n\
 Discord版 http://bit.ly/HKTRPG_DISCORD\n\
 Telegram版 http://t.me/hktrpg_bot\n\
-網頁版 https://roll.hktrpg.com/\n\
+網頁版 https://rollbot.hktrpg.com/\n\
 簡易網上擲骰網頁 https://roll.hktrpg.com/\n\
 			\n\
 解鎖功能及開發支援 https://www.patreon.com/HKTRPG \n\

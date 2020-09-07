@@ -21,15 +21,15 @@ const EXPUP = require('./level').EXPUP || function () {};
 //用來呼叫骰組,新增骰組的話,要寫條件式到下面呼叫
 //格式是 exports.骰組檔案名字.function名
 var parseInput = async function ({
-	inputStr,
-	groupid,
-	userid,
-	userrole,
-	botname,
-	displayname,
-	channelid,
-	displaynameDiscord,
-	membercount
+	inputStr = "",
+	groupid = null,
+	userid = null,
+	userrole = 1,
+	botname = null,
+	displayname = null,
+	channelid = null,
+	displaynameDiscord = null,
+	membercount = 0
 }) {
 	//console.log('InputStr: ' + inputStr);
 	let result = {

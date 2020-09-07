@@ -37,7 +37,11 @@ var initialize = function () {
     return save;
 }
 
-var rollDiceCommand = async function ({mainMsg, groupid, userrole}) {
+var rollDiceCommand = async function ({
+    mainMsg,
+    groupid,
+    userrole
+}) {
     let rply = {
         default: 'on',
         type: 'text',
@@ -52,6 +56,7 @@ var rollDiceCommand = async function ({mainMsg, groupid, userrole}) {
         case /^add$/i.test(mainMsg[1]) && /^[\u4e00-\u9fa5a-zA-Z0-9]+$/ig.test(mainMsg[2]) && /^((?!^(b|k|bk)$).)*$/ig.test(mainMsg[2]):
             //增加阻擋用關鍵字
             //if (!mainMsg[2]) return;
+            if (!groupid) return;
             lv = await VIP.viplevelCheckGroup(groupid);
             limit = limitArr[lv];
             var findVIP = save.save.find(function (item) {
@@ -61,7 +66,7 @@ var rollDiceCommand = async function ({mainMsg, groupid, userrole}) {
                 rply.text = '關鍵字上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
                 return rply;
             }
-            if (groupid && mainMsg[2] && userrole >= 2) {
+            if (mainMsg[2] && userrole >= 2) {
                 let temp = {
                     groupid: groupid,
                     blockfunction: mainMsg[2]

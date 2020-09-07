@@ -88,54 +88,6 @@ module.exports = {
 };
 
 /**
- * nechronica (NC)
- * 已放棄, 轉用凍豆版
- * @param {指令} triggermsg 
- * @param {描述} text 
- */
-
-async function nechronica(triggermsg, text) {
-	let returnStr = '';
-	var ncarray = [];
-	var dicemax = 0,
-		dicemin = 0,
-		dicenew = 0;
-	var match = /^(\d+)(NC|NA)((\+|-)(\d+)|)$/i.exec(triggermsg); //判斷式
-	for (var i = 0; i < Number(match[1]); i++) {
-		dicenew = await rollbase.Dice(10) + Number(match[3]);
-		ncarray.push(dicenew);
-	}
-	dicemax = Math.max(...ncarray); //判斷最大最小值
-	dicemin = Math.min(...ncarray);
-	if (Number(match[1]) == 1)
-		returnStr += dicemax + '[' + ncarray.pop() + ']';
-	else {
-		returnStr += dicemax + '[';
-		for (let i = 0; i < Number(match[1]); i++) {
-			if (i != Number(match[1]) - 1)
-				returnStr += ncarray.pop() + ',';
-			else
-				returnStr += ncarray.pop();
-		}
-		returnStr += ']';
-	}
-
-	if (dicemax > 5)
-		if (dicemax > 10)
-			returnStr += ' → 大成功';
-		else
-			returnStr += ' → 成功';
-	else
-	if (dicemin <= 1)
-		returnStr += ' → 大失敗';
-	else
-		returnStr += ' → 失敗';
-	if (text != null)
-		returnStr += ' ; ' + text;
-	return returnStr;
-}
-
-/**
  * nechronica (NM依戀)
  * @param {描述} text 
  */

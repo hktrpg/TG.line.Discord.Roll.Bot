@@ -1,29 +1,34 @@
 "use strict";
 const schema = require('./core-schema.js');
-var viplevelCheck = async function (userid, limitArr) {
-    const viplevelArr = [0, 3, 5, 10, 20, 99]
-
-    let limit;
-    let rply = ''
-    let viplevel = await schema.veryImportantPerson.find({
-        id: userid
-    });
+var viplevel;
+var viplevelCheckGroup = async function (groupID) {
+    let rply = '';
     if (!viplevel) {
-        viplevel = 0
+        viplevel = await schema.veryImportantPerson.find({});
     }
-    for (let i = 0; viplevel >= viplevelArr[i]; i++) {
-        limit = limitArr[i];
-    }
-
-    let check = await schema.characterCard.find({
-        id: userid
+    var findGP = viplevel.find(function (item) {
+        return item.gpid == groupID && item.switch !== false;
     });
-    if (check.length >= limit) {
-        rply = '你的角色卡上限為' + limit + '張'
-        return rply
-    } else return rply
+    rply = (findGP) ? findGP.level : 0;
+    return rply;
+}
+var viplevelCheckUser = async function (userid) {
+    let rply = '';
+    if (!viplevel) {
+        viplevel = await schema.veryImportantPerson.find({});
+    }
+    var findUser = viplevel.find(function (item) {
+        return item.id == userid && item.switch !== false; // 
+    });
+    rply = (findUser) ? findUser.level : 0;
+    return rply;
+}
+async function renew() {
+    viplevel = await schema.veryImportantPerson.find({});
 }
 
 module.exports = {
-    viplevelCheck
+    viplevelCheckGroup: viplevelCheckGroup,
+    viplevelCheckUser: viplevelCheckUser,
+    renew: renew
 }

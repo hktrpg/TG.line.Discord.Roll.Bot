@@ -1,17 +1,12 @@
 "use strict";
 var rollbase = require('./rollbase.js');
-var rply = {
-    default: 'on',
-    type: 'text',
-    text: ''
-};
-
+var variables = {};
 var gameName = function () {
     return '【貓貓鬼差】.kc xDy z'
 }
 
 var gameType = function () {
-    return 'yumingkueichai:hktrpg'
+    return 'Dice:yumingkueichai:hktrpg'
 }
 var prefixs = function () {
     //[mainMSG[0]的prefixs,mainMSG[1]的prefixs,   <---這裡是一對  
@@ -27,21 +22,25 @@ var prefixs = function () {
     }]
 }
 var getHelpMessage = function () {
-    return "【貓貓鬼差】" + "\
-	\n .kc xDy z \
-    \n x 投擲多少粒六面骰 留空為4, 只可輸入4,5或留空 \
-    \n y 修正值 1-20\
-        \n z 目標值 1-20\
-        \n 十八啦玩法, 只要出現一個對子就成功, 達成值視為另外兩顆骰子加總\
-        \n 若出現兩對子, 則選較高者\
-        \n 另外, 若達成值為3, 視為戲劇性失敗."
+    return "【貓貓鬼差】" + "\n\
+.kc xDy z \n\
+x 投擲多少粒六面骰 留空為4, 只可輸入4,5或留空 \n\
+y 修正值 1-20\n\
+z 目標值 1-20\n\
+十八啦玩法, 只要出現一個對子就成功, 達成值視為另外兩顆骰子加總\n\
+若出現兩對子, 則選較高者\n\
+另外, 若達成值為3, 視為戲劇性失敗."
 }
 var initialize = function () {
-    return rply;
+    return variables;
 }
 
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
-    rply.text = '';
+    let rply = {
+        default: 'on',
+        type: 'text',
+        text: ''
+    };
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();

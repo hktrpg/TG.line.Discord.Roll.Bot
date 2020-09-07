@@ -1,24 +1,19 @@
 "use strict";
-var rply = {
-	default: 'on',
-	type: 'text',
-	text: ''
-}; //type是必需的,但可以更改
+
 //heroku labs:enable runtime-dyno-metadata -a <app name>
 var chineseConv = require('chinese-conv'); //繁簡轉換
 const GoogleImages = require('google-images');
-const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
-const client = new GoogleImages(process.env.CSE_ID, process.env.CSE_API_KEY);
+const client = (process.env.CSE_ID && process.env.CSE_API_KEY) ? new GoogleImages(process.env.CSE_ID, process.env.CSE_API_KEY) : '';
 const wiki = require('wikijs').default;
 const rollbase = require('./rollbase.js');
-const translate = require('translation-google');
-
+const translate = require('@vitalets/google-translate-api');
+var variables = {};
 var gameName = function () {
-	return '(公測中)Wiki查詢/圖片搜索/翻譯 .wiki .image .tran'
+	return 'Wiki查詢/圖片搜索 .wiki .image .tran'
 }
 
 var gameType = function () {
-	return 'Wiki:hktrpg'
+	return 'funny:Wiki:hktrpg'
 }
 var prefixs = function () {
 	return [{
@@ -29,27 +24,33 @@ var prefixs = function () {
 }
 
 var getHelpMessage = function () {
-	return "【Wiki查詢/即時翻譯】.wiki .image .tran .tran.(目標語言)\
-		\n 1) Wiki功能: .wiki (條目)  \
-		\n EG: .wiki BATMAN  \
-		\n 2) 圖片搜尋功能: .Image (內容)  \
-		\n 從Google 得到相關隨機圖片Link\
-		\n 隨機YES NO: 如.image yesno 會得到yes 或NO 結果\
-		\n 3) 即時翻譯功能: .Tran (內容)  \
-		\n 預設翻譯成正體中文\
-		\n EG: .tran BATMAN  \
-		\n 4) 可翻譯成其他語言: .tran.(語系) (內容)\
-		\n EG: .tran.ja BATMAN  .tran.日 BATMAN\
-		\n 常用語言代碼: 英=en, 簡=zh-cn, 德=de, 日=ja\
-		\n 語系代碼 https://github.com/vitalets/google-translate-api/blob/master/languages.js\
-		"
+	return "【Wiki查詢/即時翻譯】.wiki .image .tran .tran.(目標語言)\n\
+1) Wiki功能: .wiki (條目)  \n\
+EG: .wiki BATMAN  \n\
+2) 圖片搜尋功能: .Image (內容)  \n\
+從Google 得到相關隨機圖片Link\n\
+隨機YES NO: 如.image yesno 會得到yes 或NO 結果\n\
+3) 即時翻譯功能: .Tran (內容)  \n\
+預設翻譯成正體中文\n\
+EG: .tran BATMAN  \n\
+4) 可翻譯成其他語言: .tran.(語系) (內容)\n\
+EG: .tran.ja BATMAN  .tran.日 BATMAN\n\
+常用語言代碼: 英=en, 簡=zh-cn, 德=de, 日=ja\n\
+語系代碼 https://github.com/vitalets/google-translate-api/blob/master/languages.js\n\
+"
 }
 var initialize = function () {
-	return rply;
+	return variables;
 }
 
-var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-	rply.text = '';
+var rollDiceCommand = async function (inputStr, mainMsg) {
+	let rply = {
+		default: 'on',
+		type: 'text',
+		text: ''
+	}; //type是必需的,但可以更改
+	let lang = '',
+		test = '';
 	//let result = {};
 	switch (true) {
 		case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
@@ -80,8 +81,8 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 			});
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /^[.]tran[.]\S+$/.test(mainMsg[0]):
-			let lang = /.tran.(\S+)/;
-			let test = mainMsg[0].match(lang)
+			lang = /.tran.(\S+)/;
+			test = mainMsg[0].match(lang)
 			rply.text = await translate(inputStr.replace(mainMsg[0], ""), {
 				to: test[1].replace("簡中", "zh-CN").replace("簡體", "zh-CN").replace(/zh-cn/ig, "zh-CN").replace("英", "en").replace("簡", "zh-CN").replace("德", "de").replace("日", "ja")
 			}).then(res => {
@@ -108,14 +109,8 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
 	}
 }
 
-async function now(a, b, c) {
-	let now = a + b
-	if (now >= c)
-		now = now - c
-	return now
-}
-
 async function googleimage(inputStr, mainMsg, safe) {
+	if (!process.env.CSE_ID && !process.env.CSE_API_KEY) return;
 	let keyword = inputStr.replace(mainMsg[0] + " ", "")
 	//let page = Math.floor((Math.random() * (10)) * 10) + 1;
 	let page = await rollbase.DiceINT(0, 91)
@@ -140,12 +135,7 @@ async function googleimage(inputStr, mainMsg, safe) {
 		})
 }
 
-async function imageExists(image_url) {
-	var http = new XMLHttpRequest();
-	http.open('HEAD', image_url, false);
-	http.send();
-	return http.status == 200;
-}
+
 module.exports = {
 	rollDiceCommand: rollDiceCommand,
 	initialize: initialize,

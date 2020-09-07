@@ -1,17 +1,13 @@
 "use strict";
 const rollbase = require('./rollbase.js');
-var rply = {
-	default: 'on',
-	type: 'text',
-	text: ''
-};
+var variables = {};
 
 var gameName = function () {
 	return '【克蘇魯神話】 cc cc(n)1~2 ccb ccrt ccsu .dp .cc7build .cc6build .cc7bg'
 }
 
 var gameType = function () {
-	return 'CoC:hktrpg'
+	return 'Dice:CoC'
 }
 var prefixs = function () {
 	return [{
@@ -25,60 +21,80 @@ var prefixs = function () {
 	]
 }
 var getHelpMessage = function () {
-	return "【克蘇魯神話】" + "\
-	\ncoc6版擲骰： ccb 80 技能小於等於80 \
-	\ncoc7版擲骰： cc 80 技能小於等於80 \
-	\ncoc7版獎勵骰： cc(1~2) cc1 80 一粒獎勵骰 \
-	\ncoc7版懲罰骰： ccn(1~2) ccn2 80 兩粒懲罰骰 \
-	\ncoc7版 即時型瘋狂： 啓動語 ccrt  \
-	\ncoc7版 總結型瘋狂： 啓動語 ccsu  \
-	\ncoc6版創角： 啓動語 .cc6build \
-	\ncoc7版創角： 啓動語 .cc7build (歲數) \
-	\ncoc7 成長或增長檢定： .dp 或 成長檢定 或 幕間成長 (技能%) (名稱) \
-	\n例）.DP 50 騎馬 | 成長檢定 45 頭槌 | 幕間成長 40 單車\
-	\ncoc7版角色背景隨機生成： 啓動語 .cc7bg \
-		\n "
+	return "【克蘇魯神話】" + "\n\
+coc6版擲骰： ccb 80 技能小於等於80 \n\
+coc7版擲骰： cc 80 技能小於等於80 \n\
+coc7版獎勵骰： cc(1~2) cc1 80 一粒獎勵骰 \n\
+coc7版懲罰骰： ccn(1~2) ccn2 80 兩粒懲罰骰 \n\
+coc7版 即時型瘋狂： 啓動語 ccrt  \n\
+coc7版 總結型瘋狂： 啓動語 ccsu  \n\
+coc6版創角： 啓動語 .cc6build \n\
+coc7版創角： 啓動語 .cc7build (歲數) \n\
+coc7 成長或增長檢定： .dp 或 成長檢定 或 幕間成長 (技能%) (名稱) \n\
+例）.DP 50 騎馬 | 成長檢定 45 頭槌 | 幕間成長 40 單車\n\
+coc7版角色背景隨機生成： 啓動語 .cc7bg \n"
 }
 var initialize = function () {
-	return rply;
+	return variables;
 }
 
+// eslint-disable-next-line no-unused-vars
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-	rply.text = '';
+	let rply = {
+		default: 'on',
+		type: 'text',
+		text: ''
+	};
 	let trigger = mainMsg[0].toLowerCase();
 	//console.log(mainMsg[1].toLowerCase())
 	if (trigger.toLowerCase() == "cc" && mainMsg[1].toLowerCase() == "help") {
 		rply.text = this.getHelpMessage();
-		return rply;
 	}
 	if (trigger == ".dp" && (mainMsg[1].toLowerCase() == "help" || !mainMsg[1])) {
 		rply.text = this.getHelpMessage();
-		return rply;
 	}
-	if (trigger.match(/(^ccrt$)/) != null) return await ccrt();
-	if (trigger.match(/(^ccsu$)/) != null) return await ccsu();
+	if (trigger.match(/(^ccrt$)/) != null) {
+		rply.text = await ccrt();
+	}
+	if (trigger.match(/(^ccsu$)/) != null) {
+		rply.text = await ccsu();
+	}
 
-	if (trigger == 'ccb' && mainMsg[1] <= 1000) return coc6(mainMsg[1], mainMsg[2]);
-
+	if (trigger == 'ccb' && mainMsg[1] <= 1000) {
+		rply.text = await coc6(mainMsg[1], mainMsg[2]);
+	}
 	//DevelopmentPhase幕間成長指令開始於此
-	if ((trigger == '.dp' || trigger == '成長檢定' || trigger == '幕間成長') && mainMsg[1] <= 1000) return await DevelopmentPhase(mainMsg[1], mainMsg[2]);
+	if ((trigger == '.dp' || trigger == '成長檢定' || trigger == '幕間成長') && mainMsg[1] <= 1000) {
+		rply.text = await DevelopmentPhase(mainMsg[1], mainMsg[2]);
+	}
+
 	//cc指令開始於此
-	if (trigger == 'cc' && mainMsg[1] <= 1000) return await coc7(mainMsg[1], mainMsg[2]);
+	if (trigger == 'cc' && mainMsg[1] <= 1000) {
+		rply.text = await coc7(mainMsg[1], mainMsg[2]);
+	}
 	//獎懲骰設定於此	
-	if (trigger == 'cc1' && mainMsg[1] <= 1000) return await coc7bp(mainMsg[1], '1', mainMsg[2]);
-	if (trigger == 'cc2' && mainMsg[1] <= 1000) return await coc7bp(mainMsg[1], '2', mainMsg[2]);
-	if (trigger == 'ccn1' && mainMsg[1] <= 1000) return await coc7bp(mainMsg[1], '-1', mainMsg[2]);
-	if (trigger == 'ccn2' && mainMsg[1] <= 1000) return await coc7bp(mainMsg[1], '-2', mainMsg[2]);
-
-
-	if (trigger.match(/(^cc7版創角$)|(^[.]cc7build$)/i) != null) return build7char(mainMsg[1]);
-
-	if (trigger.match(/(^cc6版創角$)|(^[.]cc6build$)/i) != null) return build6char(mainMsg[1]);
-
-	if (trigger.match(/(^cc7版角色背景$)|(^[.]cc7bg$)/i) != null) return PcBG();
-
-	return;
-
+	if (trigger == 'cc1' && mainMsg[1] <= 1000) {
+		rply.text = await coc7bp(mainMsg[1], '1', mainMsg[2]);
+	}
+	if (trigger == 'cc2' && mainMsg[1] <= 1000) {
+		rply.text = await coc7bp(mainMsg[1], '2', mainMsg[2]);
+	}
+	if (trigger == 'ccn1' && mainMsg[1] <= 1000) {
+		rply.text = await coc7bp(mainMsg[1], '-1', mainMsg[2]);
+	}
+	if (trigger == 'ccn2' && mainMsg[1] <= 1000) {
+		rply.text = await coc7bp(mainMsg[1], '-2', mainMsg[2]);
+	}
+	if (trigger.match(/(^cc7版創角$)|(^[.]cc7build$)/i) != null) {
+		rply.text = await build7char(mainMsg[1]);
+	}
+	if (trigger.match(/(^cc6版創角$)|(^[.]cc6build$)/i) != null) {
+		rply.text = await build6char(mainMsg[1]);
+	}
+	if (trigger.match(/(^cc7版角色背景$)|(^[.]cc7bg$)/i) != null) {
+		rply.text = await PcBG();
+	}
+	return rply;
 }
 
 
@@ -89,11 +105,12 @@ module.exports = {
 	prefixs: prefixs,
 	gameType: gameType,
 	gameName: gameName
-}; //type是必需的,但可以更改////////////////////////////////////////
-////////////////////////////////////////
-//////////////// 恐懼
-////////////////////////////////////////
-var cocmadnessrt = [
+};
+
+/**
+ * COC恐懼表
+ */
+const cocmadnessrt = [
 	['1)失憶：調查員會發現自己只記得最後身處的安全地點，卻沒有任何來到這裡的記憶。例如，調查員前一刻還在家中吃著早飯，下一刻就已經直面著不知名的怪物。'],
 	['2)假性殘疾：調查員陷入了心理性的失明，失聰以及軀體缺失感中。'],
 	['3)暴力傾向：調查員陷入了六親不認的暴力行為中，對周圍的敵人與友方進行著無差別的攻擊。'],
@@ -106,7 +123,7 @@ var cocmadnessrt = [
 	['10)狂躁：調查員投一個D100 或者由守秘人選擇，來從狂躁症狀表中選擇一個狂躁的誘因。']
 ];
 
-var cocmadnesssu = [
+const cocmadnesssu = [
 	['1)失憶（Amnesia）：回過神來，調查員們發現自己身處一個陌生的地方，並忘記了自己是誰。記憶會隨時間恢復。'],
 	['2)被竊（Robbed）：調查員恢復清醒，發覺自己被盜，身體毫髮無損。如果調查員攜帶著寶貴之物（見調查員背景），做幸運檢定來決定其是否被盜。所有有價值的東西無需檢定自動消失。'],
 	['3)遍體鱗傷（Battered）：調查員恢復清醒，發現自己身上滿是拳痕和瘀傷。生命值減少到瘋狂前的一半，但這不會造成重傷。調查員沒有被竊。這種傷害如何持續到現在由守秘人決定。'],
@@ -119,7 +136,7 @@ var cocmadnesssu = [
 	['10)狂躁（Mania）：調查員患上一個新的狂躁症。在表Ⅹ：狂躁症狀表上骰1 個d100 來決定症狀，或由守秘人選擇一個。在這次瘋狂發作中，調查員將完全沉浸於其新的狂躁症狀。這症狀是否會表現給旁人則取決於守秘人和此調查員。']
 ];
 
-var cocPhobias = [
+const cocPhobias = [
 	['1) 沐浴癖（Ablutomania）：執著于清洗自己。'],
 	['2) 猶豫癖（Aboulomania）：病態地猶豫不定。'],
 	['3) 喜暗狂（Achluomania）：對黑暗的過度熱愛。'],
@@ -222,7 +239,7 @@ var cocPhobias = [
 	['100) 喜獸癖（Zoomania）：對待動物的態度近乎瘋狂地友好。']
 ];
 
-var cocManias = [
+const cocManias = [
 	['1) 洗澡恐懼症（Ablutophobia）：對于洗滌或洗澡的恐懼。'],
 	['2) 恐高症（Acrophobia）：對于身處高處的恐懼。'],
 	['3) 飛行恐懼症（Aerophobia）：對飛行的恐懼。'],
@@ -327,19 +344,21 @@ var cocManias = [
 ];
 
 async function DevelopmentPhase(target, text) {
+	let result = '';
 	if (text == undefined) text = "";
 	let skill = await rollbase.Dice(100);
 	let improved = await rollbase.Dice(10);
 	if (target > 95) target = 95;
 	if (skill >= 96 || skill > target) {
-		rply.text = "成長或增強檢定: " + text + "\n1D100 > " + target + "\n" + skill + " → 成功!\n你的技能增加" + improved + "點!";
+		result = "成長或增強檢定: " + text + "\n1D100 > " + target + "\n" + skill + " → 成功!\n你的技能增加" + improved + "點!";
 	} else {
-		rply.text = "成長或增強檢定: " + text + "\n1D100 > " + target + "\n" + skill + " → 失敗!\n你的技能沒有變化!";
+		result = "成長或增強檢定: " + text + "\n1D100 > " + target + "\n" + skill + " → 失敗!\n你的技能沒有變化!";
 	}
-	return rply;
+	return result;
 }
 
 async function ccrt() {
+	let result = '';
 	//var rollcc = Math.floor(Math.random() * 10);
 	//var time = Math.floor(Math.random() * 10) + 1;
 	//var PP = Math.floor(Math.random() * 100);
@@ -347,64 +366,71 @@ async function ccrt() {
 	let time = await rollbase.Dice(10)
 	let PP = await rollbase.Dice(100) - 1
 	if (rollcc <= 7) {
-		rply.text = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數';
+		result = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數';
 	} else
 	if (rollcc == 8) {
-		rply.text = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數' + ' \n' + cocManias[PP];
+		result = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數' + ' \n' + cocManias[PP];
 	} else
 	if (rollcc == 9) {
-		rply.text = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數' + ' \n' + cocPhobias[PP];
-	};
-	return rply;
+		result = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數' + ' \n' + cocPhobias[PP];
+	}
+	return result;
 }
 
 async function ccsu() {
+	let result = '';
 	let rollcc = await rollbase.Dice(10) - 1
 	let time = await rollbase.Dice(10)
 	let PP = await rollbase.Dice(100) - 1
 	if (rollcc <= 7) {
-		rply.text = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時';
+		result = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時';
 	} else
 	if (rollcc == 8) {
-		rply.text = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時' + ' \n' + cocManias[PP];
+		result = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時' + ' \n' + cocManias[PP];
 	} else
 	if (rollcc == 9) {
-		rply.text = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時' + ' \n' + cocPhobias[PP];
-	};
-	return rply;
+		result = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時' + ' \n' + cocPhobias[PP];
+	}
+	return result;
 }
 
 
-////////////////////////////////////////
-//////////////// COC6
-////////////////////////////////////////		
+/**
+ * COC6
+ * @param {數字 如CB 80 的80} chack 
+ * @param {後面的文字,如偵查} text 
+ */
 async function coc6(chack, text) {
+	let result = '';
 	let temp = await rollbase.Dice(100);
-	if (temp == 100) rply.text = 'ccb<=' + chack + '\n' + temp + ' → 啊！大失敗！';
+	if (temp == 100) result = 'ccb<=' + chack + '\n' + temp + ' → 啊！大失敗！';
 	else
-	if (temp <= chack) rply.text = 'ccb<=' + chack + '\n' + temp + ' → 成功';
-	else rply.text = 'ccb<=' + chack + '\n' + temp + ' → 失敗';
+	if (temp <= chack) result = 'ccb<=' + chack + '\n' + temp + ' → 成功';
+	else result = 'ccb<=' + chack + '\n' + temp + ' → 失敗';
 	if (text)
-		rply.text += '；' + text;
-	return rply;
+		result += '；' + text;
+	return result;
 }
 
-////////////////////////////////////////
-//////////////// COC7
-////////////////////////////////////////		
+/**
+ * COC7
+ * @param {CC 80 的80} chack 
+ * @param {攻擊等描述字眼} text 
+ */
 
 
 async function coc7(chack, text) {
+	let result = '';
 	let temp = await rollbase.Dice(100);
-	if (temp > chack) rply.text = '1D100 ≦ ' + chack + "：\n" + temp + ' → 失敗';
-	if (temp <= chack) rply.text = '1D100 ≦ ' + chack + "：\n" + temp + ' → 通常成功';
-	if (temp <= chack / 2) rply.text = '1D100 ≦ ' + chack + "：\n" + temp + ' → 困難成功';
-	if (temp <= chack / 5) rply.text = '1D100 ≦ ' + chack + "：\n" + temp + ' → 極限成功';
-	if (temp == 1) rply.text = '1D100 ≦ ' + chack + "：\n" + temp + ' → 恭喜！大成功！';
-	if (temp == 100) rply.text = '1D100 ≦ ' + chack + "：\n" + temp + ' → 啊！大失敗！';
-	if (temp >= 96 && chack <= 49) rply.text = '1D100 ≦ ' + chack + "：\n" + temp + ' → 啊！大失敗！';
-	if (text != null) rply.text += '：' + text;
-	return rply;
+	if (temp > chack) result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 失敗';
+	if (temp <= chack) result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 通常成功';
+	if (temp <= chack / 2) result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 困難成功';
+	if (temp <= chack / 5) result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 極限成功';
+	if (temp == 1) result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 恭喜！大成功！';
+	if (temp == 100) result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 啊！大失敗！';
+	if (temp >= 96 && chack <= 49) result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 啊！大失敗！';
+	if (text != null) result += '：' + text;
+	return result;
 }
 
 async function coc7chack(temp, chack, text) {
@@ -430,6 +456,7 @@ async function coc7chack(temp, chack, text) {
 
 
 async function coc7bp(chack, bpdiceNum, text) {
+	let result = '';
 	let temp0 = await rollbase.Dice(10) - 1;
 	let countStr = '';
 	if (bpdiceNum > 0) {
@@ -442,8 +469,8 @@ async function coc7bp(chack, bpdiceNum, text) {
 		countStr = countStr.substring(0, countStr.length - 1)
 		let countArr = countStr.split('、');
 		countStr = countStr + ' → ' + await coc7chack(Math.min(...countArr), chack, text);
-		rply.text = '1D100 ≦ ' + chack + "：\n" + countStr;
-		return rply;
+		result = '1D100 ≦ ' + chack + "：\n" + countStr;
+		return result;
 	}
 
 	if (bpdiceNum < 0) {
@@ -457,23 +484,15 @@ async function coc7bp(chack, bpdiceNum, text) {
 		countStr = countStr.substring(0, countStr.length - 1)
 		let countArr = countStr.split('、');
 		countStr = countStr + ' → ' + await coc7chack(Math.max(...countArr), chack, text);
-		rply.text = '1D100 ≦ ' + chack + "：\n" + countStr;
-		return rply;
+		result = '1D100 ≦ ' + chack + "：\n" + countStr;
+		return result;
 	}
 }
 
-async function ArrMax(Arr) {
-	var max = this[0];
-	this.forEach(function (ele, index, arr) {
-		if (ele > max) {
-			max = ele;
-		}
-	})
-	return max;
-}
-////////////////////////////////////////
-//////////////// COC7傳統創角
-////////////////////////////////////////		
+/**
+ * COC7傳統創角
+ * @param {年齡} text01 
+ */
 async function build7char(text01) {
 	let old = "";
 	let ReStr = '調查員年齡設為：';
@@ -519,12 +538,12 @@ async function build7char(text01) {
 			ReStr = ReStr + '\n==';
 			break;
 		case (old >= 40 && old <= 49):
-			ReStr = ReStr + '年齡調整：從STR、CON或DEX中減去' + Debuff + '點\n（請自行手動選擇計算）。\nAPP減去' + AppDebuff + '點。進行' + EDUinc + '次EDU的成長擲骰。';
+			ReStr = ReStr + '年齡調整：從STR、DEX或CON中減去' + Debuff + '點\n（請自行手動選擇計算）。\nAPP減去' + AppDebuff + '點。進行' + EDUinc + '次EDU的成長擲骰。';
 			ReStr = ReStr + '\n==';
 			ReStr = ReStr + '\n（以下箭號三項，自選減去' + Debuff + '點。）';
 			break;
 		case (old >= 50):
-			ReStr = ReStr + '年齡調整：從STR、CON或DEX中減去' + Debuff + '點\n（從一，二或全部三項中選擇）\n（請自行手動選擇計算）。\nAPP減去' + AppDebuff + '點。進行' + EDUinc + '次EDU的成長擲骰。';
+			ReStr = ReStr + '年齡調整：從STR、DEX或CON中減去' + Debuff + '點\n（從一，二或全部三項中選擇）\n（請自行手動選擇計算）。\nAPP減去' + AppDebuff + '點。進行' + EDUinc + '次EDU的成長擲骰。';
 			ReStr = ReStr + '\n==';
 			ReStr = ReStr + '\n（以下箭號三項，自選減去' + Debuff + '點。）';
 			break;
@@ -533,21 +552,30 @@ async function build7char(text01) {
 			break;
 	}
 	ReStr = ReStr + '\nＳＴＲ：' + await rollbase.BuildDiceCal('3d6*5');
+	if (old >= 40) ReStr = ReStr + ' ←（可選） ';
+	if (old < 20) ReStr = ReStr + ' ←（可選）';
 
+	ReStr = ReStr + '\nＤＥＸ：' + await rollbase.BuildDiceCal('3d6*5');
+	if (old >= 40) ReStr = ReStr + ' ← （可選）';
 
-	if (old >= 40) ReStr = ReStr + ' ←（可選） '
-	if (old < 20) ReStr = ReStr + ' ←（可選）'
+	ReStr = ReStr + '\nＰＯＷ：' + await rollbase.BuildDiceCal('3d6*5');
+
 	ReStr = ReStr + '\nＣＯＮ：' + await rollbase.BuildDiceCal('3d6*5');
 	if (old >= 40) ReStr = ReStr + ' ← （可選）'
-	ReStr = ReStr + '\nＤＥＸ：' + await rollbase.BuildDiceCal('3d6*5');
-	if (old >= 40) ReStr = ReStr + ' ← （可選）'
-	if (old >= 40) ReStr = ReStr + '\nＡＰＰ：' + await rollbase.BuildDiceCal('3d6*5-' + AppDebuff);
-	else ReStr = ReStr + '\nＡＰＰ：' + await rollbase.BuildDiceCal('3d6*5');
-	ReStr = ReStr + '\nＰＯＷ：' + await rollbase.BuildDiceCal('3d6*5');
+
+	if (old >= 40) {
+		ReStr = ReStr + '\nＡＰＰ：' + await rollbase.BuildDiceCal('(3d6*5)-' + AppDebuff)
+	} else ReStr = ReStr + '\nＡＰＰ：' + await rollbase.BuildDiceCal('3d6*5');
+
+
 	ReStr = ReStr + '\nＳＩＺ：' + await rollbase.BuildDiceCal('(2d6+6)*5');
-	if (old < 20) ReStr = ReStr + ' ←（可選）'
+	if (old < 20) {
+		ReStr = ReStr + ' ←（可選）';
+	}
+
 	ReStr = ReStr + '\nＩＮＴ：' + await rollbase.BuildDiceCal('(2d6+6)*5');
-	if (old < 20) ReStr = ReStr + '\nＥＤＵ：' + await rollbase.BuildDiceCal('3d6*5-5');
+
+	if (old < 20) ReStr = ReStr + '\nＥＤＵ：' + await rollbase.BuildDiceCal('((2d6+6)*5)-5');
 	else {
 		let firstEDU = '(' + await rollbase.BuildRollDice('2d6') + '+6)*5';
 		ReStr = ReStr + '\n==';
@@ -574,14 +602,12 @@ async function build7char(text01) {
 	ReStr = ReStr + '\nＬＵＫ：' + await rollbase.BuildDiceCal('3d6*5');
 	if (old < 20) ReStr = ReStr + '\nＬＵＫ加骰：' + await rollbase.BuildDiceCal('3D6*5');
 	ReStr += '\n==\n煤油燈特徵: 1D6&1D20 → ' + await rollbase.Dice(6) + ',' + await rollbase.Dice(20);
-
-	rply.text = ReStr;
-	return rply;
+	return ReStr;
 }
 
-////////////////////////////////////////
-//////////////// COC7傳統創角
-////////////////////////////////////////		
+/**
+ * COC6傳統創角
+ */
 
 
 
@@ -627,11 +653,11 @@ async function build6char() {
 	ReStr = ReStr + '\nＥＤＵ：' + await rollbase.BuildDiceCal('(3d6+3)');
 	ReStr = ReStr + '\n年收入：' + await rollbase.BuildDiceCal('(1d10)');
 	ReStr = ReStr + '\n調查員的最小起始年齡等於EDU+6，每比起始年齡年老十年，\n調查員增加一點EDU並且加20點職業技能點數。\n當超過40歲後，每老十年，\n從STR,CON,DEX,APP中選擇一個減少一點。';
-	rply.text = ReStr;
-	return rply;
+	return ReStr;
 }
 //隨機產生角色背景
 async function PcBG() {
+	let result = '';
 	let PersonalDescriptionArr = ['結實的', '英俊的', '粗鄙的', '機靈的', '迷人的', '娃娃臉的', '聰明的', '蓬頭垢面的', '愚鈍的', '骯髒的', '耀眼的', '有書卷氣的', '青春洋溢的', '感覺疲憊的', '豐滿的', '粗壯的', '毛髮茂盛的', '苗條的', '優雅的', '邋遢的', '敦實的', '蒼白的', '陰沉的', '平庸的', '臉色紅潤的', '皮膚黝黑色', '滿臉皺紋的', '古板的', '有狐臭的', '狡猾的', '健壯的', '嬌俏的', '筋肉發達的', '魁梧的', '遲鈍的', '虛弱的'];
 	let IdeologyBeliefsArr = ['虔誠信仰著某個神祈', '覺得人類不需要依靠宗教也可以好好生活', '覺得科學可以解釋所有事，並對某種科學領域有獨特的興趣', '相信因果循環與命運', '是一個政黨、社群或秘密結社的成員', '覺得這個社會已經病了，而其中某些病灶需要被剷除', '是神秘學的信徒', '是積極參與政治的人，有特定的政治立場', '覺得金錢至上，且為了金錢不擇手段', '是一個激進主義分子，活躍於社會運動'];
 	let SignificantPeopleArr = ['他的父母', '他的祖父母', '他的兄弟姐妹', '他的孩子', '他的另一半', '那位曾經教導調查員最擅長的技能（點數最高的職業技能）的人', '他的兒時好友', '他心目中的偶像或是英雄', '在遊戲中的另一位調查員', '一個由KP指定的NPC'];
@@ -641,6 +667,6 @@ async function PcBG() {
 	let TraitsArr = ['慷慨大方的人', '對動物很友善的人', '善於夢想的人', '享樂主義者', '甘冒風險的賭徒或冒險者', '善於料理的人', '萬人迷', '忠心耿耿的人', '有好名聲的人', '充滿野心的人'];
 	//PersonalDescriptionArr.length
 	//IdeologyBeliefsArr.length
-	rply.text = '背景描述生成器（僅供娛樂用，不具實際參考價值）\n==\n調查員是一個' + PersonalDescriptionArr[await rollbase.Dice(PersonalDescriptionArr.length) - 1] + '人。\n【信念】：說到這個人，他' + IdeologyBeliefsArr[await rollbase.Dice(IdeologyBeliefsArr.length) - 1] + '。\n【重要之人】：對他來說，最重要的人是' + SignificantPeopleArr[await rollbase.Dice(SignificantPeopleArr.length) - 1] + '，這個人對他來說之所以重要，是因為' + SignificantPeopleWhyArr[await rollbase.Dice(SignificantPeopleWhyArr.length) - 1] + '。\n【意義非凡之地】：對他而言，最重要的地點是' + MeaningfulLocationsArr[await rollbase.Dice(MeaningfulLocationsArr.length) - 1] + '。\n【寶貴之物】：他最寶貴的東西就是' + TreasuredPossessionsArr[await rollbase.Dice(TreasuredPossessionsArr.length) - 1] + '。\n【特徵】：總括來說，調查員是一個' + TraitsArr[await rollbase.Dice(TraitsArr.length) - 1] + '。';
-	return rply;
+	result = '背景描述生成器（僅供娛樂用，不具實際參考價值）\n==\n調查員是一個' + PersonalDescriptionArr[await rollbase.Dice(PersonalDescriptionArr.length) - 1] + '人。\n【信念】：說到這個人，他' + IdeologyBeliefsArr[await rollbase.Dice(IdeologyBeliefsArr.length) - 1] + '。\n【重要之人】：對他來說，最重要的人是' + SignificantPeopleArr[await rollbase.Dice(SignificantPeopleArr.length) - 1] + '，這個人對他來說之所以重要，是因為' + SignificantPeopleWhyArr[await rollbase.Dice(SignificantPeopleWhyArr.length) - 1] + '。\n【意義非凡之地】：對他而言，最重要的地點是' + MeaningfulLocationsArr[await rollbase.Dice(MeaningfulLocationsArr.length) - 1] + '。\n【寶貴之物】：他最寶貴的東西就是' + TreasuredPossessionsArr[await rollbase.Dice(TreasuredPossessionsArr.length) - 1] + '。\n【特徵】：總括來說，調查員是一個' + TraitsArr[await rollbase.Dice(TraitsArr.length) - 1] + '。';
+	return result;
 }

@@ -10,18 +10,14 @@ function calldice(gameType, message) {
 	return bcdice.dice_command()
 }
 
-var rply = {
-	default: 'on',
-	type: 'text',
-	text: ''
-};
+var variables = {};
 
 var gameName = function () {
 	return '【DX2nd,3rd】 .dx (xDX+y@c ET)'
 }
 
 var gameType = function () {
-	return 'Dx2,3:hktrpg'
+	return 'Dice:Dx2,3'
 }
 var prefixs = function () {
 	return [{
@@ -30,25 +26,28 @@ var prefixs = function () {
 	}]
 }
 var getHelpMessage = function () {
-	return "【Double Cross 2nd,3rd】" + "\
-	\n・啓動語 .dx (指令) 如 .dx xDX+y\
-	\n・判定コマンド　(.dx xDX+y@c or xDXc+y)\
-    　\n (個数)DX(修正)@(クリティカル値) もしくは (個数)DX(クリティカル値)(修正)で指定します。\
-    　\n加算減算のみ修正値も付けられます。\
-    　\n内部で読み替えています。\
-    　\n例）.dx 10dx　　　10dx+5@8(OD tool式)　　　5DX7+7-3(疾風怒濤式)\
-    \n\
-    \n・各種表\
-    　\n・感情表(.dx ET)\
-    　　\nポジティブとネガティブの両方を振って、表になっている側に○を付けて表示します。もちろん任意で選ぶ部分は変更して構いません。\
-		\n "
+	return "【Double Cross 2nd,3rd】" + "\n\
+・啓動語 .dx (指令) 如 .dx xDX+y\n\
+・判定コマンド　(.dx xDX+y@c or xDXc+y)\n\
+(個数)DX(修正)@(クリティカル値) もしくは (個数)DX(クリティカル値)(修正)で指定します。\n\
+加算減算のみ修正値も付けられます。\n\
+内部で読み替えています。\n\
+例）.dx 10dx 10dx+5@8(OD tool式) 5DX7+7-3(疾風怒濤式)\n\
+\n\
+・各種表\n\
+・感情表(.dx ET)\n\
+ポジティブとネガティブの両方を振って、表になっている側に○を付けて表示します。もちろん任意で選ぶ部分は変更して構いません。\n"
 }
 var initialize = function () {
-	return rply;
+	return variables;
 }
 
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-	rply.text = '';
+	let rply = {
+		default: 'on',
+		type: 'text',
+		text: ''
+	};
 	let result = '';
 	switch (true) {
 		case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
@@ -79,9 +78,10 @@ module.exports = {
 //Dx3 指令開始於此
 //	if (trigger.match(/^(\d+)(dx)(\d|)(((\+|-)(\d+)|)((\+|-)(\d+)|))$/i) != null) return exports.dx3.dx(trigger);
 
-////////////////////////////////////////
-//////////////// DX3
-////////////////////////////////////////
+/**
+ * 自己寫的DX指令, 已放棄, 轉用凍豆版
+ * @param {指令} triggermsg 
+ */
 function dx(triggermsg) {
 	//var varcou = 0;
 	var finallynum = 0;
@@ -101,22 +101,22 @@ function dx(triggermsg) {
 	}
 	returnStr = returnStr.replace(/[,][ ]+]/ig, ']');
 	if (match[6] == '+') {
-		for (var i = 0; i < Number(match[7]); i++) {
+		for (let i = 0; i < Number(match[7]); i++) {
 			finallynum++;
 		}
 	}
 	if (match[6] == '-') {
-		for (var i = 0; i < Number(match[7]); i++) {
+		for (let i = 0; i < Number(match[7]); i++) {
 			finallynum--;
 		}
 	}
 	if (match[9] == '+') {
-		for (var i = 0; i < Number(match[10]); i++) {
+		for (let i = 0; i < Number(match[10]); i++) {
 			finallynum++;
 		}
 	}
 	if (match[9] == '-') {
-		for (var i = 0; i < Number(match[10]); i++) {
+		for (let i = 0; i < Number(match[10]); i++) {
 			finallynum--;
 		}
 	}

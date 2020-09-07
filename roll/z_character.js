@@ -1,19 +1,18 @@
 "use strict";
-const rply = {
-    default: 'on',
-    type: 'text',
-    text: '',
-    characterReRoll: false,
-    characterName: '',
-    characterReRollName: ''
-};
+if (!process.env.mongoURL) {
+    return;
+}
+var variables = {};
+
+
 const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
+const limitArr = [4, 20, 20, 30, 30, 99, 99, 99];
 var gameName = function () {
-    return '(公測中)角色卡功能 .char (add edit delete use nonuse) .ch (set show showall)'
+    return '(公測中)角色卡功能 .char (add edit show delete use nonuse) .ch (set show showall)'
 }
 var gameType = function () {
-    return 'trpgcharacter:hktrpg'
+    return 'Tool:trpgcharacter:hktrpg'
 }
 var prefixs = function () {
     return [{
@@ -21,12 +20,11 @@ var prefixs = function () {
         second: null
     }]
 }
-const regexName = new RegExp(/name\[(.*?)\]\~/, 'i');
-const regexState = new RegExp(/state\[(.*?)\]\~/, 'i');
-const regexRoll = new RegExp(/roll\[(.*?)\]\~/, 'i');
-const regexNotes = new RegExp(/notes\[(.*?)\]\~/, 'i');
-const re = new RegExp(/(.*?)\:(.*?)(\;|$)/, 'ig');
-const limitArr = [4, 10, 30, 100, 200, 999]
+const regexName = new RegExp(/name\[(.*?)\]~/, 'i');
+const regexState = new RegExp(/state\[(.*?)\]~/, 'i');
+const regexRoll = new RegExp(/roll\[(.*?)\]~/, 'i');
+const regexNotes = new RegExp(/notes\[(.*?)\]~/, 'i');
+const re = new RegExp(/(.*?):(.*?)(;|$)/, 'ig');
 const opt = {
     upsert: true,
     runValidators: true
@@ -120,55 +118,65 @@ cc 80 投擲
 */
 
 var getHelpMessage = function () {
-    return "【角色卡功能】" + "\
-    \n以個人為單位, 一張卡可以在不同的群組使用\
-    \n-----------.char-----------\
-    \n.char add 的輸入格式,用來創建及更新角色卡\
-    \n-----------範例開始-----------\
-    \n.char add name[Sad]~\
-    \nstate[HP:15/15;MP:8/8;SAN:25/99;護甲:1;DB:1d3;]~\
-    \nroll[投擲:cc 80 投擲;鬥毆: cc 50;魔法:1D4+[[1+{HP}]];小刀:1D4+{db}]~\
-    \nnotes[筆記:這是測試,請試試在群組輸入 .char use sad;心靈支柱: 無]~\
-    \n-----------範例結束-----------\
-    \nstate 是用來儲存浮動數據, 進行運算 如: .ch HP +3\
-    \nroll 是用來儲存擲骰指令, 快速使用 如 .ch 空手鬥毆\
-    \n注意項目名稱請不要有空格\
-    \n {}符號可以用來指定state 的參數, 如{db} 就會變成 1d3\
-    \n [[ ]] 可以進行簡單運算 如[[1+{HP}]] 就會變成 1+15 -> 16\
-    \nnotes 是用來儲存數據, 以後可以查看 如 .ch 筆記\
-    \n.char Show - 可以顯示角色卡列表\
-    \n.char edit name[角色卡名字]~ - 可以以add的格式修改指定角色卡\
-    \n.char use 角色卡名字 - 可以在該群組中使用指定角色卡\
-    \n.char nonuse - 可以在該群組中取消使用角色卡\
-    \n.char delete 角色卡名字 - 可以刪除指定角色卡\
-    \n-----------.ch 功能-----------\
-    \n在群組中使用.char use 指定角色卡後, 就可以啟動角色卡功能\
-    \n.ch set 項目名稱 新內容  直接更改內容\
-    \n.ch show - 顯示角色卡的state 和roll 內容\
-    \n.ch showall - 顯示角色卡的所有內容\
-    \n.ch 項目名稱 (+-數) - 可以立即對如HP進行加減運算\
-    \n.ch 項目名稱 項目名稱 - 沒有加減的話, 會單純顯示數據\
-    \n-----------範例-----------\
-    \n.ch set 護甲 3\
-    \n.ch set 護甲 \
-    \n.ch HP +3 MP 6 san -10 筆記\
-    \n.ch 鬥毆\
-    \ndr .ch 魔法\
-    \n-----------範例-----------"
+    return "【角色卡功能】" + "\n\
+以個人為單位, 一張卡可以在不同的群組使用\n\
+-----.char-----\n\
+.char add 的輸入格式,用來創建及更新角色卡\n\
+-----範例開始-----\n\
+.char add name[Sad]~\n\
+state[HP:15/15;MP:8/8;SAN:25/99;護甲:1;DB:1d3;]~\n\
+roll[投擲:cc 80 投擲;鬥毆: cc 50;魔法:1D4+[[1+{HP}]];小刀:1D4+{db}]~\n\
+notes[筆記:這是測試,請試試在群組輸入 .char use sad;心靈支柱: 無]~\n\
+-----範例結束-----\n\
+state 是用來儲存浮動數據, 進行運算 如: .ch HP +3\n\
+roll 是用來儲存擲骰指令, 快速使用 如 .ch 空手鬥毆\n\
+注意項目名稱請不要有空格\n\
+ {}符號可以用來指定state 的參數, 如{db} 就會變成 1d3\n\
+ [[ ]] 可以進行簡單運算 如[[1+{HP}]] 就會變成 1+15 -> 16\n\
+notes 是用來儲存數據, 以後可以查看 如 .ch 筆記\n\
+.char Show - 可以顯示角色卡列表\n\
+.char edit name[角色卡名字]~ - 可以以add的格式修改指定角色卡\n\
+.char use 角色卡名字 - 可以在該群組中使用指定角色卡\n\
+.char nonuse - 可以在該群組中取消使用角色卡\n\
+.char delete 角色卡名字 - 可以刪除指定角色卡\n\
+-----.ch 功能-----\n\
+在群組中使用.char use 指定角色卡後, 就可以啟動角色卡功能\n\
+.ch set 項目名稱 新內容  直接更改內容\n\
+.ch show - 顯示角色卡的state 和roll 內容\n\
+.ch showall - 顯示角色卡的所有內容\n\
+.ch 項目名稱 (+-數) - 可以立即對如HP進行加減運算\n\
+.ch 項目名稱 項目名稱 - 沒有加減的話, 會單純顯示數據\n\
+-----範例-----\n\
+.ch set 護甲 3\n\
+.ch set 護甲 \n\
+.ch HP +3 MP 6 san -10 筆記\n\
+.ch 鬥毆\n\
+dr .ch 魔法\n\
+-----範例-----"
 }
 
 var initialize = function () {
-    return rply;
+    return variables;
 }
 
+// eslint-disable-next-line no-unused-vars
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
-    rply.text = '';
-    rply.characterReRoll = false;
-    rply.characterName = ''
+    let rply = {
+        default: 'on',
+        type: 'text',
+        text: '',
+        characterReRoll: false,
+        characterName: '',
+        characterReRollName: ''
+    };
     let filter = {};
     let doc = {};
     let docSwitch = {};
     let Card = {};
+    let tempMain = {};
+    let lv;
+    let limit = limitArr[0];
+    let check;
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
@@ -183,29 +191,33 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             try {
                 doc = await schema.characterCard.find(filter);
             } catch (error) {
-                console.log(error);
+                console.log('char  show GET ERROR: ', error);
             }
-
-            console.log('doc', doc)
             for (let index = 0; index < doc.length; index++) {
-                rply.text += index + ': ' + doc[index].name + '\n';
+                rply.text += index + ': ' + doc[index].name + '　\n';
             }
 
             return rply;
         case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
             if (!Card.name) {
-                rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 name[XXXX]~';
+                rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 \nname[XXXX]~ \nstate[HP:15/15;]~\nroll[投擲:cc 80 投擲;]~\nnotes[心靈支柱: 無]~\n'
                 return rply;
             }
             /*
             只限四張角色卡.
             使用VIPCHECK
             */
-            rply.text = await VIP.viplevelCheck(userid, limitArr)
-            if (rply.text) {
-                return rply;
+            lv = await VIP.viplevelCheckUser(userid);
+            limit = limitArr[lv];
+            check = await schema.characterCard.find({
+                id: userid
+            });
+            if (check.length >= limit) {
+                rply.text = '你的角色卡上限為' + limit + '張' + '\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                return rply
             }
+
 
             filter = {
                 id: userid,
@@ -224,7 +236,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 await schema.characterCard.updateOne(filter,
                     Card, opt);
             } catch (error) {
-                console.log('新增角色卡失敗: ', error)
+                console.log('新增角色卡 GET ERROR: ', error)
                 rply.text = '新增角色卡失敗\n因為 ' + error.message
                 return rply;
             }
@@ -265,7 +277,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 await schema.characterCard.updateOne(filter,
                     Card);
             } catch (error) {
-                console.log('修改角色卡失敗: ', error)
+                console.log('修改角色卡 GET ERROR:  ', error)
                 rply.text = '修改角色卡失敗\n因為 ' + error.message
                 return rply;
             }
@@ -299,7 +311,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                     cardId: doc._id
                 }, opt);
             } catch (error) {
-                console.log('ERROR 修改失敗' + error)
+                console.log('GET ERROR 修改失敗' + error)
                 rply.text = '修改失敗\n' + error;
                 return rply;
             }
@@ -320,7 +332,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                     cardId: ''
                 }, opt);
             } catch (error) {
-                console.log('ERROR 修改失敗' + error)
+                console.log('GET ERROR 修改失敗' + error)
                 rply.text = '修改失敗\n' + error;
                 return rply;
             }
@@ -345,7 +357,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 await schema.characterCard.findOneAndRemove(filter);
                 await schema.characterGpSwitch.deleteMany(filterRemove);
             } catch (error) {
-                console.log('刪除角色卡失敗: ', error)
+                console.log('刪除角色卡 GET ERROR:  ', error)
                 rply.text = '刪除角色卡失敗'
                 return rply;
             }
@@ -359,6 +371,9 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             if (!groupid) {
                 rply.text = '不在群組'
                 return rply
+            }
+            if (!mainMsg[3]) {
+                return;
             }
             /**
              * 流程
@@ -386,7 +401,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             }
             if (doc) {
                 let useTarget = new RegExp(mainMsg[0] + '\\s+' + mainMsg[1] + '\\s+' + convertRegex(mainMsg[2]));
-                let useName = inputStr.replace(/^\.char\s+delete\s+/ig, '');
+                let useName = convertRegex(mainMsg[2]);
                 let useItemA = inputStr.replace(useTarget, '').replace(/^\s+/, '');
                 let useCard = [{
                     name: useName,
@@ -416,7 +431,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
                 } catch (error) {
                     console.log('doc ', doc)
                     console.log('inputSTR: ', inputStr)
-                    console.log('doc SAVE error:', error)
+                    console.log('doc SAVE  GET ERROR:', error)
                     console.log('更新角色卡失敗: ', error)
                     rply.text = '更新角色卡失敗'
                     return rply;
@@ -503,7 +518,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
              * 
              */
 
-            let tempMain = await mainCharacter(doc, mainMsg);
+            tempMain = await mainCharacter(doc, mainMsg);
             rply.text = tempMain.text;
             rply.characterReRoll = tempMain.characterReRoll;
             rply.characterReRollName = tempMain.characterReRollName;
@@ -531,19 +546,19 @@ async function mainCharacter(doc, mainMsg) {
         let resutltState = await findObject(doc.state, mainMsg[name]);
         let resutltNotes = await findObject(doc.notes, mainMsg[name]);
         let resutltRoll = await findObject(doc.roll, mainMsg[name]);
+        if (resutltRoll) {
+            findRoll = resutltRoll;
+            last = 'roll';
+        } else
         if (resutltNotes) {
             last = 'notes';
             await findNotes.push(resutltNotes);
-
         } else
         if (resutltState) {
             last = 'state';
             await findState.push(resutltState);
         } else
-        if (resutltRoll) {
-            findRoll = resutltRoll;
-            last = 'roll';
-        } else if (mainMsg[name].match(/^[0-9+\-\*\/\.]*$/i) && last == 'state') {
+        if (mainMsg[name].match(/^[0-9+\-*/.]*$/i) && last == 'state') {
             last = '';
             await findState.push(mainMsg[name]);
         } else {
@@ -553,21 +568,22 @@ async function mainCharacter(doc, mainMsg) {
     }
     //如果是roll的, 就變成擲骰MODE(最優先)
     //如果是另外兩個
+    async function myAsyncFn(match, p1) {
+        let result = await replacer(doc, p1);
+        return result;
+    }
     switch (true) {
         case Object.keys(findRoll).length > 0:
             //把{}進行replace
             //https://stackoverflow.com/questions/33631041/javascript-async-await-in-replace
             //ref source
-            async function myAsyncFn(match, p1) {
-                let result = await replacer(doc, p1);
-                return result;
-            }
+
             rply.text = await replaceAsync(findRoll.itemA, /\{(.*?)\}/ig, await myAsyncFn);
             rply.text = await replaceAsync(rply.text, /\[\[(.*?)\]\]/ig, await myAsyncFn2);
             rply.characterReRollName = findRoll.name;
             rply.characterReRoll = true;
             return rply;
-        case Object.keys(findState).length > 0:
+        case Object.keys(findState).length > 0 || Object.keys(findNotes).length > 0:
             for (let i = 0; i < findState.length; i++) {
                 //如果i 是object , i+1 是STRING 和數字, 就進行加減
                 //否則就正常輸出
@@ -597,7 +613,7 @@ async function mainCharacter(doc, mainMsg) {
                     if (findState[i].itemB) {
                         rply.text += "/" + findState[i].itemB;
                     }
-                    rply.text += '\n'
+                    rply.text += '　\n'
                 }
 
             }
@@ -605,22 +621,23 @@ async function mainCharacter(doc, mainMsg) {
                 await doc.save();
             } catch (error) {
                 console.log('doc ', doc)
-                console.log('inputSTR: ', inputStr)
-                console.log('doc SAVE error:', error)
+                console.log('doc SAVE GET ERROR:', error)
             }
-            case findNotes.length > 0:
+
+            if (findNotes.length > 0) {
                 for (let i = 0; i < findNotes.length; i++) {
                     //如果i 是object , i+1 是STRING 和數字, 就進行加減
                     //否則就正常輸出
-                    rply.text += findNotes[i].name + ': ' + findNotes[i].itemA + '\n';
+                    rply.text += findNotes[i].name + ': ' + findNotes[i].itemA + '　\n';
                 }
+            }
 
-                if (findState.length > 0 || findNotes.length > 0) {
-                    rply.text = doc.name + '\n' + rply.text;
-                }
-                return rply;
-            default:
-                return rply;
+            if (findState.length > 0 || findNotes.length > 0) {
+                rply.text = doc.name + '　\n' + rply.text;
+            }
+            return rply;
+        default:
+            return rply;
     }
 
 
@@ -652,12 +669,12 @@ async function showCharacter(Card, mode) {
     if (mode == 'addMode') {
         returnStr += '新增/修改成功\n'
     }
-    returnStr += Card.name + '\n';
+    returnStr += Card.name + '　\n';
     let a = 1
     if (Card.state.length > 0) {
         for (let i = 0; i < Card.state.length; i++) {
             if ((a) % 4 == 0 && (Card.state[i].itemA || Card.state[i].itemB)) {
-                returnStr += '\n'
+                returnStr += '　\n'
             }
             if (mode == 'addMode' || mode == 'showAllMode') {
                 returnStr += Card.state[i].name + ': ' + Card.state[i].itemA;
@@ -681,10 +698,13 @@ async function showCharacter(Card, mode) {
     if (Card.roll.length > 0) {
         for (let i = 0; i < Card.roll.length; i++) {
             if (mode == 'addMode' || mode == 'showAllMode') {
-                returnStr += Card.roll[i].name + ': ' + Card.roll[i].itemA + '\n';
+                returnStr += Card.roll[i].name + ': ' + Card.roll[i].itemA + '  ';
 
             } else {
-                returnStr += (Card.roll[i].itemA) ? Card.roll[i].name + ': ' + Card.roll[i].itemA + '\n' : '';
+                returnStr += (Card.roll[i].itemA) ? Card.roll[i].name + ': ' + Card.roll[i].itemA + '  ' : '';
+            }
+            if (i % 2 || i == Card.roll.length - 1) {
+                returnStr += '　\n';
             }
         }
         returnStr += '-------\n'
@@ -692,8 +712,8 @@ async function showCharacter(Card, mode) {
     if (mode == 'addMode' || mode == 'showAllMode')
         if (Card.notes.length > 0) {
             for (let i = 0; i < Card.notes.length; i++) {
-                //returnStr += (Card.notes[i].itemA) ? Card.notes[i].name + ': ' + Card.notes[i].itemA + '\n' : '';
-                returnStr += Card.notes[i].name + ': ' + Card.notes[i].itemA + '\n';
+                //returnStr += (Card.notes[i].itemA) ? Card.notes[i].name + ': ' + Card.notes[i].itemA + ' \n' : '';
+                returnStr += Card.notes[i].name + ': ' + Card.notes[i].itemA + '　\n';
             }
 
             returnStr += '-------'

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+
+<head>
+    <style>
+        .card-body2 {
+            padding-left: 1.25rem;
+            padding-right: 1.25rem;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            flex: 1 1 auto;
+            min-height: 1px;
+        }
+
+        .card-header2 {
+            background-color: rgba(22, 23, 24, 0.03);
+            border-bottom-color: rgba(22, 23, 24, 0.13);
+            padding-left: 1.25rem;
+            padding-right: 1.25rem;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            margin-bottom: 0;
+            background-color: rgba(0, 0, 0, .03);
+            border-bottom: 1px solid rgba(0, 0, 0, .125);
+        }
+    </style>
+    <meta charset="UTF-8">
+    <meta content="width=device-width,initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
+    <title>HKTRPG 擲骰機器人及聊天室 1D100 2D6 查詢指令輸入Bothelp</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+        integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+    <div class="container-sm vh-100" id="container">
+        <div style="height: 13%;">
+            <div class="row justify-content-center">
+                <div class="col-auto">
+                    <h3><button type="button" class="btn btn-default" aria-label="Left Align">
+                            <span class="glyphicon glyphicon-align-left" aria-hidden="true"></span>
+                        </button><span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+                        <a class="badge badge-pill badge-danger"
+                            href="https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81">
+                            HKTRPG <img src="/assets/icon/dice-6.svg" width="32" height="32">
+                            <img src="/assets/icon/chat-square-text.svg" width="32" height="32">
+                        </a>
+                    </h3>
+                </div>
+            </div>
+
+            <div class="row justify-content-end">
+                <div class="input-group-text font-weight-bold" id="status-box"> <img
+                        src="/assets/icon/house-door-fill.svg" width="22" height="22"> <span id="room">公共房間</span></div>
+                <div class="badge-warning input-group-text font-weight-bold" id="status-box"> <img
+                        src="/assets/icon/people.svg" width="22" height="22">
+                    x <span id="online">0</span></div>
+            </div>
+        </div>
+        <div class="row w-100 d-inline-block overflow-auto " id="container-content"
+            style="white-space:pre-wrap; height: 60%;">
+            <div class="col-auto" style="height:100%">
+                <div class="container border h-100" id="content">
+                </div>
+            </div>
+        </div>
+        <div class="h-25 fixed-bottom">
+            <div class="row justify-content-center">
+                <div class="col-auto">
+                    <form id="changeRoomNumber-form">
+                        <div class="input-group">
+                            <img src="/assets/icon/person-fill.svg" width="32" height="32">
+                            <input type="text" class="form-control" name="name" id="name" value="" placeholder="暱稱"
+                                maxlength="50">
+                            <img src="/assets/icon/house-door.svg" width="32" height="32">
+                            <input type="text" class="form-control" name="roomNumber" id="roomNumber" value="公共房間"
+                                placeholder="房間名稱" maxlength="50">
+                            <div class="input-group-append">
+                                <input type="submit" class="btn btn-danger mb-2" id="changeRoomNumber" value="變更">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-auto">
+                    <form id="send-form">
+                        <div class="input-group text-center">
+                            <input type="text" name="msg" id="msg" value="1d100" placeholder="說點什麼？" maxlength="1000">
+                            <div class="input-group-append">
+                                <input type="submit" class="btn btn-primary" id="submit" value="送出" onclick="genName()">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-auto">&nbsp</div>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-auto">
+                    <span class="badge badge-info">
+                        每間房間上限100條信息</br>輸入名字可以進入自定的房間
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+        integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous">
+    </script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
+        integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous">
+    </script>
+</body>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-111430056-7"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+    gtag('js', new Date());
+    gtag('config', 'UA-111430056-7');
+    var socket = io();
+    var color = 3;
+
+    function genName() {
+        if (!document.getElementById("name").value)
+            document.getElementById("name").value = "調查員" + Math.floor(Math.random() * 1000) + 1;;
+    }
+
+    function scorllToBottom() {
+        var content = document.getElementById("container-content");
+        content.scrollTop = content.scrollHeight;
+    }
+    document.addEventListener("DOMContentLoaded", () => {
+        var roomNumber = "公共房間"
+        var max_record = 100;
+        //  var status = document.getElementById("status");
+        var online = document.getElementById("online");
+        var room = document.getElementById("room");
+        var roomText = document.getElementById("roomNumber");
+        var changeRoomNumber = document.getElementById("changeRoomNumber-form");
+        var sendForm = document.getElementById("send-form");
+        var content = document.getElementById("content");
+        var nameInputBox = document.getElementById("name");
+        var msgInputBox = document.getElementById("msg");
+        var name = getLocalStorage("name");
+
+        if (name) {
+            nameInputBox.value = name;
+        } else {
+            genName()
+        }
+        /*
+                socket.on("connect", function () {
+                    status.innerText = "Connected.";
+                });
+
+                socket.on("disconnect", function () {
+                    status.innerText = "Disconnected.";
+                });
+        */
+        socket.on("online", function (amount) {
+            online.innerText = amount;
+        });
+
+        socket.on("maxRecord", function (amount) {
+            max_record = amount;
+        });
+
+        socket.on("chatRecord", async function (msgs) {
+            msgs.sort(function (a, b) {
+                return new Date(a.time) - new Date(b.time);
+            });
+            for (var i = 0; i < msgs.length; i++) {
+                (async function () {
+                    await addMsgToBox(msgs[i]);
+                })();
+            }
+        });
+
+        socket.on(roomNumber, addMsgToBox);
+
+        changeRoomNumber.addEventListener("submit", async function (e) {
+            e.preventDefault();
+            color = 3;
+            if (!roomText.value) {
+                roomText.innerHTML = "公共房間";
+                roomText.value = "公共房間";
+            };
+            if (roomText.value == roomNumber) {
+                return;
+            }
+            await socket.off(roomNumber);
+            roomNumber = roomText.value;
+            let myNode = document.getElementById("content");
+            myNode.innerHTML = '';
+            socket.emit("newRoom", roomNumber);
+            room.innerText = roomNumber;
+            await socket.on(roomNumber, addMsgToBox);
+        });
+
+
+
+        sendForm.addEventListener("submit", function (e) {
+            e.preventDefault();
+            if (!msgInputBox) return;
+            var formData = {
+                time: new Date(Date.now())
+            };
+            formData.msg = msgInputBox.value;
+            formData.name = nameInputBox.value;
+            formData.roomNumber = roomNumber;
+            socket.emit("send", formData);
+            setLocalStorage("name", nameInputBox.value);
+            console.log('nameInputBox', nameInputBox)
+
+        });
+
+
+        async function addMsgToBox(d) {
+            color++;
+            var msgBox = document.createElement("div");
+            msgBox.className = "card";
+            var msgBoxHeader = document.createElement("div");
+            msgBoxHeader.className = "card-header2";
+            var msgBoxBody = document.createElement("div");
+
+            msgBoxBody.classList.add("card-body2")
+
+            var space = document.createElement("span");
+            var nameBox = document.createElement("span");
+            nameBox.className = "badge badge-primary";
+            var timeBox = document.createElement("span")
+            timeBox.className = "badge badge-secondary";
+            var name = document.createTextNode(d.name);
+
+            var time = document.createTextNode(new Date(d.time).toLocaleString());
+            var msg = document.createTextNode(d.msg.replace(/^\n/, ''), setTimeout(function () {
+                scorllToBottom();
+            }, 50));
+
+
+            nameBox.appendChild(name);
+            msgBoxHeader.appendChild(nameBox);
+            msgBoxHeader.innerHTML += "&nbsp";
+            timeBox.appendChild(time);
+            msgBoxHeader.appendChild(timeBox);
+            msgBoxBody.appendChild(msg);
+
+            msgBox.appendChild(msgBoxHeader);
+            msgBox.appendChild(msgBoxBody);
+            content.appendChild(msgBox);
+
+            if (content.children.length > max_record) {
+                rmMsgFromBox();
+            }
+        }
+
+        function rmMsgFromBox() {
+            var childs = content.children;
+            childs[0].remove();
+        }
+
+        function setLocalStorage(cname, cvalue) {
+            localStorage.setItem(cname, cvalue);
+        }
+
+        function getLocalStorage(cname) {
+            return localStorage.getItem(cname) || null;
+        }
+    });
+</script>
+
+
+</html>

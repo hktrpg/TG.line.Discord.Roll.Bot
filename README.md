@@ -1,7 +1,17 @@
 # RoboYabaso@HKTRPG </br>
 
-【HKTRPG擲骰BOT】v1.20</br> 
-最後更新時間10/31/2019, 8:59:11 PM</br> 
+<p align="center"><a href="https://www.hktrpg.com" target="_blank" rel="noopener noreferrer"><img width="200" src="https://avatars3.githubusercontent.com/u/48795428?s=200&v=4" alt="HKTRPG logo"></a></p>
+
+<p align="center">
+    <a href="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/fork"><img src="https://img.shields.io/github/forks/hktrpg/TG.line.Discord.Roll.Bot" alt="Forks"></a>
+    <a href="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/releases/latest"><img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/hktrpg/TG.line.Discord.Roll.Bot"></a>
+    <a href="https://discord.gg/vx4kcm7" title="Join the discord server!"><img src="https://img.shields.io/discord/278202347165974529?logo=discord" alt="Discord invite button" /></a>
+    <a href="https://patreon.com/HKTRPG" title="Donate to this project using Patreon"><img src="https://img.shields.io/badge/patreon-donate-red.svg" alt="Patreon donate button" /></a>
+</p>
+
+
+【HKTRPG擲骰BOT】v1.24</br> 
+最後更新時間08/05/2020, 5:12:11 AM</br> 
 2019/07/21 香港克警合作 黑ICON紀念 </br> </br> 
 
 </br>
@@ -14,7 +24,7 @@ https://discordapp.com/oauth2/authorize?&client_id=544462904037081138&scope=bot&
 Telegram版： </br>
 http://t.me/hktrpg_bot</br>
 網頁版：</br>
-https://www.hktrpg.com/tool/rollbot.html</br></br>
+https://rollbot.hktrpg.com/</br></br>
 簡易版網上擲骰工具 — 兩面 六面 十面 二十面 百面 自定</br>
 https://roll.hktrpg.com/</br></br>
 開發支援：</br> https://www.patreon.com/HKTRPG
@@ -62,7 +72,7 @@ RoboYabaso最早由LarryLo  Retsnimle開發。 </br>
 - [ ] 選擇圖書式遊戲(好像COC 單人TRPG 「向火獨行」一樣, 輸入頁碼, 就會顯示故事, 好像跑團一樣,以後不怕沒有同伴了,不過首先要有故事ORZ)
 - [x] 增加 mee6式 LV 排名升級 功能(需修改觸發方法)
 - [ ] 增加 戰鬥輪回合功能 .round  next hide public init del
-- [ ] 增加 角色卡功能 .char set del
+- [X] 增加 角色卡功能 .char set del
 - [ ] 增加 LOG功能 可以自動變成LOG
 
 
@@ -254,6 +264,8 @@ https://github.com/zeteticl/TrpgLineBot-php </br>
 1. MONGODB (但好難啊....會有高手幫忙嗎....不想用GOOGLE SHEET.....</br>
 2. 骰組方法學習凍豆腐</br>
 3. Help的優化
+
+更多更新資料放在Discord群上
 
 2018/02/01</br>
 更新模組化</br></br>

@@ -1,9 +1,5 @@
 "use strict";
-var rply = {
-    default: 'on',
-    type: 'text',
-    text: ''
-};
+var variables = {};
 
 var gameName = function () {
     return '【Demo】'
@@ -23,24 +19,29 @@ var prefixs = function () {
     }]
 }
 var getHelpMessage = function () {
-    return "【示範】" + "\
-	\n  只是一個Demo\
-		\n "
+    return "【示範】" + "\n\
+只是一個Demo的第一行\n\
+只是一個Demo末行"
 }
 var initialize = function () {
-    return rply;
+    return variables;
 }
 
+// eslint-disable-next-line no-unused-vars
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
-    rply.text = '';
+    let rply = {
+        default: 'on',
+        type: 'text',
+        text: ''
+    };
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
             return rply;
-        case /^\d+$/i.test(mainMsg[0]):
+        case /^\d+$/i.test(mainMsg[1]):
             rply.text = 'Demo' + mainMsg[1]
             return rply;
-        case /^(?![\s\S])/.test(mainMsg[0] || ''):
+        case /^\S/.test(mainMsg[1] || ''):
             rply.text = 'Demo'
             return rply;
         default:

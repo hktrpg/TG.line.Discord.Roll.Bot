@@ -1,14 +1,9 @@
 "use strict";
-exports.analytics = require('../modules/analytics');
+exports.analytics = require('./core-analytics');
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const Discord = require('discord.js');
 const client = new Discord.Client();
-const {
-	Random,
-	nodeCrypto
-} = require("random-js");
-const random = new Random(nodeCrypto);
 //const BootTime = new Date(new Date().toLocaleString("en-US", {
 //	timeZone: "Asia/Shanghai"
 //}));
@@ -16,17 +11,39 @@ const random = new Random(nodeCrypto);
 //  i.e., `User.js` will become `exports['User']` or `exports.User`
 //var Discordcountroll = 0;
 //var Discordcounttext = 0;
+const EXPUP = require('./level').EXPUP || function () {};
+const courtMessage = require('./logs').courtMessage || function () {};
 const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
 		\n輸入 1D100 可以進行最簡單的擲骰.\
 		\n輸入 Bothelp 觀看詳細使用說明.\
 		\n如果你需要幫助, 加入支援頻道.\
 		\n(http://bit.ly/HKTRPG_DISCORD)\
 		\n有關TRPG資訊, 可以到網站\
-		\n(http://www.hktrpg.com/)";
+		\n(http://www.hktrpg.com/)\
+		\n\n骰子機械人意見調查問卷\
+		\n引言: 我是HKTRPG骰子機械人的製作者，這份問卷的目的，是蒐集對骰子機械人的意見及HKTRPG的滿意度，改進使用體驗。\
+		\n另外, 最近因為資料庫開始爆滿，所以對關鍵字功能進行限制，每個GP 30個上限，\
+		\n如果完成問卷,可以提升上限半年WW\
+		\nhttps://forms.gle/JnHdGs4oRMd9SQhM6";
 
-client.once('ready', () => {
+
+client.once('ready', async () => {
 	console.log('Discord is Ready!');
+	await count();
 });
+
+async function count() {
+	if (!client.shard) return;
+	return await client.shard.fetchClientValues('guilds.cache.size')
+		.then(results => {
+			console.log(`${results.reduce((acc, guildCount) => acc + guildCount, 0)} total Discord guilds`);
+			return `正在${results.reduce((acc, guildCount) => acc + guildCount, 0)} 個Discord 頻道運行`;
+		})
+		.catch(() => {
+			return;
+		});
+
+}
 
 
 // handle the error event
@@ -50,8 +67,13 @@ client.on('message', async (message) => {
 	if (message.author.bot) return;
 	//	console.log('message.content ' + message.content);
 	//	console.log('channelKeyword ' + channelKeyword);
-	let groupid, userid, displayname, channelid, displaynameDiscord, membercount = '';
-	let TargetGM = require('../roll/z_DDR_darkRollingToGM').initialize();
+	let groupid = '',
+		userid = '',
+		displayname = '',
+		channelid = '',
+		displaynameDiscord = '',
+		membercount = 0;
+	let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 	//得到暗骰的數據, GM的位置
 	let displaynamecheck = true;
 	let hasSendPermission = true;
@@ -97,12 +119,12 @@ client.on('message', async (message) => {
 	}
 
 	if (!message.content) {
+		await courtMessage("", "Discord", "")
 		if (groupid && userid) {
-			await exports.analytics.EXPUP(groupid, userid, displayname, displaynameDiscord, membercount);
+			await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount);
 		}
 		return null;
 	}
-	let CAPTCHA = random.string(20);
 	let rplyVal = {};
 	let trigger = "";
 	let msgSplitor = (/\S+/ig);
@@ -135,10 +157,10 @@ client.on('message', async (message) => {
 
 	if (channelKeyword != "" && trigger == channelKeyword.toString().toLowerCase()) {
 		//mainMsg.shift();
-		rplyVal = await exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount, CAPTCHA);
+		rplyVal = await exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount);
 	} else {
 		if (channelKeyword == "") {
-			rplyVal = await exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount, CAPTCHA);
+			rplyVal = await exports.analytics.parseInput(message.content, groupid, userid, userrole, "Discord", displayname, channelid, displaynameDiscord, membercount);
 		}
 	}
 	if (!rplyVal.text && !rplyVal.LevelUp) {
@@ -147,13 +169,14 @@ client.on('message', async (message) => {
 	if (!hasSendPermission) {
 		return;
 	}
-	if (CAPTCHA != rplyVal.CAPTCHA) {
-		console.log('Discord CAPTCHA false', CAPTCHA, ' &&', rplyVal.CAPTCHA, "TEXT", message.content, 'rplyVal: ', rplyVal);
-		return;
+
+	if (rplyVal.state) {
+		rplyVal.text += '\n' + await count();
 	}
+
 	if (groupid && rplyVal && rplyVal.LevelUp) {
 		//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
-		await SendToReplychannel("<@" + userid + '>\n' + rplyVal.LevelUp);
+		SendToReplychannel("<@" + userid + '>\n' + rplyVal.LevelUp, message);
 	}
 
 	if (!rplyVal.text) {
@@ -193,10 +216,10 @@ client.on('message', async (message) => {
 			// 輸入dr  (指令) 私訊自己
 			//
 			if (groupid)
-				await SendToReplychannel("<@" + userid + '> 暗骰給自己')
+				SendToReplychannel("<@" + userid + '> 暗骰給自己', message)
 			if (userid)
 				rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
-			return await SendToReply(rplyVal.text);
+			return SendToReply(rplyVal.text, message);
 		case privatemsg == 2:
 			//輸入ddr(指令) 私訊GM及自己
 			//console.log('AAA', TargetGMTempID)
@@ -205,15 +228,15 @@ client.on('message', async (message) => {
 				for (let i = 0; i < TargetGMTempID.length; i++) {
 					targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
 				}
-				await SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
+				SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp, message);
 			}
 			if (userid) {
 				rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text;
 			}
-			await SendToReply(rplyVal.text);
+			SendToReply(rplyVal.text, message);
 			for (let i = 0; i < TargetGMTempID.length; i++) {
 				if (userid != TargetGMTempID[i]) {
-					await SendToId(TargetGMTempID[i], rplyVal.text);
+					SendToId(TargetGMTempID[i], rplyVal.text, client);
 				}
 			}
 			return;
@@ -224,73 +247,62 @@ client.on('message', async (message) => {
 				for (let i = 0; i < TargetGMTempID.length; i++) {
 					targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
 				}
-				await SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp)
+				SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp, message)
 			}
 			rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
 			for (let i = 0; i < TargetGMTempID.length; i++) {
-				await SendToId(TargetGMTempID[i], rplyVal.text);
+				SendToId(TargetGMTempID[i], rplyVal.text);
 			}
 			return;
 		default:
-			async function displayname() {
-				//285083923223
-				displayname = "<@" + userid + ">\n";
-				rplyVal.text = displayname + rplyVal.text
-				return rplyVal;
+			if (displaynamecheck && userid) {
+				rplyVal.text = "<@" + userid + ">\n" + rplyVal.text;
 			}
-			if (displaynamecheck && userid)
-				rplyVal = await displayname();
 			if (groupid)
-				return await SendToReplychannel(rplyVal.text);
+				return SendToReplychannel(rplyVal.text, message);
 			else
-				return await SendToReply(rplyVal.text);
+				return SendToReply(rplyVal.text, message);
 	}
-
-
 	//console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString(), " content: ", message.content);
-
 	//console.log("rplyVal: " + rplyVal);
 
-
-	async function SendToId(targetid, replyText) {
-		for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-			if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
-				try {
-					//V12ERROR return await client.users.get(targetid).send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
-					await client.users.cache.get(targetid).send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
-
-				}
-			catch (e) {
-				console.log('error SendtoID: ', e.message)
-			}
-		}
-
-	}
-
-	async function SendToReply(replyText) {
-		for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-			if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
-				try {
-					await message.author.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
-
-				}
-			catch (e) {
-				console.log('error SendToReply: ', e.message)
-			}
-		}
-	}
-	async function SendToReplychannel(replyText) {
-		for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-			if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
-				try {
-					await message.channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
-				}
-			catch (e) {
-				console.log('error SendToReplychannel: ', e.message);
-			}
-		}
-	}
 });
+async function SendToId(targetid, replyText) {
+	for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+		if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
+			try {
+				//V12ERROR return await client.users.get(targetid).send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
+				client.users.cache.get(targetid).send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
+			}
+		catch (e) {
+			console.log(' GET ERROR:  SendtoID: ', e.message)
+		}
+	}
+
+}
+
+async function SendToReply(replyText, message) {
+	for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+		if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
+			try {
+				await message.author.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
+			}
+		catch (e) {
+			console.log(' GET ERROR:  SendToReply: ', e.message)
+		}
+	}
+}
+async function SendToReplychannel(replyText, message) {
+	for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+		if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
+			try {
+				await message.channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
+			}
+		catch (e) {
+			console.log(' GET ERROR: SendToReplychannel: ', e.message);
+		}
+	}
+}
 //Set Activity 可以自定義正在玩什麼
 client.on('ready', () => {
 	client.user.setActivity('bothelp | hktrpg.com');

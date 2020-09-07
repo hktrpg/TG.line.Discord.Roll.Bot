@@ -9,11 +9,7 @@ const random = new Random(nodeCrypto);
 const regex = /(\d+)d(\d+)(kh|kl|dh|dl|k|)(\d+|)/i;
 //var Sided = [];
 //Sided[10000] = [];
-var rply = {
-  default: 'on',
-  type: 'text',
-  text: ''
-};
+var variables = {};
 
 var gameName = function () {
   return '基本擲骰'
@@ -39,37 +35,36 @@ var prefixs = function () {
 
 ///^(?=.*he)(?!.*da).*$/ig
 const getHelpMessage = function () {
-  return "【基本擲骰】1d100(khN|klN|dhN|dlN)\
-  \n 例如輸入(2d6+1)*2　攻撃！\
-  \n 會輸出）(2d6+1)*2：攻撃！  (10[5+5]+1)2 = 22\
-  \n 如上面一樣,在骰子數字後方隔空白位打字,可以進行發言。\
-  \n 5 3D6 ：	分別骰出5次3d6 最多30次\
-  \n ((2d6+1)*2)-5/2>=10 支援括號加減乘除及大於小於(>,<,>=,<=)計算\
-  \n 支援kh|kl|dh|dl，k keep保留，d drop 放棄，h highest最高，l lowest最低\
-  \n 如3d6kh 保留最大的1粒骰，3d6dl2 放棄最小的2粒骰"
+  return "【基本擲骰】1d100(khN|klN|dhN|dlN)\n\
+例如輸入(2d6+1)*2　攻撃！\n\
+會輸出）(2d6+1)*2：攻撃！  (10[5+5]+1)2 = 22\n\
+如上面一樣,在骰子數字後方隔空白位打字,可以進行發言。\n\
+5 3D6 ：	分別骰出5次3d6 最多30次\n\
+((2d6+1)*2)-5/2>=10 支援括號加減乘除及大於小於(>,<,>=,<=)計算\n\
+支援kh|kl|dh|dl，k keep保留，d drop 放棄，h highest最高，l lowest最低\n\
+如3d6kh 保留最大的1粒骰，3d6dl2 放棄最小的2粒骰"
 }
 var initialize = function () {
+  return variables;
+}
+
+const rollDiceCommand = async function (inputStr, mainMsg) {
+  let rply = {
+    default: 'on',
+    type: 'text',
+    text: ''
+  };
+  rply.text = await nomalDiceRoller(mainMsg[0], mainMsg[1], mainMsg[2])
   return rply;
 }
 
-const rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-  rply.text = '';
-  //let result = {};
-  try {
-    let result = await nomalDiceRoller(mainMsg[0], mainMsg[1], mainMsg[2])
-    return result;
-  } catch (error) {
-    console.log('nomalDiceRoller error: ', error)
-    return;
-  }
-
-}
 
 
+/**
+ * 擲骰子運算
+ * @param {純數字, 10即骰出1D100} diceSided 
+ */
 
-// //////////////////////////////////////
-// ////////////// 擲骰子運算
-// //////////////////////////////////////
 var Dice = async function (diceSided) {
   let result = '';
   //result = math.floor((math.random() * diceSided) + 1)
@@ -155,7 +150,7 @@ var RollDice = async function (inputStr) {
   finalStr = finalStr + temp + '+';
 
   if (!comStr[3])
-    finalStr = finalStr.replace(/\,/ig, '+')
+    finalStr = finalStr.replace(/,/ig, '+')
   finalStr = finalStr.substring(0, finalStr.length - 1) + ']'
   finalStr = finalStr.replace('[', totally + '[')
   return finalStr
@@ -208,9 +203,13 @@ var BuildRollDice = async function (inputStr) {
   finalStr = finalStr.substring(0, finalStr.length - 1) + ')'
   return finalStr
 }
-// //////////////////////////////////////
-// ////////////// 普通ROLL
-// //////////////////////////////////////
+
+/**
+ * 普通ROLL
+ * @param {1D100 || 5} text0 
+ * @param {文字描述 || 1D100} text1 
+ * @param {文字描述} text2 
+ */
 var nomalDiceRoller = async function (text0, text1, text2) {
   // 首先判斷是否是誤啟動（檢查是否有符合骰子格式）
   // if (inputStr.toLowerCase().match(/\d+d\d+/) == null) return undefined
@@ -236,8 +235,7 @@ var nomalDiceRoller = async function (text0, text1, text2) {
     finalStr = text0 + '：' + (text1 || '') + '\n'
     finalStr += await onetimeroll(text0)
   }
-  rply.text = finalStr
-  return rply
+  return finalStr;
 }
 
 // 單次擲骰

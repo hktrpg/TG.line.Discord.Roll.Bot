@@ -9,18 +9,14 @@ function calldice(gameType, message) {
 }
 
 var rollbase = require('./rollbase.js');
-var rply = {
-	default: 'on',
-	type: 'text',
-	text: ''
-};
+var variables = {};
 
 var gameName = function () {
 	return '【永遠的後日談】 .nc (NM xNC+m xNA+m)'
 }
 
 var gameType = function () {
-	return 'Nechronica:hktrpg'
+	return 'Dice:Nechronica'
 }
 var prefixs = function () {
 	return [{
@@ -29,19 +25,18 @@ var prefixs = function () {
 	}]
 }
 var getHelpMessage = function () {
-	return "【永遠的後日談 Nechronica】" + "\
-	\n・依戀 .NC NM (問題)\
-	\n例子 .NC NM 我的依戀\
-	\n・判定　(.NC nNC+m)\
-	　\nダイス数n、修正値mで判定ロールを行います。\
-	　\nダイス数が2以上の時のパーツ破損数も表示します。\
-	\n・攻撃判定　(.NC nNA+m)\
-	　\nダイス数n、修正値mで攻撃判定ロールを行います。\
-	　\n命中部位とダイス数が2以上の時のパーツ破損数も表示します。*\
-		\n "
+	return "【永遠的後日談 Nechronica】" + "\n\
+・依戀 .NC NM (問題)\n\
+例子 .NC NM 我的依戀\n\
+・判定 (.NC nNC+m)\n\
+ダイス数n、修正値mで判定ロールを行います。\n\
+ダイス数が2以上の時のパーツ破損数も表示します。\n\
+・攻撃判定 (.NC nNA+m)\n\
+ダイス数n、修正値mで攻撃判定ロールを行います。\n\
+命中部位とダイス数が2以上の時のパーツ破損数も表示します。*\n"
 }
 var initialize = function () {
-	return rply;
+	return variables;
 }
 //nc指令開始於此 來自Rainsting/TarotLineBot 
 //if (trigger.match(/^[1-4]n[c|a][+|-][1-99]$|^[1-4]n[c|a]$/) != null) return exports.nc.nechronica(trigger, mainMsg[1]);
@@ -50,24 +45,29 @@ var initialize = function () {
 //if (trigger.match(/(^nm$)/) != null) return exports.nc.nechronica_mirenn(mainMsg[1]);
 
 var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
-	rply.text = '';
+	let rply = {
+		default: 'on',
+		type: 'text',
+		text: ''
+	};
 	let result = '';
 	switch (true) {
 		case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
 			rply.text = this.getHelpMessage();
 			return rply;
 		case /(^nm$)/i.test(mainMsg[1]):
-			return nechronica_mirenn(mainMsg[2]);
+			rply.text = await nechronica_mirenn(mainMsg[2]);
+			return rply;
 		case /(\d+)N[C|A]/i.test(mainMsg[1]):
 
 			//永遠的後日談 Nechronica
 			/*
-			・判定　(nNC+m)
-	  　ダイス数n、修正値mで判定ロールを行います。
-	  　ダイス数が2以上の時のパーツ破損数も表示します。
-	  ・攻撃判定　(nNA+m)
-	  　ダイス数n、修正値mで攻撃判定ロールを行います。
-	  　命中部位とダイス数が2以上の時のパーツ破損数も表示します。*/
+			・判定 (nNC+m)
+	   ダイス数n、修正値mで判定ロールを行います。
+	   ダイス数が2以上の時のパーツ破損数も表示します。
+	  ・攻撃判定 (nNA+m)
+	   ダイス数n、修正値mで攻撃判定ロールを行います。
+	   命中部位とダイス数が2以上の時のパーツ破損数も表示します。*/
 			result = calldice("Nechronica", mainMsg[1])
 			if (result && result[0] != 1)
 				rply.text = mainMsg[1] + result[0];
@@ -87,9 +87,13 @@ module.exports = {
 	gameName: gameName
 };
 
-////////////////////////////////////////
-//////////////// nechronica (NC)
-////////////////////////////////////////
+/**
+ * nechronica (NC)
+ * 已放棄, 轉用凍豆版
+ * @param {指令} triggermsg 
+ * @param {描述} text 
+ */
+
 async function nechronica(triggermsg, text) {
 	let returnStr = '';
 	var ncarray = [];
@@ -128,13 +132,14 @@ async function nechronica(triggermsg, text) {
 		returnStr += ' → 失敗';
 	if (text != null)
 		returnStr += ' ; ' + text;
-	rply.text = returnStr;
-	return rply;
+	return returnStr;
 }
 
-////////////////////////////////////////
-//////////////// nechronica (NM依戀)
-////////////////////////////////////////
+/**
+ * nechronica (NM依戀)
+ * @param {描述} text 
+ */
+
 async function nechronica_mirenn(text) {
 	let returnStr = '';
 	var dicenew = 0;
@@ -144,8 +149,7 @@ async function nechronica_mirenn(text) {
 		returnStr = text + ': \n' + '依戀 (' + (dicenew + 1) + '[' + (dicenew + 1) + ']) → ' + nechronica_mirenn_table(dicenew);
 	else
 		returnStr = '依戀 (' + (dicenew + 1) + '[' + (dicenew + 1) + ']) → ' + nechronica_mirenn_table(dicenew);
-	rply.text = returnStr;
-	return rply;
+	return returnStr;
 }
 
 /* 這邊預留 mode 以便未來可以加入其他依戀 */

@@ -1,13 +1,12 @@
+/* eslint-disable no-unused-vars */
 "use strict";
 const {
     EventEmitter
 } = require("events");
 const schema = require('./core-schema.js');
-//const Message = mongoose.model('Message', schema);
-
 let instance;
-let data = [];
-let MAX = 50000;
+let MAX = 100;
+const Message = schema.chatRoom;
 
 class Records extends EventEmitter {
     constructor() {
@@ -510,32 +509,6 @@ class Records extends EventEmitter {
         });
     }
 
-    settrpgLevelSystemfunctionConfig(dbbase, msg, callback) {
-        schema[dbbase].findOneAndUpdate({
-            groupid: msg.groupid
-        }, {
-            $set: {
-                //LevelUpWord: msg.LevelUpWord
-                //在這群組升級時的升級語
-                //RankWord: msg.RankWord
-                //在這群組查詢等級時的回應
-                Switch: msg.Switch,
-                //是否啓動功能 config 1X 則1
-                Hidden: msg.Hidden
-                //是否顯示升級語 config X1 則1
-                //trpgLevelSystemfunction: msg.trpgLevelSystemfunction
-            }
-        }, {
-            upsert: true,
-            setDefaultsOnInsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.log("Something wrong when updating data!");
-            } else
-                callback();
-            // return JSON.stringify(doc).toString();
-        });
-    }
     settrpgLevelSystemfunctionEXPup(dbbase, msgA, msg, callback) {
         schema[dbbase].findOneAndUpdate({
             groupid: msgA.groupid
@@ -565,15 +538,62 @@ class Records extends EventEmitter {
         });
     }
 
+    maxtrpgLevelSystemfunctionEXPup(dbbase, userid, exp, lv, msgA, msg, callback) {
+        schema[dbbase].findOneAndUpdate({
+            groupid: msgA.groupid,
+            'trpgLevelSystemfunction.userid': userid
+        }, {
+            $max: {
+                //LevelUpWord: msg.LevelUpWord
+                //在這群組升級時的升級語
+                //RankWord: msg.RankWord
+                //在這群組查詢等級時的回應
+                //Switch: msg.Switch,
+                //是否啓動功能 config 1X 則1
+                //Hidden: msg.Hidden,
+                //是否顯示升級語 config X1 則1
+                'trpgLevelSystemfunction.$.EXP': exp,
+                'trpgLevelSystemfunction.$.Level': lv
+            }
+        }, {
+            //   setDefaultsOnInsert: true
+        }, (err, doc) => {
+            if (err) {
+                console.log(err);
+                console.log("Something wrong when updating data!");
+            } else {
+                callback();
+                // console.log('DONE?')
+            }
+            // return JSON.stringify(doc).toString();
+        });
+    }
+
     /*
     SAVE THE LOG
     SAVELOG功能
     */
     settrpgSaveLogfunctionRealTime(dbbase, msg, callback) {
         schema[dbbase].findOneAndUpdate({}, {
+            $setOnInsert: {
+                "RealTimeRollingLogfunction.StartTime": msg.StartTime,
+            },
             $set: {
+                "RealTimeRollingLogfunction.LogTime": msg.LogTime,
+                "RealTimeRollingLogfunction.LastTimeLog": msg.LastTimeLog
+            },
+            $max: {
                 //實時資料 使用SET
-                RealTimeRollingLogfunction: msg
+                "RealTimeRollingLogfunction.DiscordCountRoll": msg.DiscordCountRoll,
+                "RealTimeRollingLogfunction.DiscordCountText": msg.DiscordCountText,
+                "RealTimeRollingLogfunction.LineCountRoll": msg.LineCountRoll,
+                "RealTimeRollingLogfunction.LineCountText": msg.LineCountText,
+                "RealTimeRollingLogfunction.TelegramCountRoll": msg.TelegramCountRoll,
+                "RealTimeRollingLogfunction.TelegramCountText": msg.TelegramCountText,
+                "RealTimeRollingLogfunction.WhatsappCountRoll": msg.WhatsappCountRoll,
+                "RealTimeRollingLogfunction.WhatsappCountText": msg.WhatsappCountText,
+                "RealTimeRollingLogfunction.WWWCountRoll": msg.WWWCountRoll,
+                "RealTimeRollingLogfunction.WWWCountText": msg.WWWCountText
                 //中途紀錄資料 使用PUSH 每天紀錄一次
                 // RollingLogfunction: msg,
                 //擲骰的結果紀錄
@@ -594,15 +614,97 @@ class Records extends EventEmitter {
             // return JSON.stringify(doc).toString();
         });
     }
-    pushtrpgSaveLogfunction(dbbase, msg, callback) {
-        new schema[dbbase]({
-            RollingLogfunction: msg
-        }).save(function (err) {
-            if (err) return console.error(err);
-            else {
-                callback();
-            }
+
+    maxTrpgSaveLogfunction(dbbase, msg, callback) {
+        schema[dbbase].findOneAndUpdate({
+                "RollingLogfunction.LogTime": {
+                    '$gte': msg.start,
+                    '$lte': msg.end
+                }
+            }, {
+                $set: {
+                    "RollingLogfunction.LogTime": msg.LogTime,
+                },
+                $max: {
+                    //大於則更新
+                    "RollingLogfunction.DiscordCountRoll": msg.DiscordCountRoll,
+                    "RollingLogfunction.DiscordCountText": msg.DiscordCountText,
+                    "RollingLogfunction.LineCountRoll": msg.LineCountRoll,
+                    "RollingLogfunction.LineCountText": msg.LineCountText,
+                    "RollingLogfunction.TelegramCountRoll": msg.TelegramCountRoll,
+                    "RollingLogfunction.TelegramCountText": msg.TelegramCountText,
+                    "RollingLogfunction.WhatsappCountRoll": msg.WhatsappCountRoll,
+                    "RollingLogfunction.WhatsappCountText": msg.WhatsappCountText,
+                    "RollingLogfunction.WWWCountRoll": msg.WWWCountRoll,
+                    "RollingLogfunction.WWWCountText": msg.WWWCountText
+                    //中途紀錄資料 使用PUSH 每天紀錄一次
+                    // RollingLogfunction: msg,
+                    //擲骰的結果紀錄
+                    //Sided: msg
+                }
+            }, {
+                upsert: true
+                //   setDefaultsOnInsert: true
+            },
+            (err, doc) => {
+                if (err) {
+                    console.log(err);
+                    console.log("Something wrong when updating data!");
+                } else {
+                    callback();
+                    // console.log('DONE?')
+                }
+                // return JSON.stringify(doc).toString();
+            });
+    }
+
+
+    //chatRoomWWW Record
+
+    async chatRoomPush(msg) {
+        const m = new Message(msg);
+        await m.save();
+        this.emit("new_message", msg);
+        let count = await Message.countDocuments({
+            'roomNumber': msg.roomNumber
         });
+        /**
+         * 計算有多少個
+         * 比較超出了多少個
+         * 找出那個的日子
+         * 之前的全部刪除
+         */
+        if (count < MAX) return;
+        let over = count - MAX;
+        let d = await Message.find({
+            'roomNumber': msg.roomNumber
+        }).sort({
+            'time': 1,
+        })
+        if (!d[over - 1]) return;
+        await Message.deleteMany({
+            'roomNumber': msg.roomNumber,
+            time: {
+                $lt: d[over - 1].time
+            }
+
+        })
+    }
+
+    chatRoomGet(roomNumber, callback) {
+        Message.find({
+            roomNumber: roomNumber
+        }, (err, msgs) => {
+            callback(msgs);
+        });
+    }
+
+    chatRoomSetMax(max) {
+        MAX = max;
+    }
+
+    chatRoomGetMax() {
+        return MAX;
     }
 
 }

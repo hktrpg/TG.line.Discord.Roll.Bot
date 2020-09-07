@@ -106,10 +106,28 @@ client.on('message', async msg => {
 		}
 		if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 			mainMsg.shift();
-			rplyVal = await exports.analytics.parseInput(msg.body, groupid, userid, userrole, "Whatsapp", displayname, channelid, "", membercount);
+			rplyVal = await exports.analytics.parseInput({
+				inputStr: msg.body,
+				groupid: groupid,
+				userid: userid,
+				userrole: userrole,
+				botname: "Whatsapp",
+				displayname: displayname,
+				channelid: channelid,
+				membercount: membercount
+			})
 		} else {
 			if (channelKeyword == '') {
-				rplyVal = await exports.analytics.parseInput(msg.body, groupid, userid, userrole, "Whatsapp", displayname, channelid, "", membercount);
+				rplyVal = await exports.analytics.parseInput({
+					inputStr: msg.body,
+					groupid: groupid,
+					userid: userid,
+					userrole: userrole,
+					botname: "Whatsapp",
+					displayname: displayname,
+					channelid: channelid,
+					membercount: membercount
+				})
 			}
 		}
 		//LevelUp功能

@@ -17,7 +17,6 @@ const courtMessage = require('./logs').courtMessage || function () {};
 const getState = require('./logs').getState || function () {};
 const EXPUP = require('./level').EXPUP || function () {};
 
-
 //用來呼叫骰組,新增骰組的話,要寫條件式到下面呼叫
 //格式是 exports.骰組檔案名字.function名
 var parseInput = async function ({
@@ -180,6 +179,7 @@ async function stateText() {
 	text += '\n 網頁版總擲骰次數: ' + state.WWWCountRoll;
 	return text;
 }
+
 
 
 async function cmdfunction(inputStr, groupid, userid, userrole, mainMsg, botname, displayname, channelid, displaynameDiscord, membercount, result) {

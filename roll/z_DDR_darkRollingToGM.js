@@ -43,7 +43,7 @@ var initialize = function () {
     return trpgDarkRollingfunction;
 }
 
-var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+var rollDiceCommand = async function ( {mainMsg, groupid, userid, userrole, botname, displayname, channelid}) {
     let checkifsamename = 0;
     let rply = {
         default: 'on',

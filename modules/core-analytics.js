@@ -61,7 +61,18 @@ var parseInput = async function ({
 	//rolldice 擲骰功能
 	let rollDiceResult = {};
 	try {
-		rollDiceResult = await rolldice(inputStr, groupid, userid, userrole, mainMsg, botname, displayname, channelid, displaynameDiscord, membercount)
+		rollDiceResult = await rolldice({
+			inputStr: inputStr,
+			groupid: groupid,
+			userid: userid,
+			userrole: userrole,
+			mainMsg: mainMsg,
+			botname: botname,
+			displayname: displayname,
+			channelid: channelid,
+			displaynameDiscord: displaynameDiscord,
+			membercount: membercount
+		})
 
 	} catch (error) {
 		console.log('rolldice GET ERROR:', error);
@@ -105,7 +116,18 @@ var parseInput = async function ({
 
 
 
-var rolldice = async function (inputStr, groupid, userid, userrole, mainMsg, botname, displayname, channelid, displaynameDiscord, membercount) {
+var rolldice = async function ({
+	inputStr,
+	groupid,
+	userid,
+	userrole,
+	mainMsg,
+	botname,
+	displayname,
+	channelid,
+	displaynameDiscord,
+	membercount
+}) {
 	//	console.log(exports)
 	//在下面位置開始分析trigger
 	if (!groupid) {
@@ -127,7 +149,18 @@ var rolldice = async function (inputStr, groupid, userid, userrole, mainMsg, bot
 		return null;
 	} else {
 		(debugMode) ? console.log('            trigger: ', inputStr): '';
-		let tempsave = await findTarget.rollDiceCommand(inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount);
+		let tempsave = await findTarget.rollDiceCommand({
+			inputStr: inputStr,
+			mainMsg: mainMsg,
+			groupid: groupid,
+			userid: userid,
+			userrole: userrole,
+			botname: botname,
+			displayname: displayname,
+			channelid: channelid,
+			displaynameDiscord: displaynameDiscord,
+			membercount: membercount
+		});
 		//console.log('tempsave: ', tempsave)
 		return tempsave;
 	}
@@ -160,7 +193,18 @@ async function cmdfunction(inputStr, groupid, userid, userrole, mainMsg, botname
 	//檢查是不是要停止
 	let tempResut = {};
 	try {
-		tempResut = await rolldice(inputStr, groupid, userid, userrole, mainMsg, botname, displayname, channelid, displaynameDiscord, membercount)
+		tempResut = await rolldice({
+			inputStr: inputStr,
+			groupid: groupid,
+			userid: userid,
+			userrole: userrole,
+			mainMsg: mainMsg,
+			botname: botname,
+			displayname: displayname,
+			channelid: channelid,
+			displaynameDiscord: displaynameDiscord,
+			membercount: membercount
+		})
 	} catch (error) {
 		console.log('rolldice GET ERROR:', error);
 		console.log('inputStr: ', inputStr);

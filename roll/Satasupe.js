@@ -39,7 +39,7 @@ var initialize = function () {
     return variables;
 }
 
-var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+var rollDiceCommand = async function ({mainMsg}) {
     let rply = {
         default: 'on',
         type: 'text',

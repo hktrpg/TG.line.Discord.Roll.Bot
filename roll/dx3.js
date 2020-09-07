@@ -17,7 +17,7 @@ var gameName = function () {
 }
 
 var gameType = function () {
-	return 'Dice:Dx2,3'
+	return 'Dice:Dx2,3:hktrpg'
 }
 var prefixs = function () {
 	return [{
@@ -28,7 +28,7 @@ var prefixs = function () {
 var getHelpMessage = function () {
 	return "【Double Cross 2nd,3rd】" + "\n\
 ・啓動語 .dx (指令) 如 .dx xDX+y\n\
-・判定コマンド　(.dx xDX+y@c or xDXc+y)\n\
+・判定コマンド (.dx xDX+y@c or xDXc+y)\n\
 (個数)DX(修正)@(クリティカル値) もしくは (個数)DX(クリティカル値)(修正)で指定します。\n\
 加算減算のみ修正値も付けられます。\n\
 内部で読み替えています。\n\
@@ -42,7 +42,9 @@ var initialize = function () {
 	return variables;
 }
 
-var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+var rollDiceCommand = async function ({
+	mainMsg
+}) {
 	let rply = {
 		default: 'on',
 		type: 'text',

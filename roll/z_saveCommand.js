@@ -40,7 +40,12 @@ var initialize = function () {
 }
 
 // eslint-disable-next-line no-unused-vars
-var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+var rollDiceCommand = async function ({
+    inputStr,
+    mainMsg,
+    groupid,
+    userrole
+}) {
     let checkifsamename = 0
     let rply = {
         default: 'on',

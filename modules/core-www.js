@@ -85,11 +85,17 @@ records.on("new_message", async (message) => {
     // 訊息來到後, 會自動跳到analytics.js進行骰組分析
     // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
     if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
-        rplyVal = await exports.analytics.parseInput(mainMsg.join(' '), '', '', '', "WWW", "", "")
+        rplyVal = await exports.analytics.parseInput({
+            inputStr: mainMsg.join(' '),
+            botname: "WWW"
+        })
         //rplyVal = await exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid)
     } else {
         if (channelKeyword == '') {
-            rplyVal = await exports.analytics.parseInput(mainMsg.join(' '), '', '', '', "WWW", "", "")
+            rplyVal = await exports.analytics.parseInput({
+                inputStr: mainMsg.join(' '),
+                botname: "WWW"
+            })
         }
     }
     if (rplyVal && rplyVal.text) {

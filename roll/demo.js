@@ -6,7 +6,7 @@ var gameName = function () {
 }
 
 var gameType = function () {
-    return 'Demo:hktrpg'
+    return 'Demo:Demo:hktrpg'
 }
 var prefixs = function () {
     //[mainMSG[0]的prefixs,mainMSG[1]的prefixs,   <---這裡是一對  
@@ -27,8 +27,18 @@ var initialize = function () {
     return variables;
 }
 
-// eslint-disable-next-line no-unused-vars
-var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount) {
+var rollDiceCommand = async function ({
+    inputStr,
+    mainMsg,
+    groupid,
+    userid,
+    userrole,
+    botname,
+    displayname,
+    channelid,
+    displaynameDiscord,
+    membercount
+}) {
     let rply = {
         default: 'on',
         type: 'text',
@@ -39,7 +49,7 @@ var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userro
             rply.text = this.getHelpMessage();
             return rply;
         case /^\d+$/i.test(mainMsg[1]):
-            rply.text = 'Demo' + mainMsg[1]
+            rply.text = 'Demo' + mainMsg[1] + inputStr + groupid + userid + userrole + botname + displayname + channelid + displaynameDiscord + membercount;
             return rply;
         case /^\S/.test(mainMsg[1] || ''):
             rply.text = 'Demo'

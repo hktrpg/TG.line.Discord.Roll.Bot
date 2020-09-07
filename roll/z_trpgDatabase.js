@@ -43,7 +43,7 @@ var initialize = function () {
 }
 
 // eslint-disable-next-line no-unused-vars
-var rollDiceCommand = async function (inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid) {
+var rollDiceCommand = async function ({inputStr, mainMsg, groupid, userrole}) {
     let rply = {
         default: 'on',
         type: 'text',

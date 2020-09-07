@@ -38,26 +38,16 @@ const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
 						\n如果你需要幫助, 加入支援頻道.\
 						\n(http://bit.ly/HKTRPG_DISCORD)\
 						\n有關TRPG資訊, 可以到網站\
-						\n(http://www.hktrpg.com/)\
-						\n\n骰子機械人意見調查問卷\
-						\n引言: 我是HKTRPG骰子機械人的製作者，這份問卷的目的，是蒐集對骰子機械人的意見及HKTRPG的滿意度，改進使用體驗。\
-						\n另外, 最近因為資料庫開始爆滿，所以對關鍵字功能進行限制，每個GP 30個上限，\
-						\n如果完成問卷,可以提升上限半年WW\
-						\nhttps://forms.gle/JnHdGs4oRMd9SQhM6";
+						\n(http://www.hktrpg.com/)";
 
 
 var handleEvent = async function (event) {
 	//event {"type":"message","replyToken":"232132133","source":{"userId":"U1a17e51fSDADASD0293d","groupId":"C6432427423847234cd3","type":"group"},"timestamp":323232323,"message":{"type":"text","id":"232131233123","text":"5!@@!"}}
-	let roomorgroupid, userid, displayname, channelid, membercount = '';
-	if (event.source.groupId) {
-		roomorgroupid = event.source.groupId;
-	}
-	if (event.source.roomId) {
-		roomorgroupid = event.source.roomId;
-	}
-	if (event.source.userId) {
-		userid = event.source.userId;
-	}
+	let roomorgroupid = event.source.groupId || event.source.roomId || '',
+		userid = event.source.userId || '',
+		displayname = '',
+		membercount = '';
+
 	let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 
 	client.getProfile(userid).then(async function (profile) {
@@ -73,7 +63,6 @@ var handleEvent = async function (event) {
 
 	async function AfterCheckName() {
 		let displaynamecheck = true;
-		let userrole = 3;
 		if (event.type !== 'message' || event.message.type !== 'text') {
 			if (event.type == "join" && roomorgroupid) {
 				// 新加入群組時, 傳送MESSAGE
@@ -121,10 +110,24 @@ var handleEvent = async function (event) {
 
 		if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 			//mainMsg.shift()
-			rplyVal = await exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid, "");
+			rplyVal = await exports.analytics.parseInput({
+				inputStr: event.message.text,
+				groupid: roomorgroupid,
+				userid: userid,
+				userrole: 3,
+				botname: "Line",
+				displayname: displayname
+			})
 		} else {
 			if (channelKeyword == '') {
-				rplyVal = await exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid, "");
+				rplyVal = await exports.analytics.parseInput({
+					inputStr: event.message.text,
+					groupid: roomorgroupid,
+					userid: userid,
+					userrole: 3,
+					botname: "Line",
+					displayname: displayname
+				});
 				//console.log('channelKeyword', rplyVal)
 			}
 
@@ -132,7 +135,6 @@ var handleEvent = async function (event) {
 		//LevelUp功能
 		if (!rplyVal.text && !rplyVal.LevelUp)
 			return;
-
 
 		if (roomorgroupid && rplyVal && rplyVal.LevelUp) {
 			//	console.log('result.LevelUp 2:', rplyVal.LevelUp)

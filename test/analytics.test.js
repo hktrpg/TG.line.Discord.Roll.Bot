@@ -6,7 +6,6 @@ describe('測試所有指令輸出有反應', async () => {
     it('測試 1D100', async () => {
         let a = await parseInput({
             inputStr: '1d100'
-
         })
         expect(a.text).to.not.equal('')
     });
@@ -304,24 +303,6 @@ describe('測試所有指令輸出有反應', async () => {
         })
         expect(a.text).to.not.equal('')
     });
-    it('測試 dr 1d5', async () => {
-        let a = await parseInput({
-            inputStr: 'dr 1d5'
-        })
-        expect(a.text).to.not.equal('')
-    });
-    it('測試 ddr 3d3', async () => {
-        let a = await parseInput({
-            inputStr: 'ddr 3d3'
-        })
-        expect(a.text).to.not.equal('')
-    });
-    it('測試 1D10', async () => {
-        let a = await parseInput({
-            inputStr: '1d100'
-        })
-        expect(a.text).to.not.equal('')
-    });
     it('測試 .level show', async () => {
         let a = await parseInput({
             inputStr: '.level show'
@@ -366,7 +347,9 @@ describe('測試所有指令輸出有反應', async () => {
     });
     it('測試 .bk add 9d9999', async () => {
         let a = await parseInput({
-            inputStr: '.bk add 9d9999'
+            inputStr: '.bk add 9d9999',
+            groupid: 'test',
+            userid: 'test'
         })
         expect(a.text).to.not.equal('')
     });

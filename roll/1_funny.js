@@ -263,7 +263,7 @@ async function NomalDrawTarot(text, text2) {
 	returnStr = '每日塔羅'
 	if (text)
 		returnStr += "；" + text + " " + text2
-	let ans = await rollbase.shuffleTarget(TarotList.slice(0, 44))
+	let ans = await rollbase.shuffleTarget(TarotList)
 	returnStr += '\n' + ans[0]
 	return returnStr;
 }

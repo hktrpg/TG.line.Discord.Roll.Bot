@@ -90,7 +90,9 @@ var initialize = function () {
 }
 
 
-var rollDiceCommand = async function ({mainMsg}) {
+var rollDiceCommand = async function ({
+	mainMsg
+}) {
 	let rply = {
 		default: 'on',
 		type: 'text',
@@ -111,6 +113,7 @@ bothelp Tool	- 查詢trpg 輔助工具\n\
 bothelp admin	- 查詢系統工具\n\
 bothelp funny	- 查詢趣味功能\n\
 bothelp link	- 查詢hktrpg 不同平台連結\n\
+bothelp req		- 對HKTRPG RollBot提出意見\n\
 --------\n\
 程式開發，求助及TRPG Discord群 https://discord.gg/vx4kcm7\n\
 解鎖功能及開發支援 https://www.patreon.com/HKTRPG"
@@ -213,6 +216,10 @@ Telegram版 http://t.me/hktrpg_bot\n\
 			return rply;
 
 			 */
+		case /^req/i.test(mainMsg[1]):
+			rply.text = "請到以下問卷填寫意見，所有意見內容將改善RollBot\n\
+			https://forms.gle/uXq6taCPGJ2M99Gp9"
+			return rply;
 		default:
 			break;
 	}

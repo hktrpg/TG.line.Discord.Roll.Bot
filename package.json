@@ -20,6 +20,7 @@
     "bcdice-js": "^0.11.0",
     "body-parser": "^1.19.0",
     "bufferutil": "^4.0.1",
+    "chai": "^4.2.0",
     "chinese-conv": "^1.0.1",
     "discord.js": "^12.3.1",
     "dotenv": "^7.0.0",

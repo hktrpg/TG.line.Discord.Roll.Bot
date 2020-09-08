@@ -125,7 +125,6 @@ var rollDiceCommand = async function ({
             if (check.n == 1) {
                 records.get('randomAns', (msgs) => {
                     randomAnsfunction.randomAnsfunction = msgs
-                    // console.log(rply);
                 })
                 rply.text = '新增成功: ' + mainMsg[2]
             } else rply.text = '新增失敗'
@@ -150,9 +149,7 @@ var rollDiceCommand = async function ({
                 rply.text += '沒有此關鍵字. '
                 return rply;
             }
-            console.log(getData)
             temp = getData.randomAnsfunction.filter(e => e[0].toLowerCase() === mainMsg[2].toLowerCase());
-            console.log(temp)
             if (temp.length == 0) {
                 rply.text += '沒有此關鍵字. \n現在已更新刪除方式, 刪除請輸入 .ra del 名字'
                 return rply;
@@ -284,7 +281,6 @@ var rollDiceCommand = async function ({
             if (check.n == 1) {
                 records.get('randomAnsAllgroup', (msgs) => {
                     randomAnsfunction.randomAnsAllgroup = msgs
-                    // console.log(rply);
                 })
                 rply.text = '新增成功: ' + mainMsg[2]
             } else rply.text = '新增失敗'

@@ -4,6 +4,7 @@ const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const Discord = require('discord.js');
 const client = new Discord.Client();
+var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 //const BootTime = new Date(new Date().toLocaleString("en-US", {
 //	timeZone: "Asia/Shanghai"
 //}));
@@ -63,7 +64,10 @@ client.on('message', async (message) => {
 		channelid = '',
 		displaynameDiscord = '',
 		membercount = 0;
-	let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
+	let TargetGMTempID = [];
+	let TargetGMTempdiyName = [];
+	let TargetGMTempdisplayname = [];
+
 	//得到暗骰的數據, GM的位置
 	let displaynamecheck = true;
 	let hasSendPermission = true;
@@ -191,23 +195,13 @@ client.on('message', async (message) => {
 	}
 	//Discordcountroll++;
 	//簡單使用數字計算器
-	if (privatemsg >= 1) {
-		//當是私訊模式1-3時
-		var TargetGMTempID = [];
-		var TargetGMTempdiyName = [];
-		var TargetGMTempdisplayname = [];
-		if (TargetGM && TargetGM.trpgDarkRollingfunction)
-			for (let i = 0; i < TargetGM.trpgDarkRollingfunction.length; i++) {
-				if (TargetGM.trpgDarkRollingfunction[i].groupid == channelid) {
-					for (let a = 0; a < TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
-						//checkifsamename = 1
-						TargetGMTempID[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].userid;
-						TargetGMTempdiyName[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].diyName;
-						TargetGMTempdisplayname[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].displayname;
-						//TargetGMTemp[a]. channelid displayname diyName userid
-					}
-				}
-			}
+	if (privatemsg > 1 && TargetGM) {
+		let groupInfo = await privateMsgFinder(channelid) || [];
+		groupInfo.forEach((item, index) => {
+			TargetGMTempID[index] = item.userid;
+			TargetGMTempdiyName[index] = item.diyName;
+			TargetGMTempdisplayname[index] = item.displayname.displayname;
+		})
 	}
 
 	/*
@@ -275,6 +269,16 @@ client.on('message', async (message) => {
 	//console.log("rplyVal: " + rplyVal);
 
 });
+
+async function privateMsgFinder(channelid) {
+	if (!TargetGM || !TargetGM.trpgDarkRollingfunction) return;
+	let groupInfo = TargetGM.trpgDarkRollingfunction.find(data =>
+		data.groupid == channelid
+	)
+	if (groupInfo && groupInfo.trpgDarkRollingfunction)
+		return groupInfo.trpgDarkRollingfunction
+	else return [];
+}
 async function SendToId(targetid, replyText) {
 	for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 		if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
@@ -316,23 +320,3 @@ client.on('ready', () => {
 	client.user.setActivity('bothelp | hktrpg.com');
 });
 client.login(channelSecret);
-/*
- *client.on('ready', () => {
- *client.user.setActivity(actvs[Math.floor(Math.random() * (actvs.length - 1) + 1)]);
- *setInterval(() => {
- *	client.user.setActivity(actvs[Math.floor(Math.random() * (actvs.length - 1) + 1)]);
- *}, 10000);
- *});
- */
-
-
-
-/**
- *
- * bot.on('message'
- 	message => {
- 		message.channel.send("My Bot's message", {
- 			files: ["https://i.imgur.com/XxxXxXX.jpg"]
- 		});
- 	});
- */

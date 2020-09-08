@@ -8,6 +8,7 @@ const TGclient = new Telegraf(process.env.TELEGRAM_CHANNEL_SECRET);
 const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || '';
 //var TGcountroll = 0;
 //var TGcounttext = 0;
+var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const EXPUP = require('./level').EXPUP || function () {};
 const courtMessage = require('./logs').courtMessage || function () {};
 const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
@@ -34,7 +35,9 @@ TGclient.on('text', async (ctx) => {
 		displayname = '',
 		channelid = '',
 		membercount = 0;
-	let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
+	let TargetGMTempID = [];
+	let TargetGMTempdiyName = [];
+	let TargetGMTempdisplayname = [];
 	//得到暗骰的數據, GM的位置
 	if (ctx.message.from.username) displayname = ctx.message.from.username;
 	//是不是自己.ME 訊息
@@ -131,23 +134,14 @@ TGclient.on('text', async (ctx) => {
 		return;
 	}
 	//TGcountroll++;
-	if (privatemsg >= 1) {
-		//當是私訊模式1-3時
-		var TargetGMTempID = [];
-		var TargetGMTempdiyName = [];
-		var TargetGMTempdisplayname = [];
-		if (TargetGM && TargetGM.trpgDarkRollingfunction)
-			for (var i = 0; i < TargetGM.trpgDarkRollingfunction.length; i++) {
-				if (TargetGM.trpgDarkRollingfunction[i].groupid == groupid) {
-					for (var a = 0; a < TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
-						//checkifsamename = 1
-						TargetGMTempID[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].userid
-						TargetGMTempdiyName[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].diyName
-						TargetGMTempdisplayname[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].displayname
-						//TargetGMTemp[a]. channelid displayname diyName userid
-					}
-				}
-			}
+	if (privatemsg > 1 && TargetGM) {
+		let groupInfo = await privateMsgFinder(groupid) || [];
+		groupInfo.forEach((item, index) => {
+			TargetGMTempID[index] = item.userid;
+			TargetGMTempdiyName[index] = item.diyName;
+			TargetGMTempdisplayname[index] = item.displayname.displayname;
+		})
+
 	}
 	switch (true) {
 		case privatemsg == 1:
@@ -352,7 +346,15 @@ TGclient.on('forward', async (ctx) => {
 	}
 	return null
 })
-
+async function privateMsgFinder(channelid) {
+	if (!TargetGM || !TargetGM.trpgDarkRollingfunction) return;
+	let groupInfo = TargetGM.trpgDarkRollingfunction.find(data =>
+		data.groupid == channelid
+	)
+	if (groupInfo && groupInfo.trpgDarkRollingfunction)
+		return groupInfo.trpgDarkRollingfunction
+	else return [];
+}
 
 TGclient.launch();
 

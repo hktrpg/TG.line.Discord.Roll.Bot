@@ -2,6 +2,7 @@
 if (!process.env.WHATSAPP_SWITCH) {
 	return;
 }
+var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
 		\n輸入 1D100 可以進行最簡單的擲骰.\
 		\n輸入 Bothelp 觀看詳細使用說明.\
@@ -54,16 +55,13 @@ client.on('message', async msg => {
 	if (msg.body && !msg.fromMe && !msg.isForwarded) {
 		var groupid, userid, displayname, channelid, membercount, channelKeyword = '';
 		//得到暗骰的數據, GM的位置
-		let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 		//是不是自己.ME 訊息
 		//TRUE 即正常
 		let displaynamecheck = true;
 		let userrole = 3;
-		//console.log('TG: ', message)
-		//console.log('ctx.chat.id', ctx.chat.id)
-		//頻道人數
-		//	if (ctx.chat && ctx.chat.id)
-		//		membercount = await ctx.getChatMembersCount(ctx.chat.id);
+		let TargetGMTempID = [];
+		let TargetGMTempdiyName = [];
+		let TargetGMTempdisplayname = [];
 
 		userid = msg.id.participant || msg.id.remote;
 		//console.log('userid:', userid)
@@ -139,23 +137,14 @@ client.on('message', async msg => {
 			return;
 		}
 		//TGcountroll++;
-		if (privatemsg >= 1) {
-			//當是私訊模式1-3時
-			var TargetGMTempID = [];
-			var TargetGMTempdiyName = [];
-			var TargetGMTempdisplayname = [];
-			if (TargetGM && TargetGM.trpgDarkRollingfunction)
-				for (var i = 0; i < TargetGM.trpgDarkRollingfunction.length; i++) {
-					if (TargetGM.trpgDarkRollingfunction[i].groupid == groupid) {
-						for (var a = 0; a < TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
-							//checkifsamename = 1
-							TargetGMTempID[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].userid
-							TargetGMTempdiyName[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].diyName
-							TargetGMTempdisplayname[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].displayname
-							//TargetGMTemp[a]. channelid displayname diyName userid
-						}
-					}
-				}
+		if (privatemsg > 1 && TargetGM) {
+			let groupInfo = await privateMsgFinder(groupid) || [];
+			groupInfo.forEach((item, index) => {
+				TargetGMTempID[index] = item.userid;
+				TargetGMTempdiyName[index] = item.diyName;
+				TargetGMTempdisplayname[index] = item.displayname.displayname;
+			})
+
 		}
 		switch (true) {
 			case privatemsg == 1:
@@ -248,4 +237,13 @@ async function SendToReply(msg, rplyVal) {
 			await msg.reply(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);
 		}
 	}
+}
+async function privateMsgFinder(channelid) {
+	if (!TargetGM || !TargetGM.trpgDarkRollingfunction) return;
+	let groupInfo = TargetGM.trpgDarkRollingfunction.find(data =>
+		data.groupid == channelid
+	)
+	if (groupInfo && groupInfo.trpgDarkRollingfunction)
+		return groupInfo.trpgDarkRollingfunction
+	else return [];
 }

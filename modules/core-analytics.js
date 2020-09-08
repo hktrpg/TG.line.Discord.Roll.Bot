@@ -50,9 +50,8 @@ var parseInput = async function ({
 	}
 
 	//檢查是不是要停止  z_stop功能
-	if (groupid) {
-		let stopmark = false;
-		stopmark = await z_stop(mainMsg, groupid);
+	if (groupid && mainMsg[0]) {
+		let stopmark = await z_stop(mainMsg, groupid);
 		if (stopmark == true) return result;
 	}
 
@@ -86,7 +85,7 @@ var parseInput = async function ({
 	}
 
 	//cmdfunction  .cmd 功能   z_saveCommand 功能
-	if (mainMsg && mainMsg[0].toLowerCase() == ".cmd" && mainMsg[1] && mainMsg[1].toLowerCase() != "help" && mainMsg[1].toLowerCase() != "add" && mainMsg[1].toLowerCase() != "show" && mainMsg[1].toLowerCase() != "del" && result.text) {
+	if (result.cmd && result.text) {
 		let cmdFunctionResult = await cmdfunction({
 			inputStr: inputStr,
 			groupid: groupid,
@@ -258,15 +257,14 @@ async function z_stop(mainMsg, groupid) {
 	if (!Object.keys(exports.z_stop).length) {
 		return false;
 	}
-
-	if (exports.z_stop.initialize() && exports.z_stop.initialize().save && exports.z_stop.initialize().save[0] && exports.z_stop.initialize().save[0].blockfunction && exports.z_stop.initialize().save[0].blockfunction.length > 0 && mainMsg && mainMsg[0]) {
-		for (let i = 0; i < exports.z_stop.initialize().save.length; i++) {
-			if ((new RegExp(exports.z_stop.initialize().save[i].blockfunction.join("|"), "i")).test(mainMsg[0]) && exports.z_stop.initialize().save[i].groupid == groupid && exports.z_stop.initialize().save[i].blockfunction.length > 0) {
-				(debugMode) ? console.log('Match AND STOP'): '';
-				return true;
-			}
-		}
-	}
+	let groupInfo = exports.z_stop.initialize().save.find(e => e.groupid == groupid)
+	if (!groupInfo || !groupInfo.blockfunction) return;
+	let match = groupInfo.blockfunction.find(e => e.toLowerCase() == mainMsg[0].toLowerCase())
+	if (match) {
+		(debugMode) ? console.log('Match AND STOP'): '';
+		return true;
+	} else
+		return false;
 }
 
 

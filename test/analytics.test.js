@@ -371,4 +371,22 @@ describe('測試所有指令輸出有反應', async () => {
         })
         expect(a.text).to.not.equal('')
     });
+    it('測試 bothelp', async () => {
+        let a = await parseInput({
+            inputStr: 'bothelp admin'
+        })
+        expect(a.text).to.not.equal('')
+    });
+    it('測試 bothelp', async () => {
+        let a = await parseInput({
+            inputStr: 'bothelp link' 
+        })
+        expect(a.text).to.not.equal('')
+    });
+    it('測試 bothelp', async () => {
+        let a = await parseInput({
+            inputStr: 'bothelp req'
+        })
+        expect(a.text).to.not.equal('')
+    });
 });

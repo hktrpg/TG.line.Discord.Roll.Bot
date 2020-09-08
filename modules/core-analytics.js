@@ -50,9 +50,8 @@ var parseInput = async function ({
 	}
 
 	//檢查是不是要停止  z_stop功能
-	if (groupid) {
-		let stopmark = false;
-		stopmark = await z_stop(mainMsg, groupid);
+	if (groupid && mainMsg[0]) {
+		let stopmark = await z_stop(mainMsg, groupid);
 		if (stopmark == true) return result;
 	}
 
@@ -86,8 +85,20 @@ var parseInput = async function ({
 	}
 
 	//cmdfunction  .cmd 功能   z_saveCommand 功能
-	if (mainMsg && mainMsg[0].toLowerCase() == ".cmd" && mainMsg[1] && mainMsg[1].toLowerCase() != "help" && mainMsg[1].toLowerCase() != "add" && mainMsg[1].toLowerCase() != "show" && mainMsg[1].toLowerCase() != "del" && result.text) {
-		let cmdFunctionResult = await cmdfunction(inputStr, groupid, userid, userrole, mainMsg, botname, displayname, channelid, displaynameDiscord, membercount, result);
+	if (result.cmd && result.text) {
+		let cmdFunctionResult = await cmdfunction({
+			inputStr: inputStr,
+			groupid: groupid,
+			userid: userid,
+			userrole: userrole,
+			mainMsg: mainMsg,
+			botname: botname,
+			displayname: displayname,
+			channelid: channelid,
+			displaynameDiscord: displaynameDiscord,
+			membercount: membercount,
+			result: result
+		});
 		if (typeof cmdFunctionResult === 'object' && cmdFunctionResult !== null) {
 			result = await Object.assign({}, result, cmdFunctionResult)
 		} else {
@@ -97,7 +108,19 @@ var parseInput = async function ({
 
 
 	if (result.characterReRoll) {
-		let characterReRoll = await cmdfunction(inputStr, groupid, userid, userrole, mainMsg, botname, displayname, channelid, displaynameDiscord, membercount, result)
+		let characterReRoll = await cmdfunction({
+			inputStr: inputStr,
+			groupid: groupid,
+			userid: userid,
+			userrole: userrole,
+			mainMsg: mainMsg,
+			botname: botname,
+			displayname: displayname,
+			channelid: channelid,
+			displaynameDiscord: displaynameDiscord,
+			membercount: membercount,
+			result: result
+		})
 		result = await Object.assign({}, result, characterReRoll)
 		if (result.text && result.characterName) {
 			result.text = result.characterName + ' 投擲 ' + result.characterReRollName + ':\n' + result.text
@@ -130,10 +153,30 @@ var rolldice = async function ({
 	//	console.log(exports)
 	//在下面位置開始分析trigger
 	if (!groupid) {
-		groupid = 0
+		groupid = '';
 	}
 	if (mainMsg && !mainMsg[1]) mainMsg[1] = '';
 	//把exports objest => Array
+	let target = await findRollList(mainMsg);
+	if (!target) return null;
+	(debugMode) ? console.log('            trigger: ', inputStr): '';
+	let tempsave = await target.rollDiceCommand({
+		inputStr: inputStr,
+		mainMsg: mainMsg,
+		groupid: groupid,
+		userid: userid,
+		userrole: userrole,
+		botname: botname,
+		displayname: displayname,
+		channelid: channelid,
+		displaynameDiscord: displaynameDiscord,
+		membercount: membercount
+	});
+	//console.log('tempsave: ', tempsave)
+	return tempsave;
+}
+
+async function findRollList(mainMsg) {
 	let idList = await Object.keys(exports).map(i => exports[i]);
 	let findTarget = await idList.find(item => {
 		if (item.prefixs && item.prefixs()) {
@@ -144,57 +187,46 @@ var rolldice = async function ({
 			}
 		}
 	});
-	if (!findTarget) {
-		return null;
-	} else {
-		(debugMode) ? console.log('            trigger: ', inputStr): '';
-		let tempsave = await findTarget.rollDiceCommand({
-			inputStr: inputStr,
-			mainMsg: mainMsg,
-			groupid: groupid,
-			userid: userid,
-			userrole: userrole,
-			botname: botname,
-			displayname: displayname,
-			channelid: channelid,
-			displaynameDiscord: displaynameDiscord,
-			membercount: membercount
-		});
-		//console.log('tempsave: ', tempsave)
-		return tempsave;
-	}
-
+	return findTarget;
 }
 
 async function stateText() {
 	let state = await getState() || '';
 	if (!Object.keys(state).length || !state.LogTime) return;
 	let text = "";
-	text = '第一次紀錄時間: ' + state.StartTime.replace(' GMT+0800 (Hong Kong Standard Time)', '');
+	text = '系統開始紀錄時間: ' + state.StartTime.replace(' GMT+0800 (Hong Kong Standard Time)', '');
 	text += '\n 現在時間: ' + state.LogTime.replace(' GMT+0800 (Hong Kong Standard Time)', '');
 	text += '\n Line總擲骰次數: ' + state.LineCountRoll;
 	text += '\n Discord總擲骰次數: ' + state.DiscordCountRoll;
 	text += '\n Telegram總擲骰次數: ' + state.TelegramCountRoll;
 	text += '\n Whatsapp總擲骰次數: ' + state.WhatsappCountRoll;
 	text += '\n 網頁版總擲骰次數: ' + state.WWWCountRoll;
+	text += '\n 擲骰系統使用的隨機方式: random-js nodeCrypto';
 	return text;
 }
 
 
 
-async function cmdfunction(inputStr, groupid, userid, userrole, mainMsg, botname, displayname, channelid, displaynameDiscord, membercount, result) {
-	let msgSplitor = (/\S+/ig);
-	//console.log('result.text', result.text.toString().replace(mainMsg[1], ""))
-	inputStr = result.text.toString().replace(mainMsg[1], "");
-	//console.log(inputStr)
-	mainMsg = inputStr.match(msgSplitor); //定義輸入字串
-	//console.log('inputStr2: ', inputStr)
+async function cmdfunction({
+	groupid,
+	userid,
+	userrole,
+	botname,
+	displayname,
+	channelid,
+	displaynameDiscord,
+	membercount,
+	result
+}) {
+	console.log('inputStr', result.text)
+	let newInputStr = result.text.toString();
+	let mainMsg = newInputStr.match(msgSplitor); //定義輸入字串
 	result.text = "";
 	//檢查是不是要停止
 	let tempResut = {};
 	try {
 		tempResut = await rolldice({
-			inputStr: inputStr,
+			inputStr: newInputStr,
 			groupid: groupid,
 			userid: userid,
 			userrole: userrole,
@@ -206,17 +238,16 @@ async function cmdfunction(inputStr, groupid, userid, userrole, mainMsg, botname
 			membercount: membercount
 		})
 	} catch (error) {
-		console.log('rolldice GET ERROR:', error);
-		console.log('inputStr: ', inputStr);
+		console.log('cmdfunction GET ERROR:', error);
+		console.log('newInputStr: ', newInputStr);
 		console.log('botname: ', botname);
 		console.log('Time: ', new Date());
 	}
-
+	(debugMode) ? console.log('            inputStr2: ', newInputStr): '';
 	if (typeof tempResut === 'object' && tempResut !== null) {
 		return tempResut;
 	}
-
-	(debugMode) ? console.log('inputStr2: ', inputStr): '';
+	return;
 }
 
 
@@ -226,15 +257,14 @@ async function z_stop(mainMsg, groupid) {
 	if (!Object.keys(exports.z_stop).length) {
 		return false;
 	}
-
-	if (exports.z_stop.initialize() && exports.z_stop.initialize().save && exports.z_stop.initialize().save[0] && exports.z_stop.initialize().save[0].blockfunction && exports.z_stop.initialize().save[0].blockfunction.length > 0 && mainMsg && mainMsg[0]) {
-		for (let i = 0; i < exports.z_stop.initialize().save.length; i++) {
-			if ((new RegExp(exports.z_stop.initialize().save[i].blockfunction.join("|"), "i")).test(mainMsg[0]) && exports.z_stop.initialize().save[i].groupid == groupid && exports.z_stop.initialize().save[i].blockfunction.length > 0) {
-				(debugMode) ? console.log('Match AND STOP'): '';
-				return true;
-			}
-		}
-	}
+	let groupInfo = exports.z_stop.initialize().save.find(e => e.groupid == groupid)
+	if (!groupInfo || !groupInfo.blockfunction) return;
+	let match = groupInfo.blockfunction.find(e => e.toLowerCase() == mainMsg[0].toLowerCase())
+	if (match) {
+		(debugMode) ? console.log('Match AND STOP'): '';
+		return true;
+	} else
+		return false;
 }
 
 

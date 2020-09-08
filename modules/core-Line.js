@@ -11,6 +11,7 @@ const config = {
 	channelAccessToken: process.env.LINE_CHANNEL_ACCESSTOKEN,
 	channelSecret: process.env.LINE_CHANNEL_SECRET,
 };
+var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const courtMessage = require('./logs').courtMessage || function () {};
 // create LINE SDK client
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
@@ -47,8 +48,9 @@ var handleEvent = async function (event) {
 		userid = event.source.userId || '',
 		displayname = '',
 		membercount = '';
-
-	let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
+	let TargetGMTempID = [];
+	let TargetGMTempdiyName = [];
+	let TargetGMTempdisplayname = [];
 
 	client.getProfile(userid).then(async function (profile) {
 			//	在GP 而有加好友的話,得到名字
@@ -150,25 +152,14 @@ var handleEvent = async function (event) {
 		if (!rplyVal.text) {
 			return;
 		}
-		if (privatemsg >= 1) {
+		if (privatemsg > 1 && TargetGM) {
+			let groupInfo = await privateMsgFinder(roomorgroupid) || [];
+			groupInfo.forEach((item) => {
+				TargetGMTempID.push(item.userid);
+				TargetGMTempdiyName.push(item.diyName);
+				TargetGMTempdisplayname.push(item.displayname);
+			})
 			//當是私訊模式1-3時
-			var TargetGMTempID = [];
-			var TargetGMTempdiyName = [];
-			var TargetGMTempdisplayname = [];
-			if (TargetGM && TargetGM.trpgDarkRollingfunction && roomorgroupid) {
-				for (var i = 0; i < TargetGM.trpgDarkRollingfunction.length; i++) {
-					if (TargetGM.trpgDarkRollingfunction[i].groupid == roomorgroupid) {
-						for (var a = 0; a < TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
-							//checkifsamename = 1
-							TargetGMTempID[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].userid
-							TargetGMTempdiyName[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].diyName
-							TargetGMTempdisplayname[a] = TargetGM.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].displayname
-							//TargetGMTemp[a]. channelid displayname diyName userid
-
-						}
-					}
-				}
-			}
 		}
 
 		switch (true) {
@@ -339,39 +330,17 @@ app.on('unhandledRejection', error => {
 	// Will print "unhandledRejection err is not defined"
 	console.log('unhandledRejection: ', error.message);
 });
+
+async function privateMsgFinder(channelid) {
+	if (!TargetGM || !TargetGM.trpgDarkRollingfunction) return;
+	let groupInfo = TargetGM.trpgDarkRollingfunction.find(data =>
+		data.groupid == channelid
+	)
+	if (groupInfo && groupInfo.trpgDarkRollingfunction)
+		return groupInfo.trpgDarkRollingfunction
+	else return [];
+}
 module.exports = {
 	app,
 	express
 };
-
-
-
-
-/*
-	return {
-	type: 'text',
-	text: message
-}
-
-
-console.log(Reply)
-let messages = [{
-	"type": "text",
-	"text": "Hello, user001"
-},
-{
-	"type": "text",
-	"text": "May I help you?002"
-}
-]
-client.replyMessage(event.replyToken, messages)
-client.pushMessage(targetid, {
-	type: 'text',
-	text: 'hello, world003',
-})
-client.pushMessage(targetid, {
-	"type": "image",
-	"originalContentUrl": "https://developers.line.biz/assets/images/common/logo-black.png",
-	"previewImageUrl": "https://developers.line.biz/assets/images/common/logo-black.png"
-})
-*/

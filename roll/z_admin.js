@@ -27,24 +27,26 @@ var prefixs = function () {
 }
 var getHelpMessage = function () {
     return "【Admin 工具】" + "\
-	\n  用來Debug 及調整VIP工具\
-		\n .admin debug 用來取得群組資料"
+用來Debug 及調整VIP工具\n\
+.admin state 取得Rollbot狀態\n\
+.admin debug 用來取得群組資料\n"
 }
 
 var initialize = function () {
     return variables;
 }
-
-/**
- * 功能: 核對已有的secret
- * 
- * 
- * 
- * 
- * 
- */
-
-var rollDiceCommand = async function ({inputStr, mainMsg, groupid, userid, userrole, botname, displayname, channelid, displaynameDiscord, membercount}) {
+var rollDiceCommand = async function ({
+    inputStr,
+    mainMsg,
+    groupid,
+    userid,
+    userrole,
+    botname,
+    displayname,
+    channelid,
+    displaynameDiscord,
+    membercount
+}) {
     let rply = {
         default: 'on',
         type: 'text',

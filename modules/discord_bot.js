@@ -57,11 +57,11 @@ client.on('message', async (message) => {
 	if (message.author.bot) return;
 	//	console.log('message.content ' + message.content);
 	//	console.log('channelKeyword ' + channelKeyword);
-	let groupid = message.guild.id || '',
-		userid = message.author.id || '',
-		displayname = message.member.user.tag || '',
-		channelid = message.channel.id || '',
-		displaynameDiscord = message.member.user.username || '',
+	let groupid = '',
+		userid = '',
+		displayname = '',
+		channelid = '',
+		displaynameDiscord = '',
 		membercount = 0;
 	let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 	//得到暗骰的數據, GM的位置
@@ -78,18 +78,31 @@ client.on('message', async (message) => {
 	if (message.channel.type !== "dm") {
 		hasSendPermission = message.channel.permissionsFor(client.user).has("SEND_MESSAGES")
 	}
+	if (message.channel && message.channel.id) {
+		channelid = message.channel.id;
+	}
+	if (message.guild && message.guild.id) {
+		groupid = message.guild.id;
+	}
+	if (message.author.id) {
+		userid = message.author.id;
+	}
+	if (message.member && message.member.user && message.member.user.tag) {
+		displayname = message.member.user.tag;
+	}
+	if (message.member && message.member.user && message.member.user.username) {
+		displaynameDiscord = message.member.user.username;
+	}
 	////DISCORD: 585040823232320107
 	if (message.member && message.member.hasPermission("ADMINISTRATOR")) {
 		userrole = 3
 	}
 	//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin
 	if (message.guild && message.guild.members) {
-		//membercount = await message.guild.members.cache.filter(member => !member.user.bot).size;
-		//membercount = message.guild.channels.cache.filter(m => m.type === 'text').size
-		membercount = await message.guild.members.fetch().then(member => {
-			// The member is available here.
-			return member.filter(member => !member.user.bot).size;
-		});
+		//	membercount = await message.guild.members.fetch().then(member => {
+		// The member is available here.
+		//		return member.filter(member => !member.user.bot).size;
+		//	});
 	}
 
 	if (!message.content) {

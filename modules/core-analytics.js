@@ -177,7 +177,7 @@ async function stateText() {
 	text += '\n Telegram總擲骰次數: ' + state.TelegramCountRoll;
 	text += '\n Whatsapp總擲骰次數: ' + state.WhatsappCountRoll;
 	text += '\n 網頁版總擲骰次數: ' + state.WWWCountRoll;
-	text += '\n 擲骰使用的隨機方式: random-js nodeCrypto';
+	text += '\n 擲骰系統使用的隨機方式: random-js nodeCrypto';
 	return text;
 }
 

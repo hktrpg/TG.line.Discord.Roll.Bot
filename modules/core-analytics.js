@@ -87,7 +87,19 @@ var parseInput = async function ({
 
 	//cmdfunction  .cmd 功能   z_saveCommand 功能
 	if (mainMsg && mainMsg[0].toLowerCase() == ".cmd" && mainMsg[1] && mainMsg[1].toLowerCase() != "help" && mainMsg[1].toLowerCase() != "add" && mainMsg[1].toLowerCase() != "show" && mainMsg[1].toLowerCase() != "del" && result.text) {
-		let cmdFunctionResult = await cmdfunction(inputStr, groupid, userid, userrole, mainMsg, botname, displayname, channelid, displaynameDiscord, membercount, result);
+		let cmdFunctionResult = await cmdfunction({
+			inputStr: inputStr,
+			groupid: groupid,
+			userid: userid,
+			userrole: userrole,
+			mainMsg: mainMsg,
+			botname: botname,
+			displayname: displayname,
+			channelid: channelid,
+			displaynameDiscord: displaynameDiscord,
+			membercount: membercount,
+			result: result
+		});
 		if (typeof cmdFunctionResult === 'object' && cmdFunctionResult !== null) {
 			result = await Object.assign({}, result, cmdFunctionResult)
 		} else {
@@ -97,7 +109,19 @@ var parseInput = async function ({
 
 
 	if (result.characterReRoll) {
-		let characterReRoll = await cmdfunction(inputStr, groupid, userid, userrole, mainMsg, botname, displayname, channelid, displaynameDiscord, membercount, result)
+		let characterReRoll = await cmdfunction({
+			inputStr: inputStr,
+			groupid: groupid,
+			userid: userid,
+			userrole: userrole,
+			mainMsg: mainMsg,
+			botname: botname,
+			displayname: displayname,
+			channelid: channelid,
+			displaynameDiscord: displaynameDiscord,
+			membercount: membercount,
+			result: result
+		})
 		result = await Object.assign({}, result, characterReRoll)
 		if (result.text && result.characterName) {
 			result.text = result.characterName + ' 投擲 ' + result.characterReRollName + ':\n' + result.text
@@ -130,10 +154,30 @@ var rolldice = async function ({
 	//	console.log(exports)
 	//在下面位置開始分析trigger
 	if (!groupid) {
-		groupid = 0
+		groupid = '';
 	}
 	if (mainMsg && !mainMsg[1]) mainMsg[1] = '';
 	//把exports objest => Array
+	let target = await findRollList(mainMsg);
+	if (!target) return null;
+	(debugMode) ? console.log('            trigger: ', inputStr): '';
+	let tempsave = await target.rollDiceCommand({
+		inputStr: inputStr,
+		mainMsg: mainMsg,
+		groupid: groupid,
+		userid: userid,
+		userrole: userrole,
+		botname: botname,
+		displayname: displayname,
+		channelid: channelid,
+		displaynameDiscord: displaynameDiscord,
+		membercount: membercount
+	});
+	//console.log('tempsave: ', tempsave)
+	return tempsave;
+}
+
+async function findRollList(mainMsg) {
 	let idList = await Object.keys(exports).map(i => exports[i]);
 	let findTarget = await idList.find(item => {
 		if (item.prefixs && item.prefixs()) {
@@ -144,26 +188,7 @@ var rolldice = async function ({
 			}
 		}
 	});
-	if (!findTarget) {
-		return null;
-	} else {
-		(debugMode) ? console.log('            trigger: ', inputStr): '';
-		let tempsave = await findTarget.rollDiceCommand({
-			inputStr: inputStr,
-			mainMsg: mainMsg,
-			groupid: groupid,
-			userid: userid,
-			userrole: userrole,
-			botname: botname,
-			displayname: displayname,
-			channelid: channelid,
-			displaynameDiscord: displaynameDiscord,
-			membercount: membercount
-		});
-		//console.log('tempsave: ', tempsave)
-		return tempsave;
-	}
-
+	return findTarget;
 }
 
 async function stateText() {
@@ -183,19 +208,26 @@ async function stateText() {
 
 
 
-async function cmdfunction(inputStr, groupid, userid, userrole, mainMsg, botname, displayname, channelid, displaynameDiscord, membercount, result) {
-	let msgSplitor = (/\S+/ig);
-	//console.log('result.text', result.text.toString().replace(mainMsg[1], ""))
-	inputStr = result.text.toString().replace(mainMsg[1], "");
-	//console.log(inputStr)
-	mainMsg = inputStr.match(msgSplitor); //定義輸入字串
-	//console.log('inputStr2: ', inputStr)
+async function cmdfunction({
+	groupid,
+	userid,
+	userrole,
+	botname,
+	displayname,
+	channelid,
+	displaynameDiscord,
+	membercount,
+	result
+}) {
+	console.log('inputStr', result.text)
+	let newInputStr = result.text.toString();
+	let mainMsg = newInputStr.match(msgSplitor); //定義輸入字串
 	result.text = "";
 	//檢查是不是要停止
 	let tempResut = {};
 	try {
 		tempResut = await rolldice({
-			inputStr: inputStr,
+			inputStr: newInputStr,
 			groupid: groupid,
 			userid: userid,
 			userrole: userrole,
@@ -207,17 +239,16 @@ async function cmdfunction(inputStr, groupid, userid, userrole, mainMsg, botname
 			membercount: membercount
 		})
 	} catch (error) {
-		console.log('rolldice GET ERROR:', error);
-		console.log('inputStr: ', inputStr);
+		console.log('cmdfunction GET ERROR:', error);
+		console.log('newInputStr: ', newInputStr);
 		console.log('botname: ', botname);
 		console.log('Time: ', new Date());
 	}
-
+	(debugMode) ? console.log('            inputStr2: ', newInputStr): '';
 	if (typeof tempResut === 'object' && tempResut !== null) {
 		return tempResut;
 	}
-
-	(debugMode) ? console.log('inputStr2: ', inputStr): '';
+	return;
 }
 
 

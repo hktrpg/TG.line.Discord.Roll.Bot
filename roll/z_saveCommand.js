@@ -210,7 +210,7 @@ var rollDiceCommand = async function ({
                             for (let a = 0; a < trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction.length; a++) {
                                 if (trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction[a].topic.toLowerCase() == mainMsg[1].toLowerCase()) {
                                     temp = 1
-                                    rply.text = trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction[a].topic + '\n' + trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction[a].contact;
+                                    rply.text = trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction[a].contact;
 
                                 }
 

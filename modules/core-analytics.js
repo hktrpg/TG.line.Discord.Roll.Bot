@@ -170,13 +170,14 @@ async function stateText() {
 	let state = await getState() || '';
 	if (!Object.keys(state).length || !state.LogTime) return;
 	let text = "";
-	text = '第一次紀錄時間: ' + state.StartTime.replace(' GMT+0800 (Hong Kong Standard Time)', '');
+	text = '系統開始紀錄時間: ' + state.StartTime.replace(' GMT+0800 (Hong Kong Standard Time)', '');
 	text += '\n 現在時間: ' + state.LogTime.replace(' GMT+0800 (Hong Kong Standard Time)', '');
 	text += '\n Line總擲骰次數: ' + state.LineCountRoll;
 	text += '\n Discord總擲骰次數: ' + state.DiscordCountRoll;
 	text += '\n Telegram總擲骰次數: ' + state.TelegramCountRoll;
 	text += '\n Whatsapp總擲骰次數: ' + state.WhatsappCountRoll;
 	text += '\n 網頁版總擲骰次數: ' + state.WWWCountRoll;
+	text += '\n 擲骰使用的隨機方式: random-js nodeCrypto';
 	return text;
 }
 

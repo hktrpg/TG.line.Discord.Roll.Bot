@@ -136,10 +136,10 @@ TGclient.on('text', async (ctx) => {
 	//TGcountroll++;
 	if (privatemsg > 1 && TargetGM) {
 		let groupInfo = await privateMsgFinder(groupid) || [];
-		groupInfo.forEach((item, index) => {
-			TargetGMTempID[index] = item.userid;
-			TargetGMTempdiyName[index] = item.diyName;
-			TargetGMTempdisplayname[index] = item.displayname.displayname;
+		groupInfo.forEach((item) => {
+			TargetGMTempID.push(item.userid);
+			TargetGMTempdiyName.push(item.diyName);
+			TargetGMTempdisplayname.push(item.displayname);
 		})
 
 	}

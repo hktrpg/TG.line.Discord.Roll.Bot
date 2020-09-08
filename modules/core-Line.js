@@ -154,10 +154,10 @@ var handleEvent = async function (event) {
 		}
 		if (privatemsg > 1 && TargetGM) {
 			let groupInfo = await privateMsgFinder(roomorgroupid) || [];
-			groupInfo.forEach((item, index) => {
-				TargetGMTempID[index] = item.userid;
-				TargetGMTempdiyName[index] = item.diyName;
-				TargetGMTempdisplayname[index] = item.displayname.displayname;
+			groupInfo.forEach((item) => {
+				TargetGMTempID.push(item.userid);
+				TargetGMTempdiyName.push(item.diyName);
+				TargetGMTempdisplayname.push(item.displayname);
 			})
 			//當是私訊模式1-3時
 		}

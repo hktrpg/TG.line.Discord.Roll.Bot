@@ -77,7 +77,7 @@ var prefixs = function () {
 
 }
 var getHelpMessage = function () {
-	return  i18n.__('Hello');
+	return  i18n.__('help_getHelp');
 }
 var initialize = function () {
 	return variables;

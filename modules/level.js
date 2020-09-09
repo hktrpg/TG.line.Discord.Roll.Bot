@@ -1,5 +1,5 @@
 if (!process.env.mongoURL) return;
-const oneMinuts = 60000;
+const oneMinuts = 1;
 //60000 一分鐘多久可以升級及增加經驗
 exports.rollbase = require('../roll/rollbase');
 exports.z_Level_system = require('../roll/z_Level_system');
@@ -44,7 +44,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     //8. 更新MLAB資料
     await uploadMongoose(groupid, userid, userInfo);
     //6. 需要 -> 檢查有沒有開啓通知
-    if (gpInfo.Hidden == 0 || levelUP == false) return;
+    if (gpInfo.Hidden != 1 || levelUP == false) return;
     //1. 讀取LEVELUP語
     return await returnTheLevelWord(gpInfo, userInfo, membercount);
     //6 / 7 * LVL * (2 * LVL * LVL + 30 * LVL + 100)

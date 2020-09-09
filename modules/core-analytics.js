@@ -9,14 +9,19 @@ const start = async () => {
 		}
 	})
 }
-
+const path = require('path')
+const i18n = require('i18n')
 start();
 var debugMode = process.env.DEBUG || false;
 const msgSplitor = (/\S+/ig);
 const courtMessage = require('./logs').courtMessage || function () {};
 const getState = require('./logs').getState || function () {};
 const EXPUP = require('./level').EXPUP || function () {};
-
+i18n.configure({
+	locales: ['tw', 'en', 'de'],
+	directory: path.join(__dirname, '../locales')
+})
+i18n.setLocale('tw')
 //用來呼叫骰組,新增骰組的話,要寫條件式到下面呼叫
 //格式是 exports.骰組檔案名字.function名
 var parseInput = async function ({

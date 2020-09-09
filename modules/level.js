@@ -13,7 +13,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     if (!process.env.mongoURL || !Object.keys(exports.z_Level_system).length) {
         return;
     }
-    let levelUP = false;
+
     //1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
     let userInfo = {};
     let gpInfo = exports.z_Level_system.initialize().trpgLevelSystemfunction.find(e => e.groupid == groupid);
@@ -34,7 +34,8 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     userInfo.EXP += await exports.rollbase.Dice(9) + 15;
     userInfo.LastSpeakTime = Date.now();
     let LVsumOne = Number(userInfo.Level) + 1;
-  //5. 檢查現LEVEL 需不需要上升. =5 / 6 * LVL * (2 * LVL * LVL + 27 * LVL )+ 91DD
+    let levelUP = false;
+    //5. 檢查現LEVEL 需不需要上升. =5 / 6 * LVL * (2 * LVL * LVL + 27 * LVL )+ 91DD
     let newLevelExp = 5 / 6 * (LVsumOne) * (2 * (LVsumOne) * (LVsumOne) + 30 * (LVsumOne)) + 100;
     if (userInfo.EXP > newLevelExp) {
         userInfo.Level++;

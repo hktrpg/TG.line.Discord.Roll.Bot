@@ -34,8 +34,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     userInfo.EXP += await exports.rollbase.Dice(9) + 15;
     userInfo.LastSpeakTime = Date.now();
     let LVsumOne = Number(userInfo.Level) + 1;
-    console.log('lv', LVsumOne)
-    //5. 檢查現LEVEL 需不需要上升. =5 / 6 * LVL * (2 * LVL * LVL + 27 * LVL )+ 91DD
+  //5. 檢查現LEVEL 需不需要上升. =5 / 6 * LVL * (2 * LVL * LVL + 27 * LVL )+ 91DD
     let newLevelExp = 5 / 6 * (LVsumOne) * (2 * (LVsumOne) * (LVsumOne) + 30 * (LVsumOne)) + 100;
     if (userInfo.EXP > newLevelExp) {
         userInfo.Level++;
@@ -109,8 +108,6 @@ async function ranking(who, data) {
         return b.EXP - a.EXP;
     });
     let rank = 1;
-    //console.log('array.length', array.length)
-    //console.log('array', array)
     for (let i = 0; i < array.length; i++) {
         if (i > 0 && array[i].EXP < array[i - 1].EXP) {
             rank++;

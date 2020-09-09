@@ -1,0 +1,23 @@
+{
+    "Hello World": "Hello World",
+    "helpJS_getHelp": "暗骰功能 在指令前輸入dr 結果會私訊你\nddr dddr 可以私訊已設定的群組GM, 詳情可打.drgm查詢\n【基本擲骰】1d100(khN|klN|dhN|dlN)\n例如輸入(2d6+1)*2 攻撃！\n會輸出）(2d6+1)*2：攻撃！  (10[5+5]+1)2 = 22\n如上面一樣,在骰子數字後方隔空白位打字,可以進行發言。\n5 3D6：分別骰出5次3d6 最多30次\n((2d6+1)*2)-5/2>=10 支援括號加減乘除及大於小於(>,<,>=,<=)計算\n支援kh|kl|dh|dl，k keep保留，d drop 放棄，h highest最高，l lowest最低\n如3d6kh 保留最大的1粒骰，3d6dl2 放棄最小的2粒",
+    "systemStartTime_analytics": "系統開始紀錄時間",
+    "Now_analytics": "現在時間",
+    "lineRollTimes_analytics": "Line總擲骰次數",
+    "DiscordRollTimes_analytics": "Discord總擲骰次數",
+    "TelegramRollTimes_analytics": "Telegram總擲骰次數",
+    "WhatsappRollTimes_analytics": "Whatsapp總擲骰次數",
+    "rollRandowWay_analytics": "擲骰系統使用的隨機方式",
+    "joinMessage_core": "你剛剛添加了HKTRPG 骰子機械人! \n輸入 1D100 可以進行最簡單的擲骰.\n輸入 Bothelp 觀看詳細使用說明.\n如果你需要幫助, 加入支援頻道.\n(http://bit.ly/HKTRPG_DISCORD)\n有關TRPG資訊, 可以到網站\n(http://www.hktrpg.com/)",
+    "drToMyself_core": "正在暗骰給自己",
+    "myDrRoll_core": "的暗骰",
+    "DrRolling_core": "暗骰進行中 \n目標: 自己",
+    "DrRollingTarget_core": "暗骰進行中 \n目標:",
+    "gameName_advroll": "【進階擲骰】 .ca (計算)|D66(sn)|5B10 Dx|5U10 x y|.int x y",
+    "getHelpMessage_advroll": "【進階擲骰】\n.ca 只進行數學計算 \n例如: .ca 1.2 * (2 + 4.5) ， 12.7 米 to inch \nsin(45 deg) ^ 2  5磅轉斤 10米轉呎 10米=吋\nD66 D66s D66n： 骰出D66 s數字小在前 n大在前\n5B10： 不加總的擲骰 \n5B10<>=x ： 如上，另外計算其中有多少粒大於小於X \n5B10 (D)x ：   如上，用空格取代， 即大於， 使用D即小於\n  即 5B10 5 相當於 5B10>=5　 5B10 D5 相當於 5B10<=5  \n5U10 8： 進行5D10 每骰出一粒8會有一粒獎勵骰 \n5U10 8 9： 如上，另外計算其中有多少粒大於9 \n.int 20 30: 即骰出20-30\n",
+    "Rolling_advroll": "投擲",
+    "suc_advroll": "成功數",
+    "moreThan2_advroll": "加骰最少比2高",
+    "MaxAndSum_advroll": "(最大/合計)",
+    "gameName_Funny": "【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 每日塔羅 運勢 立flag .me"
+}

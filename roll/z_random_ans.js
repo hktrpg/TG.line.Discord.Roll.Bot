@@ -56,8 +56,20 @@ P.S.如果沒立即生效 用.ra show 刷新一下\n\
 const initialize = function () {
     return randomAnsfunction;
 }
-
-// eslint-disable-next-line no-unused-vars
+/**
+ * {ran:100} <--隨機1-100
+ * {ran:5-20} <--隨機5-20
+ * {allgp.name} <---隨機全GP其中一人名字
+ * title
+ * lv
+ * { server.member_count } 現在頻道中總人數 \
+ * { my.RankingPer} 現在排名百分比 \
+ * { my.Ranking } 現在排名 \
+ *  { my.exp } 經驗值
+ * {my.name} <---顯示擲骰者名字
+ * {my.title}<---顯示擲骰者稱號
+ * {my.level}<---顯示擲骰者稱號
+ */
 var rollDiceCommand = async function ({
     mainMsg,
     groupid,

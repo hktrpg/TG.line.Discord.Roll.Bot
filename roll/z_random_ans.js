@@ -60,12 +60,11 @@ const initialize = function () {
  * {ran:100} <--隨機1-100
  * {ran:5-20} <--隨機5-20
  * {allgp.name} <---隨機全GP其中一人名字
- * title
- * lv
- * { server.member_count } 現在頻道中總人數 \
- * { my.RankingPer} 現在排名百分比 \
- * { my.Ranking } 現在排名 \
- *  { my.exp } 經驗值
+ * {allgp.title}<---隨機全GP其中一人稱號
+ * {server.member_count} 現在頻道中總人數 \
+ * {my.RankingPer} 現在排名百分比 \
+ * {my.Ranking} 顯示擲骰者現在排名 \
+ * {my.exp} 顯示擲骰者經驗值
  * {my.name} <---顯示擲骰者名字
  * {my.title}<---顯示擲骰者稱號
  * {my.level}<---顯示擲骰者稱號
@@ -372,13 +371,18 @@ var rollDiceCommand = async function ({
                 }
 
             }
+            if (rply.text.includes('{') && rply.text.includes('}')) {
+                rply.text = advAnswer(rply.text);
+            }
             return rply;
         default:
             break;
     }
 }
 
+function advAnswer(text) {
 
+}
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,

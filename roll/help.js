@@ -202,7 +202,7 @@ bothelp req		- 對HKTRPG RollBot提出意見\n\
 意見留言群 https://discord.gg/vx4kcm7\n\
 			\n\
 Line版 http://bit.ly/HKTRPG_LINE\n\
-Discord版 http://bit.ly/HKTRPG_DISCORD\n\
+Discord版 http://bit.ly/HKTRPG_DISCORD_\n\
 Telegram版 http://t.me/hktrpg_bot\n\
 網頁版 https://rollbot.hktrpg.com/\n\
 簡易網上擲骰網頁 https://roll.hktrpg.com/\n\

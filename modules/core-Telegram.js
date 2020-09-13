@@ -64,15 +64,16 @@ TGclient.on('text', async (ctx) => {
 	if (ctx.message.from.id) userid = ctx.message.from.id;
 	//285083923223
 	//userrole = 3
+	let inputStr = ctx.message.text;
 	let rplyVal = {};
 	let msgSplitor = (/\S+/ig);
 	let trigger = "";
-	if (ctx.message.text && ctx.message.from.is_bot == false) {
-		if (ctx.botInfo && ctx.botInfo.username && ctx.message.text.match(/^[/]/))
-			ctx.message.text = ctx.message.text
+	if (inputStr && ctx.message.from.is_bot == false) {
+		if (ctx.botInfo && ctx.botInfo.username && inputStr.match(/^[/]/))
+			inputStr = inputStr
 			.replace(new RegExp('@' + ctx.botInfo.username + '$', 'i'), '')
 			.replace(new RegExp('^/', 'i'), '');
-		var mainMsg = ctx.message.text.match(msgSplitor); // 定義輸入字串
+		var mainMsg = inputStr.match(msgSplitor); // 定義輸入字串
 
 	}
 	if (mainMsg && mainMsg[0])
@@ -87,20 +88,20 @@ TGclient.on('text', async (ctx) => {
 	//設定私訊的模式 0-普通 1-自己 2-自己+GM 3-GM
 	if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
 		privatemsg = 1;
-		ctx.message.text = ctx.message.text.replace(/^[d][r][ ]/i, '');
+		inputStr = inputStr.replace(/^[d][r][ ]/i, '');
 	}
 	if (trigger.match(/^ddr$/i) && mainMsg && mainMsg[1]) {
 		privatemsg = 2;
-		ctx.message.text = ctx.message.text.replace(/^[d][d][r][ ]/i, '');
+		inputStr = inputStr.replace(/^[d][d][r][ ]/i, '');
 	}
 	if (trigger.match(/^dddr$/i) && mainMsg && mainMsg[1]) {
 		privatemsg = 3;
-		ctx.message.text = ctx.message.text.replace(/^[d][d][d][r][ ]/i, '');
+		inputStr = inputStr.replace(/^[d][d][d][r][ ]/i, '');
 	}
 	if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 		mainMsg.shift();
 		rplyVal = await exports.analytics.parseInput({
-			inputStr: ctx.message.text,
+			inputStr: inputStr,
 			groupid: groupid,
 			userid: userid,
 			userrole: userrole,
@@ -112,7 +113,7 @@ TGclient.on('text', async (ctx) => {
 	} else {
 		if (channelKeyword == '') {
 			rplyVal = await exports.analytics.parseInput({
-				inputStr: ctx.message.text,
+				inputStr: inputStr,
 				groupid: groupid,
 				userid: userid,
 				userrole: userrole,

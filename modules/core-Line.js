@@ -80,11 +80,12 @@ var handleEvent = async function (event) {
 		}
 		//是不是自己.ME 訊息
 		//TRUE 即正常
+		let inputStr = event.message.text;
 		let rplyVal = {};
 		let msgSplitor = (/\S+/ig);
 		let trigger = "";
-		if (event.message.text)
-			var mainMsg = event.message.text.match(msgSplitor); // 定義輸入字串
+		if (inputStr)
+			var mainMsg = inputStr.match(msgSplitor); // 定義輸入字串
 		if (mainMsg && mainMsg[0])
 			trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
 
@@ -98,22 +99,22 @@ var handleEvent = async function (event) {
 		//設定私訊的模式 0-普通 1-自己 2-自己+GM 3-GM
 		if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
 			privatemsg = 1;
-			event.message.text = event.message.text.replace(/^[d][r][ ]/i, '');
+			inputStr = inputStr.replace(/^[d][r][ ]/i, '');
 		}
 		if (trigger.match(/^ddr$/i) && mainMsg && mainMsg[1]) {
 			//設定私訊的模式2
 			privatemsg = 2;
-			event.message.text = event.message.text.replace(/^[d][d][r][ ]/i, '');
+			inputStr = inputStr.replace(/^[d][d][r][ ]/i, '');
 		}
 		if (trigger.match(/^dddr$/i) && mainMsg && mainMsg[1]) {
 			privatemsg = 3;
-			event.message.text = event.message.text.replace(/^[d][d][d][r][ ]/i, '');
+			inputStr = inputStr.replace(/^[d][d][d][r][ ]/i, '');
 		}
 
 		if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 			//mainMsg.shift()
 			rplyVal = await exports.analytics.parseInput({
-				inputStr: event.message.text,
+				inputStr: inputStr,
 				groupid: roomorgroupid,
 				userid: userid,
 				userrole: 3,
@@ -123,7 +124,7 @@ var handleEvent = async function (event) {
 		} else {
 			if (channelKeyword == '') {
 				rplyVal = await exports.analytics.parseInput({
-					inputStr: event.message.text,
+					inputStr: inputStr,
 					groupid: roomorgroupid,
 					userid: userid,
 					userrole: 3,

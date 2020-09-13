@@ -56,8 +56,6 @@ client.on('guildCreate', guild => {
 
 client.on('message', async (message) => {
 	if (message.author.bot) return;
-	//	console.log('message.content ' + message.content);
-	//	console.log('channelKeyword ' + channelKeyword);
 	let groupid = '',
 		userid = '',
 		displayname = '',
@@ -116,10 +114,11 @@ client.on('message', async (message) => {
 		}
 		return null;
 	}
+	let inputStr = message.content;
 	let rplyVal = {};
 	let trigger = "";
 	let msgSplitor = (/\S+/ig);
-	let mainMsg = message.content.match(msgSplitor); //定義輸入字串
+	let mainMsg = inputStr.match(msgSplitor); //定義輸入字串
 	if (mainMsg && mainMsg[0]) {
 		trigger = mainMsg[0].toString().toLowerCase();
 	}
@@ -135,21 +134,21 @@ client.on('message', async (message) => {
 
 	if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
 		privatemsg = 1;
-		message.content = message.content.replace(/^[d][r][ ]/i, '');
+		inputStr = inputStr.replace(/^[d][r][ ]/i, '');
 	}
 	if (trigger.match(/^ddr$/i) && mainMsg && mainMsg[1]) {
 		privatemsg = 2;
-		message.content = message.content.replace(/^[d][d][r][ ]/i, '');
+		inputStr = inputStr.replace(/^[d][d][r][ ]/i, '');
 	}
 	if (trigger.match(/^dddr$/i) && mainMsg && mainMsg[1]) {
 		privatemsg = 3;
-		message.content = message.content.replace(/^[d][d][d][r][ ]/i, '');
+		inputStr = inputStr.replace(/^[d][d][d][r][ ]/i, '');
 	}
 
 	if (channelKeyword != "" && trigger == channelKeyword.toString().toLowerCase()) {
 		//mainMsg.shift();
 		rplyVal = await exports.analytics.parseInput({
-			inputStr: message.content,
+			inputStr: inputStr,
 			groupid: groupid,
 			userid: userid,
 			userrole: userrole,
@@ -162,7 +161,7 @@ client.on('message', async (message) => {
 	} else {
 		if (channelKeyword == "") {
 			rplyVal = await exports.analytics.parseInput({
-				inputStr: message.content,
+				inputStr: inputStr,
 				groupid: groupid,
 				userid: userid,
 				userrole: userrole,
@@ -265,8 +264,6 @@ client.on('message', async (message) => {
 				return SendToReply(rplyVal.text, message);
 			}
 	}
-	//console.log('Discord Roll: ' + Discordcountroll + ', Discord Text: ' + Discordcounttext + ' Boot Time: ' + BootTime.toLocaleString(), " content: ", message.content);
-	//console.log("rplyVal: " + rplyVal);
 
 });
 

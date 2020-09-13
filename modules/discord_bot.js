@@ -316,4 +316,7 @@ async function SendToReplychannel(replyText, message) {
 client.on('ready', () => {
 	client.user.setActivity('bothelp | hktrpg.com');
 });
+setTimeout(() => {
+	client.ws.connection.triggerReady()
+}, 60000)
 client.login(channelSecret);

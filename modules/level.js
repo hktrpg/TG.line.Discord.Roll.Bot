@@ -1,5 +1,5 @@
 if (!process.env.mongoURL) return;
-const oneMinuts = 60000;
+const oneMinuts = (process.env.DEBUG) ? 1 : 60000;
 //60000 一分鐘多久可以升級及增加經驗
 exports.rollbase = require('../roll/rollbase');
 exports.z_Level_system = require('../roll/z_Level_system');
@@ -13,7 +13,6 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     if (!process.env.mongoURL || !Object.keys(exports.z_Level_system).length) {
         return;
     }
-
     //1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
     let userInfo = {};
     let gpInfo = exports.z_Level_system.initialize().trpgLevelSystemfunction.find(e => e.groupid == groupid);
@@ -75,7 +74,7 @@ async function uploadMongoose(groupid, userid, userInfo) {
             'trpgLevelSystemfunction.$.EXP': userInfo.EXP,
             'trpgLevelSystemfunction.$.LastSpeakTime': userInfo.LastSpeakTime
         }
-    })
+    }, opt)
     return v;
 }
 
@@ -94,7 +93,9 @@ async function newUser(gpInfo, groupid, userid, displayname, displaynameDiscord)
     let v = await schema.trpgLevelSystem.findOneAndUpdate({
         groupid: groupid
     }, {
-        trpgLevelSystemfunction: temp
+        $push: {
+            trpgLevelSystemfunction: temp
+        }
     }, opt)
     return v;
 }

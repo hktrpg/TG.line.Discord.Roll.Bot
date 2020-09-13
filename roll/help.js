@@ -7,6 +7,8 @@ var Dice = [],
 	funny = [],
 	help = [],
 	link = [];
+const url = "https://www.hktrpg.com/tool/notes.json"
+const fetch = require('node-fetch');
 const start = async () => {
 	await require('fs').readdirSync(__dirname).forEach(async function (file) {
 		try {
@@ -20,6 +22,7 @@ const start = async () => {
 			console.log(error)
 		}
 	})
+
 	version = "v1." + Object.keys(exports).length + "." + heroku_version.replace(/[v]/, '');
 	if (process.env.HEROKU_RELEASE_CREATED_AT) {
 		version += '\n最後更新時間' + new Date(process.env.HEROKU_RELEASE_CREATED_AT).toLocaleString("en-US", {
@@ -119,11 +122,18 @@ bothelp req		- 對HKTRPG RollBot提出意見\n\
 解鎖功能及開發支援 https://www.patreon.com/HKTRPG"
 			return rply;
 		case /^ver/i.test(mainMsg[1]):
-
 			rply.text = version + '\n\
 最近更新: \n\
 2019/07/21 香港克警合作 黑ICON紀念\n\
-2020/09/07 Bothelp 顯示方法更新';
+2020/09/07 Bothelp 顯示方法更新\n';
+			try {
+				const response = await fetch(url);
+				const json = await response.json();
+				if (json.news)
+					rply.text += json.news;
+			} catch (error) {
+				console.log(error);
+			}
 			return rply;
 		case /^BASE/i.test(mainMsg[1]):
 			rply.text = getHelpMessage();

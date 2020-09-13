@@ -34,6 +34,7 @@
     "mathjs": "^5.10.3",
     "moment": "^2.27.0",
     "mongoose": "^5.10.4",
+    "node-fetch": "^2.6.1",
     "random-js": "^2.1.0",
     "socket.io": "^2.3.0",
     "telebot": "^1.4.1",

@@ -80,7 +80,6 @@ var parseInput = async function ({
 	}
 	if (rollDiceResult) {
 		result = await JSON.parse(JSON.stringify(Object.assign({}, result, rollDiceResult)));
-		console.log('result', result)
 	}
 
 	//cmdfunction  .cmd 功能   z_saveCommand 功能
@@ -118,19 +117,6 @@ var parseInput = async function ({
 			membercount: membercount,
 			result: result
 		});
-		console.log('result.text', result)
-		/** result
-		 * characterName:'Sad2'
-		characterName:'Sad2'
-		characterReRoll:true
-		characterReRollItem:'1D4+1d3'
-		characterReRollName:'小刀'
-		 text:'@Villager\nSad2　\nHP: 15/15　\n'
-		 */
-		/** characterReRoll
-		text:'1D4+1d3：\n3[3]+3[3] = 6'
-		 */
-		console.log('characterReRoll.text', characterReRoll)
 		if (result.text && characterReRoll.text) {
 			result.text = result.characterName + ' 投擲 ' + result.characterReRollName + '\n' + characterReRoll.text + '\n' + '======\n' + result.text;
 		} else {
@@ -145,7 +131,8 @@ var parseInput = async function ({
 	//courtMessage + saveLog
 	await courtMessage(result, botname, inputStr)
 	//return result
-	console.log('final result', result)
+	rollDiceResult = null;
+	mainMsg = null;
 	return result;
 }
 
@@ -201,6 +188,7 @@ async function findRollList(mainMsg) {
 			}
 		}
 	});
+	idList = null;
 	return findTarget;
 }
 

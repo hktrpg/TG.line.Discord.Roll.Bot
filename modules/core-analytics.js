@@ -31,12 +31,8 @@ var parseInput = async function ({
 	membercount = 0
 }) {
 	//console.log('InputStr: ' + inputStr);
-	let result = {
-		text: '',
-		type: 'text',
-		LevelUp: ''
-	};
-
+	let resultTemp = {};
+	let result = {};
 	let mainMsg = {};
 	inputStr = inputStr.replace(/^\s/g, '')
 	mainMsg = inputStr.match(msgSplitor); //定義輸入字串
@@ -45,14 +41,14 @@ var parseInput = async function ({
 	if (groupid) {
 		let tempEXPUP = await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount);
 		if (tempEXPUP) {
-			result.LevelUp = tempEXPUP;
+			resultTemp.LevelUp = tempEXPUP;
 		}
 	}
 
 	//檢查是不是要停止  z_stop功能
 	if (groupid && mainMsg[0]) {
 		let stopmark = await z_stop(mainMsg, groupid);
-		if (stopmark == true) return result;
+		if (stopmark == true) return resultTemp;
 	}
 
 
@@ -79,9 +75,10 @@ var parseInput = async function ({
 		console.log('Time: ', new Date());
 	}
 	if (rollDiceResult) {
-		result = await JSON.parse(JSON.stringify(Object.assign({}, result, rollDiceResult)));
-	} else {
-		result.text = "";
+		console.log('rollDiceResult resultTemp', resultTemp)
+		console.log('rollDiceResult rollDiceResult', rollDiceResult)
+		result = Object.assign({}, resultTemp, rollDiceResult);
+		console.log('rollDiceResult', result)
 	}
 
 	//cmdfunction  .cmd 功能   z_saveCommand 功能
@@ -100,9 +97,7 @@ var parseInput = async function ({
 			result: result
 		});
 		if (typeof cmdFunctionResult === 'object' && cmdFunctionResult !== null) {
-			result = await Object.assign({}, result, cmdFunctionResult)
-		} else {
-			result.text = "";
+			result = await Object.assign({}, resultTemp, cmdFunctionResult)
 		}
 	}
 
@@ -121,6 +116,9 @@ var parseInput = async function ({
 			membercount: membercount,
 			result: result
 		})
+		if (result.text && characterReRoll.text) {
+			result.text = result.text + '\n' + characterReRoll.text + '\n';
+		}
 		result = await Object.assign({}, result, characterReRoll)
 		if (result.text && result.characterName) {
 			result.text = result.characterName + ' 投擲 ' + result.characterReRollName + ':\n' + result.text
@@ -155,7 +153,6 @@ var rolldice = async function ({
 	if (!groupid) {
 		groupid = '';
 	}
-	if (mainMsg && !mainMsg[1]) mainMsg[1] = '';
 	//把exports objest => Array
 	let target = await findRollList(mainMsg);
 	if (!target) return null;
@@ -177,6 +174,8 @@ var rolldice = async function ({
 }
 
 async function findRollList(mainMsg) {
+	if (!mainMsg || !mainMsg[0]) return;
+	if (!mainMsg[1]) mainMsg[1] = '';
 	let idList = await Object.keys(exports).map(i => exports[i]);
 	let findTarget = await idList.find(item => {
 		if (item.prefixs && item.prefixs()) {
@@ -218,8 +217,7 @@ async function cmdfunction({
 	membercount,
 	result
 }) {
-	console.log('inputStr', result.text)
-	let newInputStr = result.text.toString();
+	let newInputStr = result.characterReRollItem || result.text;
 	let mainMsg = newInputStr.match(msgSplitor); //定義輸入字串
 	result.text = "";
 	//檢查是不是要停止

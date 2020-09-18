@@ -10,9 +10,10 @@ const opt = {
     runValidators: true
 }
 async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercount) {
-    if (!process.env.mongoURL || !Object.keys(exports.z_Level_system).length) {
+    if (!process.env.mongoURL || !Object.keys(exports.z_Level_system).length || !exports.z_Level_system.initialize().trpgLevelSystemfunction) {
         return;
     }
+
     //1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
     let userInfo = {};
     let gpInfo = exports.z_Level_system.initialize().trpgLevelSystemfunction.find(e => e.groupid == groupid);

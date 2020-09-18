@@ -221,7 +221,6 @@ client.on('message', async (message) => {
 				rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
 				SendToReply(rplyVal.text, message);
 			}
-			nullAll();
 			return;
 		case privatemsg == 2:
 			//輸入ddr(指令) 私訊GM及自己
@@ -242,7 +241,6 @@ client.on('message', async (message) => {
 					SendToId(TargetGMTempID[i], rplyVal.text, client);
 				}
 			}
-			nullAll();
 			return;
 		case privatemsg == 3:
 			//輸入dddr(指令) 私訊GM
@@ -257,7 +255,6 @@ client.on('message', async (message) => {
 			for (let i = 0; i < TargetGMTempID.length; i++) {
 				SendToId(TargetGMTempID[i], rplyVal.text);
 			}
-			nullAll();
 			return;
 		default:
 			if (displaynamecheck && userid) {
@@ -268,28 +265,9 @@ client.on('message', async (message) => {
 			} else {
 				SendToReply(rplyVal.text, message);
 			}
-			nullAll();
 			return;
 	}
 
-
-	function nullAll() {
-		groupid = null;
-		userid = null;
-		displayname = null;
-		channelid = null;
-		displaynameDiscord = null;
-		membercount = null;
-		TargetGMTempID = null;
-		TargetGMTempdiyName = null;
-		TargetGMTempdisplayname = null;
-		inputStr = null;
-		rplyVal = null;
-		trigger = null;
-		mainMsg = null;
-		displaynamecheck = null;
-		hasSendPermission = null;
-	}
 
 });
 

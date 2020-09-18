@@ -130,9 +130,6 @@ var parseInput = async function ({
 	}
 	//courtMessage + saveLog
 	await courtMessage(result, botname, inputStr)
-	//return result
-	rollDiceResult = null;
-	mainMsg = null;
 	return result;
 }
 

@@ -411,7 +411,7 @@ var rollDiceCommand = async function ({
                 let useItemA = inputStr.replace(useTarget, '').replace(/^\s+/, '');
                 let useCard = [{
                     name: useName,
-                    itemA: useItemA
+                    itemA: useItemA.replace(/^[.]ch\s+/, '').replace(/^[.]char\s+/, '')
                 }];
                 doc.state = await Merge(doc.state, useCard, 'name', true);
                 doc.roll = await Merge(doc.roll, useCard, 'name', true);
@@ -525,9 +525,7 @@ var rollDiceCommand = async function ({
              */
 
             tempMain = await mainCharacter(doc, mainMsg);
-            rply.text = tempMain.text;
-            rply.characterReRoll = tempMain.characterReRoll;
-            rply.characterReRollName = tempMain.characterReRollName;
+            rply = Object.assign({}, rply, tempMain)
             rply.characterName = doc.name;
             return rply;
 
@@ -543,7 +541,7 @@ async function mainCharacter(doc, mainMsg) {
     let findNotes = [];
     let findRoll = {};
     let last = ""
-    let rply = {
+    let tempRply = {
         characterReRoll: false,
         text: '',
         characterReRollName: ''
@@ -578,76 +576,72 @@ async function mainCharacter(doc, mainMsg) {
         let result = await replacer(doc, p1);
         return result;
     }
-    switch (true) {
-        case Object.keys(findRoll).length > 0:
-            //把{}進行replace
-            //https://stackoverflow.com/questions/33631041/javascript-async-await-in-replace
-            //ref source
+    if (Object.keys(findRoll).length > 0) { //把{}進行replace
+        //https://stackoverflow.com/questions/33631041/javascript-async-await-in-replace
+        //ref source
+        tempRply.characterReRollItem = await replaceAsync(findRoll.itemA, /\{(.*?)\}/ig, await myAsyncFn);
+        tempRply.characterReRollItem = await replaceAsync(tempRply.characterReRollItem, /\[\[(.*?)\]\]/ig, await myAsyncFn2);
+        tempRply.characterReRollName = findRoll.name;
+        tempRply.characterReRoll = true;
+    }
+    if (Object.keys(findState).length > 0 || Object.keys(findNotes).length > 0) {
+        for (let i = 0; i < findState.length; i++) {
+            //如果i 是object , i+1 是STRING 和數字, 就進行加減
+            //否則就正常輸出
+            if (typeof (findState[i]) == 'object' && typeof (findState[i + 1]) == 'string') {
+                doc.state.forEach(async (element, index) => {
+                    if (element.name === findState[i].name) {
+                        //如果是一個數字, 取代本來的數值
+                        //不然就嘗試計算它
+                        //還是失敗就強制變成一個數字,進行運算
+                        if (findState[i + 1].match(/^\d*\.?\d*$/i)) {
+                            doc.state[index].itemA = findState[i + 1];
+                        } else {
+                            try {
+                                doc.state[index].itemA = eval(findState[i + 1]) + parseFloat(doc.state[index].itemA);
+                            } catch (error) {
+                                doc.state[index].itemA = parseFloat(findState[i + 1]) + parseFloat(doc.state[index].itemA);
+                            }
+                        }
 
-            rply.text = await replaceAsync(findRoll.itemA, /\{(.*?)\}/ig, await myAsyncFn);
-            rply.text = await replaceAsync(rply.text, /\[\[(.*?)\]\]/ig, await myAsyncFn2);
-            rply.characterReRollName = findRoll.name;
-            rply.characterReRoll = true;
-            return rply;
-        case Object.keys(findState).length > 0 || Object.keys(findNotes).length > 0:
-            for (let i = 0; i < findState.length; i++) {
+                    }
+                });
+
+
+            }
+            if (typeof (findState[i]) == 'object') {
+                tempRply.text += findState[i].name + ': ' + findState[i].itemA;
+                if (findState[i].itemB) {
+                    tempRply.text += "/" + findState[i].itemB;
+                }
+                tempRply.text += '　\n'
+            }
+
+        }
+        try {
+            await doc.save();
+        } catch (error) {
+            console.log('doc ', doc)
+            console.log('doc SAVE GET ERROR:', error)
+        }
+
+        if (findNotes.length > 0) {
+            for (let i = 0; i < findNotes.length; i++) {
                 //如果i 是object , i+1 是STRING 和數字, 就進行加減
                 //否則就正常輸出
-                if (typeof (findState[i]) == 'object' && typeof (findState[i + 1]) == 'string') {
-                    doc.state.forEach(async (element, index) => {
-                        if (element.name === findState[i].name) {
-                            //如果是一個數字, 取代本來的數值
-                            //不然就嘗試計算它
-                            //還是失敗就強制變成一個數字,進行運算
-                            if (findState[i + 1].match(/^\d*\.?\d*$/i)) {
-                                doc.state[index].itemA = findState[i + 1];
-                            } else {
-                                try {
-                                    doc.state[index].itemA = eval(findState[i + 1]) + parseFloat(doc.state[index].itemA);
-                                } catch (error) {
-                                    doc.state[index].itemA = parseFloat(findState[i + 1]) + parseFloat(doc.state[index].itemA);
-                                }
-                            }
-
-                        }
-                    });
-
-
-                }
-                if (typeof (findState[i]) == 'object') {
-                    rply.text += findState[i].name + ': ' + findState[i].itemA;
-                    if (findState[i].itemB) {
-                        rply.text += "/" + findState[i].itemB;
-                    }
-                    rply.text += '　\n'
-                }
-
+                tempRply.text += findNotes[i].name + ': ' + findNotes[i].itemA + '　\n';
             }
-            try {
-                await doc.save();
-            } catch (error) {
-                console.log('doc ', doc)
-                console.log('doc SAVE GET ERROR:', error)
-            }
+        }
 
-            if (findNotes.length > 0) {
-                for (let i = 0; i < findNotes.length; i++) {
-                    //如果i 是object , i+1 是STRING 和數字, 就進行加減
-                    //否則就正常輸出
-                    rply.text += findNotes[i].name + ': ' + findNotes[i].itemA + '　\n';
-                }
-            }
-
-            if (findState.length > 0 || findNotes.length > 0) {
-                rply.text = doc.name + '　\n' + rply.text;
-            }
-            return rply;
-        default:
-            return rply;
+        if (findState.length > 0 || findNotes.length > 0) {
+            tempRply.text = doc.name + '　\n' + tempRply.text;
+        }
     }
-
-
+    return tempRply;
 }
+
+
+
 
 
 async function findObject(doc, mainMsg) {
@@ -772,9 +766,8 @@ async function analysicStr(inputStr, state) {
         //防止誤輸入
         myArray[3] = (myArray[3] == ';') ? '' : myArray[3];
         myArray[1] = myArray[1].replace(/\s+/g, '');
-        myArray[2] = myArray[2].replace(/^\s+/, '').replace(/\s+$/, '');
+        myArray[2] = myArray[2].replace(/^\s+/, '').replace(/\s+$/, '').replace(/\s+[.]ch\s+/i, ' ').replace(/\s+[.]char\s+/i, ' ');
         myArray[3] = myArray[3].replace(/^\s+/, '').replace(/\s+$/, '');
-
         if (state)
             character.push({
                 name: myArray[1],

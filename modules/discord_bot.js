@@ -4,6 +4,7 @@ const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const Discord = require('discord.js');
 const client = new Discord.Client();
+const msgSplitor = (/\S+/ig);
 var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 //const BootTime = new Date(new Date().toLocaleString("en-US", {
 //	timeZone: "Asia/Shanghai"
@@ -117,7 +118,6 @@ client.on('message', async (message) => {
 	let inputStr = message.content;
 	let rplyVal = {};
 	let trigger = "";
-	let msgSplitor = (/\S+/ig);
 	let mainMsg = inputStr.match(msgSplitor); //定義輸入字串
 	if (mainMsg && mainMsg[0]) {
 		trigger = mainMsg[0].toString().toLowerCase();
@@ -202,7 +202,6 @@ client.on('message', async (message) => {
 			TargetGMTempdisplayname.push(item.displayname);
 		})
 	}
-
 	/*
 						if (groupid && userid) {
 							//DISCORD: 585040823232320107
@@ -215,11 +214,14 @@ client.on('message', async (message) => {
 		case privatemsg == 1:
 			// 輸入dr  (指令) 私訊自己
 			//
-			if (groupid)
+			if (groupid) {
 				SendToReplychannel("<@" + userid + '> 暗骰給自己', message)
-			if (userid)
+			}
+			if (userid) {
 				rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
-			return SendToReply(rplyVal.text, message);
+				SendToReply(rplyVal.text, message);
+			}
+			return;
 		case privatemsg == 2:
 			//輸入ddr(指令) 私訊GM及自己
 			//console.log('AAA', TargetGMTempID)
@@ -259,11 +261,13 @@ client.on('message', async (message) => {
 				rplyVal.text = "<@" + userid + ">\n" + rplyVal.text;
 			}
 			if (groupid) {
-				return SendToReplychannel(rplyVal.text, message);
+				SendToReplychannel(rplyVal.text, message);
 			} else {
-				return SendToReply(rplyVal.text, message);
+				SendToReply(rplyVal.text, message);
 			}
+			return;
 	}
+
 
 });
 

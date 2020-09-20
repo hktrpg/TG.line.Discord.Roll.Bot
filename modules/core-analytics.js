@@ -80,8 +80,6 @@ var parseInput = async function ({
 	}
 	if (rollDiceResult) {
 		result = await JSON.parse(JSON.stringify(Object.assign({}, result, rollDiceResult)));
-	} else {
-		result.text = "";
 	}
 
 	//cmdfunction  .cmd 功能   z_saveCommand 功能
@@ -101,8 +99,6 @@ var parseInput = async function ({
 		});
 		if (typeof cmdFunctionResult === 'object' && cmdFunctionResult !== null) {
 			result = await Object.assign({}, result, cmdFunctionResult)
-		} else {
-			result.text = "";
 		}
 	}
 
@@ -120,11 +116,13 @@ var parseInput = async function ({
 			displaynameDiscord: displaynameDiscord,
 			membercount: membercount,
 			result: result
-		})
-		result = await Object.assign({}, result, characterReRoll)
-		if (result.text && result.characterName) {
-			result.text = result.characterName + ' 投擲 ' + result.characterReRollName + ':\n' + result.text
+		});
+		if (result.text && characterReRoll.text) {
+			result.text = result.characterName + ' 投擲 ' + result.characterReRollName + '\n' + characterReRoll.text + '\n' + '======\n' + result.text;
+		} else {
+			result.text += (characterReRoll.text && result.text) ? '======\n' + characterReRoll.text : characterReRoll.text;
 		}
+
 	}
 
 	if (result.state) {
@@ -132,7 +130,6 @@ var parseInput = async function ({
 	}
 	//courtMessage + saveLog
 	await courtMessage(result, botname, inputStr)
-	//return result
 	return result;
 }
 
@@ -155,7 +152,6 @@ var rolldice = async function ({
 	if (!groupid) {
 		groupid = '';
 	}
-	if (mainMsg && !mainMsg[1]) mainMsg[1] = '';
 	//把exports objest => Array
 	let target = await findRollList(mainMsg);
 	if (!target) return null;
@@ -177,6 +173,8 @@ var rolldice = async function ({
 }
 
 async function findRollList(mainMsg) {
+	if (!mainMsg || !mainMsg[0]) return;
+	if (!mainMsg[1]) mainMsg[1] = '';
 	let idList = await Object.keys(exports).map(i => exports[i]);
 	let findTarget = await idList.find(item => {
 		if (item.prefixs && item.prefixs()) {
@@ -187,6 +185,7 @@ async function findRollList(mainMsg) {
 			}
 		}
 	});
+	idList = null;
 	return findTarget;
 }
 
@@ -218,10 +217,8 @@ async function cmdfunction({
 	membercount,
 	result
 }) {
-	console.log('inputStr', result.text)
-	let newInputStr = result.text.toString();
+	let newInputStr = result.characterReRollItem || result.text;
 	let mainMsg = newInputStr.match(msgSplitor); //定義輸入字串
-	result.text = "";
 	//檢查是不是要停止
 	let tempResut = {};
 	try {
@@ -254,7 +251,7 @@ async function cmdfunction({
 
 
 async function z_stop(mainMsg, groupid) {
-	if (!Object.keys(exports.z_stop).length) {
+	if (!Object.keys(exports.z_stop).length || !exports.z_stop.initialize().save) {
 		return false;
 	}
 	let groupInfo = exports.z_stop.initialize().save.find(e => e.groupid == groupid)

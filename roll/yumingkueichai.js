@@ -35,7 +35,9 @@ var initialize = function () {
     return variables;
 }
 
-var rollDiceCommand = async function ({mainMsg}) {
+var rollDiceCommand = async function ({
+    mainMsg
+}) {
     let rply = {
         default: 'on',
         type: 'text',
@@ -54,7 +56,7 @@ var rollDiceCommand = async function ({mainMsg}) {
 }
 
 async function compareAllValues(triggermsg, msg) {
-    var result = ""
+    let result = ""
     let rollresult = []
     var match = /^(|4|5)(d)(\d+|)$/i.exec(triggermsg);
     //判斷式  [0]4d3,[1]4,[2]d,[3]3  

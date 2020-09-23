@@ -8,6 +8,7 @@ const randomAnsfunction = {
     randomAnsfunction: [],
     randomAnsAllgroup: []
 };
+const level = require('./z_Level_system').initialize;
 const opt = {
     upsert: true,
     runValidators: true
@@ -58,7 +59,7 @@ const initialize = function () {
 }
 /**
  * {ran:100} <--隨機1-100
- * {ran:5-20} <--隨機5-20
+ * {random:5-20} <--隨機5-20
  * {allgp.name} <---隨機全GP其中一人名字
  * {allgp.title}<---隨機全GP其中一人稱號
  * {server.member_count} 現在頻道中總人數 \
@@ -371,16 +372,77 @@ var rollDiceCommand = async function ({
                 }
 
             }
-            if (rply.text.includes('{') && rply.text.includes('}')) {
-                rply.text = advAnswer(rply.text);
-            }
+            rply.text = await replaceAsync(rply.text, /{(.*?)}/ig, replacer);
             return rply;
         default:
             break;
     }
 }
 
-function advAnswer(text) {
+async function replaceAsync(str, regex, asyncFn) {
+    const promises = [];
+    str.replace(regex, (match, ...args) => {
+        const promise = asyncFn(match, ...args);
+        promises.push(promise);
+    });
+    const data = await Promise.all(promises);
+    return str.replace(regex, () => data.shift());
+}
+
+async function replacer(first, second) {
+    let temp = '';
+    switch (true) {
+        case /^ran:\d+/i.test(second):
+            temp = /^ran:(\d+)/i.exec(second)
+            if (!temp || !temp[1]) return;
+            return await rollbase.Dice(temp[1]);
+        case /^random:\d+/i.test(second):
+            temp = /^random:(\d+)-(\d+)/i.exec(second)
+            if (!temp || !temp[1] || !temp[2]) return;
+            return await rollbase.DiceINT(temp[1], temp[2]);
+        case /^allgp.name$/i.test(second):
+            // * {allgp.name} <---隨機全GP其中一人名字
+            break;
+        case /^allgp.title$/i.test(second):
+            // * {allgp.title}<---隨機全GP其中一種稱號
+            break;
+        case /^server.member_count$/i.test(second):
+            //  {server.member_count} 現在頻道中總人數 \
+            //    let usermember_count = membercount || trpgLevelSystemfunction.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length;
+
+            break;
+        case /^my.RankingPer$/i.test(second):
+            //* {my.RankingPer} 現在排名百分比 \
+            //  let usermember_count = membercount || trpgLevelSystemfunction.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length;
+
+            break;
+        case /^my.Ranking$/i.test(second):
+            //* {my.Ranking} 顯示擲骰者現在排名 \
+            //   let userRanking = await ranking(userid, trpgLevelSystemfunction.trpgLevelSystemfunction[i].trpgLevelSystemfunction);
+
+            break;
+        case /^my.exp$/i.test(second):
+            //* {my.exp} 顯示擲骰者經驗值
+            // let userexp = trpgLevelSystemfunction.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].EXP;
+
+            break;
+        case /^my.name$/i.test(second):
+            //* {my.name} <---顯示擲骰者名字
+            // let username = displaynameDiscord || displayname || "無名"
+            break;
+        case /^my.title$/i.test(second):
+            // * {my.title}<---顯示擲骰者稱號
+            //   let userTitle = await this.checkTitle(userlevel, trpgLevelSystemfunction.trpgLevelSystemfunction[i].Title);
+
+            break;
+        case /^my.level$/i.test(second):
+            //* {my.level}<---顯示擲骰者等級
+            //                                        let userlevel = trpgLevelSystemfunction.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level;
+            break;
+
+        default:
+            break;
+    }
 
 }
 module.exports = {

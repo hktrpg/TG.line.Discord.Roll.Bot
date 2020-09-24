@@ -53,18 +53,18 @@ P.S.如果沒立即生效 用.ra show 刷新一下\n\
 如使用輸入.rap 會變成全服版,全服可看, 可用add show功能 \n\
 例如輸入 .rap10 聖晶石召喚 即可十連抽了 \n\
 新增指令\n\
-* {ran:100} <---隨機1-100\n\
+* {ran:100}     <---隨機1-100\n\
 * {random:5-20} <---隨機5-20\n\
-* {server.member_count}<---現在頻道中總人數 \n\
-* {my.name} <---顯示擲骰者名字\n\
+* {server.member_count}  <---現在頻道中總人數 \n\
+* {my.name}     <---顯示擲骰者名字\n\
 以下需要開啓.level 功能\n\
-* {allgp.name} <---隨機全GP其中一人名字\n\
-* {allgp.title}<---隨機全GP其中一人稱號\n\
-* {my.RankingPer}<---現在排名百分比 \n\
-* {my.Ranking}<---顯示擲骰者現在排名 \n\
-* {my.exp}<---顯示擲骰者經驗值\n\
-* {my.title}<---顯示擲骰者稱號\n\
-* {my.level}<---顯示擲骰者稱號\n\
+* {allgp.name}  <---隨機全GP其中一人名字\n\
+* {allgp.title}  <---隨機全GP其中一人稱號\n\
+* {my.RankingPer}  <---現在排名百分比 \n\
+* {my.Ranking}  <---顯示擲骰者現在排名 \n\
+* {my.exp}      <---顯示擲骰者經驗值\n\
+* {my.title}    <---顯示擲骰者稱號\n\
+* {my.level}    <---顯示擲骰者稱號\n\
 "
 }
 const initialize = function () {

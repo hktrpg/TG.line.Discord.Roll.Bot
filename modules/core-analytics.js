@@ -11,7 +11,7 @@ const start = async () => {
 }
 
 start();
-var debugMode = process.env.DEBUG || false;
+const debugMode = (process.env.DEBUG) ? true : false;
 const msgSplitor = (/\S+/ig);
 const courtMessage = require('./logs').courtMessage || function () {};
 const getState = require('./logs').getState || function () {};

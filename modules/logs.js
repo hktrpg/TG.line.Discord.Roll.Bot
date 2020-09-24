@@ -1,7 +1,7 @@
 if (!process.env.mongoURL) return;
 //Log everyday 01:00
 const moment = require("moment");
-var debugMode = process.env.DEBUG || false;
+const debugMode = (process.env.DEBUG) ? true : false;
 const messageTimethenUpload = 50;
 //50次 多少條訊息會上傳一次LOG
 const oneHour = 1 * 60 * 60 * 1000;

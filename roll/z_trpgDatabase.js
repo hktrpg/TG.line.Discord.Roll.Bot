@@ -255,8 +255,7 @@ var rollDiceCommand = async function ({inputStr, mainMsg, groupid, userrole}) {
                     records.pushtrpgDatabaseAllgroup('trpgDatabaseAllgroup', tempA, () => {
                         records.get('trpgDatabaseAllgroup', (msgs) => {
                             trpgDatabasefunction.trpgDatabaseAllgroup = msgs
-                            // console.log(rply);
-                        })
+                        });
                     })
                     rply.text = '新增成功: ' + mainMsg[2]
                 } else {

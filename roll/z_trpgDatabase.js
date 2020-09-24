@@ -101,7 +101,6 @@ var rollDiceCommand = async function ({
                 if (trpgDatabasefunction.trpgDatabasefunction)
                     for (var i = 0; i < trpgDatabasefunction.trpgDatabasefunction.length; i++) {
                         if (trpgDatabasefunction.trpgDatabasefunction[i].groupid == groupid) {
-                            // console.log('checked1')
                             if (trpgDatabasefunction.trpgDatabasefunction[0] && trpgDatabasefunction.trpgDatabasefunction[0].trpgDatabasefunction[0]) {
                                 if (trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction.length >= limit) {
                                     rply.text = '關鍵字上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
@@ -109,7 +108,6 @@ var rollDiceCommand = async function ({
                                 }
                                 for (var a = 0; a < trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
                                     if (trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic == mainMsg[2]) {
-                                        //   console.log('checked')
                                         checkifsamename = 1
                                     }
                                 }
@@ -361,7 +359,6 @@ var rollDiceCommand = async function ({
                 if (temp.Title.length == 0) {
                     temp.Title = exports.z_Level_system.Title();
                 }
-                console.log(temp)
                 temp2 = await temp.Title.filter(function (item) {
                     return item;
                 });

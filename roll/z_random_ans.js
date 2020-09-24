@@ -424,7 +424,6 @@ var rollDiceCommand = async function ({
                 if (temp.Title.length == 0) {
                     temp.Title = exports.z_Level_system.Title();
                 }
-                console.log(temp)
                 temp2 = await temp.Title.filter(function (item) {
                     return item;
                 });

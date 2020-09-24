@@ -2,6 +2,7 @@
 if (!process.env.mongoURL) {
     return;
 }
+const rollbase = require('./rollbase.js');
 const records = require('../modules/records.js');
 var trpgDatabasefunction = {};
 records.get('trpgDatabase', (msgs) => {
@@ -36,14 +37,37 @@ P.S.如果沒立即生效 用.db show 刷新一下\n\
 輸入.db del(編號)或all 即可刪除\n\
 輸入.db  (關鍵字) 即可顯示 \n\
 如使用輸入.dbp 會變成全服版,全服可看, 可用add show功能 \n\
+新增指令\n\
+* {br}          <--隔一行\n\
+* {ran:100}     <---隨機1-100\n\
+* {random:5-20} <---隨機5-20\n\
+* {server.member_count}  <---現在頻道中總人數 \n\
+* {my.name}     <---顯示擲骰者名字\n\
+以下需要開啓.level 功能\n\
+* {allgp.name}  <---隨機全GP其中一人名字\n\
+* {allgp.title}  <---隨機全GP其中一種稱號\n\
+* {my.RankingPer}  <---現在排名百分比 \n\
+* {my.Ranking}  <---顯示擲骰者現在排名 \n\
+* {my.exp}      <---顯示擲骰者經驗值\n\
+* {my.title}    <---顯示擲骰者稱號\n\
+* {my.level}    <---顯示擲骰者等級\n\
 "
 }
 var initialize = function () {
     return trpgDatabasefunction;
 }
-
+exports.z_Level_system = require('./z_Level_system');
 // eslint-disable-next-line no-unused-vars
-var rollDiceCommand = async function ({inputStr, mainMsg, groupid, userrole}) {
+var rollDiceCommand = async function ({
+    inputStr,
+    mainMsg,
+    groupid,
+    userrole,
+    userid,
+    displayname,
+    displaynameDiscord,
+    membercount
+}) {
     let rply = {
         default: 'on',
         type: 'text',
@@ -77,7 +101,6 @@ var rollDiceCommand = async function ({inputStr, mainMsg, groupid, userrole}) {
                 if (trpgDatabasefunction.trpgDatabasefunction)
                     for (var i = 0; i < trpgDatabasefunction.trpgDatabasefunction.length; i++) {
                         if (trpgDatabasefunction.trpgDatabasefunction[i].groupid == groupid) {
-                            // console.log('checked1')
                             if (trpgDatabasefunction.trpgDatabasefunction[0] && trpgDatabasefunction.trpgDatabasefunction[0].trpgDatabasefunction[0]) {
                                 if (trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction.length >= limit) {
                                     rply.text = '關鍵字上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
@@ -85,7 +108,6 @@ var rollDiceCommand = async function ({inputStr, mainMsg, groupid, userrole}) {
                                 }
                                 for (var a = 0; a < trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
                                     if (trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic == mainMsg[2]) {
-                                        //   console.log('checked')
                                         checkifsamename = 1
                                     }
                                 }
@@ -223,6 +245,7 @@ var rollDiceCommand = async function ({inputStr, mainMsg, groupid, userrole}) {
                         }
                     }
                 if (temp == 0) rply.text = '沒有相關關鍵字. '
+                rply.text = await replaceAsync(rply.text, /{(.*?)}/ig, replacer);
             } else {
                 rply.text = '不在群組. '
             }
@@ -285,7 +308,7 @@ var rollDiceCommand = async function ({inputStr, mainMsg, groupid, userrole}) {
             if (tempshow == 0) rply.text = '沒有已設定的關鍵字. '
             //顯示資料庫
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
-            return rply
+            return rply;
         case /(^[.]dbp$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[0]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
             //let timesgp = /^[.]dbp/.exec(mainMsg[0])[1] || 1
             //  if (timesgp > 30) timesgp = 30;
@@ -302,11 +325,152 @@ var rollDiceCommand = async function ({inputStr, mainMsg, groupid, userrole}) {
                     }
                 }
             if (temp2 == 0) rply.text = '沒有相關關鍵字. '
+            rply.text = await replaceAsync(rply.text, /{(.*?)}/ig, replacer);
             return rply;
         default:
             break;
 
     }
+    async function replacer(first, second) {
+        let temp = '',
+            num = 0,
+            temp2 = '';
+        switch (true) {
+            case /^ran:\d+/i.test(second):
+                temp = /^ran:(\d+)/i.exec(second)
+                if (!temp || !temp[1]) return;
+                return await rollbase.Dice(temp[1]);
+            case /^random:\d+/i.test(second):
+                temp = /^random:(\d+)-(\d+)/i.exec(second)
+                if (!temp || !temp[1] || !temp[2]) return;
+                return await rollbase.DiceINT(temp[1], temp[2]);
+            case /^allgp.name$/i.test(second):
+                temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
+                if (!temp) return;
+                num = await rollbase.DiceINT(0, temp.trpgLevelSystemfunction.length - 1)
+                num = (num < 1) ? 0 : num;
+                temp = temp.trpgLevelSystemfunction[num].name
+                return temp;
+                // * {allgp.name} <---隨機全GP其中一人名字
+            case /^allgp.title$/i.test(second):
+                temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
+                if (!temp) return;
+                if (temp.Title.length == 0) {
+                    temp.Title = exports.z_Level_system.Title();
+                }
+                temp2 = await temp.Title.filter(function (item) {
+                    return item;
+                });
+                num = await rollbase.DiceINT(0, temp2.length - 1)
+                num = (num < 1) ? 0 : num;
+                temp = temp2[num]
+                return temp;
+                // * {allgp.title}<---隨機全GP其中一種稱號
+            case /^server.member_count$/i.test(second):
+                if (membercount) return membercount;
+                temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
+                return temp.trpgLevelSystemfunction.length;
+                //  {server.member_count} 現在頻道中總人數 \
+            case /^my.RankingPer$/i.test(second):
+                //* {my.RankingPer} 現在排名百分比 \
+                // let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
+                temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
+                if (!temp) return;
+                temp = await ranking(userid, temp.trpgLevelSystemfunction)
+                if (!temp) return;
+                num = membercount || temp.trpgLevelSystemfunction.length;
+                temp2 = Math.ceil(temp / num * 10000) / 100 + '%';
+                return temp2;
+            case /^my.Ranking$/i.test(second):
+                temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
+                //     temp2 = await findUser(temp, userid);
+                //* {my.Ranking} 顯示擲骰者現在排名 \
+                if (!temp) return;
+                return await ranking(userid, temp.trpgLevelSystemfunction);
+            case /^my.exp$/i.test(second):
+                //* {my.exp} 顯示擲骰者經驗值
+                temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
+                temp2 = await findUser(temp, userid);
+                if (!temp || !temp2 || !temp2.EXP) return;
+                return temp2.EXP;
+            case /^my.name$/i.test(second):
+                //* {my.name} <---顯示擲骰者名字
+                return displaynameDiscord || displayname || "無名";
+            case /^my.title$/i.test(second):
+                // * {my.title}<---顯示擲骰者稱號
+                temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
+                temp2 = await findUser(temp, userid);
+                if (!temp || !temp2 || !temp2.Level || !temp.Title) return;
+                //   let userTitle = await this.checkTitle(userlevel, trpgLevelSystemfunction.trpgLevelSystemfunction[i].Title);
+                return await exports.z_Level_system.checkTitle(temp2.Level, temp.Title);
+            case /^my.level$/i.test(second):
+                //* {my.level}<---顯示擲骰者等級
+                temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
+                temp2 = await findUser(temp, userid);
+                if (!temp || !temp2 || !temp2.Level) return;
+                return temp2.Level;
+            case /^br$/i.test(second):
+                temp = '\n'
+                return temp;
+            default:
+                break;
+        }
+
+    }
+}
+async function findGp(groupid) {
+    if (!process.env.mongoURL || !Object.keys(exports.z_Level_system).length || !groupid) {
+        return;
+    }
+    //1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
+    let gpInfo = exports.z_Level_system.initialize().trpgLevelSystemfunction.find(e => e.groupid == groupid);
+    if (!gpInfo || gpInfo.Switch != 1) return;
+    // userInfo.name = displaynameDiscord || displayname || '無名'
+    return gpInfo;
+    //6 / 7 * LVL * (2 * LVL * LVL + 30 * LVL + 100)
+}
+
+async function findUser(gpInfo, userid) {
+    if (!gpInfo || !gpInfo.trpgLevelSystemfunction) return;
+    let userInfo = {};
+    userInfo = gpInfo.trpgLevelSystemfunction.find(e => e.userid == userid);
+    // userInfo.name = displaynameDiscord || displayname || '無名'
+    return userInfo;
+    //6 / 7 * LVL * (2 * LVL * LVL + 30 * LVL + 100)
+}
+
+async function ranking(who, data) {
+    let array = [];
+    let answer = "0";
+    for (let key in data) {
+        await array.push(data[key]);
+    }
+    array.sort(function (a, b) {
+        return b.EXP - a.EXP;
+    });
+    let rank = 1;
+    for (let i = 0; i < array.length; i++) {
+        if (i > 0 && array[i].EXP < array[i - 1].EXP) {
+            rank++;
+        }
+        array[i].rank = rank;
+    }
+    for (let b = 0; b < array.length; b++) {
+        if (array[b].userid == who)
+            answer = b + 1;
+
+    }
+    return answer;
+}
+
+async function replaceAsync(str, regex, asyncFn) {
+    const promises = [];
+    str.replace(regex, (match, ...args) => {
+        const promise = asyncFn(match, ...args);
+        promises.push(promise);
+    });
+    const data = await Promise.all(promises);
+    return str.replace(regex, () => data.shift());
 }
 
 

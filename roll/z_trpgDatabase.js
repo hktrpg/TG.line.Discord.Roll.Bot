@@ -369,6 +369,7 @@ var rollDiceCommand = async function ({
             case /^server.member_count$/i.test(second):
                 if (membercount) return membercount;
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
+                if (!temp || !temp.trpgLevelSystemfunction) return;
                 return temp.trpgLevelSystemfunction.length;
                 //  {server.member_count} 現在頻道中總人數 \
             case /^my.RankingPer$/i.test(second):
@@ -377,7 +378,7 @@ var rollDiceCommand = async function ({
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
                 if (!temp) return;
                 temp = await ranking(userid, temp.trpgLevelSystemfunction)
-                if (!temp) return;
+                if (!temp || !temp.trpgLevelSystemfunction) return;
                 num = membercount || temp.trpgLevelSystemfunction.length;
                 temp2 = Math.ceil(temp / num * 10000) / 100 + '%';
                 return temp2;
@@ -385,7 +386,7 @@ var rollDiceCommand = async function ({
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
                 //     temp2 = await findUser(temp, userid);
                 //* {my.Ranking} 顯示擲骰者現在排名 \
-                if (!temp) return;
+                if (!temp || !temp.trpgLevelSystemfunction) return;
                 return await ranking(userid, temp.trpgLevelSystemfunction);
             case /^my.exp$/i.test(second):
                 //* {my.exp} 顯示擲骰者經驗值

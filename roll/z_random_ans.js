@@ -52,20 +52,33 @@ P.S.如果沒立即生效 用.ra show 刷新一下\n\
 輸入.rra(次數,最多30次) (關鍵字1)(關鍵字2)(關鍵字n) 即可重覆隨機抽選 \n\
 如使用輸入.rap 會變成全服版,全服可看, 可用add show功能 \n\
 例如輸入 .rap10 聖晶石召喚 即可十連抽了 \n\
+新增指令\n\
+* {ran:100} <---隨機1-100\n\
+* {random:5-20} <---隨機5-20\n\
+* {server.member_count}<---現在頻道中總人數 \n\
+* {my.name} <---顯示擲骰者名字\n\
+以下需要開啓.level 功能\n\
+* {allgp.name} <---隨機全GP其中一人名字\n\
+* {allgp.title}<---隨機全GP其中一人稱號\n\
+* {my.RankingPer}<---現在排名百分比 \n\
+* {my.Ranking}<---顯示擲骰者現在排名 \n\
+* {my.exp}<---顯示擲骰者經驗值\n\
+* {my.title}<---顯示擲骰者稱號\n\
+* {my.level}<---顯示擲骰者稱號\n\
 "
 }
 const initialize = function () {
     return randomAnsfunction;
 }
 /**
- * {ran:100} <--隨機1-100
- * {random:5-20} <--隨機5-20
+ * {ran:100} <---隨機1-100
+ * {random:5-20} <---隨機5-20
  * {allgp.name} <---隨機全GP其中一人名字
  * {allgp.title}<---隨機全GP其中一人稱號
- * {server.member_count} 現在頻道中總人數 \
- * {my.RankingPer} 現在排名百分比 \
- * {my.Ranking} 顯示擲骰者現在排名 \
- * {my.exp} 顯示擲骰者經驗值
+ * {server.member_count}<---現在頻道中總人數 \
+ * {my.RankingPer}<---現在排名百分比 \
+ * {my.Ranking}<---顯示擲骰者現在排名 \
+ * {my.exp}<---顯示擲骰者經驗值
  * {my.name} <---顯示擲骰者名字
  * {my.title}<---顯示擲骰者稱號
  * {my.level}<---顯示擲骰者稱號
@@ -262,6 +275,7 @@ var rollDiceCommand = async function ({
                 }
 
             }
+            rply.text = await replaceAsync(rply.text, /{(.*?)}/ig, replacer);
             return rply;
         case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
             //
@@ -418,28 +432,32 @@ var rollDiceCommand = async function ({
                 return temp;
                 // * {allgp.title}<---隨機全GP其中一種稱號
             case /^server.member_count$/i.test(second):
+                if (membercount) return membercount;
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
-                return membercount || temp.trpgLevelSystemfunction.length;
+                return temp.trpgLevelSystemfunction.length;
                 //  {server.member_count} 現在頻道中總人數 \
             case /^my.RankingPer$/i.test(second):
                 //* {my.RankingPer} 現在排名百分比 \
                 // let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
+                if (!temp) return;
                 temp = await ranking(userid, temp.trpgLevelSystemfunction)
+                if (!temp) return;
                 num = membercount || temp.trpgLevelSystemfunction.length;
                 temp2 = Math.ceil(temp / num * 10000) / 100 + '%';
-
                 return temp2;
             case /^my.Ranking$/i.test(second):
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
                 //     temp2 = await findUser(temp, userid);
                 //* {my.Ranking} 顯示擲骰者現在排名 \
+                if (!temp) return;
                 return await ranking(userid, temp.trpgLevelSystemfunction);
             case /^my.exp$/i.test(second):
                 //* {my.exp} 顯示擲骰者經驗值
                 // let userexp = trpgLevelSystemfunction.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].EXP;
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
                 temp2 = await findUser(temp, userid);
+                if (!temp || !temp2) return;
                 return temp2.EXP;
             case /^my.name$/i.test(second):
                 //* {my.name} <---顯示擲骰者名字
@@ -448,12 +466,14 @@ var rollDiceCommand = async function ({
                 // * {my.title}<---顯示擲骰者稱號
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
                 temp2 = await findUser(temp, userid);
+                if (!temp || temp2) return;
                 //   let userTitle = await this.checkTitle(userlevel, trpgLevelSystemfunction.trpgLevelSystemfunction[i].Title);
                 return await exports.z_Level_system.checkTitle(temp2.Level, temp.Title);
             case /^my.level$/i.test(second):
                 //* {my.level}<---顯示擲骰者等級
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
                 temp2 = await findUser(temp, userid);
+                if (!temp || temp2) return;
                 return temp2.Level;
             default:
                 break;
@@ -463,8 +483,8 @@ var rollDiceCommand = async function ({
 }
 
 
-async function findGp(groupid, userid, displayname, displaynameDiscord, membercount) {
-    if (!process.env.mongoURL || !Object.keys(exports.z_Level_system).length) {
+async function findGp(groupid) {
+    if (!process.env.mongoURL || !Object.keys(exports.z_Level_system).length || !groupid) {
         return;
     }
     //1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
@@ -476,6 +496,7 @@ async function findGp(groupid, userid, displayname, displaynameDiscord, memberco
 }
 
 async function findUser(gpInfo, userid) {
+    if (!gpInfo || gpInfo.trpgLevelSystemfunction) return;
     let userInfo = {};
     if (gpInfo.trpgLevelSystemfunction) {
         userInfo = gpInfo.trpgLevelSystemfunction.find(e => e.userid == userid)
@@ -483,18 +504,6 @@ async function findUser(gpInfo, userid) {
     // userInfo.name = displaynameDiscord || displayname || '無名'
     return userInfo;
     //6 / 7 * LVL * (2 * LVL * LVL + 30 * LVL + 100)
-}
-
-async function returnTheLevelWord(gpInfo, userInfo, membercount) {
-    let username = userInfo.name;
-    let userlevel = userInfo.Level;
-    let userexp = userInfo.EXP;
-    let usermember_count = membercount || gpInfo.trpgLevelSystemfunction.length;
-    let userRanking = await ranking(userInfo.userid, gpInfo.trpgLevelSystemfunction);
-    let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
-    let userTitle = await exports.z_Level_system.checkTitle(userlevel, gpInfo.Title);
-    let tempUPWord = gpInfo.LevelUpWord || "恭喜 {user.name}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點了！\n現在排名是{server.member_count}人中的第{user.Ranking}名！";
-    return tempUPWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count).replace(/{user.title}/ig, userTitle);
 }
 
 async function ranking(who, data) {

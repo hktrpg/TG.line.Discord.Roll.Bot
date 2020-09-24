@@ -48,7 +48,9 @@ var initialize = function () {
   return variables;
 }
 
-const rollDiceCommand = async function ({mainMsg}) {
+const rollDiceCommand = async function ({
+  mainMsg
+}) {
   let rply = {
     default: 'on',
     type: 'text',
@@ -67,14 +69,12 @@ const rollDiceCommand = async function ({mainMsg}) {
 
 var Dice = async function (diceSided) {
   let result = '';
-  //result = math.floor((math.random() * diceSided) + 1)
   result = await random.integer(1, Math.floor(diceSided))
   return result
 }
 
 var DiceINT = async function (start, end) {
   let result = '';
-  //result = math.floor((math.random() * diceSided) + 1)
   result = await random.integer(start, end)
   return result
 }

@@ -254,7 +254,7 @@ async function cmdfunction({
 
 
 async function z_stop(mainMsg, groupid) {
-	if (!Object.keys(exports.z_stop).length) {
+	if (!Object.keys(exports.z_stop).length || !exports.z_stop.initialize().save) {
 		return false;
 	}
 	let groupInfo = exports.z_stop.initialize().save.find(e => e.groupid == groupid)

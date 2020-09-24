@@ -1,5 +1,5 @@
 if (!process.env.mongoURL) return;
-const oneMinuts = 1;
+const oneMinuts = 60000;
 //60000 一分鐘多久可以升級及增加經驗
 exports.rollbase = require('../roll/rollbase');
 exports.z_Level_system = require('../roll/z_Level_system');
@@ -10,7 +10,7 @@ const opt = {
     runValidators: true
 }
 async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercount) {
-    if (!process.env.mongoURL || !Object.keys(exports.z_Level_system).length) {
+    if (!process.env.mongoURL || !Object.keys(exports.z_Level_system).length || !exports.z_Level_system.initialize().trpgLevelSystemfunction) {
         return;
     }
 

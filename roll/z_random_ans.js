@@ -443,10 +443,10 @@ var rollDiceCommand = async function ({
                 // let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
                 if (!temp) return ' ';
-                temp = await ranking(userid, temp.trpgLevelSystemfunction)
-                if (!temp || !temp.trpgLevelSystemfunction) return ' ';
+                temp2 = await ranking(userid, temp.trpgLevelSystemfunction)
+                if (!temp2) return ' ';
                 num = membercount || temp.trpgLevelSystemfunction.length;
-                temp2 = Math.ceil(temp / num * 10000) / 100 + '%';
+                temp2 = Math.ceil(temp2 / num * 10000) / 100 + '%';
                 return temp2 || ' ';
             case /^my.Ranking$/i.test(second):
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);

@@ -37,7 +37,7 @@ var parseInput = async function ({
 		LevelUp: ''
 	};
 
-	let mainMsg = {};
+	let mainMsg = [];
 	inputStr = inputStr.replace(/^\s/g, '')
 	mainMsg = inputStr.match(msgSplitor); //定義輸入字串
 

@@ -169,7 +169,8 @@ client.on('message', async (message) => {
 				displayname: displayname,
 				channelid: channelid,
 				displaynameDiscord: displaynameDiscord,
-				membercount: membercount
+				membercount: membercount,
+				discordMessage: client
 			});
 		}
 	}

@@ -4,6 +4,8 @@ const opt = {
     upsert: true,
     runValidators: true
 }
+
+const moment = require('moment');
 const crypto = require('crypto');
 const password = process.env.CRYPTO_SECRET,
     algorithm = 'aes-256-ctr';
@@ -45,7 +47,8 @@ var rollDiceCommand = async function ({
     displayname,
     channelid,
     displaynameDiscord,
-    membercount
+    membercount,
+    discordMessage
 }) {
     let rply = {
         default: 'on',
@@ -60,6 +63,29 @@ var rollDiceCommand = async function ({
             return rply;
         case /^state$/i.test(mainMsg[1]):
             rply.state = true;
+            return rply;
+        case /^fetch$/i.test(mainMsg[1]):
+            discordMessage.channels.fetch(channelid)
+                .then(channel => {
+                    channel.fetch({
+                        limit: 100
+                    }).then(async messages => {
+                        console.log(messages)
+                        console.log(`${messages.size} procuradas.`);
+
+                        let finalArray = [];
+
+                        const putInArray = async (data) => finalArray.push(data);
+                        const handleTime = (timestamp) => moment(timestamp).format("DD/MM/YYYY - hh:mm:ss a").replace("pm", "PM").reaplce("am", "AM");
+
+                        for (const message of messages.array().reverse()) await putInArray(`${handleTime(message.timestamp)} ${messages.author.username} : ${messages.content}`);
+
+                        console.log(finalArray);
+                        console.log(finalArray.length);
+
+                    });
+                })
+                .catch(console.error);
             return rply;
         case /^debug$/i.test(mainMsg[1]):
             rply.text = "Debug function" + '\ngroupid: ' + groupid + "\nuserid: " + userid;

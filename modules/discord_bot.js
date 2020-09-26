@@ -58,22 +58,10 @@ client.on('guildCreate', guild => {
 client.on('message', async (message) => {
 	if (message.author.bot) return;
 
+	let C = await client.channels.fetch(message.channel.id);
+	let M = await lots_of_messages_getter(C, 500)
 
-	client.channels.fetch(message.channel.id)
-		.then(channel => {
-			console.log('channel', channel);
-			channel.messages.fetch({
-					around: channel.lastMessageID,
-					limit: 1
-				})
-				.then(async msg => {
-					console.log('msg', msg);
-				});
-
-
-
-		})
-		.catch(console.error);
+	console.log(M)
 
 
 	let groupid = '',
@@ -341,3 +329,27 @@ client.on('ready', () => {
 	client.user.setActivity('bothelp | hktrpg.com');
 });
 client.login(channelSecret);
+
+async function lots_of_messages_getter(channel, limit = 500) {
+	const sum_messages = [];
+	let last_id;
+
+	while (true) {
+		const options = {
+			limit: 100
+		};
+		if (last_id) {
+			options.before = last_id;
+		}
+
+		const messages = await channel.messages.fetch(options);
+		sum_messages.push(...messages.array());
+		last_id = messages.last().id;
+
+		if (messages.size != 100 || sum_messages.length >= limit) {
+			break;
+		}
+	}
+
+	return sum_messages;
+}

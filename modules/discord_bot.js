@@ -57,6 +57,25 @@ client.on('guildCreate', guild => {
 
 client.on('message', async (message) => {
 	if (message.author.bot) return;
+
+
+	client.channels.fetch(message.channel.id)
+		.then(channel => {
+			console.log('channel', channel);
+			channel.messages.fetch({
+					around: channel.lastMessageID,
+					limit: 1
+				})
+				.then(async msg => {
+					console.log('msg', msg);
+				});
+
+
+
+		})
+		.catch(console.error);
+
+
 	let groupid = '',
 		userid = '',
 		displayname = '',
@@ -170,7 +189,7 @@ client.on('message', async (message) => {
 				channelid: channelid,
 				displaynameDiscord: displaynameDiscord,
 				membercount: membercount,
-				discordMessage: client
+				discordMessage: message
 			});
 		}
 	}

@@ -33,7 +33,7 @@
     "libsodium-wrappers": "^0.7.8",
     "mathjs": "^5.10.3",
     "moment": "^2.29.0",
-    "mongoose": "^5.10.5",
+    "mongoose": "^5.10.7",
     "node-fetch": "^2.6.1",
     "random-js": "^2.1.0",
     "socket.io": "^2.3.0",

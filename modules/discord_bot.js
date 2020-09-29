@@ -5,6 +5,7 @@ const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const Discord = require('discord.js');
 const client = new Discord.Client();
 const msgSplitor = (/\S+/ig);
+const fs = require('fs').promises;
 var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 //const BootTime = new Date(new Date().toLocaleString("en-US", {
 //	timeZone: "Asia/Shanghai"
@@ -58,11 +59,14 @@ client.on('guildCreate', guild => {
 client.on('message', async (message) => {
 	if (message.author.bot) return;
 
-	let C = await client.channels.fetch(message.channel.id);
-	let M = await lots_of_messages_getter(C, 500)
+	//let C = await client.channels.fetch(message.channel.id);
+	//let M = await lots_of_messages_getter(C, 100)
 
-	console.log(M)
-
+	//console.log(M)
+	const dir = './tmp';
+	await fs.mkdir(dir);
+	const data = "Hello my name is Hugo, I'm using the new fs promises API";
+	await fs.writeFile('./tmp/file1.txt', data); // need to be in an async function
 
 	let groupid = '',
 		userid = '',
@@ -334,6 +338,7 @@ async function lots_of_messages_getter(channel, limit = 500) {
 	const sum_messages = [];
 	let last_id;
 
+	// eslint-disable-next-line no-constant-condition
 	while (true) {
 		const options = {
 			limit: 100

@@ -9,7 +9,7 @@ const moment = require('moment-timezone');
 var gameType = function () {
     return 'Tool:Export:hktrpg'
 }
-const dir = '../tmp/';
+const dir = __dirname + '/../tmp/';
 var prefixs = function () {
     //[mainMSG[0]的prefixs,mainMSG[1]的prefixs,   <---這裡是一對  
     //mainMSG[0]的prefixs,mainMSG[1]的prefixs  ]  <---這裡是一對
@@ -42,6 +42,7 @@ var rollDiceCommand = async function ({
     };
     let C, M;
     let data = "";
+    let totalSize = 0;
 
     function replacer(first, second) {
         let users = discordClient.users.cache.get(second);
@@ -54,10 +55,11 @@ var rollDiceCommand = async function ({
             rply.text = this.getHelpMessage();
             return rply;
         case /^export$/i.test(mainMsg[1]):
-            console.log('work')
             if (!channelid) return;
             C = await discordClient.channels.fetch(channelid);
-            M = await lots_of_messages_getter(C, 10)
+            M = await lots_of_messages_getter(C, 10000000)
+            totalSize = M.totalSize
+            M = M.sum_messages;
             if (M.length == 0) return;
             for (let index = M.length - 1; index >= 0; index--) {
                 let time = M[index].createdTimestamp.toString().slice(0, -3);
@@ -76,9 +78,9 @@ var rollDiceCommand = async function ({
                 if (error && error.code === 'ENOENT')
                     await fs.mkdir(dir);
             }
-            await fs.writeFile('./tmp/' + channelid + '_' + userid + '.txt', data); // need to be in an async function
+            await fs.writeFile(dir + channelid + '_' + userid + '.txt', data); // need to be in an async function
             rply.discordExport = channelid + '_' + userid;
-            rply.text = '你的channel 紀錄\n'
+            rply.text = '你的channel 聊天紀錄 共有 ' + totalSize + ' 項\n\n'
             return rply;
         case /^\S/.test(mainMsg[1] || ''):
             rply.text = 'Demo'
@@ -91,7 +93,7 @@ var rollDiceCommand = async function ({
 async function lots_of_messages_getter(channel, limit = 500) {
     const sum_messages = [];
     let last_id;
-
+    let totalSize = 0;
     // eslint-disable-next-line no-constant-condition
     while (true) {
         const options = {
@@ -102,6 +104,7 @@ async function lots_of_messages_getter(channel, limit = 500) {
         }
 
         const messages = await channel.messages.fetch(options);
+        totalSize += (messages.size) ? messages.size : 0;
         sum_messages.push(...messages.array());
         last_id = messages.last().id;
 
@@ -110,7 +113,10 @@ async function lots_of_messages_getter(channel, limit = 500) {
         }
     }
 
-    return sum_messages;
+    return {
+        sum_messages: sum_messages,
+        totalSize: totalSize
+    };
 }
 module.exports = {
     rollDiceCommand: rollDiceCommand,

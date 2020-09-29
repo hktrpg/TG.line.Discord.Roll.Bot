@@ -65,7 +65,6 @@ client.on('message', async (message) => {
 	let TargetGMTempID = [];
 	let TargetGMTempdiyName = [];
 	let TargetGMTempdisplayname = [];
-
 	//得到暗骰的數據, GM的位置
 	let displaynamecheck = true;
 	let hasSendPermission = true;
@@ -191,11 +190,12 @@ client.on('message', async (message) => {
 	}
 
 	if (rplyVal.discordExport) {
-		message.channel.send("Testing message.", {
-			files: [
-				"./tmp/" + rplyVal.discordExport + '.txt'
-			]
-		});
+		message.channel.send(message.channel.name + ' ' +
+			message.guild.name, {
+				files: [
+					"./tmp/" + rplyVal.discordExport + '.txt'
+				]
+			});
 	}
 
 	if (!rplyVal.text) {

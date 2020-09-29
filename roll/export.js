@@ -33,7 +33,9 @@ var rollDiceCommand = async function ({
     mainMsg,
     discordClient,
     userid,
-    channelid
+    channelid,
+    groupid,
+    botname
 }) {
     let rply = {
         default: 'on',
@@ -55,7 +57,11 @@ var rollDiceCommand = async function ({
             rply.text = this.getHelpMessage();
             return rply;
         case /^export$/i.test(mainMsg[1]):
-            if (!channelid) return;
+            if (botname !== "Discord") {
+                rply.text = "Discord限定功能"
+                return rply;
+            }
+            if (!channelid || !groupid) return;
             C = await discordClient.channels.fetch(channelid);
             M = await lots_of_messages_getter(C, 10000000)
             totalSize = M.totalSize

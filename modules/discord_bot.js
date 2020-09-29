@@ -5,7 +5,6 @@ const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const Discord = require('discord.js');
 const client = new Discord.Client();
 const msgSplitor = (/\S+/ig);
-const fs = require('fs').promises;
 var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 //const BootTime = new Date(new Date().toLocaleString("en-US", {
 //	timeZone: "Asia/Shanghai"
@@ -57,17 +56,6 @@ client.on('guildCreate', guild => {
 })
 
 client.on('message', async (message) => {
-	if (message.author.bot) return;
-
-	//let C = await client.channels.fetch(message.channel.id);
-	//let M = await lots_of_messages_getter(C, 100)
-
-	//console.log(M)
-	const dir = './tmp';
-	await fs.mkdir(dir);
-	const data = "Hello my name is Hugo, I'm using the new fs promises API";
-	await fs.writeFile('./tmp/file1.txt', data); // need to be in an async function
-
 	let groupid = '',
 		userid = '',
 		displayname = '',
@@ -167,7 +155,8 @@ client.on('message', async (message) => {
 			displayname: displayname,
 			channelid: channelid,
 			displaynameDiscord: displaynameDiscord,
-			membercount: membercount
+			membercount: membercount,
+			discordClient: client
 		})
 	} else {
 		if (channelKeyword == "") {
@@ -181,7 +170,7 @@ client.on('message', async (message) => {
 				channelid: channelid,
 				displaynameDiscord: displaynameDiscord,
 				membercount: membercount,
-				discordMessage: message
+				discordClient: client
 			});
 		}
 	}
@@ -199,6 +188,14 @@ client.on('message', async (message) => {
 	if (groupid && rplyVal && rplyVal.LevelUp) {
 		//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
 		SendToReplychannel("<@" + userid + '>\n' + rplyVal.LevelUp, message);
+	}
+
+	if (rplyVal.discordExport) {
+		message.channel.send("Testing message.", {
+			files: [
+				"./tmp/" + rplyVal.discordExport + '.txt'
+			]
+		});
 	}
 
 	if (!rplyVal.text) {
@@ -333,28 +330,3 @@ client.on('ready', () => {
 	client.user.setActivity('bothelp | hktrpg.com');
 });
 client.login(channelSecret);
-
-async function lots_of_messages_getter(channel, limit = 500) {
-	const sum_messages = [];
-	let last_id;
-
-	// eslint-disable-next-line no-constant-condition
-	while (true) {
-		const options = {
-			limit: 100
-		};
-		if (last_id) {
-			options.before = last_id;
-		}
-
-		const messages = await channel.messages.fetch(options);
-		sum_messages.push(...messages.array());
-		last_id = messages.last().id;
-
-		if (messages.size != 100 || sum_messages.length >= limit) {
-			break;
-		}
-	}
-
-	return sum_messages;
-}

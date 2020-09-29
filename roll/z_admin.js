@@ -5,7 +5,6 @@ const opt = {
     runValidators: true
 }
 
-const moment = require('moment');
 const crypto = require('crypto');
 const password = process.env.CRYPTO_SECRET,
     algorithm = 'aes-256-ctr';
@@ -47,8 +46,7 @@ var rollDiceCommand = async function ({
     displayname,
     channelid,
     displaynameDiscord,
-    membercount,
-    discordMessage
+    membercount
 }) {
     let rply = {
         default: 'on',

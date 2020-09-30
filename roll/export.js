@@ -63,11 +63,14 @@ var rollDiceCommand = async function ({
             }
             if (!channelid || !groupid) return;
             C = await discordClient.channels.fetch(channelid);
-            M = await lots_of_messages_getter(C, 10000000)
-            totalSize = M.totalSize
+            M = await lots_of_messages_getter(C);
+            totalSize = M.totalSize;
             M = M.sum_messages;
             if (M.length == 0) return;
             for (let index = M.length - 1; index >= 0; index--) {
+                if (index == 0) {
+                    console.log(M)
+                }
                 let time = M[index].createdTimestamp.toString().slice(0, -3);
                 const dateObj = moment
                     .unix(time)
@@ -96,7 +99,7 @@ var rollDiceCommand = async function ({
     }
 }
 
-async function lots_of_messages_getter(channel, limit = 500) {
+async function lots_of_messages_getter(channel) {
     const sum_messages = [];
     let last_id;
     let totalSize = 0;
@@ -114,7 +117,7 @@ async function lots_of_messages_getter(channel, limit = 500) {
         sum_messages.push(...messages.array());
         last_id = messages.last().id;
 
-        if (messages.size != 100 || sum_messages.length >= limit) {
+        if (messages.size != 100) {
             break;
         }
     }

@@ -179,7 +179,7 @@
 </head>
 
 
-<body class="bg-color">
+<body class="bg-color" id="body">
     <div class="container-lg">
         <div class="row">
             <div class="col color-02">
@@ -371,38 +371,6 @@
                         contact: 'Third: Learn JavaScript\nWWW',
                         date: '2009-09-09',
                         user: 'Sad'
-                    },
-                    {
-                        contact: 'Third: Learn JavaScript\nWWW',
-                        date: '2009-09-09',
-                        user: 'Sad'
-                    },
-                    {
-                        contact: 'Third: Learn JavaScript\nWWW',
-                        date: '2009-09-09',
-                        user: 'Sad'
-                    },
-                    {
-                        contact: 'Third: Learn JavaScript\nWWW\nWWW\nWWW>WWW',
-                        date: '2009-09-09',
-                        user: 'Sad',
-                        month: "Dec.",
-                        day: "05"
-                    },
-                    {
-                        contact: 'Third: Learn JavaScript\nWWW',
-                        date: '2009-09-09',
-                        user: 'Sad'
-                    },
-                    {
-                        contact: 'Third: Learn JavaScript\nWWW',
-                        date: '2009-09-09',
-                        user: 'Sad'
-                    },
-                    {
-                        contact: 'Third: Learn JavaScript\nWWW',
-                        date: '2009-09-09',
-                        user: 'Sad'
                     }
                 ],
                 messages2: [,
@@ -432,12 +400,18 @@
         document.getElementById("touchBar").addEventListener("mousedown",
 
             function clicked(e) {
+                var body = document.body,
+                    html = document.documentElement;
+
+                var height = Math.max(body.scrollHeight, body.offsetHeight,
+                    html.clientHeight, html.scrollHeight, html.offsetHeight);
                 var br = document.getElementById("touchBar").getBoundingClientRect();
                 // x & y are relative to the clicked element
                 var x = e.clientX - br.left;
+                console.log(document.getElementById("body"))
                 var level = Math.round(x / document.getElementById("touchBar").offsetWidth * 100) / 100;
                 window.scrollTo({
-                    top: (screen.height) * level,
+                    top: (height - screen.height) * level,
                     behavior: 'smooth'
                 });
 

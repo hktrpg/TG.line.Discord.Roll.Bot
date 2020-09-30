@@ -21,6 +21,11 @@
         color: white;
     }
 
+    .preline {
+        white-space:
+            pre-line;
+    }
+
     #timeline {
         list-style: none;
         position: relative;
@@ -115,7 +120,7 @@
     }
 
     #timeline .timeline-movement .timeline-item {
-        padding: 20px 0;
+        padding: 0px 0px 10px 40px;
     }
 
     #timeline .timeline-movement .timeline-item .timeline-panel {
@@ -123,7 +128,7 @@
         border-radius: 3px;
         background-color: #FFFFFF;
         color: #666;
-        padding: 10px;
+        padding: 5px 5px 5px 5px;
         position: relative;
         -webkit-box-shadow: 0 1px 6px rgba(0, 0, 0, 0.175);
         box-shadow: 0 1px 6px rgba(0, 0, 0, 0.175);
@@ -139,7 +144,7 @@
     }
 
     #timeline .timeline-movement .timeline-item .timeline-panel.credits .timeline-panel-ul {
-        text-align: right;
+        text-align: center;
     }
 
     #timeline .timeline-movement .timeline-item .timeline-panel.credits .timeline-panel-ul li {
@@ -171,6 +176,8 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
         integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- development version, includes helpful console warnings -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <title>Hello, world!</title>
 </head>
 
@@ -197,7 +204,7 @@
 
     <div class="container">
         <div class="page-header">
-            <h1 id="">Timeline</h1>
+            <h1>Timeline</h1>
         </div>
         <div id="timeline">
             <div class="row timeline-movement timeline-movement-top">
@@ -214,24 +221,30 @@
 
             </div>
             <!--START-->
-            <div class="row timeline-movement">
+
+            <div class="row timeline-movement" id="Body">
                 <div class="timeline-badge">
                     <span class="timeline-balloon-date-day">18</span>
                     <span class="timeline-balloon-date-month">APR</span>
+
                 </div>
 
 
-                <div class="col-sm-6  timeline-item">
+                <div class="col-sm-6 timeline-item" v-for="message in messages">
                     <div class="row">
                         <div class="col-sm-11">
                             <div class="timeline-panel credits">
                                 <ul class="timeline-panel-ul">
-                                    <li><span class="importo">Mussum ipsum cacilds</span></li>
-                                    <li><span class="causale">Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                                        </span> </li>
+                                    <li><span class="importo"> {{ message.user }} </span>
+                                    </li>
+                                    <div>
+                                        <span class="text-break preline"> {{ message.contact }}
+                                        </span>
+                                    </div>
                                     <li>
-                                        <p><small class="text-muted"><i class="glyphicon glyphicon-time"></i>
-                                                左 11/09/2014</small></p>
+                                        <p><small class="text-muted"><i
+                                                    class="glyphicon glyphicon-time">{{ message.date }}</i>
+                                            </small></p>
                                     </li>
                                 </ul>
                             </div>
@@ -240,283 +253,122 @@
                     </div>
                 </div>
 
-                <div class="col-sm-6  timeline-item">
-                    <div class="row">
-                        <div class="col-sm-offset-1 col-sm-11">
-                            <div class="timeline-panel debits">
-                                <ul class="timeline-panel-ul">
-                                    <li><span class="importo">Mussum ipsum cacilds</span></li>
-                                    <li><span class="causale">Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                                        </span> </li>
-                                    <li>
-                                        <p><small class="text-muted"><i class="glyphicon glyphicon-time"></i>
-                                                右11/09/2014</small></p>
-                                    </li>
-                                </ul>
-                            </div>
+                <!--END-->
 
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!--END-->
-
-
-            <div class="row timeline-movement">
-
-                <div class="timeline-badge">
-                    <span class="timeline-balloon-date-day">18</span>
-                    <span class="timeline-balloon-date-month">APR</span>
-                </div>
-
-
-                <div class="col-sm-6  timeline-item">
-                    <div class="row">
-                        <div class="col-sm-11">
-                            <div class="timeline-panel credits">
-                                <ul class="timeline-panel-ul">
-                                    <li><span class="importo">Mussum ipsum cacilds</span></li>
-                                    <li><span class="causale">Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                                        </span> </li>
-                                    <li>
-                                        <p><small class="text-muted"><i class="glyphicon glyphicon-time"></i>
-                                                左 11/09/2014</small></p>
-                                    </li>
-                                </ul>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-sm-6  timeline-item">
-                    <div class="row">
-                        <div class="col-sm-offset-1 col-sm-11">
-                            <div class="timeline-panel debits">
-                                <ul class="timeline-panel-ul">
-                                    <li><span class="importo">Mussum ipsum cacilds</span></li>
-                                    <li><span class="causale">Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                                        </span> </li>
-                                    <li>
-                                        <p><small class="text-muted"><i class="glyphicon glyphicon-time"></i>
-                                                右11/09/2014</small></p>
-                                    </li>
-                                </ul>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row timeline-movement">
-
-                <div class="timeline-badge">
-                    <span class="timeline-balloon-date-day">18</span>
-                    <span class="timeline-balloon-date-month">APR</span>
-                </div>
-
-
-                <div class="col-sm-6  timeline-item">
-                    <div class="row">
-                        <div class="col-sm-11">
-                            <div class="timeline-panel credits">
-                                <ul class="timeline-panel-ul">
-                                    <li><span class="importo">Mussum ipsum cacilds</span></li>
-                                    <li><span class="causale">Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                                        </span> </li>
-                                    <li>
-                                        <p><small class="text-muted"><i class="glyphicon glyphicon-time"></i>
-                                                左 11/09/2014</small></p>
-                                    </li>
-                                </ul>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-sm-6  timeline-item">
-                    <div class="row">
-                        <div class="col-sm-offset-1 col-sm-11">
-                            <div class="timeline-panel debits">
-                                <ul class="timeline-panel-ul">
-                                    <li><span class="importo">Mussum ipsum cacilds</span></li>
-                                    <li><span class="causale">Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                                        </span> </li>
-                                    <li>
-                                        <p><small class="text-muted"><i class="glyphicon glyphicon-time"></i>
-                                                右11/09/2014</small></p>
-                                    </li>
-                                </ul>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row timeline-movement">
-
-                <div class="timeline-badge">
-                    <span class="timeline-balloon-date-day">18</span>
-                    <span class="timeline-balloon-date-month">APR</span>
-                </div>
-
-
-                <div class="col-sm-6  timeline-item">
-                    <div class="row">
-                        <div class="col-sm-11">
-                            <div class="timeline-panel credits">
-                                <ul class="timeline-panel-ul">
-                                    <li><span class="importo">Mussum ipsum cacilds</span></li>
-                                    <li><span class="causale">Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                                        </span> </li>
-                                    <li>
-                                        <p><small class="text-muted"><i class="glyphicon glyphicon-time"></i>
-                                                左 11/09/2014</small></p>
-                                    </li>
-                                </ul>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-sm-6  timeline-item">
-                    <div class="row">
-                        <div class="col-sm-offset-1 col-sm-11">
-                            <div class="timeline-panel debits">
-                                <ul class="timeline-panel-ul">
-                                    <li><span class="importo">Mussum ipsum cacilds</span></li>
-                                    <li><span class="causale">Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                                        </span> </li>
-                                    <li>
-                                        <p><small class="text-muted"><i class="glyphicon glyphicon-time"></i>
-                                                右11/09/2014</small></p>
-                                    </li>
-                                </ul>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row timeline-movement">
-
-                <div class="timeline-badge">
-                    <span class="timeline-balloon-date-day">18</span>
-                    <span class="timeline-balloon-date-month">APR</span>
-                </div>
-
-
-                <div class="col-sm-6  timeline-item">
-                    <div class="row">
-                        <div class="col-sm-11">
-                            <div class="timeline-panel credits">
-                                <ul class="timeline-panel-ul">
-                                    <li><span class="importo">Mussum ipsum cacilds</span></li>
-                                    <li><span class="causale">Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                                        </span> </li>
-                                    <li>
-                                        <p><small class="text-muted"><i class="glyphicon glyphicon-time"></i>
-                                                左 11/09/2014</small></p>
-                                    </li>
-                                </ul>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-sm-6  timeline-item">
-                    <div class="row">
-                        <div class="col-sm-offset-1 col-sm-11">
-                            <div class="timeline-panel debits">
-                                <ul class="timeline-panel-ul">
-                                    <li><span class="importo">Mussum ipsum cacilds</span></li>
-                                    <li><span class="causale">Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                                        </span> </li>
-                                    <li>
-                                        <p><small class="text-muted"><i class="glyphicon glyphicon-time"></i>
-                                                右11/09/2014</small></p>
-                                    </li>
-                                </ul>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
-    </div>
-    <br><br>
-    <div class="container-lg fixed-bottom">
-        <div class="progress" style="height: 30px;">
-            <div class="progress-bar" role="progressbar" style="width: 15%" aria-valuenow="25" aria-valuemin="0"
-                aria-valuemax="100">25%</div>
+        <br><br>
+        <div class="container-lg fixed-bottom">
+            <div class="progress" style="height: 30px;">
+                <div class="progress-bar" role="progressbar" style="width: 15%" aria-valuenow="25" aria-valuemin="0"
+                    aria-valuemax="100">25%</div>
+            </div>
         </div>
-    </div>
-//https://getbootstrap.com/docs/4.5/components/scrollspy/#list-item-4
-    <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous">
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
-        integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous">
-    </script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
-        integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous">
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.js"
-        integrity="sha512-QEiC894KVkN9Tsoi6+mKf8HaCLJvyA6QIRzY5KrfINXYuP9NxdIkRQhGq3BZi0J4I7V5SidGM3XUQ5wFiMDuWg=="
-        crossorigin="anonymous"></script>
+        //https://getbootstrap.com/docs/4.5/components/scrollspy/#list-item-4
+        <!-- Optional JavaScript -->
+        <!-- jQuery first, then Popper.js, then Bootstrap JS -->
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.css"
-        integrity="sha512-SUJFImtiT87gVCOXl3aGC00zfDl6ggYAw5+oheJvRJ8KBXZrr/TMISSdVJ5bBarbQDRC2pR5Kto3xTR0kpZInA=="
-        crossorigin="anonymous" />
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+            integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous">
+        </script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+            integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous">
+        </script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
+            integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous">
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.js"
+            integrity="sha512-QEiC894KVkN9Tsoi6+mKf8HaCLJvyA6QIRzY5KrfINXYuP9NxdIkRQhGq3BZi0J4I7V5SidGM3XUQ5wFiMDuWg=="
+            crossorigin="anonymous"></script>
 
-    <script>
-        var ctx = document.getElementById("myChart").getContext('2d');
-        var myChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
-                datasets: [{
-                    label: '# of Votes',
-                    data: [12, 19, 3, 5, 2, 3],
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.2)',
-                        'rgba(54, 162, 235, 0.2)',
-                        'rgba(255, 206, 86, 0.2)',
-                        'rgba(75, 192, 192, 0.2)',
-                        'rgba(153, 102, 255, 0.2)',
-                        'rgba(255, 159, 64, 0.2)'
-                    ],
-                    borderColor: [
-                        'rgba(255,99,132,1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(153, 102, 255, 1)',
-                        'rgba(255, 159, 64, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    yAxes: [{
-                        ticks: {
-                            beginAtZero: true
-                        }
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.css"
+            integrity="sha512-SUJFImtiT87gVCOXl3aGC00zfDl6ggYAw5+oheJvRJ8KBXZrr/TMISSdVJ5bBarbQDRC2pR5Kto3xTR0kpZInA=="
+            crossorigin="anonymous" />
+
+        <script>
+            var ctx = document.getElementById("myChart").getContext('2d');
+            var myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
+                    datasets: [{
+                        label: '# of Votes',
+                        data: [12, 19, 3, 5, 2, 3],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(255, 206, 86, 0.2)',
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(153, 102, 255, 0.2)',
+                            'rgba(255, 159, 64, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(255,99,132,1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)'
+                        ],
+                        borderWidth: 1
                     }]
+                },
+                options: {
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true
+                            }
+                        }]
+                    }
                 }
-            }
-        });
-    </script>
+            });
+            var app4 = new Vue({
+                el: '#Body',
+                data: {
+                    messages: [{
+                            contact: 'first',
+                            date: '2009-09-09',
+                            user: 'Sad'
+                        },
+                        {
+                            contact: 'Second, Learn JavaScript',
+                            date: '2009-09-09',
+                            user: 'Sad'
+                        },
+                        {
+                            contact: 'Third: Learn JavaScript\nWWW',
+                            date: '2009-09-09',
+                            user: 'Sad'
+                        },
+                        {
+                            contact: 'Third: Learn JavaScript\nWWW',
+                            date: '2009-09-09',
+                            user: 'Sad'
+                        },
+                        {
+                            contact: 'Third: Learn JavaScript\nWWW',
+                            date: '2009-09-09',
+                            user: 'Sad'
+                        },
+                        {
+                            contact: 'Third: Learn JavaScript\nWWW\nWWW\nWWW>WWW',
+                            date: '2009-09-09',
+                            user: 'Sad'
+                        },
+                        {
+                            contact: 'Third: Learn JavaScript\nWWW',
+                            date: '2009-09-09',
+                            user: 'Sad'
+                        }
+                    ]
+                }
+            })
+        </script>
+
+        <script>
+
+        </script>
 </body>
 
 </html>

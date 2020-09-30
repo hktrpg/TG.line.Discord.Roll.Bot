@@ -280,10 +280,27 @@
                 aria-valuemin="0" aria-valuemax="100">25%</div>
         </div>
     </div>
-    //https://getbootstrap.com/docs/4.5/components/scrollspy/#list-item-4
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script>
+        //https://getbootstrap.com/docs/4.5/components/scrollspy/#list-item-4
+        //總共聊天天數O
+        totallydate = await totally(result)
+        //總共傳了多少訊息O
+        totallymessage = await analysicTotallymessage(result)
+        //最多訊息數日子頭三，訊息數 O
+        date = await analysicDate(result)
+        //群友的各自的訊息數，每日平均訊息數量，最多說話的三天 O
+        peopleTalk = await analysicPeopleTalk(result);
 
+
+        //群友各自占聊天的比例
+        //群友的最常聊天對像
+        //各自的文字訊息、 貼圖、 照片數量和比例
+        //最常講的字 文字雲(大於30次才會顯示)
+        //平均每日訊息
+        //曾經的GP名
+    </script>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
         integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous">
     </script>
@@ -382,6 +399,16 @@
                         contact: 'Third: Learn JavaScript\nWWW',
                         date: '2009-09-09',
                         user: 'Sad'
+                    },
+                    {
+                        contact: 'Third: Learn JavaScript\nWWW',
+                        date: '2009-09-09',
+                        user: 'Sad'
+                    },
+                    {
+                        contact: 'Third: Learn JavaScript\nWWW',
+                        date: '2009-09-09',
+                        user: 'Sad'
                     }
                 ],
                 messages2: [,
@@ -411,15 +438,12 @@
         document.getElementById("touchBar").addEventListener("mousedown",
 
             function clicked(e) {
-                console.log((e))
                 var br = document.getElementById("touchBar").getBoundingClientRect();
                 // x & y are relative to the clicked element
                 var x = e.clientX - br.left;
-                var level = Math.round(x / e.srcElement.scrollWidth * 100) / 100;
-                console.log(document.body.scrollHeight);
-
+                var level = Math.round(x / document.getElementById("touchBar").offsetWidth * 100) / 100;
                 window.scrollTo({
-                    top: document.body.scrollHeight / 2 * level,
+                    top: (screen.height) * level,
                     behavior: 'smooth'
                 });
 

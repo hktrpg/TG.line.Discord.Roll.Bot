@@ -275,7 +275,7 @@
     </div>
     <br><br>
     <div class="container-lg fixed-bottom">
-        <div class="progress" style="height: 30px; background: #ccc;">
+        <div class="progress" id="touchBar" style="height: 30px; background: #ccc;">
             <div class="progress-bar" id="progressbar" role="progressbar" style="width: 10%" aria-valuenow="25"
                 aria-valuemin="0" aria-valuemax="100">25%</div>
         </div>
@@ -408,6 +408,15 @@
     </script>
 
     <script>
+        document.getElementById("touchBar").addEventListener("touchstart",
+
+            function clicked(e) {
+                var br = document.getElementById("touchBar").getBoundingClientRect();
+                // x & y are relative to the clicked element
+                var x = e.touches[0].clientX - br.left;
+                var y = e.touches[0].clientY - br.top;
+                console.log("x: " + x + " y: " + y);
+            });
         var progressbar = document.getElementById("progressbar");
         document.onscroll = function () {
             var pos = getVerticalScrollPercentage(document.body)

@@ -313,17 +313,21 @@
             isbot: false,
         }]
         //總共聊天天數O   第一個信息
-        var totallydate = totallyDay(rawData)
+        var totallydate = totallyDay(rawData);
+        //[d, '天', pad(h), '小時', pad(m), '分鐘'].join('');
 
         //總共傳了多少訊息O  分別機械人和非BOT
-        var totallymessage = analysicTotallymessage(result)
+        var totallymessage = analysicTotallymessage(rawData);
+        //[humanTimes.length, botTimes.length
 
         //最多訊息數日子頭三，訊息數 O   
-        date = await analysicDate(result)
+        var date = await analysicDate(rawData)
 
 
-        //群友的各自的訊息數，每日平均訊息數量，最多說話的三天 O    頭六名
-        peopleTalk = await analysicPeopleTalk(result);
+        // 頭六名群友的各自的訊息數，每日平均訊息數量，最多說話的一天 
+        var peopleTalk = await analysicPeopleTalk(rawData);
+
+
         //群友各自占聊天的比例   
 
         //https://github.com/pulipulichen/HTML5-Text-Analyzer
@@ -408,7 +412,7 @@
             return [humanTimes.length, botTimes.length]
         }
 
-        function totally(result) {
+        function totallyDay(result) {
             if (!result) return;
             let firstDay = result[result.length - 1];
             let Day = firstDay.TIMESTRAMP;

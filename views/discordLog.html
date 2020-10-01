@@ -284,16 +284,25 @@
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script>
         //https://getbootstrap.com/docs/4.5/components/scrollspy/#list-item-4
-        //總共聊天天數O
+        //總共聊天天數O   第一個信息
         totallydate = await totally(result)
-        //總共傳了多少訊息O
+        //總共傳了多少訊息O  分別機械人和非BOT
         totallymessage = await analysicTotallymessage(result)
-        //最多訊息數日子頭三，訊息數 O
+        //最多訊息數日子頭三，訊息數 O   
         date = await analysicDate(result)
-        //群友的各自的訊息數，每日平均訊息數量，最多說話的三天 O
+        //群友的各自的訊息數，每日平均訊息數量，最多說話的三天 O    頭六名
         peopleTalk = await analysicPeopleTalk(result);
-        //群友各自占聊天的比例
+        //群友各自占聊天的比例   
         //最常講的字 文字雲(大於30次才會顯示)
+
+        /**
+         *    contact: 'Third: Learn JavaScript\nWWW',
+                        TIMESTRAMP: '2009-09-09',
+                        user: 'Sad',
+                        ISBOT?: "Dec.",
+                        
+         * 
+         * */
     </script>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
         integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous">
@@ -454,12 +463,16 @@
                     {
                         contact: 'Third: Learn JavaScript\nWWW',
                         date: '2009-09-09',
-                        user: 'Sad'
+                        user: 'Sad',
+                        month: "Dec.",
+                        day: "05"
                     },
                     {
                         contact: 'Third: Learn JavaScript\nWWW',
                         date: '2009-09-09',
-                        user: 'Sad'
+                        user: 'Sad',
+                        month: "Dec.",
+                        day: "05"
                     }
                 ]
             }

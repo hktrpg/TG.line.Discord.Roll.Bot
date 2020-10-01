@@ -284,6 +284,27 @@
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script>
         //https://getbootstrap.com/docs/4.5/components/scrollspy/#list-item-4
+
+        /**
+         * 1. 
+         * 總共聊天天數 - 由什麼時候開始
+         * 總共傳了多少訊息 - BOT 及非BOT
+         * 
+         * 2.
+         * 群友的頭六名的訊息數(不包括BOT) (棒型圖)
+         * 
+         * 3.
+         * 每日平均訊息數量
+         * 最多說話的一天
+         * 
+         * 4.群友各自占聊天的比例 (圓型圖)  
+         * 
+         * 5. 
+         * 最常講的字 (文字雲) 
+         * 
+         * 6. 每日訊息數(拆線圖)
+         * 
+         */
         //總共聊天天數O   第一個信息
         totallydate = await totally(result)
         //總共傳了多少訊息O  分別機械人和非BOT
@@ -293,7 +314,7 @@
         //群友的各自的訊息數，每日平均訊息數量，最多說話的三天 O    頭六名
         peopleTalk = await analysicPeopleTalk(result);
         //群友各自占聊天的比例   
-        //最常講的字 文字雲(大於30次才會顯示)
+        //最常講的字 文字雲(大於30次才會顯示)   
 
         /**
          *    contact: 'Third: Learn JavaScript\nWWW',

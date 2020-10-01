@@ -354,33 +354,103 @@
             el: '#Body',
             data: {
                 messages: [{
-                        contact: 'first',
-                        date: '2009-09-09',
-                        user: 'Sad',
-                        month: "Dec.",
-                        day: "05"
-                    },
-                    {
+                    contact: 'first',
+                    date: '2009-09-09',
+                    user: 'Sad',
+                    month: "Dec.",
+                    day: "05"
+                }, {
+                    contact: 'first',
+                    date: '2009-09-09',
+                    user: 'Sad',
+                    month: "Dec.",
+                    day: "05"
+                }, {
+                    contact: 'first',
+                    date: '2009-09-09',
+                    user: 'Sad',
+                    month: "Dec.",
+                    day: "05"
+                }, {
+                    contact: 'first',
+                    date: '2009-09-09',
+                    user: 'Sad',
+                    month: "Dec.",
+                    day: "05"
+                }, {
+                    contact: 'first',
+                    date: '2009-09-09',
+                    user: 'Sad',
+                    month: "Dec.",
+                    day: "05"
+                }, {
+                    contact: 'first',
+                    date: '2009-09-09',
+                    user: 'Sad',
+                    month: "Dec.",
+                    day: "05"
+                }, {
+                    contact: 'first',
+                    date: '2009-09-09',
+                    user: 'Sad',
+                    month: "Dec.",
+                    day: "05"
+                }, {
+                    contact: 'first',
+                    date: '2009-09-09',
+                    user: 'Sad',
+                    month: "Dec.",
+                    day: "05"
+                }, {
+                    contact: 'first',
+                    date: '2009-09-09',
+                    user: 'Sad',
+                    month: "Dec.",
+                    day: "05"
+                }, {
+                    contact: 'first',
+                    date: '2009-09-09',
+                    user: 'Sad',
+                    month: "Dec.",
+                    day: "05"
+                }, {
+                    contact: 'first',
+                    date: '2009-09-09',
+                    user: 'Sad',
+                    month: "Dec.",
+                    day: "05"
+                }, {
+                    contact: 'first',
+                    date: '2009-09-09',
+                    user: 'Sad',
+                    month: "Dec.",
+                    day: "05"
+                }, {
+                    contact: 'first',
+                    date: '2009-09-09',
+                    user: 'Sad',
+                    month: "Dec.",
+                    day: "05"
+                }, {
+                    contact: 'first',
+                    date: '2009-09-09',
+                    user: 'Sad',
+                    month: "Dec.",
+                    day: "05"
+                }, {
+                    contact: 'first',
+                    date: '2009-09-09',
+                    user: 'Sad',
+                    month: "Dec.",
+                    day: "05"
+                }],
+                messages2: [{
                         contact: 'Second, Learn JavaScript',
                         date: '2009-09-09',
                         user: 'Sad',
                         month: "Dec.",
                         day: "05"
                     },
-                    {
-                        contact: 'Third: Learn JavaScript\nWWW',
-                        date: '2009-09-09',
-                        user: 'Sad'
-                    }
-                ],
-                messages2: [,
-                    {
-                        contact: 'Second, Learn JavaScript',
-                        date: '2009-09-09',
-                        user: 'Sad',
-                        month: "Dec.",
-                        day: "05"
-                    }, ,
                     {
                         contact: 'Third: Learn JavaScript\nWWW',
                         date: '2009-09-09',
@@ -397,39 +467,38 @@
     </script>
 
     <script>
+        var h = document.documentElement,
+            b = document.body,
+            st = 'scrollTop',
+            sh = 'scrollHeight';
+        var progressbar = document.getElementById("progressbar");
+        var pos = ((h[sh] || b[sh]) <= h.clientHeight) ? 100 : getVerticalScrollPercentage(b);
+        progressbar.innerHTML = Math.round(pos) + '%';
+        progressbar.style.width = Math.max(Math.round(pos), 10) + '%';
         document.getElementById("touchBar").addEventListener("mousedown",
-
             function clicked(e) {
-                var body = document.body,
-                    html = document.documentElement;
-
-                var height = Math.max(body.scrollHeight, body.offsetHeight,
-                    html.clientHeight, html.scrollHeight, html.offsetHeight);
                 var br = document.getElementById("touchBar").getBoundingClientRect();
                 // x & y are relative to the clicked element
                 var x = e.clientX - br.left;
-                console.log(document.getElementById("body"))
                 var level = Math.round(x / document.getElementById("touchBar").offsetWidth * 100) / 100;
+
                 window.scrollTo({
-                    top: (height - screen.height) * level,
+                    top: level * ((h[sh] || b[sh]) - h.clientHeight),
                     behavior: 'smooth'
                 });
 
             });
-        var progressbar = document.getElementById("progressbar");
+
         document.onscroll = function () {
-            var pos = getVerticalScrollPercentage(document.body)
+            pos = getVerticalScrollPercentage(b)
             //aria-valuenow
             progressbar.innerHTML = Math.round(pos) + '%';
             progressbar.style.width = Math.max(Math.round(pos), 10) + '%';
         };
 
         function getVerticalScrollPercentage(elm) {
-            var h = document.documentElement,
-                b = document.body,
-                st = 'scrollTop',
-                sh = 'scrollHeight';
 
+            //   console.log((h[st] || b[st]), (h[sh] || b[sh]), h.clientHeight)
             var percent = (h[st] || b[st]) / ((h[sh] || b[sh]) - h.clientHeight) * 100;
 
             return percent

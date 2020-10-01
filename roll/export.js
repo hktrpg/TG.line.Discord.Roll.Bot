@@ -68,9 +68,6 @@ var rollDiceCommand = async function ({
             M = M.sum_messages;
             if (M.length == 0) return;
             for (let index = M.length - 1; index >= 0; index--) {
-                if (index == 0) {
-                    console.log(M)
-                }
                 let time = M[index].createdTimestamp.toString().slice(0, -3);
                 const dateObj = moment
                     .unix(time)

@@ -321,14 +321,16 @@
         //[humanTimes.length, botTimes.length
 
         //最多訊息數日子頭三，訊息數 O   
-        var date = await analysicDate(rawData)
+        var date = analysicDate(rawData)
 
 
-        // 頭六名群友的各自的訊息數，每日平均訊息數量，最多說話的一天 
+        // 頭六名群友的各自的訊息數
         var peopleTalk = await analysicPeopleTalk(rawData);
-
-
         //群友各自占聊天的比例   
+
+
+        //每日平均訊息數量
+        //最多說話的一天 
 
         //https://github.com/pulipulichen/HTML5-Text-Analyzer
         //最常講的字 文字雲(大於30次才會顯示)   
@@ -343,15 +345,15 @@
          * */
 
 
-
+        //最多訊息數日子頭三， 訊息數 O
         async function analysicDate(result) {
             let tempresult = [];
             let temptime = 0;
             for (let index = 1; index < result.length; index++) {
-                let temp = result[index].match(regex)
+                let unix_timestamp = result[index].TIMESTRAMP;
                 // console.log(temp)
-                let data = new Date(temp[3], temp[2], temp[1]);
-                if (!tempresult[temptime]) {
+                let data = new Date(unix_timestamp * 1000);
+                if (!tempresult || !tempresult[temptime]) {
                     tempresult[temptime] = {
                         data: data,
                         number: 1
@@ -371,44 +373,26 @@
         }
 
         //群友的各自的訊息數，每日平均訊息數量，最多說話的三天
-        async function analysicPeopleTalk(result) {
-            let tempPeople = new Array;
-            let tempTime = 0;
-            tempPeople[0] = {
-                name: "test",
-                time: {
-                    date: "",
-                    times: 0
-                },
-                text: ""
+        function analysicPeopleTalk(messages) {
+            var tempData = [];
+            function user(user = '', isBot = false, day = '2009-09-09') {
+                this.user = user;
+                this.isBot = isBot;
+                this.date = {
+                    day: day,
+                    times: 1
+                };
             }
-            for (let index = 0; index < result.length; index++) {
-                if (regexWithText.exec(result[index])) {
-                    let tempPeopleData = regexWithText.exec(result[index]);
-                    for (let index2 = 0; index2 < tempPeople.length; index2++) {
-                        if (tempPeople[index2] == tempPeopleData[7]) {
-                            tempPeople[index2].text += tempPeopleData[8];
-                            for (let index3 = 0; index3 < tempPeople[index2].time.length; index3++) {
-                                let data = new Date(tempPeopleData[3], tempPeopleData[2], tempPeopleData[1]);
-                                if (tempPeople[index2].time[index3].date == data)
-                                    tempPeople[index2].time[index3].times++
-
-                            }
-                        }
-                    }
-
+            messages.forEach(message => {
+                if (message.user) {
 
                 }
-
-
-            }
-
+            })
         }
 
-        function analysicTotallymessage(params) {
-            let humanTimes = params.filter(time => time.isbot == false) || [];
-            let botTimes = params.filter(word => time.length == true) || [];
-
+        function analysicTotallymessage(messages) {
+            let humanTimes = messages.filter(time => time.isbot == false) || [];
+            let botTimes = messages.filter(time => time.length == true) || [];
             return [humanTimes.length, botTimes.length]
         }
 
@@ -420,8 +404,6 @@
             //console.log(result[1])
             return dhm(today - Day);
             //"[30/10/2019, 17:07:04]", "30", "10", "2019", "17", "07", "04"]
-            //return new Date(result[0].match(regex))
-
         }
 
         function dhm(t) {

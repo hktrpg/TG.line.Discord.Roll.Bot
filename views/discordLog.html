@@ -183,31 +183,44 @@
     <div class="container-lg">
         <div class="row">
             <div class="col color-02">
-                * 總共聊天天數 - 由什麼時候開始<br>
-                * 總共傳了多少訊息 - BOT 及非BOT
+                <div id="totallyDate"><br>
+                    * 總共聊天天數 <br>
+                    {{ message }}
+                </div>
+                <div id="totallyMessage"><br>
+                    * 總共傳了多少訊息 - BOT 及非BOT<br>
+                    人: {{ message0 }} BOT: {{ message1 }}
+                </div>
             </div>
             <div class="col color-01">
                 <canvas id="myChart" width="100" height="80"></canvas>
                 群友的頭六名的訊息數(不包括BOT) (棒型圖)
             </div>
             <div class="col color-03">
-                * 每日平均訊息數量
-                * 最多說話的一天
+                <div id="analysicDate">
+                    * 每日平均訊息數量
+                    * 最多說話的一天
+                    <div v-for="message in messages">
+                        {{ message.date }} 有 {{ message.number }}條信息
+                    </div>
+
+
+                </div>
             </div>
         </div>
 
     </div>
     <div class="container-lg">
         <div class="row">
-            <div class="col color-02">
+            <div class="col color-03">
                 <canvas id="myChart2" width="100" height="80"></canvas>
                 群友各自占聊天的比例 (圓型圖)
 
             </div>
-            <div class="col color-01">
+            <div class="col color-02">
                 最常講的字 (文字雲)
             </div>
-            <div class="col color-03">
+            <div class="col color-01">
                 <canvas id="myChart2" width="100" height="80"></canvas>
                 * 6. 每日訊息數(拆線圖)
             </div>
@@ -327,23 +340,189 @@
          */
 
         var rawData = [{
-            TIMESTRAMP: 00000000,
-            contact: '',
-            userName: '',
+            timestamp: 2443046401,
+            contact: 'Test',
+            userName: 'Test',
+            isbot: true,
+        }, {
+            timestamp: 2443046402,
+            contact: 'Test',
+            userName: 'Test',
+            isbot: true,
+        }, {
+            timestamp: 2443046403,
+            contact: 'Test',
+            userName: 'Test',
+            isbot: true,
+        }, {
+            timestamp: 2443046404,
+            contact: 'Test',
+            userName: 'Test',
+            isbot: true,
+        }, {
+            timestamp: 2443046400,
+            contact: 'Test',
+            userName: 'Test',
+            isbot: true,
+        }, {
+            timestamp: 2443046400,
+            contact: 'Test',
+            userName: 'Test',
+            isbot: true,
+        }, {
+            timestamp: 1602227330,
+            contact: 'Test',
+            userName: 'Test',
+            isbot: false,
+        }, {
+            timestamp: 2443046400,
+            contact: 'Test',
+            userName: 'Test',
+            isbot: false,
+        }, {
+            timestamp: 24430123344,
+            contact: 'Test',
+            userName: 'Test',
+            isbot: false,
+        }, {
+            timestamp: 24430464411,
+            contact: 'Test',
+            userName: 'Test',
+            isbot: false,
+        }, {
+            timestamp: 2443046123,
+            contact: 'Test',
+            userName: 'Test',
+            isbot: false,
+        }, {
+            timestamp: 2443046451,
+            contact: 'Test',
+            userName: 'Test',
+            isbot: false,
+        }, {
+            timestamp: 2443046423,
+            contact: 'Test',
+            userName: 'Test',
+            isbot: false,
+        }, {
+            timestamp: 2443099999,
+            contact: 'Test',
+            userName: 'Test',
+            isbot: false,
+        }, {
+            timestamp: 2443041210,
+            contact: 'Test',
+            userName: 'Test',
+            isbot: true,
+        }, {
+            timestamp: 2443040000,
+            contact: 'Test',
+            userName: 'Test',
+            isbot: false,
+        }, {
+            timestamp: 2443046120,
+            contact: 'Test',
+            userName: 'Test',
+            isbot: false,
+        }, {
+            timestamp: 2443046230,
+            contact: 'Test',
+            userName: 'Test',
+            isbot: true,
+        }, {
+            timestamp: 2443045990,
+            contact: 'Test',
+            userName: 'Test',
+            isbot: false,
+        }, {
+            timestamp: 2449999400,
+            contact: 'Test',
+            userName: 'Test',
+            isbot: false,
+        }, {
+            timestamp: 2445555400,
+            contact: 'Test',
+            userName: 'Test',
+            isbot: false,
+        }, {
+            timestamp: 2443312400,
+            contact: 'Test',
+            userName: 'Test',
+            isbot: false,
+        }, {
+            timestamp: 2441245430,
+            contact: 'Test3',
+            userName: 'Test3',
+            isbot: false,
+        }, {
+            timestamp: 2443046410,
+            contact: 'Test3',
+            userName: 'Test3',
+            isbot: false,
+        }, {
+            timestamp: 2443042440,
+            contact: 'Test3',
+            userName: 'Test3',
+            isbot: false,
+        }, {
+            timestamp: 2443046400,
+            contact: 'Test3',
+            userName: 'Test3',
+            isbot: false,
+        }, {
+            timestamp: 2443016400,
+            contact: 'Test3',
+            userName: 'Test3',
+            isbot: false,
+        }, {
+            timestamp: 2443456400,
+            contact: 'Test3',
+            userName: 'Test3',
+            isbot: false,
+        }, {
+            timestamp: 2412346400,
+            contact: 'Test3',
+            userName: 'Test3',
+            isbot: false,
+        }, {
+            timestamp: 2441246400,
+            contact: 'Test45',
+            userName: 'Test45',
             isbot: false,
         }]
+        rawData.sort(function (a, b) {
+            return a.timestamp - b.timestamp;
+        });
         //總共聊天天數 - 由什麼時候開始
         var totallydate = totallyDay(rawData);
+        var totallyDate = new Vue({
+            el: '#totallyDate',
+            data: {
+                message: totallydate
+            }
+        })
         //[d, '天', pad(h), '小時', pad(m), '分鐘'].join('');
 
         //總共傳了多少訊息 - BOT 及非BOT
         var totallymessage = analysicTotallymessage(rawData);
+        var totallyMessage = new Vue({
+            el: '#totallyMessage',
+            data: {
+                message0: totallymessage[0],
+                message1: totallymessage[1]
+            }
+        })
         //[humanTimes.length, botTimes.length
 
         //最多訊息數日子頭三，訊息數 O   
         var date = analysicDate(rawData)
-
-
+        console.log(date)
+        var analysicDate = new Vue({
+            el: '#analysicDate',
+            data: {
+                messages: date
+            }
+        })
         // 群友的頭六名的訊息數(不包括BOT) (棒型圖)
         var peopleTalk = analysicPeopleTalk(rawData);
 
@@ -361,7 +540,7 @@
 
         /**
          *    contact: 'Third: Learn JavaScript\nWWW',
-                        TIMESTRAMP: '2009-09-09',
+                        timestamp: '2009-09-09',
                         user: 'Sad',
                         ISBOT?: "Dec.",
                         
@@ -374,32 +553,38 @@
         }
 
         //最多訊息數日子頭三， 訊息數 O
-        async function analysicDate(result) {
+        function analysicDate(result) {
             let tempresult = [];
             let temptime = 0;
+            let tempdate = '';
             for (let index = 1; index < result.length; index++) {
-                let unix_timestamp = result[index].TIMESTRAMP;
-                // console.log(temp)
-                let data = new Date(unix_timestamp * 1000);
+                var unix_timestamp = result[index].timestamp;
+                console.log(unix_timestamp)
+                var date = new Date(unix_timestamp * 1000)
+                var year = date.getFullYear().toString();
+                var month = (date.getMonth() + 1).toString().padStart(2, '0');
+                var day = date.getDate().toString().padStart(2, '0');
+                tempdate = year + month + day;
+                console.log()
                 if (!tempresult || !tempresult[temptime]) {
                     tempresult[temptime] = {
-                        data: data,
+                        date: tempdate,
                         number: 1
                     };
-                } else if (tempresult[temptime].data.toISOString() == data.toISOString()) {
+                } else if (tempresult[temptime].date == tempdate) {
                     tempresult[temptime].number++
                 } else {
                     temptime++
                     tempresult[temptime] = {
-                        data: data,
+                        date: tempdate,
                         number: 1
-                    };
+                    }
+
                 }
 
             }
             return tempresult
         }
-
         //群友的頭六名的訊息數(不包括BOT) (棒型圖)
         function analysicPeopleTalk(messages) {
             var tempData = [];
@@ -413,17 +598,15 @@
 
         function analysicTotallymessage(messages) {
             let humanTimes = messages.filter(time => time.isbot == false) || [];
-            let botTimes = messages.filter(time => time.length == true) || [];
+            let botTimes = messages.filter(time => time.isbot == true) || [];
             return [humanTimes.length, botTimes.length]
         }
 
         function totallyDay(result) {
             if (!result) return;
-            let firstDay = result[result.length - 1];
-            let Day = firstDay.TIMESTRAMP;
-            let today = new Date().getTime();
-            //console.log(result[1])
-            return dhm(today - Day);
+            let lastDay = result[result.length - 1].timestamp;
+            let firstDay = result[0].timestamp;
+            return dhm(lastDay - firstDay);
             //"[30/10/2019, 17:07:04]", "30", "10", "2019", "17", "07", "04"]
         }
 

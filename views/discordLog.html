@@ -198,8 +198,8 @@
             </div>
             <div class="col color-03">
                 <div id="analysicDate">
-                    * 每日平均訊息數量
-                    * 最多說話的一天
+                    * 每日平均訊息數量<br>
+                    * 最多說話的一天<br>
                     <div v-for="message in messages">
                         {{ message.date }} 有 {{ message.number }}條信息
                     </div>
@@ -516,11 +516,16 @@
 
         //最多訊息數日子頭三，訊息數 O   
         var date = analysicDate(rawData)
-        console.log(date)
+        var top6Date = [...date]
+        top6Date.sort(function (b, a) {
+            return a.number - b.number;
+        });
+
+        top6Date.splice(6, top6Date.length - 1)
         var analysicDate = new Vue({
             el: '#analysicDate',
             data: {
-                messages: date
+                messages: top6Date
             }
         })
         // 群友的頭六名的訊息數(不包括BOT) (棒型圖)
@@ -559,13 +564,11 @@
             let tempdate = '';
             for (let index = 1; index < result.length; index++) {
                 var unix_timestamp = result[index].timestamp;
-                console.log(unix_timestamp)
                 var date = new Date(unix_timestamp * 1000)
                 var year = date.getFullYear().toString();
                 var month = (date.getMonth() + 1).toString().padStart(2, '0');
                 var day = date.getDate().toString().padStart(2, '0');
                 tempdate = year + month + day;
-                console.log()
                 if (!tempresult || !tempresult[temptime]) {
                     tempresult[temptime] = {
                         date: tempdate,
@@ -875,10 +878,7 @@
         };
 
         function getVerticalScrollPercentage(elm) {
-
-            //   console.log((h[st] || b[st]), (h[sh] || b[sh]), h.clientHeight)
             var percent = (h[st] || b[st]) / ((h[sh] || b[sh]) - h.clientHeight) * 100;
-
             return percent
         }
     </script>

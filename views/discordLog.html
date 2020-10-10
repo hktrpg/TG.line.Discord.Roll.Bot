@@ -175,6 +175,10 @@
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <!-- development version, includes helpful console warnings -->
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.5/d3.layout.cloud.min.js"
+        integrity="sha512-HjKxWye8lJGPu5q1u/ZYkHlJrJdm6KGr89E6tOrXeKm1mItb1xusPU8QPcKVhP8F9LjpZT7vsu1Fa+dQywP4eg=="
+        crossorigin="anonymous"></script>
     <title>Hello, world!</title>
 </head>
 
@@ -219,6 +223,7 @@
 
             </div>
             <div class="col color-02">
+                <div id="tag" style="border: 1px solid #eee; height: 320px; width:525px;"></div>
                 最常講的字 (文字雲)
             </div>
             <div class="col color-01">
@@ -638,6 +643,102 @@
                 h = 0;
             }
             return [d, '天', pad(h), '小時', pad(m), '分鐘'].join('');
+        }
+    </script>
+    <script>
+        //取得d3顏色
+        var fill = d3.scaleOrdinal(d3.schemeCategory10);
+        //文字雲/關鍵字，及字型大小（這邊只放三個）
+        var data = [{
+                text: "加里山",
+                size: 21
+            },
+            {
+                text: "文字雲",
+                size: 18
+            },
+            {
+                text: "翠湖 螢火蟲",
+                size: 55
+            },
+            {
+                text: "翠湖 螢火蟲",
+                size: 17
+            },
+            {
+                text: "翠湖 螢火蟲",
+                size: 17
+            },
+            {
+                text: "翠湖 螢火蟲",
+                size: 17
+            },
+            {
+                text: "翠湖 螢火蟲",
+                size: 17
+            },
+            {
+                text: "翠湖 螢火蟲",
+                size: 17
+            },
+            {
+                text: "翠湖 螢火蟲",
+                size: 17
+            },
+            {
+                text: "翠湖 螢火蟲",
+                size: 17
+            },
+            {
+                text: "翠湖 螢火蟲",
+                size: 17
+            },
+            {
+                text: "翠湖 螢火蟲",
+                size: 17
+            }
+        ];
+        //取得呈現處的寬、高
+        var w = parseInt(d3.select("#tag").style("width"), 10);
+        var h = parseInt(d3.select("#tag").style("height"), 10);
+
+        d3.layout.cloud().size([w, h])
+            .words(data)
+            .padding(2)
+            .rotate(function () {
+                return ~~((Math.random() * 6) - 3) * 30
+            })
+            .fontSize(function (d) {
+                return d.size;
+            })
+            .on("end", draw)
+            .start();
+
+        function draw(words) {
+            d3.select("#tag").append("svg")
+                .attr("width", w)
+                .attr("height", h)
+                .append("g")
+                .attr("transform", "translate(" + w / 2 + "," + h / 2 + ")")
+                .selectAll("text")
+                .data(words)
+                .enter().append("text")
+                .style("font-size", function (d) {
+                    return d.size + "px";
+                })
+                .style("font-family", "Microsoft JhengHei")
+                .style("cursor", 'pointer')
+                .style("fill", function (d, i) {
+                    return fill(i);
+                })
+                .attr("text-anchor", "middle")
+                .attr("transform", function (d) {
+                    return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+                })
+                .text(function (d) {
+                    return d.text;
+                })
+
         }
     </script>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"

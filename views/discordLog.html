@@ -179,6 +179,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.5/d3.layout.cloud.min.js"
         integrity="sha512-HjKxWye8lJGPu5q1u/ZYkHlJrJdm6KGr89E6tOrXeKm1mItb1xusPU8QPcKVhP8F9LjpZT7vsu1Fa+dQywP4eg=="
         crossorigin="anonymous"></script>
+    <script src="https://pulipulichen.github.io/jieba-js/jquery.js"></script>
+    <script src="https://pulipulichen.github.io/jieba-js/require-jieba-js.js"></script>
     <title>Hello, world!</title>
 </head>
 
@@ -644,6 +646,12 @@
             }
             return [d, '天', pad(h), '小時', pad(m), '分鐘'].join('');
         }
+    </script>
+    <script>
+        _text = "這個布丁是在無聊的世界中找尋樂趣的一種不能吃的食物，喜愛動漫畫、遊戲、程式，以及跟世間脫節的生活步調。";
+        call_jieba_cut(_text, function (_result) {
+            console.log(_result);
+        });
     </script>
     <script>
         //取得d3顏色

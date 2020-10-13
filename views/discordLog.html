@@ -151,8 +151,15 @@
                     <th>機器人</th>
                 </tr>
             </thead>
-            <tbody class="preline">
-                <tr v-for="(row, index) in filteredRows">
+            <tbody class="preline" v-for="(row, index) in filteredRows">
+                <tr v-if="index%2==0">
+                    <td v-html="index"></td>
+                    <td v-html="dhm2(row.timestamp)"></td>
+                    <td v-html="highlightMatches(row.userName)"></td>
+                    <td v-html="highlightMatches(row.contact)"></td>
+                    <td v-html="(row.isbot).toString().replace(false,'否').replace(true,'是')"></td>
+                </tr>
+                <tr v-if="index%2==1" style="background-color: #d5d8d8;">
                     <td v-html="index"></td>
                     <td v-html="dhm2(row.timestamp)"></td>
                     <td v-html="highlightMatches(row.userName)"></td>

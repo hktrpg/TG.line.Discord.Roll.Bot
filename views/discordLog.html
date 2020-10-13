@@ -18,7 +18,7 @@
     }
 
     th {
-        background-color: #dddddd;
+        background-color: #eeeeee;
     }
 
     input[type=text],
@@ -139,32 +139,30 @@
     <div class="container center" id="appMain">
         <div class="page-header">
             <h1>聊天紀錄</h1>
-            <input type="text" placeholder="Filter by department or employee" v-model="filter" />
+            <input type="text" placeholder="Filter" v-model="filter" />
         </div>
         <table>
             <thead>
                 <tr>
                     <th>順序</th>
                     <th>時間</th>
-                    <th>發信人</th>
+                    <th>(*是Bot)發信人</th>
                     <th>內容</th>
-                    <th>機器人</th>
                 </tr>
             </thead>
             <tbody class="preline" v-for="(row, index) in filteredRows">
                 <tr v-if="index%2==0">
                     <td v-html="index"></td>
                     <td v-html="dhm2(row.timestamp)"></td>
-                    <td v-html="highlightMatches(row.userName)"></td>
+                    <td v-html="highlightMatches(row.userName,row.isbot)"></td>
                     <td v-html="highlightMatches(row.contact)"></td>
-                    <td v-html="(row.isbot).toString().replace(false,'否').replace(true,'是')"></td>
                 </tr>
                 <tr v-if="index%2==1" style="background-color: #d5d8d8;">
                     <td v-html="index"></td>
                     <td v-html="dhm2(row.timestamp)"></td>
-                    <td v-html="highlightMatches(row.userName)"></td>
+                    <td v-html="highlightMatches(row.userName,row.isbot)">
+                    </td>
                     <td v-html="highlightMatches(row.contact)"></td>
-                    <td v-html="(row.isbot).toString().replace(false,'否').replace(true,'是')"></td>
                 </tr>
             </tbody>
         </table>
@@ -524,12 +522,13 @@
                 rows: rawData
             },
             methods: {
-                highlightMatches(text) {
+                highlightMatches(text, isbot) {
                     const matchExists = text
                         .toLowerCase()
                         .includes(this.filter.toLowerCase());
                     if (!matchExists) return text;
                     const re = new RegExp(this.filter, "ig");
+                    if (isbot) text = '*' + text;
                     return text.replace(re, matchedText => `<strong>${matchedText}</strong>`);
                 },
                 dhm2(unix_timestamp) {

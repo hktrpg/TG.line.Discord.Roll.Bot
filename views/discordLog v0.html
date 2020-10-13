@@ -26,8 +26,141 @@
             pre-line;
     }
 
-    body {
-        margin-top: 2%
+    #timeline {
+        list-style: none;
+        position: relative;
+    }
+
+
+    #timeline:before {
+        top: 0;
+        bottom: 0;
+        position: absolute;
+        content: " ";
+        width: 2px;
+        background-color: #4997cd;
+        left: 50%;
+        margin-left: -1.5px;
+    }
+
+    #timeline .clearFix {
+        clear: both;
+        height: 0;
+    }
+
+    #timeline .timeline-badge {
+        color: #fff;
+        width: 50px;
+        height: 50px;
+        font-size: 1em;
+        text-align: center;
+        position: absolute;
+        top: 60px;
+        left: 50%;
+        margin-left: -25px;
+        background-color: #4997cd;
+        z-index: 100;
+        border-top-right-radius: 50%;
+        border-top-left-radius: 50%;
+        border-bottom-right-radius: 50%;
+        border-bottom-left-radius: 50%;
+    }
+
+    #timeline .timeline-badge span.timeline-balloon-date-day {
+        font-size: 1.4em;
+    }
+
+    #timeline .timeline-badge span.timeline-balloon-date-month {
+        font-size: .7em;
+        position: relative;
+        top: -10px;
+    }
+
+    #timeline .timeline-badge.timeline-filter-movement {
+        background-color: #ece9e9;
+        font-size: 1.7em;
+        height: 35px;
+        margin-left: -18px;
+        width: 35px;
+        top: 35px;
+    }
+
+    #timeline .timeline-badge.timeline-filter-movement a span {
+        color: #4997cd;
+        font-size: 1.3em;
+        top: -1px;
+    }
+
+    #timeline .timeline-badge.timeline-future-movement {
+        background-color: #ece9e9;
+        height: 35px;
+        width: 35px;
+        font-size: 1.7em;
+        top: -16px;
+        margin-left: -18px;
+    }
+
+    #timeline .timeline-badge.timeline-future-movement a span {
+        color: #4997cd;
+        font-size: .9em;
+        top: 2px;
+        left: 1px;
+    }
+
+    #timeline .timeline-movement {
+        border-bottom: dashed 1px #4997cd;
+        position: relative;
+    }
+
+    #timeline .timeline-movement.timeline-movement-top {
+        height: 60px;
+    }
+
+    #timeline .timeline-movement .timeline-item {
+        padding: 0px 0px 10px 40px;
+    }
+
+    #timeline .timeline-movement .timeline-item .timeline-panel {
+        border: 1px solid #d4d4d4;
+        border-radius: 3px;
+        background-color: #FFFFFF;
+        color: #666;
+        padding: 5px 5px 5px 5px;
+        position: relative;
+        -webkit-box-shadow: 0 1px 6px rgba(0, 0, 0, 0.175);
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.175);
+
+    }
+
+
+
+    #timeline .timeline-movement .timeline-item .timeline-panel .timeline-panel-ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    #timeline .timeline-movement .timeline-item .timeline-panel.credits .timeline-panel-ul {
+        text-align: right;
+    }
+
+    #timeline .timeline-movement .timeline-item .timeline-panel.credits .timeline-panel-ul li {
+        color: #666;
+    }
+
+    #timeline .timeline-movement .timeline-item .timeline-panel.credits .timeline-panel-ul li span.importo {
+        color: #468c1f;
+        font-size: 1.3em;
+    }
+
+    #timeline .timeline-movement .timeline-item .timeline-panel.debits .timeline-panel-ul {
+        text-align: left;
+
+    }
+
+    #timeline .timeline-movement .timeline-item .timeline-panel.debits .timeline-panel-ul span.importo {
+        color: #e2001a;
+        font-size: 1.3em;
     }
 </style>
 
@@ -49,7 +182,6 @@
     <script src="https://pulipulichen.github.io/jieba-js/jquery.js"></script>
     <script src="https://pulipulichen.github.io/jieba-js/require-jieba-js.js"></script>
     <title>Hello, world!</title>
- 
 </head>
 
 
@@ -107,52 +239,78 @@
 
 
 
-        <br>
+
         <div class="container" id="Body">
             <div class="page-header">
                 <center>
                     <h1>聊天紀錄</h1>
-                    <div class="col-md-3">
-                        <form action="#" method="get">
-                            <div class="input-group">
-                                <!-- USE TWITTER TYPEAHEAD JSON WITH API TO SEARCH -->
-                                <input class="form-control" id="system-search" name="q" placeholder="Search for"
-                                    required>
-                                <span class="input-group-btn">
-                                    <button type="submit" class="btn btn-default"><i
-                                            class="glyphicon glyphicon-search"></i></button>
-                                </span>
-                            </div>
-                        </form>
-                    </div>
                 </center>
             </div>
-            <div class="container">
-                <div class="row">
-                    <div class="col-md">
-                        <table class="table table-list-search">
-                            <thead>
-                                <tr>
-                                    <th>順序</th>
-                                    <th>時間</th>
-                                    <th>發信人</th>
-                                    <th>內容</th>
-                                    <th>機器人</th>
+            <div id="timeline">
+                <div class="row timeline-movement timeline-movement-top">
+                    <div class="timeline-badge timeline-future-movement">
+                        <a href="#">
+                            <i class="fa fa-plus" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                    <div class="timeline-badge timeline-filter-movement">
+                        <a href="#">
+                            <i class="fa fa-clock-o" aria-hidden="true"></i>
+                        </a>
+                    </div>
 
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Sample</td>
-                                    <td>Filter</td>
-                                    <td>12-11-2011 11:11</td>
-                                    <td>OK</td>
-                                    <td>123</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                </div>
+                <!--START-->
+
+                <div class="row timeline-movement" v-for="(message,index) in messages">
+                    <div class="timeline-badge" v-if="message.month">
+                        <span class="timeline-balloon-date-day">{{message.day}}</span>
+                        <span class="timeline-balloon-date-month">{{message.month}}</span>
+
+                    </div>
+
+
+                    <div class="col-sm-6  timeline-item">
+                        <div class="row">
+                            <div class="col-sm-11">
+                                <div class="timeline-panel credits">
+                                    <ul class="timeline-panel-ul">
+                                        <li><span class="importo">{{message.user}}</span></li>
+                                        <li><span class="causale preline">{{message.contact}}
+                                            </span> </li>
+                                        <li>
+                                            <p><small class="text-muted"><i class="glyphicon glyphicon-time"></i>
+                                                    {{message.date}}</small></p>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6  timeline-item" v-if="messages2[index]">
+                        <div class="row">
+                            <div class="col-sm-offset-1 col-sm-11">
+                                <div class="timeline-panel debits">
+                                    <ul class="timeline-panel-ul">
+                                        <li><span class="importo">{{messages2[index].user}}</span></li>
+                                        <li><span class="causale preline">{{messages2[index].contact}}
+                                            </span> </li>
+                                        <li>
+                                            <p><small class="text-muted"><i class="glyphicon glyphicon-time"></i>
+                                                    {{messages2[index].date}}</small></p>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                <!--END-->
+
             </div>
         </div>
         </div>
@@ -886,53 +1044,7 @@
                 return percent
             }
         </script>
-        
-        <script>
-            $(document).ready(function () {
-                var activeSystemClass = $('.list-group-item.active');
-
-                //something is entered in search form
-                $('#system-search').keyup(function () {
-                    var that = this;
-                    // affect all table rows on in systems table
-                    var tableBody = $('.table-list-search tbody');
-                    var tableRowsClass = $('.table-list-search tbody tr');
-                    $('.search-sf').remove();
-                    tableRowsClass.each(function (i, val) {
-
-                        //Lower text for case insensitive
-                        var rowText = $(val).text().toLowerCase();
-                        var inputText = $(that).val().toLowerCase();
-                        if (inputText != '') {
-                            $('.search-query-sf').remove();
-                            tableBody.prepend(
-                                '<tr class="search-query-sf"><td colspan="6"><strong>Searching for: "' +
-                                $(that).val() +
-                                '"</strong></td></tr>');
-                        } else {
-                            $('.search-query-sf').remove();
-                        }
-
-                        if (rowText.indexOf(inputText) == -1) {
-                            //hide rows
-                            tableRowsClass.eq(i).hide();
-
-                        } else {
-                            $('.search-sf').remove();
-                            tableRowsClass.eq(i).show();
-                        }
-                    });
-                    //all tr elements are hidden
-                    if (tableRowsClass.children(':visible').length == 0) {
-                        tableBody.append(
-                            '<tr class="search-sf"><td class="text-muted" colspan="6">No entries found.</td></tr>'
-                        );
-                    }
-                });
-            });
-        </script>
     </center>
-
 </body>
 
 </html>

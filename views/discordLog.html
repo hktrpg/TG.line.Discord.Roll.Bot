@@ -140,28 +140,28 @@
             <h1>聊天紀錄</h1>
             <input type="text" placeholder="Filter" v-model="filter" />
         </div>
-        <table>
+        <table class="table table-bordered">
             <thead>
-                <tr>
-                    <th>順序</th>
-                    <th>時間</th>
-                    <th>(*是Bot)發信人</th>
-                    <th>內容</th>
+                <tr class="d-flex">
+                    <th class="col-md">順序</th>
+                    <th class="col-md-2">時間</th>
+                    <th class="col-md-2">(*是Bot)發信人</th>
+                    <th class="col-md-6">內容</th>
                 </tr>
             </thead>
             <tbody class="preline" v-for="(row, index) in filteredRows">
-                <tr v-if="index%2==0">
-                    <td v-html="index"></td>
-                    <td v-html="dhm2(row.timestamp)"></td>
-                    <td v-html="highlightMatches(row.userName,row.isbot)"></td>
-                    <td v-html="highlightMatches(row.contact)"></td>
+                <tr v-if="index%2==0" class="d-flex">
+                    <td class="col-md" v-html="index"></td>
+                    <td class="col-md-2" v-html="dhm2(row.timestamp)"></td>
+                    <td class="col-md-2" v-html="highlightMatches(row.userName,row.isbot)"></td>
+                    <td class="col-md-6" v-html="highlightMatches(row.contact)"></td>
                 </tr>
-                <tr v-if="index%2==1" style="background-color: #d5d8d8;">
-                    <td v-html="index"></td>
-                    <td v-html="dhm2(row.timestamp)"></td>
-                    <td v-html="highlightMatches(row.userName,row.isbot)">
+                <tr v-if="index%2==1" class="d-flex" style="background-color: #d5d8d8;">
+                    <td class="col-md" v-html="index"></td>
+                    <td class="col-md-2" v-html="dhm2(row.timestamp)"></td>
+                    <td class="col-md-2" v-html="highlightMatches(row.userName,row.isbot)">
                     </td>
-                    <td v-html="highlightMatches(row.contact)"></td>
+                    <td class="col-md-6" v-html="highlightMatches(row.contact)"></td>
                 </tr>
             </tbody>
         </table>

@@ -190,10 +190,18 @@ client.on('message', async (message) => {
 	}
 
 	if (rplyVal.discordExport) {
-		message.channel.send(message.channel.name + ' ' +
+		message.channel.send('現在輸出: 頻道 ' + message.channel.name + ' 的聊天紀錄\n 指示者: ' +
 			message.guild.name, {
 				files: [
 					"./tmp/" + rplyVal.discordExport + '.txt'
+				]
+			});
+	}
+	if (rplyVal.discordExportHtml) {
+		message.channel.send('現在輸出: 頻道 ' + message.channel.name + ' 的聊天紀錄\n 指示者: ' +
+			message.guild.name, {
+				files: [
+					"./tmp/" + rplyVal.discordExportHtml + '.html'
 				]
 			});
 	}

@@ -45,6 +45,8 @@ var rollDiceCommand = async function ({
     let C, M;
     let data = "";
     let totalSize = 0;
+    let newRawDate = [];
+    let newValue = "";
 
     function replacer(first, second) {
         let users = discordClient.users.cache.get(second);
@@ -56,6 +58,39 @@ var rollDiceCommand = async function ({
         case /^help$/i.test(mainMsg[1]):
             rply.text = this.getHelpMessage();
             return rply;
+        case /^html$/i.test(mainMsg[1]):
+            if (botname !== "Discord") {
+                rply.text = "Discord限定功能"
+                return rply;
+            }
+            if (!channelid || !groupid) return;
+            C = await discordClient.channels.fetch(channelid);
+            M = await lots_of_messages_getter(C);
+            totalSize = M.totalSize;
+            M = M.sum_messages;
+            if (M.length == 0) return;
+            for (let index = M.length - 1; index >= 0; index--) {
+                newRawDate[M.length - 1 - index] = {
+                    timestamp: M[index].createdTimestamp,
+                    contact: M[index].content,
+                    userName: M[index].author.username,
+                    isbot: M[index].author.bot
+                }
+            }
+            try {
+                await fs.access(dir)
+            } catch (error) {
+                if (error && error.code === 'ENOENT')
+                    await fs.mkdir(dir);
+            }
+            data = await fs.readFile(__dirname + '/../views/discordLog.html', 'utf-8')
+
+            newValue = data.replace(/rawData\s=\s\[\]/, 'rawData = ' + JSON.stringify(newRawDate));
+
+            await fs.writeFile(dir + channelid + '_' + userid + '.html', newValue); // need to be in an async function
+            rply.discordExportHtml = channelid + '_' + userid;
+            rply.text = '你的channel 聊天紀錄 共有 ' + totalSize + ' 項\n\n'
+            return rply;
         case /^export$/i.test(mainMsg[1]):
             if (botname !== "Discord") {
                 rply.text = "Discord限定功能"
@@ -64,6 +99,7 @@ var rollDiceCommand = async function ({
             if (!channelid || !groupid) return;
             C = await discordClient.channels.fetch(channelid);
             M = await lots_of_messages_getter(C);
+
             totalSize = M.totalSize;
             M = M.sum_messages;
             if (M.length == 0) return;

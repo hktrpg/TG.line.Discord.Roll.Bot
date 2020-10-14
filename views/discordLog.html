@@ -386,8 +386,9 @@
         //[humanTimes.length, botTimes.length
 
         //最多訊息數日子頭三，訊息數 O   
-        var date = analysicDate(rawData)
-        var top3Date = [...date]
+        var analysicdate = analysicDate(rawData)
+
+        var top3Date = [...analysicdate]
         top3Date.sort(function (b, a) {
             return a.number - b.number;
         });
@@ -397,6 +398,7 @@
             var temptop3Date = e.date.toString().match(/^(\d\d\d\d)(\d\d)(\d\d)/)
             top3Date[i].date = [temptop3Date[1], '年', temptop3Date[2], '月', temptop3Date[3], '日'].join('');
         })
+        console.log('analysicdate', analysicdate);
         var analysicDate = new Vue({
             el: '#analysicDate',
             data: {
@@ -416,7 +418,7 @@
         //最多說話的一天 
 
         //https://github.com/pulipulichen/HTML5-Text-Analyzer
-        //最常講的字 文字雲(大於30次才會顯示)   
+        //最常講的字 文字雲(排序) 
 
         /**
          *    contact: 'Third: Learn JavaScript\nWWW',
@@ -439,10 +441,10 @@
             let tempdate = '';
             for (let index = 1; index < result.length; index++) {
                 var unix_timestamp = result[index].timestamp;
-                var date = new Date(unix_timestamp * 1000)
-                var year = date.getFullYear().toString();
-                var month = (date.getMonth() + 1).toString().padStart(2, '0');
-                var day = date.getDate().toString().padStart(2, '0');
+                var TEMPanalysicDate = new Date(unix_timestamp * 1000)
+                var year = TEMPanalysicDate.getFullYear().toString();
+                var month = (TEMPanalysicDate.getMonth() + 1).toString().padStart(2, '0');
+                var day = TEMPanalysicDate.getDate().toString().padStart(2, '0');
                 tempdate = year + month + day;
                 if (!tempresult || !tempresult[temptime]) {
                     tempresult[temptime] = {
@@ -535,10 +537,10 @@
                     return text.replace(re, matchedText => `<strong>${matchedText}</strong>`);
                 },
                 dhm2(unix_timestamp) {
-                    var date = new Date(unix_timestamp * 1000)
-                    var year = date.getFullYear().toString();
-                    var month = (date.getMonth() + 1).toString().padStart(2, '0');
-                    var day = date.getDate().toString().padStart(2, '0');
+                    var dhm2date = new Date(unix_timestamp * 1000)
+                    var year = dhm2date.getFullYear().toString();
+                    var month = (dhm2date.getMonth() + 1).toString().padStart(2, '0');
+                    var day = dhm2date.getDate().toString().padStart(2, '0');
                     return [year, '年', month, '月', day, '日'].join('');
                 }
             },
@@ -707,124 +709,6 @@
                 }
             }
         });
-        var app4 = new Vue({
-            el: '#Body',
-            data: {
-                messages: [{
-                    contact: 'first',
-                    date: '2009-09-09',
-                    user: 'Sad',
-                    month: "Dec.",
-                    day: "05"
-                }, {
-                    contact: 'first',
-                    date: '2009-09-09',
-                    user: 'Sad',
-                    month: "Dec.",
-                    day: "05"
-                }, {
-                    contact: 'first',
-                    date: '2009-09-09',
-                    user: 'Sad',
-                    month: "Dec.",
-                    day: "05"
-                }, {
-                    contact: 'first',
-                    date: '2009-09-09',
-                    user: 'Sad',
-                    month: "Dec.",
-                    day: "05"
-                }, {
-                    contact: 'first',
-                    date: '2009-09-09',
-                    user: 'Sad',
-                    month: "Dec.",
-                    day: "05"
-                }, {
-                    contact: 'first',
-                    date: '2009-09-09',
-                    user: 'Sad',
-                    month: "Dec.",
-                    day: "05"
-                }, {
-                    contact: 'first',
-                    date: '2009-09-09',
-                    user: 'Sad',
-                    month: "Dec.",
-                    day: "05"
-                }, {
-                    contact: 'first',
-                    date: '2009-09-09',
-                    user: 'Sad',
-                    month: "Dec.",
-                    day: "05"
-                }, {
-                    contact: 'first',
-                    date: '2009-09-09',
-                    user: 'Sad',
-                    month: "Dec.",
-                    day: "05"
-                }, {
-                    contact: 'first',
-                    date: '2009-09-09',
-                    user: 'Sad',
-                    month: "Dec.",
-                    day: "05"
-                }, {
-                    contact: 'first',
-                    date: '2009-09-09',
-                    user: 'Sad',
-                    month: "Dec.",
-                    day: "05"
-                }, {
-                    contact: 'first',
-                    date: '2009-09-09',
-                    user: 'Sad',
-                    month: "Dec.",
-                    day: "05"
-                }, {
-                    contact: 'first',
-                    date: '2009-09-09',
-                    user: 'Sad',
-                    month: "Dec.",
-                    day: "05"
-                }, {
-                    contact: 'first',
-                    date: '2009-09-09',
-                    user: 'Sad',
-                    month: "Dec.",
-                    day: "05"
-                }, {
-                    contact: 'first',
-                    date: '2009-09-09',
-                    user: 'Sad',
-                    month: "Dec.",
-                    day: "05"
-                }],
-                messages2: [{
-                        contact: 'Second, Learn JavaScript',
-                        date: '2009-09-09',
-                        user: 'Sad',
-                        month: "Dec.",
-                        day: "05"
-                    },
-                    {
-                        contact: 'Third: Learn JavaScript\nWWW',
-                        date: '2009-09-09',
-                        user: 'Sad',
-                        month: "Dec.",
-                        day: "05"
-                    },
-                    {
-                        contact: 'Third: Learn JavaScript\nWWW',
-                        date: '2009-09-09',
-                        user: 'Sad',
-                        month: "Dec.",
-                        day: "05"
-                    }
-                ]
-            }
-        })
     </script>
 
     <script>

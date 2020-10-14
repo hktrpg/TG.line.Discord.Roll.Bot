@@ -80,6 +80,7 @@
         crossorigin="anonymous"></script>
     <script src="https://pulipulichen.github.io/jieba-js/jquery.js"></script>
     <script src="https://pulipulichen.github.io/jieba-js/require-jieba-js.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
     <title>Hello, world!</title>
 
 </head>
@@ -387,18 +388,19 @@
 
         //最多訊息數日子頭三，訊息數 O   
         var analysicdate = analysicDate(rawData)
-
-        var top3Date = [...analysicdate]
-        top3Date.sort(function (b, a) {
+        var allDateforChart3 = JSON.parse(JSON.stringify(analysicdate));
+        console.log('allDateforChart3', allDateforChart3)
+        analysicdate.sort(function (b, a) {
             return a.number - b.number;
         });
+
+        var top3Date = JSON.parse(JSON.stringify(analysicdate));
 
         top3Date.splice(3, top3Date.length - 1);
         top3Date.forEach((e, i) => {
             var temptop3Date = e.date.toString().match(/^(\d\d\d\d)(\d\d)(\d\d)/)
             top3Date[i].date = [temptop3Date[1], '年', temptop3Date[2], '月', temptop3Date[3], '日'].join('');
         })
-        console.log('analysicdate', analysicdate);
         var analysicDate = new Vue({
             el: '#analysicDate',
             data: {
@@ -410,7 +412,7 @@
 
 
         //群友各自占聊天的比例   
-        var peoplePer = analysicPeoplePer(peopleTalk);
+
 
         //每日平均訊息數量
         //totallymessage/totallydate
@@ -430,9 +432,6 @@
          * */
 
 
-        function analysicPeoplePer(rawData) {
-
-        }
 
         //最多訊息數日子頭三， 訊息數 O
         function analysicDate(result) {
@@ -764,43 +763,112 @@
         });
     </script>
     <script>
-        var ctx3 = document.getElementById("myChart3").getContext('2d');
-        var myChart3 = new Chart(ctx3, {
-            type: 'line',
+        var dataCFG = [];
+        allDateforChart3.forEach((e, i) => {
+            var tempTime3 = e.date.toString().match(/^(\d\d\d\d)(\d\d)(\d\d)/)
+            console.log('tempTime3', tempTime3)
+            dataCFG[i] = {
+                t: toTimestamp(tempTime3[1], tempTime3[2], tempTime3[3]),
+                y: e.number
+            }
+
+        })
+
+        function toTimestamp(year, month, day) {
+            var datum = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
+            return datum.getTime();
+        }
+        var cfg = {
             data: {
-                labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
                 datasets: [{
-                    label: '# of Votes',
-                    data: [12, 19, 3, 5, 2, 3],
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.2)',
-                        'rgba(54, 162, 235, 0.2)',
-                        'rgba(255, 206, 86, 0.2)',
-                        'rgba(75, 192, 192, 0.2)',
-                        'rgba(153, 102, 255, 0.2)',
-                        'rgba(255, 159, 64, 0.2)'
-                    ],
-                    borderColor: [
-                        'rgba(255,99,132,1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(153, 102, 255, 1)',
-                        'rgba(255, 159, 64, 1)'
-                    ],
-                    borderWidth: 1
+                    label: '拆線圖 - 每日訊息數',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    data: dataCFG,
+                    type: 'line',
+                    pointRadius: 0,
+                    fill: false,
+                    lineTension: 0,
+                    borderWidth: 2
                 }]
             },
             options: {
+                animation: {
+                    duration: 0
+                },
                 scales: {
-                    yAxes: [{
+                    xAxes: [{
+                        type: 'time',
+                        distribution: 'series',
+                        offset: true,
                         ticks: {
-                            beginAtZero: true
+                            major: {
+                                enabled: true,
+                                fontStyle: 'bold'
+                            },
+                            source: 'data',
+                            autoSkip: true,
+                            autoSkipPadding: 75,
+                            maxRotation: 0,
+                            sampleSize: 100
+                        },
+                        afterBuildTicks: function (scale, ticks) {
+                            console.log('ticks', ticks)
+                            var majorUnit = scale._majorUnit;
+                            var firstTick = ticks[0];
+                            var i, ilen, val, tick, currMajor, lastMajor;
+
+                            val = moment(ticks[0].value);
+                            if ((majorUnit === 'minute' && val.second() === 0) ||
+                                (majorUnit === 'hour' && val.minute() === 0) ||
+                                (majorUnit === 'day' && val.hour() === 9) ||
+                                (majorUnit === 'month' && val.date() <= 3 && val.isoWeekday() === 1) ||
+                                (majorUnit === 'year' && val.month() === 0)) {
+                                firstTick.major = true;
+                            } else {
+                                firstTick.major = false;
+                            }
+                            lastMajor = val.get(majorUnit);
+
+                            for (i = 1, ilen = ticks.length; i < ilen; i++) {
+                                tick = ticks[i];
+                                val = moment(tick.value);
+                                currMajor = val.get(majorUnit);
+                                tick.major = currMajor !== lastMajor;
+                                lastMajor = currMajor;
+                            }
+                            return ticks;
+                        }
+                    }],
+                    yAxes: [{
+                        gridLines: {
+                            drawBorder: false
+                        },
+                        scaleLabel: {
+                            display: true,
+                            labelString: '訊息量'
                         }
                     }]
+                },
+                tooltips: {
+                    intersect: false,
+                    mode: 'index',
+                    callbacks: {
+                        label: function (tooltipItem, myData) {
+                            var label = myData.datasets[tooltipItem.datasetIndex].label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            label += parseFloat(tooltipItem.value)
+                            return label;
+                        }
+                    }
                 }
             }
-        });
+        };
+        //// [{t:1602677527,y:600},{t:1622677527,y:300},{t:1702677527,y:900}],
+        var ctx3 = document.getElementById("myChart3").getContext('2d');
+        var myChart3 = new Chart(ctx3, cfg);
     </script>
     <script>
         var hde = document.documentElement,

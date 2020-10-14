@@ -876,7 +876,7 @@
             st = 'scrollTop',
             sh = 'scrollHeight';
         var progressbar = document.getElementById("progressbar");
-        var pos = ((h[sh] || b[sh]) <= h.clientHeight) ? 100 : getVerticalScrollPercentage(b);
+        var pos = ((hde[sh] || b[sh]) <= hde.clientHeight) ? 100 : getVerticalScrollPercentage(b);
         progressbar.innerHTML = Math.round(pos) + '%';
         progressbar.style.width = Math.max(Math.round(pos), 10) + '%';
         document.getElementById("touchBar").addEventListener("mousedown",
@@ -887,7 +887,7 @@
                 var level = Math.round(x / document.getElementById("touchBar").offsetWidth * 100) / 100;
 
                 window.scrollTo({
-                    top: level * ((h[sh] || b[sh]) - h.clientHeight),
+                    top: level * ((hde[sh] || b[sh]) - hde.clientHeight),
                     behavior: 'smooth'
                 });
 

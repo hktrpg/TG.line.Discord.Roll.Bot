@@ -70,11 +70,21 @@ var rollDiceCommand = async function ({
             M = M.sum_messages;
             if (M.length == 0) return;
             for (let index = M.length - 1; index >= 0; index--) {
-                newRawDate[M.length - 1 - index] = {
-                    timestamp: M[index].createdTimestamp,
-                    contact: M[index].content,
-                    userName: M[index].author.username,
-                    isbot: M[index].author.bot
+                if (M[index].type == 'DEFAULT') {
+                    newRawDate[M.length - 1 - index] = {
+                        timestamp: M[index].createdTimestamp,
+                        contact: M[index].content.replace(/<@(.*?)>/ig, replacer),
+                        userName: M[index].author.username,
+                        isbot: M[index].author.bot
+                    }
+                } else
+                if (M[index].type !== 'DEFAULT') {
+                    newRawDate[M.length - 1 - index] = {
+                        timestamp: M[index].createdTimestamp,
+                        contact: M[index].author.username + '\n' + M[index].type,
+                        userName: '系統信息',
+                        isbot: true
+                    }
                 }
             }
             try {

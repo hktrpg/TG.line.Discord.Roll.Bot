@@ -308,11 +308,11 @@
             let temptime = 0;
             let tempdate = '';
             for (let index = 1; index < result.length; index++) {
-                var unix_timestamp = result[index].timestamp;
-                var TEMPanalysicDate = new Date(unix_timestamp)
-                var year = TEMPanalysicDate.getFullYear().toString();
-                var month = (TEMPanalysicDate.getMonth() + 1).toString().padStart(2, '0');
-                var day = TEMPanalysicDate.getDate().toString().padStart(2, '0');
+                let unix_timestamp = result[index].timestamp;
+                let TEMPanalysicDate = new Date(unix_timestamp)
+                let year = TEMPanalysicDate.getFullYear().toString();
+                let month = (TEMPanalysicDate.getMonth() + 1).toString().padStart(2, '0');
+                let day = TEMPanalysicDate.getDate().toString().padStart(2, '0');
                 tempdate = year + month + day;
                 if (!tempresult || !tempresult[temptime]) {
                     tempresult[temptime] = {
@@ -346,13 +346,13 @@
         }
 
         function analysicPeopleTalk2(messages) {
-            var tempData = [];
+            var tempData2 = [];
             messages.forEach(message => {
-                if (!tempData[message.userName]) {
-                    tempData[message.userName] = 1;
-                } else tempData[message.userName]++;
+                if (!tempData2[message.userName]) {
+                    tempData2[message.userName] = 1;
+                } else tempData2[message.userName]++;
             })
-            return tempData;
+            return tempData2;
         }
 
         function analysicTotallymessage(messages) {
@@ -370,7 +370,7 @@
         }
 
         function dhm(t) {
-            var cd = 24 * 60 * 60 * 1000,
+            let cd = 24 * 60 * 60 * 1000,
                 ch = 60 * 60 * 1000,
                 d = Math.floor(t / cd),
                 h = Math.floor((t - d * cd) / ch),
@@ -441,10 +441,8 @@
         //文字雲/關鍵字，及字型大小（這邊只放三個）
         var fill = d3.scaleOrdinal(d3.schemeCategory10);
         //取得呈現處的寬、高
-        var w = parseInt(d3.select("#tag").style("width"), 10);
-        var h = parseInt(d3.select("#tag").style("height"), 10);
-
-
+        var cloudw = parseInt(d3.select("#tag").style("width"), 10);
+        var cloudH = parseInt(d3.select("#tag").style("height"), 10);
         var text = "";
         rawData.forEach(Data => {
             if (Data.isbot == false) {
@@ -478,7 +476,7 @@
                 }
             });
 
-            d3.layout.cloud().size([w, h])
+            d3.layout.cloud().size([cloudw, cloudH])
                 .words(wordFreqNew3)
                 .padding(2)
                 .rotate(function () {
@@ -493,10 +491,10 @@
 
         function draw(words) {
             d3.select("#tag").append("svg")
-                .attr("width", w)
-                .attr("height", h)
+                .attr("width", cloudw)
+                .attr("height", cloudH)
                 .append("g")
-                .attr("transform", "translate(" + w / 2 + "," + h / 2 + ")")
+                .attr("transform", "translate(" + cloudw / 2 + "," + cloudH / 2 + ")")
                 .selectAll("text")
                 .data(words)
                 .enter().append("text")
@@ -675,7 +673,7 @@
                         afterBuildTicks: function (scale, ticks) {
                             var majorUnit = scale._majorUnit;
                             var firstTick = ticks[0];
-                            var i, ilen, val, tick, currMajor, lastMajor;
+                            var curri, ilen, val, tick, currMajor, lastMajor;
 
                             val = moment(ticks[0].value);
                             if ((majorUnit === 'minute' && val.second() === 0) ||
@@ -689,8 +687,8 @@
                             }
                             lastMajor = val.get(majorUnit);
 
-                            for (i = 1, ilen = ticks.length; i < ilen; i++) {
-                                tick = ticks[i];
+                            for (curri = 1, ilen = ticks.length; curri < ilen; curri++) {
+                                tick = ticks[curri];
                                 val = moment(tick.value);
                                 currMajor = val.get(majorUnit);
                                 tick.major = currMajor !== lastMajor;

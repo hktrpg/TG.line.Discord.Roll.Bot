@@ -94,8 +94,8 @@ var rollDiceCommand = async function ({
                     await fs.mkdir(dir);
             }
             data = await fs.readFile(__dirname + '/../views/discordLog.html', 'utf-8')
-
-            newValue = data.replace(/rawData\s=\s\[\]/, 'rawData = ' + JSON.stringify(newRawDate));
+           
+            newValue = data.replace(/rawData\s=\sdemoData/, 'rawData = ' + JSON.stringify(newRawDate));
 
             await fs.writeFile(dir + channelid + '_' + userid + '.html', newValue); // need to be in an async function
             rply.discordExportHtml = channelid + '_' + userid;

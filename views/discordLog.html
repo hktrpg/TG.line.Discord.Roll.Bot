@@ -136,6 +136,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
     <title>Discord Messager @ HKTRPG</title>
     <link rel="icon" href="https://avatars2.githubusercontent.com/u/48795428?s=280&v=4" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mobile-detect/1.4.4/mobile-detect.min.js"></script>
 
 </head>
 
@@ -184,11 +185,10 @@
                 <div class="col-md-4 color-03 border border-dark">
                     <canvas id="myChart2" width="100" height="80"></canvas>
                 </div>
-                <div class="col-md-4 color-02 border border-white">最常講的字 (文字雲)
+                <div class="col-md-4 color-02 border border-white" id="wordCloud">最常講的字 (文字雲)
                     <div id="tag" style=" height: 250px; width:350px;"></div>
                 </div>
                 <div class="col-md-4 color-01 border border-light">
-                    <center> * 每日訊息數(拆線圖)</center>
                     <canvas id="myChart3" width="100" height="80"></canvas>
                 </div>
             </div>
@@ -258,7 +258,6 @@
         integrity="sha512-SUJFImtiT87gVCOXl3aGC00zfDl6ggYAw5+oheJvRJ8KBXZrr/TMISSdVJ5bBarbQDRC2pR5Kto3xTR0kpZInA=="
         crossorigin="anonymous" />
     <script>
-        document.getElementById("myNav").style.display = "block";
         //https://getbootstrap.com/docs/4.5/components/scrollspy/#list-item-4
         // Object.keys(list);
         /**
@@ -330,20 +329,18 @@
                 message: totallydate
             }
         })
-        var switchLoading = true,
-            switchMain = false;
-        var loading = new Vue({
-            el: '#loading',
-            data: {
-                switch: switchLoading
-            }
-        })
-        var main = new Vue({
-            el: '#main',
-            data: {
-                switch: switchMain
-            }
-        })
+        var md = new MobileDetect(window.navigator.userAgent);
+        var isMobile = true;
+        if (!md.mobile() && !md.phone() && !md.tablet()) {
+            isMobile = false;
+        }
+        var switchLoading = (isMobile) ? false : true;
+        if (switchLoading) {
+            document.getElementById("myNav").style.display = "block";
+        } else {
+            document.getElementById("wordCloud").style.display = "none";
+
+        }
         //[d, '天', pad(h), '小時', pad(m), '分鐘'].join('');
 
         //總共傳了多少訊息 - BOT 及非BOT
@@ -360,7 +357,7 @@
         var averageMessage = new Vue({
             el: '#averageMessage',
             data: {
-                message: (totallymessage[0] / newTotallyDay).toFixed(2) + '個'
+                message: (Math.ceil(totallymessage[0] / newTotallyDay * 100) / 100).toFixed(2) + '個'
             }
         })
         //[humanTimes.length, botTimes.length
@@ -645,7 +642,7 @@
             data: {
                 labels: top6Data,
                 datasets: [{
-                    label: '群友的頭六名的訊息數(不包括BOT)',
+                    label: '群友的頭六名的訊息數',
                     data: top6Labels,
                     backgroundColor: [
                         'rgba(255, 99, 132, 0.2)',
@@ -740,7 +737,7 @@
             options: {
                 title: {
                     display: true,
-                    text: '群友各自占聊天的比例',
+                    text: '群友各自占聊天的比例' + '(共' + Object.keys(peopleTalk).length + '人)',
                     fontColor: 'black'
                 },
                 legend: {

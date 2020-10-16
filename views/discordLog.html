@@ -137,7 +137,8 @@
     <title>Discord Messager @ HKTRPG</title>
     <link rel="icon" href="https://avatars2.githubusercontent.com/u/48795428?s=280&v=4" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mobile-detect/1.4.4/mobile-detect.min.js"></script>
-
+    <script type="text/javascript" src="https://cdn.rawgit.com/ricmoo/aes-js/e27b99df/index.js"></script>
+    <!--https://blog.gtwang.org/programming/javascript-aes-symmetric-encryption-tutorial/-->
 </head>
 
 <body class="bg-color center" id="body">
@@ -288,7 +289,7 @@
                 }]*/
         var demoData = [{
             timestamp: 1611246400000,
-            contact: 'Test',
+            contact: 'Demo 信息',
             userName: 'Sad',
             isbot: false,
         }, {
@@ -543,84 +544,90 @@
         });
     </script>
     <script>
-        //文字雲/關鍵字，及字型大小（這邊只放三個）
-        var fill = d3.scaleOrdinal(d3.schemeCategory10);
-        //取得呈現處的寬、高
-        var cloudw = parseInt(d3.select("#tag").style("width"), 10);
-        var cloudH = parseInt(d3.select("#tag").style("height"), 10);
-        var text = "";
-        rawData.forEach(Data => {
-            if (Data.isbot == false) {
-                text += Data.contact + ' ';
+        if (isMobile == false) {
+            drawWordCloud();
+        }
+
+        function drawWordCloud() {
+            //文字雲/關鍵字，及字型大小（這邊只放三個）
+            var fill = d3.scaleOrdinal(d3.schemeCategory10);
+            //取得呈現處的寬、高
+            var cloudw = parseInt(d3.select("#tag").style("width"), 10);
+            var cloudH = parseInt(d3.select("#tag").style("height"), 10);
+            var text = "";
+            rawData.forEach(Data => {
+                if (Data.isbot == false) {
+                    text += Data.contact + ' ';
+                }
+            })
+            var wordFreq = {};
+            var resultJieba = call_jieba_cut(text, function (_result) {
+                _result.forEach(function (s) {
+                    wordFreq[s] ? wordFreq[s]++ : wordFreq[s] = 1;
+                });
+
+                var wordFreqNew = Object.keys(wordFreq).map((key) => {
+                    return {
+                        text: key,
+                        freq: wordFreq[key]
+                    }
+                });
+
+                var wordFreqNew2 = wordFreqNew.filter((key) => {
+                    return (key.text.match(/^\S\S/) && !key.text.toString().match(/^\d+$/))
+                });
+                wordFreqNew2.sort(function (b, a) {
+                    return a.freq - b.freq;
+                });
+
+                var wordFreqNew3 = wordFreqNew2.map((key, index) => {
+                    return {
+                        text: key.text,
+                        size: (40 - index) > 0 ? (40 - index) : 1
+                    }
+                });
+
+                d3.layout.cloud().size([cloudw, cloudH])
+                    .words(wordFreqNew3)
+                    .padding(2)
+                    .rotate(function () {
+                        return ~~((Math.random() * 6) - 3) * 30
+                    })
+                    .fontSize(function (d) {
+                        return d.size;
+                    })
+                    .on("end", draw)
+                    .start();
+                document.getElementById("myNav").style.display = "none";
+            });
+
+            function draw(words) {
+                d3.select("#tag").append("svg")
+                    .attr("width", cloudw)
+                    .attr("height", cloudH)
+                    .append("g")
+                    .attr("transform", "translate(" + cloudw / 2 + "," + cloudH / 2 + ")")
+                    .selectAll("text")
+                    .data(words)
+                    .enter().append("text")
+                    .transition()
+                    .style("font-size", function (d) {
+                        return d.size + "px";
+                    })
+                    .style("font-family", "Microsoft JhengHei")
+                    .style("cursor", 'pointer')
+                    .style("fill", function (d, i) {
+                        return fill(i);
+                    })
+                    .attr("text-anchor", "middle")
+                    .attr("transform", function (d) {
+                        return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+                    })
+                    .text(function (d) {
+                        return d.text;
+                    })
+
             }
-        })
-        var wordFreq = {};
-        var resultJieba = call_jieba_cut(text, function (_result) {
-            _result.forEach(function (s) {
-                wordFreq[s] ? wordFreq[s]++ : wordFreq[s] = 1;
-            });
-
-            var wordFreqNew = Object.keys(wordFreq).map((key) => {
-                return {
-                    text: key,
-                    freq: wordFreq[key]
-                }
-            });
-
-            var wordFreqNew2 = wordFreqNew.filter((key) => {
-                return (key.text.match(/^\S\S/) && !key.text.toString().match(/^\d+$/))
-            });
-            wordFreqNew2.sort(function (b, a) {
-                return a.freq - b.freq;
-            });
-
-            var wordFreqNew3 = wordFreqNew2.map((key, index) => {
-                return {
-                    text: key.text,
-                    size: (40 - index) > 0 ? (40 - index) : 1
-                }
-            });
-
-            d3.layout.cloud().size([cloudw, cloudH])
-                .words(wordFreqNew3)
-                .padding(2)
-                .rotate(function () {
-                    return ~~((Math.random() * 6) - 3) * 30
-                })
-                .fontSize(function (d) {
-                    return d.size;
-                })
-                .on("end", draw)
-                .start();
-            document.getElementById("myNav").style.display = "none";
-        });
-
-        function draw(words) {
-            d3.select("#tag").append("svg")
-                .attr("width", cloudw)
-                .attr("height", cloudH)
-                .append("g")
-                .attr("transform", "translate(" + cloudw / 2 + "," + cloudH / 2 + ")")
-                .selectAll("text")
-                .data(words)
-                .enter().append("text")
-                .transition()
-                .style("font-size", function (d) {
-                    return d.size + "px";
-                })
-                .style("font-family", "Microsoft JhengHei")
-                .style("cursor", 'pointer')
-                .style("fill", function (d, i) {
-                    return fill(i);
-                })
-                .attr("text-anchor", "middle")
-                .attr("transform", function (d) {
-                    return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
-                })
-                .text(function (d) {
-                    return d.text;
-                })
-
         }
     </script>
 

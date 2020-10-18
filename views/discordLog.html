@@ -588,6 +588,7 @@
             //取得呈現處的寬、高
             var cloudw = parseInt(d3.select("#tag").style("width"), 10);
             var cloudH = parseInt(d3.select("#tag").style("height"), 10);
+            console.log('cloudw', cloudw, cloudH)
             var text = "";
             (newData || rawData).forEach(Data => {
                 if (Data.isbot == false) {
@@ -620,10 +621,6 @@
                         size: (40 - index) > 0 ? (40 - index) : 1
                     }
                 });
-                if (newData) {
-                    d3.select("#tag").remove();
-                  
-                }
 
                 d3.layout.cloud().size([cloudw, cloudH])
                     .words(wordFreqNew3)
@@ -640,8 +637,6 @@
             });
 
             function draw(words) {
-
-
                 d3.select("#tag").append("svg")
                     .attr("width", cloudw)
                     .attr("height", cloudH)

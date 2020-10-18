@@ -161,6 +161,8 @@
                     <div id="totallyMessage" class="border"><br>
                         * 總共傳了多少訊息 - BOT 及非BOT<br>
                         人: {{ message0 }} BOT: {{ message1 }}<br><br>
+                        <button v-on:click="reNew">Add 1</button>
+
                     </div><br>
                 </div>
                 <div class="col-md-4 color-01 border border-success">
@@ -196,6 +198,7 @@
 
         </div>
         <br>
+
         <div class="container center table-responsive-md" id="appMain">
             <div class="page-header">
                 <h1>聊天紀錄</h1>
@@ -287,6 +290,18 @@
                     userName: 'Test45',
                     isbot: false,
                 }]*/
+        var aesData = [{
+            timestamp: 1111246400000,
+            contact: 'aesData 信息',
+            userName: 'Sad',
+            isbot: false,
+        }, {
+            timestamp: 1211246400000,
+            contact: 'aesData 信息',
+            userName: 'Sad',
+            isbot: false,
+        }];
+
         var demoData = [{
             timestamp: 1611246400000,
             contact: 'Demo 信息',
@@ -373,7 +388,14 @@
 
         }
         //[d, '天', pad(h), '小時', pad(m), '分鐘'].join('');
-
+        function reNew() {
+            console.log('reNew')
+            rawDate = aesData;
+            drawWordCloud(aesData);
+            totallydate = totallyDay(rawDate);
+            totallyMessage.reNewTotallyMessage();
+            newTotallyDay = ((totallydate).toString().match(/\d+/i) < 1) ? 1 : (totallydate).toString();
+        }
         //總共傳了多少訊息 - BOT 及非BOT
         var totallymessage = analysicTotallymessage(rawData);
         var totallyMessage = new Vue({
@@ -381,6 +403,18 @@
             data: {
                 message0: totallymessage[0],
                 message1: totallymessage[1]
+            },
+            methods: {
+                reNewTotallyMessage: function () {
+                    totallymessage = analysicTotallymessage(aesData);
+                    console.log('totallymessage', totallymessage)
+                    this.message0 = totallymessage[0];
+                    this.message1 = totallymessage[1];
+                }
+            },
+            updated() {
+                // 讓我們可以知道組件有被更新
+                console.log('totallyMessage updated')
             }
         })
         var newTotallyDay = ((totallydate).toString().match(/\d+/i) < 1) ? 1 : (totallydate).toString()
@@ -578,14 +612,15 @@
             drawWordCloud();
         }
 
-        function drawWordCloud() {
+        function drawWordCloud(newData) {
             //文字雲/關鍵字，及字型大小（這邊只放三個）
             var fill = d3.scaleOrdinal(d3.schemeCategory10);
             //取得呈現處的寬、高
             var cloudw = parseInt(d3.select("#tag").style("width"), 10);
             var cloudH = parseInt(d3.select("#tag").style("height"), 10);
+            console.log('cloudw', cloudw, cloudH)
             var text = "";
-            rawData.forEach(Data => {
+            (newData || rawData).forEach(Data => {
                 if (Data.isbot == false) {
                     text += Data.contact + ' ';
                 }

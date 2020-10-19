@@ -201,8 +201,7 @@
         <br>
 
         <div class="container center table-responsive-md" id="appMain">
-            <input type="password" placeholder="請輸入密碼" id="passw0rd" label="AAA"> <button
-                v-on:click="reNew">開始解密</button>
+            <input type="password" placeholder="請輸入密碼" id="passw0rd"> <button v-on:click="reNew">開始解密</button>
             <br><br>
             <div class="page-header">
                 <h1>聊天紀錄</h1>
@@ -294,32 +293,7 @@
                     userName: 'Test45',
                     isbot: false,
                 }]*/
-        var aesData = [{
-            timestamp: 1000000000000,
-            contact: 'aesData 信息',
-            userName: 'Sad',
-            isbot: false,
-        }, {
-            timestamp: 1000000050000,
-            contact: 'aesData 信息',
-            userName: 'Sad',
-            isbot: false,
-        }, {
-            timestamp: 1000004050000,
-            contact: 'aesData 信息',
-            userName: 'Sad',
-            isbot: false,
-        }, {
-            timestamp: 1000500050000,
-            contact: 'aesData 信息',
-            userName: 'Sad',
-            isbot: false,
-        }, {
-            timestamp: 1006000050000,
-            contact: 'aesData 信息',
-            userName: 'Sad',
-            isbot: false,
-        }];
+        var aesData = [];
 
         function getDAesString(encrypted, key, iv) { //解密
             var key = CryptoJS.enc.Utf8.parse(key);
@@ -332,12 +306,11 @@
             return decrypted.toString(CryptoJS.enc.Utf8);
         }
 
-        function getDAes(data) { //解密
-            var key = 'passwordpasswordpasswordpasswordpasswordpasswordpasswordpassword'; //密钥
-            var iv = '1'; //密钥偏移量
+        function getDAes(key, iv, data) { //解密
             var decryptedStr = getDAesString(data, key, iv);
             return decryptedStr;
         }
+
         var demoData = [{
             timestamp: 1611246400000,
             contact: 'Demo 信息',
@@ -436,6 +409,8 @@
         }
         //[d, '天', pad(h), '小時', pad(m), '分鐘'].join('');
         function reNew() {
+            var key = document.getElementById("passw0rd").value;
+            aesData = getDAes(key, aesData);
             drawWordCloud(aesData);
             totallyMessage.reNewTotallyMessage();
             averageMessage.reNewAaverageMessage();

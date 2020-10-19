@@ -137,7 +137,10 @@
     <title>Discord Messager @ HKTRPG</title>
     <link rel="icon" href="https://avatars2.githubusercontent.com/u/48795428?s=280&v=4" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mobile-detect/1.4.4/mobile-detect.min.js"></script>
-    <script type="text/javascript" src="https://cdn.rawgit.com/ricmoo/aes-js/e27b99df/index.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"
+        integrity="sha512-nOQuvD9nKirvxDdvQ9OMqe2dgapbPB7vYAMrzJihw5m+aNcf0dX53m6YxM4LgA9u8e9eg9QX+/+mPu8kCNpV2A=="
+        crossorigin="anonymous"></script>
+
     <!--https://blog.gtwang.org/programming/javascript-aes-symmetric-encryption-tutorial/-->
 </head>
 
@@ -161,8 +164,6 @@
                     <div id="totallyMessage" class="border"><br>
                         * 總共傳了多少訊息 - BOT 及非BOT<br>
                         人: {{ message0 }} BOT: {{ message1 }}<br><br>
-                        <button v-on:click="reNew">Add 1</button>
-
                     </div><br>
                 </div>
                 <div class="col-md-4 color-01 border border-success">
@@ -200,6 +201,9 @@
         <br>
 
         <div class="container center table-responsive-md" id="appMain">
+            <input type="password" placeholder="請輸入密碼" id="passw0rd" label="AAA"> <button
+                v-on:click="reNew">開始解密</button>
+            <br><br>
             <div class="page-header">
                 <h1>聊天紀錄</h1>
                 <input type="text" placeholder="Filter" v-model="filter" />
@@ -291,17 +295,49 @@
                     isbot: false,
                 }]*/
         var aesData = [{
-            timestamp: 1111246400000,
+            timestamp: 1000000000000,
             contact: 'aesData 信息',
             userName: 'Sad',
             isbot: false,
         }, {
-            timestamp: 1211246400000,
+            timestamp: 1000000050000,
+            contact: 'aesData 信息',
+            userName: 'Sad',
+            isbot: false,
+        }, {
+            timestamp: 1000004050000,
+            contact: 'aesData 信息',
+            userName: 'Sad',
+            isbot: false,
+        }, {
+            timestamp: 1000500050000,
+            contact: 'aesData 信息',
+            userName: 'Sad',
+            isbot: false,
+        }, {
+            timestamp: 1006000050000,
             contact: 'aesData 信息',
             userName: 'Sad',
             isbot: false,
         }];
 
+        function getDAesString(encrypted, key, iv) { //解密
+            var key = CryptoJS.enc.Utf8.parse(key);
+            var iv = CryptoJS.enc.Utf8.parse(iv);
+            var decrypted = CryptoJS.AES.decrypt(encrypted, key, {
+                iv: iv,
+                mode: CryptoJS.mode.CBC,
+                padding: CryptoJS.pad.Pkcs7
+            });
+            return decrypted.toString(CryptoJS.enc.Utf8);
+        }
+
+        function getDAes(data) { //解密
+            var key = 'passwordpasswordpasswordpasswordpasswordpasswordpasswordpassword'; //密钥
+            var iv = '1'; //密钥偏移量
+            var decryptedStr = getDAesString(data, key, iv);
+            return decryptedStr;
+        }
         var demoData = [{
             timestamp: 1611246400000,
             contact: 'Demo 信息',
@@ -367,12 +403,23 @@
         rawData.sort(function (a, b) {
             return a.timestamp - b.timestamp;
         });
+
         //總共聊天天數 - 由什麼時候開始
         var totallydate = totallyDay(rawData);
         var totallyDate = new Vue({
             el: '#totallyDate',
             data: {
                 message: totallydate
+            },
+            methods: {
+                reNewtotallyDate: function () {
+                    var newtotallydate2 = totallyDay(aesData);
+                    this.message = newtotallydate2;
+                }
+            },
+            updated() {
+                // 讓我們可以知道組件有被更新
+                console.log('totallyDate updated')
             }
         })
         var md = new MobileDetect(window.navigator.userAgent);
@@ -389,13 +436,22 @@
         }
         //[d, '天', pad(h), '小時', pad(m), '分鐘'].join('');
         function reNew() {
-            console.log('reNew')
-            rawDate = aesData;
             drawWordCloud(aesData);
-            totallydate = totallyDay(rawDate);
             totallyMessage.reNewTotallyMessage();
-            newTotallyDay = ((totallydate).toString().match(/\d+/i) < 1) ? 1 : (totallydate).toString();
+            averageMessage.reNewAaverageMessage();
+            totallyDate.reNewtotallyDate();
+            analysicDateVue.reNewanalysicDate();
+            appMain.reNewappMain();
+            drawTop6DataChart(aesData);
+            drawAlluserChart(aesData);
+            analysicdate = analysicDate(aesData)
+            analysicdate.sort(function (b, a) {
+                return a.number - b.number;
+            });
+            allDateforChart3 = JSON.parse(JSON.stringify(analysicdate));
+            drawallDateforChart3();
         }
+
         //總共傳了多少訊息 - BOT 及非BOT
         var totallymessage = analysicTotallymessage(rawData);
         var totallyMessage = new Vue({
@@ -406,10 +462,9 @@
             },
             methods: {
                 reNewTotallyMessage: function () {
-                    totallymessage = analysicTotallymessage(aesData);
-                    console.log('totallymessage', totallymessage)
-                    this.message0 = totallymessage[0];
-                    this.message1 = totallymessage[1];
+                    var newTotallymessage = analysicTotallymessage(aesData);
+                    this.message0 = newTotallymessage[0];
+                    this.message1 = newTotallymessage[1];
                 }
             },
             updated() {
@@ -423,9 +478,23 @@
             el: '#averageMessage',
             data: {
                 message: (Math.ceil(totallymessage[0] / newTotallyDay * 100) / 100).toFixed(2) + '個'
+            },
+            methods: {
+                reNewAaverageMessage: function () {
+                    totallydate = totallyDay(aesData);
+                    totallymessage = analysicTotallymessage(aesData);
+                    this.message = (Math.ceil(totallymessage[0] / ((totallydate).toString().match(/\d+/i) <
+                        1) ? 1 : (totallydate) * 100) / 100).toFixed(2) + '個'
+                }
+            },
+            updated() {
+                // 讓我們可以知道組件有被更新
+                console.log('totallyMessage updated')
             }
         })
         //[humanTimes.length, botTimes.length
+
+
 
         //最多訊息數日子頭三，訊息數 O   
         var analysicdate = analysicDate(rawData)
@@ -441,15 +510,38 @@
             var temptop3Date = e.date.toString().match(/^(\d\d\d\d)(\d\d)(\d\d)/)
             top3Date[i].date = [temptop3Date[1], '年', temptop3Date[2], '月', temptop3Date[3], '日'].join('');
         })
-        var analysicDate = new Vue({
+        var analysicDateVue = new Vue({
             el: '#analysicDate',
             data: {
                 messages: top3Date
+            },
+            methods: {
+                reNewanalysicDate: function () {
+                    analysicdate = analysicDate(aesData)
+                    allDateforChart3 = JSON.parse(JSON.stringify(analysicdate));
+                    analysicdate.sort(function (b, a) {
+                        return a.number - b.number;
+                    });
+                    top3Date = JSON.parse(JSON.stringify(analysicdate));
+                    top3Date.splice(3, top3Date.length - 1);
+                    top3Date.forEach((e, i) => {
+                        temptop3Date = e.date.toString().match(/^(\d\d\d\d)(\d\d)(\d\d)/)
+                        top3Date[i].date = [temptop3Date[1], '年', temptop3Date[2], '月',
+                            temptop3Date[3], '日'
+                        ].join('');
+                    })
+                    this.messages = top3Date
+                }
+            },
+            updated() {
+                // 讓我們可以知道組件有被更新
+                console.log('analysicDate updated')
             }
         })
         // 群友的頭六名的訊息數(不包括BOT) (棒型圖)
-        var peopleTalk = analysicPeopleTalk(rawData);
-        var peopleTalk2 = analysicPeopleTalk2(rawData);
+
+
+
 
         //群友各自占聊天的比例   
 
@@ -574,6 +666,10 @@
                 rows: rawData
             },
             methods: {
+                reNewappMain() {
+                    this.rows = aesData
+                },
+
                 highlightMatches(text, isbot) {
                     const matchExists = text
                         .toLowerCase()
@@ -618,7 +714,6 @@
             //取得呈現處的寬、高
             var cloudw = parseInt(d3.select("#tag").style("width"), 10);
             var cloudH = parseInt(d3.select("#tag").style("height"), 10);
-            console.log('cloudw', cloudw, cloudH)
             var text = "";
             (newData || rawData).forEach(Data => {
                 if (Data.isbot == false) {
@@ -701,239 +796,257 @@
 
 
     <script>
-        var top6Labels = [],
-            top6Data = [];
-        Object.keys(peopleTalk).forEach((item, index) => {
-            if (index < 6) {
-                top6Data[index] = item;
-                top6Labels[index] = peopleTalk[item];
-            }
-        })
-        //peopleTalk
-        var ctx = document.getElementById("myChart").getContext('2d');
-        var myChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: top6Data,
-                datasets: [{
-                    label: '群友的頭六名的訊息數',
-                    data: top6Labels,
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.2)',
-                        'rgba(54, 162, 235, 0.2)',
-                        'rgba(255, 206, 86, 0.2)',
-                        'rgba(75, 192, 192, 0.2)',
-                        'rgba(153, 102, 255, 0.2)',
-                        'rgba(255, 159, 64, 0.2)'
-                    ],
-                    borderColor: [
-                        'rgba(255,99,132,1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(153, 102, 255, 1)',
-                        'rgba(255, 159, 64, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    yAxes: [{
-                        ticks: {
-                            beginAtZero: true,
-                            precision: 0
-                        }
-                    }],
-                    xAxes: [{
-                        gridLines: {
-                            offsetGridLines: true
-                        }
+        var peopleTalk;
+        drawTop6DataChart(rawData);
+
+        function drawTop6DataChart(input) {
+            peopleTalk = analysicPeopleTalk(input);
+            var top6Labels = [],
+                top6Data = [];
+            Object.keys(peopleTalk).forEach((item, index) => {
+                if (index < 6) {
+                    top6Data[index] = item;
+                    top6Labels[index] = peopleTalk[item];
+                }
+            })
+            //peopleTalk
+            var ctx = document.getElementById("myChart").getContext('2d');
+            var myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: top6Data,
+                    datasets: [{
+                        label: '群友的頭六名的訊息數',
+                        data: top6Labels,
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(255, 206, 86, 0.2)',
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(153, 102, 255, 0.2)',
+                            'rgba(255, 159, 64, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(255,99,132,1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)'
+                        ],
+                        borderWidth: 1
                     }]
-                }
-            }
-        });
-    </script>
-
-    <script>
-        var allUesr = [];
-        Object.keys(peopleTalk2).forEach((item, index) => {
-            allUesr[index] = {
-                Data: peopleTalk2[item],
-                Labels: item
-            }
-        })
-        allUesr.sort(function (b, a) {
-            return a.Data - b.Data;
-        });
-        var ctx2 = document.getElementById("myChart2").getContext('2d');
-        var myChart2 = new Chart(ctx2, {
-            type: 'doughnut',
-            data: {
-                labels: allUesr.map((e) => {
-                    return e.Labels;
-                }),
-                datasets: [{
-                    data: allUesr.map((e) => {
-                        return e.Data;
-                    }),
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(153, 102, 255, 1)',
-                        'rgba(255, 159, 64, 1)',
-                        'rgba(255, 99, 132, 1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(153, 102, 255, 1)',
-                        'rgba(255, 159, 64, 1)',
-                    ],
-                    borderColor: [
-                        'rgba(255,99,132,1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(153, 102, 255, 1)',
-                        'rgba(255, 159, 64, 1)',
-                        'rgba(255,99,132,1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(153, 102, 255, 1)',
-                        'rgba(255, 159, 64, 1)'
-                    ],
-
-                }]
-            },
-            options: {
-                title: {
-                    display: true,
-                    text: '群友各自占聊天的比例' + '(共' + Object.keys(peopleTalk).length + '人)',
-                    fontColor: 'black'
                 },
-                legend: {
-                    display: false
+                options: {
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                                precision: 0
+                            }
+                        }],
+                        xAxes: [{
+                            gridLines: {
+                                offsetGridLines: true
+                            }
+                        }]
+                    }
                 }
-            }
-        });
-    </script>
-    <script>
-        var dataCFG = [];
-        allDateforChart3.forEach((e, i) => {
-            var tempTime3 = e.date.toString().match(/^(\d\d\d\d)(\d\d)(\d\d)/)
-            dataCFG[i] = {
-                t: toTimestamp(tempTime3[1], tempTime3[2], tempTime3[3]),
-                y: e.number
-            }
-
-        })
-
-        function toTimestamp(year, month, day) {
-            var datum = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
-            return datum.getTime();
+            });
         }
-        var cfg = {
-            data: {
-                datasets: [{
-                    label: '拆線圖 - 每日訊息數',
-                    backgroundColor: 'rgba(255, 99, 132, 1)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    data: dataCFG,
-                    type: 'line',
-                    pointRadius: 0,
-                    fill: false,
-                    lineTension: 0,
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                animation: {
-                    duration: 0
-                },
-                scales: {
-                    xAxes: [{
-                        type: 'time',
-                        distribution: 'series',
-                        offset: true,
-                        time: {
-                            displayFormats: {
-                                quarter: 'MMM YYYY'
-                            }
-                        },
-                        ticks: {
-                            major: {
-                                enabled: true,
-                                fontStyle: 'bold'
-                            },
-                            source: 'data',
-                            autoSkip: true,
-                            autoSkipPadding: 75,
-                            maxRotation: 0,
-                            sampleSize: 100
-                        },
-                        afterBuildTicks: function (scale, ticks) {
-                            var majorUnit = scale._majorUnit;
-                            var firstTick = ticks[0];
-                            var curri, ilen, val, tick, currMajor, lastMajor;
+    </script>
 
-                            val = moment(ticks[0].value);
-                            if ((majorUnit === 'minute' && val.second() === 0) ||
-                                (majorUnit === 'hour' && val.minute() === 0) ||
-                                (majorUnit === 'day' && val.hour() === 9) ||
-                                (majorUnit === 'month' && val.date() <= 3 && val.isoWeekday() === 1) ||
-                                (majorUnit === 'year' && val.month() === 0)) {
-                                firstTick.major = true;
-                            } else {
-                                firstTick.major = false;
-                            }
-                            lastMajor = val.get(majorUnit);
+    <script>
+        drawAlluserChart(rawData);
 
-                            for (curri = 1, ilen = ticks.length; curri < ilen; curri++) {
-                                tick = ticks[curri];
-                                val = moment(tick.value);
-                                currMajor = val.get(majorUnit);
-                                tick.major = currMajor !== lastMajor;
-                                lastMajor = currMajor;
-                            }
-                            return ticks;
-                        }
-                    }],
-                    yAxes: [{
-                        gridLines: {
-                            drawBorder: false
-                        },
-                        scaleLabel: {
-                            display: true,
-                            labelString: '訊息量'
-                        },
-                        ticks: {
-                            beginAtZero: true,
-                            precision: 0
-                        }
+        function drawAlluserChart(input) {
+            var peopleTalk2 = analysicPeopleTalk2(input);
+            var allUesr = [];
+            Object.keys(peopleTalk2).forEach((item, index) => {
+                allUesr[index] = {
+                    Data: peopleTalk2[item],
+                    Labels: item
+                }
+            })
+            allUesr.sort(function (b, a) {
+                return a.Data - b.Data;
+            });
+            var ctx2 = document.getElementById("myChart2").getContext('2d');
+            var myChart2 = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: allUesr.map((e) => {
+                        return e.Labels;
+                    }),
+                    datasets: [{
+                        data: allUesr.map((e) => {
+                            return e.Data;
+                        }),
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)',
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)',
+                        ],
+                        borderColor: [
+                            'rgba(255,99,132,1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)',
+                            'rgba(255,99,132,1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)'
+                        ],
+
                     }]
                 },
-                tooltips: {
-                    intersect: false,
-                    mode: 'index',
-                    callbacks: {
-                        label: function (tooltipItem, myData) {
-                            var label = myData.datasets[tooltipItem.datasetIndex].label || '';
-                            if (label) {
-                                label += ': ';
+                options: {
+                    title: {
+                        display: true,
+                        text: '群友各自占聊天的比例' + '(共' + Object.keys(peopleTalk).length + '人)',
+                        fontColor: 'black'
+                    },
+                    legend: {
+                        display: false
+                    }
+                }
+            });
+        }
+    </script>
+    <script>
+        drawallDateforChart3();
+        var chart3cfg;
+
+        function drawallDateforChart3() {
+            var dataCFG = [];
+
+            allDateforChart3.forEach((e, i) => {
+                var tempTime3 = e.date.toString().match(/^(\d\d\d\d)(\d\d)(\d\d)/)
+                dataCFG[i] = {
+                    t: toTimestamp(tempTime3[1], tempTime3[2], tempTime3[3]),
+                    y: e.number
+                }
+
+            })
+
+            function toTimestamp(year, month, day) {
+                var datum = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
+                return datum.getTime();
+            }
+            chart3cfg = {
+                data: {
+                    datasets: [{
+                        label: '折線圖 - 每日訊息數',
+                        backgroundColor: 'rgba(255, 99, 132, 1)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        data: dataCFG,
+                        type: 'line',
+                        pointRadius: 0,
+                        fill: false,
+                        lineTension: 0,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    animation: {
+                        duration: 0
+                    },
+                    scales: {
+                        xAxes: [{
+                            type: 'time',
+                            distribution: 'series',
+                            offset: true,
+                            time: {
+                                displayFormats: {
+                                    quarter: 'MMM YYYY'
+                                }
+                            },
+                            ticks: {
+                                major: {
+                                    enabled: true,
+                                    fontStyle: 'bold'
+                                },
+                                source: 'data',
+                                autoSkip: true,
+                                autoSkipPadding: 75,
+                                maxRotation: 0,
+                                sampleSize: 100
+                            },
+                            afterBuildTicks: function (scale, ticks) {
+                                var majorUnit = scale._majorUnit;
+                                var firstTick = ticks[0];
+                                var curri, ilen, val, tick, currMajor, lastMajor;
+
+                                val = moment(ticks[0].value);
+                                if ((majorUnit === 'minute' && val.second() === 0) ||
+                                    (majorUnit === 'hour' && val.minute() === 0) ||
+                                    (majorUnit === 'day' && val.hour() === 9) ||
+                                    (majorUnit === 'month' && val.date() <= 3 && val.isoWeekday() ===
+                                        1) ||
+                                    (majorUnit === 'year' && val.month() === 0)) {
+                                    firstTick.major = true;
+                                } else {
+                                    firstTick.major = false;
+                                }
+                                lastMajor = val.get(majorUnit);
+
+                                for (curri = 1, ilen = ticks.length; curri < ilen; curri++) {
+                                    tick = ticks[curri];
+                                    val = moment(tick.value);
+                                    currMajor = val.get(majorUnit);
+                                    tick.major = currMajor !== lastMajor;
+                                    lastMajor = currMajor;
+                                }
+                                return ticks;
                             }
-                            label += parseFloat(tooltipItem.value)
-                            return label;
+                        }],
+                        yAxes: [{
+                            gridLines: {
+                                drawBorder: false
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: '訊息量'
+                            },
+                            ticks: {
+                                beginAtZero: true,
+                                precision: 0
+                            }
+                        }]
+                    },
+                    tooltips: {
+                        intersect: false,
+                        mode: 'index',
+                        callbacks: {
+                            label: function (tooltipItem, myData) {
+                                var label = myData.datasets[tooltipItem.datasetIndex].label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += parseFloat(tooltipItem.value)
+                                return label;
+                            }
                         }
                     }
                 }
-            }
-        };
+            };
+            var ctx3 = document.getElementById("myChart3").getContext('2d');
+            var myChart3 = new Chart(ctx3, chart3cfg);
+        }
         //// [{t:1602677527,y:600},{t:1622677527,y:300},{t:1702677527,y:900}],
-        var ctx3 = document.getElementById("myChart3").getContext('2d');
-        var myChart3 = new Chart(ctx3, cfg);
     </script>
     <script>
         var hde = document.documentElement,

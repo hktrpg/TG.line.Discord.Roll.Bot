@@ -667,6 +667,7 @@
             });
 
             function draw(words) {
+                d3.select("svg").remove();
                 d3.select("#tag").append("svg")
                     .attr("width", cloudw)
                     .attr("height", cloudH)
@@ -676,6 +677,7 @@
                     .data(words)
                     .enter().append("text")
                     .transition()
+                    .duration(800)
                     .style("font-size", function (d) {
                         return d.size + "px";
                     })

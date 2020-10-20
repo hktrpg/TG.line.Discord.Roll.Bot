@@ -201,6 +201,9 @@
         <br>
 
         <div class="container center table-responsive-md" id="appMain">
+            <button v-on:click="loadDemo">載入範例</button>
+
+            <br><br>
             <input type="password" placeholder="請輸入密碼" id="passw0rd"> <button v-on:click="reNew">開始解密</button>
             <br><br>
             <div class="page-header">
@@ -362,7 +365,7 @@
             userName: 'Zetetic',
             isbot: false,
         }, {
-            timestamp: 2041796400000,
+            timestamp: 2041796433000,
             contact: '測試!',
             userName: 'Zetetic',
             isbot: false,
@@ -372,21 +375,21 @@
             userName: 'Zetetic',
             isbot: false,
         }]
-        var rawData = demoData;
+        var rawData = [];
         rawData.sort(function (a, b) {
             return a.timestamp - b.timestamp;
         });
 
         //總共聊天天數 - 由什麼時候開始
-        var totallydate = totallyDay(rawData);
+        var totallydate = totallyDay(rawData) || "";
         var totallyDate = new Vue({
             el: '#totallyDate',
             data: {
                 message: totallydate
             },
             methods: {
-                reNewtotallyDate: function () {
-                    var newtotallydate2 = totallyDay(aesData);
+                reNewtotallyDate: function (input) {
+                    var newtotallydate2 = totallyDay(input);
                     this.message = newtotallydate2;
                 }
             },
@@ -400,23 +403,48 @@
         if (!md.mobile() && !md.phone() && !md.tablet()) {
             isMobile = false;
         }
+
         var switchLoading = (isMobile) ? false : true;
         if (switchLoading) {
-            document.getElementById("myNav").style.display = "block";
+           // document.getElementById("myNav").style.display = "block";
         } else {
             document.getElementById("wordCloud").style.display = "none";
 
         }
         //[d, '天', pad(h), '小時', pad(m), '分鐘'].join('');
+
+
+        function loadDemo() {
+            if (isMobile == false) {
+                drawWordCloud(demoData);
+            }
+
+            totallyMessage.reNewTotallyMessage(demoData);
+            averageMessage.reNewAaverageMessage(demoData);
+            totallyDate.reNewtotallyDate(demoData);
+            analysicDateVue.reNewanalysicDate(demoData);
+            appMain.reNewappMain(demoData);
+            drawTop6DataChart(demoData);
+            drawAlluserChart(demoData);
+            analysicdate = analysicDate(demoData)
+            analysicdate.sort(function (b, a) {
+                return a.number - b.number;
+            });
+            allDateforChart3 = JSON.parse(JSON.stringify(analysicdate));
+            drawallDateforChart3();
+        }
+
         function reNew() {
             var key = document.getElementById("passw0rd").value;
             aesData = getDAes(key, aesData);
-            drawWordCloud(aesData);
-            totallyMessage.reNewTotallyMessage();
-            averageMessage.reNewAaverageMessage();
-            totallyDate.reNewtotallyDate();
-            analysicDateVue.reNewanalysicDate();
-            appMain.reNewappMain();
+            if (isMobile == false) {
+                drawWordCloud(aesData);
+            }
+            totallyMessage.reNewTotallyMessage(aesData);
+            averageMessage.reNewAaverageMessage(aesData);
+            totallyDate.reNewtotallyDate(aesData);
+            analysicDateVue.reNewanalysicDate(aesData);
+            appMain.reNewappMain(aesData);
             drawTop6DataChart(aesData);
             drawAlluserChart(aesData);
             analysicdate = analysicDate(aesData)
@@ -436,8 +464,8 @@
                 message1: totallymessage[1]
             },
             methods: {
-                reNewTotallyMessage: function () {
-                    var newTotallymessage = analysicTotallymessage(aesData);
+                reNewTotallyMessage: function (input) {
+                    var newTotallymessage = analysicTotallymessage(input);
                     this.message0 = newTotallymessage[0];
                     this.message1 = newTotallymessage[1];
                 }
@@ -455,9 +483,9 @@
                 message: (Math.ceil(totallymessage[0] / newTotallyDay * 100) / 100).toFixed(2) + '個'
             },
             methods: {
-                reNewAaverageMessage: function () {
-                    totallydate = totallyDay(aesData);
-                    totallymessage = analysicTotallymessage(aesData);
+                reNewAaverageMessage: function (input) {
+                    totallydate = totallyDay(input);
+                    totallymessage = analysicTotallymessage(input);
                     this.message = (Math.ceil(totallymessage[0] / ((totallydate).toString().match(/\d+/i) <
                         1) ? 1 : (totallydate) * 100) / 100).toFixed(2) + '個'
                 }
@@ -491,8 +519,8 @@
                 messages: top3Date
             },
             methods: {
-                reNewanalysicDate: function () {
-                    analysicdate = analysicDate(aesData)
+                reNewanalysicDate: function (input) {
+                    analysicdate = analysicDate(input)
                     allDateforChart3 = JSON.parse(JSON.stringify(analysicdate));
                     analysicdate.sort(function (b, a) {
                         return a.number - b.number;
@@ -599,7 +627,8 @@
         }
 
         function totallyDay(result) {
-            if (!result) return;
+
+            if (!result.length) return;
             let lastDay = result[result.length - 1].timestamp;
             let firstDay = result[0].timestamp;
             return dhm(lastDay - firstDay);
@@ -641,8 +670,8 @@
                 rows: rawData
             },
             methods: {
-                reNewappMain() {
-                    this.rows = aesData
+                reNewappMain(input) {
+                    this.rows = input
                 },
 
                 highlightMatches(text, isbot) {
@@ -679,10 +708,6 @@
         });
     </script>
     <script>
-        if (isMobile == false) {
-            drawWordCloud();
-        }
-
         function drawWordCloud(newData) {
             //文字雲/關鍵字，及字型大小（這邊只放三個）
             var fill = d3.scaleOrdinal(d3.schemeCategory10);
@@ -832,8 +857,7 @@
     </script>
 
     <script>
-        drawAlluserChart(rawData);
-
+        
         function drawAlluserChart(input) {
             var peopleTalk2 = analysicPeopleTalk2(input);
             var allUesr = [];
@@ -902,7 +926,6 @@
         }
     </script>
     <script>
-        drawallDateforChart3();
         var chart3cfg;
 
         function drawallDateforChart3() {
@@ -961,6 +984,10 @@
                                 sampleSize: 100
                             },
                             afterBuildTicks: function (scale, ticks) {
+                                console.log('ticks', ticks)
+                                if (!tick) {
+                                    return;
+                                }
                                 var majorUnit = scale._majorUnit;
                                 var firstTick = ticks[0];
                                 var curri, ilen, val, tick, currMajor, lastMajor;

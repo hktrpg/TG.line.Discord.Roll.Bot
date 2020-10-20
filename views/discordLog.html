@@ -299,10 +299,10 @@
         var aesData = [];
 
         function getDAesString(encrypted, key, iv) { //解密
-            var key = CryptoJS.enc.Utf8.parse(key);
-            var iv = CryptoJS.enc.Utf8.parse(iv);
-            var decrypted = CryptoJS.AES.decrypt(encrypted, key, {
-                iv: iv,
+            var keyy = CryptoJS.enc.Utf8.parse(key);
+            var ivv = CryptoJS.enc.Utf8.parse(iv);
+            var decrypted = CryptoJS.AES.decrypt(encrypted, keyy, {
+                iv: ivv,
                 mode: CryptoJS.mode.CBC,
                 padding: CryptoJS.pad.Pkcs7
             });
@@ -420,6 +420,7 @@
                 }
             }
             console.log(key)
+            var newAesData = JSON.parse(getDAes(key, key, aesData));
             console.log(newAesData)
             if (!Array.isArray(newAesData)) return;
             newAesData.sort(function (a, b) {
@@ -472,10 +473,10 @@
             },
             methods: {
                 reNewAaverageMessage: function (input) {
-                    totallydate = totallyDay(input);
+                    totallydate = totallyDay(input).toString().match(/\d+/i)[0];
                     totallymessage = analysicTotallymessage(input);
-                    this.message = (Math.ceil(totallymessage[0] / ((totallydate).toString().match(/\d+/i) <
-                        1) ? 1 : (totallydate) * 100) / 100).toFixed(2) + '個'
+                    this.message = (Math.ceil(totallymessage[0] / (totallydate) * 100) / 100).toFixed(2) +
+                        '個'
                 }
             },
             updated() {

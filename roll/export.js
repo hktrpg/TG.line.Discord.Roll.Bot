@@ -102,7 +102,7 @@ var rollDiceCommand = async function ({
             newValue = data.replace(/aesData\s=\s\[\]/, 'aesData = ' + JSON.stringify(newAESDate));
             await fs.writeFile(dir + channelid + '_' + userid + '.html', newValue); // need to be in an async function
             rply.discordExportHtml = channelid + '_' + userid;
-            rply.text = '你的channel 聊天紀錄 共有 ' + totalSize + ' 項\n\n'
+            rply.text = key + '\n' + '你的channel 聊天紀錄 共有 ' + totalSize + ' 項\n\n'
             return rply;
         case /^export$/i.test(mainMsg[1]):
             if (botname !== "Discord") {

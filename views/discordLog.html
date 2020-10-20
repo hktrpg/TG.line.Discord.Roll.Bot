@@ -215,23 +215,23 @@
                     <tr class="d-flex">
                         <th class="col-md-1">#</th>
                         <th class="col-md-2">時間</th>
-                        <th class="col-md-2">(*Bot)發信人</th>
-                        <th class="col-md-7">內容</th>
+                        <th class="col-md-1">發信人<br>(*Bot)</th>
+                        <th class="col-md-8">內容</th>
                     </tr>
                 </thead>
                 <tbody class="preline" v-for="(row, index) in filteredRows">
                     <tr v-if="index%2==0" class="d-flex">
                         <td class="col-md-1" v-html="index"></td>
                         <td class="col-md-2" v-html="dhm2(row.timestamp)"></td>
-                        <td class="col-md-2" v-html="highlightMatches(row.userName,row.isbot)"></td>
-                        <td class="col-md-7" v-html="highlightMatches(row.contact)"></td>
+                        <td class="col-md-1" v-html="highlightMatches(row.userName,row.isbot)"></td>
+                        <td class="col-md-8" v-html="highlightMatches(row.contact)"></td>
                     </tr>
                     <tr v-if="index%2==1" class="d-flex" style="background-color: #d5d8d8;">
                         <td class="col-md-1" v-html="index"></td>
                         <td class="col-md-2" v-html="dhm2(row.timestamp)"></td>
-                        <td class="col-md-2" v-html="highlightMatches(row.userName,row.isbot)">
+                        <td class="col-md-1" v-html="highlightMatches(row.userName,row.isbot)">
                         </td>
-                        <td class="col-md-7" v-html="highlightMatches(row.contact)"></td>
+                        <td class="col-md-8" v-html="highlightMatches(row.contact)"></td>
                     </tr>
                 </tbody>
             </table>
@@ -315,33 +315,38 @@
         }
 
         var demoData = [{
-            timestamp: 1611246400000,
+            timestamp: 340875548000,
             contact: 'Demo 信息 @HKTRPG',
             userName: 'Sad',
             isbot: false,
         }, {
-            timestamp: 1901346400000,
+            timestamp: 584262427000,
             contact: '下回預告 「忍者的歷史 就是成長的歷史 成長的歷史 就是 私立御齋學園的歷史',
             userName: 'Zzzzz',
             isbot: false,
         }, {
-            timestamp: 2001356400000,
+            timestamp: 868259227000,
             contact: '本校長在此宣佈 一年一度 天下一 話劇大會 正式開始 各班同學請努力代表自己的班表演」',
             userName: 'Zzzzz',
             isbot: false,
         }, {
-            timestamp: 2021366400000,
+            timestamp: 1567584546000,
             contact: '「報告校長 我地接到錯誤通知 有啲人接到兩份通知 到底我地班要做小紅帽定白雪公主」 「。。。。一於溝埋做白雪帽啦，結局自定！」',
             userName: 'Zzzzz',
             isbot: false,
         }, {
-            timestamp: 2023376400000,
+            timestamp: 1563696546000,
             contact: '忍者在其他人眼中是如神一般的存在，但有生命的終將滅亡，愛卻是永恆不滅，偉大的存在把死去的忍者集合起來許諾相愛的人，將會從黃泉復活',
             userName: 'Zzzzz',
             isbot: false,
         }, {
-            timestamp: 2041396400000,
+            timestamp: 1567238949000,
             contact: '忍者的歷史 就是戰爭的歷史 亦是忍神的歷史 忍神 代表無限的可能性 少年忍者 與 下任宗主小 伙伴旅遊時被困於霧之村中 只有 三天後 濃霧消除 才可離開 百無聊賴 的 他們 遇上村中的 小忍者 ,被請求 於那時 帶 她 離 開 可是 這計劃已被 村中守衛 所 發現 。',
+            userName: 'Zetetic',
+            isbot: false,
+        }, {
+            timestamp: 3401941148000,
+            contact: '\\我愛TRPG/ .....吓?',
             userName: 'Zetetic',
             isbot: false,
         }]
@@ -635,7 +640,9 @@
             var year = date.getFullYear().toString();
             var month = (date.getMonth() + 1).toString().padStart(2, '0');
             var day = date.getDate().toString().padStart(2, '0');
-            return [year, '年', month, '月', day, '日'].join('');
+            var dhm2hour = date.getHours();
+            var dhm2minute = date.getMinutes();
+            return [year, '年', month, '月', day, '日', ' ', dhm2hour, ':', dhm2minute].join('');
         };
         const appMain = new Vue({
             el: "#appMain",
@@ -662,7 +669,9 @@
                     var year = dhm2date.getFullYear().toString();
                     var month = (dhm2date.getMonth() + 1).toString().padStart(2, '0');
                     var day = dhm2date.getDate().toString().padStart(2, '0');
-                    return [year, '年', month, '月', day, '日'].join('');
+                    var dhm2hour = dhm2date.getHours().toString().padStart(2, '0');
+                    var dhm2minute = dhm2date.getMinutes().toString().padStart(2, '0');
+                    return [year, '年', month, '月', day, '日', '\n', dhm2hour, ':', dhm2minute].join('');
                 }
             },
             computed: {

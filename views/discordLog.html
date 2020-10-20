@@ -682,7 +682,7 @@
                         .includes(this.filter.toLowerCase());
                     if (!matchExists) return text;
                     const re = new RegExp(this.filter, "ig");
-                    if (isbot) text = '🤖' + text;
+                    if (isbot) text = text + '(🤖)';
                     return text.replace(re, matchedText => `<strong>${matchedText}</strong>`);
                 },
                 dhm2(unix_timestamp) {
@@ -824,7 +824,7 @@
                 data: {
                     labels: top6Data,
                     datasets: [{
-                        label: '群友的頭六名的訊息數',
+                        label: '6️⃣群友的的訊息數',
                         data: top6Labels,
                         backgroundColor: [
                             'rgba(255, 99, 132, 1)',

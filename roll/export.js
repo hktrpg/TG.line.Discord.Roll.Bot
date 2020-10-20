@@ -48,6 +48,7 @@ var rollDiceCommand = async function ({
     let totalSize = 0;
     let newRawDate = [];
     let newValue = "";
+    console.log(discordClient)
 
     function replacer(first, second) {
         let users = discordClient.users.cache.get(second);
@@ -96,7 +97,6 @@ var rollDiceCommand = async function ({
             }
             data = await fs.readFile(__dirname + '/../views/discordLog.html', 'utf-8')
             var key = makeid(32);
-            console.log(key, JSON.stringify(newRawDate));
             var newAESDate = getAES(key, key, JSON.stringify(newRawDate));
             //aesData = [];
             newValue = data.replace(/aesData\s=\s\[\]/, 'aesData = ' + JSON.stringify(newAESDate));

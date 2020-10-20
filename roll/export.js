@@ -100,8 +100,12 @@ var rollDiceCommand = async function ({
             var newAESDate = getAES(key, key, JSON.stringify(newRawDate));
             //aesData = [];
             newValue = data.replace(/aesData\s=\s\[\]/, 'aesData = ' + JSON.stringify(newAESDate));
-            await fs.writeFile(dir + channelid + '_' + userid + '.html', newValue); // need to be in an async function
-            rply.discordExportHtml = channelid + '_' + userid;
+            var date = new Date;
+            var seconds = date.getSeconds();
+            var minutes = date.getMinutes();
+            var hour = date.getHours();
+            await fs.writeFile(dir + channelid + '_' + hour + minutes + seconds + '.html', newValue); // need to be in an async function
+            rply.discordExportHtml = channelid + '_' + hour + minutes + seconds + '\n password: ' + key;
             rply.text = key + '\n' + '你的channel 聊天紀錄 共有 ' + totalSize + ' 項\n\n'
             return rply;
         case /^export$/i.test(mainMsg[1]):
@@ -133,8 +137,8 @@ var rollDiceCommand = async function ({
                 if (error && error.code === 'ENOENT')
                     await fs.mkdir(dir);
             }
-            await fs.writeFile(dir + channelid + '_' + userid + '.txt', data); // need to be in an async function
-            rply.discordExport = channelid + '_' + userid;
+            await fs.writeFile(dir + channelid + '_' + hour + minutes + seconds + '.txt', data); // need to be in an async function
+            rply.discordExport = channelid + '_' + hour + minutes + seconds;
             rply.text = '你的channel 聊天紀錄 共有 ' + totalSize + ' 項\n\n'
             return rply;
         case /^\S/.test(mainMsg[1] || ''):

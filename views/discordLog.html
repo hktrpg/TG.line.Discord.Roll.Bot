@@ -40,7 +40,7 @@
     }
 
     .color-01 {
-        background-color: #d5d8d8;
+        background-color: white;
         color: black;
     }
 
@@ -49,10 +49,7 @@
         color: white;
     }
 
-    .color-03 {
-        background-color: #a47b5e;
-        color: white;
-    }
+
 
     .preline {
         white-space:
@@ -155,8 +152,8 @@
 
     <div>
         <div class="container-md">
-            <div class="row">
-                <div class="col-md-4 color-02 border border-secondary">
+            <div class="row border">
+                <div class="col-md-4 color-01 border ">
                     <div id="totallyDate" class="border"><br>
                         * 總共聊天天數 <br>
                         {{ message }}<br><br>
@@ -166,10 +163,10 @@
                         人: {{ message0 }} BOT: {{ message1 }}<br><br>
                     </div><br>
                 </div>
-                <div class="col-md-4 color-01 border border-success">
+                <div class="col-md-4 color-02 border">
                     <canvas id="myChart" width="100" height="80"></canvas>
                 </div>
-                <div class="col-md-4 color-03 border border-danger">
+                <div class="col-md-4 color-01 border">
                     <div id="averageMessage" class="border"><br>
                         * 每日平均訊息數量<br>
                         {{ message }}<br><br>
@@ -186,13 +183,13 @@
 
 
             <div class="row">
-                <div class="col-md-4 color-03 border border-dark">
+                <div class="col-md-4 color-02 border">
                     <canvas id="myChart2" width="100" height="80"></canvas>
                 </div>
-                <div class="col-md-4 color-02 border border-white" id="wordCloud">最常講的字 (文字雲)
+                <div class="col-md-4 color-01 border" id="wordCloud">最常講的字 (文字雲)
                     <div id="tag" style=" height: 250px; width:350px;"></div>
                 </div>
-                <div class="col-md-4 color-01 border border-light">
+                <div class="col-md-4 color-02 border">
                     <canvas id="myChart3" width="100" height="80"></canvas>
                 </div>
             </div>
@@ -803,6 +800,10 @@
                 }
             })
             //peopleTalk
+            Chart.defaults.global.defaultFontColor = 'white';
+            Chart.defaults.global.defaultFontFamily = 'Arial';
+            Chart.defaults.global.defaultFontSize = 14;
+            Chart.defaults.global.defaultFontStyle = 'normal';
             var ctx = document.getElementById("myChart").getContext('2d');
             var myChart = new Chart(ctx, {
                 type: 'bar',
@@ -870,6 +871,7 @@
                         return e.Labels;
                     }),
                     datasets: [{
+                        label: '群友各自占聊天的比例',
                         data: allUesr.map((e) => {
                             return e.Data;
                         }),
@@ -908,7 +910,8 @@
                     title: {
                         display: true,
                         text: '群友各自占聊天的比例' + '(共' + Object.keys(peopleTalk).length + '人)',
-                        fontColor: 'black'
+                        fontColor: 'white',
+                        fontStyle: 'normal'
                     },
                     legend: {
                         display: false

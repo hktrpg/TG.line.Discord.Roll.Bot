@@ -224,7 +224,7 @@
                     <tr class="d-flex">
                         <th class="col-md-1" style="color: white;background-color: #90ccf4e0;">#</th>
                         <th class="col-md-2" style="color: white;background-color: #90ccf4e0;">時間</th>
-                        <th class="col-md-2" style="color: white;background-color:  #90ccf4e0;">發信人<br>(*Bot)</th>
+                        <th class="col-md-2" style="color: white;background-color:  #90ccf4e0;">發信人(🤖)</th>
                         <th class="col-md-7" style="color: white;background-color:  #90ccf4e0;">內容</th>
                     </tr>
                 </thead>
@@ -332,12 +332,12 @@
             timestamp: 584262427000,
             contact: '下回預告 「忍者的歷史 就是成長的歷史 成長的歷史 就是 私立御齋學園的歷史',
             userName: 'Zzzzz',
-            isbot: false,
+            isbot: true,
         }, {
             timestamp: 868259227000,
             contact: '本校長在此宣佈 一年一度 天下一 話劇大會 正式開始 各班同學請努力代表自己的班表演」',
             userName: 'Zzzzz',
-            isbot: false,
+            isbot: true,
         }, {
             timestamp: 1567584546000,
             contact: '「報告校長 我地接到錯誤通知 有啲人接到兩份通知 到底我地班要做小紅帽定白雪公主」 「。。。。一於溝埋做白雪帽啦，結局自定！」',
@@ -682,7 +682,7 @@
                         .includes(this.filter.toLowerCase());
                     if (!matchExists) return text;
                     const re = new RegExp(this.filter, "ig");
-                    if (isbot) text = '*' + text;
+                    if (isbot) text = '🤖' + text;
                     return text.replace(re, matchedText => `<strong>${matchedText}</strong>`);
                 },
                 dhm2(unix_timestamp) {

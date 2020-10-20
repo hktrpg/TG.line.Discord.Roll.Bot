@@ -420,7 +420,7 @@
                 }
             }
             console.log(key)
-            newAesData = getDAes(key, key, aesData);
+            console.log(newAesData)
             if (!Array.isArray(newAesData)) return;
             newAesData.sort(function (a, b) {
                 return a.timestamp - b.timestamp;

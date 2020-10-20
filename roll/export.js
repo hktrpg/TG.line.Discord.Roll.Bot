@@ -96,10 +96,10 @@ var rollDiceCommand = async function ({
             }
             data = await fs.readFile(__dirname + '/../views/discordLog.html', 'utf-8')
             var key = makeid(32);
-            console.log(key);
-            var newAESDate = getAES(key, key, newRawDate);
+            console.log(key, JSON.stringify(newRawDate));
+            var newAESDate = getAES(key, key, JSON.stringify(newRawDate));
             //aesData = [];
-            newValue = data.replace(/aesData\s=\[\]/, 'aesData = ' + JSON.stringify(newAESDate));
+            newValue = data.replace(/aesData\s=\s\[\]/, 'aesData = ' + JSON.stringify(newAESDate));
             await fs.writeFile(dir + channelid + '_' + userid + '.html', newValue); // need to be in an async function
             rply.discordExportHtml = channelid + '_' + userid;
             rply.text = '你的channel 聊天紀錄 共有 ' + totalSize + ' 項\n\n'
@@ -188,8 +188,8 @@ function getAesString(data, key, iv) { //加密
 
 function getAES(key, iv, data) { //加密
     var encrypted = getAesString(data, key, iv); //密文
-    var encrypted1 = CryptoJS.enc.Utf8.parse(encrypted);
-    return encrypted1;
+    //    var encrypted1 = CryptoJS.enc.Utf8.parse(encrypted);
+    return encrypted;
 }
 
 function makeid(length) {

@@ -215,23 +215,23 @@
                     <tr class="d-flex">
                         <th class="col-md-1">#</th>
                         <th class="col-md-2">時間</th>
-                        <th class="col-md-1">發信人<br>(*Bot)</th>
-                        <th class="col-md-8">內容</th>
+                        <th class="col-md-2">發信人<br>(*Bot)</th>
+                        <th class="col-md-7">內容</th>
                     </tr>
                 </thead>
                 <tbody class="preline" v-for="(row, index) in filteredRows">
                     <tr v-if="index%2==0" class="d-flex">
                         <td class="col-md-1" v-html="index"></td>
                         <td class="col-md-2" v-html="dhm2(row.timestamp)"></td>
-                        <td class="col-md-1" v-html="highlightMatches(row.userName,row.isbot)"></td>
-                        <td class="col-md-8" v-html="highlightMatches(row.contact)"></td>
+                        <td class="col-md-2" v-html="highlightMatches(row.userName,row.isbot)"></td>
+                        <td class="col-md-7" v-html="highlightMatches(row.contact)"></td>
                     </tr>
                     <tr v-if="index%2==1" class="d-flex" style="background-color: #d5d8d8;">
                         <td class="col-md-1" v-html="index"></td>
                         <td class="col-md-2" v-html="dhm2(row.timestamp)"></td>
-                        <td class="col-md-1" v-html="highlightMatches(row.userName,row.isbot)">
+                        <td class="col-md-2" v-html="highlightMatches(row.userName,row.isbot)">
                         </td>
-                        <td class="col-md-8" v-html="highlightMatches(row.contact)"></td>
+                        <td class="col-md-7" v-html="highlightMatches(row.contact)"></td>
                     </tr>
                 </tbody>
             </table>

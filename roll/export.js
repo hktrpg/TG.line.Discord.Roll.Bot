@@ -6,6 +6,7 @@ var gameName = function () {
 }
 const fs = require('fs').promises;
 const moment = require('moment-timezone');
+const CryptoJS = require("crypto-js");
 var gameType = function () {
     return 'Tool:Export:hktrpg'
 }
@@ -94,9 +95,11 @@ var rollDiceCommand = async function ({
                     await fs.mkdir(dir);
             }
             data = await fs.readFile(__dirname + '/../views/discordLog.html', 'utf-8')
-           
-            newValue = data.replace(/rawData\s=\sdemoData/, 'rawData = ' + JSON.stringify(newRawDate));
-
+            var key = makeid(32);
+            console.log(key);
+            var newAESDate = getAES(key, key, newRawDate);
+            //aesData = [];
+            newValue = data.replace(/aesData\s=\[\]/, 'aesData = ' + JSON.stringify(newAESDate));
             await fs.writeFile(dir + channelid + '_' + userid + '.html', newValue); // need to be in an async function
             rply.discordExportHtml = channelid + '_' + userid;
             rply.text = '你的channel 聊天紀錄 共有 ' + totalSize + ' 項\n\n'
@@ -169,6 +172,34 @@ async function lots_of_messages_getter(channel) {
         sum_messages: sum_messages,
         totalSize: totalSize
     };
+}
+
+function getAesString(data, key, iv) { //加密
+    var keyy = CryptoJS.enc.Utf8.parse(key);
+    //alert(key）;
+    var ivv = CryptoJS.enc.Utf8.parse(iv);
+    var encrypted = CryptoJS.AES.encrypt(data, keyy, {
+        iv: ivv,
+        mode: CryptoJS.mode.CBC,
+        padding: CryptoJS.pad.Pkcs7
+    });
+    return encrypted.toString(); //返回的是base64格式的密文
+}
+
+function getAES(key, iv, data) { //加密
+    var encrypted = getAesString(data, key, iv); //密文
+    var encrypted1 = CryptoJS.enc.Utf8.parse(encrypted);
+    return encrypted1;
+}
+
+function makeid(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
 }
 module.exports = {
     rollDiceCommand: rollDiceCommand,

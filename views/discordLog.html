@@ -412,21 +412,30 @@
 
         function reNew() {
             var key = document.getElementById("passw0rd").value;
-            aesData = getDAes(key, aesData);
-            aesData.sort(function (a, b) {
+            if (key.length < 4) return;
+            while (key.length < 32) {
+                key += key;
+                if (key.length > 32) {
+                    key = key.slice(0, 32)
+                }
+            }
+            console.log(key)
+            newAesData = getDAes(key, key, aesData);
+            if (!Array.isArray(newAesData)) return;
+            newAesData.sort(function (a, b) {
                 return a.timestamp - b.timestamp;
             });
             if (isMobile == false) {
-                drawWordCloud(aesData);
+                drawWordCloud(newAesData);
             }
-            totallyMessage.reNewTotallyMessage(aesData);
-            averageMessage.reNewAaverageMessage(aesData);
-            totallyDate.reNewtotallyDate(aesData);
-            analysicDateVue.reNewanalysicDate(aesData);
-            appMain.reNewappMain(aesData);
-            drawTop6DataChart(aesData);
-            drawAlluserChart(aesData);
-            analysicdate = analysicDate(aesData)
+            totallyMessage.reNewTotallyMessage(newAesData);
+            averageMessage.reNewAaverageMessage(newAesData);
+            totallyDate.reNewtotallyDate(newAesData);
+            analysicDateVue.reNewanalysicDate(newAesData);
+            appMain.reNewappMain(newAesData);
+            drawTop6DataChart(newAesData);
+            drawAlluserChart(newAesData);
+            analysicdate = analysicDate(newAesData)
             analysicdate.sort(function (b, a) {
                 return a.number - b.number;
             });

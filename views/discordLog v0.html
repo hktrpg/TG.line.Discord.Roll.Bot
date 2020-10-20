@@ -1,60 +1,79 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPEhtml>
+    <html>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <title>Document</title>
-</head>
+    <head>
+        <title>aes demo</title>
+        <meta charset="utf-8" />
+        <style>
+            * {
+                margin: 0;
+                padding: 0
+            }
 
-<body>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"
-        integrity="sha512-nOQuvD9nKirvxDdvQ9OMqe2dgapbPB7vYAMrzJihw5m+aNcf0dX53m6YxM4LgA9u8e9eg9QX+/+mPu8kCNpV2A=="
-        crossorigin="anonymous"></script>
-    <script>
-        function getAesString(data, key, iv) { //加密
-            var key = CryptoJS.enc.Utf8.parse(key);
-            var iv = CryptoJS.enc.Utf8.parse(iv);
-            var encrypted = CryptoJS.AES.encrypt(data, key, {
-                iv: iv,
-                mode: CryptoJS.mode.CBC,
-                padding: CryptoJS.pad.Pkcs7
-            });
-            return encrypted.toString(); //返回的是base64格式的密文
-        }
+            .demo-wrap {
+                width: 400px;
+                height: 50px;
+                margin: 50px auto auto auto
+            }
+        </style>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.js"></script>
 
-        function getDAesString(encrypted, key, iv) { //解密
-            var key = CryptoJS.enc.Utf8.parse(key);
-            var iv = CryptoJS.enc.Utf8.parse(iv);
-            var decrypted = CryptoJS.AES.decrypt(encrypted, key, {
-                iv: iv,
-                mode: CryptoJS.mode.CBC,
-                padding: CryptoJS.pad.Pkcs7
-            });
-            return decrypted.toString(CryptoJS.enc.Utf8);
-        }
+    </head>
 
-        function getAES(data) { //加密
-            var key = 'passwordpasswordpasswordpasswordpasswordpasswordpasswordpassword'; //密钥
-            var iv = '1';
-            var encrypted = getAesString(data, key, iv); //密文
-            var encrypted1 = CryptoJS.enc.Utf8.parse(encrypted);
-            return encrypted;
-        }
+    <body>
+        <div class="demo-wrap">
+            <input type="text" id="data-ipt" />
+            <button onclick="getAES();">AES加密</button>
+            <button onclick="getDAes();">AES解密</button>
+            <br />
+            加密后的數據:
+            <p id="encrypted"></p>
+            解密后的數據:
+            <p id="decrypted">
+                </p>
+                </div>
+                <script>
+                    function getAesString(data, key, iv) { //加密
 
-        function getDAes(data) { //解密
-            var key = 'passwordpasswordpasswordpasswordpasswordpasswordpasswordpassword'; //密钥
-            var iv = '1'; //密钥偏移量
-            var decryptedStr = getDAesString(data, key, iv);
-            return decryptedStr;
-        }
+                        var key = CryptoJS.enc.Utf8.parse(key);
+                        //alert(key）;
+                        var iv = CryptoJS.enc.Utf8.parse(iv);
+                        var encrypted = CryptoJS.AES.encrypt(data, key, {
+                            iv: iv,
+                            mode: CryptoJS.mode.CBC,
+                            padding: CryptoJS.pad.Pkcs7
+                        });
+                        return encrypted.toString(); //返回的是base64格式的密文
+                    }
 
-        var AES = getAES('hello');
-        var AFTERAES = getDAes(AES);
-        console.log('加密后:' + AES);
-        console.log('解密后:' + AFTERAES);
-    </script>
-</body>
+                    function getDAesString(encrypted, key, iv) { //解密
+                        var key = CryptoJS.enc.Utf8.parse(key);
+                        var iv = CryptoJS.enc.Utf8.parse(iv);
+                        var decrypted = CryptoJS.AES.decrypt(encrypted, key, {
+                            iv: iv,
+                            mode: CryptoJS.mode.CBC,
+                            padding: CryptoJS.pad.Pkcs7
+                        });
+                        return decrypted.toString(CryptoJS.enc.Utf8); //
+                    }
 
-</html>
+                    function getAES() { //加密
+                        var data = document.getElementById("data-ipt").value; //明文
+                        var key = 'abcdefgabcdefg12abcdefgabcdefg12'; //密鑰
+                        var iv = '';
+                        var encrypted = getAesString(data, key, iv); //密文
+                        var encrypted1 = CryptoJS.enc.Utf8.parse(encrypted);
+                        document.getElementById("encrypted").innerHTML = encrypted;
+                    }
+
+                    function getDAes() { //解密
+                        var encrypted = document.getElementById("encrypted").innerHTML; //密文
+                        var key = 'abcdefgabcdefg12abcdefgabcdefg12';
+                        var iv = 'abcdefgabcdefg12abcdefgabcdefg12abcdefgabcdefg12abcdefgabcdefg12abcdefgabcdefg12abcdefgabcdefg12abcdefgabcdefg12abcdefgabcdefg12abcdefgabcdefg12abcdefgabcdefg12';
+                        var decryptedStr = getDAesString(encrypted, key, iv);
+                        document.getElementById("decrypted").innerHTML = decryptedStr;
+                    }
+                </script>
+    </body>
+
+    </html>

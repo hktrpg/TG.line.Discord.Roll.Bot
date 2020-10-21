@@ -190,7 +190,6 @@ client.on('message', async (message) => {
 	}
 
 	if (rplyVal.discordExport) {
-		message.channel.send("<@" + userid + '>\n' + '已私訊你 頻道 ' + message.channel.name + ' 的聊天紀錄\n');
 		if (!appName) {
 			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄', {
 				files: [
@@ -203,7 +202,6 @@ client.on('message', async (message) => {
 		}
 	}
 	if (rplyVal.discordExportHtml) {
-		message.channel.send("<@" + userid + '>\n' + '已私訊你 頻道 ' + message.channel.name + ' 的聊天紀錄\n');
 		if (!appName) {
 			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +
 				rplyVal.discordExportHtml[1], {
@@ -211,13 +209,13 @@ client.on('message', async (message) => {
 						"./tmp/" + rplyVal.discordExportHtml[0] + '.html'
 					]
 				});
+
 		} else {
-			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n' +
-				'https://' + appName + '.herokuapp.com' + "/app/discord/" + rplyVal.discordExportHtml[0] + '.html')
+			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +
+				rplyVal.discordExportHtml[1] +
+				'\nhttps://' + appName + '.herokuapp.com' + "/app/discord/" + rplyVal.discordExportHtml[0] + '.html')
 		}
-
 	}
-
 	if (!rplyVal.text) {
 		return;
 	}

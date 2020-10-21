@@ -62,7 +62,7 @@ var rollDiceCommand = async function ({
     var minutes = date.getMinutes();
     var hour = date.getHours();
     var tempA = channelid + '_' + hour + minutes + seconds;
-    var permission = discordMessage.channel.permissionsFor(discordClient.user).has("READ_MESSAGE_HISTORY") || discordMessage.member.hasPermission("ADMINISTRATOR");
+    var permission = (discordMessage.channel && discordMessage.channel.permissionsFor(discordClient.user).has("READ_MESSAGE_HISTORY")) || (discordMessage.member && discordMessage.member.hasPermission("ADMINISTRATOR"));
     var hasReadPermission = discordMessage.channel.permissionsFor(discordMessage.guild.me).has("READ_MESSAGE_HISTORY") || discordMessage.guild.me.hasPermission("ADMINISTRATOR");
 
     function replacer(first, second) {
@@ -94,7 +94,7 @@ var rollDiceCommand = async function ({
             }
             if (!channelid || !groupid) return;
             C = await discordClient.channels.fetch(channelid);
-            discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG正在努力進行中，需要一點時間');
+            discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間');
             M = await lots_of_messages_getter(C);
             totalSize = M.totalSize;
             M = M.sum_messages;
@@ -134,7 +134,7 @@ var rollDiceCommand = async function ({
                 tempA,
                 tempB
             ]
-            rply.text = '\n' + '你的channel 聊天紀錄 共有 ' + totalSize + ' 項\n\n'
+            rply.text = '已私訊你 頻道 ' + discordMessage.channel.name + ' 的聊天紀錄\n你的channel 聊天紀錄 共有 ' + totalSize + ' 項\n\n'
             return rply;
         case /^export$/i.test(mainMsg[1]):
             if (botname !== "Discord") {

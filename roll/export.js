@@ -1,6 +1,7 @@
 "use strict";
 var variables = {};
-
+const oneMinuts = 60000;
+const sevenDay = 60 * 24 * 7 * 60000;
 var gameName = function () {
     return '【Discord 頻道輸出工具】'
 }
@@ -68,14 +69,14 @@ var rollDiceCommand = async function ({
     let totalSize = 0;
     let newRawDate = [];
     let newValue = "";
-    let lv, limit, check;
+    let lv, limit, checkUser, checkGP;
     let channelName = discordMessage.channel.name || '';
     let date = new Date;
     let seconds = date.getSeconds();
     let minutes = date.getMinutes();
     let hour = date.getHours();
     let tempA = channelid + '_' + hour + minutes + seconds;
-    let permission, hasReadPermission;
+    let permission, hasReadPermission, active = true;
 
     if (groupid) {
         permission = (discordMessage.channel && discordMessage.channel.permissionsFor(discordClient.user).has("READ_MESSAGE_HISTORY")) || (discordMessage.member && discordMessage.member.hasPermission("ADMINISTRATOR"));
@@ -111,11 +112,21 @@ var rollDiceCommand = async function ({
             }
             lv = await VIP.viplevelCheckUser(userid);
             limit = limitArr[lv];
-            check = await schema.characterCard.find({
-                id: userid
+            checkUser = await schema.exportUser.findOne({
+                userID: userid
             });
-            if (check.length >= limit) {
+            checkGP = await schema.exportGp.findOne({
+                groupID: userid
+            });
+
+            if (checkGP && (new Date() - checkGP.lastActiveAt) <= (oneMinuts * 5)) {
+                active = false;
+            }
+
+
+            if (checkUser && (new Date() - checkUser.lastActiveAt) <= sevenDay && checkUser.times >= limit) {
                 rply.text = '你每星期下載聊天紀錄的上限為' + limit + '次' + '\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                active = false;
                 return rply
             }
 
@@ -151,13 +162,14 @@ var rollDiceCommand = async function ({
             }
             data = await fs.readFile(__dirname + '/../views/discordLog.html', 'utf-8')
             var key = makeid(32);
+            var randomLink = makeid(7);
             var newAESDate = getAES(key, key, JSON.stringify(newRawDate));
             //aesData = [];
             newValue = data.replace(/aesData\s=\s\[\]/, 'aesData = ' + JSON.stringify(newAESDate)).replace(/<h1>聊天紀錄<\/h1>/, '<h1>' + channelName + ' 的聊天紀錄</h1>');
             var tempB = key;
-            await fs.writeFile(dir + channelid + '_' + hour + minutes + seconds + '.html', newValue); // need to be in an async function
+            await fs.writeFile(dir + channelid + '_' + hour + minutes + seconds + '_' + randomLink + '.html', newValue); // need to be in an async function
             rply.discordExportHtml = [
-                tempA,
+                tempA + '_' + randomLink,
                 tempB
             ]
             rply.text = '已私訊你 頻道 ' + discordMessage.channel.name + ' 的聊天紀錄\n你的channel 聊天紀錄 共有 ' + totalSize + ' 項\n\n'

@@ -155,7 +155,8 @@ client.on('message', async (message) => {
 			channelid: channelid,
 			displaynameDiscord: displaynameDiscord,
 			membercount: membercount,
-			discordClient: client
+			discordClient: client,
+			discordMessage: message
 		})
 	} else {
 		if (channelKeyword == "") {
@@ -169,7 +170,8 @@ client.on('message', async (message) => {
 				channelid: channelid,
 				displaynameDiscord: displaynameDiscord,
 				membercount: membercount,
-				discordClient: client
+				discordClient: client,
+				discordMessage: message
 			});
 		}
 	}
@@ -190,7 +192,7 @@ client.on('message', async (message) => {
 	}
 
 	if (rplyVal.discordExport) {
-		message.channel.send('現在輸出: 頻道 ' + message.channel.name + ' 的聊天紀錄\n 指示者: ' +
+		message.author.send('現在輸出: 頻道 ' + message.channel.name + ' 的聊天紀錄\n 指示者: ' +
 			message.guild.name, {
 				files: [
 					"./tmp/" + rplyVal.discordExport + '.txt'
@@ -198,10 +200,10 @@ client.on('message', async (message) => {
 			});
 	}
 	if (rplyVal.discordExportHtml) {
-		message.channel.send('現在輸出: 頻道 ' + message.channel.name + ' 的聊天紀錄\n 指示者: ' +
-			message.guild.name, {
+		message.author.send('現在輸出: 頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +
+			rplyVal.discordExportHtml[1], {
 				files: [
-					"./tmp/" + rplyVal.discordExportHtml + '.html'
+					"./tmp/" + rplyVal.discordExportHtml[0] + '.html'
 				]
 			});
 	}

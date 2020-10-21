@@ -33,7 +33,7 @@ var initialize = function () {
 var rollDiceCommand = async function ({
     mainMsg,
     discordClient,
-    userid,
+    discordMessage,
     channelid,
     groupid,
     botname
@@ -48,7 +48,13 @@ var rollDiceCommand = async function ({
     let totalSize = 0;
     let newRawDate = [];
     let newValue = "";
-    console.log(discordClient)
+    let channelName = discordMessage.channel.name || '';
+    var date = new Date;
+    var seconds = date.getSeconds();
+    var minutes = date.getMinutes();
+    var hour = date.getHours();
+    var tempA = channelid + '_' + hour + minutes + seconds;
+    console.log(discordMessage)
 
     function replacer(first, second) {
         let users = discordClient.users.cache.get(second);
@@ -99,14 +105,14 @@ var rollDiceCommand = async function ({
             var key = makeid(32);
             var newAESDate = getAES(key, key, JSON.stringify(newRawDate));
             //aesData = [];
-            newValue = data.replace(/aesData\s=\s\[\]/, 'aesData = ' + JSON.stringify(newAESDate));
-            var date = new Date;
-            var seconds = date.getSeconds();
-            var minutes = date.getMinutes();
-            var hour = date.getHours();
+            newValue = data.replace(/aesData\s=\s\[\]/, 'aesData = ' + JSON.stringify(newAESDate)).replace(/<h1>聊天紀錄<\/h1>/, '<h1>' + channelName + ' 的聊天紀錄</h1>');
+            var tempB = key;
             await fs.writeFile(dir + channelid + '_' + hour + minutes + seconds + '.html', newValue); // need to be in an async function
-            rply.discordExportHtml = channelid + '_' + hour + minutes + seconds + '\n password: ' + key;
-            rply.text = key + '\n' + '你的channel 聊天紀錄 共有 ' + totalSize + ' 項\n\n'
+            rply.discordExportHtml = [
+                tempA,
+                tempB
+            ]
+            rply.text = '\n' + '你的channel 聊天紀錄 共有 ' + totalSize + ' 項\n\n'
             return rply;
         case /^export$/i.test(mainMsg[1]):
             if (botname !== "Discord") {

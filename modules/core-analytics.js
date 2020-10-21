@@ -29,7 +29,8 @@ var parseInput = async function ({
 	channelid = null,
 	displaynameDiscord = null,
 	membercount = 0,
-	discordClient
+	discordClient,
+	discordMessage
 }) {
 	//console.log('InputStr: ' + inputStr);
 	let result = {
@@ -71,7 +72,8 @@ var parseInput = async function ({
 			channelid: channelid,
 			displaynameDiscord: displaynameDiscord,
 			membercount: membercount,
-			discordClient: discordClient
+			discordClient: discordClient,
+			discordMessage: discordMessage
 		})
 
 	} catch (error) {
@@ -148,7 +150,8 @@ var rolldice = async function ({
 	channelid,
 	displaynameDiscord,
 	membercount,
-	discordClient
+	discordClient,
+	discordMessage
 }) {
 	//	console.log(exports)
 	//在下面位置開始分析trigger
@@ -170,7 +173,8 @@ var rolldice = async function ({
 		channelid: channelid,
 		displaynameDiscord: displaynameDiscord,
 		membercount: membercount,
-		discordClient: discordClient
+		discordClient: discordClient,
+		discordMessage: discordMessage
 	});
 	//console.log('tempsave: ', tempsave)
 	return tempsave;

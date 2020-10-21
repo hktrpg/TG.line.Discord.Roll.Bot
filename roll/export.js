@@ -62,6 +62,7 @@ var rollDiceCommand = async function ({
     var minutes = date.getMinutes();
     var hour = date.getHours();
     var tempA = channelid + '_' + hour + minutes + seconds;
+    console.log('channelid', channelid)
     if (channelid) {
         var permission = (discordMessage.channel && discordMessage.channel.permissionsFor(discordClient.user).has("READ_MESSAGE_HISTORY")) || (discordMessage.member && discordMessage.member.hasPermission("ADMINISTRATOR"));
         var hasReadPermission = discordMessage.channel.permissionsFor(discordMessage.guild.me).has("READ_MESSAGE_HISTORY") || discordMessage.guild.me.hasPermission("ADMINISTRATOR");

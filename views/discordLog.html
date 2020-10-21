@@ -883,7 +883,7 @@
                         return e.Labels;
                     }),
                     datasets: [{
-                        label: '群友各自占聊天的比例',
+                        label: '聊天比例',
                         data: allUesr.map((e) => {
                             return e.Data;
                         }),
@@ -921,7 +921,7 @@
                 options: {
                     title: {
                         display: true,
-                        text: '群友各自占聊天的比例' + '(共' + Object.keys(peopleTalk).length + '人)',
+                        text: '聊天比例' + '(共' + Object.keys(peopleTalk).length + '人)',
                         fontColor: 'white',
                         fontStyle: 'normal'
                     },
@@ -957,7 +957,7 @@
             chart3cfg = {
                 data: {
                     datasets: [{
-                        label: '折線圖 - 每日訊息數',
+                        label: '每日訊息數',
                         backgroundColor: 'rgba(255, 99, 132, 1)',
                         borderColor: 'rgba(255,99,132,1)',
                         data: dataCFG,

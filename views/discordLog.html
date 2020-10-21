@@ -244,11 +244,13 @@
             </table>
 
 
+
         </div>
-        <br> <br> <br> <br>
-
-
-
+        <br> <br>
+        <div class="footer-copyright text-center py-3">2020 :
+            <a href="https://www.patreon.com/HKTRPG"> HKTRPG Sad</a>
+        </div>
+        <br> <br>
         <div class="container-md fixed-bottom">
             <div class="progress" id="touchBar" style="height: 30px; background: #ccc;">
                 <div class="progress-bar" id="progressbar" role="progressbar" style="width: 10%" aria-valuenow="25"
@@ -343,7 +345,12 @@
             isbot: false,
         }, {
             timestamp: 1563696546000,
-            contact: '忍者在其他人眼中是如神一般的存在，但有生命的終將滅亡，愛卻是永恆不滅，偉大的存在把死去的忍者集合起來許諾相愛的人，將會從黃泉復活',
+            contact: '忍者在其他人眼中是如神一般的存在，但有生命的終將滅亡，愛卻是永恆不滅，',
+            userName: 'Zzzzz',
+            isbot: false,
+        }, {
+            timestamp: 1563696548900,
+            contact: '偉大的存在把死去的忍者集合起來許諾相愛的人，將會從黃泉復活',
             userName: 'Zzzzz',
             isbot: false,
         }, {
@@ -392,9 +399,9 @@
         }
         //[d, '天', pad(h), '小時', pad(m), '分鐘'].join('');
 
-        window.onload = function () { // same as window.addEventListener('load', (event) => {
+        call_jieba_cut('', function (_result) {
             document.getElementById("myNav").style.display = "none";
-        };
+        });
 
         function loadDemo() {
             demoData.sort(function (a, b) {
@@ -428,9 +435,7 @@
                     key = key.slice(0, 32)
                 }
             }
-            console.log(key)
             var newAesData = JSON.parse(getDAes(key, key, aesData));
-            console.log(newAesData)
             if (!Array.isArray(newAesData)) return;
             newAesData.sort(function (a, b) {
                 return a.timestamp - b.timestamp;
@@ -813,8 +818,8 @@
             })
             //peopleTalk
             Chart.defaults.global.defaultFontColor = 'white';
-            Chart.defaults.global.defaultFontFamily = 'Arial';
-            Chart.defaults.global.defaultFontSize = 14;
+            Chart.defaults.global.defaultFontFamily = "'Arial', sans-serif";
+            Chart.defaults.global.defaultFontSize = 16;
             Chart.defaults.global.defaultFontStyle = 'normal';
             var ctx = document.getElementById("myChart").getContext('2d');
             var myChart = new Chart(ctx, {
@@ -822,7 +827,7 @@
                 data: {
                     labels: top6Data,
                     datasets: [{
-                        label: '6️⃣群友的的訊息數',
+                        label: '訊息數排名',
                         data: top6Labels,
                         backgroundColor: [
                             'rgba(255, 99, 132, 1)',
@@ -921,7 +926,7 @@
                 options: {
                     title: {
                         display: true,
-                        text: '聊天比例' + '(共' + Object.keys(peopleTalk).length + '人)',
+                        text: '聊天比例' + ' (共' + Object.keys(peopleTalk).length + '人)',
                         fontColor: 'white',
                         fontStyle: 'normal'
                     },
@@ -1139,7 +1144,6 @@
             });
         });
     </script>
-
 
 </body>
 <!-- HKTRPG Sad -- 20201015-->

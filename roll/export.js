@@ -4,6 +4,13 @@ var variables = {};
 var gameName = function () {
     return '【Discord 頻道輸出工具】'
 }
+const VIP = require('../modules/veryImportantPerson');
+const limitArr = [20, 20, 20, 30, 30, 99, 99, 99];
+/**
+ *  因為資源限制，
+ *  每個guild 5分鐘可以使用一次,
+ *  每個ACC可以一星期
+ */
 const fs = require('fs').promises;
 const moment = require('moment-timezone');
 const CryptoJS = require("crypto-js");
@@ -54,7 +61,8 @@ var rollDiceCommand = async function ({
     var minutes = date.getMinutes();
     var hour = date.getHours();
     var tempA = channelid + '_' + hour + minutes + seconds;
-    console.log(discordMessage)
+    var permission = discordMessage.channel.permissionsFor(discordClient.user).has("READ_MESSAGE_HISTORY") || discordMessage.member.hasPermission("ADMINISTRATOR");
+    var hasReadPermission = discordMessage.channel.permissionsFor(discordMessage.guild.me).has("READ_MESSAGE_HISTORY") || discordMessage.guild.me.hasPermission("ADMINISTRATOR");
 
     function replacer(first, second) {
         let users = discordClient.users.cache.get(second);
@@ -67,8 +75,20 @@ var rollDiceCommand = async function ({
             rply.text = this.getHelpMessage();
             return rply;
         case /^html$/i.test(mainMsg[1]):
+            if (!channelid) {
+                rply.text = "這是頻道功能，需要在頻道上使用。"
+                return rply;
+            }
+            if (!hasReadPermission) {
+                rply.text = "HKTRPG沒有相關權限，禁止使用這功能。\nHKTRPG需要有查看此頻道對話歷史的權限。"
+                return rply;
+            }
+            if (!permission) {
+                rply.text = "你沒有相關權限，禁止使用這功能。\n你需要有查看此頻道對話歷史的權限。"
+                return rply;
+            }
             if (botname !== "Discord") {
-                rply.text = "Discord限定功能"
+                rply.text = "這是Discord限定功能"
                 return rply;
             }
             if (!channelid || !groupid) return;
@@ -167,7 +187,6 @@ async function lots_of_messages_getter(channel) {
         if (last_id) {
             options.before = last_id;
         }
-
         const messages = await channel.messages.fetch(options);
         totalSize += (messages.size) ? messages.size : 0;
         sum_messages.push(...messages.array());

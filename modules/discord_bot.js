@@ -5,6 +5,7 @@ const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const Discord = require('discord.js');
 const client = new Discord.Client();
 const msgSplitor = (/\S+/ig);
+const appName = process.env.HEROKU_APP_NAME;
 var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 //const BootTime = new Date(new Date().toLocaleString("en-US", {
 //	timeZone: "Asia/Shanghai"
@@ -74,10 +75,7 @@ client.on('message', async (message) => {
 	let userrole = 1;
 	//console.log(message.guild)
 	if (message.guild && message.guild.me) {
-		hasSendPermission = message.guild.me.hasPermission("SEND_MESSAGES");
-	}
-	if (message.channel.type !== "dm") {
-		hasSendPermission = message.channel.permissionsFor(client.user).has("SEND_MESSAGES")
+		hasSendPermission = message.channel.permissionsFor(message.guild.me).has("SEND_MESSAGES") || message.guild.me.hasPermission("ADMINISTRATOR");
 	}
 	if (message.channel && message.channel.id) {
 		channelid = message.channel.id;
@@ -192,20 +190,32 @@ client.on('message', async (message) => {
 	}
 
 	if (rplyVal.discordExport) {
-		message.author.send('現在輸出: 頻道 ' + message.channel.name + ' 的聊天紀錄\n 指示者: ' +
-			message.guild.name, {
+		message.channel.send("<@" + userid + '>\n' + '已私訊你 頻道 ' + message.channel.name + ' 的聊天紀錄\n');
+		if (!appName) {
+			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄', {
 				files: [
 					"./tmp/" + rplyVal.discordExport + '.txt'
 				]
 			});
+		} else {
+			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n' +
+				'https:// ' + appName + '.herokuapp.com' + "/tmp/" + rplyVal.discordExport + '.txt')
+		}
 	}
 	if (rplyVal.discordExportHtml) {
-		message.author.send('現在輸出: 頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +
-			rplyVal.discordExportHtml[1], {
-				files: [
-					"./tmp/" + rplyVal.discordExportHtml[0] + '.html'
-				]
-			});
+		message.channel.send("<@" + userid + '>\n' + '已私訊你 頻道 ' + message.channel.name + ' 的聊天紀錄\n');
+		if (!appName) {
+			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +
+				rplyVal.discordExportHtml[1], {
+					files: [
+						"./tmp/" + rplyVal.discordExportHtml[0] + '.html'
+					]
+				});
+		} else {
+			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n' +
+				'https:// ' + appName + '.herokuapp.com' + "/tmp/" + rplyVal.discordExportHtml[0] + '.html')
+		}
+
 	}
 
 	if (!rplyVal.text) {

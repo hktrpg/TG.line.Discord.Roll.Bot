@@ -78,7 +78,7 @@ var rollDiceCommand = async function ({
             rply.text = this.getHelpMessage();
             return rply;
         case /^html$/i.test(mainMsg[1]):
-            if (!channelid) {
+            if (!groupid) {
                 rply.text = "這是頻道功能，需要在頻道上使用。"
                 return rply;
             }

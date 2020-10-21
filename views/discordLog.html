@@ -155,36 +155,33 @@
         <h1>聊天紀錄</h1>
         <div class="container-md">
             <div class="row border">
-                <div class="col-md-4 color-01">   <br>
-                    <div id="totallyDate" style="border-color:#aaaaee;border-width:2px;border-style:solid;padding:5px;">
+                <div class="col-md-4 color-01"> <br>
+                    <div id="totallyDate">
                         <br>
                         總共聊天天數 <br>
                         <span class="iconify" data-icon="ic:outline-calendar-today" data-inline="false"
                             data-width="30px" data-height="30px"></span>{{ message }}<br><br>
-                    </div><br>
-                    <div id="totallyMessage"
-                        style="border-color:#aaaaee;border-width:2px;border-style:solid;padding:5px;"><br>
+                    </div>
+                    <div id="totallyMessage"><br>
                         總共傳了多少訊息<br>
                         <span class="iconify" data-icon="bi:people" data-inline="false" data-width="30px"
                             data-height="30px"></span>{{ message0 }}<br>
                         <span class="iconify" data-icon="ant-design:robot-outlined" data-inline="false"
                             data-width="30px" data-height="30px"></span>
-                        {{ message1 }}<br><br>
-                    </div><br>
+                        {{ message1 }}<br>
+                    </div>
                 </div>
                 <div class="col-md-4 color-02">
                     <canvas id="myChart" width="100" height="80"></canvas>
                 </div>
-                <div class="col-md-4 color-01">  <br>
-                    <div id="averageMessage"
-                        style="border-color:#aaaaee;border-width:2px;border-style:solid;padding:1px;"><br>
+                <div class="col-md-4 color-01"> <br>
+                    <div id="averageMessage"><br>
                         每日平均訊息數量<br><span class="iconify" data-icon="grommet-icons:mail-option" data-inline="false"
                             data-width="30px" data-height="30px"></span>
-                        {{ message }}<br><br>
+                        {{ message }}<br>
                     </div>
                     <br>
-                    <div id="analysicDate"
-                        style="border-color:#aaaaee;border-width:2px;border-style:solid;padding:1px;"><br>
+                    <div id="analysicDate"><br>
                         最多說話的三天<br>
                         <div v-for="message in messages">
                             <span class="iconify" data-icon="clarity:talk-bubbles-line" data-inline="false"

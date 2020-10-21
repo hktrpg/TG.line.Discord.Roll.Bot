@@ -43,7 +43,8 @@ var rollDiceCommand = async function ({
     discordMessage,
     channelid,
     groupid,
-    botname
+    botname,
+    userid
 }) {
     let rply = {
         default: 'on',
@@ -93,6 +94,7 @@ var rollDiceCommand = async function ({
             }
             if (!channelid || !groupid) return;
             C = await discordClient.channels.fetch(channelid);
+            discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG正在努力進行中，需要一點時間');
             M = await lots_of_messages_getter(C);
             totalSize = M.totalSize;
             M = M.sum_messages;

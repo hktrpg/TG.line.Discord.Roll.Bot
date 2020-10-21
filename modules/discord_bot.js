@@ -199,7 +199,7 @@ client.on('message', async (message) => {
 			});
 		} else {
 			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n' +
-				'https:// ' + appName + '.herokuapp.com' + "/tmp/" + rplyVal.discordExport + '.txt')
+				'https://' + appName + '.herokuapp.com' + "/app/discord/" + rplyVal.discordExport + '.txt')
 		}
 	}
 	if (rplyVal.discordExportHtml) {
@@ -213,7 +213,7 @@ client.on('message', async (message) => {
 				});
 		} else {
 			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n' +
-				'https:// ' + appName + '.herokuapp.com' + "/tmp/" + rplyVal.discordExportHtml[0] + '.html')
+				'https://' + appName + '.herokuapp.com' + "/app/discord/" + rplyVal.discordExportHtml[0] + '.html')
 		}
 
 	}

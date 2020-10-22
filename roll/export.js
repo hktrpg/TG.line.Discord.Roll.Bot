@@ -1,6 +1,6 @@
 "use strict";
 var variables = {};
-const oneMinuts = (process.env.DEBUG) ? 1 : 60000;
+const oneMinuts = (process.env.DEBUG) ? 1 : 1;
 const sevenDay = (process.env.DEBUG) ? 1 : 60 * 24 * 7 * 60000;
 var gameName = function () {
     return '【Discord 頻道輸出工具】'
@@ -88,6 +88,7 @@ var rollDiceCommand = async function ({
     let hasReadPermission, gpLimitTime;
     let update, gpRemainingTime, userRemainingTime;
     let theTime = new Date();
+    let demoMode = false;
     if (groupid) {
         hasReadPermission = discordMessage.channel.permissionsFor(discordMessage.guild.me).has("READ_MESSAGE_HISTORY") || discordMessage.guild.me.hasPermission("ADMINISTRATOR");
     }
@@ -144,8 +145,8 @@ var rollDiceCommand = async function ({
                 return rply;
             }
             if (userRemainingTime < 0 && checkUser && checkUser.times >= limit) {
-                rply.text = '你每星期下載聊天紀錄的上限為' + limit + '次，冷卻剩餘' + millisToMinutesAndSeconds(userRemainingTime) + '時間\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
-                return rply;
+                rply.text = '你每星期完整下載聊天紀錄的上限為' + limit + '次，冷卻剩餘' + millisToMinutesAndSeconds(userRemainingTime) + '時間\nDemo模式, 可以輸出400條信息\n\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n\n源代碼  http://bit.ly/HKTRPG_GITHUB\n';
+                demoMode = true;
             }
             /**
              * A. 檢查GP 資料, USER 資料 
@@ -199,7 +200,7 @@ var rollDiceCommand = async function ({
                 }, update, opt);
             }
             discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間');
-            M = await lots_of_messages_getter(C);
+            M = await lots_of_messages_getter(C, demoMode);
             totalSize = M.totalSize;
             M = M.sum_messages;
             if (M.length == 0) return;
@@ -239,7 +240,7 @@ var rollDiceCommand = async function ({
                 tempA + '_' + randomLink,
                 tempB
             ]
-            rply.text = '已私訊你 頻道 ' + discordMessage.channel.name + ' 的聊天紀錄\n你的channel 聊天紀錄 共有 ' + totalSize + ' 項\n\n'
+            rply.text += '已私訊你 頻道 ' + discordMessage.channel.name + ' 的聊天紀錄\n你的channel 聊天紀錄 共有 ' + totalSize + ' 項\n\n'
             return rply;
         case /^txt$/i.test(mainMsg[1]):
             if (!channelid || !groupid) {
@@ -284,7 +285,7 @@ var rollDiceCommand = async function ({
                 return rply;
             }
             if (userRemainingTime < 0 && checkUser && checkUser.times >= limit) {
-                rply.text = '你每星期下載聊天紀錄的上限為' + limit + '次，冷卻剩餘' + millisToMinutesAndSeconds(userRemainingTime) + '時間\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                rply.text = '你每星期完整下載聊天紀錄的上限為' + limit + '次，冷卻剩餘' + millisToMinutesAndSeconds(userRemainingTime) + '時間\nDemo模式, 可以輸出400條信息\n\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
                 return rply;
             }
             if (!checkGP) {
@@ -325,7 +326,7 @@ var rollDiceCommand = async function ({
                 }, update, opt);
             }
             discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間');
-            M = await lots_of_messages_getter(C);
+            M = await lots_of_messages_getter(C, demoMode);
             totalSize = M.totalSize;
             M = M.sum_messages;
             if (M.length == 0) return;
@@ -348,14 +349,14 @@ var rollDiceCommand = async function ({
             }
             await fs.writeFile(dir + channelid + '_' + hour + minutes + seconds + '.txt', data); // need to be in an async function
             rply.discordExport = channelid + '_' + hour + minutes + seconds;
-            rply.text = '已私訊你 頻道 ' + discordMessage.channel.name + ' 的聊天紀錄\n你的channel 聊天紀錄 共有 ' + totalSize + ' 項\n\n'
+            rply.text += '已私訊你 頻道 ' + discordMessage.channel.name + ' 的聊天紀錄\n你的channel 聊天紀錄 共有 ' + totalSize + ' 項\n\n'
             return rply;
         default:
             break;
     }
 }
 
-async function lots_of_messages_getter(channel) {
+async function lots_of_messages_getter(channel, demo) {
     const sum_messages = [];
     let last_id;
     let totalSize = 0;
@@ -374,6 +375,11 @@ async function lots_of_messages_getter(channel) {
 
         if (messages.size != 100) {
             break;
+        }
+        if (demo) {
+            if (totalSize >= 400) {
+                break;
+            }
         }
     }
 

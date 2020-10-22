@@ -248,7 +248,7 @@ const exportGp = mongoose.model('exportGp', new mongoose.Schema({
     lastActiveAt: Date
 }));
 
-const exportUser = mongoose.model('exportGp', new mongoose.Schema({
+const exportUser = mongoose.model('exportUser', new mongoose.Schema({
     userID: String,
     lastActiveAt: Date,
     times: Number

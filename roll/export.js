@@ -1,12 +1,16 @@
 "use strict";
 var variables = {};
-const oneMinuts = 60000;
-const sevenDay = 60 * 24 * 7 * 60000;
+const oneMinuts = (process.env.DEBUG) ? 1 : 60000;
+const sevenDay = (process.env.DEBUG) ? 1 : 60 * 24 * 7 * 60000;
 var gameName = function () {
     return '【Discord 頻道輸出工具】'
 }
+const opt = {
+    upsert: true,
+    runValidators: true
+}
 const VIP = require('../modules/veryImportantPerson');
-const limitArr = [1, 20, 40, 40, 40, 99, 99, 99];
+const limitArr = (process.env.DEBUG) ? [99, 99, 99, 40, 40, 99, 99, 99] : [1, 20, 40, 40, 40, 99, 99, 99];
 /**
  * 因為資源限制，
  * 每個guild 5分鐘可以使用一次,
@@ -76,8 +80,8 @@ var rollDiceCommand = async function ({
     let minutes = date.getMinutes();
     let hour = date.getHours();
     let tempA = channelid + '_' + hour + minutes + seconds;
-    let permission, hasReadPermission, active = true;
-
+    let permission, hasReadPermission, gpLimitTime;
+    let update;
     if (groupid) {
         permission = (discordMessage.channel && discordMessage.channel.permissionsFor(discordClient.user).has("READ_MESSAGE_HISTORY")) || (discordMessage.member && discordMessage.member.hasPermission("ADMINISTRATOR"));
         hasReadPermission = discordMessage.channel.permissionsFor(discordMessage.guild.me).has("READ_MESSAGE_HISTORY") || discordMessage.guild.me.hasPermission("ADMINISTRATOR");
@@ -110,6 +114,7 @@ var rollDiceCommand = async function ({
                 rply.text = "這是Discord限定功能"
                 return rply;
             }
+            var theTime = new Date();
             lv = await VIP.viplevelCheckUser(userid);
             limit = limitArr[lv];
             checkUser = await schema.exportUser.findOne({
@@ -118,19 +123,83 @@ var rollDiceCommand = async function ({
             checkGP = await schema.exportGp.findOne({
                 groupID: userid
             });
+            console.log('checkUser', checkUser)
 
-            if (checkGP && (new Date() - checkGP.lastActiveAt) <= (oneMinuts * 5)) {
-                active = false;
+            console.log('checkGP', checkGP)
+            gpLimitTime = (lv > 0) ? oneMinuts : oneMinuts * 5;
+            var gpRemainingTime = (checkGP) ? theTime - checkGP.lastActiveAt - gpLimitTime : 1;
+            var userRemainingTime = (checkUser) ? theTime - checkUser.lastActiveAt - sevenDay : 1;
+            try {
+                C = await discordClient.channels.fetch(channelid);
+            } catch (error) {
+                if (error) {
+                    rply.text = "出現錯誤(ERROR): " + '\n' + error;
+                    return rply;
+                }
+            }
+            //<0 = DC 未過
+            if (gpRemainingTime < 0) {
+                rply.text = "此群組的冷卻時間未過，冷卻剩餘" + gpRemainingTime + '時間';
+                return rply;
+            }
+            if (userRemainingTime < 0 && checkUser && checkUser.times >= limit) {
+                rply.text = '你每星期下載聊天紀錄的上限為' + limit + '次，冷卻剩餘' + userRemainingTime + '時間\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                return rply;
+            }
+            /**
+             * A. 檢查GP 資料, USER 資料 
+             * 
+             * B. 檢查 GP 5分鐘DC 時間 
+             * PASS-> 檢查 
+             * 
+             * C. USER > 檢查時間
+             * 超過一星期 -> 立即進行動作
+             * 更新最新使用時間
+             * 運行EXPORT
+             * 
+             * 
+             * 檢查
+             */
+            if (!checkGP) {
+                checkGP = await schema.exportGp.updateOne({
+                    groupID: userid
+                }, {
+                    lastActiveAt: new Date()
+                }, opt);
+            } else {
+                checkGP.lastActiveAt = theTime;
+                await checkGP.save();
+            }
+
+            if (!checkUser) {
+                checkUser = await schema.exportUser.updateOne({
+                    userID: userid
+                }, {
+                    lastActiveAt: new Date(),
+                    times: 1
+                }, opt);
+            } else {
+                if (userRemainingTime && userRemainingTime < 0) {
+                    update = {
+                        $inc: {
+                            times: 1
+                        },
+                        lastActiveAt: new Date()
+                    }
+                } else {
+                    update = {
+                        $inc: {
+                            times: 1
+                        }
+                    }
+                }
+
+                await schema.exportUser.updateOne({
+                    userID: userid
+                }, update, opt);
             }
 
 
-            if (checkUser && (new Date() - checkUser.lastActiveAt) <= sevenDay && checkUser.times >= limit) {
-                rply.text = '你每星期下載聊天紀錄的上限為' + limit + '次' + '\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
-                active = false;
-                return rply
-            }
-
-            C = await discordClient.channels.fetch(channelid);
             discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間');
             M = await lots_of_messages_getter(C);
             totalSize = M.totalSize;

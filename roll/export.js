@@ -41,6 +41,7 @@ var getHelpMessage = function () {
 .discord txt 可以輸出純文字的聊天紀錄\n\
 需要使用者及rollbot 都有閱讀頻道聊天紀錄的權限\n\
 然後會私訊你紀錄\n\
+注意 使用此功能，你需要有管理此頻道的權限或管理員權限。\n\
 \n\
 因為資源限制，\n\
 每個群組 5分鐘可以使用一次,\n\
@@ -61,7 +62,8 @@ var rollDiceCommand = async function ({
     channelid,
     groupid,
     botname,
-    userid
+    userid,
+    userrole
 }) {
     let rply = {
         default: 'on',
@@ -80,10 +82,10 @@ var rollDiceCommand = async function ({
     let minutes = date.getMinutes();
     let hour = date.getHours();
     let tempA = channelid + '_' + hour + minutes + seconds;
-    let permission, hasReadPermission, gpLimitTime;
-    let update;
+    let hasReadPermission, gpLimitTime;
+    let update, gpRemainingTime, userRemainingTime;
+    let theTime = new Date();
     if (groupid) {
-        permission = (discordMessage.channel && discordMessage.channel.permissionsFor(discordClient.user).has("READ_MESSAGE_HISTORY")) || (discordMessage.member && discordMessage.member.hasPermission("ADMINISTRATOR"));
         hasReadPermission = discordMessage.channel.permissionsFor(discordMessage.guild.me).has("READ_MESSAGE_HISTORY") || discordMessage.guild.me.hasPermission("ADMINISTRATOR");
     }
 
@@ -106,15 +108,14 @@ var rollDiceCommand = async function ({
                 rply.text = "HKTRPG沒有相關權限，禁止使用這功能。\nHKTRPG需要有查看此頻道對話歷史的權限。"
                 return rply;
             }
-            if (!permission) {
-                rply.text = "你沒有相關權限，禁止使用這功能。\n你需要有查看此頻道對話歷史的權限。"
+            if (userrole < 2) {
+                rply.text = "你沒有相關權限，禁止使用這功能。\n你需要有管理此頻道的權限或管理員權限。"
                 return rply;
             }
             if (botname !== "Discord") {
                 rply.text = "這是Discord限定功能"
                 return rply;
             }
-            var theTime = new Date();
             lv = await VIP.viplevelCheckUser(userid);
             limit = limitArr[lv];
             checkUser = await schema.exportUser.findOne({
@@ -123,12 +124,9 @@ var rollDiceCommand = async function ({
             checkGP = await schema.exportGp.findOne({
                 groupID: userid
             });
-            console.log('checkUser', checkUser)
-
-            console.log('checkGP', checkGP)
             gpLimitTime = (lv > 0) ? oneMinuts : oneMinuts * 5;
-            var gpRemainingTime = (checkGP) ? theTime - checkGP.lastActiveAt - gpLimitTime : 1;
-            var userRemainingTime = (checkUser) ? theTime - checkUser.lastActiveAt - sevenDay : 1;
+            gpRemainingTime = (checkGP) ? theTime - checkGP.lastActiveAt - gpLimitTime : 1;
+            userRemainingTime = (checkUser) ? theTime - checkUser.lastActiveAt - sevenDay : 1;
             try {
                 C = await discordClient.channels.fetch(channelid);
             } catch (error) {
@@ -139,11 +137,11 @@ var rollDiceCommand = async function ({
             }
             //<0 = DC 未過
             if (gpRemainingTime < 0) {
-                rply.text = "此群組的冷卻時間未過，冷卻剩餘" + gpRemainingTime + '時間';
+                rply.text = "此群組的冷卻時間未過，冷卻剩餘" + millisToMinutesAndSeconds(gpRemainingTime) + '時間';
                 return rply;
             }
             if (userRemainingTime < 0 && checkUser && checkUser.times >= limit) {
-                rply.text = '你每星期下載聊天紀錄的上限為' + limit + '次，冷卻剩餘' + userRemainingTime + '時間\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                rply.text = '你每星期下載聊天紀錄的上限為' + limit + '次，冷卻剩餘' + millisToMinutesAndSeconds(userRemainingTime) + '時間\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
                 return rply;
             }
             /**
@@ -193,13 +191,10 @@ var rollDiceCommand = async function ({
                         }
                     }
                 }
-
                 await schema.exportUser.updateOne({
                     userID: userid
                 }, update, opt);
             }
-
-
             discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間');
             M = await lots_of_messages_getter(C);
             totalSize = M.totalSize;
@@ -243,6 +238,115 @@ var rollDiceCommand = async function ({
             ]
             rply.text = '已私訊你 頻道 ' + discordMessage.channel.name + ' 的聊天紀錄\n你的channel 聊天紀錄 共有 ' + totalSize + ' 項\n\n'
             return rply;
+        case /^txt$/i.test(mainMsg[1]):
+            if (!channelid || !groupid) {
+                rply.text = "這是頻道功能，需要在頻道上使用。"
+                return rply;
+            }
+            if (!hasReadPermission) {
+                rply.text = "HKTRPG沒有相關權限，禁止使用這功能。\nHKTRPG需要有查看此頻道對話歷史的權限。"
+                return rply;
+            }
+            if (userrole < 2) {
+                rply.text = "你沒有相關權限，禁止使用這功能。\n你需要有管理此頻道的權限或管理員權限。"
+                return rply;
+            }
+            if (botname !== "Discord") {
+                rply.text = "這是Discord限定功能"
+                return rply;
+            }
+
+            lv = await VIP.viplevelCheckUser(userid);
+            limit = limitArr[lv];
+            checkUser = await schema.exportUser.findOne({
+                userID: userid
+            });
+            checkGP = await schema.exportGp.findOne({
+                groupID: userid
+            });
+            gpLimitTime = (lv > 0) ? oneMinuts : oneMinuts * 5;
+            gpRemainingTime = (checkGP) ? theTime - checkGP.lastActiveAt - gpLimitTime : 1;
+            userRemainingTime = (checkUser) ? theTime - checkUser.lastActiveAt - sevenDay : 1;
+            try {
+                C = await discordClient.channels.fetch(channelid);
+            } catch (error) {
+                if (error) {
+                    rply.text = "出現錯誤(ERROR): " + '\n' + error;
+                    return rply;
+                }
+            }
+            //<0 = DC 未過
+            if (gpRemainingTime < 0) {
+                rply.text = "此群組的冷卻時間未過，冷卻剩餘" + millisToMinutesAndSeconds(gpRemainingTime) + '時間';
+                return rply;
+            }
+            if (userRemainingTime < 0 && checkUser && checkUser.times >= limit) {
+                rply.text = '你每星期下載聊天紀錄的上限為' + limit + '次，冷卻剩餘' + millisToMinutesAndSeconds(userRemainingTime) + '時間\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                return rply;
+            }
+            if (!checkGP) {
+                checkGP = await schema.exportGp.updateOne({
+                    groupID: userid
+                }, {
+                    lastActiveAt: new Date()
+                }, opt);
+            } else {
+                checkGP.lastActiveAt = theTime;
+                await checkGP.save();
+            }
+
+            if (!checkUser) {
+                checkUser = await schema.exportUser.updateOne({
+                    userID: userid
+                }, {
+                    lastActiveAt: new Date(),
+                    times: 1
+                }, opt);
+            } else {
+                if (userRemainingTime && userRemainingTime < 0) {
+                    update = {
+                        $inc: {
+                            times: 1
+                        },
+                        lastActiveAt: new Date()
+                    }
+                } else {
+                    update = {
+                        $inc: {
+                            times: 1
+                        }
+                    }
+                }
+                await schema.exportUser.updateOne({
+                    userID: userid
+                }, update, opt);
+            }
+            discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間');
+            M = await lots_of_messages_getter(C);
+            totalSize = M.totalSize;
+            M = M.sum_messages;
+            if (M.length == 0) return;
+            for (let index = M.length - 1; index >= 0; index--) {
+                let time = M[index].createdTimestamp.toString().slice(0, -3);
+                const dateObj = moment
+                    .unix(time)
+                    .tz('Asia/Taipei')
+                    .format('YYYY-MM-DD HH:mm:ss');
+                data += M[index].author.username + '	' + dateObj + '\n';
+                data += M[index].content
+                    .replace(/<@(.*?)>/ig, replacer)
+                data += '\n\n';
+            }
+            try {
+                await fs.access(dir)
+            } catch (error) {
+                if (error && error.code === 'ENOENT')
+                    await fs.mkdir(dir);
+            }
+            await fs.writeFile(dir + channelid + '_' + hour + minutes + seconds + '.txt', data); // need to be in an async function
+            rply.discordExport = channelid + '_' + hour + minutes + seconds;
+            rply.text = '已私訊你 頻道 ' + discordMessage.channel.name + ' 的聊天紀錄\n你的channel 聊天紀錄 共有 ' + totalSize + ' 項\n\n'
+            return rply;
         case /^export$/i.test(mainMsg[1]):
             if (botname !== "Discord") {
                 rply.text = "Discord限定功能"
@@ -251,7 +355,6 @@ var rollDiceCommand = async function ({
             if (!channelid || !groupid) return;
             C = await discordClient.channels.fetch(channelid);
             M = await lots_of_messages_getter(C);
-
             totalSize = M.totalSize;
             M = M.sum_messages;
             if (M.length == 0) return;
@@ -339,6 +442,15 @@ function makeid(length) {
     }
     return result;
 }
+const millisToMinutesAndSeconds = (millis) => {
+    millis = millis * -1;
+    var minutes = Math.floor(millis / 60000);
+    var seconds = ((millis % 60000) / 1000).toFixed(0);
+    //ES6 interpolated literals/template literals 
+    //If seconds is less than 10 put a zero in front.
+    return `${minutes}分鐘${(seconds < 10 ? "0" : "")}${seconds}秒`;
+}
+
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,

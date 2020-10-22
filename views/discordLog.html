@@ -182,7 +182,7 @@
                     </div>
                     <br>
                     <div id="analysicDate"><br>
-                        最多說話的三天<br>
+                        最多訊息的三天<br>
                         <div v-for="message in messages">
                             <span class="iconify" data-icon="clarity:talk-bubbles-line" data-inline="false"
                                 data-width="30px" data-height="30px"></span>{{ message.date }} {{ message.number }}條
@@ -247,7 +247,7 @@
 
         </div>
         <br> <br>
-        <div class="footer-copyright text-center py-3">@2020 HKTRPG
+        <div class="footer-copyright text-center py-3">©2020 GNU HKTRPG -
             <a href="https://www.patreon.com/HKTRPG"> 餵飼 Sad</a>
         </div>
         <br> <br>
@@ -487,10 +487,11 @@
             },
             methods: {
                 reNewAaverageMessage: function (input) {
-                    totallydate = totallyDay(input).toString().match(/\d+/i)[0];
+                    newTotallyDay = Number(totallyDay(input).toString().match(/\d+/i)[0]);
+                    if (newTotallyDay < 1) newTotallyDay = 1;
                     totallymessage = analysicTotallymessage(input);
-                    this.message = (Math.ceil(totallymessage[0] / (totallydate) * 100) / 100).toFixed(2) +
-                        '個'
+                    this.message = (Math.ceil(totallymessage[0] / newTotallyDay * 100) / 100).toFixed(2) +
+                        '個';
                 }
             },
             updated() {
@@ -572,11 +573,14 @@
 
         //最多訊息數日子頭三， 訊息數 O
         function analysicDate(result) {
+            var reNewResult = result.filter(message => {
+                return message.isbot == false
+            })
             let tempresult = [];
             let temptime = 0;
             let tempdate = '';
-            for (let index = 1; index < result.length; index++) {
-                let unix_timestamp = result[index].timestamp;
+            for (let index = 1; index < reNewResult.length; index++) {
+                let unix_timestamp = reNewResult[index].timestamp;
                 let TEMPanalysicDate = new Date(unix_timestamp)
                 let year = TEMPanalysicDate.getFullYear().toString();
                 let month = (TEMPanalysicDate.getMonth() + 1).toString().padStart(2, '0');
@@ -827,7 +831,7 @@
                 data: {
                     labels: top6Data,
                     datasets: [{
-                        label: '訊息數排名',
+                        label: '訊息量排名',
                         data: top6Labels,
                         backgroundColor: [
                             'rgba(255, 99, 132, 1)',

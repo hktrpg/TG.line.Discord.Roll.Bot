@@ -93,6 +93,9 @@ client.on('message', async (message) => {
 		displaynameDiscord = message.member.user.username;
 	}
 	////DISCORD: 585040823232320107
+	if (groupid && message.channel && message.channel.permissionsFor(message.member).has("MANAGE_CHANNELS")) {
+		userrole = 2
+	}
 	if (message.member && message.member.hasPermission("ADMINISTRATOR")) {
 		userrole = 3
 	}
@@ -103,7 +106,6 @@ client.on('message', async (message) => {
 			return member.filter(member => !member.user.bot).size;
 		});
 	}
-
 	if (!message.content) {
 		await courtMessage("", "Discord", "")
 		if (groupid && userid) {

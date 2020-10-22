@@ -42,6 +42,8 @@ var getHelpMessage = function () {
 需要使用者及rollbot 都有閱讀頻道聊天紀錄的權限\n\
 然後會私訊你紀錄\n\
 注意 使用此功能，你需要有管理此頻道的權限或管理員權限。\n\
+另外網頁版內容經過AES加密，後者是純文字檔案\n\
+因為經過server處理，擔心個資外洩請勿使用。\n\
 \n\
 因為資源限制，\n\
 每個群組 5分鐘可以使用一次,\n\
@@ -49,7 +51,8 @@ var getHelpMessage = function () {
 \n\
 經patreon解鎖功能的話可以一星期使用20次以上，\n\
 及可以一分鐘使用一次。\n\
-https://www.patreon.com/HKTRPG"
+\n\
+另外這是開發團錄功能的副產品，團錄功能敬請期待(?)"
 }
 var initialize = function () {
     return variables;

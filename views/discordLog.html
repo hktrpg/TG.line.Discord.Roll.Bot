@@ -143,6 +143,8 @@
 </head>
 
 <body class="bg-color center" id="body">
+    <div class="fixed-top text-right mr-md-5"><a href="https://github.com/hktrpg/TG.line.Discord.Roll.Bot"><span class="iconify" data-icon="bytesize:github" data-inline="false"></span></a>
+    </div>
     <div id="myNav" class="overlay">
         <div class="overlay-content">
             <div class="spinner-border" style="width: 10rem; height: 10rem; color:chocolate;" role="status">
@@ -208,13 +210,24 @@
         <br>
 
         <div class="container center table-responsive-md" id="appMain">
-            <button v-on:click="loadDemo">載入範例</button>
+            <!-- Button trigger modal -->
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+                使用說明
+            </button>
+            <button class="btn btn-info" v-on:click="loadDemo">載入範例</button>
 
             <br><br>
-            <input type="password" placeholder="請輸入密碼" id="passw0rd"> <button v-on:click="reNew">開始解密</button>
-            <br><br>
+            <div class="form-row">
+                <div class="form-group col-md-3 mx-auto">
+                    <div class="input-group mb-3">
+                        <input type="password" class="form-control" aria-describedby="passwordHelpBlock"
+                            placeholder="請輸入密碼" id="passw0rd">
+                        <button class="btn btn-warning" v-on:click="reNew">開始解密</button>
+                    </div>
+                </div>
+            </div>
+            <br>
             <div class="page-header" style="color: #90CCF4;">
-
                 <input type="text" placeholder="Filter" v-model="filter" />
             </div>
             <table class="table table-bordered" style="word-break:break-all; word-wrap:break-all;">
@@ -255,6 +268,37 @@
             <div class="progress" id="touchBar" style="height: 30px; background: #ccc;">
                 <div class="progress-bar" id="progressbar" role="progressbar" style="width: 10%" aria-valuenow="25"
                     aria-valuemin="0" aria-valuemax="100">25%</div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">使用說明</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    這是HKTRPG Discord 骰子機械人的附屬功能，<br>
+                    用來分析Discord 頻道的聊天紀錄。<br>
+                    使用方法：<br>
+                    首先把HKTRPG骰子機械人新增到自己的頻道，給它閱讀過往聊天歷史的權限，<br>
+                    然後在想分析的頻道中輸入<br>
+                    .discord html 或.discord txt<br>
+                    那它就會私訊你輸出分析，前者為網頁版內容經過AES加密，後者是純文字檔案<br>
+                    但因為經過server處理，擔心個資外洩請勿使用。<br>
+                    <a href="http://bit.ly/HKTRPG_DISCORD_"> \HKTRPG骰子機械人/</a><br>
+                    <img class="img-fluid" src="https://i.imgur.com/UZmOxOT.jpg">
+                    <img class="img-fluid" src="https://i.imgur.com/zuLQzmB.jpg">
+                    <img class="img-fluid" src="https://i.imgur.com/JM7UdU5.jpg">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
+                </div>
             </div>
         </div>
     </div>

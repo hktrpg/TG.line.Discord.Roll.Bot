@@ -350,41 +350,6 @@ var rollDiceCommand = async function ({
             rply.discordExport = channelid + '_' + hour + minutes + seconds;
             rply.text = '已私訊你 頻道 ' + discordMessage.channel.name + ' 的聊天紀錄\n你的channel 聊天紀錄 共有 ' + totalSize + ' 項\n\n'
             return rply;
-        case /^export$/i.test(mainMsg[1]):
-            if (botname !== "Discord") {
-                rply.text = "Discord限定功能"
-                return rply;
-            }
-            if (!channelid || !groupid) return;
-            C = await discordClient.channels.fetch(channelid);
-            M = await lots_of_messages_getter(C);
-            totalSize = M.totalSize;
-            M = M.sum_messages;
-            if (M.length == 0) return;
-            for (let index = M.length - 1; index >= 0; index--) {
-                let time = M[index].createdTimestamp.toString().slice(0, -3);
-                const dateObj = moment
-                    .unix(time)
-                    .tz('Asia/Taipei')
-                    .format('YYYY-MM-DD HH:mm:ss');
-                data += M[index].author.username + '	' + dateObj + '\n';
-                data += M[index].content
-                    .replace(/<@(.*?)>/ig, replacer)
-                data += '\n\n';
-            }
-            try {
-                await fs.access(dir)
-            } catch (error) {
-                if (error && error.code === 'ENOENT')
-                    await fs.mkdir(dir);
-            }
-            await fs.writeFile(dir + channelid + '_' + hour + minutes + seconds + '.txt', data); // need to be in an async function
-            rply.discordExport = channelid + '_' + hour + minutes + seconds;
-            rply.text = '你的channel 聊天紀錄 共有 ' + totalSize + ' 項\n\n'
-            return rply;
-        case /^\S/.test(mainMsg[1] || ''):
-            rply.text = 'Demo'
-            return rply;
         default:
             break;
     }

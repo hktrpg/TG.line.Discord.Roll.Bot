@@ -77,10 +77,7 @@ var parseInput = async function ({
 		})
 
 	} catch (error) {
-		console.log('rolldice GET ERROR:', error);
-		console.log('inputStr: ', inputStr);
-		console.log('botname: ', botname);
-		console.log('Time: ', new Date());
+		console.log('rolldice GET ERROR:', error, ' inputStr: ', inputStr, ' botname: ', botname, ' Time: ', new Date());
 	}
 	if (rollDiceResult) {
 		result = await JSON.parse(JSON.stringify(Object.assign({}, result, rollDiceResult)));
@@ -243,10 +240,7 @@ async function cmdfunction({
 			membercount: membercount
 		})
 	} catch (error) {
-		console.log('cmdfunction GET ERROR:', error);
-		console.log('newInputStr: ', newInputStr);
-		console.log('botname: ', botname);
-		console.log('Time: ', new Date());
+		console.log('cmdfunction GET ERROR:', error, ' inputStr: ', newInputStr, ' botname: ', botname, ' Time: ', new Date());
 	}
 	(debugMode) ? console.log('            inputStr2: ', newInputStr): '';
 	if (typeof tempResut === 'object' && tempResut !== null) {

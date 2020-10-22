@@ -93,7 +93,7 @@ client.on('message', async (message) => {
 		displaynameDiscord = message.member.user.username;
 	}
 	////DISCORD: 585040823232320107
-	if (groupid && message.channel && message.channel.permissionsFor(message.member).has("MANAGE_CHANNELS")) {
+	if (groupid && message.channel && message.channel.permissionsFor(client.user) && message.channel.permissionsFor(client.user).has("MANAGE_CHANNELS")) {
 		userrole = 2
 	}
 	if (message.member && message.member.hasPermission("ADMINISTRATOR")) {

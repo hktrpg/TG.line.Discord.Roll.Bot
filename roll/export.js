@@ -181,11 +181,9 @@ var rollDiceCommand = async function ({
                     times: 1
                 }, opt);
             } else {
-                if (userRemainingTime && userRemainingTime < 0) {
+                if (userRemainingTime && userRemainingTime > 0) {
                     update = {
-                        $inc: {
-                            times: 1
-                        },
+                        times: 1,
                         lastActiveAt: new Date()
                     }
                 } else {
@@ -307,11 +305,9 @@ var rollDiceCommand = async function ({
                     times: 1
                 }, opt);
             } else {
-                if (userRemainingTime && userRemainingTime < 0) {
+                if (userRemainingTime && userRemainingTime > 0) {
                     update = {
-                        $inc: {
-                            times: 1
-                        },
+                        times: 1,
                         lastActiveAt: new Date()
                     }
                 } else {

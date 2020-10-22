@@ -1,6 +1,6 @@
 "use strict";
 var variables = {};
-const oneMinuts = (process.env.DEBUG) ? 1 : 1;
+const oneMinuts = (process.env.DEBUG) ? 1 : 60000;
 const sevenDay = (process.env.DEBUG) ? 1 : 60 * 24 * 7 * 60000;
 var gameName = function () {
     return '【Discord 頻道輸出工具】'
@@ -10,7 +10,7 @@ const opt = {
     runValidators: true
 }
 const VIP = require('../modules/veryImportantPerson');
-const limitArr = (process.env.DEBUG) ? [99, 99, 99, 40, 40, 99, 99, 99] : [1, 20, 40, 40, 40, 99, 99, 99];
+const limitArr = (process.env.DEBUG) ? [99, 99, 99, 40, 40, 99, 99, 99] : [2, 20, 40, 40, 40, 99, 99, 99];
 /**
  * 因為資源限制，
  * 每個guild 5分鐘可以使用一次,
@@ -47,7 +47,7 @@ var getHelpMessage = function () {
 \n\
 因為資源限制，\n\
 每個群組 5分鐘可以使用一次,\n\
-每個ACC可以一星期使用一次\n\
+每個ACC可以一星期使用兩次\n\
 \n\
 經patreon解鎖功能的話可以一星期使用20次以上，\n\
 及可以一分鐘使用一次。\n\

@@ -202,9 +202,10 @@ var rollDiceCommand = async function ({
                             }
                         }
                 }
-                await schema.exportUser.updateOne({
-                    userID: userid
-                }, update, opt);
+                if (update)
+                    await schema.exportUser.updateOne({
+                        userID: userid
+                    }, update, opt);
             }
             totalSize = M.totalSize;
             newRawDate = M.sum_messages;
@@ -316,9 +317,10 @@ var rollDiceCommand = async function ({
                             }
                         }
                 }
-                await schema.exportUser.updateOne({
-                    userID: userid
-                }, update, opt);
+                if (update)
+                    await schema.exportUser.updateOne({
+                        userID: userid
+                    }, update, opt);
             }
             totalSize = M.totalSize;
             M = M.sum_messages;

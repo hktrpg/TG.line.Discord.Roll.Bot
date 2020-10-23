@@ -30,6 +30,7 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
         integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
     <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
 </head>
 
 <body>
@@ -42,18 +43,22 @@
                         </button><span class="glyphicon glyphicon-search" aria-hidden="true"></span>
                         <a class="badge badge-pill badge-danger"
                             href="https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81">
-                            HKTRPG <img src="/assets/icon/dice-6.svg" width="32" height="32">
-                            <img src="/assets/icon/chat-square-text.svg" width="32" height="32">
+                            HKTRPG<span class="iconify" data-icon="mdi:dice-multiple-outline" data-inline="false"
+                                style="color: black;" data-width="32" data-height="32"></span></span>
+                            <span class="iconify" data-icon="bi:chat-square-text" data-inline="false"
+                                style="color: black;" data-width="32" data-height="32"></span>
                         </a>
                     </h3>
                 </div>
             </div>
 
             <div class="row justify-content-end">
-                <div class="input-group-text font-weight-bold" id="status-box"> <img
-                        src="/assets/icon/house-door-fill.svg" width="22" height="22"> <span id="room">公共房間</span></div>
-                <div class="badge-warning input-group-text font-weight-bold" id="status-box"> <img
-                        src="/assets/icon/people.svg" width="22" height="22">
+                <div class="input-group-text font-weight-bold" id="status-box"> <span class="iconify"
+                        data-icon="bi:house-door-fill" data-inline="false" style="color: black;" data-width="22"
+                        data-height="22"></span><span id="room">公共房間</span></div>
+                <div class="badge-warning input-group-text font-weight-bold" id="status-box">
+                    <span class="iconify" data-icon="bi:people" data-inline="false" style="color: black;"
+                        data-width="22" data-height="22"></span>
                     x <span id="online">0</span></div>
             </div>
         </div>
@@ -69,10 +74,12 @@
                 <div class="col-auto">
                     <form id="changeRoomNumber-form">
                         <div class="input-group">
-                            <img src="/assets/icon/person-fill.svg" width="32" height="32">
+                            <span class="iconify" data-icon="bi:person-fill" data-inline="false" style="color: black;"
+                                data-width="32" data-height="32"></span>
                             <input type="text" class="form-control" name="name" id="name" value="" placeholder="暱稱"
                                 maxlength="50">
-                            <img src="/assets/icon/house-door.svg" width="32" height="32">
+                            <span class="iconify" data-icon="bi:house-door" data-inline="false" style="color: black;"
+                                data-width="32" data-height="32"></span>
                             <input type="text" class="form-control" name="roomNumber" id="roomNumber" value="公共房間"
                                 placeholder="房間名稱" maxlength="50">
                             <div class="input-group-append">

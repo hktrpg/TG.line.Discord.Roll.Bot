@@ -4,6 +4,7 @@ const opt = {
     upsert: true,
     runValidators: true
 }
+
 const crypto = require('crypto');
 const password = process.env.CRYPTO_SECRET,
     algorithm = 'aes-256-ctr';
@@ -60,6 +61,9 @@ var rollDiceCommand = async function ({
             return rply;
         case /^state$/i.test(mainMsg[1]):
             rply.state = true;
+            return rply;
+        case /^fetch$/i.test(mainMsg[1]):
+
             return rply;
         case /^debug$/i.test(mainMsg[1]):
             rply.text = "Debug function" + '\ngroupid: ' + groupid + "\nuserid: " + userid;

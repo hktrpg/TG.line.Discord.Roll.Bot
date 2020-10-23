@@ -37,7 +37,7 @@ P.S.如果沒立即生效 用.db show 刷新一下\n\
 輸入.db del(編號)或all 即可刪除\n\
 輸入.db  (關鍵字) 即可顯示 \n\
 如使用輸入.dbp 會變成全服版,全服可看, 可用add show功能 \n\
-新增指令\n\
+新增指令 - 輸入.dbp newType 可以觀看效果\n\
 * {br}          <--隔一行\n\
 * {ran:100}     <---隨機1-100\n\
 * {random:5-20} <---隨機5-20\n\
@@ -338,23 +338,23 @@ var rollDiceCommand = async function ({
         switch (true) {
             case /^ran:\d+/i.test(second):
                 temp = /^ran:(\d+)/i.exec(second)
-                if (!temp || !temp[1]) return;
-                return await rollbase.Dice(temp[1]);
+                if (!temp || !temp[1]) return ' ';
+                return await rollbase.Dice(temp[1]) || ' ';
             case /^random:\d+/i.test(second):
                 temp = /^random:(\d+)-(\d+)/i.exec(second)
-                if (!temp || !temp[1] || !temp[2]) return;
-                return await rollbase.DiceINT(temp[1], temp[2]);
+                if (!temp || !temp[1] || !temp[2]) return ' ';
+                return await rollbase.DiceINT(temp[1], temp[2]) || ' ';
             case /^allgp.name$/i.test(second):
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
-                if (!temp) return;
+                if (!temp) return ' ';
                 num = await rollbase.DiceINT(0, temp.trpgLevelSystemfunction.length - 1)
                 num = (num < 1) ? 0 : num;
                 temp = temp.trpgLevelSystemfunction[num].name
-                return temp;
+                return temp || ' ';
                 // * {allgp.name} <---隨機全GP其中一人名字
             case /^allgp.title$/i.test(second):
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
-                if (!temp) return;
+                if (!temp) return ' ';
                 if (temp.Title.length == 0) {
                     temp.Title = exports.z_Level_system.Title();
                 }
@@ -364,36 +364,36 @@ var rollDiceCommand = async function ({
                 num = await rollbase.DiceINT(0, temp2.length - 1)
                 num = (num < 1) ? 0 : num;
                 temp = temp2[num]
-                return temp;
+                return temp || ' ';
                 // * {allgp.title}<---隨機全GP其中一種稱號
             case /^server.member_count$/i.test(second):
-                if (membercount) return membercount;
+                if (membercount) return membercount || ' ';
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
-                if (!temp || !temp.trpgLevelSystemfunction) return;
-                return temp.trpgLevelSystemfunction.length;
+                if (!temp || !temp.trpgLevelSystemfunction) return ' ';
+                return temp.trpgLevelSystemfunction.length || ' ';
                 //  {server.member_count} 現在頻道中總人數 \
             case /^my.RankingPer$/i.test(second):
                 //* {my.RankingPer} 現在排名百分比 \
                 // let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
-                if (!temp) return;
-                temp = await ranking(userid, temp.trpgLevelSystemfunction)
-                if (!temp || !temp.trpgLevelSystemfunction) return;
+                if (!temp) return ' ';
+                temp2 = await ranking(userid, temp.trpgLevelSystemfunction)
+                if (!temp2) return ' ';
                 num = membercount || temp.trpgLevelSystemfunction.length;
-                temp2 = Math.ceil(temp / num * 10000) / 100 + '%';
-                return temp2;
+                temp2 = Math.ceil(temp2 / num * 10000) / 100 + '%';
+                return temp2 || ' ';
             case /^my.Ranking$/i.test(second):
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
                 //     temp2 = await findUser(temp, userid);
                 //* {my.Ranking} 顯示擲骰者現在排名 \
-                if (!temp || !temp.trpgLevelSystemfunction) return;
-                return await ranking(userid, temp.trpgLevelSystemfunction);
+                if (!temp || !temp.trpgLevelSystemfunction) return ' ';
+                return await ranking(userid, temp.trpgLevelSystemfunction) || ' ';
             case /^my.exp$/i.test(second):
                 //* {my.exp} 顯示擲骰者經驗值
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
                 temp2 = await findUser(temp, userid);
-                if (!temp || !temp2 || !temp2.EXP) return;
-                return temp2.EXP;
+                if (!temp || !temp2 || !temp2.EXP) return ' ';
+                return temp2.EXP || ' ';
             case /^my.name$/i.test(second):
                 //* {my.name} <---顯示擲骰者名字
                 return displaynameDiscord || displayname || "無名";
@@ -401,18 +401,18 @@ var rollDiceCommand = async function ({
                 // * {my.title}<---顯示擲骰者稱號
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
                 temp2 = await findUser(temp, userid);
-                if (!temp || !temp2 || !temp2.Level || !temp.Title) return;
+                if (!temp || !temp2 || !temp2.Level || !temp.Title) return ' ';
                 //   let userTitle = await this.checkTitle(userlevel, trpgLevelSystemfunction.trpgLevelSystemfunction[i].Title);
-                return await exports.z_Level_system.checkTitle(temp2.Level, temp.Title);
+                return await exports.z_Level_system.checkTitle(temp2.Level, temp.Title) || ' ';
             case /^my.level$/i.test(second):
                 //* {my.level}<---顯示擲骰者等級
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
                 temp2 = await findUser(temp, userid);
-                if (!temp || !temp2 || !temp2.Level) return;
-                return temp2.Level;
+                if (!temp || !temp2 || !temp2.Level) return ' ';
+                return temp2.Level || ' ';
             case /^br$/i.test(second):
                 temp = '\n'
-                return temp;
+                return temp || ' ';
             default:
                 break;
         }

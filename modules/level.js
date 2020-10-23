@@ -68,10 +68,10 @@ async function uploadMongoose(groupid, userid, userInfo) {
         'trpgLevelSystemfunction.userid': userid
     }, {
         $set: {
-            'trpgLevelSystemfunction.$.name': userInfo.name
+            'trpgLevelSystemfunction.$.name': userInfo.name,
+            'trpgLevelSystemfunction.$.Level': userInfo.Level
         },
         $max: {
-            'trpgLevelSystemfunction.$.Level': userInfo.Level,
             'trpgLevelSystemfunction.$.EXP': userInfo.EXP,
             'trpgLevelSystemfunction.$.LastSpeakTime': userInfo.LastSpeakTime
         }

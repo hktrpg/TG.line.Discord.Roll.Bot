@@ -16,7 +16,7 @@ const mongoose = require('mongoose');
             useUnifiedTopology: true
         });
     } catch (err) {
-        console.log(' GET ERROR: ' + err)
+        console.log('DB CONNECT GET ERROR: ' + err)
     }
 })()
 

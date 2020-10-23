@@ -22,8 +22,8 @@ www.get('/', (req, res) => {
     res.sendFile(process.cwd() + '/views/index.html');
 });
 
-www.get('/assets/icon/:id', (req, res) => {
-    res.sendFile(process.cwd() + '/assets/icon/' + req.originalUrl.replace('/assets/icon/', ''));
+www.get('/app/discord/:id', (req, res) => {
+    res.sendFile(process.cwd() + '/tmp/' + req.originalUrl.replace('/app/discord/', ''));
 });
 
 io.on('connection', (socket) => {

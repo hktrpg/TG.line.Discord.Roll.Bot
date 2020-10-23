@@ -121,7 +121,7 @@ var parseInput = async function ({
 		if (result.text && characterReRoll.text) {
 			result.text = result.characterName + ' 投擲 ' + result.characterReRollName + '\n' + characterReRoll.text + '\n' + '======\n' + result.text;
 		} else {
-			result.text += (characterReRoll.text && result.text) ? '======\n' + characterReRoll.text : characterReRoll.text;
+			result.text += (characterReRoll && characterReRoll.text && result && result.text) ? '======\n' + characterReRoll.text : characterReRoll.text;
 		}
 
 	}

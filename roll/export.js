@@ -145,7 +145,7 @@ var rollDiceCommand = async function ({
                 return rply;
             }
             if (userRemainingTime < 0 && checkUser && checkUser.times >= limit) {
-                rply.text = '你每星期完整下載聊天紀錄的上限為' + limit + '次，冷卻剩餘' + millisToMinutesAndSeconds(userRemainingTime) + '時間\nDemo模式, 可以輸出400條信息\n\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n\n源代碼  http://bit.ly/HKTRPG_GITHUB\n';
+                rply.text = '你每星期完整下載聊天紀錄的上限為' + limit + '次，冷卻剩餘' + millisToMinutesAndSeconds(userRemainingTime) + '時間\n現在正處於Demo模式，可以輸出500條信息\n\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n\n源代碼  http://bit.ly/HKTRPG_GITHUB\n';
                 demoMode = true;
             }
             /**
@@ -273,7 +273,7 @@ var rollDiceCommand = async function ({
                 return rply;
             }
             if (userRemainingTime < 0 && checkUser && checkUser.times >= limit) {
-                rply.text = '你每星期完整下載聊天紀錄的上限為' + limit + '次，冷卻剩餘' + millisToMinutesAndSeconds(userRemainingTime) + '時間\nDemo模式, 可以輸出400條信息\n\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                rply.text = '你每星期完整下載聊天紀錄的上限為' + limit + '次，冷卻剩餘' + millisToMinutesAndSeconds(userRemainingTime) + '時間\n現在正處於Demo模式，可以輸出500條信息\n\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
                 return rply;
             }
 
@@ -394,7 +394,7 @@ async function lots_of_messages_getter_HTML(channel, demo) {
             break;
         }
         if (demo) {
-            if (totalSize >= 400) {
+            if (totalSize >= 500) {
                 break;
             }
         }

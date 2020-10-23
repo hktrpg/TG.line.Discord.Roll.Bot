@@ -229,7 +229,7 @@ var rollDiceCommand = async function ({
             data = await fs.readFile(__dirname + '/../views/discordLog.html', 'utf-8')
             var key = makeid(32);
             var randomLink = makeid(7);
-            var newAESDate = getAES(key, key, JSON.stringify(newRawDate));
+            var newAESDate = AES(key, key, JSON.stringify(newRawDate));
             //aesData = [];
             newValue = data.replace(/aesData\s=\s\[\]/, 'aesData = ' + JSON.stringify(newAESDate)).replace(/<h1>聊天紀錄<\/h1>/, '<h1>' + channelName + ' 的聊天紀錄</h1>');
             var tempB = key;
@@ -395,6 +395,16 @@ function getAesString(data, key, iv) { //加密
         padding: CryptoJS.pad.Pkcs7
     });
     return encrypted.toString(); //返回的是base64格式的密文
+}
+
+
+function AES(key, iv, data) {
+    var crypto = require('crypto');
+    let algo = "aes-256-cbc"; // we are using 128 bit here because of the 16 byte key. use 256 is the key is 32 byte.
+    var cipher = crypto.createCipheriv(algo, Buffer.from(key, 'utf-8'), iv.slice(0, 16));
+    var encrypted = cipher.update(data, 'utf-8', 'base64'); // `base64` here represents output encoding
+    encrypted += cipher.final('base64');
+    return encrypted;
 }
 
 function getAES(key, iv, data) { //加密

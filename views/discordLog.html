@@ -360,7 +360,7 @@
 
         function getDAesString(encrypted, key, iv) { //解密
             var keyy = CryptoJS.enc.Utf8.parse(key);
-            var ivv = CryptoJS.enc.Utf8.parse(iv);
+            var ivv = CryptoJS.enc.Utf8.parse(iv.slice(0, 16));
             var decrypted = CryptoJS.AES.decrypt(encrypted, keyy, {
                 iv: ivv,
                 mode: CryptoJS.mode.CBC,

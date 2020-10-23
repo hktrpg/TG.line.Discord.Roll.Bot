@@ -26,6 +26,7 @@ TGclient.catch((err) => {
 });
 //TGclient.use(telegrafGetChatMembers)
 TGclient.on('text', async (ctx) => {
+	if (ctx.message.from.is_bot) return;
 	//console.log(ctx.getChatMembers(ctx.chat.id) //[Members]
 	//	ctx.getChatMembers() //[Members]
 	//	telegrafGetChatMembers.check(ctx.chat.id) //[Members]

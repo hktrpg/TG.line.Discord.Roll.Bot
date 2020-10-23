@@ -218,6 +218,7 @@ TGclient.on('text', async (ctx) => {
 
 })
 TGclient.on('message', async (ctx) => {
+	if (ctx.message.from.is_bot) return;
 	if (ctx.message.new_chat_member && ctx.message.new_chat_member.username == ctx.me) {
 		console.log("Telegram joined");
 		ctx.reply(joinMessage);
@@ -228,6 +229,7 @@ TGclient.on('message', async (ctx) => {
 });
 
 TGclient.on('audio', async (ctx) => {
+	if (ctx.message.from.is_bot) return;
 	if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
 		let groupid = '',
 			userid = '',
@@ -249,6 +251,7 @@ TGclient.on('audio', async (ctx) => {
 	return null;
 });
 TGclient.on('document', async (ctx) => {
+	if (ctx.message.from.is_bot) return;
 	if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
 		let groupid = '',
 			userid = '',
@@ -270,6 +273,7 @@ TGclient.on('document', async (ctx) => {
 	return null
 })
 TGclient.on('photo', async (ctx) => {
+	if (ctx.message.from.is_bot) return;
 	if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
 		let groupid = '',
 			userid = '',
@@ -286,6 +290,7 @@ TGclient.on('photo', async (ctx) => {
 	return null
 })
 TGclient.on('sticker', async (ctx) => {
+	if (ctx.message.from.is_bot) return;
 	if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
 		let groupid = '',
 			userid = '',
@@ -302,6 +307,7 @@ TGclient.on('sticker', async (ctx) => {
 	return null
 })
 TGclient.on('video', async (ctx) => {
+	if (ctx.message.from.is_bot) return;
 	if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
 		let groupid = '',
 			userid = '',
@@ -318,6 +324,7 @@ TGclient.on('video', async (ctx) => {
 	return null
 })
 TGclient.on('voice', async (ctx) => {
+	if (ctx.message.from.is_bot) return;
 	if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
 		let groupid = '',
 			userid = '',
@@ -334,6 +341,7 @@ TGclient.on('voice', async (ctx) => {
 	return null
 })
 TGclient.on('forward', async (ctx) => {
+	if (ctx.message.from.is_bot) return;
 	if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
 		let groupid = '',
 			userid = '',

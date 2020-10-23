@@ -2,9 +2,7 @@
 
 //heroku labs:enable runtime-dyno-metadata -a <app name>
 var chineseConv = require('chinese-conv'); //繁簡轉換
-const GoogleImages = require('google-images');
-const duckImage = require('duckduckgo-images-api')
-const client = (process.env.CSE_ID && process.env.CSE_API_KEY) ? new GoogleImages(process.env.CSE_ID, process.env.CSE_API_KEY) : '';
+const duckImage = require('@zetetic/duckduckgo-images-api')
 const wiki = require('wikijs').default;
 const rollbase = require('./rollbase.js');
 const translate = require('@vitalets/google-translate-api');

@@ -57,6 +57,7 @@ client.on('guildCreate', guild => {
 })
 
 client.on('message', async (message) => {
+	if (message.author.bot) return;
 	let groupid = '',
 		userid = '',
 		displayname = '',

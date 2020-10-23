@@ -145,7 +145,7 @@ var rollDiceCommand = async function ({
                 return rply;
             }
             if (userRemainingTime < 0 && checkUser && checkUser.times >= limit) {
-                rply.text = '你每星期完整下載聊天紀錄的上限為' + limit + '次，冷卻剩餘' + millisToMinutesAndSeconds(userRemainingTime) + '時間\nDemo模式, 可以輸出400條信息\n\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n\n源代碼  http://bit.ly/HKTRPG_GITHUB\n';
+                rply.text = '你每星期完整下載聊天紀錄的上限為' + limit + '次，冷卻剩餘' + millisToMinutesAndSeconds(userRemainingTime) + '時間\n現在正處於Demo模式，可以輸出500條信息\n\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n\n源代碼  http://bit.ly/HKTRPG_GITHUB\n';
                 demoMode = true;
             }
             /**
@@ -176,7 +176,11 @@ var rollDiceCommand = async function ({
 
 
             discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間');
-            M = await lots_of_messages_getter(C, demoMode);
+            M = await lots_of_messages_getter_HTML(C, demoMode);
+            if (M.length == 0) {
+                rply.text = "未能讀取信息";
+                return rply;
+            }
             if (!checkUser) {
                 checkUser = await schema.exportUser.updateOne({
                     userID: userid
@@ -198,31 +202,14 @@ var rollDiceCommand = async function ({
                             }
                         }
                 }
-                await schema.exportUser.updateOne({
-                    userID: userid
-                }, update, opt);
+                if (update)
+                    await schema.exportUser.updateOne({
+                        userID: userid
+                    }, update, opt);
             }
             totalSize = M.totalSize;
-            M = M.sum_messages;
-            if (M.length == 0) return;
-            for (let index = M.length - 1; index >= 0; index--) {
-                if (M[index].type == 'DEFAULT') {
-                    newRawDate[M.length - 1 - index] = {
-                        timestamp: M[index].createdTimestamp,
-                        contact: M[index].content.replace(/<@(.*?)>/ig, replacer),
-                        userName: M[index].author.username,
-                        isbot: M[index].author.bot
-                    }
-                } else
-                if (M[index].type !== 'DEFAULT') {
-                    newRawDate[M.length - 1 - index] = {
-                        timestamp: M[index].createdTimestamp,
-                        contact: M[index].author.username + '\n' + M[index].type,
-                        userName: '系統信息',
-                        isbot: true
-                    }
-                }
-            }
+            newRawDate = M.sum_messages;
+
             try {
                 await fs.access(dir)
             } catch (error) {
@@ -286,7 +273,7 @@ var rollDiceCommand = async function ({
                 return rply;
             }
             if (userRemainingTime < 0 && checkUser && checkUser.times >= limit) {
-                rply.text = '你每星期完整下載聊天紀錄的上限為' + limit + '次，冷卻剩餘' + millisToMinutesAndSeconds(userRemainingTime) + '時間\nDemo模式, 可以輸出400條信息\n\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                rply.text = '你每星期完整下載聊天紀錄的上限為' + limit + '次，冷卻剩餘' + millisToMinutesAndSeconds(userRemainingTime) + '時間\n現在正處於Demo模式，可以輸出500條信息\n\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
                 return rply;
             }
 
@@ -304,7 +291,11 @@ var rollDiceCommand = async function ({
 
             console.log('USE EXPORT TXT')
             discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間');
-            M = await lots_of_messages_getter(C, demoMode);
+            M = await lots_of_messages_getter_TXT(C, demoMode);
+            if (M.length == 0) {
+                rply.text = "未能讀取信息";
+                return rply;
+            }
             if (!checkUser) {
                 checkUser = await schema.exportUser.updateOne({
                     userID: userid
@@ -326,22 +317,27 @@ var rollDiceCommand = async function ({
                             }
                         }
                 }
-                await schema.exportUser.updateOne({
-                    userID: userid
-                }, update, opt);
+                if (update)
+                    await schema.exportUser.updateOne({
+                        userID: userid
+                    }, update, opt);
             }
             totalSize = M.totalSize;
             M = M.sum_messages;
-            if (M.length == 0) return;
+            M.sort(function (b, a) {
+                return a.timestamp - b.timestamp;
+            });
             for (let index = M.length - 1; index >= 0; index--) {
-                let time = M[index].createdTimestamp.toString().slice(0, -3);
+                let time = M[index].timestamp.toString().slice(0, -3);
                 const dateObj = moment
                     .unix(time)
                     .tz('Asia/Taipei')
                     .format('YYYY-MM-DD HH:mm:ss');
-                data += M[index].author.username + '	' + dateObj + '\n';
-                data += M[index].content
-                    .replace(/<@(.*?)>/ig, replacer)
+                if (M[index].isbot) {
+                    data += '(🤖)'
+                }
+                data += M[index].userName + '	' + dateObj + '\n';
+                data += M[index].contact.replace(/<@(.*?)>/ig, rollDiceCommand.replacer)
                 data += '\n\n';
             }
             try {
@@ -359,7 +355,7 @@ var rollDiceCommand = async function ({
     }
 }
 
-async function lots_of_messages_getter(channel, demo) {
+async function lots_of_messages_getter_HTML(channel, demo) {
     const sum_messages = [];
     let last_id;
     let totalSize = 0;
@@ -373,9 +369,77 @@ async function lots_of_messages_getter(channel, demo) {
         }
         const messages = await channel.messages.fetch(options);
         totalSize += (messages.size) ? messages.size : 0;
-        sum_messages.push(...messages.array());
+        messages.forEach(element => {
+            let temp;
+            if (element.type == 'DEFAULT') {
+                temp = {
+                    timestamp: element.createdTimestamp,
+                    contact: element.content.replace(/<@(.*?)>/ig, rollDiceCommand.replacer),
+                    userName: element.author.username,
+                    isbot: element.author.bot
+                }
+            } else
+            if (element.type !== 'DEFAULT') {
+                temp = {
+                    timestamp: element.createdTimestamp,
+                    contact: element.author.username + '\n' + element.type,
+                    userName: '系統信息',
+                    isbot: true
+                }
+            }
+            sum_messages.push(temp)
+        });
         last_id = messages.last().id;
+        if (messages.size != 100) {
+            break;
+        }
+        if (demo) {
+            if (totalSize >= 500) {
+                break;
+            }
+        }
+    }
 
+    return {
+        sum_messages: sum_messages,
+        totalSize: totalSize
+    };
+}
+async function lots_of_messages_getter_TXT(channel, demo) {
+    const sum_messages = [];
+    let last_id;
+    let totalSize = 0;
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+        const options = {
+            limit: 100
+        };
+        if (last_id) {
+            options.before = last_id;
+        }
+        const messages = await channel.messages.fetch(options);
+        totalSize += (messages.size) ? messages.size : 0;
+        messages.forEach(element => {
+            let temp;
+            if (element.type == 'DEFAULT') {
+                temp = {
+                    timestamp: element.createdTimestamp,
+                    contact: element.content.replace(/<@(.*?)>/ig, rollDiceCommand.replacer),
+                    userName: element.author.username,
+                    isbot: element.author.bot
+                }
+            } else
+            if (element.type !== 'DEFAULT') {
+                temp = {
+                    timestamp: element.createdTimestamp,
+                    contact: element.author.username + '\n' + element.type,
+                    userName: '系統信息',
+                    isbot: true
+                }
+            }
+            sum_messages.push(temp)
+        });
+        last_id = messages.last().id;
         if (messages.size != 100) {
             break;
         }

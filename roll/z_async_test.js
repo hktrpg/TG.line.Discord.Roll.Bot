@@ -2,9 +2,7 @@
 
 //heroku labs:enable runtime-dyno-metadata -a <app name>
 var chineseConv = require('chinese-conv'); //繁簡轉換
-const GoogleImages = require('google-images');
-const duckImage = require('duckduckgo-images-api')
-const client = (process.env.CSE_ID && process.env.CSE_API_KEY) ? new GoogleImages(process.env.CSE_ID, process.env.CSE_API_KEY) : '';
+const duckImage = require('@zetetic/duckduckgo-images-api')
 const wiki = require('wikijs').default;
 const rollbase = require('./rollbase.js');
 const translate = require('@vitalets/google-translate-api');
@@ -124,10 +122,12 @@ async function searchImage(inputStr, mainMsg, safe) {
 			moderate: safe
 		})
 		.then(async images => {
-			if (images[0]) {
+			if (images[0] && images[0].image) {
 				//let resultnum = Math.floor((Math.random() * (images.length)) + 0)
 				let resultnum = await rollbase.Dice(images.length - 1)
 				return images[resultnum].image;
+			}else {
+				return '沒有結果'
 			}
 
 		}).catch(err => {

@@ -36,7 +36,7 @@ var prefixs = function () {
     }]
 }
 var getHelpMessage = function () {
-    return "【聊天紀錄】" + "\n\
+    return "測試進行中【聊天紀錄】" + "\n\
 .discord html 可以輸出有分析功能的聊天紀錄\n\
 .discord txt 可以輸出純文字的聊天紀錄\n\
 需要使用者及rollbot 都有閱讀頻道聊天紀錄的權限\n\
@@ -174,6 +174,9 @@ var rollDiceCommand = async function ({
                 await checkGP.save();
             }
 
+
+            discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間');
+            M = await lots_of_messages_getter(C, demoMode);
             if (!checkUser) {
                 checkUser = await schema.exportUser.updateOne({
                     userID: userid
@@ -199,8 +202,6 @@ var rollDiceCommand = async function ({
                     userID: userid
                 }, update, opt);
             }
-            discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間');
-            M = await lots_of_messages_getter(C, demoMode);
             totalSize = M.totalSize;
             M = M.sum_messages;
             if (M.length == 0) return;
@@ -233,7 +234,7 @@ var rollDiceCommand = async function ({
             var randomLink = makeid(7);
             var newAESDate = AES(key, key, JSON.stringify(newRawDate));
             //aesData = [];
-            newValue = data.replace(/aesData\s=\s\[\]/, 'aesData = ' + JSON.stringify(newAESDate)).replace(/<h1>聊天紀錄<\/h1>/, '<h1>' + channelName + ' 的聊天紀錄</h1>');
+            newValue = data.replace(/aesData\s=\s\[\]/, 'aesData = ' + JSON.stringify(newAESDate.toString('base64'))).replace(/<h1>聊天紀錄<\/h1>/, '<h1>' + channelName + ' 的聊天紀錄</h1>');
             var tempB = key;
             await fs.writeFile(dir + channelid + '_' + hour + minutes + seconds + '_' + randomLink + '.html', newValue); // need to be in an async function
             rply.discordExportHtml = [
@@ -300,6 +301,10 @@ var rollDiceCommand = async function ({
                 await checkGP.save();
             }
 
+
+            console.log('USE EXPORT TXT')
+            discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間');
+            M = await lots_of_messages_getter(C, demoMode);
             if (!checkUser) {
                 checkUser = await schema.exportUser.updateOne({
                     userID: userid
@@ -325,9 +330,6 @@ var rollDiceCommand = async function ({
                     userID: userid
                 }, update, opt);
             }
-            console.log('USE EXPORT TXT')
-            discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間');
-            M = await lots_of_messages_getter(C, demoMode);
             totalSize = M.totalSize;
             M = M.sum_messages;
             if (M.length == 0) return;
@@ -407,8 +409,9 @@ function AES(key, iv, data) {
     var crypto = require('crypto');
     let algo = "aes-256-cbc"; // we are using 128 bit here because of the 16 byte key. use 256 is the key is 32 byte.
     var cipher = crypto.createCipheriv(algo, Buffer.from(key, 'utf-8'), iv.slice(0, 16));
-    var encrypted = cipher.update(data, 'utf-8', 'base64'); // `base64` here represents output encoding
-    encrypted += cipher.final('base64');
+    // var encrypted = cipher.update(data, 'utf-8', 'base64'); // `base64` here represents output encoding
+    //encrypted += cipher.final('base64');
+    var encrypted = Buffer.concat([cipher.update(Buffer.from(data)), cipher.final()]);
     return encrypted;
 }
 

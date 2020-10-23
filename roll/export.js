@@ -162,6 +162,7 @@ var rollDiceCommand = async function ({
              * 
              * 檢查
              */
+            console.log('USE EXPORT HTML')
             if (!checkGP) {
                 checkGP = await schema.exportGp.updateOne({
                     groupID: userid
@@ -187,11 +188,12 @@ var rollDiceCommand = async function ({
                         lastActiveAt: new Date()
                     }
                 } else {
-                    update = {
-                        $inc: {
-                            times: 1
+                    if (!demoMode)
+                        update = {
+                            $inc: {
+                                times: 1
+                            }
                         }
-                    }
                 }
                 await schema.exportUser.updateOne({
                     userID: userid
@@ -286,6 +288,7 @@ var rollDiceCommand = async function ({
                 rply.text = '你每星期完整下載聊天紀錄的上限為' + limit + '次，冷卻剩餘' + millisToMinutesAndSeconds(userRemainingTime) + '時間\nDemo模式, 可以輸出400條信息\n\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
                 return rply;
             }
+
             if (!checkGP) {
                 checkGP = await schema.exportGp.updateOne({
                     groupID: userid
@@ -311,16 +314,18 @@ var rollDiceCommand = async function ({
                         lastActiveAt: new Date()
                     }
                 } else {
-                    update = {
-                        $inc: {
-                            times: 1
+                    if (!demoMode)
+                        update = {
+                            $inc: {
+                                times: 1
+                            }
                         }
-                    }
                 }
                 await schema.exportUser.updateOne({
                     userID: userid
                 }, update, opt);
             }
+            console.log('USE EXPORT TXT')
             discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間');
             M = await lots_of_messages_getter(C, demoMode);
             totalSize = M.totalSize;

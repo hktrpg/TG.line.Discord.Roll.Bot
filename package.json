@@ -26,6 +26,7 @@
     "cryptojs": "^2.5.3",
     "discord.js": "^12.4.0",
     "dotenv": "^7.0.0",
+    "duckduckgo-images-api": "^1.0.5",
     "easy-monitor": "^2.2.8",
     "erlpack": "github:discordapp/erlpack",
     "event": "^1.0.0",

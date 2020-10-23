@@ -3,6 +3,7 @@
 //heroku labs:enable runtime-dyno-metadata -a <app name>
 var chineseConv = require('chinese-conv'); //繁簡轉換
 const GoogleImages = require('google-images');
+const duckImage = require('duckduckgo-images-api')
 const client = (process.env.CSE_ID && process.env.CSE_API_KEY) ? new GoogleImages(process.env.CSE_ID, process.env.CSE_API_KEY) : '';
 const wiki = require('wikijs').default;
 const rollbase = require('./rollbase.js');
@@ -43,7 +44,10 @@ var initialize = function () {
 	return variables;
 }
 
-var rollDiceCommand = async function ({inputStr, mainMsg}) {
+var rollDiceCommand = async function ({
+	inputStr,
+	mainMsg
+}) {
 	let rply = {
 		default: 'on',
 		type: 'text',
@@ -94,40 +98,37 @@ var rollDiceCommand = async function ({inputStr, mainMsg}) {
 			});
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /^[.]image$/.test(mainMsg[0]):
-			rply.text = await googleimage(inputStr, mainMsg, "high")
+			rply.text = await searchImage(inputStr, mainMsg, true)
 			rply.type = 'image'
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /^[.]imagee$/.test(mainMsg[0]):
 			//成人版
-			rply.text = await googleimage(inputStr, mainMsg, "off")
+			rply.text = await searchImage(inputStr, mainMsg, false)
 			rply.type = 'image'
 			return rply;
-
-
 		default:
 			break;
 	}
 }
 
-async function googleimage(inputStr, mainMsg, safe) {
-	if (!process.env.CSE_ID && !process.env.CSE_API_KEY) return;
+async function searchImage(inputStr, mainMsg, safe) {
 	let keyword = inputStr.replace(mainMsg[0] + " ", "")
 	//let page = Math.floor((Math.random() * (10)) * 10) + 1;
-	let page = await rollbase.DiceINT(0, 91)
 	if (mainMsg[1].match(/^yesno$/i)) {
 		//隨機YES NO
 		let A = ['yes', 'no']
 		keyword = A[await rollbase.Dice(A.length) - 1] + " GIF";
 	}
-	return await client.search(keyword, {
-			"safe": safe,
-			"page": page
+	return await duckImage.image_search({
+			query: keyword,
+			moderate: safe
 		})
 		.then(async images => {
+			console.log(images)
 			if (images[0]) {
 				//let resultnum = Math.floor((Math.random() * (images.length)) + 0)
 				let resultnum = await rollbase.Dice(images.length - 1)
-				return images[resultnum].url;
+				return images[resultnum].image;
 			}
 
 		}).catch(err => {

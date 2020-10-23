@@ -124,10 +124,12 @@ async function searchImage(inputStr, mainMsg, safe) {
 			moderate: safe
 		})
 		.then(async images => {
-			if (images[0]) {
+			if (images[0] && images[0].image) {
 				//let resultnum = Math.floor((Math.random() * (images.length)) + 0)
 				let resultnum = await rollbase.Dice(images.length - 1)
 				return images[resultnum].image;
+			}else {
+				return '沒有結果'
 			}
 
 		}).catch(err => {

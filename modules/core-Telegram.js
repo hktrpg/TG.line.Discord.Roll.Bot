@@ -51,9 +51,10 @@ TGclient.on('text', async (ctx) => {
 		membercount = await ctx.getChatMembersCount(ctx.chat.id) - 1;
 	}
 	if (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') {
+		let memberData = await telegrafGetChatMembers.check(ctx.chat.id);
 		groupid = ctx.message.chat.id;
 		if (ctx.chat && ctx.chat.id)
-			if ((await telegrafGetChatMembers.check(ctx.chat.id) && telegrafGetChatMembers.check(ctx.chat.id)[0] && await telegrafGetChatMembers.check(ctx.chat.id)[0].status == ("creator" || "administrator")) || ctx.message.chat.all_members_are_administrators == true) {
+			if ((memberData && memberData[0] && memberData[0].status == ("creator" || "administrator")) || ctx.message.chat.all_members_are_administrators == true) {
 				userrole = 3;
 				//console.log(userrole)
 				//console.log(telegrafGetChatMembers.check(ctx.chat.id))

@@ -243,6 +243,17 @@ const characterCard = mongoose.model('characterCard', new mongoose.Schema({
     }]
 }));
 
+const exportGp = mongoose.model('exportGp', new mongoose.Schema({
+    groupID: String,
+    lastActiveAt: Date
+}));
+
+const exportUser = mongoose.model('exportUser', new mongoose.Schema({
+    userID: String,
+    lastActiveAt: Date,
+    times: Number
+}));
+
 
 module.exports = {
     randomAns,
@@ -261,7 +272,9 @@ module.exports = {
     veryImportantPerson,
     characterGpSwitch,
     codelist,
-    chatRoom
+    chatRoom,
+    exportGp,
+    exportUser
 }
 //const Cat = mongoose.model('Cat', { name: String });
 //const kitty = new Cat({ name: 'Zildjian' });

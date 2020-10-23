@@ -28,7 +28,9 @@ var parseInput = async function ({
 	displayname = null,
 	channelid = null,
 	displaynameDiscord = null,
-	membercount = 0
+	membercount = 0,
+	discordClient,
+	discordMessage
 }) {
 	//console.log('InputStr: ' + inputStr);
 	let result = {
@@ -69,14 +71,13 @@ var parseInput = async function ({
 			displayname: displayname,
 			channelid: channelid,
 			displaynameDiscord: displaynameDiscord,
-			membercount: membercount
+			membercount: membercount,
+			discordClient: discordClient,
+			discordMessage: discordMessage
 		})
 
 	} catch (error) {
-		console.log('rolldice GET ERROR:', error);
-		console.log('inputStr: ', inputStr);
-		console.log('botname: ', botname);
-		console.log('Time: ', new Date());
+		console.log('rolldice GET ERROR:', error, ' inputStr: ', inputStr, ' botname: ', botname, ' Time: ', new Date());
 	}
 	if (rollDiceResult) {
 		result = await JSON.parse(JSON.stringify(Object.assign({}, result, rollDiceResult)));
@@ -145,7 +146,9 @@ var rolldice = async function ({
 	displayname,
 	channelid,
 	displaynameDiscord,
-	membercount
+	membercount,
+	discordClient,
+	discordMessage
 }) {
 	//	console.log(exports)
 	//在下面位置開始分析trigger
@@ -166,7 +169,9 @@ var rolldice = async function ({
 		displayname: displayname,
 		channelid: channelid,
 		displaynameDiscord: displaynameDiscord,
-		membercount: membercount
+		membercount: membercount,
+		discordClient: discordClient,
+		discordMessage: discordMessage
 	});
 	//console.log('tempsave: ', tempsave)
 	return tempsave;
@@ -235,10 +240,7 @@ async function cmdfunction({
 			membercount: membercount
 		})
 	} catch (error) {
-		console.log('cmdfunction GET ERROR:', error);
-		console.log('newInputStr: ', newInputStr);
-		console.log('botname: ', botname);
-		console.log('Time: ', new Date());
+		console.log('cmdfunction GET ERROR:', error, ' inputStr: ', newInputStr, ' botname: ', botname, ' Time: ', new Date());
 	}
 	(debugMode) ? console.log('            inputStr2: ', newInputStr): '';
 	if (typeof tempResut === 'object' && tempResut !== null) {

@@ -3,8 +3,6 @@ if (!process.env.mongoURL) {
     return;
 }
 var variables = {};
-
-
 const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const limitArr = [4, 20, 20, 30, 30, 99, 99, 99];

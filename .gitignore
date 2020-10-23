@@ -41,6 +41,8 @@ typings/
 
 .vscode/
 
+tmp/
+
 # Optional npm cache directory
 .npm
 

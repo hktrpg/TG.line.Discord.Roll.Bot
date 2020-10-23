@@ -5,6 +5,7 @@ const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const Discord = require('discord.js');
 const client = new Discord.Client();
 const msgSplitor = (/\S+/ig);
+const appName = process.env.HEROKU_APP_NAME;
 var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 //const BootTime = new Date(new Date().toLocaleString("en-US", {
 //	timeZone: "Asia/Shanghai"
@@ -56,7 +57,6 @@ client.on('guildCreate', guild => {
 })
 
 client.on('message', async (message) => {
-	if (message.author.bot) return;
 	let groupid = '',
 		userid = '',
 		displayname = '',
@@ -66,7 +66,6 @@ client.on('message', async (message) => {
 	let TargetGMTempID = [];
 	let TargetGMTempdiyName = [];
 	let TargetGMTempdisplayname = [];
-
 	//得到暗骰的數據, GM的位置
 	let displaynamecheck = true;
 	let hasSendPermission = true;
@@ -76,10 +75,7 @@ client.on('message', async (message) => {
 	let userrole = 1;
 	//console.log(message.guild)
 	if (message.guild && message.guild.me) {
-		hasSendPermission = message.guild.me.hasPermission("SEND_MESSAGES");
-	}
-	if (message.channel.type !== "dm") {
-		hasSendPermission = message.channel.permissionsFor(client.user).has("SEND_MESSAGES")
+		hasSendPermission = message.channel.permissionsFor(message.guild.me).has("SEND_MESSAGES") || message.guild.me.hasPermission("ADMINISTRATOR");
 	}
 	if (message.channel && message.channel.id) {
 		channelid = message.channel.id;
@@ -97,6 +93,9 @@ client.on('message', async (message) => {
 		displaynameDiscord = message.member.user.username;
 	}
 	////DISCORD: 585040823232320107
+	if (groupid && message.channel && message.channel.permissionsFor(client.user) && message.channel.permissionsFor(client.user).has("MANAGE_CHANNELS")) {
+		userrole = 2
+	}
 	if (message.member && message.member.hasPermission("ADMINISTRATOR")) {
 		userrole = 3
 	}
@@ -107,7 +106,6 @@ client.on('message', async (message) => {
 			return member.filter(member => !member.user.bot).size;
 		});
 	}
-
 	if (!message.content) {
 		await courtMessage("", "Discord", "")
 		if (groupid && userid) {
@@ -156,7 +154,9 @@ client.on('message', async (message) => {
 			displayname: displayname,
 			channelid: channelid,
 			displaynameDiscord: displaynameDiscord,
-			membercount: membercount
+			membercount: membercount,
+			discordClient: client,
+			discordMessage: message
 		})
 	} else {
 		if (channelKeyword == "") {
@@ -169,7 +169,9 @@ client.on('message', async (message) => {
 				displayname: displayname,
 				channelid: channelid,
 				displaynameDiscord: displaynameDiscord,
-				membercount: membercount
+				membercount: membercount,
+				discordClient: client,
+				discordMessage: message
 			});
 		}
 	}
@@ -189,6 +191,33 @@ client.on('message', async (message) => {
 		SendToReplychannel("<@" + userid + '>\n' + rplyVal.LevelUp, message);
 	}
 
+	if (rplyVal.discordExport) {
+		if (!appName) {
+			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄', {
+				files: [
+					"./tmp/" + rplyVal.discordExport + '.txt'
+				]
+			});
+		} else {
+			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n' + '請注意這是暫存檔案，會不定時移除，有需要請自行下載檔案。' +
+				'https://' + appName + '.herokuapp.com' + "/app/discord/" + rplyVal.discordExport + '.txt')
+		}
+	}
+	if (rplyVal.discordExportHtml) {
+		if (!appName) {
+			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +
+				rplyVal.discordExportHtml[1], {
+					files: [
+						"./tmp/" + rplyVal.discordExportHtml[0] + '.html'
+					]
+				});
+
+		} else {
+			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +
+				rplyVal.discordExportHtml[1] + '\n請注意這是暫存檔案，會不定時移除，有需要請自行下載檔案。' +
+				'\nhttps://' + appName + '.herokuapp.com' + "/app/discord/" + rplyVal.discordExportHtml[0] + '.html')
+		}
+	}
 	if (!rplyVal.text) {
 		return;
 	}

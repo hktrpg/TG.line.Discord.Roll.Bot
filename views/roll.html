@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html>
+<!--HKTRPG.COM  SAD-->
+
+<head>
+    <title>簡易網上擲骰工具 - HKTRPG - Roll Dice Online</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <!--HKTRPG.COM  SAD-->
+    <meta name="description" content="HKTRPG在線骰子工具。提供D2，D6，D10，D20，D100，自定擲骰功能。" />
+    <meta name="keywords"
+        content="香港TRPG,HKTRPG,COC,DND,REPLAY,TRPG,TRPG百科,平台,團錄,好玩,桌遊,BG,饅饅來,HKTRPG,ROLL DICE,DICE,擲骰,一鍵,1D100,TRPG,網上擲骰,線上擲骰,在線" />
+    <meta name="application-name" content="簡易線上擲骰工具 HKTRPG|HKTRPG Roll Dice Online" />
+    <meta property="og:title" content="簡易線上擲骰工具 - HKTRPG - Roll Dice Online" />
+    <meta property="og:url" content="https://roll.hktrpg.com/" />
+    <meta property="og:description" content="HKTRPG是可以用自己的方式擲骰的工具" />
+    <meta property="og:image" content="https://www.hktrpg.com/wiki/resources/assets/wiki.png" />
+    <meta property="og:type" content="骰子工具" />
+    <meta name="author" content="SAD">
+
+    <style>
+        html {
+            font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, "Hiragino Sans GB", "PingFang SC", "Heiti SC", "Microsoft YaHei UI", "Microsoft YaHei", "Source Han Sans", sans-serif;
+            font-size: 18px;
+            background-color: rgb(0, 0, 0);
+            color: #ffffff;
+            touch-action: manipulation;
+        }
+
+        body {
+            padding: 0.1rem;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            touch-action: manipulation;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .row {
+            width: 100%;
+            margin: 2 0.15em;
+            clear: both;
+            overflow: hidden;
+            margin: 0 auto;
+            border: 1px solid black;
+
+        }
+
+        .dice-box {
+            margin-bottom: 2px;
+            width: 8rem;
+            height: 4rem;
+            margin: 2 0.15em;
+            position: relative;
+            float: left;
+            overflow: hidden;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+        }
+
+        a {
+            color: #EF5858;
+        }
+
+        .dice-up {
+            width: 3rem;
+            height: 2rem;
+            padding: 0;
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: #FFFFFF;
+            /*White*/
+            background-color: #DD5555;
+            /*Red*/
+            border: 0px solid;
+            text-align: center;
+            line-height: 50px;
+            z-index: 600;
+
+        }
+
+        .dice-up:hover {
+            color: #FFFFFF;
+            /*White*/
+            background-color: #D84848;
+            /*Darker red then #DD5555*/
+        }
+
+        .dice-down {
+            width: 3rem;
+            height: 2.5rem;
+            padding: 0;
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            color: #FFFFFF;
+            /*White*/
+            background-color: #DD5555;
+            /*Red*/
+            border: 0px solid;
+            text-align: center;
+            line-height: 50px;
+            border-radius: 0 0 0 6px;
+        }
+
+        .dice-down:hover {
+            color: #FFFFFF;
+            /*White*/
+            background-color: #D84848;
+            /*Darker red then #DD5555*/
+        }
+
+        .dice {
+            width: 5rem;
+            height: 4rem;
+            position: absolute;
+            top: 0;
+            right: 0;
+            color: #FFFFFF;
+            /*White*/
+            background-color: #EF5858;
+            /*Red*/
+            border: 0px solid;
+            text-align: center;
+            font-size: 1.5em;
+        }
+
+        .dice:hover {
+            color: #FFFFFF;
+            /*White*/
+            background-color: #E84848;
+            /*Dark red then #EF5858*/
+        }
+
+        .dice-box span {
+            display: inline-block;
+            vertical-align: middle;
+            line-height: normal;
+            outline-color: red;
+        }
+
+        span::selection {
+            background-color: black;
+        }
+
+        .result {
+            margin: 10px auto 10px auto;
+            font-size: 1.5em;
+            clear: both;
+            color: #FFFFFF;
+            /*White*/
+            background-color: #4343D4;
+            /*Blue*/
+            text-align: center;
+            border-radius: 4px;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+            width: 11em;
+            height: 8em;
+            overflow: auto
+        }
+
+        .result span {
+            display: inline-block;
+            vertical-align: middle;
+            line-height: normal;
+            text-align: center;
+        }
+
+        .resultAll {
+            margin: 10px auto 10px auto;
+            text-align: center;
+            display: none;
+            clear: both;
+            background-color: #4343D4;
+            /*Blue*/
+            text-align: center;
+            margin: 10px auto;
+            border-radius: 10px;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+            line-height: 30px;
+            width: 30em
+        }
+
+        #resultAll {
+            width: 30em;
+            height: 4em;
+            color: #FFFFFF;
+            background-color: #4343D4;
+            /*Dark Blue*/
+            border: 0;
+            text-align: center;
+            margin: 0 auto;
+            border-radius: 4px;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+            line-height: 1px;
+        }
+
+        #resultAll:hover {
+            background-color: #3E3ED1;
+            /*Darker blue then #4343D4*/
+        }
+
+        .toggle {
+            width: 15px;
+            height: 15px;
+            margin-bottom: 10px;
+            float: middle;
+            background-color: #1F1C1C;
+            /*Near Black Grey*/
+            border: 1px solid black;
+        }
+
+        #d2,
+        #d4,
+        #d6,
+        #d8,
+        #d10,
+        #d12,
+        #d16,
+        #d20,
+        #d24,
+        #d30,
+        #d50,
+        #d100 {
+            color: #000000;
+            /*Black*/
+        }
+
+        /* The navigation bar */
+        .navbar {
+            overflow: hidden;
+            text-align: right;
+            position: fixed;
+            /* Set the navbar to fixed position */
+            top: 0;
+            right: 5%;
+        }
+
+        /* Links inside the navbar */
+        .navbar a {
+            float: left;
+            display: block;
+            color: #f2f2f2;
+            text-align: right;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+
+        /* Change background on mouse-over */
+        .navbar a:hover {
+            background: #ddd;
+            color: black;
+        }
+    </style>
+    <script>
+        //COOKIE
+        document.addEventListener("DOMContentLoaded", () => {
+            //var nameInputBox = document.getElementById("result").innerHTML;
+            var maxDieValue = getCookie("diceMax");
+            var diceNumberValue = getCookie("numDice");
+            var name = getCookie("name");
+            if (name) {
+                document.getElementById("result").innerHTML = name;
+            }
+            if (maxDieValue) {
+                document.getElementById("diceMax").value = maxDieValue;
+            }
+            if (diceNumberValue) {
+                document.getElementById("numDice").value = diceNumberValue;
+            }
+            aa();
+        })
+
+
+        function getCookie(cname) {
+            var name = cname + "=";
+            var ca = document.cookie.split(';');
+            for (var i = 0; i < ca.length; i++) {
+                var c = ca[i];
+                while (c.charAt(0) == ' ') {
+                    c = c.substring(1);
+                }
+                if (c.indexOf(name) == 0) {
+                    return c.substring(name.length, c.length);
+                }
+            }
+            return "";
+        }
+
+        function setCookie(cname, cvalue) {
+            var d = new Date();
+            d.setTime(d.getTime() + (365 * 24 * 60 * 60 * 1000));
+            var expires = "expires=" + d.toUTCString();
+            document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+            // alert(cname + "=" + cvalue + ";" + expires + ";path=/")
+
+
+        }
+        //
+        //
+        //
+        var dNumList = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+        var dDiceList = [2, 4, 6, 8, 10, 12, 16, 20, 24, 30, 50, 100];
+        //var toggleList = [false, false];
+
+        function dNumPlus(dNum, number, dId) {
+            dNumList[dNum] += number;
+            document.getElementById(dId).innerHTML = dNumList[dNum];
+        };
+
+        function dNumTake(dNum, number, dId) {
+            dNumList[dNum] -= number;
+            if (dNumList[dNum] < 1) {
+                dNumList[dNum] = 1;
+            };
+            document.getElementById(dId).innerHTML = dNumList[dNum];
+        };
+
+        function resultRoll2() {
+            //			var dNum = document.getElementById("numDice").value;
+            //		var dDice = document.getElementById("diceMax").value;			
+            var result = 0;
+            const maxDieVal = document.getElementById("diceMax").value;
+            const diceNumber = document.getElementById("numDice").value;
+            if (!diceNumber || !maxDieVal) return;
+            document.getElementById("result").innerHTML += diceNumber + "D" + maxDieVal;
+            if (diceNumber > 1)
+                document.getElementById("result").innerHTML += "=";
+            for (let dNum = 0; dNum < diceNumber; dNum++) {
+                let temp = Math.ceil(Math.random() * maxDieVal);
+                result += temp;
+                if (diceNumber > 1) {
+                    document.getElementById("result").innerHTML += " " + temp;
+                }
+                if (dNum + 1 < diceNumber) {
+                    document.getElementById("result").innerHTML += "+";
+                }
+
+            }
+            document.getElementById("result").innerHTML += "=" + result + "<br/>";
+            //                document.getElementById('prevResult').innerHTML = prevResult;
+
+            aa();
+
+        };
+
+
+
+        function resultRoll(dNum, dDice) {
+
+            var result = 0;
+            const maxDieVal = 1 * dDice;
+            const diceNumber = 1 * dNumList[dNum];
+            if (!diceNumber || !maxDieVal) return;
+            document.getElementById("result").innerHTML += diceNumber + "D" + maxDieVal;
+            if (diceNumber > 1)
+                document.getElementById("result").innerHTML += "=";
+            for (let dNum = 0; dNum < diceNumber; dNum++) {
+                let temp = Math.ceil(Math.random() * maxDieVal);
+                result += temp;
+                if (diceNumber > 1) {
+                    document.getElementById("result").innerHTML += " " + temp;
+                }
+                if (dNum + 1 < diceNumber) {
+                    document.getElementById("result").innerHTML += "+";
+                }
+
+            }
+            document.getElementById("result").innerHTML += "=" + result + "<br/>";
+            //document.getElementById('prevResult').innerHTML = prevResult;
+
+            aa();
+            //alert(nameInputBox.value)
+
+            //          alert("ROLL2");
+
+        };
+
+        function ClearAll() {
+            var result = "";
+            document.getElementById("result").innerHTML = result;
+            //document.getElementById('prevResult').innerHTML = prevResult;
+            aa()
+
+        };
+
+        function aa() {
+            var content = document.getElementById("resultall");
+            content.scrollTop = content.scrollHeight;
+
+            setCookie("name", document.getElementById("result").innerHTML);
+            setCookie("diceMax", document.getElementById("diceMax").value);
+            setCookie("numDice", document.getElementById("numDice").value);
+        }
+    </script>
+</head>
+
+<body>
+
+    <div class="navbar">
+        <a href="https://github.com/hktrpg/TG.line.Discord.Roll.Bot"><svg xmlns="http://www.w3.org/2000/svg"
+                xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" focusable="false" width="20px"
+                height="20px"
+                style="-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); transform: rotate(360deg);"
+                preserveAspectRatio="xMidYMid meet" viewBox="0 0 64 64">
+                <path fill="#626262"
+                    d="M32 0C14 0 0 14 0 32c0 21 19 30 22 30c2 0 2-1 2-2v-5c-7 2-10-2-11-5c0 0 0-1-2-3c-1-1-5-3-1-3c3 0 5 4 5 4c3 4 7 3 9 2c0-2 2-4 2-4c-8-1-14-4-14-15c0-4 1-7 3-9c0 0-2-4 0-9c0 0 5 0 9 4c3-2 13-2 16 0c4-4 9-4 9-4c2 7 0 9 0 9c2 2 3 5 3 9c0 11-7 14-14 15c1 1 2 3 2 6v8c0 1 0 2 2 2c3 0 22-9 22-30C64 14 50 0 32 0z" />
+            </svg></a>
+        <a href="https://www.hktrpg.com"><svg xmlns="http://www.w3.org/2000/svg"
+                xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" focusable="false" width="20px"
+                height="20px"
+                style="-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); transform: rotate(360deg);"
+                preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24">
+                <path d="M4 10h3v7H4zm6.5 0h3v7h-3zM2 19h20v3H2zm15-9h3v7h-3zm-5-9L2 6v2h20V6z" fill="#626262" /></svg>
+        </a>
+    </div>
+    <center><a href="https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81">HKTRPG 擲骰工具</a></center>
+    <table>
+        <div id="resultall" class="result">
+            <span> Result:
+                <p> </span> <span id="result"> </span>
+        </div>
+        <div style="width: 16em" class="row">
+            <div class="dice-box">
+                <!--Array Position: 0-->
+                <button class="dice-up" type="button" onclick="dNumPlus(0, 1, 'd2')"> <span> Up </span> </button>
+                <button class="dice-down" type="button" onclick="dNumTake(0, 1, 'd2')"> <span> Down </span></button>
+                <button class="dice" type="button" onclick="resultRoll(0, 2)"> <span id="d2"> 1 </span><span> d2 </span>
+                </button>
+
+            </div>
+
+            <div class="dice-box">
+                <!--Array Position: 2-->
+                <button class="dice-up" type="button" onclick="dNumPlus(2, 1, 'd6')"> <span> Up </span> </button>
+                <button class="dice-down" type="button" onclick="dNumTake(2, 1, 'd6')"> <span> Down </span></button>
+                <button class="dice" type="button" onclick="resultRoll(2, 6)"> <span id="d6"> 1 </span><span> d6 </span>
+                </button>
+            </div>
+        </div>
+
+        <div class="row" style="width: 16em">
+            <div class="dice-box">
+                <!--Array Position: 4-->
+                <button class="dice-up" type="button" onclick="dNumPlus(3, 1, 'd8')"> <span> Up </span> </button>
+                <button class="dice-down" type="button" onclick="dNumTake(3, 1, 'd8')"> <span> Down </span></button>
+                <button class="dice" type="button" onclick="resultRoll(3, 8)"> <span id="d8"> 1 </span><span> d8
+                    </span> </button>
+            </div>
+            <div class="dice-box">
+                <!--Array Position: 4-->
+                <button class="dice-up" type="button" onclick="dNumPlus(4, 1, 'd10')"> <span> Up </span> </button>
+                <button class="dice-down" type="button" onclick="dNumTake(4, 1, 'd10')"> <span> Down </span></button>
+                <button class="dice" type="button" onclick="resultRoll(4, 10)"> <span id="d10"> 1 </span><span> d10
+                    </span> </button>
+            </div>
+
+
+
+        </div>
+
+        <div class="row" style="width: 16em">
+
+            <div class="dice-box">
+                <!--Array Position: 7-->
+                <button class="dice-up" type="button" onclick="dNumPlus(5, 1, 'd12')"> <span> Up </span> </button>
+                <button class="dice-down" type="button" onclick="dNumTake(5, 1, 'd12')"> <span> Down </span></button>
+                <button class="dice" type="button" onclick="resultRoll(5, 12)"> <span id="d12"> 1 </span><span> d12
+                    </span> </button>
+            </div>
+            <div class="dice-box">
+                <!--Array Position: 7-->
+                <button class="dice-up" type="button" onclick="dNumPlus(7, 1, 'd20')"> <span> Up </span> </button>
+                <button class="dice-down" type="button" onclick="dNumTake(7, 1, 'd20')"> <span> Down </span></button>
+                <button class="dice" type="button" onclick="resultRoll(7, 20)"> <span id="d20"> 1 </span><span> d20
+                    </span> </button>
+            </div>
+        </div>
+        <div class="row" style="width: 16em">
+            <div class="dice-box">
+                <!--Array Position: 11-->
+                <button class="dice-up" type="button" onclick="dNumPlus(11, 1, 'd100')"> <span> Up </span> </button>
+                <button class="dice-down" type="button" onclick="dNumTake(11, 1, 'd100')"> <span> Down </span></button>
+                <button class="dice" type="button" onclick="resultRoll(11, 100)"> <span id="d100"> 1 </span><span> d100
+                    </span> </button>
+            </div>
+            <div class="dice-box">
+                <!--Array Position: 8-->
+                <input class="dice-up" value=1 type="number" id="numDice"> <span> </span> </input>
+                <input class="dice-down" value=4 type="number" id="diceMax"> <span> </span></input>
+                <button class="dice" type="button" onclick="resultRoll2()"> <span id="dother"> 自定 </span>
+            </div>
+
+
+
+            <div style="width: 16em;text-align: center;" class="row">
+                <button style="width: 19em" id="resultAll" type="button" onclick="ClearAll()"> <span> Clear all
+                    </span></button>
+            </div>
+    </table>
+    <br>
+    <center>
+        <div class="footer-copyright">©2020 GNU HKTRPG -
+            <a href="https://www.patreon.com/HKTRPG"> 餵飼 Sad</a>
+    </center>
+    </div>
+</body>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-111430056-7"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+    gtag('js', new Date());
+
+    gtag('config', 'UA-111430056-7');
+</script>
+<!--HKTRPG.COM  SAD-->
+
+</html>

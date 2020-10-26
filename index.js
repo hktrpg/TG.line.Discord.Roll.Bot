@@ -1,4 +1,6 @@
 "use strict";
+if (!process.env.HEROKU_RELEASE_VERSION)
+  require('dotenv').config();
 require('fs').readdirSync(__dirname + '/modules/').forEach(async function (file) {
   if (file.match(/\.js$/) && file.match(/^core-/)) {
     var name = file.replace('.js', '');

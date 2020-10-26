@@ -1,6 +1,5 @@
 "use strict";
-if (!process.env.HEROKU_RELEASE_VERSION)
-	require('dotenv').config()
+
 var Dice = [],
 	Tool = [],
 	admin = [],

@@ -5,7 +5,7 @@ const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const Discord = require('discord.js');
 const client = new Discord.Client();
 const msgSplitor = (/\S+/ig);
-const appName = process.env.HEROKU_APP_NAME;
+const link = process.env.WEB_LINK;
 var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 //const BootTime = new Date(new Date().toLocaleString("en-US", {
 //	timeZone: "Asia/Shanghai"
@@ -193,7 +193,7 @@ client.on('message', async (message) => {
 	}
 
 	if (rplyVal.discordExport) {
-		if (!appName) {
+		if (!WEB_LINK) {
 			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄', {
 				files: [
 					"./tmp/" + rplyVal.discordExport + '.txt'
@@ -201,11 +201,11 @@ client.on('message', async (message) => {
 			});
 		} else {
 			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n' + '請注意這是暫存檔案，會不定時移除，有需要請自行下載檔案。' +
-				'https://' + appName + '.herokuapp.com' + "/app/discord/" + rplyVal.discordExport + '.txt')
+				WEB_LINK + "/app/discord/" + rplyVal.discordExport + '.txt')
 		}
 	}
 	if (rplyVal.discordExportHtml) {
-		if (!appName) {
+		if (!WEB_LINK) {
 			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +
 				rplyVal.discordExportHtml[1], {
 					files: [
@@ -216,7 +216,7 @@ client.on('message', async (message) => {
 		} else {
 			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +
 				rplyVal.discordExportHtml[1] + '\n請注意這是暫存檔案，會不定時移除，有需要請自行下載檔案。' +
-				'\nhttps://' + appName + '.herokuapp.com' + "/app/discord/" + rplyVal.discordExportHtml[0] + '.html')
+				WEB_LINK + "/app/discord/" + rplyVal.discordExportHtml[0] + '.html')
 		}
 	}
 	if (!rplyVal.text) {

@@ -1,5 +1,5 @@
 "use strict";
-if (!process.env.LINE_CHANNEL_ACCESSTOKEN) {
+if (!process.env.LINE_CHANNEL_ACCESSTOKEN || !process.env.mongoURL) {
     return;
 }
 

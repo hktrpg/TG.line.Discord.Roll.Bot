@@ -6,6 +6,7 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 const msgSplitor = (/\S+/ig);
 const link = process.env.WEB_LINK;
+const mongo = process.env.mongoURL
 var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 //const BootTime = new Date(new Date().toLocaleString("en-US", {
 //	timeZone: "Asia/Shanghai"
@@ -194,7 +195,7 @@ client.on('message', async (message) => {
 	}
 
 	if (rplyVal.discordExport) {
-		if (!link) {
+		if (!link || !mongo) {
 			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄', {
 				files: [
 					"./tmp/" + rplyVal.discordExport + '.txt'
@@ -206,7 +207,7 @@ client.on('message', async (message) => {
 		}
 	}
 	if (rplyVal.discordExportHtml) {
-		if (!link) {
+		if (!link || !mongo) {
 			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +
 				rplyVal.discordExportHtml[1], {
 					files: [

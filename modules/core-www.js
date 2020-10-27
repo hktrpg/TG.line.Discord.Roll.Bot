@@ -3,7 +3,7 @@ if (!process.env.LINE_CHANNEL_ACCESSTOKEN) {
     return;
 }
 const www = require('./core-Line').app;
-var server = require('http').createServer(www);
+var server = require('https').createServer(www);
 //const server = require('./www.js').http;
 //var express = require('express');
 //var www = require('express')();

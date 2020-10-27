@@ -193,7 +193,7 @@ client.on('message', async (message) => {
 	}
 
 	if (rplyVal.discordExport) {
-		if (!WEB_LINK) {
+		if (!link) {
 			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄', {
 				files: [
 					"./tmp/" + rplyVal.discordExport + '.txt'
@@ -201,11 +201,11 @@ client.on('message', async (message) => {
 			});
 		} else {
 			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n' + '請注意這是暫存檔案，會不定時移除，有需要請自行下載檔案。' +
-				WEB_LINK + "/app/discord/" + rplyVal.discordExport + '.txt')
+				link + "/app/discord/" + rplyVal.discordExport + '.txt')
 		}
 	}
 	if (rplyVal.discordExportHtml) {
-		if (!WEB_LINK) {
+		if (!link) {
 			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +
 				rplyVal.discordExportHtml[1], {
 					files: [
@@ -216,7 +216,7 @@ client.on('message', async (message) => {
 		} else {
 			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +
 				rplyVal.discordExportHtml[1] + '\n請注意這是暫存檔案，會不定時移除，有需要請自行下載檔案。' +
-				WEB_LINK + "/app/discord/" + rplyVal.discordExportHtml[0] + '.html')
+				link + "/app/discord/" + rplyVal.discordExportHtml[0] + '.html')
 		}
 	}
 	if (!rplyVal.text) {

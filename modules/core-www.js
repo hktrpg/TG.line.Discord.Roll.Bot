@@ -2,8 +2,23 @@
 if (!process.env.LINE_CHANNEL_ACCESSTOKEN) {
     return;
 }
+
+const keyPem = process.env.KEY_PEM;
+const keycert = process.env.KEY_CERT;
 const www = require('./core-Line').app;
-var server = require('https').createServer(www);
+const fs = require('fs');
+var options;
+if (keyPem)
+    options = {
+        key: fs.readFileSync(keyPem),
+        cert: fs.readFileSync(keycert)
+    };
+var server;
+if (!keyPem)
+    server = require('http').createServer(www);
+else
+    server = require('https').createServer(options, www);
+
 //const server = require('./www.js').http;
 //var express = require('express');
 //var www = require('express')();

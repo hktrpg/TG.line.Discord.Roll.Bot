@@ -203,7 +203,7 @@ client.on('message', async (message) => {
 				]
 			});
 		} else {
-			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n' + '請注意這是暫存檔案，會不定時移除，有需要請自行下載檔案。' +
+			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n' + '請注意這是暫存檔案，會不定時移除，有需要請自行下載檔案。\n' +
 				link + ':' + port + "/app/discord/" + rplyVal.discordExport + '.txt')
 		}
 	}
@@ -218,7 +218,7 @@ client.on('message', async (message) => {
 
 		} else {
 			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +
-				rplyVal.discordExportHtml[1] + '\n請注意這是暫存檔案，會不定時移除，有需要請自行下載檔案。' +
+				rplyVal.discordExportHtml[1] + '\n請注意這是暫存檔案，會不定時移除，有需要請自行下載檔案。\n' +
 				link + ':' + port + "/app/discord/" + rplyVal.discordExportHtml[0] + '.html')
 		}
 	}

@@ -54,6 +54,7 @@ var rollDiceCommand = async function ({
 	let lang = '',
 		test = '';
 	//let result = {};
+
 	switch (true) {
 		case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
 			rply.text = this.getHelpMessage();
@@ -124,9 +125,9 @@ async function searchImage(inputStr, mainMsg, safe) {
 		.then(async images => {
 			if (images[0] && images[0].image) {
 				//let resultnum = Math.floor((Math.random() * (images.length)) + 0)
-				let resultnum = await rollbase.Dice(images.length - 1)
+				let resultnum = await rollbase.Dice(images.length) - 1;
 				return images[resultnum].image;
-			}else {
+			} else {
 				return '沒有結果'
 			}
 

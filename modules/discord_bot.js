@@ -6,6 +6,7 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 const msgSplitor = (/\S+/ig);
 const link = process.env.WEB_LINK;
+const port = process.env.PORT || 20721;
 const mongo = process.env.mongoURL
 var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 //const BootTime = new Date(new Date().toLocaleString("en-US", {
@@ -203,7 +204,7 @@ client.on('message', async (message) => {
 			});
 		} else {
 			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n' + '請注意這是暫存檔案，會不定時移除，有需要請自行下載檔案。' +
-				link + "/app/discord/" + rplyVal.discordExport + '.txt')
+				link + ':' + port + "/app/discord/" + rplyVal.discordExport + '.txt')
 		}
 	}
 	if (rplyVal.discordExportHtml) {
@@ -218,7 +219,7 @@ client.on('message', async (message) => {
 		} else {
 			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +
 				rplyVal.discordExportHtml[1] + '\n請注意這是暫存檔案，會不定時移除，有需要請自行下載檔案。' +
-				link + "/app/discord/" + rplyVal.discordExportHtml[0] + '.html')
+				link + ':' + port + "/app/discord/" + rplyVal.discordExportHtml[0] + '.html')
 		}
 	}
 	if (!rplyVal.text) {

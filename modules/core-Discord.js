@@ -10,15 +10,25 @@ const {
 const manager = new ShardingManager('./modules/discord_bot.js', {
 	token: channelSecret
 });
-const run = async () => {
-	try {
-		console.log(manager.totalShards);
-		await manager.spawn();
-		manager.on('shardCreate', shard => console.log(`Launched Discord shard ${shard.id}`));
-	} catch (e) {
-		console.log(` GET ERROR: Failed to spawn shards: ${e} ${Object.entries(e)}`);
-	}
-
-};
-
-run();
+manager.on('shardCreate', shard => {
+	console.log(`Launched shard ${shard.id}`)
+	shard.on('ready', () => {
+		console.log('Shard ready')
+	})
+	shard.on('disconnect', (a, b) => {
+		console.log('Shard disconnected')
+		console.log(a)
+		console.log(b)
+	})
+	shard.on('reconnecting', (a, b) => {
+		console.log('Shard reconnecting')
+		console.log(a)
+		console.log(b)
+	})
+	shard.on('death', (a, b) => {
+		console.log('Shard died')
+		console.log(a)
+		console.log(b)
+	})
+})
+manager.spawn()

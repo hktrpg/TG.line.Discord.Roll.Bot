@@ -349,6 +349,15 @@ async function SendToReplychannel(replyText, message) {
 		}
 	}
 }
+
+client.on('shardDisconnect', (event, shardID) => {
+	console.log('shardDisconnect: ', event, shardID)
+});
+
+client.on('shardResume', (replayed, shardID) => console.log(`Shard ID ${shardID} resumed connection and replayed ${replayed} events.`));
+
+client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnected.`));
+
 //Set Activity 可以自定義正在玩什麼
 client.on('ready', () => {
 	client.user.setActivity('bothelp | hktrpg.com');

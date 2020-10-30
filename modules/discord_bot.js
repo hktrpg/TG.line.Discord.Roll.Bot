@@ -108,7 +108,8 @@ client.on('message', async (message) => {
 		// The member is available here.
 		//		return member.filter(member => !member.user.bot).size;
 		//	});
-		membercount = message.guild.members.cache.filter(member => !member.user.bot).size;
+		//console.log(message.guild.members.cache)
+		//membercount = message.guild.members.cache.filter(member => !member.user.bot).size;
 	}
 	if (!message.content) {
 		await courtMessage("", "Discord", "")

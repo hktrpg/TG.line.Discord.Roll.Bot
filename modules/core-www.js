@@ -11,18 +11,25 @@ var options = {
     key: null,
     cert: null
 };
-if (keyPem)
-    try {
-        options = {
-            key: (fs.readFileSync(keyPem)) ? fs.readFileSync(keyPem) : null,
-            cert: (fs.readFileSync(keycert)) ? fs.readFileSync(keycert) : null
-        };
-    } catch (error) {
-        console.log('error of key')
-    }
+
+async function read() {
+    if (keyPem)
+        try {
+            options = {
+                key: (fs.readFileSync(keyPem)) ? fs.readFileSync(keyPem) : null,
+                cert: (fs.readFileSync(keycert)) ? fs.readFileSync(keycert) : null
+            };
+        } catch (error) {
+            console.log('error of key')
+        }
+}
+
+(async () => {
+    read()
+})();
 
 var server;
-if (!keyPem.key) {
+if (!options.key) {
     server = require('http').createServer(www);
     console.log('http server');
 } else {

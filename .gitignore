@@ -65,3 +65,4 @@ tmp/
 .next
 .vscode/launch.json
 .vscode/settings.json
+.env copy

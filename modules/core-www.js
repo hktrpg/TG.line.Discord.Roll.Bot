@@ -22,10 +22,13 @@ if (keyPem)
     }
 
 var server;
-if (!keyPem.key)
+if (!keyPem.key) {
     server = require('http').createServer(www);
-else
+    console.log('http server');
+} else {
     server = require('https').createServer(options, www);
+    console.log('https server');
+}
 
 //const server = require('./www.js').http;
 //var express = require('express');

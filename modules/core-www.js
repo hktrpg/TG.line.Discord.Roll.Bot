@@ -3,18 +3,26 @@ if (!process.env.LINE_CHANNEL_ACCESSTOKEN || !process.env.mongoURL) {
     return;
 }
 
-const keyPem = process.env.KEY_PEM;
-const keycert = process.env.KEY_CERT;
+const keyPem = (process.env.KEY_PEM) ? process.env.KEY_PEM : null;
+const keycert = (process.env.KEY_CERT) ? process.env.KEY_CERT : null;
 const www = require('./core-Line').app;
 const fs = require('fs');
-var options;
+var options = {
+    key: null,
+    cert: null
+};
 if (keyPem)
-    options = {
-        key: fs.readFileSync(keyPem),
-        cert: fs.readFileSync(keycert)
-    };
+    try {
+        options = {
+            key: (fs.readFileSync(keyPem)) ? fs.readFileSync(keyPem) : null,
+            cert: (fs.readFileSync(keycert)) ? fs.readFileSync(keycert) : null
+        };
+    } catch (error) {
+        console.log('error of key')
+    }
+
 var server;
-if (!keyPem)
+if (!keyPem.key)
     server = require('http').createServer(www);
 else
     server = require('https').createServer(options, www);
@@ -38,7 +46,8 @@ www.get('/', (req, res) => {
 });
 
 www.get('/app/discord/:id', (req, res) => {
-    res.sendFile(process.cwd() + '/tmp/' + req.originalUrl.replace('/app/discord/', ''));
+    if (req.originalUrl.match(/html$/))
+        res.sendFile(process.cwd() + '/tmp/' + req.originalUrl.replace('/app/discord/', ''));
 });
 
 io.on('connection', (socket) => {

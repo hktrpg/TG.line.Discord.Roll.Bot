@@ -3,21 +3,24 @@ if (!process.env.LINE_CHANNEL_ACCESSTOKEN || !process.env.mongoURL) {
     return;
 }
 
-const keyPem = (process.env.KEY_PEM) ? process.env.KEY_PEM : null;
-const keycert = (process.env.KEY_CERT) ? process.env.KEY_CERT : null;
+const privateKey = (process.env.KEY_PRIKEY) ? process.env.KEY_PRIKEY : null;
+const certificate = (process.env.KEY_CERT) ? process.env.KEY_CERT : null;
+const ca = (process.env.KEY_CA) ? process.env.KEY_CA : null;
 const www = require('./core-Line').app;
 const fs = require('fs');
 var options = {
     key: null,
-    cert: null
+    cert: null,
+    ca: null
 };
 
 async function read() {
-    if (keyPem)
+    if (privateKey)
         try {
             options = {
-                key: (fs.readFileSync(keyPem)) ? fs.readFileSync(keyPem) : null,
-                cert: (fs.readFileSync(keycert)) ? fs.readFileSync(keycert) : null
+                key: (fs.readFileSync(privateKey)) ? fs.readFileSync(privateKey) : null,
+                cert: (fs.readFileSync(certificate)) ? fs.readFileSync(certificate) : null,
+                ca: (fs.readFileSync(ca)) ? fs.readFileSync(ca) : null
             };
         } catch (error) {
             console.log('error of key')

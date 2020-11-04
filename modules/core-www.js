@@ -43,7 +43,7 @@ if (!options.key) {
 //var http = require('http').createServer(www);
 const io = require('socket.io')(server);
 const records = require('./records.js');
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 20721;
 var channelKeyword = '';
 exports.analytics = require('./core-analytics');
 

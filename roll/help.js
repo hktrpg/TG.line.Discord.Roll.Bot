@@ -11,11 +11,13 @@ const fetch = require('node-fetch');
 const start = async () => {
 	await require('fs').readdirSync(__dirname).forEach(async function (file) {
 		try {
-			let tryFile = require('./' + file);
-			if (tryFile.gameType && tryFile.gameType()) {
-				var type = require('./' + file).gameType().replace(/:.*/i, '')
-				var name = file.replace('.js', '');
-				exports[type + '_' + name] = await require('./' + file);
+			if (file.match(/\.js$/) !== null && file !== 'index.js' && file !== 'demo.js' && file !== 'help.js') {
+				let tryFile = require('./' + file);
+				if (tryFile.gameType && tryFile.gameType()) {
+					var type = require('./' + file).gameType().replace(/:.*/i, '')
+					var name = file.replace('.js', '');
+					exports[type + '_' + name] = await require('./' + file);
+				}
 			}
 
 		} catch (error) {

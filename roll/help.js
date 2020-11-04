@@ -18,7 +18,7 @@ const start = async () => {
 			}
 
 		} catch (error) {
-			console.log(error)
+			console.log()
 		}
 	})
 

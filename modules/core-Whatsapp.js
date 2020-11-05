@@ -9,12 +9,7 @@ const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
 		\n如果你需要幫助, 加入支援頻道.\
 		\n(http://bit.ly/HKTRPG_DISCORD)\
 		\n有關TRPG資訊, 可以到網站\
-		\n(http://www.hktrpg.com/)\
-		\n\n骰子機械人意見調查問卷\
-		\n引言: 我是HKTRPG骰子機械人的製作者，這份問卷的目的，是蒐集對骰子機械人的意見及HKTRPG的滿意度，改進使用體驗。\
-		\n另外, 最近因為資料庫開始爆滿，所以對關鍵字功能進行限制，每個GP 30個上限，\
-		\n如果完成問卷,可以提升上限半年WW\
-		\nhttps://forms.gle/JnHdGs4oRMd9SQhM6";
+		\n(http://www.hktrpg.com/)";
 
 exports.analytics = require('./core-analytics');
 const {

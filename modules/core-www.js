@@ -2,7 +2,7 @@
 if (!process.env.LINE_CHANNEL_ACCESSTOKEN || !process.env.mongoURL) {
     return;
 }
-
+const webSite = (process.env.SITE) ? process.env.SITE : null;
 const privateKey = (process.env.KEY_PRIKEY) ? process.env.KEY_PRIKEY : null;
 const certificate = (process.env.KEY_CERT) ? process.env.KEY_CERT : null;
 const ca = (process.env.KEY_CA) ? process.env.KEY_CA : null;
@@ -53,15 +53,16 @@ exports.analytics = require('./core-analytics');
 // 加入線上人數計數
 let onlineCount = 0;
 
-www.get('/', (req, res) => {
-    //  console.log('req: ', req, 'res: ', res)
-    res.sendFile(process.cwd() + '/views/index.html');
-});
-
-www.get('/app/discord/:id', (req, res) => {
-    if (req.originalUrl.match(/html$/))
-        res.sendFile(process.cwd() + '/tmp/' + req.originalUrl.replace('/app/discord/', ''));
-});
+if (webSite)
+    www.get('/', (req, res) => {
+        //  console.log('req: ', req, 'res: ', res)
+        res.sendFile(process.cwd() + '/views/index.html');
+    });
+if (process.env.DISCORD_CHANNEL_SECRET)
+    www.get('/app/discord/:id', (req, res) => {
+        if (req.originalUrl.match(/html$/))
+            res.sendFile(process.cwd() + '/tmp/' + req.originalUrl.replace('/app/discord/', ''));
+    });
 
 io.on('connection', (socket) => {
     // 有連線發生時增加人數

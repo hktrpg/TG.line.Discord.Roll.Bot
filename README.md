@@ -27,7 +27,7 @@ HKTRPG擲骰子機械人ROLLBOT
         *   [Telegram 邀請連結](http://t.me/hktrpg_bot)
         *   [Line 邀請連結](http://bit.ly/HKTRPG_LINE)
         *   [網頁版 邀請連結](https://rollbot.hktrpg.com/)
-    *   [HKTRPG 研究社 Facebook](https://www.facebook.com/HKTRPG/)
+    *   [HKTRPG 研究社 Facebook](https://www.facebook.com/groups/HKTRPG)
     *   [TRPG 百科](https://www.HKTRPG.com/)
     *   [贊助HKTRPG](https://www.patreon.com/HKTRPG)
     

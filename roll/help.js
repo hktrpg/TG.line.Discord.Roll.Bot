@@ -108,7 +108,8 @@ var rollDiceCommand = async function ({
 		case !mainMsg[1]:
 			rply.text =
 				"【HKTRPG擲骰ROLLBOT】\n\
-請問有什麼可以幫你?\n\
+HKTRPG是在Discord, Line, Telegram, Whatsapp和網頁上都可以使用的骰子機械人！\n\
+請問有什麼可以幫助你?\n\
 請輸入你想查詢的項目名字.\n\
 -------\n\
 bothelp ver		- 查詢詳細版本及公告(" + ver + ")\n\
@@ -121,7 +122,7 @@ bothelp link	- 查詢hktrpg 不同平台連結\n\
 bothelp req		- 對HKTRPG RollBot提出意見\n\
 --------\n\
 程式開發，求助及TRPG Discord群 https://discord.gg/vx4kcm7\n\
-解鎖功能及開發支援 https://www.patreon.com/HKTRPG"
+解鎖功能及贊助HKTRPG https://www.patreon.com/HKTRPG"
 			return rply;
 		case /^ver/i.test(mainMsg[1]):
 			rply.text = version + '\n\
@@ -213,13 +214,15 @@ bothelp req		- 對HKTRPG RollBot提出意見\n\
 			rply.text = "TRPG百科 https://www.hktrpg.com/\n\
 意見留言群 https://discord.gg/vx4kcm7\n\
 			\n\
-Line版 http://bit.ly/HKTRPG_LINE\n\
-Discord版 http://bit.ly/HKTRPG_DISCORD_\n\
-Telegram版 http://t.me/hktrpg_bot\n\
-網頁版 https://rollbot.hktrpg.com/\n\
+邀請HKTRPG 加入\n\
+Line 邀請連結 http://bit.ly/HKTRPG_LINE\n\
+Discord 邀請連結 http://bit.ly/HKTRPG_DISCORD_\n\
+Telegram 邀請連結 http://t.me/hktrpg_bot\n\
+網頁版 邀請連結 https://rollbot.hktrpg.com/\n\
 簡易網上擲骰網頁 https://roll.hktrpg.com/\n\
 			\n\
-解鎖功能及開發支援 https://www.patreon.com/HKTRPG \n\
+HKTRPG 研究社 Facebook https://www.facebook.com/groups/HKTRPG\n\
+解鎖功能及贊助 https://www.patreon.com/HKTRPG \n\
 源代碼 http://bit.ly/HKTRPG_GITHUB\n"
 			return rply;
 			/**

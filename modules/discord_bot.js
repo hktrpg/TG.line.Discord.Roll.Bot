@@ -4,6 +4,9 @@ const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const Discord = require('discord.js');
 const client = new Discord.Client();
+const DBL = require("dblapi.js");
+const togGGToken = process.env.TOPGG;
+const dbl = (togGGToken) ? new DBL(togGGToken, client) : null;
 const msgSplitor = (/\S+/ig);
 const link = process.env.WEB_LINK;
 const port = process.env.PORT || 20721;
@@ -362,5 +365,20 @@ client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnecte
 //Set Activity 可以自定義正在玩什麼
 client.on('ready', () => {
 	client.user.setActivity('bothelp | hktrpg.com');
+	if (togGGToken) {
+		setInterval(() => {
+			dbl.postStats(client.guilds.size, client.shards.Id, client.shards.total);
+		}, 1800000);
+	}
 });
+if (togGGToken) {
+	dbl.on('posted', () => {
+		console.log('Server count posted!');
+	})
+
+	dbl.on('error', e => {
+		console.log(`Oops! ${e}`);
+	})
+}
+
 client.login(channelSecret);

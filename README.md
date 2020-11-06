@@ -17,18 +17,111 @@
 </br>
 想試用這機械人的話，請按以下連結，輸入bothelp顯示教學.</br>
 </br>
-Line版：</br>
-https://line.me/R/ti/p/svMLqy9Mik</br></br>
-Discord版： </br>
-https://discordapp.com/oauth2/authorize?&client_id=544462904037081138&scope=bot&permissions=8</br></br>
-Telegram版： </br>
-http://t.me/hktrpg_bot</br>
-網頁版：</br>
-https://rollbot.hktrpg.com/</br></br>
-簡易版網上擲骰工具 — 兩面 六面 十面 二十面 百面 自定</br>
-https://roll.hktrpg.com/</br></br>
-開發支援：</br> https://www.patreon.com/HKTRPG
-</br></br>
+HKTRPG擲骰子機械人ROLLBOT
+------------------
+
+*   HKTRPG是在Discord, Line, Telegram, Whatsapp和網頁上都可以使用的骰子機械人！
+    *   歡迎加入[開發，求助及TRPG Discord 群組](https://discord.gg/vx4kcm7)
+    *   邀請HKTRPG 加入
+        *   [Discord 邀請連結](http://bit.ly/HKTRPG_DISCORD_)
+        *   [Telegram 邀請連結](http://t.me/hktrpg_bot)
+        *   [Line 邀請連結](http://bit.ly/HKTRPG_LINE)
+        *   [網頁版 邀請連結](https://rollbot.hktrpg.com/)
+    *   [HKTRPG 研究社 Facebook](https://www.facebook.com/HKTRPG/)
+    *   [TRPG 百科](https://www.HKTRPG.com/)
+    *   [贊助HKTRPG](https://www.patreon.com/HKTRPG)
+    
+    指令簡介
+    ----
+    
+    *   部份指令以 `.` 開頭或無開頭
+    *   輸入 `bothelp` 可以顯示幫助訊息
+    *   輸入 `xDy` 可以進行基本擲骰 例如1D6
+    *   輸入 `dr xDy (或任何指令)` 可以進行暗骰，私訊你結果
+    *   輸入 `.ca 算式` 可以進行數學計算
+    *   輸入 `.image (內容)` 可以進行網上圖片搜索
+    
+    *   因為功能眾多，所以再分成幾個類型在下面介紹
+        *   基本擲骰指令
+        *   指定TRPG系統擲骰指令
+        *   TRPG 輔助工具
+        *   系統工具
+        *   趣味功能
+    
+    基本擲骰指令
+    ------
+    
+    ### 暗骰功能 在指令前輸入dr 結果會私訊你
+    
+    *   ddr dddr 可以私訊已設定的群組GM, 詳情可打.drgm查詢
+    *   【基本擲骰】1d100(khN|klN|dhN|dlN)
+    *   例如輸入(2d6+1)\*2 攻撃！
+    *   會輸出）(2d6+1)\*2：攻撃！ (10\[5+5\]+1)2 = 22
+    *   如上面一樣,在骰子數字後方隔空白位打字,可以進行發言。
+    *   5 3D6 ： 分別骰出5次3d6 最多30次
+    *   ((2d6+1)\*2)-5/2>=10 支援括號加減乘除及大於小於(>,<,>=,<=)計算
+    *   支援kh|kl|dh|dl，k keep保留，d drop 放棄，h highest最高，l lowest最低
+    *   如3d6kh 保留最大的1粒骰，3d6dl2 放棄最小的2粒骰
+    
+    進階擲骰指令
+    ------
+    
+    ### 不同的TRPG需要特別的擲骰方法
+    
+    *   【進階擲骰】 .ca (計算)|D66(sn)|5B10 Dx|5U10 x y|.int x y
+    *   【克蘇魯神話】 cc cc(n)1~2 ccb ccrt ccsu .dp .cc7build .cc6build .cc7bg
+    *   【朱の孤塔】 .al (nALx\*p)
+    *   【神我狩】 .kk (ET RT NT KT MTx)
+    *   【迷宮王國】 .mk (nMK+m 及各種表)
+    *   【亞俠必死的冒險】 .ss (nR>=x\[y,z,c\] SRx+y FumbleT)
+    *   【忍神】 .sg (ST FT ET等各種表)
+    *   【歌風】 .UK (nUK nUK@c or nUKc)
+    *   【魔女狩獵之夜】.wn xDn+-y
+    *   【DX2nd,3rd】 .dx (xDX+y@c ET)
+    *   【命運Fate】 .4df(m|-)(加值)
+    *   【永遠的後日談】 .nc (NM xNC+m xNA+m)
+    *   【劍世界2.5】.sw (Kx Gr FT TT)
+    *   【WOD黑暗世界】.xWDy
+    *   【貓貓鬼差】.kc xDy z
+    
+    TRPG輔助工具 指令
+    -----------
+    
+    ### 不同的TRPG需要特別的擲骰方法
+    
+    *   【Discord 頻道聊天紀錄輸出工具】
+    *   暗骰GM功能 .drgm (addgm del show) dr ddr dddr
+    *   角色卡功能 .char (add edit show delete use nonuse) .ch (set show showall)
+    *   儲存擲骰指令功能 .cmd (add del show 自定關鍵字)
+    
+    系統工具 指令
+    -------
+    
+    *   .admin state 可以顯示統計信息
+    *   擲骰開關功能 .bk (add del show)
+    
+    趣味功能 指令
+    -------
+    
+    ### 如塔羅牌, 運勢 是一些玩樂用的指令
+    
+    *   排序(至少3個選項)
+    *   choice/隨機(至少2個選項)
+    *   每日塔羅 幫你抽塔羅牌，還有 大十字塔羅 時間塔羅
+    *   運勢 幫你占卜
+    *   立flag 會隨機一些立FLAG的場景
+    *   .me 可以令rollbot 重覆你的說話
+    
+    *   經驗值功能 .level (show config LevelUpWord RankWord)
+    *   想在頻道中說話可以得到經驗，請開啓這個功能!還可以和世界各地的人比較LV
+    
+    *   Wiki查詢/圖片搜索/翻譯功能 .wiki .image .tran
+        *   .wiki (項目) 可以在立即搜索WIKI上的資料
+        *   .image (項目) 可以立即隨機搜尋相關照片
+        *   .tran (項目) 立即翻譯係正體中文
+    
+    *   自定義回應功能 .ra(p)(次數) (add del show 自定關鍵字)
+    *   資料庫功能 .db(p) (add del show 自定關鍵字)
 
 
 關於RoboYabaso</br> 

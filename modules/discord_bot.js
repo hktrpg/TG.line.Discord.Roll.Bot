@@ -5,6 +5,7 @@ const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const Discord = require('discord.js');
 const client = new Discord.Client();
 const DBL = require("dblapi.js");
+//TOP.GG 
 const togGGToken = process.env.TOPGG;
 const dbl = (togGGToken) ? new DBL(togGGToken, client) : null;
 const msgSplitor = (/\S+/ig);

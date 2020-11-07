@@ -24,7 +24,7 @@
     "chinese-conv": "^1.0.1",
     "crypto-js": "^4.0.0",
     "dblapi.js": "^2.4.1",
-    "discord.js": "^12.4.1",
+    "discord.js": "^12.3.1",
     "dotenv": "^7.0.0",
     "erlpack": "github:discordapp/erlpack",
     "express": "^4.17.1",

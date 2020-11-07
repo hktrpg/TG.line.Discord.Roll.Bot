@@ -368,7 +368,7 @@ client.on('ready', () => {
 	client.user.setActivity('bothelp | hktrpg.com');
 	if (togGGToken) {
 		setInterval(() => {
-			dbl.postStats(client.guilds.size);
+			dbl.postStats(client.guilds.size, (client.shards.total || null));
 		}, 1800000);
 	}
 });

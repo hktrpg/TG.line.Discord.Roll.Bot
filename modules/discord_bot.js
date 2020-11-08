@@ -373,12 +373,8 @@ client.on('ready', () => {
 	}
 });
 if (togGGToken) {
-	dbl.on('posted', () => {
-		console.log('Server count posted!');
-	})
-
 	dbl.on('error', e => {
-		console.log(`Oops! ${e}`);
+		console.log(`dbl Top.GG get Error! ${e}`);
 	})
 }
 

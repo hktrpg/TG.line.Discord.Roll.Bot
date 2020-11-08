@@ -18,6 +18,7 @@
 想試用這機械人的話，請按以下連結，輸入bothelp顯示教學.</br>
 </br>
 HKTRPG擲骰子機械人ROLLBOT
+
 ------------------
 
 *   HKTRPG是在Discord, Line, Telegram, Whatsapp和網頁上都可以使用的骰子機械人！

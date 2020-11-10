@@ -350,7 +350,7 @@ async function SendToReplychannel(replyText, message) {
 				await message.channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 			}
 		catch (e) {
-			console.log(' GET ERROR: SendToReplychannel: ', e.message);
+			console.log(' GET ERROR: SendToReplychannel: ', e.message, replyText, message);
 		}
 	}
 }

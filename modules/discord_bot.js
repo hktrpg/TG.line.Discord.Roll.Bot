@@ -326,7 +326,7 @@ async function SendToId(targetid, replyText) {
 				client.users.cache.get(targetid).send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 			}
 		catch (e) {
-			console.log(' GET ERROR:  SendtoID: ', e.message)
+			console.log(' GET ERROR:  SendtoID: ', e.message, replyText)
 		}
 	}
 
@@ -339,7 +339,7 @@ async function SendToReply(replyText, message) {
 				await message.author.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 			}
 		catch (e) {
-			console.log(' GET ERROR:  SendToReply: ', e.message)
+			console.log(' GET ERROR:  SendToReply: ', e.message, replyText, message)
 		}
 	}
 }

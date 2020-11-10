@@ -113,7 +113,7 @@ var RollDice = async function (inputStr) {
   }
   if (!comStr[4])
     comStr[4] = 1
-  switch (comStr[3]) {
+  switch (comStr[3].toLowerCase()) {
     case 'kh': //khN Keeps highest N
       for (let i = 0; i < temp2.length; i++) {
         if (i < comStr[4])

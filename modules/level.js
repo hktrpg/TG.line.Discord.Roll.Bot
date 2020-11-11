@@ -54,7 +54,7 @@ async function returnTheLevelWord(gpInfo, userInfo, membercount) {
     let username = userInfo.name;
     let userlevel = userInfo.Level;
     let userexp = userInfo.EXP;
-    let usermember_count = membercount || gpInfo.trpgLevelSystemfunction.length;
+    let usermember_count = Math.max(membercount, gpInfo.trpgLevelSystemfunction.length);
     let userRanking = await ranking(userInfo.userid, gpInfo.trpgLevelSystemfunction);
     let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
     let userTitle = await exports.z_Level_system.checkTitle(userlevel, gpInfo.Title);

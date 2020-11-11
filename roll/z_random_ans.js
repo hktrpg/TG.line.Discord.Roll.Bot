@@ -445,7 +445,8 @@ var rollDiceCommand = async function ({
                 if (!temp) return ' ';
                 temp2 = await ranking(userid, temp.trpgLevelSystemfunction)
                 if (!temp2) return ' ';
-                num = membercount || temp.trpgLevelSystemfunction.length;
+                console.log(temp.trpgLevelSystemfunction.length);
+                num = Math.max(membercount, temp.trpgLevelSystemfunction.length);
                 temp2 = Math.ceil(temp2 / num * 10000) / 100 + '%';
                 return temp2 || ' ';
             case /^my.Ranking$/i.test(second):

@@ -234,7 +234,7 @@ TGclient.on('audio', async (ctx) => {
 		let groupid = '',
 			userid = '',
 			displayname = '',
-			membercount = '';
+			membercount = null;
 		groupid = ctx.message.chat.id;
 		if (ctx.message.from.username) {
 			displayname = ctx.message.from.username;

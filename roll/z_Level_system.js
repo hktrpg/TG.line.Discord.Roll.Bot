@@ -126,7 +126,17 @@ var Title = function () {
     44-47   外神
     48-50   門
     */
-var rollDiceCommand = async function ({inputStr, mainMsg, groupid, userid, userrole, botname, displayname,  displaynameDiscord, membercount}) {
+var rollDiceCommand = async function ({
+    inputStr,
+    mainMsg,
+    groupid,
+    userid,
+    userrole,
+    botname,
+    displayname,
+    displaynameDiscord,
+    membercount
+}) {
     let rply = {
         default: 'on',
         type: 'text',
@@ -493,7 +503,7 @@ var rollDiceCommand = async function ({inputStr, mainMsg, groupid, userid, userr
                                         let userlevel = trpgLevelSystemfunction.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Level;
                                         let userexp = trpgLevelSystemfunction.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].EXP;
                                         //console.log('trpgLevelSystemfunction.trpgLevelSystemfunction[i]',
-                                        let usermember_count = membercount || trpgLevelSystemfunction.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length;
+                                        let usermember_count = Math.max(membercount, trpgLevelSystemfunction.trpgLevelSystemfunction[i].trpgLevelSystemfunction.length);
                                         let userRanking = await ranking(userid, trpgLevelSystemfunction.trpgLevelSystemfunction[i].trpgLevelSystemfunction);
                                         let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
                                         let userTitle = await this.checkTitle(userlevel, trpgLevelSystemfunction.trpgLevelSystemfunction[i].Title);

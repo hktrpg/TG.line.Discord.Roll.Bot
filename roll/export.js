@@ -99,6 +99,107 @@ var rollDiceCommand = async function ({
             return '@' + users.username;
         } else return first;
     }
+
+    async function lots_of_messages_getter_HTML(channel, demo) {
+        const sum_messages = [];
+        let last_id;
+        let totalSize = 0;
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+            const options = {
+                limit: 100
+            };
+            if (last_id) {
+                options.before = last_id;
+            }
+            const messages = await channel.messages.fetch(options);
+            totalSize += (messages.size) ? messages.size : 0;
+            messages.forEach(element => {
+                let temp;
+                if (element.type == 'DEFAULT') {
+                    temp = {
+                        timestamp: element.createdTimestamp,
+                        contact: element.content.replace(/<@(.*?)>/ig, replacer),
+                        userName: element.author.username,
+                        isbot: element.author.bot
+                    }
+                } else
+                if (element.type !== 'DEFAULT') {
+                    temp = {
+                        timestamp: element.createdTimestamp,
+                        contact: element.author.username + '\n' + element.type,
+                        userName: '系統信息',
+                        isbot: true
+                    }
+                }
+                sum_messages.push(temp)
+            });
+            last_id = messages.last().id;
+            if (messages.size != 100) {
+                break;
+            }
+            if (demo) {
+                if (totalSize >= 500) {
+                    break;
+                }
+            }
+        }
+
+        return {
+            sum_messages: sum_messages,
+            totalSize: totalSize
+        };
+    }
+    async function lots_of_messages_getter_TXT(channel, demo) {
+        const sum_messages = [];
+        let last_id;
+        let totalSize = 0;
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+            const options = {
+                limit: 100
+            };
+            if (last_id) {
+                options.before = last_id;
+            }
+            const messages = await channel.messages.fetch(options);
+            totalSize += (messages.size) ? messages.size : 0;
+            messages.forEach(element => {
+                let temp;
+                if (element.type == 'DEFAULT') {
+                    temp = {
+                        timestamp: element.createdTimestamp,
+                        contact: element.content.replace(/<@(.*?)>/ig, replacer),
+                        userName: element.author.username,
+                        isbot: element.author.bot
+                    }
+                } else
+                if (element.type !== 'DEFAULT') {
+                    temp = {
+                        timestamp: element.createdTimestamp,
+                        contact: element.author.username + '\n' + element.type,
+                        userName: '系統信息',
+                        isbot: true
+                    }
+                }
+                sum_messages.push(temp)
+            });
+            last_id = messages.last().id;
+            if (messages.size != 100) {
+                break;
+            }
+            if (demo) {
+                if (totalSize >= 400) {
+                    break;
+                }
+            }
+        }
+
+        return {
+            sum_messages: sum_messages,
+            totalSize: totalSize
+        };
+    }
     switch (true) {
         case /^help$/i.test(mainMsg[1]):
             rply.text = this.getHelpMessage();
@@ -337,7 +438,7 @@ var rollDiceCommand = async function ({
                     data += '(🤖)'
                 }
                 data += M[index].userName + '	' + dateObj + '\n';
-                data += M[index].contact.replace(/<@(.*?)>/ig, rollDiceCommand.replacer)
+                data += M[index].contact.replace(/<@(.*?)>/ig, replacer)
                 data += '\n\n';
             }
             try {
@@ -355,106 +456,7 @@ var rollDiceCommand = async function ({
     }
 }
 
-async function lots_of_messages_getter_HTML(channel, demo) {
-    const sum_messages = [];
-    let last_id;
-    let totalSize = 0;
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-        const options = {
-            limit: 100
-        };
-        if (last_id) {
-            options.before = last_id;
-        }
-        const messages = await channel.messages.fetch(options);
-        totalSize += (messages.size) ? messages.size : 0;
-        messages.forEach(element => {
-            let temp;
-            if (element.type == 'DEFAULT') {
-                temp = {
-                    timestamp: element.createdTimestamp,
-                    contact: element.content.replace(/<@(.*?)>/ig, rollDiceCommand.replacer),
-                    userName: element.author.username,
-                    isbot: element.author.bot
-                }
-            } else
-            if (element.type !== 'DEFAULT') {
-                temp = {
-                    timestamp: element.createdTimestamp,
-                    contact: element.author.username + '\n' + element.type,
-                    userName: '系統信息',
-                    isbot: true
-                }
-            }
-            sum_messages.push(temp)
-        });
-        last_id = messages.last().id;
-        if (messages.size != 100) {
-            break;
-        }
-        if (demo) {
-            if (totalSize >= 500) {
-                break;
-            }
-        }
-    }
 
-    return {
-        sum_messages: sum_messages,
-        totalSize: totalSize
-    };
-}
-async function lots_of_messages_getter_TXT(channel, demo) {
-    const sum_messages = [];
-    let last_id;
-    let totalSize = 0;
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-        const options = {
-            limit: 100
-        };
-        if (last_id) {
-            options.before = last_id;
-        }
-        const messages = await channel.messages.fetch(options);
-        totalSize += (messages.size) ? messages.size : 0;
-        messages.forEach(element => {
-            let temp;
-            if (element.type == 'DEFAULT') {
-                temp = {
-                    timestamp: element.createdTimestamp,
-                    contact: element.content.replace(/<@(.*?)>/ig, rollDiceCommand.replacer),
-                    userName: element.author.username,
-                    isbot: element.author.bot
-                }
-            } else
-            if (element.type !== 'DEFAULT') {
-                temp = {
-                    timestamp: element.createdTimestamp,
-                    contact: element.author.username + '\n' + element.type,
-                    userName: '系統信息',
-                    isbot: true
-                }
-            }
-            sum_messages.push(temp)
-        });
-        last_id = messages.last().id;
-        if (messages.size != 100) {
-            break;
-        }
-        if (demo) {
-            if (totalSize >= 400) {
-                break;
-            }
-        }
-    }
-
-    return {
-        sum_messages: sum_messages,
-        totalSize: totalSize
-    };
-}
 
 function getAesString(data, key, iv) { //加密
     var keyy = CryptoJS.enc.Utf8.parse(key);

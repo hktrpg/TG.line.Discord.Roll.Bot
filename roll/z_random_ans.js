@@ -433,10 +433,9 @@ var rollDiceCommand = async function ({
                 return temp || ' ';
                 // * {allgp.title}<---隨機全GP其中一種稱號
             case /^server.member_count$/i.test(second):
-                if (membercount) return membercount || ' ';
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
-                if (!temp || !temp.trpgLevelSystemfunction) return ' ';
-                return temp.trpgLevelSystemfunction.length || ' ';
+                num = (temp && temp.trpgLevelSystemfunction && temp.trpgLevelSystemfunction.length) ? Math.max(membercount, temp.trpgLevelSystemfunction.length) : membercount;
+                return num || ' ';
                 //  {server.member_count} 現在頻道中總人數 \
             case /^my.RankingPer$/i.test(second):
                 //* {my.RankingPer} 現在排名百分比 \
@@ -445,7 +444,7 @@ var rollDiceCommand = async function ({
                 if (!temp) return ' ';
                 temp2 = await ranking(userid, temp.trpgLevelSystemfunction)
                 if (!temp2) return ' ';
-                num = membercount || temp.trpgLevelSystemfunction.length;
+                num = (temp && temp.trpgLevelSystemfunction && temp.trpgLevelSystemfunction.length) ? Math.max(membercount, temp.trpgLevelSystemfunction.length) : membercount;
                 temp2 = Math.ceil(temp2 / num * 10000) / 100 + '%';
                 return temp2 || ' ';
             case /^my.Ranking$/i.test(second):

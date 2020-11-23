@@ -6,9 +6,17 @@ const duckImage = require('@zetetic/duckduckgo-images-api')
 const wiki = require('wikijs').default;
 const rollbase = require('./rollbase.js');
 const translate = require('@vitalets/google-translate-api');
+const {
+	createCanvas
+} = require('canvas'); //mottow
+const width = 900
+const height = 300
+const canvas = createCanvas(width, height)
+
+
 var variables = {};
 var gameName = function () {
-	return 'Wiki查詢/圖片搜索 .wiki .image .tran'
+	return 'Wiki查詢/圖片搜索/名言製作 .wiki .image .tran .mottow'
 }
 
 var gameType = function () {
@@ -16,7 +24,7 @@ var gameType = function () {
 }
 var prefixs = function () {
 	return [{
-		first: /^[.]wiki$|^[.]tran$|^[.]tran[.]\S+$|^[.]image$|^[.]imagee$/i,
+		first: /^[.]wiki$|^[.]tran$|^[.]tran[.]\S+$|^[.]image$|^[.]imagee$|^[.]mottow$/i,
 		second: null
 	}]
 
@@ -59,6 +67,9 @@ var rollDiceCommand = async function ({
 		case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
 			rply.text = this.getHelpMessage();
 			return rply;
+		case /\S+/.test(mainMsg[1]) && /[.]mottow/.test(mainMsg[0]):
+			var context = canvas.getContext('2d')
+			return;
 		case /\S+/.test(mainMsg[1]) && /[.]wiki/.test(mainMsg[0]):
 			rply.text = await wiki({
 					apiUrl: 'https://zh.wikipedia.org/w/api.php'

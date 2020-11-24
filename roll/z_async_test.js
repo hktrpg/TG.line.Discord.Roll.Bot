@@ -6,13 +6,9 @@ const duckImage = require('@zetetic/duckduckgo-images-api')
 const wiki = require('wikijs').default;
 const rollbase = require('./rollbase.js');
 const translate = require('@vitalets/google-translate-api');
-const {
-	createCanvas
-} = require('canvas'); //mottow
-const width = 900
-const height = 300
-const canvas = createCanvas(width, height)
-
+var fs = require('fs')
+var path = require('path')
+var Canvas = require('canvas');
 
 var variables = {};
 var gameName = function () {
@@ -68,7 +64,51 @@ var rollDiceCommand = async function ({
 			rply.text = this.getHelpMessage();
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /[.]mottow/.test(mainMsg[0]):
-			var context = canvas.getContext('2d')
+			var canvas = Canvas.createCanvas(900, 300); //W900,H300
+			var ctx = canvas.getContext('2d')
+
+			ctx.globalAlpha = 0.2
+
+			ctx.strokeRect(0, 0, 200, 200)
+			ctx.lineTo(0, 100)
+			ctx.lineTo(200, 100)
+			ctx.stroke()
+
+			ctx.beginPath()
+			ctx.lineTo(100, 0)
+			ctx.lineTo(100, 200)
+			ctx.stroke()
+
+			ctx.globalAlpha = 1
+			ctx.font = 'normal 40px Impact, serif'
+
+			//ctx.rotate(0.5)
+			ctx.translate(20, -40); //字位置
+
+			//字外框
+			ctx.lineWidth = 1
+			ctx.strokeStyle = '#ddd'
+			ctx.strokeText(mainMsg[1], 50, 100)
+
+			//字內部
+			ctx.fillStyle = '#000'
+			ctx.fillText(mainMsg[1], 49, 99)
+
+			var m = ctx.measureText(mainMsg[1])
+
+			ctx.strokeStyle = '#f00'
+
+
+			//畫上外框
+			ctx.strokeRect(
+				49 + m.actualBoundingBoxLeft - 10,
+				100 - m.actualBoundingBoxAscent - 10,
+				m.actualBoundingBoxRight - m.actualBoundingBoxLeft + 20,
+				m.actualBoundingBoxAscent + m.actualBoundingBoxDescent + 20
+			)
+
+			canvas.createPNGStream().pipe(fs.createWriteStream(path.join(__dirname, 'text.png')))
+			console.log('DONE?')
 			return;
 		case /\S+/.test(mainMsg[1]) && /[.]wiki/.test(mainMsg[0]):
 			rply.text = await wiki({

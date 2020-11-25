@@ -64,7 +64,27 @@ var rollDiceCommand = async function ({
 			rply.text = this.getHelpMessage();
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /[.]mottow/.test(mainMsg[0]):
+			//DISCORD	
 			//message.author.avatarURL({ format: 'png', dynamic: true, size: 1024 })
+
+			//ctx.telegram.getUserProfilePhotos(ctx.message.from.id)
+
+			/**
+			 * client.getProfile('<userId>')
+  .then((profile) => {
+    console.log(profile.displayName);
+    console.log(profile.userId);
+    console.log(profile.pictureUrl);
+    console.log(profile.statusMessage);
+  })
+  .catch((err) => {
+    // error handling
+  });
+			 * 
+			 */
+
+			//WHATSAPP
+			//getProfilePicUrl()
 			var canvas = Canvas.createCanvas(605, 260); //W900,H300
 			var ctx = canvas.getContext('2d')
 

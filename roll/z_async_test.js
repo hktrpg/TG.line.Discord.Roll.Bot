@@ -48,7 +48,8 @@ var initialize = function () {
 
 var rollDiceCommand = async function ({
 	inputStr,
-	mainMsg
+	mainMsg,
+	discordMessage
 }) {
 	let rply = {
 		default: 'on',
@@ -64,6 +65,7 @@ var rollDiceCommand = async function ({
 			rply.text = this.getHelpMessage();
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /[.]mottow/.test(mainMsg[0]):
+			console.log(discordMessage.author.displayAvatarURL());
 			var canvas = Canvas.createCanvas(900, 300); //W900,H300
 			var ctx = canvas.getContext('2d')
 
@@ -107,7 +109,7 @@ var rollDiceCommand = async function ({
 				m.actualBoundingBoxAscent + m.actualBoundingBoxDescent + 20
 			)
 
-			canvas.createPNGStream().pipe(fs.createWriteStream(path.join(__dirname, 'text.png')))
+			canvas.createPNGStream().pipe(fs.createWriteStream(path.join(__dirname, '../tmp/text.png')))
 			console.log('DONE?')
 			return;
 		case /\S+/.test(mainMsg[1]) && /[.]wiki/.test(mainMsg[0]):

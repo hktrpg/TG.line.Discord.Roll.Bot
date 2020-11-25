@@ -64,6 +64,7 @@ var rollDiceCommand = async function ({
 			rply.text = this.getHelpMessage();
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /[.]mottow/.test(mainMsg[0]):
+			//message.author.avatarURL({ format: 'png', dynamic: true, size: 1024 })
 			var canvas = Canvas.createCanvas(605, 260); //W900,H300
 			var ctx = canvas.getContext('2d')
 

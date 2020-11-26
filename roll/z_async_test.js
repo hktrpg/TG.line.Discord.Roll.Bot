@@ -91,48 +91,53 @@ var rollDiceCommand = async function ({
 
 			var ctx = canvas.getContext('2d')
 
-			ctx.globalAlpha = 0.2
+			ctx.globalAlpha = 1
 
-			ctx.strokeRect(0, 0, 200, 200)
-			ctx.lineTo(0, 100)
-			ctx.lineTo(200, 100)
-			ctx.stroke()
+			ctx.strokeRect(205, 0, 400, 260)
+			//	ctx.lineTo(0, 100)
+			//	ctx.lineTo(200, 100)
+			//	ctx.stroke()
 
-			ctx.beginPath()
-			ctx.lineTo(100, 0)
-			ctx.lineTo(100, 200)
-			ctx.stroke()
+			//	ctx.beginPath()
+			//	ctx.lineTo(100, 0)
+			//	ctx.lineTo(100, 200)
+			//	ctx.stroke()
 
 			ctx.globalAlpha = 1
 			ctx.font = 'normal 40px Impact, serif'
 
 			//ctx.rotate(0.5)
-			ctx.translate(20, -40); //字位置
+			//ctx.translate(20, -40); //字位置
 
 			//字外框
 			ctx.lineWidth = 1
 			ctx.strokeStyle = '#ddd'
-			ctx.strokeText(mainMsg[1], 50, 100)
+			ctx.strokeText(mainMsg[1], 250, 80)
 
 			//字內部
 			ctx.fillStyle = '#000'
-			ctx.fillText(mainMsg[1], 49, 99)
-
-			var m = ctx.measureText(mainMsg[1])
-
-			ctx.strokeStyle = '#f00'
-
+			ctx.fillText(mainMsg[1], 249, 79)
 
 			//畫上外框
-			ctx.strokeRect(
-				49 + m.actualBoundingBoxLeft - 10,
-				100 - m.actualBoundingBoxAscent - 10,
-				m.actualBoundingBoxRight - m.actualBoundingBoxLeft + 20,
-				m.actualBoundingBoxAscent + m.actualBoundingBoxDescent + 20
-			)
+			/**
+					 * 
+					 * 	var m = ctx.measureText(mainMsg[1])
 
+					ctx.strokeStyle = '#f00'
+			
+			ctx.strokeRect(
+					49 + m.actualBoundingBoxLeft - 10,
+					100 - m.actualBoundingBoxAscent - 10,
+					m.actualBoundingBoxRight - m.actualBoundingBoxLeft + 20,
+					m.actualBoundingBoxAscent + m.actualBoundingBoxDescent + 20
+				) 
+				*/
 			canvas.createPNGStream().pipe(fs.createWriteStream(path.join(__dirname, '../tmp/text.png')))
+			console.log(getLines(canvas, mainMsg[1], 6))
+
 			console.log('DONE?')
+
+
 			return;
 		case /\S+/.test(mainMsg[1]) && /[.]wiki/.test(mainMsg[0]):
 			rply.text = await wiki({
@@ -211,6 +216,26 @@ async function searchImage(inputStr, mainMsg, safe) {
 		})
 }
 
+
+function getLines(ctx, text, maxWidth) {
+	var words = text.split(" ");
+	var lines = [];
+	var currentLine = words[0];
+
+	for (var i = 1; i < words.length; i++) {
+		var word = words[i];
+		var width = ctx.measureText(currentLine + " " + word).width;
+		console.log(width)
+		if (width < maxWidth) {
+			currentLine += " " + word;
+		} else {
+			lines.push(currentLine);
+			currentLine = word;
+		}
+	}
+	lines.push(currentLine);
+	return lines;
+}
 
 module.exports = {
 	rollDiceCommand: rollDiceCommand,

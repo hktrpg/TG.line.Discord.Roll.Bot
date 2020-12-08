@@ -33,7 +33,7 @@
     "mathjs": "^5.10.3",
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.32",
-    "mongoose": "^5.11.1",
+    "mongoose": "^5.11.5",
     "node-fetch": "^2.6.1",
     "random-js": "^2.1.0",
     "sharp": "^0.26.3",
@@ -59,7 +59,7 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "eslint": "^7.14.0",
+    "eslint": "^7.15.0",
     "mocha": "^8.2.1"
   }
 }

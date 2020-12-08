@@ -4,6 +4,8 @@
 var chineseConv = require('chinese-conv'); //繁簡轉換
 const duckImage = require('@zetetic/duckduckgo-images-api')
 const wiki = require('wikijs').default;
+var fs = require('fs');
+var svg2img = require('svg2img');
 const rollbase = require('./rollbase.js');
 const translate = require('@vitalets/google-translate-api');
 var variables = {};
@@ -16,7 +18,7 @@ var gameType = function () {
 }
 var prefixs = function () {
 	return [{
-		first: /^[.]wiki$|^[.]tran$|^[.]tran[.]\S+$|^[.]image$|^[.]imagee$/i,
+		first: /^[.]wiki$|^[.]tran$|^[.]tran[.]\S+$|^[.]image$|^[.]imagee$|^[.]token$/i,
 		second: null
 	}]
 
@@ -54,10 +56,25 @@ var rollDiceCommand = async function ({
 	let lang = '',
 		test = '';
 	//let result = {};
+	var svgString = [
+		'<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="236" height="120" ',
+		'viewBox="0 0 236 120">',
+		'<rect x="14" y="23" width="200" height="50" fill="#55FF55" stroke="black" stroke-width="1" />',
+		'</svg>'
+	].join('');
+
+	//1. convert from svg string
 
 	switch (true) {
 		case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
 			rply.text = this.getHelpMessage();
+			return rply;
+		case /^[.]token$/.test(mainMsg[0]):
+			svg2img(svgString, function (error, buffer) {
+				//returns a Buffer
+				fs.writeFileSync('foo1.png', buffer);
+			});
+			console.log('AA?')
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /[.]wiki/.test(mainMsg[0]):
 			rply.text = await wiki({

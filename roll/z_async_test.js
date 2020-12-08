@@ -7,6 +7,7 @@ const wiki = require('wikijs').default;
 const rollbase = require('./rollbase.js');
 const translate = require('@vitalets/google-translate-api');
 var variables = {};
+const sharp = require('sharp');
 var gameName = function () {
 	return 'Wiki查詢/圖片搜索 .wiki .image .tran'
 }
@@ -16,7 +17,7 @@ var gameType = function () {
 }
 var prefixs = function () {
 	return [{
-		first: /^[.]wiki$|^[.]tran$|^[.]tran[.]\S+$|^[.]image$|^[.]imagee$/i,
+		first: /^[.]wiki$|^[.]tran$|^[.]tran[.]\S+$|^[.]image$|^[.]imagee$|^[.]token$/i,
 		second: null
 	}]
 
@@ -41,6 +42,9 @@ EG: .tran.ja BATMAN  .tran.日 BATMAN\n\
 var initialize = function () {
 	return variables;
 }
+const roundedCorners = Buffer.from(
+	'<svg><rect x="0" y="0" width="200" height="200" rx="50" ry="50"/></svg>'
+);
 
 var rollDiceCommand = async function ({
 	inputStr,
@@ -58,6 +62,18 @@ var rollDiceCommand = async function ({
 	switch (true) {
 		case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
 			rply.text = this.getHelpMessage();
+			return rply;
+		case /\S+/.test(mainMsg[1]) && /[.]token/.test(mainMsg[0]):
+			console.log('s')
+			var roundedCornerResizer =
+				sharp()
+				.resize(200, 200)
+				.composite([{
+					input: roundedCorners,
+					blend: 'dest-in'
+				}])
+				.png();
+			console.log(roundedCornerResizer);
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /[.]wiki/.test(mainMsg[0]):
 			rply.text = await wiki({

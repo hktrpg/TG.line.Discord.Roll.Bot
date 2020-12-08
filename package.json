@@ -36,6 +36,7 @@
     "mongoose": "^5.11.1",
     "node-fetch": "^2.6.1",
     "random-js": "^2.1.0",
+    "sharp": "^0.26.3",
     "socket.io": "^2.3.0",
     "telegraf": "^3.38.0",
     "telegraf-getchatmembers": "^1.0.1",

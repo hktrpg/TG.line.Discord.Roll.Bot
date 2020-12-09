@@ -56,20 +56,28 @@ var rollDiceCommand = async function ({
 	let lang = '',
 		test = '';
 	//let result = {};
-	var svgString = "<?xml version='1.0' encoding='utf-8'?><!-- Generator: Adobe Illustrator 22.0.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  --><svg version='1.1' id='圖層_1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px'	 viewBox='0 0 721 721' style='enable-background:new 0 0 721 721;' xml:space='preserve'><style type='text/css'>	.st0{opacity:0.53;fill:#71BEC8;enable-background:new    ;}	.st1{fill:#71BEC8;}	.st2{opacity:0.53;fill:#1B2E6F;enable-background:new    ;}	.st3{fill:#C6A3C7;}	    .st4{font-family:'MicrosoftJhengHeiBold';font-size:120px;fill:gray;}	.st5{font-family:'MicrosoftJhengHeiBold';font-size:70px;   fill:gray;}	#title {   text-shadow: 1px 1px 3px white;   text-align: center;   font-family: MicrosoftJhengHeiBold;   font-weight: bold;     stroke-width: 0.5px;  stroke: black;    }</style> <defs>    <clipPath id='svg-draw'><path class='st1' d='M352.9,54.2c-146.2,0-264.3,118-264.3,264.3s118,264.3,264.3,264.3s264.3-118,264.3-264.3	S499.1,54.2,352.9,54.2z M352.9,571.6c-139.8,0-253.1-113.3-253.1-253.1S213.1,65.4,352.9,65.4S606,178.7,606,318.5	S492.7,571.6,352.9,571.6z'/><circle class='st3' cx='352.9' cy='318.5' r='243.7'/>    </clipPath>  </defs><path class='st0' d='M352.9,35.4c-156.2,0-283.1,126.9-283.1,283.1s126.9,283.1,283.1,283.1S636,474.7,636,318.5	S509.1,35.4,352.9,35.4z M352.9,582.8c-146.2,0-264.3-118-264.3-264.3s118-264.3,264.3-264.3s264.3,118,264.3,264.3	S499.1,582.8,352.9,582.8z' fill-opacity='00000.0000001'/><path class='st2' d='M352.9,65.4c-139.8,0-253.1,113.3-253.1,253.1s113.3,253.1,253.1,253.1S606,458.3,606,318.5	S492.7,65.4,352.9,65.4z M352.9,562.2c-134.5,0-243.7-109.2-243.7-243.7S218.4,74.8,352.9,74.8S596.6,184,596.6,318.5	S487.4,562.2,352.9,562.2z' fill-opacity='00000.000000001' />  <image clip-path='url(#svg-draw)' y='5%'  height='831' width='831'          xlink:href='https://upload.wikimedia.org/wikipedia/commons/4/45/Eopsaltria_australis_-_Mogo_Campground.jpg' preserveAspectRatio='xMidYMin'/>	 <text x='50%' y='560' dominant-baseline='middle' text-anchor='middle' id='title'  class='st4'>我的名字</text>  <text x='50%' y='640' dominant-baseline='middle' text-anchor='middle' id='title' class='st5'>Sad</text></svg>";
+	var svgString = "<svg version='1.1' id='圖層_1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px'	 viewBox='0 0 721 721' style='enable-background:new 0 0 721 721;' xml:space='preserve'><style type='text/css'>	.st0{opacity:0.53;fill:#71BEC8;enable-background:new    ;}	.st1{fill:#71BEC8;}	.st2{opacity:0.53;fill:#1B2E6F;enable-background:new    ;}	.st3{fill:#C6A3C7;}	    .st4{font-family:'MicrosoftJhengHeiBold';font-size:120px;fill:gray;}	.st5{font-family:'MicrosoftJhengHeiBold';font-size:70px;   fill:gray;}	#title {   text-shadow: 1px 1px 3px white;   text-align: center;   font-family: MicrosoftJhengHeiBold;   font-weight: bold;     stroke-width: 0.5px;  stroke: black;    }</style> <defs>    <clipPath id='svg-draw'><path class='st1' d='M352.9,54.2c-146.2,0-264.3,118-264.3,264.3s118,264.3,264.3,264.3s264.3-118,264.3-264.3	S499.1,54.2,352.9,54.2z M352.9,571.6c-139.8,0-253.1-113.3-253.1-253.1S213.1,65.4,352.9,65.4S606,178.7,606,318.5	S492.7,571.6,352.9,571.6z'/><circle class='st3' cx='352.9' cy='318.5' r='243.7'/>    </clipPath>  </defs><path class='st0' d='M352.9,35.4c-156.2,0-283.1,126.9-283.1,283.1s126.9,283.1,283.1,283.1S636,474.7,636,318.5	S509.1,35.4,352.9,35.4z M352.9,582.8c-146.2,0-264.3-118-264.3-264.3s118-264.3,264.3-264.3s264.3,118,264.3,264.3	S499.1,582.8,352.9,582.8z' fill-opacity='00000.0000001'/><path class='st2' d='M352.9,65.4c-139.8,0-253.1,113.3-253.1,253.1s113.3,253.1,253.1,253.1S606,458.3,606,318.5	S492.7,65.4,352.9,65.4z M352.9,562.2c-134.5,0-243.7-109.2-243.7-243.7S218.4,74.8,352.9,74.8S596.6,184,596.6,318.5	S487.4,562.2,352.9,562.2z' fill-opacity='00000.000000001' />  <image clip-path='url(#svg-draw)' y='5%'  height='831' width='831'          xlink:href='https://upload.wikimedia.org/wikipedia/commons/4/45/Eopsaltria_australis_-_Mogo_Campground.jpg' preserveAspectRatio='xMidYMin'/>	 <text x='50%' y='560' dominant-baseline='middle' text-anchor='middle' id='title'  class='st4'>我的名字</text>  <text x='50%' y='640' dominant-baseline='middle' text-anchor='middle' id='title' class='st5'>Sad</text></svg>";
 
 	//1. convert from svg string
 
+	/**
+	 *   "node-svg2img": "^1.1.0",
+
+	    "svg-png-converter": "0.0.9",
+	    "svg-to-png": "^4.0.0",
+	    "svg2img": "^0.9.0",
+	    "svg2png": "^4.1.1", X
+	    "svgexport": "^0.4.1",
+	 * 
+	 */
 	switch (true) {
 		case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
 			rply.text = this.getHelpMessage();
 			return rply;
 		case /^[.]token$/.test(mainMsg[0]):
-			svg2png(svgString, {
-					width: 300,
-					height: 400
-				})
-				.then(buffer => fs.writeFile("dest.png", buffer))
+			fs.readFile("../04.svg")
+				.then(svg2png)
+				.then(buffer => fs.writeFile("svg2png.png", buffer))
 				.catch(e => console.error(e));
 
 			console.log('AA?')

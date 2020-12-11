@@ -59,15 +59,29 @@ var rollDiceCommand = async function ({
 	let lang = '',
 		test = '';
 	//let result = {};
+	if (message.attachments.size > 0) {
+		if (message.attachments.every(attachIsImage)) {
+			//something
+		}
+	}
 
+
+	function attachIsImage(msgAttach) {
+		var url = msgAttach.url;
+		//True if this url is a png image.
+		return url.indexOf("png", url.length - "png".length /*or 3*/ ) !== -1;
+	}
 	switch (true) {
 		case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
 			rply.text = this.getHelpMessage();
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /[.]token/.test(mainMsg[0]):
 			console.log('s')
+			var roundedCorners = Buffer.from(
+				'<svg><rect x="0" y="0" width="200" height="200" rx="50" ry="50"/></svg>'
+			);
 
-			sharp("04.svg")
+			sharp(roundedCorners)
 				.png()
 				.toFile("new-file.png")
 				.then(function (info) {

@@ -63,7 +63,9 @@ client.on('guildCreate', guild => {
 })
 
 client.on('message', async (message) => {
+
 	if (message.author.bot) return;
+	console.log(message.attachments)
 	let groupid = '',
 		userid = '',
 		displayname = '',

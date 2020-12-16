@@ -194,18 +194,12 @@ client.on('message', async (message) => {
 		//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
 		SendToReplychannel("<@" + userid + '>\n' + rplyVal.LevelUp, message);
 	}
-
 	if (rplyVal.discordExport) {
-		if (!link || !mongo) {
-			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄', {
-				files: [
-					"./tmp/" + rplyVal.discordExport + '.txt'
-				]
-			});
-		} else {
-			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n' + '請注意這是暫存檔案，會不定時移除，有需要請自行下載檔案。\n' +
-				link + ':' + port + "/app/discord/" + rplyVal.discordExport + '.txt')
-		}
+		message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄', {
+			files: [
+				"./tmp/" + rplyVal.discordExport + '.txt'
+			]
+		});
 	}
 	if (rplyVal.discordExportHtml) {
 		if (!link || !mongo) {

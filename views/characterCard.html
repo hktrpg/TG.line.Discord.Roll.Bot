@@ -14,20 +14,11 @@
         integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <!-- production version, optimized for size and speed -->
-    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
-    <script src="https://d3js.org/d3.v6.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.5/d3.layout.cloud.min.js"
-        integrity="sha512-HjKxWye8lJGPu5q1u/ZYkHlJrJdm6KGr89E6tOrXeKm1mItb1xusPU8QPcKVhP8F9LjpZT7vsu1Fa+dQywP4eg=="
-        crossorigin="anonymous"></script>
-    <script src="https://pulipulichen.github.io/jieba-js/jquery.js"></script>
-    <script src="https://pulipulichen.github.io/jieba-js/require-jieba-js.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+    <script src="https://unpkg.com/vue@next"></script>
+
+
     <title>Character Card 角色卡 @ HKTRPG</title>
     <link rel="icon" href="https://avatars2.githubusercontent.com/u/48795428?s=280&v=4" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mobile-detect/1.4.4/mobile-detect.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"
-        integrity="sha512-nOQuvD9nKirvxDdvQ9OMqe2dgapbPB7vYAMrzJihw5m+aNcf0dX53m6YxM4LgA9u8e9eg9QX+/+mPu8kCNpV2A=="
-        crossorigin="anonymous"></script>
     <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
 
     <!--https://blog.gtwang.org/programming/javascript-aes-symmetric-encryption-tutorial/-->
@@ -46,12 +37,54 @@
     <div>
         <img src="https://cdna.artstation.com/p/assets/images/images/023/585/544/large/farid-nx-rasyidtoken.jpg?1579690738"
             class="img-thumbnail" alt="Cinque Terre" width="304" height="236">
-
-
-
     </div>
+    <div class="container">
+        <div class="row align-items-start" id="array-rendering">
+            <div v-for="item in items">
+                <div class="col">
+                    {{ item.message }}
+                </div>
+            </div>
+        </div>
+        <div class="row align-items-center">
+            <div id="list-rendering">
+                <ol>
+                    <li v-for="todo in todos">
+                        <div class="col">
+                            {{ todo.text }}
+                        </div>
+                    </li>
+                </ol>
+            </div>
+        </div>
+        <div class="row align-items-end">
+            <div id="list-rendering">
+                <ol>
+                    <li v-for="todo in todos">
+                        <div class="col">
+                            {{ todo.text }}
+                        </div>
+                    </li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="row align-items-end">
 
 
+            <div class="col">
+                {{ todo.text }}
+            </div>
+            <div class="col">
+                {{ todo.text }}
+            </div>
+            <div class="col">
+                {{ todo.text }}
+            </div>
+
+
+        </div>
+    </div>
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
@@ -71,7 +104,36 @@
         integrity="sha512-SUJFImtiT87gVCOXl3aGC00zfDl6ggYAw5+oheJvRJ8KBXZrr/TMISSdVJ5bBarbQDRC2pR5Kto3xTR0kpZInA=="
         crossorigin="anonymous" />
     <script>
+        const ListRendering = {
+            data() {
+                return {
+                    todos: [{
+                            text: 'Learn JavaScript'
+                        },
+                        {
+                            text: 'Learn Vue'
+                        },
+                        {
+                            text: 'Build something awesome'
+                        }
+                    ]
+                }
+            }
+        }
 
+        Vue.createApp(ListRendering).mount('#list-rendering')
+
+        Vue.createApp({
+            data() {
+                return {
+                    items: [{
+                        message: 'Foo'
+                    }, {
+                        message: 'Bar'
+                    }]
+                }
+            }
+        }).mount('#array-rendering')
     </script>
 
 </body>

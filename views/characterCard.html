@@ -58,51 +58,52 @@
         <h1 class=" bg-color2">HKTRPG 角色卡功能</h1>
     </center>
     <br>
-    <h3>
-        <li> ID:
-        </li>
-    </h3>
-    <h3>
-        <li> 角色名字:
-        </li>
-    </h3>
-    <br>
-    <h3 class="bg-color3">
-        基本屬性
-    </h3>
-    <div class="row align-items-start" id="array-rendering">
-        <div v-for="item in items">
-            <div class="col bg-color4">
-                {{item.message}}
+    <div class="container">
+        <h3>
+            <li> ID:
+            </li>
+        </h3>
+        <h3>
+            <li> 角色名字:
+            </li>
+        </h3>
+        <br>
+        <h3 class="bg-color3">
+            基本屬性
+        </h3>
+        <div class="row align-items-start" id="array-rendering">
+            <div v-for="item in items">
+                <div class="col bg-color4">
+                    {{item.message}}
+                </div>
             </div>
         </div>
-    </div>
-    <br>
-    <h3 class=" bg-color3">
-        擲骰
-    </h3>
+        <br>
+        <h3 class=" bg-color3">
+            擲骰
+        </h3>
 
-    <div class="row align-items-center" id="array-rendering2">
-        <div v-for="item in items">
-            <div class="col">
-                {{ item.message }}
+        <div class="row align-items-center" id="array-rendering2">
+            <div v-for="item in items">
+                <div class="col">
+                    {{ item.message }}
+                </div>
             </div>
         </div>
-    </div>
-    <br>
-    <h3 class=" bg-color3">
-        筆記
-    </h3>
-    <div class="row align-items-end" id="array-rendering3">
-        <div v-for="item in items">
-            <div class="col">
-                {{ item.message }}
+        <br>
+        <h3 class=" bg-color3">
+            筆記
+        </h3>
+        <div class="row align-items-end" id="array-rendering3">
+            <div v-for="item in items">
+                <div class="col">
+                    {{ item.message }}
+                </div>
             </div>
+
         </div>
 
     </div>
-
-
 
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->

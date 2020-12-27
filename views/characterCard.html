@@ -21,6 +21,7 @@
     .textNote {
         background-color: #FADCD9;
         resize: none;
+        height: 55px;
     }
 
     .textName {
@@ -35,6 +36,8 @@
         background-color: #FADCD9;
         resize: none;
     }
+
+
 </style>
 
 <head>
@@ -93,10 +96,10 @@
             <div v-for="item in items">
                 <textarea class="col textName" style="width:80px">
                     {{item.stateName}}
-                </textarea>
+                </textarea>：
                 <textarea class="col textState" style="width:80px">
                     {{item.state}}
-                </textarea>
+                </textarea>&nbsp; &nbsp;
             </div>
         </div>
         <br>
@@ -108,10 +111,10 @@
             <div v-for="item in items">
                 <textarea class="col textName" style="width:80px">
                     {{item.stateName}}
-                </textarea>
-                <textarea class="col textState" style="width:80px">
-                    {{item.state}}
-                </textarea>
+                </textarea>：
+                <textarea class="col textState table-row" style="width:80px">
+                    {{item.state}}	
+                </textarea>&nbsp; &nbsp;
             </div>
         </div>
         <br>
@@ -120,14 +123,13 @@
         </h3>
         <div class="row align-items-end" id="array-rendering3">
             <div v-for="item in items">
-                <textarea class="col textName">
+                <textarea class="col textName" style="width:80px">
                     {{item.stateName}}
-                </textarea>
-                <textarea class="col textNote">
+                </textarea>：
+                <textarea class="col textNote" style="width:180px">
                     {{item.state}}
-                </textarea>
+                </textarea>&nbsp; &nbsp;
             </div>
-
         </div>
         <div id="basic-event">
             <button @click="a += 2">Add 1</button>

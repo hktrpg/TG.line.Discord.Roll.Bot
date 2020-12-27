@@ -17,6 +17,24 @@
     .bg-color4 {
         background-color: #FADCD9
     }
+
+    .textNote {
+        background-color: #FADCD9;
+        resize: none;
+    }
+
+    .textName {
+        height: 23px;
+        background-color: #FADCD9;
+        resize: none;
+    }
+
+    .textState {
+        width: 153px;
+        height: 25px;
+        background-color: #FADCD9;
+        resize: none;
+    }
 </style>
 
 <head>
@@ -73,9 +91,12 @@
         </h3>
         <div class="row align-items-start" id="array-rendering">
             <div v-for="item in items">
-                <div class="col bg-color4">
-                    {{item.message}}
-                </div>
+                <textarea class="col textName" style="width:80px">
+                    {{item.stateName}}
+                </textarea>
+                <textarea class="col textState" style="width:80px">
+                    {{item.state}}
+                </textarea>
             </div>
         </div>
         <br>
@@ -85,9 +106,12 @@
 
         <div class="row align-items-center" id="array-rendering2">
             <div v-for="item in items">
-                <div class="col">
-                    {{ item.message }}
-                </div>
+                <textarea class="col textName" style="width:80px">
+                    {{item.stateName}}
+                </textarea>
+                <textarea class="col textState" style="width:80px">
+                    {{item.state}}
+                </textarea>
             </div>
         </div>
         <br>
@@ -96,13 +120,19 @@
         </h3>
         <div class="row align-items-end" id="array-rendering3">
             <div v-for="item in items">
-                <div class="col">
-                    {{ item.message }}
-                </div>
+                <textarea class="col textName">
+                    {{item.stateName}}
+                </textarea>
+                <textarea class="col textNote">
+                    {{item.state}}
+                </textarea>
             </div>
 
         </div>
-
+        <div id="basic-event">
+            <button @click="a += 2">Add 1</button>
+            <p>The button above has been clicked {{ counter }} times.</p>
+        </div>
     </div>
 
     <!-- Optional JavaScript -->
@@ -126,13 +156,21 @@
     <script>
         Vue.createApp({
             data() {
-                return {
-                    items: [{
-                        message: 'One of three columns   '
-                    }, {
-                        message: '                        One of three columns '
-                    }]
-                }
+                return a
+            }
+        }).mount('#basic-event')
+
+
+        var a = {
+            items: [{
+                message: 'One of three columns'
+            }, {
+                message: 'One of three columns '
+            }]
+        };
+        Vue.createApp({
+            data() {
+                return a
             }
         }).mount('#array-rendering')
 

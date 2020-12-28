@@ -21,23 +21,21 @@
     .textNote {
         background-color: #FADCD9;
         resize: none;
-        height: 55px;
+        height: 80px;
     }
 
     .textName {
-        height: 23px;
+        height: 30px;
         background-color: #FADCD9;
         resize: none;
     }
 
     .textState {
         width: 153px;
-        height: 25px;
+        height: 30px;
         background-color: #FADCD9;
         resize: none;
     }
-
-
 </style>
 
 <head>
@@ -93,12 +91,12 @@
             基本屬性
         </h3>
         <div class="row align-items-start" id="array-rendering">
-            <div v-for="item in items">
-                <textarea class="col textName" style="width:80px">
-                    {{item.stateName}}
+            <div v-for="item in state">
+                <textarea class="col textName" style="width:80px;">
+                    {{item.name}}
                 </textarea>：
                 <textarea class="col textState" style="width:80px">
-                    {{item.state}}
+                    {{item.itemA}}
                 </textarea>&nbsp; &nbsp;
             </div>
         </div>
@@ -108,12 +106,12 @@
         </h3>
 
         <div class="row align-items-center" id="array-rendering2">
-            <div v-for="item in items">
-                <textarea class="col textName" style="width:80px">
-                    {{item.stateName}}
+            <div v-for="item in roll">
+                <textarea class="col textName" style="width:80px;">
+                    {{item.name}}
                 </textarea>：
-                <textarea class="col textState table-row" style="width:80px">
-                    {{item.state}}	
+                <textarea class="col textState" style="width:80px">
+                    {{item.itemA}}
                 </textarea>&nbsp; &nbsp;
             </div>
         </div>
@@ -122,18 +120,18 @@
             筆記
         </h3>
         <div class="row align-items-end" id="array-rendering3">
-            <div v-for="item in items">
-                <textarea class="col textName" style="width:80px">
-                    {{item.stateName}}
+            <div v-for="item in notes">
+                <textarea class="col textName" style="width:80px;">
+                    {{item.name}}
                 </textarea>：
                 <textarea class="col textNote" style="width:180px">
-                    {{item.state}}
+                    {{item.itemA}}
                 </textarea>&nbsp; &nbsp;
             </div>
         </div>
-        <div id="basic-event">
-            <button @click="a += 2">Add 1</button>
-            <p>The button above has been clicked {{ counter }} times.</p>
+        <div id="event-with-method">
+            <!-- `greet` is the name of a method defined below -->
+            <button @click="greet">Greet</button>
         </div>
     </div>
 
@@ -158,45 +156,66 @@
     <script>
         Vue.createApp({
             data() {
-                return a
+                return {
+                    name: 'Vue.js'
+                }
+            },
+            methods: {
+                greet(event) {
+                    data.state[0].itemA++;
+                    data.state.push({
+                        name: 'aa'
+                    })
+                    // `this` inside methods points to the current active instance
+                    console.log('Hello ' + this.name + '!')
+                    console.log(data)
+                    // `event` is the native DOM event
+                    if (event) {
+                        console.log(event.target.tagName)
+                    }
+                }
             }
-        }).mount('#basic-event')
-
-
-        var a = {
-            items: [{
-                message: 'One of three columns'
+        }).mount('#event-with-method')
+        var data = {
+            test: 0,
+            id: 'Test',
+            name: 'Sad',
+            state: [{
+                name: 'HP',
+                itemA: 5,
+                itemB: 6
+            }],
+            roll: [{
+                name: '空手',
+                itemA: '1D3'
             }, {
-                message: 'One of three columns '
+                name: '空手2',
+                itemA: '1D3'
+            }],
+            notes: [{
+                name: '筆記',
+                itemA: '這是測試    '
             }]
-        };
+        }
         Vue.createApp({
             data() {
-                return a
+                return data
             }
         }).mount('#array-rendering')
 
         Vue.createApp({
             data() {
-                return {
-                    items: [{
-                        message: 'Foo'
-                    }]
-                }
+                return data
             }
         }).mount('#array-rendering2')
 
         Vue.createApp({
             data() {
-                return {
-                    items: [{
-                        message: 'Foo'
-                    }, {
-                        message: 'Bar'
-                    }]
-                }
+                return data
             }
         }).mount('#array-rendering3')
+
+        
     </script>
 
 </body>
@@ -218,7 +237,7 @@
 
 角色卡內容可以修改
 
-
+修改後按碓定鍵送出
 
 
 

@@ -74,24 +74,25 @@
 
     -->
     <center>
-        <h1 class=" bg-color2">HKTRPG 角色卡功能</h1>
+        <h1 class=" bg-color2"><img src='https://avatars2.githubusercontent.com/u/48795428?s=280&v=4'
+                height="55em">角色卡功能</h1>
     </center>
     <br>
-    <div class="container">
+    <div class="container" id="array-rendering">
         <h3>
-            <li> ID:
+            <li> ID: {{id}}
             </li>
         </h3>
         <h3>
-            <li> 角色名字:
+            <li> 角色名字: {{name}}
             </li>
         </h3>
         <br>
         <h3 class="bg-color3">
             基本屬性
         </h3>
-        <div class="row align-items-start" id="array-rendering">
-            <div v-for="item in state">
+        <div class="row align-items-start">
+            <div v-for="item in state" id="state">
                 <textarea class="col textName" style="width:80px;">
                     {{item.name}}
                 </textarea>：
@@ -105,7 +106,7 @@
             擲骰
         </h3>
 
-        <div class="row align-items-center" id="array-rendering2">
+        <div class="row align-items-center"  id="roll">
             <div v-for="item in roll">
                 <textarea class="col textName" style="width:80px;">
                     {{item.name}}
@@ -119,7 +120,7 @@
         <h3 class=" bg-color3">
             筆記
         </h3>
-        <div class="row align-items-end" id="array-rendering3">
+        <div class="row align-items-end" id="notes">
             <div v-for="item in notes">
                 <textarea class="col textName" style="width:80px;">
                     {{item.name}}
@@ -129,7 +130,7 @@
                 </textarea>&nbsp; &nbsp;
             </div>
         </div>
-        <div id="event-with-method">
+        <div>
             <!-- `greet` is the name of a method defined below -->
             <button @click="greet">Greet</button>
         </div>
@@ -176,47 +177,47 @@
                 }
             }
         }).mount('#event-with-method')
-        var data = {
-            test: 0,
-            id: 'Test',
-            name: 'Sad',
-            state: [{
-                name: 'HP',
-                itemA: 5,
-                itemB: 6
-            }],
-            roll: [{
-                name: '空手',
-                itemA: '1D3'
-            }, {
-                name: '空手2',
-                itemA: '1D3'
-            }],
-            notes: [{
-                name: '筆記',
-                itemA: '這是測試    '
-            }, {
-                name: '筆記',
-                itemA: '這是測試    '
-            }]
-        }
+
         Vue.createApp({
             data() {
-                return data
+                return {
+                    test: 0,
+                    id: 'Test',
+                    name: 'Sad',
+                    state: [{
+                        name: 'HP',
+                        itemA: 5,
+                        itemB: 6
+                    }],
+                    roll: [{
+                        name: '空手',
+                        itemA: '1D3'
+                    }, {
+                        name: '空手2',
+                        itemA: '1D3'
+                    }],
+                    notes: [{
+                        name: '筆記',
+                        itemA: '這是測試    '
+                    }, {
+                        name: '筆記',
+                        itemA: '這是測試    '
+                    }]
+                }
+            },
+            methods: {
+                greet(event) {
+                    this.name = 'dd'
+                    // `this` inside methods points to the current active instance
+                    console.log('Hello ' + this.name + '!')
+                    //   console.log(data)
+                    // `event` is the native DOM event
+                    var plant = document.getElementById('array-rendering');
+                    var fruitCount = plant.getAttribute('data-fruit'); // fruitCount = '12'
+                    console.log(document.getElementsByTagName('textarea'))
+                }
             }
         }).mount('#array-rendering')
-
-        Vue.createApp({
-            data() {
-                return data
-            }
-        }).mount('#array-rendering2')
-
-        Vue.createApp({
-            data() {
-                return data
-            }
-        }).mount('#array-rendering3')
     </script>
 
 </body>

@@ -16,7 +16,7 @@
     "@line/bot-sdk": "^6.8.4",
     "@vitalets/google-translate-api": "^4.0.0",
     "@zetetic/duckduckgo-images-api": "^1.0.5",
-    "axios": "^0.18.1",
+    "axios": "^0.21.1",
     "babel-core": "^7.0.0-0",
     "bcdice-js": "^0.11.0",
     "bufferutil": "^4.0.2",

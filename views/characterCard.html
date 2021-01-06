@@ -43,6 +43,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- Bootstrap CSS -->
+    <script src="/socket.io/socket.io.js"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
         integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
@@ -106,7 +107,7 @@
             擲骰
         </h3>
 
-        <div class="row align-items-center"  id="roll">
+        <div class="row align-items-center" id="roll">
             <div v-for="item in roll">
                 <textarea class="col textName" style="width:80px;">
                     {{item.name}}
@@ -158,29 +159,6 @@
         Vue.createApp({
             data() {
                 return {
-                    name: 'Vue.js'
-                }
-            },
-            methods: {
-                greet(event) {
-                    data.state[0].itemA++;
-                    data.state.push({
-                        name: 'aa'
-                    })
-                    // `this` inside methods points to the current active instance
-                    console.log('Hello ' + this.name + '!')
-                    console.log(data)
-                    // `event` is the native DOM event
-                    if (event) {
-                        console.log(event.target.tagName)
-                    }
-                }
-            }
-        }).mount('#event-with-method')
-
-        Vue.createApp({
-            data() {
-                return {
                     test: 0,
                     id: 'Test',
                     name: 'Sad',
@@ -208,6 +186,10 @@
             methods: {
                 greet(event) {
                     this.name = 'dd'
+                    var socket = io();
+                    socket.on("test", function (amount) {
+                        console.log('amount = ', amount)
+                    });
                     // `this` inside methods points to the current active instance
                     console.log('Hello ' + this.name + '!')
                     //   console.log(data)

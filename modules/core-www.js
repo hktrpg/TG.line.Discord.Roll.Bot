@@ -63,8 +63,13 @@ if (process.env.DISCORD_CHANNEL_SECRET)
         if (req.originalUrl.match(/html$/))
             res.sendFile(process.cwd() + '/tmp/' + req.originalUrl.replace('/app/discord/', ''));
     });
+//if (process.env.DISCORD_CHANNEL_SECRET)
+www.get('/card', (req, res) => {
+    res.sendFile(process.cwd() + '/views/characterCard.html');
+});
 
 io.on('connection', (socket) => {
+    io.emit("test", 100);
     // 有連線發生時增加人數
     onlineCount++;
     // 發送人數給網頁
@@ -77,6 +82,7 @@ io.on('connection', (socket) => {
         socket.emit("chatRecord", msgs);
     });
 
+    
     socket.on("greet", () => {
         socket.emit("greet", onlineCount);
     });

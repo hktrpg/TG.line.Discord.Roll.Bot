@@ -72,7 +72,8 @@ io.on('connection', (socket) => {
     //CARD
     socket.on('card', message => {
         //回傳 message 給發送訊息的 Client
-        socket.emit('card', message)
+        console.log(message)
+        socket.emit('card', "")
     })
 
 

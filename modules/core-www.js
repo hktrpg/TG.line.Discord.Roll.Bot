@@ -69,7 +69,13 @@ www.get('/card', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-    io.emit("test", 100);
+    //CARD
+    socket.on('card', message => {
+        //回傳 message 給發送訊息的 Client
+        socket.emit('card', message)
+    })
+
+
     // 有連線發生時增加人數
     onlineCount++;
     // 發送人數給網頁
@@ -82,7 +88,7 @@ io.on('connection', (socket) => {
         socket.emit("chatRecord", msgs);
     });
 
-    
+
     socket.on("greet", () => {
         socket.emit("greet", onlineCount);
     });

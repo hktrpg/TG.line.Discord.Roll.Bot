@@ -94,12 +94,18 @@
         </h3>
         <div class="row align-items-start">
             <div v-for="item in state" id="state">
-                <textarea class="col textName" style="width:80px;">
+                <textarea class="col textName" v-model="item.name" style="width:80px;">
                     {{item.name}}
                 </textarea>：
-                <textarea class="col textState" style="width:80px">
+                <textarea class="col textState" v-model="item.itemA" style="width:80px">
                     {{item.itemA}}
-                </textarea>&nbsp; &nbsp;
+                </textarea>
+                <span>/
+                    <textarea class="col textState" v-model="item.itemB" style="width:80px">
+                    {{item.itemB}}
+                </textarea>
+                </span>
+                &nbsp; &nbsp;
             </div>
         </div>
         <br>
@@ -109,10 +115,10 @@
 
         <div class="row align-items-center" id="roll">
             <div v-for="item in roll">
-                <textarea class="col textName" style="width:80px;">
+                <textarea class="col textName" v-model="item.name" style="width:80px;">
                     {{item.name}}
                 </textarea>：
-                <textarea class="col textState" style="width:80px">
+                <textarea class="col textState" v-model="item.itemA" style="width:80px">
                     {{item.itemA}}
                 </textarea>&nbsp; &nbsp;
             </div>
@@ -123,10 +129,10 @@
         </h3>
         <div class="row align-items-end" id="notes">
             <div v-for="item in notes">
-                <textarea class="col textName" style="width:80px;">
+                <textarea class="col textName" v-model="item.name" style="width:80px;">
                     {{item.name}}
                 </textarea>：
-                <textarea class="col textNote" style="width:180px">
+                <textarea class="col textNote" v-model="item.itemA" style="width:180px">
                     {{item.itemA}}
                 </textarea>&nbsp; &nbsp;
             </div>
@@ -156,13 +162,17 @@
         integrity="sha512-SUJFImtiT87gVCOXl3aGC00zfDl6ggYAw5+oheJvRJ8KBXZrr/TMISSdVJ5bBarbQDRC2pR5Kto3xTR0kpZInA=="
         crossorigin="anonymous" />
     <script>
-        Vue.createApp({
+        var card = Vue.createApp({
             data() {
                 return {
                     test: 0,
                     id: 'Test',
                     name: 'Sad',
                     state: [{
+                        name: 'HP',
+                        itemA: 5,
+                        itemB: 6
+                    }, {
                         name: 'HP',
                         itemA: 5,
                         itemB: 6
@@ -185,18 +195,14 @@
             },
             methods: {
                 greet(event) {
-                    this.name = 'dd'
+                    //  this.name = 'dd'
                     var socket = io();
-                    socket.on("test", function (amount) {
-                        console.log('amount = ', amount)
+                    socket.emit('card','訊息內容')
+                    socket.on("card", function (amount) {
+                        card.name = amount;
                     });
                     // `this` inside methods points to the current active instance
                     console.log('Hello ' + this.name + '!')
-                    //   console.log(data)
-                    // `event` is the native DOM event
-                    var plant = document.getElementById('array-rendering');
-                    var fruitCount = plant.getAttribute('data-fruit'); // fruitCount = '12'
-                    console.log(document.getElementsByTagName('textarea'))
                 }
             }
         }).mount('#array-rendering')

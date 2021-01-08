@@ -78,7 +78,7 @@
                 height="55em">角色卡功能</h1>
     </center>
     <br>
-    <button type="button" class="btn btn-primary float-right" data-toggle="modal" data-target="#exampleModal">
+    <button type="button" class="btn btn-primary float-right" data-toggle="modal" data-target="#loginModal">
         登出
     </button>
     <div class="container" id="array-rendering">
@@ -96,7 +96,7 @@
         </h3>
         <div class="row align-items-start">
             <div v-for="item in state" id="state">
-                <textarea class="col textName" v-model="item.name" style="width:80px;">
+                <textarea class="col textName" v-model="item.name" style="width:95px;">
                     {{item.name}}
                 </textarea>：
                 <textarea class="col textState" v-model="item.itemA" style="width:80px">
@@ -117,7 +117,7 @@
 
         <div class="row align-items-center" id="roll">
             <div v-for="item in roll">
-                <textarea class="col textName" v-model="item.name" style="width:80px;">
+                <textarea class="col textName" v-model="item.name" style="width:95px;">
                     {{item.name}}
                 </textarea>：
                 <textarea class="col textState" v-model="item.itemA" style="width:80px">
@@ -131,7 +131,7 @@
         </h3>
         <div class="row align-items-end" id="notes">
             <div v-for="item in notes">
-                <textarea class="col textName" v-model="item.name" style="width:80px;">
+                <textarea class="col textName" v-model="item.name" style="width:95px;">
                     {{item.name}}
                 </textarea>：
                 <textarea class="col textNote" v-model="item.itemA" style="width:180px">
@@ -147,30 +147,29 @@
     <!-- Button trigger modal -->
 
     <!-- Modal -->
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel"
         aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">HKTRPG 角色卡登入系統</h5>
+                    <h5 class="modal-title" id="loginModalLabel">HKTRPG 角色卡登入系統</h5>
                 </div>
                 <div class="modal-body">
                     <form id="card-Form">
                         <div class="form-group">
-                            <label for="exampleInputEmail1">使用者名稱</label>
-                            <input type="email" class="form-control" id="exampleInputEmail1"
-                                aria-describedby="emailHelp" placeholder="輸入名稱">
+                            <label for="userName_id">使用者名稱</label>
+                            <input type="email" class="form-control" id="userName_id" aria-describedby="emailHelp"
+                                placeholder="輸入名稱">
                             <small id="emailHelp" class="form-text text-muted"></small>
                         </div>
                         <div class="form-group">
-                            <label for="exampleInputPassword1">Password</label>
-                            <input type="password" class="form-control" id="exampleInputPassword1"
-                                placeholder="Password">
+                            <label for="userPassword_id">Password</label>
+                            <input type="password" class="form-control" id="userPassword_id" placeholder="Password">
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary">登入</button>
+                    <button type="button" class="btn btn-primary" onclick="login()">登入</button>
                 </div>
             </div>
         </div>
@@ -194,16 +193,46 @@
         integrity="sha512-SUJFImtiT87gVCOXl3aGC00zfDl6ggYAw5+oheJvRJ8KBXZrr/TMISSdVJ5bBarbQDRC2pR5Kto3xTR0kpZInA=="
         crossorigin="anonymous" />
     <script>
+        var socket = io();
         document.getElementById("body").onload = function () {
-
             var userName = localStorage.getItem("userName");
             var userPassword = localStorage.getItem("userPassword");
             if (!userName && !userPassword) {
-                $('#exampleModal').modal("show")
+                $('#loginModal').modal({
+                    backdrop: 'static',
+                    keyboard: false
+                })
+            } else {
+                document.getElementById("userName_id").value = userName;
+                document.getElementById("userPassword_id").value = userPassword;
+                socket.emit('getInfo', {
+                    userName: userName,
+                    userPassword: userPassword
+                })
+                socket.on("getInfo", function (amount) {
+                    console.log(amount)
+                    console.log(card);
+                    card.id = amount.id;
+                    card.name = amount.name;
+                    card.notes = amount.notes;
+                    card.roll = amount.roll;
+                    card.state = amount.state;
+                });
+
             }
 
         };
 
+
+
+        function login() {
+            if (document.getElementById("userName_id").value && document.getElementById("userPassword_id")
+                .value) {
+                localStorage.setItem('userName', document.getElementById("userName_id").value);
+                localStorage.setItem('userPassword', document.getElementById("userPassword_id").value);
+                $('#loginModal').modal("hide");
+            }
+        }
 
         var card = Vue.createApp({
             data() {
@@ -239,15 +268,14 @@
             methods: {
                 greet(event) {
                     //  this.name = 'dd'
-                    var socket = io();
+
                     socket.emit('card', card)
                     socket.on("card", function (amount) {
                         card.name = amount;
                     });
-                    var forms = document.getElementById('exampleInputEmail1');
+                    var forms = document.getElementById('userName_id');
                     console.log(forms.value);
                     // `this` inside methods points to the current active instance
-                    console.log('Hello ' + this.name + '!')
                 }
             }
         }).mount('#array-rendering')

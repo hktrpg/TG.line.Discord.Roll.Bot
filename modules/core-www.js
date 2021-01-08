@@ -2,6 +2,7 @@
 if (!process.env.LINE_CHANNEL_ACCESSTOKEN || !process.env.mongoURL) {
     return;
 }
+const schema = require('./core-schema.js');
 const webSite = (process.env.SITE) ? process.env.SITE : null;
 const privateKey = (process.env.KEY_PRIKEY) ? process.env.KEY_PRIKEY : null;
 const certificate = (process.env.KEY_CERT) ? process.env.KEY_CERT : null;
@@ -72,8 +73,18 @@ io.on('connection', (socket) => {
     //CARD
     socket.on('card', message => {
         //回傳 message 給發送訊息的 Client
-        console.log(message)
+        console.log(message);
         socket.emit('card', "")
+    })
+    socket.on('getInfo', async message => {
+        //回傳 message 給發送訊息的 Client
+        console.log(message);
+        let filter = {
+            id: "399923142468042763"
+        }
+        let doc = await schema.characterCard.findOne(filter);
+        console.log(doc)
+        socket.emit('getInfo', doc)
     })
 
 

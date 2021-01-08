@@ -66,25 +66,6 @@
                 data-width="30px" data-height="30px"></span>
         </a>
     </div>
-    <div class="modal" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Modal title</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>Modal body text goes here.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary">Save changes</button>
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
     <!--
     <div>
         <img src="https://cdna.artstation.com/p/assets/images/images/023/585/544/large/farid-nx-rasyidtoken.jpg?1579690738"
@@ -97,6 +78,9 @@
                 height="55em">角色卡功能</h1>
     </center>
     <br>
+    <button type="button" class="btn btn-primary float-right" data-toggle="modal" data-target="#exampleModal">
+        登出
+    </button>
     <div class="container" id="array-rendering">
         <h3>
             <li> ID: {{id}}
@@ -157,13 +141,10 @@
         </div>
         <div>
             <!-- `greet` is the name of a method defined below -->
-            <button @click="greet">Greet</button>
+            <button @click="greet">修改</button>
         </div>
     </div>
     <!-- Button trigger modal -->
-    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
-        Launch demo modal
-    </button>
 
     <!-- Modal -->
     <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
@@ -171,17 +152,25 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <h5 class="modal-title" id="exampleModalLabel">HKTRPG 角色卡登入系統</h5>
                 </div>
                 <div class="modal-body">
-                    ...
+                    <form id="card-Form">
+                        <div class="form-group">
+                            <label for="exampleInputEmail1">使用者名稱</label>
+                            <input type="email" class="form-control" id="exampleInputEmail1"
+                                aria-describedby="emailHelp" placeholder="輸入名稱">
+                            <small id="emailHelp" class="form-text text-muted"></small>
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleInputPassword1">Password</label>
+                            <input type="password" class="form-control" id="exampleInputPassword1"
+                                placeholder="Password">
+                        </div>
+                    </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">Save changes</button>
+                    <button type="button" class="btn btn-primary">登入</button>
                 </div>
             </div>
         </div>
@@ -205,6 +194,17 @@
         integrity="sha512-SUJFImtiT87gVCOXl3aGC00zfDl6ggYAw5+oheJvRJ8KBXZrr/TMISSdVJ5bBarbQDRC2pR5Kto3xTR0kpZInA=="
         crossorigin="anonymous" />
     <script>
+        document.getElementById("body").onload = function () {
+
+            var userName = localStorage.getItem("userName");
+            var userPassword = localStorage.getItem("userPassword");
+            if (!userName && !userPassword) {
+                $('#exampleModal').modal("show")
+            }
+
+        };
+
+
         var card = Vue.createApp({
             data() {
                 return {
@@ -244,6 +244,8 @@
                     socket.on("card", function (amount) {
                         card.name = amount;
                     });
+                    var forms = document.getElementById('exampleInputEmail1');
+                    console.log(forms.value);
                     // `this` inside methods points to the current active instance
                     console.log('Hello ' + this.name + '!')
                 }

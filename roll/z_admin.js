@@ -4,10 +4,12 @@ const opt = {
     upsert: true,
     runValidators: true
 }
-
+const salt = process.env.SALT;
 const crypto = require('crypto');
 const password = process.env.CRYPTO_SECRET,
     algorithm = 'aes-256-ctr';
+const link = process.env.WEB_LINK;
+const port = process.env.PORT || 20721;
 //32bit ASCII
 const adminSecret = process.env.ADMIN_SECRET;
 //admin id
@@ -31,7 +33,9 @@ var getHelpMessage = function () {
 用來Debug 及調整VIP工具\n\
 .admin state 取得Rollbot狀態\n\
 .admin debug 用來取得群組資料\n\
-.admin account (username) (password) \n"
+.admin account (username) (password) \n\
+username 4-16字,中英文限定 \n\
+password 6-16字,英文及以下符號限定 !@#$%^&*\n"
 }
 
 var initialize = function () {
@@ -56,6 +60,9 @@ var rollDiceCommand = async function ({
     };
     let filter = {};
     let doc = {};
+    let temp;
+    let hash = ""
+    let name;
     switch (true) {
         case /^help$/i.test(mainMsg[1]):
             rply.text = this.getHelpMessage();
@@ -63,7 +70,61 @@ var rollDiceCommand = async function ({
         case /^state$/i.test(mainMsg[1]):
             rply.state = true;
             return rply;
-        case /^fetch$/i.test(mainMsg[1]):
+        case /^account$/i.test(mainMsg[1]):
+            name = mainMsg[2].toLowerCase();
+            if (groupid) {
+                rply.text = "設定帳號時，請直接和HKTRPG對話，禁止在群組中使用";
+                return rply;
+            }
+            if (!name || !checkUserName(name)) {
+                rply.text = "請設定使用者名稱，4-16字，中英文限定，大小階相同";
+                return rply;
+            }
+            if (!mainMsg[3] || !checkPassword(mainMsg[3])) {
+                rply.text = "請設定密碼，6-16字，英文及以下符號限定!@#$%^&*";
+                return rply;
+            }
+            hash = crypto.createHmac('sha256', mainMsg[3])
+                .update(salt)
+                .digest('hex');
+            try {
+                temp = await schema.accountPW.findOne({
+                    "userName": name
+                });
+                console.log(temp)
+            } catch (e) {
+                console.log('ACCOUNT ERROR:', e);
+                rply.text += JSON.stringify(e);
+                return rply;
+            }
+            if (temp && temp.id != userid) {
+                rply.text += "重覆用戶名稱"
+                return rply;
+            }
+            try {
+                doc = await schema.accountPW.findOneAndUpdate({
+                    "id": userid
+                }, {
+                    $set: {
+                        "userName": name,
+                        "password": hash
+                    }
+                }, {
+                    upsert: true,
+                    returnNewDocument: true
+                });
+
+            } catch (e) {
+                console.log('ACCOUNT ERROR:', e);
+                rply.text += JSON.stringify(e);
+                return rply;
+            }
+            if (doc) {
+                rply.text += "現在你的帳號是: " + name + "\n" + "密碼: " + mainMsg[3];
+                if (link)
+                    rply.text += "\n登入位置: " + link + ":" + port + "/card/";
+                return rply;
+            }
 
             return rply;
         case /^debug$/i.test(mainMsg[1]):
@@ -142,6 +203,15 @@ var rollDiceCommand = async function ({
     }
 }
 
+function checkUserName(text) {
+    //True 即成功
+    return /^[A-Za-z0-9\u3000\u3400-\u4DBF\u4E00-\u9FFF]{4,16}$/.test(text);
+}
+
+function checkPassword(text) {
+    //True 即成功
+    return /^[A-Za-z0-9!@#$%^&*]{6,16}$/.test(text);
+}
 async function store(mainMsg, mode) {
     const pattId = /\s+-i\s+(\S+)/ig;
     const pattGP = /\s+-g\s+(\S+)/ig;

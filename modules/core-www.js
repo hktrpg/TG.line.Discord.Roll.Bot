@@ -8,6 +8,8 @@ const privateKey = (process.env.KEY_PRIKEY) ? process.env.KEY_PRIKEY : null;
 const certificate = (process.env.KEY_CERT) ? process.env.KEY_CERT : null;
 const ca = (process.env.KEY_CA) ? process.env.KEY_CA : null;
 const www = require('./core-Line').app;
+const salt = process.env.SALT;
+const crypto = require('crypto');
 const fs = require('fs');
 var options = {
     key: null,
@@ -85,11 +87,18 @@ io.on('connection', (socket) => {
         //回傳 message 給發送訊息的 Client
         console.log(message);
         let filter = {
-            id: "399923142468042763"
+            userName: message.userName,
+            password: SHA(message.userPassword)
         }
-        let doc = await schema.characterCard.find(filter);
-        console.log(doc)
-        socket.emit('getListInfo', doc)
+        let doc = await schema.accountPW.findOne(filter);
+        console.log(doc);
+        let temp;
+        if (doc && doc.id) {
+            temp = await schema.characterCard.find({
+                id: doc.id
+            });
+        }
+        socket.emit('getListInfo', temp)
     })
 
 
@@ -177,6 +186,11 @@ server.listen(port, () => {
     console.log("Web Server Started. port:" + port);
 });
 
+function SHA(text) {
+    return crypto.createHmac('sha256', text)
+        .update(salt)
+        .digest('hex');
+}
 async function loadb(io, records, rplyVal, message) {
     for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
         io.emit(message.roomNumber, {

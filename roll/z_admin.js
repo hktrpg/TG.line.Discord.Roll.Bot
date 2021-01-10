@@ -30,7 +30,8 @@ var getHelpMessage = function () {
     return "【Admin 工具】" + "\
 用來Debug 及調整VIP工具\n\
 .admin state 取得Rollbot狀態\n\
-.admin debug 用來取得群組資料\n"
+.admin debug 用來取得群組資料\n\
+.admin account (username) (password) \n"
 }
 
 var initialize = function () {

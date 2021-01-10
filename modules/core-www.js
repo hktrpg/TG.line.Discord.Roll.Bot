@@ -70,12 +70,6 @@ www.get('/card', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-    //CARD
-    socket.on('card', message => {
-        //回傳 message 給發送訊息的 Client
-        console.log(message);
-        socket.emit('card', "")
-    })
     socket.on('getInfo', async message => {
         //回傳 message 給發送訊息的 Client
         console.log(message);
@@ -85,6 +79,17 @@ io.on('connection', (socket) => {
         let doc = await schema.characterCard.findOne(filter);
         console.log(doc)
         socket.emit('getInfo', doc)
+    })
+
+    socket.on('getListInfo', async message => {
+        //回傳 message 給發送訊息的 Client
+        console.log(message);
+        let filter = {
+            id: "399923142468042763"
+        }
+        let doc = await schema.characterCard.find(filter);
+        console.log(doc)
+        socket.emit('getListInfo', doc)
     })
 
 

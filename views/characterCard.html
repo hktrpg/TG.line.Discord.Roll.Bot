@@ -28,6 +28,8 @@
         height: 30px;
         background-color: #FADCD9;
         resize: none;
+        overflow: hidden;
+        white-space: nowrap;
     }
 
     .textState {
@@ -35,6 +37,8 @@
         height: 30px;
         background-color: #FADCD9;
         resize: none;
+        overflow: hidden;
+        white-space: nowrap;
     }
 </style>
 
@@ -96,7 +100,7 @@
         </h3>
         <div class="row align-items-start">
             <div v-for="item in state" id="state">
-                <textarea class="col textName" v-model="item.name" style="width:95px;">
+                <textarea class="col textName" v-model="item.name" style="width:80px;">
                     {{item.name}}
                 </textarea>：
                 <textarea class="col textState" v-model="item.itemA" style="width:80px">
@@ -117,7 +121,7 @@
 
         <div class="row align-items-center" id="roll">
             <div v-for="item in roll">
-                <textarea class="col textName" v-model="item.name" style="width:95px;">
+                <textarea class="col textName" v-model="item.name" style="width:80px;">
                     {{item.name}}
                 </textarea>：
                 <textarea class="col textState" v-model="item.itemA" style="width:80px">
@@ -131,7 +135,7 @@
         </h3>
         <div class="row align-items-end" id="notes">
             <div v-for="item in notes">
-                <textarea class="col textName" v-model="item.name" style="width:95px;">
+                <textarea class="col textName" v-model="item.name" style="width:80px;">
                     {{item.name}}
                 </textarea>：
                 <textarea class="col textNote" v-model="item.itemA" style="width:180px">
@@ -174,6 +178,24 @@
             </div>
         </div>
     </div>
+
+
+    <div class="modal fade" id="cardListModal" tabindex="-1" role="dialog" aria-labelledby="cardListModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cardListModalLabel">選擇角色卡</h5>
+                </div>
+                <div class="modal-body">
+                    <form id="cardList-Form">
+                        <div class="form-group">
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
@@ -194,22 +216,54 @@
         crossorigin="anonymous" />
     <script>
         var socket = io();
+        var userName = localStorage.getItem("userName");
+        var userPassword = localStorage.getItem("userPassword");
+
         document.getElementById("body").onload = function () {
-            var userName = localStorage.getItem("userName");
-            var userPassword = localStorage.getItem("userPassword");
             if (!userName && !userPassword) {
                 $('#loginModal').modal({
                     backdrop: 'static',
                     keyboard: false
                 })
             } else {
+                login();
+                /**
+                                socket.emit('getInfo', {
+                                    userName: userName,
+                                    userPassword: userPassword
+                                })
+                                socket.on("getInfo", function (amount) {
+                                    console.log(amount)
+                                    console.log(card);
+                                    card.id = amount.id;
+                                    card.name = amount.name;
+                                    card.notes = amount.notes;
+                                    card.roll = amount.roll;
+                                    card.state = amount.state;
+                                });
+
+                                
+                localStorage.setItem('userName', document.getElementById("userName_id").value);
+                localStorage.setItem('userPassword', document.getElementById("userPassword_id").value);
+                                **/
+
+            }
+
+        };
+
+
+
+        function login() {
+            // document.getElementById("userName_id").value = userName;
+            //document.getElementById("userPassword_id").value = userPassword;
+            if (userName && userPassword) {
                 document.getElementById("userName_id").value = userName;
                 document.getElementById("userPassword_id").value = userPassword;
-                socket.emit('getInfo', {
+                socket.emit('getListInfo', {
                     userName: userName,
                     userPassword: userPassword
                 })
-                socket.on("getInfo", function (amount) {
+                socket.on("getListInfo", function (amount) {
                     console.log(amount)
                     console.log(card);
                     card.id = amount.id;
@@ -219,18 +273,8 @@
                     card.state = amount.state;
                 });
 
-            }
-
-        };
 
 
-
-        function login() {
-            if (document.getElementById("userName_id").value && document.getElementById("userPassword_id")
-                .value) {
-                localStorage.setItem('userName', document.getElementById("userName_id").value);
-                localStorage.setItem('userPassword', document.getElementById("userPassword_id").value);
-                $('#loginModal').modal("hide");
             }
         }
 

@@ -122,7 +122,7 @@ var rollDiceCommand = async function ({
             if (doc) {
                 rply.text += "現在你的帳號是: " + name + "\n" + "密碼: " + mainMsg[3];
                 if (link)
-                    rply.text += "\n登入位置: " + link + ":" + port + "/card/";
+                    rply.text += "\n登入位置: https://www.hktrpg.com:20721/card/ ";
                 return rply;
             }
 

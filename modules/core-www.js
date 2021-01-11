@@ -61,57 +61,58 @@ if (process.env.DISCORD_CHANNEL_SECRET)
         if (req.originalUrl.match(/html$/))
             res.sendFile(process.cwd() + '/tmp/' + req.originalUrl.replace('/app/discord/', ''));
     });
-//if (process.env.DISCORD_CHANNEL_SECRET)
-www.get('/card', (req, res) => {
-    res.sendFile(process.cwd() + '/views/characterCard.html');
-});
+if (webSite)
+    www.get('/card', (req, res) => {
+        res.sendFile(process.cwd() + '/views/characterCard.html');
+    });
 
 io.on('connection', (socket) => {
-    socket.on('getListInfo', async message => {
-        //回傳 message 給發送訊息的 Client
-        let filter = {
-            userName: message.userName,
-            password: SHA(message.userPassword)
-        }
-        let doc = await schema.accountPW.findOne(filter);
-        let temp;
-        if (doc && doc.id) {
-            temp = await schema.characterCard.find({
-                id: doc.id
-            });
-        }
-        socket.emit('getListInfo', temp)
-    })
-
-    socket.on('updateCard', async message => {
-        //回傳 message 給發送訊息的 Client
-        let filter = {
-            userName: message.userName,
-            password: SHA(message.userPassword)
-        }
-        let doc = await schema.accountPW.findOne(filter);
-        let temp;
-        if (doc && doc.id) {
-            message.card.state = checkNullItem(message.card.state);
-            message.card.roll = checkNullItem(message.card.roll);
-            message.card.notes = checkNullItem(message.card.notes);
-            temp = await schema.characterCard.findOneAndUpdate({
-                id: doc.id,
-                _id: message.card._id
-            }, {
-                $set: {
-                    state: message.card.state,
-                    roll: message.card.roll,
-                    notes: message.card.notes,
-                }
-            });
-        }
-        if (temp) {
-            socket.emit('updateCard', true)
-        } else {
-            socket.emit('updateCard', false)
-        }
-    })
+    if (webSite)
+        socket.on('getListInfo', async message => {
+            //回傳 message 給發送訊息的 Client
+            let filter = {
+                userName: message.userName,
+                password: SHA(message.userPassword)
+            }
+            let doc = await schema.accountPW.findOne(filter);
+            let temp;
+            if (doc && doc.id) {
+                temp = await schema.characterCard.find({
+                    id: doc.id
+                });
+            }
+            socket.emit('getListInfo', temp)
+        })
+    if (webSite)
+        socket.on('updateCard', async message => {
+            //回傳 message 給發送訊息的 Client
+            let filter = {
+                userName: message.userName,
+                password: SHA(message.userPassword)
+            }
+            let doc = await schema.accountPW.findOne(filter);
+            let temp;
+            if (doc && doc.id) {
+                message.card.state = checkNullItem(message.card.state);
+                message.card.roll = checkNullItem(message.card.roll);
+                message.card.notes = checkNullItem(message.card.notes);
+                temp = await schema.characterCard.findOneAndUpdate({
+                    id: doc.id,
+                    _id: message.card._id
+                }, {
+                    $set: {
+                        state: message.card.state,
+                        roll: message.card.roll,
+                        notes: message.card.notes,
+                    }
+                });
+            }
+            if (temp) {
+                socket.emit('updateCard', true)
+            } else {
+                socket.emit('updateCard', false)
+            }
+        })
 
     function checkNullItem(target) {
         return target = target.filter(function (item) {

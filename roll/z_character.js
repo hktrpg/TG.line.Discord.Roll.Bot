@@ -5,6 +5,8 @@ if (!process.env.mongoURL) {
 var variables = {};
 const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
+const link = process.env.WEB_LINK;
+const port = process.env.PORT || 20721;
 const limitArr = [4, 20, 20, 30, 30, 99, 99, 99];
 var gameName = function () {
     return '(公測中)角色卡功能 .char (add edit show delete use nonuse) .ch (set show showall)'
@@ -118,6 +120,8 @@ cc 80 投擲
 var getHelpMessage = function () {
     return "【角色卡功能】" + "\n\
 以個人為單位, 一張卡可以在不同的群組使用\n\
+新增了角色卡後，可以輸入.admin account (username) (password) \n\
+然後在網址: " + link + ":" + port + "/card/ 中進行修改" + "\n\
 -----.char-----\n\
 .char add 的輸入格式,用來創建及更新角色卡\n\
 -----範例開始-----\n\
@@ -734,7 +738,7 @@ async function analysicInputCharacterCard(inputStr) {
     let characterNotesTemp = (inputStr.match(regexNotes)) ? inputStr.match(regexNotes)[1] : '';
     let characterState = (characterStateTemp) ? await analysicStr(characterStateTemp, true) : [];
     let characterRoll = (characterRollTemp) ? await analysicStr(characterRollTemp, false) : [];
-    let characterNotes = (characterNotesTemp) ? await analysicStr(characterNotesTemp, false) : [];
+    let characterNotes = (characterNotesTemp) ? await analysicStr(characterNotesTemp, false, 'notes') : [];
     //Remove duplicates from an array of objects in JavaScript
     // if (characterState)
     characterState = characterState.filter((v, i, a) => a.findIndex(t => (t.name === v.name)) === i)
@@ -751,7 +755,7 @@ async function analysicInputCharacterCard(inputStr) {
     return character;
 }
 
-async function analysicStr(inputStr, state) {
+async function analysicStr(inputStr, state, term) {
     let character = [];
     let myArray = [];
     while ((myArray = re.exec(inputStr)) !== null) {
@@ -764,7 +768,10 @@ async function analysicStr(inputStr, state) {
         //防止誤輸入
         myArray[3] = (myArray[3] == ';') ? '' : myArray[3];
         myArray[1] = myArray[1].replace(/\s+/g, '');
-        myArray[2] = myArray[2].replace(/^\s+/, '').replace(/\s+$/, '').replace(/\s+[.]ch\s+/i, ' ').replace(/\s+[.]char\s+/i, ' ');
+        if (term !== "notes") {
+            myArray[2] = myArray[2].replace(/\s+[.]ch\s+/i, ' ').replace(/\s+[.]char\s+/i, ' ');
+        }
+        myArray[2] = myArray[2].replace(/^\s+/, '').replace(/\s+$/, '');
         myArray[3] = myArray[3].replace(/^\s+/, '').replace(/\s+$/, '');
         if (state)
             character.push({

@@ -2,11 +2,14 @@
 if (!process.env.LINE_CHANNEL_ACCESSTOKEN || !process.env.mongoURL) {
     return;
 }
+const schema = require('./core-schema.js');
 const webSite = (process.env.SITE) ? process.env.SITE : null;
 const privateKey = (process.env.KEY_PRIKEY) ? process.env.KEY_PRIKEY : null;
 const certificate = (process.env.KEY_CERT) ? process.env.KEY_CERT : null;
 const ca = (process.env.KEY_CA) ? process.env.KEY_CA : null;
 const www = require('./core-Line').app;
+const salt = process.env.SALT;
+const crypto = require('crypto');
 const fs = require('fs');
 var options = {
     key: null,
@@ -40,10 +43,6 @@ if (!options.key) {
     console.log('https server');
 }
 
-//const server = require('./www.js').http;
-//var express = require('express');
-//var www = require('express')();
-//var http = require('http').createServer(www);
 const io = require('socket.io')(server);
 const records = require('./records.js');
 const port = process.env.PORT || 20721;
@@ -55,7 +54,6 @@ let onlineCount = 0;
 
 if (webSite)
     www.get('/', (req, res) => {
-        //  console.log('req: ', req, 'res: ', res)
         res.sendFile(process.cwd() + '/views/index.html');
     });
 if (process.env.DISCORD_CHANNEL_SECRET)
@@ -63,8 +61,64 @@ if (process.env.DISCORD_CHANNEL_SECRET)
         if (req.originalUrl.match(/html$/))
             res.sendFile(process.cwd() + '/tmp/' + req.originalUrl.replace('/app/discord/', ''));
     });
+if (webSite)
+    www.get('/card', (req, res) => {
+        res.sendFile(process.cwd() + '/views/characterCard.html');
+    });
 
 io.on('connection', (socket) => {
+    if (webSite)
+        socket.on('getListInfo', async message => {
+            //回傳 message 給發送訊息的 Client
+            let filter = {
+                userName: message.userName,
+                password: SHA(message.userPassword)
+            }
+            let doc = await schema.accountPW.findOne(filter);
+            let temp;
+            if (doc && doc.id) {
+                temp = await schema.characterCard.find({
+                    id: doc.id
+                });
+            }
+            socket.emit('getListInfo', temp)
+        })
+    if (webSite)
+        socket.on('updateCard', async message => {
+            //回傳 message 給發送訊息的 Client
+            let filter = {
+                userName: message.userName,
+                password: SHA(message.userPassword)
+            }
+            let doc = await schema.accountPW.findOne(filter);
+            let temp;
+            if (doc && doc.id) {
+                message.card.state = checkNullItem(message.card.state);
+                message.card.roll = checkNullItem(message.card.roll);
+                message.card.notes = checkNullItem(message.card.notes);
+                temp = await schema.characterCard.findOneAndUpdate({
+                    id: doc.id,
+                    _id: message.card._id
+                }, {
+                    $set: {
+                        state: message.card.state,
+                        roll: message.card.roll,
+                        notes: message.card.notes,
+                    }
+                });
+            }
+            if (temp) {
+                socket.emit('updateCard', true)
+            } else {
+                socket.emit('updateCard', false)
+            }
+        })
+
+    function checkNullItem(target) {
+        return target = target.filter(function (item) {
+            return item.name;
+        });
+    }
     // 有連線發生時增加人數
     onlineCount++;
     // 發送人數給網頁
@@ -76,6 +130,7 @@ io.on('connection', (socket) => {
     records.chatRoomGet("公共房間", (msgs) => {
         socket.emit("chatRecord", msgs);
     });
+
 
     socket.on("greet", () => {
         socket.emit("greet", onlineCount);
@@ -112,7 +167,6 @@ records.on("new_message", async (message) => {
     if (message.msg && message.name.match(/^HKTRPG/ig)) {
         return;
     }
-    // console.log(message)
     io.emit(message.roomNumber, message);
     let rplyVal = {}
     let msgSplitor = (/\S+/ig)
@@ -137,8 +191,6 @@ records.on("new_message", async (message) => {
         }
     }
     if (rplyVal && rplyVal.text) {
-        //console.log('rplyVal.text:' + rplyVal.text)
-        //console.log('Telegram Roll: ' + WWWcountroll + ', Telegram Text: ' + WWWcounttext, " content: ", message.text);
         rplyVal.text = '\n' + rplyVal.text
         loadb(io, records, rplyVal, message);
     }
@@ -148,6 +200,11 @@ server.listen(port, () => {
     console.log("Web Server Started. port:" + port);
 });
 
+function SHA(text) {
+    return crypto.createHmac('sha256', text)
+        .update(salt)
+        .digest('hex');
+}
 async function loadb(io, records, rplyVal, message) {
     for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
         io.emit(message.roomNumber, {

@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="zh-Hant-HK">
+<!-- HKTRPG Sad-->
+<style>
+    .bg-color {
+        background-color: #F9F1F0
+    }
+
+    .bg-color2 {
+        background-color: #F79489
+    }
+
+    .bg-color3 {
+        background-color: #F8AFA6
+    }
+
+    .bg-color4 {
+        background-color: #FADCD9
+    }
+
+    .textNote {
+        background-color: #FADCD9;
+        resize: none;
+        height: 80px;
+    }
+
+    .textName {
+        height: 30px;
+        background-color: #FADCD9;
+        resize: none;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+
+    .textState {
+        width: 153px;
+        height: 30px;
+        background-color: #FADCD9;
+        resize: none;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+</style>
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap CSS -->
+    <script src="/socket.io/socket.io.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
+        integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- production version, optimized for size and speed -->
+    <script src="https://unpkg.com/vue@3.0.5"></script>
+
+
+    <title>Character Card 角色卡 @ HKTRPG</title>
+    <link rel="icon" href="https://avatars2.githubusercontent.com/u/48795428?s=280&v=4" />
+    <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+
+    <!--https://blog.gtwang.org/programming/javascript-aes-symmetric-encryption-tutorial/-->
+</head>
+
+<body class="bg-color center container" id="body">
+    <div class="fixed-top text-right mr-md-5">
+        <a href="https://github.com/hktrpg/TG.line.Discord.Roll.Bot"><span class="iconify" data-icon="bytesize:github"
+                data-inline="false" data-width="25px" data-height="25px"></span></a>
+        <a href="https://www.hktrpg.com"><span class="iconify" data-icon="ic:baseline-web" data-inline="false"
+                data-width="30px" data-height="30px"></span>
+        </a>
+    </div>
+    <!--
+    <div>
+        <img src="https://cdna.artstation.com/p/assets/images/images/023/585/544/large/farid-nx-rasyidtoken.jpg?1579690738"
+            class="img-thumbnail" alt="Cinque Terre" width="304" height="236">
+    </div>
+
+    -->
+
+    <center>
+        <h1 class=" bg-color2"><img src='https://avatars2.githubusercontent.com/u/48795428?s=280&v=4'
+                height="55em">角色卡功能</h1>
+    </center>
+    <br>
+    <div class="alert alert-warning alert-dismissible fade show" role="alert" id="warning-update">
+        <strong>更新成功!</strong> 你可以在聊天平台上使用新資料了。
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="alert alert-warning alert-dismissible fade show" role="alert" id="warning-updateError">
+        <strong>更新失敗!</strong> 請檢查或向HKTRPG回報。
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+
+    <div class="container" id="array-rendering">
+        <button type="button" class="btn btn-primary float-right" onclick="logout()">
+            登入/登出
+        </button>
+        <button type="button" class="btn btn-secondary float-right" onclick="selectCard()">
+            選擇角色卡
+        </button>
+        <button type="button" class="btn btn-info float-right" v-if="name" onclick="updateCard()">
+            儲存角色卡
+        </button>
+        <h3>
+            <li> 角色名字: {{name}}
+            </li>
+        </h3>
+        <br>
+        <h3 class="bg-color3">
+            基本屬性
+        </h3>
+        <button type="button" class="btn btn-warning float-right" v-if="name" onclick="newItem(0)">
+            +
+        </button>
+        <button type="button" class="btn btn-warning float-right" v-if="name" onclick="removeItem(0)">
+            -
+        </button>
+        <div class="row align-items-start">
+            <div v-for="item in state" id="state">
+                <textarea class="col textName" v-model="item.name" style="width:80px;">
+                    {{item.name}}
+                </textarea>：
+                <textarea class="col textState" v-model="item.itemA" style="width:80px">
+                    {{item.itemA}}
+                </textarea>
+                <span>/
+                    <textarea class="col textState" v-model="item.itemB" style="width:80px">
+                    {{item.itemB}}
+                </textarea>
+                </span>
+                &nbsp; &nbsp;
+            </div>
+
+        </div>
+
+        <br>
+        <h3 class=" bg-color3">
+            擲骰
+        </h3>
+        <button type="button" class="btn btn-warning float-right" v-if="name" onclick="newItem(1)">
+            +
+        </button>
+        <button type="button" class="btn btn-warning float-right" v-if="name" onclick="removeItem(1)">
+            -
+        </button>
+        <div class="row align-items-center" id="roll">
+            <div v-for="item in roll">
+                <textarea class="col textName" v-model="item.name" style="width:80px;">
+                    {{item.name}}
+                </textarea>：
+                <textarea class="col textState" v-model="item.itemA" style="width:80px">
+                    {{item.itemA}}
+                </textarea>&nbsp; &nbsp;
+            </div>
+        </div>
+        <br>
+        <h3 class=" bg-color3">
+            筆記
+        </h3>
+        <button type="button" class="btn btn-warning float-right" v-if="name" onclick="newItem(2)">
+            +
+        </button>
+        <button type="button" class="btn btn-warning float-right" v-if="name" onclick="removeItem(2)">
+            -
+        </button>
+        <div class="row align-items-end" id="notes">
+            <div v-for="item in notes">
+                <textarea class="col textName" v-model="item.name" style="width:80px;">
+                    {{item.name}}
+                </textarea>：
+                <textarea class="col textNote" v-model="item.itemA" style="width:180px">
+                    {{item.itemA}}
+                </textarea>&nbsp; &nbsp;
+            </div>
+        </div>
+    </div>
+    <!-- Button trigger modal -->
+
+    <!-- Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="loginModalLabel">HKTRPG 角色卡登入系統</h5>
+                </div>
+                <div class="modal-body">
+                    <form id="card-Form">
+                        <div class="form-group">
+                            <label for="userName_id">使用者名稱</label>
+                            <input type="email" class="form-control" id="userName_id" autocomplete="current-username"
+                                aria-describedby="emailHelp" placeholder="輸入名稱">
+                            <small id="emailHelp" class="form-text text-muted"></small>
+                        </div>
+                        <div class="form-group">
+                            <label for="userPassword_id">Password</label>
+                            <input type="password" class="form-control" id="userPassword_id"
+                                autocomplete="current-password" placeholder="Password">
+                        </div>
+                    </form>
+                </div>
+                <div id="warning" class="small" style="color:red;display:none">登入失敗或沒有角色卡</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="login()">登入</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="cardListModal" tabindex="-1" role="dialog" aria-labelledby="cardListModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cardListModalLabel">選擇角色卡</h5>
+                </div>
+                <div class="modal-body">
+                    <form id="cardList-Form">
+                        <div class="form-group">
+                            <div id="array-cardList">
+                                <div v-for="(item,index) in list" :key="index">
+                                    <p> <button type="button" class="btn btn-warning"
+                                            v-on:click="getTheSelectedOne(index)"> {{item.name}}</button>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+        integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js"
+        integrity="sha384-w1Q4orYjBQndcko6MimVbzY0tgp4pWB4lZ7lr30WKz0vr/aWKhXdBNmNb5D92v7s" crossorigin="anonymous">
+    </script>
+
+    <script>
+        $('#warning-update').hide();
+        $('#warning-updateError').hide();
+        var socket = io();
+        var userName = localStorage.getItem("userName");
+        var userPassword = localStorage.getItem("userPassword");
+        document.getElementById("userName_id").value = userName;
+        document.getElementById("userPassword_id").value = userPassword;
+        document.getElementById("body").onload = function () {
+            login();
+
+        };
+
+        function popup(result) {
+            if (result) {
+                $('#warning-update').show();
+                setTimeout(function () {
+                    // Closing the alert 
+                    $('#warning-update').hide();
+                }, 2000);
+            }
+            if (!result) {
+                $('#warning-updateError').show();
+                setTimeout(function () {
+                    // Closing the alert 
+                    $('#warning-updateError').hide();
+                }, 4000);
+            }
+
+        }
+
+        function updateCard() {
+            socket.emit('updateCard', {
+                userName: userName,
+                userPassword: userPassword,
+                card: card
+            })
+            socket.on("updateCard", function (result) {
+                popup(result);
+            })
+        }
+
+        function newItem(form) {
+            switch (form) {
+                case 0:
+                    card.state.push({
+                        itemA: ""
+                    });
+                    break;
+                case 1:
+                    card.roll.push({
+                        itemA: ""
+                    });
+                    break;
+                case 2:
+                    card.notes.push({
+                        itemA: ""
+                    });
+                    break;
+                default:
+                    break;
+            }
+
+        }
+
+        function removeItem(form) {
+            switch (form) {
+                case 0:
+                    card.state.pop();
+                    break;
+                case 1:
+                    card.roll.pop();
+                    break;
+                case 2:
+                    card.notes.pop();
+                    break;
+                default:
+                    break;
+            }
+
+        }
+
+        function logout() {
+            document.getElementById("warning").style.display = "none";
+            $('#loginModal').modal({
+                backdrop: 'static',
+                keyboard: false
+            })
+            card._id = "";
+            card.id = "";
+            card.name = "";
+            card.notes = "";
+            card.roll = "";
+            card.state = "";
+        }
+
+        function selectCard() {
+            $('#cardListModal').modal("show")
+        }
+
+        function login() {
+            userName = document.getElementById("userName_id").value;
+            userPassword = document.getElementById("userPassword_id").value;
+            localStorage.setItem('userName', userName);
+            localStorage.setItem('userPassword', userPassword);
+            if (userName && userName.length >= 4 && userPassword && userPassword.length >= 6) {
+                document.getElementById("userName_id").value = userName;
+                document.getElementById("userPassword_id").value = userPassword;
+                socket.emit('getListInfo', {
+                    userName: userName,
+                    userPassword: userPassword
+                })
+                socket.on("getListInfo", function (list) {
+                    if (list) {
+                        document.getElementById("warning").style.display = "none";
+                        cardList.list = list
+                        $('#loginModal').modal("hide");
+                        $('#cardListModal').modal("show");
+                    } else {
+                        document.getElementById("warning").style.display = "block";
+                        $('#loginModal').modal({
+                            backdrop: 'static',
+                            keyboard: false
+                        })
+                    }
+                });
+            } else {
+                $('#loginModal').modal({
+                    backdrop: 'static',
+                    keyboard: false
+                })
+            }
+        }
+
+        var card = Vue.createApp({
+            data() {
+                return {
+                    id: "",
+                    name: "",
+                    state: [],
+                    roll: [],
+                    notes: []
+                }
+            },
+            methods: {
+                greet(event) {
+                    socket.emit('card', card)
+                    socket.on("card", function (amount) {
+                        card.name = amount;
+                    });
+                    var forms = document.getElementById('userName_id');
+                }
+            }
+        }).mount('#array-rendering')
+        var cardList = Vue.createApp({
+            data() {
+                return {
+                    list: []
+                }
+            },
+            methods: {
+                getTheSelectedOne(number) {
+                    // then number will be the number
+                    card._id = this.list[number]._id;
+                    card.id = this.list[number].id;
+                    card.name = this.list[number].name;
+                    card.notes = this.list[number].notes;
+                    card.roll = this.list[number].roll;
+                    card.state = this.list[number].state;
+                    $('#cardListModal').modal("hide")
+                }
+            }
+        }).mount('#array-cardList')
+    </script>
+</body>
+<!-- HKTRPG Sad -- 20201221-->
+<!--
+
+輸入 .char online
+
+-> 產生 和 顯示一組ID 和 PASSWORD.
+-> 產生一個DB -> 這組ID, 對應一個ACC.
+
+
+
+試入USER NAME和 密碼, 可以登入
+
+顯示角色卡列表
+
+點擊進入, 取得內容
+
+角色卡內容可以修改
+
+修改後按碓定鍵送出
+
+
+
+-->
+
+</html>

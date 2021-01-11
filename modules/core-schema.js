@@ -178,6 +178,11 @@ const characterGpSwitch = mongoose.model('characterGpSwitch', new mongoose.Schem
     name: String,
     cardId: String
 }));
+const accountPW = mongoose.model('accountPW', new mongoose.Schema({
+    id: String,
+    userName: String,
+    password: String
+}));
 
 const chatRoom = mongoose.model('chatRoom', new mongoose.Schema({
     name: { // 欄位名稱
@@ -274,7 +279,9 @@ module.exports = {
     codelist,
     chatRoom,
     exportGp,
-    exportUser
+    exportUser,
+    accountPW
+ 
 }
 //const Cat = mongoose.model('Cat', { name: String });
 //const kitty = new Cat({ name: 'Zildjian' });

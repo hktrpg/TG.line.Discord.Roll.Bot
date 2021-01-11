@@ -77,20 +77,33 @@
     </div>
 
     -->
+
     <center>
         <h1 class=" bg-color2"><img src='https://avatars2.githubusercontent.com/u/48795428?s=280&v=4'
                 height="55em">角色卡功能</h1>
     </center>
     <br>
-    <button type="button" class="btn btn-primary float-right" onclick="logout()">
-        登出
-    </button>
+    <div class="alert alert-success" style="display:none" role="alert">
+        更新角色卡成功
+    </div>
+    <div class="alert alert-warning alert-dismissible fade show" role="alert" id="warning-update">
+        <strong>Holy guacamole!</strong> You should check in on some of those fields below.
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+
 
     <div class="container" id="array-rendering">
-        <h3>
-            <li> ID: {{id}}
-            </li>
-        </h3>
+        <button type="button" class="btn btn-primary float-right" onclick="logout()">
+            登入/登出
+        </button>
+        <button type="button" class="btn btn-secondary float-right" onclick="selectCard()">
+            選擇角色卡
+        </button>
+        <button type="button" class="btn btn-info float-right" v-if="name" onclick="updateCard()">
+            儲存角色卡
+        </button>
         <h3>
             <li> 角色名字: {{name}}
             </li>
@@ -99,6 +112,12 @@
         <h3 class="bg-color3">
             基本屬性
         </h3>
+        <button type="button" class="btn btn-warning float-right" v-if="name" onclick="newItem(0)">
+            +
+        </button>
+        <button type="button" class="btn btn-warning float-right" v-if="name" onclick="removeItem(0)">
+            -
+        </button>
         <div class="row align-items-start">
             <div v-for="item in state" id="state">
                 <textarea class="col textName" v-model="item.name" style="width:80px;">
@@ -114,12 +133,19 @@
                 </span>
                 &nbsp; &nbsp;
             </div>
+
         </div>
+
         <br>
         <h3 class=" bg-color3">
             擲骰
         </h3>
-
+        <button type="button" class="btn btn-warning float-right" v-if="name" onclick="newItem(1)">
+            +
+        </button>
+        <button type="button" class="btn btn-warning float-right" v-if="name" onclick="removeItem(1)">
+            -
+        </button>
         <div class="row align-items-center" id="roll">
             <div v-for="item in roll">
                 <textarea class="col textName" v-model="item.name" style="width:80px;">
@@ -134,6 +160,12 @@
         <h3 class=" bg-color3">
             筆記
         </h3>
+        <button type="button" class="btn btn-warning float-right" v-if="name" onclick="newItem(2)">
+            +
+        </button>
+        <button type="button" class="btn btn-warning float-right" v-if="name" onclick="removeItem(2)">
+            -
+        </button>
         <div class="row align-items-end" id="notes">
             <div v-for="item in notes">
                 <textarea class="col textName" v-model="item.name" style="width:80px;">
@@ -143,10 +175,6 @@
                     {{item.itemA}}
                 </textarea>&nbsp; &nbsp;
             </div>
-        </div>
-        <div>
-            <!-- `greet` is the name of a method defined below -->
-            <button @click="greet">修改</button>
         </div>
     </div>
     <!-- Button trigger modal -->
@@ -194,8 +222,9 @@
                     <form id="cardList-Form">
                         <div class="form-group">
                             <div id="array-cardList">
-                                <div v-for="item in list">
-                                    <p> <button type="button" class="btn btn-warning"> {{item.name}}</button>
+                                <div v-for="(item,index) in list" :key="index">
+                                    <p> <button type="button" class="btn btn-warning"
+                                            v-on:click="getTheSelectedOne(index)"> {{item.name}}</button>
                                     </p>
                                 </div>
                             </div>
@@ -224,14 +253,129 @@
         integrity="sha512-SUJFImtiT87gVCOXl3aGC00zfDl6ggYAw5+oheJvRJ8KBXZrr/TMISSdVJ5bBarbQDRC2pR5Kto3xTR0kpZInA=="
         crossorigin="anonymous" />
     <script>
+        $('#warning-update').hide();
+        var socket = io();
+        var userName = localStorage.getItem("userName");
+        var userPassword = localStorage.getItem("userPassword");
+        document.getElementById("userName_id").value = userName;
+        document.getElementById("userPassword_id").value = userPassword;
+        document.getElementById("body").onload = function () {
+            login();
+
+        };
+
+        function popUP() {
+            $('#warning-update').show();
+            setTimeout(function () {
+                // Closing the alert 
+                $('#warning-update').hide();
+            }, 2000);
+        }
+
+        function updateCard() {
+
+        }
+
+        function newItem(form) {
+            switch (form) {
+                case 0:
+                    card.state.push({
+                        itemA: ""
+                    });
+                    break;
+                case 1:
+                    card.roll.push({
+                        itemA: ""
+                    });
+                    break;
+                case 2:
+                    card.notes.push({
+                        itemA: ""
+                    });
+                    break;
+                default:
+                    break;
+            }
+
+        }
+
+        function removeItem(form) {
+            switch (form) {
+                case 0:
+                    card.state.pop();
+                    break;
+                case 1:
+                    card.roll.pop();
+                    break;
+                case 2:
+                    card.notes.pop();
+                    break;
+                default:
+                    break;
+            }
+
+        }
+
+        function logout() {
+            document.getElementById("warning").style.display = "none";
+            $('#loginModal').modal({
+                backdrop: 'static',
+                keyboard: false
+            })
+            card.id = "";
+            card.name = "";
+            card.notes = "";
+            card.roll = "";
+            card.state = "";
+        }
+
+        function selectCard() {
+            $('#cardListModal').modal("show")
+        }
+
+        function login() {
+            userName = document.getElementById("userName_id").value;
+            userPassword = document.getElementById("userPassword_id").value;
+            localStorage.setItem('userName', userName);
+            localStorage.setItem('userPassword', userPassword);
+            if (userName && userName.length >= 4 && userPassword && userPassword.length >= 6) {
+                document.getElementById("userName_id").value = userName;
+                document.getElementById("userPassword_id").value = userPassword;
+                socket.emit('getListInfo', {
+                    userName: userName,
+                    userPassword: userPassword
+                })
+                socket.on("getListInfo", function (list) {
+                    if (list) {
+                        document.getElementById("warning").style.display = "none";
+                        cardList.list = list
+                        $('#loginModal').modal("hide");
+                        $('#cardListModal').modal("show");
+                    } else {
+                        document.getElementById("warning").style.display = "block";
+                        $('#loginModal').modal({
+                            backdrop: 'static',
+                            keyboard: false
+                        })
+                    }
+                });
+            } else {
+                $('#loginModal').modal({
+                    backdrop: 'static',
+                    keyboard: false
+                })
+            }
+        }
+
         var card = Vue.createApp({
             data() {
-                return {}
+                return {
+                    id: "",
+                    name: ""
+                }
             },
             methods: {
                 greet(event) {
-                    //  this.name = 'dd'
-
                     socket.emit('card', card)
                     socket.on("card", function (amount) {
                         card.name = amount;
@@ -245,87 +389,24 @@
         var cardList = Vue.createApp({
             data() {
                 return {
-                    list: [{
-                        name: "ss"
-                    }]
+                    list: []
+                }
+            },
+            methods: {
+                getTheSelectedOne(number) {
+                    // then number will be the number
+                    console.log(number);
+                    console.log(this.list[number]);
+
+                    card.id = this.list[number].id;
+                    card.name = this.list[number].name;
+                    card.notes = this.list[number].notes;
+                    card.roll = this.list[number].roll;
+                    card.state = this.list[number].state;
+                    $('#cardListModal').modal("hide")
                 }
             }
         }).mount('#array-cardList')
-
-        var socket = io();
-        var userName = localStorage.getItem("userName");
-        var userPassword = localStorage.getItem("userPassword");
-        document.getElementById("userName_id").value = userName;
-        document.getElementById("userPassword_id").value = userPassword;
-        document.getElementById("body").onload = function () {
-            login();
-            /**
-            socket.emit('getInfo', {
-            userName: userName,
-            userPassword: userPassword
-            })
-            socket.on("getInfo", function (amount) {
-            console.log(amount)
-            console.log(card);
-            card.id = amount.id;
-            card.name = amount.name;
-            card.notes = amount.notes;
-            card.roll = amount.roll;
-            card.state = amount.state;
-            });
-
-            if (list) {
-            card.id = list.id;
-            card.name = list.name;
-            card.notes = list.notes;
-            card.roll = list.roll;
-            card.state = list.state;
-            }
-            localStorage.setItem('userName', document.getElementById("userName_id").value);
-            localStorage.setItem('userPassword', document.getElementById("userPassword_id").value);
-            **/
-
-        };
-
-        function logout() {
-            document.getElementById("warning").style.display = "none";
-            $('#loginModal').modal({
-                backdrop: 'static',
-                keyboard: false
-            })
-        }
-
-        function login() {
-            userName = document.getElementById("userName_id").value;
-            userPassword = document.getElementById("userPassword_id").value;
-            localStorage.setItem('userName', userName);
-            localStorage.setItem('userPassword', userPassword);
-            if (userName && userPassword) {
-                document.getElementById("userName_id").value = userName;
-                document.getElementById("userPassword_id").value = userPassword;
-                socket.emit('getListInfo', {
-                    userName: userName,
-                    userPassword: userPassword
-                })
-                socket.on("getListInfo", function (list) {
-                    if (list) {
-                        document.getElementById("warning").style.display = "none";
-                        cardList.list = list
-                        $('#loginModal').modal("hide")
-                        $('#cardListModal').modal({
-                            backdrop: 'static',
-                            keyboard: false
-                        })
-                    } else {
-                        document.getElementById("warning").style.display = "block";
-                        $('#loginModal').modal({
-                            backdrop: 'static',
-                            keyboard: false
-                        })
-                    }
-                });
-            }
-        }
     </script>
 </body>
 <!-- HKTRPG Sad -- 20201221-->

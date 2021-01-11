@@ -323,6 +323,7 @@
                 backdrop: 'static',
                 keyboard: false
             })
+            card._id = "";
             card.id = "";
             card.name = "";
             card.notes = "";
@@ -347,6 +348,7 @@
                     userPassword: userPassword
                 })
                 socket.on("getListInfo", function (list) {
+                    console.log(list)
                     if (list) {
                         document.getElementById("warning").style.display = "none";
                         cardList.list = list
@@ -396,9 +398,7 @@
             methods: {
                 getTheSelectedOne(number) {
                     // then number will be the number
-                    console.log(number);
-                    console.log(this.list[number]);
-
+                    card._id = this.list[number]._id;
                     card.id = this.list[number].id;
                     card.name = this.list[number].name;
                     card.notes = this.list[number].notes;

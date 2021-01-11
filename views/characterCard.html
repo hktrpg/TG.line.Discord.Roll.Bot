@@ -84,12 +84,17 @@
     </center>
     <br>
     <div class="alert alert-warning alert-dismissible fade show" role="alert" id="warning-update">
-        <strong>Holy guacamole!</strong> You should check in on some of those fields below.
+        <strong>更新成功!</strong> 你可以在聊天平台上使用新資料了。
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
-
+    <div class="alert alert-warning alert-dismissible fade show" role="alert" id="warning-updateError">
+        <strong>更新失敗!</strong> 請檢查或向HKTRPG回報。
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
 
     <div class="container" id="array-rendering">
         <button type="button" class="btn btn-primary float-right" onclick="logout()">
@@ -251,6 +256,7 @@
         crossorigin="anonymous" />
     <script>
         $('#warning-update').hide();
+        $('#warning-updateError').hide();
         var socket = io();
         var userName = localStorage.getItem("userName");
         var userPassword = localStorage.getItem("userPassword");
@@ -261,12 +267,22 @@
 
         };
 
-        function popup() {
-            $('#warning-update').show();
-            setTimeout(function () {
-                // Closing the alert 
-                $('#warning-update').hide();
-            }, 2000);
+        function popup(result) {
+            if (result) {
+                $('#warning-update').show();
+                setTimeout(function () {
+                    // Closing the alert 
+                    $('#warning-update').hide();
+                }, 2000);
+            }
+            if (!result) {
+                $('#warning-updateError').show();
+                setTimeout(function () {
+                    // Closing the alert 
+                    $('#warning-updateError').hide();
+                }, 4000);
+            }
+
         }
 
         function updateCard() {
@@ -274,6 +290,9 @@
                 userName: userName,
                 userPassword: userPassword,
                 card: card
+            })
+            socket.on("updateCard", function (result) {
+                popup(result);
             })
         }
 
@@ -348,7 +367,6 @@
                     userPassword: userPassword
                 })
                 socket.on("getListInfo", function (list) {
-                    console.log(list)
                     if (list) {
                         document.getElementById("warning").style.display = "none";
                         cardList.list = list
@@ -384,8 +402,6 @@
                         card.name = amount;
                     });
                     var forms = document.getElementById('userName_id');
-                    console.log(forms.value);
-                    // `this` inside methods points to the current active instance
                 }
             }
         }).mount('#array-rendering')

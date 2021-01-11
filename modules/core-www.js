@@ -43,10 +43,6 @@ if (!options.key) {
     console.log('https server');
 }
 
-//const server = require('./www.js').http;
-//var express = require('express');
-//var www = require('express')();
-//var http = require('http').createServer(www);
 const io = require('socket.io')(server);
 const records = require('./records.js');
 const port = process.env.PORT || 20721;
@@ -58,7 +54,6 @@ let onlineCount = 0;
 
 if (webSite)
     www.get('/', (req, res) => {
-        //  console.log('req: ', req, 'res: ', res)
         res.sendFile(process.cwd() + '/views/index.html');
     });
 if (process.env.DISCORD_CHANNEL_SECRET)
@@ -90,11 +85,39 @@ io.on('connection', (socket) => {
 
     socket.on('updateCard', async message => {
         //回傳 message 給發送訊息的 Client
-        console.log(message);
-
+        let filter = {
+            userName: message.userName,
+            password: SHA(message.userPassword)
+        }
+        let doc = await schema.accountPW.findOne(filter);
+        let temp;
+        if (doc && doc.id) {
+            message.card.state = checkNullItem(message.card.state);
+            message.card.roll = checkNullItem(message.card.roll);
+            message.card.notes = checkNullItem(message.card.notes);
+            temp = await schema.characterCard.findOneAndUpdate({
+                id: doc.id,
+                _id: message.card._id
+            }, {
+                $set: {
+                    state: message.card.state,
+                    roll: message.card.roll,
+                    notes: message.card.notes,
+                }
+            });
+        }
+        if (temp) {
+            socket.emit('updateCard', true)
+        } else {
+            socket.emit('updateCard', false)
+        }
     })
 
-
+    function checkNullItem(target) {
+        return target = target.filter(function (item) {
+            return item.name;
+        });
+    }
     // 有連線發生時增加人數
     onlineCount++;
     // 發送人數給網頁
@@ -143,7 +166,6 @@ records.on("new_message", async (message) => {
     if (message.msg && message.name.match(/^HKTRPG/ig)) {
         return;
     }
-    // console.log(message)
     io.emit(message.roomNumber, message);
     let rplyVal = {}
     let msgSplitor = (/\S+/ig)
@@ -168,8 +190,6 @@ records.on("new_message", async (message) => {
         }
     }
     if (rplyVal && rplyVal.text) {
-        //console.log('rplyVal.text:' + rplyVal.text)
-        //console.log('Telegram Roll: ' + WWWcountroll + ', Telegram Text: ' + WWWcounttext, " content: ", message.text);
         rplyVal.text = '\n' + rplyVal.text
         loadb(io, records, rplyVal, message);
     }

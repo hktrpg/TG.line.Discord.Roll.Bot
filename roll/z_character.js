@@ -121,7 +121,7 @@ var getHelpMessage = function () {
     return "【角色卡功能】" + "\n\
 以個人為單位, 一張卡可以在不同的群組使用\n\
 新增了角色卡後，可以輸入.admin account (username) (password) \n\
-然後在網址: " + link + ":" + port + "/card/ 中進行修改" + "\n\
+然後在網址: https://www.hktrpg.com:20721/card/ 中進行修改" + "\n\
 -----.char-----\n\
 .char add 的輸入格式,用來創建及更新角色卡\n\
 -----範例開始-----\n\

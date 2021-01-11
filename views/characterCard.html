@@ -83,9 +83,6 @@
                 height="55em">角色卡功能</h1>
     </center>
     <br>
-    <div class="alert alert-success" style="display:none" role="alert">
-        更新角色卡成功
-    </div>
     <div class="alert alert-warning alert-dismissible fade show" role="alert" id="warning-update">
         <strong>Holy guacamole!</strong> You should check in on some of those fields below.
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -264,7 +261,7 @@
 
         };
 
-        function popUP() {
+        function popup() {
             $('#warning-update').show();
             setTimeout(function () {
                 // Closing the alert 
@@ -273,7 +270,11 @@
         }
 
         function updateCard() {
-
+            socket.emit('updateCard', {
+                userName: userName,
+                userPassword: userPassword,
+                card: card
+            })
         }
 
         function newItem(form) {

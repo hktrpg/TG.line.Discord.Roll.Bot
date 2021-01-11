@@ -734,7 +734,7 @@ async function analysicInputCharacterCard(inputStr) {
     let characterNotesTemp = (inputStr.match(regexNotes)) ? inputStr.match(regexNotes)[1] : '';
     let characterState = (characterStateTemp) ? await analysicStr(characterStateTemp, true) : [];
     let characterRoll = (characterRollTemp) ? await analysicStr(characterRollTemp, false) : [];
-    let characterNotes = (characterNotesTemp) ? await analysicStr(characterNotesTemp, false) : [];
+    let characterNotes = (characterNotesTemp) ? await analysicStr(characterNotesTemp, false, 'notes') : [];
     //Remove duplicates from an array of objects in JavaScript
     // if (characterState)
     characterState = characterState.filter((v, i, a) => a.findIndex(t => (t.name === v.name)) === i)
@@ -751,7 +751,7 @@ async function analysicInputCharacterCard(inputStr) {
     return character;
 }
 
-async function analysicStr(inputStr, state) {
+async function analysicStr(inputStr, state, term) {
     let character = [];
     let myArray = [];
     while ((myArray = re.exec(inputStr)) !== null) {
@@ -764,7 +764,10 @@ async function analysicStr(inputStr, state) {
         //防止誤輸入
         myArray[3] = (myArray[3] == ';') ? '' : myArray[3];
         myArray[1] = myArray[1].replace(/\s+/g, '');
-        myArray[2] = myArray[2].replace(/^\s+/, '').replace(/\s+$/, '').replace(/\s+[.]ch\s+/i, ' ').replace(/\s+[.]char\s+/i, ' ');
+        if (term !== "notes") {
+            myArray[2] = myArray[2].replace(/\s+[.]ch\s+/i, ' ').replace(/\s+[.]char\s+/i, ' ');
+        }
+        myArray[2] = myArray[2].replace(/^\s+/, '').replace(/\s+$/, '');
         myArray[3] = myArray[3].replace(/^\s+/, '').replace(/\s+$/, '');
         if (state)
             character.push({

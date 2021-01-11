@@ -72,26 +72,13 @@ www.get('/card', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-    socket.on('getInfo', async message => {
-        //回傳 message 給發送訊息的 Client
-        console.log(message);
-        let filter = {
-            id: "399923142468042763"
-        }
-        let doc = await schema.characterCard.findOne(filter);
-        console.log(doc)
-        socket.emit('getInfo', doc)
-    })
-
     socket.on('getListInfo', async message => {
         //回傳 message 給發送訊息的 Client
-        console.log(message);
         let filter = {
             userName: message.userName,
             password: SHA(message.userPassword)
         }
         let doc = await schema.accountPW.findOne(filter);
-        console.log(doc);
         let temp;
         if (doc && doc.id) {
             temp = await schema.characterCard.find({
@@ -99,6 +86,12 @@ io.on('connection', (socket) => {
             });
         }
         socket.emit('getListInfo', temp)
+    })
+
+    socket.on('updateCard', async message => {
+        //回傳 message 給發送訊息的 Client
+        console.log(message);
+
     })
 
 

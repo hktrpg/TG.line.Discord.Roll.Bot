@@ -35,11 +35,12 @@
         height: 80px;
         border: none;
         padding: 1px 1px 1px 1px;
-
+        border-radius: 8px;
     }
 
     .textName {
-        height: 30px;
+        height: 32px;
+        width: 80px;
         background-color: #FADCD9;
         resize: none;
         overflow: hidden;
@@ -47,6 +48,7 @@
         text-align: center;
         border: none;
         padding: 1px 1px 1px 1px;
+        border-radius: 8px;
     }
 
     .textState:hover {
@@ -64,9 +66,9 @@
     .textState {
         border: none;
         padding: 1px 1px 1px 1px;
-
+        border-radius: 8px;
         width: 153px;
-        height: 30px;
+        height: 32px;
         background-color: #FADCD9;
         resize: none;
         overflow: hidden;
@@ -116,28 +118,7 @@
         </h1>
     </center>
     <br>
-    <div class="modal fade" id="readmeModalCenter" tabindex="-1" role="dialog" aria-labelledby="readmeModalCenterTitle"
-        aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="readmeModalLongTitle">使用說明</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    使用前，首先要與HKTRPG骰子機器人對話，<br>
-                    新增一張角色卡及一個管理用的ACC。
-                    方法如下:
-                    1. 
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
+
     <div class="container" id="array-rendering">
         <div class="alert alert-warning alert-dismissible fade show overlay" style="position: fixed;
         z-index: 999;" role="alert" id="warning-update">
@@ -180,19 +161,18 @@
             -
         </button>
         <div class="row align-items-start">
-            <div v-for="item in state" id="state" class="board1">
+            <div v-for="item in state" id="state" class="board1" style="height: 36px;padding: 1px 1px 1px 1px">
                 <div>
                     <textarea class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">
                     {{item.name}}
-                </textarea><span>：</span>
+                </textarea><span style="height: 62px;">：</span>
                     <textarea class="col textState" v-model="item.itemA" style="width:80px;padding: 1px 1px 1px 1px;">
                     {{item.itemA}}
                 </textarea>
-                    <span>/ </span>
+                    <span style="height: 32px;">／ </span>
                     <textarea class="col textState" v-model="item.itemB" style="width:80px;padding: 1px 1px 1px 1px">
                     {{item.itemB}}
                 </textarea>
-
                     &nbsp; &nbsp;
                 </div>
             </div>
@@ -209,7 +189,7 @@
             -
         </button>
         <div class="row align-items-center" id="roll">
-            <div v-for="item in roll" class="board1">
+            <div v-for="item in roll" class="board1" style="height: 36px;padding: 1px 1px 1px 1px">
                 <textarea class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">
                     {{item.name}}
                 </textarea>：
@@ -299,6 +279,44 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="readmeModalCenter" tabindex="-1" role="dialog" aria-labelledby="readmeModalCenterTitle"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="readmeModalLongTitle">使用說明</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    使用前，首先要與HKTRPG骰子機器人對話，<br>
+                    新增一張角色卡及一個管理用的ACC。<br>
+                    方法如下:<br>
+                    1. 新增角色卡<br>
+                    對HKTRPG輸入.char add name[Sad]~<br>
+                    Sad 是設定的名字，可以改成其他，也可以在這步直接設定能力值，<br>
+                    詳細說明請輸入.char<br><br>
+                    2. 新增管理用的ACC<br>
+                    對HKTRPG輸入.admin account (帳號) (密碼)<br>
+                    成功後，進入 https://www.hktrpg.com:20721/card/ 輸入帳號密碼，<br>
+                    就可以管理角色卡，以網頁方式修改角色卡能力。<br><br>
+                    3.在頻道中使用角卡<br>
+                    詳細可看 .char<br>
+                    但簡單來說，在你想使用這張角色卡的位置輸入<br>
+                    .char use Sad 或你角色名字，就可以使用角卡<br>
+                    例如你在擲骰欄有一招名叫 鬥毆 內容是 cc 80<br>
+                    那你在登記了的頻道輸入 .ch 鬥毆 就可以使出 cc 80<br>
+                    又或你在 基本屬性 中加入一個 HP 18<br>
+                    那你輸入 .ch hp -6 就可以扣減HP<br>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br>
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"

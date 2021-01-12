@@ -2,6 +2,11 @@
 <html lang="zh-Hant-HK">
 <!-- HKTRPG Sad-->
 <style>
+    .overlay {
+        position: fixed;
+        z-index: 999;
+    }
+
     .bg-color {
         background-color: #F9F1F0
     }
@@ -106,22 +111,11 @@
     -->
 
     <center>
-        <h1 class=" bg-color2"><img src='https://avatars2.githubusercontent.com/u/48795428?s=280&v=4' height="55em">角色卡
+        <h1 class=" bg-color2"><img src='https://avatars2.githubusercontent.com/u/48795428?s=280&v=4'
+                height="55em">角色卡管理平台
         </h1>
     </center>
     <br>
-    <div class="alert alert-warning alert-dismissible fade show" role="alert" id="warning-update">
-        <strong>更新成功!</strong> 你可以在聊天平台上使用新資料了。
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    <div class="alert alert-warning alert-dismissible fade show" role="alert" id="warning-updateError">
-        <strong>更新失敗!</strong> 請檢查或向HKTRPG回報。
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
     <div class="modal fade" id="readmeModalCenter" tabindex="-1" role="dialog" aria-labelledby="readmeModalCenterTitle"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
@@ -133,7 +127,10 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    1.
+                    使用前，首先要與HKTRPG骰子機器人對話，<br>
+                    新增一張角色卡及一個管理用的ACC。
+                    方法如下:
+                    1. 
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -142,6 +139,20 @@
         </div>
     </div>
     <div class="container" id="array-rendering">
+        <div class="alert alert-warning alert-dismissible fade show overlay" style="position: fixed;
+        z-index: 999;" role="alert" id="warning-update">
+            <strong>更新成功!</strong> 你可以在聊天平台上使用新資料了。
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="alert alert-warning alert-dismissible fade show overlay" style="position: fixed;
+        z-index: 999;" role="alert" id="warning-updateError">
+            <strong>更新失敗!</strong> 請檢查或向HKTRPG回報。
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
         <button type="button" class="btn btn-primary float-right" onclick="logout()">
             <span class="iconify" data-icon="mdi:login" data-inline="false"></span>登入/登出
         </button>
@@ -319,6 +330,7 @@
         function popup(result) {
             if (result) {
                 $('#warning-update').show();
+
                 setTimeout(function () {
                     // Closing the alert 
                     $('#warning-update').hide();

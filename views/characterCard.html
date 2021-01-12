@@ -6,8 +6,14 @@
         background-color: #F9F1F0
     }
 
+    .board1 {
+        border: 1px solid #F8AFA6;
+        border-radius: 8px;
+        background-color: #FADCD9
+    }
+
     .bg-color2 {
-        background-color: #F79489
+        background-color: #F79489;
     }
 
     .bg-color3 {
@@ -22,6 +28,9 @@
         background-color: #FADCD9;
         resize: none;
         height: 80px;
+        border: none;
+        padding: 1px 1px 1px 1px;
+
     }
 
     .textName {
@@ -30,15 +39,34 @@
         resize: none;
         overflow: hidden;
         white-space: nowrap;
+        text-align: center;
+        border: none;
+        padding: 1px 1px 1px 1px;
+    }
+
+    .textState:hover {
+        background-color: #F79489;
+    }
+
+    .textName:hover {
+        background-color: #F79489;
+    }
+
+    .textNote:hover {
+        background-color: #F79489;
     }
 
     .textState {
+        border: none;
+        padding: 1px 1px 1px 1px;
+
         width: 153px;
         height: 30px;
         background-color: #FADCD9;
         resize: none;
         overflow: hidden;
         white-space: nowrap;
+        text-align: center;
     }
 </style>
 
@@ -50,7 +78,6 @@
     <script src="/socket.io/socket.io.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
         integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
-    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <!-- production version, optimized for size and speed -->
     <script src="https://unpkg.com/vue@3.0.5"></script>
 
@@ -79,8 +106,8 @@
     -->
 
     <center>
-        <h1 class=" bg-color2"><img src='https://avatars2.githubusercontent.com/u/48795428?s=280&v=4'
-                height="55em">角色卡功能</h1>
+        <h1 class=" bg-color2"><img src='https://avatars2.githubusercontent.com/u/48795428?s=280&v=4' height="55em">角色卡
+        </h1>
     </center>
     <br>
     <div class="alert alert-warning alert-dismissible fade show" role="alert" id="warning-update">
@@ -95,24 +122,45 @@
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
-
+    <div class="modal fade" id="readmeModalCenter" tabindex="-1" role="dialog" aria-labelledby="readmeModalCenterTitle"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="readmeModalLongTitle">使用說明</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    1.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="container" id="array-rendering">
         <button type="button" class="btn btn-primary float-right" onclick="logout()">
-            登入/登出
+            <span class="iconify" data-icon="mdi:login" data-inline="false"></span>登入/登出
         </button>
         <button type="button" class="btn btn-secondary float-right" onclick="selectCard()">
-            選擇角色卡
+            <span class="iconify" data-icon="grommet-icons:select" data-inline="false"></span>選擇角色卡
         </button>
         <button type="button" class="btn btn-info float-right" v-if="name" onclick="updateCard()">
-            儲存角色卡
+            <span class="iconify" data-icon="ic:outline-save-alt" data-inline="false"></span>儲存角色卡
         </button>
+        <button type="button" class="btn btn-dark float-right" onclick="readme()">
+            <span class="iconify" data-icon="gg:readme" data-inline="false"></span>說明
+        </button>
+
         <h3>
-            <li> 角色名字: {{name}}
-            </li>
+            <span class="iconify" data-icon="wpf:name" data-inline="false"></span> {{name}}
         </h3>
         <br>
         <h3 class="bg-color3">
-            基本屬性
+            <span class="iconify" data-icon="carbon:data-base" data-inline="false"></span>基本屬性
         </h3>
         <button type="button" class="btn btn-warning float-right" v-if="name" onclick="newItem(0)">
             +
@@ -121,26 +169,27 @@
             -
         </button>
         <div class="row align-items-start">
-            <div v-for="item in state" id="state">
-                <textarea class="col textName" v-model="item.name" style="width:80px;">
+            <div v-for="item in state" id="state" class="board1">
+                <div>
+                    <textarea class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">
                     {{item.name}}
-                </textarea>：
-                <textarea class="col textState" v-model="item.itemA" style="width:80px">
+                </textarea><span>：</span>
+                    <textarea class="col textState" v-model="item.itemA" style="width:80px;padding: 1px 1px 1px 1px;">
                     {{item.itemA}}
                 </textarea>
-                <span>/
-                    <textarea class="col textState" v-model="item.itemB" style="width:80px">
+                    <span>/ </span>
+                    <textarea class="col textState" v-model="item.itemB" style="width:80px;padding: 1px 1px 1px 1px">
                     {{item.itemB}}
                 </textarea>
-                </span>
-                &nbsp; &nbsp;
-            </div>
 
+                    &nbsp; &nbsp;
+                </div>
+            </div>
         </div>
 
         <br>
         <h3 class=" bg-color3">
-            擲骰
+            <span class="iconify" data-icon="fa-solid:dice-d20" data-inline="false"></span>擲骰
         </h3>
         <button type="button" class="btn btn-warning float-right" v-if="name" onclick="newItem(1)">
             +
@@ -149,18 +198,18 @@
             -
         </button>
         <div class="row align-items-center" id="roll">
-            <div v-for="item in roll">
-                <textarea class="col textName" v-model="item.name" style="width:80px;">
+            <div v-for="item in roll" class="board1">
+                <textarea class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">
                     {{item.name}}
                 </textarea>：
-                <textarea class="col textState" v-model="item.itemA" style="width:80px">
+                <textarea class="col textState" v-model="item.itemA" style="width:80px;padding: 1px 1px 1px 1px">
                     {{item.itemA}}
                 </textarea>&nbsp; &nbsp;
             </div>
         </div>
         <br>
         <h3 class=" bg-color3">
-            筆記
+            <span class="iconify" data-icon="clarity:note-edit-line" data-inline="false"></span>筆記
         </h3>
         <button type="button" class="btn btn-warning float-right" v-if="name" onclick="newItem(2)">
             +
@@ -169,8 +218,8 @@
             -
         </button>
         <div class="row align-items-end" id="notes">
-            <div v-for="item in notes">
-                <textarea class="col textName" v-model="item.name" style="width:80px;">
+            <div v-for="item in notes" class="board1">
+                <textarea class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">
                     {{item.name}}
                 </textarea>：
                 <textarea class="col textNote" v-model="item.itemA" style="width:180px">
@@ -206,6 +255,9 @@
                 </div>
                 <div id="warning" class="small" style="color:red;display:none">登入失敗或沒有角色卡</div>
                 <div class="modal-footer">
+                    <button type="button" class="btn btn-dark float-right" onclick="readme()">
+                        <span class="iconify" data-icon="gg:readme" data-inline="false"></span>說明
+                    </button>
                     <button type="button" class="btn btn-primary" onclick="login()">登入</button>
                 </div>
             </div>
@@ -258,8 +310,11 @@
         document.getElementById("userPassword_id").value = userPassword;
         document.getElementById("body").onload = function () {
             login();
-
         };
+
+        function readme() {
+            $('#readmeModalCenter').modal("show")
+        }
 
         function popup(result) {
             if (result) {
@@ -267,14 +322,14 @@
                 setTimeout(function () {
                     // Closing the alert 
                     $('#warning-update').hide();
-                }, 2000);
+                }, 5000);
             }
             if (!result) {
                 $('#warning-updateError').show();
                 setTimeout(function () {
                     // Closing the alert 
                     $('#warning-updateError').hide();
-                }, 4000);
+                }, 5000);
             }
 
         }

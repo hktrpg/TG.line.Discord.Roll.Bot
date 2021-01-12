@@ -219,9 +219,9 @@ var rollDiceCommand = async function ({
                 console.log('char  show GET ERROR: ', error);
             }
             for (let index = 0; index < doc.length; index++) {
-                rply.text += index + ': ' + doc[index].name + '　\n\n';
+                rply.text += index + ': ' + doc[index].name + '　\n';
             }
-            rply.text += '輸入 .char show0 可以顯示0號角色卡\n';
+            rply.text += '\n輸入 .char show0 可以顯示0號角色卡\n';
             return rply;
         case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料

@@ -64,7 +64,7 @@ var rollDiceCommand = async function ({
     let hash = ""
     let name;
     switch (true) {
-        case /^help$/i.test(mainMsg[1]):
+        case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
             return rply;
         case /^state$/i.test(mainMsg[1]):
@@ -91,7 +91,6 @@ var rollDiceCommand = async function ({
                 temp = await schema.accountPW.findOne({
                     "userName": name
                 });
-                console.log(temp)
             } catch (e) {
                 console.log('ACCOUNT ERROR:', e);
                 rply.text += JSON.stringify(e);

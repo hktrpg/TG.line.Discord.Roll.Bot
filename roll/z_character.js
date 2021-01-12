@@ -123,7 +123,7 @@ var getHelpMessage = function () {
 新增了角色卡後，可以輸入.admin account (username) (password) \n\
 然後在網址: https://www.hktrpg.com:20721/card/ 中進行修改" + "\n\
 -----.char-----\n\
-.char add 的輸入格式,用來創建及更新角色卡\n\
+.char add name[Sad]~ 的輸入格式,用來創建及更新角色卡\n\
 -----範例開始-----\n\
 .char add name[Sad]~\n\
 state[HP:15/15;MP:8/8;SAN:25/99;護甲:1;DB:1d3;]~\n\
@@ -137,6 +137,7 @@ roll 是用來儲存擲骰指令, 快速使用 如 .ch 空手鬥毆\n\
  [[ ]] 可以進行簡單運算 如[[1+{HP}]] 就會變成 1+15 -> 16\n\
 notes 是用來儲存數據, 以後可以查看 如 .ch 筆記\n\
 .char Show - 可以顯示角色卡列表\n\
+.char Show0 - 可以顯示0號角色卡內容 0可以用其他數字取代\n\
 .char edit name[角色卡名字]~ - 可以以add的格式修改指定角色卡\n\
 .char use 角色卡名字 - 可以在該群組中使用指定角色卡\n\
 .char nonuse - 可以在該群組中取消使用角色卡\n\
@@ -181,6 +182,7 @@ var rollDiceCommand = async function ({
     let doc = {};
     let docSwitch = {};
     let Card = {};
+    let temp;
     let tempMain = {};
     let lv;
     let limit = limitArr[0];
@@ -190,6 +192,21 @@ var rollDiceCommand = async function ({
             rply.text = this.getHelpMessage();
             return rply;
             // .ch(0) ADD(1) TOPIC(2) CONTACT(3)
+        case /(^[.]char$)/i.test(mainMsg[0]) && /^show\d+/i.test(mainMsg[1]):
+            filter = {
+                id: userid
+            }
+            temp = mainMsg[1].replace(/^show/ig, '');
+            //取得本來的資料, 如有重覆, 以新的覆蓋
+            try {
+                doc = await schema.characterCard.find(filter);
+            } catch (error) {
+                console.log('char  show GET ERROR: ', error);
+            }
+            if (temp < doc.length) {
+                rply.text = await showCharacter(doc[temp], 'showAllMode');
+            }
+            return rply;
         case /(^[.]char$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
             filter = {
                 id: userid
@@ -202,9 +219,9 @@ var rollDiceCommand = async function ({
                 console.log('char  show GET ERROR: ', error);
             }
             for (let index = 0; index < doc.length; index++) {
-                rply.text += index + ': ' + doc[index].name + '　\n';
+                rply.text += index + ': ' + doc[index].name + '　\n\n';
             }
-
+            rply.text += '輸入 .char show0 可以顯示0號角色卡\n';
             return rply;
         case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
@@ -225,8 +242,6 @@ var rollDiceCommand = async function ({
                 rply.text = '你的角色卡上限為' + limit + '張' + '\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
                 return rply
             }
-
-
             filter = {
                 id: userid,
                 name: new RegExp('^' + convertRegex(Card.name) + '$', "i")

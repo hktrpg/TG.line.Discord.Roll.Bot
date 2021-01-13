@@ -2,6 +2,9 @@
 if (!process.env.LINE_CHANNEL_ACCESSTOKEN || !process.env.mongoURL) {
     return;
 }
+const {
+    RateLimiterMemory
+} = require('rate-limiter-flexible');
 const schema = require('./core-schema.js');
 const webSite = (process.env.SITE) ? process.env.SITE : null;
 const privateKey = (process.env.KEY_PRIKEY) ? process.env.KEY_PRIKEY : null;
@@ -16,6 +19,11 @@ var options = {
     cert: null,
     ca: null
 };
+
+const rateLimiter = new RateLimiterMemory({
+    points: 5, // 5 points
+    duration: 1, // per second
+});
 
 async function read() {
     if (privateKey)
@@ -52,23 +60,25 @@ exports.analytics = require('./core-analytics');
 // 加入線上人數計數
 let onlineCount = 0;
 
-if (webSite)
+if (webSite) {
     www.get('/', (req, res) => {
         res.sendFile(process.cwd() + '/views/index.html');
     });
-if (process.env.DISCORD_CHANNEL_SECRET)
+    www.get('/card', (req, res) => {
+        res.sendFile(process.cwd() + '/views/characterCard.html');
+    });
+}
+if (process.env.DISCORD_CHANNEL_SECRET) {
     www.get('/app/discord/:id', (req, res) => {
         if (req.originalUrl.match(/html$/))
             res.sendFile(process.cwd() + '/tmp/' + req.originalUrl.replace('/app/discord/', ''));
     });
-if (webSite)
-    www.get('/card', (req, res) => {
-        res.sendFile(process.cwd() + '/views/characterCard.html');
-    });
+}
 
-io.on('connection', (socket) => {
+io.on('connection', async (socket) => {
     if (webSite)
         socket.on('getListInfo', async message => {
+            if (await limitRater(socket.handshake.address)) return;
             //回傳 message 給發送訊息的 Client
             let filter = {
                 userName: message.userName,
@@ -85,6 +95,7 @@ io.on('connection', (socket) => {
         })
     if (webSite)
         socket.on('updateCard', async message => {
+            if (await limitRater(socket.handshake.address)) return;
             //回傳 message 給發送訊息的 Client
             let filter = {
                 userName: message.userName,
@@ -114,11 +125,7 @@ io.on('connection', (socket) => {
             }
         })
 
-    function checkNullItem(target) {
-        return target = target.filter(function (item) {
-            return item.name;
-        });
-    }
+
     // 有連線發生時增加人數
     onlineCount++;
     // 發送人數給網頁
@@ -136,7 +143,8 @@ io.on('connection', (socket) => {
         socket.emit("greet", onlineCount);
     });
 
-    socket.on("send", (msg) => {
+    socket.on("send", async (msg) => {
+        if (await limitRater(socket.handshake.address)) return;
         // 如果 msg 內容鍵值小於 2 等於是訊息傳送不完全
         // 因此我們直接 return ，終止函式執行。
         if (Object.keys(msg).length < 2) return;
@@ -144,7 +152,8 @@ io.on('connection', (socket) => {
         records.chatRoomPush(msg);
     });
 
-    socket.on("newRoom", (msg) => {
+    socket.on("newRoom", async (msg) => {
+        if (await limitRater(socket.handshake.address)) return;
         // 如果 msg 內容鍵值小於 2 等於是訊息傳送不完全
         // 因此我們直接 return ，終止函式執行。
         if (!msg) return;
@@ -205,6 +214,12 @@ function SHA(text) {
         .update(salt)
         .digest('hex');
 }
+
+function checkNullItem(target) {
+    return target = target.filter(function (item) {
+        return item.name;
+    });
+}
 async function loadb(io, records, rplyVal, message) {
     for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
         io.emit(message.roomNumber, {
@@ -220,5 +235,14 @@ async function loadb(io, records, rplyVal, message) {
             roomNumber: message.roomNumber
         });
         //message.reply.text(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])
+    }
+}
+async function limitRater(address) {
+    try {
+        await rateLimiter.consume(address)
+        return false;
+    } catch (error) {
+        console.log('over!')
+        return true;
     }
 }

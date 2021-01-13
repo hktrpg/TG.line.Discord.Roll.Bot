@@ -1,12 +1,11 @@
 "use strict";
-if (!process.env.LINE_CHANNEL_ACCESSTOKEN || !process.env.mongoURL) {
+if (!process.env.LINE_CHANNEL_ACCESSTOKEN || !process.env.mongoURL || !process.env.SITE) {
     return;
 }
 const {
     RateLimiterMemory
 } = require('rate-limiter-flexible');
 const schema = require('./core-schema.js');
-const webSite = (process.env.SITE) ? process.env.SITE : null;
 const privateKey = (process.env.KEY_PRIKEY) ? process.env.KEY_PRIKEY : null;
 const certificate = (process.env.KEY_CERT) ? process.env.KEY_CERT : null;
 const ca = (process.env.KEY_CA) ? process.env.KEY_CA : null;
@@ -20,22 +19,26 @@ var options = {
     ca: null
 };
 
-const rateLimiter = new RateLimiterMemory({
-    points: 4, // 5 points
-    duration: 1, // per second
+const rateLimiterChatRoom = new RateLimiterMemory({
+    points: 40, // 5 points
+    duration: 60, // per second
+});
+const rateLimiterCard = new RateLimiterMemory({
+    points: 20, // 5 points
+    duration: 60, // per second
 });
 
 async function read() {
-    if (privateKey)
-        try {
-            options = {
-                key: (fs.readFileSync(privateKey)) ? fs.readFileSync(privateKey) : null,
-                cert: (fs.readFileSync(certificate)) ? fs.readFileSync(certificate) : null,
-                ca: (fs.readFileSync(ca)) ? fs.readFileSync(ca) : null
-            };
-        } catch (error) {
-            console.log('error of key')
-        }
+    if (!privateKey) return;
+    try {
+        options = {
+            key: (fs.readFileSync(privateKey)) ? fs.readFileSync(privateKey) : null,
+            cert: (fs.readFileSync(certificate)) ? fs.readFileSync(certificate) : null,
+            ca: (fs.readFileSync(ca)) ? fs.readFileSync(ca) : null
+        };
+    } catch (error) {
+        console.log('error of key')
+    }
 }
 
 (async () => {
@@ -60,14 +63,13 @@ exports.analytics = require('./core-analytics');
 // 加入線上人數計數
 let onlineCount = 0;
 
-if (webSite) {
-    www.get('/', (req, res) => {
-        res.sendFile(process.cwd() + '/views/index.html');
-    });
-    www.get('/card', (req, res) => {
-        res.sendFile(process.cwd() + '/views/characterCard.html');
-    });
-}
+www.get('/', (req, res) => {
+    res.sendFile(process.cwd() + '/views/index.html');
+});
+www.get('/card', (req, res) => {
+    res.sendFile(process.cwd() + '/views/characterCard.html');
+});
+
 if (process.env.DISCORD_CHANNEL_SECRET) {
     www.get('/app/discord/:id', (req, res) => {
         if (req.originalUrl.match(/html$/))
@@ -76,54 +78,54 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
 }
 
 io.on('connection', async (socket) => {
-    if (webSite)
-        socket.on('getListInfo', async message => {
-            if (await limitRater(socket.handshake.address)) return;
-            //回傳 message 給發送訊息的 Client
-            let filter = {
-                userName: message.userName,
-                password: SHA(message.userPassword)
-            }
-            let doc = await schema.accountPW.findOne(filter);
-            let temp;
-            if (doc && doc.id) {
-                temp = await schema.characterCard.find({
-                    id: doc.id
-                });
-            }
-            socket.emit('getListInfo', temp)
-        })
-    if (webSite)
-        socket.on('updateCard', async message => {
-            if (await limitRater(socket.handshake.address)) return;
-            //回傳 message 給發送訊息的 Client
-            let filter = {
-                userName: message.userName,
-                password: SHA(message.userPassword)
-            }
-            let doc = await schema.accountPW.findOne(filter);
-            let temp;
-            if (doc && doc.id) {
-                message.card.state = checkNullItem(message.card.state);
-                message.card.roll = checkNullItem(message.card.roll);
-                message.card.notes = checkNullItem(message.card.notes);
-                temp = await schema.characterCard.findOneAndUpdate({
-                    id: doc.id,
-                    _id: message.card._id
-                }, {
-                    $set: {
-                        state: message.card.state,
-                        roll: message.card.roll,
-                        notes: message.card.notes,
-                    }
-                });
-            }
-            if (temp) {
-                socket.emit('updateCard', true)
-            } else {
-                socket.emit('updateCard', false)
-            }
-        })
+    socket.on('getListInfo', async message => {
+        if (await limitRaterCard(socket.handshake.address)) return;
+        //回傳 message 給發送訊息的 Client
+        let filter = {
+            userName: message.userName,
+            password: SHA(message.userPassword)
+        }
+        let doc = await schema.accountPW.findOne(filter);
+        let temp;
+        if (doc && doc.id) {
+            temp = await schema.characterCard.find({
+                id: doc.id
+            });
+        }
+        socket.emit('getListInfo', temp)
+    })
+
+    socket.on('updateCard', async message => {
+        if (await limitRaterCard(socket.handshake.address)) return;
+        //回傳 message 給發送訊息的 Client
+        let filter = {
+            userName: message.userName,
+            password: SHA(message.userPassword)
+        }
+        let doc = await schema.accountPW.findOne(filter);
+        let temp;
+        if (doc && doc.id) {
+            message.card.state = checkNullItem(message.card.state);
+            message.card.roll = checkNullItem(message.card.roll);
+            message.card.notes = checkNullItem(message.card.notes);
+            temp = await schema.characterCard.findOneAndUpdate({
+                id: doc.id,
+                _id: message.card._id
+            }, {
+                $set: {
+                    state: message.card.state,
+                    roll: message.card.roll,
+                    notes: message.card.notes,
+                }
+            });
+        }
+        if (temp) {
+            socket.emit('updateCard', true)
+        } else {
+            socket.emit('updateCard', false)
+        }
+    })
+
 
 
     // 有連線發生時增加人數
@@ -144,7 +146,7 @@ io.on('connection', async (socket) => {
     });
 
     socket.on("send", async (msg) => {
-        if (await limitRater(socket.handshake.address)) return;
+        if (await limitRaterChatRoom(socket.handshake.address)) return;
         // 如果 msg 內容鍵值小於 2 等於是訊息傳送不完全
         // 因此我們直接 return ，終止函式執行。
         if (Object.keys(msg).length < 2) return;
@@ -153,7 +155,7 @@ io.on('connection', async (socket) => {
     });
 
     socket.on("newRoom", async (msg) => {
-        if (await limitRater(socket.handshake.address)) return;
+        if (await limitRaterChatRoom(socket.handshake.address)) return;
         // 如果 msg 內容鍵值小於 2 等於是訊息傳送不完全
         // 因此我們直接 return ，終止函式執行。
         if (!msg) return;
@@ -237,12 +239,19 @@ async function loadb(io, records, rplyVal, message) {
         //message.reply.text(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])
     }
 }
-async function limitRater(address) {
+async function limitRaterChatRoom(address) {
     try {
-        await rateLimiter.consume(address)
+        await rateLimiterChatRoom.consume(address)
         return false;
     } catch (error) {
-        console.log('over!')
+        return true;
+    }
+}
+async function limitRaterCard(address) {
+    try {
+        await rateLimiterCard.consume(address)
+        return false;
+    } catch (error) {
         return true;
     }
 }

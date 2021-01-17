@@ -69,7 +69,8 @@ client.on('message', async (message) => {
 		displayname = '',
 		channelid = '',
 		displaynameDiscord = '',
-		membercount = null;
+		membercount = null,
+		titleName = '';
 	let TargetGMTempID = [];
 	let TargetGMTempdiyName = [];
 	let TargetGMTempdisplayname = [];
@@ -87,6 +88,8 @@ client.on('message', async (message) => {
 	if (message.channel && message.channel.id) {
 		channelid = message.channel.id;
 	}
+	if (message.channel && message.channel.name)
+		titleName = message.channel.name;
 	if (message.guild && message.guild.id) {
 		groupid = message.guild.id;
 	}
@@ -160,7 +163,8 @@ client.on('message', async (message) => {
 			displaynameDiscord: displaynameDiscord,
 			membercount: membercount,
 			discordClient: client,
-			discordMessage: message
+			discordMessage: message,
+			titleName: titleName
 		})
 	} else {
 		if (channelKeyword == "") {
@@ -175,7 +179,8 @@ client.on('message', async (message) => {
 				displaynameDiscord: displaynameDiscord,
 				membercount: membercount,
 				discordClient: client,
-				discordMessage: message
+				discordMessage: message,
+				titleName: titleName
 			});
 		}
 	}

@@ -75,8 +75,53 @@ var rollDiceCommand = async function ({
         case /^disrollchannel$/i.test(mainMsg[1]):
             return rply;
         case /^disallowrolling$/i.test(mainMsg[1]):
+            if (userrole < 3) {
+                rply.text = "設定擲骰的頻道時，需要Admin權限";
+                return rply;
+            }
+            if (!groupid && !channelid) {
+                rply.text = "Admin設定擲骰的頻道時，請在群組中使用";
+                return rply;
+            }
+            try {
+                doc = await schema.allowRolling.findOneAndRemove({
+                    "id": channelid || groupid
+                });
+            } catch (e) {
+                console.log('disAllowrolling ERROR:', e);
+                rply.text += JSON.stringify(e);
+                return rply;
+            }
+            rply.text = "此頻道已被Admin不允許擲骰。\nAdmin 希望允許擲骰，可輸入\n.admin allowrolling";
             return rply;
         case /^allowrolling$/i.test(mainMsg[1]):
+            if (userrole < 3) {
+                rply.text = "設定可以擲骰的頻道時，需要Admin權限";
+                return rply;
+            }
+            if (!groupid && !channelid) {
+                rply.text = "Admin設定可以擲骰的頻道時時，請在群組中使用";
+                return rply;
+            }
+            try {
+                doc = await schema.allowRolling.findOneAndUpdate({
+                    "id": channelid || groupid
+                }, {
+                    $set: {
+                        "id": channelid || groupid,
+                        "botname": botname
+                    }
+                }, {
+                    upsert: true,
+                    returnNewDocument: true
+                });
+
+            } catch (e) {
+                console.log('Allowrolling ERROR:', e);
+                rply.text += JSON.stringify(e);
+                return rply;
+            }
+            rply.text = "此頻道已被Admin允許擲骰，希望擲骰玩家可在此頻道以下指令登記。\n.admin rollchannel\nAdmin 希望取消允許，可輸入\n.admin disallowrolling";
             return rply;
         case /^account$/i.test(mainMsg[1]):
             name = mainMsg[2].toLowerCase();

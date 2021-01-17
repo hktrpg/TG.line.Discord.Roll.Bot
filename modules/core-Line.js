@@ -48,11 +48,11 @@ var handleEvent = async function (event) {
 		userid = event.source.userId || '',
 		displayname = '',
 		membercount = null,
-		titleName = event.source.groupName || '';
+		titleName = '';
 	let TargetGMTempID = [];
 	let TargetGMTempdiyName = [];
 	let TargetGMTempdisplayname = [];
-	console.log(event.source)
+
 	client.getProfile(userid).then(async function (profile) {
 			//	在GP 而有加好友的話,得到名字
 			displayname = profile.displayName;
@@ -63,7 +63,7 @@ var handleEvent = async function (event) {
 			await AfterCheckName();
 			//如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
 		})
-
+		
 	async function AfterCheckName() {
 		let displaynamecheck = true;
 		if (event.type !== 'message' || event.message.type !== 'text') {

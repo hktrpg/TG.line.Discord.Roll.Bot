@@ -94,7 +94,11 @@ io.on('connection', async (socket) => {
                 id: doc.id
             });
         }
-        socket.emit('getListInfo', temp)
+        let id = doc.channel;
+        socket.emit('getListInfo', {
+            temp,
+            id
+        })
     })
     socket.on('rolling', async message => {
         if (await limitRaterChatRoom(socket.handshake.address)) return;
@@ -123,7 +127,6 @@ io.on('connection', async (socket) => {
                 })
             }
         }
-        console.log(rplyVal)
         if (rplyVal && rplyVal.text) {
             socket.emit('rolling', rplyVal.text)
         }

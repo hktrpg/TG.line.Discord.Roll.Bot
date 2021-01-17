@@ -30,7 +30,8 @@ var parseInput = async function ({
 	displaynameDiscord = null,
 	membercount = 0,
 	discordClient,
-	discordMessage
+	discordMessage,
+	titleName = ''
 }) {
 	//console.log('InputStr: ' + inputStr);
 	let result = {
@@ -73,7 +74,8 @@ var parseInput = async function ({
 			displaynameDiscord: displaynameDiscord,
 			membercount: membercount,
 			discordClient: discordClient,
-			discordMessage: discordMessage
+			discordMessage: discordMessage,
+			titleName: titleName
 		})
 
 	} catch (error) {
@@ -96,7 +98,8 @@ var parseInput = async function ({
 			channelid: channelid,
 			displaynameDiscord: displaynameDiscord,
 			membercount: membercount,
-			result: result
+			result: result,
+			titleName: titleName
 		});
 		if (typeof cmdFunctionResult === 'object' && cmdFunctionResult !== null) {
 			result = await Object.assign({}, result, cmdFunctionResult)
@@ -116,7 +119,8 @@ var parseInput = async function ({
 			channelid: channelid,
 			displaynameDiscord: displaynameDiscord,
 			membercount: membercount,
-			result: result
+			result: result,
+			titleName: titleName
 		});
 		if (result.text && characterReRoll.text) {
 			result.text = result.characterName + ' 投擲 ' + result.characterReRollName + '\n' + characterReRoll.text + '\n' + '======\n' + result.text;
@@ -148,7 +152,8 @@ var rolldice = async function ({
 	displaynameDiscord,
 	membercount,
 	discordClient,
-	discordMessage
+	discordMessage,
+	titleName
 }) {
 	//	console.log(exports)
 	//在下面位置開始分析trigger
@@ -171,7 +176,8 @@ var rolldice = async function ({
 		displaynameDiscord: displaynameDiscord,
 		membercount: membercount,
 		discordClient: discordClient,
-		discordMessage: discordMessage
+		discordMessage: discordMessage,
+		titleName: titleName
 	});
 	//console.log('tempsave: ', tempsave)
 	return tempsave;
@@ -220,7 +226,8 @@ async function cmdfunction({
 	channelid,
 	displaynameDiscord,
 	membercount,
-	result
+	result,
+	titleName
 }) {
 	let newInputStr = result.characterReRollItem || result.text;
 	let mainMsg = newInputStr.match(msgSplitor); //定義輸入字串
@@ -237,7 +244,8 @@ async function cmdfunction({
 			displayname: displayname,
 			channelid: channelid,
 			displaynameDiscord: displaynameDiscord,
-			membercount: membercount
+			membercount: membercount,
+			titleName: titleName
 		})
 	} catch (error) {
 		console.log('cmdfunction GET ERROR:', error, ' inputStr: ', newInputStr, ' botname: ', botname, ' Time: ', new Date());
@@ -248,8 +256,6 @@ async function cmdfunction({
 	}
 	return;
 }
-
-
 
 
 async function z_stop(mainMsg, groupid) {

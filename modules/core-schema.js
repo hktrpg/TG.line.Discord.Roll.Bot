@@ -181,12 +181,18 @@ const characterGpSwitch = mongoose.model('characterGpSwitch', new mongoose.Schem
 const accountPW = mongoose.model('accountPW', new mongoose.Schema({
     id: String,
     userName: String,
-    password: String
+    password: String,
+    channel: [{
+        id: String,
+        botname: String,
+        titleName: String
+    }]
 }));
 
 const allowRolling = mongoose.model('allowRolling', new mongoose.Schema({
     id: String,
-    botname: String
+    botname: String,
+    titleName: String
 }));
 
 

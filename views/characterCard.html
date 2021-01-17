@@ -7,6 +7,24 @@
         z-index: 999;
     }
 
+    #rollingMessage {
+        position: fixed;
+        top: 15%;
+        left: 60%;
+        width: 30%;
+        margin: 0 auto;
+    }
+
+    .btn-link {
+        font-weight: 400;
+        color: #000000 !important;
+        text-decoration: none;
+    }
+
+    .btn-link:hover {
+        background-color: #F79489;
+    }
+
     .bg-color {
         background-color: #F9F1F0
     }
@@ -118,8 +136,14 @@
         </h1>
     </center>
     <br>
-
     <div class="container" id="array-rendering">
+        <div class="alert alert-warning alert-dismissible fade show overlay" style="position: fixed;
+        z-index: 999;" role="alert" id="rollingMessage">
+            <strong>結果!</strong>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
         <div class="alert alert-warning alert-dismissible fade show overlay" style="position: fixed;
         z-index: 999;" role="alert" id="warning-update">
             <strong>更新成功!</strong> 你可以在聊天平台上使用新資料了。
@@ -161,19 +185,21 @@
             -
         </button>
         <div class="row align-items-start">
-            <div v-for="item in state" id="state" class="board1" style="height: 36px;padding: 1px 1px 1px 1px">
+            <div v-for="item in state" id="state" class=" board1" style="height: 36px;">
                 <div>
-                    <textarea class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">
+                    <textarea class=" textName" v-model="item.name" style="width:50px;padding: 1px 1px 1px 1px">
                     {{item.name}}
                 </textarea><span style="height: 62px;">：</span>
-                    <textarea class="col textState" v-model="item.itemA" style="width:80px;padding: 1px 1px 1px 1px;">
+                    <textarea class=" textState" v-model="item.itemA" style="width:55px;padding: 1px 1px 1px 1px;">
                     {{item.itemA}}
                 </textarea>
                     <span style="height: 32px;">／ </span>
-                    <textarea class="col textState" v-model="item.itemB" style="width:80px;padding: 1px 1px 1px 1px">
+                    <textarea class=" textState" v-model="item.itemB" style="width:55px;padding: 1px 1px 1px 1px">
                     {{item.itemB}}
                 </textarea>
-                    &nbsp; &nbsp;
+                    <button type="button" class="btn btn-link"><span class="iconify " data-icon="fa-solid:dice-d20"
+                            data-inline="false" data-width="20px" data-height="20px"
+                            v-on:click="rolling(item)"></span></button>
                 </div>
             </div>
         </div>
@@ -192,10 +218,12 @@
             <div v-for="item in roll" class="board1" style="height: 36px;padding: 1px 1px 1px 1px">
                 <textarea class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">
                     {{item.name}}
-                </textarea>：
+                </textarea><span class="pb-2">:</span>
                 <textarea class="col textState" v-model="item.itemA" style="width:80px;padding: 1px 1px 1px 1px">
                     {{item.itemA}}
-                </textarea>&nbsp; &nbsp;
+                </textarea><button type="button" class="btn btn-link"><span class="iconify "
+                        data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px" data-height="20px"
+                        v-on:click="rolling(item)"></span></button>
             </div>
         </div>
         <br>
@@ -215,7 +243,11 @@
                 </textarea>：
                 <textarea class="col textNote" v-model="item.itemA" style="width:180px">
                     {{item.itemA}}
-                </textarea>&nbsp; &nbsp;
+                </textarea>
+                <button type="button" class="btn btn-link"><span class="iconify " data-icon="fa-solid:dice-d20"
+                        data-inline="false" data-width="20px" data-height="20px"
+                        v-on:click="rolling(item)"></span></button>
+
             </div>
         </div>
     </div>
@@ -332,6 +364,7 @@
     <script>
         $('#warning-update').hide();
         $('#warning-updateError').hide();
+        $('#rollingMessage').hide();
         var socket = io();
         var userName = localStorage.getItem("userName");
         var userPassword = localStorage.getItem("userPassword");
@@ -397,6 +430,8 @@
             }
 
         }
+
+
 
         function removeItem(form) {
             switch (form) {
@@ -478,12 +513,27 @@
                 }
             },
             methods: {
-                greet(event) {
-                    socket.emit('card', card)
-                    socket.on("card", function (amount) {
-                        card.name = amount;
+                rolling(item) {
+                    console.log(item)
+                    socket.emit('rolling', {
+                        item: item,
+                        userName: userName,
+                        userPassword: userPassword
                     });
-                    var forms = document.getElementById('userName_id');
+                    socket.on("rolling", function (result) {
+                        if (result) {
+                            $('#rollingMessage').html(
+                                " <strong>" + result +
+                                "</strong><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>"
+                            );
+                            $('#rollingMessage').show();
+                            setTimeout(function () {
+                                // Closing the alert 
+                                $('#rollingMessage').hide();
+                            }, 9000);
+                        }
+                    })
+
                 }
             }
         }).mount('#array-rendering')

@@ -70,6 +70,14 @@ var rollDiceCommand = async function ({
         case /^state$/i.test(mainMsg[1]):
             rply.state = true;
             return rply;
+        case /^rollchannel$/i.test(mainMsg[1]):
+            return rply;
+        case /^disrollchannel$/i.test(mainMsg[1]):
+            return rply;
+        case /^disallowrolling$/i.test(mainMsg[1]):
+            return rply;
+        case /^allowrolling$/i.test(mainMsg[1]):
+            return rply;
         case /^account$/i.test(mainMsg[1]):
             name = mainMsg[2].toLowerCase();
             if (groupid) {

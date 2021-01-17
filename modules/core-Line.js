@@ -52,7 +52,7 @@ var handleEvent = async function (event) {
 	let TargetGMTempID = [];
 	let TargetGMTempdiyName = [];
 	let TargetGMTempdisplayname = [];
-
+	console.log(event.source)
 	client.getProfile(userid).then(async function (profile) {
 			//	在GP 而有加好友的話,得到名字
 			displayname = profile.displayName;

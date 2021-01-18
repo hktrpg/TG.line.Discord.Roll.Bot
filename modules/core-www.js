@@ -78,6 +78,8 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
             res.sendFile(process.cwd() + '/tmp/' + req.originalUrl.replace('/app/discord/', ''));
     });
 }
+const events = require('./core-events');
+
 
 io.on('connection', async (socket) => {
     socket.on('getListInfo', async message => {
@@ -104,6 +106,7 @@ io.on('connection', async (socket) => {
         })
     })
     socket.on('rolling', async message => {
+        events.emitter.emit('someEvent', 'arg1 引數', 'arg2 引數');
         if (await limitRaterChatRoom(socket.handshake.address)) return;
         if (!message.item, !message.item.itemA) return;
         let rplyVal = {}

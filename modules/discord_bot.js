@@ -20,6 +20,9 @@ var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM')
 //  i.e., `User.js` will become `exports['User']` or `exports.User`
 //var Discordcountroll = 0;
 //var Discordcounttext = 0;
+
+
+const events = require('./core-events');
 const EXPUP = require('./level').EXPUP || function () {};
 const courtMessage = require('./logs').courtMessage || function () {};
 const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
@@ -371,5 +374,9 @@ if (togGGToken) {
 		console.log(`dbl Top.GG get Error! ${e}`);
 	})
 }
+
+events.emitter.on('someEvent', function (arg1, arg2) {
+	console.log('listener2', arg1, arg2);
+});
 
 client.login(channelSecret);

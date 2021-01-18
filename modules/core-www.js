@@ -19,7 +19,7 @@ var options = {
     cert: null,
     ca: null
 };
-
+var sparkles = require('./core-events')();
 const rateLimiterChatRoom = new RateLimiterMemory({
     points: 90, // 5 points
     duration: 60, // per second
@@ -46,7 +46,9 @@ async function read() {
 (async () => {
     read()
 })();
-
+sparkles.on('my-event', function (evt) {
+    console.log('my-event handled', evt);
+});
 var server;
 if (!options.key) {
     server = require('http').createServer(www);
@@ -78,7 +80,6 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
             res.sendFile(process.cwd() + '/tmp/' + req.originalUrl.replace('/app/discord/', ''));
     });
 }
-const events = require('./core-events');
 
 
 io.on('connection', async (socket) => {
@@ -106,7 +107,9 @@ io.on('connection', async (socket) => {
         })
     })
     socket.on('rolling', async message => {
-        events.emitter.emit('someEvent', 'arg1 引數', 'arg2 引數');
+        sparkles.emit('my-event', {
+            my: 'event'
+        });
         if (await limitRaterChatRoom(socket.handshake.address)) return;
         if (!message.item, !message.item.itemA) return;
         let rplyVal = {}
@@ -121,7 +124,7 @@ io.on('connection', async (socket) => {
                 inputStr: mainMsg.join(' '),
                 botname: "WWW"
             })
-            //rplyVal = await exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid)
+
         } else {
             if (channelKeyword == '') {
                 rplyVal = await exports.analytics.parseInput({
@@ -232,7 +235,7 @@ records.on("new_message", async (message) => {
             inputStr: mainMsg.join(' '),
             botname: "WWW"
         })
-        //rplyVal = await exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid)
+
     } else {
         if (channelKeyword == '') {
             rplyVal = await exports.analytics.parseInput({

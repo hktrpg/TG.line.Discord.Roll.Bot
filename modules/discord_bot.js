@@ -8,21 +8,12 @@ const DBL = require("dblapi.js");
 //TOP.GG 
 const togGGToken = process.env.TOPGG;
 const dbl = (togGGToken) ? new DBL(togGGToken, client) : null;
+var sparkles = require('./core-events')();
 const msgSplitor = (/\S+/ig);
 const link = process.env.WEB_LINK;
 const port = process.env.PORT || 20721;
 const mongo = process.env.mongoURL
 var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
-//const BootTime = new Date(new Date().toLocaleString("en-US", {
-//	timeZone: "Asia/Shanghai"
-//}));
-// Load `*.js` under modules directory as properties
-//  i.e., `User.js` will become `exports['User']` or `exports.User`
-//var Discordcountroll = 0;
-//var Discordcounttext = 0;
-
-
-const events = require('./core-events');
 const EXPUP = require('./level').EXPUP || function () {};
 const courtMessage = require('./logs').courtMessage || function () {};
 const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
@@ -64,8 +55,11 @@ client.on('guildCreate', guild => {
 		channel.send(joinMessage);
 	}
 })
-
+sparkles.on('my-event', function (evt) {
+	console.log('my-event handled', evt);
+});
 client.on('message', async (message) => {
+	sparkles.emit('my-event', { my: 'event' });
 	if (message.author.bot) return;
 	let groupid = '',
 		userid = '',
@@ -374,9 +368,5 @@ if (togGGToken) {
 		console.log(`dbl Top.GG get Error! ${e}`);
 	})
 }
-
-events.emitter.on('someEvent', function (arg1, arg2) {
-	console.log('listener2', arg1, arg2);
-});
 
 client.login(channelSecret);

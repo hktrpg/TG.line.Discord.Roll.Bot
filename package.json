@@ -39,6 +39,7 @@
     "random-js": "^2.1.0",
     "rate-limiter-flexible": "^2.2.1",
     "socket.io": "^2.4.1",
+    "sparkles": "^1.0.1",
     "telegraf": "^3.38.0",
     "telegraf-getchatmembers": "^1.0.1",
     "timer": "^1.0.1",

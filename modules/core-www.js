@@ -21,7 +21,7 @@ var options = {
 };
 
 const rateLimiterChatRoom = new RateLimiterMemory({
-    points: 40, // 5 points
+    points: 90, // 5 points
     duration: 60, // per second
 });
 const rateLimiterCard = new RateLimiterMemory({
@@ -94,7 +94,10 @@ io.on('connection', async (socket) => {
                 id: doc.id
             });
         }
-        let id = doc.channel;
+        let id = [];
+        if (doc && doc.channel) {
+            id = doc.channel;
+        }
         socket.emit('getListInfo', {
             temp,
             id
@@ -102,8 +105,6 @@ io.on('connection', async (socket) => {
     })
     socket.on('rolling', async message => {
         if (await limitRaterChatRoom(socket.handshake.address)) return;
-        if (await limitRaterCard(socket.handshake.address)) return;
-        console.log(message)
         if (!message.item, !message.item.itemA) return;
         let rplyVal = {}
         let newMessage = message.item.itemA + ' ' + message.item.name;
@@ -120,7 +121,6 @@ io.on('connection', async (socket) => {
             //rplyVal = await exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid)
         } else {
             if (channelKeyword == '') {
-                console.log('mainMsg', mainMsg);
                 rplyVal = await exports.analytics.parseInput({
                     inputStr: mainMsg.join(' '),
                     botname: "WWW"
@@ -130,20 +130,7 @@ io.on('connection', async (socket) => {
         if (rplyVal && rplyVal.text) {
             socket.emit('rolling', rplyVal.text)
         }
-        //如果有
-        //回傳 message 給發送訊息的 Client
-        let filter = {
-            userName: message.userName,
-            password: SHA(message.userPassword)
-        }
-        let doc = await schema.accountPW.findOne(filter);
-        let temp;
-        if (doc && doc.id) {
-            temp = await schema.characterCard.find({
-                id: doc.id
-            });
-        }
-        // socket.emit('rolling', temp)
+
     })
 
     socket.on('updateCard', async message => {

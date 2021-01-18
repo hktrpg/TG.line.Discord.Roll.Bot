@@ -506,9 +506,8 @@
                     userPassword: userPassword
                 })
                 socket.on("getListInfo", function (listInfo) {
-                    console.log(listInfo)
                     let list = listInfo.temp;
-                    if (listInfo && listInfo.id) {
+                    if (listInfo && listInfo.id && listInfo.id.length > 0) {
                         card.gpList = listInfo.id
                     }
                     if (list) {
@@ -545,7 +544,9 @@
             },
             methods: {
                 rolling(item) {
-                    var obj = document.querySelector('input[name="gpListRadio"]:checked').value;
+                    var obj = '';
+                    if (document.querySelector('input[name="gpListRadio"]:checked'))
+                        obj = document.querySelector('input[name="gpListRadio"]:checked').value;
                     socket.emit('rolling', {
                         item: item,
                         userName: userName,

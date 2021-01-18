@@ -5,6 +5,7 @@ if (!process.env.LINE_CHANNEL_ACCESSTOKEN || !process.env.mongoURL || !process.e
 const {
     RateLimiterMemory
 } = require('rate-limiter-flexible');
+const msgSplitor = (/\S+/ig)
 const schema = require('./core-schema.js');
 const privateKey = (process.env.KEY_PRIKEY) ? process.env.KEY_PRIKEY : null;
 const certificate = (process.env.KEY_CERT) ? process.env.KEY_CERT : null;
@@ -20,13 +21,14 @@ var options = {
 };
 
 const rateLimiterChatRoom = new RateLimiterMemory({
-    points: 40, // 5 points
+    points: 90, // 5 points
     duration: 60, // per second
 });
 const rateLimiterCard = new RateLimiterMemory({
     points: 20, // 5 points
     duration: 60, // per second
 });
+
 
 async function read() {
     if (!privateKey) return;
@@ -92,7 +94,43 @@ io.on('connection', async (socket) => {
                 id: doc.id
             });
         }
-        socket.emit('getListInfo', temp)
+        let id = [];
+        if (doc && doc.channel) {
+            id = doc.channel;
+        }
+        socket.emit('getListInfo', {
+            temp,
+            id
+        })
+    })
+    socket.on('rolling', async message => {
+        if (await limitRaterChatRoom(socket.handshake.address)) return;
+        if (!message.item, !message.item.itemA) return;
+        let rplyVal = {}
+        let newMessage = message.item.itemA + ' ' + message.item.name;
+        var mainMsg = newMessage.match(msgSplitor); // 定義輸入字串
+        if (mainMsg && mainMsg[0])
+            var trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
+        // 訊息來到後, 會自動跳到analytics.js進行骰組分析
+        // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+        if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
+            rplyVal = await exports.analytics.parseInput({
+                inputStr: mainMsg.join(' '),
+                botname: "WWW"
+            })
+            //rplyVal = await exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid)
+        } else {
+            if (channelKeyword == '') {
+                rplyVal = await exports.analytics.parseInput({
+                    inputStr: mainMsg.join(' '),
+                    botname: "WWW"
+                })
+            }
+        }
+        if (rplyVal && rplyVal.text) {
+            socket.emit('rolling', rplyVal.text)
+        }
+
     })
 
     socket.on('updateCard', async message => {
@@ -180,7 +218,6 @@ records.on("new_message", async (message) => {
     }
     io.emit(message.roomNumber, message);
     let rplyVal = {}
-    let msgSplitor = (/\S+/ig)
     var mainMsg = message.msg.match(msgSplitor); // 定義輸入字串
     if (mainMsg && mainMsg[0])
         var trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
@@ -247,6 +284,8 @@ async function limitRaterChatRoom(address) {
         return true;
     }
 }
+
+
 async function limitRaterCard(address) {
     try {
         await rateLimiterCard.consume(address)

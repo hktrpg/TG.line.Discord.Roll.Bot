@@ -47,7 +47,8 @@ var handleEvent = async function (event) {
 	let roomorgroupid = event.source.groupId || event.source.roomId || '',
 		userid = event.source.userId || '',
 		displayname = '',
-		membercount = null;
+		membercount = null,
+		titleName = '';
 	let TargetGMTempID = [];
 	let TargetGMTempdiyName = [];
 	let TargetGMTempdisplayname = [];
@@ -62,7 +63,7 @@ var handleEvent = async function (event) {
 			await AfterCheckName();
 			//如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
 		})
-
+		
 	async function AfterCheckName() {
 		let displaynamecheck = true;
 		if (event.type !== 'message' || event.message.type !== 'text') {
@@ -119,7 +120,8 @@ var handleEvent = async function (event) {
 				userid: userid,
 				userrole: 3,
 				botname: "Line",
-				displayname: displayname
+				displayname: displayname,
+				titleName: titleName
 			})
 		} else {
 			if (channelKeyword == '') {
@@ -129,7 +131,8 @@ var handleEvent = async function (event) {
 					userid: userid,
 					userrole: 3,
 					botname: "Line",
-					displayname: displayname
+					displayname: displayname,
+					titleName: titleName
 				});
 				//console.log('channelKeyword', rplyVal)
 			}

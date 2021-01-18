@@ -35,7 +35,8 @@ TGclient.on('text', async (ctx) => {
 		userid = '',
 		displayname = '',
 		channelid = '',
-		membercount = 0;
+		membercount = 0,
+		titleName = '';
 	let TargetGMTempID = [];
 	let TargetGMTempdiyName = [];
 	let TargetGMTempdisplayname = [];
@@ -51,6 +52,8 @@ TGclient.on('text', async (ctx) => {
 	if (ctx.chat && ctx.chat.id) {
 		membercount = await ctx.getChatMembersCount(ctx.chat.id) - 1;
 	}
+	if (ctx.message && ctx.message.chat && ctx.message.chat.title)
+		titleName = ctx.message.chat.title
 	if (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') {
 		let memberData = await telegrafGetChatMembers.check(ctx.chat.id);
 		groupid = ctx.message.chat.id;
@@ -110,7 +113,8 @@ TGclient.on('text', async (ctx) => {
 			botname: "Telegram",
 			displayname: displayname,
 			channelid: channelid,
-			membercount: membercount
+			membercount: membercount,
+			titleName: titleName
 		})
 	} else {
 		if (channelKeyword == '') {
@@ -122,7 +126,8 @@ TGclient.on('text', async (ctx) => {
 				botname: "Telegram",
 				displayname: displayname,
 				channelid: channelid,
-				membercount: membercount
+				membercount: membercount,
+				titleName: titleName
 			})
 		}
 	}

@@ -7,6 +7,16 @@
         z-index: 999;
     }
 
+    .btn-link {
+        font-weight: 400;
+        color: #000000 !important;
+        text-decoration: none;
+    }
+
+    .btn-link:hover {
+        background-color: #F79489;
+    }
+
     .bg-color {
         background-color: #F9F1F0
     }
@@ -104,21 +114,12 @@
                 data-width="30px" data-height="30px"></span>
         </a>
     </div>
-    <!--
-    <div>
-        <img src="https://cdna.artstation.com/p/assets/images/images/023/585/544/large/farid-nx-rasyidtoken.jpg?1579690738"
-            class="img-thumbnail" alt="Cinque Terre" width="304" height="236">
-    </div>
-
-    -->
-
     <center>
         <h1 class=" bg-color2"><img src='https://avatars2.githubusercontent.com/u/48795428?s=280&v=4'
                 height="55em">角色卡管理平台
         </h1>
     </center>
     <br>
-
     <div class="container" id="array-rendering">
         <div class="alert alert-warning alert-dismissible fade show overlay" style="position: fixed;
         z-index: 999;" role="alert" id="warning-update">
@@ -146,10 +147,21 @@
         <button type="button" class="btn btn-dark float-right" onclick="readme()">
             <span class="iconify" data-icon="gg:readme" data-inline="false"></span>說明
         </button>
-
         <h3>
             <span class="iconify" data-icon="wpf:name" data-inline="false"></span> {{name}}
         </h3>
+        <div v-if="gpList">
+            <br>
+            <h3 class="bg-color3">
+                <span class="iconify" data-icon="grommet-icons:channel" data-inline="false"></span>擲骰頻道
+            </h3>
+            <label><input type="radio" name="gpListRadio" value=null checked />
+                不進行群組擲骰</label>
+            <div v-for="(gp,i) in gpList">
+                <label> <input type="radio" name="gpListRadio" :value="gp._id" />
+                    {{i}} {{gp.botname}} {{gp.titleName}}</label>
+            </div>
+        </div>
         <br>
         <h3 class="bg-color3">
             <span class="iconify" data-icon="carbon:data-base" data-inline="false"></span>基本屬性
@@ -161,19 +173,21 @@
             -
         </button>
         <div class="row align-items-start">
-            <div v-for="item in state" id="state" class="board1" style="height: 36px;padding: 1px 1px 1px 1px">
+            <div v-for="item in state" id="state" class=" board1" style="height: 36px;">
                 <div>
-                    <textarea class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">
+                    <textarea class=" textName" v-model="item.name" style="width:50px;padding: 1px 1px 1px 1px">
                     {{item.name}}
                 </textarea><span style="height: 62px;">：</span>
-                    <textarea class="col textState" v-model="item.itemA" style="width:80px;padding: 1px 1px 1px 1px;">
+                    <textarea class=" textState" v-model="item.itemA" style="width:55px;padding: 1px 1px 1px 1px;">
                     {{item.itemA}}
                 </textarea>
                     <span style="height: 32px;">／ </span>
-                    <textarea class="col textState" v-model="item.itemB" style="width:80px;padding: 1px 1px 1px 1px">
+                    <textarea class=" textState" v-model="item.itemB" style="width:55px;padding: 1px 1px 1px 1px">
                     {{item.itemB}}
                 </textarea>
-                    &nbsp; &nbsp;
+                    <button type="button" class="btn btn-link" v-on:click="rolling(item)"><span class="iconify "
+                            data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
+                            data-height="20px"></span></button>
                 </div>
             </div>
         </div>
@@ -192,10 +206,12 @@
             <div v-for="item in roll" class="board1" style="height: 36px;padding: 1px 1px 1px 1px">
                 <textarea class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">
                     {{item.name}}
-                </textarea>：
+                </textarea><span class="pb-2">:</span>
                 <textarea class="col textState" v-model="item.itemA" style="width:80px;padding: 1px 1px 1px 1px">
                     {{item.itemA}}
-                </textarea>&nbsp; &nbsp;
+                </textarea><button type="button" class="btn btn-link" v-on:click="rolling(item)"><span class="iconify "
+                        data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
+                        data-height="20px"></span></button>
             </div>
         </div>
         <br>
@@ -215,7 +231,11 @@
                 </textarea>：
                 <textarea class="col textNote" v-model="item.itemA" style="width:180px">
                     {{item.itemA}}
-                </textarea>&nbsp; &nbsp;
+                </textarea>
+                <button type="button" class="btn btn-link" v-on:click="rolling(item)"><span class="iconify "
+                        data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
+                        data-height="20px"></span></button>
+
             </div>
         </div>
     </div>
@@ -348,7 +368,6 @@
         function popup(result) {
             if (result) {
                 $('#warning-update').show();
-
                 setTimeout(function () {
                     // Closing the alert 
                     $('#warning-update').hide();
@@ -370,10 +389,11 @@
                 userPassword: userPassword,
                 card: card
             })
-            socket.on("updateCard", function (result) {
-                popup(result);
-            })
+
         }
+        socket.on("updateCard", function (result) {
+            popup(result);
+        })
 
         function newItem(form) {
             switch (form) {
@@ -397,6 +417,46 @@
             }
 
         }
+        var divNumber = 0;
+
+        function addElement(message, type, closeDelay) {
+            var $cont = $("#alerts-container");
+            if ($cont.length == 0) {
+                // alerts-container does not exist, create it
+                $cont = $('<div id="alerts-container">')
+                    .css({
+                        position: "fixed",
+                        width: "30%",
+                        left: "60%",
+                        top: "15%",
+                        margin: "0 auto"
+                    })
+                    .appendTo($("body"));
+            }
+
+            // default to alert-info; other options include success, warning, danger
+            type = type || "info";
+
+            // create the alert div
+            var alert = $('<div>')
+                .addClass("alert warning alert-dismissible fade show overlay alert-" + type)
+                .append(
+                    $('<button type="button" class="close" data-dismiss="alert">')
+                    .append("&times;")
+                )
+                .append(message);
+
+            // add the alert div to top of alerts-container, use append() to add to bottom
+            $cont.prepend(alert);
+
+            // if closeDelay was passed - set a timeout to close the alert
+            if (closeDelay)
+                window.setTimeout(function () {
+                    alert.alert("close")
+                }, closeDelay);
+
+        }
+
 
         function removeItem(form) {
             switch (form) {
@@ -445,7 +505,11 @@
                     userName: userName,
                     userPassword: userPassword
                 })
-                socket.on("getListInfo", function (list) {
+                socket.on("getListInfo", function (listInfo) {
+                    let list = listInfo.temp;
+                    if (listInfo && listInfo.id && listInfo.id.length > 0) {
+                        card.gpList = listInfo.id
+                    }
                     if (list) {
                         document.getElementById("warning").style.display = "none";
                         cardList.list = list
@@ -474,19 +538,32 @@
                     name: "",
                     state: [],
                     roll: [],
-                    notes: []
+                    notes: [],
+                    gpList: ""
                 }
             },
             methods: {
-                greet(event) {
-                    socket.emit('card', card)
-                    socket.on("card", function (amount) {
-                        card.name = amount;
+                rolling(item) {
+                    var obj = '';
+                    if (document.querySelector('input[name="gpListRadio"]:checked'))
+                        obj = document.querySelector('input[name="gpListRadio"]:checked').value;
+                    socket.emit('rolling', {
+                        item: item,
+                        userName: userName,
+                        userPassword: userPassword,
+                        rollTarget: obj
                     });
-                    var forms = document.getElementById('userName_id');
+
+
                 }
             }
         }).mount('#array-rendering')
+        socket.on("rolling", function (result) {
+            if (result) {
+                addElement("<strong>" + result +
+                    "</strong>", "warning", 4000);
+            }
+        })
         var cardList = Vue.createApp({
             data() {
                 return {

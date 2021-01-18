@@ -51,7 +51,8 @@ var rollDiceCommand = async function ({
     displayname,
     channelid,
     displaynameDiscord,
-    membercount
+    membercount,
+    titleName
 }) {
     let rply = {
         default: 'on',
@@ -63,12 +64,153 @@ var rollDiceCommand = async function ({
     let temp;
     let hash = ""
     let name;
+    let temp2;
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
             return rply;
         case /^state$/i.test(mainMsg[1]):
             rply.state = true;
+            return rply;
+        case /^rollchannel$/i.test(mainMsg[1]):
+            return;
+            if (!groupid && !channelid) {
+                rply.text = "這裡不是群組，如果想在群組使用你的角色卡，請在群組中輸入此指令";
+                return rply;
+            }
+            try {
+                temp = await schema.accountPW.findOne({
+                    "id": userid
+                });
+            } catch (e) {
+                console.log('ACCOUNT ERROR:', e);
+                rply.text += JSON.stringify(e);
+                return rply;
+            }
+            try {
+                temp2 = await schema.accountPW.findOne({
+                    "id": userid,
+                    "channel.id": channelid || groupid
+                });
+            } catch (e) {
+                console.log('ACCOUNT ERROR:', e);
+                rply.text += JSON.stringify(e);
+                return rply;
+            }
+            if (temp && temp2) {
+                rply.text = "已註冊這頻道";
+                if (!await checkGpAllow(channelid || groupid)) {
+                    rply.text += '\n群組未被Admin 允許擲骰，請Admin在這群組輸入\n.admin disallowrolling';
+                }
+                return rply;
+            }
+            if (temp && !temp2) {
+                temp.channel.push({
+                    "id": channelid || groupid,
+                    "botname": botname,
+                    "titleName": titleName
+                })
+                await temp.save();
+                rply.text = "註冊成功，如果想使用角色卡，請到\nhttps://www.hktrpg.com:20721/card/"
+                if (!await checkGpAllow(channelid || groupid)) {
+                    rply.text += '\n群組未被Admin 允許擲骰，請Admin在這群組輸入\n.admin disallowrolling';
+                }
+                return rply;
+            }
+
+            if (!temp) {
+                //   temp = schema.accountPW({ name: 'Frodo', inventory: { ringOfPower: 1 }});
+                temp = new schema.accountPW({
+                    id: userid,
+                    channel: {
+                        "id": channelid || groupid,
+                        "botname": botname,
+                        "titleName": titleName
+                    }
+                });
+                await temp.save();
+                rply.text = "註冊成功，如果想使用角色卡，請到\nhttps://www.hktrpg.com:20721/card/";
+                if (!await checkGpAllow(channelid || groupid)) {
+                    rply.text += '\n群組未被Admin 允許擲骰，請Admin在這群組輸入\n.admin disallowrolling';
+                }
+                return rply;
+            }
+
+            return rply;
+
+        case /^disrollchannel$/i.test(mainMsg[1]):
+            return;
+            if (!groupid && !channelid) {
+                rply.text = "這裡不是群組，請在群組中輸入此指令";
+                return rply;
+            }
+            try {
+                await schema.accountPW.updateOne({
+                    "id": userid
+                }, {
+                    $pull: {
+                        channel: {
+                            "id": channelid || groupid
+                        }
+                    }
+                });
+            } catch (e) {
+                console.log('disrollchannel ERROR:', e);
+                rply.text += JSON.stringify(e);
+                return rply;
+            }
+            rply.text = "已移除註冊!"
+            return rply;
+        case /^disallowrolling$/i.test(mainMsg[1]):
+            return;
+            if (!groupid && !channelid) {
+                rply.text = "這裡不是群組，Admin設定擲骰的頻道時，請在群組中輸入";
+                return rply;
+            }
+            if (userrole < 3) {
+                rply.text = "設定擲骰的頻道時，需要Admin權限";
+                return rply;
+            }
+            try {
+                doc = await schema.allowRolling.findOneAndRemove({
+                    "id": channelid || groupid
+                });
+            } catch (e) {
+                console.log('disAllowrolling ERROR:', e);
+                rply.text += JSON.stringify(e);
+                return rply;
+            }
+            rply.text = "此頻道已被Admin不允許使用網頁版角色卡擲骰。\nAdmin 希望允許擲骰，可輸入\n.admin allowrolling";
+            return rply;
+        case /^allowrolling$/i.test(mainMsg[1]):
+            return;
+            if (!groupid && !channelid) {
+                rply.text = "這裡不是群組，Admin設定擲骰的頻道時，請在群組中使用";
+                return rply;
+            }
+            if (userrole < 3) {
+                rply.text = "設定可以擲骰的頻道時，需要Admin權限";
+                return rply;
+            }
+            try {
+                doc = await schema.allowRolling.findOneAndUpdate({
+                    "id": channelid || groupid
+                }, {
+                    $set: {
+                        "id": channelid || groupid,
+                        "botname": botname
+                    }
+                }, {
+                    upsert: true,
+                    returnNewDocument: true
+                });
+
+            } catch (e) {
+                console.log('Allowrolling ERROR:', e);
+                rply.text += JSON.stringify(e);
+                return rply;
+            }
+            rply.text = "此頻道已被Admin允許使用網頁版角色卡擲骰，希望擲骰玩家可在此頻道輸入以下指令登記。\n.admin rollchannel\nAdmin 希望取消允許，可輸入\n.admin disallowrolling";
             return rply;
         case /^account$/i.test(mainMsg[1]):
             name = mainMsg[2].toLowerCase();
@@ -121,7 +263,7 @@ var rollDiceCommand = async function ({
             if (doc) {
                 rply.text += "現在你的帳號是: " + name + "\n" + "密碼: " + mainMsg[3];
                 if (link)
-                    rply.text += "\n登入位置: https://www.hktrpg.com:20721/card/ ";
+                    rply.text += "\n登入位置: https://www.hktrpg.com:20721/card/ \n如想經網頁擲骰，可以請Admin在群組輸入\n.admin  allowrolling\n然後希望擲骰玩家可在頻道輸入以下指令登記。\n.admin rollchannel";
                 return rply;
             }
 
@@ -206,6 +348,20 @@ function checkUserName(text) {
     //True 即成功
     return /^[A-Za-z0-9\u3000\u3400-\u4DBF\u4E00-\u9FFF]{4,16}$/.test(text);
 }
+
+async function checkGpAllow(target) {
+    let doc;
+    try {
+        doc = await schema.allowRolling.findOne({
+            "id": target
+        })
+    } catch (e) {
+        console.log('Allowrolling ERROR:', e);
+
+    }
+    return doc;
+}
+
 
 function checkPassword(text) {
     //True 即成功

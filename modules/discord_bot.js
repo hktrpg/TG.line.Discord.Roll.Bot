@@ -38,14 +38,18 @@ client.once('ready', async () => {
 
 async function count() {
 	if (!client.shard) return;
-	return await client.shard.fetchClientValues('guilds.cache.size')
+	const promises = [
+		client.shard.fetchClientValues('guilds.cache.size'),
+		client.shard.broadcastEval('this.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0)'),
+	];
+
+	return Promise.all(promises)
 		.then(results => {
-			console.log(`${results.reduce((acc, guildCount) => acc + guildCount, 0)} total Discord guilds`);
-			return `正在${results.reduce((acc, guildCount) => acc + guildCount, 0)} 個Discord 頻道運行`;
+			const totalGuilds = results[0].reduce((acc, guildCount) => acc + guildCount, 0);
+			const totalMembers = results[1].reduce((acc, memberCount) => acc + memberCount, 0);
+			return (`Discord 群組數量: ${totalGuilds}\nDiscord 會員數量: ${totalMembers}`);
 		})
-		.catch(() => {
-			return;
-		});
+		.catch(console.error);
 
 }
 

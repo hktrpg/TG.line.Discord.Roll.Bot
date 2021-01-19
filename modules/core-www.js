@@ -112,8 +112,6 @@ io.on('connection', async (socket) => {
     })
 
     socket.on('rolling', async message => {
-        child.send('Hi From index.js');
-
         if (await limitRaterChatRoom(socket.handshake.address)) return;
         if (!message.item, !message.item.itemA) return;
         let rplyVal = {}
@@ -139,7 +137,9 @@ io.on('connection', async (socket) => {
         }
         if (rplyVal && rplyVal.text) {
             socket.emit('rolling', rplyVal.text)
+
         }
+        child.send('Hi From index.js');
 
     })
 

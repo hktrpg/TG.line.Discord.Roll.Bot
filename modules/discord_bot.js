@@ -31,7 +31,13 @@ client.once('ready', async () => {
 
 
 process.on('message', message => {
-	console.log('message from www:', message);
+	console.log(message)
+	if (message) {}
+	let result = client.channels.cache.get('437982382696693783')
+	console.log(result)
+	if (result) {
+		result.send(message)
+	}
 });
 
 async function count() {

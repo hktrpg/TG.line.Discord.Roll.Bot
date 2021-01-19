@@ -10,6 +10,7 @@ const forkOptions = {
     stdio: ['pipe', 'pipe', 'pipe', 'ipc']
 };
 const child = fork(program, parameters, forkOptions);
+const mongoose = require('./core-db-connector.js').mongoose;
 const {
     RateLimiterMemory
 } = require('rate-limiter-flexible');
@@ -137,9 +138,19 @@ io.on('connection', async (socket) => {
         }
         if (rplyVal && rplyVal.text) {
             socket.emit('rolling', rplyVal.text)
+            if (message.rollTarget && message.rollTarget.id && message.rollTarget.botname && message.userName && message.userPassword) {
+                let filter = {
+                    userName: message.userName,
+                    password: SHA(message.userPassword),
+                    "channel.id": message.rollTarget.id,
+                    "channel.botname": message.rollTarget.botname
+                }
+                let result = await schema.accountPW.findOne(filter);
+                console.log(result)
+            }
 
         }
-        child.send('Hi From index.js');
+        //child.send('Hi From index.js');
 
     })
 

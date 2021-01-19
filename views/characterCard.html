@@ -158,7 +158,7 @@
             <label><input type="radio" name="gpListRadio" value=null checked />
                 不進行群組擲骰</label>
             <div v-for="(gp,i) in gpList">
-                <label> <input type="radio" name="gpListRadio" :value="gp._id" />
+                <label> <input type="radio" name="gpListRadio" v-bind:value="gp._id" />
                     {{i}} {{gp.botname}} {{gp.titleName}}</label>
             </div>
         </div>
@@ -545,8 +545,12 @@
             methods: {
                 rolling(item) {
                     var obj = '';
-                    if (document.querySelector('input[name="gpListRadio"]:checked'))
-                        obj = document.querySelector('input[name="gpListRadio"]:checked').value;
+                    if (document.querySelector('input[name="gpListRadio"]:checked')) {
+                        let temp = document.querySelector('input[name="gpListRadio"]:checked').value;
+                        obj = card.gpList.find(function (item, index, array) {
+                            return item._id == temp;
+                        });
+                    }
                     socket.emit('rolling', {
                         item: item,
                         userName: userName,

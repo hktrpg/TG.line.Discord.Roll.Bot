@@ -32,7 +32,7 @@ client.once('ready', async () => {
 
 process.on('message', message => {
 	console.log(message)
-	if (message) {}
+	return;
 	let result = client.channels.cache.get('437982382696693783')
 	console.log(result)
 	if (result) {

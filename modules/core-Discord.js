@@ -2,6 +2,7 @@
 if (!process.env.DISCORD_CHANNEL_SECRET) {
 	return;
 }
+
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const {
 	ShardingManager

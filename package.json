@@ -36,6 +36,7 @@
     "moment-timezone": "^0.5.32",
     "mongoose": "^5.11.11",
     "node-fetch": "^2.6.1",
+    "node-sync-ipc": "^3.0.2",
     "random-js": "^2.1.0",
     "rate-limiter-flexible": "^2.2.1",
     "socket.io": "^2.4.1",

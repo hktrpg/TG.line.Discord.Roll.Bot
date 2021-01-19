@@ -2,15 +2,28 @@
 if (!process.env.LINE_CHANNEL_ACCESSTOKEN || !process.env.mongoURL || !process.env.SITE) {
     return;
 }
-const fork = require('child_process').fork;
-const path = require('path')
-const program = path.resolve('./modules/discord_bot.js');
-const parameters = [];
-const forkOptions = {
-    stdio: ['pipe', 'pipe', 'pipe', 'ipc']
-};
-const child = fork(program, parameters, forkOptions);
-const mongoose = require('./core-db-connector.js').mongoose;
+
+const SyncIPCServer = require("node-sync-ipc").SyncIPCServer;
+
+// pipe File
+// on Unix based systems, pipe file should be a sock file path
+// on Windows, pipe should be named pipes
+// const pipeFile = "\\\\.\\pipe\\somePipeName"; // <- windows
+const path = require("path");
+const pipeFile = path.join(require('os').tmpDir(), 'tmp.sock');
+
+const server2 = new SyncIPCServer(pipeFile);
+
+server2.startListen();
+
+server2.onMessage("foo", function (res, bar) {
+    bar = bar + " " + bar;
+    // block the child process for one second
+    setTimeout(function () {
+        // the first argument will be passed to child process as the result
+        res(bar);
+    }, 1000)
+});
 const {
     RateLimiterMemory
 } = require('rate-limiter-flexible');
@@ -138,7 +151,8 @@ io.on('connection', async (socket) => {
         }
         if (rplyVal && rplyVal.text) {
             socket.emit('rolling', rplyVal.text)
-            if (message.rollTarget && message.rollTarget.id && message.rollTarget.botname && message.userName && message.userPassword) {
+            if (message.rollTarget && message.rollTarget.id && message.rollTarget.botname && message.userName && message.userPassword && message.cardName) {
+                console.log(message)
                 let filter = {
                     userName: message.userName,
                     password: SHA(message.userPassword),
@@ -146,11 +160,49 @@ io.on('connection', async (socket) => {
                     "channel.botname": message.rollTarget.botname
                 }
                 let result = await schema.accountPW.findOne(filter);
-                console.log(result)
+                if (!result) return;
+                let filter2 = {
+                    "botname": message.rollTarget.botname,
+                    "id": message.rollTarget.id
+                }
+                let allowRollingResult = await schema.allowRolling.findOne(filter2);
+                if (!allowRollingResult) return;
+                rplyVal.text = '@' + message.cardName + '\n' + rplyVal.text;
+                switch (message.rollTarget.botname) {
+                    case "Discord":
+                        child.send({
+                            target: message.rollTarget,
+                            text: rplyVal.text
+                        });
+                        return;
+                    case "Telegram":
+                        process.emit("Telegram", {
+                            target: message.rollTarget,
+                            text: rplyVal.text
+                        });
+                        return;
+
+                    case "Line":
+                        process.emit("Line", {
+                            target: message.rollTarget,
+                            text: rplyVal.text
+                        });
+                        return;
+                    case "Whatsapp":
+                        process.emit("Whatsapp", {
+                            target: message.rollTarget,
+                            text: rplyVal.text
+                        });
+                        return;
+                    default:
+                        return;
+
+                }
+
             }
 
         }
-        //child.send('Hi From index.js');
+
 
     })
 

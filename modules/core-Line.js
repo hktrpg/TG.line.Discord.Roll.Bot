@@ -63,7 +63,7 @@ var handleEvent = async function (event) {
 			await AfterCheckName();
 			//如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
 		})
-		
+
 	async function AfterCheckName() {
 		let displaynamecheck = true;
 		if (event.type !== 'message' || event.message.type !== 'text') {
@@ -344,6 +344,9 @@ async function privateMsgFinder(channelid) {
 		return groupInfo.trpgDarkRollingfunction
 	else return [];
 }
+process.on("Line", message => {
+	console.log(message)
+})
 module.exports = {
 	app,
 	express

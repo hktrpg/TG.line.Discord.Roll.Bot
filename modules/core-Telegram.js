@@ -222,6 +222,9 @@ TGclient.on('text', async (ctx) => {
 	//  }
 
 })
+process.on("Telegram", message => {
+	TGclient.telegram.sendMessage(message.target.id, message.text);
+})
 TGclient.on('message', async (ctx) => {
 	if (ctx.message.from.is_bot) return;
 	if (ctx.message.new_chat_member && ctx.message.new_chat_member.username == ctx.me) {

@@ -3,27 +3,6 @@ if (!process.env.LINE_CHANNEL_ACCESSTOKEN || !process.env.mongoURL || !process.e
     return;
 }
 
-const SyncIPCServer = require("node-sync-ipc").SyncIPCServer;
-
-// pipe File
-// on Unix based systems, pipe file should be a sock file path
-// on Windows, pipe should be named pipes
-// const pipeFile = "\\\\.\\pipe\\somePipeName"; // <- windows
-const path = require("path");
-const pipeFile = path.join(require('os').tmpDir(), 'tmp.sock');
-
-const server2 = new SyncIPCServer(pipeFile);
-
-server2.startListen();
-
-server2.onMessage("foo", function (res, bar) {
-    bar = bar + " " + bar;
-    // block the child process for one second
-    setTimeout(function () {
-        // the first argument will be passed to child process as the result
-        res(bar);
-    }, 1000)
-});
 const {
     RateLimiterMemory
 } = require('rate-limiter-flexible');
@@ -152,7 +131,6 @@ io.on('connection', async (socket) => {
         if (rplyVal && rplyVal.text) {
             socket.emit('rolling', rplyVal.text)
             if (message.rollTarget && message.rollTarget.id && message.rollTarget.botname && message.userName && message.userPassword && message.cardName) {
-                console.log(message)
                 let filter = {
                     userName: message.userName,
                     password: SHA(message.userPassword),
@@ -170,10 +148,10 @@ io.on('connection', async (socket) => {
                 rplyVal.text = '@' + message.cardName + '\n' + rplyVal.text;
                 switch (message.rollTarget.botname) {
                     case "Discord":
-                        child.send({
+                        sendToDiscord({
                             target: message.rollTarget,
                             text: rplyVal.text
-                        });
+                        })
                         return;
                     case "Telegram":
                         process.emit("Telegram", {
@@ -181,7 +159,6 @@ io.on('connection', async (socket) => {
                             text: rplyVal.text
                         });
                         return;
-
                     case "Line":
                         process.emit("Line", {
                             target: message.rollTarget,
@@ -367,3 +344,30 @@ async function limitRaterCard(address) {
         return true;
     }
 }
+
+/**
+ * 
+ */
+const express = require('express')
+const app2 = express()
+
+//將 express 放進 http 中開啟 Server 的 3000 port ，正確開啟後會在 console 中印出訊息
+const server2 = require('http').Server(app2)
+    .listen(9999, () => {
+        console.log('open server 9999!')
+    })
+
+//將啟動的 Server 送給 socket.io 處理
+const io2 = require('socket.io')(server2)
+
+/*上方為此寫法的簡寫：
+  const socket = require('socket.io')
+  const io = socket(server)
+*/
+var sendToDiscord;
+//監聽 Server 連線後的所有事件，並捕捉事件 socket 執行
+io2.on('connection', socket => {
+    sendToDiscord = function (params) {
+        socket.emit('discordBot', params)
+    }
+})

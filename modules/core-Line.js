@@ -244,11 +244,7 @@ var handleEvent = async function (event) {
 
 
 		//rplyVal.text
-		async function SendToId(targetid, Reply) {
-			let temp = await HandleMessage(Reply);
-			//console.log('SendToId: ', temp)
-			return await client.pushMessage(targetid, temp);
-		}
+
 		async function replyMessagebyReplyToken(targetid, Reply) {
 			let temp = await HandleMessage(Reply);
 			return await client.replyMessage(event.replyToken, temp).catch(() => {
@@ -334,7 +330,11 @@ app.on('unhandledRejection', error => {
 	// Will print "unhandledRejection err is not defined"
 	console.log('unhandledRejection: ', error.message);
 });
-
+async function SendToId(targetid, Reply) {
+	let temp = await HandleMessage(Reply);
+	//console.log('SendToId: ', temp)
+	return await client.pushMessage(targetid, temp);
+}
 async function privateMsgFinder(channelid) {
 	if (!TargetGM || !TargetGM.trpgDarkRollingfunction) return;
 	let groupInfo = TargetGM.trpgDarkRollingfunction.find(data =>
@@ -344,8 +344,8 @@ async function privateMsgFinder(channelid) {
 		return groupInfo.trpgDarkRollingfunction
 	else return [];
 }
-process.on("Line", message => {
-	console.log(message)
+process.on("Line", async message => {
+	SendToId(message.target.id, message.text);
 })
 module.exports = {
 	app,

@@ -23,27 +23,26 @@ const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
 		\n有關TRPG資訊, 可以到網站\
 		\n(http://www.hktrpg.com/)";
 
-const SyncIPCClient = require("node-sync-ipc").SyncIPCClient;
 
-// pipe File to connect to
-const path = require("path");
-const serverHandle = path.join(require('os').tmpDir(), 'tmp.sock');
-
-const client2 = new SyncIPCClient(serverHandle);
 client.once('ready', async () => {
 	console.log('Discord is Ready!');
 	await count();
+	const io = require('socket.io-client');
+	const socket = io('ws://localhost:9999');
+	socket.on('connect', () => {
+		// either with send()
+		console.log('connect To core-www!')
+	});
+	socket.on('discordBot', message => {
+		if (!message.text) return;
+		let result = client.channels.cache.get(message.target.id);
+		if (result) {
+			result.send(message.text);
+		}
+		return;
+	});
 });
 
-
-process.on('message', message => {
-	if (!message.text) return;
-	let result = client.channels.cache.get(message.target.id);
-	if (result) {
-		result.send(message.text);
-	}
-	return;
-});
 
 async function count() {
 	if (!client.shard) return;
@@ -73,7 +72,6 @@ client.on('guildCreate', guild => {
 
 client.on('message', async (message) => {
 	if (message.author.bot) return;
-	console.log(client.sendSync("foo", "echo content"));
 	let groupid = '',
 		userid = '',
 		displayname = '',

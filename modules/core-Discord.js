@@ -10,7 +10,7 @@ const {
 
 const manager = new ShardingManager('./modules/discord_bot.js', {
 	token: channelSecret
-});
+})
 manager.on('shardCreate', shard => {
 	console.log(`Launched shard ${shard.id}`)
 	shard.on('ready', () => {

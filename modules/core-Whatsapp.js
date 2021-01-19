@@ -215,8 +215,8 @@ client.on('group_join', async (msg) => {
 
 client.initialize();
 
-process.on("Whatsapp", message => {
-	console.log(message)
+process.on("Whatsapp", async message => {
+	SendToId(message.target.id, message.text, client);
 })
 
 async function SendDR(msg, text) {

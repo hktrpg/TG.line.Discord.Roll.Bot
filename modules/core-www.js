@@ -2,6 +2,14 @@
 if (!process.env.LINE_CHANNEL_ACCESSTOKEN || !process.env.mongoURL || !process.env.SITE) {
     return;
 }
+const fork = require('child_process').fork;
+const path = require('path')
+const program = path.resolve('./modules/discord_bot.js');
+const parameters = [];
+const forkOptions = {
+    stdio: ['pipe', 'pipe', 'pipe', 'ipc']
+};
+const child = fork(program, parameters, forkOptions);
 const {
     RateLimiterMemory
 } = require('rate-limiter-flexible');
@@ -19,7 +27,6 @@ var options = {
     cert: null,
     ca: null
 };
-var sparkles = require('./core-events')();
 const rateLimiterChatRoom = new RateLimiterMemory({
     points: 90, // 5 points
     duration: 60, // per second
@@ -46,9 +53,6 @@ async function read() {
 (async () => {
     read()
 })();
-sparkles.on('my-event', function (evt) {
-    console.log('my-event handled', evt);
-});
 var server;
 if (!options.key) {
     server = require('http').createServer(www);
@@ -106,10 +110,10 @@ io.on('connection', async (socket) => {
             id
         })
     })
+
     socket.on('rolling', async message => {
-        sparkles.emit('my-event', {
-            my: 'event'
-        });
+        child.send('Hi From index.js');
+
         if (await limitRaterChatRoom(socket.handshake.address)) return;
         if (!message.item, !message.item.itemA) return;
         let rplyVal = {}

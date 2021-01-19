@@ -8,7 +8,6 @@ const DBL = require("dblapi.js");
 //TOP.GG 
 const togGGToken = process.env.TOPGG;
 const dbl = (togGGToken) ? new DBL(togGGToken, client) : null;
-var sparkles = require('./core-events')();
 const msgSplitor = (/\S+/ig);
 const link = process.env.WEB_LINK;
 const port = process.env.PORT || 20721;
@@ -28,6 +27,11 @@ const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
 client.once('ready', async () => {
 	console.log('Discord is Ready!');
 	await count();
+});
+
+
+process.on('message', message => {
+	console.log('message from www:', message);
 });
 
 async function count() {
@@ -55,11 +59,8 @@ client.on('guildCreate', guild => {
 		channel.send(joinMessage);
 	}
 })
-sparkles.on('my-event', function (evt) {
-	console.log('my-event handled', evt);
-});
+
 client.on('message', async (message) => {
-	sparkles.emit('my-event', { my: 'event' });
 	if (message.author.bot) return;
 	let groupid = '',
 		userid = '',

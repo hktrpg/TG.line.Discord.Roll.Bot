@@ -47,7 +47,7 @@ async function count() {
 		.then(results => {
 			const totalGuilds = results[0].reduce((acc, guildCount) => acc + guildCount, 0);
 			const totalMembers = results[1].reduce((acc, memberCount) => acc + memberCount, 0);
-			return (`Discord 群組數量: ${totalGuilds}\nDiscord 會員數量: ${totalMembers}`);
+			return (`正在運行HKTRPG的Discord 群組數量: ${totalGuilds}\nDiscord 會員數量: ${totalMembers}`);
 		})
 		.catch(console.error);
 

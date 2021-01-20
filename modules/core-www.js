@@ -327,6 +327,7 @@ async function limitRaterCard(address) {
 /**
  * 
  */
+var sendTo;
 if (isMaster) {
     const express = require('express')
     const app2 = express()
@@ -344,7 +345,7 @@ if (isMaster) {
       const socket = require('socket.io')
       const io = socket(server)
     */
-    var sendTo;
+
     //監聽 Server 連線後的所有事件，並捕捉事件 socket 執行
     io2.on('connection', socket => {
         sendTo = function (params) {

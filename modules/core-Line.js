@@ -47,7 +47,7 @@ socket.on('connect', () => {
 	console.log('connect To core-www from Line!')
 	socket.on("Line", message => {
 		if (!message.text) return;
-		SendToId(message.target.id, message);
+		SendToId(message.target.id, message.text);
 		return;
 	});
 });

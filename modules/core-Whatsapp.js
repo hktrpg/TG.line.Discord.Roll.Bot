@@ -214,10 +214,18 @@ client.on('group_join', async (msg) => {
 });
 
 client.initialize();
+const io = require('socket.io-client');
+const socket = io('ws://localhost:53589');
+socket.on('connect', () => {
+	// either with send()
+	console.log('connect To core-www from Whatsapp!')
+	socket.on("Whatsapp", message => {
+		if (!message.text) return;
+		SendToId(message.target.id, message.text, client);
+		return;
+	});
+});
 
-process.on("Whatsapp", async message => {
-	SendToId(message.target.id, message.text, client);
-})
 
 async function SendDR(msg, text) {
 	return msg.reply(text);

@@ -40,6 +40,17 @@ const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
 						\n(http://bit.ly/HKTRPG_DISCORD)\
 						\n有關TRPG資訊, 可以到網站\
 						\n(http://www.hktrpg.com/)";
+const io = require('socket.io-client');
+const socket = io('ws://localhost:53589');
+socket.on('connect', () => {
+	// either with send()
+	console.log('connect To core-www from Line!')
+	socket.on("Line", message => {
+		if (!message.text) return;
+		SendToId(message.target.id, message.text);
+		return;
+	});
+});
 
 
 var handleEvent = async function (event) {
@@ -344,9 +355,7 @@ async function privateMsgFinder(channelid) {
 		return groupInfo.trpgDarkRollingfunction
 	else return [];
 }
-process.on("Line", async message => {
-	SendToId(message.target.id, message.text);
-})
+
 module.exports = {
 	app,
 	express

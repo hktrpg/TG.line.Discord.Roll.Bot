@@ -31,16 +31,17 @@ client.once('ready', async () => {
 	const socket = io('ws://localhost:53589');
 	socket.on('connect', () => {
 		// either with send()
-		console.log('connect To core-www!')
+		console.log('connect To core-www from discord!');
+		socket.on("Discord", message => {
+			if (!message.text) return;
+			let result = client.channels.cache.get(message.target.id);
+			if (result) {
+				result.send(message.text);
+			}
+			return;
+		});
 	});
-	socket.on("Discord", message => {
-		if (!message.text) return;
-		let result = client.channels.cache.get(message.target.id);
-		if (result) {
-			result.send(message.text);
-		}
-		return;
-	});
+
 });
 
 
@@ -96,8 +97,11 @@ client.on('message', async (message) => {
 	if (message.channel && message.channel.id) {
 		channelid = message.channel.id;
 	}
+	if (message.guild && message.guild.name) {
+		titleName += message.guild.name + ' ';
+	}
 	if (message.channel && message.channel.name)
-		titleName = message.channel.name;
+		titleName += message.channel.name;
 	if (message.guild && message.guild.id) {
 		groupid = message.guild.id;
 	}

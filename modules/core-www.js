@@ -146,13 +146,13 @@ io.on('connection', async (socket) => {
                 let allowRollingResult = await schema.allowRolling.findOne(filter2);
                 if (!allowRollingResult) return;
                 rplyVal.text = '@' + message.cardName + '\n' + rplyVal.text;
-                if(message.rollTarget.botname){
-                     sendTo({
-                            target: message.rollTarget,
-                            text: rplyVal.text
-                        })
+                if (message.rollTarget.botname) {
+                    sendTo({
+                        target: message.rollTarget,
+                        text: rplyVal.text
+                    })
                 }
-             
+
 
             }
 
@@ -346,6 +346,6 @@ var sendTo;
 //監聽 Server 連線後的所有事件，並捕捉事件 socket 執行
 io2.on('connection', socket => {
     sendTo = function (params) {
-        socket.emit(params.rollTarget.botname, params)
+        socket.emit(params.target.botname, params)
     }
 })

@@ -72,7 +72,7 @@ var rollDiceCommand = async function ({
         case /^state$/i.test(mainMsg[1]):
             rply.state = true;
             return rply;
-        case /^rollchannel$/i.test(mainMsg[1]):
+        case /^registerChannel$/i.test(mainMsg[1]):
             if (!groupid && !channelid) {
                 rply.text = "這裡不是群組，如果想在群組使用你的角色卡，請在群組中輸入此指令";
                 return rply;
@@ -82,7 +82,7 @@ var rollDiceCommand = async function ({
                     "id": userid
                 });
             } catch (e) {
-                console.log('ACCOUNT ERROR:', e);
+                console.log('registerChannel ERROR:', e);
                 rply.text += JSON.stringify(e);
                 return rply;
             }
@@ -92,12 +92,12 @@ var rollDiceCommand = async function ({
                     "channel.id": channelid || groupid
                 });
             } catch (e) {
-                console.log('ACCOUNT ERROR:', e);
+                console.log('registerChannel ERROR:', e);
                 rply.text += JSON.stringify(e);
                 return rply;
             }
             if (temp && temp2) {
-                rply.text = "已註冊這頻道";
+                rply.text = "已註冊這頻道。如果想使用角色卡，請到\nhttps://www.hktrpg.com:20721/card/";
                 if (!await checkGpAllow(channelid || groupid)) {
                     rply.text += '\n群組未被Admin 允許擲骰，請Admin在這群組輸入\n.admin disallowrolling';
                 }
@@ -128,7 +128,7 @@ var rollDiceCommand = async function ({
                     }
                 });
                 await temp.save();
-                rply.text = "註冊成功，如果想使用角色卡，請到\nhttps://www.hktrpg.com:20721/card/";
+                rply.text = "註冊成功。如果想使用角色卡，請到\nhttps://www.hktrpg.com:20721/card/";
                 if (!await checkGpAllow(channelid || groupid)) {
                     rply.text += '\n群組未被Admin 允許擲骰，請Admin在這群組輸入\n.admin disallowrolling';
                 }
@@ -137,7 +137,7 @@ var rollDiceCommand = async function ({
 
             return rply;
 
-        case /^disrollchannel$/i.test(mainMsg[1]):
+        case /^unregisterChannel$/i.test(mainMsg[1]):
             if (!groupid && !channelid) {
                 rply.text = "這裡不是群組，請在群組中輸入此指令";
                 return rply;
@@ -153,11 +153,11 @@ var rollDiceCommand = async function ({
                     }
                 });
             } catch (e) {
-                console.log('disrollchannel ERROR:', e);
+                console.log('unregisterChannel ERROR:', e);
                 rply.text += JSON.stringify(e);
                 return rply;
             }
-            rply.text = "已移除註冊!"
+            rply.text = "已移除註冊!如果想檢查，請到\nhttps://www.hktrpg.com:20721/card/"
             return rply;
         case /^disallowrolling$/i.test(mainMsg[1]):
             if (!groupid && !channelid) {
@@ -180,7 +180,6 @@ var rollDiceCommand = async function ({
             rply.text = "此頻道已被Admin不允許使用網頁版角色卡擲骰。\nAdmin 希望允許擲骰，可輸入\n.admin allowrolling";
             return rply;
         case /^allowrolling$/i.test(mainMsg[1]):
-            console.log(titleName);
             if (!groupid && !channelid) {
                 rply.text = "這裡不是群組，Admin設定擲骰的頻道時，請在群組中使用";
                 return rply;
@@ -207,7 +206,7 @@ var rollDiceCommand = async function ({
                 rply.text += JSON.stringify(e);
                 return rply;
             }
-            rply.text = "此頻道已被Admin允許使用網頁版角色卡擲骰，希望擲骰玩家可在此頻道輸入以下指令登記。\n.admin rollchannel\nAdmin 希望取消允許，可輸入\n.admin disallowrolling";
+            rply.text = "此頻道已被Admin允許使用網頁版角色卡擲骰，希望擲骰玩家可在此頻道輸入以下指令登記。\n.admin registerChannel\nAdmin 希望取消允許，可輸入\n.admin disallowrolling";
             return rply;
         case /^account$/i.test(mainMsg[1]):
             name = mainMsg[2].toLowerCase();
@@ -260,7 +259,7 @@ var rollDiceCommand = async function ({
             if (doc) {
                 rply.text += "現在你的帳號是: " + name + "\n" + "密碼: " + mainMsg[3];
                 if (link)
-                    rply.text += "\n登入位置: https://www.hktrpg.com:20721/card/ \n如想經網頁擲骰，可以請Admin在群組輸入\n.admin  allowrolling\n然後希望擲骰玩家可在頻道輸入以下指令登記。\n.admin rollchannel";
+                    rply.text += "\n登入位置: https://www.hktrpg.com:20721/card/ \n如想經網頁擲骰，可以請Admin在群組輸入\n.admin  allowrolling\n然後希望擲骰玩家可在頻道輸入以下指令登記。\n.admin registerChannel";
                 return rply;
             }
 

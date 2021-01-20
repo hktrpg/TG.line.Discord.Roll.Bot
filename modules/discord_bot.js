@@ -33,17 +33,9 @@ client.once('ready', async () => {
 		console.log('connect To core-www from discord!');
 		socket.on("Discord", message => {
 			if (!message.text) return;
-			let result = client.channels.cache.get(message.target.id);
-			if (result) {
-				result.send(message.text);
-			}
-			return;
-			/**
-			 if (!message.text) return;
 			let text = 'let result = this.channels.cache.get("' + message.target.id + '");if (result) {result.send("' + message.text.replace(/\r\n|\n/g, "\\n") + '");}'
 			client.shard.broadcastEval(text);
 			return;
-			 */
 		});
 	});
 

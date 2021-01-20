@@ -107,7 +107,6 @@ io.on('connection', async (socket) => {
     })
 
     socket.on('rolling', async message => {
-        console.log(message)
         if (await limitRaterChatRoom(socket.handshake.address)) return;
         if (!message.item) return;
         let rplyVal = {}

@@ -11,6 +11,7 @@ const schema = require('./core-schema.js');
 const privateKey = (process.env.KEY_PRIKEY) ? process.env.KEY_PRIKEY : null;
 const certificate = (process.env.KEY_CERT) ? process.env.KEY_CERT : null;
 const ca = (process.env.KEY_CA) ? process.env.KEY_CA : null;
+const isMaster = (process.env.MASTER) ? process.env.MASTER : null;
 const www = require('./core-Line').app;
 const salt = process.env.SALT;
 const crypto = require('crypto');
@@ -326,26 +327,28 @@ async function limitRaterCard(address) {
 /**
  * 
  */
-const express = require('express')
-const app2 = express()
+if (isMaster) {
+    const express = require('express')
+    const app2 = express()
 
-//將 express 放進 http 中開啟 Server 的 3000 port ，正確開啟後會在 console 中印出訊息
-const server2 = require('http').Server(app2)
-    .listen(53589, () => {
-        console.log('open server 53589!')
+    //將 express 放進 http 中開啟 Server 的 3000 port ，正確開啟後會在 console 中印出訊息
+    const server2 = require('http').Server(app2)
+        .listen(53589, () => {
+            console.log('open server 53589!')
+        })
+
+    //將啟動的 Server 送給 socket.io 處理
+    const io2 = require('socket.io')(server2)
+
+    /*上方為此寫法的簡寫：
+      const socket = require('socket.io')
+      const io = socket(server)
+    */
+    var sendTo;
+    //監聽 Server 連線後的所有事件，並捕捉事件 socket 執行
+    io2.on('connection', socket => {
+        sendTo = function (params) {
+            socket.emit(params.target.botname, params)
+        }
     })
-
-//將啟動的 Server 送給 socket.io 處理
-const io2 = require('socket.io')(server2)
-
-/*上方為此寫法的簡寫：
-  const socket = require('socket.io')
-  const io = socket(server)
-*/
-var sendTo;
-//監聽 Server 連線後的所有事件，並捕捉事件 socket 執行
-io2.on('connection', socket => {
-    sendTo = function (params) {
-        socket.emit(params.target.botname, params)
-    }
-})
+}

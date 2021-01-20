@@ -232,6 +232,10 @@ socket.on('connect', () => {
 		TGclient.telegram.sendMessage(message.target.id, message.text);
 		return;
 	});
+	socket.on('Line', message => {
+		if (!message.text) return;
+		process.emit('Line', message);
+	});
 });
 
 TGclient.on('message', async (ctx) => {

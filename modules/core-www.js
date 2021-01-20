@@ -15,6 +15,7 @@ const isMaster = (process.env.MASTER) ? process.env.MASTER : null;
 const www = require('./core-Line').app;
 const salt = process.env.SALT;
 const crypto = require('crypto');
+const mainCharacter = require('../roll/z_character').mainCharacter;
 const fs = require('fs');
 var options = {
     key: null,
@@ -106,29 +107,25 @@ io.on('connection', async (socket) => {
     })
 
     socket.on('rolling', async message => {
+        console.log(message)
         if (await limitRaterChatRoom(socket.handshake.address)) return;
-        if (!message.item, !message.item.itemA) return;
+        if (!message.item) return;
         let rplyVal = {}
         let newMessage = message.item.itemA + ' ' + message.item.name;
-        var mainMsg = newMessage.match(msgSplitor); // 定義輸入字串
-        if (mainMsg && mainMsg[0])
-            var trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
-        // 訊息來到後, 會自動跳到analytics.js進行骰組分析
-        // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
-        if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
-            rplyVal = await exports.analytics.parseInput({
-                inputStr: mainMsg.join(' '),
-                botname: "WWW"
-            })
-
-        } else {
-            if (channelKeyword == '') {
+        let mainMsg = newMessage.match(msgSplitor); // 定義輸入字串
+        if (mainMsg && mainMsg[0]) {
+            let result = await mainCharacter(message.doc, ['', message.item])
+            console.log('result', result)
+            if (result.characterReRoll) {
                 rplyVal = await exports.analytics.parseInput({
-                    inputStr: mainMsg.join(' '),
+                    inputStr: result.characterReRollItem + ' ' + result.characterReRollName,
                     botname: "WWW"
                 })
             }
         }
+        console.log(rplyVal);
+        // 訊息來到後, 會自動跳到analytics.js進行骰組分析
+        // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
         if (rplyVal && rplyVal.text) {
             socket.emit('rolling', rplyVal.text)
             if (message.rollTarget && message.rollTarget.id && message.rollTarget.botname && message.userName && message.userPassword && message.cardName) {

@@ -185,7 +185,7 @@
                     <textarea class=" textState" v-model="item.itemB" style="width:55px;padding: 1px 1px 1px 1px">
                     {{item.itemB}}
                 </textarea>
-                    <button type="button" class="btn btn-link" v-on:click="rolling(item)"><span class="iconify "
+                    <button type="button" class="btn btn-link" v-on:click="rolling(item.name)"><span class="iconify "
                             data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
                             data-height="20px"></span></button>
                 </div>
@@ -209,8 +209,8 @@
                 </textarea><span class="pb-2">:</span>
                 <textarea class="col textState" v-model="item.itemA" style="width:80px;padding: 1px 1px 1px 1px">
                     {{item.itemA}}
-                </textarea><button type="button" class="btn btn-link" v-on:click="rolling(item)"><span class="iconify "
-                        data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
+                </textarea><button type="button" class="btn btn-link" v-on:click="rolling(item.name)"><span
+                        class="iconify " data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
                         data-height="20px"></span></button>
             </div>
         </div>
@@ -561,6 +561,11 @@
                         userName: userName,
                         userPassword: userPassword,
                         rollTarget: obj,
+                        doc: {
+                            state: card.state,
+                            roll: card.roll,
+                            notes: card.notes
+                        },
                         cardName: card.name
                     });
 

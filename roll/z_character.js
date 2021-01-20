@@ -790,7 +790,8 @@ module.exports = {
     getHelpMessage: getHelpMessage,
     prefixs: prefixs,
     gameType: gameType,
-    gameName: gameName
+    gameName: gameName,
+    mainCharacter: mainCharacter
 };
 
 /*

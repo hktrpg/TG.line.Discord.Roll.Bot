@@ -38,104 +38,28 @@ TODO?
 COC export to roll20?
 
 */
-/*
-以個人為單位, 一張咭可以在不同的群組使用    
-.char add 的輸入格式,用來增建角色卡
-.char add name[Sad]~
-state[HP:5/5;MP:3/3;SAN:50/99;護甲:6]~
-roll[投擲:cc 80 投擲;空手鬥毆: cc [[50 +{hp}]]]~
-notes[筆記:SAD;心靈支柱: 特質]~
 
-// state 可以進行增減
-// notes 文字筆記
-// roll 擲骰指令
-
-如果沒有名字 會更新修正正在USE的角色卡
-但沒有的話,  就會出錯
-============
-
-
-===
-.char use 使用角色卡
-.char use sad
-會自動使用名叫Sad 的角色卡
-====
-.char nonuse 
-.char use 
-會取消在此群組使用角色卡
-
-====
-.char delete  角色卡
-.char delete Sad
-刪除角色卡
-
-====
-
-顯示SHOW 功能:
-
-.ch show (顯示 名字 state 和roll) 
-.ch shows  (顯示 名字 state,notes 和roll)
-.ch show notes (顯示 名字 和notes)
-
-
-角色名字
-HP: 5/5 MP: 3/3 SAN: 50/90 護甲: 6
--------
-投擲: cc 80 投擲 
-空手: cc 50
--------
-筆記: SAD
-心靈支柱: 特質
-
-======
-
-功能 使用角色卡的state 和notes
-
-.ch set HP  10 直接把現在值變成10
-.ch set HP  10/20 直接把現在值變成10 最大值變成20
-
-
-
-.ch HP MP 顯示該內容 
-HP 5/5 MP 3/3  
-
-.ch HP -5 如果HP是State 自動減5 
-.ch HP +5  如果HP是State 自動加5 如果是
-
-
-
-============
-.ch 輸出指令
-.ch  投擲
-cc 80 投擲 
-在指令中可以加上 +{HP} -{san}  
-在結果中會進行運算。
-
-
-======
-
-
-*/
 
 var getHelpMessage = function () {
     return "【角色卡功能】" + "\n\
 以個人為單位, 一張卡可以在不同的群組使用\n\
-新增了角色卡後，可以輸入.admin account (username) (password) \n\
-然後在網址: https://www.hktrpg.com:20721/card/ 中進行修改" + "\n\
+目標是文字團可以快速擲骰，及更新角色狀態。\n\
+\n\
+簡單新增角色卡 .char add name[Sad]~ state[HP:15/15;]~ roll[鬥毆: cc 50;]~ notes[筆記:這是測試,請試試在群組輸入 .char use Sad;]~ \n\
+新增了角色卡後，可以輸入 .admin account (username) (password) \n\
+然後在網頁: https://www.hktrpg.com:20721/card/ 中直接進行修改" + "\n\
+\n\
+把結果傳送到已登記的Discord，TG，LINE上的聊天群組的登記方法: \n\
+由該群組的Admin授權允許 輸入 .admin allowrolling  \n\
+登記該群組到自己的名單中 輸入 .admin registerChannel  \n\
+取消方法\n\
+由該群組的Admin取消授權 輸入 .admin disallowrolling  \n\
+取消登記該群組到名單 輸入 .admin unregisterChannel  \n\
+\n\
+最後網站會顯示群組名稱，點擊就可以使用了\n\
+\n\
 -----.char-----\n\
-.char add name[Sad]~ 的輸入格式,用來創建及更新角色卡\n\
------範例開始-----\n\
-.char add name[Sad]~\n\
-state[HP:15/15;MP:8/8;SAN:25/99;護甲:1;DB:1d3;]~\n\
-roll[投擲:cc 80 投擲;鬥毆: cc 50;魔法:1D4+[[1+{HP}]];小刀:1D4+{db}]~\n\
-notes[筆記:這是測試,請試試在群組輸入 .char use sad;心靈支柱: 無]~\n\
------範例結束-----\n\
-state 是用來儲存浮動數據, 進行運算 如: .ch HP +3\n\
-roll 是用來儲存擲骰指令, 快速使用 如 .ch 空手鬥毆\n\
-注意項目名稱請不要有空格\n\
- {}符號可以用來指定state 的參數, 如{db} 就會變成 1d3\n\
- [[ ]] 可以進行簡單運算 如[[1+{HP}]] 就會變成 1+15 -> 16\n\
-notes 是用來儲存數據, 以後可以查看 如 .ch 筆記\n\
+.char add name[Sad]~ state[HP:15/15;]~ roll[鬥毆: cc 50;]~ notes[筆記:這是測試,請試試在群組輸入 .char use Sad;]~   - 可以新增及更新角色卡\n\
 .char Show - 可以顯示角色卡列表\n\
 .char Show0 - 可以顯示0號角色卡內容 0可以用其他數字取代\n\
 .char edit name[角色卡名字]~ - 可以以add的格式修改指定角色卡\n\
@@ -143,19 +67,15 @@ notes 是用來儲存數據, 以後可以查看 如 .ch 筆記\n\
 .char nonuse - 可以在該群組中取消使用角色卡\n\
 .char delete 角色卡名字 - 可以刪除指定角色卡\n\
 -----.ch 功能-----\n\
-在群組中使用.char use 指定角色卡後, 就可以啟動角色卡功能\n\
-.ch set 項目名稱 新內容  直接更改內容\n\
+在群組中使用.char use (角色名) 後, 就可以啟動角色卡功能\n\
+.ch 項目名稱 項目名稱 - 沒有加減的話, 會單純顯示數據或擲骰\n\
+.ch 項目名稱 (+-數) - 可以立即對如HP進行加減運算\n\
+.ch set 項目名稱 新內容 - 直接更改內容\n\
 .ch show - 顯示角色卡的state 和roll 內容\n\
 .ch showall - 顯示角色卡的所有內容\n\
-.ch 項目名稱 (+-數) - 可以立即對如HP進行加減運算\n\
-.ch 項目名稱 項目名稱 - 沒有加減的話, 會單純顯示數據\n\
------範例-----\n\
-.ch set 護甲 3\n\
-.ch set 護甲 \n\
-.ch HP +3 MP 6 san -10 筆記\n\
-.ch 鬥毆\n\
-dr .ch 魔法\n\
------範例-----"
+-----範例及運算式-----\n\
+角色卡還可以進行運算，詳情請看\n\
+https://github.com/hktrpg/TG.line.Discord.Roll.Bot/wiki/Character-Card"
 }
 
 var initialize = function () {
@@ -226,7 +146,7 @@ var rollDiceCommand = async function ({
         case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
             if (!Card.name) {
-                rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 \nname[XXXX]~ \nstate[HP:15/15;]~\nroll[投擲:cc 80 投擲;]~\nnotes[心靈支柱: 無]~\n'
+                rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 \n.char add name[XXXX]~ \nstate[HP:15/15;]~\nroll[投擲:cc 80 投擲;]~\nnotes[心靈支柱: 無]~\n'
                 return rply;
             }
             /*
@@ -271,14 +191,13 @@ var rollDiceCommand = async function ({
         case /(^[.]char$)/i.test(mainMsg[0]) && /^edit$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
             if (!Card.name) {
-                rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 name[XXXX]~';
+                rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 .char edit name[XXXX]~ \nstate[HP:15/15;]~\nroll[投擲:cc 80 投擲;]~\nnotes[心靈支柱: 無]~\n'
                 return rply;
             }
             /*
             只限四張角色卡.
             使用VIPCHECK
             */
-
             filter = {
                 id: userid,
                 name: new RegExp('^' + convertRegex(Card.name) + "$", "i")
@@ -873,3 +792,82 @@ module.exports = {
     gameType: gameType,
     gameName: gameName
 };
+
+/*
+以個人為單位, 一張咭可以在不同的群組使用    
+.char add 的輸入格式,用來增建角色卡
+.char add name[Sad]~
+state[HP:5/5;MP:3/3;SAN:50/99;護甲:6]~
+roll[投擲:cc 80 投擲;空手鬥毆: cc [[50 +{hp}]]]~
+notes[筆記:SAD;心靈支柱: 特質]~
+
+// state 可以進行增減
+// notes 文字筆記
+// roll 擲骰指令
+
+如果沒有名字 會更新修正正在USE的角色卡
+但沒有的話,  就會出錯
+============
+
+
+===
+.char use 使用角色卡
+.char use sad
+會自動使用名叫Sad 的角色卡
+====
+.char nonuse 
+.char use 
+會取消在此群組使用角色卡
+
+====
+.char delete  角色卡
+.char delete Sad
+刪除角色卡
+
+====
+
+顯示SHOW 功能:
+
+.ch show (顯示 名字 state 和roll) 
+.ch shows  (顯示 名字 state,notes 和roll)
+.ch show notes (顯示 名字 和notes)
+
+
+角色名字
+HP: 5/5 MP: 3/3 SAN: 50/90 護甲: 6
+-------
+投擲: cc 80 投擲 
+空手: cc 50
+-------
+筆記: SAD
+心靈支柱: 特質
+
+======
+
+功能 使用角色卡的state 和notes
+
+.ch set HP  10 直接把現在值變成10
+.ch set HP  10/20 直接把現在值變成10 最大值變成20
+
+
+
+.ch HP MP 顯示該內容 
+HP 5/5 MP 3/3  
+
+.ch HP -5 如果HP是State 自動減5 
+.ch HP +5  如果HP是State 自動加5 如果是
+
+
+
+============
+.ch 輸出指令
+.ch  投擲
+cc 80 投擲 
+在指令中可以加上 +{HP} -{san}  
+在結果中會進行運算。
+
+
+======
+
+
+*/

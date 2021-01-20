@@ -47,7 +47,7 @@ socket.on('connect', () => {
 	console.log('connect To core-www from Line!')
 	socket.on("Line", message => {
 		if (!message.text) return;
-		replyMessagebyReplyToken(message.target.id, message.text);
+		SendToId(message.target.id, message);
 		return;
 	});
 });
@@ -256,7 +256,19 @@ var handleEvent = async function (event) {
 
 		//rplyVal.text
 
-
+		async function replyMessagebyReplyToken(targetid, Reply) {
+			let temp = await HandleMessage(Reply);
+			return await client.replyMessage(event.replyToken, temp).catch(() => {
+				if (temp.type == 'image') {
+					let tempB = {
+						type: 'text',
+						text: temp.originalContentUrl
+					};
+					client.replyMessage(event.replyToken, tempB);
+					//	}
+				}
+			});
+		}
 
 		/**pushMessage
 		 * client.pushImage(USER_ID, {
@@ -271,17 +283,6 @@ var handleEvent = async function (event) {
 		//Reply Max: 2000 characters
 	}
 }
-// listen on port
-/*	app.listen(port, () => {
-		console.log(`Line BOT listening on ${port}`);
-	});
-
-	app.get('/aa', function (req, res) {
-		//	res.send(parseInput(req.query.input));
-		res.send('Hello');
-	});
-*/
-
 async function HandleMessage(message) {
 	let temp = [];
 	switch (true) {
@@ -323,19 +324,16 @@ async function HandleMessage(message) {
 			break;
 	}
 }
-async function replyMessagebyReplyToken(targetid, Reply) {
-	let temp = await HandleMessage(Reply);
-	return await client.replyMessage(event.replyToken, temp).catch(() => {
-		if (temp.type == 'image') {
-			let tempB = {
-				type: 'text',
-				text: temp.originalContentUrl
-			};
-			client.replyMessage(event.replyToken, tempB);
-			//	}
-		}
+// listen on port
+/*	app.listen(port, () => {
+		console.log(`Line BOT listening on ${port}`);
 	});
-}
+
+	app.get('/aa', function (req, res) {
+		//	res.send(parseInput(req.query.input));
+		res.send('Hello');
+	});
+*/
 app.on('UnhandledPromiseRejection', error => {
 	// Will print "unhandledRejection err is not defined"
 	console.log('UnhandledPromiseRejection: ', error.message);

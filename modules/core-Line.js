@@ -47,7 +47,7 @@ socket.on('connect', () => {
 	console.log('connect To core-www from Line!')
 	socket.on("Line", message => {
 		if (!message.text) return;
-		SendToId(message.target.id, message.text);
+		replyMessagebyReplyToken(message.target.id, message.text);
 		return;
 	});
 });
@@ -256,60 +256,8 @@ var handleEvent = async function (event) {
 
 		//rplyVal.text
 
-		async function replyMessagebyReplyToken(targetid, Reply) {
-			let temp = await HandleMessage(Reply);
-			return await client.replyMessage(event.replyToken, temp).catch(() => {
-				if (temp.type == 'image') {
-					let tempB = {
-						type: 'text',
-						text: temp.originalContentUrl
-					};
-					client.replyMessage(event.replyToken, tempB);
-					//	}
-				}
-			});
-		}
-		async function HandleMessage(message) {
-			let temp = [];
-			switch (true) {
-				case message.type == 'text' && message.text != '':
-					for (var i = 0; i < message.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-						if (i == 0 || i == 1 || i == message.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == message.text.toString().match(/[\s\S]{1,2000}/g).length - 1)
-							temp.push({
-								type: 'text',
-								text: message.text.toString().match(/[\s\S]{1,2000}/g)[i]
-							})
-					}
-					return temp;
-				case message.type == 'image' && message.text != '':
-					return {
-						"type": "image",
-						"originalContentUrl": message.text.replace('http://', 'https://'),
-							"previewImageUrl": message.text.replace('http://', 'https://')
-					};
 
-				case typeof message == 'string' || message instanceof String:
-					for (let i = 0; i < message.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-						if (i == 0 || i == 1 || i == message.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == message.toString().match(/[\s\S]{1,2000}/g).length - 1)
-							temp.push({
-								type: 'text',
-								text: message.toString().match(/[\s\S]{1,2000}/g)[i]
-							});
-					}
-					return temp;
-				case message.text != '':
-					for (let i = 0; i < message.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-						if (i == 0 || i == 1 || i == message.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == message.text.toString().match(/[\s\S]{1,2000}/g).length - 1)
-							temp.push({
-								type: 'text',
-								text: message.text.toString().match(/[\s\S]{1,2000}/g)[i]
-							})
-					}
-					return temp;
-				default:
-					break;
-			}
-		}
+
 		/**pushMessage
 		 * client.pushImage(USER_ID, {
 			  originalContentUrl: 'https://example.com/original.jpg',
@@ -333,6 +281,61 @@ var handleEvent = async function (event) {
 		res.send('Hello');
 	});
 */
+
+async function HandleMessage(message) {
+	let temp = [];
+	switch (true) {
+		case message.type == 'text' && message.text != '':
+			for (var i = 0; i < message.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+				if (i == 0 || i == 1 || i == message.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == message.text.toString().match(/[\s\S]{1,2000}/g).length - 1)
+					temp.push({
+						type: 'text',
+						text: message.text.toString().match(/[\s\S]{1,2000}/g)[i]
+					})
+			}
+			return temp;
+		case message.type == 'image' && message.text != '':
+			return {
+				"type": "image",
+				"originalContentUrl": message.text.replace('http://', 'https://'),
+					"previewImageUrl": message.text.replace('http://', 'https://')
+			};
+
+		case typeof message == 'string' || message instanceof String:
+			for (let i = 0; i < message.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+				if (i == 0 || i == 1 || i == message.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == message.toString().match(/[\s\S]{1,2000}/g).length - 1)
+					temp.push({
+						type: 'text',
+						text: message.toString().match(/[\s\S]{1,2000}/g)[i]
+					});
+			}
+			return temp;
+		case message.text != '':
+			for (let i = 0; i < message.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+				if (i == 0 || i == 1 || i == message.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == message.text.toString().match(/[\s\S]{1,2000}/g).length - 1)
+					temp.push({
+						type: 'text',
+						text: message.text.toString().match(/[\s\S]{1,2000}/g)[i]
+					})
+			}
+			return temp;
+		default:
+			break;
+	}
+}
+async function replyMessagebyReplyToken(targetid, Reply) {
+	let temp = await HandleMessage(Reply);
+	return await client.replyMessage(event.replyToken, temp).catch(() => {
+		if (temp.type == 'image') {
+			let tempB = {
+				type: 'text',
+				text: temp.originalContentUrl
+			};
+			client.replyMessage(event.replyToken, tempB);
+			//	}
+		}
+	});
+}
 app.on('UnhandledPromiseRejection', error => {
 	// Will print "unhandledRejection err is not defined"
 	console.log('UnhandledPromiseRejection: ', error.message);

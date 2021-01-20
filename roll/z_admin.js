@@ -239,7 +239,7 @@ var rollDiceCommand = async function ({
                 return rply;
             }
             try {
-                doc = await schema.accountPW.findOneAndUpdate({
+                await schema.accountPW.findOneAndUpdate({
                     "id": userid
                 }, {
                     $set: {
@@ -256,13 +256,8 @@ var rollDiceCommand = async function ({
                 rply.text += JSON.stringify(e);
                 return rply;
             }
-            if (doc) {
-                rply.text += "現在你的帳號是: " + name + "\n" + "密碼: " + mainMsg[3];
-                if (link)
-                    rply.text += "\n登入位置: https://www.hktrpg.com:20721/card/ \n如想經網頁擲骰，可以請Admin在群組輸入\n.admin  allowrolling\n然後希望擲骰玩家可在頻道輸入以下指令登記。\n.admin registerChannel";
-                return rply;
-            }
-
+            rply.text += "現在你的帳號是: " + name + "\n" + "密碼: " + mainMsg[3];
+            rply.text += "\n登入位置: https://www.hktrpg.com:20721/card/ \n如想經網頁擲骰，可以請Admin在群組輸入\n.admin  allowrolling\n然後希望擲骰玩家可在頻道輸入以下指令登記。\n.admin registerChannel";
             return rply;
         case /^debug$/i.test(mainMsg[1]):
             rply.text = "Debug function" + '\ngroupid: ' + groupid + "\nuserid: " + userid;

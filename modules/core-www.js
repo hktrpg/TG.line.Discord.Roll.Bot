@@ -115,7 +115,6 @@ io.on('connection', async (socket) => {
         let mainMsg = newMessage.match(msgSplitor); // 定義輸入字串
         if (mainMsg && mainMsg[0]) {
             let result = await mainCharacter(message.doc, ['', message.item])
-            console.log('result', result)
             if (result.characterReRoll) {
                 rplyVal = await exports.analytics.parseInput({
                     inputStr: result.characterReRollItem + ' ' + result.characterReRollName,
@@ -123,7 +122,6 @@ io.on('connection', async (socket) => {
                 })
             }
         }
-        console.log(rplyVal);
         // 訊息來到後, 會自動跳到analytics.js進行骰組分析
         // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
         if (rplyVal && rplyVal.text) {

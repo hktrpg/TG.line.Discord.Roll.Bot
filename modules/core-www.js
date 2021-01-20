@@ -2,6 +2,7 @@
 if (!process.env.LINE_CHANNEL_ACCESSTOKEN || !process.env.mongoURL || !process.env.SITE) {
     return;
 }
+
 const {
     RateLimiterMemory
 } = require('rate-limiter-flexible');
@@ -19,7 +20,6 @@ var options = {
     cert: null,
     ca: null
 };
-
 const rateLimiterChatRoom = new RateLimiterMemory({
     points: 90, // 5 points
     duration: 60, // per second
@@ -46,7 +46,6 @@ async function read() {
 (async () => {
     read()
 })();
-
 var server;
 if (!options.key) {
     server = require('http').createServer(www);
@@ -79,6 +78,7 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
     });
 }
 
+
 io.on('connection', async (socket) => {
     socket.on('getListInfo', async message => {
         if (await limitRaterCard(socket.handshake.address)) return;
@@ -103,6 +103,7 @@ io.on('connection', async (socket) => {
             id
         })
     })
+
     socket.on('rolling', async message => {
         if (await limitRaterChatRoom(socket.handshake.address)) return;
         if (!message.item, !message.item.itemA) return;
@@ -118,7 +119,7 @@ io.on('connection', async (socket) => {
                 inputStr: mainMsg.join(' '),
                 botname: "WWW"
             })
-            //rplyVal = await exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid)
+
         } else {
             if (channelKeyword == '') {
                 rplyVal = await exports.analytics.parseInput({
@@ -129,7 +130,34 @@ io.on('connection', async (socket) => {
         }
         if (rplyVal && rplyVal.text) {
             socket.emit('rolling', rplyVal.text)
+            if (message.rollTarget && message.rollTarget.id && message.rollTarget.botname && message.userName && message.userPassword && message.cardName) {
+                let filter = {
+                    userName: message.userName,
+                    password: SHA(message.userPassword),
+                    "channel.id": message.rollTarget.id,
+                    "channel.botname": message.rollTarget.botname
+                }
+                let result = await schema.accountPW.findOne(filter);
+                if (!result) return;
+                let filter2 = {
+                    "botname": message.rollTarget.botname,
+                    "id": message.rollTarget.id
+                }
+                let allowRollingResult = await schema.allowRolling.findOne(filter2);
+                if (!allowRollingResult) return;
+                rplyVal.text = '@' + message.cardName + '\n' + rplyVal.text;
+                if (message.rollTarget.botname) {
+                    sendTo({
+                        target: message.rollTarget,
+                        text: rplyVal.text
+                    })
+                }
+
+
+            }
+
         }
+
 
     })
 
@@ -229,7 +257,7 @@ records.on("new_message", async (message) => {
             inputStr: mainMsg.join(' '),
             botname: "WWW"
         })
-        //rplyVal = await exports.analytics.parseInput(event.message.text, roomorgroupid, userid, userrole, "Line", displayname, channelid)
+
     } else {
         if (channelKeyword == '') {
             rplyVal = await exports.analytics.parseInput({
@@ -294,3 +322,30 @@ async function limitRaterCard(address) {
         return true;
     }
 }
+
+/**
+ * 
+ */
+const express = require('express')
+const app2 = express()
+
+//將 express 放進 http 中開啟 Server 的 3000 port ，正確開啟後會在 console 中印出訊息
+const server2 = require('http').Server(app2)
+    .listen(53589, () => {
+        console.log('open server 53589!')
+    })
+
+//將啟動的 Server 送給 socket.io 處理
+const io2 = require('socket.io')(server2)
+
+/*上方為此寫法的簡寫：
+  const socket = require('socket.io')
+  const io = socket(server)
+*/
+var sendTo;
+//監聽 Server 連線後的所有事件，並捕捉事件 socket 執行
+io2.on('connection', socket => {
+    sendTo = function (params) {
+        socket.emit(params.target.botname, params)
+    }
+})

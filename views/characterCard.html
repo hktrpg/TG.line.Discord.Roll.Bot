@@ -158,8 +158,8 @@
             <label><input type="radio" name="gpListRadio" value=null checked />
                 不進行群組擲骰</label>
             <div v-for="(gp,i) in gpList">
-                <label> <input type="radio" name="gpListRadio" :value="gp._id" />
-                    {{i}} {{gp.botname}} {{gp.titleName}}</label>
+                <label> <input type="radio" name="gpListRadio" v-bind:value="gp._id" />
+                    編號: {{i+1}} 平台: {{gp.botname}} 群組名稱: {{gp.titleName}}</label>
             </div>
         </div>
         <br>
@@ -232,10 +232,6 @@
                 <textarea class="col textNote" v-model="item.itemA" style="width:180px">
                     {{item.itemA}}
                 </textarea>
-                <button type="button" class="btn btn-link" v-on:click="rolling(item)"><span class="iconify "
-                        data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
-                        data-height="20px"></span></button>
-
             </div>
         </div>
     </div>
@@ -313,22 +309,31 @@
                     使用前，首先要與HKTRPG骰子機器人對話，<br>
                     新增一張角色卡及一個管理用的ACC。<br>
                     方法如下:<br>
-                    1. 新增角色卡<br>
-                    對HKTRPG輸入.char add name[Sad]~<br>
+                    <strong> 1. 新增角色卡</strong><br>
+                    對HKTRPG輸入 .char add name[Sad]~ state[HP:15/15;]~ roll[鬥毆: cc 50;]~ notes[筆記:這是測試,請試試在群組輸入 .char use
+                    Sad;]~<br>
                     Sad 是設定的名字，可以改成其他，也可以在這步直接設定能力值，<br>
                     詳細說明請輸入.char<br><br>
-                    2. 新增管理用的ACC<br>
+                    <strong> 2. 新增管理用的ACC</strong><br>
                     對HKTRPG輸入.admin account (帳號) (密碼)<br>
-                    成功後，進入 https://www.hktrpg.com:20721/card/ 輸入帳號密碼，<br>
+                    成功後，在這頁面 輸入帳號密碼，<br>
                     就可以管理角色卡，以網頁方式修改角色卡能力。<br><br>
-                    3.在頻道中使用角卡<br>
-                    詳細可看 .char<br>
+                    <strong>3.在頻道中使用角卡</strong><br>
+                    詳細可看 <a href="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/wiki/Character-Card"
+                        class="tooltip-Character" title="Tooltip">HKTRPG WIKI</a> <br>
                     但簡單來說，在你想使用這張角色卡的位置輸入<br>
                     .char use Sad 或你角色名字，就可以使用角卡<br>
                     例如你在擲骰欄有一招名叫 鬥毆 內容是 cc 80<br>
                     那你在登記了的頻道輸入 .ch 鬥毆 就可以使出 cc 80<br>
                     又或你在 基本屬性 中加入一個 HP 18<br>
                     那你輸入 .ch hp -6 就可以扣減HP<br>
+                    <br>
+                    <strong>4.把結果傳送到已登記的Discord，TG，LINE上的聊天群組的登記方法: </strong><br>
+                    由該群組的Admin授權允許 輸入 .admin allowrolling <br>
+                    登記該群組到自己的名單中 輸入 .admin registerChannel <br>
+                    取消方法<br>
+                    由該群組的Admin取消授權 輸入 .admin disallowrolling <br>
+                    取消登記該群組到名單 輸入 .admin unregisterChannel <br>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -545,13 +550,18 @@
             methods: {
                 rolling(item) {
                     var obj = '';
-                    if (document.querySelector('input[name="gpListRadio"]:checked'))
-                        obj = document.querySelector('input[name="gpListRadio"]:checked').value;
+                    if (document.querySelector('input[name="gpListRadio"]:checked')) {
+                        let temp = document.querySelector('input[name="gpListRadio"]:checked').value;
+                        obj = card.gpList.find(function (item, index, array) {
+                            return item._id == temp;
+                        });
+                    }
                     socket.emit('rolling', {
                         item: item,
                         userName: userName,
                         userPassword: userPassword,
-                        rollTarget: obj
+                        rollTarget: obj,
+                        cardName: card.name
                     });
 
 

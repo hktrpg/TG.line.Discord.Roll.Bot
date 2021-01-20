@@ -40,6 +40,17 @@ const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
 						\n(http://bit.ly/HKTRPG_DISCORD)\
 						\n有關TRPG資訊, 可以到網站\
 						\n(http://www.hktrpg.com/)";
+const io = require('socket.io-client');
+const socket = io('ws://localhost:53589');
+socket.on('connect', () => {
+	// either with send()
+	console.log('connect To core-www from Line!')
+	socket.on("Line", message => {
+		if (!message.text) return;
+		SendToId(message.target.id, message.text);
+		return;
+	});
+});
 
 
 var handleEvent = async function (event) {
@@ -63,7 +74,7 @@ var handleEvent = async function (event) {
 			await AfterCheckName();
 			//如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
 		})
-		
+
 	async function AfterCheckName() {
 		let displaynamecheck = true;
 		if (event.type !== 'message' || event.message.type !== 'text') {
@@ -244,11 +255,7 @@ var handleEvent = async function (event) {
 
 
 		//rplyVal.text
-		async function SendToId(targetid, Reply) {
-			let temp = await HandleMessage(Reply);
-			//console.log('SendToId: ', temp)
-			return await client.pushMessage(targetid, temp);
-		}
+
 		async function replyMessagebyReplyToken(targetid, Reply) {
 			let temp = await HandleMessage(Reply);
 			return await client.replyMessage(event.replyToken, temp).catch(() => {
@@ -334,7 +341,11 @@ app.on('unhandledRejection', error => {
 	// Will print "unhandledRejection err is not defined"
 	console.log('unhandledRejection: ', error.message);
 });
-
+async function SendToId(targetid, Reply) {
+	let temp = await HandleMessage(Reply);
+	//console.log('SendToId: ', temp)
+	return await client.pushMessage(targetid, temp);
+}
 async function privateMsgFinder(channelid) {
 	if (!TargetGM || !TargetGM.trpgDarkRollingfunction) return;
 	let groupInfo = TargetGM.trpgDarkRollingfunction.find(data =>
@@ -344,6 +355,7 @@ async function privateMsgFinder(channelid) {
 		return groupInfo.trpgDarkRollingfunction
 	else return [];
 }
+
 module.exports = {
 	app,
 	express

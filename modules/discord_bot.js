@@ -13,13 +13,6 @@ const link = process.env.WEB_LINK;
 const port = process.env.PORT || 20721;
 const mongo = process.env.mongoURL
 var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
-//const BootTime = new Date(new Date().toLocaleString("en-US", {
-//	timeZone: "Asia/Shanghai"
-//}));
-// Load `*.js` under modules directory as properties
-//  i.e., `User.js` will become `exports['User']` or `exports.User`
-//var Discordcountroll = 0;
-//var Discordcounttext = 0;
 const EXPUP = require('./level').EXPUP || function () {};
 const courtMessage = require('./logs').courtMessage || function () {};
 const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
@@ -34,7 +27,23 @@ const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
 client.once('ready', async () => {
 	console.log('Discord is Ready!');
 	await count();
+	const io = require('socket.io-client');
+	const socket = io('ws://localhost:53589');
+	socket.on('connect', () => {
+		// either with send()
+		console.log('connect To core-www from discord!');
+		socket.on("Discord", message => {
+			if (!message.text) return;
+			let result = client.channels.cache.get(message.target.id);
+			if (result) {
+				result.send(message.text);
+			}
+			return;
+		});
+	});
+
 });
+
 
 async function count() {
 	if (!client.shard) return;
@@ -92,8 +101,11 @@ client.on('message', async (message) => {
 	if (message.channel && message.channel.id) {
 		channelid = message.channel.id;
 	}
+	if (message.guild && message.guild.name) {
+		titleName += message.guild.name + ' ';
+	}
 	if (message.channel && message.channel.name)
-		titleName = message.channel.name;
+		titleName += message.channel.name;
 	if (message.guild && message.guild.id) {
 		groupid = message.guild.id;
 	}

@@ -222,6 +222,18 @@ TGclient.on('text', async (ctx) => {
 	//  }
 
 })
+const io = require('socket.io-client');
+const socket = io('ws://localhost:53589');
+socket.on('connect', () => {
+	// either with send()
+	console.log('connect To core-www from Telegram!')
+	socket.on('Telegram', message => {
+		if (!message.text) return;
+		TGclient.telegram.sendMessage(message.target.id, message.text);
+		return;
+	});
+});
+
 TGclient.on('message', async (ctx) => {
 	if (ctx.message.from.is_bot) return;
 	if (ctx.message.new_chat_member && ctx.message.new_chat_member.username == ctx.me) {

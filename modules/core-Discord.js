@@ -2,6 +2,7 @@
 if (!process.env.DISCORD_CHANNEL_SECRET) {
 	return;
 }
+
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const {
 	ShardingManager
@@ -9,7 +10,7 @@ const {
 
 const manager = new ShardingManager('./modules/discord_bot.js', {
 	token: channelSecret
-});
+})
 manager.on('shardCreate', shard => {
 	console.log(`Launched shard ${shard.id}`)
 	shard.on('ready', () => {

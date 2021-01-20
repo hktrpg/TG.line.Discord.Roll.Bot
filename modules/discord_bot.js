@@ -26,7 +26,6 @@ const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
 
 client.once('ready', async () => {
 	console.log('Discord is Ready!');
-	await count();
 	const io = require('socket.io-client');
 	const socket = io('ws://localhost:53589');
 	socket.on('connect', () => {
@@ -39,6 +38,12 @@ client.once('ready', async () => {
 				result.send(message.text);
 			}
 			return;
+			/**
+			 if (!message.text) return;
+			let text = 'let result = this.channels.cache.get("' + message.target.id + '");if (result) {result.send("' + message.text.replace(/\r\n|\n/g, "\\n") + '");}'
+			client.shard.broadcastEval(text);
+			return;
+			 */
 		});
 	});
 

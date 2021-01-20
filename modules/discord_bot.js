@@ -28,12 +28,12 @@ client.once('ready', async () => {
 	console.log('Discord is Ready!');
 	await count();
 	const io = require('socket.io-client');
-	const socket = io('ws://localhost:9999');
+	const socket = io('ws://localhost:53589');
 	socket.on('connect', () => {
 		// either with send()
 		console.log('connect To core-www!')
 	});
-	socket.on('discordBot', message => {
+	socket.on("Discord", message => {
 		if (!message.text) return;
 		let result = client.channels.cache.get(message.target.id);
 		if (result) {

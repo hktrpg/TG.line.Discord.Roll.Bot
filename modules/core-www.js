@@ -146,35 +146,13 @@ io.on('connection', async (socket) => {
                 let allowRollingResult = await schema.allowRolling.findOne(filter2);
                 if (!allowRollingResult) return;
                 rplyVal.text = '@' + message.cardName + '\n' + rplyVal.text;
-                switch (message.rollTarget.botname) {
-                    case "Discord":
-                        sendToDiscord({
+                if(message.rollTarget.botname){
+                     sendTo({
                             target: message.rollTarget,
                             text: rplyVal.text
                         })
-                        return;
-                    case "Telegram":
-                        process.emit("Telegram", {
-                            target: message.rollTarget,
-                            text: rplyVal.text
-                        });
-                        return;
-                    case "Line":
-                        process.emit("Line", {
-                            target: message.rollTarget,
-                            text: rplyVal.text
-                        });
-                        return;
-                    case "Whatsapp":
-                        process.emit("Whatsapp", {
-                            target: message.rollTarget,
-                            text: rplyVal.text
-                        });
-                        return;
-                    default:
-                        return;
-
                 }
+             
 
             }
 
@@ -353,8 +331,8 @@ const app2 = express()
 
 //將 express 放進 http 中開啟 Server 的 3000 port ，正確開啟後會在 console 中印出訊息
 const server2 = require('http').Server(app2)
-    .listen(9999, () => {
-        console.log('open server 9999!')
+    .listen(53589, () => {
+        console.log('open server 53589!')
     })
 
 //將啟動的 Server 送給 socket.io 處理
@@ -364,10 +342,10 @@ const io2 = require('socket.io')(server2)
   const socket = require('socket.io')
   const io = socket(server)
 */
-var sendToDiscord;
+var sendTo;
 //監聽 Server 連線後的所有事件，並捕捉事件 socket 執行
 io2.on('connection', socket => {
-    sendToDiscord = function (params) {
-        socket.emit('discordBot', params)
+    sendTo = function (params) {
+        socket.emit(params.rollTarget.botname, params)
     }
 })

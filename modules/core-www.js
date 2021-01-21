@@ -108,7 +108,7 @@ io.on('connection', async (socket) => {
 
     socket.on('rolling', async message => {
         if (await limitRaterChatRoom(socket.handshake.address)) return;
-        if (!message.item) return;
+        if (!message.item || !message.item.itemA || !message.item.name) return;
         let rplyVal = {}
         let newMessage = message.item.itemA;
         let mainMsg = newMessage.match(msgSplitor); // 定義輸入字串

@@ -103,7 +103,7 @@ var rollDiceCommand = async function ({
             temp = await temp.updateOne({
                 "list.name": name
             }, {
-                $set: {
+                "$set": {
                     "list.$.result": Number(result),
                     "list.$.formula": mainMsg[1]
                 }

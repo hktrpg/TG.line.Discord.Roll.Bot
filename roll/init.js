@@ -35,47 +35,83 @@ var initialize = function () {
 }
 
 var rollDiceCommand = async function ({
+    inputStr,
     mainMsg,
     groupid,
     userid,
     userrole,
+    displaynameDiscord,
     botname,
     displayname,
     channelid
 }) {
     let temp;
     let result;
+    let name = inputStr.replace(/^[.]in\s+\w+(\s+)?/i, '') || displaynameDiscord || displayname;
     let rply = {
         default: 'on',
         type: 'text',
         text: ''
     };
+    if (/^help$/i.test(mainMsg[1]) || !mainMsg[1]) {
+        rply.text = this.getHelpMessage();
+        if (botname == "Line")
+            rply.text += "\n因為Line的機制, 如擲骰時並無顯示用家名字, 請到下列網址,和機器人任意說一句話,成為好友. \n https://line.me/R/ti/p/svMLqy9Mik"
+        return rply;
+    }
+    if (!groupid) {
+        rply.text = "這是群組功能，請於群組使用。"
+        return rply;
+    }
     switch (true) {
-        case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
-            rply.text = this.getHelpMessage();
-            if (botname == "Line")
-                rply.text += "\n因為Line的機制, 如擲骰時並無顯示用家名字, 請到下列網址,和機器人任意說一句話,成為好友. \n https://line.me/R/ti/p/svMLqy9Mik"
-            return rply;
         case /(^[.]in$)/i.test(mainMsg[0]) && /^remove$/i.test(mainMsg[1]):
-            //
+            temp = schema.init.updateOne({
+                groupID: groupid
+            }, {
+                $pullAll: {
+                    name: name
+                }
+            })
+            console.log(temp);
+            if (temp) rply.text = '移除成功'
             return rply;
         case /(^[.]in$)/i.test(mainMsg[0]) && /^reroll$/i.test(mainMsg[1]):
             //
             return rply;
-        case /(^[.]in$)/i.test(mainMsg[0]) && /^[+-]/i.test(mainMsg[1]):
-            
+        case /(^[.]in$)/i.test(mainMsg[0]) && /^[+-]\d+/i.test(mainMsg[1]):
+
             return rply;
         case /(^[.]in$)/i.test(mainMsg[0]) && /^\w+/i.test(mainMsg[1]):
-            //
-            temp = await rollDice({
-                mainMsg: [mainMsg[1]]
-            })
-            if (temp && temp.text) {
-                result = temp.text.match(/[+-]?([0-9]*[.])?[0-9]+$/)[0];
-            } else if (mainMsg[1].match(/^[+-]?([0-9]*[.])?[0-9]+$/)) {
-                result = mainMsg[1];
+            result = await countInit(mainMsg[1]);
+            if (!result) return;
+            temp = await schema.init.findOne({
+                "groupID": groupid,
+            });
+            if (!temp) {
+                temp = new schema.init({
+                    "groupID": groupid,
+                    list: [{
+                        name: name,
+                        result: Number(result),
+                        formula: mainMsg[1]
+                    }]
+                });
+                await temp.save();
+                rply.text = "DONE";
+                return rply;
             }
-            rply.text = result;
+            temp = await temp.updateOne({
+                "list.name": name
+            }, {
+                $set: {
+                    "list.$.result": Number(result),
+                    "list.$.formula": mainMsg[1]
+                }
+            }, {
+                upsert: true,
+                returnNewDocument: true
+            })
+            rply.text = temp;
             return rply;
 
         case /(^[.]init$)/i.test(mainMsg[0]):
@@ -92,6 +128,18 @@ var rollDiceCommand = async function ({
 }
 
 
+async function countInit(num) {
+    let result;
+    let temp = await rollDice({
+        mainMsg: [num]
+    })
+    if (temp && temp.text) {
+        result = temp.text.match(/[+-]?([0-9]*[.])?[0-9]+$/)[0];
+    } else if (num.match(/^[+-]?([0-9]*[.])?[0-9]+$/)) {
+        result = num;
+    }
+    return result;
+}
 
 module.exports = {
     rollDiceCommand: rollDiceCommand,

@@ -3,6 +3,9 @@ if (!process.env.mongoURL) {
     return;
 }
 var variables = {};
+const {
+    model
+} = require('mongoose');
 const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const link = process.env.WEB_LINK;
@@ -555,9 +558,10 @@ async function mainCharacter(doc, mainMsg) {
 
         }
         try {
-            await doc.save();
+            if (doc && doc.db)
+                await doc.save();
         } catch (error) {
-            console.log('doc ', doc)
+            // console.log('doc ', doc)
             console.log('doc SAVE GET ERROR:', error)
         }
 

@@ -110,7 +110,7 @@ io.on('connection', async (socket) => {
         if (await limitRaterChatRoom(socket.handshake.address)) return;
         if (!message.item) return;
         let rplyVal = {}
-        let newMessage = message.item.itemA + ' ' + message.item.name;
+        let newMessage = message.item.itemA;
         let mainMsg = newMessage.match(msgSplitor); // 定義輸入字串
         if (mainMsg && mainMsg[0]) {
             let result = await mainCharacter(message.doc, ['', message.item])
@@ -140,7 +140,7 @@ io.on('connection', async (socket) => {
                 }
                 let allowRollingResult = await schema.allowRolling.findOne(filter2);
                 if (!allowRollingResult) return;
-                rplyVal.text = '@' + message.cardName + '\n' + rplyVal.text;
+                rplyVal.text = '@' + message.cardName + ' - ' + message.item.name + '\n' + rplyVal.text;
                 if (message.rollTarget.botname) {
                     sendTo({
                         target: message.rollTarget,

@@ -108,19 +108,16 @@ io.on('connection', async (socket) => {
 
     socket.on('rolling', async message => {
         if (await limitRaterChatRoom(socket.handshake.address)) return;
-        if (!message.item || !message.item.itemA || !message.item.name) return;
+        if (!message.item || !message.doc) return;
         let rplyVal = {}
-        let newMessage = message.item.itemA;
-        let mainMsg = newMessage.match(msgSplitor); // 定義輸入字串
-        if (mainMsg && mainMsg[0]) {
-            let result = await mainCharacter(message.doc, ['', message.item])
-            if (result.characterReRoll) {
-                rplyVal = await exports.analytics.parseInput({
-                    inputStr: result.characterReRollItem + ' ' + result.characterReRollName,
-                    botname: "WWW"
-                })
-            }
+        let result = await mainCharacter(message.doc, ['', message.item])
+        if (result && result.characterReRoll) {
+            rplyVal = await exports.analytics.parseInput({
+                inputStr: result.characterReRollItem,
+                botname: "WWW"
+            })
         }
+
         // 訊息來到後, 會自動跳到analytics.js進行骰組分析
         // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
         if (rplyVal && rplyVal.text) {
@@ -140,7 +137,7 @@ io.on('connection', async (socket) => {
                 }
                 let allowRollingResult = await schema.allowRolling.findOne(filter2);
                 if (!allowRollingResult) return;
-                rplyVal.text = '@' + message.cardName + ' - ' + message.item.name + '\n' + rplyVal.text;
+                rplyVal.text = '@' + message.cardName + ' - ' + message.item + '\n' + rplyVal.text;
                 if (message.rollTarget.botname) {
                     sendTo({
                         target: message.rollTarget,

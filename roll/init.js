@@ -38,8 +38,6 @@ var rollDiceCommand = async function ({
     inputStr,
     mainMsg,
     groupid,
-    userid,
-    userrole,
     displaynameDiscord,
     botname,
     displayname,
@@ -47,13 +45,14 @@ var rollDiceCommand = async function ({
 }) {
     let temp;
     let result;
-    let name = inputStr.replace(/^[.]in\s+\w+(\s+)?/i, '') || displaynameDiscord || displayname;
+    let objIndex;
+    let name = inputStr.replace(/^[.]in\s+([+-])?\w+(\s+)?/i, '') || displaynameDiscord || displayname;
     let rply = {
         default: 'on',
         type: 'text',
         text: ''
     };
-    if (/^help$/i.test(mainMsg[1]) || !mainMsg[1]) {
+    if ((/^help$/i.test(mainMsg[1]) || !mainMsg[1]) && (/^in$/i.test(mainMsg[0]))) {
         rply.text = this.getHelpMessage();
         if (botname == "Line")
             rply.text += "\n因為Line的機制, 如擲骰時並無顯示用家名字, 請到下列網址,和機器人任意說一句話,成為好友. \n https://line.me/R/ti/p/svMLqy9Mik"
@@ -65,61 +64,126 @@ var rollDiceCommand = async function ({
     }
     switch (true) {
         case /(^[.]in$)/i.test(mainMsg[0]) && /^remove$/i.test(mainMsg[1]):
-            temp = schema.init.updateOne({
-                groupID: groupid
+            temp = await schema.init.updateOne({
+                "groupID": channelid || groupid
             }, {
-                $pullAll: {
-                    name: name
+                $pull: {
+                    "list": {
+                        "name": {
+                            $regex: new RegExp(name, "i")
+                        }
+                    }
                 }
+            }, {
+                safe: true
             })
-            console.log(temp);
-            if (temp) rply.text = '移除成功'
+            rply.text = (temp && temp.nModified) ? '已移除 ' + name + ' 的先攻值' : '找不到' + name + '的先攻值';
+            return rply;
+        case /(^[.]in$)/i.test(mainMsg[0]) && /^clear$/i.test(mainMsg[1]):
+            temp = await schema.init.remove({
+                "groupID": channelid || groupid
+            })
+            rply.text = (temp) ? '已移除這群組的先攻值' : '找不到這群組的先攻表';
             return rply;
         case /(^[.]in$)/i.test(mainMsg[0]) && /^reroll$/i.test(mainMsg[1]):
-            //
+            temp = await schema.init.findOne({
+                "groupID": channelid || groupid
+            });
+            if (!temp) {
+                rply.text = "找不到先攻表"
+                return rply;
+            }
+            for (let i = 0; i < temp.list.length; i++) {
+                temp.list[i].result = await countInit(temp.list[i].formula);
+            }
+            try {
+                await temp.save();
+            } catch (error) {
+                rply.text = "先攻表更新失敗，\n" + error;
+                return rply;
+            }
+            rply.text = await showInit(temp)
             return rply;
         case /(^[.]in$)/i.test(mainMsg[0]) && /^[+-]\d+/i.test(mainMsg[1]):
-
+            temp = await schema.init.findOne({
+                "groupID": channelid || groupid
+            });
+            if (!temp) {
+                rply.text = "找不到先攻表"
+                return rply;
+            }
+            objIndex = temp.list.findIndex((obj => obj.name.toLowerCase() == name.toLowerCase()));
+            if (objIndex == -1) {
+                rply.text = "找不到該角色"
+                return rply;
+            }
+            temp.list[objIndex].result = temp.list[objIndex].result + Number(mainMsg[1]);
+            try {
+                await temp.save();
+            } catch (error) {
+                rply.text = "先攻表更新失敗，\n" + error;
+                return rply;
+            }
+            rply.text = temp.list[objIndex].name + '已經 ' + mainMsg[1] + ' 先攻值'
             return rply;
         case /(^[.]in$)/i.test(mainMsg[0]) && /^\w+/i.test(mainMsg[1]):
             result = await countInit(mainMsg[1]);
             if (!result) return;
             temp = await schema.init.findOne({
-                "groupID": groupid,
+                "groupID": channelid || groupid,
             });
             if (!temp) {
                 temp = new schema.init({
-                    "groupID": groupid,
+                    "groupID": channelid || groupid,
                     list: [{
                         name: name,
                         result: Number(result),
                         formula: mainMsg[1]
                     }]
                 });
-                await temp.save();
-                rply.text = "DONE";
+                try {
+                    await temp.save();
+                } catch (error) {
+                    rply.text = "先攻表更新失敗，\n" + error;
+                    return rply;
+                }
+                rply.text = name + ' 的先攻值是 ' + Number(result);
                 return rply;
             }
-            temp = await temp.updateOne({
-                "list.name": name
-            }, {
-                "$set": {
-                    "list.$.result": Number(result),
-                    "list.$.formula": mainMsg[1]
-                }
-            }, {
-                upsert: true,
-                returnNewDocument: true
-            })
-            rply.text = temp;
+            objIndex = temp.list.findIndex((obj => obj.name.toLowerCase() == name.toLowerCase())) >= 0 ? temp.list.findIndex((obj => obj.name.toLowerCase() == name.toLowerCase())) : temp.list.length || 0;
+            temp.list.set(Number(objIndex), {
+                name: (temp.list[objIndex] && temp.list[objIndex].name) || name,
+                result: Number(result),
+                formula: mainMsg[1]
+            });
+            try {
+                await temp.save();
+            } catch (error) {
+                rply.text = "先攻表更新失敗，\n" + error;
+                return rply;
+            }
+            rply.text = temp.list[objIndex].name + ' 的先攻值是 ' + Number(result);
             return rply;
 
         case /(^[.]init$)/i.test(mainMsg[0]):
-            //
+            temp = await schema.init.findOne({
+                "groupID": channelid || groupid
+            });
+            if (!temp) {
+                rply.text = "找不到先攻表"
+                return rply;
+            }
+            rply.text = await showInit(temp)
             return rply;
-
         case /(^[.]initn$)/i.test(mainMsg[0]):
-            //
+            temp = await schema.init.findOne({
+                "groupID": channelid || groupid
+            });
+            if (!temp) {
+                rply.text = "找不到先攻表"
+                return rply;
+            }
+            rply.text = await showInitn(temp)
             return rply;
 
         default:
@@ -141,6 +205,28 @@ async function countInit(num) {
     return result;
 }
 
+async function showInit(doc) {
+    let result = '先攻表\n';
+    doc.list.sort(function (a, b) {
+        return b.result - a.result;
+    });
+    console.log('doc', doc)
+    for (let i = 0; i < doc.list.length; i++) {
+        result += doc.list[i].name + ' - ' + doc.list[i].result + '\n';
+    }
+    return result;
+}
+async function showInitn(doc) {
+    let result = '先攻表\n';
+    doc.list.sort(function (a, b) {
+        return a.result - b.result;
+    });
+    console.log('doc', doc)
+    for (let i = 0; i < doc.list.length; i++) {
+        result += doc.list[i].name + ' - ' + doc.list[i].result + '\n';
+    }
+    return result;
+}
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,

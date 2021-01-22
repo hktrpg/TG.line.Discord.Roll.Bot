@@ -2,6 +2,7 @@
 if (!process.env.mongoURL) {
     return;
 }
+const math = require('mathjs')
 const schema = require('../modules/core-schema.js');
 const rollDice = require('./rollbase').rollDiceCommand;
 var gameName = function () {
@@ -48,7 +49,7 @@ var rollDiceCommand = async function ({
     let temp;
     let result;
     let objIndex;
-    let name = inputStr.replace(/^[.]in\s+([+-])?\w+([.])?(\w+)?(\s+)?/i, '') || displaynameDiscord || displayname;
+    let name = inputStr.replace(mainMsg[0], '').replace(mainMsg[1], '').replace(/^\s+/, '') || displaynameDiscord || displayname;
     let rply = {
         default: 'on',
         type: 'text',
@@ -106,7 +107,7 @@ var rollDiceCommand = async function ({
             }
             rply.text = await showInit(temp)
             return rply;
-        case /(^[.]in$)/i.test(mainMsg[0]) && /^[+-]\d+/i.test(mainMsg[1]):
+        case /(^[.]in$)/i.test(mainMsg[0]) && /^[+-/*]\d+/i.test(mainMsg[1]):
             temp = await schema.init.findOne({
                 "groupID": channelid || groupid
             });
@@ -119,7 +120,7 @@ var rollDiceCommand = async function ({
                 rply.text = "找不到該角色"
                 return rply;
             }
-            temp.list[objIndex].result = temp.list[objIndex].result + Number(mainMsg[1]);
+            temp.list[objIndex].result = math.eval(temp.list[objIndex].result + mainMsg[1])
             try {
                 await temp.save();
             } catch (error) {

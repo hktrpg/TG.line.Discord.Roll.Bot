@@ -27,6 +27,7 @@ var getHelpMessage = function () {
 ------------\n\
 .in remove (名字) - 移除該角色\n\
 .in reroll - 重擲內容\n\
+.in 清除整個先攻表 - 重擲內容\n\
 .init - 顯示先攻表，由大到小\n\
 .initn - 顯示先攻表，由小到大\n\
 "

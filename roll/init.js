@@ -18,19 +18,20 @@ var prefixs = function () {
     }]
 }
 var getHelpMessage = function () {
-    return "【先攻表功能】.in (remove clear reroll) .init" + "\n\
+    return "【先攻表功能】 .in (remove clear reroll) .init" + "\n\
 這是讓你快速自定義先攻表的功能\n\
+它可以儲存你的擲骰方法，然後直接重新投擲，而不需要再輸入。\n\
 .in (擲骰或數字) (名字)  - 樣式\n\
-.in 1d20+3 名字  \n\
-.in 1d3 (如沒有輸入, 會用該玩家的名字)\n\
-.in 80  - 直接取代\n\
-.in -3  - 加減\n\
+.in 1d20+3 (名字)  \n\
+.in 1d3 (如沒有輸入, 會用聊天軟件中的名字)\n\
+.in 80          - 直接取代先攻值\n\
+.in -3+6*3/2.1  - 加減\n\
 ------------\n\
 .in remove (名字) - 移除該角色\n\
-.in reroll - 重擲內容\n\
-.in 清除整個先攻表 - 重擲內容\n\
-.init - 顯示先攻表，由大到小\n\
-.initn - 顯示先攻表，由小到大\n\
+.in reroll - 根據算式重擲先攻表\n\
+.in clear  - 清除整個先攻表\n\
+.init      - 顯示先攻表，由大到小\n\
+.initn     - 顯示先攻表，由小到大\n\
 "
 }
 var initialize = function () {
@@ -49,7 +50,7 @@ var rollDiceCommand = async function ({
     let temp;
     let result;
     let objIndex;
-    let name = inputStr.replace(mainMsg[0], '').replace(mainMsg[1], '').replace(/^\s+/, '') || displaynameDiscord || displayname;
+    let name = inputStr.replace(mainMsg[0], '').replace(mainMsg[1], '').replace(/^\s+/, '') || displaynameDiscord || displayname || 'Sad';
     let rply = {
         default: 'on',
         type: 'text',

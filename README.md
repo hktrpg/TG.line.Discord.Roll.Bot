@@ -23,7 +23,7 @@ HKTRPG擲骰子專用機械人 Roll Dice Robot
 ------------------
 
 *   HKTRPG是在Discord, Line, Telegram, Whatsapp和網頁上都可以使用的骰子機械人！
-    *   功能：頻道經驗值, 占卜, 擲骰, TRPG, 搜圖, 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, 自定抽選
+    *   功能：暗骰, 擲骰, 頻道經驗值, 占卜, TRPG骰子, 先攻表, TRPG角色卡, 搜圖, 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, 自定抽選
     *   歡迎加入[開發，求助及TRPG Discord 群組](https://discord.gg/vx4kcm7)
     *   邀請HKTRPG 加入
         *   [Discord 邀請連結](http://bit.ly/HKTRPG_DISCORD_)
@@ -152,7 +152,7 @@ HKTRPG擲骰子專用機械人 Roll Dice Robot
     	*	.in 1d3 (如沒有輸入, 會用聊天軟件中的名字)
     	*	.in 80          - 直接取代先攻值
     	*	.in -3+6*3/2.1  - 加減
-    	*	------------
+    		------------
     	*	.in remove (名字) - 移除該角色
     	*	.in reroll - 根據算式重擲先攻表
     	*	.in clear  - 清除整個先攻表

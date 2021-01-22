@@ -125,17 +125,15 @@ HKTRPG擲骰子專用機械人 Roll Dice Robot
     	*	簡單新增角色卡 .char add name[Sad]~ state[HP:15/15;]~ roll[鬥毆: cc 50;]~ notes[筆記:這是測試,請試試在群組輸入 .char use Sad;]~ 
     	*	新增了角色卡後，可以輸入 .admin account (username) (password) 
     	*	然後在網頁: https://www.hktrpg.com:20721/card/ 中直接進行修改
-    	*	
+    		
     	*	把結果傳送到已登記的Discord，TG，LINE上的聊天群組的登記方法: 
     	*	由該群組的Admin授權允許 輸入 .admin allowrolling
     	*	登記該群組到自己的名單中 輸入 .admin registerChannel
     	*	取消方法
     	*	由該群組的Admin取消授權 輸入 .admin disallowrolling
     	*	取消登記該群組到名單 輸入 .admin unregisterChannel
-    	*	
+
     	*	最後網站會顯示群組名稱，點擊就可以使用了
-    	*	
-    	*	
     *   儲存擲骰指令功能 .cmd (add del show 自定關鍵字)
         *	這是根據關鍵字來再現擲骰指令,
     	*	例如輸入 .cmd add  pc1鬥毆 cc 80 鬥毆 

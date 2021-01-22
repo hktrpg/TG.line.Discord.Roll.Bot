@@ -54,13 +54,13 @@ var rollDiceCommand = async function ({
         type: 'text',
         text: ''
     };
-    if ((/^help$/i.test(mainMsg[1])) && /^[.]in$/i.test(mainMsg[0])) {
+    if ((/^help$/i.test(mainMsg[1])) && /^[.]in|[.]init$/i.test(mainMsg[0])) {
         rply.text = this.getHelpMessage();
         if (botname == "Line")
             rply.text += "\n因為Line的機制, 如擲骰時並無顯示用家名字, 請到下列網址,和機器人任意說一句話,成為好友. \n https://line.me/R/ti/p/svMLqy9Mik"
         return rply;
     }
-    if (!groupid) {
+    if (!groupid && mainMsg[1]) {
         rply.text = "這是群組功能，請於群組使用。"
         return rply;
     }
@@ -209,21 +209,39 @@ async function countInit(num) {
 }
 
 async function showInit(doc) {
-    let result = '先攻表\n';
+    let result = '┌──────先攻表──────┐\n';
     doc.list.sort(function (a, b) {
         return b.result - a.result;
     });
+
     for (let i = 0; i < doc.list.length; i++) {
+        if (i == doc.list.length - 1) {
+            result += "└";
+        } else
+        if (i == 0) {
+            result += "┌";
+        } else {
+            result += "├";
+        }
         result += doc.list[i].name + ' - ' + doc.list[i].result + '\n';
     }
     return result;
 }
 async function showInitn(doc) {
-    let result = '先攻表\n';
+    let result = '┌─────先攻表─────┐\n';
     doc.list.sort(function (a, b) {
         return a.result - b.result;
     });
     for (let i = 0; i < doc.list.length; i++) {
+        if (i == doc.list.length - 1) {
+            result += "└";
+        } else
+        if (i == 0) {
+            result += "┌";
+        } else {
+            result += "├";
+        }
+
         result += doc.list[i].name + ' - ' + doc.list[i].result + '\n';
     }
     return result;

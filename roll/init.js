@@ -24,6 +24,7 @@ var getHelpMessage = function () {
 .in 1d3 (如沒有輸入, 會用該玩家的名字)\n\
 .in 80  - 直接取代\n\
 .in -3  - 加減\n\
+------------\n\
 .in remove (名字) - 移除該角色\n\
 .in reroll - 重擲內容\n\
 .init - 顯示先攻表，由大到小\n\
@@ -46,13 +47,13 @@ var rollDiceCommand = async function ({
     let temp;
     let result;
     let objIndex;
-    let name = inputStr.replace(/^[.]in\s+([+-])?\w+(\s+)?/i, '') || displaynameDiscord || displayname;
+    let name = inputStr.replace(/^[.]in\s+([+-])?\w+([.])?(\w+)?(\s+)?/i, '') || displaynameDiscord || displayname;
     let rply = {
         default: 'on',
         type: 'text',
         text: ''
     };
-    if ((/^help$/i.test(mainMsg[1]) || !mainMsg[1]) && (/^in$/i.test(mainMsg[0]))) {
+    if ((/^help$/i.test(mainMsg[1]) || !mainMsg[1]) && /^[.]in$/i.test(mainMsg[0])) {
         rply.text = this.getHelpMessage();
         if (botname == "Line")
             rply.text += "\n因為Line的機制, 如擲骰時並無顯示用家名字, 請到下列網址,和機器人任意說一句話,成為好友. \n https://line.me/R/ti/p/svMLqy9Mik"
@@ -125,6 +126,7 @@ var rollDiceCommand = async function ({
                 return rply;
             }
             rply.text = temp.list[objIndex].name + '已經 ' + mainMsg[1] + ' 先攻值'
+            rply.text += '\n現在的先攻值:  ' + temp.list[objIndex].result;
             return rply;
         case /(^[.]in$)/i.test(mainMsg[0]) && /^\w+/i.test(mainMsg[1]):
             result = await countInit(mainMsg[1]);
@@ -210,7 +212,6 @@ async function showInit(doc) {
     doc.list.sort(function (a, b) {
         return b.result - a.result;
     });
-    console.log('doc', doc)
     for (let i = 0; i < doc.list.length; i++) {
         result += doc.list[i].name + ' - ' + doc.list[i].result + '\n';
     }
@@ -221,7 +222,6 @@ async function showInitn(doc) {
     doc.list.sort(function (a, b) {
         return a.result - b.result;
     });
-    console.log('doc', doc)
     for (let i = 0; i < doc.list.length; i++) {
         result += doc.list[i].name + ' - ' + doc.list[i].result + '\n';
     }

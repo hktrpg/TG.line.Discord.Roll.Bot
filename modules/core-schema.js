@@ -270,7 +270,14 @@ const exportUser = mongoose.model('exportUser', new mongoose.Schema({
     lastActiveAt: Date,
     times: Number
 }));
-
+const init = mongoose.model('init', new mongoose.Schema({
+    groupID: String,
+    list: [{
+        name: String,
+        result: Number,
+        formula: String
+    }]
+}));
 
 module.exports = {
     randomAns,
@@ -293,7 +300,8 @@ module.exports = {
     exportGp,
     exportUser,
     accountPW,
-    allowRolling
+    allowRolling,
+    init
 }
 //const Cat = mongoose.model('Cat', { name: String });
 //const kitty = new Cat({ name: 'Zildjian' });

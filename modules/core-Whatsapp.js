@@ -215,7 +215,12 @@ client.on('group_join', async (msg) => {
 
 client.initialize();
 const io = require('socket.io-client');
-const socket = io('ws://localhost:53589');
+const socket = io('ws://localhost:53589', {
+	reconnection: true,
+	reconnectionDelay: 1000,
+	reconnectionDelayMax: 5000,
+	reconnectionAttempts: Infinity
+});
 socket.on('connect', () => {
 	// either with send()
 	console.log('connect To core-www from Whatsapp!')
@@ -225,6 +230,10 @@ socket.on('connect', () => {
 		return;
 	});
 });
+socket.on('disconnect', function () {
+	console.log('disconnected from server whatsapp');
+});
+
 
 
 async function SendDR(msg, text) {

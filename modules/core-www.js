@@ -111,7 +111,6 @@ io.on('connection', async (socket) => {
     })
 
     socket.on('getPublicListInfo', async () => {
-        console.log('getPublicListInfo')
         if (await limitRaterCard(socket.handshake.address)) return;
         //回傳 message 給發送訊息的 Client
         let filter = {
@@ -121,7 +120,6 @@ io.on('connection', async (socket) => {
         socket.emit('getPublicListInfo', {
             temp
         })
-        console.log('temp', temp)
     })
 
     socket.on('publicRolling', async message => {

@@ -173,7 +173,7 @@
         <h3>
             <span class="iconify" data-icon="wpf:name" data-inline="false"></span> {{name}}
         </h3>
-        <div class="form-check">
+        <div class="form-check" v-if="name">
             <input class="form-check-input" type="checkbox" value="true" v-model="public" id="invalidCheck">
             <label class="form-check-label" for="invalidCheck">
                 公開這角色卡
@@ -194,8 +194,8 @@
         </div>
         <br>
         <h4 class="bg-color3 p-1">
-            <span class="iconify" data-icon="carbon:data-base"  data-inline="false" data-width="20px"
-                            data-height="20px"></span>基本屬性
+            <span class="iconify" data-icon="carbon:data-base" data-inline="false" data-width="20px"
+                data-height="20px"></span>基本屬性
         </h4>
         <button type="button" class="btn btn-warning float-right" v-if="name" onclick="newItem(0)">
             +
@@ -225,8 +225,8 @@
 
         <br>
         <h4 class=" bg-color3 p-1">
-            <span class="iconify" data-icon="fa-solid:dice-d20"  data-inline="false" data-width="20px"
-                            data-height="20px"></span>擲骰
+            <span class="iconify" data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
+                data-height="20px"></span>擲骰
         </h4>
         <button type="button" class="btn btn-warning float-right" v-if="name" onclick="newItem(1)">
             +
@@ -248,8 +248,8 @@
         </div>
         <br>
         <h4 class=" bg-color3 p-1">
-            <span class="iconify" data-icon="clarity:note-edit-line"  data-inline="false" data-width="20px"
-                            data-height="20px"></span>筆記
+            <span class="iconify" data-icon="clarity:note-edit-line" data-inline="false" data-width="20px"
+                data-height="20px"></span>筆記
         </h4>
         <button type="button" class="btn btn-warning float-right" v-if="name" onclick="newItem(2)">
             +
@@ -519,10 +519,7 @@
 
         function logout() {
             document.getElementById("warning").style.display = "none";
-            $('#loginModal').modal({
-                backdrop: 'static',
-                keyboard: false
-            })
+            $('#loginModal').modal("show")
             card._id = "";
             card.id = "";
             card.name = "";
@@ -560,17 +557,11 @@
                         $('#cardListModal').modal("show");
                     } else {
                         document.getElementById("warning").style.display = "block";
-                        $('#loginModal').modal({
-                            backdrop: 'static',
-                            keyboard: false
-                        })
+                        $('#loginModal').modal("show")
                     }
                 });
             } else {
-                $('#loginModal').modal({
-                    backdrop: 'static',
-                    keyboard: false
-                })
+                $('#loginModal').modal("show")
             }
         }
 

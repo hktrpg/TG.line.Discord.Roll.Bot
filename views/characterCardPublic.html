@@ -412,7 +412,6 @@
             socket.on("getPublicListInfo", function (listInfo) {
                 let list = listInfo.temp;
                 if (list) {
-                    console.log(list)
                     cardList.list = list
                     $('#loginModal').modal("hide");
                     $('#cardListModal').modal("show");

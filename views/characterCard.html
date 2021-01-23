@@ -123,7 +123,16 @@
             <div class="navbar-nav">
                 <a class="nav-item nav-link active" href="https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81">主頁
                 </a>
-                <a class="nav-item nav-link" href="#">角色卡</a>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        角色卡
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="#">私人角色卡</a>
+                        <a class="dropdown-item" href="https://www.hktrpg.com:20721/publiccard/">公開角色卡</a>
+                    </div>
+                </li>
                 <a class="nav-item nav-link" href="https://rollbot.hktrpg.com/">網上聊天擲骰</a>
                 <a class="nav-item nav-link" href="https://roll.hktrpg.com/">簡易擲骰</a>
                 <a class="nav-item nav-link " href="https://github.com/hktrpg/TG.line.Discord.Roll.Bot">
@@ -172,9 +181,10 @@
         </div>
         <div v-if="gpList">
             <br>
-            <h3 class="bg-color3">
-                <span class="iconify" data-icon="grommet-icons:channel" data-inline="false"></span>擲骰頻道
-            </h3>
+            <h4 class="bg-color3 p-1">
+                <span class="iconify" data-icon="grommet-icons:channel" data-inline="false" data-width="20px"
+                    data-height="20px"></span>擲骰頻道
+            </h4>
             <label><input type="radio" name="gpListRadio" value=null checked />
                 不進行群組擲骰</label>
             <div v-for="(gp,i) in gpList">
@@ -183,9 +193,10 @@
             </div>
         </div>
         <br>
-        <h3 class="bg-color3">
-            <span class="iconify" data-icon="carbon:data-base" data-inline="false"></span>基本屬性
-        </h3>
+        <h4 class="bg-color3 p-1">
+            <span class="iconify" data-icon="carbon:data-base"  data-inline="false" data-width="20px"
+                            data-height="20px"></span>基本屬性
+        </h4>
         <button type="button" class="btn btn-warning float-right" v-if="name" onclick="newItem(0)">
             +
         </button>
@@ -213,9 +224,10 @@
         </div>
 
         <br>
-        <h3 class=" bg-color3">
-            <span class="iconify" data-icon="fa-solid:dice-d20" data-inline="false"></span>擲骰
-        </h3>
+        <h4 class=" bg-color3 p-1">
+            <span class="iconify" data-icon="fa-solid:dice-d20"  data-inline="false" data-width="20px"
+                            data-height="20px"></span>擲骰
+        </h4>
         <button type="button" class="btn btn-warning float-right" v-if="name" onclick="newItem(1)">
             +
         </button>
@@ -235,9 +247,10 @@
             </div>
         </div>
         <br>
-        <h3 class=" bg-color3">
-            <span class="iconify" data-icon="clarity:note-edit-line" data-inline="false"></span>筆記
-        </h3>
+        <h4 class=" bg-color3 p-1">
+            <span class="iconify" data-icon="clarity:note-edit-line"  data-inline="false" data-width="20px"
+                            data-height="20px"></span>筆記
+        </h4>
         <button type="button" class="btn btn-warning float-right" v-if="name" onclick="newItem(2)">
             +
         </button>

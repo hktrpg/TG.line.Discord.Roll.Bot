@@ -110,6 +110,38 @@ io.on('connection', async (socket) => {
         })
     })
 
+    socket.on('getPublicListInfo', async () => {
+        console.log('getPublicListInfo')
+        if (await limitRaterCard(socket.handshake.address)) return;
+        //回傳 message 給發送訊息的 Client
+        let filter = {
+            public: true
+        }
+        let temp = await schema.characterCard.find(filter);
+        socket.emit('getPublicListInfo', {
+            temp
+        })
+        console.log('temp', temp)
+    })
+
+    socket.on('publicRolling', async message => {
+        if (await limitRaterChatRoom(socket.handshake.address)) return;
+        if (!message.item || !message.doc) return;
+        let rplyVal = {}
+        let result = await mainCharacter(message.doc, ['', message.item])
+        if (result && result.characterReRoll) {
+            rplyVal = await exports.analytics.parseInput({
+                inputStr: result.characterReRollItem,
+                botname: "WWW"
+            })
+        }
+
+        // 訊息來到後, 會自動跳到analytics.js進行骰組分析
+        // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+        if (rplyVal && rplyVal.text) {
+            socket.emit('publicRolling', result.characterReRollName + '：\n' + rplyVal.text)
+        }
+    })
     socket.on('rolling', async message => {
         if (await limitRaterChatRoom(socket.handshake.address)) return;
         if (!message.item || !message.doc) return;

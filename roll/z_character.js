@@ -62,7 +62,7 @@ var getHelpMessage = function () {
 最後網站會顯示群組名稱，點擊就可以使用了\n\
 \n\
 -----.char-----\n\
-.char add name[Sad]~ state[HP:15/15;]~ roll[鬥毆: cc 50;]~ notes[筆記:這是測試,請試試在群組輸入 .char use Sad;]~   - 可以新增及更新角色卡\n\
+.char add name[Sad]~ state[HP:15/15;con:60;]~ roll[鬥毆: cc 50;投擲: cc 15;]~ notes[筆記:這是測試,請試試在群組輸入 .char use Sad;]~   - 可以新增及更新角色卡\n\
 .char Show - 可以顯示角色卡列表\n\
 .char Show0 - 可以顯示0號角色卡內容 0可以用其他數字取代\n\
 .char edit name[角色卡名字]~ - 可以以add的格式修改指定角色卡\n\
@@ -115,6 +115,58 @@ var rollDiceCommand = async function ({
             rply.text = this.getHelpMessage();
             return rply;
             // .ch(0) ADD(1) TOPIC(2) CONTACT(3)
+        case /(^[.]char$)/i.test(mainMsg[0]) && /^public+/i.test(mainMsg[1]):
+            if (!mainMsg[2]) {
+                rply.text = "未輸入要公開的角色卡名字"
+                return rply;
+            }
+            filter = {
+                id: userid,
+                name: new RegExp('^' + convertRegex(inputStr.replace(/^\.char\s+public\s+/i, '')) + '$', "i")
+            }
+            doc = await schema.characterCard.findOne(filter);
+            if (!doc) {
+                rply.text = '沒有此角色卡'
+                return rply
+            }
+            try {
+                doc.public = true;
+                await doc.save();
+
+            } catch (error) {
+                console.log('GET ERROR 修改失敗' + error)
+                rply.text = '修改失敗\n' + error;
+                return rply;
+            }
+
+            rply.text = '修改成功\n現在角色卡: ' + doc.name + ' 已經公開。\n請到以下網址查看\n https://www.hktrpg.com:20721/publiccard/ ';
+            return rply;
+        case /(^[.]char$)/i.test(mainMsg[0]) && /^unpublic+/i.test(mainMsg[1]):
+            if (!mainMsg[2]) {
+                rply.text = "未輸入要公開的角色卡名字"
+                return rply;
+            }
+            filter = {
+                id: userid,
+                name: new RegExp('^' + convertRegex(inputStr.replace(/^\.char\s+unpublic\s+/i, '')) + '$', "i")
+            }
+            doc = await schema.characterCard.findOne(filter);
+            if (!doc) {
+                rply.text = '沒有此角色卡'
+                return rply
+            }
+            try {
+                doc.public = false;
+                await doc.save();
+
+            } catch (error) {
+                console.log('GET ERROR 修改失敗' + error)
+                rply.text = '修改失敗\n' + error;
+                return rply;
+            }
+
+            rply.text = '修改成功\n現在角色卡: ' + doc.name + ' 已經不公開。\n請到以下網址查看\n https://www.hktrpg.com:20721/publiccard/ ';
+            return rply;
         case /(^[.]char$)/i.test(mainMsg[0]) && /^show\d+/i.test(mainMsg[1]):
             filter = {
                 id: userid
@@ -149,7 +201,7 @@ var rollDiceCommand = async function ({
         case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
             if (!Card.name) {
-                rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 \n.char add name[XXXX]~ \nstate[HP:15/15;]~\nroll[投擲:cc 80 投擲;]~\nnotes[心靈支柱: 無]~\n'
+                rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 \n.char add name[XXXX]~ \nstate[HP:15/15;MP:6/6;]~\nroll[投擲:cc 80 投擲;鬥毆:cc 40 鬥毆;]~\nnotes[心靈支柱: 無;notes:這是測試,請試試在群組輸入 .char use Sad;]~\n'
                 return rply;
             }
             /*
@@ -194,7 +246,7 @@ var rollDiceCommand = async function ({
         case /(^[.]char$)/i.test(mainMsg[0]) && /^edit$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
             if (!Card.name) {
-                rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 .char edit name[XXXX]~ \nstate[HP:15/15;]~\nroll[投擲:cc 80 投擲;]~\nnotes[心靈支柱: 無]~\n'
+                rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 .char edit name[XXXX]~ \state[HP:15/15;MP:6/6;]~\nroll[投擲:cc 80 投擲;鬥毆:cc 40 鬥毆;]~\nnotes[心靈支柱: 無;notes:這是測試,請試試在群組輸入 .char use Sad;]~\n'
                 return rply;
             }
             /*

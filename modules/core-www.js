@@ -72,14 +72,18 @@ www.get('/', (req, res) => {
 www.get('/card', (req, res) => {
     res.sendFile(process.cwd() + '/views/characterCard.html');
 });
-
+www.get('/publiccard', (req, res) => {
+    res.sendFile(process.cwd() + '/views/characterCardPublic.html');
+});
 if (process.env.DISCORD_CHANNEL_SECRET) {
     www.get('/app/discord/:id', (req, res) => {
         if (req.originalUrl.match(/html$/))
             res.sendFile(process.cwd() + '/tmp/' + req.originalUrl.replace('/app/discord/', ''));
     });
 }
-
+www.get('/:xx', (req, res) => {
+    res.sendFile(process.cwd() + '/views/index.html');
+});
 
 io.on('connection', async (socket) => {
     socket.on('getListInfo', async message => {
@@ -106,6 +110,36 @@ io.on('connection', async (socket) => {
         })
     })
 
+    socket.on('getPublicListInfo', async () => {
+        if (await limitRaterCard(socket.handshake.address)) return;
+        //回傳 message 給發送訊息的 Client
+        let filter = {
+            public: true
+        }
+        let temp = await schema.characterCard.find(filter);
+        socket.emit('getPublicListInfo', {
+            temp
+        })
+    })
+
+    socket.on('publicRolling', async message => {
+        if (await limitRaterChatRoom(socket.handshake.address)) return;
+        if (!message.item || !message.doc) return;
+        let rplyVal = {}
+        let result = await mainCharacter(message.doc, ['', message.item])
+        if (result && result.characterReRoll) {
+            rplyVal = await exports.analytics.parseInput({
+                inputStr: result.characterReRollItem,
+                botname: "WWW"
+            })
+        }
+
+        // 訊息來到後, 會自動跳到analytics.js進行骰組分析
+        // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+        if (rplyVal && rplyVal.text) {
+            socket.emit('publicRolling', result.characterReRollName + '：\n' + rplyVal.text)
+        }
+    })
     socket.on('rolling', async message => {
         if (await limitRaterChatRoom(socket.handshake.address)) return;
         if (!message.item || !message.doc) return;
@@ -171,6 +205,7 @@ io.on('connection', async (socket) => {
                 _id: message.card._id
             }, {
                 $set: {
+                    public: message.card.public,
                     state: message.card.state,
                     roll: message.card.roll,
                     notes: message.card.notes,

@@ -219,6 +219,7 @@ const chatRoom = mongoose.model('chatRoom', new mongoose.Schema({
 
 const characterCard = mongoose.model('characterCard', new mongoose.Schema({
     id: String,
+    public: Boolean,
     name: {
         type: String,
         maxlength: 50

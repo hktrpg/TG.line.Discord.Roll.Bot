@@ -72,14 +72,18 @@ www.get('/', (req, res) => {
 www.get('/card', (req, res) => {
     res.sendFile(process.cwd() + '/views/characterCard.html');
 });
-
+www.get('/publiccard', (req, res) => {
+    res.sendFile(process.cwd() + '/views/characterCardPublic.html');
+});
 if (process.env.DISCORD_CHANNEL_SECRET) {
     www.get('/app/discord/:id', (req, res) => {
         if (req.originalUrl.match(/html$/))
             res.sendFile(process.cwd() + '/tmp/' + req.originalUrl.replace('/app/discord/', ''));
     });
 }
-
+www.get('/:xx', (req, res) => {
+    res.sendFile(process.cwd() + '/views/index.html');
+});
 
 io.on('connection', async (socket) => {
     socket.on('getListInfo', async message => {
@@ -171,6 +175,7 @@ io.on('connection', async (socket) => {
                 _id: message.card._id
             }, {
                 $set: {
+                    public: message.card.public,
                     state: message.card.state,
                     roll: message.card.roll,
                     notes: message.card.notes,

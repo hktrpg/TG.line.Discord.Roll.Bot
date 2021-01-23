@@ -134,42 +134,16 @@
     </nav>
     <br>
     <div class="container" id="array-rendering">
-        <div class="alert alert-warning alert-dismissible fade show overlay" style="position: fixed;
-        z-index: 999;" role="alert" id="warning-update">
-            <strong>更新成功!</strong> 你可以在聊天平台上使用新資料了。
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-        <div class="alert alert-warning alert-dismissible fade show overlay" style="position: fixed;
-        z-index: 999;" role="alert" id="warning-updateError">
-            <strong>更新失敗!</strong> 請檢查或向HKTRPG回報。
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-
-        <button type="button" class="btn btn-primary float-right" onclick="logout()">
-            <span class="iconify" data-icon="mdi:login" data-inline="false"></span>登入/登出
-        </button>
         <button type="button" class="btn btn-secondary float-right" onclick="selectCard()">
             <span class="iconify" data-icon="grommet-icons:select" data-inline="false"></span>選擇角色卡
         </button>
-        <button type="button" class="btn btn-info float-right" v-if="name" onclick="updateCard()">
-            <span class="iconify" data-icon="ic:outline-save-alt" data-inline="false"></span>儲存角色卡
-        </button>
+
         <button type="button" class="btn btn-dark float-right" onclick="readme()">
             <span class="iconify" data-icon="gg:readme" data-inline="false"></span>說明
         </button>
         <h3>
             <span class="iconify" data-icon="wpf:name" data-inline="false"></span> {{name}}
         </h3>
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" value="true" v-model="public" id="invalidCheck">
-            <label class="form-check-label" for="invalidCheck">
-                公開這角色卡
-            </label>
-        </div>
         <div v-if="gpList">
             <br>
             <h3 class="bg-color3">
@@ -186,13 +160,7 @@
         <h3 class="bg-color3">
             <span class="iconify" data-icon="carbon:data-base" data-inline="false"></span>基本屬性
         </h3>
-        <button type="button" class="btn btn-warning float-right" v-if="name" onclick="newItem(0)">
-            +
-        </button>
-        <button type="button" class="btn btn-warning float-right" v-if="name" onclick="removeItem(0)">
-            -
-        </button>
-        <div class="row align-items-start m-2 p-2">
+        <div class="row align-items-start">
             <div v-for="item in state" id="state" class=" board1" style="height: 36px;">
                 <div>
                     <textarea class=" textName" v-model="item.name" style="width:50px;padding: 1px 1px 1px 1px">
@@ -216,12 +184,6 @@
         <h3 class=" bg-color3">
             <span class="iconify" data-icon="fa-solid:dice-d20" data-inline="false"></span>擲骰
         </h3>
-        <button type="button" class="btn btn-warning float-right" v-if="name" onclick="newItem(1)">
-            +
-        </button>
-        <button type="button" class="btn btn-warning float-right" v-if="name" onclick="removeItem(1)">
-            -
-        </button>
         <div class="row align-items-center" id="roll">
             <div v-for="item in roll" class="board1" style="height: 36px;padding: 1px 1px 1px 1px">
                 <textarea class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">
@@ -238,12 +200,6 @@
         <h3 class=" bg-color3">
             <span class="iconify" data-icon="clarity:note-edit-line" data-inline="false"></span>筆記
         </h3>
-        <button type="button" class="btn btn-warning float-right" v-if="name" onclick="newItem(2)">
-            +
-        </button>
-        <button type="button" class="btn btn-warning float-right" v-if="name" onclick="removeItem(2)">
-            -
-        </button>
         <div class="row align-items-end" id="notes">
             <div v-for="item in notes" class="board1">
                 <textarea class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">
@@ -265,22 +221,6 @@
                 <div class="modal-header">
                     <h5 class="modal-title" id="loginModalLabel">HKTRPG 角色卡登入系統</h5>
                 </div>
-                <div class="modal-body">
-                    <form id="card-Form">
-                        <div class="form-group">
-                            <label for="userName_id">使用者名稱</label>
-                            <input type="email" class="form-control" id="userName_id" autocomplete="current-username"
-                                aria-describedby="emailHelp" placeholder="輸入名稱">
-                            <small id="emailHelp" class="form-text text-muted"></small>
-                        </div>
-                        <div class="form-group">
-                            <label for="userPassword_id">Password</label>
-                            <input type="password" class="form-control" id="userPassword_id"
-                                autocomplete="current-password" placeholder="Password">
-                        </div>
-                    </form>
-                </div>
-                <div id="warning" class="small" style="color:red;display:none">登入失敗或沒有角色卡</div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-dark float-right" onclick="readme()">
                         <span class="iconify" data-icon="gg:readme" data-inline="false"></span>說明
@@ -379,17 +319,7 @@
     </script>
 
     <script>
-        $('#warning-update').hide();
-        $('#warning-updateError').hide();
         var socket = io();
-        var userName = localStorage.getItem("userName");
-        var userPassword = localStorage.getItem("userPassword");
-        document.getElementById("userName_id").value = userName;
-        document.getElementById("userPassword_id").value = userPassword;
-        document.getElementById("body").onload = function () {
-            login();
-        };
-
         function readme() {
             $('#readmeModalCenter').modal("show")
         }
@@ -412,154 +342,15 @@
 
         }
 
-        function updateCard() {
-            socket.emit('updateCard', {
-                userName: userName,
-                userPassword: userPassword,
-                card: card
-            })
 
-        }
-        socket.on("updateCard", function (result) {
-            popup(result);
-        })
 
-        function newItem(form) {
-            switch (form) {
-                case 0:
-                    card.state.push({
-                        itemA: ""
-                    });
-                    break;
-                case 1:
-                    card.roll.push({
-                        itemA: ""
-                    });
-                    break;
-                case 2:
-                    card.notes.push({
-                        itemA: ""
-                    });
-                    break;
-                default:
-                    break;
-            }
-
-        }
         var divNumber = 0;
 
-        function addElement(message, type, closeDelay) {
-            var $cont = $("#alerts-container");
-            if ($cont.length == 0) {
-                // alerts-container does not exist, create it
-                $cont = $('<div id="alerts-container">')
-                    .css({
-                        position: "fixed",
-                        width: "30%",
-                        left: "60%",
-                        top: "15%",
-                        margin: "0 auto"
-                    })
-                    .appendTo($("body"));
-            }
-
-            // default to alert-info; other options include success, warning, danger
-            type = type || "info";
-
-            // create the alert div
-            var alert = $('<div>')
-                .addClass("alert text-wrap text-break warning alert-dismissible fade show overlay alert-" + type)
-                .append(
-                    $('<button type="button" class="close" data-dismiss="alert">')
-                    .append("&times;")
-                )
-                .append(message);
-
-            // add the alert div to top of alerts-container, use append() to add to bottom
-            $cont.prepend(alert);
-
-            // if closeDelay was passed - set a timeout to close the alert
-            if (closeDelay)
-                window.setTimeout(function () {
-                    alert.alert("close")
-                }, closeDelay);
-
-        }
-
-
-        function removeItem(form) {
-            switch (form) {
-                case 0:
-                    card.state.pop();
-                    break;
-                case 1:
-                    card.roll.pop();
-                    break;
-                case 2:
-                    card.notes.pop();
-                    break;
-                default:
-                    break;
-            }
-
-        }
-
-        function logout() {
-            document.getElementById("warning").style.display = "none";
-            $('#loginModal').modal({
-                backdrop: 'static',
-                keyboard: false
-            })
-            card._id = "";
-            card.id = "";
-            card.name = "";
-            card.notes = "";
-            card.roll = "";
-            card.state = "";
-            card.public = false;
-        }
 
         function selectCard() {
             $('#cardListModal').modal("show")
         }
 
-        function login() {
-            userName = document.getElementById("userName_id").value;
-            userPassword = document.getElementById("userPassword_id").value;
-            localStorage.setItem('userName', userName);
-            localStorage.setItem('userPassword', userPassword);
-            if (userName && userName.length >= 4 && userPassword && userPassword.length >= 6) {
-                document.getElementById("userName_id").value = userName;
-                document.getElementById("userPassword_id").value = userPassword;
-                socket.emit('getListInfo', {
-                    userName: userName,
-                    userPassword: userPassword
-                })
-                socket.on("getListInfo", function (listInfo) {
-                    let list = listInfo.temp;
-                    if (listInfo && listInfo.id && listInfo.id.length > 0) {
-                        card.gpList = listInfo.id
-                    }
-                    if (list) {
-                        document.getElementById("warning").style.display = "none";
-                        cardList.list = list
-                        $('#loginModal').modal("hide");
-                        $('#cardListModal').modal("show");
-                    } else {
-                        document.getElementById("warning").style.display = "block";
-                        $('#loginModal').modal({
-                            backdrop: 'static',
-                            keyboard: false
-                        })
-                    }
-                });
-            } else {
-                $('#loginModal').modal({
-                    backdrop: 'static',
-                    keyboard: false
-                })
-            }
-        }
 
         var card = Vue.createApp({
             data() {
@@ -628,27 +419,5 @@
     </script>
 </body>
 <!-- HKTRPG Sad -- 20201221-->
-<!--
-
-輸入 .char online
-
--> 產生 和 顯示一組ID 和 PASSWORD.
--> 產生一個DB -> 這組ID, 對應一個ACC.
-
-
-
-試入USER NAME和 密碼, 可以登入
-
-顯示角色卡列表
-
-點擊進入, 取得內容
-
-角色卡內容可以修改
-
-修改後按碓定鍵送出
-
-
-
--->
 
 </html>

@@ -27,7 +27,12 @@ const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
 client.once('ready', async () => {
 	console.log('Discord is Ready!');
 	const io = require('socket.io-client');
-	const socket = io('ws://localhost:53589');
+	const socket = io('ws://localhost:53589', {
+		reconnection: true,
+		reconnectionDelay: 1000,
+		reconnectionDelayMax: 5000,
+		reconnectionAttempts: Infinity
+	});
 	socket.on('connect', () => {
 		// either with send()
 		console.log('connect To core-www from discord!');
@@ -38,9 +43,12 @@ client.once('ready', async () => {
 			return;
 		});
 	});
+	socket.on('disconnect', function () {
+		console.log('disconnected from server discord');
+	});
+
 
 });
-
 
 async function count() {
 	if (!client.shard) return;

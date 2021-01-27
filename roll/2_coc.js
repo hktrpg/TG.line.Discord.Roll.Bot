@@ -16,7 +16,7 @@ var prefixs = function () {
 		},
 		{
 			first: /(^ccb$)|(^cc$)|(^ccn[1-2]$)|(^cc[1-2]$)|(^[.]dp$)|(^成長檢定$)|(^幕間成長$)/i,
-			second: /^(\d+)|(help)$}/i
+			second: /(^\d+$)|(^help$)/i
 		}
 	]
 }
@@ -48,7 +48,7 @@ var rollDiceCommand = async function ({
 	};
 	let trigger = mainMsg[0].toLowerCase();
 	//console.log(mainMsg[1].toLowerCase())
-	if (trigger.toLowerCase() == "cc" && mainMsg[1].toLowerCase() == "help") {
+	if (trigger == "cc" && mainMsg[1].toLowerCase() == "help") {
 		rply.text = this.getHelpMessage();
 	}
 	if (trigger == ".dp" && (mainMsg[1].toLowerCase() == "help" || !mainMsg[1])) {

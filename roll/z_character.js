@@ -3,13 +3,14 @@ if (!process.env.mongoURL) {
     return;
 }
 var variables = {};
+const rollDice = require('./rollbase').rollDiceCommand;
 const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const link = process.env.WEB_LINK;
 const port = process.env.PORT || 20721;
 const limitArr = [4, 20, 20, 30, 30, 99, 99, 99];
 var gameName = function () {
-    return '(公測中)角色卡功能 .char (add edit show delete use nonuse) .ch (set show showall)'
+    return '角色卡功能 .char (add edit show delete use nonuse) .ch (set show showall)'
 }
 var gameType = function () {
     return 'Tool:trpgcharacter:hktrpg'
@@ -69,7 +70,9 @@ var getHelpMessage = function () {
 -----.ch 功能-----\n\
 在群組中使用.char use (角色名) 後, 就可以啟動角色卡功能\n\
 .ch 項目名稱 項目名稱 - 沒有加減的話, 會單純顯示數據或擲骰\n\
-.ch 項目名稱 (+-數) - 可以立即對如HP進行加減運算\n\
+.ch 項目名稱 (數字)  - 可以立即把如HP變成該數字\n\
+.ch 項目名稱 (+-*/數字)  - 可以立即對如HP進行四則運算\n\
+.ch 項目名稱 (+-*/xDy)  - 可以對如HP進行擲骰四則運算\n\
 .ch set 項目名稱 新內容 - 直接更改內容\n\
 .ch show - 顯示角色卡的state 和roll 內容\n\
 .ch showall - 顯示角色卡的所有內容\n\
@@ -550,7 +553,13 @@ async function mainCharacter(doc, mainMsg) {
             last = 'state';
             await findState.push(resutltState);
         } else
-        if (mainMsg[name].match(/^[0-9+\-*/.]*$/i) && last == 'state') {
+        if (mainMsg[name].match(/^[+-/*]\S+d\S/i) && last == 'state') {
+            last = '';
+            let res = mainMsg[name].charAt(0)
+            let number = await countNum(mainMsg[name].substring(1));
+            number ? await findState.push(res + number) : null;
+        } else
+        if (mainMsg[name].match(/^[0-9+\-*/.]\S+$/i) && last == 'state') {
             last = '';
             await findState.push(mainMsg[name]);
         } else {
@@ -582,13 +591,16 @@ async function mainCharacter(doc, mainMsg) {
                         //如果是一個數字, 取代本來的數值
                         //不然就嘗試計算它
                         //還是失敗就強制變成一個數字,進行運算
-                        if (findState[i + 1].match(/^\d*\.?\d*$/i)) {
+                        if (findState[i + 1].match(/^([0-9]*[.])?[0-9]+$/i)) {
                             doc.state[index].itemA = findState[i + 1];
                         } else {
                             try {
-                                doc.state[index].itemA = eval(findState[i + 1]) + parseFloat(doc.state[index].itemA);
+                                let num = eval(new String(doc.state[index].itemA) + findState[i + 1].replace('--', '-'));
+                                if (!isNaN(num)) {
+                                    doc.state[index].itemA = num;
+                                }
                             } catch (error) {
-                                doc.state[index].itemA = parseFloat(findState[i + 1]) + parseFloat(doc.state[index].itemA);
+                                console.log('error of Char:', findState[i + 1])
                             }
                         }
 
@@ -837,6 +849,19 @@ async function myAsyncFn2(match, p1) {
     }
     return result;
 }
+
+async function countNum(num) {
+    let result;
+    let temp = await rollDice({
+        mainMsg: [num]
+    })
+    if (temp && temp.text) {
+        result = temp.text.match(/[+-]?([0-9]*[.])?[0-9]+$/)[0];
+    } else if (num.match(/^[+-]?([0-9]*[.])?[0-9]+$/)) {
+        result = num;
+    }
+    return result;
+}
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,
@@ -846,6 +871,8 @@ module.exports = {
     gameName: gameName,
     mainCharacter: mainCharacter
 };
+
+
 
 /*
 以個人為單位, 一張咭可以在不同的群組使用    

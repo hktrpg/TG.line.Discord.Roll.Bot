@@ -3,6 +3,7 @@ if (!process.env.mongoURL) {
     return;
 }
 var variables = {};
+const rollDice = require('./rollbase').rollDiceCommand;
 const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const link = process.env.WEB_LINK;
@@ -550,8 +551,20 @@ async function mainCharacter(doc, mainMsg) {
             last = 'state';
             await findState.push(resutltState);
         } else
-        if (mainMsg[name].match(/^[0-9+\-*/.]*$/i) && last == 'state') {
+        if (mainMsg[name].match(/^[+-/*]\S+d\S/i) && last == 'state') {
             last = '';
+            let res = mainMsg[name].charAt(0)
+            let number = await countNum(mainMsg[name].substring(1));
+            number ? await findState.push(res + number) : null;
+            console.log("mainMsg[name]", mainMsg[name])
+            console.log('findState2', findState)
+            console.log('number', number)
+
+        } else
+        if (mainMsg[name].match(/^[0-9+\-*/.]\S+$/i) && last == 'state') {
+            last = '';
+            console.log(mainMsg[name])
+            console.log('findState', findState)
             await findState.push(mainMsg[name]);
         } else {
             last = '';
@@ -573,6 +586,7 @@ async function mainCharacter(doc, mainMsg) {
         tempRply.characterReRoll = true;
     }
     if (Object.keys(findState).length > 0 || Object.keys(findNotes).length > 0) {
+        console.log('here findState')
         for (let i = 0; i < findState.length; i++) {
             //如果i 是object , i+1 是STRING 和數字, 就進行加減
             //否則就正常輸出
@@ -586,8 +600,13 @@ async function mainCharacter(doc, mainMsg) {
                             doc.state[index].itemA = findState[i + 1];
                         } else {
                             try {
-                                doc.state[index].itemA = eval(findState[i + 1]) + parseFloat(doc.state[index].itemA);
+                                console.log('eval ', parseFloat(doc.state[index].itemA), findState[i + 1])
+
+                                console.log('eval2', eval(new String(doc.state[index].itemA) + findState[i + 1]))
+                                console.log('3 *3', eval('3 * 3'))
+                                doc.state[index].itemA = eval(parseFloat(doc.state[index].itemA) & findState[i + 1]);
                             } catch (error) {
+                                console.log(error)
                                 doc.state[index].itemA = parseFloat(findState[i + 1]) + parseFloat(doc.state[index].itemA);
                             }
                         }
@@ -837,6 +856,19 @@ async function myAsyncFn2(match, p1) {
     }
     return result;
 }
+
+async function countNum(num) {
+    let result;
+    let temp = await rollDice({
+        mainMsg: [num]
+    })
+    if (temp && temp.text) {
+        result = temp.text.match(/[+-]?([0-9]*[.])?[0-9]+$/)[0];
+    } else if (num.match(/^[+-]?([0-9]*[.])?[0-9]+$/)) {
+        result = num;
+    }
+    return result;
+}
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,
@@ -846,6 +878,8 @@ module.exports = {
     gameName: gameName,
     mainCharacter: mainCharacter
 };
+
+
 
 /*
 以個人為單位, 一張咭可以在不同的群組使用    

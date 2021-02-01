@@ -26,7 +26,6 @@ const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
 
 client.once('ready', async () => {
 	console.log('Discord is Ready!');
-	await connectToWWW();
 });
 const io = require('socket.io-client');
 const socket = io('ws://localhost:53589', {
@@ -36,14 +35,12 @@ const socket = io('ws://localhost:53589', {
 	reconnectionAttempts: Infinity
 });
 
-async function connectToWWW() {
-	console.log('??')
-	socket.on('connect', () => {
-		// either with send()
-		console.log('connect To core-www from discord!');
+socket.on('connect', () => {
+	// either with send()
+	console.log('connect To core-www from discord!');
 
-	});
-}
+});
+
 socket.on("Discord", message => {
 	if (!message.text) return;
 	let text = 'let result = this.channels.cache.get("' + message.target.id + '");if (result) {result.send("' + message.text.replace(/\r\n|\n/g, "\\n") + '");}'

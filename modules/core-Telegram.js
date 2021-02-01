@@ -231,33 +231,33 @@ const socket = io('ws://localhost:53589', {
 });
 socket.on('connect', () => {
 	// either with send()
-	console.log('connect To core-www from Telegram!')
-});
-socket.on('Telegram', message => {
-	console.log('Telegram have message')
-	if (!message.text) return;
-	TGclient.telegram.sendMessage(message.target.id, message.text);
-	return;
-});
-socket.on('Line', message => {
-	if (!message.text) return;
-	process.emit('Line', message);
-});
-socket.on('disconnect', (error) => {
-	console.log('disconnected from server telegram', error);
-	if (error === 'io server disconnect') {
-		socket.connect;
-		console.log('Try to reconnect from telegram');
-	}
-});
-socket.on('error', (error) => {
-	console.log('error from server telegram', error);
-});
-socket.on('connect_error', (error) => {
-	console.log('connect error from server telegram', error);
-});
-socket.on('connect_timeout', (error) => {
-	console.log('connect timeout from server telegram', error);
+	console.log('connected To core-www from Telegram!')
+	socket.on('Telegram', message => {
+		console.log('Telegram have message')
+		if (!message.text) return;
+		TGclient.telegram.sendMessage(message.target.id, message.text);
+		return;
+	});
+	socket.on('Line', message => {
+		if (!message.text) return;
+		process.emit('Line', message);
+	});
+	socket.on('disconnect', (error) => {
+		console.log('disconnected from server telegram', error);
+		if (error === 'io server disconnect') {
+			socket.connect;
+			console.log('Try to reconnect from telegram');
+		}
+	});
+	socket.on('error', (error) => {
+		console.log('error from server telegram', error);
+	});
+	socket.on('connect_error', (error) => {
+		console.log('connect error from server telegram', error);
+	});
+	socket.on('connect_timeout', (error) => {
+		console.log('connect timeout from server telegram', error);
+	});
 });
 
 TGclient.on('message', async (ctx) => {

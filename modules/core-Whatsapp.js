@@ -230,8 +230,12 @@ socket.on('connect', () => {
 		return;
 	});
 });
-socket.on('disconnect', function () {
-	console.log('disconnected from server whatsapp');
+socket.on('disconnect', (error) => {
+	console.log('disconnected from server whatsapp', error);
+	if (error === 'io server disconnect') {
+		socket.connect;
+		console.log('Try to reconnect from whatsapp');
+	}
 });
 
 

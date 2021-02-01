@@ -241,10 +241,24 @@ socket.on('connect', () => {
 		if (!message.text) return;
 		process.emit('Line', message);
 	});
-	socket.on('disconnect', function () {
-		console.log('disconnected from server telegram');
-	});
 
+
+});
+socket.on('disconnect', (error) => {
+	console.log('disconnected from server telegram', error);
+	if (error === 'io server disconnect') {
+		socket.connect;
+		console.log('Try to reconnect from telegram');
+	}
+});
+socket.on('error', (error) => {
+	console.log('error from server telegram', error);
+});
+socket.on('connect_error', (error) => {
+	console.log('connect error from server telegram', error);
+});
+socket.on('connect_timeout', (error) => {
+	console.log('connect timeout from server telegram', error);
 });
 
 TGclient.on('message', async (ctx) => {

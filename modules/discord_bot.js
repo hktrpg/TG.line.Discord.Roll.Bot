@@ -26,13 +26,17 @@ const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
 
 client.once('ready', async () => {
 	console.log('Discord is Ready!');
-	const io = require('socket.io-client');
-	const socket = io('ws://localhost:53589', {
-		reconnection: true,
-		reconnectionDelay: 1000,
-		reconnectionDelayMax: 5000,
-		reconnectionAttempts: Infinity
-	});
+	connectToWWW();
+});
+const io = require('socket.io-client');
+const socket = io('ws://localhost:53589', {
+	reconnection: true,
+	reconnectionDelay: 1000,
+	reconnectionDelayMax: 5000,
+	reconnectionAttempts: Infinity
+});
+
+function connectToWWW() {
 	socket.on('connect', () => {
 		// either with send()
 		console.log('connect To core-www from discord!');
@@ -43,12 +47,24 @@ client.once('ready', async () => {
 			return;
 		});
 	});
-	socket.on('disconnect', function () {
-		console.log('disconnected from server discord');
+	socket.on('disconnect', (error) => {
+		console.log('disconnected from server discord', error);
+		if (error === 'io server disconnect') {
+			socket.connect;
+			console.log('Try to reconnect from discord');
+		}
+	});
+	socket.on('error', (error) => {
+		console.log('error from server discord', error);
+	});
+	socket.on('connect_error', (error) => {
+		console.log('connect error from server discord', error);
+	});
+	socket.on('connect_timeout', (error) => {
+		console.log('connect timeout from server discord', error);
 	});
 
-
-});
+}
 
 async function count() {
 	if (!client.shard) return;

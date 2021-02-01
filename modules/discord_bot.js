@@ -42,6 +42,7 @@ socket.on('connect', () => {
 });
 
 socket.on("Discord", message => {
+	console.log('discord have message')
 	if (!message.text) return;
 	let text = 'let result = this.channels.cache.get("' + message.target.id + '");if (result) {result.send("' + message.text.replace(/\r\n|\n/g, "\\n") + '");}'
 	client.shard.broadcastEval(text);

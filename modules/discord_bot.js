@@ -26,7 +26,7 @@ const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
 
 client.once('ready', async () => {
 	console.log('Discord is Ready!');
-	connectToWWW();
+	await connectToWWW();
 });
 const io = require('socket.io-client');
 const socket = io('ws://localhost:53589', {
@@ -36,36 +36,36 @@ const socket = io('ws://localhost:53589', {
 	reconnectionAttempts: Infinity
 });
 
-function connectToWWW() {
+async function connectToWWW() {
+	console.log('??')
 	socket.on('connect', () => {
 		// either with send()
 		console.log('connect To core-www from discord!');
-		socket.on("Discord", message => {
-			if (!message.text) return;
-			let text = 'let result = this.channels.cache.get("' + message.target.id + '");if (result) {result.send("' + message.text.replace(/\r\n|\n/g, "\\n") + '");}'
-			client.shard.broadcastEval(text);
-			return;
-		});
-	});
-	socket.on('disconnect', (error) => {
-		console.log('disconnected from server discord', error);
-		if (error === 'io server disconnect') {
-			socket.connect;
-			console.log('Try to reconnect from discord');
-		}
-	});
-	socket.on('error', (error) => {
-		console.log('error from server discord', error);
-	});
-	socket.on('connect_error', (error) => {
-		console.log('connect error from server discord', error);
-	});
-	socket.on('connect_timeout', (error) => {
-		console.log('connect timeout from server discord', error);
-	});
 
+	});
 }
-
+socket.on("Discord", message => {
+	if (!message.text) return;
+	let text = 'let result = this.channels.cache.get("' + message.target.id + '");if (result) {result.send("' + message.text.replace(/\r\n|\n/g, "\\n") + '");}'
+	client.shard.broadcastEval(text);
+	return;
+});
+socket.on('disconnect', (error) => {
+	console.log('disconnected from server discord', error);
+	if (error === 'io server disconnect') {
+		socket.connect;
+		console.log('Try to reconnect from discord');
+	}
+});
+socket.on('error', (error) => {
+	console.log('error from server discord', error);
+});
+socket.on('connect_error', (error) => {
+	console.log('connect error from server discord', error);
+});
+socket.on('connect_timeout', (error) => {
+	console.log('connect timeout from server discord', error);
+});
 async function count() {
 	if (!client.shard) return;
 	const promises = [

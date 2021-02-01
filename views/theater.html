@@ -337,8 +337,8 @@
             fabric.Image.fromURL(data, function (image) {
                 console.log(canvasDiv.height / image.height)
                 var imageObject = image.set({
-                    scaleY: canvasDiv.height / image.height * 0.5,
-                    scaleX: canvasDiv.width / image.width * 0.5
+                    scaleY: canvasDiv.width / image.width,
+                    scaleX: canvasDiv.width / image.width
                 });
                 canvas.add(imageObject).renderAll();
                 canvas.setActiveObject(imageObject);

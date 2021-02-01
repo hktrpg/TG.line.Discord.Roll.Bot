@@ -2,6 +2,9 @@
 <html lang="zh-Hant-HK">
 <!-- HKTRPG Sad-->
 <style>
+    canvas {
+        border: 1px solid black;
+    }
 </style>
 
 <head>
@@ -19,7 +22,13 @@
     <title>劇場 @ HKTRPG</title>
     <link rel="icon" href="https://avatars2.githubusercontent.com/u/48795428?s=280&v=4" />
     <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
-
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.7.2/dropzone.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.7.2/dropzone.min.css"
+        integrity="sha512-3g+prZHHfmnvE1HBLwUnVuunaPOob7dpksI7/v6UnF/rnKGwHf/GdEq9K7iEN7qTtW+S0iivTcGpeTBqqB04wA=="
+        crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.3.1/fabric.min.js"
+        integrity="sha512-ACqMrfAtm537AWzgx/xQ57JnFxXeq8RylQMGg4y/e6M2ew4Z8NycE8aId/Bt2ZE+w1gNsox3MgwxKl7SGMRdtA=="
+        crossorigin="anonymous"></script>
     <!--https://blog.gtwang.org/programming/javascript-aes-symmetric-encryption-tutorial/-->
 </head>
 
@@ -86,24 +95,9 @@
                 <form class="needs-validation" novalidate="">
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="firstName">
-                                First name
-                            </label>
-                            <input type="text" class="form-control" id="firstName" placeholder="" value=""
-                                required="" />
-                            <div class="invalid-feedback">
-                                Valid first name is required.
-                            </div>
+                            <canvas id="canvas" width="600" height="450"></canvas>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="lastName">
-                                Last name
-                            </label>
-                            <input type="text" class="form-control" id="lastName" placeholder="" value="" required="" />
-                            <div class="invalid-feedback">
-                                Valid last name is required.
-                            </div>
-                        </div>
+
                     </div>
                     <div class="mb-3">
                         <label for="username">
@@ -286,73 +280,14 @@
             <div class="col-md-4 order-md-2 mb-4">
                 <h4 class="d-flex justify-content-between align-items-center mb-3">
                     <span class="text-muted">
-                        XXXXXX
+
                     </span>
-                    <span class="badge badge-secondary badge-pill">
-                        3
-                    </span>
+
                 </h4>
                 <ul class="list-group mb-3">
-                    <li class="list-group-item d-flex justify-content-between lh-condensed">
-                        <div>
-                            <h6 class="my-0">
-                                Product name
-                            </h6>
-                            <small class="text-muted">
-                                Brief description
-                            </small>
-                        </div>
-                        <span class="text-muted">
-                            $12
-                        </span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between lh-condensed">
-                        <div>
-                            <h6 class="my-0">
-                                Second product
-                            </h6>
-                            <small class="text-muted">
-                                Brief description
-                            </small>
-                        </div>
-                        <span class="text-muted">
-                            $8
-                        </span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between lh-condensed">
-                        <div>
-                            <h6 class="my-0">
-                                Third item
-                            </h6>
-                            <small class="text-muted">
-                                Brief description
-                            </small>
-                        </div>
-                        <span class="text-muted">
-                            $5
-                        </span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between bg-light">
-                        <div class="text-success">
-                            <h6 class="my-0">
-                                Promo code
-                            </h6>
-                            <small>
-                                EXAMPLECODE
-                            </small>
-                        </div>
-                        <span class="text-success">
-                            -$5
-                        </span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between">
-                        <span>
-                            Total (USD)
-                        </span>
-                        <strong>
-                            $20
-                        </strong>
-                    </li>
+                    <div class="dropzone" id="img-upload">
+
+                    </div>
                 </ul>
                 <form class="card p-2">
                     <div class="input-group">
@@ -389,7 +324,31 @@
         integrity="sha384-w1Q4orYjBQndcko6MimVbzY0tgp4pWB4lZ7lr30WKz0vr/aWKhXdBNmNb5D92v7s" crossorigin="anonymous">
     </script>
 
-    <script> </script>
+    <script>
+        Dropzone.autoDiscover = false;
+        var canvas = new fabric.Canvas('canvas');
+        var imgUpload = new Dropzone("#img-upload", {
+            url: "UploadImages"
+        });
+        var reader = new FileReader();
+        var canvasDiv = document.getElementById("canvas");
+        reader.onload = function (event) {
+            var data = event.target.result;
+            fabric.Image.fromURL(data, function (image) {
+                console.log(canvasDiv.height / image.height)
+                var imageObject = image.set({
+                    scaleY: canvasDiv.height / image.height * 0.5,
+                    scaleX: canvasDiv.width / image.width * 0.5
+                });
+                canvas.add(imageObject).renderAll();
+                canvas.setActiveObject(imageObject);
+            });
+        };
+
+        imgUpload.on("addedfile", function (file) {
+            reader.readAsDataURL(file);
+        });
+    </script>
 </body>
 <!-- HKTRPG Sad -- 20201221-->
 

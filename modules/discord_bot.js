@@ -62,9 +62,6 @@ client.once('ready', async () => {
 });
 
 async function count() {
-	if (!socket.connected) {
-		console.log('socket.disconnected')
-	}
 	if (!client.shard) return;
 	const promises = [
 		client.shard.fetchClientValues('guilds.cache.size'),

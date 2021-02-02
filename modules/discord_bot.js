@@ -29,7 +29,9 @@ client.once('ready', async () => {
 		reconnection: true,
 		reconnectionDelay: 1000,
 		reconnectionDelayMax: 5000,
-		reconnectionAttempts: Infinity
+		reconnectionAttempts: Infinity,
+		secure: true,
+		rejectUnauthorized: false
 	});
 	console.log('Discord is Ready!');
 	socket.on('connect', () => {

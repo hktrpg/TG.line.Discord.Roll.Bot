@@ -227,7 +227,9 @@ const socket = io('ws://localhost:53589', {
 	reconnection: true,
 	reconnectionDelay: 1000,
 	reconnectionDelayMax: 5000,
-	reconnectionAttempts: Infinity
+	reconnectionAttempts: Infinity,
+	secure: true,
+	rejectUnauthorized: false
 });
 socket.on('connect', () => {
 	// either with send()

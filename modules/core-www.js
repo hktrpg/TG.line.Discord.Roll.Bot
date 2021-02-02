@@ -173,6 +173,7 @@ io.on('connection', async (socket) => {
                 if (!allowRollingResult) return;
                 rplyVal.text = '@' + message.cardName + ' - ' + message.item + '\n' + rplyVal.text;
                 if (message.rollTarget.botname) {
+                    if (!sendTo) return;
                     sendTo({
                         target: message.rollTarget,
                         text: rplyVal.text
@@ -374,6 +375,8 @@ if (isMaster) {
 
     //監聽 Server 連線後的所有事件，並捕捉事件 socket 執行
     io2.on('connection', socket => {
+        console.log(socket.handshake.address)
+        if (!socket.handshake.address == "::ffff:127.0.0.1") return;
         sendTo = function (params) {
             socket.emit(params.target.botname, params)
         }

@@ -72,6 +72,11 @@ www.get('/', (req, res) => {
 www.get('/card', (req, res) => {
     res.sendFile(process.cwd() + '/views/characterCard.html');
 });
+www.get('/image/:id', (req, res) => {
+    var id = req.params.id;
+    console.log(id)
+    res.sendFile(process.cwd() + '/views/image/' + id);
+});
 www.get('/publiccard', (req, res) => {
     res.sendFile(process.cwd() + '/views/characterCardPublic.html');
 });

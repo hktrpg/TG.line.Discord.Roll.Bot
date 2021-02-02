@@ -365,7 +365,7 @@ if (isMaster) {
     });
     wss.on('connection', function connection(ws) {
         if (!ws._socket.remoteAddress == "::ffff:127.0.0.1") return;
-        ws.isAlive = true;
+
         ws.on('message', function incoming(message) {
             console.log('received: %s', message);
         });
@@ -374,7 +374,11 @@ if (isMaster) {
                 botname: params.target.botname,
                 message: params
             }
-            ws.send(JSON.stringify(object));
+            wss.clients.forEach(function each(client) {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify(object));
+                }
+            });
         }
     });
 }

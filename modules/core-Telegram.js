@@ -250,11 +250,13 @@ var connect = function () {
 	ws.on('error', (error) => {
 		console.log('Telegram socket error', error);
 	});
+
 	ws.on('close', function () {
 		console.log('Telegram socket close');
 		setTimeout(connect, reconnectInterval);
 	});
 };
+
 connect();
 
 

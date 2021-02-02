@@ -223,7 +223,7 @@ TGclient.on('text', async (ctx) => {
 
 })
 const io = require('socket.io-client');
-const socket = io('ws://localhost:53589', {
+const socket = io('ws://127.0.0.1:53589', {
 	reconnection: true,
 	reconnectionDelay: 1000,
 	reconnectionDelayMax: 5000,

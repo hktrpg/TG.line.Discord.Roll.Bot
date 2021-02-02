@@ -26,7 +26,7 @@ const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
 const io = require('socket.io-client');
 var reconnect;
 client.once('ready', async () => {
-	const socket = io('ws://localhost:53589', {
+	const socket = io('ws://127.0.0.1:53589', {
 		reconnection: true,
 		reconnectionDelay: 1000,
 		reconnectionDelayMax: 5000,

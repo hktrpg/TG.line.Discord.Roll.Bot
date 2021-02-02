@@ -256,6 +256,10 @@ socket.on('connect', () => {
 	});
 	socket.on('connect_error', (error) => {
 		console.log('connect error from server telegram', error);
+		if (!socket.connected) {
+			socket.connect;
+			console.log('Try to reconnect from telegram');
+		}
 	});
 	socket.on('connect_timeout', (error) => {
 		console.log('connect timeout from server telegram', error);

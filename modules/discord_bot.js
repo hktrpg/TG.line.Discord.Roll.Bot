@@ -24,6 +24,7 @@ const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
 		\n(http://www.hktrpg.com/)";
 
 const io = require('socket.io-client');
+var reconnect;
 client.once('ready', async () => {
 	const socket = io('ws://localhost:53589', {
 		reconnection: true,
@@ -61,9 +62,17 @@ client.once('ready', async () => {
 	socket.on('connect_timeout', (error) => {
 		console.log('connect timeout from server discord', error);
 	});
+
+	reconnect = function () {
+		if (!socket.connected) {
+			socket.connect;
+			console.log('Try to reconnect from discord');
+		}
+	}
 });
 
 async function count() {
+	reconnect();
 	if (!client.shard) return;
 	const promises = [
 		client.shard.fetchClientValues('guilds.cache.size'),

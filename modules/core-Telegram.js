@@ -222,49 +222,47 @@ TGclient.on('text', async (ctx) => {
 	//  }
 
 })
-const io = require('socket.io-client');
-const socket = io('ws://127.0.0.1:53589', {
-	reconnection: true,
-	reconnectionDelay: 1000,
-	reconnectionDelayMax: 5000,
-	reconnectionAttempts: Infinity,
-	secure: true,
-	rejectUnauthorized: false
-});
-socket.on('connect', () => {
-	// either with send()
-	console.log('connected To core-www from Telegram!')
-	socket.on('Telegram', message => {
-		console.log('Telegram have message')
-		if (!message.text) return;
-		TGclient.telegram.sendMessage(message.target.id, message.text);
-		return;
+const reconnectInterval = 1 * 1000 * 60;
+const WebSocket = require('ws');
+var ws;
+var connect = function () {
+	ws = new WebSocket('ws://127.0.0.1:53589');
+	ws.on('open', function open() {
+		console.log('connected To core-www from Telegram!')
+		ws.send('connected To core-www from Telegram!');
 	});
-	socket.on('Line', message => {
-		if (!message.text) return;
-		process.emit('Line', message);
-	});
-	socket.on('disconnect', (error) => {
-		console.log('disconnected from server telegram', error);
-		if (error === 'io server disconnect') {
-			socket.connect;
-			console.log('Try to reconnect from telegram');
+	ws.on('message', function incoming(data) {
+		var object = JSON.parse(data);
+		if (object.botname == 'Telegram') {
+			if (!object.message.text) return;
+			console.log('Telegram have message')
+			TGclient.telegram.sendMessage(object.message.target.id, object.message.text);
+			return;
 		}
-	});
-	socket.on('error', (error) => {
-		console.log('error from server telegram', error);
-	});
-	socket.on('connect_error', (error) => {
-		console.log('connect error from server telegram', error);
-		if (!socket.connected) {
-			socket.connect;
-			console.log('Try to reconnect from telegram');
+		if (object.botname == 'Line') {
+			if (!object.message.text) return;
+			console.log('Line have message')
+			process.emit('Line', object.message);
+			return;
 		}
+
 	});
-	socket.on('connect_timeout', (error) => {
-		console.log('connect timeout from server telegram', error);
+	ws.on('error', (error) => {
+		console.log('Telegram socket error', error);
 	});
-});
+
+	ws.on('close', function () {
+		console.log('Telegram socket close');
+		setTimeout(connect, reconnectInterval);
+	});
+};
+
+connect();
+
+
+
+
+
 
 TGclient.on('message', async (ctx) => {
 	if (ctx.message.from.is_bot) return;

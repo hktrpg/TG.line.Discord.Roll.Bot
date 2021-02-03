@@ -356,29 +356,29 @@ async function limitRaterCard(address) {
  */
 var sendTo;
 if (isMaster) {
-    const express = require('express')
-    const app2 = express()
-
+    const WebSocket = require('ws');
     //將 express 放進 http 中開啟 Server 的 3000 port ，正確開啟後會在 console 中印出訊息
-    const server2 = require('http').Server(app2)
-        .listen(53589, () => {
-            console.log('open server 53589!')
-        })
+    const wss = new WebSocket.Server({
+        port: 53589
+    }, () => {
+        console.log('open server 53589!')
+    });
+    wss.on('connection', function connection(ws) {
+        if (!ws._socket.remoteAddress == "::ffff:127.0.0.1") return;
 
-    //將啟動的 Server 送給 socket.io 處理
-    const io2 = require('socket.io')(server2)
-
-    /*上方為此寫法的簡寫：
-      const socket = require('socket.io')
-      const io = socket(server)
-    */
-
-    //監聽 Server 連線後的所有事件，並捕捉事件 socket 執行
-    io2.on('connection', socket => {
-        console.log(socket.handshake.address)
-        if (!socket.handshake.address == "::ffff:127.0.0.1") return;
+        ws.on('message', function incoming(message) {
+            console.log('received: %s', message);
+        });
         sendTo = function (params) {
-            socket.emit(params.target.botname, params)
+            let object = {
+                botname: params.target.botname,
+                message: params
+            }
+            wss.clients.forEach(function each(client) {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify(object));
+                }
+            });
         }
-    })
+    });
 }

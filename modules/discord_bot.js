@@ -70,6 +70,24 @@ async function count() {
 		.catch(console.error);
 
 }
+async function count2() {
+	if (!client.shard) return 'bothelp | hktrpg.com';
+	const promises = [
+		client.shard.fetchClientValues('guilds.cache.size'),
+		client.shard.broadcastEval('this.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0)'),
+	];
+
+	return Promise.all(promises)
+		.then(results => {
+			const totalGuilds = results[0].reduce((acc, guildCount) => acc + guildCount, 0);
+			const totalMembers = results[1].reduce((acc, memberCount) => acc + memberCount, 0);
+			return (` ${totalGuilds}群組📶-\n ${totalMembers}會員📶`);
+		})
+		.catch(() => {
+			console.error
+			return 'bothelp | hktrpg.com';
+		});
+}
 
 // handle the error event
 process.on('unhandledRejection', error => {
@@ -383,13 +401,26 @@ client.on('shardResume', (replayed, shardID) => console.log(`Shard ID ${shardID}
 client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnected.`));
 
 //Set Activity 可以自定義正在玩什麼
-client.on('ready', () => {
+client.on('ready', async () => {
 	client.user.setActivity('bothelp | hktrpg.com');
 	if (togGGToken) {
 		setInterval(() => {
 			dbl.postStats(client.guilds.size);
 		}, 1800000);
 	}
+	var switchSetActivity = 0;
+	setInterval(async () => {
+		switch (switchSetActivity) {
+			case switchSetActivity % 2:
+				client.user.setActivity('bothelp | hktrpg.com');
+				break;
+			default:
+				client.user.setActivity(await count2());
+				break;
+		}
+		switchSetActivity++;
+	}, 3555);
+
 });
 if (togGGToken) {
 	dbl.on('error', e => {

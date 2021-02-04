@@ -420,7 +420,7 @@ client.on('ready', async () => {
 					break;
 			}
 			switchSetActivity = (switchSetActivity % 2) ? 2 : 3;
-		}, 10000);
+		}, 60000);
 
 });
 if (togGGToken) {

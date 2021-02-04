@@ -27,9 +27,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.7.2/dropzone.min.css"
         integrity="sha512-3g+prZHHfmnvE1HBLwUnVuunaPOob7dpksI7/v6UnF/rnKGwHf/GdEq9K7iEN7qTtW+S0iivTcGpeTBqqB04wA=="
         crossorigin="anonymous" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.3.1/fabric.min.js"
-        integrity="sha512-ACqMrfAtm537AWzgx/xQ57JnFxXeq8RylQMGg4y/e6M2ew4Z8NycE8aId/Bt2ZE+w1gNsox3MgwxKl7SGMRdtA=="
-        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.3.7/pixi.min.js"></script>
     <!--https://blog.gtwang.org/programming/javascript-aes-symmetric-encryption-tutorial/-->
 </head>
 
@@ -96,7 +94,7 @@
                 <form class="needs-validation" novalidate="" id='formCanvas'>
                     <div class="row">
                         <div class="col-md-12 mb-12" id="canvasDIV">
-                            <canvas id="canvas" class="ratio ratio-16x9"></canvas>
+                            <canvas id="main" class="ratio ratio-16x9"></canvas>
                         </div>
 
                     </div>
@@ -167,7 +165,7 @@
 
     <script>
         Dropzone.autoDiscover = false;
-        var canvas = new fabric.Canvas('canvas');
+        //  var canvas = new fabric.Canvas('canvas');
         var imgUpload = new Dropzone("#img-upload", {
             url: "UploadImages"
         });
@@ -175,7 +173,7 @@
 
         reader.onload = function (event) {
             var data = event.target.result;
-            fabric.Image.fromURL(data, function (image) {
+            /**fabric.Image.fromURL(data, function (image) {
                 var canvasData = document.getElementById("canvas");
                 console.log(canvasData, image)
                 var imageObject = image.set({
@@ -185,13 +183,74 @@
                 canvas.add(imageObject).renderAll();
                 canvas.setActiveObject(imageObject);
             });
+            **/
         };
 
         imgUpload.on("addedfile", function (file) {
             reader.readAsDataURL(file);
         });
-       
+
+        const app = new PIXI.Application({
+            backgroundColor: 0x1099bb,
+            view: document.getElementById("main") 
+        });
+   
+
+        const basicText = new PIXI.Text('Basic text in pixi');
+        basicText.x = 50;
+        basicText.y = 100;
+
+        app.stage.addChild(basicText);
+
+        const style = new PIXI.TextStyle({
+            fontFamily: 'Arial',
+            fontSize: 36,
+            fontStyle: 'italic',
+            fontWeight: 'bold',
+            fill: ['#ffffff', '#00ff99'], // gradient
+            stroke: '#4a1850',
+            strokeThickness: 5,
+            dropShadow: true,
+            dropShadowColor: '#000000',
+            dropShadowBlur: 4,
+            dropShadowAngle: Math.PI / 6,
+            dropShadowDistance: 6,
+            wordWrap: true,
+            wordWrapWidth: 440,
+            lineJoin: 'round'
+        });
+
+        const richText = new PIXI.Text('Rich text with a lot of options and across multiple lines', style);
+        richText.x = 50;
+        richText.y = 220;
+
+        app.stage.addChild(richText);
+
+        const skewStyle = new PIXI.TextStyle({
+            fontFamily: 'Arial',
+            dropShadow: true,
+            dropShadowAlpha: 0.8,
+            dropShadowAngle: 2.1,
+            dropShadowBlur: 4,
+            dropShadowColor: "0x111111",
+            dropShadowDistance: 10,
+            fill: ['#ffffff'],
+            stroke: '#004620',
+            fontSize: 60,
+            fontWeight: "lighter",
+            lineJoin: "round",
+            strokeThickness: 12
+        });
+
+        const skewText = new PIXI.Text('SKEW IS COOL', skewStyle);
+        skewText.skew.set(0.65, -0.3);
+        skewText.anchor.set(0.5, 0.5);
+        skewText.x = 300;
+        skewText.y = 480;
+
+        app.stage.addChild(skewText);
     </script>
+
 
 </body>
 <!-- HKTRPG Sad -- 20201221-->

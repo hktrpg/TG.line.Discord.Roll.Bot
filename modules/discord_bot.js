@@ -412,10 +412,14 @@ client.on('ready', async () => {
 	setInterval(async () => {
 		switch (switchSetActivity % 2) {
 			case 1:
-				client.user.setActivity('bothelp | hktrpg.com');
+				client.user.setActivity('bothelp | hktrpg.com', {
+					shardID: client.shard.ids
+				});
 				break;
 			default:
-				client.user.setActivity(await count2());
+				client.user.setActivity(await count2(), {
+					shardID: client.shard.ids
+				});
 				break;
 		}
 		switchSetActivity = (switchSetActivity % 2) ? 2 : 3;

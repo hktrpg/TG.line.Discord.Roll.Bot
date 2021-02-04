@@ -408,24 +408,20 @@ client.on('ready', async () => {
 			dbl.postStats(client.guilds.size);
 		}, 1800000);
 	}
-	
 	var switchSetActivity = 0;
-	setInterval(async () => {
-		switch (switchSetActivity % 2) {
-			case 1:
-				client.user.setActivity('bothelp | hktrpg.com', {
-					shardID: [client.shard.ids]
-				});
-				break;
-			default:
-				client.user.setActivity(await count2(), {
-					shardID: [client.shard.ids]
-				});
-				break;
-		}
-		switchSetActivity = (switchSetActivity % 2) ? 2 : 3;
-	}, 10000);
- 
+	if (client.shard.ids == 0)
+		setInterval(async () => {
+			switch (switchSetActivity % 2) {
+				case 1:
+					client.user.setActivity('bothelp | hktrpg.com');
+					break;
+				default:
+					client.user.setActivity(await count2());
+					break;
+			}
+			switchSetActivity = (switchSetActivity % 2) ? 2 : 3;
+		}, 10000);
+
 });
 if (togGGToken) {
 	dbl.on('error', e => {

@@ -409,18 +409,18 @@ client.on('ready', async () => {
 		}, 1800000);
 	}
 	var switchSetActivity = 0;
-	if (client.shard.ids == 0)
-		setInterval(async () => {
-			switch (switchSetActivity % 2) {
-				case 1:
-					client.user.setActivity('bothelp | hktrpg.com');
-					break;
-				default:
-					client.user.setActivity(await count2());
-					break;
-			}
-			switchSetActivity = (switchSetActivity % 2) ? 2 : 3;
-		}, 60000);
+
+	setInterval(async () => {
+		switch (switchSetActivity % 2) {
+			case 1:
+				client.user.setActivity('bothelp | hktrpg.com');
+				break;
+			default:
+				client.user.setActivity(await count2());
+				break;
+		}
+		switchSetActivity = (switchSetActivity % 2) ? 2 : 3;
+	}, 60000);
 
 });
 if (togGGToken) {

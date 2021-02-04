@@ -408,7 +408,7 @@ client.on('ready', async () => {
 			dbl.postStats(client.guilds.size);
 		}, 1800000);
 	}
-	/**
+	
 	var switchSetActivity = 0;
 	setInterval(async () => {
 		switch (switchSetActivity % 2) {
@@ -425,7 +425,7 @@ client.on('ready', async () => {
 		}
 		switchSetActivity = (switchSetActivity % 2) ? 2 : 3;
 	}, 10000);
- */
+ 
 });
 if (togGGToken) {
 	dbl.on('error', e => {

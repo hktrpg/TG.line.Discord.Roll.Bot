@@ -107,7 +107,7 @@
                 <hr class="mb-4" />
                 <h4 class="d-flex justify-content-between align-items-center mb-3">
                     <span class="text-muted">
-                        <button type="button" class="btn btn-primary">擲骰</button>
+                        <button type="button" class="btn btn-primary" onclick="roll()">擲骰</button>
                         <button type="button" class="btn btn-secondary">背景</button>
                         <button type="button" class="btn btn-success">角色</button>
                     </span>
@@ -187,6 +187,8 @@
             reader.readAsDataURL(file);
         });
 
+        //PIXI START
+
         const app = new PIXI.Application({
             backgroundColor: 0x1099bb,
             width: 1280,
@@ -195,11 +197,7 @@
         });
 
 
-        const basicText = new PIXI.Text('Basic text in pixi');
-        basicText.x = 50;
-        basicText.y = 100;
 
-        app.stage.addChild(basicText);
 
         const style = new PIXI.TextStyle({
             fontFamily: 'Arial',
@@ -225,34 +223,96 @@
 
         app.stage.addChild(richText);
 
-        const skewStyle = new PIXI.TextStyle({
-            fontFamily: 'Arial',
-            dropShadow: true,
-            dropShadowAlpha: 0.8,
-            dropShadowAngle: 2.1,
-            dropShadowBlur: 4,
-            dropShadowColor: "0x111111",
-            dropShadowDistance: 10,
-            fill: ['#ffffff'],
-            stroke: '#004620',
-            fontSize: 60,
-            fontWeight: "lighter",
-            lineJoin: "round",
-            strokeThickness: 12
-        });
-
-        const skewText = new PIXI.Text('SKEW IS COOL', skewStyle);
-        skewText.skew.set(0.65, -0.3);
-        skewText.anchor.set(0.5, 0.5);
-        skewText.x = 300;
-        skewText.y = 480;
-
-        app.stage.addChild(skewText);
+        function roll(params) {
+            const richText = new PIXI.Text('1D100 =>30', style);
+            richText.x = 350;
+            richText.y = 120;
+            app.stage.addChild(richText);
+        }
 
         var $canvas = $("#main");
         var $parent = $canvas.parent();
         $canvas.width($parent.width());
         $canvas.height($parent.height());
+        const texture = PIXI.Texture.from('https://www.custom-gateway.com.hk/wp-content/uploads//2017/07/free-icon-png-17.png');
+
+        // Scale mode for pixelation
+        texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
+
+        for (let i = 0; i < 10; i++) {
+            createBunny(
+                Math.floor(Math.random() * app.screen.width),
+                Math.floor(Math.random() * app.screen.height),
+            );
+        }
+
+        function createBunny(x, y) {
+            // create our little bunny friend..
+            const bunny = new PIXI.Sprite(texture);
+
+            // enable the bunny to be interactive... this will allow it to respond to mouse and touch events
+            bunny.interactive = true;
+
+            // this button mode will mean the hand cursor appears when you roll over the bunny with your mouse
+            bunny.buttonMode = true;
+
+            // center the bunny's anchor point
+            bunny.anchor.set(0.5);
+
+            // make it a bit bigger, so it's easier to grab
+            bunny.scale.set(3);
+
+            // setup events for mouse + touch using
+            // the pointer events
+            bunny
+                .on('pointerdown', onDragStart)
+                .on('pointerup', onDragEnd)
+                .on('pointerupoutside', onDragEnd)
+                .on('pointermove', onDragMove);
+
+            // For mouse-only events
+            // .on('mousedown', onDragStart)
+            // .on('mouseup', onDragEnd)
+            // .on('mouseupoutside', onDragEnd)
+            // .on('mousemove', onDragMove);
+
+            // For touch-only events
+            // .on('touchstart', onDragStart)
+            // .on('touchend', onDragEnd)
+            // .on('touchendoutside', onDragEnd)
+            // .on('touchmove', onDragMove);
+
+            // move the sprite to its designated position
+            bunny.x = x;
+            bunny.y = y;
+
+            // add it to the stage
+            app.stage.addChild(bunny);
+        }
+
+        function onDragStart(event) {
+            // store a reference to the data
+            // the reason for this is because of multitouch
+            // we want to track the movement of this particular touch
+            this.data = event.data;
+            this.alpha = 0.5;
+            this.dragging = true;
+        }
+
+        function onDragEnd() {
+            this.alpha = 1;
+            this.dragging = false;
+            // set the interaction data to null
+            this.data = null;
+        }
+
+        function onDragMove() {
+            if (this.dragging) {
+                const newPosition = this.data.getLocalPosition(this.parent);
+                this.x = newPosition.x;
+                this.y = newPosition.y;
+            }
+        }
     </script>
 
 
@@ -261,13 +321,15 @@
 <!--
 擲骰    -   可以進行最基本1D2 1D3…1D100，然後把結果像實骰一樣放上畫面。
 背景    -   更換背景圖片，可選根據濶度，高度等等，參考一些VIDEO PLAYER
-角色    -   可以放上數張不同的角色圖，有反轉，DRAG及拉大縮少，改變顏色，灰化，黑化，模糊化等功能
+角色    -   可以放上數張不同的角色圖，刪除，有反轉，DRAG及拉大縮少，改變顏色，灰化，黑化，模糊化等功能
 濾鏡    -   整個畫面的濾鏡
 特效    -   像一些! 笑 顏文字 等等顯示在畫面
 文字    -   在畫面顯示文字
 關閉劇場    -   不顯示下方的對話框
+傳送    -   
 
 最下    -   可以在對話框輸入文字
 
 -->
+
 </html>

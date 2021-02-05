@@ -228,13 +228,23 @@
             richText.x = 350;
             richText.y = 120;
             app.stage.addChild(richText);
+
+            richText.interactive = true; // 設定可以互動
+            richText.buttonMode = true; // 當滑鼠滑過時顯示為手指圖示
+            richText
+                .on('pointerdown', onDragStart)
+                .on('pointerup', onDragEnd)
+                .on('pointerupoutside', onDragEnd)
+                .on('pointermove', onDragMove);
+
         }
 
         var $canvas = $("#main");
         var $parent = $canvas.parent();
         $canvas.width($parent.width());
         $canvas.height($parent.height());
-        const texture = PIXI.Texture.from('https://www.custom-gateway.com.hk/wp-content/uploads//2017/07/free-icon-png-17.png');
+        const texture = PIXI.Texture.from(
+            'https://www.custom-gateway.com.hk/wp-content/uploads//2017/07/free-icon-png-17.png');
 
         // Scale mode for pixelation
         texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
@@ -260,7 +270,7 @@
             bunny.anchor.set(0.5);
 
             // make it a bit bigger, so it's easier to grab
-            bunny.scale.set(3);
+            bunny.scale.set(1);
 
             // setup events for mouse + touch using
             // the pointer events

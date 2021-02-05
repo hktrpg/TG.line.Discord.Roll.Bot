@@ -198,17 +198,17 @@ client.on('message', async msg => {
 
 	//  }
 
-	msg.delete();
+	// msg.delete();
 
 })
-/**
+
 client.on('message_ack', async (msg, ack) => {
 	if (ack > 0) {
 		const chat = await msg.getChat();
 		chat.clearMessages();
 	}
 });
- */
+
 client.on('group_join', async (msg) => {
 	console.log("Whatsapp joined");
 	if (msg.client.info.me._serialized == msg.id.participant)

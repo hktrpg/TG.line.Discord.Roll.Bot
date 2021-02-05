@@ -2,10 +2,7 @@
 <html lang="zh-Hant-HK">
 <!-- HKTRPG Sad-->
 <style>
-    #canvas {
-        border: solid 1px black;
-        width: 100%;
-    }
+
 </style>
 
 <head>
@@ -192,9 +189,11 @@
 
         const app = new PIXI.Application({
             backgroundColor: 0x1099bb,
-            view: document.getElementById("main") 
+            width: 1280,
+            height: 720,
+            view: document.getElementById("main")
         });
-   
+
 
         const basicText = new PIXI.Text('Basic text in pixi');
         basicText.x = 50;
@@ -250,7 +249,10 @@
 
         app.stage.addChild(skewText);
 
-        
+        var $canvas = $("#main");
+        var $parent = $canvas.parent();
+        $canvas.width($parent.width());
+        $canvas.height($parent.height());
     </script>
 
 

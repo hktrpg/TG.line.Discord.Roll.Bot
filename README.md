@@ -215,7 +215,14 @@ HKTRPG擲骰子專用機械人 Roll Dice Robot
     	*	add 後面第一個是關鍵字, 可以是漢字,數字,英文及emoji
     	*	範例:        
         *	.dbp COC	.dbp 戀人
-
+    鳴謝
+    -------
+    
+    ### 最後感謝不同人的幫助，才可以完成這個BOT
+    *   LarryLo  Retsnimle - 寫出如何建BOT的教程，開始這個BOT的成長
+    *   布大獅              - 教導我如何寫好程式，還親手寫出不同改進方式
+    *   LOKI Lokinen，木易 陳，Luo Ray，Vivian  -   因為有他們捐助，才可以把HKTRPG搬到更好的機子上
+    *   以及其他一直幫助和意見的朋友
 
 關於RoboYabaso</br> 
 ==

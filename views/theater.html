@@ -198,6 +198,30 @@
 
 
 
+        const buttonGroup1 = new ButtonGroup({
+            buttons: [{
+                icon: 'looks_1',
+                action: () => {
+                    const popupmenu = new PopupMenu({
+                        items: [{
+                                label: 'Speichern',
+                                action: () => alert('Gespeichert')
+                            },
+                            {
+                                label: 'Editieren',
+                                action: () => alert('Editiert')
+                            },
+                            {
+                                label: 'Löschen',
+                                action: () => alert('Gelöscht'),
+                                disabled: true
+                            }
+                        ]
+                    })
+                    app.scene.addChild(popupmenu)
+                }
+            }]
+        })
 
         const style = new PIXI.TextStyle({
             fontFamily: 'Arial',
@@ -217,16 +241,13 @@
             lineJoin: 'round'
         });
 
-        const richText = new PIXI.Text('Rich text with a lot of options and across multiple lines', style);
-        richText.x = 50;
-        richText.y = 220;
 
-        app.stage.addChild(richText);
 
         function roll(params) {
-            const richText = new PIXI.Text('1D100 =>30', style);
-            richText.x = 350;
-            richText.y = 120;
+            const richText = new PIXI.Text('1D100 =>30', buttonGroup1);
+            richText.x = Math.floor(Math.random() * app.screen.width);
+            richText.y = Math.floor(Math.random() * app.screen.height);
+
             app.stage.addChild(richText);
 
             richText.interactive = true; // 設定可以互動
@@ -239,17 +260,27 @@
 
         }
 
-        var $canvas = $("#main");
-        var $parent = $canvas.parent();
-        $canvas.width($parent.width());
-        $canvas.height($parent.height());
+        function resize() {
+            var $canvas = $("#main");
+            var $parent = $canvas.parent();
+            $canvas.width($parent.width() - 2);
+            $canvas.height($parent.height() - 2);
+        }
+
+
+        resize();
+        $(window).on('resize', function () {
+            resize();
+        });
         const texture = PIXI.Texture.from(
             'https://www.custom-gateway.com.hk/wp-content/uploads//2017/07/free-icon-png-17.png');
 
         // Scale mode for pixelation
         texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 
-        for (let i = 0; i < 10; i++) {
+
+
+        for (let i = 0; i < 2; i++) {
             createBunny(
                 Math.floor(Math.random() * app.screen.width),
                 Math.floor(Math.random() * app.screen.height),

@@ -88,18 +88,18 @@
                 <h4 class="mb-3">
                     圖片
                 </h4>
-                <form class="needs-validation" novalidate="" id='formCanvas'>
-                    <div class="row">
-                        <div class="col-md-12 mb-12" id="canvasDIV">
-                            <canvas id="main" class="ratio ratio-16x9"></canvas>
-                        </div>
-
+                <div class="row">
+                    <div class="col-md-12 mb-12" id="canvasDIV">
+                        <canvas id="main"></canvas>
                     </div>
-                    <hr class="mb-4" />
-                    <button class="btn btn-primary btn-lg btn-block" onclick="takeScreenshot()" type="submit">
-                        傳送到聊天平台
-                    </button>
-                </form>
+                </div>
+                <hr class="mb-4" />
+                <button class="btn btn-primary btn-lg" onclick="takeScreenshot()" type="submit">
+                    儲存圖片
+                </button>
+                <button class="btn btn-primary btn-lg" type="submit">
+                    傳送到聊天平台
+                </button>
             </div>
 
             <div class="col-md-4 order-md-2 mb-4">
@@ -107,34 +107,102 @@
                 <hr class="mb-4" />
                 <h4 class="d-flex justify-content-between align-items-center mb-3">
                     <span class="text-muted">
-                        <button type="button" class="btn btn-primary" onclick="roll()">擲骰</button>
-                        <button type="button" class="btn btn-secondary">背景</button>
-                        <button type="button" class="btn btn-success">角色</button>
+                        <button type="button" class="btn btn-primary" onclick="switchCard('#collapseRoll')">擲骰</button>
+                        <button type="button" class="btn btn-secondary" onclick="switchCard('#collapseBG')">背景</button>
+                        <button type="button" class="btn btn-success"
+                            onclick="switchCard('#collapseCharacter')">角色</button>
                     </span>
 
                 </h4>
                 <h4 class="d-flex justify-content-between align-items-center mb-3">
                     <span class="text-muted">
-                        <button type="button" class="btn btn-danger">濾鏡</button>
-                        <button type="button" class="btn btn-warning">特效</button>
+                        <button type="button" class="btn btn-danger" onclick="switchCard('#collapseFilter')">濾鏡</button>
+                        <button type="button" class="btn btn-warning"
+                            onclick="switchCard('#collapseEffect')">特效</button>
                         <button type="button" class="btn btn-info">關閉劇場</button>
                     </span>
 
                 </h4>
-                <ul class="list-group mb-3">
-                    <div class="dropzone" id="img-upload">
-                    </div>
-                </ul>
-                <form class="card p-2">
-                    <div class="input-group">
-                        <input type="text" class="form-control" placeholder="XXXXX" />
-                        <div class="input-group-append">
-                            <button type="submit" class="btn btn-secondary">
-                                XXX
-                            </button>
+                <div class="collapse multi-collapse" id="collapseRoll">
+                    <form class="card p-2">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="collapseRoll" />
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-secondary">
+                                    collapseRoll
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                </form>
+                    </form>
+                </div>
+                <div class="collapse multi-collapse" id="collapseBG">
+                    <form class="card p-2">
+                        <ul class="list-group mb-3">
+                            <div class="dropzone" id="img-upload">
+                            </div>
+                        </ul>
+
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="collapseBG" />
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-secondary">
+                                    collapseBG
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="collapse multi-collapse" id="collapseCharacter">
+                    <form class="card p-2">
+                        <ul class="list-group mb-3">
+                            <div class="dropzone" id="img-upload">
+                            </div>
+                        </ul>
+
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="collapseCharacter" />
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-secondary">
+                                    collapseCharacter
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="collapse multi-collapse" id="collapseFilter">
+                    <form class="card p-2">
+                        <ul class="list-group mb-3">
+                            <div class="dropzone" id="img-upload">
+                            </div>
+                        </ul>
+
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="collapseFilter" />
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-secondary">
+                                    collapseFilter
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="collapse multi-collapse" id="collapseEffect">
+                    <form class="card p-2">
+                        <ul class="list-group mb-3">
+                            <div class="dropzone" id="img-upload">
+                            </div>
+                        </ul>
+
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="collapseEffect" />
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-secondary">
+                                    collapseEffect
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
 
         </div>
@@ -183,6 +251,8 @@
             **/
         };
 
+
+
         imgUpload.on("addedfile", function (file) {
             reader.readAsDataURL(file);
         });
@@ -196,33 +266,33 @@
             view: document.getElementById("main")
         });
 
+        /**
 
-
-        const buttonGroup1 = new ButtonGroup({
-            buttons: [{
-                icon: 'looks_1',
-                action: () => {
-                    const popupmenu = new PopupMenu({
-                        items: [{
-                                label: 'Speichern',
-                                action: () => alert('Gespeichert')
-                            },
-                            {
-                                label: 'Editieren',
-                                action: () => alert('Editiert')
-                            },
-                            {
-                                label: 'Löschen',
-                                action: () => alert('Gelöscht'),
-                                disabled: true
-                            }
-                        ]
-                    })
-                    app.scene.addChild(popupmenu)
-                }
-            }]
-        })
-
+                const buttonGroup1 = new ButtonGroup({
+                    buttons: [{
+                        icon: 'looks_1',
+                        action: () => {
+                            const popupmenu = new PopupMenu({
+                                items: [{
+                                        label: 'Speichern',
+                                        action: () => alert('Gespeichert')
+                                    },
+                                    {
+                                        label: 'Editieren',
+                                        action: () => alert('Editiert')
+                                    },
+                                    {
+                                        label: 'Löschen',
+                                        action: () => alert('Gelöscht'),
+                                        disabled: true
+                                    }
+                                ]
+                            })
+                            app.scene.addChild(popupmenu)
+                        }
+                    }]
+                })
+        */
         const style = new PIXI.TextStyle({
             fontFamily: 'Arial',
             fontSize: 36,
@@ -244,7 +314,7 @@
 
 
         function roll(params) {
-            const richText = new PIXI.Text('1D100 =>30', buttonGroup1);
+            const richText = new PIXI.Text('1D100 =>30', style);
             richText.x = Math.floor(Math.random() * app.screen.width);
             richText.y = Math.floor(Math.random() * app.screen.height);
 
@@ -369,6 +439,11 @@
                 a.click();
                 a.remove();
             }, 'image/png');
+        }
+
+        function switchCard(name) {
+            $('.collapse').collapse('hide')
+            $(name).collapse('show')
         }
     </script>
 

@@ -96,7 +96,7 @@
 
                     </div>
                     <hr class="mb-4" />
-                    <button class="btn btn-primary btn-lg btn-block" type="submit">
+                    <button class="btn btn-primary btn-lg btn-block" onclick="takeScreenshot()" type="submit">
                         傳送到聊天平台
                     </button>
                 </form>
@@ -358,6 +358,18 @@
         //  img.src = 'my/url/image.png';
         //  var base = new PIXI.BaseTexture(img),
         //    texture = new PIXI.Texture(base);
+
+        function takeScreenshot() {
+            wait = true;
+            app.renderer.extract.canvas(app.stage).toBlob((b) => {
+                const a = document.createElement('a');
+                document.body.append(a);
+                a.download = 'screenshot';
+                a.href = URL.createObjectURL(b);
+                a.click();
+                a.remove();
+            }, 'image/png');
+        }
     </script>
 
 

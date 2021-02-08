@@ -126,12 +126,29 @@
                 <div class="collapse multi-collapse" id="collapseRoll">
                     <form class="card p-2">
                         <div class="input-group">
-                            <input type="text" class="form-control" placeholder="collapseRoll" />
-                            <div class="input-group-append">
-                                <button type="submit" class="btn btn-secondary">
-                                    collapseRoll
-                                </button>
+                            <div>
+                                <span class="iconify" data-icon="emojione:keycap-2" data-inline="false"
+                                    data-width="48px" data-height="48px" onclick="roll('1d2')"></span>
+                                <span class="iconify" data-icon="emojione-monotone:keycap-4" data-inline="false"
+                                    data-width="48px" data-height="48px" onclick="roll('1d4')"></span><span
+                                    class="iconify" data-icon="ic:baseline-looks-6" data-inline="false"
+                                    data-width="48px" data-height="48px" onclick="roll('1d6')"></span><span
+                                    class="iconify" data-icon="ic:outline-filter-6" data-inline="false"
+                                    data-width="48px" data-height="48px" onclick="roll('2d6')"></span>
                             </div>
+                            <div>
+                                <span class="iconify" data-icon="emojione:keycap-8" data-inline="false"
+                                    data-width="48px" data-height="48px" onclick="roll('1d8')"></span><span
+                                    class="iconify" data-icon="mdi:dice-d12-outline" data-inline="false"
+                                    data-width="48px" data-height="48px" onclick="roll('1d12')"></span>
+                                <span class="iconify" data-icon="fa-solid:stopwatch-20" data-inline="false"
+                                    data-width="48px" data-height="48px" onclick="roll('1d20')"></span><span
+                                    class="iconify" data-icon="mdi:cash-100" data-inline="false" data-width="48px"
+                                    data-height="48px" onclick="roll('1d100')"></span></div>
+                        </div>
+                        <div>
+                            <span class="iconify" data-icon="fluent:calendar-cancel-24-filled" data-inline="false"
+                                data-width="72px" data-height="72px" onclick="removeRoll()"></span>
                         </div>
                     </form>
                 </div>
@@ -311,13 +328,19 @@
             lineJoin: 'round'
         });
 
+        function removeRoll() {
+            for (let index = app.stage.children.length - 1; index >= 0; index--) {
+                if (app.stage.children[index].isDice)
+                    app.stage.removeChild(app.stage.children[index]);
 
+            }
+        }
 
-        function roll(params) {
-            const richText = new PIXI.Text('1D100 =>30', style);
-            richText.x = Math.floor(Math.random() * app.screen.width);
-            richText.y = Math.floor(Math.random() * app.screen.height);
-
+        function roll(number) {
+            const richText = new PIXI.Text(number, style);
+            richText.x = Math.floor(Math.random() * app.screen.width * 0.7);
+            richText.y = Math.floor(Math.random() * app.screen.height * 0.7);
+            richText.isDice = true;
             app.stage.addChild(richText);
 
             richText.interactive = true; // 設定可以互動

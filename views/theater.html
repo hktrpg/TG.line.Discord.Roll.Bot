@@ -257,13 +257,21 @@
     </script>
 
     <script>
+        const app = new PIXI.Application({
+            backgroundColor: 0x1099bb,
+            width: 1280,
+            height: 720,
+            view: document.getElementById("main")
+        });
+
+
+
         Dropzone.autoDiscover = false;
         //  var canvas = new fabric.Canvas('canvas');
         var imgUpload = new Dropzone("#img-upload", {
             url: "UploadImages"
         });
         var reader = new FileReader();
-
         reader.onload = function (event) {
             var data = event.target.result;
             /**fabric.Image.fromURL(data, function (image) {
@@ -278,49 +286,17 @@
             });
             **/
         };
-
-
         //https://image.uc.cn/s/wemedia/s/upload/2019/f52f475f3b29f1f1628050f8ddddc4a5.jpg
         imgUpload.on("addedfile", function (file) {
             reader.readAsDataURL(file);
         });
 
+
+
+
         //PIXI START
 
-        const app = new PIXI.Application({
-            backgroundColor: 0x1099bb,
-            width: 1280,
-            height: 720,
-            view: document.getElementById("main")
-        });
 
-        /**
-
-                const buttonGroup1 = new ButtonGroup({
-                    buttons: [{
-                        icon: 'looks_1',
-                        action: () => {
-                            const popupmenu = new PopupMenu({
-                                items: [{
-                                        label: 'Speichern',
-                                        action: () => alert('Gespeichert')
-                                    },
-                                    {
-                                        label: 'Editieren',
-                                        action: () => alert('Editiert')
-                                    },
-                                    {
-                                        label: 'Löschen',
-                                        action: () => alert('Gelöscht'),
-                                        disabled: true
-                                    }
-                                ]
-                            })
-                            app.scene.addChild(popupmenu)
-                        }
-                    }]
-                })
-        */
         const style = new PIXI.TextStyle({
             fontFamily: 'Arial',
             fontSize: 36,
@@ -339,46 +315,9 @@
             lineJoin: 'round'
         });
 
-        function removeRoll() {
-            for (let index = app.stage.children.length - 1; index >= 0; index--) {
-                if (app.stage.children[index].isDice)
-                    app.stage.removeChild(app.stage.children[index]);
-
-            }
-        }
-
-        function roll(number) {
-            const richText = new PIXI.Text(number, style);
-
-            richText.x = Math.floor(Math.random() * (app.screen.width * 0.85 - app.screen.width * 0.1) + app.screen
-                .width * 0.1);
-            richText.y = Math.floor(Math.random() * (app.screen.height * 0.85 - app.screen.height * 0.1) + app.screen
-                .height * 0.1);
-            richText.isDice = true;
-            app.stage.addChild(richText);
-
-            richText.interactive = true; // 設定可以互動
-            richText.buttonMode = true; // 當滑鼠滑過時顯示為手指圖示
-            richText
-                .on('pointerdown', onDragStart)
-                .on('pointerup', onDragEnd)
-                .on('pointerupoutside', onDragEnd)
-                .on('pointermove', onDragMove);
-
-        }
-
-        function resize() {
-            var $canvas = $("#main");
-            var $parent = $canvas.parent();
-            $canvas.width($parent.width() - 2);
-            $canvas.height($parent.height() - 2);
-        }
 
 
-        resize();
-        $(window).on('resize', function () {
-            resize();
-        });
+
         const texture = PIXI.Texture.from(
             'http://i.imgur.com/toHsfWY.png');
 
@@ -422,22 +361,8 @@
             // setup events for mouse + touch using
             // the pointer events
 
-            // For mouse-only events
-            // .on('mousedown', onDragStart)
-            // .on('mouseup', onDragEnd)
-            // .on('mouseupoutside', onDragEnd)
-            // .on('mousemove', onDragMove);
-
-            // For touch-only events
-            // .on('touchstart', onDragStart)
-            // .on('touchend', onDragEnd)
-            // .on('touchendoutside', onDragEnd)
-            // .on('touchmove', onDragMove);
-
             // move the sprite to its designated position
-
             const blurFilter1 = new PIXI.filters.BlurFilter();
-
             //  background.filters = [filter];
             // add it to the stage
             app.stage.addChild(background);
@@ -463,28 +388,11 @@
             // center the background's anchor point
             background.anchor.set(0.5);
 
-            // make it a bit bigger, so it's easier to grab
             //  background.scale.set(1);
             background.height = app.screen.height
             background.width = app.screen.width
             background.x = app.screen.width * .5
             background.y = app.screen.height * .5
-            // setup events for mouse + touch using
-            // the pointer events
-
-            // For mouse-only events
-            // .on('mousedown', onDragStart)
-            // .on('mouseup', onDragEnd)
-            // .on('mouseupoutside', onDragEnd)
-            // .on('mousemove', onDragMove);
-
-            // For touch-only events
-            // .on('touchstart', onDragStart)
-            // .on('touchend', onDragEnd)
-            // .on('touchendoutside', onDragEnd)
-            // .on('touchmove', onDragMove);
-
-            // move the sprite to its designated position
 
             const blurFilter1 = new PIXI.filters.BlurFilter();
 
@@ -519,18 +427,6 @@
                 .on('pointerupoutside', onDragEnd)
                 .on('pointermove', onDragMove);
 
-            // For mouse-only events
-            // .on('mousedown', onDragStart)
-            // .on('mouseup', onDragEnd)
-            // .on('mouseupoutside', onDragEnd)
-            // .on('mousemove', onDragMove);
-
-            // For touch-only events
-            // .on('touchstart', onDragStart)
-            // .on('touchend', onDragEnd)
-            // .on('touchendoutside', onDragEnd)
-            // .on('touchmove', onDragMove);
-
             // move the sprite to its designated position
             bunny.x = x;
             bunny.y = y;
@@ -541,6 +437,13 @@
             // add it to the stage
             app.stage.addChild(bunny);
         }
+
+
+
+
+        //DONE
+
+
 
         function onDragStart(event) {
             // store a reference to the data
@@ -565,10 +468,7 @@
                 this.y = newPosition.y;
             }
         }
-        //    var img = new Image();
-        //  img.src = 'my/url/image.png';
-        //  var base = new PIXI.BaseTexture(img),
-        //    texture = new PIXI.Texture(base);
+
 
         function takeScreenshot() {
             wait = true;
@@ -585,6 +485,46 @@
         function switchCard(name) {
             $('.collapse').collapse('hide')
             $(name).collapse('show')
+        }
+
+
+        function resize() {
+            var $canvas = $("#main");
+            var $parent = $canvas.parent();
+            $canvas.width($parent.width() - 2);
+            $canvas.height($parent.height() - 2);
+        }
+        resize();
+        $(window).on('resize', function () {
+            resize();
+        });
+
+        function removeRoll() {
+            for (let index = app.stage.children.length - 1; index >= 0; index--) {
+                if (app.stage.children[index].isDice)
+                    app.stage.removeChild(app.stage.children[index]);
+
+            }
+        }
+
+        function roll(number) {
+            const richText = new PIXI.Text(number, style);
+
+            richText.x = Math.floor(Math.random() * (app.screen.width * 0.85 - app.screen.width * 0.1) + app.screen
+                .width * 0.1);
+            richText.y = Math.floor(Math.random() * (app.screen.height * 0.85 - app.screen.height * 0.1) + app.screen
+                .height * 0.1);
+            richText.isDice = true;
+            app.stage.addChild(richText);
+
+            richText.interactive = true; // 設定可以互動
+            richText.buttonMode = true; // 當滑鼠滑過時顯示為手指圖示
+            richText
+                .on('pointerdown', onDragStart)
+                .on('pointerup', onDragEnd)
+                .on('pointerupoutside', onDragEnd)
+                .on('pointermove', onDragMove);
+
         }
     </script>
 
@@ -607,6 +547,17 @@
 
 https://www.html5gamedevs.com/topic/27159-make-a-context-menu-appear-upon-right-click-of-a-sprite/
 https://www.iwm-tuebingen.de/iwmbrowser/lib/pixi/popupmenu.html
+
+
+box2.zIndex = 100;
+app.stage.sortChildren();
+背景    -100
+角色    0
+特效    +100
+骰子    +200
+劇場對話框  +300
+文字    +400
+
 
 -->
 

@@ -25,6 +25,7 @@
         integrity="sha512-3g+prZHHfmnvE1HBLwUnVuunaPOob7dpksI7/v6UnF/rnKGwHf/GdEq9K7iEN7qTtW+S0iivTcGpeTBqqB04wA=="
         crossorigin="anonymous" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.3.7/pixi.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pixi-filters@latest/dist/pixi-filters.js"></script>
     <!--https://blog.gtwang.org/programming/javascript-aes-symmetric-encryption-tutorial/-->
 </head>
 
@@ -155,6 +156,7 @@
                 <div class="collapse multi-collapse" id="collapseBG">
                     <form class="card p-2">
                         <ul class="list-group mb-3">
+                            預設圖 3-5張
                             <div class="dropzone" id="img-upload">
                             </div>
                         </ul>
@@ -172,6 +174,7 @@
                 <div class="collapse multi-collapse" id="collapseCharacter">
                     <form class="card p-2">
                         <ul class="list-group mb-3">
+                            預設圖 2-3張
                             <div class="dropzone" id="img-upload">
                             </div>
                         </ul>
@@ -206,6 +209,14 @@
                 <div class="collapse multi-collapse" id="collapseEffect">
                     <form class="card p-2">
                         <ul class="list-group mb-3">
+                            黑白，AsciiFilter，blurFilter BLUGEPINCH
+                            COLORMAP
+                            COLORREPLACE
+                            DOT FILTER
+                            NOISE FILTER
+                            CRT
+                            CONVOLUTION
+                            COLOROVERLAY
                             <div class="dropzone" id="img-upload">
                             </div>
                         </ul>
@@ -338,8 +349,11 @@
 
         function roll(number) {
             const richText = new PIXI.Text(number, style);
-            richText.x = Math.floor(Math.random() * app.screen.width * 0.7);
-            richText.y = Math.floor(Math.random() * app.screen.height * 0.7);
+
+            richText.x = Math.floor(Math.random() * (app.screen.width * 0.85 - app.screen.width * 0.1) + app.screen
+                .width * 0.1);
+            richText.y = Math.floor(Math.random() * (app.screen.height * 0.85 - app.screen.height * 0.1) + app.screen
+                .height * 0.1);
             richText.isDice = true;
             app.stage.addChild(richText);
 
@@ -383,7 +397,7 @@
         function createBunny(x, y) {
             // create our little bunny friend..
             const bunny = new PIXI.Sprite(texture);
-
+            var filter = new PIXI.filters.AsciiFilter();
             // enable the bunny to be interactive... this will allow it to respond to mouse and touch events
             bunny.interactive = true;
 

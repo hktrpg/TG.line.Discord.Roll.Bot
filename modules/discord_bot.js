@@ -22,32 +22,36 @@ const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
 		\n(http://bit.ly/HKTRPG_DISCORD)\
 		\n有關TRPG資訊, 可以到網站\
 		\n(http://www.hktrpg.com/)";
-
-
-client.once('ready', async () => {
-	console.log('Discord is Ready!');
-	const io = require('socket.io-client');
-	const socket = io('ws://localhost:53589', {
-		reconnection: true,
-		reconnectionDelay: 1000,
-		reconnectionDelayMax: 5000,
-		reconnectionAttempts: Infinity
+const reconnectInterval = 1 * 1000 * 60;
+const WebSocket = require('ws');
+var ws;
+var connect = function () {
+	ws = new WebSocket('ws://127.0.0.1:53589');
+	ws.on('open', function open() {
+		console.log('connectd To core-www from discord!')
+		ws.send('connectd To core-www from discord!');
 	});
-	socket.on('connect', () => {
-		// either with send()
-		console.log('connect To core-www from discord!');
-		socket.on("Discord", message => {
-			if (!message.text) return;
-			let text = 'let result = this.channels.cache.get("' + message.target.id + '");if (result) {result.send("' + message.text.replace(/\r\n|\n/g, "\\n") + '");}'
+	ws.on('message', function incoming(data) {
+		var object = JSON.parse(data);
+		if (object.botname == 'Discord') {
+			console.log('discord have message')
+			let text = 'let result = this.channels.cache.get("' + object.message.target.id + '");if (result) {result.send("' + object.message.text.replace(/\r\n|\n/g, "\\n") + '");}'
 			client.shard.broadcastEval(text);
 			return;
-		});
+		}
 	});
-	socket.on('disconnect', function () {
-		console.log('disconnected from server discord');
+	ws.on('error', (error) => {
+		console.log('Discord socket error', error);
 	});
+	ws.on('close', function () {
+		console.log('Discord socket close');
+		setTimeout(connect, reconnectInterval);
+	});
+};
 
+client.once('ready', async () => {
 
+	connect();
 });
 
 async function count() {
@@ -65,6 +69,24 @@ async function count() {
 		})
 		.catch(console.error);
 
+}
+async function count2() {
+	if (!client.shard) return 'bothelp | hktrpg.com';
+	const promises = [
+		client.shard.fetchClientValues('guilds.cache.size'),
+		client.shard.broadcastEval('this.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0)'),
+	];
+
+	return Promise.all(promises)
+		.then(results => {
+			const totalGuilds = results[0].reduce((acc, guildCount) => acc + guildCount, 0);
+			const totalMembers = results[1].reduce((acc, memberCount) => acc + memberCount, 0);
+			return (` ${totalGuilds}群組📶-\n ${totalMembers}會員📶`);
+		})
+		.catch(() => {
+			console.error
+			return 'bothelp | hktrpg.com';
+		});
 }
 
 // handle the error event
@@ -379,13 +401,27 @@ client.on('shardResume', (replayed, shardID) => console.log(`Shard ID ${shardID}
 client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnected.`));
 
 //Set Activity 可以自定義正在玩什麼
-client.on('ready', () => {
+client.on('ready', async () => {
 	client.user.setActivity('bothelp | hktrpg.com');
 	if (togGGToken) {
 		setInterval(() => {
 			dbl.postStats(client.guilds.size);
 		}, 1800000);
 	}
+	var switchSetActivity = 0;
+
+	setInterval(async () => {
+		switch (switchSetActivity % 2) {
+			case 1:
+				client.user.setActivity('bothelp | hktrpg.com');
+				break;
+			default:
+				client.user.setActivity(await count2());
+				break;
+		}
+		switchSetActivity = (switchSetActivity % 2) ? 2 : 3;
+	}, 60000);
+
 });
 if (togGGToken) {
 	dbl.on('error', e => {

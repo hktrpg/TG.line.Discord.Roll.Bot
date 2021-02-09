@@ -198,15 +198,17 @@ client.on('message', async msg => {
 
 	//  }
 
-	await msg.delete();
+	// msg.delete();
 
 })
+
 client.on('message_ack', async (msg, ack) => {
 	if (ack > 0) {
 		const chat = await msg.getChat();
 		chat.clearMessages();
 	}
 });
+
 client.on('group_join', async (msg) => {
 	console.log("Whatsapp joined");
 	if (msg.client.info.me._serialized == msg.id.participant)
@@ -214,26 +216,23 @@ client.on('group_join', async (msg) => {
 });
 
 client.initialize();
-const io = require('socket.io-client');
-const socket = io('ws://localhost:53589', {
-	reconnection: true,
-	reconnectionDelay: 1000,
-	reconnectionDelayMax: 5000,
-	reconnectionAttempts: Infinity
-});
-socket.on('connect', () => {
-	// either with send()
-	console.log('connect To core-www from Whatsapp!')
-	socket.on("Whatsapp", message => {
-		if (!message.text) return;
-		SendToId(message.target.id, message.text, client);
-		return;
-	});
-});
-socket.on('disconnect', function () {
-	console.log('disconnected from server whatsapp');
-});
 
+
+const WebSocket = require('ws');
+const ws = new WebSocket('ws://127.0.0.1:53589');
+ws.on('open', function open() {
+	console.log('connected To core-www from Whatsapp!')
+	ws.send('connected To core-www from Whatsapp!');
+});
+ws.on('message', function incoming(data) {
+	var object = JSON.parse(data);
+	if (object.botname == 'Whatsapp') {
+		if (!object.message.text) return;
+		console.log('connect To core-www from Whatsapp!')
+		SendToId(object.message.target.id, object.message.text);
+		return;
+	}
+});
 
 
 async function SendDR(msg, text) {

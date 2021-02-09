@@ -33,7 +33,7 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <a class="navbar-brand" href="https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81"><a
                 class="badge badge-pill badge-danger">
-                HKTRPG 私人角色卡管理平台<span class="iconify" data-icon="mdi:dice-multiple-outline" data-inline="false"
+                HKTRPG 帶團劇院平台<span class="iconify" data-icon="mdi:dice-multiple-outline" data-inline="false"
                     style="color: black;" data-width="32" data-height="32"></span></span>
                 <span class="iconify" data-icon="bi:chat-square-text" data-inline="false" style="color: black;"
                     data-width="32" data-height="32"></span>
@@ -280,7 +280,7 @@
         };
 
 
-
+        //https://image.uc.cn/s/wemedia/s/upload/2019/f52f475f3b29f1f1628050f8ddddc4a5.jpg
         imgUpload.on("addedfile", function (file) {
             reader.readAsDataURL(file);
         });
@@ -380,7 +380,7 @@
             resize();
         });
         const texture = PIXI.Texture.from(
-            'https://www.custom-gateway.com.hk/wp-content/uploads//2017/07/free-icon-png-17.png');
+            'http://i.imgur.com/toHsfWY.png');
 
         // Scale mode for pixelation
         texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
@@ -392,6 +392,107 @@
                 Math.floor(Math.random() * app.screen.width),
                 Math.floor(Math.random() * app.screen.height),
             );
+        }
+        //https://truth.bahamut.com.tw/s01/201510/26d494656e4942fc384ce291eea66e0a.PNG
+        createBG();
+        createDialogBox();
+
+        function createDialogBox() {
+            const texture = PIXI.Texture.from(
+                'https://i.imgur.com/maCqZFS.png'
+            );
+
+            // create our little bunny friend..
+            const background = new PIXI.Sprite(texture);
+            var filter = new PIXI.filters.AsciiFilter();
+            // enable the background to be interactive... this will allow it to respond to mouse and touch events
+            background.interactive = true;
+
+            // this button mode will mean the hand cursor appears when you roll over the background with your mouse
+
+            // center the background's anchor point
+            background.anchor.set(0.5);
+
+            // make it a bit bigger, so it's easier to grab
+            //  background.scale.set(1);
+            background.height = app.screen.height * 0.25
+            background.width = app.screen.width
+            background.x = app.screen.width * .5
+            background.y = app.screen.height * 0.85
+            // setup events for mouse + touch using
+            // the pointer events
+
+            // For mouse-only events
+            // .on('mousedown', onDragStart)
+            // .on('mouseup', onDragEnd)
+            // .on('mouseupoutside', onDragEnd)
+            // .on('mousemove', onDragMove);
+
+            // For touch-only events
+            // .on('touchstart', onDragStart)
+            // .on('touchend', onDragEnd)
+            // .on('touchendoutside', onDragEnd)
+            // .on('touchmove', onDragMove);
+
+            // move the sprite to its designated position
+
+            const blurFilter1 = new PIXI.filters.BlurFilter();
+
+            //  background.filters = [filter];
+            // add it to the stage
+            app.stage.addChild(background);
+            app.stage.setChildIndex(background, 1)
+        }
+
+
+
+
+        function createBG() {
+            const texture = PIXI.Texture.from(
+                'https://images.mihuashi.com/2017/10/26/03/mrantfdaxgbaycgueznm2dvbqmjrc6i3/mrantfdaxgbaycgueznm2dvbqmjrc6i3.jpg'
+            );
+
+            // create our little bunny friend..
+            const background = new PIXI.Sprite(texture);
+            var filter = new PIXI.filters.AsciiFilter();
+            // enable the background to be interactive... this will allow it to respond to mouse and touch events
+            background.interactive = true;
+
+            // this button mode will mean the hand cursor appears when you roll over the background with your mouse
+
+            // center the background's anchor point
+            background.anchor.set(0.5);
+
+            // make it a bit bigger, so it's easier to grab
+            //  background.scale.set(1);
+            background.height = app.screen.height
+            background.width = app.screen.width
+            background.x = app.screen.width * .5
+            background.y = app.screen.height * .5
+            // setup events for mouse + touch using
+            // the pointer events
+
+            // For mouse-only events
+            // .on('mousedown', onDragStart)
+            // .on('mouseup', onDragEnd)
+            // .on('mouseupoutside', onDragEnd)
+            // .on('mousemove', onDragMove);
+
+            // For touch-only events
+            // .on('touchstart', onDragStart)
+            // .on('touchend', onDragEnd)
+            // .on('touchendoutside', onDragEnd)
+            // .on('touchmove', onDragMove);
+
+            // move the sprite to its designated position
+
+            const blurFilter1 = new PIXI.filters.BlurFilter();
+
+            //  background.filters = [filter];
+            // add it to the stage
+            app.stage.addChild(background);
+            app.stage.setChildIndex(background, 0)
+
         }
 
         function createBunny(x, y) {
@@ -408,7 +509,7 @@
             bunny.anchor.set(0.5);
 
             // make it a bit bigger, so it's easier to grab
-            bunny.scale.set(1);
+            bunny.scale.set(0.3);
 
             // setup events for mouse + touch using
             // the pointer events
@@ -433,6 +534,9 @@
             // move the sprite to its designated position
             bunny.x = x;
             bunny.y = y;
+            const blurFilter1 = new PIXI.filters.BlurFilter();
+
+            // bunny.filters = [blurFilter1];
 
             // add it to the stage
             app.stage.addChild(bunny);
@@ -498,6 +602,11 @@
 傳送    -   
 
 最下    -   可以在對話框輸入文字
+
+右鍵可以DELETE 複製
+
+https://www.html5gamedevs.com/topic/27159-make-a-context-menu-appear-upon-right-click-of-a-sprite/
+https://www.iwm-tuebingen.de/iwmbrowser/lib/pixi/popupmenu.html
 
 -->
 

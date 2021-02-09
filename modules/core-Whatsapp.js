@@ -2,6 +2,21 @@
 if (!process.env.WHATSAPP_SWITCH) {
 	return;
 }
+const WebSocket = require('ws');
+const ws = new WebSocket('ws://127.0.0.1:53589');
+ws.on('open', function open() {
+	console.log('connected To core-www from Whatsapp!')
+	ws.send('connected To core-www from Whatsapp!');
+});
+ws.on('message', function incoming(data) {
+	var object = JSON.parse(data);
+	if (object.botname == 'Whatsapp') {
+		if (!object.message.text) return;
+		console.log('connect To core-www from Whatsapp!')
+		SendToId(object.message.target.id, object.message.text);
+		return;
+	}
+});
 var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
 		\n輸入 1D100 可以進行最簡單的擲骰.\
@@ -17,7 +32,8 @@ const {
 } = require('whatsapp-web.js');
 const client = new Client({
 	puppeteer: {
-		args: ['--no-sandbox']
+		args: ['--no-sandbox'],
+		headless: true
 	}
 });
 
@@ -191,15 +207,7 @@ client.on('message', async msg => {
 				SendToReply(msg, rplyVal);
 			break;
 	}
-
-
-
-
-
-	//  }
-
 	// msg.delete();
-
 })
 
 client.on('message_ack', async (msg, ack) => {
@@ -218,21 +226,7 @@ client.on('group_join', async (msg) => {
 client.initialize();
 
 
-const WebSocket = require('ws');
-const ws = new WebSocket('ws://127.0.0.1:53589');
-ws.on('open', function open() {
-	console.log('connected To core-www from Whatsapp!')
-	ws.send('connected To core-www from Whatsapp!');
-});
-ws.on('message', function incoming(data) {
-	var object = JSON.parse(data);
-	if (object.botname == 'Whatsapp') {
-		if (!object.message.text) return;
-		console.log('connect To core-www from Whatsapp!')
-		SendToId(object.message.target.id, object.message.text);
-		return;
-	}
-});
+
 
 
 async function SendDR(msg, text) {

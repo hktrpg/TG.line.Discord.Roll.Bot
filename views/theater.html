@@ -108,19 +108,26 @@
                 <hr class="mb-4" />
                 <h4 class="d-flex justify-content-between align-items-center mb-3">
                     <span class="text-muted">
-                        <button type="button" class="btn btn-primary" onclick="switchCard('#collapseRoll')">擲骰</button>
-                        <button type="button" class="btn btn-secondary" onclick="switchCard('#collapseBG')">背景</button>
-                        <button type="button" class="btn btn-success"
-                            onclick="switchCard('#collapseCharacter')">角色</button>
+                        <button type="button" class="btn btn-primary" onclick="switchCard('#collapseRoll')"><span
+                                class="iconify" data-icon="fa-solid:dice-d20" data-inline="false"></span>擲骰</button>
+                        <button type="button" class="btn btn-secondary" onclick="switchCard('#collapseBG')"><span
+                                class="iconify" data-icon="fluent:color-background-24-regular"
+                                data-inline="false"></span>背景</button>
+                        <button type="button" class="btn btn-success" onclick="switchCard('#collapseCharacter')"><span
+                                class="iconify" data-icon="gg:ghost-character" data-inline="false"></span>角色</button>
                     </span>
 
                 </h4>
                 <h4 class="d-flex justify-content-between align-items-center mb-3">
                     <span class="text-muted">
-                        <button type="button" class="btn btn-danger" onclick="switchCard('#collapseFilter')">濾鏡</button>
-                        <button type="button" class="btn btn-warning"
-                            onclick="switchCard('#collapseEffect')">特效</button>
-                        <button type="button" class="btn btn-info">關閉劇場</button>
+                        <button type="button" class="btn btn-danger" onclick="switchCard('#collapseFilter')"><span
+                                class="iconify" data-icon="ic:baseline-movie-filter"
+                                data-inline="false"></span>濾鏡</button>
+                        <button type="button" class="btn btn-warning" onclick="switchCard('#collapseEffect')"><span
+                                class="iconify" data-icon="cib:adobe-after-effects"
+                                data-inline="false"></span>特效</button>
+                        <button type="button" class="btn btn-info"><span class="iconify" data-icon="jam:eye-close"
+                                data-inline="false"></span>關閉劇場</button>
                     </span>
 
                 </h4>
@@ -263,6 +270,15 @@
             height: 720,
             view: document.getElementById("main")
         });
+        for (let i = 0; i < 2; i++) {
+            createCharacter('http://i.imgur.com/toHsfWY.png');
+        }
+        createBG(
+            'https://images.mihuashi.com/2017/10/26/03/mrantfdaxgbaycgueznm2dvbqmjrc6i3/mrantfdaxgbaycgueznm2dvbqmjrc6i3.jpg'
+        );
+        createDialogBox('https://i.imgur.com/maCqZFS.png');
+        app.stage.sortChildren();
+
 
 
 
@@ -297,145 +313,85 @@
         //PIXI START
 
 
-        const style = new PIXI.TextStyle({
-            fontFamily: 'Arial',
-            fontSize: 36,
-            fontStyle: 'italic',
-            fontWeight: 'bold',
-            fill: ['#ffffff', '#00ff99'], // gradient
-            stroke: '#4a1850',
-            strokeThickness: 5,
-            dropShadow: true,
-            dropShadowColor: '#000000',
-            dropShadowBlur: 4,
-            dropShadowAngle: Math.PI / 6,
-            dropShadowDistance: 6,
-            wordWrap: true,
-            wordWrapWidth: 440,
-            lineJoin: 'round'
-        });
 
 
 
-
-        const texture = PIXI.Texture.from(
-            'http://i.imgur.com/toHsfWY.png');
 
         // Scale mode for pixelation
-        texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 
 
 
-        for (let i = 0; i < 2; i++) {
-            createBunny(
-                Math.floor(Math.random() * app.screen.width),
-                Math.floor(Math.random() * app.screen.height),
-            );
-        }
+
+
         //https://truth.bahamut.com.tw/s01/201510/26d494656e4942fc384ce291eea66e0a.PNG
-        createBG();
-        createDialogBox();
 
-        function createDialogBox() {
+
+
+        function createDialogBox(image) {
             const texture = PIXI.Texture.from(
-                'https://i.imgur.com/maCqZFS.png'
+                image
             );
 
-            // create our little bunny friend..
-            const background = new PIXI.Sprite(texture);
+            // create our little character friend..
+            const dialogBox = new PIXI.Sprite(texture);
             var filter = new PIXI.filters.AsciiFilter();
-            // enable the background to be interactive... this will allow it to respond to mouse and touch events
-            background.interactive = true;
+            // enable the dialogBox to be interactive... this will allow it to respond to mouse and touch events
+            dialogBox.interactive = true;
 
-            // this button mode will mean the hand cursor appears when you roll over the background with your mouse
+            // this button mode will mean the hand cursor appears when you roll over the dialogBox with your mouse
 
-            // center the background's anchor point
-            background.anchor.set(0.5);
+            // center the dialogBox's anchor point
+            dialogBox.anchor.set(0.5);
 
             // make it a bit bigger, so it's easier to grab
-            //  background.scale.set(1);
-            background.height = app.screen.height * 0.25
-            background.width = app.screen.width
-            background.x = app.screen.width * .5
-            background.y = app.screen.height * 0.85
+            //  dialogBox.scale.set(1);
+            dialogBox.height = app.screen.height * 0.25
+            dialogBox.width = app.screen.width
+            dialogBox.x = app.screen.width * .5
+            dialogBox.y = app.screen.height * 0.85
             // setup events for mouse + touch using
             // the pointer events
-
+            dialogBox.zIndex = 200;
             // move the sprite to its designated position
             const blurFilter1 = new PIXI.filters.BlurFilter();
-            //  background.filters = [filter];
+            //  dialogBox.filters = [filter];
             // add it to the stage
-            app.stage.addChild(background);
-            app.stage.setChildIndex(background, 1)
+            app.stage.addChild(dialogBox);
+            app.stage.setChildIndex(dialogBox, 1)
         }
 
 
 
 
-        function createBG() {
+        function createCharacter(image) {
             const texture = PIXI.Texture.from(
-                'https://images.mihuashi.com/2017/10/26/03/mrantfdaxgbaycgueznm2dvbqmjrc6i3/mrantfdaxgbaycgueznm2dvbqmjrc6i3.jpg'
-            );
+                image);
+            texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
+            const character = new PIXI.Sprite(texture);
+            character.interactive = true;
 
-            // create our little bunny friend..
-            const background = new PIXI.Sprite(texture);
-            var filter = new PIXI.filters.AsciiFilter();
-            // enable the background to be interactive... this will allow it to respond to mouse and touch events
-            background.interactive = true;
+            // this button mode will mean the hand cursor appears when you roll over the character with your mouse
+            character.buttonMode = true;
 
-            // this button mode will mean the hand cursor appears when you roll over the background with your mouse
-
-            // center the background's anchor point
-            background.anchor.set(0.5);
-
-            //  background.scale.set(1);
-            background.height = app.screen.height
-            background.width = app.screen.width
-            background.x = app.screen.width * .5
-            background.y = app.screen.height * .5
-
-            const blurFilter1 = new PIXI.filters.BlurFilter();
-
-            //  background.filters = [filter];
-            // add it to the stage
-            app.stage.addChild(background);
-            app.stage.setChildIndex(background, 0)
-
-        }
-
-        function createBunny(x, y) {
-            // create our little bunny friend..
-            const bunny = new PIXI.Sprite(texture);
-            var filter = new PIXI.filters.AsciiFilter();
-            // enable the bunny to be interactive... this will allow it to respond to mouse and touch events
-            bunny.interactive = true;
-
-            // this button mode will mean the hand cursor appears when you roll over the bunny with your mouse
-            bunny.buttonMode = true;
-
-            // center the bunny's anchor point
-            bunny.anchor.set(0.5);
+            // center the character's anchor point
+            character.anchor.set(0.5);
 
             // make it a bit bigger, so it's easier to grab
-            bunny.scale.set(0.3);
-
+            character.scale.set(0.3);
+            character.zIndex = 0;
             // setup events for mouse + touch using
             // the pointer events
-            bunny
+            character
                 .on('pointerdown', onDragStart)
                 .on('pointerup', onDragEnd)
                 .on('pointerupoutside', onDragEnd)
                 .on('pointermove', onDragMove);
 
             // move the sprite to its designated position
-            bunny.x = x;
-            bunny.y = y;
-            const blurFilter1 = new PIXI.filters.BlurFilter();
+            character.x = Math.floor(Math.random() * app.screen.width);
+            character.y = Math.floor(Math.random() * app.screen.height);
+            app.stage.addChild(character);
 
-            // bunny.filters = [blurFilter1];
-
-            // add it to the stage
-            app.stage.addChild(bunny);
         }
 
 
@@ -443,7 +399,26 @@
 
         //DONE
 
+        //FILTER
+        //      const blurFilter1 = new PIXI.filters.BlurFilter();
+        // character.filters = [blurFilter1];
 
+        function createBG(image) {
+            const texture = PIXI.Texture.from(
+                image
+            );
+            // create our little character friend..
+            const background = new PIXI.Sprite(texture);
+            var filter = new PIXI.filters.AsciiFilter();
+            background.interactive = true;
+            background.anchor.set(0.5);
+            background.height = app.screen.height
+            background.width = app.screen.width
+            background.x = app.screen.width * .5
+            background.y = app.screen.height * .5
+            background.zIndex = -100;
+            app.stage.addChild(background);
+        }
 
         function onDragStart(event) {
             // store a reference to the data
@@ -454,11 +429,38 @@
             this.dragging = true;
         }
 
-        function onDragEnd() {
+        function onDragEnd(e) {
             this.alpha = 1;
             this.dragging = false;
             // set the interaction data to null
             this.data = null;
+            if (this.__firstClick) {
+                //  console.log(e.currentTarget)
+                console.log('double click in 300ms detected, you can emit or call method related!');
+                // double and clone taget
+                //待整
+                if (shiftDown) {
+                    this.scale.x *= 0.75;
+                    this.scale.y *= 0.75;
+                }
+
+                if (!shiftDown) {
+                    this.scale.x *= 1.25;
+                    this.scale.y *= 1.25;
+                }
+
+
+
+            }
+            if (e.data.button === 0) {
+                this.__firstClick = true;
+                setTimeout(() => {
+                    this.__firstClick = false;
+                }, 300); // time for double click detection
+            }
+            if (e.data.button === 2) {
+                e.currentTarget.parent.removeChild(e.currentTarget);
+            }
         }
 
         function onDragMove() {
@@ -508,24 +510,54 @@
         }
 
         function roll(number) {
-            const richText = new PIXI.Text(number, style);
+            const style = new PIXI.TextStyle({
+                fontFamily: 'Arial',
+                fontSize: 36,
+                fontStyle: 'italic',
+                fontWeight: 'bold',
+                fill: ['#ffffff', '#00ff99'], // gradient
+                stroke: '#4a1850',
+                strokeThickness: 5,
+                dropShadow: true,
+                dropShadowColor: '#000000',
+                dropShadowBlur: 4,
+                dropShadowAngle: Math.PI / 6,
+                dropShadowDistance: 6,
+                wordWrap: true,
+                wordWrapWidth: 440,
+                lineJoin: 'round'
+            });
+            const rollText = new PIXI.Text(number, style);
 
-            richText.x = Math.floor(Math.random() * (app.screen.width * 0.85 - app.screen.width * 0.1) + app.screen
+            rollText.x = Math.floor(Math.random() * (app.screen.width * 0.85 - app.screen.width * 0.1) + app.screen
                 .width * 0.1);
-            richText.y = Math.floor(Math.random() * (app.screen.height * 0.85 - app.screen.height * 0.1) + app.screen
+            rollText.y = Math.floor(Math.random() * (app.screen.height * 0.85 - app.screen.height * 0.1) + app.screen
                 .height * 0.1);
-            richText.isDice = true;
-            app.stage.addChild(richText);
-
-            richText.interactive = true; // 設定可以互動
-            richText.buttonMode = true; // 當滑鼠滑過時顯示為手指圖示
-            richText
+            rollText.isDice = true;
+            rollText.zIndex = 400;
+            rollText.anchor.set(0.5);
+            rollText.interactive = true; // 設定可以互動
+            rollText.buttonMode = true; // 當滑鼠滑過時顯示為手指圖示
+            rollText
                 .on('pointerdown', onDragStart)
                 .on('pointerup', onDragEnd)
                 .on('pointerupoutside', onDragEnd)
                 .on('pointermove', onDragMove);
-
+            app.stage.addChild(rollText);
         }
+        //handdel right click
+        document.addEventListener('contextmenu', e => {
+            e.preventDefault();
+        });
+        var shiftDown = false;
+        document.addEventListener("keydown", function (event) {
+            if (event.which === 16)
+                shiftDown = true;
+        });
+        document.addEventListener("keyup", function (event) {
+            if (event.which === 16)
+                shiftDown = false;
+        });
     </script>
 
 
@@ -551,14 +583,14 @@ https://www.iwm-tuebingen.de/iwmbrowser/lib/pixi/popupmenu.html
 
 box2.zIndex = 100;
 app.stage.sortChildren();
-背景    -100
-角色    0
-特效    +100
-骰子    +200
-劇場對話框  +300
-文字    +400
+BG  背景    -100        Type02
+CHAR角色    0           Type01
+EFFECT特效    +100      Type01
+Dialog box劇場對話框  +200  Type02
+TEXT文字    +300        Type03
+ROLL骰子    +400        Type01
 
-
+       app.stage.setChildIndex(background, 0)
 -->
 
 </html>

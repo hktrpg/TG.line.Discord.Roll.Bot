@@ -1,6 +1,14 @@
 "use strict";
-const BCDice = require('bcdice-js').BCDice; // CommonJS
-const bcdice = new BCDice();
+const {
+    DynamicLoader
+} = require('bcdice');
+
+async function calldice(gameType, message) {
+    const loader = new DynamicLoader();
+    const GameSystem = await loader.dynamicLoad(gameType);
+    const result = GameSystem.eval(message);
+    return result.text;
+}
 
 var variables = {};
 
@@ -40,15 +48,15 @@ var rollDiceCommand = async function ({
         type: 'text',
         text: ''
     };
-    //let result = {};
+    let result;
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
             return rply;
         case /^MT(\d*)$|^RT$|^ET$|^NT$|^KT$/i.test(mainMsg[1]):
-            bcdice.setGameByTitle("Kamigakari")
-            bcdice.setMessage(mainMsg[1])
-            rply.text = mainMsg[1] + ' ' + bcdice.dice_command()[0]
+            result = await calldice("Kamigakari", mainMsg[1])
+            if (result)
+                rply.text = mainMsg[1] + ' ' + result;
             return rply;
         default:
             break;

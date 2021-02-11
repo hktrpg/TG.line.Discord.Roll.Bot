@@ -1,7 +1,14 @@
 "use strict";
-const BCDice = require('bcdice-js').BCDice; // CommonJS
-const bcdice = new BCDice();
+const {
+    DynamicLoader
+} = require('bcdice');
 
+async function calldice(gameType, message) {
+    const loader = new DynamicLoader();
+    const GameSystem = await loader.dynamicLoad(gameType);
+    const result = GameSystem.eval(message);
+    return result.text;
+}
 var variables = {};
 var gameName = function () {
     return '【迷宮王國】 .mk (nMK+m 及各種表)'
@@ -50,20 +57,23 @@ var initialize = function () {
 }
 
 // eslint-disable-next-line no-unused-vars
-var rollDiceCommand = async function ({mainMsg}) {
+var rollDiceCommand = async function ({
+    mainMsg
+}) {
     let rply = {
         default: 'on',
         type: 'text',
         text: ''
     };
+    let result;
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
             return rply;
         case /(\d+)MK6|(\d+)MK|^NAMEA|^NAMEB|^NAMEEX|^NAMEFA|^NAME(\d*)|^PNT(\d*)|^MLT(\d*)|^DFT(\d*)|^LRT|^ORT|^CRT|^ART|^FRT|^TBT|^CBT|^SBT|^VBT|^FBT|^THT|^CHT|^SHT|^VHT|^MPT|^T1T|^T2T|^T3T|^T4T|^T5T|^RWIT|^RUIT|^WIT|^LIT|^RIT|^SIT|^IFT|^IDT|^1RET|^2RET|^3RET|^4RET|^5RET|^6RET|^KDT|^KCT|^KMT|^CAT|^FWT|^CFT|^TT|^NT|^ET|^KNT(\d+)|^WORD(\d+)|^ABT|^WBT|^LBT/i.test(mainMsg[1]):
-            bcdice.setGameByTitle("MeikyuKingdom")
-            bcdice.setMessage(mainMsg[1])
-            rply.text = mainMsg[1] + ' ' + bcdice.dice_command()[0]
+            result = await calldice("MeikyuKingdom", mainMsg[1])
+            if (result)
+                rply.text = mainMsg[1] + ' ' + result;
             return rply;
         default:
             break;

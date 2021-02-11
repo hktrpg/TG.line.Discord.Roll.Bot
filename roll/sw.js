@@ -1,5 +1,14 @@
 "use strict";
-const axios = require('axios');
+const {
+    DynamicLoader
+} = require('bcdice');
+
+async function calldice(gameType, message) {
+    const loader = new DynamicLoader();
+    const GameSystem = await loader.dynamicLoad(gameType);
+    const result = GameSystem.eval(message);
+    return result.text;
+}
 var variables = {};
 
 var gameName = function () {
@@ -69,35 +78,25 @@ var initialize = function () {
     return variables;
 }
 
-var rollDiceCommand = async function ({mainMsg}) {
+var rollDiceCommand = async function ({
+    mainMsg
+}) {
     let rply = {
         default: 'on',
         type: 'text',
         text: ''
     };
-    let result = '',
-        str = '';
+    let result = ''
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
             return rply;
         default:
-            str = encodeURIComponent(mainMsg[1])
-            // result = calldice("SwordWorld2_5", mainMsg[1])
-            //https://bcdice.herokuapp.com/v1/diceroll?system=Cthulhu&command=4d10%3E=15
-            result = await axios.get('https://bcdice.onlinesession.app/v1/diceroll?system=SwordWorld2.5&command=' + str)
-                .then(function (response) {
-                    // handle success
-                    return response.data.result;
-                })
-                .catch(function (error) {
-                    // handle error
-                    if (error.response.status != 400)
-                        console.log(error);
-                })
+            result = await calldice("SwordWorld2.5", mainMsg[1])
             if (result)
-                rply.text = mainMsg[1] + result;
+                rply.text = mainMsg[1] + ' ' + result;
             return rply;
+
     }
 }
 

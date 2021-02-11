@@ -236,6 +236,7 @@ client.on('message', async (message) => {
 
 	if (rplyVal.state) {
 		rplyVal.text += '\n' + await count();
+		rplyVal.text += '\nPing: ' + Number(Date.now() - message.createdTimestamp) + 'ms'
 	}
 
 	if (groupid && rplyVal && rplyVal.LevelUp) {

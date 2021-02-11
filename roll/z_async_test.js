@@ -1,4 +1,19 @@
 "use strict";
+const {
+	DynamicLoader
+} = require('bcdice');
+
+async function main() {
+	const loader = new DynamicLoader();
+
+	console.log(loader.listAvailableGameSystems().map(info => info.id));
+
+	const GameSystem = await loader.dynamicLoad('Cthulhu7th');
+	const result = GameSystem.eval('CC<=54');
+
+	console.log(result && result.text);
+}
+
 
 //heroku labs:enable runtime-dyno-metadata -a <app name>
 var chineseConv = require('chinese-conv'); //繁簡轉換
@@ -58,6 +73,7 @@ var rollDiceCommand = async function ({
 	switch (true) {
 		case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
 			rply.text = this.getHelpMessage();
+			await main();
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /[.]wiki/.test(mainMsg[0]):
 			rply.text = await wiki({

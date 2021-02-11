@@ -18,7 +18,7 @@
     "@zetetic/duckduckgo-images-api": "^1.0.5",
     "axios": "^0.21.1",
     "babel-core": "^7.0.0-0",
-    "bcdice-js": "^0.11.0",
+    "bcdice": "^2.0.0-rc.1",
     "bufferutil": "^4.0.3",
     "chai": "^4.3.0",
     "chinese-conv": "^1.0.1",

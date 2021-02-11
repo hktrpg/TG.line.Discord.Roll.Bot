@@ -1,11 +1,13 @@
 "use strict";
-const BCDice = require('bcdice-js').BCDice; // CommonJS
-const bcdice = new BCDice();
+const {
+    DynamicLoader
+} = require('bcdice');
 
-function calldice(gameType, message) {
-    bcdice.setGameByTitle(gameType)
-    bcdice.setMessage(message)
-    return bcdice.dice_command()
+async function callDice(gameType, message) {
+    const loader = new DynamicLoader();
+    const GameSystem = await loader.dynamicLoad(gameType);
+    const result = GameSystem.eval(message);
+    return result.text;
 }
 var variables = {};
 
@@ -34,7 +36,9 @@ var initialize = function () {
     return variables;
 }
 
-var rollDiceCommand = async function ({mainMsg}) {
+var rollDiceCommand = async function ({
+    mainMsg
+}) {
     let rply = {
         default: 'on',
         type: 'text',
@@ -46,9 +50,9 @@ var rollDiceCommand = async function ({mainMsg}) {
             rply.text = this.getHelpMessage();
             return rply;
         default:
-            result = calldice("Airgetlamh", mainMsg[1])
-            if (result && result[0] != 1)
-                rply.text = mainMsg[1] + result[0];
+            result = await callDice("Airgetlamh", mainMsg[1])
+            if (result)
+                rply.text = mainMsg[1] + ' ' + result;
             return rply;
     }
 

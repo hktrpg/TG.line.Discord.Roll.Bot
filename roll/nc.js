@@ -1,11 +1,13 @@
 "use strict";
-const BCDice = require('bcdice-js').BCDice; // CommonJS
-const bcdice = new BCDice();
+const {
+	DynamicLoader
+} = require('bcdice');
 
-function calldice(gameType, message) {
-	bcdice.setGameByTitle(gameType)
-	bcdice.setMessage(message)
-	return bcdice.dice_command()
+async function calldice(gameType, message) {
+	const loader = new DynamicLoader();
+	const GameSystem = await loader.dynamicLoad(gameType);
+	const result = GameSystem.eval(message);
+	return result.text;
 }
 
 var rollbase = require('./rollbase.js');
@@ -44,7 +46,9 @@ var initialize = function () {
 //依戀
 //if (trigger.match(/(^nm$)/) != null) return exports.nc.nechronica_mirenn(mainMsg[1]);
 
-var rollDiceCommand = async function ({mainMsg}) {
+var rollDiceCommand = async function ({
+	mainMsg
+}) {
 	let rply = {
 		default: 'on',
 		type: 'text',
@@ -68,9 +72,9 @@ var rollDiceCommand = async function ({mainMsg}) {
 	  ・攻撃判定 (nNA+m)
 	   ダイス数n、修正値mで攻撃判定ロールを行います。
 	   命中部位とダイス数が2以上の時のパーツ破損数も表示します。*/
-			result = calldice("Nechronica", mainMsg[1])
-			if (result && result[0] != 1)
-				rply.text = mainMsg[1] + result[0];
+			result = await calldice("Nechronica", mainMsg[1])
+			if (result)
+				rply.text = mainMsg[1] + ' ' + result;
 			return rply;
 		default:
 			break;

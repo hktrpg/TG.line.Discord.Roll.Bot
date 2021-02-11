@@ -1,5 +1,4 @@
 "use strict";
-
 //heroku labs:enable runtime-dyno-metadata -a <app name>
 var chineseConv = require('chinese-conv'); //繁簡轉換
 const duckImage = require('@zetetic/duckduckgo-images-api')

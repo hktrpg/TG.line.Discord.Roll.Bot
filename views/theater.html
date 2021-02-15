@@ -290,41 +290,19 @@
         var reader = new FileReader();
         reader.onload = function (event) {
             var data = event.target.result;
-            /**fabric.Image.fromURL(data, function (image) {
-                var canvasData = document.getElementById("canvas");
-                console.log(canvasData, image)
-                var imageObject = image.set({
-                    scaleY: canvasData.height / image.height * 0.8,
-                    scaleX: canvasData.height / image.height * 0.8
-                });
-                canvas.add(imageObject).renderAll();
-                canvas.setActiveObject(imageObject);
-            });
-            **/
+            createBG(data)
+            app.stage.sortChildren();
         };
         //https://image.uc.cn/s/wemedia/s/upload/2019/f52f475f3b29f1f1628050f8ddddc4a5.jpg
         imgUpload.on("addedfile", function (file) {
             reader.readAsDataURL(file);
+            console.log(file)
         });
 
 
 
 
         //PIXI START
-
-
-
-
-
-
-        // Scale mode for pixelation
-
-
-
-
-
-        //https://truth.bahamut.com.tw/s01/201510/26d494656e4942fc384ce291eea66e0a.PNG
-
 
 
         function createDialogBox(image) {

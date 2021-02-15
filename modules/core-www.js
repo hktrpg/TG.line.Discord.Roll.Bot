@@ -272,6 +272,7 @@ records.on("new_message", async (message) => {
     if (message.msg && message.name.match(/^HKTRPG/ig)) {
         return;
     }
+    
     io.emit(message.roomNumber, message);
     let rplyVal = {}
     var mainMsg = message.msg.match(msgSplitor); // 定義輸入字串

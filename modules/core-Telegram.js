@@ -8,6 +8,7 @@ const TGclient = new Telegraf(process.env.TELEGRAM_CHANNEL_SECRET);
 const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || '';
 //var TGcountroll = 0;
 //var TGcounttext = 0;
+const msgSplitor = (/\S+/ig);
 var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const EXPUP = require('./level').EXPUP || function () {};
 const courtMessage = require('./logs').courtMessage || function () {};
@@ -27,10 +28,14 @@ TGclient.catch((err) => {
 //TGclient.use(telegrafGetChatMembers)
 TGclient.on('text', async (ctx) => {
 	if (ctx.message.from.is_bot) return;
+	let target = await exports.analytics.findRollList(ctx.message.text.match(msgSplitor));
+	if (!target) return null;
 	//console.log(ctx.getChatMembers(ctx.chat.id) //[Members]
 	//	ctx.getChatMembers() //[Members]
 	//	telegrafGetChatMembers.check(ctx.chat.id) //[Members]
 	//	telegrafGetChatMembers.all //[Chats]
+
+	
 	let groupid = '',
 		userid = '',
 		displayname = '',
@@ -64,14 +69,11 @@ TGclient.on('text', async (ctx) => {
 				//console.log(telegrafGetChatMembers.check(ctx.chat.id))
 			}
 	}
-
-
 	if (ctx.message.from.id) userid = ctx.message.from.id;
 	//285083923223
 	//userrole = 3
 	let inputStr = ctx.message.text;
 	let rplyVal = {};
-	let msgSplitor = (/\S+/ig);
 	let trigger = "";
 	if (inputStr && ctx.message.from.is_bot == false) {
 		if (ctx.botInfo && ctx.botInfo.username && inputStr.match(/^[/]/))

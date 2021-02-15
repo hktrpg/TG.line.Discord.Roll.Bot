@@ -104,6 +104,9 @@ client.on('guildCreate', guild => {
 
 client.on('message', async (message) => {
 	if (message.author.bot) return;
+	let target = await exports.analytics.findRollList(message.content.match(msgSplitor));
+	if (!target) return null;
+	
 	let groupid = '',
 		userid = '',
 		displayname = '',

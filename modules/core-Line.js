@@ -6,6 +6,7 @@ exports.analytics = require('./core-analytics');
 const EXPUP = require('./level').EXPUP || function () {};
 const line = require('@line/bot-sdk');
 const express = require('express');
+const msgSplitor = (/\S+/ig);
 // create LINE SDK config from env variables
 const config = {
 	channelAccessToken: process.env.LINE_CHANNEL_ACCESSTOKEN,
@@ -48,6 +49,9 @@ process.on("Line", message => {
 
 var handleEvent = async function (event) {
 	//event {"type":"message","replyToken":"232132133","source":{"userId":"U1a17e51fSDADASD0293d","groupId":"C6432427423847234cd3","type":"group"},"timestamp":323232323,"message":{"type":"text","id":"232131233123","text":"5!@@!"}}
+
+	let target = await exports.analytics.findRollList(event.message.text.match(msgSplitor));
+	if (!target) return null;
 	let roomorgroupid = event.source.groupId || event.source.roomId || '',
 		userid = event.source.userId || '',
 		displayname = '',
@@ -87,7 +91,7 @@ var handleEvent = async function (event) {
 		//TRUE 即正常
 		let inputStr = event.message.text;
 		let rplyVal = {};
-		let msgSplitor = (/\S+/ig);
+
 		let trigger = "";
 		if (inputStr)
 			var mainMsg = inputStr.match(msgSplitor); // 定義輸入字串

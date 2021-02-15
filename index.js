@@ -34,4 +34,12 @@ Discord line Telegram三套BOT 都會統一呼叫analytics.js
 
 npm test 測試音樂
 
+
+if (groupid) {
+		let tempEXPUP = await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount);
+		if (tempEXPUP) {
+			result.LevelUp = tempEXPUP;
+		}
+	}
+
 */

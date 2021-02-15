@@ -105,8 +105,17 @@ client.on('guildCreate', guild => {
 client.on('message', async (message) => {
 	if (message.author.bot) return;
 	let target = await exports.analytics.findRollList(message.content.match(msgSplitor));
+
+
+	if (!message.content) {
+		await courtMessage("", "Discord", "")
+		if (groupid && userid) {
+			await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount);
+		}
+		return null;
+	}
 	if (!target) return null;
-	
+
 	let groupid = '',
 		userid = '',
 		displayname = '',
@@ -159,13 +168,7 @@ client.on('message', async (message) => {
 	if (message.guild && message.guild.members) {
 		membercount = message.guild.members.cache.filter(member => !member.user.bot).size;
 	}
-	if (!message.content) {
-		await courtMessage("", "Discord", "")
-		if (groupid && userid) {
-			await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount);
-		}
-		return null;
-	}
+
 	let inputStr = message.content;
 	let rplyVal = {};
 	let trigger = "";

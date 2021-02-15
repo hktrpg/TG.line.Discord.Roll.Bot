@@ -35,7 +35,7 @@ TGclient.on('text', async (ctx) => {
 	//	telegrafGetChatMembers.check(ctx.chat.id) //[Members]
 	//	telegrafGetChatMembers.all //[Chats]
 
-	
+
 	let groupid = '',
 		userid = '',
 		displayname = '',

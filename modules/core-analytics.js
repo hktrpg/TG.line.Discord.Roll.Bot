@@ -15,7 +15,6 @@ const debugMode = (process.env.DEBUG) ? true : false;
 const msgSplitor = (/\S+/ig);
 const courtMessage = require('./logs').courtMessage || function () {};
 const getState = require('./logs').getState || function () {};
-const EXPUP = require('./level').EXPUP || function () {};
 
 //用來呼叫骰組,新增骰組的話,要寫條件式到下面呼叫
 //格式是 exports.骰組檔案名字.function名
@@ -44,13 +43,7 @@ var parseInput = async function ({
 	inputStr = inputStr.replace(/^\s/g, '')
 	mainMsg = inputStr.match(msgSplitor); //定義輸入字串
 
-	//EXPUP 功能 + LevelUP 功能
-	if (groupid) {
-		let tempEXPUP = await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount);
-		if (tempEXPUP) {
-			result.LevelUp = tempEXPUP;
-		}
-	}
+
 
 	//檢查是不是要停止  z_stop功能
 	if (groupid && mainMsg[0]) {

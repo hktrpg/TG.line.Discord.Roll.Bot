@@ -95,12 +95,21 @@
                     </div>
                 </div>
                 <hr class="mb-4" />
+                <div class="flex-grow-0 py-3 px-4 border-top">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="text" value="" placeholder="輸入信息">
+                        <button class="btn btn-primary" onclick="createText()">輸入</button>
+                        <button class="btn btn-primary" onclick="clearText()">清除</button>
+                    </div>
+                </div>
+                <hr class="mb-4" />
                 <button class="btn btn-primary btn-lg" onclick="takeScreenshot()" type="submit">
                     儲存圖片
                 </button>
                 <button class="btn btn-primary btn-lg" type="submit">
                     傳送到聊天平台
                 </button>
+
             </div>
 
             <div class="col-md-4 order-md-2 mb-4">
@@ -285,7 +294,7 @@
     <script>
         const style = new PIXI.TextStyle({
             fontFamily: 'Arial',
-            fontSize: 36,
+            fontSize: 40,
             fontStyle: 'italic',
             fontWeight: 'bold',
             fill: ['#ffffff', '#00ff99'], // gradient
@@ -297,12 +306,12 @@
             dropShadowAngle: Math.PI / 6,
             dropShadowDistance: 6,
             wordWrap: true,
-            wordWrapWidth: 440,
+            wordWrapWidth: 4403,
             lineJoin: 'round'
         });
 
         var textX = 200;
-        var textY = 600;
+        var textY = 580;
 
         switchCard('#collapseRoll')
         const app = new PIXI.Application({
@@ -408,8 +417,18 @@
             app.stage.sortChildren();
         }
 
+        function clearText() {
+            textY = 580;
+            for (let index = app.stage.children.length - 1; index >= 0; index--) {
+                if (app.stage.children[index].appType == "text")
+                    app.stage.removeChild(app.stage.children[index]);
+
+            }
+        }
 
         function createText(text) {
+            text = document.getElementById("text").value || text;
+            if (!text) return;
             const basicText = new PIXI.Text(text, style);
             // create our little character friend..
             basicText.x = textX;
@@ -430,9 +449,8 @@
                 .on('pointerup', onDragEnd)
                 .on('pointerupoutside', onDragEnd)
                 .on('pointermove', onDragMove);
-
             app.stage.addChild(basicText);
-            textY += 300;
+            textY += 40;
         }
 
         function createCharacter(image) {

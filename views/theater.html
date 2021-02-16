@@ -126,8 +126,8 @@
                         <button type="button" class="btn btn-warning" onclick="switchCard('#collapseEffect')"><span
                                 class="iconify" data-icon="cib:adobe-after-effects"
                                 data-inline="false"></span>特效</button>
-                        <button type="button" class="btn btn-info"><span class="iconify" data-icon="jam:eye-close"
-                                data-inline="false"></span>關閉劇場</button>
+                        <button type="button" class="btn btn-info" onclick="switchCard('#collapseDialogBox')"><span
+                                class="iconify" data-icon="jam:eye-close" data-inline="false"></span>對話框</button>
                     </span>
 
                 </h4>
@@ -161,28 +161,36 @@
                     </form>
                 </div>
                 <div class="collapse multi-collapse" id="collapseBG">
-                    <form class="card p-2">
+                    <div class="card p-2">
                         <ul class="list-group mb-3">
                             預設圖 3-5張
-                            <div class="dropzone" id="img-upload">
+                            <div class="dropzone" id="img-upload-BG">
                             </div>
                         </ul>
 
                         <div class="input-group">
-                            <input type="text" class="form-control" placeholder="collapseBG" />
-                            <div class="input-group-append">
-                                <button type="submit" class="btn btn-secondary">
-                                    collapseBG
-                                </button>
-                            </div>
+
+                            <button class="btn btn-secondary" onclick="bgEdit('width')">
+                                按闊度
+                            </button>
+                            <button class="btn btn-secondary" onclick="bgEdit('height')">
+                                按高度
+                            </button>
+                            <button class="btn btn-secondary" onclick="bgEdit('fill')">
+                                拉伸
+                            </button>
+                            <button class="btn btn-secondary" onclick="bgEdit('center')">
+                                置中(不縮放)
+                            </button>
+
                         </div>
-                    </form>
+                    </div>
                 </div>
                 <div class="collapse multi-collapse" id="collapseCharacter">
-                    <form class="card p-2">
+                    <div class="card p-2">
                         <ul class="list-group mb-3">
                             預設圖 2-3張
-                            <div class="dropzone" id="img-upload">
+                            <div class="dropzone" id="img-upload-character">
                             </div>
                         </ul>
 
@@ -194,15 +202,28 @@
                                 </button>
                             </div>
                         </div>
-                    </form>
+                    </div>
                 </div>
-                <div class="collapse multi-collapse" id="collapseFilter">
-                    <form class="card p-2">
+                <div class="collapse multi-collapse" id="collapseDialogBox">
+                    <div class="card p-2">
                         <ul class="list-group mb-3">
-                            <div class="dropzone" id="img-upload">
+                            預設圖 2-3張
+                            <div class="dropzone" id="img-upload-DialogBox">
                             </div>
                         </ul>
 
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="collapseCharacter" />
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-secondary">
+                                    collapseCharacter
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="collapse multi-collapse" id="collapseFilter">
+                    <div class="card p-2">
                         <div class="input-group">
                             <input type="text" class="form-control" placeholder="collapseFilter" />
                             <div class="input-group-append">
@@ -211,10 +232,10 @@
                                 </button>
                             </div>
                         </div>
-                    </form>
+                    </div>
                 </div>
                 <div class="collapse multi-collapse" id="collapseEffect">
-                    <form class="card p-2">
+                    <div class="card p-2">
                         <ul class="list-group mb-3">
                             黑白，AsciiFilter，blurFilter BLUGEPINCH
                             COLORMAP
@@ -224,8 +245,6 @@
                             CRT
                             CONVOLUTION
                             COLOROVERLAY
-                            <div class="dropzone" id="img-upload">
-                            </div>
                         </ul>
 
                         <div class="input-group">
@@ -236,7 +255,7 @@
                                 </button>
                             </div>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
 
@@ -264,6 +283,28 @@
     </script>
 
     <script>
+        const style = new PIXI.TextStyle({
+            fontFamily: 'Arial',
+            fontSize: 36,
+            fontStyle: 'italic',
+            fontWeight: 'bold',
+            fill: ['#ffffff', '#00ff99'], // gradient
+            stroke: '#4a1850',
+            strokeThickness: 5,
+            dropShadow: true,
+            dropShadowColor: '#000000',
+            dropShadowBlur: 4,
+            dropShadowAngle: Math.PI / 6,
+            dropShadowDistance: 6,
+            wordWrap: true,
+            wordWrapWidth: 440,
+            lineJoin: 'round'
+        });
+
+        var textX = 200;
+        var textY = 600;
+
+        switchCard('#collapseRoll')
         const app = new PIXI.Application({
             backgroundColor: 0x1099bb,
             width: 1280,
@@ -277,6 +318,7 @@
             'https://images.mihuashi.com/2017/10/26/03/mrantfdaxgbaycgueznm2dvbqmjrc6i3/mrantfdaxgbaycgueznm2dvbqmjrc6i3.jpg'
         );
         createDialogBox('https://i.imgur.com/maCqZFS.png');
+        createText('這是測試')
         app.stage.sortChildren();
 
 
@@ -284,23 +326,50 @@
 
         Dropzone.autoDiscover = false;
         //  var canvas = new fabric.Canvas('canvas');
-        var imgUpload = new Dropzone("#img-upload", {
+        var imgUploadBG = new Dropzone("#img-upload-BG", {
             url: "UploadImages"
         });
-        var reader = new FileReader();
-        reader.onload = function (event) {
+        var readerBG = new FileReader();
+        readerBG.onload = function (event) {
             var data = event.target.result;
             createBG(data)
             app.stage.sortChildren();
         };
         //https://image.uc.cn/s/wemedia/s/upload/2019/f52f475f3b29f1f1628050f8ddddc4a5.jpg
-        imgUpload.on("addedfile", function (file) {
-            reader.readAsDataURL(file);
-            console.log(file)
+        imgUploadBG.on("addedfile", function (file) {
+            readerBG.readAsDataURL(file);
         });
 
 
 
+        var imgUploadCharacter = new Dropzone("#img-upload-character", {
+            url: "UploadImagesCharacter"
+        });
+        var readerCharacter = new FileReader();
+        readerCharacter.onload = function (event) {
+            var data = event.target.result;
+            createCharacter(data)
+            app.stage.sortChildren();
+        };
+        //https://image.uc.cn/s/wemedia/s/upload/2019/f52f475f3b29f1f1628050f8ddddc4a5.jpg
+        imgUploadCharacter.on("addedfile", function (file) {
+            readerCharacter.readAsDataURL(file);
+        });
+
+
+        var imgUploadDialogBox = new Dropzone("#img-upload-DialogBox", {
+            url: "UploadImagesDialogBox"
+        });
+        var readerDialogBox = new FileReader();
+        readerDialogBox.onload = function (event) {
+            var data = event.target.result;
+            createDialogBox(data)
+            app.stage.sortChildren();
+        };
+        //https://image.uc.cn/s/wemedia/s/upload/2019/f52f475f3b29f1f1628050f8ddddc4a5.jpg
+        imgUploadDialogBox.on("addedfile", function (file) {
+            readerDialogBox.readAsDataURL(file);
+        });
 
         //PIXI START
 
@@ -330,16 +399,41 @@
             // setup events for mouse + touch using
             // the pointer events
             dialogBox.zIndex = 200;
+            dialogBox.appType = "dialogBox"
             // move the sprite to its designated position
             const blurFilter1 = new PIXI.filters.BlurFilter();
             //  dialogBox.filters = [filter];
             // add it to the stage
             app.stage.addChild(dialogBox);
-            app.stage.setChildIndex(dialogBox, 1)
+            app.stage.sortChildren();
         }
 
 
+        function createText(text) {
+            const basicText = new PIXI.Text(text, style);
+            // create our little character friend..
+            basicText.x = textX;
+            basicText.y = textY;
+            // enable the dialogBox to be interactive... this will allow it to respond to mouse and touch events
+            basicText.interactive = true;
+            basicText.buttonMode = true;
+            // this button mode will mean the hand cursor appears when you roll over the basicText with your mouse
 
+            // center the basicText's anchor point
+            basicText.anchor.set(0.5);
+            // setup events for mouse + touch using
+            // the pointer events
+            basicText.zIndex = 300;
+            basicText.appType = "text"
+            basicText
+                .on('pointerdown', onDragStart)
+                .on('pointerup', onDragEnd)
+                .on('pointerupoutside', onDragEnd)
+                .on('pointermove', onDragMove);
+
+            app.stage.addChild(basicText);
+            textY += 300;
+        }
 
         function createCharacter(image) {
             const texture = PIXI.Texture.from(
@@ -357,6 +451,7 @@
             // make it a bit bigger, so it's easier to grab
             character.scale.set(0.3);
             character.zIndex = 0;
+            character.appType = "character"
             // setup events for mouse + touch using
             // the pointer events
             character
@@ -366,12 +461,13 @@
                 .on('pointermove', onDragMove);
 
             // move the sprite to its designated position
-            character.x = Math.floor(Math.random() * app.screen.width);
-            character.y = Math.floor(Math.random() * app.screen.height);
+            character.x = Math.floor(Math.random() * (app.screen.width * 0.7) + app.screen
+                .width * 0.15);
+            character.y = Math.floor(Math.random() * (app.screen.height * 0.40) + app.screen
+                .height * 0.2);
             app.stage.addChild(character);
 
         }
-
 
 
 
@@ -380,6 +476,39 @@
         //FILTER
         //      const blurFilter1 = new PIXI.filters.BlurFilter();
         // character.filters = [blurFilter1];
+
+        function bgEdit(mode) {
+            for (let index = app.stage.children.length - 1; index >= 0; index--) {
+                if (app.stage.children[index].appType == "background") {
+                    switch (mode) {
+                        case 'width':
+                            app.stage.children[index].width = app.screen.width
+                            app.stage.children[index].height = app.screen.width / app.stage.children[index].orig.width *
+                                app.stage.children[index].orig.height
+                            break;
+                        case 'height':
+                            app.stage.children[index].width = app.screen.height / app.stage.children[index].orig
+                                .height *
+                                app.stage.children[index].orig.width
+                            app.stage.children[index].height = app.screen.height
+                            break;
+                        case 'fill':
+                            app.stage.children[index].width = app.screen.width
+                            app.stage.children[index].height = app.screen.height
+                            break;
+                        case 'center':
+                            app.stage.children[index].width = app.stage.children[index].orig.width;
+                            app.stage.children[index].height = app.stage.children[index].orig.height;
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+
+            }
+        }
+
 
         function createBG(image) {
             const texture = PIXI.Texture.from(
@@ -390,11 +519,14 @@
             var filter = new PIXI.filters.AsciiFilter();
             background.interactive = true;
             background.anchor.set(0.5);
+            background.orig = texture.orig;
+            background.appType = "background"
             background.height = app.screen.height
             background.width = app.screen.width
             background.x = app.screen.width * .5
             background.y = app.screen.height * .5
             background.zIndex = -100;
+            console.log(background)
             app.stage.addChild(background);
         }
 
@@ -412,32 +544,42 @@
             this.dragging = false;
             // set the interaction data to null
             this.data = null;
-            if (this.__firstClick) {
-                //  console.log(e.currentTarget)
-                console.log('double click in 300ms detected, you can emit or call method related!');
-                // double and clone taget
-                //待整
-                if (shiftDown) {
-                    this.scale.x *= 0.75;
-                    this.scale.y *= 0.75;
-                }
-
-                if (!shiftDown) {
-                    this.scale.x *= 1.25;
-                    this.scale.y *= 1.25;
-                }
-                this.__firstClick = false;
-
-
-            }
             if (e.data.button === 0) {
-                this.__firstClick = true;
-                setTimeout(() => {
-                    this.__firstClick = false;
-                }, 300); // time for double click detection
+                if (this.__firstLeftClick) {
+                    // double and clone taget
+                    //待整
+                    if (shiftDown) {
+                        this.scale.x *= 0.75;
+                        this.scale.y *= 0.75;
+                    }
+
+                    if (!shiftDown) {
+                        this.scale.x *= 1.25;
+                        this.scale.y *= 1.25;
+                    }
+                    this.__firstLeftClick = false;
+                } else {
+                    this.__firstLeftClick = true;
+                    setTimeout(() => {
+                        this.__firstLeftClick = false;
+                    }, 300); // time for double click detection
+                }
             }
             if (e.data.button === 2) {
-                e.currentTarget.parent.removeChild(e.currentTarget);
+                if (this.__firstRightClick) {
+                    //  console.log(e.currentTarget)
+                    // double and clone taget
+                    //待整
+                    if (shiftDown) {
+                        e.currentTarget.parent.removeChild(e.currentTarget);
+                    }
+                    this.__firstRightClick = false;
+                } else {
+                    this.__firstRightClick = true;
+                    setTimeout(() => {
+                        this.__firstRightClick = false;
+                    }, 300); // time for double click detection
+                }
             }
         }
 
@@ -481,38 +623,20 @@
 
         function removeRoll() {
             for (let index = app.stage.children.length - 1; index >= 0; index--) {
-                if (app.stage.children[index].isDice)
+                if (app.stage.children[index].appType == "dice")
                     app.stage.removeChild(app.stage.children[index]);
 
             }
         }
 
         function roll(number) {
-            const style = new PIXI.TextStyle({
-                fontFamily: 'Arial',
-                fontSize: 36,
-                fontStyle: 'italic',
-                fontWeight: 'bold',
-                fill: ['#ffffff', '#00ff99'], // gradient
-                stroke: '#4a1850',
-                strokeThickness: 5,
-                dropShadow: true,
-                dropShadowColor: '#000000',
-                dropShadowBlur: 4,
-                dropShadowAngle: Math.PI / 6,
-                dropShadowDistance: 6,
-                wordWrap: true,
-                wordWrapWidth: 440,
-                lineJoin: 'round'
-            });
             const rollText = new PIXI.Text(number, style);
-
-            rollText.x = Math.floor(Math.random() * (app.screen.width * 0.85 - app.screen.width * 0.1) + app.screen
-                .width * 0.1);
-            rollText.y = Math.floor(Math.random() * (app.screen.height * 0.85 - app.screen.height * 0.1) + app.screen
-                .height * 0.1);
-            rollText.isDice = true;
+            rollText.x = Math.floor(Math.random() * (app.screen.width * 0.8) + app.screen
+                .width * 0.10);
+            rollText.y = Math.floor(Math.random() * (app.screen.height * 0.50) + app.screen
+                .height * 0.15);
             rollText.zIndex = 400;
+            rollText.appType = "dice"
             rollText.anchor.set(0.5);
             rollText.interactive = true; // 設定可以互動
             rollText.buttonMode = true; // 當滑鼠滑過時顯示為手指圖示
@@ -541,9 +665,9 @@
 
 </body>
 <!-- HKTRPG Sad -- 20201221-->
-<!--
-擲骰    -   可以進行最基本1D2 1D3…1D100，然後把結果像實骰一樣放上畫面。
-背景    -   更換背景圖片，可選根據濶度，高度等等，參考一些VIDEO PLAYER
+<!-- 
+擲骰    -   可以進行最基本1D2 1D3…1D100，然後把結果像實骰一樣放上畫面。   缺擲骰結果圖像
+背景    -   更換背景圖片，可選根據濶度，高度等等，參考一些VIDEO PLAYER    DONE
 角色    -   可以放上數張不同的角色圖，刪除，有反轉，DRAG及拉大縮少，改變顏色，灰化，黑化，模糊化等功能
 濾鏡    -   整個畫面的濾鏡
 特效    -   像一些! 笑 顏文字 雨 風 血 等等顯示在畫面
@@ -558,6 +682,8 @@
 https://www.html5gamedevs.com/topic/27159-make-a-context-menu-appear-upon-right-click-of-a-sprite/
 https://www.iwm-tuebingen.de/iwmbrowser/lib/pixi/popupmenu.html
 
+
+左鍵
 
 box2.zIndex = 100;
 app.stage.sortChildren();

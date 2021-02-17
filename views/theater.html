@@ -316,8 +316,8 @@
             lineJoin: 'round'
         });
 
-        var textX = 200;
-        var textY = 570;
+        var textX = 50;
+        var textY = 550;
 
         switchCard('#collapseRoll')
         const app = new PIXI.Application({
@@ -333,7 +333,7 @@
             'https://images.mihuashi.com/2017/10/26/03/mrantfdaxgbaycgueznm2dvbqmjrc6i3/mrantfdaxgbaycgueznm2dvbqmjrc6i3.jpg'
         );
         createDialogBox('https://i.imgur.com/maCqZFS.png');
-        createText('這是測試')
+        createText('這是測試，左鍵連點兩下是放大，加上Shift是縮小，Shift+右鍵兩下是刪除')
         app.stage.sortChildren();
 
 
@@ -445,7 +445,7 @@
             // this button mode will mean the hand cursor appears when you roll over the basicText with your mouse
 
             // center the basicText's anchor point
-            basicText.anchor.set(0.5);
+            //basicText.anchor.set(0.1);
             // setup events for mouse + touch using
             // the pointer events
             basicText.zIndex = 300;
@@ -566,12 +566,14 @@
         }
 
         function onDragStart(event) {
+            console.log(event)
             // store a reference to the data
             // the reason for this is because of multitouch
             // we want to track the movement of this particular touch
             this.data = event.data;
             this.alpha = 0.5;
             this.dragging = true;
+            this.updateAnchor =true;
         }
 
         function onDragEnd(e) {
@@ -675,6 +677,7 @@
             rollText.anchor.set(0.5);
             rollText.interactive = true; // 設定可以互動
             rollText.buttonMode = true; // 當滑鼠滑過時顯示為手指圖示
+            rollText.updateAnchor = true;
             rollText
                 .on('pointerdown', onDragStart)
                 .on('pointerup', onDragEnd)

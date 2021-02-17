@@ -254,13 +254,19 @@
                             CONVOLUTION
                             COLOROVERLAY
                         </ul>
-                        <div id="v-model-select-dynamic" class="demo">
-                            <select multiple>
+                        <v-select :options="options" label="title">
+                            <template slot="option" slot-scope="option">
+                                <img :src="option.cardImage" />
+                                {{ option.title }}
+                            </template>
+                        </v-select>
+                        https://vue-select.org/guide/slots.html
+                        <div id="v-model-select-dynamic" class="card p-2">
+                            <select multiple="multiple" name="states[]" class="js-example-basic-multiple">
                                 <option v-for="(item,index) in list">
-                                    {{ item.appType }}
+                                    {{ index }} {{ item.appType }}
                                 </option>
                             </select>
-
                         </div>
                         <div class="input-group">
                             <input type="text" class="form-control" placeholder="collapseEffect" />
@@ -492,8 +498,9 @@
             character.y = Math.floor(Math.random() * (app.screen.height * 0.40) + app.screen
                 .height * 0.2);
             app.stage.addChild(character);
-            if (selectList) selectList.updateList()
-
+            if (selectList) {
+                selectList.updateList()
+            }
         }
 
         function clearText() {
@@ -573,7 +580,7 @@
             this.data = event.data;
             this.alpha = 0.5;
             this.dragging = true;
-            this.updateAnchor =true;
+            this.updateAnchor = true;
         }
 
         function onDragEnd(e) {
@@ -627,7 +634,9 @@
                 this.y = newPosition.y;
             }
         }
-
+        $(document).ready(function () {
+            $('.js-example-basic-multiple').select2();
+        });
 
         function takeScreenshot() {
             wait = true;
@@ -706,6 +715,7 @@
                 return {
                     list: app.stage.children
                 }
+
             },
             methods: {
                 updateList: function () {
@@ -714,6 +724,9 @@
             }
         }).mount('#v-model-select-dynamic')
     </script>
+    <!-- Latest compiled and minified CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 
 </body>

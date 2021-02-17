@@ -109,7 +109,6 @@
                 <button class="btn btn-primary btn-lg" type="submit">
                     傳送到聊天平台
                 </button>
-
             </div>
 
             <div class="col-md-4 order-md-2 mb-4">
@@ -255,7 +254,14 @@
                             CONVOLUTION
                             COLOROVERLAY
                         </ul>
+                        <div id="v-model-select-dynamic" class="demo">
+                            <select multiple>
+                                <option v-for="(item,index) in list">
+                                    {{ item.appType }}
+                                </option>
+                            </select>
 
+                        </div>
                         <div class="input-group">
                             <input type="text" class="form-control" placeholder="collapseEffect" />
                             <div class="input-group-append">
@@ -294,7 +300,7 @@
     <script>
         const style = new PIXI.TextStyle({
             fontFamily: 'Arial',
-            fontSize: 40,
+            fontSize: 36,
             fontStyle: 'italic',
             fontWeight: 'bold',
             fill: ['#ffffff', '#00ff99'], // gradient
@@ -306,12 +312,12 @@
             dropShadowAngle: Math.PI / 6,
             dropShadowDistance: 6,
             wordWrap: true,
-            wordWrapWidth: 4403,
+            wordWrapWidth: 440,
             lineJoin: 'round'
         });
 
         var textX = 200;
-        var textY = 580;
+        var textY = 600;
 
         switchCard('#collapseRoll')
         const app = new PIXI.Application({
@@ -415,16 +421,10 @@
             // add it to the stage
             app.stage.addChild(dialogBox);
             app.stage.sortChildren();
+            if (selectList) selectList.updateList()
+
         }
 
-        function clearText() {
-            textY = 580;
-            for (let index = app.stage.children.length - 1; index >= 0; index--) {
-                if (app.stage.children[index].appType == "text")
-                    app.stage.removeChild(app.stage.children[index]);
-
-            }
-        }
 
         function createText(text) {
             text = document.getElementById("text").value || text;
@@ -449,8 +449,10 @@
                 .on('pointerup', onDragEnd)
                 .on('pointerupoutside', onDragEnd)
                 .on('pointermove', onDragMove);
+
             app.stage.addChild(basicText);
-            textY += 40;
+            if (selectList) selectList.updateList()
+            textY += 300;
         }
 
         function createCharacter(image) {
@@ -484,10 +486,18 @@
             character.y = Math.floor(Math.random() * (app.screen.height * 0.40) + app.screen
                 .height * 0.2);
             app.stage.addChild(character);
+            if (selectList) selectList.updateList()
 
         }
 
+        function clearText() {
+            textY = 580;
+            for (let index = app.stage.children.length - 1; index >= 0; index--) {
+                if (app.stage.children[index].appType == "text")
+                    app.stage.removeChild(app.stage.children[index]);
 
+            }
+        }
 
         //DONE
 
@@ -501,7 +511,8 @@
                     switch (mode) {
                         case 'width':
                             app.stage.children[index].width = app.screen.width
-                            app.stage.children[index].height = app.screen.width / app.stage.children[index].orig.width *
+                            app.stage.children[index].height = app.screen.width / app.stage.children[index].orig
+                                .width *
                                 app.stage.children[index].orig.height
                             break;
                         case 'height':
@@ -546,6 +557,7 @@
             background.zIndex = -100;
             console.log(background)
             app.stage.addChild(background);
+            if (selectList) selectList.updateList()
         }
 
         function onDragStart(event) {
@@ -664,6 +676,7 @@
                 .on('pointerupoutside', onDragEnd)
                 .on('pointermove', onDragMove);
             app.stage.addChild(rollText);
+            selectList.updateList()
         }
         //handdel right click
         document.addEventListener('contextmenu', e => {
@@ -678,6 +691,20 @@
             if (event.which === 16)
                 shiftDown = false;
         });
+
+
+        var selectList = Vue.createApp({
+            data() {
+                return {
+                    list: app.stage.children
+                }
+            },
+            methods: {
+                updateList: function () {
+                    this.list = Object.assign({}, this.list, app.stage.children)
+                }
+            }
+        }).mount('#v-model-select-dynamic')
     </script>
 
 

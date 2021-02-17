@@ -317,7 +317,7 @@
         });
 
         var textX = 200;
-        var textY = 600;
+        var textY = 570;
 
         switchCard('#collapseRoll')
         const app = new PIXI.Application({
@@ -425,6 +425,12 @@
 
         }
 
+        const node = document.getElementById("text");
+        node.addEventListener("keyup", function (event) {
+            if (event.key === "Enter") {
+                createText();
+            }
+        });
 
         function createText(text) {
             text = document.getElementById("text").value || text;
@@ -452,7 +458,7 @@
 
             app.stage.addChild(basicText);
             if (selectList) selectList.updateList()
-            textY += 300;
+            textY += 35;
         }
 
         function createCharacter(image) {
@@ -491,7 +497,7 @@
         }
 
         function clearText() {
-            textY = 580;
+            textY = 570;
             for (let index = app.stage.children.length - 1; index >= 0; index--) {
                 if (app.stage.children[index].appType == "text")
                     app.stage.removeChild(app.stage.children[index]);

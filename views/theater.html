@@ -197,19 +197,9 @@
                 <div class="collapse multi-collapse" id="collapseCharacter">
                     <div class="card p-2">
                         <ul class="list-group mb-3">
-                            預設圖 2-3張
                             <div class="dropzone" id="img-upload-character">
                             </div>
                         </ul>
-
-                        <div class="input-group">
-                            <input type="text" class="form-control" placeholder="collapseCharacter" />
-                            <div class="input-group-append">
-                                <button type="submit" class="btn btn-secondary">
-                                    collapseCharacter
-                                </button>
-                            </div>
-                        </div>
                     </div>
                 </div>
                 <div class="collapse multi-collapse" id="collapseDialogBox">
@@ -232,6 +222,87 @@
                 </div>
                 <div class="collapse multi-collapse" id="collapseFilter">
                     <div class="card p-2">
+                        <div class="input-group-append">
+                            <button type="submit" class="btn btn-secondary" onclick="filterON()">
+                                套用濾鏡
+                            </button>
+                            <button type="submit" class="btn btn-secondary" onclick="clearFilter()">
+                                移除濾鏡
+                            </button>
+                        </div>
+                        <div class="card p-2">
+                            <select multiple="multiple" name="states[]" id="v-model-select-dynamic"
+                                class="js-example-basic-multiple" v-model="select">
+                                <option v-for="(item,index) in list" v-bind:value="index">
+                                    {{ index }} {{ item.appType }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="filterCheck01">
+                            <label class="form-check-label" for="filterCheck01">
+                                blurFilter
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="filterCheck02">
+                            <label class="form-check-label" for="filterCheck02">
+                                AsciiFilter
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="filterCheck03">
+                            <label class="form-check-label" for="filterCheck03">
+                                BulgePinchFilter
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="filterCheck04">
+                            <label class="form-check-label" for="filterCheck04">
+                                ColorReplaceFilter
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="filterCheck05">
+                            <label class="form-check-label" for="filterCheck05">
+                                DotFilter
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="filterCheck06">
+                            <label class="form-check-label" for="filterCheck06">
+                                NoiseFilter
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="filterCheck07">
+                            <label class="form-check-label" for="filterCheck07">
+                                CRTFilter
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="filterCheck08">
+                            <label class="form-check-label" for="filterCheck08">
+                                ConvolutionFilter
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="filterCheck09">
+                            <label class="form-check-label" for="filterCheck09">
+                                ColorOverlayFilter
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="filterCheck10">
+                            <label class="form-check-label" for="filterCheck10">
+                                取消勾選
+                            </label>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="collapse multi-collapse" id="collapseEffect">
+                    <div class="card p-2">
                         <div class="input-group">
                             <input type="text" class="form-control" placeholder="collapseFilter" />
                             <div class="input-group-append">
@@ -244,35 +315,11 @@
                 </div>
                 <div class="collapse multi-collapse" id="collapseEffect">
                     <div class="card p-2">
-                        <ul class="list-group mb-3">
-                            黑白，AsciiFilter，blurFilter BLUGEPINCH
-                            COLORMAP
-                            COLORREPLACE
-                            DOT FILTER
-                            NOISE FILTER
-                            CRT
-                            CONVOLUTION
-                            COLOROVERLAY
-                        </ul>
-                        <v-select :options="options" label="title">
-                            <template slot="option" slot-scope="option">
-                                <img :src="option.cardImage" />
-                                {{ option.title }}
-                            </template>
-                        </v-select>
-                        https://vue-select.org/guide/slots.html
-                        <div id="v-model-select-dynamic" class="card p-2">
-                            <select multiple="multiple" name="states[]" class="js-example-basic-multiple">
-                                <option v-for="(item,index) in list">
-                                    {{ index }} {{ item.appType }}
-                                </option>
-                            </select>
-                        </div>
                         <div class="input-group">
-                            <input type="text" class="form-control" placeholder="collapseEffect" />
+                            <input type="text" class="form-control" placeholder="collapseFilter" />
                             <div class="input-group-append">
                                 <button type="submit" class="btn btn-secondary">
-                                    collapseEffect
+                                    collapseFilter
                                 </button>
                             </div>
                         </div>
@@ -317,9 +364,8 @@
             dropShadowBlur: 4,
             dropShadowAngle: Math.PI / 6,
             dropShadowDistance: 6,
-            wordWrap: true,
-            wordWrapWidth: 440,
-            lineJoin: 'round'
+            lineJoin: 'round',
+
         });
 
         var textX = 50;
@@ -394,6 +440,17 @@
 
         //PIXI START
 
+        function filterON() {
+            //$('input[name^="complete"]:checked').length;
+            // character.filters = [blurFilter1];
+            var x = document.getElementsByClassName("form-check-input");
+            var num = $('#v-model-select-dynamic option:selected');
+            var filterSelected = $('.form-check-input checkbox:checked');
+            console.log(filterSelected)
+            for (let index = 0; index < num.length; index++) {
+                app.stage.children[num[index].value].filters = []
+            }
+        }
 
         function createDialogBox(image) {
             const texture = PIXI.Texture.from(
@@ -402,7 +459,6 @@
 
             // create our little character friend..
             const dialogBox = new PIXI.Sprite(texture);
-            var filter = new PIXI.filters.AsciiFilter();
             // enable the dialogBox to be interactive... this will allow it to respond to mouse and touch events
             dialogBox.interactive = true;
 
@@ -422,7 +478,7 @@
             dialogBox.zIndex = 200;
             dialogBox.appType = "dialogBox"
             // move the sprite to its designated position
-            const blurFilter1 = new PIXI.filters.BlurFilter();
+
             //  dialogBox.filters = [filter];
             // add it to the stage
             app.stage.addChild(dialogBox);
@@ -510,13 +566,13 @@
                     app.stage.removeChild(app.stage.children[index]);
 
             }
+            selectList.updateList()
+
         }
 
         //DONE
 
-        //FILTER
-        //      const blurFilter1 = new PIXI.filters.BlurFilter();
-        // character.filters = [blurFilter1];
+
 
         function bgEdit(mode) {
             for (let index = app.stage.children.length - 1; index >= 0; index--) {
@@ -573,7 +629,6 @@
         }
 
         function onDragStart(event) {
-            console.log(event)
             // store a reference to the data
             // the reason for this is because of multitouch
             // we want to track the movement of this particular touch
@@ -616,6 +671,7 @@
                     //待整
                     if (shiftDown) {
                         e.currentTarget.parent.removeChild(e.currentTarget);
+                        selectList.updateList()
                     }
                     this.__firstRightClick = false;
                 } else {
@@ -635,7 +691,11 @@
             }
         }
         $(document).ready(function () {
-            $('.js-example-basic-multiple').select2();
+            $('.js-example-basic-multiple').select2({
+                closeOnSelect: false,
+                placeholder: '選取目標圖層',
+                allowClear: true,
+            });
         });
 
         function takeScreenshot() {
@@ -673,12 +733,13 @@
                     app.stage.removeChild(app.stage.children[index]);
 
             }
+            selectList.updateList()
         }
 
         function roll(number) {
             const rollText = new PIXI.Text(number, style);
-            rollText.x = Math.floor(Math.random() * (app.screen.width * 0.8) + app.screen
-                .width * 0.10);
+            rollText.x = Math.floor(Math.random() * (app.screen
+                .width * 0.8) + app.screen.width * 0.10);
             rollText.y = Math.floor(Math.random() * (app.screen.height * 0.50) + app.screen
                 .height * 0.15);
             rollText.zIndex = 400;
@@ -713,16 +774,27 @@
         var selectList = Vue.createApp({
             data() {
                 return {
-                    list: app.stage.children
+                    list: app.stage.children,
+                    value: ''
                 }
 
             },
             methods: {
                 updateList: function () {
-                    this.list = Object.assign({}, this.list, app.stage.children)
+                    this.list = Object.assign({}, app.stage.children)
                 }
             }
         }).mount('#v-model-select-dynamic')
+        const blurFilter = new PIXI.filters.BlurFilter();
+        const AsciiFilter = new PIXI.filters.AsciiFilter();
+        const BulgePinchFilter = new PIXI.filters.BulgePinchFilter();
+        const ColorReplaceFilter = new PIXI.filters.ColorReplaceFilter();
+        const DotFilter = new PIXI.filters.DotFilter();
+        const NoiseFilter = new PIXI.filters.NoiseFilter();
+        const CRTFilter = new PIXI.filters.CRTFilter();
+        const ConvolutionFilter = new PIXI.filters.ConvolutionFilter();
+        const ColorOverlayFilter = new PIXI.filters.ColorOverlayFilter();
+        //      
     </script>
     <!-- Latest compiled and minified CSS -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />

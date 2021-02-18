@@ -351,6 +351,8 @@
     </script>
 
     <script>
+        let spriteMouseLocationOffsetX = 0;
+        let spriteMouseLocationOffsetY = 0;
         const style = new PIXI.TextStyle({
             fontFamily: 'Arial',
             fontSize: 36,
@@ -635,7 +637,11 @@
             this.data = event.data;
             this.alpha = 0.5;
             this.dragging = true;
-            this.updateAnchor = true;
+            // get the mouse coursor location within the window
+            const appCursorLocation = this.data.getLocalPosition(this.parent);
+            // calculate the offset with the app cursor location - sprite location
+            spriteMouseLocationOffsetX = appCursorLocation.x - this.x
+            spriteMouseLocationOffsetY = appCursorLocation.y - this.y
         }
 
         function onDragEnd(e) {
@@ -663,6 +669,7 @@
                         this.__firstLeftClick = false;
                     }, 300); // time for double click detection
                 }
+
             }
             if (e.data.button === 2) {
                 if (this.__firstRightClick) {
@@ -681,13 +688,15 @@
                     }, 300); // time for double click detection
                 }
             }
+            spriteMouseLocationOffsetX = 0;
+            spriteMouseLocationOffsetY = 0;
         }
 
         function onDragMove() {
             if (this.dragging) {
                 const newPosition = this.data.getLocalPosition(this.parent);
-                this.x = newPosition.x;
-                this.y = newPosition.y;
+                this.x = newPosition.x - spriteMouseLocationOffsetX;
+                this.y = newPosition.y - spriteMouseLocationOffsetY;
             }
         }
         $(document).ready(function () {

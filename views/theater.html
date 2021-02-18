@@ -239,61 +239,76 @@
                             </select>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="filterCheck01">
+                            <input class="form-check-input" type="checkbox" value="blurFilter" id="filterCheck01">
                             <label class="form-check-label" for="filterCheck01">
                                 blurFilter
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="filterCheck02">
+                            <input class="form-check-input" type="checkbox" value="AsciiFilter" id="filterCheck02">
                             <label class="form-check-label" for="filterCheck02">
                                 AsciiFilter
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="filterCheck03">
+                            <input class="form-check-input" type="checkbox" value="BulgePinchFilter" id="filterCheck03">
                             <label class="form-check-label" for="filterCheck03">
                                 BulgePinchFilter
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="filterCheck04">
+                            <input class="form-check-input" type="checkbox" value="ColorReplaceFilter"
+                                id="filterCheck04">
                             <label class="form-check-label" for="filterCheck04">
                                 ColorReplaceFilter
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="filterCheck05">
+                            <input class="form-check-input" type="checkbox" value="DotFilter" id="filterCheck05">
                             <label class="form-check-label" for="filterCheck05">
                                 DotFilter
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="filterCheck06">
+                            <input class="form-check-input" type="checkbox" value="NoiseFilter" id="filterCheck06">
                             <label class="form-check-label" for="filterCheck06">
                                 NoiseFilter
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="filterCheck07">
+                            <input class="form-check-input" type="checkbox" value="CRTFilter" id="filterCheck07">
                             <label class="form-check-label" for="filterCheck07">
                                 CRTFilter
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="filterCheck08">
+                            <input class="form-check-input" type="checkbox" value="ConvolutionFilter"
+                                id="filterCheck08">
                             <label class="form-check-label" for="filterCheck08">
                                 ConvolutionFilter
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="filterCheck09">
+                            <input class="form-check-input" type="checkbox" value="ColorOverlayFilter"
+                                id="filterCheck09">
                             <label class="form-check-label" for="filterCheck09">
                                 ColorOverlayFilter
                             </label>
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" value="" id="filterCheck10">
+                            <label class="form-check-label" for="filterCheck10">
+                                鏡像反轉
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="filterCheck11">
+                            <label class="form-check-label" for="filterCheck11">
+                                上下反轉
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" onclick="unclickAll()">
                             <label class="form-check-label" for="filterCheck10">
                                 取消勾選
                             </label>
@@ -442,15 +457,31 @@
 
         //PIXI START
 
+        function unclickAll() {
+            var filterSelected = $('.form-check-input:checkbox:checked');
+            for (let index = 0; index < filterSelected.length; index++) {
+                filterSelected[index].checked = false;
+            }
+        }
+
         function filterON() {
             //$('input[name^="complete"]:checked').length;
-            // character.filters = [blurFilter1];
-            var x = document.getElementsByClassName("form-check-input");
+            // character.filters = [blurFilter];
             var num = $('#v-model-select-dynamic option:selected');
-            var filterSelected = $('.form-check-input checkbox:checked');
-            console.log(filterSelected)
+            var filterSelected = $('.form-check-input:checkbox:checked');
+            var filters = []
+            for (let index = 0; index < filterSelected.length; index++) {
+                if (filterSelected[index].value)
+                    filters.push(eval(filterSelected[index].value))
+            }
             for (let index = 0; index < num.length; index++) {
-                app.stage.children[num[index].value].filters = []
+                app.stage.children[num[index].value].filters = filters
+            }
+        }
+
+        function clearFilter() {
+            for (let index = 0; index < app.stage.children.length; index++) {
+                app.stage.children[index].filters = []
             }
         }
 

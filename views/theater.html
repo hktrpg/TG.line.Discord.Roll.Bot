@@ -261,7 +261,6 @@
                             </div>
                         </div>
                         <div class="accordion" id="accordionExample">
-
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" value="AsciiFilter" id="filterCheck02"
                                     data-toggle="collapse" data-target="#collapse02" aria-expanded="false"
@@ -589,6 +588,15 @@
             for (let index = 0; index < filterSelected.length; index++) {
                 filterSelected[index].checked = false;
             }
+            $('#collapse01').collapse('hide')
+            $('#collapse02').collapse('hide')
+            $('#collapse03').collapse('hide')
+            $('#collapse04').collapse('hide')
+            $('#collapse05').collapse('hide')
+            $('#collapse06').collapse('hide')
+            $('#collapse07').collapse('hide')
+            $('#collapse08').collapse('hide')
+            $('#collapse09').collapse('hide')
         }
 
         function selectAll() {
@@ -958,15 +966,14 @@
             },
             methods: {
                 updateList: function () {
-                    $('#v-model-select-dynamic').select2('destroy').find('option').prop('',
-                        'selected').end().select2({
+                    this.list = Object.assign({}, app.stage.children)
+                    $('#v-model-select-dynamic').select2('destroy').find('option').prop('selected',
+                        false).end().select2({
                         closeOnSelect: false,
                         placeholder: '選取目標圖層',
                         allowClear: true,
                         scrollAfterSelect: true
                     });
-                    this.list = Object.assign({}, app.stage.children)
-
                 }
             }
         }).mount('#v-model-select-dynamic')

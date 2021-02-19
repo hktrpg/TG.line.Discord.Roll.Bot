@@ -229,6 +229,9 @@
                             <button type="submit" class="btn btn-secondary" onclick="clearFilter()">
                                 移除濾鏡
                             </button>
+                            <button type="submit" class="btn btn-secondary" onclick="selectAll()">
+                                選取全部圖層
+                            </button>
                         </div>
                         <div class="card p-2">
                             <select multiple="multiple" name="states[]" id="v-model-select-dynamic"
@@ -238,63 +241,175 @@
                                 </option>
                             </select>
                         </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="blurFilter" id="filterCheck01">
-                            <label class="form-check-label" for="filterCheck01">
-                                blurFilter
-                            </label>
+                        <div class="accordion" id="accordionExample">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="blurFilter" id="filterCheck01"
+                                    data-toggle="collapse" data-target="#collapseThree" aria-expanded="false"
+                                    aria-controls="collapseThree">
+                                <label class="form-check-label" for="filterCheck01">
+                                    模糊 blurFilter
+                                </label>
+                            </div>
+                            <div id="collapseThree" class="collapse" aria-labelledby="headingThree"
+                                data-parent="#accordionExample">
+                                <div class="card-body">
+                                    And lastly, the placeholder content for the third and final accordion panel.
+                                    This panel
+                                    is hidden by default.
+                                </div>
+
+                            </div>
                         </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="AsciiFilter" id="filterCheck02">
-                            <label class="form-check-label" for="filterCheck02">
-                                AsciiFilter
-                            </label>
+                        <div class="accordion" id="accordionExample">
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="AsciiFilter" id="filterCheck02">
+                                <label class="form-check-label" for="filterCheck02">
+                                    文字化 AsciiFilter
+                                </label>
+                            </div>
+                            <div id="collapseThree" class="collapse" aria-labelledby="headingThree"
+                                data-parent="#accordionExample">
+                                <div class="card-body">
+                                    And lastly, the placeholder content for the third and final accordion panel.
+                                    This panel
+                                    is hidden by default.
+                                </div>
+
+                            </div>
                         </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="BulgePinchFilter" id="filterCheck03">
-                            <label class="form-check-label" for="filterCheck03">
-                                BulgePinchFilter
-                            </label>
+                        <div class="accordion" id="accordionExample">
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="BulgePinchFilter"
+                                    id="filterCheck03">
+                                <label class="form-check-label" for="filterCheck03">
+                                    魚眼 BulgePinchFilter
+                                </label>
+                            </div>
+                            <div id="collapseThree" class="collapse" aria-labelledby="headingThree"
+                                data-parent="#accordionExample">
+                                <div class="card-body">
+                                    And lastly, the placeholder content for the third and final accordion panel.
+                                    This panel
+                                    is hidden by default.
+                                </div>
+
+                            </div>
                         </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="ColorReplaceFilter"
-                                id="filterCheck04">
-                            <label class="form-check-label" for="filterCheck04">
-                                ColorReplaceFilter
-                            </label>
+                        <div class="accordion" id="accordionExample">
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="ColorReplaceFilter"
+                                    id="filterCheck04">
+                                <label class="form-check-label" for="filterCheck04">
+                                    ColorReplaceFilter
+                                </label>
+                            </div>
+                            <div id="collapseThree" class="collapse" aria-labelledby="headingThree"
+                                data-parent="#accordionExample">
+                                <div class="card-body">
+                                    And lastly, the placeholder content for the third and final accordion panel.
+                                    This panel
+                                    is hidden by default.
+                                </div>
+
+                            </div>
                         </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="DotFilter" id="filterCheck05">
-                            <label class="form-check-label" for="filterCheck05">
-                                DotFilter
-                            </label>
+                        <div class="accordion" id="accordionExample">
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="DotFilter" id="filterCheck05">
+                                <label class="form-check-label" for="filterCheck05">
+                                    點化 DotFilter
+                                </label>
+                            </div>
+                            <div id="collapseThree" class="collapse" aria-labelledby="headingThree"
+                                data-parent="#accordionExample">
+                                <div class="card-body">
+                                    And lastly, the placeholder content for the third and final accordion panel.
+                                    This panel
+                                    is hidden by default.
+                                </div>
+
+                            </div>
                         </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="NoiseFilter" id="filterCheck06">
-                            <label class="form-check-label" for="filterCheck06">
-                                NoiseFilter
-                            </label>
+                        <div class="accordion" id="accordionExample">
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="NoiseFilter" id="filterCheck06">
+                                <label class="form-check-label" for="filterCheck06">
+                                    加噪 NoiseFilter
+                                </label>
+                            </div>
+                            <div id="collapseThree" class="collapse" aria-labelledby="headingThree"
+                                data-parent="#accordionExample">
+                                <div class="card-body">
+                                    And lastly, the placeholder content for the third and final accordion panel.
+                                    This panel
+                                    is hidden by default.
+                                </div>
+
+                            </div>
                         </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="CRTFilter" id="filterCheck07">
-                            <label class="form-check-label" for="filterCheck07">
-                                CRTFilter
-                            </label>
+                        <div class="accordion" id="accordionExample">
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="CRTFilter" id="filterCheck07">
+                                <label class="form-check-label" for="filterCheck07">
+                                    CRT化
+                                </label>
+                            </div>
+                            <div id="collapseThree" class="collapse" aria-labelledby="headingThree"
+                                data-parent="#accordionExample">
+                                <div class="card-body">
+                                    And lastly, the placeholder content for the third and final accordion panel.
+                                    This panel
+                                    is hidden by default.
+                                </div>
+
+                            </div>
                         </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="ConvolutionFilter"
-                                id="filterCheck08">
-                            <label class="form-check-label" for="filterCheck08">
-                                ConvolutionFilter
-                            </label>
+                        <div class="accordion" id="accordionExample">
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="ConvolutionFilter"
+                                    id="filterCheck08">
+                                <label class="form-check-label" for="filterCheck08">
+                                    摺積 ConvolutionFilter
+                                </label>
+                            </div>
+                            <div id="collapseThree" class="collapse" aria-labelledby="headingThree"
+                                data-parent="#accordionExample">
+                                <div class="card-body">
+                                    And lastly, the placeholder content for the third and final accordion panel.
+                                    This panel
+                                    is hidden by default.
+                                </div>
+
+                            </div>
                         </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="ColorOverlayFilter"
-                                id="filterCheck09">
-                            <label class="form-check-label" for="filterCheck09">
-                                ColorOverlayFilter
-                            </label>
+                        <div class="accordion" id="accordionExample">
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="ColorOverlayFilter"
+                                    id="filterCheck09">
+                                <label class="form-check-label" for="filterCheck09">
+                                    顏色疊加 ColorOverlayFilter
+                                </label>
+                            </div>
+                            <div id="collapseThree" class="collapse" aria-labelledby="headingThree"
+                                data-parent="#accordionExample">
+                                <div class="card-body">
+                                    And lastly, the placeholder content for the third and final accordion panel.
+                                    This panel
+                                    is hidden by default.
+                                </div>
+
+                            </div>
                         </div>
+
+
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" value="" id="filterCheck10">
                             <label class="form-check-label" for="filterCheck10">
@@ -462,6 +577,15 @@
             for (let index = 0; index < filterSelected.length; index++) {
                 filterSelected[index].checked = false;
             }
+        }
+
+        function selectAll() {
+            $('#v-model-select-dynamic').select2('destroy').find('option').prop('selected', 'selected').end().select2({
+                closeOnSelect: false,
+                placeholder: '選取目標圖層',
+                allowClear: true,
+                scrollAfterSelect: true
+            });
         }
 
         function filterON() {
@@ -735,6 +859,7 @@
                 closeOnSelect: false,
                 placeholder: '選取目標圖層',
                 allowClear: true,
+                scrollAfterSelect: true
             });
         });
 

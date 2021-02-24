@@ -430,13 +430,13 @@
 
 
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="filterCheck10">
+                            <input class="form-check-input" type="checkbox" value="mirror" id="filterCheck10">
                             <label class="form-check-label" for="filterCheck10">
                                 鏡像反轉
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="filterCheck11">
+                            <input class="form-check-input" type="checkbox" value="mirrorUpDown" id="filterCheck11">
                             <label class="form-check-label" for="filterCheck11">
                                 上下反轉
                             </label>
@@ -537,6 +537,7 @@
         );
         createDialogBox('https://i.imgur.com/maCqZFS.png');
         createText('這是測試，左鍵連點兩下是放大，加上Shift是縮小，Shift+右鍵兩下是刪除')
+        createText('右鍵兩下是zIndex+1, 即圖層高一級')
         app.stage.sortChildren();
 
 
@@ -622,18 +623,42 @@
             var num = $('#v-model-select-dynamic option:selected');
             var filterSelected = $('.form-check-input:checkbox:checked');
             var filters = []
+            var mirror = false;
+            var mirrorUpDown = false;
             for (let index = 0; index < filterSelected.length; index++) {
-                if (filterSelected[index].value)
+                if (filterSelected[index].value) {
+                    if (filterSelected[index].value == "mirror" || filterSelected[index].value == "mirrorUpDown") {
+                        if (filterSelected[index].value == "mirror") {
+                            mirror = true;
+                        }
+                        if (filterSelected[index].value == "mirrorUpDown") {
+                            mirrorUpDown = true;
+                        }
+                        continue;
+                    }
                     filters.push(eval(filterSelected[index].value))
+                }
             }
             for (let index = 0; index < num.length; index++) {
-                app.stage.children[num[index].value].filters = filters
+                app.stage.children[num[index].value].filters = filters;
+                if (mirrorUpDown) {
+                    app.stage.children[num[index].value].scale.y *= -1;
+                }
+                if (mirror) {
+                    app.stage.children[num[index].value].scale.x *= -1;
+                }
             }
         }
 
         function clearFilter() {
             for (let index = 0; index < app.stage.children.length; index++) {
                 app.stage.children[index].filters = []
+                if (app.stage.children[index].scale.y < 0) {
+                    app.stage.children[index].scale.y *= -1;
+                }
+                if (app.stage.children[index].scale.x < 0) {
+                    app.stage.children[index].scale.x *= -1;
+                }
             }
         }
 
@@ -692,7 +717,7 @@
             // this button mode will mean the hand cursor appears when you roll over the basicText with your mouse
 
             // center the basicText's anchor point
-            //basicText.anchor.set(0.1);
+            basicText.anchor.set(0);
             // setup events for mouse + touch using
             // the pointer events
             basicText.zIndex = 300;
@@ -859,6 +884,12 @@
                     //  console.log(e.currentTarget)
                     // double and clone taget
                     //待整
+                    if (!shiftDown) {
+                        //CLONE 或 向前?
+                        // zIndex
+                        e.currentTarget.zIndex++;
+                        app.stage.sortChildren();
+                    }
                     if (shiftDown) {
                         e.currentTarget.parent.removeChild(e.currentTarget);
                         selectList.updateList()

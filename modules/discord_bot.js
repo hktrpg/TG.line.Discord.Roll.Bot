@@ -50,8 +50,8 @@ var connect = function () {
 };
 
 client.once('ready', async () => {
-
-	connect();
+	if (process.env.BROADCAST)
+		connect();
 });
 
 async function count() {

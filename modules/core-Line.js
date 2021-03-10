@@ -361,15 +361,23 @@ async function nonDice(event) {
 		displayname = '';
 	if (!roomorgroupid || !userid) return;
 	client.getProfile(userid).then(async function (profile) {
-		//	在GP 而有加好友的話,得到名字
-		displayname = profile.displayName;
-		//console.log(displayname)
-		let LevelUp = await EXPUP(roomorgroupid, userid, displayname, "", null);
-		await courtMessage("", "Line", "")
-		if (roomorgroupid && LevelUp) {
-			return await this.replyMessagebyReplyToken(roomorgroupid, LevelUp);
-		}
-	})
+			//	在GP 而有加好友的話,得到名字
+			displayname = profile.displayName;
+			//console.log(displayname)
+			let LevelUp = await EXPUP(roomorgroupid, userid, displayname, "", null);
+			await courtMessage("", "Line", "")
+			if (roomorgroupid && LevelUp) {
+				return await this.replyMessagebyReplyToken(roomorgroupid, LevelUp);
+			}
+		},
+		async function () {
+			let LevelUp = await EXPUP(roomorgroupid, userid, displayname, "", null);
+			await courtMessage("", "Line", "")
+			if (roomorgroupid && LevelUp) {
+				return await this.replyMessagebyReplyToken(roomorgroupid, LevelUp);
+			}
+			//如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
+		})
 	return null;
 }
 module.exports = {

@@ -48,7 +48,9 @@ process.on("Line", message => {
 })
 
 var handleEvent = async function (event) {
-	let target = await exports.analytics.findRollList(event.message.text.match(msgSplitor));
+
+	let target = '';
+	if (event.message && event.message.text) target = await exports.analytics.findRollList(event.message.text.match(msgSplitor));
 	if (!target) {
 		await nonDice(event)
 		return null

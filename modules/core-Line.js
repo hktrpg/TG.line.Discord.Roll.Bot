@@ -48,14 +48,14 @@ process.on("Line", message => {
 })
 
 var handleEvent = async function (event) {
-	//event {"type":"message","replyToken":"232132133","source":{"userId":"U1a17e51fSDADASD0293d","groupId":"C6432427423847234cd3","type":"group"},"timestamp":323232323,"message":{"type":"text","id":"232131233123","text":"5!@@!"}}
-
 	let target = await exports.analytics.findRollList(event.message.text.match(msgSplitor));
-	if (!target) return null;
+	if (!target) {
+		await nonDice(event)
+		return null
+	}
 	let roomorgroupid = event.source.groupId || event.source.roomId || '',
 		userid = event.source.userId || '',
 		displayname = '',
-		membercount = null,
 		titleName = '';
 	let TargetGMTempID = [];
 	let TargetGMTempdiyName = [];
@@ -82,7 +82,7 @@ var handleEvent = async function (event) {
 			} else
 				// ignore non-text-message event
 				if (roomorgroupid && userid) {
-					await EXPUP(roomorgroupid, userid, displayname, "", membercount);
+					await EXPUP(roomorgroupid, userid, displayname, "", null);
 					await courtMessage("", "Line", "")
 				}
 			return Promise.resolve(null);
@@ -353,7 +353,23 @@ async function privateMsgFinder(channelid) {
 		return groupInfo.trpgDarkRollingfunction
 	else return [];
 }
-
+async function nonDice(event) {
+	let roomorgroupid = event.source.groupId || event.source.roomId || '',
+		userid = event.source.userId || '',
+		displayname = '';
+	if (!roomorgroupid || !userid) return;
+	client.getProfile(userid).then(async function (profile) {
+		//	在GP 而有加好友的話,得到名字
+		displayname = profile.displayName;
+		//console.log(displayname)
+		let LevelUp = await EXPUP(roomorgroupid, userid, displayname, "", null);
+		await courtMessage("", "Line", "")
+		if (roomorgroupid && LevelUp) {
+			return await this.replyMessagebyReplyToken(roomorgroupid, LevelUp);
+		}
+	})
+	return null;
+}
 module.exports = {
 	app,
 	express

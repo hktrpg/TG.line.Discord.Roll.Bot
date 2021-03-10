@@ -30,7 +30,6 @@ TGclient.on('text', async (ctx) => {
 	if (ctx.message.from.is_bot) return;
 	let target = await exports.analytics.findRollList(ctx.message.text.match(msgSplitor));
 	if (!target) {
-		console.log('nonDice')
 		await nonDice(ctx);
 		return;
 	}
@@ -283,7 +282,7 @@ async function nonDice(ctx) {
 		if (ctx.chat && ctx.chat.id) {
 			membercount = await ctx.getChatMembersCount(ctx.chat.id);
 		}
-		let LevelUp = EXPUP(groupid, userid, displayname, "", membercount);
+		let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount);
 		await courtMessage("", "Telegram", "")
 		if (groupid && LevelUp) {
 			//	console.log('result.LevelUp 2:', rplyVal.LevelUp)

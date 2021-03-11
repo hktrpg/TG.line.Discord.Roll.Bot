@@ -28,20 +28,53 @@ TGclient.catch((err) => {
 //TGclient.use(telegrafGetChatMembers)
 TGclient.on('text', async (ctx) => {
 	if (ctx.message.from.is_bot) return;
-	let target = await exports.analytics.findRollList(ctx.message.text.match(msgSplitor));
+	let inputStr = ctx.message.text;
+	let trigger = "",
+		mainMsg = "",
+		userid = "";
+	if (ctx.message.from.id) userid = ctx.message.from.id;
+	if (inputStr) {
+		if (ctx.botInfo && ctx.botInfo.username && inputStr.match(/^[/]/))
+			inputStr = inputStr
+			.replace(new RegExp('@' + ctx.botInfo.username + '$', 'i'), '')
+			.replace(new RegExp('^/', 'i'), '');
+		mainMsg = inputStr.match(msgSplitor); // 定義輸入字串
+	}
+	if (mainMsg && mainMsg[0]) {
+		trigger = mainMsg[0].toString().toLowerCase();
+	}
+	//指定啟動詞在第一個詞&把大階強制轉成細階
+	if (trigger == ".me") {
+		inputStr = inputStr.replace(/^.me\s+/i, '');
+		ctx.reply(inputStr);
+		return;
+	}
+	let privatemsg = 0;
+
+	function privateMsg() {
+		if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
+			privatemsg = 1;
+			inputStr = inputStr.replace(/^dr\s+/i, '');
+		}
+		if (trigger.match(/^ddr$/i) && mainMsg && mainMsg[1]) {
+			privatemsg = 2;
+			inputStr = inputStr.replace(/^ddr\s+/i, '');
+		}
+		if (trigger.match(/^dddr$/i) && mainMsg && mainMsg[1]) {
+			privatemsg = 3;
+			inputStr = inputStr.replace(/^dddr\s+/i, '');
+		}
+	}
+	privateMsg();
+	let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
 	if (!target) {
 		await nonDice(ctx);
 		return;
 	}
-	//console.log(ctx.getChatMembers(ctx.chat.id) //[Members]
-	//	ctx.getChatMembers() //[Members]
-	//	telegrafGetChatMembers.check(ctx.chat.id) //[Members]
-	//	telegrafGetChatMembers.all //[Chats]
 
 
-	let groupid = '',
-		userid = '',
-		displayname = '',
+	let groupid = ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) ? ctx.message.chat.id : '';
+	let displayname = '',
 		channelid = '',
 		membercount = 0,
 		titleName = '';
@@ -64,7 +97,6 @@ TGclient.on('text', async (ctx) => {
 		titleName = ctx.message.chat.title
 	if (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') {
 		let memberData = await telegrafGetChatMembers.check(ctx.chat.id);
-		groupid = ctx.message.chat.id;
 		if (ctx.chat && ctx.chat.id)
 			if ((memberData && memberData[0] && memberData[0].status == ("creator" || "administrator")) || ctx.message.chat.all_members_are_administrators == true) {
 				userrole = 3;
@@ -72,42 +104,12 @@ TGclient.on('text', async (ctx) => {
 				//console.log(telegrafGetChatMembers.check(ctx.chat.id))
 			}
 	}
-	if (ctx.message.from.id) userid = ctx.message.from.id;
 	//285083923223
 	//userrole = 3
-	let inputStr = ctx.message.text;
 	let rplyVal = {};
-	let trigger = "";
-	if (inputStr && ctx.message.from.is_bot == false) {
-		if (ctx.botInfo && ctx.botInfo.username && inputStr.match(/^[/]/))
-			inputStr = inputStr
-			.replace(new RegExp('@' + ctx.botInfo.username + '$', 'i'), '')
-			.replace(new RegExp('^/', 'i'), '');
-		var mainMsg = inputStr.match(msgSplitor); // 定義輸入字串
 
-	}
-	if (mainMsg && mainMsg[0])
-		trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
-	if (trigger == ".me") {
-		displaynamecheck = false;
-	}
 	// 訊息來到後, 會自動跳到analytics.js進行骰組分析
 	// 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
-
-	let privatemsg = 0
-	//設定私訊的模式 0-普通 1-自己 2-自己+GM 3-GM
-	if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
-		privatemsg = 1;
-		inputStr = inputStr.replace(/^[d][r][ ]/i, '');
-	}
-	if (trigger.match(/^ddr$/i) && mainMsg && mainMsg[1]) {
-		privatemsg = 2;
-		inputStr = inputStr.replace(/^[d][d][r][ ]/i, '');
-	}
-	if (trigger.match(/^dddr$/i) && mainMsg && mainMsg[1]) {
-		privatemsg = 3;
-		inputStr = inputStr.replace(/^[d][d][d][r][ ]/i, '');
-	}
 	if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 		mainMsg.shift();
 		rplyVal = await exports.analytics.parseInput({

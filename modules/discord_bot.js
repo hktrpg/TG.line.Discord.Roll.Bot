@@ -104,14 +104,49 @@ client.on('guildCreate', guild => {
 
 client.on('message', async (message) => {
 	if (message.author.bot) return;
-	let target = await exports.analytics.findRollList(message.content.match(msgSplitor));
+	let inputStr = message.content;
+	let trigger = "";
+	let groupid = (message.guild && message.guild.id) ? message.guild.id : '';
+	let mainMsg = inputStr.match(msgSplitor); //定義輸入字串
+	if (mainMsg && mainMsg[0]) {
+		trigger = mainMsg[0].toString().toLowerCase();
+	}
+	//指定啟動詞在第一個詞&把大階強制轉成細階
+	if (trigger == ".me") {
+		inputStr = inputStr.replace(/^.me\s+/i, '');
+		if (groupid) {
+			SendToReplychannel(inputStr, message);
+		} else {
+			SendToReply(inputStr, message);
+		}
+		return;
+	}
+	let privatemsg = 0;
+
+	function privateMsg() {
+		if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
+			privatemsg = 1;
+			inputStr = inputStr.replace(/^dr\s+/i, '');
+		}
+		if (trigger.match(/^ddr$/i) && mainMsg && mainMsg[1]) {
+			privatemsg = 2;
+			inputStr = inputStr.replace(/^ddr\s+/i, '');
+		}
+		if (trigger.match(/^dddr$/i) && mainMsg && mainMsg[1]) {
+			privatemsg = 3;
+			inputStr = inputStr.replace(/^dddr\s+/i, '');
+		}
+	}
+	privateMsg();
+
+
+	let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
 
 	if (!target) {
 		await nonDice(message)
 		return null
 	}
-	let groupid = '',
-		userid = '',
+	let userid = '',
 		displayname = '',
 		channelid = '',
 		displaynameDiscord = '',
@@ -121,7 +156,6 @@ client.on('message', async (message) => {
 	let TargetGMTempdiyName = [];
 	let TargetGMTempdisplayname = [];
 	//得到暗骰的數據, GM的位置
-	let displaynamecheck = true;
 	let hasSendPermission = true;
 	//檢查是不是有權限可以傳信訊
 	//是不是自己.ME 訊息
@@ -139,9 +173,7 @@ client.on('message', async (message) => {
 	}
 	if (message.channel && message.channel.name)
 		titleName += message.channel.name;
-	if (message.guild && message.guild.id) {
-		groupid = message.guild.id;
-	}
+
 	if (message.author.id) {
 		userid = message.author.id;
 	}
@@ -162,36 +194,13 @@ client.on('message', async (message) => {
 	if (message.guild && message.guild.members) {
 		membercount = message.guild.members.cache.filter(member => !member.user.bot).size;
 	}
-
-	let inputStr = message.content;
 	let rplyVal = {};
-	let trigger = "";
-	let mainMsg = inputStr.match(msgSplitor); //定義輸入字串
-	if (mainMsg && mainMsg[0]) {
-		trigger = mainMsg[0].toString().toLowerCase();
-	}
-	//指定啟動詞在第一個詞&把大階強制轉成細階
-	if (trigger == ".me") {
-		displaynamecheck = false;
-	}
-	let privatemsg = 0;
+
 	//設定私訊的模式 0-普通 1-自己 2-自己+GM 3-GM
 	//訊息來到後, 會自動跳到analytics.js進行骰組分析
 	//如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
 
 
-	if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
-		privatemsg = 1;
-		inputStr = inputStr.replace(/^[d][r][ ]/i, '');
-	}
-	if (trigger.match(/^ddr$/i) && mainMsg && mainMsg[1]) {
-		privatemsg = 2;
-		inputStr = inputStr.replace(/^[d][d][r][ ]/i, '');
-	}
-	if (trigger.match(/^dddr$/i) && mainMsg && mainMsg[1]) {
-		privatemsg = 3;
-		inputStr = inputStr.replace(/^[d][d][d][r][ ]/i, '');
-	}
 
 	if (channelKeyword != "" && trigger == channelKeyword.toString().toLowerCase()) {
 		//mainMsg.shift();
@@ -333,7 +342,7 @@ client.on('message', async (message) => {
 			}
 			return;
 		default:
-			if (displaynamecheck && userid) {
+			if (userid) {
 				rplyVal.text = "<@" + userid + ">\n" + rplyVal.text;
 			}
 			if (groupid) {

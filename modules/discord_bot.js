@@ -106,14 +106,20 @@ client.on('message', async (message) => {
 	if (message.author.bot) return;
 	let inputStr = message.content;
 	let trigger = "";
-	let displaynamecheck = true;
+	let groupid = (message.guild && message.guild.id) ? message.guild.id : '';
 	let mainMsg = inputStr.match(msgSplitor); //定義輸入字串
 	if (mainMsg && mainMsg[0]) {
 		trigger = mainMsg[0].toString().toLowerCase();
 	}
 	//指定啟動詞在第一個詞&把大階強制轉成細階
 	if (trigger == ".me") {
-		displaynamecheck = false;
+		inputStr = inputStr.replace(/^.me\s+/i, '');
+		if (groupid) {
+			SendToReplychannel(inputStr, message);
+		} else {
+			SendToReply(inputStr, message);
+		}
+		return;
 	}
 	let privatemsg = 0;
 
@@ -136,12 +142,11 @@ client.on('message', async (message) => {
 
 	let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
 
-	if (!target || displaynamecheck == false) {
+	if (!target) {
 		await nonDice(message)
 		return null
 	}
-	let groupid = '',
-		userid = '',
+	let userid = '',
 		displayname = '',
 		channelid = '',
 		displaynameDiscord = '',
@@ -168,9 +173,7 @@ client.on('message', async (message) => {
 	}
 	if (message.channel && message.channel.name)
 		titleName += message.channel.name;
-	if (message.guild && message.guild.id) {
-		groupid = message.guild.id;
-	}
+
 	if (message.author.id) {
 		userid = message.author.id;
 	}
@@ -339,7 +342,7 @@ client.on('message', async (message) => {
 			}
 			return;
 		default:
-			if (displaynamecheck && userid) {
+			if (userid) {
 				rplyVal.text = "<@" + userid + ">\n" + rplyVal.text;
 			}
 			if (groupid) {

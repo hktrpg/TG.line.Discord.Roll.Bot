@@ -59,7 +59,8 @@ var handleEvent = async function (event) {
 	if (trigger == ".me") {
 		inputStr = inputStr.replace(/^.me\s+/i, '');
 		if (roomorgroupid) {
-			client.replyMessage(event.replyToken, inputStr);
+			let temp = await HandleMessage(inputStr);
+			client.replyMessage(event.replyToken, temp);
 		} else {
 			await SendToId(event.source.userId, inputStr);
 		}

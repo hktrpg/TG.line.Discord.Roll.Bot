@@ -37,6 +37,7 @@
     "node-fetch": "^2.6.1",
     "random-js": "^2.1.0",
     "rate-limiter-flexible": "^2.2.1",
+    "signal-bot": "0.0.1",
     "socket.io": "^2.4.1",
     "socket.io-client": "^2.4.0",
     "telegraf": "^3.38.0",

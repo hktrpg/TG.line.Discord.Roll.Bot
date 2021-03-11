@@ -85,7 +85,7 @@ var handleEvent = async function (event) {
 	privateMsg();
 
 	let target = '';
-	if (event.message && event.message.text) target = await exports.analytics.findRollList(event.message.text.match(msgSplitor));
+	if (inputStr) target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
 	if (!target) {
 		await nonDice(event)
 		return null

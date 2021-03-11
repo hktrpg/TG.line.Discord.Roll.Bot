@@ -104,6 +104,12 @@ client.on('guildCreate', guild => {
 
 client.on('message', async (message) => {
 	if (message.author.bot) return;
+	let target = await exports.analytics.findRollList(message.content.match(msgSplitor));
+
+	if (!target) {
+		await nonDice(message)
+		return null
+	}
 	let groupid = '',
 		userid = '',
 		displayname = '',
@@ -156,13 +162,7 @@ client.on('message', async (message) => {
 	if (message.guild && message.guild.members) {
 		membercount = message.guild.members.cache.filter(member => !member.user.bot).size;
 	}
-	if (!message.content) {
-		await courtMessage("", "Discord", "")
-		if (groupid && userid) {
-			await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount);
-		}
-		return null;
-	}
+
 	let inputStr = message.content;
 	let rplyVal = {};
 	let trigger = "";
@@ -400,6 +400,35 @@ client.on('shardDisconnect', (event, shardID) => {
 client.on('shardResume', (replayed, shardID) => console.log(`Shard ID ${shardID} resumed connection and replayed ${replayed} events.`));
 
 client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnected.`));
+
+async function nonDice(message) {
+	let groupid = '',
+		userid = '';
+	if (message.guild && message.guild.id) {
+		groupid = message.guild.id;
+	}
+	if (message.author && message.author.id) {
+		userid = message.author.id;
+	}
+	if (!groupid || !userid) return;
+	let displayname = '',
+		membercount = null;
+	if (message.member && message.member.user && message.member.user.username) {
+		displayname = message.member.user.username;
+	}
+	if (message.guild && message.guild.members) {
+		membercount = message.guild.members.cache.filter(member => !member.user.bot).size;
+	}
+	let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount);
+	await courtMessage("", "Discord", "")
+	if (groupid && LevelUp) {
+		//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
+		await SendToReplychannel("@" + displayname + '\n' + LevelUp, message);
+	}
+
+	return null;
+}
+
 
 //Set Activity 可以自定義正在玩什麼
 client.on('ready', async () => {

@@ -8,6 +8,7 @@ const TGclient = new Telegraf(process.env.TELEGRAM_CHANNEL_SECRET);
 const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || '';
 //var TGcountroll = 0;
 //var TGcounttext = 0;
+const msgSplitor = (/\S+/ig);
 var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const EXPUP = require('./level').EXPUP || function () {};
 const courtMessage = require('./logs').courtMessage || function () {};
@@ -27,10 +28,17 @@ TGclient.catch((err) => {
 //TGclient.use(telegrafGetChatMembers)
 TGclient.on('text', async (ctx) => {
 	if (ctx.message.from.is_bot) return;
+	let target = await exports.analytics.findRollList(ctx.message.text.match(msgSplitor));
+	if (!target) {
+		await nonDice(ctx);
+		return;
+	}
 	//console.log(ctx.getChatMembers(ctx.chat.id) //[Members]
 	//	ctx.getChatMembers() //[Members]
 	//	telegrafGetChatMembers.check(ctx.chat.id) //[Members]
 	//	telegrafGetChatMembers.all //[Chats]
+
+
 	let groupid = '',
 		userid = '',
 		displayname = '',
@@ -64,14 +72,11 @@ TGclient.on('text', async (ctx) => {
 				//console.log(telegrafGetChatMembers.check(ctx.chat.id))
 			}
 	}
-
-
 	if (ctx.message.from.id) userid = ctx.message.from.id;
 	//285083923223
 	//userrole = 3
 	let inputStr = ctx.message.text;
 	let rplyVal = {};
-	let msgSplitor = (/\S+/ig);
 	let trigger = "";
 	if (inputStr && ctx.message.from.is_bot == false) {
 		if (ctx.botInfo && ctx.botInfo.username && inputStr.match(/^[/]/))
@@ -261,22 +266,7 @@ if (process.env.BROADCAST)
 
 
 
-
-
-
-TGclient.on('message', async (ctx) => {
-	if (ctx.message.from.is_bot) return;
-	if (ctx.message.new_chat_member && ctx.message.new_chat_member.username == ctx.me) {
-		console.log("Telegram joined");
-		ctx.reply(joinMessage);
-	} else if (ctx.message.group_chat_created) {
-		console.log("Telegram joined");
-		ctx.reply(joinMessage);
-	} else return null;
-});
-
-TGclient.on('audio', async (ctx) => {
-	if (ctx.message.from.is_bot) return;
+async function nonDice(ctx) {
 	if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
 		let groupid = '',
 			userid = '',
@@ -292,117 +282,62 @@ TGclient.on('audio', async (ctx) => {
 		if (ctx.chat && ctx.chat.id) {
 			membercount = await ctx.getChatMembersCount(ctx.chat.id);
 		}
-		await EXPUP(groupid, userid, displayname, "", membercount);
-		await courtMessage("", "Line", "")
+		let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount);
+		await courtMessage("", "Telegram", "")
+		if (groupid && LevelUp) {
+			//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
+			ctx.reply("@" + displayname + '\n' + LevelUp);
+		}
 	}
+	return null;
+}
+
+
+TGclient.on('message', async (ctx) => {
+	if (ctx.message.from.is_bot) return;
+	if (ctx.message.new_chat_member && ctx.message.new_chat_member.username == ctx.me) {
+		console.log("Telegram joined");
+		ctx.reply(joinMessage);
+	} else if (ctx.message.group_chat_created) {
+		console.log("Telegram joined");
+		ctx.reply(joinMessage);
+	} else return null;
+});
+
+TGclient.on('audio', async (ctx) => {
+	if (ctx.message.from.is_bot) return;
+	await nonDice(ctx);
 	return null;
 });
 TGclient.on('document', async (ctx) => {
 	if (ctx.message.from.is_bot) return;
-	if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
-		let groupid = '',
-			userid = '',
-			displayname = '',
-			membercount = '';
-		groupid = ctx.message.chat.id;
-		if (ctx.message.from.username) {
-			displayname = ctx.message.from.username;
-		}
-		if (ctx.message.from.id) {
-			userid = ctx.message.from.id;
-		}
-		if (ctx.chat && ctx.chat.id) {
-			membercount = await ctx.getChatMembersCount(ctx.chat.id);
-		}
-		await EXPUP(groupid, userid, displayname, "", membercount);
-		await courtMessage("", "Line", "")
-	}
-	return null
+	await nonDice(ctx);
+	return null;
 })
 TGclient.on('photo', async (ctx) => {
 	if (ctx.message.from.is_bot) return;
-	if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
-		let groupid = '',
-			userid = '',
-			displayname = '',
-			membercount = ''
-		groupid = ctx.message.chat.id
-		if (ctx.message.from.username) displayname = ctx.message.from.username
-		if (ctx.message.from.id) userid = ctx.message.from.id
-		if (ctx.chat && ctx.chat.id)
-			membercount = await ctx.getChatMembersCount(ctx.chat.id)
-		await EXPUP(groupid, userid, displayname, "", membercount);
-		await courtMessage("", "Line", "")
-	}
-	return null
+	await nonDice(ctx);
+	return null;
 })
 TGclient.on('sticker', async (ctx) => {
 	if (ctx.message.from.is_bot) return;
-	if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
-		let groupid = '',
-			userid = '',
-			displayname = '',
-			membercount = ''
-		groupid = ctx.message.chat.id
-		if (ctx.message.from.username) displayname = ctx.message.from.username
-		if (ctx.message.from.id) userid = ctx.message.from.id
-		if (ctx.chat && ctx.chat.id)
-			membercount = await ctx.getChatMembersCount(ctx.chat.id)
-		await EXPUP(groupid, userid, displayname, "", membercount);
-		await courtMessage("", "Line", "")
-	}
-	return null
+	await nonDice(ctx);
+	return null;
 })
 TGclient.on('video', async (ctx) => {
 	if (ctx.message.from.is_bot) return;
-	if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
-		let groupid = '',
-			userid = '',
-			displayname = '',
-			membercount = ''
-		groupid = ctx.message.chat.id
-		if (ctx.message.from.username) displayname = ctx.message.from.username
-		if (ctx.message.from.id) userid = ctx.message.from.id
-		if (ctx.chat && ctx.chat.id)
-			membercount = await ctx.getChatMembersCount(ctx.chat.id)
-		await EXPUP(groupid, userid, displayname, "", membercount);
-		await courtMessage("", "Line", "")
-	}
-	return null
+	await nonDice(ctx);
+	return null;
 })
 TGclient.on('voice', async (ctx) => {
 	if (ctx.message.from.is_bot) return;
-	if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
-		let groupid = '',
-			userid = '',
-			displayname = '',
-			membercount = ''
-		groupid = ctx.message.chat.id
-		if (ctx.message.from.username) displayname = ctx.message.from.username
-		if (ctx.message.from.id) userid = ctx.message.from.id
-		if (ctx.chat && ctx.chat.id)
-			membercount = await ctx.getChatMembersCount(ctx.chat.id)
-		await EXPUP(groupid, userid, displayname, "", membercount);
-		await courtMessage("", "Line", "")
-	}
-	return null
+	await nonDice(ctx);
+	return null;
 })
 TGclient.on('forward', async (ctx) => {
 	if (ctx.message.from.is_bot) return;
-	if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
-		let groupid = '',
-			userid = '',
-			displayname = '',
-			membercount = ''
-		groupid = ctx.message.chat.id
-		if (ctx.message.from.username) displayname = ctx.message.from.username
-		if (ctx.message.from.id) userid = ctx.message.from.id
-		if (ctx.chat && ctx.chat.id)
-			membercount = await ctx.getChatMembersCount(ctx.chat.id)
-		await EXPUP(groupid, userid, displayname, "", membercount);
-		await courtMessage("", "Line", "")
-	}
-	return null
+	await nonDice(ctx);
+	return null;
 })
 async function privateMsgFinder(channelid) {
 	if (!TargetGM || !TargetGM.trpgDarkRollingfunction) return;

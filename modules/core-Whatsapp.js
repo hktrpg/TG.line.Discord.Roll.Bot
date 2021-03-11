@@ -65,6 +65,8 @@ hasQuotedMsg:false
 	*/
 client.on('message', async msg => {
 	if (!msg.body || msg.fromMe || msg.isForwarded) return;
+	let target = await exports.analytics.findRollList(msg.body.match(msgSplitor));
+	if (!target) return null;
 	var groupid, userid, displayname, channelid, membercount, channelKeyword = '';
 	//得到暗骰的數據, GM的位置
 	//是不是自己.ME 訊息
@@ -90,7 +92,7 @@ client.on('message', async msg => {
 	});
 	let inputStr = msg.body;
 	let rplyVal = {};
-	let msgSplitor = (/\S+/ig);
+
 	let trigger = "";
 	var mainMsg = inputStr.match(msgSplitor); // 定義輸入字串
 	if (mainMsg && mainMsg[0])

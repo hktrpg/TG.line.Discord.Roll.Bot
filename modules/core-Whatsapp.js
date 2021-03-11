@@ -2,22 +2,23 @@
 if (!process.env.WHATSAPP_SWITCH) {
 	return;
 }
-const msgSplitor = (/\S+/ig);
-const WebSocket = require('ws');
-const ws = new WebSocket('ws://127.0.0.1:53589');
-ws.on('open', function open() {
-	console.log('connected To core-www from Whatsapp!')
-	ws.send('connected To core-www from Whatsapp!');
-});
-ws.on('message', function incoming(data) {
-	var object = JSON.parse(data);
-	if (object.botname == 'Whatsapp') {
-		if (!object.message.text) return;
-		console.log('connect To core-www from Whatsapp!')
-		SendToId(object.message.target.id, object.message.text);
-		return;
-	}
-});
+if (process.env.BROADCAST) {
+	const WebSocket = require('ws');
+	const ws = new WebSocket('ws://127.0.0.1:53589');
+	ws.on('open', function open() {
+		console.log('connected To core-www from Whatsapp!')
+		ws.send('connected To core-www from Whatsapp!');
+	});
+	ws.on('message', function incoming(data) {
+		var object = JSON.parse(data);
+		if (object.botname == 'Whatsapp') {
+			if (!object.message.text) return;
+			console.log('connect To core-www from Whatsapp!')
+			SendToId(object.message.target.id, object.message.text);
+			return;
+		}
+	});
+}
 var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
 		\n輸入 1D100 可以進行最簡單的擲骰.\
@@ -33,14 +34,13 @@ const {
 } = require('whatsapp-web.js');
 const client = new Client({
 	puppeteer: {
-		args: ['--no-sandbox'],
-		headless: true
+		args: ['--no-sandbox', '--disable-setuid-sandbox']
 	}
 });
 
 client.on('qr', (qr) => {
 	// Generate and scan this code with your phone
-	console.log('QR RECEIVED', qr);
+	console.log('QR RECEIVED\n', qr);
 });
 
 client.on('ready', () => {

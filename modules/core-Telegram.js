@@ -261,8 +261,8 @@ var connect = function () {
 		setTimeout(connect, reconnectInterval);
 	});
 };
-
-connect();
+if (process.env.BROADCAST)
+	connect();
 
 
 

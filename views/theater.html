@@ -1,0 +1,1038 @@
+<!doctype html>
+<html lang="zh-Hant-HK">
+<!-- HKTRPG Sad-->
+<style>
+
+</style>
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap CSS -->
+    <script src="/socket.io/socket.io.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
+        integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+    <!-- production version, optimized for size and speed -->
+    <script src="https://unpkg.com/vue@3.0.5"></script>
+
+
+    <title>劇場 @ HKTRPG</title>
+    <link rel="icon" href="https://avatars2.githubusercontent.com/u/48795428?s=280&v=4" />
+    <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.7.2/dropzone.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.7.2/dropzone.min.css"
+        integrity="sha512-3g+prZHHfmnvE1HBLwUnVuunaPOob7dpksI7/v6UnF/rnKGwHf/GdEq9K7iEN7qTtW+S0iivTcGpeTBqqB04wA=="
+        crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.3.7/pixi.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pixi-filters@latest/dist/pixi-filters.js"></script>
+    <!--https://blog.gtwang.org/programming/javascript-aes-symmetric-encryption-tutorial/-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/bootstrap-slider.min.js"
+        integrity="sha512-f0VlzJbcEB6KiW8ZVtL+5HWPDyW1+nJEjguZ5IVnSQkvZbwBt2RfCBY0CBO1PsMAqxxrG4Di6TfsCPP3ZRwKpA=="
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/css/bootstrap-slider.min.css"
+        integrity="sha512-3q8fi8M0VS+X/3n64Ndpp6Bit7oXSiyCnzmlx6IDBLGlY5euFySyJ46RUlqIVs0DPCGOypqP8IRk/EyPvU28mQ=="
+        crossorigin="anonymous" />
+    //https://github.com/seiyria/bootstrap-slider
+</head>
+
+<body class=" container">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81"><a
+                class="badge badge-pill badge-danger">
+                HKTRPG 帶團劇院平台<span class="iconify" data-icon="mdi:dice-multiple-outline" data-inline="false"
+                    style="color: black;" data-width="32" data-height="32"></span></span>
+                <span class="iconify" data-icon="bi:chat-square-text" data-inline="false" style="color: black;"
+                    data-width="32" data-height="32"></span>
+            </a></a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
+            aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav">
+                <a class="nav-item nav-link active" href="https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81">主頁
+                </a>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        角色卡
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="#">私人角色卡</a>
+                        <a class="dropdown-item" href="https://www.hktrpg.com:20721/publiccard/">公開角色卡</a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        跑團平台
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="https://z01.hktrpg.com/">2.5D - 烏冬</a>
+                        <a class="dropdown-item" href="https://z02.hktrpg.com/">四平八穩 - 冰丼</a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        擲骰
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="https://rollbot.hktrpg.com/">聊天室擲骰</a>
+                        <a class="dropdown-item" href="https://roll.hktrpg.com/">簡易擲骰平台</a>
+                    </div>
+                </li>
+                <a class="nav-item nav-link " href="https://github.com/hktrpg/TG.line.Discord.Roll.Bot">
+                    <span class="iconify" data-icon="bytesize:github" data-inline="false" data-width="25px"
+                        data-height="25px"></span></a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 order-md-1">
+                <h4 class="mb-3">
+                    圖片
+                </h4>
+                <div class="row">
+                    <div class="col-md-12 mb-12" id="canvasDIV">
+                        <canvas id="main"></canvas>
+                    </div>
+                </div>
+                <hr class="mb-4" />
+                <div class="flex-grow-0 py-3 px-4 border-top">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="text" value="" placeholder="輸入信息">
+                        <button class="btn btn-primary" onclick="createText()">輸入</button>
+                        <button class="btn btn-primary" onclick="clearText()">清除</button>
+                    </div>
+                </div>
+                <hr class="mb-4" />
+                <button class="btn btn-primary btn-lg" onclick="takeScreenshot()" type="submit">
+                    儲存圖片
+                </button>
+                <button class="btn btn-primary btn-lg" type="submit">
+                    傳送到聊天平台
+                </button>
+            </div>
+
+            <div class="col-md-4 order-md-2 mb-4">
+                控制台
+                <hr class="mb-4" />
+                <h4 class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-muted">
+                        <button type="button" class="btn btn-primary" onclick="switchCard('#collapseRoll')"><span
+                                class="iconify" data-icon="fa-solid:dice-d20" data-inline="false"></span>擲骰</button>
+                        <button type="button" class="btn btn-secondary" onclick="switchCard('#collapseBG')"><span
+                                class="iconify" data-icon="fluent:color-background-24-regular"
+                                data-inline="false"></span>背景</button>
+                        <button type="button" class="btn btn-success" onclick="switchCard('#collapseCharacter')"><span
+                                class="iconify" data-icon="gg:ghost-character" data-inline="false"></span>角色</button>
+                    </span>
+
+                </h4>
+                <h4 class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-muted">
+                        <button type="button" class="btn btn-danger" onclick="switchCard('#collapseFilter')"><span
+                                class="iconify" data-icon="ic:baseline-movie-filter"
+                                data-inline="false"></span>濾鏡</button>
+                        <button type="button" class="btn btn-warning" onclick="switchCard('#collapseEffect')"><span
+                                class="iconify" data-icon="cib:adobe-after-effects"
+                                data-inline="false"></span>特效</button>
+                        <button type="button" class="btn btn-info" onclick="switchCard('#collapseDialogBox')"><span
+                                class="iconify" data-icon="jam:eye-close" data-inline="false"></span>對話框</button>
+                    </span>
+
+                </h4>
+                <div class="collapse multi-collapse" id="collapseRoll">
+                    <form class="card p-2">
+                        <div class="input-group">
+                            <div>
+                                <span class="iconify" data-icon="emojione:keycap-2" data-inline="false"
+                                    data-width="48px" data-height="48px" onclick="roll('1d2')"></span>
+                                <span class="iconify" data-icon="emojione-monotone:keycap-4" data-inline="false"
+                                    data-width="48px" data-height="48px" onclick="roll('1d4')"></span><span
+                                    class="iconify" data-icon="ic:baseline-looks-6" data-inline="false"
+                                    data-width="48px" data-height="48px" onclick="roll('1d6')"></span><span
+                                    class="iconify" data-icon="ic:outline-filter-6" data-inline="false"
+                                    data-width="48px" data-height="48px" onclick="roll('2d6')"></span>
+                            </div>
+                            <div>
+                                <span class="iconify" data-icon="emojione:keycap-8" data-inline="false"
+                                    data-width="48px" data-height="48px" onclick="roll('1d8')"></span><span
+                                    class="iconify" data-icon="mdi:dice-d12-outline" data-inline="false"
+                                    data-width="48px" data-height="48px" onclick="roll('1d12')"></span>
+                                <span class="iconify" data-icon="fa-solid:stopwatch-20" data-inline="false"
+                                    data-width="48px" data-height="48px" onclick="roll('1d20')"></span><span
+                                    class="iconify" data-icon="mdi:cash-100" data-inline="false" data-width="48px"
+                                    data-height="48px" onclick="roll('1d100')"></span></div>
+                        </div>
+                        <div>
+                            <span class="iconify" data-icon="fluent:calendar-cancel-24-filled" data-inline="false"
+                                data-width="72px" data-height="72px" onclick="removeRoll()"></span>
+                        </div>
+                    </form>
+                </div>
+                <div class="collapse multi-collapse" id="collapseBG">
+                    <div class="card p-2">
+                        <ul class="list-group mb-3">
+                            預設圖 3-5張
+                            <div class="dropzone" id="img-upload-BG">
+                            </div>
+                        </ul>
+
+                        <div class="input-group">
+
+                            <button class="btn btn-secondary" onclick="bgEdit('width')">
+                                按闊度
+                            </button>
+                            <button class="btn btn-secondary" onclick="bgEdit('height')">
+                                按高度
+                            </button>
+                            <button class="btn btn-secondary" onclick="bgEdit('fill')">
+                                拉伸
+                            </button>
+                            <button class="btn btn-secondary" onclick="bgEdit('center')">
+                                置中(不縮放)
+                            </button>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="collapse multi-collapse" id="collapseCharacter">
+                    <div class="card p-2">
+                        <ul class="list-group mb-3">
+                            <div class="dropzone" id="img-upload-character">
+                            </div>
+                        </ul>
+                    </div>
+                </div>
+                <div class="collapse multi-collapse" id="collapseDialogBox">
+                    <div class="card p-2">
+                        <ul class="list-group mb-3">
+                            預設圖 2-3張
+                            <div class="dropzone" id="img-upload-DialogBox">
+                            </div>
+                        </ul>
+
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="collapseCharacter" />
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-secondary">
+                                    collapseCharacter
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="collapse multi-collapse" id="collapseFilter">
+                    <div class="card p-2">
+                        <div class="input-group-append">
+                            <button type="submit" class="btn btn-secondary" onclick="filterON()">
+                                套用濾鏡
+                            </button>
+                            <button type="submit" class="btn btn-secondary" onclick="clearFilter()">
+                                移除濾鏡
+                            </button>
+                            <button type="submit" class="btn btn-secondary" onclick="selectAll()">
+                                選取全部圖層
+                            </button>
+                        </div>
+                        <div class="card p-2">
+                            <select multiple="multiple" name="states[]" id="v-model-select-dynamic"
+                                class="js-example-basic-multiple" v-model="select">
+                                <option v-for="(item,index) in list" v-bind:value="index">
+                                    {{ index }} {{ item.appType }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="accordion" id="accordionExample">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="blurFilter" id="filterCheck01"
+                                    data-toggle="collapse" data-target="#collapse01" aria-expanded="false"
+                                    aria-controls="collapse01">
+                                <label class="form-check-label" for="filterCheck01">
+                                    模糊 blurFilter
+                                </label>
+                            </div>
+                            <div id="collapse01" class="collapse" aria-labelledby="heading01"
+                                data-parent="#accordionExample">
+                                <div class="card-body">
+                                    And lastly, the placeholder content for the third and final accordion panel.
+                                    This panel
+                                    is hidden by default.
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="accordion" id="accordionExample">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="AsciiFilter" id="filterCheck02"
+                                    data-toggle="collapse" data-target="#collapse02" aria-expanded="false"
+                                    aria-controls="collapse02">
+                                <label class="form-check-label" for="filterCheck02">
+                                    文字化 AsciiFilter
+                                </label>
+                            </div>
+                            <div id="collapse02" class="collapse" aria-labelledby="heading02"
+                                data-parent="#accordionExample">
+                                <div class="card-body">
+                                    And lastly, the placeholder content for the third and final accordion panel.
+                                    This panel
+                                    is hidden by default.
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="accordion" id="accordionExample">
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="BulgePinchFilter"
+                                    id="filterCheck03" data-toggle="collapse" data-target="#collapse03"
+                                    aria-expanded="false" aria-controls="collapse03">
+                                <label class="form-check-label" for="filterCheck03">
+                                    魚眼 BulgePinchFilter
+                                </label>
+                            </div>
+                            <div id="collapse03" class="collapse" aria-labelledby="heading03"
+                                data-parent="#accordionExample">
+                                <div class="card-body">
+                                    And lastly, the placeholder content for the third and final accordion panel.
+                                    This panel
+                                    is hidden by default.
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="accordion" id="accordionExample">
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="ColorReplaceFilter"
+                                    id="filterCheck04" data-toggle="collapse" data-target="#collapse04"
+                                    aria-expanded="false" aria-controls="collapse04">
+                                <label class="form-check-label" for="filterCheck04">
+                                    ColorReplaceFilter
+                                </label>
+                            </div>
+                            <div id="collapse04" class="collapse" aria-labelledby="heading04"
+                                data-parent="#accordionExample">
+                                <div class="card-body">
+                                    And lastly, the placeholder content for the third and final accordion panel.
+                                    This panel
+                                    is hidden by default.
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="accordion" id="accordionExample">
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="DotFilter" id="filterCheck05"
+                                    data-toggle="collapse" data-target="#collapse05" aria-expanded="false"
+                                    aria-controls="collapse05">
+                                <label class="form-check-label" for="filterCheck05">
+                                    點化 DotFilter
+                                </label>
+                            </div>
+                            <div id="collapse05" class="collapse" aria-labelledby="heading05"
+                                data-parent="#accordionExample">
+                                <div class="card-body">
+                                    And lastly, the placeholder content for the third and final accordion panel.
+                                    This panel
+                                    is hidden by default.
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="accordion" id="accordionExample">
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="NoiseFilter" id="filterCheck06"
+                                    data-toggle="collapse" data-target="#collapse06" aria-expanded="false"
+                                    aria-controls="collapse06">
+                                <label class="form-check-label" for="filterCheck06">
+                                    加噪 NoiseFilter
+                                </label>
+                            </div>
+                            <div id="collapse06" class="collapse" aria-labelledby="heading06"
+                                data-parent="#accordionExample">
+                                <div class="card-body">
+                                    And lastly, the placeholder content for the third and final accordion panel.
+                                    This panel
+                                    is hidden by default.
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="accordion" id="accordionExample">
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="CRTFilter" id="filterCheck07"
+                                    data-toggle="collapse" data-target="#collapse07" aria-expanded="false"
+                                    aria-controls="collapse07">
+                                <label class="form-check-label" for="filterCheck07">
+                                    CRT化
+                                </label>
+                            </div>
+                            <div id="collapse07" class="collapse" aria-labelledby="heading07"
+                                data-parent="#accordionExample">
+                                <div class="card-body">
+                                    And lastly, the placeholder content for the third and final accordion panel.
+                                    This panel
+                                    is hidden by default.
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="accordion" id="accordionExample">
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="ConvolutionFilter"
+                                    id="filterCheck08" data-toggle="collapse" data-target="#collapse08"
+                                    aria-expanded="false" aria-controls="collapse08">
+                                <label class="form-check-label" for="filterCheck08">
+                                    摺積 ConvolutionFilter
+                                </label>
+                            </div>
+                            <div id="collapse08" class="collapse" aria-labelledby="heading08"
+                                data-parent="#accordionExample">
+                                <div class="card-body">
+                                    And lastly, the placeholder content for the third and final accordion panel.
+                                    This panel
+                                    is hidden by default.
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="accordion" id="accordionExample">
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="ColorOverlayFilter"
+                                    id="filterCheck09" data-toggle="collapse" data-target="#collapse09"
+                                    aria-expanded="false" aria-controls="collapse09">
+                                <label class="form-check-label" for="filterCheck09">
+                                    顏色疊加 ColorOverlayFilter
+                                </label>
+                            </div>
+                            <div id="collapse09" class="collapse" aria-labelledby="heading09"
+                                data-parent="#accordionExample">
+                                <div class="card-body">
+                                    And lastly, the placeholder content for the third and final accordion panel.
+                                    This panel
+                                    is hidden by default.
+                                </div>
+
+                            </div>
+                        </div>
+
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="filterCheck10">
+                            <label class="form-check-label" for="filterCheck10">
+                                鏡像反轉
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="filterCheck11">
+                            <label class="form-check-label" for="filterCheck11">
+                                上下反轉
+                            </label>
+                        </div>
+                        <div class="form-check" onclick="unclickAll()">
+                            <input class="form-check-input" type="checkbox" value="">
+                            <label class="form-check-label" for="unfilterCheck10">
+                                取消勾選
+                            </label>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="collapse multi-collapse" id="collapseEffect">
+                    <div class="card p-2">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="collapseFilter" />
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-secondary">
+                                    collapseFilter
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="collapse multi-collapse" id="collapseEffect">
+                    <div class="card p-2">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="collapseFilter" />
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-secondary">
+                                    collapseFilter
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+
+    <div class="footer-copyright text-center py-2">©2020-2021 GNU HKTRPG -
+        <a href="https://www.patreon.com/HKTRPG"> 餵飼 Sad</a>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+        integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js"
+        integrity="sha384-w1Q4orYjBQndcko6MimVbzY0tgp4pWB4lZ7lr30WKz0vr/aWKhXdBNmNb5D92v7s" crossorigin="anonymous">
+    </script>
+
+    <script>
+        let spriteMouseLocationOffsetX = 0;
+        let spriteMouseLocationOffsetY = 0;
+        const style = new PIXI.TextStyle({
+            fontFamily: 'Arial',
+            fontSize: 36,
+            fontStyle: 'italic',
+            fontWeight: 'bold',
+            fill: ['#ffffff', '#00ff99'], // gradient
+            stroke: '#4a1850',
+            strokeThickness: 5,
+            dropShadow: true,
+            dropShadowColor: '#000000',
+            dropShadowBlur: 4,
+            dropShadowAngle: Math.PI / 6,
+            dropShadowDistance: 6,
+            lineJoin: 'round',
+
+        });
+
+        var textX = 50;
+        var textY = 550;
+
+        switchCard('#collapseRoll')
+        const app = new PIXI.Application({
+            backgroundColor: 0x1099bb,
+            width: 1280,
+            height: 720,
+            view: document.getElementById("main")
+        });
+        for (let i = 0; i < 2; i++) {
+            createCharacter('http://i.imgur.com/toHsfWY.png');
+        }
+        createBG(
+            'https://images.mihuashi.com/2017/10/26/03/mrantfdaxgbaycgueznm2dvbqmjrc6i3/mrantfdaxgbaycgueznm2dvbqmjrc6i3.jpg'
+        );
+        createDialogBox('https://i.imgur.com/maCqZFS.png');
+        createText('這是測試，左鍵連點兩下是放大，加上Shift是縮小，Shift+右鍵兩下是刪除')
+        app.stage.sortChildren();
+
+
+
+
+        Dropzone.autoDiscover = false;
+        //  var canvas = new fabric.Canvas('canvas');
+        var imgUploadBG = new Dropzone("#img-upload-BG", {
+            url: "UploadImages"
+        });
+        var readerBG = new FileReader();
+        readerBG.onload = function (event) {
+            var data = event.target.result;
+            createBG(data)
+            app.stage.sortChildren();
+        };
+        //https://image.uc.cn/s/wemedia/s/upload/2019/f52f475f3b29f1f1628050f8ddddc4a5.jpg
+        imgUploadBG.on("addedfile", function (file) {
+            readerBG.readAsDataURL(file);
+        });
+
+
+
+        var imgUploadCharacter = new Dropzone("#img-upload-character", {
+            url: "UploadImagesCharacter"
+        });
+        var readerCharacter = new FileReader();
+        readerCharacter.onload = function (event) {
+            var data = event.target.result;
+            createCharacter(data)
+            app.stage.sortChildren();
+        };
+        //https://image.uc.cn/s/wemedia/s/upload/2019/f52f475f3b29f1f1628050f8ddddc4a5.jpg
+        imgUploadCharacter.on("addedfile", function (file) {
+            readerCharacter.readAsDataURL(file);
+        });
+
+
+        var imgUploadDialogBox = new Dropzone("#img-upload-DialogBox", {
+            url: "UploadImagesDialogBox"
+        });
+        var readerDialogBox = new FileReader();
+        readerDialogBox.onload = function (event) {
+            var data = event.target.result;
+            createDialogBox(data)
+            app.stage.sortChildren();
+        };
+        //https://image.uc.cn/s/wemedia/s/upload/2019/f52f475f3b29f1f1628050f8ddddc4a5.jpg
+        imgUploadDialogBox.on("addedfile", function (file) {
+            readerDialogBox.readAsDataURL(file);
+        });
+
+        //PIXI START
+
+        function unclickAll() {
+            var filterSelected = $('.form-check-input:checkbox:checked');
+            for (let index = 0; index < filterSelected.length; index++) {
+                filterSelected[index].checked = false;
+            }
+            $('#collapse01').collapse('hide')
+            $('#collapse02').collapse('hide')
+            $('#collapse03').collapse('hide')
+            $('#collapse04').collapse('hide')
+            $('#collapse05').collapse('hide')
+            $('#collapse06').collapse('hide')
+            $('#collapse07').collapse('hide')
+            $('#collapse08').collapse('hide')
+            $('#collapse09').collapse('hide')
+        }
+
+        function selectAll() {
+            $('#v-model-select-dynamic').select2('destroy').find('option').prop('selected', 'selected').end().select2({
+                closeOnSelect: false,
+                placeholder: '選取目標圖層',
+                allowClear: true,
+                scrollAfterSelect: true
+            });
+        }
+
+        function filterON() {
+            //$('input[name^="complete"]:checked').length;
+            // character.filters = [blurFilter];
+            var num = $('#v-model-select-dynamic option:selected');
+            var filterSelected = $('.form-check-input:checkbox:checked');
+            var filters = []
+            for (let index = 0; index < filterSelected.length; index++) {
+                if (filterSelected[index].value)
+                    filters.push(eval(filterSelected[index].value))
+            }
+            for (let index = 0; index < num.length; index++) {
+                app.stage.children[num[index].value].filters = filters
+            }
+        }
+
+        function clearFilter() {
+            for (let index = 0; index < app.stage.children.length; index++) {
+                app.stage.children[index].filters = []
+            }
+        }
+
+        function createDialogBox(image) {
+            const texture = PIXI.Texture.from(
+                image
+            );
+
+            // create our little character friend..
+            const dialogBox = new PIXI.Sprite(texture);
+            // enable the dialogBox to be interactive... this will allow it to respond to mouse and touch events
+            dialogBox.interactive = true;
+
+            // this button mode will mean the hand cursor appears when you roll over the dialogBox with your mouse
+
+            // center the dialogBox's anchor point
+            dialogBox.anchor.set(0.5);
+
+            // make it a bit bigger, so it's easier to grab
+            //  dialogBox.scale.set(1);
+            dialogBox.height = app.screen.height * 0.25
+            dialogBox.width = app.screen.width
+            dialogBox.x = app.screen.width * .5
+            dialogBox.y = app.screen.height * 0.85
+            // setup events for mouse + touch using
+            // the pointer events
+            dialogBox.zIndex = 200;
+            dialogBox.appType = "dialogBox"
+            // move the sprite to its designated position
+
+            //  dialogBox.filters = [filter];
+            // add it to the stage
+            app.stage.addChild(dialogBox);
+            app.stage.sortChildren();
+            if (selectList) selectList.updateList()
+
+        }
+
+        const node = document.getElementById("text");
+        node.addEventListener("keyup", function (event) {
+            if (event.key === "Enter") {
+                createText();
+            }
+        });
+
+        function createText(text) {
+            text = document.getElementById("text").value || text;
+            if (!text) return;
+            const basicText = new PIXI.Text(text, style);
+            // create our little character friend..
+            basicText.x = textX;
+            basicText.y = textY;
+            // enable the dialogBox to be interactive... this will allow it to respond to mouse and touch events
+            basicText.interactive = true;
+            basicText.buttonMode = true;
+            // this button mode will mean the hand cursor appears when you roll over the basicText with your mouse
+
+            // center the basicText's anchor point
+            //basicText.anchor.set(0.1);
+            // setup events for mouse + touch using
+            // the pointer events
+            basicText.zIndex = 300;
+            basicText.appType = "text"
+            basicText
+                .on('pointerdown', onDragStart)
+                .on('pointerup', onDragEnd)
+                .on('pointerupoutside', onDragEnd)
+                .on('pointermove', onDragMove);
+
+            app.stage.addChild(basicText);
+            if (selectList) selectList.updateList()
+            textY += 35;
+        }
+
+        function createCharacter(image) {
+            const texture = PIXI.Texture.from(
+                image);
+            texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
+            const character = new PIXI.Sprite(texture);
+            character.interactive = true;
+
+            // this button mode will mean the hand cursor appears when you roll over the character with your mouse
+            character.buttonMode = true;
+
+            // center the character's anchor point
+            character.anchor.set(0.5);
+
+            // make it a bit bigger, so it's easier to grab
+            character.scale.set(0.3);
+            character.zIndex = 0;
+            character.appType = "character"
+            // setup events for mouse + touch using
+            // the pointer events
+            character
+                .on('pointerdown', onDragStart)
+                .on('pointerup', onDragEnd)
+                .on('pointerupoutside', onDragEnd)
+                .on('pointermove', onDragMove);
+
+            // move the sprite to its designated position
+            character.x = Math.floor(Math.random() * (app.screen.width * 0.7) + app.screen
+                .width * 0.15);
+            character.y = Math.floor(Math.random() * (app.screen.height * 0.40) + app.screen
+                .height * 0.2);
+            app.stage.addChild(character);
+            if (selectList) {
+                selectList.updateList()
+            }
+        }
+
+        function clearText() {
+            textY = 550;
+            for (let index = app.stage.children.length - 1; index >= 0; index--) {
+                if (app.stage.children[index].appType == "text")
+                    app.stage.removeChild(app.stage.children[index]);
+
+            }
+            selectList.updateList()
+
+        }
+
+        //DONE
+
+
+
+        function bgEdit(mode) {
+            for (let index = app.stage.children.length - 1; index >= 0; index--) {
+                if (app.stage.children[index].appType == "background") {
+                    switch (mode) {
+                        case 'width':
+                            app.stage.children[index].width = app.screen.width
+                            app.stage.children[index].height = app.screen.width / app.stage.children[index].orig
+                                .width *
+                                app.stage.children[index].orig.height
+                            break;
+                        case 'height':
+                            app.stage.children[index].width = app.screen.height / app.stage.children[index].orig
+                                .height *
+                                app.stage.children[index].orig.width
+                            app.stage.children[index].height = app.screen.height
+                            break;
+                        case 'fill':
+                            app.stage.children[index].width = app.screen.width
+                            app.stage.children[index].height = app.screen.height
+                            break;
+                        case 'center':
+                            app.stage.children[index].width = app.stage.children[index].orig.width;
+                            app.stage.children[index].height = app.stage.children[index].orig.height;
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+
+            }
+        }
+
+
+        function createBG(image) {
+            const texture = PIXI.Texture.from(
+                image
+            );
+            // create our little character friend..
+            const background = new PIXI.Sprite(texture);
+            var filter = new PIXI.filters.AsciiFilter();
+            background.interactive = true;
+            background.anchor.set(0.5);
+            background.orig = texture.orig;
+            background.appType = "background"
+            background.height = app.screen.height
+            background.width = app.screen.width
+            background.x = app.screen.width * .5
+            background.y = app.screen.height * .5
+            background.zIndex = -100;
+            app.stage.addChild(background);
+            if (selectList) selectList.updateList()
+        }
+
+        function onDragStart(event) {
+            // store a reference to the data
+            // the reason for this is because of multitouch
+            // we want to track the movement of this particular touch
+            this.data = event.data;
+            this.alpha = 0.5;
+            this.dragging = true;
+            // get the mouse coursor location within the window
+            const appCursorLocation = this.data.getLocalPosition(this.parent);
+            // calculate the offset with the app cursor location - sprite location
+            spriteMouseLocationOffsetX = appCursorLocation.x - this.x
+            spriteMouseLocationOffsetY = appCursorLocation.y - this.y
+        }
+
+        function onDragEnd(e) {
+            this.alpha = 1;
+            this.dragging = false;
+            // set the interaction data to null
+            this.data = null;
+            if (e.data.button === 0) {
+                if (this.__firstLeftClick) {
+                    // double and clone taget
+                    //待整
+                    if (shiftDown) {
+                        this.scale.x *= 0.75;
+                        this.scale.y *= 0.75;
+                    }
+
+                    if (!shiftDown) {
+                        this.scale.x *= 1.25;
+                        this.scale.y *= 1.25;
+                    }
+                    this.__firstLeftClick = false;
+                } else {
+                    this.__firstLeftClick = true;
+                    setTimeout(() => {
+                        this.__firstLeftClick = false;
+                    }, 300); // time for double click detection
+                }
+
+            }
+            if (e.data.button === 2) {
+                if (this.__firstRightClick) {
+                    //  console.log(e.currentTarget)
+                    // double and clone taget
+                    //待整
+                    if (shiftDown) {
+                        e.currentTarget.parent.removeChild(e.currentTarget);
+                        selectList.updateList()
+                    }
+                    this.__firstRightClick = false;
+                } else {
+                    this.__firstRightClick = true;
+                    setTimeout(() => {
+                        this.__firstRightClick = false;
+                    }, 300); // time for double click detection
+                }
+            }
+            spriteMouseLocationOffsetX = 0;
+            spriteMouseLocationOffsetY = 0;
+        }
+
+        function onDragMove() {
+            if (this.dragging) {
+                const newPosition = this.data.getLocalPosition(this.parent);
+                this.x = newPosition.x - spriteMouseLocationOffsetX;
+                this.y = newPosition.y - spriteMouseLocationOffsetY;
+            }
+        }
+        $(document).ready(function () {
+            $('.js-example-basic-multiple').select2({
+                closeOnSelect: false,
+                placeholder: '選取目標圖層',
+                allowClear: true,
+                scrollAfterSelect: true
+            });
+        });
+
+        function takeScreenshot() {
+            wait = true;
+            app.renderer.extract.canvas(app.stage).toBlob((b) => {
+                const a = document.createElement('a');
+                document.body.append(a);
+                a.download = 'screenshot';
+                a.href = URL.createObjectURL(b);
+                a.click();
+                a.remove();
+            }, 'image/png');
+        }
+
+        function switchCard(name) {
+            $('.collapse').collapse('hide')
+            $(name).collapse('show')
+        }
+
+
+        function resize() {
+            var $canvas = $("#main");
+            var $parent = $canvas.parent();
+            $canvas.width($parent.width() - 2);
+            $canvas.height($parent.height() - 2);
+        }
+        resize();
+        $(window).on('resize', function () {
+            resize();
+        });
+
+        function removeRoll() {
+            for (let index = app.stage.children.length - 1; index >= 0; index--) {
+                if (app.stage.children[index].appType == "dice")
+                    app.stage.removeChild(app.stage.children[index]);
+
+            }
+            selectList.updateList()
+        }
+
+        function roll(number) {
+            const rollText = new PIXI.Text(number, style);
+            rollText.x = Math.floor(Math.random() * (app.screen
+                .width * 0.8) + app.screen.width * 0.10);
+            rollText.y = Math.floor(Math.random() * (app.screen.height * 0.50) + app.screen
+                .height * 0.15);
+            rollText.zIndex = 400;
+            rollText.appType = "dice"
+            rollText.anchor.set(0.5);
+            rollText.interactive = true; // 設定可以互動
+            rollText.buttonMode = true; // 當滑鼠滑過時顯示為手指圖示
+            rollText.updateAnchor = true;
+            rollText
+                .on('pointerdown', onDragStart)
+                .on('pointerup', onDragEnd)
+                .on('pointerupoutside', onDragEnd)
+                .on('pointermove', onDragMove);
+            app.stage.addChild(rollText);
+            selectList.updateList()
+        }
+        //handdel right click
+        document.addEventListener('contextmenu', e => {
+            e.preventDefault();
+        });
+        var shiftDown = false;
+        document.addEventListener("keydown", function (event) {
+            if (event.which === 16)
+                shiftDown = true;
+        });
+        document.addEventListener("keyup", function (event) {
+            if (event.which === 16)
+                shiftDown = false;
+        });
+
+
+        var selectList = Vue.createApp({
+            data() {
+                return {
+                    list: app.stage.children,
+                    value: ''
+                }
+
+            },
+            methods: {
+                updateList: function () {
+                    this.list = Object.assign({}, app.stage.children)
+                    $('#v-model-select-dynamic').select2('destroy').find('option').prop('selected',
+                        false).end().select2({
+                        closeOnSelect: false,
+                        placeholder: '選取目標圖層',
+                        allowClear: true,
+                        scrollAfterSelect: true
+                    });
+                }
+            }
+        }).mount('#v-model-select-dynamic')
+        const blurFilter = new PIXI.filters.BlurFilter();
+        const AsciiFilter = new PIXI.filters.AsciiFilter();
+        const BulgePinchFilter = new PIXI.filters.BulgePinchFilter();
+        const ColorReplaceFilter = new PIXI.filters.ColorReplaceFilter();
+        const DotFilter = new PIXI.filters.DotFilter();
+        const NoiseFilter = new PIXI.filters.NoiseFilter();
+        const CRTFilter = new PIXI.filters.CRTFilter();
+        const ConvolutionFilter = new PIXI.filters.ConvolutionFilter();
+        const ColorOverlayFilter = new PIXI.filters.ColorOverlayFilter();
+        //      
+    </script>
+    <!-- Latest compiled and minified CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+
+</body>
+<!-- HKTRPG Sad -- 20201221-->
+<!-- 
+擲骰    -   可以進行最基本1D2 1D3…1D100，然後把結果像實骰一樣放上畫面。   缺擲骰結果圖像
+背景    -   更換背景圖片，可選根據濶度，高度等等，參考一些VIDEO PLAYER    DONE
+角色    -   可以放上數張不同的角色圖，刪除，有反轉，DRAG及拉大縮少，改變顏色，灰化，黑化，模糊化等功能
+濾鏡    -   整個畫面的濾鏡
+特效    -   像一些! 笑 顏文字 雨 風 血 等等顯示在畫面
+文字    -   在畫面顯示文字
+關閉劇場    -   不顯示下方的對話框
+傳送    -   
+
+最下    -   可以在對話框輸入文字
+
+右鍵可以DELETE 複製
+
+https://www.html5gamedevs.com/topic/27159-make-a-context-menu-appear-upon-right-click-of-a-sprite/
+https://www.iwm-tuebingen.de/iwmbrowser/lib/pixi/popupmenu.html
+
+
+左鍵
+
+box2.zIndex = 100;
+app.stage.sortChildren();
+BG  背景    -100        Type02
+CHAR角色    0           Type01
+EFFECT特效    +100      Type01
+Dialog box劇場對話框  +200  Type02
+TEXT文字    +300        Type03
+ROLL骰子    +400        Type01
+
+       app.stage.setChildIndex(background, 0)
+-->
+
+</html>

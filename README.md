@@ -32,6 +32,7 @@ HKTRPG擲骰子專用機械人 Roll Dice Robot
         *   [網頁版 邀請連結](https://rollbot.hktrpg.com/)
     *   [HKTRPG 研究社 Facebook](https://www.facebook.com/groups/HKTRPG)
     *   [TRPG 百科](https://www.HKTRPG.com/)
+    *   [名人堂](https://hktrpg.github.io/TG.line.Discord.Roll.Bot/CREDITS.html)
     *   [贊助HKTRPG](https://www.patreon.com/HKTRPG)
     
     指令簡介

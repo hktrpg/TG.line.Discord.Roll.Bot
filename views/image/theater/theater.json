@@ -1,7 +1,7 @@
 {
     "image": [
         {
-            "location": "beach",
+            "location": "海灘",
             "detail": [
                 {
                     "fileName": "beach01_cloud by shazwan.jpg",
@@ -344,7 +344,7 @@
             ]
         },
         {
-            "location": "church",
+            "location": "教堂",
             "detail": [
                 {
                     "fileName": "church01_cloud by csouza_79.jpg",
@@ -934,7 +934,7 @@
             ]
         },
         {
-            "location": "european",
+            "location": "歐式建築",
             "detail": [
                 {
                     "fileName": "european01_cloud by Jim Linwood.jpg",
@@ -2317,7 +2317,7 @@
             ]
         },
         {
-            "location": "fantasy",
+            "location": "夢幻",
             "detail": [
                 {
                     "fileName": "fantasy01_cloud by Karen Roe.jpg",
@@ -4831,7 +4831,7 @@
             ]
         },
         {
-            "location": "hospital",
+            "location": "醫院",
             "detail": [
                 {
                     "fileName": "hospital01_cloud by norfolkdistrict.jpg",
@@ -5486,7 +5486,7 @@
             ]
         },
         {
-            "location": "house",
+            "location": "家",
             "detail": [
                 {
                     "fileName": "house01_cloud.jpg",
@@ -6323,7 +6323,7 @@
             ]
         },
         {
-            "location": "japanese",
+            "location": "日式",
             "detail": [
                 {
                     "fileName": "japanese01_cloud by TANAKA Juuyoh.jpg",
@@ -7082,7 +7082,7 @@
             ]
         },
         {
-            "location": "resident",
+            "location": "居住地",
             "detail": [
                 {
                     "fileName": "wasteland001_cloud.jpg",
@@ -8543,7 +8543,7 @@
             ]
         },
         {
-            "location": "mountain",
+            "location": "山",
             "detail": [
                 {
                     "fileName": "mountain001_cloud.jpg",
@@ -9172,7 +9172,7 @@
             ]
         },
         {
-            "location": "office",
+            "location": "辦公室",
             "detail": [
                 {
                     "fileName": "office01_day by norfolkdistrict.jpg",
@@ -9879,7 +9879,7 @@
             ]
         },
         {
-            "location": "park",
+            "location": "公園",
             "detail": [
                 {
                     "fileName": "park001_cloud.jpg",
@@ -10664,7 +10664,7 @@
             ]
         },
         {
-            "location": "shop",
+            "location": "店鋪",
             "detail": [
                 {
                     "fileName": "restaurant01_day by heatheronhertravels.jpg",
@@ -11696,7 +11696,7 @@
             ]
         },
         {
-            "location": "livingroom",
+            "location": "起居室",
             "detail": [
                 {
                     "fileName": "room_bath01_cloud by drothamel.jpg",
@@ -13326,7 +13326,7 @@
             ]
         },
         {
-            "location": "school",
+            "location": "學校-01",
             "detail": [
                 {
                     "fileName": "school01_cloud.jpg",
@@ -14735,7 +14735,7 @@
             ]
         },
         {
-            "location": "school02",
+            "location": "學校-02",
             "detail": [
                 {
                     "fileName": "school01_day.jpg",
@@ -15923,7 +15923,7 @@
             ]
         },
         {
-            "location": "street",
+            "location": "街道",
             "detail": [
                 {
                     "fileName": "shop001_cloud.jpg",
@@ -16955,7 +16955,7 @@
             ]
         },
         {
-            "location": "shrine",
+            "location": "聖地",
             "detail": [
                 {
                     "fileName": "shrine001_cloud.jpg",
@@ -17844,7 +17844,7 @@
             ]
         },
         {
-            "location": "sky",
+            "location": "天空",
             "detail": [
                 {
                     "fileName": "sky001_day.jpg",

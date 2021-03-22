@@ -185,7 +185,6 @@
                         </ul>
 
                         <div class="input-group">
-
                             <button class="btn btn-secondary" onclick="bgEdit('width')">
                                 按闊度
                             </button>
@@ -1026,6 +1025,16 @@
         const ConvolutionFilter = new PIXI.filters.ConvolutionFilter();
         const ColorOverlayFilter = new PIXI.filters.ColorOverlayFilter();
         //      
+    </script>
+    <script>
+        //https://stackoverflow.com/questions/50939644/how-do-i-get-data-from-json-and-show-it-in-html/50939799
+        var requestURL =
+            'https://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/theater-mode/views/image/theater/theater.json';
+        fetch(requestURL)
+            .then(res => res.json())
+            .then((res) => {
+                console.log('res', res)
+            });
     </script>
     <!-- Latest compiled and minified CSS -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />

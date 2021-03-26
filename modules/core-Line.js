@@ -51,7 +51,7 @@ var handleEvent = async function (event) {
 	let inputStr = event.message.text;
 	let trigger = "";
 	let roomorgroupid = event.source.groupId || event.source.roomId || '';
-	let mainMsg = inputStr.match(msgSplitor); //定義輸入字串
+	let mainMsg = (inputStr) ? inputStr.match(msgSplitor) : {}; //定義輸入字串
 	if (mainMsg && mainMsg[0]) {
 		trigger = mainMsg[0].toString().toLowerCase();
 	}

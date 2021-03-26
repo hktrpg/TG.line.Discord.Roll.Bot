@@ -113,7 +113,7 @@ var handleEvent = async function (event) {
 			if (event.type == "join" && roomorgroupid) {
 				// 新加入群組時, 傳送MESSAGE
 				console.log("Line joined");
-				await replyMessagebyReplyToken(roomorgroupid, joinMessage);
+				await replyMessagebyReplyToken(event, joinMessage);
 			} else
 				// ignore non-text-message event
 				if (roomorgroupid && userid) {
@@ -184,9 +184,9 @@ var handleEvent = async function (event) {
 				// 輸入dr  (指令) 私訊自己
 				if (roomorgroupid && userid)
 					if (displayname)
-						await replyMessagebyReplyToken(roomorgroupid, "@" + displayname + ' 暗骰給自己');
+						await replyMessagebyReplyToken(event, "@" + displayname + ' 暗骰給自己');
 					else
-						await replyMessagebyReplyToken(roomorgroupid, '正在暗骰給自己');
+						await replyMessagebyReplyToken(event, '正在暗骰給自己');
 				if (userid)
 					if (displayname)
 						await SendToId(userid, "@" + displayname + '的暗骰\n' + rplyVal.text);
@@ -202,9 +202,9 @@ var handleEvent = async function (event) {
 						targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
 					}
 					if (displayname) {
-						await replyMessagebyReplyToken(roomorgroupid, "@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
+						await replyMessagebyReplyToken(event, "@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
 					} else
-						await replyMessagebyReplyToken(roomorgroupid, ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
+						await replyMessagebyReplyToken(event, ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
 				}
 
 				//有名字就顯示
@@ -228,9 +228,9 @@ var handleEvent = async function (event) {
 						targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
 					}
 					if (displayname) {
-						await replyMessagebyReplyToken(roomorgroupid, "@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
+						await replyMessagebyReplyToken(event, "@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
 					} else {
-						await replyMessagebyReplyToken(roomorgroupid, ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
+						await replyMessagebyReplyToken(event, ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
 					}
 				}
 				if (displayname)
@@ -247,9 +247,9 @@ var handleEvent = async function (event) {
 				}
 				//	console.log('rplyVal: ', rplyVal)
 				if (roomorgroupid) {
-					return await replyMessagebyReplyToken(roomorgroupid, rplyVal);
+					return await replyMessagebyReplyToken(event, rplyVal);
 				} else if (userid) {
-					return await replyMessagebyReplyToken(userid, rplyVal);
+					return await replyMessagebyReplyToken(event, rplyVal);
 				}
 				break;
 		}
@@ -258,19 +258,7 @@ var handleEvent = async function (event) {
 
 		//rplyVal.text
 
-		async function replyMessagebyReplyToken(targetid, Reply) {
-			let temp = await HandleMessage(Reply);
-			return await client.replyMessage(event.replyToken, temp).catch(() => {
-				if (temp.type == 'image') {
-					let tempB = {
-						type: 'text',
-						text: temp.originalContentUrl
-					};
-					client.replyMessage(event.replyToken, tempB);
-					//	}
-				}
-			});
-		}
+
 
 		/**pushMessage
 		 * client.pushImage(USER_ID, {
@@ -284,6 +272,19 @@ var handleEvent = async function (event) {
 		// use reply API
 		//Reply Max: 2000 characters
 	}
+}
+var replyMessagebyReplyToken = async function (event, Reply) {
+	let temp = await HandleMessage(Reply);
+	return await client.replyMessage(event.replyToken, temp).catch(() => {
+		if (temp.type == 'image') {
+			let tempB = {
+				type: 'text',
+				text: temp.originalContentUrl
+			};
+			client.replyMessage(event.replyToken, tempB);
+			//	}
+		}
+	});
 }
 async function HandleMessage(message) {
 	let temp = [];
@@ -370,15 +371,14 @@ async function nonDice(event) {
 			let LevelUp = await EXPUP(roomorgroupid, userid, displayname, "", null);
 			await courtMessage("", "Line", "")
 			if (roomorgroupid && LevelUp) {
-				console.log('LevelUp', LevelUp)
-				return await this.replyMessagebyReplyToken(roomorgroupid, LevelUp);
+				return await replyMessagebyReplyToken(event, LevelUp);
 			}
 		},
 		async function () {
 			let LevelUp = await EXPUP(roomorgroupid, userid, displayname, "", null);
 			await courtMessage("", "Line", "")
 			if (roomorgroupid && LevelUp) {
-				return await this.replyMessagebyReplyToken(roomorgroupid, LevelUp);
+				return await replyMessagebyReplyToken(event, LevelUp);
 			}
 			//如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
 		})

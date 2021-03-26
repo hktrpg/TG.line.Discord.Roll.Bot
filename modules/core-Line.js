@@ -6,7 +6,6 @@ exports.analytics = require('./core-analytics');
 const EXPUP = require('./level').EXPUP || function () {};
 const line = require('@line/bot-sdk');
 const express = require('express');
-const msgSplitor = (/\S+/ig);
 // create LINE SDK config from env variables
 const config = {
 	channelAccessToken: process.env.LINE_CHANNEL_ACCESSTOKEN,
@@ -48,50 +47,11 @@ process.on("Line", message => {
 })
 
 var handleEvent = async function (event) {
-	let inputStr = event.message.text;
-	let trigger = "";
-	let roomorgroupid = event.source.groupId || event.source.roomId || '';
-	let mainMsg = inputStr.match(msgSplitor); //定義輸入字串
-	if (mainMsg && mainMsg[0]) {
-		trigger = mainMsg[0].toString().toLowerCase();
-	}
-	//指定啟動詞在第一個詞&把大階強制轉成細階
-	if (trigger == ".me") {
-		inputStr = inputStr.replace(/^.me\s+/i, '');
-		if (roomorgroupid) {
-			let temp = await HandleMessage(inputStr);
-			client.replyMessage(event.replyToken, temp);
-		} else {
-			await SendToId(event.source.userId, inputStr);
-		}
-		return;
-	}
-	let privatemsg = 0;
-
-	function privateMsg() {
-		if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
-			privatemsg = 1;
-			inputStr = inputStr.replace(/^dr\s+/i, '');
-		}
-		if (trigger.match(/^ddr$/i) && mainMsg && mainMsg[1]) {
-			privatemsg = 2;
-			inputStr = inputStr.replace(/^ddr\s+/i, '');
-		}
-		if (trigger.match(/^dddr$/i) && mainMsg && mainMsg[1]) {
-			privatemsg = 3;
-			inputStr = inputStr.replace(/^dddr\s+/i, '');
-		}
-	}
-	privateMsg();
-
-	let target = '';
-	if (inputStr) target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
-	if (!target) {
-		await nonDice(event)
-		return null
-	}
-	let userid = event.source.userId || '',
+	//event {"type":"message","replyToken":"232132133","source":{"userId":"U1a17e51fSDADASD0293d","groupId":"C6432427423847234cd3","type":"group"},"timestamp":323232323,"message":{"type":"text","id":"232131233123","text":"5!@@!"}}
+	let roomorgroupid = event.source.groupId || event.source.roomId || '',
+		userid = event.source.userId || '',
 		displayname = '',
+		membercount = null,
 		titleName = '';
 	let TargetGMTempID = [];
 	let TargetGMTempdiyName = [];
@@ -109,6 +69,7 @@ var handleEvent = async function (event) {
 		})
 
 	async function AfterCheckName() {
+		let displaynamecheck = true;
 		if (event.type !== 'message' || event.message.type !== 'text') {
 			if (event.type == "join" && roomorgroupid) {
 				// 新加入群組時, 傳送MESSAGE
@@ -117,14 +78,44 @@ var handleEvent = async function (event) {
 			} else
 				// ignore non-text-message event
 				if (roomorgroupid && userid) {
-					await EXPUP(roomorgroupid, userid, displayname, "", null);
+					await EXPUP(roomorgroupid, userid, displayname, "", membercount);
 					await courtMessage("", "Line", "")
 				}
 			return Promise.resolve(null);
 		}
-
-
+		//是不是自己.ME 訊息
+		//TRUE 即正常
+		let inputStr = event.message.text;
 		let rplyVal = {};
+		let msgSplitor = (/\S+/ig);
+		let trigger = "";
+		if (inputStr)
+			var mainMsg = inputStr.match(msgSplitor); // 定義輸入字串
+		if (mainMsg && mainMsg[0])
+			trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
+
+		// 訊息來到後, 會自動跳到analytics.js進行骰組分析
+		// 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+		if (trigger == ".me") {
+			displaynamecheck = false;
+		}
+
+		let privatemsg = 0;
+		//設定私訊的模式 0-普通 1-自己 2-自己+GM 3-GM
+		if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
+			privatemsg = 1;
+			inputStr = inputStr.replace(/^[d][r][ ]/i, '');
+		}
+		if (trigger.match(/^ddr$/i) && mainMsg && mainMsg[1]) {
+			//設定私訊的模式2
+			privatemsg = 2;
+			inputStr = inputStr.replace(/^[d][d][r][ ]/i, '');
+		}
+		if (trigger.match(/^dddr$/i) && mainMsg && mainMsg[1]) {
+			privatemsg = 3;
+			inputStr = inputStr.replace(/^[d][d][d][r][ ]/i, '');
+		}
+
 		if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 			//mainMsg.shift()
 			rplyVal = await exports.analytics.parseInput({
@@ -182,13 +173,13 @@ var handleEvent = async function (event) {
 		switch (true) {
 			case privatemsg == 1:
 				// 輸入dr  (指令) 私訊自己
-				if (roomorgroupid && userid)
+				if (roomorgroupid && userid && displaynamecheck)
 					if (displayname)
 						await replyMessagebyReplyToken(roomorgroupid, "@" + displayname + ' 暗骰給自己');
 					else
 						await replyMessagebyReplyToken(roomorgroupid, '正在暗骰給自己');
 				if (userid)
-					if (displayname)
+					if (displayname && displaynamecheck)
 						await SendToId(userid, "@" + displayname + '的暗骰\n' + rplyVal.text);
 					else
 						await SendToId(userid, rplyVal.text);
@@ -240,7 +231,7 @@ var handleEvent = async function (event) {
 				}
 				break;
 			default:
-				if (displayname && rplyVal && rplyVal.type != 'image') {
+				if (displaynamecheck && displayname && rplyVal && rplyVal.type != 'image') {
 					//285083923223
 					displayname = "@" + displayname + "\n";
 					rplyVal.text = displayname + rplyVal.text;
@@ -358,31 +349,7 @@ async function privateMsgFinder(channelid) {
 		return groupInfo.trpgDarkRollingfunction
 	else return [];
 }
-async function nonDice(event) {
-	let roomorgroupid = event.source.groupId || event.source.roomId || '',
-		userid = event.source.userId || '',
-		displayname = '';
-	if (!roomorgroupid || !userid) return;
-	client.getProfile(userid).then(async function (profile) {
-			//	在GP 而有加好友的話,得到名字
-			displayname = profile.displayName;
-			//console.log(displayname)
-			let LevelUp = await EXPUP(roomorgroupid, userid, displayname, "", null);
-			await courtMessage("", "Line", "")
-			if (roomorgroupid && LevelUp) {
-				return await this.replyMessagebyReplyToken(roomorgroupid, LevelUp);
-			}
-		},
-		async function () {
-			let LevelUp = await EXPUP(roomorgroupid, userid, displayname, "", null);
-			await courtMessage("", "Line", "")
-			if (roomorgroupid && LevelUp) {
-				return await this.replyMessagebyReplyToken(roomorgroupid, LevelUp);
-			}
-			//如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
-		})
-	return null;
-}
+
 module.exports = {
 	app,
 	express

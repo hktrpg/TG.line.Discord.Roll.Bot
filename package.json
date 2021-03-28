@@ -43,7 +43,7 @@
     "telegraf-getchatmembers": "^1.0.1",
     "timer": "^1.0.1",
     "uws": "^9.14.0",
-    "whatsapp-web.js": "^1.12.5",
+    "whatsapp-web.js": "https://github.com/zeteticl/whatsapp-web.js.git",
     "wikijs": "6.0.1",
     "ws": "^7.4.4",
     "zlib-sync": "^0.1.7"

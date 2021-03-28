@@ -182,7 +182,7 @@ var BuildDiceCal = async function (inputStr) {
   }
 
   // 計算算式
-  let answer = math.eval(equation.toString()).toString().replace(/true/i, "成功").replace(/false/i, "失敗")
+  let answer = math.evaluate(equation.toString()).toString().replace(/true/i, "成功").replace(/false/i, "失敗")
   finalStr = equation + ' = ' + answer
 
   return finalStr
@@ -258,7 +258,7 @@ async function onetimeroll(text0) {
   // 計算算式
   let aaa = equation
   aaa = aaa.replace(/\[.+?\]/ig, '')
-  let answer = math.eval(aaa.toString()).toString().replace(/true/i, "成功").replace(/false/i, "失敗");
+  let answer = math.evaluate(aaa.toString()).toString().replace(/true/i, "成功").replace(/false/i, "失敗");
   if (equation.match(/[\s\S]{1,250}/g).length > 1) {
     Str = answer + '（計算過程太長，僅顯示結果）';
   } else {

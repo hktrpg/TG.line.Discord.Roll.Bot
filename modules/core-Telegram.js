@@ -3,7 +3,7 @@ if (!process.env.TELEGRAM_CHANNEL_SECRET) {
 	return;
 }
 exports.analytics = require('./core-analytics');
-const Telegraf = require('telegraf');
+const { Telegraf } = require('telegraf');
 const TGclient = new Telegraf(process.env.TELEGRAM_CHANNEL_SECRET);
 const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || '';
 //var TGcountroll = 0;

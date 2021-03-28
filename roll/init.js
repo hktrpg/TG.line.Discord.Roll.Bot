@@ -121,7 +121,7 @@ var rollDiceCommand = async function ({
                 rply.text = "找不到該角色"
                 return rply;
             }
-            temp.list[objIndex].result = math.eval(temp.list[objIndex].result + mainMsg[1])
+            temp.list[objIndex].result = math.evaluate(temp.list[objIndex].result + mainMsg[1])
             try {
                 await temp.save();
             } catch (error) {

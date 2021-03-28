@@ -32,6 +32,7 @@ exports.analytics = require('./core-analytics');
 const {
 	Client
 } = require('whatsapp-web.js');
+const msgSplitor = (/\S+/ig);
 const client = new Client({
 	puppeteer: {
 		args: ['--no-sandbox', '--disable-setuid-sandbox']

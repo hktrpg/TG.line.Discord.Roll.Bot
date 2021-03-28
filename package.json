@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@babel/core": "7.7.4",
-    "@line/bot-sdk": "^6.8.4",
+    "@line/bot-sdk": "^7.2.0",
     "@vitalets/google-translate-api": "^4.0.0",
     "@zetetic/duckduckgo-images-api": "^1.0.5",
     "axios": "^0.21.1",

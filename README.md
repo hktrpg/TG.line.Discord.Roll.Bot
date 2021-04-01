@@ -1,6 +1,7 @@
 # RoboYabaso@HKTRPG </br>
 
-<p align="center"><a href="https://www.hktrpg.com" target="_blank" rel="noopener noreferrer"><img width="200" src="https://avatars3.githubusercontent.com/u/48795428?s=200&v=4" alt="HKTRPG logo"></a></p>
+<p align="center"></a>![image](https://user-images.githubusercontent.com/23254376/113255573-91c4b880-92fa-11eb-8b83-81d74cbc422f.png)
+</p>
 
 <p align="center">
     <a href="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/fork"><img src="https://img.shields.io/github/forks/hktrpg/TG.line.Discord.Roll.Bot" alt="Forks"></a>

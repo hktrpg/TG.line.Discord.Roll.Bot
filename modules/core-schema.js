@@ -95,6 +95,8 @@ const trpgLevelSystem = mongoose.model('trpgLevelSystem', {
             status4LV: Number,
             status5: Number,
             status5LV: Number,
+            status6: Number,
+            status6LV: Number,
             status7: Number,
             status7LV: Number,
             status8: Number,

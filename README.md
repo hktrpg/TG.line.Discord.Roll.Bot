@@ -548,3 +548,4 @@ Choice：啓動語choice/隨機/選項/選1</br>
 19: (公測中)儲存擲骰指令功能 .cmd (add del show 自定關鍵字)</br>
 20: (公測中)擲骰開關功能 .bk (add del show)</br>
 21: (公測中)資料庫功能 .db(p) (add del show 自定關鍵字)</br></br>
+![image](https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png)

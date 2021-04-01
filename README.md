@@ -1,6 +1,7 @@
 # RoboYabaso@HKTRPG </br>
 
-<p align="center">[image](https://user-images.githubusercontent.com/23254376/113255573-91c4b880-92fa-11eb-8b83-81d74cbc422f.png)
+<p align="center">
+    ![image](https://user-images.githubusercontent.com/23254376/113255573-91c4b880-92fa-11eb-8b83-81d74cbc422f.png)
 </p>
 
 <p align="center">

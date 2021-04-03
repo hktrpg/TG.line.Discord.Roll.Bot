@@ -18,10 +18,7 @@
 - 2019/07/21 香港克警合作 黑ICON紀念 
 - 想試用這機械人的話，請按以下連結，輸入`bothelp`顯示教學
 
-------------------
-HKTRPG擲骰子專用機械人 Roll Dice Robot
-------------------
-
+## HKTRPG擲骰子專用機械人 Roll Dice Robot
 *   HKTRPG是在Discord, Line, Telegram, Whatsapp和網頁上都可以使用的骰子機械人！
     *   功能：暗骰, 擲骰, 頻道經驗值, 占卜, TRPG骰子, 先攻表, TRPG角色卡, 搜圖, 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, 自定抽選
     *   歡迎加入[開發，求助及TRPG Discord 群組](https://discord.gg/vx4kcm7)

@@ -16,8 +16,9 @@ var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM')
 const EXPUP = require('./level').EXPUP || function () {};
 const courtMessage = require('./logs').courtMessage || function () {};
 const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
+		\n主要功能：暗骰, 擲骰, 頻道經驗值, 占卜, TRPG骰子, 先攻表, TRPG角色卡, 搜圖, 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, 自定抽選\
 		\n輸入 1D100 可以進行最簡單的擲骰.\
-		\n輸入 Bothelp 觀看詳細使用說明.\
+		\n到 (https://hktrpg.github.io/TG.line.Discord.Roll.Bot/) 或輸入 bothelp 觀看詳細使用說明.\
 		\n如果你需要幫助, 加入支援頻道.\
 		\n(http://bit.ly/HKTRPG_DISCORD)\
 		\n有關TRPG資訊, 可以到網站\

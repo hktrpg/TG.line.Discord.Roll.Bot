@@ -1,4 +1,5 @@
-# RoboYabaso@HKTRPG </br>
+
+# RoboYabaso@HKTRPG 
 
 <p align="center">
     <p align="center"><a href="https://www.hktrpg.com" target="_blank" rel="noopener noreferrer"><img width="200" src="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/raw/master/views/image.png" alt="HKTRPG logo"></a></p>
@@ -12,13 +13,10 @@
 </p>
 
 
-【HKTRPG擲骰BOT】v1.28</br> 
-最後更新時間11/03/2021, 14:01:11</br> 
-2019/07/21 香港克警合作 黑ICON紀念 </br> </br> 
-
-</br>
-想試用這機械人的話，請按以下連結，輸入bothelp顯示教學.</br>
-</br>
+# 【HKTRPG擲骰BOT】v1.28
+最後更新時間11/03/2021, 14:01:11
+2019/07/21 香港克警合作 黑ICON紀念 
+想試用這機械人的話，請按以下連結，輸入`bothelp`顯示教學
 
 ------------------
 HKTRPG擲骰子專用機械人 Roll Dice Robot
@@ -39,7 +37,6 @@ HKTRPG擲骰子專用機械人 Roll Dice Robot
     
     指令簡介
     ----
-    
     *   部份指令以 `.` 開頭或無開頭
     *   輸入 `bothelp` 可以顯示幫助訊息
     *	輸入 `功能的前置詞 help` 也可以顯示幫助訊息,如 `cc help` `.level help`
@@ -232,10 +229,10 @@ HKTRPG擲骰子專用機械人 Roll Dice Robot
     *   LOKI Lokinen，木易 陳，Luo Ray，Vivian  -   因為有他們捐助，才可以把HKTRPG搬到更好的機子上
     *   以及其他一直幫助和意見的朋友
 
-關於RoboYabaso</br> 
+關於RoboYabaso
 ==
-RoboYabaso最早由LarryLo  Retsnimle開發。 </br> 
-是一個開放源碼骰子機器人計畫。</br>
+RoboYabaso最早由LarryLo  Retsnimle開發。 
+是一個開放源碼骰子機器人計畫。
 來源自 https://docs.google.com/document/d/1dYnJqF2_QTp90ld4YXj6X8kgxvjUoHrB4E2seqlDlAk/edit</br>
 
 現在改成三合一Line x Discord x Telegram。</br>
@@ -327,7 +324,7 @@ Step2：建立lineBot賬號
 * 進入你剛註冊的line Bot賬號</br>
 ---
 
-* 照著這個畫面設定,把Use webhooks 定為開啓，Auto-reply messages  及Greeting messages 定為Disable</br>
+* 照著這個畫面設定,把Use webhooks 定為開啓，Auto-reply messages  及Greeting messages 定為Disable</br>
 ![設定](http://i.imgur.com/PXf10Qs.jpg)</br></br></br>
 ---
 * 然後開著網頁不要關。</br>

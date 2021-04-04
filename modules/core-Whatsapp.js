@@ -34,15 +34,40 @@ const {
 	Client
 } = require('whatsapp-web.js');
 const msgSplitor = (/\S+/ig);
+const qrcode = require('qrcode-terminal');
+// Path where the session data will be stored
+const SESSION_FILE_PATH = './modules/whatsapp-session.json';
+
+// Load the session data if it has been previously saved
+let sessionData;
+if (require('fs').existsSync(SESSION_FILE_PATH)) {
+	sessionData = JSON.parse(require('fs').readFileSync(SESSION_FILE_PATH).toString());
+}
+
 const client = new Client({
+	session: sessionData,
 	puppeteer: {
 		args: ['--no-sandbox', '--disable-setuid-sandbox']
 	}
 });
 
+// Save session values to the file upon successful auth
+client.on('authenticated', (session) => {
+	sessionData = session;
+	require('fs').writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
+		if (err) {
+			console.error(err);
+		}
+	});
+});
+
+
 client.on('qr', (qr) => {
 	// Generate and scan this code with your phone
 	console.log('QR RECEIVED\n', qr);
+	qrcode.generate(qr, {
+		small: true
+	});
 });
 
 client.on('ready', () => {

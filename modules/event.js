@@ -73,7 +73,7 @@ D. 一個事件可用的總EN 為(10+LV)，負面事件消耗X點EN
  * 
  * 
  */
-async function event(groupid, userid, displayname, displaynameDiscord, membercount) {
+async function event2(groupid, userid, displayname, displaynameDiscord, membercount) {
     if (!process.env.mongoURL || !Object.keys(exports.z_Level_system).length || !exports.z_Level_system.initialize().trpgLevelSystemfunction) {
         return;
     }
@@ -112,6 +112,48 @@ async function event(groupid, userid, displayname, displaynameDiscord, membercou
     //1. 讀取LEVELUP語
     return await returnTheLevelWord(gpInfo, userInfo, membercount);
     //6 / 7 * LVL * (2 * LVL * LVL + 30 * LVL + 100)
+}
+
+async function event(key) {
+    switch (key) {
+        case 2:
+            //   2. 直接增加X點經驗
+
+            break;
+        case 3:
+            // 3. 直接減少X點經驗
+
+            break;
+        case 4:
+            //   4. 停止得到經驗(X分鐘內)
+
+            break;
+        case 5:
+            //  5. 分發X經驗給整個CHANNEL中的X人
+
+            break;
+        case 6:
+            //  6. 停止得到經驗(X分鐘內) 並每次減少發言減少X經驗
+
+            break;
+        case 7:
+            //  7. 吸收對方X點經驗
+
+            break;
+        case 8:
+            //  8. 對方得到經驗值 X 倍(X分鐘內)
+
+
+            break;
+        case 9:
+            //  9. 從整個CHANNEL 的X人吸收X點經驗
+
+            break;
+
+        default:
+            //     1. 沒有事發生
+            break;
+    }
 }
 
 async function returnTheLevelWord(gpInfo, userInfo, membercount) {

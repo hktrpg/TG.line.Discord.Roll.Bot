@@ -92,13 +92,55 @@ hasQuotedMsg:false
 	*/
 client.on('message', async msg => {
 	if (!msg.body || msg.fromMe || msg.isForwarded) return;
-	let target = await exports.analytics.findRollList(msg.body.match(msgSplitor));
+	let displaynamecheck = true;
+	let inputStr = msg.body;
+	let membercount, groupid, trigger = "";
+	await client.getChatById(msg.from).then(async getChatDetail => {
+		if (getChatDetail.isGroup) {
+			groupid = getChatDetail.id._serialized;
+			//console.log('groupid:', groupid)
+			membercount = getChatDetail.participants.length - 1;
+		}
+		return;
+	});
+	let mainMsg = inputStr.match(msgSplitor); //定義輸入字串
+	if (mainMsg && mainMsg[0]) {
+		trigger = mainMsg[0].toString().toLowerCase();
+	}
+	//指定啟動詞在第一個詞&把大階強制轉成細階
+	if (trigger == ".me") {
+		displaynamecheck = false;
+	}
+	let privatemsg = 0;
+
+	function privateMsg() {
+		if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
+			privatemsg = 1;
+			inputStr = inputStr.replace(/^dr\s+/i, '');
+		}
+		if (trigger.match(/^ddr$/i) && mainMsg && mainMsg[1]) {
+			privatemsg = 2;
+			inputStr = inputStr.replace(/^ddr\s+/i, '');
+		}
+		if (trigger.match(/^dddr$/i) && mainMsg && mainMsg[1]) {
+			privatemsg = 3;
+			inputStr = inputStr.replace(/^dddr\s+/i, '');
+		}
+	}
+	privateMsg();
+
+
+
+
+
+
+	let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
 	if (!target) return null;
-	var groupid, userid, displayname, channelid, membercount, channelKeyword = '';
+	var userid, displayname, channelid, channelKeyword = '';
 	//得到暗骰的數據, GM的位置
 	//是不是自己.ME 訊息
 	//TRUE 即正常
-	let displaynamecheck = true;
+
 	let userrole = 3;
 	let TargetGMTempID = [];
 	let TargetGMTempdiyName = [];
@@ -109,19 +151,8 @@ client.on('message', async msg => {
 	displayname = await client.getContactById(userid).then(a => {
 		return a.pushname
 	})
-	await client.getChatById(msg.from).then(async getChatDetail => {
-		if (getChatDetail.isGroup) {
-			groupid = getChatDetail.id._serialized;
-			//console.log('groupid:', groupid)
-			membercount = getChatDetail.participants.length - 1;
-		}
-		return;
-	});
-	let inputStr = msg.body;
-	let rplyVal = {};
 
-	let trigger = "";
-	var mainMsg = inputStr.match(msgSplitor); // 定義輸入字串
+	let rplyVal = {};
 	if (mainMsg && mainMsg[0])
 		trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
 	if (trigger == ".me") {
@@ -130,20 +161,8 @@ client.on('message', async msg => {
 	// 訊息來到後, 會自動跳到analytics.js進行骰組分析
 	// 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
 
-	let privatemsg = 0
 	//設定私訊的模式 0-普通 1-自己 2-自己+GM 3-GM
-	if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
-		privatemsg = 1;
-		inputStr = inputStr.replace(/^[d][r][ ]/i, '');
-	}
-	if (trigger.match(/^ddr$/i) && mainMsg && mainMsg[1]) {
-		privatemsg = 2;
-		inputStr = inputStr.replace(/^[d][d][r][ ]/i, '');
-	}
-	if (trigger.match(/^dddr$/i) && mainMsg && mainMsg[1]) {
-		privatemsg = 3;
-		inputStr = inputStr.replace(/^[d][d][d][r][ ]/i, '');
-	}
+
 	if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 		mainMsg.shift();
 		rplyVal = await exports.analytics.parseInput({

@@ -49,7 +49,7 @@ process.on("Line", message => {
 })
 
 var handleEvent = async function (event) {
-	let inputStr = event.message.text;
+	let inputStr = (event.message && event.message.text) ? event.message.text : "";
 	let trigger = "";
 	let roomorgroupid = event.source.groupId || event.source.roomId || '';
 	let mainMsg = (inputStr) ? inputStr.match(msgSplitor) : {}; //定義輸入字串

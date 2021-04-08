@@ -101,6 +101,7 @@ async function event2(groupid, userid, displayname, displaynameDiscord, memberco
     let levelUP = false;
     //5. 檢查現LEVEL 需不需要上升. =5 / 6 * LVL * (2 * LVL * LVL + 27 * LVL )+ 91DD
     let newLevelExp = 5 / 6 * (LVsumOne) * (2 * (LVsumOne) * (LVsumOne) + 30 * (LVsumOne)) + 100;
+    let needExp = newLevelExp - (5 / 6 * (Number(userInfo.Level)) * (2 * (Number(userInfo.Level)) * (Number(userInfo.Level)) + 30 * (Number(userInfo.Level))) + 100);
     if (userInfo.EXP > newLevelExp) {
         userInfo.Level++;
         levelUP = true;
@@ -118,6 +119,7 @@ async function event(key) {
     switch (key) {
         case 2:
             //   2. 直接增加X點經驗
+            //100之一 ->50之一 * 1.0X ( 相差LV)% *1.0X(負面級數)^(幾個負面) 
 
             break;
         case 3:

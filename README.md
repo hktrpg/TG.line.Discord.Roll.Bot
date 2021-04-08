@@ -59,7 +59,7 @@
     *   如上面一樣,在骰子數字後方隔空白位打字,可以進行發言。
     *   `5 3D6` ： 分別骰出5次3d6 最多30次
     *   `((2d6+1)\*2)-5/2>=10` 支援括號加減乘除及大於小於(>,<,>=,<=)計算
-    *   支援kh|kl|dh|dl，k keep保留，d drop 放棄，h highest最高，l lowest最低
+    *   支援 `kh` `kl` `dh``dl`，k keep保留，d drop 放棄，h highest最高，l lowest最低
     *   如`3d6kh` 保留最大的1粒骰，`3d6dl2` 放棄最小的2粒骰
     
     ### 暗骰功能 
@@ -72,7 +72,7 @@
     
     ### 不同的TRPG需要特別的擲骰方法
     
-    *   【進階擲骰】 `.ca (算式)`|`D66(sn)`|`5B10 Dx`|`5U10 x y`|`.int x y`
+    *   【進階擲骰】 `.ca (算式)` `D66(sn)` `5B10 Dx` `5U10 x y` `.int x y`
     *   【克蘇魯神話】 `cc` `cc(n)1~2` `ccb` `ccrt` `ccsu` `.dp` `.cc7build` `.cc6build` `.cc7bg`
     *   【朱の孤塔】 `.al (nALx\*p)`
     *   【神我狩】 `.kk (ET RT NT KT MTx)`

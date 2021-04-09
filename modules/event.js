@@ -124,6 +124,7 @@ async function event(key) {
             break;
         case 3:
             // 3. 直接減少X點經驗
+            //100之一 ->50之一 * 1.0X ( 相差LV)% *1.0X(負面級數)^(幾個負面) 
 
             break;
         case 4:

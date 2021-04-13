@@ -115,20 +115,27 @@ async function event2(groupid, userid, displayname, displaynameDiscord, memberco
     //6 / 7 * LVL * (2 * LVL * LVL + 30 * LVL + 100)
 }
 
-async function event(key) {
+async function event(key, needExp, eventLV, myLV, eventNeg) {
+    let random
     switch (key) {
         case 2:
             //   2. 直接增加X點經驗
             //100之一 ->50之一 * 1.0X ( 相差LV)% *1.0X(負面級數)^(幾個負面) 
-
-            break;
+            random = exports.rollbase.DiceINT(needExp / 100, needExp / 50)
+            random *= (eventLV ^ 2 - myLV) > 0 ? ((eventLV ^ 2 - myLV) / 100 + 1) : 1;
+            random *= (eventNeg / 100 + 1)
+            return random;
         case 3:
             // 3. 直接減少X點經驗
             //100之一 ->50之一 * 1.0X ( 相差LV)% *1.0X(負面級數)^(幾個負面) 
+            random = exports.rollbase.DiceINT(needExp / 200, needExp / 50)
+            random *= (eventLV - myLV) > 0 ? ((eventLV - myLV) / 100 + 1) : 1;
+            random *= (1 - eventNeg / 100)
+            return random;
 
-            break;
         case 4:
             //   4. 停止得到經驗(X分鐘內)
+            random = eventLV;
 
             break;
         case 5:

@@ -129,7 +129,7 @@ async function event(key, needExp, eventLV, myLV, eventNeg) {
             // 3. 直接減少X點經驗
             //100之一 ->50之一 * 1.0X ( 相差LV)% *1.0X(負面級數)^(幾個負面) 
             random = exports.rollbase.DiceINT(needExp / 200, needExp / 50)
-            random *= (eventLV - myLV) > 0 ? ((eventLV - myLV) / 100 + 1) : 1;
+            random *= (eventLV - myLV ^ 2) > 0 ? ((eventLV - myLV ^ 2) / 100 + 1) : 1;
             random *= (1 - eventNeg / 100)
             return random;
 
@@ -140,11 +140,14 @@ async function event(key, needExp, eventLV, myLV, eventNeg) {
             break;
         case 5:
             //  5. 分發X經驗給整個CHANNEL中的X人
-
+            random = exports.rollbase.DiceINT(needExp / 50, needExp / 20)
+            random *= (eventLV ^ 2 - myLV) > 0 ? ((eventLV ^ 2 - myLV) / 100 + 1) : 1;
+            random *= (eventNeg / 100 + 1)
+            return random;
             break;
         case 6:
             //  6. 停止得到經驗(X分鐘內) 並每次減少發言減少X經驗
-
+            random = eventLV;
             break;
         case 7:
             //  7. 吸收對方X點經驗
@@ -152,7 +155,9 @@ async function event(key, needExp, eventLV, myLV, eventNeg) {
             break;
         case 8:
             //  8. 對方得到經驗值 X 倍(X分鐘內)
-
+            random = exports.rollbase.DiceINT(needExp / 200, needExp / 50)
+            random *= (eventLV - myLV ^ 2) > 0 ? ((eventLV - myLV ^ 2) / 100 + 1) : 1;
+            random *= (1 - eventNeg / 100)
 
             break;
         case 9:

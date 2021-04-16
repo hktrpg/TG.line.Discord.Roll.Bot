@@ -135,7 +135,7 @@ client.on('message', async msg => {
 
 
 	let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
-	if (!target) return null;
+	if (!target && privatemsg == 0) return null;
 	var userid, displayname, channelid, channelKeyword = '';
 	//得到暗骰的數據, GM的位置
 	//是不是自己.ME 訊息

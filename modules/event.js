@@ -144,7 +144,6 @@ async function event(key, needExp, eventLV, myLV, eventNeg) {
             random *= (eventLV ^ 2 - myLV) > 0 ? ((eventLV ^ 2 - myLV) / 100 + 1) : 1;
             random *= (eventNeg / 100 + 1)
             return random;
-            break;
         case 6:
             //  6. 停止得到經驗(X分鐘內) 並每次減少發言減少X經驗
             random = eventLV;
@@ -169,6 +168,11 @@ async function event(key, needExp, eventLV, myLV, eventNeg) {
             //     1. 沒有事發生
             break;
     }
+}
+
+
+async function get(who, data) {
+  
 }
 
 async function returnTheLevelWord(gpInfo, userInfo, membercount) {

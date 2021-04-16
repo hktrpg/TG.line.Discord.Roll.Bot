@@ -66,3 +66,4 @@ tmp/
 .vscode/launch.json
 .vscode/settings.json
 .env copy
+modules/whatsapp-session.json

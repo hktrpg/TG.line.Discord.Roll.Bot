@@ -76,7 +76,7 @@ var rollDiceCommand = async function ({
 			if (inputStr.match(/[=]/ig))
 				if (inputStr.match(/^((?!(>=|<=|=>|=<|\d=|[)]=)).)*$/ig))
 					inputStr = inputStr.replace(/[=]/g, ' to ')
-			rply.text = mathjs.eval(inputStr.toLowerCase().replace(/\.ca/i, '').replace(/磅/g, 'lb').replace(/公斤/g, 'kg').replace(/盎司/g, 'oz').replace(/英吋/g, 'inch').replace(/公分/g, 'cm').replace(/公釐/g, 'mm').replace(/克/g, 'g').replace(/公尺/g, 'm').replace(/碼/g, 'yd').replace(/桿/g, 'rd').replace(/英里/g, 'mi').replace(/千米/g, 'km').replace(/厘米/g, 'cm').replace(/毫米/g, 'mm').replace(/微米/g, 'µm').replace(/毫克/g, 'mg').replace(/公克/g, 'hg').replace(/斤/g, 'kg').replace(/米/g, 'm').replace(/英尺/g, 'ft').replace(/尺/g, 'ft').replace(/角度/g, 'deg').replace(/度/g, 'deg').replace(/呎/g, 'ft').replace(/吋/g, 'inch').replace(/轉換/g, ' to ').replace(/轉/g, ' to ').replace(/換/g, ' to '))
+			rply.text = mathjs.evaluate(inputStr.toLowerCase().replace(/\.ca/i, '').replace(/磅/g, 'lb').replace(/公斤/g, 'kg').replace(/盎司/g, 'oz').replace(/英吋/g, 'inch').replace(/公分/g, 'cm').replace(/公釐/g, 'mm').replace(/克/g, 'g').replace(/公尺/g, 'm').replace(/碼/g, 'yd').replace(/桿/g, 'rd').replace(/英里/g, 'mi').replace(/千米/g, 'km').replace(/厘米/g, 'cm').replace(/毫米/g, 'mm').replace(/微米/g, 'µm').replace(/毫克/g, 'mg').replace(/公克/g, 'hg').replace(/斤/g, 'kg').replace(/米/g, 'm').replace(/英尺/g, 'ft').replace(/尺/g, 'ft').replace(/角度/g, 'deg').replace(/度/g, 'deg').replace(/呎/g, 'ft').replace(/吋/g, 'inch').replace(/轉換/g, ' to ').replace(/轉/g, ' to ').replace(/換/g, ' to '))
 			rply.text = inputStr.replace(/\.ca/i, '') + ' → ' + rply.text;
 
 			return rply;
@@ -201,7 +201,7 @@ async function xBy(triggermsg, text01, text02, botname) {
 		match[6] = match02[1] || ""
 		match[7] = match02[2] || ""
 		match[8] = match02[3] || ""
-		match[9] = mathjs.eval(match02[4]) || ""
+		match[9] = mathjs.evaluate(match02[4]) || ""
 	}
 
 	let match01 = /^((|d)(\d+))$/i.exec(text01);
@@ -292,7 +292,7 @@ async function xBy(triggermsg, text01, text02, botname) {
 		}
 	}
 	returnStr += ' → ' + varcou.join(', ');
-	if (match[5]) returnStr += ' \n→ 成功數' + mathjs.eval(Number(varsu) + (temptriggermsg || 0))
+	if (match[5]) returnStr += ' \n→ 成功數' + mathjs.evaluate(Number(varsu) + (temptriggermsg || 0))
 	if (text) returnStr += ' ；　' + text
 	return returnStr;
 }

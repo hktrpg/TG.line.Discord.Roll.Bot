@@ -142,7 +142,7 @@ async function WN2(key, message) {
     temp += " \n[" + result + "]"
     let tempAdj = ''
     try {
-        tempAdj = mathjs.eval(Adjustment)
+        tempAdj = mathjs.evaluate(Adjustment)
     } catch (error) {
         tempAdj = Adjustment
     }
@@ -150,11 +150,11 @@ async function WN2(key, message) {
         temp += ' ' + tempAdj + '修正'
     if (special) {
         //xD(D)n(+-y)
-        temp += " -> " + mathjs.eval(success - False + Adjustment) + "成功"
+        temp += " -> " + mathjs.evaluate(success - False + Adjustment) + "成功"
         return temp
     }
 
-    temp += " - > " + mathjs.eval(success + Adjustment) + "成功"
+    temp += " - > " + mathjs.evaluate(success + Adjustment) + "成功"
     return temp
     //export ->
     //6@6-5D

@@ -305,6 +305,3 @@ async function privateMsgFinder(channelid) {
 process.on('unhandledRejection', () => {
 
 });
-process.on('error', () => {
-
-});

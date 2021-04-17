@@ -146,12 +146,10 @@ client.on('message', async msg => {
 	let TargetGMTempdiyName = [];
 	let TargetGMTempdisplayname = [];
 
-	userid = msg.id.participant || msg.id.remote;
-	//console.log('userid:', userid)
-	displayname = await client.getContactById(userid).then(a => {
+	userid = msg.author;
+	displayname = await msg.getContact().then(a => {
 		return a.pushname
 	})
-
 	let rplyVal = {};
 	if (mainMsg && mainMsg[0])
 		trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
@@ -228,7 +226,7 @@ client.on('message', async msg => {
 				SendDR(msg, "@" + displayname + '暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
 			}
 			rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
-			SendToId(userid, rplyVal, client);
+			SendToId(msg.from, rplyVal, client);
 			for (let i = 0; i < TargetGMTempID.length; i++) {
 				if (userid != TargetGMTempID[i])
 					SendToId(TargetGMTempID[i], rplyVal, client);
@@ -284,6 +282,7 @@ async function SendDR(msg, text) {
 async function SendToId(targetid, rplyVal, client) {
 	for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 		if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
+			console.log(targetid)
 			await client.sendMessage(targetid, rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);
 		}
 	}
@@ -304,3 +303,6 @@ async function privateMsgFinder(channelid) {
 		return groupInfo.trpgDarkRollingfunction
 	else return [];
 }
+process.on('unhandledRejection', () => {
+
+});

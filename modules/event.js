@@ -73,11 +73,17 @@ D. 一個事件可用的總EN 為(10+LV)，負面事件消耗X點EN
  * 
  * 
  */
-async function event2(groupid, userid, displayname, displaynameDiscord, membercount) {
+async function expChange({
+    groupid,
+    userid,
+    displayname,
+    displaynameDiscord,
+    membercount,
+    value
+}) {
     if (!process.env.mongoURL || !Object.keys(exports.z_Level_system).length || !exports.z_Level_system.initialize().trpgLevelSystemfunction) {
         return;
     }
-
     //1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
     let userInfo = {};
     let gpInfo = exports.z_Level_system.initialize().trpgLevelSystemfunction.find(e => e.groupid == groupid);
@@ -89,27 +95,11 @@ async function event2(groupid, userid, displayname, displaynameDiscord, memberco
         await newUser(gpInfo, groupid, userid, displayname, displaynameDiscord);
         return;
     }
-
-    //4. 有-> 檢查上次紀錄的時間 超過60000 (1分鐘) 即增加15+(1-9) 經驗值
-    if ((new Date(Date.now()) - userInfo.LastSpeakTime) < oneMinuts) {
-        return;
-    }
     userInfo.name = displaynameDiscord || displayname || '無名'
-    userInfo.EXP += await exports.rollbase.Dice(9) + 15;
-    userInfo.LastSpeakTime = Date.now();
-    let LVsumOne = Number(userInfo.Level) + 1;
-    let levelUP = false;
-    //5. 檢查現LEVEL 需不需要上升. =5 / 6 * LVL * (2 * LVL * LVL + 27 * LVL )+ 91DD
-    let newLevelExp = 5 / 6 * (LVsumOne) * (2 * (LVsumOne) * (LVsumOne) + 30 * (LVsumOne)) + 100;
-    let needExp = newLevelExp - (5 / 6 * (Number(userInfo.Level)) * (2 * (Number(userInfo.Level)) * (Number(userInfo.Level)) + 30 * (Number(userInfo.Level))) + 100);
-    if (userInfo.EXP > newLevelExp) {
-        userInfo.Level++;
-        levelUP = true;
-    }
+    userInfo.EXP += value;
     //8. 更新MLAB資料
     await uploadMongoose(groupid, userid, userInfo);
     //6. 需要 -> 檢查有沒有開啓通知
-    if (gpInfo.Hidden != 1 || levelUP == false) return;
     //1. 讀取LEVELUP語
     return await returnTheLevelWord(gpInfo, userInfo, membercount);
     //6 / 7 * LVL * (2 * LVL * LVL + 30 * LVL + 100)
@@ -172,7 +162,7 @@ async function event(key, needExp, eventLV, myLV, eventNeg) {
 
 
 async function get(who, data) {
-  
+
 }
 
 async function returnTheLevelWord(gpInfo, userInfo, membercount) {

@@ -158,7 +158,7 @@ var rollDiceCommand = async function ({
             //稱號Title
             //
             temprply = [];
-            if (groupid && userrole >= 2 && mainMsg[2] && inputStr.toString().match(/[\s\S]{1,2000}/g).length <= 1 && !mainMsg[2].match(/^show$/)) {
+            if (groupid && userrole > 2 && mainMsg[2] && inputStr.toString().match(/[\s\S]{1,2000}/g).length <= 1 && !mainMsg[2].match(/^show$/)) {
                 if (trpgLevelSystemfunction.trpgLevelSystemfunction)
                     for (var i = 0; i < trpgLevelSystemfunction.trpgLevelSystemfunction.length; i++) {
                         if (trpgLevelSystemfunction.trpgLevelSystemfunction[i].groupid == groupid) {
@@ -199,7 +199,7 @@ var rollDiceCommand = async function ({
                     rply.text += ' 未有稱號輸入，格式為 .level TitleWord -(等級) (稱號).'
                 if (!groupid)
                     rply.text += ' 不在群組.'
-                if (groupid && userrole < 2)
+                if (groupid && userrole <= 2)
                     rply.text += ' 只有GM以上才可新增.'
                 if (inputStr.toString().match(/[\s\S]{1,2000}/g).length > 1)
                     rply.text += ' 內容太長,只可以2000字元以內.'
@@ -232,7 +232,7 @@ var rollDiceCommand = async function ({
             //增加資料庫
             //檢查有沒有重覆
             checkifsamename = 0
-            if (groupid && userrole >= 2 && mainMsg[2] && inputStr.toString().match(/[\s\S]{1,2000}/g).length <= 1 && !mainMsg[2].match(/^show$/)) {
+            if (groupid && userrole > 2 && mainMsg[2] && inputStr.toString().match(/[\s\S]{1,2000}/g).length <= 1 && !mainMsg[2].match(/^show$/)) {
                 if (trpgLevelSystemfunction.trpgLevelSystemfunction)
                     for (let i = 0; i < trpgLevelSystemfunction.trpgLevelSystemfunction.length; i++) {
                         if (trpgLevelSystemfunction.trpgLevelSystemfunction[i].groupid == groupid) {
@@ -273,7 +273,7 @@ var rollDiceCommand = async function ({
                     rply.text += ' 沒有內容.'
                 if (!groupid)
                     rply.text += ' 不在群組.'
-                if (groupid && userrole < 2)
+                if (groupid && userrole <= 2)
                     rply.text += ' 只有GM以上才可新增.'
                 if (inputStr.toString().match(/[\s\S]{1,2000}/g).length > 1)
                     rply.text += ' 內容太長,只可以2000字元以內.'
@@ -305,7 +305,7 @@ var rollDiceCommand = async function ({
             //增加資料庫
             //檢查有沒有重覆
             checkifsamenameRankWord = 0;
-            if (groupid && userrole >= 2 && mainMsg[2] && inputStr.toString().match(/[\s\S]{1,2000}/g).length <= 1 && !mainMsg[2].match(/^show$/)) {
+            if (groupid && userrole > 2 && mainMsg[2] && inputStr.toString().match(/[\s\S]{1,2000}/g).length <= 1 && !mainMsg[2].match(/^show$/)) {
                 if (trpgLevelSystemfunction.trpgLevelSystemfunction)
                     for (let i = 0; i < trpgLevelSystemfunction.trpgLevelSystemfunction.length; i++) {
                         if (trpgLevelSystemfunction.trpgLevelSystemfunction[i].groupid == groupid) {
@@ -346,7 +346,7 @@ var rollDiceCommand = async function ({
                     rply.text += ' 沒有內容.'
                 if (!groupid)
                     rply.text += ' 不在群組.'
-                if (groupid && userrole < 2)
+                if (groupid && userrole <= 2)
                     rply.text += ' 只有GM以上才可新增.'
                 if (inputStr.toString().match(/[\s\S]{1,2000}/g).length > 1)
                     rply.text += ' 內容太長,只可以2000字元以內.'
@@ -378,7 +378,7 @@ var rollDiceCommand = async function ({
             //console.log('mainMsg: ', mainMsg)
             //增加資料庫
             //檢查有沒有重覆
-            if (groupid && userrole >= 2 && mainMsg[2] && (mainMsg[2] == "00" || mainMsg[2] == "01" || mainMsg[2] == "10" || mainMsg[2] == "11")) {
+            if (groupid && userrole > 2 && mainMsg[2] && (mainMsg[2] == "00" || mainMsg[2] == "01" || mainMsg[2] == "10" || mainMsg[2] == "11")) {
 
                 let Switch, Hidden = 0;
                 if (mainMsg[2] == "00") {
@@ -426,7 +426,7 @@ var rollDiceCommand = async function ({
                         \n 00的話代表不啓動功能\n'
                 if (!groupid)
                     rply.text += ' 不在群組.'
-                if (groupid && userrole < 2)
+                if (groupid && userrole <= 2)
                     rply.text += ' 只有GM以上才可新增.'
             }
             if (mainMsg[2] && mainMsg[2].match(/^show$/)) {

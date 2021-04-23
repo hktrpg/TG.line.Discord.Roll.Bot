@@ -78,8 +78,7 @@ async function expChange({
     userid,
     displayname,
     displaynameDiscord,
-    membercount,
-    value
+    exp
 }) {
     if (!process.env.mongoURL || !Object.keys(exports.z_Level_system).length || !exports.z_Level_system.initialize().trpgLevelSystemfunction) {
         return;
@@ -92,16 +91,13 @@ async function expChange({
         userInfo = gpInfo.trpgLevelSystemfunction.find(e => e.userid == userid)
     }
     if (!userInfo) {
-        await newUser(gpInfo, groupid, userid, displayname, displaynameDiscord);
         return;
     }
+
     userInfo.name = displaynameDiscord || displayname || '無名'
-    userInfo.EXP += value;
+    userInfo.EXP += exp;
     //8. 更新MLAB資料
-    await uploadMongoose(groupid, userid, userInfo);
-    //6. 需要 -> 檢查有沒有開啓通知
-    //1. 讀取LEVELUP語
-    return await returnTheLevelWord(gpInfo, userInfo, membercount);
+    return await uploadMongoose(groupid, userid, userInfo);
     //6 / 7 * LVL * (2 * LVL * LVL + 30 * LVL + 100)
 }
 
@@ -147,7 +143,6 @@ async function event(key, needExp, eventLV, myLV, eventNeg) {
             random = exports.rollbase.DiceINT(needExp / 200, needExp / 50)
             random *= (eventLV - myLV ^ 2) > 0 ? ((eventLV - myLV ^ 2) / 100 + 1) : 1;
             random *= (1 - eventNeg / 100)
-
             break;
         case 9:
             //  9. 從整個CHANNEL 的X人吸收X點經驗

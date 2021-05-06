@@ -72,6 +72,11 @@ D. 一個事件可用的總EN 為(10+LV)，負面事件消耗X點EN
 負面效果的程度(即如果一個事件中有負面效果，那正面效果會增加)
  * 
  * 
+ * A) .evt event / .evt 指定名字 
+ * B) 
+ * 
+ * 
+ * 
  */
 async function expChange({
     groupid,

@@ -74,15 +74,15 @@ D. 一個事件可用的總EN 為(10+LV)，負面事件消耗X點EN
  * 
  * A) .evt event / .evt 指定名字   - roll/event.js  (檢查有沒有開EXP功能)
  * B) 沒有則RETURN，
- *      有->傳送GP ID, USER ID 到 MODULES/EVENT.JS
- *      取得MONGOOSE資料 ->進行
+ *      有->傳送GP ID, USER ID, 名字 到 MODULES/EVENT.JS
+ *      取得MONGOOSE資料 ->進行  (randomEvent)
  *       i)   抽選整個列表      
  *      ii)   抽選指定列表
- * C)   從該列表中抽選一個結果
- * D)   得到結果後，進行 該運算
- *      1/8個結果
- * E)   得到結果，修改MONGOOSE，
- * F)   翻回文字結果到使用者
+ * C)   從該列表中抽選一個結果 (randomEvent)
+ * D)   得到結果後，進行 該運算 (event)
+ *      1/8個結果   -> (expChange)
+ * E)   得到結果，修改MONGOOSE (editExp)
+ * F)   翻回文字結果到使用者(roll/event.js)
  * 
  * 
  * 

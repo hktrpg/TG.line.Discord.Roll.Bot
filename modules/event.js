@@ -87,6 +87,25 @@ D. 一個事件可用的總EN 為(10+LV)，負面事件消耗X點EN
  * 
  * 
  */
+async function randomEvent({
+    freeMode,
+    eventName
+}) {
+    if (freeMode) {
+        const target = await schema.eventList.find({});
+        if (!target.length) return;
+        const targetEvent = target[exports.rollbase.Dice(target.length) - 1]
+        return targetEvent[exports.rollbase.Dice(targetEvent.length) - 1]
+    } else if (eventName) {
+        const target = await schema.eventList.findOne({
+            title: eventName
+        });
+        if (!target) return;
+        return target[exports.rollbase.Dice(target.length) - 1]
+    }
+
+}
+
 async function expChange({
     groupid,
     userid,

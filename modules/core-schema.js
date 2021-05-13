@@ -300,6 +300,7 @@ const init = mongoose.model('init', new mongoose.Schema({
     }]
 }));
 
+//個人新增event 時的紀錄。eventList會使用ID 來紀錄
 const event = mongoose.model('event', new mongoose.Schema({
     userID: String,
     userName: String,
@@ -310,6 +311,7 @@ const event = mongoose.model('event', new mongoose.Schema({
     }]
 }));
 
+//整個event 列表，會從這裡進行抽取
 const eventList = mongoose.model('eventList', new mongoose.Schema({
     title: String,
     userID: String,
@@ -341,7 +343,9 @@ module.exports = {
     exportUser,
     accountPW,
     allowRolling,
-    init
+    init,
+    event,
+    eventList
 }
 //const Cat = mongoose.model('Cat', { name: String });
 //const kitty = new Cat({ name: 'Zildjian' });

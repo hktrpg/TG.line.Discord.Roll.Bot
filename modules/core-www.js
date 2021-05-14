@@ -321,13 +321,13 @@ async function loadb(io, records, rplyVal, message) {
         io.emit(message.roomNumber, {
             name: 'HKTRPG -> ' + (message.name || 'Sad'),
             msg: rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i],
-            time: new Date(Date.now() + 5),
+            time: new Date(Date.now() + 500),
             roomNumber: message.roomNumber
         });
         records.chatRoomPush({
             name: 'HKTRPG -> ' + (message.name || 'Sad'),
             msg: rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i],
-            time: new Date(Date.now() + 5),
+            time: new Date(Date.now() + 500),
             roomNumber: message.roomNumber
         });
         //message.reply.text(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])

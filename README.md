@@ -167,7 +167,7 @@
     	*	輸入`.cmd show` 顯示所有關鍵字
     	*	輸入`.cmd del(編號)`或all 即可刪除
     	*	輸入`.cmd  (關鍵字)` 即可執行
-    *   【先攻表功能】 .in (remove clear reroll help) .init
+    *   【先攻表功能】 `.in (remove clear reroll help)` `.init`
     	*	這是讓你快速自定義先攻表的功能
     	*	它可以儲存你的擲骰方法，然後直接重新投擲，而不需要再輸入。
     	*	`.in (擲骰或數字) (名字)`  - 樣式

@@ -91,6 +91,7 @@ async function randomEvent({
     freeMode,
     eventName
 }) {
+    //free mode = 從整個列表抽選
     if (freeMode) {
         const target = await schema.eventList.find({});
         if (!target.length) return;
@@ -102,7 +103,7 @@ async function randomEvent({
         });
         if (!target) return;
         return target[exports.rollbase.Dice(target.length) - 1]
-    }
+    } else return;
 
 }
 

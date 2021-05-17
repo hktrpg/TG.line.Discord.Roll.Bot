@@ -279,6 +279,14 @@ const init = mongoose.model('init', new mongoose.Schema({
         formula: String
     }]
 }));
+const drawCard = mongoose.model('drawCard', {
+    groupid: String,
+    randomAnsfunction: Array
+});
+
+const drawCardAllgroup = mongoose.model('drawCardAllgroup', {
+    randomAnsAllgroup: Array
+});
 
 module.exports = {
     randomAns,
@@ -302,7 +310,9 @@ module.exports = {
     exportUser,
     accountPW,
     allowRolling,
-    init
+    init,
+    drawCard,
+    drawCardAllgroup
 }
 //const Cat = mongoose.model('Cat', { name: String });
 //const kitty = new Cat({ name: 'Zildjian' });

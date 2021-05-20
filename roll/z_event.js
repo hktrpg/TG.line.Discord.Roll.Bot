@@ -89,7 +89,7 @@ var rollDiceCommand = async function ({
             rply.text = this.getHelpMessage();
             return rply;
             // .ch(0) ADD(1) TOPIC(2) CONTACT(3)
-        case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
+        case /(^[.]event$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
             if (!Card.name) {
                 rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 \n.char add name[XXXX]~ \nstate[HP:15/15;MP:6/6;]~\nroll[投擲:cc 80 投擲;鬥毆:cc 40 鬥毆;]~\nnotes[心靈支柱: 無;notes:這是測試,請試試在群組輸入 .char use Sad;]~\n'
@@ -134,7 +134,7 @@ var rollDiceCommand = async function ({
             rply.text = await showCharacter(Card, 'addMode');
             return rply;
 
-        case /(^[.]char$)/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
+        case /(^[.]event$)/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             filter = {
                 id: userid,
                 name: inputStr.replace(/^\.char\s+delete\s+/ig, '')

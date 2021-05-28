@@ -133,7 +133,7 @@ var rollDiceCommand = async function ({
             //檢查有沒有重覆
             rply.text = await showCharacter(Card, 'addMode');
             return rply;
-
+            
         case /(^[.]event$)/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             filter = {
                 id: userid,

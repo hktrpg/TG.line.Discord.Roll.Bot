@@ -84,6 +84,14 @@ var rollDiceCommand = async function ({
      * 空白顯示列表  
      * .evt 
      */
+    /**
+     * .event add 
+     * exp:SAN
+     * 0:你今天的運氣真好;你是個好人;我愛你
+     * -1:你中招了:你不好運要-SAN了
+     * 1:你吃了好味的糖，加SAN
+     */
+
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();

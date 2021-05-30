@@ -19,10 +19,8 @@ var prefixs = function () {
         second: null
     }]
 }
-const regexName = new RegExp(/name\[(.*?)\]~/, 'i');
-const regexState = new RegExp(/state\[(.*?)\]~/, 'i');
-const regexRoll = new RegExp(/roll\[(.*?)\]~/, 'i');
-const regexNotes = new RegExp(/notes\[(.*?)\]~/, 'i');
+const regexMain = new RegExp(/^((-)?\d):(.*)/, 'igm');
+const regexExp = new RegExp(/^exp:(.*)/, 'igm');
 const re = new RegExp(/(.*?):(.*?)(;|$)/, 'ig');
 const opt = {
     upsert: true,
@@ -89,7 +87,7 @@ var rollDiceCommand = async function ({
      * exp:SAN
      * 0:你今天的運氣真好;你是個好人;我愛你
      * -1:你中招了:你不好運要-SAN了
-     * 1:你吃了好味的糖，加SAN
+     * 1:你吃了好味的糖，加SAN人
      */
 
     switch (true) {
@@ -98,7 +96,7 @@ var rollDiceCommand = async function ({
             return rply;
             // .ch(0) ADD(1) TOPIC(2) CONTACT(3)
         case /(^[.]event$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
-            Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
+            Card = await analysicInputData(inputStr); //分析輸入的資料
             if (!Card.name) {
                 rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 \n.char add name[XXXX]~ \nstate[HP:15/15;MP:6/6;]~\nroll[投擲:cc 80 投擲;鬥毆:cc 40 鬥毆;]~\nnotes[心靈支柱: 無;notes:這是測試,請試試在群組輸入 .char use Sad;]~\n'
                 return rply;
@@ -380,14 +378,11 @@ async function replacer(doc, match) {
     result = state.itemA || note.itemA || '';
     return result;
 }
-async function analysicInputCharacterCard(inputStr) {
-    let characterName = (inputStr.match(regexName)) ? inputStr.match(regexName)[1] : '';
-    let characterStateTemp = (inputStr.match(regexState)) ? inputStr.match(regexState)[1] : '';
-    let characterRollTemp = (inputStr.match(regexRoll)) ? inputStr.match(regexRoll)[1] : '';
-    let characterNotesTemp = (inputStr.match(regexNotes)) ? inputStr.match(regexNotes)[1] : '';
+async function analysicInputData(inputStr) {
+    let MainData = (inputStr.match(regexMain)) ? inputStr.match(regexMain) : '';
+    let ExpName = (inputStr.match(regexExp)) ? inputStr.match(regexExp)[1] : '';
     let characterState = (characterStateTemp) ? await analysicStr(characterStateTemp, true) : [];
     let characterRoll = (characterRollTemp) ? await analysicStr(characterRollTemp, false) : [];
-    let characterNotes = (characterNotesTemp) ? await analysicStr(characterNotesTemp, false, 'notes') : [];
     //Remove duplicates from an array of objects in JavaScript
     // if (characterState)
     characterState = characterState.filter((v, i, a) => a.findIndex(t => (t.name === v.name)) === i)

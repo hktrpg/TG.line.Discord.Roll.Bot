@@ -117,20 +117,20 @@ var rollDiceCommand = async function ({
             }
             filter = {
                 userID: userid,
-                name: new RegExp('^' + convertRegex(Card.name) + '$', "i")
+                name: new RegExp('^' + convertRegex(events.name) + '$', "i")
             }
             //取得本來的資料, 如有重覆, 以新的覆蓋
             doc = await schema.eventList.findOne(filter);
             //把舊和新的合併
             if (doc) {
-                doc.name = Card.name;
-                Card.state = await Merge(doc.state, Card.state, 'name');
-                Card.roll = await Merge(doc.roll, Card.roll, 'name');
-                Card.notes = await Merge(doc.notes, Card.notes, 'name');
+                doc.name = events.name;
+                events.state = await Merge(doc.state, events.state, 'name');
+                events.roll = await Merge(doc.roll, events.roll, 'name');
+                events.notes = await Merge(doc.notes, events.notes, 'name');
             }
             try {
-                await schema.characterCard.updateOne(filter,
-                    Card, opt);
+                await schema.characterevents.updateOne(filter,
+                    events, opt);
             } catch (error) {
                 console.log('新增角色卡 GET ERROR: ', error)
                 rply.text = '新增角色卡失敗\n因為 ' + error.message
@@ -138,7 +138,7 @@ var rollDiceCommand = async function ({
             }
             //增加資料庫
             //檢查有沒有重覆
-            rply.text = await showCharacter(Card, 'addMode');
+            rply.text = await showCharacter(events, 'addMode');
             return rply;
 
         case /(^[.]event$)/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
@@ -147,7 +147,7 @@ var rollDiceCommand = async function ({
                 name: inputStr.replace(/^\.char\s+delete\s+/ig, '')
             }
 
-            doc = await schema.characterCard.findOne(filter);
+            doc = await schema.characterevents.findOne(filter);
             if (!doc) {
                 rply.text = '沒有此角色卡. 注意:刪除角色卡需要名字大小寫完全相同'
                 return rply
@@ -156,7 +156,7 @@ var rollDiceCommand = async function ({
                 let filterRemove = {
                     cardId: doc._id
                 }
-                await schema.characterCard.findOneAndRemove(filter);
+                await schema.characterevents.findOneAndRemove(filter);
                 await schema.characterGpSwitch.deleteMany(filterRemove);
             } catch (error) {
                 console.log('刪除角色卡 GET ERROR:  ', error)
@@ -302,7 +302,7 @@ async function findObject(doc, mainMsg) {
     return resutlt;
 }
 
-async function showCharacter(Card, mode) {
+async function showCharacter(events, mode) {
     /*
     角色名字
     HP: 5/5 MP: 3/3 SAN: 50/90 護甲: 6
@@ -319,51 +319,51 @@ async function showCharacter(Card, mode) {
     if (mode == 'addMode') {
         returnStr += '新增/修改成功\n'
     }
-    returnStr += Card.name + '　\n';
+    returnStr += events.name + '　\n';
     let a = 1
-    if (Card.state.length > 0) {
-        for (let i = 0; i < Card.state.length; i++) {
-            if ((a) % 4 == 0 && (Card.state[i].itemA || Card.state[i].itemB)) {
+    if (events.state.length > 0) {
+        for (let i = 0; i < events.state.length; i++) {
+            if ((a) % 4 == 0 && (events.state[i].itemA || events.state[i].itemB)) {
                 returnStr += '　\n'
             }
             if (mode == 'addMode' || mode == 'showAllMode') {
-                returnStr += Card.state[i].name + ': ' + Card.state[i].itemA;
-                returnStr += (Card.state[i].itemB) ? '/' + Card.state[i].itemB : '';
+                returnStr += events.state[i].name + ': ' + events.state[i].itemA;
+                returnStr += (events.state[i].itemB) ? '/' + events.state[i].itemB : '';
             } else {
-                returnStr += (Card.state[i].itemA) ? Card.state[i].name + ': ' + Card.state[i].itemA : '';
-                returnStr += (Card.state[i].itemA && Card.state[i].itemB) ? '/' + Card.state[i].itemB : '';
+                returnStr += (events.state[i].itemA) ? events.state[i].name + ': ' + events.state[i].itemA : '';
+                returnStr += (events.state[i].itemA && events.state[i].itemB) ? '/' + events.state[i].itemB : '';
             }
-            if (Card.state[i].itemA || Card.state[i].itemB) {
+            if (events.state[i].itemA || events.state[i].itemB) {
                 a++
             }
-            if ((Card.state[i].itemA || Card.state[i].itemB) && mode == 'addMode' || mode == 'showAllMode') {
+            if ((events.state[i].itemA || events.state[i].itemB) && mode == 'addMode' || mode == 'showAllMode') {
                 returnStr += ' ';
-            } else if (Card.state[i].itemA) {
+            } else if (events.state[i].itemA) {
                 returnStr += ' ';
             }
         }
         returnStr += '\n-------\n'
     }
 
-    if (Card.roll.length > 0) {
-        for (let i = 0; i < Card.roll.length; i++) {
+    if (events.roll.length > 0) {
+        for (let i = 0; i < events.roll.length; i++) {
             if (mode == 'addMode' || mode == 'showAllMode') {
-                returnStr += Card.roll[i].name + ': ' + Card.roll[i].itemA + '  ';
+                returnStr += events.roll[i].name + ': ' + events.roll[i].itemA + '  ';
 
             } else {
-                returnStr += (Card.roll[i].itemA) ? Card.roll[i].name + ': ' + Card.roll[i].itemA + '  ' : '';
+                returnStr += (events.roll[i].itemA) ? events.roll[i].name + ': ' + events.roll[i].itemA + '  ' : '';
             }
-            if (i % 2 || i == Card.roll.length - 1) {
+            if (i % 2 || i == events.roll.length - 1) {
                 returnStr += '　\n';
             }
         }
         returnStr += '-------\n'
     }
     if (mode == 'addMode' || mode == 'showAllMode')
-        if (Card.notes.length > 0) {
-            for (let i = 0; i < Card.notes.length; i++) {
-                //returnStr += (Card.notes[i].itemA) ? Card.notes[i].name + ': ' + Card.notes[i].itemA + ' \n' : '';
-                returnStr += Card.notes[i].name + ': ' + Card.notes[i].itemA + '　\n';
+        if (events.notes.length > 0) {
+            for (let i = 0; i < events.notes.length; i++) {
+                //returnStr += (events.notes[i].itemA) ? events.notes[i].name + ': ' + events.notes[i].itemA + ' \n' : '';
+                returnStr += events.notes[i].name + ': ' + events.notes[i].itemA + '　\n';
             }
 
             returnStr += '-------'

@@ -84,6 +84,7 @@ var rollDiceCommand = async function ({
      */
     /**
      * .event add 
+     * name:神奇事件
      * exp:SAN
      * 0:你今天的運氣真好;你是個好人;我愛你
      * -1:你中招了:你不好運要-SAN了
@@ -102,24 +103,24 @@ var rollDiceCommand = async function ({
                 return rply;
             }
             /*
-            只限四張角色卡.
+            基本只限四次事件.
             使用VIPCHECK
             */
             lv = await VIP.viplevelCheckUser(userid);
             limit = limitArr[lv];
-            check = await schema.characterCard.find({
-                id: userid
+            check = await schema.eventList.find({
+                userID: userid
             });
-            if (check.length >= limit) {
-                rply.text = '你的角色卡上限為' + limit + '張' + '\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+            if ((check && check.eventList) && check.eventList.length >= limit) {
+                rply.text = '你的事件上限為' + limit + '件' + '\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
                 return rply
             }
             filter = {
-                id: userid,
+                userID: userid,
                 name: new RegExp('^' + convertRegex(Card.name) + '$', "i")
             }
             //取得本來的資料, 如有重覆, 以新的覆蓋
-            doc = await schema.characterCard.findOne(filter);
+            doc = await schema.eventList.findOne(filter);
             //把舊和新的合併
             if (doc) {
                 doc.name = Card.name;

@@ -100,8 +100,8 @@ var rollDiceCommand = async function ({
             // .ch(0) ADD(1) TOPIC(2) CONTACT(3)
         case /(^[.]event$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             events = await analysicInputData(inputStr); //分析輸入的資料
-            if (!events.MainData) {
-                rply.text = '沒有輸入事，請重新整理內容 格式為 \n.event add exp:SAN *不是必需 \ns0:你今天的運氣真好;你是個好人;我愛你\n-1:你中招了:你不好運要-SAN了\n1:你吃了好味的糖，加SAN人\n'
+            if (!events.MainData || !events.eventName) {
+                rply.text = '沒有輸入事件或名字，請重新整理內容 格式為 \n.event add exp:SAN *不是必需 \ns0:你今天的運氣真好;你是個好人;我愛你\n-1:你中招了:你不好運要-SAN了\n1:你吃了好味的糖，加SAN人\n'
                 return rply;
             }
             console.log('events', events)
@@ -114,6 +114,7 @@ var rollDiceCommand = async function ({
             check = await schema.eventList.find({
                 userID: userid
             });
+            console.log('lv', lv, 'check', check)
             if ((check && check.eventList) && check.eventList.length >= limit) {
                 rply.text = '你的事件上限為' + limit + '件' + '\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
                 return rply
@@ -386,7 +387,7 @@ async function analysicInputData(inputStr) {
     let MainData = (inputStr.match(regexMain)) ? inputStr.match(regexMain) : '';
     let ExpName = (inputStr.match(regexExp)) ? inputStr.match(regexExp)[1] : '';
     let eventName = (inputStr.match(regexName)) ? inputStr.match(regexName)[1] : '';
-   
+
     //let characterState = (characterStateTemp) ? await analysicStr(characterStateTemp, true) : [];
     //let characterRoll = (characterRollTemp) ? await analysicStr(characterRollTemp, false) : [];
     //Remove duplicates from an array of objects in JavaScript
@@ -394,9 +395,9 @@ async function analysicInputData(inputStr) {
     // characterState = characterState.filter((v, i, a) => a.findIndex(t => (t.name === v.name)) === i)
     //if (characterRoll)
     let result = {
-        exp: ExpName,
+        expName: ExpName,
         MainData: MainData,
-        name:eventName
+        eventName: eventName
     }
     return result;
 }

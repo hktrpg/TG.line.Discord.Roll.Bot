@@ -21,6 +21,8 @@ var prefixs = function () {
 }
 const regexMain = new RegExp(/^((-)?\d):(.*)/, 'igm');
 const regexExp = new RegExp(/^exp:(.*)/, 'im');
+const regexName = new RegExp(/^name:(.*)/, 'im');
+
 const re = new RegExp(/(.*?):(.*?)(;|$)/, 'ig');
 const opt = {
     upsert: true,
@@ -102,6 +104,7 @@ var rollDiceCommand = async function ({
                 rply.text = '沒有輸入事，請重新整理內容 格式為 \n.event add exp:SAN *不是必需 \ns0:你今天的運氣真好;你是個好人;我愛你\n-1:你中招了:你不好運要-SAN了\n1:你吃了好味的糖，加SAN人\n'
                 return rply;
             }
+            console.log('events', events)
             /*
             基本只限四次事件.
             使用VIPCHECK
@@ -382,6 +385,8 @@ async function replacer(doc, match) {
 async function analysicInputData(inputStr) {
     let MainData = (inputStr.match(regexMain)) ? inputStr.match(regexMain) : '';
     let ExpName = (inputStr.match(regexExp)) ? inputStr.match(regexExp)[1] : '';
+    let eventName = (inputStr.match(regexName)) ? inputStr.match(regexName)[1] : '';
+   
     //let characterState = (characterStateTemp) ? await analysicStr(characterStateTemp, true) : [];
     //let characterRoll = (characterRollTemp) ? await analysicStr(characterRollTemp, false) : [];
     //Remove duplicates from an array of objects in JavaScript
@@ -390,7 +395,8 @@ async function analysicInputData(inputStr) {
     //if (characterRoll)
     let result = {
         exp: ExpName,
-        MainData: MainData
+        MainData: MainData,
+        name:eventName
     }
     return result;
 }

@@ -57,7 +57,8 @@ var rollDiceCommand = async function ({
     mainMsg,
     groupid,
     userid,
-    channelid
+    channelid,
+    userName
 }) {
     let rply = {
         default: 'on',
@@ -101,7 +102,7 @@ var rollDiceCommand = async function ({
         case /(^[.]event$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             events = await analysicInputData(inputStr); //分析輸入的資料
             if (!events.MainData || !events.eventName) {
-                rply.text = '沒有輸入事件或名字，請重新整理內容 格式為 \n.event add exp:SAN *不是必需 \ns0:你今天的運氣真好;你是個好人;我愛你\n-1:你中招了:你不好運要-SAN了\n1:你吃了好味的糖，加SAN人\n'
+                rply.text = '沒有輸入事件或名字，請重新整理內容 格式為 \n.event add exp:SAN *不是必需 \ns0:你今天的運氣真好;你是個好人;我愛你\n-1:你中招了;你不好運要-SAN了\n1:你吃了好味的糖，加SAN人\n'
                 return rply;
             }
             console.log('events', events)
@@ -120,29 +121,45 @@ var rollDiceCommand = async function ({
                 return rply
             }
             filter = {
-                userID: userid,
-                name: new RegExp('^' + convertRegex(events.name) + '$', "i")
+                userID: userid
             }
             //取得本來的資料, 如有重覆, 以新的覆蓋
-            doc = await schema.eventList.findOne(filter);
-            //把舊和新的合併
-            if (doc) {
-                doc.name = events.name;
-                events.state = await Merge(doc.state, events.state, 'name');
-                events.roll = await Merge(doc.roll, events.roll, 'name');
-                events.notes = await Merge(doc.notes, events.notes, 'name');
+            //doc = await schema.event.findOne(filter);
+            var mainSplit = await analysicDetail(events.MainData)
+            console.log('mainSplit', mainSplit)
+            var listDatas = {
+                title: events.eventName,
+                userID: userid,
+                detail: mainSplit
+            }
+
+            try {
+                doc = await schema.event.updateOne(filter, eventsDatas, opt);
+            } catch (error) {
+                console.log('新增事件 GET ERROR: ', error)
+                rply.text = '新增事件失敗\n因為 ' + error.message
+                return rply;
+            }
+
+            var eventsDatas = {
+                userID: userid,
+                userName: userName,
+                eventList: {
+                    title: events.eventName,
+                    eventID: doc._id
+                }
             }
             try {
-                await schema.characterevents.updateOne(filter,
-                    events, opt);
+                await schema.eventList.updateOne(filter, listDatas, opt);
+
             } catch (error) {
-                console.log('新增角色卡 GET ERROR: ', error)
-                rply.text = '新增角色卡失敗\n因為 ' + error.message
+                console.log('新增事件 GET ERROR: ', error)
+                rply.text = '新增事件失敗\n因為 ' + error.message
                 return rply;
             }
             //增加資料庫
             //檢查有沒有重覆
-            rply.text = await showCharacter(events, 'addMode');
+            rply.text = events;
             return rply;
 
         case /(^[.]event$)/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
@@ -401,7 +418,19 @@ async function analysicInputData(inputStr) {
     }
     return result;
 }
-
+async function analysicDetail(data) {
+    let info = [];
+    for (let index = 0; index < data.length; index++) {
+        console.log('data[index]', data[index])
+        let temp = data[index].match(/(-?\d+):(.*)/);
+        console.log('temp', temp)
+        info[index] = {
+            event: temp[2],
+            result: temp[1]
+        }
+    }
+    return info;
+}
 async function analysicStr(inputStr, state, term) {
     let character = [];
     let myArray = [];

@@ -315,6 +315,7 @@ const event = mongoose.model('event', new mongoose.Schema({
 const eventList = mongoose.model('eventList', new mongoose.Schema({
     title: String,
     userID: String,
+    userName: String,
     expName: String,
     detail: [{
         event: String,

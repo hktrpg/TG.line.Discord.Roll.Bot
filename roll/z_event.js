@@ -128,6 +128,7 @@ var rollDiceCommand = async function ({
             var listDatas = {
                 title: events.eventName,
                 userID: userid,
+                userName: displaynameDiscord || displayname || '',
                 detail: mainSplit,
                 expName: events.expName || ''
             }

@@ -6,8 +6,6 @@ var variables = {};
 const rollDice = require('./rollbase').rollDiceCommand;
 const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
-const link = process.env.WEB_LINK;
-const port = process.env.PORT || 20721;
 const limitArr = [4, 20, 20, 30, 30, 99, 99, 99];
 var gameName = function () {
     return '角色卡功能 .char (add edit show delete use nonuse) .ch (set show showall)'
@@ -60,7 +58,7 @@ var getHelpMessage = function () {
 最後網站會顯示群組名稱，點擊就可以使用了\n\
 \n\
 -----.char-----\n\
-.char add name[Sad]~ state[HP:15/15;con:60;]~ roll[鬥毆: cc 50;投擲: cc 15;]~ notes[筆記:這是測試,請試試在群組輸入 .char use Sad;]~   - 可以新增及更新角色卡\n\
+.char add name[Sad]~ state[HP:15/15;con:60;san:60]~ roll[鬥毆: cc 50;投擲: cc 15;sc:cc {san}]~ notes[筆記:這是測試,請試試在群組輸入 .char use Sad;]~  \n - 可以新增及更新角色卡\n\
 .char Show - 可以顯示角色卡列表\n\
 .char Show0 - 可以顯示0號角色卡內容 0可以用其他數字取代\n\
 .char edit name[角色卡名字]~ - 可以以add的格式修改指定角色卡\n\

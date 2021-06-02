@@ -43,8 +43,10 @@ var getHelpMessage = function () {
     return "【事件功能】" + "\n\
     經由新增的事件 可以增加減少EXP\n\
 目標是文字團可以快速擲骰，及更新角色狀態。\n\
-\n\
-https://github.com/hktrpg/TG.line.Discord.Roll.Bot/wiki/Character-Card"
+\n.event add \n\
+name:Haha\n\
+exp:SAN *不是必需 \ns0:你今天的運氣真好;你是個好人;我愛你\n-1:你中招了;你不好運要-SAN了\n1:你吃了好味的糖，加SAN人\n\
+"
 }
 
 var initialize = function () {
@@ -58,7 +60,8 @@ var rollDiceCommand = async function ({
     groupid,
     userid,
     channelid,
-    userName
+    displayname,
+    displaynameDiscord
 }) {
     let rply = {
         default: 'on',
@@ -105,7 +108,6 @@ var rollDiceCommand = async function ({
                 rply.text = '沒有輸入事件或名字，請重新整理內容 格式為 \n.event add exp:SAN *不是必需 \ns0:你今天的運氣真好;你是個好人;我愛你\n-1:你中招了;你不好運要-SAN了\n1:你吃了好味的糖，加SAN人\n'
                 return rply;
             }
-            console.log('events', events)
             /*
             基本只限四次事件.
             使用VIPCHECK
@@ -115,42 +117,73 @@ var rollDiceCommand = async function ({
             check = await schema.eventList.find({
                 userID: userid
             });
-            console.log('lv', lv, 'check', check)
-            if ((check && check.eventList) && check.eventList.length >= limit) {
+            if (check && check.length >= limit) {
                 rply.text = '你的事件上限為' + limit + '件' + '\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
                 return rply
             }
-            filter = {
-                userID: userid
-            }
+
             //取得本來的資料, 如有重覆, 以新的覆蓋
             //doc = await schema.event.findOne(filter);
             var mainSplit = await analysicDetail(events.MainData)
-            console.log('mainSplit', mainSplit)
             var listDatas = {
                 title: events.eventName,
                 userID: userid,
-                detail: mainSplit
+                detail: mainSplit,
+                expName: events.expName || ''
             }
-
+            filter = {
+                userID: userid,
+                title: {
+                    $regex: new RegExp(events.eventName, "i")
+                }
+            }
             try {
-                doc = await schema.event.updateOne(filter, eventsDatas, opt);
+                doc = await schema.eventList.updateOne(filter, listDatas, opt);
             } catch (error) {
                 console.log('新增事件 GET ERROR: ', error)
                 rply.text = '新增事件失敗\n因為 ' + error.message
                 return rply;
             }
+            tempMain = await schema.eventList.findOne(filter);
 
             var eventsDatas = {
                 userID: userid,
-                userName: userName,
+                userName: displaynameDiscord || displayname || '',
                 eventList: {
                     title: events.eventName,
-                    eventID: doc._id
+                    eventID: tempMain._id
                 }
             }
+            if (!tempMain._id) {
+                rply.text = '新增事件失敗'
+                return rply;
+            }
             try {
-                await schema.eventList.updateOne(filter, listDatas, opt);
+                filter = {
+                    userID: userid
+                }
+                temp = await schema.event.findOne(filter);
+                if (!temp) {
+                    temp = new schema.event(eventsDatas);
+                } else {
+                    var findEventId = temp.eventList.findIndex((obj => obj.eventID == tempMain._id));
+                    if (findEventId >= 0) {
+                        temp.eventList[findEventId] = {
+                            title: events.eventName,
+                            eventID: tempMain._id
+                        }
+                        temp.userName = displaynameDiscord || displayname || '';
+                    } else {
+                        temp.eventList.push({
+                            title: events.eventName,
+                            eventID: tempMain._id
+                        })
+                        temp.userName = displaynameDiscord || displayname || '';
+                    }
+
+
+                }
+                await temp.save();
 
             } catch (error) {
                 console.log('新增事件 GET ERROR: ', error)
@@ -159,7 +192,11 @@ var rollDiceCommand = async function ({
             }
             //增加資料庫
             //檢查有沒有重覆
-            rply.text = events;
+            rply.text = '新增/修改事件 - ' + tempMain.title + '\n經驗值的名稱: ' + tempMain.expName + '\n';
+            for (let index = 0; index < tempMain.detail.length; index++) {
+                rply.text += '類型:' + tempMain.detail[index].result + ' 內容: ' + tempMain.detail[index].event + '\n';
+
+            }
             return rply;
 
         case /(^[.]event$)/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
@@ -270,7 +307,7 @@ async function mainCharacter(doc, mainMsg) {
                                     doc.state[index].itemA = num;
                                 }
                             } catch (error) {
-                                console.log('error of Char:', findState[i + 1])
+                                console.log('error of event:', findState[i + 1])
                             }
                         }
 
@@ -402,8 +439,8 @@ async function replacer(doc, match) {
 }
 async function analysicInputData(inputStr) {
     let MainData = (inputStr.match(regexMain)) ? inputStr.match(regexMain) : '';
-    let ExpName = (inputStr.match(regexExp)) ? inputStr.match(regexExp)[1] : '';
-    let eventName = (inputStr.match(regexName)) ? inputStr.match(regexName)[1] : '';
+    let ExpName = (inputStr.match(regexExp)) ? inputStr.match(regexExp)[1].replace(/^\s+/, '').replace(/\s+$/, '') : '';
+    let eventName = (inputStr.match(regexName)) ? inputStr.match(regexName)[1].replace(/^\s+/, '').replace(/\s+$/, '') : '';
 
     //let characterState = (characterStateTemp) ? await analysicStr(characterStateTemp, true) : [];
     //let characterRoll = (characterRollTemp) ? await analysicStr(characterRollTemp, false) : [];
@@ -421,9 +458,7 @@ async function analysicInputData(inputStr) {
 async function analysicDetail(data) {
     let info = [];
     for (let index = 0; index < data.length; index++) {
-        console.log('data[index]', data[index])
         let temp = data[index].match(/(-?\d+):(.*)/);
-        console.log('temp', temp)
         info[index] = {
             event: temp[2],
             result: temp[1]

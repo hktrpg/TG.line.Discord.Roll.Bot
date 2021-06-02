@@ -126,7 +126,7 @@ bothelp req		- 對HKTRPG RollBot提出意見\n\
 程式開發，求助及TRPG Discord群 https://discord.gg/vx4kcm7\n\
 解鎖功能及贊助HKTRPG https://www.patreon.com/HKTRPG"
 			return rply;
-		case /^ver/i.test(mainMsg[1]):
+		case /^ver$/i.test(mainMsg[1]):
 			rply.text = version + '\n\
 最近更新: \n\
 2019/07/21 香港克警合作 黑ICON紀念\n\

@@ -117,10 +117,6 @@ var rollDiceCommand = async function ({
             check = await schema.eventList.find({
                 userID: userid
             });
-            if (check && check.length >= limit) {
-                rply.text = '你的事件上限為' + limit + '件' + '\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
-                return rply
-            }
 
             //取得本來的資料, 如有重覆, 以新的覆蓋
             //doc = await schema.event.findOne(filter);
@@ -144,6 +140,10 @@ var rollDiceCommand = async function ({
                 console.log('新增事件 GET ERROR: ', error)
                 rply.text = '新增事件失敗\n因為 ' + error.message
                 return rply;
+            }
+            if (!doc && check && check.length >= limit) {
+                rply.text = '你的事件上限為' + limit + '件' + '\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                return rply
             }
             tempMain = await schema.eventList.findOne(filter);
 
@@ -202,29 +202,43 @@ var rollDiceCommand = async function ({
 
         case /(^[.]event$)/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             filter = {
-                id: userid,
-                name: inputStr.replace(/^\.char\s+delete\s+/ig, '')
+                userID: userid,
+                title: {
+                    $regex: new RegExp(inputStr.replace(/^\.event\s+delete\s+/ig, '').replace(/\s+$/, ''), "i")
+                }
             }
-
-            doc = await schema.characterevents.findOne(filter);
+            doc = await schema.eventList.findOne(filter);
             if (!doc) {
-                rply.text = '沒有此角色卡. 注意:刪除角色卡需要名字大小寫完全相同'
+                rply.text = '沒有此事件.'
                 return rply
             }
+
+
             try {
                 let filterRemove = {
                     cardId: doc._id
                 }
-                await schema.characterevents.findOneAndRemove(filter);
-                await schema.characterGpSwitch.deleteMany(filterRemove);
+                console.log(doc._id)
+                await schema.eventList.findOneAndRemove(filter);
+                await schema.event.updateOne({
+                    userID: userid
+                }, {
+                    $pull: {
+                        eventList: {
+                            eventID: doc._id
+                        }
+                    }
+                }, {
+
+                })
             } catch (error) {
-                console.log('刪除角色卡 GET ERROR:  ', error)
-                rply.text = '刪除角色卡失敗'
+                console.log('刪除事件 GET ERROR:  ', error)
+                rply.text = '刪除事件失敗'
                 return rply;
             }
             //增加資料庫
             //檢查有沒有重覆
-            rply.text = '刪除角色卡成功: ' + doc.name
+            rply.text = '刪除事件成功: ' + doc.title
             return rply;
 
 
@@ -589,7 +603,7 @@ module.exports = {
 
 /*
 以個人為單位, 一張咭可以在不同的群組使用    
-.char add 的輸入格式,用來增建角色卡
+.char add 的輸入格式,用來增建事件
 .char add name[Sad]~
 state[HP:5/5;MP:3/3;SAN:50/99;護甲:6]~
 roll[投擲:cc 80 投擲;空手鬥毆: cc [[50 +{hp}]]]~
@@ -599,24 +613,24 @@ notes[筆記:SAD;心靈支柱: 特質]~
 // notes 文字筆記
 // roll 擲骰指令
 
-如果沒有名字 會更新修正正在USE的角色卡
+如果沒有名字 會更新修正正在USE的事件
 但沒有的話,  就會出錯
 ============
 
 
 ===
-.char use 使用角色卡
+.char use 使用事件
 .char use sad
-會自動使用名叫Sad 的角色卡
+會自動使用名叫Sad 的事件
 ====
 .char nonuse 
 .char use 
-會取消在此群組使用角色卡
+會取消在此群組使用事件
 
 ====
-.char delete  角色卡
+.char delete  事件
 .char delete Sad
-刪除角色卡
+刪除事件
 
 ====
 
@@ -638,7 +652,7 @@ HP: 5/5 MP: 3/3 SAN: 50/90 護甲: 6
 
 ======
 
-功能 使用角色卡的state 和notes
+功能 使用事件的state 和notes
 
 .ch set HP  10 直接把現在值變成10
 .ch set HP  10/20 直接把現在值變成10 最大值變成20

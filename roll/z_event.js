@@ -212,13 +212,7 @@ var rollDiceCommand = async function ({
                 rply.text = '沒有此事件.'
                 return rply
             }
-
-
             try {
-                let filterRemove = {
-                    cardId: doc._id
-                }
-                console.log(doc._id)
                 await schema.eventList.findOneAndRemove(filter);
                 await schema.event.updateOne({
                     userID: userid
@@ -228,8 +222,6 @@ var rollDiceCommand = async function ({
                             eventID: doc._id
                         }
                     }
-                }, {
-
                 })
             } catch (error) {
                 console.log('刪除事件 GET ERROR:  ', error)
@@ -240,7 +232,20 @@ var rollDiceCommand = async function ({
             //檢查有沒有重覆
             rply.text = '刪除事件成功: ' + doc.title
             return rply;
+        case /(^[.]event$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+            filter = {
+                userID: userid
+            }
+            doc = await schema.eventList.find(filter);
+            rply.text = "====事件列件====\n"
+            console.log(doc[0].detail);
+            for (let index = 0; index < doc.length; index++) {
+                rply.text += doc[index].title + "\n";
+                if (doc[index].expName) rply.text += '經驗值的名稱: ' + doc[index].expName + "\n";
+                rply.text += getDetail(doc[index]) + '\n';
 
+            }
+            return rply;
 
         default:
             break;
@@ -248,6 +253,13 @@ var rollDiceCommand = async function ({
     }
 }
 
+function getDetail(doc) {
+    let text = '';
+    for (let index = 0; index < doc.detail.length; index++) {
+        text += '類型:' + doc.detail[index].result + ' 內容: ' + doc.detail[index].event + '\n'
+    }
+    return text;
+}
 async function mainCharacter(doc, mainMsg) {
     mainMsg.shift();
     let findState = [];

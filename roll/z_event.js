@@ -78,8 +78,11 @@ var rollDiceCommand = async function ({
     let temp;
     let tempMain = {};
     let lv;
+    let temp2;
     let limit = limitArr[0];
     let check;
+    let levelLv = 0;
+    let temp3 = 0;
     /**
      * .event
      * .event add 事件    新增事件
@@ -96,7 +99,13 @@ var rollDiceCommand = async function ({
      * -1:你中招了:你不好運要-SAN了
      * 1:你吃了好味的糖，加SAN人
      */
-
+    function findMaxLv(gp) {
+        gp.forEach(function (members) {
+            if (members.userid == userid && Number(members.Level) > levelLv) {
+                levelLv = Math.floor(Number(members.Level) / 10);
+            }
+        });
+    }
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
@@ -105,9 +114,10 @@ var rollDiceCommand = async function ({
         case /(^[.]event$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             events = await analysicInputData(inputStr); //分析輸入的資料
             if (!events.MainData || !events.eventName) {
-                rply.text = '沒有輸入事件或名字，請重新整理內容 格式為 \n.event add exp:SAN *不是必需 \ns0:你今天的運氣真好;你是個好人;我愛你\n-1:你中招了;你不好運要-SAN了\n1:你吃了好味的糖，加SAN人\n'
+                rply.text = '沒有輸入事件或名字，請重新整理內容 格式為 \n.event add \nname:Haha \nexp:SAN *不是必需 \ns0:你今天的運氣真好;你是個好人;我愛你\n-1:你中招了;你不好運要-SAN了\n1:你吃了好味的糖，加SAN人\n'
                 return rply;
             }
+
             /*
             基本只限四次事件.
             使用VIPCHECK
@@ -117,10 +127,36 @@ var rollDiceCommand = async function ({
             check = await schema.eventList.find({
                 userID: userid
             });
+            temp2 = await schema.trpgLevelSystem.find({
+                "trpgLevelSystemfunction.userid": userid
+            })
+            temp2.forEach(function (item) {
+                findMaxLv(item.trpgLevelSystemfunction);
+            });
+            console.log('levelLv', levelLv)
 
             //取得本來的資料, 如有重覆, 以新的覆蓋
             //doc = await schema.event.findOne(filter);
             var mainSplit = await analysicDetail(events.MainData)
+            console.log('mainSplit', mainSplit)
+            if (mainSplit.length < 3 || mainSplit.length > Number(3 + levelLv)) {
+                rply.text = '新增事件失敗\n需要至少設定 3 個事件\n同時最多 ' + Number(3 + levelLv) + ' 個事件'
+                return rply;
+            }
+            //至少一個是正面
+            for (let index = 0; index < mainSplit.length; index++) {
+                temp3 = (Number(mainSplit[index].result) > 0)
+                levelLv += Number(mainSplit[index].result);
+            }
+            if (temp3 <= 0) {
+                rply.text = '新增事件失敗\n需要至少設定一個正面事件'
+                return rply;
+            }
+            console.log('levelLv', levelLv)
+            if (levelLv < 0) {
+                rply.text = '新增事件失敗\n因為不可以過多負面事件\n事件種類加(使用者LV/10)必需高於0\n現在加起來是' + levelLv + ' 點'
+                return rply;
+            }
             var listDatas = {
                 title: events.eventName,
                 userID: userid,

@@ -273,13 +273,12 @@
                 </div>
                 <div class="modal-body">
                     <form id="cardList-Form">
-                        <div class="form-group">
+                        <div class="form-group row">
                             <div id="array-cardList">
-                                <div v-for="(item,index) in list" :key="index">
-                                    <p> <button type="button" class="btn btn-warning"
-                                            v-on:click="getTheSelectedOne(index)"> {{item.name}}</button>
-                                    </p>
-                                </div>
+                                <span v-for="(item,index) in list" :key="index" class="col">
+                                    <button type="button" class="btn btn-warning" v-on:click="getTheSelectedOne(index)">
+                                        {{item.name}}</button>
+                                </span>
                             </div>
                         </div>
                     </form>

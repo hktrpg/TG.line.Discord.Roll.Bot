@@ -73,7 +73,6 @@ var rollDiceCommand = async function ({
     };
     let filter = {};
     let doc = {};
-    let docSwitch = {};
     let events = {};
     let temp;
     let tempMain = {};
@@ -110,7 +109,7 @@ var rollDiceCommand = async function ({
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
             return rply;
-            // .ch(0) ADD(1) TOPIC(2) CONTACT(3)
+        // .ch(0) ADD(1) TOPIC(2) CONTACT(3)
         case /(^[.]event$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             events = await analysicInputData(inputStr); //分析輸入的資料
             if (!events.MainData || !events.eventName) {
@@ -315,26 +314,26 @@ async function mainCharacter(doc, mainMsg) {
             findRoll = resutltRoll;
             last = 'roll';
         } else
-        if (resutltNotes) {
-            last = 'notes';
-            await findNotes.push(resutltNotes);
-        } else
-        if (resutltState) {
-            last = 'state';
-            await findState.push(resutltState);
-        } else
-        if (mainMsg[name].match(/^[+-/*]\S+d\S/i) && last == 'state') {
-            last = '';
-            let res = mainMsg[name].charAt(0)
-            let number = await countNum(mainMsg[name].substring(1));
-            number ? await findState.push(res + number) : null;
-        } else
-        if (mainMsg[name].match(/^[0-9+\-*/.]\S+$/i) && last == 'state') {
-            last = '';
-            await findState.push(mainMsg[name]);
-        } else {
-            last = '';
-        }
+            if (resutltNotes) {
+                last = 'notes';
+                await findNotes.push(resutltNotes);
+            } else
+                if (resutltState) {
+                    last = 'state';
+                    await findState.push(resutltState);
+                } else
+                    if (mainMsg[name].match(/^[+-/*]\S+d\S/i) && last == 'state') {
+                        last = '';
+                        let res = mainMsg[name].charAt(0)
+                        let number = await countNum(mainMsg[name].substring(1));
+                        number ? await findState.push(res + number) : null;
+                    } else
+                        if (mainMsg[name].match(/^[0-9+\-*/.]\S+$/i) && last == 'state') {
+                            last = '';
+                            await findState.push(mainMsg[name]);
+                        } else {
+                            last = '';
+                        }
 
     }
     //如果是roll的, 就變成擲骰MODE(最優先)
@@ -579,31 +578,7 @@ character = {
 */
 
 //https://stackoverflow.com/questions/7146217/merge-2-arrays-of-objects
-async function Merge(target, source, prop, updateMode) {
-    /**
-     * target 本來的資料
-     * source 新資料
-     * prop  以什麼項目作比較對像
-     * updateMode True 只會更新已有資料 False 沒有的話, 加上去
-     */
-    if (!target) target = []
-    if (!source) source = []
-    const mergeByProperty = (target, source, prop) => {
-        source.forEach(sourceElement => {
-            let targetElement = target.find(targetElement => {
-                return sourceElement[prop].match(new RegExp('^' + convertRegex(targetElement[prop]) + '$', 'i'));
-            })
-            if (updateMode)
-                targetElement ? Object.assign(targetElement, sourceElement) : '';
-            else
-                targetElement ? Object.assign(targetElement, sourceElement) : target.push(sourceElement);
-        })
-    }
 
-    mergeByProperty(target, source, prop);
-    return target;
-
-}
 
 async function replaceAsync(str, regex, asyncFn) {
     const promises = [];
@@ -650,7 +625,7 @@ module.exports = {
 
 
 /*
-以個人為單位, 一張咭可以在不同的群組使用    
+以個人為單位, 一張咭可以在不同的群組使用
 .char add 的輸入格式,用來增建事件
 .char add name[Sad]~
 state[HP:5/5;MP:3/3;SAN:50/99;護甲:6]~
@@ -671,8 +646,8 @@ notes[筆記:SAD;心靈支柱: 特質]~
 .char use sad
 會自動使用名叫Sad 的事件
 ====
-.char nonuse 
-.char use 
+.char nonuse
+.char use
 會取消在此群組使用事件
 
 ====
@@ -684,7 +659,7 @@ notes[筆記:SAD;心靈支柱: 特質]~
 
 顯示SHOW 功能:
 
-.ch show (顯示 名字 state 和roll) 
+.ch show (顯示 名字 state 和roll)
 .ch shows  (顯示 名字 state,notes 和roll)
 .ch show notes (顯示 名字 和notes)
 
@@ -692,7 +667,7 @@ notes[筆記:SAD;心靈支柱: 特質]~
 角色名字
 HP: 5/5 MP: 3/3 SAN: 50/90 護甲: 6
 -------
-投擲: cc 80 投擲 
+投擲: cc 80 投擲
 空手: cc 50
 -------
 筆記: SAD
@@ -707,10 +682,10 @@ HP: 5/5 MP: 3/3 SAN: 50/90 護甲: 6
 
 
 
-.ch HP MP 顯示該內容 
-HP 5/5 MP 3/3  
+.ch HP MP 顯示該內容
+HP 5/5 MP 3/3
 
-.ch HP -5 如果HP是State 自動減5 
+.ch HP -5 如果HP是State 自動減5
 .ch HP +5  如果HP是State 自動加5 如果是
 
 
@@ -718,8 +693,8 @@ HP 5/5 MP 3/3
 ============
 .ch 輸出指令
 .ch  投擲
-cc 80 投擲 
-在指令中可以加上 +{HP} -{san}  
+cc 80 投擲
+在指令中可以加上 +{HP} -{san}
 在結果中會進行運算。
 
 

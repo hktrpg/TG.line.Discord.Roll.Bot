@@ -96,7 +96,7 @@ var rollDiceCommand = async function ({
     let result = ''
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
-            rply.text = this.getHelpMessage();
+            rply.text =await callHelp();
             return rply;
         default:
             result = await calldice("SwordWorld2.5", mainMsg[1])

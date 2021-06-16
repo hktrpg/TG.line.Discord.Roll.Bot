@@ -7,7 +7,14 @@ async function calldice(gameType, message) {
     const loader = new DynamicLoader();
     const GameSystem = await loader.dynamicLoad(gameType);
     const result = GameSystem.eval(message);
-    return result.text;
+    if (result.text) return result.text
+    else return null;
+}
+async function callHelp(gameType) {
+    const loader = new DynamicLoader();
+    const GameSystem = await loader.dynamicLoad(gameType);
+    const result = GameSystem.HELP_MESSAGE;
+    return result;
 }
 var variables = {};
 

@@ -109,7 +109,6 @@ var rollDiceCommand = async function ({
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
             return rply;
-        // .ch(0) ADD(1) TOPIC(2) CONTACT(3)
         case /(^[.]event$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             events = await analysicInputData(inputStr); //分析輸入的資料
             if (!events.MainData || !events.eventName) {
@@ -234,7 +233,6 @@ var rollDiceCommand = async function ({
 
             }
             return rply;
-
         case /(^[.]event$)/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             filter = {
                 userID: userid,
@@ -272,6 +270,25 @@ var rollDiceCommand = async function ({
                 userID: userid
             }
             doc = await schema.eventList.find(filter);
+            rply.text = "====事件列件====\n"
+            console.log(doc[0].detail);
+            for (let index = 0; index < doc.length; index++) {
+                rply.text += doc[index].title + "\n";
+                if (doc[index].expName) rply.text += '經驗值的名稱: ' + doc[index].expName + "\n";
+                rply.text += getDetail(doc[index]) + '\n';
+
+            }
+            return rply;
+        case /(^[.]evt$)/i.test(mainMsg[0]) && /^random$/i.test(mainMsg[1]):
+            filter = {
+                userID: userid
+            }
+            events = await schema.event.find(filter);
+            /**
+             * 檢查ENERGY，如果沒有則新增，數字為EN= 20+LV
+             */
+            doc = await schema.eventList.aggregate([{ $sample: { size: 1 } }]);
+            console.log('doc', doc)
             rply.text = "====事件列件====\n"
             console.log(doc[0].detail);
             for (let index = 0; index < doc.length; index++) {

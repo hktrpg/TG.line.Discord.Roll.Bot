@@ -305,6 +305,8 @@ const event = mongoose.model('event', new mongoose.Schema({
     userID: String,
     userName: String,
     earnedEXP: Number,
+    energy: Number,
+    lastActiveAt: Date,
     eventList: [{
         title: String,
         eventID: String

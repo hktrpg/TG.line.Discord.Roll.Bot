@@ -19,7 +19,7 @@
     "@zetetic/whatsapp-web.js": "github:zeteticl/whatsapp-web.js",
     "axios": "^0.21.1",
     "babel-core": "^7.0.0-0",
-    "bcdice": "^2.0.2",
+    "bcdice": "^3.3.0",
     "bufferutil": "^4.0.3",
     "chai": "^4.3.3",
     "chinese-conv": "^1.0.1",

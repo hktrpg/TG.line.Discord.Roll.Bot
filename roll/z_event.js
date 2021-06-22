@@ -280,13 +280,26 @@ var rollDiceCommand = async function ({
             }
             return rply;
         case /(^[.]evt$)/i.test(mainMsg[0]) && /^random$/i.test(mainMsg[1]):
+            if (!groupid) {
+                rply.text = '你不在群組.請在群組使用此功能 '
+                return rply
+            }
+            tempMain = await schema.trpgLevelSystem.findOne({ groupid: groupid });
+            if (!tempMain || tempMain.Switch == 0) {
+                rply.text = '此群組並有沒有開啓LEVEL功能. \n.level config 11 代表啓動功能 \
+                    \n 數字11代表等級升級時會進行通知，10代表不會自動通知，\
+                    \n 00的話代表不啓動功能\n'
+            }
             filter = {
                 userID: userid
             }
-            events = await schema.event.find(filter);
+            events = await schema.event.findOne(filter);
             /**
              * 檢查ENERGY，如果沒有則新增，數字為EN= 20+LV
              */
+            if (!events || !events.energy) {
+                //events.energy = 0;
+            }
             doc = await schema.eventList.aggregate([{ $sample: { size: 1 } }]);
             console.log('doc', doc)
             rply.text = "====事件列件====\n"

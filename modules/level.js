@@ -4,20 +4,23 @@ const oneMinuts = (process.env.DEBUG) ? 1 : 60000;
 exports.rollbase = require('../roll/rollbase');
 exports.z_Level_system = require('../roll/z_Level_system');
 const schema = require('../modules/core-schema.js');
-//trpgLevelSystem
-const opt = {
-    upsert: true,
-    runValidators: true
-}
+var tempSwitch = [{ groupid: '', Switch: false }];
 async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercount) {
     if (!groupid) {
         return;
     }
+    const filterSwitch = tempSwitch.find(function (group) {
+        return group.groupid == groupid;
+    });
+    if (filterSwitch && filterSwitch.Switch === false) return;
+    if (filterSwitch === undefined) {
+        var gpInfo = await schema.trpgLevelSystem.findOne({ groupid: groupid });
+        tempSwitch.push({ groupid: groupid, Switch: gpInfo.Switch })
+
+    }
     //1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
-    let gpInfo = await schema.trpgLevelSystem.findOne({ groupid: groupid });
     if (!gpInfo || !gpInfo.Switch) return;
     let userInfo = await schema.trpgLevelSystemMember.findOne({ groupid: groupid, userid: userid });
-
     if (!userInfo) {
         await newUser(gpInfo, groupid, userid, displayname, displaynameDiscord);
         return;
@@ -55,7 +58,7 @@ async function returnTheLevelWord(gpInfo, userInfo, membercount, groupid) {
     let userexp = userInfo.EXP;
     let usermember_count = Math.max(membercount);
     let docMember = await schema.trpgLevelSystemMember.find({ groupid: groupid }).sort({ EXP: -1 });
-    let myselfIndex = docMember.map(function (members, index) {
+    let myselfIndex = docMember.map(function (members) {
         return members.userid;
     }).indexOf(userInfo.userid);
 
@@ -66,22 +69,6 @@ async function returnTheLevelWord(gpInfo, userInfo, membercount, groupid) {
     return tempUPWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count).replace(/{user.title}/ig, userTitle);
 }
 
-async function uploadMongoose(groupid, userid, userInfo) {
-    let v = await schema.trpgLevelSystem.findOneAndUpdate({
-        groupid: groupid,
-        'trpgLevelSystemfunction.userid': userid
-    }, {
-        $set: {
-            'trpgLevelSystemfunction.$.name': userInfo.name,
-            'trpgLevelSystemfunction.$.Level': userInfo.Level
-        },
-        $max: {
-            'trpgLevelSystemfunction.$.EXP': userInfo.EXP,
-            'trpgLevelSystemfunction.$.LastSpeakTime': userInfo.LastSpeakTime
-        }
-    }, opt)
-    return v;
-}
 
 async function newUser(gpInfo, groupid, userid, displayname, displaynameDiscord) {
     //3. 沒有 -> 新增
@@ -98,30 +85,7 @@ async function newUser(gpInfo, groupid, userid, displayname, displaynameDiscord)
     return;
 }
 
-async function ranking(who, data) {
-    let array = [];
-    let answer = "0";
-    for (let key in data) {
-        await array.push(data[key]);
-    }
-    array.sort(function (a, b) {
-        return b.EXP - a.EXP;
-    });
-    let rank = 1;
-    for (let i = 0; i < array.length; i++) {
-        if (i > 0 && array[i].EXP < array[i - 1].EXP) {
-            rank++;
-        }
-        array[i].rank = rank;
-    }
-    for (let b = 0; b < array.length; b++) {
-        if (array[b].userid == who)
-            answer = b + 1;
-
-    }
-    return answer;
-}
-
 module.exports = {
-    EXPUP
+    EXPUP, tempSwitch
+
 };

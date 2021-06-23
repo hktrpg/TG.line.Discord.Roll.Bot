@@ -4,8 +4,8 @@
 if (!process.env.mongoURL) {
     return;
 }
+var tempSwitch = require('../modules/level');
 const schema = require('../modules/core-schema.js');
-const rollbase = require('./rollbase.js');
 const defaultRankWord = "{user.name}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點！\n現在排名是{server.member_count}人中的第{user.Ranking}名！{user.RankingPer}！\n調查經驗是{user.exp}點。 "
 
 var gameName = function () {
@@ -334,26 +334,47 @@ var rollDiceCommand = async function ({
             }
             let doc = await schema.trpgLevelSystem.findOne({ groupid: groupid });
             switch (mainMsg[2]) {
-                case '00':
+                case '00': {
                     doc.Switch = false;
                     doc.Hidden = false;
                     await doc.save();
+                    let temp = tempSwitch.tempSwitch.find(function (group) {
+                        return group.groupid == groupid;
+                    });
+                    temp.Switch = false;
                     break;
-                case '01':
+                }
+                case '01': {
                     doc.Switch = false;
                     doc.Hidden = true;
                     await doc.save();
-
+                    let temp = tempSwitch.tempSwitch.find(function (group) {
+                        return group.groupid == groupid;
+                    });
+                    temp.Switch = false;
                     break;
+                }
                 case '11':
-                    doc.Switch = true;
-                    doc.Hidden = true;
-                    await doc.save();
-                    break;
+                    {
+                        doc.Switch = true;
+                        doc.Hidden = true;
+                        await doc.save();
+                        let temp = tempSwitch.tempSwitch.find(function (group) {
+                            return group.groupid == groupid;
+                        });
+                        temp.Switch = true;
+                        break;
+                    }
                 case '10':
-                    doc.Switch = true;
-                    doc.Hidden = false;
-                    await doc.save();
+                    {
+                        doc.Switch = true;
+                        doc.Hidden = false;
+                        await doc.save();
+                        let temp = tempSwitch.tempSwitch.find(function (group) {
+                            return group.groupid == groupid;
+                        });
+                        temp.Switch = true;
+                    }
                     break;
                 default:
                     rply.text = '修改失敗。沒有設定onoff\n';
@@ -388,7 +409,7 @@ var rollDiceCommand = async function ({
                 let docMember = await schema.trpgLevelSystemMember.find({ groupid: groupid }).sort({ EXP: -1 });
 
                 //要尋找其中自己的userid
-                let myselfIndex = docMember.map(function (members, index) {
+                let myselfIndex = docMember.map(function (members) {
                     return members.userid;
                 }).indexOf(userid);
                 if (myselfIndex < 0) {
@@ -437,10 +458,46 @@ var rollDiceCommand = async function ({
                 rply.text = '你不在群組當中，請在群組中使用。'
                 return rply
             }
-            return;
+            //顯示群組頭五名排名
+            let RankNumber = 5
+            if (mainMsg[2]) {
+                if (mainMsg[2] > 5 && mainMsg[2] <= 20)
+                    RankNumber = Number(mainMsg[2])
+                if (mainMsg[2] > 20)
+                    RankNumber = 20
+            }
+            let doc = await schema.trpgLevelSystem.findOne({ groupid: groupid });
+            if (!doc || !doc.Switch) {
+                rply.text = '此群組並有沒有開啓LEVEL功能. \n.level config 11 代表啓動功能 \
+                    \n 數字11代表等級升級時會進行通知，10代表不會自動通知，\
+                    \n 00的話代表不啓動功能\n'
+                return rply;
+            }
+            let docMember = await schema.trpgLevelSystemMember.find({ groupid: groupid }).sort({ EXP: -1 }).limit(RankNumber)
+            if (docMember.length < 1) {
+                rply.text = '此群組未有足夠資料\n'
+                return rply;
+            }
+            rply.text = await rankingList(doc, docMember, RankNumber, "群組排行榜");
+            return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^showMeTheWorld$/i.test(mainMsg[1]): {
-            return
+            //顯示群組頭五名排名
+            let RankNumber = 6
+            if (mainMsg[2]) {
+                if (mainMsg[2] > 6 && mainMsg[2] <= 20)
+                    RankNumber = Number(mainMsg[2])
+                if (mainMsg[2] > 20)
+                    RankNumber = 20
+            }
+            let docMember = await schema.trpgLevelSystemMember.find({}).sort({ EXP: -1 }).limit(RankNumber)
+            if (docMember.length < 1) {
+                rply.text = '此群組未有足夠資料\n'
+                return rply;
+            }
+            rply.text = await rankingList({}, docMember, RankNumber, "世界排行榜");
+            return rply;
+
         }
         default:
             break;
@@ -461,19 +518,18 @@ var rollDiceCommand = async function ({
 
 
 
-    async function rankingList(who, RankNumber, Title) {
+    async function rankingList(gp, who, RankNumber, Title) {
         var array = [];
         let answer = ""
-        let tempTitleAll = who.Title;
+        let tempTitleAll = gp.Title || [];
         //console.log('tempTitleAll ', tempTitleAll)
         //console.log('who ', who)
-        for (var key in who.trpgLevelSystemfunction) {
-            array.push(who.trpgLevelSystemfunction[key]);
+        for (var key in who) {
+            array.push(who[key]);
         }
         array.sort(function (a, b) {
             return b.EXP - a.EXP;
         });
-
         var rank = 1;
         for (var i = 0; i < array.length; i++) {
             if (i > 0 && array[i].EXP < array[i - 1].EXP) {
@@ -481,7 +537,6 @@ var rollDiceCommand = async function ({
             }
             array[i].rank = rank;
         }
-        //checkTitle(lVL,Title)
         for (var b = 0; b < RankNumber; b++) {
             if (array && array[b]) {
                 if (b == 0) {

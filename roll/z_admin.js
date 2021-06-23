@@ -6,10 +6,9 @@ const opt = {
 }
 const salt = process.env.SALT;
 const crypto = require('crypto');
+const { forEach } = require('mathjs');
 const password = process.env.CRYPTO_SECRET,
     algorithm = 'aes-256-ctr';
-const link = process.env.WEB_LINK;
-const port = process.env.PORT || 20721;
 //32bit ASCII
 const adminSecret = process.env.ADMIN_SECRET;
 //admin id
@@ -72,6 +71,27 @@ var rollDiceCommand = async function ({
         case /^state$/i.test(mainMsg[1]):
             rply.state = true;
             return rply;
+        case /^fixEXP$/i.test(mainMsg[1]): {
+
+            let doc = await schema.trpgLevelSystem.find();
+            /**
+             Hidden:"1"Switch:"1"
+             trpgLevelSystemfunction
+             */
+            doc.forEach(async element => {
+                let docGp = await schema.trpgLevelSystem.findOne({ groupid: element.groupid });
+                if (docGp.Hidden === "1") docGp.Hidden = true;
+                if (docGp.Hidden === "0") docGp.Hidden = false;
+                if (docGp.Switch === "1") docGp.Switch = true;
+                if (docGp.Switch === "0") docGp.Switch = false;
+                let save = await docGp.save();
+
+                console.log('save', save)
+            });
+
+            rply.text = doc.length + '項 DONE '
+            return rply;
+        }
         case /^registerChannel$/i.test(mainMsg[1]):
             if (!groupid && !channelid) {
                 rply.text = "這裡不是群組，如果想在群組使用你的角色卡，請在群組中輸入此指令";
@@ -372,13 +392,13 @@ async function store(mainMsg, mode) {
     var resultNotes = pattNotes.exec(mainMsg);
     var resultSwitch = pattSwitch.exec(mainMsg);
     let reply = {};
-    (resultId && mode == 'id') ? reply.id = resultId[1]: null;
-    (resultGP && mode == 'gp') ? reply.gpid = resultGP[1]: null;
-    (resultLv) ? reply.level = Number(resultLv[1]): null;
-    (resultName) ? reply.name = resultName[1]: null;
-    (resultNotes) ? reply.notes = resultNotes[1]: null;
-    (resultSwitch && resultSwitch[1].toLowerCase() == 'true') ? reply.switch = true: null;
-    (resultSwitch && resultSwitch[1].toLowerCase() == 'false') ? reply.switch = false: null;
+    (resultId && mode == 'id') ? reply.id = resultId[1] : null;
+    (resultGP && mode == 'gp') ? reply.gpid = resultGP[1] : null;
+    (resultLv) ? reply.level = Number(resultLv[1]) : null;
+    (resultName) ? reply.name = resultName[1] : null;
+    (resultNotes) ? reply.notes = resultNotes[1] : null;
+    (resultSwitch && resultSwitch[1].toLowerCase() == 'true') ? reply.switch = true : null;
+    (resultSwitch && resultSwitch[1].toLowerCase() == 'false') ? reply.switch = false : null;
     return reply;
 }
 

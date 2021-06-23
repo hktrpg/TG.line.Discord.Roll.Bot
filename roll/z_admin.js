@@ -6,7 +6,6 @@ const opt = {
 }
 const salt = process.env.SALT;
 const crypto = require('crypto');
-const { forEach } = require('mathjs');
 const password = process.env.CRYPTO_SECRET,
     algorithm = 'aes-256-ctr';
 //32bit ASCII
@@ -79,14 +78,29 @@ var rollDiceCommand = async function ({
              trpgLevelSystemfunction
              */
             doc.forEach(async element => {
-                let docGp = await schema.trpgLevelSystem.findOne({ groupid: element.groupid });
+                let docGp = await schema.trpgLevelSystem.findOne({
+                    groupid: element.groupid
+                });
                 if (docGp.Hidden === "1") docGp.Hidden = true;
                 if (docGp.Hidden === "0") docGp.Hidden = false;
                 if (docGp.Switch === "1") docGp.Switch = true;
                 if (docGp.Switch === "0") docGp.Switch = false;
                 let save = await docGp.save();
-
                 console.log('save', save)
+                docGp.trpgLevelSystemfunction.forEach(async member => {
+                    let temp = {
+                        userid: member.userid,
+                        groupid: docGp.groupid,
+                        name: member.name,
+                        EXP: member.EXP,
+                        //EXP: math.floor(math.random() * 10) + 15,
+                        Level: member.Level,
+                        LastSpeakTime: member.LastSpeakTime
+                    }
+                    await new schema.trpgLevelSystemMember(temp).save();
+                })
+
+
             });
 
             rply.text = doc.length + '項 DONE '
@@ -392,13 +406,13 @@ async function store(mainMsg, mode) {
     var resultNotes = pattNotes.exec(mainMsg);
     var resultSwitch = pattSwitch.exec(mainMsg);
     let reply = {};
-    (resultId && mode == 'id') ? reply.id = resultId[1] : null;
-    (resultGP && mode == 'gp') ? reply.gpid = resultGP[1] : null;
-    (resultLv) ? reply.level = Number(resultLv[1]) : null;
-    (resultName) ? reply.name = resultName[1] : null;
-    (resultNotes) ? reply.notes = resultNotes[1] : null;
-    (resultSwitch && resultSwitch[1].toLowerCase() == 'true') ? reply.switch = true : null;
-    (resultSwitch && resultSwitch[1].toLowerCase() == 'false') ? reply.switch = false : null;
+    (resultId && mode == 'id') ? reply.id = resultId[1]: null;
+    (resultGP && mode == 'gp') ? reply.gpid = resultGP[1]: null;
+    (resultLv) ? reply.level = Number(resultLv[1]): null;
+    (resultName) ? reply.name = resultName[1]: null;
+    (resultNotes) ? reply.notes = resultNotes[1]: null;
+    (resultSwitch && resultSwitch[1].toLowerCase() == 'true') ? reply.switch = true: null;
+    (resultSwitch && resultSwitch[1].toLowerCase() == 'false') ? reply.switch = false: null;
     return reply;
 }
 

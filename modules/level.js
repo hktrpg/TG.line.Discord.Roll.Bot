@@ -4,7 +4,10 @@ const oneMinuts = (process.env.DEBUG) ? 1 : 60000;
 exports.rollbase = require('../roll/rollbase');
 exports.z_Level_system = require('../roll/z_Level_system');
 const schema = require('../modules/core-schema.js');
-var tempSwitch = [{ groupid: '', Switch: false }];
+var tempSwitch = [{
+    groupid: '',
+    Switch: false
+}];
 async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercount) {
     if (!groupid) {
         return;
@@ -12,20 +15,30 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     const filterSwitch = tempSwitch.find(function (group) {
         return group.groupid == groupid;
     });
-    if (filterSwitch && filterSwitch.Switch === false) return;
+    if (filterSwitch && (filterSwitch.Switch === false)) return;
+    console.log('filterSwitch', filterSwitch)
+    const gpInfo = await schema.trpgLevelSystem.findOne({
+        groupid: groupid
+    });
     if (filterSwitch === undefined) {
-        var gpInfo = await schema.trpgLevelSystem.findOne({ groupid: groupid });
-        tempSwitch.push({ groupid: groupid, Switch: gpInfo.Switch })
+        tempSwitch.push({
+            groupid: groupid,
+            Switch: gpInfo.Switch
+        })
 
     }
+    console.log('gpInfo', gpInfo);
     //1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
     if (!gpInfo || !gpInfo.Switch) return;
-    let userInfo = await schema.trpgLevelSystemMember.findOne({ groupid: groupid, userid: userid });
+    let userInfo = await schema.trpgLevelSystemMember.findOne({
+        groupid: groupid,
+        userid: userid
+    });
     if (!userInfo) {
         await newUser(gpInfo, groupid, userid, displayname, displaynameDiscord);
         return;
     }
-
+    console.log('AAAAA?')
     //4. 有-> 檢查上次紀錄的時間 超過60000 (1分鐘) 即增加15+(1-9) 經驗值
     if ((new Date(Date.now()) - userInfo.LastSpeakTime) < oneMinuts) {
         return;
@@ -44,7 +57,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     //8. 更新MLAB資料
     await userInfo.save();
     //6. 需要 -> 檢查有沒有開啓通知
-    if (gpInfo.Hidden != 1 || levelUP == false) return;
+    if (gpInfo.Hidden == false || levelUP == false) return;
     //1. 讀取LEVELUP語
     return await returnTheLevelWord(gpInfo, userInfo, membercount, groupid);
     //6 / 7 * LVL * (2 * LVL * LVL + 30 * LVL + 100)
@@ -57,7 +70,11 @@ async function returnTheLevelWord(gpInfo, userInfo, membercount, groupid) {
     let userlevel = userInfo.Level;
     let userexp = userInfo.EXP;
     let usermember_count = Math.max(membercount);
-    let docMember = await schema.trpgLevelSystemMember.find({ groupid: groupid }).sort({ EXP: -1 });
+    let docMember = await schema.trpgLevelSystemMember.find({
+        groupid: groupid
+    }).sort({
+        EXP: -1
+    });
     let myselfIndex = docMember.map(function (members) {
         return members.userid;
     }).indexOf(userInfo.userid);
@@ -86,6 +103,7 @@ async function newUser(gpInfo, groupid, userid, displayname, displaynameDiscord)
 }
 
 module.exports = {
-    EXPUP, tempSwitch
+    EXPUP,
+    tempSwitch
 
 };

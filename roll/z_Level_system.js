@@ -144,7 +144,7 @@ var rollDiceCommand = async function ({
             if (botname == "Line")
                 rply.text += "\n因為Line的機制, 如擲骰時並無顯示用家名字, 請到下列網址,和機器人任意說一句話,成為好友. \n https://line.me/R/ti/p/svMLqy9Mik"
             return rply;
-        // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
+            // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
 
         case /(^[.]level$)/i.test(mainMsg[0]) && /^TitleWord$/i.test(mainMsg[1]) && /^del$/i.test(mainMsg[2]): {
             if (!groupid) {
@@ -155,7 +155,9 @@ var rollDiceCommand = async function ({
                 rply.text = '新增失敗。只有GM以上才可新增。'
                 return rply
             }
-            let doc = await schema.trpgLevelSystem.findOne({ groupid: groupid });
+            let doc = await schema.trpgLevelSystem.findOne({
+                groupid: groupid
+            });
 
             //問題: 如果沒有GP 的話, 可以刪除嗎?
             if (!doc || doc.Title.length < 1) {
@@ -173,7 +175,9 @@ var rollDiceCommand = async function ({
                 rply.text = '查詢失敗。你不在群組當中，請在群組中使用。'
                 return rply
             }
-            let doc = await schema.trpgLevelSystem.findOne({ groupid: groupid });
+            let doc = await schema.trpgLevelSystem.findOne({
+                groupid: groupid
+            });
             if (!doc || doc.Title.length < 1) {
                 rply.text = "正在使用預設稱號。"
                 return rply
@@ -199,7 +203,9 @@ var rollDiceCommand = async function ({
                 rply.text = '新增失敗。只有GM以上才可新增。'
                 return rply
             }
-            let doc = await schema.trpgLevelSystem.findOne({ groupid: groupid });
+            let doc = await schema.trpgLevelSystem.findOne({
+                groupid: groupid
+            });
             let temprply = await setNew(inputStr);
             if (temprply.length < 1) {
                 rply.text = '新增失敗。 未有稱號輸入，格式為 \n.level TitleWord -(等級) (稱號).'
@@ -218,7 +224,9 @@ var rollDiceCommand = async function ({
                 rply.text = '新增失敗。你不在群組當中，請在群組中使用。'
                 return rply
             }
-            let doc = await schema.trpgLevelSystem.findOne({ groupid: groupid });
+            let doc = await schema.trpgLevelSystem.findOne({
+                groupid: groupid
+            });
             if (!doc || !doc.LevelUpWord) {
                 rply.text = '正在使用預設升級語. ';
                 return rply;
@@ -236,7 +244,9 @@ var rollDiceCommand = async function ({
                 rply.text = '刪除失敗。只有GM以上才可刪除。'
                 return rply
             }
-            let doc = await schema.trpgLevelSystem.findOne({ groupid: groupid });
+            let doc = await schema.trpgLevelSystem.findOne({
+                groupid: groupid
+            });
             doc.LevelUpWord = "";
             await doc.save();
             rply.text = "刪除升級語成功."
@@ -252,7 +262,9 @@ var rollDiceCommand = async function ({
                 return rply
             }
 
-            let doc = await schema.trpgLevelSystem.findOne({ groupid: groupid });
+            let doc = await schema.trpgLevelSystem.findOne({
+                groupid: groupid
+            });
             doc.LevelUpWord = inputStr.replace(/\s?.*\s+\w+\s+/i, '');
             await doc.save();
             rply.text = "新增升級語成功.\n" + inputStr.replace(/\s?.*\s+\w+\s+/i, '');
@@ -264,7 +276,9 @@ var rollDiceCommand = async function ({
                 rply.text = '新增失敗。你不在群組當中，請在群組中使用。'
                 return rply
             }
-            let doc = await schema.trpgLevelSystem.findOne({ groupid: groupid });
+            let doc = await schema.trpgLevelSystem.findOne({
+                groupid: groupid
+            });
             if (!doc || !doc.RankWord) {
                 rply.text = '正在使用預設查詢語. ';
                 return rply;
@@ -282,7 +296,9 @@ var rollDiceCommand = async function ({
                 rply.text = '刪除失敗。只有GM以上才可刪除。'
                 return rply
             }
-            let doc = await schema.trpgLevelSystem.findOne({ groupid: groupid });
+            let doc = await schema.trpgLevelSystem.findOne({
+                groupid: groupid
+            });
             doc.RankWord = "";
             await doc.save();
             rply.text = "刪除查詢語成功."
@@ -298,7 +314,9 @@ var rollDiceCommand = async function ({
                 return rply
             }
 
-            let doc = await schema.trpgLevelSystem.findOne({ groupid: groupid });
+            let doc = await schema.trpgLevelSystem.findOne({
+                groupid: groupid
+            });
             doc.RankWord = inputStr.replace(/\s?.*\s+\w+\s+/i, '');
             await doc.save();
             rply.text = "新增查詢語成功.\n" + inputStr.replace(/\s?.*\s+\w+\s+/i, '');
@@ -309,10 +327,12 @@ var rollDiceCommand = async function ({
                 rply.text = '你不在群組當中，請在群組中使用。'
                 return rply
             }
-            let doc = await schema.trpgLevelSystem.findOne({ groupid: groupid });
+            let doc = await schema.trpgLevelSystem.findOne({
+                groupid: groupid
+            });
             rply.text = '現在設定: ' + '\n經驗值功能: ';
-            rply.text += (doc.Switch) ? '啓動\n升級通知功能: ' : '關閉\n升級通知功能: ';
-            rply.text += (doc.Hidden) ? '啓動' : '關閉';
+            rply.text += (doc && doc.Switch) ? '啓動\n升級通知功能: ' : '關閉\n升級通知功能: ';
+            rply.text += (doc && doc.Hidden) ? '啓動' : '關閉';
             return rply;
         }
 
@@ -332,7 +352,14 @@ var rollDiceCommand = async function ({
                 \n 00的話代表不啓動功能\n'
                 return rply
             }
-            let doc = await schema.trpgLevelSystem.findOne({ groupid: groupid });
+            let doc = await schema.trpgLevelSystem.findOne({
+                groupid: groupid
+            });
+            if (!doc) {
+                doc = new schema.trpgLevelSystem({
+                    groupid: groupid
+                })
+            }
             switch (mainMsg[2]) {
                 case '00': {
                     doc.Switch = false;
@@ -354,34 +381,32 @@ var rollDiceCommand = async function ({
                     temp.Switch = false;
                     break;
                 }
-                case '11':
-                    {
-                        doc.Switch = true;
-                        doc.Hidden = true;
-                        await doc.save();
-                        let temp = tempSwitch.tempSwitch.find(function (group) {
-                            return group.groupid == groupid;
-                        });
-                        temp.Switch = true;
-                        break;
-                    }
-                case '10':
-                    {
-                        doc.Switch = true;
-                        doc.Hidden = false;
-                        await doc.save();
-                        let temp = tempSwitch.tempSwitch.find(function (group) {
-                            return group.groupid == groupid;
-                        });
-                        temp.Switch = true;
-                    }
+                case '11': {
+                    doc.Switch = true;
+                    doc.Hidden = true;
+                    await doc.save();
+                    let temp = tempSwitch.tempSwitch.find(function (group) {
+                        return group.groupid == groupid;
+                    });
+                    temp.Switch = true;
                     break;
-                default:
-                    rply.text = '修改失敗。沒有設定onoff\n';
-                    rply.text += '\nconfig 11 代表啓動功能 \
+                }
+                case '10': {
+                    doc.Switch = true;
+                    doc.Hidden = false;
+                    await doc.save();
+                    let temp = tempSwitch.tempSwitch.find(function (group) {
+                        return group.groupid == groupid;
+                    });
+                    temp.Switch = true;
+                }
+                break;
+            default:
+                rply.text = '修改失敗。沒有設定onoff\n';
+                rply.text += '\nconfig 11 代表啓動功能 \
                     \n 數字11代表等級升級時會進行通知，10代表不會自動通知，\
                     \n 00的話代表不啓動功能\n'
-                    return rply
+                return rply
             }
             rply.text = '修改成功: ' + '\n經驗值功能: ';
             rply.text += (doc.Switch) ? '啓動\n升級通知功能: ' : '關閉\n升級通知功能: ';
@@ -389,70 +414,75 @@ var rollDiceCommand = async function ({
             return rply;
         }
 
-        case /(^[.]level$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
-            {
-                if (!groupid) {
-                    rply.text = '你不在群組當中，請在群組中使用。'
-                    return rply
-                }
-                if (!userid) {
-                    rply.text = '出現問題，你沒有UserID。'
-                    return rply
-                }
-                let doc = await schema.trpgLevelSystem.findOne({ groupid: groupid });
-                if (!doc || !doc.Switch) {
-                    rply.text = '此群組並有沒有開啓LEVEL功能. \n.level config 11 代表啓動功能 \
+        case /(^[.]level$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
+            if (!groupid) {
+                rply.text = '你不在群組當中，請在群組中使用。'
+                return rply
+            }
+            if (!userid) {
+                rply.text = '出現問題，你沒有UserID。'
+                return rply
+            }
+            let doc = await schema.trpgLevelSystem.findOne({
+                groupid: groupid
+            });
+            if (!doc || !doc.Switch) {
+                rply.text = '此群組並有沒有開啓LEVEL功能. \n.level config 11 代表啓動功能 \
                     \n 數字11代表等級升級時會進行通知，10代表不會自動通知，\
                     \n 00的話代表不啓動功能'
-                    return rply
-                }
-                let docMember = await schema.trpgLevelSystemMember.find({ groupid: groupid }).sort({ EXP: -1 });
-
-                //要尋找其中自己的userid
-                let myselfIndex = docMember.map(function (members) {
-                    return members.userid;
-                }).indexOf(userid);
-                if (myselfIndex < 0) {
-                    rply.text = '未有你的資料，請稍後再試。'
-                    return rply
-                }
-
-                //6.    ->沒有 使用預設排名語
-                //{user.name} 名字 {user.level} 等級 \
-                //{user.title} 稱號
-                // {user.exp} 經驗值 {user.Ranking} 現在排名 \
-                // {user.RankingPer} 現在排名百分比 \
-                // {server.member_count} 現在頻道中總人數 \
-
-                //rply.text += '資料庫列表:'
-                //1.    讀取 群組有沒有開啓功能
-
-
-                //5.    讀取群組的排名語
-
-                let rankWord = (doc.rankWord) ? doc.rankWord : defaultRankWord;
-
-                let username = displaynameDiscord || displayname || "無名";
-
-                let userlevel = docMember[myselfIndex].Level;
-                let userexp = docMember[myselfIndex].EXP;
-                //console.log('trpgLevelSystemfunction.trpgLevelSystemfunction[i]',
-                let usermember_count = Math.max(membercount, docMember.length);
-                let userRanking = myselfIndex + 1;
-                let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
-                let userTitle = await this.checkTitle(userlevel, doc.Title || []);
-                //Title 首先檢查  trpgLevelSystemfunction.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Title[0].Lvl 有沒有那個LV的TITLE
-                //沒有  則使用預設
-
-                //{user.name} 名字 {user.level} 等級 \
-                ////{user.title} 稱號
-                // { user.exp } 經驗值 { user.Ranking } 現在排名 \
-                // { user.RankingPer} 現在排名百分比 \
-                // { server.member_count } 現在頻道中總人數 \
-
-                rply.text = rankWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count).replace(/{user.title}/ig, userTitle)
-                return rply;
+                return rply
             }
+            let docMember = await schema.trpgLevelSystemMember.find({
+                groupid: groupid
+            }).sort({
+                EXP: -1
+            });
+
+            //要尋找其中自己的userid
+            let myselfIndex = docMember.map(function (members) {
+                return members.userid;
+            }).indexOf(userid);
+            if (myselfIndex < 0) {
+                rply.text = '未有你的資料，請稍後再試。'
+                return rply
+            }
+
+            //6.    ->沒有 使用預設排名語
+            //{user.name} 名字 {user.level} 等級 \
+            //{user.title} 稱號
+            // {user.exp} 經驗值 {user.Ranking} 現在排名 \
+            // {user.RankingPer} 現在排名百分比 \
+            // {server.member_count} 現在頻道中總人數 \
+
+            //rply.text += '資料庫列表:'
+            //1.    讀取 群組有沒有開啓功能
+
+
+            //5.    讀取群組的排名語
+
+            let rankWord = (doc.rankWord) ? doc.rankWord : defaultRankWord;
+
+            let username = displaynameDiscord || displayname || "無名";
+
+            let userlevel = docMember[myselfIndex].Level;
+            let userexp = docMember[myselfIndex].EXP;
+            //console.log('trpgLevelSystemfunction.trpgLevelSystemfunction[i]',
+            let usermember_count = Math.max(membercount, docMember.length);
+            let userRanking = myselfIndex + 1;
+            let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
+            let userTitle = await this.checkTitle(userlevel, doc.Title || []);
+            //Title 首先檢查  trpgLevelSystemfunction.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Title[0].Lvl 有沒有那個LV的TITLE
+            //沒有  則使用預設
+
+            //{user.name} 名字 {user.level} 等級 \
+            ////{user.title} 稱號
+            // { user.exp } 經驗值 { user.Ranking } 現在排名 \
+            // { user.RankingPer} 現在排名百分比 \
+            // { server.member_count } 現在頻道中總人數 \
+
+            rply.text = rankWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count).replace(/{user.title}/ig, userTitle)
+            return rply;
+        }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^showMe$/i.test(mainMsg[1]): {
             if (!groupid) {
                 rply.text = '你不在群組當中，請在群組中使用。'
@@ -466,14 +496,20 @@ var rollDiceCommand = async function ({
                 if (mainMsg[2] > 20)
                     RankNumber = 20
             }
-            let doc = await schema.trpgLevelSystem.findOne({ groupid: groupid });
+            let doc = await schema.trpgLevelSystem.findOne({
+                groupid: groupid
+            });
             if (!doc || !doc.Switch) {
                 rply.text = '此群組並有沒有開啓LEVEL功能. \n.level config 11 代表啓動功能 \
                     \n 數字11代表等級升級時會進行通知，10代表不會自動通知，\
                     \n 00的話代表不啓動功能\n'
                 return rply;
             }
-            let docMember = await schema.trpgLevelSystemMember.find({ groupid: groupid }).sort({ EXP: -1 }).limit(RankNumber)
+            let docMember = await schema.trpgLevelSystemMember.find({
+                groupid: groupid
+            }).sort({
+                EXP: -1
+            }).limit(RankNumber)
             if (docMember.length < 1) {
                 rply.text = '此群組未有足夠資料\n'
                 return rply;
@@ -490,7 +526,9 @@ var rollDiceCommand = async function ({
                 if (mainMsg[2] > 20)
                     RankNumber = 20
             }
-            let docMember = await schema.trpgLevelSystemMember.find({}).sort({ EXP: -1 }).limit(RankNumber)
+            let docMember = await schema.trpgLevelSystemMember.find({}).sort({
+                EXP: -1
+            }).limit(RankNumber)
             if (docMember.length < 1) {
                 rply.text = '此群組未有足夠資料\n'
                 return rply;
@@ -543,12 +581,12 @@ var rollDiceCommand = async function ({
                     answer += Title
                     answer += (Title == "世界排行榜") ? " (人口: " + array.length + "人)\n┌" : "\n┌";
                 } else
-                    if (b < RankNumber - 1 && b < array.length - 1) {
-                        answer += "├"
-                    } else
-                        if (b == RankNumber - 1 || b == array.length - 1) {
-                            answer += "└"
-                        }
+                if (b < RankNumber - 1 && b < array.length - 1) {
+                    answer += "├"
+                } else
+                if (b == RankNumber - 1 || b == array.length - 1) {
+                    answer += "└"
+                }
                 answer += "第" + (Number([b]) + 1) + "名 "
                 answer += "《" + await checkTitle(array[b].Level, tempTitleAll) + "》 "
                 answer += array[b].name + " " + array[b].Level + "級 " + await kMGTPE(parseInt(array[b].EXP), 0) + "經驗\n";

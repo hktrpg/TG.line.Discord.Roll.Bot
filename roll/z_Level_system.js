@@ -159,14 +159,11 @@ var rollDiceCommand = async function ({
 
             //問題: 如果沒有GP 的話, 可以刪除嗎?
             if (!doc || doc.Title.length < 1) {
-                console.log('---1')
                 rply.text = "刪除稱號成功。現改回使用預設稱號。"
                 return rply
             }
             doc.Title = [];
-            let result = await doc.save();
-            console.log('result', result)
-            console.log('---2')
+            await doc.save();
             rply.text = "刪除稱號成功。現改回使用預設稱號。"
             return rply
 
@@ -177,13 +174,12 @@ var rollDiceCommand = async function ({
                 return rply
             }
             let doc = await schema.trpgLevelSystem.findOne({ groupid: groupid });
-            console.log('--------length', doc.Title.length)
             if (!doc || doc.Title.length < 1) {
                 rply.text = "正在使用預設稱號。"
                 return rply
             }
             rply.text = '稱號:\n'
-            //console.log(trpgLevelSystemfunction.trpgLevelSystemfunction[i].Title)
+
             for (let te = 0; te < doc.Title.length; te++) {
                 if (doc.Title[te])
                     rply.text += [te] + '等級: ' + doc.Title[te] + "\n"
@@ -205,7 +201,6 @@ var rollDiceCommand = async function ({
             }
             let doc = await schema.trpgLevelSystem.findOne({ groupid: groupid });
             let temprply = await setNew(inputStr);
-            console.log('doc', doc, 'temprply', temprply)
             if (temprply.length < 1) {
                 rply.text = '新增失敗。 未有稱號輸入，格式為 \n.level TitleWord -(等級) (稱號).'
                 return rply
@@ -400,8 +395,6 @@ var rollDiceCommand = async function ({
                     rply.text = '未有你的資料，請稍後再試。'
                     return rply
                 }
-
-                console.log('docMember', docMember)
 
                 //6.    ->沒有 使用預設排名語
                 //{user.name} 名字 {user.level} 等級 \

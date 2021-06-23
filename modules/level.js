@@ -94,8 +94,7 @@ async function newUser(gpInfo, groupid, userid, displayname, displaynameDiscord)
         Level: 0,
         LastSpeakTime: Date.now()
     }
-    let v = await new schema.trpgLevelSystemMember(temp).save();
-    console.log('v', v);
+    await new schema.trpgLevelSystemMember(temp).save();
     return;
 }
 

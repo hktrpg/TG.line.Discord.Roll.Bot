@@ -149,6 +149,51 @@ var rollDiceCommand = async function ({
             return rply;
         // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
 
+        case /(^[.]level$)/i.test(mainMsg[0]) && /^TitleWord$/i.test(mainMsg[1]) && /^del$/i.test(mainMsg[2]): {
+            if (!groupid) {
+                rply.text = '刪除失敗。你不在群組當中，請在群組中使用。'
+                return rply
+            }
+            if (userrole <= 2) {
+                rply.text = '新增失敗。只有GM以上才可新增。'
+                return rply
+            }
+            let doc = await schema.trpgLevelSystem.findOne({ groupid: groupid });
+
+            //問題: 如果沒有GP 的話, 可以刪除嗎?
+            if (!doc || doc.Title.length < 1) {
+                console.log('---1')
+                rply.text = "刪除稱號成功。現改回使用預設稱號。"
+                return rply
+            }
+            doc.Title = [];
+            let result = await doc.save();
+            console.log('result', result)
+            console.log('---2')
+            rply.text = "刪除稱號成功。現改回使用預設稱號。"
+            return rply
+
+        }
+        case /(^[.]level$)/i.test(mainMsg[0]) && /^TitleWord$/i.test(mainMsg[1]) && /^Show$/i.test(mainMsg[2]): {
+            if (!groupid) {
+                rply.text = '查詢失敗。你不在群組當中，請在群組中使用。'
+                return rply
+            }
+            let doc = await schema.trpgLevelSystem.findOne({ groupid: groupid });
+            console.log('--------length', doc.Title.length)
+            if (!doc || doc.Title.length < 1) {
+                rply.text = "正在使用預設稱號。"
+                return rply
+            }
+            rply.text = '稱號:\n'
+            //console.log(trpgLevelSystemfunction.trpgLevelSystemfunction[i].Title)
+            for (let te = 0; te < doc.Title.length; te++) {
+                if (doc.Title[te])
+                    rply.text += [te] + '等級: ' + doc.Title[te] + "\n"
+            }
+            return rply
+
+        }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^TitleWord$/i.test(mainMsg[1]): {
             //
             //稱號Title
@@ -164,49 +209,183 @@ var rollDiceCommand = async function ({
             let doc = await schema.trpgLevelSystem.findOne({ groupid: groupid });
             temprply = await setNew(inputStr);
             console.log('doc', doc, 'temprply', temprply)
-            if (temprply.length > 0) {
-                doc.Title = temprply;
-                await doc.save();
-                rply.text = '新增稱號成功: \n'
-                for (let te = 0; te < temprply.length; te++) {
-                    rply.text += temprply[te][1] + '等級: ' + temprply[te][2] + '\n'
-                }
-                return rply;
-            }
-
-
-            if (mainMsg[2].match(/^del$/i)) {
-                //問題: 如果沒有GP 的話, 可以刪除嗎?
-                if (!doc || doc.Title.length < 1) {
-                    console.log('---1')
-                    rply.text = "刪除稱號成功。現改回使用預設稱號。"
-                    return rply
-                }
-                doc.Title = [];
-                let result = await doc.save();
-                console.log('result', result)
-                console.log('---2')
-                rply.text = "刪除稱號成功。現改回使用預設稱號。"
+            if (temprply.length < 1) {
+                rply.text = '新增失敗。 未有稱號輸入，格式為 \n.level TitleWord -(等級) (稱號).'
                 return rply
             }
-            if (mainMsg[2] && mainMsg[2].match(/^show$/)) {
-                console.log('--------length', doc.Title.length)
-                if (!doc || doc.Title.length < 1) {
-                    rply.text = "正在使用預設稱號。"
-                    return rply
-                }
-                rply.text = '稱號:\n'
-                //console.log(trpgLevelSystemfunction.trpgLevelSystemfunction[i].Title)
-                for (let te = 0; te < doc.Title.length; te++) {
-                    if (doc.Title[te])
-                        rply.text += [te] + '等級: ' + doc.Title[te] + "\n"
-                }
+            doc.Title = temprply;
+            await doc.save();
+            rply.text = '新增稱號成功: \n'
+            for (let te = 0; te < temprply.length; te++) {
+                rply.text += temprply[te][1] + '等級: ' + temprply[te][2] + '\n'
             }
-            rply.text = '新增失敗。 未有稱號輸入，格式為 .level TitleWord -(等級) (稱號).'
-            return rply
+            return rply;
+        }
+        case /(^[.]level$)/i.test(mainMsg[0]) && /^LevelUpWord$/i.test(mainMsg[1]) && /^Show$/i.test(mainMsg[2]): {
+            if (!groupid) {
+                rply.text = '新增失敗。你不在群組當中，請在群組中使用。'
+                return rply
+            }
+            let doc = await schema.trpgLevelSystem.findOne({ groupid: groupid });
+            if (!doc || !doc.LevelUpWord) {
+                rply.text = '正在使用預設升級語. ';
+                return rply;
+            }
+            rply.text = '現在升級語:';
+            rply.text += ("\n") + doc.LevelUpWord;
+            return rply;
+        }
+        case /(^[.]level$)/i.test(mainMsg[0]) && /^LevelUpWord$/i.test(mainMsg[1]) && /^del$/i.test(mainMsg[2]): {
+            if (!groupid) {
+                rply.text = '刪除失敗。\n你不在群組當中，請在群組中使用。'
+                return rply
+            }
+            if (userrole <= 2) {
+                rply.text = '刪除失敗。只有GM以上才可刪除。'
+                return rply
+            }
+            let doc = await schema.trpgLevelSystem.findOne({ groupid: groupid });
+            doc.LevelUpWord = "";
+            await doc.save();
+            rply.text = "刪除升級語成功."
+            return rply;
+        }
+        case /(^[.]level$)/i.test(mainMsg[0]) && /^LevelUpWord$/i.test(mainMsg[1]): {
+            if (!groupid) {
+                rply.text = '新增失敗。你不在群組當中，請在群組中使用。'
+                return rply
+            }
+            if (userrole <= 2) {
+                rply.text = '新增失敗。只有GM以上才可新增。'
+                return rply
+            }
 
+            let doc = await schema.trpgLevelSystem.findOne({ groupid: groupid });
+            doc.LevelUpWord = inputStr.replace(/\s?.*\s+\w+\s+/i, '');
+            await doc.save();
+            rply.text = "新增升級語成功.\n" + inputStr.replace(/\s?.*\s+\w+\s+/i, '');
+
+            return rply;
+        }
+        case /(^[.]level$)/i.test(mainMsg[0]) && /^RankWord$/i.test(mainMsg[1]) && /^Show$/i.test(mainMsg[2]): {
+            if (!groupid) {
+                rply.text = '新增失敗。你不在群組當中，請在群組中使用。'
+                return rply
+            }
+            let doc = await schema.trpgLevelSystem.findOne({ groupid: groupid });
+            if (!doc || !doc.RankWord) {
+                rply.text = '正在使用預設查詢語. ';
+                return rply;
+            }
+            rply.text = '現在查詢語:';
+            rply.text += ("\n") + doc.RankWord;
+            return rply;
+        }
+        case /(^[.]level$)/i.test(mainMsg[0]) && /^RankWord$/i.test(mainMsg[1]) && /^del$/i.test(mainMsg[2]): {
+            if (!groupid) {
+                rply.text = '刪除失敗。\n你不在群組當中，請在群組中使用。'
+                return rply
+            }
+            if (userrole <= 2) {
+                rply.text = '刪除失敗。只有GM以上才可刪除。'
+                return rply
+            }
+            let doc = await schema.trpgLevelSystem.findOne({ groupid: groupid });
+            doc.RankWord = "";
+            await doc.save();
+            rply.text = "刪除查詢語成功."
+            return rply;
+        }
+        case /(^[.]level$)/i.test(mainMsg[0]) && /^RankWord$/i.test(mainMsg[1]): {
+            if (!groupid) {
+                rply.text = '新增失敗。你不在群組當中，請在群組中使用。'
+                return rply
+            }
+            if (userrole <= 2) {
+                rply.text = '新增失敗。只有GM以上才可新增。'
+                return rply
+            }
+
+            let doc = await schema.trpgLevelSystem.findOne({ groupid: groupid });
+            doc.RankWord = inputStr.replace(/\s?.*\s+\w+\s+/i, '');
+            await doc.save();
+            rply.text = "新增查詢語成功.\n" + inputStr.replace(/\s?.*\s+\w+\s+/i, '');
+            return rply;
+        }
+        case /(^[.]level$)/i.test(mainMsg[0]) && /^config$/i.test(mainMsg[1]) && /^Show$/i.test(mainMsg[2]): {
+            if (!groupid) {
+                rply.text = '你不在群組當中，請在群組中使用。'
+                return rply
+            }
+            let doc = await schema.trpgLevelSystem.findOne({ groupid: groupid });
+            rply.text = '現在設定: ' + '\n經驗值功能: ';
+            rply.text += (doc.Switch) ? '啓動\n升級通知功能: ' : '關閉\n升級通知功能: ';
+            rply.text += (doc.Hidden) ? '啓動' : '關閉';
+            return rply;
         }
 
+        case /(^[.]level$)/i.test(mainMsg[0]) && /^config$/i.test(mainMsg[1]): {
+            if (!groupid) {
+                rply.text = '修改失敗。你不在群組當中，請在群組中使用。'
+                return rply
+            }
+            if (userrole <= 2) {
+                rply.text = '修改失敗。只有GM以上才可修改設定。'
+                return rply
+            }
+            if (!mainMsg[2]) {
+                rply.text = '修改失敗。沒有設定onoff\n';
+                rply.text += '\nconfig 11 代表啓動功能 \
+                \n 數字11代表等級升級時會進行升級通知，10代表不會自動進行升級通知，\
+                \n 00的話代表不啓動功能\n'
+                return rply
+            }
+            let doc = await schema.trpgLevelSystem.findOne({ groupid: groupid });
+            switch (mainMsg[2]) {
+                case '00':
+                    doc.Switch = false;
+                    doc.Hidden = false;
+                    await doc.save();
+                    break;
+                case '01':
+                    doc.Switch = false;
+                    doc.Hidden = true;
+                    await doc.save();
+
+                    break;
+                case '11':
+                    doc.Switch = true;
+                    doc.Hidden = true;
+                    await doc.save();
+                    break;
+                case '10':
+                    doc.Switch = true;
+                    doc.Hidden = false;
+                    await doc.save();
+                    break;
+                default:
+                    rply.text = '修改失敗。沒有設定onoff\n';
+                    rply.text += '\nconfig 11 代表啓動功能 \
+                    \n 數字11代表等級升級時會進行通知，10代表不會自動通知，\
+                    \n 00的話代表不啓動功能\n'
+                    return rply
+            }
+            rply.text = '修改成功: ' + '\n經驗值功能: ';
+            rply.text += (doc.Switch) ? '啓動\n升級通知功能: ' : '關閉\n升級通知功能: ';
+            rply.text += (doc.Hidden) ? '啓動' : '關閉';
+            return rply;
+        }
+
+        case /(^[.]level$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+            {
+                return;
+            }
+        case /(^[.]level$)/i.test(mainMsg[0]) && /^showMe$/i.test(mainMsg[1]): {
+            return;
+        }
+        case /(^[.]level$)/i.test(mainMsg[0]) && /^showMeTheWorld$/i.test(mainMsg[1]): {
+            return
+        }
         default:
             break;
     }

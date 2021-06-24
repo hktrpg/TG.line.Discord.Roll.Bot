@@ -21,7 +21,7 @@ var gameType = function () {
 }
 var prefixs = function () {
     return [{
-        first: /(^[.]db(p|)$)/ig,
+        first: /(^[.](p|)$)/ig,
         second: null
     }]
 }

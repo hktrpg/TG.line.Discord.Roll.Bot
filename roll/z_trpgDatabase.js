@@ -21,7 +21,7 @@ var gameType = function () {
 }
 var prefixs = function () {
     return [{
-       first: /(^[.]me$|搜索|(p|)$)/ig,
+       first: /(^[.]搜索(p|)$)/ig,
         second: null
     }]
 }

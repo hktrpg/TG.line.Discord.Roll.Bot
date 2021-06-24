@@ -73,7 +73,7 @@ var rollDiceCommand = async function ({
             rply.state = true;
             return rply;
         case /^fixEXP$/i.test(mainMsg[1]): {
-            let doc = await schema.trpgLevelSystem.find({ Hidden: true })
+            let doc = await schema.trpgLevelSystem.find()
         
             /**
              updateMany({

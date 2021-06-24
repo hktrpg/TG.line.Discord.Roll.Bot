@@ -6,6 +6,8 @@ const opt = {
 }
 const salt = process.env.SALT;
 const crypto = require('crypto');
+const { forEach, boolean } = require('mathjs');
+const { bool } = require('random-js');
 const password = process.env.CRYPTO_SECRET,
     algorithm = 'aes-256-ctr';
 //32bit ASCII
@@ -71,38 +73,14 @@ var rollDiceCommand = async function ({
             rply.state = true;
             return rply;
         case /^fixEXP$/i.test(mainMsg[1]): {
-
-            let doc = await schema.trpgLevelSystem.find();
+            let doc = await schema.trpgLevelSystem.find()
             /**
-             Hidden:"1"Switch:"1"
-             trpgLevelSystemfunction
+             updateMany({
+                }, {
+                    $set: { Hidden: new String("0"), Switch: "0" }
+                }, { multi: true })
              */
-            doc.forEach(async element => {
-                let docGp = await schema.trpgLevelSystem.findOne({
-                    groupid: element.groupid
-                });
-                if (docGp.Hidden === "1") docGp.Hidden = true;
-                if (docGp.Hidden === "0") docGp.Hidden = false;
-                if (docGp.Switch === "1") docGp.Switch = true;
-                if (docGp.Switch === "0") docGp.Switch = false;
-                let save = await docGp.save();
-                console.log('save', save)
-                docGp.trpgLevelSystemfunction.forEach(async member => {
-                    let temp = {
-                        userid: member.userid,
-                        groupid: docGp.groupid,
-                        name: member.name,
-                        EXP: member.EXP,
-                        //EXP: math.floor(math.random() * 10) + 15,
-                        Level: member.Level,
-                        LastSpeakTime: member.LastSpeakTime
-                    }
-                    await new schema.trpgLevelSystemMember(temp).save();
-                })
-
-
-            });
-
+            console.log(doc)
             rply.text = doc.length + '項 DONE '
             return rply;
         }
@@ -406,13 +384,13 @@ async function store(mainMsg, mode) {
     var resultNotes = pattNotes.exec(mainMsg);
     var resultSwitch = pattSwitch.exec(mainMsg);
     let reply = {};
-    (resultId && mode == 'id') ? reply.id = resultId[1]: null;
-    (resultGP && mode == 'gp') ? reply.gpid = resultGP[1]: null;
-    (resultLv) ? reply.level = Number(resultLv[1]): null;
-    (resultName) ? reply.name = resultName[1]: null;
-    (resultNotes) ? reply.notes = resultNotes[1]: null;
-    (resultSwitch && resultSwitch[1].toLowerCase() == 'true') ? reply.switch = true: null;
-    (resultSwitch && resultSwitch[1].toLowerCase() == 'false') ? reply.switch = false: null;
+    (resultId && mode == 'id') ? reply.id = resultId[1] : null;
+    (resultGP && mode == 'gp') ? reply.gpid = resultGP[1] : null;
+    (resultLv) ? reply.level = Number(resultLv[1]) : null;
+    (resultName) ? reply.name = resultName[1] : null;
+    (resultNotes) ? reply.notes = resultNotes[1] : null;
+    (resultSwitch && resultSwitch[1].toLowerCase() == 'true') ? reply.switch = true : null;
+    (resultSwitch && resultSwitch[1].toLowerCase() == 'false') ? reply.switch = false : null;
     return reply;
 }
 
@@ -424,6 +402,23 @@ function encrypt(text) {
     let encrypted = cipher.update(text);
     encrypted = Buffer.concat([encrypted, cipher.final()]);
     return iv.toString('hex') + ':' + encrypted.toString('hex');
+}
+
+async function createMember(docGp, collect) {
+    collect.forEach(async member => {
+        let temp = {
+            userid: member.userid,
+            groupid: docGp.groupid,
+            name: member.name,
+            EXP: member.EXP,
+            //EXP: math.floor(math.random() * 10) + 15,
+            Level: member.Level,
+            LastSpeakTime: member.LastSpeakTime
+        }
+        await new schema.trpgLevelSystemMember(temp).save();
+    });
+    return;
+
 }
 
 function decrypt(text) {

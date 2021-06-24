@@ -144,7 +144,7 @@ var rollDiceCommand = async function ({
             if (botname == "Line")
                 rply.text += "\n因為Line的機制, 如擲骰時並無顯示用家名字, 請到下列網址,和機器人任意說一句話,成為好友. \n https://line.me/R/ti/p/svMLqy9Mik"
             return rply;
-            // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
+        // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
 
         case /(^[.]level$)/i.test(mainMsg[0]) && /^TitleWord$/i.test(mainMsg[1]) && /^del$/i.test(mainMsg[2]): {
             if (!groupid) {
@@ -400,13 +400,13 @@ var rollDiceCommand = async function ({
                     });
                     temp.Switch = true;
                 }
-                break;
-            default:
-                rply.text = '修改失敗。沒有設定onoff\n';
-                rply.text += '\nconfig 11 代表啓動功能 \
+                    break;
+                default:
+                    rply.text = '修改失敗。沒有設定onoff\n';
+                    rply.text += '\nconfig 11 代表啓動功能 \
                     \n 數字11代表等級升級時會進行通知，10代表不會自動通知，\
                     \n 00的話代表不啓動功能\n'
-                return rply
+                    return rply
             }
             rply.text = '修改成功: ' + '\n經驗值功能: ';
             rply.text += (doc.Switch) ? '啓動\n升級通知功能: ' : '關閉\n升級通知功能: ';
@@ -581,12 +581,12 @@ var rollDiceCommand = async function ({
                     answer += Title
                     answer += (Title == "世界排行榜") ? " (人口: " + array.length + "人)\n┌" : "\n┌";
                 } else
-                if (b < RankNumber - 1 && b < array.length - 1) {
-                    answer += "├"
-                } else
-                if (b == RankNumber - 1 || b == array.length - 1) {
-                    answer += "└"
-                }
+                    if (b < RankNumber - 1 && b < array.length - 1) {
+                        answer += "├"
+                    } else
+                        if (b == RankNumber - 1 || b == array.length - 1) {
+                            answer += "└"
+                        }
                 answer += "第" + (Number([b]) + 1) + "名 "
                 answer += "《" + await checkTitle(array[b].Level, tempTitleAll) + "》 "
                 answer += array[b].name + " " + array[b].Level + "級 " + await kMGTPE(parseInt(array[b].EXP), 0) + "經驗\n";

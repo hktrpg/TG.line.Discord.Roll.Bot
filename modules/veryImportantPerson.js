@@ -15,7 +15,7 @@ var viplevelCheckGroup = async function (groupID) {
     return rply;
 }
 var viplevelCheckUser = async function (userid) {
-    let rply = '';
+    let rply = 0;
     if (!viplevel) {
         viplevel = await schema.veryImportantPerson.find({});
     }

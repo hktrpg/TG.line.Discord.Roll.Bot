@@ -77,8 +77,7 @@ const trpgLevelSystem = mongoose.model('trpgLevelSystem', {
     },
     //是否啓動功能 config 1X 則1
     Hidden: {
-        type: Boolean,
-        default: false
+        type: String
     },
     //大於此Lvl即為稱號.
     Title: Array,

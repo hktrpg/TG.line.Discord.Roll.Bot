@@ -14,14 +14,14 @@ records.get('trpgDatabaseAllgroup', (msgs) => {
 const VIP = require('../modules/veryImportantPerson');
 const limitArr = [30, 200, 200, 300, 300, 300, 300, 300];
 var gameName = function () {
-    return '(公測中)資料庫功能 .搜索(p) (add del show 自定關鍵字)'
+    return '(公測中)資料庫功能 .資料庫(p) (add del show 自定關鍵字)'
 }
 var gameType = function () {
     return 'funny:trpgDatabase:hktrpg'
 }
 var prefixs = function () {
     return [{
-       first: /(^[.]搜索(p|)$)/ig,
+       first: /(^[.]資料庫(p|)$)/ig,
         second: null
     }]
 }
@@ -85,7 +85,7 @@ var rollDiceCommand = async function ({
             return rply;
 
             // .DB(0) ADD(1) TOPIC(2) CONTACT(3)
-        case /(^[.]搜索$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
+        case /(^[.]資料庫$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
             //增加資料庫
             //檢查有沒有重覆
             //if (!mainMsg[2]) return;
@@ -144,7 +144,7 @@ var rollDiceCommand = async function ({
             }
             return rply;
 
-        case /(^[.]搜索$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
+        case /(^[.]資料庫$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
             //刪除資料庫
             if (groupid && mainMsg[2] && trpgDatabasefunction.trpgDatabasefunction && userrole >= 2) {
                 for (let i = 0; i < trpgDatabasefunction.trpgDatabasefunction.length; i++) {
@@ -168,7 +168,7 @@ var rollDiceCommand = async function ({
             }
 
             return rply;
-        case /(^[.]搜索$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
+        case /(^[.]資料庫$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
             //刪除資料庫
             if (groupid && mainMsg[2] && trpgDatabasefunction.trpgDatabasefunction && userrole >= 1) {
                 for (let i = 0; i < trpgDatabasefunction.trpgDatabasefunction.length; i++) {
@@ -195,7 +195,7 @@ var rollDiceCommand = async function ({
             }
             return rply;
 
-        case /(^[.]搜索$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+        case /(^[.]資料庫$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
             //顯示
             records.get('trpgDatabase', (msgs) => {
                 trpgDatabasefunction.trpgDatabasefunction = msgs
@@ -220,7 +220,7 @@ var rollDiceCommand = async function ({
             //顯示資料庫
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
             return rply
-        case /(^[.]搜索$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
+        case /(^[.]資料庫$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
             //顯示關鍵字
             //let times = /^[.]db/.exec(mainMsg[0])[1] || 1
             //if (times > 30) times = 30;
@@ -292,7 +292,7 @@ var rollDiceCommand = async function ({
                     rply.text += ' 沒有內容.'
             }
             return rply;
-        case /(^[.]搜索整面$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+        case /(^[.]全服資料庫$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
             records.get('trpgDatabaseAllgroup', (msgs) => {
                 trpgDatabasefunction.trpgDatabaseAllgroup = msgs
             })
@@ -309,7 +309,7 @@ var rollDiceCommand = async function ({
             //顯示資料庫
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
             return rply;
-        case /(^[.]搜索整面$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[0]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
+        case /(^[.]全服資料庫$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[0]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
             //let timesgp = /^[.]dbp/.exec(mainMsg[0])[1] || 1
             //  if (timesgp > 30) timesgp = 30;
             //  if (timesgp < 1) timesgp = 1

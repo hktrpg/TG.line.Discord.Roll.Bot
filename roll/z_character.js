@@ -15,7 +15,7 @@ var gameType = function () {
 }
 var prefixs = function () {
     return [{
-        first: /(^[.]char$)|(^[.]ch$)/ig,
+        first: /(^[.]char$)|(^[.]角色卡$)/ig,
         second: null
     }]
 }
@@ -139,7 +139,7 @@ var rollDiceCommand = async function ({
 
             rply.text = '修改成功\n現在角色卡: ' + doc.name + ' 已經公開。\n請到以下網址查看\n https://www.hktrpg.com:20721/publiccard/ ';
             return rply;
-        case /(^[.]char$)/i.test(mainMsg[0]) && /^unpublic+/i.test(mainMsg[1]):
+        case /(^[.]角色卡$)/i.test(mainMsg[0]) && /^unpublic+/i.test(mainMsg[1]):
             if (!mainMsg[2]) {
                 rply.text = "未輸入要公開的角色卡名字"
                 return rply;
@@ -241,7 +241,7 @@ var rollDiceCommand = async function ({
             rply.text = await showCharacter(Card, 'addMode');
             return rply;
 
-        case /(^[.]char$)/i.test(mainMsg[0]) && /^edit$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
+        case /(^[.]角色卡$)/i.test(mainMsg[0]) && /^edit$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
             if (!Card.name) {
                 rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 .char edit name[XXXX]~ \nstate[HP:15/15;MP:6/6;]~\nroll[投擲:cc 80 投擲;鬥毆:cc 40 鬥毆;]~\nnotes[心靈支柱: 無;notes:這是測試,請試試在群組輸入 .char use Sad;]~\n'
@@ -313,7 +313,7 @@ var rollDiceCommand = async function ({
 
             rply.text = '修改成功\n現在使用角色卡: ' + doc.name;
             return rply;
-        case /(^[.]char$)/i.test(mainMsg[0]) && /^nonuse$/i.test(mainMsg[1]):
+        case /(^[.]角色卡$)/i.test(mainMsg[0]) && /^nonuse$/i.test(mainMsg[1]):
             if (!groupid) {
                 rply.text = '不在群組'
                 return rply
@@ -457,7 +457,7 @@ var rollDiceCommand = async function ({
             }
             rply.text = await showCharacter(doc, 'showMode');
             return rply;
-        case /(^[.]ch$)/i.test(mainMsg[0]) && /^showall$/i.test(mainMsg[1]):
+        case /(^[.]角色卡$)/i.test(mainMsg[0]) && /^showall$/i.test(mainMsg[1]):
             if (!groupid) {
                 rply.text = '不在群組'
                 return rply

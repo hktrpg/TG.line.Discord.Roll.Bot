@@ -23,7 +23,7 @@ records.get('randomAnsAllgroup', (msgs) => {
     randomAnsfunction.randomAnsAllgroup = msgs
 })
 var gameName = function () {
-    return '(公測中)自定義回應功能 .搜索(p)(次數) (add del show 自定關鍵字)'
+    return '(公測中)自定義回應功能 搜索(p)(次數) (登記 刪除 顯示 自定關鍵字)'
 }
 var gameType = function () {
     return 'funny:randomAns:hktrpg'
@@ -37,22 +37,22 @@ var prefixs = function () {
 const getHelpMessage = function () {
     return "【自定義回應功能】" + "\n\
 這是根據關鍵字來隨機抽選功能,只要符合內容,以後就會隨機抽選\n\
-例如輸入 .搜索 add 九大陣營 守序善良 (...太長省略) 中立邪惡 混亂邪惡 \n\
-再輸入.搜索 九大陣營  就會輸出 九大陣營中其中一個\n\
-如果輸入.搜索3 九大陣營  就會輸出 3次九大陣營\n\
-如果輸入.搜索3 九大陣營 天干 地支 就會輸出 3次九大陣營 天干 地支\n\
-如果輸入.重複搜索3 九大陣營 就會輸出3次有可能重覆的九大陣營\n\
-add 後面第一個是關鍵字, 可以是漢字,數字和英文或emoji\n\
-P.S.如果沒立即生效 用.ra show 刷新一下\n\
-輸入.搜索 add (關鍵字) (選項1) (選項2) (選項3)即可增加關鍵字\n\
-輸入.搜索 show 顯示所有關鍵字\n\
-輸入.搜索 show (關鍵字)顯示內容\n\
-輸入.搜索 del (關鍵字) 即可刪除\n\
-輸入.搜索(次數,最多30次) (關鍵字1)(關鍵字2)(關鍵字n) 即可不重覆隨機抽選 \n\
-輸入.重複搜索(次數,最多30次) (關鍵字1)(關鍵字2)(關鍵字n) 即可重覆隨機抽選 \n\
-如使用輸入.全服搜索 會變成全服版,全服可看, 可用add show功能 \n\
-例如輸入 .全服搜索10 聖晶石召喚 即可十連抽了 \n\
-新增指令 - 輸入.全服搜索 newType 可以觀看效果\n\
+例如輸入 搜索 登記 九大陣營 守序善良 (...太長省略) 中立邪惡 混亂邪惡 \n\
+再輸入搜索 九大陣營  就會輸出 九大陣營中其中一個\n\
+如果輸入 搜索3 九大陣營  就會輸出 3次九大陣營\n\
+如果輸入 搜索3 九大陣營 天干 地支 就會輸出 3次九大陣營 天干 地支\n\
+如果輸入 重複搜索3 九大陣營 就會輸出3次有可能重覆的九大陣營\n\
+登記 後面第一個是關鍵字, 可以是漢字,數字和英文或emoji\n\
+P.S.如果沒立即生效 用搜索 顯示 刷新一下\n\
+輸入搜索 登記 關鍵字 選項1 選項2 選項3即可增加關鍵字\n\
+輸入搜索 顯示 顯示所有關鍵字\n\
+輸入搜索 顯示 關鍵字顯示內容\n\
+輸入搜索 刪除 關鍵字 即可刪除\n\
+輸入搜索(次數,最多30次) (關鍵字1)(關鍵字2)(關鍵字n) 即可不重覆隨機抽選 \n\
+輸入重複搜索(次數,最多30次) (關鍵字1)(關鍵字2)(關鍵字n) 即可重覆隨機抽選 \n\
+如使用輸入全服搜索 會變成全服版,全服可看, 可用add show功能 \n\
+例如輸入 全服搜索10 聖晶石召喚 即可十連抽了 \n\
+新增指令 - 輸入全服搜索 newType 可以觀看效果\n\
 * {br}          <--隔一行\n\
 * {ran:100}     <---隨機1-100\n\
 * {random:5-20} <---隨機5-20\n\
@@ -109,7 +109,7 @@ var rollDiceCommand = async function ({
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
             return rply;
-        case /(^(r|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
+        case /(^(r|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^登記$/i.test(mainMsg[1]) && /^(?!(登記|刪除|顯示)$)/ig.test(mainMsg[2]):
             //
             //增加自定義關鍵字
             // .ra[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
@@ -159,7 +159,7 @@ var rollDiceCommand = async function ({
                 rply.text = '新增成功: ' + mainMsg[2]
             } else rply.text = '新增失敗'
             return rply;
-        case /(^(r|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]):
+        case /(^(r|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^刪除$/i.test(mainMsg[1]):
             //
             //刪除自定義關鍵字
             //
@@ -194,7 +194,7 @@ var rollDiceCommand = async function ({
 
             }
             return rply;
-        case /(^(r|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+        case /(^(r|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^顯示$/i.test(mainMsg[1]):
             //
             //顯示列表
             //
@@ -214,7 +214,7 @@ var rollDiceCommand = async function ({
                 temp = getData.randomAnsfunction.find(e => e[0].toLowerCase() == mainMsg[2].toLowerCase())
                 for (let i in temp) {
                     rply.text += (i == 0) ? '自定義關鍵字 ' + temp[i] + '\n' : '';
-                    rply.text += ((i % 2 && i != 1) && i !== 0) ? ("\n") + i + '. ' + temp[i] + "        " : (i == 0) ? '' : i + '. ' + temp[i] + "        ";
+                    rply.text += ((i % 2 && i != 1) && i !== 0) ? ("\n") + i + '. ' + temp[i] + "        " : (i == 0) ? '' : i + ' ' + temp[i] + "        ";
                 }
             }
             if (rply.text) {
@@ -222,13 +222,13 @@ var rollDiceCommand = async function ({
             }
             rply.text += '自定義關鍵字列表:';
             for (let a in getData.randomAnsfunction) {
-                rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + '. ' + getData.randomAnsfunction[a][0] : "     " + a + '. ' + getData.randomAnsfunction[a][0];
+                rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + '. ' + getData.randomAnsfunction[a][0] : "     " + a + ' ' + getData.randomAnsfunction[a][0];
             }
             //顯示自定義關鍵字
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
             rply.text += '\n在show [空格]後面輸入關鍵字標題, 可以顯示詳細內容';
             return rply
-        case /(^(r|)搜索(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
+        case /(^(r|)搜索(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(登記|刪除|顯示)$)/ig.test(mainMsg[1]):
             //
             //RA使用抽選功能
             //
@@ -278,7 +278,7 @@ var rollDiceCommand = async function ({
             }
             rply.text = await replaceAsync(rply.text, /{(.*?)}/ig, replacer);
             return rply;
-        case /(^(r|)全服搜索(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
+        case /(^(r|)全服搜索(\d+|)$)/i.test(mainMsg[0]) && /^登記$/i.test(mainMsg[1]) && /^(?!(登記|刪除|顯示)$)/ig.test(mainMsg[2]):
             //
             //增加自定義關鍵字
             // .全服搜索[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
@@ -316,7 +316,7 @@ var rollDiceCommand = async function ({
                 rply.text = '新增成功: ' + mainMsg[2]
             } else rply.text = '新增失敗'
             return rply;
-        case /(^(r|)全服搜索(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+        case /(^(r|)全服搜索(\d+|)$)/i.test(mainMsg[0]) && /^顯示$/i.test(mainMsg[1]):
             //
             //顯示列表
             //
@@ -346,7 +346,7 @@ var rollDiceCommand = async function ({
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
             rply.text += '\n在show [空格]後面輸入關鍵字標題, 可以顯示詳細內容';
             return rply
-        case /(^(r|)全服搜索(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[0]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
+        case /(^(r|)全服搜索(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[0]) && /^(?!(登記|刪除|顯示)$)/ig.test(mainMsg[1]):
             //
             //RAP使用抽選功能
             //

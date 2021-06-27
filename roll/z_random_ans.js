@@ -30,7 +30,7 @@ var gameType = function () {
 }
 var prefixs = function () {
     return [{
-        first: /(^[.](重複|)搜索(\d+|p|p\d+|)$)/ig,
+        first: /(^(重複|)搜索(\d+|p|p\d+|)$)/ig,
         second: null
     }]
 }
@@ -159,7 +159,7 @@ var rollDiceCommand = async function ({
                 rply.text = '新增成功: ' + mainMsg[2]
             } else rply.text = '新增失敗'
             return rply;
-        case /(^[](r|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]):
+        case /(^(r|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]):
             //
             //刪除自定義關鍵字
             //
@@ -194,7 +194,7 @@ var rollDiceCommand = async function ({
 
             }
             return rply;
-        case /(^[](r|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+        case /(^(r|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
             //
             //顯示列表
             //
@@ -228,7 +228,7 @@ var rollDiceCommand = async function ({
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
             rply.text += '\n在show [空格]後面輸入關鍵字標題, 可以顯示詳細內容';
             return rply
-        case /(^[.](r|)搜索(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
+        case /(^(r|)搜索(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
             //
             //RA使用抽選功能
             //

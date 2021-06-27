@@ -15,7 +15,7 @@ var gameType = function () {
 }
 var prefixs = function () {
     return [{
-        first: /(^角色卡$)/ig,
+        first: /(^角色卡$)|(^角卡$)/ig,
         second: null
     }]
 }
@@ -361,7 +361,7 @@ var rollDiceCommand = async function ({
             rply.text = '刪除角色卡成功: ' + doc.name
             return rply;
 
-        case /(^角色卡$)/i.test(mainMsg[0]) && /^set$/i.test(mainMsg[1]) && /^\S+$/i.test(mainMsg[2]) && /^\S+$/i.test(mainMsg[3]):
+        case /(^角卡$)/i.test(mainMsg[0]) && /^set$/i.test(mainMsg[1]) && /^\S+$/i.test(mainMsg[2]) && /^\S+$/i.test(mainMsg[3]):
             //更新功能
             if (!groupid) {
                 rply.text = '不在群組'
@@ -435,7 +435,7 @@ var rollDiceCommand = async function ({
             return;
 
 
-        case /(^角色卡$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+        case /(^角卡$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
             if (!groupid) {
                 rply.text = '不在群組'
                 return rply
@@ -457,7 +457,7 @@ var rollDiceCommand = async function ({
             }
             rply.text = await showCharacter(doc, 'showMode');
             return rply;
-        case /(^角色卡$)/i.test(mainMsg[0]) && /^showall$/i.test(mainMsg[1]):
+        case /(^角卡$)/i.test(mainMsg[0]) && /^showall$/i.test(mainMsg[1]):
             if (!groupid) {
                 rply.text = '不在群組'
                 return rply
@@ -481,7 +481,7 @@ var rollDiceCommand = async function ({
             return rply;
 
 
-        case /(^角色卡$)/i.test(mainMsg[0]) && /^\S+$/i.test(mainMsg[1]):
+        case /(^角卡$)/i.test(mainMsg[0]) && /^\S+$/i.test(mainMsg[1]):
             if (!groupid) {
                 rply.text = '不在群組'
                 return rply

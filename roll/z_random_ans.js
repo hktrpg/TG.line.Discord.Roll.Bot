@@ -52,7 +52,7 @@ P.S.如果沒立即生效 用.ra show 刷新一下\n\
 輸入.重複搜索(次數,最多30次) (關鍵字1)(關鍵字2)(關鍵字n) 即可重覆隨機抽選 \n\
 如使用輸入.全服搜索 會變成全服版,全服可看, 可用add show功能 \n\
 例如輸入 .全服搜索10 聖晶石召喚 即可十連抽了 \n\
-新增指令 - 輸入.rap newType 可以觀看效果\n\
+新增指令 - 輸入.全服搜索 newType 可以觀看效果\n\
 * {br}          <--隔一行\n\
 * {ran:100}     <---隨機1-100\n\
 * {random:5-20} <---隨機5-20\n\
@@ -159,7 +159,7 @@ var rollDiceCommand = async function ({
                 rply.text = '新增成功: ' + mainMsg[2]
             } else rply.text = '新增失敗'
             return rply;
-        case /(^[.](r|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]):
+        case /(^[](r|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]):
             //
             //刪除自定義關鍵字
             //
@@ -194,7 +194,7 @@ var rollDiceCommand = async function ({
 
             }
             return rply;
-        case /(^[.](r|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+        case /(^[](r|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
             //
             //顯示列表
             //
@@ -235,8 +235,8 @@ var rollDiceCommand = async function ({
             if (!groupid) {
                 rply.text = '不在群組. '
             }
-            times = /^[.](r|)搜索(\d+|)/i.exec(mainMsg[0])[2] || 1;
-            check = /^[.](r|)搜索(\d+|)/i.exec(mainMsg[0])[1] || '';
+            times = /^[](r|)搜索(\d+|)/i.exec(mainMsg[0])[2] || 1;
+            check = /^[](r|)搜索(\d+|)/i.exec(mainMsg[0])[1] || '';
             if (times > 30) times = 30;
             if (times < 1) times = 1
             getData = randomAnsfunction.randomAnsfunction.find(e => e.groupid == groupid)

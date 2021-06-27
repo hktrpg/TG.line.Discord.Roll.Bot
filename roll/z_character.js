@@ -8,14 +8,14 @@ const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const limitArr = [4, 20, 20, 30, 30, 99, 99, 99];
 var gameName = function () {
-    return '角色卡功能 .角色卡 (add edit show delete use nonuse) .ch (set show showall)'
+    return '角色卡功能 角色卡 (add edit show delete use nonuse) .ch (set show showall)'
 }
 var gameType = function () {
     return 'Tool:trpgcharacter:hktrpg'
 }
 var prefixs = function () {
     return [{
-        first: /(^[.]char$)|(^[.]角色卡$)/ig,
+        first: /(^角色卡$)|(^角色卡$)/ig,
         second: null
     }]
 }

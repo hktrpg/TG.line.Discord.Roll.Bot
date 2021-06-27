@@ -8,7 +8,7 @@ const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const limitArr = [4, 20, 20, 30, 30, 99, 99, 99];
 var gameName = function () {
-    return '角色卡功能 .char (add edit show delete use nonuse) .ch (set show showall)'
+    return '角色卡功能 .角色卡 (add edit show delete use nonuse) .ch (set show showall)'
 }
 var gameType = function () {
     return 'Tool:trpgcharacter:hktrpg'
@@ -113,7 +113,7 @@ var rollDiceCommand = async function ({
             rply.text = this.getHelpMessage();
             return rply;
             // .ch(0) ADD(1) TOPIC(2) CONTACT(3)
-        case /(^[.]char$)/i.test(mainMsg[0]) && /^public+/i.test(mainMsg[1]):
+        case /(^[.]角色卡$)/i.test(mainMsg[0]) && /^public+/i.test(mainMsg[1]):
             if (!mainMsg[2]) {
                 rply.text = "未輸入要公開的角色卡名字"
                 return rply;
@@ -165,7 +165,7 @@ var rollDiceCommand = async function ({
 
             rply.text = '修改成功\n現在角色卡: ' + doc.name + ' 已經不公開。\n請到以下網址查看\n https://www.hktrpg.com:20721/publiccard/ ';
             return rply;
-        case /(^[.]char$)/i.test(mainMsg[0]) && /^show\d+/i.test(mainMsg[1]):
+        case /(^[.]角色卡$)/i.test(mainMsg[0]) && /^show\d+/i.test(mainMsg[1]):
             filter = {
                 id: userid
             }
@@ -180,7 +180,7 @@ var rollDiceCommand = async function ({
                 rply.text = await showCharacter(doc[temp], 'showAllMode');
             }
             return rply;
-        case /(^[.]char$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+        case /(^[.]角色卡$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
             filter = {
                 id: userid
             }
@@ -196,7 +196,7 @@ var rollDiceCommand = async function ({
             }
             rply.text += '\n輸入 .char show0 可以顯示0號角色卡\n';
             return rply;
-        case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
+        case /(^[.]角色卡$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
             if (!Card.name) {
                 rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 \n.char add name[XXXX]~ \nstate[HP:15/15;MP:6/6;]~\nroll[投擲:cc 80 投擲;鬥毆:cc 40 鬥毆;]~\nnotes[心靈支柱: 無;notes:這是測試,請試試在群組輸入 .char use Sad;]~\n'
@@ -282,7 +282,7 @@ var rollDiceCommand = async function ({
             return rply;
 
 
-        case /(^[.]char$)/i.test(mainMsg[0]) && /^use$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
+        case /(^[.]角色卡$)/i.test(mainMsg[0]) && /^use$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             if (!groupid) {
                 rply.text = '不在群組'
                 return rply
@@ -334,7 +334,7 @@ var rollDiceCommand = async function ({
             rply.text = '修改成功。\n現在這群組沒有使用角色卡， .ch 不會出現效果。'
             return rply;
 
-        case /(^[.]char$)/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
+        case /(^[.]角色卡$)/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             filter = {
                 id: userid,
                 name: inputStr.replace(/^\.char\s+delete\s+/ig, '')
@@ -361,7 +361,7 @@ var rollDiceCommand = async function ({
             rply.text = '刪除角色卡成功: ' + doc.name
             return rply;
 
-        case /(^[.]ch$)/i.test(mainMsg[0]) && /^set$/i.test(mainMsg[1]) && /^\S+$/i.test(mainMsg[2]) && /^\S+$/i.test(mainMsg[3]):
+        case /(^[.]角色卡$)/i.test(mainMsg[0]) && /^set$/i.test(mainMsg[1]) && /^\S+$/i.test(mainMsg[2]) && /^\S+$/i.test(mainMsg[3]):
             //更新功能
             if (!groupid) {
                 rply.text = '不在群組'
@@ -435,7 +435,7 @@ var rollDiceCommand = async function ({
             return;
 
 
-        case /(^[.]ch$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+        case /(^[.]角色卡$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
             if (!groupid) {
                 rply.text = '不在群組'
                 return rply
@@ -481,7 +481,7 @@ var rollDiceCommand = async function ({
             return rply;
 
 
-        case /(^[.]ch$)/i.test(mainMsg[0]) && /^\S+$/i.test(mainMsg[1]):
+        case /(^[.]角色卡$)/i.test(mainMsg[0]) && /^\S+$/i.test(mainMsg[1]):
             if (!groupid) {
                 rply.text = '不在群組'
                 return rply

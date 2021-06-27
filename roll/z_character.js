@@ -361,7 +361,7 @@ var rollDiceCommand = async function ({
             rply.text = '刪除角色卡成功: ' + doc.name
             return rply;
 
-        case /(^角卡$)/i.test(mainMsg[0]) && /^set$/i.test(mainMsg[1]) && /^\S+$/i.test(mainMsg[2]) && /^\S+$/i.test(mainMsg[3]):
+        case /(^角色卡$)/i.test(mainMsg[0]) && /^set$/i.test(mainMsg[1]) && /^\S+$/i.test(mainMsg[2]) && /^\S+$/i.test(mainMsg[3]):
             //更新功能
             if (!groupid) {
                 rply.text = '不在群組'
@@ -400,7 +400,7 @@ var rollDiceCommand = async function ({
                 let useItemA = inputStr.replace(useTarget, '').replace(/^\s+/, '');
                 let useCard = [{
                     name: useName,
-                    itemA: useItemA.replace(/^[.]ch\s+/, '').replace(/^[.]char\s+/, '')
+                    itemA: useItemA.replace(/^角色卡\s+/, '').replace(/^角色卡\s+/, '')
                 }];
                 doc.state = await Merge(doc.state, useCard, 'name', true);
                 doc.roll = await Merge(doc.roll, useCard, 'name', true);

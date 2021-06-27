@@ -15,7 +15,7 @@ var gameType = function () {
 }
 var prefixs = function () {
     return [{
-        first: /(^角色卡$)|(^角色卡$)/ig,
+        first: /(^角色卡$)/ig,
         second: null
     }]
 }

@@ -251,7 +251,7 @@ var rollDiceCommand = async function ({
             }
             rply.text = rply.text.replace(/,/mg, ' ')
             return rply;
-        case /(^[.]dbp$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
+        case /(^[.]全服資料庫$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
             //if (!mainMsg[2]) return;
             if (rply && trpgDatabasefunction.trpgDatabaseAllgroup && mainMsg[2])
                 if (rply && trpgDatabasefunction.trpgDatabaseAllgroup && trpgDatabasefunction.trpgDatabaseAllgroup[0] && trpgDatabasefunction.trpgDatabaseAllgroup[0].trpgDatabaseAllgroup[0]) {

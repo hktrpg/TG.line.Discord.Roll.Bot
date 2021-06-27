@@ -120,7 +120,7 @@ var rollDiceCommand = async function ({
             }
             filter = {
                 id: userid,
-                name: new RegExp('^' + convertRegex(inputStr.replace(/^\.char\s+public\s+/i, '')) + '$', "i")
+                name: new RegExp('^' + convertRegex(inputStr.replace(/^\角色卡\s+public\s+/i, '')) + '$', "i")
             }
             doc = await schema.characterCard.findOne(filter);
             if (!doc) {
@@ -146,7 +146,7 @@ var rollDiceCommand = async function ({
             }
             filter = {
                 id: userid,
-                name: new RegExp('^' + convertRegex(inputStr.replace(/^\.char\s+unpublic\s+/i, '')) + '$', "i")
+                name: new RegExp('^' + convertRegex(inputStr.replace(/^\角色卡\s+unpublic\s+/i, '')) + '$', "i")
             }
             doc = await schema.characterCard.findOne(filter);
             if (!doc) {
@@ -290,7 +290,7 @@ var rollDiceCommand = async function ({
 
             filter = {
                 id: userid,
-                name: new RegExp('^' + convertRegex(inputStr.replace(/^\.char\s+use\s+/i, '')) + '$', "i")
+                name: new RegExp('^' + convertRegex(inputStr.replace(/^\角色卡\s+use\s+/i, '')) + '$', "i")
             }
             doc = await schema.characterCard.findOne(filter);
             if (!doc) {
@@ -337,7 +337,7 @@ var rollDiceCommand = async function ({
         case /(^角色卡$)/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             filter = {
                 id: userid,
-                name: inputStr.replace(/^\.char\s+delete\s+/ig, '')
+                name: inputStr.replace(/^\角色卡\s+delete\s+/ig, '')
             }
 
             doc = await schema.characterCard.findOne(filter);
@@ -435,7 +435,7 @@ var rollDiceCommand = async function ({
             return;
 
 
-        case /(^角卡$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+        case /(^角色卡$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
             if (!groupid) {
                 rply.text = '不在群組'
                 return rply
@@ -457,7 +457,7 @@ var rollDiceCommand = async function ({
             }
             rply.text = await showCharacter(doc, 'showMode');
             return rply;
-        case /(^角卡$)/i.test(mainMsg[0]) && /^showall$/i.test(mainMsg[1]):
+        case /(^角色卡$)/i.test(mainMsg[0]) && /^showall$/i.test(mainMsg[1]):
             if (!groupid) {
                 rply.text = '不在群組'
                 return rply
@@ -481,7 +481,7 @@ var rollDiceCommand = async function ({
             return rply;
 
 
-        case /(^角卡$)/i.test(mainMsg[0]) && /^\S+$/i.test(mainMsg[1]):
+        case /(^角色卡$)/i.test(mainMsg[0]) && /^\S+$/i.test(mainMsg[1]):
             if (!groupid) {
                 rply.text = '不在群組'
                 return rply

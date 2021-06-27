@@ -194,7 +194,7 @@ var rollDiceCommand = async function ({
             for (let index = 0; index < doc.length; index++) {
                 rply.text += index + ': ' + doc[index].name + '　\n';
             }
-            rply.text += '\n輸入 .char show0 可以顯示0號角色卡\n';
+            rply.text += '\n輸入 角色卡 show0 可以顯示0號角色卡\n';
             return rply;
         case /(^角色卡$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
@@ -331,7 +331,7 @@ var rollDiceCommand = async function ({
                 rply.text = '修改失敗\n' + error;
                 return rply;
             }
-            rply.text = '修改成功。\n現在這群組沒有使用角色卡， .ch 不會出現效果。'
+            rply.text = '修改成功。\n現在這群組沒有使用角色卡， 角色卡 不會出現效果。'
             return rply;
 
         case /(^角色卡$)/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
@@ -392,7 +392,7 @@ var rollDiceCommand = async function ({
                     _id: docSwitch.cardId
                 });
             } else {
-                rply.text = "未有登記的角色卡, \n請輸入.char use 角色卡名字  \n進行登記"
+                rply.text = "未有登記的角色卡, \n請輸入角色卡 use 角色卡名字  \n進行登記"
             }
             if (doc) {
                 let useTarget = new RegExp(mainMsg[0] + '\\s+' + mainMsg[1] + '\\s+' + convertRegex(mainMsg[2]));
@@ -452,7 +452,7 @@ var rollDiceCommand = async function ({
                     _id: docSwitch.cardId
                 });
             } else {
-                rply.text = "未有登記的角色卡, \n請輸入.char use 角色卡名字  \n進行登記"
+                rply.text = "未有登記的角色卡, \n請輸入角色卡 use 角色卡名字  \n進行登記"
                 return rply;
             }
             rply.text = await showCharacter(doc, 'showMode');
@@ -474,7 +474,7 @@ var rollDiceCommand = async function ({
                     _id: docSwitch.cardId
                 });
             } else {
-                rply.text = "未有登記的角色卡, \n請輸入.char use 角色卡名字  \n進行登記"
+                rply.text = "未有登記的角色卡, \n請輸入角色卡 use 角色卡名字  \n進行登記"
                 return rply;
             }
             rply.text = await showCharacter(doc, 'showAllMode');
@@ -498,7 +498,7 @@ var rollDiceCommand = async function ({
                     _id: docSwitch.cardId
                 });
             } else {
-                rply.text = "未有登記的角色卡, \n請輸入.char use 角色卡名字  \n進行登記"
+                rply.text = "未有登記的角色卡, \n請輸入角色卡 use 角色卡名字  \n進行登記"
                 return rply;
             }
             //顯示關鍵字

@@ -109,7 +109,7 @@ var rollDiceCommand = async function ({
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
             return rply;
-        case /(^(r|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^登記$/i.test(mainMsg[1]) && /^(?!(登記|刪除|顯示)$)/ig.test(mainMsg[2]):
+        case /(^(重複|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^登記$/i.test(mainMsg[1]) && /^(?!(登記|刪除|顯示)$)/ig.test(mainMsg[2]):
             //
             //增加自定義關鍵字
             // .ra[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
@@ -159,7 +159,7 @@ var rollDiceCommand = async function ({
                 rply.text = '新增成功: ' + mainMsg[2]
             } else rply.text = '新增失敗'
             return rply;
-        case /(^(r|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^刪除$/i.test(mainMsg[1]):
+        case /(^(重複|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^刪除$/i.test(mainMsg[1]):
             //
             //刪除自定義關鍵字
             //
@@ -194,7 +194,7 @@ var rollDiceCommand = async function ({
 
             }
             return rply;
-        case /(^(r|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^顯示$/i.test(mainMsg[1]):
+        case /(^(重複|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^顯示$/i.test(mainMsg[1]):
             //
             //顯示列表
             //
@@ -228,7 +228,7 @@ var rollDiceCommand = async function ({
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
             rply.text += '\n在show [空格]後面輸入關鍵字標題, 可以顯示詳細內容';
             return rply
-        case /(^(r|)搜索(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(登記|刪除|顯示)$)/ig.test(mainMsg[1]):
+        case /(^(重複|)搜索(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(登記|刪除|顯示)$)/ig.test(mainMsg[1]):
             //
             //RA使用抽選功能
             //
@@ -278,7 +278,7 @@ var rollDiceCommand = async function ({
             }
             rply.text = await replaceAsync(rply.text, /{(.*?)}/ig, replacer);
             return rply;
-        case /(^(r|)全服搜索(\d+|)$)/i.test(mainMsg[0]) && /^登記$/i.test(mainMsg[1]) && /^(?!(登記|刪除|顯示)$)/ig.test(mainMsg[2]):
+        case /(^(重複|)全服搜索(\d+|)$)/i.test(mainMsg[0]) && /^登記$/i.test(mainMsg[1]) && /^(?!(登記|刪除|顯示)$)/ig.test(mainMsg[2]):
             //
             //增加自定義關鍵字
             // .全服搜索[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
@@ -316,7 +316,7 @@ var rollDiceCommand = async function ({
                 rply.text = '新增成功: ' + mainMsg[2]
             } else rply.text = '新增失敗'
             return rply;
-        case /(^(r|)全服搜索(\d+|)$)/i.test(mainMsg[0]) && /^顯示$/i.test(mainMsg[1]):
+        case /(^(重複|)全服搜索(\d+|)$)/i.test(mainMsg[0]) && /^顯示$/i.test(mainMsg[1]):
             //
             //顯示列表
             //
@@ -346,7 +346,7 @@ var rollDiceCommand = async function ({
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
             rply.text += '\n在show [空格]後面輸入關鍵字標題, 可以顯示詳細內容';
             return rply
-        case /(^(r|)全服搜索(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[0]) && /^(?!(登記|刪除|顯示)$)/ig.test(mainMsg[1]):
+        case /(^(重複|)全服搜索(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[0]) && /^(?!(登記|刪除|顯示)$)/ig.test(mainMsg[1]):
             //
             //RAP使用抽選功能
             //

@@ -5,8 +5,8 @@ if (!process.env.mongoURL) {
 const rollbase = require('./rollbase.js');
 const schema = require('../modules/core-schema.js');
 const randomAnsfunction = {
-    randomAnsfunction: msgs,
-    randomAnsAllgroup: msgs
+    randomAnsfunction: [],
+    randomAnsAllgroup: []
 };
 exports.z_Level_system = require('./z_Level_system');
 const opt = {

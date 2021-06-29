@@ -180,7 +180,7 @@ var rollDiceCommand = async function ({
                 rply.text = await showCharacter(doc[temp], 'showAllMode');
             }
             return rply;
-        case /(^角色卡$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+        case /(^角色卡$)/i.test(mainMsg[0]) && /^顯示$/i.test(mainMsg[1]):
             filter = {
                 id: userid
             }
@@ -196,10 +196,10 @@ var rollDiceCommand = async function ({
             }
             rply.text += '\n輸入 角色卡 show0 可以顯示0號角色卡\n';
             return rply;
-        case /(^角色卡$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
+        case /(^角色卡$)/i.test(mainMsg[0]) && /^登記$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
             if (!Card.name) {
-                rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 \n.char add name[XXXX]~ \nstate[HP:15/15;MP:6/6;]~\nroll[投擲:cc 80 投擲;鬥毆:cc 40 鬥毆;]~\nnotes[心靈支柱: 無;notes:這是測試,請試試在群組輸入 .char use Sad;]~\n'
+                rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 \n角色卡 登記 name[XXXX]~ \nstate[HP:15/15;MP:6/6;]~\nroll[投擲:cc 80 投擲;鬥毆:cc 40 鬥毆;]~\nnotes[心靈支柱: 無;notes:這是測試,請試試在群組輸入 .char use Sad;]~\n'
                 return rply;
             }
             /*
@@ -241,10 +241,10 @@ var rollDiceCommand = async function ({
             rply.text = await showCharacter(Card, 'addMode');
             return rply;
 
-        case /(^角色卡$)/i.test(mainMsg[0]) && /^edit$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
+        case /(^角色卡$)/i.test(mainMsg[0]) && /^編輯$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
             if (!Card.name) {
-                rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 .char edit name[XXXX]~ \nstate[HP:15/15;MP:6/6;]~\nroll[投擲:cc 80 投擲;鬥毆:cc 40 鬥毆;]~\nnotes[心靈支柱: 無;notes:這是測試,請試試在群組輸入 .char use Sad;]~\n'
+                rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 角色卡 編輯 name[XXXX]~ \nstate[HP:15/15;MP:6/6;]~\nroll[投擲:cc 80 投擲;鬥毆:cc 40 鬥毆;]~\nnotes[心靈支柱: 無;notes:這是測試,請試試在群組輸入 .char use Sad;]~\n'
                 return rply;
             }
             /*
@@ -282,7 +282,7 @@ var rollDiceCommand = async function ({
             return rply;
 
 
-        case /(^角色卡$)/i.test(mainMsg[0]) && /^use$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
+        case /(^角色卡$)/i.test(mainMsg[0]) && /^使用$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             if (!groupid) {
                 rply.text = '不在群組'
                 return rply
@@ -290,7 +290,7 @@ var rollDiceCommand = async function ({
 
             filter = {
                 id: userid,
-                name: new RegExp('^' + convertRegex(inputStr.replace(/^\角色卡\s+use\s+/i, '')) + '$', "i")
+                name: new RegExp('^' + convertRegex(inputStr.replace(/^\角色卡\s+使用\s+/i, '')) + '$', "i")
             }
             doc = await schema.characterCard.findOne(filter);
             if (!doc) {
@@ -334,10 +334,10 @@ var rollDiceCommand = async function ({
             rply.text = '修改成功。\n現在這群組沒有使用角色卡， 角色卡 不會出現效果。'
             return rply;
 
-        case /(^角色卡$)/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
+        case /(^角色卡$)/i.test(mainMsg[0]) && /^刪除$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             filter = {
                 id: userid,
-                name: inputStr.replace(/^\角色卡\s+delete\s+/ig, '')
+                name: inputStr.replace(/^\角色卡\s+刪除\s+/ig, '')
             }
 
             doc = await schema.characterCard.findOne(filter);
@@ -361,7 +361,7 @@ var rollDiceCommand = async function ({
             rply.text = '刪除角色卡成功: ' + doc.name
             return rply;
 
-        case /(^角色卡$)/i.test(mainMsg[0]) && /^set$/i.test(mainMsg[1]) && /^\S+$/i.test(mainMsg[2]) && /^\S+$/i.test(mainMsg[3]):
+        case /(^角色卡$)/i.test(mainMsg[0]) && /^設定$/i.test(mainMsg[1]) && /^\S+$/i.test(mainMsg[2]) && /^\S+$/i.test(mainMsg[3]):
             //更新功能
             if (!groupid) {
                 rply.text = '不在群組'
@@ -392,7 +392,7 @@ var rollDiceCommand = async function ({
                     _id: docSwitch.cardId
                 });
             } else {
-                rply.text = "未有登記的角色卡, \n請輸入角色卡 use 角色卡名字  \n進行登記"
+                rply.text = "未有登記的角色卡, \n請輸入角色卡 使用 角色卡名字  \n進行登記"
             }
             if (doc) {
                 let useTarget = new RegExp(mainMsg[0] + '\\s+' + mainMsg[1] + '\\s+' + convertRegex(mainMsg[2]));
@@ -435,7 +435,7 @@ var rollDiceCommand = async function ({
             return;
 
 
-        case /(^角色卡$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+        case /(^角色卡$)/i.test(mainMsg[0]) && /^顯示$/i.test(mainMsg[1]):
             if (!groupid) {
                 rply.text = '不在群組'
                 return rply
@@ -457,7 +457,7 @@ var rollDiceCommand = async function ({
             }
             rply.text = await showCharacter(doc, 'showMode');
             return rply;
-        case /(^角色卡$)/i.test(mainMsg[0]) && /^showall$/i.test(mainMsg[1]):
+        case /(^角色卡$)/i.test(mainMsg[0]) && /^顯示全部$/i.test(mainMsg[1]):
             if (!groupid) {
                 rply.text = '不在群組'
                 return rply
@@ -474,7 +474,7 @@ var rollDiceCommand = async function ({
                     _id: docSwitch.cardId
                 });
             } else {
-                rply.text = "未有登記的角色卡, \n請輸入角色卡 use 角色卡名字  \n進行登記"
+                rply.text = "未有登記的角色卡, \n請輸入角色卡 使用 角色卡名字  \n進行登記"
                 return rply;
             }
             rply.text = await showCharacter(doc, 'showAllMode');
@@ -498,7 +498,7 @@ var rollDiceCommand = async function ({
                     _id: docSwitch.cardId
                 });
             } else {
-                rply.text = "未有登記的角色卡, \n請輸入角色卡 use 角色卡名字  \n進行登記"
+                rply.text = "未有登記的角色卡, \n請輸入角色卡 使用 角色卡名字  \n進行登記"
                 return rply;
             }
             //顯示關鍵字

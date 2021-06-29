@@ -23,14 +23,14 @@ records.get('randomAnsAllgroup', (msgs) => {
     randomAnsfunction.randomAnsAllgroup = msgs
 })
 var gameName = function () {
-    return '(公測中)自定義回應功能 搜索(p)(次數) (登記 刪除 顯示 自定關鍵字)'
+    return '(公測中)自定義回應功能 搜索(次數) (登記 刪除 顯示 自定關鍵字)'
 }
 var gameType = function () {
     return 'funny:randomAns:hktrpg'
 }
 var prefixs = function () {
     return [{
-        first: /(^(重複|)搜索(\d+|p|p\d+|)$)/ig,
+        first: /(^(重複|)搜索$)/ig,
         second: null
     }]
 }
@@ -109,7 +109,7 @@ var rollDiceCommand = async function ({
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
             return rply;
-        case /(^(重複|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^登記$/i.test(mainMsg[1]) && /^(?!(登記|刪除|顯示)$)/ig.test(mainMsg[2]):
+        case /(^(重複|)搜索$)/i.test(mainMsg[0]) && /^登記$/i.test(mainMsg[1]) && /^(?!(登記|刪除|顯示)$)/ig.test(mainMsg[2]):
             //
             //增加自定義關鍵字
             // .ra[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
@@ -159,7 +159,7 @@ var rollDiceCommand = async function ({
                 rply.text = '新增成功: ' + mainMsg[2]
             } else rply.text = '新增失敗'
             return rply;
-        case /(^(重複|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^刪除$/i.test(mainMsg[1]):
+        case /(^(重複|)搜索$)/i.test(mainMsg[0]) && /^刪除$/i.test(mainMsg[1]):
             //
             //刪除自定義關鍵字
             //
@@ -194,7 +194,7 @@ var rollDiceCommand = async function ({
 
             }
             return rply;
-        case /(^(重複|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^顯示$/i.test(mainMsg[1]):
+        case /(^(重複|)搜索$)/i.test(mainMsg[0]) && /^顯示$/i.test(mainMsg[1]):
             //
             //顯示列表
             //
@@ -235,8 +235,8 @@ var rollDiceCommand = async function ({
             if (!groupid) {
                 rply.text = '不在群組. '
             }
-            times = /^[](r|)搜索(\d+|)/i.exec(mainMsg[0])[2] || 1;
-            check = /^[](r|)搜索(\d+|)/i.exec(mainMsg[0])[1] || '';
+            times = /^[](r|)搜索/i.exec(mainMsg[0])[2] || 1;
+            check = /^[](r|)搜索/i.exec(mainMsg[0])[1] || '';
             if (times > 30) times = 30;
             if (times < 1) times = 1
             getData = randomAnsfunction.randomAnsfunction.find(e => e.groupid == groupid)
@@ -278,7 +278,7 @@ var rollDiceCommand = async function ({
             }
             rply.text = await replaceAsync(rply.text, /{(.*?)}/ig, replacer);
             return rply;
-        case /(^(重複|)全服搜索(\d+|)$)/i.test(mainMsg[0]) && /^登記$/i.test(mainMsg[1]) && /^(?!(登記|刪除|顯示)$)/ig.test(mainMsg[2]):
+        case /(^(重複|)全服搜索$)/i.test(mainMsg[0]) && /^登記$/i.test(mainMsg[1]) && /^(?!(登記|刪除|顯示)$)/ig.test(mainMsg[2]):
             //
             //增加自定義關鍵字
             // .全服搜索[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
@@ -316,7 +316,7 @@ var rollDiceCommand = async function ({
                 rply.text = '新增成功: ' + mainMsg[2]
             } else rply.text = '新增失敗'
             return rply;
-        case /(^(重複|)全服搜索(\d+|)$)/i.test(mainMsg[0]) && /^顯示$/i.test(mainMsg[1]):
+        case /(^(重複|)全服搜索$)/i.test(mainMsg[0]) && /^顯示$/i.test(mainMsg[1]):
             //
             //顯示列表
             //

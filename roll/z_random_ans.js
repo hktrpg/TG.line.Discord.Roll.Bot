@@ -30,7 +30,7 @@ var gameType = function () {
 }
 var prefixs = function () {
     return [{
-        first: /(^(重複|)搜索$)/ig,
+        first: /(^(重複|)搜索(\d+|)$)/ig,
         second: null
     }]
 }
@@ -109,7 +109,7 @@ var rollDiceCommand = async function ({
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
             return rply;
-        case /(^(重複|)搜索$)/i.test(mainMsg[0]) && /^登記$/i.test(mainMsg[1]) && /^(?!(登記|刪除|顯示)$)/ig.test(mainMsg[2]):
+        case /(^(重複|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^登記$/i.test(mainMsg[1]) && /^(?!(登記|刪除|顯示)$)/ig.test(mainMsg[2]):
             //
             //增加自定義關鍵字
             // .ra[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
@@ -159,7 +159,7 @@ var rollDiceCommand = async function ({
                 rply.text = '新增成功: ' + mainMsg[2]
             } else rply.text = '新增失敗'
             return rply;
-        case /(^(重複|)搜索$)/i.test(mainMsg[0]) && /^刪除$/i.test(mainMsg[1]):
+        case /(^(重複|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^刪除$/i.test(mainMsg[1]):
             //
             //刪除自定義關鍵字
             //
@@ -181,7 +181,7 @@ var rollDiceCommand = async function ({
             }
             temp = getData.randomAnsfunction.filter(e => e[0].toLowerCase() === mainMsg[2].toLowerCase());
             if (temp.length == 0) {
-                rply.text += '沒有此關鍵字. \n現在已更新刪除方式, 刪除請輸入 .ra del 名字'
+                rply.text += '沒有此關鍵字. \n現在已更新刪除方式, 刪除請輸入 搜索 刪除 名字'
                 return rply;
             }
             temp.forEach(f => getData.randomAnsfunction.splice(getData.randomAnsfunction.findIndex(e => e[0] === f[0]), 1));
@@ -194,7 +194,7 @@ var rollDiceCommand = async function ({
 
             }
             return rply;
-        case /(^(重複|)搜索$)/i.test(mainMsg[0]) && /^顯示$/i.test(mainMsg[1]):
+        case /(^(重複|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^顯示$/i.test(mainMsg[1]):
             //
             //顯示列表
             //
@@ -228,15 +228,15 @@ var rollDiceCommand = async function ({
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
             rply.text += '\n在顯示 [空格]後面輸入關鍵字標題, 可以顯示詳細內容';
             return rply
-        case /(^(重複|)搜索$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(登記|刪除|顯示)$)/ig.test(mainMsg[1]):
+        case /(^(重複|)搜索(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(登記|刪除|顯示)$)/ig.test(mainMsg[1]):
             //
             //RA使用抽選功能
             //
             if (!groupid) {
                 rply.text = '不在群組. '
             }
-            times = /^[](重複|)搜索/i.exec(mainMsg[0])[2] || 1;
-            check = /^[](重複|)搜索/i.exec(mainMsg[0])[1] || '';
+            times = /^(重複|)搜索(\d+|)/i.exec(mainMsg[0])[2] || 1;
+            check = /^(重複|)搜索(\d+|)/i.exec(mainMsg[0])[1] || '';
             if (times > 30) times = 30;
             if (times < 1) times = 1
             getData = randomAnsfunction.randomAnsfunction.find(e => e.groupid == groupid)
@@ -278,7 +278,7 @@ var rollDiceCommand = async function ({
             }
             rply.text = await replaceAsync(rply.text, /{(.*?)}/ig, replacer);
             return rply;
-        case /(^(重複|)全服搜索$)/i.test(mainMsg[0]) && /^登記$/i.test(mainMsg[1]) && /^(?!(登記|刪除|顯示)$)/ig.test(mainMsg[2]):
+        case /(^(重複|)全服搜索(\d+|)$)/i.test(mainMsg[0]) && /^登記$/i.test(mainMsg[1]) && /^(?!(登記|刪除|顯示)$)/ig.test(mainMsg[2]):
             //
             //增加自定義關鍵字
             // .全服搜索[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 

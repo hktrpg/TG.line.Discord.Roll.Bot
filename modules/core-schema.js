@@ -72,16 +72,28 @@ const trpgLevelSystem = mongoose.model('trpgLevelSystem', {
     RankWord: String,
     //在這群組查詢等級時的回應
     Switch: {
-        type: Boolean,
-        default: false
+        type: Boolean
     },
     //是否啓動功能 config 1X 則1
     Hidden: {
-        type: String
+        type: Boolean
     },
     //大於此Lvl即為稱號.
     Title: Array,
     //是否顯示升級語 config X1 則1
+    trpgLevelSystemfunction: [{
+        userid: String,
+        name: String,
+        EXP: Number,
+        //現在經驗值
+        Level: String,
+        //等級
+        LastSpeakTime: {
+            type: Date,
+            default: Date.now
+            //最後說話時間, 間隔一分鐘才提升經驗
+        }
+    }]
 });
 const trpgLevelSystemMember = mongoose.model('trpgLevelSystemMember', {
     groupid: String,

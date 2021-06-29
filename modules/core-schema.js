@@ -72,10 +72,17 @@ const trpgLevelSystem = mongoose.model('trpgLevelSystem', {
     RankWord: String,
     //在這群組查詢等級時的回應
     Switch: {
-        type: Boolean
+        type: String
     },
     //是否啓動功能 config 1X 則1
     Hidden: {
+        type: String
+    },
+    SwitchV2: {
+        type: Boolean
+    },
+    //是否啓動功能 config 1X 則1
+    HiddenV2: {
         type: Boolean
     },
     //大於此Lvl即為稱號.

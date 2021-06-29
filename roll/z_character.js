@@ -8,14 +8,14 @@ const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const limitArr = [4, 20, 20, 30, 30, 99, 99, 99];
 var gameName = function () {
-    return '角色卡功能 角色卡 (add edit show delete use nonuse) 角色卡 (set show showall)'
+    return '角色卡功能 角色卡 (登記 編輯 顯示 刪除  nonuse) 角色卡 (設定 顯示 顯示全部)'
 }
 var gameType = function () {
     return 'Tool:trpgcharacter:hktrpg'
 }
 var prefixs = function () {
     return [{
-        first: /(^角色卡$)|(^角卡$)/ig,
+        first: /(^角色卡$)|(^角色卡$)/ig,
         second: null
     }]
 }
@@ -165,7 +165,7 @@ var rollDiceCommand = async function ({
 
             rply.text = '修改成功\n現在角色卡: ' + doc.name + ' 已經不公開。\n請到以下網址查看\n https://www.hktrpg.com:20721/publiccard/ ';
             return rply;
-        case /(^角色卡$)/i.test(mainMsg[0]) && /^show\d+/i.test(mainMsg[1]):
+        case /(^角色卡$)/i.test(mainMsg[0]) && /^顯示\d+/i.test(mainMsg[1]):
             filter = {
                 id: userid
             }

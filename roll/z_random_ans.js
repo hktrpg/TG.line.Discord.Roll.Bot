@@ -256,7 +256,7 @@ var rollDiceCommand = async function ({
                 } else {
                     //not repeat mode
                     rply.text += temp[0] + ' → ';
-                    let items = ;
+                    let items = [];
                     let tempItems = [...temp]
                     tempItems.splice(0, 1);
                     while (items.length < times) {

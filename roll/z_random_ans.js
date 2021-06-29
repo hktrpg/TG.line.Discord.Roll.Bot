@@ -235,8 +235,8 @@ var rollDiceCommand = async function ({
             if (!groupid) {
                 rply.text = '不在群組. '
             }
-            times = /^搜索(\d+|)/i.exec(mainMsg[0])[2] || 1;
-            check = /^搜索(\d+|)/i.exec(mainMsg[0])[1] || '';
+            times = /^(重複|)搜索(\d+|)/i.exec(mainMsg[0])[2] || 1;
+            check = /^(重複|)搜索(\d+|)/i.exec(mainMsg[0])[1] || '';
             if (times > 30) times = 30;
             if (times < 1) times = 1
             getData = randomAnsfunction.randomAnsfunction.find(e => e.groupid == groupid)
@@ -256,7 +256,7 @@ var rollDiceCommand = async function ({
                 } else {
                     //not repeat mode
                     rply.text += temp[0] + ' → ';
-                    let items = [];
+                    let items = ;
                     let tempItems = [...temp]
                     tempItems.splice(0, 1);
                     while (items.length < times) {

@@ -6,7 +6,6 @@ const opt = {
 }
 const salt = process.env.SALT;
 const crypto = require('crypto');
-const { boolean } = require('mathjs');
 const password = process.env.CRYPTO_SECRET,
     algorithm = 'aes-256-ctr';
 //32bit ASCII
@@ -74,7 +73,15 @@ var rollDiceCommand = async function ({
         case /^fixEXP$/i.test(mainMsg[1]): {
             let doc = await schema.trpgLevelSystem.find({
             })
-
+            for (let index = 0; index < doc.length; index++) {
+                let docTRPG = await schema.trpgLevelSystem.findOne({
+                    groupid: doc[index].groupid
+                })
+                docTRPG.Hidden = (docTRPG.Hidden) ? true : false;
+                console.log(docTRPG.Hidden);
+                await docTRPG.save()
+            }
+            // await doc.save()
 
             /**
              updateMany({
@@ -82,7 +89,7 @@ var rollDiceCommand = async function ({
                     $set: { Hidden: new String("0"), Switch: "0" }
                 }, { multi: true })
              */
-            console.log(doc)
+            //console.log(doc)
             rply.text = doc.length + '項 DONE '
             return rply;
         }

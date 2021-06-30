@@ -95,6 +95,26 @@ const trpgLevelSystem = mongoose.model('trpgLevelSystem', {
         //現在經驗值
         Level: String,
         //等級
+        status: {
+            status4: Number,
+            status4LV: Number,
+            status5: Number,
+            status5LV: Number,
+            status6: Number,
+            status6LV: Number,
+            status7: Number,
+            status7LV: Number,
+            status8: Number,
+            status8LV: Number,
+        },
+        //EVENT事件
+        /**
+         * 4. 停止得到經驗(X分鐘內)
+         * 5. 發言經驗減少X(X分鐘內)
+         * 6. 發言經驗增加X(X分鐘內)
+        7. 吸收對方經驗(X分鐘內)
+        8. 對方得到經驗值 X 倍(X分鐘內)
+         */
         LastSpeakTime: {
             type: Date,
             default: Date.now
@@ -300,6 +320,31 @@ const init = mongoose.model('init', new mongoose.Schema({
     }]
 }));
 
+//個人新增event 時的紀錄。eventList會使用ID 來紀錄
+const event = mongoose.model('event', new mongoose.Schema({
+    userID: String,
+    userName: String,
+    earnedEXP: Number,
+    energy: Number,
+    lastActiveAt: Date,
+    eventList: [{
+        title: String,
+        eventID: String
+    }]
+}));
+
+//整個event 列表，會從這裡進行抽取
+const eventList = mongoose.model('eventList', new mongoose.Schema({
+    title: String,
+    userID: String,
+    userName: String,
+    expName: String,
+    detail: [{
+        event: String,
+        result: Number
+    }]
+}));
+
 module.exports = {
     randomAns,
     block,
@@ -323,7 +368,9 @@ module.exports = {
     exportUser,
     accountPW,
     allowRolling,
-    init
+    init,
+    event,
+    eventList
 }
 //const Cat = mongoose.model('Cat', { name: String });
 //const kitty = new Cat({ name: 'Zildjian' });

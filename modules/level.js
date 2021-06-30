@@ -17,7 +17,8 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     if (filterSwitchV2 && (filterSwitchV2.SwitchV2 === false)) return;
     //  console.log('filterSwitchV2', filterSwitchV2)
     const gpInfo = await schema.trpgLevelSystem.findOne({
-        groupid: groupid
+        groupid: groupid,
+        SwitchV2: true
     });
     if (filterSwitchV2 === undefined) {
         if (!gpInfo || !gpInfo.SwitchV2) {

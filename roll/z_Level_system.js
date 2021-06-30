@@ -424,7 +424,8 @@ var rollDiceCommand = async function ({
                 return rply
             }
             let doc = await schema.trpgLevelSystem.findOne({
-                groupid: groupid
+                groupid: groupid,
+                SwitchV2: true
             });
             if (!doc || !doc.SwitchV2) {
                 rply.text = '此群組並有沒有開啓LEVEL功能. \n.level config 11 代表啓動功能 \
@@ -497,7 +498,8 @@ var rollDiceCommand = async function ({
                     RankNumber = 20
             }
             let doc = await schema.trpgLevelSystem.findOne({
-                groupid: groupid
+                groupid: groupid,
+                SwitchV2: true
             });
             if (!doc || !doc.SwitchV2) {
                 rply.text = '此群組並有沒有開啓LEVEL功能. \n.level config 11 代表啓動功能 \

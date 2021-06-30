@@ -8,8 +8,6 @@ const salt = process.env.SALT;
 const crypto = require('crypto');
 const password = process.env.CRYPTO_SECRET,
     algorithm = 'aes-256-ctr';
-const link = process.env.WEB_LINK;
-const port = process.env.PORT || 20721;
 //32bit ASCII
 const adminSecret = process.env.ADMIN_SECRET;
 //admin id
@@ -72,6 +70,42 @@ var rollDiceCommand = async function ({
         case /^state$/i.test(mainMsg[1]):
             rply.state = true;
             return rply;
+        case /^fixEXP$/i.test(mainMsg[1]): {
+            let doc = await schema.trpgLevelSystem.find({})
+            for (let index = 0; index < doc.length; index++) {
+                let docTRPG = await schema.trpgLevelSystem.findOne({
+                    groupid: doc[index].groupid
+                })
+                docTRPG.HiddenV2 = (docTRPG.Hidden == "1") ? true : false;
+                docTRPG.SwitchV2 = (docTRPG.Switch == "1") ? true : false;
+                await docTRPG.save()
+                docTRPG.trpgLevelSystemfunction.forEach(async element => {
+                    let newLVMember = new schema.trpgLevelSystemMember({
+                        groupid: doc[index].groupid,
+                        userid: element.userid,
+                        name: element.name,
+                        EXP: element.EXP,
+                        //現在經驗值
+                        Level: Number(element.Level),
+                        //等級
+                        LastSpeakTime: element.LastSpeakTime
+                    })
+
+                    await newLVMember.save()
+                });
+            }
+            // await doc.save()
+
+            /**
+             updateMany({
+                }, {
+                    $set: { Hidden: new String("0"), Switch: "0" }
+                }, { multi: true })
+             */
+            //console.log(doc)
+            rply.text = doc.length + '項 DONE '
+            return rply;
+        }
         case /^registerChannel$/i.test(mainMsg[1]):
             if (!groupid && !channelid) {
                 rply.text = "這裡不是群組，如果想在群組使用你的角色卡，請在群組中輸入此指令";
@@ -390,6 +424,23 @@ function encrypt(text) {
     let encrypted = cipher.update(text);
     encrypted = Buffer.concat([encrypted, cipher.final()]);
     return iv.toString('hex') + ':' + encrypted.toString('hex');
+}
+
+async function createMember(docGp, collect) {
+    collect.forEach(async member => {
+        let temp = {
+            userid: member.userid,
+            groupid: docGp.groupid,
+            name: member.name,
+            EXP: member.EXP,
+            //EXP: math.floor(math.random() * 10) + 15,
+            Level: member.Level,
+            LastSpeakTime: member.LastSpeakTime
+        }
+        await new schema.trpgLevelSystemMember(temp).save();
+    });
+    return;
+
 }
 
 function decrypt(text) {

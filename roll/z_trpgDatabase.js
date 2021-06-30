@@ -168,7 +168,7 @@ var rollDiceCommand = async function ({
             }
 
             return rply;
-        case /(^背包$)/i.test(mainMsg[0]) && /^刪除$/i.test(mainMsg[1]) && /i.test(mainMsg[2]):
+        case /(^背包$)/i.test(mainMsg[0]) && /^刪除$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
             //刪除資料庫
             if (groupid && mainMsg[2] && trpgDatabasefunction.trpgDatabasefunction && userrole >= 1) {
                 for (let i = 0; i < trpgDatabasefunction.trpgDatabasefunction.length; i++) {

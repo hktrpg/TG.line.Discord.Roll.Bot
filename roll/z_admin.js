@@ -426,22 +426,7 @@ function encrypt(text) {
     return iv.toString('hex') + ':' + encrypted.toString('hex');
 }
 
-async function createMember(docGp, collect) {
-    collect.forEach(async member => {
-        let temp = {
-            userid: member.userid,
-            groupid: docGp.groupid,
-            name: member.name,
-            EXP: member.EXP,
-            //EXP: math.floor(math.random() * 10) + 15,
-            Level: member.Level,
-            LastSpeakTime: member.LastSpeakTime
-        }
-        await new schema.trpgLevelSystemMember(temp).save();
-    });
-    return;
 
-}
 
 function decrypt(text) {
     let textParts = text.split(':');

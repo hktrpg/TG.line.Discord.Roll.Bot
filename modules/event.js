@@ -107,34 +107,6 @@ async function randomEvent({
 
 }
 
-async function expChange({
-    groupid,
-    userid,
-    displayname,
-    displaynameDiscord,
-    exp
-}) {
-    if (!process.env.mongoURL || !Object.keys(exports.z_Level_system).length || !exports.z_Level_system.initialize().trpgLevelSystemfunction) {
-        return;
-    }
-    //1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
-    let userInfo = {};
-    let gpInfo = exports.z_Level_system.initialize().trpgLevelSystemfunction.find(e => e.groupid == groupid);
-    if (!gpInfo || gpInfo.Switch != 1) return;
-    if (gpInfo.trpgLevelSystemfunction) {
-        userInfo = gpInfo.trpgLevelSystemfunction.find(e => e.userid == userid)
-    }
-    if (!userInfo) {
-        return;
-    }
-
-    userInfo.name = displaynameDiscord || displayname || '無名'
-    userInfo.EXP += exp;
-    //8. 更新MLAB資料
-    return await uploadMongoose(groupid, userid, userInfo);
-    //6 / 7 * LVL * (2 * LVL * LVL + 30 * LVL + 100)
-}
-
 async function event(key, needExp, eventLV, myLV, eventNeg) {
     let random
     switch (key) {
@@ -194,80 +166,11 @@ async function get(who, data) {
 
 }
 
-async function returnTheLevelWord(gpInfo, userInfo, membercount) {
-    let username = userInfo.name;
-    let userlevel = userInfo.Level;
-    let userexp = userInfo.EXP;
-    let usermember_count = Math.max(membercount, gpInfo.trpgLevelSystemfunction.length);
-    let userRanking = await ranking(userInfo.userid, gpInfo.trpgLevelSystemfunction);
-    let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
-    let userTitle = await exports.z_Level_system.checkTitle(userlevel, gpInfo.Title);
-    let tempUPWord = gpInfo.LevelUpWord || "恭喜 {user.name}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點了！\n現在排名是{server.member_count}人中的第{user.Ranking}名！";
-    return tempUPWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count).replace(/{user.title}/ig, userTitle);
-}
 
-async function uploadMongoose(groupid, userid, userInfo) {
-    let v = await schema.trpgLevelSystem.findOneAndUpdate({
-        groupid: groupid,
-        'trpgLevelSystemfunction.userid': userid
-    }, {
-        $set: {
-            'trpgLevelSystemfunction.$.name': userInfo.name,
-            'trpgLevelSystemfunction.$.Level': userInfo.Level
-        },
-        $max: {
-            'trpgLevelSystemfunction.$.EXP': userInfo.EXP,
-            'trpgLevelSystemfunction.$.LastSpeakTime': userInfo.LastSpeakTime
-        }
-    }, opt)
-    return v;
-}
 
-async function newUser(gpInfo, groupid, userid, displayname, displaynameDiscord) {
-    //3. 沒有 -> 新增
-    let temp = {
-        userid: userid,
-        name: displaynameDiscord || displayname || '無名',
-        EXP: await exports.rollbase.Dice(9) + 15,
-        //EXP: math.floor(math.random() * 10) + 15,
-        Level: "0",
-        LastSpeakTime: Date.now()
-    }
-    gpInfo.trpgLevelSystemfunction.push(temp)
 
-    let v = await schema.trpgLevelSystem.findOneAndUpdate({
-        groupid: groupid
-    }, {
-        $push: {
-            trpgLevelSystemfunction: temp
-        }
-    }, opt)
-    return v;
-}
 
-async function ranking(who, data) {
-    let array = [];
-    let answer = "0";
-    for (let key in data) {
-        await array.push(data[key]);
-    }
-    array.sort(function (a, b) {
-        return b.EXP - a.EXP;
-    });
-    let rank = 1;
-    for (let i = 0; i < array.length; i++) {
-        if (i > 0 && array[i].EXP < array[i - 1].EXP) {
-            rank++;
-        }
-        array[i].rank = rank;
-    }
-    for (let b = 0; b < array.length; b++) {
-        if (array[b].userid == who)
-            answer = b + 1;
 
-    }
-    return answer;
-}
 
 module.exports = {
     event

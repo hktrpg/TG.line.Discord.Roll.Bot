@@ -20,11 +20,17 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
         groupid: groupid
     });
     if (filterSwitchV2 === undefined) {
-        tempSwitchV2.push({
-            groupid: groupid,
-            SwitchV2: gpInfo.SwitchV2
-        })
-
+        if (!gpInfo || !gpInfo.SwitchV2) {
+            tempSwitchV2.push({
+                groupid: groupid,
+                SwitchV2: false
+            })
+        }
+        else
+            tempSwitchV2.push({
+                groupid: groupid,
+                SwitchV2: gpInfo.SwitchV2
+            })
     }
     // console.log('gpInfo', gpInfo);
     //1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
@@ -37,12 +43,10 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
         await newUser(gpInfo, groupid, userid, displayname, displaynameDiscord);
         return;
     }
-    console.log('AAAAA?')
     //4. 有-> 檢查上次紀錄的時間 超過60000 (1分鐘) 即增加15+(1-9) 經驗值
     if ((new Date(Date.now()) - userInfo.LastSpeakTime) < oneMinuts) {
         return;
     }
-    console.log('BBBB?')
     userInfo.name = displaynameDiscord || displayname || '無名';
     userInfo.EXP += await exports.rollbase.Dice(9) + 15;
     userInfo.LastSpeakTime = Date.now();
@@ -54,7 +58,6 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
         userInfo.Level++;
         levelUP = true;
     }
-    console.log('CCCC?')
     //8. 更新MLAB資料
     await userInfo.save();
     //6. 需要 -> 檢查有沒有開啓通知

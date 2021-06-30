@@ -107,6 +107,7 @@ const trpgLevelSystemMember = mongoose.model('trpgLevelSystemMember', {
     userid: String,
     name: String,
     EXP: Number,
+    TitleName: String,
     //現在經驗值
     Level: Number,
     //等級

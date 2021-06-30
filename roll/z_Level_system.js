@@ -4,7 +4,7 @@
 if (!process.env.mongoURL) {
     return;
 }
-var tempSwitch = require('../modules/level');
+var tempSwitchV2 = require('../modules/level');
 const schema = require('../modules/core-schema.js');
 const defaultRankWord = "{user.name}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點！\n現在排名是{server.member_count}人中的第{user.Ranking}名！{user.RankingPer}！\n調查經驗是{user.exp}點。 "
 
@@ -53,7 +53,7 @@ P.S.如果沒立即生效 用.level show 刷新一下\n\
 var initialize = function () {
     return;
 }
-var checkTitle = async function (userlvl, DBTitle) {
+const checkTitle = async function (userlvl, DBTitle) {
     let templvl = 0;
     let temptitle = ""
     //console.log("DBTitle: ", DBTitle)
@@ -78,7 +78,7 @@ var checkTitle = async function (userlvl, DBTitle) {
         }
     return temptitle;
 }
-var Title = function () {
+const Title = function () {
     var Title = []
     Title[0] = "無名調查員";
     Title[3] = "雀";
@@ -331,8 +331,8 @@ var rollDiceCommand = async function ({
                 groupid: groupid
             });
             rply.text = '現在設定: ' + '\n經驗值功能: ';
-            rply.text += (doc && doc.Switch) ? '啓動\n升級通知功能: ' : '關閉\n升級通知功能: ';
-            rply.text += (doc && doc.Hidden) ? '啓動' : '關閉';
+            rply.text += (doc && doc.SwitchV2) ? '啓動\n升級通知功能: ' : '關閉\n升級通知功能: ';
+            rply.text += (doc && doc.HiddenV2) ? '啓動' : '關閉';
             return rply;
         }
 
@@ -362,43 +362,43 @@ var rollDiceCommand = async function ({
             }
             switch (mainMsg[2]) {
                 case '00': {
-                    doc.Switch = false;
-                    doc.Hidden = false;
+                    doc.SwitchV2 = false;
+                    doc.HiddenV2 = false;
                     await doc.save();
-                    let temp = tempSwitch.tempSwitch.find(function (group) {
+                    let temp = tempSwitchV2.tempSwitchV2.find(function (group) {
                         return group.groupid == groupid;
                     });
-                    temp.Switch = false;
+                    temp.SwitchV2 = false;
                     break;
                 }
                 case '01': {
-                    doc.Switch = false;
-                    doc.Hidden = true;
+                    doc.SwitchV2 = false;
+                    doc.HiddenV2 = true;
                     await doc.save();
-                    let temp = tempSwitch.tempSwitch.find(function (group) {
+                    let temp = tempSwitchV2.tempSwitchV2.find(function (group) {
                         return group.groupid == groupid;
                     });
-                    temp.Switch = false;
+                    temp.SwitchV2 = false;
                     break;
                 }
                 case '11': {
-                    doc.Switch = true;
-                    doc.Hidden = true;
+                    doc.SwitchV2 = true;
+                    doc.HiddenV2 = true;
                     await doc.save();
-                    let temp = tempSwitch.tempSwitch.find(function (group) {
+                    let temp = tempSwitchV2.tempSwitchV2.find(function (group) {
                         return group.groupid == groupid;
                     });
-                    temp.Switch = true;
+                    temp.SwitchV2 = true;
                     break;
                 }
                 case '10': {
-                    doc.Switch = true;
-                    doc.Hidden = false;
+                    doc.SwitchV2 = true;
+                    doc.HiddenV2 = false;
                     await doc.save();
-                    let temp = tempSwitch.tempSwitch.find(function (group) {
+                    let temp = tempSwitchV2.tempSwitchV2.find(function (group) {
                         return group.groupid == groupid;
                     });
-                    temp.Switch = true;
+                    temp.SwitchV2 = true;
                 }
                     break;
                 default:
@@ -409,8 +409,8 @@ var rollDiceCommand = async function ({
                     return rply
             }
             rply.text = '修改成功: ' + '\n經驗值功能: ';
-            rply.text += (doc.Switch) ? '啓動\n升級通知功能: ' : '關閉\n升級通知功能: ';
-            rply.text += (doc.Hidden) ? '啓動' : '關閉';
+            rply.text += (doc.SwitchV2) ? '啓動\n升級通知功能: ' : '關閉\n升級通知功能: ';
+            rply.text += (doc.HiddenV2) ? '啓動' : '關閉';
             return rply;
         }
 
@@ -426,7 +426,7 @@ var rollDiceCommand = async function ({
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
             });
-            if (!doc || !doc.Switch) {
+            if (!doc || !doc.SwitchV2) {
                 rply.text = '此群組並有沒有開啓LEVEL功能. \n.level config 11 代表啓動功能 \
                     \n 數字11代表等級升級時會進行通知，10代表不會自動通知，\
                     \n 00的話代表不啓動功能'
@@ -499,7 +499,7 @@ var rollDiceCommand = async function ({
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
             });
-            if (!doc || !doc.Switch) {
+            if (!doc || !doc.SwitchV2) {
                 rply.text = '此群組並有沒有開啓LEVEL功能. \n.level config 11 代表啓動功能 \
                     \n 數字11代表等級升級時會進行通知，10代表不會自動通知，\
                     \n 00的話代表不啓動功能\n'

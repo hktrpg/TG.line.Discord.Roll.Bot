@@ -2,34 +2,33 @@ if (!process.env.mongoURL) return;
 const oneMinuts = (process.env.DEBUG) ? 1 : 60000;
 //60000 一分鐘多久可以升級及增加經驗
 exports.rollbase = require('../roll/rollbase');
-exports.z_Level_system = require('../roll/z_Level_system');
 const schema = require('../modules/core-schema.js');
-var tempSwitch = [{
+var tempSwitchV2 = [{
     groupid: '',
-    Switch: false
+    SwitchV2: false
 }];
 async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercount) {
     if (!groupid) {
         return;
     }
-    const filterSwitch = tempSwitch.find(function (group) {
+    const filterSwitchV2 = tempSwitchV2.find(function (group) {
         return group.groupid == groupid;
     });
-    if (filterSwitch && (filterSwitch.Switch === false)) return;
-    //  console.log('filterSwitch', filterSwitch)
+    if (filterSwitchV2 && (filterSwitchV2.SwitchV2 === false)) return;
+    //  console.log('filterSwitchV2', filterSwitchV2)
     const gpInfo = await schema.trpgLevelSystem.findOne({
         groupid: groupid
     });
-    if (filterSwitch === undefined) {
-        tempSwitch.push({
+    if (filterSwitchV2 === undefined) {
+        tempSwitchV2.push({
             groupid: groupid,
-            Switch: gpInfo.Switch
+            SwitchV2: gpInfo.SwitchV2
         })
 
     }
     // console.log('gpInfo', gpInfo);
     //1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
-    if (!gpInfo || !gpInfo.Switch) return;
+    if (!gpInfo || !gpInfo.SwitchV2) return;
     let userInfo = await schema.trpgLevelSystemMember.findOne({
         groupid: groupid,
         userid: userid
@@ -43,6 +42,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     if ((new Date(Date.now()) - userInfo.LastSpeakTime) < oneMinuts) {
         return;
     }
+    console.log('BBBB?')
     userInfo.name = displaynameDiscord || displayname || '無名';
     userInfo.EXP += await exports.rollbase.Dice(9) + 15;
     userInfo.LastSpeakTime = Date.now();
@@ -54,10 +54,11 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
         userInfo.Level++;
         levelUP = true;
     }
+    console.log('CCCC?')
     //8. 更新MLAB資料
     await userInfo.save();
     //6. 需要 -> 檢查有沒有開啓通知
-    if (gpInfo.Hidden == false || levelUP == false) return;
+    if (gpInfo.HiddenV2 == false || levelUP == false) return;
     //1. 讀取LEVELUP語
     return await returnTheLevelWord(gpInfo, userInfo, membercount, groupid);
     //6 / 7 * LVL * (2 * LVL * LVL + 30 * LVL + 100)
@@ -81,7 +82,7 @@ async function returnTheLevelWord(gpInfo, userInfo, membercount, groupid) {
 
     let userRanking = myselfIndex + 1;
     let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
-    let userTitle = await exports.z_Level_system.checkTitle(userlevel, gpInfo.Title);
+    let userTitle = checkTitle(userlevel, gpInfo.Title);
     let tempUPWord = gpInfo.LevelUpWord || "恭喜 {user.name}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點了！\n現在排名是{server.member_count}人中的第{user.Ranking}名！";
     return tempUPWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count).replace(/{user.title}/ig, userTitle);
 }
@@ -102,8 +103,60 @@ async function newUser(gpInfo, groupid, userid, displayname, displaynameDiscord)
     return;
 }
 
+
+const Title = function () {
+    var Title = []
+    Title[0] = "無名調查員";
+    Title[3] = "雀";
+    Title[4] = "調查員";
+    Title[8] = "記者";
+    Title[11] = "偵探";
+    Title[13] = "小熊";
+    Title[14] = "考古家";
+    Title[18] = "神秘學家";
+    Title[21] = "狂信徒";
+    Title[24] = "教主";
+    Title[28] = "眷族";
+    Title[31] = "眷族首領";
+    Title[33] = "南";
+    Title[34] = "化身";
+    Title[38] = "舊神";
+    Title[41] = "舊日支配者";
+    Title[43] = "門";
+    Title[44] = "外神";
+    Title[48] = "KP";
+    Title[53] = "東";
+    Title[54] = "作者";
+    return Title;
+}
+
+const checkTitle = async function (userlvl, DBTitle) {
+    let templvl = 0;
+    let temptitle = ""
+    //console.log("DBTitle: ", DBTitle)
+    if (DBTitle && DBTitle.length > 0) {
+        for (let g = 0; g < DBTitle.length; g++) {
+            if (userlvl >= g) {
+                if (templvl <= g && DBTitle[g]) {
+                    templvl = g
+                    temptitle = DBTitle[g][2] || DBTitle[g];
+                }
+            }
+        }
+    }
+    if (!temptitle)
+        for (let g = 0; g < Title().length; g++) {
+            if (userlvl >= g) {
+                if (templvl <= g && Title()[g]) {
+                    templvl = g
+                    temptitle = Title()[g];
+                }
+            }
+        }
+    return temptitle;
+}
 module.exports = {
     EXPUP,
-    tempSwitch
+    tempSwitchV2
 
 };

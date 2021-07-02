@@ -442,7 +442,7 @@ async function nonDice(message) {
 
 //Set Activity 可以自定義正在玩什麼
 client.on('ready', async () => {
-	client.user.setActivity('bothelp | hktrpg.com');
+	client.user.setActivity('🌼bothelp | hktrpg.com🍎');
 	if (togGGToken) {
 		setInterval(() => {
 			dbl.postStats(client.guilds.size);
@@ -453,7 +453,7 @@ client.on('ready', async () => {
 	setInterval(async () => {
 		switch (switchSetActivity % 2) {
 			case 1:
-				client.user.setActivity('bothelp | hktrpg.com');
+				client.user.setActivity('🌼bothelp | hktrpg.com🍎');
 				break;
 			default:
 				client.user.setActivity(await count2());

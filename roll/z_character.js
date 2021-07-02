@@ -169,7 +169,7 @@ var rollDiceCommand = async function ({
             filter = {
                 id: userid
             }
-            temp = mainMsg[1].replace(/^show/ig, '');
+            temp = mainMsg[1].replace(/^顯示/ig, '');
             //取得本來的資料, 如有重覆, 以新的覆蓋
             try {
                 doc = await schema.characterCard.find(filter);

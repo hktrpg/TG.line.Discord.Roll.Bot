@@ -21,7 +21,7 @@ var gameType = function () {
 }
 var prefixs = function () {
     return [{
-       first: /(^背包(p|)$)/ig,
+       first: /(^(公共|)背包$)/ig,
         second: null
     }]
 }

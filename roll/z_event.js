@@ -99,11 +99,11 @@ var rollDiceCommand = async function ({
      * 1:你吃了好味的糖，加SAN人
      */
     function findMaxLv(gp) {
-        gp.forEach(function (members) {
-            if (members.userid == userid && Number(members.Level) > levelLv) {
-                levelLv = Math.floor(Number(members.Level) / 10);
-            }
-        });
+        let maxLV = 0;
+      for (let index = 0; index < gp.length; index++) {
+          maxLV=(gp.Level>maxLV)?gp.Level:null;
+      }
+      return maxLV;
     }
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
@@ -125,12 +125,10 @@ var rollDiceCommand = async function ({
             check = await schema.eventList.find({
                 userID: userid
             });
-            temp2 = await schema.trpgLevelSystem.find({
-                "trpgLevelSystemfunction.userid": userid
+            temp2 = await schema.trpgLevelSystemMember.find({
+                userid: userid
             })
-            temp2.forEach(function (item) {
-                findMaxLv(item.trpgLevelSystemfunction);
-            });
+       levelLv=  findMaxLv(temp2);
             console.log('levelLv', levelLv)
 
             //取得本來的資料, 如有重覆, 以新的覆蓋
@@ -197,9 +195,9 @@ var rollDiceCommand = async function ({
                 filter = {
                     userID: userid
                 }
-                temp = await schema.event.findOne(filter);
+                temp = await schema.eventMember.findOne(filter);
                 if (!temp) {
-                    temp = new schema.event(eventsDatas);
+                    temp = new schema.eventMember(eventsDatas);
                 } else {
                     var findEventId = temp.eventList.findIndex((obj => obj.eventID == tempMain._id));
                     if (findEventId >= 0) {
@@ -247,7 +245,7 @@ var rollDiceCommand = async function ({
             }
             try {
                 await schema.eventList.findOneAndRemove(filter);
-                await schema.event.updateOne({
+                await schema.eventMember.updateOne({
                     userID: userid
                 }, {
                     $pull: {
@@ -270,7 +268,7 @@ var rollDiceCommand = async function ({
                 userID: userid
             }
             doc = await schema.eventList.find(filter);
-            rply.text = "====事件列件====\n"
+            rply.text = "====你創作的事件列表====\n"
             console.log(doc[0].detail);
             for (let index = 0; index < doc.length; index++) {
                 rply.text += doc[index].title + "\n";
@@ -279,39 +277,44 @@ var rollDiceCommand = async function ({
 
             }
             return rply;
-        case /(^[.]evt$)/i.test(mainMsg[0]) && /^random$/i.test(mainMsg[1]):
+        case /(^[.]evt$)/i.test(mainMsg[0]) && /^random$/i.test(mainMsg[1]):{
             if (!groupid) {
                 rply.text = '你不在群組.請在群組使用此功能 '
                 return rply
             }
-            tempMain = await schema.trpgLevelSystem.findOne({ groupid: groupid });
-            if (!tempMain || tempMain.Switch == 0) {
+            let gp = await schema.trpgLevelSystem.findOne({ groupid: groupid });
+            if (!gp || !gp.SwitchV2) {
                 rply.text = '此群組並有沒有開啓LEVEL功能. \n.level config 11 代表啓動功能 \
                     \n 數字11代表等級升級時會進行通知，10代表不會自動通知，\
                     \n 00的話代表不啓動功能\n'
+                    return rply;
             }
-            filter = {
+         
+            let eventMember = await schema.eventMember.findOne( {
                 userID: userid
-            }
-            events = await schema.event.findOne(filter);
+            });
+            let gpMember = await schema.trpgLevelSystemMember.find({userid:userid });
             /**
              * 檢查ENERGY，如果沒有則新增，數字為EN= 20+LV
              */
-            if (!events || !events.energy) {
-                //events.energy = 0;
+            if (!eventMember || !eventMember.energy) {
+          eventMember.energy = findMaxLv(gpMember)+20;
             }
+if(eventMember.energy<5){
+    rply.text ="隨機事件需要5EN, 你現在只有"+eventMember.energy+"EN"
+    return rply;
+} else{
+     eventMember.energy-5
+await eventMember.save();
+}
+
             doc = await schema.eventList.aggregate([{ $sample: { size: 1 } }]);
             console.log('doc', doc)
             rply.text = "====事件列件====\n"
             console.log(doc[0].detail);
-            for (let index = 0; index < doc.length; index++) {
-                rply.text += doc[index].title + "\n";
-                if (doc[index].expName) rply.text += '經驗值的名稱: ' + doc[index].expName + "\n";
-                rply.text += getDetail(doc[index]) + '\n';
 
-            }
             return rply;
-
+}
         default:
             break;
 

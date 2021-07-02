@@ -3,7 +3,7 @@ if (!process.env.mongoURL) {
     return;
 }
 var variables = {};
-const rollDice = require('./rollbase').rollDiceCommand;
+const rollDice = require('./rollbase');
 const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const limitArr = [4, 20, 20, 30, 30, 99, 99, 99];
@@ -100,10 +100,10 @@ var rollDiceCommand = async function ({
      */
     function findMaxLv(gp) {
         let maxLV = 0;
-      for (let index = 0; index < gp.length; index++) {
-          maxLV=(gp.Level>maxLV)?gp.Level:null;
-      }
-      return maxLV;
+        for (let index = 0; index < gp.length; index++) {
+            maxLV = (gp.Level > maxLV) ? gp.Level : null;
+        }
+        return maxLV;
     }
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
@@ -128,7 +128,7 @@ var rollDiceCommand = async function ({
             temp2 = await schema.trpgLevelSystemMember.find({
                 userid: userid
             })
-       levelLv=  findMaxLv(temp2);
+            levelLv = findMaxLv(temp2);
             console.log('levelLv', levelLv)
 
             //取得本來的資料, 如有重覆, 以新的覆蓋
@@ -277,7 +277,7 @@ var rollDiceCommand = async function ({
 
             }
             return rply;
-        case /(^[.]evt$)/i.test(mainMsg[0]) && /^random$/i.test(mainMsg[1]):{
+        case /(^[.]evt$)/i.test(mainMsg[0]) && /^random$/i.test(mainMsg[1]): {
             if (!groupid) {
                 rply.text = '你不在群組.請在群組使用此功能 '
                 return rply
@@ -287,34 +287,59 @@ var rollDiceCommand = async function ({
                 rply.text = '此群組並有沒有開啓LEVEL功能. \n.level config 11 代表啓動功能 \
                     \n 數字11代表等級升級時會進行通知，10代表不會自動通知，\
                     \n 00的話代表不啓動功能\n'
-                    return rply;
+                return rply;
             }
-         
-            let eventMember = await schema.eventMember.findOne( {
+            //用來看EN還有多少, 沒有就RETURN
+            //沒有就新增一個
+
+            let eventMember = await schema.eventMember.findOne({
                 userID: userid
             });
-            let gpMember = await schema.trpgLevelSystemMember.find({userid:userid });
+
+
+            //尋找所有群組的資料，用來設定EN上限            
+            let gpMember = await schema.trpgLevelSystemMember.find({ userid: userid });
             /**
              * 檢查ENERGY，如果沒有則新增，數字為EN= 20+LV
              */
-            if (!eventMember || !eventMember.energy) {
-          eventMember.energy = findMaxLv(gpMember)+20;
-            }
-if(eventMember.energy<5){
-    rply.text ="隨機事件需要5EN, 你現在只有"+eventMember.energy+"EN"
-    return rply;
-} else{
-     eventMember.energy-5
-await eventMember.save();
-}
+            if (!eventMember) {
+                eventMember = new schema.eventMember({
+                    userID: userid,
+                    userName: displaynameDiscord || displayname || '',
+                    energy: findMaxLv(gpMember) + 20,
+                    lastActiveAt: new Date(Date.now())
+                });
 
-            doc = await schema.eventList.aggregate([{ $sample: { size: 1 } }]);
+            }
+            if (!eventMember.energy) {
+                eventMember.energy = findMaxLv(gpMember) + 20;
+            }
+
+            //TODO:計算EN的回複量
+
+            if (eventMember.energy < 5) {
+                rply.text = "隨機事件需要5EN, 你現在只有" + eventMember.energy + "EN"
+                return rply;
+            } else {
+                eventMember.energy -= 5
+            }
+            await eventMember.save();
+
+            let doc = await schema.eventList.aggregate([{ $sample: { size: 1 } }]);
             console.log('doc', doc)
-            rply.text = "====事件列件====\n"
-            console.log(doc[0].detail);
+            if (doc.length == 0) {
+                rply.text = '未有人新增事件，你可以成為第一個事件產生者!'
+                return rply;
+            }
+
+            let randomDetail = doc[0].detail[await rollDice.Dice(doc[0].detail.length) - 1];
+            console.log('randomDetail', randomDetail)
+            let eventText = randomDetail.event.split(';');
+            rply.text = "====事件====\n" + eventText[await rollDice.Dice(eventText.length) - 1];
+
 
             return rply;
-}
+        }
         default:
             break;
 
@@ -328,120 +353,7 @@ function getDetail(doc) {
     }
     return text;
 }
-async function mainCharacter(doc, mainMsg) {
-    mainMsg.shift();
-    let findState = [];
-    let findNotes = [];
-    let findRoll = {};
-    let last = ""
-    let tempRply = {
-        characterReRoll: false,
-        text: '',
-        characterReRollName: ''
-    }
-    for (let name in mainMsg) {
-        let resutltState = await findObject(doc.state, mainMsg[name]);
-        let resutltNotes = await findObject(doc.notes, mainMsg[name]);
-        let resutltRoll = await findObject(doc.roll, mainMsg[name]);
-        if (resutltRoll) {
-            findRoll = resutltRoll;
-            last = 'roll';
-        } else
-            if (resutltNotes) {
-                last = 'notes';
-                await findNotes.push(resutltNotes);
-            } else
-                if (resutltState) {
-                    last = 'state';
-                    await findState.push(resutltState);
-                } else
-                    if (mainMsg[name].match(/^[+-/*]\S+d\S/i) && last == 'state') {
-                        last = '';
-                        let res = mainMsg[name].charAt(0)
-                        let number = await countNum(mainMsg[name].substring(1));
-                        number ? await findState.push(res + number) : null;
-                    } else
-                        if (mainMsg[name].match(/^[0-9+\-*/.]\S+$/i) && last == 'state') {
-                            last = '';
-                            await findState.push(mainMsg[name]);
-                        } else {
-                            last = '';
-                        }
 
-    }
-    //如果是roll的, 就變成擲骰MODE(最優先)
-    //如果是另外兩個
-    async function myAsyncFn(match, p1) {
-        let result = await replacer(doc, p1);
-        return result;
-    }
-    if (Object.keys(findRoll).length > 0) { //把{}進行replace
-        //https://stackoverflow.com/questions/33631041/javascript-async-await-in-replace
-        //ref source
-        tempRply.characterReRollItem = await replaceAsync(findRoll.itemA, /\{(.*?)\}/ig, await myAsyncFn);
-        tempRply.characterReRollItem = await replaceAsync(tempRply.characterReRollItem, /\[\[(.*?)\]\]/ig, await myAsyncFn2);
-        tempRply.characterReRollName = findRoll.name;
-        tempRply.characterReRoll = true;
-    }
-    if (Object.keys(findState).length > 0 || Object.keys(findNotes).length > 0) {
-        for (let i = 0; i < findState.length; i++) {
-            //如果i 是object , i+1 是STRING 和數字, 就進行加減
-            //否則就正常輸出
-            if (typeof (findState[i]) == 'object' && typeof (findState[i + 1]) == 'string') {
-                doc.state.forEach(async (element, index) => {
-                    if (element.name === findState[i].name) {
-                        //如果是一個數字, 取代本來的數值
-                        //不然就嘗試計算它
-                        //還是失敗就強制變成一個數字,進行運算
-                        if (findState[i + 1].match(/^([0-9]*[.])?[0-9]+$/i)) {
-                            doc.state[index].itemA = findState[i + 1];
-                        } else {
-                            try {
-                                let num = eval(new String(doc.state[index].itemA) + findState[i + 1].replace('--', '-'));
-                                if (!isNaN(num)) {
-                                    doc.state[index].itemA = num;
-                                }
-                            } catch (error) {
-                                console.log('error of event:', findState[i + 1])
-                            }
-                        }
-
-                    }
-                });
-
-
-            }
-            if (typeof (findState[i]) == 'object') {
-                tempRply.text += findState[i].name + ': ' + findState[i].itemA;
-                if (findState[i].itemB) {
-                    tempRply.text += "/" + findState[i].itemB;
-                }
-                tempRply.text += '　\n'
-            }
-
-        }
-        try {
-            if (doc && doc.db)
-                await doc.save();
-        } catch (error) {
-            // console.log('doc ', doc)
-            console.log('doc SAVE GET ERROR:', error)
-        }
-
-        if (findNotes.length > 0) {
-            for (let i = 0; i < findNotes.length; i++) {
-                //如果i 是object , i+1 是STRING 和數字, 就進行加減
-                //否則就正常輸出
-                tempRply.text += findNotes[i].name + ': ' + findNotes[i].itemA + '　\n';
-            }
-        }
-
-        if (findState.length > 0 || findNotes.length > 0) {
-            tempRply.text = doc.name + '　\n' + tempRply.text;
-        }
-    }
-    return tempRply;
-}
 
 
 
@@ -453,75 +365,6 @@ async function findObject(doc, mainMsg) {
         return element.name.match(new RegExp('^' + re + '$', 'i'))
     });
     return resutlt;
-}
-
-async function showCharacter(events, mode) {
-    /*
-    角色名字
-    HP: 5/5 MP: 3/3 SAN: 50/90 護甲: 6
-    -------
-    投擲: cc 80 投擲 
-    空手: cc 50
-    -------
-    筆記: SAD
-    心靈支柱: 特質
-
-    ======
-    */
-    let returnStr = '';
-    if (mode == 'addMode') {
-        returnStr += '新增/修改成功\n'
-    }
-    returnStr += events.name + '　\n';
-    let a = 1
-    if (events.state.length > 0) {
-        for (let i = 0; i < events.state.length; i++) {
-            if ((a) % 4 == 0 && (events.state[i].itemA || events.state[i].itemB)) {
-                returnStr += '　\n'
-            }
-            if (mode == 'addMode' || mode == 'showAllMode') {
-                returnStr += events.state[i].name + ': ' + events.state[i].itemA;
-                returnStr += (events.state[i].itemB) ? '/' + events.state[i].itemB : '';
-            } else {
-                returnStr += (events.state[i].itemA) ? events.state[i].name + ': ' + events.state[i].itemA : '';
-                returnStr += (events.state[i].itemA && events.state[i].itemB) ? '/' + events.state[i].itemB : '';
-            }
-            if (events.state[i].itemA || events.state[i].itemB) {
-                a++
-            }
-            if ((events.state[i].itemA || events.state[i].itemB) && mode == 'addMode' || mode == 'showAllMode') {
-                returnStr += ' ';
-            } else if (events.state[i].itemA) {
-                returnStr += ' ';
-            }
-        }
-        returnStr += '\n-------\n'
-    }
-
-    if (events.roll.length > 0) {
-        for (let i = 0; i < events.roll.length; i++) {
-            if (mode == 'addMode' || mode == 'showAllMode') {
-                returnStr += events.roll[i].name + ': ' + events.roll[i].itemA + '  ';
-
-            } else {
-                returnStr += (events.roll[i].itemA) ? events.roll[i].name + ': ' + events.roll[i].itemA + '  ' : '';
-            }
-            if (i % 2 || i == events.roll.length - 1) {
-                returnStr += '　\n';
-            }
-        }
-        returnStr += '-------\n'
-    }
-    if (mode == 'addMode' || mode == 'showAllMode')
-        if (events.notes.length > 0) {
-            for (let i = 0; i < events.notes.length; i++) {
-                //returnStr += (events.notes[i].itemA) ? events.notes[i].name + ': ' + events.notes[i].itemA + ' \n' : '';
-                returnStr += events.notes[i].name + ': ' + events.notes[i].itemA + '　\n';
-            }
-
-            returnStr += '-------'
-        }
-    return returnStr;
 }
 
 
@@ -561,56 +404,6 @@ async function analysicDetail(data) {
     }
     return info;
 }
-async function analysicStr(inputStr, state, term) {
-    let character = [];
-    let myArray = [];
-    while ((myArray = re.exec(inputStr)) !== null) {
-        if (myArray[2].match(/.*?\/.*/) && state) {
-            let temp2 = /(.*)\/(.*)/.exec(myArray[2])
-            myArray[2] = temp2[1]
-            myArray[3] = temp2[2]
-        }
-
-        //防止誤輸入
-        myArray[3] = (myArray[3] == ';') ? '' : myArray[3];
-        myArray[1] = myArray[1].replace(/\s+/g, '');
-        if (term !== "notes") {
-            myArray[2] = myArray[2].replace(/\s+[.]ch\s+/i, ' ').replace(/\s+[.]char\s+/i, ' ');
-        }
-        myArray[2] = myArray[2].replace(/^\s+/, '').replace(/\s+$/, '');
-        myArray[3] = myArray[3].replace(/^\s+/, '').replace(/\s+$/, '');
-        if (state)
-            character.push({
-                name: myArray[1],
-                itemA: myArray[2],
-                itemB: myArray[3]
-            })
-        else
-            character.push({
-                name: myArray[1],
-                itemA: myArray[2]
-            })
-    }
-
-    return character;
-}
-/*
-character = {
-            gpid: String,
-            id: String,
-            acrossGroup: boolem,
-            active:boolem, 
-            acrossActive:boolem,
-            name: String,
-            nameShow:boolem,
-            state: [{name:String,itemA:String,itemB:String}],
-            roll: [{name:String,itemA:String}],
-            notes: [{name:String,itemA:String}]
-
-        }
-*/
-
-//https://stackoverflow.com/questions/7146217/merge-2-arrays-of-objects
 
 
 async function replaceAsync(str, regex, asyncFn) {
@@ -623,36 +416,13 @@ async function replaceAsync(str, regex, asyncFn) {
     return str.replace(regex, () => data.shift());
 }
 
-async function myAsyncFn2(match, p1) {
-    let result = ''
-    try {
-        result = eval(p1)
-    } catch (error) {
-        result = p1
-    }
-    return result;
-}
-
-async function countNum(num) {
-    let result;
-    let temp = await rollDice({
-        mainMsg: [num]
-    })
-    if (temp && temp.text) {
-        result = temp.text.match(/[+-]?([0-9]*[.])?[0-9]+$/)[0];
-    } else if (num.match(/^[+-]?([0-9]*[.])?[0-9]+$/)) {
-        result = num;
-    }
-    return result;
-}
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,
     getHelpMessage: getHelpMessage,
     prefixs: prefixs,
     gameType: gameType,
-    gameName: gameName,
-    mainCharacter: mainCharacter
+    gameName: gameName
 };
 
 

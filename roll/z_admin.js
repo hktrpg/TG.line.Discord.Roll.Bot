@@ -8,8 +8,6 @@ const salt = process.env.SALT;
 const crypto = require('crypto');
 const password = process.env.CRYPTO_SECRET,
     algorithm = 'aes-256-ctr';
-const link = process.env.WEB_LINK;
-const port = process.env.PORT || 20721;
 //32bit ASCII
 const adminSecret = process.env.ADMIN_SECRET;
 //admin id

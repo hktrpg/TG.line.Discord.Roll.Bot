@@ -212,8 +212,8 @@ async function stateText() {
 	text += '\n Telegram總擲骰次數: ' + state.TelegramCountRoll;
 	text += '\n Whatsapp總擲骰次數: ' + state.WhatsappCountRoll;
 	text += '\n 網頁版總擲骰次數: ' + state.WWWCountRoll;
-	text += '\n 使用經驗值功能的群組: ' + await schema.trpgLevelSystem.count({Switch:'1'});
-	text += '\n 已新增的角色卡: ' + await schema.characterCard.count({});
+	text += '\n 使用經驗值功能的群組: ' + await schema.trpgLevelSystem.countDocuments({Switch:'1'});
+	text += '\n 已新增的角色卡: ' + await schema.characterCard.countDocuments({});
 	text += '\n 擲骰系統使用的隨機方式: random-js nodeCrypto';
 	return text;
 }

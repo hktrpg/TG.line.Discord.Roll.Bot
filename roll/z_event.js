@@ -530,9 +530,9 @@ async function event(key, needExp, eventLV, myLV, eventNeg) {
         case 2:
             //   2. 直接增加X點經驗
             //100之一 ->50之一 * 1.0X ( 相差LV)% *1.0X(負面級數)^(幾個負面) 
-            random = exports.rollbase.DiceINT(needExp / 100, needExp / 50)
+            random = exports.rollbase.DiceINT(needExp / 100, needExp / 50);
             random *= (eventLV ^ 2 - myLV) > 0 ? ((eventLV ^ 2 - myLV) / 100 + 1) : 1;
-            random *= (eventNeg / 100 + 1)
+            random *= (eventNeg / 100 + 1);
             return random;
         case 3:
             // 3. 直接減少X點經驗

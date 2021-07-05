@@ -30,8 +30,8 @@ var prefixs = function () {
         second: null
     }]
 }
-var getHelpMessage = function () {
-    return null
+var getHelpMessage = async function () {
+    return '【朱の孤塔】\n' + await callHelp("Airgetlamh");
 }
 var initialize = function () {
     return variables;

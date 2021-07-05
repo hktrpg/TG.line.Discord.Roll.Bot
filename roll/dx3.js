@@ -30,8 +30,8 @@ var prefixs = function () {
 		second: null
 	}]
 }
-var getHelpMessage = function () {
-	return null
+var getHelpMessage = async function () {
+	return '【Double Cross 2nd,3rd】\n' + await callHelp("DoubleCross");
 }
 var initialize = function () {
 	return variables;

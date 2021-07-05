@@ -15,23 +15,23 @@ var prefixs = function () {
         second: null
     }]
 }
-var getHelpMessage = function () {
-    return "【魔女狩獵之夜】" + "\n\
-.wn xDDn+-y  x骰池 n罪業值 y調整值 \n\
-.wn 3 骰3次D6,大於3成功 .wn 5D6+3 骰3次D6,大於5成功然後+3\n\
-.wn 3DD6+2 有第二個D，會使用成功數減去失敗數得出結果(可負數)\n\
-預設值>3\n\
-\n\
-.wn x@Dn+-yD 魔改版 x骰池 n罪業值 y調整值\n\
-魔改版 少於等於罪業值為失敗\n\
-.wn 3@3+3 骰3次D6,大於3成功 \n\
-.wn 3@D3+2 有第二個D，會使用成功數減去失敗數得出結果(可負數)"
+var getHelpMessage = async function () {
+    return `【魔女狩獵之夜】
+.wn xDDn+-y  x骰池 n罪業值 y調整值 
+.wn 3 骰3次D6,大於3成功 .wn 5D6+3 骰3次D6,大於5成功然後+3
+.wn 3DD6+2 有第二個D，會使用成功數減去失敗數得出結果(可負數)
+預設值>3
+
+.wn x@Dn+-yD 魔改版 x骰池 n罪業值 y調整值
+魔改版 少於等於罪業值為失敗
+.wn 3@3+3 骰3次D6,大於3成功 
+.wn 3@D3+2 有第二個D，會使用成功數減去失敗數得出結果(可負數)`
 }
 var initialize = function () {
     return variables;
 }
 
-var rollDiceCommand = async function ({mainMsg}) {
+var rollDiceCommand = async function ({ mainMsg }) {
     let rply = {
         default: 'on',
         type: 'text',
@@ -122,8 +122,8 @@ async function WN2(key, message) {
         if (theSins > 6)
             return "罪業7以上扣除6點罪業，增加一點代價"
         else
-        if (theSins > 4)
-            betterthan = 5
+            if (theSins > 4)
+                betterthan = 5
     }
     let Adjustment = key[4] || "";
 

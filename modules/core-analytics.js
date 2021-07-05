@@ -14,9 +14,9 @@ start();
 const schema = require('../modules/core-schema.js');
 const debugMode = (process.env.DEBUG) ? true : false;
 const msgSplitor = (/\S+/ig);
-const courtMessage = require('./logs').courtMessage || function () {};
-const getState = require('./logs').getState || function () {};
-const EXPUP = require('./level').EXPUP || function () {};
+const courtMessage = require('./logs').courtMessage || function () { };
+const getState = require('./logs').getState || function () { };
+const EXPUP = require('./level').EXPUP || function () { };
 
 //用來呼叫骰組,新增骰組的話,要寫條件式到下面呼叫
 //格式是 exports.骰組檔案名字.function名
@@ -124,7 +124,10 @@ var parseInput = async function ({
 			titleName: titleName
 		});
 		if (result.text && characterReRoll.text) {
-			result.text = result.characterName + ' 投擲 ' + result.characterReRollName + '\n' + characterReRoll.text + '\n' + '======\n' + result.text;
+			result.text = result.text = `${result.characterName}  投擲  ${result.characterReRollName} 
+			${characterReRoll.text} 
+			======
+			${result.text}`;
 		} else {
 			result.text += (characterReRoll && characterReRoll.text && result && result.text) ? '======\n' + characterReRoll.text : characterReRoll.text;
 		}
@@ -164,7 +167,7 @@ var rolldice = async function ({
 	//把exports objest => Array
 	let target = await findRollList(mainMsg);
 	if (!target) return null;
-	(debugMode) ? console.log('            trigger: ', inputStr): '';
+	(debugMode) ? console.log('            trigger: ', inputStr) : '';
 	let tempsave = await target.rollDiceCommand({
 		inputStr: inputStr,
 		mainMsg: mainMsg,
@@ -212,7 +215,7 @@ async function stateText() {
 	text += '\n Telegram總擲骰次數: ' + state.TelegramCountRoll;
 	text += '\n Whatsapp總擲骰次數: ' + state.WhatsappCountRoll;
 	text += '\n 網頁版總擲骰次數: ' + state.WWWCountRoll;
-	text += '\n 使用經驗值功能的群組: ' + await schema.trpgLevelSystem.countDocuments({Switch:'1'});
+	text += '\n 使用經驗值功能的群組: ' + await schema.trpgLevelSystem.countDocuments({ Switch: '1' });
 	text += '\n 已新增的角色卡: ' + await schema.characterCard.countDocuments({});
 	text += '\n 擲骰系統使用的隨機方式: random-js nodeCrypto';
 	return text;
@@ -253,7 +256,7 @@ async function cmdfunction({
 	} catch (error) {
 		console.log('cmdfunction GET ERROR:', error, ' inputStr: ', newInputStr, ' botname: ', botname, ' Time: ', new Date());
 	}
-	(debugMode) ? console.log('            inputStr2: ', newInputStr): '';
+	(debugMode) ? console.log('            inputStr2: ', newInputStr) : '';
 	if (typeof tempResut === 'object' && tempResut !== null) {
 		return tempResut;
 	}
@@ -269,7 +272,7 @@ async function z_stop(mainMsg, groupid) {
 	if (!groupInfo || !groupInfo.blockfunction) return;
 	let match = groupInfo.blockfunction.find(e => e.toLowerCase() == mainMsg[0].toLowerCase())
 	if (match) {
-		(debugMode) ? console.log('Match AND STOP'): '';
+		(debugMode) ? console.log('Match AND STOP') : '';
 		return true;
 	} else
 		return false;

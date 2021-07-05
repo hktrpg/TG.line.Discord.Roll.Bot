@@ -29,8 +29,8 @@ var prefixs = function () {
         second: null
     }]
 }
-var getHelpMessage = function () {
-    return null;
+var getHelpMessage = async function () {
+    return '【亞俠必死的冒險】\n' + await callHelp("Satasupe");;
 }
 var initialize = function () {
     return variables;

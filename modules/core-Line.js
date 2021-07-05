@@ -3,7 +3,7 @@ if (!process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	return;
 }
 exports.analytics = require('./core-analytics');
-const EXPUP = require('./level').EXPUP || function () {};
+const EXPUP = require('./level').EXPUP || function () { };
 const line = require('@line/bot-sdk');
 const express = require('express');
 const msgSplitor = (/\S+/ig);
@@ -13,7 +13,7 @@ const config = {
 	channelSecret: process.env.LINE_CHANNEL_SECRET,
 };
 var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
-const courtMessage = require('./logs').courtMessage || function () {};
+const courtMessage = require('./logs').courtMessage || function () { };
 // create LINE SDK client
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const client = new line.Client(config);
@@ -34,14 +34,14 @@ app.post('/', line.middleware(config), (req, res) => {
 		});
 });
 // event handler
-const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
-\n主要功能：暗骰, 各類TRPG骰子擲骰, 頻道經驗值, 占卜, 先攻表, TRPG角色卡, 搜圖, 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, 自定義抽選, wiki查詢, 資料庫快速查詢功能\
-\n輸入 1D100 可以進行最簡單的擲骰.\
-\n到 (https://hktrpg.github.io/TG.line.Discord.Roll.Bot/) 或輸入 bothelp 觀看詳細使用說明.\
-						\n如果你需要幫助, 加入支援頻道.\
-						\n(http://bit.ly/HKTRPG_DISCORD)\
-						\n有關TRPG資訊, 可以到網站\
-						\n(http://www.hktrpg.com/)";
+const joinMessage = `你剛剛添加了HKTRPG 骰子機械人! 
+主要功能：暗骰, 各類TRPG骰子擲骰, 頻道經驗值, 占卜, 先攻表, TRPG角色卡, 搜圖, 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, 自定義抽選, wiki查詢, 資料庫快速查詢功能
+輸入 1D100 可以進行最簡單的擲骰.
+到 (https://hktrpg.github.io/TG.line.Discord.Roll.Bot/) 或輸入 bothelp 觀看詳細使用說明.
+如果你需要幫助, 加入支援頻道.
+(http://bit.ly/HKTRPG_DISCORD)
+有關TRPG資訊, 可以到網站
+(http://www.hktrpg.com/)`;
 process.on("Line", message => {
 	if (!message.text) return;
 	SendToId(message.target.id, message.text);
@@ -99,11 +99,11 @@ var handleEvent = async function (event) {
 	let TargetGMTempdisplayname = [];
 
 	client.getProfile(userid).then(async function (profile) {
-			//	在GP 而有加好友的話,得到名字
-			displayname = profile.displayName;
-			//console.log(displayname)
-			await AfterCheckName();
-		},
+		//	在GP 而有加好友的話,得到名字
+		displayname = profile.displayName;
+		//console.log(displayname)
+		await AfterCheckName();
+	},
 		async function () {
 			await AfterCheckName();
 			//如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
@@ -303,7 +303,7 @@ async function HandleMessage(message) {
 			return {
 				"type": "image",
 				"originalContentUrl": message.text.replace('http://', 'https://'),
-					"previewImageUrl": message.text.replace('http://', 'https://')
+				"previewImageUrl": message.text.replace('http://', 'https://')
 			};
 
 		case typeof message == 'string' || message instanceof String:
@@ -366,15 +366,15 @@ async function nonDice(event) {
 		displayname = '';
 	if (!roomorgroupid || !userid) return;
 	client.getProfile(userid).then(async function (profile) {
-			//	在GP 而有加好友的話,得到名字
-			displayname = profile.displayName;
-			//console.log(displayname)
-			let LevelUp = await EXPUP(roomorgroupid, userid, displayname, "", null);
-			await courtMessage("", "Line", "")
-			if (roomorgroupid && LevelUp) {
-				return await replyMessagebyReplyToken(event, LevelUp);
-			}
-		},
+		//	在GP 而有加好友的話,得到名字
+		displayname = profile.displayName;
+		//console.log(displayname)
+		let LevelUp = await EXPUP(roomorgroupid, userid, displayname, "", null);
+		await courtMessage("", "Line", "")
+		if (roomorgroupid && LevelUp) {
+			return await replyMessagebyReplyToken(event, LevelUp);
+		}
+	},
 		async function () {
 			let LevelUp = await EXPUP(roomorgroupid, userid, displayname, "", null);
 			await courtMessage("", "Line", "")

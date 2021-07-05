@@ -26,14 +26,14 @@ var prefixs = function () {
         second: null
     }]
 }
-var getHelpMessage = function () {
-    return "【Admin 工具】" + "\
-用來Debug 及調整VIP工具\n\
-.admin state 取得Rollbot狀態\n\
-.admin debug 用來取得群組資料\n\
-.admin account (username) (password) \n\
-username 4-16字,中英文限定 \n\
-password 6-16字,英文及以下符號限定 !@#$%^&*\n"
+var getHelpMessage = async function () {
+    return `【Admin 工具】
+用來Debug 及調整VIP工具
+.admin state 取得Rollbot狀態
+.admin debug 用來取得群組資料
+.admin account (username) (password) 
+username 4-16字,中英文限定 
+password 6-16字,英文及以下符號限定 !@#$%^&*`
 }
 
 var initialize = function () {
@@ -370,13 +370,13 @@ async function store(mainMsg, mode) {
     var resultNotes = pattNotes.exec(mainMsg);
     var resultSwitch = pattSwitch.exec(mainMsg);
     let reply = {};
-    (resultId && mode == 'id') ? reply.id = resultId[1]: null;
-    (resultGP && mode == 'gp') ? reply.gpid = resultGP[1]: null;
-    (resultLv) ? reply.level = Number(resultLv[1]): null;
-    (resultName) ? reply.name = resultName[1]: null;
-    (resultNotes) ? reply.notes = resultNotes[1]: null;
-    (resultSwitch && resultSwitch[1].toLowerCase() == 'true') ? reply.switch = true: null;
-    (resultSwitch && resultSwitch[1].toLowerCase() == 'false') ? reply.switch = false: null;
+    (resultId && mode == 'id') ? reply.id = resultId[1] : null;
+    (resultGP && mode == 'gp') ? reply.gpid = resultGP[1] : null;
+    (resultLv) ? reply.level = Number(resultLv[1]) : null;
+    (resultName) ? reply.name = resultName[1] : null;
+    (resultNotes) ? reply.notes = resultNotes[1] : null;
+    (resultSwitch && resultSwitch[1].toLowerCase() == 'true') ? reply.switch = true : null;
+    (resultSwitch && resultSwitch[1].toLowerCase() == 'false') ? reply.switch = false : null;
     return reply;
 }
 

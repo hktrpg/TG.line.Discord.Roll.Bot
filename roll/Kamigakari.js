@@ -30,8 +30,8 @@ var prefixs = function () {
         second: null
     }]
 }
-var getHelpMessage = function () {
-    return null
+var getHelpMessage = async function () {
+    return '【神我狩】\n' + await callHelp("Kamigakari");
 }
 var initialize = function () {
     return variables;

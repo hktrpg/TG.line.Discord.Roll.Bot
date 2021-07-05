@@ -39,44 +39,45 @@ COC export to roll20?
 */
 
 
-var getHelpMessage = function () {
-    return "【角色卡功能】" + "\n\
-以個人為單位, 一張卡可以在不同的群組使用\n\
-目標是文字團可以快速擲骰，及更新角色狀態。\n\
-\n\
-簡單新增角色卡 .char add name[Sad]~ state[HP:15/15;]~ roll[鬥毆: cc 50;]~ notes[筆記:這是測試,請試試在群組輸入 .char use Sad;]~ \n\
-新增了角色卡後，可以輸入 .admin account (username) (password) \n\
-然後在網頁: https://www.hktrpg.com:20721/card/ 中直接進行修改" + "\n\
-\n\
-把結果傳送到已登記的Discord，TG，LINE上的聊天群組的登記方法: \n\
-由該群組的Admin授權允許 輸入 .admin allowrolling  \n\
-登記該群組到自己的名單中 輸入 .admin registerChannel  \n\
-取消方法\n\
-由該群組的Admin取消授權 輸入 .admin disallowrolling  \n\
-取消登記該群組到名單 輸入 .admin unregisterChannel  \n\
-\n\
-最後網站會顯示群組名稱，點擊就可以使用了\n\
-\n\
------.char-----\n\
-.char add name[Sad]~ state[HP:15/15;con:60;san:60]~ roll[鬥毆: cc 50;投擲: cc 15;sc:cc {san}]~ notes[筆記:這是測試,請試試在群組輸入 .char use Sad;]~  \n - 可以新增及更新角色卡\n\
-.char Show - 可以顯示角色卡列表\n\
-.char Show0 - 可以顯示0號角色卡內容 0可以用其他數字取代\n\
-.char edit name[角色卡名字]~ - 可以以add的格式修改指定角色卡\n\
-.char use 角色卡名字 - 可以在該群組中使用指定角色卡\n\
-.char nonuse - 可以在該群組中取消使用角色卡\n\
-.char delete 角色卡名字 - 可以刪除指定角色卡\n\
------.ch 功能-----\n\
-在群組中使用.char use (角色名) 後, 就可以啟動角色卡功能\n\
-.ch 項目名稱 項目名稱 - 沒有加減的話, 會單純顯示數據或擲骰\n\
-.ch 項目名稱 (數字)  - 可以立即把如HP變成該數字\n\
-.ch 項目名稱 (+-*/數字)  - 可以立即對如HP進行四則運算\n\
-.ch 項目名稱 (+-*/xDy)  - 可以對如HP進行擲骰四則運算\n\
-.ch set 項目名稱 新內容 - 直接更改內容\n\
-.ch show - 顯示角色卡的state 和roll 內容\n\
-.ch showall - 顯示角色卡的所有內容\n\
------範例及運算式-----\n\
-角色卡還可以進行運算，詳情請看\n\
-https://github.com/hktrpg/TG.line.Discord.Roll.Bot/wiki/Character-Card"
+var getHelpMessage = async function () {
+    return `【角色卡功能】
+以個人為單位, 一張卡可以在不同的群組使用
+目標是文字團可以快速擲骰，及更新角色狀態。
+
+簡單新增角色卡 .char add name[Sad]~ state[HP:15/15;]~ roll[鬥毆: cc 50;]~ notes[筆記:這是測試,請試試在群組輸入 .char use Sad;]~ 
+新增了角色卡後，可以輸入 .admin account (username) (password) 
+然後在網頁: https://www.hktrpg.com:20721/card/ 中直接進行修改
+
+把結果傳送到已登記的Discord，TG，LINE上的聊天群組的登記方法: 
+由該群組的Admin授權允許 輸入 .admin allowrolling  
+登記該群組到自己的名單中 輸入 .admin registerChannel  
+取消方法
+由該群組的Admin取消授權 輸入 .admin disallowrolling  
+取消登記該群組到名單 輸入 .admin unregisterChannel  
+
+最後網站會顯示群組名稱，點擊就可以使用了
+
+-----.char-----
+.char add name[Sad]~ state[HP:15/15;con:60;san:60]~ roll[鬥毆: cc 50;投擲: cc 15;sc:cc {san}]~ notes[筆記:這是測試,請試試在群組輸入 .char use Sad;]~  
+- 可以新增及更新角色卡
+.char Show - 可以顯示角色卡列表
+.char Show0 - 可以顯示0號角色卡內容 0可以用其他數字取代
+.char edit name[角色卡名字]~ - 可以以add的格式修改指定角色卡
+.char use 角色卡名字 - 可以在該群組中使用指定角色卡
+.char nonuse - 可以在該群組中取消使用角色卡
+.char delete 角色卡名字 - 可以刪除指定角色卡
+-----.ch 功能-----
+在群組中使用.char use (角色名) 後, 就可以啟動角色卡功能
+.ch 項目名稱 項目名稱 - 沒有加減的話, 會單純顯示數據或擲骰
+.ch 項目名稱 (數字)  - 可以立即把如HP變成該數字
+.ch 項目名稱 (+-*/數字)  - 可以立即對如HP進行四則運算
+.ch 項目名稱 (+-*/xDy)  - 可以對如HP進行擲骰四則運算
+.ch set 項目名稱 新內容 - 直接更改內容
+.ch show - 顯示角色卡的state 和roll 內容
+.ch showall - 顯示角色卡的所有內容
+-----範例及運算式-----
+角色卡還可以進行運算，詳情請看
+https://github.com/hktrpg/TG.line.Discord.Roll.Bot/wiki/Character-Card `
 }
 
 var initialize = function () {
@@ -112,7 +113,7 @@ var rollDiceCommand = async function ({
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = this.getHelpMessage();
             return rply;
-            // .ch(0) ADD(1) TOPIC(2) CONTACT(3)
+        // .ch(0) ADD(1) TOPIC(2) CONTACT(3)
         case /(^[.]char$)/i.test(mainMsg[0]) && /^public+/i.test(mainMsg[1]):
             if (!mainMsg[2]) {
                 rply.text = "未輸入要公開的角色卡名字"
@@ -543,26 +544,26 @@ async function mainCharacter(doc, mainMsg) {
             findRoll = resutltRoll;
             last = 'roll';
         } else
-        if (resutltNotes) {
-            last = 'notes';
-            await findNotes.push(resutltNotes);
-        } else
-        if (resutltState) {
-            last = 'state';
-            await findState.push(resutltState);
-        } else
-        if (mainMsg[name].match(/^[+-/*]\S+d\S/i) && last == 'state') {
-            last = '';
-            let res = mainMsg[name].charAt(0)
-            let number = await countNum(mainMsg[name].substring(1));
-            number ? await findState.push(res + number) : null;
-        } else
-        if (mainMsg[name].match(/^[0-9+\-*/.]\S+$/i) && last == 'state') {
-            last = '';
-            await findState.push(mainMsg[name]);
-        } else {
-            last = '';
-        }
+            if (resutltNotes) {
+                last = 'notes';
+                await findNotes.push(resutltNotes);
+            } else
+                if (resutltState) {
+                    last = 'state';
+                    await findState.push(resutltState);
+                } else
+                    if (mainMsg[name].match(/^[+-/*]\S+d\S/i) && last == 'state') {
+                        last = '';
+                        let res = mainMsg[name].charAt(0)
+                        let number = await countNum(mainMsg[name].substring(1));
+                        number ? await findState.push(res + number) : null;
+                    } else
+                        if (mainMsg[name].match(/^[0-9+\-*/.]\S+$/i) && last == 'state') {
+                            last = '';
+                            await findState.push(mainMsg[name]);
+                        } else {
+                            last = '';
+                        }
 
     }
     //如果是roll的, 就變成擲骰MODE(最優先)
@@ -873,7 +874,7 @@ module.exports = {
 
 
 /*
-以個人為單位, 一張咭可以在不同的群組使用    
+以個人為單位, 一張咭可以在不同的群組使用
 .char add 的輸入格式,用來增建角色卡
 .char add name[Sad]~
 state[HP:5/5;MP:3/3;SAN:50/99;護甲:6]~
@@ -894,8 +895,8 @@ notes[筆記:SAD;心靈支柱: 特質]~
 .char use sad
 會自動使用名叫Sad 的角色卡
 ====
-.char nonuse 
-.char use 
+.char nonuse
+.char use
 會取消在此群組使用角色卡
 
 ====
@@ -907,7 +908,7 @@ notes[筆記:SAD;心靈支柱: 特質]~
 
 顯示SHOW 功能:
 
-.ch show (顯示 名字 state 和roll) 
+.ch show (顯示 名字 state 和roll)
 .ch shows  (顯示 名字 state,notes 和roll)
 .ch show notes (顯示 名字 和notes)
 
@@ -915,7 +916,7 @@ notes[筆記:SAD;心靈支柱: 特質]~
 角色名字
 HP: 5/5 MP: 3/3 SAN: 50/90 護甲: 6
 -------
-投擲: cc 80 投擲 
+投擲: cc 80 投擲
 空手: cc 50
 -------
 筆記: SAD
@@ -930,10 +931,10 @@ HP: 5/5 MP: 3/3 SAN: 50/90 護甲: 6
 
 
 
-.ch HP MP 顯示該內容 
-HP 5/5 MP 3/3  
+.ch HP MP 顯示該內容
+HP 5/5 MP 3/3
 
-.ch HP -5 如果HP是State 自動減5 
+.ch HP -5 如果HP是State 自動減5
 .ch HP +5  如果HP是State 自動加5 如果是
 
 
@@ -941,8 +942,8 @@ HP 5/5 MP 3/3
 ============
 .ch 輸出指令
 .ch  投擲
-cc 80 投擲 
-在指令中可以加上 +{HP} -{san}  
+cc 80 投擲
+在指令中可以加上 +{HP} -{san}
 在結果中會進行運算。
 
 

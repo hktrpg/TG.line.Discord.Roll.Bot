@@ -29,8 +29,9 @@ var prefixs = function () {
         second: null
     }]
 }
-var getHelpMessage = function () {
-    return null
+var getHelpMessage = async function () {
+    return `【迷宮王國】 .mk (nMK+m 及各種表)
+    ${await callHelp("MeikyuKingdom")}`;
 }
 var initialize = function () {
     return variables;

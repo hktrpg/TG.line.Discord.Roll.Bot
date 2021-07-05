@@ -30,8 +30,8 @@ var prefixs = function () {
         second: null
     }]
 }
-var getHelpMessage = function () {
-    return null
+var getHelpMessage = async function () {
+    return "【忍神】\n" + await callHelp("ShinobiGami");
 }
 var initialize = function () {
     return variables;

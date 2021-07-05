@@ -299,6 +299,8 @@ var rollDiceCommand = async function ({
 
             //尋找所有群組的資料，用來設定EN上限            
             let gpMember = await schema.trpgLevelSystemMember.find({ userid: userid });
+            let thisMember = await schema.trpgLevelSystemMember.findOne({ groupid: groupid, userid: userid });
+            if (!thisMember) rply.text = `錯誤發生，未有在這群組的資料`;
             /**
              * 檢查ENERGY，如果沒有則新增，數字為EN= 20+LV
              */
@@ -335,7 +337,10 @@ var rollDiceCommand = async function ({
             let randomDetail = doc[0].detail[await rollDice.Dice(doc[0].detail.length) - 1];
             console.log('randomDetail', randomDetail)
             let eventText = randomDetail.event.split(';');
-            rply.text = "====事件====\n" + eventText[await rollDice.Dice(eventText.length) - 1];
+
+            rply.text += "====事件====\n" + eventText[await rollDice.Dice(eventText.length) - 1];
+
+            rply.text += await eventProcessExp({ randomDetail: randomDetail, gpMember: gpMember, groupid: groupid, doc: doc[0].detail, thisMember: thisMember })
 
 
             return rply;
@@ -512,19 +517,19 @@ async function randomEvent({
     if (freeMode) {
         const target = await schema.eventList.find({});
         if (!target.length) return;
-        const targetEvent = target[exports.rollbase.Dice(target.length) - 1]
-        return targetEvent[exports.rollbase.Dice(targetEvent.length) - 1]
+        const targetEvent = target[rollDice.Dice(target.length) - 1]
+        return targetEvent[rollDice.Dice(targetEvent.length) - 1]
     } else if (eventName) {
         const target = await schema.eventList.findOne({
             title: eventName
         });
         if (!target) return;
-        return target[exports.rollbase.Dice(target.length) - 1]
+        return target[rollDice.Dice(target.length) - 1]
     } else return;
 
 }
 
-async function eventProcessExp(key, needExp, eventLV, myLV, eventNeg) {
+async function eventProcessExp({ randomDetail, gpMember, groupid, doc, thisMember }) {
 
     /**
     -1. 直接減少X點經驗(X分鐘內)
@@ -537,56 +542,79 @@ async function eventProcessExp(key, needExp, eventLV, myLV, eventNeg) {
 2. 每次發言得到經驗值 X 倍(X分鐘內)
 3. 從整個CHANNEL 的X人吸收X點經驗
  */
+    console.log('randomDetail, gpMember, groupid, doc', randomDetail, gpMember, groupid, doc)
+    switch (randomDetail.result) {
+        default: {
+            let eventNegLV = doc.map(item => {
+                if (item.result < 0 && !isNaN(item.result)) {
+                    console.log('item.result', item.result)
+                    return item.result;
+                } else return 0
+            });
+            let eventNeg = eventNegLV.reduce((a, b) =>
+                Number(a) + Number(b))
+            eventNeg = (!eventNeg) ? 1 : eventNeg;
 
-    switch (key) {
-        case 1:{
-                
-            //   2. 直接增加X點經驗
+            console.log('thisMember', thisMember)
+            let needExp = Math.round(5 / 6 * (thisMember.Level) * (2 * (thisMember.Level) * (thisMember.Level) + 30 * (thisMember.Level)) + 100);
+
+            console.log('eventNegLV', eventNegLV)
+
+            console.log('eventNeg', eventNeg)
+
+            console.log('needExp', needExp)
+            //   1. 直接增加X點經驗
             //100之一 ->50之一 * 1.0X ( 相差LV)% *1.0X(負面級數)^(幾個負面) 
-           let  random = exports.rollbase.DiceINT(needExp / 100, needExp / 50);
-            random *= (eventLV ^ 2 - myLV) > 0 ? ((eventLV ^ 2 - myLV) / 100 + 1) : 1;
-            random *= (eventNeg / 100 + 1);
-            return random;}
-        case -1:
-            // -1. 直接減少X點經驗
-            //100之一 ->50之一 * 1.0X ( 相差LV)% *1.0X(負面級數)^(幾個負面) 
-            random = exports.rollbase.DiceINT(needExp / 200, needExp / 50)
-            random *= (eventLV - myLV ^ 2) > 0 ? ((eventLV - myLV ^ 2) / 100 + 1) : 1;
-            random *= (1 - eventNeg / 100)
-            return random;
-
-        case -2:
-            //   -2. 停止得到經驗(X分鐘內)
-            random = eventLV;
-
-            break;
-        case -3:
-            //  5. 分發X經驗給整個CHANNEL中的X人
-            random = exports.rollbase.DiceINT(needExp / 50, needExp / 20)
-            random *= (eventLV ^ 2 - myLV) > 0 ? ((eventLV ^ 2 - myLV) / 100 + 1) : 1;
-            random *= (eventNeg / 100 + 1)
-            return random;
-        case -5:
-            //  6. 停止得到經驗(X分鐘內) 並每次減少發言減少X經驗
-            random = eventLV;
-            break;
-        case -4:
-            //  7. 吸收對方X點經驗
-
-            break;
-        case 2:
-            //  8. 對方得到經驗值 X 倍(X分鐘內)
-            random = exports.rollbase.DiceINT(needExp / 200, needExp / 50)
-            random *= (eventLV - myLV ^ 2) > 0 ? ((eventLV - myLV ^ 2) / 100 + 1) : 1;
-            random *= (1 - eventNeg / 100)
-            break;
-        case 3:
-            //  9. 從整個CHANNEL 的X人吸收X點經驗
-
-            break;
-
-        default:
-            //     0. 沒有事發生
-            break;
+            let random = await rollDice.DiceINT(needExp / 100, needExp / 50);
+            random *= (eventNeg ^ 2 + eventNeg - thisMember.Level) > 0 ? ((eventNeg ^ 2 - thisMember.Level) / 100 + 1) : 1;
+            random *= (eventNegLV.length / 100 + 1);
+            random = Math.round(random);
+            console.log('random', random)
+            return `你已增加${random} 點經驗`;
+        }
+        /**
+               case 2:
+                   //  8. 對方得到經驗值 X 倍(X分鐘內)
+                   random = rollDice.DiceINT(needExp / 200, needExp / 50)
+                   random *= (eventLV - myLV ^ 2) > 0 ? ((eventLV - myLV ^ 2) / 100 + 1) : 1;
+                   random *= (1 - eventNeg / 100)
+                   break;
+               case 3:
+                   //  9. 從整個CHANNEL 的X人吸收X點經驗
+       
+                   break;
+               case -1:
+                   // -1. 直接減少X點經驗
+                   //100之一 ->50之一 * 1.0X ( 相差LV)% *1.0X(負面級數)^(幾個負面) 
+                   random = rollDice.DiceINT(needExp / 200, needExp / 50)
+                   random *= (eventLV - myLV ^ 2) > 0 ? ((eventLV - myLV ^ 2) / 100 + 1) : 1;
+                   random *= (1 - eventNeg / 100)
+                   return random;
+       
+               case -2:
+                   //   -2. 停止得到經驗(X分鐘內)
+                   random = eventLV;
+       
+                   break;
+               case -3:
+                   //  5. 分發X經驗給整個CHANNEL中的X人
+                   random = rollDice.DiceINT(needExp / 50, needExp / 20)
+                   random *= (eventLV ^ 2 - myLV) > 0 ? ((eventLV ^ 2 - myLV) / 100 + 1) : 1;
+                   random *= (eventNeg / 100 + 1)
+                   return random;
+               case -5:
+                   //  6. 停止得到經驗(X分鐘內) 並每次減少發言減少X經驗
+                   random = eventLV;
+                   break;
+               case -4:
+                   //  7. 吸收對方X點經驗
+       
+                   break;
+              
+                       default:
+                           //     0. 沒有事發生
+                           break;
+               
+                            */
     }
 }

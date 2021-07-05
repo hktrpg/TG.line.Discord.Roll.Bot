@@ -41,7 +41,7 @@ var rollDiceCommand = async function ({
     };
     switch (true) {
         case /^help$/i.test(mainMsg[1]):
-            rply.text = this.getHelpMessage();
+            rply.text = await this.getHelpMessage();
             return rply;
         default:
             var match = /^[.]4df(\d+|(\+|m|-)(\d+)|)$/i.exec(mainMsg[0])

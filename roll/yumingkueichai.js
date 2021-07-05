@@ -45,7 +45,7 @@ var rollDiceCommand = async function ({
     };
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
-            rply.text = this.getHelpMessage();
+            rply.text = await this.getHelpMessage();
             return rply;
         case /^(|4|5)d+((\d+)|)$/i.test(mainMsg[1]):
             rply.text = await compareAllValues(mainMsg[1], "" || mainMsg[2])

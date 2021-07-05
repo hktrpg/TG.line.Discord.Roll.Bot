@@ -233,7 +233,7 @@ HKTRPG 研究社 Facebook https://www.facebook.com/groups/HKTRPG
 			return rply;
 		/**
 	case /^report/i.test(mainMsg[1]):
-		rply.text = this.getHelpMessage();
+		rply.text = await this.getHelpMessage();
 		return rply;
 
 		 */

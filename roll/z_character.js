@@ -111,7 +111,7 @@ var rollDiceCommand = async function ({
     let check;
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
-            rply.text = this.getHelpMessage();
+            rply.text = await this.getHelpMessage();
             return rply;
         // .ch(0) ADD(1) TOPIC(2) CONTACT(3)
         case /(^[.]char$)/i.test(mainMsg[0]) && /^public+/i.test(mainMsg[1]):

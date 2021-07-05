@@ -50,10 +50,10 @@ var rollDiceCommand = async function ({
 	let trigger = mainMsg[0].toLowerCase();
 	//console.log(mainMsg[1].toLowerCase())
 	if (trigger == "cc" && mainMsg[1].toLowerCase() == "help") {
-		rply.text = this.getHelpMessage();
+		rply.text = await this.getHelpMessage();
 	}
 	if (trigger == ".dp" && (mainMsg[1].toLowerCase() == "help" || !mainMsg[1])) {
-		rply.text = this.getHelpMessage();
+		rply.text = await this.getHelpMessage();
 	}
 	if (trigger.match(/(^ccrt$)/) != null) {
 		rply.text = await ccrt();
@@ -512,10 +512,8 @@ async function coc7bp(chack, bpdiceNum, text) {
 	}
 }
 async function buildpulpchar() {
-	let ReStr = 'Pulp CoC 不使用年齡調整';
+	let ReStr = 'Pulp CoC 不使用年齡調整\n';
 	//讀取年齡
-	ReStr += '==\n';
-
 	ReStr += '\nＳＴＲ：' + await rollbase.BuildDiceCal('3d6*5');
 	ReStr += '\nＤＥＸ：' + await rollbase.BuildDiceCal('3d6*5');
 	ReStr += '\nＰＯＷ：' + await rollbase.BuildDiceCal('3d6*5');

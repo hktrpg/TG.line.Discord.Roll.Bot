@@ -39,7 +39,7 @@ var rollDiceCommand = async function ({ mainMsg }) {
     };
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
-            rply.text = this.getHelpMessage();
+            rply.text = await this.getHelpMessage();
             return rply;
         case /^\d/i.test(mainMsg[1]):
             if (mainMsg[1].replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]|[@]/ig, '')) return;

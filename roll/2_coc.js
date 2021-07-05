@@ -11,7 +11,7 @@ var gameType = function () {
 }
 var prefixs = function () {
 	return [{
-		first: /(^ccrt$)|(^ccsu$)|(^cc7版創角$)|(^[.]cc7build$)|(^[.]cc6build$)|(^[.]cc7bg$)|(^cc6版創角$)|(^cc7版角色背景$)/i,
+		first: /(^ccrt$)|(^ccsu$)|(^cc7版創角$)|(^[.]cc7build$)|(^[.]ccpulpbuild$)|(^[.]cc6build$)|(^[.]cc7bg$)|(^cc6版創角$)|(^cc7版角色背景$)/i,
 		second: null
 	},
 	{
@@ -20,19 +20,20 @@ var prefixs = function () {
 	}
 	]
 }
-var getHelpMessage = function () {
-	return "【克蘇魯神話】" + "\n\
-coc6版擲骰： ccb 80 技能小於等於80 \n\
-coc7版擲骰： cc 80 技能小於等於80 \n\
-coc7版獎勵骰： cc(1~2) cc1 80 一粒獎勵骰 \n\
-coc7版懲罰骰： ccn(1~2) ccn2 80 兩粒懲罰骰 \n\
-coc7版 即時型瘋狂： 啓動語 ccrt  \n\
-coc7版 總結型瘋狂： 啓動語 ccsu  \n\
-coc6版創角： 啓動語 .cc6build \n\
-coc7版創角： 啓動語 .cc7build (歲數) \n\
-coc7 成長或增長檢定： .dp 或 成長檢定 或 幕間成長 (技能%) (名稱) \n\
-例）.DP 50 騎馬 | 成長檢定 45 頭槌 | 幕間成長 40 單車\n\
-coc7版角色背景隨機生成： 啓動語 .cc7bg \n"
+var getHelpMessage = async function () {
+	return `【克蘇魯神話】
+coc6版擲骰： ccb 80 技能小於等於80 
+coc7版擲骰： cc 80 技能小於等於80 
+coc7版獎勵骰： cc(1~2) cc1 80 一粒獎勵骰 
+coc7版懲罰骰： ccn(1~2) ccn2 80 兩粒懲罰骰 
+coc7版 即時型瘋狂： 啓動語 ccrt  
+coc7版 總結型瘋狂： 啓動語 ccsu 
+coc pulp版創角： 啓動語 .ccpulpbuild  
+coc6版創角： 啓動語 .cc6build 
+coc7版創角： 啓動語 .cc7build (歲數7-89) 
+coc7 成長或增長檢定： .dp 或 成長檢定 或 幕間成長 (技能%) (名稱) 
+例）.DP 50 騎馬 | 成長檢定 45 頭槌 | 幕間成長 40 單車
+coc7版角色背景隨機生成： 啓動語 .cc7bg`
 }
 var initialize = function () {
 	return variables;
@@ -88,6 +89,9 @@ var rollDiceCommand = async function ({
 	}
 	if (trigger.match(/(^cc7版創角$)|(^[.]cc7build$)/i) != null) {
 		rply.text = await (await build7char(mainMsg[1])).replace(/\*5/ig, ' * 5');
+	}
+	if (trigger.match(/(^ccpulp版創角$)|(^[.]ccpulpbuild$)/i) != null) {
+		rply.text = await (await buildpulpchar(mainMsg[1])).replace(/\*5/ig, ' * 5');
 	}
 	if (trigger.match(/(^cc6版創角$)|(^[.]cc6build$)/i) != null) {
 		rply.text = await build6char(mainMsg[1]);
@@ -506,6 +510,26 @@ async function coc7bp(chack, bpdiceNum, text) {
 		result = '1D100 ≦ ' + chack + "：\n" + countStr;
 		return result;
 	}
+}
+async function buildpulpchar() {
+	let ReStr = 'Pulp CoC 不使用年齡調整';
+	//讀取年齡
+	ReStr += '==\n';
+
+	ReStr += '\nＳＴＲ：' + await rollbase.BuildDiceCal('3d6*5');
+	ReStr += '\nＤＥＸ：' + await rollbase.BuildDiceCal('3d6*5');
+	ReStr += '\nＰＯＷ：' + await rollbase.BuildDiceCal('3d6*5');
+
+	ReStr += '\nＣＯＮ：' + await rollbase.BuildDiceCal('3d4*5');
+	ReStr += '\nＡＰＰ：' + await rollbase.BuildDiceCal('3d6*5');
+	ReStr += '\nＳＩＺ：' + await rollbase.BuildDiceCal('(2d6+6)*5');
+	ReStr += '\nＩＮＴ：' + await rollbase.BuildDiceCal('(2d6+6)*5');
+
+
+	ReStr += '\nＥＤＵ：' + await rollbase.BuildDiceCal('(2d6+6)*5');
+	ReStr += '\nＬＵＫ：' + await rollbase.BuildDiceCal('(2d6+6)*5');
+	ReStr += '\n核心屬性：' + await rollbase.BuildDiceCal('(1d6+13)*5');
+	return ReStr;
 }
 
 /**

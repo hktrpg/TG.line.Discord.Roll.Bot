@@ -13,40 +13,40 @@ var gameType = function () {
 }
 var prefixs = function () {
 	return [{
-			first: /^[.][c][a]$/i,
-			second: null
-		},
-		{
-			first: /^d66s$|^d66$|^d66n$/i,
-			second: null
-		},
-		{
-			first: /^(\d+)(u)(\d+)$/i,
-			second: /\d+/
-		},
-		{
-			first: regexxBy,
-			second: null
-		},
-		{
-			first: /^[.][i][n][t]$/i,
-			second: /\d+/
-		}
+		first: /^[.][c][a]$/i,
+		second: null
+	},
+	{
+		first: /^d66s$|^d66$|^d66n$/i,
+		second: null
+	},
+	{
+		first: /^(\d+)(u)(\d+)$/i,
+		second: /\d+/
+	},
+	{
+		first: regexxBy,
+		second: null
+	},
+	{
+		first: /^[.][i][n][t]$/i,
+		second: /\d+/
+	}
 	]
 }
-var getHelpMessage = function () {
-	return "【進階擲骰】" + "\n\
-.ca 只進行數學計算 \n\
-例如: .ca 1.2 * (2 + 4.5) ， 12.7 米 to inch \n\
-sin(45 deg) ^ 2  5磅轉斤 10米轉呎 10米=吋\n\
-D66 D66s D66n：	骰出D66 s數字小在前 n大在前\n\
-5B10：	不加總的擲骰 \n\
-5B10<>=x ：	如上,另外計算其中有多少粒大於小於X \n\
-5B10 (D)x ：	如上,用空格取代, 即大於, 使用D即小於\n\
-即 5B10 5 相當於 5B10>=5　 5B10 D5 相當於 5B10<=5  \n\
-5U10 8：	進行5D10 每骰出一粒8會有一粒獎勵骰 \n\
-5U10 8 9：	如上,另外計算其中有多少粒大於9 \n\
-.int 20 30: 即骰出20-30\n"
+var getHelpMessage = async function () {
+	return `【進階擲骰】
+.ca 只進行數學計算 
+例如: .ca 1.2 * (2 + 4.5) ， 12.7 米 to inch 
+sin(45 deg) ^ 2  5磅轉斤 10米轉呎 10米=吋
+D66 D66s D66n：	骰出D66 s數字小在前 n大在前
+5B10：	不加總的擲骰 
+5B10<>=x ：	如上,另外計算其中有多少粒大於小於X 
+5B10 (D)x ：	如上,用空格取代, 即大於, 使用D即小於
+即 5B10 5 相當於 5B10>=5 5B10 D5 相當於 5B10<=5  
+5U10 8：	進行5D10 每骰出一粒8會有一粒獎勵骰 
+5U10 8 9：	如上,另外計算其中有多少粒大於9 
+.int 20 30: 即骰出20-30`
 }
 
 var initialize = function () {

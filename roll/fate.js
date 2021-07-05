@@ -19,12 +19,12 @@ var prefixs = function () {
         second: null
     }]
 }
-var getHelpMessage = function () {
-    return "【命運Fate】" + "\n\
-命運骰，又稱胡扯骰，是由兩面「＋」號、兩面「－」號，以及兩面空白▉組成的六面骰\n\
-「＋」號代表＋１，「－」號－１，▉則代表０\n\
-.4df(+|m|-)(加值) 指令: .4df 如常骰出四粒命運骰\n\
-.4df3 .4df+3  四粒命運骰結果+3  .4dfm4 或.4df-4  四粒命運骰結果-4"
+var getHelpMessage = async function () {
+    return `【命運Fate】
+命運骰，又稱胡扯骰，是由兩面「＋」號、兩面「－」號，以及兩面空白▉組成的六面骰
+「＋」號代表＋１，「－」號－１，▉則代表０
+.4df(+|m|-)(加值) 指令: .4df 如常骰出四粒命運骰
+.4df3 .4df+3  四粒命運骰結果+3  .4dfm4 或.4df-4  四粒命運骰結果-4`
 }
 var initialize = function () {
     return variables;
@@ -64,10 +64,10 @@ var rollDiceCommand = async function ({
             if (match[2] && (match[2].toLowerCase() == 'm' || match[2].toLowerCase() == '-')) {
                 rply.text += ' - ' + match[3] + ' = ' + (Number(ans) - Number(match[3]))
             } else
-            if (match[2] && (match[2].toLowerCase() == '+')) {
-                rply.text += ' + ' + match[3] + ' = ' + (Number(ans) + Number(match[3]))
-            } else if (match[1])
-                rply.text += ' + ' + match[1] + ' = ' + (Number(ans) + Number(match[1]))
+                if (match[2] && (match[2].toLowerCase() == '+')) {
+                    rply.text += ' + ' + match[3] + ' = ' + (Number(ans) + Number(match[3]))
+                } else if (match[1])
+                    rply.text += ' + ' + match[1] + ' = ' + (Number(ans) + Number(match[1]))
 
             return rply;
     }

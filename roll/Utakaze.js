@@ -30,8 +30,8 @@ var prefixs = function () {
 		second: null
 	}]
 }
-var getHelpMessage = function () {
-	return null
+var getHelpMessage = async function () {
+	return '【歌風】\n' + await callHelp("Utakaze");
 }
 var initialize = function () {
 	return variables;

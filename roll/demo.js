@@ -18,10 +18,10 @@ var prefixs = function () {
         second: /^啊$/i
     }]
 }
-var getHelpMessage = function () {
-    return "【示範】" + "\n\
-只是一個Demo的第一行\n\
-只是一個Demo末行"
+var getHelpMessage = async function () {
+    return `【示範】
+只是一個Demo的第一行
+只是一個Demo末行`
 }
 var initialize = function () {
     return variables;

@@ -24,35 +24,35 @@ var prefixs = function () {
         second: null
     }]
 }
-var getHelpMessage = function () {
-    return "【經驗值功能】" + "\n\
-這是根據開源Discord bot Mee6開發的功能\n\
-按發言次數增加經驗，提升等級，實現服務器內排名等歡樂功能\n\
-當經驗達到要求，就會彈出通知，提示你已提升等級。\n\
-預設並不開啓，需要輸入.level config 11 啓動功能 \n\
-數字11代表等級升級時會進行通知，10代表不會通知，\n\
-00的話代表關閉功能，\n\
-預設回應是「 XXXX 《稱號》， 你的克蘇魯神話知識現在是 X點！\n\
-現在排名是XX人中的第XX名！XX%！\n\
-調查經驗是XX點。」\n\
-P.S.如果沒立即生效 用.level show 刷新一下\n\
-        \n\
-輸入.level LevelUpWord (內容) 修改在這群組升級時彈出的升級語\n\
-輸入.level RankWord (內容) 修改在這群組查詢等級時的回應\n\
-輸入.level TitleWord -(LV) (內容)，修改稱號，大於等級即會套用\n\
-建議由-0開始，可一次輸入多個，如 .level TitleWord -0 幼童 -5 學徒 -10 武士 \n\
-輸入.level RankWord/LevelUpWord/TitleWord del 即使用預設字句\n\
-輸入.level RankWord/LevelUpWord/TitleWord show 即顯示現在設定\n\
-輸入.level show 可以查詢你現在的等級\n\
-輸入.level showMe (數字) 可以查詢這群組排名 預設頭5名\n\
-輸入.level showMeTheworld (數字) 可以查詢世界排名 預設頭6名\n\
-修改內容可使用不同代碼\n\
-{user.name} 名字 {user.level} 等級 \n\
-{user.title} 稱號 \n\
-{user.exp} 經驗值 {user.Ranking} 現在排名 \n\
-{user.RankingPer} 現在排名百分比 \n\
-{server.member_count} 現在頻道中總人數 \n\
-"
+var getHelpMessage = async function () {
+    return `【經驗值功能】" + "
+這是根據開源Discord bot Mee6開發的功能
+按發言次數增加經驗，提升等級，實現服務器內排名等歡樂功能
+當經驗達到要求，就會彈出通知，提示你已提升等級。
+預設並不開啓，需要輸入.level config 11 啓動功能 
+數字11代表等級升級時會進行通知，10代表不會通知，
+00的話代表關閉功能，
+預設回應是「 XXXX 《稱號》， 你的克蘇魯神話知識現在是 X點！
+現在排名是XX人中的第XX名！XX%！
+調查經驗是XX點。」
+P.S.如果沒立即生效 用.level show 刷新一下
+        
+輸入.level LevelUpWord (內容) 修改在這群組升級時彈出的升級語
+輸入.level RankWord (內容) 修改在這群組查詢等級時的回應
+輸入.level TitleWord -(LV) (內容)，修改稱號，大於等級即會套用
+建議由-0開始，可一次輸入多個，如 .level TitleWord -0 幼童 -5 學徒 -10 武士 
+輸入.level RankWord/LevelUpWord/TitleWord del 即使用預設字句
+輸入.level RankWord/LevelUpWord/TitleWord show 即顯示現在設定
+輸入.level show 可以查詢你現在的等級
+輸入.level showMe (數字) 可以查詢這群組排名 預設頭5名
+輸入.level showMeTheworld (數字) 可以查詢世界排名 預設頭6名
+修改內容可使用不同代碼
+{user.name} 名字 {user.level} 等級 
+{user.title} 稱號 
+{user.exp} 經驗值 {user.Ranking} 現在排名 
+{user.RankingPer} 現在排名百分比 
+{server.member_count} 現在頻道中總人數 
+`
 }
 var initialize = function () {
     return trpgLevelSystemfunction;

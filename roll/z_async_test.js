@@ -21,21 +21,21 @@ var prefixs = function () {
 
 }
 
-var getHelpMessage = function () {
-	return "【Wiki查詢/即時翻譯】.wiki .image .tran .tran.(目標語言)\n\
-1) Wiki功能: .wiki (條目)  \n\
-EG: .wiki BATMAN  \n\
-2) 圖片搜尋功能: .Image (內容)  \n\
-從Google 得到相關隨機圖片Link\n\
-隨機YES NO: 如.image yesno 會得到yes 或NO 結果\n\
-3) 即時翻譯功能: .Tran (內容)  \n\
-預設翻譯成正體中文\n\
-EG: .tran BATMAN  \n\
-4) 可翻譯成其他語言: .tran.(語系) (內容)\n\
-EG: .tran.ja BATMAN  .tran.日 BATMAN\n\
-常用語言代碼: 英=en, 簡=zh-cn, 德=de, 日=ja\n\
-語系代碼 https://github.com/vitalets/google-translate-api/blob/master/languages.js\n\
-"
+var getHelpMessage = async function () {
+	return `【Wiki查詢/即時翻譯】.wiki .image .tran .tran.(目標語言)
+1) Wiki功能: .wiki (條目)  
+EG: .wiki BATMAN  
+2) 圖片搜尋功能: .Image (內容)  
+從Google 得到相關隨機圖片Link
+隨機YES NO: 如.image yesno 會得到yes 或NO 結果
+3) 即時翻譯功能: .Tran (內容)  
+預設翻譯成正體中文
+EG: .tran BATMAN  
+4) 可翻譯成其他語言: .tran.(語系) (內容)
+EG: .tran.ja BATMAN  .tran.日 BATMAN
+常用語言代碼: 英=en, 簡=zh-cn, 德=de, 日=ja
+語系代碼 https://github.com/vitalets/google-translate-api/blob/master/languages.js
+`
 }
 var initialize = function () {
 	return variables;
@@ -60,8 +60,8 @@ var rollDiceCommand = async function ({
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /[.]wiki/.test(mainMsg[0]):
 			rply.text = await wiki({
-					apiUrl: 'https://zh.wikipedia.org/w/api.php'
-				}).page(mainMsg[1].toLowerCase())
+				apiUrl: 'https://zh.wikipedia.org/w/api.php'
+			}).page(mainMsg[1].toLowerCase())
 				.then(async page => {
 					return chineseConv.tify(await page.summary())
 				}) //console.log('case: ', rply)
@@ -118,9 +118,9 @@ async function searchImage(inputStr, mainMsg, safe) {
 		keyword = A[await rollbase.Dice(A.length) - 1] + " GIF";
 	}
 	return await duckImage.image_search({
-			query: keyword,
-			moderate: safe
-		})
+		query: keyword,
+		moderate: safe
+	})
 		.then(async images => {
 			if (images[0] && images[0].image) {
 				//let resultnum = Math.floor((Math.random() * (images.length)) + 0)

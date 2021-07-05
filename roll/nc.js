@@ -31,8 +31,9 @@ var prefixs = function () {
 		second: null
 	}]
 }
-var getHelpMessage = function () {
-	return null
+var getHelpMessage = async function () {
+	return `【永遠的後日談】 .nc (NM xNC+m xNA+m)
+	${await callHelp("Nechronica")}`;
 }
 var initialize = function () {
 	return variables;

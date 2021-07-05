@@ -15,24 +15,24 @@ var prefixs = function () {
 		second: null
 	}]
 }
-var getHelpMessage = function () {
-	return "【趣味擲骰】" + "\n\
-隨機選擇： 啓動語 choice 隨機\n\
-(問題)(啓動語)(問題)  (選項1) (選項2) \n\
-例子 收到聖誕禮物隨機數 1 2 >3  \n\
-\n\
-隨機排序：啓動語 排序\n\
-(問題)(啓動語)(問題) (選項1) (選項2)(選項3)\n\
-例子 交換禮物排序 A君 C君 F君 G君\n\
-\n\
-複述功能：啓動語 .me (模擬系統說話)\n\
-(啓動語) (句子)(句子)(句子)\n\
-例子 .me C君殺死了NPC 村民, 受到尼什村通緝!\n\
-\n\
-占卜運氣功能： 字句開頭或結尾包括「運勢」兩字及四十字以內\n\
-塔羅牌占卜： 「大十字塔羅 每日塔羅 時間塔羅」 等關键字可啓動\n\
-\n\
-隨機死亡FLAG 字句開頭或結尾包括「立FLAG」可啓動\n"
+var getHelpMessage = async function () {
+	return `【趣味擲骰】
+隨機選擇： 啓動語 choice 隨機
+(問題)(啓動語)(問題)  (選項1) (選項2) 
+例子 收到聖誕禮物隨機數 1 2 >3  
+
+隨機排序：啓動語 排序
+(問題)(啓動語)(問題) (選項1) (選項2)(選項3)
+例子 交換禮物排序 A君 C君 F君 G君
+
+複述功能：啓動語 .me (模擬系統說話)
+(啓動語) (句子)(句子)(句子)
+例子 .me C君殺死了NPC 村民, 受到尼什村通緝!
+
+占卜運氣功能： 字句開頭或結尾包括「運勢」兩字及四十字以內
+塔羅牌占卜： 「大十字塔羅 每日塔羅 時間塔羅」 等關键字可啓動
+
+隨機死亡FLAG 字句開頭或結尾包括「立FLAG」可啓動`
 }
 var initialize = function () {
 	return variables;
@@ -274,7 +274,7 @@ async function MultiDrawTarot(text, text2, type) {
 	switch (type) {
 		case 1:
 			returnStr = '時間塔羅';
-			(text) ? returnStr += "；" + text + " " + text2: '';
+			(text) ? returnStr += "；" + text + " " + text2 : '';
 			cards = await rollbase.shuffleTarget(TarotList2);
 			returnStr += '過去: ' + cards[0] + '\n'
 			returnStr += '現在: ' + cards[1] + '\n'
@@ -282,7 +282,7 @@ async function MultiDrawTarot(text, text2, type) {
 			break;
 		case 2:
 			returnStr = '大十字塔羅';
-			(text) ? returnStr += "；" + text + " " + text2: '';
+			(text) ? returnStr += "；" + text + " " + text2 : '';
 			cards = await rollbase.shuffleTarget(TarotList2);
 			returnStr += '現況: ' + cards[0] + '\n'
 			returnStr += '助力: ' + cards[1] + '\n'

@@ -78,17 +78,17 @@ var prefixs = function () {
 	}]
 
 }
-var getHelpMessage = function () {
-	return "暗骰功能 在指令前輸入dr 結果會私訊你\n\
-ddr dddr 可以私訊已設定的群組GM, 詳情可打.drgm查詢\n\
-【基本擲骰】1d100(khN|klN|dhN|dlN)\n\
-例如輸入(2d6+1)*2 攻撃！\n\
-會輸出）(2d6+1)*2：攻撃！  (10[5+5]+1)2 = 22\n\
-如上面一樣,在骰子數字後方隔空白位打字,可以進行發言。\n\
-5 3D6 ：	分別骰出5次3d6 最多30次\n\
-((2d6+1)*2)-5/2>=10 支援括號加減乘除及大於小於(>,<,>=,<=)計算\n\
-支援kh|kl|dh|dl，k keep保留，d drop 放棄，h highest最高，l lowest最低\n\
-如3d6kh 保留最大的1粒骰，3d6dl2 放棄最小的2粒骰"
+var getHelpMessage = async function () {
+	return `暗骰功能 在指令前輸入dr 結果會私訊你
+ddr dddr 可以私訊已設定的群組GM, 詳情可打.drgm查詢
+【基本擲骰】1d100(khN|klN|dhN|dlN)
+例如輸入(2d6+1)*2 攻撃！
+會輸出）(2d6+1)*2：攻撃！  (10[5+5]+1)2 = 22
+如上面一樣,在骰子數字後方隔空白位打字,可以進行發言。
+5 3D6 ：	分別骰出5次3d6 最多30次
+((2d6+1)*2)-5/2>=10 支援括號加減乘除及大於小於(>,<,>=,<=)計算
+支援kh|kl|dh|dl，k keep保留，d drop 放棄，h highest最高，l lowest最低
+如3d6kh 保留最大的1粒骰，3d6dl2 放棄最小的2粒骰`
 }
 var initialize = function () {
 	return variables;
@@ -107,30 +107,33 @@ var rollDiceCommand = async function ({
 	switch (true) {
 		case !mainMsg[1]:
 			rply.text =
-				"【HKTRPG擲骰ROLLBOT】\n\
-				HKTRPG是在Discord, Line, Telegram, Whatsapp和網頁上都可以使用的骰子機械人！\n\
-				功能：暗骰, 各類TRPG骰子擲骰, 頻道經驗值, 占卜, 先攻表, TRPG角色卡, 搜圖, 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, 自定義抽選, wiki查詢, 資料庫快速查詢功能\n\
-請問有什麼可以幫助你?\n\
-請輸入你想查詢的項目名字.\n\
-或到 (https://hktrpg.github.io/TG.line.Discord.Roll.Bot/) 觀看詳細使用說明.\n\
--------\n\
-bothelp ver		- 查詢詳細版本及公告(" + ver + ")\n\
-bothelp Base	- 查詢trpg 基本擲骰指令\n\
-bothelp Dice	- 查詢trpg 不同系統擲骰指令\n\
-bothelp Tool	- 查詢trpg 輔助工具\n\
-bothelp admin	- 查詢系統工具\n\
-bothelp funny	- 查詢趣味功能\n\
-bothelp link	- 查詢hktrpg 不同平台連結\n\
-bothelp req		- 對HKTRPG RollBot提出意見\n\
---------\n\
-程式開發，求助及TRPG Discord群 https://discord.gg/vx4kcm7\n\
-解鎖功能及贊助HKTRPG https://www.patreon.com/HKTRPG"
+				`【HKTRPG擲骰ROLLBOT】
+HKTRPG是在Discord, Line, Telegram, Whatsapp和網頁上都可以使用的骰子機械人！
+功能：暗骰, 各類TRPG骰子擲骰, 頻道經驗值, 占卜, 先攻表, TRPG角色卡, 搜圖, 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, 自定義抽選, wiki查詢, 資料庫快速查詢功能
+請問有什麼可以幫助你?
+請輸入你想查詢的項目名字.
+或到 (https://hktrpg.github.io/TG.line.Discord.Roll.Bot/) 觀看詳細使用說明.
+-------
+bothelp ver		- 查詢詳細版本及公告(${ver})
+bothelp Base	- 查詢trpg 基本擲骰指令
+bothelp Dice	- 查詢trpg 不同系統擲骰指令
+bothelp Tool	- 查詢trpg 輔助工具
+bothelp admin	- 查詢系統工具
+bothelp funny	- 查詢趣味功能
+bothelp link	- 查詢hktrpg 不同平台連結
+bothelp req		- 對HKTRPG RollBot提出意見
+--------
+程式開發，求助及TRPG Discord群 https://discord.gg/vx4kcm7
+解鎖功能及贊助HKTRPG https://www.patreon.com/HKTRPG`
 			return rply;
 		case /^ver$/i.test(mainMsg[1]):
-			rply.text = version + '\n\
-最近更新: \n\
-2019/07/21 香港克警合作 黑ICON紀念\n\
-2020/09/07 Bothelp 顯示方法更新\n';
+			rply.text = `${version}
+最近更新: 
+2019/07/21 香港克警合作 黑ICON紀念
+2020/09/07 Bothelp 顯示方法更新
+2021/06/24 🍎
+2021/07/01 🌼
+`;
 			try {
 				const response = await fetch(url);
 				const json = await response.json();
@@ -141,7 +144,7 @@ bothelp req		- 對HKTRPG RollBot提出意見\n\
 			}
 			return rply;
 		case /^BASE/i.test(mainMsg[1]):
-			rply.text = getHelpMessage();
+			rply.text = await getHelpMessage();
 			return rply;
 		case /^Dice/i.test(mainMsg[1]):
 			if (mainMsg[1].match(/^DICE$/i)) {
@@ -153,7 +156,7 @@ bothelp req		- 對HKTRPG RollBot提出意見\n\
 			if (mainMsg[1].match(/^Dice\d+$/i)) {
 				let temp = mainMsg[1].replace(/^dice/i, '');
 				if (!Dice[temp]) return;
-				rply.text = Dice[temp].getHelpMessage();
+				rply.text = await Dice[temp].getHelpMessage();
 			}
 			return rply;
 		case /^Tool/i.test(mainMsg[1]):
@@ -166,7 +169,7 @@ bothelp req		- 對HKTRPG RollBot提出意見\n\
 			if (mainMsg[1].match(/^Tool\d+$/i)) {
 				let temp = mainMsg[1].replace(/^Tool/i, '');
 				if (!Tool[temp]) return;
-				rply.text = Tool[temp].getHelpMessage();
+				rply.text = await Tool[temp].getHelpMessage();
 			}
 			return rply;
 
@@ -180,7 +183,7 @@ bothelp req		- 對HKTRPG RollBot提出意見\n\
 			if (mainMsg[1].match(/^admin\d+$/i)) {
 				let temp = mainMsg[1].replace(/^admin/i, '');
 				if (!admin[temp]) return;
-				rply.text = admin[temp].getHelpMessage();
+				rply.text = await admin[temp].getHelpMessage();
 			}
 			return rply;
 
@@ -194,7 +197,7 @@ bothelp req		- 對HKTRPG RollBot提出意見\n\
 			if (mainMsg[1].match(/^funny\d+$/i)) {
 				let temp = mainMsg[1].replace(/^funny/i, '');
 				if (!funny[temp]) return;
-				rply.text = funny[temp].getHelpMessage();
+				rply.text = await funny[temp].getHelpMessage();
 			}
 			return rply;
 
@@ -208,34 +211,35 @@ bothelp req		- 對HKTRPG RollBot提出意見\n\
 			if (mainMsg[1].match(/^help\d+$/i)) {
 				let temp = mainMsg[1].replace(/^help/i, '');
 				if (!help[temp]) return;
-				rply.text = help[temp].getHelpMessage();
+				rply.text = await help[temp].getHelpMessage();
 			}
 			return rply;
 
 		case /^link/i.test(mainMsg[1]):
-			rply.text = "TRPG百科 https://www.hktrpg.com/\n\
-意見留言群 https://discord.gg/vx4kcm7\n\
-			\n\
-邀請HKTRPG 加入\n\
-Line 邀請連結 http://bit.ly/HKTRPG_LINE\n\
-Discord 邀請連結 http://bit.ly/HKTRPG_DISCORD_\n\
-Telegram 邀請連結 http://t.me/hktrpg_bot\n\
-網頁版 邀請連結 https://rollbot.hktrpg.com/\n\
-簡易網上擲骰網頁 https://roll.hktrpg.com/\n\
-			\n\
-HKTRPG 研究社 Facebook https://www.facebook.com/groups/HKTRPG\n\
-解鎖功能及贊助 https://www.patreon.com/HKTRPG \n\
-源代碼 http://bit.ly/HKTRPG_GITHUB\n"
+			rply.text = `TRPG百科 https://www.hktrpg.com/
+意見留言群 https://discord.gg/vx4kcm7
+			
+邀請HKTRPG 加入
+Line 邀請連結 http://bit.ly/HKTRPG_LINE
+Discord 邀請連結 http://bit.ly/HKTRPG_DISCORD_
+Telegram 邀請連結 http://t.me/hktrpg_bot
+網頁版 邀請連結 https://rollbot.hktrpg.com/
+簡易網上擲骰網頁 https://roll.hktrpg.com/
+			
+HKTRPG 研究社 Facebook https://www.facebook.com/groups/HKTRPG
+解鎖功能及贊助 https://www.patreon.com/HKTRPG 
+源代碼 http://bit.ly/HKTRPG_GITHUB
+`
 			return rply;
-			/**
-		case /^report/i.test(mainMsg[1]):
-			rply.text = this.getHelpMessage();
-			return rply;
+		/**
+	case /^report/i.test(mainMsg[1]):
+		rply.text = this.getHelpMessage();
+		return rply;
 
-			 */
+		 */
 		case /^req/i.test(mainMsg[1]):
-			rply.text = "請到以下問卷填寫意見，所有意見內容將改善RollBot\n\
-			https://forms.gle/uXq6taCPGJ2M99Gp9"
+			rply.text = `請到以下問卷填寫意見，所有意見內容將改善RollBot
+			https://forms.gle/uXq6taCPGJ2M99Gp9`
 			return rply;
 		default:
 			break;
@@ -257,10 +261,10 @@ module.exports = {
 
 
 
-/** 
+/**
 bothelp
 
-請問有什麼可以幫你? 
+請問有什麼可以幫你?
 請輸入你想查詢的項目名字.
 -------
 bothelp ver    - 查詢版本及公告(xxxx時間更新)
@@ -272,7 +276,7 @@ bothelp link   - 查詢hktrpg 不同平台連結
 bothelp report - 意見提供
 -----
 輸入 1 或 bothelp 公告 或 bothelp 版本
-【HKTRPG擲骰BOT】" + version 
+【HKTRPG擲骰BOT】" + version
 及公告
 ------
 輸入 2 或 bothelp Dice
@@ -297,15 +301,15 @@ bothelp report - 意見提供
  (公測中)角色卡功能 .char (add edit show delete use nonuse) .ch (set show showall)
  (公測中)儲存擲骰指令功能 .cmd (add del show 自定關鍵字)
 ------
-輸入 4 或 bothelp admin 
+輸入 4 或 bothelp admin
 .admin state
-.admin 
+.admin
 22: (公測中)擲骰開關功能 .bk (add del show)
 ------
 輸入 5 或 bothelp funny
 1: 【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 每日塔羅 運勢 立flag .me
 17: (公測中)經驗值功能 .level (show config LevelUpWord RankWord)
-18: Wiki查詢/圖片搜索 .wiki .image 
+18: Wiki查詢/圖片搜索 .wiki .image
 20: (公測中)自定義回應功能 .ra(p)(次數) (add del show 自定關鍵字)
 23: (公測中)資料庫功能 .db(p) (add del show 自定關鍵字)
 ------

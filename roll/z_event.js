@@ -551,30 +551,26 @@ async function eventProcessExp({ randomDetail, gpMember, groupid, doc, thisMembe
                     return item.result;
                 } else return 0
             });
-            let eventNeg = eventNegLV.reduce((a, b) =>
-                Number(a) + Number(b))
-            eventNeg = (!eventNeg) ? 1 : eventNeg;
+            eventNegLV = eventNegLV.filter(item => item < 0);
+            console.log('eventNegLV', eventNegLV);
 
-            console.log('thisMember', thisMember)
+            let eventNeg = (eventNegLV.length > 0) ? eventNegLV.reduce((a, b) =>
+                Number(a) + Number(b)) : 1;
             let needExp = Math.round(5 / 6 * (thisMember.Level) * (2 * (thisMember.Level) * (thisMember.Level) + 30 * (thisMember.Level)) + 100);
-
-            console.log('eventNegLV', eventNegLV)
-
-            console.log('eventNeg', eventNeg)
-
-            console.log('needExp', needExp)
             //   1. 直接增加X點經驗
-            //100之一 ->50之一 * 1.0X ( 相差LV)% *1.0X(負面級數)^(幾個負面) 
+            //100之一 ->50之一 * 1.0X ( 相差LV)% *1.0X(負面級數)^(幾個事件) 
             let random = await rollDice.DiceINT(needExp / 100, needExp / 50);
             random *= (eventNeg ^ 2 + eventNeg - thisMember.Level) > 0 ? ((eventNeg ^ 2 - thisMember.Level) / 100 + 1) : 1;
             random *= (eventNegLV.length / 100 + 1);
             random = Math.round(random);
             console.log('random', random)
-            return `你已增加${random} 點經驗`;
+            thisMember.EXP += random;
+            await thisMember.save();
+            return `你已增加 ${random} 點經驗`;
         }
         /**
                case 2:
-                   //  8. 對方得到經驗值 X 倍(X分鐘內)
+                   //  8. 對方得到經驗值 X 倍(多少次)
                    random = rollDice.DiceINT(needExp / 200, needExp / 50)
                    random *= (eventLV - myLV ^ 2) > 0 ? ((eventLV - myLV ^ 2) / 100 + 1) : 1;
                    random *= (1 - eventNeg / 100)

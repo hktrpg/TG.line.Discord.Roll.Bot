@@ -28,7 +28,7 @@ coc7版獎勵骰： cc(1~2) cc1 80 一粒獎勵骰
 coc7版懲罰骰： ccn(1~2) ccn2 80 兩粒懲罰骰 
 coc7版 即時型瘋狂： 啓動語 ccrt  
 coc7版 總結型瘋狂： 啓動語 ccsu 
-coc pulp版創角： 啓動語 .ccpulpbuild  
+coc pulp版創角： 啓動語 .ccpulpbuild 
 coc6版創角： 啓動語 .cc6build 
 coc7版創角： 啓動語 .cc7build (歲數7-89) 
 coc7 成長或增長檢定： .dp 或 成長檢定 或 幕間成長 (技能%) (名稱) 

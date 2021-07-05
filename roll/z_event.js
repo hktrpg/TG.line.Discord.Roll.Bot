@@ -445,15 +445,15 @@ EN= 20+LV
 
 4. 
 事件效果
-1. 沒有事發生
-2. 直接增加X點經驗(X分鐘內)
-3. 直接減少X點經驗(X分鐘內)
-4. 停止得到經驗(X分鐘內)
-5. 分發X經驗給整個CHANNEL中的X人
-6. 停止得到經驗(X分鐘內)並每次減少發言減少X經驗
-7. 吸收對方X點經驗
-8. 對方得到經驗值 X 倍(X分鐘內)
-9. 從整個CHANNEL 的X人吸收X點經驗
+-1. 直接減少X點經驗(X分鐘內)
+-2. 停止得到經驗(X分鐘內)
+-3. 分發X經驗給整個CHANNEL中的X人
+-4. 停止得到經驗(X分鐘內)並每次減少發言減少X經驗
+-5. 吸收對方X點經驗
+0. 沒有事發生
+1. 直接增加X點經驗(X分鐘內)
+2. 對方得到經驗值 X 倍(X分鐘內)
+3. 從整個CHANNEL 的X人吸收X點經驗
 
 5. 
 設計事件的好處
@@ -524,56 +524,69 @@ async function randomEvent({
 
 }
 
-async function event(key, needExp, eventLV, myLV, eventNeg) {
-    let random
+async function eventProcessExp(key, needExp, eventLV, myLV, eventNeg) {
+
+    /**
+    -1. 直接減少X點經驗(X分鐘內)
+-2. 停止得到經驗(X分鐘內)
+-3. 分發X經驗給整個CHANNEL中的X人
+-4. 停止得到經驗(X分鐘內)並每次減少發言減少X經驗
+-5. 吸收對方X點經驗
+0. 沒有事發生
+1. 直接增加X點經驗
+2. 每次發言得到經驗值 X 倍(X分鐘內)
+3. 從整個CHANNEL 的X人吸收X點經驗
+ */
+
     switch (key) {
-        case 2:
+        case 1:{
+                
             //   2. 直接增加X點經驗
             //100之一 ->50之一 * 1.0X ( 相差LV)% *1.0X(負面級數)^(幾個負面) 
-            random = exports.rollbase.DiceINT(needExp / 100, needExp / 50);
+           let  random = exports.rollbase.DiceINT(needExp / 100, needExp / 50);
             random *= (eventLV ^ 2 - myLV) > 0 ? ((eventLV ^ 2 - myLV) / 100 + 1) : 1;
             random *= (eventNeg / 100 + 1);
-            return random;
-        case 3:
-            // 3. 直接減少X點經驗
+            return random;}
+        case -1:
+            // -1. 直接減少X點經驗
             //100之一 ->50之一 * 1.0X ( 相差LV)% *1.0X(負面級數)^(幾個負面) 
             random = exports.rollbase.DiceINT(needExp / 200, needExp / 50)
             random *= (eventLV - myLV ^ 2) > 0 ? ((eventLV - myLV ^ 2) / 100 + 1) : 1;
             random *= (1 - eventNeg / 100)
             return random;
 
-        case 4:
-            //   4. 停止得到經驗(X分鐘內)
+        case -2:
+            //   -2. 停止得到經驗(X分鐘內)
             random = eventLV;
 
             break;
-        case 5:
+        case -3:
             //  5. 分發X經驗給整個CHANNEL中的X人
             random = exports.rollbase.DiceINT(needExp / 50, needExp / 20)
             random *= (eventLV ^ 2 - myLV) > 0 ? ((eventLV ^ 2 - myLV) / 100 + 1) : 1;
             random *= (eventNeg / 100 + 1)
             return random;
-        case 6:
+        case -5:
             //  6. 停止得到經驗(X分鐘內) 並每次減少發言減少X經驗
             random = eventLV;
             break;
-        case 7:
+        case -4:
             //  7. 吸收對方X點經驗
 
             break;
-        case 8:
+        case 2:
             //  8. 對方得到經驗值 X 倍(X分鐘內)
             random = exports.rollbase.DiceINT(needExp / 200, needExp / 50)
             random *= (eventLV - myLV ^ 2) > 0 ? ((eventLV - myLV ^ 2) / 100 + 1) : 1;
             random *= (1 - eventNeg / 100)
             break;
-        case 9:
+        case 3:
             //  9. 從整個CHANNEL 的X人吸收X點經驗
 
             break;
 
         default:
-            //     1. 沒有事發生
+            //     0. 沒有事發生
             break;
     }
 }

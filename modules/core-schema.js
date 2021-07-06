@@ -112,8 +112,8 @@ const trpgLevelSystemMember = mongoose.model('trpgLevelSystemMember', {
     Level: Number,
     //等級
     status: {
-        status4: Number,
-        status4LV: Number,
+        status2Times: Number,
+        status2Multi: Number,
         status5: Number,
         status5LV: Number,
         status6: Number,

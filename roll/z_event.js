@@ -298,7 +298,7 @@ var rollDiceCommand = async function ({
 
 
             //尋找所有群組的資料，用來設定EN上限            
-            let gpMember = await schema.trpgLevelSystemMember.find({ userid: userid });
+            let gpMember = await schema.trpgLevelSystemMember.findOne({ userid: userid }).sort({ Level: -1 });
             let thisMember = await schema.trpgLevelSystemMember.findOne({ groupid: groupid, userid: userid });
             if (!thisMember) rply.text = `錯誤發生，未有在這群組的資料`;
             /**
@@ -308,13 +308,13 @@ var rollDiceCommand = async function ({
                 eventMember = new schema.eventMember({
                     userID: userid,
                     userName: displaynameDiscord || displayname || '',
-                    energy: findMaxLv(gpMember) + 20,
+                    energy: gpMember.Level + 20,
                     lastActiveAt: new Date(Date.now())
                 });
 
             }
             if (!eventMember.energy) {
-                eventMember.energy = findMaxLv(gpMember) + 20;
+                eventMember.energy = gpMember.Level + 20;
             }
 
             //TODO:計算EN的回複量
@@ -327,20 +327,20 @@ var rollDiceCommand = async function ({
             }
             await eventMember.save();
 
-            let doc = await schema.eventList.aggregate([{ $sample: { size: 1 } }]);
+            let eventList = await schema.eventList.aggregate([{ $sample: { size: 1 } }]);
             console.log('doc', doc)
-            if (doc.length == 0) {
+            if (eventList.length == 0) {
                 rply.text = '未有人新增事件，你可以成為第一個事件產生者!'
                 return rply;
             }
 
-            let randomDetail = doc[0].detail[await rollDice.Dice(doc[0].detail.length) - 1];
+            let randomDetail = eventList[0].detail[await rollDice.Dice(eventList[0].detail.length) - 1];
             console.log('randomDetail', randomDetail)
             let eventText = randomDetail.event.split(';');
 
             rply.text += "====事件====\n" + eventText[await rollDice.Dice(eventText.length) - 1];
 
-            rply.text += await eventProcessExp({ randomDetail: randomDetail, gpMember: gpMember, groupid: groupid, doc: doc[0].detail, thisMember: thisMember })
+            rply.text += await eventProcessExp({ randomDetail: randomDetail, groupid: groupid, eventList: eventList[0], thisMember: thisMember })
 
 
             return rply;
@@ -509,112 +509,117 @@ D. 一個事件可用的總EN 為(10+LV)，負面事件消耗X點EN
  * 
  * 
  */
-async function randomEvent({
-    freeMode,
-    eventName
-}) {
-    //free mode = 從整個列表抽選
-    if (freeMode) {
-        const target = await schema.eventList.find({});
-        if (!target.length) return;
-        const targetEvent = target[rollDice.Dice(target.length) - 1]
-        return targetEvent[rollDice.Dice(targetEvent.length) - 1]
-    } else if (eventName) {
-        const target = await schema.eventList.findOne({
-            title: eventName
-        });
-        if (!target) return;
-        return target[rollDice.Dice(target.length) - 1]
-    } else return;
 
-}
-
-async function eventProcessExp({ randomDetail, gpMember, groupid, doc, thisMember }) {
-
-    /**
-    -1. 直接減少X點經驗(X分鐘內)
--2. 停止得到經驗(X分鐘內)
--3. 分發X經驗給整個CHANNEL中的X人
--4. 停止得到經驗(X分鐘內)並每次減少發言減少X經驗
--5. 吸收對方X點經驗
-0. 沒有事發生
-1. 直接增加X點經驗
-2. 每次發言得到經驗值 X 倍(X分鐘內)
-3. 從整個CHANNEL 的X人吸收X點經驗
- */
-    console.log('randomDetail, gpMember, groupid, doc', randomDetail, gpMember, groupid, doc)
+async function eventProcessExp({ randomDetail, groupid, eventList, thisMember }) {
+    console.log('randomDetail, gpMember, groupid, eventList', randomDetail, groupid, eventList)
     switch (randomDetail.result) {
         case 1: {
-           let random = calXP(doc,thisMember)
-            thisMember.EXP += random;
+            let exp = await calXP(eventList, thisMember, "exp")
+            Math.round(exp);
+            thisMember.EXP += exp;
             await thisMember.save();
-            return `你已增加 ${random} 點經驗`;
+            return `你已增加 ${exp} 點經驗`;
         }
-        
-               case 2:
-                   //  8. 對方得到經驗值 X 倍(多少次)
-                   random = rollDice.DiceINT(needExp / 200, needExp / 50)
-                   random *= (eventLV - myLV ^ 2) > 0 ? ((eventLV - myLV ^ 2) / 100 + 1) : 1;
-                   random *= (1 - eventNeg / 100)
-                   break;
-               case 3:
-                   //  9. 從整個CHANNEL 的X人吸收X點經驗
-       
-                   break;
-               case -1:
-                   // -1. 直接減少X點經驗
-                   //100之一 ->50之一 * 1.0X ( 相差LV)% *1.0X(負面級數)^(幾個負面) 
-                   random = rollDice.DiceINT(needExp / 200, needExp / 50)
-                   random *= (eventLV - myLV ^ 2) > 0 ? ((eventLV - myLV ^ 2) / 100 + 1) : 1;
-                   random *= (1 - eventNeg / 100)
-                   return random;
-       
-               case -2:
-                   //   -2. 停止得到經驗(X分鐘內)
-                   random = eventLV;
-       
-                   break;
-               case -3:
-                   //  5. 分發X經驗給整個CHANNEL中的X人
-                   random = rollDice.DiceINT(needExp / 50, needExp / 20)
-                   random *= (eventLV ^ 2 - myLV) > 0 ? ((eventLV ^ 2 - myLV) / 100 + 1) : 1;
-                   random *= (eventNeg / 100 + 1)
-                   return random;
-               case -5:
-                   //  6. 停止得到經驗(X分鐘內) 並每次減少發言減少X經驗
-                   random = eventLV;
-                   break;
-               case -4:
-                   //  7. 吸收對方X點經驗
-       
-                   break;
-              
-                       default:
-                           //     0. 沒有事發生
-                           break;
-               
-                            
+
+        case 2:
+            //  8. 對方得到經驗值 X 倍(多少次)
+            {
+                let times = await calXP(eventList, thisMember, "times");
+                let multi = await calXP(eventList, thisMember, "multi")
+
+                return;
+            }
+        case 3:
+            //  9. 從整個CHANNEL 的X人吸收X點經驗
+            {
+                let exp = await calXP(eventList, thisMember, "exp");
+                let times = await calXP(eventList, thisMember, "times");
+                return;
+            }
+        case -1:
+            // -1. 直接減少X點經驗
+            //100之一 ->50之一 * 1.0X ( 相差LV)% *1.0X(負面級數)^(幾個負面) 
+            {
+                let exp = await calXP(eventList, thisMember, "exp");
+                return;
+            }
+
+        case -2:
+            //   -2. 停止得到經驗(X次內)
+            {
+                let times = await calXP(eventList, thisMember, "times");
+                return;
+            }
+
+        case -3:
+            //  5. 分發X經驗給整個CHANNEL中的X人
+            {
+                let exp = await calXP(eventList, thisMember, "exp");
+                let times = await calXP(eventList, thisMember, "times");
+                return;
+            }
+        case -4:
+            //  7. 吸收對方X點經驗
+            {
+                let exp = await calXP(eventList, thisMember, "exp");
+                return;
+            }
+        case -5:
+            //  6. 每次發言減少X經驗(X次內)
+            {
+                let exp = await calXP(eventList, thisMember, "exp");
+                let times = await calXP(eventList, thisMember, "times");
+                return;
+            }
+        default:
+            //     0. 沒有事發生
+            break;
+
+
     }
 }
-function calXP(doc,thisMember) {
-     let eventNegLV = doc.map(item => {
-                if (item.result < 0 && !isNaN(item.result)) {
-                    console.log('item.result', item.result)
-                    return item.result;
-                } else return 0
-            });
-            eventNegLV = eventNegLV.filter(item => item < 0);
-            console.log('eventNegLV', eventNegLV);
+async function calXP(eventList, thisMember, type) {
+    let eventNeg = eventList.detail.map(item => {
+        if (item.result < 0 && !isNaN(item.result)) {
+            console.log('item.result', item.result)
+            return item.result;
+        } else return 0
+    });
+    eventNeg = eventNeg.filter(item => item < 0);
+    console.log('eventNegLV', eventNegLV);
 
-            let eventNeg = (eventNegLV.length > 0) ? eventNegLV.reduce((a, b) =>
-                Number(a) + Number(b)) : 1;
-            let needExp = Math.round(5 / 6 * (thisMember.Level) * (2 * (thisMember.Level) * (thisMember.Level) + 30 * (thisMember.Level)) + 100);
-            //   1. 直接增加X點經驗
-            //100之一 ->50之一 * 1.0X ( 相差LV)% *1.0X(負面級數)^(幾個事件) 
-            let random = await rollDice.DiceINT(needExp / 100, needExp / 50);
-            random *= (eventNeg ^ 2 + eventNeg - thisMember.Level) > 0 ? ((eventNeg ^ 2 - thisMember.Level) / 100 + 1) : 1;
-            random *= (eventNegLV.length / 100 + 1);
-            random = Math.round(random);
-            console.log('random', random)
-            return random
+    let eventNegLV = (eventNeg.length > 0) ? eventNeg.reduce((a, b) =>
+        Number(a) + Number(b)) : 1;
+    let typeNumber = 1;
+    switch (type) {
+        case "exp": {
+            typeNumber = Math.round(5 / 6 * (thisMember.Level) * (2 * (thisMember.Level) * (thisMember.Level) + 30 * (thisMember.Level)) + 100);
+            typeNumber = await rollDice.DiceINT(typeNumber / 100, typeNumber / 50);
+            let createEventer = await schema.trpgLevelSystemMember.findOne({ userid: eventList.userID }).sort({ Level: -1 });
+            createEventer = (createEventer && createEventer.Level) ? createEventer.Level : 1;
+            typeNumber *= (Math.abs(createEventer - thisMember.Level) / 100 + 1);
+            typeNumber *= ((eventNegLV ^ 2) / 100 + 1) > 0 ? ((eventNegLV ^ 2) / 100 + 1) : 1;
+            typeNumber *= (eventNeg.length / 100 + 1);
+            console.log('typeNumber', typeNumber)
+            return typeNumber
+        }
+        case "times": {
+            let createEventer = await schema.trpgLevelSystemMember.findOne({ userid: eventList.userID }).sort({ Level: -1 });
+            createEventer = (createEventer && createEventer.Level) ? createEventer.Level : 1;
+            typeNumber = await rollDice.DiceINT(5, ((createEventer - thisMember.Level) > 0) ? createEventer - thisMember.Level : 1);
+            return typeNumber;
+        }
+
+        case "multi": {
+            typeNumber = Math.round(5 / 6 * (thisMember.Level) * (2 * (thisMember.Level) * (thisMember.Level) + 30 * (thisMember.Level)) + 100);
+            typeNumber = await rollDice.DiceINT(typeNumber / 100, typeNumber / 50);
+            break;
+        }
+        default:
+            break;
+
+    }
+    //   1. 直接增加X點經驗
+    //100之一 ->50之一 * 1.0X ( 相差LV)% *1.0X(負面級數)^(幾個事件) 
+
 }

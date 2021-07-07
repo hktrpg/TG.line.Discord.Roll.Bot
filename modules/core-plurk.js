@@ -2,12 +2,16 @@
 if (!process.env.PLURK_SWITCH) {
     return;
 }
+var plurkID = '';
 const { PlurkClient } = require('plurk2');
 const msgSplitor = (/\S+/ig);
 const Plurk_Client = new PlurkClient(process.env.PLURK_APPKEY, process.env.PLURK_APPSECRET, process.env.PLURK_TOKENKEY, process.env.PLURK_TOKENSECRET);
 exports.analytics = require('./core-analytics');
 Plurk_Client.request('Users/me')
-    .then(profile => console.log(profile))
+    .then(profile => {
+        console.log(profile);
+        plurkID = profile.id;
+    })
     .catch(err => console.error(err));
 
 Plurk_Client.startComet();
@@ -33,9 +37,9 @@ Plurk_Client.on('new_plurk', async response => {
         Plurk_Client.request('Responses/responseAdd', { plurk_id: response.plurk_id, content: rplyVal.text, qualifier: 'says' })
     }
 });
-//content_raw  type:'new_plurk'
 
 Plurk_Client.on('new_response', async response => {
+    if (response.user[plurkID]) return;
     if (response.type != 'new_response') return;
     let message = response.response.content_raw;
     if (!message.match(/^@HKTRPG\s+/i)) {
@@ -64,10 +68,3 @@ Plurk_Client.on('new_response', async response => {
         Plurk_Client.request('Responses/responseAdd', { plurk_id: response.plurk.plurk_id, content: rplyVal.text, qualifier: 'says' })
     }
 })
-//plurk.content_raw   type:'new_response'
-
-
-
-
-
-

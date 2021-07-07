@@ -20,7 +20,9 @@ const RollingLog = {
         WWWCountRoll: 0,
         WWWCountText: 0,
         WhatsappCountRoll: 0,
-        WhatsappCountText: 0
+        WhatsappCountText: 0,
+        PlurkCountRoll: 0,
+        PlurkCountText: 0
     }
 };
 
@@ -42,7 +44,9 @@ var getState = async function () {
         WWWCountRoll: RollingLog.RealTimeRollingLogfunction.WWWCountRoll,
         WWWCountText: RollingLog.RealTimeRollingLogfunction.WWWCountText,
         WhatsappCountRoll: RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll,
-        WhatsappCountText: RollingLog.RealTimeRollingLogfunction.WhatsappCountText
+        WhatsappCountText: RollingLog.RealTimeRollingLogfunction.WhatsappCountText,
+        PlurkCountRoll: RollingLog.RealTimeRollingLogfunction.PlurkCountRoll,
+        PlurkCountText: RollingLog.RealTimeRollingLogfunction.PlurkCountText
     };
     RollingLog.RealTimeRollingLogfunction.LogTime = temp.LogTime;
     await records.settrpgSaveLogfunctionRealTime('RealTimeRollingLog', temp, () => {
@@ -65,24 +69,28 @@ async function courtMessage(result, botname, inputStr) {
         if (simpleCourt != null) {
             switch (botname) {
                 case "Line":
-                    (debugMode) ? console.log('   Line \'s inputStr: ', inputStr): '';
+                    (debugMode) ? console.log('   Line \'s inputStr: ', inputStr) : '';
                     RollingLog.RealTimeRollingLogfunction.LineCountRoll++;
                     break;
                 case "Telegram":
-                    (debugMode) ? console.log('Telegram\'s inputStr: ', inputStr): '';
+                    (debugMode) ? console.log('Telegram\'s inputStr: ', inputStr) : '';
                     RollingLog.RealTimeRollingLogfunction.TelegramCountRoll++;
                     break;
                 case "Whatsapp":
-                    (debugMode) ? console.log('Whatsapp\'s inputStr: ', inputStr): '';
+                    (debugMode) ? console.log('Whatsapp\'s inputStr: ', inputStr) : '';
                     RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll++;
                     break;
                 case "WWW":
-                    (debugMode) ? console.log('     WWW\'s inputStr: ', inputStr): '';
+                    (debugMode) ? console.log('     WWW\'s inputStr: ', inputStr) : '';
                     RollingLog.RealTimeRollingLogfunction.WWWCountRoll++;
                     break;
                 case "Discord":
-                    (debugMode) ? console.log('Discord \'s inputStr: ', inputStr): '';
+                    (debugMode) ? console.log('Discord \'s inputStr: ', inputStr) : '';
                     RollingLog.RealTimeRollingLogfunction.DiscordCountRoll++;
+                    break;
+                case "Plurk":
+                    (debugMode) ? console.log('Plurk \'s inputStr: ', inputStr) : '';
+                    RollingLog.RealTimeRollingLogfunction.PlurkCountRoll++;
                     break;
                 default:
                     break;
@@ -108,6 +116,9 @@ async function courtMessage(result, botname, inputStr) {
                     break;
                 case "Discord":
                     RollingLog.RealTimeRollingLogfunction.DiscordCountText++;
+                    break;
+                case "Plurk":
+                    RollingLog.RealTimeRollingLogfunction.PlurkCountText++;
                     break;
                 default:
                     break;
@@ -157,7 +168,9 @@ async function saveLog() {
             WWWCountRoll: RollingLog.RealTimeRollingLogfunction.WWWCountRoll,
             WWWCountText: RollingLog.RealTimeRollingLogfunction.WWWCountText,
             WhatsappCountRoll: RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll,
-            WhatsappCountText: RollingLog.RealTimeRollingLogfunction.WhatsappCountText
+            WhatsappCountText: RollingLog.RealTimeRollingLogfunction.WhatsappCountText,
+            PlurkCountRoll: RollingLog.RealTimeRollingLogfunction.PlurkCountRoll,
+            PlurkCountText: RollingLog.RealTimeRollingLogfunction.PlurkCountText
         };
         records.maxTrpgSaveLogfunction('RollingLog', temp, () => {
             //console.log('SAVE LOG')
@@ -186,7 +199,11 @@ async function saveLog() {
             WWWCountRoll: RollingLog.RealTimeRollingLogfunction.WWWCountRoll,
             WWWCountText: RollingLog.RealTimeRollingLogfunction.WWWCountText,
             WhatsappCountRoll: RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll,
-            WhatsappCountText: RollingLog.RealTimeRollingLogfunction.WhatsappCountText
+            WhatsappCountText: RollingLog.RealTimeRollingLogfunction.WhatsappCountText,
+            PlurkCountRoll: RollingLog.RealTimeRollingLogfunction.PlurkCountRoll,
+            PlurkCountText: RollingLog.RealTimeRollingLogfunction.PlurkCountText
+
+
         };
         RollingLog.RealTimeRollingLogfunction.LogTime = temp.LogTime;
         records.settrpgSaveLogfunctionRealTime('RealTimeRollingLog', temp, () => {
@@ -214,7 +231,9 @@ async function getRecords() {
                 WWWCountRoll: msgs[0].RealTimeRollingLogfunction.WWWCountRoll || 0,
                 WWWCountText: msgs[0].RealTimeRollingLogfunction.WWWCountText || 0,
                 WhatsappCountRoll: msgs[0].RealTimeRollingLogfunction.WhatsappCountRoll || 0,
-                WhatsappCountText: msgs[0].RealTimeRollingLogfunction.WhatsappCountText || 0
+                WhatsappCountText: msgs[0].RealTimeRollingLogfunction.WhatsappCountText || 0,
+                PlurkCountRoll: msgs[0].RealTimeRollingLogfunction.PlurkCountRoll || 0,
+                PlurkCountText: msgs[0].RealTimeRollingLogfunction.PlurkCountText || 0
 
             };
         //console.log('RollingLog', RollingLog)

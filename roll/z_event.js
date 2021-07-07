@@ -672,6 +672,8 @@ async function findMaxLv(userid) {
 
     取得earnedEXP
 
+    扣EN, 而增加earnedEXP
+
     回複EN
 
  */

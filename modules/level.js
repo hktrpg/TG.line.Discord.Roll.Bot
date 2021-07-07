@@ -8,6 +8,7 @@ var tempSwitchV2 = [{
     SwitchV2: false
 }];
 async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercount) {
+    return;
     if (!groupid) {
         return;
     }

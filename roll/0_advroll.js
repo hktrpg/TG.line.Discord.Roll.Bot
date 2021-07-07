@@ -13,25 +13,25 @@ var gameType = function () {
 }
 var prefixs = function () {
 	return [{
-			first: /^[.][c][a]$/i,
-			second: null
-		},
-		{
-			first: /^d66s$|^d66$|^d66n$/i,
-			second: null
-		},
-		{
-			first: /^(\d+)(u)(\d+)$/i,
-			second: /\d+/
-		},
-		{
-			first: regexxBy,
-			second: null
-		},
-		{
-			first: /^[.][i][n][t]$/i,
-			second: /\d+/
-		}
+		first: /^[.][c][a]$/i,
+		second: null
+	},
+	{
+		first: /^d66s$|^d66$|^d66n$/i,
+		second: null
+	},
+	{
+		first: /^(\d+)(u)(\d+)$/i,
+		second: /\d+/
+	},
+	{
+		first: regexxBy,
+		second: null
+	},
+	{
+		first: /^[.][i][n][t]$/i,
+		second: /\d+/
+	}
 	]
 }
 var getHelpMessage = function () {
@@ -103,11 +103,7 @@ var rollDiceCommand = async function ({
 			}
 			return rply;
 		case /^[.][i][n][t]$/i.test(mainMsg[0]) && mainMsg[1] <= 100000 && mainMsg[2] <= 100000:
-			points = [Math.floor(mainMsg[1]), Math.floor(mainMsg[2])]
-			points.sort(function (a, b) {
-				return a - b
-			});
-			rply.text = '投擲 ' + points[0] + ' - ' + points[1] + '：\n→ ' + await rollbase.DiceINT(points[0], points[1]);
+			rply.text = '投擲 ' + mainMsg[1] + ' - ' + mainMsg[2] + '：\n→ ' + await rollbase.DiceINT(mainMsg[1], mainMsg[2]);
 			return rply
 		default:
 			break;

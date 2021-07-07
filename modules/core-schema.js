@@ -111,18 +111,11 @@ const trpgLevelSystemMember = mongoose.model('trpgLevelSystemMember', {
     //現在經驗值
     Level: Number,
     //等級
-    status: {
-        status2Times: Number,
-        status2Multi: Number,
-        status5: Number,
-        status5LV: Number,
-        status6: Number,
-        status6LV: Number,
-        status7: Number,
-        status7LV: Number,
-        status8: Number,
-        status8LV: Number,
-    },
+    multiEXPTimes: Number,
+    multiEXP: Number,
+    stopExp: Number,
+    decreaseEXP: Number,
+    decreaseEXPTimes: Number,
     //EVENT事件
     /**
      * 4. 停止得到經驗(X分鐘內)

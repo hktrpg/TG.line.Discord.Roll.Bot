@@ -540,8 +540,12 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
             // -1. 直接減少X點經驗
             //100之一 ->50之一 * 1.0X ( 相差LV)% *1.0X(負面級數)^(幾個負面) 
             {
-                let exp = await calXP(eventList, thisMember, "exp");
-                return;
+                let exp = await calXP(eventList, thisMember, "exp")
+                Math.round(exp);
+                thisMember.EXP -= exp;
+                await thisMember.save();
+                return `你已減少 ${exp} 點經驗`;
+              
             }
 
         case -2:
@@ -611,13 +615,13 @@ async function calXP(eventList, thisMember, type) {
         }
 
         case "multi": {
-            typeNumber = Math.round(5 / 6 * (thisMember.Level) * (2 * (thisMember.Level) * (thisMember.Level) + 30 * (thisMember.Level)) + 100);
-            typeNumber = await rollDice.DiceINT(typeNumber / 100, typeNumber / 50);
-            break;
+            let createEventer = await schema.trpgLevelSystemMember.findOne({ userid: eventList.userID }).sort({ Level: -1 });
+            createEventer = (createEventer && createEventer.Level) ? createEventer.Level : 1;
+            typeNumber = await rollDice.DiceINT(2, ((createEventer - thisMember.Level) > 0) ? Math.round((createEventer - thisMember.Level) / 3) : 2);
+            return typeNumber;
         }
         default:
-            break;
-
+            return typeNumber;
     }
     //   1. 直接增加X點經驗
     //100之一 ->50之一 * 1.0X ( 相差LV)% *1.0X(負面級數)^(幾個事件) 

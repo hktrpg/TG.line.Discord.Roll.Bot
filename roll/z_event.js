@@ -515,8 +515,7 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
     switch (randomDetail.result) {
         case 1: {
             let exp = await calXP(eventList, thisMember, "exp")
-            Math.round(exp);
-            thisMember.EXP += exp;
+            thisMember
             await thisMember.save();
             return `你已增加 ${exp} 點經驗`;
         }
@@ -526,14 +525,17 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
             {
                 let times = await calXP(eventList, thisMember, "times");
                 let multi = await calXP(eventList, thisMember, "multi")
-
-                return;
+                thisMember.multiEXPTimes = Math.max(times, thisMember.multiEXPTimes)
+                thisMember.multiEXP = Math.max(multi, thisMember.multiEXP)
+                await thisMember.save();
+                return `你在${thisMember.multiEXPTimes}次內都會有 ${thisMember.multiEXP} 倍經驗`;
             }
         case 3:
             //  9. 從整個CHANNEL 的X人吸收X點經驗
             {
                 let exp = await calXP(eventList, thisMember, "exp");
                 let times = await calXP(eventList, thisMember, "times");
+                await schema.trpgLevelSystemMember.aggregate([{ $match: { groupid: groupid } }, { $sample: { size: times } }]);
                 return;
             }
         case -1:
@@ -545,14 +547,16 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                 thisMember.EXP -= exp;
                 await thisMember.save();
                 return `你已減少 ${exp} 點經驗`;
-              
+
             }
 
         case -2:
             //   -2. 停止得到經驗(X次內)
             {
                 let times = await calXP(eventList, thisMember, "times");
-                return;
+                thisMember.stopExp = Math.max(times, thisMember.stopExp)
+                await thisMember.save();
+                return `你在${thisMember.stopExp}次內都會停止得到經驗`;
             }
 
         case -3:
@@ -573,7 +577,10 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
             {
                 let exp = await calXP(eventList, thisMember, "exp");
                 let times = await calXP(eventList, thisMember, "times");
-                return;
+                thisMember.decreaseEXPTimes = Math.max(times, thisMember.decreaseEXPTimes)
+                thisMember.decreaseEXP = Math.max(exp, thisMember.decreaseEXP)
+                await thisMember.save();
+                return `你在${thisMember.decreaseEXPTimes}次內都會減少 ${thisMember.decreaseEXP}經驗`;
             }
         default:
             //     0. 沒有事發生

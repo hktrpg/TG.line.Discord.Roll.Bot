@@ -70,15 +70,10 @@ Plurk_Client.on('new_response', async response => {
 })
 
 async function sendMessage(response, rplyVal) {
-    for (var i = 0; i < rplyVal.toString().match(/[\s\S]{1,300}/g).length; i++) {
-        if (i == 0) {
-            try {
-                Plurk_Client.request('Responses/responseAdd', { plurk_id: response, content: rplyVal.toString().match(/[\s\S]{1,300}/g)[i], qualifier: 'says' })
-            } catch (error) {
-                console.log(error)
-            }
-
-        }
+    try {
+        return await Plurk_Client.request('Responses/responseAdd', { plurk_id: response, content: rplyVal.toString().match(/[\s\S]{1,300}/g)[0], qualifier: 'says' })
+    } catch (error) {
+        console.error(error);
     }
-    return;
+
 }

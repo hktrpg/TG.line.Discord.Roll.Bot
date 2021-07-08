@@ -17,6 +17,12 @@ Plurk_Client.request('Users/me')
 
 
 Plurk_Client.startComet();
+function intervalFunc() {
+    Plurk_Client.pollComet();
+}
+
+setInterval(intervalFunc, 60 * 1000 * 20);
+
 
 Plurk_Client.on('new_plurk', async response => {
     if (response.type != 'new_plurk') return;

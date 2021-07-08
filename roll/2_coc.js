@@ -646,7 +646,7 @@ async function build7char(text01) {
 	} else ReStr += '\nＡＰＰ：' + await rollbase.BuildDiceCal('3d6*5');
 
 
-	ReStr += `\nＳＩＺ： ${await rollbase.BuildDiceCal('(2d6+6)*5')}`;
+	ReStr += '\nＳＩＺ：' + await rollbase.BuildDiceCal('(2d6+6)*5');
 	if (old < 20) {
 		ReStr += ' ←（可選）';
 	}
@@ -656,8 +656,8 @@ async function build7char(text01) {
 	if (old < 20) ReStr += '\nＥＤＵ：' + await rollbase.BuildDiceCal('((2d6+6)*5)-5');
 	else {
 		let firstEDU = '(' + await rollbase.BuildRollDice('2d6') + '+6)*5';
-		ReStr += `\n==`;
-		ReStr += `\nＥＤＵ初始值： ${firstEDU} = ${eval(firstEDU)}`;
+		ReStr += '\n==';
+		ReStr += '\nＥＤＵ初始值：' + firstEDU + ' = ' + eval(firstEDU);
 
 		let tempEDU = eval(firstEDU);
 

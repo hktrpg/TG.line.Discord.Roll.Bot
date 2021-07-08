@@ -70,7 +70,7 @@ Plurk_Client.on('new_response', async response => {
 })
 
 	async function sendMessage(response,rplyVal) {
-		for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,300}/g).length; i++) {
+		for (var i = 0; i < rplyVal.toString().match(/[\s\S]{1,300}/g).length; i++) {
 			if (i == 0) {
                 try {
                      Plurk_Client.request('Responses/responseAdd', { plurk_id: response, content: rplyVal.toString().match(/[\s\S]{1,300}/g)[i], qualifier: 'says' })

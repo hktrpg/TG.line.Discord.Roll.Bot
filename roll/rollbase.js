@@ -21,13 +21,13 @@ var gameType = function () {
 var prefixs = function () {
   const tempregex = /^(?=.*\d+d\d+)(?!.*\d+(l|h))(?!.*(k)$)(?!.*(l|h)(l|h|k|d))(?!.*(k|d)(k|d))(?!.*^[a-z])(?!.*[a-c])(?!.*[e-g])(?!.*[i-j])(?!.*[m-z])(?!.*(([d]|[+]|[-]|[*]|[/])([d]|[+]|[-]|[*]|[/])))(?!.*(^([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[)])))(?!.*([(][)]))(?!.*([<][<]))(?!.*([>][>]))(?!.*([<][>]))(?!.*([>][<]))(?!.*(\d+[d]+\d+[d]([^h|l]))|([)]\d))(?!.*(([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[(])$))(?!.*([@]|[!]|[#]|[$]|[%]|[&]|[_]|[~]|[`]|[']|[?]|\.))(?!.*([\u4e00-\u9fa5]))(?!.*([=].*[=]))(?!.*([+]|[-]|[*]|[/])[=])(?!.*[=]([+]|[-]|[*]|[/]|[>]|[<]))(?!.*(\d)[=](\d))(?!.*([-][>])|([-][<])|([<][-])|([>][-]))(?!.*(d)[(]).*$/ig
   return [{
-      first: tempregex,
-      second: null
-    },
-    {
-      first: /(^[1-9]$)|(^[1-2][0-9]$)|(^[3][0]$)/i,
-      second: tempregex
-    }
+    first: tempregex,
+    second: null
+  },
+  {
+    first: /(^[1-9]$)|(^[1-2][0-9]$)|(^[3][0]$)/i,
+    second: tempregex
+  }
   ]
 }
 
@@ -174,7 +174,7 @@ var BuildDiceCal = async function (inputStr) {
   let equation = DiceToRoll
   while (equation.match(/\d+d\d+/i) != null) {
     let tempMatch = equation.match(/\d+d\d+/i)
-    if (tempMatch.toString().split('d')[0] > 200) return
+    if (tempMatch.toString().split('d')[0] > 200) return;
     //不支援200D以上擲骰
 
     if (tempMatch.toString().split('d')[1] == 1 || tempMatch.toString().split('d')[1] > 500) return;
@@ -182,10 +182,10 @@ var BuildDiceCal = async function (inputStr) {
   }
 
   // 計算算式
-  let answer = math.evaluate(equation.toString()).toString().replace(/true/i, "成功").replace(/false/i, "失敗")
-  finalStr = equation + ' = ' + answer
+  let answer = math.evaluate(equation.toString()).toString().replace(/true/i, "成功").replace(/false/i, "失敗").replace(/\s+$/, "");
+  finalStr = equation + ' = ' + answer;
 
-  return finalStr
+  return finalStr;
 }
 
 var shuffleTarget = async function (target) {

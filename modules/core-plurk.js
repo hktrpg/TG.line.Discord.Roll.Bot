@@ -70,9 +70,9 @@ Plurk_Client.on('new_response', async response => {
 })
 
 	async function sendMessage(response,rplyVal) {
-		for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,300}/g).length; i++) {
+		for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,180}/g).length; i++) {
 			if (i == 0) {
-                Plurk_Client.request('Responses/responseAdd', { plurk_id: response.plurk.plurk_id, content: rplyVal.text.toString().match(/[\s\S]{1,300}/g)[i], qualifier: 'says' })
+                Plurk_Client.request('Responses/responseAdd', { plurk_id: response.plurk.plurk_id, content: rplyVal.text.toString().match(/[\s\S]{1,180}/g)[i], qualifier: 'says' })
 			}
 		}
         return;

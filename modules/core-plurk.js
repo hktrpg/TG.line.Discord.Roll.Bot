@@ -65,16 +65,16 @@ Plurk_Client.on('new_response', async response => {
 
         }
         rplyVal.text = `${displayName}${rplyVal.text}`
-         await sendMessage(response.plurk.plurk_id, rplyVal.text);
+        await sendMessage(response.plurk.plurk_id, rplyVal.text);
     }
 })
 
 async function sendMessage(response, rplyVal) {
     try {
-         await Plurk_Client.request('Responses/responseAdd', { plurk_id: response, content: rplyVal.toString().match(/[\s\S]{1,300}/g)[0], qualifier: 'says' })
+        await Plurk_Client.request('Responses/responseAdd', { plurk_id: response, content: rplyVal.toString().match(/[\s\S]{1,300}/g)[0], qualifier: 'says' })
     } catch (error) {
-        if(!error.error_text=="anti-flood-same-content")
-        console.error(error);
+        if (!error.error_text == "anti-flood-same-content")
+            console.error(error);
     }
 
 }

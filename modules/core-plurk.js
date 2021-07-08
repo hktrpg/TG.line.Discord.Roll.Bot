@@ -18,13 +18,13 @@ Plurk_Client.startComet();
 
 Plurk_Client.on('new_plurk', async response => {
     if (response.type != 'new_plurk') return;
+    if (response.limited_to && response.limited_to.length == 1 && response.limited_to[0] == 0) return;
     let message = response.content_raw;
-    if (!message.match(/^@HKTRPG\s+/i)) {
-        return;
-    }
     let mainMsg = message.match(msgSplitor); // 定義輸入字串
-    if (mainMsg.length > 1)
+    if (mainMsg.length > 1) {
+        if (!mainMsg[0].match(/@HKTRPG/i)) return;
         mainMsg.shift();
+    }
     else return;
 
     // 訊息來到後, 會自動跳到analytics.js進行骰組分析
@@ -34,20 +34,20 @@ Plurk_Client.on('new_plurk', async response => {
         botname: "Plurk"
     });
     if (rplyVal && rplyVal.text) {
-         return  await sendMessage(response.plurk_id,rplyVal.text);
+        return await sendMessage(response.plurk_id, rplyVal.text);
     }
 });
 
 Plurk_Client.on('new_response', async response => {
     if (response.user[plurkID]) return;
     if (response.type != 'new_response') return;
+    if (response.limited_to && response.limited_to.length == 1 && response.limited_to[0] == 0) return;
     let message = response.response.content_raw;
-    if (!message.match(/^@HKTRPG\s+/i)) {
-        return;
-    }
     let mainMsg = message.match(msgSplitor); // 定義輸入字串
-    if (mainMsg.length > 1)
+    if (mainMsg.length > 1) {
+        if (!mainMsg[0].match(/@HKTRPG/i)) return;
         mainMsg.shift();
+    }
     else return;
 
     // 訊息來到後, 會自動跳到analytics.js進行骰組分析
@@ -65,20 +65,15 @@ Plurk_Client.on('new_response', async response => {
 
         }
         rplyVal.text = `${displayName}${rplyVal.text}`
-      return  await sendMessage(response.plurk.plurk_id,rplyVal.text);
+        return await sendMessage(response.plurk.plurk_id, rplyVal.text);
     }
 })
 
-	async function sendMessage(response,rplyVal) {
-		for (var i = 0; i < rplyVal.toString().match(/[\s\S]{1,300}/g).length; i++) {
-			if (i == 0) {
-                try {
-                     Plurk_Client.request('Responses/responseAdd', { plurk_id: response, content: rplyVal.toString().match(/[\s\S]{1,300}/g)[i], qualifier: 'says' })
-                } catch (error) {
-                    console.log(error)
-                }
-               
-			}
-		}
-        return;
-	}
+async function sendMessage(response, rplyVal) {
+    try {
+        return await Plurk_Client.request('Responses/responseAdd', { plurk_id: response, content: rplyVal.toString().match(/[\s\S]{1,300}/g)[0], qualifier: 'says' })
+    } catch (error) {
+        console.error(error);
+    }
+
+}

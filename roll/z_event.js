@@ -23,14 +23,10 @@ const regexMain = new RegExp(/^((-)?\d):(.*)/, 'igm');
 const regexExp = new RegExp(/^exp:(.*)/, 'im');
 const regexName = new RegExp(/^name:(.*)/, 'im');
 
-const re = new RegExp(/(.*?):(.*?)(;|$)/, 'ig');
 const opt = {
     upsert: true,
     runValidators: true
 }
-const convertRegex = function (str) {
-    return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
-};
 
 /*
 TODO?
@@ -59,7 +55,6 @@ var rollDiceCommand = async function ({
     mainMsg,
     groupid,
     userid,
-    channelid,
     displayname,
     displaynameDiscord
 }) {
@@ -77,11 +72,9 @@ var rollDiceCommand = async function ({
     let temp;
     let tempMain = {};
     let lv;
-    let temp2;
     let limit = limitArr[0];
     let check;
     let levelLv = 0;
-    let temp3 = 0;
     /**
      * .event
      * .event add 事件    新增事件
@@ -100,10 +93,11 @@ var rollDiceCommand = async function ({
      */
 
     switch (true) {
-        case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
+        case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
             rply.text = this.getHelpMessage();
             return rply;
-        case /(^[.]event$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
+        }
+        case /(^[.]event$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]): {
             events = await analysicInputData(inputStr); //分析輸入的資料
             if (!events.MainData || !events.eventName) {
                 rply.text = '沒有輸入事件或名字，請重新整理內容 格式為 \n.event add \nname:Haha \nexp:SAN *不是必需 \ns0:你今天的運氣真好;你是個好人;我愛你\n-1:你中招了;你不好運要-SAN了\n1:你吃了好味的糖，加SAN人\n'
@@ -221,7 +215,8 @@ var rollDiceCommand = async function ({
 
             }
             return rply;
-        case /(^[.]event$)/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
+        }
+        case /(^[.]event$)/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]): {
             filter = {
                 userID: userid,
                 title: {
@@ -253,84 +248,89 @@ var rollDiceCommand = async function ({
             //檢查有沒有重覆
             rply.text = '刪除事件成功: ' + doc.title
             return rply;
+        }
         case /(^[.]event$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
-            filter = {
-                userID: userid
-            }
-            doc = await schema.eventList.find(filter);
-            rply.text = "====你創作的事件列表====\n"
-            for (let index = 0; index < doc.length; index++) {
-                rply.text += doc[index].title + "\n";
-                if (doc[index].expName) rply.text += '經驗值的名稱: ' + doc[index].expName + "\n";
-                rply.text += getDetail(doc[index]) + '\n';
+            {
+                filter = {
+                    userID: userid
+                }
+                doc = await schema.eventList.find(filter);
+                rply.text = "====你創作的事件列表====\n"
+                for (let index = 0; index < doc.length; index++) {
+                    rply.text += doc[index].title + "\n";
+                    if (doc[index].expName) rply.text += '經驗值的名稱: ' + doc[index].expName + "\n";
+                    rply.text += getDetail(doc[index]) + '\n';
 
+                }
+                return rply;
             }
-            return rply;
         case /(^[.]evt$)/i.test(mainMsg[0]) && /^random$/i.test(mainMsg[1]): {
-            if (!groupid) {
-                rply.text = '你不在群組.請在群組使用此功能 '
-                return rply
-            }
-            let gp = await schema.trpgLevelSystem.findOne({ groupid: groupid });
-            if (!gp || !gp.SwitchV2) {
-                rply.text = '此群組並有沒有開啓LEVEL功能. \n.level config 11 代表啓動功能 \
+            {
+                if (!groupid) {
+                    rply.text = '你不在群組.請在群組使用此功能 '
+                    return rply
+                }
+                let gp = await schema.trpgLevelSystem.findOne({ groupid: groupid });
+                if (!gp || !gp.SwitchV2) {
+                    rply.text = '此群組並有沒有開啓LEVEL功能. \n.level config 11 代表啓動功能 \
                     \n 數字11代表等級升級時會進行通知，10代表不會自動通知，\
                     \n 00的話代表不啓動功能\n'
-                return rply;
-            }
-            //用來看EN還有多少, 沒有就RETURN
-            //沒有就新增一個
+                    return rply;
+                }
+                //用來看EN還有多少, 沒有就RETURN
+                //沒有就新增一個
 
-            let eventMember = await schema.eventMember.findOne({
-                userID: userid
-            });
-
-
-            //尋找所有群組的資料，用來設定EN上限            
-            let maxLv = await findMaxLv(userid);
-            let thisMember = await schema.trpgLevelSystemMember.findOne({ groupid: groupid, userid: userid });
-            if (!thisMember) rply.text = `錯誤發生，未有在這群組的資料`;
-            /**
-             * 檢查ENERGY，如果沒有則新增，數字為EN= 20+LV
-             */
-            if (!eventMember) {
-                eventMember = new schema.eventMember({
-                    userID: userid,
-                    userName: displaynameDiscord || displayname || '',
-                    energy: maxLv + 20,
-                    lastActiveAt: new Date(Date.now())
+                let eventMember = await schema.eventMember.findOne({
+                    userID: userid
                 });
 
-            }
-            if (!eventMember.energy) {
-                eventMember.energy = maxLv + 20;
-            }
 
-            //TODO:計算EN的回複量
+                //尋找所有群組的資料，用來設定EN上限            
+                let maxLv = await findMaxLv(userid);
+                let thisMember = await schema.trpgLevelSystemMember.findOne({ groupid: groupid, userid: userid });
+                if (!thisMember) rply.text = `錯誤發生，未有在這群組的資料`;
+                /**
+                 * 檢查ENERGY，如果沒有則新增，數字為EN= 20+LV
+                 */
+                if (!eventMember) {
+                    eventMember = new schema.eventMember({
+                        userID: userid,
+                        userName: displaynameDiscord || displayname || '',
+                        energy: maxLv + 20,
+                        lastActiveAt: new Date(Date.now())
+                    });
 
-            if (eventMember.energy < 5) {
-                rply.text = "隨機事件需要5EN, 你現在只有" + eventMember.energy + "EN"
+                }
+                if (!eventMember.energy) {
+                    eventMember.energy = maxLv + 20;
+                }
+
+                //TODO:計算EN的回複量
+
+                if (eventMember.energy < 5) {
+                    rply.text = "隨機事件需要5EN, 你現在只有" + eventMember.energy + "EN"
+                    return rply;
+                } else {
+                    eventMember.energy -= 5
+                }
+                await eventMember.save();
+
+                let eventList = await schema.eventList.aggregate([{ $sample: { size: 1 } }]);
+                if (eventList.length == 0) {
+                    rply.text = '未有人新增事件，你可以成為第一個事件產生者!'
+                    return rply;
+                }
+
+                let randomDetail = eventList[0].detail[await rollDice.Dice(eventList[0].detail.length) - 1];
+                let eventText = randomDetail.event.split(';');
+
+                rply.text += "====事件====\n" + eventText[await rollDice.Dice(eventText.length) - 1];
+
+                rply.text += `\n${await eventProcessExp({ randomDetail: randomDetail, groupid: groupid, eventList: eventList[0], thisMember: thisMember })}`
+
+
                 return rply;
-            } else {
-                eventMember.energy -= 5
             }
-            await eventMember.save();
-
-            let eventList = await schema.eventList.aggregate([{ $sample: { size: 1 } }]);
-            if (eventList.length == 0) {
-                rply.text = '未有人新增事件，你可以成為第一個事件產生者!'
-                return rply;
-            }
-
-            let randomDetail = eventList[0].detail[await rollDice.Dice(eventList[0].detail.length) - 1];
-            let eventText = randomDetail.event.split(';');
-
-            rply.text += "====事件====\n" + eventText[await rollDice.Dice(eventText.length) - 1];
-
-            rply.text += `\n${await eventProcessExp({ randomDetail: randomDetail, groupid: groupid, eventList: eventList[0], thisMember: thisMember })}`
-
-
-            return rply;
         }
         default:
             break;
@@ -511,7 +511,7 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
             {
                 let times = await calXP(eventList, thisMember, "times");
                 let multi = await calXP(eventList, thisMember, "multi")
-                let updateData = await thisMember.updateOne({ $max: { multiEXP: multi, multiEXPTimes: times } })
+                await thisMember.updateOne({ $max: { multiEXP: multi, multiEXPTimes: times } })
                 return `你在${thisMember.multiEXPTimes}次內都會有 ${thisMember.multiEXP} 倍經驗`;
             }
         case 3:
@@ -558,7 +558,7 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
             //   -2. 停止得到經驗(X次內)
             {
                 let times = await calXP(eventList, thisMember, "times");
-                let targetMember = await thisMember.updateOne({ $max: { stopExp: times } })
+                await thisMember.updateOne({ $max: { stopExp: times } })
                 return `你在${thisMember.stopExp}次內都會停止得到經驗`;
             }
 
@@ -606,7 +606,7 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
             {
                 let exp = await calXP(eventList, thisMember, "exp");
                 let times = await calXP(eventList, thisMember, "times");
-                let updateData = await thisMember.updateOne({ $max: { decreaseEXP: exp, decreaseEXPTimes: times } })
+                await thisMember.updateOne({ $max: { decreaseEXP: exp, decreaseEXPTimes: times } })
                 return `你在之後${thisMember.decreaseEXPTimes}次發言都會減少 ${thisMember.decreaseEXP}經驗`;
             }
         default:

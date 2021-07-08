@@ -24,7 +24,7 @@ Plurk_Client.on('new_plurk', async response => {
     let message = response.content_raw;
     if (!message) return;
     let mainMsg = message.match(msgSplitor); // 定義輸入字串
-    if (mainMsg.length > 1) {
+    if (mainMsg && mainMsg.length > 1) {
         if (!mainMsg[0].match(/@HKTRPG/i)) return;
         mainMsg.shift();
     }
@@ -49,7 +49,7 @@ Plurk_Client.on('new_response', async response => {
     if (!message) return;
     let mainMsg = message.match(msgSplitor); // 定義輸入字串
 
-    if (mainMsg.length > 1) {
+    if (mainMsg && mainMsg.length > 1) {
         if (!mainMsg[0].match(/@HKTRPG/i)) return;
         mainMsg.shift();
     }

@@ -17,7 +17,9 @@ Plurk_Client.request('Users/me')
 
 
 Plurk_Client.startComet();
+Plurk_Client.request('Alerts/addAllAsFriends')
 function intervalFunc() {
+    Plurk_Client.request('Alerts/addAllAsFriends')
     Plurk_Client.pollComet();
 }
 

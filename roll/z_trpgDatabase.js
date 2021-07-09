@@ -14,7 +14,7 @@ records.get('trpgDatabaseAllgroup', (msgs) => {
 const VIP = require('../modules/veryImportantPerson');
 const limitArr = [30, 200, 200, 300, 300, 300, 300, 300];
 var gameName = function () {
-    return '(公測中)資料庫功能 背包(p) (登記 刪除 顯示 自定關鍵字)'
+    return '(公測中)資料庫功能 (公共|)背包 (登記 刪除 顯示 自定關鍵字)'
 }
 var gameType = function () {
     return 'funny:trpgDatabase:hktrpg'
@@ -168,7 +168,7 @@ var rollDiceCommand = async function ({
             }
 
             return rply;
-        case /(^背包$)/i.test(mainMsg[0]) && /^刪除$/i.test(mainMsg[1]) && /^\刪除+$/i.test(mainMsg[2]):
+        case /(^背包$)/i.test(mainMsg[0]) && /^刪除$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
             //刪除資料庫
             if (groupid && mainMsg[2] && trpgDatabasefunction.trpgDatabasefunction && userrole >= 1) {
                 for (let i = 0; i < trpgDatabasefunction.trpgDatabasefunction.length; i++) {

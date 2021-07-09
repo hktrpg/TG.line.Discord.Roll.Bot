@@ -365,7 +365,7 @@ var rollDiceCommand = async function ({
                 rply.text += "====事件====\n" + eventText[await rollDice.Dice(eventText.length) - 1];
 
                 rply.text += `\n${await eventProcessExp({ randomDetail: randomDetail, groupid: groupid, eventList: eventList[0], thisMember: thisMember })}`
-                await schema.eventMember.findOneAndUpdate({ userID: eventList[0].userID }, { $inc: { earnedEXP: earedXP } })
+                await schema.eventMember.findOneAndUpdate({ userID: eventList[0].userID }, { $inc: { earnedEXP: earedXP, totailEarnedEXP: earedXP } })
                 return rply;
             }
         }
@@ -606,7 +606,7 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                 await thisMember.updateOne({ $inc: { EXP: -exp * 2 } })
                 let targetMember = await schema.eventMember.findOneAndUpdate({
                     userID: eventList.userID,
-                }, { $inc: { earnedEXP: exp * 2 } })
+                }, { $inc: { earnedEXP: exp * 2, totailEarnedEXP: exp * 2 } })
                 return `你已被 ${targetMember.userName} 吸收了 ${exp * 2} 點經驗`;
             }
         case -4:
@@ -701,16 +701,18 @@ async function findMaxLv(userid) {
 //TODO:
 /**
  *
-   multiEXPTimes: Number,
+    multiEXPTimes: Number,
     multiEXP: Number,
     stopExp: Number,
     decreaseEXP: Number,
     decreaseEXPTimes: Number,
 
-    取得earnedEXP
+    取得earnedEXP 功能
 
-    扣EN, 而增加earnedEXP
+    ?SHOW 顯示自己的EN 已增加的EN
 
-    回複EN
+    X 扣EN, 而增加earnedEXP
+
+    X 回複EN
 
  */

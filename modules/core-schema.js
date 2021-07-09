@@ -318,6 +318,7 @@ const eventMember = mongoose.model('eventMember', new mongoose.Schema({
     userID: String,
     userName: String,
     earnedEXP: Number,
+    totailEarnedEXP: Number,
     energy: Number,
     lastActiveAt: Date,
     eventList: [{

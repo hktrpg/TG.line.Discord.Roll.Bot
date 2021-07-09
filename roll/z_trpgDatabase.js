@@ -271,7 +271,7 @@ var rollDiceCommand = async function ({
                 let tempA = {
                     trpgDatabaseAllgroup: [{
                         topic: mainMsg[2],
-                        contact: inputStr.replace(/\.dbp add /i, '').replace(mainMsg[2], '').replace(/^\s+/, '')
+                        contact: inputStr.replace(/\公共背包 登記 /i, '').replace(mainMsg[2], '').replace(/^\s+/, '')
                     }]
                 }
                 if (checkifsamenamegroup == 0) {

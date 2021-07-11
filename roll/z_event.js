@@ -683,7 +683,7 @@ async function calXP(eventList, thisMember, type) {
 
         case "multi": {
             let createEventer = await findMaxLv(eventList.userID);
-            typeNumber = await rollDice.DiceINT(2, ((createEventer - thisMember.Level) > 0) ? Math.round((createEventer - thisMember.Level) / 3) : 2);
+            typeNumber = await rollDice.DiceINT(3, ((createEventer - thisMember.Level) > 0) ? Math.round((createEventer - thisMember.Level) / 3) : 2);
             return typeNumber;
         }
         default:
@@ -701,11 +701,11 @@ async function findMaxLv(userid) {
 //TODO:
 /**
  *
-    multiEXPTimes: Number,
-    multiEXP: Number,
-    stopExp: Number,
-    decreaseEXP: Number,
-    decreaseEXPTimes: Number,
+    X   multiEXPTimes: Number,
+    X   multiEXP: Number,
+    X   stopExp: Number,
+    X   decreaseEXP: Number,
+    X   decreaseEXPTimes: Number,
 
     取得earnedEXP 功能
 

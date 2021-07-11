@@ -8,7 +8,6 @@ var tempSwitchV2 = [{
     SwitchV2: false
 }];
 async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercount) {
-    return;
     if (!groupid) {
         return;
     }
@@ -49,8 +48,32 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     if ((new Date(Date.now()) - userInfo.LastSpeakTime) < oneMinuts) {
         return;
     }
+    if (userInfo.stopExp > 0) {
+        userInfo.stopExp--;
+        await userInfo.save();
+        return;
+    }
     userInfo.name = displaynameDiscord || displayname || '無名';
-    userInfo.EXP += await exports.rollbase.Dice(9) + 15;
+    let exp = await exports.rollbase.Dice(9) + 15;
+    switch (true) {
+        case (userInfo.decreaseEXPTimes > 0):
+            userInfo.EXP -= userInfo.decreaseEXP;
+            userInfo.decreaseEXPTimes--;
+            if (userInfo.decreaseEXPTimes == 0) {
+                userInfo.decreaseEXP = 1;
+            }
+            break;
+        case (userInfo.multiEXPTimes > 0):
+            userInfo.EXP += (userInfo.multiEXP) ? exp * userInfo.multiEXP : exp;
+            userInfo.multiEXPTimes--;
+            if (userInfo.multiEXPTimes == 0) {
+                userInfo.multiEXP = 1;
+            }
+            break;
+        default:
+            userInfo.EXP += exp;
+            break;
+    }
     userInfo.LastSpeakTime = Date.now();
     let LVsumOne = Number(userInfo.Level) + 1;
     let levelUP = false;

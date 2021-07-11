@@ -249,24 +249,71 @@ var rollDiceCommand = async function ({
             rply.text = '刪除事件成功: ' + doc.title
             return rply;
         }
+        case /(^[.]event$)/i.test(mainMsg[0]) && /^useExp$/i.test(mainMsg[1]): {
+            if (!groupid) {
+                rply.text = '你不在群組.請在群組使用此功能 '
+                return rply
+            }
+            let gp = await schema.trpgLevelSystem.findOne({ groupid: groupid });
+            if (!gp || !gp.SwitchV2) {
+                rply.text = '此群組並有沒有開啓LEVEL功能. \n.level config 11 代表啓動功能 \
+                \n 數字11代表等級升級時會進行通知，10代表不會自動通知，\
+                \n 00的話代表不啓動功能\n'
+                return rply;
+            }
+            let eventMember = await schema.eventMember.findOne({
+                userID: userid
+            });
+            let thisMember = await schema.trpgLevelSystemMember.findOne({ groupid: groupid, userid: userid });
+            if (!eventMember || !thisMember) {
+                rply.text = `未有你的資料, 未符合使用取得EXP的條件。`
+                return rply;
+            }
+            if (eventMember.earnedEXP > 0) {
+                let exp = eventMember.earnedEXP;
+                try {
+                    await thisMember.updateOne({
+                        $inc: {
+                            EXP: exp
+                        }
+                    })
+
+                    rply.text = `你已把${exp}EXP加到這群組的帳號裡。\n你最新的EXP是${thisMember.EXP + exp}`
+                    eventMember.earnedEXP = 0;
+                    await eventMember.save();
+                    return rply;
+                } catch (error) {
+                    rply.text = `發生錯誤未能更新。`
+                    console.error('%cz_event.js line:282 error', 'color: #007acc;', error);
+                    return rply;
+                }
+            }
+            else {
+                rply.text = `你未有賺取到EXP。\n賺取條件為有人使用你所寫的事件，請更多使用吧!`
+                return rply;
+            }
+        }
         case /(^[.]event$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
             {
                 filter = {
                     userID: userid
                 }
+                const eventMember = await schema.eventMember.findOne(filter);
                 doc = await schema.eventList.find(filter);
-                rply.text = "====你創作的事件列表====\n"
+                rply.text = `總共賺取EXP: ${(eventMember.totailEarnedEXP) ? eventMember.totailEarnedEXP : 0}\n未使用EXP: ${(eventMember.earnedEXP) ? eventMember.earnedEXP : 0}`
+                if (doc && doc.length > 0)
+                    rply.text += "\n====你創作的事件列表====\n"
                 for (let index = 0; index < doc.length; index++) {
                     rply.text += doc[index].title + "\n";
                     if (doc[index].expName) rply.text += '經驗值的名稱: ' + doc[index].expName + "\n";
-                    rply.text += getDetail(doc[index]) + '\n';
-
+                    if (mainMsg[2] && mainMsg[2].match(doc[index].expName)) {
+                        rply.text += getDetail(doc[index]) + '\n';
+                    }
                 }
                 return rply;
             }
         case /(^[.]evt$)/i.test(mainMsg[0]) && /^\S+$/i.test(mainMsg[1]): {
             {
-                console.log('START')
                 if (!groupid) {
                     rply.text = '你不在群組.請在群組使用此功能 '
                     return rply
@@ -319,6 +366,7 @@ var rollDiceCommand = async function ({
                 switch (randomMode) {
                     case true:
                         if (eventMember.energy < 5) {
+
                             rply.text = "隨機事件需要5EN, 你現在只有" + eventMember.energy + "EN"
                             return rply;
                         } else {
@@ -350,7 +398,7 @@ var rollDiceCommand = async function ({
                                 return rply;
                             }
                             if (eventList[0].userID == userid) {
-                                rply.text = `不可以進入自己新增的事件呢.`
+                                rply.text = `不可以指定進入自己新增的事件呢.`
                                 return rply;
                             }
                             eventMember.energy -= 15
@@ -362,7 +410,7 @@ var rollDiceCommand = async function ({
                 let randomDetail = eventList[0].detail[await rollDice.Dice(eventList[0].detail.length) - 1];
                 let eventText = randomDetail.event.split(';');
 
-                rply.text += "====事件====\n" + eventText[await rollDice.Dice(eventText.length) - 1];
+                rply.text += `====${eventList[0].title}====\n ${eventText[await rollDice.Dice(eventText.length) - 1]}`;
 
                 rply.text += `\n${await eventProcessExp({ randomDetail: randomDetail, groupid: groupid, eventList: eventList[0], thisMember: thisMember })}`
                 await schema.eventMember.findOneAndUpdate({ userID: eventList[0].userID }, { $inc: { earnedEXP: earedXP, totailEarnedEXP: earedXP } })
@@ -536,11 +584,12 @@ D. 一個事件可用的總EN 為(10+LV)，負面事件消耗X點EN
  */
 
 async function eventProcessExp({ randomDetail, groupid, eventList, thisMember }) {
+    let expName = (eventList.expName) ? `「${eventList.expName}」` : '經驗'
     switch (randomDetail.result) {
         case 1: {
             let exp = await calXP(eventList, thisMember, "exp")
             await thisMember.updateOne({ $inc: { EXP: exp } })
-            return `你已增加 ${exp} 點經驗`;
+            return `你已增加 ${exp} 點${expName}`;
         }
 
         case 2:
@@ -549,7 +598,7 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                 let times = await calXP(eventList, thisMember, "times");
                 let multi = await calXP(eventList, thisMember, "multi")
                 await thisMember.updateOne({ $max: { multiEXP: multi, multiEXPTimes: times } })
-                return `你在${thisMember.multiEXPTimes}次內都會有 ${thisMember.multiEXP} 倍經驗`;
+                return `你在${Math.max(thisMember.multiEXPTimes, times)}次內都會有 ${Math.max(thisMember.multiEXP, multi)} 倍${expName}`;
             }
         case 3:
             //  9. 從整個CHANNEL 的X人吸收X點經驗
@@ -577,7 +626,7 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                 });
                 await thisMember.updateOne({ $inc: { EXP: exp * targetMember.length } });
 
-                return `你已增加 ${exp * targetMember.length} 點經驗及 ${name} 已減少${exp}點經驗`;
+                return `你已增加 ${exp * targetMember.length} 點${expName}及 ${name} 已減少${exp}點${expName}`;
             }
         case -1:
             // -1. 直接減少X點經驗
@@ -587,7 +636,7 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                 let exp = await calXP(eventList, thisMember, "exp")
                 await thisMember.updateOne({ $inc: { EXP: -exp } })
 
-                return `你已減少 ${exp} 點經驗`;
+                return `你已減少 ${exp} 點${expName}`;
 
             }
 
@@ -596,7 +645,7 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
             {
                 let times = await calXP(eventList, thisMember, "times");
                 await thisMember.updateOne({ $max: { stopExp: times } })
-                return `你在未來${thisMember.stopExp}次都會失去得到經驗的機會`;
+                return `你在未來${Math.max(thisMember.stopExp, times)}次都會失去得到${expName}的機會`;
             }
 
         case -3:
@@ -607,7 +656,7 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                 let targetMember = await schema.eventMember.findOneAndUpdate({
                     userID: eventList.userID,
                 }, { $inc: { earnedEXP: exp * 2, totailEarnedEXP: exp * 2 } })
-                return `你已被 ${targetMember.userName} 吸收了 ${exp * 2} 點經驗`;
+                return `你已被 ${targetMember.userName} 吸收了 ${exp * 2} 點${expName}`;
             }
         case -4:
             //  5. 分發X經驗給整個CHANNEL中的X人
@@ -635,7 +684,7 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                 });
                 await thisMember.updateOne({ $inc: { EXP: -exp * targetMember.length } });
 
-                return `你已減少 ${exp * targetMember.length} 點經驗及${name}已增加${exp}點經驗`;
+                return `你已減少 ${exp * targetMember.length} 點${expName}及${name}已增加${exp}點${expName}`;
 
             }
         case -5:
@@ -644,7 +693,7 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                 let exp = await calXP(eventList, thisMember, "exp");
                 let times = await calXP(eventList, thisMember, "times");
                 await thisMember.updateOne({ $max: { decreaseEXP: exp, decreaseEXPTimes: times } })
-                return `你在未來${thisMember.decreaseEXPTimes}次發言都會減少 ${thisMember.decreaseEXP}經驗`;
+                return `你在未來${Math.max(thisMember.decreaseEXPTimes, times)}次發言都會減少 ${Math.max(thisMember.decreaseEXP, exp)}${expName}`;
             }
         default:
             //     0. 沒有事發生
@@ -707,9 +756,9 @@ async function findMaxLv(userid) {
     X   decreaseEXP: Number,
     X   decreaseEXPTimes: Number,
 
-    取得earnedEXP 功能
+    X 取得earnedEXP 功能
 
-    ?SHOW 顯示自己的EN 已增加的EN
+    X SHOW 顯示自己的EN 已增加的EN
 
     X 扣EN, 而增加earnedEXP
 

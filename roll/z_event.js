@@ -36,13 +36,15 @@ COC export to roll20?
 
 
 var getHelpMessage = function () {
-    return "【事件功能】" + "\n\
-    經由新增的事件 可以增加減少EXP\n\
-目標是文字團可以快速擲骰，及更新角色狀態。\n\
-\n.event add \n\
-name:Haha\n\
-exp:SAN *不是必需 \ns0:你今天的運氣真好;你是個好人;我愛你\n-1:你中招了;你不好運要-SAN了\n1:你吃了好味的糖，加SAN人\n\
-"
+    return `【事件功能】
+經由新增的事件 可以增加減少EXP
+目標是文字團可以快速擲骰，及更新角色狀態。
+.event add
+name:Haha
+exp:SAN
+0:你今天的運氣真好;你是個好人;我愛你
+-1:你中招了;你不好運要-SAN了
+1:你吃了好味的糖，加SAN人`
 }
 
 var initialize = function () {

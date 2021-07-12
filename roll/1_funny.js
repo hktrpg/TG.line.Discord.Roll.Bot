@@ -101,12 +101,14 @@ var rollDiceCommand = async function ({
 		case /塔羅/i.test(mainMsg[0]):
 			if (mainMsg[0].match(/^每日塔羅/) != null)
 				rply.text = await NomalDrawTarot(mainMsg[1], mainMsg[2]); //預設抽 79 張
-			if (mainMsg[0].match(/^隨機撲克/) != null)
-				rply.text = await NomalDrawpocker(mainMsg[1], mainMsg[2]); //預設抽 79 張
 			if (mainMsg[0].match(/^時間塔羅/) != null)
 				rply.text = await MultiDrawTarot(mainMsg[1], mainMsg[2], 1);
 			if (mainMsg[0].match(/^大十字塔羅/) != null)
 				rply.text = await MultiDrawTarot(mainMsg[1], mainMsg[2], 2);
+			return rply;
+		case /^隨機撲克/i.test(mainMsg[0]):
+			if (mainMsg[0].match(/^隨機撲克/) != null)
+				rply.text = await NomalDrawpocker(mainMsg[1], mainMsg[2]); //預設抽 79 張
 			return rply;
 		case (/立flag$|^立flag/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,25}/g).length <= 1):
 			rply.text = await BStyleFlagSCRIPTS();

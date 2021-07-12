@@ -11,7 +11,7 @@ var gameType = function () {
 }
 var prefixs = function () {
 	return [{
-		first: /^[.]me$|排序|隨機|choice|^每日塔羅|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸/i,
+		first: /^[.]me$|排序|隨機|choice|^每日塔羅|^時間塔羅|^大十字塔羅|^任務廣播|立flag|運勢|鴨霸獸/i,
 		second: null
 	}]
 }
@@ -75,6 +75,15 @@ var rollDiceCommand = async function ({
 	switch (true) {
 		case /^排序|排序$/i.test(mainMsg[0]) && (mainMsg.length >= 4):
 			rply.text = await SortIt(inputStr, mainMsg);
+			return rply;
+		case /^任務廣播|任務廣播$/i.test(mainMsg[0]):
+			rply.text = "@everyone\n\
+\n\你收到了一封邀請函，上面的字體工整，還夾了一張簡單的地圖，上面寫著『庭院』。\n\
+\n\\n\邀請函是這麼寫的：\n\\n\\n\歡迎各位賓客來到輪迴賭場，在各位開始自相殘殺或者進行賭博之前，我的小小姐：艾米莉亞  希望能與各位進行一場小小的茶會。\n\\n\\n\場地位於：#庭院 \n\\n\\n\\n\\n\時間：(台灣時間) 下午3點、(台灣時間) 晚上10點30分\n\\n\\n\\n\還望不要辜負小小姐的心意，我們將靜候您的到來。
+
+
+
+                                                           署名：芙蘿賽碧娜";
 			return rply;
 		case /^隨機|^choice|隨機$|choice$/i.test(mainMsg[0]) && (mainMsg.length >= 3):
 			rply.text = await choice(inputStr, mainMsg);

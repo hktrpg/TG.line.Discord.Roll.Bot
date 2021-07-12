@@ -355,6 +355,7 @@ const PockerList = ["♤A ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.
 	"♢J ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/assets/tarot/CUPS_06.jpg",
 	"♢Q ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/assets/tarot/CUPS_07.jpg",
 	"♢K ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/assets/tarot/CUPS_08.jpg",
+]
 	
 async function MultiDrawpocker(text, text2, type) {
 	let returnStr = '';

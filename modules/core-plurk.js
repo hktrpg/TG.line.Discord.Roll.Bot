@@ -30,7 +30,6 @@ setInterval(intervalFunc, 60 * 1000 * 20);
 
 
 Plurk_Client.on('new_plurk', async response => {
-    console.log('response', response)
     if (response.type != 'new_plurk') return;
     if (response.limited_to && response.limited_to.length == 1 && response.limited_to[0] == 0) return;
 
@@ -79,7 +78,7 @@ Plurk_Client.on('new_plurk', async response => {
 
 Plurk_Client.on('new_response', async response => {
     //防止自己回應自己
-    //  if (response.user[plurkID]) return;
+    if (response.user[plurkID]) return;
     if (response.type != 'new_response') return;
     if (response.limited_to && response.limited_to.length == 1 && response.limited_to[0] == 0) return;
     let message = response.response.content_raw;
@@ -129,7 +128,6 @@ Plurk_Client.on('new_response', async response => {
             displayName = `${response.user[i].display_name}`
 
     }
-    console.log('rplyVal', rplyVal)
     rplyVal.text = `${displayName}${(rplyVal.text) ? '\n' + rplyVal.text : ''}${(rplyVal.LevelUp) ? '\n' + rplyVal.LevelUp : ''}`
     return await sendMessage(response.plurk.plurk_id, rplyVal.text);
 
@@ -150,7 +148,6 @@ async function nonDice(groupid, userid, displayname, plurk_id) {
     let LevelUp = await EXPUP(groupid, userid, displayname, "", null);
     await courtMessage("", "Plurk", "")
     if (groupid && LevelUp) {
-        //	console.log('result.LevelUp 2:', rplyVal.LevelUp)
         await sendMessage(plurk_id, LevelUp);
     }
 

@@ -292,7 +292,7 @@ async function randomLuck(TEXT) {
 /**
  * Tarot塔羅牌
  */
-async function NomalDrawpocker(text, text2) {
+async function NomalDrawTarot(text, text2) {
 	let returnStr = '';
 	returnStr = '隨機撲克'
 	if (text)
@@ -300,7 +300,6 @@ async function NomalDrawpocker(text, text2) {
 	let ans = await rollbase.shuffleTarget(PockerList)
 	returnStr += '\n' + ans[0]
 	return returnStr;
-
 }
 
 
@@ -358,7 +357,7 @@ const PockerList = ["♤A ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.
 	"♢K ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/assets/tarot/CUPS_08.jpg",
 ]
 	
-async function MultiDrawpocker(text, text2, type) {
+async function MultiDrawTarot(text, text2, type) {
 	let returnStr = '';
 	let cards = []
 	switch (type) {

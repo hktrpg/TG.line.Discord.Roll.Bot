@@ -108,7 +108,7 @@ var rollDiceCommand = async function ({
 			return rply;
 		case /^隨機撲克/i.test(mainMsg[0]):
 			if (mainMsg[0].match(/^隨機撲克/) != null)
-				rply.text = await NomalDrawTarot(mainMsg[1], mainMsg[2]); //預設抽 79 張
+				rply.text = await NomalDrawPocker(mainMsg[1], mainMsg[2]); //預設抽 79 張
 			return rply;
 		case (/立flag$|^立flag/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,25}/g).length <= 1):
 			rply.text = await BStyleFlagSCRIPTS();
@@ -291,7 +291,7 @@ async function randomLuck(TEXT) {
 /**
  * Tarot塔羅牌
  */
-async function NomalDrawTarot(text, text2) {
+async function NomalDrawPocker(text, text2) {
 	let returnStr = '';
 	returnStr = '隨機撲克'
 	if (text)

@@ -21,13 +21,13 @@ var gameType = function () {
 var prefixs = function () {
   const tempregex = /^(?=.*\d+d\d+)(?!.*\d+(l|h))(?!.*(k)$)(?!.*(l|h)(l|h|k|d))(?!.*(k|d)(k|d))(?!.*^[a-z])(?!.*[a-c])(?!.*[e-g])(?!.*[i-j])(?!.*[m-z])(?!.*(([d]|[+]|[-]|[*]|[/])([d]|[+]|[-]|[*]|[/])))(?!.*(^([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[)])))(?!.*([(][)]))(?!.*([<][<]))(?!.*([>][>]))(?!.*([<][>]))(?!.*([>][<]))(?!.*(\d+[d]+\d+[d]([^h|l]))|([)]\d))(?!.*(([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[(])$))(?!.*([@]|[!]|[#]|[$]|[%]|[&]|[_]|[~]|[`]|[']|[?]|\.))(?!.*([\u4e00-\u9fa5]))(?!.*([=].*[=]))(?!.*([+]|[-]|[*]|[/])[=])(?!.*[=]([+]|[-]|[*]|[/]|[>]|[<]))(?!.*(\d)[=](\d))(?!.*([-][>])|([-][<])|([<][-])|([>][-]))(?!.*(d)[(]).*$/ig
   return [{
-      first: tempregex,
-      second: null
-    },
-    {
-      first: /(^[1-9]$)|(^[1-2][0-9]$)|(^[3][0]$)/i,
-      second: tempregex
-    }
+    first: tempregex,
+    second: null
+  },
+  {
+    first: /(^[1-9]$)|(^[1-2][0-9]$)|(^[3][0]$)/i,
+    second: tempregex
+  }
   ]
 }
 
@@ -75,7 +75,11 @@ var Dice = async function (diceSided) {
 
 var DiceINT = async function (start, end) {
   let result = '';
-  result = await random.integer(start, end)
+  let points = [Math.floor(start), Math.floor(end)]
+  points.sort(function (a, b) {
+    return a - b
+  });
+  result = await random.integer(points[0], points[1]);
   return result
 }
 

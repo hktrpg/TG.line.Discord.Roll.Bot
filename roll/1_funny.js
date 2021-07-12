@@ -293,7 +293,7 @@ async function randomLuck(TEXT) {
 async function MultiDrawTarot(text, text2, type) {
 	let returnStr = '';
 	let cards = []
-			returnStr = '時間塔羅';
+			returnStr = '隨機撲克';
 			(text) ? returnStr += "；" + text + " " + text2: '';
 			cards = await rollbase.shuffleTarget(PockerList);
 

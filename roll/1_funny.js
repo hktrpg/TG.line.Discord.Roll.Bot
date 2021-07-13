@@ -87,6 +87,7 @@ var rollDiceCommand = async function ({
 \n\
 \n\
 場地位於:<#827588430850424884> \n\
+日期：7/15
 時間(台灣時間)：下午 3點、晚上 10點30分\n\
 \n\
 \n\

@@ -22,11 +22,12 @@ Plurk_Client.request('Users/me')
 Plurk_Client.startComet();
 Plurk_Client.request('Alerts/addAllAsFriends')
 function intervalFunc() {
-    Plurk_Client.request('Alerts/addAllAsFriends')
-    Plurk_Client.pollComet();
+    Plurk_Client.request('Alerts/addAllAsFriends');
+    Plurk_Client.stopComet();
+    Plurk_Client.startComet();
 }
 
-setInterval(intervalFunc, 60 * 1000 * 20);
+setInterval(intervalFunc, 60 * 1000 * 10);
 
 
 Plurk_Client.on('new_plurk', async response => {

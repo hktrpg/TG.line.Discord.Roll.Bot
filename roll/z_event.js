@@ -28,11 +28,19 @@ const opt = {
     runValidators: true
 }
 
+/**
+ * 
+ * TODO:
+ * 狀態包括HKTRPG 有特別效果, 如名字改變?動物EMOJI?
+ * @!$%#&%$&^%亂碼ETC?
+ * 
+ * 
+ */
+
 
 var getHelpMessage = function () {
     return `【事件功能】
-經由新增的事件 可以增加減少EXP
-目標是文字團可以快速擲骰，及更新角色狀態。
+經由新增的事件，會得到一些狀態或增加減少EXP。
 .event add
 name:Haha
 exp:SAN

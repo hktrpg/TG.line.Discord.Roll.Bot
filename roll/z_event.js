@@ -28,12 +28,6 @@ const opt = {
     runValidators: true
 }
 
-/*
-TODO?
-COC export to roll20?
-
-*/
-
 
 var getHelpMessage = function () {
     return `【事件功能】
@@ -51,7 +45,6 @@ var initialize = function () {
     return variables;
 }
 
-// eslint-disable-next-line no-unused-vars
 var rollDiceCommand = async function ({
     inputStr,
     mainMsg,
@@ -433,27 +426,6 @@ function getDetail(doc) {
     return text;
 }
 
-
-
-
-
-
-async function findObject(doc, mainMsg) {
-    let re = mainMsg.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
-    let resutlt = doc.find(element => {
-        return element.name.match(new RegExp('^' + re + '$', 'i'))
-    });
-    return resutlt;
-}
-
-
-async function replacer(doc, match) {
-    let result = ""
-    let state = await findObject(doc.state, match);
-    let note = await findObject(doc.notes, match);
-    result = state.itemA || note.itemA || '';
-    return result;
-}
 async function analysicInputData(inputStr) {
     let MainData = (inputStr.match(regexMain)) ? inputStr.match(regexMain) : '';
     let ExpName = (inputStr.match(regexExp)) ? inputStr.match(regexExp)[1].replace(/^\s+/, '').replace(/\s+$/, '') : '';
@@ -485,16 +457,6 @@ async function analysicDetail(data) {
     return info;
 }
 
-
-async function replaceAsync(str, regex, asyncFn) {
-    const promises = [];
-    str.replace(regex, (match, ...args) => {
-        const promise = asyncFn(match, ...args);
-        promises.push(promise);
-    });
-    const data = await Promise.all(promises);
-    return str.replace(regex, () => data.shift());
-}
 
 module.exports = {
     rollDiceCommand: rollDiceCommand,
@@ -749,21 +711,3 @@ async function findMaxLv(userid) {
     if (!maxLV) return 1;
     return maxLV.Level;
 }
-//TODO:
-/**
- *
-    X   multiEXPTimes: Number,
-    X   multiEXP: Number,
-    X   stopExp: Number,
-    X   decreaseEXP: Number,
-    X   decreaseEXPTimes: Number,
-
-    X 取得earnedEXP 功能
-
-    X SHOW 顯示自己的EN 已增加的EN
-
-    X 扣EN, 而增加earnedEXP
-
-    X 回複EN
-
- */

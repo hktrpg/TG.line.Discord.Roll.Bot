@@ -355,9 +355,8 @@ client.on('message', async (message) => {
 			}
 			return;
 		default:
-			console.log('userid', userid)
-			console.log('groupid', groupid)
-			console.log('rplyVal', rplyVal)
+			console.log('	console.log(userid, displayname, channelid, displaynameDiscord, membercount, titleName,groupid)', userid, displayname, channelid, displaynameDiscord, membercount, titleName, groupid)
+
 			if (userid) {
 				rplyVal.text = "<@" + userid + ">\n" + rplyVal.text;
 			}

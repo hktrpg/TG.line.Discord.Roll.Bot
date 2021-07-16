@@ -44,7 +44,7 @@ var connect = function () {
 	ws.on('message', function incoming(data) {
 		var object = JSON.parse(data);
 		if (object.botname == 'Discord') {
-			console.log('discord have message')
+			//console.log('discord have message')
 			let text = 'let result = this.channels.cache.get("' + object.message.target.id + '");if (result) {result.send("' + object.message.text.replace(/\r\n|\n/g, "\\n") + '");}'
 			client.shard.broadcastEval(text);
 			return;

@@ -124,7 +124,7 @@ client.on('message', async (message) => {
 	if (trigger == ".me") {
 		inputStr = inputStr.replace(/^.me\s+/i, '');
 		if (groupid) {
-			SendToReplychannel(inputStr, channelid);
+			SendToReplychannel(inputStr, message.channel.id);
 		} else {
 			SendToReply(inputStr, message);
 		}

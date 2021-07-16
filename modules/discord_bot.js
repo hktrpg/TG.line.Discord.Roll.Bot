@@ -449,7 +449,11 @@ client.on('ready', async () => {
 	client.user.setActivity('🌼bothelp | hktrpg.com🍎');
 	if (togGGToken) {
 		setInterval(() => {
-			dbl.postStats(client.guilds.size);
+			try {
+				dbl.postStats(client.guilds.size);
+			} catch (error) {
+				console.error('DBL TOP.GG error')
+			}
 		}, 1800000);
 	}
 	var switchSetActivity = 0;

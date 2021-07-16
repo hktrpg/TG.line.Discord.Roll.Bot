@@ -172,7 +172,6 @@ client.on('message', async (message) => {
 	let userrole = 1;
 	//console.log(message.guild)
 	if (message.guild && message.guild.me) {
-		console.log('message.guild', message.channel.permissionsFor(message.guild.me).has("SEND_MESSAGES"), message.guild.me.hasPermission("ADMINISTRATOR"))
 		hasSendPermission = message.channel.permissionsFor(message.guild.me).has("SEND_MESSAGES") || message.guild.me.hasPermission("ADMINISTRATOR");
 	}
 	if (message.channel && message.channel.id) {
@@ -199,7 +198,6 @@ client.on('message', async (message) => {
 	}
 	if (message.member && message.member.hasPermission("ADMINISTRATOR")) {
 		userrole = 3
-		console.log('userrole', userrole)
 	}
 	//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin
 	membercount = (message.guild) ? message.guild.memberCount : 0;

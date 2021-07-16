@@ -6,7 +6,7 @@ const Discord = require('discord.js-light');
 const client = new Discord.Client(
 	{
 		cacheGuilds: true,
-		cacheChannels: false,
+		cacheChannels: true,
 		cacheOverwrites: false,
 		cacheRoles: true,
 		cacheEmojis: false,
@@ -105,7 +105,6 @@ process.on('unhandledRejection', error => {
 });
 
 client.on('guildCreate', guild => {
-	console.log("Discord joined");
 	let channel = guild.channels.cache.find(channel => channel.type === 'text' && channel.permissionsFor(guild.me).has('SEND_MESSAGES'));
 	if (channel) {
 		channel.send(joinMessage);
@@ -121,7 +120,6 @@ client.on('message', async (message) => {
 	if (mainMsg && mainMsg[0]) {
 		trigger = mainMsg[0].toString().toLowerCase();
 	}
-	console.log('message', message)
 	//指定啟動詞在第一個詞&把大階強制轉成細階
 	if (trigger == ".me") {
 		inputStr = inputStr.replace(/^.me\s+/i, '');
@@ -154,7 +152,7 @@ client.on('message', async (message) => {
 	let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
 
 	if (!target) {
-		await nonDice(message)
+		await nonDice(message, message.channel.id)
 		return null
 	}
 	let userid = '',
@@ -201,11 +199,11 @@ client.on('message', async (message) => {
 	}
 	if (message.member && message.member.hasPermission("ADMINISTRATOR")) {
 		userrole = 3
+		console.log('userrole', userrole)
 	}
 	//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin
-	if (message.guild && message.guild.members) {
-		membercount = message.guild.members.cache.filter(member => !member.user.bot).size;
-	}
+	membercount = (message.guild) ? message.guild.memberCount : 0;
+
 	let rplyVal = {};
 
 	//設定私訊的模式 0-普通 1-自己 2-自己+GM 3-GM
@@ -251,7 +249,6 @@ client.on('message', async (message) => {
 	if (!rplyVal.text && !rplyVal.LevelUp) {
 		return;
 	}
-	console.log('hasSendPermission', hasSendPermission)
 	if (!hasSendPermission) {
 		return;
 	}
@@ -355,8 +352,6 @@ client.on('message', async (message) => {
 			}
 			return;
 		default:
-			console.log('	console.log(userid, displayname, channelid, displaynameDiscord, membercount, titleName,groupid)', userid, displayname, channelid, displaynameDiscord, membercount, titleName, groupid)
-
 			if (userid) {
 				rplyVal.text = "<@" + userid + ">\n" + rplyVal.text;
 			}
@@ -384,8 +379,7 @@ async function SendToId(targetid, replyText) {
 	for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 		if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
 			try {
-				//V12ERROR return await client.users.get(targetid).send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
-				client.users.cache.get(targetid).send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
+				await client.users.forge(targetid).send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 			}
 			catch (e) {
 				console.log(' GET ERROR:  SendtoID: ', e.message, replyText)
@@ -406,7 +400,6 @@ async function SendToReply(replyText, message) {
 	}
 }
 async function SendToReplychannel(replyText, channelid) {
-	console.log('replyText, channelid', replyText, channelid)
 	for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 		if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
 			try {
@@ -427,7 +420,7 @@ client.on('shardResume', (replayed, shardID) => console.log(`Shard ID ${shardID}
 
 client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnected.`));
 
-async function nonDice(message) {
+async function nonDice(message, channelid) {
 	let groupid = '',
 		userid = '';
 	if (message.guild && message.guild.id) {
@@ -442,13 +435,10 @@ async function nonDice(message) {
 	if (message.member && message.member.user && message.member.user.username) {
 		displayname = message.member.user.username;
 	}
-	if (message.guild && message.guild.members) {
-		membercount = message.guild.members.cache.filter(member => !member.user.bot).size;
-	}
+	membercount = (message.guild) ? message.guild.memberCount : 0;
 	let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount);
 	await courtMessage("", "Discord", "")
 	if (groupid && LevelUp) {
-		//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
 		await SendToReplychannel("@" + displayname + '\n' + LevelUp, channelid);
 	}
 

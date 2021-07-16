@@ -8,7 +8,7 @@ const client = new Discord.Client(
 		cacheGuilds: true,
 		cacheChannels: false,
 		cacheOverwrites: false,
-		cacheRoles: false,
+		cacheRoles: true,
 		cacheEmojis: false,
 		cachePresences: false
 	}
@@ -121,11 +121,12 @@ client.on('message', async (message) => {
 	if (mainMsg && mainMsg[0]) {
 		trigger = mainMsg[0].toString().toLowerCase();
 	}
+	console.log('message', message)
 	//指定啟動詞在第一個詞&把大階強制轉成細階
 	if (trigger == ".me") {
 		inputStr = inputStr.replace(/^.me\s+/i, '');
 		if (groupid) {
-			SendToReplychannel(inputStr, message);
+			SendToReplychannel(inputStr, channelid);
 		} else {
 			SendToReply(inputStr, message);
 		}
@@ -173,6 +174,7 @@ client.on('message', async (message) => {
 	let userrole = 1;
 	//console.log(message.guild)
 	if (message.guild && message.guild.me) {
+		console.log('message.guild', message.channel.permissionsFor(message.guild.me).has("SEND_MESSAGES"), message.guild.me.hasPermission("ADMINISTRATOR"))
 		hasSendPermission = message.channel.permissionsFor(message.guild.me).has("SEND_MESSAGES") || message.guild.me.hasPermission("ADMINISTRATOR");
 	}
 	if (message.channel && message.channel.id) {
@@ -249,6 +251,7 @@ client.on('message', async (message) => {
 	if (!rplyVal.text && !rplyVal.LevelUp) {
 		return;
 	}
+	console.log('hasSendPermission', hasSendPermission)
 	if (!hasSendPermission) {
 		return;
 	}
@@ -260,7 +263,7 @@ client.on('message', async (message) => {
 
 	if (groupid && rplyVal && rplyVal.LevelUp) {
 		//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
-		SendToReplychannel("<@" + userid + '>\n' + rplyVal.LevelUp, message);
+		SendToReplychannel("<@" + userid + '>\n' + rplyVal.LevelUp, channelid);
 	}
 	if (rplyVal.discordExport) {
 		message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄', {
@@ -310,7 +313,7 @@ client.on('message', async (message) => {
 			// 輸入dr  (指令) 私訊自己
 			//
 			if (groupid) {
-				SendToReplychannel("<@" + userid + '> 暗骰給自己', message)
+				SendToReplychannel("<@" + userid + '> 暗骰給自己', channelid)
 			}
 			if (userid) {
 				rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
@@ -325,7 +328,7 @@ client.on('message', async (message) => {
 				for (let i = 0; i < TargetGMTempID.length; i++) {
 					targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
 				}
-				SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp, message);
+				SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp, channelid);
 			}
 			if (userid) {
 				rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text;
@@ -344,7 +347,7 @@ client.on('message', async (message) => {
 				for (let i = 0; i < TargetGMTempID.length; i++) {
 					targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
 				}
-				SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp, message)
+				SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp, channelid)
 			}
 			rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
 			for (let i = 0; i < TargetGMTempID.length; i++) {
@@ -352,11 +355,14 @@ client.on('message', async (message) => {
 			}
 			return;
 		default:
+			console.log('userid', userid)
+			console.log('groupid', groupid)
+			console.log('rplyVal', rplyVal)
 			if (userid) {
 				rplyVal.text = "<@" + userid + ">\n" + rplyVal.text;
 			}
 			if (groupid) {
-				SendToReplychannel(rplyVal.text, message);
+				SendToReplychannel(rplyVal.text, channelid);
 			} else {
 				SendToReply(rplyVal.text, message);
 			}
@@ -400,14 +406,16 @@ async function SendToReply(replyText, message) {
 			}
 	}
 }
-async function SendToReplychannel(replyText, message) {
+async function SendToReplychannel(replyText, channelid) {
+	console.log('replyText, channelid', replyText, channelid)
 	for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 		if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
 			try {
-				await message.channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
+				await client.channels.forge(channelid).send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
+				//await message.channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 			}
 			catch (e) {
-				console.log(' GET ERROR: SendToReplychannel: ', e.message, replyText, message);
+				console.log(' GET ERROR: SendToReplychannel: ', e.message, replyText, channelid);
 			}
 	}
 }
@@ -442,7 +450,7 @@ async function nonDice(message) {
 	await courtMessage("", "Discord", "")
 	if (groupid && LevelUp) {
 		//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
-		await SendToReplychannel("@" + displayname + '\n' + LevelUp, message);
+		await SendToReplychannel("@" + displayname + '\n' + LevelUp, channelid);
 	}
 
 	return null;

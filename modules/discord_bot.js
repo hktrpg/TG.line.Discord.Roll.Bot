@@ -2,8 +2,17 @@
 exports.analytics = require('./core-analytics');
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
-const Discord = require('discord.js');
-const client = new Discord.Client();
+const Discord = require('discord.js-light');
+const client = new Discord.Client(
+	{
+		cacheGuilds: true,
+		cacheChannels: false,
+		cacheOverwrites: false,
+		cacheRoles: false,
+		cacheEmojis: false,
+		cachePresences: false
+	}
+);
 const DBL = require("dblapi.js");
 //TOP.GG 
 const togGGToken = process.env.TOPGG;
@@ -13,8 +22,8 @@ const link = process.env.WEB_LINK;
 const port = process.env.PORT || 20721;
 const mongo = process.env.mongoURL
 var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
-const EXPUP = require('./level').EXPUP || function () {};
-const courtMessage = require('./logs').courtMessage || function () {};
+const EXPUP = require('./level').EXPUP || function () { };
+const courtMessage = require('./logs').courtMessage || function () { };
 const joinMessage = `你剛剛添加了HKTRPG 骰子機械人! 
 		主要功能：暗骰, 各類TRPG骰子擲骰, 頻道經驗值, 占卜, 先攻表, TRPG角色卡, 搜圖, 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, 自定義抽選, wiki查詢, 資料庫快速查詢功能\
 		輸入 1D100 可以進行最簡單的擲骰.
@@ -264,10 +273,10 @@ client.on('message', async (message) => {
 		if (!link || !mongo) {
 			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +
 				rplyVal.discordExportHtml[1], {
-					files: [
-						"./tmp/" + rplyVal.discordExportHtml[0] + '.html'
-					]
-				});
+				files: [
+					"./tmp/" + rplyVal.discordExportHtml[0] + '.html'
+				]
+			});
 
 		} else {
 			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +
@@ -373,9 +382,9 @@ async function SendToId(targetid, replyText) {
 				//V12ERROR return await client.users.get(targetid).send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 				client.users.cache.get(targetid).send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 			}
-		catch (e) {
-			console.log(' GET ERROR:  SendtoID: ', e.message, replyText)
-		}
+			catch (e) {
+				console.log(' GET ERROR:  SendtoID: ', e.message, replyText)
+			}
 	}
 
 }
@@ -386,9 +395,9 @@ async function SendToReply(replyText, message) {
 			try {
 				await message.author.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 			}
-		catch (e) {
-			console.log(' GET ERROR:  SendToReply: ', e.message, replyText, message)
-		}
+			catch (e) {
+				console.log(' GET ERROR:  SendToReply: ', e.message, replyText, message)
+			}
 	}
 }
 async function SendToReplychannel(replyText, message) {
@@ -397,9 +406,9 @@ async function SendToReplychannel(replyText, message) {
 			try {
 				await message.channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 			}
-		catch (e) {
-			console.log(' GET ERROR: SendToReplychannel: ', e.message, replyText, message);
-		}
+			catch (e) {
+				console.log(' GET ERROR: SendToReplychannel: ', e.message, replyText, message);
+			}
 	}
 }
 

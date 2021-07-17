@@ -438,13 +438,6 @@ async function analysicInputData(inputStr) {
     let MainData = (inputStr.match(regexMain)) ? inputStr.match(regexMain) : '';
     let ExpName = (inputStr.match(regexExp)) ? inputStr.match(regexExp)[1].replace(/^\s+/, '').replace(/\s+$/, '') : '';
     let eventName = (inputStr.match(regexName)) ? inputStr.match(regexName)[1].replace(/^\s+/, '').replace(/\s+$/, '') : '';
-
-    //let characterState = (characterStateTemp) ? await analysicStr(characterStateTemp, true) : [];
-    //let characterRoll = (characterRollTemp) ? await analysicStr(characterRollTemp, false) : [];
-    //Remove duplicates from an array of objects in JavaScript
-    // if (characterState)
-    // characterState = characterState.filter((v, i, a) => a.findIndex(t => (t.name === v.name)) === i)
-    //if (characterRoll)
     let result = {
         expName: ExpName,
         MainData: MainData,

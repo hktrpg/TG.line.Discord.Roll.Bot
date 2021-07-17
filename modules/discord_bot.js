@@ -374,10 +374,11 @@ async function privateMsgFinder(channelid) {
 	else return [];
 }
 async function SendToId(targetid, replyText) {
+	let user = await client.users.fetch(targetid);
 	for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 		if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
 			try {
-				await client.users.forge(targetid).send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
+				await user.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 			}
 			catch (e) {
 				console.log(' GET ERROR:  SendtoID: ', e.message, replyText)
@@ -398,10 +399,11 @@ async function SendToReply(replyText, message) {
 	}
 }
 async function SendToReplychannel(replyText, channelid) {
+	let channel = await client.channels.fetch(channelid);
 	for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 		if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
 			try {
-				await client.channels.forge(channelid).send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
+				await channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 				//await message.channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 			}
 			catch (e) {

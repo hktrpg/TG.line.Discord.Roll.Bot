@@ -142,6 +142,7 @@ bothelp req		- 對HKTRPG RollBot提出意見
 2021/07/08 更新Plurk連接
 2021/07/16 使用Discord js light, 現在有7400群組在使用, 記憶體不夠用了...
 更新coc創角, 幼年調查員和PULP版
+全部更新可看https://github.com/hktrpg/TG.line.Discord.Roll.Bot/commits/master
 `;
 			try {
 				const response = await fetch(url);

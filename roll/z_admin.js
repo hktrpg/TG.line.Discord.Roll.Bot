@@ -66,6 +66,7 @@ var rollDiceCommand = async function ({
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = await this.getHelpMessage();
+            rply.quotes = true;
             return rply;
         case /^state$/i.test(mainMsg[1]):
             rply.state = true;

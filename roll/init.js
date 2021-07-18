@@ -58,6 +58,7 @@ var rollDiceCommand = async function ({
     };
     if ((/^help$/i.test(mainMsg[1])) && /^[.]in|[.]init$/i.test(mainMsg[0])) {
         rply.text = await this.getHelpMessage();
+        rply.quotes = true;
         if (botname == "Line")
             rply.text += "\n因為Line的機制, 如擲骰時並無顯示用家名字, 請到下列網址,和機器人任意說一句話,成為好友. \n https://line.me/R/ti/p/svMLqy9Mik"
         return rply;

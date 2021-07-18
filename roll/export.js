@@ -203,6 +203,7 @@ var rollDiceCommand = async function ({
     switch (true) {
         case /^help$/i.test(mainMsg[1]):
             rply.text = await this.getHelpMessage();
+            rply.quotes = true;
             return rply;
         case /^html$/i.test(mainMsg[1]):
             if (!channelid || !groupid) {

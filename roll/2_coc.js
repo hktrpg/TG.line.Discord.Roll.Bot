@@ -51,9 +51,11 @@ var rollDiceCommand = async function ({
 	//console.log(mainMsg[1].toLowerCase())
 	if (trigger == "cc" && mainMsg[1].toLowerCase() == "help") {
 		rply.text = await this.getHelpMessage();
+		rply.quotes = true;
 	}
 	if (trigger == ".dp" && (mainMsg[1].toLowerCase() == "help" || !mainMsg[1])) {
 		rply.text = await this.getHelpMessage();
+		rply.quotes = true;
 	}
 	if (trigger.match(/(^ccrt$)/) != null) {
 		rply.text = await ccrt();

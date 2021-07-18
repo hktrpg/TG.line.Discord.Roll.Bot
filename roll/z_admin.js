@@ -71,10 +71,7 @@ var rollDiceCommand = async function ({
             rply.state = true;
             return rply;
         case /^fixEXP$/i.test(mainMsg[1]): {
-            if (!adminSecret||userid !== adminSecret){ 
-                rply.text ="ADMIN 才可以使用"
-                return rply;
-                }
+
             let doc = await schema.trpgLevelSystem.find({})
             for (let index = 0; index < doc.length; index++) {
                 let docTRPG = await schema.trpgLevelSystem.findOne({
@@ -410,13 +407,13 @@ async function store(mainMsg, mode) {
     var resultNotes = pattNotes.exec(mainMsg);
     var resultSwitch = pattSwitch.exec(mainMsg);
     let reply = {};
-    (resultId && mode == 'id') ? reply.id = resultId[1]: null;
-    (resultGP && mode == 'gp') ? reply.gpid = resultGP[1]: null;
-    (resultLv) ? reply.level = Number(resultLv[1]): null;
-    (resultName) ? reply.name = resultName[1]: null;
-    (resultNotes) ? reply.notes = resultNotes[1]: null;
-    (resultSwitch && resultSwitch[1].toLowerCase() == 'true') ? reply.switch = true: null;
-    (resultSwitch && resultSwitch[1].toLowerCase() == 'false') ? reply.switch = false: null;
+    (resultId && mode == 'id') ? reply.id = resultId[1] : null;
+    (resultGP && mode == 'gp') ? reply.gpid = resultGP[1] : null;
+    (resultLv) ? reply.level = Number(resultLv[1]) : null;
+    (resultName) ? reply.name = resultName[1] : null;
+    (resultNotes) ? reply.notes = resultNotes[1] : null;
+    (resultSwitch && resultSwitch[1].toLowerCase() == 'true') ? reply.switch = true : null;
+    (resultSwitch && resultSwitch[1].toLowerCase() == 'false') ? reply.switch = false : null;
     return reply;
 }
 

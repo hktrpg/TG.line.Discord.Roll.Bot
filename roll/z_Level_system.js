@@ -532,11 +532,13 @@ var rollDiceCommand = async function ({
             let docMember = await schema.trpgLevelSystemMember.find({}).sort({
                 EXP: -1
             }).limit(RankNumber)
+            let docMemberCount = await schema.trpgLevelSystemMember.countDocuments({})
+
             if (docMember.length < 1) {
                 rply.text = '此群組未有足夠資料\n'
                 return rply;
             }
-            rply.text = await rankingList({}, docMember, RankNumber, "世界排行榜");
+            rply.text = await rankingList({}, docMember, RankNumber, "世界排行榜", docMemberCount);
             return rply;
 
         }
@@ -559,7 +561,7 @@ var rollDiceCommand = async function ({
 
 
 
-    async function rankingList(gp, who, RankNumber, Title) {
+    async function rankingList(gp, who, RankNumber, Title, docMemberCount) {
         var array = [];
         let answer = ""
         let tempTitleAll = gp.Title || [];
@@ -582,7 +584,7 @@ var rollDiceCommand = async function ({
             if (array && array[b]) {
                 if (b == 0) {
                     answer += Title
-                    answer += (Title == "世界排行榜") ? " (人口: " + array.length + "人)\n┌" : "\n┌";
+                    answer += (Title == "世界排行榜") ? " (人口: " + docMemberCount + "人)\n┌" : "\n┌";
                 } else
                     if (b < RankNumber - 1 && b < array.length - 1) {
                         answer += "├"

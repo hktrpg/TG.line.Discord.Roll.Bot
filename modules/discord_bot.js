@@ -152,7 +152,7 @@ client.on('message', async (message) => {
 	let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
 
 	if (!target) {
-		await nonDice(message, message.channel.id)
+		await nonDice(message)
 		return null
 	}
 	let userid = '',
@@ -361,7 +361,7 @@ client.on('message', async (message) => {
 					//.setURL('https://discord.js.org/')
 					.setAuthor('HKTRPG', 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png', 'https://www.patreon.com/HKTRPG')
 					.setDescription(rplyVal.text)
-					//.setThumbnail('https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png')
+				//.setThumbnail('https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png')
 			}
 
 			if (groupid) {
@@ -384,6 +384,7 @@ async function privateMsgFinder(channelid) {
 		return groupInfo.trpgDarkRollingfunction
 	else return [];
 }
+async function SendToId(targetid, replyText) {
 	let user = await client.users.fetch(targetid);
 	if (typeof replyText === "string") {
 		for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
@@ -441,7 +442,7 @@ client.on('shardResume', (replayed, shardID) => console.log(`Shard ID ${shardID}
 
 client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnected.`));
 
-async function nonDice(message, channelid) {
+async function nonDice(message) {
 	let groupid = '',
 		userid = '';
 	if (message.guild && message.guild.id) {

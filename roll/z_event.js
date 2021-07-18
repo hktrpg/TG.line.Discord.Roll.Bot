@@ -39,14 +39,53 @@ const opt = {
 
 
 var getHelpMessage = function () {
-    return `【事件功能】
+    return `【事件功能】.event (add delete show) .evt (random/事件名稱)
 經由新增的事件，會得到一些狀態或增加減少EXP。
+---
+.event add 詳情看下面說明 - 新增事件
+.event delete (事件名稱) - 刪除事件
+.event show             - 顯示你新增的所有事件
+.event show (事件名稱)   - 顯示你新增的指定事件詳情
+---
+.evt (事件名稱)  - 進入指定的事件, 消耗15EN
+.evt random     - 進入隨機的事件, 消耗5EN
+---
+EN = 20+LV
+每5分鐘回複1點EN
+得知事件名稱的方法，別人告知 或 經隨機事件知道名字
+設計事件的好處
+能夠吸收對方消耗的en和經驗值 作為自己的經驗值
+---
+新增事件的格式範例
 .event add
-name:Haha
+name:Haha  
 exp:SAN
 0:你今天的運氣真好;你是個好人;我愛你
 -1:你中招了;你不好運要-SAN了
-1:你吃了好味的糖，加SAN人`
+1:你吃了好味的糖，加SAN
+----
+name -> 事件標題
+exp  -> (可選)經驗值的名稱, 例如改成SAN, 會變成「你損失了X點SAN」
+0:你今天的運氣真好;你是個好人;我愛你 ->
+(事件類型):(事件的描述);(事件的描述2);(事件的描述3)
+事件的描述 ->會從描述1,2,3選取其中一個.
+事件類型  -> 
+0. 沒有事發生
+1. 直接增加X點經驗
+2. 未來X次裡會得到 X 倍經驗值
+3. 從整個CHANNEL 的X人吸收X點經驗
+-1. 直接減少X點經驗
+-2. 停止得到經驗(X次)
+-3. 被事件開發者吸收X點經驗
+-4. 分發X經驗給整個CHANNEL中的X人
+-5. 每次發言減少X經驗(X次內)
+----
+限制
+A. 一個事件中，正面選項要比負面選項多
+B. 一個事件中，可以有3+(ROUNDDOWN 設計者LV/10)  項選項
+C. 一個事件中，不可以全部正面效果
+D. 一個事件可用的總EN 為(10+LV)，負面事件消耗X點EN
+`
 }
 
 var initialize = function () {
@@ -67,7 +106,8 @@ var rollDiceCommand = async function ({
         text: '',
         characterReRoll: false,
         characterName: '',
-        characterReRollName: ''
+        characterReRollName: '',
+        qu: true
     };
     let filter = {};
     let doc = {};

@@ -13,9 +13,9 @@ const start = async () => {
 start();
 const debugMode = (process.env.DEBUG) ? true : false;
 const msgSplitor = (/\S+/ig);
-const courtMessage = require('./logs').courtMessage || function () {};
-const getState = require('./logs').getState || function () {};
-const EXPUP = require('./level').EXPUP || function () {};
+const courtMessage = require('./logs').courtMessage || function () { };
+const getState = require('./logs').getState || function () { };
+const EXPUP = require('./level').EXPUP || function () { };
 
 //用來呼叫骰組,新增骰組的話,要寫條件式到下面呼叫
 //格式是 exports.骰組檔案名字.function名
@@ -37,7 +37,8 @@ var parseInput = async function ({
 	let result = {
 		text: '',
 		type: 'text',
-		LevelUp: ''
+		LevelUp: '',
+		statue: ''
 	};
 
 	let mainMsg = [];
@@ -47,9 +48,8 @@ var parseInput = async function ({
 	//EXPUP 功能 + LevelUP 功能
 	if (groupid) {
 		let tempEXPUP = await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount);
-		if (tempEXPUP) {
-			result.LevelUp = tempEXPUP;
-		}
+		result.LevelUp = (tempEXPUP && tempEXPUP.text) ? tempEXPUP.text : '';
+		result.statue = (tempEXPUP && tempEXPUP.statue) ? tempEXPUP.statue : '';
 	}
 
 	//檢查是不是要停止  z_stop功能
@@ -163,7 +163,7 @@ var rolldice = async function ({
 	//把exports objest => Array
 	let target = await findRollList(mainMsg);
 	if (!target) return null;
-	(debugMode) ? console.log('            trigger: ', inputStr): '';
+	(debugMode) ? console.log('            trigger: ', inputStr) : '';
 	let tempsave = await target.rollDiceCommand({
 		inputStr: inputStr,
 		mainMsg: mainMsg,
@@ -250,7 +250,7 @@ async function cmdfunction({
 	} catch (error) {
 		console.log('cmdfunction GET ERROR:', error, ' inputStr: ', newInputStr, ' botname: ', botname, ' Time: ', new Date());
 	}
-	(debugMode) ? console.log('            inputStr2: ', newInputStr): '';
+	(debugMode) ? console.log('            inputStr2: ', newInputStr) : '';
 	if (typeof tempResut === 'object' && tempResut !== null) {
 		return tempResut;
 	}
@@ -266,7 +266,7 @@ async function z_stop(mainMsg, groupid) {
 	if (!groupInfo || !groupInfo.blockfunction) return;
 	let match = groupInfo.blockfunction.find(e => e.toLowerCase() == mainMsg[0].toLowerCase())
 	if (match) {
-		(debugMode) ? console.log('Match AND STOP'): '';
+		(debugMode) ? console.log('Match AND STOP') : '';
 		return true;
 	} else
 		return false;

@@ -11,6 +11,10 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     if (!groupid) {
         return;
     }
+    let reply = {
+        text: '',
+        statue: ''
+    }
     const filterSwitchV2 = tempSwitchV2.find(function (group) {
         return group.groupid == groupid;
     });
@@ -44,14 +48,17 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
         await newUser(gpInfo, groupid, userid, displayname, displaynameDiscord);
         return;
     }
+    (userInfo.decreaseEXPTimes > 0) ? reply.statue += "🧟‍♂️🧟‍♀️" : null;
+    (userInfo.multiEXPTimes > 0) ? reply.statue += "🧙‍♂️🧙‍♀️" : null;
+    (userInfo.stopExp > 0) ? reply.statue += "☢️☣️" : null;
     //4. 有-> 檢查上次紀錄的時間 超過60000 (1分鐘) 即增加15+(1-9) 經驗值
     if ((new Date(Date.now()) - userInfo.LastSpeakTime) < oneMinuts) {
-        return;
+        return reply;
     }
     if (userInfo.stopExp > 0) {
         userInfo.stopExp--;
         await userInfo.save();
-        return;
+        return reply;
     }
     userInfo.name = displaynameDiscord || displayname || '無名';
     let exp = await exports.rollbase.Dice(9) + 15;
@@ -86,9 +93,10 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     //8. 更新MLAB資料
     await userInfo.save();
     //6. 需要 -> 檢查有沒有開啓通知
-    if (gpInfo.HiddenV2 == false || levelUP == false) return;
+    if (gpInfo.HiddenV2 == false || levelUP == false) return reply;
     //1. 讀取LEVELUP語
-    return await returnTheLevelWord(gpInfo, userInfo, membercount, groupid);
+    reply.text = await returnTheLevelWord(gpInfo, userInfo, membercount, groupid);
+    return reply;
     //6 / 7 * LVL * (2 * LVL * LVL + 30 * LVL + 100)
 
 

@@ -7,7 +7,7 @@ async function callDice(gameType, message) {
     const loader = new DynamicLoader();
     const GameSystem = await loader.dynamicLoad(gameType);
     const result = GameSystem.eval(message);
-    return result.text;
+    return (result && result.text) ? result.text : null;
 }
 async function callHelp(gameType) {
     const loader = new DynamicLoader();
@@ -30,8 +30,8 @@ var prefixs = function () {
         second: null
     }]
 }
-var getHelpMessage = function () {
-    return null
+var getHelpMessage = async function () {
+    return '【朱の孤塔】\n' + await callHelp("Airgetlamh");
 }
 var initialize = function () {
     return variables;

@@ -15,16 +15,16 @@ var prefixs = function () {
 		second: null
 	}]
 }
-var getHelpMessage = function () {
-	return "【WOD 黑暗世界擲骰】" + "\n\
-[.](骰數)Wd(加骰)(+成功數) (問題)\n\
-例子 .3wd8 .15wd9+2\n"
+var getHelpMessage = async function () {
+	return `【WOD 黑暗世界擲骰】
+[.](骰數)Wd(加骰)(+成功數) (問題)
+例子 .3wd8 .15wd9+2`
 }
 var initialize = function () {
 	return variables;
 }
 
-var rollDiceCommand = async function ({mainMsg}) {
+var rollDiceCommand = async function ({ mainMsg }) {
 	let rply = {
 		default: 'on',
 		type: 'text',

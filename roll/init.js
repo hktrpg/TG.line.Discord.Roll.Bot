@@ -17,22 +17,22 @@ var prefixs = function () {
         second: null
     }]
 }
-var getHelpMessage = function () {
-    return "【先攻表功能】 .in (remove clear reroll) .init" + "\n\
-這是讓你快速自定義先攻表的功能\n\
-它可以儲存你的擲骰方法，然後直接重新投擲，而不需要再輸入。\n\
-.in (擲骰或數字) (名字)  - 樣式\n\
-.in 1d20+3 (名字)  \n\
-.in 1d3 (如沒有輸入, 會用聊天軟件中的名字)\n\
-.in 80          - 直接取代先攻值\n\
-.in -3+6*3/2.1  - 加減\n\
-------------\n\
-.in remove (名字) - 移除該角色\n\
-.in reroll - 根據算式重擲先攻表\n\
-.in clear  - 清除整個先攻表\n\
-.init      - 顯示先攻表，由大到小\n\
-.initn     - 顯示先攻表，由小到大\n\
-"
+var getHelpMessage = async function () {
+    return `【先攻表功能】 .in (remove clear reroll) .init
+這是讓你快速自定義先攻表的功能
+它可以儲存你的擲骰方法，然後直接重新投擲，而不需要再輸入。
+.in (擲骰或數字) (名字)  - 樣式
+.in 1d20+3 (名字)  
+.in 1d3 (如沒有輸入, 會用聊天軟件中的名字)
+.in 80          - 直接取代先攻值
+.in -3+6*3/2.1  - 加減
+------------
+.in remove (名字) - 移除該角色
+.in reroll - 根據算式重擲先攻表
+.in clear  - 清除整個先攻表
+.init      - 顯示先攻表，由大到小
+.initn     - 顯示先攻表，由小到大
+`
 }
 var initialize = function () {
     return;
@@ -57,7 +57,8 @@ var rollDiceCommand = async function ({
         text: ''
     };
     if ((/^help$/i.test(mainMsg[1])) && /^[.]in|[.]init$/i.test(mainMsg[0])) {
-        rply.text = this.getHelpMessage();
+        rply.text = await this.getHelpMessage();
+        rply.quotes = true;
         if (botname == "Line")
             rply.text += "\n因為Line的機制, 如擲骰時並無顯示用家名字, 請到下列網址,和機器人任意說一句話,成為好友. \n https://line.me/R/ti/p/svMLqy9Mik"
         return rply;
@@ -220,11 +221,11 @@ async function showInit(doc) {
         if (i == doc.list.length - 1) {
             result += "└";
         } else
-        if (i == 0) {
-            result += "┌";
-        } else {
-            result += "├";
-        }
+            if (i == 0) {
+                result += "┌";
+            } else {
+                result += "├";
+            }
         result += doc.list[i].name + ' - ' + doc.list[i].result + '\n';
     }
     return result;
@@ -238,11 +239,11 @@ async function showInitn(doc) {
         if (i == doc.list.length - 1) {
             result += "└";
         } else
-        if (i == 0) {
-            result += "┌";
-        } else {
-            result += "├";
-        }
+            if (i == 0) {
+                result += "┌";
+            } else {
+                result += "├";
+            }
 
         result += doc.list[i].name + ' - ' + doc.list[i].result + '\n';
     }

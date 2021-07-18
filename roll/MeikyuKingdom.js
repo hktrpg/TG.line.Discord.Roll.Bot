@@ -7,7 +7,7 @@ async function calldice(gameType, message) {
     const loader = new DynamicLoader();
     const GameSystem = await loader.dynamicLoad(gameType);
     const result = GameSystem.eval(message);
-    return result.text;
+    return (result && result.text) ? result.text : null;
 }
 async function callHelp(gameType) {
     const loader = new DynamicLoader();
@@ -29,8 +29,9 @@ var prefixs = function () {
         second: null
     }]
 }
-var getHelpMessage = function () {
-    return null
+var getHelpMessage = async function () {
+    return `【迷宮王國】 .mk (nMK+m 及各種表)
+    ${await callHelp("MeikyuKingdom")}`;
 }
 var initialize = function () {
     return variables;

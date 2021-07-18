@@ -161,7 +161,9 @@ const RealTimeRollingLog = mongoose.model('RealTimeRollingLog', {
         WWWCountRoll: Number,
         WWWCountText: Number,
         WhatsappCountRoll: Number,
-        WhatsappCountText: Number
+        WhatsappCountText: Number,
+        PlurkCountRoll: Number,
+        PlurkCountText: Number
     }
 });
 
@@ -177,7 +179,9 @@ const RollingLog = mongoose.model('RollingLog', {
         WWWCountRoll: Number,
         WWWCountText: Number,
         WhatsappCountRoll: Number,
-        WhatsappCountText: Number
+        WhatsappCountText: Number,
+        PlurkCountRoll: Number,
+        PlurkCountText: Number
     }
 });
 const veryImportantPerson = mongoose.model('veryImportantPerson', new mongoose.Schema({

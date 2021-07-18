@@ -26,14 +26,14 @@ var prefixs = function () {
         second: null
     }]
 }
-var getHelpMessage = function () {
-    return "【Admin 工具】" + "\
-用來Debug 及調整VIP工具\n\
-.admin state 取得Rollbot狀態\n\
-.admin debug 用來取得群組資料\n\
-.admin account (username) (password) \n\
-username 4-16字,中英文限定 \n\
-password 6-16字,英文及以下符號限定 !@#$%^&*\n"
+var getHelpMessage = async function () {
+    return `【Admin 工具】
+用來Debug 及調整VIP工具
+.admin state 取得Rollbot狀態
+.admin debug 用來取得群組資料
+.admin account (username) (password) 
+username 4-16字,中英文限定 
+password 6-16字,英文及以下符號限定 !@#$%^&*`
 }
 
 var initialize = function () {
@@ -65,7 +65,8 @@ var rollDiceCommand = async function ({
     let temp2;
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
-            rply.text = this.getHelpMessage();
+            rply.text = await this.getHelpMessage();
+            rply.quotes = true;
             return rply;
         case /^state$/i.test(mainMsg[1]):
             rply.state = true;

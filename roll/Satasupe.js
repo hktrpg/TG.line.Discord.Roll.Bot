@@ -7,7 +7,7 @@ async function calldice(gameType, message) {
     const loader = new DynamicLoader();
     const GameSystem = await loader.dynamicLoad(gameType);
     const result = GameSystem.eval(message);
-    return result.text;
+    return (result && result.text) ? result.text : null;
 }
 async function callHelp(gameType) {
     const loader = new DynamicLoader();
@@ -29,8 +29,8 @@ var prefixs = function () {
         second: null
     }]
 }
-var getHelpMessage = function () {
-    return null;
+var getHelpMessage = async function () {
+    return '【亞俠必死的冒險】\n' + await callHelp("Satasupe");;
 }
 var initialize = function () {
     return variables;

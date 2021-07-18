@@ -11,6 +11,7 @@ const start = async () => {
 }
 
 start();
+const schema = require('../modules/core-schema.js');
 const debugMode = (process.env.DEBUG) ? true : false;
 const msgSplitor = (/\S+/ig);
 const courtMessage = require('./logs').courtMessage || function () { };
@@ -123,7 +124,10 @@ var parseInput = async function ({
 			titleName: titleName
 		});
 		if (result.text && characterReRoll.text) {
-			result.text = result.characterName + ' 投擲 ' + result.characterReRollName + '\n' + characterReRoll.text + '\n' + '======\n' + result.text;
+			result.text = result.text = `${result.characterName}  投擲  ${result.characterReRollName} 
+			${characterReRoll.text} 
+			======
+			${result.text}`;
 		} else {
 			result.text += (characterReRoll && characterReRoll.text && result && result.text) ? '======\n' + characterReRoll.text : characterReRoll.text;
 		}
@@ -211,6 +215,8 @@ async function stateText() {
 	text += '\n Telegram總擲骰次數: ' + state.TelegramCountRoll;
 	text += '\n Whatsapp總擲骰次數: ' + state.WhatsappCountRoll;
 	text += '\n 網頁版總擲骰次數: ' + state.WWWCountRoll;
+	text += '\n 使用經驗值功能的群組: ' + await schema.trpgLevelSystem.countDocuments({ Switch: '1' });
+	text += '\n 已新增的角色卡: ' + await schema.characterCard.countDocuments({});
 	text += '\n 擲骰系統使用的隨機方式: random-js nodeCrypto';
 	return text;
 }

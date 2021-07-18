@@ -34,39 +34,39 @@ var prefixs = function () {
         second: null
     }]
 }
-const getHelpMessage = function () {
-    return "【自定義回應功能】" + "\n\
-這是根據關鍵字來隨機抽選功能,只要符合內容,以後就會隨機抽選\n\
-例如輸入 .ra add 九大陣營 守序善良 (...太長省略) 中立邪惡 混亂邪惡 \n\
-再輸入.ra 九大陣營  就會輸出 九大陣營中其中一個\n\
-如果輸入.ra3 九大陣營  就會輸出 3次九大陣營\n\
-如果輸入.ra3 九大陣營 天干 地支 就會輸出 3次九大陣營 天干 地支\n\
-如果輸入.rra3 九大陣營 就會輸出3次有可能重覆的九大陣營\n\
-add 後面第一個是關鍵字, 可以是漢字,數字和英文或emoji\n\
-P.S.如果沒立即生效 用.ra show 刷新一下\n\
-輸入.ra add (關鍵字) (選項1) (選項2) (選項3)即可增加關鍵字\n\
-輸入.ra show 顯示所有關鍵字\n\
-輸入.ra show (關鍵字)顯示內容\n\
-輸入.ra del (關鍵字) 即可刪除\n\
-輸入.ra(次數,最多30次) (關鍵字1)(關鍵字2)(關鍵字n) 即可不重覆隨機抽選 \n\
-輸入.rra(次數,最多30次) (關鍵字1)(關鍵字2)(關鍵字n) 即可重覆隨機抽選 \n\
-如使用輸入.rap 會變成全服版,全服可看, 可用add show功能 \n\
-例如輸入 .rap10 聖晶石召喚 即可十連抽了 \n\
-新增指令 - 輸入.rap newType 可以觀看效果\n\
-* {br}          <--隔一行\n\
-* {ran:100}     <---隨機1-100\n\
-* {random:5-20} <---隨機5-20\n\
-* {server.member_count}  <---現在頻道中總人數 \n\
-* {my.name}     <---顯示擲骰者名字\n\
-以下需要開啓.level 功能\n\
-* {allgp.name}  <---隨機全GP其中一人名字\n\
-* {allgp.title}  <---隨機全GP其中一種稱號\n\
-* {my.RankingPer}  <---現在排名百分比 \n\
-* {my.Ranking}  <---顯示擲骰者現在排名 \n\
-* {my.exp}      <---顯示擲骰者經驗值\n\
-* {my.title}    <---顯示擲骰者稱號\n\
-* {my.level}    <---顯示擲骰者等級\n\
-"
+const getHelpMessage = async function () {
+    return `【自定義回應功能】
+這是根據關鍵字來隨機抽選功能,只要符合內容,以後就會隨機抽選
+例如輸入 .ra add 九大陣營 守序善良 (...太長省略) 中立邪惡 混亂邪惡 
+再輸入.ra 九大陣營  就會輸出 九大陣營中其中一個
+如果輸入.ra3 九大陣營  就會輸出 3次九大陣營
+如果輸入.ra3 九大陣營 天干 地支 就會輸出 3次九大陣營 天干 地支
+如果輸入.rra3 九大陣營 就會輸出3次有可能重覆的九大陣營
+add 後面第一個是關鍵字, 可以是漢字,數字和英文或emoji
+P.S.如果沒立即生效 用.ra show 刷新一下
+輸入.ra add (關鍵字) (選項1) (選項2) (選項3)即可增加關鍵字
+輸入.ra show 顯示所有關鍵字
+輸入.ra show (關鍵字)顯示內容
+輸入.ra del (關鍵字) 即可刪除
+輸入.ra(次數,最多30次) (關鍵字1)(關鍵字2)(關鍵字n) 即可不重覆隨機抽選 
+輸入.rra(次數,最多30次) (關鍵字1)(關鍵字2)(關鍵字n) 即可重覆隨機抽選 
+如使用輸入.rap 會變成全服版,全服可看, 可用add show功能 
+例如輸入 .rap10 聖晶石召喚 即可十連抽了 
+新增指令 - 輸入.rap newType 可以觀看效果
+* {br}          <--隔一行
+* {ran:100}     <---隨機1-100
+* {random:5-20} <---隨機5-20
+* {server.member_count}  <---現在頻道中總人數 
+* {my.name}     <---顯示擲骰者名字
+以下需要開啓.level 功能
+* {allgp.name}  <---隨機全GP其中一人名字
+* {allgp.title}  <---隨機全GP其中一種稱號
+* {my.RankingPer}  <---現在排名百分比 
+* {my.Ranking}  <---顯示擲骰者現在排名 
+* {my.exp}      <---顯示擲骰者經驗值
+* {my.title}    <---顯示擲骰者稱號
+* {my.level}    <---顯示擲骰者等級
+`
 }
 const initialize = function () {
     return randomAnsfunction;
@@ -107,7 +107,8 @@ var rollDiceCommand = async function ({
     let filter;
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
-            rply.text = this.getHelpMessage();
+            rply.text = await this.getHelpMessage();
+            rply.quotes = true;
             return rply;
         case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
             //
@@ -417,7 +418,7 @@ var rollDiceCommand = async function ({
                 num = (num < 1) ? 0 : num;
                 temp = temp.trpgLevelSystemfunction[num].name
                 return temp || ' ';
-                // * {allgp.name} <---隨機全GP其中一人名字
+            // * {allgp.name} <---隨機全GP其中一人名字
             case /^allgp.title$/i.test(second):
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
                 if (!temp) return ' ';
@@ -431,12 +432,12 @@ var rollDiceCommand = async function ({
                 num = (num < 1) ? 0 : num;
                 temp = temp2[num]
                 return temp || ' ';
-                // * {allgp.title}<---隨機全GP其中一種稱號
+            // * {allgp.title}<---隨機全GP其中一種稱號
             case /^server.member_count$/i.test(second):
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
                 num = (temp && temp.trpgLevelSystemfunction && temp.trpgLevelSystemfunction.length) ? Math.max(membercount, temp.trpgLevelSystemfunction.length) : membercount;
                 return num || ' ';
-                //  {server.member_count} 現在頻道中總人數 \
+            //  {server.member_count} 現在頻道中總人數 \
             case /^my.RankingPer$/i.test(second):
                 //* {my.RankingPer} 現在排名百分比 \
                 // let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';

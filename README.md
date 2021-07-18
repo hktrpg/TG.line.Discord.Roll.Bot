@@ -282,9 +282,9 @@ RoboYabaso最早由LarryLo  Retsnimle開發。
 - [x] 存好指定擲骰方法, 輸入指定即可快速打出來
 - [ ] 選擇圖書式遊戲(好像COC 單人TRPG 「向火獨行」一樣, 輸入頁碼, 就會顯示故事, 好像跑團一樣,以後不怕沒有同伴了,不過首先要有故事ORZ)
 - [x] 增加 mee6式 LV 排名升級 功能(需修改觸發方法)
-- [ ] 增加 戰鬥輪回合功能 .round  next hide public init del
+- [x] 增加 戰鬥輪回合功能 .round  next hide public init del
 - [X] 增加 角色卡功能 .char set del
-- [ ] 增加 LOG功能 可以自動變成LOG
+- [x] 增加 LOG功能 可以自動變成LOG
 
 
 其他功能,歡迎留言建議
@@ -457,8 +457,10 @@ Step4：把機器人邀請到你的頻道
 * 然後就可以在頻道中使用你的Bot了.
 ---
 </br></br></br>
-
-
+測試功能</br>
+npm install -g mocha</br>
+mocha .\test\analytics.test.js
+</br>
 Telegram......</br>
 是最簡單的,和上面一樣,先註冊Telegram ACC</br>
 然後到 https://telegram.me/botfather</br>

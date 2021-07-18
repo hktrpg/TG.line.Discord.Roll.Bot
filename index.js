@@ -31,15 +31,4 @@ Discord line Telegram三套BOT 都會統一呼叫analytics.js
 另外, 使用或參考其中代碼的話, 請保持開源
 感謝
 
-
-npm test 測試音樂
-
-
-if (groupid) {
-		let tempEXPUP = await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount);
-		if (tempEXPUP) {
-			result.LevelUp = tempEXPUP;
-		}
-	}
-
 */

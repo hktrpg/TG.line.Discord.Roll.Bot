@@ -1,8 +1,9 @@
 "use strict";
 const schema = require('./core-schema.js');
 var viplevel;
+const DIYmode = (process.env.DIY) ? true : false;
 var viplevelCheckGroup = async function (groupID) {
-    let rply = '';
+    let rply = 0;
     if (!viplevel) {
         viplevel = await schema.veryImportantPerson.find({});
     }
@@ -10,10 +11,11 @@ var viplevelCheckGroup = async function (groupID) {
         return item.gpid == groupID && item.switch !== false;
     });
     rply = (findGP) ? findGP.level : 0;
+    rply = (DIYmode) ? 5 : rply;
     return rply;
 }
 var viplevelCheckUser = async function (userid) {
-    let rply = '';
+    let rply = 0;
     if (!viplevel) {
         viplevel = await schema.veryImportantPerson.find({});
     }
@@ -21,6 +23,7 @@ var viplevelCheckUser = async function (userid) {
         return item.id == userid && item.switch !== false; // 
     });
     rply = (findUser) ? findUser.level : 0;
+    rply = (DIYmode) ? 5 : rply;
     return rply;
 }
 async function renew() {

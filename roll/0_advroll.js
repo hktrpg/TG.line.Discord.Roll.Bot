@@ -34,19 +34,19 @@ var prefixs = function () {
 	}
 	]
 }
-var getHelpMessage = function () {
-	return "【進階擲骰】" + "\n\
-.ca 只進行數學計算 \n\
-例如: .ca 1.2 * (2 + 4.5) ， 12.7 米 to inch \n\
-sin(45 deg) ^ 2  5磅轉斤 10米轉呎 10米=吋\n\
-D66 D66s D66n：	骰出D66 s數字小在前 n大在前\n\
-5B10：	不加總的擲骰 \n\
-5B10<>=x ：	如上,另外計算其中有多少粒大於小於X \n\
-5B10 (D)x ：	如上,用空格取代, 即大於, 使用D即小於\n\
-即 5B10 5 相當於 5B10>=5　 5B10 D5 相當於 5B10<=5  \n\
-5U10 8：	進行5D10 每骰出一粒8會有一粒獎勵骰 \n\
-5U10 8 9：	如上,另外計算其中有多少粒大於9 \n\
-.int 20 30: 即骰出20-30\n"
+var getHelpMessage = async function () {
+	return `【進階擲骰】
+.ca 進行數學計算(不支援擲骰)
+例如: .ca 1.2 * (2 + 4.5) ， 12.7 米 to inch 
+sin(45 deg) ^ 2  5磅轉斤 10米轉呎 10米=吋
+D66 D66s D66n：	骰出D66 s數字小在前 n大在前
+5B10：	不加總的擲骰 
+5B10<>=x ：	如上,另外計算其中有多少粒大於小於X 
+5B10 (D)x ：	如上,用空格取代, 即大於, 使用D即小於
+即 5B10 5 相當於 5B10>=5 5B10 D5 相當於 5B10<=5  
+5U10 8：	進行5D10 每骰出一粒8會有一粒獎勵骰 
+5U10 8 9：	如上,另外計算其中有多少粒大於9 
+.int 20 30: 即骰出20-30`
 }
 
 var initialize = function () {
@@ -68,15 +68,21 @@ var rollDiceCommand = async function ({
 		points = {};
 	switch (true) {
 		case /^[.][c][a]$/i.test(mainMsg[0]) && (/^help$/i.test(mainMsg[1]) || !mainMsg[1]):
-			rply.text = this.getHelpMessage();
+			rply.text = await this.getHelpMessage();
+			rply.quotes = true;
 			return rply;
 		case /^[.][c][a]$/i.test(mainMsg[0]):
 
 			//為了令= 轉TO 功能正常, 又不會影響常規計數如 1*5+4>=5
 			if (inputStr.match(/[=]/ig))
-				if (inputStr.match(/^((?!(>=|<=|=>|=<|\d=|[)]=)).)*$/ig))
-					inputStr = inputStr.replace(/[=]/g, ' to ')
-			rply.text = mathjs.evaluate(inputStr.toLowerCase().replace(/\.ca/i, '').replace(/磅/g, 'lb').replace(/公斤/g, 'kg').replace(/盎司/g, 'oz').replace(/英吋/g, 'inch').replace(/公分/g, 'cm').replace(/公釐/g, 'mm').replace(/克/g, 'g').replace(/公尺/g, 'm').replace(/碼/g, 'yd').replace(/桿/g, 'rd').replace(/英里/g, 'mi').replace(/千米/g, 'km').replace(/厘米/g, 'cm').replace(/毫米/g, 'mm').replace(/微米/g, 'µm').replace(/毫克/g, 'mg').replace(/公克/g, 'hg').replace(/斤/g, 'kg').replace(/米/g, 'm').replace(/英尺/g, 'ft').replace(/尺/g, 'ft').replace(/角度/g, 'deg').replace(/度/g, 'deg').replace(/呎/g, 'ft').replace(/吋/g, 'inch').replace(/轉換/g, ' to ').replace(/轉/g, ' to ').replace(/換/g, ' to '))
+				if (inputStr.match(/^((?!(>=|<=|=>|=<|\d=|[)]=)).)*$/ig)) {
+					inputStr = inputStr.replace(/[=]/g, ' to ');
+				}
+			try {
+				rply.text = mathjs.evaluate(inputStr.toLowerCase().replace(/\.ca/i, '').replace(/磅/g, 'lb').replace(/公斤/g, 'kg').replace(/盎司/g, 'oz').replace(/英吋/g, 'inch').replace(/公分/g, 'cm').replace(/公釐/g, 'mm').replace(/克/g, 'g').replace(/公尺/g, 'm').replace(/碼/g, 'yd').replace(/桿/g, 'rd').replace(/英里/g, 'mi').replace(/千米/g, 'km').replace(/厘米/g, 'cm').replace(/毫米/g, 'mm').replace(/微米/g, 'µm').replace(/毫克/g, 'mg').replace(/公克/g, 'hg').replace(/斤/g, 'kg').replace(/米/g, 'm').replace(/英尺/g, 'ft').replace(/尺/g, 'ft').replace(/角度/g, 'deg').replace(/度/g, 'deg').replace(/呎/g, 'ft').replace(/吋/g, 'inch').replace(/轉換/g, ' to ').replace(/轉/g, ' to ').replace(/換/g, ' to '));
+			} catch (error) {
+				console.log('.ca ERROR FUNCTION', inputStr);
+			}
 			rply.text = inputStr.replace(/\.ca/i, '') + ' → ' + rply.text;
 
 			return rply;

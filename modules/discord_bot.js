@@ -285,6 +285,7 @@ client.on('message', async (message) => {
 	if (!rplyVal.text) {
 		return;
 	}
+
 	//Discordcountroll++;
 	//簡單使用數字計算器
 	if (privatemsg > 1 && TargetGM) {
@@ -353,6 +354,16 @@ client.on('message', async (message) => {
 			if (userid) {
 				rplyVal.text = "<@" + userid + ">\n" + rplyVal.text;
 			}
+			if (rplyVal.quotes) {
+				rplyVal.text = new Discord.MessageEmbed()
+					.setColor('#0099ff')
+					//.setTitle(rplyVal.title)
+					//.setURL('https://discord.js.org/')
+					.setAuthor('HKTRPG', 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png', 'https://www.patreon.com/HKTRPG')
+					.setDescription(rplyVal.text)
+					//.setThumbnail('https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png')
+			}
+
 			if (groupid) {
 				SendToReplychannel(rplyVal.text, channelid);
 			} else {
@@ -375,41 +386,52 @@ async function privateMsgFinder(channelid) {
 }
 async function SendToId(targetid, replyText) {
 	let user = await client.users.fetch(targetid);
-	for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-		if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
-			try {
-				await user.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
-			}
-			catch (e) {
-				console.log(' GET ERROR:  SendtoID: ', e.message, replyText)
-			}
+	if (typeof replyText === "string") {
+		for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+			if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
+				try {
+					await user.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
+				}
+				catch (e) {
+					console.log(' GET ERROR:  SendtoID: ', e.message, replyText)
+				}
+		}
+	}
+	else {
+		await user.send(replyText);
 	}
 
 }
 
 async function SendToReply(replyText, message) {
-	for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-		if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
-			try {
-				await message.author.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
-			}
-			catch (e) {
-				console.log(' GET ERROR:  SendToReply: ', e.message, replyText, message)
-			}
+	if (typeof replyText === "string") {
+		for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+			if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
+				try {
+					await message.author.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
+				}
+				catch (e) {
+					console.log(' GET ERROR:  SendToReply: ', e.message, replyText, message)
+				}
+		}
 	}
+	else { await message.author.send(replyText); }
 }
 async function SendToReplychannel(replyText, channelid) {
 	let channel = await client.channels.fetch(channelid);
-	for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-		if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
-			try {
-				await channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
-				//await message.channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
-			}
-			catch (e) {
-				console.log(' GET ERROR: SendToReplychannel: ', e.message, replyText, channelid);
-			}
+	if (typeof replyText === "string") {
+		for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+			if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
+				try {
+					await channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
+					//await message.channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
+				}
+				catch (e) {
+					console.log(' GET ERROR: SendToReplychannel: ', e.message, replyText, channelid);
+				}
+		}
 	}
+	else await channel.send(replyText);
 }
 
 client.on('shardDisconnect', (event, shardID) => {
@@ -480,3 +502,17 @@ if (togGGToken) {
 }
 
 client.login(channelSecret);
+
+
+
+/**
+.addFields(
+	{ name: 'Regular field title', value: 'Some value here' },
+	{ name: '\u200B', value: '\u200B' },
+	{ name: 'Inline field title', value: 'Some value here', inline: true },
+	{ name: 'Inline field title', value: 'Some value here', inline: true },
+)
+.addField('Inline field title', 'Some value here', true)
+ */
+	//.setImage('https://i.imgur.com/wSTFkRM.png')
+	//.setFooter('Some footer text here', 'https://i.imgur.com/wSTFkRM.png');

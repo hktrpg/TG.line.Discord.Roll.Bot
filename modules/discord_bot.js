@@ -243,7 +243,6 @@ client.on('message', async (message) => {
 	if (!hasSendPermission) {
 		return;
 	}
-	console.log('rplyVal', rplyVal)
 
 	if (rplyVal.state) {
 		rplyVal.text += '\n' + await count();

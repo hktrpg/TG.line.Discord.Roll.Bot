@@ -3,7 +3,7 @@ if (!process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	return;
 }
 exports.analytics = require('./core-analytics');
-const EXPUP = require('./level').EXPUP || function () {};
+const EXPUP = require('./level').EXPUP || function () { };
 const line = require('@line/bot-sdk');
 const express = require('express');
 const msgSplitor = (/\S+/ig);
@@ -13,7 +13,7 @@ const config = {
 	channelSecret: process.env.LINE_CHANNEL_SECRET,
 };
 var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
-const courtMessage = require('./logs').courtMessage || function () {};
+const courtMessage = require('./logs').courtMessage || function () { };
 // create LINE SDK client
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const client = new line.Client(config);
@@ -99,11 +99,11 @@ var handleEvent = async function (event) {
 	let TargetGMTempdisplayname = [];
 
 	client.getProfile(userid).then(async function (profile) {
-			//	在GP 而有加好友的話,得到名字
-			displayname = profile.displayName;
-			//console.log(displayname)
-			await AfterCheckName();
-		},
+		//	在GP 而有加好友的話,得到名字
+		displayname = profile.displayName;
+		//console.log(displayname)
+		await AfterCheckName();
+	},
 		async function () {
 			await AfterCheckName();
 			//如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
@@ -243,7 +243,7 @@ var handleEvent = async function (event) {
 			default:
 				if (displayname && rplyVal && rplyVal.type != 'image') {
 					//285083923223
-					displayname = "@" + displayname + "\n";
+					displayname = "@" + displayname + (rplyVal.statue) ? ' ' + rplyVal.statue : '' + "\n";
 					rplyVal.text = displayname + rplyVal.text;
 				}
 				//	console.log('rplyVal: ', rplyVal)
@@ -303,7 +303,7 @@ async function HandleMessage(message) {
 			return {
 				"type": "image",
 				"originalContentUrl": message.text.replace('http://', 'https://'),
-					"previewImageUrl": message.text.replace('http://', 'https://')
+				"previewImageUrl": message.text.replace('http://', 'https://')
 			};
 
 		case typeof message == 'string' || message instanceof String:
@@ -366,20 +366,20 @@ async function nonDice(event) {
 		displayname = '';
 	if (!roomorgroupid || !userid) return;
 	client.getProfile(userid).then(async function (profile) {
-			//	在GP 而有加好友的話,得到名字
-			displayname = profile.displayName;
-			//console.log(displayname)
-			let LevelUp = await EXPUP(roomorgroupid, userid, displayname, "", null);
-			await courtMessage("", "Line", "")
-			if (roomorgroupid && LevelUp) {
-				return await replyMessagebyReplyToken(event, LevelUp);
-			}
-		},
+		//	在GP 而有加好友的話,得到名字
+		displayname = profile.displayName;
+		//console.log(displayname)
+		let LevelUp = await EXPUP(roomorgroupid, userid, displayname, "", null);
+		await courtMessage("", "Line", "")
+		if (roomorgroupid && LevelUp && LevelUp.text) {
+			return await replyMessagebyReplyToken(event, LevelUp.text);
+		}
+	},
 		async function () {
 			let LevelUp = await EXPUP(roomorgroupid, userid, displayname, "", null);
 			await courtMessage("", "Line", "")
-			if (roomorgroupid && LevelUp) {
-				return await replyMessagebyReplyToken(event, LevelUp);
+			if (roomorgroupid && LevelUp && LevelUp.text) {
+				return await replyMessagebyReplyToken(event, LevelUp.text);
 			}
 			//如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
 		})

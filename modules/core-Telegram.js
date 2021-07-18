@@ -12,8 +12,8 @@ const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || '';
 //var TGcounttext = 0;
 const msgSplitor = (/\S+/ig);
 var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
-const EXPUP = require('./level').EXPUP || function () {};
-const courtMessage = require('./logs').courtMessage || function () {};
+const EXPUP = require('./level').EXPUP || function () { };
+const courtMessage = require('./logs').courtMessage || function () { };
 const joinMessage = "你剛剛添加了HKTRPG 骰子機械人! \
 \n主要功能：暗骰, 各類TRPG骰子擲骰, 頻道經驗值, 占卜, 先攻表, TRPG角色卡, 搜圖, 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, 自定義抽選, wiki查詢, 資料庫快速查詢功能\
 \n輸入 1D100 可以進行最簡單的擲骰.\
@@ -39,8 +39,8 @@ TGclient.on('text', async (ctx) => {
 	if (inputStr) {
 		if (ctx.botInfo && ctx.botInfo.username && inputStr.match(/^[/]/))
 			inputStr = inputStr
-			.replace(new RegExp('@' + ctx.botInfo.username + '$', 'i'), '')
-			.replace(new RegExp('^/', 'i'), '');
+				.replace(new RegExp('@' + ctx.botInfo.username + '$', 'i'), '')
+				.replace(new RegExp('^/', 'i'), '');
 		mainMsg = inputStr.match(msgSplitor); // 定義輸入字串
 	}
 	if (mainMsg && mainMsg[0]) {
@@ -145,8 +145,9 @@ TGclient.on('text', async (ctx) => {
 		return;
 	//LevelUp功能
 	if (groupid && rplyVal && rplyVal.LevelUp) {
-		//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
-		ctx.reply("@" + displayname + '\n' + rplyVal.LevelUp);
+		let text = `@${displayname}${(rplyVal.statue) ? ' ' + rplyVal.statue : ''}
+		${rplyVal.LevelUp}`
+		ctx.reply(text);
 	}
 	if (!rplyVal.text) {
 		return;
@@ -205,7 +206,7 @@ TGclient.on('text', async (ctx) => {
 		default:
 			if (displaynamecheck && displayname) {
 				//285083923223
-				displayname = "@" + ctx.message.from.username + "\n";
+				displayname = "@" + ctx.message.from.username + (rplyVal.statue) ? ' ' + rplyVal.statue : '' + "\n";
 				rplyVal.text = displayname + rplyVal.text;
 			}
 			SendToReply();
@@ -289,9 +290,9 @@ async function nonDice(ctx) {
 		}
 		let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount);
 		await courtMessage("", "Telegram", "")
-		if (groupid && LevelUp) {
-			//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
-			ctx.reply("@" + displayname + '\n' + LevelUp);
+		if (groupid && LevelUp && LevelUp.text) {
+
+			ctx.reply(`@${displayname}  ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`);
 		}
 	}
 	return null;

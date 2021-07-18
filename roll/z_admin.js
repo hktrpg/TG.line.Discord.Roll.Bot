@@ -71,6 +71,7 @@ var rollDiceCommand = async function ({
         case /^state$/i.test(mainMsg[1]):
             rply.state = true;
             return rply;
+
         case /^registerChannel$/i.test(mainMsg[1]):
             if (!groupid && !channelid) {
                 rply.text = "這裡不是群組，如果想在群組使用你的角色卡，請在群組中輸入此指令";
@@ -391,6 +392,8 @@ function encrypt(text) {
     return iv.toString('hex') + ':' + encrypted.toString('hex');
 }
 
+
+
 function decrypt(text) {
     let textParts = text.split(':');
     let iv = Buffer.from(textParts.shift(), 'hex');
@@ -409,3 +412,42 @@ module.exports = {
     gameType: gameType,
     gameName: gameName
 };
+/**
+
+
+  case /^fixEXP$/i.test(mainMsg[1]): {
+            if (!adminSecret||userid !== adminSecret){
+                rply.text ="ADMIN 才可以使用"
+                return rply;
+                }
+            let doc = await schema.trpgLevelSystem.find({})
+            for (let index = 0; index < doc.length; index++) {
+                let docTRPG = await schema.trpgLevelSystem.findOne({
+                    groupid: doc[index].groupid
+                })
+                docTRPG.HiddenV2 = (docTRPG.Hidden == "1") ? true : false;
+                docTRPG.SwitchV2 = (docTRPG.Switch == "1") ? true : false;
+                await docTRPG.save()
+                docTRPG.trpgLevelSystemfunction.forEach(async element => {
+                    let newLVMember = new schema.trpgLevelSystemMember({
+                        groupid: doc[index].groupid,
+                        userid: element.userid,
+                        name: element.name,
+                        EXP: element.EXP,
+                        //現在經驗值
+                        Level: Number(element.Level),
+                        //等級
+                        LastSpeakTime: element.LastSpeakTime
+                    })
+
+                    await newLVMember.save()
+                });
+            }
+            // await doc.save()
+
+
+            rply.text = doc.length + '項 DONE '
+            return rply;
+        }
+
+ */

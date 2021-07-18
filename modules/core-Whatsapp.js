@@ -190,7 +190,9 @@ client.on('message', async msg => {
 	//LevelUp功能
 	if (groupid && rplyVal && rplyVal.LevelUp) {
 		//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
-		client.sendMessage(msg.from, "@" + displayname + '\n' + rplyVal.LevelUp);
+		let text = `@${displayname}${(rplyVal.statue) ? ' ' + rplyVal.statue : ''}
+		${rplyVal.LevelUp}`
+		client.sendMessage(msg.from, text);
 	}
 	if (!rplyVal.text) {
 		return;

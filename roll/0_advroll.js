@@ -109,11 +109,7 @@ var rollDiceCommand = async function ({
 			}
 			return rply;
 		case /^[.][i][n][t]$/i.test(mainMsg[0]) && mainMsg[1] <= 100000 && mainMsg[2] <= 100000:
-			points = [Math.floor(mainMsg[1]), Math.floor(mainMsg[2])]
-			points.sort(function (a, b) {
-				return a - b
-			});
-			rply.text = '投擲 ' + points[0] + ' - ' + points[1] + '：\n→ ' + await rollbase.DiceINT(points[0], points[1]);
+			rply.text = '投擲 ' + mainMsg[1] + ' - ' + mainMsg[2] + '：\n→ ' + await rollbase.DiceINT(mainMsg[1], mainMsg[2]);
 			return rply
 		default:
 			break;

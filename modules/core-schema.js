@@ -72,13 +72,18 @@ const trpgLevelSystem = mongoose.model('trpgLevelSystem', {
     RankWord: String,
     //在這群組查詢等級時的回應
     Switch: {
-        type: String,
-        default: "0"
+        type: String
     },
     //是否啓動功能 config 1X 則1
     Hidden: {
-        type: String,
-        default: "0"
+        type: String
+    },
+    SwitchV2: {
+        type: Boolean
+    },
+    //是否啓動功能 config 1X 則1
+    HiddenV2: {
+        type: Boolean
     },
     //大於此Lvl即為稱號.
     Title: Array,
@@ -96,6 +101,34 @@ const trpgLevelSystem = mongoose.model('trpgLevelSystem', {
             //最後說話時間, 間隔一分鐘才提升經驗
         }
     }]
+});
+const trpgLevelSystemMember = mongoose.model('trpgLevelSystemMember', {
+    groupid: String,
+    userid: String,
+    name: String,
+    EXP: Number,
+    TitleName: String,
+    //現在經驗值
+    Level: Number,
+    //等級
+    multiEXPTimes: Number,
+    multiEXP: Number,
+    stopExp: Number,
+    decreaseEXP: Number,
+    decreaseEXPTimes: Number,
+    //EVENT事件
+    /**
+     * 4. 停止得到經驗(X分鐘內)
+     * 5. 發言經驗減少X(X分鐘內)
+     * 6. 發言經驗增加X(X分鐘內)
+    7. 吸收對方經驗(X分鐘內)
+    8. 對方得到經驗值 X 倍(X分鐘內)
+     */
+    LastSpeakTime: {
+        type: Date,
+        default: Date.now
+        //最後說話時間, 間隔一分鐘才提升經驗
+    }
 });
 const trpgDarkRolling = mongoose.model('trpgDarkRolling', {
     groupid: String,
@@ -284,6 +317,32 @@ const init = mongoose.model('init', new mongoose.Schema({
     }]
 }));
 
+//個人新增event 時的紀錄。eventList會使用ID 來紀錄
+const eventMember = mongoose.model('eventMember', new mongoose.Schema({
+    userID: String,
+    userName: String,
+    earnedEXP: Number,
+    totailEarnedEXP: Number,
+    energy: Number,
+    lastActiveAt: Date,
+    eventList: [{
+        title: String,
+        eventID: String
+    }]
+}));
+
+//整個event 列表，會從這裡進行抽取
+const eventList = mongoose.model('eventList', new mongoose.Schema({
+    title: String,
+    userID: String,
+    userName: String,
+    expName: String,
+    detail: [{
+        event: String,
+        result: Number
+    }]
+}));
+
 module.exports = {
     randomAns,
     block,
@@ -294,6 +353,7 @@ module.exports = {
     trpgDatabase,
     trpgCommand,
     trpgLevelSystem,
+    trpgLevelSystemMember,
     trpgDarkRolling,
     RealTimeRollingLog,
     RollingLog,
@@ -306,7 +366,9 @@ module.exports = {
     exportUser,
     accountPW,
     allowRolling,
-    init
+    init,
+    eventMember,
+    eventList
 }
 //const Cat = mongoose.model('Cat', { name: String });
 //const kitty = new Cat({ name: 'Zildjian' });

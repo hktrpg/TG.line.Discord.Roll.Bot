@@ -61,7 +61,6 @@ var rollDiceCommand = async function ({
                 temp = temp.replace('-1', '－').replace('0', '▉').replace('1', '＋')
             }
             rply.text = 'Fate ' + inputStr.toString().replace(/\r/g, " ").replace(/\n/g, " ") + '\n' + temp + ' = ' + ans
-            console.log('match', match)
             if (match[2] && (match[2].toLowerCase() == 'm' || match[2].toLowerCase() == '-')) {
                 rply.text += ' - ' + match[3] + ' = ' + (Number(ans) - Number(match[3]))
             } else

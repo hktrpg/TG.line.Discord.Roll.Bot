@@ -243,7 +243,7 @@ var handleEvent = async function (event) {
 			default:
 				if (displayname && rplyVal && rplyVal.type != 'image') {
 					//285083923223
-					displayname = "@" + displayname + "\n";
+					displayname = "@" + displayname + (rplyVal.statue) ? ' ' + rplyVal.statue : '' + "\n";
 					rplyVal.text = displayname + rplyVal.text;
 				}
 				//	console.log('rplyVal: ', rplyVal)
@@ -371,15 +371,15 @@ async function nonDice(event) {
 		//console.log(displayname)
 		let LevelUp = await EXPUP(roomorgroupid, userid, displayname, "", null);
 		await courtMessage("", "Line", "")
-		if (roomorgroupid && LevelUp) {
-			return await replyMessagebyReplyToken(event, LevelUp);
+		if (roomorgroupid && LevelUp && LevelUp.text) {
+			return await replyMessagebyReplyToken(event, LevelUp.text);
 		}
 	},
 		async function () {
 			let LevelUp = await EXPUP(roomorgroupid, userid, displayname, "", null);
 			await courtMessage("", "Line", "")
-			if (roomorgroupid && LevelUp) {
-				return await replyMessagebyReplyToken(event, LevelUp);
+			if (roomorgroupid && LevelUp && LevelUp.text) {
+				return await replyMessagebyReplyToken(event, LevelUp.text);
 			}
 			//如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
 		})

@@ -145,8 +145,9 @@ TGclient.on('text', async (ctx) => {
 		return;
 	//LevelUp功能
 	if (groupid && rplyVal && rplyVal.LevelUp) {
-		//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
-		ctx.reply("@" + displayname + '\n' + rplyVal.LevelUp);
+		let text = `@${displayname}${(rplyVal.statue) ? ' ' + rplyVal.statue : ''}
+		${rplyVal.LevelUp}`
+		ctx.reply(text);
 	}
 	if (!rplyVal.text) {
 		return;
@@ -205,7 +206,7 @@ TGclient.on('text', async (ctx) => {
 		default:
 			if (displaynamecheck && displayname) {
 				//285083923223
-				displayname = "@" + ctx.message.from.username + "\n";
+				displayname = "@" + ctx.message.from.username + (rplyVal.statue) ? ' ' + rplyVal.statue : '' + "\n";
 				rplyVal.text = displayname + rplyVal.text;
 			}
 			SendToReply();
@@ -289,9 +290,9 @@ async function nonDice(ctx) {
 		}
 		let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount);
 		await courtMessage("", "Telegram", "")
-		if (groupid && LevelUp) {
-			//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
-			ctx.reply("@" + displayname + '\n' + LevelUp);
+		if (groupid && LevelUp && LevelUp.text) {
+
+			ctx.reply(`@${displayname}  ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`);
 		}
 	}
 	return null;

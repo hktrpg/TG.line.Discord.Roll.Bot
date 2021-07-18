@@ -352,7 +352,7 @@ client.on('message', async (message) => {
 			return;
 		default:
 			if (userid) {
-				rplyVal.text = "<@" + userid + ">\n" + rplyVal.text;
+				rplyVal.text = `<@${userid}> ${(rplyVal.statue) ? rplyVal.statue : ''}\n ${rplyVal.text}`;
 			}
 			if (rplyVal.quotes) {
 				rplyVal.text = new Discord.MessageEmbed()
@@ -384,7 +384,6 @@ async function privateMsgFinder(channelid) {
 		return groupInfo.trpgDarkRollingfunction
 	else return [];
 }
-async function SendToId(targetid, replyText) {
 	let user = await client.users.fetch(targetid);
 	if (typeof replyText === "string") {
 		for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
@@ -460,8 +459,8 @@ async function nonDice(message, channelid) {
 	membercount = (message.guild) ? message.guild.memberCount : 0;
 	let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount);
 	await courtMessage("", "Discord", "")
-	if (groupid && LevelUp) {
-		await SendToReplychannel("@" + displayname + '\n' + LevelUp, channelid);
+	if (groupid && LevelUp && LevelUp.text) {
+		await SendToReplychannel(`@${displayname}  ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`, message);
 	}
 
 	return null;

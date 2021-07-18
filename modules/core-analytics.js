@@ -38,7 +38,8 @@ var parseInput = async function ({
 	let result = {
 		text: '',
 		type: 'text',
-		LevelUp: ''
+		LevelUp: '',
+		statue: ''
 	};
 
 	let mainMsg = [];
@@ -48,9 +49,8 @@ var parseInput = async function ({
 	//EXPUP 功能 + LevelUP 功能
 	if (groupid) {
 		let tempEXPUP = await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount);
-		if (tempEXPUP) {
-			result.LevelUp = tempEXPUP;
-		}
+		result.LevelUp = (tempEXPUP && tempEXPUP.text) ? tempEXPUP.text : '';
+		result.statue = (tempEXPUP && tempEXPUP.statue) ? tempEXPUP.statue : '';
 	}
 
 	//檢查是不是要停止  z_stop功能

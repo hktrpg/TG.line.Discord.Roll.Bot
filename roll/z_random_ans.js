@@ -4,24 +4,14 @@ if (!process.env.mongoURL) {
 }
 const rollbase = require('./rollbase.js');
 const schema = require('../modules/core-schema.js');
-const randomAnsfunction = {
-    randomAnsfunction: [],
-    randomAnsAllgroup: []
-};
 exports.z_Level_system = require('./z_Level_system');
 const opt = {
     upsert: true,
     runValidators: true
 }
-const records = require('../modules/records.js');
+
 const VIP = require('../modules/veryImportantPerson');
 const limitArr = [30, 200, 200, 300, 300, 300, 300, 300];
-records.get('randomAns', (msgs) => {
-    randomAnsfunction.randomAnsfunction = msgs
-})
-records.get('randomAnsAllgroup', (msgs) => {
-    randomAnsfunction.randomAnsAllgroup = msgs
-})
 var gameName = function () {
     return '(公測中)自定義回應功能 .ra(p)(次數) (add del show 自定關鍵字)'
 }
@@ -50,6 +40,7 @@ P.S.如果沒立即生效 用.ra show 刷新一下
 輸入.ra del (關鍵字) 即可刪除
 輸入.ra(次數,最多30次) (關鍵字1)(關鍵字2)(關鍵字n) 即可不重覆隨機抽選 
 輸入.rra(次數,最多30次) (關鍵字1)(關鍵字2)(關鍵字n) 即可重覆隨機抽選 
+--20210719 新增: 關鍵字可用數字代替, 如編號5,可以輪入 .ra 5 --
 如使用輸入.rap 會變成全服版,全服可看, 可用add show功能 
 例如輸入 .rap10 聖晶石召喚 即可十連抽了 
 新增指令 - 輸入.rap newType 可以觀看效果
@@ -69,7 +60,7 @@ P.S.如果沒立即生效 用.ra show 刷新一下
 `
 }
 const initialize = function () {
-    return randomAnsfunction;
+    return;
 }
 /**
  * {ran:100} <---隨機1-100
@@ -132,7 +123,7 @@ var rollDiceCommand = async function ({
                 rply.text = '新增失敗.\n' + rply.text;
                 return rply;
             }
-            getData = await randomAnsfunction.randomAnsfunction.find(e => e.groupid == groupid)
+            getData = await schema.randomAns.findOne({ groupid: groupid })
             if (getData)
                 check = await getData.randomAnsfunction.find(e =>
                     e[0].toLowerCase() == mainMsg[2].toLowerCase()
@@ -154,9 +145,6 @@ var rollDiceCommand = async function ({
                 $push: temp
             }, opt)
             if (check.n == 1) {
-                records.get('randomAns', (msgs) => {
-                    randomAnsfunction.randomAnsfunction = msgs
-                })
                 rply.text = '新增成功: ' + mainMsg[2]
             } else rply.text = '新增失敗'
             return rply;
@@ -188,25 +176,18 @@ var rollDiceCommand = async function ({
             temp.forEach(f => getData.randomAnsfunction.splice(getData.randomAnsfunction.findIndex(e => e[0] === f[0]), 1));
             check = await getData.save();
             if (check) {
-                records.get('randomAns', (msgs) => {
-                    randomAnsfunction.randomAnsfunction = msgs
-                })
                 rply.text += '刪除成功\n' + temp;
-
             }
             return rply;
         case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
             //
             //顯示列表
             //
-            records.get('randomAns', (msgs) => {
-                randomAnsfunction.randomAnsfunction = msgs
-            })
             if (!groupid) {
                 rply.text += '不在群組. '
                 return rply;
             }
-            getData = await randomAnsfunction.randomAnsfunction.find(e => e.groupid == groupid);
+            getData = await schema.randomAns.findOne({ groupid: groupid })
             if (!getData || getData.randomAnsfunction.length == 0) {
                 rply.text = '沒有已設定的關鍵字. '
                 return rply
@@ -240,11 +221,14 @@ var rollDiceCommand = async function ({
             check = /^[.](r|)ra(\d+|)/i.exec(mainMsg[0])[1] || '';
             if (times > 30) times = 30;
             if (times < 1) times = 1
-            getData = randomAnsfunction.randomAnsfunction.find(e => e.groupid == groupid)
+            getData = await schema.randomAns.findOne({ groupid: groupid })
             if (!getData) return;
             for (let i in mainMsg) {
                 if (i == 0) continue;
                 temp = getData.randomAnsfunction.find(e => e[0].toLowerCase() == mainMsg[i].toLowerCase())
+                if (!temp && mainMsg[1].match(/^\d+$/)) {
+                    temp = getData.randomAnsfunction[mainMsg[1]]
+                }
                 if (!temp) continue;
                 if (check) {
                     //repeat mode
@@ -291,7 +275,7 @@ var rollDiceCommand = async function ({
                 rply.text = '新增失敗.\n' + rply.text;
                 return rply;
             }
-            getData = await randomAnsfunction.randomAnsAllgroup.find(e => e)
+            getData = await schema.randomAnsAllgroup.findOne({})
             if (getData)
                 check = await getData.randomAnsAllgroup.find(e =>
                     e[0].toLowerCase() == mainMsg[2].toLowerCase()
@@ -311,9 +295,6 @@ var rollDiceCommand = async function ({
                 $push: temp
             }, opt)
             if (check.n == 1) {
-                records.get('randomAnsAllgroup', (msgs) => {
-                    randomAnsfunction.randomAnsAllgroup = msgs
-                })
                 rply.text = '新增成功: ' + mainMsg[2]
             } else rply.text = '新增失敗'
             return rply;
@@ -321,10 +302,8 @@ var rollDiceCommand = async function ({
             //
             //顯示列表
             //
-            records.get('randomAnsAllgroup', (msgs) => {
-                randomAnsfunction.randomAnsAllgroup = msgs
-            })
-            getData = await randomAnsfunction.randomAnsAllgroup.find(e => e);
+            getData = await schema.randomAnsAllgroup.findOne({})
+            console.log('getData', getData)
             if (!getData || getData.randomAnsAllgroup.length == 0) {
                 rply.text = '沒有已設定的關鍵字. '
                 return rply
@@ -355,11 +334,14 @@ var rollDiceCommand = async function ({
             check = /^[.](r|)rap(\d+|)/i.exec(mainMsg[0])[1] || '';
             if (times > 30) times = 30;
             if (times < 1) times = 1
-            getData = randomAnsfunction.randomAnsAllgroup.find(e => e)
+            getData = await schema.randomAnsAllgroup.findOne({})
             if (!getData) return;
             for (let i in mainMsg) {
                 if (i == 0) continue;
                 temp = getData.randomAnsAllgroup.find(e => e[0].toLowerCase() == mainMsg[i].toLowerCase())
+                if (!temp && mainMsg[1].match(/^\d+$/)) {
+                    temp = getData.randomAnsfunction[mainMsg[1]]
+                }
                 if (!temp) continue;
                 if (check) {
                     //repeat mode

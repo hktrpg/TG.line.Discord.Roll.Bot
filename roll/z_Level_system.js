@@ -617,43 +617,6 @@ var rollDiceCommand = async function ({
             e = d + ['', 'K', 'M', 'B', 'T'][k]; // append power
         return e;
     }
-    /*
-            function kMGTPE(n, d) {
-                x = ('' + n).length, p = math.pow, d = p(10, d)
-                x -= x % 3
-                return math.round(n * d / p(10, x)) / d + " kMGTPE" [x / 3]
-            }
-    */
-    async function ranking(who, data) {
-        var array = [];
-        let answer = ""
-        for (var key in data) {
-            array.push(data[key]);
-
-        }
-
-        array.sort(function (a, b) {
-            return b.EXP - a.EXP;
-        });
-
-        var rank = 1;
-        //console.log('array.length', array.length)
-        //console.log('array', array)
-        for (var i = 0; i < array.length; i++) {
-            if (i > 0 && array[i].EXP < array[i - 1].EXP) {
-                rank++;
-            }
-            array[i].rank = rank;
-        }
-        for (var b = 0; b < array.length; b++) {
-            if (array[b].userid == who)
-                answer = b + 1;
-            //  document.write(b + 1);
-
-        }
-        //console.log('answer', answer)
-        return answer;
-    }
 }
 
 

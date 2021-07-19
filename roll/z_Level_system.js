@@ -184,10 +184,10 @@ var rollDiceCommand = async function ({
                 return rply
             }
             rply.text = '稱號:\n'
-
             for (let te = 0; te < doc.Title.length; te++) {
-                if (doc.Title[te])
-                    rply.text += [te] + '等級: ' + doc.Title[te] + "\n"
+                if (doc.Title[te]) {
+                    rply.text += `等級${[te]}: ` + doc.Title[te][2] + "\n"
+                }
             }
             return rply
 

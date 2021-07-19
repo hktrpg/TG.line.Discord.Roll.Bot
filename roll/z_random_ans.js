@@ -226,8 +226,8 @@ var rollDiceCommand = async function ({
             for (let i in mainMsg) {
                 if (i == 0) continue;
                 temp = getData.randomAnsfunction.find(e => e[0].toLowerCase() == mainMsg[i].toLowerCase())
-                if (!temp && mainMsg[1].match(/^\d+$/)) {
-                    temp = getData.randomAnsfunction[mainMsg[1]]
+                if (!temp && mainMsg[i].match(/^\d+$/)) {
+                    temp = getData.randomAnsfunction[mainMsg[i]]
                 }
                 if (!temp) continue;
                 if (check) {
@@ -338,8 +338,8 @@ var rollDiceCommand = async function ({
             for (let i in mainMsg) {
                 if (i == 0) continue;
                 temp = getData.randomAnsAllgroup.find(e => e[0].toLowerCase() == mainMsg[i].toLowerCase())
-                if (!temp && mainMsg[1].match(/^\d+$/)) {
-                    temp = getData.randomAnsAllgroup[mainMsg[1]]
+                if (!temp && mainMsg[i].match(/^\d+$/)) {
+                    temp = getData.randomAnsAllgroup[mainMsg[i]]
                 }
                 if (!temp) continue;
                 if (check) {

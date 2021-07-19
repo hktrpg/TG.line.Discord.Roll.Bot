@@ -393,7 +393,6 @@ var rollDiceCommand = async function ({
                 //* {my.exp} 顯示擲骰者經驗值
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
                 temp2 = await findUser(groupid, userid);
-                console.log('temp2', temp, temp2)
                 if (!temp || !temp2 || !temp2.EXP) return ' ';
                 return temp2.EXP || ' ';
             case /^my.name$/i.test(second):

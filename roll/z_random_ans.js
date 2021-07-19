@@ -40,6 +40,7 @@ P.S.如果沒立即生效 用.ra show 刷新一下
 輸入.ra del (關鍵字) 即可刪除
 輸入.ra(次數,最多30次) (關鍵字1)(關鍵字2)(關鍵字n) 即可不重覆隨機抽選 
 輸入.rra(次數,最多30次) (關鍵字1)(關鍵字2)(關鍵字n) 即可重覆隨機抽選 
+--20210719 新增: 關鍵字可用數字代替, 如編號5,可以輪入 .ra 5 --
 如使用輸入.rap 會變成全服版,全服可看, 可用add show功能 
 例如輸入 .rap10 聖晶石召喚 即可十連抽了 
 新增指令 - 輸入.rap newType 可以觀看效果
@@ -225,6 +226,9 @@ var rollDiceCommand = async function ({
             for (let i in mainMsg) {
                 if (i == 0) continue;
                 temp = getData.randomAnsfunction.find(e => e[0].toLowerCase() == mainMsg[i].toLowerCase())
+                if (!temp && mainMsg[1].match(/^\d+$/)) {
+                    temp = getData.randomAnsfunction[mainMsg[1]]
+                }
                 if (!temp) continue;
                 if (check) {
                     //repeat mode
@@ -335,6 +339,9 @@ var rollDiceCommand = async function ({
             for (let i in mainMsg) {
                 if (i == 0) continue;
                 temp = getData.randomAnsAllgroup.find(e => e[0].toLowerCase() == mainMsg[i].toLowerCase())
+                if (!temp && mainMsg[1].match(/^\d+$/)) {
+                    temp = getData.randomAnsfunction[mainMsg[1]]
+                }
                 if (!temp) continue;
                 if (check) {
                     //repeat mode

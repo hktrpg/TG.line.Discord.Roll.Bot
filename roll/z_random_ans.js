@@ -303,7 +303,6 @@ var rollDiceCommand = async function ({
             //顯示列表
             //
             getData = await schema.randomAnsAllgroup.findOne({})
-            console.log('getData', getData)
             if (!getData || getData.randomAnsAllgroup.length == 0) {
                 rply.text = '沒有已設定的關鍵字. '
                 return rply

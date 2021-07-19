@@ -40,12 +40,14 @@ const opt = {
 
 var getHelpMessage = function () {
     return `【事件功能】.event (add delete show) .evt (random/事件名稱)
-經由新增的事件，會得到一些狀態或增加減少EXP。
+經由新增的事件，會得到一些狀態或增加減少經驗值，
+並可以賺取額外經驗值。
 ---
 .event add 詳情看下面說明 - 新增事件
 .event delete (事件名稱) - 刪除事件
-.event show             - 顯示你新增的所有事件
+.event show             - 顯示你新增的所有事件, 及賺取了的EXP
 .event show (事件名稱)   - 顯示你新增的指定事件詳情
+.event useExp           - 在群組中使用, 將會得到你賺取的EXP
 ---
 .evt (事件名稱)  - 進入指定的事件, 消耗15EN
 .evt random     - 進入隨機的事件, 消耗5EN
@@ -638,12 +640,9 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
             // -1. 直接減少X點經驗
             //100之一 ->50之一 * 1.0X ( 相差LV)% *1.0X(負面級數)^(幾個負面) 
             {
-
                 let exp = await calXP(eventList, thisMember, "exp")
                 await thisMember.updateOne({ $inc: { EXP: -exp } })
-
                 return `你已減少 ${exp} 點${expName}`;
-
             }
 
         case -2:
@@ -667,7 +666,7 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
         case -4:
             //  5. 分發X經驗給整個CHANNEL中的X人
             {
-                let exp = await calXP(eventList, thisMember, "exp");
+                let exp = Math.round(await calXP(eventList, thisMember, "exp") / 10);
                 let times = await calXP(eventList, thisMember, "times");
                 let targetMember = await schema.trpgLevelSystemMember.aggregate([{
                     $match:
@@ -696,7 +695,7 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
         case -5:
             //  6. 每次發言減少X經驗(X次內)
             {
-                let exp = await calXP(eventList, thisMember, "exp");
+                let exp = Math.round(await calXP(eventList, thisMember, "exp") / 10);
                 let times = await calXP(eventList, thisMember, "times");
                 await thisMember.updateOne({ $max: { decreaseEXP: exp, decreaseEXPTimes: times } })
                 return `你在未來${Math.max(thisMember.decreaseEXPTimes, times)}次發言都會減少 ${Math.max(thisMember.decreaseEXP, exp)}${expName}`;

@@ -41,7 +41,7 @@ async function read() {
             ca: (fs.readFileSync(ca)) ? fs.readFileSync(ca) : null
         };
     } catch (error) {
-        console.log('error of key')
+        console.error('error of key')
     }
 }
 

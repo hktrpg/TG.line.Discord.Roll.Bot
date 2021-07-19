@@ -91,7 +91,7 @@ var rollDiceCommand = async function ({
 				//console.log(res.from.language.iso);
 				return res.text
 			}).catch(err => {
-				console.log(err.message)
+				console.error(err.message)
 				return err.message + "\n常用語言代碼: 英=en, 簡=zh-cn, 德=de, 日=ja\n例子: .tran.英\n.tran.日\n.tran.de";
 			});
 			return rply;
@@ -131,7 +131,7 @@ async function searchImage(inputStr, mainMsg, safe) {
 			}
 
 		}).catch(err => {
-			console.log(err)
+			console.error(err)
 		})
 }
 

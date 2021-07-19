@@ -23,7 +23,7 @@ class Records extends EventEmitter {
             upsert: true
         }, (err, doc) => {
             if (err) {
-                console.log("Something wrong when updating data!");
+                console.error("Something wrong when updating data!");
             } else
                 callback();
             // return JSON.stringify(doc).toString();

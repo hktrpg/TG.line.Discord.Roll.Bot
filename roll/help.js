@@ -21,7 +21,7 @@ const start = async () => {
 			}
 
 		} catch (error) {
-			console.log(error)
+			console.error(error)
 		}
 	})
 
@@ -152,7 +152,7 @@ bothelp req		- 對HKTRPG RollBot提出意見
 				if (json.news)
 					rply.text += json.news;
 			} catch (error) {
-				console.log(error);
+				console.error(error);
 			}
 			return rply;
 		case /^BASE/i.test(mainMsg[1]):

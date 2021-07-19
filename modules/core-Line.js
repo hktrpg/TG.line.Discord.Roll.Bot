@@ -340,11 +340,11 @@ async function HandleMessage(message) {
 */
 app.on('UnhandledPromiseRejection', error => {
 	// Will print "unhandledRejection err is not defined"
-	console.log('UnhandledPromiseRejection: ', error.message);
+	console.error('UnhandledPromiseRejection: ', error.message);
 });
 app.on('unhandledRejection', error => {
 	// Will print "unhandledRejection err is not defined"
-	console.log('unhandledRejection: ', error.message);
+	console.error('unhandledRejection: ', error.message);
 });
 async function SendToId(targetid, Reply) {
 	let temp = await HandleMessage(Reply);

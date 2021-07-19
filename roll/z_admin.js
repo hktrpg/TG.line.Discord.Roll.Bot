@@ -82,7 +82,7 @@ var rollDiceCommand = async function ({
                     "id": userid
                 });
             } catch (e) {
-                console.log('registerChannel ERROR:', e);
+                console.error('registerChannel ERROR:', e);
                 rply.text += JSON.stringify(e);
                 return rply;
             }
@@ -92,7 +92,7 @@ var rollDiceCommand = async function ({
                     "channel.id": channelid || groupid
                 });
             } catch (e) {
-                console.log('registerChannel ERROR:', e);
+                console.error('registerChannel ERROR:', e);
                 rply.text += JSON.stringify(e);
                 return rply;
             }
@@ -153,7 +153,7 @@ var rollDiceCommand = async function ({
                     }
                 });
             } catch (e) {
-                console.log('unregisterChannel ERROR:', e);
+                console.error('unregisterChannel ERROR:', e);
                 rply.text += JSON.stringify(e);
                 return rply;
             }
@@ -173,7 +173,7 @@ var rollDiceCommand = async function ({
                     "id": channelid || groupid
                 });
             } catch (e) {
-                console.log('disAllowrolling ERROR:', e);
+                console.error('disAllowrolling ERROR:', e);
                 rply.text += JSON.stringify(e);
                 return rply;
             }
@@ -202,7 +202,7 @@ var rollDiceCommand = async function ({
                 });
 
             } catch (e) {
-                console.log('Allowrolling ERROR:', e);
+                console.error('Allowrolling ERROR:', e);
                 rply.text += JSON.stringify(e);
                 return rply;
             }
@@ -230,7 +230,7 @@ var rollDiceCommand = async function ({
                     "userName": name
                 });
             } catch (e) {
-                console.log('ACCOUNT ERROR:', e);
+                console.error('ACCOUNT ERROR:', e);
                 rply.text += JSON.stringify(e);
                 return rply;
             }
@@ -252,7 +252,7 @@ var rollDiceCommand = async function ({
                 });
 
             } catch (e) {
-                console.log('ACCOUNT ERROR:', e);
+                console.error('ACCOUNT ERROR:', e);
                 rply.text += JSON.stringify(e);
                 return rply;
             }
@@ -300,7 +300,7 @@ var rollDiceCommand = async function ({
                 }
                 //.admin addVipGroup -i  ID -l LV -n NAME -no NOTES -s SWITCH
             } catch (error) {
-                console.log('新增VIP GET ERROR: ', error)
+                console.error('新增VIP GET ERROR: ', error)
                 rply.text = '新增VIP失敗\n因為 ' + error.message
             }
             return rply;
@@ -325,7 +325,7 @@ var rollDiceCommand = async function ({
                 }
                 //.admin addVipGroup -i  ID -l LV -n NAME -no NOTES -s SWITCH
             } catch (error) {
-                console.log('新增VIP GET ERROR: ', error)
+                console.error('新增VIP GET ERROR: ', error)
                 rply.text = '新增VIP失敗\n因為 ' + error.message
             }
             return rply;
@@ -347,7 +347,7 @@ async function checkGpAllow(target) {
             "id": target
         })
     } catch (e) {
-        console.log('Allowrolling ERROR:', e);
+        console.error('Allowrolling ERROR:', e);
 
     }
     return doc;

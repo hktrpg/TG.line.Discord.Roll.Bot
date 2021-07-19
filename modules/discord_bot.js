@@ -51,10 +51,10 @@ var connect = function () {
 		}
 	});
 	ws.on('error', (error) => {
-		console.log('Discord socket error', error);
+		console.error('Discord socket error', error);
 	});
 	ws.on('close', function () {
-		console.log('Discord socket close');
+		console.error('Discord socket close');
 		setTimeout(connect, reconnectInterval);
 	});
 };
@@ -393,7 +393,7 @@ async function SendToId(targetid, replyText) {
 					await user.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 				}
 				catch (e) {
-					console.log(' GET ERROR:  SendtoID: ', e.message, replyText)
+					console.error(' GET ERROR:  SendtoID: ', e.message, replyText)
 				}
 		}
 	}
@@ -411,7 +411,7 @@ async function SendToReply(replyText, message) {
 					await message.author.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 				}
 				catch (e) {
-					console.log(' GET ERROR:  SendToReply: ', e.message, replyText, message)
+					console.error(' GET ERROR:  SendToReply: ', e.message, replyText, message)
 				}
 		}
 	}
@@ -427,7 +427,7 @@ async function SendToReplychannel(replyText, channelid) {
 					//await message.channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 				}
 				catch (e) {
-					console.log(' GET ERROR: SendToReplychannel: ', e.message, replyText, channelid);
+					console.error(' GET ERROR: SendToReplychannel: ', e.message, replyText, channelid);
 				}
 		}
 	}
@@ -497,7 +497,7 @@ client.on('ready', async () => {
 });
 if (togGGToken) {
 	dbl.on('error', e => {
-		console.log(`dbl Top.GG get Error! ${e}`);
+		console.error(`dbl Top.GG get Error! ${e}`);
 	})
 }
 

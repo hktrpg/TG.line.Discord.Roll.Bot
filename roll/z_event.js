@@ -197,7 +197,7 @@ var rollDiceCommand = async function ({
             try {
                 doc = await schema.eventList.updateOne(filter, listDatas, opt);
             } catch (error) {
-                console.log('新增事件 GET ERROR: ', error)
+                console.error('新增事件 GET ERROR: ', error)
                 rply.text = '新增事件失敗\n因為 ' + error.message
                 return rply;
             }
@@ -247,7 +247,7 @@ var rollDiceCommand = async function ({
                 await temp.save();
 
             } catch (error) {
-                console.log('新增事件 GET ERROR: ', error)
+                console.error('新增事件 GET ERROR: ', error)
                 rply.text = '新增事件失敗\n因為 ' + error.message
                 return rply;
             }
@@ -284,7 +284,7 @@ var rollDiceCommand = async function ({
                     }
                 })
             } catch (error) {
-                console.log('刪除事件 GET ERROR:  ', error)
+                console.error('刪除事件 GET ERROR:  ', error)
                 rply.text = '刪除事件失敗'
                 return rply;
             }

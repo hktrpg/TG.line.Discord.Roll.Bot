@@ -339,7 +339,7 @@ var rollDiceCommand = async function ({
                 if (i == 0) continue;
                 temp = getData.randomAnsAllgroup.find(e => e[0].toLowerCase() == mainMsg[i].toLowerCase())
                 if (!temp && mainMsg[1].match(/^\d+$/)) {
-                    temp = getData.randomAnsfunction[mainMsg[1]]
+                    temp = getData.randomAnsAllgroup[mainMsg[1]]
                 }
                 if (!temp) continue;
                 if (check) {

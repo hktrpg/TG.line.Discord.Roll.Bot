@@ -448,7 +448,6 @@ var rollDiceCommand = async function ({
                 rply.text = '未有你的資料，請稍後再試。'
                 return rply
             }
-
             //6.    ->沒有 使用預設排名語
             //{user.name} 名字 {user.level} 等級 \
             //{user.title} 稱號
@@ -462,7 +461,7 @@ var rollDiceCommand = async function ({
 
             //5.    讀取群組的排名語
 
-            let rankWord = (doc.rankWord) ? doc.rankWord : defaultRankWord;
+            let rankWord = (doc.RankWord) ? doc.RankWord : defaultRankWord;
 
             let username = displaynameDiscord || displayname || "無名";
 

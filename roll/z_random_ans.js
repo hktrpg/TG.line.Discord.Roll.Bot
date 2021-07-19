@@ -412,11 +412,11 @@ var rollDiceCommand = async function ({
                 if (!temp || !temp[1] || !temp[2]) return ' ';
                 return await rollbase.DiceINT(temp[1], temp[2]) || ' ';
             case /^allgp.name$/i.test(second):
-                temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
+                temp = await findGpMember(groupid);
                 if (!temp) return ' ';
-                num = await rollbase.DiceINT(0, temp.trpgLevelSystemfunction.length - 1)
+                num = await rollbase.DiceINT(0, temp.length - 1)
                 num = (num < 1) ? 0 : num;
-                temp = temp.trpgLevelSystemfunction[num].name
+                temp = temp[num].name
                 return temp || ' ';
             // * {allgp.name} <---隨機全GP其中一人名字
             case /^allgp.title$/i.test(second):
@@ -434,30 +434,31 @@ var rollDiceCommand = async function ({
                 return temp || ' ';
             // * {allgp.title}<---隨機全GP其中一種稱號
             case /^server.member_count$/i.test(second):
-                temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
-                num = (temp && temp.trpgLevelSystemfunction && temp.trpgLevelSystemfunction.length) ? Math.max(membercount, temp.trpgLevelSystemfunction.length) : membercount;
+                temp = await findGpMember(groupid);
+                num = (temp && temp.length) ? Math.max(membercount, temp.length) : membercount;
                 return num || ' ';
             //  {server.member_count} 現在頻道中總人數 \
-            case /^my.RankingPer$/i.test(second):
+            case /^my.RankingPer$/i.test(second): {
                 //* {my.RankingPer} 現在排名百分比 \
                 // let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
-                temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
-                if (!temp) return ' ';
-                temp2 = await ranking(userid, temp.trpgLevelSystemfunction)
+                let gpMember = await findGpMember(groupid);
+                temp2 = await ranking(userid, gpMember)
                 if (!temp2) return ' ';
-                num = (temp && temp.trpgLevelSystemfunction && temp.trpgLevelSystemfunction.length) ? Math.max(membercount, temp.trpgLevelSystemfunction.length) : membercount;
+                num = (temp && gpMember.length) ? Math.max(membercount, gpMember.length) : membercount;
                 temp2 = Math.ceil(temp2 / num * 10000) / 100 + '%';
                 return temp2 || ' ';
-            case /^my.Ranking$/i.test(second):
-                temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
-                //     temp2 = await findUser(temp, userid);
+            }
+            case /^my.Ranking$/i.test(second): {
+                let gpMember = await findGpMember(groupid);
                 //* {my.Ranking} 顯示擲骰者現在排名 \
-                if (!temp || !temp.trpgLevelSystemfunction) return ' ';
-                return await ranking(userid, temp.trpgLevelSystemfunction) || ' ';
+                if (!gpMember) return ' ';
+                return await ranking(userid, gpMember) || ' ';
+            }
             case /^my.exp$/i.test(second):
                 //* {my.exp} 顯示擲骰者經驗值
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
-                temp2 = await findUser(temp, userid);
+                temp2 = await findUser(groupid, userid);
+                console.log('temp2', temp, temp2)
                 if (!temp || !temp2 || !temp2.EXP) return ' ';
                 return temp2.EXP || ' ';
             case /^my.name$/i.test(second):
@@ -466,15 +467,14 @@ var rollDiceCommand = async function ({
             case /^my.title$/i.test(second):
                 // * {my.title}<---顯示擲骰者稱號
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
-                temp2 = await findUser(temp, userid);
+                temp2 = await findUser(groupid, userid);
                 if (!temp || !temp2 || !temp2.Level || !temp.Title) return ' ';
                 //   let userTitle = await this.checkTitle(userlevel, trpgLevelSystemfunction.trpgLevelSystemfunction[i].Title);
                 return await exports.z_Level_system.checkTitle(temp2.Level, temp.Title) || ' ';
             case /^my.level$/i.test(second):
                 //* {my.level}<---顯示擲骰者等級
-                temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
-                temp2 = await findUser(temp, userid);
-                if (!temp || !temp2 || !temp2.Level) return ' ';
+                temp2 = await findUser(groupid, userid);
+                if (!temp2 || !temp2.Level) return ' ';
                 return temp2.Level || ' ';
             case /^br$/i.test(second):
                 temp = '\n'
@@ -488,21 +488,37 @@ var rollDiceCommand = async function ({
 
 
 async function findGp(groupid) {
-    if (!process.env.mongoURL || !Object.keys(exports.z_Level_system).length || !groupid) {
+    if (!process.env.mongoURL || !groupid) {
         return;
     }
     //1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
-    let gpInfo = exports.z_Level_system.initialize().trpgLevelSystemfunction.find(e => e.groupid == groupid);
-    if (!gpInfo || gpInfo.Switch != 1) return;
+    let gpInfo = await schema.trpgLevelSystem.findOne({
+        groupid: groupid
+    });
+    if (!gpInfo || gpInfo.SwitchV2 != 1) return;
+    // userInfo.name = displaynameDiscord || displayname || '無名'
+    return gpInfo;
+    //6 / 7 * LVL * (2 * LVL * LVL + 30 * LVL + 100)
+}
+async function findGpMember(groupid) {
+    if (!process.env.mongoURL || !groupid) {
+        return;
+    }
+    //1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
+    let gpInfo = await schema.trpgLevelSystemMember.find({
+        groupid: groupid
+    });
     // userInfo.name = displaynameDiscord || displayname || '無名'
     return gpInfo;
     //6 / 7 * LVL * (2 * LVL * LVL + 30 * LVL + 100)
 }
 
-async function findUser(gpInfo, userid) {
-    if (!gpInfo || !gpInfo.trpgLevelSystemfunction) return;
-    let userInfo = {};
-    userInfo = gpInfo.trpgLevelSystemfunction.find(e => e.userid == userid);
+async function findUser(groupid, userid) {
+    if (!groupid || !userid) return;
+    let userInfo = await schema.trpgLevelSystemMember.findOne({
+        groupid: groupid,
+        userid: userid
+    });
     // userInfo.name = displaynameDiscord || displayname || '無名'
     return userInfo;
     //6 / 7 * LVL * (2 * LVL * LVL + 30 * LVL + 100)

@@ -64,8 +64,7 @@ var rollDiceCommand = async function ({
 		text: ''
 	} //let result = {};
 	let matchxby = {},
-		matchxuy = {},
-		points = {};
+		matchxuy = {}
 	switch (true) {
 		case /^[.][c][a]$/i.test(mainMsg[0]) && (/^help$/i.test(mainMsg[1]) || !mainMsg[1]):
 			rply.text = await this.getHelpMessage();

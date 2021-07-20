@@ -365,7 +365,7 @@ var rollDiceCommand = async function ({
                 });
                 num = await rollbase.DiceINT(0, temp2.length - 1)
                 num = (num < 1) ? 0 : num;
-                temp = temp2[num][2];
+                temp = temp2[num]
                 return temp || ' ';
             // * {allgp.title}<---隨機全GP其中一種稱號
             case /^server.member_count$/i.test(second):

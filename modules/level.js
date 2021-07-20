@@ -175,7 +175,7 @@ const checkTitle = async function (userlvl, DBTitle) {
             if (userlvl >= g) {
                 if (templvl <= g && DBTitle[g]) {
                     templvl = g
-                    temptitle = DBTitle[g][2] || DBTitle[g];
+                    temptitle = DBTitle[g];
                 }
             }
         }

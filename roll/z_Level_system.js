@@ -62,7 +62,7 @@ const checkTitle = async function (userlvl, DBTitle) {
             if (userlvl >= g) {
                 if (templvl <= g && DBTitle[g]) {
                     templvl = g
-                    temptitle = DBTitle[g][2] || DBTitle[g];
+                    temptitle = DBTitle[g];
                 }
             }
         }
@@ -186,7 +186,7 @@ var rollDiceCommand = async function ({
             rply.text = '稱號:\n'
             for (let te = 0; te < doc.Title.length; te++) {
                 if (doc.Title[te]) {
-                    rply.text += `等級${[te]}: ` + doc.Title[te][2] + "\n"
+                    rply.text += `${[te]}等級: ` + doc.Title[te] + "\n"
                 }
             }
             return rply
@@ -207,16 +207,25 @@ var rollDiceCommand = async function ({
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
             });
-            let temprply = await setNew(inputStr);
+
+            let temprply = setNew(inputStr, doc.Title)
+
+            //  console.log('temprply', doc)
             if (temprply.length < 1) {
                 rply.text = '新增失敗。 未有稱號輸入，格式為 \n.level TitleWord -(等級) (稱號).'
                 return rply
             }
-            doc.Title = temprply;
-            await doc.save();
+            await schema.trpgLevelSystem.updateOne({
+                groupid: groupid
+            }, {
+                $set: {
+                    "Title": temprply
+                }
+            });
             rply.text = '新增稱號成功: \n'
             for (let te = 0; te < temprply.length; te++) {
-                rply.text += temprply[te][1] + '等級: ' + temprply[te][2] + '\n'
+                if (temprply[te])
+                    rply.text += [te] + '等級: ' + temprply[te] + '\n'
             }
             return rply;
         }
@@ -545,7 +554,7 @@ var rollDiceCommand = async function ({
             break;
     }
 
-    async function setNew(a) {
+    function setNew(a, result) {
         let b = /-(\d+)\s+(\S+)/ig
         let e = /-(\d+)\s+(\S+)/
         //let f = [];
@@ -555,8 +564,17 @@ var rollDiceCommand = async function ({
             for (let i = 0; i < c.length; i++) {
                 d[i] = e.exec(c[i])
             }
-        return d;
+        if (d)
+            for (let i = 0; i < d.length; i++) {
+                //限制0-500以內
+                if (d[i][1] && d[i][2] && d[i][1] <= 500 && d[i][1] >= 0)
+                    result[d[i][1]] = d[i][2]
+                //  console.log(trpgLevelSystemfunction.trpgLevelSystemfunction[which].Title)
+            }
+
+        return result;
     }
+
 
 
 
@@ -566,7 +584,7 @@ var rollDiceCommand = async function ({
         let tempTitleAll = gp.Title || [];
         //console.log('tempTitleAll ', tempTitleAll)
         //console.log('who ', who)
-        
+
         for (var key in who) {
             array.push(who[key]);
         }

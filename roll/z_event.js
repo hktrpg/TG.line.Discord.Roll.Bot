@@ -409,8 +409,8 @@ var rollDiceCommand = async function ({
                 }
                 let earedXP = 0;
                 let eventList = [];
-                if (eventMember.EXP < 0) {
-                    rply.text = `你使用太多經驗值了……你現在的經驗值只有負數: ${eventMember.EXP}，賺取更多經驗值再來玩吧…`
+                if (thisMember.EXP < 0) {
+                    rply.text = `你使用太多經驗值了……你現在的經驗值只有負數: ${thisMember.EXP}，賺取更多經驗值再來玩吧…`
                     return rply;
                 }
                 switch (randomMode) {

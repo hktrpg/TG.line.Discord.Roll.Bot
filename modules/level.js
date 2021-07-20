@@ -118,7 +118,7 @@ async function returnTheLevelWord(gpInfo, userInfo, membercount, groupid) {
 
     let userRanking = myselfIndex + 1;
     let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
-    let userTitle = checkTitle(userlevel, gpInfo.Title);
+    let userTitle = await checkTitle(userlevel, gpInfo.Title);
     let tempUPWord = gpInfo.LevelUpWord || "恭喜 {user.name}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點了！\n現在排名是{server.member_count}人中的第{user.Ranking}名！";
     return tempUPWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count).replace(/{user.title}/ig, userTitle);
 }

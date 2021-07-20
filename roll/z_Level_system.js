@@ -566,15 +566,16 @@ var rollDiceCommand = async function ({
         let tempTitleAll = gp.Title || [];
         //console.log('tempTitleAll ', tempTitleAll)
         //console.log('who ', who)
+        
         for (var key in who) {
             array.push(who[key]);
         }
         array.sort(function (a, b) {
-            return b.EXP - a.EXP;
+            return b.Level - a.Level;
         });
         var rank = 1;
         for (var i = 0; i < array.length; i++) {
-            if (i > 0 && array[i].EXP < array[i - 1].EXP) {
+            if (i > 0 && array[i].Level < array[i - 1].Level) {
                 rank++;
             }
             array[i].rank = rank;

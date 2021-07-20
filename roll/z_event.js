@@ -409,10 +409,13 @@ var rollDiceCommand = async function ({
                 }
                 let earedXP = 0;
                 let eventList = [];
+                if (eventMember.EXP < 0) {
+                    rply.text = `你使用太多經驗值了……你現在的經驗值只有負數: ${eventMember.EXP}，賺取更多經驗值再來玩吧…`
+                    return rply;
+                }
                 switch (randomMode) {
                     case true:
                         if (eventMember.energy < 5) {
-
                             rply.text = "隨機事件需要5EN, 你現在只有" + eventMember.energy + "EN"
                             return rply;
                         } else {
@@ -606,8 +609,9 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                 let times = await calXP(eventList, thisMember, "times");
                 let multi = await calXP(eventList, thisMember, "multi")
                 await thisMember.updateOne({ $max: { multiEXP: multi, multiEXPTimes: times } })
-                return `你在${Math.max(thisMember.multiEXPTimes, times)}次內都會有 ${Math.max(thisMember.multiEXP, multi)} 倍${expName}`;
+                return `你在${Math.max(isNaN(thisMember.multiEXPTimes) ? 0 : thisMember.multiEXPTimes, times)}次內都會有 ${Math.max(isNaN(thisMember.multiEXP) ? 0 : thisMember.multiEXP, multi)} 倍${expName}`;
             }
+
         case 3:
             //  9. 從整個CHANNEL 的X人吸收X點經驗
             {
@@ -650,7 +654,7 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
             {
                 let times = await calXP(eventList, thisMember, "times");
                 await thisMember.updateOne({ $max: { stopExp: times } })
-                return `你在未來${Math.max(thisMember.stopExp, times)}次都會失去得到${expName}的機會`;
+                return `你在未來${Math.max(isNaN(thisMember.stopExp) ? 0 : thisMember.stopExp, times)}次都會失去得到${expName}的機會`;
             }
 
         case -3:
@@ -698,8 +702,9 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                 let exp = Math.round(await calXP(eventList, thisMember, "exp") / 10);
                 let times = await calXP(eventList, thisMember, "times");
                 await thisMember.updateOne({ $max: { decreaseEXP: exp, decreaseEXPTimes: times } })
-                return `你在未來${Math.max(thisMember.decreaseEXPTimes, times)}次發言都會減少 ${Math.max(thisMember.decreaseEXP, exp)}${expName}`;
+                return `你在未來${Math.max(thisMember.decreaseEXPTimes, times)}次發言都會減少 ${Math.max(isNaN(thisMember.decreaseEXP) ? 0 : thisMember.decreaseEXP, exp)}${expName}`;
             }
+
         default:
             //     0. 沒有事發生
             return `沒有事發生呢`;

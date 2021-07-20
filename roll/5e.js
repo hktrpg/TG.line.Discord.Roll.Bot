@@ -3,7 +3,10 @@ var variables = {};
 
 var lunr = require("lunr")
 require("lunr-languages/lunr.stemmer.support")(lunr)
-require("lunr-languages/lunr.ja")(lunr)
+require('lunr-languages/lunr.multi')(lunr)
+require("lunr-languages/lunr.zh")(lunr)
+
+
 var gameName = function () {
     return '【Demo】'
 }
@@ -37,14 +40,7 @@ var initialize = function () {
 var rollDiceCommand = async function ({
     inputStr,
     mainMsg,
-    groupid,
-    userid,
-    userrole,
-    botname,
-    displayname,
-    channelid,
-    displaynameDiscord,
-    membercount
+
 }) {
     let rply = {
         default: 'on',
@@ -57,18 +53,22 @@ var rollDiceCommand = async function ({
             rply.quotes = true;
             return rply;
         case /^\S+$/i.test(mainMsg[1]): {
-            var idx = lunr(function () {
-                this.use(lunr.ja)
-                this.ref('name')
-                this.field('name')
-              
-                spell.forEach(function (doc) {
-                    this.add(doc)
-                }, this)
+
+            let results = [];
+            idx.search(`*${inputStr.replace(/^\s*.5e\s*/, '')}*`).forEach(function (result) {
+                results.push(result.ref)
             })
-            let a = idx.search(mainMsg[1]);
-            console.log(a)
-            rply.text = a;
+            //
+            switch (true) {
+                case value:
+
+                    break;
+
+                default:
+                    break;
+            }
+            console.log(results)
+            rply.text = results;
             return rply;
         }
         default:
@@ -86,37 +86,7 @@ module.exports = {
     gameName: gameName
 };
 
-const posts = [
-    {
-        id: "1",
-        title: "What is JavaScript?",
-        description:
-            "JavaScript is a high-level, object-oriented programming language based on the ECMAScript specification.",
-    },
-    {
-        id: "2",
-        title: "What is Java?",
-        description:
-            "Java is a cross-platform object-oriented programming language which at first developed by the Sun Microsystems.",
-    },
-    {
-        id: "3",
-        title: "What is React?",
-        description:
-            "React is a popular JavaScript library which heavily used to build single-page applications.",
-    },
-]
 
-var documents = [{
-    "name": "Lunr",
-    "text": "Like Solr, but much smaller, and not as bright."
-}, {
-    "name": "React",
-    "text": "A JavaScript library for building user interfaces."
-}, {
-    "name": "Lodash",
-    "text": "A modern JavaScript utility library delivering modularity, performance & extras."
-}]
 const spell = [
     {
         "name": "酸液濺爆",
@@ -32376,3 +32346,15 @@ const spell = [
         ]
     }
 ]
+
+const idx = lunr(function () {
+    this.use(lunr.multiLanguage('en', 'zh'))
+
+    this.field('name')
+    this.field('ENG_name')
+
+    this.ref('name')
+    spell.forEach(function (doc) {
+        this.add(doc)
+    }, this)
+})

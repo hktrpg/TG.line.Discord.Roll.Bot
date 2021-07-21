@@ -671,15 +671,13 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
         case -3:
             //   7. 吸收對方X點經驗
             {
-                let targetMember = await schema.eventMember.findOne({
-                    userID: eventList.userID
-                })
-                let exp = await calXP(eventList, thisMember.Level, "exp");
+                let createEventer = await findMaxLv(eventList.userID);
+                let exp = await calXP(eventList, Math.min(createEventer, thisMember.Level), "exp");
                 await thisMember.updateOne({ $inc: { EXP: -exp } })
                 await schema.eventMember.findOneAndUpdate({
                     userID: eventList.userID,
                 }, { $inc: { earnedEXP: exp, totailEarnedEXP: exp } })
-                return `你已被 ${targetMember.userName} 吸收了 ${exp} 點${expName}`;
+                return `你已被 ${eventList.userName} 吸收了 ${exp} 點${expName}`;
             }
         case -4:
             //  5. 分發X經驗給整個CHANNEL中的X人
@@ -700,6 +698,7 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                     expMember = [],
                     totalEXP = 0;
                 for (let index = 0; index < targetMember.length; index++) {
+                    console.log('thisMember.Level, targetMember[index].Level', thisMember.Level, targetMember[index].Level)
                     let exp = await calXP(eventList, Math.min(thisMember.Level, targetMember[index].Level), "exp");
                     await schema.trpgLevelSystemMember.findOneAndUpdate({
                         groupid: targetMember[index].groupid,
@@ -750,11 +749,16 @@ async function calXP(eventList, thisMemberLV, type) {
     switch (type) {
         case "exp": {
             typeNumber = Math.round(5 / 6 * (thisMemberLV) * (2 * (thisMemberLV) * (thisMemberLV) + 30 * (thisMemberLV)) + 100);
+            console.log('typeNumber1', typeNumber)
             typeNumber = await rollDice.DiceINT(Math.round(typeNumber / 100), Math.round(typeNumber / 60));
             let createEventer = await findMaxLv(eventList.userID);
+            console.log('typeNumber2', typeNumber)
             typeNumber *= (Math.abs(createEventer - thisMemberLV) / 100 + 1);
+            console.log('typeNumber3', typeNumber)
             typeNumber *= ((eventNegLV ^ 2) / 100 + 1) > 0 ? ((eventNegLV ^ 2) / 100 + 1) : 1;
+            console.log('typeNumber4', typeNumber)
             typeNumber *= (eventNeg.length / 100 + 1);
+            console.log('typeNumber5', typeNumber)
             return Math.round(typeNumber);
         }
         case "times": {

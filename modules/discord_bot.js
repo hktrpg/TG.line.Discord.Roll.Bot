@@ -101,7 +101,7 @@ async function count2() {
 
 // handle the error event
 process.on('unhandledRejection', error => {
-	console.error('Unhandled promise rejection:', error);
+	console.error('Unhandled promise rejection:', error.message);
 });
 
 client.on('guildCreate', guild => {

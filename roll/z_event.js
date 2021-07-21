@@ -2,6 +2,7 @@
 if (!process.env.mongoURL) {
     return;
 }
+const debugMode = (process.env.DEBUG) ? true : false;
 var variables = {};
 const rollDice = require('./rollbase');
 const schema = require('../modules/core-schema.js');
@@ -401,6 +402,7 @@ var rollDiceCommand = async function ({
                 let EnergyRecover = Math.round(((new Date(Date.now()) - new Date(eventMember.lastActiveAt))) / 1000 * 60 * 5 / 100000);
                 eventMember.energy = Math.min(maxLv + 20, EnergyRecover + eventMember.energy);
                 eventMember.lastActiveAt = new Date(Date.now());
+                (debugMode) ? eventMember.energy = 99 : null;
                 //TODO:計算EN的回複量
                 const targetEventName = mainMsg[1];
                 let randomMode = false;
@@ -630,17 +632,17 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                 let name = [],
                     expMember = [],
                     totalEXP = 0;
-                targetMember.forEach(async element => {
-                    let exp = await calXP(eventList, Math.min(thisMember.Level, element.Level), "exp");
+
+                for (let index = 0; index < targetMember.length; index++) {
+                    let exp = await calXP(eventList, Math.min(thisMember.Level, targetMember[index].Level), "exp");
                     await schema.trpgLevelSystemMember.findOneAndUpdate({
-                        groupid: element.groupid,
-                        userid: element.userid,
+                        groupid: targetMember[index].groupid,
+                        userid: targetMember[index].userid,
                     }, { $inc: { EXP: -exp } })
-                    name.push(element.name)
+                    name.push(targetMember[index].name)
                     expMember.push(exp)
                     totalEXP += exp;
-                });
-
+                }
                 await thisMember.updateOne({ $inc: { EXP: totalEXP } });
 
                 let reply = `你已增加 ${totalEXP} 點${expName}及`;
@@ -672,7 +674,7 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                 let targetMember = await schema.eventMember.findOne({
                     userID: eventList.userID
                 })
-                let exp = await calXP(eventList, Math.min(targetMember.Level, thisMember.Level), "exp");
+                let exp = await calXP(eventList, thisMember.Level, "exp");
                 await thisMember.updateOne({ $inc: { EXP: -exp } })
                 await schema.eventMember.findOneAndUpdate({
                     userID: eventList.userID,
@@ -697,16 +699,16 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                 let name = [],
                     expMember = [],
                     totalEXP = 0;
-                targetMember.forEach(async element => {
-                    let exp = await calXP(eventList, Math.min(thisMember.Level, element.Level), "exp");
+                for (let index = 0; index < targetMember.length; index++) {
+                    let exp = await calXP(eventList, Math.min(thisMember.Level, targetMember[index].Level), "exp");
                     await schema.trpgLevelSystemMember.findOneAndUpdate({
-                        groupid: element.groupid,
-                        userid: element.userid,
+                        groupid: targetMember[index].groupid,
+                        userid: targetMember[index].userid,
                     }, { $inc: { EXP: exp } })
-                    name.push(element.name)
+                    name.push(targetMember[index].name)
                     expMember.push(exp)
                     totalEXP += exp;
-                });
+                }
                 await thisMember.updateOne({ $inc: { EXP: -totalEXP } });
 
 

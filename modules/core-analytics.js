@@ -129,7 +129,8 @@ var parseInput = async function ({
 			======
 			${result.text}`;
 		} else {
-			result.text += (characterReRoll && characterReRoll.text && result && result.text) ? '======\n' + characterReRoll.text : characterReRoll.text;
+			(result && result.text) ? null : result.text = "";
+			result.text += (characterReRoll && characterReRoll.text) ? '======\n' + characterReRoll.text : "";
 		}
 
 	}

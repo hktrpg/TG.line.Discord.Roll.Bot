@@ -209,17 +209,26 @@ var rollDiceCommand = async function ({
             rply.text = "此頻道已被Admin允許使用網頁版角色卡擲骰，希望擲骰玩家可在此頻道輸入以下指令登記。\n.admin registerChannel\nAdmin 希望取消允許，可輸入\n.admin disallowrolling";
             return rply;
         case /^account$/i.test(mainMsg[1]):
-            name = mainMsg[2].toLowerCase();
             if (groupid) {
                 rply.text = "設定帳號時，請直接和HKTRPG對話，禁止在群組中使用";
                 return rply;
             }
-            if (!name || !checkUserName(name)) {
+            if (!mainMsg[2]) {
                 rply.text = "請設定使用者名稱，4-16字，中英文限定，大小階相同";
                 return rply;
             }
-            if (!mainMsg[3] || !checkPassword(mainMsg[3])) {
+            if (!mainMsg[3]) {
                 rply.text = "請設定密碼，6-16字，英文及以下符號限定!@#$%^&*";
+                return rply;
+            }
+            name = mainMsg[2].toLowerCase();
+            if (!checkUserName(name)) {
+                rply.text = "使用者名稱，4-16字，中英文限定，大小階相同";
+                return rply;
+            }
+
+            if (!checkPassword(mainMsg[3])) {
+                rply.text = "使用者密碼，6-16字，英文及以下符號限定!@#$%^&*";
                 return rply;
             }
             hash = crypto.createHmac('sha256', mainMsg[3])

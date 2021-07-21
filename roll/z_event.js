@@ -750,7 +750,7 @@ async function calXP(eventList, thisMemberLV, type) {
     switch (type) {
         case "exp": {
             typeNumber = Math.round(5 / 6 * (thisMemberLV) * (2 * (thisMemberLV) * (thisMemberLV) + 30 * (thisMemberLV)) + 100);
-            typeNumber = await rollDice.DiceINT(Math.round(typeNumber / 100), Math.round(typeNumber / 80));
+            typeNumber = await rollDice.DiceINT(Math.round(typeNumber / 100), Math.round(typeNumber / 60));
             let createEventer = await findMaxLv(eventList.userID);
             typeNumber *= (Math.abs(createEventer - thisMemberLV) / 100 + 1);
             typeNumber *= ((eventNegLV ^ 2) / 100 + 1) > 0 ? ((eventNegLV ^ 2) / 100 + 1) : 1;

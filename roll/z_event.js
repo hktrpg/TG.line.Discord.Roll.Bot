@@ -598,7 +598,7 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
     let expName = (eventList.expName) ? `「${eventList.expName}」` : '經驗'
     switch (randomDetail.result) {
         case 1: {
-            let exp = await calXP(eventList, thisMember, "exp")
+            let exp = await calXP(eventList, thisMember.Level, "exp")
             await thisMember.updateOne({ $inc: { EXP: exp } })
             return `你已增加 ${exp} 點${expName}`;
         }
@@ -606,8 +606,8 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
         case 2:
             //  8. 對方得到經驗值 X 倍(多少次)
             {
-                let times = await calXP(eventList, thisMember, "times");
-                let multi = await calXP(eventList, thisMember, "multi")
+                let times = await calXP(eventList, thisMember.Level, "times");
+                let multi = await calXP(eventList, thisMember.Level, "multi")
                 await thisMember.updateOne({ $max: { multiEXP: multi, multiEXPTimes: times } })
                 return `你在${Math.max(isNaN(thisMember.multiEXPTimes) ? 0 : thisMember.multiEXPTimes, times)}次內都會有 ${Math.max(isNaN(thisMember.multiEXP) ? 0 : thisMember.multiEXP, multi)} 倍${expName}`;
             }
@@ -615,8 +615,7 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
         case 3:
             //  9. 從整個CHANNEL 的X人吸收X點經驗
             {
-                let exp = await calXP(eventList, thisMember, "exp");
-                let times = await calXP(eventList, thisMember, "times");
+                let times = await calXP(eventList, thisMember.Level, "times");
                 let targetMember = await schema.trpgLevelSystemMember.aggregate([{
                     $match:
                     {
@@ -628,23 +627,33 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                 }, {
                     $sample: { size: times }
                 }]);
-                let name = [];
+                let name = [],
+                    expMember = [],
+                    totalEXP = 0;
                 targetMember.forEach(async element => {
+                    let exp = await calXP(eventList, Math.min(thisMember.Level, element.Level), "exp");
                     await schema.trpgLevelSystemMember.findOneAndUpdate({
                         groupid: element.groupid,
                         userid: element.userid,
                     }, { $inc: { EXP: -exp } })
                     name.push(element.name)
+                    expMember.push(exp)
+                    totalEXP += exp;
                 });
-                await thisMember.updateOne({ $inc: { EXP: exp * targetMember.length } });
 
-                return `你已增加 ${exp * targetMember.length} 點${expName}及 ${name} 已減少${exp}點${expName}`;
+                await thisMember.updateOne({ $inc: { EXP: totalEXP } });
+
+                let reply = `你已增加 ${totalEXP} 點${expName}及`;
+                for (let index = 0; index < name.length; index++) {
+                    reply += `\n${name[index] || '無名'}減少了${expMember[index]}點${expName}`
+                }
+                return reply;
             }
         case -1:
             // -1. 直接減少X點經驗
             //100之一 ->50之一 * 1.0X ( 相差LV)% *1.0X(負面級數)^(幾個負面) 
             {
-                let exp = await calXP(eventList, thisMember, "exp")
+                let exp = await calXP(eventList, thisMember.Level, "exp")
                 await thisMember.updateOne({ $inc: { EXP: -exp } })
                 return `你已減少 ${exp} 點${expName}`;
             }
@@ -652,7 +661,7 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
         case -2:
             //   -2. 停止得到經驗(X次內)
             {
-                let times = await calXP(eventList, thisMember, "times");
+                let times = await calXP(eventList, thisMember.Level, "times");
                 await thisMember.updateOne({ $max: { stopExp: times } })
                 return `你在未來${Math.max(isNaN(thisMember.stopExp) ? 0 : thisMember.stopExp, times)}次都會失去得到${expName}的機會`;
             }
@@ -660,18 +669,20 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
         case -3:
             //   7. 吸收對方X點經驗
             {
-                let exp = await calXP(eventList, thisMember, "exp");
-                await thisMember.updateOne({ $inc: { EXP: -exp * 2 } })
-                let targetMember = await schema.eventMember.findOneAndUpdate({
+                let targetMember = await schema.eventMember.findOne({
+                    userID: eventList.userID
+                })
+                let exp = await calXP(eventList, Math.min(targetMember.Level, thisMember.Level), "exp");
+                await thisMember.updateOne({ $inc: { EXP: -exp } })
+                await schema.eventMember.findOneAndUpdate({
                     userID: eventList.userID,
-                }, { $inc: { earnedEXP: exp * 2, totailEarnedEXP: exp * 2 } })
-                return `你已被 ${targetMember.userName} 吸收了 ${exp * 2} 點${expName}`;
+                }, { $inc: { earnedEXP: exp, totailEarnedEXP: exp } })
+                return `你已被 ${targetMember.userName} 吸收了 ${exp} 點${expName}`;
             }
         case -4:
             //  5. 分發X經驗給整個CHANNEL中的X人
             {
-                let exp = Math.round(await calXP(eventList, thisMember, "exp") / 10);
-                let times = await calXP(eventList, thisMember, "times");
+                let times = await calXP(eventList, thisMember.Level, "times");
                 let targetMember = await schema.trpgLevelSystemMember.aggregate([{
                     $match:
                     {
@@ -683,24 +694,34 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                 }, {
                     $sample: { size: times }
                 }]);
-                let name = [];
+                let name = [],
+                    expMember = [],
+                    totalEXP = 0;
                 targetMember.forEach(async element => {
+                    let exp = await calXP(eventList, Math.min(thisMember.Level, element.Level), "exp");
                     await schema.trpgLevelSystemMember.findOneAndUpdate({
                         groupid: element.groupid,
                         userid: element.userid,
                     }, { $inc: { EXP: exp } })
                     name.push(element.name)
+                    expMember.push(exp)
+                    totalEXP += exp;
                 });
-                await thisMember.updateOne({ $inc: { EXP: -exp * targetMember.length } });
+                await thisMember.updateOne({ $inc: { EXP: -totalEXP } });
 
-                return `你已減少 ${exp * targetMember.length} 點${expName}及${name}已增加${exp}點${expName}`;
 
+                let reply = `你已減少 ${totalEXP} 點${expName}及`;
+                for (let index = 0; index < name.length; index++) {
+                    reply += `\n${name[index] || '無名'}增加了${expMember[index]}點${expName}`
+                }
+
+                return reply;
             }
         case -5:
             //  6. 每次發言減少X經驗(X次內)
             {
-                let exp = Math.round(await calXP(eventList, thisMember, "exp") / 10);
-                let times = await calXP(eventList, thisMember, "times");
+                let exp = Math.round(await calXP(eventList, thisMember.Level, "exp"));
+                let times = await calXP(eventList, thisMember.Level, "times");
                 await thisMember.updateOne({ $max: { decreaseEXP: exp, decreaseEXPTimes: times } })
                 return `你在未來${Math.max(thisMember.decreaseEXPTimes, times)}次發言都會減少 ${Math.max(isNaN(thisMember.decreaseEXP) ? 0 : thisMember.decreaseEXP, exp)}${expName}`;
             }
@@ -712,7 +733,7 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
 
     }
 }
-async function calXP(eventList, thisMember, type) {
+async function calXP(eventList, thisMemberLV, type) {
     let eventNeg = eventList.detail.map(item => {
         if (item.result < 0 && !isNaN(item.result)) {
             return item.result;
@@ -726,23 +747,23 @@ async function calXP(eventList, thisMember, type) {
     let typeNumber = 1;
     switch (type) {
         case "exp": {
-            typeNumber = Math.round(5 / 6 * (thisMember.Level) * (2 * (thisMember.Level) * (thisMember.Level) + 30 * (thisMember.Level)) + 100);
-            typeNumber = await rollDice.DiceINT(typeNumber / 100, typeNumber / 50);
+            typeNumber = Math.round(5 / 6 * (thisMemberLV) * (2 * (thisMemberLV) * (thisMemberLV) + 30 * (thisMemberLV)) + 100);
+            typeNumber = await rollDice.DiceINT(Math.round(typeNumber / 100), Math.round(typeNumber / 80));
             let createEventer = await findMaxLv(eventList.userID);
-            typeNumber *= (Math.abs(createEventer - thisMember.Level) / 100 + 1);
+            typeNumber *= (Math.abs(createEventer - thisMemberLV) / 100 + 1);
             typeNumber *= ((eventNegLV ^ 2) / 100 + 1) > 0 ? ((eventNegLV ^ 2) / 100 + 1) : 1;
             typeNumber *= (eventNeg.length / 100 + 1);
             return Math.round(typeNumber);
         }
         case "times": {
             let createEventer = await findMaxLv(eventList.userID);
-            typeNumber = await rollDice.DiceINT(5, ((createEventer - thisMember.Level) > 0) ? Math.min(createEventer - thisMember.Level, 20) : 1);
+            typeNumber = await rollDice.DiceINT(5, ((createEventer - thisMemberLV) > 0) ? Math.min(createEventer - thisMemberLV, 20) : 1);
             return typeNumber;
         }
 
         case "multi": {
             let createEventer = await findMaxLv(eventList.userID);
-            typeNumber = await rollDice.DiceINT(3, ((createEventer - thisMember.Level) > 0) ? Math.round((createEventer - thisMember.Level) / 3) : 2);
+            typeNumber = await rollDice.DiceINT(3, ((createEventer - thisMemberLV) > 0) ? Math.round((createEventer - thisMemberLV) / 3) : 2);
             return typeNumber;
         }
         default:

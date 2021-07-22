@@ -114,7 +114,10 @@ client.on('guildCreate', guild => {
 client.on('message', async (message) => {
 	if (message.author.bot) return;
 	let inputStr = message.content;
-	//<@!399923133368042763> <@!544563333488111636>
+	//DISCORD <@!USERID> <@!399923133368042763> <@!544563333488111636>
+	//LINE @名字
+	
+
 	let trigger = "";
 	let groupid = (message.guild && message.guild.id) ? message.guild.id : '';
 	let mainMsg = inputStr.match(msgSplitor); //定義輸入字串

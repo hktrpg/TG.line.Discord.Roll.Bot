@@ -57,11 +57,13 @@ var rollDiceCommand = async function ({
 		rply.text = await this.getHelpMessage();
 		rply.quotes = true;
 	}
-	if (trigger.match(/(^ccrt$)/) != null) {
+	if (trigger.match(/(^ccrt$)/i) != null) {
 		rply.text = await ccrt();
+		rply.quotes = true;
 	}
-	if (trigger.match(/(^ccsu$)/) != null) {
+	if (trigger.match(/(^ccsu$)/i) != null) {
 		rply.text = await ccsu();
+		rply.quotes = true;
 	}
 
 	if (trigger == 'ccb' && mainMsg[1] <= 1000) {
@@ -91,15 +93,19 @@ var rollDiceCommand = async function ({
 	}
 	if (trigger.match(/(^cc7版創角$)|(^[.]cc7build$)/i) != null) {
 		rply.text = await (await build7char(mainMsg[1])).replace(/\*5/ig, ' * 5');
+		rply.quotes = true;
 	}
 	if (trigger.match(/(^ccpulp版創角$)|(^[.]ccpulpbuild$)/i) != null) {
 		rply.text = await (await buildpulpchar(mainMsg[1])).replace(/\*5/ig, ' * 5');
+		rply.quotes = true;
 	}
 	if (trigger.match(/(^cc6版創角$)|(^[.]cc6build$)/i) != null) {
 		rply.text = await build6char(mainMsg[1]);
+		rply.quotes = true;
 	}
 	if (trigger.match(/(^cc7版角色背景$)|(^[.]cc7bg$)/i) != null) {
 		rply.text = await PcBG();
+		rply.quotes = true;
 	}
 	return rply;
 }

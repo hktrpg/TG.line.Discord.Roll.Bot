@@ -22,19 +22,16 @@ const joinMessage = `你剛剛添加了HKTRPG 骰子機械人!
 						(http://bit.ly/HKTRPG_DISCORD)
 						有關TRPG資訊, 可以到網站
 						(http://www.hktrpg.com/)`;
-
-
-const telegrafGetChatMembers = require('telegraf-getchatmembers');
 TGclient.catch((err) => {
 	console.error('bot error: ', err);
 });
-//TGclient.use(telegrafGetChatMembers)
 TGclient.on('text', async (ctx) => {
 	if (ctx.message.from.is_bot) return;
 	let inputStr = ctx.message.text;
 	let trigger = "",
 		mainMsg = "",
 		userid = "";
+	//@bABD
 	if (ctx.message.from.id) userid = ctx.message.from.id;
 	if (inputStr) {
 		if (ctx.botInfo && ctx.botInfo.username && inputStr.match(/^[/]/))
@@ -80,7 +77,7 @@ TGclient.on('text', async (ctx) => {
 	let displayname = '',
 		channelid = '',
 		membercount = 0,
-		titleName = '';
+		titleName = (ctx.message && ctx.message.chat && ctx.message.chat.title) ? ctx.message.chat.title : '';
 	let TargetGMTempID = [];
 	let TargetGMTempdiyName = [];
 	let TargetGMTempdisplayname = [];
@@ -96,19 +93,12 @@ TGclient.on('text', async (ctx) => {
 	if (ctx.chat && ctx.chat.id) {
 		membercount = await ctx.getChatMembersCount(ctx.chat.id) - 1;
 	}
-	if (ctx.message && ctx.message.chat && ctx.message.chat.title)
-		titleName = ctx.message.chat.title
-	if (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') {
-		let memberData = await telegrafGetChatMembers.check(ctx.chat.id);
-		if (ctx.chat && ctx.chat.id)
-			if ((memberData && memberData[0] && memberData[0].status == ("creator" || "administrator")) || ctx.message.chat.all_members_are_administrators == true) {
-				userrole = 3;
-				//console.log(userrole)
-				//console.log(telegrafGetChatMembers.check(ctx.chat.id))
-			}
-	}
 	//285083923223
 	//userrole = 3
+
+	if (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') {
+		(await isAdmin(ctx, ctx.message.from.id, ctx.message.chat.id)) ? userrole = 3 : null;
+	}
 	let rplyVal = {};
 
 	// 訊息來到後, 會自動跳到analytics.js進行骰組分析
@@ -259,7 +249,7 @@ var connect = function () {
 
 	});
 	ws.on('error', (error) => {
-		console.log('Telegram socket error', error);
+		console.error('Telegram socket error', error);
 	});
 
 	ws.on('close', function () {
@@ -357,6 +347,12 @@ async function privateMsgFinder(channelid) {
 
 TGclient.launch();
 
+async function isAdmin(ctx, gpId, chatid) {
+	let member = await ctx.getChatMember(gpId, chatid);
+	if (member.status === "creator") return true
+	if (member.status === "administrator") return true
+	return false;
+}
 
 /*
 bot.command('pipe', (ctx) => ctx.replyWithPhoto({

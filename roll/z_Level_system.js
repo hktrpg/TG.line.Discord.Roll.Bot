@@ -448,11 +448,10 @@ var rollDiceCommand = async function ({
             }).sort({
                 EXP: -1
             });
-
             //要尋找其中自己的userid
             let myselfIndex = docMember.map(function (members) {
                 return members.userid;
-            }).indexOf(userid);
+            }).indexOf(userid.toString());
             if (myselfIndex < 0) {
                 rply.text = '未有你的資料，請稍後再試。'
                 return rply

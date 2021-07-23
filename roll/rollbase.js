@@ -56,7 +56,11 @@ const rollDiceCommand = async function ({
     type: 'text',
     text: ''
   };
-  rply.text = await nomalDiceRoller(mainMsg[0], mainMsg[1], mainMsg[2])
+  try {
+    rply.text = await nomalDiceRoller(mainMsg[0], mainMsg[1], mainMsg[2]);
+  } catch (error) {
+    rply.text = '';
+  }
   return rply;
 }
 
@@ -246,7 +250,7 @@ var nomalDiceRoller = async function (text0, text1, text2) {
     else return;
 
   }
-  return finalStr;
+  return finalStr.replace(/[*]/g, ' * ');
 }
 
 // 單次擲骰
@@ -271,7 +275,7 @@ async function onetimeroll(text0) {
     } else {
       Str = equation + ' = ' + answer
     }
-    return Str
+    return Str;
   } catch (error) {
     console.error('rollbase error: onetimeroll - inputstr', text0)
     return '';

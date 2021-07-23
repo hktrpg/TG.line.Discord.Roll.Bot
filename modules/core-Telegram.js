@@ -264,24 +264,17 @@ if (process.env.BROADCAST)
 
 async function nonDice(ctx) {
 	if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
-		let groupid = '',
-			userid = '',
-			displayname = '',
+		let groupid = (ctx.message.chat.id) ? ctx.message.chat.id.toString() : '',
+			userid = (ctx.message.from.id) ? ctx.message.from.id.toString() : '',
+			displayname = (ctx.message.from.username) ? ctx.message.from.username.toString() : '',
 			membercount = null;
-		groupid = ctx.message.chat.id;
-		if (ctx.message.from.username) {
-			displayname = ctx.message.from.username;
-		}
-		if (ctx.message.from.id) {
-			userid = ctx.message.from.id;
-		}
+
 		if (ctx.chat && ctx.chat.id) {
 			membercount = await ctx.getChatMembersCount(ctx.chat.id);
 		}
 		let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount);
 		await courtMessage("", "Telegram", "")
 		if (groupid && LevelUp && LevelUp.text) {
-
 			ctx.reply(`@${displayname}  ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`);
 		}
 	}

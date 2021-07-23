@@ -612,7 +612,7 @@ var rollDiceCommand = async function ({
                         }
                 answer += "第" + (Number([b]) + 1) + "名 "
                 answer += "《" + await checkTitle(array[b].Level, tempTitleAll) + "》 "
-                answer += array[b].name + " " + array[b].Level + "級 " + await kMGTPE(parseInt(array[b].EXP), 0) + "經驗\n";
+                answer += array[b].name + " " + array[b].Level + "級 " + await kMGTPE(parseInt(array[b].EXP), 1) + "經驗\n";
             }
         }
         return answer;

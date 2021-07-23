@@ -1,4 +1,5 @@
 "use strict";
+return;
 if (!process.env.mongoURL) {
     return;
 }

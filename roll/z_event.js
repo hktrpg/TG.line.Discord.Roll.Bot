@@ -399,7 +399,7 @@ var rollDiceCommand = async function ({
                 if (!eventMember.energy) {
                     eventMember.energy = maxLv + 20;
                 }
-                let EnergyRecover = Math.round(((new Date(Date.now()) - new Date(eventMember.lastActiveAt))) / 1000 * 60 * 5 / 100000);
+                let EnergyRecover = Math.round(((new Date(Date.now()) - new Date(eventMember.lastActiveAt))) / 1000 * 60 * 10 / 100000);
                 eventMember.energy = Math.min(maxLv + 20, EnergyRecover + eventMember.energy);
                 eventMember.lastActiveAt = new Date(Date.now());
                 (debugMode) ? eventMember.energy = 99 : null;

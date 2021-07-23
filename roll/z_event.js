@@ -23,6 +23,7 @@ var prefixs = function () {
 const regexMain = new RegExp(/^((-)?\d):(.*)/, 'igm');
 const regexExp = new RegExp(/^exp:(.*)/, 'im');
 const regexName = new RegExp(/^name:(.*)/, 'im');
+const regexChainTitle = new RegExp(/^chain:(.*)/, 'im');
 
 const opt = {
     upsert: true,
@@ -146,8 +147,14 @@ var rollDiceCommand = async function ({
         }
         case /(^[.]event$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]): {
             events = await analysicInputData(inputStr); //分析輸入的資料
-            if (!events.MainData || !events.eventName) {
-                rply.text = '沒有輸入事件或名字，請重新整理內容 格式為 \n.event add \nname:Haha \nexp:SAN *不是必需 \ns0:你今天的運氣真好;你是個好人;我愛你\n-1:你中招了;你不好運要-SAN了\n1:你吃了好味的糖，加SAN人\n'
+            if (!events || !events.MainData || !events.eventName) {
+                rply.text = `沒有輸入事件或名字，請重新整理內容 格式為
+                .event add
+                name:Haha
+                exp:SAN 
+                0:你今天的運氣真好;你是個好人;我愛你
+                -1:你中招了;你不好運要-SAN了
+                1:你吃了好味的糖，加SAN人`
                 return rply;
             }
 
@@ -189,7 +196,8 @@ var rollDiceCommand = async function ({
                 userID: userid,
                 userName: displaynameDiscord || displayname || '',
                 detail: mainSplit,
-                expName: events.expName || ''
+                expName: events.expName || '',
+                chainTitle: events.chainTitle || ''
             }
             filter = {
                 userID: userid,
@@ -257,6 +265,7 @@ var rollDiceCommand = async function ({
             //增加資料庫
             //檢查有沒有重覆
             rply.text = '新增/修改事件 - ' + tempMain.title + '\n經驗值的名稱: ' + tempMain.expName + '\n';
+            rply.text += (tempMain.chainTitle) ? `系列名稱: ${tempMain.chainTitle}\n` : '';
             for (let index = 0; index < tempMain.detail.length; index++) {
                 rply.text += '類型:' + tempMain.detail[index].result + ' 內容: ' + tempMain.detail[index].event + '\n';
 
@@ -353,6 +362,7 @@ var rollDiceCommand = async function ({
                 for (let index = 0; index < doc.length; index++) {
                     rply.text += doc[index].title + "\n";
                     if (doc[index].expName) rply.text += '經驗值的名稱: ' + doc[index].expName + "\n";
+                    rply.text += (doc[index].chainTitle) ? `系列名稱: ${doc[index].chainTitle}\n` : '';
                     if (mainMsg[2] && mainMsg[2].match(doc[index].expName)) {
                         rply.text += getDetail(doc[index]) + '\n';
                     }
@@ -486,10 +496,12 @@ async function analysicInputData(inputStr) {
     let MainData = (inputStr.match(regexMain)) ? inputStr.match(regexMain) : '';
     let ExpName = (inputStr.match(regexExp)) ? inputStr.match(regexExp)[1].replace(/^\s+/, '').replace(/\s+$/, '') : '';
     let eventName = (inputStr.match(regexName)) ? inputStr.match(regexName)[1].replace(/^\s+/, '').replace(/\s+$/, '') : '';
+    let eventChain = (inputStr.match(regexChainTitle)) ? inputStr.match(regexChainTitle)[1].replace(/^\s+/, '').replace(/\s+$/, '') : '';
     let result = {
         expName: ExpName,
         MainData: MainData,
-        eventName: eventName
+        eventName: eventName,
+        eventChain: eventChain
     }
     return result;
 }

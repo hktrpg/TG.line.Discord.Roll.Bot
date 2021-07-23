@@ -101,7 +101,7 @@ async function count2() {
 
 // handle the error event
 process.on('unhandledRejection', error => {
-	console.error('Unhandled promise rejection:', error.message);
+	console.error('Unhandled promise rejection:', error.message.statusText);
 });
 
 client.on('guildCreate', guild => {
@@ -496,8 +496,8 @@ client.on('ready', async () => {
 
 });
 if (togGGToken) {
-	dbl.on('error', e => {
-		console.error(`dbl Top.GG get Error! ${e}`);
+	dbl.on('error', () => {
+		console.error(`dbl Top.GG get Error!`);
 	})
 }
 

@@ -61,9 +61,8 @@ var rollDiceCommand = async function ({
 			rply.text = await nechronica_mirenn(mainMsg[2]);
 			return rply;
 		default:
-			result = await calldice("Nechronica", mainMsg[1])
-			if (result)
-				rply.text = mainMsg[1] + ' ' + result;
+			result = await calldice("Nechronica", mainMsg[1]);
+			(result) ? rply.text = `${mainMsg[1]} ${(mainMsg[2]) ? mainMsg[2] : ''}\n${result}` : null;
 			return rply;
 	}
 }

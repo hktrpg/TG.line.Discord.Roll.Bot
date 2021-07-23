@@ -51,9 +51,8 @@ var rollDiceCommand = async function ({
             rply.text = '【劍世界2.5】\n' + await callHelp("SwordWorld2.5");
             return rply;
         default:
-            result = await calldice("SwordWorld2.5", mainMsg[1])
-            if (result)
-                rply.text = mainMsg[1] + ' ' + result;
+            result = await calldice("SwordWorld2.5", mainMsg[1]);
+            (result) ? rply.text = `${mainMsg[1]} ${(mainMsg[2]) ? mainMsg[2] : ''}\n${result}` : null;
             return rply;
 
     }

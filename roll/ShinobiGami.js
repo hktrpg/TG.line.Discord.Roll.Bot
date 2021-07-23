@@ -52,9 +52,8 @@ var rollDiceCommand = async function ({
             rply.text = "【忍神】\n" + await callHelp("ShinobiGami");
             return rply;
         default:
-            result = await calldice("ShinobiGami", mainMsg[1])
-            if (result)
-                rply.text = mainMsg[1] + ' ' + result;
+            result = await calldice("ShinobiGami", mainMsg[1]);
+            (result) ? rply.text = `${mainMsg[1]} ${(mainMsg[2]) ? mainMsg[2] : ''}\n${result}` : null;
             return rply;
     }
 

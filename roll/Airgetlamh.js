@@ -51,9 +51,8 @@ var rollDiceCommand = async function ({
             rply.text = '【朱の孤塔】\n' + await callHelp("Airgetlamh");
             return rply;
         default:
-            result = await callDice("Airgetlamh", mainMsg[1])
-            if (result)
-                rply.text = mainMsg[1] + ' ' + result;
+            result = await callDice("Airgetlamh", mainMsg[1]);
+            (result) ? rply.text = `${mainMsg[1]} ${(mainMsg[2]) ? mainMsg[2] : ''}\n${result}` : null;
             return rply;
     }
 

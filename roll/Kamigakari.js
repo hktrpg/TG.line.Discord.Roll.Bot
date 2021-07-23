@@ -51,9 +51,8 @@ var rollDiceCommand = async function ({
             rply.text = '【神我狩】\n' + await callHelp("Kamigakari");
             return rply;
         default:
-            result = await calldice("Kamigakari", mainMsg[1])
-            if (result)
-                rply.text = mainMsg[1] + ' ' + result;
+            result = await calldice("Kamigakari", mainMsg[1]);
+            (result) ? rply.text = `${mainMsg[1]} ${(mainMsg[2]) ? mainMsg[2] : ''}\n${result}` : null;
             return rply;
     }
 }

@@ -82,7 +82,7 @@ var rollDiceCommand = async function ({
 			} catch (error) {
 				console.error('.ca ERROR FUNCTION', inputStr);
 			}
-			rply.text = inputStr.replace(/\.ca/i, '') + ' → ' + rply.text;
+			rply.text = inputStr.replace(/\.ca/i, '') + '\n→ ' + rply.text;
 
 			return rply;
 		case /^d66$/i.test(mainMsg[0]):

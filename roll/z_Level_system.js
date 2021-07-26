@@ -131,6 +131,7 @@ var rollDiceCommand = async function ({
     botname,
     displayname,
     displaynameDiscord,
+    tgDisplayname,
     membercount
 }) {
     let rply = {
@@ -471,7 +472,7 @@ var rollDiceCommand = async function ({
 
             let rankWord = (doc.RankWord) ? doc.RankWord : defaultRankWord;
 
-            let username = displaynameDiscord || displayname || "無名";
+            let username = tgDisplayname || displaynameDiscord || displayname || "無名";
 
             let userlevel = docMember[myselfIndex].Level;
             let userexp = docMember[myselfIndex].EXP;

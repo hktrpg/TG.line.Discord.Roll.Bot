@@ -32,7 +32,8 @@ var parseInput = async function ({
 	membercount = 0,
 	discordClient,
 	discordMessage,
-	titleName = ''
+	titleName = '',
+	tgDisplayname = ''
 }) {
 	//console.log('InputStr: ' + inputStr);
 	let result = {
@@ -48,7 +49,7 @@ var parseInput = async function ({
 
 	//EXPUP 功能 + LevelUP 功能
 	if (groupid) {
-		let tempEXPUP = await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount);
+		let tempEXPUP = await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount, tgDisplayname);
 		result.LevelUp = (tempEXPUP && tempEXPUP.text) ? tempEXPUP.text : '';
 		result.statue = (tempEXPUP && tempEXPUP.statue) ? tempEXPUP.statue : '';
 	}
@@ -76,7 +77,8 @@ var parseInput = async function ({
 			membercount: membercount,
 			discordClient: discordClient,
 			discordMessage: discordMessage,
-			titleName: titleName
+			titleName: titleName,
+			tgDisplayname: tgDisplayname
 		})
 
 	} catch (error) {
@@ -100,7 +102,8 @@ var parseInput = async function ({
 			displaynameDiscord: displaynameDiscord,
 			membercount: membercount,
 			result: result,
-			titleName: titleName
+			titleName: titleName,
+			tgDisplayname: tgDisplayname
 		});
 		if (typeof cmdFunctionResult === 'object' && cmdFunctionResult !== null) {
 			result = await Object.assign({}, result, cmdFunctionResult)
@@ -121,7 +124,8 @@ var parseInput = async function ({
 			displaynameDiscord: displaynameDiscord,
 			membercount: membercount,
 			result: result,
-			titleName: titleName
+			titleName: titleName,
+			tgDisplayname: tgDisplayname
 		});
 		if (result.text && characterReRoll.text) {
 			result.text = result.text = `${result.characterName}  投擲  ${result.characterReRollName} 
@@ -158,7 +162,8 @@ var rolldice = async function ({
 	membercount,
 	discordClient,
 	discordMessage,
-	titleName
+	titleName,
+	tgDisplayname
 }) {
 	//	console.log(exports)
 	//在下面位置開始分析trigger
@@ -182,7 +187,8 @@ var rolldice = async function ({
 		membercount: membercount,
 		discordClient: discordClient,
 		discordMessage: discordMessage,
-		titleName: titleName
+		titleName: titleName,
+		tgDisplayname: tgDisplayname
 	});
 	//console.log('tempsave: ', tempsave)
 	return tempsave;
@@ -234,7 +240,8 @@ async function cmdfunction({
 	displaynameDiscord,
 	membercount,
 	result,
-	titleName
+	titleName,
+	tgDisplayname
 }) {
 	let newInputStr = result.characterReRollItem || result.text;
 	let mainMsg = newInputStr.match(msgSplitor); //定義輸入字串
@@ -252,7 +259,8 @@ async function cmdfunction({
 			channelid: channelid,
 			displaynameDiscord: displaynameDiscord,
 			membercount: membercount,
-			titleName: titleName
+			titleName: titleName,
+			tgDisplayname: tgDisplayname
 		})
 	} catch (error) {
 		console.error('cmdfunction GET ERROR:', error, ' inputStr: ', newInputStr, ' botname: ', botname, ' Time: ', new Date());

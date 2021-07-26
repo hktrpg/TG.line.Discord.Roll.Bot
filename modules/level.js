@@ -7,7 +7,7 @@ var tempSwitchV2 = [{
     groupid: '',
     SwitchV2: false
 }];
-async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercount) {
+async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercount, tgDisplayname) {
     if (!groupid) {
         return;
     }
@@ -45,9 +45,10 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
         userid: userid
     });
     if (!userInfo) {
-        await newUser(gpInfo, groupid, userid, displayname, displaynameDiscord);
+        await newUser(gpInfo, groupid, userid, displayname, displaynameDiscord, tgDisplayname);
         return;
     }
+    userInfo.name = tgDisplayname || displaynameDiscord || displayname || '無名';
     (userInfo.decreaseEXPTimes > 0) ? reply.statue += "🧟‍♂️🧟‍♀️" : null;
     (userInfo.multiEXPTimes > 0) ? reply.statue += "🧙‍♂️🧙‍♀️" : null;
     (userInfo.stopExp > 0) ? reply.statue += "☢️☣️" : null;
@@ -60,7 +61,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
         await userInfo.save();
         return reply;
     }
-    userInfo.name = displaynameDiscord || displayname || '無名';
+
     let exp = await exports.rollbase.Dice(9) + 15;
     switch (true) {
         case (userInfo.decreaseEXPTimes > 0):
@@ -124,12 +125,12 @@ async function returnTheLevelWord(gpInfo, userInfo, membercount, groupid) {
 }
 
 
-async function newUser(gpInfo, groupid, userid, displayname, displaynameDiscord) {
+async function newUser(gpInfo, groupid, userid, displayname, displaynameDiscord, tgDisplayname) {
     //3. 沒有 -> 新增
     let temp = {
         userid: userid,
         groupid: groupid,
-        name: displaynameDiscord || displayname || '無名',
+        name: tgDisplayname || displaynameDiscord || displayname || '無名',
         EXP: await exports.rollbase.Dice(9) + 15,
         //EXP: math.floor(math.random() * 10) + 15,
         Level: 0,

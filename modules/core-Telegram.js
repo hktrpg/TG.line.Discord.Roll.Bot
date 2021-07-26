@@ -81,6 +81,7 @@ TGclient.on('text', async (ctx) => {
 	let TargetGMTempID = [];
 	let TargetGMTempdiyName = [];
 	let TargetGMTempdisplayname = [];
+	let tgDisplayname = (ctx.message.from.first_name) ? ctx.message.from.first_name : '';
 	//得到暗骰的數據, GM的位置
 	if (ctx.message.from.username) displayname = ctx.message.from.username;
 	//是不是自己.ME 訊息
@@ -114,7 +115,8 @@ TGclient.on('text', async (ctx) => {
 			displayname: displayname,
 			channelid: channelid,
 			membercount: membercount,
-			titleName: titleName
+			titleName: titleName,
+			tgDisplayname: tgDisplayname
 		})
 	} else {
 		if (channelKeyword == '') {
@@ -127,7 +129,8 @@ TGclient.on('text', async (ctx) => {
 				displayname: displayname,
 				channelid: channelid,
 				membercount: membercount,
-				titleName: titleName
+				titleName: titleName,
+				tgDisplayname: tgDisplayname
 			})
 		}
 	}
@@ -268,11 +271,11 @@ async function nonDice(ctx) {
 			userid = (ctx.message.from.id) ? ctx.message.from.id.toString() : '',
 			displayname = (ctx.message.from.username) ? ctx.message.from.username.toString() : '',
 			membercount = null;
-
+		let tgDisplayname = (ctx.message.from.first_name) ? ctx.message.from.first_name : '';
 		if (ctx.chat && ctx.chat.id) {
 			membercount = await ctx.getChatMembersCount(ctx.chat.id);
 		}
-		let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount);
+		let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount, tgDisplayname);
 		await courtMessage("", "Telegram", "")
 		if (groupid && LevelUp && LevelUp.text) {
 			ctx.reply(`@${displayname}  ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`);

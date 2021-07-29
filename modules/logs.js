@@ -2,9 +2,11 @@ if (!process.env.mongoURL) return;
 //Log everyday 01:00
 const moment = require("moment");
 const debugMode = (process.env.DEBUG) ? true : false;
-const messageTimethenUpload = 50;
+const schema = require('./core-schema.js');
 //50次 多少條訊息會上傳一次LOG
 const oneHour = 1 * 60 * 60 * 1000;
+const fiveMinutes = 1 * 20 * 1000;
+
 //每一小時 24 * 60 * 60 * 1000 多久會上傳一次LOG紀錄 
 const RollingLog = {
     RealTimeRollingLogfunction: {
@@ -26,220 +28,183 @@ const RollingLog = {
     }
 };
 
-
+getRecords();
+//loopLogFiveMinutes
+setInterval(saveLog, fiveMinutes);
 
 var getState = async function () {
-    let temp = {
-        LogTime: Date(Date.now()).toLocaleString("en-US", {
-            timeZone: "Asia/HongKong"
-        }),
-        StartTime: RollingLog.RealTimeRollingLogfunction.StartTime,
-        LastTimeLog: RollingLog.RealTimeRollingLogfunction.LastTimeLog,
-        DiscordCountRoll: RollingLog.RealTimeRollingLogfunction.DiscordCountRoll,
-        DiscordCountText: RollingLog.RealTimeRollingLogfunction.DiscordCountText,
-        LineCountRoll: RollingLog.RealTimeRollingLogfunction.LineCountRoll,
-        LineCountText: RollingLog.RealTimeRollingLogfunction.LineCountText,
-        TelegramCountRoll: RollingLog.RealTimeRollingLogfunction.TelegramCountRoll,
-        TelegramCountText: RollingLog.RealTimeRollingLogfunction.TelegramCountText,
-        WWWCountRoll: RollingLog.RealTimeRollingLogfunction.WWWCountRoll,
-        WWWCountText: RollingLog.RealTimeRollingLogfunction.WWWCountText,
-        WhatsappCountRoll: RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll,
-        WhatsappCountText: RollingLog.RealTimeRollingLogfunction.WhatsappCountText,
-        PlurkCountRoll: RollingLog.RealTimeRollingLogfunction.PlurkCountRoll,
-        PlurkCountText: RollingLog.RealTimeRollingLogfunction.PlurkCountText
-    };
-    RollingLog.RealTimeRollingLogfunction.LogTime = temp.LogTime;
-    await records.settrpgSaveLogfunctionRealTime('RealTimeRollingLog', temp, () => {
-        //console.log('SAVE REAL TIME LOG')
-    });
-    await getRecords();
-    return RollingLog.RealTimeRollingLogfunction;
+    let theNewData = await schema.RealTimeRollingLog.findOne({});
+    return theNewData.RealTimeRollingLogfunction;
 }
-const records = require('./records.js');
-var simpleCourt = 0;
-getRecords();
-
-
-
 
 
 async function courtMessage(result, botname, inputStr) {
     if (result && result.text) {
         //SAVE THE LOG
-        if (simpleCourt != null) {
-            switch (botname) {
-                case "Line":
-                    (debugMode) ? console.log('   Line \'s inputStr: ', inputStr) : '';
-                    RollingLog.RealTimeRollingLogfunction.LineCountRoll++;
-                    break;
-                case "Telegram":
-                    (debugMode) ? console.log('Telegram\'s inputStr: ', inputStr) : '';
-                    RollingLog.RealTimeRollingLogfunction.TelegramCountRoll++;
-                    break;
-                case "Whatsapp":
-                    (debugMode) ? console.log('Whatsapp\'s inputStr: ', inputStr) : '';
-                    RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll++;
-                    break;
-                case "WWW":
-                    (debugMode) ? console.log('     WWW\'s inputStr: ', inputStr) : '';
-                    RollingLog.RealTimeRollingLogfunction.WWWCountRoll++;
-                    break;
-                case "Discord":
-                    (debugMode) ? console.log('Discord \'s inputStr: ', inputStr) : '';
-                    RollingLog.RealTimeRollingLogfunction.DiscordCountRoll++;
-                    break;
-                case "Plurk":
-                    (debugMode) ? console.log('Plurk \'s inputStr: ', inputStr) : '';
-                    RollingLog.RealTimeRollingLogfunction.PlurkCountRoll++;
-                    break;
-                default:
-                    break;
-            }
-            simpleCourt++;
-            //await saveLog();
+        switch (botname) {
+            case "Line":
+                (debugMode) ? console.log('   Line \'s inputStr: ', inputStr) : '';
+                RollingLog.RealTimeRollingLogfunction.LineCountRoll++;
+                break;
+            case "Telegram":
+                (debugMode) ? console.log('Telegram\'s inputStr: ', inputStr) : '';
+                RollingLog.RealTimeRollingLogfunction.TelegramCountRoll++;
+                break;
+            case "Whatsapp":
+                (debugMode) ? console.log('Whatsapp\'s inputStr: ', inputStr) : '';
+                RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll++;
+                break;
+            case "WWW":
+                (debugMode) ? console.log('     WWW\'s inputStr: ', inputStr) : '';
+                RollingLog.RealTimeRollingLogfunction.WWWCountRoll++;
+                break;
+            case "Discord":
+                (debugMode) ? console.log('Discord \'s inputStr: ', inputStr) : '';
+                RollingLog.RealTimeRollingLogfunction.DiscordCountRoll++;
+                break;
+            case "Plurk":
+                (debugMode) ? console.log('Plurk \'s inputStr: ', inputStr) : '';
+                RollingLog.RealTimeRollingLogfunction.PlurkCountRoll++;
+                break;
+            default:
+                break;
         }
-        return result;
+
+        //await saveLog();
+        return null;
     } else {
-        if (simpleCourt != null) {
-            switch (botname) {
-                case "Line":
-                    RollingLog.RealTimeRollingLogfunction.LineCountText++;
-                    break;
-                case "Telegram":
-                    RollingLog.RealTimeRollingLogfunction.TelegramCountText++;
-                    break;
-                case "Whatsapp":
-                    RollingLog.RealTimeRollingLogfunction.WhatsappCountText++;
-                    break;
-                case "WWW":
-                    RollingLog.RealTimeRollingLogfunction.WWWCountText++;
-                    break;
-                case "Discord":
-                    RollingLog.RealTimeRollingLogfunction.DiscordCountText++;
-                    break;
-                case "Plurk":
-                    RollingLog.RealTimeRollingLogfunction.PlurkCountText++;
-                    break;
-                default:
-                    break;
-            }
-            simpleCourt++;
-
+        switch (botname) {
+            case "Line":
+                RollingLog.RealTimeRollingLogfunction.LineCountText++;
+                break;
+            case "Telegram":
+                RollingLog.RealTimeRollingLogfunction.TelegramCountText++;
+                break;
+            case "Whatsapp":
+                RollingLog.RealTimeRollingLogfunction.WhatsappCountText++;
+                break;
+            case "WWW":
+                RollingLog.RealTimeRollingLogfunction.WWWCountText++;
+                break;
+            case "Discord":
+                RollingLog.RealTimeRollingLogfunction.DiscordCountText++;
+                break;
+            case "Plurk":
+                RollingLog.RealTimeRollingLogfunction.PlurkCountText++;
+                break;
+            default:
+                break;
         }
-
     }
-    await saveLog();
+    console.log(' RollingLog.RealTimeRollingLogfunction', RollingLog.RealTimeRollingLogfunction)
     return null;
 }
 
 
 //上傳用
 async function saveLog() {
-    if (!process.env.mongoURL) {
-        return;
-    }
+    console.log('SAVE')
     //假如沒有StartTime 或過了一天則上載中途紀錄到MLAB
-    if (!RollingLog.RealTimeRollingLogfunction.StartTime) {
-        RollingLog.RealTimeRollingLogfunction.StartTime = Date(Date.now()).toLocaleString("en-US", {
-            timeZone: "Asia/HongKong"
-        })
-    }
-
-    if (!RollingLog.RealTimeRollingLogfunction.LastTimeLog || Date.now() - RollingLog.RealTimeRollingLogfunction.LastTimeLog >= (oneHour)) {
-        RollingLog.RealTimeRollingLogfunction.LastTimeLog = Date.now();
-        //上傳中途紀錄MLAB
-        // start today
-        let start = moment().startOf('day');
-        // end today
-        let end = moment(start).endOf('day');
-        //PUSH 推送
-        let temp = {
-            start: start,
-            end: end,
-            LogTime: Date(Date.now()).toLocaleString("en-US", {
-                timeZone: "Asia/HongKong"
-            }),
-            DiscordCountRoll: RollingLog.RealTimeRollingLogfunction.DiscordCountRoll,
-            DiscordCountText: RollingLog.RealTimeRollingLogfunction.DiscordCountText,
-            LineCountRoll: RollingLog.RealTimeRollingLogfunction.LineCountRoll,
-            LineCountText: RollingLog.RealTimeRollingLogfunction.LineCountText,
-            TelegramCountRoll: RollingLog.RealTimeRollingLogfunction.TelegramCountRoll,
-            TelegramCountText: RollingLog.RealTimeRollingLogfunction.TelegramCountText,
-            WWWCountRoll: RollingLog.RealTimeRollingLogfunction.WWWCountRoll,
-            WWWCountText: RollingLog.RealTimeRollingLogfunction.WWWCountText,
-            WhatsappCountRoll: RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll,
-            WhatsappCountText: RollingLog.RealTimeRollingLogfunction.WhatsappCountText,
-            PlurkCountRoll: RollingLog.RealTimeRollingLogfunction.PlurkCountRoll,
-            PlurkCountText: RollingLog.RealTimeRollingLogfunction.PlurkCountText
-        };
-        records.maxTrpgSaveLogfunction('RollingLog', temp, () => {
-            //console.log('SAVE LOG')
-
-        })
-    }
     //每50次上傳即時紀錄到MLAB
-    if (!RollingLog.RealTimeRollingLogfunction.LastTimeLog || Date.now() - RollingLog.RealTimeRollingLogfunction.LastTimeLog >= (oneHour) || simpleCourt % messageTimethenUpload == 0 || simpleCourt == 1) {
-        //simpleCourt % 50 == 0 || simpleCourt == 1
-        //MLAB
-        //RealTimeRollingLogfunction
-        //SET 紀錄
-
-        let temp = {
+    //simpleCourt % 50 == 0 || simpleCourt == 1
+    //MLAB
+    //RealTimeRollingLogfunction
+    //SET 紀錄
+    let result = await schema.RealTimeRollingLog.findOneAndUpdate({}, {
+        $set: {
             LogTime: Date(Date.now()).toLocaleString("en-US", {
                 timeZone: "Asia/HongKong"
-            }),
-            StartTime: RollingLog.RealTimeRollingLogfunction.StartTime,
-            LastTimeLog: RollingLog.RealTimeRollingLogfunction.LastTimeLog,
-            DiscordCountRoll: RollingLog.RealTimeRollingLogfunction.DiscordCountRoll,
-            DiscordCountText: RollingLog.RealTimeRollingLogfunction.DiscordCountText,
-            LineCountRoll: RollingLog.RealTimeRollingLogfunction.LineCountRoll,
-            LineCountText: RollingLog.RealTimeRollingLogfunction.LineCountText,
-            TelegramCountRoll: RollingLog.RealTimeRollingLogfunction.TelegramCountRoll,
-            TelegramCountText: RollingLog.RealTimeRollingLogfunction.TelegramCountText,
-            WWWCountRoll: RollingLog.RealTimeRollingLogfunction.WWWCountRoll,
-            WWWCountText: RollingLog.RealTimeRollingLogfunction.WWWCountText,
-            WhatsappCountRoll: RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll,
-            WhatsappCountText: RollingLog.RealTimeRollingLogfunction.WhatsappCountText,
-            PlurkCountRoll: RollingLog.RealTimeRollingLogfunction.PlurkCountRoll,
-            PlurkCountText: RollingLog.RealTimeRollingLogfunction.PlurkCountText
-
-
-        };
-        RollingLog.RealTimeRollingLogfunction.LogTime = temp.LogTime;
-        records.settrpgSaveLogfunctionRealTime('RealTimeRollingLog', temp, () => {
-            //console.log('SAVE REAL TIME LOG')
-        });
-
-    }
+            })
+        },
+        $inc: {
+            "RealTimeRollingLogfunction.DiscordCountRoll": RollingLog.RealTimeRollingLogfunction.DiscordCountRoll,
+            "RealTimeRollingLogfunction.DiscordCountText": RollingLog.RealTimeRollingLogfunction.DiscordCountText,
+            "RealTimeRollingLogfunction.LineCountRoll": RollingLog.RealTimeRollingLogfunction.LineCountRoll,
+            "RealTimeRollingLogfunction.LineCountText": RollingLog.RealTimeRollingLogfunction.LineCountText,
+            "RealTimeRollingLogfunction.TelegramCountRoll": RollingLog.RealTimeRollingLogfunction.TelegramCountRoll,
+            "RealTimeRollingLogfunction.TelegramCountText": RollingLog.RealTimeRollingLogfunction.TelegramCountText,
+            "RealTimeRollingLogfunction.WWWCountRoll": RollingLog.RealTimeRollingLogfunction.WWWCountRoll,
+            "RealTimeRollingLogfunction.WWWCountText": RollingLog.RealTimeRollingLogfunction.WWWCountText,
+            "RealTimeRollingLogfunction.WhatsappCountRoll": RollingLog.RealTimeRollingLogfunction.WhatsappCountRoll,
+            "RealTimeRollingLogfunction.WhatsappCountText": RollingLog.RealTimeRollingLogfunction.WhatsappCountText,
+            "RealTimeRollingLogfunction.PlurkCountRoll": RollingLog.RealTimeRollingLogfunction.PlurkCountRoll,
+            "RealTimeRollingLogfunction.PlurkCountText": RollingLog.RealTimeRollingLogfunction.PlurkCountText
+        }
+    })
+    console.log('result', result)
+    resetLog();
+    pushToDefiniteLog();
     //console.log("RollingLog: ", RollingLog)
     return null;
 }
 
-async function getRecords() {
-    await records.get('RealTimeRollingLog', (msgs) => {
-        if (msgs && msgs[0] && msgs[0].RealTimeRollingLogfunction)
-            RollingLog.RealTimeRollingLogfunction = {
-                LastTimeLog: msgs[0].RealTimeRollingLogfunction.LastTimeLog || "",
-                StartTime: msgs[0].RealTimeRollingLogfunction.StartTime || "",
-                LogTime: msgs[0].RealTimeRollingLogfunction.LogTime || "",
-                DiscordCountRoll: msgs[0].RealTimeRollingLogfunction.DiscordCountRoll || 0,
-                DiscordCountText: msgs[0].RealTimeRollingLogfunction.DiscordCountText || 0,
-                LineCountRoll: msgs[0].RealTimeRollingLogfunction.LineCountRoll || 0,
-                LineCountText: msgs[0].RealTimeRollingLogfunction.LineCountText || 0,
-                TelegramCountRoll: msgs[0].RealTimeRollingLogfunction.TelegramCountRoll || 0,
-                TelegramCountText: msgs[0].RealTimeRollingLogfunction.TelegramCountText || 0,
-                WWWCountRoll: msgs[0].RealTimeRollingLogfunction.WWWCountRoll || 0,
-                WWWCountText: msgs[0].RealTimeRollingLogfunction.WWWCountText || 0,
-                WhatsappCountRoll: msgs[0].RealTimeRollingLogfunction.WhatsappCountRoll || 0,
-                WhatsappCountText: msgs[0].RealTimeRollingLogfunction.WhatsappCountText || 0,
-                PlurkCountRoll: msgs[0].RealTimeRollingLogfunction.PlurkCountRoll || 0,
-                PlurkCountText: msgs[0].RealTimeRollingLogfunction.PlurkCountText || 0
-
-            };
-        //console.log('RollingLog', RollingLog)
-        simpleCourt = 0;
-    })
+async function pushToDefiniteLog() {
+    if (!RollingLog.RealTimeRollingLogfunction.LastTimeLog || Date.now() - RollingLog.RealTimeRollingLogfunction.LastTimeLog >= (oneHour)) {
+        RollingLog.RealTimeRollingLogfunction.LastTimeLog = Date.now();
+        //上傳中途紀錄MLAB
+        // start today
+        //PUSH 推送
+        let theNewData = await schema.RealTimeRollingLog.findOne({});
+        let temp = {
+            RollingLogfunction:
+            {
+                LogTime: Date(Date.now()).toLocaleString("en-US", {
+                    timeZone: "Asia/HongKong"
+                }),
+                DiscordCountRoll: theNewData.RealTimeRollingLogfunction.DiscordCountRoll,
+                DiscordCountText: theNewData.RealTimeRollingLogfunction.DiscordCountText,
+                LineCountRoll: theNewData.RealTimeRollingLogfunction.LineCountRoll,
+                LineCountText: theNewData.RealTimeRollingLogfunction.LineCountText,
+                TelegramCountRoll: theNewData.RealTimeRollingLogfunction.TelegramCountRoll,
+                TelegramCountText: theNewData.RealTimeRollingLogfunction.TelegramCountText,
+                WWWCountRoll: theNewData.RealTimeRollingLogfunction.WWWCountRoll,
+                WWWCountText: theNewData.RealTimeRollingLogfunction.WWWCountText,
+                WhatsappCountRoll: theNewData.RealTimeRollingLogfunction.WhatsappCountRoll,
+                WhatsappCountText: theNewData.RealTimeRollingLogfunction.WhatsappCountText,
+                PlurkCountRoll: theNewData.RealTimeRollingLogfunction.PlurkCountRoll,
+                PlurkCountText: theNewData.RealTimeRollingLogfunction.PlurkCountText
+            }
+        }
+        await schema.RollingLog.create(temp);
+    }
+    return;
 }
+
+async function getRecords() {
+    let theNewData = await schema.RealTimeRollingLog.findOne({});
+    if (!theNewData) return;
+
+    RollingLog.RealTimeRollingLogfunction = {
+        LastTimeLog: theNewData.RealTimeRollingLogfunction.LastTimeLog || "",
+        StartTime: theNewData.RealTimeRollingLogfunction.StartTime || Date(Date.now()).toLocaleString("en-US", {
+            timeZone: "Asia/HongKong"
+        }),
+        LogTime: theNewData.RealTimeRollingLogfunction.LogTime || ""
+    };
+    //console.log('RollingLog', RollingLog)
+
+    return;
+}
+
+function resetLog() {
+    RollingLog.RealTimeRollingLogfunction =
+    {
+        DiscordCountRoll: 0,
+        DiscordCountText: 0,
+        LineCountRoll: 0,
+        LineCountText: 0,
+        TelegramCountRoll: 0,
+        TelegramCountText: 0,
+        WWWCountRoll: 0,
+        WWWCountText: 0,
+        WhatsappCountRoll: 0,
+        WhatsappCountText: 0,
+        PlurkCountRoll: 0,
+        PlurkCountText: 0
+    }
+}
+
+
 
 module.exports = {
     courtMessage,

@@ -328,6 +328,10 @@ const eventMember = mongoose.model('eventMember', new mongoose.Schema({
     eventList: [{
         title: String,
         eventID: String
+    }],
+    activityList: [{
+        date: Date,
+        activityDetail: String
     }]
 }));
 

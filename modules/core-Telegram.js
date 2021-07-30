@@ -266,6 +266,7 @@ if (process.env.BROADCAST)
 
 
 async function nonDice(ctx) {
+	await courtMessage("", "Telegram", "")
 	if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
 		let groupid = (ctx.message.chat.id) ? ctx.message.chat.id.toString() : '',
 			userid = (ctx.message.from.id) ? ctx.message.from.id.toString() : '',
@@ -276,7 +277,6 @@ async function nonDice(ctx) {
 			membercount = await ctx.getChatMembersCount(ctx.chat.id);
 		}
 		let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount, tgDisplayname);
-		await courtMessage("", "Telegram", "")
 		if (groupid && LevelUp && LevelUp.text) {
 			ctx.reply(`@${displayname}  ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`);
 		}

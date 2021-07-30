@@ -145,9 +145,9 @@ async function sendMessage(response, rplyVal) {
 
 }
 async function nonDice(groupid, userid, displayname, plurk_id) {
+    await courtMessage("", "Plurk", "")
     if (!groupid || !userid) return;
     let LevelUp = await EXPUP(groupid, userid, displayname, "", null);
-    await courtMessage("", "Plurk", "")
     if (groupid && LevelUp) {
         await sendMessage(plurk_id, LevelUp);
     }

@@ -4,7 +4,7 @@ const debugMode = (process.env.DEBUG) ? true : false;
 const schema = require('./core-schema.js');
 //50次 多少條訊息會上傳一次LOG
 const oneHour = 1 * 60 * 60 * 1000;
-const fiveMinutes = 1 * 20 * 1000;
+const fiveMinutes = 5 * 60 * 1000;
 
 //每一小時 24 * 60 * 60 * 1000 多久會上傳一次LOG紀錄 
 const RollingLog = {

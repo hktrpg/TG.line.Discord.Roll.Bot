@@ -443,6 +443,7 @@ client.on('shardResume', (replayed, shardID) => console.log(`Shard ID ${shardID}
 client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnected.`));
 
 async function nonDice(message) {
+	await courtMessage("", "Discord", "")
 	let groupid = '',
 		userid = '';
 	if (message.guild && message.guild.id) {
@@ -459,7 +460,6 @@ async function nonDice(message) {
 	}
 	membercount = (message.guild) ? message.guild.memberCount : 0;
 	let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount);
-	await courtMessage("", "Discord", "")
 	if (groupid && LevelUp && LevelUp.text) {
 		await SendToReplychannel(`@${displayname}  ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`, message.channel.id);
 	}

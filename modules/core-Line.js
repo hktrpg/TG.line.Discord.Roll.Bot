@@ -115,12 +115,12 @@ var handleEvent = async function (event) {
 				// 新加入群組時, 傳送MESSAGE
 				console.log("Line joined");
 				await replyMessagebyReplyToken(event, joinMessage);
-			} else
+			} else {
 				// ignore non-text-message event
 				if (roomorgroupid && userid) {
 					await EXPUP(roomorgroupid, userid, displayname, "", null);
-					await courtMessage("", "Line", "")
 				}
+			}
 			return Promise.resolve(null);
 		}
 
@@ -361,6 +361,7 @@ async function privateMsgFinder(channelid) {
 	else return [];
 }
 async function nonDice(event) {
+	await courtMessage("", "Line", "")
 	let roomorgroupid = event.source.groupId || event.source.roomId || '',
 		userid = event.source.userId || '',
 		displayname = '';
@@ -370,14 +371,12 @@ async function nonDice(event) {
 		displayname = profile.displayName;
 		//console.log(displayname)
 		let LevelUp = await EXPUP(roomorgroupid, userid, displayname, "", null);
-		await courtMessage("", "Line", "")
 		if (roomorgroupid && LevelUp && LevelUp.text) {
 			return await replyMessagebyReplyToken(event, LevelUp.text);
 		}
 	},
 		async function () {
 			let LevelUp = await EXPUP(roomorgroupid, userid, displayname, "", null);
-			await courtMessage("", "Line", "")
 			if (roomorgroupid && LevelUp && LevelUp.text) {
 				return await replyMessagebyReplyToken(event, LevelUp.text);
 			}

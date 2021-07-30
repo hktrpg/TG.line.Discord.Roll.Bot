@@ -1,0 +1,69 @@
+{
+	"spell": [
+		{
+			"name": "祕法武器", "ENG_name": "Arcane Weapon",
+			"level": 1,
+			"school": "T",
+			"time": [
+				{
+					"number": 1,
+					"unit": "bonus"
+				}
+			],
+			"range": {
+				"type": "point",
+				"distance": {
+					"type": "self"
+				}
+			},
+			"components": {
+				"v": true,
+				"s": true
+			},
+			"duration": [
+				{
+					"type": "timed",
+					"duration": {
+						"type": "hour",
+						"amount": 1
+					},
+					"concentration": true
+				}
+			],
+			"classes": {
+				"fromClassList": [
+					{
+						"name": "Artificer Revisited",
+						"source": "UAArtificerRevisited"
+					}
+				]
+			},
+			"source": "UAArtificerRevisited",
+			"entries": [
+				"你將祕法能量引導注入一把你所持握的簡易或軍用武器，並選擇一種傷害類型：酸蝕、寒冰、火焰、閃電、毒素、或雷鳴。直到此法術結束前，你在使用該武器命中任何目標時將造成額外{@dice 1d6}所選類型的傷害。若該武器原本不是魔法武器，則它將在法術持續期間變成一把魔法武器。",
+				"以一個附贈動作，你可以改變該武器的傷害類型，從上述選項中選擇。"
+			],
+			"entriesHigherLevel": [
+				{
+					"type": "entries",
+					"name": "升環效果",
+					"entries": [
+						"當你使用3環或更高的法術位施放此法術時，你可以維持你在此法術的專注最多8小時。"
+					]
+				}
+			],
+			"page": 10,
+			"damageInflict": [
+				"acid",
+				"cold",
+				"fire",
+				"lightning",
+				"poison",
+				"thunder"
+			],
+			"areaTags": [
+				"ST"
+			]
+		}
+	]
+}

@@ -1,0 +1,243 @@
+{
+	"spell": [
+		{
+			"name": "轟雷劍", "ENG_name": "Booming Blade",
+			"source": "SCAG",
+			"level": 0,
+			"school": "V",
+			"time": [
+				{
+					"number": 1,
+					"unit": "action"
+				}
+			],
+			"range": {
+				"type": "point",
+				"distance": {
+					"type": "feet",
+					"amount": 5
+				}
+			},
+			"components": {
+				"v": true,
+				"m": "一把武器"
+			},
+			"duration": [
+				{
+					"type": "timed",
+					"duration": {
+						"type": "round",
+						"amount": 1
+					}
+				}
+			],
+			"classes": {
+				"fromClassList": [
+					{
+						"name": "Sorcerer",
+						"source": "PHB"
+					},
+					{
+						"name": "Warlock",
+						"source": "PHB"
+					},
+					{
+						"name": "Wizard",
+						"source": "PHB"
+					}
+				]
+			},
+			"entries": [
+				"作為用來施展此法術動作的一部分，你必須使用一把武器對法術射程內的一名生物進行一次近戰攻擊，否則法術失敗。若命中，目標受到該攻擊的正常影響，且目標將被包覆在一團爆發性的能量之中，持續直到你的下個回合開始。如果目標在這之前自願進行了一次移動，他將立即受到{@dice 1d8}雷鳴傷害，並結束法術效果。",
+				"此法術的傷害將隨著你的等級越高而增加。在5級的時候，近戰攻擊將對目標造成額外的{@dice 1d8}雷鳴傷害，且目標移動時所受到的傷害將提升至{@dice 2d8}。這兩個傷害骰都將在11級和17級時各增加{@dice 1d8}。"
+			],
+			"page": 142,
+			"damageInflict": [
+				"thunder"
+			],
+			"scalingEffects": true,
+			"spellAttack": [
+				"M"
+			],
+			"areaTags": [
+				"ST"
+			]
+		},
+		{
+			"name": "翠炎劍", "ENG_name": "Green-Flame Blade",
+			"source": "SCAG",
+			"level": 0,
+			"school": "V",
+			"time": [
+				{
+					"number": 1,
+					"unit": "action"
+				}
+			],
+			"range": {
+				"type": "point",
+				"distance": {
+					"type": "feet",
+					"amount": 5
+				}
+			},
+			"components": {
+				"v": true,
+				"m": "一把武器"
+			},
+			"duration": [
+				{
+					"type": "instant"
+				}
+			],
+			"classes": {
+				"fromClassList": [
+					{
+						"name": "Sorcerer",
+						"source": "PHB"
+					},
+					{
+						"name": "Warlock",
+						"source": "PHB"
+					},
+					{
+						"name": "Wizard",
+						"source": "PHB"
+					}
+				]
+			},
+			"entries": [
+				"作為用來施展此法術動作的一部分，你必須使用一把武器對法術射程內的一名生物進行一次近戰攻擊，否則法術失敗。若命中，目標受到該攻擊的正常影響，且翠綠色的火焰將從目標身上跳到另一個你所選擇的，位於5呎內你所能看見的生物。第二個生物將受到等同你施法屬性調整值的火焰傷害。",
+				"此法術的傷害將隨著你的等級越高而增加。在5級的時候，近戰攻擊將對目標造成額外的{@dice 1d8}火焰傷害，且對第二個生物造成的傷害將提升至{@dice 1d8}+你的施法屬性調整值。這兩個傷害骰都將在11級和17級時各增加{@dice 1d8}。"
+			],
+			"page": 143,
+			"damageInflict": [
+				"fire"
+			],
+			"scalingEffects": true,
+			"spellAttack": [
+				"M"
+			],
+			"areaTags": [
+				"ST",
+				"MT"
+			]
+		},
+		{
+			"name": "閃電牽引", "ENG_name": "Lightning Lure",
+			"source": "SCAG",
+			"level": 0,
+			"school": "V",
+			"time": [
+				{
+					"number": 1,
+					"unit": "action"
+				}
+			],
+			"range": {
+				"type": "point",
+				"distance": {
+					"type": "feet",
+					"amount": 15
+				}
+			},
+			"components": {
+				"v": true
+			},
+			"duration": [
+				{
+					"type": "instant"
+				}
+			],
+			"classes": {
+				"fromClassList": [
+					{
+						"name": "Sorcerer",
+						"source": "PHB"
+					},
+					{
+						"name": "Warlock",
+						"source": "PHB"
+					},
+					{
+						"name": "Wizard",
+						"source": "PHB"
+					}
+				]
+			},
+			"entries": [
+				"你創造出一道鞭狀的閃電能量，擊向射程內你所能看見的一個生物。目標必須成功通過一次力量豁免，否則將被以直線向你拉近最多10尺，如果目標被拉近以後位於你周遭5呎內，那麽他將受到{@dice 1d8}閃電傷害。",
+				"此法術的傷害將在你的等級升至5級時增加至{@dice 2d8}，11級時{@dice 3d8}，17級時{@dice 4d8}。"
+			],
+			"page": 143,
+			"damageInflict": [
+				"lightning"
+			],
+			"savingThrow": [
+				"strength"
+			],
+			"scalingEffects": true,
+			"areaTags": [
+				"ST"
+			]
+		},
+		{
+			"name": "劍刃爆發", "ENG_name": "Sword Burst",
+			"source": "SCAG",
+			"level": 0,
+			"school": "C",
+			"time": [
+				{
+					"number": 1,
+					"unit": "action"
+				}
+			],
+			"range": {
+				"type": "point",
+				"distance": {
+					"type": "feet",
+					"amount": 5
+				}
+			},
+			"components": {
+				"v": true
+			},
+			"duration": [
+				{
+					"type": "instant"
+				}
+			],
+			"classes": {
+				"fromClassList": [
+					{
+						"name": "Sorcerer",
+						"source": "PHB"
+					},
+					{
+						"name": "Warlock",
+						"source": "PHB"
+					},
+					{
+						"name": "Wizard",
+						"source": "PHB"
+					}
+				]
+			},
+			"entries": [
+				"你瞬間制造出一圈幽靈似的利刃清掃你的周圍。法術範圍內除你以外的每一個生物都必須成功通過一次敏捷豁免，否則將受到{@dice 1d6}的力場傷害。",
+				"此法術的傷害將在你的等級升至5級時增加至{@dice 2d8}，11級時{@dice 3d8}，17級時{@dice 4d8}。"
+			],
+			"page": 143,
+			"damageInflict": [
+				"force"
+			],
+			"savingThrow": [
+				"dexterity"
+			],
+			"scalingEffects": true,
+			"areaTags": [
+				"S"
+			]
+		}
+	]
+}

@@ -1,0 +1,53 @@
+{
+	"spell": [
+		{
+			"name": "思維編碼", "ENG_name": "Encode Thoughts",
+			"level": 0,
+			"school": "E",
+			"time": [
+				{
+					"number": 1,
+					"unit": "action"
+				}
+			],
+			"range": {
+				"type": "point",
+				"distance": {
+					"type": "self"
+				}
+			},
+			"components": {
+				"s": true
+			},
+			"duration": [
+				{
+					"type": "timed",
+					"duration": {
+						"type": "hour",
+						"amount": 8
+					}
+				}
+			],
+			"classes": {
+				"fromClassList": [
+					{
+						"name": "Wizard",
+						"source": "PHB"
+					}
+				]
+			},
+			"source": "GGR",
+			"entries": [
+				"將一根手指放入你的腦袋，你從你的心靈中抽出一段記憶、一個想法或一段訊息，並將其轉換成一段糾纏的泛光能量帶，稱之為「一縷思緒」，會在法術持續時間中持存，或是持存到你再次施展此法術。一縷思緒出現在你身周五呎的一個未佔據區域，作為一個微小、無重力、半實體的物件，可以被當作緞帶所攜帶。它一般來說是靜止的。",
+				"如果你在專注一個允許你閱讀或操縱他人思維的法術或能力（如{@spell 偵測思想}或{@spell 修改記憶}）時施展此法術，你可以將不屬於你的、你所閱讀的思維或記憶轉換為一縷思緒。",
+				"在握有一縷思緒時施展此法術，允許你立刻得到一縷思緒所包含的記憶、想法或訊息。（在一縷思緒上施展{@spell 偵測思想}也有同樣效果。）"
+			],
+			"backgrounds": [
+				{
+					"name": "Dimir Operative",
+					"source": "GGR"
+				}
+			]
+		}
+	]
+}

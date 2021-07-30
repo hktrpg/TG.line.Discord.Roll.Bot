@@ -1,0 +1,5134 @@
+{
+	"monster": [
+		{
+			"name": "阿莉希．卡蘿娜斯", "ENG_name": "Aerisi Kalinoth",
+			"isNpc": true,
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"elf"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"N",
+				"E"
+			],
+			"ac": [
+				13,
+				{
+					"ac": 16,
+					"condition": "使用{@spell 法師護甲}時",
+					"braces": true
+				}
+			],
+			"hp": {
+				"average": 66,
+				"formula": "12d8 + 12"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 8,
+			"dex": 16,
+			"con": 12,
+			"int": 17,
+			"wis": 10,
+			"cha": 16,
+			"skill": {
+				"arcana": "+6",
+				"history": "+6",
+				"perception": "+3"
+			},
+			"resist": [
+				"lightning"
+			],
+			"senses": "黑暗視覺60呎",
+			"passive": 13,
+			"languages": "氣族語、通用語、精靈語",
+			"cr": "7",
+			"trait": [
+				{
+					"name": "精類血統", "tENG_name": "Fey Ancestry",
+					"entries": [
+						"阿莉希在對抗{@condition 魅惑}的豁免檢定中具有優勢，且魔法無法使她入睡。"
+					]
+				},
+				{
+					"name": "哀嚎敗亡", "tENG_name": "Howling Defeat",
+					"entries": [
+						"當阿莉希的生命值歸零時，她的身體將在一陣呼嘯著的旋風中消失，且這陣旋風將迅速而無害地消散。任何她所穿戴或攜帶的東西都將被留在原地。"
+					]
+				},
+				{
+					"name": "傳奇抗性 (2/日)",
+					"entries": [
+						"若阿莉希在一次豁免檢定中失敗，她可以選擇改為使其成功。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "風標", "tENG_name": "Windvane",
+					"entries": [
+						"{@atk mw,rw} 命中{@hit 9}，觸及5呎 或 射程20/60呎，單一目標。{@h}9 ({@damage 1d6 + 6})穿刺傷害，或若雙手使用以進行一次近戰攻擊時則造成 10 ({@damage 1d8 + 6})穿刺傷害，再額外加上 3 ({@damage 1d6})閃電傷害。"
+					]
+				}
+			],
+			"legendaryGroup": {
+				"name": "Aerisi Kalinoth",
+				"source": "PotA"
+			},
+			"page": 192,
+			"spellcasting": [
+				{
+					"name": "施法",
+					"headerEntries": [
+						"阿莉希是12級的施法者。她的施法屬性為智力（法術豁免DC 14，法術攻擊命中{@hit 6}）。阿莉希已準備了以下法師法術："
+					],
+					"spells": {
+						"0": {
+							"spells": [
+								"{@spell 舞風|xge}",
+								"{@spell 法師之手}",
+								"{@spell 傳訊術}",
+								"{@spell 魔法技倆}",
+								"{@spell 冷凍射線}",
+								"{@spell 電爪}"
+							]
+						},
+						"1": {
+							"slots": 4,
+							"spells": [
+								"{@spell 魅惑人類}",
+								"{@spell 羽落術}",
+								"{@spell 法師護甲}",
+								"{@spell 雷鳴波}"
+							]
+						},
+						"2": {
+							"slots": 3,
+							"spells": [
+								"{@spell 塵捲風|xge}",
+								"{@spell 造風術}",
+								"{@spell 隱形術}"
+							]
+						},
+						"3": {
+							"slots": 3,
+							"spells": [
+								"{@spell 飛行術}",
+								"{@spell 氣化形體}",
+								"{@spell 閃電束}"
+							]
+						},
+						"4": {
+							"slots": 3,
+							"spells": [
+								"{@spell 冰風暴}",
+								"{@spell 暴風法球|xge}"
+							]
+						},
+						"5": {
+							"slots": 2,
+							"spells": [
+								"{@spell 死雲術}",
+								"{@spell 偽裝術} (每日施放一次)"
+							]
+						},
+						"6": {
+							"slots": 1,
+							"spells": [
+								"{@spell 連環閃電}"
+							]
+						}
+					},
+					"ability": "int"
+				}
+			],
+			"traitTags": [
+				"Fey Ancestry",
+				"Legendary Resistances"
+			],
+			"languageTags": [
+				"AU",
+				"C",
+				"E"
+			],
+			"senseTags": [
+				"D"
+			],
+			"spellcastingTags": [
+				"CW"
+			],
+			"damageTags": [
+				"P",
+				"L"
+			]
+		},
+		{
+			"name": "氣元素追隨者", "ENG_name": "Air Elemental Myrmidon",
+			"size": "M",
+			"type": "elemental",
+			"source": "PotA",
+			"alignment": [
+				"N"
+			],
+			"ac": [
+				{
+					"ac": 18,
+					"from": [
+						"{@item 全身板甲|phb}"
+					]
+				}
+			],
+			"hp": {
+				"average": 117,
+				"formula": "18d8 + 36"
+			},
+			"speed": {
+				"walk": 30,
+				"fly": 30
+			},
+			"str": 18,
+			"dex": 14,
+			"con": 14,
+			"int": 9,
+			"wis": 10,
+			"cha": 10,
+			"resist": [
+				"lightning",
+				"thunder",
+				{
+					"resist": [
+						"bludgeoning",
+						"piercing",
+						"slashing"
+					],
+					"preNote": "非魔法攻擊所造成的"
+				}
+			],
+			"immune": [
+				"poison"
+			],
+			"conditionImmune": [
+				"paralyzed",
+				"petrified",
+				"poisoned",
+				"prone"
+			],
+			"senses": "黑暗視覺60呎",
+			"passive": 10,
+			"languages": "氣族語、一種它創造者所選擇的語言",
+			"cr": "7",
+			"trait": [
+				{
+					"name": "魔法武器", "tENG_name": "Magic Weapons",
+					"entries": [
+						"追隨者的武器攻擊視作魔法攻擊。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "多重攻擊",
+					"entries": [
+						"追隨者進行三次連枷攻擊。"
+					]
+				},
+				{
+					"name": "連枷", "tENG_name": "Flail",
+					"entries": [
+						"{@atk mw} 命中{@hit 7}，觸及5呎，單一目標。{@h}8 ({@damage 1d8 + 4}) 鈍擊傷害。"
+					]
+				},
+				{
+					"name": "閃電猛擊{@recharge}", "tENG_name": "Lightning Strike {@recharge}",
+					"entries": [
+						"追隨者進行一次連枷攻擊。若該攻擊命中，則它將額外造成 18 ({@damage 4d8})閃電傷害，且目標必須成功通過一次DC 14的體質豁免，否則將被{@condition 震懾}直到該追隨者的下個回合結束。"
+					]
+				}
+			],
+			"page": 212,
+			"soundClip": "https://media-waterdeep.cursecdn.com/file-attachments/0/593/air-elemental-myrmidon.mp3",
+			"traitTags": [
+				"Magic Weapons"
+			],
+			"actionTags": [
+				"Multiattack"
+			],
+			"languageTags": [
+				"AU"
+			],
+			"senseTags": [
+				"D"
+			],
+			"damageTags": [
+				"B",
+				"L"
+			]
+		},
+		{
+			"name": "巴斯汀．薩曼德", "ENG_name": "Bastian Thermandar",
+			"isNpc": true,
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"fire genasi"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"N",
+				"E"
+			],
+			"ac": [
+				12,
+				{
+					"ac": 15,
+					"condition": "使用{@spell 法師護甲}時",
+					"braces": true
+				}
+			],
+			"hp": {
+				"average": 78,
+				"formula": "12d8 + 24"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 12,
+			"dex": 14,
+			"con": 15,
+			"int": 11,
+			"wis": 9,
+			"cha": 18,
+			"skill": {
+				"arcana": "+3",
+				"deception": "+7"
+			},
+			"resist": [
+				"fire"
+			],
+			"senses": "黑暗視覺60呎",
+			"passive": 9,
+			"languages": "通用語、火族語",
+			"cr": "8",
+			"action": [
+				{
+					"name": "匕首",
+					"entries": [
+						"{@atk mw,rw} 命中{@hit 5}，觸及5呎 或 射程20/60呎，單一目標。{@h}4 ({@damage 1d4 + 2}) 穿刺傷害。"
+					]
+				}
+			],
+			"page": 201,
+			"spellcasting": [
+				{
+					"name": "天生施法",
+					"headerEntries": [
+						"巴斯汀的天生施法屬性為體質（法術豁免DC 13，法術攻擊命中{@hit 5}）。他天生就可以施展以下法術："
+					],
+					"will": [
+						"{@spell 燃火術}"
+					],
+					"daily": {
+						"1": [
+							"{@spell 燃燒之手}"
+						]
+					},
+					"ability": "con"
+				},
+				{
+					"name": "施法",
+					"headerEntries": [
+						"巴斯汀是9級的施法者。它的施法屬性為魅力（法術豁免DC 15，法術攻擊命中{@hit 7}）。巴斯汀知曉以下術士法術："
+					],
+					"spells": {
+						"0": {
+							"spells": [
+								"{@spell 火焰箭}",
+								"{@spell 法師之手}",
+								"{@spell 傳訊術}",
+								"{@spell 魔法技倆}",
+								"{@spell 電爪}"
+							]
+						},
+						"1": {
+							"slots": 4,
+							"spells": [
+								"{@spell 法師護甲}",
+								"{@spell 魔法飛彈}",
+								"{@spell 護盾術}"
+							]
+						},
+						"2": {
+							"slots": 3,
+							"spells": [
+								"{@spell 迷蹤步}",
+								"{@spell 灼熱射線}"
+							]
+						},
+						"3": {
+							"slots": 3,
+							"spells": [
+								"{@spell 反制法術}",
+								"{@spell 火球術}"
+							]
+						},
+						"4": {
+							"slots": 3,
+							"spells": [
+								"{@spell 次元門}",
+								"{@spell 火牆術}"
+							]
+						},
+						"5": {
+							"slots": 1,
+							"spells": [
+								"{@spell 怪物定身術}"
+							]
+						}
+					},
+					"ability": "cha"
+				}
+			],
+			"languageTags": [
+				"C",
+				"IG"
+			],
+			"senseTags": [
+				"D"
+			],
+			"spellcastingTags": [
+				"I",
+				"CS"
+			],
+			"damageTags": [
+				"P"
+			]
+		},
+		{
+			"name": "黑土守衛", "ENG_name": "Black Earth Guard",
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"human"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"N",
+				"E"
+			],
+			"ac": [
+				{
+					"ac": 18,
+					"from": [
+						"{@item 全身板甲|phb}"
+					]
+				}
+			],
+			"hp": {
+				"average": 39,
+				"formula": "6d8 + 12"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 17,
+			"dex": 11,
+			"con": 14,
+			"int": 10,
+			"wis": 10,
+			"cha": 9,
+			"skill": {
+				"intimidation": "+1",
+				"perception": "+2"
+			},
+			"passive": 12,
+			"languages": "通用語",
+			"cr": "2",
+			"action": [
+				{
+					"name": "多重攻擊",
+					"entries": [
+						"守衛進行二次近戰攻擊。"
+					]
+				},
+				{
+					"name": "釘頭錘",
+					"entries": [
+						"{@atk mw} 命中{@hit 5}，觸及5呎，單一目標。{@h}7 ({@damage 1d8 + 3}) 穿刺傷害。"
+					]
+				}
+			],
+			"reaction": [
+				{
+					"name": "堅定不移", "tENG_name": "Unyielding",
+					"entries": [
+						"當守衛成為一個會強迫他移動或將他擊倒{@condition 伏地}的效果的目標，他可以使用他的反應以避免被強迫移動和擊倒{@condition 伏地}。"
+					]
+				}
+			],
+			"page": 195,
+			"actionTags": [
+				"Multiattack"
+			],
+			"languageTags": [
+				"C"
+			],
+			"damageTags": [
+				"P"
+			]
+		},
+		{
+			"name": "黑土祭司", "ENG_name": "Black Earth Priest",
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"human"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"N",
+				"E"
+			],
+			"ac": [
+				{
+					"ac": 17,
+					"from": [
+						"{@item 條板甲|phb}"
+					]
+				}
+			],
+			"hp": {
+				"average": 45,
+				"formula": "7d8 + 14"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 15,
+			"dex": 11,
+			"con": 14,
+			"int": 12,
+			"wis": 10,
+			"cha": 16,
+			"skill": {
+				"intimidation": "+5",
+				"religion": "+3",
+				"persuasion": "+5"
+			},
+			"passive": 10,
+			"languages": "通用語、土族語",
+			"cr": "3",
+			"action": [
+				{
+					"name": "多重攻擊",
+					"entries": [
+						"黑土祭司進行二次近戰攻擊。"
+					]
+				},
+				{
+					"name": "長柄刀",
+					"entries": [
+						"{@atk mw} 命中{@hit 4}，觸及10呎，單一目標。{@h}7 ({@damage 1d10 + 2}) 劈砍傷害。"
+					]
+				}
+			],
+			"reaction": [
+				{
+					"name": "堅定不移", "tENG_name": "Unyielding",
+					"entries": [
+						"當黑土祭司成為一個會強迫他移動或將他擊倒{@condition 伏地}的效果的目標，他可以使用他的反應以避免被強迫移動和擊倒{@condition 伏地}。"
+					]
+				}
+			],
+			"page": 195,
+			"spellcasting": [
+				{
+					"name": "施法",
+					"headerEntries": [
+						"黑土祭司是5級的施法者。它的施法屬性為魅力（法術豁免DC 13，法術攻擊命中{@hit 5}）。它知曉以下術士法術："
+					],
+					"spells": {
+						"0": {
+							"spells": [
+								"{@spell 酸液濺爆}",
+								"{@spell 劍刃防護}",
+								"{@spell 光亮術}",
+								"{@spell 修復術}",
+								"{@spell 鑄土|xge}"
+							]
+						},
+						"1": {
+							"slots": 4,
+							"spells": [
+								"{@spell 大地震顫|xge}",
+								"{@spell 腳底抹油}",
+								"{@spell 護盾術}"
+							]
+						},
+						"2": {
+							"slots": 3,
+							"spells": [
+								"{@spell 粉碎音波}",
+								"{@spell 蛛行術}"
+							]
+						},
+						"3": {
+							"slots": 2,
+							"spells": [
+								"{@spell 緩速術}"
+							]
+						}
+					},
+					"ability": "cha"
+				}
+			],
+			"actionTags": [
+				"Multiattack"
+			],
+			"languageTags": [
+				"C",
+				"T"
+			],
+			"spellcastingTags": [
+				"CS"
+			],
+			"damageTags": [
+				"S"
+			]
+		},
+		{
+			"name": "穴居鯊衛", "ENG_name": "Burrowshark",
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"human"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"N",
+				"E"
+			],
+			"ac": [
+				{
+					"ac": 18,
+					"from": [
+						"{@item 全身板甲|phb}"
+					]
+				}
+			],
+			"hp": {
+				"average": 82,
+				"formula": "11d8 + 33"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 18,
+			"dex": 12,
+			"con": 16,
+			"int": 10,
+			"wis": 11,
+			"cha": 13,
+			"skill": {
+				"animal handling": "+2",
+				"athletics": "+6",
+				"intimidation": "+3",
+				"perception": "+2"
+			},
+			"passive": 12,
+			"languages": "通用語",
+			"cr": "4",
+			"trait": [
+				{
+					"name": "黑土之繫", "tENG_name": "Bond of the Black Earth",
+					"entries": [
+						"穴居鯊衛藉著魔法與一只經過訓練的{@creature 鯊蜥獸}聯繫在一起，並將其做為坐騎。當騎乘於它的{@creature 鯊蜥獸}時，穴居鯊衛將共享鯊蜥獸的感官，並可以在其掘地的同時維持騎乘。該鯊蜥獸服從穴居鯊衛的命令。若它的坐騎死亡，穴居鯊衛可以訓練一只新的鯊蜥獸做為其相繫的坐騎，這個過程將花費一個月的時間。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "多重攻擊",
+					"entries": [
+						"穴居鯊衛進行三次近戰攻擊。"
+					]
+				},
+				{
+					"name": "矛",
+					"entries": [
+						"{@atk mw,rw} 命中{@hit 6}，觸及5呎 或射程20/60呎，單一目標。{@h}7 ({@damage 1d6 + 4}) 穿刺傷害，或若雙手使用以進行一次近戰攻擊時則造成 8 ({@damage 1d8 + 4}) 穿刺傷害。"
+					]
+				}
+			],
+			"reaction": [
+				{
+					"name": "堅定不移", "tENG_name": "Unyielding",
+					"entries": [
+						"當穴居鯊衛成為一個會強迫它移動或將它擊倒{@condition 伏地}的效果的目標，它可以使用它的反應以避免被強迫移動和擊倒{@condition 伏地}。"
+					]
+				}
+			],
+			"page": 196,
+			"actionTags": [
+				"Multiattack"
+			],
+			"languageTags": [
+				"C"
+			],
+			"damageTags": [
+				"P"
+			]
+		},
+		{
+			"name": "粉碎浪潮祭司", "ENG_name": "Crushing Wave Priest",
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"human"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"N",
+				"E"
+			],
+			"ac": [
+				{
+					"ac": 13,
+					"from": [
+						"{@item 鏈甲衫|phb}"
+					]
+				}
+			],
+			"hp": {
+				"average": 52,
+				"formula": "8d8 + 16"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 15,
+			"dex": 11,
+			"con": 14,
+			"int": 10,
+			"wis": 11,
+			"cha": 16,
+			"skill": {
+				"deception": "+5",
+				"religion": "+2",
+				"stealth": "+2"
+			},
+			"passive": 10,
+			"languages": "水族語、通用語",
+			"cr": "2",
+			"action": [
+				{
+					"name": "長棍", "tENG_name": "Quarterstaff",
+					"entries": [
+						"{@atk mw} 命中{@hit 4}，觸及5呎，單一目標。 {@h}6 ({@damage 1d8 + 2}) 鈍擊傷害。"
+					]
+				}
+			],
+			"page": 205,
+			"spellcasting": [
+				{
+					"name": "施法",
+					"headerEntries": [
+						"粉碎浪潮祭司是5級的施法者。它的施法屬性為魅力（法術豁免DC 13，法術攻擊命中{@hit 5}）。祭司知曉以下術士法術："
+					],
+					"spells": {
+						"0": {
+							"spells": [
+								"{@spell 寒顫之觸}",
+								"{@spell 法師之手}",
+								"{@spell 次級幻象}",
+								"{@spell 魔法技倆}",
+								"{@spell 冷凍射線}"
+							]
+						},
+						"1": {
+							"slots": 4,
+							"spells": [
+								"{@spell 腳底抹油}",
+								"{@spell 冰刃|xge}",
+								"{@spell 魔法飛彈}",
+								"{@spell 護盾術}"
+							]
+						},
+						"2": {
+							"slots": 3,
+							"spells": [
+								"{@spell 朦朧術}",
+								"{@spell 人類定身術}"
+							]
+						},
+						"3": {
+							"slots": 2,
+							"spells": [
+								"{@spell 雪雨暴}"
+							]
+						}
+					},
+					"ability": "cha"
+				}
+			],
+			"languageTags": [
+				"AQ",
+				"C"
+			],
+			"spellcastingTags": [
+				"CS"
+			],
+			"damageTags": [
+				"B"
+			]
+		},
+		{
+			"name": "粉碎浪潮掠奪者", "ENG_name": "Crushing Wave Reaver",
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"human"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"N",
+				"E"
+			],
+			"ac": [
+				{
+					"ac": 14,
+					"from": [
+						"{@item 盾牌|phb}"
+					]
+				}
+			],
+			"hp": {
+				"average": 22,
+				"formula": "4d8 + 4"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 15,
+			"dex": 14,
+			"con": 13,
+			"int": 10,
+			"wis": 11,
+			"cha": 8,
+			"skill": {
+				"athletics": "+4",
+				"stealth": "+4"
+			},
+			"passive": 10,
+			"languages": "通用語",
+			"cr": "1/2",
+			"action": [
+				{
+					"name": "鯊齒長劍","tENG_name": "Sharktoothed Longsword",
+					"entries": [
+						"{@atk mw} 命中{@hit 4}，觸及5呎，單一目標。 {@h}6 ({@damage 1d8 + 2}) 劈砍傷害，或若以雙手使用時則造成 7 ({@damage 1d10 + 2}) 劈砍傷害。若目標沒有穿戴護甲，則掠奪者將對其額外造成一顆這把劍的傷害骰的傷害。"
+					]
+				},
+				{
+					"name": "標槍","tENG_name": "Javelin",
+					"entries": [
+						"{@atk mw,rw} 命中{@hit 4}，觸及5呎 或 射程30/120呎, 單一目標。{@h}5 ({@damage 1d6 + 2}) 穿刺傷害。"
+					]
+				}
+			],
+			"page": 205,
+			"languageTags": [
+				"C"
+			],
+			"damageTags": [
+				"S",
+				"P"
+			]
+		},
+		{
+			"name": "暗潮騎士", "ENG_name": "Dark Tide Knight",
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"human"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"L",
+				"E"
+			],
+			"ac": [
+				13
+			],
+			"hp": {
+				"average": 58,
+				"formula": "9d8 + 18"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 17,
+			"dex": 16,
+			"con": 14,
+			"int": 10,
+			"wis": 11,
+			"cha": 11,
+			"skill": {
+				"athletics": "+7",
+				"stealth": "+7"
+			},
+			"passive": 10,
+			"languages": "通用語",
+			"cr": "3",
+			"trait": [
+				{
+					"name": "聯結坐騎","tENG_name": "Bonded Mount",
+					"entries": [
+						"暗潮騎士藉著魔法與一個具有天生游泳速度，且受過訓練的野獸聯繫在一起，並將其做為自己的坐騎。當騎乘於該野獸時，暗潮騎士將共享該野獸的感官，且獲得在水下呼吸的能力。這個被聯繫的坐騎服從暗潮騎士的命令。若它的坐騎死亡，暗潮騎士可以訓練一只新的野獸做為其相繫的坐騎，這個過程將花費一個月的時間。"
+					]
+				},
+				{
+					"name": "偷襲","tENG_name": "Sneak Attack",
+					"entries": [
+						"當暗潮騎士以武器攻擊命中一個目標時，若該攻擊檢定具有優勢，或者該攻擊檢定沒有劣勢且暗潮騎士有一個未{@condition 無力}的隊友距離目標5呎內，則暗潮騎士造成額外的7 ({@dice 2d6})傷害。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "多重攻擊",
+					"entries": [
+						"暗潮騎士進行二次短劍攻擊。"
+					]
+				},
+				{
+					"name": "短劍",
+					"entries": [
+						"{@atk mw} 命中{@hit 5}，觸及5呎，單一目標。 {@h}6 ({@damage 1d6 + 3}) 穿刺傷害。"
+					]
+				},
+				{
+					"name": "Lance",
+					"entries": [
+						"{@atk mw} 命中{@hit 5}，觸及10呎，單一目標。 {@h}9 ({@damage 1d12 + 3}) 穿刺傷害。"
+					]
+				}
+			],
+			"reaction": [
+				{
+					"name": "直覺閃避","tENG_name": "Uncanny Dodge",
+					"entries": [
+						"當一個暗潮騎士所能看見的攻擊者以一次攻擊命中它時，暗潮騎士可以將該攻擊所造成的傷害減半。"
+					]
+				}
+			],
+			"page": 205,
+			"traitTags": [
+				"Sneak Attack"
+			],
+			"actionTags": [
+				"Multiattack"
+			],
+			"languageTags": [
+				"C"
+			],
+			"damageTags": [
+				"P"
+			]
+		},
+		{
+			"name": "德蘭尼．裂盔", "ENG_name": "Drannin Splithelm",
+			"isNpc": true,
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"shield dwarf"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"N",
+				"E"
+			],
+			"ac": [
+				{
+					"ac": 18,
+					"from": [
+						"{@item 全身板甲|phb}"
+					]
+				}
+			],
+			"hp": {
+				"average": 93,
+				"formula": "11d8 + 44"
+			},
+			"speed": {
+				"walk": 25
+			},
+			"str": 19,
+			"dex": 10,
+			"con": 18,
+			"int": 11,
+			"wis": 8,
+			"cha": 12,
+			"skill": {
+				"athletics": "+7",
+				"intimidation": "+4"
+			},
+			"resist": [
+				"cold",
+				"poison"
+			],
+			"senses": "黑暗視覺60呎",
+			"passive": 9,
+			"languages": "通用語、矮人語",
+			"cr": "7",
+			"trait": [
+				{
+					"name": "動作如潮 (短休或長休之後充能)", "tENG_name": "Action Surge (Recharges after a Short or Long Rest)",
+					"entries": [
+						"德蘭尼在他的回合採取一個額外的動作。"
+					]
+				},
+				{
+					"name": "殘暴", "tENG_name": "Brute",
+					"entries": [
+						"德蘭尼在用一把近戰武器命中目標時會造成一顆額外的傷害骰（已包含在攻擊條目）。"
+					]
+				},
+				{
+					"name": "矮人韌性", "tENG_name": "Dwarven Resilience",
+					"entries": [
+						"德蘭尼在對抗毒素的豁免檢定中具有優勢。"
+					]
+				},
+				{
+					"name": "不屈 (短休或長休之後充能)", "tENG_name": "Indomitable (Recharges after a Short or Long Rest)",
+					"entries": [
+						"德蘭尼可以重骰他失敗的豁免檢定。若他這麼做，則他必須使用新的擲骰結果。"
+					]
+				},
+				{
+					"name": "回氣 (短休或長休之後充能)", "tENG_name": "Second Wind (Recharges after a Short or Long Rest)",
+					"entries": [
+						"德蘭尼能夠以一個附贈動作回復16 ({@dice 1d10 + 11})點生命值。"
+					]
+				},
+				{
+					"name": "特殊裝備", "tENG_name": "Special Equipment",
+					"entries": [
+						"德蘭尼穿戴了一個用以控制他{@creature 構裝盾衛}的控制護符，以及一枚{@item 寒冰抗性戒指}。他同時攜帶了一瓶{@item 霜巨人之力藥水}。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "多重攻擊",
+					"entries": [
+						"德蘭尼進行三次巨斧攻擊。"
+					]
+				},
+				{
+					"name": "巨斧",
+					"entries": [
+						"{@atk mw} 命中{@hit 7}，觸及5呎，單一目標。 {@h}17 ({@damage 2d12 + 4}) 劈砍傷害。"
+					]
+				}
+			],
+			"page": 210,
+			"traitTags": [
+				"Brute"
+			],
+			"actionTags": [
+				"Multiattack"
+			],
+			"languageTags": [
+				"C",
+				"D"
+			],
+			"senseTags": [
+				"D"
+			],
+			"damageTags": [
+				"S"
+			]
+		},
+		{
+			"name": "土元素追隨者", "ENG_name": "Earth Elemental Myrmidon",
+			"size": "M",
+			"type": "elemental",
+			"source": "PotA",
+			"alignment": [
+				"N"
+			],
+			"ac": [
+				{
+					"ac": 18,
+					"from": [
+						"{@item 全身板甲|phb}"
+					]
+				}
+			],
+			"hp": {
+				"average": 127,
+				"formula": "17d8 + 51"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 18,
+			"dex": 10,
+			"con": 17,
+			"int": 8,
+			"wis": 10,
+			"cha": 10,
+			"resist": [
+				{
+					"resist": [
+						"bludgeoning",
+						"piercing",
+						"slashing"
+					],
+					"preNote": "非魔法攻擊所造成的"
+				}
+			],
+			"immune": [
+				"poison"
+			],
+			"conditionImmune": [
+				"paralyzed",
+				"petrified",
+				"poisoned",
+				"prone"
+			],
+			"senses": "黑暗視覺60呎",
+			"passive": 10,
+			"languages": "土族語、一種它創造者所選擇的語言",
+			"cr": "7",
+			"trait": [
+				{
+					"name": "魔法武器", "tENG_name": "Magic Weapons",
+					"entries": [
+						"追隨者的武器攻擊視作魔法攻擊。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "多重攻擊",
+					"entries": [
+						"追隨者進行二次巨鎚攻擊。"
+					]
+				},
+				{
+					"name": "巨鎚", "tENG_name": "Maul",
+					"entries": [
+						"{@atk mw} 命中{@hit 7}，觸及5呎，單一目標。 {@h}11 ({@damage 2d6 + 4}) 鈍擊傷害。"
+					]
+				},
+				{
+					"name": "雷霆猛擊{@recharge}", "tENG_name": "Thunderous Strike {@recharge}",
+					"entries": [
+						"追隨者進行一次巨鎚攻擊。若該攻擊命中，則它將額外造成 16 ({@damage 3d10})雷鳴傷害，且目標必須成功通過一次DC 14的力量豁免，否則將被擊倒{@condition 伏地}。"
+					]
+				}
+			],
+			"page": 212,
+			"soundClip": "https://media-waterdeep.cursecdn.com/file-attachments/0/635/earth-elemental-myrmidon.mp3",
+			"traitTags": [
+				"Magic Weapons"
+			],
+			"actionTags": [
+				"Multiattack"
+			],
+			"languageTags": [
+				"T"
+			],
+			"senseTags": [
+				"D"
+			],
+			"damageTags": [
+				"B",
+				"T"
+			]
+		},
+		{
+			"name": "艾利札．乾壺", "ENG_name": "Elizar Dryflagon",
+			"isNpc": true,
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"human"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"N",
+				"E"
+			],
+			"ac": [
+				{
+					"ac": 14,
+					"from": [
+						"{@item 生皮甲|phb}"
+					]
+				}
+			],
+			"hp": {
+				"average": 71,
+				"formula": "11d8 + 22"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 13,
+			"dex": 15,
+			"con": 14,
+			"int": 11,
+			"wis": 18,
+			"cha": 10,
+			"skill": {
+				"arcana": "+3",
+				"deception": "+3"
+			},
+			"passive": 14,
+			"languages": "通用語、德魯伊語",
+			"cr": "5",
+			"trait": [
+				{
+					"name": "召喚魔蝠 (長休之後充能)", "tENG_name": "Summon Mephits (Recharges after a Long Rest)",
+					"entries": [
+						"藉由從煙斗噴吐煙霧，艾利札可以使用一個動作來施放{@spell 召喚次級元素生物}。若他這麼做，則他將召喚出四個{@creature 煙魔蝠}。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "匕首+1",
+					"entries": [
+						"{@atk mw,rw} 命中{@hit 6}，觸及5呎 或射程 20/60 呎, 單一目標。 {@h}5 ({@damage 1d4 + 3}) 穿刺傷害。"
+					]
+				}
+			],
+			"page": 202,
+			"spellcasting": [
+				{
+					"name": "施法",
+					"headerEntries": [
+						"艾利札是7級的施法者。他的施法屬性為睿知（法術豁免DC 15，法術攻擊命中{@hit 7}）。艾利札已準備了以下德魯伊法術："
+					],
+					"spells": {
+						"0": {
+							"spells": [
+								"{@spell 德魯伊伎倆}",
+								"{@spell 指導術}",
+								"{@spell 毒氣噴灑}",
+								"{@spell 燃火術}"
+							]
+						},
+						"1": {
+							"slots": 4,
+							"spells": [
+								"{@spell 化獸為友}",
+								"{@spell 妖火術}",
+								"{@spell 治癒真言}",
+								"{@spell 跳躍術}",
+								"{@spell 雷鳴波}"
+							]
+						},
+						"2": {
+							"slots": 3,
+							"spells": [
+								"{@spell 火焰刀}",
+								"{@spell 荊棘叢生}"
+							]
+						},
+						"3": {
+							"slots": 3,
+							"spells": [
+								"{@spell 解除魔法}",
+								"{@spell 臭雲術}"
+							]
+						},
+						"4": {
+							"slots": 2,
+							"spells": [
+								"{@spell 枯萎術}",
+								"{@spell 火牆術}"
+							]
+						}
+					},
+					"ability": "wis"
+				}
+			],
+			"languageTags": [
+				"C",
+				"DU"
+			],
+			"spellcastingTags": [
+				"CD"
+			],
+			"damageTags": [
+				"P"
+			]
+		},
+		{
+			"name": "永焰守護者", "ENG_name": "Eternal Flame Guardian",
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"human"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"C",
+				"E"
+			],
+			"ac": [
+				{
+					"ac": 17,
+					"from": [
+						"{@item 護胸甲|phb}",
+						"{@item 盾牌|phb}"
+					]
+				},
+				{
+					"ac": 15,
+					"condition": "(使用弩時)"
+				}
+			],
+			"hp": {
+				"average": 45,
+				"formula": "7d8 + 14"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 15,
+			"dex": 13,
+			"con": 14,
+			"int": 8,
+			"wis": 11,
+			"cha": 13,
+			"skill": {
+				"intimidation": "+3",
+				"perception": "+2"
+			},
+			"resist": [
+				"fire"
+			],
+			"passive": 12,
+			"languages": "通用語",
+			"cr": "2",
+			"trait": [
+				{
+					"name": "烈焰武器 (短休或長休之後充能)", "tENG_name": "Flaming Weapon (Recharges after a Short or Long Rest)",
+					"entries": [
+						"以一個附贈動作，永焰守護者可以使它所持握的一把近戰武器被烈焰纏繞。永焰守護者並不會被這陣火焰所傷害，且這陣烈焰將持續直到該永焰守護者的下個回合結束。當被烈焰纏繞時，這把武器將在命中時額外造成 3 ({@damage 1d6})火焰傷害。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "多重攻擊",
+					"entries": [
+						"永焰守護者進行二次近戰攻擊。"
+					]
+				},
+				{
+					"name": "長劍",
+					"entries": [
+						"{@atk mw} 命中{@hit 4}，觸及5呎，單一目標。 {@h}6 ({@damage 1d8 + 2}) 劈砍傷害。"
+					]
+				},
+				{
+					"name": "重弩",
+					"entries": [
+						"{@atk rw} 命中{@hit 3}，射程 100/400 呎, 單一目標。 {@h}6 ({@damage 1d10 + 1}) 穿刺傷害。"
+					]
+				}
+			],
+			"page": 200,
+			"actionTags": [
+				"Multiattack"
+			],
+			"languageTags": [
+				"C"
+			],
+			"damageTags": [
+				"S",
+				"P",
+				"F"
+			]
+		},
+		{
+			"name": "永焰祭司", "ENG_name": "Eternal Flame Priest",
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"human"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"N",
+				"E"
+			],
+			"ac": [
+				12,
+				{
+					"ac": 15,
+					"condition": "使用{@spell 法師護甲}時",
+					"braces": true
+				}
+			],
+			"hp": {
+				"average": 52,
+				"formula": "8d8 + 16"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 12,
+			"dex": 15,
+			"con": 14,
+			"int": 10,
+			"wis": 11,
+			"cha": 16,
+			"skill": {
+				"deception": "+5",
+				"intimidation": "+5",
+				"religion": "+2"
+			},
+			"resist": [
+				"fire"
+			],
+			"passive": 10,
+			"languages": "通用語、火族語",
+			"cr": "3",
+			"action": [
+				{
+					"name": "匕首",
+					"entries": [
+						"{@atk mw,rw} 命中{@hit 4}，觸及5呎 或射程 20/60 呎, 單一目標。 {@h}4 ({@damage 1d4 + 2}) 穿刺傷害。"
+					]
+				}
+			],
+			"page": 200,
+			"spellcasting": [
+				{
+					"name": "施法",
+					"headerEntries": [
+						"永焰祭司是5級的施法者。它的施法屬性為魅力（法術豁免DC 13，法術攻擊命中{@hit 5}）。它知曉以下術士法術："
+					],
+					"spells": {
+						"0": {
+							"spells": [
+								"{@spell 控火|xge}",
+								"{@spell 創造篝火|xge}",
+								"{@spell 火焰箭}",
+								"{@spell 光亮術}",
+								"{@spell 次級幻象}"
+							]
+						},
+						"1": {
+							"slots": 4,
+							"spells": [
+								"{@spell 燃燒之手}",
+								"{@spell 腳底抹油}",
+								"{@spell 法師護甲}"
+							]
+						},
+						"2": {
+							"slots": 3,
+							"spells": [
+								"{@spell 朦朧術}",
+								"{@spell 灼熱射線}"
+							]
+						},
+						"3": {
+							"slots": 2,
+							"spells": [
+								"{@spell 火球術}"
+							]
+						}
+					},
+					"ability": "cha"
+				}
+			],
+			"languageTags": [
+				"C",
+				"IG"
+			],
+			"spellcastingTags": [
+				"CS"
+			],
+			"damageTags": [
+				"P"
+			]
+		},
+		{
+			"name": "深測者", "ENG_name": "Fathomer",
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"human"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"N",
+				"E"
+			],
+			"ac": [
+				10,
+				{
+					"ac": 13,
+					"condition": "使用{@spell 法師護甲}時",
+					"braces": true
+				}
+			],
+			"hp": {
+				"average": 52,
+				"formula": "8d8 + 16"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 14,
+			"dex": 11,
+			"con": 14,
+			"int": 11,
+			"wis": 11,
+			"cha": 15,
+			"skill": {
+				"arcana": "+2",
+				"perception": "+4",
+				"stealth": "+4"
+			},
+			"passive": 14,
+			"languages": "水族語、通用語",
+			"cr": "2",
+			"trait": [
+				{
+					"name": "變形者 (2/日)", "tENG_name": "Shapechanger (2/Day)",
+					"entries": [
+						"深測者可以使用它的動作以變形成一個中型，由水構成的蛇，或變回它的真實型態。任何深測者所穿戴或攜帶的裝備將會在變形期間融入蛇型態之中，且直到它變為真實型態之前都無法使用。深測者會在4小時之後變回它的真實型態，除非它在這之前再一次消耗這個特性的使用次數。當深測者被擊暈{@condition 昏迷}或死亡時，它也將變回它的真實型態。",
+						"當處於蛇型態時，深測者將獲得40呎的游泳速度，能夠在水下呼吸的能力，免疫於毒素傷害，且對於火焰傷害和非魔法攻擊所造成的鈍擊、穿刺、劈砍傷害具有抗性。它同時免疫於以下狀態：{@condition 力竭}、{@condition 被擒}、{@condition 麻痺}、{@condition 中毒}、{@condition 束縛}、{@condition 伏地}、{@condition 昏迷}。蛇型態可以進入敵對生物所在的空間，並停留在該處。此外，若某處空間足以讓水通過，則蛇型態就不用擠縮身體而能夠通過該空間。"
+					]
+				},
+				{
+					"name": "奧莉德拉之護甲 (限定人類型態)", "tENG_name": "Olhydra's Armor (Human Form Only)",
+					"entries": [
+						"深測者可以隨意施放{@spell 法師護甲}，且無須消耗任何材料構材。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "絞纏 (限定蛇型態)", "tENG_name": "Constrict (Serpent Form Only)",
+					"entries": [
+						"{@atk mw} 命中{@hit 4}，觸及5呎，單一目標。 {@h}9 ({@damage 2d6 + 2}) 鈍擊傷害。若目標的體型為中型或更小，則它將{@condition 被擒}(逃脫DC 12)。直到擒抱結束前，目標被{@condition 束縛}，且深測者不能絞纏另一個目標。"
+					]
+				},
+				{
+					"name": "匕首 (限定人類型態)", "tENG_name": "Dagger (Human Form Only)",
+					"entries": [
+						"{@atk mw,rw} 命中{@hit 4}，觸及5呎 或射程 20/60 呎, 單一目標。 {@h}4 ({@damage 1d4 + 2}) 穿刺傷害。"
+					]
+				}
+			],
+			"page": 207,
+			"spellcasting": [
+				{
+					"name": "施法 (限定人類型態)", "tENG_name": "Spellcasting (Human Form Only)",
+					"headerEntries": [
+						"深測者是5級的施法者。它的施法屬性為魅力（法術豁免DC 12，法術攻擊命中{@hit 4}）。它擁有二個3環法術位，且會在完成一次短休或長休時恢復它所有的法術位。它知曉以下契術師法術："
+					],
+					"spells": {
+						"0": {
+							"spells": [
+								"{@spell 寒顫之觸}",
+								"{@spell 魔能爆}",
+								"{@spell 法師之手}"
+							]
+						},
+						"1": {
+							"slots": 0,
+							"spells": [
+								"{@spell 艾嘉西斯之鎧}",
+								"{@spell 腳底抹油}",
+								"{@spell 脆弱詛咒}"
+							]
+						},
+						"2": {
+							"slots": 0,
+							"spells": [
+								"{@spell 隱形術}"
+							]
+						},
+						"3": {
+							"slots": 2,
+							"spells": [
+								"{@spell 吸血鬼之觸}"
+							]
+						}
+					},
+					"ability": "cha"
+				}
+			],
+			"languageTags": [
+				"AQ",
+				"C"
+			],
+			"spellcastingTags": [
+				"F",
+				"CL"
+			],
+			"damageTags": [
+				"B",
+				"P"
+			]
+		},
+		{
+			"name": "羽風騎士","ENG_name": "Feathergale Knight",
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"human"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"L",
+				"E"
+			],
+			"ac": [
+				{
+					"ac": 16,
+					"from": [
+						"{@item 鱗甲|phb}"
+					]
+				}
+			],
+			"hp": {
+				"average": 33,
+				"formula": "6d8 + 6"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 14,
+			"dex": 14,
+			"con": 12,
+			"int": 11,
+			"wis": 10,
+			"cha": 14,
+			"skill": {
+				"animal handling": "+2",
+				"history": "+2"
+			},
+			"passive": 10,
+			"languages": "氣族語、通用語",
+			"cr": "1",
+			"action": [
+				{
+					"name": "多重攻擊",
+					"entries": [
+						"羽風騎士進行二次近戰攻擊。"
+					]
+				},
+				{
+					"name": "長劍",
+					"entries": [
+						"{@atk mw} 命中{@hit 4}，觸及5呎，單一目標。 {@h}6 ({@damage 1d8 + 2})劈砍傷害，或若以雙手使用時則造成 7 ({@damage 1d10 + 2})劈砍傷害。"
+					]
+				},
+				{
+					"name": "矛",
+					"entries": [
+						"{@atk mw,rw} 命中{@hit 4}，觸及5呎 或射程 20/60 呎, 單一目標。 {@h}5 ({@damage 1d6 + 2})穿刺傷害，或若雙手使用以進行一次近戰攻擊時則造成 6 ({@damage 1d8 + 2})穿刺傷害。"
+					]
+				}
+			],
+			"page": 189,
+			"spellcasting": [
+				{
+					"name": "施法",
+					"headerEntries": [
+						"羽風騎士是1級的施法者。它的施法屬性為魅力（法術豁免DC 12，法術攻擊命中{@hit 4}）。它知曉以下術士法術："
+					],
+					"spells": {
+						"0": {
+							"spells": [
+								"{@spell 舞風|xge}",
+								"{@spell 光亮術}",
+								"{@spell 傳訊術}",
+								"{@spell 冷凍射線}"
+							]
+						},
+						"1": {
+							"slots": 2,
+							"spells": [
+								"{@spell 腳底抹油}",
+								"{@spell 羽落術}"
+							]
+						}
+					},
+					"ability": "cha"
+				}
+			],
+			"actionTags": [
+				"Multiattack"
+			],
+			"languageTags": [
+				"AU",
+				"C"
+			],
+			"spellcastingTags": [
+				"CS"
+			],
+			"damageTags": [
+				"S",
+				"P"
+			]
+		},
+		{
+			"name": "火元素追隨者", "ENG_name": "Fire Elemental Myrmidon",
+			"size": "M",
+			"type": "elemental",
+			"source": "PotA",
+			"alignment": [
+				"N"
+			],
+			"ac": [
+				{
+					"ac": 18,
+					"from": [
+						"{@item 全身板甲|phb}"
+					]
+				}
+			],
+			"hp": {
+				"average": 117,
+				"formula": "18d8 + 36"
+			},
+			"speed": {
+				"walk": 40
+			},
+			"str": 13,
+			"dex": 18,
+			"con": 15,
+			"int": 9,
+			"wis": 10,
+			"cha": 10,
+			"resist": [
+				{
+					"resist": [
+						"bludgeoning",
+						"piercing",
+						"slashing"
+					],
+					"preNote": "非魔法攻擊所造成的"
+				}
+			],
+			"immune": [
+				"fire",
+				"poison"
+			],
+			"conditionImmune": [
+				"paralyzed",
+				"petrified",
+				"poisoned",
+				"prone"
+			],
+			"senses": "黑暗視覺60呎",
+			"passive": 10,
+			"languages": "火族語、一種它創造者所選擇的語言",
+			"cr": "7",
+			"trait": [
+				{
+					"name": "照明", "tENG_name": "Illumination",
+					"entries": [
+						"追隨者會散發出20呎半徑的明亮光照和40呎的微光光照。"
+					]
+				},
+				{
+					"name": "魔法武器", "tENG_name": "Magic Weapons",
+					"entries": [
+						"追隨者的武器攻擊視作魔法攻擊。"
+					]
+				},
+				{
+					"name": "水體敏感", "tENG_name": "Water Susceptibility",
+					"entries": [
+						"追隨者每在水中移動5呎，它就會受到 2 ({@damage 1d4})寒冰傷害。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "多重攻擊",
+					"entries": [
+						"追隨者進行三次彎刀攻擊。"
+					]
+				},
+				{
+					"name": "彎刀",
+					"entries": [
+						"{@atk mw} 命中{@hit 7}，觸及5呎，單一目標。 {@h}7 ({@damage 1d6 + 4}) 劈砍傷害。"
+					]
+				},
+				{
+					"name": "烈焰猛擊{@recharge}", "tENG_name": "Fiery Strikes {@recharge}",
+					"entries": [
+						"追隨者使用多重攻擊。每次命中的攻擊都將額外造成 5 ({@damage 1d10})火焰傷害。"
+					]
+				}
+			],
+			"page": 213,
+			"soundClip": "https://media-waterdeep.cursecdn.com/file-attachments/0/640/fire-elemental-myrmidon.mp3",
+			"traitTags": [
+				"Illumination",
+				"Magic Weapons"
+			],
+			"actionTags": [
+				"Multiattack"
+			],
+			"languageTags": [
+				"IG"
+			],
+			"senseTags": [
+				"D"
+			],
+			"damageTags": [
+				"S",
+				"F",
+				"C"
+			]
+		},
+		{
+			"name": "怒火者", "ENG_name": "Flamewrath",
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"human"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"C",
+				"E"
+			],
+			"ac": [
+				12,
+				{
+					"ac": 15,
+					"condition": "使用{@spell 法師護甲}時",
+					"braces": true
+				}
+			],
+			"hp": {
+				"average": 105,
+				"formula": "14d8 + 42"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 10,
+			"dex": 14,
+			"con": 16,
+			"int": 11,
+			"wis": 10,
+			"cha": 16,
+			"skill": {
+				"arcana": "+3",
+				"religion": "+3"
+			},
+			"immune": [
+				"fire"
+			],
+			"passive": 10,
+			"languages": "通用語、火族語",
+			"cr": "6",
+			"trait": [
+				{
+					"name": "烈焰纏身", "tENG_name": "Wreathed in Flame",
+					"entries": [
+						"對於怒火者而言，溫暖版本的{@spell 火焰護盾}法術的持續時間變更為「直到解消」。在怒火者死亡之後，該火焰護盾仍會持續燃燒長達10分鐘，將其軀體焚燒殆盡。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "匕首",
+					"entries": [
+						"{@atk mw,rw} 命中{@hit 5}，觸及5呎 或射程 20/60 呎, 單一目標。 {@h}4 ({@damage 1d4 + 2}) 穿刺傷害。"
+					]
+				}
+			],
+			"page": 201,
+			"spellcasting": [
+				{
+					"name": "施法",
+					"headerEntries": [
+						"怒火者是7級的施法者。它的施法屬性為魅力（法術豁免DC 14，法術攻擊命中{@hit 6}）。它知曉以下術士法術："
+					],
+					"spells": {
+						"0": {
+							"spells": [
+								"{@spell 控火|xge}",
+								"{@spell 火焰箭}",
+								"{@spell 交友術}",
+								"{@spell 光亮術}",
+								"{@spell 次級幻象}"
+							]
+						},
+						"1": {
+							"slots": 4,
+							"spells": [
+								"{@spell 燃燒之手}",
+								"{@spell 七彩噴射}",
+								"{@spell 法師護甲}"
+							]
+						},
+						"2": {
+							"slots": 3,
+							"spells": [
+								"{@spell 灼熱射線}",
+								"{@spell 暗示術}"
+							]
+						},
+						"3": {
+							"slots": 3,
+							"spells": [
+								"{@spell 火球術}",
+								"{@spell 催眠圖紋}"
+							]
+						},
+						"4": {
+							"slots": 1,
+							"spells": [
+								"{@spell 火焰護盾} (參見烈焰纏身)"
+							]
+						}
+					},
+					"ability": "cha"
+				}
+			],
+			"languageTags": [
+				"C",
+				"IG"
+			],
+			"spellcastingTags": [
+				"CS"
+			],
+			"damageTags": [
+				"P"
+			]
+		},
+		{
+			"name": "加爾．碎骨", "ENG_name": "Gar Shatterkeel",
+			"isNpc": true,
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"human"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"N",
+				"E"
+			],
+			"ac": [
+				{
+					"ac": 16,
+					"from": [
+						"天生護甲"
+					]
+				}
+			],
+			"hp": {
+				"average": 97,
+				"formula": "15d8 + 45"
+			},
+			"speed": {
+				"walk": 30,
+				"swim": 30
+			},
+			"str": 15,
+			"dex": 15,
+			"con": 16,
+			"int": 12,
+			"wis": 18,
+			"cha": 13,
+			"skill": {
+				"nature": "+8",
+				"survival": "+8"
+			},
+			"resist": [
+				"cold"
+			],
+			"passive": 14,
+			"languages": "水族語、通用語",
+			"cr": "9",
+			"trait": [
+				{
+					"name": "兩棲", "tENG_name": "Amphibious",
+					"entries": [
+						"加爾可以在空氣和水中呼吸。"
+					]
+				},
+				{
+					"name": "傳奇抗性 (2/日)",
+					"entries": [
+						"若加爾在一次豁免檢定中失敗，他可以選擇改為使其成功。"
+					]
+				},
+				{
+					"name": "水面行走", "tENG_name": "Water Walk",
+					"entries": [
+						"加爾可以在液態表面上站立並行走，就如同它們是固體表面一樣。"
+					]
+				},
+				{
+					"name": "化水落", "tENG_name": "Watery Fall",
+					"entries": [
+						"當加爾的生命值歸零時，他的身體將潰散成一池墨水，並迅速蒸發消散。任何他所穿戴或攜帶的東西都將被留在原地。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "多重攻擊",
+					"entries": [
+						"加爾進行二次近戰攻擊，一次爪抓、一次使用魔法武器{@item 水溺|pota}。"
+					]
+				},
+				{
+					"name": "鉗擊", "tENG_name": "Claw",
+					"entries": [
+						"{@atk mw} 命中{@hit 6}，觸及5呎，單一目標。 {@h}9 ({@damage 2d6 + 2})鈍擊傷害，且目標{@condition 被擒}(逃脫DC 13)。直到擒抱結束前，加爾不能對另一個生物使用鉗擊。"
+					]
+				},
+				{
+					"name": "水溺", "tENG_name": "Drown",
+					"entries": [
+						"{@atk mw,rw} 命中{@hit 7}，觸及5呎 或射程20/60呎, 單一目標。 {@h}6 ({@damage 1d6 + 3})穿刺傷害加 4 ({@damage 1d8})寒冰傷害。"
+					]
+				}
+			],
+			"legendaryGroup": {
+				"name": "Gar Shatterkeel",
+				"source": "PotA"
+			},
+			"page": 208,
+			"spellcasting": [
+				{
+					"name": "施法",
+					"headerEntries": [
+						"加爾是一名9級的施法者。他的施法屬性為睿知（法術豁免DC 16，法術攻擊命中{@hit 8}）。他已準備了以下德魯伊法術："
+					],
+					"spells": {
+						"0": {
+							"spells": [
+								"{@spell 修復術}",
+								"{@spell 提升抗力}",
+								"{@spell 塑水|xge}"
+							]
+						},
+						"1": {
+							"slots": 4,
+							"spells": [
+								"{@spell 造水/枯水術}",
+								"{@spell 治療傷勢}",
+								"{@spell 雲霧術}",
+								"{@spell 雷鳴波}"
+							]
+						},
+						"2": {
+							"slots": 3,
+							"spells": [
+								"{@spell 黑暗視覺}",
+								"{@spell 人類定身術}",
+								"{@spell 防護毒素}"
+							]
+						},
+						"3": {
+							"slots": 3,
+							"spells": [
+								"{@spell 召雷術}",
+								"{@spell 雪雨暴}",
+								"{@spell 潮湧浪|xge}"
+							]
+						},
+						"4": {
+							"slots": 3,
+							"spells": [
+								"{@spell 操控水體}",
+								"{@spell 冰風暴}"
+							]
+						},
+						"5": {
+							"slots": 1,
+							"spells": [
+								"{@spell 探知}"
+							]
+						}
+					},
+					"ability": "wis"
+				}
+			],
+			"traitTags": [
+				"Amphibious",
+				"Legendary Resistances"
+			],
+			"actionTags": [
+				"Multiattack"
+			],
+			"languageTags": [
+				"AQ",
+				"C"
+			],
+			"spellcastingTags": [
+				"CD"
+			],
+			"damageTags": [
+				"B",
+				"P",
+				"C"
+			]
+		},
+		{
+			"name": "葛哈德", "ENG_name": "Ghald",
+			"isNpc": true,
+			"size": "L",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"sahuagin"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"L",
+				"E"
+			],
+			"ac": [
+				{
+					"ac": 15,
+					"from": [
+						"天生護甲"
+					]
+				}
+			],
+			"hp": {
+				"average": 102,
+				"formula": "12d10 + 36"
+			},
+			"speed": {
+				"walk": 30,
+				"swim": 50
+			},
+			"str": 19,
+			"dex": 17,
+			"con": 16,
+			"int": 14,
+			"wis": 13,
+			"cha": 17,
+			"save": {
+				"dex": "+6",
+				"con": "+6",
+				"int": "+5",
+				"wis": "+4"
+			},
+			"skill": {
+				"insight": "+4",
+				"perception": "+7"
+			},
+			"senses": "黑暗視覺120呎",
+			"passive": 17,
+			"languages": "通用語、沙華魚人語",
+			"cr": "7",
+			"trait": [
+				{
+					"name": "刺殺", "tENG_name": "Assassinate",
+					"entries": [
+						"在他的第一個回合期間，葛哈德對任何尚未採取過回合的生物所進行的攻擊檢定具有優勢。且葛哈德命中任何被突襲生物的攻擊都視為暴擊。"
+					]
+				},
+				{
+					"name": "有限兩棲", "tENG_name": "Limited Amphibiousness",
+					"entries": [
+						"葛哈德可以在空氣和水中呼吸，但他每4小時必須至少回到水中一次以避免窒息。"
+					]
+				},
+				{
+					"name": "鯊心感應", "tENG_name": "Shark Telepathy",
+					"entries": [
+						"藉由有限的心靈感應，葛哈德可以用魔法對任何距離它120呎內的鯊魚下達命令。"
+					]
+				},
+				{
+					"name": "偷襲", "tENG_name": "Sneak Attack",
+					"entries": [
+						"當葛哈德以武器攻擊命中一個目標時，若該攻擊檢定具有優勢，或者該攻擊檢定沒有劣勢且葛哈德有一個未{@condition 無力}的隊友距離目標5呎內，則葛哈德造成額外的14 ({@dice 4d6})傷害。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "多重攻擊",
+					"entries": [
+						"葛哈德進行三次攻擊，一次啃咬，二次短劍。"
+					]
+				},
+				{
+					"name": "啃咬",
+					"entries": [
+						"{@atk mw} 命中{@hit 7}，觸及5呎，單一生物。 {@h}9 ({@damage 2d4 + 4}) 穿刺傷害。"
+					]
+				},
+				{
+					"name": "短劍",
+					"entries": [
+						"{@atk mw} 命中{@hit 7}，觸及5呎，單一生物。  {@h}11 ({@damage 2d6 + 4}) 穿刺傷害。"
+					]
+				},
+				{
+					"name": "絞繩", "tENG_name": "Garrote",
+					"entries": [
+						"{@atk mw} 命中{@hit 7}，觸及5呎，單一體型為中型或小型且葛哈德對其攻擊檢定有優勢的生物。 {@h}9 ({@damage 2d4 + 4}) 鈍擊傷害，且目標{@condition 被擒}(逃脫DC 15)。直到擒抱結束前，目標將無法呼吸，且葛哈德對它所進行的攻擊檢定都將帶有優勢。"
+					]
+				}
+			],
+			"page": 210,
+			"traitTags": [
+				"Sneak Attack"
+			],
+			"actionTags": [
+				"Multiattack"
+			],
+			"languageTags": [
+				"C",
+				"OTH"
+			],
+			"senseTags": [
+				"SD"
+			],
+			"damageTags": [
+				"P",
+				"B"
+			]
+		},
+		{
+			"name": "海倫芮", "ENG_name": "Hellenrae",
+			"isNpc": true,
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"human"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"L",
+				"E"
+			],
+			"ac": [
+				16
+			],
+			"hp": {
+				"average": 78,
+				"formula": "12d8 + 24"
+			},
+			"speed": {
+				"walk": 50
+			},
+			"str": 13,
+			"dex": 18,
+			"con": 14,
+			"int": 10,
+			"wis": 15,
+			"cha": 13,
+			"skill": {
+				"acrobatics": "+7",
+				"athletics": "+4",
+				"insight": "+5",
+				"perception": "+5"
+			},
+			"immune": [
+				"poison"
+			],
+			"conditionImmune": [
+				"blinded",
+				"poisoned"
+			],
+			"senses": "盲視60呎（超過半徑範圍則視作目盲）",
+			"passive": 15,
+			"languages": "通用語、土族語",
+			"cr": "5",
+			"trait": [
+				{
+					"name": "反射閃避", "tENG_name": "Evasion",
+					"entries": [
+						"若海倫芮成為一個允許她進行敏捷豁免以僅承受一半傷害的效果的目標，則海倫芮可以改為在豁免成功時不受任何傷害，且在豁免失敗時僅承受一半傷害。"
+					]
+				},
+				{
+					"name": "震懾擊{@recharge 5}", "tENG_name": "Stunning Strike {@recharge 5}",
+					"entries": [
+						"當海倫芮以一次近戰武器攻擊命中目標時，目標必須成功通過一次DC 13的體質豁免，否則將被{@condition 震懾}直到海倫芮的下個回合結束。"
+					]
+				},
+				{
+					"name": "無甲防禦", "tENG_name": "Unarmored Defense",
+					"entries": [
+						"當海倫芮未穿戴任何護甲且未持用盾牌時，她的AC將加上她的睿知調整值。"
+					]
+				},
+				{
+					"name": "無甲移動", "tENG_name": "Unarmored Movement",
+					"entries": [
+						"當海倫芮未穿戴任何護甲且未持用盾牌時，她的移動速度將增加20呎（已包含在移動速度）。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "多重攻擊",
+					"entries": [
+						"海倫芮進行三次近戰攻擊。"
+					]
+				},
+				{
+					"name": "徒手打擊",
+					"entries": [
+						"{@atk mw} 命中{@hit 7}，觸及5呎，單一目標。 {@h}9 ({@damage 1d10 + 4}) 鈍擊傷害。"
+					]
+				}
+			],
+			"reaction": [
+				{
+					"name": "格擋反擊", "tENG_name": "Parry and Counter",
+					"entries": [
+						"海倫芮在一次遠程或近戰武器攻擊將要命中她時可以針對該次攻擊使她的AC增加3點。若要這麼做，海倫芮必須要能看藉由她的盲視感知到攻擊者。若該攻擊因此失手，且若攻擊者處於海倫芮的觸及範圍內，則她可以對攻擊者進行一次近戰攻擊。"
+					]
+				}
+			],
+			"page": 198,
+			"actionTags": [
+				"Multiattack"
+			],
+			"languageTags": [
+				"C",
+				"T"
+			],
+			"senseTags": [
+				"B"
+			],
+			"damageTags": [
+				"B"
+			]
+		},
+		{
+			"name": "嘯怨新晉者", "ENG_name": "Howling Hatred Initiate",
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"human"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"N",
+				"E"
+			],
+			"ac": [
+				{
+					"ac": 13,
+					"from": [
+						"{@item 皮甲|phb}"
+					]
+				}
+			],
+			"hp": {
+				"average": 9,
+				"formula": "2d8"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 10,
+			"dex": 15,
+			"con": 10,
+			"int": 10,
+			"wis": 9,
+			"cha": 11,
+			"skill": {
+				"deception": "+2",
+				"religion": "+2",
+				"stealth": "+4"
+			},
+			"passive": 9,
+			"languages": "通用語",
+			"cr": "1/8",
+			"trait": [
+				{
+					"name": "導引之風 (短休或長休之後充能)", "tENG_name": "Guiding Wind (Recharges after a Short or Long Rest)",
+					"entries": [
+						"以一個附贈動作，在它的下個回合結束，嘯怨新晉者將在它的下一次遠程攻擊檢定中獲得優勢。"
+					]
+				},
+				{
+					"name": "屏息", "tENG_name": "Hold Breath",
+					"entries": [
+						"嘯怨新晉者可以屏住它的呼吸長達30分鐘。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "匕首",
+					"entries": [
+						"{@atk mw,rw} 命中{@hit 4}，觸及5呎 或射程 20/60 呎, 單一目標。 {@h}4 ({@damage 1d4 + 2}) 穿刺傷害。"
+					]
+				}
+			],
+			"page": 190,
+			"traitTags": [
+				"Hold Breath"
+			],
+			"languageTags": [
+				"C"
+			],
+			"damageTags": [
+				"P"
+			]
+		},
+		{
+			"name": "嘯怨祭司", "ENG_name": "Howling Hatred Priest",
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"human"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"N",
+				"E"
+			],
+			"ac": [
+				{
+					"ac": 15,
+					"from": [
+						"{@item 鑲釘皮甲|phb}"
+					]
+				}
+			],
+			"hp": {
+				"average": 45,
+				"formula": "10d8"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 12,
+			"dex": 16,
+			"con": 10,
+			"int": 14,
+			"wis": 10,
+			"cha": 14,
+			"skill": {
+				"acrobatics": "+5",
+				"intimidation": "+4",
+				"religion": "+4"
+			},
+			"passive": 10,
+			"languages": "氣族語、通用語",
+			"cr": "2",
+			"trait": [
+				{
+					"name": "屏息", "tENG_name": "Hold Breath",
+					"entries": [
+						"嘯怨祭司可以屏住它的呼吸長達30分鐘。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "多重攻擊",
+					"entries": [
+						"嘯怨祭司進行二次近戰攻擊、或是二次遠程攻擊."
+					]
+				},
+				{
+					"name": "彎刀",
+					"entries": [
+						"{@atk mw} 命中{@hit 5}，觸及5呎，單一目標。 {@h}6 ({@damage 1d6 + 3}) 劈砍傷害。"
+					]
+				},
+				{
+					"name": "匕首",
+					"entries": [
+						"{@atk mw,rw} 命中{@hit 5}，觸及5呎 或射程 20/60 呎, 單一目標。 {@h}5 ({@damage 1d4 + 3}) 穿刺傷害。"
+					]
+				}
+			],
+			"page": 190,
+			"spellcasting": [
+				{
+					"name": "施法",
+					"headerEntries": [
+						"嘯怨祭司是5級的施法者。它的施法屬性為魅力（法術豁免DC 12，法術攻擊命中{@hit 4}）。它知曉以下術士法術："
+					],
+					"spells": {
+						"0": {
+							"spells": [
+								"{@spell 劍刃防護}",
+								"{@spell 舞風|xge}",
+								"{@spell 光亮術}",
+								"{@spell 魔法技倆}",
+								"{@spell 電爪}"
+							]
+						},
+						"1": {
+							"slots": 4,
+							"spells": [
+								"{@spell 羽落術}",
+								"{@spell 護盾術}",
+								"{@spell 巫術箭}"
+							]
+						},
+						"2": {
+							"slots": 3,
+							"spells": [
+								"{@spell 塵捲風|xge}",
+								"{@spell 造風術}"
+							]
+						},
+						"3": {
+							"slots": 2,
+							"spells": [
+								"{@spell 氣化形體}"
+							]
+						}
+					},
+					"ability": "cha"
+				}
+			],
+			"traitTags": [
+				"Hold Breath"
+			],
+			"actionTags": [
+				"Multiattack"
+			],
+			"languageTags": [
+				"AU",
+				"C"
+			],
+			"spellcastingTags": [
+				"CS"
+			],
+			"damageTags": [
+				"S",
+				"P"
+			]
+		},
+		{
+			"name": "颶風", "ENG_name": "Hurricane",
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"human"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"L",
+				"E"
+			],
+			"ac": [
+				14
+			],
+			"hp": {
+				"average": 33,
+				"formula": "6d8 + 6"
+			},
+			"speed": {
+				"walk": 45
+			},
+			"str": 12,
+			"dex": 16,
+			"con": 13,
+			"int": 10,
+			"wis": 12,
+			"cha": 10,
+			"skill": {
+				"acrobatics": "+5"
+			},
+			"passive": 11,
+			"languages": "氣族語、通用語",
+			"cr": "2",
+			"trait": [
+				{
+					"name": "無甲防禦", "tENG_name": "Unarmored Defense",
+					"entries": [
+						"當颶風未穿戴任何護甲且未持用盾牌時，它的AC將加上它的睿知調整值。"
+					]
+				},
+				{
+					"name": "無甲移動", "tENG_name": "Unarmored Movement",
+					"entries": [
+						"當颶風未穿戴任何護甲且未持用盾牌時，它的移動速度將增加15呎（已包含在移動速度）。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "多重攻擊",
+					"entries": [
+						"颶風進行兩次近戰攻擊。"
+					]
+				},
+				{
+					"name": "徒手打擊",
+					"entries": [
+						"{@atk mw} 命中{@hit 5}，觸及5呎，單一目標。 {@h}6 ({@damage 1d6 + 3}) 鈍擊傷害。"
+					]
+				}
+			],
+			"reaction": [
+				{
+					"name": "撥擋飛彈", "tENG_name": "Deflect Missiles",
+					"entries": [
+						"當被一次遠程武器攻擊命中時，颶風可以撥檔該投射物。它從該攻擊所受到的傷害將被減少{@dice 1d10 + 9}點。若該傷害被降低至零，且若該投射物的大小能夠被單手抓住且颶風有至少一隻空手，則颶風將抓住該投射物。"
+					]
+				}
+			],
+			"page": 191,
+			"spellcasting": [
+				{
+					"name": "施法",
+					"headerEntries": [
+						"颶風是3級的施法者。它的施法屬性為睿知（法術豁免DC 11，法術攻擊命中{@hit 3}）。它知曉以下術士法術："
+					],
+					"spells": {
+						"0": {
+							"spells": [
+								"{@spell 劍刃防護}",
+								"{@spell 舞風|xge}",
+								"{@spell 光亮術}",
+								"{@spell 魔法技倆}"
+							]
+						},
+						"1": {
+							"slots": 4,
+							"spells": [
+								"{@spell 羽落術}",
+								"{@spell 跳躍術}",
+								"{@spell 雷鳴波}"
+							]
+						},
+						"2": {
+							"slots": 2,
+							"spells": [
+								"{@spell 造風術}"
+							]
+						}
+					},
+					"ability": "wis"
+				}
+			],
+			"actionTags": [
+				"Multiattack"
+			],
+			"languageTags": [
+				"AU",
+				"C"
+			],
+			"spellcastingTags": [
+				"CS"
+			],
+			"damageTags": [
+				"B"
+			]
+		},
+		{
+			"name": "伊密克斯", "ENG_name": "Imix",
+			"size": "H",
+			"type": "elemental",
+			"source": "PotA",
+			"alignment": [
+				"N",
+				"E"
+			],
+			"ac": [
+				17
+			],
+			"hp": {
+				"average": 325,
+				"formula": "26d12 + 156"
+			},
+			"speed": {
+				"walk": 50,
+				"fly": 50
+			},
+			"str": 19,
+			"dex": 24,
+			"con": 22,
+			"int": 15,
+			"wis": 16,
+			"cha": 23,
+			"save": {
+				"dex": "+14",
+				"con": "+13",
+				"cha": "+13"
+			},
+			"resist": [
+				{
+					"resist": [
+						"bludgeoning",
+						"piercing",
+						"slashing"
+					],
+					"preNote": "非魔法攻擊所造成的"
+				}
+			],
+			"immune": [
+				"fire",
+				"poison"
+			],
+			"conditionImmune": [
+				"charmed",
+				"frightened",
+				"paralyzed",
+				"petrified",
+				"poisoned",
+				"prone",
+				"restrained"
+			],
+			"senses": "盲視120呎",
+			"passive": 13,
+			"languages": "通用語、火族語",
+			"cr": "19",
+			"trait": [
+				{
+					"name": "賦能攻擊", "tENG_name": "Empowered Attacks",
+					"entries": [
+						"在克服對非魔法攻擊和傷害的抗性和免疫能力時，伊密克斯的猛擊攻擊被視作魔法攻擊。"
+					]
+				},
+				{
+					"name": "火焰靈光", "tENG_name": "Fire Aura",
+					"entries": [
+						"在伊密克斯的每個回合開始時，每個距離他10呎內的生物都將受到17 ({@damage 5d6})火焰傷害，且靈光範圍內所有未被穿戴或攜帶的可燃物體也都將被點燃。一個觸碰伊密克斯或在距離它10呎內以一次近戰攻擊命中它的生物將受到 17 ({@damage 5d6})火焰傷害，且在每個回合中當伊密克斯第一次進入其他生物所在的空間時，該生物也將受到這個傷害。命中伊密克斯的非魔法武器將在對他造成傷害之後立即被火焰摧毀。"
+					]
+				},
+				{
+					"name": "火焰形體", "tENG_name": "Fire Form",
+					"entries": [
+						"伊密克斯可以進入敵對生物所在的空間，並停留在該處。此外，他也可以移動穿越最窄1吋，且火焰得以通過的狹窄空間而不用擠縮身體。"
+					]
+				},
+				{
+					"name": "照明", "tENG_name": "Illumination",
+					"entries": [
+						"伊密克斯會散發出60呎半徑的明亮光照和再延伸60呎的微光光照。"
+					]
+				},
+				{
+					"name": "傳奇抗性 (3/日)",
+					"entries": [
+						"若伊密克斯在一次豁免檢定中失敗，它可以選擇改為使其成功。"
+					]
+				},
+				{
+					"name": "魔法抗性", "tENG_name": "Magic Resistance",
+					"entries": [
+						"伊密克斯在對抗法術和其他魔法效果的豁免檢定中具有優勢。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "多重攻擊",
+					"entries": [
+						"伊密克斯進行二次猛擊攻擊或二次烈焰爆破攻擊。"
+					]
+				},
+				{
+					"name": "猛擊", "tENG_name": "Slam",
+					"entries": [
+						"{@atk mw} 命中{@hit 12}，觸及10呎，單一目標。 {@h}18 ({@damage 2d10 + 7}) 鈍擊傷害加 18 ({@damage 5d6}) 火焰傷害。"
+					]
+				},
+				{
+					"name": "烈焰爆破", "tENG_name": "Flame Blast",
+					"entries": [
+						"{@atk rs} 命中{@hit 12}，射程250呎，單一目標。 {@h}35 ({@damage 10d6}) 火焰傷害。"
+					]
+				},
+				{
+					"name": "召喚元素生物 (1/日)", "tENG_name": "Summon Elementals (1/Day)",
+					"entries": [
+						"伊密克斯召喚出最多三個{@creature 火元素}，且他每召喚出一個元素生物便會失去30點生命值。被召喚的元素生物有著全滿的生命值，會出現在距離伊密克斯100呎內的位置，且會在伊密克斯的生命值歸零時消失不見。"
+					]
+				}
+			],
+			"legendary": [
+				{
+					"name": "熱浪", "tENG_name": "Heat Wave",
+					"entries": [
+						"伊密克斯在他周圍300呎內創造出一道高熱衝擊波。每個在範圍內，且與金屬物體有身體接觸的生物（例如，攜帶金屬武器或穿戴金屬護甲）都將受到9 ({@damage 2d8})火焰傷害。每個在範圍內，且對火焰傷害不具有抗性或免疫能力的生物都必須成功通過一次DC 21的體質豁免，否則將獲得一級{@condition 力竭}。"
+					]
+				},
+				{
+					"name": "傳送 (消耗 2動作)", "tENG_name": "Teleport (Costs 2 Actions)",
+					"entries": [
+						"伊密克斯用魔法傳送最多120呎距離到一處他所能看見的未被佔據空間。任何伊密克斯所穿戴或攜帶的裝備都不會跟著他一起被傳送。"
+					]
+				},
+				{
+					"name": "燃燒作用 (消耗 3動作)", "tENG_name": "Combustion (Costs 3 Actions)",
+					"entries": [
+						"伊密克斯使一個距離他30呎內且他所能看見的生物迸發出熊熊烈焰。目標必須進行一次DC 21的體質豁免。若豁免失敗，則目標將受到70 ({@damage 20d6})火焰傷害，並被點燃。著火的目標將在它的每個回合開始時受到10 ({@damage 3d6})火焰傷害，並維持著火狀態直到它或另一個生物採取一個動作以撲滅火焰。若豁免成功，則目標僅受到一半的傷害，且不會被點燃。"
+					]
+				}
+			],
+			"legendaryGroup": {
+				"name": "Imix",
+				"source": "PotA"
+			},
+			"page": 214,
+			"spellcasting": [
+				{
+					"name": "天生施法",
+					"headerEntries": [
+						"伊密克斯的天生施法屬性為魅力（法術豁免DC 20，法術攻擊命中{@hit 12}）。他天生就可以施展以下法術，且無需任何材料構材："
+					],
+					"will": [
+						"{@spell 火球術}",
+						"{@spell 火牆術}"
+					],
+					"daily": {
+						"3e": [
+							"{@spell 火焰風暴}",
+							"{@spell 加速術}",
+							"{@spell 傳送術}"
+						]
+					},
+					"ability": "cha"
+				}
+			],
+			"isNamedCreature": true,
+			"traitTags": [
+				"Illumination",
+				"Legendary Resistances",
+				"Magic Resistance"
+			],
+			"actionTags": [
+				"Multiattack"
+			],
+			"languageTags": [
+				"C",
+				"IG"
+			],
+			"senseTags": [
+				"B"
+			],
+			"spellcastingTags": [
+				"I"
+			],
+			"damageTags": [
+				"B",
+				"F"
+			]
+		},
+		{
+			"name": "馬洛斯．沃雷", "ENG_name": "Marlos Urnrayle",
+			"isNpc": true,
+			"size": "M",
+			"type": "monstrosity",
+			"source": "PotA",
+			"alignment": [
+				"N",
+				"E"
+			],
+			"ac": [
+				{
+					"ac": 15,
+					"from": [
+						"天生護甲"
+					]
+				}
+			],
+			"hp": {
+				"average": 136,
+				"formula": "16d8 + 64"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 17,
+			"dex": 11,
+			"con": 18,
+			"int": 12,
+			"wis": 13,
+			"cha": 17,
+			"skill": {
+				"arcana": "+4",
+				"deception": "+6",
+				"perception": "+4"
+			},
+			"resist": [
+				"acid"
+			],
+			"senses": "黑暗視覺60呎, 震顫感知60呎",
+			"passive": 14,
+			"languages": "通用語、土族語",
+			"cr": "8",
+			"trait": [
+				{
+					"name": "化土敗亡", "tENG_name": "Earthen Defeat",
+					"entries": [
+						"當馬洛斯的生命值歸零時，他的身體將轉變成一攤泥濘並潰散成池。任何他所穿戴或攜帶的東西都將被留在原地。"
+					]
+				},
+				{
+					"name": "地土穿行", "tENG_name": "Earth Passage",
+					"entries": [
+						"馬洛斯可以在任何由泥土或石頭構成的困難地形上移動時將其視為普通地形。他也可以移動穿過堅硬的土壤或岩石，就如同它們是困難地形一樣。若他在土壤或岩石內部結束他的回合，則他將被彈到距離他之前佔據空間最近的位置。"
+					]
+				},
+				{
+					"name": "傳奇抗性 (2/日)",
+					"entries": [
+						"若馬洛斯在一次豁免檢定中失敗，他可以選擇改為使其成功。"
+					]
+				},
+				{
+					"name": "石化凝視", "tENG_name": "Petrifying Gaze",
+					"entries": [
+						"當一個可以看見馬洛斯雙眼的生物在距離馬洛斯30呎內的位置開始它的回合，且若馬洛斯不處於{@condition 無力}並可以看見該生物，馬洛斯就可以強迫它進行一次DC 14的體質豁免。若此豁免失敗且檢定結果與目標值差距5點或更多，則該生物將瞬間被{@condition 石化}。除此之外，一個豁免失敗的生物將會開始轉變成石頭並因此被{@condition 束縛}。被{@condition 束縛}的生物必須在它的下個回合結束時重複進行這個豁免檢定。若豁免成功則此效果結束。若豁免失敗則該生物將被{@condition 石化}。這個石化狀態將持續直到該生物被{@spell 高等復原術}法術或其他魔法給解放。",
+						"除非被突襲，否則一個生物可以移開視線以避免在它的回合開始時進行豁免檢定。若該生物這麼做，則它直到它的下個回合開始前都將無法看見馬洛斯，且它可以在下個回合開始時再次選擇移開視線。在該生物看向馬洛斯的同時，它必須立刻進行該豁免檢定。",
+						"若馬洛斯在明亮光照的區域中看見距離他30呎內自己位於磨光表面的倒影，由於他所遭受的詛咒，他將被自己石化凝視的效果給影響。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "多重攻擊",
+					"entries": [
+						"馬洛斯進行三次攻擊，一次蛇髮，二次使用魔法武器{@item 鐵牙|pota}。"
+					]
+				},
+				{
+					"name": "蛇髮", "tENG_name": "Snake Hair",
+					"entries": [
+						"{@atk mw} 命中{@hit 6}，觸及5呎，單一目標。 {@h}7 ({@damage 1d8 + 3})穿刺傷害加 14 ({@damage 4d6}) 毒素傷害。"
+					]
+				},
+				{
+					"name": "鐵牙", "tENG_name": "Ironfang",
+					"entries": [
+						"{@atk mw} 命中{@hit 9}，觸及5呎，單一目標。 {@h}7 ({@damage 1d8 + 3})穿刺傷害加 4 ({@damage 1d8}) 雷鳴傷害。"
+					]
+				}
+			],
+			"legendaryGroup": {
+				"name": "Marlos Urnrayle",
+				"source": "PotA"
+			},
+			"page": 199,
+			"traitTags": [
+				"Legendary Resistances"
+			],
+			"actionTags": [
+				"Multiattack"
+			],
+			"languageTags": [
+				"C",
+				"T"
+			],
+			"senseTags": [
+				"D",
+				"T"
+			],
+			"damageTags": [
+				"P",
+				"I",
+				"T"
+			]
+		},
+		{
+			"name": "莫拉．維贊", "ENG_name": "Miraj Vizann",
+			"isNpc": true,
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"earth genasi"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"N",
+				"E"
+			],
+			"ac": [
+				10,
+				{
+					"ac": 13,
+					"condition": "使用{@spell 法師護甲}時",
+					"braces": true
+				}
+			],
+			"hp": {
+				"average": 82,
+				"formula": "11d8 + 33"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 12,
+			"dex": 10,
+			"con": 17,
+			"int": 13,
+			"wis": 11,
+			"cha": 18,
+			"skill": {
+				"arcana": "+4",
+				"deception": "+7"
+			},
+			"passive": 10,
+			"languages": "通用語、原初語",
+			"cr": "6",
+			"trait": [
+				{
+					"name": "地面行走", "tENG_name": "Earth Walk",
+					"entries": [
+						"移動穿過泥土或石頭構成的困難地形不會使莫拉消耗額外的移動速度。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "法杖", "tENG_name": "Staff",
+					"entries": [
+						"{@atk mw} 命中{@hit 4}，觸及5呎，單一目標。 {@h}4 ({@damage 1d6 + 1})鈍擊傷害，或若以雙手使用時則造成 5 ({@damage 1d8 + 1}) 鈍擊傷害。"
+					]
+				}
+			],
+			"page": 198,
+			"spellcasting": [
+				{
+					"name": "天生施法",
+					"headerEntries": [
+						"莫拉的天生施法屬性為體質（法術豁免DC 14）。他天生就可以施展以下法術，且無需任何材料構材："
+					],
+					"daily": {
+						"1": [
+							"{@spell 行蹤無跡}"
+						]
+					},
+					"ability": "con"
+				},
+				{
+					"name": "施法",
+					"headerEntries": [
+						"莫拉是11級的施法者。他的施法屬性為魅力（法術豁免DC 15，法術攻擊命中{@hit 7}）。他知曉以下術士法術："
+					],
+					"spells": {
+						"0": {
+							"spells": [
+								"{@spell 酸液濺爆}",
+								"{@spell 劍刃防護}",
+								"{@spell 交友術}",
+								"{@spell 光亮術}",
+								"{@spell 傳訊術}",
+								"{@spell 鑄土|xge}"
+							]
+						},
+						"1": {
+							"slots": 4,
+							"spells": [
+								"{@spell 幻色法球}",
+								"{@spell 法師護甲}",
+								"{@spell 魔法飛彈}"
+							]
+						},
+						"2": {
+							"slots": 3,
+							"spells": [
+								"{@spell 馬克西米利安大地之攫|xge}",
+								"{@spell 粉碎音波}",
+								"{@spell 暗示術}"
+							]
+						},
+						"3": {
+							"slots": 3,
+							"spells": [
+								"{@spell 反制法術}",
+								"{@spell 土石爆發|xge}"
+							]
+						},
+						"4": {
+							"slots": 3,
+							"spells": [
+								"{@spell 變形術}",
+								"{@spell 石膚術}"
+							]
+						},
+						"5": {
+							"slots": 2,
+							"spells": [
+								"{@spell 石牆術}"
+							]
+						},
+						"6": {
+							"slots": 1,
+							"spells": [
+								"{@spell 地動術}"
+							]
+						}
+					},
+					"ability": "cha"
+				}
+			],
+			"languageTags": [
+				"C",
+				"P"
+			],
+			"spellcastingTags": [
+				"I",
+				"CS"
+			],
+			"damageTags": [
+				"B"
+			]
+		},
+		{
+			"name": "歐格莫克", "ENG_name": "Ogrémoch",
+			"size": "G",
+			"type": "elemental",
+			"source": "PotA",
+			"alignment": [
+				"N",
+				"E"
+			],
+			"ac": [
+				{
+					"ac": 20,
+					"from": [
+						"天生護甲"
+					]
+				}
+			],
+			"hp": {
+				"average": 526,
+				"formula": "27d20 + 243"
+			},
+			"speed": {
+				"walk": 50,
+				"burrow": 50
+			},
+			"str": 26,
+			"dex": 11,
+			"con": 28,
+			"int": 11,
+			"wis": 15,
+			"cha": 22,
+			"save": {
+				"str": "+14",
+				"con": "+15",
+				"wis": "+8"
+			},
+			"resist": [
+				{
+					"resist": [
+						"bludgeoning",
+						"piercing",
+						"slashing"
+					],
+					"preNote": "非魔法攻擊所造成的"
+				}
+			],
+			"immune": [
+				"poison"
+			],
+			"conditionImmune": [
+				"charmed",
+				"frightened",
+				"paralyzed",
+				"petrified",
+				"poisoned",
+				"prone"
+			],
+			"senses": "盲視120呎, 震顫感知120呎",
+			"passive": 12,
+			"languages": "通用語、土族語",
+			"cr": "20",
+			"trait": [
+				{
+					"name": "賦能攻擊", "tENG_name": "Empowered Attacks",
+					"entries": [
+						"在克服對非魔法攻擊和傷害的抗性和免疫能力時，歐格莫克的猛擊攻擊被視作魔法攻擊。"
+					]
+				},
+				{
+					"name": "傳奇抗性 (3/日)",
+					"entries": [
+						"若歐格莫克在一次豁免檢定中失敗，他可以選擇改為使其成功。"
+					]
+				},
+				{
+					"name": "魔法抗性", "tENG_name": "Magic Resistance",
+					"entries": [
+						"歐格莫克在對抗法術和其他魔法效果的豁免檢定中具有優勢。"
+					]
+				},
+				{
+					"name": "攻城怪物", "tENG_name": "Siege Monster",
+					"entries": [
+						"歐格莫克的近戰和遠程武器攻擊將對物體和建築物造成兩倍的傷害。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "多重攻擊",
+					"entries": [
+						"歐格莫克進行二次猛擊攻擊。"
+					]
+				},
+				{
+					"name": "猛擊", "tENG_name": "Slam",
+					"entries": [
+						"{@atk mw} 命中{@hit 14}，觸及15呎，單一目標。 {@h}30 ({@damage 4d10 + 8}) 鈍擊傷害。"
+					]
+				},
+				{
+					"name": "投石", "tENG_name": "Boulder",
+					"entries": [
+						"{@atk rw} 命中{@hit 6}，射程500呎，單一目標。 {@h}46 ({@damage 7d10 + 8}) 鈍擊傷害。若目標為一個生物，則它必須成功通過一次DC 23的力量豁免，否則被擊倒{@condition 伏地}。"
+					]
+				},
+				{
+					"name": "召喚元素生物 (1/日)", "tENG_name": "Summon Elementals (1/Day)",
+					"entries": [
+						"歐格莫克召喚出最多三個{@creature 土元素}，且他每召喚出一個元素生物便會失去30點生命值。被召喚的元素生物有著全滿的生命值，會出現在距離歐格莫克100呎內的位置，且會在歐格莫克的生命值歸零時消失不見。"
+					]
+				}
+			],
+			"legendary": [
+				{
+					"name": "璀璨水晶", "tENG_name": "Illuminating Crystals",
+					"entries": [
+						"歐格莫克身上突出的水晶部份猛然閃耀。每個距離歐格莫克30呎內的生物都將散發出橙色的光芒，產生出10呎半徑的微光光照。若攻擊者可以看見受影響的生物，則任何對受影響生物的攻擊檢定都將帶有優勢，且受影響生物將無法得益於{@condition 隱形}帶來的好處。"
+					]
+				},
+				{
+					"name": "踩踏 (消耗 2動作)", "tENG_name": "Stomp (Costs 2 Actions)",
+					"entries": [
+						"歐格莫克重踏地表，創造出一陣擴散30呎半徑的地震。範圍內其他站在地面上的生物必須成功通過一次DC 23的敏捷豁免，否則將摔倒{@condition 伏地}。"
+					]
+				},
+				{
+					"name": "創造石像鬼 (消耗 3動作)", "tENG_name": "Create Gargoyle (Costs 3 Actions)",
+					"entries": [
+						"歐格莫克的生命值減少50點，將他岩石身體的一部分裂開，並放置在一處距離他15呎內未被佔據空間的地面上。這塊岩石將立刻轉變成一個{@creature 石像鬼}，且它會在與歐格莫克相同的先攻順序時行動。若歐格莫克的生命值為50或更低，則他無法使用這個動作。這個石像鬼會服從歐格莫克的命令，且會為其奮戰直到被摧毀。"
+					]
+				}
+			],
+			"legendaryGroup": {
+				"name": "Ogrémoch",
+				"source": "PotA"
+			},
+			"page": 216,
+			"spellcasting": [
+				{
+					"name": "天生施法",
+					"headerEntries": [
+						"歐格莫克的天生施法屬性為魅力（法術豁免DC 20，法術攻擊命中{@hit 12}）。他天生就可以施展以下法術，且無需任何材料構材："
+					],
+					"will": [
+						"{@spell 融身入石}",
+						"{@spell 地動術}",
+						"{@spell 石牆術}"
+					],
+					"ability": "cha"
+				}
+			],
+			"isNamedCreature": true,
+			"traitTags": [
+				"Legendary Resistances",
+				"Magic Resistance",
+				"Siege Monster"
+			],
+			"actionTags": [
+				"Multiattack"
+			],
+			"languageTags": [
+				"C",
+				"T"
+			],
+			"senseTags": [
+				"B",
+				"T"
+			],
+			"spellcastingTags": [
+				"I"
+			],
+			"damageTags": [
+				"B"
+			]
+		},
+		{
+			"name": "奧莉德拉", "ENG_name": "Olhydra",
+			"size": "H",
+			"type": "elemental",
+			"source": "PotA",
+			"alignment": [
+				"N",
+				"E"
+			],
+			"ac": [
+				{
+					"ac": 18,
+					"from": [
+						"天生護甲"
+					]
+				}
+			],
+			"hp": {
+				"average": 324,
+				"formula": "24d12 + 168"
+			},
+			"speed": {
+				"walk": 50,
+				"swim": 100
+			},
+			"str": 21,
+			"dex": 22,
+			"con": 24,
+			"int": 17,
+			"wis": 18,
+			"cha": 23,
+			"save": {
+				"str": "+11",
+				"con": "+13",
+				"wis": "+10"
+			},
+			"resist": [
+				"lightning",
+				{
+					"resist": [
+						"bludgeoning",
+						"piercing",
+						"slashing"
+					],
+					"preNote": "非魔法攻擊所造成的"
+				}
+			],
+			"immune": [
+				"acid",
+				"cold",
+				"poison"
+			],
+			"conditionImmune": [
+				"charmed",
+				"frightened",
+				"paralyzed",
+				"petrified",
+				"poisoned",
+				"prone",
+				"restrained"
+			],
+			"senses": "盲視120呎",
+			"passive": 14,
+			"languages": "Aquan",
+			"cr": "18",
+			"trait": [
+				{
+					"name": "賦能攻擊", "tENG_name": "Empowered Attacks",
+					"entries": [
+						"在克服對非魔法攻擊和傷害的抗性和免疫能力時，奧莉德拉的猛擊攻擊被視作魔法攻擊。"
+					]
+				},
+				{
+					"name": "傳奇抗性 (3/日)",
+					"entries": [
+						"若奧莉德拉在一次豁免檢定中失敗，她可以選擇改為使其成功。"
+					]
+				},
+				{
+					"name": "魔法抗性", "tENG_name": "Magic Resistance",
+					"entries": [
+						"奧莉德拉在對抗法術和其他魔法效果的豁免檢定中具有優勢。"
+					]
+				},
+				{
+					"name": "流水形體", "tENG_name": "Water Form",
+					"entries": [
+						"奧莉德拉可以進入一個敵對生物所在的空間並在該處停下。她也可以移動穿越最窄1吋的狹窄空間而不用擠縮身體。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "多重攻擊",
+					"entries": [
+						"奧莉德拉進行二次猛擊攻擊或二次水流噴射攻擊。"
+					]
+				},
+				{
+					"name": "猛擊", "tENG_name": "Slam",
+					"entries": [
+						"{@atk mw} 命中{@hit 11}，觸及10呎，單一目標。 {@h}21 ({@damage 3d10 + 5}) 鈍擊傷害，且目標{@condition 被擒}(逃脫DC 19)。奧莉德拉可以同時擒抱最多四個目標。當奧莉德拉移動時，所有被她擒抱的生物也都將跟著她移動。"
+					]
+				},
+				{
+					"name": "水流噴射", "tENG_name": "Water Jet",
+					"entries": [
+						"{@atk rw} 命中{@hit 12}，射程120呎，單一目標。 {@h}21 ({@damage 6d6})鈍擊傷害，且若目標沒能成功通過一次DC 19的力量豁免，則目標將被擊倒{@condition 伏地}。"
+					]
+				},
+				{
+					"name": "召喚元素生物 (1/日)", "tENG_name": "Summon Elementals (1/Day)",
+					"entries": [
+						"奧莉德拉召喚出最多三個{@creature 水元素}，且她每召喚出一個元素生物便會失去30點生命值。被召喚的元素生物有著全滿的生命值，會出現在距離奧莉德拉100呎內的位置，且會在奧莉德拉的生命值歸零時消失不見。"
+					]
+				}
+			],
+			"legendary": [
+				{
+					"name": "碾壓", "tENG_name": "Crush",
+					"entries": [
+						"奧莉德拉所擒抱的一個生物將被碾壓，並受到 21 ({@damage 3d10 + 5}) 鈍擊傷害。"
+					]
+				},
+				{
+					"name": "拋擲 (消耗 2動作)", "tENG_name": "Fling (Costs 2 Actions)",
+					"entries": [
+						"奧莉德拉釋放一個她所擒抱的生物，將它往任意奧莉德拉所選擇的方向拋擲到最遠60呎的距離。若被拋擲生物撞上了堅固的表面，像是牆壁或地面，則該生物將受到每被扔出10呎距離{@dice 1d6}的鈍擊傷害。"
+					]
+				},
+				{
+					"name": "化水為酸 (消耗 3動作)", "tENG_name": "Water to Acid (Costs 3 Actions)",
+					"entries": [
+						"奧莉德拉將她的純水身驅轉變成強酸。這個效果將持續直到奧莉德拉的下個回合。任何接觸到奧莉德拉、或在距離她5呎內的位置時被她以一次近戰攻擊命中的生物都將受到 11 ({@damage 2d10}) 酸蝕傷害。任何{@condition 被擒}於奧莉德拉的生物都將在自己的回合開始蝕受到 22 ({@damage 4d10}) 酸蝕傷害。"
+					]
+				}
+			],
+			"legendaryGroup": {
+				"name": "Olhydra",
+				"source": "PotA"
+			},
+			"page": 218,
+			"spellcasting": [
+				{
+					"name": "天生施法",
+					"headerEntries": [
+						"奧莉德拉的天生施法屬性為魅力（法術豁免DC 20，法術攻擊命中{@hit 12}）。她天生就可以施展以下法術，且無需任何材料構材："
+					],
+					"will": [
+						"{@spell 冰牆術}"
+					],
+					"daily": {
+						"1": [
+							"{@spell 復仇風暴}"
+						],
+						"3": [
+							"{@spell 冰風暴}"
+						]
+					},
+					"ability": "cha"
+				}
+			],
+			"isNamedCreature": true,
+			"traitTags": [
+				"Legendary Resistances",
+				"Magic Resistance"
+			],
+			"actionTags": [
+				"Multiattack"
+			],
+			"languageTags": [
+				"AQ"
+			],
+			"senseTags": [
+				"B"
+			],
+			"spellcastingTags": [
+				"I"
+			],
+			"damageTags": [
+				"B",
+				"A"
+			]
+		},
+		{
+			"name": "獨眼顫慄者", "ENG_name": "One-Eyed Shiver",
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"human"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"C",
+				"E"
+			],
+			"ac": [
+				12,
+				{
+					"ac": 15,
+					"condition": "使用{@spell 法師護甲}時",
+					"braces": true
+				}
+			],
+			"hp": {
+				"average": 49,
+				"formula": "9d8 + 9"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 10,
+			"dex": 14,
+			"con": 12,
+			"int": 13,
+			"wis": 13,
+			"cha": 17,
+			"skill": {
+				"arcana": "+3",
+				"perception": "+3",
+				"intimidation": "+5"
+			},
+			"immune": [
+				"cold"
+			],
+			"passive": 13,
+			"languages": "通用語",
+			"cr": "3",
+			"trait": [
+				{
+					"name": "寒顫迷霧", "tENG_name": "Chilling Mist",
+					"entries": [
+						"當它活著的時候，獨眼顫慄者會在它周圍10呎內的範圍內投射出一股寒冷的迷霧。如果獨眼顫慄者對該區域內的生物造成了傷害，則該生物將額外受到5 ({@damage 1d10})寒冰傷害。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "匕首",
+					"entries": [
+						"{@atk mw} 命中{@hit 4}，觸及5呎 或射程 20/60 呎, 單一目標。 {@h}4 ({@damage 1d4 + 2}) 穿刺傷害。"
+					]
+				},
+				{
+					"name": "霜凍之眼", "tENG_name": "Eye of Frost",
+					"entries": [
+						"獨眼顫慄者從它空洞的眼眶中施放{@spell 冷凍射線}。若它命中，則目標將同時被{@condition 束縛}。被這個方式{@condition 束縛}的目標可以藉由採取一個動作，並成功通過一次DC 13的力量豁免以解除這個狀態。"
+					]
+				}
+			],
+			"page": 207,
+			"spellcasting": [
+				{
+					"name": "施法",
+					"headerEntries": [
+						"獨眼顫慄者是5級的施法者。 它的施法屬性為魅力（法術豁免DC 13，法術攻擊命中{@hit 5}）。它知曉以下術士法術："
+					],
+					"spells": {
+						"0": {
+							"spells": [
+								"{@spell 寒顫之觸}",
+								"{@spell 法師之手}"
+							]
+						},
+						"1": {
+							"slots": 4,
+							"spells": [
+								"{@spell 雲霧術}",
+								"{@spell 法師護甲}",
+								"{@spell 雷鳴波}"
+							]
+						},
+						"2": {
+							"slots": 3,
+							"spells": [
+								"{@spell 鏡影術}",
+								"{@spell 迷蹤步}"
+							]
+						},
+						"3": {
+							"slots": 2,
+							"spells": [
+								"{@spell 恐懼術}"
+							]
+						}
+					},
+					"ability": "cha"
+				}
+			],
+			"languageTags": [
+				"C"
+			],
+			"spellcastingTags": [
+				"CS"
+			],
+			"damageTags": [
+				"P",
+				"C"
+			]
+		},
+		{
+			"name": "奧瑞歐斯", "ENG_name": "Oreioth",
+			"isNpc": true,
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"human"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"C",
+				"E"
+			],
+			"ac": [
+				11,
+				{
+					"ac": 14,
+					"condition": "使用{@spell 法師護甲}時",
+					"braces": true
+				}
+			],
+			"hp": {
+				"average": 39,
+				"formula": "6d8 + 12"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 8,
+			"dex": 13,
+			"con": 14,
+			"int": 16,
+			"wis": 9,
+			"cha": 11,
+			"save": {
+				"wis": "+1"
+			},
+			"skill": {
+				"arcana": "+5",
+				"investigation": "+5",
+				"medicine": "+1"
+			},
+			"passive": 9,
+			"languages": "深淵語、通用語",
+			"cr": "2",
+			"trait": [
+				{
+					"name": "殘怖收割", "tENG_name": "Grim Harvest",
+					"entries": [
+						"每回合一次，當奧瑞歐斯以1環或更高環的法術殺死一個或更多的生物時，他將回復等同於該法術環階二倍的生命值。"
+					]
+				},
+				{
+					"name": "迅捷活化 (長休之後充能)", "tENG_name": "Swift Animation (Recharges after a Long Rest)",
+					"entries": [
+						"當一個活著且體型為中型或小型的類人生物在距離奧瑞歐斯30呎內時死亡，則他將可以在他的下個回合以一個動作對該類人生物的屍體施放{@spell 活化死屍}，而非以該法術原本的施法時間施放。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "匕首",
+					"entries": [
+						"{@atk mw} 命中{@hit 3}，觸及5呎，單一目標。 {@h}3 ({@damage 1d4 + 1}) 穿刺傷害。"
+					]
+				}
+			],
+			"page": 212,
+			"spellcasting": [
+				{
+					"name": "施法",
+					"headerEntries": [
+						"奧瑞歐斯是6級的施法者。他的施法屬性為智力（法術豁免DC 13，法術攻擊命中{@hit 5}）。他已準備了以下法師法術："
+					],
+					"spells": {
+						"0": {
+							"spells": [
+								"{@spell 寒顫之觸}",
+								"{@spell 次級幻象}",
+								"{@spell 魔法技倆}",
+								"{@spell 電爪}"
+							]
+						},
+						"1": {
+							"slots": 4,
+							"spells": [
+								"{@spell 摹造生命}",
+								"{@spell 法師護甲}",
+								"{@spell 魔法飛彈}",
+								"{@spell 致病射線}"
+							]
+						},
+						"2": {
+							"slots": 3,
+							"spells": [
+								"{@spell 瘋狂冠冕}",
+								"{@spell 迷蹤步}"
+							]
+						},
+						"3": {
+							"slots": 3,
+							"spells": [
+								"{@spell 活化死屍}",
+								"{@spell 吸血鬼之觸}"
+							]
+						}
+					},
+					"ability": "int"
+				}
+			],
+			"languageTags": [
+				"AB",
+				"C"
+			],
+			"spellcastingTags": [
+				"CW"
+			],
+			"damageTags": [
+				"P"
+			]
+		},
+		{
+			"name": "爆刃","ENG_name": "Razerblast",
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"human"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"C",
+				"E"
+			],
+			"ac": [
+				{
+					"ac": 17,
+					"from": [
+						"{@item 條板甲|phb}"
+					]
+				}
+			],
+			"hp": {
+				"average": 112,
+				"formula": "15d8 + 75"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 16,
+			"dex": 11,
+			"con": 16,
+			"int": 9,
+			"wis": 10,
+			"cha": 13,
+			"skill": {
+				"intimidation": "+4",
+				"perception": "+3"
+			},
+			"immune": [
+				"fire"
+			],
+			"passive": 13,
+			"languages": "通用語、火族語",
+			"cr": "5",
+			"trait": [
+				{
+					"name": "熾灼盔甲", "tENG_name": "Searing Armor",
+					"entries": [
+						"爆刃的護甲相當熾熱。任何擒抱爆刃、或{@condition 被擒}於爆刃的生物都將在該生物的回合結束時受到5 ({@damage 1d10})火焰傷害。"
+					]
+				},
+				{
+					"name": "碎鎧爆裂", "tENG_name": "Shrapnel Explosion",
+					"entries": [
+						"當爆刃的生命值歸零時，它胸中的熾焰法球將會爆炸，摧毀爆刃的身體並使它的盔甲爆裂成破片。每個在爆刃爆炸時距離它10呎內的生物都必須成功通過一次DC 12的敏捷豁免，豁免失敗將受到21 ({@damage 6d6})穿刺傷害，豁免成功則只受到一半的傷害。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "多重攻擊",
+					"entries": [
+						"爆刃進行三次近戰攻擊。"
+					]
+				},
+				{
+					"name": "矛",
+					"entries": [
+						"{@atk mw,rw} 命中{@hit 6}，觸及5呎 或射程 20/60 呎, 單一目標。 {@h}6 ({@damage 1d6 + 3})穿刺傷害，或若雙手使用以進行一次近戰攻擊時則造成 7 ({@damage 1d8 + 3}) 穿刺傷害，再加上 3 ({@damage 1d6})火焰傷害。"
+					]
+				}
+			],
+			"page": 201,
+			"actionTags": [
+				"Multiattack"
+			],
+			"languageTags": [
+				"C",
+				"IG"
+			],
+			"damageTags": [
+				"P",
+				"F"
+			]
+		},
+		{
+			"name": "聖石僧", "ENG_name": "Sacred Stone Monk",
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"human"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"L",
+				"E"
+			],
+			"ac": [
+				14
+			],
+			"hp": {
+				"average": 22,
+				"formula": "4d8 + 4"
+			},
+			"speed": {
+				"walk": 40
+			},
+			"str": 13,
+			"dex": 15,
+			"con": 12,
+			"int": 10,
+			"wis": 14,
+			"cha": 9,
+			"skill": {
+				"acrobatics": "+4",
+				"athletics": "+3",
+				"perception": "+4"
+			},
+			"senses": "震顫感知10呎",
+			"passive": 14,
+			"languages": "通用語",
+			"cr": "1/2",
+			"trait": [
+				{
+					"name": "無甲防禦", "tENG_name": "Unarmored Defense",
+					"entries": [
+						"當聖石僧未穿戴任何護甲且未持用盾牌時，它的AC將加上它的睿知調整值。"
+					]
+				},
+				{
+					"name": "無甲移動", "tENG_name": "Unarmored Movement",
+					"entries": [
+						"當聖石僧未穿戴任何護甲且未持用盾牌時，它的移動速度將增加10呎（已包含在移動速度）。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "多重攻擊",
+					"entries": [
+						"聖石僧進行二次近戰攻擊。"
+					]
+				},
+				{
+					"name": "徒手打擊",
+					"entries": [
+						"{@atk mw} 命中{@hit 4}，觸及5呎，單一目標。 {@h}5 ({@damage 1d6 + 2}) 鈍擊傷害。"
+					]
+				}
+			],
+			"reaction": [
+				{
+					"name": "格擋", "tENG_name": "Parry",
+					"entries": [
+						"聖石僧在一次遠程或近戰武器攻擊將要命中它時可以針對該次攻擊使它的AC增加2點。若要這麼做，聖石僧必須要能看見攻擊者。"
+					]
+				}
+			],
+			"page": 196,
+			"actionTags": [
+				"Multiattack",
+				"Parry"
+			],
+			"languageTags": [
+				"C"
+			],
+			"senseTags": [
+				"T"
+			],
+			"damageTags": [
+				"B"
+			]
+		},
+		{
+			"name": "索勒．剛卓", "ENG_name": "Shoalar Quanderil",
+			"isNpc": true,
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"water genasi"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"L",
+				"E"
+			],
+			"ac": [
+				10,
+				{
+					"ac": 13,
+					"condition": "使用{@spell 法師護甲}時",
+					"braces": true
+				}
+			],
+			"hp": {
+				"average": 60,
+				"formula": "8d8 + 24"
+			},
+			"speed": {
+				"walk": 30,
+				"swim": 30
+			},
+			"str": 11,
+			"dex": 12,
+			"con": 16,
+			"int": 14,
+			"wis": 10,
+			"cha": 17,
+			"skill": {
+				"arcana": "+4",
+				"deception": "+5",
+				"insight": "+2",
+				"persuasion": "+5"
+			},
+			"resist": [
+				"acid"
+			],
+			"passive": 10,
+			"languages": "水族語、通用語",
+			"cr": "4",
+			"trait": [
+				{
+					"name": "兩棲", "tENG_name": "Amphibious",
+					"entries": [
+						"索勒可以在空氣和水中呼吸。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "匕首",
+					"entries": [
+						"{@atk mw,rw} 命中{@hit 3}，觸及5呎 或射程d 20/60 呎, 單一目標。 {@h}3 ({@damage 1d4 + 1}) 穿刺傷害。"
+					]
+				}
+			],
+			"page": 208,
+			"spellcasting": [
+				{
+					"name": "天生施法",
+					"headerEntries": [
+						"索勒的天生施法屬性為體質（法術豁免DC 13，法術攻擊命中{@hit 5}）。他天生就可以施展以下法術："
+					],
+					"will": [
+						"{@spell 塑水|xge}"
+					],
+					"daily": {
+						"1": [
+							"{@spell 造水/枯水術}"
+						]
+					},
+					"ability": "con"
+				},
+				{
+					"name": "施法",
+					"headerEntries": [
+						"索勒是5級的施法者。他的施法屬性為魅力（法術豁免DC 13，法術攻擊命中{@hit 5}）。他知曉以下術士法術："
+					],
+					"spells": {
+						"0": {
+							"spells": [
+								"{@spell 酸液濺爆}",
+								"{@spell 寒顫之觸}",
+								"{@spell 交友術}",
+								"{@spell 魔法技倆}",
+								"{@spell 冷凍射線}"
+							]
+						},
+						"1": {
+							"slots": 4,
+							"spells": [
+								"{@spell 易容術}",
+								"{@spell 法師護甲}",
+								"{@spell 魔法飛彈}"
+							]
+						},
+						"2": {
+							"slots": 3,
+							"spells": [
+								"{@spell 人類定身術}",
+								"{@spell 迷蹤步}"
+							]
+						},
+						"3": {
+							"slots": 2,
+							"spells": [
+								"{@spell 潮湧浪|xge}"
+							]
+						}
+					},
+					"ability": "cha"
+				}
+			],
+			"traitTags": [
+				"Amphibious"
+			],
+			"languageTags": [
+				"AQ",
+				"C"
+			],
+			"spellcastingTags": [
+				"I",
+				"CS"
+			],
+			"damageTags": [
+				"P"
+			]
+		},
+		{
+			"name": "空織匠", "ENG_name": "Skyweaver",
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"human"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"C",
+				"E"
+			],
+			"ac": [
+				12,
+				{
+					"ac": 15,
+					"condition": "使用{@spell 法師護甲}時",
+					"braces": true
+				}
+			],
+			"hp": {
+				"average": 44,
+				"formula": "8d8 + 8"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 8,
+			"dex": 14,
+			"con": 12,
+			"int": 11,
+			"wis": 10,
+			"cha": 16,
+			"skill": {
+				"deception": "+5",
+				"persuasion": "+5"
+			},
+			"passive": 10,
+			"languages": "氣族語、通用語",
+			"cr": "3",
+			"action": [
+				{
+					"name": "匕首",
+					"entries": [
+						"{@atk mw,rw} 命中{@hit 4}，觸及5呎 或射程 20/60 呎, 單一目標。 {@h}3 ({@damage 1d4 + 1}) 穿刺傷害。"
+					]
+				}
+			],
+			"page": 191,
+			"spellcasting": [
+				{
+					"name": "施法",
+					"headerEntries": [
+						"空織匠是6級的施法者。它的施法屬性為魅力（法術豁免DC 13，法術攻擊命中{@hit 5}）。它知曉以下術士法術："
+					],
+					"spells": {
+						"0": {
+							"spells": [
+								"{@spell 劍刃防護}",
+								"{@spell 光亮術}",
+								"{@spell 傳訊術}",
+								"{@spell 冷凍射線}",
+								"{@spell 電爪}"
+							]
+						},
+						"1": {
+							"slots": 4,
+							"spells": [
+								"{@spell 羽落術}",
+								"{@spell 法師護甲}",
+								"{@spell 巫術箭}"
+							]
+						},
+						"2": {
+							"slots": 3,
+							"spells": [
+								"{@spell 造風術}",
+								"{@spell 隱形術}"
+							]
+						},
+						"3": {
+							"slots": 3,
+							"spells": [
+								"{@spell 飛行術}",
+								"{@spell 閃電束}"
+							]
+						}
+					},
+					"ability": "cha"
+				}
+			],
+			"languageTags": [
+				"AU",
+				"C"
+			],
+			"spellcastingTags": [
+				"CS"
+			],
+			"damageTags": [
+				"P"
+			]
+		},
+		{
+			"name": "融石者", "ENG_name": "Stonemelder",
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"human"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"N",
+				"E"
+			],
+			"ac": [
+				{
+					"ac": 17,
+					"from": [
+						"{@item 條板甲|phb}"
+					]
+				}
+			],
+			"hp": {
+				"average": 75,
+				"formula": "10d8 + 30"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 15,
+			"dex": 10,
+			"con": 16,
+			"int": 12,
+			"wis": 11,
+			"cha": 17,
+			"skill": {
+				"intimidation": "+5",
+				"perception": "+2"
+			},
+			"senses": "震顫感知30呎",
+			"passive": 12,
+			"languages": "通用語、土族語",
+			"cr": "4",
+			"trait": [
+				{
+					"name": "死亡自爆", "tENG_name": "Death Burst",
+					"entries": [
+						"當融石者死亡時，它將化作岩石並爆裂成碎塊，變成一堆冒著煙的石礫。每個在融石者爆炸時距離它10呎內的生物都必須進行一次DC 14的敏捷豁免，豁免失敗則受到11 ({@damage 2d10})鈍擊傷害，豁免成功則只受到一半的傷害。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "黑土權杖", "tENG_name": "Black Earth Rod",
+					"entries": [
+						"{@atk mw} 命中{@hit 5}，觸及5呎，單一目標。 {@h}5 ({@damage 1d6 + 2}) 鈍擊傷害。融石者也可以消耗一個法術位以造成額外傷害，1環法術位將造成{@dice 2d8}鈍擊傷害，每比1環高一環則再額外造成{@dice 1d8}點傷害。"
+					]
+				}
+			],
+			"page": 197,
+			"spellcasting": [
+				{
+					"name": "施法",
+					"headerEntries": [
+						"融石者是7級的施法者。它的施法屬性為魅力（法術豁免DC 13，法術攻擊命中{@hit 5}）。它知曉以下術士法術："
+					],
+					"spells": {
+						"0": {
+							"spells": [
+								"{@spell 酸液濺爆}",
+								"{@spell 劍刃防護}",
+								"{@spell 光亮術}",
+								"{@spell 修復術}",
+								"{@spell 鑄土|xge}"
+							]
+						},
+						"1": {
+							"slots": 4,
+							"spells": [
+								"{@spell 腳底抹油}",
+								"{@spell 摹造生命}",
+								"{@spell 護盾術}"
+							]
+						},
+						"2": {
+							"slots": 3,
+							"spells": [
+								"{@spell 馬克西米利安大地之攫|xge}",
+								"{@spell 粉碎音波}"
+							]
+						},
+						"3": {
+							"slots": 3,
+							"spells": [
+								"{@spell 土石爆發|xge}",
+								"{@spell 融身入石}"
+							]
+						},
+						"4": {
+							"slots": 1,
+							"spells": [
+								"{@spell 石膚術}"
+							]
+						}
+					},
+					"ability": "cha"
+				}
+			],
+			"traitTags": [
+				"Death Burst"
+			],
+			"languageTags": [
+				"C",
+				"T"
+			],
+			"senseTags": [
+				"T"
+			],
+			"spellcastingTags": [
+				"CS"
+			],
+			"damageTags": [
+				"B"
+			]
+		},
+		{
+			"name": "圖爾．莫羅斯卡", "ENG_name": "Thurl Merosska",
+			"isNpc": true,
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"human"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"L",
+				"E"
+			],
+			"ac": [
+				{
+					"ac": 16,
+					"from": [
+						"{@item 護胸甲|phb}"
+					]
+				}
+			],
+			"hp": {
+				"average": 71,
+				"formula": "11d8 + 21"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 16,
+			"dex": 14,
+			"con": 14,
+			"int": 11,
+			"wis": 10,
+			"cha": 15,
+			"skill": {
+				"animal handling": "+2",
+				"athletics": "+5",
+				"deception": "+4",
+				"persuasion": "+4"
+			},
+			"passive": 10,
+			"languages": "氣族語、通用語",
+			"cr": "3",
+			"action": [
+				{
+					"name": "多重攻擊",
+					"entries": [
+						"圖爾進行二次近戰攻擊。"
+					]
+				},
+				{
+					"name": "巨劍", "tENG_name": "Greatsword",
+					"entries": [
+						"{@atk mw} 命中{@hit 5}，觸及5呎，單一目標。 {@h}10 ({@damage 2d6 + 3}) 劈砍傷害。"
+					]
+				},
+				{
+					"name": "騎槍", "tENG_name": "Lance",
+					"entries": [
+						"{@atk mw} 命中{@hit 5}，觸及10呎，單一目標。 {@h}9 ({@damage 1d12 + 3}) 穿刺傷害。"
+					]
+				}
+			],
+			"reaction": [
+				{
+					"name": "格擋", "tENG_name": "Parry",
+					"entries": [
+						"圖爾在一次近戰攻擊將要命中他時可以針對該次攻擊使他的AC增加2點。若要這麼做，圖爾必須要能看見攻擊者且正持用一把近戰武器。"
+					]
+				}
+			],
+			"page": 192,
+			"spellcasting": [
+				{
+					"name": "施法",
+					"headerEntries": [
+						"圖爾是5級的施法者。他的施法屬性為魅力（法術豁免DC 12，法術攻擊命中{@hit 4}）。圖爾知曉以下術士法術："
+					],
+					"spells": {
+						"0": {
+							"spells": [
+								"{@spell 交友術}",
+								"{@spell 舞風|xge}",
+								"{@spell 光亮術}",
+								"{@spell 傳訊術}",
+								"{@spell 冷凍射線}"
+							]
+						},
+						"1": {
+							"slots": 4,
+							"spells": [
+								"{@spell 腳底抹油}",
+								"{@spell 羽落術}",
+								"{@spell 跳躍術}"
+							]
+						},
+						"2": {
+							"slots": 3,
+							"spells": [
+								"{@spell 浮空術}",
+								"{@spell 迷蹤步}"
+							]
+						},
+						"3": {
+							"slots": 2,
+							"spells": [
+								"{@spell 加速術}"
+							]
+						}
+					},
+					"ability": "cha"
+				}
+			],
+			"actionTags": [
+				"Multiattack",
+				"Parry"
+			],
+			"languageTags": [
+				"AU",
+				"C"
+			],
+			"spellcastingTags": [
+				"CS"
+			],
+			"damageTags": [
+				"S",
+				"P"
+			]
+		},
+		{
+			"name": "凡妮弗", "ENG_name": "Vanifer",
+			"isNpc": true,
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"tiefling"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"N",
+				"E"
+			],
+			"ac": [
+				{
+					"ac": 15,
+					"from": [
+						"{@item 鑲釘皮甲|phb}"
+					]
+				}
+			],
+			"hp": {
+				"average": 112,
+				"formula": "15d8 + 45"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 11,
+			"dex": 16,
+			"con": 17,
+			"int": 12,
+			"wis": 13,
+			"cha": 19,
+			"skill": {
+				"arcana": "+5",
+				"deception": "+8",
+				"performance": "+8"
+			},
+			"immune": [
+				"fire"
+			],
+			"senses": "黑暗視覺60呎",
+			"passive": 11,
+			"languages": "通用語、火族語、煉獄語",
+			"cr": "9",
+			"trait": [
+				{
+					"name": "火葬", "tENG_name": "Funeral Pyre",
+					"entries": [
+						"當凡妮弗的生命值歸零時，她的身體將在瞬間被火焰和煙霧給吞噬殆盡。任何她所穿戴或攜帶的東西都將被留在原地。"
+					]
+				},
+				{
+					"name": "傳奇抗性 (2/日)",
+					"entries": [
+						"若凡妮弗在一次豁免檢定中失敗，她可以選擇改為使其成功。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "多重攻擊",
+					"entries": [
+						"凡妮弗進行二次攻擊。"
+					]
+				},
+				{
+					"name": "焰襲",
+					"entries": [
+						"{@atk mw,rw} 命中{@hit 9}，觸及5呎 或 射程20/60呎, 單一目標。 {@h}7 ({@damage 1d4 + 5})穿刺傷害加 7 ({@damage 2d6})火焰傷害。"
+					]
+				}
+			],
+			"legendaryGroup": {
+				"name": "Vanifer",
+				"source": "PotA"
+			},
+			"page": 203,
+			"spellcasting": [
+				{
+					"name": "施法",
+					"headerEntries": [
+						"凡妮弗是10級的施法者。她的施法屬性為魅力（法術豁免DC 16，法術攻擊命中{@hit 8}）。凡妮弗知曉以下術士法術："
+					],
+					"spells": {
+						"0": {
+							"spells": [
+								"{@spell 寒顫之觸}",
+								"{@spell 火焰箭}",
+								"{@spell 交友術}",
+								"{@spell 法師之手}",
+								"{@spell 傳訊術}",
+								"{@spell 燃火術}",
+								"{@spell 奇術}"
+							]
+						},
+						"1": {
+							"slots": 4,
+							"spells": [
+								"{@spell 燃燒之手}",
+								"{@spell 幻色法球}",
+								"{@spell 煉獄叱喝}",
+								"{@spell 護盾術}"
+							]
+						},
+						"2": {
+							"slots": 3,
+							"spells": [
+								"{@spell 黑暗術}",
+								"{@spell 偵測思想}",
+								"{@spell 迷蹤步}",
+								"{@spell 灼熱射線}"
+							]
+						},
+						"3": {
+							"slots": 3,
+							"spells": [
+								"{@spell 反制法術}",
+								"{@spell 火球術}",
+								"{@spell 催眠圖紋}"
+							]
+						},
+						"4": {
+							"slots": 3,
+							"spells": [
+								"{@spell 火牆術}"
+							]
+						},
+						"5": {
+							"slots": 2,
+							"spells": [
+								"{@spell 支配人類}"
+							]
+						}
+					},
+					"ability": "cha"
+				}
+			],
+			"traitTags": [
+				"Legendary Resistances"
+			],
+			"actionTags": [
+				"Multiattack"
+			],
+			"languageTags": [
+				"C",
+				"IG",
+				"I"
+			],
+			"senseTags": [
+				"D"
+			],
+			"spellcastingTags": [
+				"CS"
+			],
+			"damageTags": [
+				"P",
+				"F"
+			]
+		},
+		{
+			"name": "水元素追隨者", "ENG_name": "Water Elemental Myrmidon",
+			"size": "M",
+			"type": "elemental",
+			"source": "PotA",
+			"alignment": [
+				"N"
+			],
+			"ac": [
+				{
+					"ac": 18,
+					"from": [
+						"{@item 全身板甲|phb}"
+					]
+				}
+			],
+			"hp": {
+				"average": 127,
+				"formula": "17d8 + 51"
+			},
+			"speed": {
+				"walk": 40,
+				"swim": 40
+			},
+			"str": 18,
+			"dex": 14,
+			"con": 15,
+			"int": 8,
+			"wis": 10,
+			"cha": 10,
+			"resist": [
+				"acid",
+				{
+					"resist": [
+						"bludgeoning",
+						"piercing",
+						"slashing"
+					],
+					"preNote": "非魔法攻擊所造成的"
+				}
+			],
+			"immune": [
+				"poison"
+			],
+			"conditionImmune": [
+				"paralyzed",
+				"petrified",
+				"poisoned",
+				"prone"
+			],
+			"senses": "黑暗視覺60呎",
+			"passive": 10,
+			"languages": "水族語、一種它創造者所選擇的語言",
+			"cr": "7",
+			"trait": [
+				{
+					"name": "魔法武器", "tENG_name": "Magic Weapons",
+					"entries": [
+						"追隨者的武器攻擊視作魔法攻擊。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "多重攻擊",
+					"entries": [
+						"追隨者進行三次三叉戟攻擊。"
+					]
+				},
+				{
+					"name": "三叉戟",
+					"entries": [
+						"{@atk mw} 命中{@hit 7}，觸及5呎，單一目標。 {@h}7 ({@damage 1d6 + 4}) 穿刺傷害。"
+					]
+				},
+				{
+					"name": "寒凍猛擊{@recharge}", "tENG_name": "Freezing Strikes {@recharge}",
+					"entries": [
+						"追隨者使用多重攻擊。每次命中的攻擊都將額外造成 5 ({@damage 1d10})寒冰傷害，且目標的速度將被降低10呎，持續直到該追隨者的下個回合結束。"
+					]
+				}
+			],
+			"page": 213,
+			"soundClip": "https://media-waterdeep.cursecdn.com/file-attachments/0/716/water-elemental-myrmidon.mp3",
+			"traitTags": [
+				"Magic Weapons"
+			],
+			"actionTags": [
+				"Multiattack"
+			],
+			"languageTags": [
+				"AQ"
+			],
+			"senseTags": [
+				"D"
+			],
+			"damageTags": [
+				"P",
+				"C"
+			]
+		},
+		{
+			"name": "威甘．怒蜂", "ENG_name": "Wiggan Nettlebee",
+			"isNpc": true,
+			"size": "S",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"halfling"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"N",
+				"E"
+			],
+			"ac": [
+				11,
+				{
+					"ac": 16,
+					"condition": "使用{@spell 樹膚術}時",
+					"braces": true
+				}
+			],
+			"hp": {
+				"average": 36,
+				"formula": "8d6 + 8"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 8,
+			"dex": 12,
+			"con": 12,
+			"int": 14,
+			"wis": 15,
+			"cha": 13,
+			"skill": {
+				"deception": "+3",
+				"insight": "+4"
+			},
+			"passive": 12,
+			"languages": "通用語、半身人語",
+			"cr": "2",
+			"trait": [
+				{
+					"name": "英勇奉獻", "tENG_name": "Brave Devotion",
+					"entries": [
+						"威甘在對抗{@condition 魅惑}和{@condition 恐懼}的豁免檢定中具有優勢。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "多重攻擊",
+					"entries": [
+						"威甘使用他的木拐杖進行二次攻擊。"
+					]
+				},
+				{
+					"name": "木拐杖", "tENG_name": "Wooden Cane",
+					"entries": [
+						"{@atk mw} 命中{@hit 0} ({@spell 橡棍術}時命中{@hit 4})，觸及5呎，單一目標。 {@h}1 ({@damage 1d4 - 1})鈍擊傷害，或若使用橡棍術時 6 ({@damage 1d8 + 2}) 鈍擊傷害。"
+					]
+				}
+			],
+			"page": 212,
+			"spellcasting": [
+				{
+					"name": "施法",
+					"headerEntries": [
+						"威甘是4級的施法者。他的施法屬性為睿知（法術豁免DC 12，法術攻擊命中{@hit 4}）。他已準備了以下牧師法術："
+					],
+					"spells": {
+						"0": {
+							"spells": [
+								"{@spell 指導術}",
+								"{@spell 光亮術}",
+								"{@spell 修復術}",
+								"{@spell 橡棍術}",
+								"{@spell 奇術}"
+							]
+						},
+						"1": {
+							"slots": 4,
+							"spells": [
+								"{@spell 化獸為友}",
+								"{@spell 治療傷勢}",
+								"{@spell 治癒真言}",
+								"{@spell 造成傷勢}",
+								"{@spell 動物交談術}"
+							]
+						},
+						"2": {
+							"slots": 3,
+							"spells": [
+								"{@spell 樹膚術}",
+								"{@spell 荊棘叢生}",
+								"{@spell 靈體武器}"
+							]
+						}
+					},
+					"ability": "wis"
+				}
+			],
+			"actionTags": [
+				"Multiattack"
+			],
+			"languageTags": [
+				"C",
+				"H"
+			],
+			"spellcastingTags": [
+				"CC"
+			],
+			"damageTags": [
+				"B"
+			]
+		},
+		{
+			"name": "溫德哈羅","ENG_name": "Windharrow",
+			"isNpc": true,
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"half-elf"
+				]
+			},
+			"source": "PotA",
+			"alignment": [
+				"N",
+				"E"
+			],
+			"ac": [
+				{
+					"ac": 15,
+					"from": [
+						"{@item 鑲釘皮甲|phb}"
+					]
+				}
+			],
+			"hp": {
+				"average": 55,
+				"formula": "10d8 + 10"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 10,
+			"dex": 16,
+			"con": 12,
+			"int": 14,
+			"wis": 10,
+			"cha": 17,
+			"skill": {
+				"acrobatics": "+5",
+				"deception": "+7",
+				"persuasion": "+5",
+				"performance": "+7",
+				"stealth": "+5"
+			},
+			"senses": "黑暗視覺60呎",
+			"passive": 10,
+			"languages": "氣族語、通用語、精靈語",
+			"cr": "3",
+			"trait": [
+				{
+					"name": "精類血統", "tENG_name": "Fey Ancestry",
+					"entries": [
+						"溫德哈羅在對抗{@condition 魅惑}的豁免檢定中具有優勢，且魔法無法使她入睡。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "多重攻擊",
+					"entries": [
+						"溫德哈羅進行二次近戰攻擊。"
+					]
+				},
+				{
+					"name": "刺劍",
+					"entries": [
+						"{@atk mw} 命中{@hit 5}，觸及5呎，單一生物。 {@h}7 ({@damage 1d8 + 3}) 穿刺傷害。"
+					]
+				}
+			],
+			"page": 192,
+			"spellcasting": [
+				{
+					"name": "施法",
+					"headerEntries": [
+						"溫德哈羅是8級的施法者。他的施法屬性為魅力（法術豁免DC 13，法術攻擊命中{@hit 5}）。 溫德哈羅知曉以下吟遊詩人法術："
+					],
+					"spells": {
+						"0": {
+							"spells": [
+								"{@spell 交友術}",
+								"{@spell 魔法技倆}",
+								"{@spell 惡毒嘲笑}"
+							]
+						},
+						"1": {
+							"slots": 4,
+							"spells": [
+								"{@spell 易容術}",
+								"{@spell 噪音暗語}",
+								"{@spell 雷鳴波}"
+							]
+						},
+						"2": {
+							"slots": 3,
+							"spells": [
+								"{@spell 隱形術}",
+								"{@spell 粉碎音波}",
+								"{@spell 沉默術}"
+							]
+						},
+						"3": {
+							"slots": 3,
+							"spells": [
+								"{@spell 迴避偵測}",
+								"{@spell 短訊術}",
+								"{@spell 巧舌術}"
+							]
+						},
+						"4": {
+							"slots": 2,
+							"spells": [
+								"{@spell 困惑術}",
+								"{@spell 次元門}"
+							]
+						}
+					},
+					"ability": "cha"
+				}
+			],
+			"traitTags": [
+				"Fey Ancestry"
+			],
+			"actionTags": [
+				"Multiattack"
+			],
+			"languageTags": [
+				"AU",
+				"C",
+				"E"
+			],
+			"senseTags": [
+				"D"
+			],
+			"spellcastingTags": [
+				"CB"
+			],
+			"damageTags": [
+				"P"
+			]
+		},
+		{
+			"name": "延希賓", "ENG_name": "Yan-C-Bin",
+			"size": "H",
+			"type": "elemental",
+			"source": "PotA",
+			"alignment": [
+				"N",
+				"E"
+			],
+			"ac": [
+				{
+					"ac": 22,
+					"from": [
+						"天生護甲"
+					]
+				}
+			],
+			"hp": {
+				"average": 283,
+				"formula": "21d12 + 147"
+			},
+			"speed": {
+				"walk": 50,
+				"fly": 150
+			},
+			"str": 18,
+			"dex": 24,
+			"con": 24,
+			"int": 16,
+			"wis": 21,
+			"cha": 23,
+			"save": {
+				"dex": "+13",
+				"wis": "+11",
+				"cha": "+12"
+			},
+			"resist": [
+				"cold",
+				"fire",
+				{
+					"resist": [
+						"bludgeoning",
+						"piercing",
+						"slashing"
+					],
+					"preNote": "非魔法攻擊所造成的"
+				}
+			],
+			"immune": [
+				"lightning",
+				"poison",
+				"thunder"
+			],
+			"conditionImmune": [
+				"charmed",
+				"frightened",
+				"paralyzed",
+				"petrified",
+				"poisoned",
+				"prone",
+				"restrained"
+			],
+			"senses": "盲視120呎",
+			"passive": 15,
+			"languages": "氣族語",
+			"cr": "18",
+			"trait": [
+				{
+					"name": "氣態形體", "tENG_name": "Air Form",
+					"entries": [
+						"延希賓可以進入一個敵對生物所在的空間並在該處停下。他也可以移動穿越最窄1吋，且空氣得以通過的的狹窄空間而不用擠縮身體。"
+					]
+				},
+				{
+					"name": "賦能攻擊", "tENG_name": "Empowered Attacks",
+					"entries": [
+						"在克服對非魔法攻擊和傷害的抗性和免疫能力時，延希賓的猛擊攻擊被視作魔法攻擊。"
+					]
+				},
+				{
+					"name": "傳奇抗性 (3/日)",
+					"entries": [
+						"若延希賓在一次豁免檢定中失敗，他可以選擇改為使其成功。"
+					]
+				},
+				{
+					"name": "魔法抗性", "tENG_name": "Magic Resistance",
+					"entries": [
+						"延希賓在對抗法術和其他魔法效果的豁免檢定中具有優勢。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "多重攻擊",
+					"entries": [
+						"延希賓進行二次猛擊攻擊。"
+					]
+				},
+				{
+					"name": "猛擊", "tENG_name": "Slam",
+					"entries": [
+						"{@atk mw} 命中{@hit 14}，觸及10呎，單一目標。 {@h}20 ({@damage 3d8 + 7}) 力場傷害加 10 ({@damage 3d6})閃電傷害。"
+					]
+				},
+				{
+					"name": "雷鳴霹靂 (短休或長休之後充能)", "tENG_name": "Thundercrack (Recharges after a Short or Long Rest)",
+					"entries": [
+						"延希賓釋放出一道以他自己為中心，籠罩整個100呎半徑球體範圍內的可怕雷鳴。範圍內的所有其他生物都必須成功通過一次DC 24的體質豁免，否則將受到 31 ({@damage 9d6})雷鳴傷害，且陷入{@condition 耳聾}長達1分鐘。若豁免成功，則該生物只受到一半的傷害，且只會陷入{@condition 耳聾}狀態直到延希賓的下個回合開始。"
+					]
+				},
+				{
+					"name": "改變形體", "tENG_name": "Change Shape",
+					"entries": [
+						"延希賓可以變形成一個中型的類人生物。當處於變形型態時，他的身邊將環繞著微風，他的雙眼蒼白而混濁，且他將失去氣態形體特性。他可以維持這個變形型態最多長達1小時。變回他的真實型態需要採取一個動作。"
+					]
+				},
+				{
+					"name": "召喚元素生物 (1/日)", "tENG_name": "Summon Elementals (1/Day)",
+					"entries": [
+						"延希賓召喚出最多三個{@creature 氣元素}，且他每召喚出一個元素生物便會失去30點生命值。被召喚的元素生物有著全滿的生命值，會出現在距離延希賓100呎內的位置，且會在延希賓的生命值歸零時消失不見。"
+					]
+				}
+			],
+			"legendary": [
+				{
+					"name": "轟隆雷鳴", "tENG_name": "Peal of Thunder",
+					"entries": [
+						"延希賓釋放出一道轟隆雷鳴，在距離300呎內的範圍內都能被聽見。每個距離延希賓30呎內的生物都將受到 5 ({@damage 1d10})雷鳴傷害。"
+					]
+				},
+				{
+					"name": "傳送 (消耗 2動作)", "tENG_name": "Teleport (Costs 2 Actions)",
+					"entries": [
+						"延希賓用魔法傳送最多120呎距離到一處他所能看見的未被佔據空間。任何延希賓所穿戴或攜帶的裝備都會跟著他一起被傳送。"
+					]
+				},
+				{
+					"name": "窒息 (消耗 3動作)", "tENG_name": "Suffocate (Costs 3 Actions)",
+					"entries": [
+						"延希賓竊走一個距離他60呎內，他所能看見，且需要呼吸的生物身邊的空氣。目標必須進行一次DC 21的體質豁免。若豁免失敗，則目標的生命值歸零並陷入瀕死。若豁免成功，則目標直到它的下個回合開始之前都無法呼吸或說話。"
+					]
+				}
+			],
+			"legendaryGroup": {
+				"name": "Yan-C-Bin",
+				"source": "PotA"
+			},
+			"page": 221,
+			"spellcasting": [
+				{
+					"name": "天生施法",
+					"headerEntries": [
+						"延希賓的天生施法屬性為魅力（法術豁免DC 20，法術攻擊命中{@hit 12}）。他天生就可以施展以下法術，且無需任何材料構材："
+					],
+					"will": [
+						"{@spell 造風術}",
+						"{@spell 隱形術}",
+						"{@spell 閃電束}"
+					],
+					"daily": {
+						"2e": [
+							"{@spell 連環閃電}",
+							"{@spell 死雲術}",
+							"{@spell 加速術}"
+						]
+					},
+					"ability": "cha"
+				}
+			],
+			"isNamedCreature": true,
+			"traitTags": [
+				"Legendary Resistances",
+				"Magic Resistance"
+			],
+			"actionTags": [
+				"Multiattack"
+			],
+			"languageTags": [
+				"AU"
+			],
+			"senseTags": [
+				"B"
+			],
+			"spellcastingTags": [
+				"I"
+			],
+			"damageTags": [
+				"O",
+				"L",
+				"T"
+			]
+		}
+	]
+}

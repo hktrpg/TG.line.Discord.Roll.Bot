@@ -1,0 +1,558 @@
+{
+	"monster": [
+		{
+			"source": "TTP",
+			"name": "Decapus",
+			"size": "L",
+			"type": "monstrosity",
+			"alignment": [
+				"U"
+			],
+			"ac": [
+				{
+					"ac": 14,
+					"from": [
+						"天生護甲"
+					]
+				}
+			],
+			"hp": {
+				"average": 75,
+				"formula": "10d10 + 20"
+			},
+			"speed": {
+				"walk": 15,
+				"climb": 30
+			},
+			"str": 15,
+			"dex": 14,
+			"con": 14,
+			"int": 4,
+			"wis": 10,
+			"cha": 7,
+			"skill": {
+				"athletics": "+4",
+				"perception": "+2",
+				"stealth": "+4"
+			},
+			"senses": "darkvision 60 ft.",
+			"passive": 12,
+			"cr": "4",
+			"action": [
+				{
+					"name": "Multiattack",
+					"entries": [
+						"The decapus makes two attacks: one with its bite and one with its tentacles."
+					]
+				},
+				{
+					"name": "Bite",
+					"entries": [
+						"{@atk mw} {@hit 4} to hit, reach 5 ft., one creature {@condition grappled} by the decapus. {@h}7 ({@damage 2d4 + 2}) piercing damage."
+					]
+				},
+				{
+					"name": "Tentacles",
+					"entries": [
+						"{@atk mw} {@hit 4} to hit, reach 10 ft., one target. {@h}24 ({@damage 9d4 + 2}) bludgeoning damage or 14 ({@damage 5d4 + 2}) bludgeoning damage if the decapus is grappling a creature other than the target or if the decapus is on the ground or floor. The target is also {@condition grappled} (escape DC 14) unless the decapus is already grappling a creature. Until this grapple ends, the target is {@condition restrained}."
+					]
+				}
+			],
+			"page": 21,
+			"actionTags": [
+				"Multiattack",
+				"Tentacles"
+			],
+			"senseTags": [
+				"D"
+			],
+			"damageTags": [
+				"P",
+				"B"
+			]
+		},
+		{
+			"source": "TTP",
+			"name": "Geonid",
+			"size": "S",
+			"type": "elemental",
+			"alignment": [
+				"N"
+			],
+			"ac": [
+				{
+					"ac": 17,
+					"from": [
+						"天生護甲"
+					]
+				}
+			],
+			"hp": {
+				"average": 26,
+				"formula": "4d6 + 12"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 12,
+			"dex": 10,
+			"con": 16,
+			"int": 9,
+			"wis": 14,
+			"cha": 11,
+			"skill": {
+				"perception": "+4",
+				"stealth": "+2"
+			},
+			"senses": "darkvision 60 ft., tremorsense 30 ft.",
+			"passive": 14,
+			"cr": "1/4",
+			"trait": [
+				{
+					"name": "Boulder Guise",
+					"entries": [
+						"While fully withdrawn into its shell, the geonid can't see and is indistinguishable from a small boulder"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "Club",
+					"entries": [
+						"{@atk mw} {@hit 3} to hit, reach 5 ft., one target. {@h}3 ({@damage 1d4 + 1}) bludgeoning damage."
+					]
+				},
+				{
+					"name": "Stone Tell",
+					"entries": [
+						"The geonid touches a stone object or surface and knows what types of creatures have been within 10 feet of that stone in the past 24 hours. The geonid can also determine the number of creatures of each type, but not their identities."
+					]
+				}
+			],
+			"page": 22,
+			"senseTags": [
+				"D",
+				"T"
+			],
+			"damageTags": [
+				"B"
+			]
+		},
+		{
+			"name": "Giant Slug",
+			"isNpc": true,
+			"size": "L",
+			"type": "monstrosity",
+			"source": "TTP",
+			"alignment": [
+				"U"
+			],
+			"ac": [
+				{
+					"ac": 13,
+					"from": [
+						"天生護甲"
+					]
+				}
+			],
+			"hp": {
+				"average": 66,
+				"formula": "6d10 + 18"
+			},
+			"speed": {
+				"walk": 10,
+				"climb": 10
+			},
+			"str": 14,
+			"dex": 13,
+			"con": 16,
+			"int": 1,
+			"wis": 12,
+			"cha": 5,
+			"skill": {
+				"perception": "+3"
+			},
+			"senses": "darkvision 60 ft.",
+			"languages": "Abyssal, Aquan, Common",
+			"passive": 13,
+			"cr": "3",
+			"trait": [
+				{
+					"name": "Keen Smell",
+					"entries": [
+						"The slug has advantage on Wisdom ({@skill Perception}) checks that rely on smell."
+					]
+				},
+				{
+					"name": "Spider Climb",
+					"entries": [
+						"The slug can climb difficult surfaces, including upside down on ceilings, without needing to make an ability check."
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "Multiattack",
+					"entries": [
+						"The slug makes two attacks: one with its tentacles and one with its bite."
+					]
+				},
+				{
+					"name": "Tentacles",
+					"entries": [
+						"{@atk mw} {@hit 8} to hit, reach 10 ft., one creature. {@h}4 ({@damage 1d4 + 2}) poison damage, and the target must succeed on a DC 13 Constitution saving throw or be {@condition poisoned} for 1 minute. Until this poison ends, the target is {@condition paralyzed}. The target can repeat the saving throw at the end of each of its turns, ending the poison on itself on a success."
+					]
+				},
+				{
+					"name": "Bite",
+					"entries": [
+						"{@atk mw} {@hit 4} to hit, reach 5 ft., one target. {@h}7 ({@damage 2d4 + 2}) piercing damage."
+					]
+				}
+			],
+			"reaction": [
+				{
+					"name": "Animate Tentacle",
+					"entries": [
+						"When the slug takes damage in this cave (Shrine of Umberlee), it can use its reaction to animate one of the tentacles of the kraken statue and cause it to make a melee weapon attack ({@hit 3} to hit) against one creature within 20 feet of the statue that the slug can see. The tentacle deals 8 ({@damage 1d8 + 4}) bludgeoning damage on a hit."
+					]
+				}
+			],
+			"spellcasting": [
+				{
+					"name": "Innate Spellcasting",
+					"headerEntries": [
+						"The slug's innate spellcasting ability is Wisdom (spell save DC 11, {@hit 3} to hit with spell attacks). It can innately cast the following spells, requiring no material components:"
+					],
+					"daily": {
+						"1e": [
+							"{@spell guiding bolt}",
+							"{@spell sanctuary}",
+							"{@spell spiritual weapon}"
+						]
+					},
+					"ability": "wis"
+				}
+			],
+			"page": 18,
+			"traitTags": [
+				"Keen Senses",
+				"Spider Climb"
+			],
+			"actionTags": [
+				"Multiattack",
+				"Tentacles"
+			],
+			"languageTags": [
+				"AB",
+				"AQ",
+				"C"
+			],
+			"senseTags": [
+				"D"
+			],
+			"spellcastingTags": [
+				"I"
+			],
+			"damageTags": [
+				"I",
+				"P",
+				"B"
+			]
+		},
+		{
+			"source": "TTP",
+			"name": "Topi",
+			"size": "S",
+			"type": "undead",
+			"alignment": [
+				"C",
+				"E"
+			],
+			"ac": [
+				{
+					"ac": 13,
+					"from": [
+						"天生護甲"
+					]
+				}
+			],
+			"hp": {
+				"average": 13,
+				"formula": "3d6 + 3"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 7,
+			"dex": 15,
+			"con": 12,
+			"int": 6,
+			"wis": 10,
+			"cha": 5,
+			"resist": [
+				"bludgeoning"
+			],
+			"immune": [
+				"poison"
+			],
+			"conditionImmune": [
+				"poisoned"
+			],
+			"senses": "darkvision 60 ft.",
+			"languages": "understands the languages it knew in life but can't speak",
+			"passive": 10,
+			"cr": "1/2",
+			"trait": [
+				{
+					"name": "Turn Resistance",
+					"entries": [
+						"The topi has advantage on saving throws against any effect that turns undead."
+					]
+				},
+				{
+					"name": "Undead Fortitude",
+					"entries": [
+						"If damage reduces the topi to 0 hit points, it must make a Constitution saving throw with a DC of 5+the damage taken, unless the damage is radiant or from a critical hit. On a success, the topi drops to 1 hit point instead."
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "Venomous Claws",
+					"entries": [
+						"{@atk mw} {@hit 4} to hit, reach 5 ft., one target. {@h}4 ({@damage 1d4 + 2}) slashing damage plus 2 ({@damage 1d4}) poison damage, and the target must succeed on a DC 11 Constitution saving throw or be {@condition poisoned} until the end of the target's next turn."
+					]
+				}
+			],
+			"page": 22,
+			"traitTags": [
+				"Turn Resistance",
+				"Undead Fortitude"
+			],
+			"senseTags": [
+				"D"
+			],
+			"languageTags": [
+				"CS"
+			],
+			"damageTags": [
+				"S",
+				"I"
+			]
+		},
+		{
+			"source": "TTP",
+			"name": "Tortle",
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"tortle"
+				]
+			},
+			"alignment": [
+				"L",
+				"G"
+			],
+			"ac": [
+				{
+					"ac": 17,
+					"from": [
+						"天生護甲"
+					]
+				}
+			],
+			"hp": {
+				"average": 22,
+				"formula": "4d8 + 4"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 15,
+			"dex": 10,
+			"con": 12,
+			"int": 11,
+			"wis": 13,
+			"cha": 12,
+			"skill": {
+				"athletics": "+4",
+				"survival": "+3"
+			},
+			"languages": "Aquan, Common",
+			"passive": 11,
+			"cr": "1/4",
+			"trait": [
+				{
+					"name": "Hold Breath",
+					"entries": [
+						"The tortle can hold its breath for 1 hour."
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "Claws",
+					"entries": [
+						"{@atk mw} {@hit 4} to hit, reach 5 ft., one target. {@h}4 ({@damage 1d4 + 2}) slashing damage."
+					]
+				},
+				{
+					"name": "Quarterstaff",
+					"entries": [
+						"{@atk mw} {@hit 4} to hit, reach 5 ft., one target. {@h}5 ({@damage 1d6 + 2}) bludgeoning damage, or 6 ({@damage 1d8 + 2}) bludgeoning damage when used with two hands."
+					]
+				},
+				{
+					"name": "Light Crossbow",
+					"entries": [
+						"{@atk rw} {@hit 2} to hit, range 80/320 ft., one target. {@h}4 ({@damage 1d8}) piercing damage."
+					]
+				},
+				{
+					"name": "Shell Defense",
+					"entries": [
+						"The tortle withdraws into its shell. Until it emerges, it gains a +4 bonus to AC and has advantage on Strength and Constitution saving throws. While in its shell, the tortle is {@condition prone}, its speed is 0 and can't increase, it has disadvantage on Dexterity saving throws, it can't take reactions, and the only action it can take is a bonus action to emerge."
+					]
+				}
+			],
+			"page": 23,
+			"soundClip": "https://media-waterdeep.cursecdn.com/file-attachments/0/712/tortle.mp3",
+			"traitTags": [
+				"Hold Breath"
+			],
+			"languageTags": [
+				"AQ",
+				"C"
+			],
+			"damageTags": [
+				"S",
+				"B",
+				"P"
+			]
+		},
+		{
+			"source": "TTP",
+			"name": "Tortle Druid",
+			"size": "M",
+			"type": {
+				"type": "humanoid",
+				"tags": [
+					"tortle"
+				]
+			},
+			"alignment": [
+				"L",
+				"N"
+			],
+			"ac": [
+				{
+					"ac": 17,
+					"from": [
+						"天生護甲"
+					]
+				}
+			],
+			"hp": {
+				"average": 33,
+				"formula": "6d8 + 6"
+			},
+			"speed": {
+				"walk": 30
+			},
+			"str": 14,
+			"dex": 10,
+			"con": 12,
+			"int": 11,
+			"wis": 15,
+			"cha": 12,
+			"skill": {
+				"animal handling": "+4",
+				"nature": "+2",
+				"survival": "+4"
+			},
+			"languages": "Aquan, Common",
+			"passive": 12,
+			"cr": "2",
+			"spellcasting": [
+				{
+					"name": "Spellcasting",
+					"headerEntries": [
+						"The tortle is a 4th-level spellcaster. Its spellcasting ability is Wisdom (spell save DC 12, {@hit 4} to hit with spell attacks). It has the following druid spells prepared:"
+					],
+					"spells": {
+						"0": {
+							"spells": [
+								"{@spell 德魯伊伎倆}",
+								"{@spell guidance}",
+								"{@spell produce flame}"
+							]
+						},
+						"1": {
+							"slots": 4,
+							"spells": [
+								"{@spell animal friendship}",
+								"{@spell cure wounds}",
+								"{@spell speak with animals}",
+								"{@spell thunderwave}"
+							]
+						},
+						"2": {
+							"slots": 3,
+							"spells": [
+								"{@spell darkvision}",
+								"{@spell hold person}"
+							]
+						}
+					},
+					"ability": "wis"
+				}
+			],
+			"trait": [
+				{
+					"name": "Hold Breath",
+					"entries": [
+						"The tortle can hold its breath for 1 hour."
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "Claws",
+					"entries": [
+						"{@atk mw} {@hit 4} to hit, reach 5 ft., one target. {@h}4 ({@damage 1d4 + 2}) slashing damage."
+					]
+				},
+				{
+					"name": "Quarterstaff",
+					"entries": [
+						"{@atk mw} {@hit 4} to hit, reach 5 ft., one target. {@h}5 ({@damage 1d6 + 2}) bludgeoning damage, or 6 ({@damage 1d8 + 2}) bludgeoning damage when used with two hands."
+					]
+				},
+				{
+					"name": "Shell Defense",
+					"entries": [
+						"The tortle withdraws into its shell. Until it emerges, it gains a +4 bonus to AC and has advantage on Strength and Constitution saving throws. While in its shell, the tortle is {@condition prone}, its speed is 0 and can't increase, it has disadvantage on Dexterity saving throws, it can't take reactions, and the only action it can take is a bonus action to emerge."
+					]
+				}
+			],
+			"page": 23,
+			"soundClip": "https://media-waterdeep.cursecdn.com/file-attachments/0/711/tortle-druid.mp3",
+			"traitTags": [
+				"Hold Breath"
+			],
+			"languageTags": [
+				"AQ",
+				"C"
+			],
+			"spellcastingTags": [
+				"CD"
+			],
+			"damageTags": [
+				"S",
+				"B"
+			]
+		}
+	]
+}

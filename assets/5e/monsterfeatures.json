@@ -1,0 +1,235 @@
+{
+	"monsterfeatures": [
+		{
+			"name": "侵略性", "ENG_name": "Aggressive",
+			"example": "獸人",
+			"effect": "以一個附贈動作，該生物可以向一個它所能看見的敵對生物移動最多等同它移動速度的距離。",
+			"hp": "",
+			"ac": "",
+			"dpr": "2",
+			"attackbonus": ""
+		},
+		{
+			"name": "伏擊者", "ENG_name": "Ambusher",
+			"example": "二重身",
+			"effect": "在戰鬥的第一輪中，該生物對任何被它突襲的生物所進行的攻擊檢定具有優勢。",
+			"hp": "",
+			"ac": "",
+			"dpr": "",
+			"attackbonus": "1"
+		},
+		{
+			"name": "天使武器", "ENG_name": "Angelic Weapons",
+			"example": "梵天神侍",
+			"effect": "該生物的武器攻擊視作魔法攻擊。當該生物以任何武器命中時，該武器將造成額外的光耀傷害。請輸入它每輪因此造成的額外傷害。",
+			"hp": "",
+			"ac": "",
+			"dpr": "trait",
+			"attackbonus": "",
+			"numbox": true
+		},
+		{
+			"name": "迴避", "ENG_name": "Avoidance",
+			"example": "半巫妖",
+			"effect": "若該生物成為一個允許它進行豁免檢定以僅承受一半傷害的效果的目標時，它改為在豁免成功時不受任何傷害，且在豁免失敗時僅承受一半傷害。",
+			"hp": "",
+			"ac": "1",
+			"dpr": "",
+			"attackbonus": ""
+		},
+		{
+			"name": "鮮血狂熱", "ENG_name": "Blood Frenzy",
+			"example": "沙華魚人",
+			"effect": "該生物在對任何生命值沒有全滿的生物所進行的近戰攻擊檢定中具有優勢。",
+			"hp": "",
+			"ac": "",
+			"dpr": "",
+			"attackbonus": "4"
+		},
+		{
+			"name": "絞纏", "ENG_name": "Constrict",
+			"example": "巨蟒蛇",
+			"effect": "該生物具有在一次攻擊的同時束縛和／或擒抱其目標的能力。",
+			"hp": "",
+			"ac": "1",
+			"dpr": "",
+			"attackbonus": ""
+		},
+		{
+			"name": "傷害轉移", "ENG_name": "Damage Transfer",
+			"example": "斗篷偽怪",
+			"effect": "當附著或擒抱一個生物時，該生物只會受到任何對它造成傷害的一半（向下取整），且另一個生物將受到另一半的傷害。",
+			"hp": "hp",
+			"ac": "",
+			"dpr": "hp * 0.33",
+			"attackbonus": ""
+		},
+		{
+			"name": "變巨", "ENG_name": "Enlarge",
+			"example": "灰矮人",
+			"effect": "該生物可以用魔法將自己的體型連同任何它正穿戴或攜帶的物體變大。請輸入它在變巨時每輪造成的額外傷害。",
+			"hp": "",
+			"ac": "",
+			"dpr": "trait",
+			"attackbonus": "",
+			"numbox": true
+		},
+		{
+			"name": "駭人威儀", "ENG_name": "Frightful Presence",
+			"example": "遠古金龍",
+			"effect": "每個在範圍內由該生物所選的生物都必須進行一次睿知豁免，否則將陷入恐懼長達1分鐘。",
+			"hp": "Math.floor((expectedCr <= 10) ? hp * 0.25 : 0)",
+			"ac": "",
+			"dpr": "",
+			"attackbonus": ""
+		},
+		{
+			"name": "灼熱身軀", "ENG_name": "Heated Body",
+			"example": "火矮人",
+			"effect": "在距離它5呎內觸碰或命中該生物將會承受火焰傷害。",
+			"hp": "",
+			"ac": "",
+			"dpr": "trait",
+			"attackbonus": "",
+			"numbox": true
+		},
+		{
+			"name": "駭人面容", "ENG_name": "Horrifying Visage",
+			"example": "報喪女妖(班西)",
+			"effect": "每個範圍內的非不死生物都必須進行一次睿知豁免，否則將陷入恐懼長達1分鐘。",
+			"hp": "Math.floor((expectedCr <= 10) ? hp * 0.25 : 0)",
+			"ac": "",
+			"dpr": "",
+			"attackbonus": ""
+		},
+		{
+			"name": "傳奇抗性", "ENG_name": "Legendary Resistance",
+			"example": "泰拉斯奎巨獸",
+			"effect": "若該生物在豁免檢定中失敗，它可以選擇改為使其成功。請輸入它每天可以使用的次數。",
+			"hp": "((expectedCr >= 0 && expectedCr <= 4) ? 10*trait : ((expectedCr >= 5 && expectedCr <= 10) ? 20*trait : ((expectedCr >= 11) ? 30*trait : 0)))",
+			"ac": "",
+			"dpr": "",
+			"attackbonus": "",
+			"numbox": true
+		},
+		{
+			"name": "魔法抗性", "ENG_name": "Magic Resistance",
+			"example": "巴洛炎魔",
+			"effect": "該生物在對抗法術和其他魔法效果的豁免檢定中具有優勢。",
+			"hp": "",
+			"ac": "2",
+			"dpr": "",
+			"attackbonus": ""
+		},
+		{
+			"name": "成軍優勢", "ENG_name": "Martial Advantage",
+			"example": "大哥布林",
+			"effect": "當該生物命中一個目標時，若該生物有一個不處於無力狀帶的隊友距離該目標5呎之內，則該生物可以對它造成額外傷害。請輸入它每輪因此造成的額外傷害。",
+			"hp": "",
+			"ac": "",
+			"dpr": "trait",
+			"attackbonus": "",
+			"numbox": true
+		},
+		{
+			"name": "靈敏脫逃", "ENG_name": "Nimble Escape",
+			"example": "哥布林",
+			"effect": "該生物可以在每次它的回合以一個附贈動作來採取撤離或躲藏動作。",
+			"hp": "",
+			"ac": "4",
+			"dpr": "",
+			"attackbonus": "4"
+		},
+		{
+			"name": "群體戰術", "ENG_name": "Pack Tactics",
+			"example": "狗頭人",
+			"effect": "若該生物有至少一個隊友距離目標5呎內且該隊友並未無力，則該生物在對目標進行的攻擊檢定中具有優勢。",
+			"hp": "",
+			"ac": "",
+			"dpr": "",
+			"attackbonus": "1"
+		},
+		{
+			"name": "格擋", "ENG_name": "Parry",
+			"example": "大哥布林督軍",
+			"effect": "該生物在一次近戰攻擊將要命中它時，可以使用一個反應以針對該次攻擊使它的AC增加等同於它熟練加值的數值。",
+			"hp": "",
+			"ac": "1",
+			"dpr": "",
+			"attackbonus": ""
+		},
+		{
+			"name": "附身", "ENG_name": "Possession",
+			"example": "鬼魂",
+			"effect": "該生物可以控制另一名生物，在這段期間它不會受到幾乎任何效果的影響。",
+			"hp": "hp",
+			"ac": "",
+			"dpr": "",
+			"attackbonus": ""
+		},
+		{
+			"name": "再生", "ENG_name": "Regeneration",
+			"example": "巨魔",
+			"effect": "在該生物的回合開始時，它將回復生命值，且直到這個效果被某個方式（通常是透過酸蝕或火焰傷害）壓制之前都不會被殺死。請輸入它在回合開始時所回復的生命值數量。",
+			"hp": "trait*3",
+			"ac": "",
+			"dpr": "",
+			"attackbonus": "",
+			"numbox": true
+		},
+		{
+			"name": "頑強", "ENG_name": "Relentless",
+			"example": "野豬",
+			"effect": "若該生物的生命值將要被歸零，則它有機會改為使它的生命值被減少至1。",
+			"hp": "((expectedCr >= 0 && expectedCr <= 4) ? 7 : ((expectedCr >= 5 && expectedCr <= 10) ? 14 : ((expectedCr >= 11 && expectedCr <= 16) ? 21 : ((expectedCr >= 17) ? 28 : 0))))",
+			"ac": "",
+			"dpr": "",
+			"attackbonus": ""
+		},
+		{
+			"name": "暗影潛匿.", "ENG_name": "Shadow Stealth",
+			"example": "影魔",
+			"effect": "當處於微光光照或黑暗環境時，該生物能夠以一個附贈動作採取躲藏動作。",
+			"hp": "",
+			"ac": "4",
+			"dpr": "",
+			"attackbonus": ""
+		},
+		{
+			"name": "惡臭", "ENG_name": "Stench",
+			"example": "戰蜥人",
+			"effect": "任何該種怪物以外，距離它5呎內的生物都必須進行一次豁免檢定，否則陷入中毒狀態。",
+			"hp": "",
+			"ac": "1",
+			"dpr": "",
+			"attackbonus": ""
+		},
+		{
+			"name": "卓越隱形", "ENG_name": "Superior Invisibility",
+			"example": "小魔鬼",
+			"effect": "該生物可以使用一個動作或附贈動作以使自己變得隱形。",
+			"hp": "",
+			"ac": "2",
+			"dpr": "",
+			"attackbonus": ""
+		},
+		{
+			"name": "不死韌性", "ENG_name": "Undead Fortitude",
+			"example": "殭屍",
+			"effect": "若該生物的生命值將要被歸零，則它有機會改為使它的生命值被減少至1。若這個傷害來自光耀屬性，則這個特性將被無效。",
+			"hp": "((expectedCr >= 0 && expectedCr <= 4) ? 7 : ((expectedCr >= 5 && expectedCr <= 10) ? 14 : ((expectedCr >= 11 && expectedCr <= 16) ? 21 : ((expectedCr >= 17) ? 28 : 0))))",
+			"ac": "",
+			"dpr": "",
+			"attackbonus": ""
+		},
+		{
+			"name": "蛛網", "ENG_name": "Web",
+			"example": "巨蜘蛛",
+			"effect": "這個遠程武器攻擊將在命中時束縛其目標。",
+			"hp": "",
+			"ac": "1",
+			"dpr": "",
+			"attackbonus": ""
+		}
+	]
+}

@@ -1,0 +1,3516 @@
+{
+	"feat": [
+		{
+			"name": "Barbed Hide",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "tiefling"
+						}
+					]
+				}
+			],
+			"source": "UAFeatsForRaces",
+			"page": 1,
+			"entries": [
+				"One of your ancestors was a barbed devil or other spiky fiend. Barbs protrude from your head. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"As a bonus action, you can cause small barbs to protrude all over your body or cause them to retract. At the start of each of your turns while the barbs are out, you deal 1d6 piercing damage to any creature grappling you or any creature {@condition grappled} by you.",
+						"You gain proficiency in the {@skill Intimidation} skill. If you are already proficient in the skill, you add double your proficiency bonus to checks you make with it."
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"con",
+							"cha"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "Bountiful Luck",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "halfling"
+						}
+					]
+				}
+			],
+			"source": "UAFeatsForRaces",
+			"page": 1,
+			"entries": [
+				"Whenever an ally you can see within 30 feet of you rolls a 1 on the d20 for an attack roll, an ability check, or a saving throw, you can use your reaction to let the ally reroll the die. The ally must use the new roll."
+			]
+		},
+		{
+			"name": "Critter Friend",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "gnome",
+							"subrace": "forest"
+						}
+					]
+				}
+			],
+			"source": "UAFeatsForRaces",
+			"page": 1,
+			"entries": [
+				"Your friendship with animals mystically deepens. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You gain proficiency in the {@skill Animal Handling} skill. If you are already proficient in the skill, you add double your proficiency bonus to checks you make with it.",
+						"You learn the {@spell speak with animals} spell and can cast it at will, without expending a spell slot. You also learn the {@spell 化獸為友} spell, and you can cast it once with this feat, without expending a spell slot. You regain the ability to cast it in this way when you finish a long rest. Intelligence is your spellcasting ability for these spells."
+					]
+				}
+			]
+		},
+		{
+			"name": "Dragon Fear",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "dragonborn"
+						}
+					]
+				}
+			],
+			"source": "UAFeatsForRaces",
+			"page": 2,
+			"entries": [
+				"When angered, you radiate menace. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"Instead of exhaling destructive energy, you can roar and expend a use of your breath weapon to force each creature of your choice within 30 feet of you to make a Wisdom saving throw (DC 8 + your proficiency bonus + your Charisma modifier). A target automatically succeeds if it can't hear or see you. On a failed save, a target becomes {@condition frightened} for 1 minute. If the {@condition frightened} target takes any damage, it can repeat the saving throw, ending the effect on itself on a success."
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"str",
+							"cha"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "Dragon Hide",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "dragonborn"
+						}
+					]
+				}
+			],
+			"source": "UAFeatsForRaces",
+			"page": 2,
+			"entries": [
+				"You inherited the might and majesty of your dragon ancestors. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You grow retractable claws from the tips of your fingers. Extending or retracting the claws requires no action. The claws are natural weapons, which you can use to make unarmed strikes. If you hit with them, you deal slashing damage equal to {@dice 1d4} + your Strength modifier, instead of the bludgeoning damage normal for an unarmed strike.",
+						"Your scales harden; you gain a +1 bonus to AC while you aren't wearing armor."
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"str",
+							"cha"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "Dragon Wings",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "dragonborn"
+						}
+					]
+				}
+			],
+			"source": "UAFeatsForRaces",
+			"page": 2,
+			"entries": [
+				"You sprout draconic wings. With your wings, you have a flying speed of 20 feet if you aren't wearing heavy armor and aren't exceeding your carrying capacity."
+			]
+		},
+		{
+			"name": "Drow High Magic",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "elf",
+							"subrace": "drow"
+						}
+					]
+				}
+			],
+			"source": "UAFeatsForRaces",
+			"page": 2,
+			"entries": [
+				"You learn more of the spells typical for your people. You learn {@spell 偵測魔法} and can cast it at will, without expending a spell slot. You also learn {@spell levitate} and {@spell dispel magic}, each of which you can cast once without expending a spell slot. You regain the ability to cast the spell in this way when you finish a long rest. Charisma is your spellcasting ability for these spells."
+			]
+		},
+		{
+			"name": "Dwarf Resilience",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "dwarf"
+						}
+					]
+				}
+			],
+			"source": "UAFeatsForRaces",
+			"page": 2,
+			"entries": [
+				"You have the blood of dwarf heroes flowing through your veins. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"Whenever you take the Dodge action in combat, you can spend one Hit Die to heal yourself. Roll the die, add your Constitution modifier, and regain a number of hit points equal to the total (minimum of 1)."
+					]
+				}
+			],
+			"ability": {
+				"con": 1
+			}
+		},
+		{
+			"name": "Elven Accuracy",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "elf"
+						},
+						{
+							"name": "half-elf"
+						}
+					]
+				}
+			],
+			"source": "UAFeatsForRaces",
+			"page": 2,
+			"entries": [
+				"You have uncanny aim. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"Whenever you have advantage on an attack roll, you can reroll one of the dice once."
+					]
+				}
+			],
+			"ability": {
+				"dex": 1
+			}
+		},
+		{
+			"name": "Everybody's Friend",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "half-elf"
+						}
+					]
+				}
+			],
+			"source": "UAFeatsForRaces",
+			"page": 2,
+			"entries": [
+				"You develop your magnetic personality to ease your way through the world. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You gain proficiency in the {@skill Deception} and {@skill Persuasion} skills. If you're already proficient in either skill, your proficiency bonus is doubled for any check you make with that skill."
+					]
+				}
+			],
+			"ability": {
+				"cha": 1
+			}
+		},
+		{
+			"name": "Fade Away",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "gnome"
+						}
+					]
+				}
+			],
+			"source": "UAFeatsForRaces",
+			"page": 2,
+			"entries": [
+				"You can draw on your magical heritage to escape danger. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"When you take damage, you can use a reaction to magically become {@condition invisible} until the end of your next turn or until you attack, deal damage, or force someone to make a saving throw. Once you use this ability, you can't do so again until you finish a short or long rest."
+					]
+				}
+			],
+			"ability": {
+				"int": 1
+			}
+		},
+		{
+			"name": "Fey Teleportation",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "elf",
+							"subrace": "high"
+						}
+					]
+				}
+			],
+			"source": "UAFeatsForRaces",
+			"page": 3,
+			"entries": [
+				"Drawing on your fey ancestry, you have learned how to teleport. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You learn the {@spell 迷蹤步} spell and can cast it once without expending a spell slot. You regain the ability to cast it in this way when you finish a short or long rest. Intelligence is your spellcasting ability for this spell."
+					]
+				}
+			],
+			"ability": {
+				"int": 1
+			}
+		},
+		{
+			"name": "Flames of Phlegethos",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "tiefling"
+						}
+					]
+				}
+			],
+			"source": "UAFeatsForRaces",
+			"page": 3,
+			"entries": [
+				"You learn to call on hellfire to serve your commands. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"When you roll fire damage for a spell you cast, you can reroll any roll of 1 on the fire damage dice, but you must use the new roll, even if it is another 1.",
+						"Whenever you cast a spell that deals fire damage, you can cause flames to wreathe you until the end of your next turn. The flames don't harm you or your possessions, and they shed bright light out to 30 feet and dim light for an additional 30 feet. While the flames are present, any creature within 5 feet of you that hits you with a melee attack takes {@dice 1d4} fire damage."
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"int",
+							"cha"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "Grudge-Bearer",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "dwarf"
+						}
+					]
+				}
+			],
+			"source": "UAFeatsForRaces",
+			"page": 3,
+			"entries": [
+				"You have a deep hatred for a particular kind of creature. Choose your foes, a type of creature to bear the burden of your wrath: aberrations, beasts, celestials, constructs, dragons, elementals, fey, fiends, giants, monstrosities, oozes, plants, or undead. Alternatively, you can choose two races of humanoid (such as gnolls and orcs). You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"During the first round of any combat against your chosen foes, your attack rolls against any of them have advantage.",
+						"When any of your chosen foes makes an opportunity attack against you, it makes the attack roll with disadvantage.",
+						"Whenever you make an Intelligence ({@skill Arcana}, {@skill History}, {@skill Nature}, or {@skill Religion}) check to recall information about your chosen foes, you add double your proficiency bonus to the check, even if you're not normally proficient."
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"str",
+							"con",
+							"wis"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "Human Determination",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "human"
+						}
+					]
+				}
+			],
+			"source": "UAFeatsForRaces",
+			"page": 3,
+			"entries": [
+				"You are filled with a determination that can draw the unreachable within your reach. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"When you make an attack roll, an ability check, or a saving throw, you can do so with advantage. Once you use this ability, you can't use it again until you finish a short or long rest."
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"str",
+							"dex",
+							"con",
+							"int",
+							"wis",
+							"cha"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "Infernal Constitution",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "tiefling"
+						}
+					]
+				}
+			],
+			"source": "UAFeatsForRaces",
+			"page": 3,
+			"entries": [
+				"Fiendish blood runs strong in you. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You have resistance to cold and poison damage.",
+						"You have advantage on saving throws against being {@condition poisoned}."
+					]
+				}
+			],
+			"ability": {
+				"con": 1
+			}
+		},
+		{
+			"name": "Orcish Aggression",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "half-orc"
+						}
+					]
+				}
+			],
+			"source": "UAFeatsForRaces",
+			"page": 3,
+			"entries": [
+				"As a bonus action, you can move up to your speed toward an enemy of your choice that you can see or hear. You must end this move closer to the enemy than you started."
+			]
+		},
+		{
+			"name": "Orcish Fury",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "half-orc"
+						}
+					]
+				}
+			],
+			"source": "UAFeatsForRaces",
+			"page": 4,
+			"entries": [
+				"Your fury burns tirelessly. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"When you hit with an attack made with a simple or martial weapon, you can roll one of the weapon's damage dice an additional time and add it as extra damage of the weapon's damage type. Once you use this ability, you can't use it again until you finish a short or long rest.",
+						"Immediately after you use your Relentless Endurance trait, you can use your reaction to make one weapon attack."
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"str",
+							"con"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "Prodigy",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "half-elf"
+						},
+						{
+							"name": "human"
+						}
+					]
+				}
+			],
+			"source": "UAFeatsForRaces",
+			"page": 4,
+			"entries": [
+				"You have a knack for learning new things. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You gain one skill proficiency of your choice, one tool proficiency of your choice, and fluency in one language of your choice."
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"str",
+							"dex",
+							"con",
+							"int",
+							"wis",
+							"cha"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "Second Chance",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "halfling"
+						}
+					]
+				}
+			],
+			"source": "UAFeatsForRaces",
+			"page": 4,
+			"entries": [
+				"You have a knack for learning new things. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"When a creature you can see hits you with an attack roll, you can use your reaction to force that creature to reroll. Once you use this ability, you can't do so again until you finish a short or long rest."
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"dex",
+							"con",
+							"cha"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "Squat Nimbleness",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "dwarf"
+						},
+						{
+							"name": "gnome"
+						},
+						{
+							"name": "halfling"
+						}
+					]
+				}
+			],
+			"source": "UAFeatsForRaces",
+			"page": 4,
+			"entries": [
+				"You are uncommonly nimble for your race. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"Increase your walking speed by 5 feet.",
+						"You gain proficiency in the {@skill Acrobatics} or {@skill Athletics} skill. If you're already proficient in the skill, your proficiency bonus is doubled for any check you make with it."
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"str",
+							"dex"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "Wonder Maker",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "gnome",
+							"subrace": "rock"
+						}
+					]
+				}
+			],
+			"source": "UAFeatsForRaces",
+			"page": 4,
+			"entries": [
+				"You master the tinker techniques of your people. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"When you make a check using your proficiency with {@item tinker's tools|phb}, you add double your proficiency bonus to the check.",
+						"When you make a device with your Tinker trait, you have the following additional options for what you make:",
+						{
+							"type": "entries",
+							"name": "Alarm",
+							"entries": [
+								"This device senses when a creature moves to within 15 feet of it without speaking aloud a password chosen when you create it. One round after a creature moves into range, the alarm makes a shrill ringing that lasts for 1 minute and can be heard from up to 300 feet away."
+							]
+						},
+						{
+							"type": "entries",
+							"name": "Calculator",
+							"entries": [
+								"This device makes doing sums easy."
+							]
+						},
+						{
+							"type": "entries",
+							"name": "Lifter",
+							"entries": [
+								"This device can be used as a block and tackle, allowing its user to hoist five times the weight the user can normally lift."
+							]
+						},
+						{
+							"type": "entries",
+							"name": "Timekeeper",
+							"entries": [
+								"This pocket watch keeps accurate time."
+							]
+						},
+						{
+							"type": "entries",
+							"name": "Weather Sensor",
+							"entries": [
+								"When used as an action, this device predicts weather conditions in a 1-mile radius over the next 4 hours, showing one symbol (clouds, sun/moon, rain, or snow) for each hour."
+							]
+						}
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"dex",
+							"int"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "Wood Elf Magic",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "elf",
+							"subrace": "wood"
+						}
+					]
+				}
+			],
+			"source": "UAFeatsForRaces",
+			"page": 4,
+			"entries": [
+				"You learn the magic of the primeval woods. You learn one druid cantrip of your choice. You also learn {@spell 大步奔行} and {@spell pass without trace}, each of which you can cast once without expending a spell slot. You regain the ability to cast the spell in this way when you finish a long rest. Wisdom is your spellcasting ability for these spells."
+			]
+		},
+		{
+			"name": "Acrobat",
+			"source": "UAFeatsForSkills",
+			"page": 1,
+			"entries": [
+				"You become more nimble, gaining the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You gain proficiency in the {@skill Acrobatics} skill. If you are already proficient in the skill, you add double your proficiency bonus to checks you make with it.",
+						"As a bonus action, you can make a DC 15 Dexterity ({@skill Acrobatics}) check. If you succeed, difficult terrain doesn't cost you extra movement until the end of the current turn."
+					]
+				}
+			],
+			"ability": {
+				"dex": 1
+			}
+		},
+		{
+			"name": "Animal Handler",
+			"source": "UAFeatsForSkills",
+			"page": 1,
+			"entries": [
+				"You master the techniques needed to train and handle animals. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You gain proficiency in the {@skill Animal Handling} skill. If you are already proficient in the skill, you add double your proficiency bonus to checks you make with it.",
+						"You can use a bonus action on your turn to command one friendly beast within 60 feet of you that can hear you and that isn't currently following the command of someone else. You decide now what action the beast will take and where it will move during its next turn, or you issue a general command that lasts for 1 minute, such as to guard a particular area."
+					]
+				}
+			],
+			"ability": {
+				"wis": 1
+			}
+		},
+		{
+			"name": "Arcanist",
+			"source": "UAFeatsForSkills",
+			"page": 1,
+			"entries": [
+				"You study the arcane arts, gaining the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You gain proficiency in the {@skill Arcana} skill. If you are already proficient in the skill, you add double your proficiency bonus to checks you make with it.",
+						"You learn the {@spell prestidigitation} and {@spell detect magic} spells. You can cast detect magic once without expending a spell slot, and you regain the ability to do so when you finish a long rest."
+					]
+				}
+			],
+			"ability": {
+				"int": 1
+			}
+		},
+		{
+			"name": "Brawny",
+			"source": "UAFeatsForSkills",
+			"page": 1,
+			"entries": [
+				"You become stronger, gaining the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You gain proficiency in the {@skill Athletics} skill. If you are already proficient in the skill, you add double your proficiency bonus to checks you make with it.",
+						"You count as if you were one size larger for the purpose of determining your carrying capacity."
+					]
+				}
+			],
+			"ability": {
+				"str": 1
+			}
+		},
+		{
+			"name": "Diplomat",
+			"source": "UAFeatsForSkills",
+			"page": 2,
+			"entries": [
+				"You master the arts of diplomacy, gaining the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You gain proficiency in the {@skill Persuasion} skill. If you are already proficient in the skill, you add double your proficiency bonus to checks you make with it.",
+						"If you spend 1 minute talking to someone who can understand what you say, you can make a Charisma ({@skill Persuasion}) check contested by the creature's Wisdom ({@skill Insight}) check. If you or your companions are fighting the creature, your check automatically fails. If your check succeeds, the target is {@condition charmed} by you as long as it remains within 60 feet of you and for 1 minute thereafter."
+					]
+				}
+			],
+			"ability": {
+				"cha": 1
+			}
+		},
+		{
+			"name": "Empathic",
+			"source": "UAFeatsForSkills",
+			"page": 2,
+			"entries": [
+				"You possess keen insight into how other people think and feel. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You gain proficiency in the {@skill Insight} skill. If you are already proficient in the skill, you add double your proficiency bonus to checks you make with it.",
+						"You can use your action to try to get uncanny insight about one humanoid you can see within 30 feet of you. Make a Wisdom ({@skill Insight}) check contested by the target's Charisma ({@skill Deception}) check. If your check succeeds, you have advantage on attack rolls and ability checks against the target until the end of your next turn."
+					]
+				}
+			],
+			"ability": {
+				"wis": 1
+			}
+		},
+		{
+			"name": "Historian",
+			"source": "UAFeatsForSkills",
+			"page": 2,
+			"entries": [
+				"Your study of history rewards you with the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You gain proficiency in the {@skill History} skill. If you are already proficient in the skill, you add double your proficiency bonus to checks you make with it.",
+						"When you take the Help action to aid another creature's ability check, you can make a DC 15 Intelligence ({@skill History}) check. On a success, that creature's check gains a bonus equal to your proficiency bonus, as you share pertinent advice and historical examples. To receive this bonus, the creature must be able to understand what you're saying."
+					]
+				}
+			],
+			"ability": {
+				"int": 1
+			}
+		},
+		{
+			"name": "Investigator",
+			"source": "UAFeatsForSkills",
+			"page": 2,
+			"entries": [
+				"You have an eye for detail and can pick out the smallest clues. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You gain proficiency in the {@skill Investigation} skill. If you are already proficient in the skill, you add double your proficiency bonus to checks you make with it.",
+						"You can take the Search action as a bonus action."
+					]
+				}
+			],
+			"ability": {
+				"int": 1
+			}
+		},
+		{
+			"name": "Medic",
+			"source": "UAFeatsForSkills",
+			"page": 2,
+			"entries": [
+				"You master the physician's arts, gaining the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You gain proficiency in the {@skill Medicine} skill. If you are already proficient in the skill, you add double your proficiency bonus to checks you make with it.",
+						"During a short rest, you can clean and bind the wounds of up to six willing beasts and humanoids. Make a DC 15 Wisdom ({@skill Medicine}) check for each creature. On a success, if a creature spends a Hit Die during this rest, that creature can forgo the roll and instead regain the maximum number of hit points the die can restore. A creature can do so only once per rest, regardless of how many Hit Dice it spends."
+					]
+				}
+			],
+			"ability": {
+				"wis": 1
+			}
+		},
+		{
+			"name": "Menacing",
+			"source": "UAFeatsForSkills",
+			"page": 2,
+			"entries": [
+				"You become fearsome to others, gaining the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You gain proficiency in the {@skill Intimidation} skill. If you are already proficient in the skill, you add double your proficiency bonus to checks you make with it.",
+						"When you take the Attack action on your turn, you can replace one attack with an attempt to demoralize one humanoid you can see within 30 feet of you that can see and hear you. Make a Charisma ({@skill Intimidation}) check contested by the target's Wisdom ({@skill Insight}) check. If your check succeeds, the target is {@condition frightened} until the end of your next turn. If your check fails, the target can't be {@condition frightened} by you in this way for 1 hour."
+					]
+				}
+			],
+			"ability": {
+				"cha": 1
+			}
+		},
+		{
+			"name": "Naturalist",
+			"source": "UAFeatsForSkills",
+			"page": 3,
+			"entries": [
+				"Your extensive study of nature rewards you with the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You gain proficiency in the {@skill Nature} skill. If you are already proficient in the skill, you add double your proficiency bonus to checks you make with it.",
+						"You learn the {@spell druidcraft} and {@spell detect poison and disease} spells. You can cast {@spell detect poison and disease} once without expending a spell slot, and you regain the ability to do so when you finish a long rest."
+					]
+				}
+			],
+			"ability": {
+				"int": 1
+			}
+		},
+		{
+			"name": "Perceptive",
+			"source": "UAFeatsForSkills",
+			"page": 3,
+			"entries": [
+				"You hone your senses until they become razor sharp. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You gain proficiency in the {@skill Perception} skill. If you are already proficient in the skill, you add double your proficiency bonus to checks you make with it.",
+						"Being in a lightly obscured area doesn't impose disadvantage on your Wisdom ({@skill Perception}) checks if you can both see and hear."
+					]
+				}
+			],
+			"ability": {
+				"wis": 1
+			}
+		},
+		{
+			"name": "Performer",
+			"source": "UAFeatsForSkills",
+			"page": 3,
+			"entries": [
+				"You master performance so that you can command any stage. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You gain proficiency in the {@skill Performance} skill. If you are already proficient in the skill, you add double your proficiency bonus to checks you make with it.",
+						"While performing, you can try to distract one humanoid you can see who can see and hear you. Make a Charisma ({@skill Performance}) check contested by the humanoid's Wisdom ({@skill Insight}) check. If your check succeeds, you grab the humanoid's attention enough that it makes Wisdom ({@skill Perception}) and Intelligence ({@skill Investigation}) checks with disadvantage until you stop performing."
+					]
+				}
+			],
+			"ability": {
+				"cha": 1
+			}
+		},
+		{
+			"name": "Quick-Fingered",
+			"source": "UAFeatsForSkills",
+			"page": 3,
+			"entries": [
+				"Your nimble fingers and agility let you perform sleight of hand. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You gain proficiency in the {@skill Sleight of Hand} skill. If you are already proficient in the skill, you add double your proficiency bonus to checks you make with it.",
+						"As a bonus action, you can make a Dexterity ({@skill Sleight of Hand}) check to plant something on someone else, conceal an object on a creature, lift a purse, or take something from a pocket."
+					]
+				}
+			],
+			"ability": {
+				"dex": 1
+			}
+		},
+		{
+			"name": "Silver-Tongued",
+			"source": "UAFeatsForSkills",
+			"page": 3,
+			"entries": [
+				"You develop your conversational skill to better deceive others. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You gain proficiency in the {@skill Deception} skill. If you are already proficient in the skill, you add double your proficiency bonus to checks you make with it.",
+						"When you take the Attack action on your turn, you can replace one attack with an attempt to deceive one humanoid you can see within 30 feet of you that can see and hear you. Make a Charisma ({@skill Deception}) check contested by the target's Wisdom ({@skill Insight}) check. If your check succeeds, your movement doesn't provoke opportunity attacks from the target and your attack rolls against it have advantage; both benefits last until the end of your next turn or until you use this ability on a different target. If your check fails, the target can't be deceived by you in this way for 1 hour."
+					]
+				}
+			],
+			"ability": {
+				"cha": 1
+			}
+		},
+		{
+			"name": "Stealthy",
+			"source": "UAFeatsForSkills",
+			"page": 4,
+			"entries": [
+				"You know how best to hide. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You gain proficiency in the {@skill Stealth} skill. If you are already proficient in the skill, you add double your proficiency bonus to checks you make with it.",
+						"If you are hidden, you can move up to 10 feet in the open without revealing yourself if you end the move in a position where you're not clearly visible."
+					]
+				}
+			],
+			"ability": {
+				"dex": 1
+			}
+		},
+		{
+			"name": "Survivalist",
+			"source": "UAFeatsForSkills",
+			"page": 4,
+			"entries": [
+				"You master wilderness lore, gaining the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You gain proficiency in the {@skill Survival} skill. If you are already proficient in the skill, you add double your proficiency bonus to checks you make with it.",
+						"You learn the {@spell alarm} spell. You can cast it once without expending a spell slot, and you regain the ability to do so when you finish a long rest."
+					]
+				}
+			],
+			"ability": {
+				"wis": 1
+			}
+		},
+		{
+			"name": "Theologian",
+			"source": "UAFeatsForSkills",
+			"page": 4,
+			"entries": [
+				"Your extensive study of religion rewards you with the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You gain proficiency in the {@skill Religion} skill. If you are already proficient in the skill, you add double your proficiency bonus to checks you make with it.",
+						"You learn the {@spell thaumaturgy} and {@spell detect evil and good} spells. You can cast {@spell detect evil and good} once without expending a spell slot, and you regain the ability to do so when you finish a long rest."
+					]
+				}
+			],
+			"ability": {
+				"int": 1
+			}
+		},
+		{
+			"name": "Blade Mastery",
+			"source": "UAFeats",
+			"page": 2,
+			"entries": [
+				"You master the shortsword, longsword, scimitar, rapier, and greatsword. You gain the following benefits when using any of them:",
+				{
+					"type": "list",
+					"items": [
+						"You gain a +1 bonus to attack rolls you make with the weapon.",
+						"On your turn, you can use your reaction to assume a parrying stance, provided you have the weapon in hand. Doing so grants you a +1 bonus to your AC until the start of your next turn or until you're not holding the weapon.",
+						"When you make an opportunity attack with the weapon, you have advantage on the attack roll."
+					]
+				}
+			]
+		},
+		{
+			"name": "Fell Handed",
+			"source": "UAFeats",
+			"page": 2,
+			"entries": [
+				"You master the handaxe, battleaxe, greataxe, warhammer, and maul. You gain the following benefits when using any of them:",
+				{
+					"type": "list",
+					"items": [
+						"You gain a +1 bonus to attack rolls you make with the weapon.",
+						"Whenever you have advantage on a melee attack roll you make with the weapon and hit, you can knock the target {@condition prone} if the lower of the two d20 rolls would also hit the target.",
+						"Whenever you have disadvantage on a melee attack roll you make with the weapon, the target takes bludgeoning damage equal to your Strength modifier (minimum of 0) if the attack misses but the higher of the two d20 rolls would have hit.",
+						"If you use the Help action to aid an ally's melee attack while you're wielding the weapon, you knock the target's shield aside momentarily. In addition to the ally gaining advantage on the attack roll, the ally gains a +2 bonus to the roll if the target is using a shield."
+					]
+				}
+			]
+		},
+		{
+			"name": "Warhammer Master",
+			"source": "UAFeats",
+			"page": 2,
+			"entries": [
+				"{@note This feat is presented as an illustrative example of a poorly-designed feat, and is not intended to be used in play. The {@feat Fell Handed|UAFeats} feat is presented as a well-designed implementation of the same ideas, and should be used instead.}",
+				"When you hit a creature with a warhammer, the  creature must succeed on a Strength saving  throw (DC 8 + your proficiency bonus + your  Strength modifier) or be knocked prone.",
+				"In addition, you can use your warhammer to  knock away a foe's shield. If you hit a creature  that's using a shield, you can have the attack deal  no damage and force the creature to drop its  shield."
+			]
+		},
+		{
+			"name": "Flail Mastery",
+			"source": "UAFeats",
+			"page": 3,
+			"entries": [
+				"The flail is a tricky weapon to use, but you have spent countless hours mastering it. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You gain a +1 bonus to attack rolls you make with a flail.",
+						"As a bonus action on your turn, you can prepare yourself to extend your flail to sweep over targets' shields. Until the end of this turn, your attack rolls with a flail gain a +2 bonus against any target using a shield.",
+						"When you hit with an opportunity attack using a flail, the target must succeed on a Strength saving throw (DC 8 + your proficiency bonus + your Strength modifier) or be knocked {@condition prone}."
+					]
+				}
+			]
+		},
+		{
+			"name": "Spear Mastery",
+			"source": "UAFeats",
+			"page": 3,
+			"entries": [
+				"Though the spear is a simple weapon to learn, it rewards you for the time you have taken to master it. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You gain a +1 bonus to attack rolls you make with a spear.",
+						"When you use a spear, its damage die changes from a d6 to a d8, and from a d8 to a d10 when wielded with two hands. (This benefit has no effect if another feature has already improved the weapon's die.)",
+						"You can set your spear to receive a charge. As a bonus action, choose a creature you can see that is at least 20 feet away from you. If that creature moves within your spear's reach on its next turn, you can make a melee attack against it with your spear as a reaction. If the attack hits, the target takes an extra 1d8 piercing damage, or an extra 1d10 piercing damage if you wield the spear with two hands. You can't use this ability if the creature used the Disengage action before moving.",
+						"As a bonus action on your turn, you can increase your reach with a spear by 5 feet for the rest of your turn."
+					]
+				}
+			]
+		},
+		{
+			"name": "Alchemist",
+			"source": "UAFeats",
+			"page": 4,
+			"entries": [
+				"You have studied the secrets of alchemy and are an expert in its practice, gaining the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You gain proficiency with {@item alchemist's supplies|phb}. If you are already proficient with them, you add double your proficiency bonus to checks you make with them.",
+						"As an action, you can identify one potion within 5 feet of you, as if you had tasted it. You must see the liquid for this benefit to work.",
+						"Over the course of any short rest, you can temporarily improve the potency of one potion of healing of any rarity. To use this benefit, you must have {@item alchemist's supplies|phb} with you, and the potion must be within reach. If the potion is drunk no more than 1 hour after the short rest ends, the creature drinking the potion can forgo the potion's die roll and regains the maximum number of hit points that the potion can restore."
+					]
+				}
+			],
+			"ability": {
+				"int": 1
+			}
+		},
+		{
+			"name": "Burglar",
+			"source": "UAFeats",
+			"page": 4,
+			"entries": [
+				"You pride yourself on your quickness and your close study of certain clandestine activities. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You gain proficiency with {@item thieves' tools|phb}. If you are already proficient with them, you add double your proficiency bonus to checks you make with them."
+					]
+				}
+			],
+			"ability": {
+				"dex": 1
+			}
+		},
+		{
+			"name": "Gourmand",
+			"source": "UAFeats",
+			"page": 4,
+			"entries": [
+				"You have mastered a variety of special recipes, allowing you to prepare exotic dishes with useful effects. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You gain proficiency with {@item cook's utensils|phb}. If you are already proficient with them, you add double your proficiency bonus to checks you make with them.",
+						"As an action, you can inspect a drink or plate of food within 5 feet of you and determine whether it is {@condition poisoned}, provided that you can see and smell it.",
+						"During a long rest, you can prepare and serve a meal that helps you and your allies recover from the rigors of adventuring, provided you have suitable food, {@item cook's utensils|phb}, and other supplies on hand. The meal serves up to six people, and each person who eats it regains two additional Hit Dice at the end of the long rest. In addition, those who partake of the meal have advantage on Constitution saving throws against disease for the next 24 hours."
+					]
+				}
+			],
+			"ability": {
+				"con": 1
+			}
+		},
+		{
+			"name": "Master of Disguise",
+			"source": "UAFeats",
+			"page": 4,
+			"entries": [
+				"You have honed your ability to shape your personality and to read the personalities of others. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You gain proficiency with the {@item disguise kit|phb}. If you are already proficient with it, you add double your proficiency bonus to checks you make with it.",
+						"If you spend 1 hour observing a creature, you can then spend 8 hours crafting a disguise you can quickly don to mimic that creature. Making the disguise requires a disguise kit. You must make checks as normal to disguise yourself, but you can assume the disguise as an action."
+					]
+				}
+			],
+			"ability": {
+				"cha": 1
+			}
+		},
+		{
+			"name": "演員", "ENG_name": "Actor",
+			"source": "PHB",
+			"page": 165,
+			"entries": [
+				"精通於模仿和戲劇表演，讓你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"當你試圖將自己裝扮成另一個人時，你的魅力（{@skill 欺瞞}）和魅力（{@skill 表演}）檢定獲得優勢。",
+						"你可以模仿另一個人的口音或其他生物發出的聲音。你必須聽過被模仿者說話或發聲至少1分鐘。一次與你的魅力（{@skill 欺瞞}）檢定對抗成功的睿知（{@skill 察言觀色}），可以讓聆聽者辨識出這個聲音效果是假的。"
+					]
+				}
+			],
+			"ability": {
+				"cha": 1
+			}
+		},
+		{
+			"name": "警覺", "ENG_name": "Alert",
+			"source": "PHB",
+			"page": 165,
+			"entries": [
+				"經常對危機保持警惕，讓你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"你的先攻獲得+5加值。",
+						"當你意識清醒時不會被突襲。",
+						"其他生物對你進行的攻擊檢定並不會因為你看不到它而獲得優勢。"
+					]
+				}
+			]
+		},
+		{
+			"name": "運動健將", "ENG_name": "Athlete",
+			"source": "PHB",
+			"page": 165,
+			"entries": [
+				"你曾經歷的大量肉體訓練，讓你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"當你{@condition 伏地}時，起身只需要花費5呎移動速度。",
+						"攀爬不會消耗額外的移動速度。",
+						"你只需要徒步移動5呎就可以進行跳高和跳遠，而非原本的10呎。"
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"str",
+							"dex"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "衝鋒手", "ENG_name": "Charger",
+			"source": "PHB",
+			"page": 165,
+			"entries": [
+				"當你使用動作進行疾走時，你可以使用附贈動作來進行一次近戰武器攻擊或推撞一個生物。",
+				"若你直線移動至少10呎後馬上進行該附贈動作，則（若你選擇近戰攻擊且命中）該攻擊的傷害獲得+5加值，或（若你選擇推撞且成功）目標被推離你最多10呎。"
+			]
+		},
+		{
+			"name": "強弩專家", "ENG_name": "Crossbow Expert",
+			"source": "PHB",
+			"page": 165,
+			"entries": [
+				"多虧你在弩上投入的大量訓練，你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"你忽略你所熟練的弩上的裝填屬性。",
+						"處於敵對生物5呎距離內並不會讓你的遠程攻擊獲得劣勢。",
+						"當你採取攻擊動作並且以單手武器攻擊，你可以使用附贈動作以一把你持握的{@item 手弩|phb}進行攻擊。"
+					]
+				}
+			]
+		},
+		{
+			"name": "防禦式決鬥", "ENG_name": "Defensive Duelist",
+			"source": "PHB",
+			"page": 165,
+			"prerequisite": [
+				{
+					"ability": [
+						{
+							"dex": 13
+						}
+					]
+				}
+			],
+			"entries": [
+				"當你持握一把你所熟練的靈巧武器，且另一個生物以近戰攻擊命中了你時，你可以針對此次攻擊使用你的反應將你的熟練加值加到AC上，這可能會讓該攻擊因此失手。"
+			]
+		},
+		{
+			"name": "Dragonmark of Detection", "ENG_name": "Dragonmark of Detection",
+			"source": "UAEberron",
+			"page": 5,
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "half-elf"
+						}
+					]
+				}
+			],
+			"entries": [
+				"Your have the magical mark of Detection, the dragonmark of House Medani, and are a member of that house.",
+				"You gain the ability to innately cast spells and cantrips, using Wisdom as your spellcasting ability. You cast each spell at its lowest level. Once you cast a given spell this way, you must finish a long rest before you can cast it innately again. You must still expend any material components. Your dragonmark confers the following benefits:",
+				{
+					"type": "entries",
+					"name": "Least Dragonmark",
+					"entries": [
+						"When you first take this feat, you gain the least dragonmark. You learn the following spells: {@spell detect magic}, {@spell mage hand}"
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Lesser Dragonmark",
+					"entries": [
+						"At 5th level and higher, your mark becomes more potent, improving to lesser dragonmark. You learn the following spell: {@spell detect thoughts}"
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Greater Dragonmark",
+					"entries": [
+						"At 9th level and higher, your mark's power increases again, becoming a greater dragonmark. You learn the following spell: {@spell clairvoyance}"
+					]
+				}
+			]
+		},
+		{
+			"name": "Dragonmark of Finding",
+			"source": "UAEberron",
+			"page": 5,
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "half-orc"
+						},
+						{
+							"name": "human"
+						}
+					]
+				}
+			],
+			"entries": [
+				"Your have the magical mark of Finding, the dragonmark of House Tharashk, and are a member of that house.",
+				"You gain the ability to innately cast spells and cantrips, using Wisdom as your spellcasting ability. You cast each spell at its lowest level. Once you cast a given spell this way, you must finish a long rest before you can cast it innately again. You must still expend any material components. Your dragonmark confers the following benefits:",
+				{
+					"type": "entries",
+					"name": "Least Dragonmark",
+					"entries": [
+						"When you first take this feat, you gain the least dragonmark. You learn the following spells: {@spell identify}, {@spell mage hand}"
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Lesser Dragonmark",
+					"entries": [
+						"At 5th level and higher, your mark becomes more potent, improving to lesser dragonmark. You learn the following spell: {@spell locate object}"
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Greater Dragonmark",
+					"entries": [
+						"At 9th level and higher, your mark's power increases again, becoming a greater dragonmark. You learn the following spell: {@spell clairvoyance}"
+					]
+				}
+			]
+		},
+		{
+			"name": "Dragonmark of Handling",
+			"source": "UAEberron",
+			"page": 5,
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "human"
+						}
+					]
+				}
+			],
+			"entries": [
+				"Your have the magical mark of Handling, the dragonmark of House Vadalis, and are a member of that house.",
+				"You gain the ability to innately cast spells and cantrips, using Wisdom as your spellcasting ability. You cast each spell at its lowest level. Once you cast a given spell this way, you must finish a long rest before you can cast it innately again. You must still expend any material components. Your dragonmark confers the following benefits:",
+				{
+					"type": "entries",
+					"name": "Least Dragonmark",
+					"entries": [
+						"When you first take this feat, you gain the least dragonmark. You learn the following spells: {@spell druidcraft}, {@spell speak with animals}"
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Lesser Dragonmark",
+					"entries": [
+						"At 5th level and higher, your mark becomes more potent, improving to lesser dragonmark. You learn the following spell: {@spell beast sense}"
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Greater Dragonmark",
+					"entries": [
+						"At 9th level and higher, your mark's power increases again, becoming a greater dragonmark. You learn the following spell: {@spell conjure animals}"
+					]
+				}
+			]
+		},
+		{
+			"name": "Dragonmark of Healing",
+			"source": "UAEberron",
+			"page": 5,
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "halfling"
+						}
+					]
+				}
+			],
+			"entries": [
+				"Your have the magical mark of Healing, the dragonmark of House Jorasco, and are a member of that house.",
+				"You gain the ability to innately cast spells and cantrips, using Wisdom as your spellcasting ability. You cast each spell at its lowest level. Once you cast a given spell this way, you must finish a long rest before you can cast it innately again. You must still expend any material components. Your dragonmark confers the following benefits:",
+				{
+					"type": "entries",
+					"name": "Least Dragonmark",
+					"entries": [
+						"When you first take this feat, you gain the least dragonmark. You learn the following spells: {@spell cure wounds}, {@spell spare the dying}"
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Lesser Dragonmark",
+					"entries": [
+						"At 5th level and higher, your mark becomes more potent, improving to lesser dragonmark. You learn the following spell: {@spell lesser restoration}"
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Greater Dragonmark",
+					"entries": [
+						"At 9th level and higher, your mark's power increases again, becoming a greater dragonmark. You learn the following spell: {@spell revivify}"
+					]
+				}
+			]
+		},
+		{
+			"name": "Dragonmark of Hospitality",
+			"source": "UAEberron",
+			"page": 5,
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "halfling"
+						}
+					]
+				}
+			],
+			"entries": [
+				"Your have the magical mark of Hospitality, the dragonmark of House Ghallanda, and are a member of that house.",
+				"You gain the ability to innately cast spells and cantrips, using Charisma as your spellcasting ability. You cast each spell at its lowest level. Once you cast a given spell this way, you must finish a long rest before you can cast it innately again. You must still expend any material components. Your dragonmark confers the following benefits:",
+				{
+					"type": "entries",
+					"name": "Least Dragonmark",
+					"entries": [
+						"When you first take this feat, you gain the least dragonmark. You learn the following spells: {@spell friends}, {@spell unseen servant}"
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Lesser Dragonmark",
+					"entries": [
+						"At 5th level and higher, your mark becomes more potent, improving to lesser dragonmark. You learn the following spell: {@spell rope trick}"
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Greater Dragonmark",
+					"entries": [
+						"At 9th level and higher, your mark's power increases again, becoming a greater dragonmark. You learn the following spell: {@spell Leomund's tiny hut}"
+					]
+				}
+			]
+		},
+		{
+			"name": "Dragonmark of Making",
+			"source": "UAEberron",
+			"page": 5,
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "human"
+						}
+					]
+				}
+			],
+			"entries": [
+				"Your have the magical mark of Making, the dragonmark of House Cannith, and are a member of that house.",
+				"You gain the ability to innately cast spells and cantrips, using Intelligence as your spellcasting ability. You cast each spell at its lowest level. Once you cast a given spell this way, you must finish a long rest before you can cast it innately again. You must still expend any material components. Your dragonmark confers the following benefits:",
+				{
+					"type": "entries",
+					"name": "Least Dragonmark",
+					"entries": [
+						"When you first take this feat, you gain the least dragonmark. You learn the following spells: {@spell identify}, {@spell mending}"
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Lesser Dragonmark",
+					"entries": [
+						"At 5th level and higher, your mark becomes more potent, improving to lesser dragonmark. You learn the following spell: {@spell magic weapon}"
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Greater Dragonmark",
+					"entries": [
+						"At 9th level and higher, your mark's power increases again, becoming a greater dragonmark. You learn the following spell: {@spell fabricate}"
+					]
+				}
+			]
+		},
+		{
+			"name": "Dragonmark of Passage",
+			"source": "UAEberron",
+			"page": 5,
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "human"
+						}
+					]
+				}
+			],
+			"entries": [
+				"Your have the magical mark of Passage, the dragonmark of House Orien, and are a member of that house.",
+				"You gain the ability to innately cast spells and cantrips, using Intelligence as your spellcasting ability. You cast each spell at its lowest level. Once you cast a given spell this way, you must finish a long rest before you can cast it innately again. You must still expend any material components. Your dragonmark confers the following benefits:",
+				{
+					"type": "entries",
+					"name": "Least Dragonmark",
+					"entries": [
+						"When you first take this feat, you gain the least dragonmark. You learn the following spells: {@spell expeditious retreat}, {@spell light}"
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Lesser Dragonmark",
+					"entries": [
+						"At 5th level and higher, your mark becomes more potent, improving to lesser dragonmark. You learn the following spell: {@spell misty step}"
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Greater Dragonmark",
+					"entries": [
+						"At 9th level and higher, your mark's power increases again, becoming a greater dragonmark. You learn the following spell: {@spell teleportation circle}"
+					]
+				}
+			]
+		},
+		{
+			"name": "Dragonmark of Scribing",
+			"source": "UAEberron",
+			"page": 5,
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "gnome"
+						}
+					]
+				}
+			],
+			"entries": [
+				"Your have the magical mark of Scribing, the dragonmark of House Sivis, and are a member of that house.",
+				"You gain the ability to innately cast spells and cantrips, using Intelligence as your spellcasting ability. You cast each spell at its lowest level. Once you cast a given spell this way, you must finish a long rest before you can cast it innately again. You must still expend any material components. Your dragonmark confers the following benefits:",
+				{
+					"type": "entries",
+					"name": "Least Dragonmark",
+					"entries": [
+						"When you first take this feat, you gain the least dragonmark. You learn the following spells: {@spell comprehend languages}, {@spell message}"
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Lesser Dragonmark",
+					"entries": [
+						"At 5th level and higher, your mark becomes more potent, improving to lesser dragonmark. You learn the following spell: {@spell sending}"
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Greater Dragonmark",
+					"entries": [
+						"At 9th level and higher, your mark's power increases again, becoming a greater dragonmark. You learn the following spell: {@spell tongues}"
+					]
+				}
+			]
+		},
+		{
+			"name": "Dragonmark of Sentinel",
+			"source": "UAEberron",
+			"page": 5,
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "human"
+						}
+					]
+				}
+			],
+			"entries": [
+				"Your have the magical mark of Sentinel, the dragonmark of House Deneith, and are a member of that house.",
+				"You gain the ability to innately cast spells and cantrips, using Wisdom as your spellcasting ability. You cast each spell at its lowest level. Once you cast a given spell this way, you must finish a long rest before you can cast it innately again. You must still expend any material components. Your dragonmark confers the following benefits:",
+				{
+					"type": "entries",
+					"name": "Least Dragonmark",
+					"entries": [
+						"When you first take this feat, you gain the least dragonmark. You learn the following spells: {@spell blade ward}, {@spell compelled duel}"
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Lesser Dragonmark",
+					"entries": [
+						"At 5th level and higher, your mark becomes more potent, improving to lesser dragonmark. You learn the following spell: {@spell blur}"
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Greater Dragonmark",
+					"entries": [
+						"At 9th level and higher, your mark's power increases again, becoming a greater dragonmark. You learn the following spell: {@spell protection from energy}"
+					]
+				}
+			]
+		},
+		{
+			"name": "Dragonmark of Shadow",
+			"source": "UAEberron",
+			"page": 5,
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "elf"
+						}
+					]
+				}
+			],
+			"entries": [
+				"Your have the magical mark of Shadow, the dragonmark of House Phiarlan and House Thuranni, and are a member of one of those houses.",
+				"You gain the ability to innately cast spells and cantrips, using Charisma as your spellcasting ability. You cast each spell at its lowest level. Once you cast a given spell this way, you must finish a long rest before you can cast it innately again. You must still expend any material components. Your dragonmark confers the following benefits:",
+				{
+					"type": "entries",
+					"name": "Least Dragonmark",
+					"entries": [
+						"When you first take this feat, you gain the least dragonmark. You learn the following spells: {@spell dancing lights}, {@spell disguise self}"
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Lesser Dragonmark",
+					"entries": [
+						"At 5th level and higher, your mark becomes more potent, improving to lesser dragonmark. You learn the following spell: {@spell darkness}"
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Greater Dragonmark",
+					"entries": [
+						"At 9th level and higher, your mark's power increases again, becoming a greater dragonmark. You learn the following spell: {@spell nondetection}"
+					]
+				}
+			]
+		},
+		{
+			"name": "Dragonmark of Storm",
+			"source": "UAEberron",
+			"page": 5,
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "half-elf"
+						}
+					]
+				}
+			],
+			"entries": [
+				"Your have the magical mark of Storm, the dragonmark of House Lyrander, and are a member of that house.",
+				"You gain the ability to innately cast spells and cantrips, using Intelligence as your spellcasting ability. You cast each spell at its lowest level. Once you cast a given spell this way, you must finish a long rest before you can cast it innately again. You must still expend any material components. Your dragonmark confers the following benefits:",
+				{
+					"type": "entries",
+					"name": "Least Dragonmark",
+					"entries": [
+						"When you first take this feat, you gain the least dragonmark. You learn the following spells: {@spell fog cloud}, {@spell shocking grasp}"
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Lesser Dragonmark",
+					"entries": [
+						"At 5th level and higher, your mark becomes more potent, improving to lesser dragonmark. You learn the following spell: {@spell gust of wind}"
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Greater Dragonmark",
+					"entries": [
+						"At 9th level and higher, your mark's power increases again, becoming a greater dragonmark. You learn the following spell: {@spell sleet storm}"
+					]
+				}
+			]
+		},
+		{
+			"name": "Dragonmark of Warding",
+			"source": "UAEberron",
+			"page": 5,
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "dwarf"
+						}
+					]
+				}
+			],
+			"entries": [
+				"Your have the magical mark of Warding, the dragonmark of House Kundarak, and are a member of that house.",
+				"You gain the ability to innately cast spells and cantrips, using Intelligence as your spellcasting ability. You cast each spell at its lowest level. Once you cast a given spell this way, you must finish a long rest before you can cast it innately again. You must still expend any material components. Your dragonmark confers the following benefits:",
+				{
+					"type": "entries",
+					"name": "Least Dragonmark",
+					"entries": [
+						"When you first take this feat, you gain the least dragonmark. You learn the following spells: {@spell alarm}, {@spell resistance}"
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Lesser Dragonmark",
+					"entries": [
+						"At 5th level and higher, your mark becomes more potent, improving to lesser dragonmark. You learn the following spell: {@spell arcane lock}"
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Greater Dragonmark",
+					"entries": [
+						"At 9th level and higher, your mark's power increases again, becoming a greater dragonmark. You learn the following spell: {@spell magic circle}"
+					]
+				}
+			]
+		},
+		{
+			"name": "雙持客", "ENG_name": "Dual Wielder",
+			"source": "PHB",
+			"page": 165,
+			"entries": [
+				"你精通於雙持武器作戰，獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"當你每隻手都各持握一把近戰武器時，你的AC獲得+1加值。",
+						"即使你持握的單手近戰武器並非輕型，你仍可以進行雙武器戰鬥。",
+						"在你原本只能拔出或入鞘一把武器的時候，你可以同時拔出或入鞘二把單手武器。"
+					]
+				}
+			]
+		},
+		{
+			"name": "地城探索者", "ENG_name": "Dungeon Delver",
+			"source": "PHB",
+			"page": 166,
+			"entries": [
+				"警戒於大多地城中會發現的隱藏陷阱和密門，你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"你在搜尋密門時所進行的睿知（{@skill 感知}）和智力（{@skill 調查}）檢定中有優勢。",
+						"你在躲避或抵抗陷阱時的豁免檢定中有優勢。",
+						"對於陷阱所造成的傷害具有抗性。",
+						"以快速步速旅行並不會對你的被動睿知（{@skill 感知}）數值造成原本的-5減值。"
+					]
+				}
+			]
+		},
+		{
+			"name": "耐性", "ENG_name": "Durable",
+			"source": "PHB",
+			"page": 166,
+			"entries": [
+				"堅強而持久，你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"當你骰生命骰來恢復生命值時，每顆生命骰恢復的生命值最少等於你體質調整值的兩倍（最少為2）。"
+					]
+				}
+			],
+			"ability": {
+				"con": 1
+			}
+		},
+		{
+			"name": "元素行家", "ENG_name": "Elemental Adept",
+			"source": "PHB",
+			"page": 166,
+			"prerequisite": [
+				{
+					"spellcasting": true
+				}
+			],
+			"entries": [
+				"當你獲得此專長時，選擇下列一種傷害類型：酸蝕、寒冰、火焰、閃電、雷鳴。",
+				"你施放的法術忽視你所選擇傷害類型的抗性。此外，當你施放法術造成所選類型的傷害時，你可以將所有傷害骰骰出的1視為2。",
+				"你可以多次選擇獲得此專長。每次你這麼做，都必須選擇一種不同的傷害類型。"
+			]
+		},
+		{
+			"name": "擒抱者", "ENG_name": "Grappler",
+			"source": "PHB",
+			"page": 167,
+			"prerequisite": [
+				{
+					"ability": [
+						{
+							"str": 13
+						}
+					]
+				}
+			],
+			"entries": [
+				"你著重磨練了如何保持近距離擒抱的技巧。你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"你對被你擒抱的生物所進行的攻擊檢定有優勢。",
+						"你可以使用動作嘗試壓制被你擒抱而處於{@condition 被擒}狀態的生物。若要這麼做，你需要進行另外一次擒抱檢定。若成功，則直到結束擒抱之前，你與該生物同時進入{@condition 束縛}狀態。"
+					]
+				}
+			]
+		},
+		{
+			"name": "巨武大師", "ENG_name": "Great Weapon Master",
+			"source": "PHB",
+			"page": 167,
+			"entries": [
+				"你學會了如何將武器重量轉化為優勢，利用其動量來增強你的打擊。你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"在你的回合，當你用近戰武器造成重擊、或將一名生物的生命值降至0，你可以使用附贈動作再進行一次近戰武器攻擊。",
+						"在你使用你所熟練的重型武器進行近戰攻擊之前，你可以選擇讓該次攻擊檢定承受-5的減值。若該次攻擊命中，該次攻擊的傷害+10。"
+					]
+				}
+			]
+		},
+		{
+			"name": "治療師", "ENG_name": "Healer",
+			"source": "PHB",
+			"page": 167,
+			"entries": [
+				"你是名嫻熟的醫者，能夠快速地治療傷口並讓隊友們重返戰場。你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"當你使用{@item 醫療工具組|phb}穩定瀕死生物的傷勢時，該生物同時恢復1點生命值。",
+						"以一個動作，你可以消耗醫療工具組的一次使用額度照顧一個生物，並恢復他{@dice 1d6+4}加上等同該生物最大生命骰數量的生命值。直到完成短休或長休之前，該生物都不能再透過此專長恢復生命值。"
+					]
+				}
+			]
+		},
+		{
+			"name": "重度著甲", "ENG_name": "Heavily Armored",
+			"source": "PHB",
+			"page": 167,
+			"prerequisite": [
+				{
+					"proficiency": [
+						{
+							"armor": "medium"
+						}
+					]
+				}
+			],
+			"entries": [
+				"你受訓於熟練重甲的使用方法，你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"你獲得重甲的熟練。"
+					]
+				}
+			],
+			"ability": {
+				"str": 1
+			}
+		},
+		{
+			"name": "重甲大師", "ENG_name": "Heavy Armor Master",
+			"source": "PHB",
+			"page": 167,
+			"prerequisite": [
+				{
+					"proficiency": [
+						{
+							"armor": "heavy"
+						}
+					]
+				}
+			],
+			"entries": [
+				"你可以利用護甲偏斜掉對他人足以致命的攻擊。你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"當你穿著重甲時，非魔法武器對你造成的鈍擊、穿刺、劈砍傷害減少3點。"
+					]
+				}
+			],
+			"ability": {
+				"str": 1
+			}
+		},
+		{
+			"name": "激勵統御", "ENG_name": "Inspiring Leader",
+			"source": "PHB",
+			"page": 167,
+			"prerequisite": [
+				{
+					"ability": [
+						{
+							"cha": 13
+						}
+					]
+				}
+			],
+			"entries": [
+				"你可以花費10分鐘來激勵你的同伴，鼓舞他們對戰鬥的信心。若你這麼做，選擇30呎內最多6個可以看到或聽到你且理解你的友善生物（可以包括你自己）。每個生物可以獲得等同你的等級加上你的魅力調整值的臨時生命值。直到完成短休或長休之前，受影響的生物都不能再透過此專長獲得臨時生命值。"
+			]
+		},
+		{
+			"name": "敏思強記", "ENG_name": "Keen Mind",
+			"source": "PHB",
+			"page": 167,
+			"entries": [
+				"你擁有著能以不可思議的精確度牢牢追蹤時間、方位、以及細節的大腦。你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"你永遠知道哪個方位是北方。",
+						"你永遠知道距離下一次日出或日落還剩下幾個小時。",
+						"你可以精準回憶起過去一個月內你曾聽到或看到的任何事物。"
+					]
+				}
+			],
+			"ability": {
+				"int": 1
+			}
+		},
+		{
+			"name": "輕度著甲", "ENG_name": "Lightly Armored",
+			"source": "PHB",
+			"page": 167,
+			"entries": [
+				"你受訓於熟練輕甲的使用方法，你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"你獲得輕甲的熟練。"
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"str",
+							"dex"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "語言學家", "ENG_name": "Linguist",
+			"source": "PHB",
+			"page": 167,
+			"entries": [
+				"你致力研究於語言和密碼。獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"你習得三種自選語言。",
+						"你能夠巧妙地創造出書寫密碼。其他人無法破譯你創造的密碼，除非你教導他們、他們成功通過一次智力檢定（DC等於你的智力值+你的熟練加值）、或是他們使用魔法破譯。"
+					]
+				}
+			],
+			"ability": {
+				"int": 1
+			}
+		},
+		{
+			"name": "幸運", "ENG_name": "Lucky",
+			"source": "PHB",
+			"page": 167,
+			"entries": [
+				"你的離奇運氣讓你可以在最危險的時刻化險為夷。",
+				"你獲得3點幸運點。當你進行攻擊檢定、屬性檢定、或豁免檢定時，你可以花費一點幸運點以再骰一顆額外的d20。你可以選擇在你擲骰之後，但決定結果之前才花費幸運點。你選擇要使用哪一顆d20以用在該攻擊檢定、屬性檢定、或豁免檢定。",
+				"你也可以在一次對你的攻擊檢定被進行時選擇花費一點幸運點。骰一顆d20，然後選擇該次攻擊要使用攻擊者還是你的骰子。如果有超過一個生物花費幸運點以影響一次擲骰的結果，則幸運點將彼此抵消；不需要擲任何額外的骰子。",
+				"你在完成一次長休後恢復所有你花費掉的幸運點。"
+			]
+		},
+		{
+			"name": "巫師殺手", "ENG_name": "Mage Slayer",
+			"source": "PHB",
+			"page": 168,
+			"entries": [
+				"你精熟於在近身戰鬥中對付施法者的實用技巧，獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"當一個處於你5呎範圍內的生物施展法術，你可以使用你的反應對該生物進行一次近戰武器攻擊。",
+						"當你傷害了一個正專注於法術的生物，該生物在維持專注的豁免檢定中獲得劣勢。",
+						"你在對抗處於你5呎範圍內的生物所施展的法術時的豁免檢定中獲得優勢。"
+					]
+				}
+			]
+		},
+		{
+			"name": "魔法學徒", "ENG_name": "Magic Initiate",
+			"source": "PHB",
+			"page": 168,
+			"entries": [
+				"選擇一個職業：{@filter 吟遊詩人|spells|level=0;1|class=bard}、 {@filter 牧師|spells|level=0;1|class=cleric}、{@filter 德魯伊|spells|level=0;1|class=druid}、{@filter 術士|spells|level=0;1|class=sorcerer}、{@filter 契術師|spells|level=0;1|class=warlock}、或{@filter 法師|spells|level=0;1|class=wizard}。你從你所選職業的法術列表中習得兩個戲法。",
+				"此外，從同一個列表中選擇一個1環法術。你習得該法術，並可以用最低環階來施展它。一旦你施展它，則直到你完成一次長休之前，你都無法再藉由這個專長來施展它。",
+				"這些法術的施法屬性取決於你所選的職業：{@filter 吟遊詩人|spells|level=0;1|class=bard}、{@filter 術士|spells|level=0;1|class=sorcerer}、{@filter 契術師|spells|level=0;1|class=warlock}使用魅力；{@filter 牧師|spells|level=0;1|class=cleric}、{@filter 德魯伊|spells|level=0;1|class=druid}使用睿知；{@filter 法師|spells|level=0;1|class=wizard}則使用智力。"
+			]
+		},
+		{
+			"name": "戰技專家", "ENG_name": "Martial Adept",
+			"source": "PHB",
+			"page": 168,
+			"entries": [
+				"你所經歷的戰技訓練讓你可以施展獨特戰技。你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"你習得二個{@filter 戰技|optionalfeatures|feature type=MV:B}，從戰士{@class 戰士|phb|戰鬥大師|戰鬥大師|phb|武術範型 3}範型的戰技列表中選擇。若你使用的戰技要求你的目標進行一次豁免檢定以抵抗戰技的效果，則豁免檢定的DC等同8+你的熟練加值+你的力量或敏捷調整值（由你選擇）。",
+						"你獲得一顆卓越骰（這顆骰將被加到任何你從其他來源獲得的卓越骰池中），若你沒有其他卓越骰，則這顆卓越骰為d6。這顆骰被用來啟動你的戰技。卓越骰將在你使用戰技時被花費。你在完成一次短休或長休後恢復你花費掉的卓越骰。"
+					]
+				}
+			]
+		},
+		{
+			"name": "中甲大師", "ENG_name": "Medium Armor Master",
+			"source": "PHB",
+			"page": 168,
+			"prerequisite": [
+				{
+					"proficiency": [
+						{
+							"armor": "medium"
+						}
+					]
+				}
+			],
+			"entries": [
+				"你精通於在穿著中甲時行動，獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"穿著中甲不會讓你的敏捷（{@skill 隱匿}）檢定獲得劣勢。",
+						"當你穿著中甲時，如果你的敏捷為16或以上，你的AC可以增加3點，而非2點。"
+					]
+				}
+			]
+		},
+		{
+			"name": "機動性", "ENG_name": "Mobile",
+			"source": "PHB",
+			"page": 168,
+			"entries": [
+				"你特別地迅速而靈巧。你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"你的移動速度增加10呎。",
+						"當你採取疾走動作時，該回合內的困難地形不會消耗你額外的移動速度。",
+						"當你對一個生物進行近戰攻擊後，無論你命中與否，你在該回合都不會再引發該生物的藉機攻擊。"
+					]
+				}
+			]
+		},
+		{
+			"name": "中度著甲", "ENG_name": "Moderately Armored",
+			"source": "PHB",
+			"page": 168,
+			"prerequisite": [
+				{
+					"proficiency": [
+						{
+							"armor": "light"
+						}
+					]
+				}
+			],
+			"entries": [
+				"你受訓於熟練中甲和盾牌的使用方法，你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"你獲得中甲和盾牌的熟練。"
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"str",
+							"dex"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "騎乘戰鬥", "ENG_name": "Mounted Combatant",
+			"source": "PHB",
+			"page": 168,
+			"entries": [
+				"騎乘中的你是個危險的敵手。當你在騎乘時且不處於{@condition 無力}，你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"你對任何體型比你坐騎還小，且非騎乘的生物所進行的近戰攻擊檢定中獲得優勢。",
+						"你可以強迫以你坐騎為目標的攻擊轉為以你為目標。",
+						"若你的坐騎受到需要進行敏捷豁免來減半傷害的效果影響，則牠在豁免成功時可以不承受傷害，且即使豁免失敗也只承受一半的傷害。"
+					]
+				}
+			]
+		},
+		{
+			"name": "敏銳觀察", "ENG_name": "Observant",
+			"source": "PHB",
+			"page": 168,
+			"entries": [
+				"你能夠迅速注意周遭環境的細節，你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"若你可以在一個生物正以你理解的語言說話時看見它的嘴巴，你就可以透過讀唇語來理解目標正在說什麼。",
+						"你的被動睿知（{@skill 感知}）和被動智力（{@skill 調查}）獲得+5加值。"
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"int",
+							"wis"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "長武大師", "ENG_name": "Polearm Master",
+			"source": "PHB",
+			"page": 168,
+			"entries": [
+				"你可以使用觸及武器以牽制你的敵人。你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"當你採取攻擊動作且只使用{@item 長柄刀|phb}、{@item 斧槍|phb}、{@item 長棍|phb}、或{@item 矛|phb}進行攻擊時，你可以使用附贈動作以利用該武器的另一端進行一次近戰攻擊；這個攻擊使用和主要攻擊相同的屬性調整值。這個攻擊所使用的武器傷害骰為d4，且該攻擊造成鈍擊傷害。",
+						"當你持握{@item 長柄刀|phb}、{@item 斧槍|phb}、{@item 長柄槍|phb}、{@item 長棍|phb}、或{@item 矛|phb}時，其他生物將在進入你的觸及範圍時觸發你的藉機攻擊。"
+					]
+				}
+			]
+		},
+		{
+			"name": "適應力", "ENG_name": "Resilient",
+			"source": "PHB",
+			"page": 168,
+			"entries": [
+				"選擇一個屬性值。你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"你獲得使用所選屬性進行的豁免檢定的熟練。"
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"str",
+							"dex",
+							"con",
+							"int",
+							"wis",
+							"cha"
+						],
+						"amount": 1,
+						"textreference": true
+					}
+				]
+			}
+		},
+		{
+			"name": "儀式施法者", "ENG_name": "Ritual Caster",
+			"source": "PHB",
+			"page": 169,
+			"prerequisite": [
+				{
+					"ability": [
+						{
+							"int": 13
+						},
+						{
+							"wis": 13
+						}
+					]
+				}
+			],
+			"entries": [
+				"你已學會一些能夠以儀式施放的法術。這些法術被寫在一本儀式書中，當你施展其中一個法術時你必須將儀式書拿在手中。",
+				"當你選擇此專長時，你獲得一本記載著兩個自選1環法術的儀式書。從以下職業中選擇一個：{@filter 吟遊詩人|spells|level=1|class=bard|components & miscellaneous=ritual}、{@filter 牧師|spells|level=1|class=cleric|components & miscellaneous=ritual}、{@filter 德魯伊|spells|level=1|class=druid|components & miscellaneous=ritual}、{@filter 術士|spells|level=1|class=sorcerer|components & miscellaneous=ritual}、{@filter 契術師|spells|level=1|class=warlock|components & miscellaneous=ritual}、或{@filter 法師|spells|level=1|class=wizard|components & miscellaneous=ritual}。你必須從該職業的法術列表中選擇你的法術，且你所選的法術必須要具有儀式標籤。你所選的職業同時會決定你在使用這些法術時的施法屬性：吟遊詩人、術士、契術師使用魅力；牧師、德魯伊使用睿知；法師則使用智力。",
+				"若你遇到某個以書寫形式存在的法術，像是魔法法術卷軸或法師的法術書，你就有可能可以將它加到你的儀式書中。該法術必須要在你所選職業的法術列表上，該法術的環階不能超過你等級的一半（小數點進位），且它必須要具有儀式標籤。將法術抄寫到你的儀式書的過程需要耗費每環2小時的時間、以及每環50金幣的代價。這個代價代表了你在研究如何掌握該法術時所消耗的材料構材、以及你在抄寫時所需要的優質墨水。"
+			]
+		},
+		{
+			"name": "野蠻攻擊者", "ENG_name": "Savage Attacker",
+			"source": "PHB",
+			"page": 169,
+			"entries": [
+				"每回合一次，當你為一次近戰武器攻擊骰傷害時，你可以重骰該武器傷害骰，並任選其中一個結果使用"
+			]
+		},
+		{
+			"name": "哨兵", "ENG_name": "Sentinel",
+			"source": "PHB",
+			"page": 169,
+			"entries": [
+				"你精通在敵人防禦時占盡優勢的技巧，獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"當你以藉機攻擊命中一個生物時，該生物在該回合剩下時間的移動速度變為0。",
+						"離開你觸及範圍的生物即使採取了撤離動作，仍然會觸發你的藉機攻擊。",
+						"當一個與你距離5呎內的生物對你以外的目標進行了一次攻擊（且該目標不具有此專長），你可以使用你的反應對該攻擊者進行一次近戰武器攻擊。"
+					]
+				}
+			]
+		},
+		{
+			"name": "神射手", "ENG_name": "Sharpshooter",
+			"source": "PHB",
+			"page": 170,
+			"entries": [
+				"你精通於遠程武器，且能夠做出他人眼中不可能的射擊。你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"攻擊長射程範圍中的目標並不會讓你的遠程武器攻擊檢定因此獲得劣勢。",
+						"你的遠程武器攻擊忽略半掩護和四分之三掩護。",
+						"在你以所熟練的遠程武器進行攻擊之前，你可以選擇讓該次攻擊檢定承受-5的減值。若該次攻擊命中，該次攻擊的傷害+10。"
+					]
+				}
+			]
+		},
+		{
+			"name": "盾牌大師", "ENG_name": "Shield Master",
+			"source": "PHB",
+			"page": 170,
+			"entries": [
+				"你的盾牌不僅僅是為了防禦、更能被用來進攻。當你持握{@item 盾牌|phb}時，你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"如果你在你的回合採取攻擊動作，你可以使用附贈動作利用你的盾牌嘗試推撞一個與你距離5呎內的生物。",
+						"如果你不處於{@condition 無力}，你可以將你盾牌的AC加值加到用以對抗只以你為目標的法術或其他有害效果的敏捷豁免檢定上。",
+						"如果你受到了某個效果允許你進行敏捷豁免檢定以減半傷害，你可以使用你的反應以在你成功通過豁免檢定時，將你的盾牌插入你和效果源頭之間，好讓你不受傷害。"
+					]
+				}
+			]
+		},
+		{
+			"name": "技巧嫻熟", "ENG_name": "Skilled",
+			"source": "PHB",
+			"page": 170,
+			"entries": [
+				"你獲得總共3種的自選{@book 技能|phb|7|skills}或{@filter 工具|items|type=tool;artisan tool}的熟練。"
+			]
+		},
+		{
+			"name": "潛行者", "ENG_name": "Skulker",
+			"source": "PHB",
+			"page": 170,
+			"prerequisite": [
+				{
+					"ability": [
+						{
+							"dex": 13
+						}
+					]
+				}
+			],
+			"entries": [
+				"你是潛行於陰影中的專家。你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"當你對於你想躲避的生物而言處於輕度遮蔽時，你可以嘗試躲藏。",
+						"當你對某個生物而言躲藏狀態，且你對它進行的遠程武器攻擊失手，則進行該攻擊並不會因此暴露你的位置。",
+						"微光不會對你依賴於視覺的睿知（{@skill 感知}）檢定造成劣勢。"
+					]
+				}
+			]
+		},
+		{
+			"name": "法術射手", "ENG_name": "Spell Sniper",
+			"source": "PHB",
+			"page": 170,
+			"prerequisite": [
+				{
+					"spellcasting": true
+				}
+			],
+			"entries": [
+				"你熟習於利用特定法術強化你攻擊的技巧，獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"當你施放一個需要你進行一次攻擊檢定的法術時，該法術的射程加倍。",
+						"你的遠程法術攻擊忽略半掩護和四分之三掩護。",
+						"你學會一個需要一次攻擊檢定的戲法。從{@filter 吟遊詩人|spells|level=0|class=bard|spell attack=m;r;o}、{@filter 牧師|spells|level=0|class=cleric|spell attack=m;r;o}、{@filter 德魯伊|spells|level=0|class=druid|spell attack=m;r;o}、{@filter 術士|spells|level=0|class=sorcerer|spell attack=m;r;o}、{@filter 契術師|spells|level=0|class=warlock|spell attack=m;r;o}、或{@filter 法師|spells|level=0|class=wizard|spell attack=m;r;o}法術列表中選擇該戲法。該戲法的施法屬性取決於你所選的法術列表：吟遊詩人、術士、契術師使用魅力；牧師、德魯伊使用睿知；法師則使用智力。"
+					]
+				}
+			]
+		},
+		{
+			"name": "斯奈布力魔法", "ENG_name": "Svirfneblin Magic",
+			"source": "MTF",
+			"page": 0,
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "gnome",
+							"subrace": "deep"
+						}
+					]
+				}
+			],
+			"entries": [
+				"你繼承了來自你先祖的天生施法能力。此能力允許你對自己隨意施放{@spell 迴避偵測}，且無須材料構材。你也可以透過此能力各自施放下列法術一次：{@spell 目盲/耳聾術}、{@spell 朦朧術}、和{@spell 易容術}。當你完成一次長休，你將重新獲得施放這些法術的能力。",
+				"這些法術的施法屬性是智力，你只能以它們的最低環階施放它們。"
+			],
+			"additionalSources": [
+				{
+					"source": "EEPC",
+					"page": 7
+				}
+			]
+		},
+		{
+			"name": "酒館拳王", "ENG_name": "Tavern Brawler",
+			"source": "PHB",
+			"page": 170,
+			"entries": [
+				"習慣於抄起任何剛好在手邊的武器加入混戰亂鬥，你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"你熟練於臨時武器。",
+						"你的徒手打擊使用d4作為傷害骰。",
+						"當你在你的回合使用徒手打擊或臨時武器命中一個生物，你可以使用附贈動作以嘗試擒抱該目標。"
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"str",
+							"con"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "健壯", "ENG_name": "Tough",
+			"source": "PHB",
+			"page": 170,
+			"entries": [
+				"當你獲得此專長時，你的生命值最大值增加等同於你等級兩倍的數值。每當你在這之後提升等級，你的生命值最大值都會再額外增加2點生命值。"
+			]
+		},
+		{
+			"name": "戰鬥施法者", "ENG_name": "War Caster",
+			"source": "PHB",
+			"page": 170,
+			"prerequisite": [
+				{
+					"spellcasting": true
+				}
+			],
+			"entries": [
+				"你受訓於混亂戰場的中心施展法術，學習這項技巧讓你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"當你受到傷害時，你在為維持法術專注而進行的體質豁免檢定上有優勢。",
+						"即使你單手或雙手持有武器或{@item 盾牌|phb}，你也可以做出法術所要求的姿勢構材。",
+						"當一個敵意生物的移動觸發了你的藉機攻擊，你可以使用你的反應以對該生物施展法術，而非進行一次藉機攻擊。該法術的施法時間必須為1個動作，且只能以該生物為目標。"
+					]
+				}
+			]
+		},
+		{
+			"name": "武器大師", "ENG_name": "Weapon Master",
+			"source": "PHB",
+			"page": 170,
+			"entries": [
+				"你已受過大量使用各種武器的訓練，獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"你獲得4種自選簡易武器或軍用武器的熟練。"
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"str",
+							"dex"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "Quicksmithing",
+			"prerequisite": [
+				{
+					"ability": [
+						{
+							"int": 13
+						}
+					]
+				}
+			],
+			"source": "PSK",
+			"page": 13,
+			"entries": [
+				"You have mastered the art of on-the-fly invention, improvement, and jury-rigging. You can use your talents to create immediate, short-term magical effects similar to spells, given time and an adequate supply of aether.",
+				"When you choose this feat, you master two magical effects, each of which recreates the effect of a 1st-level spell that has the ritual tag. These spells can come from any class list, but Intelligence is your spellcasting ability for them.",
+				"If you come across a schematic geared toward quicksmithing or study with another quicksmith, you might be able to add another spell to the effects you have mastered. The spell's level can be no higher than half your level (rounded up), and it must have the ritual tag. The process of mastering the spell takes 2 hours per level of the spell, and costs 50 gp per level. The cost represents aether you use as you experiment with the spell effect to master it.",
+				"In addition, you have proficiency with artisan's tools (quicksmith's tools). Using those tools, you can spend 1 hour and 10 gp worth of materials to construct a Tiny clockwork device (AC 5, 1 hp). The device ceases to function after 24 hours unless you spend 1 hour repairing it to keep it functioning. You can use your action to dismantle the device, at which point you can reclaim the materials used to create it. You can have up to three such devices active at a time.",
+				"When you create a device, choose one of the following options:",
+				{
+					"type": "entries",
+					"name": "Clockwork Toy",
+					"entries": [
+						"This toy is a clockwork animal, monster, or person, such as a frog, mouse, bird, dragon, or soldier. When placed on the ground, the toy moves 5 feet across the ground on each of your turns in a random direction. It makes noises as appropriate to the creature it represents."
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Fire Starter",
+					"entries": [
+						"This device produces a miniature flame, which you can use to light a candle, torch, or campfire. Using the device requires your action."
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Music Box",
+					"entries": [
+						"When opened, this music box plays a single song at a moderate volume. The box stops playing when it reaches the song's end or when it is closed."
+					]
+				}
+			]
+		},
+		{
+			"name": "Servo Crafting",
+			"prerequisite": [
+				{
+					"ability": [
+						{
+							"int": 13
+						}
+					]
+				}
+			],
+			"source": "PSK",
+			"page": 13,
+			"entries": [
+				"You are skilled in the creation of servos\u2014tiny constructs that function as personal assistants. You can cast the find familiar spell as a ritual, creating a servo to serve as your familiar instead of an animal. A servo's statistics appear in the \"Artifact Creatures\" section of this document. In every other way, a servo familiar functions as described in the find familiar spell.",
+				"You can communicate telepathically with your servo familiar and perceive through its senses as long as you are on the same plane of existence. You can speak through your servo in your own voice.",
+				"Additionally, when you take the Attack action, you can forgo one of your own attacks to allow your servo familiar to make one attack of its own."
+			]
+		},
+		{
+			"name": "慷慨吉運", "ENG_name": "Bountiful Luck",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "halfling"
+						}
+					]
+				}
+			],
+			"source": "XGE",
+			"page": 73,
+			"entries": [
+				"你的族人們有著非同尋常的好運氣，而你也學習過如何在看到同伴陷入困境時神秘地把好運借給他們。你也不確定你是怎麽做到的；你只是想想，它就實現了。這無疑是你受到命運眷顧的象徵！",
+				"當一個與你距離30呎內，你能看見的隊友在攻擊檢定、能力檢定、或豁免檢定的d20中骰出了1，你可以使用你的反應來讓該隊友重新擲骰。該隊友必須使用新的擲骰結果。",
+				"當你使用這個能力，直到你的下個回合結束之前，你都不能使用你的幸運種族特性。"
+			]
+		},
+		{
+			"name": "龍族恐怖", "ENG_name": "Dragon Fear",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "dragonborn"
+						}
+					]
+				}
+			],
+			"source": "XGE",
+			"page": 74,
+			"entries": [
+				"在感到憤怒時，你散發出威懾的氣息。你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"你可以花費一次你噴吐武器特性的使用額度，並非噴吐出毀滅性的能量，而是發出咆嘯以強迫距離你30呎內每個你所選擇的生物進行一次感知豁免檢定（DC8+你的熟練加值+你的魅力調整值）。如果目標不能聽見或看見你，則目標將自動通過豁免。若豁免失敗，則目標將對你感到{@condition 恐懼}持續1分鐘。如果因此陷入{@condition 恐懼}的目標受到任何傷害，它可以重複進行這個豁免檢定，並在豁免成功時終止此能力對自己的效果。"
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"str",
+							"con",
+							"cha"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "龍族皮革", "ENG_name": "Dragon Hide",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "dragonborn"
+						}
+					]
+				}
+			],
+			"source": "XGE",
+			"page": 74,
+			"entries": [
+				"你顯而易見的鱗片和利爪讓人想起了你的龍族先祖。你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"你的鱗片變的堅硬。當你未穿著護甲，你可以使用13+你的敏捷調整值來算出你的AC。你可以在使用盾牌時而仍獲得這個好處。",
+						"你的指尖長出可伸縮的爪子。這對爪子是你可以用來進行徒手打擊的天生武器。如果你用它們命中目標，你造成等同於{@dice 1d4}+你的力量調整值的劈砍傷害，而非原本徒手打擊的鈍擊傷害。"
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"str",
+							"con",
+							"cha"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "高等卓爾魔法", "ENG_name": "Drow High Magic",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "elf",
+							"subrace": "drow"
+						}
+					]
+				}
+			],
+			"source": "XGE",
+			"page": 74,
+			"entries": [
+				"你學會更多的黑暗精靈魔法。你習得{@spell 偵測魔法}法術並可以隨意施放它，無需消耗法術位。你也習得{@spell 浮空術}和{@spell 解除魔法}，並可以各自施放一次而無需消耗法術位。你在完成一次長休後重新獲得施放這兩個法術的能力。這三個法術的施法屬性是魅力。"
+			]
+		},
+		{
+			"name": "矮人堅毅", "ENG_name": "Dwarven Fortitude",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "dwarf"
+						}
+					]
+				}
+			],
+			"source": "XGE",
+			"page": 74,
+			"entries": [
+				"你的體內流淌著矮人英雄的血脈。你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"每當你在戰鬥中採取{@action 閃避}動作時，你可以消耗一顆生命骰以治療你自己。骰該生命骰，加上你的體質調整值，並回復等同於其總和數值的生命值（最少為1）。"
+					]
+				}
+			],
+			"ability": {
+				"con": 1
+			}
+		},
+		{
+			"name": "精靈之準", "ENG_name": "Elven Accuracy",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "elf"
+						},
+						{
+							"name": "half-elf"
+						}
+					]
+				}
+			],
+			"source": "XGE",
+			"page": 74,
+			"entries": [
+				"精靈的準確性是眾所周知的，尤其是精靈弓箭手和施法者。你在依賴精確度而非蠻力的攻擊中有著不可思議的準頭。你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"每當你在使用敏捷、智力、睿知、或魅力的攻擊檢定中具有優勢，你可以重骰其中一顆骰子一次。"
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"dex",
+							"int",
+							"wis",
+							"cha"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "消失無蹤", "ENG_name": "Fade Away",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "gnome"
+						}
+					]
+				}
+			],
+			"source": "XGE",
+			"page": 74,
+			"entries": [
+				"你的族人在幻術系魔法上聰穎且握有獨門訣竅。你學過一種在你受到傷害時消失無蹤的魔法把戲。你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"緊接在你受到傷害後，你可以使用一個反應以用魔法變得{@condition 隱形}直到你的下個回合結束，或直到你攻擊、造成傷害、或強迫某人進行一次豁免檢定。一旦你使用此能力，直到你完成一次短休或長休之前都無法再使用此能力。"
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"dex",
+							"int"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "精類傳送", "ENG_name": "Fey Teleportation",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "elf",
+							"subrace": "high"
+						}
+					]
+				}
+			],
+			"source": "XGE",
+			"page": 74,
+			"entries": [
+				"你對高等精靈傳說的研究解開了除了你的雅靈表親外，很少其他精靈擁有的精族力量。藉助於你的精類血統，你可以暫時地躍穿妖精荒野以縮短從一處到另一處的距離。你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"你習得說、讀、寫木族語。",
+						"你習得{@spell 迷蹤步}法術，並可以無需消耗法術位施放一次。你在完成一次短休或長休後重新獲得施放此法術的能力。這個法術的施法屬性是智力。"
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"int",
+							"cha"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "弗萊格索斯之焰", "ENG_name": "Flames of Phlegethos",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "tiefling"
+						}
+					]
+				}
+			],
+			"source": "XGE",
+			"page": 74,
+			"entries": [
+				"你學會呼喚地獄之火以服從你的命令。你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"當你為你所施放的法術擲骰決定火焰傷害時，你可以重骰任何你在火焰傷害骰中骰出的1，但你必須使用新的擲骰結果，即使其結果仍然是1。",
+						"每當你施放一個造成火焰傷害的法術時，你可以使烈焰環繞著你直到你的下個回合結束。這團烈焰不會傷害你或你的所有物，且會散發30呎範圍的明亮光照和再延伸30呎的微光光照。當這團烈焰存在時，任何距離你5呎內且以近戰攻擊命中你的生物將受到{@dice 1d4}火焰傷害。"
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"int",
+							"cha"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "煉獄體質", "ENG_name": "Infernal Constitution",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "tiefling"
+						}
+					]
+				}
+			],
+			"source": "XGE",
+			"page": 75,
+			"entries": [
+				"邪魔血脈在你體內脈動，解開了一種類似某些邪魔所擁有的韌性。你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"你擁有對寒冰和毒素傷害的抗性。",
+						"你在對抗{@condition 中毒}的豁免檢定中具有優勢。"
+					]
+				}
+			],
+			"ability": {
+				"con": 1
+			}
+		},
+		{
+			"name": "獸人狂怒", "ENG_name": "Orcish Fury",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "half-orc"
+						}
+					]
+				}
+			],
+			"source": "XGE",
+			"page": 75,
+			"entries": [
+				"你的狂怒怒火燃燒不倦。你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"當你使用一把簡易或軍用武器的攻擊命中時，你可以再額外骰一顆該武器的傷害骰，並將它做為具有該武器傷害類型的額外傷害加入。一旦你使用此能力，直到你完成一次短休或長休之前都無法再使用此能力。",
+						"緊接在你使用你的頑強耐性特性後，你可以使用你的反應以進行一次武器攻擊。"
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"str",
+							"con"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "奇才", "ENG_name": "Prodigy",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "half-elf"
+						},
+						{
+							"name": "half-orc"
+						},
+						{
+							"name": "human"
+						}
+					]
+				}
+			],
+			"source": "XGE",
+			"page": 75,
+			"entries": [
+				"你掌握著學習新事物的訣竅。你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"你獲得一個你所選擇的技能熟練、一個你所選擇的工具熟練、並能流暢的使用一種你所選擇的語言。",
+						"選擇一個你所熟練的技能。你獲得對該技能的專精，這代表你的熟練加值在任何你使用它進行的屬性檢定中變為兩倍。你所選擇的技能必須尚未得益於其他可以將熟練加值翻倍的效果，像是專精特性。"
+					]
+				}
+			]
+		},
+		{
+			"name": "二次機會", "ENG_name": "Second Chance",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "halfling"
+						}
+					]
+				}
+			],
+			"source": "XGE",
+			"page": 75,
+			"entries": [
+				"命運在某人嘗試攻擊你時眷顧著你。你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"當一個你所能看見的生物以一次攻擊檢定命中你時，你可以使用你的反應以強迫該生物重骰。一旦你使用此能力，直到你在戰鬥開始時骰先攻、或直到你完成一次短休或長休之前都無法再使用此能力。"
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"dex",
+							"con",
+							"cha"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "矮身靈巧", "ENG_name": "Squat Nimbleness",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "dwarf"
+						},
+						{
+							"name": "small race"
+						}
+					]
+				}
+			],
+			"source": "XGE",
+			"page": 75,
+			"entries": [
+				"你有著以你種族來說也相當不尋常的靈巧。你獲得下列好處：",
+				{
+					"type": "list",
+					"items": [
+						"你的步行速度增加5呎。",
+						"你獲得{@skill 特技}或{@skill 運動}其中之一的熟練（由你選擇）。",
+						"你在掙脫{@condition 被擒}時所進行的力量（運動）或敏捷（特技）檢定有優勢。"
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"str",
+							"dex"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "木精靈魔法", "ENG_name": "Wood Elf Magic",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "elf",
+							"subrace": "wood"
+						}
+					]
+				}
+			],
+			"source": "XGE",
+			"page": 75,
+			"entries": [
+				"你學會來自你族人們守護和尊崇的原初森林的魔法。你學會一個自選的德魯伊戲法。你也學會{@spell 大步奔行}和{@spell 行蹤無跡}法術，你可以各施放它們一次而無須消耗法術位。當你完成一次長休，你將重新獲得透過這個方式施放這兩個法術的能力。這三個法術的施法屬性是睿知。"
+			]
+		},
+		{
+			"name": "Vampiric Exultation",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "Vampire (Ixalan)"
+						}
+					]
+				}
+			],
+			"source": "PSX",
+			"page": 14,
+			"entries": [
+				"As an action, you can transform the lower half of your body into an inky black vapor, allowing you to float through the air. While transformed, you have a flying speed of 30 feet. You can maintain this form for up to 10 minutes. Once you use this ability, you can't use it again until you finish a short or long rest."
+			]
+		},
+		{
+			"name": "Revenant Blade",
+			"prerequisite": [
+				{
+					"race": [
+						{
+							"name": "elf"
+						}
+					]
+				}
+			],
+			"source": "UAWGE",
+			"page": 74,
+			"entries": [
+				"You are descended from a master of the double blade and their skills have passed on to you. You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"While wielding a double-bladed weapon with two hands, the weapon has the finesse trait for your attacks with it, and you gain +1 AC.",
+						"On your turn, when you use a bonus action to make a melee attack with the blade at the opposite end of the weapon, the weapon's damage die for this attack increases to 2d4, instead of 1d4."
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"str",
+							"dex"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "Greater Dragonmark (Detection)",
+			"prerequisite": [
+				{
+					"level": 8
+				},
+				{
+					"special": "character must possess a dragonmark"
+				}
+			],
+			"source": "UAWGE",
+			"page": 110,
+			"entries": [
+				"Your dragonmark has grown in size and power. This enhances your existing dragonmark, and the benefits are based on the mark that you already possess. A greater dragonmark provides the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"The die type of your dragonmarked Intuition Die increases by one (for example, from a d4 to a d6).",
+						"You learn the spells {@spell see invisibility} and {@spell true seeing}, each of which you can cast once without expending a spell slot or using a material component. Intelligence is your spellcasting ability for these spells. Once you cast a spell using this feature, and you must finish a long rest before you can do so again."
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"cha",
+							"int"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "Greater Dragonmark (Finding)",
+			"prerequisite": [
+				{
+					"level": 8
+				},
+				{
+					"special": "character must possess a dragonmark"
+				}
+			],
+			"source": "UAWGE",
+			"page": 110,
+			"entries": [
+				"Your dragonmark has grown in size and power. This enhances your existing dragonmark, and the benefits are based on the mark that you already possess. A greater dragonmark provides the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"The die type of your dragonmarked Intuition Die increases by one (for example, from a d4 to a d6).",
+						"You learn the spells {@spell locate creature} and {@spell find the path}, each of which you can cast once without expending a spell slot or using a material component. Wisdom is your spellcasting ability for these spells. Once you cast a spell using this feature, and you must finish a long rest before you can do so again."
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"dex",
+							"str",
+							"wis"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "Greater Dragonmark (Handling)",
+			"prerequisite": [
+				{
+					"level": 8
+				},
+				{
+					"special": "character must possess a dragonmark"
+				}
+			],
+			"source": "UAWGE",
+			"page": 110,
+			"entries": [
+				"Your dragonmark has grown in size and power. This enhances your existing dragonmark, and the benefits are based on the mark that you already possess. A greater dragonmark provides the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"The die type of your dragonmarked Intuition Die increases by one (for example, from a d4 to a d6).",
+						"You learn the spells {@spell beast sense} and {@spell dominate beast}, each of which you can cast once without expending a spell slot or using a material component. Wisdom is your spellcasting ability for these spells. Once you cast a spell using this feature, and you must finish a long rest before you can do so again."
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"dex",
+							"wis"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "Greater Dragonmark (Healing)",
+			"prerequisite": [
+				{
+					"level": 8
+				},
+				{
+					"special": "character must possess a dragonmark"
+				}
+			],
+			"source": "UAWGE",
+			"page": 110,
+			"entries": [
+				"Your dragonmark has grown in size and power. This enhances your existing dragonmark, and the benefits are based on the mark that you already possess. A greater dragonmark provides the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"The die type of your dragonmarked Intuition Die increases by one (for example, from a d4 to a d6).",
+						"You learn the spells {@spell mass healing word} and {@spell greater restoration}, each of which you can cast once without expending a spell slot or using a material component. Wisdom is your spellcasting ability for these spells. Once you cast a spell using this feature, and you must finish a long rest before you can do so again."
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"dex",
+							"wis"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "Greater Dragonmark (Hospitality)",
+			"prerequisite": [
+				{
+					"level": 8
+				},
+				{
+					"special": "character must possess a dragonmark"
+				}
+			],
+			"source": "UAWGE",
+			"page": 110,
+			"entries": [
+				"Your dragonmark has grown in size and power. This enhances your existing dragonmark, and the benefits are based on the mark that you already possess. A greater dragonmark provides the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"The die type of your dragonmarked Intuition Die increases by one (for example, from a d4 to a d6).",
+						"You learn the spells {@spell sanctuary} and {@spell Mordenkainen's magnificent mansion}, each of which you can cast once without expending a spell slot or using a material component. Charisma is your spellcasting ability for these spells. Once you cast a spell using this feature, and you must finish a long rest before you can do so again."
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"dex",
+							"cha"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "Greater Dragonmark (Making)",
+			"prerequisite": [
+				{
+					"level": 8
+				},
+				{
+					"special": "character must possess a dragonmark"
+				}
+			],
+			"source": "UAWGE",
+			"page": 110,
+			"entries": [
+				"Your dragonmark has grown in size and power. This enhances your existing dragonmark, and the benefits are based on the mark that you already possess. A greater dragonmark provides the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"The die type of your dragonmarked Intuition Die increases by one (for example, from a d4 to a d6).",
+						"You learn the spells {@spell fabricate} and {@spell creation}, each of which you can cast once without expending a spell slot or using a material component. Intelligence is your spellcasting ability for these spells. Once you cast a spell using this feature, and you must finish a long rest before you can do so again."
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"dex",
+							"int"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "Greater Dragonmark (Passage)",
+			"prerequisite": [
+				{
+					"level": 8
+				},
+				{
+					"special": "character must possess a dragonmark"
+				}
+			],
+			"source": "UAWGE",
+			"page": 110,
+			"entries": [
+				"Your dragonmark has grown in size and power. This enhances your existing dragonmark, and the benefits are based on the mark that you already possess. A greater dragonmark provides the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"The die type of your dragonmarked Intuition Die increases by one (for example, from a d4 to a d6).",
+						"You learn the spells {@spell blink} and {@spell teleportation circle}, each of which you can cast once without expending a spell slot or using a material component. Constitution is your spellcasting ability for these spells. Once you cast a spell using this feature, and you must finish a long rest before you can do so again."
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"dex",
+							"con"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "Greater Dragonmark (Scribing)",
+			"prerequisite": [
+				{
+					"level": 8
+				},
+				{
+					"special": "character must possess a dragonmark"
+				}
+			],
+			"source": "UAWGE",
+			"page": 110,
+			"entries": [
+				"Your dragonmark has grown in size and power. This enhances your existing dragonmark, and the benefits are based on the mark that you already possess. A greater dragonmark provides the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"The die type of your dragonmarked Intuition Die increases by one (for example, from a d4 to a d6).",
+						"You learn the spells {@spell sending} and {@spell tongues}, each of which you can cast once without expending a spell slot or using a material component. Intelligence is your spellcasting ability for these spells. Once you cast a spell using this feature, and you must finish a short or long rest before you can do so again."
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"int",
+							"cha"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "Greater Dragonmark (Sentinel)",
+			"prerequisite": [
+				{
+					"level": 8
+				},
+				{
+					"special": "character must possess a dragonmark"
+				}
+			],
+			"source": "UAWGE",
+			"page": 110,
+			"entries": [
+				"Your dragonmark has grown in size and power. This enhances your existing dragonmark, and the benefits are based on the mark that you already possess. A greater dragonmark provides the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"The die type of your dragonmarked Intuition Die increases by one (for example, from a d4 to a d6).",
+						"You learn the spells {@spell compelled duel}, {@spell warding bond}, each of which you can cast once without expending a spell slot or using a material component. Wisdom is your spellcasting ability for these spells. Once you cast a spell using this feature, and you must finish a short or long rest before you can do so again."
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"str",
+							"wis"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "Greater Dragonmark (Shadow)",
+			"prerequisite": [
+				{
+					"level": 8
+				},
+				{
+					"special": "character must possess a dragonmark"
+				}
+			],
+			"source": "UAWGE",
+			"page": 110,
+			"entries": [
+				"Your dragonmark has grown in size and power. This enhances your existing dragonmark, and the benefits are based on the mark that you already possess. A greater dragonmark provides the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"The die type of your dragonmarked Intuition Die increases by one (for example, from a d4 to a d6).",
+						"You learn the spells {@spell nondetection} and {@spell mislead}, each of which you can cast once without expending a spell slot or using a material component. Charisma is your spellcasting ability for these spells. Once you cast a spell using this feature, and you must finish a long rest before you can do so again."
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"cha",
+							"dex"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "Greater Dragonmark (Storm)",
+			"prerequisite": [
+				{
+					"level": 8
+				},
+				{
+					"special": "character must possess a dragonmark"
+				}
+			],
+			"source": "UAWGE",
+			"page": 110,
+			"entries": [
+				"Your dragonmark has grown in size and power. This enhances your existing dragonmark, and the benefits are based on the mark that you already possess. A greater dragonmark provides the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"The die type of your dragonmarked Intuition Die increases by one (for example, from a d4 to a d6).",
+						"You learn the spells {@spell control water} and {@spell control winds|xge}, each of which you can cast once without expending a spell slot or using a material component. Charisma is your spellcasting ability for these spells. Once you cast a spell using this feature, and you must finish a long rest before you can do so again."
+					]
+				}
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"cha",
+							"dex"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "Greater Dragonmark (Warding)",
+			"prerequisite": [
+				{
+					"level": 8
+				},
+				{
+					"special": "character must possess a dragonmark"
+				}
+			],
+			"source": "UAWGE",
+			"page": 110,
+			"entries": [
+				"Your dragonmark has grown in size and power. This enhances your existing dragonmark, and the benefits are based on the mark that you already possess. A greater dragonmark provides the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"The die type of your dragonmarked Intuition Die increases by one (for example, from a d4 to a d6).",
+						"You learn the spells {@spell knock}, {@spell glyph of warding} and {@spell Leomund's secret chest}*, each of which you can cast once without expending a spell slot or using a material component. Intelligence is your spellcasting ability for these spells. Once you cast a spell using this feature, and you must finish a long rest before you can do so again."
+					]
+				},
+				"* To cast {@spell Leomund's secret chest} using this feat, you must have a Siberys dragonshard with a value of at least 100 gp. While you have this dragonshard in hand, it serves as the spell's focus, and you can use it to summon and dismiss the chest."
+			],
+			"ability": {
+				"choose": [
+					{
+						"from": [
+							"dex",
+							"int"
+						],
+						"amount": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "Aberrant Dragonmark",
+			"prerequisite": [
+				{
+					"special": "No existing dragonmark"
+				}
+			],
+			"source": "UAWGE",
+			"page": 112,
+			"entries": [
+				"You have manifested an aberrant dragonmark. Determine its appearance and the flaw associated with it (see the Aberrant Mark Flaw table for examples). You gain the following benefits:",
+				{
+					"type": "list",
+					"items": [
+						"You learn a {@filter cantrip from the sorcerer spell list|spells|level=0|class=Sorcerer}. In addition, choose a {@filter 1st-level spell from the sorcerer spell list|spells|level=1|class=Sorcerer}. You learn that spell and can cast it at its lowest level. Once you cast it, you must finish a long rest before you can cast it again. Constitution is your spellcasting ability for these spells.",
+						"You can increase the power of your aberrant spells at the risk of your own vitality. When you cast a spell with your aberrant mark, you can use one of your Hit Dice to increase the spell's level by 1. Immediately after you cast the spell, roll the Hit Die. You take damage equal to the number rolled."
+					]
+				},
+				{
+					"type": "table",
+					"caption": "Aberrant Mark Flaw",
+					"colLabels": [
+						"1d8",
+						"Aberrant Mark Flaw"
+					],
+					"colStyles": [
+						"col-2 text-align-center",
+						"col-10"
+					],
+					"rows": [
+						[
+							1,
+							"Your mark is a source of constant physical pain."
+						],
+						[
+							2,
+							"Your mark whispers to you, though you may not understand what it says."
+						],
+						[
+							3,
+							"In times of stress, your mark may trigger a cantrip effect involuntarily."
+						],
+						[
+							4,
+							"The skin around your mark has an unusual appearance: burned, scaly, withered, etc."
+						],
+						[
+							5,
+							"Mundane animals become uneasy around you."
+						],
+						[
+							6,
+							"You have dramatic mood swings any time you use your mark."
+						],
+						[
+							7,
+							"Your appearance changes in a minor way every time you use your mark."
+						],
+						[
+							8,
+							"You have horrific nightmares after you use your mark."
+						]
+					]
+				}
+			],
+			"ability": {
+				"con": 1
+			}
+		}
+	]
+}

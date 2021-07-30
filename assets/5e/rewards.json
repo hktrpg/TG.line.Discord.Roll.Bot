@@ -1,0 +1,840 @@
+{
+	"reward": [
+		{
+			"name": "英勇戰鬥之恩惠", "ENG_name": "Boon of Combat Prowess",
+			"entries": [
+				"當你在一次近戰武器攻擊中失手，你可以選擇改為使之命中。一旦你使用此恩惠，直到完成一次短休之前你都不能再使用它。"
+			],
+			"source": "DMG",
+			"type": "Boon",
+			"page": 232
+		},
+		{
+			"name": "次元旅行之恩惠", "ENG_name": "Boon of Dimensional Travel",
+			"entries": [
+				"以一個動作，你可以施放{@spell 迷蹤步}法術，且不需要消耗法術位和任何構材。一旦你使用此恩惠，直到完成一次短休之前你都不能再使用它。"
+			],
+			"source": "DMG",
+			"type": "Boon",
+			"page": 232
+		},
+		{
+			"name": "扭曲命運之恩惠", "ENG_name": "Boon of Fate",
+			"entries": [
+				"當一個距離你60呎內你所能看見的生物進行一次屬性檢定、攻擊檢定、或豁免檢定時，你可以骰一顆d10，並將骰出來的數字作為加值或減值加到對方的檢定結果中。一旦你使用此恩惠，直到完成一次短休之前你都不能再使用它。"
+			],
+			"source": "DMG",
+			"type": "Boon",
+			"page": 232
+		},
+		{
+			"name": "超凡強韌之恩惠", "ENG_name": "Boon of Fortitude",
+			"entries": [
+				"你的生命值最大值增加40點。"
+			],
+			"source": "DMG",
+			"type": "Boon",
+			"page": 232
+		},
+		{
+			"name": "高等魔法之恩惠", "ENG_name": "Boon of High Magic",
+			"entries": [
+				"如果你已擁有9環的法術位，則你再額外獲得一個9環法術位。"
+			],
+			"source": "DMG",
+			"type": "Boon",
+			"page": 232
+		},
+		{
+			"name": "不朽不滅之恩惠", "ENG_name": "Boon of Immortality",
+			"entries": [
+				"你停止衰老。你免疫任何會使你衰老的效果，且你不會因衰老而死。"
+			],
+			"source": "DMG",
+			"type": "Boon",
+			"page": 232
+		},
+		{
+			"name": "金身不壞之恩惠", "ENG_name": "Boon of Invincibility",
+			"entries": [
+				"當你受到任何來源的傷害時，你可以將該傷害減為0。一旦你使用此恩惠，直到完成一次短休之前你都不能再使用它。"
+			],
+			"source": "DMG",
+			"type": "Boon",
+			"page": 232
+		},
+		{
+			"name": "無敵攻勢之恩惠", "ENG_name": "Boon of Irresistible Offense",
+			"entries": [
+				"你可以忽視任何生物的傷害抗性。"
+			],
+			"source": "DMG",
+			"type": "Boon",
+			"page": 232
+		},
+		{
+			"name": "操弄幸運之恩惠", "ENG_name": "Boon of Luck",
+			"entries": [
+				"你可以將一顆d10骰加入任何你所進行的一次屬性檢定、攻擊檢定、或豁免檢定中。一旦你使用此恩惠，直到完成一次短休之前你都不能再使用它。"
+			],
+			"source": "DMG",
+			"type": "Boon",
+			"page": 232
+		},
+		{
+			"name": "魔法抗性之恩惠", "ENG_name": "Boon of Magic Resistance",
+			"entries": [
+				"你在對抗法術或魔法效果而進行的豁免檢定中具有優勢。"
+			],
+			"source": "DMG",
+			"type": "Boon",
+			"page": 232
+		},
+		{
+			"name": "無雙狙殺之恩惠", "ENG_name": "Boon of Peerless Aim",
+			"entries": [
+				"你可以讓你自己在一次你所進行的遠程攻擊檢定中獲得+20的加值。一旦你使用此恩惠，直到完成一次短休之前你都不能再使用它。"
+			],
+			"source": "DMG",
+			"type": "Boon",
+			"page": 232
+		},
+		{
+			"name": "完美健康之恩惠", "ENG_name": "Boon of Perfect Health",
+			"entries": [
+				"你免疫所有毒素和疾病，且你在體質豁免中具有優勢。"
+			],
+			"source": "DMG",
+			"type": "Boon",
+			"page": 232
+		},
+		{
+			"name": "位面旅者之恩惠", "ENG_name": "Boon of Planar Travel",
+			"entries": [
+				"當你獲得此恩惠時，選擇一個物質位面以外的存在位面。你能夠以一個動作施放{@spell 異界傳送}法術（不需要消耗法術位和任何構材），只能以自己為目標，且只能傳送到你所選的位面，或從該位面回到物質位面。一旦你使用此恩惠，直到完成一次短休之前你都不能再使用它。"
+			],
+			"source": "DMG",
+			"type": "Boon",
+			"page": 232
+		},
+		{
+			"name": "迅捷施法之恩惠", "ENG_name": "Boon of Quick Casting",
+			"entries": [
+				"從你所能施放的1環到3環法術中選擇一個施法時間為一個動作的法術。往後此法術的施法時間對你而言是一個附贈動作。"
+			],
+			"source": "DMG",
+			"type": "Boon",
+			"page": 232
+		},
+		{
+			"name": "恢復活力之恩惠", "ENG_name": "Boon of Recovery",
+			"entries": [
+				"你可以使用一個附贈動作以回復等同於你生命值最大值一半的生命值。一旦你使用此恩惠，直到完成一次長休之前你都不能再使用它。"
+			],
+			"source": "DMG",
+			"type": "Boon",
+			"page": 232
+		},
+		{
+			"name": "物理韌性之恩惠", "ENG_name": "Boon of Resilience",
+			"entries": [
+				"你對非魔法武器所造成的鈍擊、穿刺、和劈砍傷害具有抗性。"
+			],
+			"source": "DMG",
+			"type": "Boon",
+			"page": 232
+		},
+		{
+			"name": "技能熟練之恩惠", "ENG_name": "Boon of Skill Proficiency",
+			"entries": [
+				"你熟練於所有技能。"
+			],
+			"source": "DMG",
+			"type": "Boon",
+			"page": 232
+		},
+		{
+			"name": "速度爆發之恩惠", "ENG_name": "Boon of Speed",
+			"entries": [
+				"你的步行速度提升30呎。此外，你可以使用一個附贈動作以採取{@action 疾走}或{@action 撤離}動作。一旦你這麼做，直到完成一次短休之前你都不能再使用它。"
+			],
+			"source": "DMG",
+			"type": "Boon",
+			"page": 232
+		},
+		{
+			"name": "法術掌控之恩惠", "ENG_name": "Boon of Spell Mastery",
+			"entries": [
+				"選擇一個你所能施展的1環法師、術士、或契術師法術。往後你能夠以它的最低環階施放此法術，且無需消耗法術位。"
+			],
+			"source": "DMG",
+			"type": "Boon",
+			"page": 232
+		},
+		{
+			"name": "法術召返之恩惠", "ENG_name": "Boon of Spell Recall",
+			"entries": [
+				"你可以施放任何你已知或已準備的一個法術而無需消耗法術位。一旦你使用此恩惠，直到完成一次長休之前你都不能再使用它。"
+			],
+			"source": "DMG",
+			"type": "Boon",
+			"page": 232
+		},
+		{
+			"name": "熾燄魂魄之恩惠", "ENG_name": "Boon of the Fire Soul",
+			"entries": [
+				"你免疫火焰傷害。你也可以隨意施放{@spell 燃燒之手}（豁免DC 15），而無需消耗法術位和任何構材。"
+			],
+			"source": "DMG",
+			"type": "Boon",
+			"page": 232
+		},
+		{
+			"name": "暗夜精魂之恩惠", "ENG_name": "Boon of Night Spirit",
+			"entries": [
+				"當你完全處於微光光照或黑暗環境時，你可以使用一個動作變得{@condition 隱形}。你將維持隱形直到你採取一個動作或反應。"
+			],
+			"source": "DMG",
+			"type": "Boon",
+			"page": 232
+		},
+		{
+			"name": "暴風後裔之恩惠", "ENG_name": "Boon of the Stormborn",
+			"entries": [
+				"你免疫閃電和雷鳴傷害。你也可以隨意施放{@spell 雷鳴波}（豁免DC 15），而無需消耗法術位和任何構材。"
+			],
+			"source": "DMG",
+			"type": "Boon",
+			"page": 232
+		},
+		{
+			"name": "無拘無束之恩惠", "ENG_name": "Boon of the Unfettered",
+			"entries": [
+				"你為抵抗{@condition 被擒}而進行的屬性檢定中具有優勢。此外，你可以使用一個動作直接掙脫擒抱、或從任何形式的束縛狀態中脫身。"
+			],
+			"source": "DMG",
+			"type": "Boon",
+			"page": 232
+		},
+		{
+			"name": "真實視覺之恩惠", "ENG_name": "Boon of Truesight",
+			"entries": [
+				"你獲得範圍60呎的真實視覺。"
+			],
+			"source": "DMG",
+			"type": "Boon",
+			"page": 232
+		},
+		{
+			"name": "無形無跡之恩惠", "ENG_name": "Boon of Undetectability",
+			"entries": [
+				"你在敏捷（{@skill 隱匿}）檢定中獲得+10的加值，且你無法被{@filter 預言系|spells|school=D}魔法，包括{@spell 探知}感應器，偵測或指定為目標。"
+			],
+			"source": "DMG",
+			"type": "Boon",
+			"page": 232
+		},
+		{
+			"name": "健康祝福", "ENG_name": "Blessing of Health",
+			"entries": [
+				"你的體質屬性值提升2點，上限為22。"
+			],
+			"source": "DMG",
+			"type": "Blessing",
+			"page": 228
+		},
+		{
+			"name": "魔抗祝福", "ENG_name": "Blessing of Magic Resistance",
+			"entries": [
+				"你在對抗法術或其他魔法效果的豁免檢定中具有優勢。"
+			],
+			"source": "DMG",
+			"type": "Blessing",
+			"page": 228
+		},
+		{
+			"name": "防護祝福", "ENG_name": "Blessing of Protection",
+			"entries": [
+				"你的AC和豁免檢定獲得+1的加值。"
+			],
+			"source": "DMG",
+			"type": "Blessing",
+			"page": 228
+		},
+		{
+			"name": "理解祝福", "ENG_name": "Blessing of Understanding",
+			"entries": [
+				"你的睿知屬性值提升2點，上限為22。"
+			],
+			"source": "DMG",
+			"type": "Blessing",
+			"page": 228
+		},
+		{
+			"name": "瓦爾哈拉祝福", "ENG_name": "Blessing of Valhalla",
+			"entries": [
+				"此祝福賦予你召喚精魂戰士的力量，就如同你吹響一把{@item horn of valhalla, silver|DMG|silver horn of Valhalla}。一旦你使用此祝福，直到7天過去之前你都不能再使用它。"
+			],
+			"source": "DMG",
+			"type": "Blessing",
+			"page": 228
+		},
+		{
+			"name": "武器增強祝福", "ENG_name": "Blessing of Weapon Enhancement",
+			"entries": [
+				"你所擁有的一把非魔法武器會在你持用它時變成一把{@item 武器+1}。"
+			],
+			"source": "DMG",
+			"type": "Blessing",
+			"page": 228
+		},
+		{
+			"name": "癒合祝福", "ENG_name": "Blessing of Wound Closure",
+			"entries": [
+				"此祝福賦予你{@item periapt of wound closure}所提供的好處。"
+			],
+			"source": "DMG",
+			"type": "Blessing",
+			"page": 228
+		},
+		{
+			"name": "召喚動物護咒", "ENG_name": "Charm of Animal Conjuring",
+			"entries": [
+				"此護咒讓你能夠以一個動作施放{@spell 召喚動物}法術（3環版本）。一旦使用三次後，此護咒隨即從你身上消失。"
+			],
+			"source": "DMG",
+			"type": "Charm",
+			"page": 228
+		},
+		{
+			"name": "黑暗視覺護咒", "ENG_name": "Charm of Darkvision",
+			"entries": [
+				"此護咒讓你能夠以一個動作施放{@spell 黑暗視覺}法術，且無需任何構材。一旦使用三次後，此護咒隨即從你身上消失。"
+			],
+			"source": "DMG",
+			"type": "Charm",
+			"page": 228
+		},
+		{
+			"name": "羽落護咒", "ENG_name": "Charm of Feather Falling",
+			"entries": [
+				"此護咒賦予你{@item ring of feather falling}所提供的好處。這個好處會持續10天，隨後此護咒便會從你身上消失。"
+			],
+			"source": "DMG",
+			"type": "Charm",
+			"page": 228
+		},
+		{
+			"name": "英雄氣概護咒", "ENG_name": "Charm of Heroism",
+			"entries": [
+				"此護咒讓你能夠以一個動作使自己獲得{@item potion of heroism}所提供的好處。一旦你這麼做，此護咒隨即從你身上消失。"
+			],
+			"source": "DMG",
+			"type": "Charm",
+			"page": 228
+		},
+		{
+			"name": "復原護咒", "ENG_name": "Charm of Restoration",
+			"entries": [
+				"此護咒含有6發充能。你可以使用一個動作以消耗特定數量的充能來施放下列法術：{@spell 高等復原術}（4充能）或{@spell 次級復原術}（2充能）。一旦所有充能被耗盡，此護咒隨即從你身上消失。"
+			],
+			"source": "DMG",
+			"type": "Charm",
+			"page": 228
+		},
+		{
+			"name": "活力護咒", "ENG_name": "Charm of Vitality",
+			"entries": [
+				"此護咒讓你能夠以一個動作使自己獲得{@item potion of vitality}所提供的好處。一旦你這麼做，此護咒隨即從你身上消失。"
+			],
+			"source": "DMG",
+			"type": "Charm",
+			"page": 228
+		},
+		{
+			"name": "殺戮護咒", "ENG_name": "Charm of the Slayer",
+			"entries": [
+				"你所擁有的一把劍在接下來的9天內變成一把{@item dragon slayer}或{@item giant slayer}（由DM決定）。之後此護咒隨即將從你身上消失，且該武器恢復正常。"
+			],
+			"source": "DMG",
+			"type": "Charm",
+			"page": 228
+		},
+		{
+			"name": "俄佐立護咒", "ENG_name": "Azorius Charm",
+			"entries": [
+				"當你啟用此護咒，你可以施放{@spell 人類定身術}（3環版本）、{@spell 命令術}、或{@spell 反制法術}法術。此護咒會在你啟用它之後消失。"
+			],
+			"source": "GGR",
+			"type": "Charm"
+		},
+		{
+			"name": "波洛斯護咒", "ENG_name": "Boros Charm",
+			"entries": [
+				"當你啟用此護咒，你可以施放{@spell 十字軍斗篷}或{@spell 加速術}法術。或者，你可以施放{@spell 光導箭}法術，且若它命中，你獲得等同於它造成傷害數量的生命值。此護咒會在你啟用它之後消失。"
+			],
+			"source": "GGR",
+			"type": "Charm"
+		},
+		{
+			"name": "底密爾護咒", "ENG_name": "Dimir Charm",
+			"entries": [
+				"當你啟用此護咒，你可以施放{@spell 閃現術}或{@spell 睡眠術}（3環版本）法術。或者，當你受到傷害，你可以採取你的反應變得{@condition 隱形}並傳送到最多30呎距離的一處你所能看見的未被佔據空間。你維持{@condition 隱形}狀態直到你的下個回合開始，或直到你攻擊或施放法術。此護咒會在你啟用它之後消失。"
+			],
+			"source": "GGR",
+			"type": "Charm"
+		},
+		{
+			"name": "葛加理護咒", "ENG_name": "Golgari Charm",
+			"entries": [
+				"當你啟用此護咒，你可以施放{@spell 解除魔法}、{@spell 摹造生命}（3環版本）、或{@spell 臭雲術}法術。此護咒會在你啟用它之後消失。"
+			],
+			"source": "GGR",
+			"type": "Charm"
+		},
+		{
+			"name": "古魯護咒", "ENG_name": "Gruul Charm",
+			"entries": [
+				"當你啟用此護咒，你可以施放{@spell 英雄氣概}或{@spell 雷鳴波}法術（3環版本）。或者，當你在一次武器攻擊中失手時，你可以採取一個反應對你攻擊失手的目標再進行另一次攻擊。此護咒會在你啟用它之後消失。"
+			],
+			"source": "GGR",
+			"type": "Charm"
+		},
+		{
+			"name": "伊捷護咒", "ENG_name": "Izzet Charm",
+			"entries": [
+				"當你啟用此護咒，你可以施放{@spell 解除魔法}或{@spell 閃電束}法術。或者，以一個動作，你可以回復一個三環或以下的已消耗法術位。此護咒會在你啟用它之後消失。"
+			],
+			"source": "GGR",
+			"type": "Charm"
+		},
+		{
+			"name": "歐佐夫護咒", "ENG_name": "Orzhov Charm",
+			"entries": [
+				"當你啟用此護咒，你可以施放{@spell 降咒}或{@spell 恐懼術}法術。或者，當一個距離你30呎內且你所能看見的生物的生命值被歸零，你可以採取你的反應以改為將它的生命值降至1。此護咒會在你啟用它之後消失。"
+			],
+			"source": "GGR",
+			"type": "Charm"
+		},
+		{
+			"name": "拉鐸司護咒", "ENG_name": "Rakdos Charm",
+			"entries": [
+				"當你啟用此護咒，你可以施放{@spell 瘋狂冠冕}、{@spell 煉獄叱喝}、或{@spell 粉碎音波}法術。此護咒會在你啟用它之後消失。"
+			],
+			"source": "GGR",
+			"type": "Charm"
+		},
+		{
+			"name": "瑟雷尼亞護咒", "ENG_name": "Selesnya Charm",
+			"entries": [
+				"當你啟用此護咒，你可以施放{@spell 活力靈光}或{@spell 召喚動物}法術。或者，以一個動作，你可以使距離你30呎內，最多三個你所選擇的生物獲得對鈍擊、穿刺、和劈砍傷害的抗性，持續直到你的下個回合結束。此護咒會在你啟用它之後消失。"
+			],
+			"source": "GGR",
+			"type": "Charm"
+		},
+		{
+			"name": "析米克護咒", "ENG_name": "Simic Charm",
+			"entries": [
+				"當你啟用此護咒，你可以施放{@spell 強化屬性}（3環版本）、{@spell 變巨/縮小術}、或{@spell 氣化形體}法術。此護咒會在你啟用它之後消失。"
+			],
+			"source": "GGR",
+			"type": "Charm"
+		},
+		{
+			"name": "I'jin",
+			"entries": [
+				{
+					"type": "list",
+					"style": "list-hang-notitle",
+					"items": [
+						{
+							"type": "item",
+							"name": "Gender:",
+							"entry": "Female"
+						},
+						{
+							"type": "item",
+							"name": "Alignment:",
+							"entry": "CN"
+						},
+						{
+							"type": "item",
+							"name": "Personality:",
+							"entry": "Fickle and unpredictable"
+						},
+						{
+							"type": "item",
+							"name": "Inherited flaw:",
+							"entry": "\"I never stick to a plan.\""
+						},
+						{
+							"type": "item",
+							"name": "Enemy:",
+							"entry": "Obo'laka"
+						},
+						{
+							"type": "item",
+							"name": "Power:",
+							"entry": "The host's Dexterity score becomes 23, unless it is already higher."
+						}
+					]
+				}
+			],
+			"source": "ToA",
+			"page": 129,
+			"type": "Inhabitation"
+		},
+		{
+			"name": "Kubazan",
+			"entries": [
+				{
+					"type": "list",
+					"style": "list-hang-notitle",
+					"items": [
+						{
+							"type": "item",
+							"name": "Gender:",
+							"entry": "Male"
+						},
+						{
+							"type": "item",
+							"name": "Alignment:",
+							"entry": "CG"
+						},
+						{
+							"type": "item",
+							"name": "Personality:",
+							"entry": "Wild and spirited"
+						},
+						{
+							"type": "item",
+							"name": "Inherited flaw:",
+							"entry": "\"I am fearless and not afraid to take great risks.\""
+						},
+						{
+							"type": "item",
+							"name": "Enemy:",
+							"entry": "Papazotl"
+						},
+						{
+							"type": "item",
+							"name": "Power:",
+							"entry": "The host's Strength score becomes 23, unless it is already higher."
+						}
+					]
+				}
+			],
+			"source": "ToA",
+			"page": 129,
+			"type": "Inhabitation"
+		},
+		{
+			"name": "Moa",
+			"entries": [
+				{
+					"type": "list",
+					"style": "list-hang-notitle",
+					"items": [
+						{
+							"type": "item",
+							"name": "Gender:",
+							"entry": "Male"
+						},
+						{
+							"type": "item",
+							"name": "Alignment:",
+							"entry": "LG"
+						},
+						{
+							"type": "item",
+							"name": "Personality:",
+							"entry": "Truthful and kind"
+						},
+						{
+							"type": "item",
+							"name": "Inherited flaw:",
+							"entry": "\"I must always speak the truth.\""
+						},
+						{
+							"type": "item",
+							"name": "Enemy:",
+							"entry": "Wongo"
+						},
+						{
+							"type": "item",
+							"name": "Power:",
+							"entry": "The host can use an action to turn invisible. Anything the host is wearing or carrying is invisible as long as it is on the host's person. The effect ends if the host attacks, casts a spell, forces a saving throw, or deals damage."
+						}
+					]
+				}
+			],
+			"source": "ToA",
+			"page": 129,
+			"type": "Inhabitation"
+		},
+		{
+			"name": "Nangnang",
+			"entries": [
+				{
+					"type": "list",
+					"style": "list-hang-notitle",
+					"items": [
+						{
+							"type": "item",
+							"name": "Gender:",
+							"entry": "Female"
+						},
+						{
+							"type": "item",
+							"name": "Alignment:",
+							"entry": "NE"
+						},
+						{
+							"type": "item",
+							"name": "Personality:",
+							"entry": "Selfish and cruel"
+						},
+						{
+							"type": "item",
+							"name": "Inherited flaw:",
+							"entry": "\"I won't share with others.\""
+						},
+						{
+							"type": "item",
+							"name": "Enemy:",
+							"entry": "Shagambi"
+						},
+						{
+							"type": "item",
+							"name": "Power:",
+							"entry": "The host can move up, down, and across vertical surfaces and upside down along ceilings, while leaving its hands free. It gains a climbing speed equal to its walking speed."
+						}
+					]
+				}
+			],
+			"source": "ToA",
+			"page": 129,
+			"type": "Inhabitation"
+		},
+		{
+			"name": "Obo'laka",
+			"entries": [
+				{
+					"type": "list",
+					"style": "list-hang-notitle",
+					"items": [
+						{
+							"type": "item",
+							"name": "Gender:",
+							"entry": "Female"
+						},
+						{
+							"type": "item",
+							"name": "Alignment:",
+							"entry": "LN"
+						},
+						{
+							"type": "item",
+							"name": "Personality:",
+							"entry": "Nervous and obsessive"
+						},
+						{
+							"type": "item",
+							"name": "Inherited flaw:",
+							"entry": "\"I am risk-averse and a slave to routine.\""
+						},
+						{
+							"type": "item",
+							"name": "Enemy:",
+							"entry": "I'jin"
+						},
+						{
+							"type": "item",
+							"name": "Power:",
+							"entry": "The host can attune to one additional magic item. When Obo'laka leaves the host, all magic items to which the host is attuned are no longer attuned to it."
+						}
+					]
+				}
+			],
+			"source": "ToA",
+			"page": 129,
+			"type": "Inhabitation"
+		},
+		{
+			"name": "Papazotl",
+			"entries": [
+				{
+					"type": "list",
+					"style": "list-hang-notitle",
+					"items": [
+						{
+							"type": "item",
+							"name": "Gender:",
+							"entry": "Male"
+						},
+						{
+							"type": "item",
+							"name": "Alignment:",
+							"entry": "LE"
+						},
+						{
+							"type": "item",
+							"name": "Personality:",
+							"entry": "Shrewd and conniving"
+						},
+						{
+							"type": "item",
+							"name": "Inherited flaw:",
+							"entry": "\"I bow before no one and expect others to do as I command.\""
+						},
+						{
+							"type": "item",
+							"name": "Enemy:",
+							"entry": "Kubazan"
+						},
+						{
+							"type": "item",
+							"name": "Power:",
+							"entry": "The host can't be surprised, gains advantage on all Wisdom checks, and never takes damage from falling."
+						}
+					]
+				}
+			],
+			"source": "ToA",
+			"page": 129,
+			"type": "Inhabitation"
+		},
+		{
+			"name": "Shagambi",
+			"entries": [
+				{
+					"type": "list",
+					"style": "list-hang-notitle",
+					"items": [
+						{
+							"type": "item",
+							"name": "Gender:",
+							"entry": "Female"
+						},
+						{
+							"type": "item",
+							"name": "Alignment:",
+							"entry": "NG"
+						},
+						{
+							"type": "item",
+							"name": "Personality:",
+							"entry": "Wise and virtuous"
+						},
+						{
+							"type": "item",
+							"name": "Inherited flaw:",
+							"entry": "\"I never show mercy to evildoers.\""
+						},
+						{
+							"type": "item",
+							"name": "Enemy:",
+							"entry": "Nangnang"
+						},
+						{
+							"type": "item",
+							"name": "Power:",
+							"entry": "The host can make one extra attack when taking the Attack action on its turn."
+						}
+					]
+				}
+			],
+			"source": "ToA",
+			"page": 129,
+			"type": "Inhabitation"
+		},
+		{
+			"name": "Unkh",
+			"entries": [
+				{
+					"type": "list",
+					"style": "list-hang-notitle",
+					"items": [
+						{
+							"type": "item",
+							"name": "Gender:",
+							"entry": "Female"
+						},
+						{
+							"type": "item",
+							"name": "Alignment:",
+							"entry": "N"
+						},
+						{
+							"type": "item",
+							"name": "Personality:",
+							"entry": "Self-absorbed and indecisive"
+						},
+						{
+							"type": "item",
+							"name": "Inherited flaw:",
+							"entry": "\"I am incapable of making decisions.\""
+						},
+						{
+							"type": "item",
+							"name": "Enemy:",
+							"entry": "None"
+						},
+						{
+							"type": "item",
+							"name": "Power:",
+							"entry": "The host's Constitution score becomes 23, unless it is already higher."
+						}
+					]
+				}
+			],
+			"source": "ToA",
+			"page": 129,
+			"type": "Inhabitation"
+		},
+		{
+			"name": "Wongo",
+			"entries": [
+				{
+					"type": "list",
+					"style": "list-hang-notitle",
+					"items": [
+						{
+							"type": "item",
+							"name": "Gender:",
+							"entry": "Male"
+						},
+						{
+							"type": "item",
+							"name": "Alignment:",
+							"entry": "CE"
+						},
+						{
+							"type": "item",
+							"name": "Personality:",
+							"entry": "Violent and deranged"
+						},
+						{
+							"type": "item",
+							"name": "Inherited flaw:",
+							"entry": "\"I act without concern for the well-being of others.\""
+						},
+						{
+							"type": "item",
+							"name": "Enemy:",
+							"entry": "Moa"
+						},
+						{
+							"type": "item",
+							"name": "Power:",
+							"entry": "The host can use an action to unleash a psionic assault on a creature it can see within 60 feet of it. The target must succeed on a DC 16 Wisdom saving throw or be stunned until the end of the target's next turn."
+						}
+					]
+				}
+			],
+			"source": "ToA",
+			"page": 129,
+			"type": "Inhabitation"
+		}
+	]
+}

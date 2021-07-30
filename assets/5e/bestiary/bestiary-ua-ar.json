@@ -1,0 +1,97 @@
+{
+	"monster": [
+		{
+			"source": "UAArtificerRevisited",
+			"name": "煉金人工生命體", "ENG_name": "Alchemical Homunculus",
+			"size": "T",
+			"type": "construct",
+			"alignment": [
+				"N"
+			],
+			"ac": [
+				{
+					"ac": 13,
+					"from": [
+						"天生護甲"
+					]
+				}
+			],
+			"hp": {
+				"special": "等同於你奇械師職業等級的五倍 + 你的智力調整值"
+			},
+			"speed": {
+				"walk": 20,
+				"fly": 30
+			},
+			"str": 4,
+			"dex": 15,
+			"con": 11,
+			"int": 10,
+			"wis": 10,
+			"cha": 7,
+			"skill": {
+				"perception": "+4",
+				"stealth": "+4"
+			},
+			"immune": [
+				"acid",
+				"poison"
+			],
+			"conditionImmune": [
+				"charmed",
+				"exhaustion",
+				"poisoned"
+			],
+			"passive": 10,
+			"senses": "黑暗視覺60呎",
+			"languages": "理解你所說的語言",
+			"cr": "Unknown",
+			"trait": [
+				{
+					"name": "主人之力", "tENG_name": "Might of the Master",
+					"entries": [
+						"每當你的熟練加值提升1點，下列數據也會跟著提升1點：煉金人工生命體的技能加值、以及它酸性唾沫的命中加值和傷害加值。"
+					]
+				}
+			],
+			"action": [
+				{
+					"name": "酸性唾沫", "tENG_name": "Acidic Spittle",
+					"entries": [
+						"{@atk rw} 命中{@hit 4}，射程30呎，單一你所能看見的目標。{@h}{@dice 1d6 + 2}酸蝕傷害。"
+					]
+				},
+				{
+					"name": "煉金藥膏 (3/日)", "tENG_name": "Alchemical Salve (3/Day)",
+					"entries": [
+						"煉金人工生命體製造出一劑藥膏並觸碰一個你所指定的生物。目標將接受下列其中一個你所選擇的魔法效果：",
+						{
+							"type": "list",
+							"style": "list-hang-notitle",
+							"items": [
+								{
+									"type": "item",
+									"name": "浮力", "tENG_name": "Buoyancy",
+									"entry": "目標獲得10呎的飛行速度，持續10分鐘。"
+								},
+								{
+									"type": "item",
+									"name": "激勵", "tENG_name": "Inspiration",
+									"entry": "目標將感到醍醐灌頂，在接下來1小時內在某些屬性檢定中獲得優勢。目標可以在檢定擲骰之前或之後選擇是否使用此效果。這個魔法將在目標使用等同於你智力調整值的次數（最少1次）後被耗盡。"
+								},
+								{
+									"type": "item",
+									"name": "韌性", "tENG_name": "Resilience",
+									"entry": "目標獲得等同於{@dice 2d6}+你的智力調整值的臨時生命值。"
+								}
+							]
+						}
+					]
+				}
+			],
+			"senseTags": [
+				"D"
+			]
+		}
+	]
+}

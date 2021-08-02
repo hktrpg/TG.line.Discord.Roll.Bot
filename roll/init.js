@@ -85,7 +85,7 @@ var rollDiceCommand = async function ({
             rply.text = (temp && temp.nModified) ? '已移除 ' + name + ' 的先攻值' : '找不到' + name + '的先攻值';
             return rply;
         case /(^[.]in$)/i.test(mainMsg[0]) && /^clear$/i.test(mainMsg[1]):
-            temp = await schema.init.remove({
+            temp = await schema.init.deleteOne({
                 "groupID": channelid || groupid
             })
             rply.text = (temp) ? '已移除這群組的先攻值' : '找不到這群組的先攻表';
@@ -95,7 +95,7 @@ var rollDiceCommand = async function ({
                 "groupID": channelid || groupid
             });
             if (!temp) {
-                rply.text = "找不到先攻表"
+                rply.text = "找不到先攻表, 如有疑問, 可以輸入.init help 觀看說明"
                 return rply;
             }
             for (let i = 0; i < temp.list.length; i++) {
@@ -114,7 +114,7 @@ var rollDiceCommand = async function ({
                 "groupID": channelid || groupid
             });
             if (!temp) {
-                rply.text = "找不到先攻表"
+                rply.text = "找不到先攻表, 如有疑問, 可以輸入.init help 觀看說明"
                 return rply;
             }
             objIndex = temp.list.findIndex((obj => obj.name.toLowerCase() == name.toLowerCase()));
@@ -176,7 +176,7 @@ var rollDiceCommand = async function ({
                 "groupID": channelid || groupid
             });
             if (!temp) {
-                rply.text = "找不到先攻表"
+                rply.text = "找不到先攻表, 如有疑問, 可以輸入.init help 觀看說明"
                 return rply;
             }
             rply.text = await showInit(temp)
@@ -186,7 +186,7 @@ var rollDiceCommand = async function ({
                 "groupID": channelid || groupid
             });
             if (!temp) {
-                rply.text = "找不到先攻表"
+                rply.text = "找不到先攻表, 如有疑問, 可以輸入.init help 觀看說明"
                 return rply;
             }
             rply.text = await showInitn(temp)

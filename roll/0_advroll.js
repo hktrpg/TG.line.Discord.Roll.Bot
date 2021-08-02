@@ -71,7 +71,6 @@ var rollDiceCommand = async function ({
 			rply.quotes = true;
 			return rply;
 		case /^[.][c][a]$/i.test(mainMsg[0]):
-
 			//為了令= 轉TO 功能正常, 又不會影響常規計數如 1*5+4>=5
 			if (inputStr.match(/[=]/ig))
 				if (inputStr.match(/^((?!(>=|<=|=>|=<|\d=|[)]=)).)*$/ig)) {
@@ -80,7 +79,9 @@ var rollDiceCommand = async function ({
 			try {
 				rply.text = mathjs.evaluate(inputStr.toLowerCase().replace(/\.ca/i, '').replace(/磅/g, 'lb').replace(/公斤/g, 'kg').replace(/盎司/g, 'oz').replace(/英吋/g, 'inch').replace(/公分/g, 'cm').replace(/公釐/g, 'mm').replace(/克/g, 'g').replace(/公尺/g, 'm').replace(/碼/g, 'yd').replace(/桿/g, 'rd').replace(/英里/g, 'mi').replace(/千米/g, 'km').replace(/厘米/g, 'cm').replace(/毫米/g, 'mm').replace(/微米/g, 'µm').replace(/毫克/g, 'mg').replace(/公克/g, 'hg').replace(/斤/g, 'kg').replace(/米/g, 'm').replace(/英尺/g, 'ft').replace(/尺/g, 'ft').replace(/角度/g, 'deg').replace(/度/g, 'deg').replace(/呎/g, 'ft').replace(/吋/g, 'inch').replace(/轉換/g, ' to ').replace(/轉/g, ' to ').replace(/換/g, ' to ').replace(/π/g, 'pi'));
 			} catch (error) {
-				console.error('.ca ERROR FUNCTION', inputStr);
+				console.error('.ca ERROR FUNCTION', inputStr, error.message);
+				rply.text = inputStr.replace(/\.ca/i, '') + '\n→ ' + error.message;
+				return rply;
 			}
 			rply.text = inputStr.replace(/\.ca/i, '') + '\n→ ' + rply.text;
 			return rply;

@@ -397,7 +397,7 @@ var rollDiceCommand = async function ({
                 if (!temp) return ' ';
                 num = await rollbase.DiceINT(0, temp.length - 1)
                 num = (num < 1) ? 0 : num;
-                temp = temp[num].name
+                temp = (temp && temp[num] && temp[num].name) ? temp[num].name : ' ';
                 return temp || ' ';
             // * {allgp.name} <---隨機全GP其中一人名字
             case /^allgp.title$/i.test(second):
@@ -411,8 +411,8 @@ var rollDiceCommand = async function ({
                 });
                 num = await rollbase.DiceINT(0, temp2.length - 1)
                 num = (num < 1) ? 0 : num;
-                temp = temp2[num];
-                return temp || ' ';
+                temp = (temp2 && temp2[num]) ? temp2[num] : ' ';
+                return temp;
             // * {allgp.title}<---隨機全GP其中一種稱號
             case /^server.member_count$/i.test(second):
                 temp = await findGpMember(groupid);

@@ -726,8 +726,15 @@ async function showCharacter(Card, mode) {
 async function replacer(doc, match) {
     let result = ""
     let state = await findObject(doc.state, match);
-    let note = await findObject(doc.notes, match);
-    result = state.itemA || note.itemA || '';
+
+    if (state && state.itemA) {
+        result = state.itemA;
+    } else {
+        let note = await findObject(doc.notes, match);
+        if (note && note.itemA) {
+            result = note.itemA;
+        }
+    }
     return result;
 }
 async function analysicInputCharacterCard(inputStr) {

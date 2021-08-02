@@ -96,13 +96,24 @@ var rollDiceCommand = async function ({
 			});
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /^[.]image$/.test(mainMsg[0]):
-			rply.text = await searchImage(inputStr, mainMsg, true)
-			rply.type = 'image'
+			try {
+				rply.text = await searchImage(inputStr, mainMsg, true)
+				rply.type = 'image'
+			} catch (error) {
+				console.log('.image error')
+				return rply;
+			}
 			return rply;
+
 		case /\S+/.test(mainMsg[1]) && /^[.]imagee$/.test(mainMsg[0]):
 			//成人版
-			rply.text = await searchImage(inputStr, mainMsg, false)
-			rply.type = 'image'
+			try {
+				rply.text = await searchImage(inputStr, mainMsg, false)
+				rply.type = 'image'
+			} catch (error) {
+				console.log('.image error')
+				return rply;
+			}
 			return rply;
 		default:
 			break;

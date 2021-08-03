@@ -474,6 +474,7 @@ async function nonDice(message) {
 
 //Set Activity 可以自定義正在玩什麼
 client.on('ready', async () => {
+	console.log('Client.shard.ids', client.shard.ids)
 	client.user.setActivity('🌼bothelp | hktrpg.com🍎');
 	if (togGGToken) {
 		setInterval(() => {

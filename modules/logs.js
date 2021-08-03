@@ -5,7 +5,7 @@ const schema = require('./core-schema.js');
 //50次 多少條訊息會上傳一次LOG
 const oneHour = 1 * 60 * 60 * 1000;
 const fiveMinutes = 5 * 60 * 1000;
-
+var shardid = 0;
 //每一小時 24 * 60 * 60 * 1000 多久會上傳一次LOG紀錄 
 const RollingLog = {
     LastTimeLog: "",
@@ -88,6 +88,7 @@ async function saveLog() {
 }
 
 async function pushToDefiniteLog() {
+    if (shardid !== 0) return;
     //更新最後的RollingLog 儲存時間
     RollingLog.LastTimeLog = Date.now();
     let theNewData = await schema.RealTimeRollingLog.findOne({});
@@ -114,7 +115,6 @@ async function pushToDefiniteLog() {
 }
 
 async function getRecords() {
-
     let theNewData = await schema.RealTimeRollingLog.findOne({});
     if (!theNewData) {
         RollingLog.LastTimeLog = Date.now();
@@ -157,7 +157,8 @@ function resetLog() {
 }
 
 
-async function courtMessage(result, botname, inputStr) {
+async function courtMessage({ result, botname, inputStr, shardids = 0 }) {
+    if (shardids !== 0) shardid = shardids;
     if (result && result.text) {
         //SAVE THE LOG
         switch (botname) {

@@ -361,7 +361,7 @@ async function privateMsgFinder(channelid) {
 	else return [];
 }
 async function nonDice(event) {
-	await courtMessage("", "Line", "")
+	await courtMessage({ result: "", botname: "Line", inputStr: "" })
 	let roomorgroupid = event.source.groupId || event.source.roomId || '',
 		userid = event.source.userId || '',
 		displayname = '';

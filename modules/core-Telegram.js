@@ -266,7 +266,7 @@ if (process.env.BROADCAST)
 
 
 async function nonDice(ctx) {
-	await courtMessage("", "Telegram", "")
+	await courtMessage({ result: "", botname: "Telegram", inputStr: "" })
 	if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.message.from.id && ctx.message.chat.id) {
 		let groupid = (ctx.message.chat.id) ? ctx.message.chat.id.toString() : '',
 			userid = (ctx.message.from.id) ? ctx.message.from.id.toString() : '',

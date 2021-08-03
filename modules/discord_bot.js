@@ -33,6 +33,9 @@ const joinMessage = `你剛剛添加了HKTRPG 骰子機械人!
 		有關TRPG資訊, 可以到網站
 		(http://www.hktrpg.com/)`;
 const reconnectInterval = 1 * 1000 * 60;
+const shardids = client.shard.ids[0];
+
+
 const WebSocket = require('ws');
 var ws;
 var connect = function () {
@@ -447,7 +450,7 @@ client.on('shardResume', (replayed, shardID) => console.log(`Shard ID ${shardID}
 client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnected.`));
 
 async function nonDice(message) {
-	await courtMessage("", "Discord", "")
+	await courtMessage({ result: "", botname: "Discord", inputStr: "", shardids: shardids })
 	let groupid = '',
 		userid = '';
 	if (message.guild && message.guild.id) {
@@ -474,7 +477,7 @@ async function nonDice(message) {
 
 //Set Activity 可以自定義正在玩什麼
 client.on('ready', async () => {
-	console.log('Client.shard.ids', client.shard.ids)
+	if (shardids !== 0) return;
 	client.user.setActivity('🌼bothelp | hktrpg.com🍎');
 	if (togGGToken) {
 		setInterval(() => {
@@ -507,7 +510,6 @@ if (togGGToken) {
 }
 
 client.login(channelSecret);
-
 
 
 /**

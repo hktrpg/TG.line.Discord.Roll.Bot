@@ -143,7 +143,7 @@ var parseInput = async function ({
 		result.text = await stateText();
 	}
 	//courtMessage + saveLog
-	await courtMessage(result, botname, inputStr)
+	await courtMessage({ result, botname, inputStr })
 	return result;
 }
 

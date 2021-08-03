@@ -411,7 +411,7 @@ async function SendToReply(replyText, message) {
 					await message.author.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 				}
 				catch (e) {
-					console.error(' GET ERROR:  SendToReply: ', e.message, replyText, message)
+					console.error(' GET ERROR:  SendToReply: ', e.message, replyText)
 				}
 		}
 	}

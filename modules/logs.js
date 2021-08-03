@@ -110,7 +110,6 @@ async function pushToDefiniteLog() {
         }
     }
     await schema.RollingLog.create(temp);
-    console.log('SAVE RollingLog')
     return;
 }
 

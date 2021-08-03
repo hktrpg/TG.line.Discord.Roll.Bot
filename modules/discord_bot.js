@@ -411,7 +411,9 @@ async function SendToReply(replyText, message) {
 					await message.author.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 				}
 				catch (e) {
-					console.error(' GET ERROR:  SendToReply: ', e.message, replyText)
+					if (e.message !== 'Cannot send messages to this user') {
+						console.error(' GET ERROR:  SendToReply: ', e.message, replyText)
+					}
 				}
 		}
 	}
@@ -427,7 +429,9 @@ async function SendToReplychannel(replyText, channelid) {
 					//await message.channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 				}
 				catch (e) {
-					console.error(' GET ERROR: SendToReplychannel: ', e.message, replyText, channelid);
+					if (e.message !== 'Missing Permissions') {
+						console.error(' GET ERROR: SendToReplychannel: ', e.message, replyText, channelid);
+					}
 				}
 		}
 	}

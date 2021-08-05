@@ -356,7 +356,9 @@ const developmentRollingRecord = mongoose.model('developmentRollingRecord', new 
     groupID: String,
     date: Date,
     skillName: String,
-    skillPer: Number
+    skillPer: Number,
+    skillPerStyle: String
+    //成功,失敗,大成功,大失敗
 }));
 
 module.exports = {

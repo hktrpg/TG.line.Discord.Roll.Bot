@@ -137,7 +137,7 @@ var rollDiceCommand = async function ({
 			break;
 		}
 		case (trigger == 'cc' && mainMsg[1] <= 1000): {
-			rply.text = await coc7(mainMsg[1], mainMsg[2]);
+			rply.text = await coc7({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid });
 			break;
 		}
 		case (trigger == 'cc1' && mainMsg[1] <= 1000): {
@@ -466,7 +466,7 @@ async function dpRecordSwitch({ onOff = false, groupid = "", channelid = "" }) {
 	}
 }
 
-async function dpRecorder({ onOff = false, groupid = "", channelid = "" }) {
+async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName = "", skillPer = 0 }) {
 	try {
 		let result = schema.developmentConductor.findOneAndUpdate({
 			groupid: channelid || groupid,
@@ -589,17 +589,53 @@ async function coc6(chack, text) {
  */
 
 
-async function coc7(chack, text) {
+async function coc7({ chack, text = "", userID, groupid, channelid }) {
 	let result = '';
 	let temp = await rollbase.Dice(100);
-	if (temp > chack) result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 失敗';
-	if (temp <= chack) result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 通常成功';
-	if (temp <= chack / 2) result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 困難成功';
-	if (temp <= chack / 5) result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 極限成功';
-	if (temp == 1) result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 恭喜！大成功！';
-	if (temp == 100) result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 啊！大失敗！';
-	if (temp >= 96 && chack <= 49) result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 啊！大失敗！';
-	if (text != null) result += '：' + text;
+	let skillPerStyle = "";
+	switch (true) {
+		case value:
+
+			break;
+		case value:
+
+			break;
+		case value:
+
+			break;
+		case value:
+
+			break;
+		case value:
+
+			break;
+		case value:
+
+			break;
+		case value:
+
+			break;
+		case value:
+
+			break;
+		case value:
+
+			break;
+
+		default:
+			break;
+	}
+	if (temp > chack) { result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 失敗'; }
+	if (temp <= chack) { result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 通常成功'; }
+	if (temp <= chack / 2) { result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 困難成功'; }
+	if (temp <= chack / 5) { result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 極限成功'; }
+	if (temp == 1) { result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 恭喜！大成功！'; }
+	if (temp == 100) { result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 啊！大失敗！'; }
+	if (temp >= 96 && chack <= 49) { result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 啊！大失敗！'; }
+	if (text) result += '：' + text;
+	if (userID && groupid) {
+		dpRecorder({ userID, groupid, channelid, skillName: text, skillPer: chack, skillPerStyle: '' });
+	}
 	return result;
 }
 

@@ -93,6 +93,12 @@ var rollDiceCommand = async function ({
 			rply.quotes = true;
 			break;
 		}
+
+		case /^\.dp$/i.test(mainMsg[0]) && /^\.showall$/i.test(mainMsg[1]): {
+			rply.text = await getDpRecord(false);
+			rply.quotes = true;
+			break;
+		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^\.auto$/i.test(mainMsg[1]): {
 			rply.text = await getDpRecord(false);
 			rply.quotes = true;
@@ -418,21 +424,42 @@ async function dpStartRecord(onOff) {
 
 	/**
 	 * 行為
+	 * 打開後就開始紀錄CC CC1~2 CCN1~2 的結果
+	 * 
+	 * 檢定成功 -> 檢查有沒有技能名字
+	 * 有	檢查有沒有重複的名字 有則覆蓋時間 和記錄結果
+	 * 沒有則儲存十個
+	 * 
+	 * 檢定失敗
+	 * 儲存五次
+	 * 
+	 * 大成功大失敗儲存
+	 * 額外儲存十次大成功大失敗的紀錄
 	 * 
 	 */
 
 }
 async function getDpRecord(onOff) {
+	/**
+	 * 
+	 */
 
 }
+
 async function DevelopmentPhase(target, text) {
 	let result = '';
 	if (text == undefined) text = "";
 	let skill = await rollbase.Dice(100);
 	let improved = await rollbase.Dice(10);
+	let confident = (target <= 89) ? true : false;
 	if (target > 95) target = 95;
 	if (skill >= 96 || skill > target) {
 		result = "成長或增強檢定: " + text + "\n1D100 > " + target + "\n擲出: " + skill + " → 成功!\n你的技能增加" + improved + "點!";
+		if (confident && (target + improved) >= 90) {
+			result += `\n調查員的技能提升到90%以上，他的當前理智值增加${await rollbase.Dice(6) + await rollbase.Dice(6)}點。
+這一項獎勵顯示他經由精通一項技能而獲得自信。`
+		}
+
 	} else {
 		result = "成長或增強檢定: " + text + "\n1D100 > " + target + "\n擲出: " + skill + " → 失敗!\n你的技能沒有變化!";
 	}

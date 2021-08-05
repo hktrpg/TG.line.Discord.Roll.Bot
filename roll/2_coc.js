@@ -1,7 +1,6 @@
 "use strict";
 const rollbase = require('./rollbase.js');
-var variables = {};
-
+const schema = require('../modules/core-schema.js');
 var gameName = function () {
 	return '【克蘇魯神話】 cc cc(n)1~2 ccb ccrt ccsu .dp .cc7build .cc6build .cc7bg'
 }
@@ -36,11 +35,20 @@ coc7 成長或增長檢定： .dp 或 成長檢定 或 幕間成長 (技能%) (�
 coc7版角色背景隨機生成： 啓動語 .cc7bg`
 }
 var initialize = function () {
-	return variables;
+	return {};
 }
 
 var rollDiceCommand = async function ({
-	mainMsg
+	inputStr,
+	mainMsg,
+	groupid,
+	userid,
+	userrole,
+	botname,
+	displayname,
+	channelid,
+	displaynameDiscord,
+	membercount
 }) {
 	let rply = {
 		default: 'on',
@@ -48,64 +56,95 @@ var rollDiceCommand = async function ({
 		text: ''
 	};
 	let trigger = mainMsg[0].toLowerCase();
-	//console.log(mainMsg[1].toLowerCase())
-	if (trigger == "cc" && mainMsg[1].toLowerCase() == "help") {
-		rply.text = await this.getHelpMessage();
-		rply.quotes = true;
-	}
-	if (trigger == ".dp" && (mainMsg[1].toLowerCase() == "help" || !mainMsg[1])) {
-		rply.text = await this.getHelpMessage();
-		rply.quotes = true;
-	}
-	if (trigger.match(/(^ccrt$)/i) != null) {
-		rply.text = await ccrt();
-		rply.quotes = true;
-	}
-	if (trigger.match(/(^ccsu$)/i) != null) {
-		rply.text = await ccsu();
-		rply.quotes = true;
-	}
+	switch (true) {
+		case (mainMsg[1].match(/help/i)): {
+			rply.text = await this.getHelpMessage();
+			rply.quotes = true;
+			break;
+		}
 
-	if (trigger == 'ccb' && mainMsg[1] <= 1000) {
-		rply.text = await coc6(mainMsg[1], mainMsg[2]);
-	}
-	//DevelopmentPhase幕間成長指令開始於此
-	if ((trigger == '.dp' || trigger == '成長檢定' || trigger == '幕間成長') && mainMsg[1] <= 1000) {
-		rply.text = await DevelopmentPhase(mainMsg[1], mainMsg[2]);
-	}
+		case /^ccrt$/i.test(mainMsg[0]): {
+			rply.text = await ccrt();
+			rply.quotes = true;
+			break;
+		}
+		case /^ccsu$/i.test(mainMsg[0]): {
+			rply.text = await ccsu();
+			rply.quotes = true;
+			break;
+		}
+		case (trigger == 'ccb' && mainMsg[1] <= 1000): {
+			rply.text = await coc6(mainMsg[1], mainMsg[2]);
+			break;
+		}
+		//DevelopmentPhase幕間成長指令開始於此
+		case /^\.dp$/i.test(mainMsg[0]) && /^\.start$/i.test(mainMsg[1]): {
+			rply.text = await dpStartRecord(true);
+			rply.quotes = true;
+			break;
+		}
+		case /^\.dp$/i.test(mainMsg[0]) && /^\.stop$/i.test(mainMsg[1]): {
+			rply.text = await dpStartRecord(false);
+			rply.quotes = true;
+			break;
+		}
+		case /^\.dp$/i.test(mainMsg[0]) && /^\.show$/i.test(mainMsg[1]): {
+			rply.text = await getDpRecord(false);
+			rply.quotes = true;
+			break;
+		}
+		case /^\.dp$/i.test(mainMsg[0]) && /^\.auto$/i.test(mainMsg[1]): {
+			rply.text = await getDpRecord(false);
+			rply.quotes = true;
+			break;
+		}
+		case ((trigger == '.dp' || trigger == '成長檢定' || trigger == '幕間成長') && mainMsg[1] <= 1000): {
+			rply.text = await DevelopmentPhase(mainMsg[1], mainMsg[2]);
+			break;
+		}
+		case (trigger == 'cc' && mainMsg[1] <= 1000): {
+			rply.text = await coc7(mainMsg[1], mainMsg[2]);
+			break;
+		}
+		case (trigger == 'cc1' && mainMsg[1] <= 1000): {
+			rply.text = await coc7bp(mainMsg[1], '1', mainMsg[2]);
+			break;
+		}
+		case (trigger == 'cc2' && mainMsg[1] <= 1000): {
+			rply.text = await coc7bp(mainMsg[1], '2', mainMsg[2]);
+			break;
+		}
+		case (trigger == 'ccn1' && mainMsg[1] <= 1000): {
+			rply.text = await coc7bp(mainMsg[1], '-1', mainMsg[2]);
+			break;
+		}
+		case (trigger == 'ccn2' && mainMsg[1] <= 1000): {
+			rply.text = await coc7bp(mainMsg[1], '-2', mainMsg[2]);
+			break;
+		}
 
-	//cc指令開始於此
-	if (trigger == 'cc' && mainMsg[1] <= 1000) {
-		rply.text = await coc7(mainMsg[1], mainMsg[2]);
-	}
-	//獎懲骰設定於此	
-	if (trigger == 'cc1' && mainMsg[1] <= 1000) {
-		rply.text = await coc7bp(mainMsg[1], '1', mainMsg[2]);
-	}
-	if (trigger == 'cc2' && mainMsg[1] <= 1000) {
-		rply.text = await coc7bp(mainMsg[1], '2', mainMsg[2]);
-	}
-	if (trigger == 'ccn1' && mainMsg[1] <= 1000) {
-		rply.text = await coc7bp(mainMsg[1], '-1', mainMsg[2]);
-	}
-	if (trigger == 'ccn2' && mainMsg[1] <= 1000) {
-		rply.text = await coc7bp(mainMsg[1], '-2', mainMsg[2]);
-	}
-	if (trigger.match(/(^cc7版創角$)|(^[.]cc7build$)/i) != null) {
-		rply.text = await (await build7char(mainMsg[1])).replace(/\*5/ig, ' * 5');
-		rply.quotes = true;
-	}
-	if (trigger.match(/(^ccpulp版創角$)|(^[.]ccpulpbuild$)/i) != null) {
-		rply.text = await (await buildpulpchar(mainMsg[1])).replace(/\*5/ig, ' * 5');
-		rply.quotes = true;
-	}
-	if (trigger.match(/(^cc6版創角$)|(^[.]cc6build$)/i) != null) {
-		rply.text = await build6char(mainMsg[1]);
-		rply.quotes = true;
-	}
-	if (trigger.match(/(^cc7版角色背景$)|(^[.]cc7bg$)/i) != null) {
-		rply.text = await PcBG();
-		rply.quotes = true;
+		case /(^cc7版創角$)|(^[.]cc7build$)/i.test(mainMsg[0]): {
+			rply.text = await (await build7char(mainMsg[1])).replace(/\*5/ig, ' * 5');
+			rply.quotes = true;
+			break;
+		}
+		case /(^ccpulp版創角$)|(^[.]ccpulpbuild$)/i.test(mainMsg[0]): {
+			rply.text = await (await buildpulpchar(mainMsg[1])).replace(/\*5/ig, ' * 5');
+			rply.quotes = true;
+			break;
+		}
+		case /(^cc6版創角$)|(^[.]cc6build$)/i.test(mainMsg[0]): {
+			rply.text = await build6char(mainMsg[1]);
+			rply.quotes = true;
+			break;
+		}
+		case /(^cc7版角色背景$)|(^[.]cc7bg$)/i.test(mainMsg[0]): {
+			rply.text = await PcBG();
+			rply.quotes = true;
+			break;
+		}
+		default:
+			break;
 	}
 	return rply;
 }
@@ -374,6 +413,18 @@ const cocManias = [
 
 ];
 
+
+async function dpStartRecord(onOff) {
+
+	/**
+	 * 行為
+	 * 
+	 */
+
+}
+async function getDpRecord(onOff) {
+
+}
 async function DevelopmentPhase(target, text) {
 	let result = '';
 	if (text == undefined) text = "";

@@ -346,7 +346,6 @@ const eventList = mongoose.model('eventList', new mongoose.Schema({
 
 //成長的開關控制
 const developmentConductor = mongoose.model('developmentConductor', new mongoose.Schema({
-    userID: String,
     groupID: String,
     switch: Boolean
 }));

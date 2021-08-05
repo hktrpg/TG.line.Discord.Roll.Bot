@@ -10,11 +10,11 @@ var gameType = function () {
 }
 var prefixs = function () {
 	return [{
-		first: /(^ccrt$)|(^ccsu$)|(^cc7版創角$)|(^[.]cc7build$)|(^[.]ccpulpbuild$)|(^[.]cc6build$)|(^[.]cc7bg$)|(^cc6版創角$)|(^cc7版角色背景$)/i,
+		first: /(^ccrt$)|(^ccsu$)|(^cc7版創角$)|(^[.]dp$)|(^[.]cc7build$)|(^[.]ccpulpbuild$)|(^[.]cc6build$)|(^[.]cc7bg$)|(^cc6版創角$)|(^cc7版角色背景$)/i,
 		second: null
 	},
 	{
-		first: /(^ccb$)|(^cc$)|(^ccn[1-2]$)|(^cc[1-2]$)|(^[.]dp$)|(^成長檢定$)|(^幕間成長$)/i,
+		first: /(^ccb$)|(^cc$)|(^ccn[1-2]$)|(^cc[1-2]$)|(^成長檢定$)|(^幕間成長$)/i,
 		second: /(^\d+$)|(^help$)/i
 	}
 	]
@@ -78,28 +78,56 @@ var rollDiceCommand = async function ({
 			break;
 		}
 		//DevelopmentPhase幕間成長指令開始於此
-		case /^\.dp$/i.test(mainMsg[0]) && /^\.start$/i.test(mainMsg[1]): {
-			rply.text = await dpStartRecord(true);
+		case /^\.dp$/i.test(mainMsg[0]) && /^start$/i.test(mainMsg[1]): {
+			if (!groupid) {
+				rply.text = '本功能只可以在群組中使用'
+				return rply;
+			}
+			if (userrole < 3) {
+				rply.text = '本功能只可以由Admin啓動'
+				return rply;
+			}
+			rply.text = await dpRecordSwitch({ onOff: true, groupid, channelid });
 			rply.quotes = true;
 			break;
 		}
-		case /^\.dp$/i.test(mainMsg[0]) && /^\.stop$/i.test(mainMsg[1]): {
-			rply.text = await dpStartRecord(false);
+		case /^\.dp$/i.test(mainMsg[0]) && /^stop$/i.test(mainMsg[1]): {
+			if (!groupid) {
+				rply.text = '本功能只可以在群組中使用'
+				return rply;
+			}
+			if (userrole < 3) {
+				rply.text = '本功能只可以由Admin關閉'
+				return rply;
+			}
+			rply.text = await dpRecordSwitch({ onOff: false, groupid, channelid });
 			rply.quotes = true;
 			break;
 		}
-		case /^\.dp$/i.test(mainMsg[0]) && /^\.show$/i.test(mainMsg[1]): {
+		case /^\.dp$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
+			if (!groupid) {
+				rply.text = '本功能只可以在群組中使用'
+				return rply;
+			}
 			rply.text = await getDpRecord(false);
 			rply.quotes = true;
 			break;
 		}
 
-		case /^\.dp$/i.test(mainMsg[0]) && /^\.showall$/i.test(mainMsg[1]): {
+		case /^\.dp$/i.test(mainMsg[0]) && /^showall$/i.test(mainMsg[1]): {
+			if (!groupid) {
+				rply.text = '本功能只可以在群組中使用'
+				return rply;
+			}
 			rply.text = await getDpRecord(false);
 			rply.quotes = true;
 			break;
 		}
-		case /^\.dp$/i.test(mainMsg[0]) && /^\.auto$/i.test(mainMsg[1]): {
+		case /^\.dp$/i.test(mainMsg[0]) && /^auto$/i.test(mainMsg[1]): {
+			if (!groupid) {
+				rply.text = '本功能只可以在群組中使用'
+				return rply;
+			}
 			rply.text = await getDpRecord(false);
 			rply.quotes = true;
 			break;
@@ -420,7 +448,40 @@ const cocManias = [
 ];
 
 
-async function dpStartRecord(onOff) {
+async function dpRecordSwitch({ onOff = false, groupid = "", channelid = "" }) {
+	try {
+		let result = schema.developmentConductor.findOneAndUpdate({
+			groupid: channelid || groupid,
+			switch: onOff
+		},
+			{
+				upsert: true,
+				returnNewDocument: true
+			});
+		return `現在這頻道的COC 成長紀錄功能為 ${(result._conditions.switch) ? '開啓' : '關閉'}
+以後CC擲骰將會進行紀錄`
+	} catch (error) {
+		console.log(`dpRecordSwitch ERROR ${error.message}`)
+		return '發生錯誤';
+	}
+}
+
+async function dpRecorder({ onOff = false, groupid = "", channelid = "" }) {
+	try {
+		let result = schema.developmentConductor.findOneAndUpdate({
+			groupid: channelid || groupid,
+			switch: onOff
+		},
+			{
+				upsert: true,
+				returnNewDocument: true
+			});
+		return `現在這頻道的COC 成長紀錄功能為 ${(result._conditions.switch) ? '開啓' : '關閉'}
+以後CC擲骰將會進行紀錄`
+	} catch (error) {
+		console.log(`dpRecordSwitch ERROR ${error.message}`)
+		return '發生錯誤';
+	}
 
 	/**
 	 * 行為
@@ -440,6 +501,7 @@ async function dpStartRecord(onOff) {
 
 }
 async function getDpRecord(onOff) {
+
 	/**
 	 * 
 	 */
@@ -459,7 +521,6 @@ async function DevelopmentPhase(target, text) {
 			result += `\n調查員的技能提升到90%以上，他的當前理智值增加${await rollbase.Dice(6) + await rollbase.Dice(6)}點。
 這一項獎勵顯示他經由精通一項技能而獲得自信。`
 		}
-
 	} else {
 		result = "成長或增強檢定: " + text + "\n1D100 > " + target + "\n擲出: " + skill + " → 失敗!\n你的技能沒有變化!";
 	}

@@ -39,16 +39,11 @@ var initialize = function () {
 }
 
 var rollDiceCommand = async function ({
-	inputStr,
 	mainMsg,
 	groupid,
 	userid,
 	userrole,
-	botname,
-	displayname,
 	channelid,
-	displaynameDiscord,
-	membercount
 }) {
 	let rply = {
 		default: 'on',
@@ -109,8 +104,32 @@ var rollDiceCommand = async function ({
 				rply.text = '本功能只可以在群組中使用'
 				return rply;
 			}
-			rply.text = await getDpRecord(false);
+			let switchOn = await schema.developmentConductor.findOne({
+				groupID: channelid || groupid,
+				switch: true
+			});
+			if (!switchOn) return;
+			let result = await schema.developmentRollingRecord.find({
+				groupID: channelid || groupid,
+				userID: userid,
+			});
 			rply.quotes = true;
+			/**
+			 * 成功的擲骰結果
+			 * -------------
+			 * 空手 50	拳擊 60	拳	80
+			 * 空手 50	拳擊 60	拳	80 	
+			 * ------------
+			 * 無記名成功結果
+			 * 21-08-04 12:33 技能	80
+			 * 21-08-04 13:33 技能	80
+			 * ------------
+			 * 大成功與大失敗
+			 * 技能	80	大失敗
+			 * 拳	80	大成功
+			 */
+
+
 			break;
 		}
 
@@ -124,6 +143,24 @@ var rollDiceCommand = async function ({
 			break;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^auto$/i.test(mainMsg[1]): {
+			if (!groupid) {
+				rply.text = '本功能只可以在群組中使用'
+				return rply;
+			}
+			rply.text = await getDpRecord(false);
+			rply.quotes = true;
+			break;
+		}
+		case /^\.dp$/i.test(mainMsg[0]) && /^clear$/i.test(mainMsg[1]): {
+			if (!groupid) {
+				rply.text = '本功能只可以在群組中使用'
+				return rply;
+			}
+			rply.text = await getDpRecord(false);
+			rply.quotes = true;
+			break;
+		}
+		case /^\.dp$/i.test(mainMsg[0]) && /^autoall$/i.test(mainMsg[1]): {
 			if (!groupid) {
 				rply.text = '本功能只可以在群組中使用'
 				return rply;

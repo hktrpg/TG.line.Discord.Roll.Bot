@@ -141,19 +141,19 @@ var rollDiceCommand = async function ({
 			break;
 		}
 		case (trigger == 'cc1' && mainMsg[1] <= 1000): {
-			rply.text = await coc7bp(mainMsg[1], '1', mainMsg[2]);
+			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: 1 });
 			break;
 		}
 		case (trigger == 'cc2' && mainMsg[1] <= 1000): {
-			rply.text = await coc7bp(mainMsg[1], '2', mainMsg[2]);
+			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: 2 });
 			break;
 		}
 		case (trigger == 'ccn1' && mainMsg[1] <= 1000): {
-			rply.text = await coc7bp(mainMsg[1], '-1', mainMsg[2]);
+			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: -1 });
 			break;
 		}
 		case (trigger == 'ccn2' && mainMsg[1] <= 1000): {
-			rply.text = await coc7bp(mainMsg[1], '-2', mainMsg[2]);
+			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: -2 });
 			break;
 		}
 
@@ -530,6 +530,11 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 
 		}
 
+		/**
+		  * 大成功大失敗儲存
+	 * 額外儲存十次大成功大失敗的紀錄
+		 */
+
 		if (skillPerStyle == "criticalSuccessNfumble") {
 			await schema.developmentRollingRecord.create({
 				groupID: channelid || groupid,
@@ -582,9 +587,12 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 async function getDpRecord(onOff) {
 
 	/**
-	 * show  顯示  所有 normal ,
-	 * 沒有名字
-	 * 及大成功大失敗 
+	 * show  顯示 在這頻道中的 所有 成功擲骰 ,
+	 * 十個沒有名字的擲骰成功
+	 * 及十個大成功大失敗 
+	 * 
+	 * showall 顯示本頻道所有
+	 * 
 	 */
 
 }
@@ -716,12 +724,12 @@ async function coc7({ chack, text = "", userid, groupid, channelid }) {
 	if (text) result += '：' + text;
 	if (userid && groupid && skillPerStyle !== "failure") {
 		console.log('start')
-		await dpRecorder({ userid, groupid, channelid, skillName: text, skillPer: chack, skillPerStyle, skillResult: temp });
+		await dpRecorder({ userID: userid, groupid, channelid, skillName: text, skillPer: chack, skillPerStyle, skillResult: temp });
 	}
 	return result;
 }
 
-async function coc7chack(temp, chack, text) {
+async function coc7chack({ chack, temp, text = "", userid, groupid, channelid }) {
 	let result = '';
 	let skillPerStyle = "";
 	switch (true) {
@@ -764,13 +772,16 @@ async function coc7chack(temp, chack, text) {
 			break;
 	}
 	if (text) result += '：' + text;
-	//
+	if (userid && groupid && skillPerStyle !== "failure") {
+		console.log('start')
+		await dpRecorder({ userID: userid, groupid, channelid, skillName: text, skillPer: chack, skillPerStyle, skillResult: temp });
+	}
 	return result;
 }
 
 
 
-async function coc7bp(chack, bpdiceNum, text) {
+async function coc7bp({ chack, text, userid, groupid, channelid, bpdiceNum }) {
 	let result = '';
 	let temp0 = await rollbase.Dice(10) - 1;
 	let countStr = '';
@@ -783,7 +794,9 @@ async function coc7bp(chack, bpdiceNum, text) {
 		}
 		countStr = countStr.substring(0, countStr.length - 1)
 		let countArr = countStr.split('、');
-		countStr = countStr + ' → ' + await coc7chack(Math.min(...countArr), chack, text);
+		countStr = countStr + ' → ' + await coc7chack(
+			{ chack, temp: Math.min(...countArr), text, userid, groupid, channelid }
+		);
 		result = '1D100 ≦ ' + chack + "：\n" + countStr;
 		return result;
 	}
@@ -797,7 +810,9 @@ async function coc7bp(chack, bpdiceNum, text) {
 		}
 		countStr = countStr.substring(0, countStr.length - 1)
 		let countArr = countStr.split('、');
-		countStr = countStr + ' → ' + await coc7chack(Math.max(...countArr), chack, text);
+		countStr = countStr + ' → ' + await coc7chack(
+			{ chack, temp: Math.max(...countArr), text, userid, groupid, channelid }
+		);
 		result = '1D100 ≦ ' + chack + "：\n" + countStr;
 		return result;
 	}

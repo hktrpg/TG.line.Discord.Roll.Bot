@@ -357,6 +357,7 @@ const developmentRollingRecord = mongoose.model('developmentRollingRecord', new 
     date: Date,
     skillName: String,
     skillPer: Number,
+    skillResult: Number,
     skillPerStyle: String
     //成功,失敗,大成功,大失敗
 }));

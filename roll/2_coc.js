@@ -450,34 +450,115 @@ const cocManias = [
 
 async function dpRecordSwitch({ onOff = false, groupid = "", channelid = "" }) {
 	try {
-		let result = schema.developmentConductor.findOneAndUpdate({
-			groupid: channelid || groupid,
-			switch: onOff
-		},
-			{
-				upsert: true,
-				returnNewDocument: true
-			});
-		return `現在這頻道的COC 成長紀錄功能為 ${(result._conditions.switch) ? '開啓' : '關閉'}
-以後CC擲骰將會進行紀錄`
+		console.log('groupid', groupid, onOff, channelid)
+		let result = await schema.developmentConductor.findOneAndUpdate({
+			groupID: channelid || groupid
+		}, {
+			$set: {
+				switch: onOff
+			}
+		}, {
+			new: true,
+			upsert: true,
+			returnDocument: true
+		});
+		return `現在這頻道的COC 成長紀錄功能為 ${(result.switch) ? '開啓' : '關閉'}
+以後CC擲骰將 ${(result.switch) ? '會' : '不會'}進行紀錄`
 	} catch (error) {
 		console.log(`dpRecordSwitch ERROR ${error.message}`)
 		return '發生錯誤';
 	}
 }
 
-async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName = "", skillPer = 0 }) {
+async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName = "", skillPer = 0, skillPerStyle = "", skillResult = 0 }) {
 	try {
-		let result = schema.developmentConductor.findOneAndUpdate({
-			groupid: channelid || groupid,
-			switch: onOff
-		},
-			{
-				upsert: true,
-				returnNewDocument: true
+		let result = await schema.developmentConductor.findOne({
+			groupID: channelid || groupid,
+			switch: true
+		});
+		if (!result) return;
+		/**
+		 * 	
+	 * 檢定成功 -> 檢查有沒有技能名字
+	 * 有	檢查有沒有重複的名字 有則覆蓋時間 和記錄結果
+	 * 沒有則儲存十個
+		 */
+		if (skillName) {
+			await schema.developmentRollingRecord.findOneAndUpdate({
+				groupID: channelid || groupid,
+				userID: userID,
+				skillName: skillName,
+				skillPerStyle: 'normal'
+			}, {
+				date: Date.now(),
+				skillPer: skillPer,
+				skillResult: skillResult
+			},
+				{
+					new: true,
+					upsert: true,
+					returnDocument: true
+				});
+		} else {
+			await schema.developmentRollingRecord.create({
+				groupID: channelid || groupid,
+				userID: userID,
+				skillName: "",
+				skillPerStyle: 'normal',
+				date: Date.now(),
+				skillPer: skillPer,
+				skillResult: skillResult
 			});
-		return `現在這頻道的COC 成長紀錄功能為 ${(result._conditions.switch) ? '開啓' : '關閉'}
-以後CC擲骰將會進行紀錄`
+			let countNumber = await schema.developmentRollingRecord.find({
+				groupID: channelid || groupid,
+				userID: userID,
+				skillName: "",
+				skillPerStyle: 'normal',
+			}).countDocuments();
+			if (countNumber > 10) {
+				let moreThanTen = await schema.developmentRollingRecord.find({
+					groupID: channelid || groupid,
+					userID: userID,
+					skillName: "",
+					skillPerStyle: 'normal',
+				}).sort({ date: 1 }).limit(countNumber - 10);
+
+				moreThanTen.forEach(async function (doc) {
+					await schema.developmentRollingRecord.deleteOne({ _id: doc._id });
+				})
+			}
+
+		}
+
+		if (skillPerStyle == "criticalSuccessNfumble") {
+			await schema.developmentRollingRecord.create({
+				groupID: channelid || groupid,
+				userID: userID,
+				skillName: skillName,
+				skillPerStyle: skillPerStyle,
+				date: Date.now(),
+				skillPer: skillPer,
+				skillResult: skillResult
+			});
+			let countNumber = await schema.developmentRollingRecord.find({
+				groupID: channelid || groupid,
+				userID: userID,
+				skillPerStyle: skillPerStyle,
+			}).countDocuments();
+			if (countNumber > 10) {
+				let moreThanTen = await schema.developmentRollingRecord.find({
+					groupID: channelid || groupid,
+					userID: userID,
+					skillPerStyle: skillPerStyle,
+				}).sort({ date: 1 }).limit(countNumber - 10);
+
+				moreThanTen.forEach(async function (doc) {
+					await schema.developmentRollingRecord.deleteOne({ _id: doc._id });
+				})
+			}
+		}
+
+
 	} catch (error) {
 		console.log(`dpRecordSwitch ERROR ${error.message}`)
 		return '發生錯誤';
@@ -491,8 +572,6 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 	 * 有	檢查有沒有重複的名字 有則覆蓋時間 和記錄結果
 	 * 沒有則儲存十個
 	 * 
-	 * 檢定失敗
-	 * 儲存五次
 	 * 
 	 * 大成功大失敗儲存
 	 * 額外儲存十次大成功大失敗的紀錄
@@ -503,7 +582,9 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 async function getDpRecord(onOff) {
 
 	/**
-	 * 
+	 * show  顯示  所有 normal ,
+	 * 沒有名字
+	 * 及大成功大失敗 
 	 */
 
 }
@@ -589,45 +670,53 @@ async function coc6(chack, text) {
  */
 
 
-async function coc7({ chack, text = "", userID, groupid, channelid }) {
+async function coc7({ chack, text = "", userid, groupid, channelid }) {
 	let result = '';
 	let temp = await rollbase.Dice(100);
 	let skillPerStyle = "";
 	switch (true) {
 		case (temp == 1): {
 			result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 恭喜！大成功！';
+			skillPerStyle = "criticalSuccessNfumble";
 			break;
 		}
 		case (temp == 100): {
 			result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 啊！大失敗！';
+			skillPerStyle = "criticalSuccessNfumble";
 			break;
 		}
 		case (temp >= 96 && chack <= 49): {
 			result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 啊！大失敗！';
+			skillPerStyle = "criticalSuccessNfumble";
 			break;
 		}
 		case (temp > chack): {
 			result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 失敗';
+			skillPerStyle = "failure";
 			break;
 		}
 		case (temp <= chack / 5): {
 			result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 極限成功';
+			skillPerStyle = "normal";
 			break;
 		}
 		case (temp <= chack / 2): {
 			result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 困難成功';
+			skillPerStyle = "normal";
 			break;
 		}
 		case (temp <= chack): {
 			result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 通常成功';
+			skillPerStyle = "normal";
 			break;
 		}
 		default:
 			break;
 	}
 	if (text) result += '：' + text;
-	if (userID && groupid) {
-		dpRecorder({ userID, groupid, channelid, skillName: text, skillPer: chack, skillPerStyle: '' });
+	if (userid && groupid && skillPerStyle !== "failure") {
+		console.log('start')
+		await dpRecorder({ userid, groupid, channelid, skillName: text, skillPer: chack, skillPerStyle, skillResult: temp });
 	}
 	return result;
 }
@@ -638,30 +727,37 @@ async function coc7chack(temp, chack, text) {
 	switch (true) {
 		case (temp == 1): {
 			result = temp + ' → 恭喜！大成功！';
+			skillPerStyle = "criticalSuccess";
 			break;
 		}
 		case (temp == 100): {
 			result = temp + ' → 啊！大失敗！';
+			skillPerStyle = "fumble";
 			break;
 		}
 		case (temp >= 96 && chack <= 49): {
 			result = temp + ' → 啊！大失敗！';
+			skillPerStyle = "fumble";
 			break;
 		}
 		case (temp > chack): {
 			result = temp + ' → 失敗';
+			skillPerStyle = "failure";
 			break;
 		}
 		case (temp <= chack / 5): {
 			result = temp + ' → 極限成功';
+			skillPerStyle = "success";
 			break;
 		}
 		case (temp <= chack / 2): {
 			result = temp + ' → 困難成功';
+			skillPerStyle = "success";
 			break;
 		}
 		case (temp <= chack): {
 			result = temp + ' → 通常成功';
+			skillPerStyle = "success";
 			break;
 		}
 		default:
@@ -691,7 +787,6 @@ async function coc7bp(chack, bpdiceNum, text) {
 		result = '1D100 ≦ ' + chack + "：\n" + countStr;
 		return result;
 	}
-
 	if (bpdiceNum < 0) {
 		bpdiceNum = Math.abs(bpdiceNum);
 		for (let i = 0; i <= bpdiceNum; i++) {

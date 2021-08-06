@@ -594,44 +594,37 @@ async function coc7({ chack, text = "", userID, groupid, channelid }) {
 	let temp = await rollbase.Dice(100);
 	let skillPerStyle = "";
 	switch (true) {
-		case value:
-
+		case (temp == 1): {
+			result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 恭喜！大成功！';
 			break;
-		case value:
-
+		}
+		case (temp == 100): {
+			result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 啊！大失敗！';
 			break;
-		case value:
-
+		}
+		case (temp >= 96 && chack <= 49): {
+			result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 啊！大失敗！';
 			break;
-		case value:
-
+		}
+		case (temp > chack): {
+			result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 失敗';
 			break;
-		case value:
-
+		}
+		case (temp <= chack / 5): {
+			result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 極限成功';
 			break;
-		case value:
-
+		}
+		case (temp <= chack / 2): {
+			result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 困難成功';
 			break;
-		case value:
-
+		}
+		case (temp <= chack): {
+			result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 通常成功';
 			break;
-		case value:
-
-			break;
-		case value:
-
-			break;
-
+		}
 		default:
 			break;
 	}
-	if (temp > chack) { result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 失敗'; }
-	if (temp <= chack) { result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 通常成功'; }
-	if (temp <= chack / 2) { result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 困難成功'; }
-	if (temp <= chack / 5) { result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 極限成功'; }
-	if (temp == 1) { result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 恭喜！大成功！'; }
-	if (temp == 100) { result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 啊！大失敗！'; }
-	if (temp >= 96 && chack <= 49) { result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 啊！大失敗！'; }
 	if (text) result += '：' + text;
 	if (userID && groupid) {
 		dpRecorder({ userID, groupid, channelid, skillName: text, skillPer: chack, skillPerStyle: '' });
@@ -640,23 +633,43 @@ async function coc7({ chack, text = "", userID, groupid, channelid }) {
 }
 
 async function coc7chack(temp, chack, text) {
-	if (text == null) {
-		if (temp == 1) return temp + ' → 恭喜！大成功！';
-		if (temp == 100) return temp + ' → 啊！大失敗！';
-		if (temp >= 96 && chack <= 49) return temp + ' → 啊！大失敗！';
-		if (temp <= chack / 5) return temp + ' → 極限成功';
-		if (temp <= chack / 2) return temp + ' → 困難成功';
-		if (temp <= chack) return temp + ' → 通常成功';
-		else return temp + ' → 失敗';
-	} else {
-		if (temp == 1) return temp + ' → 恭喜！大成功！：' + text;
-		if (temp == 100) return temp + ' → 啊！大失敗！：' + text;
-		if (temp >= 96 && chack <= 49) return temp + ' → 啊！大失敗！：' + text;
-		if (temp <= chack / 5) return temp + ' → 極限成功：' + text;
-		if (temp <= chack / 2) return temp + ' → 困難成功：' + text;
-		if (temp <= chack) return temp + ' → 通常成功：' + text;
-		else return temp + ' → 失敗：' + text;
+	let result = '';
+	let skillPerStyle = "";
+	switch (true) {
+		case (temp == 1): {
+			result = temp + ' → 恭喜！大成功！';
+			break;
+		}
+		case (temp == 100): {
+			result = temp + ' → 啊！大失敗！';
+			break;
+		}
+		case (temp >= 96 && chack <= 49): {
+			result = temp + ' → 啊！大失敗！';
+			break;
+		}
+		case (temp > chack): {
+			result = temp + ' → 失敗';
+			break;
+		}
+		case (temp <= chack / 5): {
+			result = temp + ' → 極限成功';
+			break;
+		}
+		case (temp <= chack / 2): {
+			result = temp + ' → 困難成功';
+			break;
+		}
+		case (temp <= chack): {
+			result = temp + ' → 通常成功';
+			break;
+		}
+		default:
+			break;
 	}
+	if (text) result += '：' + text;
+	//
+	return result;
 }
 
 

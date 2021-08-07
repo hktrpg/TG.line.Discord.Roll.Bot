@@ -648,8 +648,10 @@ async function mainCharacter(doc, mainMsg) {
 async function findObject(doc, mainMsg) {
     let re = mainMsg.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
     let resutlt = doc.find(element => {
-        return element.name.match(new RegExp('^' + re + '$', 'i'))
+        if (element.name)
+            return element.name.match(new RegExp('^' + re + '$', 'i'))
     });
+
     return resutlt;
 }
 

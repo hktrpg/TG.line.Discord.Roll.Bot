@@ -12,9 +12,9 @@
     <a href="https://patreon.com/HKTRPG" title="Donate to this project using Patreon"><img src="https://img.shields.io/badge/patreon-donate-red.svg" alt="Patreon donate button" /></a>
 </p>
 
-# 【HKTRPG擲骰BOT】v1.28
+# 【HKTRPG擲骰BOT】v1.29
 
-- 最後更新時間08/04/2021,18:14:11
+- 最後更新時間07/08/2021,11:53:11
 - 2019/07/21 香港克警合作 黑ICON紀念
 - 想試用這機械人的話，請按以下連結，輸入`bothelp`顯示教學
 

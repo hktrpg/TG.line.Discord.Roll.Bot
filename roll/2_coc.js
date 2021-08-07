@@ -305,7 +305,6 @@ var rollDiceCommand = async function ({
 				userID: userid,
 				skillPerStyle: 'normal'
 			})
-			console.log('result', result)
 			rply.quotes = true;
 			rply.text = `已清除你在本頻道的所有CC擲骰紀錄, 共計${result.n}項`
 			return rply;
@@ -891,7 +890,6 @@ async function coc7({ chack, text = "", userid, groupid, channelid, userName }) 
 	}
 	if (text) result += '：' + text;
 	if (userid && groupid && skillPerStyle !== "failure") {
-		console.log('start')
 		await dpRecorder({ userID: userid, groupid, channelid, skillName: text, skillPer: chack, skillPerStyle, skillResult: temp, userName });
 	}
 	return result;
@@ -941,7 +939,6 @@ async function coc7chack({ chack, temp, text = "", userid, groupid, channelid, u
 	}
 	if (text) result += '：' + text;
 	if (userid && groupid && skillPerStyle !== "failure") {
-		console.log('start')
 		await dpRecorder({ userID: userid, groupid, channelid, skillName: text, skillPer: chack, skillPerStyle, skillResult: temp, userName });
 	}
 	return result;

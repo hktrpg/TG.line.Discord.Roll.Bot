@@ -67,12 +67,11 @@ var rollDiceCommand = async function ({
 	};
 	let trigger = mainMsg[0].toLowerCase();
 	switch (true) {
-		case (mainMsg[1].match(/help/i)): {
+		case (/^help$/i.test(mainMsg[1])): {
 			rply.text = await this.getHelpMessage();
 			rply.quotes = true;
 			break;
 		}
-
 		case /^ccrt$/i.test(mainMsg[0]): {
 			rply.text = await ccrt();
 			rply.quotes = true;
@@ -99,7 +98,7 @@ var rollDiceCommand = async function ({
 			}
 			rply.text = await dpRecordSwitch({ onOff: true, groupid, channelid });
 			rply.quotes = true;
-			break;
+			return rply;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^stop$/i.test(mainMsg[1]): {
 			if (!groupid) {
@@ -310,8 +309,9 @@ var rollDiceCommand = async function ({
 			return rply;
 
 		}
-		case ((trigger == '.dp' || trigger == '成長檢定' || trigger == '幕間成長') && mainMsg[1] <= 1000): {
+		case ((trigger == '.dp' || trigger == '成長檢定' || trigger == '幕間成長') && mainMsg[1] > 0 && mainMsg[1] <= 1000): {
 			rply.text = await DevelopmentPhase(mainMsg[1], mainMsg[2]);
+			rply.quotes = true;
 			break;
 		}
 		case (trigger == 'cc' && mainMsg[1] <= 1000): {
@@ -774,7 +774,7 @@ async function DevelopmentPhase(target, text) {
 		let improved = await rollbase.Dice(10);
 		result = "成長或增強檢定: " + text + "\n1D100 > " + target + "\n擲出: " + skill + " → 成功!\n你的技能增加" + improved + "點!";
 		if (confident && ((target + improved) >= 90)) {
-			result += `\n調查員的技能提升到90%以上，他的當前理智值增加${await rollbase.Dice(6) + await rollbase.Dice(6)}點。
+			result += `\n調查員的技能提升到90%以上，他的當前理智值增加2D6 > ${await rollbase.Dice(6) + await rollbase.Dice(6)}點。
 這一項獎勵顯示他經由精通一項技能而獲得自信。`
 		}
 	} else {

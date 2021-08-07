@@ -343,6 +343,26 @@ const eventList = mongoose.model('eventList', new mongoose.Schema({
     }]
 }));
 
+
+//成長的開關控制
+const developmentConductor = mongoose.model('developmentConductor', new mongoose.Schema({
+    groupID: String,
+    switch: Boolean
+}));
+
+//成長的每一個擲骰結果
+const developmentRollingRecord = mongoose.model('developmentRollingRecord', new mongoose.Schema({
+    userID: String,
+    groupID: String,
+    date: Date,
+    skillName: String,
+    skillPer: Number,
+    skillResult: Number,
+    skillPerStyle: String,
+    userName: String
+    //成功,失敗,大成功,大失敗
+}));
+
 module.exports = {
     randomAns,
     block,
@@ -368,7 +388,9 @@ module.exports = {
     allowRolling,
     init,
     eventMember,
-    eventList
+    eventList,
+    developmentConductor,
+    developmentRollingRecord
 }
 //const Cat = mongoose.model('Cat', { name: String });
 //const kitty = new Cat({ name: 'Zildjian' });

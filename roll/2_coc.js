@@ -32,7 +32,19 @@ coc6版創角： 啓動語 .cc6build
 coc7版創角： 啓動語 .cc7build (歲數7-89)
 coc7 成長或增長檢定： .dp 或 成長檢定 或 幕間成長 (技能%) (名稱)
 例）.DP 50 騎馬 | 成長檢定 45 頭槌 | 幕間成長 40 單車
-coc7版角色背景隨機生成： 啓動語 .cc7bg`
+coc7版角色背景隨機生成： 啓動語 .cc7bg
+----2021/08/07新增----
+成長檢定紀錄功能
+開啓後將會紀錄你使用CC功能投擲成功和大成功大失敗的技能，
+然後可以呼叫出來進行自動成長。
+.dp start ： 開啓紀錄功能
+.dp stop  ： 停止紀錄功能
+.dp show  ： 顯示擲骰紀錄
+.dp auto  ： 進行自動成長並清除擲骰紀錄
+.dp clear ： 清除擲骰紀錄
+.dp clearall ： 清除擲骰紀錄包括大成功大失敗
+
+`
 }
 var initialize = function () {
 	return {};
@@ -44,6 +56,9 @@ var rollDiceCommand = async function ({
 	userid,
 	userrole,
 	channelid,
+	displayname,
+	displaynameDiscord,
+	tgDisplayname
 }) {
 	let rply = {
 		default: 'on',
@@ -108,12 +123,51 @@ var rollDiceCommand = async function ({
 				groupID: channelid || groupid,
 				switch: true
 			});
-			if (!switchOn) return;
+			if (!switchOn) {
+				rply.text = '本頻道未開啓CC紀錄功能, 請使用 .dp start 開啓'
+				return rply;
+			}
 			let result = await schema.developmentRollingRecord.find({
 				groupID: channelid || groupid,
 				userID: userid,
-			});
+			}).sort({ date: -1 });
 			rply.quotes = true;
+			if (!result || result.length == 0) {
+				rply.text = '未有CC擲骰紀錄';
+				return rply;
+			}
+			let successResult = {
+				data: false,
+				text: `成功的擲骰結果`
+			};
+			let successResultWithoutName = {
+				data: false,
+				text: `------------
+				無記名成功結果`}
+				;
+			let criticalSuccessNfumbleResult = {
+				data: false,
+				text: `------------
+				大成功與大失敗`}
+				;
+			for (let index = 0; index < result.length; index++) {
+				if (result[index].skillPerStyle == 'normal' && result[index].skillName) {
+					successResult.data = true;
+					successResult.text += `
+					${result[index].skillName}	${result[index].skillPer} - ${result[index].date.getMonth() + 1}月${result[index].date.getDate()}日 ${result[index].date.getHours()}:${(result[index].date.getMinutes() < 10) ? '0' + result[index].date.getMinutes() : result[index].date.getMinutes()}`
+				}
+				if (result[index].skillPerStyle == 'normal' && !result[index].skillName) {
+					successResultWithoutName.data = true;
+					successResultWithoutName.text += `
+					「無名技能」	${result[index].skillPer} - ${result[index].date.getMonth() + 1}月${result[index].date.getDate()}日 ${result[index].date.getHours()}:${(result[index].date.getMinutes() < 10) ? '0' + result[index].date.getMinutes() : result[index].date.getMinutes()}`
+				}
+				if (result[index].skillPerStyle == 'criticalSuccess' || result[index].skillPerStyle == 'fumble') {
+					criticalSuccessNfumbleResult.data = true;
+					criticalSuccessNfumbleResult.text += `
+					${(result[index].skillName) ? result[index].skillName : '「無名技能」'} ${result[index].skillPer} - ${result[index].date.getMonth() + 1}月${result[index].date.getDate()}日 ${result[index].date.getHours()}:${(result[index].date.getMinutes() < 10) ? '0' + result[index].date.getMinutes() : result[index].date.getMinutes()} - ${(result[index].skillPerStyle == 'criticalSuccess') ? '大成功' : '大失敗'}`
+				}
+
+			}
 			/**
 			 * 成功的擲骰結果
 			 * -------------
@@ -129,8 +183,10 @@ var rollDiceCommand = async function ({
 			 * 拳	80	大成功
 			 */
 
-
-			break;
+			(successResult.data) ? rply.text += `${successResult.text}\n` : null;
+			(successResultWithoutName.data) ? rply.text += `${successResultWithoutName.text}\n` : null;
+			(criticalSuccessNfumbleResult.data) ? rply.text += `${criticalSuccessNfumbleResult.text}\n` : null;
+			return rply;
 		}
 
 		case /^\.dp$/i.test(mainMsg[0]) && /^showall$/i.test(mainMsg[1]): {
@@ -138,59 +194,145 @@ var rollDiceCommand = async function ({
 				rply.text = '本功能只可以在群組中使用'
 				return rply;
 			}
-			rply.text = await getDpRecord(false);
+			let switchOn = await schema.developmentConductor.findOne({
+				groupID: channelid || groupid,
+				switch: true
+			});
+			if (!switchOn) {
+				rply.text = '本頻道未開啓CC紀錄功能, 請使用 .dp start 開啓'
+				return rply;
+			}
+			let result = await schema.developmentRollingRecord.find({
+				groupID: channelid || groupid,
+				userID: userid,
+				$or: [{
+					skillPerStyle: 'criticalSuccess'
+				}, {
+					skillPerStyle: 'fumble'
+				}]
+			}).sort({ userName: -1 });
 			rply.quotes = true;
-			break;
+			let criticalSuccessNfumbleResult = {
+				data: false,
+				text: `大成功與大失敗
+				------------`}
+				;
+			for (let index = 0; index < result.length; index++) {
+				if (result[index].skillPerStyle == 'criticalSuccess' || result[index].skillPerStyle == 'fumble') {
+					criticalSuccessNfumbleResult.data = true;
+					criticalSuccessNfumbleResult.text += `
+					${(result[index].userName) ? result[index].userName : '「無名使用者」'} ${(result[index].skillName) ? result[index].skillName : '「無名技能」'} ${result[index].skillPer} - ${result[index].date.getMonth() + 1}月${result[index].date.getDate()}日 ${result[index].date.getHours()}:${(result[index].date.getMinutes() < 10) ? '0' + result[index].date.getMinutes() : result[index].date.getMinutes()} - ${(result[index].skillPerStyle == 'criticalSuccess') ? '大成功' : '大失敗'}`
+				}
+
+			}
+			(criticalSuccessNfumbleResult.data) ? rply.text += criticalSuccessNfumbleResult.text : rply.text += "本頻道未有相關紀錄, 請多些擲骰吧!";
+			return rply;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^auto$/i.test(mainMsg[1]): {
+			rply.quotes = true;
 			if (!groupid) {
 				rply.text = '本功能只可以在群組中使用'
 				return rply;
 			}
-			rply.text = await getDpRecord(false);
-			rply.quotes = true;
-			break;
+			let switchOn = await schema.developmentConductor.findOne({
+				groupID: channelid || groupid,
+				switch: true
+			});
+			if (!switchOn) {
+				rply.text = '本頻道未開啓CC紀錄功能, 請使用 .dp start 開啓'
+				return rply;
+			}
+
+			let result = await schema.developmentRollingRecord.find({
+				groupID: channelid || groupid,
+				userID: userid,
+				skillPerStyle: 'normal'
+			}).sort({ date: -1 });
+			if (!result || result.length == 0) {
+				rply.text = '未有CC擲骰紀錄';
+				return rply;
+			}
+			rply.text = `自動成長檢定\n----------`;
+			for (let index = 0; index < result.length; index++) {
+				let target = Number(result[index].skillPer);
+				let name = result[index].skillName || '無名技能';
+				let skill = await rollbase.Dice(100);
+				let confident = (target <= 89) ? true : false;
+				if (target > 95) target = 95;
+				if (skill >= 96 || skill > target) {
+					let improved = await rollbase.Dice(10);
+					rply.text += `\n1D100 > ${target} 擲出: ${skill}  →  「${name}」成長成功! 技能增加 ${improved} 點! - ${result[index].skillName}	${result[index].skillPer} - ${result[index].date.getMonth() + 1}月${result[index].date.getDate()}日 ${result[index].date.getHours()}:${(result[index].date.getMinutes() < 10) ? '0' + result[index].date.getMinutes() : result[index].date.getMinutes()}`
+
+					if (confident && ((target + improved) >= 90)) {
+						rply.text += `\n調查員的技能提升到90%以上，他的當前理智值增加${await rollbase.Dice(6) + await rollbase.Dice(6)}點。`
+					}
+				} else {
+					rply.text += `\n1D100 > ${target} 擲出: ${skill}  →  「${name}」 成長失敗! - ${result[index].skillName}	${result[index].skillPer} - ${result[index].date.getMonth() + 1}月${result[index].date.getDate()}日 ${result[index].date.getHours()}:${(result[index].date.getMinutes() < 10) ? '0' + result[index].date.getMinutes() : result[index].date.getMinutes()}`
+				}
+
+			}
+			await schema.developmentRollingRecord.deleteMany({
+				groupID: channelid || groupid,
+				userID: userid,
+				skillPerStyle: 'normal'
+			})
+			rply.text += `\n--------
+			成長結束，已清除擲骰紀錄`
+			return rply;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^clear$/i.test(mainMsg[1]): {
 			if (!groupid) {
 				rply.text = '本功能只可以在群組中使用'
 				return rply;
 			}
-			rply.text = await getDpRecord(false);
+			let result = await schema.developmentRollingRecord.deleteMany({
+				groupID: channelid || groupid,
+				userID: userid,
+				skillPerStyle: 'normal'
+			})
+
 			rply.quotes = true;
-			break;
+			rply.text = `已清除 ${result.n}項紀錄, 如想大成功大失敗紀錄也清除, 請使用 .dp clearall`
+			return rply;
 		}
-		case /^\.dp$/i.test(mainMsg[0]) && /^autoall$/i.test(mainMsg[1]): {
+		case /^\.dp$/i.test(mainMsg[0]) && /^clearall$/i.test(mainMsg[1]): {
 			if (!groupid) {
 				rply.text = '本功能只可以在群組中使用'
 				return rply;
 			}
-			rply.text = await getDpRecord(false);
+			let result = await schema.developmentRollingRecord.deleteMany({
+				groupID: channelid || groupid,
+				userID: userid,
+				skillPerStyle: 'normal'
+			})
+			console.log('result', result)
 			rply.quotes = true;
-			break;
+			rply.text = `已清除你在本頻道的所有CC擲骰紀錄, 共計${result.n}項`
+			return rply;
+
 		}
 		case ((trigger == '.dp' || trigger == '成長檢定' || trigger == '幕間成長') && mainMsg[1] <= 1000): {
 			rply.text = await DevelopmentPhase(mainMsg[1], mainMsg[2]);
 			break;
 		}
 		case (trigger == 'cc' && mainMsg[1] <= 1000): {
-			rply.text = await coc7({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid });
+			rply.text = await coc7({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, userName: tgDisplayname || displaynameDiscord || displayname });
 			break;
 		}
 		case (trigger == 'cc1' && mainMsg[1] <= 1000): {
-			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: 1 });
+			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: 1, userName: tgDisplayname || displaynameDiscord || displayname });
 			break;
 		}
 		case (trigger == 'cc2' && mainMsg[1] <= 1000): {
-			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: 2 });
+			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: 2, userName: tgDisplayname || displaynameDiscord || displayname });
 			break;
 		}
 		case (trigger == 'ccn1' && mainMsg[1] <= 1000): {
-			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: -1 });
+			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: -1, userName: tgDisplayname || displaynameDiscord || displayname });
 			break;
 		}
 		case (trigger == 'ccn2' && mainMsg[1] <= 1000): {
-			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: -2 });
+			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: -2, userName: tgDisplayname || displaynameDiscord || displayname });
 			break;
 		}
 
@@ -487,7 +629,6 @@ const cocManias = [
 
 async function dpRecordSwitch({ onOff = false, groupid = "", channelid = "" }) {
 	try {
-		console.log('groupid', groupid, onOff, channelid)
 		let result = await schema.developmentConductor.findOneAndUpdate({
 			groupID: channelid || groupid
 		}, {
@@ -507,7 +648,7 @@ async function dpRecordSwitch({ onOff = false, groupid = "", channelid = "" }) {
 	}
 }
 
-async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName = "", skillPer = 0, skillPerStyle = "", skillResult = 0 }) {
+async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName = "", skillPer = 0, skillPerStyle = "", skillResult = 0, userName = "" }) {
 	try {
 		let result = await schema.developmentConductor.findOne({
 			groupID: channelid || groupid,
@@ -572,7 +713,7 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 	 * 額外儲存十次大成功大失敗的紀錄
 		 */
 
-		if (skillPerStyle == "criticalSuccessNfumble") {
+		if (skillPerStyle == "criticalSuccess" || skillPerStyle == "fumble") {
 			await schema.developmentRollingRecord.create({
 				groupID: channelid || groupid,
 				userID: userID,
@@ -580,7 +721,8 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 				skillPerStyle: skillPerStyle,
 				date: Date.now(),
 				skillPer: skillPer,
-				skillResult: skillResult
+				skillResult: skillResult,
+				userName: userName
 			});
 			let countNumber = await schema.developmentRollingRecord.find({
 				groupID: channelid || groupid,
@@ -621,29 +763,18 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 	 */
 
 }
-async function getDpRecord(onOff) {
-
-	/**
-	 * show  顯示 在這頻道中的 所有 成功擲骰 ,
-	 * 十個沒有名字的擲骰成功
-	 * 及十個大成功大失敗 
-	 * 
-	 * showall 顯示本頻道所有
-	 * 
-	 */
-
-}
 
 async function DevelopmentPhase(target, text) {
 	let result = '';
+	target = Number(target);
 	if (text == undefined) text = "";
 	let skill = await rollbase.Dice(100);
-	let improved = await rollbase.Dice(10);
 	let confident = (target <= 89) ? true : false;
 	if (target > 95) target = 95;
 	if (skill >= 96 || skill > target) {
+		let improved = await rollbase.Dice(10);
 		result = "成長或增強檢定: " + text + "\n1D100 > " + target + "\n擲出: " + skill + " → 成功!\n你的技能增加" + improved + "點!";
-		if (confident && (target + improved) >= 90) {
+		if (confident && ((target + improved) >= 90)) {
 			result += `\n調查員的技能提升到90%以上，他的當前理智值增加${await rollbase.Dice(6) + await rollbase.Dice(6)}點。
 這一項獎勵顯示他經由精通一項技能而獲得自信。`
 		}
@@ -715,24 +846,24 @@ async function coc6(chack, text) {
  */
 
 
-async function coc7({ chack, text = "", userid, groupid, channelid }) {
+async function coc7({ chack, text = "", userid, groupid, channelid, userName }) {
 	let result = '';
 	let temp = await rollbase.Dice(100);
 	let skillPerStyle = "";
 	switch (true) {
 		case (temp == 1): {
 			result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 恭喜！大成功！';
-			skillPerStyle = "criticalSuccessNfumble";
+			skillPerStyle = "criticalSuccess";
 			break;
 		}
 		case (temp == 100): {
 			result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 啊！大失敗！';
-			skillPerStyle = "criticalSuccessNfumble";
+			skillPerStyle = "fumble";
 			break;
 		}
 		case (temp >= 96 && chack <= 49): {
 			result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 啊！大失敗！';
-			skillPerStyle = "criticalSuccessNfumble";
+			skillPerStyle = "fumble";
 			break;
 		}
 		case (temp > chack): {
@@ -761,12 +892,12 @@ async function coc7({ chack, text = "", userid, groupid, channelid }) {
 	if (text) result += '：' + text;
 	if (userid && groupid && skillPerStyle !== "failure") {
 		console.log('start')
-		await dpRecorder({ userID: userid, groupid, channelid, skillName: text, skillPer: chack, skillPerStyle, skillResult: temp });
+		await dpRecorder({ userID: userid, groupid, channelid, skillName: text, skillPer: chack, skillPerStyle, skillResult: temp, userName });
 	}
 	return result;
 }
 
-async function coc7chack({ chack, temp, text = "", userid, groupid, channelid }) {
+async function coc7chack({ chack, temp, text = "", userid, groupid, channelid, userName }) {
 	let result = '';
 	let skillPerStyle = "";
 	switch (true) {
@@ -811,14 +942,14 @@ async function coc7chack({ chack, temp, text = "", userid, groupid, channelid })
 	if (text) result += '：' + text;
 	if (userid && groupid && skillPerStyle !== "failure") {
 		console.log('start')
-		await dpRecorder({ userID: userid, groupid, channelid, skillName: text, skillPer: chack, skillPerStyle, skillResult: temp });
+		await dpRecorder({ userID: userid, groupid, channelid, skillName: text, skillPer: chack, skillPerStyle, skillResult: temp, userName });
 	}
 	return result;
 }
 
 
 
-async function coc7bp({ chack, text, userid, groupid, channelid, bpdiceNum }) {
+async function coc7bp({ chack, text, userid, groupid, channelid, bpdiceNum, userName }) {
 	let result = '';
 	let temp0 = await rollbase.Dice(10) - 1;
 	let countStr = '';
@@ -832,7 +963,7 @@ async function coc7bp({ chack, text, userid, groupid, channelid, bpdiceNum }) {
 		countStr = countStr.substring(0, countStr.length - 1)
 		let countArr = countStr.split('、');
 		countStr = countStr + ' → ' + await coc7chack(
-			{ chack, temp: Math.min(...countArr), text, userid, groupid, channelid }
+			{ chack, temp: Math.min(...countArr), text, userid, groupid, channelid, userName }
 		);
 		result = '1D100 ≦ ' + chack + "：\n" + countStr;
 		return result;

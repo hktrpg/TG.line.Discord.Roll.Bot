@@ -8,6 +8,7 @@ const rollDice = require('./rollbase');
 const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const limitArr = [4, 20, 20, 30, 30, 99, 99, 99];
+const enRecoverTime = 1000 * 60 * 10 / 100000; //每10分鐘回複一點;
 var gameName = function () {
     return '事件功能 .event (add edit show delete) .evt (event 任何名字)'
 }
@@ -409,7 +410,7 @@ var rollDiceCommand = async function ({
                 if (!eventMember.energy) {
                     eventMember.energy = maxLv + 20;
                 }
-                let EnergyRecover = Math.round(((new Date(Date.now()) - new Date(eventMember.lastActiveAt))) / 1000 * 60 * 10 / 100000);
+                let EnergyRecover = Math.round(((new Date(Date.now()) - new Date(eventMember.lastActiveAt))) / enRecoverTime);
                 eventMember.energy = Math.min(maxLv + 20, EnergyRecover + eventMember.energy);
                 eventMember.lastActiveAt = new Date(Date.now());
                 (debugMode) ? eventMember.energy = 99 : null;
@@ -421,8 +422,8 @@ var rollDiceCommand = async function ({
                 }
                 let earedXP = 0;
                 let eventList = [];
-                if (thisMember.EXP < 0) {
-                    rply.text = `你使用太多經驗值了……你現在的經驗值只有負數: ${thisMember.EXP}，賺取更多經驗值再來玩吧…`
+                if (thisMember.EXP <= 0) {
+                    rply.text = `你使用太多經驗值了……你現在的經驗值過低: ${thisMember.EXP}，賺取更多經驗值再來玩吧…`
                     return rply;
                 }
                 switch (randomMode) {

@@ -2,17 +2,10 @@
 exports.analytics = require('./core-analytics');
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
-const Discord = require('discord.js-light');
-const client = new Discord.Client(
-	{
-		cacheGuilds: true,
-		cacheChannels: true,
-		cacheOverwrites: false,
-		cacheRoles: true,
-		cacheEmojis: false,
-		cachePresences: false
-	}
-);
+const { Client, Intents } = require('discord.js');
+const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+
+
 const DBL = require("dblapi.js");
 //TOP.GG 
 const togGGToken = process.env.TOPGG;
@@ -114,7 +107,8 @@ client.on('guildCreate', guild => {
 	}
 })
 
-client.on('message', async (message) => {
+client.on('interactionCreate', async message => {
+	console.log('Me', message)
 	if (message.author.bot) return;
 	let inputStr = message.content;
 	let trigger = "";
@@ -477,6 +471,7 @@ async function nonDice(message) {
 
 //Set Activity 可以自定義正在玩什麼
 client.on('ready', async () => {
+	console.log(`Logged in as ${client.user.tag}!`);
 	if (shardids !== 0) return;
 	client.user.setActivity('🌼bothelp | hktrpg.com🍎');
 	if (togGGToken) {

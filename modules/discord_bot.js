@@ -2,8 +2,13 @@
 exports.analytics = require('./core-analytics');
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
-const { Client, Intents } = require('discord.js');
-const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+const { Client, Intents } = require('discord.js-light');
+
+const client = new Client({
+	intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.DIRECT_MESSAGES,
+	Intents.FLAGS.DIRECT_MESSAGE_REACTIONS]
+});
+
 
 
 const DBL = require("dblapi.js");
@@ -107,12 +112,12 @@ client.on('guildCreate', guild => {
 	}
 })
 
-client.on('interactionCreate', async message => {
+client.on('messageCreate', async message => {
 	console.log('Me', message)
 	if (message.author.bot) return;
 	let inputStr = message.content;
 	let trigger = "";
-	let groupid = (message.guild && message.guild.id) ? message.guild.id : '';
+	let groupid = (message.guildId) ? message.guildId : '';
 	let mainMsg = inputStr.match(msgSplitor); //定義輸入字串
 	if (mainMsg && mainMsg[0]) {
 		trigger = mainMsg[0].toString().toLowerCase();
@@ -171,8 +176,8 @@ client.on('interactionCreate', async message => {
 	if (message.guild && message.guild.me) {
 		hasSendPermission = message.channel.permissionsFor(message.guild.me).has("SEND_MESSAGES") || message.guild.me.hasPermission("ADMINISTRATOR");
 	}
-	if (message.channel && message.channel.id) {
-		channelid = message.channel.id;
+	if (message.channelId) {
+		channelid = message.channelId;
 	}
 	if (message.guild && message.guild.name) {
 		titleName += message.guild.name + ' ';

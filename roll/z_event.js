@@ -8,7 +8,7 @@ const rollDice = require('./rollbase');
 const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const limitArr = [4, 20, 20, 30, 30, 99, 99, 99];
-const enRecoverTime = 1000 * 60 * 10 / 100000; //每10分鐘回複一點;
+const enRecoverTime = 10 * 60 * 1000 / 100000; //每10分鐘回複一點;
 var gameName = function () {
     return '事件功能 .event (add edit show delete) .evt (event 任何名字)'
 }
@@ -52,8 +52,9 @@ var getHelpMessage = function () {
 .event show (事件名稱)   - 顯示你新增的指定事件詳情
 .event useExp           - 在群組中使用, 將會得到你賺取的EXP
 ---
-.evt (事件名稱)  - 進入指定的事件, 消耗15EN
 .evt random     - 進入隨機的事件, 消耗5EN
+.evt (系列名稱)  - 進入指定的系列事件, 消耗10EN
+.evt .(事件名稱)  - 進入指定的事件, 消耗15EN
 ---
 EN = 20+LV
 每5分鐘回複1點EN
@@ -63,13 +64,15 @@ EN = 20+LV
 ---
 新增事件的格式範例
 .event add
-name:Haha  
+name:Haha
+chain:開心系列
 exp:SAN
 0:你今天的運氣真好;你是個好人;我愛你
 -1:你中招了;你不好運要-SAN了
 1:你吃了好味的糖，加SAN
 ----
 name -> 事件標題
+chain-> 系列名稱，別人可以指定該系列來進行抽選
 exp  -> (可選)經驗值的名稱, 例如改成SAN, 會變成「你損失了X點SAN」
 0:你今天的運氣真好;你是個好人;我愛你 ->
 (事件類型):(事件的描述);(事件的描述2);(事件的描述3)
@@ -192,14 +195,17 @@ var rollDiceCommand = async function ({
                 rply.text = '新增事件失敗\n因為不可以過多負面事件\n事件種類加(使用者LV/10)必需高於0\n現在加起來是' + levelLv + ' 點'
                 return rply;
             }
+
             var listDatas = {
                 title: events.eventName,
                 userID: userid,
                 userName: displaynameDiscord || displayname || '',
                 detail: mainSplit,
                 expName: events.expName || '',
-                chainTitle: events.chainTitle || ''
+                chainTitle: events.eventChain || ''
             }
+
+            console.log('listDatas', listDatas)
             filter = {
                 userID: userid,
                 title: {
@@ -389,12 +395,13 @@ var rollDiceCommand = async function ({
                 let eventMember = await schema.eventMember.findOne({
                     userID: userid
                 });
-
-
                 //尋找所有群組的資料，用來設定EN上限            
-                let maxLv = await findMaxLv(userid);
                 let thisMember = await schema.trpgLevelSystemMember.findOne({ groupid: groupid, userid: userid });
-                if (!thisMember) rply.text = `錯誤發生，未有這群組的資料`;
+                if (!thisMember) {
+                    rply.text = `錯誤發生，未有這群組的資料`;
+                    return rply;
+                }
+                let maxLv = await findMaxLv(userid);
                 /**
                  * 檢查ENERGY，如果沒有則新增，數字為EN= 20+LV
                  */
@@ -410,30 +417,69 @@ var rollDiceCommand = async function ({
                 if (!eventMember.energy) {
                     eventMember.energy = maxLv + 20;
                 }
+
+                //回複EN
                 let EnergyRecover = Math.round(((new Date(Date.now()) - new Date(eventMember.lastActiveAt))) / enRecoverTime);
                 eventMember.energy = Math.min(maxLv + 20, EnergyRecover + eventMember.energy);
                 eventMember.lastActiveAt = new Date(Date.now());
                 (debugMode) ? eventMember.energy = 99 : null;
-                //TODO:計算EN的回複量
+
+
+                //查看是什麼事件, 隨機, 系列, 指定
                 const targetEventName = mainMsg[1];
-                let randomMode = false;
-                if (targetEventName.match(/^random$/i)) {
-                    randomMode = true;
-                }
-                let earedXP = 0;
+                let eventMode = '';
                 let eventList = [];
+                if (targetEventName.match(/^random$/i)) {
+                    eventMode = 'random';
+                } else {
+                    if (eventMember.energy < 10) {
+                        rply.text = "沒有足夠EN, 你現在只有" + eventMember.energy + "EN";
+                        return rply;
+                    }
+                    eventList = await schema.eventList.aggregate([{
+                        $match: {
+                            chainTitle: {
+                                $regex: new RegExp(targetEventName, "i")
+                            }
+                        }
+                    }, { $sample: { size: 1 } }]);
+                    if (eventList.length > 0) {
+                        eventMode = 'chain'
+                    } else {
+                        if (eventMember.energy < 15) {
+                            rply.text = "沒有足夠EN, 你現在只有" + eventMember.energy + "EN";
+                            return rply;
+                        }
+                        eventList = await schema.eventList.aggregate([{
+                            $match: {
+                                title: {
+                                    $regex: new RegExp(targetEventName, "i")
+                                }
+                            }
+                        }, { $sample: { size: 1 } }]);
+                        if (eventList.length > 0) {
+                            eventMode = 'title'
+                        }
+
+
+                    }
+                }
+
+
+                let earedXP = 0;
+
                 if (thisMember.EXP <= 0) {
                     rply.text = `你使用太多經驗值了……你現在的經驗值過低: ${thisMember.EXP}，賺取更多經驗值再來玩吧…`
                     return rply;
                 }
-                switch (randomMode) {
-                    case true:
+
+                switch (eventMode) {
+                    case 'random':
                         if (eventMember.energy < 5) {
-                            rply.text = "隨機事件需要5EN, 你現在只有" + eventMember.energy + "EN"
+                            rply.text = `隨機事件需要5EN, 你現在只有 ${eventMember.energy} EN`
                             return rply;
                         } else {
                             eventList = await schema.eventList.aggregate([{ $sample: { size: 1 } }]);
-
                             if (eventList.length == 0) {
                                 rply.text = '未有人新增事件，你可以成為第一個事件產生者!'
                                 return rply;
@@ -443,30 +489,23 @@ var rollDiceCommand = async function ({
                         }
                         break;
 
-                    default:
-                        if (eventMember.energy < 15) {
-                            rply.text = "指定事件需要15EN, 你現在只有" + eventMember.energy + "EN";
-                            return rply;
-                        } else {
-                            eventList = await schema.eventList.aggregate([{
-                                $match: {
-                                    title: {
-                                        $regex: new RegExp(targetEventName, "i")
-                                    }
-                                }
-                            }]);
-                            if (eventList.length == 0) {
-                                rply.text = `沒有以「${targetEventName}」命名的事件呢.`
-                                return rply;
-                            }
-                            if (eventList[0].userID == userid) {
-                                rply.text = `不可以指定進入自己新增的事件呢.`
-                                return rply;
-                            }
-                            eventMember.energy -= 15
-                            earedXP = 15;
-                        }
+                    case 'chain':
+                        eventMember.energy -= 10;
+                        earedXP = 10;
                         break;
+                    case 'title':
+                        if (eventList[0].userID == userid) {
+                            rply.text = `不可以指定進入自己新增的事件呢.`
+                            return rply;
+                        }
+                        eventMember.energy -= 15;
+                        earedXP = 15;
+                        break;
+
+                    default:
+                        console.log('eventList', eventList);
+                        rply.text = `沒有以「${targetEventName}」命名的事件呢.`
+                        return rply;
                 }
                 await eventMember.save();
                 let randomDetail = eventList[0].detail[await rollDice.Dice(eventList[0].detail.length) - 1];

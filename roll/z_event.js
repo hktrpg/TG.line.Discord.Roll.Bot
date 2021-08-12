@@ -880,3 +880,56 @@ async function findMaxLv(userid) {
     if (!maxLV) return 1;
     return maxLV;
 }
+
+
+
+/**
+ EVENT 功能修改點
+(##TODO##)
+
+[X]1. 10分鐘回複一點EN.
+[X]2. 隨機事件 5EN, 系列事件10EN, 指定事件15EN
+[ ]3. 吸收的經驗值根據 (被吸收者和吸收者LV取低) 來決定
+
+
+
+[X]4. 增加種類選項
+[X]A) 贈送作者經驗給玩家
+B) 每次發言增加Ｘ經驗
+[X]C) 群組所有人增加1點經驗
+
+[X]5. 能否不骰到別群的事件
+增加 參數: 系列,chain of events
+可以指定該系列的事件
+如 修真 系列
+
+會自動尋
+
+
+
+[ ]6.是否能指定某人觸發事件 <---
+在.evt XXX  @XXXX 後, 會嘗試根據對方的名字,
+但LINE的話, 需要對方和HKTRPG成為朋友, 才可能成功.
+不會搜尋無名
+
+
+[X] 7.經驗避免被扣到負值，最低歸零
+對方不可零, 自己不可零
+
+[ ]8.能否贈送別人經驗 <---
+同6,  傳功消耗, 6折
+不會搜尋無名
+
+
+[ ]9. 狀態欄
+姓名:
+EN:  /   ▬▬▬▬▬▬▭▭▭▭▮▮▮▮▯▯▯▯:white_large_square::black_large_square::black_large_square::black_large_square::black_large_square::black_large_square:
+earnedEXP
+totailEarnedEXP
+eventList
+最高等級?
+10次最後發生的事件
+---
+
+
+ */

@@ -171,7 +171,7 @@ var rollDiceCommand = async function ({
             check = await schema.eventList.find({
                 userID: userid
             });
-            levelLv = await findMaxLv(userid);
+            levelLv = await findMaxLv(userid).Level;
 
             //取得本來的資料, 如有重覆, 以新的覆蓋
             //doc = await schema.event.findOne(filter);
@@ -401,7 +401,7 @@ var rollDiceCommand = async function ({
                     rply.text = `錯誤發生，未有這群組的資料`;
                     return rply;
                 }
-                let maxLv = await findMaxLv(userid);
+                let maxLv = await findMaxLv(userid).Level;
                 /**
                  * 檢查ENERGY，如果沒有則新增，數字為EN= 20+LV
                  */
@@ -658,15 +658,42 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
         }
 
         case 2:
-            //  8. 對方得到經驗值 X 倍(多少次)
+            //  8. 使用者得到經驗值 X 倍(多少次)
             {
                 let times = await calXP(eventList, thisMember.Level, "times");
                 let multi = await calXP(eventList, thisMember.Level, "multi")
                 await thisMember.updateOne({ $max: { multiEXP: multi, multiEXPTimes: times } })
                 return `你在${Math.max(isNaN(thisMember.multiEXPTimes) ? 0 : thisMember.multiEXPTimes, times)}次內都會有 ${Math.max(isNaN(thisMember.multiEXP) ? 0 : thisMember.multiEXP, multi)} 倍${expName}`;
             }
-
         case 3:
+            //  群組所有人增加1點經驗
+            {
+
+                await schema.trpgLevelSystemMember.Update({
+                    groupid: groupid
+                }, { $inc: { EXP: 1 } })
+
+                let reply = `你已增加 此群組所有人1點 ${expName}`;
+                return reply;
+            }
+
+        case 4:
+            //  贈送作者的Erned經驗給玩家
+            {
+                let createEventer = await findMaxLv(eventList.userID);
+                let exp = await calXP(eventList, Math.min(createEventer.Level, thisMember.Level), "exp");
+
+                //防止減到0
+                exp = Math.min(Math.max(0, Number(createEventer.earnedEXP) - exp), exp)
+
+
+                await thisMember.updateOne({ $inc: { EXP: exp } })
+                await createEventer.updateOne({
+                    userID: eventList.userID,
+                }, { $inc: { earnedEXP: -exp, totailEarnedEXP: exp } })
+                return `你已被 ${eventList.userName} 贈送了 ${exp} 點${expName}`;
+            }
+        case 5:
             //  9. 從整個CHANNEL 的X人吸收X點經驗
             {
                 let times = await calXP(eventList, thisMember.Level, "times");
@@ -687,6 +714,11 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
 
                 for (let index = 0; index < targetMember.length; index++) {
                     let exp = await calXP(eventList, Math.min(thisMember.Level, targetMember[index].Level), "exp");
+
+                    //防止變成0以下
+                    exp = Math.min(Math.max(0, Number(targetMember[index].EXP) - exp), exp);
+
+
                     await schema.trpgLevelSystemMember.findOneAndUpdate({
                         groupid: targetMember[index].groupid,
                         userid: targetMember[index].userid,
@@ -708,6 +740,8 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
             //100之一 ->50之一 * 1.0X ( 相差LV)% *1.0X(負面級數)^(幾個負面) 
             {
                 let exp = await calXP(eventList, thisMember.Level, "exp")
+                //防止變成0以下
+                exp = Math.min(Math.max(0, Number(thisMember.EXP) - exp), exp);
                 await thisMember.updateOne({ $inc: { EXP: -exp } })
                 return `你已減少 ${exp} 點${expName}`;
             }
@@ -723,8 +757,12 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
         case -3:
             //   7. 吸收對方X點經驗
             {
-                let createEventer = await findMaxLv(eventList.userID);
-                let exp = await calXP(eventList, Math.min(createEventer, thisMember.Level), "exp");
+                let createEventerLV = await findMaxLv(eventList.userID).Level;
+                let exp = await calXP(eventList, Math.min(createEventerLV, thisMember.Level), "exp");
+
+                //防止變成0以下
+                exp = Math.min(Math.max(0, Number(thisMember.EXP) - exp), exp);
+
                 await thisMember.updateOne({ $inc: { EXP: -exp } })
                 await schema.eventMember.findOneAndUpdate({
                     userID: eventList.userID,
@@ -750,8 +788,14 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                     expMember = [],
                     totalEXP = 0;
                 for (let index = 0; index < targetMember.length; index++) {
-                    console.log('thisMember.Level, targetMember[index].Level', thisMember.Level, targetMember[index].Level)
                     let exp = await calXP(eventList, Math.min(thisMember.Level, targetMember[index].Level), "exp");
+
+
+                    //防止變成0以下
+                    exp = Math.min(Math.max(0, Number(thisMember.EXP) - exp), exp);
+
+                    thisMember.EXP -= exp;
+
                     await schema.trpgLevelSystemMember.findOneAndUpdate({
                         groupid: targetMember[index].groupid,
                         userid: targetMember[index].userid,
@@ -803,9 +847,9 @@ async function calXP(eventList, thisMemberLV, type) {
             typeNumber = Math.round(5 / 6 * (thisMemberLV) * (2 * (thisMemberLV) * (thisMemberLV) + 30 * (thisMemberLV)) + 100);
             console.log('typeNumber1', typeNumber)
             typeNumber = await rollDice.DiceINT(Math.round(typeNumber / 100), Math.round(typeNumber / 60));
-            let createEventer = await findMaxLv(eventList.userID);
+            let createEventerLV = await findMaxLv(eventList.userID).Level;
             console.log('typeNumber2', typeNumber)
-            typeNumber *= (Math.abs(createEventer - thisMemberLV) / 100 + 1);
+            typeNumber *= (Math.abs(createEventerLV - thisMemberLV) / 100 + 1);
             console.log('typeNumber3', typeNumber)
             typeNumber *= ((eventNegLV ^ 2) / 100 + 1) > 0 ? ((eventNegLV ^ 2) / 100 + 1) : 1;
             console.log('typeNumber4', typeNumber)
@@ -814,14 +858,14 @@ async function calXP(eventList, thisMemberLV, type) {
             return Math.round(typeNumber);
         }
         case "times": {
-            let createEventer = await findMaxLv(eventList.userID);
-            typeNumber = await rollDice.DiceINT(5, ((createEventer - thisMemberLV) > 0) ? Math.min(createEventer - thisMemberLV, 20) : 1);
+            let createEventerLV = await findMaxLv(eventList.userID).Level;
+            typeNumber = await rollDice.DiceINT(5, ((createEventerLV - thisMemberLV) > 0) ? Math.min(createEventerLV - thisMemberLV, 20) : 1);
             return typeNumber;
         }
 
         case "multi": {
-            let createEventer = await findMaxLv(eventList.userID);
-            typeNumber = await rollDice.DiceINT(3, ((createEventer - thisMemberLV) > 0) ? Math.round((createEventer - thisMemberLV) / 3) : 2);
+            let createEventerLV = await findMaxLv(eventList.userID).Level;
+            typeNumber = await rollDice.DiceINT(3, ((createEventerLV - thisMemberLV) > 0) ? Math.round((createEventerLV - thisMemberLV) / 3) : 2);
             return typeNumber;
         }
         default:
@@ -834,5 +878,5 @@ async function calXP(eventList, thisMemberLV, type) {
 async function findMaxLv(userid) {
     let maxLV = await schema.trpgLevelSystemMember.findOne({ userid: userid }).sort({ Level: -1 });
     if (!maxLV) return 1;
-    return maxLV.Level;
+    return maxLV;
 }

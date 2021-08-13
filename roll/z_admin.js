@@ -70,6 +70,7 @@ var rollDiceCommand = async function ({
             return rply;
         case /^state$/i.test(mainMsg[1]):
             rply.state = true;
+            rply.quotes = true;
             return rply;
 
         case /^registerChannel$/i.test(mainMsg[1]):

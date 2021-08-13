@@ -328,12 +328,17 @@ const eventMember = mongoose.model('eventMember', new mongoose.Schema({
     eventList: [{
         title: String,
         eventID: String
+    }],
+    activityList: [{
+        date: Date,
+        activityDetail: String
     }]
 }));
 
 //整個event 列表，會從這裡進行抽取
 const eventList = mongoose.model('eventList', new mongoose.Schema({
     title: String,
+    chainTitle: String,
     userID: String,
     userName: String,
     expName: String,

@@ -119,7 +119,7 @@ client.on('message', async (message) => {
 	let inputStr = message.content;
 	//DISCORD <@!USERID> <@!399923133368042763> <@!544563333488111636>
 	//LINE @名字
-	
+
 
 	let trigger = "";
 	let groupid = (message.guild && message.guild.id) ? message.guild.id : '';
@@ -483,15 +483,7 @@ async function nonDice(message) {
 client.on('ready', async () => {
 	if (shardids !== 0) return;
 	client.user.setActivity('🌼bothelp | hktrpg.com🍎');
-	if (togGGToken) {
-		setInterval(() => {
-			try {
-				dbl.postStats(client.guilds.size);
-			} catch (error) {
-				console.error('DBL TOP.GG error')
-			}
-		}, 1800000);
-	}
+
 	var switchSetActivity = 0;
 
 	setInterval(async () => {
@@ -505,6 +497,16 @@ client.on('ready', async () => {
 		}
 		switchSetActivity = (switchSetActivity % 2) ? 2 : 3;
 	}, 60000);
+	if (togGGToken) {
+		setInterval(() => {
+			try {
+				dbl.postStats(client.guilds.size);
+			} catch (error) {
+				console.error('DBL TOP.GG error')
+			}
+		}, 1800000);
+	}
+
 
 });
 if (togGGToken) {

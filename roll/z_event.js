@@ -169,6 +169,7 @@ var rollDiceCommand = async function ({
         }
         case /(^[.]event$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]): {
             events = await analysicInputData(inputStr); //分析輸入的資料
+            console.log('events', events)
             if (!events || !events.MainData || !events.eventName) {
                 rply.text = `沒有輸入事件或名字，請重新整理內容 格式為
 .event add
@@ -415,15 +416,15 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
 總共賺取EXP: ${(eventMember.totailEarnedEXP) ? eventMember.totailEarnedEXP : 0}\n未使用EXP: ${(eventMember.earnedEXP) ? eventMember.earnedEXP : 0}`
                 if (eventMember.activityList.length > 0) {
                     let result = eventMember.activityList;
-                    rply.text += "\n====最近發生的事件====\n"
+                    rply.text += "\n====最近發生的事件===="
                     for (let index = 0; index < result.length; index++) {
-                        rply.text += `${result[index].date.getMonth() + 1}月${result[index].date.getDate()}日 ${result[index].date.getHours()}:${(result[index].date.getMinutes() < 10) ? '0' + result[index].date.getMinutes() : result[index].date.getMinutes()} - ${result[index].activityDetail}`
+                        rply.text += `\n${result[index].date.getMonth() + 1}月${result[index].date.getDate()}日 ${result[index].date.getHours()}:${(result[index].date.getMinutes() < 10) ? '0' + result[index].date.getMinutes() : result[index].date.getMinutes()} - ${result[index].activityDetail}`
                     }
                 }
                 if (doc && doc.length > 0)
-                    rply.text += "\n====你創作的事件列表====\n"
+                    rply.text += "\n====你創作的事件列表===="
                 for (let index = 0; index < doc.length; index++) {
-                    rply.text += doc[index].title + "\n";
+                    rply.text += "\n" + doc[index].title + "\n";
                     if (doc[index].expName) rply.text += '經驗值的名稱: ' + doc[index].expName + "\n";
                     rply.text += (doc[index].chainTitle) ? `系列名稱: ${doc[index].chainTitle} \n` : '';
                     if (mainMsg[2] && mainMsg[2].match(new RegExp(doc[index].title, 'i'))) {
@@ -434,6 +435,7 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
             }
         case /(^[.]evt$)/i.test(mainMsg[0]) && /^\S+$/i.test(mainMsg[1]): {
             {
+                rply.quotes = true;
                 if (!groupid) {
                     rply.text = '你不在群組.請在群組使用此功能 '
                     return rply
@@ -710,9 +712,18 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
         case 1: {
             let exp = await calXP(eventList, thisMember.Level, "exp")
             await thisMember.updateOne({
-                $inc: { EXP: exp }, $push: {
-                    "activityList.date": Date.now(),
-                    "activityList.activityDetail": `你已增加 ${exp} 點${expName} `
+                $inc: { EXP: exp }
+            })
+            await schema.eventMember.updateOne({ userID: thisMember.userid }, {
+                $push: {
+                    activityList: {
+                        $each: [{
+                            date: Date.now(),
+                            activityDetail: `你已增加 ${exp} 點${expName} `
+                        }],
+                        $sort: { date: -1 },
+                        $slice: 10
+                    }
                 }
             })
             return `你已增加 ${exp} 點${expName} `;
@@ -724,9 +735,19 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                 let times = await calXP(eventList, thisMember.Level, "times");
                 let multi = await calXP(eventList, thisMember.Level, "multi")
                 await thisMember.updateOne({
-                    $max: { multiEXP: multi, multiEXPTimes: times }, $push: {
-                        "activityList.date": Date.now(),
-                        "activityList.activityDetail": `你在${Math.max(isNaN(thisMember.multiEXPTimes) ? 0 : thisMember.multiEXPTimes, times)} 次內都會有 ${Math.max(isNaN(thisMember.multiEXP) ? 0 : thisMember.multiEXP, multi)} 倍${expName}  `
+                    $max: { multiEXP: multi, multiEXPTimes: times }
+                })
+
+                await schema.eventMember.updateOne({ userID: thisMember.userid }, {
+                    $push: {
+                        activityList: {
+                            $each: [{
+                                date: Date.now(),
+                                activityDetail: `你在${Math.max(isNaN(thisMember.multiEXPTimes) ? 0 : thisMember.multiEXPTimes, times)} 次內都會有 ${Math.max(isNaN(thisMember.multiEXP) ? 0 : thisMember.multiEXP, multi)} 倍${expName}  `
+                            }],
+                            $sort: { date: -1 },
+                            $slice: 10
+                        },
                     }
                 })
                 return `你在${Math.max(isNaN(thisMember.multiEXPTimes) ? 0 : thisMember.multiEXPTimes, times)} 次內都會有 ${Math.max(isNaN(thisMember.multiEXP) ? 0 : thisMember.multiEXP, multi)} 倍${expName} `;
@@ -734,13 +755,28 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
         case 3:
             //  群組所有人增加1點經驗
             {
-
                 await schema.trpgLevelSystemMember.Update({
                     groupid: groupid
                 }, {
-                    $inc: { EXP: 1 }, $push: {
-                        "activityList.date": Date.now(),
-                        "activityList.activityDetail": `因為${thisMember.name} 你增加 1 點${expName} `
+                    $inc: { EXP: 1 }
+                })
+                /**
+                 , $push: {
+                                        date: Date.now(),
+                                        activityDetail: `因為${thisMember.name} 你增加 1 點${expName} `
+                                    }
+                 */
+                await schema.eventMember.updateOne({ userID: thisMember.userid }, {
+                    $push: {
+                        activityList:
+                        {
+                            $each: [{
+                                date: Date.now(),
+                                activityDetail: `你已增加 此群組所有人1點 ${expName}`
+                            }],
+                            $sort: { date: -1 },
+                            $slice: 10
+                        },
                     }
                 })
 
@@ -752,29 +788,52 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
             //  贈送作者的Erned經驗給玩家
             {
                 //ERROR
-                let createEventer = await findMaxLv(eventList.userID);
+                let createEventerLV = await findMaxLv(eventList.userID);
 
+                let createEventer = await findCreater(eventList.userID);
 
-                let exp = await calXP(eventList, Math.min(createEventer.Level, thisMember.Level), "exp");
+                let exp = await calXP(eventList, Math.min(createEventerLV, thisMember.Level), "exp");
 
                 //防止減到0
                 exp = Math.min(Math.max(0, Number(createEventer.earnedEXP) - exp), exp)
 
 
                 await thisMember.updateOne({
-                    $inc: { EXP: exp }, $push: {
-                        "activityList.date": Date.now(),
-                        "activityList.activityDetail": `你已被 ${eventList.userName} 贈送了 ${exp} 點${expName}`
-                    }
+                    $inc: { EXP: exp }
                 })
                 await createEventer.updateOne({
                     userID: eventList.userID,
                 }, {
                     $inc: { earnedEXP: -exp, totailEarnedEXP: exp }, $push: {
-                        "activityList.date": Date.now(),
-                        "activityList.activityDetail": `你已贈送 ${thisMember.name}  ${exp} 點${expName}`
+                        activityList:
+                        {
+                            $each: [{
+                                date: Date.now(),
+                                activityDetail: `你已贈送 ${thisMember.name}  ${exp} 點${expName}`
+                            }],
+                            $sort: { date: -1 },
+                            $slice: 10
+                        },
                     }
                 })
+
+                await schema.eventMember.updateOne({ userID: thisMember.userid }, {
+                    $push: {
+                        activityList:
+                        {
+                            $each:
+                                [{
+                                    date: Date.now(),
+                                    activityDetail: `你已被 ${eventList.userName} 贈送了 ${exp} 點${expName}`
+                                }],
+                            $sort: { date: -1 },
+                            $slice: 10
+                        }
+                    }
+                })
+
+
+
                 return `你已被 ${eventList.userName} 贈送了 ${exp} 點${expName} `;
             }
         case 5:
@@ -807,22 +866,42 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                         groupid: targetMember[index].groupid,
                         userid: targetMember[index].userid,
                     }, {
-                        $inc: { EXP: -exp }, $push: {
-                            "activityList.date": Date.now(),
-                            "activityList.activityDetail": `你被 ${eventList.userName} 吸收了 ${exp} 點${expName}`
+                        $inc: { EXP: -exp }
+                    })
+                    await schema.eventMember.updateOne({ userID: targetMember[index].userid }, {
+                        $push: {
+                            activityList: {
+                                $each: [{
+                                    date: Date.now(),
+                                    activityDetail: `你被 ${eventList.userName} 吸收了 ${exp} 點${expName}`
+                                }],
+                                $sort: { date: -1 },
+                                $slice: 10
+                            }
                         }
                     })
                     name.push(targetMember[index].name)
                     expMember.push(exp)
                     totalEXP += exp;
                 }
+
+
                 await thisMember.updateOne({
-                    $inc: { EXP: totalEXP }, $push: {
-                        "activityList.date": Date.now(),
-                        "activityList.activityDetail": `你吸收 ${targetMember.length}人 共 ${totalEXP} 點${expName}`
-                    }
+                    $inc: { EXP: totalEXP }
                 });
 
+                await schema.eventMember.updateOne({ userID: thisMember.userid }, {
+                    $push: {
+                        activityList: {
+                            $each: [{
+                                date: Date.now(),
+                                activityDetail: `你吸收 ${targetMember.length}人 共 ${totalEXP} 點${expName}`
+                            }],
+                            $sort: { date: -1 },
+                            $slice: 10
+                        }
+                    }
+                })
                 let reply = `你已增加 ${totalEXP} 點${expName} 及`;
                 for (let index = 0; index < name.length; index++) {
                     reply += `\n${name[index] || '無名'} 減少了${expMember[index]} 點${expName} `
@@ -837,9 +916,20 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                 //防止變成0以下
                 exp = Math.min(Math.max(0, Number(thisMember.EXP) - exp), exp);
                 await thisMember.updateOne({
-                    $inc: { EXP: -exp }, $push: {
-                        "activityList.date": Date.now(),
-                        "activityList.activityDetail": `你減少了 ${exp} 點${expName}`
+                    $inc: { EXP: -exp }
+                })
+
+                await schema.eventMember.updateOne({ userID: thisMember.userid }, {
+                    $push: {
+                        activityList: {
+                            $each:
+                                [{
+                                    date: Date.now(),
+                                    activityDetail: `你減少了 ${exp} 點${expName}`
+                                }],
+                            $sort: { date: -1 },
+                            $slice: 10
+                        }
                     }
                 })
                 return `你已減少 ${exp} 點${expName} `;
@@ -850,11 +940,23 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
             {
                 let times = await calXP(eventList, thisMember.Level, "times");
                 await thisMember.updateOne({
-                    $max: { stopExp: times }, $push: {
-                        "activityList.date": Date.now(),
-                        "activityList.activityDetail": `你${Math.max(isNaN(thisMember.stopExp) ? 0 : thisMember.stopExp, times)} 次內會失去得到${expName} 的機會`
+                    $max: { stopExp: times }
+                })
+                await schema.eventMember.updateOne({ userID: thisMember.userid }, {
+                    $push: {
+                        activityList: {
+                            $each:
+                                [{
+                                    date: Date.now(),
+                                    activityDetail: `你${Math.max(isNaN(thisMember.stopExp) ? 0 : thisMember.stopExp, times)} 次內會失去得到${expName} 的機會`
+                                }],
+                            $sort: { date: -1 },
+                            $slice: 10
+                        }
                     }
                 })
+
+
                 return `你在未來${Math.max(isNaN(thisMember.stopExp) ? 0 : thisMember.stopExp, times)} 次都會失去得到${expName} 的機會`;
             }
 
@@ -868,17 +970,34 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                 exp = Math.min(Math.max(0, Number(thisMember.EXP) - exp), exp);
 
                 await thisMember.updateOne({
-                    $inc: { EXP: -exp }, $push: {
-                        "activityList.date": Date.now(),
-                        "activityList.activityDetail": `你被 ${eventList.userName} 吸收了 ${exp} 點${expName} `
+                    $inc: { EXP: -exp }
+                })
+
+                await schema.eventMember.updateOne({ userID: thisMember.userid }, {
+                    $push: {
+                        activityList: {
+                            $each: [{
+                                date: Date.now(),
+                                activityDetail: `你被 ${eventList.userName} 吸收了 ${exp} 點${expName} `
+                            }],
+                            $sort: { date: -1 },
+                            $slice: 10
+                        }
                     }
                 })
+
                 await schema.eventMember.findOneAndUpdate({
                     userID: eventList.userID,
                 }, {
                     $inc: { earnedEXP: exp, totailEarnedEXP: exp }, $push: {
-                        "activityList.date": Date.now(),
-                        "activityList.activityDetail": `你吸收了 ${thisMember.name}  ${exp} 點${expName} `
+                        activityList: {
+                            $each: [{
+                                date: Date.now(),
+                                activityDetail: `你吸收了 ${thisMember.name}  ${exp} 點${expName} `
+                            }],
+                            $sort: { date: -1 },
+                            $slice: 10
+                        }
                     }
                 })
                 return `你已被 ${eventList.userName} 吸收了 ${exp} 點${expName} `;
@@ -914,9 +1033,19 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                         groupid: targetMember[index].groupid,
                         userid: targetMember[index].userid,
                     }, {
-                        $inc: { EXP: exp }, $push: {
-                            "activityList.date": Date.now(),
-                            "activityList.activityDetail": ` ${thisMember.name} (被強行)分發了 ${exp} 點${expName} 給你 `
+                        $inc: { EXP: exp }
+                    })
+
+                    await schema.eventMember.updateOne({ userID: targetMember[index].userid }, {
+                        $push: {
+                            activityList: {
+                                $each: [{
+                                    date: Date.now(),
+                                    activityDetail: ` ${thisMember.name} (被強行)分發了 ${exp} 點${expName} 給你 `
+                                }],
+                                $sort: { date: -1 },
+                                $slice: 10
+                            }
                         }
                     })
                     name.push(targetMember[index].name)
@@ -924,12 +1053,21 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                     totalEXP += exp;
                 }
                 await thisMember.updateOne({
-                    $inc: { EXP: -totalEXP }, $push: {
-                        "activityList.date": Date.now(),
-                        "activityList.activityDetail": `你(被強行)分發了共 ${totalEXP} 點${expName} 給 ${targetMember.length}人 `
-                    }
+                    $inc: { EXP: -totalEXP }
                 });
 
+                await schema.eventMember.updateOne({ userID: thisMember.userid }, {
+                    $push: {
+                        activityList: {
+                            $each: [{
+                                date: Date.now(),
+                                activityDetail: `你(被強行)分發了共 ${totalEXP} 點${expName} 給 ${targetMember.length}人 `
+                            }],
+                            $sort: { date: -1 },
+                            $slice: 10
+                        }
+                    }
+                })
 
                 let reply = `你已減少 ${totalEXP} 點${expName} 及`;
                 for (let index = 0; index < name.length; index++) {
@@ -944,9 +1082,20 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                 let exp = Math.round(await calXP(eventList, thisMember.Level, "expNeg"));
                 let times = await calXP(eventList, thisMember.Level, "times");
                 await thisMember.updateOne({
-                    $max: { decreaseEXP: exp, decreaseEXPTimes: times }, $push: {
-                        "activityList.date": Date.now(),
-                        "activityList.activityDetail": `你接下來${Math.max(thisMember.decreaseEXPTimes, times)} 次發言都會減少 ${Math.max(isNaN(thisMember.decreaseEXP) ? 0 : thisMember.decreaseEXP, exp)} ${expName}  `
+                    $max: { decreaseEXP: exp, decreaseEXPTimes: times }
+                })
+
+
+                await schema.eventMember.updateOne({ userID: thisMember.userid }, {
+                    $push: {
+                        activityList: {
+                            $each: [{
+                                date: Date.now(),
+                                activityDetail: `你接下來${Math.max(thisMember.decreaseEXPTimes, times)} 次發言都會減少 ${Math.max(isNaN(thisMember.decreaseEXP) ? 0 : thisMember.decreaseEXP, exp)} ${expName}  `
+                            }],
+                            $sort: { date: -1 },
+                            $slice: 10
+                        }
                     }
                 })
                 return `你在未來${Math.max(thisMember.decreaseEXPTimes, times)} 次發言都會減少 ${Math.max(isNaN(thisMember.decreaseEXP) ? 0 : thisMember.decreaseEXP, exp)} ${expName} `;
@@ -1037,6 +1186,12 @@ async function findMaxLv(userid) {
     return maxLV.Level;
 }
 
+
+async function findCreater(userid) {
+    let creater = await schema.eventMember.findOne({ userID: userid }).sort({ Level: -1 });
+    if (!creater) return null;
+    return creater;
+}
 
 
 

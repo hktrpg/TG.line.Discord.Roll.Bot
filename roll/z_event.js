@@ -169,7 +169,7 @@ var rollDiceCommand = async function ({
         }
         case /(^[.]event$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]): {
             events = await analysicInputData(inputStr); //分析輸入的資料
-            console.log('events', events)
+
             if (!events || !events.MainData || !events.eventName) {
                 rply.text = `沒有輸入事件或名字，請重新整理內容 格式為
 .event add
@@ -225,7 +225,7 @@ exp:SAN
                 chainTitle: events.eventChain || ''
             }
 
-            console.log('listDatas', listDatas)
+
             filter = {
                 userID: userid,
                 title: {
@@ -561,7 +561,7 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                         break;
 
                     default:
-                        console.log('eventList', eventList);
+
                         rply.text = `沒有以「${targetEventName} 」命名的事件呢.`
                         return rply;
                 }
@@ -755,7 +755,7 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
         case 3:
             //  群組所有人增加1點經驗
             {
-                await schema.trpgLevelSystemMember.Update({
+                await schema.trpgLevelSystemMember.updateMany({
                     groupid: groupid
                 }, {
                     $inc: { EXP: 1 }
@@ -1125,16 +1125,14 @@ async function calXP(eventList, thisMemberLV, type) {
 
 
             let createEventerLV = await findMaxLv(eventList.userID);
-            console.log('typeNumber1', typeNumber)
             typeNumber = await rollDice.DiceINT(Math.max(createEventerLV, thisMemberLV) + 20, Math.min(createEventerLV, thisMemberLV)) + 15;
 
-            console.log('typeNumber2', typeNumber)
-            typeNumber *= (Math.abs(createEventerLV - thisMemberLV) / 100 + 1);
-            console.log('typeNumber3', typeNumber)
-            typeNumber *= ((eventPositiveLV ^ 2) / 100 + 1) > 0 ? ((eventPositiveLV ^ 2) / 100 + 1) : 1;
-            console.log('typeNumber4', typeNumber)
-            typeNumber *= (eventPosit.length / 100 + 1);
-            console.log('typeNumber5', typeNumber)
+            typeNumber *= (Math.abs(createEventerLV - thisMemberLV) / 20 + 1);
+
+            typeNumber *= ((eventPositiveLV ^ 2) / 20 + 1) > 1 ? ((eventPositiveLV ^ 2) / 20 + 1) : 1;
+
+            typeNumber *= (eventPosit.length / 5 + 1);
+
             return Math.round(typeNumber);
         }
         case "expNeg": {
@@ -1150,16 +1148,15 @@ async function calXP(eventList, thisMemberLV, type) {
 
 
             let createEventerLV = await findMaxLv(eventList.userID);
-            console.log('typeNumber1', typeNumber)
+
             typeNumber = await rollDice.DiceINT(Math.max(createEventerLV, thisMemberLV) + 20, Math.min(createEventerLV, thisMemberLV)) + 15;
 
-            console.log('typeNumber2', typeNumber)
-            typeNumber *= (Math.abs(createEventerLV - thisMemberLV) / 100 + 1);
-            console.log('typeNumber3', typeNumber)
-            typeNumber *= ((eventNegLV ^ 2) / 100 + 1) > 0 ? ((eventNegLV ^ 2) / 100 + 1) : 1;
-            console.log('typeNumber4', typeNumber)
-            typeNumber *= (eventNeg.length / 100 + 1);
-            console.log('typeNumber5', typeNumber)
+            typeNumber *= (Math.abs(createEventerLV - thisMemberLV) / 20 + 1);
+
+            typeNumber *= ((eventNegLV ^ 2) / 20 + 1) > 1 ? ((eventNegLV ^ 2) / 20 + 1) : 1;
+
+            typeNumber *= (eventNeg.length / 5 + 1);
+
             return Math.round(typeNumber);
         }
         case "times": {

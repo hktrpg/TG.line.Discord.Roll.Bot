@@ -1,5 +1,4 @@
 "use strict";
-return;
 if (!process.env.mongoURL) {
     return;
 }
@@ -340,7 +339,7 @@ var rollDiceCommand = async function ({
                 return rply;
             }
         }
-        case /(^[.]event$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+        case (/(^[.]event$)/i.test(mainMsg[0]) || /(^[.]evt$)/i.test(mainMsg[0])) && /^show$/i.test(mainMsg[1]):
             {
                 filter = {
                     userID: userid

@@ -15,7 +15,7 @@ Plurk_Client.request('Users/me')
         console.log(`Plurk 名稱: ${profile.full_name}`);
         plurkID = profile.id;
     })
-    .catch(err => console.error(err));
+    .catch(err => console.error(err.error_text));
 
 
 
@@ -139,7 +139,7 @@ async function sendMessage(response, rplyVal) {
         await Plurk_Client.request('Responses/responseAdd', { plurk_id: response, content: rplyVal.toString().match(/[\s\S]{1,300}/g)[0], qualifier: 'says' })
     } catch (error) {
         if (!error.error_text == "anti-flood-same-content")
-            console.error(error);
+            console.error(error.error_text);
     }
     return;
 

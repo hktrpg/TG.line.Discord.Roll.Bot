@@ -26,7 +26,7 @@ const joinMessage = `你剛剛添加了HKTRPG 骰子機械人!
 
 const telegrafGetChatMembers = require('telegraf-getchatmembers');
 TGclient.catch((err) => {
-	console.error('bot error: ', err);
+	console.error('bot error: ', err.errno, err.code);
 });
 //TGclient.use(telegrafGetChatMembers)
 TGclient.on('text', async (ctx) => {

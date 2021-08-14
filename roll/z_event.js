@@ -409,7 +409,7 @@ exp:SAN
                 let EnergyRecover = Math.round(((new Date(Date.now()) - new Date(eventMember.lastActiveAt))) / enRecoverTime);
                 eventMember.energy = Math.min(maxLv + 20, EnergyRecover + eventMember.energy);
                 eventMember.lastActiveAt = new Date(Date.now());
-                //(debugMode) ? eventMember.energy = 99 : null;
+                (debugMode) ? eventMember.energy = 99 : null;
 
 
 
@@ -455,7 +455,6 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                 let eventMember = await schema.eventMember.findOne({
                     userID: userid
                 });
-                //console.log('eventMemberAA', eventMember)
                 //尋找所有群組的資料，用來設定EN上限            
                 let thisMember = await schema.trpgLevelSystemMember.findOne({ groupid: groupid, userid: userid });
                 if (!thisMember) {
@@ -475,18 +474,20 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                     });
 
                 }
-                //console.log('eventMember.energy', eventMember.energy)
+
                 if (!eventMember.energy) {
                     eventMember.energy = maxLv + 20;
                 }
-                // console.log('eventMember.energy2', eventMember.energy)
+
                 //回複EN
                 let EnergyRecover = Math.round(((new Date(Date.now()) - new Date(eventMember.lastActiveAt))) / enRecoverTime);
-                eventMember.energy = Math.min(maxLv + 20, EnergyRecover + eventMember.energy);
-                eventMember.lastActiveAt = new Date(Date.now());
-                //(debugMode) ? eventMember.energy = 99 : null;
 
-                //console.log('eventMember.energy3', eventMember.energy)
+                eventMember.energy = Math.min(maxLv + 20, EnergyRecover + eventMember.energy);
+                if (EnergyRecover > 0)
+                    eventMember.lastActiveAt = new Date(Date.now());
+                (debugMode) ? eventMember.energy = 99 : null;
+
+
                 //查看是什麼事件, 隨機, 系列, 指定
                 const targetEventName = mainMsg[1];
                 let eventMode = '';
@@ -535,7 +536,6 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                     return rply;
                 }
 
-                // console.log('eventMode', eventMode)
                 switch (eventMode) {
                     case 'random':
                         if (eventMember.energy < 5) {
@@ -547,7 +547,6 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                                 rply.text = '未有人新增事件，你可以成為第一個事件產生者!'
                                 return rply;
                             }
-                            // console.log('-')
                             eventMember.energy -= 5
                             earedXP = 5;
                         }
@@ -571,7 +570,7 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                         rply.text = `沒有以「${targetEventName} 」命名的事件呢.`
                         return rply;
                 }
-                // console.log(eventMember)
+
                 await eventMember.save();
                 let randomDetail = eventList[0].detail[await rollDice.Dice(eventList[0].detail.length) - 1];
                 let eventText = randomDetail.event.split(';');

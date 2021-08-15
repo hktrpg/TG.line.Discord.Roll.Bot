@@ -302,7 +302,14 @@ var rollDiceCommand = async function ({
 			let result = await schema.developmentRollingRecord.deleteMany({
 				groupID: channelid || groupid,
 				userID: userid,
-				skillPerStyle: 'normal'
+				$or: [{
+					skillPerStyle: 'criticalSuccess'
+				}, {
+					skillPerStyle: 'fumble'
+				}, {
+					skillPerStyle: 'normal'
+				}]
+
 			})
 			rply.quotes = true;
 			rply.text = `已清除你在本頻道的所有CC擲骰紀錄, 共計${result.n}項`

@@ -3,7 +3,7 @@
   "version": "1.28.120",
   "description": "Sad's HKTRPG is a TRPG dice rolling bot for Telegram, Line, Whatsapp, web site and Discord. 現支援TRPG暗骰, TPRG擲骰, 頻道經驗值, 占卜, 先攻表, TRPG角色卡, 搜圖, 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, 自定抽選",
   "engines": {
-    "node": ">=14",
+    "node": ">=16",
     "npm": "^7"
   },
   "main": "index.js",

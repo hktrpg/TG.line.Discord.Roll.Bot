@@ -115,7 +115,7 @@ client.on('messageCreate', async message => {
 	if (message.author.bot) return;
 	let hasSendPermission = true;
 	if (message.guild && message.guild.me) {
-		hasSendPermission = message.channel.permissionsFor(message.guild.me).has("SEND_MESSAGES") || message.guild.me.hasPermission("ADMINISTRATOR");
+		hasSendPermission = message.channel.permissionsFor(message.guild.me).has("SEND_MESSAGES") || message.guild.me.permissions.has(Permissions.FLAGS.ADMINISTRATOR);
 	}
 
 	let inputStr = message.content;

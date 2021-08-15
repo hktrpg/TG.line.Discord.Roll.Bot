@@ -2,10 +2,55 @@
 exports.analytics = require('./core-analytics');
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
-const { Client, Intents, Permissions } = require('discord.js-light');
 const Discord = require("discord.js-light");
+const { Client, Intents, Permissions } = Discord;
 
+function channelFilter(channel) {
+	return !channel.messages || Discord.SnowflakeUtil.deconstruct(channel.lastMessageId).timestamp < Date.now() - 3600000;
+}
 const client = new Client({
+	makeCache: Discord.Options.cacheWithLimits({
+
+		ApplicationCommandManager: 0, // guild.commands
+		BaseGuildEmojiManager: 0, // guild.emojis
+		GuildBanManager: 0, // guild.bans
+		GuildInviteManager: 0, // guild.invites
+		GuildMemberManager: 0, // guild.members
+		GuildStickerManager: 0, // guild.stickers
+		MessageManager: Infinity, // channel.messages
+		PermissionOverwriteManager: 0, // channel.permissionOverwrites
+		PresenceManager: 0, // guild.presences
+		ReactionManager: 0, // message.reactions
+		ReactionUserManager: 0, // reaction.users
+		StageInstanceManager: 0, // guild.stageInstances
+		ThreadManager: 0, // channel.threads
+		ThreadMemberManager: 0, // threadchannel.members
+		UserManager: Infinity, // client.users
+		VoiceStateManager: 0,// guild.voiceStates
+
+
+		GuildManager: Infinity, // roles require guilds
+		RoleManager: Infinity, // cache all roles
+		PermissionOverwrites: 0, // cache all PermissionOverwrites. It only costs memory if the channel it belongs to is cached
+		ChannelManager: {
+			maxSize: Infinity, // prevent automatic caching
+			sweepFilter: () => channelFilter, // remove manually cached channels according to the filter
+			sweepInterval: 3600
+		},
+		GuildChannelManager: {
+			maxSize: Infinity, // prevent automatic caching
+			sweepFilter: () => channelFilter, // remove manually cached channels according to the filter
+			sweepInterval: 3600
+		},
+	}),
+	/**
+		  cacheGuilds: true,
+		cacheChannels: true,
+		cacheOverwrites: false,
+		cacheRoles: true,
+		cacheEmojis: false,
+		cachePresences: false
+	 */
 	intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.DIRECT_MESSAGES,
 	Intents.FLAGS.DIRECT_MESSAGE_REACTIONS]
 });
@@ -515,11 +560,25 @@ process.on('unhandledRejection', error => {
 	console.error('Unhandled promise rejection:', error.message);
 });
 
-client.on('guildCreate', guild => {
-	let channel = guild.channels.cache.find(channel => channel.type === 'text' && channel.permissionsFor(guild.me).has('SEND_MESSAGES'));
+client.on('guildCreate', async guild => {
+	let channels = await guild.channels.fetch();
+	let keys = Array.from(channels.values());
+	let channel = keys.find(channel => {
+		return channel.type === 'GUILD_TEXT' && channel.permissionsFor(guild.me).has('SEND_MESSAGES')
+	});
+
 	if (channel) {
-		channel.send(joinMessage);
+		//	let channelSend = await guild.channels.fetch(channel.id);
+		let text = new Discord.MessageEmbed()
+			.setColor('#0099ff')
+			//.setTitle(rplyVal.title)
+			//.setURL('https://discord.js.org/')
+			.setAuthor('HKTRPG', 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png', 'https://www.patreon.com/HKTRPG')
+			.setDescription(joinMessage)
+		await channel.send({ embeds: [text] });
 	}
+
+
 })
 
 client.login(channelSecret);

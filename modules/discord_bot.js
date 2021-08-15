@@ -114,15 +114,9 @@ client.once('ready', async () => {
 client.on('messageCreate', async message => {
 	if (message.author.bot) return;
 	let hasSendPermission = true;
-	let sent, sent2;
-	if (message.channel) {
-		sent = message.channel.permissionsFor(message.guild.me).has(Permissions.FLAGS.SEND_MESSAGES);
-	}
 	if (message.guild && message.guild.me) {
-
-		sent2 = message.guild.me.permissions.has(Permissions.FLAGS.ADMINISTRATOR);
+		hasSendPermission = (message.channel) ? message.channel.permissionsFor(message.guild.me).has(Permissions.FLAGS.SEND_MESSAGES) : false || message.guild.me.permissions.has(Permissions.FLAGS.ADMINISTRATOR);
 	}
-	hasSendPermission = sent || sent2;
 
 	let inputStr = message.content;
 	//DISCORD <@!USERID> <@!399923133368042763> <@!544563333488111636>

@@ -67,7 +67,6 @@ client.once('ready', async () => {
 });
 
 client.on('messageCreate', async message => {
-	console.log('Me', message)
 	if (message.author.bot) return;
 	let hasSendPermission = true;
 	if (message.guild && message.guild.me) {

@@ -153,7 +153,7 @@ var rollDiceCommand = async function ({
 				if (result[index].skillPerStyle == 'normal' && result[index].skillName) {
 					successResult.data = true;
 					successResult.text += `
-					${result[index].skillName}	${result[index].skillPer} - ${result[index].date.getMonth() + 1}月${result[index].date.getDate()}日 ${result[index].date.getHours()}:${(result[index].date.getMinutes() < 10) ? '0' + result[index].date.getMinutes() : result[index].date.getMinutes()}`
+					「${result[index].skillName}」	${result[index].skillPer} - ${result[index].date.getMonth() + 1}月${result[index].date.getDate()}日 ${result[index].date.getHours()}:${(result[index].date.getMinutes() < 10) ? '0' + result[index].date.getMinutes() : result[index].date.getMinutes()}`
 				}
 				if (result[index].skillPerStyle == 'normal' && !result[index].skillName) {
 					successResultWithoutName.data = true;

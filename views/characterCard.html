@@ -11,6 +11,11 @@
         font-weight: 400;
         color: #000000 !important;
         text-decoration: none;
+        padding:  0px  8px 0px 8px !important;
+        border-bottom: 00px !important;
+        margin-bottom: 25px !important;
+        height: 32px  !important;
+
     }
 
     .btn-link:hover {
@@ -42,7 +47,7 @@
     .textNote {
         background-color: #FADCD9;
         resize: none;
-        height: 80px;
+        height: 100px;
         border: none;
         padding: 1px 1px 1px 1px;
         border-radius: 8px;
@@ -50,7 +55,7 @@
 
     .textName {
         height: 32px;
-        width: 80px;
+        width: 100px;
         background-color: #FADCD9;
         resize: none;
         overflow: hidden;
@@ -231,7 +236,7 @@
         <button type="button" class="btn btn-warning float-right" v-if="name" onclick="removeItem(0)">
             -
         </button>
-        <div class="row align-items-start m-2 p-2">
+        <div class="row align-items-start m-1 p-1">
             <div v-for="item in state" id="state" class=" board1" style="height: 36px;">
                 <div>
                     <textarea class=" textName" v-model="item.name" style="width:50px;padding: 1px 1px 1px 1px">
@@ -262,7 +267,7 @@
         <button type="button" class="btn btn-warning float-right" v-if="name" onclick="removeItem(1)">
             -
         </button>
-        <div class="row align-items-center" id="roll">
+        <div class="row align-items-start m-1 p-1" id="roll">
             <div v-for="item in roll" class="board1" style="height: 36px;padding: 1px 1px 1px 1px">
                 <textarea class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">
                     {{item.name}}
@@ -345,7 +350,7 @@
                         <div class="form-group">
                             <div id="array-cardList">
                                 <span v-for="(item,index) in list" :key="index" class="col">
-                                    <button type="button" class="btn btn-warning" v-on:click="getTheSelectedOne(index)">
+                                    <button type="button" class="btn btn-warning m-1" v-on:click="getTheSelectedOne(index)">
                                         {{item.name}}</button>
                                 </span>
                             </div>

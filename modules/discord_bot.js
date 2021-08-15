@@ -119,6 +119,8 @@ client.on('messageCreate', async message => {
 	}
 
 	let inputStr = message.content;
+	//DISCORD <@!USERID> <@!399923133368042763> <@!544563333488111636>
+	//LINE @名字
 	let mainMsg = inputStr.match(msgSplitor); //定義輸入字串
 	let trigger = (mainMsg && mainMsg[0]) ? mainMsg[0].toString().toLowerCase() : '';
 	let groupid = (message.guildId) ? message.guildId : '';
@@ -472,15 +474,7 @@ client.on('ready', async () => {
 	console.log(`Logged in as ${client.user.tag}!`);
 	if (shardids !== 0) return;
 	client.user.setActivity('🌼bothelp | hktrpg.com🍎');
-	if (togGGToken) {
-		setInterval(() => {
-			try {
-				dbl.postStats(client.guilds.size);
-			} catch (error) {
-				console.error('DBL TOP.GG error')
-			}
-		}, 1800000);
-	}
+
 	var switchSetActivity = 0;
 
 	setInterval(async () => {
@@ -494,6 +488,16 @@ client.on('ready', async () => {
 		}
 		switchSetActivity = (switchSetActivity % 2) ? 2 : 3;
 	}, 60000);
+	if (togGGToken) {
+		setInterval(() => {
+			try {
+				dbl.postStats(client.guilds.size);
+			} catch (error) {
+				console.error('DBL TOP.GG error')
+			}
+		}, 1800000);
+	}
+
 
 });
 if (togGGToken) {

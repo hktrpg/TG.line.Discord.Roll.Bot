@@ -133,7 +133,7 @@
             </div>
         </div>
         <div class="overflow-auto p-1" id="container-content"
-            style="min-height: 60vh;max-height: 70vh;white-space:pre-wrap">
+            style="min-height: 50vh;max-height: 60vh;white-space:pre-wrap">
             <div class=" border overflow-auto" id="content">
             </div>
         </div>
@@ -174,7 +174,7 @@
                     每間房間上限100條信息<br>
                     輸入名字可以進入自定的房間<br>
                     擲骰方法和HKTRPG骰子機械人一樣。
-                    詳情可以參考 
+                    詳情可以參考
                     https://hktrpg.github.io/TG.line.Discord.Roll.Bot/
                 </div>
                 <div class="modal-footer">
@@ -291,6 +291,7 @@
 
             sendForm.addEventListener("submit", function (e) {
                 e.preventDefault();
+                $('#msg').focus();
                 if (!msgInputBox) return;
                 var formData = {
                     time: new Date(Date.now())
@@ -357,6 +358,7 @@
                 return localStorage.getItem(cname) || null;
             }
         });
+     
     </script>
 
 

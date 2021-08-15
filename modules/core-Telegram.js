@@ -23,7 +23,7 @@ const joinMessage = `你剛剛添加了HKTRPG 骰子機械人!
 						有關TRPG資訊, 可以到網站
 						(http://www.hktrpg.com/)`;
 TGclient.catch((err) => {
-	console.error('bot error: ', err);
+	console.error('bot error: ', err.errno, err.code);
 });
 TGclient.on('text', async (ctx) => {
 	if (ctx.message.from.is_bot) return;

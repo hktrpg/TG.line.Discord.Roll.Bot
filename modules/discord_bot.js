@@ -115,6 +115,16 @@ client.on('messageCreate', async message => {
 	if (message.author.bot) return;
 	let hasSendPermission = true;
 	if (message.guild && message.guild.me) {
+		try {
+			message.channel.permissionsFor(message.guild.me).has("SEND_MESSAGES")
+		} catch (error) {
+			console.error('message.channel.permissionsFor(message.guild.me).has("SEND_MESSAGES")', error)
+		}
+		try {
+			message.guild.me.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
+		} catch (error) {
+			console.error('message.guild.me.permissions.has(Permissions.FLAGS.ADMINISTRATOR)', error)
+		}
 		hasSendPermission = message.channel.permissionsFor(message.guild.me).has("SEND_MESSAGES") || message.guild.me.permissions.has(Permissions.FLAGS.ADMINISTRATOR);
 	}
 
@@ -188,9 +198,17 @@ client.on('messageCreate', async message => {
 		displaynameDiscord = message.member.user.username;
 	}
 	////DISCORD: 585040823232320107
-	if (groupid && message.channel && message.channel.permissionsFor(client.user) && message.channel.permissionsFor(client.user).has(Permissions.FLAGS.MANAGE_CHANNELS)) {
+
+	if (groupid)
+		try {
+			message.channel.permissionsFor(client.user).has(Permissions.FLAGS.MANAGE_CHANNELS)
+		} catch (error) {
+			console.error('message.channel.permissionsFor(client.user).has(Permissions.FLAGS.MANAGE_CHANNELS)', error)
+		}
+	if (groupid && message.channel.permissionsFor(client.user).has(Permissions.FLAGS.MANAGE_CHANNELS)) {
 		userrole = 2
 	}
+
 	if (message.member && message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
 		userrole = 3
 	}

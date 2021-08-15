@@ -22,7 +22,7 @@
     "chinese-conv": "^1.0.1",
     "crypto-js": "^4.0.0",
     "dblapi.js": "^2.4.1",
-    "discord.js-light": "^4.0.5",
+    "discord.js-light": "^4.1.0",
     "dotenv": "^8.2.0",
     "events": "^3.3.0",
     "express": "^4.17.1",

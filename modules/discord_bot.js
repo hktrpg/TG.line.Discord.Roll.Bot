@@ -2,7 +2,8 @@
 exports.analytics = require('./core-analytics');
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
-const { Client, Intents } = require('discord.js-light');
+const { Client, Intents, Permissions } = require('discord.js-light');
+const Discord = require("discord.js-light");
 
 const client = new Client({
 	intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.DIRECT_MESSAGES,
@@ -65,66 +66,23 @@ client.once('ready', async () => {
 		connect();
 });
 
-async function count() {
-	if (!client.shard) return;
-	const promises = [
-		client.shard.fetchClientValues('guilds.cache.size'),
-		client.shard.broadcastEval('this.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0)'),
-	];
-
-	return Promise.all(promises)
-		.then(results => {
-			const totalGuilds = results[0].reduce((acc, guildCount) => acc + guildCount, 0);
-			const totalMembers = results[1].reduce((acc, memberCount) => acc + memberCount, 0);
-			return (`正在運行HKTRPG的Discord 群組數量: ${totalGuilds}\nDiscord 會員數量: ${totalMembers}`);
-		})
-		.catch(console.error);
-
-}
-async function count2() {
-	if (!client.shard) return '🌼bothelp | hktrpg.com🍎';
-	const promises = [
-		client.shard.fetchClientValues('guilds.cache.size'),
-		client.shard.broadcastEval('this.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0)'),
-	];
-
-	return Promise.all(promises)
-		.then(results => {
-			const totalGuilds = results[0].reduce((acc, guildCount) => acc + guildCount, 0);
-			const totalMembers = results[1].reduce((acc, memberCount) => acc + memberCount, 0);
-			return (` ${totalGuilds}群組📶-\n ${totalMembers}會員📶`);
-		})
-		.catch(() => {
-			console.error
-			return '🌼bothelp | hktrpg.com🍎';
-		});
-}
-
-// handle the error event
-process.on('unhandledRejection', error => {
-	console.error('Unhandled promise rejection:', error.message.statusText);
-});
-
-client.on('guildCreate', guild => {
-	let channel = guild.channels.cache.find(channel => channel.type === 'text' && channel.permissionsFor(guild.me).has('SEND_MESSAGES'));
-	if (channel) {
-		channel.send(joinMessage);
-	}
-})
-
 client.on('messageCreate', async message => {
 	console.log('Me', message)
 	if (message.author.bot) return;
-	let inputStr = message.content;
-	let trigger = "";
-	let groupid = (message.guildId) ? message.guildId : '';
-	let mainMsg = inputStr.match(msgSplitor); //定義輸入字串
-	if (mainMsg && mainMsg[0]) {
-		trigger = mainMsg[0].toString().toLowerCase();
+	let hasSendPermission = true;
+	if (message.guild && message.guild.me) {
+		hasSendPermission = message.channel.permissionsFor(message.guild.me).has("SEND_MESSAGES") || message.guild.me.hasPermission("ADMINISTRATOR");
 	}
+
+	let inputStr = message.content;
+	let mainMsg = inputStr.match(msgSplitor); //定義輸入字串
+	let trigger = (mainMsg && mainMsg[0]) ? mainMsg[0].toString().toLowerCase() : '';
+	let groupid = (message.guildId) ? message.guildId : '';
+
+
 	//指定啟動詞在第一個詞&把大階強制轉成細階
 	if (trigger == ".me") {
-		inputStr = inputStr.replace(/^.me\s+/i, '');
+		inputStr = inputStr.replace(/^.me\s+/i, ' ');
 		if (groupid) {
 			SendToReplychannel(inputStr, message.channel.id);
 		} else {
@@ -132,30 +90,21 @@ client.on('messageCreate', async message => {
 		}
 		return;
 	}
-	let privatemsg = 0;
 
-	function privateMsg() {
-		if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
-			privatemsg = 1;
-			inputStr = inputStr.replace(/^dr\s+/i, '');
-		}
-		if (trigger.match(/^ddr$/i) && mainMsg && mainMsg[1]) {
-			privatemsg = 2;
-			inputStr = inputStr.replace(/^ddr\s+/i, '');
-		}
-		if (trigger.match(/^dddr$/i) && mainMsg && mainMsg[1]) {
-			privatemsg = 3;
-			inputStr = inputStr.replace(/^dddr\s+/i, '');
-		}
-	}
-	privateMsg();
 
+
+	let checkPrivateMsg = privateMsg({ trigger, mainMsg, inputStr });
+	inputStr = checkPrivateMsg.inputStr;
+	let privatemsg = checkPrivateMsg.privatemsg;
 
 	let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
 
 	if (!target) {
 		await nonDice(message)
 		return null
+	}
+	if (!hasSendPermission) {
+		return;
 	}
 	let userid = '',
 		displayname = '',
@@ -167,15 +116,13 @@ client.on('messageCreate', async message => {
 	let TargetGMTempdiyName = [];
 	let TargetGMTempdisplayname = [];
 	//得到暗骰的數據, GM的位置
-	let hasSendPermission = true;
+
 	//檢查是不是有權限可以傳信訊
 	//是不是自己.ME 訊息
 	//TRUE 即正常
 	let userrole = 1;
 	//console.log(message.guild)
-	if (message.guild && message.guild.me) {
-		hasSendPermission = message.channel.permissionsFor(message.guild.me).has("SEND_MESSAGES") || message.guild.me.hasPermission("ADMINISTRATOR");
-	}
+
 	if (message.channelId) {
 		channelid = message.channelId;
 	}
@@ -198,7 +145,7 @@ client.on('messageCreate', async message => {
 	if (groupid && message.channel && message.channel.permissionsFor(client.user) && message.channel.permissionsFor(client.user).has("MANAGE_CHANNELS")) {
 		userrole = 2
 	}
-	if (message.member && message.member.hasPermission("ADMINISTRATOR")) {
+	if (message.member && message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
 		userrole = 3
 	}
 	//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin
@@ -249,9 +196,7 @@ client.on('messageCreate', async message => {
 	if (!rplyVal.text && !rplyVal.LevelUp) {
 		return;
 	}
-	if (!hasSendPermission) {
-		return;
-	}
+
 
 	if (rplyVal.state) {
 		rplyVal.text += '\n' + await count();
@@ -354,7 +299,7 @@ client.on('messageCreate', async message => {
 			return;
 		default:
 			if (userid) {
-				rplyVal.text = `<@${userid}> ${(rplyVal.statue) ? rplyVal.statue : ''}\n ${rplyVal.text}`;
+				rplyVal.text = `<@${userid}> ${(rplyVal.statue) ? rplyVal.statue : ''}\n${rplyVal.text}`;
 			}
 			if (rplyVal.quotes) {
 				rplyVal.text = new Discord.MessageEmbed()
@@ -410,7 +355,7 @@ async function SendToReply(replyText, message) {
 		for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 			if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
 				try {
-					await message.author.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
+					message.author.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 				}
 				catch (e) {
 					if (e.message !== 'Cannot send messages to this user') {
@@ -419,7 +364,10 @@ async function SendToReply(replyText, message) {
 				}
 		}
 	}
-	else { await message.author.send(replyText); }
+	else {
+		return message.author.send({ embeds: [replyText] });
+	}
+	return;
 }
 async function SendToReplychannel(replyText, channelid) {
 	let channel = await client.channels.fetch(channelid);
@@ -427,7 +375,7 @@ async function SendToReplychannel(replyText, channelid) {
 		for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 			if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
 				try {
-					await channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
+					channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 					//await message.channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 				}
 				catch (e) {
@@ -437,7 +385,8 @@ async function SendToReplychannel(replyText, channelid) {
 				}
 		}
 	}
-	else await channel.send(replyText);
+	else return channel.send({ embeds: [replyText] });
+	return;
 }
 
 client.on('shardDisconnect', (event, shardID) => {
@@ -508,6 +457,71 @@ if (togGGToken) {
 		console.error(`dbl Top.GG get Error!`);
 	})
 }
+
+function privateMsg({ trigger, mainMsg, inputStr }) {
+	let privatemsg = 0;
+	if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
+		privatemsg = 1;
+		inputStr = inputStr.replace(/^dr\s+/i, '');
+	}
+	if (trigger.match(/^ddr$/i) && mainMsg && mainMsg[1]) {
+		privatemsg = 2;
+		inputStr = inputStr.replace(/^ddr\s+/i, '');
+	}
+	if (trigger.match(/^dddr$/i) && mainMsg && mainMsg[1]) {
+		privatemsg = 3;
+		inputStr = inputStr.replace(/^dddr\s+/i, '');
+	}
+	return { inputStr, privatemsg };
+}
+
+
+async function count() {
+	if (!client.shard) return;
+	const promises = [
+		client.shard.fetchClientValues('guilds.cache.size'),
+		client.shard.broadcastEval('this.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0)'),
+	];
+
+	return Promise.all(promises)
+		.then(results => {
+			const totalGuilds = results[0].reduce((acc, guildCount) => acc + guildCount, 0);
+			const totalMembers = results[1].reduce((acc, memberCount) => acc + memberCount, 0);
+			return (`正在運行HKTRPG的Discord 群組數量: ${totalGuilds}\nDiscord 會員數量: ${totalMembers}`);
+		})
+		.catch(console.error);
+
+}
+async function count2() {
+	if (!client.shard) return '🌼bothelp | hktrpg.com🍎';
+	const promises = [
+		client.shard.fetchClientValues('guilds.cache.size'),
+		client.shard.broadcastEval('this.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0)'),
+	];
+
+	return Promise.all(promises)
+		.then(results => {
+			const totalGuilds = results[0].reduce((acc, guildCount) => acc + guildCount, 0);
+			const totalMembers = results[1].reduce((acc, memberCount) => acc + memberCount, 0);
+			return (` ${totalGuilds}群組📶-\n ${totalMembers}會員📶`);
+		})
+		.catch(() => {
+			console.error
+			return '🌼bothelp | hktrpg.com🍎';
+		});
+}
+
+// handle the error event
+process.on('unhandledRejection', error => {
+	console.error('Unhandled promise rejection:', error.message);
+});
+
+client.on('guildCreate', guild => {
+	let channel = guild.channels.cache.find(channel => channel.type === 'text' && channel.permissionsFor(guild.me).has('SEND_MESSAGES'));
+	if (channel) {
+		channel.send(joinMessage);
+	}
+})
 
 client.login(channelSecret);
 

@@ -531,7 +531,8 @@ async function count() {
 	if (!client.shard) return;
 	const promises = [
 		client.shard.fetchClientValues('guilds.cache.size'),
-		client.shard.broadcastEval(client => client.guilds.cache.size),
+		client.shard
+			.broadcastEval(c => c.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0))
 	];
 
 	return Promise.all(promises)

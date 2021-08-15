@@ -525,6 +525,7 @@ var rollDiceCommand = async function ({
                 rply.text = '此群組未有足夠資料\n'
                 return rply;
             }
+            rply.quotes = true;
             rply.text = await rankingList(doc, docMember, RankNumber, "群組排行榜");
             return rply;
         }
@@ -546,6 +547,7 @@ var rollDiceCommand = async function ({
                 rply.text = '此群組未有足夠資料\n'
                 return rply;
             }
+            rply.quotes = true;
             rply.text = await rankingList({}, docMember, RankNumber, "世界排行榜", docMemberCount);
             return rply;
 

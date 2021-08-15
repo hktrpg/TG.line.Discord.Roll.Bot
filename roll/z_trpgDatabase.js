@@ -219,6 +219,7 @@ var rollDiceCommand = async function ({
             } else {
                 rply.text = '不在群組. '
             }
+            rply.quotes = true;
             //顯示資料庫
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
             return rply

@@ -548,7 +548,8 @@ async function count2() {
 	if (!client.shard) return '🌼bothelp | hktrpg.com🍎';
 	const promises = [
 		client.shard.fetchClientValues('guilds.cache.size'),
-		client.shard.broadcastEval('this.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0)'),
+		client.shard
+			.broadcastEval(c => c.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0))
 	];
 
 	return Promise.all(promises)

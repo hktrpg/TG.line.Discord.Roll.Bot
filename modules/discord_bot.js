@@ -190,7 +190,7 @@ client.on('messageCreate', async message => {
 	////DISCORD: 585040823232320107
 
 
-	if (groupid && message.channel.permissionsFor(client.user).has(Permissions.FLAGS.MANAGE_CHANNELS)) {
+	if (groupid && message.channel.permissionsFor(client.user) && message.channel.permissionsFor(client.user).has(Permissions.FLAGS.MANAGE_CHANNELS)) {
 		userrole = 2
 	}
 

@@ -93,12 +93,15 @@ var connect = function () {
 		var object = JSON.parse(data);
 		console.log('object', object)
 		if (object.botname == 'Discord') {
-			//console.log('discord have message')
-			client.shard.broadcastEval(client => client.channels.cache.get(object.message.target.id))
-				.then(result => {
-					console.log('result', result)
-					console.log('object.message.text', object.message.text)
-					result.send(object.message.text.replace(/\r\n|\n/g, "\\n"))
+			const promises = [
+				object,
+				//client.shard.broadcastEval(client => client.channels.fetch(object.message.target.id)),
+			];
+			Promise.all(promises)
+				.then(async results => {
+					let channel = await client.channels.fetch(results[0].message.target.id);
+					if (channel)
+						channel.send(results[0].message.text)
 				})
 				.catch(console.error);
 			return;

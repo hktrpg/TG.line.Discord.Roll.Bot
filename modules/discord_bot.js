@@ -33,12 +33,12 @@ const client = new Client({
 		RoleManager: Infinity, // cache all roles
 		PermissionOverwrites: 0, // cache all PermissionOverwrites. It only costs memory if the channel it belongs to is cached
 		ChannelManager: {
-			maxSize: 0, // prevent automatic caching
+			maxSize: Infinity, // prevent automatic caching
 			sweepFilter: () => channelFilter, // remove manually cached channels according to the filter
 			sweepInterval: 3600
 		},
 		GuildChannelManager: {
-			maxSize: 0, // prevent automatic caching
+			maxSize: Infinity, // prevent automatic caching
 			sweepFilter: () => channelFilter, // remove manually cached channels according to the filter
 			sweepInterval: 3600
 		},

@@ -130,9 +130,9 @@ client.on('messageCreate', async message => {
 	if (trigger == ".me") {
 		inputStr = inputStr.replace(/^.me\s+/i, ' ');
 		if (groupid) {
-			SendToReplychannel(inputStr, message.channel.id);
+			SendToReplychannel({ replyText: inputStr, channelid: message.channel.id });
 		} else {
-			SendToReply(inputStr, message);
+			SendToReply({ replyText: inputStr, message });
 		}
 		return;
 	}
@@ -254,7 +254,7 @@ client.on('messageCreate', async message => {
 
 	if (groupid && rplyVal && rplyVal.LevelUp) {
 		//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
-		SendToReplychannel("<@" + userid + '>\n' + rplyVal.LevelUp, channelid);
+		SendToReplychannel({ replyText: `<@${userid}>\n${rplyVal.LevelUp}`, channelid });
 	}
 	if (rplyVal.discordExport) {
 		message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄', {
@@ -305,11 +305,13 @@ client.on('messageCreate', async message => {
 			// 輸入dr  (指令) 私訊自己
 			//
 			if (groupid) {
-				SendToReplychannel("<@" + userid + '> 暗骰給自己', channelid)
+				SendToReplychannel(
+					{ replyText: "<@" + userid + '> 暗骰給自己', channelid })
 			}
 			if (userid) {
 				rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
-				SendToReply(rplyVal.text, message);
+				SendToReply(
+					{ replyText: rplyVal.text, message });
 			}
 			return;
 		case privatemsg == 2:
@@ -320,12 +322,13 @@ client.on('messageCreate', async message => {
 				for (let i = 0; i < TargetGMTempID.length; i++) {
 					targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
 				}
-				SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp, channelid);
+				SendToReplychannel(
+					{ replyText: "<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp, channelid });
 			}
 			if (userid) {
 				rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text;
 			}
-			SendToReply(rplyVal.text, message);
+			SendToReply({ replyText: rplyVal.text, message });
 			for (let i = 0; i < TargetGMTempID.length; i++) {
 				if (userid != TargetGMTempID[i]) {
 					SendToId(TargetGMTempID[i], rplyVal.text, client);
@@ -339,7 +342,8 @@ client.on('messageCreate', async message => {
 				for (let i = 0; i < TargetGMTempID.length; i++) {
 					targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
 				}
-				SendToReplychannel("<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp, channelid)
+				SendToReplychannel(
+					{ replyText: "<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp, channelid })
 			}
 			rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
 			for (let i = 0; i < TargetGMTempID.length; i++) {
@@ -350,26 +354,26 @@ client.on('messageCreate', async message => {
 			if (userid) {
 				rplyVal.text = `<@${userid}> ${(rplyVal.statue) ? rplyVal.statue : ''}\n${rplyVal.text}`;
 			}
-			if (rplyVal.quotes) {
-				rplyVal.text = new Discord.MessageEmbed()
-					.setColor('#0099ff')
-					//.setTitle(rplyVal.title)
-					//.setURL('https://discord.js.org/')
-					.setAuthor('HKTRPG', 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png', 'https://www.patreon.com/HKTRPG')
-					.setDescription(rplyVal.text)
-				//.setThumbnail('https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png')
-			}
 
 			if (groupid) {
-				SendToReplychannel(rplyVal.text, channelid);
+				SendToReplychannel({ replyText: rplyVal.text, channelid, quotes: rplyVal.quotes });
 			} else {
-				SendToReply(rplyVal.text, message);
+				SendToReply({ replyText: rplyVal.text, message, quotes: rplyVal.quotes });
 			}
 			return;
 	}
 
 
 });
+
+function convQuotes(text) {
+	return new Discord.MessageEmbed()
+		.setColor('#0099ff')
+		//.setTitle(rplyVal.title)
+		//.setURL('https://discord.js.org/')
+		.setAuthor('HKTRPG', 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png', 'https://www.patreon.com/HKTRPG')
+		.setDescription(text)
+}
 
 async function privateMsgFinder(channelid) {
 	if (!TargetGM || !TargetGM.trpgDarkRollingfunction) return;
@@ -383,10 +387,11 @@ async function privateMsgFinder(channelid) {
 async function SendToId(targetid, replyText) {
 	let user = await client.users.fetch(targetid);
 	if (typeof replyText === "string") {
-		for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-			if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
+		let sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
+		for (let i = 0; i < sendText.length; i++) {
+			if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
 				try {
-					await user.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
+					await user.send(sendText[i]);
 				}
 				catch (e) {
 					console.error(' GET ERROR:  SendtoID: ', e.message, replyText)
@@ -399,42 +404,46 @@ async function SendToId(targetid, replyText) {
 
 }
 
-async function SendToReply(replyText, message) {
-	if (typeof replyText === "string") {
-		for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-			if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
-				try {
-					message.author.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
+async function SendToReply({ replyText = "", message, quotes = false }) {
+	let sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
+	for (let i = 0; i < sendText.length; i++) {
+		if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
+			try {
+				if (quotes) {
+					message.author.send({ embeds: [convQuotes(sendText[i])] });
+				} else
+					message.author.send(sendText[i]);
+			}
+			catch (e) {
+				if (e.message !== 'Cannot send messages to this user') {
+					console.error(' GET ERROR:  SendToReply: ', e.message, replyText)
 				}
-				catch (e) {
-					if (e.message !== 'Cannot send messages to this user') {
-						console.error(' GET ERROR:  SendToReply: ', e.message, replyText)
-					}
-				}
-		}
+			}
 	}
-	else {
-		return message.author.send({ embeds: [replyText] });
-	}
+
+
 	return;
 }
-async function SendToReplychannel(replyText, channelid) {
+async function SendToReplychannel({ replyText = "", channelid = "", quotes = false }) {
+	if (!channelid) return;
 	let channel = await client.channels.fetch(channelid);
-	if (typeof replyText === "string") {
-		for (let i = 0; i < replyText.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-			if (i == 0 || i == 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 1 || i == replyText.toString().match(/[\s\S]{1,2000}/g).length - 2)
-				try {
-					channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
-					//await message.channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
+	let sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
+	for (let i = 0; i < sendText.length; i++) {
+		if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
+			try {
+				if (quotes) {
+					channel.send({ embeds: [convQuotes(sendText[i])] });
+				} else
+					channel.send(sendText[i]);
+				//await message.channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
+			}
+			catch (e) {
+				if (e.message !== 'Missing Permissions') {
+					console.error(' GET ERROR: SendToReplychannel: ', e.message, replyText, channelid);
 				}
-				catch (e) {
-					if (e.message !== 'Missing Permissions') {
-						console.error(' GET ERROR: SendToReplychannel: ', e.message, replyText, channelid);
-					}
-				}
-		}
+			}
+
 	}
-	else return channel.send({ embeds: [replyText] });
 	return;
 }
 
@@ -465,7 +474,9 @@ async function nonDice(message) {
 	membercount = (message.guild) ? message.guild.memberCount : 0;
 	let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount);
 	if (groupid && LevelUp && LevelUp.text) {
-		await SendToReplychannel(`@${displayname}  ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`, message.channel.id);
+		await SendToReplychannel(
+			{ replyText: `@${displayname}  ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`, channelid: message.channel.id }
+		);
 	}
 
 	return null;

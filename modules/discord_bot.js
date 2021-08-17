@@ -6,7 +6,7 @@ const Discord = require("discord.js-light");
 const { Client, Intents, Permissions } = Discord;
 
 function channelFilter(channel) {
-	return !channel.messages || Discord.SnowflakeUtil.deconstruct(channel.lastMessageId).timestamp < Date.now() - 3600000;
+	return !channel.lastMessageId || Discord.SnowflakeUtil.deconstruct(channel.lastMessageId).timestamp < Date.now() - 3600000;
 }
 const client = new Client({
 	makeCache: Discord.Options.cacheWithLimits({

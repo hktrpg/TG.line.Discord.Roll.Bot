@@ -89,9 +89,9 @@ var connect = function () {
 		ws.send('connectd To core-www from discord!');
 	});
 	ws.on('message', function incoming(data) {
-
+		if (shardids !== 0) return;
 		var object = JSON.parse(data);
-		console.log('object', object)
+		//console.log('object', object)
 		if (object.botname == 'Discord') {
 			const promises = [
 				object,

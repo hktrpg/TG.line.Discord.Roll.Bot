@@ -80,12 +80,15 @@ const reconnectInterval = 1 * 1000 * 60;
 const shardids = client.shard.ids[0];
 
 const questionnaireText = `萬分感謝你剛剛使用HKTRPG，HKTRPG已經四周歲了，
-因為有你，HKTRPG才會持續進化。
+因為有你，HKTRPG才會持續進化到現在。
 請容我不勝惶恐，在此厚顏相邀，
-請大家花五至十分鐘時間填寫一份TRPG問卷，讓我們可以進步下去。
+請大家花五至十分鐘時間填寫一份《骰子機械人及TRPG》問卷，
+讓我們可以進步下去。
 
 基於資料庫開始爆滿，使用人數上升，所以平日資料庫功能有所限制。
 為感激你的支持，完成問卷後填上資料，將會提升上限半年。
+
+本問卷不會搜集個人電郵及身份資料。
 
 問卷位置：
 https://forms.gle/V7yjDSPzrT4yEf7w9

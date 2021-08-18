@@ -368,6 +368,11 @@ const developmentRollingRecord = mongoose.model('developmentRollingRecord', new 
     //成功,失敗,大成功,大失敗
 }));
 
+const questionnaire = mongoose.model('questionnaire', new mongoose.Schema({
+    userID: String
+    //成功,失敗,大成功,大失敗
+}));
+
 module.exports = {
     randomAns,
     block,
@@ -395,7 +400,8 @@ module.exports = {
     eventMember,
     eventList,
     developmentConductor,
-    developmentRollingRecord
+    developmentRollingRecord,
+    questionnaire
 }
 //const Cat = mongoose.model('Cat', { name: String });
 //const kitty = new Cat({ name: 'Zildjian' });

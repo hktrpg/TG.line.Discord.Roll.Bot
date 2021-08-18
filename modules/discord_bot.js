@@ -55,7 +55,7 @@ const client = new Client({
 	Intents.FLAGS.DIRECT_MESSAGE_REACTIONS]
 });
 
-
+const schema = require('../modules/core-schema.js');
 
 const DBL = require("dblapi.js");
 //TOP.GG 
@@ -79,7 +79,17 @@ const joinMessage = `你剛剛添加了HKTRPG 骰子機械人!
 const reconnectInterval = 1 * 1000 * 60;
 const shardids = client.shard.ids[0];
 
+const questionnaireText = `萬分感謝你剛剛使用HKTRPG，HKTRPG已經四周歲了，
+因為有你，HKTRPG才會持續進化。
+請容我不勝惶恐，在此厚顏相邀，
+請大家花五至十分鐘時間填寫一份TRPG問卷，讓我們可以進步下去。
 
+基於資料庫開始爆滿，使用人數上升，所以平日資料庫功能有所限制。
+現在為感激你的使用，完成問卷後，可以提升上限半年。
+
+問卷位置：
+https://forms.gle/V7yjDSPzrT4yEf7w9
+`
 const WebSocket = require('ws');
 var ws;
 var connect = function () {
@@ -256,7 +266,16 @@ client.on('messageCreate', async message => {
 		return;
 	}
 
-
+	if (rplyVal.text) {
+		let isSend = await schema.questionnaire.findOne({
+			userID: userid
+		})
+		if (!isSend) {
+			SendToId(userid, questionnaireText, client);
+			isSend = new schema.questionnaire({ userID: userid })
+			await isSend.save();
+		}
+	}
 	if (rplyVal.state) {
 		rplyVal.text += '\n' + await count();
 		rplyVal.text += '\nPing: ' + Number(Date.now() - message.createdTimestamp) + 'ms'

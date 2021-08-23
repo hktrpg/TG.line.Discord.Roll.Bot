@@ -252,6 +252,8 @@ client.on('messageCreate', async message => {
 			});
 		}
 	}
+
+
 	if (!rplyVal.text && !rplyVal.LevelUp) {
 		return;
 	}
@@ -266,8 +268,10 @@ client.on('messageCreate', async message => {
 		//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
 		SendToReplychannel({ replyText: `<@${userid}>\n${rplyVal.LevelUp}`, channelid });
 	}
+
 	if (rplyVal.discordExport) {
-		message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄', {
+		message.author.send({
+			content: '這是頻道 ' + message.channel.name + ' 的聊天紀錄',
 			files: [
 				"./tmp/" + rplyVal.discordExport + '.txt'
 			]
@@ -275,12 +279,14 @@ client.on('messageCreate', async message => {
 	}
 	if (rplyVal.discordExportHtml) {
 		if (!link || !mongo) {
-			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +
-				rplyVal.discordExportHtml[1], {
-				files: [
-					"./tmp/" + rplyVal.discordExportHtml[0] + '.html'
-				]
-			});
+			message.author.send(
+				{
+					content: '這是頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +
+						rplyVal.discordExportHtml[1],
+					files: [
+						"./tmp/" + rplyVal.discordExportHtml[0] + '.html'
+					]
+				});
 
 		} else {
 			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +

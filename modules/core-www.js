@@ -49,17 +49,11 @@ async function read() {
     read()
 })();
 var server;
-if (!options.key) {
-    server = require('http').createServer(www);
-    console.log('http server');
-} else {
-    server = require('https').createServer(options, www);
-    console.log('https server');
-}
+createWebServer();
 process.on('uncaughtException', (warning) => {
     console.warn(warning.name); // Print the warning name
     console.warn(warning.message); // Print the warning message
-    //console.warn(warning.stack); // Print the stack trace
+    var clock = setTimeout(createWebServer, 60000 * 5);
 });
 const io = require('socket.io')(server);
 const records = require('./records.js');
@@ -386,4 +380,14 @@ if (isMaster) {
             });
         }
     });
+}
+
+function createWebServer() {
+    if (!options.key) {
+        server = require('http').createServer(www);
+        console.log('http server');
+    } else {
+        server = require('https').createServer(options, www);
+        console.log('https server');
+    }
 }

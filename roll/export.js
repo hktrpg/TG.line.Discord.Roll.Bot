@@ -206,6 +206,8 @@ var rollDiceCommand = async function ({
             rply.quotes = true;
             return rply;
         case /^html$/i.test(mainMsg[1]):
+            rply.text = "功能暫停，請先使用TXT版 .discord txt"
+            return rply;
             if (!channelid || !groupid) {
                 rply.text = "這是頻道功能，需要在頻道上使用。"
                 return rply;

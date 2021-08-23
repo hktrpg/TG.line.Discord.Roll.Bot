@@ -56,7 +56,11 @@ if (!options.key) {
     server = require('https').createServer(options, www);
     console.log('https server');
 }
-
+process.on('uncaughtException', (warning) => {
+    console.warn(warning.name); // Print the warning name
+    console.warn(warning.message); // Print the warning message
+    //console.warn(warning.stack); // Print the stack trace
+});
 const io = require('socket.io')(server);
 const records = require('./records.js');
 const port = process.env.PORT || 20721;
@@ -272,7 +276,7 @@ records.on("new_message", async (message) => {
     if (message.msg && message.name.match(/^HKTRPG/ig)) {
         return;
     }
-    
+
     io.emit(message.roomNumber, message);
     let rplyVal = {}
     var mainMsg = message.msg.match(msgSplitor); // 定義輸入字串

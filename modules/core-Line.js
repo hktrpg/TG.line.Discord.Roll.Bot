@@ -111,7 +111,7 @@ var handleEvent = async function (event) {
 	}
 
 
-	if (event.source?.groupId) {
+	if (event.source && event.source.groupId) {
 		let gpProfile = await client.getGroupSummary(roomorgroupid);
 		titleName = (gpProfile && gpProfile.groupName) ? gpProfile.groupName : '';
 	}

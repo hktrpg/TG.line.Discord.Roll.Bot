@@ -93,8 +93,8 @@ var handleEvent = async function (event) {
 	}
 
 	let userid = event.source.userId || '',
-		displayname = (userid) ? await client.getProfile(userid)?.displayName ?? '' : '',
-		titleName = (event.source?.groupId) ? await client.getGroupSummary(roomorgroupid)?.groupName ?? '' : '';
+		displayname = await client.getProfile(userid)?.displayName ?? '',
+		titleName = await client.getGroupSummary(roomorgroupid)?.groupName ?? '';
 	let TargetGMTempID = [];
 	let TargetGMTempdiyName = [];
 	let TargetGMTempdisplayname = [];

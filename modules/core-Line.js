@@ -43,6 +43,7 @@ const joinMessage = `你剛剛添加了HKTRPG 骰子機械人!
 有關TRPG資訊, 可以到網站
 (http://www.hktrpg.com/)`;
 process.on("Line", message => {
+	console.log('line message', message)
 	if (!message.text) return;
 	SendToId(message.target.id, message.text);
 	return;

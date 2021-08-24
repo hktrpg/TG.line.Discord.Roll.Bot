@@ -98,12 +98,12 @@ var handleEvent = async function (event) {
 	let TargetGMTempdiyName = [];
 	let TargetGMTempdisplayname = [];
 	if (userid) {
-		let a = await client.getProfile(userid)?.displayName;
+		let a = await client.getProfile(userid);
 		console.log('a', a)
 	}
 
 	if (event.source?.groupId) {
-		let a = await client.getGroupSummary(roomorgroupid)?.groupName;
+		let a = await client.getGroupSummary(roomorgroupid);
 		console.log('a', a)
 	}
 

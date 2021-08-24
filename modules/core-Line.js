@@ -234,6 +234,7 @@ var handleEvent = async function (event) {
 			}
 			break;
 		default:
+			console.log('displayname', displayname)
 			if (displayname && rplyVal && rplyVal.type != 'image') {
 				//285083923223
 				displayname = "@" + displayname + (rplyVal.statue) ? ' ' + rplyVal.statue : '' + "\n";

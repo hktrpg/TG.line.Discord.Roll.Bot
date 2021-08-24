@@ -50,9 +50,14 @@ process.on("Line", message => {
 
 var handleEvent = async function (event) {
 	console.log('event', event)
+
 	let inputStr = (event.message && event.message.text) ? event.message.text : "";
 	let trigger = "";
 	let roomorgroupid = event.source.groupId || event.source.roomId || '';
+	if (roomorgroupid) {
+		let getGroupSummary = await client.getGroupSummary(roomorgroupid);
+		console.log(getGroupSummary)
+	}
 	let mainMsg = (inputStr) ? inputStr.match(msgSplitor) : {}; //定義輸入字串
 	if (mainMsg && mainMsg[0]) {
 		trigger = mainMsg[0].toString().toLowerCase();

@@ -108,7 +108,6 @@ var handleEvent = async function (event) {
 	if (userid) {
 		let profile = await client.getProfile(userid);
 		displayname = profile?.displayName ?? '';
-		console.log('displayname', profile)
 	}
 
 
@@ -234,7 +233,6 @@ var handleEvent = async function (event) {
 			}
 			break;
 		default:
-			console.log('displayname', displayname)
 			if (displayname && rplyVal?.type != 'image') {
 				//285083923223
 				displayname = "@" + displayname;

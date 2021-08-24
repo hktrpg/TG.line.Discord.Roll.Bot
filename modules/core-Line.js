@@ -49,6 +49,7 @@ process.on("Line", message => {
 })
 
 var handleEvent = async function (event) {
+	console.log('event', event)
 	let inputStr = (event.message && event.message.text) ? event.message.text : "";
 	let trigger = "";
 	let roomorgroupid = event.source.groupId || event.source.roomId || '';

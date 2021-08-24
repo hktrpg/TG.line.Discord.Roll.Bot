@@ -107,13 +107,13 @@ var handleEvent = async function (event) {
 	let TargetGMTempdisplayname = [];
 	if (userid) {
 		let profile = await client.getProfile(userid);
-		displayname = profile?.displayName ?? '';
+		displayname = (profile && profile.displayName) ? profile.displayName : '';
 	}
 
 
 	if (event.source?.groupId) {
 		let gpProfile = await client.getGroupSummary(roomorgroupid);
-		titleName = gpProfile?.groupName ?? '';
+		titleName = (gpProfile && gpProfile.groupName) ? gpProfile.groupName : '';
 	}
 
 
@@ -362,7 +362,7 @@ async function nonDice(event) {
 	let profile = await client.getProfile(userid);
 
 	//	在GP 而有加好友的話,得到名字
-	if (profile?.displayName) {
+	if (profile && profile.displayName) {
 		displayname = profile.displayName;
 	}
 	//console.log(displayname)

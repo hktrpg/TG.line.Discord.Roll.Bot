@@ -91,44 +91,52 @@ var handleEvent = async function (event) {
 		await nonDice(event)
 		return null
 	}
-
 	let userid = event.source.userId || '',
-		displayname = await client.getProfile(userid)?.displayName ?? '',
-		titleName = await client.getGroupSummary(roomorgroupid)?.groupName ?? '';
+		displayname = '',
+		titleName = '';
 	let TargetGMTempID = [];
 	let TargetGMTempdiyName = [];
 	let TargetGMTempdisplayname = [];
-
-	console.log('displayname', displayname, titleName)
-	if (event.type !== 'message' || event.message.type !== 'text') {
-		if (event.type == "join" && roomorgroupid) {
-			// 新加入群組時, 傳送MESSAGE
-			console.log("Line joined");
-			await replyMessagebyReplyToken(event, joinMessage);
-		} else {
-			// ignore non-text-message event
-			if (roomorgroupid && userid) {
-				await EXPUP(roomorgroupid, userid, displayname, "", null);
-			}
-		}
-		return Promise.resolve(null);
+	if (userid) {
+		let a = await client.getProfile(userid)?.displayName;
+		console.log('a', a)
 	}
 
+	if (event.source?.groupId) {
+		let a = await client.getGroupSummary(roomorgroupid)?.groupName;
+		console.log('a', a)
+	}
 
-	let rplyVal = {};
-	if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
-		//mainMsg.shift()
-		rplyVal = await exports.analytics.parseInput({
-			inputStr: inputStr,
-			groupid: roomorgroupid,
-			userid: userid,
-			userrole: 3,
-			botname: "Line",
-			displayname: displayname,
-			titleName: titleName
+	client.getProfile(userid).then(async function (profile) {
+		//	在GP 而有加好友的話,得到名字
+		displayname = profile.displayName;
+		//console.log(displayname)
+		await AfterCheckName();
+	},
+		async function () {
+			await AfterCheckName();
+			//如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
 		})
-	} else {
-		if (channelKeyword == '') {
+
+	async function AfterCheckName() {
+		if (event.type !== 'message' || event.message.type !== 'text') {
+			if (event.type == "join" && roomorgroupid) {
+				// 新加入群組時, 傳送MESSAGE
+				console.log("Line joined");
+				await replyMessagebyReplyToken(event, joinMessage);
+			} else {
+				// ignore non-text-message event
+				if (roomorgroupid && userid) {
+					await EXPUP(roomorgroupid, userid, displayname, "", null);
+				}
+			}
+			return Promise.resolve(null);
+		}
+
+
+		let rplyVal = {};
+		if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
+			//mainMsg.shift()
 			rplyVal = await exports.analytics.parseInput({
 				inputStr: inputStr,
 				groupid: roomorgroupid,
@@ -137,132 +145,143 @@ var handleEvent = async function (event) {
 				botname: "Line",
 				displayname: displayname,
 				titleName: titleName
-			});
-			//console.log('channelKeyword', rplyVal)
-		}
-
-	}
-	//LevelUp功能
-	if (!rplyVal.text && !rplyVal.LevelUp)
-		return;
-
-	if (roomorgroupid && rplyVal && rplyVal.LevelUp) {
-		//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
-		if (displayname) {
-			rplyVal.text = rplyVal.LevelUp + '\n' + rplyVal.text;
-			//await SendToId(roomorgroupid, "@" + displayname + ' \n' + rplyVal.LevelUp
+			})
 		} else {
-			//await SendToId(roomorgroupid, rplyVal.LevelUp)
-			rplyVal.text = rplyVal.LevelUp + '\n' + rplyVal.text;
+			if (channelKeyword == '') {
+				rplyVal = await exports.analytics.parseInput({
+					inputStr: inputStr,
+					groupid: roomorgroupid,
+					userid: userid,
+					userrole: 3,
+					botname: "Line",
+					displayname: displayname,
+					titleName: titleName
+				});
+				//console.log('channelKeyword', rplyVal)
+			}
+
 		}
-	}
-	//Linecountroll++;
-	if (!rplyVal.text) {
-		return;
-	}
-	if (privatemsg > 1 && TargetGM) {
-		let groupInfo = await privateMsgFinder(roomorgroupid) || [];
-		groupInfo.forEach((item) => {
-			TargetGMTempID.push(item.userid);
-			TargetGMTempdiyName.push(item.diyName);
-			TargetGMTempdisplayname.push(item.displayname);
-		})
-		//當是私訊模式1-3時
-	}
+		//LevelUp功能
+		if (!rplyVal.text && !rplyVal.LevelUp)
+			return;
 
-	switch (true) {
-		case privatemsg == 1:
-			// 輸入dr  (指令) 私訊自己
-			if (roomorgroupid && userid)
-				if (displayname)
-					await replyMessagebyReplyToken(event, "@" + displayname + ' 暗骰給自己');
-				else
-					await replyMessagebyReplyToken(event, '正在暗骰給自己');
-			if (userid)
-				if (displayname)
-					await SendToId(userid, "@" + displayname + '的暗骰\n' + rplyVal.text);
-				else
-					await SendToId(userid, rplyVal.text);
-			break;
-		case privatemsg == 2:
-			//輸入ddr(指令) 私訊GM及自己
-			//房間訊息
-			if (roomorgroupid) {
-				let targetGMNameTemp = "";
-				for (let i = 0; i < TargetGMTempID.length; i++) {
-					targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
-				}
-				if (displayname) {
-					await replyMessagebyReplyToken(event, "@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
-				} else
-					await replyMessagebyReplyToken(event, ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
-			}
-
-			//有名字就顯示
+		if (roomorgroupid && rplyVal && rplyVal.LevelUp) {
+			//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
 			if (displayname) {
-				rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
+				rplyVal.text = rplyVal.LevelUp + '\n' + rplyVal.text;
+				//await SendToId(roomorgroupid, "@" + displayname + ' \n' + rplyVal.LevelUp
+			} else {
+				//await SendToId(roomorgroupid, rplyVal.LevelUp)
+				rplyVal.text = rplyVal.LevelUp + '\n' + rplyVal.text;
 			}
-			//傳給自己
-			await SendToId(userid, rplyVal.text);
-			for (let i = 0; i < TargetGMTempID.length; i++) {
-				if (userid != TargetGMTempID[i]) {
+		}
+		//Linecountroll++;
+		if (!rplyVal.text) {
+			return;
+		}
+		if (privatemsg > 1 && TargetGM) {
+			let groupInfo = await privateMsgFinder(roomorgroupid) || [];
+			groupInfo.forEach((item) => {
+				TargetGMTempID.push(item.userid);
+				TargetGMTempdiyName.push(item.diyName);
+				TargetGMTempdisplayname.push(item.displayname);
+			})
+			//當是私訊模式1-3時
+		}
+
+		switch (true) {
+			case privatemsg == 1:
+				// 輸入dr  (指令) 私訊自己
+				if (roomorgroupid && userid)
+					if (displayname)
+						await replyMessagebyReplyToken(event, "@" + displayname + ' 暗骰給自己');
+					else
+						await replyMessagebyReplyToken(event, '正在暗骰給自己');
+				if (userid)
+					if (displayname)
+						await SendToId(userid, "@" + displayname + '的暗骰\n' + rplyVal.text);
+					else
+						await SendToId(userid, rplyVal.text);
+				break;
+			case privatemsg == 2:
+				//輸入ddr(指令) 私訊GM及自己
+				//房間訊息
+				if (roomorgroupid) {
+					let targetGMNameTemp = "";
+					for (let i = 0; i < TargetGMTempID.length; i++) {
+						targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
+					}
+					if (displayname) {
+						await replyMessagebyReplyToken(event, "@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
+					} else
+						await replyMessagebyReplyToken(event, ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
+				}
+
+				//有名字就顯示
+				if (displayname) {
+					rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
+				}
+				//傳給自己
+				await SendToId(userid, rplyVal.text);
+				for (let i = 0; i < TargetGMTempID.length; i++) {
+					if (userid != TargetGMTempID[i]) {
+						await SendToId(TargetGMTempID[i], rplyVal.text);
+					}
+				}
+				break;
+			case privatemsg == 3:
+				//輸入dddr(指令) 私訊GM
+				//如在房中
+				if (roomorgroupid) {
+					let targetGMNameTemp = "";
+					for (let i = 0; i < TargetGMTempID.length; i++) {
+						targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
+					}
+					if (displayname) {
+						await replyMessagebyReplyToken(event, "@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
+					} else {
+						await replyMessagebyReplyToken(event, ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
+					}
+				}
+				if (displayname)
+					rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
+				for (let i = 0; i < TargetGMTempID.length; i++) {
 					await SendToId(TargetGMTempID[i], rplyVal.text);
 				}
-			}
-			break;
-		case privatemsg == 3:
-			//輸入dddr(指令) 私訊GM
-			//如在房中
-			if (roomorgroupid) {
-				let targetGMNameTemp = "";
-				for (let i = 0; i < TargetGMTempID.length; i++) {
-					targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
+				break;
+			default:
+				if (displayname && rplyVal && rplyVal.type != 'image') {
+					//285083923223
+					displayname = "@" + displayname + (rplyVal.statue) ? ' ' + rplyVal.statue : '' + "\n";
+					rplyVal.text = displayname + rplyVal.text;
 				}
-				if (displayname) {
-					await replyMessagebyReplyToken(event, "@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
-				} else {
-					await replyMessagebyReplyToken(event, ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
+				//	console.log('rplyVal: ', rplyVal)
+				if (roomorgroupid) {
+					return await replyMessagebyReplyToken(event, rplyVal);
+				} else if (userid) {
+					return await replyMessagebyReplyToken(event, rplyVal);
 				}
-			}
-			if (displayname)
-				rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
-			for (let i = 0; i < TargetGMTempID.length; i++) {
-				await SendToId(TargetGMTempID[i], rplyVal.text);
-			}
-			break;
-		default:
-			if (displayname && rplyVal && rplyVal.type != 'image') {
-				//285083923223
-				displayname = "@" + displayname + (rplyVal.statue) ? ' ' + rplyVal.statue : '' + "\n";
-				rplyVal.text = displayname + rplyVal.text;
-			}
-			//	console.log('rplyVal: ', rplyVal)
-			if (roomorgroupid) {
-				return await replyMessagebyReplyToken(event, rplyVal);
-			} else if (userid) {
-				return await replyMessagebyReplyToken(event, rplyVal);
-			}
-			break;
+				break;
+		}
+		return;
+
+
+		//rplyVal.text
+
+
+
+		/**pushMessage
+		 * client.pushImage(USER_ID, {
+			  originalContentUrl: 'https://example.com/original.jpg',
+			  previewImageUrl: 'https://example.com/preview.jpg',
+		 });
+		 */
+		// create a echoing text message
+		//await exports.analytics.parseInput(event.message.text)
+
+		// use reply API
+		//Reply Max: 2000 characters
 	}
-	return;
-
-
-	//rplyVal.text
-
-
-
-	/**pushMessage
-	 * client.pushImage(USER_ID, {
-		  originalContentUrl: 'https://example.com/original.jpg',
-		  previewImageUrl: 'https://example.com/preview.jpg',
-	 });
-	 */
-	// create a echoing text message
-	//await exports.analytics.parseInput(event.message.text)
-
-	// use reply API
-	//Reply Max: 2000 characters
-
 }
 var replyMessagebyReplyToken = async function (event, Reply) {
 	let temp = await HandleMessage(Reply);

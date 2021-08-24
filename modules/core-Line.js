@@ -235,9 +235,10 @@ var handleEvent = async function (event) {
 			break;
 		default:
 			console.log('displayname', displayname)
-			if (displayname && rplyVal && rplyVal.type != 'image') {
+			if (displayname && rplyVal?.type != 'image') {
 				//285083923223
-				displayname = "@" + displayname + (rplyVal.statue) ? ' ' + rplyVal.statue : '' + "\n";
+				displayname = "@" + displayname;
+				displayname += (rplyVal.statue) ? ' ' + rplyVal.statue + '\n' : "\n";
 				rplyVal.text = displayname + rplyVal.text;
 			}
 			//	console.log('rplyVal: ', rplyVal)

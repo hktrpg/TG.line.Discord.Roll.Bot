@@ -106,14 +106,25 @@ var handleEvent = async function (event) {
 	let TargetGMTempdiyName = [];
 	let TargetGMTempdisplayname = [];
 	if (userid) {
-		let profile = await client.getProfile(userid);
-		displayname = (profile && profile.displayName) ? profile.displayName : '';
+		try {
+			let profile = await client.getProfile(userid);
+			displayname = (profile && profile.displayName) ? profile.displayName : '';
+		} catch (error) {
+			//
+		}
+
+
 	}
 
 
 	if (event.source && event.source.groupId) {
-		let gpProfile = await client.getGroupSummary(roomorgroupid);
-		titleName = (gpProfile && gpProfile.groupName) ? gpProfile.groupName : '';
+		try {
+			let gpProfile = await client.getGroupSummary(roomorgroupid);
+			titleName = (gpProfile && gpProfile.groupName) ? gpProfile.groupName : '';
+		} catch (error) {
+			//
+		}
+
 	}
 
 

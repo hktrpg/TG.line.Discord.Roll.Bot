@@ -108,6 +108,7 @@ var handleEvent = async function (event) {
 	if (userid) {
 		let profile = await client.getProfile(userid);
 		displayname = profile?.displayName ?? '';
+		console.log('displayname', profile)
 	}
 
 

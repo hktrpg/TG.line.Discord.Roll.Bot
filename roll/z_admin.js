@@ -303,7 +303,6 @@ var rollDiceCommand = async function ({
                     }
                 }, opt)
                 if (doc) {
-                    await VIP.renew();
                     rply.text = "更新成功\n";
                     rply.text += JSON.stringify(filter);
 
@@ -329,7 +328,6 @@ var rollDiceCommand = async function ({
                     }
                 }, opt)
                 if (doc) {
-                    await VIP.renew();
                     rply.text = "更新成功\n";
                     rply.text += JSON.stringify(filter);
                 }

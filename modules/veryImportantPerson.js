@@ -30,6 +30,9 @@ async function renew() {
     viplevel = await schema.veryImportantPerson.find({});
 }
 
+
+setInterval(renew, 10 * 60 * 1000);
+
 module.exports = {
     viplevelCheckGroup: viplevelCheckGroup,
     viplevelCheckUser: viplevelCheckUser,

@@ -14,6 +14,7 @@ HKTRPG 興趣使然地創作及維護 TRPG工具，包括
 - [TRPG網站](https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81)
 - [TRPG文章](https://www.patreon.com/HKTRPG)
 - [HKTRPG 研究社 Facebook](https://www.facebook.com/groups/HKTRPG)
+- [HKTRPG 名人堂Hall of Fame](https://hktrpg.github.io/TG.line.Discord.Roll.Bot/CREDITS.html)
 
 ---
 

@@ -31,6 +31,8 @@ HKTRPG 興趣使然地創作及維護 TRPG工具，包括
 
 [無限恐怖TRPG角色卡](https://www.hktrpg.com/wiki/index.php/%E7%84%A1%E9%99%90%E6%81%90%E6%80%96)
 
+![角色卡](https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20inf.jpg?raw=true)
+
 ## HKTRPG 擲骰BOT
 
 已經開發四年的骰子機械人，因為一個[教學](https://docs.google.com/document/d/1dYnJqF2_QTp90ld4YXj6X8kgxvjUoHrB4E2seqlDlAk/edit#heading=h.91v9osx4fxtt)而誕生出來。

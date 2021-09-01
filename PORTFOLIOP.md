@@ -121,7 +121,7 @@ WIKI
 
 廣東話教學
 
-- [Roll20 TRPG 跑團平台](https://www.youtube.com/watch?v=5XoWtznqdcc&list=PLcS__l3P8LYkXWF7et23MHmDl1OSrEGBS&index=2)
+- [Roll20 TRPG 跑團平台教學](https://www.youtube.com/watch?v=5XoWtznqdcc&list=PLcS__l3P8LYkXWF7et23MHmDl1OSrEGBS&index=2)
 - [無限恐怖TRPG遊戲講解](https://www.youtube.com/watch?v=_DQi0t_BmwM&list=PLcS__l3P8LYkXWF7et23MHmDl1OSrEGBS&index=4)
 - [忍神 教學 及 介紹 (故事背景, 流程, 開卡介紹)](https://www.youtube.com/watch?v=vCdsQk5rjmA&list=PLcS__l3P8LYkXWF7et23MHmDl1OSrEGBS&index=5)
 - [多元恐怖流派TRPG - inSANe 廣東話 講解介紹](https://www.youtube.com/watch?v=HRBWnwBgmiU&list=PLcS__l3P8LYkXWF7et23MHmDl1OSrEGBS&index=6)

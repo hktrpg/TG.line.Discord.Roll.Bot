@@ -67,7 +67,7 @@ HKTRPG 興趣使然地創作及維護 TRPG工具，包括
 - [烏冬](https://z01.hktrpg.com)
 2.5D的平台，FVTT以外我最愛的跑團平台，因為開發容易，所以我加了一些功能進去，也翻譯成中文。
 
-![烏冬](https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20udo.jpg?raw=true)
+![烏冬](https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20udo.png?raw=true)
 
 - [冰丼](https://z02.hktrpg.com)
 冰豆腐的進化版?只翻譯成中文

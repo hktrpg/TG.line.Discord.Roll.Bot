@@ -105,4 +105,4 @@ WIKI
 
 [感謝對HKTRPG的幫助和在Patreon贊助](https://hktrpg.github.io/TG.line.Discord.Roll.Bot/CREDITS.html)
 
-[![HKTRPG](https://github.com/hktrpg/TG.line.Discord.Roll.Bot/raw/master/views/image.png?v=100)](https://www.patreon.com/HKTRPG)
+[![HKTRPG](https://github.com/hktrpg/TG.line.Discord.Roll.Bot/raw/master/views/image.png?s=100)](https://www.patreon.com/HKTRPG)

@@ -6,11 +6,11 @@ HKTRPG 興趣使然地創作及維護 TRPG工具，包括
 
 - 網上角色卡 - [Discord連動角色卡](https://www.hktrpg.com:20721/card/)，[無限恐怖TRPG](https://www.hktrpg.com/wiki/index.php/%E7%84%A1%E9%99%90%E6%81%90%E6%80%96)
 - 擲骰BOT - [HKTRPG](https://hktrpg.github.io/TG.line.Discord.Roll.Bot/)
-- 擲骰平台 - [HKTRPG擲骰聊天室](https://www.hktrpg.com:20721/)，[手機擲骰](https://roll.hktrpg.com/)
+- 擲骰平台 - [TRPG擲骰聊天室](https://www.hktrpg.com:20721/)，[手機擲骰](https://roll.hktrpg.com/)
 - 跑團平台 - [烏冬](https://z01.hktrpg.com)，[冰丼](https://z02.hktrpg.com)
 - ROLL20，FoundryVTT相關工具
 - 代托管骰子，FVTT
-- [TRPG網站](https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81)
+- [TRPG百科HKTRPG](https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81)
 - [TRPG文章](https://www.patreon.com/HKTRPG)
 - [HKTRPG 研究社 Facebook](https://www.facebook.com/groups/HKTRPG)
 - [Zzzzz教 Discord群](https://discord.com/invite/vx4kcm7) 為了跑團而創的地方

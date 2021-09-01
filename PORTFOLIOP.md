@@ -101,7 +101,9 @@ WIKI
 >
 >提供獨立網址
 >
->代你托管由你命名的TRPG骰子機械人，可以在選擇Discord,  line 或 >Telegram平台。適合私人群組使用。
+>代你托管由你命名的TRPG骰子機械人，可以在選擇Discord,  line 或
+>
+>Telegram平台。適合私人群組使用。
 >
 
 ## [TRPG WIKI 百科](https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81)

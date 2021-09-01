@@ -1,13 +1,12 @@
 # HKTRPG作品集
 
-[![HKTRPG](https://github.com/hktrpg/TG.line.Discord.Roll.Bot/raw/master/views/image.png)](https://www.patreon.com/HKTRPG)
-
 [![Discord](https://camo.githubusercontent.com/1ed68e831b9f36401679d31acfc1c7ba74c4223d2559192718f32d3e34ee3074/68747470733a2f2f696d672e736869656c64732e696f2f646973636f72642f3237383230323334373136353937343532393f6c6f676f3d646973636f7264)](https://discord.gg/vx4kcm7)
 
 HKTRPG 興趣使然地創作及維護 TRPG工具，包括
 
 - 網上角色卡 - [Discord連動角色卡](https://www.hktrpg.com:20721/card/)，[無限恐怖TRPG](https://www.hktrpg.com/wiki/index.php/%E7%84%A1%E9%99%90%E6%81%90%E6%80%96)
 - 擲骰BOT - [HKTRPG](https://hktrpg.github.io/TG.line.Discord.Roll.Bot/)
+- 擲骰平台 - [HKTRPG擲骰聊天室](https://www.hktrpg.com:20721/)，[手機擲骰](https://roll.hktrpg.com/)
 - 跑團平台 - [烏冬](https://z01.hktrpg.com)，[冰丼](https://z02.hktrpg.com)
 - ROLL20，FoundryVTT相關工具
 - 代托管骰子，FVTT
@@ -19,13 +18,18 @@ HKTRPG 興趣使然地創作及維護 TRPG工具，包括
 
 ## 網上角色卡
 
-[Discord連動角色卡](https://www.hktrpg.com:20721/card/) 除了可以在Discord，Telegram，Line上操作外，還可以在網站上使用，並把擲骰結果傳送到該聊天平台。
+[Discord連動角色卡](https://www.hktrpg.com:20721/card/)
+
+除了可以在Discord，Telegram，Line上操作外，還可以在網站上使用，並把擲骰結果傳送到該聊天平台。
 
 ## HKTRPG 擲骰BOT
 
 已經開發四年的骰子機械人，因為一個[教學](https://docs.google.com/document/d/1dYnJqF2_QTp90ld4YXj6X8kgxvjUoHrB4E2seqlDlAk/edit#heading=h.91v9osx4fxtt)而誕生出來。
+
 [29種功能詳情](https://hktrpg.github.io/TG.line.Discord.Roll.Bot/)，包括
-> 暗骰, 各類TRPG骰子擲骰, 頻道經驗值, 頻道遊戲, 占卜, 先攻表, TRPG網上角色卡, 搜圖, 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, 自定義抽選, wiki查詢, 資料庫快速查詢功能
+> 暗骰, 各類TRPG骰子擲骰, 頻道經驗值, 頻道遊戲, 占卜, 先攻表, TRPG網上角色卡, 搜圖,
+>
+> 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, 自定義抽選, wiki查詢, 資料庫快速查詢功能
 
 ## 跑團平台
 
@@ -100,3 +104,5 @@ WIKI
 ## HKTRPG 名人堂Hall of Fame
 
 [感謝對HKTRPG的幫助和在Patreon贊助](https://hktrpg.github.io/TG.line.Discord.Roll.Bot/CREDITS.html)
+
+[![HKTRPG](https://github.com/hktrpg/TG.line.Discord.Roll.Bot/raw/master/views/image.png =100x100)](https://www.patreon.com/HKTRPG)

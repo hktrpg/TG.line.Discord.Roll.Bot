@@ -12,9 +12,12 @@ HKTRPG 興趣使然地創作及維護 TRPG工具，包括
 - [FoundryVTT相關開發](#foundryvtt)
 - [代托管骰子，FVTT](#代托管骰子機械人及foundry-vtt)
 - [TRPG百科HKTRPG](https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81)
-- [TRPG文章](https://www.patreon.com/HKTRPG)
+- [TRPG文章](#trpg文章)
+- [TRPG語音教學](#trpg教學影片)
+- [TRPG語音跑團紀錄](#trpg跑團紀錄)
 - [HKTRPG 研究社 Facebook](https://www.facebook.com/groups/HKTRPG)
 - [Zzzzz教 Discord群](https://discord.com/invite/vx4kcm7) 為了跑團而創的地方
+- [HKTRPG Patreon空間](https://www.patreon.com/HKTRPG)
 
 ---
 
@@ -111,6 +114,23 @@ WIKI
 
 - [[TRPG小知識]bcdice 介紹](https://www.patreon.com/posts/trpgxiao-zhi-shi-51351117)
 - [TRPG/CoC秘密團感想](https://www.patreon.com/posts/trpg-cocmi-mi-55569183)
+
+## TRPG教學影片
+
+廣東話教學
+
+- [Roll20 TRPG 跑團平台](https://www.youtube.com/watch?v=5XoWtznqdcc&list=PLcS__l3P8LYkXWF7et23MHmDl1OSrEGBS&index=2)
+- [無限恐怖TRPG遊戲講解](https://www.youtube.com/watch?v=_DQi0t_BmwM&list=PLcS__l3P8LYkXWF7et23MHmDl1OSrEGBS&index=4)
+- [忍神 教學 及 介紹 (故事背景, 流程, 開卡介紹)](https://www.youtube.com/watch?v=vCdsQk5rjmA&list=PLcS__l3P8LYkXWF7et23MHmDl1OSrEGBS&index=5)
+- [多元恐怖流派TRPG - inSANe 廣東話 講解介紹](https://www.youtube.com/watch?v=HRBWnwBgmiU&list=PLcS__l3P8LYkXWF7et23MHmDl1OSrEGBS&index=6)
+- [哥布林殺手TRPG 開卡教學](https://www.youtube.com/watch?v=vHBc6uwjRAs&list=PLcS__l3P8LYkXWF7et23MHmDl1OSrEGBS&index=7)
+- [克蘇魯迷踪 TRPG 規則講解](https://www.youtube.com/watch?v=vBqTYFeYXkg&list=PLcS__l3P8LYkXWF7et23MHmDl1OSrEGBS&index=8)
+- [Cyberpunk 2.0.2.0. TRPG 規則講解](https://www.youtube.com/watch?v=wkliFKIrCK8&list=PLcS__l3P8LYkXWF7et23MHmDl1OSrEGBS&index=10)
+- [無聲二重唱 講解](https://www.youtube.com/watch?v=i8aEHp5AiKg&list=PLcS__l3P8LYkXWF7et23MHmDl1OSrEGBS&index=11)
+
+## TRPG跑團紀錄
+
+- [香港TRPG COC跑團YT紀錄](https://www.youtube.com/playlist?list=PLcS__l3P8LYmiJF_adeiySynbmum7I_aC)
 
 ## HKTRPG 研究社 Facebook
 

@@ -73,9 +73,13 @@ WIKI
 不懂程式，但又想有一個穩定而獨立的跑團工具?
 [可以找HKTRPG代勞](https://www.patreon.com/HKTRPG)
 >FoundryVTT (2GB容量)代托管服務及技術支援(不包括FoundryVTT本體)。
+>
 >預繳一年，可以借出FoundryVTT本體，不需額外購買(Payme，Paypal付款)。
+>
 >提供獨立網址
+>
 >代你托管由你命名的TRPG骰子機械人，可以在選擇Discord,  line 或 >Telegram平台。適合私人群組使用。
+>
 
 ## [TRPG WIKI 百科](https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81)
 

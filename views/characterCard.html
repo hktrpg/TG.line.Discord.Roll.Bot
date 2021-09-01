@@ -11,10 +11,10 @@
         font-weight: 400;
         color: #000000 !important;
         text-decoration: none;
-        padding:  0px  8px 0px 8px !important;
+        padding: 0px 8px 0px 8px !important;
         border-bottom: 00px !important;
         margin-bottom: 25px !important;
-        height: 32px  !important;
+        height: 32px !important;
 
     }
 
@@ -161,6 +161,10 @@
                         <a class="dropdown-item" href="http://t.me/hktrpg_bot">Telegram 骰子機械人</a>
                         <a class="dropdown-item" href="http://bit.ly/HKTRPG_LINE">Line 骰子機械人</a>
                     </div>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link"
+                        href="https://hktrpg.github.io/TG.line.Discord.Roll.Bot/PORTFOLIOP">HKTRPG作品集</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="https://www.patreon.com/HKTRPG">訂閱</a>
@@ -350,7 +354,8 @@
                         <div class="form-group">
                             <div id="array-cardList">
                                 <span v-for="(item,index) in list" :key="index" class="col">
-                                    <button type="button" class="btn btn-warning m-1" v-on:click="getTheSelectedOne(index)">
+                                    <button type="button" class="btn btn-warning m-1"
+                                        v-on:click="getTheSelectedOne(index)">
                                         {{item.name}}</button>
                                 </span>
                             </div>

@@ -13,6 +13,7 @@ HKTRPG 興趣使然地創作及維護 TRPG工具，包括
 - [TRPG網站](https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81)
 - [TRPG文章](https://www.patreon.com/HKTRPG)
 - [HKTRPG 研究社 Facebook](https://www.facebook.com/groups/HKTRPG)
+- [Zzzzz教 Discord群](https://discord.com/invite/vx4kcm7) 為了跑團而創的地方
 
 ---
 
@@ -30,6 +31,19 @@ HKTRPG 興趣使然地創作及維護 TRPG工具，包括
 > 暗骰, 各類TRPG骰子擲骰, 頻道經驗值, 頻道遊戲, 占卜, 先攻表, TRPG網上角色卡, 搜圖,
 >
 > 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, 自定義抽選, wiki查詢, 資料庫快速查詢功能
+
+支援
+
+- [LINE](https://line.me/R/ti/p/svMLqy9Mik)
+- [Discord](https://discordapp.com/oauth2/authorize?&client_id=544462904037081138&scope=bot&permissions=8)
+- [Telegram](http://t.me/hktrpg_bot)
+- [Plark](https://www.plurk.com/hktrpg)
+- Whatsapp 私人使用中
+
+## 擲骰平台
+
+- [手機擲骰](https://roll.hktrpg.com/) - 為了可以不動腦擲骰而寫出來的
+- [TRPG擲骰聊天室](https://www.hktrpg.com:20721/) - 可以擲骰的聊天室
 
 ## 跑團平台
 

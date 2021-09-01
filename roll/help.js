@@ -124,6 +124,7 @@ bothelp funny	- 查詢趣味功能
 bothelp link	- 查詢hktrpg 不同平台連結
 bothelp req		- 對HKTRPG RollBot提出意見
 --------
+HKTRPG 作品集 https://hktrpg.github.io/TG.line.Discord.Roll.Bot/PORTFOLIOP
 程式開發，求助及TRPG Discord群 https://discord.gg/vx4kcm7
 解鎖功能及贊助HKTRPG https://www.patreon.com/HKTRPG`
 			return rply;

@@ -125,10 +125,11 @@ WIKI
 
 - [[TRPG小知識]bcdice 介紹](https://www.patreon.com/posts/trpgxiao-zhi-shi-51351117)
 - [TRPG/CoC秘密團感想](https://www.patreon.com/posts/trpg-cocmi-mi-55569183)
+- [簡易Token製作教學](https://docs.google.com/document/d/1LEJAL8ckieSotkwM8Ri2F2qVPT7B3TOE-pPkKp_m1Q8/edit)
 
 ## TRPG教學影片
 
-廣東話教學
+廣東話教學影片
 
 - [Roll20 TRPG 跑團平台教學](https://www.youtube.com/watch?v=5XoWtznqdcc&list=PLcS__l3P8LYkXWF7et23MHmDl1OSrEGBS&index=2)
 - [無限恐怖TRPG遊戲講解](https://www.youtube.com/watch?v=_DQi0t_BmwM&list=PLcS__l3P8LYkXWF7et23MHmDl1OSrEGBS&index=4)
@@ -142,6 +143,8 @@ WIKI
 ## TRPG跑團紀錄
 
 ![YT跑團紀錄](https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20youtube.jpg?raw=true)
+
+- [圖片紀錄](https://docs.google.com/document/d/1poCQeL21Aeg_3p8N2lDn8LXki5v1UH5G4YZMmYeaes4/edit?usp=sharing)
 
 - [香港TRPG COC跑團YT紀錄](https://www.youtube.com/playlist?list=PLcS__l3P8LYmiJF_adeiySynbmum7I_aC)
 

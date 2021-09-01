@@ -56,6 +56,8 @@ HKTRPG 興趣使然地創作及維護 TRPG工具，包括
 
 - [TRPG擲骰聊天室](https://www.hktrpg.com:20721/) - 可以擲骰的聊天室
 
+![手機擲骰](https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20chatroom.jpg?raw=true)
+
 ## 跑團平台
 
 - [烏冬](https://z01.hktrpg.com)
@@ -138,6 +140,8 @@ WIKI
 - [無聲二重唱 講解](https://www.youtube.com/watch?v=i8aEHp5AiKg&list=PLcS__l3P8LYkXWF7et23MHmDl1OSrEGBS&index=11)
 
 ## TRPG跑團紀錄
+
+![YT跑團紀錄](https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20youtube.jpg?raw=true)
 
 - [香港TRPG COC跑團YT紀錄](https://www.youtube.com/playlist?list=PLcS__l3P8LYmiJF_adeiySynbmum7I_aC)
 

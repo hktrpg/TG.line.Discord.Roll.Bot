@@ -4,9 +4,9 @@
 
 HKTRPG 興趣使然地創作及維護 TRPG工具，包括
 
-- 網上角色卡 - [Discord連動角色卡](https://www.hktrpg.com:20721/card/)，[無限恐怖TRPG](https://www.hktrpg.com/wiki/index.php/%E7%84%A1%E9%99%90%E6%81%90%E6%80%96)
-- 擲骰BOT - [HKTRPG](https://hktrpg.github.io/TG.line.Discord.Roll.Bot/)
-- 擲骰平台 - [TRPG擲骰聊天室](https://www.hktrpg.com:20721/)，[手機擲骰](https://roll.hktrpg.com/)
+- 網上角色卡 - [Discord連動角色卡](#網上角色卡)，[無限恐怖TRPG角色卡](https://www.hktrpg.com/wiki/index.php/%E7%84%A1%E9%99%90%E6%81%90%E6%80%96)
+- 擲骰BOT - [HKTRPG](#hktrpg-擲骰bot)
+- 擲骰平台 - [TRPG擲骰聊天室](#擲骰平台)，[手機擲骰](https://roll.hktrpg.com/)
 - 跑團平台 - [烏冬](https://z01.hktrpg.com)，[冰丼](https://z02.hktrpg.com)
 - [ROLL20 相關開發](#roll20)
 - [FoundryVTT相關開發](#foundryvtt)
@@ -130,7 +130,7 @@ WIKI
 - [TRPG/CoC秘密團感想](https://www.patreon.com/posts/trpg-cocmi-mi-55569183)
 - [簡易Token製作教學](https://docs.google.com/document/d/1LEJAL8ckieSotkwM8Ri2F2qVPT7B3TOE-pPkKp_m1Q8/edit)
 
-![簡易Token製作教學](https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20token.jpg?raw=true)
+![簡易Token製作教學](https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20token.png?raw=true)
 
 ## TRPG教學影片
 

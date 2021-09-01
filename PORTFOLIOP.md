@@ -46,9 +46,14 @@ HKTRPG 興趣使然地創作及維護 TRPG工具，包括
 - [Plark](https://www.plurk.com/hktrpg)
 - Whatsapp 私人使用中
 
+![HKTRPG](https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20hktrpg.jpg?raw=true)
+
 ## 擲骰平台
 
 - [手機擲骰](https://roll.hktrpg.com/) - 為了可以不動腦擲骰而寫出來的
+
+![手機擲骰](https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20roll.jpg?raw=true)
+
 - [TRPG擲骰聊天室](https://www.hktrpg.com:20721/) - 可以擲骰的聊天室
 
 ## 跑團平台

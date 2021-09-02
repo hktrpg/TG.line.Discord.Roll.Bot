@@ -73,7 +73,7 @@ Plurk_Client.on('new_plurk', async response => {
     }
     rplyVal.text = `${displayname}${(rplyVal.text) ? '\n' + rplyVal.text : ''}${(rplyVal.LevelUp) ? '\n' + rplyVal.LevelUp : ''}`
 
-    return await sendMessage(response.plurk_id, rplyVal.text);
+    return sendMessage(response.plurk_id, rplyVal.text);
 
 });
 
@@ -130,13 +130,13 @@ Plurk_Client.on('new_response', async response => {
 
     }
     rplyVal.text = `${displayName}${(rplyVal.text) ? '\n' + rplyVal.text : ''}${(rplyVal.LevelUp) ? '\n' + rplyVal.LevelUp : ''}`
-    return await sendMessage(response.plurk.plurk_id, rplyVal.text);
+    return sendMessage(response.plurk.plurk_id, rplyVal.text);
 
 })
 
 async function sendMessage(response, rplyVal) {
     try {
-        await Plurk_Client.request('Responses/responseAdd', { plurk_id: response, content: rplyVal.toString().match(/[\s\S]{1,300}/g)[0], qualifier: 'says' })
+        Plurk_Client.request('Responses/responseAdd', { plurk_id: response, content: rplyVal.toString().match(/[\s\S]{1,300}/g)[0], qualifier: 'says' })
     } catch (error) {
         if (!error.error_text == "anti-flood-same-content")
             console.error(error.error_text);
@@ -149,7 +149,7 @@ async function nonDice(groupid, userid, displayname, plurk_id) {
     if (!groupid || !userid) return;
     let LevelUp = await EXPUP(groupid, userid, displayname, "", null);
     if (groupid && LevelUp) {
-        await sendMessage(plurk_id, LevelUp);
+        sendMessage(plurk_id, LevelUp);
     }
 
     return null;

@@ -71,9 +71,13 @@ Plurk_Client.on('new_plurk', async response => {
     if (!rplyVal.text && !rplyVal.LevelUp) {
         return;
     }
-    rplyVal.text = `${displayname}${(rplyVal.text) ? '\n' + rplyVal.text : ''}${(rplyVal.LevelUp) ? '\n' + rplyVal.LevelUp : ''}`
 
-    return await sendMessage(response.plurk_id, rplyVal.text);
+    let rplyText = '';
+    if (displayname) rplyText += `${displayname}\n`
+    if (rplyVal.text) rplyText += `${rplyVal.text}\n`
+    if (rplyVal.LevelUp) rplyText += `${rplyVal.LevelUp}`
+
+    return await sendMessage(response.plurk_id, rplyText);
 
 });
 
@@ -129,11 +133,11 @@ Plurk_Client.on('new_response', async response => {
             displayName = `${response.user[i].display_name}`
 
     }
-
-    rplyVal.text = `${displayName}\n`
-    if (rplyVal.text) rplyVal.text += `${rplyVal.text}\n`
-    if (rplyVal.LevelUp) rplyVal.text += `${rplyVal.LevelUp}`
-    return await sendMessage(response.plurk.plurk_id, rplyVal.text);
+    let rplyText = '';
+    if (displayName) rplyText += `${displayName}\n`
+    if (rplyVal.text) rplyText += `${rplyVal.text}\n`
+    if (rplyVal.LevelUp) rplyText += `${rplyVal.LevelUp}`
+    return await sendMessage(response.plurk.plurk_id, rplyText);
 
 })
 

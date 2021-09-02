@@ -35,6 +35,8 @@ HKTRPG 興趣使然地創作及維護 TRPG工具，包括
 
 [分享其他角色卡](https://docs.google.com/document/d/1oNNbdZq0Vp66gCmY5C5Fmnqw-DR9TE-9jlFrJrMZ8SU/edit)
 
+![角色卡](https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20othercard.jpg?raw=true)
+
 ## HKTRPG 擲骰BOT
 
 已經開發四年的骰子機械人，因為一個[教學](https://docs.google.com/document/d/1dYnJqF2_QTp90ld4YXj6X8kgxvjUoHrB4E2seqlDlAk/edit#heading=h.91v9osx4fxtt)而誕生出來。

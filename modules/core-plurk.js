@@ -152,8 +152,8 @@ async function nonDice(groupid, userid, displayname, plurk_id) {
     if (!groupid || !userid) return;
     let LevelUp = await EXPUP(groupid, userid, displayname, "", null);
     console.log('LevelUp', LevelUp)
-    if (groupid && LevelUp) {
-        await sendMessage(plurk_id, LevelUp);
+    if (groupid && LevelUp && LevelUp.text) {
+        await sendMessage(plurk_id, LevelUp.text);
     }
 
     return null;

@@ -51,7 +51,7 @@ HKTRPG 興趣使然地創作及維護 TRPG工具，包括
 - [LINE](https://line.me/R/ti/p/svMLqy9Mik)
 - [Discord](https://discordapp.com/oauth2/authorize?&client_id=544462904037081138&scope=bot&permissions=8)
 - [Telegram](http://t.me/hktrpg_bot)
-- [Plark](https://www.plurk.com/hktrpg)
+- [Plurk](https://www.plurk.com/hktrpg)
 - Whatsapp 私人使用中
 
 ![HKTRPG](https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20hktrpg.jpg?raw=true)

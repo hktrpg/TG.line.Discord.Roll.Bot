@@ -14,13 +14,13 @@
 
 # 【HKTRPG擲骰BOT】v1.29
 
-- 最後更新時間07/08/2021,11:53:11
+- 最後更新時間05/09/2021,15:53:11
 - 2019/07/21 香港克警合作 黑ICON紀念
 - 想試用這機械人的話，請按以下連結，輸入`bothelp`顯示教學
 
 ## HKTRPG擲骰子專用機械人 Roll Dice Robot
 
-- HKTRPG是在Discord, Line, Telegram, Whatsapp和網頁上都可以使用的骰子機械人！
+- HKTRPG是在Discord, Line, Telegram, Whatsapp, Plurk和網頁上都可以使用的骰子機械人！
   - 功能：暗骰, 各類TRPG骰子擲骰, 頻道經驗值, 占卜, 先攻表, TRPG角色卡, 搜圖, 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, 自定義抽選, wiki查詢, 資料庫快速查詢功能
   - 歡迎加入[開發，求助及TRPG Discord 群組](https://discord.gg/vx4kcm7)
   - 邀請HKTRPG 加入
@@ -28,6 +28,7 @@
     - [Telegram 邀請連結](http://t.me/hktrpg_bot)
     - [Line 邀請連結](http://bit.ly/HKTRPG_LINE)
     - [網頁版 邀請連結](https://rollbot.hktrpg.com/)
+    - [Plurk 邀請連結](https://www.plurk.com/HKTRPG)
   - [HKTRPG 研究社 Facebook](https://www.facebook.com/groups/HKTRPG)
   - [TRPG 百科](https://www.HKTRPG.com/)
   - [名人堂](https://hktrpg.github.io/TG.line.Discord.Roll.Bot/CREDITS.html)

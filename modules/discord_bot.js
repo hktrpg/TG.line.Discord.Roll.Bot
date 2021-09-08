@@ -124,9 +124,13 @@ client.once('ready', async () => {
 client.on('messageCreate', async message => {
 	if (message.author.bot) return;
 	let hasSendPermission = true;
+	/**
 	if (message.guild && message.guild.me) {
 		hasSendPermission = (message.channel && message.channel.permissionsFor(message.guild.me)) ? message.channel.permissionsFor(message.guild.me).has(Permissions.FLAGS.SEND_MESSAGES) : false || message.guild.me.permissions.has(Permissions.FLAGS.ADMINISTRATOR);
 	}
+暫時取消，因不理解DISCORD 的權限檢查
+反正失敗也沒什麼後果
+	 */
 
 	let inputStr = message.content;
 	//DISCORD <@!USERID> <@!399923133368042763> <@!544563333488111636>

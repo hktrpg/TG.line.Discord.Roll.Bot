@@ -597,6 +597,7 @@ async function count2() {
 
 // handle the error event
 process.on('unhandledRejection', error => {
+	if (error.message == 'Missing Permissions') return;
 	console.error('Unhandled promise rejection:', error.message, error);
 });
 

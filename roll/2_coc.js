@@ -28,7 +28,10 @@ coc7版獎勵骰： cc(1~2) cc1 80 一粒獎勵骰
 coc7版懲罰骰： ccn(1~2) ccn2 80 兩粒懲罰骰
 coc7版San Check： .sc (SAN值) (成功)/(失敗)
 eg: .sc 50		.sc 50 1/1d3+1		.sc 50 1d10/1d100
-coc7版追逐戰產生器(趣味用): .chase
+coc7版追逐戰產生器(娛樂用): .chase
+P.S.追逐戰功能使用了可選規則及我對規則書之獨斷理解，
+並不一定完全符合規則書內容，請自行衡量使用
+建議使用前詳細閱讀規則書第七章追逐
 coc7版 即時型瘋狂： 啓動語 ccrt
 coc7版 總結型瘋狂： 啓動語 ccsu
 coc pulp版創角： 啓動語 .ccpulpbuild
@@ -1315,47 +1318,86 @@ function replacer(a, b, c) {
 }
 
 async function chase() {
-	let rply = "";
+	let rply = `CoC 7ed追逐戰產生器\n`;
 	let round = await rollbase.Dice(5) + 5;
 	for (let index = 0; index < round; index++) {
-		rply += `${chaseGenerator(index)}\n----------`;
+		rply += `${await chaseGenerator(index)}\n----------\n`;
 	}
 	return rply;
 }
 async function chaseGenerator(num) {
 	let rply = "";
 	let chase = await rollbase.Dice(100);
-	let mode = await rollbase.Dice(2);
+	let dangerMode = (await rollbase.Dice(2) == 1) ? true : false;
 	switch (true) {
 		case (chase >= 96): {
-			rply = `地點${num} 極限 ${mode ? "險境" : "障礙"}
+			rply = `地點${num + 1} 極限難度 ${dangerMode ? "險境" : "障礙"}
 			`
-			if (mode) {
+			let itemsNumber = await rollbase.DiceINT(2, 5);
+			let result = shuffle(request);
+			rply += `可能進行檢定: `;
+			for (let index = 0; index < itemsNumber; index++) {
+				rply += `${result[index]} `;
+			}
+			if (dangerMode) {
 				rply += `
-				`
+				失敗失去1D10嚴重事故HP傷害
+				及 失去（1D3）點行動點`;
 			} else {
-				rply += ``
+				let blockhp = shuffle(blockHard);
+				rply += `
+				障礙物 HP${blockhp[0]}`
 			}
 			//1D10嚴重事故
 			//額外失去1（1D3）點行動點
 			break;
 		}
 		case (chase >= 85): {
-			rply = `地點${num} 極限 ${mode ? "險境" : "障礙"}
-			`
+			rply = `地點${num + 1} 困難難度 ${dangerMode ? "險境" : "障礙"}
+			`;
+			let itemsNumber = await rollbase.DiceINT(2, 5);
+			let result = shuffle(request);
+			rply += `可能進行檢定: `;
+			for (let index = 0; index < itemsNumber; index++) {
+				rply += `${result[index]} `;
+			}
+			if (dangerMode) {
+				rply += `
+				失敗失去1D6中度事故HP傷害
+				及 失去（1D3）點行動點`;
+			} else {
+				let blockhp = shuffle(blockIntermediate);
+				rply += `
+				障礙物 HP${blockhp[0]}`
+			}
 			//1D6中度事故
 			//額外失去1（1D3）點行動點
 			break;
 		}
 		case (chase >= 60): {
-			rply = `地點${num} 極限 ${mode ? "險境" : "障礙"}
+			rply = `地點${num + 1} 一般難度 ${dangerMode ? "險境" : "障礙"}
 			`
+			let itemsNumber = await rollbase.DiceINT(2, 5);
+			let result = shuffle(request);
+			rply += `可能進行檢定: `;
+			for (let index = 0; index < itemsNumber; index++) {
+				rply += `${result[index]} `;
+			}
+			if (dangerMode) {
+				rply += `
+				失敗失去1D3-1輕微事故HP傷害
+				及 失去（1D3）點行動點`;
+			} else {
+				let blockhp = shuffle(blockEasy);
+				rply += `
+				障礙物 HP${blockhp[0]}`
+			}
 			//1D3-1輕微事故
 			//額外失去1（1D3）點行動點
 			break;
 		}
 		default: {
-			rply = `地點${num} 沒有險境/障礙`
+			rply = `地點${num + 1} 沒有險境/障礙`
 			break;
 		}
 	}
@@ -1365,3 +1407,25 @@ async function chaseGenerator(num) {
 const request = ["攀爬", "游泳", "閃避", "力量", "敏捷", "跳躍", "鎖匠",
 	"攻擊", "戰技", "偵查", "幸運", "話術", "恐嚇", "潛行", "心理學", "聆聽"
 ]
+
+const blockHard = [5, 5, 10, 10, 15, 15, 25, 50, 100];
+const blockEasy = [5, 5, 5, 10, 10, 15]
+const blockIntermediate = [5, 5, 10, 10, 15, 15, 25]
+
+function shuffle(array) {
+	var currentIndex = array.length, randomIndex;
+
+	// While there remain elements to shuffle...
+	while (currentIndex != 0) {
+
+		// Pick a remaining element...
+		randomIndex = Math.floor(Math.random() * currentIndex);
+		currentIndex--;
+
+		// And swap it with the current element.
+		[array[currentIndex], array[randomIndex]] = [
+			array[randomIndex], array[currentIndex]];
+	}
+
+	return array;
+}

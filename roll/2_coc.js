@@ -1,6 +1,7 @@
 "use strict";
 const rollbase = require('./rollbase.js');
 const schema = require('../modules/core-schema.js');
+const mathjs = require('mathjs');
 var gameName = function () {
 	return '【克蘇魯神話】 cc cc(n)1~2 ccb ccrt ccsu .dp .cc7build .cc6build .cc7bg'
 }
@@ -14,7 +15,7 @@ var prefixs = function () {
 		second: null
 	},
 	{
-		first: /(^ccb$)|(^cc$)|(^ccn[1-2]$)|(^cc[1-2]$)|(^成長檢定$)|(^幕間成長$)/i,
+		first: /(^\.sc$)|(^ccb$)|(^cc$)|(^ccn[1-2]$)|(^cc[1-2]$)|(^成長檢定$)|(^幕間成長$)/i,
 		second: /(^\d+$)|(^help$)/i
 	}
 	]
@@ -25,6 +26,8 @@ coc6版擲骰： ccb 80 技能小於等於80
 coc7版擲骰： cc 80 技能小於等於80
 coc7版獎勵骰： cc(1~2) cc1 80 一粒獎勵骰
 coc7版懲罰骰： ccn(1~2) ccn2 80 兩粒懲罰骰
+coc7版San Check： .sc (SAN值) (成功)/(失敗)
+eg: .sc 50		.sc 50 1/1d3+1		.sc 50 1d10/1d100
 coc7版 即時型瘋狂： 啓動語 ccrt
 coc7版 總結型瘋狂： 啓動語 ccsu
 coc pulp版創角： 啓動語 .ccpulpbuild
@@ -80,6 +83,11 @@ var rollDiceCommand = async function ({
 		}
 		case /^ccsu$/i.test(mainMsg[0]): {
 			rply.text = await ccsu();
+			rply.quotes = true;
+			break;
+		}
+		case /^\.sc$/i.test(mainMsg[0]): {
+			rply.text = await sc(mainMsg);
 			rply.quotes = true;
 			break;
 		}
@@ -1215,4 +1223,89 @@ async function build6char() {
 //隨機產生角色背景
 async function PcBG() {
 	return '背景描述生成器（僅供娛樂用，不具實際參考價值）\n==\n調查員是一個' + PersonalDescriptionArr[await rollbase.Dice(PersonalDescriptionArr.length) - 1] + '人。\n【信念】：說到這個人，他' + IdeologyBeliefsArr[await rollbase.Dice(IdeologyBeliefsArr.length) - 1] + '。\n【重要之人】：對他來說，最重要的人是' + SignificantPeopleArr[await rollbase.Dice(SignificantPeopleArr.length) - 1] + '，這個人對他來說之所以重要，是因為' + SignificantPeopleWhyArr[await rollbase.Dice(SignificantPeopleWhyArr.length) - 1] + '。\n【意義非凡之地】：對他而言，最重要的地點是' + MeaningfulLocationsArr[await rollbase.Dice(MeaningfulLocationsArr.length) - 1] + '。\n【寶貴之物】：他最寶貴的東西就是' + TreasuredPossessionsArr[await rollbase.Dice(TreasuredPossessionsArr.length) - 1] + '。\n【特徵】：總括來說，調查員是一個' + TraitsArr[await rollbase.Dice(TraitsArr.length) - 1] + '。';
+}
+
+async function sc(mainMsg) {
+	//可接受輸入: .sc 50	.sc 50 哈哈		.sc 50 1/3		.sc 50 1d3+3/1d100 
+	if (!mainMsg || !mainMsg[0] || !mainMsg[1]) return;
+	let san = mainMsg[1]?.match(/^\d+$/) ?? null;
+	if (!san) return;
+
+	let rollDice = await rollbase.Dice(100);
+	//scMode 代表會扣SC 或有正常輸入扣SAN的數字 
+	let scMode = (/\//).test(mainMsg[2] || null);
+	let sc = (scMode) ? mainMsg[2]?.match(/^(.+)\/(.+)$/i) : null;
+	(!sc) ? scMode = false : null;
+
+	let rollFail = sc && sc[2];
+	let rollSuccess = sc && sc[1];
+
+	let lossSan = 0;
+
+	switch (true) {
+		case (rollDice === 100) || (rollDice >= 96 && rollDice <= 100 && san <= 49): {
+			if (!scMode) {
+				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 大失敗!`;
+			}
+			if (rollFail) {
+				let result = rollFail.replace(/(\d+)d(\d+)/i, replacer)
+				try {
+					lossSan = mathjs.evaluate(result);
+				} catch (error) {
+					lossSan = result;
+				}
+				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 大失敗!\n失去最大值 ${lossSan}點San`
+			}
+			return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 大失敗!`
+		}
+		case rollDice <= san:
+			//成功
+			if (!scMode) {
+				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 成功!`
+			}
+			if (rollSuccess) {
+				try {
+					lossSan = await rollbase.BuildDiceCal(rollSuccess);
+				} catch (error) {
+					lossSan = rollSuccess;
+				}
+			}
+			if (!lossSan && rollSuccess) {
+				lossSan = rollSuccess;
+			}
+			if (lossSan) {
+				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 成功!\n失去${lossSan}點San`
+			} else
+				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 成功!\n不需要減少San`
+
+		case rollDice > san: {
+			if (!scMode) {
+				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 失敗!`
+			}
+			if (rollFail) {
+
+				try {
+					lossSan = await rollbase.BuildDiceCal(rollFail);
+				} catch (error) {
+					lossSan = rollFail;
+				}
+			}
+			if (!lossSan && rollFail) {
+				lossSan = rollFail;
+			}
+			if (lossSan) {
+				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 失敗!\n失去${lossSan}點San`
+			} else
+				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 失敗!\n但不需要減少San`
+
+		}
+		default:
+			return;
+	}
+}
+
+function replacer(a, b, c) {
+
+
+	return b * c;
 }

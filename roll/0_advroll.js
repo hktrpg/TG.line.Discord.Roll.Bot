@@ -1,6 +1,6 @@
 "use strict";
 const rollbase = require('./rollbase.js');
-const mathjs = require('mathjs')
+const mathjs = require('mathjs');
 var variables = {};
 const regexxBy = /^((\d+)(b)(\d+))/i
 const regexxUy = /^(\d+)(u)(\d+)/i

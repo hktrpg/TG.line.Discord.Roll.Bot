@@ -11,7 +11,7 @@ var gameType = function () {
 }
 var prefixs = function () {
 	return [{
-		first: /(^ccrt$)|(^ccsu$)|(^cc7版創角$)|(^[.]dp$)|(^[.]cc7build$)|(^[.]ccpulpbuild$)|(^[.]cc6build$)|(^[.]cc7bg$)|(^cc6版創角$)|(^cc7版角色背景$)/i,
+		first: /(^ccrt$)|(^\.chase$)|(^ccsu$)|(^cc7版創角$)|(^[.]dp$)|(^[.]cc7build$)|(^[.]ccpulpbuild$)|(^[.]cc6build$)|(^[.]cc7bg$)|(^cc6版創角$)|(^cc7版角色背景$)/i,
 		second: null
 	},
 	{
@@ -28,6 +28,7 @@ coc7版獎勵骰： cc(1~2) cc1 80 一粒獎勵骰
 coc7版懲罰骰： ccn(1~2) ccn2 80 兩粒懲罰骰
 coc7版San Check： .sc (SAN值) (成功)/(失敗)
 eg: .sc 50		.sc 50 1/1d3+1		.sc 50 1d10/1d100
+coc7版追逐戰產生器(趣味用): .chase
 coc7版 即時型瘋狂： 啓動語 ccrt
 coc7版 總結型瘋狂： 啓動語 ccsu
 coc pulp版創角： 啓動語 .ccpulpbuild
@@ -88,6 +89,11 @@ var rollDiceCommand = async function ({
 		}
 		case /^\.sc$/i.test(mainMsg[0]): {
 			rply.text = await sc(mainMsg);
+			rply.quotes = true;
+			break;
+		}
+		case /^\.chase$/i.test(mainMsg[0]): {
+			rply.text = await chase();
 			rply.quotes = true;
 			break;
 		}
@@ -1305,7 +1311,57 @@ async function sc(mainMsg) {
 }
 
 function replacer(a, b, c) {
-
-
 	return b * c;
 }
+
+async function chase() {
+	let rply = "";
+	let round = await rollbase.Dice(5) + 5;
+	for (let index = 0; index < round; index++) {
+		rply += `${chaseGenerator(index)}\n----------`;
+	}
+	return rply;
+}
+async function chaseGenerator(num) {
+	let rply = "";
+	let chase = await rollbase.Dice(100);
+	let mode = await rollbase.Dice(2);
+	switch (true) {
+		case (chase >= 96): {
+			rply = `地點${num} 極限 ${mode ? "險境" : "障礙"}
+			`
+			if (mode) {
+				rply += `
+				`
+			} else {
+				rply += ``
+			}
+			//1D10嚴重事故
+			//額外失去1（1D3）點行動點
+			break;
+		}
+		case (chase >= 85): {
+			rply = `地點${num} 極限 ${mode ? "險境" : "障礙"}
+			`
+			//1D6中度事故
+			//額外失去1（1D3）點行動點
+			break;
+		}
+		case (chase >= 60): {
+			rply = `地點${num} 極限 ${mode ? "險境" : "障礙"}
+			`
+			//1D3-1輕微事故
+			//額外失去1（1D3）點行動點
+			break;
+		}
+		default: {
+			rply = `地點${num} 沒有險境/障礙`
+			break;
+		}
+	}
+	return rply;
+}
+
+const request = ["攀爬", "游泳", "閃避", "力量", "敏捷", "跳躍", "鎖匠",
+	"攻擊", "戰技", "偵查", "幸運", "話術", "恐嚇", "潛行", "心理學", "聆聽"
+]

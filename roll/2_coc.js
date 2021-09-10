@@ -1237,13 +1237,13 @@ async function PcBG() {
 async function sc(mainMsg) {
 	//可接受輸入: .sc 50	.sc 50 哈哈		.sc 50 1/3		.sc 50 1d3+3/1d100 
 	if (!mainMsg || !mainMsg[0] || !mainMsg[1]) return;
-	let san = mainMsg[1]?.match(/^\d+$/) ?? null;
+	let san = (mainMsg[1].match(/^\d+$/)) ? mainMsg[1].match(/^\d+$/) : null;
 	if (!san) return;
 
 	let rollDice = await rollbase.Dice(100);
 	//scMode 代表會扣SC 或有正常輸入扣SAN的數字 
 	let scMode = (/\//).test(mainMsg[2] || null);
-	let sc = (scMode) ? mainMsg[2]?.match(/^(.+)\/(.+)$/i) : null;
+	let sc = (scMode) ? mainMsg[2] && mainMsg[2].match(/^(.+)\/(.+)$/i) : null;
 	(!sc) ? scMode = false : null;
 
 	let rollFail = sc && sc[2];

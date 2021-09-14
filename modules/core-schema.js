@@ -368,6 +368,28 @@ const developmentRollingRecord = mongoose.model('developmentRollingRecord', new 
     //成功,失敗,大成功,大失敗
 }));
 
+
+//schedule At
+const scheduleAt = mongoose.model('scheduleAt', new mongoose.Schema({
+    groupID: String,
+    channelID: String,
+    botname: String,
+    //執行一次自動關上
+    switch: Boolean,
+    date: Date,
+    response: String
+}));
+
+//.schedule Cron
+const scheduleCron = mongoose.model('scheduleCron', new mongoose.Schema({
+    groupID: String,
+    channelID: String,
+    botname: String,
+    switch: Boolean,
+    time: String,
+    response: String
+}));
+
 module.exports = {
     randomAns,
     block,
@@ -395,7 +417,9 @@ module.exports = {
     eventMember,
     eventList,
     developmentConductor,
-    developmentRollingRecord
+    developmentRollingRecord,
+    scheduleAt,
+    scheduleCron
 }
 //const Cat = mongoose.model('Cat', { name: String });
 //const kitty = new Cat({ name: 'Zildjian' });

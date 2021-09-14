@@ -624,6 +624,10 @@ client.on('guildCreate', async guild => {
 
 client.login(channelSecret);
 
+function scheduleMessage() {
+	if (shardids !== 0) return;
+	return;
+}
 
 /**
 .addFields(

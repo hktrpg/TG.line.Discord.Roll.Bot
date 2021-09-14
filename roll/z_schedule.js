@@ -32,10 +32,12 @@ var getHelpMessage = async function () {
     5hours (五小時後)
     會發佈指定一個信息
     
+    start stop delete
+
     【cron】 每天指定一個時間可以發佈一個信息(24小時制)
     如 1230  2200 
     
-    .schedule at 5mins
+    .schedule at start 5mins
     五分鐘後叫吧!
     
     .schedule cron 0831

@@ -381,13 +381,15 @@ const scheduleAt = mongoose.model('scheduleAt', new mongoose.Schema({
 }));
 
 //.schedule Cron
+//限制30次?
 const scheduleCron = mongoose.model('scheduleCron', new mongoose.Schema({
     groupID: String,
     channelID: String,
     botname: String,
     switch: Boolean,
     time: String,
-    response: String
+    response: String,
+    limit: Number
 }));
 
 module.exports = {

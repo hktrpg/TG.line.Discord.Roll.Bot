@@ -635,7 +635,7 @@ async function getSchedule() {
 	for (let index = 0; index < checkAt.length; index++) {
 		let data = checkAt[index];
 		if (data.switch) {
-			scheduleAtMessage({ date: data.date, replyText: data.response, channelid: data.channelID })
+			scheduleAtMessage({ id: data._id, date: data.date, replyText: data.response, channelid: data.channelID })
 		}
 	}
 
@@ -645,25 +645,16 @@ async function getSchedule() {
 	for (let index = 0; index < checkCron.length; index++) {
 		let data = checkCron[index];
 		if (data.switch) {
-			scheduleCronMessage({ time: data.time, replyText: data.response, channelid: data.channelID })
+			scheduleCronMessage({ time: data.time, replyText: data.response, channelid: data.channelID, id: data._id })
 		}
 	}
 
 
 }
-scheduleCronMessage({
-	time: { hour: 18, minute: 23 },
-	channelid: "628230419531169842",
-	replyText: "LOVE 23"
-})
 
-scheduleCronMessage({
-	time: { hour: 18, minute: 22 },
-	channelid: "628230419531169842",
-	replyText: "LOVE 22"
-})
-function scheduleCronMessage({ time, replyText, channelid, quotes = false }) {
+async function scheduleCronMessage({ time, replyText, channelid, quotes = false, id }) {
 	if (shardids !== 0) return;
+	//每天定時
 	//const date = {hour: 14, minute: 30}
 	schedule.scheduleJob(time, function () {
 		console.log('The world is going to end today.');
@@ -672,12 +663,27 @@ function scheduleCronMessage({ time, replyText, channelid, quotes = false }) {
 			{ replyText, channelid, quotes }
 		)
 	});
+	// 每次 -1
+	let result = await schema.scheduleCron.findOneAndUpdate({
+		_id: id
+	}, {
+		$inc: {
+			limit: -1
+		}
+	}, { new: true });
+	//如果到達0就移除
+	if (result.limit <= 0) {
+		await schema.scheduleCron.findByIdAndRemove({
+			id
+		});
+	}
 
 	return;
 }
 
-function scheduleAtMessage({ date, replyText, channelid, quotes = false }) {
+async function scheduleAtMessage({ date, replyText, channelid, quotes = false, id }) {
 	if (shardids !== 0) return;
+	//指定時間一次	
 	//const date = new Date(2012, 11, 21, 5, 30, 0);
 	//const date = new Date(Date.now() + 5000);
 	schedule.scheduleJob(date, function () {
@@ -686,6 +692,9 @@ function scheduleAtMessage({ date, replyText, channelid, quotes = false }) {
 		SendToReplychannel(
 			{ replyText: replyText, channelid: channelid, quotes }
 		)
+	});
+	await schema.scheduleAt.findByIdAndRemove({
+		id
 	});
 
 	return;

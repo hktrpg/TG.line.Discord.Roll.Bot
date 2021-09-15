@@ -4,6 +4,8 @@ const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const Discord = require("discord.js-light");
 const { Client, Intents, Permissions } = Discord;
+const schedule = require('node-schedule');
+const schema = require('../modules/core-schema.js');
 
 function channelFilter(channel) {
 	return !channel.lastMessageId || Discord.SnowflakeUtil.deconstruct(channel.lastMessageId).timestamp < Date.now() - 3600000;
@@ -117,8 +119,8 @@ var connect = function () {
 };
 
 client.once('ready', async () => {
-	if (process.env.BROADCAST)
-		connect();
+	if (process.env.BROADCAST) connect();
+	if (shardids === 0) getSchedule();
 });
 
 client.on('messageCreate', async message => {
@@ -446,6 +448,7 @@ async function SendToReply({ replyText = "", message, quotes = false }) {
 }
 async function SendToReplychannel({ replyText = "", channelid = "", quotes = false }) {
 	if (!channelid) return;
+	console.log(channelid)
 	let channel = await client.channels.fetch(channelid);
 	let sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
 	for (let i = 0; i < sendText.length; i++) {
@@ -624,8 +627,67 @@ client.on('guildCreate', async guild => {
 
 client.login(channelSecret);
 
-function scheduleMessage() {
+
+async function getSchedule() {
+	let checkAt = await schema.scheduleAt.find({
+		botname: "Discord"
+	});
+	for (let index = 0; index < checkAt.length; index++) {
+		let data = checkAt[index];
+		if (data.switch) {
+			scheduleAtMessage({ date: data.date, replyText: data.response, channelid: data.channelID })
+		}
+	}
+
+	let checkCron = await schema.scheduleCron.find({
+		botname: "Discord"
+	});
+	for (let index = 0; index < checkCron.length; index++) {
+		let data = checkCron[index];
+		if (data.switch) {
+			scheduleCronMessage({ time: data.time, replyText: data.response, channelid: data.channelID })
+		}
+	}
+
+
+}
+scheduleCronMessage({
+	time: { hour: 18, minute: 23 },
+	channelid: "628230419531169842",
+	replyText: "LOVE 23"
+})
+
+scheduleCronMessage({
+	time: { hour: 18, minute: 22 },
+	channelid: "628230419531169842",
+	replyText: "LOVE 22"
+})
+function scheduleCronMessage({ time, replyText, channelid, quotes = false }) {
 	if (shardids !== 0) return;
+	//const date = {hour: 14, minute: 30}
+	schedule.scheduleJob(time, function () {
+		console.log('The world is going to end today.');
+		//SendToReplychannel 628230419531169842
+		SendToReplychannel(
+			{ replyText, channelid, quotes }
+		)
+	});
+
+	return;
+}
+
+function scheduleAtMessage({ date, replyText, channelid, quotes = false }) {
+	if (shardids !== 0) return;
+	//const date = new Date(2012, 11, 21, 5, 30, 0);
+	//const date = new Date(Date.now() + 5000);
+	schedule.scheduleJob(date, function () {
+		console.log('The world is going to end today.');
+		//SendToReplychannel 628230419531169842
+		SendToReplychannel(
+			{ replyText: replyText, channelid: channelid, quotes }
+		)
+	});
+
 	return;
 }
 

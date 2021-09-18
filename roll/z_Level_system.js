@@ -21,18 +21,18 @@ var prefixs = function () {
     }]
 }
 var getHelpMessage = async function () {
-    return `【經驗值功能】" + "
+    return `【經驗值功能】
 這是根據開源Discord bot Mee6開發的功能
 按發言次數增加經驗，提升等級，實現服務器內排名等歡樂功能
 當經驗達到要求，就會彈出通知，提示你已提升等級。
 預設並不開啓，需要輸入.level config 11 啓動功能 
 數字11代表等級升級時會進行通知，10代表不會通知，
 00的話代表關閉功能，
+-------------
 預設回應是「 XXXX 《稱號》， 你的克蘇魯神話知識現在是 X點！
 現在排名是XX人中的第XX名！XX%！
 調查經驗是XX點。」
-P.S.如果沒立即生效 用.level show 刷新一下
-        
+-------------
 輸入.level LevelUpWord (內容) 修改在這群組升級時彈出的升級語
 輸入.level RankWord (內容) 修改在這群組查詢等級時的回應
 輸入.level TitleWord -(LV) (內容)，修改稱號，大於等級即會套用
@@ -42,7 +42,9 @@ P.S.如果沒立即生效 用.level show 刷新一下
 輸入.level show 可以查詢你現在的等級
 輸入.level showMe (數字) 可以查詢這群組排名 預設頭5名
 輸入.level showMeTheworld (數字) 可以查詢世界排名 預設頭6名
-修改內容可使用不同代碼
+輸入.level showMeAtTheworld 可以查詢自己的世界排名
+-------------
+升級語及RankWord可使用不同代碼
 {user.name} 名字 {user.level} 等級 
 {user.title} 稱號 
 {user.exp} 經驗值 {user.Ranking} 現在排名 
@@ -529,8 +531,20 @@ var rollDiceCommand = async function ({
             rply.text = await rankingList(doc, docMember, RankNumber, "群組排行榜");
             return rply;
         }
+        case /(^[.]level$)/i.test(mainMsg[0]) && /^showMeAtTheWorld$/i.test(mainMsg[1]): {
+            //顯示自己的排名
+            let myExp = await schema.trpgLevelSystemMember.findOne({ groupid: groupid, userid: userid })
+            if (!myExp || !myExp.EXP) {
+                rply.text = "未有找到你的資料，請檢查有沒有開啓經驗值功能";
+                return rply;
+            }
+            let docMember = await schema.trpgLevelSystemMember.find({ EXP: { $gt: myExp.EXP } }).countDocuments();
+            rply.text = `你現在的世界排名是第${docMember + 1}名`
+            return rply;
+
+        }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^showMeTheWorld$/i.test(mainMsg[1]): {
-            //顯示群組頭五名排名
+            //顯示世界頭六名排名
             let RankNumber = 6
             if (mainMsg[2]) {
                 if (mainMsg[2] > 6 && mainMsg[2] <= 20)
@@ -538,10 +552,10 @@ var rollDiceCommand = async function ({
                 if (mainMsg[2] > 20)
                     RankNumber = 20
             }
-            let docMember = await schema.trpgLevelSystemMember.find({}).sort({
+            let docMember = await schema.trpgLevelSystemMember.find({}, { name: 1, EXP: 1, Level: 1 }).sort({
                 EXP: -1
-            }).limit(RankNumber)
-            let docMemberCount = await schema.trpgLevelSystemMember.countDocuments({})
+            }).limit(RankNumber);
+            let docMemberCount = await schema.trpgLevelSystemMember.countDocuments({});
 
             if (docMember.length < 1) {
                 rply.text = '此群組未有足夠資料\n'

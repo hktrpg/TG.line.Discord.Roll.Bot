@@ -342,15 +342,15 @@ var rollDiceCommand = async function ({
             case /^ran:\d+/i.test(second):
                 temp = /^ran:(\d+)/i.exec(second)
                 if (!temp || !temp[1]) return ' ';
-                return await rollbase.Dice(temp[1]) || ' ';
+                return rollbase.Dice(temp[1]) || ' ';
             case /^random:\d+/i.test(second):
                 temp = /^random:(\d+)-(\d+)/i.exec(second)
                 if (!temp || !temp[1] || !temp[2]) return ' ';
-                return await rollbase.DiceINT(temp[1], temp[2]) || ' ';
+                return rollbase.DiceINT(temp[1], temp[2]) || ' ';
             case /^allgp.name$/i.test(second):
                 temp = await findGpMember(groupid);
                 if (!temp) return ' ';
-                num = await rollbase.DiceINT(0, temp.length - 1)
+                num = rollbase.DiceINT(0, temp.length - 1)
                 num = (num < 1) ? 0 : num;
                 temp = temp[num].name
                 return temp || ' ';
@@ -364,7 +364,7 @@ var rollDiceCommand = async function ({
                 temp2 = await temp.Title.filter(function (item) {
                     return item;
                 });
-                num = await rollbase.DiceINT(0, temp2.length - 1)
+                num = rollbase.DiceINT(0, temp2.length - 1)
                 num = (num < 1) ? 0 : num;
                 temp = temp2[num]
                 return temp || ' ';

@@ -69,7 +69,7 @@ async function compareAllValues(triggermsg, msg) {
         result = "目標值 ≧ " + z + " ：\n"
     }
     for (let i = 0; i < x; i++) {
-        rollresult[i] = await rollbase.Dice(6)
+        rollresult[i] = rollbase.Dice(6)
     }
     result += "[ " + rollresult + " ] → "
     //console.log(match);

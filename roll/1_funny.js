@@ -226,7 +226,7 @@ async function BStyleFlagSCRIPTS() {
 「我可以好好利用這件事」'];
 
 	//	rply.text = rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
-	return rplyArr[await rollbase.Dice(rplyArr.length) - 1]
+	return rplyArr[rollbase.Dice(rplyArr.length) - 1]
 }
 
 async function randomReply() {
@@ -256,13 +256,13 @@ wwwwwwwwwwwwwwwww', '\
 你的嘴裡有異音（指）', '\
 幫主說，有人打你的左臉，你就要用肉食性猛擊咬斷他的小腿。'];
 	//	rply.text = rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
-	return rplyArr[await rollbase.Dice(rplyArr.length) - 1];
+	return rplyArr[rollbase.Dice(rplyArr.length) - 1];
 }
 
 async function randomLuck(TEXT) {
 	const rplyArr = ['超吉', '超級上吉', '大吉', '吉', '中吉', '小吉', '吉', '小吉', '吉', '吉', '中吉', '吉', '中吉', '吉', '中吉', '小吉', '末吉', '吉', '中吉', '小吉', '末吉', '中吉', '小吉', '小吉', '吉', '小吉', '末吉', '中吉', '小吉', '凶', '小凶', '沒凶', '大凶', '很凶', '你不要知道比較好呢', '命運在手中,何必問我'];
 	//	rply.text = TEXT[0] + ' ： ' + rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
-	return TEXT[0] + ' ： ' + rplyArr[await rollbase.Dice(rplyArr.length) - 1];
+	return TEXT[0] + ' ： ' + rplyArr[rollbase.Dice(rplyArr.length) - 1];
 }
 
 /**
@@ -275,7 +275,7 @@ async function MultiDrawTarot(text, text2, type) {
 		case 1:
 			returnStr = '時間塔羅';
 			(text) ? returnStr += "；" + text + " " + text2 : '';
-			cards = await rollbase.shuffleTarget(TarotList2);
+			cards = rollbase.shuffleTarget(TarotList2);
 			returnStr += '過去: ' + cards[0] + '\n'
 			returnStr += '現在: ' + cards[1] + '\n'
 			returnStr += '未來: ' + cards[2] + '\n'
@@ -283,7 +283,7 @@ async function MultiDrawTarot(text, text2, type) {
 		case 2:
 			returnStr = '大十字塔羅';
 			(text) ? returnStr += "；" + text + " " + text2 : '';
-			cards = await rollbase.shuffleTarget(TarotList2);
+			cards = rollbase.shuffleTarget(TarotList2);
 			returnStr += '現況: ' + cards[0] + '\n'
 			returnStr += '助力: ' + cards[1] + '\n'
 			returnStr += '目標: ' + cards[2] + '\n'
@@ -307,7 +307,7 @@ async function NomalDrawTarot(text, text2) {
 	returnStr = '每日塔羅'
 	if (text)
 		returnStr += "；" + text + " " + text2
-	let ans = await rollbase.shuffleTarget(TarotList)
+	let ans = rollbase.shuffleTarget(TarotList)
 	returnStr += '\n' + ans[0]
 	return returnStr;
 }
@@ -636,7 +636,7 @@ const TarotList2 = ["愚者 ＋",
  */
 async function choice(input, str) {
 	let a = input.replace(str[0], '').match(/\S+/ig);
-	return str[0] + ' [' + a + '] \n→ ' + a[await rollbase.Dice(a.length) - 1];
+	return str[0] + ' [' + a + '] \n→ ' + a[rollbase.Dice(a.length) - 1];
 
 }
 
@@ -645,7 +645,7 @@ async function SortIt(input, mainMsg) {
 	for (var i = a.length - 1; i >= 0; i--) {
 		//var randomIndex = Math.floor(Math.random() * (i + 1));  
 		//3 -> 210 , 10, 0
-		var randomIndex = await rollbase.Dice(i + 1) - 1
+		var randomIndex = rollbase.Dice(i + 1) - 1
 		//3 ->
 		//console.log('randomIndex: ', randomIndex)
 		var itemAtIndex = a[randomIndex];

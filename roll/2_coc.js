@@ -1553,3 +1553,102 @@ const eightState = [40,
 	70,
 	70,
 	80]
+
+const 交際類 = [
+	{ name: "心理學", skill: 10 },
+	{ name: "說服", skill: 10 },
+	{ name: "話術", skill: 5 },
+	{ name: "恐嚇", skill: 15 },
+	{ name: "取悅", skill: 15 }
+]
+const 移動類 =
+	[{ name: "導航", skill: 10 },
+	{ name: "生存", skill: 10 },
+	{ name: "跳躍", skill: 20 },
+	{ name: "攀爬", skill: 20 },
+	{ name: "游泳", skill: 20 },
+	{ name: "駕駛（汽車）", skill: 20 },
+	{ name: "駕駛", skill: 1 },
+	{ name: "潛水", skill: 1 },
+	{ name: "騎術", skill: 5 }]
+
+const 隱密類 = [
+	{ name: "潛行", skill: 20 },
+	{ name: "追蹤", skill: 10 },
+	{ name: "喬裝", skill: 5 },
+	{ name: "鎖匠", skill: 1 },
+	{ name: "巧手", skill: 10 }
+]
+
+const 學問類 = [
+	{ name: "會計", skill: 5 },
+	{ name: "法律", skill: 5 },
+	{ name: "神秘學", skill: 5 },
+	{ name: "歷史", skill: 5 },
+	{ name: "自然學", skill: 10 },
+	{ name: "人類學", skill: 1 },
+	{ name: "考古學", skill: 1 },
+	{ name: "司法科學", skill: 1 },
+	{ name: "數學", skill: 1 },
+	{ name: "動物學", skill: 1 },
+	{ name: "電子學", skill: 1 },
+	{ name: "天文學", skill: 1 },
+	{ name: "地質學", skill: 1 },
+	{ name: "生物學", skill: 1 },
+	{ name: "物理", skill: 1 },
+	{ name: "化學", skill: 1 },
+	{ name: "密碼學", skill: 1 },
+	{ name: "氣象學", skill: 1 },
+	{ name: "植物學", skill: 1 },
+	{ name: "學問:", skill: 1 }
+]
+
+const 語言類 = [
+	{ name: "母語", skill: 0 },
+	{ name: "語言", skill: 1 },
+
+]
+
+const 職業興趣 = [
+	{ name: "美術", skill: 5 },
+	{ name: "偽造", skill: 5 },
+	{ name: "表演", skill: 5 },
+	{ name: "攝影", skill: 5 },
+	{ name: "藝術／手藝", skill: 5 },
+	{ name: "操作重機", skill: 1 },
+	{ name: "機械維修", skill: 10 },
+	{ name: "電器維修", skill: 10 },
+	{ name: "電腦使用", skill: 5 },
+	{ name: "動物馴養", skill: 5 },
+]
+
+const 調查類 = [
+
+	{ name: "偵查", skill: 25 },
+	{ name: "聆聽", skill: 20 },
+	{ name: "圖書館使用", skill: 20 },
+	{ name: "估價", skill: 5 },
+	{ name: "讀唇", skill: 1 },
+	{ name: "克蘇魯神話", skill: 0 },
+]
+
+const 戰鬥類 = [
+	{ name: "閃避", skill: 0 },
+	{ name: "鬥毆", skill: 25 },
+	{ name: "劍", skill: 20 },
+	{ name: "絞殺", skill: 15 },
+	{ name: "電鋸", skill: 10 },
+	{ name: "投擲", skill: 20 },
+	{ name: "弓", skill: 15 },
+	{ name: "手槍", skill: 20 },
+	{ name: "步槍／霰彈槍", skill: 25 },
+
+]
+
+const 醫療類 = [
+	{ name: "精神分析", skill: 1 },
+	{ name: "急救", skill: 30 },
+	{ name: "醫學", skill: 1 },
+	{ name: "藥學", skill: 1 },
+	{ name: "催眠", skill: 1 }
+]

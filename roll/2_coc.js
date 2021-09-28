@@ -1652,3 +1652,11 @@ const 醫療類 = [
 	{ name: "藥學", skill: 1 },
 	{ name: "催眠", skill: 1 }
 ]
+const STR = ["戰鬥類", "醫療"]
+const DEX = ["移動類", "隱密類"]
+const POW = ["職業興趣", "學問類"]
+const CON = ["移動類", "戰鬥類"]
+const APP = ["語言", "交際類"]
+const EDU = ["調查類", "醫療", "學問類"]
+const SIZ = ["戰鬥類", "交際類"]
+const INT = ["隱密類", "職業興趣", "調查類"]

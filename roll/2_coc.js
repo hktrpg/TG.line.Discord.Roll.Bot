@@ -1491,37 +1491,38 @@ async function build7random() {
 ＩＮＴ：((6+2)+6) * 5 = 70
 ＥＤＵ：(((4+6)+6) * 5)-5 = 75
 	 */
-	let randomState = shuffle(eightState);
-	ReStr += '\nＳＴＲ：' + randomState[0];
+	let randomState = mathjs.pickRandom(eightState, 8);
+	let randomStateNumber = checkState(randomState);
+	ReStr += '\nＳＴＲ：' + randomStateNumber[0];
 	if (old >= 40) ReStr += ' ←（可選） ';
 	if (old < 20) ReStr += ' ←（可選）';
 
-	ReStr += '\nＤＥＸ：' + randomState[1];
+	ReStr += '\nＤＥＸ：' + randomStateNumber[1];
 	if (old >= 40) ReStr += ' ← （可選）';
 
-	ReStr += '\nＰＯＷ：' + randomState[2];
+	ReStr += '\nＰＯＷ：' + randomStateNumber[2];
 
-	ReStr += '\nＣＯＮ：' + randomState[3];
+	ReStr += '\nＣＯＮ：' + randomStateNumber[3];
 	if (old >= 40) ReStr += ' ← （可選）'
 
 	if (old >= 40) {
-		ReStr += '\nＡＰＰ：' + `${randomState[4]}-${AppDebuff} = ${randomState[4] - AppDebuff}`;
-	} else ReStr += '\nＡＰＰ：' + randomState[4];
+		ReStr += '\nＡＰＰ：' + `${randomStateNumber[4]}-${AppDebuff} = ${randomStateNumber[4] - AppDebuff}`;
+	} else ReStr += '\nＡＰＰ：' + randomStateNumber[4];
 
 
-	ReStr += '\nＳＩＺ：' + randomState[5];
+	ReStr += '\nＳＩＺ：' + randomStateNumber[5];
 	if (old < 20) {
 		ReStr += ' ←（可選）';
 	}
 
-	ReStr += '\nＩＮＴ：' + randomState[6]
+	ReStr += '\nＩＮＴ：' + randomStateNumber[6]
 
-	if (old < 20) ReStr += '\nＥＤＵ：' + randomState[7];
+	if (old < 20) ReStr += '\nＥＤＵ：' + randomStateNumber[7];
 	else {
 		ReStr += '\n==';
-		ReStr += '\nＥＤＵ初始值：' + randomState[7]
+		ReStr += '\nＥＤＵ初始值：' + randomStateNumber[7]
 
-		let tempEDU = + randomState[7]
+		let tempEDU = + randomStateNumber[7]
 
 		for (let i = 1; i <= EDUinc; i++) {
 			let EDURoll = rollbase.Dice(100);
@@ -1542,21 +1543,43 @@ async function build7random() {
 	ReStr += '\nＬＵＫ：' + rollbase.BuildDiceCal('3d6*5');
 	if (old < 20) ReStr += '\nＬＵＫ加骰：' + rollbase.BuildDiceCal('3D6*5');
 	ReStr += `======\n本職技能======`
-
+	let findOccupationSkill = getOccupationSkill(randomState);
 
 
 	return ReStr;
 
 }
+function getOccupationSkill(state) {
+	let result = []
+	for (let index = 0; index < 8; index++) {
+		//	result[index]=eval(state)
 
-const eightState = [40,
-	50,
-	50,
-	50,
-	60,
-	70,
-	70,
-	80]
+	}
+
+}
+function checkState(state) {
+	let result = [];
+	result[0] = eightStateNumber[state.indexOf("STR")]
+	result[1] = eightStateNumber[state.indexOf("DEX")]
+	result[2] = eightStateNumber[state.indexOf("POW")]
+	result[3] = eightStateNumber[state.indexOf("CON")]
+	result[4] = eightStateNumber[state.indexOf("APP")]
+	result[5] = eightStateNumber[state.indexOf("SIZ")]
+	result[6] = eightStateNumber[state.indexOf("INT")]
+	result[7] = eightStateNumber[state.indexOf("EDU")]
+	return result;
+}
+
+const eightState = ["STR",
+	"DEX",
+	"POW",
+	"CON",
+	"APP",
+	"SIZ",
+	"INT",
+	"EDU"]
+const eightStateNumber = [
+	80, 70, 70, 60, 50, 50, 50, 40]
 
 const 交際類 = [
 	{ name: "心理學", skill: 10 },

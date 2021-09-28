@@ -1491,37 +1491,37 @@ async function build7random() {
 ＩＮＴ：((6+2)+6) * 5 = 70
 ＥＤＵ：(((4+6)+6) * 5)-5 = 75
 	 */
-	let quickState = shuffle(eightState);
-	ReStr += '\nＳＴＲ：' + quickState[0];
+	let randomState = shuffle(eightState);
+	ReStr += '\nＳＴＲ：' + randomState[0];
 	if (old >= 40) ReStr += ' ←（可選） ';
 	if (old < 20) ReStr += ' ←（可選）';
 
-	ReStr += '\nＤＥＸ：' + quickState[1];
+	ReStr += '\nＤＥＸ：' + randomState[1];
 	if (old >= 40) ReStr += ' ← （可選）';
 
-	ReStr += '\nＰＯＷ：' + quickState[2];
+	ReStr += '\nＰＯＷ：' + randomState[2];
 
-	ReStr += '\nＣＯＮ：' + quickState[3];
+	ReStr += '\nＣＯＮ：' + randomState[3];
 	if (old >= 40) ReStr += ' ← （可選）'
 
 	if (old >= 40) {
-		ReStr += '\nＡＰＰ：' + `${quickState[4]}-${AppDebuff} = ${quickState[4] - AppDebuff}`;
-	} else ReStr += '\nＡＰＰ：' + quickState[4];
+		ReStr += '\nＡＰＰ：' + `${randomState[4]}-${AppDebuff} = ${randomState[4] - AppDebuff}`;
+	} else ReStr += '\nＡＰＰ：' + randomState[4];
 
 
-	ReStr += '\nＳＩＺ：' + quickState[5];
+	ReStr += '\nＳＩＺ：' + randomState[5];
 	if (old < 20) {
 		ReStr += ' ←（可選）';
 	}
 
-	ReStr += '\nＩＮＴ：' + quickState[6]
+	ReStr += '\nＩＮＴ：' + randomState[6]
 
-	if (old < 20) ReStr += '\nＥＤＵ：' + quickState[7];
+	if (old < 20) ReStr += '\nＥＤＵ：' + randomState[7];
 	else {
 		ReStr += '\n==';
-		ReStr += '\nＥＤＵ初始值：' + quickState[7]
+		ReStr += '\nＥＤＵ初始值：' + randomState[7]
 
-		let tempEDU = + quickState[7]
+		let tempEDU = + randomState[7]
 
 		for (let i = 1; i <= EDUinc; i++) {
 			let EDURoll = rollbase.Dice(100);
@@ -1541,6 +1541,10 @@ async function build7random() {
 
 	ReStr += '\nＬＵＫ：' + rollbase.BuildDiceCal('3d6*5');
 	if (old < 20) ReStr += '\nＬＵＫ加骰：' + rollbase.BuildDiceCal('3D6*5');
+	ReStr += `======\n本職技能======`
+
+
+
 	return ReStr;
 
 }

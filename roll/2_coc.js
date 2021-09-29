@@ -1032,18 +1032,20 @@ function buildpulpchar() {
  * @param {年齡} text01 
  */
 function build7char(text01) {
-	
+
 	//讀取年齡
-	if (!text01 || text01.match(/random/i)) {
-		return ` (沒有填寫歲數,使用預設值)\n ${build7random()}`;
-	}
+	if (!text01) {
+		return `沒有填寫歲數, 先使用隨機產生功能 .cc7build random
+如果有指定歲數請使用,如 .cc7build 30
+${build7random()}`;
+	} else
+		if (text01.match(/random/i)) {
+			return `${build7random()}`;
+		}
 	let old = "";
 	let ReStr = '調查員年齡設為：';
 	if (text01) old = text01.replace(/\D/g, '');
 	if (old) {
-		ReStr += old + '\n';
-	} else {
-		old = 18;
 		ReStr += old + '\n';
 	}
 	//設定 因年齡減少的點數 和 EDU加骰次數

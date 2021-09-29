@@ -1557,7 +1557,7 @@ function build7random() {
 		ReStr += `\n ${occAndOtherSkills.finalOtherSkillList[index].name} ${occAndOtherSkills.finalOtherSkillList[index].skill + 20}`
 
 	}
-	ReStr += `\n==${PcBG()}==`;
+	ReStr += `\n==\n${PcBG()}`;
 	return ReStr;
 
 }

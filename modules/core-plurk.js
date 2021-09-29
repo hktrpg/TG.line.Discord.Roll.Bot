@@ -128,7 +128,7 @@ Plurk_Client.on('new_response', async response => {
     }
 
     let displayName = '';
-    for (var i in response.user) {
+    for (let i in response.user) {
         if (i == response.response.user_id)
             displayName = `${response.user[i].display_name}`
 

@@ -126,7 +126,7 @@ async function searchImage(inputStr, mainMsg, safe) {
 	if (mainMsg[1].match(/^yesno$/i)) {
 		//隨機YES NO
 		let A = ['yes', 'no']
-		keyword = A[await rollbase.Dice(A.length) - 1] + " GIF";
+		keyword = A[rollbase.Dice(A.length) - 1] + " GIF";
 	}
 	return await duckImage.image_search({
 		query: keyword,
@@ -135,7 +135,7 @@ async function searchImage(inputStr, mainMsg, safe) {
 		.then(async images => {
 			if (images[0] && images[0].image) {
 				//let resultnum = Math.floor((Math.random() * (images.length)) + 0)
-				let resultnum = await rollbase.Dice(images.length) - 1;
+				let resultnum = rollbase.Dice(images.length) - 1;
 				return images[resultnum].image;
 			} else {
 				return '沒有結果'

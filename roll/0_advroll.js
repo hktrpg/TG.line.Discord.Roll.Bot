@@ -112,7 +112,7 @@ var rollDiceCommand = async function ({
 			}
 			return rply;
 		case /^[.][i][n][t]$/i.test(mainMsg[0]) && mainMsg[1] <= 100000 && mainMsg[2] <= 100000:
-			rply.text = '投擲 ' + mainMsg[1] + ' - ' + mainMsg[2] + '：\n→ ' + await rollbase.DiceINT(mainMsg[1], mainMsg[2]);
+			rply.text = '投擲 ' + mainMsg[1] + ' - ' + mainMsg[2] + '：\n→ ' + rollbase.DiceINT(mainMsg[1], mainMsg[2]);
 			return rply
 		default:
 			break;
@@ -142,7 +142,7 @@ module.exports = {
 async function d66(text) {
 	text = (text) ? '：' + text : '：';
 	let returnStr = '';
-	returnStr = 'D66' + text + '\n' + await rollbase.Dice(6) + await rollbase.Dice(6);
+	returnStr = 'D66' + text + '\n' + rollbase.Dice(6) + rollbase.Dice(6);
 	return returnStr;
 }
 /**
@@ -151,8 +151,8 @@ async function d66(text) {
  */
 async function d66s(text) {
 	text = (text) ? '：' + text : '：';
-	let temp0 = await rollbase.Dice(6);
-	let temp1 = await rollbase.Dice(6);
+	let temp0 = rollbase.Dice(6);
+	let temp1 = rollbase.Dice(6);
 	let returnStr = '';
 	if (temp0 >= temp1) {
 		let temp2 = temp0;
@@ -167,8 +167,8 @@ async function d66s(text) {
  */
 async function d66n(text) {
 	text = (text) ? '：' + text : '：';
-	let temp0 = await rollbase.Dice(6);
-	let temp1 = await rollbase.Dice(6);
+	let temp0 = rollbase.Dice(6);
+	let temp1 = rollbase.Dice(6);
 	let returnStr = '';
 	if (temp0 <= temp1) {
 		let temp2 = temp0;
@@ -239,8 +239,8 @@ async function xBy(triggermsg, text01, text02, botname) {
 	//	console.log(match01)
 	let varcou = new Array();
 	let varsu = 0;
-	for (var i = 0; i < Number(match[2]); i++) {
-		varcou[i] = await rollbase.Dice(match[4]);
+	for (let i = 0; i < Number(match[2]); i++) {
+		varcou[i] = rollbase.Dice(match[4]);
 	}
 	//	console.log(varcou)
 	//varcou.sort(rollbase.sortNumber);
@@ -331,12 +331,12 @@ async function xUy(triggermsg, text01, text02, text03) {
 		return returnStr;
 	}
 
-	for (var i = 0; i < Number(match[1]); i++) {
-		varcou[i] = await rollbase.Dice(match[3]);
+	for (let i = 0; i < Number(match[1]); i++) {
+		varcou[i] = rollbase.Dice(match[3]);
 		varcounew[i] = varcou[i];
 		varcouloop[i] = varcounew[i];
 		for (; varcounew[i] >= text01;) {
-			varcounew[i] = await rollbase.Dice(match[3]);
+			varcounew[i] = rollbase.Dice(match[3]);
 			varcouloop[i] += ', ' + varcounew[i];
 			varcou[i] += varcounew[i];
 		}

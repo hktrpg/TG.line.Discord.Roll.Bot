@@ -295,7 +295,7 @@ async function HandleMessage(message) {
 	let temp = [];
 	switch (true) {
 		case message.type == 'text' && message.text != '':
-			for (var i = 0; i < message.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+			for (let i = 0; i < message.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 				if (i == 0 || i == 1 || i == message.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == message.text.toString().match(/[\s\S]{1,2000}/g).length - 1)
 					temp.push({
 						type: 'text',

@@ -263,7 +263,7 @@
                 msgs.sort(function (a, b) {
                     return new Date(a.time) - new Date(b.time);
                 });
-                for (var i = 0; i < msgs.length; i++) {
+                for (let i = 0; i < msgs.length; i++) {
                     (async function () {
                         await addMsgToBox(msgs[i]);
                     })();

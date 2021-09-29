@@ -67,10 +67,10 @@ var rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, botn
             //因為在DISCROD以頻道作單位
             if (groupid && userrole >= 1 && userid) {
                 if (trpgDarkRollingfunction.trpgDarkRollingfunction)
-                    for (var i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
+                    for (let i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
                         if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid) {
                             // console.log('checked1')
-                            for (var a = 0; a < trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
+                            for (let a = 0; a < trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
                                 if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].userid == userid) {
                                     //   console.log('checked')
                                     checkifsamename = 1

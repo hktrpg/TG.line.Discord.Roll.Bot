@@ -94,7 +94,7 @@ var rollDiceCommand = async function ({
         case /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
             //刪除阻擋用關鍵字
             if (groupid && mainMsg[2] && save.save && userrole >= 2) {
-                for (var i = 0; i < save.save.length; i++) {
+                for (let i = 0; i < save.save.length; i++) {
                     if (save.save[i].groupid == groupid) {
                         let temp = save.save[i]
                         temp.blockfunction = []
@@ -152,7 +152,7 @@ var rollDiceCommand = async function ({
                 for (let i = 0; i < save.save.length; i++) {
                     if (save.save[i].groupid == groupid) {
                         rply.text += '阻擋用關鍵字列表:'
-                        for (var a = 0; a < save.save[i].blockfunction.length; a++) {
+                        for (let a = 0; a < save.save[i].blockfunction.length; a++) {
                             temp = 1
                             rply.text += ("\n") + a + '. ' + save.save[i].blockfunction[a]
                         }

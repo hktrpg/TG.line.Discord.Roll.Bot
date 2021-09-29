@@ -1661,7 +1661,7 @@ const 移動類 =
 	{ name: "攀爬", skill: 20 },
 	{ name: "游泳", skill: 20 },
 	{ name: "駕駛（汽車）", skill: 20 },
-	{ name: "駕駛(其他)", skill: 1 },
+	{ name: "駕駛（其他）", skill: 1 },
 	{ name: "潛水", skill: 1 },
 	{ name: "騎術", skill: 5 }]
 

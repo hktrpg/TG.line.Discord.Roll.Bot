@@ -601,20 +601,20 @@ var rollDiceCommand = async function ({
         //console.log('tempTitleAll ', tempTitleAll)
         //console.log('who ', who)
 
-        for (var key in who) {
+        for (let key in who) {
             array.push(who[key]);
         }
         array.sort(function (a, b) {
             return b.Level - a.Level;
         });
         var rank = 1;
-        for (var i = 0; i < array.length; i++) {
+        for (let i = 0; i < array.length; i++) {
             if (i > 0 && array[i].Level < array[i - 1].Level) {
                 rank++;
             }
             array[i].rank = rank;
         }
-        for (var b = 0; b < RankNumber; b++) {
+        for (let b = 0; b < RankNumber; b++) {
             if (array && array[b]) {
                 if (b == 0) {
                     answer += Title
@@ -691,7 +691,7 @@ var trpgLevelSystemfunction = [{
 function rankingList(who) {
     var array = [];
 
-    for (var key in trpgLevelSystemfunction) {
+    for (let key in trpgLevelSystemfunction) {
         array.push(trpgLevelSystemfunction[key]);
 
     }
@@ -701,13 +701,13 @@ function rankingList(who) {
     });
 
     var rank = 1;
-    for (var i = 0; i < array.length; i++) {
+    for (let i = 0; i < array.length; i++) {
         if (i > 0 && array[i].EXP < array[i - 1].EXP) {
             rank++;
         }
         array[i].rank = rank;
     }
-    for (var b = 0; b < array.length; b++) {
+    for (let b = 0; b < array.length; b++) {
             document.write("第",Number([b])+1, "名 ",array[b].nickname ," ",array[b].EXP," <br\>");
 
     }
@@ -730,13 +730,13 @@ let f = [];
 
 let c = a.match(b);
 document.write(c,"<br\>");
-for (var z=0 ;z<c.length;z++)
+for (let z=0 ;z<c.length;z++)
 {
 document.write(z," ", c[z],"<br\>");
 }
 document.write("<br\>");
 let d=[];
-for (var i=0 ;i<c.length;i++)
+for (let i=0 ;i<c.length;i++)
 {
 d[i]=e.exec(c[i])
 f.push({lvl:d[i][1],Title:d[i][2]})

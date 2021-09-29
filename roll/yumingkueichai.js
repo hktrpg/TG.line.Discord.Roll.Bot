@@ -88,8 +88,8 @@ async function compareAllValues(triggermsg, msg) {
     });
 
     let first = true;
-    for (var i = 0; i < temp.length; i++) {
-        for (var j = 0; j < i; j++) {
+    for (let i = 0; i < temp.length; i++) {
+        for (let j = 0; j < i; j++) {
             //如果有對子, 輸出達成值
             if (temp[j] == temp[i] && first == true) {
                 first = false

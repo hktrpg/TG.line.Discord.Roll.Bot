@@ -65,7 +65,7 @@ async function wod(triggermsg, text) {
 		return '加骰最少比3高';
 	}
 
-	for (var i = 0; i < Number(match[1]); i++) {
+	for (let i = 0; i < Number(match[1]); i++) {
 		//varcou = Math.floor(Math.random() * 10) + 1;
 		varcou = rollbase.Dice(10)
 		returnStr += varcou + ', ';

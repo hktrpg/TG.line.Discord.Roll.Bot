@@ -239,7 +239,7 @@ async function xBy(triggermsg, text01, text02, botname) {
 	//	console.log(match01)
 	let varcou = new Array();
 	let varsu = 0;
-	for (var i = 0; i < Number(match[2]); i++) {
+	for (let i = 0; i < Number(match[2]); i++) {
 		varcou[i] = rollbase.Dice(match[4]);
 	}
 	//	console.log(varcou)
@@ -331,7 +331,7 @@ async function xUy(triggermsg, text01, text02, text03) {
 		return returnStr;
 	}
 
-	for (var i = 0; i < Number(match[1]); i++) {
+	for (let i = 0; i < Number(match[1]); i++) {
 		varcou[i] = rollbase.Dice(match[3]);
 		varcounew[i] = varcou[i];
 		varcouloop[i] = varcounew[i];

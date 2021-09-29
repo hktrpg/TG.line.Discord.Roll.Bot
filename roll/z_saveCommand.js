@@ -70,7 +70,7 @@ var rollDiceCommand = async function ({
             checkifsamename = 0
             if (groupid && userrole >= 1 && mainMsg[3] && mainMsg[2] && mainMsg[3].toLowerCase() != ".cmd") {
                 if (trpgCommandfunction.trpgCommandfunction)
-                    for (var i = 0; i < trpgCommandfunction.trpgCommandfunction.length; i++) {
+                    for (let i = 0; i < trpgCommandfunction.trpgCommandfunction.length; i++) {
                         if (trpgCommandfunction.trpgCommandfunction[i].groupid == groupid) {
                             if (trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction.length >= 30) {
                                 rply.text = '關鍵字上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
@@ -78,7 +78,7 @@ var rollDiceCommand = async function ({
                             }
                             // console.log('checked1')
                             if (trpgCommandfunction.trpgCommandfunction[0] && trpgCommandfunction.trpgCommandfunction[0].trpgCommandfunction[0])
-                                for (var a = 0; a < trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction.length; a++) {
+                                for (let a = 0; a < trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction.length; a++) {
                                     if (trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction[a].topic == mainMsg[2]) {
                                         //   console.log('checked')
                                         checkifsamename = 1

@@ -642,7 +642,7 @@ async function choice(input, str) {
 
 async function SortIt(input, mainMsg) {
 	let a = input.replace(mainMsg[0], '').match(/\S+/ig);
-	for (var i = a.length - 1; i >= 0; i--) {
+	for (let i = a.length - 1; i >= 0; i--) {
 		//var randomIndex = Math.floor(Math.random() * (i + 1));  
 		//3 -> 210 , 10, 0
 		var randomIndex = rollbase.Dice(i + 1) - 1

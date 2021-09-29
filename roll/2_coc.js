@@ -20,7 +20,7 @@ var prefixs = function () {
 	}
 	]
 }
-var getHelpMessage = async function () {
+var getHelpMessage = function () {
 	return `【克蘇魯神話】
 coc6版擲骰： ccb 80 技能小於等於80
 coc7版擲骰： cc 80 技能小於等於80
@@ -37,6 +37,7 @@ coc7版 總結型瘋狂： 啓動語 ccsu
 coc pulp版創角： 啓動語 .ccpulpbuild
 coc6版創角： 啓動語 .cc6build
 coc7版創角： 啓動語 .cc7build (歲數7-89)
+coc7版隨機創角(非正式規則)： 啓動語 .cc7build random
 coc7 成長或增長檢定： .dp 或 成長檢定 或 幕間成長 (技能%) (名稱)
 例）.DP 50 騎馬 | 成長檢定 45 頭槌 | 幕間成長 40 單車
 coc7版角色背景隨機生成： 啓動語 .cc7bg
@@ -76,32 +77,32 @@ var rollDiceCommand = async function ({
 	let trigger = mainMsg[0].toLowerCase();
 	switch (true) {
 		case (/^help$/i.test(mainMsg[1])): {
-			rply.text = await this.getHelpMessage();
+			rply.text = this.getHelpMessage();
 			rply.quotes = true;
 			break;
 		}
 		case /^ccrt$/i.test(mainMsg[0]): {
-			rply.text = await ccrt();
+			rply.text = ccrt();
 			rply.quotes = true;
 			break;
 		}
 		case /^ccsu$/i.test(mainMsg[0]): {
-			rply.text = await ccsu();
+			rply.text = ccsu();
 			rply.quotes = true;
 			break;
 		}
 		case /^\.sc$/i.test(mainMsg[0]): {
-			rply.text = await sc(mainMsg);
+			rply.text = sc(mainMsg);
 			rply.quotes = true;
 			break;
 		}
 		case /^\.chase$/i.test(mainMsg[0]): {
-			rply.text = await chase();
+			rply.text = chase();
 			rply.quotes = true;
 			break;
 		}
 		case (trigger == 'ccb' && mainMsg[1] <= 1000): {
-			rply.text = await coc6(mainMsg[1], mainMsg[2]);
+			rply.text = coc6(mainMsg[1], mainMsg[2]);
 			break;
 		}
 		//DevelopmentPhase幕間成長指令開始於此
@@ -335,7 +336,7 @@ var rollDiceCommand = async function ({
 
 		}
 		case ((trigger == '.dp' || trigger == '成長檢定' || trigger == '幕間成長') && mainMsg[1] > 0 && mainMsg[1] <= 1000): {
-			rply.text = await DevelopmentPhase(mainMsg[1], mainMsg[2]);
+			rply.text = DevelopmentPhase(mainMsg[1], mainMsg[2]);
 			rply.quotes = true;
 			break;
 		}
@@ -361,22 +362,22 @@ var rollDiceCommand = async function ({
 		}
 
 		case /(^cc7版創角$)|(^[.]cc7build$)/i.test(mainMsg[0]): {
-			rply.text = await (await build7char(mainMsg[1])).replace(/\*5/ig, ' * 5');
+			rply.text = (build7char(mainMsg[1])).replace(/\*5/ig, ' * 5');
 			rply.quotes = true;
 			break;
 		}
 		case /(^ccpulp版創角$)|(^[.]ccpulpbuild$)/i.test(mainMsg[0]): {
-			rply.text = await (await buildpulpchar(mainMsg[1])).replace(/\*5/ig, ' * 5');
+			rply.text = (buildpulpchar(mainMsg[1])).replace(/\*5/ig, ' * 5');
 			rply.quotes = true;
 			break;
 		}
 		case /(^cc6版創角$)|(^[.]cc6build$)/i.test(mainMsg[0]): {
-			rply.text = await build6char(mainMsg[1]);
+			rply.text = build6char(mainMsg[1]);
 			rply.quotes = true;
 			break;
 		}
 		case /(^cc7版角色背景$)|(^[.]cc7bg$)/i.test(mainMsg[0]): {
-			rply.text = await PcBG();
+			rply.text = PcBG();
 			rply.quotes = true;
 			break;
 		}
@@ -788,7 +789,7 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 
 }
 
-async function DevelopmentPhase(target, text) {
+function DevelopmentPhase(target, text) {
 	let result = '';
 	target = Number(target);
 	if (text == undefined) text = "";
@@ -808,7 +809,7 @@ async function DevelopmentPhase(target, text) {
 	return result;
 }
 
-async function ccrt() {
+function ccrt() {
 	let result = '';
 	//var rollcc = Math.floor(Math.random() * 10);
 	//var time = Math.floor(Math.random() * 10) + 1;
@@ -828,7 +829,7 @@ async function ccrt() {
 	return result;
 }
 
-async function ccsu() {
+function ccsu() {
 	let result = '';
 	let rollcc = rollbase.Dice(10) - 1
 	let time = rollbase.Dice(10)
@@ -851,7 +852,7 @@ async function ccsu() {
  * @param {數字 如CB 80 的80} chack 
  * @param {後面的文字,如偵查} text 
  */
-async function coc6(chack, text) {
+function coc6(chack, text) {
 	let result = '';
 	let temp = rollbase.Dice(100);
 	if (temp == 100) result = 'ccb<=' + chack + '\n' + temp + ' → 啊！大失敗！';
@@ -1007,7 +1008,7 @@ async function coc7bp({ chack, text, userid, groupid, channelid, bpdiceNum, user
 		return result;
 	}
 }
-async function buildpulpchar() {
+function buildpulpchar() {
 	let ReStr = 'Pulp CoC 不使用年齡調整\n';
 	//讀取年齡
 	ReStr += '\nＳＴＲ：' + rollbase.BuildDiceCal('3d6*5');
@@ -1030,7 +1031,7 @@ async function buildpulpchar() {
  * COC7傳統創角
  * @param {年齡} text01 
  */
-async function build7char(text01) {
+function build7char(text01) {
 	let old = "";
 	let ReStr = '調查員年齡設為：';
 	//讀取年齡
@@ -1188,7 +1189,7 @@ async function build7char(text01) {
 
 
 
-async function build6char() {
+function build6char() {
 	/*	//讀取年齡
 		if (text01 == undefined) text01 = 18;
 		let old = text01;
@@ -1233,11 +1234,11 @@ async function build6char() {
 	return ReStr;
 }
 //隨機產生角色背景
-async function PcBG() {
+function PcBG() {
 	return '背景描述生成器（僅供娛樂用，不具實際參考價值）\n==\n調查員是一個' + PersonalDescriptionArr[rollbase.Dice(PersonalDescriptionArr.length) - 1] + '人。\n【信念】：說到這個人，他' + IdeologyBeliefsArr[rollbase.Dice(IdeologyBeliefsArr.length) - 1] + '。\n【重要之人】：對他來說，最重要的人是' + SignificantPeopleArr[rollbase.Dice(SignificantPeopleArr.length) - 1] + '，這個人對他來說之所以重要，是因為' + SignificantPeopleWhyArr[rollbase.Dice(SignificantPeopleWhyArr.length) - 1] + '。\n【意義非凡之地】：對他而言，最重要的地點是' + MeaningfulLocationsArr[rollbase.Dice(MeaningfulLocationsArr.length) - 1] + '。\n【寶貴之物】：他最寶貴的東西就是' + TreasuredPossessionsArr[rollbase.Dice(TreasuredPossessionsArr.length) - 1] + '。\n【特徵】：總括來說，調查員是一個' + TraitsArr[rollbase.Dice(TraitsArr.length) - 1] + '。';
 }
 
-async function sc(mainMsg) {
+function sc(mainMsg) {
 	//可接受輸入: .sc 50	.sc 50 哈哈		.sc 50 1/3		.sc 50 1d3+3/1d100 
 	if (!mainMsg || !mainMsg[0] || !mainMsg[1]) return;
 	let san = (mainMsg[1].match(/^\d+$/)) ? mainMsg[1].match(/^\d+$/) : null;
@@ -1320,15 +1321,15 @@ function replacer(a, b, c) {
 	return b * c;
 }
 
-async function chase() {
+function chase() {
 	let rply = `CoC 7ed追逐戰產生器\n`;
 	let round = rollbase.Dice(5) + 5;
 	for (let index = 0; index < round; index++) {
-		rply += `${await chaseGenerator(index)}\n----------\n`;
+		rply += `${chaseGenerator(index)}\n----------\n`;
 	}
 	return rply;
 }
-async function chaseGenerator(num) {
+function chaseGenerator(num) {
 	let rply = "";
 	let chase = rollbase.Dice(100);
 	let dangerMode = (rollbase.Dice(2) == 1) ? true : false;
@@ -1432,7 +1433,7 @@ function shuffle(array) {
 
 	return array;
 }
-async function build7random() {
+function build7random() {
 	/**
 	 * 該方案適合大家想要立刻掏槍上馬開桌的時候。
 	 * 將４０、５０、５０、５０、６０、６０、７０、８０分配在屬性上。
@@ -1491,7 +1492,7 @@ async function build7random() {
 ＩＮＴ：((6+2)+6) * 5 = 70
 ＥＤＵ：(((4+6)+6) * 5)-5 = 75
 	 */
-	let randomState = mathjs.pickRandom(eightState, 8);
+	let randomState = shuffle(eightState);
 	let randomStateNumber = checkState(randomState);
 	ReStr += '\nＳＴＲ：' + randomStateNumber[0];
 	if (old >= 40) ReStr += ' ←（可選） ';
@@ -1542,18 +1543,83 @@ async function build7random() {
 
 	ReStr += '\nＬＵＫ：' + rollbase.BuildDiceCal('3d6*5');
 	if (old < 20) ReStr += '\nＬＵＫ加骰：' + rollbase.BuildDiceCal('3D6*5');
-	ReStr += `======\n本職技能======`
-	let findOccupationSkill = getOccupationSkill(randomState);
+	ReStr += `\n==本職技能==`
+	let occAndOtherSkills = getOccupationSkill(randomState);
+	for (let index = 0; index < occAndOtherSkills.finalOSkillList.length; index++) {
+		ReStr += `\n ${occAndOtherSkills.finalOSkillList[index]} ${eightskillsNumber[index]}`
 
+	}
+	ReStr += `\n==其他技能==`
+	for (let index = 0; index < occAndOtherSkills.finalOtherSkillList.length; index++) {
+		ReStr += `\n ${occAndOtherSkills.finalOtherSkillList[index].name} ${occAndOtherSkills.finalOtherSkillList[index].skill + 20}`
 
+	}
+	ReStr += `\n==${PcBG()}==`;
 	return ReStr;
 
 }
 function getOccupationSkill(state) {
-	let result = []
+	//state = [STR,DEX,....]
+	let skillsPool = [];
+	let skillResult = [];
+	let CR = rollbase.Dice(8) - 1;
 	for (let index = 0; index < 8; index++) {
-		eval("result[index] = " + state[index])
+		let temp = eval(state[index]);
+		for (let index2 = 0; index2 < temp.length; index2++) {
+			skillsPool.push(temp[index2]);
+		}
+		//skillsPool = ["戰鬥類", "醫療"] - 決定POOL有什麼
+		//skillsPool (15) ['戰鬥類', '醫療', '戰鬥類', '醫療', '移動類', '隱密類', '戰鬥類
+		if (index == CR) {
+			skillResult.push("信譽");
+		}
+		skillResult.push(skillsPool[rollbase.Dice(skillsPool.length) - 1]);
+		//
+
+
 	}
+
+	//skillResult (9) ['醫療', '醫療', '醫療', '信譽', '戰鬥類', '隱密類', '移動類', '隱密類', '戰鬥類']
+	let finalOSkillList = [];
+	let sortSkillList = [
+		{ name: "移動類", sort: shuffle([...移動類]) },
+		{ name: "隱密類", sort: shuffle([...隱密類]) },
+		{ name: "職業興趣", sort: shuffle([...職業興趣]) },
+		{ name: "調查類", sort: shuffle([...調查類]) },
+		{ name: "戰鬥類", sort: shuffle([...戰鬥類]) },
+		{ name: "醫療類", sort: shuffle([...醫療類]) },
+		{ name: "語言類", sort: shuffle([...語言類]) },
+		{ name: "學問類", sort: shuffle([...學問類]) },
+		{ name: "交際類", sort: shuffle([...交際類]) },
+	];
+	for (let i = 0; i < skillResult.length; i++) {
+		if (skillResult[i] == "信譽") {
+			finalOSkillList.push("信譽");
+			continue;
+		}
+		sortSkillList.forEach(v => {
+			if (v.name == skillResult[i]) {
+				finalOSkillList.push(v.sort[0].name);
+				v.sort.shift();
+			}
+		})
+
+	}
+
+
+	let tempOtherSkillList = [];
+	sortSkillList.forEach(element => {
+		tempOtherSkillList.push(element.sort)
+	});
+	let tempFinalOtherSkillList = shuffle([...tempOtherSkillList.flat()])
+	let finalOtherSkillList = []
+	for (let index = 0; index < 4; index++) {
+		finalOtherSkillList.push(tempFinalOtherSkillList[index]);
+	}
+
+	return { finalOSkillList, finalOtherSkillList };
+
+	//
 
 }
 function checkState(state) {
@@ -1576,9 +1642,10 @@ const eightState = ["STR",
 	"APP",
 	"SIZ",
 	"INT",
-	"EDU"]
+	"EDU"];
 const eightStateNumber = [
-	80, 70, 70, 60, 50, 50, 50, 40]
+	80, 70, 70, 60, 50, 50, 50, 40];
+const eightskillsNumber = [70, 60, 60, 50, 50, 50, 40, 40, 40];
 
 const 交際類 = [
 	{ name: "心理學", skill: 10 },
@@ -1630,8 +1697,13 @@ const 學問類 = [
 ]
 
 const 語言類 = [
-	{ name: "母語", skill: 0 },
 	{ name: "語言", skill: 1 },
+	{ name: "語言", skill: 1 },
+	{ name: "語言", skill: 1 },
+	{ name: "語言", skill: 1 },
+	{ name: "語言", skill: 1 },
+	{ name: "語言", skill: 1 },
+	{ name: "語言", skill: 1 }
 
 ]
 
@@ -1640,7 +1712,7 @@ const 職業興趣 = [
 	{ name: "偽造", skill: 5 },
 	{ name: "表演", skill: 5 },
 	{ name: "攝影", skill: 5 },
-	{ name: "藝術／手藝", skill: 5 },
+	{ name: "藝術／手藝(自選一項)", skill: 5 },
 	{ name: "操作重機", skill: 1 },
 	{ name: "機械維修", skill: 10 },
 	{ name: "電器維修", skill: 10 },
@@ -1649,7 +1721,6 @@ const 職業興趣 = [
 ]
 
 const 調查類 = [
-
 	{ name: "偵查", skill: 25 },
 	{ name: "聆聽", skill: 20 },
 	{ name: "圖書館使用", skill: 20 },
@@ -1662,8 +1733,6 @@ const 戰鬥類 = [
 	{ name: "閃避", skill: 0 },
 	{ name: "鬥毆", skill: 25 },
 	{ name: "劍", skill: 20 },
-	{ name: "絞殺", skill: 15 },
-	{ name: "電鋸", skill: 10 },
 	{ name: "投擲", skill: 20 },
 	{ name: "弓", skill: 15 },
 	{ name: "手槍", skill: 20 },
@@ -1678,11 +1747,11 @@ const 醫療類 = [
 	{ name: "藥學", skill: 1 },
 	{ name: "催眠", skill: 1 }
 ]
-const STR = ["戰鬥類", "醫療"]
+const STR = ["戰鬥類", "醫療類"]
 const DEX = ["移動類", "隱密類"]
 const POW = ["職業興趣", "學問類"]
 const CON = ["移動類", "戰鬥類"]
-const APP = ["語言", "交際類"]
-const EDU = ["調查類", "醫療", "學問類"]
+const APP = ["語言類", "交際類"]
+const EDU = ["調查類", "醫療類", "學問類"]
 const SIZ = ["戰鬥類", "交際類"]
 const INT = ["隱密類", "職業興趣", "調查類"]

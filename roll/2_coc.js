@@ -1552,8 +1552,7 @@ async function build7random() {
 function getOccupationSkill(state) {
 	let result = []
 	for (let index = 0; index < 8; index++) {
-		//	result[index]=eval(state)
-
+		eval("result[index] = " + state[index])
 	}
 
 }

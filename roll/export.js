@@ -39,6 +39,7 @@ var getHelpMessage = async function () {
     return `測試進行中【聊天紀錄】
 .discord html 可以輸出有分析功能的聊天紀錄
 .discord txt 可以輸出純文字的聊天紀錄
+.discord txt -withouttime 可以輸出【沒有時間標記的】純文字的聊天紀錄
 需要使用者及rollbot 都有閱讀頻道聊天紀錄的權限
 然後會私訊你紀錄
 注意 使用此功能，你需要有管理此頻道的權限或管理員權限。
@@ -46,7 +47,7 @@ var getHelpMessage = async function () {
 因為經過server處理，擔心個資外洩請勿使用。
 
 因為資源限制，
-每個群組 5分鐘可以使用一次,
+每個群組 20分鐘可以使用一次,
 每個ACC可以一星期使用兩次
 
 經patreon解鎖功能的話可以一星期使用20次以上，
@@ -59,6 +60,7 @@ var initialize = function () {
 }
 
 var rollDiceCommand = async function ({
+    inputStr,
     mainMsg,
     discordClient,
     discordMessage,
@@ -341,7 +343,7 @@ var rollDiceCommand = async function ({
             rply.text += `已私訊你 頻道 ${discordMessage.channel.name} 的聊天紀錄
             你的channel 聊天紀錄 共有 ${totalSize} 項`
             return rply;
-        case /^txt$/i.test(mainMsg[1]):
+        case /^txt$/i.test(mainMsg[1]): {
             if (!channelid || !groupid) {
                 rply.text = "這是頻道功能，需要在頻道上使用。"
                 return rply;
@@ -369,7 +371,7 @@ var rollDiceCommand = async function ({
             checkGP = await schema.exportGp.findOne({
                 groupID: userid
             });
-            gpLimitTime = (lv > 0) ? oneMinuts : oneMinuts * 5;
+            gpLimitTime = (lv > 0) ? oneMinuts : oneMinuts * 20;
             gpRemainingTime = (checkGP) ? theTime - checkGP.lastActiveAt - gpLimitTime : 1;
             userRemainingTime = (checkUser) ? theTime - checkUser.lastActiveAt - sevenDay : 1;
             try {
@@ -446,18 +448,30 @@ var rollDiceCommand = async function ({
             M.sort(function (b, a) {
                 return a.timestamp - b.timestamp;
             });
+            let withouttime = (/-withouttime/i).test(inputStr);
+            //加不加時間標記下去
             for (let index = M.length - 1; index >= 0; index--) {
-                let time = M[index].timestamp.toString().slice(0, -3);
-                const dateObj = moment
-                    .unix(time)
-                    .tz('Asia/Taipei')
-                    .format('YYYY-MM-DD HH:mm:ss');
-                if (M[index].isbot) {
-                    data += '(🤖)'
+                if (withouttime) {
+                    if (M[index].isbot) {
+                        data += '(🤖)'
+                    }
+                    data += M[index].userName + '	' + '\n';
+                    data += M[index].contact.replace(/<@(.*?)>/ig, replacer)
+                    data += '\n\n';
+                } else {
+                    let time = M[index].timestamp.toString().slice(0, -3);
+                    const dateObj = moment
+                        .unix(time)
+                        .tz('Asia/Taipei')
+                        .format('YYYY-MM-DD HH:mm:ss');
+                    if (M[index].isbot) {
+                        data += '(🤖)'
+                    }
+                    //dateObj  決定有沒有時間
+                    data += M[index].userName + '	' + dateObj + '\n';
+                    data += M[index].contact.replace(/<@(.*?)>/ig, replacer)
+                    data += '\n\n';
                 }
-                data += M[index].userName + '	' + dateObj + '\n';
-                data += M[index].contact.replace(/<@(.*?)>/ig, replacer)
-                data += '\n\n';
             }
             try {
                 await fs.access(dir)
@@ -470,7 +484,7 @@ var rollDiceCommand = async function ({
             rply.text += `已私訊你 頻道  ${discordMessage.channel.name}  的聊天紀錄
             你的channel聊天紀錄 共有  ${totalSize}  項`
             return rply;
-        default:
+        } default:
             break;
     }
 }

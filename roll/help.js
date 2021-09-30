@@ -145,6 +145,10 @@ HKTRPG 作品集 https://hktrpg.github.io/TG.line.Discord.Roll.Bot/PORTFOLIOP
 2021/07/16 使用Discord js light, 現在有7400群組在使用, 記憶體不夠用了...
 更新coc創角, 幼年調查員和PULP版
 2021/07/18 更新Discord說明的方式, 使用Embeds
+2021/09/01 新增作品集
+2021/09/10 新增追逐戰.chase，新增.sc SanCheck功能
+2021/09/18 showMeAtTheWorld
+2021/09/30 新增匯出團錄時，可以去掉不必要的日期標示，Choice 排序功能顯示改良，.CC7build random
 全部更新可看https://github.com/hktrpg/TG.line.Discord.Roll.Bot/commits/master
 `;
 			try {

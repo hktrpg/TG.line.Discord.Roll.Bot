@@ -74,27 +74,27 @@ var rollDiceCommand = async function ({
 
 	switch (true) {
 		case /^排序|排序$/i.test(mainMsg[0]) && (mainMsg.length >= 4):
-			rply.text = await SortIt(inputStr, mainMsg);
+			rply.text = SortIt(inputStr, mainMsg);
 			return rply;
 		case /^隨機|^choice|隨機$|choice$/i.test(mainMsg[0]) && (mainMsg.length >= 3):
-			rply.text = await choice(inputStr, mainMsg);
+			rply.text = choice(inputStr, mainMsg);
 			return rply;
 		case /塔羅/i.test(mainMsg[0]):
 			if (mainMsg[0].match(/^每日塔羅/) != null)
-				rply.text = await NomalDrawTarot(mainMsg[1], mainMsg[2]); //預設抽 79 張
+				rply.text = NomalDrawTarot(mainMsg[1], mainMsg[2]); //預設抽 79 張
 			if (mainMsg[0].match(/^時間塔羅/) != null)
-				rply.text = await MultiDrawTarot(mainMsg[1], mainMsg[2], 1);
+				rply.text = MultiDrawTarot(mainMsg[1], mainMsg[2], 1);
 			if (mainMsg[0].match(/^大十字塔羅/) != null)
-				rply.text = await MultiDrawTarot(mainMsg[1], mainMsg[2], 2);
+				rply.text = MultiDrawTarot(mainMsg[1], mainMsg[2], 2);
 			return rply;
 		case (/立flag$|^立flag/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,25}/g).length <= 1):
-			rply.text = await BStyleFlagSCRIPTS();
+			rply.text = BStyleFlagSCRIPTS();
 			return rply;
 		case /^鴨霸獸$/i.test(mainMsg[0]):
-			rply.text = await randomReply();
+			rply.text = randomReply();
 			return rply;
 		case (/運勢$|^運勢/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,40}/g).length <= 1):
-			rply.text = await randomLuck(mainMsg);
+			rply.text = randomLuck(mainMsg);
 			return rply;
 		case /^[.]me$/i.test(mainMsg[0]):
 			rply.text = me(inputStr);
@@ -115,7 +115,7 @@ function me(inputStr) {
  * 占卜&其他
  */
 
-async function BStyleFlagSCRIPTS() {
+function BStyleFlagSCRIPTS() {
 	const rplyArr = ['\
 「打完這仗我就回老家結婚（この戦いが終わったら、故郷に帰って結婚するんだ）」', '\
 「打完這一仗後我請你喝酒」', '\
@@ -229,7 +229,7 @@ async function BStyleFlagSCRIPTS() {
 	return rplyArr[rollbase.Dice(rplyArr.length) - 1]
 }
 
-async function randomReply() {
+function randomReply() {
 	const rplyArr = ['\
 你們死定了呃呃呃不要糾結這些……所以是在糾結哪些？', '\
 在澳洲，每過一分鐘就有一隻鴨嘴獸被拔嘴。 \n我到底在共三小。', '\
@@ -259,7 +259,7 @@ wwwwwwwwwwwwwwwww', '\
 	return rplyArr[rollbase.Dice(rplyArr.length) - 1];
 }
 
-async function randomLuck(TEXT) {
+function randomLuck(TEXT) {
 	const rplyArr = ['超吉', '超級上吉', '大吉', '吉', '中吉', '小吉', '吉', '小吉', '吉', '吉', '中吉', '吉', '中吉', '吉', '中吉', '小吉', '末吉', '吉', '中吉', '小吉', '末吉', '中吉', '小吉', '小吉', '吉', '小吉', '末吉', '中吉', '小吉', '凶', '小凶', '沒凶', '大凶', '很凶', '你不要知道比較好呢', '命運在手中,何必問我'];
 	//	rply.text = TEXT[0] + ' ： ' + rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
 	return TEXT[0] + ' ： ' + rplyArr[rollbase.Dice(rplyArr.length) - 1];
@@ -268,12 +268,12 @@ async function randomLuck(TEXT) {
 /**
  * Tarot塔羅牌
  */
-async function MultiDrawTarot(text, text2, type) {
+function MultiDrawTarot(text, text2, type) {
 	let returnStr = '';
 	let cards = []
 	switch (type) {
 		case 1:
-			returnStr = '時間塔羅';
+			returnStr = '【時間塔羅】/每日塔羅/大十字塔羅\n';
 			(text) ? returnStr += "；" + text + " " + text2 : '';
 			cards = rollbase.shuffleTarget(TarotList2);
 			returnStr += '過去: ' + cards[0] + '\n'
@@ -281,7 +281,7 @@ async function MultiDrawTarot(text, text2, type) {
 			returnStr += '未來: ' + cards[2] + '\n'
 			break;
 		case 2:
-			returnStr = '大十字塔羅';
+			returnStr = '【大十字塔羅】/每日塔羅/時間塔羅\n';
 			(text) ? returnStr += "；" + text + " " + text2 : '';
 			cards = rollbase.shuffleTarget(TarotList2);
 			returnStr += '現況: ' + cards[0] + '\n'
@@ -302,9 +302,9 @@ async function MultiDrawTarot(text, text2, type) {
 	return returnStr;
 }
 
-async function NomalDrawTarot(text, text2) {
+function NomalDrawTarot(text, text2) {
 	let returnStr = '';
-	returnStr = '每日塔羅'
+	returnStr = '【每日塔羅】/大十字塔羅/時間塔羅'
 	if (text)
 		returnStr += "；" + text + " " + text2
 	let ans = rollbase.shuffleTarget(TarotList)
@@ -634,13 +634,12 @@ const TarotList2 = ["愚者 ＋",
 /**
  *  choice 及SORT
  */
-async function choice(input, str) {
-	let a = input.replace(str[0], '').match(/\S+/ig);
-	return str[0] + ' [' + a + '] \n→ ' + a[rollbase.Dice(a.length) - 1];
-
+function choice(input, str) {
+	let array = input.replace(str[0], '').match(/\S+/ig);
+	return str[0] + ' [ ' + array.join(' ') + ' ] \n→ ' + array[rollbase.Dice(array.length) - 1];
 }
 
-async function SortIt(input, mainMsg) {
+function SortIt(input, mainMsg) {
 	let a = input.replace(mainMsg[0], '').match(/\S+/ig);
 	for (let i = a.length - 1; i >= 0; i--) {
 		//var randomIndex = Math.floor(Math.random() * (i + 1));  
@@ -652,7 +651,7 @@ async function SortIt(input, mainMsg) {
 		a[randomIndex] = a[i];
 		a[i] = itemAtIndex;
 	}
-	return mainMsg[0] + ' \n→ [ ' + a + ' ]';
+	return mainMsg[0] + ' \n→ [ ' + a.join(', ') + ' ]';
 }
 
 module.exports = {

@@ -46,7 +46,7 @@ process.on("Line", message => {
 	if (!message.text) return;
 	SendToId(message.target.id, message.text);
 	return;
-})
+});
 
 var handleEvent = async function (event) {
 	let inputStr = (event.message && event.message.text) ? event.message.text : "";
@@ -69,7 +69,7 @@ var handleEvent = async function (event) {
 	}
 	let privatemsg = 0;
 
-	function privateMsg() {
+	(function privateMsg() {
 		if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
 			privatemsg = 1;
 			inputStr = inputStr.replace(/^dr\s+/i, '');
@@ -82,22 +82,21 @@ var handleEvent = async function (event) {
 			privatemsg = 3;
 			inputStr = inputStr.replace(/^dddr\s+/i, '');
 		}
-	}
-	privateMsg();
+	})();
 	if (event.type !== 'message' || event.message.type !== 'text') {
 		if (event.type == "join" && roomorgroupid) {
 			// 新加入群組時, 傳送MESSAGE
 			console.log("Line joined");
 			await replyMessagebyReplyToken(event, joinMessage);
 		}
-		await nonDice(event)
+		await nonDice(event);
 		return Promise.resolve(null);
 	}
 	let target = '';
 	if (inputStr) target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
 	if (!target) {
-		await nonDice(event)
-		return null
+		await nonDice(event);
+		return null;
 	}
 	let userid = event.source.userId || '',
 		displayname = '',

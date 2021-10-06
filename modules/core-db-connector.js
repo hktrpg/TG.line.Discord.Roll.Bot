@@ -18,7 +18,7 @@ const mongoose = require('mongoose');
     } catch (err) {
         console.error('DB CONNECT GET ERROR: ' + err)
     }
-})()
+})();
 
 
 const db = mongoose.connection;

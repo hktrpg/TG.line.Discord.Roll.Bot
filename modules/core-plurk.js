@@ -32,7 +32,7 @@ setInterval(intervalFunc, 60 * 1000 * 10);
 
 Plurk_Client.on('new_plurk', async response => {
     if (response.type != 'new_plurk') return;
-    if (response.limited_to && response.limited_to.length == 1 && response.limited_to[0] == 0) return;
+    // if (response.limited_to && response.limited_to.length == 1 && response.limited_to[0] == 0) return;
 
     let groupid = response.owner_id,
         userid = response.user_id,
@@ -79,13 +79,13 @@ Plurk_Client.on('new_plurk', async response => {
 
     return sendMessage(response.plurk_id, rplyText);
 
-});
+}).catch(console.error);
 
 Plurk_Client.on('new_response', async response => {
     //防止自己回應自己
     if (response.user[plurkID]) return;
     if (response.type != 'new_response') return;
-    if (response.limited_to && response.limited_to.length == 1 && response.limited_to[0] == 0) return;
+    //   if (response.limited_to && response.limited_to.length == 1 && response.limited_to[0] == 0) return;
     let message = response.response.content_raw;
 
     let groupid = response.plurk.owner_id,
@@ -139,7 +139,7 @@ Plurk_Client.on('new_response', async response => {
     if (rplyVal.LevelUp) rplyText += `${rplyVal.LevelUp}`
     return sendMessage(response.plurk.plurk_id, rplyText);
 
-})
+}).catch(console.error)
 
 function sendMessage(response, rplyVal) {
     try {

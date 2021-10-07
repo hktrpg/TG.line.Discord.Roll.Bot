@@ -77,9 +77,9 @@ Plurk_Client.on('new_plurk', async response => {
     if (rplyVal.text) rplyText += `${rplyVal.text}\n`
     if (rplyVal.LevelUp) rplyText += `${rplyVal.LevelUp}`
 
-    return sendMessage(response.plurk_id, rplyText);
+    return await sendMessage(response.plurk_id, rplyText);
 
-})
+});
 
 Plurk_Client.on('new_response', async response => {
     //防止自己回應自己
@@ -96,61 +96,57 @@ Plurk_Client.on('new_response', async response => {
         inputStr = message.replace(/^\s*@hktrpg\s+/i, '');
 
     let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
-    try {
 
-        if (!target) {
-            await nonDice(groupid, userid, displayname, response.plurk_id)
-            return null
-        }
-        if (!message) return;
-        let mainMsg = message.match(msgSplitor); // 定義輸入字串
-
-
-        if (mainMsg && mainMsg.length > 1) {
-            if (!mainMsg[0].match(/@HKTRPG/i)) return;
-            mainMsg.shift();
-        }
-        else return;
+    if (!target) {
+        await nonDice(groupid, userid, displayname, response.plurk_id)
+        return null
+    }
+    if (!message) return;
+    let mainMsg = message.match(msgSplitor); // 定義輸入字串
 
 
-        // 訊息來到後, 會自動跳到analytics.js進行骰組分析
-        // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
-        let rplyVal = await exports.analytics.parseInput({
-            inputStr: inputStr,
-            groupid: groupid,
-            userid: userid,
-            userrole: userrole,
-            botname: "Plurk",
-            displayname: displayname,
-            channelid: channelid,
-        });
-        if (!rplyVal.text && !rplyVal.LevelUp) {
-            return;
-        }
+    if (mainMsg && mainMsg.length > 1) {
+        if (!mainMsg[0].match(/@HKTRPG/i)) return;
+        mainMsg.shift();
+    }
+    else return;
 
-        let displayName = '';
-        for (let i in response.user) {
-            if (i == response.response.user_id)
-                displayName = `${response.user[i].display_name}`
 
-        }
-        let rplyText = '';
-        if (displayName) rplyText += `${displayName}\n`
-        if (rplyVal.text) rplyText += `${rplyVal.text}\n`
-        if (rplyVal.LevelUp) rplyText += `${rplyVal.LevelUp}`
-        return sendMessage(response.plurk.plurk_id, rplyText);
-
-    } catch (error) {
+    // 訊息來到後, 會自動跳到analytics.js進行骰組分析
+    // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+    let rplyVal = await exports.analytics.parseInput({
+        inputStr: inputStr,
+        groupid: groupid,
+        userid: userid,
+        userrole: userrole,
+        botname: "Plurk",
+        displayname: displayname,
+        channelid: channelid,
+    });
+    if (!rplyVal.text && !rplyVal.LevelUp) {
         return;
     }
 
+    let displayName = '';
+    for (let i in response.user) {
+        if (i == response.response.user_id)
+            displayName = `${response.user[i].display_name}`
+
+    }
+    let rplyText = '';
+    if (displayName) rplyText += `${displayName}\n`
+    if (rplyVal.text) rplyText += `${rplyVal.text}\n`
+    if (rplyVal.LevelUp) rplyText += `${rplyVal.LevelUp}`
+    return await sendMessage(response.plurk.plurk_id, rplyText);
+
 })
 
-function sendMessage(response, rplyVal) {
+async function sendMessage(response, rplyVal) {
     try {
-        Plurk_Client.request('Responses/responseAdd', { plurk_id: response, content: rplyVal.toString().match(/[\s\S]{1,300}/g)[0], qualifier: 'says' })
+        await Plurk_Client.request('Responses/responseAdd', { plurk_id: response, content: rplyVal.toString().match(/[\s\S]{1,300}/g)[0], qualifier: 'says' })
     } catch (error) {
-        return;
+        if (!error.error_text == "anti-flood-same-content")
+            console.error(error.error_text);
     }
     return;
 
@@ -160,7 +156,7 @@ async function nonDice(groupid, userid, displayname, plurk_id) {
     if (!groupid || !userid) return;
     let LevelUp = await EXPUP(groupid, userid, displayname, "", null);
     if (groupid && LevelUp && LevelUp.text) {
-        sendMessage(plurk_id, LevelUp.text);
+        await sendMessage(plurk_id, LevelUp.text);
     }
 
     return null;

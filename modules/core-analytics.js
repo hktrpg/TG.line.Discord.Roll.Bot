@@ -1,11 +1,11 @@
 "use strict";
 // Load `*.js` under roll directory as properties
 //  i.e., `User.js` will become `exports['User']` or `exports.User`
-(async function () {
-	await require('fs').readdirSync('./roll/').forEach(async function (file) {
+(function () {
+	require('fs').readdirSync('./roll/').forEach(function (file) {
 		if (file.match(/\.js$/) !== null && file !== 'index.js' && file !== 'demo.js') {
-			const name = await file.replace('.js', '');
-			exports[name] = await require('../roll/' + file);
+			const name = file.replace('.js', '');
+			exports[name] = require('../roll/' + file);
 		}
 	})
 }())

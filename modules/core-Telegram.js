@@ -51,7 +51,7 @@ TGclient.on('text', async (ctx) => {
 	}
 	let privatemsg = 0;
 
-	function privateMsg() {
+	(function privateMsg() {
 		if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
 			privatemsg = 1;
 			inputStr = inputStr.replace(/^dr\s+/i, '');
@@ -64,8 +64,7 @@ TGclient.on('text', async (ctx) => {
 			privatemsg = 3;
 			inputStr = inputStr.replace(/^dddr\s+/i, '');
 		}
-	}
-	privateMsg();
+	})();
 	let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
 	if (!target) {
 		await nonDice(ctx);

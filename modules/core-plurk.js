@@ -32,7 +32,7 @@ setInterval(intervalFunc, 60 * 1000 * 10);
 
 Plurk_Client.on('new_plurk', async response => {
     if (response.type != 'new_plurk') return;
-    if (response.limited_to && response.limited_to.length == 1 && response.limited_to[0] == 0) return;
+    //   if (response.limited_to && response.limited_to.length == 1 && response.limited_to[0] == 0) return;
 
     let groupid = response.owner_id,
         userid = response.user_id,
@@ -85,7 +85,7 @@ Plurk_Client.on('new_response', async response => {
     //防止自己回應自己
     if (response.user[plurkID]) return;
     if (response.type != 'new_response') return;
-    if (response.limited_to && response.limited_to.length == 1 && response.limited_to[0] == 0) return;
+    // if (response.limited_to && response.limited_to.length == 1 && response.limited_to[0] == 0) return;
     let message = response.response.content_raw;
 
     let groupid = response.plurk.owner_id,
@@ -137,13 +137,13 @@ Plurk_Client.on('new_response', async response => {
     if (displayName) rplyText += `${displayName}\n`
     if (rplyVal.text) rplyText += `${rplyVal.text}\n`
     if (rplyVal.LevelUp) rplyText += `${rplyVal.LevelUp}`
-    return await sendMessage(response.plurk.plurk_id, rplyText);
+    return sendMessage(response.plurk.plurk_id, rplyText);
 
 })
 
-async function sendMessage(response, rplyVal) {
+function sendMessage(response, rplyVal) {
     try {
-        await Plurk_Client.request('Responses/responseAdd', { plurk_id: response, content: rplyVal.toString().match(/[\s\S]{1,300}/g)[0], qualifier: 'says' })
+        Plurk_Client.request('Responses/responseAdd', { plurk_id: response, content: rplyVal.toString().match(/[\s\S]{1,300}/g)[0], qualifier: 'says' })
     } catch (error) {
         if (!error.error_text == "anti-flood-same-content")
             console.error(error.error_text);

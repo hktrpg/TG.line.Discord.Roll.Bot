@@ -1,16 +1,16 @@
 "use strict";
 // Load `*.js` under roll directory as properties
 //  i.e., `User.js` will become `exports['User']` or `exports.User`
-const start = async () => {
-	await require('fs').readdirSync('./roll/').forEach(async function (file) {
+(function () {
+	require('fs').readdirSync('./roll/').forEach(function (file) {
 		if (file.match(/\.js$/) !== null && file !== 'index.js' && file !== 'demo.js') {
 			const name = file.replace('.js', '');
-			exports[name] = await require('../roll/' + file);
+			exports[name] = require('../roll/' + file);
 		}
 	})
-}
+}())
 
-start();
+
 const schema = require('../modules/core-schema.js');
 const debugMode = (process.env.DEBUG) ? true : false;
 const msgSplitor = (/\S+/ig);
@@ -85,7 +85,7 @@ var parseInput = async function ({
 		console.error('rolldice GET ERROR:', error, ' inputStr: ', inputStr, ' botname: ', botname, ' Time: ', new Date());
 	}
 	if (rollDiceResult) {
-		result = await JSON.parse(JSON.stringify(Object.assign({}, result, rollDiceResult)));
+		result = JSON.parse(JSON.stringify(Object.assign({}, result, rollDiceResult)));
 	}
 
 	//cmdfunction  .cmd 功能   z_saveCommand 功能
@@ -106,7 +106,7 @@ var parseInput = async function ({
 			tgDisplayname: tgDisplayname
 		});
 		if (typeof cmdFunctionResult === 'object' && cmdFunctionResult !== null) {
-			result = await Object.assign({}, result, cmdFunctionResult)
+			result = Object.assign({}, result, cmdFunctionResult)
 		}
 	}
 
@@ -171,7 +171,7 @@ var rolldice = async function ({
 		groupid = '';
 	}
 	//把exports objest => Array
-	let target = await findRollList(mainMsg);
+	let target = findRollList(mainMsg);
 	if (!target) return null;
 	(debugMode) ? console.log('            trigger: ', inputStr) : '';
 	let tempsave = await target.rollDiceCommand({
@@ -194,11 +194,11 @@ var rolldice = async function ({
 	return tempsave;
 }
 
-async function findRollList(mainMsg) {
+function findRollList(mainMsg) {
 	if (!mainMsg || !mainMsg[0]) return;
 	if (!mainMsg[1]) mainMsg[1] = '';
-	let idList = await Object.keys(exports).map(i => exports[i]);
-	let findTarget = await idList.find(item => {
+	let idList = Object.keys(exports).map(i => exports[i]);
+	let findTarget = idList.find(item => {
 		if (item.prefixs && item.prefixs()) {
 			for (let index = 0; index < item.prefixs().length; index++) {
 				if (mainMsg[0].match(item.prefixs()[index].first) && (mainMsg[1].match(item.prefixs()[index].second) || item.prefixs()[index].second == null)) {

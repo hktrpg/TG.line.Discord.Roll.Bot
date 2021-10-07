@@ -77,7 +77,7 @@ Plurk_Client.on('new_plurk', async response => {
     if (rplyVal.text) rplyText += `${rplyVal.text}\n`
     if (rplyVal.LevelUp) rplyText += `${rplyVal.LevelUp}`
 
-    return await sendMessage(response.plurk_id, rplyText);
+    return sendMessage(response.plurk_id, rplyText);
 
 });
 
@@ -155,7 +155,7 @@ async function nonDice(groupid, userid, displayname, plurk_id) {
     if (!groupid || !userid) return;
     let LevelUp = await EXPUP(groupid, userid, displayname, "", null);
     if (groupid && LevelUp && LevelUp.text) {
-        await sendMessage(plurk_id, LevelUp.text);
+        sendMessage(plurk_id, LevelUp.text);
     }
 
     return null;

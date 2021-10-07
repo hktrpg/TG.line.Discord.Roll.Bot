@@ -137,16 +137,17 @@ Plurk_Client.on('new_response', async response => {
     if (displayName) rplyText += `${displayName}\n`
     if (rplyVal.text) rplyText += `${rplyVal.text}\n`
     if (rplyVal.LevelUp) rplyText += `${rplyVal.LevelUp}`
-    return await sendMessage(response.plurk.plurk_id, rplyText);
+    return sendMessage(response.plurk.plurk_id, rplyText);
 
 })
 
-async function sendMessage(response, rplyVal) {
+function sendMessage(response, rplyVal) {
+    console.log('plurk sendmessage')
     try {
-        await Plurk_Client.request('Responses/responseAdd', { plurk_id: response, content: rplyVal.toString().match(/[\s\S]{1,300}/g)[0], qualifier: 'says' })
+        Plurk_Client.request('Responses/responseAdd', { plurk_id: response, content: rplyVal.toString().match(/[\s\S]{1,300}/g)[0], qualifier: 'says' })
     } catch (error) {
-        if (!error.error_text == "anti-flood-same-content")
-            console.error(error.error_text);
+        // if (!error.error_text == "anti-flood-same-content")
+        console.error(error.error_text);
     }
     return;
 

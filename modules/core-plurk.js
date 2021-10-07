@@ -85,7 +85,7 @@ Plurk_Client.on('new_response', async response => {
     //防止自己回應自己
     if (response.user[plurkID]) return;
     if (response.type != 'new_response') return;
-    //  if (response.limited_to && response.limited_to.length == 1 && response.limited_to[0] == 0) return;
+    // if (response.limited_to && response.limited_to.length == 1 && response.limited_to[0] == 0) return;
     let message = response.response.content_raw;
 
     let groupid = response.plurk.owner_id,
@@ -142,12 +142,11 @@ Plurk_Client.on('new_response', async response => {
 })
 
 function sendMessage(response, rplyVal) {
-    console.log('plurk sendmessage')
     try {
         Plurk_Client.request('Responses/responseAdd', { plurk_id: response, content: rplyVal.toString().match(/[\s\S]{1,300}/g)[0], qualifier: 'says' })
     } catch (error) {
-        // if (!error.error_text == "anti-flood-same-content")
-        console.error(error.error_text);
+        if (!error.error_text == "anti-flood-same-content")
+            console.error(error.error_text);
     }
     return;
 

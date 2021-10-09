@@ -132,23 +132,22 @@ HKTRPG 作品集 https://hktrpg.github.io/TG.line.Discord.Roll.Bot/PORTFOLIOP
 			rply.text = `${version}
 最近更新: 
 2019/07/21 香港克警合作 黑ICON紀念
-2020/09/07 Bothelp 顯示方法更新
 ...前略...
-2021/06/02 增加角色卡功能示例
-2021/06/16 修改BcDice 的使用. 使用最新的資料庫. 優化角色卡顯示功能
-2021/06/20 增加 立FLAG 內容
 2021/06/24 🍎
 2021/06/28 更新名人堂, 感謝 陳啟昌, strben,匡匡贊助HKTRPG
 2021/07/01 🌼
 2021/07/03 .admin state 增加顯示數據
 2021/07/08 更新Plurk連接
 2021/07/16 使用Discord js light, 現在有7400群組在使用, 記憶體不夠用了...
-更新coc創角, 幼年調查員和PULP版
+		   更新coc創角, 幼年調查員和PULP版
 2021/07/18 更新Discord說明的方式, 使用Embeds
 2021/09/01 新增作品集
 2021/09/10 新增追逐戰.chase，新增.sc SanCheck功能
 2021/09/18 showMeAtTheWorld
 2021/09/30 新增匯出團錄時，可以去掉不必要的日期標示，Choice 排序功能顯示改良，.CC7build random
+2021/10/09 更新topgg-autoposter，舊版時常CRASH，令HKTRPG出錯
+		   更新了PLURK，令速度提升
+ 		   改良CODE，移除了沒用的AWAIT ASYNC，令程式反應更快
 全部更新可看https://github.com/hktrpg/TG.line.Discord.Roll.Bot/commits/master
 `;
 			try {

@@ -10,7 +10,6 @@ function channelFilter(channel) {
 }
 const client = new Client({
 	makeCache: Discord.Options.cacheWithLimits({
-
 		ApplicationCommandManager: 0, // guild.commands
 		BaseGuildEmojiManager: 0, // guild.emojis
 		GuildBanManager: 0, // guild.bans
@@ -27,7 +26,6 @@ const client = new Client({
 		ThreadMemberManager: 0, // threadchannel.members
 		UserManager: Infinity, // client.users
 		VoiceStateManager: 0,// guild.voiceStates
-
 
 		GuildManager: Infinity, // roles require guilds
 		RoleManager: Infinity, // cache all roles
@@ -55,12 +53,6 @@ const client = new Client({
 	Intents.FLAGS.DIRECT_MESSAGE_REACTIONS]
 });
 
-
-
-const DBL = require("dblapi.js");
-//TOP.GG 
-const togGGToken = process.env.TOPGG;
-const dbl = (togGGToken) ? new DBL(togGGToken, client) : null;
 const msgSplitor = (/\S+/ig);
 const link = process.env.WEB_LINK;
 const port = process.env.PORT || 20721;
@@ -522,23 +514,7 @@ client.on('ready', async () => {
 		}
 		switchSetActivity = (switchSetActivity % 2) ? 2 : 3;
 	}, 60000);
-	if (togGGToken) {
-		setInterval(() => {
-			try {
-				dbl.postStats(client.guilds.size);
-			} catch (error) {
-				console.error('DBL TOP.GG error')
-			}
-		}, 1800000);
-	}
-
-
 });
-if (togGGToken) {
-	dbl.on('error', () => {
-		console.error(`dbl Top.GG get Error!`);
-	})
-}
 
 function privateMsg({ trigger, mainMsg, inputStr }) {
 	let privatemsg = 0;

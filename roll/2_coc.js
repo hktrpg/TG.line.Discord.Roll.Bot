@@ -1035,8 +1035,9 @@ function build7char(text01) {
 
 	//讀取年齡
 	if (!text01) {
-		return `沒有填寫歲數, 先使用隨機產生功能 .cc7build random
-如果有指定歲數請使用,如 .cc7build 30
+		return `沒有填寫歲數, 先使用隨機角色產生功能 .cc7build random
+		以下角色使用「類Quick Fire規則」產生，
+如果希望使用普通擲骰產生屬性，請提供歲數，如 .cc7build 30
 ${build7random()}`;
 	} else
 		if (text01.match(/random/i)) {

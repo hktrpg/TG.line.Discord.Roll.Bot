@@ -2,7 +2,7 @@
 const rollbase = require('./rollbase.js');
 const mathjs = require('mathjs');
 var variables = {};
-const regexxBy = /^((\d+)(b)(\d+))/i
+const regexxBy = /^((\d+)(b)(\d+))(L?)/i
 const regexxUy = /^(\d+)(u)(\d+)/i
 var gameName = function () {
 	return '【進階擲骰】 .ca (計算)|D66(sn)|5B10 Dx|5U10 x y|.int x y'
@@ -98,13 +98,15 @@ var rollDiceCommand = async function ({
 		case /^d66s$/i.test(mainMsg[0]):
 			rply.text = d66s(mainMsg[1])
 			return rply;
-		case regexxBy.test(mainMsg[0]):
+		case regexxBy.test(mainMsg[0]): {
 			matchxby = regexxBy.exec(mainMsg[0]);
 			//判斷式 0:"5b10<=80" 1:"5b10" 2:"5" 3:"b" 4:"10" 5:"<=80" 6:"<=" 	7:"<" 8:"=" 	9:"80"
 			//console.log('match', match)
+			let lowMode = (matchxby[5]) ? true : false;
 			if (matchxby && matchxby[4] > 1 && matchxby[4] < 10000 && matchxby[2] > 0 && matchxby[2] <= 600)
-				rply.text = xBy(mainMsg[0], mainMsg[1], mainMsg[2], botname);
+				rply.text = xBy(mainMsg[0].replace(/L/i, ""), mainMsg[1], mainMsg[2], lowMode, botname);
 			return rply;
+		}
 		case regexxUy.test(mainMsg[0]) && mainMsg[1] <= 10000:
 			matchxuy = regexxUy.exec(mainMsg[0]); //判斷式  ['5U10',  '5', 'U', '10']
 			if (matchxuy && matchxuy[1] > 0 && matchxuy[1] <= 600 && matchxuy[3] > 0 && matchxuy[3] <= 10000) {
@@ -184,17 +186,17 @@ function d66n(text) {
  *  xBy<>=z  成功數1
  *  xBy Dz   成功數1
  */
-function xBy(triggermsg, text01, text02, botname) {
-	//	console.log('dd')
-	let regex2 = /(([<]|[>])(|[=]))(\d+.*)/i
+function xBy(triggermsg, text01, text02, lowMode, botname) {
+	//console.log('xBy', triggermsg, text01, text02, lowMode, botname)
+	let regex2 = /(([<]|[>])(|[=]))(\d+.*)/i;
 
 	let temptriggermsg = triggermsg;
 	let match = regexxBy.exec(temptriggermsg);
 	//判斷式 0:"5b10+3<=6" 1:"5b10" 2:"5" 3:"b" 4:"10" 5:"<=80" 6:"<=" 	7:"<" 8:"=" 	9:"6"
-	temptriggermsg = temptriggermsg.replace(regexxBy, '')
-	let match02 = temptriggermsg.match(regex2)
+	temptriggermsg = temptriggermsg.replace(regexxBy, '');
+	let match02 = temptriggermsg.match(regex2);
 	//["<=1+1", "<=", "<", "=", "1+1"]
-	temptriggermsg = temptriggermsg.replace(regex2, '')
+	temptriggermsg = temptriggermsg.replace(regex2, '');
 	if (temptriggermsg.replace(/\d/ig, '').replace(/[+]|[-]|[*]|[/]/ig, '')) {
 		return;
 	}
@@ -213,26 +215,26 @@ function xBy(triggermsg, text01, text02, botname) {
 	//console.log('match01', match01)
 	//判斷式 0:"d5"  1:"d5" 2:"d" 3:"5" 
 	let text = "";
-	if (text01) text = text01
+	if (text01) text = text01;
 	if (!match[5] && match01 && match01[2] && !isNaN(match01[3])) {
 		match[5] = "<=";
 		match[7] = "<";
 		match[8] = "=";
-		match[9] = match01[3]
-		triggermsg += "<=" + match01[3]
+		match[9] = match01[3];
+		triggermsg += "<=" + match01[3];
 		//match = /^((\d+)(b)(\d+))(|(([<]|[>]|)(|[=]))(\d+))$/i.exec(triggermsg);
-		text = ""
-		if (text02) text = text02
+		text = "";
+		if (text02) text = text02;
 	}
 	if (!match[5] && match01 && !match01[2] && !isNaN(match01[3])) {
 		match[5] = ">=";
 		match[7] = ">";
 		match[8] = "=";
-		match[9] = match01[3]
-		triggermsg += ">=" + match01[3]
+		match[9] = match01[3];
+		triggermsg += ">=" + match01[3];
 		//match = /^((\d+)(b)(\d+))(|(([<]|[>]|)(|[=]))(\d+))$/i.exec(triggermsg);
-		text = ""
-		if (text02) text = text02
+		text = "";
+		if (text02) text = text02;
 	}
 	let returnStr = '(' + triggermsg + ')';
 	//console.log(match)
@@ -242,6 +244,11 @@ function xBy(triggermsg, text01, text02, botname) {
 	for (let i = 0; i < Number(match[2]); i++) {
 		varcou[i] = rollbase.Dice(match[4]);
 	}
+	if (lowMode) {
+		varcou.sort((a, b) => a - b);
+	} else {
+		varcou.sort((a, b) => b - a);
+	}
 	//	console.log(varcou)
 	//varcou.sort(rollbase.sortNumber);
 	//(5B7>6) → 7,5,6,4,4 → 
@@ -249,47 +256,47 @@ function xBy(triggermsg, text01, text02, botname) {
 	for (let i = 0; i < varcou.length; i++) {
 		switch (true) {
 			case (match[7] == "<" && !match[8]):
-				if (varcou[i] < match[9])
-					varsu++;
+				if (varcou[i] < match[9]) { varsu++; }
 				else {
 					//console.log('01: ', varcou[i])
-					varcou[i] = strikeThrough(varcou[i], botname)
+					varcou[i] = strikeThrough(varcou[i], botname);
 				}
 				break;
 			case (match[7] == ">" && !match[8]):
-				if (varcou[i] > match[9])
+				if (varcou[i] > match[9]) {
 					varsu++;
+				}
 				else {
 					//	console.log('02: ', varcou[i])
-
-					varcou[i] = strikeThrough(varcou[i], botname)
+					varcou[i] = strikeThrough(varcou[i], botname);
 				}
 				break;
 			case (match[7] == "<" && match[8] == "="):
-				if (varcou[i] < match[9] || varcou[i] == match[9])
+				if (varcou[i] < match[9] || varcou[i] == match[9]) {
 					varsu++;
+				}
 				else {
 					//	console.log('03: ', varcou[i])
-
-					varcou[i] = strikeThrough(varcou[i], botname)
+					varcou[i] = strikeThrough(varcou[i], botname);
 				}
 				break;
 			case (match[7] == ">" && match[8] == "="):
-				if (varcou[i] > match[9] || varcou[i] == match[9])
+				if (varcou[i] > match[9] || varcou[i] == match[9]) {
 					varsu++;
+				}
 				else {
 					//	console.log('04: ', varcou[i])
-
-					varcou[i] = strikeThrough(varcou[i], botname)
+					varcou[i] = strikeThrough(varcou[i], botname);
 				}
 				break;
 			case (match[7] == "" && match[8] == "="):
-				if (varcou[i] == match[9])
+				if (varcou[i] == match[9]) {
 					varsu++;
+				}
 				else {
 					//	console.log('05: ', varcou[i])
 					//	console.log('match[7]: ', match[7])
-					varcou[i] = strikeThrough(varcou[i], botname)
+					varcou[i] = strikeThrough(varcou[i], botname);
 				}
 				break;
 			default:
@@ -297,8 +304,8 @@ function xBy(triggermsg, text01, text02, botname) {
 		}
 	}
 	returnStr += ' → ' + varcou.join(', ');
-	if (match[5]) returnStr += ' \n→ 成功數' + mathjs.evaluate(Number(varsu) + (temptriggermsg || 0))
-	if (text) returnStr += ' ；　' + text
+	if (match[5]) returnStr += ' \n→ 成功數' + mathjs.evaluate(Number(varsu) + (temptriggermsg || 0));
+	if (text) returnStr += ' ；　' + text;
 	return returnStr;
 }
 /**
@@ -362,7 +369,7 @@ function xUy(triggermsg, text01, text02, text03) {
 	//  (5U10[8]) → 17[10,7],4,5,7,4 → 17/37(最大/合計)
 
 	{
-		returnStr += '\n → ' + Math.max.apply(null, varcou)
+		returnStr += '\n → ' + Math.max.apply(null, varcou);
 		returnStr += '/' + varcou.reduce(function (previousValue, currentValue) {
 			return previousValue + currentValue;
 		}) + '(最大/合計)';

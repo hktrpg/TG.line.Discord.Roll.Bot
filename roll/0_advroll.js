@@ -34,7 +34,7 @@ var prefixs = function () {
 	}
 	]
 }
-var getHelpMessage = async function () {
+var getHelpMessage = function () {
 	return `【進階擲骰】
 .ca 進行數學計算(不支援擲骰)
 例如: .ca 1.2 * (2 + 4.5) ， 12.7 米 to inch 
@@ -67,7 +67,7 @@ var rollDiceCommand = async function ({
 		matchxuy = {}
 	switch (true) {
 		case /^[.][c][a]$/i.test(mainMsg[0]) && (/^help$/i.test(mainMsg[1]) || !mainMsg[1]):
-			rply.text = await this.getHelpMessage();
+			rply.text = this.getHelpMessage();
 			rply.quotes = true;
 			return rply;
 		case /^[.][c][a]$/i.test(mainMsg[0]):
@@ -90,25 +90,25 @@ var rollDiceCommand = async function ({
 			rply.text = inputStr.replace(/\.ca/i, '') + '\n→ ' + rply.text;
 			return rply;
 		case /^d66$/i.test(mainMsg[0]):
-			rply.text = await d66(mainMsg[1])
+			rply.text = d66(mainMsg[1])
 			return rply;
 		case /^d66n$/i.test(mainMsg[0]):
-			rply.text = await d66n(mainMsg[1])
+			rply.text = d66n(mainMsg[1])
 			return rply;
 		case /^d66s$/i.test(mainMsg[0]):
-			rply.text = await d66s(mainMsg[1])
+			rply.text = d66s(mainMsg[1])
 			return rply;
 		case regexxBy.test(mainMsg[0]):
 			matchxby = regexxBy.exec(mainMsg[0]);
 			//判斷式 0:"5b10<=80" 1:"5b10" 2:"5" 3:"b" 4:"10" 5:"<=80" 6:"<=" 	7:"<" 8:"=" 	9:"80"
 			//console.log('match', match)
 			if (matchxby && matchxby[4] > 1 && matchxby[4] < 10000 && matchxby[2] > 0 && matchxby[2] <= 600)
-				rply.text = await xBy(mainMsg[0], mainMsg[1], mainMsg[2], botname);
+				rply.text = xBy(mainMsg[0], mainMsg[1], mainMsg[2], botname);
 			return rply;
 		case regexxUy.test(mainMsg[0]) && mainMsg[1] <= 10000:
 			matchxuy = regexxUy.exec(mainMsg[0]); //判斷式  ['5U10',  '5', 'U', '10']
 			if (matchxuy && matchxuy[1] > 0 && matchxuy[1] <= 600 && matchxuy[3] > 0 && matchxuy[3] <= 10000) {
-				rply.text = await xUy(matchxuy, mainMsg[1], mainMsg[2], mainMsg[3]);
+				rply.text = xUy(matchxuy, mainMsg[1], mainMsg[2], mainMsg[3]);
 			}
 			return rply;
 		case /^[.][i][n][t]$/i.test(mainMsg[0]) && mainMsg[1] <= 100000 && mainMsg[2] <= 100000:
@@ -139,7 +139,7 @@ module.exports = {
 /**
  * D66 
  */
-async function d66(text) {
+function d66(text) {
 	text = (text) ? '：' + text : '：';
 	let returnStr = '';
 	returnStr = 'D66' + text + '\n' + rollbase.Dice(6) + rollbase.Dice(6);
@@ -149,7 +149,7 @@ async function d66(text) {
  * 
  * D66S 
  */
-async function d66s(text) {
+function d66s(text) {
 	text = (text) ? '：' + text : '：';
 	let temp0 = rollbase.Dice(6);
 	let temp1 = rollbase.Dice(6);
@@ -165,7 +165,7 @@ async function d66s(text) {
 /**
  * D66N 
  */
-async function d66n(text) {
+function d66n(text) {
 	text = (text) ? '：' + text : '：';
 	let temp0 = rollbase.Dice(6);
 	let temp1 = rollbase.Dice(6);
@@ -184,7 +184,7 @@ async function d66n(text) {
  *  xBy<>=z  成功數1
  *  xBy Dz   成功數1
  */
-async function xBy(triggermsg, text01, text02, botname) {
+function xBy(triggermsg, text01, text02, botname) {
 	//	console.log('dd')
 	let regex2 = /(([<]|[>])(|[=]))(\d+.*)/i
 
@@ -253,7 +253,7 @@ async function xBy(triggermsg, text01, text02, botname) {
 					varsu++;
 				else {
 					//console.log('01: ', varcou[i])
-					varcou[i] = await strikeThrough(varcou[i], botname)
+					varcou[i] = strikeThrough(varcou[i], botname)
 				}
 				break;
 			case (match[7] == ">" && !match[8]):
@@ -262,7 +262,7 @@ async function xBy(triggermsg, text01, text02, botname) {
 				else {
 					//	console.log('02: ', varcou[i])
 
-					varcou[i] = await strikeThrough(varcou[i], botname)
+					varcou[i] = strikeThrough(varcou[i], botname)
 				}
 				break;
 			case (match[7] == "<" && match[8] == "="):
@@ -271,7 +271,7 @@ async function xBy(triggermsg, text01, text02, botname) {
 				else {
 					//	console.log('03: ', varcou[i])
 
-					varcou[i] = await strikeThrough(varcou[i], botname)
+					varcou[i] = strikeThrough(varcou[i], botname)
 				}
 				break;
 			case (match[7] == ">" && match[8] == "="):
@@ -280,7 +280,7 @@ async function xBy(triggermsg, text01, text02, botname) {
 				else {
 					//	console.log('04: ', varcou[i])
 
-					varcou[i] = await strikeThrough(varcou[i], botname)
+					varcou[i] = strikeThrough(varcou[i], botname)
 				}
 				break;
 			case (match[7] == "" && match[8] == "="):
@@ -289,7 +289,7 @@ async function xBy(triggermsg, text01, text02, botname) {
 				else {
 					//	console.log('05: ', varcou[i])
 					//	console.log('match[7]: ', match[7])
-					varcou[i] = await strikeThrough(varcou[i], botname)
+					varcou[i] = strikeThrough(varcou[i], botname)
 				}
 				break;
 			default:
@@ -312,7 +312,7 @@ async function xBy(triggermsg, text01, text02, botname) {
  * (5U10[8]>8) → 1,30[9,8,8,5],1,3,4 → 成功數1 
  */
 
-async function xUy(triggermsg, text01, text02, text03) {
+function xUy(triggermsg, text01, text02, text03) {
 
 	let match = triggermsg //判斷式  5u19,5,u,19, 
 	let returnStr = '(' + triggermsg + '[' + text01 + ']';
@@ -371,7 +371,7 @@ async function xUy(triggermsg, text01, text02, text03) {
 }
 
 // eslint-disable-next-line no-unused-vars
-async function strikeThrough(text, botname) {
+function strikeThrough(text, botname) {
 	if (text)
 		return text.toString()
 			.split('')

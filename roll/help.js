@@ -110,23 +110,24 @@ var rollDiceCommand = async function ({
 			rply.text =
 				`【HKTRPG擲骰ROLLBOT🤖】
 HKTRPG是在Discord, Line, Telegram, Whatsapp和網頁上都可以使用的骰子機械人！
-功能：暗骰, 各類TRPG骰子擲骰, 頻道經驗值, 占卜, 先攻表, TRPG角色卡, 搜圖, 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, 自定義抽選, wiki查詢, 資料庫快速查詢功能
+功能：暗骰🎲, 各類TRPG骰子擲骰💻, 頻道經驗值🔥, 占卜🃏, 先攻表⌚, TRPG角色卡📝, 搜圖🖼️,
+翻譯📰, Discord 聊天紀錄匯出💬, 數學計算🧮, 隨機抽選🔀, 自定義抽選➡️, wiki查詢✔️, 資料庫快速查詢功能🗒️
+-------
 請問有什麼可以幫助你?
 請輸入你想查詢的項目名字.
 或到 (https://hktrpg.github.io/TG.line.Discord.Roll.Bot/) 觀看詳細使用說明.
 -------
 bothelp ver		- 查詢詳細版本及公告(${ver})
-bothelp Base	- 查詢trpg 基本擲骰指令
-bothelp Dice	- 查詢trpg 不同系統擲骰指令
-bothelp Tool	- 查詢trpg 輔助工具
-bothelp admin	- 查詢系統工具
-bothelp funny	- 查詢趣味功能
-bothelp link	- 查詢hktrpg 不同平台連結
-bothelp req		- 對HKTRPG RollBot提出意見
+bothelp Base	- 查詢trpg 基本擲骰指令🎲
+bothelp Dice	- 查詢trpg 不同系統擲骰指令💻
+bothelp Tool	- 查詢trpg 輔助工具🧰
+bothelp admin	- 查詢系統工具⚙️
+bothelp funny	- 查詢趣味功能😂
+bothelp link	- 查詢hktrpg 不同平台連結🔗
 --------
-HKTRPG 作品集 https://hktrpg.github.io/TG.line.Discord.Roll.Bot/PORTFOLIOP
-程式開發，求助及TRPG Discord群 https://discord.gg/vx4kcm7
-解鎖功能及贊助HKTRPG https://www.patreon.com/HKTRPG`
+🗂️HKTRPG 作品集, (https://hktrpg.github.io/TG.line.Discord.Roll.Bot/PORTFOLIOP)
+ℹ️如果你需要幫助, 加入我們的支援頻道, (http://bit.ly/HKTRPG_DISCORD)
+☕贊助伺服器運行及開放VIP資源, (https://www.patreon.com/HKTRPG)`
 			return rply;
 		case /^ver$/i.test(mainMsg[1]):
 			rply.text = `${version}

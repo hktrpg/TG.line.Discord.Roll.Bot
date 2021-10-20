@@ -1,5 +1,9 @@
 # 更新
 
+## 2021-10-20
+
+* 增加 5B10S：不加總的擲骰，並按大至小排序 - Krymino Lin的意見
+
 ## 2021-10-09
 
 * 更新topgg-autoposter，舊版時常CRASH，令HKTRPG出錯

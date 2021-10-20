@@ -148,6 +148,7 @@ HKTRPG 作品集 https://hktrpg.github.io/TG.line.Discord.Roll.Bot/PORTFOLIOP
 2021/10/09 更新topgg-autoposter，舊版時常CRASH，令HKTRPG出錯
 		   更新了PLURK，令速度提升
  		   改良CODE，移除了沒用的AWAIT ASYNC，令程式反應更快
+2021/10/20 增加 5B10S：不加總的擲骰，並按大至小排序 - Krymino Lin的意見
 全部更新可看https://github.com/hktrpg/TG.line.Discord.Roll.Bot/commits/master
 `;
 			try {

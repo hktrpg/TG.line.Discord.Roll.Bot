@@ -2,7 +2,7 @@
 const rollbase = require('./rollbase.js');
 const mathjs = require('mathjs');
 var variables = {};
-const regexxBy = /^((\d+)(b)(\d+))(L?)/i
+const regexxBy = /^((\d+)(b)(\d+))(S?)/i
 const regexxUy = /^(\d+)(u)(\d+)/i
 var gameName = function () {
 	return '【進階擲骰】 .ca (計算)|D66(sn)|5B10 Dx|5U10 x y|.int x y'
@@ -41,6 +41,7 @@ var getHelpMessage = function () {
 sin(45 deg) ^ 2  5磅轉斤 10米轉呎 10米=吋
 D66 D66s D66n：	骰出D66 s數字小在前 n大在前
 5B10：	不加總的擲骰 
+5B10S：	不加總的擲骰，並按大至小排序 
 5B10<>=x ：	如上,另外計算其中有多少粒大於小於X 
 5B10 (D)x ：	如上,用空格取代, 即大於, 使用D即小於
 即 5B10 5 相當於 5B10>=5 5B10 D5 相當於 5B10<=5  
@@ -102,9 +103,9 @@ var rollDiceCommand = async function ({
 			matchxby = regexxBy.exec(mainMsg[0]);
 			//判斷式 0:"5b10<=80" 1:"5b10" 2:"5" 3:"b" 4:"10" 5:"<=80" 6:"<=" 	7:"<" 8:"=" 	9:"80"
 			//console.log('match', match)
-			let lowMode = (matchxby[5]) ? true : false;
+			let sortMode = (matchxby[5]) ? true : false;
 			if (matchxby && matchxby[4] > 1 && matchxby[4] < 10000 && matchxby[2] > 0 && matchxby[2] <= 600)
-				rply.text = xBy(mainMsg[0].replace(/L/i, ""), mainMsg[1], mainMsg[2], lowMode, botname);
+				rply.text = xBy(mainMsg[0].replace(/S/i, ""), mainMsg[1], mainMsg[2], sortMode, botname);
 			return rply;
 		}
 		case regexxUy.test(mainMsg[0]) && mainMsg[1] <= 10000:
@@ -186,8 +187,8 @@ function d66n(text) {
  *  xBy<>=z  成功數1
  *  xBy Dz   成功數1
  */
-function xBy(triggermsg, text01, text02, lowMode, botname) {
-	//console.log('xBy', triggermsg, text01, text02, lowMode, botname)
+function xBy(triggermsg, text01, text02, sortMode, botname) {
+	//console.log('xBy', triggermsg, text01, text02, sortMode, botname)
 	let regex2 = /(([<]|[>])(|[=]))(\d+.*)/i;
 
 	let temptriggermsg = triggermsg;
@@ -244,9 +245,7 @@ function xBy(triggermsg, text01, text02, lowMode, botname) {
 	for (let i = 0; i < Number(match[2]); i++) {
 		varcou[i] = rollbase.Dice(match[4]);
 	}
-	if (lowMode) {
-		varcou.sort((a, b) => a - b);
-	} else {
+	if (sortMode) {
 		varcou.sort((a, b) => b - a);
 	}
 	//	console.log(varcou)

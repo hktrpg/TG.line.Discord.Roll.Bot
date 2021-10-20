@@ -373,6 +373,11 @@ const firstTimeMessage = mongoose.model('firstTimeMessage', new mongoose.Schema(
     botname: String
 }));
 
+const theNewsMessage = mongoose.model('theNewsMessage', new mongoose.Schema({
+    userID: String,
+    botname: String
+}));
+
 module.exports = {
     randomAns,
     block,
@@ -401,7 +406,8 @@ module.exports = {
     eventList,
     developmentConductor,
     developmentRollingRecord,
-    firstTimeMessage
+    firstTimeMessage,
+    theNewsMessage
 }
 //const Cat = mongoose.model('Cat', { name: String });
 //const kitty = new Cat({ name: 'Zildjian' });

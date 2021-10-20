@@ -5,6 +5,8 @@ const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const Discord = require("discord.js-light");
 const { Client, Intents, Permissions } = Discord;
 
+
+
 function channelFilter(channel) {
 	return !channel.lastMessageId || Discord.SnowflakeUtil.deconstruct(channel.lastMessageId).timestamp < Date.now() - 3600000;
 }
@@ -61,7 +63,7 @@ var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM')
 const EXPUP = require('./level').EXPUP || function () { };
 const courtMessage = require('./logs').courtMessage || function () { };
 
-const joinMessage = require('./message');
+const newMessage = require('./message');
 
 const reconnectInterval = 1 * 1000 * 60;
 const shardids = client.shard.ids[0];
@@ -248,6 +250,9 @@ client.on('messageCreate', async message => {
 	if (!rplyVal.text && !rplyVal.LevelUp) {
 		return;
 	}
+	if (rplyVal.text && await newMessage.newUserChecker(userid, "Discord")) {
+		SendToId(userid, newMessage.firstTimeMessage());
+	}
 
 
 	if (rplyVal.state) {
@@ -338,7 +343,7 @@ client.on('messageCreate', async message => {
 			SendToReply({ replyText: rplyVal.text, message });
 			for (let i = 0; i < TargetGMTempID.length; i++) {
 				if (userid != TargetGMTempID[i]) {
-					SendToId(TargetGMTempID[i], rplyVal.text, client);
+					SendToId(TargetGMTempID[i], rplyVal.text);
 				}
 			}
 			return;
@@ -392,13 +397,13 @@ async function privateMsgFinder(channelid) {
 	else return [];
 }
 async function SendToId(targetid, replyText) {
-	let user = await client.users.fetch(targetid);
+	let user = client.users.fetch(targetid);
 	if (typeof replyText === "string") {
 		let sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
 		for (let i = 0; i < sendText.length; i++) {
 			if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
 				try {
-					await user.send(sendText[i]);
+					user.send(sendText[i]);
 				}
 				catch (e) {
 					console.error(' GET ERROR:  SendtoID: ', e.message, replyText)
@@ -406,12 +411,12 @@ async function SendToId(targetid, replyText) {
 		}
 	}
 	else {
-		await user.send(replyText);
+		user.send(replyText);
 	}
 
 }
 
-async function SendToReply({ replyText = "", message, quotes = false }) {
+function SendToReply({ replyText = "", message, quotes = false }) {
 	let sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
 	for (let i = 0; i < sendText.length; i++) {
 		if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
@@ -431,9 +436,9 @@ async function SendToReply({ replyText = "", message, quotes = false }) {
 
 	return;
 }
-async function SendToReplychannel({ replyText = "", channelid = "", quotes = false }) {
+function SendToReplychannel({ replyText = "", channelid = "", quotes = false }) {
 	if (!channelid) return;
-	let channel = await client.channels.fetch(channelid);
+	let channel = client.channels.fetch(channelid);
 	let sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
 	for (let i = 0; i < sendText.length; i++) {
 		if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
@@ -481,7 +486,7 @@ async function nonDice(message) {
 	membercount = (message.guild) ? message.guild.memberCount : 0;
 	let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount);
 	if (groupid && LevelUp && LevelUp.text) {
-		await SendToReplychannel(
+		SendToReplychannel(
 			{ replyText: `@${displayname}  ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`, channelid: message.channel.id }
 		);
 	}
@@ -586,7 +591,7 @@ client.on('guildCreate', async guild => {
 			//.setTitle(rplyVal.title)
 			//.setURL('https://discord.js.org/')
 			.setAuthor('HKTRPG', 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png', 'https://www.patreon.com/HKTRPG')
-			.setDescription(joinMessage.joinMessage())
+			.setDescription(newMessage.joinMessage())
 		await channel.send({ embeds: [text] });
 	}
 

@@ -77,6 +77,7 @@
             `sin(45 deg) ^ 2`  `5磅轉斤` `10米轉呎` `10米=吋`
   - `D66` `D66s` `D66n`    骰出D66 s數字小在前 n大在前
   - `5B10`    不加總的擲骰
+  - `5B10S`   不加總的擲骰，並按大至小排序
   - `5B10<>=x`    如上,另外計算其中有多少粒大於小於X
   - `5B10 (D)x`     如上,用空格取代, 即大於, 使用D即小於
             即 5B10 5 相當於 5B10>=5　 5B10 D5 相當於 5B10<=5
@@ -253,7 +254,6 @@
   - LOKI Lokinen，木易 陳，Luo Ray，Vivian  -   因為有他們捐助，才可以把HKTRPG搬到更好的機子上
   - 以及其他一直幫助和意見的朋友
 
-
 關於RoboYabaso
 ==
 
@@ -274,12 +274,10 @@ RoboYabaso最早由LarryLo  Retsnimle開發。
 命運Fate，永遠的後日談，劍世界2.5，WOD黑暗世界，  
 自定義回應功能，儲存擲骰指令功能，擲骰開關功能及資料庫功能  
 
-
 順便宣傳
 <a href="http://www.goddessfantasy.net/bbs/index.php?board=1400.0">香港TRPG區</a>
 <a href="https://www.hktrpg.com">TRPG百科</a>
 招技術人員
-
 
 ### ToDo list
 
@@ -309,7 +307,6 @@ cc<= 改成 cc cc1 cc2 ccn1 ccn2。
 增加wod 黑暗世界 DX3 SW2.0的擲骰。  
 模組化設計。  
 
-
 以下分別有Line Discord 和telegram 的說明  
 用那個就看那個吧  
 另外要申請一個mlab ACC, 教學遲些再寫  
@@ -326,13 +323,11 @@ cc<= 改成 cc cc1 cc2 ccn1 ccn2。
 - 先申請好Heroku帳號  
 以下全部選擇用免費的服務就夠了，請不要手殘選到付費。
 
-
 Step1：先把這個專案Fork回去
 --
 
 - 到右上角的 ![Fork](http://i.imgur.com/g5VmzkC.jpg) 按鈕嗎，按下去。  
 把這個專案存到你的Github裡。
-
 
 Step2：建立lineBot賬號
 --
@@ -344,7 +339,6 @@ Step2：建立lineBot賬號
 ---
 
 - 點下方那個「免費帳號」
-
 
 ---
 
@@ -369,7 +363,7 @@ Step3：將LineBot部署到Heroku
 按它→[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy?template=https://github.com/zeteticl/RoboYabaso)←按它
 
 ---
- 
+
 - 你會看到這個  
 ![Heroku](http://i.imgur.com/sbCVOcW.jpg)  
 當然，先取一個App name，回到上個步驟的LINE Developers網頁
@@ -388,7 +382,6 @@ Step4：取得Channel Access Token和Channel Secret
 把取得的字串複製到Step3的LINE_CHANNEL_ACCESSTOKEN  
 接著，按下Deploy app，等他跑完之後按下Manage App  
 距離部署完機器人只差一步啦！
-
 
 Step5：鏈接Line與Heroku
 --
@@ -433,13 +426,11 @@ Step5：鏈接Line與Heroku
 - 先申請好Heroku帳號  
 以下全部選擇用免費的服務就夠了，請不要手殘選到付費。
 
-
 Step1：先把這個專案Fork回去
 --
 
 - 到右上角的 ![Fork](http://i.imgur.com/g5VmzkC.jpg) 按鈕嗎，按下去。  
 把這個專案存到你的Github裡。
-
 
 Step2：建立DiscordBot賬號
 --
@@ -470,7 +461,6 @@ Step3：將DiscordBot部署到Heroku
 接著，按下Deploy app，等他跑完之後按下Manage App  
 距離部署完機器人只差一步啦！
 
-
 Step4：把機器人邀請到你的頻道
 --
 
@@ -484,6 +474,7 @@ Step4：把機器人邀請到你的頻道
 ---
 
 測試功能  
+
 ```
 npm install -g mocha
 mocha .\test\analytics.test.js
@@ -497,7 +488,7 @@ Telegram......
 邀請碼就是給Telegram 用家連到Bot的。
 
 以上說明參考  
-<https://github.com/zeteticl/TrpgLineBot-php> 
+<https://github.com/zeteticl/TrpgLineBot-php>
 
 下一部希望更新是
 
@@ -517,7 +508,8 @@ Telegram......
 以下還有其他例子  
 5 3D6 ：分別骰出5次3d6  
 D66 D66s ：骰出D66 s小者固定在前  
-5B10：不加總的擲骰 會進行小至大排序  
+5B10：不加總的擲骰
+5B10S：不加總的擲骰，並按大至小排序  
 5B10 8：如上,另外計算其中有多少粒大過8  
 5U10 8：進行5D10 每骰出一粒8會有一粒獎勵骰  
 5U10 8 9：如上,另外計算其中有多少粒大過9  
@@ -539,7 +531,7 @@ Choice：啓動語choice/隨機/選項/選1
 - coc7 成長或增長檢定：dp (技能) (名稱)  
 例）DP 80 偵查
 
-現支援系統:   
+現支援系統:
 【了解骰組詳情,請輸入 bothelp (編號) 或 all 或 在指令後輸入help 如 .sg help】  
 0: 進階擲骰 .ca (計算) D66(sn) 5B10 Dx 5U10 x y  
 1: 趣味擲骰 排序(至少3個選項) choice/隨機(至少2個選項) 每日塔羅 運勢 立flag .me  
@@ -562,7 +554,6 @@ Choice：啓動語choice/隨機/選項/選1
 18: (公測中)自定義回應功能 .ra(p)(次數) (add del show 自定關鍵字)  
 19: (公測中)儲存擲骰指令功能 .cmd (add del show 自定關鍵字)  
 20: (公測中)擲骰開關功能 .bk (add del show)  
-21: (公測中)資料庫功能 .db(p) (add del show 自定關鍵字) 
-
+21: (公測中)資料庫功能 .db(p) (add del show 自定關鍵字)
 
 ![image](https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png)

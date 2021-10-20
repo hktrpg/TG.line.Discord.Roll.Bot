@@ -3,6 +3,7 @@ if (!process.env.TELEGRAM_CHANNEL_SECRET) {
 	return;
 }
 exports.analytics = require('./core-analytics');
+const joinMessage = require('./message');
 const {
 	Telegraf
 } = require('telegraf');
@@ -11,17 +12,12 @@ const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || '';
 //var TGcountroll = 0;
 //var TGcounttext = 0;
 const msgSplitor = (/\S+/ig);
+
+
+
 var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const EXPUP = require('./level').EXPUP || function () { };
 const courtMessage = require('./logs').courtMessage || function () { };
-const joinMessage = `你剛剛添加了HKTRPG 骰子機械人! 
-主要功能：暗骰, 各類TRPG骰子擲骰, 頻道經驗值, 占卜, 先攻表, TRPG角色卡, 搜圖, 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, 自定義抽選, wiki查詢, 資料庫快速查詢功能\
-輸入 1D100 可以進行最簡單的擲骰.
-到 (https://hktrpg.github.io/TG.line.Discord.Roll.Bot/) 或輸入 bothelp 觀看詳細使用說明.
-						如果你需要幫助, 加入支援頻道.
-						(http://bit.ly/HKTRPG_DISCORD)
-						有關TRPG資訊, 可以到網站
-						(http://www.hktrpg.com/)`;
 TGclient.catch((err) => {
 	console.error('bot error: ', err.errno, err.code);
 });
@@ -288,10 +284,10 @@ TGclient.on('message', async (ctx) => {
 	if (ctx.message.from.is_bot) return;
 	if (ctx.message.new_chat_member && ctx.message.new_chat_member.username == ctx.me) {
 		console.log("Telegram joined");
-		ctx.reply(joinMessage);
+		ctx.reply(joinMessage.joinMessage());
 	} else if (ctx.message.group_chat_created) {
 		console.log("Telegram joined");
-		ctx.reply(joinMessage);
+		ctx.reply(joinMessage.joinMessage());
 	} else return null;
 });
 

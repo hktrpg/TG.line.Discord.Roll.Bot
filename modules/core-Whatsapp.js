@@ -20,14 +20,8 @@ if (process.env.BROADCAST) {
 	});
 }
 var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
-const joinMessage = `你剛剛添加了HKTRPG 骰子機械人! 
-主要功能：暗骰, 各類TRPG骰子擲骰, 頻道經驗值, 占卜, 先攻表, TRPG角色卡, 搜圖, 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, 自定義抽選, wiki查詢, 資料庫快速查詢功能\
-輸入 1D100 可以進行最簡單的擲骰.
-到 (https://hktrpg.github.io/TG.line.Discord.Roll.Bot/) 或輸入 bothelp 觀看詳細使用說明.
-		如果你需要幫助, 加入支援頻道.
-		(http://bit.ly/HKTRPG_DISCORD)
-		有關TRPG資訊, 可以到網站
-		(http://www.hktrpg.com/)`;
+
+const joinMessage = require('./message');
 
 exports.analytics = require('./core-analytics');
 const {
@@ -269,7 +263,7 @@ client.on('message_ack', async (msg, ack) => {
 client.on('group_join', async (msg) => {
 	console.log("Whatsapp joined");
 	if (msg.client.info.me._serialized == msg.id.participant)
-		await msg.reply(joinMessage);
+		await msg.reply(joinMessage.joinMessage());
 });
 
 client.initialize();

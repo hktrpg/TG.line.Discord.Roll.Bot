@@ -34,14 +34,7 @@ app.post('/', line.middleware(config), (req, res) => {
 		});
 });
 // event handler
-const joinMessage = `你剛剛添加了HKTRPG 骰子機械人! 
-主要功能：暗骰, 各類TRPG骰子擲骰, 頻道經驗值, 占卜, 先攻表, TRPG角色卡, 搜圖, 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, 自定義抽選, wiki查詢, 資料庫快速查詢功能
-輸入 1D100 可以進行最簡單的擲骰.
-到 (https://hktrpg.github.io/TG.line.Discord.Roll.Bot/) 或輸入 bothelp 觀看詳細使用說明.
-如果你需要幫助, 加入支援頻道.
-(http://bit.ly/HKTRPG_DISCORD)
-有關TRPG資訊, 可以到網站
-(http://www.hktrpg.com/)`;
+const joinMessage = require('./message');
 process.on("Line", message => {
 	if (!message.text) return;
 	SendToId(message.target.id, message.text);
@@ -87,7 +80,7 @@ var handleEvent = async function (event) {
 		if (event.type == "join" && roomorgroupid) {
 			// 新加入群組時, 傳送MESSAGE
 			console.log("Line joined");
-			await replyMessagebyReplyToken(event, joinMessage);
+			await replyMessagebyReplyToken(event, joinMessage.joinMessage());
 		}
 		await nonDice(event);
 		return Promise.resolve(null);

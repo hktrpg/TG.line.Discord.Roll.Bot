@@ -18,7 +18,7 @@ var prefixs = function () {
         second: /^啊$/i
     }]
 }
-var getHelpMessage = async function () {
+var getHelpMessage = function () {
     return `【示範】
 只是一個Demo的第一行
 只是一個Demo末行`
@@ -46,7 +46,7 @@ var rollDiceCommand = async function ({
     };
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
-            rply.text = await this.getHelpMessage();
+            rply.text = this.getHelpMessage();
             rply.quotes = true;
             return rply;
         }

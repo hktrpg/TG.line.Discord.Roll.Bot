@@ -79,12 +79,15 @@ var prefixs = function () {
 
 }
 var getHelpMessage = async function () {
-	return `暗骰功能 在指令前輸入dr 結果會私訊你
+	return `【暗骰功能】
+在指令前輸入dr 結果會私訊你
 ddr dddr 可以私訊已設定的群組GM, 詳情可打.drgm查詢
+
 【基本擲骰】1d100(khN|klN|dhN|dlN)
 例如輸入(2d6+1)*2 攻撃！
 會輸出）(2d6+1)*2：攻撃！  (10[5+5]+1)2 = 22
 如上面一樣,在骰子數字後方隔空白位打字,可以進行發言。
+
 5 3D6 ：	分別骰出5次3d6 最多30次
 ((2d6+1)*2)-5/2>=10 支援括號加減乘除及大於小於(>,<,>=,<=)計算
 支援kh|kl|dh|dl，k keep保留，d drop 放棄，h highest最高，l lowest最低

@@ -22,21 +22,23 @@ var prefixs = function () {
 var getHelpMessage = async function () {
     return `【暗骰GM功能】.drgm(addgm del show) dr ddr dddr
 這是讓你可以私骰GM的功能
+輸入.drgm addgm 讓自己成為GM
+輸入.drgm show 顯示GM列表
+輸入.drgm del(編號)或all 即可刪除
+輸入dr  (指令) 私訊自己 
+輸入ddr (指令) 私訊GM及自己
+輸入dddr(指令) 私訊GM
+-------
 想成為GM的人先輸入.drgm addgm
 然後別人DDR 或DDDR (指令)即可以私訊給這位GM
 例如輸入 ddr cc 80 鬥毆 
 就會把結果私訊GM及自己
 例如輸入 dddr cc 80 鬥毆 
 就會把結果只私訊GM
-P.S.如果沒立即生效 用.drgm show 刷新一下
+
 輸入.drgm addgm (代名) 即可成為GM,如果想化名一下,
 可以在addgm 後輸入一個名字, 暗骰時就會顯示
 不輸入就會顯示原名
-輸入.drgm show 顯示所有GM
-輸入.drgm del(編號)或all 即可刪除
-輸入dr  (指令) 私訊自己 
-輸入ddr (指令) 私訊GM及自己
-輸入dddr(指令) 私訊GM
 `
 }
 var initialize = function () {

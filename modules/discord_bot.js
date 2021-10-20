@@ -133,7 +133,7 @@ client.on('messageCreate', async message => {
 	if (trigger == ".me") {
 		inputStr = inputStr.replace(/^.me\s+/i, ' ');
 		if (groupid) {
-			SendToReplychannel({ replyText: inputStr, channelid: message.channel.id });
+			await SendToReplychannel({ replyText: inputStr, channelid: message.channel.id });
 		} else {
 			SendToReply({ replyText: inputStr, message });
 		}
@@ -262,7 +262,7 @@ client.on('messageCreate', async message => {
 
 	if (groupid && rplyVal && rplyVal.LevelUp) {
 		//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
-		SendToReplychannel({ replyText: `<@${userid}>\n${rplyVal.LevelUp}`, channelid });
+		await SendToReplychannel({ replyText: `<@${userid}>\n${rplyVal.LevelUp}`, channelid });
 	}
 
 	if (rplyVal.discordExport) {
@@ -317,7 +317,7 @@ client.on('messageCreate', async message => {
 			// 輸入dr  (指令) 私訊自己
 			//
 			if (groupid) {
-				SendToReplychannel(
+				await SendToReplychannel(
 					{ replyText: "<@" + userid + '> 暗骰給自己', channelid })
 			}
 			if (userid) {
@@ -334,7 +334,7 @@ client.on('messageCreate', async message => {
 				for (let i = 0; i < TargetGMTempID.length; i++) {
 					targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
 				}
-				SendToReplychannel(
+				await SendToReplychannel(
 					{ replyText: "<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp, channelid });
 			}
 			if (userid) {
@@ -354,7 +354,7 @@ client.on('messageCreate', async message => {
 				for (let i = 0; i < TargetGMTempID.length; i++) {
 					targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
 				}
-				SendToReplychannel(
+				await SendToReplychannel(
 					{ replyText: "<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp, channelid })
 			}
 			rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
@@ -368,7 +368,7 @@ client.on('messageCreate', async message => {
 			}
 
 			if (groupid) {
-				SendToReplychannel({ replyText: rplyVal.text, channelid, quotes: rplyVal.quotes });
+				await SendToReplychannel({ replyText: rplyVal.text, channelid, quotes: rplyVal.quotes });
 			} else {
 				SendToReply({ replyText: rplyVal.text, message, quotes: rplyVal.quotes });
 			}
@@ -436,9 +436,9 @@ function SendToReply({ replyText = "", message, quotes = false }) {
 
 	return;
 }
-function SendToReplychannel({ replyText = "", channelid = "", quotes = false }) {
+async function SendToReplychannel({ replyText = "", channelid = "", quotes = false }) {
 	if (!channelid) return;
-	let channel = client.channels.fetch(channelid);
+	let channel = await client.channels.fetch(channelid);
 	let sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
 	for (let i = 0; i < sendText.length; i++) {
 		if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
@@ -486,7 +486,7 @@ async function nonDice(message) {
 	membercount = (message.guild) ? message.guild.memberCount : 0;
 	let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount);
 	if (groupid && LevelUp && LevelUp.text) {
-		SendToReplychannel(
+		await SendToReplychannel(
 			{ replyText: `@${displayname}  ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`, channelid: message.channel.id }
 		);
 	}

@@ -1,10 +1,10 @@
 "use strict";
 
 require('dotenv').config();
-require('fs').readdirSync(__dirname + '/modules/').forEach(async function (file) {
+require('fs').readdirSync(__dirname + '/modules/').forEach(function (file) {
   if (file.match(/\.js$/) && file.match(/^core-/)) {
     var name = file.replace('.js', '');
-    exports[name] = await require('./modules/' + file);
+    exports[name] = require('./modules/' + file);
   }
 });
 

@@ -28,7 +28,7 @@ const RollingLog = {
 //Log 開始
 (async () => {
     try {
-        await getRecords()
+        await getRecords();
         const loopLogFiveMinutes = setInterval(saveLog, fiveMinutes);
     } catch (e) {
         console.log(e)

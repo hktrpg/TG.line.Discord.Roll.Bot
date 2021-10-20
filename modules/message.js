@@ -1,6 +1,6 @@
 const fs = require('fs');
 const schema = require('../modules/core-schema.js');
-
+const crypto = require('crypto');
 
 function joinMessage() {
 	const rawdata = fs.readFileSync("./assets/message.json");
@@ -15,21 +15,22 @@ function joinMessage() {
 function firstTimeMessage() {
 	const rawdata = fs.readFileSync("./assets/message.json");
 	const message = JSON.parse(rawdata);
-	let newJoinMessage = ""
-	for (let index = 0; index < message.joinMessage.length; index++) {
-		newJoinMessage += message.joinMessage[index] + "\n";
+	let newfirstTimeUseMessage = ""
+	for (let index = 0; index < message.firstTimeUseMessage.length; index++) {
+		newfirstTimeUseMessage += message.firstTimeUseMessage[index] + "\n";
 	}
-	return newJoinMessage;
+	return newfirstTimeUseMessage;
 }
 
 
 async function newUserChecker(userid, botname) {
+	const hash = crypto.createHash('sha256').update(userid).digest('base64');
 	let user = await schema.firstTimeMessage.findOne({
-		userID: userid,
+		userID: hash,
 		botname: botname
 	})
 	if (!user) {
-		user = new schema.firstTimeMessage({ userID: userid, botname: botname })
+		user = new schema.firstTimeMessage({ userID: hash, botname: botname })
 		await user.save();
 		return true;
 	} else

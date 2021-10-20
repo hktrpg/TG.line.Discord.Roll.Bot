@@ -21,7 +21,7 @@ if (process.env.BROADCAST) {
 }
 var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 
-const joinMessage = require('./message');
+const newMessage = require('./message');
 
 exports.analytics = require('./core-analytics');
 const {
@@ -89,7 +89,7 @@ client.on('message', async msg => {
 	let displaynamecheck = true;
 	let inputStr = msg.body;
 	let membercount, groupid, trigger = "";
-	await client.getChatById(msg.from).then(async getChatDetail => {
+	client.getChatById(msg.from).then(async getChatDetail => {
 		if (getChatDetail.isGroup) {
 			groupid = getChatDetail.id._serialized;
 			//console.log('groupid:', groupid)
@@ -128,7 +128,7 @@ client.on('message', async msg => {
 
 
 
-	let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
+	let target = exports.analytics.findRollList(inputStr.match(msgSplitor));
 	if (!target && privatemsg == 0) return null;
 	var userid, displayname, channelid, channelKeyword = '';
 	//得到暗骰的數據, GM的位置
@@ -141,7 +141,7 @@ client.on('message', async msg => {
 	let TargetGMTempdisplayname = [];
 
 	userid = msg.author;
-	displayname = await msg.getContact().then(a => {
+	displayname = msg.getContact().then(a => {
 		return a.pushname
 	})
 	let rplyVal = {};
@@ -193,7 +193,7 @@ client.on('message', async msg => {
 	}
 	//TGcountroll++;
 	if (privatemsg > 1 && TargetGM) {
-		let groupInfo = await privateMsgFinder(groupid) || [];
+		let groupInfo = privateMsgFinder(groupid) || [];
 		groupInfo.forEach((item) => {
 			TargetGMTempID.push(item.userid);
 			TargetGMTempdiyName.push(item.diyName);
@@ -255,7 +255,7 @@ client.on('message', async msg => {
 
 client.on('message_ack', async (msg, ack) => {
 	if (ack > 0) {
-		const chat = await msg.getChat();
+		const chat = msg.getChat();
 		chat.clearMessages();
 	}
 });
@@ -263,7 +263,7 @@ client.on('message_ack', async (msg, ack) => {
 client.on('group_join', async (msg) => {
 	console.log("Whatsapp joined");
 	if (msg.client.info.me._serialized == msg.id.participant)
-		await msg.reply(joinMessage.joinMessage());
+		msg.reply(newMessage.joinMessage());
 });
 
 client.initialize();
@@ -275,21 +275,21 @@ client.initialize();
 async function SendDR(msg, text) {
 	return msg.reply(text);
 }
-async function SendToId(targetid, rplyVal, client) {
+function SendToId(targetid, rplyVal, client) {
 	for (let i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 		if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
-			await client.sendMessage(targetid, rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);
+			client.sendMessage(targetid, rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);
 		}
 	}
 }
-async function SendToReply(msg, rplyVal) {
+function SendToReply(msg, rplyVal) {
 	for (let i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 		if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
-			await msg.reply(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);
+			msg.reply(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);
 		}
 	}
 }
-async function privateMsgFinder(channelid) {
+function privateMsgFinder(channelid) {
 	if (!TargetGM || !TargetGM.trpgDarkRollingfunction) return;
 	let groupInfo = TargetGM.trpgDarkRollingfunction.find(data =>
 		data.groupid == channelid

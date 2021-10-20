@@ -250,7 +250,7 @@ client.on('messageCreate', async message => {
 	if (!rplyVal.text && !rplyVal.LevelUp) {
 		return;
 	}
-	if (rplyVal.text && await newMessage.newUserChecker(userid, "Discord")) {
+	if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Discord")) {
 		SendToId(userid, newMessage.firstTimeMessage());
 	}
 

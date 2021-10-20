@@ -3,7 +3,7 @@ if (!process.env.TELEGRAM_CHANNEL_SECRET) {
 	return;
 }
 exports.analytics = require('./core-analytics');
-const joinMessage = require('./message');
+const newMessage = require('./message');
 const {
 	Telegraf
 } = require('telegraf');
@@ -131,6 +131,10 @@ TGclient.on('text', async (ctx) => {
 	}
 	if (!rplyVal.text && !rplyVal.LevelUp)
 		return;
+	if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Telegram")) {
+		ctx.telegram.sendMessage(userid, newMessage.firstTimeMessage());
+	}
+
 	//LevelUp功能
 	if (groupid && rplyVal && rplyVal.LevelUp) {
 		let text = `@${displayname}${(rplyVal.statue) ? ' ' + rplyVal.statue : ''}
@@ -201,14 +205,14 @@ TGclient.on('text', async (ctx) => {
 			break;
 	}
 
-	async function SendToId(targetid) {
+	function SendToId(targetid) {
 		for (let i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 			if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
 				ctx.telegram.sendMessage(targetid, rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);
 			}
 		}
 	}
-	async function SendToReply() {
+	function SendToReply() {
 		for (let i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 			if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
 				ctx.reply(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);
@@ -284,10 +288,10 @@ TGclient.on('message', async (ctx) => {
 	if (ctx.message.from.is_bot) return;
 	if (ctx.message.new_chat_member && ctx.message.new_chat_member.username == ctx.me) {
 		console.log("Telegram joined");
-		ctx.reply(joinMessage.joinMessage());
+		ctx.reply(newMessage.joinMessage());
 	} else if (ctx.message.group_chat_created) {
 		console.log("Telegram joined");
-		ctx.reply(joinMessage.joinMessage());
+		ctx.reply(newMessage.joinMessage());
 	} else return null;
 });
 

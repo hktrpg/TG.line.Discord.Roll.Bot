@@ -24,7 +24,6 @@ function firstTimeMessage() {
 
 
 async function newUserChecker(userid, botname) {
-	console.log("AA")
 	let user = await schema.firstTimeMessage.findOne({
 		userID: userid,
 		botname: botname

@@ -17,7 +17,7 @@ const courtMessage = require('./logs').courtMessage || function () { };
 // create LINE SDK client
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const client = new line.Client(config);
-
+const newMessage = require('./message');
 // create Express app
 // about Express itself: https://expressjs.com/
 const app = express();
@@ -34,7 +34,6 @@ app.post('/', line.middleware(config), (req, res) => {
 		});
 });
 // event handler
-const joinMessage = require('./message');
 process.on("Line", message => {
 	if (!message.text) return;
 	SendToId(message.target.id, message.text);
@@ -80,7 +79,7 @@ var handleEvent = async function (event) {
 		if (event.type == "join" && roomorgroupid) {
 			// 新加入群組時, 傳送MESSAGE
 			console.log("Line joined");
-			await replyMessagebyReplyToken(event, joinMessage.joinMessage());
+			await replyMessagebyReplyToken(event, newMessage.joinMessage());
 		}
 		await nonDice(event);
 		return Promise.resolve(null);
@@ -150,6 +149,10 @@ var handleEvent = async function (event) {
 	//LevelUp功能
 	if (!rplyVal.text && !rplyVal.LevelUp)
 		return;
+	if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Line")) {
+		await SendToId(userid, newMessage.firstTimeMessage());
+	}
+
 
 	if (roomorgroupid && rplyVal && rplyVal.LevelUp) {
 		//	console.log('result.LevelUp 2:', rplyVal.LevelUp)

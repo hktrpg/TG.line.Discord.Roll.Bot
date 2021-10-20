@@ -40,11 +40,15 @@ const RollingLog = {
 
 
 var getState = async function () {
-    let theNewData = await schema.RealTimeRollingLog.findOne({});
-    if (!theNewData) return;
-    theNewData.RealTimeRollingLogfunction.LogTime = theNewData.RealTimeRollingLogfunction.LogTime.replace(/\s+GMT.*$/, '');
-    theNewData.RealTimeRollingLogfunction.StartTime = theNewData.RealTimeRollingLogfunction.StartTime.replace(/\s+GMT.*$/, '');
-    return theNewData.RealTimeRollingLogfunction;
+    schema.findOne(function (error, theNewData) {
+        if (!theNewData) return;
+        theNewData.RealTimeRollingLogfunction.LogTime = theNewData.RealTimeRollingLogfunction.LogTime.replace(/\s+GMT.*$/, '');
+        theNewData.RealTimeRollingLogfunction.StartTime = theNewData.RealTimeRollingLogfunction.StartTime.replace(/\s+GMT.*$/, '');
+        return theNewData.RealTimeRollingLogfunction;
+    });
+
+    // let theNewData = await schema.RealTimeRollingLog.findOne({});
+
 }
 
 

@@ -5,6 +5,8 @@ const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const Discord = require("discord.js-light");
 const { Client, Intents, Permissions } = Discord;
 
+
+
 function channelFilter(channel) {
 	return !channel.lastMessageId || Discord.SnowflakeUtil.deconstruct(channel.lastMessageId).timestamp < Date.now() - 3600000;
 }
@@ -61,7 +63,7 @@ var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM')
 const EXPUP = require('./level').EXPUP || function () { };
 const courtMessage = require('./logs').courtMessage || function () { };
 
-const joinMessage = require('./message');
+const newMessage = require('./message');
 
 const reconnectInterval = 1 * 1000 * 60;
 const shardids = client.shard.ids[0];
@@ -131,7 +133,7 @@ client.on('messageCreate', async message => {
 	if (trigger == ".me") {
 		inputStr = inputStr.replace(/^.me\s+/i, ' ');
 		if (groupid) {
-			SendToReplychannel({ replyText: inputStr, channelid: message.channel.id });
+			await SendToReplychannel({ replyText: inputStr, channelid: message.channel.id });
 		} else {
 			SendToReply({ replyText: inputStr, message });
 		}
@@ -248,6 +250,9 @@ client.on('messageCreate', async message => {
 	if (!rplyVal.text && !rplyVal.LevelUp) {
 		return;
 	}
+	if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Discord")) {
+		SendToId(userid, newMessage.firstTimeMessage());
+	}
 
 
 	if (rplyVal.state) {
@@ -257,7 +262,7 @@ client.on('messageCreate', async message => {
 
 	if (groupid && rplyVal && rplyVal.LevelUp) {
 		//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
-		SendToReplychannel({ replyText: `<@${userid}>\n${rplyVal.LevelUp}`, channelid });
+		await SendToReplychannel({ replyText: `<@${userid}>\n${rplyVal.LevelUp}`, channelid });
 	}
 
 	if (rplyVal.discordExport) {
@@ -312,7 +317,7 @@ client.on('messageCreate', async message => {
 			// 輸入dr  (指令) 私訊自己
 			//
 			if (groupid) {
-				SendToReplychannel(
+				await SendToReplychannel(
 					{ replyText: "<@" + userid + '> 暗骰給自己', channelid })
 			}
 			if (userid) {
@@ -329,7 +334,7 @@ client.on('messageCreate', async message => {
 				for (let i = 0; i < TargetGMTempID.length; i++) {
 					targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
 				}
-				SendToReplychannel(
+				await SendToReplychannel(
 					{ replyText: "<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp, channelid });
 			}
 			if (userid) {
@@ -338,7 +343,7 @@ client.on('messageCreate', async message => {
 			SendToReply({ replyText: rplyVal.text, message });
 			for (let i = 0; i < TargetGMTempID.length; i++) {
 				if (userid != TargetGMTempID[i]) {
-					SendToId(TargetGMTempID[i], rplyVal.text, client);
+					SendToId(TargetGMTempID[i], rplyVal.text);
 				}
 			}
 			return;
@@ -349,7 +354,7 @@ client.on('messageCreate', async message => {
 				for (let i = 0; i < TargetGMTempID.length; i++) {
 					targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
 				}
-				SendToReplychannel(
+				await SendToReplychannel(
 					{ replyText: "<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp, channelid })
 			}
 			rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
@@ -363,7 +368,7 @@ client.on('messageCreate', async message => {
 			}
 
 			if (groupid) {
-				SendToReplychannel({ replyText: rplyVal.text, channelid, quotes: rplyVal.quotes });
+				await SendToReplychannel({ replyText: rplyVal.text, channelid, quotes: rplyVal.quotes });
 			} else {
 				SendToReply({ replyText: rplyVal.text, message, quotes: rplyVal.quotes });
 			}
@@ -392,13 +397,13 @@ async function privateMsgFinder(channelid) {
 	else return [];
 }
 async function SendToId(targetid, replyText) {
-	let user = await client.users.fetch(targetid);
+	let user = client.users.fetch(targetid);
 	if (typeof replyText === "string") {
 		let sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
 		for (let i = 0; i < sendText.length; i++) {
 			if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
 				try {
-					await user.send(sendText[i]);
+					user.send(sendText[i]);
 				}
 				catch (e) {
 					console.error(' GET ERROR:  SendtoID: ', e.message, replyText)
@@ -406,12 +411,12 @@ async function SendToId(targetid, replyText) {
 		}
 	}
 	else {
-		await user.send(replyText);
+		user.send(replyText);
 	}
 
 }
 
-async function SendToReply({ replyText = "", message, quotes = false }) {
+function SendToReply({ replyText = "", message, quotes = false }) {
 	let sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
 	for (let i = 0; i < sendText.length; i++) {
 		if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
@@ -586,7 +591,7 @@ client.on('guildCreate', async guild => {
 			//.setTitle(rplyVal.title)
 			//.setURL('https://discord.js.org/')
 			.setAuthor('HKTRPG', 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png', 'https://www.patreon.com/HKTRPG')
-			.setDescription(joinMessage.joinMessage())
+			.setDescription(newMessage.joinMessage())
 		await channel.send({ embeds: [text] });
 	}
 

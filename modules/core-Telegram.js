@@ -163,7 +163,7 @@ TGclient.on('text', async (ctx) => {
 				ctx.reply("@" + displayname + ' 暗骰給自己');
 			}
 			rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
-			await SendToId(ctx.message.from.id);
+			SendToId(ctx.message.from.id);
 			break;
 		case privatemsg == 2:
 			//輸入ddr(指令) 私訊GM及自己

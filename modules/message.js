@@ -24,7 +24,7 @@ function firstTimeMessage() {
 
 
 async function newUserChecker(userid, botname) {
-	const hash = crypto.createHash('sha256').update(userid).digest('base64');
+	const hash = crypto.createHash('sha256').update(userid.toString()).digest('base64');
 	let user = await schema.firstTimeMessage.findOne({
 		userID: hash,
 		botname: botname

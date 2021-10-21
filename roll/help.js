@@ -127,10 +127,10 @@ bothelp Dice	- 查詢trpg 不同系統擲骰指令💻
 bothelp Tool	- 查詢trpg 輔助工具🧰
 bothelp admin	- 查詢系統工具⚙️
 bothelp funny	- 查詢趣味功能😂
-bothelp link	- 查詢hktrpg 不同平台連結🔗
+bothelp link	- 查詢HKTRPG 不同平台連結🔗
 --------
 🗂️HKTRPG 作品集, (https://hktrpg.github.io/TG.line.Discord.Roll.Bot/PORTFOLIOP)
-ℹ️如果你需要幫助, 加入我們的支援頻道, (http://bit.ly/HKTRPG_DISCORD)
+ℹ️如果你需要幫助, 加入我們的支援頻道, (https://discord.gg/vx4kcm7)
 ☕贊助伺服器運行及開放VIP資源, (https://www.patreon.com/HKTRPG)`
 			return rply;
 		case /^ver$/i.test(mainMsg[1]):

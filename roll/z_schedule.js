@@ -4,7 +4,7 @@ const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const limitAtArr = [1, 20, 20, 30, 30, 99, 99, 99];
 const limitCronArr = [1, 20, 20, 30, 30, 99, 99, 99];
-
+const moment = require('moment');
 
 var gameName = function () {
     return '【定時發訊功能】.at .cron delete'
@@ -68,21 +68,22 @@ var rollDiceCommand = async function ({
             rply.quotes = true;
             return rply;
         }
-        case /^at+$/i.test(mainMsg[1]): {
+        case /^\.at+$/i.test(mainMsg[0]): {
             let lv = await VIP.viplevelCheckUser(userid);
             let limit = limitAtArr[lv];
             let check = await schema.eventList.find({
                 userID: userid
             });
             let levelLv = await findMaxLv(userid);
-
+            let time = checkAtTime(mainMsg[1], mainMsg[2]);
+            console.log('time', time)
             return rply;
         }
-        case /^cron$/.test(mainMsg[1]): {
+        case /^\.cron$/.test(mainMsg[0]): {
             rply.text = 'Demo'
             return rply;
         }
-        case /^delete$/.test(mainMsg[1]): {
+        case /^delete$/.test(mainMsg[0]): {
             rply.text = 'Demo'
             return rply;
         }
@@ -91,14 +92,52 @@ var rollDiceCommand = async function ({
         }
     }
 }
-function checkAtTime(params) {
+function checkAtTime(first, second) {
     //const date = new Date(2012, 11, 21, 5, 30, 0);
     //const date = new Date(Date.now() + 5000);
-
+    //   如 20220604 1900 < 年月日 時間
+    //5mins  (五分鐘後)
+    //5hours (五小時後)
+    switch (true) {
+        case /^\d+mins$/i.test(first): {
+            let time = first.match(/^(\d+)mins$/i)[1];
+            if (time > 44640) time = 44640;
+            if (time < 1) time = 1;
+            time = moment().add(time, 'minute').toDate();
+            return time;
+        }
+        case /^\d+hours$/i.test(first): {
+            let time = first.match(/^(\d+)hours$/i)[1];
+            if (time > 744) time = 744;
+            if (time < 1) time = 1;
+            time = moment().add(time, 'hour').toDate();
+            return time;
+        }
+        case /^\d+days$/i.test(first): {
+            let time = first.match(/^(\d+)days$/i)[1];
+            if (time > 31) time = 31;
+            if (time < 1) time = 1;
+            time = moment().add(time, 'day').toDate();
+            return time;
+        }
+        case /^\d{8}$/i.test(first) && /^\d{4}$/i.test(second): {
+            let time = moment(`${first} ${second}`, "YYYYMMDD hhmm").toDate();
+            return time;
+        }
+        default:
+            break;
+    }
 }
 function checkCronTime(params) {
     //const date = {hour: 14, minute: 30}
 }
+
+async function findMaxLv(userid) {
+    let maxLV = await schema.trpgLevelSystemMember.findOne({ userid: userid }).sort({ Level: -1 });
+    if (!maxLV) return 1;
+    return maxLV.Level;
+}
+
 
 
 module.exports = {

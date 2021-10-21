@@ -20,7 +20,7 @@
         "萬分感謝你使用HKTRPG，2021年HKTRPG已經四周歲了，",
         "👾HKTRPG本來是TRPG專用的機械人，但經過開發已經擁有大量娛樂和生活功能",
         "所以於下半年我們發放了問卷進行使用調查，",
-        "問卷分析結果：XXXXXXXXXXXXXX",
+        "現在發佈問卷分析結果： (https://docs.google.com/document/d/1GMakuew-o1flfo39FhNTFQR1leU8ILU61mFMjAOJENw/edit)",
         "",
         "🙋輸入 bothelp 可以得到詳細的功能列表。",
         "",
@@ -37,7 +37,7 @@
         "",
         "👨‍💻在頻道中，我們支持才藝交換，你提供能力和對機械人的想法，我們又去實現它們，一起完善機械人或解決你的煩惱",
         "",
-        "如果希望得到更新資訊, 請輸入 .admin NewsOn",
-        "如果希望取消, 請輸入 .admin NewsOff"
+        "如果希望得到HKTRPG最近更新資訊, 請輸入 .admin News On",
+        "如果開啓後希望關閉該功能, 請輸入 .admin News Off"
     ]
 }

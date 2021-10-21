@@ -375,7 +375,8 @@ const firstTimeMessage = mongoose.model('firstTimeMessage', new mongoose.Schema(
 
 const theNewsMessage = mongoose.model('theNewsMessage', new mongoose.Schema({
     userID: String,
-    botname: String
+    botname: String,
+    switch: Boolean
 }));
 
 module.exports = {

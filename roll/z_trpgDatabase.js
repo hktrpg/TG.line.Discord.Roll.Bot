@@ -258,7 +258,7 @@ var rollDiceCommand = async function ({
             //if (!mainMsg[2]) return;
             if (rply && trpgDatabasefunction.trpgDatabaseAllgroup && mainMsg[2])
                 if (rply && trpgDatabasefunction.trpgDatabaseAllgroup && trpgDatabasefunction.trpgDatabaseAllgroup[0] && trpgDatabasefunction.trpgDatabaseAllgroup[0].trpgDatabaseAllgroup[0]) {
-                    if (trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup.length > 100) {
+                    if (trpgDatabasefunction.trpgDatabaseAllgroup[0].trpgDatabaseAllgroup.length > 100) {
                         rply.text = '只可以有100個關鍵字啊'
                         return rply;
                     }

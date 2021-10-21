@@ -251,7 +251,7 @@ client.on('messageCreate', async message => {
 		return;
 	}
 	if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Discord")) {
-		SendToId(userid, newMessage.firstTimeMessage());
+		SendToId(userid, newMessage.firstTimeMessage(), true);
 	}
 
 
@@ -396,14 +396,16 @@ async function privateMsgFinder(channelid) {
 		return groupInfo.trpgDarkRollingfunction
 	else return [];
 }
-async function SendToId(targetid, replyText) {
-	let user = client.users.fetch(targetid);
+async function SendToId(targetid, replyText, quotes) {
+	let user = await client.users.fetch(targetid);
 	if (typeof replyText === "string") {
 		let sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
 		for (let i = 0; i < sendText.length; i++) {
 			if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
 				try {
-					user.send(sendText[i]);
+					if (quotes) {
+						user.send({ embeds: [convQuotes(sendText[i])] });
+					} else { user.send(sendText[i]); }
 				}
 				catch (e) {
 					console.error(' GET ERROR:  SendtoID: ', e.message, replyText)

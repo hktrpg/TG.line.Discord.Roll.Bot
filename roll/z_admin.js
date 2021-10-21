@@ -12,7 +12,7 @@ const password = process.env.CRYPTO_SECRET,
 const adminSecret = process.env.ADMIN_SECRET;
 //admin id
 const schema = require('../modules/core-schema.js');
-const VIP = require('../modules/veryImportantPerson');
+//const VIP = require('../modules/veryImportantPerson');
 var gameName = function () {
     return '【Admin Tool】'
 }
@@ -29,11 +29,18 @@ var prefixs = function () {
 var getHelpMessage = async function () {
     return `【Admin 工具】
 用來Debug 及調整VIP工具
-.admin state 取得Rollbot狀態
-.admin debug 用來取得群組資料
-.admin account (username) (password) 
+.admin state        取得Rollbot狀態
+
+.admin debug        用來取得群組資料
+
+.admin account (username) (password) 設定網頁版角色卡登入功能
 username 4-16字,中英文限定 
-password 6-16字,英文及以下符號限定 !@#$%^&*`
+password 6-16字,英文及以下符號限定 !@#$%^&*
+
+.admin news on      開啓取得HKTRPG更新資訊
+.admin news off     關閉取得HKTRPG更新資訊
+
+`
 }
 
 var initialize = function () {
@@ -338,6 +345,50 @@ var rollDiceCommand = async function ({
             }
             return rply;
 
+
+        case /^news$/i.test(mainMsg[1]) && /^on$/i.test(mainMsg[2]):
+            if (!userid) return rply;
+
+            try {
+                doc = await schema.theNewsMessage.updateOne({
+                    userID: userid,
+                    botname: botname
+                }, {
+                    userID: userid,
+                    botname: botname,
+                    switch: true
+                }, opt)
+                if (doc) {
+                    rply.text = "更新成功\n你已開啓更新通知功能";
+                }
+                //.admin addVipGroup -i  ID -l LV -n NAME -no NOTES -s SWITCH
+            } catch (error) {
+                console.error('新增VIP GET ERROR: ', error)
+                rply.text = '更新失敗\n因為 ' + error.message
+            }
+            return rply;
+
+        case /^news$/i.test(mainMsg[1]) && /^off$/i.test(mainMsg[2]):
+            if (!userid) return rply;
+
+            try {
+                doc = await schema.theNewsMessage.updateOne({
+                    userID: userid,
+                    botname: botname
+                }, {
+                    userID: userid,
+                    botname: botname,
+                    switch: false
+                }, opt)
+                if (doc) {
+                    rply.text = "更新成功\n你已關閉更新通知功能";
+                }
+                //.admin addVipGroup -i  ID -l LV -n NAME -no NOTES -s SWITCH
+            } catch (error) {
+                console.error('新增VIP GET ERROR: ', error)
+                rply.text = '更新失敗\n因為 ' + error.message
+            }
+            return rply;
         default:
             break;
     }

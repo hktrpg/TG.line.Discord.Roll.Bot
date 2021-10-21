@@ -2,7 +2,7 @@
     "joinMessage": [
         "🤖感謝你添加了HKTRPG 骰子機械人! ",
         "",
-        "👾HKTRPG本來是TRPG專用的機械人，但經過開發已經擁大量娛樂和生活功能",
+        "👾HKTRPG本來是TRPG專用的機械人，但經過開發已經擁有大量娛樂和生活功能",
         "",
         "🙋輸入 bothelp 可以得到詳細功能列表。",
         "",
@@ -12,14 +12,15 @@
         "",
         "📚有關TRPG資訊, 可以到網站, (http://www.hktrpg.com/)",
         "",
-        "ℹ️如果你需要幫助, 加入我們的支援頻道, (http://bit.ly/HKTRPG_DISCORD)",
+        "ℹ️如果你需要幫助, 加入我們的支援頻道, (https://discord.gg/vx4kcm7)",
         "",
-        "👨‍💻在頻道中，我們支持才藝交換，你提供能力和想法，我又去實現它們，一起完善機械人或解決你的煩惱"
+        "👨‍💻在頻道中，我們支持才藝交換，你提供能力和對機械人的想法，我們又去實現它們，一起完善機械人或解決你的煩惱"
     ],
     "firstTimeUseMessage": [
         "萬分感謝你使用HKTRPG，2021年HKTRPG已經四周歲了，",
-        "所以於下半年我們發放了問卷，進行使用調查，",
-        "問卷分析結果：XXXXXXXXXXXXXX",
+        "👾HKTRPG本來是TRPG專用的機械人，但經過開發已經擁有大量娛樂和生活功能",
+        "所以於下半年我們發放了問卷進行使用調查，",
+        "現在發佈問卷分析結果： (https://docs.google.com/document/d/1GMakuew-o1flfo39FhNTFQR1leU8ILU61mFMjAOJENw/edit)",
         "",
         "🙋輸入 bothelp 可以得到詳細的功能列表。",
         "",
@@ -32,11 +33,11 @@
         " (http://www.hktrpg.com/)",
         "",
         "ℹ️如果你需要幫助, 加入我們的支援頻道, ",
-        "(http://bit.ly/HKTRPG_DISCORD)",
+        "(https://discord.gg/vx4kcm7)",
         "",
-        "👨‍💻在頻道中，我們支持才藝交換，你提供能力和想法，我又去實現它們，一起完善機械人或解決你的煩惱",
+        "👨‍💻在頻道中，我們支持才藝交換，你提供能力和對機械人的想法，我們又去實現它們，一起完善機械人或解決你的煩惱",
         "",
-        "如果希望得到更新資訊, 請輸入 .admin NewsOn",
-        "如果希望取消, 請輸入 .admin NewsOff"
+        "如果希望得到HKTRPG最近更新資訊, 請輸入 .admin News On",
+        "如果開啓後希望關閉該功能, 請輸入 .admin News Off"
     ]
 }

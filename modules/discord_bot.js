@@ -576,7 +576,8 @@ async function count2() {
 // handle the error event
 process.on('unhandledRejection', error => {
 	if (error.message == 'Missing Permissions') return;
-	console.error('Unhandled promise rejection:', error.message, error);
+	if (error.message == 'Cannot send messages to this user') return;
+	console.error('Unhandled promise rejection:', error.message);
 });
 
 client.on('guildCreate', async guild => {

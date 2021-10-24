@@ -147,7 +147,6 @@ client.on('messageCreate', async message => {
 	let privatemsg = checkPrivateMsg.privatemsg;
 
 	let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
-
 	if (!target) {
 		await nonDice(message)
 		return null
@@ -208,7 +207,7 @@ client.on('messageCreate', async message => {
 	//設定私訊的模式 0-普通 1-自己 2-自己+GM 3-GM
 	//訊息來到後, 會自動跳到analytics.js進行骰組分析
 	//如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
-
+	console.log('A')
 
 
 	if (channelKeyword != "" && trigger == channelKeyword.toString().toLowerCase()) {

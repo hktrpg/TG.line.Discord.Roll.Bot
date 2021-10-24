@@ -45,8 +45,13 @@ var parseInput = async function ({
 
 	let mainMsg = [];
 	inputStr = inputStr.replace(/^\s/g, '')
-	mainMsg = inputStr.match(msgSplitor); //定義輸入字串
+	let rollTimes = inputStr.match(/^\.([1-9]|10)\s/);
 
+	rollTimes ? rollTimes = rollTimes[1] : rollTimes = 1;
+	console.log('rollTimesA', rollTimes)
+	inputStr = inputStr.replace(/^\.[1-9]|10\s/, '');
+	mainMsg = inputStr.match(msgSplitor); //定義輸入字串
+	console.log('B')
 	//EXPUP 功能 + LevelUP 功能
 	if (groupid) {
 		let tempEXPUP = await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount, tgDisplayname);
@@ -63,28 +68,59 @@ var parseInput = async function ({
 
 	//rolldice 擲骰功能
 	let rollDiceResult = {};
+	let retext = '';
 	try {
-		rollDiceResult = await rolldice({
-			inputStr: inputStr,
-			groupid: groupid,
-			userid: userid,
-			userrole: userrole,
-			mainMsg: mainMsg,
-			botname: botname,
-			displayname: displayname,
-			channelid: channelid,
-			displaynameDiscord: displaynameDiscord,
-			membercount: membercount,
-			discordClient: discordClient,
-			discordMessage: discordMessage,
-			titleName: titleName,
-			tgDisplayname: tgDisplayname
-		})
+		console.log('rollTimes', rollTimes)
+		for (let index = 0; index < rollTimes; index++) {
+			console.log('index', index)
+			if (rollTimes > 1) {
+				rollDiceResult = await rolldice({
+					inputStr: inputStr,
+					groupid: groupid,
+					userid: userid,
+					userrole: userrole,
+					mainMsg: mainMsg,
+					botname: botname,
+					displayname: displayname,
+					channelid: channelid,
+					displaynameDiscord: displaynameDiscord,
+					membercount: membercount,
+					discordClient: discordClient,
+					discordMessage: discordMessage,
+					titleName: titleName,
+					tgDisplayname: tgDisplayname
+				})
+				if (rollDiceResult.text) {
+					retext += `#${index + 1}： ${rollDiceResult.text.replace(/\n/g, '')}\n`
+				}
+
+			} else {
+				rollDiceResult = await rolldice({
+					inputStr: inputStr,
+					groupid: groupid,
+					userid: userid,
+					userrole: userrole,
+					mainMsg: mainMsg,
+					botname: botname,
+					displayname: displayname,
+					channelid: channelid,
+					displaynameDiscord: displaynameDiscord,
+					membercount: membercount,
+					discordClient: discordClient,
+					discordMessage: discordMessage,
+					titleName: titleName,
+					tgDisplayname: tgDisplayname
+				})
+			}
+
+		}
+		console.log('rollDiceResult', rollDiceResult)
 
 	} catch (error) {
 		console.error('rolldice GET ERROR:', error, ' inputStr: ', inputStr, ' botname: ', botname, ' Time: ', new Date());
 	}
 	if (rollDiceResult) {
+		if (retext) rollDiceResult.text = retext;
 		result = JSON.parse(JSON.stringify(Object.assign({}, result, rollDiceResult)));
 	}
 
@@ -196,6 +232,9 @@ var rolldice = async function ({
 
 function findRollList(mainMsg) {
 	if (!mainMsg || !mainMsg[0]) return;
+	console.log('mainMsg', mainMsg)
+	console.log('mainMsg[0].match', mainMsg[0].match(/^\.([1-9]|10)$/))
+	mainMsg[0].match(/^\.([1-9]|10)$/) ? mainMsg.shift() : null;
 	if (!mainMsg[1]) mainMsg[1] = '';
 	let idList = Object.keys(exports).map(i => exports[i]);
 	let findTarget = idList.find(item => {

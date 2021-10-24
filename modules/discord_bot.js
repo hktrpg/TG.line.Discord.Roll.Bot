@@ -80,7 +80,6 @@ var connect = function () {
 	ws.on('message', function incoming(data) {
 		if (shardids !== 0) return;
 		var object = JSON.parse(data);
-		//console.log('object', object)
 		if (object.botname == 'Discord') {
 			const promises = [
 				object,
@@ -147,7 +146,6 @@ client.on('messageCreate', async message => {
 	let privatemsg = checkPrivateMsg.privatemsg;
 
 	let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
-
 	if (!target) {
 		await nonDice(message)
 		return null
@@ -170,7 +168,6 @@ client.on('messageCreate', async message => {
 	//是不是自己.ME 訊息
 	//TRUE 即正常
 	let userrole = 1;
-	//console.log(message.guild)
 
 	if (message.channelId) {
 		channelid = message.channelId;
@@ -208,8 +205,6 @@ client.on('messageCreate', async message => {
 	//設定私訊的模式 0-普通 1-自己 2-自己+GM 3-GM
 	//訊息來到後, 會自動跳到analytics.js進行骰組分析
 	//如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
-
-
 
 	if (channelKeyword != "" && trigger == channelKeyword.toString().toLowerCase()) {
 		//mainMsg.shift();
@@ -261,7 +256,6 @@ client.on('messageCreate', async message => {
 	}
 
 	if (groupid && rplyVal && rplyVal.LevelUp) {
-		//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
 		await SendToReplychannel({ replyText: `<@${userid}>\n${rplyVal.LevelUp}`, channelid });
 	}
 
@@ -328,7 +322,6 @@ client.on('messageCreate', async message => {
 			return;
 		case privatemsg == 2:
 			//輸入ddr(指令) 私訊GM及自己
-			//console.log('AAA', TargetGMTempID)
 			if (groupid) {
 				let targetGMNameTemp = "";
 				for (let i = 0; i < TargetGMTempID.length; i++) {

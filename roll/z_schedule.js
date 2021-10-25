@@ -1,5 +1,5 @@
 "use strict";
-
+const schedule = require('../modules/schedule')
 const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const limitAtArr = [1, 20, 20, 30, 30, 99, 99, 99];
@@ -23,7 +23,7 @@ var prefixs = function () {
         second: null
     }]
 }
-var getHelpMessage = async function () {
+var getHelpMessage = function () {
     return `【定時任務功能】
     兩種模式
     【at】  指定一個時間
@@ -64,7 +64,7 @@ var rollDiceCommand = async function ({
     };
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1] || !mainMsg[2]: {
-            rply.text = await this.getHelpMessage();
+            rply.text = this.getHelpMessage();
             rply.quotes = true;
             return rply;
         }
@@ -75,8 +75,17 @@ var rollDiceCommand = async function ({
                 userID: userid
             });
             let levelLv = await findMaxLv(userid);
-            let time = checkAtTime(mainMsg[1], mainMsg[2]);
-            console.log('time', time)
+
+
+            let checkTime = checkAtTime(mainMsg[1], mainMsg[2]);
+            if (!checkTime) {
+                rply.text = `輸入出錯\n ${this.getHelpMessage()}`;
+                return rply;
+            }
+            let text = (checkTime.threeColum) ? inputStr.replace(/^\s?\S+\s+\S+\s+\S+\s+/, '') : inputStr.replace(/^\s?\S+\s+\S+\s+/, '');
+            let date = checkTime.time;
+
+            schedule.scheduleSettup({ date, text, id: channelid, botname })
             return rply;
         }
         case /^\.cron$/.test(mainMsg[0]): {
@@ -104,25 +113,25 @@ function checkAtTime(first, second) {
             if (time > 44640) time = 44640;
             if (time < 1) time = 1;
             time = moment().add(time, 'minute').toDate();
-            return time;
+            return { time: time, threeColum: false };
         }
         case /^\d+hours$/i.test(first): {
             let time = first.match(/^(\d+)hours$/i)[1];
             if (time > 744) time = 744;
             if (time < 1) time = 1;
             time = moment().add(time, 'hour').toDate();
-            return time;
+            return { time: time, threeColum: false };
         }
         case /^\d+days$/i.test(first): {
             let time = first.match(/^(\d+)days$/i)[1];
             if (time > 31) time = 31;
             if (time < 1) time = 1;
             time = moment().add(time, 'day').toDate();
-            return time;
+            return { time: time, threeColum: false };
         }
         case /^\d{8}$/i.test(first) && /^\d{4}$/i.test(second): {
             let time = moment(`${first} ${second}`, "YYYYMMDD hhmm").toDate();
-            return time;
+            return { time: time, threeColum: true };
         }
         default:
             break;

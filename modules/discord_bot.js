@@ -79,8 +79,8 @@ const joinMessage = `你剛剛添加了HKTRPG 骰子機械人!
 		有關TRPG資訊, 可以到網站
 		(http://www.hktrpg.com/)`;
 const reconnectInterval = 1 * 1000 * 60;
-const shardids = client.shard.ids[0];
-
+//const shardids = client.shard.ids[0];
+const shardids = 0;
 
 const WebSocket = require('ws');
 var ws;
@@ -681,9 +681,10 @@ async function scheduleCronMessage({ time, replyText, channelid, quotes = false,
 	return;
 }
 
-async function scheduleAtMessage({ date, replyText, channelid, quotes = false, id }) {
+async function scheduleAtMessage({ date, replyText, channelid, quotes = false }) {
 	if (shardids !== 0) return;
 	//指定時間一次	
+	console.log('BB')
 	//const date = new Date(2012, 11, 21, 5, 30, 0);
 	//const date = new Date(Date.now() + 5000);
 	schedule.scheduleJob(date, function () {
@@ -693,13 +694,20 @@ async function scheduleAtMessage({ date, replyText, channelid, quotes = false, i
 			{ replyText: replyText, channelid: channelid, quotes }
 		)
 	});
+	/**
 	await schema.scheduleAt.findByIdAndRemove({
 		id
 	});
-
+ */
 	return;
 }
 
+
+
+module.exports = {
+	scheduleAtMessage,
+	scheduleCronMessage
+};
 /**
 .addFields(
 	{ name: 'Regular field title', value: 'Some value here' },

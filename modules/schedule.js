@@ -7,3 +7,23 @@
  * 支援{}類置換，
  * 
  */
+
+const discordSchedule = require('./discord_bot');
+//discordSchedule.scheduleAtMessage
+
+
+function scheduleSettup({ date, text, id, botname }) {
+    switch (botname) {
+        case 'Discord':
+            console.log('AA')
+            discordSchedule.scheduleAtMessage({ date, text, channelid: id })
+            break;
+
+        default:
+            break;
+    }
+}
+
+module.exports = {
+    scheduleSettup
+};

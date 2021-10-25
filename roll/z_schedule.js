@@ -85,7 +85,7 @@ var rollDiceCommand = async function ({
             let text = (checkTime.threeColum) ? inputStr.replace(/^\s?\S+\s+\S+\s+\S+\s+/, '') : inputStr.replace(/^\s?\S+\s+\S+\s+/, '');
             let date = checkTime.time;
 
-            schedule.scheduleSettup({ date, text, id: channelid, botname })
+            await schedule.scheduleSettup({ date, text, id: channelid, botname })
             return rply;
         }
         case /^\.cron$/.test(mainMsg[0]): {

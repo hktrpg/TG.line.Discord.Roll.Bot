@@ -265,6 +265,11 @@ client.on('messageCreate', async message => {
 	}
 
 
+	//schedule 功能
+	if (rplyVal.schedule && rplyVal.schedule.switch) {
+		console.log('rplyVal.schedule', rplyVal.schedule)
+	}
+
 	if (rplyVal.state) {
 		rplyVal.text += '\n' + await count();
 		rplyVal.text += '\nPing: ' + Number(Date.now() - message.createdTimestamp) + 'ms'

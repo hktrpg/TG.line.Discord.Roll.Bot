@@ -1,6 +1,7 @@
 const Agenda = require("agenda");
-const mongoConnectionString = "mongodb://127.0.0.1/agenda";
-const agenda = new Agenda({ db: { address: mongoConnectionString } });
+const mongoose = require('./core-db-connector');
+//const mongoConnectionString = "mongodb://127.0.0.1/agenda";
+const agenda = new Agenda({ mongo: mongoose });
 
 // Or override the default collection name:
 // const agenda = new Agenda({db: {address: mongoConnectionString, collection: 'jobCollectionName'}});
@@ -20,7 +21,7 @@ const agenda = new Agenda({ db: { address: mongoConnectionString } });
     await agenda.every("3 minutes", "delete old users");
 
     // Alternatively, you could also do:
-    await agenda.every("*/3 * * * *", "delete old users");
+    // await agenda.every("*/3 * * * *", "delete old users");
 })();
 
 

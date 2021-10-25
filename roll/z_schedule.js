@@ -1,5 +1,4 @@
 "use strict";
-const schedule = require('../modules/schedule')
 const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const limitAtArr = [1, 20, 20, 30, 30, 99, 99, 99];
@@ -84,8 +83,9 @@ var rollDiceCommand = async function ({
             }
             let text = (checkTime.threeColum) ? inputStr.replace(/^\s?\S+\s+\S+\s+\S+\s+/, '') : inputStr.replace(/^\s?\S+\s+\S+\s+/, '');
             let date = checkTime.time;
-
-            await schedule.scheduleSettup({ date, text, id: channelid, botname })
+            rply.schedule.switch = true;
+            rply.schedule.text = text;
+            rply.schedule.date = date;
             return rply;
         }
         case /^\.cron$/.test(mainMsg[0]): {

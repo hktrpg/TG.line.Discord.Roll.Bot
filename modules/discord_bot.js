@@ -4,8 +4,9 @@ const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const Discord = require("discord.js-light");
 const { Client, Intents, Permissions } = Discord;
-const schedule = require('node-schedule');
+//const schedule = require('node-schedule');
 const schema = require('../modules/core-schema.js');
+const agenda = require('../modules/core-schedule')
 
 function channelFilter(channel) {
 	return !channel.lastMessageId || Discord.SnowflakeUtil.deconstruct(channel.lastMessageId).timestamp < Date.now() - 3600000;
@@ -120,7 +121,7 @@ var connect = function () {
 
 client.once('ready', async () => {
 	if (process.env.BROADCAST) connect();
-	if (shardids === 0) getSchedule();
+	//	if (shardids === 0) getSchedule();
 });
 
 client.on('messageCreate', async message => {
@@ -708,11 +709,14 @@ async function scheduleAtMessage({ date, replyText, channelid, quotes = false })
 }
 
 
+agenda.agenda.define("delete old users", async (job) => {
+	//await User.remove({ lastLogIn: { $lt: twoDaysAgo } });
+	console.log("delete!")
 
-module.exports = {
-	scheduleAtMessage,
-	scheduleCronMessage
-};
+});
+
+
+
 /**
 .addFields(
 	{ name: 'Regular field title', value: 'Some value here' },

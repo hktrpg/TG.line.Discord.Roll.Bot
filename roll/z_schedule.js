@@ -1,8 +1,8 @@
 "use strict";
 const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
-const limitAtArr = [1, 20, 20, 30, 30, 99, 99, 99];
-const limitCronArr = [1, 20, 20, 30, 30, 99, 99, 99];
+const limitAtArr = [2, 5, 10, 20, 30, 99, 99, 99];
+const limitCronArr = [1, 5, 10, 20, 30, 99, 99, 99];
 const moment = require('moment');
 const agenda = require('../modules/core-schedule')
 
@@ -100,8 +100,11 @@ var rollDiceCommand = async function ({
             //   rply.schedule.style = 'at';
             //  rply.schedule.text = text;
             //  rply.schedule.date = date;
+            //schedule
             await agenda.agenda.schedule(date, "scheduleAtMessage", { replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid });
+            await agenda.agenda.now("scheduleAtMessage", { replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid });
             //  console.log('jobs', jobs)
+            rply.text = `已新增排定內容\n將於${date.toString().replace(/:\d+\s.*/, '')}運行`
             return rply;
         }
         case /^\.cron$/.test(mainMsg[0]): {

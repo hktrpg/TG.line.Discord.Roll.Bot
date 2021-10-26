@@ -4,7 +4,7 @@ const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const Discord = require("discord.js-light");
 const { Client, Intents, Permissions } = Discord;
-//const schedule = require('node-schedule');
+const rollText = require('./getRoll').rollText;
 const schema = require('../modules/core-schema.js');
 const agenda = require('../modules/core-schedule')
 
@@ -673,7 +673,8 @@ agenda.agenda.define("scheduleAtMessage", async (job) => {
 	//指定時間一次	
 	if (shardids !== 0) return;
 	let data = job.attrs.data;
-	let text = rollText(data.replyText);
+	let text = await rollText(data.replyText);
+	console.log('text', text)
 	SendToReplychannel(
 		{ replyText: text, channelid: data.channelid, quotes: data.quotes = true }
 	)

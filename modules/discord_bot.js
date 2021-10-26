@@ -265,12 +265,13 @@ client.on('messageCreate', async message => {
 		return;
 	}
 
-
-	//schedule 功能
+	/**
+	schedule 功能
 	if (rplyVal.schedule && rplyVal.schedule.switch) {
 		console.log('rplyVal.schedule', rplyVal.schedule)
+			rplyVal.schedule.style == 'at' ? 
 	}
-
+	*/
 	if (rplyVal.state) {
 		rplyVal.text += '\n' + await count();
 		rplyVal.text += '\nPing: ' + Number(Date.now() - message.createdTimestamp) + 'ms'
@@ -454,7 +455,6 @@ async function SendToReply({ replyText = "", message, quotes = false }) {
 }
 async function SendToReplychannel({ replyText = "", channelid = "", quotes = false }) {
 	if (!channelid) return;
-	console.log(channelid)
 	let channel = await client.channels.fetch(channelid);
 	let sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
 	for (let i = 0; i < sendText.length; i++) {
@@ -634,29 +634,6 @@ client.on('guildCreate', async guild => {
 client.login(channelSecret);
 
 
-async function getSchedule() {
-	let checkAt = await schema.scheduleAt.find({
-		botname: "Discord"
-	});
-	for (let index = 0; index < checkAt.length; index++) {
-		let data = checkAt[index];
-		if (data.switch) {
-			scheduleAtMessage({ id: data._id, date: data.date, replyText: data.response, channelid: data.channelID })
-		}
-	}
-
-	let checkCron = await schema.scheduleCron.find({
-		botname: "Discord"
-	});
-	for (let index = 0; index < checkCron.length; index++) {
-		let data = checkCron[index];
-		if (data.switch) {
-			scheduleCronMessage({ time: data.time, replyText: data.response, channelid: data.channelID, id: data._id })
-		}
-	}
-
-
-}
 
 async function scheduleCronMessage({ time, replyText, channelid, quotes = false, id }) {
 	if (shardids !== 0) return;
@@ -687,31 +664,24 @@ async function scheduleCronMessage({ time, replyText, channelid, quotes = false,
 	return;
 }
 
-async function scheduleAtMessage({ date, replyText, channelid, quotes = false }) {
-	if (shardids !== 0) return;
-	//指定時間一次	
-	console.log('BB')
+
+
+
+agenda.agenda.define("scheduleAtMessage", async (job) => {
 	//const date = new Date(2012, 11, 21, 5, 30, 0);
 	//const date = new Date(Date.now() + 5000);
-	schedule.scheduleJob(date, function () {
-		console.log('The world is going to end today.');
-		//SendToReplychannel 628230419531169842
-		SendToReplychannel(
-			{ replyText: replyText, channelid: channelid, quotes }
-		)
-	});
-	/**
-	await schema.scheduleAt.findByIdAndRemove({
-		id
-	});
- */
-	return;
-}
-
-
-agenda.agenda.define("delete old users", async (job) => {
-	//await User.remove({ lastLogIn: { $lt: twoDaysAgo } });
-	console.log("delete!")
+	//指定時間一次	
+	if (shardids !== 0) return;
+	let data = job.attrs.data;
+	let text = rollText(data.replyText);
+	SendToReplychannel(
+		{ replyText: text, channelid: data.channelid, quotes: data.quotes = true }
+	)
+	try {
+		await job.remove();
+	} catch (e) {
+		console.error("Error removing job from collection");
+	}
 
 });
 

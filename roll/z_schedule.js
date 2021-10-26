@@ -4,6 +4,7 @@ const VIP = require('../modules/veryImportantPerson');
 const limitAtArr = [1, 20, 20, 30, 30, 99, 99, 99];
 const limitCronArr = [1, 20, 20, 30, 30, 99, 99, 99];
 const moment = require('moment');
+const agenda = require('../modules/core-schedule')
 
 var gameName = function () {
     return '【定時發訊功能】.at .cron delete'
@@ -62,9 +63,21 @@ var rollDiceCommand = async function ({
         text: ''
     };
     switch (true) {
-        case /^help$/i.test(mainMsg[1]) || !mainMsg[1] || !mainMsg[2]: {
+        case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
             rply.text = this.getHelpMessage();
             rply.quotes = true;
+            return rply;
+        }
+
+        case /^\.at+$/i.test(mainMsg[0]) && /^check$/i.test(mainMsg[1]): {
+            const jobs = await agenda.agenda.jobs(
+                {
+                    name: "scheduleAtMessage",
+                    "data.channelid": channelid
+                }
+            );
+            console.log(jobs)
+            rply.text = showJobs(jobs);
             return rply;
         }
         case /^\.at+$/i.test(mainMsg[0]): {
@@ -83,9 +96,12 @@ var rollDiceCommand = async function ({
             }
             let text = (checkTime.threeColum) ? inputStr.replace(/^\s?\S+\s+\S+\s+\S+\s+/, '') : inputStr.replace(/^\s?\S+\s+\S+\s+/, '');
             let date = checkTime.time;
-            rply.schedule.switch = true;
-            rply.schedule.text = text;
-            rply.schedule.date = date;
+            //  rply.schedule.switch = true;
+            //   rply.schedule.style = 'at';
+            //  rply.schedule.text = text;
+            //  rply.schedule.date = date;
+            await agenda.agenda.schedule(date, "scheduleAtMessage", { replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid });
+            //  console.log('jobs', jobs)
             return rply;
         }
         case /^\.cron$/.test(mainMsg[0]): {
@@ -148,6 +164,16 @@ async function findMaxLv(userid) {
 }
 
 
+function showJobs(jobs) {
+    let reply = '';
+    if (jobs && jobs.length > 0) {
+        for (let index = 0; index < jobs.length; index++) {
+            let job = jobs[index];
+            reply += `序號#${index + 1} 下次運行時間 ${job.attrs.nextRunAt.toString().replace(/:\d+\s.*/, '')}\n${job.attrs.data.replyText}\n`;
+        }
+    } else reply = "沒有找到定時任務"
+    return reply;
+}
 
 module.exports = {
     rollDiceCommand: rollDiceCommand,

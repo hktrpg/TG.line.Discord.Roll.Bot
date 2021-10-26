@@ -4,7 +4,7 @@ const mongoose = require('./core-db-connector');
 //const agenda = new Agenda({ mongo: mongoose.mongoose });
 
 // Or override the default collection name:
-const agenda = new Agenda({ db: { address: process.env.mongoURL, collection: 'jobCollectionName' } });
+const agenda = new Agenda({ db: { address: process.env.mongoURL, collection: 'agendaAtHKTRPG' }, maxConcurrency: 20000, defaultConcurrency: 2000 });
 
 // or pass additional connection options:
 // const agenda = new Agenda({db: {address: mongoConnectionString, collection: 'jobCollectionName', options: {ssl: true}}});
@@ -16,17 +16,14 @@ const agenda = new Agenda({ db: { address: process.env.mongoURL, collection: 'jo
 
 (async function () {
     // IIFE to give access to async/await
-    console.log('AA')
     await agenda.start();
 
-   // await agenda.every("1 minutes", "delete old users");
-    console.log('DD')
-    // Alternatively, you could also do:
-    // await agenda.every("*/3 * * * *", "delete old users");
 })();
 
 
-
+agenda.on("fail", (err, job) => {
+    console.log(`Job failed with error: ${err.message}`);
+});
 /**
  * 對schedule 中發佈的文字進行處理
  *

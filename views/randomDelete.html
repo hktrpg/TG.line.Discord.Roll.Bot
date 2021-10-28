@@ -7,6 +7,14 @@
         body {
             touch-action: manipulation;
         }
+
+        textarea {
+            overflow-y: scroll;
+            resize: none;
+
+            /* Horizontal and vertical scrollbar*/
+            /* Remove this if you want the user to resize the textarea */
+        }
     </style>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1,user-scalable=0" />
@@ -289,7 +297,7 @@ That struts and frets his hour upon the stage</textarea>
 
         }
 
-       
+
 
         window.onresize = function (event) {
             resizeTextArea();
@@ -376,7 +384,7 @@ That struts and frets his hour upon the stage</textarea>
             }
             return reply;
         }
-        const errorText = ["!", "@", "#", "$", "%", "^", "&", "*", "-", "=", "█","�","⊿","©",""]
+        const errorText = ["!", "@", "#", "$", "%", "^", "&", "*", "-", "=", "█", "�", "⊿", "©", ""]
 
         function randomError() {
             return errorText[Math.floor(Math.random() * errorText.length)];
@@ -406,13 +414,8 @@ That struts and frets his hour upon the stage</textarea>
         function resizeTextArea() {
             const tx = document.getElementsByTagName("textarea");
             for (let i = 0; i < tx.length; i++) {
-                tx[i].setAttribute("style", "height:" + (screen.height * 0.3) + "px;overflow-y:hidden;");
-                tx[i].addEventListener("input", OnInput, false);
-            }
-
-            function OnInput() {
-                this.style.height = "auto";
-                this.style.height = (this.scrollHeight) + "px";
+                tx[i].setAttribute("style", "height:" + (screen.height * 0.3) + "px;");
+             
             }
         }
 

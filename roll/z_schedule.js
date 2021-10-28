@@ -83,11 +83,15 @@ var rollDiceCommand = async function ({
         case /^\.at+$/i.test(mainMsg[0]): {
             let lv = await VIP.viplevelCheckUser(userid);
             let limit = limitAtArr[lv];
-            let check = await schema.eventList.find({
-                userID: userid
+            let checkUserid = await schema.agendaAtHKTRPG.count({
+                userid: userid
             });
-            let levelLv = await findMaxLv(userid);
-
+            let checkChannelid = await schema.agendaAtHKTRPG.count({
+                channelid: channelid
+            });
+            let checkGroupid = await schema.agendaAtHKTRPG.count({
+                groupid: groupid
+            });
 
             let checkTime = checkAtTime(mainMsg[1], mainMsg[2]);
             if (!checkTime) {
@@ -102,7 +106,7 @@ var rollDiceCommand = async function ({
             //  rply.schedule.date = date;
             //schedule
             await agenda.agenda.schedule(date, "scheduleAtMessage", { replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid });
-            await agenda.agenda.now("scheduleAtMessage", { replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid });
+            await agenda.agenda.now("scheduleAtMessage", { replyText: text, channelid: channelid, quotes: true, groupid: groupid || groupid, botname: botname, userid: userid });
             //  console.log('jobs', jobs)
             rply.text = `已新增排定內容\n將於${date.toString().replace(/:\d+\s.*/, '')}運行`
             return rply;
@@ -160,11 +164,7 @@ function checkCronTime(params) {
     //const date = {hour: 14, minute: 30}
 }
 
-async function findMaxLv(userid) {
-    let maxLV = await schema.trpgLevelSystemMember.findOne({ userid: userid }).sort({ Level: -1 });
-    if (!maxLV) return 1;
-    return maxLV.Level;
-}
+
 
 
 function showJobs(jobs) {

@@ -1,5 +1,4 @@
 const Agenda = require("agenda");
-const mongoose = require('./core-db-connector');
 //const mongoConnectionString = "mongodb://127.0.0.1/agenda";
 //const agenda = new Agenda({ mongo: mongoose.mongoose });
 

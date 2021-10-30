@@ -33,6 +33,7 @@
     "moment-timezone": "^0.5.33",
     "mongoose": "^5.13.2",
     "node-fetch": "^2.6.1",
+    "node-telegram-bot-api": "^0.54.0",
     "plurk2": "github:zeteticl/node-plurk2",
     "qrcode-terminal": "^0.12.0",
     "random-js": "^2.1.0",

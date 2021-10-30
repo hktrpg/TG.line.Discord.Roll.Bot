@@ -1,7 +1,8 @@
 "use strict";
 const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
-const limitAtArr = [2, 5, 10, 20, 30, 99, 99, 99];
+const limitAtArr = [5, 25, 50, 200, 200, 200, 200, 200];
+
 const limitCronArr = [1, 5, 10, 20, 30, 99, 99, 99];
 const moment = require('moment');
 const agenda = require('../modules/core-schedule')
@@ -83,15 +84,13 @@ var rollDiceCommand = async function ({
         case /^\.at+$/i.test(mainMsg[0]): {
             let lv = await VIP.viplevelCheckUser(userid);
             let limit = limitAtArr[lv];
-            let checkUserid = await schema.agendaAtHKTRPG.count({
-                userid: userid
-            });
-            let checkChannelid = await schema.agendaAtHKTRPG.count({
-                channelid: channelid
-            });
             let checkGroupid = await schema.agendaAtHKTRPG.count({
                 groupid: groupid
             });
+            if (checkGroupid >= limit) {
+                rply.text = '.at 上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                return rply;
+            }
 
             let checkTime = checkAtTime(mainMsg[1], mainMsg[2]);
             if (!checkTime) {
@@ -105,8 +104,9 @@ var rollDiceCommand = async function ({
             //  rply.schedule.text = text;
             //  rply.schedule.date = date;
             //schedule
-            await agenda.agenda.schedule(date, "scheduleAtMessage", { replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid });
-            await agenda.agenda.now("scheduleAtMessage", { replyText: text, channelid: channelid, quotes: true, groupid: groupid || groupid, botname: botname, userid: userid });
+
+           await differentPeform({ date, text, channelid, quotes: true, groupid, botname, userid });
+
             //  console.log('jobs', jobs)
             rply.text = `已新增排定內容\n將於${date.toString().replace(/:\d+\s.*/, '')}運行`
             return rply;
@@ -123,6 +123,25 @@ var rollDiceCommand = async function ({
             break;
         }
     }
+}
+async function differentPeform({ date, text, channelid, quotes, groupid, botname, userid }) {
+    let callBotname = "";
+    switch (botname) {
+        case "Discord":
+            callBotname = "scheduleAtMessageDiscord"
+            break;
+        case "Telegram":
+            callBotname = "scheduleAtMessageTelegram"
+            break;
+        case "Line":
+            callBotname = "scheduleAtMessageLine"
+            break;
+        default:
+            break;
+    }
+
+    await agenda.agenda.schedule(date, callBotname, { replyText: text, channelid: channelid, quotes: quotes, groupid: groupid, botname: botname, userid: userid });
+    await agenda.agenda.now(callBotname, { replyText: text, channelid: channelid, quotes: quotes, groupid: groupid || groupid, botname: botname, userid: userid });
 }
 function checkAtTime(first, second) {
     //const date = new Date(2012, 11, 21, 5, 30, 0);

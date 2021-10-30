@@ -2,10 +2,12 @@
 if (!process.env.TELEGRAM_CHANNEL_SECRET) {
 	return;
 }
+
 const TelegramBot = require('node-telegram-bot-api');
 const agenda = require('../modules/core-schedule')
 const rollText = require('./getRoll').rollText;
 exports.analytics = require('./core-analytics');
+
 
 
 const TGclient = new TelegramBot(process.env.TELEGRAM_CHANNEL_SECRET, { polling: true });
@@ -255,8 +257,7 @@ var connect = function () {
 		setTimeout(connect, reconnectInterval);
 	});
 };
-if (process.env.BROADCAST)
-	connect();
+if (process.env.BROADCAST) connect();
 
 
 
@@ -341,21 +342,10 @@ async function privateMsgFinder(groupid) {
 	else return [];
 }
 
-TGclient.launch();
-
-async function isAdmin(gpId, chatid) {
-	let member = await TGclient.getChatMember(gpId, chatid);
-	if (member.status === "creator") return true
-	if (member.status === "administrator") return true
-	return false;
-}
-
-
 
 agenda.agenda.define("scheduleAtMessageTelegram", async (job) => {
-	//const date = new Date(2012, 11, 21, 5, 30, 0);
-	//const date = new Date(Date.now() + 5000);
 	//指定時間一次	
+	console.log(job)
 	let data = job.attrs.data;
 	let text = await rollText(data.replyText);
 	//SendToReply(ctx, text)
@@ -369,6 +359,18 @@ agenda.agenda.define("scheduleAtMessageTelegram", async (job) => {
 	}
 
 });
+
+
+
+
+async function isAdmin(gpId, chatid) {
+	let member = await TGclient.getChatMember(gpId, chatid);
+	if (member.status === "creator") return true
+	if (member.status === "administrator") return true
+	return false;
+}
+
+TGclient.launch();
 
 
 

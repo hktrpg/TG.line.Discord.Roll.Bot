@@ -1,4 +1,7 @@
 "use strict";
+if (!process.env.mongoURL) {
+    return;
+}
 const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const limitAtArr = [5, 25, 50, 200, 200, 200, 200, 200];
@@ -82,9 +85,13 @@ var rollDiceCommand = async function ({
             return rply;
         }
         case /^\.at+$/i.test(mainMsg[0]): {
+            if (!groupid) {
+                rply.text = '此功能必須在群組中使用'
+                return rply
+            }
             let lv = await VIP.viplevelCheckUser(userid);
             let limit = limitAtArr[lv];
-            let checkGroupid = await schema.agendaAtHKTRPG.count({
+            let checkGroupid = await schema.agendaAtHKTRPG.estimatedDocumentCount({
                 groupid: groupid
             });
             if (checkGroupid >= limit) {
@@ -105,7 +112,7 @@ var rollDiceCommand = async function ({
             //  rply.schedule.date = date;
             //schedule
 
-           await differentPeform({ date, text, channelid, quotes: true, groupid, botname, userid });
+            await differentPeform({ date, text, channelid, quotes: true, groupid, botname, userid });
 
             //  console.log('jobs', jobs)
             rply.text = `已新增排定內容\n將於${date.toString().replace(/:\d+\s.*/, '')}運行`
@@ -126,11 +133,13 @@ var rollDiceCommand = async function ({
 }
 async function differentPeform({ date, text, channelid, quotes, groupid, botname, userid }) {
     let callBotname = "";
+    console.log('!!!', botname)
     switch (botname) {
         case "Discord":
             callBotname = "scheduleAtMessageDiscord"
             break;
         case "Telegram":
+            console.log('!!!')
             callBotname = "scheduleAtMessageTelegram"
             break;
         case "Line":

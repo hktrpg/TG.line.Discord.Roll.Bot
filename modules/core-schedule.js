@@ -1,3 +1,7 @@
+"use strict";
+if (!process.env.mongoURL) {
+    return;
+}
 const Agenda = require("agenda");
 //const mongoConnectionString = "mongodb://127.0.0.1/agenda";
 //const agenda = new Agenda({ mongo: mongoose.mongoose });

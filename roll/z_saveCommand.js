@@ -112,7 +112,7 @@ var rollDiceCommand = async function ({
                 if (mainMsg[3] && mainMsg[3].toLowerCase() == ".cmd")
                     rply.text += '指令不可以儲存.cmd啊'
                 if (!groupid)
-                    rply.text += ' 不在群組.'
+                    rply.text += ' 此功能必須在群組中使用.'
                 if (groupid && userrole < 1)
                     rply.text += ' 只有GM以上才可新增.'
             }
@@ -136,7 +136,7 @@ var rollDiceCommand = async function ({
             } else {
                 rply.text = '刪除失敗.'
                 if (!groupid)
-                    rply.text += '不在群組. '
+                    rply.text += '此功能必須在群組中使用. '
                 if (groupid && userrole < 1)
                     rply.text += '只有GM以上才可刪除. '
             }
@@ -163,7 +163,7 @@ var rollDiceCommand = async function ({
                 if (!mainMsg[2])
                     rply.text += '沒有關鍵字. '
                 if (!groupid)
-                    rply.text += '不在群組. '
+                    rply.text += '此功能必須在群組中使用. '
                 if (groupid && userrole < 1)
                     rply.text += '只有GM以上才可刪除. '
             }
@@ -176,7 +176,7 @@ var rollDiceCommand = async function ({
             })
             //console.log(trpgCommandfunction.trpgCommandfunction)
             if (!groupid) {
-                rply.text = '不在群組. ';
+                rply.text = '此功能必須在群組中使用. ';
                 return rply
             }
             if (trpgCommandfunction.trpgCommandfunction)
@@ -196,7 +196,7 @@ var rollDiceCommand = async function ({
         case /(^[.]cmd$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
             //顯示關鍵字
             if (!groupid) {
-                rply.text = '不在群組. ';
+                rply.text = '此功能必須在群組中使用. ';
                 return rply
             }
             if (trpgCommandfunction.trpgCommandfunction && mainMsg[1])

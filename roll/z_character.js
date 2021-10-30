@@ -286,7 +286,7 @@ var rollDiceCommand = async function ({
 
         case /(^[.]char$)/i.test(mainMsg[0]) && /^use$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             if (!groupid) {
-                rply.text = '不在群組'
+                rply.text = '此功能必須在群組中使用'
                 return rply
             }
 
@@ -317,7 +317,7 @@ var rollDiceCommand = async function ({
             return rply;
         case /(^[.]char$)/i.test(mainMsg[0]) && /^nonuse$/i.test(mainMsg[1]):
             if (!groupid) {
-                rply.text = '不在群組'
+                rply.text = '此功能必須在群組中使用'
                 return rply
             }
             try {
@@ -366,7 +366,7 @@ var rollDiceCommand = async function ({
         case /(^[.]ch$)/i.test(mainMsg[0]) && /^set$/i.test(mainMsg[1]) && /^\S+$/i.test(mainMsg[2]) && /^\S+$/i.test(mainMsg[3]):
             //更新功能
             if (!groupid) {
-                rply.text = '不在群組'
+                rply.text = '此功能必須在群組中使用'
                 return rply
             }
             if (!mainMsg[3]) {
@@ -439,7 +439,7 @@ var rollDiceCommand = async function ({
 
         case /(^[.]ch$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
             if (!groupid) {
-                rply.text = '不在群組'
+                rply.text = '此功能必須在群組中使用'
                 return rply
             }
             filter = {
@@ -461,7 +461,7 @@ var rollDiceCommand = async function ({
             return rply;
         case /(^[.]ch$)/i.test(mainMsg[0]) && /^showall$/i.test(mainMsg[1]):
             if (!groupid) {
-                rply.text = '不在群組'
+                rply.text = '此功能必須在群組中使用'
                 return rply
             }
             filter = {
@@ -485,7 +485,7 @@ var rollDiceCommand = async function ({
 
         case /(^[.]ch$)/i.test(mainMsg[0]) && /^\S+$/i.test(mainMsg[1]):
             if (!groupid) {
-                rply.text = '不在群組'
+                rply.text = '此功能必須在群組中使用'
                 return rply
             }
             filter = {

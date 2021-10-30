@@ -75,7 +75,6 @@ TGclient.on('text', async (ctx) => {
 
 	let groupid = ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && userid && ctx.chat.id) ? ctx.chat.id : '';
 	let displayname = '',
-		channelid = '',
 		membercount = 0,
 		titleName = (ctx.message && ctx.chat && ctx.chat.title) ? ctx.chat.title : '';
 	let TargetGMTempID = [];
@@ -113,7 +112,7 @@ TGclient.on('text', async (ctx) => {
 			userrole: userrole,
 			botname: "Telegram",
 			displayname: displayname,
-			channelid: channelid,
+			channelid: "",
 			membercount: membercount,
 			titleName: titleName,
 			tgDisplayname: tgDisplayname
@@ -127,7 +126,7 @@ TGclient.on('text', async (ctx) => {
 				userrole: userrole,
 				botname: "Telegram",
 				displayname: displayname,
-				channelid: channelid,
+				channelid: "",
 				membercount: membercount,
 				titleName: titleName,
 				tgDisplayname: tgDisplayname
@@ -361,7 +360,7 @@ agenda.agenda.define("scheduleAtMessageTelegram", async (job) => {
 	let text = await rollText(data.replyText);
 	//SendToReply(ctx, text)
 	SendToId(
-		data.channelid, text
+		data.groupid, text
 	)
 	try {
 		await job.remove();

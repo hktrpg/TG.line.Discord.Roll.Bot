@@ -160,7 +160,6 @@ TGclient.on('text', async (ctx) => {
 		case privatemsg == 1:
 			// 輸入dr  (指令) 私訊自己
 			//
-			//console.log('ctx.chat.type: ', ctx.chat.type)
 			if (ctx.chat.type != 'private') {
 				SendToId(groupid, "@" + displayname + ' 暗骰給自己');
 			}
@@ -203,7 +202,6 @@ TGclient.on('text', async (ctx) => {
 				displayname = "@" + ctx.from.username + (rplyVal.statue) ? ' ' + rplyVal.statue : '' + "\n";
 				rplyVal.text = displayname + rplyVal.text;
 			}
-			console.log('A, groupid, rplyVal.text', groupid, rplyVal.text)
 			SendToId(groupid || userid, rplyVal.text);
 			break;
 	}
@@ -217,7 +215,6 @@ TGclient.on('text', async (ctx) => {
 })
 
 function SendToId(targetid, text) {
-	console.log('targetid, text', targetid, text)
 	for (var i = 0; i < text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 		if (i == 0 || i == 1 || i == text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
 			TGclient.sendMessage(targetid, text.toString().match(/[\s\S]{1,2000}/g)[i]);
@@ -285,10 +282,7 @@ async function nonDice(ctx) {
 
 
 TGclient.on('new_chat_members', async (ctx) => {
-	console.log('ctx', ctx)
-	console.log('TGclient.getMe().username', await TGclient.getMe())
 	let newUser = await TGclient.getMe();
-	console.log('TGclient.getMe().username', await TGclient.getMe().username)
 	if (ctx.new_chat_member.username == newUser.username) {
 		console.log("Telegram joined");
 		SendToId(ctx.chat.id, joinMessage);
@@ -314,7 +308,6 @@ TGclient.on('document', async (ctx) => {
 	return null;
 })
 TGclient.on('photo', async (ctx) => {
-	console.log("ctx photo", ctx)
 	if (ctx.from.is_bot) return;
 	await nonDice(ctx);
 	return null;

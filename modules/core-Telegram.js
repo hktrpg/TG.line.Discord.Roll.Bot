@@ -165,7 +165,7 @@ TGclient.on('text', async (ctx) => {
 				SendToId(groupid, "@" + displayname + ' 暗骰給自己');
 			}
 			rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
-			SendToId(groupid, rplyVal.text);
+			SendToId(userid, rplyVal.text);
 			break;
 		case privatemsg == 2:
 			//輸入ddr(指令) 私訊GM及自己
@@ -284,17 +284,24 @@ async function nonDice(ctx) {
 }
 
 
-TGclient.on('text', async (ctx) => {
-	console.log("ctx", ctx)
-	if (ctx.from.is_bot) return;
-	if (ctx.new_chat_member && ctx.new_chat_member.username == ctx.me) {
+TGclient.on('new_chat_members', async (ctx) => {
+	console.log('ctx', ctx)
+	console.log('TGclient.getMe().username', await TGclient.getMe())
+	let newUser = await TGclient.getMe();
+	console.log('TGclient.getMe().username', await TGclient.getMe().username)
+	if (ctx.new_chat_member.username == newUser.username) {
 		console.log("Telegram joined");
 		SendToId(ctx.chat.id, joinMessage);
-	} else if (ctx.group_chat_created) {
-		console.log("Telegram joined");
-		SendToId(ctx.chat.id, joinMessage);
-	} else return null;
+	}
 });
+
+TGclient.on('group_chat_created', async (ctx) => {
+	SendToId(ctx.chat.id, joinMessage);
+});
+TGclient.on('supergroup_chat_created', async (ctx) => {
+	SendToId(ctx.chat.id, joinMessage);
+});
+
 
 TGclient.on('audio', async (ctx) => {
 	if (ctx.from.is_bot) return;

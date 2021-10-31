@@ -7,6 +7,8 @@ const EXPUP = require('./level').EXPUP || function () { };
 const line = require('@line/bot-sdk');
 const express = require('express');
 const msgSplitor = (/\S+/ig);
+const agenda = require('../modules/core-schedule')
+const rollText = require('./getRoll').rollText;
 // create LINE SDK config from env variables
 const config = {
 	channelAccessToken: process.env.LINE_CHANNEL_ACCESSTOKEN,
@@ -52,10 +54,10 @@ var handleEvent = async function (event) {
 	if (trigger == ".me") {
 		inputStr = inputStr.replace(/^.me\s+/i, '');
 		if (roomorgroupid) {
-			let temp = await HandleMessage(inputStr);
+			let temp = HandleMessage(inputStr);
 			client.replyMessage(event.replyToken, temp);
 		} else {
-			await SendToId(event.source.userId, inputStr);
+			SendToId(event.source.userId, inputStr);
 		}
 		return;
 	}
@@ -188,9 +190,9 @@ var handleEvent = async function (event) {
 					await replyMessagebyReplyToken(event, '正在暗骰給自己');
 			if (userid)
 				if (displayname)
-					await SendToId(userid, "@" + displayname + '的暗骰\n' + rplyVal.text);
+					SendToId(userid, "@" + displayname + '的暗骰\n' + rplyVal.text);
 				else
-					await SendToId(userid, rplyVal.text);
+					SendToId(userid, rplyVal.text);
 			break;
 		case privatemsg == 2:
 			//輸入ddr(指令) 私訊GM及自己
@@ -211,10 +213,10 @@ var handleEvent = async function (event) {
 				rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
 			}
 			//傳給自己
-			await SendToId(userid, rplyVal.text);
+			SendToId(userid, rplyVal.text);
 			for (let i = 0; i < TargetGMTempID.length; i++) {
 				if (userid != TargetGMTempID[i]) {
-					await SendToId(TargetGMTempID[i], rplyVal.text);
+					SendToId(TargetGMTempID[i], rplyVal.text);
 				}
 			}
 			break;
@@ -235,7 +237,7 @@ var handleEvent = async function (event) {
 			if (displayname)
 				rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
 			for (let i = 0; i < TargetGMTempID.length; i++) {
-				await SendToId(TargetGMTempID[i], rplyVal.text);
+				SendToId(TargetGMTempID[i], rplyVal.text);
 			}
 			break;
 		default:
@@ -274,7 +276,7 @@ var handleEvent = async function (event) {
 
 }
 var replyMessagebyReplyToken = async function (event, Reply) {
-	let temp = await HandleMessage(Reply);
+	let temp = HandleMessage(Reply);
 	return await client.replyMessage(event.replyToken, temp).catch(() => {
 		if (temp.type == 'image') {
 			let tempB = {
@@ -286,7 +288,7 @@ var replyMessagebyReplyToken = async function (event, Reply) {
 		}
 	});
 }
-async function HandleMessage(message) {
+function HandleMessage(message) {
 	let temp = [];
 	switch (true) {
 		case message.type == 'text' && message.text != '':
@@ -337,6 +339,42 @@ async function HandleMessage(message) {
 		res.send('Hello');
 	});
 */
+
+agenda.agenda.define("scheduleAtMessageLine", async (job) => {
+	//指定時間一次	
+	let data = job.attrs.data;
+	let text = await rollText(data.replyText);
+	//SendToReply(ctx, text)
+	SendToId(
+		data.groupid, text
+	)
+	try {
+		await job.remove();
+	} catch (e) {
+		console.error("Error removing job from collection");
+	}
+});
+
+agenda.agenda.define("scheduleCronMessageLine", async (job) => {
+	//指定時間一次	
+	let data = job.attrs.data;
+	let text = await rollText(data.replyText);
+	//SendToReply(ctx, text)
+	SendToId(
+		data.groupid, text
+	)
+	try {
+		if ((new Date(Date.now()) - data.createAt) >= 30 * 24 * 60 * 60 * 1000)
+			await job.remove();
+		SendToId(
+			data.groupid, "已運行一個月, 移除此定時訊息"
+		)
+	} catch (e) {
+		console.error("Error removing job from collection");
+	}
+});
+
+
 app.on('UnhandledPromiseRejection', error => {
 	// Will print "unhandledRejection err is not defined"
 	console.error('UnhandledPromiseRejection: ', error.message);
@@ -345,10 +383,10 @@ app.on('unhandledRejection', error => {
 	// Will print "unhandledRejection err is not defined"
 	console.error('unhandledRejection: ', error.message);
 });
-async function SendToId(targetid, Reply) {
-	let temp = await HandleMessage(Reply);
+function SendToId(targetid, Reply) {
+	let temp = HandleMessage(Reply);
 	//console.log('SendToId: ', temp)
-	return await client.pushMessage(targetid, temp);
+	return client.pushMessage(targetid, temp);
 }
 async function privateMsgFinder(channelid) {
 	if (!TargetGM || !TargetGM.trpgDarkRollingfunction) return;

@@ -140,7 +140,7 @@ var rollDiceCommand = async function ({
                 if (!mainMsg[3])
                     rply.text += ' 沒有內容'
                 if (!groupid)
-                    rply.text += ' 不在群組.'
+                    rply.text += ' 此功能必須在群組中使用.'
                 if (groupid && userrole < 1)
                     rply.text += ' 只有GM以上才可新增.'
             }
@@ -164,7 +164,7 @@ var rollDiceCommand = async function ({
             } else {
                 rply.text = '刪除失敗.'
                 if (!groupid)
-                    rply.text += '不在群組. '
+                    rply.text += '此功能必須在群組中使用. '
                 if (groupid && userrole < 1)
                     rply.text += '只有GM以上才可刪除. '
             }
@@ -191,7 +191,7 @@ var rollDiceCommand = async function ({
                 if (!mainMsg[2])
                     rply.text += '沒有關鍵字. '
                 if (!groupid)
-                    rply.text += '不在群組. '
+                    rply.text += '此功能必須在群組中使用. '
                 if (groupid && userrole < 1)
                     rply.text += '只有GM以上才可刪除. '
             }

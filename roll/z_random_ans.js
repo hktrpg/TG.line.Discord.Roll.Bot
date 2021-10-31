@@ -121,7 +121,7 @@ var rollDiceCommand = async function ({
             if (!mainMsg[4])
                 rply.text += ' 沒有自定義回應,至少兩個.'
             if (!groupid)
-                rply.text += ' 不在群組.'
+                rply.text += ' 此功能必須在群組中使用.'
             if (groupid && userrole < 1)
                 rply.text += ' 只有GM以上才可新增.'
             if (rply.text) {
@@ -160,7 +160,7 @@ var rollDiceCommand = async function ({
             if (!mainMsg[2])
                 rply.text += '沒有關鍵字. '
             if (!groupid)
-                rply.text += '不在群組. '
+                rply.text += '此功能必須在群組中使用. '
             if (groupid && userrole < 1)
                 rply.text += '只有GM以上才可刪除. '
             if (rply.text)
@@ -189,7 +189,7 @@ var rollDiceCommand = async function ({
             //顯示列表
             //
             if (!groupid) {
-                rply.text += '不在群組. '
+                rply.text += '此功能必須在群組中使用. '
                 return rply;
             }
             rply.quotes = true;
@@ -221,7 +221,7 @@ var rollDiceCommand = async function ({
             //RA使用抽選功能
             //
             if (!groupid) {
-                rply.text = '不在群組. '
+                rply.text = '此功能必須在群組中使用. '
             }
             times = /^[.](r|)ra(\d+|)/i.exec(mainMsg[0])[2] || 1;
             check = /^[.](r|)ra(\d+|)/i.exec(mainMsg[0])[1] || '';

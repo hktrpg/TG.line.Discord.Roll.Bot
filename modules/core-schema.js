@@ -368,6 +368,16 @@ const developmentRollingRecord = mongoose.model('developmentRollingRecord', new 
     //成功,失敗,大成功,大失敗
 }));
 
+//.schedule Cron
+//限制30次?
+const agendaAtHKTRPG = mongoose.model('agendaAtHKTRPG', new mongoose.Schema({
+    name: String,
+    data: Object,
+    priority: Number,
+    type: String,
+    nextRunAt: Date,
+    lastModifiedBy: String
+}));
 const firstTimeMessage = mongoose.model('firstTimeMessage', new mongoose.Schema({
     userID: String,
     botname: String
@@ -407,6 +417,7 @@ module.exports = {
     eventList,
     developmentConductor,
     developmentRollingRecord,
+    agendaAtHKTRPG,
     firstTimeMessage,
     theNewsMessage
 }

@@ -108,7 +108,7 @@ var rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, botn
                     rply.text += ' 沒有個人ID....如果是LINE的話, 要先LIKE 這個BOT.'
                 if (!groupid)
                     //&& !channelid
-                    rply.text += ' 不在群組.'
+                    rply.text += ' 此功能必須在群組中使用.'
                 if (groupid && userrole < 1)
                     rply.text += ' 只有GM以上才可新增.'
             }
@@ -136,7 +136,7 @@ var rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, botn
             } else {
                 rply.text = '刪除失敗.'
                 if (!groupid)
-                    rply.text += '不在群組. '
+                    rply.text += '此功能必須在群組中使用. '
                 if (groupid && userrole < 2)
                     rply.text += '只有GM以上才可刪除所有在表GM. '
             }
@@ -167,7 +167,7 @@ var rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, botn
                 if (!mainMsg[2])
                     rply.text += '沒有已註冊GM. '
                 if (!groupid)
-                    rply.text += '不在群組. '
+                    rply.text += '此功能必須在群組中使用. '
                 if (groupid && userrole < 1)
                     rply.text += '只有GM以上才可刪除. '
             }

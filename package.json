@@ -39,7 +39,6 @@
     "rate-limiter-flexible": "^2.2.3",
     "socket.io": "^2.4.1",
     "socket.io-client": "^2.4.0",
-    "telegraf": "^4.4.0",
     "timer": "^1.0.1",
     "topgg-autoposter": "^2.0.0",
     "utf-8-validate": "^5.0.5",

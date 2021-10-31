@@ -19,7 +19,7 @@ const courtMessage = require('./logs').courtMessage || function () { };
 // create LINE SDK client
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const client = new line.Client(config);
-
+const newMessage = require('./message');
 // create Express app
 // about Express itself: https://expressjs.com/
 const app = express();
@@ -36,19 +36,11 @@ app.post('/', line.middleware(config), (req, res) => {
 		});
 });
 // event handler
-const joinMessage = `你剛剛添加了HKTRPG 骰子機械人! 
-主要功能：暗骰, 各類TRPG骰子擲骰, 頻道經驗值, 占卜, 先攻表, TRPG角色卡, 搜圖, 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, 自定義抽選, wiki查詢, 資料庫快速查詢功能
-輸入 1D100 可以進行最簡單的擲骰.
-到 (https://hktrpg.github.io/TG.line.Discord.Roll.Bot/) 或輸入 bothelp 觀看詳細使用說明.
-如果你需要幫助, 加入支援頻道.
-(http://bit.ly/HKTRPG_DISCORD)
-有關TRPG資訊, 可以到網站
-(http://www.hktrpg.com/)`;
 process.on("Line", message => {
 	if (!message.text) return;
 	SendToId(message.target.id, message.text);
 	return;
-})
+});
 
 var handleEvent = async function (event) {
 	let inputStr = (event.message && event.message.text) ? event.message.text : "";
@@ -71,7 +63,7 @@ var handleEvent = async function (event) {
 	}
 	let privatemsg = 0;
 
-	function privateMsg() {
+	(function privateMsg() {
 		if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
 			privatemsg = 1;
 			inputStr = inputStr.replace(/^dr\s+/i, '');
@@ -84,22 +76,21 @@ var handleEvent = async function (event) {
 			privatemsg = 3;
 			inputStr = inputStr.replace(/^dddr\s+/i, '');
 		}
-	}
-	privateMsg();
+	})();
 	if (event.type !== 'message' || event.message.type !== 'text') {
 		if (event.type == "join" && roomorgroupid) {
 			// 新加入群組時, 傳送MESSAGE
 			console.log("Line joined");
-			await replyMessagebyReplyToken(event, joinMessage);
+			await replyMessagebyReplyToken(event, newMessage.joinMessage());
 		}
-		await nonDice(event)
+		await nonDice(event);
 		return Promise.resolve(null);
 	}
 	let target = '';
 	if (inputStr) target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
 	if (!target) {
-		await nonDice(event)
-		return null
+		await nonDice(event);
+		return null;
 	}
 	let userid = event.source.userId || '',
 		displayname = '',
@@ -160,6 +151,10 @@ var handleEvent = async function (event) {
 	//LevelUp功能
 	if (!rplyVal.text && !rplyVal.LevelUp)
 		return;
+	if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Line")) {
+		await SendToId(userid, newMessage.firstTimeMessage());
+	}
+
 
 	if (roomorgroupid && rplyVal && rplyVal.LevelUp) {
 		//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
@@ -297,7 +292,7 @@ function HandleMessage(message) {
 	let temp = [];
 	switch (true) {
 		case message.type == 'text' && message.text != '':
-			for (var i = 0; i < message.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+			for (let i = 0; i < message.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 				if (i == 0 || i == 1 || i == message.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == message.text.toString().match(/[\s\S]{1,2000}/g).length - 1)
 					temp.push({
 						type: 'text',

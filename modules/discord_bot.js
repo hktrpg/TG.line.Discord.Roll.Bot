@@ -8,12 +8,13 @@ const rollText = require('./getRoll').rollText;
 const schema = require('../modules/core-schema.js');
 const agenda = require('../modules/core-schedule')
 
+
+
 function channelFilter(channel) {
 	return !channel.lastMessageId || Discord.SnowflakeUtil.deconstruct(channel.lastMessageId).timestamp < Date.now() - 3600000;
 }
 const client = new Client({
 	makeCache: Discord.Options.cacheWithLimits({
-
 		ApplicationCommandManager: 0, // guild.commands
 		BaseGuildEmojiManager: 0, // guild.emojis
 		GuildBanManager: 0, // guild.bans
@@ -30,7 +31,6 @@ const client = new Client({
 		ThreadMemberManager: 0, // threadchannel.members
 		UserManager: Infinity, // client.users
 		VoiceStateManager: 0,// guild.voiceStates
-
 
 		GuildManager: Infinity, // roles require guilds
 		RoleManager: Infinity, // cache all roles
@@ -58,12 +58,6 @@ const client = new Client({
 	Intents.FLAGS.DIRECT_MESSAGE_REACTIONS]
 });
 
-
-
-const DBL = require("dblapi.js");
-//TOP.GG 
-const togGGToken = process.env.TOPGG;
-const dbl = (togGGToken) ? new DBL(togGGToken, client) : null;
 const msgSplitor = (/\S+/ig);
 const link = process.env.WEB_LINK;
 const port = process.env.PORT || 20721;
@@ -71,14 +65,9 @@ const mongo = process.env.mongoURL
 var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const EXPUP = require('./level').EXPUP || function () { };
 const courtMessage = require('./logs').courtMessage || function () { };
-const joinMessage = `你剛剛添加了HKTRPG 骰子機械人! 
-		主要功能：暗骰, 各類TRPG骰子擲骰, 頻道經驗值, 占卜, 先攻表, TRPG角色卡, 搜圖, 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, 自定義抽選, wiki查詢, 資料庫快速查詢功能\
-		輸入 1D100 可以進行最簡單的擲骰.
-		到 (https://hktrpg.github.io/TG.line.Discord.Roll.Bot/) 或輸入 bothelp 觀看詳細使用說明.
-		如果你需要幫助, 加入支援頻道.
-		(http://bit.ly/HKTRPG_DISCORD)
-		有關TRPG資訊, 可以到網站
-		(http://www.hktrpg.com/)`;
+
+const newMessage = require('./message');
+
 const reconnectInterval = 1 * 1000 * 60;
 //const shardids = client.shard.ids[0];
 const shardids = 0;
@@ -94,7 +83,6 @@ var connect = function () {
 	ws.on('message', function incoming(data) {
 		if (shardids !== 0) return;
 		var object = JSON.parse(data);
-		//console.log('object', object)
 		if (object.botname == 'Discord') {
 			const promises = [
 				object,
@@ -147,7 +135,7 @@ client.on('messageCreate', async message => {
 	if (trigger == ".me") {
 		inputStr = inputStr.replace(/^.me\s+/i, ' ');
 		if (groupid) {
-			SendToReplychannel({ replyText: inputStr, channelid: message.channel.id });
+			await SendToReplychannel({ replyText: inputStr, channelid: message.channel.id });
 		} else {
 			SendToReply({ replyText: inputStr, message });
 		}
@@ -161,7 +149,6 @@ client.on('messageCreate', async message => {
 	let privatemsg = checkPrivateMsg.privatemsg;
 
 	let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
-
 	if (!target) {
 		await nonDice(message)
 		return null
@@ -184,7 +171,6 @@ client.on('messageCreate', async message => {
 	//是不是自己.ME 訊息
 	//TRUE 即正常
 	let userrole = 1;
-	//console.log(message.guild)
 
 	if (message.channelId) {
 		channelid = message.channelId;
@@ -222,8 +208,6 @@ client.on('messageCreate', async message => {
 	//設定私訊的模式 0-普通 1-自己 2-自己+GM 3-GM
 	//訊息來到後, 會自動跳到analytics.js進行骰組分析
 	//如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
-
-
 
 	if (channelKeyword != "" && trigger == channelKeyword.toString().toLowerCase()) {
 		//mainMsg.shift();
@@ -264,6 +248,9 @@ client.on('messageCreate', async message => {
 	if (!rplyVal.text && !rplyVal.LevelUp) {
 		return;
 	}
+	if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Discord")) {
+		SendToId(userid, newMessage.firstTimeMessage(), true);
+	}
 
 	/**
 	schedule 功能
@@ -278,8 +265,7 @@ client.on('messageCreate', async message => {
 	}
 
 	if (groupid && rplyVal && rplyVal.LevelUp) {
-		//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
-		SendToReplychannel({ replyText: `<@${userid}>\n${rplyVal.LevelUp}`, channelid });
+		await SendToReplychannel({ replyText: `<@${userid}>\n${rplyVal.LevelUp}`, channelid });
 	}
 
 	if (rplyVal.discordExport) {
@@ -334,7 +320,7 @@ client.on('messageCreate', async message => {
 			// 輸入dr  (指令) 私訊自己
 			//
 			if (groupid) {
-				SendToReplychannel(
+				await SendToReplychannel(
 					{ replyText: "<@" + userid + '> 暗骰給自己', channelid })
 			}
 			if (userid) {
@@ -345,13 +331,12 @@ client.on('messageCreate', async message => {
 			return;
 		case privatemsg == 2:
 			//輸入ddr(指令) 私訊GM及自己
-			//console.log('AAA', TargetGMTempID)
 			if (groupid) {
 				let targetGMNameTemp = "";
 				for (let i = 0; i < TargetGMTempID.length; i++) {
 					targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
 				}
-				SendToReplychannel(
+				await SendToReplychannel(
 					{ replyText: "<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp, channelid });
 			}
 			if (userid) {
@@ -360,7 +345,7 @@ client.on('messageCreate', async message => {
 			SendToReply({ replyText: rplyVal.text, message });
 			for (let i = 0; i < TargetGMTempID.length; i++) {
 				if (userid != TargetGMTempID[i]) {
-					SendToId(TargetGMTempID[i], rplyVal.text, client);
+					SendToId(TargetGMTempID[i], rplyVal.text);
 				}
 			}
 			return;
@@ -371,7 +356,7 @@ client.on('messageCreate', async message => {
 				for (let i = 0; i < TargetGMTempID.length; i++) {
 					targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
 				}
-				SendToReplychannel(
+				await SendToReplychannel(
 					{ replyText: "<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp, channelid })
 			}
 			rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
@@ -385,7 +370,7 @@ client.on('messageCreate', async message => {
 			}
 
 			if (groupid) {
-				SendToReplychannel({ replyText: rplyVal.text, channelid, quotes: rplyVal.quotes });
+				await SendToReplychannel({ replyText: rplyVal.text, channelid, quotes: rplyVal.quotes });
 			} else {
 				SendToReply({ replyText: rplyVal.text, message, quotes: rplyVal.quotes });
 			}
@@ -413,14 +398,16 @@ async function privateMsgFinder(channelid) {
 		return groupInfo.trpgDarkRollingfunction
 	else return [];
 }
-async function SendToId(targetid, replyText) {
+async function SendToId(targetid, replyText, quotes) {
 	let user = await client.users.fetch(targetid);
 	if (typeof replyText === "string") {
 		let sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
 		for (let i = 0; i < sendText.length; i++) {
 			if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
 				try {
-					await user.send(sendText[i]);
+					if (quotes) {
+						user.send({ embeds: [convQuotes(sendText[i])] });
+					} else { user.send(sendText[i]); }
 				}
 				catch (e) {
 					console.error(' GET ERROR:  SendtoID: ', e.message, replyText)
@@ -428,12 +415,12 @@ async function SendToId(targetid, replyText) {
 		}
 	}
 	else {
-		await user.send(replyText);
+		user.send(replyText);
 	}
 
 }
 
-async function SendToReply({ replyText = "", message, quotes = false }) {
+function SendToReply({ replyText = "", message, quotes = false }) {
 	let sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
 	for (let i = 0; i < sendText.length; i++) {
 		if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
@@ -531,23 +518,7 @@ client.on('ready', async () => {
 		}
 		switchSetActivity = (switchSetActivity % 2) ? 2 : 3;
 	}, 60000);
-	if (togGGToken) {
-		setInterval(() => {
-			try {
-				dbl.postStats(client.guilds.size);
-			} catch (error) {
-				console.error('DBL TOP.GG error')
-			}
-		}, 1800000);
-	}
-
-
 });
-if (togGGToken) {
-	dbl.on('error', () => {
-		console.error(`dbl Top.GG get Error!`);
-	})
-}
 
 function privateMsg({ trigger, mainMsg, inputStr }) {
 	let privatemsg = 0;
@@ -607,7 +578,8 @@ async function count2() {
 // handle the error event
 process.on('unhandledRejection', error => {
 	if (error.message == 'Missing Permissions') return;
-	console.error('Unhandled promise rejection:', error.message, error);
+	if (error.message == 'Cannot send messages to this user') return;
+	console.error('Unhandled promise rejection:', error.message);
 });
 
 client.on('guildCreate', async guild => {
@@ -624,7 +596,7 @@ client.on('guildCreate', async guild => {
 			//.setTitle(rplyVal.title)
 			//.setURL('https://discord.js.org/')
 			.setAuthor('HKTRPG', 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png', 'https://www.patreon.com/HKTRPG')
-			.setDescription(joinMessage)
+			.setDescription(newMessage.joinMessage())
 		await channel.send({ embeds: [text] });
 	}
 

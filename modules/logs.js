@@ -28,11 +28,18 @@ const RollingLog = {
 //Log 開始
 (async () => {
     try {
-        await getRecords()
+        await getRecords();
+    } catch (e) {
+        console.log(e)
+        setTimeout(async () => {
+            await getRecords();
+        }, 100)
+
+    }
+    try {
         const loopLogFiveMinutes = setInterval(saveLog, fiveMinutes);
     } catch (e) {
         console.log(e)
-
     }
 })();
 
@@ -116,6 +123,7 @@ async function pushToDefiniteLog() {
 
 async function getRecords() {
     let theNewData = await schema.RealTimeRollingLog.findOne({});
+
     if (!theNewData) {
         RollingLog.LastTimeLog = Date.now();
         RollingLog.StartTime = Date(Date.now()).toLocaleString("en-US", {

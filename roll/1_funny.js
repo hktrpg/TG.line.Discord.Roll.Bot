@@ -17,22 +17,24 @@ var prefixs = function () {
 }
 var getHelpMessage = async function () {
 	return `【趣味擲骰】
-隨機選擇： 啓動語 choice 隨機
+
+【隨機選擇】： 啓動語 choice 隨機
 (問題)(啓動語)(問題)  (選項1) (選項2) 
 例子 收到聖誕禮物隨機數 1 2 >3  
 
-隨機排序：啓動語 排序
+【隨機排序】：啓動語 排序
 (問題)(啓動語)(問題) (選項1) (選項2)(選項3)
 例子 交換禮物排序 A君 C君 F君 G君
 
-複述功能：啓動語 .me (模擬系統說話)
+【複述功能】：啓動語 .me (模擬系統說話)
 (啓動語) (句子)(句子)(句子)
 例子 .me C君殺死了NPC 村民, 受到尼什村通緝!
 
-占卜運氣功能： 字句開頭或結尾包括「運勢」兩字及四十字以內
-塔羅牌占卜： 「大十字塔羅 每日塔羅 時間塔羅」 等關键字可啓動
+【占卜運氣功能】：字句開頭或結尾包括「運勢」兩字及四十字以內
 
-隨機死亡FLAG 字句開頭或結尾包括「立FLAG」可啓動`
+【塔羅牌占卜】：「大十字塔羅 每日塔羅 時間塔羅」 等關键字可啓動
+
+【隨機死亡FLAG】： 字句開頭或結尾包括「立FLAG」可啓動`
 }
 var initialize = function () {
 	return variables;
@@ -74,27 +76,27 @@ var rollDiceCommand = async function ({
 
 	switch (true) {
 		case /^排序|排序$/i.test(mainMsg[0]) && (mainMsg.length >= 4):
-			rply.text = await SortIt(inputStr, mainMsg);
+			rply.text = SortIt(inputStr, mainMsg);
 			return rply;
 		case /^隨機|^choice|隨機$|choice$/i.test(mainMsg[0]) && (mainMsg.length >= 3):
-			rply.text = await choice(inputStr, mainMsg);
+			rply.text = choice(inputStr, mainMsg);
 			return rply;
 		case /塔羅/i.test(mainMsg[0]):
 			if (mainMsg[0].match(/^每日塔羅/) != null)
-				rply.text = await NomalDrawTarot(mainMsg[1], mainMsg[2]); //預設抽 79 張
+				rply.text = NomalDrawTarot(mainMsg[1], mainMsg[2]); //預設抽 79 張
 			if (mainMsg[0].match(/^時間塔羅/) != null)
-				rply.text = await MultiDrawTarot(mainMsg[1], mainMsg[2], 1);
+				rply.text = MultiDrawTarot(mainMsg[1], mainMsg[2], 1);
 			if (mainMsg[0].match(/^大十字塔羅/) != null)
-				rply.text = await MultiDrawTarot(mainMsg[1], mainMsg[2], 2);
+				rply.text = MultiDrawTarot(mainMsg[1], mainMsg[2], 2);
 			return rply;
 		case (/立flag$|^立flag/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,25}/g).length <= 1):
-			rply.text = await BStyleFlagSCRIPTS();
+			rply.text = BStyleFlagSCRIPTS();
 			return rply;
 		case /^鴨霸獸$/i.test(mainMsg[0]):
-			rply.text = await randomReply();
+			rply.text = randomReply();
 			return rply;
 		case (/運勢$|^運勢/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,40}/g).length <= 1):
-			rply.text = await randomLuck(mainMsg);
+			rply.text = randomLuck(mainMsg);
 			return rply;
 		case /^[.]me$/i.test(mainMsg[0]):
 			rply.text = me(inputStr);
@@ -115,7 +117,7 @@ function me(inputStr) {
  * 占卜&其他
  */
 
-async function BStyleFlagSCRIPTS() {
+function BStyleFlagSCRIPTS() {
 	const rplyArr = ['\
 「打完這仗我就回老家結婚（この戦いが終わったら、故郷に帰って結婚するんだ）」', '\
 「打完這一仗後我請你喝酒」', '\
@@ -226,10 +228,10 @@ async function BStyleFlagSCRIPTS() {
 「我可以好好利用這件事」'];
 
 	//	rply.text = rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
-	return rplyArr[await rollbase.Dice(rplyArr.length) - 1]
+	return rplyArr[rollbase.Dice(rplyArr.length) - 1]
 }
 
-async function randomReply() {
+function randomReply() {
 	const rplyArr = ['\
 你們死定了呃呃呃不要糾結這些……所以是在糾結哪些？', '\
 在澳洲，每過一分鐘就有一隻鴨嘴獸被拔嘴。 \n我到底在共三小。', '\
@@ -256,34 +258,34 @@ wwwwwwwwwwwwwwwww', '\
 你的嘴裡有異音（指）', '\
 幫主說，有人打你的左臉，你就要用肉食性猛擊咬斷他的小腿。'];
 	//	rply.text = rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
-	return rplyArr[await rollbase.Dice(rplyArr.length) - 1];
+	return rplyArr[rollbase.Dice(rplyArr.length) - 1];
 }
 
-async function randomLuck(TEXT) {
+function randomLuck(TEXT) {
 	const rplyArr = ['超吉', '超級上吉', '大吉', '吉', '中吉', '小吉', '吉', '小吉', '吉', '吉', '中吉', '吉', '中吉', '吉', '中吉', '小吉', '末吉', '吉', '中吉', '小吉', '末吉', '中吉', '小吉', '小吉', '吉', '小吉', '末吉', '中吉', '小吉', '凶', '小凶', '沒凶', '大凶', '很凶', '你不要知道比較好呢', '命運在手中,何必問我'];
 	//	rply.text = TEXT[0] + ' ： ' + rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
-	return TEXT[0] + ' ： ' + rplyArr[await rollbase.Dice(rplyArr.length) - 1];
+	return TEXT[0] + ' ： ' + rplyArr[rollbase.Dice(rplyArr.length) - 1];
 }
 
 /**
  * Tarot塔羅牌
  */
-async function MultiDrawTarot(text, text2, type) {
+function MultiDrawTarot(text, text2, type) {
 	let returnStr = '';
 	let cards = []
 	switch (type) {
 		case 1:
-			returnStr = '時間塔羅';
+			returnStr = '【時間塔羅】/每日塔羅/大十字塔羅\n';
 			(text) ? returnStr += "；" + text + " " + text2 : '';
-			cards = await rollbase.shuffleTarget(TarotList2);
+			cards = rollbase.shuffleTarget(TarotList2);
 			returnStr += '過去: ' + cards[0] + '\n'
 			returnStr += '現在: ' + cards[1] + '\n'
 			returnStr += '未來: ' + cards[2] + '\n'
 			break;
 		case 2:
-			returnStr = '大十字塔羅';
+			returnStr = '【大十字塔羅】/每日塔羅/時間塔羅\n';
 			(text) ? returnStr += "；" + text + " " + text2 : '';
-			cards = await rollbase.shuffleTarget(TarotList2);
+			cards = rollbase.shuffleTarget(TarotList2);
 			returnStr += '現況: ' + cards[0] + '\n'
 			returnStr += '助力: ' + cards[1] + '\n'
 			returnStr += '目標: ' + cards[2] + '\n'
@@ -302,12 +304,12 @@ async function MultiDrawTarot(text, text2, type) {
 	return returnStr;
 }
 
-async function NomalDrawTarot(text, text2) {
+function NomalDrawTarot(text, text2) {
 	let returnStr = '';
-	returnStr = '每日塔羅'
+	returnStr = '【每日塔羅】/大十字塔羅/時間塔羅'
 	if (text)
 		returnStr += "；" + text + " " + text2
-	let ans = await rollbase.shuffleTarget(TarotList)
+	let ans = rollbase.shuffleTarget(TarotList)
 	returnStr += '\n' + ans[0]
 	return returnStr;
 }
@@ -634,25 +636,24 @@ const TarotList2 = ["愚者 ＋",
 /**
  *  choice 及SORT
  */
-async function choice(input, str) {
-	let a = input.replace(str[0], '').match(/\S+/ig);
-	return str[0] + ' [' + a + '] \n→ ' + a[await rollbase.Dice(a.length) - 1];
-
+function choice(input, str) {
+	let array = input.replace(str[0], '').match(/\S+/ig);
+	return str[0] + ' [ ' + array.join(' ') + ' ] \n→ ' + array[rollbase.Dice(array.length) - 1];
 }
 
-async function SortIt(input, mainMsg) {
+function SortIt(input, mainMsg) {
 	let a = input.replace(mainMsg[0], '').match(/\S+/ig);
-	for (var i = a.length - 1; i >= 0; i--) {
+	for (let i = a.length - 1; i >= 0; i--) {
 		//var randomIndex = Math.floor(Math.random() * (i + 1));  
 		//3 -> 210 , 10, 0
-		var randomIndex = await rollbase.Dice(i + 1) - 1
+		var randomIndex = rollbase.Dice(i + 1) - 1
 		//3 ->
 		//console.log('randomIndex: ', randomIndex)
 		var itemAtIndex = a[randomIndex];
 		a[randomIndex] = a[i];
 		a[i] = itemAtIndex;
 	}
-	return mainMsg[0] + ' \n→ [ ' + a + ' ]';
+	return mainMsg[0] + ' \n→ [ ' + a.join(', ') + ' ]';
 }
 
 module.exports = {

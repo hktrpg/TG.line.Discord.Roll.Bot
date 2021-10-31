@@ -54,7 +54,7 @@ var rollDiceCommand = async function ({
             var ans = 0
 
             for (let i = 0; i < 4; i++) {
-                random = (await rollbase.Dice(3) - 2)
+                random = (rollbase.Dice(3) - 2)
                 ans += random
                 temp += random
                 // console.log('ans: ', ans, 'temp: ', temp)

@@ -85,7 +85,7 @@ module.exports = {
 async function nechronica_mirenn(text) {
 	let returnStr = '';
 	var dicenew = 0;
-	dicenew = await rollbase.Dice(10) - 1;
+	dicenew = rollbase.Dice(10) - 1;
 	// 產生格式
 	if (text != null)
 		returnStr = text + ': \n' + '依戀 (' + (dicenew + 1) + '[' + (dicenew + 1) + ']) → ' + nechronica_mirenn_table(dicenew);

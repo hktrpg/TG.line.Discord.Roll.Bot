@@ -101,7 +101,7 @@ async function WN(message) {
 }
 async function Dice(msg) {
     if (msg)
-        return await rollbase.BuildRollDice(msg)
+        return rollbase.BuildRollDice(msg)
     else msg
 }
 async function WN2(key, message) {
@@ -130,7 +130,7 @@ async function WN2(key, message) {
 
     if (time > 200) time = 200 //限制次數
     for (let i = 0; i < time; i++) {
-        result[i] = await rollbase.Dice(6);
+        result[i] = rollbase.Dice(6);
         if (result[i] > betterthan)
             success++
         else

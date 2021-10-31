@@ -315,7 +315,7 @@ function checkNullItem(target) {
     });
 }
 async function loadb(io, records, rplyVal, message) {
-    for (var i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+    for (let i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
         io.emit(message.roomNumber, {
             name: 'HKTRPG -> ' + (message.name || 'Sad'),
             msg: rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i],

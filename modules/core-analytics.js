@@ -1,16 +1,16 @@
 "use strict";
 // Load `*.js` under roll directory as properties
 //  i.e., `User.js` will become `exports['User']` or `exports.User`
-const start = async () => {
-	await require('fs').readdirSync('./roll/').forEach(async function (file) {
+(function () {
+	require('fs').readdirSync('./roll/').forEach(function (file) {
 		if (file.match(/\.js$/) !== null && file !== 'index.js' && file !== 'demo.js') {
 			const name = file.replace('.js', '');
-			exports[name] = await require('../roll/' + file);
+			exports[name] = require('../roll/' + file);
 		}
 	})
-}
+}())
 
-start();
+
 const schema = require('../modules/core-schema.js');
 const debugMode = (process.env.DEBUG) ? true : false;
 const msgSplitor = (/\S+/ig);
@@ -46,7 +46,6 @@ var parseInput = async function ({
 	let mainMsg = [];
 	inputStr = inputStr.replace(/^\s/g, '')
 	mainMsg = inputStr.match(msgSplitor); //定義輸入字串
-
 	//EXPUP 功能 + LevelUP 功能
 	if (groupid) {
 		let tempEXPUP = await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount, tgDisplayname);
@@ -60,9 +59,9 @@ var parseInput = async function ({
 		if (stopmark == true) return result;
 	}
 
-
 	//rolldice 擲骰功能
 	let rollDiceResult = {};
+
 	try {
 		rollDiceResult = await rolldice({
 			inputStr: inputStr,
@@ -85,7 +84,7 @@ var parseInput = async function ({
 		console.error('rolldice GET ERROR:', error, ' inputStr: ', inputStr, ' botname: ', botname, ' Time: ', new Date());
 	}
 	if (rollDiceResult) {
-		result = await JSON.parse(JSON.stringify(Object.assign({}, result, rollDiceResult)));
+		result = JSON.parse(JSON.stringify(Object.assign({}, result, rollDiceResult)));
 	}
 
 	//cmdfunction  .cmd 功能   z_saveCommand 功能
@@ -106,7 +105,7 @@ var parseInput = async function ({
 			tgDisplayname: tgDisplayname
 		});
 		if (typeof cmdFunctionResult === 'object' && cmdFunctionResult !== null) {
-			result = await Object.assign({}, result, cmdFunctionResult)
+			result = Object.assign({}, result, cmdFunctionResult)
 		}
 	}
 
@@ -171,34 +170,77 @@ var rolldice = async function ({
 		groupid = '';
 	}
 	//把exports objest => Array
-	let target = await findRollList(mainMsg);
+	let target = findRollList(mainMsg);
 	if (!target) return null;
 	(debugMode) ? console.log('            trigger: ', inputStr) : '';
-	let tempsave = await target.rollDiceCommand({
-		inputStr: inputStr,
-		mainMsg: mainMsg,
-		groupid: groupid,
-		userid: userid,
-		userrole: userrole,
-		botname: botname,
-		displayname: displayname,
-		channelid: channelid,
-		displaynameDiscord: displaynameDiscord,
-		membercount: membercount,
-		discordClient: discordClient,
-		discordMessage: discordMessage,
-		titleName: titleName,
-		tgDisplayname: tgDisplayname
-	});
+
+	let rollTimes = inputStr.match(/^\.(\d{1,2})\s/);
+	rollTimes ? rollTimes = rollTimes[1] : rollTimes = 1;
+	rollTimes > 10 ? rollTimes = 10 : null;
+	inputStr = inputStr.replace(/^\.\d{1,2}\s/, '');
+
+	mainMsg[0].match(/^\.(\d{1,2})$/) ? mainMsg.shift() : null;
+
+	//console.log('target', target)
+	let retext = '';
+	let tempsave = {};
+	for (let index = 0; index < rollTimes; index++) {
+		if (rollTimes > 1 && /^dice/i.test(target.gameType())) {
+			tempsave = await target.rollDiceCommand({
+				inputStr: inputStr,
+				mainMsg: mainMsg,
+				groupid: groupid,
+				userid: userid,
+				userrole: userrole,
+				botname: botname,
+				displayname: displayname,
+				channelid: channelid,
+				displaynameDiscord: displaynameDiscord,
+				membercount: membercount,
+				discordClient: discordClient,
+				discordMessage: discordMessage,
+				titleName: titleName,
+				tgDisplayname: tgDisplayname
+			});
+			if (tempsave && tempsave.text) {
+				retext += `#${index + 1}： ${tempsave.text.replace(/\n/g, '')}\n`
+			}
+		} else {
+			tempsave = await target.rollDiceCommand({
+				inputStr: inputStr,
+				mainMsg: mainMsg,
+				groupid: groupid,
+				userid: userid,
+				userrole: userrole,
+				botname: botname,
+				displayname: displayname,
+				channelid: channelid,
+				displaynameDiscord: displaynameDiscord,
+				membercount: membercount,
+				discordClient: discordClient,
+				discordMessage: discordMessage,
+				titleName: titleName,
+				tgDisplayname: tgDisplayname
+			});
+		}
+
+	}
+
+
+
+	if (retext) {
+		tempsave.text = retext;
+	}
 	//console.log('tempsave: ', tempsave)
 	return tempsave;
 }
 
-async function findRollList(mainMsg) {
+function findRollList(mainMsg) {
 	if (!mainMsg || !mainMsg[0]) return;
+	mainMsg[0].match(/^\.(\d{1,2})$/) ? mainMsg.shift() : null;
 	if (!mainMsg[1]) mainMsg[1] = '';
-	let idList = await Object.keys(exports).map(i => exports[i]);
-	let findTarget = await idList.find(item => {
+	let idList = Object.keys(exports).map(i => exports[i]);
+	let findTarget = idList.find(item => {
 		if (item.prefixs && item.prefixs()) {
 			for (let index = 0; index < item.prefixs().length; index++) {
 				if (mainMsg[0].match(item.prefixs()[index].first) && (mainMsg[1].match(item.prefixs()[index].second) || item.prefixs()[index].second == null)) {
@@ -224,6 +266,7 @@ async function stateText() {
 	text += '\n 網頁版總擲骰次數: ' + state.WWWCountRoll;
 	text += '\n 使用經驗值功能的群組: ' + await schema.trpgLevelSystem.countDocuments({ Switch: '1' });
 	text += '\n 已新增的角色卡: ' + await schema.characterCard.countDocuments({});
+	text += '\n HKTRPG使用者數量: ' + await schema.firstTimeMessage.countDocuments({});
 	text += '\n 擲骰系統使用的隨機方式: random-js nodeCrypto';
 	return text;
 }

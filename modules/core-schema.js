@@ -378,6 +378,16 @@ const agendaAtHKTRPG = mongoose.model('agendaAtHKTRPG', new mongoose.Schema({
     nextRunAt: Date,
     lastModifiedBy: String
 }));
+const firstTimeMessage = mongoose.model('firstTimeMessage', new mongoose.Schema({
+    userID: String,
+    botname: String
+}));
+
+const theNewsMessage = mongoose.model('theNewsMessage', new mongoose.Schema({
+    userID: String,
+    botname: String,
+    switch: Boolean
+}));
 
 module.exports = {
     randomAns,
@@ -407,7 +417,9 @@ module.exports = {
     eventList,
     developmentConductor,
     developmentRollingRecord,
-    agendaAtHKTRPG
+    agendaAtHKTRPG,
+    firstTimeMessage,
+    theNewsMessage
 }
 //const Cat = mongoose.model('Cat', { name: String });
 //const kitty = new Cat({ name: 'Zildjian' });

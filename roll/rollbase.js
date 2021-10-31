@@ -34,7 +34,7 @@ var prefixs = function () {
 
 
 ///^(?=.*he)(?!.*da).*$/ig
-const getHelpMessage = async function () {
+const getHelpMessage = function () {
   return `【基本擲骰】1d100(khN|klN|dhN|dlN)
 例如輸入(2d6+1)*2  攻撃！
 會輸出）(2d6+1)*2：攻撃！  (10[5+5]+1)2 = 22
@@ -48,7 +48,7 @@ var initialize = function () {
   return variables;
 }
 
-const rollDiceCommand = async function ({
+const rollDiceCommand = function ({
   mainMsg
 }) {
   let rply = {
@@ -57,7 +57,7 @@ const rollDiceCommand = async function ({
     text: ''
   };
   try {
-    rply.text = await nomalDiceRoller(mainMsg[0], mainMsg[1], mainMsg[2]);
+    rply.text = nomalDiceRoller(mainMsg[0], mainMsg[1], mainMsg[2]);
   } catch (error) {
     rply.text = '';
   }
@@ -71,27 +71,27 @@ const rollDiceCommand = async function ({
  * @param {純數字, 10即骰出1D100} diceSided 
  */
 
-var Dice = async function (diceSided) {
+var Dice = function (diceSided) {
   let result = '';
-  result = await random.integer(1, Math.floor(diceSided))
+  result = random.integer(1, Math.floor(diceSided))
   return result
 }
 
-var DiceINT = async function (start, end) {
+var DiceINT = function (start, end) {
   let result = '';
   let points = [Math.floor(start), Math.floor(end)]
   points.sort(function (a, b) {
     return a - b
   });
-  result = await random.integer(points[0], points[1]);
+  result = random.integer(points[0], points[1]);
   return result
 }
 
-var sortNumber = async function (a, b) {
+var sortNumber = function (a, b) {
   return a - b
 }
 
-var RollDice = async function (inputStr) {
+var RollDice = function (inputStr) {
   // 先把inputStr變成字串（不知道為什麼非這樣不可）
   //kh kl dh dl
   //kh or khN Keeps highest N
@@ -107,7 +107,7 @@ var RollDice = async function (inputStr) {
   if (!comStr[1] || !comStr[2]) return;
 
   for (let i = 0; i < comStr[1]; i++) {
-    temp[i] = await Dice(comStr[2])
+    temp[i] = Dice(comStr[2])
     temp2[i] = temp[i]
   }
   if (comStr[3]) {
@@ -164,11 +164,11 @@ var RollDice = async function (inputStr) {
   return finalStr
 }
 
-var FunnyDice = async function (diceSided) {
-  return await random.integer(0, Math.floor(diceSided)) // 猜拳，從0開始
+var FunnyDice = function (diceSided) {
+  return random.integer(0, Math.floor(diceSided)) // 猜拳，從0開始
 }
 
-var BuildDiceCal = async function (inputStr) {
+var BuildDiceCal = function (inputStr) {
   // 首先判斷是否是誤啟動（檢查是否有符合骰子格式）
   if (inputStr.toLowerCase().match(/\d+d\d+/i) == null) return undefined
   // 排除小數點
@@ -186,7 +186,7 @@ var BuildDiceCal = async function (inputStr) {
     //不支援200D以上擲骰
 
     if (tempMatch.toString().split('d')[1] == 1 || tempMatch.toString().split('d')[1] > 500) return;
-    equation = equation.replace(/\d+d\d+/i, await BuildRollDice(tempMatch))
+    equation = equation.replace(/\d+d\d+/i, BuildRollDice(tempMatch))
   }
 
   // 計算算式
@@ -196,17 +196,17 @@ var BuildDiceCal = async function (inputStr) {
   return finalStr
 }
 
-var shuffleTarget = async function (target) {
-  return await random.shuffle(target)
+var shuffleTarget = function (target) {
+  return random.shuffle(target)
 }
 
-var BuildRollDice = async function (inputStr) {
+var BuildRollDice = function (inputStr) {
   // 先把inputStr變成字串（不知道為什麼非這樣不可）
   let comStr = inputStr.toString().toLowerCase()
   let finalStr = '('
 
   for (let i = 1; i <= comStr.split('d')[0]; i++) {
-    finalStr = finalStr + await Dice(comStr.split('d')[1]) + '+'
+    finalStr = finalStr + Dice(comStr.split('d')[1]) + '+'
   }
   finalStr = finalStr.substring(0, finalStr.length - 1) + ')'
   return finalStr
@@ -218,7 +218,7 @@ var BuildRollDice = async function (inputStr) {
  * @param {文字描述 || 1D100} text1 
  * @param {文字描述} text2 
  */
-var nomalDiceRoller = async function (text0, text1, text2) {
+var nomalDiceRoller = function (text0, text1, text2) {
   // 首先判斷是否是誤啟動（檢查是否有符合骰子格式）
   // if (inputStr.toLowerCase().match(/\d+d\d+/) == null) return undefined
   // 再來先把第一個分段拆出來，待會判斷是否是複數擲骰
@@ -236,7 +236,7 @@ var nomalDiceRoller = async function (text0, text1, text2) {
     if (text1.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]|[k]|[h]|[l]/ig, '')) return;
     finalStr = text0 + '次擲骰：\n' + text1 + ' ' + (text2 || '') + '\n'
     for (let i = 0; i < mutiOrNot; i++) {
-      let answer = await onetimeroll(text1)
+      let answer = onetimeroll(text1)
       if (answer)
         finalStr += i + 1 + '# ' + answer + '\n'
       else return;
@@ -244,7 +244,7 @@ var nomalDiceRoller = async function (text0, text1, text2) {
   } else {
     if (text0.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]|[k]|[h]|[l]/ig, '')) return;
     finalStr = text0 + '：' + (text1 || '') + '\n'
-    let answer = await onetimeroll(text0)
+    let answer = onetimeroll(text0)
     if (answer)
       finalStr += answer;
     else return;
@@ -254,7 +254,7 @@ var nomalDiceRoller = async function (text0, text1, text2) {
 }
 
 // 單次擲骰
-async function onetimeroll(text0) {
+function onetimeroll(text0) {
   try {
     let Str = ''
     // 寫出算式
@@ -264,7 +264,7 @@ async function onetimeroll(text0) {
       let tempMatch = equation.match(regex)
       if (tempMatch[1] > 1000 || tempMatch[1] <= 0) return '不支援零顆以下及一千顆骰以上'
       if (tempMatch[2] < 1 || tempMatch[2] > 9000000000000000) return '不支援一以下及九千兆以上'
-      equation = equation.replace(regex, await RollDice(tempMatch))
+      equation = equation.replace(regex, RollDice(tempMatch))
     }
     // 計算算式
     let aaa = equation

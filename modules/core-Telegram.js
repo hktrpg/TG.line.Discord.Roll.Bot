@@ -11,21 +11,17 @@ exports.analytics = require('./core-analytics');
 
 
 const TGclient = new TelegramBot(process.env.TELEGRAM_CHANNEL_SECRET, { polling: true });
+const newMessage = require('./message');
 const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || '';
 //var TGcountroll = 0;
 //var TGcounttext = 0;
 const msgSplitor = (/\S+/ig);
+
+
+
 var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const EXPUP = require('./level').EXPUP || function () { };
 const courtMessage = require('./logs').courtMessage || function () { };
-const joinMessage = `你剛剛添加了HKTRPG 骰子機械人! 
-主要功能：暗骰, 各類TRPG骰子擲骰, 頻道經驗值, 占卜, 先攻表, TRPG角色卡, 搜圖, 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, 自定義抽選, wiki查詢, 資料庫快速查詢功能\
-輸入 1D100 可以進行最簡單的擲骰.
-到 (https://hktrpg.github.io/TG.line.Discord.Roll.Bot/) 或輸入 bothelp 觀看詳細使用說明.
-						如果你需要幫助, 加入支援頻道.
-						(http://bit.ly/HKTRPG_DISCORD)
-						有關TRPG資訊, 可以到網站
-						(http://www.hktrpg.com/)`;
 
 TGclient.on('text', async (ctx) => {
 	if (ctx.from.is_bot) return;
@@ -53,7 +49,7 @@ TGclient.on('text', async (ctx) => {
 	}
 	let privatemsg = 0;
 
-	function privateMsg() {
+	(function privateMsg() {
 		if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
 			privatemsg = 1;
 			inputStr = inputStr.replace(/^dr\s+/i, '');
@@ -66,8 +62,7 @@ TGclient.on('text', async (ctx) => {
 			privatemsg = 3;
 			inputStr = inputStr.replace(/^dddr\s+/i, '');
 		}
-	}
-	privateMsg();
+	})();
 	let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
 	if (!target) {
 		await nonDice(ctx);
@@ -137,6 +132,10 @@ TGclient.on('text', async (ctx) => {
 	}
 	if (!rplyVal.text && !rplyVal.LevelUp)
 		return;
+	if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Telegram")) {
+		ctx.telegram.sendMessage(userid, newMessage.firstTimeMessage());
+	}
+
 	//LevelUp功能
 	if (groupid && rplyVal && rplyVal.LevelUp) {
 		let text = `@${displayname}${(rplyVal.statue) ? ' ' + rplyVal.statue : ''}
@@ -206,7 +205,6 @@ TGclient.on('text', async (ctx) => {
 			SendToId(groupid || userid, rplyVal.text);
 			break;
 	}
-
 
 
 	// console.log("rplyVal: " + rplyVal)
@@ -285,15 +283,15 @@ TGclient.on('new_chat_members', async (ctx) => {
 	let newUser = await TGclient.getMe();
 	if (ctx.new_chat_member.username == newUser.username) {
 		console.log("Telegram joined");
-		SendToId(ctx.chat.id, joinMessage);
+		SendToId(ctx.chat.id, newMessage.joinMessage());
 	}
 });
 
 TGclient.on('group_chat_created', async (ctx) => {
-	SendToId(ctx.chat.id, joinMessage);
+	SendToId(ctx.chat.id, newMessage.joinMessage());
 });
 TGclient.on('supergroup_chat_created', async (ctx) => {
-	SendToId(ctx.chat.id, joinMessage);
+	SendToId(ctx.chat.id, newMessage.joinMessage());
 });
 
 

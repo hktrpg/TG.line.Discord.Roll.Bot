@@ -6,7 +6,7 @@ const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const limitAtArr = [5, 25, 50, 200, 200, 200, 200, 200];
 
-const limitCronArr = [1, 5, 10, 20, 30, 99, 99, 99];
+const limitCronArr = [2, 5, 10, 20, 30, 99, 99, 99];
 const moment = require('moment');
 const agenda = require('../modules/core-schedule')
 
@@ -87,10 +87,6 @@ var rollDiceCommand = async function ({
         case /^\.at+$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
             if (!groupid) {
                 rply.text = '此功能必須在群組中使用'
-                return rply
-            }
-            if (!differentPeformAt(botname)) {
-                rply.text = '此功能只能在Discord, Line, Telegram中使用'
                 return rply
             }
             let check = {}
@@ -178,7 +174,6 @@ var rollDiceCommand = async function ({
                 rply.text = '此功能必須在群組中使用'
                 return rply
             }
-            console.log('userrole', userrole)
             if (userrole <= 1) {
                 rply.text = '只有GM以上才可新增'
                 return rply
@@ -390,7 +385,7 @@ function showCronJobs(jobs) {
             let job = jobs[index];
             let createAt = job.attrs.data.createAt;
             let time = job.attrs.repeatInterval.match(/^(\d+) (\d+)/);
-            reply += `序號#${index + 1} 創建時間 ${createAt.toString().replace(/:\d+\s.*/, '')}\n每天運行時間 ${time[2]} ${time[1]}\n${job.attrs.data.replyText}\n`;
+            reply += `序號#${index + 1} 創建時間 ${createAt.toString().replace(/:\d+\s.*/, '')}\n每天運行時間 ${(time && time[2]) || 'error'} ${(time && time[1]) || 'error'}\n${job.attrs.data.replyText}\n`;
         }
     } else reply = "沒有找到定時任務"
     return reply;

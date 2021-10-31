@@ -389,7 +389,7 @@ async function isAdmin(gpId, chatid) {
 	return false;
 }
 
-TGclient.launch();
+
 
 
 

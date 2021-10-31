@@ -178,6 +178,11 @@ var rollDiceCommand = async function ({
                 rply.text = '此功能必須在群組中使用'
                 return rply
             }
+            console.log('userrole', userrole)
+            if (userrole <= 1) {
+                rply.text = '只有GM以上才可新增'
+                return rply
+            }
             let check = {}
             if (botname == "Discord") {
                 check = {
@@ -198,6 +203,10 @@ var rollDiceCommand = async function ({
         case /^\.cron$/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]): {
             if (!groupid) {
                 rply.text = '此功能必須在群組中使用'
+                return rply
+            }
+            if (userrole <= 1) {
+                rply.text = '只有GM以上才可新增'
                 return rply
             }
             if (!mainMsg[2] || !/\d+/i.test(mainMsg[2])) {
@@ -235,6 +244,14 @@ var rollDiceCommand = async function ({
                 rply.text = '此功能必須在群組中使用'
                 return rply
             }
+            if (userrole <= 1) {
+                rply.text = '只有GM以上才可新增'
+                return rply
+            }
+            if (!mainMsg[2]) {
+                rply.text = '未有內容'
+                return rply
+            }
             let lv = await VIP.viplevelCheckUser(userid);
             let limit = limitCronArr[lv];
             let checkGroupid = await schema.agendaAtHKTRPG.estimatedDocumentCount({
@@ -246,7 +263,7 @@ var rollDiceCommand = async function ({
             }
 
             let checkTime = checkCronTime(mainMsg[1]);
-            if (!checkTime) {
+            if (!checkTime || !checkTime.min || !checkTime.hour) {
                 rply.text = `輸入出錯\n ${this.getHelpMessage()}`;
                 return rply;
             }
@@ -260,7 +277,7 @@ var rollDiceCommand = async function ({
             const job = agenda.agenda.create(callBotname, { replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid, createAt: new Date(Date.now()) });
             job.repeatEvery(date);
             await job.save();
-            rply.text = `已新增排定內容\n將於每天${checkTime.hour}:${checkTime.min}(24小時制)運行`
+            rply.text = `已新增排定內容\n將於每天${checkTime.hour}:${checkTime.min} (24小時制)運行`
             return rply;
         }
         default: {

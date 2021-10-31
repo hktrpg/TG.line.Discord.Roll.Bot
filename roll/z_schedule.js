@@ -11,7 +11,7 @@ const moment = require('moment');
 const agenda = require('../modules/core-schedule')
 
 var gameName = function () {
-    return '【定時發訊功能】.at .cron mins hours delete show'
+    return '【定時發訊功能】.at /.cron  mins hours delete show'
 }
 
 var gameType = function () {
@@ -28,18 +28,14 @@ var getHelpMessage = function () {
     兩種模式
     【at】  指定一個時間
     如 20220604 1900  (年月日 時間)
-    5mins  (五分鐘後)
-    5hours (五小時後)
+    .at 5mins  (五分鐘後)
+    .at 5hours (五小時後)
     會發佈指定一個信息
     可以擲骰 使用[[]]包著指令就可
-    如[[CC 60]]
+    如.at 9mins [[CC 60]]
 
     【cron】 每天指定一個時間可以發佈一個信息(24小時制)
     如 1230  2200 
-    
-    .at 5mins 五分鐘後叫吧!
-
-    .at 5hours 五分鐘後 [[立FLAG]]
     
     .cron 0831 每天八時三十一分 
     嚎叫吧!

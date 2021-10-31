@@ -359,6 +359,27 @@ agenda.agenda.define("scheduleAtMessageTelegram", async (job) => {
 	}
 
 });
+agenda.agenda.define("scheduleCronMessageTelegram", async (job) => {
+	//指定時間
+	console.log(job)
+	let data = job.attrs.data;
+	let text = await rollText(data.replyText);
+	//SendToReply(ctx, text)
+	SendToId(
+		data.groupid, text
+	)
+	try {
+		console.log((new Date(Date.now()) - data.createAt))
+		if ((new Date(Date.now()) - data.createAt) >= 30 * 24 * 60 * 60 * 1000)
+			await job.remove();
+		SendToId(
+			data.groupid, "已運行一個月, 移除此定時訊息"
+		)
+	} catch (e) {
+		console.error("Error removing job from collection");
+	}
+
+});
 
 
 

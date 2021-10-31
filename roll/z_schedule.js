@@ -11,17 +11,13 @@ const moment = require('moment');
 const agenda = require('../modules/core-schedule')
 
 var gameName = function () {
-    return '【定時發訊功能】.at .cron delete'
+    return '【定時發訊功能】.at .cron mins hours delete show'
 }
 
 var gameType = function () {
     return 'funny:schedule:hktrpg'
 }
 var prefixs = function () {
-    //[mainMSG[0]的prefixs,mainMSG[1]的prefixs,   <---這裡是一對  
-    //mainMSG[0]的prefixs,mainMSG[1]的prefixs  ]  <---這裡是一對
-    //如前面是 /^1$/ig, 後面是/^1D100$/ig, 即 prefixs 變成 1 1D100 
-    ///^(?=.*he)(?!.*da).*$/ig
     return [{
         first: /^\.at$|^\.cron$/i,
         second: null
@@ -31,19 +27,31 @@ var getHelpMessage = function () {
     return `【定時任務功能】
     兩種模式
     【at】  指定一個時間
-    如 20220604 1900 < 年月日 時間
+    如 20220604 1900  (年月日 時間)
     5mins  (五分鐘後)
     5hours (五小時後)
     會發佈指定一個信息
+    可以擲骰 使用[[]]包著指令就可
+    如[[CC 60]]
 
     【cron】 每天指定一個時間可以發佈一個信息(24小時制)
     如 1230  2200 
     
-    .at 5mins
-    五分鐘後叫吧!
+    .at 5mins 五分鐘後叫吧!
+
+    .at 5hours 五分鐘後 [[立FLAG]]
     
-    .cron 0831
-    每天八時三十一分`
+    .cron 0831 每天八時三十一分 
+    嚎叫吧!
+
+    .cron 0721 每天七時二十一分擲 
+    [[CC 80 幸運]]
+    
+    .cron / .at show 可以顯示已新增的定時訊息
+
+    .cron / .at delete (序號) 可以刪除指定的定時訊息
+    如 .at delete 1   請使用.at show 查詢序號
+    `
 }
 var initialize = function () {
     return "";
@@ -66,22 +74,75 @@ var rollDiceCommand = async function ({
         type: 'text',
         text: ''
     };
+    if (!differentPeformAt(botname)) {
+        rply.text = '此功能只能在Discord, Line, Telegram中使用'
+        return rply
+    }
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
             rply.text = this.getHelpMessage();
             rply.quotes = true;
             return rply;
         }
-
-        case /^\.at+$/i.test(mainMsg[0]) && /^check$/i.test(mainMsg[1]): {
-            const jobs = await agenda.agenda.jobs(
-                {
-                    name: "scheduleAtMessage",
-                    "data.channelid": channelid
+        case /^\.at+$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
+            if (!groupid) {
+                rply.text = '此功能必須在群組中使用'
+                return rply
+            }
+            if (!differentPeformAt(botname)) {
+                rply.text = '此功能只能在Discord, Line, Telegram中使用'
+                return rply
+            }
+            let check = {}
+            if (botname == "Discord") {
+                check = {
+                    name: differentPeformAt(botname),
+                    "data.channelid": channelid,
+                    "data.groupid": groupid
                 }
+            } else check = {
+                name: differentPeformAt(botname),
+                "data.groupid": groupid
+            }
+            const jobs = await agenda.agenda.jobs(
+                check
             );
-            console.log(jobs)
             rply.text = showJobs(jobs);
+            return rply;
+        }
+        case /^\.at+$/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]): {
+            if (!groupid) {
+                rply.text = '此功能必須在群組中使用'
+                return rply
+            }
+            if (!mainMsg[2] || !/\d+/i.test(mainMsg[2])) {
+                rply.text = '移除定時訊息指令為 .at delete (序號) \n 如 .at delete 1'
+                return rply
+            }
+            let check = {}
+            if (botname == "Discord") {
+                check = {
+                    name: differentPeformAt(botname),
+                    "data.channelid": channelid,
+                    "data.groupid": groupid
+                }
+            } else check = {
+                name: differentPeformAt(botname),
+                "data.groupid": groupid
+            }
+            const jobs = await agenda.agenda.jobs(
+                check
+            );
+            try {
+                let data = jobs[Number(mainMsg[2]) - 1];
+                await jobs[Number(mainMsg[2]) - 1].remove();
+                rply.text = `已刪除序號#${Number(mainMsg[2])} \n${data.attrs.data.replyText}`;
+
+            } catch (e) {
+                console.error("Error removing job from collection");
+                rply.text = "找不到該序號, 請重新檢查"
+                return rply;
+            }
             return rply;
         }
         case /^\.at+$/i.test(mainMsg[0]): {
@@ -95,35 +156,111 @@ var rollDiceCommand = async function ({
                 groupid: groupid
             });
             if (checkGroupid >= limit) {
-                rply.text = '.at 上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                rply.text = '.at 整個群組上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
                 return rply;
             }
 
             let checkTime = checkAtTime(mainMsg[1], mainMsg[2]);
-            if (!checkTime) {
+            if (!checkTime || checkTime.time == "Invalid Date") {
                 rply.text = `輸入出錯\n ${this.getHelpMessage()}`;
                 return rply;
             }
             let text = (checkTime.threeColum) ? inputStr.replace(/^\s?\S+\s+\S+\s+\S+\s+/, '') : inputStr.replace(/^\s?\S+\s+\S+\s+/, '');
             let date = checkTime.time;
-            //  rply.schedule.switch = true;
-            //   rply.schedule.style = 'at';
-            //  rply.schedule.text = text;
-            //  rply.schedule.date = date;
-            //schedule
 
-            await differentPeform({ date, text, channelid, quotes: true, groupid, botname, userid });
-
-            //  console.log('jobs', jobs)
+            let callBotname = differentPeformAt(botname);
+            await agenda.agenda.schedule(date, callBotname, { replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid });
             rply.text = `已新增排定內容\n將於${date.toString().replace(/:\d+\s.*/, '')}運行`
             return rply;
         }
-        case /^\.cron$/.test(mainMsg[0]): {
-            rply.text = 'Demo'
+        case /^\.cron+$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
+            if (!groupid) {
+                rply.text = '此功能必須在群組中使用'
+                return rply
+            }
+            let check = {}
+            if (botname == "Discord") {
+                check = {
+                    name: differentPeformCron(botname),
+                    "data.channelid": channelid,
+                    "data.groupid": groupid
+                }
+            } else check = {
+                name: differentPeformCron(botname),
+                "data.groupid": groupid
+            }
+            const jobs = await agenda.agenda.jobs(
+                check
+            );
+            rply.text = showCronJobs(jobs);
             return rply;
         }
-        case /^delete$/.test(mainMsg[0]): {
-            rply.text = 'Demo'
+        case /^\.cron$/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]): {
+            if (!groupid) {
+                rply.text = '此功能必須在群組中使用'
+                return rply
+            }
+            if (!mainMsg[2] || !/\d+/i.test(mainMsg[2])) {
+                rply.text = '移除定時訊息指令為 .cron delete (序號) \n 如 .cron delete 1'
+                return rply
+            }
+            let check = {}
+            if (botname == "Discord") {
+                check = {
+                    name: differentPeformCron(botname),
+                    "data.channelid": channelid,
+                    "data.groupid": groupid
+                }
+            } else check = {
+                name: differentPeformCron(botname),
+                "data.groupid": groupid
+            }
+            const jobs = await agenda.agenda.jobs(
+                check
+            );
+            try {
+                let data = jobs[Number(mainMsg[2]) - 1];
+                await jobs[Number(mainMsg[2]) - 1].remove();
+                rply.text = `已刪除序號#${Number(mainMsg[2])} \n${data.attrs.data.replyText}`;
+
+            } catch (e) {
+                console.error("Error removing job from collection");
+                rply.text = "找不到該序號, 請重新檢查"
+                return rply;
+            }
+            return rply;
+        }
+        case /^\.cron+$/i.test(mainMsg[0]): {
+            if (!groupid) {
+                rply.text = '此功能必須在群組中使用'
+                return rply
+            }
+            let lv = await VIP.viplevelCheckUser(userid);
+            let limit = limitCronArr[lv];
+            let checkGroupid = await schema.agendaAtHKTRPG.estimatedDocumentCount({
+                groupid: groupid
+            });
+            if (checkGroupid >= limit) {
+                rply.text = '.cron 整個群組上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                return rply;
+            }
+
+            let checkTime = checkCronTime(mainMsg[1]);
+            if (!checkTime) {
+                rply.text = `輸入出錯\n ${this.getHelpMessage()}`;
+                return rply;
+            }
+
+
+            let text = inputStr.replace(/^\s?\S+\s+\S+\s+/, '');
+            // "0 6 * * *"
+            let date = `${checkTime.min} ${checkTime.hour} * * *`;
+
+            let callBotname = differentPeformCron(botname);
+            const job = agenda.agenda.create(callBotname, { replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid, createAt: new Date(Date.now()) });
+            job.repeatEvery(date);
+            await job.save();
+            rply.text = `已新增排定內容\n將於每天${checkTime.hour}:${checkTime.min}(24小時制)運行`
             return rply;
         }
         default: {
@@ -131,26 +268,38 @@ var rollDiceCommand = async function ({
         }
     }
 }
-async function differentPeform({ date, text, channelid, quotes, groupid, botname, userid }) {
-    let callBotname = "";
-    console.log('!!!', botname)
+function differentPeformAt(botname) {
     switch (botname) {
         case "Discord":
-            callBotname = "scheduleAtMessageDiscord"
-            break;
+            return "scheduleAtMessageDiscord"
+
         case "Telegram":
-            console.log('!!!')
-            callBotname = "scheduleAtMessageTelegram"
-            break;
+            return "scheduleAtMessageTelegram"
+
         case "Line":
-            callBotname = "scheduleAtMessageLine"
+            return "scheduleAtMessageLine"
+
+        default:
             break;
+    }
+}
+
+function differentPeformCron(botname) {
+    switch (botname) {
+        case "Discord":
+            return "scheduleCronMessageDiscord"
+
+        case "Telegram":
+            return "scheduleCronMessageTelegram"
+
+        case "Line":
+            return "scheduleCronMessageLine"
+
         default:
             break;
     }
 
-    await agenda.agenda.schedule(date, callBotname, { replyText: text, channelid: channelid, quotes: quotes, groupid: groupid, botname: botname, userid: userid });
-    await agenda.agenda.now(callBotname, { replyText: text, channelid: channelid, quotes: quotes, groupid: groupid || groupid, botname: botname, userid: userid });
+
 }
 function checkAtTime(first, second) {
     //const date = new Date(2012, 11, 21, 5, 30, 0);
@@ -188,8 +337,20 @@ function checkAtTime(first, second) {
             break;
     }
 }
-function checkCronTime(params) {
+function checkCronTime(text) {
     //const date = {hour: 14, minute: 30}
+    let hour = text.match(/^(\d\d)/) && text.match(/^(\d\d)/)[1];
+    let min = text.match(/(\d\d)$/) && text.match(/(\d\d)$/)[1];
+    if (hour == 24) {
+        hour = "00";
+    }
+    if (min == 60) {
+        min = "00";
+    }
+
+    if (min >= 0 && min <= 60 && hour >= 0 && hour <= 24)
+        return { min, hour };
+    else return;
 }
 
 
@@ -205,6 +366,19 @@ function showJobs(jobs) {
     } else reply = "沒有找到定時任務"
     return reply;
 }
+function showCronJobs(jobs) {
+    let reply = '';
+    if (jobs && jobs.length > 0) {
+        for (let index = 0; index < jobs.length; index++) {
+            let job = jobs[index];
+            let createAt = job.attrs.data.createAt;
+            let time = job.attrs.repeatInterval.match(/^(\d+) (\d+)/);
+            reply += `序號#${index + 1} 創建時間 ${createAt.toString().replace(/:\d+\s.*/, '')}\n每天運行時間 ${time[2]} ${time[1]}\n${job.attrs.data.replyText}\n`;
+        }
+    } else reply = "沒有找到定時任務"
+    return reply;
+}
+
 
 module.exports = {
     rollDiceCommand: rollDiceCommand,

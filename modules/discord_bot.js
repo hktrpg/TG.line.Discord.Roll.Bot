@@ -682,9 +682,30 @@ agenda.agenda.define("scheduleAtMessageDiscord", async (job) => {
 	} catch (e) {
 		console.error("Error removing job from collection");
 	}
-
 });
 
+agenda.agenda.define("scheduleCronMessageDiscord", async (job) => {
+	//const date = new Date(2012, 11, 21, 5, 30, 0);
+	//const date = new Date(Date.now() + 5000);
+	//指定時間一次	
+	if (shardids !== 0) return;
+	let data = job.attrs.data;
+	let text = await rollText(data.replyText);
+	SendToReplychannel(
+		{ replyText: text, channelid: data.channelid, quotes: data.quotes = true }
+	)
+	try {
+		if ((new Date(Date.now()) - data.createAt) >= 30 * 24 * 60 * 60 * 1000)
+			await job.remove();
+		SendToReplychannel(
+			{ replyText: "已運行一個月, 移除此定時訊息", channelid: data.channelid, quotes: data.quotes = true }
+		)
+
+	} catch (e) {
+		console.error("Error removing job from collection");
+	}
+
+});
 
 
 /**

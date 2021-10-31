@@ -40,19 +40,6 @@ agenda.on("fail", (err, job) => {
 //discordSchedule.scheduleAtMessage
 
 
-async function scheduleSettup({ date, text, id, botname }) {
-    switch (botname) {
-        case 'Discord':
-            console.log('AA')
-            //  console.log(discordSchedule)
-            //await discordSchedule.scheduleAtMessage({ date, text, channelid: id })
-            break;
-
-        default:
-            break;
-    }
-}
-
 module.exports = {
     agenda
 };

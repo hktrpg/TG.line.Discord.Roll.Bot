@@ -343,7 +343,6 @@ async function privateMsgFinder(groupid) {
 
 agenda.agenda.define("scheduleAtMessageTelegram", async (job) => {
 	//指定時間一次	
-	console.log(job)
 	let data = job.attrs.data;
 	let text = await rollText(data.replyText);
 	//SendToReply(ctx, text)
@@ -359,7 +358,6 @@ agenda.agenda.define("scheduleAtMessageTelegram", async (job) => {
 });
 agenda.agenda.define("scheduleCronMessageTelegram", async (job) => {
 	//指定時間
-	console.log(job)
 	let data = job.attrs.data;
 	let text = await rollText(data.replyText);
 	//SendToReply(ctx, text)

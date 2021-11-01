@@ -189,6 +189,8 @@ exp:SAN
             使用VIPCHECK
             */
             lv = await VIP.viplevelCheckUser(userid);
+            let gpLv = await VIP.viplevelCheckGroup(groupid);
+            lv = (gpLv > lv) ? gpLv : lv;
             limit = limitArr[lv];
             check = await schema.eventList.find({
                 userID: userid

@@ -144,6 +144,8 @@ var rollDiceCommand = async function ({
                 return rply
             }
             let lv = await VIP.viplevelCheckUser(userid);
+            let gpLv = await VIP.viplevelCheckGroup(groupid);
+            lv = (gpLv > lv) ? gpLv : lv;
             let limit = limitAtArr[lv];
             let checkGroupid = await schema.agendaAtHKTRPG.estimatedDocumentCount({
                 groupid: groupid
@@ -245,6 +247,8 @@ var rollDiceCommand = async function ({
                 return rply
             }
             let lv = await VIP.viplevelCheckUser(userid);
+            let gpLv = await VIP.viplevelCheckGroup(groupid);
+            lv = (gpLv > lv) ? gpLv : lv;
             let limit = limitCronArr[lv];
             let checkGroupid = await schema.agendaAtHKTRPG.estimatedDocumentCount({
                 groupid: groupid

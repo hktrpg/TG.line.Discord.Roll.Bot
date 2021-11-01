@@ -364,6 +364,8 @@ var rollDiceCommand = async function ({
             }
 
             lv = await VIP.viplevelCheckUser(userid);
+            let gpLv = await VIP.viplevelCheckGroup(groupid);
+            lv = (gpLv > lv) ? gpLv : lv;
             limit = limitArr[lv];
             checkUser = await schema.exportUser.findOne({
                 userID: userid

@@ -198,7 +198,7 @@ var rollDiceCommand = async function ({
             }
             rply.text += '\n輸入 .char show0 可以顯示0號角色卡\n';
             return rply;
-        case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
+        case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]): {
             Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
             if (!Card.name) {
                 rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 \n.char add name[XXXX]~ \nstate[HP:15/15;MP:6/6;]~\nroll[投擲:cc 80 投擲;鬥毆:cc 40 鬥毆;]~\nnotes[心靈支柱: 無;notes:這是測試,請試試在群組輸入 .char use Sad;]~\n'
@@ -209,6 +209,8 @@ var rollDiceCommand = async function ({
             使用VIPCHECK
             */
             lv = await VIP.viplevelCheckUser(userid);
+            let gpLv = await VIP.viplevelCheckGroup(groupid);
+            lv = (gpLv > lv) ? gpLv : lv;
             limit = limitArr[lv];
             check = await schema.characterCard.find({
                 id: userid
@@ -242,6 +244,7 @@ var rollDiceCommand = async function ({
             //檢查有沒有重覆
             rply.text = await showCharacter(Card, 'addMode');
             return rply;
+        }
 
         case /(^[.]char$)/i.test(mainMsg[0]) && /^edit$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料

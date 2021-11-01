@@ -61,10 +61,10 @@ var rollDiceCommand = async function ({
     userid,
     userrole,
     botname,
-    displayname,
+    //displayname,
     channelid,
-    displaynameDiscord,
-    membercount
+    // displaynameDiscord,
+    //membercount
 }) {
     let rply = {
         default: 'on',

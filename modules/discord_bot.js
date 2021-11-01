@@ -5,7 +5,6 @@ const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const Discord = require("discord.js-light");
 const { Client, Intents, Permissions } = Discord;
 const rollText = require('./getRoll').rollText;
-const schema = require('../modules/core-schema.js');
 const agenda = require('../modules/core-schedule')
 
 
@@ -607,34 +606,6 @@ client.login(channelSecret);
 
 
 
-async function scheduleCronMessage({ time, replyText, channelid, quotes = false, id }) {
-	if (shardids !== 0) return;
-	//每天定時
-	//const date = {hour: 14, minute: 30}
-	schedule.scheduleJob(time, function () {
-		console.log('The world is going to end today.');
-		//SendToReplychannel 628230419531169842
-		SendToReplychannel(
-			{ replyText, channelid, quotes }
-		)
-	});
-	// 每次 -1
-	let result = await schema.scheduleCron.findOneAndUpdate({
-		_id: id
-	}, {
-		$inc: {
-			limit: -1
-		}
-	}, { new: true });
-	//如果到達0就移除
-	if (result.limit <= 0) {
-		await schema.scheduleCron.findByIdAndRemove({
-			id
-		});
-	}
-
-	return;
-}
 
 
 
@@ -667,12 +638,12 @@ agenda.agenda.define("scheduleCronMessageDiscord", async (job) => {
 		{ replyText: text, channelid: data.channelid, quotes: data.quotes = true }
 	)
 	try {
-		if ((new Date(Date.now()) - data.createAt) >= 30 * 24 * 60 * 60 * 1000)
+		if ((new Date(Date.now()) - data.createAt) >= 30 * 24 * 60 * 60 * 1000) {
 			await job.remove();
-		SendToReplychannel(
-			{ replyText: "已運行一個月, 移除此定時訊息", channelid: data.channelid, quotes: data.quotes = true }
-		)
-
+			SendToReplychannel(
+				{ replyText: "已運行一個月, 移除此定時訊息", channelid: data.channelid, quotes: data.quotes = true }
+			)
+		}
 	} catch (e) {
 		console.error("Error removing job from collection");
 	}

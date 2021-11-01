@@ -9,7 +9,6 @@ const rollText = require('./getRoll').rollText;
 exports.analytics = require('./core-analytics');
 
 
-
 const TGclient = new TelegramBot(process.env.TELEGRAM_CHANNEL_SECRET, { polling: true });
 const newMessage = require('./message');
 const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || '';
@@ -17,6 +16,7 @@ const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || '';
 //var TGcounttext = 0;
 const msgSplitor = (/\S+/ig);
 
+var robotName = ""
 
 
 var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
@@ -29,12 +29,15 @@ TGclient.on('text', async (ctx) => {
 	let trigger = "",
 		mainMsg = "",
 		userid = "";
-	//@bABD
+	if (!robotName) {
+		let botInfo = await TGclient.getMe();
+		robotName = botInfo.username;
+	}
 	if (ctx.from.id) userid = ctx.from.id;
 	if (inputStr) {
-		if (ctx.botInfo && ctx.botInfo.username && inputStr.match(/^[/]/))
+		if (robotName && inputStr.match(/^[/]/))
 			inputStr = inputStr
-				.replace(new RegExp('@' + ctx.botInfo.username + '$', 'i'), '')
+				.replace(new RegExp('@' + robotName + '$', 'i'), '')
 				.replace(new RegExp('^/', 'i'), '');
 		mainMsg = inputStr.match(msgSplitor); // 定義輸入字串
 	}

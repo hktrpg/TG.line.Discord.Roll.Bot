@@ -2,11 +2,11 @@
 var variables = {};
 
 var gameName = function () {
-    return '【Demo】'
+    return '【StoryMaker】'
 }
 
 var gameType = function () {
-    return 'Demo:Demo:hktrpg'
+    return 'fnnny:storyMaker:hktrpg'
 }
 var prefixs = function () {
     //[mainMSG[0]的prefixs,mainMSG[1]的prefixs,   <---這裡是一對  
@@ -73,6 +73,12 @@ module.exports = {
     gameType: gameType,
     gameName: gameName
 };
+
+/**
+ *
+ *輸入的格式
+
+ */
 
 /*
   設計

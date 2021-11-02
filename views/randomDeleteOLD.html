@@ -22,7 +22,13 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/cnchar-all/cnchar.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/zh-lx/pinyin-pro@latest/dist/pinyin-pro.js"></script>
+    <script>
+        var {
+            pinyin
+        } = pinyinPro;
+        pinyin('汉语拼音'); // 'hàn yǔ pīn yīn'
+    </script>
 
     <title>文字轉換器 @ HKTRPG</title>
     <link rel="icon" href="https://avatars2.githubusercontent.com/u/48795428?s=280&v=4" />
@@ -147,6 +153,8 @@ That struts and frets his hour upon the stage</textarea>
                 <div class="col-8">
                     <button class="btn btn-success" type="button" id="inputGroupFileAddon01"
                         onclick="blockText()">轉換</button>
+                    <button class="btn btn-warning" type="button" id="inputGroupFileAddon02"
+                        onclick="plusBlock(1)">增加</button>
                     <button class="btn btn-dark" type="button" id="inputGroupFileAddon03" onclick="reset()">重置</button>
                     <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#exampleModal">
                         <span class="iconify" data-icon="gg:readme" data-inline="false"></span>說明
@@ -156,37 +164,76 @@ That struts and frets his hour upon the stage</textarea>
             </div>
             <div class="col-4">
                 <input type="checkbox" class="btn-check" id="btn-check-outlined-A" autocomplete="off">
-                <label class="btn btn-outline-primary" for="btn-check-outlined-A">M > E</label>
+                <label class="btn btn-outline-primary" for="btn-check-outlined-A">A</label>
                 <input type="checkbox" class="btn-check" id="btn-check-outlined-B" autocomplete="off">
-                <label class="btn btn-outline-primary" for="btn-check-outlined-B">E > R</label>
+                <label class="btn btn-outline-primary" for="btn-check-outlined-B">B</label>
                 <input type="checkbox" class="btn-check" id="btn-check-outlined-C" autocomplete="off">
-                <label class="btn btn-outline-primary" for="btn-check-outlined-C">C > O</label>
+                <label class="btn btn-outline-primary" for="btn-check-outlined-C">C</label>
                 <input type="checkbox" class="btn-check" id="btn-check-outlined-D" autocomplete="off">
-                <label class="btn btn-outline-primary" for="btn-check-outlined-D">L > I</label>
+                <label class="btn btn-outline-primary" for="btn-check-outlined-D">D</label>
                 <input type="checkbox" class="btn-check" id="btn-check-outlined-E" autocomplete="off">
-                <label class="btn btn-outline-primary" for="btn-check-outlined-E">Y > Q</label>
+                <label class="btn btn-outline-primary" for="btn-check-outlined-E">E</label>
                 <input type="checkbox" class="btn-check" id="btn-check-outlined-F" autocomplete="off">
-                <label class="btn btn-outline-primary" for="btn-check-outlined-F">R > Q</label>
+                <label class="btn btn-outline-primary" for="btn-check-outlined-F">F</label>
                 <input type="checkbox" class="btn-check" id="btn-check-outlined-G" autocomplete="off">
-                <label class="btn btn-outline-primary" for="btn-check-outlined-G">B > K</label>
+                <label class="btn btn-outline-primary" for="btn-check-outlined-G">G</label>
                 <input type="checkbox" class="btn-check" id="btn-check-outlined-H" autocomplete="off">
-                <label class="btn btn-outline-primary" for="btn-check-outlined-H">S > B</label>
+                <label class="btn btn-outline-primary" for="btn-check-outlined-H">H</label>
 
                 <input type="checkbox" class="btn-check" id="btn-check-outlined-I" autocomplete="off">
-                <label class="btn btn-outline-primary" for="btn-check-outlined-I">N > P</label>
+                <label class="btn btn-outline-primary" for="btn-check-outlined-I">I</label>
 
                 <input type="checkbox" class="btn-check" id="btn-check-outlined-J" autocomplete="off">
-                <label class="btn btn-outline-primary" for="btn-check-outlined-J">I > H</label>
+                <label class="btn btn-outline-primary" for="btn-check-outlined-J">J</label>
 
                 <input type="checkbox" class="btn-check" id="btn-check-outlined-K" autocomplete="off">
-                <label class="btn btn-outline-primary" for="btn-check-outlined-K">O > F</label>
+                <label class="btn btn-outline-primary" for="btn-check-outlined-K">K</label>
 
                 <input type="checkbox" class="btn-check" id="btn-check-outlined-L" autocomplete="off">
-                <label class="btn btn-outline-primary" for="btn-check-outlined-L">A > M</label>
-
+                <label class="btn btn-outline-primary" for="btn-check-outlined-L">L</label>
                 <input type="checkbox" class="btn-check" id="btn-check-outlined-M" autocomplete="off">
-                <label class="btn btn-outline-primary" for="btn-check-outlined-M">T > D</label>
+                <label class="btn btn-outline-primary" for="btn-check-outlined-M">M</label>
+                <input type="checkbox" class="btn-check" id="btn-check-outlined-N" autocomplete="off">
 
+                <label class="btn btn-outline-primary" for="btn-check-outlined-N">N</label>
+                <input type="checkbox" class="btn-check" id="btn-check-outlined-O" autocomplete="off">
+
+                <label class="btn btn-outline-primary" for="btn-check-outlined-O">O</label>
+                <input type="checkbox" class="btn-check" id="btn-check-outlined-P" autocomplete="off">
+
+                <label class="btn btn-outline-primary" for="btn-check-outlined-P">P</label>
+
+                <input type="checkbox" class="btn-check" id="btn-check-outlined-Q" autocomplete="off">
+                <label class="btn btn-outline-primary" for="btn-check-outlined-Q">Q</label>
+
+                <input type="checkbox" class="btn-check" id="btn-check-outlined-R" autocomplete="off">
+                <label class="btn btn-outline-primary" for="btn-check-outlined-R">R</label>
+
+                <input type="checkbox" class="btn-check" id="btn-check-outlined-S" autocomplete="off">
+                <label class="btn btn-outline-primary" for="btn-check-outlined-S">S</label>
+
+                <input type="checkbox" class="btn-check" id="btn-check-outlined-T" autocomplete="off">
+                <label class="btn btn-outline-primary" for="btn-check-outlined-T">T</label>
+
+                <input type="checkbox" class="btn-check" id="btn-check-outlined-U" autocomplete="off">
+
+                <label class="btn btn-outline-primary" for="btn-check-outlined-U">U</label>
+
+
+                <input type="checkbox" class="btn-check" id="btn-check-outlined-V" autocomplete="off">
+
+                <label class="btn btn-outline-primary" for="btn-check-outlined-V">V</label>
+
+                <input type="checkbox" class="btn-check" id="btn-check-outlined-W" autocomplete="off">
+                <label class="btn btn-outline-primary" for="btn-check-outlined-W">W</label>
+
+                <input type="checkbox" class="btn-check" id="btn-check-outlined-X" autocomplete="off">
+
+                <label class="btn btn-outline-primary" for="btn-check-outlined-X">X</label>
+                <input type="checkbox" class="btn-check" id="btn-check-outlined-Y" autocomplete="off">
+                <label class="btn btn-outline-primary" for="btn-check-outlined-Y">Y</label>
+                <input type="checkbox" class="btn-check" id="btn-check-outlined-Z" autocomplete="off">
+                <label class="btn btn-outline-primary" for="btn-check-outlined-Z">Z</label>
                 <div class="alert alert-primary align-items-center"
                     style="z-index:-100;position: relative; display: none;" id="alertCopied2" role="alert">
                     <div>
@@ -234,24 +281,17 @@ That struts and frets his hour upon the stage</textarea>
         integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous">
     </script>
     <script>
-        var zeroToTwoThree = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+        var zeroToTwoThree = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
+            25
+        ];
         let blockCourt = 0;
         let start = 0;
-        const aToZ = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M"]
-
-
-        const first = ["M", "E", "C", "L", "Y", "R", "B", "S", "N", "I", "O", "A", "T"]
-        const second = ["E", "R", "O", "I", "Q", "Q", "K", "B", "P", "H", "F", "M", "D"]
-
-        var aToZswitch = [];
-
-
-
-
-
+        const aToZ = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S",
+            "T", "U", "V", "W", "X", "Y", "Z"
+        ]
         window.onload = function () {
-            //   shuffle(zeroToTwoThree);
-            //  plusBlock(1);
+            shuffle(zeroToTwoThree);
+            plusBlock(1);
             blockText();
             resizeTextArea();
 
@@ -273,13 +313,9 @@ That struts and frets his hour upon the stage</textarea>
              *  5. 把字輸出到Output
              */
             let outputTextString = "";
-            getBlock();
-
-
+            const blockAtoZ = getBlock();
             const inputTextString = document.getElementById(`inputText`).value;
-
-
-            outputTextString += detactString(inputTextString);
+            outputTextString += detactString(inputTextString, blockAtoZ);
             document.getElementById(`outputText`).value = outputTextString;
         }
 
@@ -336,85 +372,50 @@ That struts and frets his hour upon the stage</textarea>
             }
         }
 
-        function markBlock() {
-            let block = "["
-            for (let index = 0; index < aToZswitch.length; index++) {
-                if (aToZswitch[index]) {
-                    block += first[index];
-                }
-
-            }
-            block += ']';
-            return block;
-        }
-
-        function detactString(inputString) {
-            console.log('inputString', inputString)
+        function detactString(inputString, blockAtoZ) {
             let reply = "";
-            //     let block = `[${blockAtoZ}]`;
-            let regex = new RegExp(markBlock(), 'ig');
-            console.log('regex', regex)
+            let block = `[${blockAtoZ}]`;
+            let regex = new RegExp(block, 'ig');
             for (let index = 0; index < inputString.length; index++) {
                 let text = getPinyin(inputString[index]);
-                console.log('text', text)
-                if (text.match(regex)) {
-                    for (let i = 0; i < aToZswitch.length; i++) {
-                        if (text.length > 1) {
-                            text = text.replace(new RegExp(first[i], 'ig'), second[i]);
-                            text = randomError(cnchar.spellToWord(text, 'alltone', 'trad')) || randomError(errorText);
-                        } else
-                        if (aToZswitch[i]) {
-                            text = text.replace(first[i], second[i])
-                            text = text.replace(first[i].toLowerCase(), second[i].toLowerCase())
-
-
-                        }
-                    }
-
-                    reply += text;
-
-                } else {
-                    reply += inputString[index]
-                }
-
-
-
-
-
-
-
-                /**
                 if (text.match(regex)) {
                     reply += randomError();
                 } else reply += inputString[index];
-                */
             }
             return reply;
         }
         const errorText = ["!", "@", "#", "$", "%", "^", "&", "*", "-", "=", "█", "�", "⊿", "©", ""]
 
-        function randomError(arrayText) {
-            return arrayText[Math.floor(Math.random() * arrayText.length)];
+        function randomError() {
+            return errorText[Math.floor(Math.random() * errorText.length)];
         }
 
         function getBlock() {
+            let aToZswitch = [];
             for (let index = 0; index < aToZ.length; index++) {
                 aToZswitch[index] = document.getElementById(`btn-check-outlined-${aToZ[index]}`).checked
             }
+            let aToZSting = "";
+            for (let index = 0; index < aToZswitch.length; index++) {
+                if (aToZswitch[index]) {
+                    aToZSting += aToZ[index];
+                }
+
+            }
+            return aToZSting;
         }
 
         function getPinyin(string) {
-            //      console.log('string.spell(', '願'.spell('low'))
-            // console.log('string', string, '倖'.spell('low'))
-            if (string.match(/[a-zA-Z]/)) return string;
-            return (string).spell('low');
+            return pinyin(string, {
+                toneType: 'none'
+            });
         }
 
         function resizeTextArea() {
             const tx = document.getElementsByTagName("textarea");
             for (let i = 0; i < tx.length; i++) {
                 tx[i].setAttribute("style", "height:" + (screen.height * 0.3) + "px;");
-
+             
             }
         }
 

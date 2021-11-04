@@ -243,6 +243,7 @@ client.on('messageCreate', async message => {
 		}
 	}
 
+	if (rplyVal.sendNews) sendNewstoAll(rplyVal);
 
 	if (!rplyVal.text && !rplyVal.LevelUp) {
 		return;
@@ -649,7 +650,15 @@ agenda.agenda.define("scheduleCronMessageDiscord", async (job) => {
 	}
 
 });
+function sendNewstoAll(rply) {
+	console.log(rply)
+	for (let index = 0; index < rply.target.length; index++) {
 
+		SendToId(rply.target[index], rply.sendNews);
+	}
+
+
+}
 
 /**
 .addFields(

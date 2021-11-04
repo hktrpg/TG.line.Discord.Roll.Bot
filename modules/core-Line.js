@@ -148,6 +148,8 @@ var handleEvent = async function (event) {
 		}
 
 	}
+
+	if (rplyVal.sendNews) sendNewstoAll();
 	//LevelUp功能
 	if (!rplyVal.text && !rplyVal.LevelUp)
 		return;
@@ -339,6 +341,10 @@ function HandleMessage(message) {
 		res.send('Hello');
 	});
 */
+
+async function sendNewstoAll(text) {
+
+}
 
 agenda.agenda.define("scheduleAtMessageLine", async (job) => {
 	//指定時間一次	

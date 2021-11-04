@@ -147,10 +147,20 @@ var rollDiceCommand = async function ({
             let gpLv = await VIP.viplevelCheckGroup(groupid);
             lv = (gpLv > lv) ? gpLv : lv;
             let limit = limitAtArr[lv];
-            let checkGroupid = await schema.agendaAtHKTRPG.estimatedDocumentCount({
-                groupid: groupid
-            });
-            if (checkGroupid >= limit) {
+            let check = {}
+            if (botname == "Discord") {
+                check = {
+                    name: differentPeformAt(botname),
+                    "data.groupid": groupid
+                }
+            } else check = {
+                name: differentPeformAt(botname),
+                "data.groupid": groupid
+            }
+            let checkGroupid = await agenda.agenda.jobs(
+                check
+            );
+            if (checkGroupid.length >= limit) {
                 rply.text = '.at 整個群組上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
                 return rply;
             }
@@ -250,10 +260,20 @@ var rollDiceCommand = async function ({
             let gpLv = await VIP.viplevelCheckGroup(groupid);
             lv = (gpLv > lv) ? gpLv : lv;
             let limit = limitCronArr[lv];
-            let checkGroupid = await schema.agendaAtHKTRPG.estimatedDocumentCount({
-                groupid: groupid
-            });
-            if (checkGroupid >= limit) {
+            let check = {}
+            if (botname == "Discord") {
+                check = {
+                    name: differentPeformCron(botname),
+                    "data.groupid": groupid
+                }
+            } else check = {
+                name: differentPeformCron(botname),
+                "data.groupid": groupid
+            }
+            let checkGroupid = await agenda.agenda.jobs(
+                check
+            );
+            if (checkGroupid.length >= limit) {
                 rply.text = '.cron 整個群組上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
                 return rply;
             }

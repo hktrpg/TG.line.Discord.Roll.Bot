@@ -389,6 +389,13 @@ var rollDiceCommand = async function ({
                 rply.text = '更新失敗\n因為 ' + error.message
             }
             return rply;
+        case /^send\sNews$/i.test(mainMsg[1]): {
+            if (!adminSecret) return;
+            if (!mainMsg[2]) return;
+            if (userid !== adminSecret) return;
+            rply.sendNews = inputStr.replace(/\s?\S+\s+\S+\s+/, '');
+            return rply;
+        }
         default:
             break;
     }

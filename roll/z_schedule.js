@@ -131,7 +131,7 @@ var rollDiceCommand = async function ({
                 rply.text = `已刪除序號#${Number(mainMsg[2])} \n${data.attrs.data.replyText}`;
 
             } catch (e) {
-                console.error("Error removing job from collection");
+                console.error("Remove at Error removing job from collection");
                 rply.text = "找不到該序號, 請重新檢查"
                 return rply;
             }
@@ -236,7 +236,7 @@ var rollDiceCommand = async function ({
                 rply.text = `已刪除序號#${Number(mainMsg[2])} \n${data.attrs.data.replyText}`;
 
             } catch (e) {
-                console.error("Error removing job from collection");
+                console.error("Remove Cron Error removing job from collection");
                 rply.text = "找不到該序號, 請重新檢查"
                 return rply;
             }

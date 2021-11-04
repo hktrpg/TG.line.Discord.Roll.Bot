@@ -359,7 +359,7 @@ agenda.agenda.define("scheduleAtMessageLine", async (job) => {
 	try {
 		await job.remove();
 	} catch (e) {
-		console.error("Error removing job from collection");
+		console.error("LINE: Error removing job from collection:scheduleAtMessageLine", e);
 	}
 });
 
@@ -379,7 +379,7 @@ agenda.agenda.define("scheduleCronMessageLine", async (job) => {
 			)
 		}
 	} catch (e) {
-		console.error("Error removing job from collection");
+		console.error("Line Error removing job from collection:scheduleCronMessageLine", e);
 	}
 });
 

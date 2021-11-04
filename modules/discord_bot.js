@@ -624,7 +624,7 @@ agenda.agenda.define("scheduleAtMessageDiscord", async (job) => {
 	try {
 		await job.remove();
 	} catch (e) {
-		console.error("Error removing job from collection");
+		console.error("Error removing job from collection:scheduleAtMessageDiscord",e);
 	}
 });
 
@@ -646,7 +646,7 @@ agenda.agenda.define("scheduleCronMessageDiscord", async (job) => {
 			)
 		}
 	} catch (e) {
-		console.error("Error removing job from collection");
+		console.error("Error removing job from collection:scheduleCronMessageDiscord",e);
 	}
 
 });

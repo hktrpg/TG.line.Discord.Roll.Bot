@@ -357,7 +357,7 @@ agenda.agenda.define("scheduleAtMessageTelegram", async (job) => {
 	try {
 		await job.remove();
 	} catch (e) {
-		console.error("Error removing job from collection");
+		console.error("TG Error removing job from collection:scheduleAtMessageTelegram", e);
 	}
 
 });
@@ -377,7 +377,7 @@ agenda.agenda.define("scheduleCronMessageTelegram", async (job) => {
 			)
 		}
 	} catch (e) {
-		console.error("Error removing job from collection");
+		console.error("Error removing job from collection:scheduleCronMessageTelegram",e);
 	}
 
 });

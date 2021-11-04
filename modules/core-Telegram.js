@@ -138,7 +138,7 @@ TGclient.on('text', async (ctx) => {
 	if (!rplyVal.text && !rplyVal.LevelUp)
 		return;
 	if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Telegram")) {
-		ctx.telegram.sendMessage(userid, newMessage.firstTimeMessage());
+		TGclient.sendMessage(userid, newMessage.firstTimeMessage());
 	}
 
 	//LevelUp功能

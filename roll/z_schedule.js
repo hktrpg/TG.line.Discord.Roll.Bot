@@ -2,7 +2,6 @@
 if (!process.env.mongoURL) {
     return;
 }
-const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const limitAtArr = [5, 25, 50, 200, 200, 200, 200, 200];
 

@@ -389,11 +389,15 @@ var rollDiceCommand = async function ({
                 rply.text = '更新失敗\n因為 ' + error.message
             }
             return rply;
-        case /^send\sNews$/i.test(mainMsg[1]): {
+        case /^send$/i.test(mainMsg[1]) && /^News$/i.test(mainMsg[2]): {
             if (!adminSecret) return;
             if (!mainMsg[2]) return;
             if (userid !== adminSecret) return;
+            let target = await schema.theNewsMessage.find({ botname: botname, switch: true });
+            //   let alluser = await schema.firstTimeMessage.find({ botname: botname });
             rply.sendNews = inputStr.replace(/\s?\S+\s+\S+\s+/, '');
+            rply.target = target;
+            // rply.alluser = alluser;
             return rply;
         }
         default:

@@ -133,6 +133,8 @@ TGclient.on('text', async (ctx) => {
 			})
 		}
 	}
+
+	if (rplyVal.sendNews) sendNewstoAll(rplyVal);
 	if (!rplyVal.text && !rplyVal.LevelUp)
 		return;
 	if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Telegram")) {
@@ -389,6 +391,12 @@ async function isAdmin(gpId, chatid) {
 	if (member.status === "creator") return true
 	if (member.status === "administrator") return true
 	return false;
+}
+
+function sendNewstoAll(rply) {
+	for (let index = 0; index < rply.target.length; index++) {
+		SendToId(rply.target[index].userID, rply.sendNews);
+	}
 }
 
 

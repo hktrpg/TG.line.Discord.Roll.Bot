@@ -392,13 +392,12 @@ var rollDiceCommand = async function ({
         case /^send$/i.test(mainMsg[1]) && /^News$/i.test(mainMsg[2]): {
             if (!adminSecret) return;
             if (!mainMsg[2]) return;
-            // if (userid !== adminSecret) return;
+            if (userid !== adminSecret) return;
             let target = await schema.theNewsMessage.find({ botname: botname, switch: true });
             //   let alluser = await schema.firstTimeMessage.find({ botname: botname });
             rply.sendNews = inputStr.replace(/\s?\S+\s+\S+\s+/, '');
             rply.target = target;
             // rply.alluser = alluser;
-            console.log('sendNews', rply)
             return rply;
         }
         default:

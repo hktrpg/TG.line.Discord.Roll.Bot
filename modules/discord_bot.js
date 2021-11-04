@@ -651,13 +651,9 @@ agenda.agenda.define("scheduleCronMessageDiscord", async (job) => {
 
 });
 function sendNewstoAll(rply) {
-	console.log(rply)
 	for (let index = 0; index < rply.target.length; index++) {
-
-		SendToId(rply.target[index], rply.sendNews);
+		SendToId(rply.target[index].userID, rply.sendNews);
 	}
-
-
 }
 
 /**

@@ -149,12 +149,12 @@ var handleEvent = async function (event) {
 
 	}
 
-	if (rplyVal.sendNews) sendNewstoAll();
+	if (rplyVal.sendNews) sendNewstoAll(rplyVal);
 	//LevelUp功能
 	if (!rplyVal.text && !rplyVal.LevelUp)
 		return;
 	if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Line")) {
-		await SendToId(userid, newMessage.firstTimeMessage());
+		SendToId(userid, newMessage.firstTimeMessage());
 	}
 
 
@@ -342,8 +342,10 @@ function HandleMessage(message) {
 	});
 */
 
-async function sendNewstoAll(text) {
-
+async function sendNewstoAll(rply) {
+	for (let index = 0; index < rply.target.length; index++) {
+		SendToId(rply.target[index].userID, rply.sendNews);
+	}
 }
 
 agenda.agenda.define("scheduleAtMessageLine", async (job) => {

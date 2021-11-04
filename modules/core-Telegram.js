@@ -370,7 +370,6 @@ agenda.agenda.define("scheduleCronMessageTelegram", async (job) => {
 		data.groupid, text
 	)
 	try {
-		console.log((new Date(Date.now()) - data.createAt))
 		if ((new Date(Date.now()) - data.createAt) >= 30 * 24 * 60 * 60 * 1000) {
 			await job.remove();
 			SendToId(

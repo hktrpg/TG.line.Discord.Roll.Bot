@@ -4,7 +4,7 @@ if (!process.env.mongoURL) {
 }
 const VIP = require('../modules/veryImportantPerson');
 const limitAtArr = [5, 25, 50, 200, 200, 200, 200, 200];
-
+const schema = require('../modules/core-schema')
 const limitCronArr = [2, 5, 10, 20, 30, 99, 99, 99];
 const moment = require('moment');
 const agenda = require('../modules/core-schedule')
@@ -85,6 +85,8 @@ var rollDiceCommand = async function ({
                 rply.text = '此功能必須在群組中使用'
                 return rply
             }
+            let a = await schema.agendaAtHKTRPG.find({});
+            console.log(a)
             let check = {}
             if (botname == "Discord") {
                 check = {
@@ -282,6 +284,7 @@ var rollDiceCommand = async function ({
                 rply.text = `輸入出錯\n ${this.getHelpMessage()}`;
                 return rply;
             }
+
 
 
             let text = inputStr.replace(/^\s?\S+\s+\S+\s+/, '');

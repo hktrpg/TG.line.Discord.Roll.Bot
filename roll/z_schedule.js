@@ -85,8 +85,6 @@ var rollDiceCommand = async function ({
                 rply.text = '此功能必須在群組中使用'
                 return rply
             }
-            let a = await schema.agendaAtHKTRPG.find({});
-            console.log(a)
             let check = {}
             if (botname == "Discord") {
                 check = {
@@ -148,20 +146,14 @@ var rollDiceCommand = async function ({
             let gpLv = await VIP.viplevelCheckGroup(groupid);
             lv = (gpLv > lv) ? gpLv : lv;
             let limit = limitAtArr[lv];
-            let check = {}
-            if (botname == "Discord") {
-                check = {
-                    name: differentPeformAt(botname),
-                    "data.groupid": groupid
-                }
-            } else check = {
+            let check = {
                 name: differentPeformAt(botname),
                 "data.groupid": groupid
             }
-            let checkGroupid = await agenda.agenda.jobs(
+            let checkGroupid = await schema.agendaAtHKTRPG.countDocuments(
                 check
             );
-            if (checkGroupid.length >= limit) {
+            if (checkGroupid >= limit) {
                 rply.text = '.at 整個群組上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
                 return rply;
             }
@@ -261,20 +253,14 @@ var rollDiceCommand = async function ({
             let gpLv = await VIP.viplevelCheckGroup(groupid);
             lv = (gpLv > lv) ? gpLv : lv;
             let limit = limitCronArr[lv];
-            let check = {}
-            if (botname == "Discord") {
-                check = {
-                    name: differentPeformCron(botname),
-                    "data.groupid": groupid
-                }
-            } else check = {
+            let check = {
                 name: differentPeformCron(botname),
                 "data.groupid": groupid
             }
-            let checkGroupid = await agenda.agenda.jobs(
+            let checkGroupid = await schema.agendaAtHKTRPG.countDocuments(
                 check
             );
-            if (checkGroupid.length >= limit) {
+            if (checkGroupid >= limit) {
                 rply.text = '.cron 整個群組上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
                 return rply;
             }

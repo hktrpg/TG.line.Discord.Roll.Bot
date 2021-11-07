@@ -114,6 +114,7 @@ client.once('ready', async () => {
 client.on('messageCreate', async message => {
 	if (message.author.bot) return;
 	let hasSendPermission = true;
+	await repeatMessage(message)
 	/**
 	if (message.guild && message.guild.me) {
 		hasSendPermission = (message.channel && message.channel.permissionsFor(message.guild.me)) ? message.channel.permissionsFor(message.guild.me).has(Permissions.FLAGS.SEND_MESSAGES) : false || message.guild.me.permissions.has(Permissions.FLAGS.ADMINISTRATOR);
@@ -624,7 +625,7 @@ agenda.agenda.define("scheduleAtMessageDiscord", async (job) => {
 	try {
 		await job.remove();
 	} catch (e) {
-		console.error("Error removing job from collection:scheduleAtMessageDiscord",e);
+		console.error("Error removing job from collection:scheduleAtMessageDiscord", e);
 	}
 });
 
@@ -646,7 +647,7 @@ agenda.agenda.define("scheduleCronMessageDiscord", async (job) => {
 			)
 		}
 	} catch (e) {
-		console.error("Error removing job from collection:scheduleCronMessageDiscord",e);
+		console.error("Error removing job from collection:scheduleCronMessageDiscord", e);
 	}
 
 });
@@ -654,6 +655,27 @@ function sendNewstoAll(rply) {
 	for (let index = 0; index < rply.target.length; index++) {
 		SendToId(rply.target[index].userID, rply.sendNews);
 	}
+}
+
+async function repeatMessage(message) {
+	let channel = await client.channels.fetch(message.channelId);
+	const webhooks = await channel.fetchWebhooks();
+	if (!webhooks.size) {
+		await channel.createWebhook("HKTRPG .me Function", { avatar: "https://i.imgur.com/p2qNFag.png" })
+	}
+
+	try {
+		const webhook = webhooks.first();
+		await webhook.send({
+			content: message.content,
+			username: 'some-username',
+			avatarURL: message.content
+		});
+	} catch (error) {
+		console.error('Error trying to send a message: ', error);
+	}
+
+
 }
 
 /**

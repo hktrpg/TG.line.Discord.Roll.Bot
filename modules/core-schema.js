@@ -389,6 +389,13 @@ const theNewsMessage = mongoose.model('theNewsMessage', new mongoose.Schema({
     switch: Boolean
 }));
 
+const myName = mongoose.model('myName', new mongoose.Schema({
+    userID: String,
+    name: String,
+    shortName: String,
+    imageLink: String
+}));
+
 module.exports = {
     randomAns,
     block,
@@ -419,7 +426,8 @@ module.exports = {
     developmentRollingRecord,
     agendaAtHKTRPG,
     firstTimeMessage,
-    theNewsMessage
+    theNewsMessage,
+    myName
 }
 //const Cat = mongoose.model('Cat', { name: String });
 //const kitty = new Cat({ name: 'Zildjian' });

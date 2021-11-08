@@ -128,21 +128,34 @@ client.on('messageCreate', async message => {
 	//LINE @名字
 	let mainMsg = inputStr.match(msgSplitor); //定義輸入字串
 	let trigger = (mainMsg && mainMsg[0]) ? mainMsg[0].toString().toLowerCase() : '';
+	if (!trigger) {
+		await nonDice(message)
+		return null
+	}
+
+
 	let groupid = (message.guildId) ? message.guildId : '';
-
-
 	//指定啟動詞在第一個詞&把大階強制轉成細階
 	if (trigger == ".me") {
 		inputStr = inputStr.replace(/^.me\s+/i, ' ');
 		if (groupid) {
-			await SendToReplychannel({ replyText: inputStr, channelid: message.channel.id });
+			try {
+				await SendToReplychannel({ replyText: inputStr, channelid: message.channel.id });
+				message.delete();
+			} catch (error) {
+				console.log('.me delete error')
+			}
+
 		} else {
-			SendToReply({ replyText: inputStr, message });
+			try {
+				SendToReply({ replyText: inputStr, message });
+				message.delete();
+			} catch (error) {
+				console.log('.me delete error')
+			}
 		}
 		return;
 	}
-
-
 
 	let checkPrivateMsg = privateMsg({ trigger, mainMsg, inputStr });
 	inputStr = checkPrivateMsg.inputStr;
@@ -243,6 +256,9 @@ client.on('messageCreate', async message => {
 			});
 		}
 	}
+
+	if (rplyVal.myName) repeatMessage(message, rplyVal);
+	if (rplyVal.myNames) repeatMessages(message, rplyVal);
 
 	if (rplyVal.sendNews) sendNewstoAll(rplyVal);
 
@@ -657,19 +673,29 @@ function sendNewstoAll(rply) {
 	}
 }
 
-async function repeatMessage(message) {
-	let channel = await client.channels.fetch(message.channelId);
+async function repeatMessage(discord, message) {
+	console.log('message', message)
+	let channel = await client.channels.fetch(discord.channelId);
 	const webhooks = await channel.fetchWebhooks();
 	if (!webhooks.size) {
-		await channel.createWebhook("HKTRPG .me Function", { avatar: "https://i.imgur.com/p2qNFag.png" })
+		try {
+			await channel.createWebhook("HKTRPG .me Function", { avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" })
+		} catch (error) {
+			await SendToReplychannel({ replyText: '不能新增Webhook, 請檢查你有授權HKTRPG此項權限, \n此為本功能必須權限', channelid: discord.channel.id });
+			return;
+		}
 	}
-
+	try {
+		discord.delete();
+	} catch (error) {
+		console.error('Error : Discord delete message');
+	}
 	try {
 		const webhook = webhooks.first();
 		await webhook.send({
-			content: message.content,
-			username: 'some-username',
-			avatarURL: message.content
+			content: message.myName.content,
+			username: message.myName.username,
+			avatarURL: message.myName.avatarURL
 		});
 	} catch (error) {
 		console.error('Error trying to send a message: ', error);
@@ -678,6 +704,38 @@ async function repeatMessage(message) {
 
 }
 
+async function repeatMessages(discord, message) {
+	console.log('message', message)
+	let channel = await client.channels.fetch(discord.channelId);
+	const webhooks = await channel.fetchWebhooks();
+	if (!webhooks.size) {
+		try {
+			await channel.createWebhook("HKTRPG .me Function", { avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" })
+		} catch (error) {
+			await SendToReplychannel({ replyText: '不能新增Webhook, 請檢查你有授權HKTRPG此項權限, \n此為本功能必須權限', channelid: discord.channel.id });
+			return;
+		}
+
+	}
+	const webhook = webhooks.first();
+	try {
+		for (let index = 0; index < message.myNames.length; index++) {
+			const element = message.myNames[index];
+			await webhook.send({
+				content: element.content,
+				username: element.username,
+				avatarURL: element.avatarURL
+			});
+
+		}
+
+
+	} catch (error) {
+		console.error('Error trying to send a message: ', error);
+	}
+
+
+}
 /**
 .addFields(
 	{ name: 'Regular field title', value: 'Some value here' },

@@ -67,6 +67,7 @@ var rollDiceCommand = async function ({
     mainMsg,
     userid,
     botname,
+    groupid
 }) {
     let rply = {
         default: 'on',
@@ -85,7 +86,7 @@ var rollDiceCommand = async function ({
         }
         case /^\.myname+$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
             let myNames = await schema.myName.find({ userID: userid })
-            rply.text = showNames(myNames);
+            rply.myNames = showNames(myNames);
             return rply;
         }
         case /^\.myname+$/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]): {
@@ -96,9 +97,9 @@ var rollDiceCommand = async function ({
             if (mainMsg[2].match(/\d+/)) {
                 try {
                     let myNames = await schema.myName.find({ userID: userid })
-                    let result = await myNames[mainMsg[2] + 1].deleteOne();
+                    let result = await myNames[mainMsg[2] - 1].deleteOne();
                     if (result) {
-                        rply.text = `移除成功，${result}`
+                        rply.text = `移除成功，${result.name} 已被移除`
                         return rply
                     } else {
                         rply.text = '移除出錯\n移除角色指令為 .myname delete (序號/名字縮寫) \n 如 .myname delete 0 / .myname delete 小雲'
@@ -136,8 +137,8 @@ var rollDiceCommand = async function ({
             }
             let lv = await VIP.viplevelCheckUser(userid);
             let limit = limitAtArr[lv];
-            let myNames = await schema.myName.find({ userID: userid })
-            if (myNames.length >= limit) {
+            let myNamesLength = await schema.myName.countDocuments({ userID: userid })
+            if (myNamesLength >= limit) {
                 rply.text = '.myname 個人上限為' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
                 return rply;
             }
@@ -154,17 +155,65 @@ var rollDiceCommand = async function ({
                 rply.text = `輸入出錯\n ${this.getHelpMessage()}`;
                 return rply;
             }
-            console.log(myName)
-            rply.text = `已新增角色\n${myName}`
+            rply.text = `已新增角色 - ${myName.name}`;
+            let myNames = await schema.myName.find({ userID: userid })
+            rply.myName = showName(myNames, myName.name);
             return rply;
         }
-
+        case /^\.me\S+/i.test(mainMsg[0]): {
+            //.myname 泉心造史 https://example.com/example.jpg
+            if (!mainMsg[1]) {
+                rply.text = this.getHelpMessage();
+                rply.quotes = true;
+                return rply;
+            }
+            if (!groupid) {
+                rply.text = "這功能只可以在頻道中使用"
+                rply.quotes = true;
+                return rply;
+            }
+            let checkName = checkMeName(mainMsg[0]);
+            if (!checkName) {
+                rply.text = `輸入出錯\n ${this.getHelpMessage()}`;
+                return rply;
+            }
+            let myName;
+            if (typeof checkName == 'number') {
+                let myNameFind = await schema.myName.find({ userID: userid }).skip(checkName - 1).limit(1);
+                if (myNameFind) {
+                    myName = myNameFind[0];
+                }
+            }
+            if (!myName) {
+                try {
+                    myName = await schema.myName.findOne({ userID: userid, shortName: new RegExp(checkName, 'i') });
+                } catch (error) {
+                    rply.text = `輸入出錯\n ${this.getHelpMessage()}`;
+                    return rply;
+                }
+            }
+            if (!myName) {
+                rply.text = `找不到角色 - ${checkName}`;
+                return rply;
+            }
+            rply.myName = showMessage(myName, inputStr);
+            return rply;
+        }
         default: {
             break;
         }
     }
 }
 
+function showMessage(myName, inputStr) {
+    let result = {
+        content: inputStr.replace(/^\s?\S+\s+/, ''),
+        username: myName.name,
+        avatarURL: myName.imageLink
+    }
+    return result;
+
+}
 
 
 function checkMyName(inputStr) {
@@ -173,20 +222,48 @@ function checkMyName(inputStr) {
     if (name.match(/^".*"/)) {
         finalName = name.match(/"(.*)"\s+(\S+)\s*(\S*)/)
     } else {
-        finalName = name.match(/^(.S+)\s+(\S+)\s*(\S*)/)
-    } return { name: finalName[1], imageLink: finalName[2], shortName: finalName[3] };
+        finalName = name.match(/^(\S+)\s+(\S+)\s*(\S*)/)
+    }
+    return { name: finalName[1], imageLink: finalName[2], shortName: finalName[3] };
+}
+
+function checkMeName(inputStr) {
+    let name = inputStr.replace(/^\.me/i, '');
+    if (name.match(/^\d+$/)) {
+        name = Number(name)
+    }
+    return name;
 }
 
 
 
 
-
 function showNames(names) {
-    let reply = '';
+    let reply = [];
     if (names && names.length > 0) {
         for (let index = 0; index < names.length; index++) {
             let name = names[index];
-            reply += `序號#${index + 1}  ${name.name}\n${name.shortName}\n${name.imageLink}`;
+            reply[index] = {
+                content: `序號#${index + 1}\n${(name.shortName) ? `安安，我的別名是${name.shortName}` : `嘻，我的名字是${name.name}`}`,
+                username: name.name,
+                avatarURL: name.imageLink
+            }
+        }
+    } else reply = "沒有找到角色"
+    return reply;
+}
+
+function showName(names, targetName) {
+    let reply = {};
+    if (names && names.length > 0) {
+        for (let index = 0; index < names.length; index++) {
+            let name = names[index];
+            if (names[index].name == targetName)
+                reply = {
+                    content: `序號#${index + 1}\n${(name.shortName) ? `Hello, 我的別名是${name.shortName}` : `你好，我的名字是${name.name}`}`,
+                    username: name.name,
+                    avatarURL: name.imageLink
+                }
         }
     } else reply = "沒有找到角色"
     return reply;

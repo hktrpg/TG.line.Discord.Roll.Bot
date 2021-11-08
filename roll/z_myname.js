@@ -7,7 +7,8 @@ const limitAtArr = [3, 20, 50, 200, 200, 200, 200, 200];
 const schema = require('../modules/core-schema.js');
 const opt = {
     upsert: true,
-    runValidators: true
+    runValidators: true,
+    new: true
 }
 var gameName = function () {
     return '【你的名字】.myname / .me .me1 .me泉心'
@@ -64,13 +65,8 @@ var initialize = function () {
 var rollDiceCommand = async function ({
     inputStr,
     mainMsg,
-    groupid,
     userid,
     botname,
-    //displayname,
-    channelid,
-    // displaynameDiscord,
-    //membercount
 }) {
     let rply = {
         default: 'on',
@@ -147,18 +143,19 @@ var rollDiceCommand = async function ({
             }
 
             let checkName = checkMyName(inputStr);
-            if (!checkName || !checkName.name || !checkName.message) {
+            if (!checkName || !checkName.name || !checkName.imageLink) {
                 rply.text = `輸入出錯\n ${this.getHelpMessage()}`;
                 return rply;
             }
-
+            let myName = {};
             try {
-                let myNames = await schema.myName.findOneAndUpdate({ userID: userid })
+                myName = await schema.myName.findOneAndUpdate({ userID: userid, name: checkName.name }, { imageLink: checkName.imageLink, shortName: checkName.shortName }, opt)
             } catch (error) {
-
+                rply.text = `輸入出錯\n ${this.getHelpMessage()}`;
+                return rply;
             }
-
-            rply.text = `已新增排定內容\n將於${date.toString().replace(/:\d+\s.*/, '')}運行`
+            console.log(myName)
+            rply.text = `已新增角色\n${myName}`
             return rply;
         }
 
@@ -167,64 +164,19 @@ var rollDiceCommand = async function ({
         }
     }
 }
-function differentPeformAt(botname) {
-    switch (botname) {
-        case "Discord":
-            return "scheduleAtMessageDiscord"
-
-        case "Telegram":
-            return "scheduleAtMessageTelegram"
-
-        case "Line":
-            return "scheduleAtMessageLine"
-
-        default:
-            break;
-    }
-}
-
-function differentPeformCron(botname) {
-    switch (botname) {
-        case "Discord":
-            return "scheduleCronMessageDiscord"
-
-        case "Telegram":
-            return "scheduleCronMessageTelegram"
-
-        case "Line":
-            return "scheduleCronMessageLine"
-
-        default:
-            break;
-    }
 
 
-}
+
 function checkMyName(inputStr) {
     let name = inputStr.replace(/^\s?\S+\s+/, '');
+    let finalName = {}
     if (name.match(/^".*"/)) {
-        let finalName = name.match(/"(.*)"\s+(.*)/)
-        return { name: finalName[1], message: finalName[2] };
+        finalName = name.match(/"(.*)"\s+(\S+)\s*(\S*)/)
     } else {
-        let finalName = name.match(/^(.S+)\s+(.*)/)
-        return { name: finalName[1], message: finalName[2] };
-    }
+        finalName = name.match(/^(.S+)\s+(\S+)\s*(\S*)/)
+    } return { name: finalName[1], imageLink: finalName[2], shortName: finalName[3] };
 }
-function checkCronTime(text) {
-    //const date = {hour: 14, minute: 30}
-    let hour = text.match(/^(\d\d)/) && text.match(/^(\d\d)/)[1];
-    let min = text.match(/(\d\d)$/) && text.match(/(\d\d)$/)[1];
-    if (hour == 24) {
-        hour = "00";
-    }
-    if (min == 60) {
-        min = "00";
-    }
 
-    if (min >= 0 && min <= 60 && hour >= 0 && hour <= 24)
-        return { min, hour };
-    else return;
-}
 
 
 
@@ -240,18 +192,6 @@ function showNames(names) {
     return reply;
 }
 
-function showCronJobs(jobs) {
-    let reply = '';
-    if (jobs && jobs.length > 0) {
-        for (let index = 0; index < jobs.length; index++) {
-            let job = jobs[index];
-            let createAt = job.attrs.data.createAt;
-            let time = job.attrs.repeatInterval.match(/^(\d+) (\d+)/);
-            reply += `序號#${index + 1} 創建時間 ${createAt.toString().replace(/:\d+\s.*/, '')}\n每天運行時間 ${(time && time[2]) || 'error'} ${(time && time[1]) || 'error'}\n${job.attrs.data.replyText}\n`;
-        }
-    } else reply = "沒有找到定時任務"
-    return reply;
-}
 
 
 module.exports = {

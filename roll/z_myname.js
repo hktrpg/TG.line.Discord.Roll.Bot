@@ -3,7 +3,7 @@ if (!process.env.mongoURL) {
     return;
 }
 const VIP = require('../modules/veryImportantPerson');
-const limitAtArr = [3, 20, 50, 200, 200, 200, 200, 200];
+const limitAtArr = [10, 20, 50, 200, 200, 200, 200, 200];
 const schema = require('../modules/core-schema.js');
 const opt = {
     upsert: true,
@@ -30,32 +30,40 @@ TRPG扮演發言功能
 然後你只要輸入指令和說話，
 就會幫你使用該角色發言。
 
+示範
+https://i.imgur.com/VSzO08U.png
+
+注意: 此功能需求編輯Webhook及訊息功能，請確定授權。
+
 指令列表
 
 1.設定角色
-.myname "名字" 角色圖片網址 名字縮寫
+.myname "名字" 角色圖片網址 名字縮寫(非必要)
+範例 
+.myname "泉心 造史" https://images.pexels.com/photos/10013067/pexels-photo-10013067.jpeg 造
+
 *名字*是角色名字，會作為角色顯示的名字，但如果該名字有空格就需要用開引號"包著
-如"則卷 小雲" 不然可以省去
+如"泉心 造史" 不然可以省去
 
 圖片則是角色圖示，如果圖片出錯會變成最簡單的Discord圖示，
-圖片可以直接上傳到DISCORD或IMGUR.COM上
+圖片可以直接上傳到DISCORD或IMGUR.COM上，然後複製連結
 
 名字縮寫是 是用來方便你啓動它
-例如 .me小雲 「來玩吧」
+例如 .me造 「來玩吧」
 
 2.刪除角色
 .myname delete  序號 / 名字縮寫 / "名字" 
 刪除方式是delete 後面接上序號或名字縮寫或名字
 
 
-3.顯示角色
+3.顯示角色列表
 .myname show
 
-4.使用角色
+4.使用角色發言
 .me(序號/名字縮寫) 訊息
 如
-.me0 泉心慢慢的走到他們旁邊，伺機行動
-.me泉心 「我接受你的挑戰」 
+.me1 泉心慢慢的走到他們旁邊，伺機行動
+.me造 「我接受你的挑戰」 
     `
 }
 var initialize = function () {
@@ -85,8 +93,12 @@ var rollDiceCommand = async function ({
             return rply;
         }
         case /^\.myname+$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
-            let myNames = await schema.myName.find({ userID: userid })
-            rply.myNames = showNames(myNames);
+            let myNames = await schema.myName.find({ userID: userid });
+            if (groupid)
+                rply.myNames = showNames(myNames);
+            else {
+                rply.text = showNamesInText(myNames);
+            }
             return rply;
         }
         case /^\.myname+$/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]): {
@@ -140,6 +152,7 @@ var rollDiceCommand = async function ({
             let myNamesLength = await schema.myName.countDocuments({ userID: userid })
             if (myNamesLength >= limit) {
                 rply.text = '.myname 個人上限為' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                rply.quotes = true;
                 return rply;
             }
 
@@ -157,7 +170,11 @@ var rollDiceCommand = async function ({
             }
             rply.text = `已新增角色 - ${myName.name}`;
             let myNames = await schema.myName.find({ userID: userid })
-            rply.myName = showName(myNames, myName.name);
+            if (groupid)
+                rply.myNames = [showName(myNames, myName.name)];
+            else {
+                rply.text += showName(myNames, myName.name).content;
+            }
             return rply;
         }
         case /^\.me\S+/i.test(mainMsg[0]): {
@@ -174,7 +191,7 @@ var rollDiceCommand = async function ({
             }
             let checkName = checkMeName(mainMsg[0]);
             if (!checkName) {
-                rply.text = `輸入出錯\n ${this.getHelpMessage()}`;
+                rply.text = `輸入出錯\n ${this.getHelpMessage()} `;
                 return rply;
             }
             let myName;
@@ -188,12 +205,12 @@ var rollDiceCommand = async function ({
                 try {
                     myName = await schema.myName.findOne({ userID: userid, shortName: new RegExp(checkName, 'i') });
                 } catch (error) {
-                    rply.text = `輸入出錯\n ${this.getHelpMessage()}`;
+                    rply.text = `輸入出錯\n ${this.getHelpMessage()} `;
                     return rply;
                 }
             }
             if (!myName) {
-                rply.text = `找不到角色 - ${checkName}`;
+                rply.text = `找不到角色 - ${checkName} `;
                 return rply;
             }
             rply.myName = showMessage(myName, inputStr);
@@ -244,12 +261,26 @@ function showNames(names) {
         for (let index = 0; index < names.length; index++) {
             let name = names[index];
             reply[index] = {
-                content: `序號#${index + 1}\n${(name.shortName) ? `安安，我的別名是${name.shortName}` : `嘻，我的名字是${name.name}`}`,
+                content: `序號#${index + 1} \n${(name.shortName) ? `安安，我的別名是${name.shortName}` : `嘻，我的名字是${name.name}`}
+\n使用我來發言的指令是輸入  \n.me${index + 1} 加上你想說的話${(name.shortName) ? `\n或 \n .me${name.shortName} 加上你想說的話` : ''} `,
                 username: name.name,
                 avatarURL: name.imageLink
             }
         }
     } else reply = "沒有找到角色"
+    return reply;
+}
+
+function showNamesInText(names) {
+    let reply = '';
+    if (names && names.length > 0) {
+        for (let index = 0; index < names.length; index++) {
+            let name = names[index];
+            reply += `序號#${index + 1} \n${(name.shortName) ? `安安，我是${name.name}，我的別名是${name.shortName}` : `嘻，我的名字是${name.name}`} \n${name.imageLink} \n
+\n使用我來發言的指令是輸入  \n.me${index + 1} 加上你想說的話${(name.shortName) ? `\n或 \n .me${name.shortName} 加上你想說的話` : ''} `
+        }
+    }
+    else reply = "沒有找到角色"
     return reply;
 }
 
@@ -260,7 +291,7 @@ function showName(names, targetName) {
             let name = names[index];
             if (names[index].name == targetName)
                 reply = {
-                    content: `序號#${index + 1}\n${(name.shortName) ? `Hello, 我的別名是${name.shortName}` : `你好，我的名字是${name.name}`}`,
+                    content: `序號#${index + 1} \n${(name.shortName) ? `Hello, 我的別名是${name.shortName}` : `你好，我的名字是${name.name}`} \n使用我來發言的指令是輸入  \n.me${index + 1} 加上你想說的話${(name.shortName) ? `\n或 \n .me${name.shortName} 加上你想說的話` : ''} `,
                     username: name.name,
                     avatarURL: name.imageLink
                 }

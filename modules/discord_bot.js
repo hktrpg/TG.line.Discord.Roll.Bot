@@ -674,7 +674,6 @@ function sendNewstoAll(rply) {
 }
 
 async function repeatMessage(discord, message) {
-	console.log('message', message)
 	let channel = await client.channels.fetch(discord.channelId);
 	const webhooks = await channel.fetchWebhooks();
 	if (!webhooks.size) {
@@ -705,7 +704,6 @@ async function repeatMessage(discord, message) {
 }
 
 async function repeatMessages(discord, message) {
-	console.log('message', message)
 	let channel = await client.channels.fetch(discord.channelId);
 	const webhooks = await channel.fetchWebhooks();
 	if (!webhooks.size) {

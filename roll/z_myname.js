@@ -178,8 +178,8 @@ var rollDiceCommand = async function ({
             }
             rply.text = `已新增角色 - ${myName.name}`;
             let myNames = await schema.myName.find({ userID: userid })
-            if (groupid)
-                rply.myNames = [showName(myNames, myName.name)];
+
+            if (groupid) { rply.myNames = [showName(myNames, myName.name)]; }
             else {
                 rply.text += showName(myNames, myName.name).content;
             }

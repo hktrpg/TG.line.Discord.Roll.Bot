@@ -20,7 +20,7 @@ async function replaceAsync(str, regex, asyncFn) {
 
 async function myAsyncFn(match, p1) {
     let result = await rollDice({ inputStr: p1 });
-    return (result && result.text) ? result.text.replace(/\n/g, '') : match;
+    return (result && result.text) ? result.text : match;
 }
 
 

@@ -271,10 +271,9 @@
     configstore "^5.0.1"
     got "^9.6.0"
 
-"@zetetic/duckduckgo-images-api@^1.0.5":
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/@zetetic/duckduckgo-images-api/-/duckduckgo-images-api-1.0.6.tgz#5fc06a3c67236e1825cdc09423a19ed98d917d9e"
-  integrity sha512-+6Y6k5IHzdOQTgQDoN8MHk0JeoQW11b42czWuUmXfyiXL44kfArswpYrg7pcoujcUd3wC7nFqlZS+byh5bZQVw==
+"@zetetic/duckduckgo-images-api@github:zeteticl/duckduckgo-images-api":
+  version "1.0.7"
+  resolved "https://codeload.github.com/zeteticl/duckduckgo-images-api/tar.gz/139b30ebf02f607850a622482d21b5e7a8006dec"
   dependencies:
     axios "^0.21.1"
 

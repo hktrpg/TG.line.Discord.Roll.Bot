@@ -64,6 +64,9 @@ https://i.imgur.com/VSzO08U.png
 如
 .me1 泉心慢慢的走到他們旁邊，伺機行動
 .me造 「我接受你的挑戰」 
+.me造 「我接受你的挑戰」 
+[[CC 80]] 
+[[立FLAG]]
     `
 }
 var initialize = function () {

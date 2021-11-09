@@ -686,7 +686,7 @@ async function repeatMessage(discord, message) {
 		const channel = await client.channels.fetch(discord.channelId);
 		let webhooks = await channel.fetchWebhooks();
 		let webhook = webhooks.find(v => {
-			return v.type == 'Incoming';
+			return v.name == 'HKTRPG .me Function' && v.type == "Incoming";
 		})
 		//type Channel Follower
 		//'Incoming'
@@ -694,7 +694,7 @@ async function repeatMessage(discord, message) {
 			await channel.createWebhook("HKTRPG .me Function", { avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" })
 			webhooks = await channel.fetchWebhooks();
 			webhook = webhooks.find(v => {
-				return v.type == 'Incoming';
+				return v.name == 'HKTRPG .me Function' && v.type == "Incoming";
 			})
 		}
 
@@ -718,7 +718,7 @@ async function repeatMessages(discord, message) {
 		const channel = await client.channels.fetch(discord.channelId);
 		let webhooks = await channel.fetchWebhooks();
 		let webhook = webhooks.find(v => {
-			return v.type == 'Incoming';
+			return v.name == 'HKTRPG .me Function' && v.type == "Incoming";
 		})
 		//type Channel Follower
 		//'Incoming'
@@ -726,7 +726,7 @@ async function repeatMessages(discord, message) {
 			await channel.createWebhook("HKTRPG .me Function", { avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" })
 			webhooks = await channel.fetchWebhooks();
 			webhook = webhooks.find(v => {
-				return v.type == 'Incoming';
+				return v.name == 'HKTRPG .me Function' && v.type == "Incoming";
 			})
 		}
 		for (let index = 0; index < message.myNames.length; index++) {

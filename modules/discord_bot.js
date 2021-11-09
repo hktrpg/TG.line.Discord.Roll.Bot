@@ -680,13 +680,23 @@ async function repeatMessage(discord, message) {
 	} catch (error) {
 		error
 	}
+
 	try {
-		let channel = await client.channels.fetch(discord.channelId);
-		const webhooks = await channel.fetchWebhooks();
-		if (!webhooks.size) {
+		const channel = await client.channels.fetch(discord.channelId);
+		let webhooks = await channel.fetchWebhooks();
+		let webhook = webhooks.find(v => {
+			return v.type == 'Incoming';
+		})
+		//type Channel Follower
+		//'Incoming'
+		if (!webhook) {
 			await channel.createWebhook("HKTRPG .me Function", { avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" })
+			webhooks = await channel.fetchWebhooks();
+			webhook = webhooks.find(v => {
+				return v.type == 'Incoming';
+			})
 		}
-		const webhook = webhooks.first();
+
 		let text = await rollText(message.myName.content);
 		await webhook.send({
 			content: text,
@@ -694,8 +704,8 @@ async function repeatMessage(discord, message) {
 			avatarURL: message.myName.avatarURL
 		});
 	} catch (error) {
-		console.error('Error trying to send a message: ', error);
-		await SendToReplychannel({ replyText: '不能使用Webhook, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
+		error
+		await SendToReplychannel({ replyText: '不能成功發送扮演發言.\n 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
 		return;
 	}
 
@@ -704,12 +714,20 @@ async function repeatMessage(discord, message) {
 
 async function repeatMessages(discord, message) {
 	try {
-		let channel = await client.channels.fetch(discord.channelId);
-		const webhooks = await channel.fetchWebhooks();
-		if (!webhooks.size) {
+		const channel = await client.channels.fetch(discord.channelId);
+		let webhooks = await channel.fetchWebhooks();
+		let webhook = webhooks.find(v => {
+			return v.type == 'Incoming';
+		})
+		//type Channel Follower
+		//'Incoming'
+		if (!webhook) {
 			await channel.createWebhook("HKTRPG .me Function", { avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" })
+			webhooks = await channel.fetchWebhooks();
+			webhook = webhooks.find(v => {
+				return v.type == 'Incoming';
+			})
 		}
-		const webhook = webhooks.first();
 		for (let index = 0; index < message.myNames.length; index++) {
 			const element = message.myNames[index];
 			let text = await rollText(element.content);
@@ -722,7 +740,6 @@ async function repeatMessages(discord, message) {
 		}
 
 	} catch (error) {
-		console.log('error', error)
 		await SendToReplychannel({ replyText: '不能新增Webhook, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
 		return;
 	}

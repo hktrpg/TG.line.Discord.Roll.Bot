@@ -123,12 +123,12 @@ var rollDiceCommand = async function ({
                         rply.text = `移除成功，${result.name} 已被移除`
                         return rply
                     } else {
-                        rply.text = '移除出錯\n移除角色指令為 .myname delete (序號/名字縮寫) \n 如 .myname delete 1 / .myname delete 小雲'
+                        rply.text = '移除出錯\n移除角色指令為 .myname delete (序號 或 名字縮寫) \n 如 .myname delete 1 / .myname delete 小雲\n序號請使用.myname show 查詢'
                         return rply
                     }
                 } catch (error) {
                     console.error("移除角色失敗, inputStr: ", inputStr);
-                    rply.text = '移除出錯\n移除角色指令為 .myname delete (序號/名字縮寫) \n 如 .myname delete 1 / .myname delete 小雲'
+                    rply.text = '移除出錯\n移除角色指令為 .myname delete (序號 或 名字縮寫) \n 如 .myname delete 1 / .myname delete 小雲\n序號請使用.myname show 查詢'
                     return rply
                 }
             }
@@ -140,12 +140,12 @@ var rollDiceCommand = async function ({
                     rply.text = `移除成功，${myNames}`
                     return rply
                 } else {
-                    rply.text = '移除出錯\n移除角色指令為 .myname delete (序號/名字縮寫) \n 如 .myname delete 1 / .myname delete 小雲'
+                    rply.text = '移除出錯\n移除角色指令為 .myname delete (序號/名字縮寫) \n 如 .myname delete 1 / .myname delete 小雲\n序號請使用.myname show 查詢'
                     return rply
                 }
             } catch (error) {
                 console.error("移除角色失敗, inputStr: ", inputStr);
-                rply.text = '移除出錯\n移除角色指令為 .myname delete (序號/名字縮寫) \n 如 .myname delete 1 / .myname delete 小雲'
+                rply.text = '移除出錯\n移除角色指令為 .myname delete (序號/名字縮寫) \n 如 .myname delete 1 / .myname delete 小雲\n序號請使用.myname show 查詢'
                 return rply
             }
         }

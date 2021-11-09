@@ -140,18 +140,18 @@ client.on('messageCreate', async message => {
 		inputStr = inputStr.replace(/^.me\s+/i, ' ');
 		if (groupid) {
 			try {
-				await SendToReplychannel({ replyText: inputStr, channelid: message.channel.id });
 				message.delete();
 			} catch (error) {
-				console.log('.me delete error')
+				error;
 			}
+			await SendToReplychannel({ replyText: inputStr, channelid: message.channel.id });
 
 		} else {
+			SendToReply({ replyText: inputStr, message });
 			try {
-				SendToReply({ replyText: inputStr, message });
 				message.delete();
 			} catch (error) {
-				console.log('.me delete error')
+				error
 			}
 		}
 		return;
@@ -676,12 +676,16 @@ function sendNewstoAll(rply) {
 
 async function repeatMessage(discord, message) {
 	try {
+		discord.delete();
+	} catch (error) {
+		error
+	}
+	try {
 		let channel = await client.channels.fetch(discord.channelId);
 		const webhooks = await channel.fetchWebhooks();
 		if (!webhooks.size) {
 			await channel.createWebhook("HKTRPG .me Function", { avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" })
 		}
-		discord.delete();
 		const webhook = webhooks.first();
 		let text = await rollText(message.myName.content);
 		await webhook.send({
@@ -691,7 +695,7 @@ async function repeatMessage(discord, message) {
 		});
 	} catch (error) {
 		console.error('Error trying to send a message: ', error);
-		await SendToReplychannel({ replyText: '不能使用Webhook, 請檢查你有授權HKTRPG 管理Webhook和訊息的權限, \n此為本功能必須權限', channelid: discord.channel.id });
+		await SendToReplychannel({ replyText: '不能使用Webhook, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
 		return;
 	}
 
@@ -719,7 +723,7 @@ async function repeatMessages(discord, message) {
 
 	} catch (error) {
 		console.log('error', error)
-		await SendToReplychannel({ replyText: '不能新增Webhook, 請檢查你有授權HKTRPG 管理Webhook和訊息的權限, \n此為本功能必須權限', channelid: discord.channel.id });
+		await SendToReplychannel({ replyText: '不能新增Webhook, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
 		return;
 	}
 

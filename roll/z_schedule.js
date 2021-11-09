@@ -132,7 +132,7 @@ var rollDiceCommand = async function ({
 
             } catch (e) {
                 console.error("Remove at Error removing job from collection");
-                rply.text = "找不到該序號, 請重新檢查"
+                rply.text = "找不到該序號, 請使用.at show重新檢查"
                 return rply;
             }
             return rply;
@@ -231,7 +231,7 @@ var rollDiceCommand = async function ({
 
             } catch (e) {
                 console.error("Remove Cron Error removing job from collection");
-                rply.text = "找不到該序號, 請重新檢查"
+                rply.text = "找不到該序號, 請使用.cron show 重新檢查"
                 return rply;
             }
             return rply;

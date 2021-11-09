@@ -699,7 +699,7 @@ async function repeatMessage(discord, message) {
 		});
 	} catch (error) {
 		console.error('Error trying to send a message: ', error);
-		await SendToReplychannel({ replyText: '不能新增Webhook, 請檢查你有授權HKTRPG 管理Webhook和訊息的權限, \n此為本功能必須權限', channelid: discord.channel.id });
+		await SendToReplychannel({ replyText: '不能使用Webhook, 請檢查你有授權HKTRPG 管理Webhook和訊息的權限, \n此為本功能必須權限', channelid: discord.channel.id });
 		return;
 	}
 
@@ -733,6 +733,7 @@ async function repeatMessages(discord, message) {
 
 	} catch (error) {
 		console.error('Error trying to send a message: ', error);
+		await SendToReplychannel({ replyText: '不能使用Webhook, 請檢查你有授權HKTRPG 管理Webhook和訊息的權限, \n此為本功能必須權限', channelid: discord.channel.id });
 	}
 
 

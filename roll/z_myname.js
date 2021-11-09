@@ -94,8 +94,12 @@ var rollDiceCommand = async function ({
         }
         case /^\.myname+$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
             let myNames = await schema.myName.find({ userID: userid });
-            if (groupid)
-                rply.myNames = showNames(myNames);
+            if (groupid) {
+                let result = showNames(myNames);
+                if (typeof result == 'string') rply.text = result;
+                else rply.myNames = result;
+            }
+
             else {
                 rply.text = showNamesInText(myNames);
             }

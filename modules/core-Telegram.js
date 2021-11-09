@@ -345,44 +345,44 @@ async function privateMsgFinder(groupid) {
 	else return [];
 }
 
-
-agenda.agenda.define("scheduleAtMessageTelegram", async (job) => {
-	//指定時間一次	
-	let data = job.attrs.data;
-	let text = await rollText(data.replyText);
-	//SendToReply(ctx, text)
-	SendToId(
-		data.groupid, text
-	)
-	try {
-		await job.remove();
-	} catch (e) {
-		console.error("TG Error removing job from collection:scheduleAtMessageTelegram", e);
-	}
-
-});
-agenda.agenda.define("scheduleCronMessageTelegram", async (job) => {
-	//指定時間
-	let data = job.attrs.data;
-	let text = await rollText(data.replyText);
-	//SendToReply(ctx, text)
-	SendToId(
-		data.groupid, text
-	)
-	try {
-		if ((new Date(Date.now()) - data.createAt) >= 30 * 24 * 60 * 60 * 1000) {
+if (agenda && agenda.agenda) {
+	agenda.agenda.define("scheduleAtMessageTelegram", async (job) => {
+		//指定時間一次	
+		let data = job.attrs.data;
+		let text = await rollText(data.replyText);
+		//SendToReply(ctx, text)
+		SendToId(
+			data.groupid, text
+		)
+		try {
 			await job.remove();
-			SendToId(
-				data.groupid, "已運行一個月, 移除此定時訊息"
-			)
+		} catch (e) {
+			console.error("TG Error removing job from collection:scheduleAtMessageTelegram", e);
 		}
-	} catch (e) {
-		console.error("Error removing job from collection:scheduleCronMessageTelegram",e);
-	}
 
-});
+	});
+	agenda.agenda.define("scheduleCronMessageTelegram", async (job) => {
+		//指定時間
+		let data = job.attrs.data;
+		let text = await rollText(data.replyText);
+		//SendToReply(ctx, text)
+		SendToId(
+			data.groupid, text
+		)
+		try {
+			if ((new Date(Date.now()) - data.createAt) >= 30 * 24 * 60 * 60 * 1000) {
+				await job.remove();
+				SendToId(
+					data.groupid, "已運行一個月, 移除此定時訊息"
+				)
+			}
+		} catch (e) {
+			console.error("Error removing job from collection:scheduleCronMessageTelegram", e);
+		}
 
+	});
 
+}
 
 
 async function isAdmin(gpId, chatid) {

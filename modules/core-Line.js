@@ -7,7 +7,7 @@ const EXPUP = require('./level').EXPUP || function () { };
 const line = require('@line/bot-sdk');
 const express = require('express');
 const msgSplitor = (/\S+/ig);
-const agenda = require('../modules/core-schedule')
+const agenda = require('../modules/core-schedule');
 const rollText = require('./getRoll').rollText;
 // create LINE SDK config from env variables
 const config = {
@@ -347,41 +347,42 @@ async function sendNewstoAll(rply) {
 		SendToId(rply.target[index].userID, rply.sendNews);
 	}
 }
-
-agenda.agenda.define("scheduleAtMessageLine", async (job) => {
-	//指定時間一次	
-	let data = job.attrs.data;
-	let text = await rollText(data.replyText);
-	//SendToReply(ctx, text)
-	SendToId(
-		data.groupid, text
-	)
-	try {
-		await job.remove();
-	} catch (e) {
-		console.error("LINE: Error removing job from collection:scheduleAtMessageLine", e);
-	}
-});
-
-agenda.agenda.define("scheduleCronMessageLine", async (job) => {
-	//指定時間一次	
-	let data = job.attrs.data;
-	let text = await rollText(data.replyText);
-	//SendToReply(ctx, text)
-	SendToId(
-		data.groupid, text
-	)
-	try {
-		if ((new Date(Date.now()) - data.createAt) >= 30 * 24 * 60 * 60 * 1000) {
+if (agenda && agenda.agenda) {
+	agenda.agenda.define("scheduleAtMessageLine", async (job) => {
+		//指定時間一次	
+		let data = job.attrs.data;
+		let text = await rollText(data.replyText);
+		//SendToReply(ctx, text)
+		SendToId(
+			data.groupid, text
+		)
+		try {
 			await job.remove();
-			SendToId(
-				data.groupid, "已運行一個月, 移除此定時訊息"
-			)
+		} catch (e) {
+			console.error("LINE: Error removing job from collection:scheduleAtMessageLine", e);
 		}
-	} catch (e) {
-		console.error("Line Error removing job from collection:scheduleCronMessageLine", e);
-	}
-});
+	});
+
+	agenda.agenda.define("scheduleCronMessageLine", async (job) => {
+		//指定時間一次	
+		let data = job.attrs.data;
+		let text = await rollText(data.replyText);
+		//SendToReply(ctx, text)
+		SendToId(
+			data.groupid, text
+		)
+		try {
+			if ((new Date(Date.now()) - data.createAt) >= 30 * 24 * 60 * 60 * 1000) {
+				await job.remove();
+				SendToId(
+					data.groupid, "已運行一個月, 移除此定時訊息"
+				)
+			}
+		} catch (e) {
+			console.error("Line Error removing job from collection:scheduleCronMessageLine", e);
+		}
+	});
+}
 
 
 app.on('UnhandledPromiseRejection', error => {

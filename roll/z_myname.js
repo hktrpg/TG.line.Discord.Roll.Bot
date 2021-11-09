@@ -67,6 +67,8 @@ https://i.imgur.com/VSzO08U.png
 .me造 「我接受你的挑戰」 
 [[CC 80]] 
 [[立FLAG]]
+
+支援擲骰，請使用[[]]來包著擲骰指令
     `
 }
 var initialize = function () {

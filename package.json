@@ -14,7 +14,7 @@
   "dependencies": {
     "@line/bot-sdk": "^7.2.0",
     "@vitalets/google-translate-api": "^5.1.0",
-    "@zetetic/duckduckgo-images-api": "^1.0.5",
+    "@zetetic/duckduckgo-images-api": "github:zeteticl/duckduckgo-images-api",
     "agenda": "^4.2.1",
     "axios": "^0.21.1",
     "bcdice": "^3.3.0",

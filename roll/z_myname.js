@@ -52,8 +52,8 @@ https://i.imgur.com/VSzO08U.png
 例如 .me造 「來玩吧」
 
 2.刪除角色
-.myname delete  序號 / 名字縮寫 / "名字" 
-刪除方式是delete 後面接上序號或名字縮寫或名字
+.myname delete  序號 / 名字縮寫  
+刪除方式是delete 後面接上序號或名字縮寫
 
 
 3.顯示角色列表
@@ -64,6 +64,11 @@ https://i.imgur.com/VSzO08U.png
 如
 .me1 泉心慢慢的走到他們旁邊，伺機行動
 .me造 「我接受你的挑戰」 
+.me造 「我接受你的挑戰」 
+[[CC 80]] 
+[[立FLAG]]
+
+支援擲骰，請使用[[]]來包著擲骰指令
     `
 }
 var initialize = function () {
@@ -118,12 +123,12 @@ var rollDiceCommand = async function ({
                         rply.text = `移除成功，${result.name} 已被移除`
                         return rply
                     } else {
-                        rply.text = '移除出錯\n移除角色指令為 .myname delete (序號/名字縮寫) \n 如 .myname delete 0 / .myname delete 小雲'
+                        rply.text = '移除出錯\n移除角色指令為 .myname delete (序號 或 名字縮寫) \n 如 .myname delete 1 / .myname delete 小雲\n序號請使用.myname show 查詢'
                         return rply
                     }
                 } catch (error) {
-                    console.error("移除角色失敗", error);
-                    rply.text = '移除出錯\n移除角色指令為 .myname delete (序號/名字縮寫) \n 如 .myname delete 0 / .myname delete 小雲'
+                    console.error("移除角色失敗, inputStr: ", inputStr);
+                    rply.text = '移除出錯\n移除角色指令為 .myname delete (序號 或 名字縮寫) \n 如 .myname delete 1 / .myname delete 小雲\n序號請使用.myname show 查詢'
                     return rply
                 }
             }
@@ -135,12 +140,12 @@ var rollDiceCommand = async function ({
                     rply.text = `移除成功，${myNames}`
                     return rply
                 } else {
-                    rply.text = '移除出錯\n移除角色指令為 .myname delete (序號/名字縮寫) \n 如 .myname delete 0 / .myname delete 小雲'
+                    rply.text = '移除出錯\n移除角色指令為 .myname delete (序號/名字縮寫) \n 如 .myname delete 1 / .myname delete 小雲\n序號請使用.myname show 查詢'
                     return rply
                 }
             } catch (error) {
-                console.error("移除角色失敗", error);
-                rply.text = '移除出錯\n移除角色指令為 .myname delete (序號/名字縮寫) \n 如 .myname delete 0 / .myname delete 小雲'
+                console.error("移除角色失敗, inputStr: ", inputStr);
+                rply.text = '移除出錯\n移除角色指令為 .myname delete (序號/名字縮寫) \n 如 .myname delete 1 / .myname delete 小雲\n序號請使用.myname show 查詢'
                 return rply
             }
         }
@@ -165,6 +170,10 @@ var rollDiceCommand = async function ({
                 rply.text = `輸入出錯\n ${this.getHelpMessage()}`;
                 return rply;
             }
+            if (!checkName.imageLink.match(/^http/i)) {
+                rply.text = `輸入出錯\n 圖示link 必須符合 http/https 開頭`;
+                return rply;
+            }
             let myName = {};
             try {
                 myName = await schema.myName.findOneAndUpdate({ userID: userid, name: checkName.name }, { imageLink: checkName.imageLink, shortName: checkName.shortName }, opt)
@@ -174,8 +183,8 @@ var rollDiceCommand = async function ({
             }
             rply.text = `已新增角色 - ${myName.name}`;
             let myNames = await schema.myName.find({ userID: userid })
-            if (groupid)
-                rply.myNames = [showName(myNames, myName.name)];
+
+            if (groupid) { rply.myNames = [showName(myNames, myName.name)]; }
             else {
                 rply.text += showName(myNames, myName.name).content;
             }

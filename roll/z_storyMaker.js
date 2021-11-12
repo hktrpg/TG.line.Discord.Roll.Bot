@@ -123,4 +123,11 @@ module.exports = {
     變數運算
     顯示變數
 
+每個BOT 放置一個 CHECK TEMP
+在storyMarker 中會檢查 USERID, CHANNELID, GPID
+
+有的話, 會得到回應 TEMP 只是連接，不記錄應回應什麼
+
+只記找那個結果的連結
+
     */

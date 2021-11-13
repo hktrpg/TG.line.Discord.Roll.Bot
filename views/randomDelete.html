@@ -349,19 +349,25 @@ That struts and frets his hour upon the stage</textarea>
         }
 
         function detactString(inputString) {
-            console.log('inputString', inputString)
+            // console.log('inputString', inputString)
             let reply = "";
             //     let block = `[${blockAtoZ}]`;
             let regex = new RegExp(markBlock(), 'ig');
-            console.log('regex', regex)
+            //  console.log('regex', regex)
             for (let index = 0; index < inputString.length; index++) {
                 let text = getPinyin(inputString[index]);
-                console.log('text', text)
+                //console.log('text', text)
                 if (text.match(regex)) {
                     for (let i = 0; i < aToZswitch.length; i++) {
                         if (text.length > 1) {
                             text = text.replace(new RegExp(first[i], 'ig'), second[i]);
-                            text = randomError(cnchar.spellToWord(text, 'alltone', 'trad')) || randomError(errorText);
+                            try {
+                                text = randomError(cnchar.spellToWord(text, 'alltone', 'trad')) || randomError(
+                                    errorText);
+                            } catch (error) {
+                                text = inputString[index]
+                            }
+
                         } else
                         if (aToZswitch[i]) {
                             text = text.replace(first[i], second[i])

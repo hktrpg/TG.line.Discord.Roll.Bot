@@ -322,7 +322,7 @@ async function z_stop(mainMsg, groupid) {
 	}
 	let groupInfo = exports.z_stop.initialize().save.find(e => e.groupid == groupid)
 	if (!groupInfo || !groupInfo.blockfunction) return;
-	let match = groupInfo.blockfunction.find(e => e.toLowerCase() == mainMsg[0].toLowerCase())
+	let match = groupInfo.blockfunction.find(e => mainMsg[0].toLowerCase().includes(e.toLowerCase()))
 	if (match) {
 		(debugMode) ? console.log('Match AND STOP') : '';
 		return true;

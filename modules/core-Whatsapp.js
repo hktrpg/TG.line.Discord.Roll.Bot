@@ -90,14 +90,12 @@ client.on('message', async msg => {
 	let displaynamecheck = true;
 	let inputStr = msg.body;
 	let membercount, groupid, trigger = "";
-	client.getChatById(msg.from).then(async getChatDetail => {
-		if (getChatDetail.isGroup) {
-			groupid = getChatDetail.id._serialized;
-			//console.log('groupid:', groupid)
-			membercount = getChatDetail.participants.length - 1;
-		}
-		return;
-	});
+	let getChatDetail = await client.getChatById(msg.from)
+	if (getChatDetail.isGroup) {
+		groupid = getChatDetail.id._serialized;
+		//console.log('groupid:', groupid)
+		membercount = getChatDetail.participants.length - 1;
+	}
 	let mainMsg = inputStr.match(msgSplitor); //定義輸入字串
 	if (mainMsg && mainMsg[0]) {
 		trigger = mainMsg[0].toString().toLowerCase();

@@ -15,6 +15,7 @@
     "@line/bot-sdk": "^7.2.0",
     "@vitalets/google-translate-api": "^5.1.0",
     "@zetetic/duckduckgo-images-api": "github:zeteticl/duckduckgo-images-api",
+    "@zetetic/whatsapp-web.js": "github:zeteticl/whatsapp-web.js",
     "agenda": "^4.2.1",
     "axios": "^0.21.1",
     "bcdice": "^3.3.0",

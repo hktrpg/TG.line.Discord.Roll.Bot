@@ -277,6 +277,17 @@
   dependencies:
     axios "^0.21.1"
 
+"@zetetic/whatsapp-web.js@github:zeteticl/whatsapp-web.js":
+  version "1.15.2"
+  resolved "https://codeload.github.com/zeteticl/whatsapp-web.js/tar.gz/e2f05bb37fda148731fecb668ea036ddb176c00f"
+  dependencies:
+    "@pedroslopez/moduleraid" "^5.0.2"
+    fluent-ffmpeg "^2.1.2"
+    jsqr "^1.3.1"
+    mime "^2.4.5"
+    node-webpmux "^3.1.0"
+    puppeteer "^10.1.0"
+
 accepts@~1.3.4, accepts@~1.3.7:
   version "1.3.7"
   resolved "https://registry.yarnpkg.com/accepts/-/accepts-1.3.7.tgz#531bc726517a3b2b41f850021c6cc15eaab507cd"
@@ -3549,17 +3560,6 @@ webidl-conversions@^6.1.0:
   version "6.1.0"
   resolved "https://registry.yarnpkg.com/webidl-conversions/-/webidl-conversions-6.1.0.tgz#9111b4d7ea80acd40f5270d666621afa78b69514"
   integrity sha512-qBIvFLGiBpLjfwmYAaHPXsn+ho5xZnGvyGvsarywGNc8VyQJUMHJ8OBKGGrPER0okBeMDaan4mNBlgBROxuI8w==
-
-"whatsapp-web.js@github:zeteticl/whatsapp-web.js":
-  version "1.14.1"
-  resolved "https://codeload.github.com/zeteticl/whatsapp-web.js/tar.gz/b72ab34d42ef52e5ff44137a2c634d3132d3defc"
-  dependencies:
-    "@pedroslopez/moduleraid" "^5.0.2"
-    fluent-ffmpeg "^2.1.2"
-    jsqr "^1.3.1"
-    mime "^2.4.5"
-    node-webpmux "^3.1.0"
-    puppeteer "^10.1.0"
 
 whatwg-url@^5.0.0:
   version "5.0.0"

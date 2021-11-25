@@ -95,9 +95,6 @@ client.on('message', async msg => {
 		//console.log('groupid:', groupid)
 		membercount = getChatDetail.participants.length - 1;
 	}
-
-
-	console.log('groupid', groupid)
 	let mainMsg = inputStr.match(msgSplitor); //定義輸入字串
 	if (mainMsg && mainMsg[0]) {
 		trigger = mainMsg[0].toString().toLowerCase();

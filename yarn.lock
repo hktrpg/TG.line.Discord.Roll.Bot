@@ -277,7 +277,7 @@
   dependencies:
     axios "^0.21.1"
 
-"@zetetic/whatsapp-web.js@github:zeteticl/whatsapp-web.js":
+"@zetetic/whatsapp-web.js@github:zeteticl/whatsapp-web.js", "whatsapp-web.js@github:zeteticl/whatsapp-web.js":
   version "1.15.2"
   resolved "https://codeload.github.com/zeteticl/whatsapp-web.js/tar.gz/e2f05bb37fda148731fecb668ea036ddb176c00f"
   dependencies:

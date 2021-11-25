@@ -41,7 +41,7 @@ if (require('fs').existsSync(SESSION_FILE_PATH)) {
 const client = new Client({
 	session: sessionData,
 	puppeteer: {
-		headless: true, 'executablePath': '/app/.apt/usr/bin/google-chrome-stable'
+		args: ['--no-sandbox', '--disable-setuid-sandbox']
 	}
 });
 

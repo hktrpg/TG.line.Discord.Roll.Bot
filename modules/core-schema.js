@@ -396,6 +396,10 @@ const myName = mongoose.model('myName', new mongoose.Schema({
     imageLink: String
 }));
 
+
+const whatsapp = mongoose.model('whatsapp', new mongoose.Schema({
+    sessionData: String
+}));
 module.exports = {
     randomAns,
     block,
@@ -427,7 +431,8 @@ module.exports = {
     agendaAtHKTRPG,
     firstTimeMessage,
     theNewsMessage,
-    myName
+    myName,
+    whatsapp
 }
 //const Cat = mongoose.model('Cat', { name: String });
 //const kitty = new Cat({ name: 'Zildjian' });

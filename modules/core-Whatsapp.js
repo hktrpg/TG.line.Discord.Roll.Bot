@@ -2,10 +2,11 @@
 if (!process.env.WHATSAPP_SWITCH) {
 	return;
 }
-if (process.env._ && process.env._.indexOf("heroku"))
-	console.log("I'm in Heroku!");
-if (process.env._.indexOf("heroku") !== -1)
-	console.log("I'm in Heroku!22");
+const schema = require('../modules/core-schema.js');
+const opt = {
+	upsert: true,
+	runValidators: true
+}
 if (process.env.BROADCAST) {
 	const WebSocket = require('ws');
 	const ws = new WebSocket('ws://127.0.0.1:53589');
@@ -42,22 +43,29 @@ if (require('fs').existsSync(SESSION_FILE_PATH)) {
 	sessionData = JSON.parse(require('fs').readFileSync(SESSION_FILE_PATH).toString());
 }
 
+
+if (process.env._ && process.env._.indexOf("heroku") && process.env.mongoURL) {
+	updateSessionData();
+}
+const herokuPuppeteer = { headless: true, 'executablePath': '/app/.apt/usr/bin/google-chrome-stable' };
+const normalPuppeteer = { args: ['--no-sandbox', '--disable-setuid-sandbox'] };
 const client = new Client({
 	session: sessionData,
-	puppeteer: {
-		args: ['--no-sandbox', '--disable-setuid-sandbox'],
-		headless: true, 'executablePath': '/app/.apt/usr/bin/google-chrome-stable'
-	}
+	puppeteer: (process.env._ && process.env._.indexOf("heroku")) ? herokuPuppeteer : normalPuppeteer
 });
 
 // Save session values to the file upon successful auth
-client.on('authenticated', (session) => {
+client.on('authenticated', async (session) => {
 	sessionData = session;
-	require('fs').writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
-		if (err) {
-			console.error(err);
-		}
-	});
+	if (process.env._ && process.env._.indexOf("heroku") && process.env.mongoURL) {
+		await schema.whatsapp.findOneAndUpdate({}, { sessionData: sessionData }, opt)
+	} else {
+		require('fs').writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
+			if (err) {
+				console.error(err);
+			}
+		});
+	}
 });
 
 
@@ -304,3 +312,9 @@ function privateMsgFinder(channelid) {
 process.on('unhandledRejection', () => {
 
 });
+
+async function updateSessionData() {
+	sessionData = await schema.whatsapp.findOne({})
+	console.log('SSS')
+
+}

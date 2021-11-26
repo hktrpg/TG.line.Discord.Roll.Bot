@@ -2,6 +2,10 @@
 if (!process.env.WHATSAPP_SWITCH) {
 	return;
 }
+if (process.env._ && process.env._.indexOf("heroku"))
+	console.log("I'm in Heroku!");
+if (process.env._.indexOf("heroku") !== -1)
+	console.log("I'm in Heroku!22");
 if (process.env.BROADCAST) {
 	const WebSocket = require('ws');
 	const ws = new WebSocket('ws://127.0.0.1:53589');

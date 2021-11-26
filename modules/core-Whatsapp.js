@@ -321,6 +321,4 @@ process.on('unhandledRejection', () => {
 
 async function updateSessionData() {
 	sessionData = await schema.whatsapp.findOne({})
-	console.log('SSS')
-
 }

@@ -2,6 +2,12 @@
 if (!process.env.WHATSAPP_SWITCH) {
 	return;
 }
+
+/**
+ * Heroku buildpack
+ * https://buildpack-registry.s3.amazonaws.com/buildpacks/heroku/google-chrome.tgz
+ * 
+ */
 const schema = require('../modules/core-schema.js');
 const opt = {
 	upsert: true,

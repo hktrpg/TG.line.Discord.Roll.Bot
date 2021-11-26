@@ -64,7 +64,7 @@ const client = new Client({
 client.on('authenticated', async (session) => {
 	sessionData = session;
 	if (process.env._ && process.env._.indexOf("heroku") && process.env.mongoURL) {
-		await schema.whatsapp.findOneAndUpdate({}, { sessionData: sessionData }, opt)
+		await schema.whatsapp.findOneAndUpdate({}, { sessionData: JSON.stringify(session) }, opt)
 	} else {
 		require('fs').writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
 			if (err) {
@@ -320,5 +320,6 @@ process.on('unhandledRejection', () => {
 });
 
 async function updateSessionData() {
-	sessionData = await schema.whatsapp.findOne({})
+	let data = await schema.whatsapp.findOne({});
+	sessionData = JSON.parse(data);
 }

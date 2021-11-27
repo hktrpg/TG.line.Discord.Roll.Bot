@@ -2,7 +2,7 @@
 if (!process.env.mongoURL) {
     return;
 }
-const mongoose = require('./core-db-connector.js').mongoose;
+const mongoose = require('./db-connector.js').mongoose;
 //const Schema = mongoose.Schema;
 //const Message = mongoose.model('Message', schema);
 

@@ -2,7 +2,7 @@
 if (!process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	return;
 }
-exports.analytics = require('./core-analytics');
+exports.analytics = require('./analytics');
 const EXPUP = require('./level').EXPUP || function () { };
 const line = require('@line/bot-sdk');
 const express = require('express');

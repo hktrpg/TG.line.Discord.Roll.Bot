@@ -59,7 +59,7 @@ const io = require('socket.io')(server);
 const records = require('./records.js');
 const port = process.env.PORT || 20721;
 var channelKeyword = '';
-exports.analytics = require('./core-analytics');
+exports.analytics = require('./analytics');
 
 // 加入線上人數計數
 let onlineCount = 0;

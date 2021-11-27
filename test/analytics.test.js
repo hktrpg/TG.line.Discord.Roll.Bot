@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-const parseInput = require('../modules/core-analytics').parseInput;
+const parseInput = require('../modules/analytics').parseInput;
 var expect = require('chai').expect;
 
 describe('測試所有指令輸出有反應', async () => {

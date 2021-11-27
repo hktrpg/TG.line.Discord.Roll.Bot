@@ -11,7 +11,7 @@
 }())
 
 
-const schema = require('../modules/core-schema.js');
+const schema = require('./core-schema.js');
 const debugMode = (process.env.DEBUG) ? true : false;
 const msgSplitor = (/\S+/ig);
 const courtMessage = require('./logs').courtMessage || function () { };

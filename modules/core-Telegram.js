@@ -6,7 +6,7 @@ if (!process.env.TELEGRAM_CHANNEL_SECRET) {
 const TelegramBot = require('node-telegram-bot-api');
 const agenda = require('../modules/core-schedule')
 const rollText = require('./getRoll').rollText;
-exports.analytics = require('./core-analytics');
+exports.analytics = require('./analytics');
 
 
 const TGclient = new TelegramBot(process.env.TELEGRAM_CHANNEL_SECRET, { polling: true });

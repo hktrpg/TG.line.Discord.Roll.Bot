@@ -34,7 +34,7 @@ var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM')
 
 const newMessage = require('./message');
 
-exports.analytics = require('./core-analytics');
+exports.analytics = require('./analytics');
 const {
 	Client
 } = require('whatsapp-web.js');

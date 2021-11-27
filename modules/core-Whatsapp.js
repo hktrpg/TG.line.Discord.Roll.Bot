@@ -45,14 +45,18 @@ const SESSION_FILE_PATH = './modules/whatsapp-session.json';
 
 // Load the session data if it has been previously saved
 let sessionData;
-if (require('fs').existsSync(SESSION_FILE_PATH)) {
-	sessionData = JSON.parse(require('fs').readFileSync(SESSION_FILE_PATH).toString());
-}
 
-
-if (process.env._ && process.env._.indexOf("heroku") && process.env.mongoURL) {
-	updateSessionData();
+(async () => {
+	console.log('Datataxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+})()
+async function hello() {
+	console.log('Datata')
+	let data = await schema.whatsapp.findOne({});
+	sessionData = JSON.parse(data);
+	console.log('schema.whatsapp.findOne',data)
 }
+hello();
+
 const herokuPuppeteer = { headless: true, 'executablePath': '/app/.apt/usr/bin/google-chrome-stable' };
 const normalPuppeteer = { args: ['--no-sandbox', '--disable-setuid-sandbox'] };
 const client = new Client({
@@ -63,15 +67,9 @@ const client = new Client({
 // Save session values to the file upon successful auth
 client.on('authenticated', async (session) => {
 	sessionData = session;
-	if (process.env._ && process.env._.indexOf("heroku") && process.env.mongoURL) {
-		await schema.whatsapp.findOneAndUpdate({}, { sessionData: JSON.stringify(session) }, opt)
-	} else {
-		require('fs').writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
-			if (err) {
-				console.error(err);
-			}
-		});
-	}
+
+	await schema.whatsapp.findOneAndUpdate({}, { sessionData: JSON.stringify(session) }, opt)
+
 });
 
 
@@ -319,7 +317,3 @@ process.on('unhandledRejection', () => {
 
 });
 
-async function updateSessionData() {
-	let data = await schema.whatsapp.findOne({});
-	sessionData = JSON.parse(data);
-}

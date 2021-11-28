@@ -49,6 +49,7 @@ async function hello() {
 	}
 	if (require('fs').existsSync(SESSION_FILE_PATH) && !sessionData) {
 		sessionData = JSON.parse(require('fs').readFileSync(SESSION_FILE_PATH).toString());
+
 	}
 	const client = new Client({
 		session: sessionData,
@@ -80,6 +81,7 @@ async function hello() {
 	client.on('ready', () => {
 		console.log('Client is ready!');
 	});
+
 	/*
 		__proto__:Object {constructor: , __defineGetter__: , __defineSetter__: , …}
 		isForwarded:false
@@ -111,6 +113,7 @@ async function hello() {
 		let mainMsg = inputStr.match(msgSplitor); //定義輸入字串
 		if (mainMsg && mainMsg[0]) {
 			trigger = mainMsg[0].toString().toLowerCase();
+
 		}
 		//指定啟動詞在第一個詞&把大階強制轉成細階
 		if (trigger == ".me") {

@@ -68,8 +68,7 @@ const courtMessage = require('./logs').courtMessage || function () { };
 const newMessage = require('./message');
 
 const reconnectInterval = 1 * 1000 * 60;
-//const shardids = client.shard.ids[0];
-const shardids = 0;
+const shardids = client.shard.ids[0];
 
 const WebSocket = require('ws');
 var ws;

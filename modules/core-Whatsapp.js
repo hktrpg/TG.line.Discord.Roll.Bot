@@ -48,26 +48,43 @@ async function hello() {
 		sessionData = (data && data.sessionData) ? JSON.parse(data.sessionData.toString()) : null;
 	}
 	if (require('fs').existsSync(SESSION_FILE_PATH) && !sessionData) {
-		sessionData = JSON.parse(require('fs').readFileSync(SESSION_FILE_PATH).toString());
+		(require('fs').readFileSync(SESSION_FILE_PATH)) ? sessionData = JSON.parse(require('fs').readFileSync(SESSION_FILE_PATH).toString()) : null;
 
 	}
 	const client = new Client({
-		session: sessionData,
+		session: sessionData || null,
 		puppeteer: (process.env._ && process.env._.indexOf("heroku")) ? herokuPuppeteer : normalPuppeteer
 	});
-
+	console.log('sessionData', sessionData)
+	client.initialize();
 	// Save session values to the file upon successful auth
 	client.on('authenticated', async (session) => {
 		sessionData = session;
 		if (!process.env.mongoURL) {
 			await schema.whatsapp.findOneAndUpdate({}, { sessionData: JSON.stringify(session) }, opt)
+		} else
+			require('fs').writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
+				if (err) {
+					console.error(err);
+				}
+			});
+	});
+
+	client.on('auth_failure', async (msg) => {
+		// Fired if session restore was unsuccessfull
+		console.error('AUTHENTICATION FAILURE', msg);
+		sessionData = '';
+		if (!process.env.mongoURL) {
+			await schema.whatsapp.findOneAndUpdate({}, { sessionData: '' }, opt)
 		}
-		require('fs').writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
+		require('fs').writeFile(SESSION_FILE_PATH, '', function (err) {
 			if (err) {
 				console.error(err);
 			}
 		});
+		hello();
 	});
+
 
 
 	client.on('qr', (qr) => {
@@ -309,7 +326,7 @@ async function hello() {
 
 	});
 
-	client.initialize();
+
 
 
 
@@ -317,6 +334,7 @@ async function hello() {
 
 }
 hello()
+
 function SendToId(targetid, rplyVal, client) {
 	for (let i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 		if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {

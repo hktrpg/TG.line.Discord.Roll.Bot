@@ -258,7 +258,7 @@ async function hello() {
 				break;
 			default:
 				if (displaynamecheck == false) {
-				//	console.log('displaynamecheck False')
+					//	console.log('displaynamecheck False')
 					SendToId(msg.from, rplyVal, client);
 				} else
 					SendToReply(msg, rplyVal);

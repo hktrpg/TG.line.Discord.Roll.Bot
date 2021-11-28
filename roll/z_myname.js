@@ -4,7 +4,7 @@ if (!process.env.mongoURL) {
 }
 const VIP = require('../modules/veryImportantPerson');
 const limitAtArr = [10, 20, 50, 200, 200, 200, 200, 200];
-const schema = require('../modules/core-schema.js');
+const schema = require('../modules/schema.js');
 const opt = {
     upsert: true,
     runValidators: true,

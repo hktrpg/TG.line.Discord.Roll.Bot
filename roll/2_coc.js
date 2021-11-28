@@ -1,6 +1,6 @@
 "use strict";
 const rollbase = require('./rollbase.js');
-const schema = require('../modules/core-schema.js');
+const schema = require('../modules/schema.js');
 const mathjs = require('mathjs');
 var gameName = function () {
 	return '【克蘇魯神話】 cc cc(n)1~2 ccb ccrt ccsu .dp .cc7build .cc6build .cc7bg'

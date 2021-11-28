@@ -11,7 +11,7 @@ const password = process.env.CRYPTO_SECRET,
 //32bit ASCII
 const adminSecret = process.env.ADMIN_SECRET;
 //admin id
-const schema = require('../modules/core-schema.js');
+const schema = require('../modules/schema.js');
 //const VIP = require('../modules/veryImportantPerson');
 var gameName = function () {
     return '【Admin Tool】'

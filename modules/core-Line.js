@@ -7,7 +7,7 @@ const EXPUP = require('./level').EXPUP || function () { };
 const line = require('@line/bot-sdk');
 const express = require('express');
 const msgSplitor = (/\S+/ig);
-const agenda = require('../modules/core-schedule');
+const agenda = require('../modules/schedule');
 const rollText = require('./getRoll').rollText;
 // create LINE SDK config from env variables
 const config = {

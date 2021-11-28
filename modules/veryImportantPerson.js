@@ -1,5 +1,5 @@
 "use strict";
-const schema = require('./core-schema.js');
+const schema = require('./schema.js');
 var viplevel;
 const DIYmode = (process.env.DIY) ? true : false;
 var viplevelCheckGroup = async function (groupID) {

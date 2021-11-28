@@ -4,7 +4,7 @@ if (!process.env.TELEGRAM_CHANNEL_SECRET) {
 }
 
 const TelegramBot = require('node-telegram-bot-api');
-const agenda = require('../modules/core-schedule')
+const agenda = require('../modules/schedule')
 const rollText = require('./getRoll').rollText;
 exports.analytics = require('./analytics');
 

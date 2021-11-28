@@ -21,7 +21,7 @@ const limitArr = (process.env.DEBUG) ? [99, 99, 99, 40, 40, 99, 99, 99] : [2, 20
  * 只有一分鐘限制
  * 
  */
-const schema = require('../modules/core-schema.js');
+const schema = require('../modules/schema.js');
 const fs = require('fs').promises;
 const moment = require('moment-timezone');
 const CryptoJS = require("crypto-js");

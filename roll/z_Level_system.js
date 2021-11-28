@@ -5,7 +5,7 @@ if (!process.env.mongoURL) {
     return;
 }
 var tempSwitchV2 = require('../modules/level');
-const schema = require('../modules/core-schema.js');
+const schema = require('../modules/schema.js');
 const defaultRankWord = "{user.name}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點！\n現在排名是{server.member_count}人中的第{user.Ranking}名！{user.RankingPer}！\n調查經驗是{user.exp}點。 "
 
 var gameName = function () {

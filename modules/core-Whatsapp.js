@@ -8,7 +8,7 @@ if (!process.env.WHATSAPP_SWITCH) {
  * https://buildpack-registry.s3.amazonaws.com/buildpacks/heroku/google-chrome.tgz
  * 
  */
-const schema = require('../modules/core-schema.js');
+const schema = require('../modules/schema.js');
 const opt = {
 	upsert: true,
 	runValidators: true
@@ -46,14 +46,10 @@ const SESSION_FILE_PATH = './modules/whatsapp-session.json';
 // Load the session data if it has been previously saved
 let sessionData;
 
-(async () => {
-	console.log('Datataxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
-})()
+
 async function hello() {
-	console.log('Datata')
 	let data = await schema.whatsapp.findOne({});
 	sessionData = JSON.parse(data);
-	console.log('schema.whatsapp.findOne',data)
 }
 hello();
 

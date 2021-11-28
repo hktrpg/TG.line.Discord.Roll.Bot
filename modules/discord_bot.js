@@ -5,7 +5,7 @@ const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const Discord = require("discord.js-light");
 const { Client, Intents, Permissions } = Discord;
 const rollText = require('./getRoll').rollText;
-const agenda = require('../modules/core-schedule')
+const agenda = require('../modules/schedule')
 
 
 

@@ -5,7 +5,7 @@ if (!process.env.mongoURL) {
 const debugMode = (process.env.DEBUG) ? true : false;
 var variables = {};
 const rollDice = require('./rollbase');
-const schema = require('../modules/core-schema.js');
+const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const limitArr = [4, 20, 20, 30, 30, 99, 99, 99];
 const enRecoverTime = 10 * 60 * 1000; //每10分鐘回複一點;

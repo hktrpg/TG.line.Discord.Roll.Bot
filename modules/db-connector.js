@@ -30,7 +30,6 @@ db.once('open', function () {
     if (!master) return;
     require('fs').readdirSync(__dirname).forEach(function (file) {
         if (file.match(/\.js$/) && file.match(/^core-/)) {
-            console.log('file', file)
             var name = file.replace('.js', '');
             exports[name] = require('./' + file);
         }

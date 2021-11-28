@@ -396,10 +396,10 @@ const myName = mongoose.model('myName', new mongoose.Schema({
     imageLink: String
 }));
 
-
 const whatsapp = mongoose.model('whatsapp', new mongoose.Schema({
     sessionData: String
 }));
+
 module.exports = {
     randomAns,
     block,

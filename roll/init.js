@@ -3,7 +3,7 @@ if (!process.env.mongoURL) {
     return;
 }
 const math = require('mathjs')
-const schema = require('../modules/core-schema.js');
+const schema = require('../modules/schema.js');
 const rollDice = require('./rollbase').rollDiceCommand;
 var gameName = function () {
     return '先攻表功能 .in (remove clear reroll) .init'

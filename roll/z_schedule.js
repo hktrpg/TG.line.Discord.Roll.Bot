@@ -4,10 +4,10 @@ if (!process.env.mongoURL) {
 }
 const VIP = require('../modules/veryImportantPerson');
 const limitAtArr = [5, 25, 50, 200, 200, 200, 200, 200];
-const schema = require('../modules/core-schema')
+const schema = require('../modules/schema')
 const limitCronArr = [2, 5, 10, 20, 30, 99, 99, 99];
 const moment = require('moment');
-const agenda = require('../modules/core-schedule')
+const agenda = require('../modules/schedule')
 
 var gameName = function () {
     return '【定時發訊功能】.at /.cron  mins hours delete show'

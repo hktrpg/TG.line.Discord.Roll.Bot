@@ -7,7 +7,7 @@ const {
     RateLimiterMemory
 } = require('rate-limiter-flexible');
 const msgSplitor = (/\S+/ig)
-const schema = require('./core-schema.js');
+const schema = require('./schema.js');
 const privateKey = (process.env.KEY_PRIKEY) ? process.env.KEY_PRIKEY : null;
 const certificate = (process.env.KEY_CERT) ? process.env.KEY_CERT : null;
 const ca = (process.env.KEY_CA) ? process.env.KEY_CA : null;
@@ -59,7 +59,7 @@ const io = require('socket.io')(server);
 const records = require('./records.js');
 const port = process.env.PORT || 20721;
 var channelKeyword = '';
-exports.analytics = require('./core-analytics');
+exports.analytics = require('./analytics');
 
 // 加入線上人數計數
 let onlineCount = 0;

@@ -1,11 +1,11 @@
 "use strict";
-exports.analytics = require('./core-analytics');
+exports.analytics = require('./analytics');
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const Discord = require("discord.js-light");
 const { Client, Intents, Permissions } = Discord;
 const rollText = require('./getRoll').rollText;
-const agenda = require('../modules/core-schedule')
+const agenda = require('../modules/schedule')
 
 
 
@@ -593,9 +593,7 @@ async function count2() {
 
 // handle the error event
 process.on('unhandledRejection', error => {
-	if (error.message.match('Missing Permissions')) return;
-	if (error.message.match('Cannot send messages to this user')) return;
-	if (error.message.match('Missing Access')) return;
+
 	console.error('Unhandled promise rejection:', error);
 });
 

@@ -3,7 +3,7 @@ if (!process.env.mongoURL) {
     return;
 }
 const rollbase = require('./rollbase.js');
-const schema = require('../modules/core-schema.js');
+const schema = require('../modules/schema.js');
 exports.z_Level_system = require('./z_Level_system');
 const opt = {
     upsert: true,

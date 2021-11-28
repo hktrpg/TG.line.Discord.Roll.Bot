@@ -2,7 +2,7 @@ if (!process.env.mongoURL) return;
 const oneMinuts = (process.env.DEBUG) ? 1 : 60000;
 //60000 一分鐘多久可以升級及增加經驗
 exports.rollbase = require('../roll/rollbase');
-const schema = require('../modules/core-schema.js');
+const schema = require('./schema.js');
 var tempSwitchV2 = [{
     groupid: '',
     SwitchV2: false

@@ -9,7 +9,7 @@ const courtMessage = require('./logs').courtMessage || function () { };
 
 const msgSplitor = (/\S+/ig);
 const Plurk_Client = new PlurkClient(process.env.PLURK_APPKEY, process.env.PLURK_APPSECRET, process.env.PLURK_TOKENKEY, process.env.PLURK_TOKENSECRET);
-exports.analytics = require('./core-analytics');
+exports.analytics = require('./analytics');
 Plurk_Client.request('Users/me')
     .then(profile => {
         console.log(`Plurk 名稱: ${profile.full_name}`);

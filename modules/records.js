@@ -3,7 +3,7 @@
 const {
     EventEmitter
 } = require("events");
-const schema = require('./core-schema.js');
+const schema = require('./schema.js');
 let instance;
 let MAX = 100;
 const Message = schema.chatRoom;

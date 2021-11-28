@@ -1,5 +1,5 @@
 
-const rollDice = require('./core-analytics').parseInput;
+const rollDice = require('./analytics').parseInput;
 
 async function rollText(text) {
     let result = await replaceAsync(text, /\[\[(.*?)\]\]/ig, await myAsyncFn);

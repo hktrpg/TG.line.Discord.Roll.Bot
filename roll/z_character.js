@@ -4,7 +4,7 @@ if (!process.env.mongoURL) {
 }
 var variables = {};
 const rollDice = require('./rollbase').rollDiceCommand;
-const schema = require('../modules/core-schema.js');
+const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const limitArr = [4, 20, 20, 30, 30, 99, 99, 99];
 var gameName = function () {

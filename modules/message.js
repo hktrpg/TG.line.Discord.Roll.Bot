@@ -1,5 +1,5 @@
 const fs = require('fs');
-const schema = require('../modules/core-schema.js');
+const schema = require('./schema.js');
 const crypto = require('crypto');
 
 function joinMessage() {

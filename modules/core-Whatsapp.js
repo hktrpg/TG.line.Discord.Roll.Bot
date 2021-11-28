@@ -48,7 +48,16 @@ async function hello() {
 		sessionData = (data && data.sessionData) ? JSON.parse(data.sessionData.toString()) : null;
 	}
 	if (require('fs').existsSync(SESSION_FILE_PATH) && !sessionData) {
-		(require('fs').readFileSync(SESSION_FILE_PATH)) ? sessionData = JSON.parse(require('fs').readFileSync(SESSION_FILE_PATH).toString()) : null;
+		try {
+			(require('fs').readFileSync(SESSION_FILE_PATH)) ? sessionData = JSON.parse(require('fs').readFileSync(SESSION_FILE_PATH).toString()) : null;
+		} catch (error) {
+			require('fs').unlink(SESSION_FILE_PATH, function (err) {
+				if (err) {
+					console.error(err);
+				}
+			});
+		}
+
 
 	}
 	const client = new Client({
@@ -77,7 +86,7 @@ async function hello() {
 		if (!process.env.mongoURL) {
 			await schema.whatsapp.findOneAndUpdate({}, { sessionData: '' }, opt)
 		}
-		require('fs').writeFile(SESSION_FILE_PATH, '', function (err) {
+		require('fs').unlink(SESSION_FILE_PATH, function (err) {
 			if (err) {
 				console.error(err);
 			}

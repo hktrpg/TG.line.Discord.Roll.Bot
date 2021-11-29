@@ -630,7 +630,7 @@ if (agenda && agenda.agenda) {
 		//const date = new Date(2012, 11, 21, 5, 30, 0);
 		//const date = new Date(Date.now() + 5000);
 		//指定時間一次	
-		if (shardids !== 0) return;
+		//if (shardids !== 0) return;
 		let data = job.attrs.data;
 		let text = await rollText(data.replyText);
 		SendToReplychannel(
@@ -647,7 +647,7 @@ if (agenda && agenda.agenda) {
 		//const date = new Date(2012, 11, 21, 5, 30, 0);
 		//const date = new Date(Date.now() + 5000);
 		//指定時間一次	
-		if (shardids !== 0) return;
+		//if (shardids !== 0) return;
 		let data = job.attrs.data;
 		let text = await rollText(data.replyText);
 		SendToReplychannel(

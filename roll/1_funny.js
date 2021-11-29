@@ -1,9 +1,11 @@
 "use strict";
 var rollbase = require('./rollbase.js');
 var variables = {};
-
+const chineseConv = require('chinese-conv'); //繁簡轉換
+const fetch = require('node-fetch');
+const wiki = require('wikijs').default;
 var gameName = function () {
-	return '【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 每日塔羅 運勢 立flag .me'
+	return '【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 運勢 每日塔羅 每日笑話 每日動漫 每日一言 每日黃曆 每日毒湯 每日情話 每日靈簽 每日急口令 每日大事 每日(星座) 立flag .me'
 }
 
 var gameType = function () {
@@ -11,7 +13,7 @@ var gameType = function () {
 }
 var prefixs = function () {
 	return [{
-		first: /^[.]me$|排序|隨機|choice|^每日塔羅|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸/i,
+		first: /^[.]me$|排序|隨機|choice|^每日塔羅|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸|^每日笑話$|^每日動漫$|^每日一言$|^每日黃曆$|^每日毒湯$|^每日情話$|^每日靈簽$|^每日急口令$|^每日大事$|^每日白羊$|^每日牡羊$|^每日金牛$|^每日雙子$|^每日巨蟹$|^每日獅子$|^每日處女$|^每日天秤$|^每日天平$|^每日天蠍$|^每日射手$|^每日人馬$|^每日摩羯$|^每日山羊$|^每日水瓶$|^每日寶瓶$|^每日雙魚$/i,
 		second: null
 	}]
 }
@@ -34,7 +36,20 @@ var getHelpMessage = async function () {
 
 【塔羅牌占卜】：「大十字塔羅 每日塔羅 時間塔羅」 等關键字可啓動
 
-【隨機死亡FLAG】： 字句開頭或結尾包括「立FLAG」可啓動`
+【隨機死亡FLAG】： 字句開頭或結尾包括「立FLAG」可啓動
+
+【每日功能】
+每日笑話	顯示一條笑話
+每日動漫	顯示一條動漫金句
+每日一言	顯示一條金句
+每日黃曆	顯示今日黃曆
+每日毒湯	顯示一條有毒的雞湯
+每日情話	顯示一條情話
+每日靈簽	抽取一條觀音簽
+每日急口令	顯示一條急口令
+每日大事	顯示今天歷史上的大事
+每日(星座) 顯示每日星座運程 如 每日白羊 每日金牛 每日巨蟹
+`
 }
 var initialize = function () {
 	return variables;
@@ -75,6 +90,9 @@ var rollDiceCommand = async function ({
 */
 
 	switch (true) {
+		case /^help$/i.test(mainMsg[1]):
+			rply.text = await this.getHelpMessage();
+			return rply;
 		case /^排序|排序$/i.test(mainMsg[0]) && (mainMsg.length >= 4):
 			rply.text = SortIt(inputStr, mainMsg);
 			return rply;
@@ -101,6 +119,132 @@ var rollDiceCommand = async function ({
 		case /^[.]me$/i.test(mainMsg[0]):
 			rply.text = me(inputStr);
 			return rply;
+		case /^每日笑話$/.test(mainMsg[0]): {
+			rply.text = await fatchDaily('http://lkaa.top/API/xiaohua/api.php?type=json')
+			return rply;
+		}
+		case /^每日動漫$/.test(mainMsg[0]): {
+			rply.text = await fatchDaily('http://lkaa.top/API/dmyiyan/api.php?type=json')
+			return rply;
+		}
+		case /^每日一言$/.test(mainMsg[0]): {
+			rply.text = await fatchDaily('http://lkaa.top/API/yiyan/api.php?type=json')
+			return rply;
+		}
+		case /^每日黃曆$/.test(mainMsg[0]): {
+			rply.text = await fatchDaily('http://lkaa.top/API/huang/api.php?type=json')
+			return rply;
+		}
+		case /^每日毒湯$/.test(mainMsg[0]): {
+			rply.text = await fatchDaily('http://lkaa.top/API/du/api.php?type=json')
+			return rply;
+		}
+		case /^每日情話$/.test(mainMsg[0]): {
+			rply.text = await fatchDaily('http://lkaa.top/API/qing/api.php?type=json')
+			return rply;
+		}
+		case /^每日靈簽$/.test(mainMsg[0]): {
+			rply.text = await fatchDaily('http://lkaa.top/API/chouq/api.php?type=json')
+			return rply;
+		}
+		case /^每日急口令$/.test(mainMsg[0]): {
+			rply.text = await fatchDaily('http://lkaa.top/API/rao/api.php?type=json')
+			return rply;
+		}
+		case /^每日大事$/.test(mainMsg[0]): {
+			const date = new Date();
+			const day = date.getDate();
+			const month = date.getMonth() + 1;
+			let respond = `${month}月${day}日\n\n`;
+			rply.text = await wiki({
+				apiUrl: 'https://zh.wikipedia.org/w/api.php'
+			}).page(`${month}月${day}日`)
+				.then(async page => {
+					let temp = await page.content();
+					let answerFestival = temp.find(v => {
+						console.log(v.title)
+						return v.title.match(/节日/)
+					})
+					respond += `${answerFestival.title}\n${answerFestival.content}\n\n`
+					let answerBig = temp.find(v => {
+						return v.title.match(/大事记/)
+					})
+					if (answerBig && answerBig.items) answerBig = answerBig.items;
+
+					for (let index = 0; index < answerBig.length; index++) {
+
+						respond += `${answerBig[index].title}\n${answerBig[index].content}\n\n`
+					}
+					return chineseConv.tify(respond)
+				}) //console.log('case: ', rply)
+				.catch(error => {
+					if (error == 'Error: No article found')
+						return '沒有此條目'
+					else {
+						return error
+					}
+				})
+			return rply;
+		}
+		//白羊座、金牛座、雙子座、巨蟹座、獅子座、處女座、天秤座、天蠍座、射手座、摩羯座、水瓶座、雙魚
+		case (/^每日白羊$/.test(mainMsg[0]) || /^每日牡羊$/.test(mainMsg[0])): {
+			rply.text = await fatchDaily('http://lkaa.top/API/xz/api.php?msg=白羊&type=json')
+			return rply;
+		}
+
+		case /^每日金牛$/.test(mainMsg[0]): {
+			rply.text = await fatchDaily('http://lkaa.top/API/xz/api.php?msg=金牛&type=json')
+			return rply;
+		}
+
+		case /^每日雙子$/.test(mainMsg[0]): {
+			rply.text = await fatchDaily('http://lkaa.top/API/xz/api.php?msg=双子&type=json')
+			return rply;
+		}
+
+		case /^每日巨蟹$/.test(mainMsg[0]): {
+			rply.text = await fatchDaily('http://lkaa.top/API/xz/api.php?msg=巨蟹&type=json')
+			return rply;
+		}
+
+		case /^每日獅子$/.test(mainMsg[0]): {
+			rply.text = await fatchDaily('http://lkaa.top/API/xz/api.php?msg=狮子&type=json')
+			return rply;
+		}
+
+		case /^每日處女$/.test(mainMsg[0]): {
+			rply.text = await fatchDaily('http://lkaa.top/API/xz/api.php?msg=处女&type=json')
+			return rply;
+		}
+
+		case (/^每日天秤$/.test(mainMsg[0]) || /^每日天平$/.test(mainMsg[0])): {
+			rply.text = await fatchDaily('http://lkaa.top/API/xz/api.php?msg=天秤&type=json')
+			return rply;
+		}
+
+		case /^每日天蠍$/.test(mainMsg[0]): {
+			rply.text = await fatchDaily('http://lkaa.top/API/xz/api.php?msg=天蝎&type=json')
+			return rply;
+		}
+
+		case (/^每日射手$/.test(mainMsg[0]) || /^每日人馬$/.test(mainMsg[0])): {
+			rply.text = await fatchDaily('http://lkaa.top/API/xz/api.php?msg=射手&type=json')
+			return rply;
+		}
+
+		case (/^每日摩羯$/.test(mainMsg[0]) || /^每日山羊$/.test(mainMsg[0])): {
+			rply.text = await fatchDaily('http://lkaa.top/API/xz/api.php?msg=摩羯&type=json')
+			return rply;
+		}
+
+		case (/^每日水瓶$/.test(mainMsg[0]) || /^每日寶瓶$/.test(mainMsg[0])): {
+			rply.text = await fatchDaily('http://lkaa.top/API/xz/api.php?msg=水瓶&type=json')
+			return rply;
+		}
+		case /^每日雙魚$/.test(mainMsg[0]): {
+			rply.text = await fatchDaily('http://lkaa.top/API/xz/api.php?msg=双鱼&type=json')
+			return rply;
+		}
 		default:
 			break;
 	}
@@ -658,6 +802,27 @@ function SortIt(input, mainMsg) {
 	}
 	return mainMsg[0] + ' \n→ [ ' + a.join(', ') + ' ]';
 }
+async function fatchDaily(url) {
+	try {
+		let reply = '';
+		const response = await fetch(url);
+		const json = await response.json();
+		console.log('json', json)
+		if (json.text) reply = json.text;
+		if (json.data && json.data.text) reply = `${json.data.title || ''}\n${json.data.text || ''}\n${json.data.image || ''}`;
+		return chineseConv.tify(reply) || '沒有結果，請檢查內容'
+	} catch (error) {
+		console.error(error);
+		return error.type;
+	}
+}
+/*來源自 http://lkaa.top
+
+http://api.uuouo.cn/
+http://ybapi.top/
+http://weizhinb.top/
+
+*/
 
 module.exports = {
 	rollDiceCommand: rollDiceCommand,

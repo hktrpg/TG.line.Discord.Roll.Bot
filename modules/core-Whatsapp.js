@@ -19,6 +19,7 @@ if (process.env.BROADCAST) {
 		}
 	});
 }
+const isHeroku = process.env._ && process.env._.indexOf("heroku");
 var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const schema = require('../modules/schema');
 const opt = {
@@ -47,7 +48,7 @@ async function hello() {
 		let data = await schema.whatsapp.findOne({});
 		sessionData = (data && data.sessionData) ? JSON.parse(data.sessionData.toString()) : null;
 	}
-	if (require('fs').existsSync(SESSION_FILE_PATH) && !sessionData) {
+	if (!isHeroku && require('fs').existsSync(SESSION_FILE_PATH) && !sessionData) {
 		try {
 			(require('fs').readFileSync(SESSION_FILE_PATH)) ? sessionData = JSON.parse(require('fs').readFileSync(SESSION_FILE_PATH).toString()) : null;
 		} catch (error) {
@@ -62,16 +63,15 @@ async function hello() {
 	}
 	const client = new Client({
 		session: sessionData || null,
-		puppeteer: (process.env._ && process.env._.indexOf("heroku")) ? herokuPuppeteer : normalPuppeteer
+		puppeteer: (isHeroku) ? herokuPuppeteer : normalPuppeteer
 	});
-	console.log('sessionData', sessionData)
 	client.initialize();
 	// Save session values to the file upon successful auth
 	client.on('authenticated', async (session) => {
 		sessionData = session;
 		if (process.env.mongoURL) {
 			await schema.whatsapp.findOneAndUpdate({}, { sessionData: JSON.stringify(session) }, opt)
-		} else
+		} else if (!isHeroku)
 			require('fs').writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
 				if (err) {
 					console.error(err);
@@ -86,11 +86,13 @@ async function hello() {
 		if (process.env.mongoURL) {
 			await schema.whatsapp.findOneAndUpdate({}, { sessionData: '' }, opt)
 		}
-		require('fs').unlink(SESSION_FILE_PATH, function (err) {
-			if (err) {
-				console.error(err);
-			}
-		});
+		if (!isHeroku) {
+			require('fs').unlink(SESSION_FILE_PATH, function (err) {
+				if (err) {
+					console.error(err);
+				}
+			});
+		}
 		hello();
 	});
 

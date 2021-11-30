@@ -40,10 +40,10 @@ const qrcode = require('qrcode-terminal');
 const SESSION_FILE_PATH = './modules/whatsapp-session.json';
 
 // Load the session data if it has been previously saved
-let sessionData;
+var sessionData;
 
 async function hello() {
-	if (!process.env.mongoURL) {
+	if (process.env.mongoURL) {
 		let data = await schema.whatsapp.findOne({});
 		sessionData = (data && data.sessionData) ? JSON.parse(data.sessionData.toString()) : null;
 	}
@@ -69,7 +69,7 @@ async function hello() {
 	// Save session values to the file upon successful auth
 	client.on('authenticated', async (session) => {
 		sessionData = session;
-		if (!process.env.mongoURL) {
+		if (process.env.mongoURL) {
 			await schema.whatsapp.findOneAndUpdate({}, { sessionData: JSON.stringify(session) }, opt)
 		} else
 			require('fs').writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
@@ -83,7 +83,7 @@ async function hello() {
 		// Fired if session restore was unsuccessfull
 		console.error('AUTHENTICATION FAILURE', msg);
 		sessionData = '';
-		if (!process.env.mongoURL) {
+		if (process.env.mongoURL) {
 			await schema.whatsapp.findOneAndUpdate({}, { sessionData: '' }, opt)
 		}
 		require('fs').unlink(SESSION_FILE_PATH, function (err) {

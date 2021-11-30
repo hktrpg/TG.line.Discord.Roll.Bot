@@ -5,7 +5,7 @@ const chineseConv = require('chinese-conv'); //繁簡轉換
 const fetch = require('node-fetch');
 const wiki = require('wikijs').default;
 var gameName = function () {
-	return '【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 運勢 每日塔羅 每日笑話 每日動漫 每日一言 每日黃曆 每日毒湯 每日情話 每日靈簽 每日急口令 每日大事 每日(星座) 立flag .me'
+	return '【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 運勢 每日塔羅 每日笑話 每日動漫 每日金句 每日黃曆 每日毒湯 每日情話 每日靈簽 每日急口令 每日大事 每日(星座) 立flag .me'
 }
 
 var gameType = function () {
@@ -13,7 +13,7 @@ var gameType = function () {
 }
 var prefixs = function () {
 	return [{
-		first: /^[.]me$|排序|隨機|choice|^每日塔羅|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸|^每日笑話$|^每日動漫$|^每日一言$|^每日黃曆$|^每日毒湯$|^每日情話$|^每日靈簽$|^每日急口令$|^每日大事$|^每日白羊$|^每日牡羊$|^每日金牛$|^每日雙子$|^每日巨蟹$|^每日獅子$|^每日處女$|^每日天秤$|^每日天平$|^每日天蠍$|^每日射手$|^每日人馬$|^每日摩羯$|^每日山羊$|^每日水瓶$|^每日寶瓶$|^每日雙魚$/i,
+		first: /^[.]me$|排序|隨機|choice|^每日塔羅|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸|^每日笑話$|^每日動漫$|^每日金句$|^每日黃曆$|^每日毒湯$|^每日情話$|^每日靈簽$|^每日急口令$|^每日大事$|^每日白羊$|^每日牡羊$|^每日金牛$|^每日雙子$|^每日巨蟹$|^每日獅子$|^每日處女$|^每日天秤$|^每日天平$|^每日天蠍$|^每日射手$|^每日人馬$|^每日摩羯$|^每日山羊$|^每日水瓶$|^每日寶瓶$|^每日雙魚$/i,
 		second: null
 	}]
 }
@@ -41,7 +41,7 @@ var getHelpMessage = async function () {
 【每日功能】
 每日笑話	顯示一條笑話
 每日動漫	顯示一條動漫金句
-每日一言	顯示一條金句
+每日金句	顯示一條金句
 每日黃曆	顯示今日黃曆
 每日毒湯	顯示一條有毒的雞湯
 每日情話	顯示一條情話
@@ -127,7 +127,7 @@ var rollDiceCommand = async function ({
 			rply.text = await fatchDaily('http://lkaa.top/API/dmyiyan/api.php?type=json')
 			return rply;
 		}
-		case /^每日一言$/.test(mainMsg[0]): {
+		case /^每日金句$/.test(mainMsg[0]): {
 			rply.text = await fatchDaily('http://lkaa.top/API/yiyan/api.php?type=json')
 			return rply;
 		}

@@ -19,6 +19,7 @@ if (process.env.BROADCAST) {
 		}
 	});
 }
+
 const isHeroku = process.env._ && process.env._.indexOf("heroku");
 var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const schema = require('../modules/schema');
@@ -42,8 +43,10 @@ const SESSION_FILE_PATH = './modules/whatsapp-session.json';
 
 // Load the session data if it has been previously saved
 var sessionData;
+const maxRetry = 6;
+var retry = 0;
 
-async function hello() {
+async function startUp() {
 	if (process.env.mongoURL) {
 		let data = await schema.whatsapp.findOne({});
 		sessionData = (data && data.sessionData) ? JSON.parse(data.sessionData.toString()) : null;
@@ -69,6 +72,7 @@ async function hello() {
 	// Save session values to the file upon successful auth
 	client.on('authenticated', async (session) => {
 		sessionData = session;
+		retry = 0;
 		if (process.env.mongoURL) {
 			await schema.whatsapp.findOneAndUpdate({}, { sessionData: JSON.stringify(session) }, opt)
 		} else if (!isHeroku)
@@ -82,18 +86,21 @@ async function hello() {
 	client.on('auth_failure', async (msg) => {
 		// Fired if session restore was unsuccessfull
 		console.error('AUTHENTICATION FAILURE', msg);
-		sessionData = '';
-		if (process.env.mongoURL) {
-			await schema.whatsapp.findOneAndUpdate({}, { sessionData: '' }, opt)
+		retry++;
+		if (retry > maxRetry) {
+			sessionData = '';
+			if (process.env.mongoURL) {
+				await schema.whatsapp.findOneAndUpdate({}, { sessionData: '' }, opt)
+			}
+			if (!isHeroku) {
+				require('fs').unlink(SESSION_FILE_PATH, function (err) {
+					if (err) {
+						console.error(err);
+					}
+				});
+			}
 		}
-		if (!isHeroku) {
-			require('fs').unlink(SESSION_FILE_PATH, function (err) {
-				if (err) {
-					console.error(err);
-				}
-			});
-		}
-		hello();
+		startUp();
 	});
 
 
@@ -344,7 +351,7 @@ async function hello() {
 
 
 }
-hello()
+startUp()
 
 function SendToId(targetid, rplyVal, client) {
 	for (let i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {

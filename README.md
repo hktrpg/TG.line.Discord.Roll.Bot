@@ -21,7 +21,7 @@
 ## HKTRPG擲骰子專用機械人 Roll Dice Robot
 
 - HKTRPG是在Discord, Line, Telegram, Whatsapp, Plurk和網頁上都可以使用的骰子機械人！
-  - 功能：暗骰, 各類TRPG骰子擲骰, 頻道經驗值, 占卜, 先攻表, TRPG角色卡, 搜圖, 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, 自定義抽選, wiki查詢, 資料庫快速查詢功能, 定時發訊息功能, 每日笑話, 每日動漫, 每日一言, 每日黃曆, 每日毒湯, 每日情話, 每日靈簽, 每日急口令, 每日大事, 每日(星座)
+  - 功能：暗骰, 各類TRPG骰子擲骰, 自定義骰子, 頻道經驗值, 占卜, 先攻表, TRPG角色卡, 搜圖, 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, wiki查詢, 資料庫快速查詢功能, 定時發訊息功能, 每日笑話, 每日動漫, 每日一言, 每日黃曆, 每日毒湯, 每日情話, 每日靈簽, 每日急口令, 每日大事, 每日(星座)
   - 歡迎加入[開發，求助及TRPG Discord 群組](https://discord.gg/vx4kcm7)
   - 邀請HKTRPG 加入
     - [Discord 邀請連結](http://bit.ly/HKTRPG_DISCORD_)
@@ -277,8 +277,8 @@
   - `.image (項目)` 可以立即隨機搜尋相關照片
   - `.tran (項目)` 立即翻譯係正體中文
 
-- 【自定義回應功能】 `.ra(p)(次數) (add del show 自定關鍵字)`
-  - 這是根據關鍵字來隨機抽選功能,只要符合內容,以後就會隨機抽選
+- 【自定義骰子抽選功能】 `.ra(p)(次數) (add del show 自定關鍵字)`
+  - 這是根據關鍵字來隨機抽選功能,只要符合內容,以後就會隨機抽選/骰子
   - 例如輸入 `.ra add 九大陣營 守序善良 (...太長省略) 中立邪惡 混亂邪惡`
   - 再輸入`.ra 九大陣營`  就會輸出 九大陣營中其中一個
   - 如果輸入`.ra3 九大陣營`  就會輸出 3次九大陣營
@@ -344,7 +344,7 @@ RoboYabaso最早由LarryLo  Retsnimle開發。
 現支援普通擲骰，純計算，趣味擲機擲骰，運勢，克蘇魯神話  
 朱の孤塔，神我狩，迷宮王國，亞俠必死的冒險，忍神，DX2nd,3rd  
 命運Fate，永遠的後日談，劍世界2.5，WOD黑暗世界，  
-自定義回應功能，儲存擲骰指令功能，擲骰開關功能及資料庫功能  
+自定義骰子功能，儲存擲骰指令功能，擲骰開關功能及資料庫功能  
 
 順便宣傳
 <a href="http://www.goddessfantasy.net/bbs/index.php?board=1400.0">香港TRPG區</a>
@@ -623,7 +623,7 @@ Choice：啓動語choice/隨機/選項/選1
 15: (公測中)Wiki查詢/圖片搜索/翻譯 .wiki .image .tran  
 16: (公測中)暗骰GM功能 .drgm (addgm del show) dr ddr dddr  
 17: (公測中)經驗值功能 .level (show config LevelUpWord RankWord)  
-18: (公測中)自定義回應功能 .ra(p)(次數) (add del show 自定關鍵字)  
+18: (公測中)自定義骰子功能 .ra(p)(次數) (add del show 自定關鍵字)  
 19: (公測中)儲存擲骰指令功能 .cmd (add del show 自定關鍵字)  
 20: (公測中)擲骰開關功能 .bk (add del show)  
 21: (公測中)資料庫功能 .db(p) (add del show 自定關鍵字)

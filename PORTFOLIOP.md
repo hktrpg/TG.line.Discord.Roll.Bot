@@ -43,9 +43,9 @@ HKTRPG 興趣使然地創作及維護 TRPG工具，包括
 已經開發四年的骰子機械人，因為一個[教學](https://docs.google.com/document/d/1dYnJqF2_QTp90ld4YXj6X8kgxvjUoHrB4E2seqlDlAk/edit#heading=h.91v9osx4fxtt)而誕生出來。
 
 [29種功能詳情](https://hktrpg.github.io/TG.line.Discord.Roll.Bot/)，包括
-> 暗骰, 各類TRPG骰子擲骰, 頻道經驗值, 頻道遊戲, 占卜, 先攻表, TRPG網上角色卡, 搜圖,
+> 暗骰, 各類TRPG骰子擲骰, 自定義骰子, 頻道經驗值, 頻道遊戲, 占卜, 先攻表, TRPG網上角色卡, 搜圖,
 >
-> 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, 自定義抽選, wiki查詢, 資料庫快速查詢功能
+> 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, wiki查詢, 資料庫快速查詢功能
 
 支援
 

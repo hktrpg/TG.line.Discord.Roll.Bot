@@ -13,7 +13,7 @@ const opt = {
 const VIP = require('../modules/veryImportantPerson');
 const limitArr = [30, 200, 200, 300, 300, 300, 300, 300];
 var gameName = function () {
-    return '(公測中)自定義回應功能 .ra(p)(次數) (add del show 自定關鍵字)'
+    return '(公測中)自定義骰子/回應功能 .ra(p)(次數) (add del show 自定關鍵字)'
 }
 var gameType = function () {
     return 'funny:randomAns:hktrpg'
@@ -25,7 +25,7 @@ var prefixs = function () {
     }]
 }
 const getHelpMessage = async function () {
-    return `【自定義回應功能】
+    return `【自定義骰子/回應功能】
 這是根據關鍵字來隨機抽選功能,只要符合內容,以後就會隨機抽選
 
 輸入.ra add (關鍵字) (選項1) (選項2) (選項3)即可增加關鍵字
@@ -119,7 +119,7 @@ var rollDiceCommand = async function ({
             if (!mainMsg[2])
                 rply.text += ' 沒有關鍵字.'
             if (!mainMsg[4])
-                rply.text += ' 沒有自定義回應,至少兩個.'
+                rply.text += ' 沒有自定義內容,至少兩個.'
             if (!groupid)
                 rply.text += ' 此功能必須在群組中使用.'
             if (groupid && userrole < 1)

@@ -85,7 +85,7 @@ async function startUp() {
 
 	client.on('auth_failure', async (msg) => {
 		// Fired if session restore was unsuccessfull
-		console.error('AUTHENTICATION FAILURE', msg);
+		console.error(`AUTHENTICATION FAILURE: ${msg}\nRetry #${retry}`);
 		retry++;
 		if (retry > maxRetry) {
 			sessionData = '';

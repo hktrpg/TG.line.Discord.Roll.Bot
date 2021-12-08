@@ -286,8 +286,8 @@
     axios "^0.21.1"
 
 "@zetetic/whatsapp-web.js@github:zeteticl/whatsapp-web.js", "whatsapp-web.js@github:zeteticl/whatsapp-web.js":
-  version "1.15.2"
-  resolved "https://codeload.github.com/zeteticl/whatsapp-web.js/tar.gz/e2f05bb37fda148731fecb668ea036ddb176c00f"
+  version "1.15.3"
+  resolved "https://codeload.github.com/zeteticl/whatsapp-web.js/tar.gz/bab1c30bfd40b4b00213a644879871621d7e5354"
   dependencies:
     "@pedroslopez/moduleraid" "^5.0.2"
     fluent-ffmpeg "^2.1.2"

@@ -23,6 +23,22 @@
             background-color: rgba(0, 0, 0, .03);
             border-bottom: 1px solid rgba(0, 0, 0, .125);
         }
+
+        .middleBlock {
+            min-height: 50vh;
+            max-height: 70vh;
+            white-space: pre-wrap"
+
+        }
+
+        @media (max-width: 767.98px) {
+            .middleBlock {
+                min-height: 50vh;
+                max-height: 60vh;
+                white-space: pre-wrap"
+
+            }
+        }
     </style>
     <meta charset="UTF-8">
     <meta content="width=device-width,initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
@@ -136,8 +152,7 @@
                     x <span id="online">0</span></div>
             </div>
         </div>
-        <div class="overflow-auto p-1" id="container-content"
-            style="min-height: 50vh;max-height: 60vh;white-space:pre-wrap">
+        <div class="overflow-auto p-1 middleBlock" id="container-content">
             <div class=" border overflow-auto" id="content">
             </div>
         </div>
@@ -362,7 +377,6 @@
                 return localStorage.getItem(cname) || null;
             }
         });
-     
     </script>
 
 

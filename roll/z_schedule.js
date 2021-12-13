@@ -5,7 +5,7 @@ if (!process.env.mongoURL) {
 const VIP = require('../modules/veryImportantPerson');
 const limitAtArr = [5, 25, 50, 200, 200, 200, 200, 200];
 const schema = require('../modules/schema')
-const limitCronArr = [2, 5, 10, 20, 30, 99, 99, 99];
+const limitCronArr = [2, 15, 30, 45, 99, 99, 99, 99];
 const moment = require('moment');
 const agenda = require('../modules/schedule')
 

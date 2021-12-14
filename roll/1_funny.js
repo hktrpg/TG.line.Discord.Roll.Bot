@@ -162,11 +162,11 @@ var rollDiceCommand = async function ({
 				.then(async page => {
 					let temp = await page.content();
 					let answerFestival = temp.find(v => {
-						return v.title.match(/节日/)
+						return v.title.match(/(节日)|(節日)/)
 					})
 					respond += `${answerFestival.title}\n${answerFestival.content}\n\n`
 					let answerBig = temp.find(v => {
-						return v.title.match(/大事记/)
+						return v.title.match(/(大事记)|(大事記)/)
 					})
 					if (answerBig && answerBig.items) answerBig = answerBig.items;
 
@@ -183,6 +183,7 @@ var rollDiceCommand = async function ({
 						return error
 					}
 				})
+			console.log(rply)
 			return rply;
 		}
 		//白羊座、金牛座、雙子座、巨蟹座、獅子座、處女座、天秤座、天蠍座、射手座、摩羯座、水瓶座、雙魚

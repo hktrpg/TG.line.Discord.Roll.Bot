@@ -370,10 +370,10 @@ if (agenda && agenda.agenda) {
 			data.groupid, text
 		)
 		try {
-			if ((new Date(Date.now()) - data.createAt) >= 30 * 24 * 60 * 60 * 1000) {
+			if ((new Date(Date.now()) - data.createAt) >= 30 * 24 * 60 * 60 * 1000 * 6) {
 				await job.remove();
 				SendToId(
-					data.groupid, "已運行一個月, 移除此定時訊息"
+					data.groupid, "已運行六個月, 移除此定時訊息"
 				)
 			}
 		} catch (e) {

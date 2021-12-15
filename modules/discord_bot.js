@@ -654,10 +654,10 @@ if (agenda && agenda.agenda) {
 			{ replyText: text, channelid: data.channelid, quotes: data.quotes = true }
 		)
 		try {
-			if ((new Date(Date.now()) - data.createAt) >= 30 * 24 * 60 * 60 * 1000) {
+			if ((new Date(Date.now()) - data.createAt) >= 30 * 24 * 60 * 60 * 1000 * 6) {
 				await job.remove();
 				SendToReplychannel(
-					{ replyText: "已運行一個月, 移除此定時訊息", channelid: data.channelid, quotes: data.quotes = true }
+					{ replyText: "已運行六個月, 移除此定時訊息", channelid: data.channelid, quotes: data.quotes = true }
 				)
 			}
 		} catch (e) {

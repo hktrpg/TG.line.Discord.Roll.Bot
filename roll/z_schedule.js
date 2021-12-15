@@ -8,6 +8,7 @@ const schema = require('../modules/schema')
 const limitCronArr = [2, 15, 30, 45, 99, 99, 99, 99];
 const moment = require('moment');
 const agenda = require('../modules/schedule')
+const cronRegex = /^(\d\d)(\d\d)((?:-([1-9]?[1-9]|((mon|tues|wed(nes)?|thur(s)?|fri|sat(ur)?|sun)(day)?))){0,1})/i;
 
 var gameName = function () {
     return '【定時發訊功能】.at /.cron  mins hours delete show'
@@ -35,13 +36,23 @@ var getHelpMessage = function () {
 
     【cron】 每天指定一個時間可以發佈一個信息
     如 1230  2200 (24小時制)
-    可運行一個月, 然後會自動刪除
+    或 1230-2 2200-Sun
+    可運行六個月, 然後會自動刪除
     
     .cron 0831 每天八時三十一分 
     嚎叫吧!
 
-    .cron 1921 每天晚上七時二十一分擲 
+    .cron 1921-2
+    我將會每隔兩天的晚上7時21分發一次訊息
+
+    .cron 1921-wed
+    我將會每個星期三發一次訊息
+
+
+    .cron  每天晚上七時二十一分擲 
     [[CC 80 幸運]]
+
+    星期代碼: Sun Mon Tue Wed thu fri Sat
     
     .cron / .at show 可以顯示已新增的定時訊息
 
@@ -275,13 +286,14 @@ var rollDiceCommand = async function ({
 
             let text = inputStr.replace(/^\s?\S+\s+\S+\s+/, '');
             // "0 6 * * *"
-            let date = `${checkTime.min} ${checkTime.hour} * * *`;
+            let date = `${checkTime.min} ${checkTime.hour} *${checkTime.days ? `/${checkTime.days}` : ''} * ${checkTime.weeks || '*'}`;
+            console.log('date', date)
 
             let callBotname = differentPeformCron(botname);
             const job = agenda.agenda.create(callBotname, { replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid, createAt: new Date(Date.now()) });
             job.repeatEvery(date);
             await job.save();
-            rply.text = `已新增排定內容\n將於每天${checkTime.hour}:${checkTime.min} (24小時制)運行`
+            rply.text = `已新增排定內容\n將於${checkTime.days ? `每隔${checkTime.days}天` : ''}  ${checkTime.weeks ? `每個星期的${checkTime.weeks}` : ''}${!checkTime.weeks && !checkTime.days ? `每天` : ''} ${checkTime.hour}:${checkTime.min} (24小時制)運行`
             return rply;
         }
         default: {
@@ -360,17 +372,22 @@ function checkAtTime(first, second) {
 }
 function checkCronTime(text) {
     //const date = {hour: 14, minute: 30}
-    let hour = text.match(/^(\d\d)/) && text.match(/^(\d\d)/)[1];
-    let min = text.match(/(\d\d)$/) && text.match(/(\d\d)$/)[1];
+    //@{text} - 1133  / 1155-wed / 1125-(1-99)
+    let hour = text.match(cronRegex) && text.match(cronRegex)[1];
+    let min = text.match(cronRegex) && text.match(cronRegex)[2];
+    let days = text.match(cronRegex) && !text.match(cronRegex)[6] && text.match(cronRegex)[4] || null;
+    let weeks = text.match(cronRegex) && text.match(cronRegex)[6] || null;
     if (hour == 24) {
         hour = "00";
     }
     if (min == 60) {
         min = "00";
     }
+    if (weeks) weeks = weeks.substring(0, 3);
+
 
     if (min >= 0 && min <= 60 && hour >= 0 && hour <= 24)
-        return { min, hour };
+        return { min, hour, days, weeks };
     else return;
 }
 

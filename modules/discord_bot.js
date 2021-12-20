@@ -139,7 +139,7 @@ client.on('messageCreate', async message => {
 		inputStr = inputStr.replace(/^.me\s+/i, ' ');
 		if (groupid) {
 			try {
-				message.delete();
+				await message.delete();
 			} catch (error) {
 				error;
 			}
@@ -148,7 +148,7 @@ client.on('messageCreate', async message => {
 		} else {
 			SendToReply({ replyText: inputStr, message });
 			try {
-				message.delete();
+				await message.delete();
 			} catch (error) {
 				error
 			}
@@ -674,74 +674,78 @@ function sendNewstoAll(rply) {
 
 async function repeatMessage(discord, message) {
 	try {
-		discord.delete();
+		await discord.delete();
 	} catch (error) {
 		error
 	}
-
+	let webhook = await manageWebhook(discord);
 	try {
-		const channel = await client.channels.fetch(discord.channelId);
-		let webhooks = await channel.fetchWebhooks();
-		let webhook = webhooks.find(v => {
-			return v.name == 'HKTRPG .me Function' && v.type == "Incoming";
-		})
-		//type Channel Follower
-		//'Incoming'
-		if (!webhook) {
-			await channel.createWebhook("HKTRPG .me Function", { avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" })
-			webhooks = await channel.fetchWebhooks();
-			webhook = webhooks.find(v => {
-				return v.name == 'HKTRPG .me Function' && v.type == "Incoming";
-			})
-		}
-
 		let text = await rollText(message.myName.content);
-		await webhook.send({
+		//threadId: discord.channelId,
+		let obj = {
 			content: text,
 			username: message.myName.username,
 			avatarURL: message.myName.avatarURL
-		});
+		};
+		let pair = webhook.isThread ? { threadId: discord.channelId } : {};
+		await webhook.webhook.send({ ...obj, ...pair });
 	} catch (error) {
-		error
-		await SendToReplychannel({ replyText: '不能成功發送扮演發言.\n 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
+		await SendToReplychannel({ replyText: '不能成功發送扮演發言, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
 		return;
 	}
+
 
 
 }
 
 async function repeatMessages(discord, message) {
 	try {
+		let webhook = await manageWebhook(discord);
+		for (let index = 0; index < message.myNames.length; index++) {
+			const element = message.myNames[index];
+			let text = await rollText(element.content);
+			let obj = {
+				content: text,
+				username: element.username,
+				avatarURL: element.avatarURL
+			};
+			let pair = webhook.isThread ? { threadId: discord.channelId } : {};
+			await webhook.webhook.send({ ...obj, ...pair });
+
+		}
+
+	} catch (error) {
+		await SendToReplychannel({ replyText: '不能成功發送扮演發言, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
+		return;
+	}
+
+}
+async function manageWebhook(discord) {
+	try {
 		const channel = await client.channels.fetch(discord.channelId);
-		let webhooks = await channel.fetchWebhooks();
+		const isThread = channel.isThread();
+		//	console.log('channel', await channel.guild.fetchWebhooks())
+		let webhooks = isThread ? await channel.guild.fetchWebhooks() : await channel.fetchWebhooks();
 		let webhook = webhooks.find(v => {
-			return v.name == 'HKTRPG .me Function' && v.type == "Incoming";
+			return v.name == 'HKTRPG .me Function' && v.type == "Incoming" && ((v.channelId == channel.parentId) || !isThread);
 		})
 		//type Channel Follower
 		//'Incoming'
 		if (!webhook) {
-			await channel.createWebhook("HKTRPG .me Function", { avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" })
+			const hooks = isThread ? await client.channels.fetch(channel.parentId) : channel;
+			await hooks.createWebhook("HKTRPG .me Function", { avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" })
 			webhooks = await channel.fetchWebhooks();
 			webhook = webhooks.find(v => {
 				return v.name == 'HKTRPG .me Function' && v.type == "Incoming";
 			})
 		}
-		for (let index = 0; index < message.myNames.length; index++) {
-			const element = message.myNames[index];
-			let text = await rollText(element.content);
-			await webhook.send({
-				content: text,
-				username: element.username,
-				avatarURL: element.avatarURL
-			});
 
-		}
-
+		return { webhook, isThread };
 	} catch (error) {
-		await SendToReplychannel({ replyText: '不能新增Webhook, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
+		error
+		await SendToReplychannel({ replyText: '不能新增Webhook.\n 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
 		return;
 	}
-
 }
 /**
 .addFields(

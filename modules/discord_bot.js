@@ -5,7 +5,7 @@ const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const Discord = require("discord.js-light");
 const { Client, Intents, Permissions } = Discord;
 const rollText = require('./getRoll').rollText;
-const agenda = require('../modules/schedule')
+const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
 
 
 
@@ -622,11 +622,9 @@ client.login(channelSecret);
 
 
 
-
-
-
-if (agenda && agenda.agenda) {
-	agenda.agenda.define("scheduleAtMessageDiscord", async (job) => {
+(async function () {
+	if (!agenda) return;
+	agenda.define("scheduleAtMessageDiscord", async (job) => {
 		//const date = new Date(2012, 11, 21, 5, 30, 0);
 		//const date = new Date(Date.now() + 5000);
 		//指定時間一次	
@@ -643,7 +641,7 @@ if (agenda && agenda.agenda) {
 		}
 	});
 
-	agenda.agenda.define("scheduleCronMessageDiscord", async (job) => {
+	agenda.define("scheduleCronMessageDiscord", async (job) => {
 		//const date = new Date(2012, 11, 21, 5, 30, 0);
 		//const date = new Date(Date.now() + 5000);
 		//指定時間一次	
@@ -665,7 +663,9 @@ if (agenda && agenda.agenda) {
 		}
 
 	});
-}
+}())
+
+
 function sendNewstoAll(rply) {
 	for (let index = 0; index < rply.target.length; index++) {
 		SendToId(rply.target[index].userID, rply.sendNews);

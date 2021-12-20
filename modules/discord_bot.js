@@ -139,7 +139,7 @@ client.on('messageCreate', async message => {
 		inputStr = inputStr.replace(/^.me\s+/i, ' ');
 		if (groupid) {
 			try {
-				message.delete();
+				await message.delete();
 			} catch (error) {
 				error;
 			}
@@ -148,7 +148,7 @@ client.on('messageCreate', async message => {
 		} else {
 			SendToReply({ replyText: inputStr, message });
 			try {
-				message.delete();
+				await message.delete();
 			} catch (error) {
 				error
 			}
@@ -674,7 +674,7 @@ function sendNewstoAll(rply) {
 
 async function repeatMessage(discord, message) {
 	try {
-		discord.delete();
+		await discord.delete();
 	} catch (error) {
 		error
 	}

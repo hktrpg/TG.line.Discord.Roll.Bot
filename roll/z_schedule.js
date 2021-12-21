@@ -9,6 +9,9 @@ const limitCronArr = [2, 15, 30, 45, 99, 99, 99, 99];
 const moment = require('moment');
 const agenda = require('../modules/schedule')
 const cronRegex = /^(\d\d)(\d\d)((?:-([1-9]?[1-9]|((mon|tues|wed(nes)?|thur(s)?|fri|sat(ur)?|sun)(day)?))){0,1})/i;
+const validDays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+
+1
 
 var gameName = function () {
     return '【定時發訊功能】.at /.cron  mins hours delete show'
@@ -45,9 +48,11 @@ var getHelpMessage = function () {
     .cron 1921-2
     我將會每隔兩天的晚上7時21分發一次訊息
 
-    .cron 1921-wed
-    我將會每個星期三發一次訊息
+    .cron 1921-wed-mon
+    我將會每個星期一和三發一次訊息
 
+    .cron 1921-2-wed-sun
+    我將會每隔二天，如果是星期三或星期日就發一次訊息
 
     .cron  每天晚上七時二十一分擲 
     [[CC 80 幸運]]
@@ -281,19 +286,16 @@ var rollDiceCommand = async function ({
                 rply.text = `輸入出錯\n ${this.getHelpMessage()}`;
                 return rply;
             }
-
-
-
             let text = inputStr.replace(/^\s?\S+\s+\S+\s+/, '');
             // "0 6 * * *"
-            let date = `${checkTime.min} ${checkTime.hour} *${checkTime.days ? `/${checkTime.days}` : ''} * ${checkTime.weeks || '*'}`;
-            console.log('date', date)
+            let date = `${checkTime.min} ${checkTime.hour} *${checkTime.days ? `/${checkTime.days}` : ''} * ${(checkTime.weeks.length) ? checkTime.weeks : '*'}`;
+            //  console.log('date', date)
 
             let callBotname = differentPeformCron(botname);
             const job = agenda.agenda.create(callBotname, { replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid, createAt: new Date(Date.now()) });
             job.repeatEvery(date);
             await job.save();
-            rply.text = `已新增排定內容\n將於${checkTime.days ? `每隔${checkTime.days}天` : ''}  ${checkTime.weeks ? `每個星期的${checkTime.weeks}` : ''}${!checkTime.weeks && !checkTime.days ? `每天` : ''} ${checkTime.hour}:${checkTime.min} (24小時制)運行`
+            rply.text = `已新增排定內容\n將於${checkTime.days ? `每隔${checkTime.days}天` : ''}  ${checkTime.weeks.length ? `每個星期的${checkTime.weeks}` : ''}${!checkTime.weeks && !checkTime.days ? `每天` : ''} ${checkTime.hour}:${checkTime.min} (24小時制)運行`
             return rply;
         }
         default: {
@@ -376,14 +378,18 @@ function checkCronTime(text) {
     let hour = text.match(cronRegex) && text.match(cronRegex)[1];
     let min = text.match(cronRegex) && text.match(cronRegex)[2];
     let days = text.match(cronRegex) && !text.match(cronRegex)[6] && text.match(cronRegex)[4] || null;
-    let weeks = text.match(cronRegex) && text.match(cronRegex)[6] || null;
+    //let weeks = text.match(cronRegex) && text.match(cronRegex)[6] || null;
+    let weeks = []
     if (hour == 24) {
         hour = "00";
     }
     if (min == 60) {
         min = "00";
     }
-    if (weeks) weeks = weeks.substring(0, 3);
+    for (let index = 0; index < validDays.length; index++) {
+        text.toLowerCase().indexOf(validDays[index]) >= 0 ? weeks.push(index) : null
+
+    }
 
 
     if (min >= 0 && min <= 60 && hour >= 0 && hour <= 24)

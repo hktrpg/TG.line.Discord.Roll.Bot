@@ -29,6 +29,8 @@ const getHelpMessage = async function () {
 這是根據關鍵字來隨機抽選功能,只要符合內容,以後就會隨機抽選
 
 輸入.ra add (關鍵字) (選項1) (選項2) (選項3)即可增加關鍵字
+重覆輸入，可以增加選項，總共上限3000字
+
 輸入.ra show 顯示所有關鍵字及編號
 輸入.ra show (關鍵字)顯示內容
 輸入.ra del (關鍵字) 即可刪除
@@ -106,7 +108,7 @@ var rollDiceCommand = async function ({
             rply.text = await this.getHelpMessage();
             rply.quotes = true;
             return rply;
-        case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
+        case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]): {
             //
             //增加自定義關鍵字
             // .ra[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
@@ -129,12 +131,23 @@ var rollDiceCommand = async function ({
                 return rply;
             }
             getData = await schema.randomAns.findOne({ groupid: groupid })
-            if (getData)
-                check = await getData.randomAnsfunction.find(e =>
-                    e[0].toLowerCase() == mainMsg[2].toLowerCase()
-                )
-            if (check) {
-                rply.text = '新增失敗. 重複關鍵字'
+            let update = false;
+            let findIndex = getData && getData.randomAnsfunction.findIndex((e) => {
+                return e && e[0] && e[0].toLowerCase() == mainMsg[2].toLowerCase()
+            })
+            if (findIndex >= 0 && findIndex != null) {
+                let tempCheck = getData.randomAnsfunction[findIndex].join('') + mainMsg.slice(3).join('')
+                if (tempCheck.length > 3000) {
+                    rply.text = '更新失敗. 總內容不得超過3000字'
+                    return rply;
+                } else {
+                    update = true;
+                    getData.randomAnsfunction.set(findIndex, [...getData.randomAnsfunction[findIndex], ...mainMsg.slice(3)])
+                }
+            }
+            if (update) {
+                await getData.save();
+                rply.text = `已更新!\n.ra show ${mainMsg[2]} 可以顯示所有內容`
                 return rply;
             }
             if (getData && getData.randomAnsfunction.length >= limit) {
@@ -153,7 +166,7 @@ var rollDiceCommand = async function ({
                 rply.text = '新增成功: ' + mainMsg[2]
             } else rply.text = '新增失敗'
             return rply;
-        case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]):
+        } case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]):
             //
             //刪除自定義關鍵字
             //

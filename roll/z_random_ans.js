@@ -29,6 +29,8 @@ const getHelpMessage = async function () {
 這是根據關鍵字來隨機抽選功能,只要符合內容,以後就會隨機抽選
 
 輸入.ra add (關鍵字) (選項1) (選項2) (選項3)即可增加關鍵字
+重覆輸入，可以增加選項，總共上限3000字
+
 輸入.ra show 顯示所有關鍵字及編號
 輸入.ra show (關鍵字)顯示內容
 輸入.ra del (關鍵字) 即可刪除
@@ -136,7 +138,7 @@ var rollDiceCommand = async function ({
             if (findIndex >= 0 && findIndex != null) {
                 let tempCheck = getData.randomAnsfunction[findIndex].join('') + mainMsg.slice(3).join('')
                 if (tempCheck.length > 3000) {
-                    rply.text = '新增失敗. 總內容超過3000'
+                    rply.text = '更新失敗. 總內容不得超過3000字'
                     return rply;
                 } else {
                     update = true;
@@ -145,7 +147,7 @@ var rollDiceCommand = async function ({
             }
             if (update) {
                 await getData.save();
-                rply.text = "已更新!"
+                rply.text = `已更新!\n.ra show ${mainMsg[2]} 可以顯示所有內容`
                 return rply;
             }
             if (getData && getData.randomAnsfunction.length >= limit) {

@@ -106,7 +106,7 @@ var rollDiceCommand = async function ({
             rply.text = await this.getHelpMessage();
             rply.quotes = true;
             return rply;
-        case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
+        case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]): {
             //
             //增加自定義關鍵字
             // .ra[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
@@ -129,12 +129,23 @@ var rollDiceCommand = async function ({
                 return rply;
             }
             getData = await schema.randomAns.findOne({ groupid: groupid })
-            if (getData)
-                check = await getData.randomAnsfunction.find(e =>
-                    e[0].toLowerCase() == mainMsg[2].toLowerCase()
-                )
-            if (check) {
-                rply.text = '新增失敗. 重複關鍵字'
+            let update = false;
+            let findIndex = getData && getData.randomAnsfunction.findIndex((e) => {
+                return e && e[0] && e[0].toLowerCase() == mainMsg[2].toLowerCase()
+            })
+            if (findIndex >= 0 && findIndex != null) {
+                let tempCheck = getData.randomAnsfunction[findIndex].join('') + mainMsg.slice(3).join('')
+                if (tempCheck.length > 3000) {
+                    rply.text = '新增失敗. 總內容超過3000'
+                    return rply;
+                } else {
+                    update = true;
+                    getData.randomAnsfunction.set(findIndex, [...getData.randomAnsfunction[findIndex], ...mainMsg.slice(3)])
+                }
+            }
+            if (update) {
+                await getData.save();
+                rply.text = "已更新!"
                 return rply;
             }
             if (getData && getData.randomAnsfunction.length >= limit) {
@@ -153,7 +164,7 @@ var rollDiceCommand = async function ({
                 rply.text = '新增成功: ' + mainMsg[2]
             } else rply.text = '新增失敗'
             return rply;
-        case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]):
+        } case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]):
             //
             //刪除自定義關鍵字
             //

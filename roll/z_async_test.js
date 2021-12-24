@@ -9,13 +9,16 @@ var variables = {};
 var gameName = function () {
 	return 'Wiki查詢/圖片搜索 .wiki .image .tran'
 }
+const { GSearch, GNews, GBooks, GVideo, GShop, GScholar, BASearch } = require('senginta')
+
+
 
 var gameType = function () {
 	return 'funny:Wiki:hktrpg'
 }
 var prefixs = function () {
 	return [{
-		first: /^[.]wiki$|^[.]tran$|^[.]tran[.]\S+$|^[.]image$|^[.]imagee$/i,
+		first: /^[.]wiki$|^[.]tran$|^[.]tran[.]\S+$|^[.]image$|^[.]imagee$|^[.]video$|/i,
 		second: null
 	}]
 
@@ -120,11 +123,29 @@ var rollDiceCommand = async function ({
 				return rply;
 			}
 			return rply;
+		case /\S+/.test(mainMsg[1]) && /^[.]video$/.test(mainMsg[0]):
+			{	//成人版
+				try {
+
+					let a = await try_GSearch('Hello')
+					console.log('a', a)
+					rply.text = await searchImage(inputStr, mainMsg, false)
+					rply.type = 'image'
+				} catch (error) {
+					console.log('.image error')
+					return rply;
+				}
+				return rply;
+			}
 		default:
 			break;
 	}
 }
-
+async function try_GSearch(cb) {
+	const search_spider = new BASearch(cb)
+	const result = await search_spider.get_all()
+	return result;
+}
 async function searchImage(inputStr, mainMsg, safe) {
 	let keyword = inputStr.replace(mainMsg[0] + " ", "")
 	//let page = Math.floor((Math.random() * (10)) * 10) + 1;

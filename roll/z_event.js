@@ -403,7 +403,7 @@ exp:SAN
                     });
 
                 }
-                if (!eventMember.energy) {
+                if (!eventMember.energy || !eventMember.lastActiveAt) {
                     eventMember.energy = maxLv + 20;
                 }
 
@@ -477,7 +477,7 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
 
                 }
 
-                if (!eventMember.energy) {
+                if (!eventMember.energy || !eventMember.lastActiveAt) {
                     eventMember.energy = maxLv + 20;
                 }
 
@@ -485,7 +485,7 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                 let EnergyRecover = Math.round(((new Date(Date.now()) - new Date(eventMember.lastActiveAt))) / enRecoverTime);
 
                 eventMember.energy = Math.min(maxLv + 20, EnergyRecover + eventMember.energy);
-                if (EnergyRecover > 0)
+                if (EnergyRecover > 0 || !eventMember.lastActiveAt)
                     eventMember.lastActiveAt = new Date(Date.now());
                 (debugMode) ? eventMember.energy = 99 : null;
 

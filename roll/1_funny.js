@@ -807,7 +807,6 @@ async function fatchDaily(url) {
 		let reply = '';
 		const response = await fetch(url);
 		const json = await response.json();
-		console.log('json', json)
 		if (json.text) reply = json.text;
 		if (json.data && (json.data.text || json.data.image || json.data.title)) reply = `${json.data.title ? json.data.title + '\n' : ''}${json.data.text ? json.data.text + '\n' : ''}${json.data.image || ''}`;
 		return chineseConv.tify(reply) || '沒有結果，請檢查內容'

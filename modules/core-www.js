@@ -82,9 +82,7 @@ www.get('/api/:message', async (req, res) => {
         req.socket.remoteAddress ||
         null;
     if (req && req.params && !req.params.message) return;
-
     if (ip && await limitRaterApi(ip)) return;
-    console.log(ip)
     let rplyVal = {}
     var mainMsg = req.params.message.match(msgSplitor); // 定義輸入字串
     if (mainMsg && mainMsg[0])

@@ -99,8 +99,6 @@ www.get('/api/:message', async (req, res) => {
     if (!rplyVal || !rplyVal.text) rplyVal.text = null;
     res.writeHead(200, { 'Content-type': 'application/json' })
     res.end(`{"message":"${rplyVal.text}"}`)
-
-
 });
 
 www.get('/card', (req, res) => {

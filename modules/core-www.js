@@ -10,6 +10,7 @@ const msgSplitor = (/\S+/ig)
 const schema = require('./schema.js');
 const privateKey = (process.env.KEY_PRIKEY) ? process.env.KEY_PRIKEY : null;
 const certificate = (process.env.KEY_CERT) ? process.env.KEY_CERT : null;
+const APIswitch = (process.env.API) ? process.env.API : null;
 const ca = (process.env.KEY_CA) ? process.env.KEY_CA : null;
 const isMaster = (process.env.MASTER) ? process.env.MASTER : null;
 const www = require('./core-Line').app;
@@ -32,7 +33,7 @@ const rateLimiterCard = new RateLimiterMemory({
 });
 
 const rateLimiterApi = new RateLimiterMemory({
-    points: 360, // 5 points
+    points: 10000, // 5 points
     duration: 10, // per second
 });
 
@@ -72,12 +73,13 @@ www.get('/', (req, res) => {
     res.sendFile(process.cwd() + '/views/index.html');
 });
 www.get('/api', async (req, res) => {
-    if (await limitRaterApi(req.ip)) return;
+    if (!APIswitch || await limitRaterApi(req.ip)) return;
     res.writeHead(200, { 'Content-type': 'application/json' })
     res.end('{"message":"歡迎來到HKTRPG API，使用的話，請在/api/後輸入內容"}')
 });
 
 www.get('/api/:message', async (req, res) => {
+    if (!APIswitch) return;
     var ip = req.headers['x-forwarded-for'] ||
         req.socket.remoteAddress ||
         null;

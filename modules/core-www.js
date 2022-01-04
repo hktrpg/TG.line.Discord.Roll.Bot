@@ -10,6 +10,7 @@ const msgSplitor = (/\S+/ig)
 const schema = require('./schema.js');
 const privateKey = (process.env.KEY_PRIKEY) ? process.env.KEY_PRIKEY : null;
 const certificate = (process.env.KEY_CERT) ? process.env.KEY_CERT : null;
+const APIswitch = (process.env.API) ? process.env.API : null;
 const ca = (process.env.KEY_CA) ? process.env.KEY_CA : null;
 const isMaster = (process.env.MASTER) ? process.env.MASTER : null;
 const www = require('./core-Line').app;
@@ -31,6 +32,10 @@ const rateLimiterCard = new RateLimiterMemory({
     duration: 60, // per second
 });
 
+const rateLimiterApi = new RateLimiterMemory({
+    points: 10000, // 5 points
+    duration: 10, // per second
+});
 
 async function read() {
     if (!privateKey) return;
@@ -67,6 +72,46 @@ let onlineCount = 0;
 www.get('/', (req, res) => {
     res.sendFile(process.cwd() + '/views/index.html');
 });
+www.get('/api', async (req, res) => {
+    if (!APIswitch || await limitRaterApi(req.ip)) return;
+    res.writeHead(200, { 'Content-type': 'application/json' })
+    res.end('{"message":"歡迎來到HKTRPG API，使用的話，請在/api/後輸入內容"}')
+});
+
+www.get('/api/:message', async (req, res) => {
+    if (!APIswitch) return;
+    var ip = req.headers['x-forwarded-for'] ||
+        req.socket.remoteAddress ||
+        null;
+    if (req && req.params && !req.params.message) return;
+    if (ip && await limitRaterApi(ip)) return;
+    let rplyVal = {}
+    var mainMsg = req.params.message.match(msgSplitor); // 定義輸入字串
+    if (mainMsg && mainMsg[0])
+        var trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
+
+    // 訊息來到後, 會自動跳到analytics.js進行骰組分析
+    // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+    if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
+        rplyVal = await exports.analytics.parseInput({
+            inputStr: mainMsg.join(' '),
+            botname: "Api"
+        })
+
+    } else {
+        if (channelKeyword == '') {
+            rplyVal = await exports.analytics.parseInput({
+                inputStr: mainMsg.join(' '),
+                botname: "Api"
+            })
+        }
+    }
+
+    if (!rplyVal || !rplyVal.text) rplyVal.text = null;
+    res.writeHead(200, { 'Content-type': 'application/json' })
+    res.end(`{"message":"${rplyVal.text}"}`)
+});
+
 www.get('/card', (req, res) => {
     res.sendFile(process.cwd() + '/views/characterCard.html');
 });
@@ -344,6 +389,15 @@ async function limitRaterChatRoom(address) {
 async function limitRaterCard(address) {
     try {
         await rateLimiterCard.consume(address)
+        return false;
+    } catch (error) {
+        return true;
+    }
+}
+
+async function limitRaterApi(address) {
+    try {
+        await rateLimiterApi.consume(address)
         return false;
     } catch (error) {
         return true;

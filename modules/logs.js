@@ -22,7 +22,9 @@ const RollingLog = {
     WhatsappCountRoll: 0,
     WhatsappCountText: 0,
     PlurkCountRoll: 0,
-    PlurkCountText: 0
+    PlurkCountText: 0,
+    ApiCountRoll: 0,
+    ApiCountText: 0
 };
 
 //Log 開始
@@ -79,7 +81,9 @@ async function saveLog() {
             "RealTimeRollingLogfunction.WhatsappCountRoll": RollingLog.WhatsappCountRoll,
             "RealTimeRollingLogfunction.WhatsappCountText": RollingLog.WhatsappCountText,
             "RealTimeRollingLogfunction.PlurkCountRoll": RollingLog.PlurkCountRoll,
-            "RealTimeRollingLogfunction.PlurkCountText": RollingLog.PlurkCountText
+            "RealTimeRollingLogfunction.PlurkCountText": RollingLog.PlurkCountText,
+            "RealTimeRollingLogfunction.ApiCountRoll": RollingLog.ApiCountRoll,
+            "RealTimeRollingLogfunction.ApiCountText": RollingLog.ApiCountText
         }
     }, {
         upsert: true
@@ -114,7 +118,9 @@ async function pushToDefiniteLog() {
             WhatsappCountRoll: theNewData.RealTimeRollingLogfunction.WhatsappCountRoll,
             WhatsappCountText: theNewData.RealTimeRollingLogfunction.WhatsappCountText,
             PlurkCountRoll: theNewData.RealTimeRollingLogfunction.PlurkCountRoll,
-            PlurkCountText: theNewData.RealTimeRollingLogfunction.PlurkCountText
+            PlurkCountText: theNewData.RealTimeRollingLogfunction.PlurkCountText,
+            ApiCountRoll: theNewData.RealTimeRollingLogfunction.ApiCountRoll,
+            ApiCountText: theNewData.RealTimeRollingLogfunction.ApiCountText
         }
     }
     await schema.RollingLog.create(temp);
@@ -162,6 +168,8 @@ function resetLog() {
     RollingLog.WhatsappCountText = 0;
     RollingLog.PlurkCountRoll = 0;
     RollingLog.PlurkCountText = 0;
+    RollingLog.ApiCountRoll = 0;
+    RollingLog.ApiCountText = 0;
 }
 
 
@@ -194,6 +202,10 @@ async function courtMessage({ result, botname, inputStr, shardids = 0 }) {
                 (debugMode) ? console.log('Plurk \'s inputStr: ', inputStr) : '';
                 RollingLog.PlurkCountRoll++;
                 break;
+            case "Api":
+                (debugMode) ? console.log('Api \'s inputStr: ', inputStr) : '';
+                RollingLog.ApiCountRoll++;
+                break;
             default:
                 break;
         }
@@ -219,6 +231,9 @@ async function courtMessage({ result, botname, inputStr, shardids = 0 }) {
                 break;
             case "Plurk":
                 RollingLog.PlurkCountText++;
+                break;
+            case "Api":
+                RollingLog.ApiCountText++;
                 break;
             default:
                 break;

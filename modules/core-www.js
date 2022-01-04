@@ -72,10 +72,35 @@ www.get('/api', (req, res) => {
     res.end('{"message":"歡迎來到HKTRPG API，使用的話，請在/api/後輸入內容"}')
 });
 
-www.get('/api/:message', (req, res) => {
-    console.log(req && req.params && req.params.message)
+www.get('/api/:message', async (req, res) => {
+    if (req && req.params && !req.params.message) return;
+    let rplyVal = {}
+    var mainMsg = req.params.message.match(msgSplitor); // 定義輸入字串
+    if (mainMsg && mainMsg[0])
+        var trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
+
+    // 訊息來到後, 會自動跳到analytics.js進行骰組分析
+    // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+    if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
+        rplyVal = await exports.analytics.parseInput({
+            inputStr: mainMsg.join(' '),
+            botname: "Api"
+        })
+
+    } else {
+        if (channelKeyword == '') {
+            rplyVal = await exports.analytics.parseInput({
+                inputStr: mainMsg.join(' '),
+                botname: "Api"
+            })
+        }
+    }
+
+    if (!rplyVal || !rplyVal.text) rplyVal.text = null;
     res.writeHead(200, { 'Content-type': 'application/json' })
-    res.end('{"name":"John", "age": "12"}')
+    res.end(`{"message":"${rplyVal.text}"}`)
+
+
 });
 
 www.get('/card', (req, res) => {

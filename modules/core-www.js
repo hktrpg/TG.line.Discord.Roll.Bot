@@ -67,6 +67,17 @@ let onlineCount = 0;
 www.get('/', (req, res) => {
     res.sendFile(process.cwd() + '/views/index.html');
 });
+www.get('/api', (req, res) => {
+    res.writeHead(200, { 'Content-type': 'application/json' })
+    res.end('{"message":"歡迎來到HKTRPG API，使用的話，請在/api/後輸入內容"}')
+});
+
+www.get('/api/:message', (req, res) => {
+    console.log(req && req.params && req.params.message)
+    res.writeHead(200, { 'Content-type': 'application/json' })
+    res.end('{"name":"John", "age": "12"}')
+});
+
 www.get('/card', (req, res) => {
     res.sendFile(process.cwd() + '/views/characterCard.html');
 });

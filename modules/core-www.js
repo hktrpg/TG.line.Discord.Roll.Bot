@@ -31,6 +31,10 @@ const rateLimiterCard = new RateLimiterMemory({
     duration: 60, // per second
 });
 
+const rateLimiterApi = new RateLimiterMemory({
+    points: 360, // 5 points
+    duration: 10, // per second
+});
 
 async function read() {
     if (!privateKey) return;
@@ -67,13 +71,20 @@ let onlineCount = 0;
 www.get('/', (req, res) => {
     res.sendFile(process.cwd() + '/views/index.html');
 });
-www.get('/api', (req, res) => {
+www.get('/api', async (req, res) => {
+    if (await limitRaterApi(req.ip)) return;
     res.writeHead(200, { 'Content-type': 'application/json' })
     res.end('{"message":"歡迎來到HKTRPG API，使用的話，請在/api/後輸入內容"}')
 });
 
 www.get('/api/:message', async (req, res) => {
+    var ip = req.headers['x-forwarded-for'] ||
+        req.socket.remoteAddress ||
+        null;
     if (req && req.params && !req.params.message) return;
+
+    if (ip && await limitRaterApi(ip)) return;
+    console.log(ip)
     let rplyVal = {}
     var mainMsg = req.params.message.match(msgSplitor); // 定義輸入字串
     if (mainMsg && mainMsg[0])
@@ -378,6 +389,15 @@ async function limitRaterChatRoom(address) {
 async function limitRaterCard(address) {
     try {
         await rateLimiterCard.consume(address)
+        return false;
+    } catch (error) {
+        return true;
+    }
+}
+
+async function limitRaterApi(address) {
+    try {
+        await rateLimiterApi.consume(address)
         return false;
     } catch (error) {
         return true;

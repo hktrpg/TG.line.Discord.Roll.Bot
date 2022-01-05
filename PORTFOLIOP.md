@@ -9,6 +9,7 @@ HKTRPG 興趣使然地創作及維護 TRPG工具，包括
 - 擲骰平台 - [TRPG擲骰聊天室](#擲骰平台)，[手機擲骰](#擲骰平台)
 - 跑團平台 - [烏冬](#跑團平台)，[冰丼](#跑團平台)
 - 跑團工具 - [跑團工具](#跑團工具)
+- TRPG API - [HKTRPG API](https://www.hktrpg.com:20721/api/)
 - [ROLL20 相關開發](#roll20)
 - [FoundryVTT相關開發](#foundryvtt)
 - [代托管骰子，FVTT](#代托管骰子機械人及foundry-vtt)

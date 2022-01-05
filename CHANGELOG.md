@@ -1,5 +1,22 @@
 # 更新
 
+## 2022/01/05
+
+TRPG API @HKTRPG 服務
+
+回覆格式為JSON，請求方式為GET
+請求的位置:
+<https://www.hktrpg.com:20721/api/>
+
+示範:
+<https://www.hktrpg.com:20721/api/1d100>
+
+[api](views/image/api.png)
+
+## 2022/01/04
+
+每日廢話  (名字) 生產一條你的廢話
+
 ## 2021/11/30
 
 【每日功能】
@@ -25,7 +42,7 @@ Discord shardids
 
 更新
 讓擲骰開關功能的實際行爲符合文檔説明 #496
-感謝 rixinsc 
+感謝 rixinsc
 
 更新
 whatsapp 對登入碼的使用

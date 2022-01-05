@@ -20,7 +20,7 @@
 
 ## HKTRPG擲骰子專用機械人 Roll Dice Robot
 
-- HKTRPG是在Discord, Line, Telegram, Whatsapp, Plurk和網頁上都可以使用的骰子機械人！
+- HKTRPG是在Discord, Line, Telegram, Whatsapp, Plurk, API 和網頁上都可以使用的骰子機械人！
   - 功能：暗骰, 各類TRPG骰子擲骰, 自定義骰子, 頻道經驗值, 占卜, 先攻表, TRPG角色卡, 搜圖, 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, wiki查詢, 資料庫快速查詢功能, 定時發訊息功能, 每日笑話, 每日動漫, 每日一言, 每日黃曆, 每日毒湯, 每日情話, 每日靈簽, 每日急口令, 每日大事, 每日(星座)
   - 歡迎加入[開發，求助及TRPG Discord 群組](https://discord.gg/vx4kcm7)
   - 邀請HKTRPG 加入
@@ -321,6 +321,17 @@
   - `.cron / .at show` 可以顯示已新增的定時訊息
   - `.cron / .at delete (序號)` 可以刪除指定的定時訊息
   - 如 `.at delete 1` 請使用`.at show` 查詢序號
+
+# TRPG API @HKTRPG 服務
+
+回覆格式為JSON，請求方式為GET
+請求的位置:
+<https://www.hktrpg.com:20721/api/>
+
+示範:
+<https://www.hktrpg.com:20721/api/1d100>
+
+[api](views/image/api.png)
 
 # 鳴謝
 

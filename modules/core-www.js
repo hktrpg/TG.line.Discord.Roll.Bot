@@ -75,7 +75,7 @@ www.get('/', (req, res) => {
 www.get('/api', async (req, res) => {
     if (!APIswitch || await limitRaterApi(req.ip)) return;
     res.writeHead(200, { 'Content-type': 'application/json' })
-    res.end('{"message":"歡迎來到HKTRPG API，使用的話，請在/api/後輸入內容"}')
+    res.end('{"message":"welcome to HKTRPG API，To use, please enter the content after /api/ . command bothelp for tutorials."}')
 });
 
 www.get('/api/:message', async (req, res) => {

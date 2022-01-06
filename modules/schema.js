@@ -163,7 +163,9 @@ const RealTimeRollingLog = mongoose.model('RealTimeRollingLog', {
         WhatsappCountRoll: Number,
         WhatsappCountText: Number,
         PlurkCountRoll: Number,
-        PlurkCountText: Number
+        PlurkCountText: Number,
+        ApiCountRoll: Number,
+        ApiCountText: Number
     }
 });
 

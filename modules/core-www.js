@@ -74,19 +74,21 @@ www.get('/', (req, res) => {
 });
 www.get('/api', async (req, res) => {
     if (!APIswitch || await limitRaterApi(req.ip)) return;
-    res.writeHead(200, { 'Content-type': 'application/json' })
-    res.end('{"message":"welcome to HKTRPG API，To use, please enter the content after /api/ . command bothelp for tutorials."}')
-});
 
-www.get('/api/:message', async (req, res) => {
-    if (!APIswitch) return;
+    if (
+        !req || !req.query || !req.query.msg
+    ) {
+        res.writeHead(200, { 'Content-type': 'application/json' })
+        res.end('{"message":"welcome to HKTRPG API，To use, please enter the content in query: msg \n like /api?msg=1d100\n command bothelp for tutorials."}')
+        return;
+    }
+
     var ip = req.headers['x-forwarded-for'] ||
         req.socket.remoteAddress ||
         null;
-    if (req && req.params && !req.params.message) return;
     if (ip && await limitRaterApi(ip)) return;
     let rplyVal = {}
-    var mainMsg = req.params.message.match(msgSplitor); // 定義輸入字串
+    var mainMsg = req.query.msg.match(msgSplitor); // 定義輸入字串
     if (mainMsg && mainMsg[0])
         var trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
 
@@ -110,6 +112,9 @@ www.get('/api/:message', async (req, res) => {
     if (!rplyVal || !rplyVal.text) rplyVal.text = null;
     res.writeHead(200, { 'Content-type': 'application/json' })
     res.end(`{"message":"${rplyVal.text}"}`)
+    return;
+
+
 });
 
 www.get('/card', (req, res) => {

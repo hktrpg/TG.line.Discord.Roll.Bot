@@ -79,7 +79,7 @@ www.get('/api', async (req, res) => {
         !req || !req.query || !req.query.msg
     ) {
         res.writeHead(200, { 'Content-type': 'application/json' })
-        res.end('{"message":"welcome to HKTRPG API，To use, please enter the content in query: msg \n like /api?msg=1d100\n command bothelp for tutorials."}')
+        res.end('{"message":"welcome to HKTRPG API, To use, please enter the content in query: msg \n like /api?msg=1d100\n command bothelp for tutorials."}')
         return;
     }
 

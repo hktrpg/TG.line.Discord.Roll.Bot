@@ -111,7 +111,7 @@ www.get('/api', async (req, res) => {
 
     if (!rplyVal || !rplyVal.text) rplyVal.text = null;
     res.writeHead(200, { 'Content-type': 'application/json' })
-    res.end(`{"message":"${rplyVal.text.replace('\n', '\\n')}"}`)
+    res.end(`{"message":"${jsonEscape(rplyVal.text)}"}`)
     return;
 
 
@@ -449,4 +449,8 @@ function createWebServer() {
         server = require('https').createServer(options, www);
         console.log('https server');
     }
+}
+
+function jsonEscape(str) {
+    return str.replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/\t/g, "\\t");
 }

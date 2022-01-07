@@ -9,7 +9,7 @@ TRPG API @HKTRPG 服務
 <https://www.hktrpg.com:20721/api/>
 
 示範:
-<https://www.hktrpg.com:20721/api/1d100>
+<https://www.hktrpg.com:20721/api?msg=1d100>
 
 [api](views/image/api.png)
 

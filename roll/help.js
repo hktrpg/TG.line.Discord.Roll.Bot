@@ -129,6 +129,7 @@ bothelp Tool	- 查詢trpg 輔助工具🧰
 bothelp admin	- 查詢系統工具⚙️
 bothelp funny	- 查詢趣味功能😂
 bothelp link	- 查詢HKTRPG 不同平台連結🔗
+bothelp about	- 查詢HKTRPG 歷史📜
 --------
 🗂️HKTRPG 作品集, (https://hktrpg.github.io/TG.line.Discord.Roll.Bot/PORTFOLIOP)
 ℹ️如果你需要幫助, 加入我們的支援頻道, (https://discord.gg/vx4kcm7)
@@ -170,6 +171,21 @@ bothelp link	- 查詢HKTRPG 不同平台連結🔗
 			return rply;
 		case /^BASE/i.test(mainMsg[1]):
 			rply.text = await getHelpMessage();
+			return rply;
+		case /^about$/i.test(mainMsg[1]):
+			rply.text = `關於HKTRPG
+
+HKTRPG來源自 機器鴨霸獸 https://docs.google.com/document/d/1dYnJqF2_QTp90ld4YXj6X8kgxvjUoHrB4E2seqlDlAk/edit	
+最早由LarryLo Retsnimle開發，
+是一個開放源碼骰子機器人計畫，供他人使用開發和使用。
+
+現在的HKTRPG基礎是根據該計畫而開發，
+感謝當時源碼大量的注釋，讓當時第一次接觸JS的我，
+慢慢學到怎寫CODE。
+
+現在HKTRPG 以GNU GENERAL PUBLIC LICENSE授權，
+是被廣泛使用的自由軟體授權條款，給予了終端使用者運行、學習、共享和修改軟體的自由。
+`
 			return rply;
 		case /^Dice/i.test(mainMsg[1]):
 			if (mainMsg[1].match(/^DICE$/i)) {

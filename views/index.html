@@ -157,7 +157,9 @@
                     </form>
                 </div>
             </div>
-
+            <button type="button" class="btn btn-info float-right" onclick="save()">
+                <span class="iconify" data-icon="gg:readme" data-inline="false"></span>儲存
+            </button>
             <button type="button" class="btn btn-dark float-right" onclick="readme()">
                 <span class="iconify" data-icon="gg:readme" data-inline="false"></span>說明
             </button>
@@ -251,6 +253,29 @@
         function genName() {
             if (!document.getElementById("name").value)
                 document.getElementById("name").value = "調查員" + Math.floor(Math.random() * 1000) + 1;;
+        }
+
+        function save() {
+            var roomText = document.getElementById("roomNumber");
+            console.log('roomText', document.getElementById(
+                "content").innerText)
+            var string = ('HKTRPG' + (roomText && (
+                roomText.value || ''))) + '\n' + (document.getElementById(
+                "content") && (document.getElementById(
+                "content").innerText || '')).replace(/(.*\d+:\d+:\d+)/g, '\n$1')
+
+
+            var link = document.createElement('a');
+            link.download = 'HKTRPG' + (roomText.value || '');
+            var blob = new Blob([string], {
+                type: 'text/plain;charset=utf-8;'
+            });
+            link.href = window.URL.createObjectURL(blob);
+            console.log('blob', blob)
+            link.click();
+
+
+
         }
 
         function scorllToBottom() {

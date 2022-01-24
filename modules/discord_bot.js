@@ -748,6 +748,64 @@ async function manageWebhook(discord) {
 	}
 }
 /**
+ * 限三個
+ * 流程
+ * .roleReact add
+ * 719561478897795163 🎨
+ * XXXXX C
+ * 
+ * [[message]]
+ * 按以下🎨可得身分XXXX
+ * 
+ * ------
+ * 
+ * HKTRPG 輸出同一個MESSAGE，紀錄這個MESSAGE ID
+ * 
+ * 有人點這個MESSAGE，就給予身份
+ * 
+ * -----
+ * 
+ * .roleInvites add
+ *  719561478897795163 https://discord.gg/BnNFDJ8Wt4
+ * 
+ * 
+ * 
+ */
+
+
+
+client.on('messageReactionAdd', (reaction, user) => {
+	const member = reaction.message.guild.members.cache.get(user.id);
+	if (reaction.message.id === '<貼上訊息 ID>') {
+		const member = reaction.message.guild.members.cache.get(user.id);
+		console.log(reaction);
+		//reaction.message.id 訊息 ID
+		//reaction.emoji.name 🎨
+		// member.roles.add('<貼上身分組 ID>')
+		switch (reaction.emoji.name) {
+			case '🎨':
+				member.roles.add('<貼上身分組 ID>')
+				break;
+			case '💫':
+				member.roles.add('<貼上身分組 ID>')
+				break;
+		}
+	}
+});
+client.on('messageReactionRemove', (reaction, user) => {
+	const member = reaction.message.guild.members.cache.get(user.id);
+	if (reaction.message.id === '<貼上訊息 ID>') {
+		switch (reaction.emoji.name) {
+			case '🎨':
+				member.roles.remove('<貼上身分組 ID>')
+				break;
+			case '💫':
+				member.roles.remove('<貼上身分組 ID>')
+				break;
+		}
+	}
+});
+/**
 .addFields(
 	{ name: 'Regular field title', value: 'Some value here' },
 	{ name: '\u200B', value: '\u200B' },

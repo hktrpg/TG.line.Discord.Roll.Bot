@@ -7,7 +7,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const agenda = require('../modules/schedule')
 const rollText = require('./getRoll').rollText;
 exports.analytics = require('./analytics');
-
+exports.z_stop = require('../roll/z_stop');
 
 const TGclient = new TelegramBot(process.env.TELEGRAM_CHANNEL_SECRET, { polling: true });
 const newMessage = require('./message');
@@ -45,7 +45,7 @@ TGclient.on('text', async (ctx) => {
 		trigger = mainMsg[0].toString().toLowerCase();
 	}
 	//指定啟動詞在第一個詞&把大階強制轉成細階
-	if (trigger == ".me") {
+	if (trigger == ".me" && !z_stop(mainMsg, groupid)) {
 		inputStr = inputStr.replace(/^\.me\s+/i, '');
 		SendToId(ctx.chat.id || userid, inputStr);
 		return;
@@ -399,7 +399,18 @@ function sendNewstoAll(rply) {
 }
 
 
-
+function z_stop(mainMsg, groupid) {
+	if (!Object.keys(exports.z_stop).length || !exports.z_stop.initialize().save) {
+		return false;
+	}
+	let groupInfo = exports.z_stop.initialize().save.find(e => e.groupid == groupid)
+	if (!groupInfo || !groupInfo.blockfunction) return;
+	let match = groupInfo.blockfunction.find(e => mainMsg[0].toLowerCase().includes(e.toLowerCase()))
+	if (match) {
+		return true;
+	} else
+		return false;
+}
 
 
 

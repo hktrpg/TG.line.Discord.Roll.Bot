@@ -6,7 +6,7 @@ const Discord = require("discord.js-light");
 const { Client, Intents, Permissions } = Discord;
 const rollText = require('./getRoll').rollText;
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
-
+exports.z_stop = require('../roll/z_stop');
 
 
 function channelFilter(channel) {
@@ -135,7 +135,7 @@ client.on('messageCreate', async message => {
 
 	let groupid = (message.guildId) ? message.guildId : '';
 	//指定啟動詞在第一個詞&把大階強制轉成細階
-	if (trigger == ".me") {
+	if (trigger == ".me" && !z_stop(mainMsg, groupid)) {
 		inputStr = inputStr.replace(/^.me\s+/i, ' ');
 		if (groupid) {
 			try {
@@ -747,6 +747,20 @@ async function manageWebhook(discord) {
 		return;
 	}
 }
+
+function z_stop(mainMsg, groupid) {
+	if (!Object.keys(exports.z_stop).length || !exports.z_stop.initialize().save) {
+		return false;
+	}
+	let groupInfo = exports.z_stop.initialize().save.find(e => e.groupid == groupid)
+	if (!groupInfo || !groupInfo.blockfunction) return;
+	let match = groupInfo.blockfunction.find(e => mainMsg[0].toLowerCase().includes(e.toLowerCase()))
+	if (match) {
+		return true;
+	} else
+		return false;
+}
+
 /**
 .addFields(
 	{ name: 'Regular field title', value: 'Some value here' },

@@ -54,10 +54,17 @@ var rollDiceCommand = async function ({
             rply.text = await this.getHelpMessage();
             rply.quotes = true;
             return rply;
-        case /^add$/i.test(mainMsg[1]) && /^[\u4e00-\u9fa5a-zA-Z0-9]+$/ig.test(mainMsg[2]) && /^((?!^(b|k|bk)$).)*$/ig.test(mainMsg[2]):
+        case /^add$/i.test(mainMsg[1]) && /^\S+$/ig.test(mainMsg[2]):
             //增加阻擋用關鍵字
             //if (!mainMsg[2]) return;
-            if (!groupid) return;
+            if (!groupid) {
+                rply.text = '此功能必須在群組中使用'
+                return rply;
+            }
+            if (mainMsg[2].length <= 1 || /bk/ig.test(mainMsg[2])) {
+                rply.text = '至少兩個字，及不可以阻擋bk'
+                return rply;
+            }
             lv = await VIP.viplevelCheckGroup(groupid);
             limit = limitArr[lv];
             var findVIP = save.save.find(function (item) {

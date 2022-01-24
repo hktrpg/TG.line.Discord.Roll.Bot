@@ -54,9 +54,8 @@ var parseInput = async function ({
 	}
 
 	//檢查是不是要停止  z_stop功能
-	if (groupid && mainMsg[0]) {
-		let stopmark = await z_stop(mainMsg, groupid);
-		if (stopmark == true) return result;
+	if (groupid && mainMsg[0] && z_stop(mainMsg, groupid)) {
+		return result;
 	}
 
 	//rolldice 擲骰功能
@@ -316,7 +315,7 @@ async function cmdfunction({
 }
 
 
-async function z_stop(mainMsg, groupid) {
+function z_stop(mainMsg, groupid) {
 	if (!Object.keys(exports.z_stop).length || !exports.z_stop.initialize().save) {
 		return false;
 	}

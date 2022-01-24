@@ -9,6 +9,7 @@ const express = require('express');
 const msgSplitor = (/\S+/ig);
 const agenda = require('../modules/schedule');
 const rollText = require('./getRoll').rollText;
+exports.z_stop = require('../roll/z_stop');
 // create LINE SDK config from env variables
 const config = {
 	channelAccessToken: process.env.LINE_CHANNEL_ACCESSTOKEN,
@@ -51,7 +52,7 @@ var handleEvent = async function (event) {
 		trigger = mainMsg[0].toString().toLowerCase();
 	}
 	//指定啟動詞在第一個詞&把大階強制轉成細階
-	if (trigger == ".me") {
+	if (trigger == ".me" && !z_stop(mainMsg, roomorgroupid)) {
 		inputStr = inputStr.replace(/^.me\s+/i, '');
 		if (roomorgroupid) {
 			let temp = HandleMessage(inputStr);
@@ -428,6 +429,20 @@ async function nonDice(event) {
 
 	return null;
 }
+
+function z_stop(mainMsg, groupid) {
+	if (!Object.keys(exports.z_stop).length || !exports.z_stop.initialize().save) {
+		return false;
+	}
+	let groupInfo = exports.z_stop.initialize().save.find(e => e.groupid == groupid)
+	if (!groupInfo || !groupInfo.blockfunction) return;
+	let match = groupInfo.blockfunction.find(e => mainMsg[0].toLowerCase().includes(e.toLowerCase()))
+	if (match) {
+		return true;
+	} else
+		return false;
+}
+
 module.exports = {
 	app,
 	express

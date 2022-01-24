@@ -33,6 +33,7 @@ const normalPuppeteer = { headless: true, args: ['--no-sandbox', '--disable-setu
 const newMessage = require('./message');
 
 exports.analytics = require('./analytics');
+exports.z_stop = require('../roll/z_stop');
 const {
 	Client
 } = require('whatsapp-web.js');
@@ -151,7 +152,7 @@ async function startUp() {
 
 		}
 		//指定啟動詞在第一個詞&把大階強制轉成細階
-		if (trigger == ".me") {
+		if (trigger == ".me" && !z_stop(mainMsg, groupid)) {
 			displaynamecheck = false;
 		}
 		let privatemsg = 0;
@@ -359,4 +360,17 @@ function SendToId(targetid, rplyVal, client) {
 			client.sendMessage(targetid, rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);
 		}
 	}
+}
+
+function z_stop(mainMsg, groupid) {
+	if (!Object.keys(exports.z_stop).length || !exports.z_stop.initialize().save) {
+		return false;
+	}
+	let groupInfo = exports.z_stop.initialize().save.find(e => e.groupid == groupid)
+	if (!groupInfo || !groupInfo.blockfunction) return;
+	let match = groupInfo.blockfunction.find(e => mainMsg[0].toLowerCase().includes(e.toLowerCase()))
+	if (match) {
+		return true;
+	} else
+		return false;
 }

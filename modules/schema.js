@@ -405,16 +405,20 @@ const whatsapp = mongoose.model('whatsapp', new mongoose.Schema({
 const roleReact = mongoose.model('roleReact', new mongoose.Schema({
     message: String,
     messageID: String,
-    roleID: String,
-    emoji: String,
-    groupid: String
+    groupid: String,
+    serial: Number,
+    detail: [{
+        roleID: String,
+        emoji: String,
+    }]
 
 }));
 
 const roleInvites = mongoose.model('roleInvites', new mongoose.Schema({
     roleID: String,
     invitesLink: String,
-    groupid: String
+    groupid: String,
+    serial: Number
 
 }));
 

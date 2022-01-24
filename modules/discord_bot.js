@@ -779,7 +779,6 @@ async function manageWebhook(discord) {
 client.on('messageReactionAdd', (reaction, user) => {
 	const member = reaction.message.guild.members.cache.get(user.id);
 	if (reaction.message.id === '<貼上訊息 ID>') {
-		const member = reaction.message.guild.members.cache.get(user.id);
 		console.log(reaction);
 		//reaction.message.id 訊息 ID
 		//reaction.emoji.name 🎨

@@ -110,20 +110,21 @@ var rollDiceCommand = async function ({
         }
 
         case /^\.roleReact$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
-            if (!groupid) {
-                rply.text = notInGroup();
+            if (!groupid || userrole < 2) {
+                rply.text = rejectUser((!groupid) ? 'notInGroup' : (userrole < 2) ? 'notAdmin' : '');
                 return rply;
             }
-            let myNames = await schema.roleReact.find({ groupid: groupid });
-            if (groupid) {
-                let result = showNames(myNames);
-                if (typeof result == 'string') rply.text = result;
-                else rply.myNames = result;
+            let list = await schema.roleReact.find({ groupid: groupid });
+            rply.text = roleReactList(list);
+            return rply;
+        }
+        case /^\.roleInvites$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
+            if (!groupid || userrole < 2) {
+                rply.text = rejectUser((!groupid) ? 'notInGroup' : (userrole < 2) ? 'notAdmin' : '');
+                return rply;
             }
-
-            else {
-                rply.text = showNamesInText(myNames);
-            }
+            let list = await schema.roleReact.find({ groupid: groupid });
+            rply.text = roleReactList(list);
             return rply;
         }
         case /^\.myname+$/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]): {
@@ -282,9 +283,19 @@ function checkMeName(inputStr) {
 }
 
 
-const notInGroup = () => {
-    return "這功能只可以在頻道中使用"
+const rejectUser = (reason) => {
+    switch (reason) {
+        case 'notInGroup':
+            return "這功能只可以在頻道中使用"
+        case 'notAdmin':
+            return "這功能只可以管理員使用"
+        default:
+            return "這功能未能使用"
+    }
+
 }
+
+
 
 
 function showNames(names) {
@@ -303,17 +314,27 @@ function showNames(names) {
     return reply;
 }
 
-function showNamesInText(names) {
+function roleReactList(list) {
     let reply = '';
-    if (names && names.length > 0) {
-        for (let index = 0; index < names.length; index++) {
-            let name = names[index];
-            reply += `序號#${index + 1} \n${(name.shortName) ? `安安，我是${name.name}，我的別名是${name.shortName}` : `嘻，我的名字是${name.name}`} \n${name.imageLink} \n
-\n使用我來發言的指令是輸入  \n.me${index + 1} 加上你想說的話${(name.shortName) ? `\n或 \n .me${name.shortName} 加上你想說的話` : ''} `
+    if (list && list.length > 0) {
+        list.sort(compareSerial);
+        for (let index = 0; index < list.length; index++) {
+            let detail = list[index];
+            reply += `序號#${detail.serial} \n 訊息: ${detail.message}\n${detail.detail.emoji}\n\n`
         }
     }
-    else reply = "沒有找到角色"
+    else reply = "沒有找到"
     return reply;
+}
+
+function compareSerial(a, b) {
+    if (a.serial < b.serial) {
+        return -1;
+    }
+    if (a.serial > b.serial) {
+        return 1;
+    }
+    return 0;
 }
 
 function showName(names, targetName) {

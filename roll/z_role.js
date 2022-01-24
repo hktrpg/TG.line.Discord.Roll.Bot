@@ -34,6 +34,7 @@ var getHelpMessage = function () {
 https://i.imgur.com/
 
 注意: 此功能需求【編輯身分組】的權限，請確定授權。
+另外，使用者需要【管理者】權限。
 
 指令列表
 
@@ -58,25 +59,26 @@ https://i.imgur.com/
 按😁可得身分組-大笑
 
 2.設定指定邀請連結給予身份組
+如步驟1，記下身份組ID，
+在你群組內的任意的地方(建議開一個只有你看到的群組)按以下格式輸入
 
-2.刪除角色
-.myname delete  序號 / 名字縮寫  
-刪除方式是delete 後面接上序號或名字縮寫
+.roleInvites add
+身份組ID 邀請連結
+
+範例
+.roleInvites add
+719562323951463 https://discord.gg/BnXsXYEs72t4
 
 
-3.顯示角色列表
-.myname show
+3.刪除
+.roleReact delete 序號
+.roleInvites delete 序號
+刪除方式是delete 後面接上序號
 
-4.使用角色發言
-.me(序號/名字縮寫) 訊息
-如
-.me1 泉心慢慢的走到他們旁邊，伺機行動
-.me造 「我接受你的挑戰」 
-.me造 「我接受你的挑戰」 
-[[CC 80]] 
-[[立FLAG]]
 
-支援擲骰，請使用[[]]來包著擲骰指令
+4.顯示列表
+.roleReact show
+.roleInvites show
     `
 }
 var initialize = function () {
@@ -88,6 +90,7 @@ var rollDiceCommand = async function ({
     mainMsg,
     userid,
     botname,
+    userrole,
     groupid
 }) {
     let rply = {
@@ -105,8 +108,13 @@ var rollDiceCommand = async function ({
             rply.quotes = true;
             return rply;
         }
-        case /^\.myname+$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
-            let myNames = await schema.myName.find({ userID: userid });
+
+        case /^\.roleReact$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
+            if (!groupid) {
+                rply.text = notInGroup();
+                return rply;
+            }
+            let myNames = await schema.roleReact.find({ groupid: groupid });
             if (groupid) {
                 let result = showNames(myNames);
                 if (typeof result == 'string') rply.text = result;
@@ -274,6 +282,9 @@ function checkMeName(inputStr) {
 }
 
 
+const notInGroup = () => {
+    return "這功能只可以在頻道中使用"
+}
 
 
 function showNames(names) {

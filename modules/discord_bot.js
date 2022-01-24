@@ -465,8 +465,10 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 			try {
 				if (quotes) {
 					channel.send({ embeds: [convQuotes(sendText[i])] });
-				} else
-					channel.send(sendText[i]);
+				} else {
+					let a = await channel.send(sendText[i]);
+					console.log('a', a.id)
+				}
 				//await message.channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 			}
 			catch (e) {

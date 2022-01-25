@@ -5,6 +5,8 @@ if (!process.env.mongoURL) {
 const VIP = require('../modules/veryImportantPerson');
 const limitAtArr = [3, 10, 50, 200, 200, 200, 200, 200];
 const schema = require('../modules/schema.js');
+const roleReactRegixDetail = /(\d+)\s+([\u{1f300}-\u{1f5ff}\u{1f900}-\u{1f9ff}\u{1f600}-\u{1f64f}\u{1f680}-\u{1f6ff}\u{2600}-\u{26ff}\u{2700}-\u{27bf}\u{1f1e6}-\u{1f1ff}\u{1f191}-\u{1f251}\u{1f004}\u{1f0cf}\u{1f170}-\u{1f171}\u{1f17e}-\u{1f17f}\u{1f18e}\u{3030}\u{2b50}\u{2b55}\u{2934}-\u{2935}\u{2b05}-\u{2b07}\u{2b1b}-\u{2b1c}\u{3297}\u{3299}\u{303d}\u{00a9}\u{00ae}\u{2122}\u{23f3}\u{24c2}\u{23e9}-\u{23ef}\u{25b6}\u{23f8}-\u{23fa}])/gu;
+const roleReactRegixMessage = /\[\[message\]\](.*)/s;
 const opt = {
     upsert: true,
     runValidators: true,
@@ -102,110 +104,107 @@ var rollDiceCommand = async function ({
         rply.text = '此功能只能在Discord中使用'
         return rply
     }
+
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
             rply.text = this.getHelpMessage();
             rply.quotes = true;
             return rply;
         }
-
+        case (!groupid || userrole < 2): {
+            rply.text = rejectUser((!groupid) ? 'notInGroup' : (userrole < 2) ? 'notAdmin' : '');
+            return rply;
+        }
         case /^\.roleReact$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
-            if (!groupid || userrole < 2) {
-                rply.text = rejectUser((!groupid) ? 'notInGroup' : (userrole < 2) ? 'notAdmin' : '');
-                return rply;
-            }
             let list = await schema.roleReact.find({ groupid: groupid });
             rply.text = roleReactList(list);
             return rply;
         }
         case /^\.roleInvites$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
-            if (!groupid || userrole < 2) {
-                rply.text = rejectUser((!groupid) ? 'notInGroup' : (userrole < 2) ? 'notAdmin' : '');
-                return rply;
-            }
-            let list = await schema.roleReact.find({ groupid: groupid });
-            rply.text = roleReactList(list);
+            let list = await schema.roleInvites.find({ groupid: groupid });
+            rply.text = roleInvitesList(list);
             return rply;
         }
-        case /^\.myname+$/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]): {
+        case /^\.roleReact$/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]): {
             if (!mainMsg[2] || !/\d+/i.test(mainMsg[2])) {
-                rply.text = '移除角色指令為 .myname delete (序號/名字縮寫) \n 如 .myname delete 0 / .myname delete 小雲'
+                rply.text = '移除角色指令為 .roleReact delete (序號/名字縮寫) \n 如 .roleReact delete 1'
                 return rply
             }
-            if (mainMsg[2].match(/\d+/)) {
-                try {
-                    let myNames = await schema.myName.find({ userID: userid })
-                    let result = await myNames[mainMsg[2] - 1].deleteOne();
-                    if (result) {
-                        rply.text = `移除成功，${result.name} 已被移除`
-                        return rply
-                    } else {
-                        rply.text = '移除出錯\n移除角色指令為 .myname delete (序號 或 名字縮寫) \n 如 .myname delete 1 / .myname delete 小雲\n序號請使用.myname show 查詢'
-                        return rply
-                    }
-                } catch (error) {
-                    console.error("移除角色失敗, inputStr: ", inputStr);
-                    rply.text = '移除出錯\n移除角色指令為 .myname delete (序號 或 名字縮寫) \n 如 .myname delete 1 / .myname delete 小雲\n序號請使用.myname show 查詢'
-                    return rply
-                }
-            }
-
             try {
-                let myNames = await schema.myName.findOneAndRemove({ userID: userid, shortName: mainMsg[2] })
-
+                let myNames = await schema.roleReact.findOneAndRemove({ groupid: groupid, serial: mainMsg[2] })
                 if (myNames) {
                     rply.text = `移除成功，${myNames}`
                     return rply
                 } else {
-                    rply.text = '移除出錯\n移除角色指令為 .myname delete (序號/名字縮寫) \n 如 .myname delete 1 / .myname delete 小雲\n序號請使用.myname show 查詢'
+                    rply.text = '移除出錯\n移除角色指令為 .roleReact delete (序號) \n 如 .roleReact delete 1 \n序號請使用.roleReact show 查詢'
                     return rply
                 }
             } catch (error) {
                 console.error("移除角色失敗, inputStr: ", inputStr);
-                rply.text = '移除出錯\n移除角色指令為 .myname delete (序號/名字縮寫) \n 如 .myname delete 1 / .myname delete 小雲\n序號請使用.myname show 查詢'
+                rply.text = '移除出錯\n移除角色指令為 .roleReact delete (序號) \n 如 .roleReact delete 1 \n序號請使用.roleReact show 查詢'
                 return rply
             }
         }
-        case /^\.myname$/i.test(mainMsg[0]): {
+        case /^\.roleInvites$/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]): {
+            if (!mainMsg[2] || !/\d+/i.test(mainMsg[2])) {
+                rply.text = '移除角色指令為 .roleInvites delete (序號/名字縮寫) \n 如 .roleInvites delete 1'
+                return rply
+            }
+            try {
+                let myNames = await schema.roleInvites.findOneAndRemove({ groupid: groupid, serial: mainMsg[2] })
+                if (myNames) {
+                    rply.text = `移除成功，${myNames}`
+                    return rply
+                } else {
+                    rply.text = '移除出錯\n移除角色指令為 .roleInvites delete (序號) \n 如 .roleInvites delete 1 \n序號請使用.roleInvites show 查詢'
+                    return rply
+                }
+            } catch (error) {
+                console.error("移除角色失敗, inputStr: ", inputStr);
+                rply.text = '移除出錯\n移除角色指令為 .roleInvites delete (序號) \n 如 .roleInvites delete 1 \n序號請使用.roleInvites show 查詢'
+                return rply
+            }
+        }
+        case /^\.roleReact$/i.test(mainMsg[0]): {
             //.myname 泉心造史 https://example.com/example.jpg
             if (!mainMsg[2]) {
                 rply.text = this.getHelpMessage();
                 rply.quotes = true;
                 return rply;
             }
-            let lv = await VIP.viplevelCheckUser(userid);
+            let lv = await VIP.viplevelCheckGroup(groupid);
             let limit = limitAtArr[lv];
-            let myNamesLength = await schema.myName.countDocuments({ userID: userid })
+            let myNamesLength = await schema.roleReact.countDocuments({ groupid: groupid })
             if (myNamesLength >= limit) {
-                rply.text = '.myname 個人上限為' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                rply.text = '.roleReact 群組上限為' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
                 rply.quotes = true;
                 return rply;
             }
 
             let checkName = checkMyName(inputStr);
-            if (!checkName || !checkName.name || !checkName.imageLink) {
-                rply.text = `輸入出錯\n ${this.getHelpMessage()}`;
+            if (!checkName || !checkName.message || !checkName.detail || checkName.detail.length == 0) {
+                rply.text = `輸入資料失敗，請仔細檢查說明及範例\n ${this.getHelpMessage()}`;
                 return rply;
             }
-            if (!checkName.imageLink.match(/^http/i)) {
-                rply.text = `輸入出錯\n 圖示link 必須符合 http/https 開頭`;
-                return rply;
-            }
-            let myName = {};
+            let list = await schema.roleReact.find({ groupid: groupid }, 'serial')
+            let myName = new schema.roleReact({
+                message: checkName.message,
+                groupid: groupid,
+                serial: findTheNextSerial(list),
+                detail: checkName.detail
+            })
             try {
-                myName = await schema.myName.findOneAndUpdate({ userID: userid, name: checkName.name }, { imageLink: checkName.imageLink, shortName: checkName.shortName }, opt)
+                let data = await myName.save();
+                rply.roleReactFlag = true;
+                rply.roleReactId = data.id;
+                rply.roleReactMessage = checkName.message;
+                rply.roleReactDetail = checkName.detail;
+                return rply;
             } catch (error) {
-                rply.text = `輸入出錯\n ${this.getHelpMessage()}`;
+                console.log('error', error)
+                rply.text = `儲存失敗\n請重新再試，或聯絡HKTRPG作者}`;
                 return rply;
             }
-            rply.text = `已新增角色 - ${myName.name}`;
-            let myNames = await schema.myName.find({ userID: userid })
-
-            if (groupid) { rply.myNames = [showName(myNames, myName.name)]; }
-            else {
-                rply.text += showName(myNames, myName.name).content;
-            }
-            return rply;
         }
         case /^\.me\S+/i.test(mainMsg[0]): {
             //.myname 泉心造史 https://example.com/example.jpg
@@ -264,14 +263,20 @@ function showMessage(myName, inputStr) {
 
 
 function checkMyName(inputStr) {
-    let name = inputStr.replace(/^\s?\S+\s+/, '');
-    let finalName = {}
-    if (name.match(/^".*"/)) {
-        finalName = name.match(/"(.*)"\s+(\S+)\s*(\S*)/)
-    } else {
-        finalName = name.match(/^(\S+)\s+(\S+)\s*(\S*)/)
+    let message = inputStr.match(roleReactRegixMessage)
+    inputStr = inputStr.replace(roleReactRegixMessage)
+    let detail = []
+    let detailTemp = inputStr.match(roleReactRegixDetail);
+    for (let index = 0; index < detailTemp.length; index++) {
+        const regDetail = detailTemp[index].match((/(\S+)\s+(\S)/u))
+        detail.push({
+            roleID: regDetail[1],
+            emoji: regDetail[2]
+        })
     }
-    return { name: finalName[1], imageLink: finalName[2], shortName: finalName[3] };
+
+
+    return { message: message && message[1].replace(/^\n/, ''), detail };
 }
 
 function checkMeName(inputStr) {
@@ -319,8 +324,26 @@ function roleReactList(list) {
     if (list && list.length > 0) {
         list.sort(compareSerial);
         for (let index = 0; index < list.length; index++) {
-            let detail = list[index];
-            reply += `序號#${detail.serial} \n 訊息: ${detail.message}\n${detail.detail.emoji}\n\n`
+            let item = list[index];
+            reply += `序號#${item.serial} \n 訊息: ${item.message}\n`;
+            for (let index = 0; index < item.detail.length; index++) {
+                const role = item.detail[index];
+                reply += `身分ID#${role.roleID} emoji: ${role.emoji}\n`;
+
+            }
+        }
+    }
+    else reply = "沒有找到"
+    return reply;
+}
+
+function roleInvitesList(list) {
+    let reply = '';
+    if (list && list.length > 0) {
+        list.sort(compareSerial);
+        for (let index = 0; index < list.length; index++) {
+            let item = list[index];
+            reply += `序號#${item.serial} \n身分ID#: ${item.roleID} 邀請連結: ${item.invitesLink}\n`;
         }
     }
     else reply = "沒有找到"
@@ -353,6 +376,22 @@ function showName(names, targetName) {
     return reply;
 }
 
+function findTheNextSerial(list) {
+    let serialList = []
+    for (let index = 0; index < list.length; index++) {
+        serialList.push(list[index].serial);
+    }
+    serialList.sort(function (a, b) {
+        return a - b;
+    });
+    //[1,2,4,5]
+    for (let index = 0; index < serialList.length - 1; index++) {
+        if (serialList[index + 1] - serialList[index] !== 1) {
+            return serialList[index] + 1;
+        }
+    }
+    return serialList[list.length - 1] + 1;
+}
 
 
 module.exports = {

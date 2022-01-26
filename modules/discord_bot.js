@@ -399,6 +399,7 @@ client.on('messageCreate', async message => {
 });
 
 client.on('guildMemberAdd', async message => {
+	console.log('message', message)
 });
 
 //inviteDelete
@@ -758,30 +759,7 @@ async function manageWebhook(discord) {
 		return;
 	}
 }
-/**
- * 限三個
- * 流程
- * .roleReact add
- * 719561478897795163 🎨
- * XXXXX C
- * 
- * [[message]]
- * 按以下🎨可得身分XXXX
- * 
- * ------
- * 
- * HKTRPG 輸出同一個MESSAGE，紀錄這個MESSAGE ID
- * 
- * 有人點這個MESSAGE，就給予身份
- * 
- * -----
- * 
- * .roleInvites add
- *  719561478897795163 https://discord.gg/BnNFDJ8Wt4
- * 
- * 
- * 
- */
+
 async function roleReact(channelid, message) {
 	try {
 		const detail = message.roleReactDetail

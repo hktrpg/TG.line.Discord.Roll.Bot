@@ -55,7 +55,7 @@ const client = new Client({
 		cachePresences: false
 	 */
 	intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.DIRECT_MESSAGES,
-	Intents.FLAGS.DIRECT_MESSAGE_REACTIONS]
+	Intents.FLAGS.DIRECT_MESSAGE_REACTIONS, Intents.FLAGS.GUILD_MEMBERS]
 });
 
 const msgSplitor = (/\S+/ig);
@@ -398,9 +398,6 @@ client.on('messageCreate', async message => {
 
 });
 
-client.on('guildMemberAdd', async message => {
-	console.log('message', message)
-});
 
 //inviteDelete
 //messageDelete
@@ -808,6 +805,7 @@ client.on('messageReactionRemove', async (reaction, user) => {
 		}
 	}
 });
+
 
 /**
 .addFields(

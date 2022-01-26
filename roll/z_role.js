@@ -10,7 +10,7 @@ const roleReactRegixMessage = /\[\[message\]\](.*)/s;
 const roleInvitesRegixMessage = /(\d+)\s+(\S+)/g;
 
 var gameName = function () {
-    return '【身分管理】.roleReact .roleInvites'
+    return '【身分管理】.role'
 }
 
 var gameType = function () {
@@ -24,9 +24,7 @@ var prefixs = function () {
 }
 var getHelpMessage = function () {
     return `【身分管理】Discord限定功能
-讓使用指定的邀請連結進入群組的受邀者
-或
-對指定訊息的Reaction進行點擊
+讓對指定訊息的Reaction進行點擊
 就會分配指定的身分組別
 
 示範

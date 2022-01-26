@@ -233,24 +233,24 @@ var rollDiceCommand = async function ({
             }
             for (let index = 0; index < checkName.length; index++) {
                 let list = await schema.roleInvites.find({ groupid: groupid }, 'serial');
-                let myName = new schema.roleInvites({
+                const myName = new schema.roleInvites({
                     groupid: groupid,
                     serial: findTheNextSerial(list),
                     roleID: checkName[index].roleID,
                     invitesLink: checkName[index].invitesLink
                 })
+                console.log('myName', myName)
                 try {
                     await myName.save();
-                    rply.text += `序列${myName.serial} ID: ${myName.roleID} ${myName.invitesLink}`;
-                    return rply;
+                    rply.text += `序號#${myName.serial}     ID: ${myName.roleID}       ${myName.invitesLink}\n`;
+
                 } catch (error) {
-                    console.log('error', error)
+                    console.error('error', error)
                     rply.text = `儲存失敗\n請重新再試，或聯絡HKTRPG作者}`;
                     return rply;
                 }
-
             }
-            return;
+            return rply;
         }
         default: {
             break;
@@ -287,7 +287,7 @@ function checkroleInvites(inputStr) {
             invitesLink: regDetail[2]
         })
     }
-    return { detail };
+    return detail;
 }
 
 
@@ -321,7 +321,7 @@ function roleReactList(list) {
             }
         }
     }
-    else reply = "沒有找到"
+    else reply = "沒有找到序號。"
     return reply;
 }
 
@@ -334,7 +334,7 @@ function roleInvitesList(list) {
             reply += `序號#${item.serial} \n身分ID#: ${item.roleID} 邀請連結: ${item.invitesLink}\n`;
         }
     }
-    else reply = "沒有找到"
+    else reply = "沒有找到序號。"
     return reply;
 }
 

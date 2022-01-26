@@ -165,7 +165,7 @@ var rollDiceCommand = async function ({
                 return rply
             }
         }
-        case /^\.roleReact$/i.test(mainMsg[0]): {
+        case /^\.roleReact$/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]): {
             //.myname 泉心造史 https://example.com/example.jpg
             if (!mainMsg[2]) {
                 rply.text = this.getHelpMessage();
@@ -186,7 +186,7 @@ var rollDiceCommand = async function ({
                 rply.text = `輸入資料失敗，請仔細檢查說明及範例\n ${this.getHelpMessage()}`;
                 return rply;
             }
-            let list = await schema.roleReact.find({ groupid: groupid }, 'serial')
+            let list = await schema.roleReact.find({ groupid: groupid }, 'serial');
             let myName = new schema.roleReact({
                 message: checkName.message,
                 groupid: groupid,
@@ -196,7 +196,7 @@ var rollDiceCommand = async function ({
             try {
                 let data = await myName.save();
                 rply.roleReactFlag = true;
-                rply.roleReactId = data.id;
+                rply.roleReactMongooseId = data.id;
                 rply.roleReactMessage = checkName.message;
                 rply.roleReactDetail = checkName.detail;
                 return rply;
@@ -377,6 +377,7 @@ function showName(names, targetName) {
 }
 
 function findTheNextSerial(list) {
+    if (list.length === 0) return 1;
     let serialList = []
     for (let index = 0; index < list.length; index++) {
         serialList.push(list[index].serial);
@@ -385,9 +386,9 @@ function findTheNextSerial(list) {
         return a - b;
     });
     //[1,2,4,5]
-    for (let index = 0; index < serialList.length - 1; index++) {
-        if (serialList[index + 1] - serialList[index] !== 1) {
-            return serialList[index] + 1;
+    for (let index = 1; index < serialList.length - 1; index++) {
+        if (serialList[index] !== index) {
+            return index
         }
     }
     return serialList[list.length - 1] + 1;

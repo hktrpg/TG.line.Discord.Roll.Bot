@@ -1,5 +1,6 @@
 "use strict";
 exports.analytics = require('./analytics');
+const schema = require('../modules/schema.js');
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const Discord = require("discord.js-light");
@@ -256,6 +257,7 @@ client.on('messageCreate', async message => {
 		}
 	}
 
+	if (rplyVal.roleReactFlag) roleReact(channelid, rplyVal)
 	if (rplyVal.myName) repeatMessage(message, rplyVal);
 	if (rplyVal.myNames) repeatMessages(message, rplyVal);
 
@@ -396,6 +398,13 @@ client.on('messageCreate', async message => {
 
 });
 
+client.on('guildMemberAdd', async message => {
+});
+
+//inviteDelete
+//messageDelete
+
+
 function convQuotes(text) {
 	return new Discord.MessageEmbed()
 		.setColor('#0099ff')
@@ -466,8 +475,7 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 				if (quotes) {
 					channel.send({ embeds: [convQuotes(sendText[i])] });
 				} else {
-					let a = await channel.send(sendText[i]);
-					console.log('a', a.id)
+					channel.send(sendText[i]);
 				}
 				//await message.channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 			}
@@ -595,7 +603,7 @@ async function count2() {
 
 // handle the error event
 process.on('unhandledRejection', error => {
-
+	if (error.message === "Unknown Role") return;
 	console.error('Unhandled promise rejection:', error);
 });
 
@@ -773,39 +781,55 @@ async function manageWebhook(discord) {
  * 
  * 
  */
+async function roleReact(channelid, message) {
+	try {
+		const detail = message.roleReactDetail
+		const channel = await client.channels.fetch(channelid);
+		const sendMessage = await channel.send(message.roleReactMessage);
+		for (let index = 0; index < detail.length; index++) {
+			sendMessage.react(detail[index].emoji);
+		}
+
+		await schema.roleReact.findByIdAndUpdate(message.roleReactMongooseId, { messageID: sendMessage.id })
+		//threadId: discord.channelId,
+
+
+	} catch (error) {
+		console.error(error)
+		await SendToReplychannel({ replyText: '不能成功增加ReAction, 請檢查你有授權HKTRPG 新增ReAction的權限, \n此為本功能必須權限', channelid });
+		return;
+	}
 
 
 
-client.on('messageReactionAdd', (reaction, user) => {
-	const member = reaction.message.guild.members.cache.get(user.id);
-	if (reaction.message.id === '<貼上訊息 ID>') {
-		console.log(reaction);
-		//reaction.message.id 訊息 ID
-		//reaction.emoji.name 🎨
-		// member.roles.add('<貼上身分組 ID>')
-		switch (reaction.emoji.name) {
-			case '🎨':
-				member.roles.add('<貼上身分組 ID>')
-				break;
-			case '💫':
-				member.roles.add('<貼上身分組 ID>')
-				break;
+}
+
+
+client.on('messageReactionAdd', async (reaction, user) => {
+	if (reaction.me) return;
+	const list = await schema.roleReact.findOne({ messageID: reaction.message.id })
+	if (list.length === 0) return;
+	const detail = list.detail;
+	for (let index = 0; index < detail.length; index++) {
+		if (reaction.emoji.name === detail[index].emoji) {
+			const member = await reaction.message.guild.members.fetch(user.id);
+			member.roles.add(detail[index].roleID)
 		}
 	}
 });
-client.on('messageReactionRemove', (reaction, user) => {
-	const member = reaction.message.guild.members.cache.get(user.id);
-	if (reaction.message.id === '<貼上訊息 ID>') {
-		switch (reaction.emoji.name) {
-			case '🎨':
-				member.roles.remove('<貼上身分組 ID>')
-				break;
-			case '💫':
-				member.roles.remove('<貼上身分組 ID>')
-				break;
+client.on('messageReactionRemove', async (reaction, user) => {
+	if (reaction.me) return;
+	const list = await schema.roleReact.findOne({ messageID: reaction.message.id })
+	if (list.length === 0) return;
+	const detail = list.detail;
+	for (let index = 0; index < detail.length; index++) {
+		if (reaction.emoji.name === detail[index].emoji) {
+			const member = await reaction.message.guild.members.fetch(user.id);
+			member.roles.remove(detail[index].roleID)
 		}
 	}
 });
+
 /**
 .addFields(
 	{ name: 'Regular field title', value: 'Some value here' },

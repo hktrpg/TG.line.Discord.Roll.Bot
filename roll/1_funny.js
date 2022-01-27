@@ -168,11 +168,9 @@ var rollDiceCommand = async function ({
 			}).page(`${month}月${day}日`)
 				.then(async page => {
 					let temp = await page.content();
-					console.log('temp', temp)
 					let answerFestival = temp.find(v => {
 						return v.title.match(/(节日)|(節日)|(习俗)|(假日)|(节假)/)
 					})
-					console.log('answerFestival', answerFestival)
 					respond += `${(answerFestival.title) ? `${answerFestival.title}\n` : ''}${(answerFestival.content) ? `${answerFestival.content}\n` : ''}\n`
 					let answerBig = temp.find(v => {
 						return v.title.match(/(大事记)|(大事記)/)
@@ -812,14 +810,17 @@ function SortIt(input, mainMsg) {
 	return mainMsg[0] + ' \n→ [ ' + a.join(', ') + ' ]';
 }
 async function fatchDaily(url) {
+	const response = await fetch(url);
+	let reply = '';
 	try {
-		let reply = '';
-		const response = await fetch(url);
 		const json = await response.json();
 		if (json.text) reply = json.text;
 		if (json.data && (json.data.text || json.data.image || json.data.title)) reply = `${json.data.title ? json.data.title + '\n' : ''}${json.data.text ? json.data.text + '\n' : ''}${json.data.image || ''}`;
 		return chineseConv.tify(reply) || '沒有結果，請檢查內容'
 	} catch (error) {
+		if (error == 'invalid-json') {
+			return chineseConv.tify(response) || '沒有結果，請檢查內容'
+		}
 		console.error(error);
 		return error.type;
 	}

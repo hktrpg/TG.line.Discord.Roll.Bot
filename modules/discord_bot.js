@@ -8,6 +8,8 @@ const { Client, Intents, Permissions } = Discord;
 const rollText = require('./getRoll').rollText;
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
 const imageUrl = /^(?:(?:(?<protocol>(?:http|https)):\/\/)?(?:(?<authority>(?:[A-Za-z](?:[A-Za-z\d\-]*[A-Za-z\d])?)(?:\.[A-Za-z][A-Za-z\d\-]*[A-Za-z\d])*)(?:\:(?<port>[0-9]+))?\/)(?:(?<path>[^\/][^\?\#\;]*\/))?)?(?<file>[^\?\#\/\\]*\.(?<extension>[Jj][Pp][Ee]?[Gg]|[Pp][Nn][Gg]|[Gg][Ii][Ff]))(?:\?(?<query>[^\#]*))?(?:\#(?<fragment>.*))?$/gm;
+exports.z_stop = require('../roll/z_stop');
+
 
 
 function channelFilter(channel) {
@@ -136,7 +138,7 @@ client.on('messageCreate', async message => {
 
 	let groupid = (message.guildId) ? message.guildId : '';
 	//指定啟動詞在第一個詞&把大階強制轉成細階
-	if (trigger == ".me") {
+	if (trigger == ".me" && !z_stop(mainMsg, groupid)) {
 		inputStr = inputStr.replace(/^.me\s+/i, ' ');
 		if (groupid) {
 			try {
@@ -807,6 +809,20 @@ client.on('messageReactionRemove', async (reaction, user) => {
 	}
 });
 
+
+
+function z_stop(mainMsg, groupid) {
+	if (!Object.keys(exports.z_stop).length || !exports.z_stop.initialize().save) {
+		return false;
+	}
+	let groupInfo = exports.z_stop.initialize().save.find(e => e.groupid == groupid)
+	if (!groupInfo || !groupInfo.blockfunction) return;
+	let match = groupInfo.blockfunction.find(e => mainMsg[0].toLowerCase().includes(e.toLowerCase()))
+	if (match) {
+		return true;
+	} else
+		return false;
+}
 
 /**
 .addFields(

@@ -7,7 +7,7 @@ const Discord = require("discord.js-light");
 const { Client, Intents, Permissions } = Discord;
 const rollText = require('./getRoll').rollText;
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
-
+const imageUrl = /^(?:(?:(?<protocol>(?:http|https)):\/\/)?(?:(?<authority>(?:[A-Za-z](?:[A-Za-z\d\-]*[A-Za-z\d])?)(?:\.[A-Za-z][A-Za-z\d\-]*[A-Za-z\d])*)(?:\:(?<port>[0-9]+))?\/)(?:(?<path>[^\/][^\?\#\;]*\/))?)?(?<file>[^\?\#\/\\]*\.(?<extension>[Jj][Pp][Ee]?[Gg]|[Pp][Nn][Gg]|[Gg][Ii][Ff]))(?:\?(?<query>[^\#]*))?(?:\#(?<fragment>.*))?$/gm;
 
 
 function channelFilter(channel) {
@@ -404,13 +404,14 @@ client.on('messageCreate', async message => {
 
 
 function convQuotes(text) {
+	const imageMatch = text.match(imageUrl);
 	return new Discord.MessageEmbed()
 		.setColor('#0099ff')
 		//.setTitle(rplyVal.title)
 		//.setURL('https://discord.js.org/')
 		.setAuthor({ name: 'HKTRPG', url: 'https://www.patreon.com/HKTRPG', iconURL: 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png' })
 		.setDescription(text)
-
+		.setImage((imageMatch && imageMatch.length > 0) ? imageMatch[0] : '')
 }
 
 async function privateMsgFinder(channelid) {

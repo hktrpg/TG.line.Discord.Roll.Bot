@@ -588,6 +588,7 @@ Step3：將DiscordBot部署到Heroku
 距離部署完機器人只差一步啦！
 
 Step4：把機器人邀請到你的頻道
+
 --
 
 - 剛剛複製了一個「CLIENT ID」把它取代到以下網址中間

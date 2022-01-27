@@ -171,7 +171,7 @@ var rollDiceCommand = async function ({
 					let answerFestival = temp.find(v => {
 						return v.title.match(/(节日)|(節日)/)
 					})
-					respond += `${answerFestival.title}\n${answerFestival.content}\n\n`
+					respond += `${(answerFestival.title) ? `${answerFestival.title}\n` : ''}${answerFestival.content}\n\n`
 					let answerBig = temp.find(v => {
 						return v.title.match(/(大事记)|(大事記)/)
 					})

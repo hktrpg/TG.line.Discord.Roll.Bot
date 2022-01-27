@@ -277,7 +277,7 @@ function onetimeroll(text0) {
     }
     return Str;
   } catch (error) {
-    console.error('rollbase error: onetimeroll - inputstr', text0)
+    console.error('rollbase error: onetimeroll - inputstr', text0, error)
     return '';
   }
 }

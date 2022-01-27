@@ -9,7 +9,7 @@ const roleReactRegixDetail = /(\d+)\s+([\u{1f300}-\u{1f5ff}\u{1f900}-\u{1f9ff}\u
 const roleReactRegixMessage = /\[\[message\]\](.*)/s;
 
 var gameName = function () {
-    return '【身分管理】.role'
+    return '【身分組管理】.roleReact'
 }
 
 var gameType = function () {
@@ -22,7 +22,7 @@ var prefixs = function () {
     }]
 }
 var getHelpMessage = function () {
-    return `【身分管理】Discord限定功能
+    return `【身分組管理】Discord限定功能
 讓對指定訊息的Reaction Emoji(😀😃😄)進行點擊的用家
 分配指定的身分組別
 
@@ -93,7 +93,7 @@ var rollDiceCommand = async function ({
             return rply;
         }
         case (!groupid || userrole < 3): {
-            rply.text = rejectUser((!groupid) ? 'notInGroup' : (userrole < 2) ? 'notAdmin' : '');
+            rply.text = rejectUser((!groupid) ? 'notInGroup' : (userrole < 3) ? 'notAdmin' : '');
             return rply;
         }
         case /^\.roleReact$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
@@ -210,7 +210,7 @@ const rejectUser = (reason) => {
         case 'notInGroup':
             return "這功能只可以在頻道中使用"
         case 'notAdmin':
-            return "這功能只可以管理員使用"
+            return "這功能只可以由伺服器管理員使用"
         default:
             return "這功能未能使用"
     }

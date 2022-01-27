@@ -21,7 +21,7 @@
 ## HKTRPG擲骰子專用機械人 Roll Dice Robot
 
 - HKTRPG是在Discord, Line, Telegram, Whatsapp, Plurk, API 和網頁上都可以使用的骰子機械人！
-  - 功能：暗骰, 各類TRPG骰子擲骰, 自定義骰子, 頻道經驗值, 占卜, 先攻表, TRPG角色卡, 搜圖, 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, wiki查詢, 資料庫快速查詢功能, 定時發訊息功能, 每日笑話, 每日動漫, 每日一言, 每日黃曆, 每日毒湯, 每日情話, 每日靈簽, 每日急口令, 每日大事, 每日(星座)
+  - 功能：暗骰, 各類TRPG骰子擲骰, 自定義骰子, 身分組管理, 頻道經驗值, 占卜, 先攻表, TRPG角色卡, 搜圖, 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, wiki查詢, 資料庫快速查詢功能, 定時發訊息功能, 每日笑話, 每日動漫, 每日一言, 每日黃曆, 每日毒湯, 每日情話, 每日靈簽, 每日急口令, 每日大事, 每日(星座)
   - 歡迎加入[開發，求助及TRPG Discord 群組](https://discord.gg/vx4kcm7)
   - 邀請HKTRPG 加入
     - [Discord 邀請連結](http://bit.ly/HKTRPG_DISCORD_)
@@ -129,6 +129,43 @@
 - 【貓貓鬼差】`.kc xDy z`
 
 # TRPG輔助工具 指令
+
+- 【身分組管理】Discord限定功能
+  - 讓對指定訊息的Reaction Emoji(如😀😃😄)進行點擊的用家
+  - 分配指定的身分組別
+  - ![示範](https://i.imgur.com/kuZHA3m.gif)
+  - 注意: 此功能需求HKTRPG擁有【編輯身分組】及【增加Reaction】的權限，請確定授權。
+  - 另外，使用者需要【伺服器管理者】權限。
+    - `roleReact show` 顯示現有的指定訊息的資料
+    - `.roleReact delete 序號` 刪除後該信息將不會再派發移除身分組
+    - `.roleReact add` 新增指定信息
+      - 首先去User Setting=>Advanced=>開啓Developer Mode
+      - 再去Server Setting=>Roles=>新增或設定希望分配的身分組
+      - 然後對該身分組按右鍵並按COPY ID，把該ID記下來
+  
+      - 最後按以下格式來輸入指令
+
+          .roleReact add
+
+           身份組ID Emoji
+
+           [[message]]
+
+           需要發佈的訊息
+
+      - **範例**
+  
+           .roleReact add
+
+           232312882291231263 🎨
+
+           123123478897792323 😁
+
+           [[message]]
+
+           按🎨可得身分組-畫家
+
+           按😁可得身分組-大笑
 
 - 【Discord 頻道聊天紀錄輸出工具】
   - `.discord html` 可以輸出有分析功能的聊天紀錄

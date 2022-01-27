@@ -242,7 +242,7 @@ function findRollList(mainMsg) {
 	let findTarget = idList.find(item => {
 		if (item.prefixs && item.prefixs()) {
 			for (let index = 0; index < item.prefixs().length; index++) {
-				if (mainMsg[0].match(item.prefixs()[index].first) && (mainMsg[1].match(item.prefixs()[index].second) || item.prefixs()[index].second == null)) {
+				if (mainMsg && mainMsg[0] && mainMsg[0].match(item.prefixs()[index].first) && (mainMsg[1] && mainMsg[1].match(item.prefixs()[index].second) || item.prefixs()[index].second == null)) {
 					return true
 				}
 			}

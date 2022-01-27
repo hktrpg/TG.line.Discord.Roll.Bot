@@ -405,7 +405,7 @@ client.on('messageCreate', async message => {
 //messageDelete
 
 
-function convQuotes(text) {
+function convQuotes(text = "") {
 	const imageMatch = text.match(imageUrl);
 	return new Discord.MessageEmbed()
 		.setColor('#0099ff')
@@ -606,6 +606,10 @@ async function count2() {
 // handle the error event
 process.on('unhandledRejection', error => {
 	if (error.message === "Unknown Role") return;
+	if (error.message === "Cannot send messages to this user") return;
+	if (error.message === "Unknown Channel") return;
+	if (error.message === "Missing Access") return;
+	if (error.message === "Missing Permissions") return;
 	console.error('Unhandled promise rejection:', error);
 });
 

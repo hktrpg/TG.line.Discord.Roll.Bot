@@ -799,7 +799,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 client.on('messageReactionRemove', async (reaction, user) => {
 	if (reaction.me) return;
 	const list = await schema.roleReact.findOne({ messageID: reaction.message.id })
-	if (list.length === 0) return;
+	if (!list || list.length === 0) return;
 	const detail = list.detail;
 	for (let index = 0; index < detail.length; index++) {
 		if (reaction.emoji.name === detail[index].emoji) {

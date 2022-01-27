@@ -402,6 +402,26 @@ const whatsapp = mongoose.model('whatsapp', new mongoose.Schema({
     sessionData: String
 }));
 
+const roleReact = mongoose.model('roleReact', new mongoose.Schema({
+    message: String,
+    messageID: String,
+    groupid: String,
+    serial: Number,
+    detail: [{
+        roleID: String,
+        emoji: String,
+    }]
+
+}));
+
+const roleInvites = mongoose.model('roleInvites', new mongoose.Schema({
+    roleID: String,
+    invitesLink: String,
+    groupid: String,
+    serial: Number
+
+}));
+
 module.exports = {
     randomAns,
     block,
@@ -434,7 +454,9 @@ module.exports = {
     firstTimeMessage,
     theNewsMessage,
     myName,
-    whatsapp
+    whatsapp,
+    roleInvites,
+    roleReact
 }
 //const Cat = mongoose.model('Cat', { name: String });
 //const kitty = new Cat({ name: 'Zildjian' });

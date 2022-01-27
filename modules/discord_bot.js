@@ -1,12 +1,15 @@
 "use strict";
 exports.analytics = require('./analytics');
+const schema = require('../modules/schema.js');
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const Discord = require("discord.js-light");
 const { Client, Intents, Permissions } = Discord;
 const rollText = require('./getRoll').rollText;
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
+const imageUrl = /^(?:(?:(?<protocol>(?:http|https)):\/\/)?(?:(?<authority>(?:[A-Za-z](?:[A-Za-z\d\-]*[A-Za-z\d])?)(?:\.[A-Za-z][A-Za-z\d\-]*[A-Za-z\d])*)(?:\:(?<port>[0-9]+))?\/)(?:(?<path>[^\/][^\?\#\;]*\/))?)?(?<file>[^\?\#\/\\]*\.(?<extension>[Jj][Pp][Ee]?[Gg]|[Pp][Nn][Gg]|[Gg][Ii][Ff]))(?:\?(?<query>[^\#]*))?(?:\#(?<fragment>.*))?$/gm;
 exports.z_stop = require('../roll/z_stop');
+
 
 
 function channelFilter(channel) {
@@ -256,6 +259,7 @@ client.on('messageCreate', async message => {
 		}
 	}
 
+	if (rplyVal.roleReactFlag) roleReact(channelid, rplyVal)
 	if (rplyVal.myName) repeatMessage(message, rplyVal);
 	if (rplyVal.myNames) repeatMessages(message, rplyVal);
 
@@ -396,13 +400,20 @@ client.on('messageCreate', async message => {
 
 });
 
+
+//inviteDelete
+//messageDelete
+
+
 function convQuotes(text) {
+	const imageMatch = text.match(imageUrl);
 	return new Discord.MessageEmbed()
 		.setColor('#0099ff')
 		//.setTitle(rplyVal.title)
 		//.setURL('https://discord.js.org/')
-		.setAuthor('HKTRPG', 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png', 'https://www.patreon.com/HKTRPG')
+		.setAuthor({ name: 'HKTRPG', url: 'https://www.patreon.com/HKTRPG', iconURL: 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png' })
 		.setDescription(text)
+		.setImage((imageMatch && imageMatch.length > 0) ? imageMatch[0] : '')
 }
 
 async function privateMsgFinder(channelid) {
@@ -465,8 +476,9 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 			try {
 				if (quotes) {
 					channel.send({ embeds: [convQuotes(sendText[i])] });
-				} else
+				} else {
 					channel.send(sendText[i]);
+				}
 				//await message.channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 			}
 			catch (e) {
@@ -517,7 +529,7 @@ async function nonDice(message) {
 
 //Set Activity 可以自定義正在玩什麼
 client.on('ready', async () => {
-	console.log(`Logged in as ${client.user.tag}!`);
+	console.log(`Discord: Logged in as ${client.user.tag}!`);
 	if (shardids !== 0) return;
 	client.user.setActivity('🌼bothelp | hktrpg.com🍎');
 
@@ -593,7 +605,7 @@ async function count2() {
 
 // handle the error event
 process.on('unhandledRejection', error => {
-
+	if (error.message === "Unknown Role") return;
 	console.error('Unhandled promise rejection:', error);
 });
 
@@ -610,7 +622,7 @@ client.on('guildCreate', async guild => {
 			.setColor('#0099ff')
 			//.setTitle(rplyVal.title)
 			//.setURL('https://discord.js.org/')
-			.setAuthor('HKTRPG', 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png', 'https://www.patreon.com/HKTRPG')
+			.setAuthor({ name: 'HKTRPG', url: 'https://www.patreon.com/HKTRPG', iconURL: 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png' })
 			.setDescription(newMessage.joinMessage())
 		await channel.send({ embeds: [text] });
 	}
@@ -747,6 +759,57 @@ async function manageWebhook(discord) {
 		return;
 	}
 }
+
+async function roleReact(channelid, message) {
+	try {
+		const detail = message.roleReactDetail
+		const channel = await client.channels.fetch(channelid);
+		const sendMessage = await channel.send(message.roleReactMessage);
+		for (let index = 0; index < detail.length; index++) {
+			sendMessage.react(detail[index].emoji);
+		}
+
+		await schema.roleReact.findByIdAndUpdate(message.roleReactMongooseId, { messageID: sendMessage.id })
+		//threadId: discord.channelId,
+
+
+	} catch (error) {
+		console.error(error)
+		await SendToReplychannel({ replyText: '不能成功增加ReAction, 請檢查你有授權HKTRPG 新增ReAction的權限, \n此為本功能必須權限', channelid });
+		return;
+	}
+
+
+
+}
+
+
+client.on('messageReactionAdd', async (reaction, user) => {
+	if (reaction.me) return;
+	const list = await schema.roleReact.findOne({ messageID: reaction.message.id })
+	if (list.length === 0) return;
+	const detail = list.detail;
+	for (let index = 0; index < detail.length; index++) {
+		if (reaction.emoji.name === detail[index].emoji) {
+			const member = await reaction.message.guild.members.fetch(user.id);
+			member.roles.add(detail[index].roleID)
+		}
+	}
+});
+client.on('messageReactionRemove', async (reaction, user) => {
+	if (reaction.me) return;
+	const list = await schema.roleReact.findOne({ messageID: reaction.message.id })
+	if (list.length === 0) return;
+	const detail = list.detail;
+	for (let index = 0; index < detail.length; index++) {
+		if (reaction.emoji.name === detail[index].emoji) {
+			const member = await reaction.message.guild.members.fetch(user.id);
+			member.roles.remove(detail[index].roleID)
+		}
+	}
+});
+
+
 
 function z_stop(mainMsg, groupid) {
 	if (!Object.keys(exports.z_stop).length || !exports.z_stop.initialize().save) {

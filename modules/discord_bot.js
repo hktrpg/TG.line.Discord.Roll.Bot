@@ -526,7 +526,7 @@ async function nonDice(message) {
 
 //Set Activity 可以自定義正在玩什麼
 client.on('ready', async () => {
-	console.log(`Logged in as ${client.user.tag}!`);
+	console.log(`Discord: Logged in as ${client.user.tag}!`);
 	if (shardids !== 0) return;
 	client.user.setActivity('🌼bothelp | hktrpg.com🍎');
 

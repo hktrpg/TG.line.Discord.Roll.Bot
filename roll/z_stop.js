@@ -87,7 +87,7 @@ var rollDiceCommand = async function ({
                 if (!groupid)
                     rply.text += '此功能必須在群組中使用. '
                 if (groupid && userrole < 2)
-                    rply.text += '只有DM以上才可新增. '
+                    rply.text += '只有GM以上才可新增. '
             }
             return rply;
 
@@ -111,7 +111,7 @@ var rollDiceCommand = async function ({
                 if (!groupid)
                     rply.text += '此功能必須在群組中使用. '
                 if (groupid && userrole < 2)
-                    rply.text += '只有DM以上才可刪除. '
+                    rply.text += '只有GM以上才可刪除. '
             }
 
             return rply;

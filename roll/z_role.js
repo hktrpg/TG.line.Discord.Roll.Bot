@@ -86,14 +86,13 @@ var rollDiceCommand = async function ({
         rply.text = '此功能只能在Discord中使用'
         return rply
     }
-
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
             rply.text = this.getHelpMessage();
             rply.quotes = true;
             return rply;
         }
-        case (!groupid || userrole < 2): {
+        case (!groupid || userrole < 3): {
             rply.text = rejectUser((!groupid) ? 'notInGroup' : (userrole < 2) ? 'notAdmin' : '');
             return rply;
         }
@@ -194,7 +193,7 @@ function checkRoleReact(inputStr) {
     inputStr = inputStr.replace(roleReactRegixMessage)
     let detail = []
     let detailTemp = inputStr.match(roleReactRegixDetail);
-    for (let index = 0; (index < detailTemp.length) || index < 20; index++) {
+    for (let index = 0; (index < detailTemp.length) && index < 20; index++) {
         const regDetail = detailTemp[index].match((/(\S+)\s+(\S)/u))
         detail.push({
             roleID: regDetail[1],

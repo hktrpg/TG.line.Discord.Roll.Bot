@@ -168,9 +168,11 @@ var rollDiceCommand = async function ({
 			}).page(`${month}月${day}日`)
 				.then(async page => {
 					let temp = await page.content();
+					console.log('temp', temp)
 					let answerFestival = temp.find(v => {
-						return v.title.match(/(节日)|(節日)/)
+						return v.title.match(/(节日)|(節日)|(习俗)|(假日)|(节假)/)
 					})
+					console.log('answerFestival', answerFestival)
 					respond += `${(answerFestival.title) ? `${answerFestival.title}\n` : ''}${(answerFestival.content) ? `${answerFestival.content}\n` : ''}\n`
 					let answerBig = temp.find(v => {
 						return v.title.match(/(大事记)|(大事記)/)

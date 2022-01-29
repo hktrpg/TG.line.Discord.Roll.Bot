@@ -3,7 +3,7 @@ var rollbase = require('./rollbase.js');
 var variables = {};
 
 var gameName = function () {
-	return '【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 每日塔羅 運勢 立flag .me'
+	return '【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 每日塔羅 運勢 立flag .me 抽卡'
 }
 
 var gameType = function () {
@@ -11,7 +11,7 @@ var gameType = function () {
 }
 var prefixs = function () {
 	return [{
-		first: /^[.]me$|排序|隨機|choice|^每日塔羅|^時間塔羅|^隨機撲克|^大十字塔羅|^任務廣播|立flag|運勢|鴨霸獸/i,
+		first: /^[.]me$|排序|隨機|choice|^每日塔羅|^時間塔羅|^抽卡|^隨機撲克|^大十字塔羅|^任務廣播|立flag|運勢|鴨霸獸/i,
 		second: null
 	}]
 }
@@ -302,7 +302,79 @@ async function NomalDrawPocker(text, text2) {
 }
 
 
-const PockerList = ["♤A ＋\https://imgur.com/YRKmZ72",
+const CardList = ["♤A ＋\https://imgur.com/YRKmZ72",
+	"♤2  \https://imgur.com/ohRjZEa",
+	"♤3  \https://imgur.com/Jg1KAjB",
+	"♤4  \https://imgur.com/Zf7a0Az",
+	"♤5  \https://imgur.com/bfoSGFq",
+	"♤6  \https://imgur.com/ZGzRkqP",
+	"♤7  \https://imgur.com/ivwG3DX",
+	"♤8  \https://imgur.com/cW26axR",
+	"♤9  \https://imgur.com/hfCm6iH",
+	"♤10  \https://imgur.com/YWbegzG",
+	"♤J  \https://imgur.com/3b6crce",
+	"♤Q  \https://imgur.com/Esa7Mn8",
+	"♤K  \https://imgur.com/rQVTLxm",
+	"♡A  \https://imgur.com/u9bWLpl",
+	"♡2  \https://imgur.com/v2WX6OM",
+	"♡3  \https://imgur.com/cZWUlSJ",
+	"♡4  \https://imgur.com/fuvP2dU",
+	"♡5  \https://imgur.com/VJGoE8F",
+	"♡6  \https://imgur.com/tRpeHUB",
+	"♡7  \https://imgur.com/fBRLc4m",
+	"♡8  \https://imgur.com/6fnaVxh",
+	"♡9  \https://imgur.com/QGC3QrE",
+	"♡10  \https://imgur.com/n9HSYiy",
+	"♡J  \https://imgur.com/zrxcxFc",
+	"♡Q  \https://imgur.com/5n1QaSf",
+	"♡K  \https://imgur.com/S8F5Cy8",
+	"♧A  \https://imgur.com/SWiwrWH",
+	"♧2  \https://imgur.com/sRsTEa0",
+	"♧3  \https://imgur.com/BUz4i4s",
+	"♧4  \https://imgur.com/bHU5npa",
+	"♧5  \https://imgur.com/YOBzwQZ",
+	"♧6  \https://imgur.com/Bi8avmE",
+	"♧7  \https://imgur.com/nbZ2owR",
+	"♧8  \https://imgur.com/7iDNr97",
+	"♧9  \https://imgur.com/zxzRHMS",
+	"♧10  \https://imgur.com/nliO67D",
+	"♧J  \https://imgur.com/m4FMGtx",
+	"♧Q  \https://imgur.com/nexMj5j",
+	"♧K  \https://imgur.com/shl91aS ",
+	"♢A  \https://imgur.com/8PJZqGf",
+	"♢2  \https://imgur.com/UnKi8Dk",
+	"♢3  \https://imgur.com/BNqaxtu",
+	"♢4  \https://imgur.com/3CdZET3",
+	"♢5  \https://imgur.com/fpIbMQs",
+	"♢6  \https://imgur.com/Q3gObXb",
+	"♢7  \https://imgur.com/4BEP06N",
+	"♢8  \https://imgur.com/yOk5BAw",
+	"♢9  \https://imgur.com/dNKYSri",
+	"♢10  \https://imgur.com/kdFtPcY",
+	"♢J  \https://imgur.com/FSnZ1RU",
+	"♢Q  \https://imgur.com/A3XCpaO",
+	"♢K  \https://imgur.com/Ut56M1a",
+	"jockb  \https://imgur.com/Ut56M1a",
+	"jockr  \https://imgur.com/E29uHKW",
+]
+	
+
+
+/**
+ * 抽卡
+ */
+async function NomalDrawCard(text, text2) {
+	let returnStr = '';
+	returnStr = '抽卡'
+	if (text)
+		returnStr += "；" + text + " " + text2
+	let ans = await rollbase.shuffleTarget(CardList)
+	returnStr += '\n' + ans[0]
+	return returnStr;
+}
+
+
+const PockerList = ["4k幻術效果:整個人變得4k ＋https://media.discordapp.net/attachments/868138811467649034/936990972322140190/pQDp3Gjl.jpg",
 	"♤2  \https://imgur.com/ohRjZEa",
 	"♤3  \https://imgur.com/Jg1KAjB",
 	"♤4  \https://imgur.com/Zf7a0Az",

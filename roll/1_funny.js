@@ -310,8 +310,8 @@ async function NomalDrawCard(text, text2) {
 const CardList = ["4k幻術效果:整個人變得4k ＋\https://media.discordapp.net/attachments/868138811467649034/936990972322140190/pQDp3Gjl.jpg",
 	"獲得道具:即脫褲!\n\效果是快速穿脫\n\(除此以外沒有任何效果  \https://media.discordapp.net/attachments/868138811467649034/936990749633949706/a827a965ea46329d44c40e03ab86c613.jpg",
 	"遇到了幻覺!\n\在幻覺中被迫看了自由♂️的舞蹈一小時!  https://media.discordapp.net/attachments/868138811467649034/936990445010055248/FB_IMG_1570798788164.jpg",
-	
-	
+		 
+		 ]
 	
 
 

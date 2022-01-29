@@ -310,6 +310,13 @@ async function NomalDrawCard(text, text2) {
 const CardList = ["4k幻術效果:整個人變得4k ＋\https://media.discordapp.net/attachments/868138811467649034/936990972322140190/pQDp3Gjl.jpg",
 	"獲得道具:即脫褲!\n\效果是快速穿脫\n\(除此以外沒有任何效果  \https://media.discordapp.net/attachments/868138811467649034/936990749633949706/a827a965ea46329d44c40e03ab86c613.jpg",
 	"遇到了幻覺!\n\在幻覺中被迫看了自由♂️的舞蹈一小時!  https://media.discordapp.net/attachments/868138811467649034/936990445010055248/FB_IMG_1570798788164.jpg",
+		  
+	"修女服(夜戰版\n\效果:強制穿上 \https://media.discordapp.net/attachments/868138811467649034/937023409936818196/20220130_003611.jpg?width=539&height=609",
+	"你遇到了御並跟他講了一串的義大利文\n\他對著你  \https://media.discordapp.net/attachments/922692652208640031/936989940028440596/78276_5f6b040bb43e1.jpg?width=812&height=609",
+	"你遇到了御並跟他說了你姐姐很醜\n\他對著你  \https://media.discordapp.net/attachments/922692652208640031/936990770194415726/SPOILER_3fcf66b2bdb84cd30eb05c32647c26db.jpg",
+	"卡牌納蘇-NR\n\\n\\n\召喚卡\n\\n\集齊-五張-右眼，左眼，左右手腳，與身體就能在場上召喚一隻納蘇\n\效果-召喚成功後沒有甚麼特別的用處  \https://media.discordapp.net/attachments/824864670694244403/937027156289138788/002.png",
+	//"♤5  \https://imgur.com/bfoSGFq",
+	//"♤6  \https://imgur.com/ZGzRkqP",
 		 
 		 ]
 	

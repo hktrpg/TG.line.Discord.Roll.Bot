@@ -305,8 +305,44 @@ async function NomalDrawPocker(text, text2) {
 	return returnStr;
 }
 
+/**
+ * 抽卡
+ */
+async function NomalDrawCard(text, text2) {
+	let returnStr = '';
+	returnStr = '抽卡'
+	if (text)
+		returnStr += "；" + text + " " + text2
+	let ans = await rollbase.shuffleTarget(CardList)
+	returnStr += '\n' + ans[0]
+	return returnStr;
+}
 
-const CardList = ["♤A ＋\https://imgur.com/YRKmZ72",
+const CardList = [
+	"4k幻術效果:整個人變得4k ＋\https://media.discordapp.net/attachments/868138811467649034/936990972322140190/pQDp3Gjl.jpg",
+	"獲得道具:即脫褲!\n\效果是快速穿脫\n\(除此以外沒有任何效果  \https://media.discordapp.net/attachments/868138811467649034/936990749633949706/a827a965ea46329d44c40e03ab86c613.jpg",
+	"遇到了幻覺!\n\在幻覺中被迫看了自由♂️的舞蹈一小時!  https://media.discordapp.net/attachments/868138811467649034/936990445010055248/FB_IMG_1570798788164.jpg",
+	
+	
+	
+
+
+
+/**
+ * Tarot塔羅牌
+ */
+async function NomalDrawPocker(text, text2) {
+	let returnStr = '';
+	returnStr = '隨機撲克'
+	if (text)
+		returnStr += "；" + text + " " + text2
+	let ans = await rollbase.shuffleTarget(PockerList)
+	returnStr += '\n' + ans[0]
+	return returnStr;
+}
+const PockerList = [
+	
+	"♤A ＋\https://imgur.com/YRKmZ72",
 	"♤2  \https://imgur.com/ohRjZEa",
 	"♤3  \https://imgur.com/Jg1KAjB",
 	"♤4  \https://imgur.com/Zf7a0Az",
@@ -360,27 +396,6 @@ const CardList = ["♤A ＋\https://imgur.com/YRKmZ72",
 	"♢K  \https://imgur.com/Ut56M1a",
 	"jockb  \https://imgur.com/Ut56M1a",
 	"jockr  \https://imgur.com/E29uHKW",
-]
-	
-
-
-/**
- * 抽卡
- */
-async function NomalDrawCard(text, text2) {
-	let returnStr = '';
-	returnStr = '抽卡'
-	if (text)
-		returnStr += "；" + text + " " + text2
-	let ans = await rollbase.shuffleTarget(CardList)
-	returnStr += '\n' + ans[0]
-	return returnStr;
-}
-
-
-const PockerList = ["4k幻術效果:整個人變得4k ＋\https://media.discordapp.net/attachments/868138811467649034/936990972322140190/pQDp3Gjl.jpg",
-	"獲得道具:即脫褲!\n\效果是快速穿脫\n\(除此以外沒有任何效果  \https://media.discordapp.net/attachments/868138811467649034/936990749633949706/a827a965ea46329d44c40e03ab86c613.jpg",
-	"遇到了幻覺!\n\在幻覺中被迫看了自由♂️的舞蹈一小時!  https://media.discordapp.net/attachments/868138811467649034/936990445010055248/FB_IMG_1570798788164.jpg",
 	
 ]
 	

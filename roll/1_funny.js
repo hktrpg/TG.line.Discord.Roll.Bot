@@ -110,6 +110,10 @@ var rollDiceCommand = async function ({
 			if (mainMsg[0].match(/^隨機撲克/) != null)
 				rply.text = await NomalDrawPocker(mainMsg[1], mainMsg[2]); //預設抽 79 張
 			return rply;
+		case /^抽卡/i.test(mainMsg[0]):
+			if (mainMsg[0].match(/^抽卡/) != null)
+				rply.text = await NomalDrawCard(mainMsg[1], mainMsg[2]); //預設抽 79 張
+			return rply;
 		case (/立flag$|^立flag/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,25}/g).length <= 1):
 			rply.text = await BStyleFlagSCRIPTS();
 			return rply;

@@ -120,7 +120,7 @@ HKTRPG是在Discord, Line, Telegram, Whatsapp和網頁上都可以使用的骰�
 -------
 請問有什麼可以幫助你?
 請輸入你想查詢的項目名字.
-或到 (https://hktrpg.github.io/TG.line.Discord.Roll.Bot/) 觀看詳細使用說明.
+或到 (https://hktrpg.gitbook.io/) 觀看詳細使用說明.
 -------
 bothelp ver		- 查詢詳細版本及公告(${ver})
 bothelp Base	- 查詢trpg 基本擲骰指令🎲

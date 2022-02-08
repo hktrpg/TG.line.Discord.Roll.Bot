@@ -33,13 +33,14 @@
   - [HKTRPG 研究社 Facebook](https://www.facebook.com/groups/HKTRPG)
   - [TRPG 百科](https://www.HKTRPG.com/)
   - [名人堂](https://hktrpg.github.io/TG.line.Discord.Roll.Bot/CREDITS.html)
+  - [HKTRPG  官方使用教學](https://hktrpg.gitbook.io/)
   - [贊助HKTRPG](https://www.patreon.com/HKTRPG)
 
 ## 指令簡介
 
 - 部份指令以 `.` 開頭或無開頭
 - 以下為部份例子
-- 輸入 `bothelp` 可以顯示幫助訊息
+- 輸入 `bothelp` 可以顯示幫助訊息 或到 
 - 輸入 `功能的前置詞 help` 也可以顯示幫助訊息,如 `cc help` `.level help`
 - 輸入 `xDy` 可以進行基本擲骰 例如1D6
 - 輸入 `dr xDy (或任何指令)` 可以進行暗骰，私訊你結果

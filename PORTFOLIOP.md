@@ -76,7 +76,7 @@ HKTRPG 興趣使然地創作及維護 TRPG工具，包括
 ![烏冬](https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20udo.png?raw=true)
 
 - [冰丼](https://z02.hktrpg.com)
-冰豆腐的進化版?只翻譯成中文
+凍豆腐的進化版，已翻譯成中文
 
 ## ROLL20
 

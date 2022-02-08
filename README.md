@@ -33,7 +33,7 @@
   - [HKTRPG 研究社 Facebook](https://www.facebook.com/groups/HKTRPG)
   - [TRPG 百科](https://www.HKTRPG.com/)
   - [名人堂](https://hktrpg.github.io/TG.line.Discord.Roll.Bot/CREDITS.html)
-  - [HKTRPG  官方使用教學](https://hktrpg.gitbook.io/)
+  - [HKTRPG  官方使用教學](https://bothelp.hktrpg.com/)
   - [贊助HKTRPG](https://www.patreon.com/HKTRPG)
 
 ## 指令簡介

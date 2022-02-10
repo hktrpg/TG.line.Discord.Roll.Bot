@@ -120,8 +120,6 @@ var rollDiceCommand = async function ({
             limit = limitArr[lv];
             if (!mainMsg[2])
                 rply.text += ' 沒有關鍵字.'
-            if (!mainMsg[4])
-                rply.text += ' 沒有自定義內容,至少兩個.'
             if (!groupid)
                 rply.text += ' 此功能必須在群組中使用.'
             if (groupid && userrole < 1)

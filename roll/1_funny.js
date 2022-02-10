@@ -169,11 +169,11 @@ var rollDiceCommand = async function ({
 				.then(async page => {
 					let temp = await page.content();
 					let answerFestival = temp.find(v => {
-						return v.title.match(/(节日)|(節日)|(习俗)|(假日)|(节假)/)
+						return v && v.title.match(/(节日)|(節日)|(习俗)|(假日)|(节假)/)
 					})
-					respond += `${(answerFestival.title) ? `${answerFestival.title}\n` : ''}${(answerFestival.content) ? `${answerFestival.content}\n` : ''}\n`
+					respond += `${(answerFestival && answerFestival.title) ? `${answerFestival.title}\n` : ''}${(answerFestival && answerFestival.content) ? `${answerFestival.content}\n` : ''}\n`
 					let answerBig = temp.find(v => {
-						return v.title.match(/(大事记)|(大事記)/)
+						return v && v.title.match(/(大事记)|(大事記)/)
 					})
 					if (answerBig && answerBig.items) answerBig = answerBig.items;
 
@@ -187,7 +187,10 @@ var rollDiceCommand = async function ({
 					if (error == 'Error: No article found')
 						return '沒有此條目'
 					else {
-						return error
+						console.error('每日大事error', error)
+						console.error('每日大事 this.page', this.page)
+
+						return '條目出錯';
 					}
 				})
 			return rply;

@@ -814,8 +814,8 @@ function SortIt(input, mainMsg) {
 async function axiosDaily(url) {
 	let reply = '';
 	try {
-		const response = await axios.get(url);
-		const json = (response && response.data) ? response : { data: { text: response } };
+		const response = await axios.get(encodeURI(url));
+		const json = analyzeResponse(response);
 		if (json.data && (json.data.text || json.data.image || json.data.title)) reply = `${json.data.title ? json.data.title + '\n' : ''}${json.data.text ? json.data.text + '\n' : ''}${json.data.image || ''}`;
 		return chineseConv.tify(reply) || '沒有結果，請檢查內容'
 	} catch (error) {
@@ -824,6 +824,23 @@ async function axiosDaily(url) {
 		}
 		console.error(error);
 		return error.type;
+	}
+}
+
+function analyzeResponse(response) {
+	switch (typeof response) {
+		case 'string':
+			return { data: { text: response } }
+		case 'object':
+			if (response && response.data && response.data.data) {
+				return response.data;
+			}
+			if (response && response.data) {
+				return response;
+			}
+			break;
+		default:
+			break;
 	}
 }
 /*來源自 http://lkaa.top

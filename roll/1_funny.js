@@ -2,7 +2,7 @@
 var rollbase = require('./rollbase.js');
 var variables = {};
 const chineseConv = require('chinese-conv'); //繁簡轉換
-const fetch = require('node-fetch');
+const axios = require('axios');
 const wiki = require('wikijs').default;
 var gameName = function () {
 	return '【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 運勢 每日塔羅 每日笑話 每日動漫 每日一言 每日廢話 每日黃曆 每日毒湯 每日情話 每日靈簽 每日急口令 每日大事 每日(星座) 立flag .me'
@@ -122,40 +122,40 @@ var rollDiceCommand = async function ({
 			rply.text = me(inputStr);
 			return rply;
 		case /^每日笑話$/.test(mainMsg[0]): {
-			rply.text = await fatchDaily('http://lkaa.top/API/xiaohua/api.php?type=json')
+			rply.text = await axiosDaily('http://lkaa.top/API/xiaohua/api.php?type=json')
 			return rply;
 		}
 		case /^每日動漫$/.test(mainMsg[0]): {
-			rply.text = await fatchDaily('http://lkaa.top/API/dmyiyan/api.php?type=json')
+			rply.text = await axiosDaily('http://lkaa.top/API/dmyiyan/api.php?type=json')
 			return rply;
 		}
 		case /^每日一言$/.test(mainMsg[0]): {
-			rply.text = await fatchDaily('http://lkaa.top/API/yiyan/api.php?type=json')
+			rply.text = await axiosDaily('http://lkaa.top/API/yiyan/api.php?type=json')
 			return rply;
 		}
 		case /^每日黃曆$/.test(mainMsg[0]): {
-			rply.text = await fatchDaily('http://lkaa.top/API/huang/api.php?type=json')
+			rply.text = await axiosDaily('http://lkaa.top/API/huang/api.php?type=json')
 			return rply;
 		}
 		case /^每日毒湯$/.test(mainMsg[0]): {
-			rply.text = await fatchDaily('http://lkaa.top/API/du/api.php?type=json')
+			rply.text = await axiosDaily('http://lkaa.top/API/du/api.php?type=json')
 			return rply;
 		}
 		case /^每日情話$/.test(mainMsg[0]): {
-			rply.text = await fatchDaily('http://lkaa.top/API/qing/api.php?type=json')
+			rply.text = await axiosDaily('http://lkaa.top/API/qing/api.php?type=json')
 			return rply;
 		}
 		case /^每日靈簽$/.test(mainMsg[0]): {
-			rply.text = await fatchDaily('http://lkaa.top/API/chouq/api.php?type=json')
+			rply.text = await axiosDaily('http://lkaa.top/API/chouq/api.php?type=json')
 			return rply;
 		}
 		case /^每日廢話$/.test(mainMsg[0]): {
 			let name = mainMsg[1] || displaynameDiscord || tgDisplayname || displayname || '你';
-			rply.text = await fatchDaily(`http://lkaa.top/API/dog/api.php?msg=${name}&num=500&type=json`)
+			rply.text = await axiosDaily(`http://lkaa.top/API/dog/api.php?msg=${name}&num=500&type=json`)
 			return rply;
 		}
 		case /^每日急口令$/.test(mainMsg[0]): {
-			rply.text = await fatchDaily('http://lkaa.top/API/rao/api.php?type=json')
+			rply.text = await axiosDaily('http://lkaa.top/API/rao/api.php?type=json')
 			return rply;
 		}
 		case /^每日大事$/.test(mainMsg[0]): {
@@ -197,61 +197,61 @@ var rollDiceCommand = async function ({
 		}
 		//白羊座、金牛座、雙子座、巨蟹座、獅子座、處女座、天秤座、天蠍座、射手座、摩羯座、水瓶座、雙魚
 		case (/^每日白羊$/.test(mainMsg[0]) || /^每日牡羊$/.test(mainMsg[0])): {
-			rply.text = await fatchDaily('http://lkaa.top/API/xz/api.php?msg=白羊&type=json')
+			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=白羊&type=json')
 			return rply;
 		}
 
 		case /^每日金牛$/.test(mainMsg[0]): {
-			rply.text = await fatchDaily('http://lkaa.top/API/xz/api.php?msg=金牛&type=json')
+			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=金牛&type=json')
 			return rply;
 		}
 
 		case /^每日雙子$/.test(mainMsg[0]): {
-			rply.text = await fatchDaily('http://lkaa.top/API/xz/api.php?msg=双子&type=json')
+			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=双子&type=json')
 			return rply;
 		}
 
 		case /^每日巨蟹$/.test(mainMsg[0]): {
-			rply.text = await fatchDaily('http://lkaa.top/API/xz/api.php?msg=巨蟹&type=json')
+			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=巨蟹&type=json')
 			return rply;
 		}
 
 		case /^每日獅子$/.test(mainMsg[0]): {
-			rply.text = await fatchDaily('http://lkaa.top/API/xz/api.php?msg=狮子&type=json')
+			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=狮子&type=json')
 			return rply;
 		}
 
 		case /^每日處女$/.test(mainMsg[0]): {
-			rply.text = await fatchDaily('http://lkaa.top/API/xz/api.php?msg=处女&type=json')
+			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=处女&type=json')
 			return rply;
 		}
 
 		case (/^每日天秤$/.test(mainMsg[0]) || /^每日天平$/.test(mainMsg[0])): {
-			rply.text = await fatchDaily('http://lkaa.top/API/xz/api.php?msg=天秤&type=json')
+			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=天秤&type=json')
 			return rply;
 		}
 
 		case /^每日天蠍$/.test(mainMsg[0]) || /^每日天蝎$/.test(mainMsg[0]): {
-			rply.text = await fatchDaily('http://lkaa.top/API/xz/api.php?msg=天蝎&type=json')
+			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=天蝎&type=json')
 			return rply;
 		}
 
 		case (/^每日射手$/.test(mainMsg[0]) || /^每日人馬$/.test(mainMsg[0])): {
-			rply.text = await fatchDaily('http://lkaa.top/API/xz/api.php?msg=射手&type=json')
+			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=射手&type=json')
 			return rply;
 		}
 
 		case (/^每日摩羯$/.test(mainMsg[0]) || /^每日山羊$/.test(mainMsg[0])): {
-			rply.text = await fatchDaily('http://lkaa.top/API/xz/api.php?msg=摩羯&type=json')
+			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=摩羯&type=json')
 			return rply;
 		}
 
 		case (/^每日水瓶$/.test(mainMsg[0]) || /^每日寶瓶$/.test(mainMsg[0])): {
-			rply.text = await fatchDaily('http://lkaa.top/API/xz/api.php?msg=水瓶&type=json')
+			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=水瓶&type=json')
 			return rply;
 		}
 		case /^每日雙魚$/.test(mainMsg[0]): {
-			rply.text = await fatchDaily('http://lkaa.top/API/xz/api.php?msg=双鱼&type=json')
+			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=双鱼&type=json')
 			return rply;
 		}
 		default:
@@ -811,17 +811,16 @@ function SortIt(input, mainMsg) {
 	}
 	return mainMsg[0] + ' \n→ [ ' + a.join(', ') + ' ]';
 }
-async function fatchDaily(url) {
-	const response = await fetch(url);
+async function axiosDaily(url) {
 	let reply = '';
 	try {
-		const json = await response.json();
-		if (json.text) reply = json.text;
+		const response = await axios.get(url);
+		const json = (response && response.data) ? response : { data: { text: response } };
 		if (json.data && (json.data.text || json.data.image || json.data.title)) reply = `${json.data.title ? json.data.title + '\n' : ''}${json.data.text ? json.data.text + '\n' : ''}${json.data.image || ''}`;
 		return chineseConv.tify(reply) || '沒有結果，請檢查內容'
 	} catch (error) {
-		if (error == 'invalid-json') {
-			return chineseConv.tify(response) || '沒有結果，請檢查內容'
+		if (error.code == 'ETIMEDOUT' || error.code == 'ECONNABORTED') {
+			return '連線狀態不好，請稍後再試'
 		}
 		console.error(error);
 		return error.type;

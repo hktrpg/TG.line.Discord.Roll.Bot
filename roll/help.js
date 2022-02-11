@@ -6,8 +6,6 @@ var Dice = [],
 	funny = [],
 	help = [],
 	link = [];
-const url = "https://www.hktrpg.com/tool/notes.json"
-const fetch = require('node-fetch');
 const start = async () => {
 	await require('fs').readdirSync(__dirname).forEach(async function (file) {
 		try {
@@ -160,14 +158,6 @@ bothelp about	- 查詢HKTRPG 歷史📜
 			增加定時發訊功能 .at / .cron
 全部更新可看https://github.com/hktrpg/TG.line.Discord.Roll.Bot/commits/master
 `;
-			try {
-				const response = await fetch(url);
-				const json = await response.json();
-				if (json.news)
-					rply.text += json.news;
-			} catch (error) {
-				console.error(error);
-			}
 			return rply;
 		case /^BASE/i.test(mainMsg[1]):
 			rply.text = await getHelpMessage();

@@ -17,7 +17,7 @@ var gameType = function () {
 }
 var prefixs = function () {
     return [{
-        first: /^\.roleReact$/i,
+        first: /^\.roleReact$|^\.roleReactmessage$/i,
         second: null
     }]
 }

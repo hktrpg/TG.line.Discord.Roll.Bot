@@ -793,11 +793,14 @@ client.on('messageReactionAdd', async (reaction, user) => {
 	const list = await schema.roleReact.findOne({ messageID: reaction.message.id })
 	if (!list || list.length === 0) return;
 	const detail = list.detail;
-	for (let index = 0; index < detail.length; index++) {
-		if (reaction.emoji.name === detail[index].emoji) {
-			const member = await reaction.message.guild.members.fetch(user.id);
-			member.roles.add(detail[index].roleID)
-		}
+	const findEmoji = detail.find(function (item) {
+		return item.emoji === reaction.emoji.name;
+	});
+	if (findEmoji) {
+		const member = await reaction.message.guild.members.fetch(user.id);
+		member.roles.add(findEmoji.roleID)
+	} else {
+		reaction.users.remove(user.id);
 	}
 });
 client.on('messageReactionRemove', async (reaction, user) => {

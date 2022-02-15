@@ -22,6 +22,7 @@
 
 - HKTRPG是在Discord, Line, Telegram, Whatsapp, Plurk, API 和網頁上都可以使用的骰子機械人！
   - 功能：暗骰, 各類TRPG骰子擲骰, 自定義骰子, 身分組管理, 頻道經驗值, 占卜, 先攻表, TRPG角色卡, 搜圖, 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, wiki查詢, 資料庫快速查詢功能, 定時發訊息功能, 每日笑話, 每日動漫, 每日一言, 每日黃曆, 每日毒湯, 每日情話, 每日靈簽, 每日急口令, 每日大事, 每日(星座)
+  - [HKTRPG  官方使用教學](https://bothelp.hktrpg.com/)
   - 歡迎加入[開發，求助及TRPG Discord 群組](https://discord.gg/vx4kcm7)
   - 邀請HKTRPG 加入
     - [Discord 邀請連結](http://bit.ly/HKTRPG_DISCORD_)
@@ -33,7 +34,6 @@
   - [HKTRPG 研究社 Facebook](https://www.facebook.com/groups/HKTRPG)
   - [TRPG 百科](https://www.HKTRPG.com/)
   - [名人堂](https://hktrpg.github.io/TG.line.Discord.Roll.Bot/CREDITS.html)
-  - [HKTRPG  官方使用教學](https://bothelp.hktrpg.com/)
   - [贊助HKTRPG](https://www.patreon.com/HKTRPG)
 
 ## 指令簡介

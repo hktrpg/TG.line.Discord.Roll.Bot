@@ -225,7 +225,7 @@ var rollDiceCommand = async function ({
             }
             //顯示自定義關鍵字
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
-            rply.text += '\n在show [空格]後面輸入關鍵字標題, 可以顯示詳細內容';
+            rply.text += `\n在show [空格]後面輸入關鍵字標題, 可以顯示詳細內容\n輸入 .ra (列表序號或標題) 可以進行隨機抽選`;
             return rply
         case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
             //
@@ -341,7 +341,7 @@ var rollDiceCommand = async function ({
             }
             //顯示自定義關鍵字
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
-            rply.text += '\n在show [空格]後面輸入關鍵字標題, 可以顯示詳細內容';
+            rply.text += '\n在show [空格]後面輸入關鍵字標題, 可以顯示詳細內容\n輸入 .rap (列表序號或標題) 可以進行隨機抽選';
             return rply
         case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[0]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
             //

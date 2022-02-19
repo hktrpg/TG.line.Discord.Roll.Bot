@@ -78,8 +78,8 @@ var ws;
 var connect = function () {
 	ws = new WebSocket('ws://127.0.0.1:53589');
 	ws.on('open', function open() {
-		console.log('connectd To core-www from discord!')
-		ws.send('connectd To core-www from discord!');
+		console.log(`connectd To core-www from discord! Shard#${shardids}`)
+		ws.send(`connectd To core-www from discord! Shard#${shardids}`);
 	});
 	ws.on('message', function incoming(data) {
 		if (shardids !== 0) return;

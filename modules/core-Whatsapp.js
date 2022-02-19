@@ -7,7 +7,10 @@ if (process.env.BROADCAST) {
 	const ws = new WebSocket('ws://127.0.0.1:53589');
 	ws.on('open', function open() {
 		console.log('connected To core-www from Whatsapp!')
-		ws.send('connected To core-www from Whatsapp!');
+		ws.send(JSON.stringify({
+			message: `connected To core-www from Whatsapp!`,
+			type: 'open'
+		}));
 	});
 	ws.on('message', function incoming(data) {
 		var object = JSON.parse(data);

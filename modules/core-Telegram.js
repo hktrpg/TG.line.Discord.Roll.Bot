@@ -233,7 +233,10 @@ var connect = function () {
 	ws = new WebSocket('ws://127.0.0.1:53589');
 	ws.on('open', function open() {
 		console.log('connected To core-www from Telegram!')
-		ws.send('connected To core-www from Telegram!');
+		ws.send(JSON.stringify({
+			message: `connected To core-www from Telegram!`,
+			type: 'open'
+		}));
 	});
 	ws.on('message', function incoming(data) {
 		var object = JSON.parse(data);

@@ -425,7 +425,8 @@ if (isMaster) {
         if (!ws._socket.remoteAddress == "::ffff:127.0.0.1") return;
 
         ws.on('message', function incoming(message) {
-            console.log('received: %s', message);
+            var object = JSON.parse(message);
+            if (object.type === "open") console.log('received: %s', object.message);
         });
         sendTo = function (params) {
             let object = {

@@ -79,7 +79,11 @@ var connect = function () {
 	ws = new WebSocket('ws://127.0.0.1:53589');
 	ws.on('open', function open() {
 		console.log(`connectd To core-www from discord! Shard#${shardids}`)
-		ws.send(`connectd To core-www from discord! Shard#${shardids}`);
+
+		ws.send(JSON.stringify({
+			message: `connectd To core-www from discord! Shard#${shardids}`,
+			type: 'open'
+		}));
 	});
 	ws.on('message', function incoming(data) {
 		if (shardids !== 0) return;
@@ -124,7 +128,6 @@ client.on('messageCreate', async message => {
 暫時取消，因不理解DISCORD 的權限檢查
 反正失敗也沒什麼後果
 	 */
-
 	let inputStr = message.content;
 	//DISCORD <@!USERID> <@!399923133368042763> <@!544563333488111636>
 	//LINE @名字

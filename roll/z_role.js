@@ -260,8 +260,6 @@ function findTheNextSerial(list) {
     });
     //[1,2,4,5]
     for (let index = 0; index < serialList.length - 1; index++) {
-        console.log('serialList[index]', serialList[index])
-        console.log('index', index)
         if (serialList[index] !== (index + 1)) {
             return index + 1
         }

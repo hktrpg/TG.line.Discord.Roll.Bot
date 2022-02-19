@@ -516,12 +516,17 @@ async function nonDice(message) {
 		displayname = message.member.user.username;
 	}
 	membercount = (message.guild) ? message.guild.memberCount : 0;
-	let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount);
-	if (groupid && LevelUp && LevelUp.text) {
-		await SendToReplychannel(
-			{ replyText: `@${displayname}  ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`, channelid: message.channel.id }
-		);
+	try {
+		let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount);
+		if (groupid && LevelUp && LevelUp.text) {
+			await SendToReplychannel(
+				{ replyText: `@${displayname}  ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`, channelid: message.channel.id }
+			);
+		}
+	} catch (error) {
+		console.log('await EXPUP error', error);
 	}
+
 
 	return null;
 }

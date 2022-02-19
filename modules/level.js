@@ -92,7 +92,12 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
         levelUP = true;
     }
     //8. 更新MLAB資料
-    await userInfo.save();
+    try {
+        await userInfo.save();
+    } catch (error) {
+        console.log('error', error)
+    }
+
     //6. 需要 -> 檢查有沒有開啓通知
     if (gpInfo.HiddenV2 == false || levelUP == false) return reply;
     //1. 讀取LEVELUP語

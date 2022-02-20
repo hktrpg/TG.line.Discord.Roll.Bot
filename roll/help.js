@@ -19,7 +19,7 @@ const start = async () => {
 			}
 
 		} catch (error) {
-			console.error(error)
+			console.error('help.js error: ', error)
 		}
 	})
 

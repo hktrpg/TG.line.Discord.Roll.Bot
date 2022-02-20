@@ -58,7 +58,7 @@ async function startUp() {
 		} catch (error) {
 			require('fs').unlink(SESSION_FILE_PATH, function (err) {
 				if (err) {
-					console.error(err);
+					console.error('whatsapp error: ', err);
 				}
 			});
 		}
@@ -79,7 +79,7 @@ async function startUp() {
 		} else if (!isHeroku)
 			require('fs').writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
 				if (err) {
-					console.error(err);
+					console.error('whatsapp error: ', err);
 				}
 			});
 	});
@@ -96,7 +96,7 @@ async function startUp() {
 			if (!isHeroku) {
 				require('fs').unlink(SESSION_FILE_PATH, function (err) {
 					if (err) {
-						console.error(err);
+						console.error('whatsapp error: ',err);
 					}
 				});
 			}

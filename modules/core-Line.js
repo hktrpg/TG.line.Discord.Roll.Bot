@@ -388,11 +388,11 @@ if (agenda && agenda.agenda) {
 
 app.on('UnhandledPromiseRejection', error => {
 	// Will print "unhandledRejection err is not defined"
-	console.error('UnhandledPromiseRejection: ', error.message);
+	console.error('Line UnhandledPromiseRejection: ', error.message);
 });
 app.on('unhandledRejection', error => {
 	// Will print "unhandledRejection err is not defined"
-	console.error('unhandledRejection: ', error.message);
+	console.error('Line unhandledRejection: ', error.message);
 });
 function SendToId(targetid, Reply) {
 	let temp = HandleMessage(Reply);

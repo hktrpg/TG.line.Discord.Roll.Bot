@@ -824,7 +824,7 @@ async function axiosDaily(url) {
 		if (error.code == 'ETIMEDOUT' || error.code == 'ECONNABORTED' || error.code == 'ECONNRESET') {
 			return '連線狀態不好，請稍後再試'
 		}
-		console.error(error && error.code);
+		console.error('axiosDaily error: ', error && error.code);
 		return error.type;
 	}
 }

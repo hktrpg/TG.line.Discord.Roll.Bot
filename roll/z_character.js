@@ -429,7 +429,7 @@ var rollDiceCommand = async function ({
                         return rply;
                     }
                 } catch (error) {
-                    console.error('doc ', doc)
+                    console.error('doc error', doc)
                     console.error('inputSTR: ', inputStr)
                     console.error('doc SAVE  GET ERROR:', error)
                     console.error('更新角色卡失敗: ', error)

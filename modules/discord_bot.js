@@ -437,7 +437,7 @@ async function SendToId(targetid, replyText, quotes) {
 					} else { user.send(sendText[i]); }
 				}
 				catch (e) {
-					console.error(' GET ERROR:  SendtoID: ', e.message, replyText)
+					console.error('Discord GET ERROR:  SendtoID: ', e.message, replyText)
 				}
 		}
 	}
@@ -459,7 +459,7 @@ function SendToReply({ replyText = "", message, quotes = false }) {
 			}
 			catch (e) {
 				if (e.message !== 'Cannot send messages to this user') {
-					console.error(' GET ERROR:  SendToReply: ', e.message, replyText)
+					console.error('Discord  GET ERROR:  SendToReply: ', e.message, replyText)
 				}
 			}
 	}
@@ -483,7 +483,7 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 			}
 			catch (e) {
 				if (e.message !== 'Missing Permissions') {
-					console.error(' GET ERROR: SendToReplychannel: ', e.message, replyText, channelid);
+					console.error('Discord  GET ERROR: SendToReplychannel: ', e.message, replyText, channelid);
 				}
 			}
 
@@ -615,7 +615,7 @@ process.on('unhandledRejection', error => {
 	if (error.message === "Unknown Channel") return;
 	if (error.message === "Missing Access") return;
 	if (error.message === "Missing Permissions") return;
-	console.error('Unhandled promise rejection:', error);
+	console.error('Discord Unhandled promise rejection:', error);
 });
 
 client.on('guildCreate', async guild => {
@@ -658,7 +658,7 @@ client.login(channelSecret);
 		try {
 			await job.remove();
 		} catch (e) {
-			console.error("Error removing job from collection:scheduleAtMessageDiscord", e);
+			console.error("Discord Error removing job from collection:scheduleAtMessageDiscord", e);
 		}
 	});
 
@@ -680,7 +680,7 @@ client.login(channelSecret);
 				)
 			}
 		} catch (e) {
-			console.error("Error removing job from collection:scheduleCronMessageDiscord", e);
+			console.error("Discord Error removing job from collection:scheduleCronMessageDiscord", e);
 		}
 
 	});
@@ -783,7 +783,6 @@ async function roleReact(channelid, message) {
 
 
 	} catch (error) {
-		console.error(error)
 		await SendToReplychannel({ replyText: '不能成功增加ReAction, 請檢查你有授權HKTRPG 新增ReAction的權限, \n此為本功能必須權限', channelid });
 		return;
 	}

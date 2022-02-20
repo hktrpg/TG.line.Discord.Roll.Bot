@@ -24,7 +24,7 @@ const mongoose = require('mongoose');
 
 const db = mongoose.connection;
 
-db.on('error', console.error.bind(console, 'mlab connection error:'));
+db.on('error', console.error.bind('mlab connection error:', console));
 db.once('open', function () {
     console.log('mlab  connected!');
     if (!master) return;

@@ -147,7 +147,7 @@ async function searchImage(inputStr, mainMsg, safe) {
 			}
 
 		}).catch(err => {
-			console.error(err)
+			console.error('duckImage error: ', err & err.respone && err.respone.statusText)
 		})
 }
 

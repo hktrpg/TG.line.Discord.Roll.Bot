@@ -1,12 +1,14 @@
 "use strict";
 var rollbase = require('./rollbase.js');
 var variables = {};
+const axiosRetry = require('axios-retry');
 const chineseConv = require('chinese-conv'); //繁簡轉換
 const axios = require('axios');
 const wiki = require('wikijs').default;
 var gameName = function () {
 	return '【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 運勢 每日塔羅 每日笑話 每日動漫 每日一言 每日廢話 每日黃曆 每日毒湯 每日情話 每日靈簽 每日急口令 每日大事 每日(星座) 立flag .me'
 }
+axiosRetry(axios, { retries: 3 });
 
 var gameType = function () {
 	return 'funny:funny:hktrpg'
@@ -819,10 +821,10 @@ async function axiosDaily(url) {
 		if (json.data && (json.data.text || json.data.image || json.data.title)) reply = `${json.data.title ? json.data.title + '\n' : ''}${json.data.text ? json.data.text + '\n' : ''}${json.data.image || ''}`;
 		return chineseConv.tify(reply) || '沒有結果，請檢查內容'
 	} catch (error) {
-		if (error.code == 'ETIMEDOUT' || error.code == 'ECONNABORTED') {
+		if (error.code == 'ETIMEDOUT' || error.code == 'ECONNABORTED' || error.code == 'ECONNRESET') {
 			return '連線狀態不好，請稍後再試'
 		}
-		console.error(error);
+		console.error(error && error.code);
 		return error.type;
 	}
 }

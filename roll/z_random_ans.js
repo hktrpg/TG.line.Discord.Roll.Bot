@@ -366,6 +366,19 @@ var rollDiceCommand = async function ({
                 rply.text = dataList.length + ' Done';
                 return rply
             }
+        case /(^[.]rap$)/i.test(mainMsg[0]) && /^(delete)$/i.test(mainMsg[1]):
+            {
+                if (!adminSecret) return rply;
+                if (userid !== adminSecret) return rply;
+                const [, , ...target] = mainMsg;
+                let dataList = await schema.randomAnsGroup.deleteMany(
+                    {
+                        "serial": isNumber(target)
+                    }
+                )
+                rply.text = dataList.n + ' Done';
+                return rply
+            }
         case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[0]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]): {
             //
             //RAP使用抽選功能

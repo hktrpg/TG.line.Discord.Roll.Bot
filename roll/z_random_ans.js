@@ -363,49 +363,41 @@ var rollDiceCommand = async function ({
                 rply.text = dataList.length + ' Done';
                 return rply
             }
-        case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[0]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
+        case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[0]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]): {
             //
             //RAP使用抽選功能
             //
             times = /^[.](r|)rap(\d+|)/i.exec(mainMsg[0])[2] || 1;
-            check = /^[.](r|)rap(\d+|)/i.exec(mainMsg[0])[1] || '';
+            let repeat = /^[.](r|)rap(\d+|)/i.exec(mainMsg[0])[1] || '';
             if (times > 30) times = 30;
             if (times < 1) times = 1
-
-
+            const [, ...target] = mainMsg;
             getData = await schema.randomAnsGroup.find(
                 {
                     $or: [
-                        { "title": { $regex: new RegExp(`^${mainMsg[1]}$`, "i") } },
-                        { "serial": mainMsg[1] }]
+                        { "title": { $regex: new RegExp(`^(${target.join('|')})$`, "i") } },
+                        { "serial": isNumber(target) }]
                 }
             )
             if (!getData || getData.length == 0) {
                 rply.text = '沒有這關鍵字, 請重新再試.'
                 return rply
             }
-            console.log('getData', getData)
-            for (let i in mainMsg) {
-                if (i == 0) continue;
-                temp = getData.randomAnsAllgroup.find(e => e[0].toLowerCase() == mainMsg[i].toLowerCase())
-                if (!temp && mainMsg[i].match(/^\d+$/)) {
-                    temp = getData.randomAnsAllgroup[mainMsg[i]]
-                }
-                if (!temp) continue;
-                if (check) {
+            for (let index = 0; index < getData.length; index++) {
+                let temp = getData[index];
+                if (repeat) {
                     //repeat mode
-                    rply.text += temp[0] + ' → ';
+                    rply.text += temp.title + ' → ';
                     for (let num = 0; num < times; num++) {
-                        let randomNumber = rollbase.Dice(temp.length - 1);
-                        rply.text += (num == 0) ? temp[randomNumber] : ', ' + temp[randomNumber];
+                        let randomNumber = rollbase.Dice(temp.answer.length - 1);
+                        rply.text += (num == 0) ? temp.answer[randomNumber] : ', ' + temp.answer[randomNumber];
                         rply.text += (num == times - 1) ? '\n' : '';
                     }
                 } else {
                     //not repeat mode
-                    rply.text += temp[0] + ' → ';
+                    rply.text += temp.title + ' → ';
                     let items = [];
-                    let tempItems = [...temp]
-                    tempItems.splice(0, 1);
+                    let tempItems = [...temp.answer]
                     while (items.length < times) {
                         items = tempItems
                             .map((a) => ({
@@ -425,6 +417,7 @@ var rollDiceCommand = async function ({
             }
             rply.text = await replaceAsync(rply.text, /{(.*?)}/ig, replacer);
             return rply;
+        }
         default:
             break;
     }
@@ -607,7 +600,15 @@ function findTheNextSerial(list) {
     return serialList[list.length - 1] + 1;
 }
 
-
+function isNumber(list) {
+    let numberlist = [];
+    for (let index = 0; index < list.length; index++) {
+        let n = list[index];
+        if (/^(?!0)\d+?$/.test(n))
+            numberlist.push(n)
+    }
+    return numberlist;
+}
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,

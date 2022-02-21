@@ -1,4 +1,7 @@
 "use strict";
+
+const { string } = require('mathjs');
+
 if (!process.env.mongoURL) {
     return;
 }
@@ -23,6 +26,12 @@ const randomAns = mongoose.model('randomAns', {
 
 const randomAnsAllgroup = mongoose.model('randomAnsAllgroup', {
     randomAnsAllgroup: Array
+});
+
+const randomAnsGroup = mongoose.model('randomAnsGroup', {
+    title: String,
+    answer: Array,
+    serial: Number
 });
 
 
@@ -456,7 +465,8 @@ module.exports = {
     myName,
     whatsapp,
     roleInvites,
-    roleReact
+    roleReact,
+    randomAnsGroup
 }
 //const Cat = mongoose.model('Cat', { name: String });
 //const kitty = new Cat({ name: 'Zildjian' });

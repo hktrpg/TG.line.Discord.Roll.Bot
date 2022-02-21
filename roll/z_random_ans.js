@@ -2,6 +2,7 @@
 if (!process.env.mongoURL) {
     return;
 }
+const adminSecret = process.env.ADMIN_SECRET;
 const rollbase = require('./rollbase.js');
 const schema = require('../modules/schema.js');
 exports.z_Level_system = require('./z_Level_system');
@@ -281,99 +282,138 @@ var rollDiceCommand = async function ({
             rply.text = await replaceAsync(rply.text, /{(.*?)}/ig, replacer);
             return rply;
         case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
-            //
-            //增加自定義關鍵字
-            // .rap[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
-            if (!mainMsg[2])
-                rply.text += ' 沒有關鍵字.'
-            if (!mainMsg[4])
-                rply.text += ' 沒有自定義回應,至少兩個.'
-            if (rply.text) {
-                rply.text = '新增失敗.\n' + rply.text;
+            {    //
+                //增加自定義關鍵字
+                // .rap[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
+                if (!mainMsg[2])
+                    rply.text += ' 沒有關鍵字.'
+                if (!mainMsg[4])
+                    rply.text += ' 沒有自定義回應,至少兩個.'
+                if (rply.text) {
+                    rply.text = '新增失敗.\n' + rply.text;
+                    return rply;
+                }
+                getData = await schema.randomAnsGroup.findOne({ "title": { $regex: new RegExp(mainMsg[2], "i") } })
+                if (getData) {
+                    rply.text = '新增失敗. 重複關鍵字'
+                    return rply;
+                }
+
+                const [, , ...rest] = mainMsg;
+                let list = await schema.randomAnsGroup.find({}, 'serial');
+                let newAnswer = new schema.randomAnsGroup({
+                    title: rest[1],
+                    answer: rest,
+                    serial: findTheNextSerial(list)
+                })
+                try {
+                    let checkResult = await newAnswer.save();
+                    rply.text = `新增成功  \n標題: ${checkResult.title}\n序號: ${checkResult.serial}\n內容: ${checkResult.answer}`
+                } catch (error) {
+                    rply.text = '新增失敗'
+                }
                 return rply;
             }
-            getData = await schema.randomAnsAllgroup.findOne({})
-            if (getData)
-                check = await getData.randomAnsAllgroup.find(e =>
-                    e[0].toLowerCase() == mainMsg[2].toLowerCase()
-                )
-            if (check) {
-                rply.text = '新增失敗. 重複關鍵字'
-                return rply;
-            }
-            if (getData.randomAnsAllgroup.length > 100) {
-                rply.text = '公共關鍵字上限' + 100 + '個';
-                return rply;
-            }
-            temp = {
-                randomAnsAllgroup: [mainMsg.slice(2)]
-            }
-            check = await schema.randomAnsAllgroup.updateOne({}, {
-                $push: temp
-            }, opt)
-            if (check.n == 1) {
-                rply.text = '新增成功: ' + mainMsg[2]
-            } else rply.text = '新增失敗'
-            return rply;
         case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
             //
             //顯示列表
             //
             rply.quotes = true;
-            getData = await schema.randomAnsAllgroup.findOne({})
-            if (!getData || getData.randomAnsAllgroup.length == 0) {
+            if (mainMsg[2]) {
+                temp = await schema.randomAnsGroup.findOne({ "title": { $regex: new RegExp(mainMsg[2], "i") } })
+                if (!temp) {
+                    rply.text = '找不到該關鍵字, 請重新檢查'
+                    return rply;
+                }
+                rply.text += `自定義關鍵字  \n標題: ${temp.title} \n`
+                let tempanswer = temp.answer;
+                for (let i in tempanswer) {
+                    rply.text += ((i % 2 && i != 1) && i !== 0) ? ("\n") + i + '. ' + tempanswer[i] + "        " : (i == 0) ? '' : i + '. ' + tempanswer[i] + "        ";
+                }
+                return rply;
+            }
+            getData = await schema.randomAnsGroup.find({})
+            if (!getData || getData.length == 0) {
                 rply.text = '沒有已設定的關鍵字. '
                 return rply
             }
-            if (mainMsg[2]) {
-                temp = getData.randomAnsAllgroup.find(e => e[0].toLowerCase() == mainMsg[2].toLowerCase())
-                for (let i in temp) {
-                    rply.text += (i == 0) ? '自定義關鍵字 ' + temp[i] + '\n' : '';
-                    rply.text += ((i % 2 && i != 1) && i !== 0) ? ("\n") + i + '. ' + temp[i] + "        " : (i == 0) ? '' : i + '. ' + temp[i] + "        ";
-                }
-            }
-            if (rply.text) {
-                return rply
-            }
-            rply.text += '自定義關鍵字列表:';
-            for (let a in getData.randomAnsAllgroup) {
-                rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + '. ' + getData.randomAnsAllgroup[a][0] : "     " + a + '. ' + getData.randomAnsAllgroup[a][0];
+            rply.text += '自定義關鍵字列表';
+            for (let a in getData) {
+                rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + '#' + getData[a].serial + '. ' + getData[a].title : "     " + '#' + getData[a].serial + '. ' + getData[a].title;
             }
             //顯示自定義關鍵字
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
             rply.text += '\n在show [空格]後面輸入關鍵字標題, 可以顯示詳細內容\n輸入 .rap (列表序號或標題) 可以進行隨機抽選';
             return rply
-        case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[0]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
+        case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /^(change)$/i.test(mainMsg[1]):
+            {
+                if (!adminSecret) return rply;
+                if (userid !== adminSecret) return rply;
+                let allData = await schema.randomAnsAllgroup.findOne({})
+                let dataList = allData.randomAnsAllgroup;
+
+                for (let index = 0; index < dataList.length; index++) {
+                    //randomAnsGroup
+                    const [, ...rest] = dataList[index];
+                    let newAnswer = new schema.randomAnsGroup({
+                        title: dataList[index][0],
+                        answer: rest,
+                        serial: index + 1
+                    })
+                    await newAnswer.save();
+
+                }
+                rply.text = dataList.length + ' Done';
+                return rply
+            }
+        case /(^[.]rap$)/i.test(mainMsg[0]) && /^(delete)$/i.test(mainMsg[1]):
+            {
+                if (!adminSecret) return rply;
+                if (userid !== adminSecret) return rply;
+                const [, , ...target] = mainMsg;
+                let dataList = await schema.randomAnsGroup.deleteMany(
+                    {
+                        "serial": isNumber(target)
+                    }
+                )
+                rply.text = dataList.n + ' Done';
+                return rply
+            }
+        case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[0]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]): {
             //
             //RAP使用抽選功能
             //
             times = /^[.](r|)rap(\d+|)/i.exec(mainMsg[0])[2] || 1;
-            check = /^[.](r|)rap(\d+|)/i.exec(mainMsg[0])[1] || '';
+            let repeat = /^[.](r|)rap(\d+|)/i.exec(mainMsg[0])[1] || '';
             if (times > 30) times = 30;
             if (times < 1) times = 1
-            getData = await schema.randomAnsAllgroup.findOne({})
-            if (!getData) return;
-            for (let i in mainMsg) {
-                if (i == 0) continue;
-                temp = getData.randomAnsAllgroup.find(e => e[0].toLowerCase() == mainMsg[i].toLowerCase())
-                if (!temp && mainMsg[i].match(/^\d+$/)) {
-                    temp = getData.randomAnsAllgroup[mainMsg[i]]
+            const [, ...target] = mainMsg;
+            getData = await schema.randomAnsGroup.find(
+                {
+                    $or: [
+                        { "title": { $regex: new RegExp(`^(${target.join('|')})$`, "i") } },
+                        { "serial": isNumber(target) }]
                 }
-                if (!temp) continue;
-                if (check) {
+            )
+            if (!getData || getData.length == 0) {
+                rply.text = '沒有這關鍵字, 請重新再試.'
+                return rply
+            }
+            for (let index = 0; index < getData.length; index++) {
+                let temp = getData[index];
+                if (repeat) {
                     //repeat mode
-                    rply.text += temp[0] + ' → ';
+                    rply.text += temp.title + ' → ';
                     for (let num = 0; num < times; num++) {
-                        let randomNumber = rollbase.Dice(temp.length - 1);
-                        rply.text += (num == 0) ? temp[randomNumber] : ', ' + temp[randomNumber];
+                        let randomNumber = rollbase.Dice(temp.answer.length - 1);
+                        rply.text += (num == 0) ? temp.answer[randomNumber] : ', ' + temp.answer[randomNumber];
                         rply.text += (num == times - 1) ? '\n' : '';
                     }
                 } else {
                     //not repeat mode
-                    rply.text += temp[0] + ' → ';
+                    rply.text += temp.title + ' → ';
                     let items = [];
-                    let tempItems = [...temp]
-                    tempItems.splice(0, 1);
+                    let tempItems = [...temp.answer]
                     while (items.length < times) {
                         items = tempItems
                             .map((a) => ({
@@ -393,6 +433,7 @@ var rollDiceCommand = async function ({
             }
             rply.text = await replaceAsync(rply.text, /{(.*?)}/ig, replacer);
             return rply;
+        }
         default:
             break;
     }
@@ -557,6 +598,33 @@ async function replaceAsync(str, regex, asyncFn) {
 }
 
 
+function findTheNextSerial(list) {
+    if (list.length === 0) return 1;
+    let serialList = []
+    for (let index = 0; index < list.length; index++) {
+        serialList.push(list[index].serial);
+    }
+    serialList.sort(function (a, b) {
+        return a - b;
+    });
+    //[1,2,4,5]
+    for (let index = 0; index < serialList.length - 1; index++) {
+        if (serialList[index] !== (index + 1)) {
+            return index + 1
+        }
+    }
+    return serialList[list.length - 1] + 1;
+}
+
+function isNumber(list) {
+    let numberlist = [];
+    for (let index = 0; index < list.length; index++) {
+        let n = list[index];
+        if (/^(?!0)\d+?$/.test(n))
+            numberlist.push(n)
+    }
+    return numberlist;
+}
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,

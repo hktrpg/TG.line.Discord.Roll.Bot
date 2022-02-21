@@ -2,6 +2,7 @@
 if (!process.env.mongoURL) {
     return;
 }
+const adminSecret = process.env.ADMIN_SECRET;
 const rollbase = require('./rollbase.js');
 const schema = require('../modules/schema.js');
 exports.z_Level_system = require('./z_Level_system');
@@ -346,6 +347,8 @@ var rollDiceCommand = async function ({
             return rply
         case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /^(change)$/i.test(mainMsg[1]):
             {
+                if (!adminSecret) return rply;
+                if (userid !== adminSecret) return rply;
                 let allData = await schema.randomAnsAllgroup.findOne({})
                 let dataList = allData.randomAnsAllgroup;
 

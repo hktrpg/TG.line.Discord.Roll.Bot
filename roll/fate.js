@@ -1,7 +1,7 @@
 "use strict";
 var rollbase = require('./rollbase.js');
 var variables = {};
-
+const mathjs = require('mathjs');
 var gameName = function () {
     return '【命運Fate】 .4df(m|-)(加值)'
 }
@@ -15,7 +15,7 @@ var prefixs = function () {
     //如前面是 /^1$/ig, 後面是/^1D100$/ig, 即 prefixs 變成 1 1D100 
     ///^(?=.*he)(?!.*da).*$/ig
     return [{
-        first: /^[.]4df(\d+|(\+|m|-)(\d+)|)$/i,
+        first: /^[.]4df(\d+|(\+|m|-)(\d+)|)/i,
         second: null
     }]
 }
@@ -44,8 +44,7 @@ var rollDiceCommand = async function ({
             rply.text = await this.getHelpMessage();
             rply.quotes = true;
             return rply;
-        default:
-            var match = /^[.]4df(\d+|(\+|m|-)(\d+)|)$/i.exec(mainMsg[0])
+        default: {
             //.4dfm23,m23,m,23
             //＋∎－
             //console.log(match)
@@ -60,16 +59,20 @@ var rollDiceCommand = async function ({
                 // console.log('ans: ', ans, 'temp: ', temp)
                 temp = temp.replace('-1', '－').replace('0', '▉').replace('1', '＋')
             }
-            rply.text = 'Fate ' + inputStr.toString().replace(/\r/g, " ").replace(/\n/g, " ") + '\n' + temp + ' = ' + ans
-            if (match[2] && (match[2].toLowerCase() == 'm' || match[2].toLowerCase() == '-')) {
-                rply.text += ' - ' + match[3] + ' = ' + (Number(ans) - Number(match[3]))
-            } else
-                if (match[2] && (match[2].toLowerCase() == '+')) {
-                    rply.text += ' + ' + match[3] + ' = ' + (Number(ans) + Number(match[3]))
-                } else if (match[1])
-                    rply.text += ' + ' + match[1] + ' = ' + (Number(ans) + Number(match[1]))
+            try {
+                rply.text = 'Fate ' + inputStr.toString().replace(/\r/g, " ").replace(/\n/g, " ") + '\n' + temp + ' = ' + ans;
+                let mod = mainMsg[0].replace(/^\.4df/ig, '').replace(/^(\d)/, '+$1').replace(/m/ig, '-').replace(/-/g, ' - ').replace(/\+/g, ' + ');
+                if (mod) {
+                    rply.text += ` ${mod} = ${mathjs.evaluate(ans + mod)}`.replace(/\*/g, ' * ')
+
+                }
+            } catch (error) {
+                rply.text = `.4df 輸入出錯 \n${error.message}`
+            }
+
 
             return rply;
+        }
     }
 }
 

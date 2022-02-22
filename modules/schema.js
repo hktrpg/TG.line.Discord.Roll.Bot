@@ -24,11 +24,17 @@ const randomAns = mongoose.model('randomAns', {
     randomAnsfunction: Array
 });
 
+const randomAnsPersonal = mongoose.model('randomAnsPersonal', {
+    userid: String,
+    randomAnsfunction: Array
+});
+
+//cancel
 const randomAnsAllgroup = mongoose.model('randomAnsAllgroup', {
     randomAnsAllgroup: Array
 });
 
-const randomAnsGroup = mongoose.model('randomAnsGroup', {
+const randomAnsServer = mongoose.model('randomAnsServer', {
     title: String,
     answer: Array,
     serial: Number
@@ -466,7 +472,8 @@ module.exports = {
     whatsapp,
     roleInvites,
     roleReact,
-    randomAnsGroup
+    randomAnsServer,
+    randomAnsPersonal
 }
 //const Cat = mongoose.model('Cat', { name: String });
 //const kitty = new Cat({ name: 'Zildjian' });

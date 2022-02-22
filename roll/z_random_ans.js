@@ -12,6 +12,7 @@ const opt = {
 }
 
 const VIP = require('../modules/veryImportantPerson');
+const { use } = require('chai');
 const limitArr = [30, 200, 200, 300, 300, 300, 300, 300];
 var gameName = function () {
     return '(公測中)自定義骰子/回應功能 .ra(p)(次數) (add del show 自定關鍵字)'
@@ -38,8 +39,8 @@ const getHelpMessage = async function () {
 輸入.ra(次數,最多30次) (關鍵字1/編號)(關鍵字2)(關鍵字n) 即可不重覆隨機抽選 
 輸入.rra(次數,最多30次) (關鍵字1/編號)(關鍵字2)(關鍵字n) 即可重覆隨機抽選
 
-如使用輸入.rap 會變成全服版,全服可看, 可用add show功能 
-例如輸入 .rap10 聖晶石召喚 即可十連抽了 
+如使用輸入.ras 會變成全服版,全服可看, 可用add show功能 
+例如輸入 .ras10 聖晶石召喚 即可十連抽了 
 
 例如輸入 .ra add 九大陣營 守序善良 (...太長省略) 中立邪惡 混亂邪惡 
 再輸入.ra 九大陣營  就會輸出 九大陣營中其中一個
@@ -50,7 +51,7 @@ add 後面第一個是關鍵字, 可以是漢字,數字和英文或emoji
 
 --20210719 新增: 關鍵字可用數字代替, 如編號5,可以輪入 .ra 5 --
 
-新增指令 - 輸入.rap newType 可以觀看效果
+新增指令 - 輸入.ras newType 可以觀看效果
 * {br}          <--隔一行
 * {ran:100}     <---隨機1-100
 * {random:5-20} <---隨機5-20
@@ -207,7 +208,7 @@ var rollDiceCommand = async function ({
             rply.quotes = true;
             getData = await schema.randomAns.findOne({ groupid: groupid })
             if (!getData || getData.randomAnsfunction.length == 0) {
-                rply.text = '沒有已設定的關鍵字. '
+                rply.text = '沒有已設定的關鍵字.\n本功能已改版，\n.rap 轉成個人專用的骰組，\n原全服群組變成.ras\n .ra => random answer (group) \n.rap => random answer personal \n .ras => random answer server'
                 return rply
             }
             if (mainMsg[2]) {
@@ -281,10 +282,181 @@ var rollDiceCommand = async function ({
             }
             rply.text = await replaceAsync(rply.text, /{(.*?)}/ig, replacer);
             return rply;
-        case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
+
+
+        case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]): {
+            //
+            //增加自定義關鍵字
+            // .ra[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
+            /*
+            只限四張角色卡.
+            使用VIPCHECK
+            */
+            lv = await VIP.viplevelCheckUser(userid);
+            limit = limitArr[lv];
+            if (!mainMsg[2])
+                rply.text += ' 沒有關鍵字.'
+            if (!userid)
+                rply.text += ' 此功能必須使用聊天軟件，在個人身份中使用.'
+            if (rply.text) {
+                rply.text = '新增失敗.\n' + rply.text;
+                return rply;
+            }
+            getData = await schema.randomAnsPersonal.findOne({ userid: userid })
+            let update = false;
+            let findIndex = getData && getData.randomAnsfunction.findIndex((e) => {
+                return e && e[0] && e[0].toLowerCase() == mainMsg[2].toLowerCase()
+            })
+            if (findIndex >= 0 && findIndex != null) {
+                let tempCheck = getData.randomAnsfunction[findIndex].join('') + mainMsg.slice(3).join('')
+                if (tempCheck.length > 3000) {
+                    rply.text = '更新失敗. 總內容不得超過3000字'
+                    return rply;
+                } else {
+                    update = true;
+                    getData.randomAnsfunction.set(findIndex, [...getData.randomAnsfunction[findIndex], ...mainMsg.slice(3)])
+                }
+            }
+            if (update) {
+                await getData.save();
+                rply.text = `已更新!\n.ra show ${mainMsg[2]} 可以顯示所有內容`
+                return rply;
+            }
+            if (getData && getData.randomAnsfunction.length >= limit) {
+                rply.text = '關鍵字上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                return rply;
+            }
+            temp = {
+                randomAnsfunction: [mainMsg.slice(2)]
+            }
+            check = await schema.randomAnsPersonal.updateOne({
+                userid: userid
+            }, {
+                $push: temp
+            }, opt)
+            if (check.n == 1) {
+                rply.text = '新增成功: ' + mainMsg[2]
+            } else rply.text = '新增失敗'
+            return rply;
+        } case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]):
+            //
+            //刪除自定義關鍵字
+            //
+            if (!mainMsg[2])
+                rply.text += '沒有關鍵字. '
+            if (!userid)
+                rply.text += ' 此功能必須使用聊天軟件，在個人身份中使用.'
+            if (rply.text)
+                return rply;
+            getData = await schema.randomAnsPersonal.findOne({ userid: userid })
+            if (!getData) {
+                rply.text += '沒有此關鍵字. \n本功能已改版，\n.rap 轉成個人專用的骰組，\n原全服群組變成.ras\n .ra => random answer (group) \n.rap => random answer personal \n .ras => random answer server'
+                return rply;
+            }
+            temp = getData.randomAnsfunction.filter(e => e[0].toLowerCase() === mainMsg[2].toLowerCase());
+            if (temp.length == 0) {
+                rply.text += '沒有此關鍵字. \n現在已更新刪除方式, 刪除請輸入 .rap del 名字'
+                return rply;
+            }
+            temp.forEach(f => getData.randomAnsfunction.splice(getData.randomAnsfunction.findIndex(e => e[0] === f[0]), 1));
+            check = await getData.save();
+            if (check) {
+                rply.text += '刪除成功\n' + temp;
+            }
+            return rply;
+        case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+            //
+            //顯示列表
+            //
+            if (!userid) {
+                rply.text += ' 此功能必須使用聊天軟件，在個人身份中使用.'
+                return rply;
+            }
+            rply.quotes = true;
+            getData = await schema.randomAnsPersonal.findOne({ userid: userid })
+            if (!getData || getData.randomAnsfunction.length == 0) {
+                rply.text = '沒有已設定的關鍵字. \n本功能已改版，\n.rap 轉成個人專用的骰組，\n原全服群組變成.ras\n .ra => random answer (group) \n.rap => random answer personal \n .ras => random answer server'
+                return rply
+            }
+            if (mainMsg[2]) {
+                temp = getData.randomAnsfunction.find(e => e[0].toLowerCase() == mainMsg[2].toLowerCase())
+                for (let i in temp) {
+                    rply.text += (i == 0) ? '自定義關鍵字 ' + temp[i] + '\n' : '';
+                    rply.text += ((i % 2 && i != 1) && i !== 0) ? ("\n") + i + '. ' + temp[i] + "        " : (i == 0) ? '' : i + '. ' + temp[i] + "        ";
+                }
+            }
+            if (rply.text) {
+                return rply
+            }
+            rply.text += '自定義關鍵字列表:';
+            for (let a in getData.randomAnsfunction) {
+                rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + '. ' + getData.randomAnsfunction[a][0] : "     " + a + '. ' + getData.randomAnsfunction[a][0];
+            }
+            //顯示自定義關鍵字
+            rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
+            rply.text += `\n在show [空格]後面輸入關鍵字標題, 可以顯示詳細內容\n輸入 .rap (列表序號或標題) 可以進行隨機抽選`;
+            return rply
+        case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
+            //
+            //RA使用抽選功能
+            //
+            if (!userid) {
+                rply.text += ' 此功能必須使用聊天軟件，在個人身份中使用.'
+            }
+            times = /^[.](r|)rap(\d+|)/i.exec(mainMsg[0])[2] || 1;
+            check = /^[.](r|)rap(\d+|)/i.exec(mainMsg[0])[1] || '';
+            if (times > 30) times = 30;
+            if (times < 1) times = 1
+            getData = await schema.randomAnsPersonal.findOne({ userid: userid })
+            if (!getData) {
+                rply.text = '沒有已設定的關鍵字. \n本功能已改版，\n.rap 轉成個人專用的骰組，\n原全服群組變成.ras\n .ra => random answer (group) \n.rap => random answer personal \n .ras => random answer server'
+                return rply
+            };
+            for (let i in mainMsg) {
+                if (i == 0) continue;
+                temp = getData.randomAnsfunction.find(e => e[0].toLowerCase() == mainMsg[i].toLowerCase())
+                if (!temp && mainMsg[i].match(/^\d+$/)) {
+                    temp = getData.randomAnsfunction[mainMsg[i]]
+                }
+                if (!temp) continue;
+                if (check) {
+                    //repeat mode
+                    rply.text += temp[0] + ' → ';
+                    for (let num = 0; num < times; num++) {
+                        let randomNumber = rollbase.Dice(temp.length - 1);
+                        rply.text += (num == 0) ? temp[randomNumber] : ', ' + temp[randomNumber];
+                        rply.text += (num == times - 1) ? '\n' : '';
+                    }
+                } else {
+                    //not repeat mode
+                    rply.text += temp[0] + ' → ';
+                    let items = [];
+                    let tempItems = [...temp]
+                    tempItems.splice(0, 1);
+                    while (items.length < times) {
+                        items = tempItems
+                            .map((a) => ({
+                                sort: Math.random(),
+                                value: a
+                            }))
+                            .sort((a, b) => a.sort - b.sort)
+                            .map((a) => a.value)
+                            .concat(items)
+                    }
+                    for (let num = 0; num < times; num++) {
+                        rply.text += (num == 0) ? items[num] : ', ' + items[num];
+                        rply.text += (num == times - 1) ? '\n' : '';
+                    }
+                }
+
+            }
+            rply.text = await replaceAsync(rply.text, /{(.*?)}/ig, replacer);
+            return rply;
+
+        case /(^[.](r|)ras(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
             {    //
                 //增加自定義關鍵字
-                // .rap[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
+                // .ras[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
                 if (!mainMsg[2])
                     rply.text += ' 沒有關鍵字.'
                 if (!mainMsg[4])
@@ -293,15 +465,15 @@ var rollDiceCommand = async function ({
                     rply.text = '新增失敗.\n' + rply.text;
                     return rply;
                 }
-                getData = await schema.randomAnsGroup.findOne({ "title": { $regex: new RegExp(mainMsg[2], "i") } })
+                getData = await schema.randomAnsServer.findOne({ "title": { $regex: new RegExp(mainMsg[2], "i") } })
                 if (getData) {
                     rply.text = '新增失敗. 重複關鍵字'
                     return rply;
                 }
 
                 const [, , ...rest] = mainMsg;
-                let list = await schema.randomAnsGroup.find({}, 'serial');
-                let newAnswer = new schema.randomAnsGroup({
+                let list = await schema.randomAnsServer.find({}, 'serial');
+                let newAnswer = new schema.randomAnsServer({
                     title: rest[1],
                     answer: rest,
                     serial: findTheNextSerial(list)
@@ -314,13 +486,13 @@ var rollDiceCommand = async function ({
                 }
                 return rply;
             }
-        case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+        case /(^[.](r|)ras(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
             //
             //顯示列表
             //
             rply.quotes = true;
             if (mainMsg[2]) {
-                temp = await schema.randomAnsGroup.findOne({ "title": { $regex: new RegExp(mainMsg[2], "i") } })
+                temp = await schema.randomAnsServer.findOne({ "title": { $regex: new RegExp(mainMsg[2], "i") } })
                 if (!temp) {
                     rply.text = '找不到該關鍵字, 請重新檢查'
                     return rply;
@@ -332,7 +504,7 @@ var rollDiceCommand = async function ({
                 }
                 return rply;
             }
-            getData = await schema.randomAnsGroup.find({})
+            getData = await schema.randomAnsServer.find({})
             if (!getData || getData.length == 0) {
                 rply.text = '沒有已設定的關鍵字. '
                 return rply
@@ -343,9 +515,9 @@ var rollDiceCommand = async function ({
             }
             //顯示自定義關鍵字
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
-            rply.text += '\n在show [空格]後面輸入關鍵字標題, 可以顯示詳細內容\n輸入 .rap (列表序號或標題) 可以進行隨機抽選';
+            rply.text += '\n在show [空格]後面輸入關鍵字標題, 可以顯示詳細內容\n輸入 .ras (列表序號或標題) 可以進行隨機抽選';
             return rply
-        case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /^(change)$/i.test(mainMsg[1]):
+        case /(^[.](r|)ras(\d+|)$)/i.test(mainMsg[0]) && /^(change)$/i.test(mainMsg[1]):
             {
                 if (!adminSecret) return rply;
                 if (userid !== adminSecret) return rply;
@@ -353,9 +525,9 @@ var rollDiceCommand = async function ({
                 let dataList = allData.randomAnsAllgroup;
 
                 for (let index = 0; index < dataList.length; index++) {
-                    //randomAnsGroup
+                    //randomAnsServer
                     const [, ...rest] = dataList[index];
-                    let newAnswer = new schema.randomAnsGroup({
+                    let newAnswer = new schema.randomAnsServer({
                         title: dataList[index][0],
                         answer: rest,
                         serial: index + 1
@@ -366,12 +538,12 @@ var rollDiceCommand = async function ({
                 rply.text = dataList.length + ' Done';
                 return rply
             }
-        case /(^[.]rap$)/i.test(mainMsg[0]) && /^(delete)$/i.test(mainMsg[1]):
+        case /(^[.]ras$)/i.test(mainMsg[0]) && /^(delete)$/i.test(mainMsg[1]):
             {
                 if (!adminSecret) return rply;
                 if (userid !== adminSecret) return rply;
                 const [, , ...target] = mainMsg;
-                let dataList = await schema.randomAnsGroup.deleteMany(
+                let dataList = await schema.randomAnsServer.deleteMany(
                     {
                         "serial": isNumber(target)
                     }
@@ -379,16 +551,16 @@ var rollDiceCommand = async function ({
                 rply.text = dataList.n + ' Done';
                 return rply
             }
-        case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[0]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]): {
+        case /(^[.](r|)ras(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[0]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]): {
             //
-            //RAP使用抽選功能
+            //ras使用抽選功能
             //
-            times = /^[.](r|)rap(\d+|)/i.exec(mainMsg[0])[2] || 1;
-            let repeat = /^[.](r|)rap(\d+|)/i.exec(mainMsg[0])[1] || '';
+            times = /^[.](r|)ras(\d+|)/i.exec(mainMsg[0])[2] || 1;
+            let repeat = /^[.](r|)ras(\d+|)/i.exec(mainMsg[0])[1] || '';
             if (times > 30) times = 30;
             if (times < 1) times = 1
             const [, ...target] = mainMsg;
-            getData = await schema.randomAnsGroup.find(
+            getData = await schema.randomAnsServer.find(
                 {
                     $or: [
                         { "title": { $regex: new RegExp(`^(${target.join('|')})$`, "i") } },

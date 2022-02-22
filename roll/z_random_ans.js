@@ -155,7 +155,7 @@ var rollDiceCommand = async function ({
                 return rply;
             }
             if (getData && getData.randomAnsfunction.length >= limit) {
-                rply.text = '骰子上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                rply.text = '群組骰子上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
                 return rply;
             }
             temp = {
@@ -304,7 +304,6 @@ var rollDiceCommand = async function ({
                     return rply;
                 }
                 getData = await schema.randomAnsPersonal.findOne({ "title": { $regex: new RegExp(mainMsg[2], "i") }, "userid": userid })
-                console.log('getData', getData)
                 const [, , , ...rest] = mainMsg;
                 const answerLength = getData && getData.answer.join('').length;
 
@@ -320,6 +319,10 @@ var rollDiceCommand = async function ({
                 }
 
                 let list = await schema.randomAnsPersonal.find({ userid: userid }, 'serial');
+                if (list && list.length >= limit) {
+                    rply.text = '個人骰子上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                    return rply;
+                }
                 let newAnswer = new schema.randomAnsPersonal({
                     title: mainMsg[2],
                     answer: rest,
@@ -458,6 +461,10 @@ var rollDiceCommand = async function ({
                     answer: rest,
                     serial: findTheNextSerial(list)
                 })
+                if (list && list.length >= 100) {
+                    rply.text = 'HKTRPG公用骰子上限' + limit + '個';
+                    return rply;
+                }
                 try {
                     let checkResult = await newAnswer.save();
                     rply.text = `新增成功  \n標題: ${checkResult.title}\n序號: ${checkResult.serial}\n內容: ${checkResult.answer}\n輸入 .rap ${checkResult.title}\n或 .rap ${checkResult.serial} \n即可使用`

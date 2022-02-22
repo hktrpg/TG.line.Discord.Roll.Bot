@@ -1,7 +1,4 @@
 "use strict";
-
-const { string } = require('mathjs');
-
 if (!process.env.mongoURL) {
     return;
 }
@@ -26,7 +23,9 @@ const randomAns = mongoose.model('randomAns', {
 
 const randomAnsPersonal = mongoose.model('randomAnsPersonal', {
     userid: String,
-    randomAnsfunction: Array
+    title: String,
+    answer: Array,
+    serial: Number
 });
 
 //cancel

@@ -616,6 +616,11 @@ process.on('unhandledRejection', error => {
 	if (error.message === "Missing Access") return;
 	if (error.message === "Missing Permissions") return;
 	console.error('Discord Unhandled promise rejection:', error);
+
+	process.send({
+		type: "process:msg",
+		data: "discorderror"
+	});
 });
 
 client.on('guildCreate', async guild => {

@@ -1,12 +1,6 @@
 "use strict";
 
 require('dotenv').config();
-if (process.env.mongoURL) {
-  require('./modules/db-connector');
-  return;
-}
-
-
 
 require('fs').readdirSync(__dirname + '/modules/').forEach(function (file) {
   if (file.match(/\.js$/) && file.match(/^core-/)) {

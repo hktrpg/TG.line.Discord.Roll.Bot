@@ -56,7 +56,9 @@ var handleEvent = async function (event) {
 		inputStr = inputStr.replace(/^.me\s+/i, '');
 		if (roomorgroupid) {
 			let temp = HandleMessage(inputStr);
-			client.replyMessage(event.replyToken, temp);
+			client.replyMessage(event.replyToken, temp).catch((err) => {
+				console.error('line err', err.statusCode);
+			});
 		} else {
 			SendToId(event.source.userId, inputStr);
 		}
@@ -286,7 +288,9 @@ var replyMessagebyReplyToken = function (event, Reply) {
 				type: 'text',
 				text: temp.originalContentUrl
 			};
-			client.replyMessage(event.replyToken, tempB)
+			client.replyMessage(event.replyToken, tempB).catch((err) => {
+				console.error('line err', err.statusCode);
+			});
 			//	}
 		}
 	});

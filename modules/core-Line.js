@@ -57,7 +57,7 @@ var handleEvent = async function (event) {
 		if (roomorgroupid) {
 			let temp = HandleMessage(inputStr);
 			client.replyMessage(event.replyToken, temp).catch((err) => {
-				console.error('line err', err.statusCode);
+				console.error('#60 line err', err.statusCode);
 			});
 		} else {
 			SendToId(event.source.userId, inputStr);
@@ -289,7 +289,7 @@ var replyMessagebyReplyToken = function (event, Reply) {
 				text: temp.originalContentUrl
 			};
 			client.replyMessage(event.replyToken, tempB).catch((err) => {
-				console.error('line err', err.statusCode);
+				console.error('#292 line err', err.statusCode);
 			});
 			//	}
 		}
@@ -406,7 +406,7 @@ function SendToId(targetid, Reply) {
 	//console.log('SendToId: ', temp)
 	client.pushMessage(targetid, temp).catch((err) => {
 		if (err.statusCode == 429) return
-		console.error('line err', err.statusCode);
+		console.error('#409 line err', err.statusCode);
 	});
 }
 async function privateMsgFinder(channelid) {

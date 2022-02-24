@@ -524,7 +524,7 @@ async function nonDice(message) {
 			);
 		}
 	} catch (error) {
-		console.log('await EXPUP error', error);
+		console.error('await EXPUP error', error);
 	}
 
 

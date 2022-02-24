@@ -279,23 +279,21 @@ var handleEvent = async function (event) {
 
 }
 var replyMessagebyReplyToken = function (event, Reply) {
-	try {
-		let temp = HandleMessage(Reply);
-		return client.replyMessage(event.replyToken, temp).catch(() => {
-			if (temp.type == 'image') {
-				let tempB = {
-					type: 'text',
-					text: temp.originalContentUrl
-				};
-				client.replyMessage(event.replyToken, tempB);
-				//	}
-			}
-		});
-	} catch (error) {
-		console.log('line error reply', error && error.statusText, error && error.response && error.response.statusText)
-	}
+	let temp = HandleMessage(Reply);
+	return client.replyMessage(event.replyToken, temp).catch(() => {
+		if (temp.type == 'image') {
+			let tempB = {
+				type: 'text',
+				text: temp.originalContentUrl
+			};
+			client.replyMessage(event.replyToken, tempB)
+			//	}
+		}
+	});
+
 
 }
+
 function HandleMessage(message) {
 	let temp = [];
 	switch (true) {
@@ -402,7 +400,9 @@ app.on('unhandledRejection', error => {
 function SendToId(targetid, Reply) {
 	let temp = HandleMessage(Reply);
 	//console.log('SendToId: ', temp)
-	return client.pushMessage(targetid, temp);
+	client.pushMessage(targetid, temp).catch((err) => {
+		console.error('line err', err.statusCode);
+	});
 }
 async function privateMsgFinder(channelid) {
 	if (!TargetGM || !TargetGM.trpgDarkRollingfunction) return;

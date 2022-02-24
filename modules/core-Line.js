@@ -401,6 +401,7 @@ function SendToId(targetid, Reply) {
 	let temp = HandleMessage(Reply);
 	//console.log('SendToId: ', temp)
 	client.pushMessage(targetid, temp).catch((err) => {
+		if (err.statusCode == 429) return
 		console.error('line err', err.statusCode);
 	});
 }

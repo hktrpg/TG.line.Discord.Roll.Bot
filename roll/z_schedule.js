@@ -11,7 +11,7 @@ const agenda = require('../modules/schedule')
 const cronRegex = /^(\d\d)(\d\d)((?:-([1-9]?[1-9]|((mon|tues|wed(nes)?|thur(s)?|fri|sat(ur)?|sun)(day)?))){0,1})/i;
 const validDays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
-1
+
 
 var gameName = function () {
     return '【定時發訊功能】.at /.cron  mins hours delete show'
@@ -114,7 +114,7 @@ var rollDiceCommand = async function ({
             }
             const jobs = await agenda.agenda.jobs(
                 check
-            );
+            ).catch(error => console.error('agenda error: ', error.name, error.reson))
             rply.text = showJobs(jobs);
             return rply;
         }
@@ -140,7 +140,7 @@ var rollDiceCommand = async function ({
             }
             const jobs = await agenda.agenda.jobs(
                 check
-            );
+            ).catch(error => console.error('agenda error: ', error.name, error.reson))
             try {
                 let data = jobs[Number(mainMsg[2]) - 1];
                 await jobs[Number(mainMsg[2]) - 1].remove();
@@ -168,7 +168,7 @@ var rollDiceCommand = async function ({
             }
             let checkGroupid = await schema.agendaAtHKTRPG.countDocuments(
                 check
-            );
+            ).catch(error => console.error('schedule  #171 mongoDB error: ', error.name, error.reson));
             if (checkGroupid >= limit) {
                 rply.text = '.at 整個群組上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
                 return rply;
@@ -183,7 +183,7 @@ var rollDiceCommand = async function ({
             let date = checkTime.time;
 
             let callBotname = differentPeformAt(botname);
-            await agenda.agenda.schedule(date, callBotname, { replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid });
+            await agenda.agenda.schedule(date, callBotname, { replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid }).catch(error => console.error('agenda error: ', error.name, error.reson))
             rply.text = `已新增排定內容\n將於${date.toString().replace(/:\d+\s.*/, '')}運行`
             return rply;
         }
@@ -209,7 +209,7 @@ var rollDiceCommand = async function ({
             }
             const jobs = await agenda.agenda.jobs(
                 check
-            );
+            ).catch(error => console.error('agenda error: ', error.name, error.reson))
             rply.text = showCronJobs(jobs);
             return rply;
         }
@@ -239,7 +239,7 @@ var rollDiceCommand = async function ({
             }
             const jobs = await agenda.agenda.jobs(
                 check
-            );
+            )
             try {
                 let data = jobs[Number(mainMsg[2]) - 1];
                 await jobs[Number(mainMsg[2]) - 1].remove();
@@ -275,7 +275,7 @@ var rollDiceCommand = async function ({
             }
             let checkGroupid = await schema.agendaAtHKTRPG.countDocuments(
                 check
-            );
+            ).catch(error => console.error('schedule #278 mongoDB error: ', error.name, error.reson));
             if (checkGroupid >= limit) {
                 rply.text = '.cron 整個群組上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
                 return rply;
@@ -294,7 +294,13 @@ var rollDiceCommand = async function ({
             let callBotname = differentPeformCron(botname);
             const job = agenda.agenda.create(callBotname, { replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid, createAt: new Date(Date.now()) });
             job.repeatEvery(date);
-            await job.save();
+
+            try {
+                await job.save();
+            } catch (error) {
+                console.error("schedule #301 Error saving job to collection");
+            }
+     
             rply.text = `已新增排定內容\n將於${checkTime.days ? `每隔${checkTime.days}天` : ''}  ${checkTime.weeks.length ? `每個星期的${checkTime.weeks}` : ''}${!checkTime.weeks && !checkTime.days ? `每天` : ''} ${checkTime.hour}:${checkTime.min} (24小時制)運行`
             return rply;
         }

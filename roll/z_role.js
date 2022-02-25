@@ -97,7 +97,7 @@ var rollDiceCommand = async function ({
             return rply;
         }
         case /^\.roleReact$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
-            let list = await schema.roleReact.find({ groupid: groupid });
+            let list = await schema.roleReact.find({ groupid: groupid }).catch(error => console.error('role #100 mongoDB error: ', error.name, error.reson));
             rply.text = roleReactList(list);
             return rply;
         }
@@ -108,7 +108,7 @@ var rollDiceCommand = async function ({
                 return rply
             }
             try {
-                let myNames = await schema.roleReact.findOneAndRemove({ groupid: groupid, serial: mainMsg[2] })
+                let myNames = await schema.roleReact.findOneAndRemove({ groupid: groupid, serial: mainMsg[2] }).catch(error => console.error('role #111 mongoDB error: ', error.name, error.reson));
                 if (myNames) {
                     rply.text = `移除成功，#${myNames.serial}\n${myNames.message}`
                     return rply
@@ -138,7 +138,7 @@ var rollDiceCommand = async function ({
             }
             let lv = await VIP.viplevelCheckGroup(groupid);
             let limit = limitAtArr[lv];
-            let myNamesLength = await schema.roleReact.countDocuments({ groupid: groupid })
+            let myNamesLength = await schema.roleReact.countDocuments({ groupid: groupid }).catch(error => console.error('role #141 mongoDB error: ', error.name, error.reson));
             if (myNamesLength >= limit) {
                 rply.text = '.roleReact 群組上限為' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
                 rply.quotes = true;
@@ -158,7 +158,7 @@ var rollDiceCommand = async function ({
                 rply.quotes = true;
                 return rply;
             }
-            let list = await schema.roleReact.find({ groupid: groupid }, 'serial');
+            let list = await schema.roleReact.find({ groupid: groupid }, 'serial').catch(error => console.error('role #161 mongoDB error: ', error.name, error.reson));
             let myName = new schema.roleReact({
                 message: checkName.message,
                 groupid: groupid,
@@ -166,7 +166,7 @@ var rollDiceCommand = async function ({
                 detail: checkName.detail
             })
             try {
-                let data = await myName.save();
+                let data = await myName.save().catch(error => console.error('role #169 mongoDB error: ', error.name, error.reson));
                 rply.roleReactFlag = true;
                 rply.roleReactMongooseId = data.id;
                 rply.roleReactMessage = checkName.message;

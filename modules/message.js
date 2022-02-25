@@ -1,6 +1,20 @@
 const fs = require('fs');
 const schema = require('./schema.js');
 const crypto = require('crypto');
+var userList = null;
+
+(async () => {
+	try {
+		await getRecords();
+	} catch (e) {
+		console.error('error: message#10')
+		setTimeout(async () => {
+			await getRecords();
+		}, 1000)
+
+	}
+})();
+
 
 function joinMessage() {
 	const rawdata = fs.readFileSync("./assets/message.json");
@@ -23,15 +37,22 @@ function firstTimeMessage() {
 }
 
 
+async function getRecords() {
+	userList = await schema.firstTimeMessage.find({
+	}).catch(error => console.error('message #42 mongoDB error: ', error.name, error.reson))
+	console.log('message userList Got!')
+}
+
 async function newUserChecker(userid, botname) {
+	if (!Array.isArray(userList)) return false;
 	const hash = crypto.createHash('sha256').update(userid.toString()).digest('base64');
-	let user = await schema.firstTimeMessage.findOne({
-		userID: hash,
-		botname: botname
+	let user = userList.find(v => {
+		return v.userID == hash && v.botname == botname
 	})
 	if (!user) {
+		userList.push({ userID: hash, botname: botname })
 		user = new schema.firstTimeMessage({ userID: hash, botname: botname })
-		await user.save();
+		user.save();
 		return true;
 	} else
 		return false;

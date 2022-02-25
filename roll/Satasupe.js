@@ -30,7 +30,7 @@ var prefixs = function () {
     }]
 }
 var getHelpMessage = async function () {
-    return '【亞俠必死的冒險】\n' + await callHelp("Satasupe");;
+    return '【亞俠必死的冒險】\n' + await callHelp("Satasupe");
 }
 var initialize = function () {
     return variables;

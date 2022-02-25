@@ -13,13 +13,21 @@ const mongoose = require('mongoose');
         await mongoose.connect(process.env.mongoURL, {
             useNewUrlParser: true,
             useFindAndModify: false,
-            useUnifiedTopology: true
+            useUnifiedTopology: true,
+            // retry to connect for 60 times
+            reconnectTries: 10,
+            // wait 1 second before retrying
+            reconnectInterval: 500
         });
     } catch (err) {
-        console.error('DB CONNECT GET ERROR: ' + err)
+        console.error('DB CONNECT GET ERROR: ' + err.name, err.reason)
     }
 })();
 
+
+mongoose.connection.on('error', err => {
+    console.error('DB CONNECT ON GET ERROR: ' + err.name, err.reason)
+});
 
 const db = mongoose.connection;
 

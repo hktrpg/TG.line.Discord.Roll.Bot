@@ -19,7 +19,12 @@ const agenda = new Agenda({ db: { address: process.env.mongoURL, collection: 'ag
 
 (async function () {
     // IIFE to give access to async/await
-    await agenda.start();
+    try {
+        await agenda.start()
+    } catch (error) {
+        //
+    }
+
 
 })();
 

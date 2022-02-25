@@ -80,7 +80,8 @@ var parseInput = async function ({
 		})
 
 	} catch (error) {
-		console.error('rolldice GET ERROR:', error, ' inputStr: ', inputStr, ' botname: ', botname, ' Time: ', new Date());
+		console.error('rolldice GET ERROR:', error.name, ' inputStr: ', inputStr, ' botname: ', botname, ' Time: ', new Date());
+
 	}
 	if (rollDiceResult) {
 		result = JSON.parse(JSON.stringify(Object.assign({}, result, rollDiceResult)));
@@ -263,9 +264,9 @@ async function stateText() {
 	text += '\n Telegram總擲骰次數: ' + state.TelegramCountRoll;
 	text += '\n Whatsapp總擲骰次數: ' + state.WhatsappCountRoll;
 	text += '\n 網頁版總擲骰次數: ' + state.WWWCountRoll;
-	text += '\n 使用經驗值功能的群組: ' + await schema.trpgLevelSystem.countDocuments({ Switch: '1' });
-	text += '\n 已新增的角色卡: ' + await schema.characterCard.countDocuments({});
-	text += '\n HKTRPG使用者數量: ' + await schema.firstTimeMessage.countDocuments({});
+	text += '\n 使用經驗值功能的群組: ' + await schema.trpgLevelSystem.countDocuments({ Switch: '1' }).catch(error => console.error('analytics #266 mongoDB error: ', error.name, error.reson));
+	text += '\n 已新增的角色卡: ' + await schema.characterCard.countDocuments({}).catch(error => console.error('analytics #267 mongoDB error: ', error.name, error.reson));
+	text += '\n HKTRPG使用者數量: ' + await schema.firstTimeMessage.countDocuments({}).catch(error => console.error('analytics #268 mongoDB error: ', error.name, error.reson));
 	text += '\n 擲骰系統使用的隨機方式: random-js nodeCrypto';
 	return text;
 }

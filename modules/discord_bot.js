@@ -285,7 +285,8 @@ client.on('messageCreate', async message => {
 	*/
 	if (rplyVal.state) {
 		rplyVal.text += '\n' + await count();
-		rplyVal.text += '\nPing: ' + Number(Date.now() - message.createdTimestamp) + 'ms'
+		rplyVal.text += '\nPing: ' + Number(Date.now() - message.createdTimestamp) + 'ms';
+		rplyVal.text += await getAllshardIds();
 	}
 
 	if (groupid && rplyVal && rplyVal.LevelUp) {
@@ -843,7 +844,39 @@ function z_stop(mainMsg, groupid) {
 		return false;
 }
 
+async function getAllshardIds() {
+	if (!client.shard) return;
+	const promises = [
+		client.shard.broadcastEval(c => c.shard?.ids[0]),
+		client.shard.broadcastEval(c => c.ws.status),
+		client.shard.broadcastEval(c => c.ws.ping)
+	];
+	return Promise.all(promises)
+		.then(results => {
+			return '\n所有啓動中的server ID: ' + results[0].join(', ') + '\n所有啓動中的server online?: ' + results[1].join(', ') + '\n所有啓動中的server ping?: ' + results[2].join(', ');
+		})
+		.catch(console.error);
+
+}
+
 /**
+ *
+ * const dataFields = [];
+  try {
+	await manager.broadcastEval((bot) => {
+	  return [bot.shard?.ids, bot.ws.status, bot.ws.ping, bot.guilds.cache.size];
+	}).then(async (results) => {
+	  results.map((data) => {
+		dataFields.push({
+		  status: data[1] === 0 ? 'online' : 'offline',
+		  ping: `${data[2]}ms`,
+		  guilds: data[3],
+		});
+	  });
+	});
+  } catch (e: any) {
+	console.log(e);
+  }
 .addFields(
 	{ name: 'Regular field title', value: 'Some value here' },
 	{ name: '\u200B', value: '\u200B' },

@@ -49,7 +49,7 @@ var retry = 0;
 
 async function startUp() {
 	if (process.env.mongoURL) {
-		let data = await schema.whatsapp.findOne({});
+		let data = await schema.whatsapp.findOne({}).catch(error => console.error('whatsapp #52 mongoDB error: ', error.name, error.reson));
 		sessionData = (data && data.sessionData) ? JSON.parse(data.sessionData.toString()) : null;
 	}
 	if (!isHeroku && require('fs').existsSync(SESSION_FILE_PATH) && !sessionData) {
@@ -75,7 +75,7 @@ async function startUp() {
 		sessionData = session;
 		retry = 0;
 		if (process.env.mongoURL) {
-			await schema.whatsapp.findOneAndUpdate({}, { sessionData: JSON.stringify(session) }, opt)
+			await schema.whatsapp.findOneAndUpdate({}, { sessionData: JSON.stringify(session) }, opt).catch(error => console.error('whatsapp #78 mongoDB error: ', error.name, error.reson))
 		} else if (!isHeroku)
 			require('fs').writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
 				if (err) {
@@ -91,12 +91,12 @@ async function startUp() {
 		if (retry > maxRetry) {
 			sessionData = '';
 			if (process.env.mongoURL) {
-				await schema.whatsapp.findOneAndUpdate({}, { sessionData: '' }, opt)
+				await schema.whatsapp.findOneAndUpdate({}, { sessionData: '' }, opt).catch(error => console.error('whatsapp #94 mongoDB error: ', error.name, error.reson))
 			}
 			if (!isHeroku) {
 				require('fs').unlink(SESSION_FILE_PATH, function (err) {
 					if (err) {
-						console.error('whatsapp error: ',err);
+						console.error('whatsapp error: ', err);
 					}
 				});
 			}

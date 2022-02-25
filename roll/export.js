@@ -369,10 +369,10 @@ var rollDiceCommand = async function ({
             limit = limitArr[lv];
             checkUser = await schema.exportUser.findOne({
                 userID: userid
-            });
+            }).catch(error => console.error('export #372 mongoDB error: ', error.name, error.reson));
             checkGP = await schema.exportGp.findOne({
                 groupID: userid
-            });
+            }).catch(error => console.error('export #375 mongoDB error: ', error.name, error.reson));
             gpLimitTime = (lv > 0) ? oneMinuts : oneMinuts * 20;
             gpRemainingTime = (checkGP) ? theTime - checkGP.lastActiveAt - gpLimitTime : 1;
             userRemainingTime = (checkUser) ? theTime - checkUser.lastActiveAt - sevenDay : 1;
@@ -405,7 +405,7 @@ var rollDiceCommand = async function ({
                     groupID: userid
                 }, {
                     lastActiveAt: new Date()
-                }, opt);
+                }, opt).catch(error => console.error('export #408 mongoDB error: ', error.name, error.reson));
             } else {
                 checkGP.lastActiveAt = theTime;
                 await checkGP.save();
@@ -425,7 +425,7 @@ var rollDiceCommand = async function ({
                 }, {
                     lastActiveAt: new Date(),
                     times: 1
-                }, opt);
+                }, opt).catch(error => console.error('export #428 mongoDB error: ', error.name, error.reson));
             } else {
                 if (userRemainingTime && userRemainingTime > 0) {
                     update = {
@@ -443,7 +443,7 @@ var rollDiceCommand = async function ({
                 if (update)
                     await schema.exportUser.updateOne({
                         userID: userid
-                    }, update, opt);
+                    }, update, opt).catch(error => console.error('export #446 mongoDB error: ', error.name, error.reson));
             }
             totalSize = M.totalSize;
             M = M.sum_messages;

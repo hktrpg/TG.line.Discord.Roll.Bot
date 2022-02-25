@@ -264,12 +264,16 @@ client.on('messageCreate', async message => {
 	if (rplyVal.myNames) repeatMessages(message, rplyVal);
 
 	if (rplyVal.sendNews) sendNewstoAll(rplyVal);
-
 	if (!rplyVal.text && !rplyVal.LevelUp) {
 		return;
 	}
-	if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Discord")) {
-		SendToId(userid, newMessage.firstTimeMessage(), true);
+	try {
+		let isNew = await newMessage.newUserChecker(userid, "Discord");
+		if (process.env.mongoURL && rplyVal.text && isNew) {
+			SendToId(userid, newMessage.firstTimeMessage(), true);
+		}
+	} catch (error) {
+		//
 	}
 
 	/**
@@ -281,7 +285,8 @@ client.on('messageCreate', async message => {
 	*/
 	if (rplyVal.state) {
 		rplyVal.text += '\n' + await count();
-		rplyVal.text += '\nPing: ' + Number(Date.now() - message.createdTimestamp) + 'ms'
+		rplyVal.text += '\nPing: ' + Number(Date.now() - message.createdTimestamp) + 'ms';
+		rplyVal.text += await getAllshardIds();
 	}
 
 	if (groupid && rplyVal && rplyVal.LevelUp) {
@@ -316,7 +321,6 @@ client.on('messageCreate', async message => {
 	if (!rplyVal.text) {
 		return;
 	}
-
 	//Discordcountroll++;
 	//簡單使用數字計算器
 	if (privatemsg > 1 && TargetGM) {
@@ -665,7 +669,7 @@ client.login(channelSecret);
 		} catch (e) {
 			console.error("Discord Error removing job from collection:scheduleAtMessageDiscord", e);
 		}
-	});
+	})
 
 	agenda.define("scheduleCronMessageDiscord", async (job) => {
 		//const date = new Date(2012, 11, 21, 5, 30, 0);
@@ -688,7 +692,7 @@ client.login(channelSecret);
 			console.error("Discord Error removing job from collection:scheduleCronMessageDiscord", e);
 		}
 
-	});
+	})
 }())
 
 
@@ -783,7 +787,7 @@ async function roleReact(channelid, message) {
 			sendMessage.react(detail[index].emoji);
 		}
 
-		await schema.roleReact.findByIdAndUpdate(message.roleReactMongooseId, { messageID: sendMessage.id })
+		await schema.roleReact.findByIdAndUpdate(message.roleReactMongooseId, { messageID: sendMessage.id }).catch(error => console.error('discord_bot #786 mongoDB error: ', error.name, error.reson))
 		//threadId: discord.channelId,
 
 
@@ -799,7 +803,7 @@ async function roleReact(channelid, message) {
 
 client.on('messageReactionAdd', async (reaction, user) => {
 	if (reaction.me) return;
-	const list = await schema.roleReact.findOne({ messageID: reaction.message.id })
+	const list = await schema.roleReact.findOne({ messageID: reaction.message.id }).catch(error => console.error('discord_bot #802 mongoDB error: ', error.name, error.reson))
 	if (!list || list.length === 0) return;
 	const detail = list.detail;
 	const findEmoji = detail.find(function (item) {
@@ -814,7 +818,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 });
 client.on('messageReactionRemove', async (reaction, user) => {
 	if (reaction.me) return;
-	const list = await schema.roleReact.findOne({ messageID: reaction.message.id })
+	const list = await schema.roleReact.findOne({ messageID: reaction.message.id }).catch(error => console.error('discord_bot #817 mongoDB error: ', error.name, error.reson))
 	if (!list || list.length === 0) return;
 	const detail = list.detail;
 	for (let index = 0; index < detail.length; index++) {
@@ -840,7 +844,39 @@ function z_stop(mainMsg, groupid) {
 		return false;
 }
 
+async function getAllshardIds() {
+	if (!client.shard) return;
+	const promises = [
+		client.shard.broadcastEval(c => c.shard?.ids[0]),
+		client.shard.broadcastEval(c => c.ws.status),
+		client.shard.broadcastEval(c => c.ws.ping)
+	];
+	return Promise.all(promises)
+		.then(results => {
+			return '\n所有啓動中的server ID: ' + results[0].join(', ') + '\n所有啓動中的server online?: ' + results[1].join(', ') + '\n所有啓動中的server ping?: ' + results[2].join(', ');
+		})
+		.catch(console.error);
+
+}
+
 /**
+ *
+ * const dataFields = [];
+  try {
+	await manager.broadcastEval((bot) => {
+	  return [bot.shard?.ids, bot.ws.status, bot.ws.ping, bot.guilds.cache.size];
+	}).then(async (results) => {
+	  results.map((data) => {
+		dataFields.push({
+		  status: data[1] === 0 ? 'online' : 'offline',
+		  ping: `${data[2]}ms`,
+		  guilds: data[3],
+		});
+	  });
+	});
+  } catch (e: any) {
+	console.log(e);
+  }
 .addFields(
 	{ name: 'Regular field title', value: 'Some value here' },
 	{ name: '\u200B', value: '\u200B' },

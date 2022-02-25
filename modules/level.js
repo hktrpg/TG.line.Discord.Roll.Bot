@@ -2,6 +2,8 @@ if (!process.env.mongoURL) return;
 const oneMinuts = (process.env.DEBUG) ? 1 : 60000;
 //60000 一分鐘多久可以升級及增加經驗
 exports.rollbase = require('../roll/rollbase');
+const thirtyMinutes = (process.env.DEBUG) ? 1 : 60000 * 30;
+const retry = { number: 0, times: 0 };
 const schema = require('./schema.js');
 var tempSwitchV2 = [{
     groupid: '',
@@ -10,6 +12,11 @@ var tempSwitchV2 = [{
 async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercount, tgDisplayname) {
     if (!groupid) {
         return;
+    }
+    if (retry.number >= 10) {
+        if ((new Date() - retry.times) < thirtyMinutes)
+            return;
+        else retry.number = 0;
     }
     let reply = {
         text: '',
@@ -23,6 +30,10 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     const gpInfo = await schema.trpgLevelSystem.findOne({
         groupid: groupid,
         SwitchV2: true
+    }).catch(error => {
+        console.error('level #26 mongoDB error: ', error.name, error.reson)
+        retry.number++;
+        retry.times = new Date();
     });
     if (filterSwitchV2 === undefined) {
         if (!gpInfo || !gpInfo.SwitchV2) {
@@ -43,7 +54,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     let userInfo = await schema.trpgLevelSystemMember.findOne({
         groupid: groupid,
         userid: userid
-    });
+    }).catch(error => console.error('level #46 mongoDB error: ', error.name, error.reson));
     if (!userInfo) {
         await newUser(gpInfo, groupid, userid, displayname, displaynameDiscord, tgDisplayname);
         return;
@@ -117,7 +128,7 @@ async function returnTheLevelWord(gpInfo, userInfo, membercount, groupid) {
         groupid: groupid
     }).sort({
         EXP: -1
-    });
+    }).catch(error => console.error('level #120 mongoDB error: ', error.name, error.reson));
     let myselfIndex = docMember.map(function (members) {
         return members.userid;
     }).indexOf(userInfo.userid);
@@ -141,7 +152,7 @@ async function newUser(gpInfo, groupid, userid, displayname, displaynameDiscord,
         Level: 0,
         LastSpeakTime: Date.now()
     }
-    await new schema.trpgLevelSystemMember(temp).save();
+    await new schema.trpgLevelSystemMember(temp).save().catch(error => console.error('level #144 mongoDB error: ', error.name, error.reson));
     return;
 }
 

@@ -134,7 +134,7 @@ var rollDiceCommand = async function ({
                 rply.text = '新增失敗.\n' + rply.text;
                 return rply;
             }
-            getData = await schema.randomAns.findOne({ groupid: groupid })
+            getData = await schema.randomAns.findOne({ groupid: groupid }).catch(error => console.error('randomans #137 mongoDB error: ', error.name, error.reson));
             let update = false;
             let findIndex = getData && getData.randomAnsfunction.findIndex((e) => {
                 return e && e[0] && e[0].toLowerCase() == mainMsg[2].toLowerCase()
@@ -165,7 +165,7 @@ var rollDiceCommand = async function ({
                 groupid: groupid
             }, {
                 $push: temp, new: true
-            }, opt)
+            }, opt).catch(error => console.error('randomans #168 mongoDB error: ', error.name, error.reson));
             if (check.n == 1) {
                 rply.text = '新增成功: \n輸入 .ra ' + mainMsg[2] + '\n即可使用'
             } else rply.text = '新增失敗'
@@ -186,7 +186,7 @@ var rollDiceCommand = async function ({
             filter = {
                 groupid: groupid,
             };
-            getData = await schema.randomAns.findOne(filter)
+            getData = await schema.randomAns.findOne(filter).catch(error => console.error('randomans #189 mongoDB error: ', error.name, error.reson));
             if (!getData) {
                 rply.text += '沒有此骰子. '
                 return rply;
@@ -211,7 +211,7 @@ var rollDiceCommand = async function ({
                 return rply;
             }
             rply.quotes = true;
-            getData = await schema.randomAns.findOne({ groupid: groupid })
+            getData = await schema.randomAns.findOne({ groupid: groupid }).catch(error => console.error('randomans #214 mongoDB error: ', error.name, error.reson));
             if (!getData || getData.randomAnsfunction.length == 0) {
                 rply.text = '沒有已設定的骰子.\n本功能已改版，\n.rap 轉成個人專用的骰組，\n原全服群組(.rap)變成.ras\n .ra => random answer (group) \n.rap => random answer personal \n .ras => random answer server'
                 return rply
@@ -245,7 +245,7 @@ var rollDiceCommand = async function ({
             check = /^[.](r|)ra(\d+|)/i.exec(mainMsg[0])[1] || '';
             if (times > 30) times = 30;
             if (times < 1) times = 1
-            getData = await schema.randomAns.findOne({ groupid: groupid })
+            getData = await schema.randomAns.findOne({ groupid: groupid }).catch(error => console.error('randomans #248 mongoDB error: ', error.name, error.reson));
             if (!getData) return;
             for (let i in mainMsg) {
                 if (i == 0) continue;
@@ -303,7 +303,7 @@ var rollDiceCommand = async function ({
                     rply.text = '新增失敗.\n' + rply.text;
                     return rply;
                 }
-                getData = await schema.randomAnsPersonal.findOne({ "title": { $regex: new RegExp(mainMsg[2], "i") }, "userid": userid })
+                getData = await schema.randomAnsPersonal.findOne({ "title": { $regex: new RegExp(mainMsg[2], "i") }, "userid": userid }).catch(error => console.error('randomans #306 mongoDB error: ', error.name, error.reson));
                 const [, , , ...rest] = mainMsg;
                 const answerLength = getData && getData.answer.join('').length;
 
@@ -318,7 +318,7 @@ var rollDiceCommand = async function ({
                     return rply;
                 }
 
-                let list = await schema.randomAnsPersonal.find({ userid: userid }, 'serial');
+                let list = await schema.randomAnsPersonal.find({ userid: userid }, 'serial').catch(error => console.error('randomans #321 mongoDB error: ', error.name, error.reson));
                 if (list && list.length >= limit) {
                     rply.text = '個人骰子上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
                     return rply;
@@ -328,7 +328,7 @@ var rollDiceCommand = async function ({
                     answer: rest,
                     userid: userid,
                     serial: findTheNextSerial(list)
-                })
+                }).catch(error => console.error('randomans #331 mongoDB error: ', error.name, error.reson));
                 try {
                     let checkResult = await newAnswer.save();
                     rply.text = `新增成功  \n標題: ${checkResult.title}\n序號: ${checkResult.serial}\n內容: ${checkResult.answer}\n輸入 .rap ${checkResult.title}\n或 .rap ${checkResult.serial} \n即可使用`
@@ -343,7 +343,7 @@ var rollDiceCommand = async function ({
             //
             rply.quotes = true;
             if (mainMsg[2]) {
-                temp = await schema.randomAnsPersonal.findOne({ "title": { $regex: new RegExp(mainMsg[2], "i") }, "userid": userid })
+                temp = await schema.randomAnsPersonal.findOne({ "title": { $regex: new RegExp(mainMsg[2], "i") }, "userid": userid }).catch(error => console.error('randomans #346 mongoDB error: ', error.name, error.reson));
                 if (!temp) {
                     rply.text = '找不到該骰子名稱, 請重新檢查'
                     return rply;
@@ -356,7 +356,7 @@ var rollDiceCommand = async function ({
                 }
                 return rply;
             }
-            getData = await schema.randomAnsPersonal.find({})
+            getData = await schema.randomAnsPersonal.find({}).catch(error => console.error('randomans #359 mongoDB error: ', error.name, error.reson));
             if (!getData || getData.length == 0) {
                 rply.text = '沒有已設定的骰子.\n本功能已改版，\n.rap 轉成個人專用的骰組，\n原全服群組(.rap)變成.ras\n .ra => random answer (group) \n.rap => random answer personal \n .ras => random answer server'
                 return rply
@@ -375,7 +375,7 @@ var rollDiceCommand = async function ({
                 const [, , ...target] = mainMsg;
                 let dataList = await schema.randomAnsPersonal.deleteMany(
                     { "title": { $regex: new RegExp('^(' + target.join('|') + ')$', "i") }, "userid": userid }
-                )
+                ).catch(error => console.error('randomans #378 mongoDB error: ', error.name, error.reson));
                 rply.text = dataList.n + ' 項已已刪除';
                 return rply
             }
@@ -395,7 +395,7 @@ var rollDiceCommand = async function ({
                         { "title": { $regex: new RegExp(`^(${target.join('|')})$`, "i") } },
                         { "serial": isNumber(target) }]
                 }
-            )
+            ).catch(error => console.error('randomans #398 mongoDB error: ', error.name, error.reson));
             if (!getData || getData.length == 0) {
                 rply.text = '沒有這骰子, 請重新再試.'
                 return rply
@@ -448,7 +448,7 @@ var rollDiceCommand = async function ({
                     rply.text = '新增失敗.\n' + rply.text;
                     return rply;
                 }
-                getData = await schema.randomAnsServer.findOne({ "title": { $regex: new RegExp(mainMsg[2], "i") } })
+                getData = await schema.randomAnsServer.findOne({ "title": { $regex: new RegExp(mainMsg[2], "i") } }).catch(error => console.error('randomans #451 mongoDB error: ', error.name, error.reson));
                 if (getData) {
                     rply.text = '新增失敗. 和現存的骰子重複了名稱'
                     return rply;
@@ -460,7 +460,7 @@ var rollDiceCommand = async function ({
                     title: mainMsg[2],
                     answer: rest,
                     serial: findTheNextSerial(list)
-                })
+                }).catch(error => console.error('randomans #463 mongoDB error: ', error.name, error.reson));
                 if (list && list.length >= 100) {
                     rply.text = 'HKTRPG公用骰子上限' + limit + '個';
                     return rply;
@@ -479,7 +479,7 @@ var rollDiceCommand = async function ({
             //
             rply.quotes = true;
             if (mainMsg[2]) {
-                temp = await schema.randomAnsServer.findOne({ "title": { $regex: new RegExp(mainMsg[2], "i") } })
+                temp = await schema.randomAnsServer.findOne({ "title": { $regex: new RegExp(mainMsg[2], "i") } }).catch(error => console.error('randomans #482 mongoDB error: ', error.name, error.reson));
                 if (!temp) {
                     rply.text = '找不到這骰子名稱, 請重新檢查'
                     return rply;
@@ -492,7 +492,7 @@ var rollDiceCommand = async function ({
                 }
                 return rply;
             }
-            getData = await schema.randomAnsServer.find({})
+            getData = await schema.randomAnsServer.find({}).catch(error => console.error('randomans #495 mongoDB error: ', error.name, error.reson));
             if (!getData || getData.length == 0) {
                 rply.text = '沒有已設定的骰子.\n本功能已改版，\n.rap 轉成個人專用的骰組，\n原全服群組(.rap)變成.ras\n .ra => random answer (group) \n.rap => random answer personal \n .ras => random answer server'
                 return rply
@@ -509,7 +509,7 @@ var rollDiceCommand = async function ({
             {
                 if (!adminSecret) return rply;
                 if (userid !== adminSecret) return rply;
-                let allData = await schema.randomAnsAllgroup.findOne({})
+                let allData = await schema.randomAnsAllgroup.findOne({}).catch(error => console.error('randomans #512 mongoDB error: ', error.name, error.reson));
                 let dataList = allData.randomAnsAllgroup;
 
                 for (let index = 0; index < dataList.length; index++) {
@@ -520,7 +520,7 @@ var rollDiceCommand = async function ({
                         answer: rest,
                         serial: index + 1
                     })
-                    await newAnswer.save();
+                    await newAnswer.save().catch(error => console.error('randomans #523 mongoDB error: ', error.name, error.reson));
 
                 }
                 rply.text = dataList.length + ' Done';
@@ -535,7 +535,7 @@ var rollDiceCommand = async function ({
                     {
                         "serial": isNumber(target)
                     }
-                )
+                ).catch(error => console.error('randomans #538 mongoDB error: ', error.name, error.reson));
                 rply.text = dataList.n + ' Done';
                 return rply
             }
@@ -554,7 +554,7 @@ var rollDiceCommand = async function ({
                         { "title": { $regex: new RegExp(`^(${target.join('|')})$`, "i") } },
                         { "serial": isNumber(target) }]
                 }
-            )
+            ).catch(error => console.error('randomans #557 mongoDB error: ', error.name, error.reson));
             if (!getData || getData.length == 0) {
                 rply.text = '沒有這骰子名稱, 請重新再試.'
                 return rply
@@ -693,7 +693,7 @@ async function findGp(groupid) {
     //1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
     let gpInfo = await schema.trpgLevelSystem.findOne({
         groupid: groupid
-    });
+    }).catch(error => console.error('randomans #696 mongoDB error: ', error.name, error.reson));
     if (!gpInfo || gpInfo.SwitchV2 != 1) return;
     // userInfo.name = displaynameDiscord || displayname || '無名'
     return gpInfo;
@@ -706,7 +706,7 @@ async function findGpMember(groupid) {
     //1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
     let gpInfo = await schema.trpgLevelSystemMember.find({
         groupid: groupid
-    });
+    }).catch(error => console.error('randomans #709 mongoDB error: ', error.name, error.reson));
     // userInfo.name = displaynameDiscord || displayname || '無名'
     return gpInfo;
     //6 / 7 * LVL * (2 * LVL * LVL + 30 * LVL + 100)
@@ -717,7 +717,7 @@ async function findUser(groupid, userid) {
     let userInfo = await schema.trpgLevelSystemMember.findOne({
         groupid: groupid,
         userid: userid
-    });
+    }).catch(error => console.error('randomans #720 mongoDB error: ', error.name, error.reson));
     // userInfo.name = displaynameDiscord || displayname || '無名'
     return userInfo;
     //6 / 7 * LVL * (2 * LVL * LVL + 30 * LVL + 100)

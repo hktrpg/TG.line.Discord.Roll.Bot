@@ -31,7 +31,7 @@ var prefixs = function () {
     }]
 }
 var getHelpMessage = async function () {
-    return '【劍世界2.5】\n' + await callHelp("SwordWorld2.5");;
+    return '【劍世界2.5】\n' + await callHelp("SwordWorld2.5");
 }
 var initialize = function () {
     return variables;

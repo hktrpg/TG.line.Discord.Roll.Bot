@@ -817,7 +817,7 @@
                     return this.rows.filter(row => {
                         const contact = row.contact.toString().toLowerCase();
                         const userName = row.userName.toString().toLowerCase();
-                        const timestamp = dhm2(row.timestamp).toString().toLowerCase();;
+                        const timestamp = dhm2(row.timestamp).toString().toLowerCase();
                         const searchTerm = this.filter.toLowerCase();
                         return (
                             contact.includes(searchTerm) || userName.includes(searchTerm) ||

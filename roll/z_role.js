@@ -5,8 +5,10 @@ if (!process.env.mongoURL) {
 const VIP = require('../modules/veryImportantPerson');
 const limitAtArr = [3, 10, 50, 200, 200, 200, 200, 200];
 const schema = require('../modules/schema.js');
-const roleReactRegixDetail = /(\d+)\s+([\u{1f300}-\u{1f5ff}\u{1f900}-\u{1f9ff}\u{1f600}-\u{1f64f}\u{1f680}-\u{1f6ff}\u{2600}-\u{26ff}\u{2700}-\u{27bf}\u{1f1e6}-\u{1f1ff}\u{1f191}-\u{1f251}\u{1f004}\u{1f0cf}\u{1f170}-\u{1f171}\u{1f17e}-\u{1f17f}\u{1f18e}\u{3030}\u{2b50}\u{2b55}\u{2934}-\u{2935}\u{2b05}-\u{2b07}\u{2b1b}-\u{2b1c}\u{3297}\u{3299}\u{303d}\u{00a9}\u{00ae}\u{2122}\u{23f3}\u{24c2}\u{23e9}-\u{23ef}\u{25b6}\u{23f8}-\u{23fa}])/gu;
-const roleReactRegixMessage = /\[\[message\]\](.*)/s;
+const roleReactRegixDetail = /(\d+)\s+(\ud83c[\udf00-\udfff]|\ud83d[\udc00-\ude4f])/gu;
+const roleReactRegixMessage = /\[\[message\]\](.*)/is;
+const newRoleReactRegixMessageID = /\[\[messageID\]\]\s+(\d+)/is;
+const newRoleReactRegixDetail = /(\d+)\s+(\S+)/gu;
 
 var gameName = function () {
     return '【身分組管理】.roleReact'
@@ -17,7 +19,7 @@ var gameType = function () {
 }
 var prefixs = function () {
     return [{
-        first: /^\.roleReact$/i,
+        first: /^\.roleReact$|^\.newroleReact$/i,
         second: null
     }]
 }
@@ -179,6 +181,108 @@ var rollDiceCommand = async function ({
             }
         }
 
+        //new Type role React
+        case /^\.newroleReact$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
+            let list = await schema.roleReact.find({ groupid: groupid }).catch(error => console.error('role #100 mongoDB error: ', error.name, error.reson));
+            rply.text = roleReactList(list);
+            return rply;
+        }
+
+        case /^\.newroleReact$/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]): {
+            if (!mainMsg[2] || !/\d+/i.test(mainMsg[2])) {
+                rply.text = '移除指令為 .newroleReact delete (序號) \n 如 .newroleReact delete 1'
+                return rply
+            }
+            try {
+                let myNames = await schema.roleReact.findOneAndRemove({ groupid: groupid, serial: mainMsg[2] }).catch(error => console.error('role #111 mongoDB error: ', error.name, error.reson));
+                if (myNames) {
+                    rply.text = `移除成功，#${myNames.serial}\n${myNames.message}`
+                    return rply
+                } else {
+                    rply.text = '移除出錯\n移除指令為 .newroleReact delete (序號) \n 如 .newroleReact delete 1 \n序號請使用.newroleReact show 查詢'
+                    return rply
+                }
+            } catch (error) {
+                console.error("移除失敗, inputStr: ", inputStr);
+                rply.text = '移除出錯\n移除指令為 .newroleReact delete (序號) \n 如 .newroleReact delete 1 \n序號請使用.newroleReact show 查詢'
+                return rply
+            }
+        }
+
+        case /^\.newroleReact$/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]): {
+            if (!mainMsg[5]) {
+                rply.text = `輸入資料失敗，範例
+                .newroleReact add
+                232312882291231263 🎨 
+                123123478897792323 😁 
+                [[messageID]]
+                946739512439073384
+                希望取得詳細使用說明請輸入.newroleReact help`
+                rply.quotes = true;
+                return rply;
+            }
+
+
+            let checkName = checknewroleReact(inputStr);
+            console.log(checkName)
+            if (!checkName || !checkName.detail || !checkName.messageID || checkName.detail.length === 0) {
+                rply.text = `輸入資料失敗，範例
+                .newroleReact add
+                232312882291231263 🎨 
+                123123478897792323 😁 
+                [[messageID]]
+                946739512439073384
+                希望取得詳細使用說明請輸入.newroleReact help`
+                rply.quotes = true;
+                return rply;
+            }
+            //已存在相同
+            let list = await schema.roleReact.findOne({ groupid: groupid, messageID: checkName.messageID }).catch(error => console.error('role #240 mongoDB error: ', error.name, error.reson));
+            if (list) {
+                list.detail.push.apply(list.detail, checkName.detail);
+                await list.save()
+                    .catch(error => console.error('role #244 mongoDB error: ', error.name, error.reson));
+                rply.text = `已成功更新。你現在可以試試role功能\n可以使用.newrolereact show /  delete 操作 ${list.serial}`
+                return rply;
+            }
+
+            //新增新的
+
+            let lv = await VIP.viplevelCheckGroup(groupid);
+            let limit = limitAtArr[lv];
+            let myNamesLength = await schema.roleReact.countDocuments({ groupid: groupid }).catch(error => console.error('role #141 mongoDB error: ', error.name, error.reson));
+            if (myNamesLength >= limit) {
+                rply.text = '.newroleReact 群組上限為' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                rply.quotes = true;
+                return rply;
+            }
+
+            var dateObj = new Date();
+            var month = dateObj.getMonth() + 1; //months from 1-12
+            var day = dateObj.getDate();
+            var year = dateObj.getFullYear();
+            var hour = dateObj.getHours()
+            var minute = dateObj.getMinutes()
+            let serial = findTheNextSerial(list);
+            let listSerial = await schema.roleReact.find({ groupid: groupid }, "serial").catch(error => console.error('role #240 mongoDB error: ', error.name, error.reson));
+            let myName = new schema.roleReact({
+                message: year + "/" + month + "/" + day + ' ' + hour + ':' + minute,
+                groupid: groupid,
+                messageID: checkName.messageID,
+                serial: listSerial,
+                detail: checkName.detail
+            })
+            try {
+                await myName.save().catch(error => console.error('role #169 mongoDB error: ', error.name, error.reson));
+                rply.text = `已成功增加。你現在可以試試role功能\n刪除可以使用.newrolereact delete ${serial}`
+                return rply;
+            } catch (error) {
+                console.error('role save error:', error)
+                rply.text = `儲存失敗\n請重新再試，或聯絡HKTRPG作者`;
+                return rply;
+            }
+        }
+
         default: {
             break;
         }
@@ -194,13 +298,37 @@ function checkRoleReact(inputStr) {
     let detail = []
     let detailTemp = inputStr.match(roleReactRegixDetail);
     for (let index = 0; (index < detailTemp.length) && index < 20; index++) {
-        const regDetail = detailTemp[index].match((/(\S+)\s+(\S)/u))
+        const regDetail = detailTemp[index].match((/(\S+)\s+(\S+)/u))
         detail.push({
             roleID: regDetail[1],
             emoji: regDetail[2]
         })
     }
     return { message: message && message[1].replace(/^\n/, ''), detail };
+}
+
+
+function checknewroleReact(inputStr) {
+    let messageID = inputStr.match(newRoleReactRegixMessageID)
+    inputStr = inputStr.replace(newRoleReactRegixMessageID)
+    let detail = []
+    let detailTemp = inputStr.match(newRoleReactRegixDetail);
+    for (let index = 0; (index < detailTemp.length) && index < 20; index++) {
+        console.log('detailTemp[index]', detailTemp[index])
+
+        const regDetail = detailTemp[index].match((/(\d+)\s+(\S+)/u))
+        if (regDetail[2].match(/^<:/))
+            detail.push({
+                roleID: regDetail[1],
+                emoji: regDetail[2]
+            })
+        else
+            detail.push({
+                roleID: regDetail[1],
+                emoji: regDetail[2][0] && regDetail[2][1]
+            })
+    }
+    return { messageID: messageID && messageID[1].replace(/^\n/, ''), detail };
 }
 
 
@@ -234,7 +362,7 @@ function roleReactList(list) {
             }
         }
     }
-    else reply = "沒有找到序號。"
+    else reply = "沒有找到已設定的react 資料。"
     return reply;
 }
 
@@ -369,7 +497,6 @@ function checkroleInvites(inputStr) {
                 return rply
             }
         }
-
         function roleInvitesList(list) {
     let reply = '';
     if (list && list.length > 0) {

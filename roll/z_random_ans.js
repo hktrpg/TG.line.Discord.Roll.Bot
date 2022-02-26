@@ -303,7 +303,7 @@ var rollDiceCommand = async function ({
                     rply.text = '新增失敗.\n' + rply.text;
                     return rply;
                 }
-                getData = await schema.randomAnsPersonal.findOne({ "title": { $regex: new RegExp(mainMsg[2], "i") }, "userid": userid }).catch(error => console.error('randomans #306 mongoDB error: ', error.name, error.reson));
+                getData = await schema.randomAnsPersonal.findOne({ "title": { $regex: new RegExp(escapeRegExp(mainMsg[2]), "i") }, "userid": userid }).catch(error => console.error('randomans #306 mongoDB error: ', error.name, error.reson));
                 const [, , , ...rest] = mainMsg;
                 const answerLength = getData && getData.answer.join('').length;
 
@@ -343,7 +343,7 @@ var rollDiceCommand = async function ({
             //
             rply.quotes = true;
             if (mainMsg[2]) {
-                temp = await schema.randomAnsPersonal.findOne({ "title": { $regex: new RegExp(mainMsg[2], "i") }, "userid": userid }).catch(error => console.error('randomans #346 mongoDB error: ', error.name, error.reson));
+                temp = await schema.randomAnsPersonal.findOne({ "title": { $regex: new RegExp(escapeRegExp(mainMsg[2]), "i") }, "userid": userid }).catch(error => console.error('randomans #346 mongoDB error: ', error.name, error.reson));
                 if (!temp) {
                     rply.text = '找不到該骰子名稱, 請重新檢查'
                     return rply;
@@ -372,7 +372,7 @@ var rollDiceCommand = async function ({
 
         case /(^[.]rap$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]):
             {
-                const [, , ...target] = mainMsg;
+                const [, , ...target] = escapeRegExp(mainMsg);
                 let dataList = await schema.randomAnsPersonal.deleteMany(
                     { "title": { $regex: new RegExp('^(' + target.join('|') + ')$', "i") }, "userid": userid }
                 ).catch(error => console.error('randomans #378 mongoDB error: ', error.name, error.reson));
@@ -387,7 +387,7 @@ var rollDiceCommand = async function ({
             let repeat = /^[.](r|)rap(\d+|)/i.exec(mainMsg[0])[1] || '';
             if (times > 30) times = 30;
             if (times < 1) times = 1
-            const [, ...target] = mainMsg;
+            const [, ...target] = escapeRegExp(mainMsg);
             getData = await schema.randomAnsPersonal.find(
                 {
                     userid: userid,
@@ -448,7 +448,7 @@ var rollDiceCommand = async function ({
                     rply.text = '新增失敗.\n' + rply.text;
                     return rply;
                 }
-                getData = await schema.randomAnsServer.findOne({ "title": { $regex: new RegExp(mainMsg[2], "i") } }).catch(error => console.error('randomans #451 mongoDB error: ', error.name, error.reson));
+                getData = await schema.randomAnsServer.findOne({ "title": { $regex: new RegExp(escapeRegExp(mainMsg[2]), "i") } }).catch(error => console.error('randomans #451 mongoDB error: ', error.name, error.reson));
                 if (getData) {
                     rply.text = '新增失敗. 和現存的骰子重複了名稱'
                     return rply;
@@ -479,7 +479,7 @@ var rollDiceCommand = async function ({
             //
             rply.quotes = true;
             if (mainMsg[2]) {
-                temp = await schema.randomAnsServer.findOne({ "title": { $regex: new RegExp(mainMsg[2], "i") } }).catch(error => console.error('randomans #482 mongoDB error: ', error.name, error.reson));
+                temp = await schema.randomAnsServer.findOne({ "title": { $regex: new RegExp(escapeRegExp(mainMsg[2]), "i") } }).catch(error => console.error('randomans #482 mongoDB error: ', error.name, error.reson));
                 if (!temp) {
                     rply.text = '找不到這骰子名稱, 請重新檢查'
                     return rply;
@@ -547,7 +547,7 @@ var rollDiceCommand = async function ({
             let repeat = /^[.](r|)ras(\d+|)/i.exec(mainMsg[0])[1] || '';
             if (times > 30) times = 30;
             if (times < 1) times = 1
-            const [, ...target] = mainMsg;
+            const [, ...target] = escapeRegExp(mainMsg);
             getData = await schema.randomAnsServer.find(
                 {
                     $or: [
@@ -784,6 +784,17 @@ function isNumber(list) {
             numberlist.push(n)
     }
     return numberlist;
+}
+
+function escapeRegExp(target) {
+    if (typeof target == "string")
+        return target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+    if (Array.isArray(target)) {
+        for (let index = 0; index < target.length; index++) {
+            target[index] = target[index].replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+        return target;
+    }
 }
 module.exports = {
     rollDiceCommand: rollDiceCommand,

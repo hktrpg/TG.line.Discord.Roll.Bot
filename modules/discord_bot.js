@@ -124,7 +124,7 @@ client.on('messageCreate', async message => {
 暫時取消，因不理解DISCORD 的權限檢查
 反正失敗也沒什麼後果
 	 */
-
+	console.log('reaction', message.content)
 	let inputStr = message.content;
 	//DISCORD <@!USERID> <@!399923133368042763> <@!544563333488111636>
 	//LINE @名字
@@ -803,6 +803,7 @@ async function roleReact(channelid, message) {
 
 client.on('messageReactionAdd', async (reaction, user) => {
 	if (reaction.me) return;
+	console.log('reaction', reaction)
 	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.guildId }).catch(error => console.error('discord_bot #802 mongoDB error: ', error.name, error.reson))
 	if (!list || list.length === 0) return;
 	const detail = list.detail;

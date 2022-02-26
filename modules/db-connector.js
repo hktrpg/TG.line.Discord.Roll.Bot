@@ -14,8 +14,6 @@ const mongoose = require('mongoose');
             useNewUrlParser: true,
             useFindAndModify: false,
             useUnifiedTopology: true,
-            // retry to connect for 60 times
-            reconnectTries: 10,
             // wait 1 second before retrying
             reconnectInterval: 500
         });

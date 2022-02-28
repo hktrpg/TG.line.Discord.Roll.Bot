@@ -2,80 +2,74 @@
 if (!process.env.mongoURL) {
     return;
 }
-const adminSecret = process.env.ADMIN_SECRET;
 const rollbase = require('./rollbase.js');
-const schema = require('../modules/schema.js');
+const schema = require('../modules/core-schema.js');
+const randomAnsfunction = {
+    randomAnsfunction: [],
+    randomAnsAllgroup: []
+};
 exports.z_Level_system = require('./z_Level_system');
 const opt = {
     upsert: true,
     runValidators: true
 }
-
+const records = require('../modules/records.js');
 const VIP = require('../modules/veryImportantPerson');
 const limitArr = [30, 200, 200, 300, 300, 300, 300, 300];
-const limitArrPersonal = [6, 200, 200, 300, 300, 300, 300, 300];
-const convertRegex = function (str) {
-    return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
-};
+records.get('randomAns', (msgs) => {
+    randomAnsfunction.randomAnsfunction = msgs
+})
+records.get('randomAnsAllgroup', (msgs) => {
+    randomAnsfunction.randomAnsAllgroup = msgs
+})
 var gameName = function () {
-    return '(公測中)自定義骰子/回應功能 .ra(p)(s)(次數) (add del show 自定骰子名稱)'
+    return '(公測中)自定義回應功能 搜索(次數) (登記 刪除 顯示 自定關鍵字)'
 }
 var gameType = function () {
     return 'funny:randomAns:hktrpg'
 }
 var prefixs = function () {
     return [{
-        first: /(^[.](r|)ra(\d+|p|p\d+|s|s\d+|)$)/ig,
+        first: /(^(重複|)搜索(\d+|)$)/ig,
         second: null
     }]
 }
-const getHelpMessage = async function () {
-    return `【自定義骰子/回應功能】
-這是根據骰子名稱來隨機抽選功能,只要符合內容,以後就會隨機擲骰
-
-輸入.ra add (骰子名稱) (選項1) (選項2) (選項3)即可增加骰子
-重覆輸入，可以增加選項，總共上限3000字
-
-輸入.ra show 顯示所有骰子名稱及編號
-輸入.ra show (骰子名稱)顯示內容
-輸入.ra del (骰子名稱) 即可刪除
-輸入.ra(次數,最多30次) (骰子名稱1/編號)(骰子名稱2)(骰子名稱n) 即可不重覆隨機抽選 
-輸入.rra(次數,最多30次) (骰子名稱1/編號)(骰子名稱2)...(骰子名稱n) 即可重覆隨機抽選
-
-如使用.ra  是群組版, 供整個群組共用 
-如使用.ras 是公開版, 在整個HKTRPG可以看到 
-如使用.rap 是個人專用版, 只有自己可以使用 
-
-例如輸入 .ras10 聖晶石召喚 即可十連抽了 
-
-例如輸入 .ra add 九大陣營 守序善良 (...太長省略) 中立邪惡 混亂邪惡 
-再輸入.ra 九大陣營  就會輸出 九大陣營中其中一個
-如果輸入.ra3 九大陣營  就會輸出 3次九大陣營
-如果輸入.ra3 九大陣營 天干 地支 就會輸出 3次九大陣營 天干 地支
-如果輸入.rra3 九大陣營 就會輸出3次有可能重覆的九大陣營
-add 後面第一個是骰子名稱, 可以是漢字,數字和英文或emoji
-
---20210719 新增: 骰子名稱可用數字代替, 如編號5,可以輪入 .ra 5 --
-
-新增指令 - 輸入.ras newType 可以觀看效果
-* {br}          <--隔一行
-* {ran:100}     <---隨機1-100
-* {random:5-20} <---隨機5-20
-* {server.member_count}  <---現在頻道中總人數 
-* {my.name}     <---顯示擲骰者名字
-
-以下需要開啓.level 功能
-* {allgp.name}  <---隨機全GP其中一人名字
-* {allgp.title}  <---隨機全GP其中一種稱號
-* {my.RankingPer}  <---現在排名百分比 
-* {my.Ranking}  <---顯示擲骰者現在排名 
-* {my.exp}      <---顯示擲骰者經驗值
-* {my.title}    <---顯示擲骰者稱號
-* {my.level}    <---顯示擲骰者等級
-`
+const getHelpMessage = function () {
+    return "【自定義回應功能】" + "\n\
+這是根據關鍵字來隨機抽選功能,只要符合內容,以後就會隨機抽選\n\
+例如輸入 搜索 登記 九大陣營 守序善良 (...太長省略) 中立邪惡 混亂邪惡 \n\
+再輸入搜索 九大陣營  就會輸出 九大陣營中其中一個\n\
+如果輸入 搜索3 九大陣營  就會輸出 3次九大陣營\n\
+如果輸入 搜索3 九大陣營 天干 地支 就會輸出 3次九大陣營 天干 地支\n\
+如果輸入 重複搜索3 九大陣營 就會輸出3次有可能重覆的九大陣營\n\
+登記 後面第一個是關鍵字, 可以是漢字,數字和英文或emoji\n\
+P.S.如果沒立即生效 用搜索 顯示 刷新一下\n\
+輸入搜索 登記 關鍵字 選項1 選項2 選項3即可增加關鍵字\n\
+輸入搜索 顯示 顯示所有關鍵字\n\
+輸入搜索 顯示 關鍵字顯示內容\n\
+輸入搜索 刪除 關鍵字 即可刪除\n\
+輸入搜索(次數,最多30次) (關鍵字1)(關鍵字2)(關鍵字n) 即可不重覆隨機抽選 \n\
+輸入重複搜索(次數,最多30次) (關鍵字1)(關鍵字2)(關鍵字n) 即可重覆隨機抽選 \n\
+如使用輸入全服搜索 會變成全服版,全服可看, 可用add show功能 \n\
+例如輸入 全服搜索10 聖晶石召喚 即可十連抽了 \n\
+新增指令 - 輸入全服搜索 newType 可以觀看效果\n\
+* {br}          <--隔一行\n\
+* {ran:100}     <---隨機1-100\n\
+* {random:5-20} <---隨機5-20\n\
+* {server.member_count}  <---現在頻道中總人數 \n\
+* {my.name}     <---顯示擲骰者名字\n\
+以下需要開啓.level 功能\n\
+* {allgp.name}  <---隨機全GP其中一人名字\n\
+* {allgp.title}  <---隨機全GP其中一種稱號\n\
+* {my.RankingPer}  <---現在排名百分比 \n\
+* {my.Ranking}  <---顯示擲骰者現在排名 \n\
+* {my.exp}      <---顯示擲骰者經驗值\n\
+* {my.title}    <---顯示擲骰者稱號\n\
+* {my.level}    <---顯示擲骰者等級\n\
+"
 }
 const initialize = function () {
-    return;
+    return randomAnsfunction;
 }
 /**
  * {ran:100} <---隨機1-100
@@ -113,10 +107,9 @@ var rollDiceCommand = async function ({
     let filter;
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
-            rply.text = await this.getHelpMessage();
-            rply.quotes = true;
+            rply.text = this.getHelpMessage();
             return rply;
-        case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]): {
+        case /(^(重複|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^登記$/i.test(mainMsg[1]) && /^(?!(登記|刪除|顯示)$)/ig.test(mainMsg[2]):
             //
             //增加自定義關鍵字
             // .ra[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
@@ -127,37 +120,28 @@ var rollDiceCommand = async function ({
             lv = await VIP.viplevelCheckGroup(groupid);
             limit = limitArr[lv];
             if (!mainMsg[2])
-                rply.text += ' 沒有骰子名稱.'
+                rply.text += ' 沒有關鍵字.'
+            if (!mainMsg[4])
+                rply.text += ' 沒有自定義回應,至少兩個.'
             if (!groupid)
-                rply.text += ' 此功能必須在群組中使用.'
+                rply.text += ' 不在群組.'
             if (groupid && userrole < 1)
                 rply.text += ' 只有GM以上才可新增.'
             if (rply.text) {
                 rply.text = '新增失敗.\n' + rply.text;
                 return rply;
             }
-            getData = await schema.randomAns.findOne({ groupid: groupid }).catch(error => console.error('randomans #137 mongoDB error: ', error.name, error.reson));
-            let update = false;
-            let findIndex = getData && getData.randomAnsfunction.findIndex((e) => {
-                return e && e[0] && e[0].toLowerCase() == mainMsg[2].toLowerCase()
-            })
-            if (findIndex >= 0 && findIndex != null) {
-                let tempCheck = getData.randomAnsfunction[findIndex].join('') + mainMsg.slice(3).join('')
-                if (tempCheck.length > 3000) {
-                    rply.text = '更新失敗. 總內容不得超過3000字'
-                    return rply;
-                } else {
-                    update = true;
-                    getData.randomAnsfunction.set(findIndex, [...getData.randomAnsfunction[findIndex], ...mainMsg.slice(3)])
-                }
-            }
-            if (update) {
-                await getData.save();
-                rply.text = `更新成功\n輸入.ra ${mainMsg[2]} \n即可使用`
+            getData = await randomAnsfunction.randomAnsfunction.find(e => e.groupid == groupid)
+            if (getData)
+                check = await getData.randomAnsfunction.find(e =>
+                    e[0].toLowerCase() == mainMsg[2].toLowerCase()
+                )
+            if (check) {
+                rply.text = '新增失敗. 重複關鍵字'
                 return rply;
             }
             if (getData && getData.randomAnsfunction.length >= limit) {
-                rply.text = '群組骰子上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                rply.text = '關鍵字上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
                 return rply;
             }
             temp = {
@@ -166,21 +150,23 @@ var rollDiceCommand = async function ({
             check = await schema.randomAns.updateOne({
                 groupid: groupid
             }, {
-                $push: temp, new: true
-            }, opt).catch(error => console.error('randomans #168 mongoDB error: ', error.name, error.reson));
+                $push: temp
+            }, opt)
             if (check.n == 1) {
-                rply.text = '新增成功: \n輸入 .ra ' + mainMsg[2] + '\n即可使用'
+                records.get('randomAns', (msgs) => {
+                    randomAnsfunction.randomAnsfunction = msgs
+                })
+                rply.text = '新增成功: ' + mainMsg[2]
             } else rply.text = '新增失敗'
             return rply;
-        }
-        case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]):
+        case /(^(重複|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^刪除$/i.test(mainMsg[1]):
             //
             //刪除自定義關鍵字
             //
             if (!mainMsg[2])
-                rply.text += '沒有骰子名稱. '
+                rply.text += '沒有關鍵字. '
             if (!groupid)
-                rply.text += '此功能必須在群組中使用. '
+                rply.text += '不在群組. '
             if (groupid && userrole < 1)
                 rply.text += '只有GM以上才可刪除. '
             if (rply.text)
@@ -188,79 +174,82 @@ var rollDiceCommand = async function ({
             filter = {
                 groupid: groupid,
             };
-            getData = await schema.randomAns.findOne(filter).catch(error => console.error('randomans #189 mongoDB error: ', error.name, error.reson));
+            getData = await schema.randomAns.findOne(filter)
             if (!getData) {
-                rply.text += '沒有此骰子. '
+                rply.text += '沒有此關鍵字. '
                 return rply;
             }
             temp = getData.randomAnsfunction.filter(e => e[0].toLowerCase() === mainMsg[2].toLowerCase());
             if (temp.length == 0) {
-                rply.text += '沒有此骰子. \n現在已更新刪除方式, 刪除請輸入 .ra del 名字'
+                rply.text += '沒有此關鍵字. \n現在已更新刪除方式, 刪除請輸入 搜索 刪除 名字'
                 return rply;
             }
             temp.forEach(f => getData.randomAnsfunction.splice(getData.randomAnsfunction.findIndex(e => e[0] === f[0]), 1));
             check = await getData.save();
             if (check) {
+                records.get('randomAns', (msgs) => {
+                    randomAnsfunction.randomAnsfunction = msgs
+                })
                 rply.text += '刪除成功\n' + temp;
+
             }
             return rply;
-        case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+        case /(^(重複|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^顯示$/i.test(mainMsg[1]):
             //
             //顯示列表
             //
+            records.get('randomAns', (msgs) => {
+                randomAnsfunction.randomAnsfunction = msgs
+            })
             if (!groupid) {
-                rply.text += '此功能必須在群組中使用. '
+                rply.text += '不在群組. '
                 return rply;
             }
-            rply.quotes = true;
-            getData = await schema.randomAns.findOne({ groupid: groupid }).catch(error => console.error('randomans #214 mongoDB error: ', error.name, error.reson));
+            getData = await randomAnsfunction.randomAnsfunction.find(e => e.groupid == groupid);
             if (!getData || getData.randomAnsfunction.length == 0) {
-                rply.text = '沒有已設定的骰子.\n本功能已改版，\n.rap 轉成個人專用的骰組，\n原全服群組(.rap)變成.ras\n .ra => random answer (group) \n.rap => random answer personal \n .ras => random answer server'
+                rply.text = '沒有已設定的關鍵字. '
                 return rply
             }
             if (mainMsg[2]) {
                 temp = getData.randomAnsfunction.find(e => e[0].toLowerCase() == mainMsg[2].toLowerCase())
                 for (let i in temp) {
-                    rply.text += (i == 0) ? '群組自定義骰子 ' + temp[i] + '\n' : '';
-                    rply.text += ((i % 2 && i != 1) && i !== 0) ? ("\n") + i + '. ' + temp[i] + "        " : (i == 0) ? '' : i + '. ' + temp[i] + "        ";
+                    rply.text += (i == 0) ? '自定義關鍵字 ' + temp[i] + '\n' : '';
+                    rply.text += ((i % 2 && i != 1) && i !== 0) ? ("\n") + i + temp[i] + "        " : (i == 0) ? '' : i + ' ' + temp[i] + "        ";
                 }
             }
             if (rply.text) {
                 return rply
             }
-            rply.text += '群組自定義骰子列表:';
+            rply.text += '自定義關鍵字列表:';
             for (let a in getData.randomAnsfunction) {
-                rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + '. ' + getData.randomAnsfunction[a][0] : "     " + a + '. ' + getData.randomAnsfunction[a][0];
+                rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + getData.randomAnsfunction[a][0] : "     " + a + ' ' + getData.randomAnsfunction[a][0];
             }
             //顯示自定義關鍵字
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
-            rply.text += '\n\n在.ras show 後面輸入骰子名稱, 可以顯示詳細內容\n輸入 .ras (列表序號或骰子名稱) 可以進行隨機擲骰'
+            rply.text += '\n在顯示 [空格]後面輸入關鍵字標題, 可以顯示詳細內容';
             return rply
-        case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
+        case /(^(重複|)搜索(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(登記|刪除|顯示)$)/ig.test(mainMsg[1]):
             //
             //RA使用抽選功能
             //
             if (!groupid) {
-                rply.text = '此功能必須在群組中使用. '
+                rply.text = '不在群組. '
             }
-            times = /^[.](r|)ra(\d+|)/i.exec(mainMsg[0])[2] || 1;
-            check = /^[.](r|)ra(\d+|)/i.exec(mainMsg[0])[1] || '';
+            times = /^(重複|)搜索(\d+|)/i.exec(mainMsg[0])[2] || 1;
+            check = /^(重複|)搜索(\d+|)/i.exec(mainMsg[0])[1] || '';
             if (times > 30) times = 30;
             if (times < 1) times = 1
-            getData = await schema.randomAns.findOne({ groupid: groupid }).catch(error => console.error('randomans #248 mongoDB error: ', error.name, error.reson));
+            getData = randomAnsfunction.randomAnsfunction.find(e => e.groupid == groupid)
             if (!getData) return;
             for (let i in mainMsg) {
                 if (i == 0) continue;
                 temp = getData.randomAnsfunction.find(e => e[0].toLowerCase() == mainMsg[i].toLowerCase())
-                if (!temp && mainMsg[i].match(/^\d+$/)) {
-                    temp = getData.randomAnsfunction[mainMsg[i]]
-                }
                 if (!temp) continue;
                 if (check) {
                     //repeat mode
                     rply.text += temp[0] + ' → ';
                     for (let num = 0; num < times; num++) {
-                        let randomNumber = rollbase.Dice(temp.length - 1);
+                        let randomNumber = await rollbase.Dice(temp.length - 1);
                         rply.text += (num == 0) ? temp[randomNumber] : ', ' + temp[randomNumber];
                         rply.text += (num == times - 1) ? '\n' : '';
                     }
@@ -289,134 +278,102 @@ var rollDiceCommand = async function ({
             }
             rply.text = await replaceAsync(rply.text, /{(.*?)}/ig, replacer);
             return rply;
-
-
-        case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
-            {    //
-                //增加自定義關鍵字
-                // .rap[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
-                lv = await VIP.viplevelCheckUser(userid);
-                limit = limitArrPersonal[lv];
-                if (!mainMsg[2])
-                    rply.text += ' 沒有骰子名稱.'
-                if (!userid)
-                    rply.text += ' 此功能必須使用聊天軟件，在個人身份中使用.'
-                if (rply.text) {
-                    rply.text = '新增失敗.\n' + rply.text;
-                    return rply;
-                }
-                getData = await schema.randomAnsPersonal.findOne({ "title": { $regex: new RegExp(convertRegex(mainMsg[2]), "i") }, "userid": userid }).catch(error => console.error('randomans #306 mongoDB error: ', error.name, error.reson));
-                const [, , , ...rest] = mainMsg;
-                const answerLength = getData && getData.answer.join('').length;
-
-                if (getData && (answerLength + rest.length) > 2000) {
-                    rply.text = '更新失敗. 總內容不得超過2000字'
-                    return rply;
-                }
-                if (getData && getData.answer) {
-                    getData.answer.push.apply(getData.answer, rest);
-                    let result = await getData.save({ new: true });
-                    rply.text = `更新成功  \n標題: ${result.title}\n序號: ${result.serial}\n內容: ${result.answer}\n輸入 .rap ${result.title}\n或 .rap ${result.serial} \n即可使用`
-                    return rply;
-                }
-
-                let list = await schema.randomAnsPersonal.find({ userid: userid }, 'serial').catch(error => console.error('randomans #321 mongoDB error: ', error.name, error.reson));
-                if (list && list.length >= limit) {
-                    rply.text = '個人骰子上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
-                    return rply;
-                }
-                let newAnswer = new schema.randomAnsPersonal({
-                    title: mainMsg[2],
-                    answer: rest,
-                    userid: userid,
-                    serial: findTheNextSerial(list)
-                }).catch(error => console.error('randomans #331 mongoDB error: ', error.name, error.reson));
-                try {
-                    let checkResult = await newAnswer.save();
-                    rply.text = `新增成功  \n標題: ${checkResult.title}\n序號: ${checkResult.serial}\n內容: ${checkResult.answer}\n輸入 .rap ${checkResult.title}\n或 .rap ${checkResult.serial} \n即可使用`
-                } catch (error) {
-                    rply.text = '新增失敗, 請稍後再試'
-                }
+        case /(^(重複|)全服搜索(\d+|)$)/i.test(mainMsg[0]) && /^登記$/i.test(mainMsg[1]) && /^(?!(登記|刪除|顯示)$)/ig.test(mainMsg[2]):
+            //
+            //增加自定義關鍵字
+            // .全服搜索[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
+            if (!mainMsg[2])
+                rply.text += ' 沒有關鍵字.'
+            if (!mainMsg[4])
+                rply.text += ' 沒有自定義回應,至少兩個.'
+            if (rply.text) {
+                rply.text = '新增失敗.\n' + rply.text;
                 return rply;
             }
-        case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+            getData = await randomAnsfunction.randomAnsAllgroup.find(e => e)
+            if (getData)
+                check = await getData.randomAnsAllgroup.find(e =>
+                    e[0].toLowerCase() == mainMsg[2].toLowerCase()
+                )
+            if (check) {
+                rply.text = '新增失敗. 重複關鍵字'
+                return rply;
+            }
+            if (getData.randomAnsAllgroup.length > 100) {
+                rply.text = '公共關鍵字上限' + 100 + '個';
+                return rply;
+            }
+            temp = {
+                randomAnsAllgroup: [mainMsg.slice(2)]
+            }
+            check = await schema.randomAnsAllgroup.updateOne({}, {
+                $push: temp
+            }, opt)
+            if (check.n == 1) {
+                records.get('randomAnsAllgroup', (msgs) => {
+                    randomAnsfunction.randomAnsAllgroup = msgs
+                })
+                rply.text = '新增成功: ' + mainMsg[2]
+            } else rply.text = '新增失敗'
+            return rply;
+        case /(^(重複|)全服搜索$)/i.test(mainMsg[0]) && /^顯示$/i.test(mainMsg[1]):
             //
             //顯示列表
             //
-            rply.quotes = true;
-            if (mainMsg[2]) {
-                temp = await schema.randomAnsPersonal.findOne({ "title": { $regex: new RegExp(convertRegex(mainMsg[2]), "i") }, "userid": userid }).catch(error => console.error('randomans #346 mongoDB error: ', error.name, error.reson));
-                if (!temp) {
-                    rply.text = '找不到該骰子名稱, 請重新檢查'
-                    return rply;
-                }
-                rply.text += `自定義骰子  \n標題: ${temp.title} \n`
-                let tempanswer = temp.answer;
-                for (let i in tempanswer) {
-                    rply.text += (i == 0) ? '#' + i + '. ' + tempanswer[i] + '\n' : '';
-                    rply.text += ((i % 2 && i != 1) && i !== 0) ? ("\n") + '#' + i + '. ' + tempanswer[i] + "        " : (i == 0) ? '' : '#' + i + '. ' + tempanswer[i] + "        ";
-                }
-                return rply;
-            }
-            getData = await schema.randomAnsPersonal.find({}).catch(error => console.error('randomans #359 mongoDB error: ', error.name, error.reson));
-            if (!getData || getData.length == 0) {
-                rply.text = '沒有已設定的骰子.\n本功能已改版，\n.rap 轉成個人專用的骰組，\n原全服群組(.rap)變成.ras\n .ra => random answer (group) \n.rap => random answer personal \n .ras => random answer server'
+            records.get('randomAnsAllgroup', (msgs) => {
+                randomAnsfunction.randomAnsAllgroup = msgs
+            })
+            getData = await randomAnsfunction.randomAnsAllgroup.find(e => e);
+            if (!getData || getData.randomAnsAllgroup.length == 0) {
+                rply.text = '沒有已設定的關鍵字. '
                 return rply
             }
-            rply.text += '個人自定義骰子列表';
-            for (let a in getData) {
-                rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + '#' + getData[a].serial + '. ' + getData[a].title : "     " + '#' + getData[a].serial + '. ' + getData[a].title;
+            if (mainMsg[2]) {
+                temp = getData.randomAnsAllgroup.find(e => e[0].toLowerCase() == mainMsg[2].toLowerCase())
+                for (let i in temp) {
+                    rply.text += (i == 0) ? '自定義關鍵字 ' + temp[i] + '\n' : '';
+                    rply.text += ((i % 2 && i != 1) && i !== 0) ? ("\n") + i + '. ' + temp[i] + "        " : (i == 0) ? '' : i + '. ' + temp[i] + "        ";
+                }
+            }
+            if (rply.text) {
+                return rply
+            }
+            rply.text += '自定義關鍵字列表:';
+            for (let a in getData.randomAnsAllgroup) {
+                rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + '. ' + getData.randomAnsAllgroup[a][0] : "     " + a + '. ' + getData.randomAnsAllgroup[a][0];
             }
             //顯示自定義關鍵字
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
-            rply.text += '\n\n在.rap show 後面輸入骰子名稱, 可以顯示詳細內容\n輸入 .rap (列表序號或骰子名稱) 可以進行隨機擲骰';
+            rply.text += '\n在show [空格]後面輸入關鍵字標題, 可以顯示詳細內容';
             return rply
-
-        case /(^[.]rap$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]):
-            {
-                const [, , ...target] = mainMsg;
-                let dataList = await schema.randomAnsPersonal.deleteMany(
-                    { "title": { $regex: new RegExp('^(' + target.join('|') + ')$', "i") }, "userid": userid }
-                ).catch(error => console.error('randomans #378 mongoDB error: ', error.name, error.reson));
-                rply.text = dataList.n + ' 項已已刪除';
-                return rply
-            }
-        case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[0]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]): {
+        case /(^(重複|)全服搜索(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[0]) && /^(?!(登記|刪除|顯示)$)/ig.test(mainMsg[1]):
             //
-            //rap使用抽選功能
+            //RAP使用抽選功能
             //
-            times = /^[.](r|)rap(\d+|)/i.exec(mainMsg[0])[2] || 1;
-            let repeat = /^[.](r|)rap(\d+|)/i.exec(mainMsg[0])[1] || '';
+            times = /^(r|)全服搜索(\d+|)/i.exec(mainMsg[0])[2] || 1;
+            check = /^(r|)全服搜索(\d+|)/i.exec(mainMsg[0])[1] || '';
             if (times > 30) times = 30;
             if (times < 1) times = 1
-            const [, ...target] = mainMsg;
-            getData = await schema.randomAnsPersonal.find(
-                {
-                    userid: userid,
-                    $or: [
-                        { "title": { $regex: new RegExp(`^(${target.join('|')})$`, "i") } },
-                        { "serial": isNumber(target) }]
-                }
-            ).catch(error => console.error('randomans #398 mongoDB error: ', error.name, error.reson));
-            if (!getData || getData.length == 0) {
-                rply.text = '沒有這骰子, 請重新再試.'
-                return rply
-            }
-            for (let index = 0; index < getData.length; index++) {
-                let temp = getData[index];
-                if (repeat) {
+            getData = randomAnsfunction.randomAnsAllgroup.find(e => e)
+            if (!getData) return;
+            for (let i in mainMsg) {
+                if (i == 0) continue;
+                temp = getData.randomAnsAllgroup.find(e => e[0].toLowerCase() == mainMsg[i].toLowerCase())
+                if (!temp) continue;
+                if (check) {
                     //repeat mode
-                    rply.text += temp.title + ' → ';
+                    rply.text += temp[0] + ' → ';
                     for (let num = 0; num < times; num++) {
-                        let randomNumber = rollbase.Dice(temp.answer.length - 1);
-                        rply.text += (num == 0) ? temp.answer[randomNumber] : ', ' + temp.answer[randomNumber];
+                        let randomNumber = await rollbase.Dice(temp.length - 1);
+                        rply.text += (num == 0) ? temp[randomNumber] : ', ' + temp[randomNumber];
                         rply.text += (num == times - 1) ? '\n' : '';
                     }
                 } else {
                     //not repeat mode
-                    rply.text += temp.title + ' → ';
+                    rply.text += temp[0] + ' → ';
                     let items = [];
-                    let tempItems = [...temp.answer]
+                    let tempItems = [...temp]
+                    tempItems.splice(0, 1);
                     while (items.length < times) {
                         items = tempItems
                             .map((a) => ({
@@ -436,166 +393,6 @@ var rollDiceCommand = async function ({
             }
             rply.text = await replaceAsync(rply.text, /{(.*?)}/ig, replacer);
             return rply;
-        }
-
-        case /(^[.](r|)ras(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
-            {    //
-                //增加自定義關鍵字
-                // .ras[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
-                if (!mainMsg[2])
-                    rply.text += ' 沒有輸入骰子名稱.'
-                if (!mainMsg[4])
-                    rply.text += ' 沒有自定義骰子回應內容,至少兩個.'
-                if (rply.text) {
-                    rply.text = '新增失敗.\n' + rply.text;
-                    return rply;
-                }
-                getData = await schema.randomAnsServer.findOne({ "title": { $regex: new RegExp(mainMsg[2], "i") } }).catch(error => console.error('randomans #451 mongoDB error: ', error.name, error.reson));
-                if (getData) {
-                    rply.text = '新增失敗. 和現存的骰子重複了名稱'
-                    return rply;
-                }
-
-                const [, , , ...rest] = mainMsg;
-                let list = await schema.randomAnsServer.find({}, 'serial');
-                let newAnswer = new schema.randomAnsServer({
-                    title: mainMsg[2],
-                    answer: rest,
-                    serial: findTheNextSerial(list)
-                }).catch(error => console.error('randomans #463 mongoDB error: ', error.name, error.reson));
-                if (list && list.length >= 100) {
-                    rply.text = 'HKTRPG公用骰子上限' + limit + '個';
-                    return rply;
-                }
-                try {
-                    let checkResult = await newAnswer.save();
-                    rply.text = `新增成功  \n標題: ${checkResult.title}\n序號: ${checkResult.serial}\n內容: ${checkResult.answer}\n輸入 .rap ${checkResult.title}\n或 .rap ${checkResult.serial} \n即可使用`
-                } catch (error) {
-                    rply.text = '新增失敗'
-                }
-                return rply;
-            }
-        case /(^[.](r|)ras(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
-            //
-            //顯示列表
-            //
-            rply.quotes = true;
-            if (mainMsg[2]) {
-                temp = await schema.randomAnsServer.findOne({ "title": { $regex: new RegExp(mainMsg[2], "i") } }).catch(error => console.error('randomans #482 mongoDB error: ', error.name, error.reson));
-                if (!temp) {
-                    rply.text = '找不到這骰子名稱, 請重新檢查'
-                    return rply;
-                }
-                rply.text += `自定義骰子  \n標題: ${temp.title} \n`
-                let tempanswer = temp.answer;
-                for (let i in tempanswer) {
-                    rply.text += (i == 0) ? '#' + i + '. ' + tempanswer[i] + '\n' : '';
-                    rply.text += ((i % 2 && i != 1) && i !== 0) ? ("\n") + '#' + i + '. ' + tempanswer[i] + "        " : (i == 0) ? '' : '#' + i + '. ' + tempanswer[i] + "        ";
-                }
-                return rply;
-            }
-            getData = await schema.randomAnsServer.find({}).catch(error => console.error('randomans #495 mongoDB error: ', error.name, error.reson));
-            if (!getData || getData.length == 0) {
-                rply.text = '沒有已設定的骰子.\n本功能已改版，\n.rap 轉成個人專用的骰組，\n原全服群組(.rap)變成.ras\n .ra => random answer (group) \n.rap => random answer personal \n .ras => random answer server'
-                return rply
-            }
-            rply.text += '全HKTRPG自定義骰子列表';
-            for (let a in getData) {
-                rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + '#' + getData[a].serial + '. ' + getData[a].title : "     " + '#' + getData[a].serial + '. ' + getData[a].title;
-            }
-            //顯示自定義關鍵字
-            rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
-            rply.text += '\n\n在.ras show 後面輸入骰子名稱, 可以顯示詳細內容\n輸入 .ras (列表序號或骰子名稱) 可以進行隨機擲骰'
-            return rply
-        case /(^[.](r|)ras(\d+|)$)/i.test(mainMsg[0]) && /^(change)$/i.test(mainMsg[1]):
-            {
-                if (!adminSecret) return rply;
-                if (userid !== adminSecret) return rply;
-                let allData = await schema.randomAnsAllgroup.findOne({}).catch(error => console.error('randomans #512 mongoDB error: ', error.name, error.reson));
-                let dataList = allData.randomAnsAllgroup;
-
-                for (let index = 0; index < dataList.length; index++) {
-                    //randomAnsServer
-                    const [, ...rest] = dataList[index];
-                    let newAnswer = new schema.randomAnsServer({
-                        title: dataList[index][0],
-                        answer: rest,
-                        serial: index + 1
-                    })
-                    await newAnswer.save().catch(error => console.error('randomans #523 mongoDB error: ', error.name, error.reson));
-
-                }
-                rply.text = dataList.length + ' Done';
-                return rply
-            }
-        case /(^[.]ras$)/i.test(mainMsg[0]) && /^(delete)$/i.test(mainMsg[1]):
-            {
-                if (!adminSecret) return rply;
-                if (userid !== adminSecret) return rply;
-                const [, , ...target] = mainMsg;
-                let dataList = await schema.randomAnsServer.deleteMany(
-                    {
-                        "serial": isNumber(target)
-                    }
-                ).catch(error => console.error('randomans #538 mongoDB error: ', error.name, error.reson));
-                rply.text = dataList.n + ' Done';
-                return rply
-            }
-        case /(^[.](r|)ras(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[0]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]): {
-            //
-            //ras使用抽選功能
-            //
-            times = /^[.](r|)ras(\d+|)/i.exec(mainMsg[0])[2] || 1;
-            let repeat = /^[.](r|)ras(\d+|)/i.exec(mainMsg[0])[1] || '';
-            if (times > 30) times = 30;
-            if (times < 1) times = 1
-            const [, ...target] = mainMsg;
-            getData = await schema.randomAnsServer.find(
-                {
-                    $or: [
-                        { "title": { $regex: new RegExp(`^(${target.join('|')})$`, "i") } },
-                        { "serial": isNumber(target) }]
-                }
-            ).catch(error => console.error('randomans #557 mongoDB error: ', error.name, error.reson));
-            if (!getData || getData.length == 0) {
-                rply.text = '沒有這骰子名稱, 請重新再試.'
-                return rply
-            }
-            for (let index = 0; index < getData.length; index++) {
-                let temp = getData[index];
-                if (repeat) {
-                    //repeat mode
-                    rply.text += temp.title + ' → ';
-                    for (let num = 0; num < times; num++) {
-                        let randomNumber = rollbase.Dice(temp.answer.length - 1);
-                        rply.text += (num == 0) ? temp.answer[randomNumber] : ', ' + temp.answer[randomNumber];
-                        rply.text += (num == times - 1) ? '\n' : '';
-                    }
-                } else {
-                    //not repeat mode
-                    rply.text += temp.title + ' → ';
-                    let items = [];
-                    let tempItems = [...temp.answer]
-                    while (items.length < times) {
-                        items = tempItems
-                            .map((a) => ({
-                                sort: Math.random(),
-                                value: a
-                            }))
-                            .sort((a, b) => a.sort - b.sort)
-                            .map((a) => a.value)
-                            .concat(items)
-                    }
-                    for (let num = 0; num < times; num++) {
-                        rply.text += (num == 0) ? items[num] : ', ' + items[num];
-                        rply.text += (num == times - 1) ? '\n' : '';
-                    }
-                }
-
-            }
-            rply.text = await replaceAsync(rply.text, /{(.*?)}/ig, replacer);
-            return rply;
-        }
         default:
             break;
     }
@@ -608,19 +405,19 @@ var rollDiceCommand = async function ({
             case /^ran:\d+/i.test(second):
                 temp = /^ran:(\d+)/i.exec(second)
                 if (!temp || !temp[1]) return ' ';
-                return rollbase.Dice(temp[1]) || ' ';
+                return await rollbase.Dice(temp[1]) || ' ';
             case /^random:\d+/i.test(second):
                 temp = /^random:(\d+)-(\d+)/i.exec(second)
                 if (!temp || !temp[1] || !temp[2]) return ' ';
-                return rollbase.DiceINT(temp[1], temp[2]) || ' ';
+                return await rollbase.DiceINT(temp[1], temp[2]) || ' ';
             case /^allgp.name$/i.test(second):
-                temp = await findGpMember(groupid);
+                temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
                 if (!temp) return ' ';
-                num = rollbase.DiceINT(0, temp.length - 1)
+                num = await rollbase.DiceINT(0, temp.trpgLevelSystemfunction.length - 1)
                 num = (num < 1) ? 0 : num;
-                temp = (temp && temp[num] && temp[num].name) ? temp[num].name : ' ';
+                temp = temp.trpgLevelSystemfunction[num].name
                 return temp || ' ';
-            // * {allgp.name} <---隨機全GP其中一人名字
+                // * {allgp.name} <---隨機全GP其中一人名字
             case /^allgp.title$/i.test(second):
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
                 if (!temp) return ' ';
@@ -630,36 +427,36 @@ var rollDiceCommand = async function ({
                 temp2 = await temp.Title.filter(function (item) {
                     return item;
                 });
-                num = rollbase.DiceINT(0, temp2.length - 1)
+                num = await rollbase.DiceINT(0, temp2.length - 1)
                 num = (num < 1) ? 0 : num;
-                temp = (temp2 && temp2[num]) ? temp2[num] : ' ';
-                return temp;
-            // * {allgp.title}<---隨機全GP其中一種稱號
+                temp = temp2[num]
+                return temp || ' ';
+                // * {allgp.title}<---隨機全GP其中一種稱號
             case /^server.member_count$/i.test(second):
-                temp = await findGpMember(groupid);
-                num = (temp && temp.length) ? Math.max(membercount, temp.length) : membercount;
+                temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
+                num = (temp && temp.trpgLevelSystemfunction && temp.trpgLevelSystemfunction.length) ? Math.max(membercount, temp.trpgLevelSystemfunction.length) : membercount;
                 return num || ' ';
-            //  {server.member_count} 現在頻道中總人數 \
-            case /^my.RankingPer$/i.test(second): {
+                //  {server.member_count} 現在頻道中總人數 \
+            case /^my.RankingPer$/i.test(second):
                 //* {my.RankingPer} 現在排名百分比 \
                 // let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
-                let gpMember = await findGpMember(groupid);
-                temp2 = await ranking(userid, gpMember)
+                temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
+                if (!temp) return ' ';
+                temp2 = await ranking(userid, temp.trpgLevelSystemfunction)
                 if (!temp2) return ' ';
-                num = (temp && gpMember.length) ? Math.max(membercount, gpMember.length) : membercount;
+                num = (temp && temp.trpgLevelSystemfunction && temp.trpgLevelSystemfunction.length) ? Math.max(membercount, temp.trpgLevelSystemfunction.length) : membercount;
                 temp2 = Math.ceil(temp2 / num * 10000) / 100 + '%';
                 return temp2 || ' ';
-            }
-            case /^my.Ranking$/i.test(second): {
-                let gpMember = await findGpMember(groupid);
+            case /^my.Ranking$/i.test(second):
+                temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
+                //     temp2 = await findUser(temp, userid);
                 //* {my.Ranking} 顯示擲骰者現在排名 \
-                if (!gpMember) return ' ';
-                return await ranking(userid, gpMember) || ' ';
-            }
+                if (!temp || !temp.trpgLevelSystemfunction) return ' ';
+                return await ranking(userid, temp.trpgLevelSystemfunction) || ' ';
             case /^my.exp$/i.test(second):
                 //* {my.exp} 顯示擲骰者經驗值
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
-                temp2 = await findUser(groupid, userid);
+                temp2 = await findUser(temp, userid);
                 if (!temp || !temp2 || !temp2.EXP) return ' ';
                 return temp2.EXP || ' ';
             case /^my.name$/i.test(second):
@@ -668,14 +465,15 @@ var rollDiceCommand = async function ({
             case /^my.title$/i.test(second):
                 // * {my.title}<---顯示擲骰者稱號
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
-                temp2 = await findUser(groupid, userid);
+                temp2 = await findUser(temp, userid);
                 if (!temp || !temp2 || !temp2.Level || !temp.Title) return ' ';
                 //   let userTitle = await this.checkTitle(userlevel, trpgLevelSystemfunction.trpgLevelSystemfunction[i].Title);
                 return await exports.z_Level_system.checkTitle(temp2.Level, temp.Title) || ' ';
             case /^my.level$/i.test(second):
                 //* {my.level}<---顯示擲骰者等級
-                temp2 = await findUser(groupid, userid);
-                if (!temp2 || !temp2.Level) return ' ';
+                temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
+                temp2 = await findUser(temp, userid);
+                if (!temp || !temp2 || !temp2.Level) return ' ';
                 return temp2.Level || ' ';
             case /^br$/i.test(second):
                 temp = '\n'
@@ -689,37 +487,21 @@ var rollDiceCommand = async function ({
 
 
 async function findGp(groupid) {
-    if (!process.env.mongoURL || !groupid) {
+    if (!process.env.mongoURL || !Object.keys(exports.z_Level_system).length || !groupid) {
         return;
     }
     //1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
-    let gpInfo = await schema.trpgLevelSystem.findOne({
-        groupid: groupid
-    }).catch(error => console.error('randomans #696 mongoDB error: ', error.name, error.reson));
-    if (!gpInfo || gpInfo.SwitchV2 != 1) return;
-    // userInfo.name = displaynameDiscord || displayname || '無名'
-    return gpInfo;
-    //6 / 7 * LVL * (2 * LVL * LVL + 30 * LVL + 100)
-}
-async function findGpMember(groupid) {
-    if (!process.env.mongoURL || !groupid) {
-        return;
-    }
-    //1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
-    let gpInfo = await schema.trpgLevelSystemMember.find({
-        groupid: groupid
-    }).catch(error => console.error('randomans #709 mongoDB error: ', error.name, error.reson));
+    let gpInfo = exports.z_Level_system.initialize().trpgLevelSystemfunction.find(e => e.groupid == groupid);
+    if (!gpInfo || gpInfo.Switch != 1) return;
     // userInfo.name = displaynameDiscord || displayname || '無名'
     return gpInfo;
     //6 / 7 * LVL * (2 * LVL * LVL + 30 * LVL + 100)
 }
 
-async function findUser(groupid, userid) {
-    if (!groupid || !userid) return;
-    let userInfo = await schema.trpgLevelSystemMember.findOne({
-        groupid: groupid,
-        userid: userid
-    }).catch(error => console.error('randomans #720 mongoDB error: ', error.name, error.reson));
+async function findUser(gpInfo, userid) {
+    if (!gpInfo || !gpInfo.trpgLevelSystemfunction) return;
+    let userInfo = {};
+    userInfo = gpInfo.trpgLevelSystemfunction.find(e => e.userid == userid);
     // userInfo.name = displaynameDiscord || displayname || '無名'
     return userInfo;
     //6 / 7 * LVL * (2 * LVL * LVL + 30 * LVL + 100)
@@ -760,33 +542,6 @@ async function replaceAsync(str, regex, asyncFn) {
 }
 
 
-function findTheNextSerial(list) {
-    if (list.length === 0) return 1;
-    let serialList = []
-    for (let index = 0; index < list.length; index++) {
-        serialList.push(list[index].serial);
-    }
-    serialList.sort(function (a, b) {
-        return a - b;
-    });
-    //[1,2,4,5]
-    for (let index = 0; index < serialList.length - 1; index++) {
-        if (serialList[index] !== (index + 1)) {
-            return index + 1
-        }
-    }
-    return serialList[list.length - 1] + 1;
-}
-
-function isNumber(list) {
-    let numberlist = [];
-    for (let index = 0; index < list.length; index++) {
-        let n = list[index];
-        if (/^(?!0)\d+?$/.test(n))
-            numberlist.push(n)
-    }
-    return numberlist;
-}
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,

@@ -224,8 +224,6 @@ var rollDiceCommand = async function ({
                 rply.quotes = true;
                 return rply;
             }
-
-
             let checkName = checknewroleReact(inputStr);
             console.log(checkName)
             if (!checkName || !checkName.detail || !checkName.messageID || checkName.detail.length === 0) {

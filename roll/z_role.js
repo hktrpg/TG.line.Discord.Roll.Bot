@@ -6,12 +6,14 @@ const VIP = require('../modules/veryImportantPerson');
 const limitAtArr = [3, 10, 50, 200, 200, 200, 200, 200];
 const schema = require('../modules/schema.js');
 const emojiRegex = require('emoji-regex');
-const regex = emojiRegex();
+var regextemp = emojiRegex().toString();
+const regex = regextemp.replace(/^\//, '').replace(/\/g$/, '')
+//console.log('regex', regex)
 //https://www.npmjs.com/package/emoji-regex
 const roleReactRegixMessage = /\[\[message\]\](.*)/is;
 const newRoleReactRegixMessageID = /\[\[messageID\]\]\s+(\d+)/is;
-const newRoleReactRegixDetail = /(\d+)\s+(\S+)/gu;
-
+const roleReactRegixDetail = new RegExp(`(\\d+)\\s+(${regex}|(<a?)?:\\w+:(\\d{18}>)?)`, 'g')
+const roleReactRegixDetail2 = new RegExp(`(\\d+)\\s+(${regex}|(<a?)?:\\w+:(\\d{18}>)?)`,)
 var gameName = function () {
     return '【身分組管理】.roleReact'
 }
@@ -148,7 +150,6 @@ var rollDiceCommand = async function ({
                 rply.quotes = true;
                 return rply;
             }
-
             let checkName = checkRoleReact(inputStr);
             if (!checkName || !checkName.message || !checkName.detail || checkName.detail.length === 0) {
                 rply.text = `輸入資料失敗，範例
@@ -300,7 +301,7 @@ function checkRoleReact(inputStr) {
     let detail = []
     let detailTemp = inputStr.match(roleReactRegixDetail);
     for (let index = 0; (index < detailTemp.length) && index < 20; index++) {
-        const regDetail = detailTemp[index].match((/(\S+)\s+(\S+)/u))
+        const regDetail = detailTemp[index].match(roleReactRegixDetail2)
         detail.push({
             roleID: regDetail[1],
             emoji: regDetail[2]
@@ -314,21 +315,13 @@ function checknewroleReact(inputStr) {
     let messageID = inputStr.match(newRoleReactRegixMessageID)
     inputStr = inputStr.replace(newRoleReactRegixMessageID)
     let detail = []
-    let detailTemp = inputStr.match(newRoleReactRegixDetail);
+    let detailTemp = inputStr.match(roleReactRegixDetail);
     for (let index = 0; (index < detailTemp.length) && index < 20; index++) {
-        console.log('detailTemp[index]', detailTemp[index])
-
-        const regDetail = detailTemp[index].match((/(\d+)\s+(\S+)/u))
-        if (regDetail[2].match(/^<:/))
-            detail.push({
-                roleID: regDetail[1],
-                emoji: regDetail[2]
-            })
-        else
-            detail.push({
-                roleID: regDetail[1],
-                emoji: regDetail[2][0] && regDetail[2][1]
-            })
+        const regDetail = detailTemp[index].match(roleReactRegixDetail2)
+        detail.push({
+            roleID: regDetail[1],
+            emoji: regDetail[2]
+        })
     }
     return { messageID: messageID && messageID[1].replace(/^\n/, ''), detail };
 }

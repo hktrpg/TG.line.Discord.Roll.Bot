@@ -804,11 +804,15 @@ async function roleReact(channelid, message) {
 client.on('messageReactionAdd', async (reaction, user) => {
 	if (reaction.me) return;
 	console.log('reaction', reaction)
-	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.guildId }).catch(error => console.error('discord_bot #802 mongoDB error: ', error.name, error.reson))
+	/** 
+	name: '22',
+		id: '947051740547645500',
+		*/
+	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('discord_bot #802 mongoDB error: ', error.name, error.reson))
 	if (!list || list.length === 0) return;
 	const detail = list.detail;
 	const findEmoji = detail.find(function (item) {
-		return item.emoji === reaction.emoji.name;
+		return item.emoji === reaction.emoji.name || item.emoji === `<:${reaction.emoji.name}:${reaction.emoji.id}>`;
 	});
 	if (findEmoji) {
 		const member = await reaction.message.guild.members.fetch(user.id);
@@ -819,11 +823,11 @@ client.on('messageReactionAdd', async (reaction, user) => {
 });
 client.on('messageReactionRemove', async (reaction, user) => {
 	if (reaction.me) return;
-	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.guildId }).catch(error => console.error('discord_bot #817 mongoDB error: ', error.name, error.reson))
+	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('discord_bot #817 mongoDB error: ', error.name, error.reson))
 	if (!list || list.length === 0) return;
 	const detail = list.detail;
 	for (let index = 0; index < detail.length; index++) {
-		if (reaction.emoji.name === detail[index].emoji) {
+		if (detail[index].emoji === reaction.emoji.name || detail[index].emoji === `<:${reaction.emoji.name}:${reaction.emoji.id}>`) {
 			const member = await reaction.message.guild.members.fetch(user.id);
 			member.roles.remove(detail[index].roleID)
 		}

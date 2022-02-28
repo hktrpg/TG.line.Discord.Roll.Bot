@@ -8,13 +8,11 @@ const salt = process.env.SALT;
 const crypto = require('crypto');
 const password = process.env.CRYPTO_SECRET,
     algorithm = 'aes-256-ctr';
-const link = process.env.WEB_LINK;
-const port = process.env.PORT || 20721;
 //32bit ASCII
 const adminSecret = process.env.ADMIN_SECRET;
 //admin id
-const schema = require('../modules/core-schema.js');
-const VIP = require('../modules/veryImportantPerson');
+const schema = require('../modules/schema.js');
+//const VIP = require('../modules/veryImportantPerson');
 var gameName = function () {
     return '【Admin Tool】'
 }
@@ -28,14 +26,21 @@ var prefixs = function () {
         second: null
     }]
 }
-var getHelpMessage = function () {
-    return "【Admin 工具】" + "\
-用來Debug 及調整VIP工具\n\
-.admin state 取得Rollbot狀態\n\
-.admin debug 用來取得群組資料\n\
-.admin account (username) (password) \n\
-username 4-16字,中英文限定 \n\
-password 6-16字,英文及以下符號限定 !@#$%^&*\n"
+var getHelpMessage = async function () {
+    return `【Admin 工具】
+用來Debug 及調整VIP工具
+.admin state        取得Rollbot狀態
+
+.admin debug        用來取得群組資料
+
+.admin account (username) (password) 設定網頁版角色卡登入功能
+username 4-16字,中英文限定 
+password 6-16字,英文及以下符號限定 !@#$%^&*
+
+.admin news on      開啓取得HKTRPG更新資訊
+.admin news off     關閉取得HKTRPG更新資訊
+
+`
 }
 
 var initialize = function () {
@@ -67,11 +72,14 @@ var rollDiceCommand = async function ({
     let temp2;
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
-            rply.text = this.getHelpMessage();
+            rply.text = await this.getHelpMessage();
+            rply.quotes = true;
             return rply;
         case /^state$/i.test(mainMsg[1]):
             rply.state = true;
+            rply.quotes = true;
             return rply;
+
         case /^registerChannel$/i.test(mainMsg[1]):
             if (!groupid && !channelid) {
                 rply.text = "這裡不是群組，如果想在群組使用你的角色卡，請在群組中輸入此指令";
@@ -82,7 +90,7 @@ var rollDiceCommand = async function ({
                     "id": userid
                 });
             } catch (e) {
-                console.log('registerChannel ERROR:', e);
+                console.error('registerChannel ERROR:', e);
                 rply.text += JSON.stringify(e);
                 return rply;
             }
@@ -92,7 +100,7 @@ var rollDiceCommand = async function ({
                     "channel.id": channelid || groupid
                 });
             } catch (e) {
-                console.log('registerChannel ERROR:', e);
+                console.error('registerChannel ERROR:', e);
                 rply.text += JSON.stringify(e);
                 return rply;
             }
@@ -153,7 +161,7 @@ var rollDiceCommand = async function ({
                     }
                 });
             } catch (e) {
-                console.log('unregisterChannel ERROR:', e);
+                console.error('unregisterChannel ERROR:', e);
                 rply.text += JSON.stringify(e);
                 return rply;
             }
@@ -173,7 +181,7 @@ var rollDiceCommand = async function ({
                     "id": channelid || groupid
                 });
             } catch (e) {
-                console.log('disAllowrolling ERROR:', e);
+                console.error('disAllowrolling ERROR:', e);
                 rply.text += JSON.stringify(e);
                 return rply;
             }
@@ -202,24 +210,33 @@ var rollDiceCommand = async function ({
                 });
 
             } catch (e) {
-                console.log('Allowrolling ERROR:', e);
+                console.error('Allowrolling ERROR:', e);
                 rply.text += JSON.stringify(e);
                 return rply;
             }
             rply.text = "此頻道已被Admin允許使用網頁版角色卡擲骰，希望擲骰玩家可在此頻道輸入以下指令登記。\n.admin registerChannel\nAdmin 希望取消允許，可輸入\n.admin disallowrolling";
             return rply;
         case /^account$/i.test(mainMsg[1]):
-            name = mainMsg[2].toLowerCase();
             if (groupid) {
                 rply.text = "設定帳號時，請直接和HKTRPG對話，禁止在群組中使用";
                 return rply;
             }
-            if (!name || !checkUserName(name)) {
+            if (!mainMsg[2]) {
                 rply.text = "請設定使用者名稱，4-16字，中英文限定，大小階相同";
                 return rply;
             }
-            if (!mainMsg[3] || !checkPassword(mainMsg[3])) {
+            if (!mainMsg[3]) {
                 rply.text = "請設定密碼，6-16字，英文及以下符號限定!@#$%^&*";
+                return rply;
+            }
+            name = mainMsg[2].toLowerCase();
+            if (!checkUserName(name)) {
+                rply.text = "使用者名稱，4-16字，中英文限定，大小階相同";
+                return rply;
+            }
+
+            if (!checkPassword(mainMsg[3])) {
+                rply.text = "使用者密碼，6-16字，英文及以下符號限定!@#$%^&*";
                 return rply;
             }
             hash = crypto.createHmac('sha256', mainMsg[3])
@@ -230,7 +247,7 @@ var rollDiceCommand = async function ({
                     "userName": name
                 });
             } catch (e) {
-                console.log('ACCOUNT ERROR:', e);
+                console.error('ACCOUNT ERROR:', e);
                 rply.text += JSON.stringify(e);
                 return rply;
             }
@@ -252,7 +269,7 @@ var rollDiceCommand = async function ({
                 });
 
             } catch (e) {
-                console.log('ACCOUNT ERROR:', e);
+                console.error('ACCOUNT ERROR:', e);
                 rply.text += JSON.stringify(e);
                 return rply;
             }
@@ -293,14 +310,13 @@ var rollDiceCommand = async function ({
                     }
                 }, opt)
                 if (doc) {
-                    await VIP.renew();
                     rply.text = "更新成功\n";
                     rply.text += JSON.stringify(filter);
 
                 }
                 //.admin addVipGroup -i  ID -l LV -n NAME -no NOTES -s SWITCH
             } catch (error) {
-                console.log('新增VIP GET ERROR: ', error)
+                console.error('新增VIP GET ERROR: ', error)
                 rply.text = '新增VIP失敗\n因為 ' + error.message
             }
             return rply;
@@ -319,17 +335,71 @@ var rollDiceCommand = async function ({
                     }
                 }, opt)
                 if (doc) {
-                    await VIP.renew();
                     rply.text = "更新成功\n";
                     rply.text += JSON.stringify(filter);
                 }
                 //.admin addVipGroup -i  ID -l LV -n NAME -no NOTES -s SWITCH
             } catch (error) {
-                console.log('新增VIP GET ERROR: ', error)
+                console.error('新增VIP GET ERROR: ', error)
                 rply.text = '新增VIP失敗\n因為 ' + error.message
             }
             return rply;
 
+
+        case /^news$/i.test(mainMsg[1]) && /^on$/i.test(mainMsg[2]):
+            if (!userid) return rply;
+
+            try {
+                doc = await schema.theNewsMessage.updateOne({
+                    userID: userid,
+                    botname: botname
+                }, {
+                    userID: userid,
+                    botname: botname,
+                    switch: true
+                }, opt)
+                if (doc) {
+                    rply.text = "更新成功\n你已開啓更新通知功能";
+                }
+                //.admin addVipGroup -i  ID -l LV -n NAME -no NOTES -s SWITCH
+            } catch (error) {
+                console.error('新增VIP GET ERROR: ', error)
+                rply.text = '更新失敗\n因為 ' + error.message
+            }
+            return rply;
+
+        case /^news$/i.test(mainMsg[1]) && /^off$/i.test(mainMsg[2]):
+            if (!userid) return rply;
+
+            try {
+                doc = await schema.theNewsMessage.updateOne({
+                    userID: userid,
+                    botname: botname
+                }, {
+                    userID: userid,
+                    botname: botname,
+                    switch: false
+                }, opt)
+                if (doc) {
+                    rply.text = "更新成功\n你已關閉更新通知功能";
+                }
+                //.admin addVipGroup -i  ID -l LV -n NAME -no NOTES -s SWITCH
+            } catch (error) {
+                console.error('新增VIP GET ERROR: ', error)
+                rply.text = '更新失敗\n因為 ' + error.message
+            }
+            return rply;
+        case /^send$/i.test(mainMsg[1]) && /^News$/i.test(mainMsg[2]): {
+            if (!adminSecret) return;
+            if (!mainMsg[2]) return;
+            if (userid !== adminSecret) return;
+            let target = await schema.theNewsMessage.find({ botname: botname, switch: true });
+            //   let alluser = await schema.firstTimeMessage.find({ botname: botname });
+            rply.sendNews = inputStr.replace(/\s?\S+\s+\S+\s+/, '');
+            rply.target = target;
+            // rply.alluser = alluser;
+            return rply;
+        }
         default:
             break;
     }
@@ -347,7 +417,7 @@ async function checkGpAllow(target) {
             "id": target
         })
     } catch (e) {
-        console.log('Allowrolling ERROR:', e);
+        console.error('Allowrolling ERROR:', e);
 
     }
     return doc;
@@ -372,13 +442,13 @@ async function store(mainMsg, mode) {
     var resultNotes = pattNotes.exec(mainMsg);
     var resultSwitch = pattSwitch.exec(mainMsg);
     let reply = {};
-    (resultId && mode == 'id') ? reply.id = resultId[1]: null;
-    (resultGP && mode == 'gp') ? reply.gpid = resultGP[1]: null;
-    (resultLv) ? reply.level = Number(resultLv[1]): null;
-    (resultName) ? reply.name = resultName[1]: null;
-    (resultNotes) ? reply.notes = resultNotes[1]: null;
-    (resultSwitch && resultSwitch[1].toLowerCase() == 'true') ? reply.switch = true: null;
-    (resultSwitch && resultSwitch[1].toLowerCase() == 'false') ? reply.switch = false: null;
+    (resultId && mode == 'id') ? reply.id = resultId[1] : null;
+    (resultGP && mode == 'gp') ? reply.gpid = resultGP[1] : null;
+    (resultLv) ? reply.level = Number(resultLv[1]) : null;
+    (resultName) ? reply.name = resultName[1] : null;
+    (resultNotes) ? reply.notes = resultNotes[1] : null;
+    (resultSwitch && resultSwitch[1].toLowerCase() == 'true') ? reply.switch = true : null;
+    (resultSwitch && resultSwitch[1].toLowerCase() == 'false') ? reply.switch = false : null;
     return reply;
 }
 
@@ -391,6 +461,8 @@ function encrypt(text) {
     encrypted = Buffer.concat([encrypted, cipher.final()]);
     return iv.toString('hex') + ':' + encrypted.toString('hex');
 }
+
+
 
 function decrypt(text) {
     let textParts = text.split(':');
@@ -410,3 +482,42 @@ module.exports = {
     gameType: gameType,
     gameName: gameName
 };
+/**
+
+
+  case /^fixEXP$/i.test(mainMsg[1]): {
+            if (!adminSecret||userid !== adminSecret){
+                rply.text ="ADMIN 才可以使用"
+                return rply;
+                }
+            let doc = await schema.trpgLevelSystem.find({})
+            for (let index = 0; index < doc.length; index++) {
+                let docTRPG = await schema.trpgLevelSystem.findOne({
+                    groupid: doc[index].groupid
+                })
+                docTRPG.HiddenV2 = (docTRPG.Hidden == "1") ? true : false;
+                docTRPG.SwitchV2 = (docTRPG.Switch == "1") ? true : false;
+                await docTRPG.save()
+                docTRPG.trpgLevelSystemfunction.forEach(async element => {
+                    let newLVMember = new schema.trpgLevelSystemMember({
+                        groupid: doc[index].groupid,
+                        userid: element.userid,
+                        name: element.name,
+                        EXP: element.EXP,
+                        //現在經驗值
+                        Level: Number(element.Level),
+                        //等級
+                        LastSpeakTime: element.LastSpeakTime
+                    })
+
+                    await newLVMember.save()
+                });
+            }
+            // await doc.save()
+
+
+            rply.text = doc.length + '項 DONE '
+            return rply;
+        }
+
+ */

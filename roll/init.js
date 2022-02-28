@@ -5,6 +5,9 @@ if (!process.env.mongoURL) {
 const math = require('mathjs')
 const schema = require('../modules/schema.js');
 const rollDice = require('./rollbase').rollDiceCommand;
+const convertRegex = function (str) {
+    return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
+};
 var gameName = function () {
     return '先攻表功能 .in (remove clear reroll) .init'
 }
@@ -75,7 +78,7 @@ var rollDiceCommand = async function ({
                 $pull: {
                     "list": {
                         "name": {
-                            $regex: new RegExp(name, "i")
+                            $regex: new RegExp(convertRegex(name), "i")
                         }
                     }
                 }

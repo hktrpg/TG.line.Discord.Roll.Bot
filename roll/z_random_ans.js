@@ -14,7 +14,9 @@ const opt = {
 const VIP = require('../modules/veryImportantPerson');
 const limitArr = [30, 200, 200, 300, 300, 300, 300, 300];
 const limitArrPersonal = [6, 200, 200, 300, 300, 300, 300, 300];
-
+const convertRegex = function (str) {
+    return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
+};
 var gameName = function () {
     return '(公測中)自定義骰子/回應功能 .ra(p)(s)(次數) (add del show 自定骰子名稱)'
 }
@@ -303,7 +305,7 @@ var rollDiceCommand = async function ({
                     rply.text = '新增失敗.\n' + rply.text;
                     return rply;
                 }
-                getData = await schema.randomAnsPersonal.findOne({ "title": { $regex: new RegExp(mainMsg[2], "i") }, "userid": userid }).catch(error => console.error('randomans #306 mongoDB error: ', error.name, error.reson));
+                getData = await schema.randomAnsPersonal.findOne({ "title": { $regex: new RegExp(convertRegex(mainMsg[2]), "i") }, "userid": userid }).catch(error => console.error('randomans #306 mongoDB error: ', error.name, error.reson));
                 const [, , , ...rest] = mainMsg;
                 const answerLength = getData && getData.answer.join('').length;
 
@@ -343,7 +345,7 @@ var rollDiceCommand = async function ({
             //
             rply.quotes = true;
             if (mainMsg[2]) {
-                temp = await schema.randomAnsPersonal.findOne({ "title": { $regex: new RegExp(mainMsg[2], "i") }, "userid": userid }).catch(error => console.error('randomans #346 mongoDB error: ', error.name, error.reson));
+                temp = await schema.randomAnsPersonal.findOne({ "title": { $regex: new RegExp(convertRegex(mainMsg[2]), "i") }, "userid": userid }).catch(error => console.error('randomans #346 mongoDB error: ', error.name, error.reson));
                 if (!temp) {
                     rply.text = '找不到該骰子名稱, 請重新檢查'
                     return rply;

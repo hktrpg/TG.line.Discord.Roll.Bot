@@ -818,8 +818,15 @@ async function axiosDaily(url) {
 	try {
 		const response = await axios.get(encodeURI(url));
 		const json = analyzeResponse(response);
-		if (json.data && (json.data.text || json.data.image || json.data.title)) reply = `${json.data.title ? json.data.title + '\n' : ''}${json.data.text ? json.data.text + '\n' : ''}${json.data.image || ''}`;
-		return chineseConv.tify(reply) || '沒有結果，請檢查內容'
+		reply += `${json.title ? json.title + '\n' : ''}`
+		reply += `${json.text && json.text !== '获取成功' ? json.text + '\n' : ''}`
+		reply += `${json.data && json.data.title ? json.data.title + '\n' : ''}`
+		reply += `${json.data && json.data.text ? json.data.text + '\n' : ''}`
+		reply += `${json.data && json.data.Msg ? json.data.Msg + '\n' : ''}`
+		reply = chineseConv.tify(reply);
+		reply += `${json.image ? json.image + '\n' : ''}`
+		reply += `${json.data && json.data.image ? json.data.image + '\n' : ''}`
+		return reply || '沒有結果，請檢查內容'
 	} catch (error) {
 		if (error.code == 'ETIMEDOUT' || error.code == 'ECONNABORTED' || error.code == 'ECONNRESET') {
 			return '連線狀態不好，請稍後再試'

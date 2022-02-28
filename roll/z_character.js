@@ -8,14 +8,14 @@ const schema = require('../modules/core-schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const limitArr = [4, 20, 20, 30, 30, 99, 99, 99];
 var gameName = function () {
-    return '角色卡功能 .char (add edit show delete use nonuse) .ch (set show showall)'
+    return '角色卡功能 角色卡 (登記 編輯 顯示 刪除  nonuse) 角色卡 (設定 顯示 顯示全部)'
 }
 var gameType = function () {
     return 'Tool:trpgcharacter:hktrpg'
 }
 var prefixs = function () {
     return [{
-        first: /(^[.]char$)|(^[.]ch$)/ig,
+        first: /(^角色卡$)|(^角色卡$)/ig,
         second: null
     }]
 }
@@ -44,7 +44,7 @@ var getHelpMessage = function () {
 以個人為單位, 一張卡可以在不同的群組使用\n\
 目標是文字團可以快速擲骰，及更新角色狀態。\n\
 \n\
-簡單新增角色卡 .char add name[Sad]~ state[HP:15/15;]~ roll[鬥毆: cc 50;]~ notes[筆記:這是測試,請試試在群組輸入 .char use Sad;]~ \n\
+簡單新增角色卡 角色卡 add name[Sad]~ state[HP:15/15;]~ roll[鬥毆: cc 50;]~ notes[筆記:這是測試,請試試在群組輸入 .char use Sad;]~ \n\
 新增了角色卡後，可以輸入 .admin account (username) (password) \n\
 然後在網頁: https://www.hktrpg.com:20721/card/ 中直接進行修改" + "\n\
 \n\
@@ -58,22 +58,22 @@ var getHelpMessage = function () {
 最後網站會顯示群組名稱，點擊就可以使用了\n\
 \n\
 -----.char-----\n\
-.char add name[Sad]~ state[HP:15/15;con:60;san:60]~ roll[鬥毆: cc 50;投擲: cc 15;sc:cc {san}]~ notes[筆記:這是測試,請試試在群組輸入 .char use Sad;]~  \n - 可以新增及更新角色卡\n\
-.char Show - 可以顯示角色卡列表\n\
-.char Show0 - 可以顯示0號角色卡內容 0可以用其他數字取代\n\
-.char edit name[角色卡名字]~ - 可以以add的格式修改指定角色卡\n\
-.char use 角色卡名字 - 可以在該群組中使用指定角色卡\n\
-.char nonuse - 可以在該群組中取消使用角色卡\n\
-.char delete 角色卡名字 - 可以刪除指定角色卡\n\
+角色卡 add name[Sad]~ state[HP:15/15;con:60;san:60]~ roll[鬥毆: cc 50;投擲: cc 15;sc:cc {san}]~ notes[筆記:這是測試,請試試在群組輸入 .char use Sad;]~  \n - 可以新增及更新角色卡\n\
+角色卡 Show - 可以顯示角色卡列表\n\
+角色卡 Show0 - 可以顯示0號角色卡內容 0可以用其他數字取代\n\
+角色卡 edit name[角色卡名字]~ - 可以以add的格式修改指定角色卡\n\
+角色卡 use 角色卡名字 - 可以在該群組中使用指定角色卡\n\
+角色卡 nonuse - 可以在該群組中取消使用角色卡\n\
+角色卡 delete 角色卡名字 - 可以刪除指定角色卡\n\
 -----.ch 功能-----\n\
 在群組中使用.char use (角色名) 後, 就可以啟動角色卡功能\n\
-.ch 項目名稱 項目名稱 - 沒有加減的話, 會單純顯示數據或擲骰\n\
-.ch 項目名稱 (數字)  - 可以立即把如HP變成該數字\n\
-.ch 項目名稱 (+-*/數字)  - 可以立即對如HP進行四則運算\n\
-.ch 項目名稱 (+-*/xDy)  - 可以對如HP進行擲骰四則運算\n\
-.ch set 項目名稱 新內容 - 直接更改內容\n\
-.ch show - 顯示角色卡的state 和roll 內容\n\
-.ch showall - 顯示角色卡的所有內容\n\
+角色卡 項目名稱 項目名稱 - 沒有加減的話, 會單純顯示數據或擲骰\n\
+角色卡 項目名稱 (數字)  - 可以立即把如HP變成該數字\n\
+角色卡 項目名稱 (+-*/數字)  - 可以立即對如HP進行四則運算\n\
+角色卡 項目名稱 (+-*/xDy)  - 可以對如HP進行擲骰四則運算\n\
+角色卡 set 項目名稱 新內容 - 直接更改內容\n\
+角色卡 show - 顯示角色卡的state 和roll 內容\n\
+角色卡 showall - 顯示角色卡的所有內容\n\
 -----範例及運算式-----\n\
 角色卡還可以進行運算，詳情請看\n\
 https://github.com/hktrpg/TG.line.Discord.Roll.Bot/wiki/Character-Card"
@@ -113,14 +113,14 @@ var rollDiceCommand = async function ({
             rply.text = this.getHelpMessage();
             return rply;
             // .ch(0) ADD(1) TOPIC(2) CONTACT(3)
-        case /(^[.]char$)/i.test(mainMsg[0]) && /^public+/i.test(mainMsg[1]):
+        case /(^角色卡$)/i.test(mainMsg[0]) && /^public+/i.test(mainMsg[1]):
             if (!mainMsg[2]) {
                 rply.text = "未輸入要公開的角色卡名字"
                 return rply;
             }
             filter = {
                 id: userid,
-                name: new RegExp('^' + convertRegex(inputStr.replace(/^\.char\s+public\s+/i, '')) + '$', "i")
+                name: new RegExp('^' + convertRegex(inputStr.replace(/^\角色卡\s+public\s+/i, '')) + '$', "i")
             }
             doc = await schema.characterCard.findOne(filter);
             if (!doc) {
@@ -139,14 +139,14 @@ var rollDiceCommand = async function ({
 
             rply.text = '修改成功\n現在角色卡: ' + doc.name + ' 已經公開。\n請到以下網址查看\n https://www.hktrpg.com:20721/publiccard/ ';
             return rply;
-        case /(^[.]char$)/i.test(mainMsg[0]) && /^unpublic+/i.test(mainMsg[1]):
+        case /(^角色卡$)/i.test(mainMsg[0]) && /^unpublic+/i.test(mainMsg[1]):
             if (!mainMsg[2]) {
                 rply.text = "未輸入要公開的角色卡名字"
                 return rply;
             }
             filter = {
                 id: userid,
-                name: new RegExp('^' + convertRegex(inputStr.replace(/^\.char\s+unpublic\s+/i, '')) + '$', "i")
+                name: new RegExp('^' + convertRegex(inputStr.replace(/^\角色卡\s+unpublic\s+/i, '')) + '$', "i")
             }
             doc = await schema.characterCard.findOne(filter);
             if (!doc) {
@@ -165,11 +165,11 @@ var rollDiceCommand = async function ({
 
             rply.text = '修改成功\n現在角色卡: ' + doc.name + ' 已經不公開。\n請到以下網址查看\n https://www.hktrpg.com:20721/publiccard/ ';
             return rply;
-        case /(^[.]char$)/i.test(mainMsg[0]) && /^show\d+/i.test(mainMsg[1]):
+        case /(^角色卡$)/i.test(mainMsg[0]) && /^顯示\d+/i.test(mainMsg[1]):
             filter = {
                 id: userid
             }
-            temp = mainMsg[1].replace(/^show/ig, '');
+            temp = mainMsg[1].replace(/^顯示/ig, '');
             //取得本來的資料, 如有重覆, 以新的覆蓋
             try {
                 doc = await schema.characterCard.find(filter);
@@ -180,7 +180,7 @@ var rollDiceCommand = async function ({
                 rply.text = await showCharacter(doc[temp], 'showAllMode');
             }
             return rply;
-        case /(^[.]char$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+        case /(^角色卡$)/i.test(mainMsg[0]) && /^顯示$/i.test(mainMsg[1]):
             filter = {
                 id: userid
             }
@@ -194,12 +194,12 @@ var rollDiceCommand = async function ({
             for (let index = 0; index < doc.length; index++) {
                 rply.text += index + ': ' + doc[index].name + '　\n';
             }
-            rply.text += '\n輸入 .char show0 可以顯示0號角色卡\n';
+            rply.text += '\n輸入 角色卡 show0 可以顯示0號角色卡\n';
             return rply;
-        case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
+        case /(^角色卡$)/i.test(mainMsg[0]) && /^登記$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
             if (!Card.name) {
-                rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 \n.char add name[XXXX]~ \nstate[HP:15/15;MP:6/6;]~\nroll[投擲:cc 80 投擲;鬥毆:cc 40 鬥毆;]~\nnotes[心靈支柱: 無;notes:這是測試,請試試在群組輸入 .char use Sad;]~\n'
+                rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 \n角色卡 登記 name[XXXX]~ \nstate[HP:15/15;MP:6/6;]~\nroll[投擲:cc 80 投擲;鬥毆:cc 40 鬥毆;]~\nnotes[心靈支柱: 無;notes:這是測試,請試試在群組輸入 .char use Sad;]~\n'
                 return rply;
             }
             /*
@@ -241,10 +241,10 @@ var rollDiceCommand = async function ({
             rply.text = await showCharacter(Card, 'addMode');
             return rply;
 
-        case /(^[.]char$)/i.test(mainMsg[0]) && /^edit$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
+        case /(^角色卡$)/i.test(mainMsg[0]) && /^編輯$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
             if (!Card.name) {
-                rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 .char edit name[XXXX]~ \nstate[HP:15/15;MP:6/6;]~\nroll[投擲:cc 80 投擲;鬥毆:cc 40 鬥毆;]~\nnotes[心靈支柱: 無;notes:這是測試,請試試在群組輸入 .char use Sad;]~\n'
+                rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 角色卡 編輯 name[XXXX]~ \nstate[HP:15/15;MP:6/6;]~\nroll[投擲:cc 80 投擲;鬥毆:cc 40 鬥毆;]~\nnotes[心靈支柱: 無;notes:這是測試,請試試在群組輸入 .char use Sad;]~\n'
                 return rply;
             }
             /*
@@ -282,7 +282,7 @@ var rollDiceCommand = async function ({
             return rply;
 
 
-        case /(^[.]char$)/i.test(mainMsg[0]) && /^use$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
+        case /(^角色卡$)/i.test(mainMsg[0]) && /^使用$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             if (!groupid) {
                 rply.text = '不在群組'
                 return rply
@@ -290,7 +290,7 @@ var rollDiceCommand = async function ({
 
             filter = {
                 id: userid,
-                name: new RegExp('^' + convertRegex(inputStr.replace(/^\.char\s+use\s+/i, '')) + '$', "i")
+                name: new RegExp('^' + convertRegex(inputStr.replace(/^\角色卡\s+使用\s+/i, '')) + '$', "i")
             }
             doc = await schema.characterCard.findOne(filter);
             if (!doc) {
@@ -313,7 +313,7 @@ var rollDiceCommand = async function ({
 
             rply.text = '修改成功\n現在使用角色卡: ' + doc.name;
             return rply;
-        case /(^[.]char$)/i.test(mainMsg[0]) && /^nonuse$/i.test(mainMsg[1]):
+        case /(^角色卡$)/i.test(mainMsg[0]) && /^nonuse$/i.test(mainMsg[1]):
             if (!groupid) {
                 rply.text = '不在群組'
                 return rply
@@ -331,13 +331,13 @@ var rollDiceCommand = async function ({
                 rply.text = '修改失敗\n' + error;
                 return rply;
             }
-            rply.text = '修改成功。\n現在這群組沒有使用角色卡， .ch 不會出現效果。'
+            rply.text = '修改成功。\n現在這群組沒有使用角色卡， 角色卡 不會出現效果。'
             return rply;
 
-        case /(^[.]char$)/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
+        case /(^角色卡$)/i.test(mainMsg[0]) && /^刪除$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             filter = {
                 id: userid,
-                name: inputStr.replace(/^\.char\s+delete\s+/ig, '')
+                name: inputStr.replace(/^\角色卡\s+刪除\s+/ig, '')
             }
 
             doc = await schema.characterCard.findOne(filter);
@@ -361,7 +361,7 @@ var rollDiceCommand = async function ({
             rply.text = '刪除角色卡成功: ' + doc.name
             return rply;
 
-        case /(^[.]ch$)/i.test(mainMsg[0]) && /^set$/i.test(mainMsg[1]) && /^\S+$/i.test(mainMsg[2]) && /^\S+$/i.test(mainMsg[3]):
+        case /(^角色卡$)/i.test(mainMsg[0]) && /^設定$/i.test(mainMsg[1]) && /^\S+$/i.test(mainMsg[2]) && /^\S+$/i.test(mainMsg[3]):
             //更新功能
             if (!groupid) {
                 rply.text = '不在群組'
@@ -392,7 +392,7 @@ var rollDiceCommand = async function ({
                     _id: docSwitch.cardId
                 });
             } else {
-                rply.text = "未有登記的角色卡, \n請輸入.char use 角色卡名字  \n進行登記"
+                rply.text = "未有登記的角色卡, \n請輸入角色卡 使用 角色卡名字  \n進行登記"
             }
             if (doc) {
                 let useTarget = new RegExp(mainMsg[0] + '\\s+' + mainMsg[1] + '\\s+' + convertRegex(mainMsg[2]));
@@ -400,7 +400,7 @@ var rollDiceCommand = async function ({
                 let useItemA = inputStr.replace(useTarget, '').replace(/^\s+/, '');
                 let useCard = [{
                     name: useName,
-                    itemA: useItemA.replace(/^[.]ch\s+/, '').replace(/^[.]char\s+/, '')
+                    itemA: useItemA.replace(/^角色卡\s+/, '').replace(/^角色卡\s+/, '')
                 }];
                 doc.state = await Merge(doc.state, useCard, 'name', true);
                 doc.roll = await Merge(doc.roll, useCard, 'name', true);
@@ -435,7 +435,7 @@ var rollDiceCommand = async function ({
             return;
 
 
-        case /(^[.]ch$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+        case /(^角色卡$)/i.test(mainMsg[0]) && /^顯示$/i.test(mainMsg[1]):
             if (!groupid) {
                 rply.text = '不在群組'
                 return rply
@@ -452,12 +452,12 @@ var rollDiceCommand = async function ({
                     _id: docSwitch.cardId
                 });
             } else {
-                rply.text = "未有登記的角色卡, \n請輸入.char use 角色卡名字  \n進行登記"
+                rply.text = "未有登記的角色卡, \n請輸入角色卡 use 角色卡名字  \n進行登記"
                 return rply;
             }
             rply.text = await showCharacter(doc, 'showMode');
             return rply;
-        case /(^[.]ch$)/i.test(mainMsg[0]) && /^showall$/i.test(mainMsg[1]):
+        case /(^角色卡$)/i.test(mainMsg[0]) && /^顯示全部$/i.test(mainMsg[1]):
             if (!groupid) {
                 rply.text = '不在群組'
                 return rply
@@ -474,14 +474,14 @@ var rollDiceCommand = async function ({
                     _id: docSwitch.cardId
                 });
             } else {
-                rply.text = "未有登記的角色卡, \n請輸入.char use 角色卡名字  \n進行登記"
+                rply.text = "未有登記的角色卡, \n請輸入角色卡 使用 角色卡名字  \n進行登記"
                 return rply;
             }
             rply.text = await showCharacter(doc, 'showAllMode');
             return rply;
 
 
-        case /(^[.]ch$)/i.test(mainMsg[0]) && /^\S+$/i.test(mainMsg[1]):
+        case /(^角色卡$)/i.test(mainMsg[0]) && /^\S+$/i.test(mainMsg[1]):
             if (!groupid) {
                 rply.text = '不在群組'
                 return rply
@@ -498,7 +498,7 @@ var rollDiceCommand = async function ({
                     _id: docSwitch.cardId
                 });
             } else {
-                rply.text = "未有登記的角色卡, \n請輸入.char use 角色卡名字  \n進行登記"
+                rply.text = "未有登記的角色卡, \n請輸入角色卡 使用 角色卡名字  \n進行登記"
                 return rply;
             }
             //顯示關鍵字

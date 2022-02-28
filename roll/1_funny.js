@@ -1,58 +1,38 @@
 "use strict";
 var rollbase = require('./rollbase.js');
 var variables = {};
-const axiosRetry = require('axios-retry');
-const chineseConv = require('chinese-conv'); //繁簡轉換
-const axios = require('axios');
-const wiki = require('wikijs').default;
+
 var gameName = function () {
-	return '【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 運勢 每日塔羅 每日笑話 每日動漫 每日一言 每日廢話 每日黃曆 每日毒湯 每日情話 每日靈簽 每日急口令 每日大事 每日(星座) 立flag .me'
+	return '【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 每日塔羅 運勢 立flag .me 抽卡'
 }
-axiosRetry(axios, { retries: 3 });
 
 var gameType = function () {
 	return 'funny:funny:hktrpg'
 }
 var prefixs = function () {
 	return [{
-		first: /^[.]me$|排序|隨機|choice|^每日塔羅|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸|^每日笑話$|^每日動漫$|^每日一言$|^每日廢話$|^每日黃曆$|^每日毒湯$|^每日情話$|^每日靈簽$|^每日急口令$|^每日大事$|^每日白羊$|^每日牡羊$|^每日金牛$|^每日雙子$|^每日巨蟹$|^每日獅子$|^每日處女$|^每日天秤$|^每日天平$|^每日天蠍$|^每日天蝎$|^每日射手$|^每日人馬$|^每日摩羯$|^每日山羊$|^每日水瓶$|^每日寶瓶$|^每日雙魚$/i,
+		first: /^[.]me$|排序|隨機|choice|^每日塔羅|^時間塔羅|^抽卡|^隨機撲克|^大十字塔羅|^任務廣播|立flag|運勢|鴨霸獸/i,
 		second: null
 	}]
 }
-var getHelpMessage = async function () {
-	return `【趣味擲骰】
-
-【隨機選擇】： 啓動語 choice 隨機
-(問題)(啓動語)(問題)  (選項1) (選項2) 
-例子 收到聖誕禮物隨機數 1 2 >3  
-
-【隨機排序】：啓動語 排序
-(問題)(啓動語)(問題) (選項1) (選項2)(選項3)
-例子 交換禮物排序 A君 C君 F君 G君
-
-【複述功能】：啓動語 .me (模擬系統說話)
-(啓動語) (句子)(句子)(句子)
-例子 .me C君殺死了NPC 村民, 受到尼什村通緝!
-
-【占卜運氣功能】：字句開頭或結尾包括「運勢」兩字及四十字以內
-
-【塔羅牌占卜】：「大十字塔羅 每日塔羅 時間塔羅」 等關键字可啓動
-
-【隨機死亡FLAG】： 字句開頭或結尾包括「立FLAG」可啓動
-
-【每日功能】
-每日笑話	顯示一條笑話
-每日動漫	顯示一條動漫金句
-每日廢話 	(名字)	生產一條你的廢話  
-每日一言	顯示一條金句
-每日黃曆	顯示今日黃曆
-每日毒湯	顯示一條有毒的雞湯
-每日情話	顯示一條情話
-每日靈簽	抽取一條觀音簽
-每日急口令	顯示一條急口令
-每日大事	顯示今天歷史上的大事
-每日(星座) 顯示每日星座運程 如 每日白羊 每日金牛 每日巨蟹
-`
+var getHelpMessage = function () {
+	return "【趣味擲骰】" + "\n\
+隨機選擇： 啓動語 choice 隨機\n\
+(問題)(啓動語)(問題)  (選項1) (選項2) \n\
+例子 收到聖誕禮物隨機數 1 2 >3  \n\
+\n\
+隨機排序：啓動語 排序\n\
+(問題)(啓動語)(問題) (選項1) (選項2)(選項3)\n\
+例子 交換禮物排序 A君 C君 F君 G君\n\
+\n\
+複述功能：啓動語 .me (模擬系統說話)\n\
+(啓動語) (句子)(句子)(句子)\n\
+例子 .me C君殺死了NPC 村民, 受到尼什村通緝!\n\
+\n\
+占卜運氣功能： 字句開頭或結尾包括「運勢」兩字及四十字以內\n\
+塔羅牌占卜： 「大十字塔羅 每日塔羅 時間塔羅」 等關键字可啓動\n\
+\n\
+隨機死亡FLAG 字句開頭或結尾包括「立FLAG」可啓動\n"
 }
 var initialize = function () {
 	return variables;
@@ -60,8 +40,7 @@ var initialize = function () {
 
 var rollDiceCommand = async function ({
 	inputStr,
-	mainMsg,
-	displayname, displaynameDiscord, tgDisplayname
+	mainMsg
 }) {
 	let rply = {
 		default: 'on',
@@ -94,168 +73,59 @@ var rollDiceCommand = async function ({
 */
 
 	switch (true) {
-		case /^help$/i.test(mainMsg[1]):
-			rply.text = await this.getHelpMessage();
-			return rply;
 		case /^排序|排序$/i.test(mainMsg[0]) && (mainMsg.length >= 4):
-			rply.text = SortIt(inputStr, mainMsg);
+			rply.text = await SortIt(inputStr, mainMsg);
+			return rply;
+		case /^任務廣播|任務廣播$/i.test(mainMsg[0]):
+			rply.text = "@everyone\n\
+你收到了一封邀請函，上面的字體工整，還夾了一張簡單的地圖，上面寫著『庭院』。\n\
+\n\
+\n\
+邀請函是這麼寫的：\n\
+歡迎各位賓客來到輪迴賭場，在各位開始自相殘殺或者進行賭博之前，我的小小姐：__艾米莉亞__\n\
+希望能與各位進行一場小小的茶會。\n\
+\n\
+\n\
+場地位於:<#827588430850424884> \n\
+時間(台灣時間)：晚上 9點\n\
+\n\
+\n\
+還望不要辜負小小姐的心意，我們將靜候您的到來。\n\
+\n\
+\n\
+                                            署名：芙蘿賽碧娜";
 			return rply;
 		case /^隨機|^choice|隨機$|choice$/i.test(mainMsg[0]) && (mainMsg.length >= 3):
-			rply.text = choice(inputStr, mainMsg);
+			rply.text = await choice(inputStr, mainMsg);
 			return rply;
 		case /塔羅/i.test(mainMsg[0]):
 			if (mainMsg[0].match(/^每日塔羅/) != null)
-				rply.text = NomalDrawTarot(mainMsg[1], mainMsg[2]); //預設抽 79 張
+				rply.text = await NomalDrawTarot(mainMsg[1], mainMsg[2]); //預設抽 79 張
 			if (mainMsg[0].match(/^時間塔羅/) != null)
-				rply.text = MultiDrawTarot(mainMsg[1], mainMsg[2], 1);
+				rply.text = await MultiDrawTarot(mainMsg[1], mainMsg[2], 1);
 			if (mainMsg[0].match(/^大十字塔羅/) != null)
-				rply.text = MultiDrawTarot(mainMsg[1], mainMsg[2], 2);
+				rply.text = await MultiDrawTarot(mainMsg[1], mainMsg[2], 2);
+			return rply;
+		case /^隨機撲克/i.test(mainMsg[0]):
+			if (mainMsg[0].match(/^隨機撲克/) != null)
+				rply.text = await NomalDrawPocker(mainMsg[1], mainMsg[2]); //預設抽 79 張
+			return rply;
+		case /^抽卡/i.test(mainMsg[0]):
+			if (mainMsg[0].match(/^抽卡/) != null)
+				rply.text = await NomalDrawCard(mainMsg[1], mainMsg[2]); //預設抽 79 張
 			return rply;
 		case (/立flag$|^立flag/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,25}/g).length <= 1):
-			rply.text = BStyleFlagSCRIPTS();
+			rply.text = await BStyleFlagSCRIPTS();
 			return rply;
 		case /^鴨霸獸$/i.test(mainMsg[0]):
-			rply.text = randomReply();
+			rply.text = await randomReply();
 			return rply;
 		case (/運勢$|^運勢/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,40}/g).length <= 1):
-			rply.text = randomLuck(mainMsg);
+			rply.text = await randomLuck(mainMsg);
 			return rply;
 		case /^[.]me$/i.test(mainMsg[0]):
 			rply.text = me(inputStr);
 			return rply;
-		case /^每日笑話$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/xiaohua/api.php?type=json')
-			return rply;
-		}
-		case /^每日動漫$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/dmyiyan/api.php?type=json')
-			return rply;
-		}
-		case /^每日一言$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/yiyan/api.php?type=json')
-			return rply;
-		}
-		case /^每日黃曆$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/huang/api.php?type=json')
-			return rply;
-		}
-		case /^每日毒湯$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/du/api.php?type=json')
-			return rply;
-		}
-		case /^每日情話$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/qing/api.php?type=json')
-			return rply;
-		}
-		case /^每日靈簽$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/chouq/api.php?type=json')
-			return rply;
-		}
-		case /^每日廢話$/.test(mainMsg[0]): {
-			let name = mainMsg[1] || displaynameDiscord || tgDisplayname || displayname || '你';
-			rply.text = await axiosDaily(`http://lkaa.top/API/dog/api.php?msg=${name}&num=500&type=json`)
-			return rply;
-		}
-		case /^每日急口令$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/rao/api.php?type=json')
-			return rply;
-		}
-		case /^每日大事$/.test(mainMsg[0]): {
-			const date = new Date();
-			const day = date.getDate();
-			const month = date.getMonth() + 1;
-			let respond = `${month}月${day}日\n\n`;
-			rply.text = await wiki({
-				apiUrl: 'https://zh.wikipedia.org/w/api.php'
-			}).page(`${month}月${day}日`)
-				.then(async page => {
-					let temp = await page.content();
-					let answerFestival = temp.find(v => {
-						return v && v.title.match(/(节日)|(節日)|(习俗)|(假日)|(节假)/)
-					})
-					respond += `${(answerFestival && answerFestival.title) ? `${answerFestival.title}\n` : ''}${(answerFestival && answerFestival.content) ? `${answerFestival.content}\n` : ''}\n`
-					let answerBig = temp.find(v => {
-						return v && v.title.match(/(大事记)|(大事記)/)
-					})
-					if (answerBig && answerBig.items) answerBig = answerBig.items;
-
-					for (let index = 0; index < answerBig.length; index++) {
-
-						respond += `${answerBig[index].title}\n${answerBig[index].content}\n\n`
-					}
-					return chineseConv.tify(respond)
-				}) //console.log('case: ', rply)
-				.catch(error => {
-					if (error == 'Error: No article found')
-						return '沒有此條目'
-					else {
-						console.error('每日大事error', error)
-						console.error('每日大事 this.page', this.page)
-
-						return '條目出錯';
-					}
-				})
-			return rply;
-		}
-		//白羊座、金牛座、雙子座、巨蟹座、獅子座、處女座、天秤座、天蠍座、射手座、摩羯座、水瓶座、雙魚
-		case (/^每日白羊$/.test(mainMsg[0]) || /^每日牡羊$/.test(mainMsg[0])): {
-			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=白羊&type=json')
-			return rply;
-		}
-
-		case /^每日金牛$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=金牛&type=json')
-			return rply;
-		}
-
-		case /^每日雙子$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=双子&type=json')
-			return rply;
-		}
-
-		case /^每日巨蟹$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=巨蟹&type=json')
-			return rply;
-		}
-
-		case /^每日獅子$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=狮子&type=json')
-			return rply;
-		}
-
-		case /^每日處女$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=处女&type=json')
-			return rply;
-		}
-
-		case (/^每日天秤$/.test(mainMsg[0]) || /^每日天平$/.test(mainMsg[0])): {
-			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=天秤&type=json')
-			return rply;
-		}
-
-		case /^每日天蠍$/.test(mainMsg[0]) || /^每日天蝎$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=天蝎&type=json')
-			return rply;
-		}
-
-		case (/^每日射手$/.test(mainMsg[0]) || /^每日人馬$/.test(mainMsg[0])): {
-			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=射手&type=json')
-			return rply;
-		}
-
-		case (/^每日摩羯$/.test(mainMsg[0]) || /^每日山羊$/.test(mainMsg[0])): {
-			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=摩羯&type=json')
-			return rply;
-		}
-
-		case (/^每日水瓶$/.test(mainMsg[0]) || /^每日寶瓶$/.test(mainMsg[0])): {
-			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=水瓶&type=json')
-			return rply;
-		}
-		case /^每日雙魚$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=双鱼&type=json')
-			return rply;
-		}
 		default:
 			break;
 	}
@@ -272,14 +142,11 @@ function me(inputStr) {
  * 占卜&其他
  */
 
-function BStyleFlagSCRIPTS() {
+async function BStyleFlagSCRIPTS() {
 	const rplyArr = ['\
 「打完這仗我就回老家結婚（この戦いが終わったら、故郷に帰って結婚するんだ）」', '\
 「打完這一仗後我請你喝酒」', '\
-別怕！子彈還很多！', '\
-「現在的我，已經戰無不勝了！（今の俺は、負ける気がしねぇ！）', '\
-這裡是安全屋吧。', '\
-「你、你要錢嗎！要什麼我都能給你！\n我可以給你更多的錢！」', '\
+「你、你要錢嗎！要什麼我都能給你！/我可以給你更多的錢！」', '\
 「做完這次任務，我就要結婚了。」', '\
 「幹完這一票我就金盆洗手了。」', '\
 「好想再試一次啊……」', '\
@@ -386,10 +253,10 @@ function BStyleFlagSCRIPTS() {
 「我可以好好利用這件事」'];
 
 	//	rply.text = rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
-	return rplyArr[rollbase.Dice(rplyArr.length) - 1]
+	return rplyArr[await rollbase.Dice(rplyArr.length) - 1]
 }
 
-function randomReply() {
+async function randomReply() {
 	const rplyArr = ['\
 你們死定了呃呃呃不要糾結這些……所以是在糾結哪些？', '\
 在澳洲，每過一分鐘就有一隻鴨嘴獸被拔嘴。 \n我到底在共三小。', '\
@@ -416,34 +283,133 @@ wwwwwwwwwwwwwwwww', '\
 你的嘴裡有異音（指）', '\
 幫主說，有人打你的左臉，你就要用肉食性猛擊咬斷他的小腿。'];
 	//	rply.text = rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
-	return rplyArr[rollbase.Dice(rplyArr.length) - 1];
+	return rplyArr[await rollbase.Dice(rplyArr.length) - 1];
 }
 
-function randomLuck(TEXT) {
+async function randomLuck(TEXT) {
 	const rplyArr = ['超吉', '超級上吉', '大吉', '吉', '中吉', '小吉', '吉', '小吉', '吉', '吉', '中吉', '吉', '中吉', '吉', '中吉', '小吉', '末吉', '吉', '中吉', '小吉', '末吉', '中吉', '小吉', '小吉', '吉', '小吉', '末吉', '中吉', '小吉', '凶', '小凶', '沒凶', '大凶', '很凶', '你不要知道比較好呢', '命運在手中,何必問我'];
 	//	rply.text = TEXT[0] + ' ： ' + rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
-	return TEXT[0] + ' ： ' + rplyArr[rollbase.Dice(rplyArr.length) - 1];
+	return TEXT[0] + ' ： ' + rplyArr[await rollbase.Dice(rplyArr.length) - 1];
 }
 
+
+
 /**
- * Tarot塔羅牌
+ * 抽卡
  */
-function MultiDrawTarot(text, text2, type) {
+async function NomalDrawCard(text, text2) {
+	let returnStr = '';
+	returnStr = '抽卡'
+	if (text)
+		returnStr += "；" + text + " " + text2
+	let ans = await rollbase.shuffleTarget(CardList)
+	returnStr += '\n' + ans[0]
+	return returnStr;
+}
+
+const CardList = ["4k幻術效果:整個人變得4k ＋\https://media.discordapp.net/attachments/868138811467649034/936990972322140190/pQDp3Gjl.jpg",
+	"獲得道具:即脫褲!\n\效果是快速穿脫\n\(除此以外沒有任何效果  \https://media.discordapp.net/attachments/868138811467649034/936990749633949706/a827a965ea46329d44c40e03ab86c613.jpg",
+	"遇到了幻覺!\n\在幻覺中被迫看了自由♂️的舞蹈一小時!  https://media.discordapp.net/attachments/868138811467649034/936990445010055248/FB_IMG_1570798788164.jpg",
+		  
+	"修女服(夜戰版\n\效果:強制穿上 \https://media.discordapp.net/attachments/868138811467649034/937023409936818196/20220130_003611.jpg?width=539&height=609",
+	"你遇到了御並跟他講了一串的義大利文\n\他對著你  \https://media.discordapp.net/attachments/922692652208640031/936989940028440596/78276_5f6b040bb43e1.jpg?width=812&height=609",
+	"你遇到了御並跟他說了你姐姐很醜\n\他對著你  \https://media.discordapp.net/attachments/922692652208640031/936990770194415726/SPOILER_3fcf66b2bdb84cd30eb05c32647c26db.jpg",
+	"卡牌納蘇-NR\n\\n\\n\召喚卡\n\\n\集齊-五張-右眼，左眼，左右手腳，與身體就能在場上召喚一隻納蘇\n\效果-召喚成功後沒有甚麼特別的用處  \https://media.discordapp.net/attachments/824864670694244403/937027156289138788/002.png",
+	//"♤5  \https://imgur.com/bfoSGFq",
+	//"♤6  \https://imgur.com/ZGzRkqP",
+		 
+		 ]
+	
+
+
+
+/**
+ * 撲克
+ */
+async function NomalDrawPocker(text, text2) {
+	let returnStr = '';
+	returnStr = '隨機撲克'
+	if (text)
+		returnStr += "；" + text + " " + text2
+	let ans = await rollbase.shuffleTarget(PockerList)
+	returnStr += '\n' + ans[0]
+	return returnStr;
+}
+const PockerList = [
+	
+	"♤A ＋\https://imgur.com/YRKmZ72",
+	"♤2  \https://imgur.com/ohRjZEa",
+	"♤3  \https://imgur.com/Jg1KAjB",
+	"♤4  \https://imgur.com/Zf7a0Az",
+	"♤5  \https://imgur.com/bfoSGFq",
+	"♤6  \https://imgur.com/ZGzRkqP",
+	"♤7  \https://imgur.com/ivwG3DX",
+	"♤8  \https://imgur.com/cW26axR",
+	"♤9  \https://imgur.com/hfCm6iH",
+	"♤10  \https://imgur.com/YWbegzG",
+	"♤J  \https://imgur.com/3b6crce",
+	"♤Q  \https://imgur.com/Esa7Mn8",
+	"♤K  \https://imgur.com/rQVTLxm",
+	"♡A  \https://imgur.com/u9bWLpl",
+	"♡2  \https://imgur.com/v2WX6OM",
+	"♡3  \https://imgur.com/cZWUlSJ",
+	"♡4  \https://imgur.com/fuvP2dU",
+	"♡5  \https://imgur.com/VJGoE8F",
+	"♡6  \https://imgur.com/tRpeHUB",
+	"♡7  \https://imgur.com/fBRLc4m",
+	"♡8  \https://imgur.com/6fnaVxh",
+	"♡9  \https://imgur.com/QGC3QrE",
+	"♡10  \https://imgur.com/n9HSYiy",
+	"♡J  \https://imgur.com/zrxcxFc",
+	"♡Q  \https://imgur.com/5n1QaSf",
+	"♡K  \https://imgur.com/S8F5Cy8",
+	"♧A  \https://imgur.com/SWiwrWH",
+	"♧2  \https://imgur.com/sRsTEa0",
+	"♧3  \https://imgur.com/BUz4i4s",
+	"♧4  \https://imgur.com/bHU5npa",
+	"♧5  \https://imgur.com/YOBzwQZ",
+	"♧6  \https://imgur.com/Bi8avmE",
+	"♧7  \https://imgur.com/nbZ2owR",
+	"♧8  \https://imgur.com/7iDNr97",
+	"♧9  \https://imgur.com/zxzRHMS",
+	"♧10  \https://imgur.com/nliO67D",
+	"♧J  \https://imgur.com/m4FMGtx",
+	"♧Q  \https://imgur.com/nexMj5j",
+	"♧K  \https://imgur.com/shl91aS ",
+	"♢A  \https://imgur.com/8PJZqGf",
+	"♢2  \https://imgur.com/UnKi8Dk",
+	"♢3  \https://imgur.com/BNqaxtu",
+	"♢4  \https://imgur.com/3CdZET3",
+	"♢5  \https://imgur.com/fpIbMQs",
+	"♢6  \https://imgur.com/Q3gObXb",
+	"♢7  \https://imgur.com/4BEP06N",
+	"♢8  \https://imgur.com/yOk5BAw",
+	"♢9  \https://imgur.com/dNKYSri",
+	"♢10  \https://imgur.com/kdFtPcY",
+	"♢J  \https://imgur.com/FSnZ1RU",
+	"♢Q  \https://imgur.com/A3XCpaO",
+	"♢K  \https://imgur.com/Ut56M1a",
+	"jockb  \https://imgur.com/Ut56M1a",
+	"jockr  \https://imgur.com/E29uHKW",
+	
+]
+	
+async function MultiDrawTarot(text, text2, type) {
 	let returnStr = '';
 	let cards = []
 	switch (type) {
 		case 1:
-			returnStr = '【時間塔羅】/每日塔羅/大十字塔羅\n';
-			(text) ? returnStr += "；" + text + " " + text2 : '';
-			cards = rollbase.shuffleTarget(TarotList2);
+			returnStr = '時間塔羅';
+			(text) ? returnStr += "；" + text + " " + text2: '';
+			cards = await rollbase.shuffleTarget(TarotList2);
 			returnStr += '過去: ' + cards[0] + '\n'
 			returnStr += '現在: ' + cards[1] + '\n'
 			returnStr += '未來: ' + cards[2] + '\n'
 			break;
 		case 2:
-			returnStr = '【大十字塔羅】/每日塔羅/時間塔羅\n';
-			(text) ? returnStr += "；" + text + " " + text2 : '';
-			cards = rollbase.shuffleTarget(TarotList2);
+			returnStr = '大十字塔羅';
+			(text) ? returnStr += "；" + text + " " + text2: '';
+			cards = await rollbase.shuffleTarget(TarotList2);
 			returnStr += '現況: ' + cards[0] + '\n'
 			returnStr += '助力: ' + cards[1] + '\n'
 			returnStr += '目標: ' + cards[2] + '\n'
@@ -462,12 +428,12 @@ function MultiDrawTarot(text, text2, type) {
 	return returnStr;
 }
 
-function NomalDrawTarot(text, text2) {
+async function NomalDrawTarot(text, text2) {
 	let returnStr = '';
-	returnStr = '【每日塔羅】/大十字塔羅/時間塔羅'
+	returnStr = '每日塔羅'
 	if (text)
 		returnStr += "；" + text + " " + text2
-	let ans = rollbase.shuffleTarget(TarotList)
+	let ans = await rollbase.shuffleTarget(TarotList)
 	returnStr += '\n' + ans[0]
 	return returnStr;
 }
@@ -790,75 +756,29 @@ const TarotList2 = ["愚者 ＋",
 	"權杖皇后 －",
 	"空白"
 ]
-
 /**
  *  choice 及SORT
  */
-function choice(input, str) {
-	let array = input.replace(str[0], '').match(/\S+/ig);
-	return str[0] + ' [ ' + array.join(' ') + ' ] \n→ ' + array[rollbase.Dice(array.length) - 1];
+async function choice(input, str) {
+	let a = input.replace(str[0], '').match(/\S+/ig);
+	return str[0] + ' [' + a + '] \n→ ' + a[await rollbase.Dice(a.length) - 1];
+
 }
 
-function SortIt(input, mainMsg) {
+async function SortIt(input, mainMsg) {
 	let a = input.replace(mainMsg[0], '').match(/\S+/ig);
-	for (let i = a.length - 1; i >= 0; i--) {
+	for (var i = a.length - 1; i >= 0; i--) {
 		//var randomIndex = Math.floor(Math.random() * (i + 1));  
 		//3 -> 210 , 10, 0
-		var randomIndex = rollbase.Dice(i + 1) - 1
+		var randomIndex = await rollbase.Dice(i + 1) - 1
 		//3 ->
 		//console.log('randomIndex: ', randomIndex)
 		var itemAtIndex = a[randomIndex];
 		a[randomIndex] = a[i];
 		a[i] = itemAtIndex;
 	}
-	return mainMsg[0] + ' \n→ [ ' + a.join(', ') + ' ]';
+	return mainMsg[0] + ' \n→ [ ' + a + ' ]';
 }
-async function axiosDaily(url) {
-	let reply = '';
-	try {
-		const response = await axios.get(encodeURI(url));
-		const json = analyzeResponse(response);
-		reply += `${json.title ? json.title + '\n' : ''}`
-		reply += `${json.text && json.text !== '获取成功' ? json.text + '\n' : ''}`
-		reply += `${json.data && json.data.title ? json.data.title + '\n' : ''}`
-		reply += `${json.data && json.data.text ? json.data.text + '\n' : ''}`
-		reply += `${json.data && json.data.Msg ? json.data.Msg + '\n' : ''}`
-		reply = chineseConv.tify(reply);
-		reply += `${json.image ? json.image + '\n' : ''}`
-		reply += `${json.data && json.data.image ? json.data.image + '\n' : ''}`
-		return reply || '沒有結果，請檢查內容'
-	} catch (error) {
-		if (error.code == 'ETIMEDOUT' || error.code == 'ECONNABORTED' || error.code == 'ECONNRESET') {
-			return '連線狀態不好，請稍後再試'
-		}
-		console.error('axiosDaily error: ', error && error.code);
-		return error.type;
-	}
-}
-
-function analyzeResponse(response) {
-	switch (typeof response) {
-		case 'string':
-			return { data: { text: response } }
-		case 'object':
-			if (response && response.data && response.data.data) {
-				return response.data;
-			}
-			if (response && response.data) {
-				return response;
-			}
-			break;
-		default:
-			break;
-	}
-}
-/*來源自 http://lkaa.top
-
-http://api.uuouo.cn/
-http://ybapi.top/
-http://weizhinb.top/
-
-*/
 
 module.exports = {
 	rollDiceCommand: rollDiceCommand,

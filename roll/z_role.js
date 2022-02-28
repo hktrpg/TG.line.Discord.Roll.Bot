@@ -5,7 +5,9 @@ if (!process.env.mongoURL) {
 const VIP = require('../modules/veryImportantPerson');
 const limitAtArr = [3, 10, 50, 200, 200, 200, 200, 200];
 const schema = require('../modules/schema.js');
-const roleReactRegixDetail = /(\d+)\s+(\ud83c[\udf00-\udfff]|\ud83d[\udc00-\ude4f])/gu;
+const emojiRegex = require('emoji-regex');
+const regex = emojiRegex();
+//https://www.npmjs.com/package/emoji-regex
 const roleReactRegixMessage = /\[\[message\]\](.*)/is;
 const newRoleReactRegixMessageID = /\[\[messageID\]\]\s+(\d+)/is;
 const newRoleReactRegixDetail = /(\d+)\s+(\S+)/gu;

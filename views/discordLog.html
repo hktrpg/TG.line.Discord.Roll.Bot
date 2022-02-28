@@ -194,6 +194,10 @@
                     </div>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link"
+                        href="https://hktrpg.github.io/TG.line.Discord.Roll.Bot/PORTFOLIOP">HKTRPG作品集</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="https://www.patreon.com/HKTRPG">訂閱</a>
                 </li>
                 <a class="nav-item nav-link " href="https://github.com/hktrpg/TG.line.Discord.Roll.Bot">
@@ -813,7 +817,7 @@
                     return this.rows.filter(row => {
                         const contact = row.contact.toString().toLowerCase();
                         const userName = row.userName.toString().toLowerCase();
-                        const timestamp = dhm2(row.timestamp).toString().toLowerCase();;
+                        const timestamp = dhm2(row.timestamp).toString().toLowerCase();
                         const searchTerm = this.filter.toLowerCase();
                         return (
                             contact.includes(searchTerm) || userName.includes(searchTerm) ||

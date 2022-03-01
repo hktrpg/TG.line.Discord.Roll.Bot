@@ -12,8 +12,8 @@ const opt = {
 }
 
 const VIP = require('../modules/veryImportantPerson');
-const limitArr = [30, 200, 200, 300, 300, 300, 300, 300];
-const limitArrPersonal = [6, 200, 200, 300, 300, 300, 300, 300];
+const limitArr = [30, 200, 200, 500, 500, 500, 500, 500];
+const limitArrPersonal = [6, 200, 200, 500, 500, 500, 500, 500];
 const convertRegex = function (str) {
     return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
 };

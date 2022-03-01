@@ -20,7 +20,12 @@ var prefixs = function () {
         first: /(^[.]event$)|(^[.]evt$)/ig,
         second: null
     }]
+
 }
+
+const convertRegex = function (str) {
+    return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
+};
 const regexMain = new RegExp(/^((-)?\d):(.*)/, 'igm');
 const regexExp = new RegExp(/^exp:(.*)/, 'im');
 const regexName = new RegExp(/^name:(.*)/, 'im');
@@ -233,7 +238,7 @@ exp:SAN
             filter = {
                 userID: userid,
                 title: {
-                    $regex: new RegExp(events.eventName, "i")
+                    $regex: new RegExp(convertRegex(events.eventName), "i")
                 }
             }
             try {
@@ -307,7 +312,7 @@ exp:SAN
             filter = {
                 userID: userid,
                 title: {
-                    $regex: new RegExp(inputStr.replace(/^\.event\s+delete\s+/ig, '').replace(/\s+$/, ''), "i")
+                    $regex: new RegExp(convertRegex(inputStr.replace(/^\.event\s+delete\s+/ig, '').replace(/\s+$/, '')), "i")
                 }
             }
             doc = await schema.eventList.findOne(filter);
@@ -491,7 +496,7 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
 
 
                 //查看是什麼事件, 隨機, 系列, 指定
-                const targetEventName = mainMsg[1];
+                const targetEventName = convertRegex(mainMsg[1]);
                 let eventMode = '';
                 let eventList = [];
                 if (targetEventName.match(/^random$/i)) {

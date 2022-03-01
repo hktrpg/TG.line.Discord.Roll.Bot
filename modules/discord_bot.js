@@ -836,6 +836,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 		reaction.users.remove(user.id);
 	}
 });
+/**
 client.on('messageReactionRemove', async (reaction, user) => {
 	if (reaction.me) return;
 	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('discord_bot #817 mongoDB error: ', error.name, error.reson))
@@ -849,7 +850,7 @@ client.on('messageReactionRemove', async (reaction, user) => {
 	}
 });
 
-
+ */
 
 function z_stop(mainMsg, groupid) {
 	if (!Object.keys(exports.z_stop).length || !exports.z_stop.initialize().save) {

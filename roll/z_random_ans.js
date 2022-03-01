@@ -14,7 +14,9 @@ const opt = {
 const VIP = require('../modules/veryImportantPerson');
 const limitArr = [30, 200, 200, 300, 300, 300, 300, 300];
 const limitArrPersonal = [6, 200, 200, 300, 300, 300, 300, 300];
-
+const convertRegex = function (str) {
+    return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
+};
 var gameName = function () {
     return '(公測中)自定義骰子/回應功能 .ra(p)(s)(次數) (add del show 自定骰子名稱)'
 }

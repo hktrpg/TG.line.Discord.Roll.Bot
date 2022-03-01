@@ -218,7 +218,7 @@ var rollDiceCommand = async function ({
             }
             if (!myName) {
                 try {
-                    myName = await schema.myName.findOne({ userID: userid, shortName: new RegExp(convertRegex(checkName), 'i') });
+                    myName = await schema.myName.findOne({ userID: userid, shortName: new RegExp('^' + convertRegex(checkName) + '$', 'i') });
                 } catch (error) {
                     rply.text = `輸入出錯\n ${this.getHelpMessage()} `;
                     return rply;

@@ -302,7 +302,7 @@ var rollDiceCommand = async function ({
                     rply.text = '新增失敗.\n' + rply.text;
                     return rply;
                 }
-                getData = await schema.randomAnsPersonal.findOne({ "title": { $regex: new RegExp(escapeRegExp(mainMsg[2]), "i") }, "userid": userid }).catch(error => console.error('randomans #306 mongoDB error: ', error.name, error.reson));
+                getData = await schema.randomAnsPersonal.findOne({ "title": { $regex: new RegExp('^' + escapeRegExp(mainMsg[2]) + '$', "i") }, "userid": userid }).catch(error => console.error('randomans #306 mongoDB error: ', error.name, error.reson));
                 const [, , , ...rest] = mainMsg;
                 const answerLength = getData && getData.answer.join('').length;
 
@@ -342,7 +342,7 @@ var rollDiceCommand = async function ({
             //
             rply.quotes = true;
             if (mainMsg[2]) {
-                temp = await schema.randomAnsPersonal.findOne({ "title": { $regex: new RegExp(escapeRegExp(mainMsg[2]), "i") }, "userid": userid }).catch(error => console.error('randomans #346 mongoDB error: ', error.name, error.reson));
+                temp = await schema.randomAnsPersonal.findOne({ "title": { $regex: new RegExp('^' + escapeRegExp(mainMsg[2]) + '$', "i") }, "userid": userid }).catch(error => console.error('randomans #346 mongoDB error: ', error.name, error.reson));
                 if (!temp) {
                     rply.text = '找不到該骰子名稱, 請重新檢查'
                     return rply;
@@ -447,7 +447,7 @@ var rollDiceCommand = async function ({
                     rply.text = '新增失敗.\n' + rply.text;
                     return rply;
                 }
-                getData = await schema.randomAnsServer.findOne({ "title": { $regex: new RegExp(escapeRegExp(mainMsg[2]), "i") } }).catch(error => console.error('randomans #451 mongoDB error: ', error.name, error.reson));
+                getData = await schema.randomAnsServer.findOne({ "title": { $regex: new RegExp('^' + escapeRegExp(mainMsg[2]) + '$', "i") } }).catch(error => console.error('randomans #451 mongoDB error: ', error.name, error.reson));
                 if (getData) {
                     rply.text = '新增失敗. 和現存的骰子重複了名稱'
                     return rply;
@@ -478,7 +478,7 @@ var rollDiceCommand = async function ({
             //
             rply.quotes = true;
             if (mainMsg[2]) {
-                temp = await schema.randomAnsServer.findOne({ "title": { $regex: new RegExp(escapeRegExp(mainMsg[2]), "i") } }).catch(error => console.error('randomans #482 mongoDB error: ', error.name, error.reson));
+                temp = await schema.randomAnsServer.findOne({ "title": { $regex: new RegExp('^' + escapeRegExp(mainMsg[2]) + '$', "i") } }).catch(error => console.error('randomans #482 mongoDB error: ', error.name, error.reson));
                 if (!temp) {
                     rply.text = '找不到這骰子名稱, 請重新檢查'
                     return rply;

@@ -78,7 +78,7 @@ var rollDiceCommand = async function ({
                 $pull: {
                     "list": {
                         "name": {
-                            $regex: new RegExp(convertRegex(name), "i")
+                            $regex: new RegExp('^' + convertRegex(name) + '$', "i")
                         }
                     }
                 }

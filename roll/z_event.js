@@ -238,7 +238,7 @@ exp:SAN
             filter = {
                 userID: userid,
                 title: {
-                    $regex: new RegExp(convertRegex(events.eventName), "i")
+                    $regex: new RegExp('^' + convertRegex(events.eventName) + '$', "i")
                 }
             }
             try {
@@ -312,7 +312,7 @@ exp:SAN
             filter = {
                 userID: userid,
                 title: {
-                    $regex: new RegExp(convertRegex(inputStr.replace(/^\.event\s+delete\s+/ig, '').replace(/\s+$/, '')), "i")
+                    $regex: new RegExp('^' + convertRegex(inputStr.replace(/^\.event\s+delete\s+/ig, '').replace(/\s+$/, '')) + '$', "i")
                 }
             }
             doc = await schema.eventList.findOne(filter);
@@ -436,7 +436,7 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                     rply.text += "\n" + doc[index].title + "\n";
                     if (doc[index].expName) rply.text += '經驗值的名稱: ' + doc[index].expName + "\n";
                     rply.text += (doc[index].chainTitle) ? `系列名稱: ${doc[index].chainTitle} \n` : '';
-                    if (mainMsg[2] && mainMsg[2].match(new RegExp(doc[index].title, 'i'))) {
+                    if (mainMsg[2] && mainMsg[2].match(new RegExp('^' + convertRegex(doc[index].title) + '$', 'i'))) {
                         rply.text += getDetail(doc[index]) + '\n';
                     }
                 }
@@ -509,7 +509,7 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                     eventList = await schema.eventList.aggregate([{
                         $match: {
                             chainTitle: {
-                                $regex: new RegExp(targetEventName, "i")
+                                $regex: new RegExp('^' + convertRegex(targetEventName) + '$', "i")
                             }
                         }
                     }, { $sample: { size: 1 } }]);
@@ -523,7 +523,7 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                         eventList = await schema.eventList.aggregate([{
                             $match: {
                                 title: {
-                                    $regex: new RegExp(targetEventName, "i")
+                                    $regex: new RegExp('^' + convertRegex(targetEventName) + '$', "i")
                                 }
                             }
                         }, { $sample: { size: 1 } }]);

@@ -124,7 +124,6 @@ client.on('messageCreate', async message => {
 暫時取消，因不理解DISCORD 的權限檢查
 反正失敗也沒什麼後果
 	 */
-	console.log('reaction', message.content)
 	let inputStr = message.content;
 	//DISCORD <@!USERID> <@!399923133368042763> <@!544563333488111636>
 	//LINE @名字
@@ -756,7 +755,6 @@ async function manageWebhook(discord) {
 	try {
 		const channel = await client.channels.fetch(discord.channelId);
 		const isThread = channel.isThread();
-		//	console.log('channel', await channel.guild.fetchWebhooks())
 		let webhooks = isThread ? await channel.guild.fetchWebhooks() : await channel.fetchWebhooks();
 		let webhook = webhooks.find(v => {
 			return v.name == 'HKTRPG .me Function' && v.type == "Incoming" && ((v.channelId == channel.parentId) || !isThread);
@@ -821,7 +819,6 @@ async function newRoleReact(channel, message) {
 }
 client.on('messageReactionAdd', async (reaction, user) => {
 	if (reaction.me) return;
-	console.log('reaction', reaction)
 	/** 
 	name: '22',
 		id: '947051740547645500',

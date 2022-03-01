@@ -124,7 +124,6 @@ client.on('messageCreate', async message => {
 暫時取消，因不理解DISCORD 的權限檢查
 反正失敗也沒什麼後果
 	 */
-
 	let inputStr = message.content;
 	//DISCORD <@!USERID> <@!399923133368042763> <@!544563333488111636>
 	//LINE @名字
@@ -260,6 +259,8 @@ client.on('messageCreate', async message => {
 	}
 
 	if (rplyVal.roleReactFlag) roleReact(channelid, rplyVal)
+	if (rplyVal.newRoleReactFlag) newRoleReact(message, rplyVal)
+
 	if (rplyVal.myName) repeatMessage(message, rplyVal);
 	if (rplyVal.myNames) repeatMessages(message, rplyVal);
 
@@ -754,7 +755,6 @@ async function manageWebhook(discord) {
 	try {
 		const channel = await client.channels.fetch(discord.channelId);
 		const isThread = channel.isThread();
-		//	console.log('channel', await channel.guild.fetchWebhooks())
 		let webhooks = isThread ? await channel.guild.fetchWebhooks() : await channel.fetchWebhooks();
 		let webhook = webhooks.find(v => {
 			return v.name == 'HKTRPG .me Function' && v.type == "Incoming" && ((v.channelId == channel.parentId) || !isThread);
@@ -800,14 +800,34 @@ async function roleReact(channelid, message) {
 
 }
 
+async function newRoleReact(channel, message) {
+	try {
+		const detail = message.newRoleReactDetail
+		const channels = await client.channels.fetch(channel.channelId);
+		const sendMessage = await channels.messages.fetch(message.newRoleReactMessageId)
+		for (let index = 0; index < detail.length; index++) {
+			sendMessage.react(detail[index].emoji);
+		}
 
+	} catch (error) {
+		await SendToReplychannel({ replyText: '不能成功增加ReAction, 請檢查你有授權HKTRPG 新增ReAction的權限, \n此為本功能必須權限' });
+		return;
+	}
+
+
+
+}
 client.on('messageReactionAdd', async (reaction, user) => {
 	if (reaction.me) return;
-	const list = await schema.roleReact.findOne({ messageID: reaction.message.id }).catch(error => console.error('discord_bot #802 mongoDB error: ', error.name, error.reson))
+	/** 
+	name: '22',
+		id: '947051740547645500',
+		*/
+	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('discord_bot #802 mongoDB error: ', error.name, error.reson))
 	if (!list || list.length === 0) return;
 	const detail = list.detail;
 	const findEmoji = detail.find(function (item) {
-		return item.emoji === reaction.emoji.name;
+		return item.emoji === reaction.emoji.name || item.emoji === `<:${reaction.emoji.name}:${reaction.emoji.id}>`;
 	});
 	if (findEmoji) {
 		const member = await reaction.message.guild.members.fetch(user.id);
@@ -819,11 +839,11 @@ client.on('messageReactionAdd', async (reaction, user) => {
 /**
 client.on('messageReactionRemove', async (reaction, user) => {
 	if (reaction.me) return;
-	const list = await schema.roleReact.findOne({ messageID: reaction.message.id }).catch(error => console.error('discord_bot #817 mongoDB error: ', error.name, error.reson))
+	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('discord_bot #817 mongoDB error: ', error.name, error.reson))
 	if (!list || list.length === 0) return;
 	const detail = list.detail;
 	for (let index = 0; index < detail.length; index++) {
-		if (reaction.emoji.name === detail[index].emoji) {
+		if (detail[index].emoji === reaction.emoji.name || detail[index].emoji === `<:${reaction.emoji.name}:${reaction.emoji.id}>`) {
 			const member = await reaction.message.guild.members.fetch(user.id);
 			member.roles.remove(detail[index].roleID)
 		}

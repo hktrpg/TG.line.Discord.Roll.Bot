@@ -185,7 +185,7 @@ var rollDiceCommand = async function ({
 
         //new Type role React
         case /^\.newroleReact$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
-            let list = await schema.roleReact.find({ groupid: groupid }).catch(error => console.error('role #100 mongoDB error: ', error.name, error.reson));
+            let list = await schema.roleReact.find({ groupid: groupid }).catch(error => console.error('role #188 mongoDB error: ', error.name, error.reson));
             rply.text = roleReactList(list);
             return rply;
         }
@@ -241,8 +241,11 @@ var rollDiceCommand = async function ({
             if (list) {
                 list.detail.push.apply(list.detail, checkName.detail);
                 await list.save()
-                    .catch(error => console.error('role #246 mongoDB error: ', error.name, error.reson));
+                    .catch(error => console.error('role #244 mongoDB error: ', error.name, error.reson));
                 rply.text = `已成功更新。你現在可以試試role功能\n可以使用.newrolereact show /  delete 操作 ${list.serial}`
+                rply.newRoleReactFlag = true;
+                rply.newRoleReactMessageId = checkName.messageID;
+                rply.newRoleReactDetail = checkName.detail;
                 return rply;
             }
 
@@ -273,6 +276,9 @@ var rollDiceCommand = async function ({
             try {
                 await myName.save().catch(error => console.error('role #277 mongoDB error: ', error.name, error.reson));
                 rply.text = `已成功增加。你現在可以試試role功能\n刪除可以使用.newrolereact delete ${serial}`
+                rply.newRoleReactFlag = true;
+                rply.newRoleReactMessageId = checkName.messageID;
+                rply.newRoleReactDetail = checkName.detail;
                 return rply;
             } catch (error) {
                 console.error('role save error:', error)

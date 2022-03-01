@@ -260,6 +260,8 @@ client.on('messageCreate', async message => {
 	}
 
 	if (rplyVal.roleReactFlag) roleReact(channelid, rplyVal)
+	if (rplyVal.newRoleReactFlag) newRoleReact(message, rplyVal)
+
 	if (rplyVal.myName) repeatMessage(message, rplyVal);
 	if (rplyVal.myNames) repeatMessages(message, rplyVal);
 
@@ -800,7 +802,23 @@ async function roleReact(channelid, message) {
 
 }
 
+async function newRoleReact(channel, message) {
+	try {
+		const detail = message.newRoleReactDetail
+		const channels = await client.channels.fetch(channel.channelId);
+		const sendMessage = await channels.messages.fetch(message.newRoleReactMessageId)
+		for (let index = 0; index < detail.length; index++) {
+			sendMessage.react(detail[index].emoji);
+		}
 
+	} catch (error) {
+		await SendToReplychannel({ replyText: '不能成功增加ReAction, 請檢查你有授權HKTRPG 新增ReAction的權限, \n此為本功能必須權限' });
+		return;
+	}
+
+
+
+}
 client.on('messageReactionAdd', async (reaction, user) => {
 	if (reaction.me) return;
 	console.log('reaction', reaction)

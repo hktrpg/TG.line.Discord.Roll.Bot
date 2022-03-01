@@ -8,7 +8,6 @@ const schema = require('../modules/schema.js');
 const emojiRegex = require('emoji-regex');
 var regextemp = emojiRegex().toString();
 const regex = regextemp.replace(/^\//, '').replace(/\/g$/, '')
-//console.log('regex', regex)
 //https://www.npmjs.com/package/emoji-regex
 const roleReactRegixMessage = /\[\[message\]\](.*)/is;
 const newRoleReactRegixMessageID = /\[\[messageID\]\]\s+(\d+)/is;
@@ -225,7 +224,6 @@ var rollDiceCommand = async function ({
                 return rply;
             }
             let checkName = checknewroleReact(inputStr);
-            console.log(checkName)
             if (!checkName || !checkName.detail || !checkName.messageID || checkName.detail.length === 0) {
                 rply.text = `輸入資料失敗，範例
                 .newroleReact add
@@ -237,6 +235,7 @@ var rollDiceCommand = async function ({
                 rply.quotes = true;
                 return rply;
             }
+
             //已存在相同
             let list = await schema.roleReact.findOne({ groupid: groupid, messageID: checkName.messageID }).catch(error => console.error('role #240 mongoDB error: ', error.name, error.reson));
             if (list) {
@@ -248,7 +247,6 @@ var rollDiceCommand = async function ({
             }
 
             //新增新的
-
             let lv = await VIP.viplevelCheckGroup(groupid);
             let limit = limitAtArr[lv];
             let myNamesLength = await schema.roleReact.countDocuments({ groupid: groupid }).catch(error => console.error('role #141 mongoDB error: ', error.name, error.reson));
@@ -257,20 +255,19 @@ var rollDiceCommand = async function ({
                 rply.quotes = true;
                 return rply;
             }
-
-            var dateObj = new Date();
+            const dateObj = new Date();
             var month = dateObj.getMonth() + 1; //months from 1-12
             var day = dateObj.getDate();
             var year = dateObj.getFullYear();
             var hour = dateObj.getHours()
             var minute = dateObj.getMinutes()
-            let serial = findTheNextSerial(list);
             let listSerial = await schema.roleReact.find({ groupid: groupid }, "serial").catch(error => console.error('role #268 mongoDB error: ', error.name, error.reson));
+            let serial = findTheNextSerial(listSerial);
             let myName = new schema.roleReact({
-                message: year + "/" + month + "/" + day + ' ' + hour + ':' + minute,
+                message: `${year}/${month}/${day}  ${hour}:${minute} - ID: ${checkName.messageID}`,
                 groupid: groupid,
                 messageID: checkName.messageID,
-                serial: listSerial,
+                serial: serial,
                 detail: checkName.detail
             })
             try {

@@ -242,7 +242,7 @@ var rollDiceCommand = async function ({
             if (list) {
                 list.detail.push.apply(list.detail, checkName.detail);
                 await list.save()
-                    .catch(error => console.error('role #244 mongoDB error: ', error.name, error.reson));
+                    .catch(error => console.error('role #246 mongoDB error: ', error.name, error.reson));
                 rply.text = `已成功更新。你現在可以試試role功能\n可以使用.newrolereact show /  delete 操作 ${list.serial}`
                 return rply;
             }
@@ -265,7 +265,7 @@ var rollDiceCommand = async function ({
             var hour = dateObj.getHours()
             var minute = dateObj.getMinutes()
             let serial = findTheNextSerial(list);
-            let listSerial = await schema.roleReact.find({ groupid: groupid }, "serial").catch(error => console.error('role #240 mongoDB error: ', error.name, error.reson));
+            let listSerial = await schema.roleReact.find({ groupid: groupid }, "serial").catch(error => console.error('role #268 mongoDB error: ', error.name, error.reson));
             let myName = new schema.roleReact({
                 message: year + "/" + month + "/" + day + ' ' + hour + ':' + minute,
                 groupid: groupid,
@@ -274,7 +274,7 @@ var rollDiceCommand = async function ({
                 detail: checkName.detail
             })
             try {
-                await myName.save().catch(error => console.error('role #169 mongoDB error: ', error.name, error.reson));
+                await myName.save().catch(error => console.error('role #277 mongoDB error: ', error.name, error.reson));
                 rply.text = `已成功增加。你現在可以試試role功能\n刪除可以使用.newrolereact delete ${serial}`
                 return rply;
             } catch (error) {

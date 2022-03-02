@@ -6,7 +6,7 @@ const chineseConv = require('chinese-conv'); //繁簡轉換
 const axios = require('axios');
 const wiki = require('wikijs').default;
 var gameName = function () {
-	return '【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 運勢 每日塔羅 每日笑話 每日動漫 每日一言 每日廢話 每日黃曆 每日毒湯 每日情話 每日靈簽 每日急口令 每日大事 每日(星座) 立flag .me'
+	return '【趣味擲骰】 排序(至少3個選項) 抽卡 choice/隨機(至少2個選項) 運勢 每日塔羅 每日笑話 每日動漫 每日一言 每日廢話 每日黃曆 每日毒湯 每日情話 每日靈簽 每日急口令 每日大事 每日(星座) 立flag .me'
 }
 axiosRetry(axios, { retries: 3 });
 
@@ -15,7 +15,7 @@ var gameType = function () {
 }
 var prefixs = function () {
 	return [{
-		first: /^[.]me$|排序|隨機|choice|^每日塔羅|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸|^每日笑話$|^每日動漫$|^每日一言$|^每日廢話$|^每日黃曆$|^每日毒湯$|^每日情話$|^每日靈簽$|^每日急口令$|^每日大事$|^每日白羊$|^每日牡羊$|^每日金牛$|^每日雙子$|^每日巨蟹$|^每日獅子$|^每日處女$|^每日天秤$|^每日天平$|^每日天蠍$|^每日天蝎$|^每日射手$|^每日人馬$|^每日摩羯$|^每日山羊$|^每日水瓶$|^每日寶瓶$|^每日雙魚$/i,
+		first: /^[.]me$|排序|隨機|choice|^每日塔羅|^抽卡|^隨機撲克|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸|^每日笑話$|^每日動漫$|^每日一言$|^每日廢話$|^每日黃曆$|^每日毒湯$|^每日情話$|^每日靈簽$|^每日急口令$|^每日大事$|^每日白羊$|^每日牡羊$|^每日金牛$|^每日雙子$|^每日巨蟹$|^每日獅子$|^每日處女$|^每日天秤$|^每日天平$|^每日天蠍$|^每日天蝎$|^每日射手$|^每日人馬$|^每日摩羯$|^每日山羊$|^每日水瓶$|^每日寶瓶$|^每日雙魚$/i,
 		second: null
 	}]
 }
@@ -110,6 +110,14 @@ var rollDiceCommand = async function ({
 				rply.text = MultiDrawTarot(mainMsg[1], mainMsg[2], 1);
 			if (mainMsg[0].match(/^大十字塔羅/) != null)
 				rply.text = MultiDrawTarot(mainMsg[1], mainMsg[2], 2);
+			return rply;
+		case /^隨機撲克/i.test(mainMsg[0]):
+			if (mainMsg[0].match(/^隨機撲克/) != null)
+				rply.text = await NomalDrawPocker(mainMsg[1], mainMsg[2]); //預設抽 79 張
+			return rply;
+		case /^抽卡/i.test(mainMsg[0]):
+			if (mainMsg[0].match(/^抽卡/) != null)
+				rply.text = await NomalDrawCard(mainMsg[1], mainMsg[2]); //預設抽 79 張
 			return rply;
 		case (/立flag$|^立flag/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,25}/g).length <= 1):
 			rply.text = BStyleFlagSCRIPTS();
@@ -424,6 +432,106 @@ function randomLuck(TEXT) {
 	//	rply.text = TEXT[0] + ' ： ' + rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
 	return TEXT[0] + ' ： ' + rplyArr[rollbase.Dice(rplyArr.length) - 1];
 }
+
+/**
+ * 抽卡
+ */
+async function NomalDrawCard(text, text2) {
+	let returnStr = '';
+	returnStr = '抽卡'
+	if (text)
+		returnStr += "；" + text + " " + text2
+	let ans = await rollbase.shuffleTarget(CardList)
+	returnStr += '\n' + ans[0]
+	return returnStr;
+}
+
+const CardList = ["4k幻術效果:整個人變得4k ＋\https://media.discordapp.net/attachments/868138811467649034/936990972322140190/pQDp3Gjl.jpg",
+	"獲得道具:即脫褲!\n\效果是快速穿脫\n\(除此以外沒有任何效果  \https://media.discordapp.net/attachments/868138811467649034/936990749633949706/a827a965ea46329d44c40e03ab86c613.jpg",
+	"遇到了幻覺!\n\在幻覺中被迫看了自由♂️的舞蹈一小時!  https://media.discordapp.net/attachments/868138811467649034/936990445010055248/FB_IMG_1570798788164.jpg",
+		  
+	"修女服(夜戰版\n\效果:強制穿上 \https://media.discordapp.net/attachments/868138811467649034/937023409936818196/20220130_003611.jpg?width=539&height=609",
+	"你遇到了御並跟他講了一串的義大利文\n\他對著你  \https://media.discordapp.net/attachments/922692652208640031/936989940028440596/78276_5f6b040bb43e1.jpg?width=812&height=609",
+	"你遇到了御並跟他說了你姐姐很醜\n\他對著你  \https://media.discordapp.net/attachments/922692652208640031/936990770194415726/SPOILER_3fcf66b2bdb84cd30eb05c32647c26db.jpg",
+	"卡牌納蘇-NR\n\\n\\n\召喚卡\n\\n\集齊-五張-右眼，左眼，左右手腳，與身體就能在場上召喚一隻納蘇\n\效果-召喚成功後沒有甚麼特別的用處  \https://media.discordapp.net/attachments/824864670694244403/937027156289138788/002.png",
+	//"♤5  \https://imgur.com/bfoSGFq",
+	//"♤6  \https://imgur.com/ZGzRkqP",
+		 
+		 ]
+	
+
+
+
+/**
+ * 撲克
+ */
+async function NomalDrawPocker(text, text2) {
+	let returnStr = '';
+	returnStr = '隨機撲克'
+	if (text)
+		returnStr += "；" + text + " " + text2
+	let ans = await rollbase.shuffleTarget(PockerList)
+	returnStr += '\n' + ans[0]
+	return returnStr;
+}
+const PockerList = [
+	
+	"♤A ＋\https://imgur.com/YRKmZ72",
+	"♤2  \https://imgur.com/ohRjZEa",
+	"♤3  \https://imgur.com/Jg1KAjB",
+	"♤4  \https://imgur.com/Zf7a0Az",
+	"♤5  \https://imgur.com/bfoSGFq",
+	"♤6  \https://imgur.com/ZGzRkqP",
+	"♤7  \https://imgur.com/ivwG3DX",
+	"♤8  \https://imgur.com/cW26axR",
+	"♤9  \https://imgur.com/hfCm6iH",
+	"♤10  \https://imgur.com/YWbegzG",
+	"♤J  \https://imgur.com/3b6crce",
+	"♤Q  \https://imgur.com/Esa7Mn8",
+	"♤K  \https://imgur.com/rQVTLxm",
+	"♡A  \https://imgur.com/u9bWLpl",
+	"♡2  \https://imgur.com/v2WX6OM",
+	"♡3  \https://imgur.com/cZWUlSJ",
+	"♡4  \https://imgur.com/fuvP2dU",
+	"♡5  \https://imgur.com/VJGoE8F",
+	"♡6  \https://imgur.com/tRpeHUB",
+	"♡7  \https://imgur.com/fBRLc4m",
+	"♡8  \https://imgur.com/6fnaVxh",
+	"♡9  \https://imgur.com/QGC3QrE",
+	"♡10  \https://imgur.com/n9HSYiy",
+	"♡J  \https://imgur.com/zrxcxFc",
+	"♡Q  \https://imgur.com/5n1QaSf",
+	"♡K  \https://imgur.com/S8F5Cy8",
+	"♧A  \https://imgur.com/SWiwrWH",
+	"♧2  \https://imgur.com/sRsTEa0",
+	"♧3  \https://imgur.com/BUz4i4s",
+	"♧4  \https://imgur.com/bHU5npa",
+	"♧5  \https://imgur.com/YOBzwQZ",
+	"♧6  \https://imgur.com/Bi8avmE",
+	"♧7  \https://imgur.com/nbZ2owR",
+	"♧8  \https://imgur.com/7iDNr97",
+	"♧9  \https://imgur.com/zxzRHMS",
+	"♧10  \https://imgur.com/nliO67D",
+	"♧J  \https://imgur.com/m4FMGtx",
+	"♧Q  \https://imgur.com/nexMj5j",
+	"♧K  \https://imgur.com/shl91aS ",
+	"♢A  \https://imgur.com/8PJZqGf",
+	"♢2  \https://imgur.com/UnKi8Dk",
+	"♢3  \https://imgur.com/BNqaxtu",
+	"♢4  \https://imgur.com/3CdZET3",
+	"♢5  \https://imgur.com/fpIbMQs",
+	"♢6  \https://imgur.com/Q3gObXb",
+	"♢7  \https://imgur.com/4BEP06N",
+	"♢8  \https://imgur.com/yOk5BAw",
+	"♢9  \https://imgur.com/dNKYSri",
+	"♢10  \https://imgur.com/kdFtPcY",
+	"♢J  \https://imgur.com/FSnZ1RU",
+	"♢Q  \https://imgur.com/A3XCpaO",
+	"♢K  \https://imgur.com/Ut56M1a",
+	"jockb  \https://imgur.com/Ut56M1a",
+	"jockr  \https://imgur.com/E29uHKW",
+	
+]
 
 /**
  * Tarot塔羅牌

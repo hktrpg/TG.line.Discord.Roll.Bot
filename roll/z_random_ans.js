@@ -18,14 +18,14 @@ const convertRegex = function (str) {
     return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
 };
 var gameName = function () {
-    return '(公測中)自定義骰子/回應功能 .ra(p)(s)(次數) (add del show 自定骰子名稱)'
+    return '(公測中)自定義骰子/回應功能 搜索(p)(s)(次數) (登記 刪除 顯示 自定骰子名稱)'
 }
 var gameType = function () {
     return 'funny:randomAns:hktrpg'
 }
 var prefixs = function () {
     return [{
-        first: /(^[.](r|)ra(\d+|p|p\d+|s|s\d+|)$)/ig,
+        first: /(^(重複|)搜索(\d+|)$)/ig,
         second: null
     }]
 }
@@ -116,7 +116,7 @@ var rollDiceCommand = async function ({
             rply.text = await this.getHelpMessage();
             rply.quotes = true;
             return rply;
-        case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]): {
+        case /(^(重複|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^登記$/i.test(mainMsg[1]) && /^(?!(登記|刪除|顯示)$)/ig.test(mainMsg[2]):
             //
             //增加自定義關鍵字
             // .ra[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
@@ -153,7 +153,7 @@ var rollDiceCommand = async function ({
             }
             if (update) {
                 await getData.save();
-                rply.text = `更新成功\n輸入.ra ${mainMsg[2]} \n即可使用`
+                rply.text = `更新成功\n輸入搜索 ${mainMsg[2]} \n即可使用`
                 return rply;
             }
             if (getData && getData.randomAnsfunction.length >= limit) {
@@ -169,11 +169,11 @@ var rollDiceCommand = async function ({
                 $push: temp, new: true
             }, opt).catch(error => console.error('randomans #168 mongoDB error: ', error.name, error.reson));
             if (check.n == 1) {
-                rply.text = '新增成功: \n輸入 .ra ' + mainMsg[2] + '\n即可使用'
+                rply.text = '新增成功: \n輸入 搜索 ' + mainMsg[2] + '\n即可使用'
             } else rply.text = '新增失敗'
             return rply;
         }
-        case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]):
+        case /(^(重複|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^刪除$/i.test(mainMsg[1]):
             //
             //刪除自定義關鍵字
             //
@@ -204,7 +204,7 @@ var rollDiceCommand = async function ({
                 rply.text += '刪除成功\n' + temp;
             }
             return rply;
-        case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+        case /(^(重複|)搜索(\d+|)$)/i.test(mainMsg[0]) && /^顯示$/i.test(mainMsg[1]):
             //
             //顯示列表
             //
@@ -236,7 +236,7 @@ var rollDiceCommand = async function ({
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
             rply.text += '\n\n在.ras show 後面輸入骰子名稱, 可以顯示詳細內容\n輸入 .ras (列表序號或骰子名稱) 可以進行隨機擲骰'
             return rply
-        case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
+        case /(^(重複|)搜索(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(登記|刪除|顯示)$)/ig.test(mainMsg[1]):
             //
             //RA使用抽選功能
             //
@@ -291,7 +291,7 @@ var rollDiceCommand = async function ({
             return rply;
 
 
-        case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
+        case /(^(重複|)全服搜索(\d+|)$)/i.test(mainMsg[0]) && /^登記$/i.test(mainMsg[1]) && /^(?!(登記|刪除|顯示)$)/ig.test(mainMsg[2]):
             {    //
                 //增加自定義關鍵字
                 // .rap[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 

@@ -72,7 +72,6 @@ const newMessage = require('./message');
 
 const reconnectInterval = 1 * 1000 * 60;
 const shardids = client.shard.ids[0];
-
 const WebSocket = require('ws');
 var ws;
 var connect = function () {
@@ -840,7 +839,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 		reaction.users.remove(user.id);
 	}
 });
-/**
+
 client.on('messageReactionRemove', async (reaction, user) => {
 	if (reaction.me) return;
 	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('discord_bot #817 mongoDB error: ', error.name, error.reson))
@@ -854,7 +853,7 @@ client.on('messageReactionRemove', async (reaction, user) => {
 	}
 });
 
- */
+
 
 function z_stop(mainMsg, groupid) {
 	if (!Object.keys(exports.z_stop).length || !exports.z_stop.initialize().save) {
@@ -868,6 +867,7 @@ function z_stop(mainMsg, groupid) {
 	} else
 		return false;
 }
+
 
 async function getAllshardIds() {
 	if (!client.shard) return;

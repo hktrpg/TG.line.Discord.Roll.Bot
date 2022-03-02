@@ -95,7 +95,9 @@ var connect = function () {
 					if (channel)
 						channel.send(results[0].message.text)
 				})
-				.catch(console.error);
+				.catch(err => {
+					console.error(`disocrdbot #99 error ${err}`)
+				});
 			return;
 		}
 	});
@@ -529,7 +531,7 @@ async function nonDice(message) {
 			);
 		}
 	} catch (error) {
-		console.error('await EXPUP error', error);
+		console.error('await #534 EXPUP error', error);
 	}
 
 
@@ -590,7 +592,9 @@ async function count() {
 			const totalMembers = results[1].reduce((acc, memberCount) => acc + memberCount, 0);
 			return (`正在運行HKTRPG的Discord 群組數量: ${totalGuilds}\nDiscord 會員數量: ${totalMembers}`);
 		})
-		.catch(console.error);
+		.catch(err => {
+			console.error(`disocrdbot #596 error ${err}`)
+		});
 
 }
 async function count2() {
@@ -607,8 +611,8 @@ async function count2() {
 			const totalMembers = results[1].reduce((acc, memberCount) => acc + memberCount, 0);
 			return (` ${totalGuilds}群組📶-\n ${totalMembers}會員📶`);
 		})
-		.catch(() => {
-			console.error
+		.catch((err) => {
+			console.error(`disocrdbot #617 error ${err}`)
 			return '🌼bothelp | hktrpg.com🍎';
 		});
 }
@@ -876,7 +880,9 @@ async function getAllshardIds() {
 		.then(results => {
 			return '\n所有啓動中的server ID: ' + results[0].join(', ') + '\n所有啓動中的server online?: ' + results[1].join(', ') + '\n所有啓動中的server ping?: ' + results[2].join(', ');
 		})
-		.catch(console.error);
+		.catch(err => {
+			console.error(`disocrdbot #884 error ${err}`)
+		});
 
 }
 

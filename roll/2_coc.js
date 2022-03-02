@@ -674,7 +674,7 @@ async function dpRecordSwitch({ onOff = false, groupid = "", channelid = "" }) {
 		return `現在這頻道的COC 成長紀錄功能為 ${(result.switch) ? '開啓' : '關閉'}
 以後CC擲骰將 ${(result.switch) ? '會' : '不會'}進行紀錄`
 	} catch (error) {
-		console.log(`dpRecordSwitch ERROR ${error.message}`)
+		console.error(`dpRecordSwitch ERROR ${error.message}`)
 		return '發生錯誤';
 	}
 }

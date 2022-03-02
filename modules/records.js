@@ -47,7 +47,7 @@ class Records extends EventEmitter {
             upsert: true
         }, (err, doc) => {
             if (err) {
-                console.log("Something wrong when updating data!");
+                console.error("Something wrong when updating data!");
             } else
                 callback();
         });
@@ -71,7 +71,7 @@ class Records extends EventEmitter {
             upsert: true
         }, (err, doc) => {
             if (err) {
-                console.log("Something wrong when updating data!");
+                console.error("Something wrong when updating data!");
             } else
                 callback();
         });
@@ -87,7 +87,7 @@ class Records extends EventEmitter {
             upsert: true
         }, (err, doc) => {
             if (err) {
-                console.log("Something wrong when updating data!");
+                console.error("Something wrong when updating data!");
             } else
                 callback();
             // return JSON.stringify(doc).toString();
@@ -109,7 +109,7 @@ class Records extends EventEmitter {
             upsert: true
         }, (err, doc) => {
             if (err) {
-                console.log("Something wrong when updating data!");
+                console.error("Something wrong when updating data!");
             } else
                 callback();
         });
@@ -123,7 +123,7 @@ class Records extends EventEmitter {
             upsert: true
         }, (err, doc) => {
             if (err) {
-                console.log("Something wrong when updating data!");
+                console.error("Something wrong when updating data!");
             } else
                 callback();
             // return JSON.stringify(doc).toString();
@@ -158,7 +158,7 @@ class Records extends EventEmitter {
             upsert: true
         }, (err, doc) => {
             if (err) {
-                console.log("Something wrong when updating data!");
+                console.error("Something wrong when updating data!");
             } else
                 callback();
         });
@@ -174,7 +174,7 @@ class Records extends EventEmitter {
             upsert: true
         }, (err, doc) => {
             if (err) {
-                console.log("Something wrong when updating data!");
+                console.error("Something wrong when updating data!");
             } else
                 callback();
             // return JSON.stringify(doc).toString();
@@ -197,7 +197,7 @@ class Records extends EventEmitter {
             upsert: true
         }, (err, doc) => {
             if (err) {
-                console.log("Something wrong when updating data!");
+                console.error("Something wrong when updating data!");
             } else
                 callback();
         });
@@ -211,7 +211,7 @@ class Records extends EventEmitter {
             upsert: true
         }, (err, doc) => {
             if (err) {
-                console.log("Something wrong when updating data!");
+                console.error("Something wrong when updating data!");
             } else
                 callback();
             // return JSON.stringify(doc).toString();
@@ -239,7 +239,7 @@ class Records extends EventEmitter {
             upsert: true
         }, (err, doc) => {
             if (err) {
-                console.log("Something wrong when updating data!");
+                console.error("Something wrong when updating data!");
             } else
                 callback();
         });
@@ -255,7 +255,7 @@ class Records extends EventEmitter {
             upsert: true
         }, (err, doc) => {
             if (err) {
-                console.log("Something wrong when updating data!");
+                console.error("Something wrong when updating data!");
             } else
                 callback();
             // return JSON.stringify(doc).toString();
@@ -283,7 +283,7 @@ class Records extends EventEmitter {
             upsert: true
         }, (err, doc) => {
             if (err) {
-                console.log("Something wrong when updating data!");
+                console.error("Something wrong when updating data!");
             } else
                 callback();
         });
@@ -299,7 +299,7 @@ class Records extends EventEmitter {
             upsert: true
         }, (err, doc) => {
             if (err) {
-                console.log("Something wrong when updating data!");
+                console.error("Something wrong when updating data!");
             } else
                 callback();
             // return JSON.stringify(doc).toString();
@@ -328,7 +328,7 @@ class Records extends EventEmitter {
             upsert: true
         }, (err, doc) => {
             if (err) {
-                console.log("Something wrong when updating data!");
+                console.error("Something wrong when updating data!");
             } else
                 callback();
         });
@@ -344,7 +344,7 @@ class Records extends EventEmitter {
             upsert: true
         }, (err, doc) => {
             if (err) {
-                console.log("Something wrong when updating data!");
+                console.error("Something wrong when updating data!");
             } else
                 callback();
             // return JSON.stringify(doc).toString();
@@ -370,7 +370,7 @@ class Records extends EventEmitter {
             upsert: true
         }, (err, doc) => {
             if (err) {
-                console.log("Something wrong when updating data!");
+                console.error("Something wrong when updating data!");
             } else
                 callback();
         });
@@ -395,7 +395,7 @@ class Records extends EventEmitter {
             setDefaultsOnInsert: true
         }, (err, doc) => {
             if (err) {
-                console.log("Something wrong when updating data!");
+                console.error("Something wrong when updating data!");
             } else
                 callback();
             // return JSON.stringify(doc).toString();
@@ -421,7 +421,7 @@ class Records extends EventEmitter {
             setDefaultsOnInsert: true
         }, (err, doc) => {
             if (err) {
-                console.log("Something wrong when updating data!");
+                console.error("Something wrong when updating data!");
             } else
                 callback();
             // return JSON.stringify(doc).toString();
@@ -447,7 +447,7 @@ class Records extends EventEmitter {
             setDefaultsOnInsert: true
         }, (err, doc) => {
             if (err) {
-                console.log("Something wrong when updating data!");
+                console.error("Something wrong when updating data!");
             } else
                 callback();
             // return JSON.stringify(doc).toString();
@@ -473,8 +473,8 @@ class Records extends EventEmitter {
             //   setDefaultsOnInsert: true
         }, (err, doc) => {
             if (err) {
-                console.log(err);
-                console.log("Something wrong when updating data!");
+                console.error(`log #476 ${err}`);
+                console.error("Something wrong when updating data!");
             } else
                 callback();
             // return JSON.stringify(doc).toString();
@@ -502,7 +502,7 @@ class Records extends EventEmitter {
             setDefaultsOnInsert: true
         }, (err, doc) => {
             if (err) {
-                console.log("Something wrong when updating data!");
+                console.error("Something wrong when updating data!");
             } else
                 callback();
             // return JSON.stringify(doc).toString();
@@ -528,8 +528,8 @@ class Records extends EventEmitter {
             //   setDefaultsOnInsert: true
         }, (err, doc) => {
             if (err) {
-                console.log(err);
-                console.log("Something wrong when updating data!");
+                console.error(`log #531 ${err}`);
+                console.error("Something wrong when updating data!");
             } else {
                 callback();
                 // console.log('DONE?')
@@ -559,8 +559,8 @@ class Records extends EventEmitter {
             //   setDefaultsOnInsert: true
         }, (err, doc) => {
             if (err) {
-                console.log(err);
-                console.log("Something wrong when updating data!");
+                console.error(`log #562 ${err}`);
+                console.error("Something wrong when updating data!");
             } else {
                 callback();
                 // console.log('DONE?')
@@ -605,8 +605,8 @@ class Records extends EventEmitter {
             //   setDefaultsOnInsert: true
         }, (err, doc) => {
             if (err) {
-                console.log(err);
-                console.log("Something wrong when updating data!");
+                console.error(`log #608 ${err}`);
+                console.error("Something wrong when updating data!");
             } else {
                 callback();
                 // console.log('DONE?')
@@ -617,39 +617,39 @@ class Records extends EventEmitter {
 
     maxTrpgSaveLogfunction(dbbase, msg, callback) {
         schema[dbbase].findOneAndUpdate({
-                "RollingLogfunction.LogTime": {
-                    '$gte': msg.start,
-                    '$lte': msg.end
-                }
-            }, {
-                $set: {
-                    "RollingLogfunction.LogTime": msg.LogTime,
-                },
-                $max: {
-                    //大於則更新
-                    "RollingLogfunction.DiscordCountRoll": msg.DiscordCountRoll,
-                    "RollingLogfunction.DiscordCountText": msg.DiscordCountText,
-                    "RollingLogfunction.LineCountRoll": msg.LineCountRoll,
-                    "RollingLogfunction.LineCountText": msg.LineCountText,
-                    "RollingLogfunction.TelegramCountRoll": msg.TelegramCountRoll,
-                    "RollingLogfunction.TelegramCountText": msg.TelegramCountText,
-                    "RollingLogfunction.WhatsappCountRoll": msg.WhatsappCountRoll,
-                    "RollingLogfunction.WhatsappCountText": msg.WhatsappCountText,
-                    "RollingLogfunction.WWWCountRoll": msg.WWWCountRoll,
-                    "RollingLogfunction.WWWCountText": msg.WWWCountText
-                    //中途紀錄資料 使用PUSH 每天紀錄一次
-                    // RollingLogfunction: msg,
-                    //擲骰的結果紀錄
-                    //Sided: msg
-                }
-            }, {
-                upsert: true
-                //   setDefaultsOnInsert: true
+            "RollingLogfunction.LogTime": {
+                '$gte': msg.start,
+                '$lte': msg.end
+            }
+        }, {
+            $set: {
+                "RollingLogfunction.LogTime": msg.LogTime,
             },
+            $max: {
+                //大於則更新
+                "RollingLogfunction.DiscordCountRoll": msg.DiscordCountRoll,
+                "RollingLogfunction.DiscordCountText": msg.DiscordCountText,
+                "RollingLogfunction.LineCountRoll": msg.LineCountRoll,
+                "RollingLogfunction.LineCountText": msg.LineCountText,
+                "RollingLogfunction.TelegramCountRoll": msg.TelegramCountRoll,
+                "RollingLogfunction.TelegramCountText": msg.TelegramCountText,
+                "RollingLogfunction.WhatsappCountRoll": msg.WhatsappCountRoll,
+                "RollingLogfunction.WhatsappCountText": msg.WhatsappCountText,
+                "RollingLogfunction.WWWCountRoll": msg.WWWCountRoll,
+                "RollingLogfunction.WWWCountText": msg.WWWCountText
+                //中途紀錄資料 使用PUSH 每天紀錄一次
+                // RollingLogfunction: msg,
+                //擲骰的結果紀錄
+                //Sided: msg
+            }
+        }, {
+            upsert: true
+            //   setDefaultsOnInsert: true
+        },
             (err, doc) => {
                 if (err) {
-                    console.log(err);
-                    console.log("Something wrong when updating data!");
+                    console.error(`log #651 ${err}`);
+                    console.error("Something wrong when updating data!");
                 } else {
                     callback();
                     // console.log('DONE?')

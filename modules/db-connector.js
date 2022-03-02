@@ -1,5 +1,6 @@
 "use strict";
 if (!process.env.mongoURL) return;
+const master = require.main?.filename.includes('index');
 const mongoose = require('mongoose');
 /* mongoose.connect(process.env.mongoURL, {
         useNewUrlParser: true,
@@ -30,6 +31,14 @@ const db = mongoose.connection;
 db.on('error', console.error.bind('mlab connection error:', console));
 db.once('open', function () {
     console.log('mlab  connected!');
+    if (!master) return;
+    require('fs').readdirSync(__dirname).forEach(function (file) {
+        if (file.match(/\.js$/) && file.match(/^core-/)) {
+            var name = file.replace('.js', '');
+            exports[name] = require('./' + file);
+        }
+    });
+
 });
 
 module.exports = {

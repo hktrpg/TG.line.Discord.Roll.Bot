@@ -27,7 +27,7 @@ if (togGGToken) {
 }
 
 manager.on('shardCreate', shard => {
-	console.log(`Launched shard ${shard.id}`);
+	console.log(`Launched shard #${shard.id}`);
 	shard.on('ready', () => {
 		console.log(`Shard ready. Shard Count: ${shard.manager.totalShards}`)
 	});

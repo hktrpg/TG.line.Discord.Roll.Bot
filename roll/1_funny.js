@@ -457,7 +457,7 @@ const CardList = ["4k幻術效果:整個人變得4k ＋\https://media.discordapp
 	//"♤5  \https://imgur.com/bfoSGFq",
 	//"♤6  \https://imgur.com/ZGzRkqP",
 		 
-		 ]
+		 ];
 	
 
 
@@ -531,7 +531,7 @@ const PockerList = [
 	"jockb  \https://imgur.com/Ut56M1a",
 	"jockr  \https://imgur.com/E29uHKW",
 	
-]
+];
 
 /**
  * Tarot塔羅牌

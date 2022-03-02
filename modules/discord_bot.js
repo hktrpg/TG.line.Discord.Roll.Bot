@@ -3,6 +3,7 @@ exports.analytics = require('./analytics');
 const schema = require('../modules/schema.js');
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
+const adminSecret = process.env.ADMIN_SECRET || '';
 const Discord = require("discord.js-light");
 const { Client, Intents, Permissions } = Discord;
 const rollText = require('./getRoll').rollText;
@@ -543,10 +544,14 @@ client.on('ready', async () => {
 	console.log(`Discord: Logged in as ${client.user.tag}!`);
 	if (shardids !== 0) return;
 	client.user.setActivity('🌼bothelp | hktrpg.com🍎');
-
 	var switchSetActivity = 0;
-
 	setInterval(async () => {
+		if (adminSecret) {
+			let check = await checkWakeUp();
+			if (!check) {
+				SendToId(adminSecret, 'HKTRPG可能下線了');
+			}
+		}
 		switch (switchSetActivity % 2) {
 			case 1:
 				client.user.setActivity('🌼bothelp | hktrpg.com🍎');
@@ -820,6 +825,24 @@ async function newRoleReact(channel, message) {
 
 
 }
+async function checkWakeUp() {
+	const number = client.shard.client.options.shardCount;
+	const promises = [
+		client.shard.broadcastEval(c => c.shard?.ids[0]),
+		client.shard.broadcastEval(c => c.ws.status),
+	];
+	return Promise.all(promises)
+		.then(results => {
+			console.log('results[0].length', results[0].length, number, ', ', results[1].reduce((a, b) => a + b, 0))
+			if (results[0].length !== number || results[1].reduce((a, b) => a + b, 0) >= 1)
+				return false
+			else return true;
+		})
+		.catch(err => {
+			console.error(`disocrdbot #836 error ${err}`)
+		});
+
+}
 client.on('messageReactionAdd', async (reaction, user) => {
 	if (reaction.me) return;
 	/** 
@@ -885,6 +908,8 @@ async function getAllshardIds() {
 		});
 
 }
+
+
 
 /**
  *

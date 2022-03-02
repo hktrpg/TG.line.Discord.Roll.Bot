@@ -833,7 +833,6 @@ async function checkWakeUp() {
 	];
 	return Promise.all(promises)
 		.then(results => {
-			console.log('results[0].length', results[0].length, number, ', ', results[1].reduce((a, b) => a + b, 0))
 			if (results[0].length !== number || results[1].reduce((a, b) => a + b, 0) >= 1)
 				return false
 			else return true;

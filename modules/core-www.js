@@ -165,9 +165,14 @@ io.on('connection', async (socket) => {
             public: true
         }
         let temp = await schema.characterCard.find(filter);
-        socket.emit('getPublicListInfo', {
-            temp
-        }).catch(error => console.error('www #170 mongoDB error: ', error.name, error.reson))
+        try {
+            socket.emit('getPublicListInfo', {
+                temp
+            })
+        } catch (error) {
+            console.error('www #170 mongoDB error: ', error.name, error.reson)
+        }
+
     })
 
     socket.on('publicRolling', async message => {

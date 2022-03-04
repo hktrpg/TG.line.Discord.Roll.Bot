@@ -22,7 +22,7 @@ const agenda = new Agenda({ db: { address: process.env.mongoURL, collection: 'ag
     try {
         await agenda.start()
     } catch (error) {
-        //
+        console.log(`agenda start error #25`, error)
     }
 
 

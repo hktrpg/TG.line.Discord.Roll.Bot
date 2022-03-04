@@ -105,7 +105,7 @@ var rollDiceCommand = async function ({
 				rply.text = await searchImage(inputStr, mainMsg, true)
 				rply.type = 'image'
 			} catch (error) {
-				console.error('.image error')
+				console.error('.image error #108')
 				return rply;
 			}
 			return rply;
@@ -116,7 +116,7 @@ var rollDiceCommand = async function ({
 				rply.text = await searchImage(inputStr, mainMsg, false)
 				rply.type = 'image'
 			} catch (error) {
-				console.error('.image error')
+				console.error('.image error #119')
 				return rply;
 			}
 			return rply;

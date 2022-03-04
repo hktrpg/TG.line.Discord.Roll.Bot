@@ -73,7 +73,9 @@ client.once('ready', async () => {
 });
 
 client.on('messageCreate', async message => {
+	console.log('!!!')
 	if (message.author.bot) return;
+
 	let hasSendPermission = true;
 	//	await repeatMessage(message)
 	/**
@@ -102,7 +104,7 @@ client.on('messageCreate', async message => {
 			try {
 				await message.delete();
 			} catch (error) {
-				error;
+				//console.log(`discord bot error #105`, error)
 			}
 			await SendToReplychannel({ replyText: inputStr, channelid: message.channel.id });
 
@@ -111,7 +113,7 @@ client.on('messageCreate', async message => {
 			try {
 				await message.delete();
 			} catch (error) {
-				error
+				//console.log(`discord bot error #114`, error)
 			}
 		}
 		return;
@@ -233,7 +235,7 @@ client.on('messageCreate', async message => {
 			SendToId(userid, newMessage.firstTimeMessage(), true);
 		}
 	} catch (error) {
-		//
+		console.log(`discord bot error #236`, error)
 	}
 
 	/**
@@ -391,7 +393,7 @@ async function privateMsgFinder(channelid) {
 }
 async function SendToId(targetid, replyText, quotes) {
 	console.log('A')
-	let user = await client.users.cache.get(targetid);
+	let user = await client.users.fetch(targetid);
 	if (typeof replyText === "string") {
 		let sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
 		for (let i = 0; i < sendText.length; i++) {
@@ -434,7 +436,7 @@ function SendToReply({ replyText = "", message, quotes = false }) {
 }
 async function SendToReplychannel({ replyText = "", channelid = "", quotes = false }) {
 	if (!channelid) return;
-	const channel = await client.channels.cache.get(channelid);
+	const channel = await client.channels.fetch(channelid);
 	const sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
 	for (let i = 0; i < sendText.length; i++) {
 		if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
@@ -673,7 +675,7 @@ async function repeatMessage(discord, message) {
 	try {
 		await discord.delete();
 	} catch (error) {
-		error
+		//error
 	}
 	let webhook = await manageWebhook(discord);
 	try {

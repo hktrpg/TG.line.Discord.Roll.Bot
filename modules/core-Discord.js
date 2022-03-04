@@ -10,7 +10,10 @@ const {
 } = require('discord.js');
 
 const manager = new ShardingManager('./modules/discord_bot.js', {
-	token: channelSecret
+	token: channelSecret,
+	totalShards: "auto",
+	spawnTimeout: -1,
+	respawn: true
 });
 
 //TOP.GG 
@@ -46,5 +49,8 @@ manager.on('shardCreate', shard => {
 		console.log(a);
 		console.log(b);
 	});
+	shard.on('error', (error) => {
+		console.error(error)
+	})
 });
 manager.spawn();

@@ -69,6 +69,10 @@ var connect = function () {
 client.once('ready', async () => {
 	if (process.env.BROADCAST) connect();
 	//	if (shardids === 0) getSchedule();
+	const res = await client.shard.fetchClientValues("guilds.cache.size");
+	console.log(res);
+	client.shard
+		.broadcastEval(c => c.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0))
 });
 
 client.on('messageCreate', async message => {
@@ -437,6 +441,7 @@ function SendToReply({ replyText = "", message, quotes = false }) {
 async function SendToReplychannel({ replyText = "", channelid = "", quotes = false }) {
 	if (!channelid) return;
 	const channel = await client.channels.fetch(channelid);
+	if (!channel) return;
 	const sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
 	for (let i = 0; i < sendText.length; i++) {
 		if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
@@ -502,13 +507,10 @@ async function nonDice(message) {
 //Set Activity 可以自定義正在玩什麼
 client.on('ready', async () => {
 	client.user.setActivity('🌼bothelp | hktrpg.com🍎');
-	console.log('client.shard.client.options.shardCount', client.shard.client.options.shardCount);
-	console.log('shardids', shardids)
-	if (shardids !== (client.shard.client.options.shardCount - 1)) return
 	console.log(`Discord: Logged in as ${client.user.tag}!`);
 	var switchSetActivity = 0;
 	const refreshId = setInterval(async () => {
-
+		if (shardids !== (client.shard.client.options.shardCount - 1)) return;
 		if (adminSecret) {
 			let check = await checkWakeUp();
 			if (!check) {
@@ -517,7 +519,6 @@ client.on('ready', async () => {
 		}
 	}, 60000);
 	const refreshId2 = setInterval(async () => {
-		if (shardids !== (client.shard.client.options.shardCount - 1)) clearInterval(refreshId2);
 		switch (switchSetActivity % 2) {
 			case 1:
 				client.user.setActivity('🌼bothelp | hktrpg.com🍎');
@@ -527,7 +528,7 @@ client.on('ready', async () => {
 				break;
 		}
 		switchSetActivity = (switchSetActivity % 2) ? 2 : 3;
-	}, 60000);
+	}, 180000);
 
 
 
@@ -860,7 +861,6 @@ function z_stop(mainMsg, groupid) {
 
 async function getAllshardIds() {
 	if (!client.shard) {
-		console.log('client', client)
 		return;
 	}
 	console.log('02-1')

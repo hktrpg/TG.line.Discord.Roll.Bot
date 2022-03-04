@@ -502,8 +502,13 @@ async function nonDice(message) {
 //Set Activity 可以自定義正在玩什麼
 client.on('ready', async () => {
 	client.user.setActivity('🌼bothelp | hktrpg.com🍎');
+	console.log('client.shard.client.options.shardCount', client.shard.client.options.shardCount);
+	console.log('shardids', shardids)
+	if (shardids !== (client.shard.client.options.shardCount - 1)) return
+	console.log(`Discord: Logged in as ${client.user.tag}!`);
+	var switchSetActivity = 0;
 	const refreshId = setInterval(async () => {
-		if (shardids !== (client.shard.client.options.shardCount - 1)) clearInterval(refreshId);
+
 		if (adminSecret) {
 			let check = await checkWakeUp();
 			if (!check) {
@@ -523,9 +528,8 @@ client.on('ready', async () => {
 		}
 		switchSetActivity = (switchSetActivity % 2) ? 2 : 3;
 	}, 60000);
-	
-	console.log(`Discord: Logged in as ${client.user.tag}!`);
-	var switchSetActivity = 0;
+
+
 
 });
 

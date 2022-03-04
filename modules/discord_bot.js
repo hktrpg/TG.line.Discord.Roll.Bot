@@ -14,8 +14,7 @@ exports.z_stop = require('../roll/z_stop');
 
 const client = new Client(
 	{
-		intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.DIRECT_MESSAGES,
-		Intents.FLAGS.DIRECT_MESSAGE_REACTIONS]
+		intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.DIRECT_MESSAGE_REACTIONS], partials: ['MESSAGE', 'CHANNEL', 'REACTION']
 	});
 
 const msgSplitor = (/\S+/ig);
@@ -48,7 +47,7 @@ var connect = function () {
 			];
 			Promise.all(promises)
 				.then(async results => {
-					let channel = await client.channels.fetch(results[0].message.target.id);
+					let channel = await client.channels.cache.get(results[0].message.target.id);
 					if (channel)
 						channel.send(results[0].message.text)
 				})
@@ -73,7 +72,6 @@ client.once('ready', async () => {
 });
 
 client.on('messageCreate', async message => {
-	console.log('!!!')
 	if (message.author.bot) return;
 
 	let hasSendPermission = true;
@@ -393,7 +391,7 @@ async function privateMsgFinder(channelid) {
 }
 async function SendToId(targetid, replyText, quotes) {
 	console.log('A')
-	let user = await client.users.fetch(targetid);
+	let user = await client.users.cache.get(targetid);
 	if (typeof replyText === "string") {
 		let sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
 		for (let i = 0; i < sendText.length; i++) {
@@ -436,7 +434,7 @@ function SendToReply({ replyText = "", message, quotes = false }) {
 }
 async function SendToReplychannel({ replyText = "", channelid = "", quotes = false }) {
 	if (!channelid) return;
-	const channel = await client.channels.fetch(channelid);
+	const channel = await client.channels.cache.get(channelid);
 	const sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
 	for (let i = 0; i < sendText.length; i++) {
 		if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
@@ -597,7 +595,7 @@ process.on('unhandledRejection', error => {
 });
 
 client.on('guildCreate', async guild => {
-	let channels = await guild.channels.fetch();
+	let channels = await guild.channels.cache.get();
 	let keys = Array.from(channels.values());
 	let channel = keys.find(channel => {
 		return channel.type === 'GUILD_TEXT' && channel.permissionsFor(guild.me).has('SEND_MESSAGES')
@@ -721,7 +719,7 @@ async function repeatMessages(discord, message) {
 }
 async function manageWebhook(discord) {
 	try {
-		const channel = await client.channels.fetch(discord.channelId);
+		const channel = await client.channels.cache.get(discord.channelId);
 		const isThread = channel.isThread();
 		let webhooks = isThread ? await channel.guild.fetchWebhooks() : await channel.fetchWebhooks();
 		let webhook = webhooks.find(v => {
@@ -730,7 +728,7 @@ async function manageWebhook(discord) {
 		//type Channel Follower
 		//'Incoming'
 		if (!webhook) {
-			const hooks = isThread ? await client.channels.fetch(channel.parentId) : channel;
+			const hooks = isThread ? await client.channels.cache.get(channel.parentId) : channel;
 			await hooks.createWebhook("HKTRPG .me Function", { avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" })
 			webhooks = await channel.fetchWebhooks();
 			webhook = webhooks.find(v => {
@@ -749,7 +747,7 @@ async function manageWebhook(discord) {
 async function roleReact(channelid, message) {
 	try {
 		const detail = message.roleReactDetail
-		const channel = await client.channels.fetch(channelid);
+		const channel = await client.channels.cache.get(channelid);
 		const sendMessage = await channel.send(message.roleReactMessage);
 		for (let index = 0; index < detail.length; index++) {
 			sendMessage.react(detail[index].emoji);
@@ -771,8 +769,8 @@ async function roleReact(channelid, message) {
 async function newRoleReact(channel, message) {
 	try {
 		const detail = message.newRoleReactDetail
-		const channels = await client.channels.fetch(channel.channelId);
-		const sendMessage = await channels.messages.fetch(message.newRoleReactMessageId)
+		const channels = await client.channels.cache.get(channel.channelId);
+		const sendMessage = await channels.messages.cache.get(message.newRoleReactMessageId)
 		for (let index = 0; index < detail.length; index++) {
 			sendMessage.react(detail[index].emoji);
 		}
@@ -816,7 +814,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 		return item.emoji === reaction.emoji.name || item.emoji === `<:${reaction.emoji.name}:${reaction.emoji.id}>`;
 	});
 	if (findEmoji) {
-		const member = await reaction.message.guild.members.fetch(user.id);
+		const member = await reaction.message.guild.members.cache.get(user.id);
 		member.roles.add(findEmoji.roleID)
 	} else {
 		reaction.users.remove(user.id);
@@ -830,7 +828,7 @@ client.on('messageReactionRemove', async (reaction, user) => {
 	const detail = list.detail;
 	for (let index = 0; index < detail.length; index++) {
 		if (detail[index].emoji === reaction.emoji.name || detail[index].emoji === `<:${reaction.emoji.name}:${reaction.emoji.id}>`) {
-			const member = await reaction.message.guild.members.fetch(user.id);
+			const member = await reaction.message.guild.members.cache.get(user.id);
 			member.roles.remove(detail[index].roleID)
 		}
 	}

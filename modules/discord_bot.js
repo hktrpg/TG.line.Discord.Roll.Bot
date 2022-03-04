@@ -501,10 +501,7 @@ async function nonDice(message) {
 
 //Set Activity 可以自定義正在玩什麼
 client.on('ready', async () => {
-	console.log(`Discord: Logged in as ${client.user.tag}!`);
-	if (shardids !== 0) return;
-	client.user.setActivity('🌼bothelp | hktrpg.com🍎');
-	var switchSetActivity = 0;
+	if (shardids !== (client.shard.client.options.shardCount - 1)) return;
 	setInterval(async () => {
 		if (adminSecret) {
 			let check = await checkWakeUp();
@@ -512,6 +509,9 @@ client.on('ready', async () => {
 				SendToId(adminSecret, 'HKTRPG可能下線了');
 			}
 		}
+	}, 60000);
+	if (shardids !== 0) return;
+	setInterval(async () => {
 		switch (switchSetActivity % 2) {
 			case 1:
 				client.user.setActivity('🌼bothelp | hktrpg.com🍎');
@@ -522,6 +522,11 @@ client.on('ready', async () => {
 		}
 		switchSetActivity = (switchSetActivity % 2) ? 2 : 3;
 	}, 60000);
+
+	console.log(`Discord: Logged in as ${client.user.tag}!`);
+	client.user.setActivity('🌼bothelp | hktrpg.com🍎');
+	var switchSetActivity = 0;
+
 });
 
 function privateMsg({ trigger, mainMsg, inputStr }) {

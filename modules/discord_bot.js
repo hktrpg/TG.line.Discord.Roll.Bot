@@ -69,10 +69,6 @@ var connect = function () {
 client.once('ready', async () => {
 	if (process.env.BROADCAST) connect();
 	//	if (shardids === 0) getSchedule();
-	const res = await client.shard.fetchClientValues("guilds.cache.size");
-	console.log(res);
-	client.shard
-		.broadcastEval(c => c.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0))
 });
 
 client.on('messageCreate', async message => {
@@ -598,7 +594,8 @@ process.on('unhandledRejection', error => {
 	if (error.message === "Unknown Channel") return;
 	if (error.message === "Missing Access") return;
 	if (error.message === "Missing Permissions") return;
-	console.error('Discord Unhandled promise rejection:', error);
+	
+	console.error('Discord Unhandled promise rejection:', error.message);
 
 	process.send({
 		type: "process:msg",

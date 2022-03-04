@@ -512,7 +512,7 @@ client.on('ready', async () => {
 		}
 	}, 60000);
 	const refreshId2 = setInterval(async () => {
-		if (shardids !== 0) clearInterval(refreshId2);
+		if (shardids !== (client.shard.client.options.shardCount - 1)) clearInterval(refreshId2);
 		switch (switchSetActivity % 2) {
 			case 1:
 				client.user.setActivity('🌼bothelp | hktrpg.com🍎');

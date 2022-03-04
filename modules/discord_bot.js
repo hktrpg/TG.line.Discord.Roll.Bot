@@ -597,7 +597,12 @@ process.on('unhandledRejection', error => {
 });
 
 client.on('guildCreate', async guild => {
-	const channel = guild.channels.cache.find(ch => ch.type === 'GUILD_TEXT' && ch.permissionsFor(guild.me).has('SEND_MESSAGES'))
+	let channels = await guild.channels.cache.get();
+	let keys = Array.from(channels.values());
+	let channel = keys.find(channel => {
+		return channel.type === 'GUILD_TEXT' && channel.permissionsFor(guild.me).has('SEND_MESSAGES')
+	});
+
 	if (channel) {
 		//	let channelSend = await guild.channels.fetch(channel.id);
 		let text = new Discord.MessageEmbed()

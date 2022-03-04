@@ -10,7 +10,10 @@ const {
 } = require('discord.js-light');
 
 const manager = new ShardingManager('./modules/discord_bot.js', {
-	token: channelSecret
+	token: channelSecret,
+	totalShards: "auto",
+	spawnTimeout: -1,
+	respawn: true
 });
 
 //TOP.GG 

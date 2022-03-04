@@ -511,8 +511,8 @@ client.on('ready', async () => {
 			}
 		}
 	}, 60000);
-	if (shardids !== 0) clearInterval(refreshId2);
 	const refreshId2 = setInterval(async () => {
+		if (shardids !== 0) clearInterval(refreshId2);
 		switch (switchSetActivity % 2) {
 			case 1:
 				client.user.setActivity('🌼bothelp | hktrpg.com🍎');
@@ -523,7 +523,7 @@ client.on('ready', async () => {
 		}
 		switchSetActivity = (switchSetActivity % 2) ? 2 : 3;
 	}, 60000);
-
+	
 	console.log(`Discord: Logged in as ${client.user.tag}!`);
 	var switchSetActivity = 0;
 

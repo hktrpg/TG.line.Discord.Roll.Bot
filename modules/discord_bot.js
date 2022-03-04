@@ -390,7 +390,6 @@ async function privateMsgFinder(channelid) {
 	else return [];
 }
 async function SendToId(targetid, replyText, quotes) {
-	console.log('A')
 	let user = await client.users.cache.get(targetid);
 	if (typeof replyText === "string") {
 		let sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
@@ -747,10 +746,7 @@ async function roleReact(channelid, message) {
 		for (let index = 0; index < detail.length; index++) {
 			sendMessage.react(detail[index].emoji);
 		}
-
 		await schema.roleReact.findByIdAndUpdate(message.roleReactMongooseId, { messageID: sendMessage.id }).catch(error => console.error('discord_bot #786 mongoDB error: ', error.name, error.reson))
-		//threadId: discord.channelId,
-
 
 	} catch (error) {
 		await SendToReplychannel({ replyText: '不能成功增加ReAction, 請檢查你有授權HKTRPG 新增ReAction的權限, \n此為本功能必須權限', channelid });

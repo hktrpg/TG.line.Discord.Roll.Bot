@@ -244,9 +244,12 @@ client.on('messageCreate', async message => {
 	}
 	*/
 	if (rplyVal.state) {
+		console.log('01')
 		rplyVal.text += '\n' + await count();
+		console.log('02')
 		rplyVal.text += '\nPing: ' + Number(Date.now() - message.createdTimestamp) + 'ms';
 		rplyVal.text += await getAllshardIds();
+		console.log('03')
 	}
 
 	if (groupid && rplyVal && rplyVal.LevelUp) {
@@ -842,7 +845,11 @@ function z_stop(mainMsg, groupid) {
 
 
 async function getAllshardIds() {
-	if (!client.shard) return;
+	if (!client.shard) {
+		console.log('client', client)
+		return;
+	}
+	console.log('02-1')
 	const promises = [
 		client.shard.broadcastEval(c => c.shard?.ids[0]),
 		client.shard.broadcastEval(c => c.ws.status),

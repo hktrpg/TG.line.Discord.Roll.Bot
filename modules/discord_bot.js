@@ -73,7 +73,6 @@ client.once('ready', async () => {
 
 client.on('messageCreate', async message => {
 	if (message.author.bot) return;
-
 	let hasSendPermission = true;
 	//	await repeatMessage(message)
 	/**
@@ -434,9 +433,13 @@ function SendToReply({ replyText = "", message, quotes = false }) {
 
 	return;
 }
-async function SendToReplychannel({ replyText = "", channelid = "", quotes = false }) {
+async function SendToReplychannel({ replyText = "", channelid = "", quotes = false, groupid = "" }) {
 	if (!channelid) return;
-	const channel = await client.channels.fetch(channelid);
+	var channel = (await client.channels.fetch(channelid))
+	if (!channel && groupid) {
+		let guild = await client.guilds.fetch(groupid)
+		channel = await guild.channels.fetch(channelid)
+	}
 	if (!channel) return;
 	const sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
 	for (let i = 0; i < sendText.length; i++) {
@@ -594,7 +597,7 @@ process.on('unhandledRejection', error => {
 	if (error.message === "Unknown Channel") return;
 	if (error.message === "Missing Access") return;
 	if (error.message === "Missing Permissions") return;
-	
+
 	console.error('Discord Unhandled promise rejection:', error.message);
 
 	process.send({
@@ -638,7 +641,7 @@ client.login(channelSecret);
 		let data = job.attrs.data;
 		let text = await rollText(data.replyText);
 		SendToReplychannel(
-			{ replyText: text, channelid: data.channelid, quotes: data.quotes = true }
+			{ replyText: text, channelid: data.channelid, quotes: data.quotes = true, groupid: data.groupid }
 		)
 		try {
 			await job.remove();

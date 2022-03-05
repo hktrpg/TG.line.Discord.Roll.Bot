@@ -440,7 +440,11 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 		let guild = await client.guilds.fetch(groupid)
 		channel = await guild.channels.fetch(channelid)
 	}
-	if (!channel) return;
+
+	if (!channel) {
+		console.error(`discord bot cant find channel #443 ${replyText}`)
+		return;
+	}
 	const sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
 	for (let i = 0; i < sendText.length; i++) {
 		if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
@@ -658,13 +662,13 @@ client.login(channelSecret);
 		let data = job.attrs.data;
 		let text = await rollText(data.replyText);
 		SendToReplychannel(
-			{ replyText: text, channelid: data.channelid, quotes: data.quotes = true }
+			{ replyText: text, channelid: data.channelid, quotes: data.quotes = true, groupid: data.groupid }
 		)
 		try {
 			if ((new Date(Date.now()) - data.createAt) >= 30 * 24 * 60 * 60 * 1000 * 6) {
 				await job.remove();
 				SendToReplychannel(
-					{ replyText: "已運行六個月, 移除此定時訊息", channelid: data.channelid, quotes: data.quotes = true }
+					{ replyText: "已運行六個月, 移除此定時訊息", channelid: data.channelid, quotes: data.quotes = true, groupid: data.groupid }
 				)
 			}
 		} catch (e) {

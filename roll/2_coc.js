@@ -775,7 +775,7 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 
 
 	} catch (error) {
-		console.log(`dpRecordSwitch ERROR ${error.message}`)
+		console.error(`dpRecordSwitch ERROR ${error.message}`)
 		return '發生錯誤';
 	}
 

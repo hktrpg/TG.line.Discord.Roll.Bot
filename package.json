@@ -12,10 +12,10 @@
     "test": "mocha"
   },
   "dependencies": {
+    "@discordjs/rest": "^0.3.0",
     "@line/bot-sdk": "^7.2.0",
     "@vitalets/google-translate-api": "^5.1.0",
     "@zetetic/duckduckgo-images-api": "github:zeteticl/duckduckgo-images-api",
-    "whatsapp-web.js": "^1.16.1",
     "agenda": "^4.2.1",
     "axios": "^0.25.0",
     "axios-retry": "^3.2.4",
@@ -24,7 +24,8 @@
     "chai": "^4.3.4",
     "chinese-conv": "^1.0.1",
     "crypto-js": "^4.0.0",
-    "discord.js-light": "^4.1.0",
+    "discord-api-types": "^0.27.3",
+    "discord.js": "^13.6.0",
     "dotenv": "^8.2.0",
     "emoji-regex": "^10.0.0",
     "engine.io": "^4.0.0",
@@ -37,6 +38,7 @@
     "mongoose": "^5.13.2",
     "node-telegram-bot-api": "^0.54.0",
     "plurk2": "github:zeteticl/node-plurk2",
+    "puppeteer": "^13.3.1",
     "qrcode-terminal": "^0.12.0",
     "random-js": "^2.1.0",
     "rate-limiter-flexible": "^2.2.3",
@@ -47,6 +49,7 @@
     "topgg-autoposter": "^2.0.0",
     "utf-8-validate": "^5.0.5",
     "uws": "^9.14.0",
+    "whatsapp-web.js": "^1.16.1",
     "wikijs": "6.2.1",
     "ws": "^7.5.3"
   },

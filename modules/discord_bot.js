@@ -4,7 +4,7 @@ const schema = require('../modules/schema.js');
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const adminSecret = process.env.ADMIN_SECRET || '';
-const Discord = require("discord.js-light");
+const Discord = require("discord.js");
 const { Client, Intents, Permissions } = Discord;
 const rollText = require('./getRoll').rollText;
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
@@ -12,54 +12,10 @@ const imageUrl = /^(?:(?:(?<protocol>(?:http|https)):\/\/)?(?:(?<authority>(?:[A
 exports.z_stop = require('../roll/z_stop');
 
 
-
-function channelFilter(channel) {
-	return !channel.lastMessageId || Discord.SnowflakeUtil.deconstruct(channel.lastMessageId).timestamp < Date.now() - 3600000;
-}
-const client = new Client({
-	makeCache: Discord.Options.cacheWithLimits({
-		ApplicationCommandManager: 0, // guild.commands
-		BaseGuildEmojiManager: 0, // guild.emojis
-		GuildBanManager: 0, // guild.bans
-		GuildInviteManager: 0, // guild.invites
-		GuildMemberManager: 0, // guild.members
-		GuildStickerManager: 0, // guild.stickers
-		MessageManager: Infinity, // channel.messages
-		PermissionOverwriteManager: 0, // channel.permissionOverwrites
-		PresenceManager: 0, // guild.presences
-		ReactionManager: 0, // message.reactions
-		ReactionUserManager: 0, // reaction.users
-		StageInstanceManager: 0, // guild.stageInstances
-		ThreadManager: 0, // channel.threads
-		ThreadMemberManager: 0, // threadchannel.members
-		UserManager: Infinity, // client.users
-		VoiceStateManager: 0,// guild.voiceStates
-
-		GuildManager: Infinity, // roles require guilds
-		RoleManager: Infinity, // cache all roles
-		PermissionOverwrites: 0, // cache all PermissionOverwrites. It only costs memory if the channel it belongs to is cached
-		ChannelManager: {
-			maxSize: Infinity, // prevent automatic caching
-			sweepFilter: () => channelFilter, // remove manually cached channels according to the filter
-			sweepInterval: 3600
-		},
-		GuildChannelManager: {
-			maxSize: Infinity, // prevent automatic caching
-			sweepFilter: () => channelFilter, // remove manually cached channels according to the filter
-			sweepInterval: 3600
-		},
-	}),
-	/**
-		  cacheGuilds: true,
-		cacheChannels: true,
-		cacheOverwrites: false,
-		cacheRoles: true,
-		cacheEmojis: false,
-		cachePresences: false
-	 */
-	intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.DIRECT_MESSAGES,
-	Intents.FLAGS.DIRECT_MESSAGE_REACTIONS]
-});
+const client = new Client(
+	{
+		intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.DIRECT_MESSAGE_REACTIONS], partials: ['MESSAGE', 'CHANNEL', 'REACTION']
+	});
 
 const msgSplitor = (/\S+/ig);
 const link = process.env.WEB_LINK;
@@ -145,7 +101,7 @@ client.on('messageCreate', async message => {
 			try {
 				await message.delete();
 			} catch (error) {
-				error;
+				//console.log(`discord bot error #105`, error)
 			}
 			await SendToReplychannel({ replyText: inputStr, channelid: message.channel.id });
 
@@ -154,7 +110,7 @@ client.on('messageCreate', async message => {
 			try {
 				await message.delete();
 			} catch (error) {
-				error
+				//console.log(`discord bot error #114`, error)
 			}
 		}
 		return;
@@ -276,7 +232,7 @@ client.on('messageCreate', async message => {
 			SendToId(userid, newMessage.firstTimeMessage(), true);
 		}
 	} catch (error) {
-		//
+		console.log(`discord bot error #236`, error)
 	}
 
 	/**
@@ -287,9 +243,12 @@ client.on('messageCreate', async message => {
 	}
 	*/
 	if (rplyVal.state) {
+		console.log('01')
 		rplyVal.text += '\n' + await count();
+		console.log('02')
 		rplyVal.text += '\nPing: ' + Number(Date.now() - message.createdTimestamp) + 'ms';
 		rplyVal.text += await getAllshardIds();
+		console.log('03')
 	}
 
 	if (groupid && rplyVal && rplyVal.LevelUp) {
@@ -474,10 +433,19 @@ function SendToReply({ replyText = "", message, quotes = false }) {
 
 	return;
 }
-async function SendToReplychannel({ replyText = "", channelid = "", quotes = false }) {
+async function SendToReplychannel({ replyText = "", channelid = "", quotes = false, groupid = "" }) {
 	if (!channelid) return;
-	let channel = await client.channels.fetch(channelid);
-	let sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
+	var channel = (await client.channels.fetch(channelid))
+	if (!channel && groupid) {
+		let guild = await client.guilds.fetch(groupid)
+		channel = await guild.channels.fetch(channelid)
+	}
+
+	if (!channel) {
+		console.error(`discord bot cant find channel #443 ${replyText}`)
+		return;
+	}
+	const sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
 	for (let i = 0; i < sendText.length; i++) {
 		if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
 			try {
@@ -541,17 +509,19 @@ async function nonDice(message) {
 
 //Set Activity 可以自定義正在玩什麼
 client.on('ready', async () => {
-	console.log(`Discord: Logged in as ${client.user.tag}!`);
-	if (shardids !== 0) return;
 	client.user.setActivity('🌼bothelp | hktrpg.com🍎');
+	console.log(`Discord: Logged in as ${client.user.tag}!`);
 	var switchSetActivity = 0;
-	setInterval(async () => {
+	const refreshId = setInterval(async () => {
+		if (shardids !== (client.shard.client.options.shardCount - 1)) return;
 		if (adminSecret) {
 			let check = await checkWakeUp();
 			if (!check) {
 				SendToId(adminSecret, 'HKTRPG可能下線了');
 			}
 		}
+	}, 60000);
+	const refreshId2 = setInterval(async () => {
 		switch (switchSetActivity % 2) {
 			case 1:
 				client.user.setActivity('🌼bothelp | hktrpg.com🍎');
@@ -561,7 +531,10 @@ client.on('ready', async () => {
 				break;
 		}
 		switchSetActivity = (switchSetActivity % 2) ? 2 : 3;
-	}, 60000);
+	}, 180000);
+
+
+
 });
 
 function privateMsg({ trigger, mainMsg, inputStr }) {
@@ -628,7 +601,8 @@ process.on('unhandledRejection', error => {
 	if (error.message === "Unknown Channel") return;
 	if (error.message === "Missing Access") return;
 	if (error.message === "Missing Permissions") return;
-	console.error('Discord Unhandled promise rejection:', error);
+
+	console.error('Discord Unhandled promise rejection:', error.message);
 
 	process.send({
 		type: "process:msg",
@@ -671,7 +645,7 @@ client.login(channelSecret);
 		let data = job.attrs.data;
 		let text = await rollText(data.replyText);
 		SendToReplychannel(
-			{ replyText: text, channelid: data.channelid, quotes: data.quotes = true }
+			{ replyText: text, channelid: data.channelid, quotes: data.quotes = true, groupid: data.groupid }
 		)
 		try {
 			await job.remove();
@@ -688,13 +662,13 @@ client.login(channelSecret);
 		let data = job.attrs.data;
 		let text = await rollText(data.replyText);
 		SendToReplychannel(
-			{ replyText: text, channelid: data.channelid, quotes: data.quotes = true }
+			{ replyText: text, channelid: data.channelid, quotes: data.quotes = true, groupid: data.groupid }
 		)
 		try {
 			if ((new Date(Date.now()) - data.createAt) >= 30 * 24 * 60 * 60 * 1000 * 6) {
 				await job.remove();
 				SendToReplychannel(
-					{ replyText: "已運行六個月, 移除此定時訊息", channelid: data.channelid, quotes: data.quotes = true }
+					{ replyText: "已運行六個月, 移除此定時訊息", channelid: data.channelid, quotes: data.quotes = true, groupid: data.groupid }
 				)
 			}
 		} catch (e) {
@@ -715,7 +689,7 @@ async function repeatMessage(discord, message) {
 	try {
 		await discord.delete();
 	} catch (error) {
-		error
+		//error
 	}
 	let webhook = await manageWebhook(discord);
 	try {
@@ -794,10 +768,7 @@ async function roleReact(channelid, message) {
 		for (let index = 0; index < detail.length; index++) {
 			sendMessage.react(detail[index].emoji);
 		}
-
 		await schema.roleReact.findByIdAndUpdate(message.roleReactMongooseId, { messageID: sendMessage.id }).catch(error => console.error('discord_bot #786 mongoDB error: ', error.name, error.reson))
-		//threadId: discord.channelId,
-
 
 	} catch (error) {
 		await SendToReplychannel({ replyText: '不能成功增加ReAction, 請檢查你有授權HKTRPG 新增ReAction的權限, \n此為本功能必須權限', channelid });
@@ -893,7 +864,10 @@ function z_stop(mainMsg, groupid) {
 
 
 async function getAllshardIds() {
-	if (!client.shard) return;
+	if (!client.shard) {
+		return;
+	}
+	console.log('02-1')
 	const promises = [
 		client.shard.broadcastEval(c => c.shard?.ids[0]),
 		client.shard.broadcastEval(c => c.ws.status),

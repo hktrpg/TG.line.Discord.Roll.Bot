@@ -7,7 +7,7 @@ const togGGToken = process.env.TOPGG;
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const {
 	ShardingManager
-} = require('discord.js-light');
+} = require('discord.js');
 
 const manager = new ShardingManager('./modules/discord_bot.js', {
 	token: channelSecret,
@@ -49,5 +49,8 @@ manager.on('shardCreate', shard => {
 		console.log(a);
 		console.log(b);
 	});
+	shard.on('error', (error) => {
+		console.error(error)
+	})
 });
 manager.spawn();

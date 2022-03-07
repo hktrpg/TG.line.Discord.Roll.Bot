@@ -6,6 +6,14 @@ const wiki = require('wikijs').default;
 const rollbase = require('./rollbase.js');
 const translate = require('@vitalets/google-translate-api');
 var variables = {};
+const schema = require('../modules/schema.js');
+const VIP = require('../modules/veryImportantPerson');
+const translateChannel = require('../modules/translate');
+const limitArr = [0, 2, 4, 6, 8, 9, 9, 9];
+const opt = {
+	upsert: true,
+	runValidators: true
+}
 var gameName = function () {
 	return 'Wiki查詢/圖片搜索 .wiki .image .tran'
 }
@@ -15,7 +23,7 @@ var gameType = function () {
 }
 var prefixs = function () {
 	return [{
-		first: /^[.]wiki$|^[.]tran$|^[.]tran[.]\S+$|^[.]image$|^[.]imagee$/i,
+		first: /^[.]wiki$|^[.]tran$|^[.]tran[.]\S+$|^[.]image$|^[.]imagee$|^[.]translate$/i,
 		second: null
 	}]
 
@@ -34,6 +42,10 @@ EG: .wiki BATMAN
 預設翻譯成正體中文 
 EG: .tran BATMAN 
 
+VIP功能:同步式頻道傳譯功能
+.translate on
+.translate off
+
 可翻譯成其他語言 ： .tran.(語系) (內容)
 EG: .tran.ja BATMAN  .tran.日 BATMAN
 常用語言代碼: 英=en, 簡=zh-cn, 德=de, 日=ja
@@ -48,7 +60,11 @@ var initialize = function () {
 
 var rollDiceCommand = async function ({
 	inputStr,
-	mainMsg
+	mainMsg,
+	groupid,
+	channelid,
+	botname,
+	userrole
 }) {
 	let rply = {
 		default: 'on',
@@ -63,7 +79,7 @@ var rollDiceCommand = async function ({
 		case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
 			rply.text = await this.getHelpMessage();
 			return rply;
-		case /\S+/.test(mainMsg[1]) && /[.]wiki/.test(mainMsg[0]):
+		case /\S+/.test(mainMsg[1]) && /[.]wiki/i.test(mainMsg[0]):
 			rply.text = await wiki({
 				apiUrl: 'https://zh.wikipedia.org/w/api.php'
 			}).page(mainMsg[1].toLowerCase())
@@ -78,7 +94,7 @@ var rollDiceCommand = async function ({
 					}
 				})
 			return rply;
-		case /\S+/.test(mainMsg[1]) && /^[.]tran$/.test(mainMsg[0]):
+		case /\S+/.test(mainMsg[1]) && /^[.]tran$/i.test(mainMsg[0]):
 			rply.text = await translate(inputStr.replace(mainMsg[0], ""), {
 				to: 'zh-TW'
 			}).then(res => {
@@ -87,6 +103,52 @@ var rollDiceCommand = async function ({
 				return err.message;
 			});
 			return rply;
+		case /^[.]translate$/i.test(mainMsg[0]): {
+			if (botname !== "Discord") {
+				rply.text = '這是Discord 限定功能';
+				return rply;
+			}
+			if (userrole < 3) {
+				rply.text = '本功能只能由admin 啓動開關';
+				return rply;
+			}
+			if (/^on$/i.test(mainMsg[1])) {
+				let check = await schema.translateChannel.find({
+					groupid: groupid,
+					switch: true
+				}).countDocuments().catch(error => console.error('translate #111 mongoDB error: ', error.name, error.reson));
+				let gpLv = await VIP.viplevelCheckGroup(groupid);
+				let limit = limitArr[gpLv];
+				if (check.length >= limit) {
+					rply.text = '此群組翻譯上限為' + limit + '條頻道' + '\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+					return rply
+				}
+				await schema.translateChannel.findOneAndUpdate({
+					groupid: groupid,
+					channelid: channelid
+				}, {
+					switch: true
+				}, opt);
+				translateChannel.translateSwitchOn(channelid)
+				rply.text = '此頻道已開啓翻譯功能。'
+				return rply
+			}
+			if (/^off$/i.test(mainMsg[1])) {
+				await schema.translateChannel.findOneAndUpdate({
+					groupid: groupid,
+					channelid: channelid
+				}, {
+					switch: false
+				}, opt);
+				translateChannel.translateSwitchOff(channelid)
+				rply.text = '此頻道已關閉翻譯功能。'
+				return rply
+			}
+
+			rply.text = '沒有正確指令，需要輸入.translate on 或.translate off 去啓動/關閉翻譯功能'
+
+			return rply
+		}
 		case /\S+/.test(mainMsg[1]) && /^[.]tran[.]\S+$/.test(mainMsg[0]):
 			lang = /.tran.(\S+)/;
 			test = mainMsg[0].match(lang)
@@ -100,7 +162,7 @@ var rollDiceCommand = async function ({
 				return err.message + "\n常用語言代碼: 英=en, 簡=zh-cn, 德=de, 日=ja\n例子: .tran.英\n.tran.日\n.tran.de";
 			});
 			return rply;
-		case /\S+/.test(mainMsg[1]) && /^[.]image$/.test(mainMsg[0]):
+		case /\S+/.test(mainMsg[1]) && /^[.]image$/i.test(mainMsg[0]):
 			try {
 				rply.text = await searchImage(inputStr, mainMsg, true)
 				rply.type = 'image'
@@ -110,7 +172,7 @@ var rollDiceCommand = async function ({
 			}
 			return rply;
 
-		case /\S+/.test(mainMsg[1]) && /^[.]imagee$/.test(mainMsg[0]):
+		case /\S+/.test(mainMsg[1]) && /^[.]imagee$/i.test(mainMsg[0]):
 			//成人版
 			try {
 				rply.text = await searchImage(inputStr, mainMsg, false)

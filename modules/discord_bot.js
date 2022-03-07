@@ -5,6 +5,7 @@ const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const adminSecret = process.env.ADMIN_SECRET || '';
 const Discord = require("discord.js");
+const translateChannel = require('../modules/translate')
 const { Client, Intents, Permissions } = Discord;
 const rollText = require('./getRoll').rollText;
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
@@ -115,6 +116,11 @@ client.on('messageCreate', async message => {
 		}
 		return;
 	}
+	let rplyVal = {};
+	if (message.channelId) {
+		rplyVal.translate = translateChannel.translateChecker(message.channelId)
+
+	}
 
 	let checkPrivateMsg = privateMsg({ trigger, mainMsg, inputStr });
 	inputStr = checkPrivateMsg.inputStr;
@@ -122,6 +128,13 @@ client.on('messageCreate', async message => {
 
 	let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
 	if (!target) {
+		if (rplyVal.translate) {
+			rplyVal.translate = await translateChannel.translateText(inputStr);
+			message.reply({
+				content: rplyVal.translate,
+				quotes: true
+			});
+		}
 		await nonDice(message)
 		return null
 	}
@@ -175,7 +188,7 @@ client.on('messageCreate', async message => {
 	//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin
 	membercount = (message.guild) ? message.guild.memberCount : 0;
 
-	let rplyVal = {};
+
 
 	//設定私訊的模式 0-普通 1-自己 2-自己+GM 3-GM
 	//訊息來到後, 會自動跳到analytics.js進行骰組分析

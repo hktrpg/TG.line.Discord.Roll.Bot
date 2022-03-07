@@ -356,7 +356,7 @@ var rollDiceCommand = async function ({
                 }
                 return rply;
             }
-            getData = await schema.randomAnsPersonal.find({}).catch(error => console.error('randomans #359 mongoDB error: ', error.name, error.reson));
+            getData = await schema.randomAnsPersonal.find({ "userid": userid }).catch(error => console.error('randomans #359 mongoDB error: ', error.name, error.reson));
             if (!getData || getData.length == 0) {
                 rply.text = '沒有已設定的骰子.\n本功能已改版，\n.rap 轉成個人專用的骰組，\n原全服群組(.rap)變成.ras\n .ra => random answer (group) \n.rap => random answer personal \n .ras => random answer server'
                 return rply

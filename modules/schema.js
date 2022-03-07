@@ -433,6 +433,12 @@ const roleInvites = mongoose.model('roleInvites', new mongoose.Schema({
     invitesLink: String,
     groupid: String,
     serial: Number
+}));
+
+const translateChannel = mongoose.model('translateChannel', new mongoose.Schema({
+    groupid: String,
+    channelid: String,
+    switch: Boolean
 
 }));
 
@@ -472,7 +478,8 @@ module.exports = {
     roleInvites,
     roleReact,
     randomAnsServer,
-    randomAnsPersonal
+    randomAnsPersonal,
+    translateChannel
 }
 //const Cat = mongoose.model('Cat', { name: String });
 //const kitty = new Cat({ name: 'Zildjian' });

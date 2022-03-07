@@ -206,7 +206,6 @@ HKTRPG來源自 機器鴨霸獸 https://docs.google.com/document/d/1dYnJqF2_QTp9
 			return rply;
 		case /^privacy/i.test(mainMsg[1]): {
 			rply.text = privacy;
-
 			return rply;
 		}
 		case /^admin/i.test(mainMsg[1]):

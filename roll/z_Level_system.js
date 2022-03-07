@@ -371,7 +371,7 @@ var rollDiceCommand = async function ({
             if (!doc) {
                 doc = new schema.trpgLevelSystem({
                     groupid: groupid
-                }).catch(error => console.error('level_system #374 mongoDB error: ', error.name, error.reson));
+                })
             }
             switch (mainMsg[2]) {
                 case '00': {

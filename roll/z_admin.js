@@ -135,7 +135,7 @@ var rollDiceCommand = async function ({
                         "titleName": titleName
                     }
                 });
-                await temp.save();
+                await temp.save().catch(error => console.error('admin #138 mongoDB error: ', error.name, error.reson));
                 rply.text = "註冊成功。如果想使用角色卡，請到\nhttps://www.hktrpg.com:20721/card/";
                 if (!await checkGpAllow(channelid || groupid)) {
                     rply.text += '\n群組未被Admin 允許擲骰，請Admin在這群組輸入\n.admin disallowrolling';

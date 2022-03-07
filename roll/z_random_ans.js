@@ -313,7 +313,7 @@ var rollDiceCommand = async function ({
                 if (getData && getData.answer) {
                     getData.answer.push.apply(getData.answer, rest);
                     let result = await getData.save({ new: true });
-                    rply.text = `更新成功  \n標題: ${result.title}\n序號: ${result.serial}\n內容: ${result.answer}\n輸入 .rap ${result.title}\n或 .rap ${result.serial} \n即可使用`
+                    rply.text = `更新成功  \n序號: ${result.serial}\n標題: ${result.title}\n內容: ${result.answer}\n\n輸入 .rap ${result.title}\n或 .rap ${result.serial} \n即可使用`
                     return rply;
                 }
 
@@ -327,12 +327,13 @@ var rollDiceCommand = async function ({
                     answer: rest,
                     userid: userid,
                     serial: findTheNextSerial(list)
-                }).catch(error => console.error('randomans #331 mongoDB error: ', error.name, error.reson));
+                })
                 try {
                     let checkResult = await newAnswer.save();
-                    rply.text = `新增成功  \n標題: ${checkResult.title}\n序號: ${checkResult.serial}\n內容: ${checkResult.answer}\n輸入 .rap ${checkResult.title}\n或 .rap ${checkResult.serial} \n即可使用`
+                    rply.text = `新增成功  \n序號: ${checkResult.serial}\n標題: ${checkResult.title}\n內容: ${checkResult.answer}\n\n輸入 .rap ${checkResult.title}\n或 .rap ${checkResult.serial} \n即可使用`
                 } catch (error) {
                     rply.text = '新增失敗, 請稍後再試'
+                    console.error('randomans #331 mongoDB error: ', error.name, error.reson)
                 }
                 return rply;
             }
@@ -366,7 +367,7 @@ var rollDiceCommand = async function ({
             }
             //顯示自定義關鍵字
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
-            rply.text += '\n\n在.rap show 後面輸入骰子名稱, 可以顯示詳細內容\n輸入 .rap (列表序號或骰子名稱) 可以進行隨機擲骰';
+            rply.text += '\n\n在.rap show 後面輸入骰子名稱, 可以顯示詳細內容\n\n輸入 .rap (列表序號或骰子名稱) 可以進行隨機擲骰';
             return rply
 
         case /(^[.]rap$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]):
@@ -459,16 +460,17 @@ var rollDiceCommand = async function ({
                     title: mainMsg[2],
                     answer: rest,
                     serial: findTheNextSerial(list)
-                }).catch(error => console.error('randomans #463 mongoDB error: ', error.name, error.reson));
+                })
                 if (list && list.length >= 100) {
                     rply.text = 'HKTRPG公用骰子上限' + limit + '個';
                     return rply;
                 }
                 try {
                     let checkResult = await newAnswer.save();
-                    rply.text = `新增成功  \n標題: ${checkResult.title}\n序號: ${checkResult.serial}\n內容: ${checkResult.answer}\n輸入 .rap ${checkResult.title}\n或 .rap ${checkResult.serial} \n即可使用`
+                    rply.text = `新增成功  \n序號: ${checkResult.serial}\n標題: ${checkResult.title}\n內容: ${checkResult.answer}\n\n輸入 .ras ${checkResult.title}\n或 .ras ${checkResult.serial} \n即可使用`
                 } catch (error) {
                     rply.text = '新增失敗'
+                    console.error('randomans #463 mongoDB error: ', error.name, error.reson)
                 }
                 return rply;
             }

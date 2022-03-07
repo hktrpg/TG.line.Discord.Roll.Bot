@@ -52,7 +52,7 @@ async function newUserChecker(userid, botname) {
 	if (!user) {
 		userList.push({ userID: hash, botname: botname })
 		user = new schema.firstTimeMessage({ userID: hash, botname: botname })
-		user.save();
+		user.save().catch(error => console.error('massage #55 mongoDB error: ', error.name, error.reson));
 		return true;
 	} else
 		return false;

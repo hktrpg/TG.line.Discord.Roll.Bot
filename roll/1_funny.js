@@ -816,7 +816,7 @@ function SortIt(input, mainMsg) {
 async function axiosDaily(url) {
 	let reply = '';
 	try {
-		const response = await axios.get(encodeURI(url));
+		const response = await axios.get(encodeURI(url), { timeout: 3000 });
 		const json = analyzeResponse(response);
 		reply += `${json.title ? json.title + '\n' : ''}`
 		reply += `${json.text && json.text !== '获取成功' ? json.text + '\n' : ''}`
@@ -829,7 +829,7 @@ async function axiosDaily(url) {
 		return reply || '沒有結果，請檢查內容'
 	} catch (error) {
 		if (error.code == 'ETIMEDOUT' || error.code == 'ECONNABORTED' || error.code == 'ECONNRESET') {
-			return '連線狀態不好，請稍後再試'
+			return '伺服器連線出現問題，請稍後再試'
 		}
 		console.error('axiosDaily error: ', error && error.code);
 		return error.type;

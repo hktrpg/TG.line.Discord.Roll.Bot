@@ -406,7 +406,7 @@ function SendToId(targetid, Reply) {
 	//console.log('SendToId: ', temp)
 	client.pushMessage(targetid, temp).catch((err) => {
 		if (err.statusCode == 429) return
-		console.error('#409 line err', err.statusCode);
+		console.error('#409 line err', err.statusCode, temp);
 	});
 }
 async function privateMsgFinder(channelid) {

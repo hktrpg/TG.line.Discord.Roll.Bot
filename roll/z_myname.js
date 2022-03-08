@@ -162,7 +162,7 @@ var rollDiceCommand = async function ({
             let limit = limitAtArr[lv];
             let myNamesLength = await schema.myName.countDocuments({ userID: userid })
             if (myNamesLength >= limit) {
-                rply.text = '.myname 個人上限為' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                rply.text = '.myname 個人上限為' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
                 rply.quotes = true;
                 return rply;
             }

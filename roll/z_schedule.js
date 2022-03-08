@@ -170,7 +170,7 @@ var rollDiceCommand = async function ({
                 check
             ).catch(error => console.error('schedule  #171 mongoDB error: ', error.name, error.reson));
             if (checkGroupid >= limit) {
-                rply.text = '.at 整個群組上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                rply.text = '.at 整個群組上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
                 return rply;
             }
 
@@ -277,7 +277,7 @@ var rollDiceCommand = async function ({
                 check
             ).catch(error => console.error('schedule #278 mongoDB error: ', error.name, error.reson));
             if (checkGroupid >= limit) {
-                rply.text = '.cron 整個群組上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                rply.text = '.cron 整個群組上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
                 return rply;
             }
 

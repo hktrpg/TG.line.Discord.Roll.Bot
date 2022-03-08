@@ -154,7 +154,7 @@ var rollDiceCommand = async function ({
                 return rply;
             }
             if (getData && getData.randomAnsfunction.length >= limit) {
-                rply.text = '群組骰子上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                rply.text = '群組骰子上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
                 return rply;
             }
             temp = {
@@ -319,7 +319,7 @@ var rollDiceCommand = async function ({
 
                 let list = await schema.randomAnsPersonal.find({ userid: userid }, 'serial').catch(error => console.error('randomans #321 mongoDB error: ', error.name, error.reson));
                 if (list && list.length >= limit) {
-                    rply.text = '個人骰子上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                    rply.text = '個人骰子上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
                     return rply;
                 }
                 let newAnswer = new schema.randomAnsPersonal({

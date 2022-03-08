@@ -120,7 +120,7 @@ var rollDiceCommand = async function ({
 				let gpLv = await VIP.viplevelCheckGroup(groupid);
 				let limit = limitArr[gpLv];
 				if (check.length >= limit) {
-					rply.text = '此群組翻譯上限為' + limit + '條頻道' + '\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+					rply.text = '此群組翻譯上限為' + limit + '條頻道' + '\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
 					return rply
 				}
 				await schema.translateChannel.findOneAndUpdate({

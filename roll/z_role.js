@@ -189,7 +189,7 @@ var rollDiceCommand = async function ({
             let limit = limitAtArr[lv];
             let myNamesLength = await schema.roleReact.countDocuments({ groupid: groupid }).catch(error => console.error('role #141 mongoDB error: ', error.name, error.reson));
             if (myNamesLength >= limit) {
-                rply.text = '.roleReact 群組上限為' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                rply.text = '.roleReact 群組上限為' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
                 rply.quotes = true;
                 return rply;
             }
@@ -274,7 +274,7 @@ var rollDiceCommand = async function ({
             let limit = limitAtArr[lv];
             let myNamesLength = await schema.roleReact.countDocuments({ groupid: groupid }).catch(error => console.error('role #141 mongoDB error: ', error.name, error.reson));
             if (myNamesLength >= limit) {
-                rply.text = '.roleReact 群組上限為' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                rply.text = '.roleReact 群組上限為' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
                 rply.quotes = true;
                 return rply;
             }
@@ -432,7 +432,7 @@ case /^\.roleInvites$/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]): {
     const limit = limitAtArr[lv];
     const myNamesLength = await schema.roleInvites.countDocuments({ groupid: groupid })
     if (myNamesLength >= limit) {
-        rply.text = '.roleInvites 群組上限為' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+        rply.text = '.roleInvites 群組上限為' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
         rply.quotes = true;
         return rply;
     }
@@ -447,7 +447,7 @@ case /^\.roleInvites$/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]): {
         return rply;
     }
     if (myNamesLength + checkName.length >= limit) {
-        rply.text = '.roleInvites 群組上限為' + limit + '個\n一條邀請連結使用一個限額\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+        rply.text = '.roleInvites 群組上限為' + limit + '個\n一條邀請連結使用一個限額\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
         rply.quotes = true;
         return rply;
     }

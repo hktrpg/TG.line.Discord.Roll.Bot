@@ -256,8 +256,7 @@ var rollDiceCommand = async function ({
                 冷卻剩餘 ${millisToMinutesAndSeconds(userRemainingTime)} 時間，
                 現在正處於Demo模式，可以輸出500條信息。
 
-                支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器
-                源代碼  http://bit.ly/HKTRPG_GITHUB`;
+                支援及解鎖上限 https://www.patreon.com/HKTRPG`;
                 demoMode = true;
             }
             /**
@@ -394,9 +393,7 @@ var rollDiceCommand = async function ({
                 冷卻剩餘 ${millisToMinutesAndSeconds(userRemainingTime)} 時間，
                 現在正處於Demo模式，可以輸出500條信息，
                 
-                支援及解鎖上限 https://www.patreon.com/HKTRPG
-                或自組服務器
-                源代碼  http://bit.ly/HKTRPG_GITHUB`;
+                支援及解鎖上限 https://www.patreon.com/HKTRPG`;
                 return rply;
             }
 

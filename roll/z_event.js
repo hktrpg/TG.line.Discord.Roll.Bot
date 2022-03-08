@@ -249,7 +249,7 @@ exp:SAN
                 return rply;
             }
             if (!doc && check && check.length >= limit) {
-                rply.text = '你的事件上限為' + limit + '件' + '\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                rply.text = '你的事件上限為' + limit + '件' + '\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
                 return rply
             }
             tempMain = await schema.eventList.findOne(filter);

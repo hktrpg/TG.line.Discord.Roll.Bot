@@ -698,6 +698,20 @@ function sendNewstoAll(rply) {
 	}
 }
 
+client.on('interactionCreate', async interaction => {
+	if (!interaction.isCommand()) return;
+	console.log(interaction)
+
+	const { commandName } = interaction;
+
+	if (commandName === 'ping2') {
+		await interaction.reply('Pong!');
+	} else if (commandName === 'server2') {
+		await interaction.reply('Server info.');
+	} else if (commandName === 'user2') {
+		await interaction.reply('User info.');
+	}
+});
 async function repeatMessage(discord, message) {
 	try {
 		await discord.delete();

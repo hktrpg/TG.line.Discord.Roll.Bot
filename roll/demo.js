@@ -1,14 +1,14 @@
 "use strict";
 var variables = {};
 
-var gameName = function () {
+const gameName = function () {
     return '【Demo】'
 }
 
-var gameType = function () {
+const gameType = function () {
     return 'Demo:Demo:hktrpg'
 }
-var prefixs = function () {
+const prefixs = function () {
     //[mainMSG[0]的prefixs,mainMSG[1]的prefixs,   <---這裡是一對  
     //mainMSG[0]的prefixs,mainMSG[1]的prefixs  ]  <---這裡是一對
     //如前面是 /^1$/ig, 後面是/^1D100$/ig, 即 prefixs 變成 1 1D100 
@@ -18,16 +18,16 @@ var prefixs = function () {
         second: /^啊$/i
     }]
 }
-var getHelpMessage = function () {
+const getHelpMessage = function () {
     return `【示範】
 只是一個Demo的第一行
 只是一個Demo末行`
 }
-var initialize = function () {
+const initialize = function () {
     return variables;
 }
 
-var rollDiceCommand = async function ({
+const rollDiceCommand = async function ({
     inputStr,
     mainMsg,
     groupid,

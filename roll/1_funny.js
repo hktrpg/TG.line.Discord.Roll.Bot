@@ -60,6 +60,7 @@ var rollDiceCommand = async function ({
 		if (trigger.match(/^大十字|^cross/) != null) return exports.funny.MultiDrawTarot(mainMsg[1], mainMsg[2], 2);
 	}
 	*/
+	
 
 	//FLAG指令開始於此
 	//		if (trigger.match(/立flag|死亡flag/) != null) return exports.funny.BStyleFlagSCRIPTS();

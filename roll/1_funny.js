@@ -3,7 +3,7 @@ var rollbase = require('./rollbase.js');
 var variables = {};
 
 var gameName = function () {
-	return '【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 每日塔羅 運勢 立flag .me 抽卡'
+	return '【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 每日塔羅 運勢 立flag .me 抽卡 城牆血量'
 }
 
 var gameType = function () {
@@ -11,7 +11,7 @@ var gameType = function () {
 }
 var prefixs = function () {
 	return [{
-		first: /^[.]me$|排序|隨機|choice|^每日塔羅|^時間塔羅|^抽卡|^隨機撲克|^大十字塔羅|^任務廣播|立flag|運勢|鴨霸獸/i,
+		first: /^[.]me$|排序|隨機|choice|城牆血量|^每日塔羅|^時間塔羅|^抽卡|^隨機撲克|^大十字塔羅|^任務廣播|立flag|運勢|鴨霸獸/i,
 		second: null
 	}]
 }

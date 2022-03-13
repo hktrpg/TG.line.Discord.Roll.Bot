@@ -16,10 +16,11 @@ const rest = new REST({ version: '9' }).setToken(channelSecret);
 (async () => {
     try {
         console.log('Started refreshing application (/) commands.');
-        await rest.put(Routes.applicationCommands("544561773488111636"), { body: commands })
+        // await rest.put(Routes.applicationCommands("544561773488111636"), { body: commands })
+        await rest.put(Routes.applicationGuildCommands("544462904037081138", "628181436129607680"), { body: commands })
         console.log('Successfully reloaded application (/) commands.');
     } catch (error) {
-        console.error(error);
+        console.error(error.name);
     }
 })();
 

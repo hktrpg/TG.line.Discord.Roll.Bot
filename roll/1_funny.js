@@ -131,6 +131,82 @@ var rollDiceCommand = async function ({
 	}
 }
 
+
+if (Object.keys(findState).length > 0 || Object.keys(findNotes).length > 0) {
+        for (let i = 0; i < findState.length; i++) {
+            //如果i 是object , i+1 是STRING 和數字, 就進行加減
+            //否則就正常輸出
+            if (typeof (findState[i]) == 'object' && typeof (findState[i + 1]) == 'string') {
+                doc.state.forEach(async (element, index) => {
+                    if (element.name === findState[i].name) {
+                        //如果是一個數字, 取代本來的數值
+                        //不然就嘗試計算它
+                        //還是失敗就強制變成一個數字,進行運算
+                        if (findState[i + 1].match(/^([0-9]*[.])?[0-9]+$/i)) {
+                            doc.state[index].itemA = findState[i + 1];
+                        } else {
+                            try {
+                                let num = eval(new String(doc.state[index].itemA) + findState[i + 1].replace('--', '-'));
+                                if (!isNaN(num)) {
+                                    doc.state[index].itemA = num;
+                                }
+                            } catch (error) {
+                                console.log('error of Char:', findState[i + 1])
+                            }
+                        }
+
+                    }
+                });
+
+
+            }
+            if (typeof (findState[i]) == 'object') {
+                tempRply.text += findState[i].name + ': ' + findState[i].itemA;
+                if (findState[i].itemB) {
+                    tempRply.text += "/" + findState[i].itemB;
+                }
+                tempRply.text += '　\n'
+            }
+
+        }
+        try {
+            if (doc && doc.db)
+                await doc.save();
+        } catch (error) {
+            // console.log('doc ', doc)
+            console.log('doc SAVE GET ERROR:', error)
+        }
+
+        if (findNotes.length > 0) {
+            for (let i = 0; i < findNotes.length; i++) {
+                //如果i 是object , i+1 是STRING 和數字, 就進行加減
+                //否則就正常輸出
+                tempRply.text += findNotes[i].name + ': ' + findNotes[i].itemA + '　\n';
+            }
+        }
+
+        if (findState.length > 0 || findNotes.length > 0) {
+            tempRply.text = doc.name + '　\n' + tempRply.text;
+        }
+    }
+    return tempRply;
+}
+
+
+
+
+
+async function findObject(doc, mainMsg) {
+    let re = mainMsg.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
+    let resutlt = doc.find(element => {
+        return element.name.match(new RegExp('^' + re + '$', 'i'))
+    });
+    return resutlt;
+}
+
+
+
+
 /**
  * .ME
  */

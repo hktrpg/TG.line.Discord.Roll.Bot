@@ -30,7 +30,7 @@ async function renew() {
     viplevel = await schema.veryImportantPerson.find({}).catch(error => console.error('vip #30 mongoDB error: ', error.name, error.reson));
 }
 
-
+//每10分鐘更新;
 setInterval(renew, 10 * 60 * 1000);
 
 module.exports = {

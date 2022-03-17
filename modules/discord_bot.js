@@ -569,7 +569,9 @@ function privateMsg({ trigger, mainMsg, inputStr }) {
 
 
 async function count() {
+	console.log('1-1')
 	if (!client.shard) return;
+	console.log('1-2')
 	const promises = [
 		client.shard.fetchClientValues('guilds.cache.size'),
 		client.shard
@@ -578,6 +580,7 @@ async function count() {
 
 	return Promise.all(promises)
 		.then(results => {
+			console.log('results', results[1])
 			const totalGuilds = results[0].reduce((acc, guildCount) => acc + guildCount, 0);
 			const totalMembers = results[1].reduce((acc, memberCount) => acc + memberCount, 0);
 			return (`正在運行HKTRPG的Discord 群組數量: ${totalGuilds}\nDiscord 會員數量: ${totalMembers}`);

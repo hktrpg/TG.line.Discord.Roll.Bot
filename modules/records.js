@@ -3,7 +3,7 @@
 const {
     EventEmitter
 } = require("events");
-require('events').EventEmitter.defaultMaxListeners = 50;
+require('events').EventEmitter.defaultMaxListeners = 0;
 const schema = require('./schema.js');
 let instance;
 let MAX = 100;

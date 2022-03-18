@@ -513,14 +513,14 @@ client.on('ready', async () => {
 	console.log(`Discord: Logged in as ${client.user.tag}!`);
 	var switchSetActivity = 0;
 	const refreshId = setInterval(async () => {
-		if (shardids !== (client.shard.client.options.shardCount - 1)) return;
+		if (shardids !== 0) return;
 		if (adminSecret) {
 			let check = await checkWakeUp();
 			if (!check) {
 				SendToId(adminSecret, 'HKTRPG可能下線了');
 			}
 		}
-	}, 60000);
+	}, 180000);
 	const refreshId2 = setInterval(async () => {
 		switch (switchSetActivity % 2) {
 			case 1:

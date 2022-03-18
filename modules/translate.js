@@ -1,3 +1,4 @@
+return;
 const schema = require('./schema.js');
 const channelList = [];
 const translate = require('@vitalets/google-translate-api');

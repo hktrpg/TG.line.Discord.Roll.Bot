@@ -5,7 +5,6 @@ const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const adminSecret = process.env.ADMIN_SECRET || '';
 const Discord = require("discord.js");
-const translateChannel = require('../modules/translate')
 const { Client, Intents, Permissions } = Discord;
 const rollText = require('./getRoll').rollText;
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
@@ -117,24 +116,12 @@ client.on('messageCreate', async message => {
 		return;
 	}
 	let rplyVal = {};
-	if (message.channelId) {
-		rplyVal.translate = translateChannel.translateChecker(message.channelId)
-
-	}
-
 	let checkPrivateMsg = privateMsg({ trigger, mainMsg, inputStr });
 	inputStr = checkPrivateMsg.inputStr;
 	let privatemsg = checkPrivateMsg.privatemsg;
 
 	let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
 	if (!target) {
-		if (rplyVal.translate) {
-			rplyVal.translate = await translateChannel.translateText(inputStr);
-			message.reply({
-				content: rplyVal.translate,
-				quotes: true
-			});
-		}
 		await nonDice(message)
 		return null
 	}

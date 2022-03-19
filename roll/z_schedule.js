@@ -87,7 +87,7 @@ var rollDiceCommand = async function ({
         text: ''
     };
     if (!differentPeformAt(botname)) {
-        rply.text = '此功能只能在Discord, Line, Telegram中使用'
+        rply.text = '此功能只能在Discord, Telegram中使用'
         return rply
     }
     switch (true) {
@@ -300,7 +300,7 @@ var rollDiceCommand = async function ({
             } catch (error) {
                 console.error("schedule #301 Error saving job to collection");
             }
-     
+
             rply.text = `已新增排定內容\n將於${checkTime.days ? `每隔${checkTime.days}天` : ''}  ${checkTime.weeks.length ? `每個星期的${checkTime.weeks}` : ''}${!checkTime.weeks && !checkTime.days ? `每天` : ''} ${checkTime.hour}:${checkTime.min} (24小時制)運行`
             return rply;
         }
@@ -317,8 +317,8 @@ function differentPeformAt(botname) {
         case "Telegram":
             return "scheduleAtMessageTelegram"
 
-        case "Line":
-            return "scheduleAtMessageLine"
+        // case "Line":
+        //      return "scheduleAtMessageLine"
 
         default:
             break;

@@ -356,6 +356,7 @@ async function sendNewstoAll(rply) {
 	}
 }
 if (agenda && agenda.agenda) {
+	return;
 	agenda.agenda.define("scheduleAtMessageLine", async (job) => {
 		//指定時間一次	
 		let data = job.attrs.data;

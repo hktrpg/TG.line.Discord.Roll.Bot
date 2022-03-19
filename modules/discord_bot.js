@@ -561,7 +561,7 @@ async function count() {
 	const promises = [
 		client.shard.fetchClientValues('guilds.cache.size'),
 		client.shard
-			.broadcastEval(c => c.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0))
+			.broadcastEval(c => c.guilds.cache.filter((guild) => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0))
 	];
 
 	return Promise.all(promises)
@@ -581,7 +581,7 @@ async function count2() {
 	const promises = [
 		client.shard.fetchClientValues('guilds.cache.size'),
 		client.shard
-			.broadcastEval(c => c.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0))
+			.broadcastEval(c => c.guilds.cache.filter((guild) => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0))
 	];
 
 	return Promise.all(promises)

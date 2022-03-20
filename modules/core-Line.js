@@ -3,6 +3,7 @@ if (!process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	return;
 }
 const mainLine = (process.env.DISCORD_CHANNEL_SECRET) ? false : true;
+const lineAgenda = (process.env.LINE_AGENDA) ? true : false;
 exports.analytics = require('./analytics');
 const EXPUP = require('./level').EXPUP || function () { };
 const line = require('@line/bot-sdk');
@@ -356,8 +357,7 @@ async function sendNewstoAll(rply) {
 		SendToId(rply.target[index].userID, rply.sendNews);
 	}
 }
-if (agenda && agenda.agenda) {
-	return;
+if (agenda && agenda.agenda && lineAgenda) {
 	agenda.agenda.define("scheduleAtMessageLine", async (job) => {
 		//指定時間一次	
 		let data = job.attrs.data;

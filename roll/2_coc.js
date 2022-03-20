@@ -1277,7 +1277,8 @@ function sc(mainMsg) {
 				} catch (error) {
 					lossSan = result;
 				}
-				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 大失敗!\n失去最大值 ${lossSan}點San`
+				let nowSan = ((san - lossSan) < 0) ? 0 : san - lossSan;
+				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 大失敗!\n失去最大值 ${lossSan}點San\n現在San值是${nowSan}點`
 			}
 			return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 大失敗!`
 		}
@@ -1288,7 +1289,7 @@ function sc(mainMsg) {
 			}
 			if (rollSuccess) {
 				try {
-					lossSan = rollbase.BuildDiceCal(rollSuccess);
+					lossSan = rollbase.BuildDiceCal(rollSuccess).match(/\d+$/);;
 				} catch (error) {
 					lossSan = rollSuccess;
 				}
@@ -1297,7 +1298,8 @@ function sc(mainMsg) {
 				lossSan = rollSuccess;
 			}
 			if (lossSan) {
-				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 成功!\n失去${lossSan}點San`
+				let nowSan = ((san - lossSan) < 0) ? 0 : san - lossSan;
+				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 成功!\n失去${lossSan}點San\n現在San值是${nowSan}點`
 			} else
 				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 成功!\n不需要減少San`
 
@@ -1308,7 +1310,7 @@ function sc(mainMsg) {
 			if (rollFail) {
 
 				try {
-					lossSan = rollbase.BuildDiceCal(rollFail);
+					lossSan = rollbase.BuildDiceCal(rollFail)
 				} catch (error) {
 					lossSan = rollFail;
 				}
@@ -1317,7 +1319,9 @@ function sc(mainMsg) {
 				lossSan = rollFail;
 			}
 			if (lossSan) {
-				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 失敗!\n失去${lossSan}點San`
+				lossSan = lossSan.match(/\d+$/);
+				let nowSan = ((san - lossSan) < 0) ? 0 : san - lossSan;
+				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 失敗!\n失去${lossSan}點San\n現在San值是${nowSan}點`
 			} else
 				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 失敗!\n但不需要減少San`
 

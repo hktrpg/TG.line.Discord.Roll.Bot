@@ -124,7 +124,9 @@ var rollDiceCommand = async function ({
             lv = await VIP.viplevelCheckGroup(groupid);
             limit = limitArr[lv];
             if (!mainMsg[2])
-                rply.text += ' 沒有骰子名稱.'
+                rply.text += ' 沒有輸入骰子名稱.'
+            if (!mainMsg[3])
+                rply.text += ' 沒有輸入骰子內容.'
             if (!groupid)
                 rply.text += ' 此功能必須在群組中使用.'
             if (groupid && userrole < 1)
@@ -267,6 +269,7 @@ var rollDiceCommand = async function ({
                     let items = [];
                     let tempItems = [...temp]
                     tempItems.splice(0, 1);
+                    if (items.length === 0) continue;
                     while (items.length < times) {
                         items = tempItems
                             .map((a) => ({
@@ -295,7 +298,9 @@ var rollDiceCommand = async function ({
                 lv = await VIP.viplevelCheckUser(userid);
                 limit = limitArrPersonal[lv];
                 if (!mainMsg[2])
-                    rply.text += ' 沒有骰子名稱.'
+                    rply.text += ' 沒有輸入骰子名稱.'
+                if (!mainMsg[3])
+                    rply.text += ' 沒有輸入骰子內容.'
                 if (!userid)
                     rply.text += ' 此功能必須使用聊天軟件，在個人身份中使用.'
                 if (rply.text) {
@@ -415,6 +420,7 @@ var rollDiceCommand = async function ({
                     rply.text += temp.title + ' → ';
                     let items = [];
                     let tempItems = [...temp.answer]
+                    if (items.length === 0) continue;
                     while (items.length < times) {
                         items = tempItems
                             .map((a) => ({
@@ -442,6 +448,8 @@ var rollDiceCommand = async function ({
                 // .ras[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
                 if (!mainMsg[2])
                     rply.text += ' 沒有輸入骰子名稱.'
+                if (!mainMsg[3])
+                    rply.text += ' 沒有輸入骰子內容.'
                 if (!mainMsg[4])
                     rply.text += ' 沒有自定義骰子回應內容,至少兩個.'
                 if (rply.text) {
@@ -575,6 +583,7 @@ var rollDiceCommand = async function ({
                     rply.text += temp.title + ' → ';
                     let items = [];
                     let tempItems = [...temp.answer]
+                    if (items.length === 0) continue;
                     while (items.length < times) {
                         items = tempItems
                             .map((a) => ({

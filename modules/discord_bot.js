@@ -512,6 +512,7 @@ client.on('ready', async () => {
 	client.user.setActivity('🌼bothelp | hktrpg.com🍎');
 	console.log(`Discord: Logged in as ${client.user.tag}!`);
 	var switchSetActivity = 0;
+	// eslint-disable-next-line no-unused-vars
 	const refreshId = setInterval(async () => {
 		if (shardids !== 0) return;
 		if (adminSecret) {
@@ -521,6 +522,7 @@ client.on('ready', async () => {
 			}
 		}
 	}, 180000);
+	// eslint-disable-next-line no-unused-vars
 	const refreshId2 = setInterval(async () => {
 		switch (switchSetActivity % 2) {
 			case 1:

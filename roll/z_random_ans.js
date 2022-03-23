@@ -233,7 +233,7 @@ var rollDiceCommand = async function ({
             }
             //顯示自定義關鍵字
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
-            rply.text += '\n\n在.ras show 後面輸入骰子名稱, 可以顯示詳細內容\n輸入 .ras (列表序號或骰子名稱) 可以進行隨機擲骰'
+            rply.text += '\n\n在.ra show 後面輸入骰子名稱, 可以顯示詳細內容\n輸入 .ra (列表序號或骰子名稱) 可以進行隨機擲骰'
             return rply
         case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
             //

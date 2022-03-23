@@ -269,7 +269,7 @@ var rollDiceCommand = async function ({
                     let items = [];
                     let tempItems = [...temp]
                     tempItems.splice(0, 1);
-                    if (items.length === 0) continue;
+                    if (tempItems.length === 0) continue;
                     while (items.length < times) {
                         items = tempItems
                             .map((a) => ({
@@ -420,7 +420,7 @@ var rollDiceCommand = async function ({
                     rply.text += temp.title + ' → ';
                     let items = [];
                     let tempItems = [...temp.answer]
-                    if (items.length === 0) continue;
+                    if (tempItems.length === 0) continue;
                     while (items.length < times) {
                         items = tempItems
                             .map((a) => ({
@@ -583,7 +583,7 @@ var rollDiceCommand = async function ({
                     rply.text += temp.title + ' → ';
                     let items = [];
                     let tempItems = [...temp.answer]
-                    if (items.length === 0) continue;
+                    if (tempItems.length === 0) continue;
                     while (items.length < times) {
                         items = tempItems
                             .map((a) => ({

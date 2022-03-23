@@ -45,6 +45,7 @@ TGclient.on('text', async (ctx) => {
 		trigger = mainMsg[0].toString().toLowerCase();
 	}
 	//指定啟動詞在第一個詞&把大階強制轉成細階
+	let groupid = ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && userid && ctx.chat.id) ? ctx.chat.id : '';
 	if (trigger == ".me" && z_stop(mainMsg, groupid)) {
 		inputStr = inputStr.replace(/^\.me\s+/i, '');
 		SendToId(ctx.chat.id || userid, inputStr);
@@ -73,7 +74,6 @@ TGclient.on('text', async (ctx) => {
 	}
 
 
-	let groupid = ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && userid && ctx.chat.id) ? ctx.chat.id : '';
 	let displayname = '',
 		membercount = 0,
 		titleName = (ctx.message && ctx.chat && ctx.chat.title) ? ctx.chat.title : '';

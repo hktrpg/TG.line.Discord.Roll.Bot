@@ -205,7 +205,7 @@ HKTRPG來源自 機器鴨霸獸 https://docs.google.com/document/d/1dYnJqF2_QTp9
 			}
 			return rply;
 		case /^privacy/i.test(mainMsg[1]): {
-			rply.text = privacy;
+			rply.text = "隱私權聲明\nhttps://bothelp.hktrpg.com/hktrpg-guan-fang-shi-yong-jiao-xue/qi-ta-qing-bao/yin-si-quan-sheng-ming";
 			return rply;
 		}
 		case /^admin/i.test(mainMsg[1]):

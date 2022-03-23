@@ -8,7 +8,7 @@ const Discord = require("discord.js");
 const { Client, Intents, Permissions } = Discord;
 const rollText = require('./getRoll').rollText;
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
-const imageUrl = /^(?:(?:(?<protocol>(?:http|https)):\/\/)?(?:(?<authority>(?:[A-Za-z](?:[A-Za-z\d\-]*[A-Za-z\d])?)(?:\.[A-Za-z][A-Za-z\d\-]*[A-Za-z\d])*)(?:\:(?<port>[0-9]+))?\/)(?:(?<path>[^\/][^\?\#\;]*\/))?)?(?<file>[^\?\#\/\\]*\.(?<extension>[Jj][Pp][Ee]?[Gg]|[Pp][Nn][Gg]|[Gg][Ii][Ff]))(?:\?(?<query>[^\#]*))?(?:\#(?<fragment>.*))?$/gm;
+const imageUrl = /^(?:(?:(?<protocol>(?:http|https)):\/\/)?(?:(?<authority>(?:[A-Za-z](?:[A-Za-z\d-]*[A-Za-z\d])?)(?:\.[A-Za-z][A-Za-z\d-]*[A-Za-z\d])*)(?::(?<port>[0-9]+))?\/)(?:(?<path>[^/][^?#;]*\/))?)?(?<file>[^?#/\\]*\.(?<extension>[Jj][Pp][Ee]?[Gg]|[Pp][Nn][Gg]|[Gg][Ii][Ff]))(?:\?(?<query>[^#]*))?(?:#(?<fragment>.*))?$/gm;
 exports.z_stop = require('../roll/z_stop');
 
 

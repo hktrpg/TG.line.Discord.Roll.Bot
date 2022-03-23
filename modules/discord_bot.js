@@ -95,23 +95,13 @@ client.on('messageCreate', async message => {
 
 	let groupid = (message.guildId) ? message.guildId : '';
 	//指定啟動詞在第一個詞&把大階強制轉成細階
-	if (trigger == ".me" && !z_stop(mainMsg, groupid)) {
+	if (trigger == ".me" && z_stop(mainMsg, groupid)) {
 		inputStr = inputStr.replace(/^.me\s+/i, ' ');
 		if (groupid) {
-			try {
-				await message.delete();
-			} catch (error) {
-				//console.log(`discord bot error #105`, error)
-			}
 			await SendToReplychannel({ replyText: inputStr, channelid: message.channel.id });
-
 		} else {
 			SendToReply({ replyText: inputStr, message });
-			try {
-				await message.delete();
-			} catch (error) {
-				//console.log(`discord bot error #114`, error)
-			}
+
 		}
 		return;
 	}

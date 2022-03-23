@@ -54,7 +54,7 @@ var handleEvent = async function (event) {
 		trigger = mainMsg[0].toString().toLowerCase();
 	}
 	//指定啟動詞在第一個詞&把大階強制轉成細階
-	if (trigger == ".me" && !z_stop(mainMsg, roomorgroupid)) {
+	if (trigger == ".me" && z_stop(mainMsg, roomorgroupid)) {
 		inputStr = inputStr.replace(/^.me\s+/i, '');
 		if (roomorgroupid) {
 			let temp = HandleMessage(inputStr);

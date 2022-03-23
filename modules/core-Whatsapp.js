@@ -363,7 +363,7 @@ function SendToId(targetid, rplyVal, client) {
 }
 
 function z_stop(mainMsg, groupid) {
-	if (!Object.keys(exports.z_stop).length || !exports.z_stop.initialize().save) {
+	if (!Object.keys(exports.z_stop).length || !exports.z_stop.initialize().save || !mainMsg || !groupid) {
 		return false;
 	}
 	let groupInfo = exports.z_stop.initialize().save.find(e => e.groupid == groupid)

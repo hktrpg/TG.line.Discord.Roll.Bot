@@ -14,7 +14,7 @@ var gameName = function () {
     return '【你的名字】.myname / .me .me1 .me泉心'
 }
 const convertRegex = function (str) {
-    return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
+    return str.toString().replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
 };
 const gameType = function () {
     return 'Tool:myname:hktrpg'
@@ -140,14 +140,17 @@ var rollDiceCommand = async function ({
 
                 if (myNames) {
                     rply.text = `移除成功，${myNames}`
+                    rply.quotes = true;
                     return rply
                 } else {
                     rply.text = '移除出錯\n移除角色指令為 .myname delete (序號/名字縮寫) \n 如 .myname delete 1 / .myname delete 小雲\n序號請使用.myname show 查詢'
+                    rply.quotes = true;
                     return rply
                 }
             } catch (error) {
                 console.error("移除角色失敗, inputStr: ", inputStr);
                 rply.text = '移除出錯\n移除角色指令為 .myname delete (序號/名字縮寫) \n 如 .myname delete 1 / .myname delete 小雲\n序號請使用.myname show 查詢'
+                rply.quotes = true;
                 return rply
             }
         }
@@ -170,10 +173,12 @@ var rollDiceCommand = async function ({
             let checkName = checkMyName(inputStr);
             if (!checkName || !checkName.name || !checkName.imageLink) {
                 rply.text = `輸入出錯\n ${this.getHelpMessage()}`;
+                rply.quotes = true;
                 return rply;
             }
             if (!checkName.imageLink.match(/^http/i)) {
                 rply.text = `輸入出錯\n 圖示link 必須符合 http/https 開頭`;
+                rply.quotes = true;
                 return rply;
             }
             let myName = {};
@@ -207,6 +212,7 @@ var rollDiceCommand = async function ({
             let checkName = checkMeName(mainMsg[0]);
             if (!checkName) {
                 rply.text = `輸入出錯\n ${this.getHelpMessage()} `;
+                rply.quotes = true;
                 return rply;
             }
             let myName;
@@ -220,12 +226,14 @@ var rollDiceCommand = async function ({
                 try {
                     myName = await schema.myName.findOne({ userID: userid, shortName: new RegExp('^' + convertRegex(checkName) + '$', 'i') });
                 } catch (error) {
-                    rply.text = `輸入出錯\n ${this.getHelpMessage()} `;
+                    rply.text = `找不到角色 - ${checkName} \n可能是序號或名字不對`;
+                    rply.quotes = true;
                     return rply;
                 }
             }
             if (!myName) {
-                rply.text = `找不到角色 - ${checkName} `;
+                rply.text = `找不到角色 - ${checkName} \n可能是序號或名字不對`;
+                rply.quotes = true;
                 return rply;
             }
             rply.myName = showMessage(myName, inputStr);

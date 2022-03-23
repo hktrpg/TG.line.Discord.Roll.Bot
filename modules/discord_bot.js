@@ -504,7 +504,7 @@ client.on('ready', async () => {
 	var switchSetActivity = 0;
 	// eslint-disable-next-line no-unused-vars
 	const refreshId = setInterval(async () => {
-		if (shardids !== 0) return;
+		if (shardids !== (client.shard.client.options.shardCount - 1)) return;
 		if (adminSecret) {
 			let check = await checkWakeUp();
 			if (!check) {

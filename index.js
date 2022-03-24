@@ -1,41 +1,28 @@
-"use strict";
+(function () {
+  /*global module, require */
 
-require('dotenv').config();
-if (process.env.mongoURL) {
-  require('./modules/db-connector');
-  return;
-}
-
-
-
-require('fs').readdirSync(__dirname + '/modules/').forEach(function (file) {
-  if (file.match(/\.js$/) && file.match(/^core-/)) {
-    var name = file.replace('.js', '');
-    exports[name] = require('./modules/' + file);
+  'use strict';
+  const log = require('log-to-file');
+  const scan = require('./modules/scan2'),
+    assert = require('assert'),
+    util = require('util');
+  function check(text, elements) {
+    assert.deepEqual(scan(text), elements);
   }
-});
 
-process.on('warning', (warning) => {
-  console.warn('warning', warning.name); // Print the warning name
-  console.warn('warning', warning.message); // Print the warning message
-  console.warn('warning', warning.stack); // Print the stack trace
-});
-/*
-流程解釋
+  function checkPunctuator(text) {
+    assert.deepEqual(scan(text), [{
+      position: 0, line: 1, column: 1,
+      punctuator: text, text: text
+    }]);
+  }
+  console.log('start')
+  // empty
+  function stringify(x) {
+    return JSON.stringify(x)
 
-首先這裡會call modules/中的Discord line Telegram 三個檔案
-如果在Heroku 有輸入它們各自的TOKEN 的話
-服務就會各自啓動
+  }
+  let a = scan(require('fs').readFileSync('./modules/scan2.js', 'utf8'));
+  log(stringify(a), 'my-log.log');
 
-Discord line Telegram三套BOT 都會統一呼叫analytics.js
-再由analytics.js 呼叫roll/ 中各個的骰檔
-
-所以基本上,要增加骰組
-參考/roll中的DEMO骰組就好
-
-以上, 有不明可以在GITHUB問我
-
-另外, 使用或參考其中代碼的話, 請保持開源
-感謝
-
-*/
+}());

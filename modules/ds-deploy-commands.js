@@ -53,7 +53,7 @@ loadingSlashCommands();
 
 
 const rest = new REST({ version: '9' }).setToken(channelSecret);
-
+console.log('commands', commands)
 
 rest.put(Routes.applicationGuildCommands("544561773488111636", "628181436129607680"), { body: commands })
     .then(() => console.log('Successfully registered application commands.'))
@@ -62,13 +62,20 @@ rest.put(Routes.applicationGuildCommands("544561773488111636", "6281814361296076
 
 function loadingSlashCommands() {
     const commandFiles = fs.readdirSync('./roll/').filter(file => file.endsWith('.js'));
-
     for (const file of commandFiles) {
-        //     const command = require(`../roll/${file}`);
-        //     console.log('command', command)
+        const command = require(`../roll/${file}`);
+        if (command && command.discordCommand) {
+            arraySlashCommands(command.discordCommand)
+        }
+
         //      commands.push(command.data.toJSON());
     }
 
+}
+function arraySlashCommands(arrayCommands) {
+    for (const file of arrayCommands) {
+        commands.push(file.data.toJSON());
+    }
 }
 
     //https://discordjs.guide/creating-your-bot/creating-commands.html#command-deployment-script

@@ -3,6 +3,7 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
+const fs = require('node:fs');
 const commands = [
     new SlashCommandBuilder()
         .setName('echo')
@@ -48,6 +49,9 @@ const commands = [
 ]
     .map(command => command.toJSON());
 
+loadingSlashCommands();
+
+
 const rest = new REST({ version: '9' }).setToken(channelSecret);
 
 
@@ -55,6 +59,17 @@ rest.put(Routes.applicationGuildCommands("544561773488111636", "6281814361296076
     .then(() => console.log('Successfully registered application commands.'))
     .catch(console.error);
 
+
+function loadingSlashCommands() {
+    const commandFiles = fs.readdirSync('../roll/').filter(file => file.endsWith('.js'));
+
+    for (const file of commandFiles) {
+        const command = require(`../roll/${file}`);
+        console.log('command', command)
+        //      commands.push(command.data.toJSON());
+    }
+
+}
 
     //https://discordjs.guide/creating-your-bot/creating-commands.html#command-deployment-script
 //    https://discordjs.guide/popular-topics/builders.html#links

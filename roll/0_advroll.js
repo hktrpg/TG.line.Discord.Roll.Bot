@@ -134,11 +134,12 @@ const discordCommand = [
 		data: new SlashCommandBuilder()
 			.setName('ca')
 			.setDescription('【數學計算】 (不支援擲骰) ')
-			.addStringOption(option => option.setName('text').setDescription('輸入內容')),
+			.addStringOption(option => option.setName('text').setDescription('輸入內容').setRequired(true)),
 		async execute(interaction) {
 			const text = interaction.options.getString('text')
+			console.log('text', text)
 			if (text !== null)
-				return `/ca ${text}`
+				return `.ca ${text}`
 			else return `需要輸入內容\n 如 .ca 1.2 * (2 + 4.5) ， 12.7 米 to inch 
 			sin(45 deg) ^ 2  5磅轉斤 10米轉呎 10米=吋`
 
@@ -148,8 +149,8 @@ const discordCommand = [
 		data: new SlashCommandBuilder()
 			.setName('int')
 			.setDescription('int 20 50: 立即骰出20-50')
-			.addNumberOption(option => option.setName('minnum').setDescription('輸入第一個數字'))
-			.addNumberOption(option => option.setName('maxnum').setDescription('輸入第二個數字'))
+			.addStringOption(option => option.setName('minnum').setDescription('輸入第一個數字').setRequired(true))
+			.addStringOption(option => option.setName('maxnum').setDescription('輸入第二個數字').setRequired(true))
 		,
 		async execute(interaction) {
 			const minNum = interaction.options.getString('minnum')

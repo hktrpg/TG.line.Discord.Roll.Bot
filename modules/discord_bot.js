@@ -5,19 +5,20 @@ const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const adminSecret = process.env.ADMIN_SECRET || '';
 const Discord = require("discord.js");
-const translateChannel = require('../modules/translate')
-const { Client, Intents, Permissions } = Discord;
+const translateChannel = require('../modules/translate');
+const fs = require('node:fs');
+const { Client, Intents, Permissions, Collection } = Discord;
 const rollText = require('./getRoll').rollText;
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
 const imageUrl = /^(?:(?:(?<protocol>(?:http|https)):\/\/)?(?:(?<authority>(?:[A-Za-z](?:[A-Za-z\d\-]*[A-Za-z\d])?)(?:\.[A-Za-z][A-Za-z\d\-]*[A-Za-z\d])*)(?:\:(?<port>[0-9]+))?\/)(?:(?<path>[^\/][^\?\#\;]*\/))?)?(?<file>[^\?\#\/\\]*\.(?<extension>[Jj][Pp][Ee]?[Gg]|[Pp][Nn][Gg]|[Gg][Ii][Ff]))(?:\?(?<query>[^\#]*))?(?:\#(?<fragment>.*))?$/gm;
 exports.z_stop = require('../roll/z_stop');
 
 
+
 const client = new Client(
 	{
 		intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.DIRECT_MESSAGE_REACTIONS], partials: ['MESSAGE', 'CHANNEL', 'REACTION']
 	});
-
 const msgSplitor = (/\S+/ig);
 const link = process.env.WEB_LINK;
 const port = process.env.PORT || 20721;
@@ -68,6 +69,7 @@ var connect = function () {
 };
 
 client.once('ready', async () => {
+	initInteractionCommands();
 	if (process.env.BROADCAST) connect();
 	//	if (shardids === 0) getSchedule();
 });
@@ -700,16 +702,18 @@ function sendNewstoAll(rply) {
 
 client.on('interactionCreate', async interaction => {
 	if (!interaction.isCommand()) return;
-	console.log(interaction)
+	console.log('interaction', interaction.options)
+	const command = client.commands.get(interaction.commandName);
+	console.log('command', command)
+	if (!command) return;
 
-	const { commandName } = interaction;
-
-	if (commandName === 'ping2') {
-		await interaction.reply('Pong!');
-	} else if (commandName === 'server2') {
-		await interaction.reply('Server info.');
-	} else if (commandName === 'user2') {
-		await interaction.reply('User info.');
+	try {
+		let answer = await command.execute(interaction);
+		console.log('answer', answer)
+		//await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+	} catch (error) {
+		console.error(error);
+		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 	}
 });
 async function repeatMessage(discord, message) {
@@ -910,7 +914,23 @@ async function getAllshardIds() {
 
 }
 
+function initInteractionCommands() {
+	client.commands = new Collection();
+	const commandFiles = fs.readdirSync('./roll').filter(file => file.endsWith('.js'));
+	for (const file of commandFiles) {
+		const command = require(`../roll/${file}`);
+		if (command && command.discordCommand) {
+			pushArrayInteractionCommands(command.discordCommand)
+		}
 
+	}
+}
+function pushArrayInteractionCommands(arrayCommands) {
+	for (const command of arrayCommands) {
+		client.commands.set(command.data.name, command);
+	}
+
+}
 
 /**
  *

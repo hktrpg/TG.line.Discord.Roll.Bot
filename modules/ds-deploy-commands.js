@@ -60,19 +60,19 @@ rest.put(Routes.applicationGuildCommands("544561773488111636", "6281814361296076
     .catch(console.error);
 
 
+
+
 function loadingSlashCommands() {
     const commandFiles = fs.readdirSync('./roll/').filter(file => file.endsWith('.js'));
     for (const file of commandFiles) {
         const command = require(`../roll/${file}`);
         if (command && command.discordCommand) {
-            arraySlashCommands(command.discordCommand)
+            pushArraySlashCommands(command.discordCommand)
         }
-
-        //      commands.push(command.data.toJSON());
     }
 
 }
-function arraySlashCommands(arrayCommands) {
+function pushArraySlashCommands(arrayCommands) {
     for (const file of arrayCommands) {
         commands.push(file.data.toJSON());
     }

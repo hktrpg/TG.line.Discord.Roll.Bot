@@ -78,5 +78,7 @@ function arraySlashCommands(arrayCommands) {
     }
 }
 
+//https://github.com/discordjs/guide/tree/main/code-samples/creating-your-bot/command-handling
+
     //https://discordjs.guide/creating-your-bot/creating-commands.html#command-deployment-script
 //    https://discordjs.guide/popular-topics/builders.html#links

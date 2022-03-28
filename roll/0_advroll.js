@@ -148,12 +148,12 @@ const discordCommand = [
 		data: new SlashCommandBuilder()
 			.setName('int')
 			.setDescription('int 20 50: 立即骰出20-50')
-			.addNumberOption(option => option.setName('minNum').setDescription('輸入第一個數字'))
-			.addNumberOption(option => option.setName('maxNum').setDescription('輸入第二個數字'))
+			.addNumberOption(option => option.setName('minnum').setDescription('輸入第一個數字'))
+			.addNumberOption(option => option.setName('maxnum').setDescription('輸入第二個數字'))
 		,
 		async execute(interaction) {
-			const minNum = interaction.options.getString('minNum')
-			const maxNum = interaction.options.getString('maxNum');
+			const minNum = interaction.options.getString('minnum')
+			const maxNum = interaction.options.getString('maxnum');
 			if (minNum !== null && maxNum !== null)
 				return `.int ${minNum} ${maxNum}`
 			else return `需要輸入兩個數字\n 如 .int 20 50`

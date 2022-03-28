@@ -61,11 +61,11 @@ rest.put(Routes.applicationGuildCommands("544561773488111636", "6281814361296076
 
 
 function loadingSlashCommands() {
-    const commandFiles = fs.readdirSync('../roll/').filter(file => file.endsWith('.js'));
+    const commandFiles = fs.readdirSync('./roll/').filter(file => file.endsWith('.js'));
 
     for (const file of commandFiles) {
-        const command = require(`../roll/${file}`);
-        console.log('command', command)
+        //     const command = require(`../roll/${file}`);
+        //     console.log('command', command)
         //      commands.push(command.data.toJSON());
     }
 

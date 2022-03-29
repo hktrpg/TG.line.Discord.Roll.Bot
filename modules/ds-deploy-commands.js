@@ -56,16 +56,17 @@ const rest = new REST({ version: '9' }).setToken(channelSecret);
 console.log('commands', commands)
 const clientId = "544561773488111636",
     guildId = "628181436129607680";
-    
+
 //remove all old command, devlopment only
 rest.get(Routes.applicationGuildCommands(clientId, guildId))
     .then(data => {
         const promises = [];
         for (const command of data) {
             const deleteUrl = `${Routes.applicationGuildCommands(clientId, guildId)}/${command.id}`;
-            promises.push(rest.delete(deleteUrl));
+            //    promises.push(rest.delete(deleteUrl));
         }
-        return Promise.all(promises);
+        //  return Promise.all(promises);
+
     });
 
 

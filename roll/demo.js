@@ -1,6 +1,6 @@
 "use strict";
-var variables = {};
-
+const variables = {};
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const gameName = function () {
     return '【Demo】'
 }
@@ -64,12 +64,13 @@ const rollDiceCommand = async function ({
     }
 }
 
-
+const discordCommand = []
 module.exports = {
-    rollDiceCommand: rollDiceCommand,
-    initialize: initialize,
-    getHelpMessage: getHelpMessage,
-    prefixs: prefixs,
-    gameType: gameType,
-    gameName: gameName
+    rollDiceCommand,
+    initialize,
+    getHelpMessage,
+    prefixs,
+    gameType,
+    gameName,
+    discordCommand
 };

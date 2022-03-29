@@ -961,8 +961,8 @@ client.on('interactionCreate', async message => {
 			// 輸入dr  (指令) 私訊自己
 			//
 			if (groupid) {
-				await SendToReplychannel(
-					{ replyText: "<@" + userid + '> 暗骰給自己', channelid })
+				message.reply(
+					{ content: "<@" + userid + '> 暗骰給自己' })
 			}
 			if (userid) {
 				rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
@@ -977,8 +977,8 @@ client.on('interactionCreate', async message => {
 				for (let i = 0; i < TargetGMTempID.length; i++) {
 					targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
 				}
-				await SendToReplychannel(
-					{ replyText: "<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp, channelid });
+				message.reply(
+					{ content: "<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp });
 			}
 			if (userid) {
 				rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text;
@@ -997,8 +997,8 @@ client.on('interactionCreate', async message => {
 				for (let i = 0; i < TargetGMTempID.length; i++) {
 					targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
 				}
-				await SendToReplychannel(
-					{ replyText: "<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp, channelid })
+				message.reply(
+					{ content: "<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp })
 			}
 			rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
 			for (let i = 0; i < TargetGMTempID.length; i++) {
@@ -1011,7 +1011,7 @@ client.on('interactionCreate', async message => {
 			}
 
 			if (groupid) {
-				await SendToReplychannel({ replyText: rplyVal.text, channelid, quotes: rplyVal.quotes });
+				message.reply({ content: rplyVal.text, quotes: rplyVal.quotes });
 			} else {
 				SendToReply({ replyText: rplyVal.text, message, quotes: rplyVal.quotes });
 			}

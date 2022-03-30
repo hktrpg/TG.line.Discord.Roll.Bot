@@ -1,8 +1,11 @@
 .ca
+.int
+
+
+
 D66 D66s D66n
 5B10
 5U10
-.int
  choice 隨機
  排序
 .me

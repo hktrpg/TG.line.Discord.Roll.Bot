@@ -703,11 +703,11 @@ function sendNewstoAll(rply) {
 client.on('interactionCreate', async message => {
 	if (!message.isCommand()) return;
 	//	console.log('interaction', message.options)
+	console.log('message', message.options._hoistedOptions)
 	const command = client.commands.get(message.commandName);
 	//	console.log('command', command)
 	if (!command) return;
 
-	console.log('message.channel', message.channel)
 	let answer = await command.execute(message).catch(error => {
 		console.error(error);
 		//await message.reply({ content: 'There was an error while executing this command!', ephemeral: true });
@@ -807,7 +807,6 @@ client.on('interactionCreate', async message => {
 	}
 	if (message.channel && message.channel.name)
 		titleName += message.channel.name;
-	console.log('message', message)
 	if (message.user.id) {
 		userid = message.user.id;
 	}

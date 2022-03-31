@@ -5,6 +5,18 @@ const axiosRetry = require('axios-retry');
 const chineseConv = require('chinese-conv'); //繁簡轉換
 const axios = require('axios');
 const wiki = require('wikijs').default;
+
+const Zalgo = require("@ryanforever/zalgo")
+const zalgo = new Zalgo({
+	up: true,
+	down: true,
+	middle: false,
+	intensity: `.${rollbase.Dice(9)}`
+})
+
+const aprilNumber = {
+	number: 1
+}
 var gameName = function () {
 	return '【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 運勢 每日塔羅 每日笑話 每日動漫 每日一言 每日廢話 每日黃曆 每日毒湯 每日情話 每日靈簽 每日急口令 每日大事 每日(星座) 每日解答	立flag .me'
 }
@@ -100,12 +112,15 @@ var rollDiceCommand = async function ({
 			return rply;
 		case /^排序|排序$/i.test(mainMsg[0]) && (mainMsg.length >= 4):
 			rply.text = SortIt(inputStr, mainMsg);
+			rply.text = AprilOneFool(rply.text)
 			return rply;
 		case /^隨機|^choice|隨機$|choice$/i.test(mainMsg[0]) && (mainMsg.length >= 3):
 			rply.text = choice(inputStr, mainMsg);
+			rply.text = AprilOneFool(rply.text)
 			return rply;
 		case /^每日解答$/i.test(mainMsg[0]):
 			rply.text = dailyAnswerChoice(inputStr);
+			rply.text = AprilOneFool(rply.text)
 			return rply;
 		case /塔羅/i.test(mainMsg[0]):
 			if (mainMsg[0].match(/^每日塔羅/) != null)
@@ -114,25 +129,31 @@ var rollDiceCommand = async function ({
 				rply.text = MultiDrawTarot(mainMsg[1], mainMsg[2], 1);
 			if (mainMsg[0].match(/^大十字塔羅/) != null)
 				rply.text = MultiDrawTarot(mainMsg[1], mainMsg[2], 2);
+			rply.text = AprilOneFool(rply.text)
 			return rply;
 		case (/立flag$|^立flag/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,25}/g).length <= 1):
 			rply.text = BStyleFlagSCRIPTS();
+			rply.text = AprilOneFool(rply.text)
 			return rply;
 		case /^鴨霸獸$/i.test(mainMsg[0]):
 			rply.text = randomReply();
+			rply.text = AprilOneFool(rply.text)
 			return rply;
 		case (/運勢$|^運勢/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,40}/g).length <= 1):
 			rply.text = randomLuck(mainMsg);
+			rply.text = AprilOneFool(rply.text)
 			return rply;
 		case /^[.]me$/i.test(mainMsg[0]):
 			rply.text = me(inputStr);
 			return rply;
 		case /^每日笑話$/.test(mainMsg[0]): {
 			rply.text = await axiosDaily('http://lkaa.top/API/xiaohua/api.php?type=json')
+			rply.text = AprilOneFool(rply.text)
 			return rply;
 		}
 		case /^每日動漫$/.test(mainMsg[0]): {
 			rply.text = await axiosDaily('http://lkaa.top/API/dmyiyan/api.php?type=json')
+			rply.text = AprilOneFool(rply.text)
 			return rply;
 		}
 		case /^每日一言$/.test(mainMsg[0]): {
@@ -834,7 +855,7 @@ async function axiosDaily(url) {
 		reply = chineseConv.tify(reply);
 		reply += `${json.image ? json.image + '\n' : ''}`
 		reply += `${json.data && json.data.image ? json.data.image + '\n' : ''}`
-		return reply || '沒有結果，請檢查內容'
+		return AprilOneFool(reply) || '沒有結果，請檢查內容'
 	} catch (error) {
 		if (error.code == 'ETIMEDOUT' || error.code == 'ECONNABORTED' || error.code == 'ECONNRESET') {
 			return '伺服器連線出現問題，請稍後再試'
@@ -867,6 +888,20 @@ http://ybapi.top/
 http://weizhinb.top/
 
 */
+
+
+function AprilOneFool(text) {
+	aprilNumber.number++;
+
+	if ((aprilNumber.number % 4 === 0) || aprilNumber.number % 10 === 0) {
+		text = `${zalgo('                                        ')}
+${text}
+${zalgo('                                        ')}`
+	}
+	if ((aprilNumber.number % 8 === 0) || (aprilNumber.number % 9 === 0))
+		text += ' \n\n' + cthulhu[rollbase.Dice(cthulhu.length) - 1];
+	return text
+}
 
 const dailyAnswer = [
 	"不一定",
@@ -1595,6 +1630,73 @@ const dailyAnswer = [
 	"你的地盤你做主",
 	"這個問題太深奧",
 	"决定了就去做"]
+
+
+const cthulhu = [
+	`那永久沉睡的並非死者，在漫長而奇異的時光中，死亡亦有其終結。`,
+	`只要你坦然接受自己的罪惡，穿越那黑色的深淵，等待你的將是永恆的神奇與榮耀。`,
+	`這個世界最仁慈的地方，莫過於人類思維無法融會貫通它的全部內容。`,
+	`平凡人類的法則、利益和情感，在浩瀚的宇宙中都是完全沒有意義的。`,
+	`在拉萊耶他的宮殿裡，沉睡的克蘇魯侯汝入夢。`,
+	`繁星已經抵達特定的位置，舊日支配者即將重現人間。`,
+	`我以前的猜想不過是人類永恆不變的思維定勢的一個階段：我們總會憎恨、恐懼和逃避與我們迥然不同的事物。`,
+	`待在瘋狂山脈背風的陰影之中，你必須管好自己的想像力。`,
+	`那未知的日落之城裡可能根本沒有他追尋的內容，將那座城市留在一個似忘非忘的華麗夢境裡，也許才是最好的選擇。`,
+	`貓是神秘的生靈，能夠接近人類看不見的怪異事物。貓是遠古埃及普托斯的靈魂，承載著被遺忘城市梅羅和俄斐的傳說。貓是叢林之主的親屬，繼承了邪靈出沒的古老非洲的秘密。斯芬克斯是貓的表親，貓會說斯芬克斯的語言。但貓的歷史比斯芬克斯還要悠久，記得斯芬克斯已經遺忘的往事。`,
+	`已升起的或將沉默，已沉默的或將升起。無盡深淵中的可憎之物在等待著入夢，岌岌可危的人類城市瀰漫著腐爛。在劫難逃——我不願去想，也不能去想！如果這份手稿比我活得更長，我的遺囑執行人請一定將之小心保管，確保不會再有他人看到。`,
+	`已升起的或會沉沒，已沉沒的或會升起。可憎之物在深淵中等待著夢境，衰敗蔓延於人類岌岌可危的城市。那一刻終將到來`,
+	`依本人之見，這個世界最仁慈的地方，莫過於人類思維無法融會貫通它的全部內容。我們生活在一個名為無知的平靜小島上，被無窮無盡的黑色海洋包圍，而我們本就不該揚帆遠航。科學——每一種科學都按照自己的方向勉力前行，因此幾乎沒有帶來什麼傷害；但遲早有一天，某些看似不相關的知識拼湊到一起，就會開啟有關現實的恐怖景象，揭示人類在其中的可怕處境，而我們或者會發瘋，或者會逃離這致命的光芒，躲進新的黑暗時代，享受那裡的靜謐與安全。`
+	, `人類最古老而又最強烈的情感是恐懼，而最古老又最強烈的恐懼是未知。`
+	, `這些大橋下流淌著黑色的瀝青河流。那種景象足以讓任何人變成但丁或是愛倫・坡，只要他還能保證自己足夠正常，能將自己所見之物訴說。`,
+	`人類曾依靠無情征服與完全佔有等美德明確劃定了屬於自己的世界，而這座賞心悅目的古樸村莊便是我們與那個世界的最後一點聯繫。在這之後，我們便捨棄了一切對於眼前、有形以及時間可以改變的事物的忠實，進入了一片寂靜而又不真實的奇妙世界。在這個世界裡，那條緞帶一般的狹窄小路以一種彷彿是有知覺的、有意圖的任性多變在無人居住的蔥鬱山丘與幾近荒蕪的空曠河谷間百轉千迴。除了汽車發出的聲響外，唯一還能傳進我耳朵的東西便是那些從幽暗森林裡的無數隱秘泉眼中流淌而出的奇妙溪流所發出的潺潺水聲。`,
+	`人類居住在幽暗的海洋中一個名為無知的小島上，這海洋浩淼無垠、蘊藏無窮秘密，但我們並不應該航行過遠，探究太深。`,
+	`咿呀！莎布―尼古拉絲！那孕育萬千子孫的森之黑山羊！`,
+	`我重複一遍，千萬不要召喚那些你無法控制的東西。因為那些東西必將變成你的仇敵，就連你最強的秘術也完全無用。你只應召喚那些弱小無力的存在；不要把任何一點心思放在那些強大存在的身上。`,
+	`有朝一日當我們真能把所有那些相互分割的知識拼湊到一起時，展現在我們面前的真實世界，以及人類在其中的處境，將會令我們要么陷入瘋狂，要么從可怕的光明中逃到安寧、黑暗的新世紀。`,
+	`我見過黑暗的宇宙張開巨嘴
+黑暗的星球漫無目標的滾動
+他們在自己不曾察覺的恐懼中滾動
+無所知，無光亮，無名字`	,
+	`文字無法形容那個物體，任何語言都不可能描述那種充滿尖叫和遠古瘋狂的深淵，那頭恐怖之物違背了一切物質、能量和宇宙秩序`,
+	`真實的人來到萬物歸一者面前，真實的人知道物質是個巨大的騙局`,
+	`我見到了宇宙蘊含的全部恐怖，在那之後，就連春日的天空和夏季的花朵在我眼中也是毒藥`,
+	`永遠長眠的未必是死亡，經歷奇藝萬古的亡靈也會死去。`,
+	`只要你坦然接受自己的罪惡，穿越那黑色的深淵，等待你的將是永恆的神奇與榮耀。`,
+	`那永久沉睡的並非死者，在漫長而奇異的時光中，死亡亦有其終結。`,
+	`繁星已經抵達特定的位置，舊日支配者即將重現人間。`,
+
+	`我原先認為的事物，實際上令人敬畏、大開眼界甚至輝煌壯美。我以前的猜想不過是人類永恆不變的思維定式的一個階段：我們總會憎恨、恐懼和逃避與我們迥然不同的事物。`,
+	`畢宿星的歌無人聽曉
+國王的襤衣隨風飄搖
+歌聲默默地消逝在那
+昏暗的卡爾克薩
+
+我的靈魂已無法歌唱
+我的歌像淚不再流淌
+只有乾涸和沈默在那
+失落的卡爾克薩`,
+
+	`那反而是神的慈悲！原諸神可憐這個人，他麻木不仁，在末日面前依然神智清醒！來吧，趁著他還在充滿仁慈的呼喚我們！`,
+
+	`舊日支配者的眷族遍布全地，它們的子嗣歷經悠久的春秋。冷原上的夏塔克鳥是它們手中之物，在原始的茲恩洞穴棲息的妖鬼視它們為統治者。它們創造出在深夜橫行的夜魘，修格斯則被它們當作奴僕。巨噬蠕蟲在納斯的幽冥峽谷中向它們致以臣從之禮，古革巨人在托洛克山脈的古老高嶺下讚美它們。`,
+	`巨大的光球擁擠著向門口移動……附近的球體上脫落的部分以及陰森地向外流動著的原生物質聚集在一起，形成了不祥又駭人的，來自外層空間的恐怖之物……它的面容由虹色球體匯聚而成……這團太初淤泥在永恆的混沌之源點泛著泡沫，超越時間與空間最遙遠的淵邃！`,
+
+	`猶格·索托斯知道大門所在。猶格·索托斯即是門，猶格·索托斯即是門之匙，即是看門者。過去在他，現在在他，未來皆在他。他知曉舊日支配者曾於何處闖入；亦知曉舊日支配者將於何處再次闖入。他知曉彼等曾踏過地上的哪些土地，也知道彼等仍踏在哪些土地上，亦知道當彼等行過時為何無人得見彼等。,
+
+猶格·索托斯即是門之匙，諸空間皆匯聚在此。世人統治著彼等曾統治之世界；彼等亦將會統治世人所統治之世界。春夏過後就是秋冬，秋冬過後亦是春夏。彼等耐心等候，因為彼等終將再度統治此地。 `,
+	`生命不過是頭腦中一連串圖景，這些圖景既可能基於現實，也或許源於幻想。然而，二者其實並無區別。`,
+	`我感覺自己來到了世界的邊緣。望著地下深不可測的永夜混沌，驚駭之餘，我很奇怪地想起了《失樂園》。`,
+
+	`那未知的日落之城裡可能根本沒有他追尋的內容，將那座城市留在一個似忘非忘的華麗夢境裡也許才是最好的選擇。`,
+
+	`從沒有哪個神智健全的凡人能夠如此危險地接近那基元本質的奧秘——從沒有哪個生物的大腦得以如此接近那超越了形式、力量與對稱性的混沌中的絕對毀滅。`,
+
+	`將讚美與豐饒予那森之黑山羊 莎布·尼古拉絲！莎布·尼古拉絲！孕育千萬子孫的森之黑山羊！`,
+
+	"就這樣,我將小心地穿上潛水服,鼓起勇氣登上台階,走進那座原初的神殿,走進那沉默的,屬於無限深淵和無盡歲月的神秘之中",
+
+	`於辛咖珂的虛空之外，紫色的氣體指引前路。古老的諾登斯在無踪的大海下，吼出祂的指導。當靠近的獵物——奈亞拉托提普——在無形的狩獵恐懼下，瞪眼間化為飛灰。那時候，蒼老的諾登斯會吹起勝利的號角`
+]
 
 module.exports = {
 	rollDiceCommand: rollDiceCommand,

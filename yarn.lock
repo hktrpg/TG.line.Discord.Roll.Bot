@@ -110,6 +110,13 @@
   resolved "https://registry.yarnpkg.com/@pedroslopez/moduleraid/-/moduleraid-5.0.2.tgz#8e5544de683a2edf50c8550af29d9e485fee114f"
   integrity sha512-wtnBAETBVYZ9GvcbgdswRVSLkFkYAGv1KzwBBTeRXvGT9sb9cPllOgFFWXCn9PyARQ0H+Ijz6mmoRrGateUDxQ==
 
+"@ryanforever/zalgo@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@ryanforever/zalgo/-/zalgo-1.0.0.tgz#5546368fe8885ff5fcc2bcae580ccffb28125df5"
+  integrity sha512-l5Ja7Klz2VYJYkJHYFbiLmUl0H9CGPyWSt38ID1ZwkuMSfBigUZhB1/rzI9jbS2OkHgP9pNT5POVtxVcBJs7/w==
+  dependencies:
+    seedrandom "^2.4.3"
+
 "@sapphire/async-queue@^1.1.9":
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/@sapphire/async-queue/-/async-queue-1.3.0.tgz#98b1b364a5fe820366a786827f2e987590de5964"
@@ -3015,6 +3022,11 @@ saslprep@^1.0.0, saslprep@^1.0.3:
   dependencies:
     sparse-bitfield "^3.0.3"
 
+seedrandom@^2.4.3:
+  version "2.4.4"
+  resolved "https://registry.yarnpkg.com/seedrandom/-/seedrandom-2.4.4.tgz#b25ea98632c73e45f58b77cfaa931678df01f9ba"
+  integrity sha512-9A+PDmgm+2du77B5i0Ip2cxOqqHjgNxnBgglxLcX78A2D6c2rTo61z4jnVABpF4cKeDMDG+cmXXvdnqse2VqMA==
+
 seedrandom@^3.0.5:
   version "3.0.5"
   resolved "https://registry.yarnpkg.com/seedrandom/-/seedrandom-3.0.5.tgz#54edc85c95222525b0c7a6f6b3543d8e0b3aa0a7"
@@ -3789,6 +3801,13 @@ yocto-queue@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/yocto-queue/-/yocto-queue-0.1.0.tgz#0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b"
   integrity sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==
+
+zalgo-js@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/zalgo-js/-/zalgo-js-1.0.0.tgz#c3fb1e0e8e526d9f51106d088f97d47553a916c8"
+  integrity sha512-K+BfnUDZPin9fS39HSJggcEGSincu8PT+8QveDStF37t8uG34sVkkM2kuds9JSXtUN6qtGpQz5GHMkOR32lnQA==
+  dependencies:
+    seedrandom "^2.4.3"
 
 zod@^3.11.6:
   version "3.13.4"

@@ -19,7 +19,7 @@ if (process.env.BROADCAST) {
 		}
 	});
 }
-
+const qrcode = require('qrcode-terminal');
 const isHeroku = process.env._ && process.env._.indexOf("heroku");
 var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const schema = require('../modules/schema');
@@ -35,10 +35,9 @@ const newMessage = require('./message');
 exports.analytics = require('./analytics');
 exports.z_stop = require('../roll/z_stop');
 const {
-	Client
+	Client, LegacySessionAuth
 } = require('whatsapp-web.js');
 const msgSplitor = (/\S+/ig);
-const qrcode = require('qrcode-terminal');
 // Path where the session data will be stored
 const SESSION_FILE_PATH = './modules/whatsapp-session.json';
 
@@ -67,6 +66,7 @@ async function startUp() {
 	}
 	const client = new Client({
 		session: sessionData || null,
+		authStrategy: new LegacySessionAuth(),
 		puppeteer: (isHeroku) ? herokuPuppeteer : normalPuppeteer
 	});
 	client.initialize();

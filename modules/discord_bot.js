@@ -14,7 +14,26 @@ exports.z_stop = require('../roll/z_stop');
 
 const client = new Client(
 	{
-		intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.DIRECT_MESSAGE_REACTIONS], partials: ['MESSAGE', 'CHANNEL', 'REACTION']
+		intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.DIRECT_MESSAGE_REACTIONS], partials: ['MESSAGE', 'CHANNEL', 'REACTION'], makeCache: Discord.Options.cacheWithLimits({
+			ApplicationCommandManager: 0, // guild.commands
+			BaseGuildEmojiManager: 0, // guild.emojis
+			GuildBanManager: 0, // guild.bans
+			GuildInviteManager: 0, // guild.invites
+			//	GuildMemberManager: 0, // guild.members
+			GuildStickerManager: 0, // guild.stickers
+			MessageManager: Infinity, // channel.messages
+			PresenceManager: 0, // guild.presences
+			ReactionManager: 0, // message.reactions
+			ReactionUserManager: 0, // reaction.users
+			StageInstanceManager: 0, // guild.stageInstances
+			ThreadManager: 0, // channel.threads
+			ThreadMemberManager: 0, // threadchannel.members
+			UserManager: Infinity, // client.users
+			VoiceStateManager: 0,// guild.voiceStates
+			GuildManager: Infinity, // roles require guilds
+			RoleManager: Infinity, // cache all roles
+			PermissionOverwrites: 0, // cache all PermissionOverwrites. It only costs memory if the channel it belongs to is cached
+		})
 	});
 
 const msgSplitor = (/\S+/ig);

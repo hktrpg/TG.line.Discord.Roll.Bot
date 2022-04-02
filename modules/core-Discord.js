@@ -7,7 +7,7 @@ const togGGToken = process.env.TOPGG;
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const {
 	ShardingManager
-} = require('discord.js');
+} = require('discord.js-light');
 
 const manager = new ShardingManager('./modules/discord_bot.js', {
 	token: channelSecret,

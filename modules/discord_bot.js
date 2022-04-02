@@ -252,12 +252,9 @@ client.on('messageCreate', async message => {
 	}
 	*/
 	if (rplyVal.state) {
-		console.log('01')
 		rplyVal.text += '\n' + await count();
-		console.log('02')
 		rplyVal.text += '\nPing: ' + Number(Date.now() - message.createdTimestamp) + 'ms';
 		rplyVal.text += await getAllshardIds();
-		console.log('03')
 	}
 
 	if (groupid && rplyVal && rplyVal.LevelUp) {
@@ -567,9 +564,7 @@ function privateMsg({ trigger, mainMsg, inputStr }) {
 
 
 async function count() {
-	console.log('1-1')
 	if (!client.shard) return;
-	console.log('1-2')
 	const promises = [
 		client.shard.fetchClientValues('guilds.cache.size'),
 		client.shard
@@ -578,7 +573,6 @@ async function count() {
 
 	return Promise.all(promises)
 		.then(results => {
-			console.log('results', results[1])
 			const totalGuilds = results[0].reduce((acc, guildCount) => acc + guildCount, 0);
 			const totalMembers = results[1].reduce((acc, memberCount) => acc + memberCount, 0);
 			return (`正在運行HKTRPG的Discord 群組數量: ${totalGuilds}\nDiscord 會員數量: ${totalMembers}`);
@@ -881,7 +875,6 @@ async function getAllshardIds() {
 	if (!client.shard) {
 		return;
 	}
-	console.log('02-1')
 	const promises = [
 		client.shard.broadcastEval(c => c.shard?.ids[0]),
 		client.shard.broadcastEval(c => c.ws.status),

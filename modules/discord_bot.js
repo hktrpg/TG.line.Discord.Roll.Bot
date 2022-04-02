@@ -4,7 +4,7 @@ const schema = require('../modules/schema.js');
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const adminSecret = process.env.ADMIN_SECRET || '';
-const Discord = require("discord.js");
+const Discord = require("discord.js-light");
 const { Client, Intents, Permissions } = Discord;
 const rollText = require('./getRoll').rollText;
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
@@ -12,29 +12,52 @@ const imageUrl = /^(?:(?:(?<protocol>(?:http|https)):\/\/)?(?:(?<authority>(?:[A
 exports.z_stop = require('../roll/z_stop');
 
 
-const client = new Client(
-	{
-		intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.DIRECT_MESSAGE_REACTIONS], partials: ['MESSAGE', 'CHANNEL', 'REACTION'], makeCache: Discord.Options.cacheWithLimits({
-			ApplicationCommandManager: 0, // guild.commands
-			BaseGuildEmojiManager: 0, // guild.emojis
-			GuildBanManager: 0, // guild.bans
-			GuildInviteManager: 0, // guild.invites
-			//	GuildMemberManager: 0, // guild.members
-			GuildStickerManager: 0, // guild.stickers
-			MessageManager: Infinity, // channel.messages
-			PresenceManager: 0, // guild.presences
-			ReactionManager: 0, // message.reactions
-			ReactionUserManager: 0, // reaction.users
-			StageInstanceManager: 0, // guild.stageInstances
-			ThreadManager: 0, // channel.threads
-			ThreadMemberManager: 0, // threadchannel.members
-			UserManager: Infinity, // client.users
-			VoiceStateManager: 0,// guild.voiceStates
-			GuildManager: Infinity, // roles require guilds
-			RoleManager: Infinity, // cache all roles
-			PermissionOverwrites: 0, // cache all PermissionOverwrites. It only costs memory if the channel it belongs to is cached
-		})
-	});
+function channelFilter(channel) {
+	return !channel.lastMessageId || Discord.SnowflakeUtil.deconstruct(channel.lastMessageId).timestamp < Date.now() - 3600000;
+}
+const client = new Client({
+	makeCache: Discord.Options.cacheWithLimits({
+		ApplicationCommandManager: 0, // guild.commands
+		BaseGuildEmojiManager: 0, // guild.emojis
+		GuildBanManager: 0, // guild.bans
+		GuildInviteManager: 0, // guild.invites
+		GuildMemberManager: 0, // guild.members
+		GuildStickerManager: 0, // guild.stickers
+		MessageManager: Infinity, // channel.messages
+		PermissionOverwriteManager: 0, // channel.permissionOverwrites
+		PresenceManager: 0, // guild.presences
+		ReactionManager: 0, // message.reactions
+		ReactionUserManager: 0, // reaction.users
+		StageInstanceManager: 0, // guild.stageInstances
+		ThreadManager: 0, // channel.threads
+		ThreadMemberManager: 0, // threadchannel.members
+		UserManager: Infinity, // client.users
+		VoiceStateManager: 0,// guild.voiceStates
+
+		GuildManager: Infinity, // roles require guilds
+		RoleManager: Infinity, // cache all roles
+		PermissionOverwrites: 0, // cache all PermissionOverwrites. It only costs memory if the channel it belongs to is cached
+		ChannelManager: {
+			maxSize: Infinity, // prevent automatic caching
+			sweepFilter: () => channelFilter, // remove manually cached channels according to the filter
+			sweepInterval: 3600
+		},
+		GuildChannelManager: {
+			maxSize: Infinity, // prevent automatic caching
+			sweepFilter: () => channelFilter, // remove manually cached channels according to the filter
+			sweepInterval: 3600
+		},
+	}),
+	/**
+		  cacheGuilds: true,
+		cacheChannels: true,
+		cacheOverwrites: false,
+		cacheRoles: true,
+		cacheEmojis: false,
+		cachePresences: false
+	 */
+	intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.DIRECT_MESSAGE_REACTIONS], partials: ['MESSAGE', 'CHANNEL', 'REACTION'],
+});
 
 const msgSplitor = (/\S+/ig);
 const link = process.env.WEB_LINK;
@@ -420,6 +443,7 @@ async function SendToId(targetid, replyText, quotes) {
 }
 
 function SendToReply({ replyText = "", message, quotes = false }) {
+	console.log('replyText', replyText)
 	let sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
 	for (let i = 0; i < sendText.length; i++) {
 		if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)

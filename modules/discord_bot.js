@@ -443,7 +443,6 @@ async function SendToId(targetid, replyText, quotes) {
 }
 
 function SendToReply({ replyText = "", message, quotes = false }) {
-	console.log('replyText', replyText)
 	let sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
 	for (let i = 0; i < sendText.length; i++) {
 		if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)

@@ -1072,6 +1072,13 @@ discord-api-types@^0.28.0:
   resolved "https://registry.yarnpkg.com/discord-api-types/-/discord-api-types-0.28.0.tgz#59c4a3649d5bad0d3dd4684f595dc5ade79c30a5"
   integrity sha512-Gi36pbzV+2j0q/XPlDJEgX/R+wogLxU2BZFvfTMUHHAQYXqwvqj4iZP5YUGOfKimmJc79rDRrtSPUGz2t4S4GQ==
 
+discord.js-light@^4.6.4:
+  version "4.6.4"
+  resolved "https://registry.yarnpkg.com/discord.js-light/-/discord.js-light-4.6.4.tgz#9a7f5d9feadf3638375dc0a71041f4cf9ca993d2"
+  integrity sha512-nhLV9She8z4+ihT1l4mm/F8mj1jh55ySiyeKxhBbTSv+iOPUMq4ABEkdfmRky7kVN01wG1nqgS6ZhisvXvnQSQ==
+  dependencies:
+    discord.js "^13.6.0"
+
 discord.js@^13.6.0:
   version "13.6.0"
   resolved "https://registry.yarnpkg.com/discord.js/-/discord.js-13.6.0.tgz#d8a8a591dbf25cbcf9c783d5ddf22c4694860475"

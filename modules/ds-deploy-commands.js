@@ -45,7 +45,7 @@ const commands = [
         .addChannelOption(option => option.setName('destination').setDescription('Select a channel'))
         .addRoleOption(option => option.setName('muted').setDescription('Select a role'))
         .addMentionableOption(option => option.setName('mentionable').setDescription('Mention something'))
-
+    
 ]
     .map(command => command.toJSON());
 

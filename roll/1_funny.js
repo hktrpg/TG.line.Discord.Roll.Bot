@@ -877,16 +877,14 @@ const discordCommand = [
 	},
 	{
 		data: new SlashCommandBuilder()
-			.setName('int')
-			.setDescription('int 20 50: 立即骰出20-50')
-			.addStringOption(option => option.setName('minnum').setDescription('輸入第一個數字').setRequired(true))
-			.addStringOption(option => option.setName('maxnum').setDescription('輸入第二個數字').setRequired(true))
+			.setName('排序')
+			.setDescription('進行隨機排序')
+			.addStringOption(option => option.setName('text').setDescription('輸入所有內容，以空格分隔').setRequired(true))
 		,
 		async execute(interaction) {
-			const minNum = interaction.options.getString('minnum')
-			const maxNum = interaction.options.getString('maxnum');
-			if (minNum !== null && maxNum !== null)
-				return `.int ${minNum} ${maxNum}`
+			const text = interaction.options.getString('text')
+			if (text !== null)
+				return `排序 ${text}`
 			else return `需要輸入兩個數字\n 如 .int 20 50`
 
 		}

@@ -168,7 +168,7 @@ var rollDiceCommand = async function ({
                 $push: temp, new: true
             }, opt).catch(error => console.error('randomans #168 mongoDB error: ', error.name, error.reson));
             if (check.n == 1) {
-                rply.text = '新增成功: \n輸入 .ra ' + mainMsg[2] + '\n即可使用'
+                rply.text = `新增成功: \n輸入 .ra ${mainMsg[2]}  \n即可使用\n再輸入.ra add ${mainMsg[2]} 可以添加內容`
             } else rply.text = '新增失敗'
             return rply;
         }
@@ -335,7 +335,7 @@ var rollDiceCommand = async function ({
                 })
                 try {
                     let checkResult = await newAnswer.save();
-                    rply.text = `新增成功  \n序號: ${checkResult.serial}\n標題: ${checkResult.title}\n內容: ${checkResult.answer}\n\n輸入 .rap ${checkResult.title}\n或 .rap ${checkResult.serial} \n即可使用`
+                    rply.text = `新增成功  \n序號: ${checkResult.serial}\n標題: ${checkResult.title}\n內容: ${checkResult.answer}\n\n輸入 .rap ${checkResult.title}\n或 .rap ${checkResult.serial} \n再輸入.rap add ${mainMsg[2]} 可以添加內容`
                 } catch (error) {
                     rply.text = '新增失敗, 請稍後再試'
                     console.error('randomans #331 mongoDB error: ', error.name, error.reson)

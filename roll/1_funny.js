@@ -885,8 +885,62 @@ const discordCommand = [
 			const text = interaction.options.getString('text')
 			if (text !== null)
 				return `排序 ${text}`
-			else return `需要輸入兩個數字\n 如 .int 20 50`
 
+		}
+	},
+	{
+		data: new SlashCommandBuilder()
+			.setName('隨機')
+			.setDescription('進行隨機抽選')
+			.addStringOption(option => option.setName('text').setDescription('輸入所有內容，以空格分隔').setRequired(true))
+		,
+		async execute(interaction) {
+			const text = interaction.options.getString('text')
+			if (text !== null)
+				return `隨機 ${text}`
+		}
+	},
+	{
+		data: new SlashCommandBuilder()
+			.setName('choice')
+			.setDescription('進行隨機抽選')
+			.addStringOption(option => option.setName('text').setDescription('輸入所有內容，以空格分隔').setRequired(true))
+		,
+		async execute(interaction) {
+			const text = interaction.options.getString('text')
+			if (text !== null)
+				return `隨機 ${text}`
+		}
+	},
+	{
+		data: new SlashCommandBuilder()
+			.setName('運勢')
+			.setDescription('進行隨機抽選')
+			.addStringOption(option => option.setName('text').setDescription('可選: 什麼的運勢'))
+		,
+		async execute(interaction) {
+			const text = interaction.options.getString('text')
+			if (text !== null)
+				return `${text}的運勢`
+		}
+	},
+	{
+		data: new SlashCommandBuilder()
+			.setName('塔羅')
+			.setDescription('進行塔羅占卜')
+			.addStringOption(option => option.setName('text').setDescription('可選: 什麼的運勢'))
+			.addStringOption(option =>
+				option.setName('category')
+					.setDescription('The gif category')
+					.setRequired(true)
+					.addChoice('Funny', 'gif_funny')
+					.addChoice('Meme', 'gif_meme')
+					.addChoice('Movie', 'gif_movie'))
+		,
+		async execute(interaction) {
+			const text = interaction.options.getString('text')
+			if (text !== null)
+				return `${text}的運勢`
 		}
 	}
 ];

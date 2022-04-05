@@ -928,19 +928,115 @@ const discordCommand = [
 		data: new SlashCommandBuilder()
 			.setName('塔羅')
 			.setDescription('進行塔羅占卜')
-			.addStringOption(option => option.setName('text').setDescription('可選: 什麼的運勢'))
 			.addStringOption(option =>
 				option.setName('category')
-					.setDescription('The gif category')
+					.setDescription('塔羅種類')
 					.setRequired(true)
-					.addChoice('Funny', 'gif_funny')
-					.addChoice('Meme', 'gif_meme')
-					.addChoice('Movie', 'gif_movie'))
+					.addChoice('每日塔羅(單張)', '每日塔羅')
+					.addChoice('大十字塔羅', '大十字塔羅')
+					.addChoice('時間塔羅', '時間塔羅'))
+		,
+		async execute(interaction) {
+			const category = interaction.options.getString('category')
+			if (category !== null)
+				return `${category}`
+		}
+	},
+	{
+		data: new SlashCommandBuilder()
+			.setName('立flag')
+			.setDescription('立FLAG')
+			.addStringOption(option => option.setName('text').setDescription('可選: 立什麼FLAG'))
 		,
 		async execute(interaction) {
 			const text = interaction.options.getString('text')
 			if (text !== null)
-				return `${text}的運勢`
+				return `${text}立FLAG`
+		}
+	},
+	{
+		data: new SlashCommandBuilder()
+			.setName('每日')
+			.setDescription('進行每日功能')
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('星座')
+					.setDescription('顯示每日星座運程')
+					.addStringOption(option =>
+						option.setName('star')
+							.setDescription('哪個星座')
+							.setRequired(true)
+							.addChoice('白羊', '每日白羊')
+							.addChoice('金牛', '每日金牛')
+							.addChoice('巨蟹', '每日巨蟹')
+							.addChoice('獅子', '每日獅子')
+							.addChoice('雙子', '每日雙子')
+							.addChoice('處女', '每日處女')
+							.addChoice('天秤', '每日天秤')
+							.addChoice('天蠍', '每日天蠍')
+							.addChoice('射手', '每日射手')
+							.addChoice('摩羯', '每日摩羯')
+							.addChoice('水瓶', '每日水瓶')
+							.addChoice('雙魚', '每日雙魚')
+					))
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('塔羅')
+					.setDescription('抽取一張塔羅牌'))
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('一言')
+					.setDescription('顯示一條金句'))
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('毒湯')
+					.setDescription('顯示一條有毒的雞湯'))
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('情話')
+					.setDescription('顯示一條情話'))
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('靈簽')
+					.setDescription('抽取一條觀音簽'))
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('大事')
+					.setDescription('顯示今天歷史上的大事'))
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('笑話')
+					.setDescription('顯示一條笑話'))
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('動漫')
+					.setDescription('顯示一條動漫金句'))
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('急口令')
+					.setDescription('顯示一條急口令'))
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('黃曆')
+					.setDescription('顯示今日黃曆'))
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('廢話')
+					.setDescription('生產一條你或對像的廢話').addStringOption(option => option.setName('name').setDescription('可選: 對像的名字，留白則使用你的名字')))
+
+		,
+		async execute(interaction) {
+			const category = interaction.options.getString('category')
+			const name = interaction.options.getString('name') || '';
+			const subcommand = interaction.options.getSubcommand()
+			const star = interaction.options.getString('star')
+			if (star !== null)
+				return `${star}`
+			if (subcommand !== null)
+				return `每日${subcommand} ${name}`
+			if (category !== null)
+				return `${category}`
+			return;
 		}
 	}
 ];

@@ -2,14 +2,14 @@
 const rollbase = require('./rollbase.js');
 const schema = require('../modules/schema.js');
 const mathjs = require('mathjs');
-var gameName = function () {
+const gameName = function () {
 	return '【克蘇魯神話】 cc cc(n)1~2 ccb ccrt ccsu .dp .cc7build .cc6build .cc7bg'
 }
-
-var gameType = function () {
+const { SlashCommandBuilder } = require('@discordjs/builders');
+const gameType = function () {
 	return 'Dice:CoC'
 }
-var prefixs = function () {
+const prefixs = function () {
 	return [{
 		first: /(^ccrt$)|(^\.chase$)|(^ccsu$)|(^cc7版創角$)|(^[.]dp$)|(^[.]cc7build$)|(^[.]ccpulpbuild$)|(^[.]cc6build$)|(^[.]cc7bg$)|(^cc6版創角$)|(^cc7版角色背景$)/i,
 		second: null
@@ -20,7 +20,7 @@ var prefixs = function () {
 	}
 	]
 }
-var getHelpMessage = function () {
+const getHelpMessage = function () {
 	return `【克蘇魯神話】
 coc6版擲骰		： ccb 80 技能小於等於80
 coc7版擲骰		： cc 80 技能小於等於80
@@ -61,11 +61,11 @@ coc7版角色背景隨機生成： 啓動語 .cc7bg
 
 `
 }
-var initialize = function () {
+const initialize = function () {
 	return {};
 }
 
-var rollDiceCommand = async function ({
+const rollDiceCommand = async function ({
 	mainMsg,
 	groupid,
 	userid,
@@ -392,7 +392,22 @@ var rollDiceCommand = async function ({
 	}
 	return rply;
 }
+const discordCommand = [
+	{
+		data: new SlashCommandBuilder()
+			.setName('re')
+			.setDescription('【複述功能】 /re (模擬系統說話) ')
+			.addStringOption(option => option.setName('text').setDescription('複述內容').setRequired(true)),
+		async execute(interaction) {
+			const text = interaction.options.getString('text')
+			if (text !== null)
+				return `.re ${text}`
+			else return `需要輸入內容\n 
+			例子 /re C君殺死了NPC 村民, 受到尼什村通緝!`
 
+		}
+	}
+];
 
 module.exports = {
 	rollDiceCommand: rollDiceCommand,
@@ -400,7 +415,8 @@ module.exports = {
 	getHelpMessage: getHelpMessage,
 	prefixs: prefixs,
 	gameType: gameType,
-	gameName: gameName
+	gameName: gameName,
+	discordCommand
 };
 
 

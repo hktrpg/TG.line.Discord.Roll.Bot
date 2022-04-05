@@ -45,7 +45,7 @@ const commands = [
         .addChannelOption(option => option.setName('destination').setDescription('Select a channel'))
         .addRoleOption(option => option.setName('muted').setDescription('Select a role'))
         .addMentionableOption(option => option.setName('mentionable').setDescription('Mention something'))
-    
+
 ]
     .map(command => command.toJSON());
 
@@ -54,7 +54,7 @@ const commands = [
 
 const rest = new REST({ version: '9' }).setToken(channelSecret);
 console.log('commands', commands)
-const clientId = "544561773488111636",
+const clientId = "960911423465213962",
     guildId = "628181436129607680";
 
 //remove all old command, devlopment only
@@ -71,11 +71,18 @@ rest.get(Routes.applicationGuildCommands(clientId, guildId))
 
 
 loadingSlashCommands();
-rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands })
-    .then(() => {
-        console.log('Successfully registered application commands.')
-    })
-    .catch(console.error);
+
+//registeredSlashCommands();
+
+
+function registeredSlashCommands() {
+    rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands })
+        .then(() => {
+            console.log('Successfully registered application commands.')
+        })
+        .catch(console.error);
+}
+
 
 
 

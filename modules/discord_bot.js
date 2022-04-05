@@ -705,7 +705,7 @@ client.on('interactionCreate', async message => {
 	//	console.log('interaction', message.options)
 	console.log('message', message.options._hoistedOptions)
 	const command = client.commands.get(message.commandName);
-	//	console.log('command', command)
+	console.log('command', command)
 	if (!command) return;
 
 	let answer = await command.execute(message).catch(error => {

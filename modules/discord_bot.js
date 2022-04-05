@@ -98,8 +98,8 @@ client.on('messageCreate', async message => {
 
 	let groupid = (message.guildId) ? message.guildId : '';
 	//指定啟動詞在第一個詞&把大階強制轉成細階
-	if (trigger == ".me" && !z_stop(mainMsg, groupid)) {
-		inputStr = inputStr.replace(/^.me\s+/i, ' ');
+	if (trigger == ".re" && !z_stop(mainMsg, groupid)) {
+		inputStr = inputStr.replace(/^.re\s+/i, ' ');
 		if (groupid) {
 			try {
 				await message.delete();
@@ -738,8 +738,8 @@ client.on('interactionCreate', async message => {
 
 	let groupid = (message.guildId) ? message.guildId : '';
 	//指定啟動詞在第一個詞&把大階強制轉成細階
-	if (trigger == ".me" && !z_stop(mainMsg, groupid)) {
-		inputStr = inputStr.replace(/^.me\s+/i, ' ');
+	if (trigger == ".re" && !z_stop(mainMsg, groupid)) {
+		inputStr = inputStr.replace(/^.re\s+/i, ' ');
 		if (groupid) {
 			try {
 				await message.delete();

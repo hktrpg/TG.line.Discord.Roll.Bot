@@ -1,25 +1,26 @@
 "use strict";
-var rollbase = require('./rollbase.js');
+const rollbase = require('./rollbase.js');
 var variables = {};
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const axiosRetry = require('axios-retry');
 const chineseConv = require('chinese-conv'); //繁簡轉換
 const axios = require('axios');
 const wiki = require('wikijs').default;
-var gameName = function () {
+const gameName = function () {
 	return '【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 運勢 每日塔羅 每日笑話 每日動漫 每日一言 每日廢話 每日黃曆 每日毒湯 每日情話 每日靈簽 每日急口令 每日大事 每日(星座) 立flag .me'
 }
 axiosRetry(axios, { retries: 3 });
 
-var gameType = function () {
+const gameType = function () {
 	return 'funny:funny:hktrpg'
 }
-var prefixs = function () {
+const prefixs = function () {
 	return [{
-		first: /^[.]me$|排序|隨機|choice|^每日塔羅|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸|^每日笑話$|^每日動漫$|^每日一言$|^每日廢話$|^每日黃曆$|^每日毒湯$|^每日情話$|^每日靈簽$|^每日急口令$|^每日大事$|^每日白羊$|^每日牡羊$|^每日金牛$|^每日雙子$|^每日巨蟹$|^每日獅子$|^每日處女$|^每日天秤$|^每日天平$|^每日天蠍$|^每日天蝎$|^每日射手$|^每日人馬$|^每日摩羯$|^每日山羊$|^每日水瓶$|^每日寶瓶$|^每日雙魚$/i,
+		first: /^[.]re$|排序|隨機|choice|^每日塔羅|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸|^每日笑話$|^每日動漫$|^每日一言$|^每日廢話$|^每日黃曆$|^每日毒湯$|^每日情話$|^每日靈簽$|^每日急口令$|^每日大事$|^每日白羊$|^每日牡羊$|^每日金牛$|^每日雙子$|^每日巨蟹$|^每日獅子$|^每日處女$|^每日天秤$|^每日天平$|^每日天蠍$|^每日天蝎$|^每日射手$|^每日人馬$|^每日摩羯$|^每日山羊$|^每日水瓶$|^每日寶瓶$|^每日雙魚$/i,
 		second: null
 	}]
 }
-var getHelpMessage = async function () {
+const getHelpMessage = async function () {
 	return `【趣味擲骰】
 
 【隨機選擇】： 啓動語 choice 隨機
@@ -30,9 +31,9 @@ var getHelpMessage = async function () {
 (問題)(啓動語)(問題) (選項1) (選項2)(選項3)
 例子 交換禮物排序 A君 C君 F君 G君
 
-【複述功能】：啓動語 .me (模擬系統說話)
+【複述功能】：啓動語 .re (模擬系統說話)
 (啓動語) (句子)(句子)(句子)
-例子 .me C君殺死了NPC 村民, 受到尼什村通緝!
+例子 .re C君殺死了NPC 村民, 受到尼什村通緝!
 
 【占卜運氣功能】：字句開頭或結尾包括「運勢」兩字及四十字以內
 
@@ -54,11 +55,11 @@ var getHelpMessage = async function () {
 每日(星座) 顯示每日星座運程 如 每日白羊 每日金牛 每日巨蟹
 `
 }
-var initialize = function () {
+const initialize = function () {
 	return variables;
 }
 
-var rollDiceCommand = async function ({
+const rollDiceCommand = async function ({
 	inputStr,
 	mainMsg,
 	displayname, displaynameDiscord, tgDisplayname
@@ -120,7 +121,7 @@ var rollDiceCommand = async function ({
 		case (/運勢$|^運勢/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,40}/g).length <= 1):
 			rply.text = randomLuck(mainMsg);
 			return rply;
-		case /^[.]me$/i.test(mainMsg[0]):
+		case /^[.]re$/i.test(mainMsg[0]):
 			rply.text = me(inputStr);
 			return rply;
 		case /^每日笑話$/.test(mainMsg[0]): {
@@ -265,7 +266,7 @@ var rollDiceCommand = async function ({
  * .ME
  */
 function me(inputStr) {
-	return inputStr.replace(/^[.]me/i, '');
+	return inputStr.replace(/^[.]re/i, '');
 }
 
 /**
@@ -859,12 +860,45 @@ http://ybapi.top/
 http://weizhinb.top/
 
 */
+const discordCommand = [
+	{
+		data: new SlashCommandBuilder()
+			.setName('re')
+			.setDescription('【複述功能】 /re (模擬系統說話) ')
+			.addStringOption(option => option.setName('text').setDescription('複述內容').setRequired(true)),
+		async execute(interaction) {
+			const text = interaction.options.getString('text')
+			if (text !== null)
+				return `.re ${text}`
+			else return `需要輸入內容\n 
+			例子 /re C君殺死了NPC 村民, 受到尼什村通緝!`
+
+		}
+	},
+	{
+		data: new SlashCommandBuilder()
+			.setName('int')
+			.setDescription('int 20 50: 立即骰出20-50')
+			.addStringOption(option => option.setName('minnum').setDescription('輸入第一個數字').setRequired(true))
+			.addStringOption(option => option.setName('maxnum').setDescription('輸入第二個數字').setRequired(true))
+		,
+		async execute(interaction) {
+			const minNum = interaction.options.getString('minnum')
+			const maxNum = interaction.options.getString('maxnum');
+			if (minNum !== null && maxNum !== null)
+				return `.int ${minNum} ${maxNum}`
+			else return `需要輸入兩個數字\n 如 .int 20 50`
+
+		}
+	}
+];
 
 module.exports = {
-	rollDiceCommand: rollDiceCommand,
-	initialize: initialize,
-	getHelpMessage: getHelpMessage,
-	prefixs: prefixs,
-	gameType: gameType,
-	gameName: gameName
+	rollDiceCommand,
+	initialize,
+	getHelpMessage,
+	prefixs,
+	gameType,
+	gameName,
+	discordCommand
 };

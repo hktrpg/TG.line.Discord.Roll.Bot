@@ -45,8 +45,8 @@ TGclient.on('text', async (ctx) => {
 		trigger = mainMsg[0].toString().toLowerCase();
 	}
 	//指定啟動詞在第一個詞&把大階強制轉成細階
-	if (trigger == ".me" && !z_stop(mainMsg, groupid)) {
-		inputStr = inputStr.replace(/^\.me\s+/i, '');
+	if (trigger == ".re" && !z_stop(mainMsg, groupid)) {
+		inputStr = inputStr.replace(/^\.re\s+/i, '');
 		SendToId(ctx.chat.id || userid, inputStr);
 		return;
 	}

@@ -824,7 +824,7 @@ function SortIt(input, mainMsg) {
 async function axiosDaily(url) {
 	let reply = '';
 	try {
-		const response = await axios.get(encodeURI(url), { timeout: 12000 });
+		const response = await axios.get(encodeURI(url), { timeout: 20000 });
 		const json = analyzeResponse(response);
 		reply += `${json.title ? json.title + '\n' : ''}`
 		reply += `${json.text && json.text !== '获取成功' ? json.text + '\n' : ''}`

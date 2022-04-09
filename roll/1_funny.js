@@ -836,11 +836,10 @@ async function axiosDaily(url) {
 		reply += `${json.data && json.data.image ? json.data.image + '\n' : ''}`
 		return reply || '沒有結果，請檢查內容'
 	} catch (error) {
-		if (error.code == 'ETIMEDOUT' || error.code == 'ECONNABORTED' || error.code == 'ECONNRESET') {
-			return '伺服器連線出現問題，請稍後再試'
+		if (error.code !== 'ETIMEDOUT' || error.code !== 'ECONNABORTED' || error.code !== 'ECONNRESET' || error.code !== 'undefined') {
+			console.error('axiosDaily error: ', error && error.code);
 		}
-		console.error('axiosDaily error: ', error && error.code);
-		return error.code;
+		return `'伺服器連線出現問題，請稍後再試，錯誤代碼: ${error.code}`;
 	}
 }
 

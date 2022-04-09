@@ -840,7 +840,7 @@ async function axiosDaily(url) {
 			return '伺服器連線出現問題，請稍後再試'
 		}
 		console.error('axiosDaily error: ', error && error.code);
-		return error.type;
+		return error.code;
 	}
 }
 

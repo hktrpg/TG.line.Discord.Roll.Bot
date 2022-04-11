@@ -826,6 +826,7 @@ async function axiosDaily(url) {
 	try {
 		const response = await axios.get(encodeURI(url), { timeout: 20000 });
 		const json = analyzeResponse(response);
+		console.log('json', json)
 		reply += `${json.title ? json.title + '\n' : ''}`
 		reply += `${json.text && json.text !== '获取成功' ? json.text + '\n' : ''}`
 		reply += `${json.data && json.data.title ? json.data.title + '\n' : ''}`
@@ -834,6 +835,7 @@ async function axiosDaily(url) {
 		reply = chineseConv.tify(reply);
 		reply += `${json.image ? json.image + '\n' : ''}`
 		reply += `${json.data && json.data.image ? json.data.image + '\n' : ''}`
+		reply = reply.replace(/\\r/g, '\n')
 		return reply || '沒有結果，請檢查內容'
 	} catch (error) {
 		if (error.code !== 'ETIMEDOUT' || error.code !== 'ECONNABORTED' || error.code !== 'ECONNRESET' || error.code !== 'undefined') {

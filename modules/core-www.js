@@ -103,7 +103,7 @@ www.get('/api', async (req, res) => {
     } else {
         if (channelKeyword == '') {
             rplyVal = await exports.analytics.parseInput({
-                inputStr: mainMsg.join(' '),
+                inputStr: mainMsg.join(''),
                 botname: "Api"
             })
         }

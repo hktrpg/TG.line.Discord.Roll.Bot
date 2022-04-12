@@ -109,7 +109,7 @@ www.get('/api', async (req, res) => {
         }
     }
 
-    if (!rplyVal || !rplyVal.text) rplyVal.text = null;
+    if (!rplyVal || !rplyVal.text) rplyVal.text = ' ';
     res.writeHead(200, { 'Content-type': 'application/json' })
     res.end(`{"message":"${jsonEscape(rplyVal.text)}"}`)
     return;

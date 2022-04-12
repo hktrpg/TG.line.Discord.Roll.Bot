@@ -826,7 +826,6 @@ async function axiosDaily(url) {
 	try {
 		const response = await axios.get(encodeURI(url), { timeout: 20000 });
 		const json = analyzeResponse(response);
-		console.log('json', json)
 		reply += `${json.title ? json.title + '\n' : ''}`
 		reply += `${json.text && json.text !== '获取成功' ? json.text + '\n' : ''}`
 		reply += `${json.data && json.data.title ? json.data.title + '\n' : ''}`

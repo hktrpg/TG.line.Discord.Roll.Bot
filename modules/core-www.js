@@ -103,13 +103,13 @@ www.get('/api', async (req, res) => {
     } else {
         if (channelKeyword == '') {
             rplyVal = await exports.analytics.parseInput({
-                inputStr: mainMsg.join(''),
+                inputStr: mainMsg.join(' '),
                 botname: "Api"
             })
         }
     }
 
-    if (!rplyVal || !rplyVal.text) rplyVal.text = ' ';
+    if (!rplyVal || !rplyVal.text) rplyVal.text = '';
     res.writeHead(200, { 'Content-type': 'application/json' })
     res.end(`{"message":"${jsonEscape(rplyVal.text)}"}`)
     return;

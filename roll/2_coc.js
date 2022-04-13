@@ -450,7 +450,7 @@ const discordCommand = [
 			const success = interaction.options.getString('success')
 			const failure = interaction.options.getString('failure')
 			let ans = `.sc ${text}`
-			if ((success && failure) !== null) ans + ` ${success}/${failure}`
+			if ((success !== null) && (failure !== null)) ans = `${ans} ${success}/${failure}`
 			return ans;
 		}
 	},

@@ -423,6 +423,7 @@ const discordCommand = [
 		data: new SlashCommandBuilder()
 			.setName('cc')
 			.setDescription('coc7版擲骰')
+			.addStringOption(option => option.setName('text').setDescription('目標技能大小及名字').setRequired(true))
 			.addStringOption(option =>
 				option.setName('paney')
 					.setDescription('獎勵或懲罰骰')
@@ -430,7 +431,7 @@ const discordCommand = [
 					.addChoice('1粒獎勵骰', '2')
 					.addChoice('1粒懲罰骰', 'n1')
 					.addChoice('2粒懲罰骰', 'n2'))
-			.addStringOption(option => option.setName('text').setDescription('目標技能大小及名字').setRequired(true)),
+		,
 		async execute(interaction) {
 			const text = interaction.options.getString('text')
 			const paney = interaction.options.getString('paney') || '';
@@ -517,12 +518,12 @@ const discordCommand = [
 ];
 
 module.exports = {
-	rollDiceCommand: rollDiceCommand,
-	initialize: initialize,
-	getHelpMessage: getHelpMessage,
-	prefixs: prefixs,
-	gameType: gameType,
-	gameName: gameName,
+	rollDiceCommand,
+	initialize,
+	getHelpMessage,
+	prefixs,
+	gameType,
+	gameName,
 	discordCommand
 };
 

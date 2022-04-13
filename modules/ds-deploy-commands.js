@@ -5,6 +5,7 @@ const { Routes } = require('discord-api-types/v9');
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const fs = require('node:fs');
 const commands = [
+    /**
     new SlashCommandBuilder()
         .setName('echo')
         .setDescription('Replies with your input!')
@@ -45,7 +46,7 @@ const commands = [
         .addChannelOption(option => option.setName('destination').setDescription('Select a channel'))
         .addRoleOption(option => option.setName('muted').setDescription('Select a role'))
         .addMentionableOption(option => option.setName('mentionable').setDescription('Mention something'))
-
+ */
 ]
     .map(command => command.toJSON());
 
@@ -53,8 +54,7 @@ const commands = [
 
 
 const rest = new REST({ version: '9' }).setToken(channelSecret);
-console.log('commands', commands)
-const clientId = "960911423465213962",
+const clientId = "544561773488111636",
     guildId = "628181436129607680";
 
 //remove all old command, devlopment only
@@ -72,7 +72,7 @@ rest.get(Routes.applicationGuildCommands(clientId, guildId))
 
 loadingSlashCommands();
 
-//registeredSlashCommands();
+registeredSlashCommands();
 
 
 function registeredSlashCommands() {

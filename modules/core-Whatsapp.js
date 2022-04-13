@@ -35,7 +35,7 @@ const newMessage = require('./message');
 exports.analytics = require('./analytics');
 exports.z_stop = require('../roll/z_stop');
 const {
-	Client, LegacySessionAuth
+	Client, LocalAuth
 } = require('whatsapp-web.js');
 const msgSplitor = (/\S+/ig);
 // Path where the session data will be stored
@@ -66,7 +66,7 @@ async function startUp() {
 	}
 	const client = new Client({
 		session: sessionData || null,
-		authStrategy: new LegacySessionAuth(),
+		authStrategy: new LocalAuth(),
 		puppeteer: (isHeroku) ? herokuPuppeteer : normalPuppeteer
 	});
 	client.initialize();

@@ -428,7 +428,7 @@ const discordCommand = [
 				option.setName('paney')
 					.setDescription('獎勵或懲罰骰')
 					.addChoice('1粒獎勵骰', '1')
-					.addChoice('1粒獎勵骰', '2')
+					.addChoice('2粒獎勵骰', '2')
 					.addChoice('1粒懲罰骰', 'n1')
 					.addChoice('2粒懲罰骰', 'n2'))
 		,

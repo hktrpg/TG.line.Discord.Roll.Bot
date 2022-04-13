@@ -72,10 +72,19 @@ rest.get(Routes.applicationGuildCommands(clientId, guildId))
 
 loadingSlashCommands();
 
-registeredSlashCommands();
+//testRegisteredSlashCommands();
+//registeredGlobalSlashCommands();
 
 
-function registeredSlashCommands() {
+async function registeredGlobalSlashCommands() {
+    await rest.put(Routes.applicationCommands(clientId), { body: commands })
+        .then(() => {
+            console.log('Successfully Global registered application commands.')
+        })
+        .catch(console.error);
+}
+
+function testRegisteredSlashCommands() {
     rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands })
         .then(() => {
             console.log('Successfully registered application commands.')

@@ -834,7 +834,7 @@ async function axiosDaily(url) {
 		reply = chineseConv.tify(reply);
 		reply += `${json.image ? json.image + '\n' : ''}`
 		reply += `${json.data && json.data.image ? json.data.image + '\n' : ''}`
-		reply = reply.replace(/\\r/g, '\n')
+		reply = reply.replace(/\\r/g, '\n').replace(/\\n/g, '\n')
 		return reply || '沒有結果，請檢查內容'
 	} catch (error) {
 		if (error.code !== 'ETIMEDOUT' || error.code !== 'ECONNABORTED' || error.code !== 'ECONNRESET' || error.code !== 'undefined') {

@@ -395,16 +395,123 @@ const rollDiceCommand = async function ({
 const discordCommand = [
 	{
 		data: new SlashCommandBuilder()
-			.setName('re')
-			.setDescription('【複述功能】 /re (模擬系統說話) ')
-			.addStringOption(option => option.setName('text').setDescription('複述內容').setRequired(true)),
+			.setName('ccrt')
+			.setDescription('coc7版 即時型瘋狂')
+		,
+		async execute() {
+			return `ccrt`
+		}
+	}, {
+		data: new SlashCommandBuilder()
+			.setName('ccsu')
+			.setDescription('coc7版 總結型瘋狂')
+		,
+		async execute() {
+			return `ccsu`
+		}
+	}, {
+		data: new SlashCommandBuilder()
+			.setName('ccb')
+			.setDescription('coc6版擲骰')
+			.addStringOption(option => option.setName('text').setDescription('目標技能大小及名字').setRequired(true)),
 		async execute(interaction) {
 			const text = interaction.options.getString('text')
 			if (text !== null)
-				return `.re ${text}`
-			else return `需要輸入內容\n 
-			例子 /re C君殺死了NPC 村民, 受到尼什村通緝!`
+				return `ccb ${text}`
+		}
+	}, {
+		data: new SlashCommandBuilder()
+			.setName('cc')
+			.setDescription('coc7版擲骰')
+			.addStringOption(option =>
+				option.setName('paney')
+					.setDescription('獎勵或懲罰骰')
+					.addChoice('1粒獎勵骰', '1')
+					.addChoice('1粒獎勵骰', '2')
+					.addChoice('1粒懲罰骰', 'n1')
+					.addChoice('2粒懲罰骰', 'n2'))
+			.addStringOption(option => option.setName('text').setDescription('目標技能大小及名字').setRequired(true)),
+		async execute(interaction) {
+			const text = interaction.options.getString('text')
+			const paney = interaction.options.getString('paney') || '';
 
+			return `cc${paney} ${text}`
+		}
+	}, {
+		data: new SlashCommandBuilder()
+			.setName('sc')
+			.setDescription('coc7版SanCheck')
+			.addStringOption(option => option.setName('text').setDescription('你的San值').setRequired(true))
+			.addStringOption(option => option.setName('success').setDescription('成功扣多少San'))
+			.addStringOption(option => option.setName('failure').setDescription('失敗扣多少San')),
+		async execute(interaction) {
+			const text = interaction.options.getString('text')
+			const success = interaction.options.getString('success')
+			const failure = interaction.options.getString('failure')
+			let ans = `.sc ${text}`
+			if ((success && failure) !== null) ans + ` ${success}/${failure}`
+			return ans;
+		}
+	},
+	{
+		data: new SlashCommandBuilder()
+			.setName('build')
+			.setDescription('創角功能')
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('ccpulpbuild')
+					.setDescription('pulp版創角'))
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('cc6build')
+					.setDescription('coc6版創角'))
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('cc7build')
+					.setDescription('coc7版創角').addStringOption(option => option.setName('age').setDescription('可選: (歲數7-89) 如果沒有會使用隨機開角')))
+
+		,
+		async execute(interaction) {
+			const age = interaction.options.getString('age') || '';
+			const subcommand = interaction.options.getSubcommand()
+			if (subcommand !== null)
+				return `.${subcommand} ${age}`
+			return '.cc7build help';
+		}
+	}, {
+		data: new SlashCommandBuilder()
+			.setName('dp')
+			.setDescription('coc7 成長或增強檢定')
+			.addStringOption(option => option.setName('text').setDescription('目標技能大小及名字').setRequired(true)),
+		async execute(interaction) {
+			const text = interaction.options.getString('text')
+			return `.dp ${text}`
+		}
+	}, {
+		data: new SlashCommandBuilder()
+			.setName('dpg')
+			.setDescription('coc7 成長檢定紀錄功能')
+			.addStringOption(option =>
+				option.setName('mode')
+					.setDescription('功能')
+					.addChoice('顯示擲骰紀錄', 'show')
+					.addChoice('顯示全頻道所有大成功大失敗擲骰紀錄', 'showall')
+					.addChoice('開啓紀錄功能', 'start')
+					.addChoice('停止紀錄功能', 'stop')
+					.addChoice('進行自動成長並清除擲骰紀錄', 'auto')
+					.addChoice('清除擲骰紀錄', 'clear')
+					.addChoice('清除擲骰紀錄包括大成功大失敗', 'clearall')
+			),
+		async execute(interaction) {
+			const mode = interaction.options.getString('mode')
+			return `.dp ${mode}`
+		}
+	}, {
+		data: new SlashCommandBuilder()
+			.setName('cc7bg')
+			.setDescription('coc7版角色背景隨機生成'),
+		async execute() {
+			return `.cc7bg`
 		}
 	}
 ];

@@ -5,6 +5,7 @@ const {
   nodeCrypto
 } = require("random-js");
 const random = new Random(nodeCrypto);
+const { SlashCommandBuilder } = require('@discordjs/builders');
 //value = random.integer(1, 100);
 const regex = /(\d+)d(\d+)(kh|kl|dh|dl|k|)(\d+|)/i;
 //var Sided = [];
@@ -281,6 +282,22 @@ function onetimeroll(text0) {
     return '';
   }
 }
+const discordCommand = [
+  {
+    data: new SlashCommandBuilder()
+      .setName('re')
+      .setDescription('【複述功能】 /re (模擬系統說話) ')
+      .addStringOption(option => option.setName('text').setDescription('複述內容').setRequired(true)),
+    async execute(interaction) {
+      const text = interaction.options.getString('text')
+      if (text !== null)
+        return `.re ${text}`
+      else return `需要輸入內容\n 
+			例子 /re C君殺死了NPC 村民, 受到尼什村通緝!`
+
+    }
+  }
+];
 module.exports = {
   Dice: Dice,
   sortNumber: sortNumber,
@@ -295,5 +312,6 @@ module.exports = {
   getHelpMessage: getHelpMessage,
   prefixs: prefixs,
   gameType: gameType,
-  gameName: gameName
+  gameName: gameName,
+  discordCommand
 };

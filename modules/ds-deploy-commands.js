@@ -73,7 +73,7 @@ rest.get(Routes.applicationGuildCommands(clientId, guildId))
 loadingSlashCommands();
 
 //testRegisteredSlashCommands();
-//registeredGlobalSlashCommands();
+registeredGlobalSlashCommands();
 
 
 async function registeredGlobalSlashCommands() {

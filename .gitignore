@@ -67,3 +67,5 @@ tmp/
 .vscode/settings.json
 .env copy
 modules/whatsapp-session.json
+
+.wwebjs_auth/

@@ -124,7 +124,9 @@ var rollDiceCommand = async function ({
             lv = await VIP.viplevelCheckGroup(groupid);
             limit = limitArr[lv];
             if (!mainMsg[2])
-                rply.text += ' 沒有骰子名稱.'
+                rply.text += ' 沒有輸入骰子名稱.'
+            if (!mainMsg[3])
+                rply.text += ' 沒有輸入骰子內容.'
             if (!groupid)
                 rply.text += ' 此功能必須在群組中使用.'
             if (groupid && userrole < 1)
@@ -166,7 +168,7 @@ var rollDiceCommand = async function ({
                 $push: temp, new: true
             }, opt).catch(error => console.error('randomans #168 mongoDB error: ', error.name, error.reson));
             if (check.n == 1) {
-                rply.text = '新增成功: \n輸入 .ra ' + mainMsg[2] + '\n即可使用'
+                rply.text = `新增成功: \n輸入 .ra ${mainMsg[2]}  \n即可使用\n再輸入.ra add ${mainMsg[2]} 可以添加內容`
             } else rply.text = '新增失敗'
             return rply;
         }
@@ -231,7 +233,7 @@ var rollDiceCommand = async function ({
             }
             //顯示自定義關鍵字
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
-            rply.text += '\n\n在.ras show 後面輸入骰子名稱, 可以顯示詳細內容\n輸入 .ras (列表序號或骰子名稱) 可以進行隨機擲骰'
+            rply.text += '\n\n在.ra show 後面輸入骰子名稱, 可以顯示詳細內容\n輸入 .ra (列表序號或骰子名稱) 可以進行隨機擲骰'
             return rply
         case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
             //
@@ -267,6 +269,7 @@ var rollDiceCommand = async function ({
                     let items = [];
                     let tempItems = [...temp]
                     tempItems.splice(0, 1);
+                    if (tempItems.length === 0) continue;
                     while (items.length < times) {
                         items = tempItems
                             .map((a) => ({
@@ -295,7 +298,9 @@ var rollDiceCommand = async function ({
                 lv = await VIP.viplevelCheckUser(userid);
                 limit = limitArrPersonal[lv];
                 if (!mainMsg[2])
-                    rply.text += ' 沒有骰子名稱.'
+                    rply.text += ' 沒有輸入骰子名稱.'
+                if (!mainMsg[3])
+                    rply.text += ' 沒有輸入骰子內容.'
                 if (!userid)
                     rply.text += ' 此功能必須使用聊天軟件，在個人身份中使用.'
                 if (rply.text) {
@@ -330,7 +335,7 @@ var rollDiceCommand = async function ({
                 })
                 try {
                     let checkResult = await newAnswer.save();
-                    rply.text = `新增成功  \n序號: ${checkResult.serial}\n標題: ${checkResult.title}\n內容: ${checkResult.answer}\n\n輸入 .rap ${checkResult.title}\n或 .rap ${checkResult.serial} \n即可使用`
+                    rply.text = `新增成功  \n序號: ${checkResult.serial}\n標題: ${checkResult.title}\n內容: ${checkResult.answer}\n\n輸入 .rap ${checkResult.title}\n或 .rap ${checkResult.serial} \n再輸入.rap add ${mainMsg[2]} 可以添加內容`
                 } catch (error) {
                     rply.text = '新增失敗, 請稍後再試'
                     console.error('randomans #331 mongoDB error: ', error.name, error.reson)
@@ -415,6 +420,7 @@ var rollDiceCommand = async function ({
                     rply.text += temp.title + ' → ';
                     let items = [];
                     let tempItems = [...temp.answer]
+                    if (tempItems.length === 0) continue;
                     while (items.length < times) {
                         items = tempItems
                             .map((a) => ({
@@ -442,6 +448,8 @@ var rollDiceCommand = async function ({
                 // .ras[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
                 if (!mainMsg[2])
                     rply.text += ' 沒有輸入骰子名稱.'
+                if (!mainMsg[3])
+                    rply.text += ' 沒有輸入骰子內容.'
                 if (!mainMsg[4])
                     rply.text += ' 沒有自定義骰子回應內容,至少兩個.'
                 if (rply.text) {
@@ -575,6 +583,7 @@ var rollDiceCommand = async function ({
                     rply.text += temp.title + ' → ';
                     let items = [];
                     let tempItems = [...temp.answer]
+                    if (tempItems.length === 0) continue;
                     while (items.length < times) {
                         items = tempItems
                             .map((a) => ({

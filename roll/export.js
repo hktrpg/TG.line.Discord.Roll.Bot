@@ -96,7 +96,7 @@ var rollDiceCommand = async function ({
     }
 
     function replacer(first, second) {
-        let users = discordClient.users.cache.get(second);
+        let users = discordClient.users.fetch(second);
         if (users && users.username) {
             return '@' + users.username;
         } else return first;

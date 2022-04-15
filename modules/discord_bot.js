@@ -5,20 +5,60 @@ const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const adminSecret = process.env.ADMIN_SECRET || '';
 const Discord = require("discord.js-light");
-const translateChannel = require('../modules/translate');
 const fs = require('node:fs');
 const { Client, Intents, Permissions, Collection } = Discord;
 const rollText = require('./getRoll').rollText;
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
-const imageUrl = /^(?:(?:(?<protocol>(?:http|https)):\/\/)?(?:(?<authority>(?:[A-Za-z](?:[A-Za-z\d\-]*[A-Za-z\d])?)(?:\.[A-Za-z][A-Za-z\d\-]*[A-Za-z\d])*)(?:\:(?<port>[0-9]+))?\/)(?:(?<path>[^\/][^\?\#\;]*\/))?)?(?<file>[^\?\#\/\\]*\.(?<extension>[Jj][Pp][Ee]?[Gg]|[Pp][Nn][Gg]|[Gg][Ii][Ff]))(?:\?(?<query>[^\#]*))?(?:\#(?<fragment>.*))?$/gm;
+const imageUrl = /^(?:(?:(?<protocol>(?:http|https)):\/\/)?(?:(?<authority>(?:[A-Za-z](?:[A-Za-z\d-]*[A-Za-z\d])?)(?:\.[A-Za-z][A-Za-z\d-]*[A-Za-z\d])*)(?::(?<port>[0-9]+))?\/)(?:(?<path>[^/][^?#;]*\/))?)?(?<file>[^?#/\\]*\.(?<extension>[Jj][Pp][Ee]?[Gg]|[Pp][Nn][Gg]|[Gg][Ii][Ff]))(?:\?(?<query>[^#]*))?(?:#(?<fragment>.*))?$/gm;
 exports.z_stop = require('../roll/z_stop');
 
 
+function channelFilter(channel) {
+	return !channel.lastMessageId || Discord.SnowflakeUtil.deconstruct(channel.lastMessageId).timestamp < Date.now() - 3600000;
+}
+const client = new Client({
+	makeCache: Discord.Options.cacheWithLimits({
+		ApplicationCommandManager: 0, // guild.commands
+		BaseGuildEmojiManager: 0, // guild.emojis
+		GuildBanManager: 0, // guild.bans
+		GuildInviteManager: 0, // guild.invites
+		GuildMemberManager: 0, // guild.members
+		GuildStickerManager: 0, // guild.stickers
+		MessageManager: Infinity, // channel.messages
+		PermissionOverwriteManager: 0, // channel.permissionOverwrites
+		PresenceManager: 0, // guild.presences
+		ReactionManager: 0, // message.reactions
+		ReactionUserManager: 0, // reaction.users
+		StageInstanceManager: 0, // guild.stageInstances
+		ThreadManager: 0, // channel.threads
+		ThreadMemberManager: 0, // threadchannel.members
+		UserManager: Infinity, // client.users
+		VoiceStateManager: 0,// guild.voiceStates
 
-const client = new Client(
-	{
-		intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.DIRECT_MESSAGE_REACTIONS], partials: ['MESSAGE', 'CHANNEL', 'REACTION']
-	});
+		GuildManager: Infinity, // roles require guilds
+		RoleManager: Infinity, // cache all roles
+		PermissionOverwrites: 0, // cache all PermissionOverwrites. It only costs memory if the channel it belongs to is cached
+		ChannelManager: {
+			maxSize: Infinity, // prevent automatic caching
+			sweepFilter: () => channelFilter, // remove manually cached channels according to the filter
+			sweepInterval: 3600
+		},
+		GuildChannelManager: {
+			maxSize: Infinity, // prevent automatic caching
+			sweepFilter: () => channelFilter, // remove manually cached channels according to the filter
+			sweepInterval: 3600
+		},
+	}),
+	/**
+		  cacheGuilds: true,
+		cacheChannels: true,
+		cacheOverwrites: false,
+		cacheRoles: true,
+		cacheEmojis: false,
+		cachePresences: false
+	 */
+	intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.DIRECT_MESSAGE_REACTIONS], partials: ['MESSAGE', 'CHANNEL', 'REACTION'],
+});
 const msgSplitor = (/\S+/ig);
 const link = process.env.WEB_LINK;
 const port = process.env.PORT || 20721;
@@ -33,7 +73,7 @@ const reconnectInterval = 1 * 1000 * 60;
 const shardids = client.shard.ids[0];
 const WebSocket = require('ws');
 var ws;
-var connect = function () {
+const connect = function () {
 	ws = new WebSocket('ws://127.0.0.1:53589');
 	ws.on('open', function open() {
 		console.log(`connectd To core-www from discord! Shard#${shardids}`)
@@ -105,42 +145,20 @@ client.on('messageCreate', async message => {
 		}
 
 		if (groupid) {
-			try {
-				await message.delete();
-			} catch (error) {
-				//console.log(`discord bot error #105`, error)
-			}
 			await SendToReplychannel({ replyText: inputStr, channelid: message.channel.id });
-
 		} else {
 			SendToReply({ replyText: inputStr, message });
-			try {
-				await message.delete();
-			} catch (error) {
-				//console.log(`discord bot error #114`, error)
-			}
+
 		}
 		return;
 	}
 	let rplyVal = {};
-	if (message.channelId) {
-		rplyVal.translate = translateChannel.translateChecker(message.channelId)
-
-	}
-
 	let checkPrivateMsg = privateMsg({ trigger, mainMsg, inputStr });
 	inputStr = checkPrivateMsg.inputStr;
 	let privatemsg = checkPrivateMsg.privatemsg;
 
 	let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
 	if (!target) {
-		if (rplyVal.translate) {
-			rplyVal.translate = await translateChannel.translateText(inputStr);
-			message.reply({
-				content: rplyVal.translate,
-				quotes: true
-			});
-		}
 		await nonDice(message)
 		return null
 	}
@@ -262,12 +280,9 @@ client.on('messageCreate', async message => {
 	}
 	*/
 	if (rplyVal.state) {
-		console.log('01')
 		rplyVal.text += '\n' + await count();
-		console.log('02')
 		rplyVal.text += '\nPing: ' + Number(Date.now() - message.createdTimestamp) + 'ms';
 		rplyVal.text += await getAllshardIds();
-		console.log('03')
 	}
 
 	if (groupid && rplyVal && rplyVal.LevelUp) {
@@ -531,6 +546,7 @@ client.on('ready', async () => {
 	client.user.setActivity('🌼bothelp | hktrpg.com🍎');
 	console.log(`Discord: Logged in as ${client.user.tag}!`);
 	var switchSetActivity = 0;
+	// eslint-disable-next-line no-unused-vars
 	const refreshId = setInterval(async () => {
 		if (shardids !== (client.shard.client.options.shardCount - 1)) return;
 		if (adminSecret) {
@@ -539,7 +555,8 @@ client.on('ready', async () => {
 				SendToId(adminSecret, 'HKTRPG可能下線了');
 			}
 		}
-	}, 60000);
+	}, 180000);
+	// eslint-disable-next-line no-unused-vars
 	const refreshId2 = setInterval(async () => {
 		switch (switchSetActivity % 2) {
 			case 1:
@@ -579,7 +596,7 @@ async function count() {
 	const promises = [
 		client.shard.fetchClientValues('guilds.cache.size'),
 		client.shard
-			.broadcastEval(c => c.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0))
+			.broadcastEval(c => c.guilds.cache.filter((guild) => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0))
 	];
 
 	return Promise.all(promises)
@@ -598,7 +615,7 @@ async function count2() {
 	const promises = [
 		client.shard.fetchClientValues('guilds.cache.size'),
 		client.shard
-			.broadcastEval(c => c.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0))
+			.broadcastEval(c => c.guilds.cache.filter((guild) => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0))
 	];
 
 	return Promise.all(promises)
@@ -1191,7 +1208,7 @@ client.on('messageReactionRemove', async (reaction, user) => {
 
 
 function z_stop(mainMsg, groupid) {
-	if (!Object.keys(exports.z_stop).length || !exports.z_stop.initialize().save) {
+	if (!Object.keys(exports.z_stop).length || !exports.z_stop.initialize().save || !mainMsg || !groupid) {
 		return false;
 	}
 	let groupInfo = exports.z_stop.initialize().save.find(e => e.groupid == groupid)
@@ -1208,7 +1225,6 @@ async function getAllshardIds() {
 	if (!client.shard) {
 		return;
 	}
-	console.log('02-1')
 	const promises = [
 		client.shard.broadcastEval(c => c.shard?.ids[0]),
 		client.shard.broadcastEval(c => c.ws.status),

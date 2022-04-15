@@ -53,7 +53,10 @@ var handleEvent = async function (event) {
 	}
 	//指定啟動詞在第一個詞&把大階強制轉成細階
 	if ((trigger == ".me" || trigger == ".re") && !z_stop(mainMsg, roomorgroupid)) {
-		inputStr = inputStr.replace(/^.me\s+/i, '').replace(/^.re\s+/i, '');
+		inputStr = inputStr.replace(/^\.me\s*/i, ' ').replace(/^\.re\s*/i, ' ');
+		if (inputStr.match(/^\s+$/)) {
+			inputStr = `.me 或 /re 可以令HKTRPG機械人重覆你的說話\n請輸入復述內容`
+		}
 		if (roomorgroupid) {
 			let temp = HandleMessage(inputStr);
 			client.replyMessage(event.replyToken, temp).catch((err) => {

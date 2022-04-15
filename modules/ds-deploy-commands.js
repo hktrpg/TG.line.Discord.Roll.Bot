@@ -4,6 +4,8 @@ const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const fs = require('node:fs');
+const clientId = process.env.DISCORD_CHANNEL_CLIENTID || "544561773488111636";
+const guildId = process.env.DISCORD_CHANNEL_GUILDID || "628181436129607680";
 const commands = [
     /**
     new SlashCommandBuilder()
@@ -54,8 +56,7 @@ const commands = [
 
 
 const rest = new REST({ version: '9' }).setToken(channelSecret);
-const clientId = "544561773488111636",
-    guildId = "628181436129607680";
+
 
 //remove all old command, devlopment only
 rest.get(Routes.applicationGuildCommands(clientId, guildId))
@@ -76,12 +77,14 @@ loadingSlashCommands();
 registeredGlobalSlashCommands();
 
 
-async function registeredGlobalSlashCommands() {
-    await rest.put(Routes.applicationCommands(clientId), { body: commands })
+function registeredGlobalSlashCommands() {
+    rest.put(Routes.applicationCommands(clientId), { body: commands })
         .then(() => {
             console.log('Successfully Global registered application commands.')
         })
-        .catch(console.error);
+        .catch(err => {
+            console.error(err)
+        });
 }
 
 function testRegisteredSlashCommands() {
@@ -89,7 +92,9 @@ function testRegisteredSlashCommands() {
         .then(() => {
             console.log('Successfully registered application commands.')
         })
-        .catch(console.error);
+        .catch(err => {
+            console.error(err)
+        });
 }
 
 

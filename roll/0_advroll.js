@@ -1,17 +1,18 @@
 "use strict";
 const rollbase = require('./rollbase.js');
 const mathjs = require('mathjs');
-var variables = {};
+const { SlashCommandBuilder } = require('@discordjs/builders');
+const variables = {};
 const regexxBy = /^((\d+)(b)(\d+))(S?)/i
 const regexxUy = /^(\d+)(u)(\d+)/i
-var gameName = function () {
+const gameName = function () {
 	return '【進階擲骰】 .ca (計算)|D66(sn)|5B10 Dx|5U10 x y|.int x y'
 }
 
-var gameType = function () {
+const gameType = function () {
 	return 'Dice:advRoll'
 }
-var prefixs = function () {
+const prefixs = function () {
 	return [{
 		first: /^[.][c][a]$/i,
 		second: null
@@ -34,7 +35,7 @@ var prefixs = function () {
 	}
 	]
 }
-var getHelpMessage = function () {
+const getHelpMessage = function () {
 	return `【進階擲骰】
 
 【數學計算】.ca： (不支援擲骰) 
@@ -56,11 +57,11 @@ D66 D66s D66n：	骰出D66 s數字小在前 n大在前
 `
 }
 
-var initialize = function () {
+const initialize = function () {
 	return variables;
 }
 
-var rollDiceCommand = async function ({
+const rollDiceCommand = async function ({
 	inputStr,
 	mainMsg,
 	botname
@@ -127,15 +128,49 @@ var rollDiceCommand = async function ({
 			break;
 	}
 }
+//name execute
+const discordCommand = [
+	{
+		data: new SlashCommandBuilder()
+			.setName('ca')
+			.setDescription('【數學計算】 (不支援擲骰) ')
+			.addStringOption(option => option.setName('text').setDescription('輸入內容').setRequired(true)),
+		async execute(interaction) {
+			const text = interaction.options.getString('text')
+			console.log('text', text)
+			if (text !== null)
+				return `.ca ${text}`
+			else return `需要輸入內容\n 如 .ca 1.2 * (2 + 4.5) ， 12.7 米 to inch 
+			sin(45 deg) ^ 2  5磅轉斤 10米轉呎 10米=吋`
 
+		}
+	},
+	{
+		data: new SlashCommandBuilder()
+			.setName('int')
+			.setDescription('int 20 50: 立即骰出20-50')
+			.addStringOption(option => option.setName('minnum').setDescription('輸入第一個數字').setRequired(true))
+			.addStringOption(option => option.setName('maxnum').setDescription('輸入第二個數字').setRequired(true))
+		,
+		async execute(interaction) {
+			const minNum = interaction.options.getString('minnum')
+			const maxNum = interaction.options.getString('maxnum');
+			if (minNum !== null && maxNum !== null)
+				return `.int ${minNum} ${maxNum}`
+			else return `需要輸入兩個數字\n 如 .int 20 50`
+
+		}
+	}
+];
 
 module.exports = {
-	rollDiceCommand: rollDiceCommand,
-	initialize: initialize,
-	getHelpMessage: getHelpMessage,
-	prefixs: prefixs,
-	gameType: gameType,
-	gameName: gameName
+	rollDiceCommand,
+	initialize,
+	getHelpMessage,
+	prefixs,
+	gameType,
+	gameName,
+	discordCommand
 };
 /*
  \n D66 D66s：	骰出D66 s小者固定在前\

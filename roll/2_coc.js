@@ -2,14 +2,14 @@
 const rollbase = require('./rollbase.js');
 const schema = require('../modules/schema.js');
 const mathjs = require('mathjs');
-var gameName = function () {
+const gameName = function () {
 	return '【克蘇魯神話】 cc cc(n)1~2 ccb ccrt ccsu .dp .cc7build .cc6build .cc7bg'
 }
-
-var gameType = function () {
+const { SlashCommandBuilder } = require('@discordjs/builders');
+const gameType = function () {
 	return 'Dice:CoC'
 }
-var prefixs = function () {
+const prefixs = function () {
 	return [{
 		first: /(^ccrt$)|(^\.chase$)|(^ccsu$)|(^cc7版創角$)|(^[.]dp$)|(^[.]cc7build$)|(^[.]ccpulpbuild$)|(^[.]cc6build$)|(^[.]cc7bg$)|(^cc6版創角$)|(^cc7版角色背景$)/i,
 		second: null
@@ -20,7 +20,7 @@ var prefixs = function () {
 	}
 	]
 }
-var getHelpMessage = function () {
+const getHelpMessage = function () {
 	return `【克蘇魯神話】
 coc6版擲骰		： ccb 80 技能小於等於80
 coc7版擲骰		： cc 80 技能小於等於80
@@ -61,11 +61,11 @@ coc7版角色背景隨機生成： 啓動語 .cc7bg
 
 `
 }
-var initialize = function () {
+const initialize = function () {
 	return {};
 }
 
-var rollDiceCommand = async function ({
+const rollDiceCommand = async function ({
 	mainMsg,
 	groupid,
 	userid,
@@ -392,15 +392,139 @@ var rollDiceCommand = async function ({
 	}
 	return rply;
 }
+const discordCommand = [
+	{
+		data: new SlashCommandBuilder()
+			.setName('ccrt')
+			.setDescription('coc7版 即時型瘋狂')
+		,
+		async execute() {
+			return `ccrt`
+		}
+	}, {
+		data: new SlashCommandBuilder()
+			.setName('ccsu')
+			.setDescription('coc7版 總結型瘋狂')
+		,
+		async execute() {
+			return `ccsu`
+		}
+	}, {
+		data: new SlashCommandBuilder()
+			.setName('ccb')
+			.setDescription('coc6版擲骰')
+			.addStringOption(option => option.setName('text').setDescription('目標技能大小及名字').setRequired(true)),
+		async execute(interaction) {
+			const text = interaction.options.getString('text')
+			if (text !== null)
+				return `ccb ${text}`
+		}
+	}, {
+		data: new SlashCommandBuilder()
+			.setName('cc')
+			.setDescription('coc7版擲骰')
+			.addStringOption(option => option.setName('text').setDescription('目標技能大小及名字').setRequired(true))
+			.addStringOption(option =>
+				option.setName('paney')
+					.setDescription('獎勵或懲罰骰')
+					.addChoice('1粒獎勵骰', '1')
+					.addChoice('2粒獎勵骰', '2')
+					.addChoice('1粒懲罰骰', 'n1')
+					.addChoice('2粒懲罰骰', 'n2'))
+		,
+		async execute(interaction) {
+			const text = interaction.options.getString('text')
+			const paney = interaction.options.getString('paney') || '';
 
+			return `cc${paney} ${text}`
+		}
+	}, {
+		data: new SlashCommandBuilder()
+			.setName('sc')
+			.setDescription('coc7版SanCheck')
+			.addStringOption(option => option.setName('text').setDescription('你的San值').setRequired(true))
+			.addStringOption(option => option.setName('success').setDescription('成功扣多少San'))
+			.addStringOption(option => option.setName('failure').setDescription('失敗扣多少San')),
+		async execute(interaction) {
+			const text = interaction.options.getString('text')
+			const success = interaction.options.getString('success')
+			const failure = interaction.options.getString('failure')
+			let ans = `.sc ${text}`
+			if ((success !== null) && (failure !== null)) ans = `${ans} ${success}/${failure}`
+			return ans;
+		}
+	},
+	{
+		data: new SlashCommandBuilder()
+			.setName('build')
+			.setDescription('創角功能')
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('ccpulpbuild')
+					.setDescription('pulp版創角'))
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('cc6build')
+					.setDescription('coc6版創角'))
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('cc7build')
+					.setDescription('coc7版創角').addStringOption(option => option.setName('age').setDescription('可選: (歲數7-89) 如果沒有會使用隨機開角')))
+
+		,
+		async execute(interaction) {
+			const age = interaction.options.getString('age') || '';
+			const subcommand = interaction.options.getSubcommand()
+			if (subcommand !== null)
+				return `.${subcommand} ${age}`
+			return '.cc7build help';
+		}
+	}, {
+		data: new SlashCommandBuilder()
+			.setName('dp')
+			.setDescription('coc7 成長或增強檢定')
+			.addStringOption(option => option.setName('text').setDescription('目標技能大小及名字').setRequired(true)),
+		async execute(interaction) {
+			const text = interaction.options.getString('text')
+			return `.dp ${text}`
+		}
+	}, {
+		data: new SlashCommandBuilder()
+			.setName('dpg')
+			.setDescription('coc7 成長檢定紀錄功能')
+			.addStringOption(option =>
+				option.setName('mode')
+					.setDescription('功能')
+					.addChoice('顯示擲骰紀錄', 'show')
+					.addChoice('顯示全頻道所有大成功大失敗擲骰紀錄', 'showall')
+					.addChoice('開啓紀錄功能', 'start')
+					.addChoice('停止紀錄功能', 'stop')
+					.addChoice('進行自動成長並清除擲骰紀錄', 'auto')
+					.addChoice('清除擲骰紀錄', 'clear')
+					.addChoice('清除擲骰紀錄包括大成功大失敗', 'clearall')
+			),
+		async execute(interaction) {
+			const mode = interaction.options.getString('mode')
+			return `.dp ${mode}`
+		}
+	}, {
+		data: new SlashCommandBuilder()
+			.setName('cc7bg')
+			.setDescription('coc7版角色背景隨機生成'),
+		async execute() {
+			return `.cc7bg`
+		}
+	}
+];
 
 module.exports = {
-	rollDiceCommand: rollDiceCommand,
-	initialize: initialize,
-	getHelpMessage: getHelpMessage,
-	prefixs: prefixs,
-	gameType: gameType,
-	gameName: gameName
+	rollDiceCommand,
+	initialize,
+	getHelpMessage,
+	prefixs,
+	gameType,
+	gameName,
+	discordCommand
 };
 
 

@@ -3,7 +3,6 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
 	return;
 }
 const togGGToken = process.env.TOPGG;
-
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const {
 	ShardingManager

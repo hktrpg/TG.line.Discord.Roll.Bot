@@ -152,7 +152,7 @@ async function startUp() {
 
 		}
 		//指定啟動詞在第一個詞&把大階強制轉成細階
-		if (trigger == ".me" && z_stop(mainMsg, groupid)) {
+		if ((trigger == ".me" || trigger == ".re") && !z_stop(mainMsg, groupid)) {
 			displaynamecheck = false;
 		}
 		let privatemsg = 0;
@@ -197,7 +197,7 @@ async function startUp() {
 		let rplyVal = {};
 		if (mainMsg && mainMsg[0])
 			trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
-		if (trigger == ".me") {
+		if (trigger == ".me" || trigger == ".re") {
 			displaynamecheck = false;
 		}
 		// 訊息來到後, 會自動跳到analytics.js進行骰組分析

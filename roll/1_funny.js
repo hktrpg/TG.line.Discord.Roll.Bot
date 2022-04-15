@@ -1,25 +1,26 @@
 "use strict";
-var rollbase = require('./rollbase.js');
+const rollbase = require('./rollbase.js');
 var variables = {};
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const axiosRetry = require('axios-retry');
 const chineseConv = require('chinese-conv'); //繁簡轉換
 const axios = require('axios');
 const wiki = require('wikijs').default;
-var gameName = function () {
+const gameName = function () {
 	return '【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 運勢 每日塔羅 每日笑話 每日動漫 每日一言 每日廢話 每日黃曆 每日毒湯 每日情話 每日靈簽 每日急口令 每日大事 每日(星座) 每日解答	立flag .me'
 }
 axiosRetry(axios, { retries: 3 });
 
-var gameType = function () {
+const gameType = function () {
 	return 'funny:funny:hktrpg'
 }
-var prefixs = function () {
+const prefixs = function () {
 	return [{
-		first: /^[.]me$|^排序|排序$|^隨機|隨機$|^choice|^每日塔羅|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸|^每日笑話$|^每日動漫$|^每日一言$|^每日廢話$|^每日黃曆$|^每日毒湯$|^每日情話$|^每日靈簽$|^每日急口令$|^每日大事$|^每日解答$|^每日白羊$|^每日牡羊$|^每日金牛$|^每日雙子$|^每日巨蟹$|^每日獅子$|^每日處女$|^每日天秤$|^每日天平$|^每日天蠍$|^每日天蝎$|^每日射手$|^每日人馬$|^每日摩羯$|^每日山羊$|^每日水瓶$|^每日寶瓶$|^每日雙魚$/i,
+		first: /^排序|排序$|^隨機|隨機$|^choice|^每日塔羅|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸|^每日笑話$|^每日動漫$|^每日一言$|^每日廢話$|^每日黃曆$|^每日毒湯$|^每日情話$|^每日靈簽$|^每日急口令$|^每日大事$|^每日解答$|^每日白羊$|^每日牡羊$|^每日金牛$|^每日雙子$|^每日巨蟹$|^每日獅子$|^每日處女$|^每日天秤$|^每日天平$|^每日天蠍$|^每日天蝎$|^每日射手$|^每日人馬$|^每日摩羯$|^每日山羊$|^每日水瓶$|^每日寶瓶$|^每日雙魚$/i,
 		second: null
 	}]
 }
-var getHelpMessage = async function () {
+const getHelpMessage = async function () {
 	return `【趣味擲骰】
 
 【隨機選擇】： 啓動語 choice 隨機
@@ -30,9 +31,9 @@ var getHelpMessage = async function () {
 (問題)(啓動語)(問題) (選項1) (選項2)(選項3)
 例子 交換禮物排序 A君 C君 F君 G君
 
-【複述功能】：啓動語 .me (模擬系統說話)
+【複述功能】：啓動語 .re (模擬系統說話)
 (啓動語) (句子)(句子)(句子)
-例子 .me C君殺死了NPC 村民, 受到尼什村通緝!
+例子 .re C君殺死了NPC 村民, 受到尼什村通緝!
 
 【占卜運氣功能】：字句開頭或結尾包括「運勢」兩字及四十字以內
 
@@ -55,11 +56,11 @@ var getHelpMessage = async function () {
 每日(星座) 顯示每日星座運程 如 每日白羊 每日金牛 每日巨蟹
 `
 }
-var initialize = function () {
+const initialize = function () {
 	return variables;
 }
 
-var rollDiceCommand = async function ({
+const rollDiceCommand = async function ({
 	inputStr,
 	mainMsg,
 	displayname, displaynameDiscord, tgDisplayname
@@ -123,9 +124,6 @@ var rollDiceCommand = async function ({
 			return rply;
 		case (/運勢$|^運勢/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,40}/g).length <= 1):
 			rply.text = randomLuck(mainMsg);
-			return rply;
-		case /^[.]me$/i.test(mainMsg[0]):
-			rply.text = me(inputStr);
 			return rply;
 		case /^每日笑話$/.test(mainMsg[0]): {
 			rply.text = await axiosDaily('http://lkaa.top/API/xiaohua/api.php?type=json')
@@ -269,7 +267,7 @@ var rollDiceCommand = async function ({
  * .ME
  */
 function me(inputStr) {
-	return inputStr.replace(/^[.]me/i, '');
+	return inputStr.replace(/^[.]re/i, '');
 }
 
 /**
@@ -867,6 +865,186 @@ http://ybapi.top/
 http://weizhinb.top/
 
 */
+const discordCommand = [
+	{
+		data: new SlashCommandBuilder()
+			.setName('re')
+			.setDescription('【複述功能】 /re 模擬HKTRPG說話 ')
+			.addStringOption(option => option.setName('text').setDescription('複述內容').setRequired(true)),
+		async execute(interaction) {
+			const text = interaction.options.getString('text')
+			if (text !== null)
+				return `.me ${text}`
+			else return `需要輸入內容\n 
+			例子 /re C君殺死了NPC 村民, 受到尼什村通緝!`
+
+		}
+	},
+	{
+		data: new SlashCommandBuilder()
+			.setName('排序')
+			.setDescription('進行隨機排序')
+			.addStringOption(option => option.setName('text').setDescription('輸入所有內容，以空格分隔').setRequired(true))
+		,
+		async execute(interaction) {
+			const text = interaction.options.getString('text')
+			if (text !== null)
+				return `排序 ${text}`
+
+		}
+	},
+	{
+		data: new SlashCommandBuilder()
+			.setName('隨機')
+			.setDescription('進行隨機抽選')
+			.addStringOption(option => option.setName('text').setDescription('輸入所有內容，以空格分隔').setRequired(true))
+		,
+		async execute(interaction) {
+			const text = interaction.options.getString('text')
+			if (text !== null)
+				return `隨機 ${text}`
+		}
+	},
+	{
+		data: new SlashCommandBuilder()
+			.setName('choice')
+			.setDescription('進行隨機抽選')
+			.addStringOption(option => option.setName('text').setDescription('輸入所有內容，以空格分隔').setRequired(true))
+		,
+		async execute(interaction) {
+			const text = interaction.options.getString('text')
+			if (text !== null)
+				return `隨機 ${text}`
+		}
+	},
+	{
+		data: new SlashCommandBuilder()
+			.setName('運勢')
+			.setDescription('進行隨機抽選')
+			.addStringOption(option => option.setName('text').setDescription('可選: 什麼的運勢'))
+		,
+		async execute(interaction) {
+			const text = interaction.options.getString('text')
+			if (text !== null)
+				return `${text}的運勢`
+		}
+	},
+	{
+		data: new SlashCommandBuilder()
+			.setName('塔羅')
+			.setDescription('進行塔羅占卜')
+			.addStringOption(option =>
+				option.setName('category')
+					.setDescription('塔羅種類')
+					.setRequired(true)
+					.addChoice('每日塔羅(單張)', '每日塔羅')
+					.addChoice('大十字塔羅', '大十字塔羅')
+					.addChoice('時間塔羅', '時間塔羅'))
+		,
+		async execute(interaction) {
+			const category = interaction.options.getString('category')
+			if (category !== null)
+				return `${category}`
+		}
+	},
+	{
+		data: new SlashCommandBuilder()
+			.setName('立flag')
+			.setDescription('立FLAG')
+			.addStringOption(option => option.setName('text').setDescription('可選: 立什麼FLAG'))
+		,
+		async execute(interaction) {
+			const text = interaction.options.getString('text')
+			if (text !== null)
+				return `${text}立FLAG`
+		}
+	},
+	{
+		data: new SlashCommandBuilder()
+			.setName('每日')
+			.setDescription('進行每日功能')
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('星座')
+					.setDescription('顯示每日星座運程')
+					.addStringOption(option =>
+						option.setName('star')
+							.setDescription('哪個星座')
+							.setRequired(true)
+							.addChoice('白羊', '每日白羊')
+							.addChoice('金牛', '每日金牛')
+							.addChoice('巨蟹', '每日巨蟹')
+							.addChoice('獅子', '每日獅子')
+							.addChoice('雙子', '每日雙子')
+							.addChoice('處女', '每日處女')
+							.addChoice('天秤', '每日天秤')
+							.addChoice('天蠍', '每日天蠍')
+							.addChoice('射手', '每日射手')
+							.addChoice('摩羯', '每日摩羯')
+							.addChoice('水瓶', '每日水瓶')
+							.addChoice('雙魚', '每日雙魚')
+					))
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('塔羅')
+					.setDescription('抽取一張塔羅牌'))
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('一言')
+					.setDescription('顯示一條金句'))
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('毒湯')
+					.setDescription('顯示一條有毒的雞湯'))
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('情話')
+					.setDescription('顯示一條情話'))
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('靈簽')
+					.setDescription('抽取一條觀音簽'))
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('大事')
+					.setDescription('顯示今天歷史上的大事'))
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('笑話')
+					.setDescription('顯示一條笑話'))
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('動漫')
+					.setDescription('顯示一條動漫金句'))
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('急口令')
+					.setDescription('顯示一條急口令'))
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('黃曆')
+					.setDescription('顯示今日黃曆'))
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('廢話')
+					.setDescription('生產一條你或對像的廢話').addStringOption(option => option.setName('name').setDescription('可選: 對像的名字，留白則使用你的名字')))
+
+		,
+		async execute(interaction) {
+			const category = interaction.options.getString('category')
+			const name = interaction.options.getString('name') || '';
+			const subcommand = interaction.options.getSubcommand()
+			const star = interaction.options.getString('star')
+			if (star !== null)
+				return `${star}`
+			if (subcommand !== null)
+				return `每日${subcommand} ${name}`
+			if (category !== null)
+				return `${category}`
+			return;
+		}
+	}
+];
 
 const dailyAnswer = [
 	"不一定",
@@ -1597,10 +1775,11 @@ const dailyAnswer = [
 	"决定了就去做"]
 
 module.exports = {
-	rollDiceCommand: rollDiceCommand,
-	initialize: initialize,
-	getHelpMessage: getHelpMessage,
-	prefixs: prefixs,
-	gameType: gameType,
-	gameName: gameName
+	rollDiceCommand,
+	initialize,
+	getHelpMessage,
+	prefixs,
+	gameType,
+	gameName,
+	discordCommand
 };

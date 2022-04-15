@@ -1,0 +1,160 @@
+.ca
+.int
+, new SlashCommandBuilder()
+        .setName('hk')
+        .setDescription('萬用前置，')
+        .addStringOption(option => option.setName('指令').setDescription('Enter a string'))
+---/r roll---
+D66 D66s D66n
+5B10
+5U10
+------
+
+
+
+ choice 隨機
+ 排序
+.me
+運勢
+大十字塔羅 每日塔羅 時間塔羅
+立FLAG
+每日笑話	
+每日動漫	
+每日廢話 	(名字)
+每日一言	
+每日黃曆	
+每日毒湯	
+每日情話
+每日靈簽	
+每日急口令
+每日大事	
+每日(星座) 
+ccb
+cc
+cc1
+ccn1
+.sc
+.chase
+ccrt
+ccsu
+.ccpulpbuild
+.cc6build
+.cc7build
+.cc7bg
+.dp
+.dp start 	： 開啓紀錄功能
+.dp stop  	： 停止紀錄功能
+.dp show  	： 顯示擲骰紀錄
+.dp showall	： 顯示全頻道所有大成功大失敗擲骰紀錄
+.dp auto  	： 進行自動成長並清除擲骰紀錄
+.dp clear 	： 清除擲骰紀錄
+.dp clearall： 清除擲骰紀錄包括大成功大失敗
+.al
+.dx
+.discord txt -withouttime
+.4df
+bothelp
+bothelp ver		- 查詢詳細版本及公告(${ver})
+bothelp Base	- 查詢trpg 基本擲骰指令🎲
+bothelp Dice	- 查詢trpg 不同系統擲骰指令💻
+bothelp Tool	- 查詢trpg 輔助工具🧰
+bothelp admin	- 查詢系統工具⚙️
+bothelp funny	- 查詢趣味功能😂
+bothelp link	- 查詢HKTRPG 不同平台連結🔗
+bothelp privacy	- 查詢HKTRPG 的隱私權條款🔒
+bothelp about	- 查詢HKTRPG 歷史📜
+.in 
+.in remove (名字) - 移除該角色
+.in reroll - 根據算式重擲先攻表
+.in clear  - 清除整個先攻表
+.init      - 顯示先攻表，由大到小
+.initn     - 顯示先攻表，由小到大
+.kk
+.mk
+.nc 
+
+.ss
+.sg
+.sw
+.UK
+.wn
+.wd
+.kc
+.admin state   
+.admin debug 
+.admin account (username) (password) 
+.admin news on
+.admin news off  
+.wiki 
+.image 
+.tran 
+.tran.
+.char add name[Sad]~ state[HP:15/15;con:60;san:60]~ roll[鬥毆: cc 50;投擲: cc 15;sc:cc {san}]~ notes[筆記:這是測試,請試試在群組輸入 .char use Sad;]~  
+- 可以新增及更新角色卡
+.char Show - 可以顯示角色卡列表
+.char Show0 - 可以顯示0號角色卡內容 0可以用其他數字取代
+.char edit name[角色卡名字]~ - 可以以add的格式修改指定角色卡
+.char use 角色卡名字 - 可以在該群組中使用指定角色卡
+.char nonuse - 可以在該群組中取消使用角色卡
+.char delete 角色卡名字 - 可以刪除指定角色卡
+-----.ch 功能-----
+在群組中使用.char use (角色名) 後, 就可以啟動角色卡功能
+.ch 項目名稱 項目名稱 - 沒有加減的話, 會單純顯示數據或擲骰
+.ch 項目名稱 (數字)  - 可以立即把如HP變成該數字
+.ch 項目名稱 (+-*/數字)  - 可以立即對如HP進行四則運算
+.ch 項目名稱 (+-*/xDy)  - 可以對如HP進行擲骰四則運算
+.ch set 項目名稱 新內容 - 直接更改內容
+.ch show - 顯示角色卡的state 和roll 內容
+.ch showall - 顯示角色卡的所有內容
+
+dr
+ddr
+dddr
+.drgm
+
+.event add 詳情看下面說明 - 新增事件
+.event delete (事件名稱) - 刪除事件
+.event show             - 顯示你新增的所有事件, 及賺取了的EXP
+.event show (事件名稱)   - 顯示你新增的指定事件詳情
+.event useExp           - 在群組中使用, 將會得到你賺取的EXP
+.evt random     - 進入隨機的事件, 消耗5EN
+.evt (系列名稱)  - 進入指定的系列事件, 消耗10EN
+.evt (事件名稱)  - 進入指定的事件, 消耗15EN
+輸入.level LevelUpWord (內容) 修改在這群組升級時彈出的升級語
+輸入.level RankWord (內容) 修改在這群組查詢等級時的回應
+輸入.level TitleWord -(LV) (內容)，修改稱號，大於等級即會套用
+輸入.level RankWord/LevelUpWord/TitleWord show 即顯示現在設定
+輸入.level show 可以查詢你現在的等級
+輸入.level showMe (數字) 可以查詢這群組排名 預設頭5名
+輸入.level showMeTheworld (數字) 可以查詢世界排名 預設頭6名
+輸入.level showMeAtTheworld 可以查詢自己的世界排名
+.myname
+ .me造
+ .myname delete 
+ .myname show
+ .ra add
+ .ra show
+ del
+ .rra
+ .ras
+ .rap
+ .roleReact add
+ .roleReact show
+ .roleReact delete 
+ 輸入.cmd add (關鍵字) (指令)即可增加關鍵字
+輸入.cmd show 顯示所有關鍵字
+輸入.cmd del(編號)或all 即可刪除
+輸入.cmd  (關鍵字) 即可執行 
+  .at 5mins  (五分鐘後)
+    .at 5hours 
+        .cron 1921-2
+        .at /.cron  mins hours delete show'
+        輸入.bk add xxxxx 即可增加關鍵字 每次一個
+輸入.bk show 顯示關鍵字
+輸入.bk del (編號)或all 即可刪除`
+輸入.db add (關鍵字) (內容)即可增加關鍵字
+輸入.db show 顯示所有關鍵字
+輸入.db del(編號)或all 即可刪除
+輸入.db  (關鍵字) 即可顯示 
+
+.dbp

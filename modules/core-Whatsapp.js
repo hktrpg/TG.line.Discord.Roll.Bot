@@ -152,7 +152,7 @@ async function startUp() {
 
 		}
 		//指定啟動詞在第一個詞&把大階強制轉成細階
-		if (trigger == ".re" && !z_stop(mainMsg, groupid)) {
+		if (trigger == ".me" && !z_stop(mainMsg, groupid)) {
 			displaynamecheck = false;
 		}
 		let privatemsg = 0;

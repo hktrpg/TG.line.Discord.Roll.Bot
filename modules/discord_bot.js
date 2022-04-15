@@ -88,7 +88,7 @@ client.on('messageCreate', async message => {
 	let inputStr = message.content;
 	//DISCORD <@!USERID> <@!399923133368042763> <@!544563333488111636>
 	//LINE @名字
-	let mainMsg = inputStr.match(msgSplitor); //定義輸入字串
+	let mainMsg = inputStr.match(msgSplitor); //定義輸入.字串
 	let trigger = (mainMsg && mainMsg[0]) ? mainMsg[0].toString().toLowerCase() : '';
 	if (!trigger) {
 		await nonDice(message)
@@ -98,8 +98,8 @@ client.on('messageCreate', async message => {
 
 	let groupid = (message.guildId) ? message.guildId : '';
 	//指定啟動詞在第一個詞&把大階強制轉成細階
-	if (trigger == ".re" && !z_stop(mainMsg, groupid)) {
-		inputStr = inputStr.replace(/^.re\s+/i, ' ');
+	if (trigger == ".me" && !z_stop(mainMsg, groupid)) {
+		inputStr = inputStr.replace(/^.me\s+/i, ' ');
 		if (groupid) {
 			try {
 				await message.delete();
@@ -738,8 +738,8 @@ client.on('interactionCreate', async message => {
 
 	let groupid = (message.guildId) ? message.guildId : '';
 	//指定啟動詞在第一個詞&把大階強制轉成細階
-	if (trigger == ".re" && !z_stop(mainMsg, groupid)) {
-		inputStr = inputStr.replace(/^.re\s+/i, ' ');
+	if (trigger == ".me" && !z_stop(mainMsg, groupid)) {
+		inputStr = inputStr.replace(/^.me\s+/i, ' ');
 		if (groupid) {
 			try {
 				await message.delete();

@@ -103,52 +103,54 @@ var rollDiceCommand = async function ({
 				return err.message;
 			});
 			return rply;
-		case /^[.]translate$/i.test(mainMsg[0]): {
-			if (botname !== "Discord") {
-				rply.text = '這是Discord 限定功能';
-				return rply;
-			}
-			if (userrole < 3) {
-				rply.text = '本功能只能由admin 啓動開關';
-				return rply;
-			}
-			if (/^on$/i.test(mainMsg[1])) {
-				let check = await schema.translateChannel.find({
-					groupid: groupid,
-					switch: true
-				}).countDocuments().catch(error => console.error('translate #111 mongoDB error: ', error.name, error.reson));
-				let gpLv = await VIP.viplevelCheckGroup(groupid);
-				let limit = limitArr[gpLv];
-				if (check.length >= limit) {
-					rply.text = '此群組翻譯上限為' + limit + '條頻道' + '\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
-					return rply
-				}
-				await schema.translateChannel.findOneAndUpdate({
-					groupid: groupid,
-					channelid: channelid
-				}, {
-					switch: true
-				}, opt);
-				translateChannel.translateSwitchOn(channelid)
-				rply.text = '此頻道已開啓翻譯功能。'
+		/**
+	case /^[.]translate$/i.test(mainMsg[0]): {
+		if (botname !== "Discord") {
+			rply.text = '這是Discord 限定功能';
+			return rply;
+		}
+		if (userrole < 3) {
+			rply.text = '本功能只能由admin 啓動開關';
+			return rply;
+		}
+		if (/^on$/i.test(mainMsg[1])) {
+			let check = await schema.translateChannel.find({
+				groupid: groupid,
+				switch: true
+			}).countDocuments().catch(error => console.error('translate #111 mongoDB error: ', error.name, error.reson));
+			let gpLv = await VIP.viplevelCheckGroup(groupid);
+			let limit = limitArr[gpLv];
+			if (check.length >= limit) {
+				rply.text = '此群組翻譯上限為' + limit + '條頻道' + '\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
 				return rply
 			}
-			if (/^off$/i.test(mainMsg[1])) {
-				await schema.translateChannel.findOneAndUpdate({
-					groupid: groupid,
-					channelid: channelid
-				}, {
-					switch: false
-				}, opt);
-				translateChannel.translateSwitchOff(channelid)
-				rply.text = '此頻道已關閉翻譯功能。'
-				return rply
-			}
-
-			rply.text = '沒有正確指令，需要輸入.translate on 或.translate off 去啓動/關閉翻譯功能'
-
+			await schema.translateChannel.findOneAndUpdate({
+				groupid: groupid,
+				channelid: channelid
+			}, {
+				switch: true
+			}, opt);
+			translateChannel.translateSwitchOn(channelid)
+			rply.text = '此頻道已開啓翻譯功能。'
 			return rply
 		}
+		if (/^off$/i.test(mainMsg[1])) {
+			await schema.translateChannel.findOneAndUpdate({
+				groupid: groupid,
+				channelid: channelid
+			}, {
+				switch: false
+			}, opt);
+			translateChannel.translateSwitchOff(channelid)
+			rply.text = '此頻道已關閉翻譯功能。'
+			return rply
+		}
+
+		rply.text = '沒有正確指令，需要輸入.translate on 或.translate off 去啓動/關閉翻譯功能'
+
+		return rply
+	}
+	 */
 		case /\S+/.test(mainMsg[1]) && /^[.]tran[.]\S+$/.test(mainMsg[0]):
 			lang = /.tran.(\S+)/;
 			test = mainMsg[0].match(lang)

@@ -784,7 +784,7 @@ client.on('interactionCreate', async message => {
 	}
 	let rplyVal = {};
 	if (message.channelId) {
-		rplyVal.translate = translateChannel.translateChecker(message.channelId)
+		//	rplyVal.translate = translateChannel.translateChecker(message.channelId)
 
 	}
 
@@ -794,6 +794,7 @@ client.on('interactionCreate', async message => {
 
 	let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
 	if (!target) {
+		/**
 		if (rplyVal.translate) {
 			rplyVal.translate = await translateChannel.translateText(inputStr);
 			message.reply({
@@ -801,6 +802,7 @@ client.on('interactionCreate', async message => {
 				quotes: true
 			});
 		}
+		 */
 		await nonDice(message)
 		return null
 	}

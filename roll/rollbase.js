@@ -73,6 +73,7 @@ const rollDiceCommand = function ({
     default:
       try {
         rply.text = nomalDiceRoller(mainMsg[0], mainMsg[1], mainMsg[2]);
+        return rply;
       } catch (error) {
         return rply;
       }

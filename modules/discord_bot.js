@@ -116,288 +116,7 @@ client.once('ready', async () => {
 
 client.on('messageCreate', async message => {
 	if (message.author.bot) return;
-	let hasSendPermission = true;
-	//	await repeatMessage(message)
-	/**
-	if (message.guild && message.guild.me) {
-		hasSendPermission = (message.channel && message.channel.permissionsFor(message.guild.me)) ? message.channel.permissionsFor(message.guild.me).has(Permissions.FLAGS.SEND_MESSAGES) : false || message.guild.me.permissions.has(Permissions.FLAGS.ADMINISTRATOR);
-	}
-暫時取消，因不理解DISCORD 的權限檢查
-反正失敗也沒什麼後果
-	 */
-	let inputStr = message.content;
-	//DISCORD <@!USERID> <@!399923133368042763> <@!544563333488111636>
-	//LINE @名字
-	let mainMsg = inputStr.match(msgSplitor); //定義輸入.字串
-	let trigger = (mainMsg && mainMsg[0]) ? mainMsg[0].toString().toLowerCase() : '';
-	if (!trigger) {
-		await nonDice(message)
-		return null
-	}
-
-
-	let groupid = (message.guildId) ? message.guildId : '';
-	//指定啟動詞在第一個詞&把大階強制轉成細階
-	if ((trigger == ".me" || trigger == ".mee") && !z_stop(mainMsg, groupid)) {
-		inputStr = inputStr.replace(/^\.mee\s*/i, ' ').replace(/^\.me\s*/i, ' ');
-		if (inputStr.match(/^\s+$/)) {
-			inputStr = `.me 或 /mee 可以令HKTRPG機械人重覆你的說話\n請輸入復述內容`
-		}
-
-		if (groupid) {
-			await SendToReplychannel({ replyText: inputStr, channelid: message.channel.id });
-		} else {
-			SendToReply({ replyText: inputStr, message });
-
-		}
-		return;
-	}
-	let rplyVal = {};
-	let checkPrivateMsg = privateMsg({ trigger, mainMsg, inputStr });
-	inputStr = checkPrivateMsg.inputStr;
-	let privatemsg = checkPrivateMsg.privatemsg;
-
-	let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
-	if (!target) {
-		await nonDice(message)
-		return null
-	}
-	if (!hasSendPermission) {
-		return;
-	}
-	let userid = '',
-		displayname = '',
-		channelid = '',
-		displaynameDiscord = '',
-		membercount = null,
-		titleName = '';
-	let TargetGMTempID = [];
-	let TargetGMTempdiyName = [];
-	let TargetGMTempdisplayname = [];
-	//得到暗骰的數據, GM的位置
-
-	//檢查是不是有權限可以傳信訊
-	//是不是自己.ME 訊息
-	//TRUE 即正常
-	let userrole = 1;
-
-	if (message.channelId) {
-		channelid = message.channelId;
-	}
-	if (message.guild && message.guild.name) {
-		titleName += message.guild.name + ' ';
-	}
-	if (message.channel && message.channel.name)
-		titleName += message.channel.name;
-
-	if (message.author.id) {
-		userid = message.author.id;
-	}
-	if (message.member && message.member.user && message.member.user.tag) {
-		displayname = message.member.user.tag;
-	}
-	if (message.member && message.member.user && message.member.user.username) {
-		displaynameDiscord = message.member.user.username;
-	}
-	////DISCORD: 585040823232320107
-
-
-	if (groupid && message.channel.permissionsFor(client.user) && message.channel.permissionsFor(client.user).has(Permissions.FLAGS.MANAGE_CHANNELS)) {
-		userrole = 2
-	}
-
-	if (message.member && message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
-		userrole = 3
-	}
-	//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin
-	membercount = (message.guild) ? message.guild.memberCount : 0;
-
-
-
-	//設定私訊的模式 0-普通 1-自己 2-自己+GM 3-GM
-	//訊息來到後, 會自動跳到analytics.js進行骰組分析
-	//如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
-
-	if (channelKeyword != "" && trigger == channelKeyword.toString().toLowerCase()) {
-		//mainMsg.shift();
-		rplyVal = await exports.analytics.parseInput({
-			inputStr: inputStr,
-			groupid: groupid,
-			userid: userid,
-			userrole: userrole,
-			botname: "Discord",
-			displayname: displayname,
-			channelid: channelid,
-			displaynameDiscord: displaynameDiscord,
-			membercount: membercount,
-			discordClient: client,
-			discordMessage: message,
-			titleName: titleName
-		})
-	} else {
-		if (channelKeyword == "") {
-			rplyVal = await exports.analytics.parseInput({
-				inputStr: inputStr,
-				groupid: groupid,
-				userid: userid,
-				userrole: userrole,
-				botname: "Discord",
-				displayname: displayname,
-				channelid: channelid,
-				displaynameDiscord: displaynameDiscord,
-				membercount: membercount,
-				discordClient: client,
-				discordMessage: message,
-				titleName: titleName
-			});
-		}
-	}
-	if (rplyVal.requestRolling) handlingRequestRolling(message, rplyVal.requestRolling);
-	if (rplyVal.roleReactFlag) roleReact(channelid, rplyVal)
-	if (rplyVal.newRoleReactFlag) newRoleReact(message, rplyVal)
-
-	if (rplyVal.myName) repeatMessage(message, rplyVal);
-	if (rplyVal.myNames) repeatMessages(message, rplyVal);
-
-	if (rplyVal.sendNews) sendNewstoAll(rplyVal);
-	if (!rplyVal.text && !rplyVal.LevelUp) {
-		return;
-	}
-	try {
-		let isNew = await newMessage.newUserChecker(userid, "Discord");
-		if (process.env.mongoURL && rplyVal.text && isNew) {
-			SendToId(userid, newMessage.firstTimeMessage(), true);
-		}
-	} catch (error) {
-		console.log(`discord bot error #236`, error)
-	}
-
-	/**
-	schedule 功能
-	if (rplyVal.schedule && rplyVal.schedule.switch) {
-		console.log('rplyVal.schedule', rplyVal.schedule)
-			rplyVal.schedule.style == 'at' ? 
-	}
-	*/
-	if (rplyVal.state) {
-		rplyVal.text += '\n' + await count();
-		rplyVal.text += '\nPing: ' + Number(Date.now() - message.createdTimestamp) + 'ms';
-		rplyVal.text += await getAllshardIds();
-	}
-
-	if (groupid && rplyVal && rplyVal.LevelUp) {
-		await SendToReplychannel({ replyText: `<@${userid}>\n${rplyVal.LevelUp}`, channelid });
-	}
-
-	if (rplyVal.discordExport) {
-		message.author.send({
-			content: '這是頻道 ' + message.channel.name + ' 的聊天紀錄',
-			files: [
-				"./tmp/" + rplyVal.discordExport + '.txt'
-			]
-		});
-	}
-	if (rplyVal.discordExportHtml) {
-		if (!link || !mongo) {
-			message.author.send(
-				{
-					content: '這是頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +
-						rplyVal.discordExportHtml[1],
-					files: [
-						"./tmp/" + rplyVal.discordExportHtml[0] + '.html'
-					]
-				});
-
-		} else {
-			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +
-				rplyVal.discordExportHtml[1] + '\n請注意這是暫存檔案，會不定時移除，有需要請自行下載檔案。\n' +
-				link + ':' + port + "/app/discord/" + rplyVal.discordExportHtml[0] + '.html')
-		}
-	}
-	if (!rplyVal.text) {
-		return;
-	}
-	//Discordcountroll++;
-	//簡單使用數字計算器
-	if (privatemsg > 1 && TargetGM) {
-		let groupInfo = await privateMsgFinder(channelid) || [];
-		groupInfo.forEach((item) => {
-			TargetGMTempID.push(item.userid);
-			TargetGMTempdiyName.push(item.diyName);
-			TargetGMTempdisplayname.push(item.displayname);
-		})
-	}
-	/*
-						if (groupid && userid) {
-							//DISCORD: 585040823232320107
-							displayname = "<@" + userid + "> \n"
-							if (displaynamecheck)
-								rplyVal.text = displayname + rplyVal.text
-						}
-	*/
-	switch (true) {
-		case privatemsg == 1:
-			// 輸入dr  (指令) 私訊自己
-			//
-			if (groupid) {
-				await SendToReplychannel(
-					{ replyText: "<@" + userid + '> 暗骰給自己', channelid })
-			}
-			if (userid) {
-				rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
-				SendToReply(
-					{ replyText: rplyVal.text, message });
-			}
-			return;
-		case privatemsg == 2:
-			//輸入ddr(指令) 私訊GM及自己
-			if (groupid) {
-				let targetGMNameTemp = "";
-				for (let i = 0; i < TargetGMTempID.length; i++) {
-					targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
-				}
-				await SendToReplychannel(
-					{ replyText: "<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp, channelid });
-			}
-			if (userid) {
-				rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text;
-			}
-			SendToReply({ replyText: rplyVal.text, message });
-			for (let i = 0; i < TargetGMTempID.length; i++) {
-				if (userid != TargetGMTempID[i]) {
-					SendToId(TargetGMTempID[i], rplyVal.text);
-				}
-			}
-			return;
-		case privatemsg == 3:
-			//輸入dddr(指令) 私訊GM
-			if (groupid) {
-				let targetGMNameTemp = "";
-				for (let i = 0; i < TargetGMTempID.length; i++) {
-					targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
-				}
-				await SendToReplychannel(
-					{ replyText: "<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp, channelid })
-			}
-			rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
-			for (let i = 0; i < TargetGMTempID.length; i++) {
-				SendToId(TargetGMTempID[i], rplyVal.text);
-			}
-			return;
-		default:
-			if (userid) {
-				rplyVal.text = `<@${userid}> ${(rplyVal.statue) ? rplyVal.statue : ''}\n${rplyVal.text}`;
-			}
-
-			if (groupid) {
-				await SendToReplychannel({ replyText: rplyVal.text, channelid, quotes: rplyVal.quotes });
-			} else {
-				SendToReply({ replyText: rplyVal.text, message, quotes: rplyVal.quotes });
-			}
-			return;
-	}
-
-
+	return handlingResponMessage(message)
 });
 
 
@@ -722,10 +441,27 @@ function sendNewstoAll(rply) {
 }
 
 client.on('interactionCreate', async message => {
-	if (!message.isCommand()) return;
-	//	console.log('interaction', message.options)
+	switch (true) {
+		case message.isCommand():
+			{
+				const answer = handlingCommand(message)
+				return handlingResponMessage(message, answer);
+			}
+		case message.isButton():
+			{
+				return handlingCommand(message)
+			}
+		default:
+			break;
+	}
+});
+
+
+
+async function handlingCommand(message) {
 	const command = client.commands.get(message.commandName);
 	console.log('command', command)
+	console.log('message', message);
 	if (!command) return;
 
 	let answer = await command.execute(message).catch(error => {
@@ -733,317 +469,8 @@ client.on('interactionCreate', async message => {
 		//await message.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 	})
 	console.log('answer', answer)
-
-	//same as messageCreate
-
-	let hasSendPermission = true;
-	//	await repeatMessage(message)
-	/**
-	if (message.guild && message.guild.me) {
-		hasSendPermission = (message.channel && message.channel.permissionsFor(message.guild.me)) ? message.channel.permissionsFor(message.guild.me).has(Permissions.FLAGS.SEND_MESSAGES) : false || message.guild.me.permissions.has(Permissions.FLAGS.ADMINISTRATOR);
-	}
-暫時取消，因不理解DISCORD 的權限檢查
-反正失敗也沒什麼後果
-	 */
-	let inputStr = answer;
-	//DISCORD <@!USERID> <@!399923133368042763> <@!544563333488111636>
-	//LINE @名字
-	let mainMsg = inputStr.match(msgSplitor); //定義輸入字串
-	let trigger = (mainMsg && mainMsg[0]) ? mainMsg[0].toString().toLowerCase() : '';
-	if (!trigger) {
-		await nonDice(message)
-		return null
-	}
-
-
-	let groupid = (message.guildId) ? message.guildId : '';
-	//指定啟動詞在第一個詞&把大階強制轉成細階
-	if ((trigger == ".me" || trigger == ".mee") && !z_stop(mainMsg, groupid)) {
-		inputStr = inputStr.replace(/^\.mee\s*/i, ' ').replace(/^\.me\s*/i, ' ');
-		if (inputStr.match(/^\s+$/)) {
-			inputStr = `.me 或 /mee 可以令HKTRPG機械人重覆你的說話\n請輸入復述內容`
-		}
-		if (groupid) {
-			try {
-				await message.delete();
-			} catch (error) {
-				//console.log(`discord bot error #105`, error)
-			}
-			await SendToReplychannel({ replyText: inputStr, channelid: message.channel.id });
-
-		} else {
-			SendToReply({ replyText: inputStr, message });
-			try {
-				await message.delete();
-			} catch (error) {
-				//console.log(`discord bot error #114`, error)
-			}
-		}
-		return;
-	}
-	let rplyVal = {};
-	if (message.channelId) {
-		//	rplyVal.translate = translateChannel.translateChecker(message.channelId)
-
-	}
-
-	let checkPrivateMsg = privateMsg({ trigger, mainMsg, inputStr });
-	inputStr = checkPrivateMsg.inputStr;
-	let privatemsg = checkPrivateMsg.privatemsg;
-
-	let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
-	if (!target) {
-		/**
-		if (rplyVal.translate) {
-			rplyVal.translate = await translateChannel.translateText(inputStr);
-			message.reply({
-				content: rplyVal.translate,
-				quotes: true
-			});
-		}
-		 */
-		await nonDice(message)
-		return null
-	}
-	if (!hasSendPermission) {
-		return;
-	}
-	let userid = '',
-		displayname = '',
-		channelid = '',
-		displaynameDiscord = '',
-		membercount = null,
-		titleName = '';
-	let TargetGMTempID = [];
-	let TargetGMTempdiyName = [];
-	let TargetGMTempdisplayname = [];
-	//得到暗骰的數據, GM的位置
-
-	//檢查是不是有權限可以傳信訊
-	//是不是自己.ME 訊息
-	//TRUE 即正常
-	let userrole = 1;
-
-	if (message.channelId) {
-		channelid = message.channelId;
-	}
-	if (message.guild && message.guild.name) {
-		titleName += message.guild.name + ' ';
-	}
-	if (message.channel && message.channel.name)
-		titleName += message.channel.name;
-	if (message.user.id) {
-		userid = message.user.id;
-	}
-	if (message.member && message.member.user && message.member.user.tag) {
-		displayname = message.member.user.tag;
-	}
-	if (message.member && message.member.user && message.member.user.username) {
-		displaynameDiscord = message.member.user.username;
-	}
-	////DISCORD: 585040823232320107
-
-
-	if (groupid && message.channel.permissionsFor(client.user) && message.channel.permissionsFor(client.user).has(Permissions.FLAGS.MANAGE_CHANNELS)) {
-		userrole = 2
-	}
-
-	if (message.member && message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
-		userrole = 3
-	}
-	//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin
-	membercount = (message.guild) ? message.guild.memberCount : 0;
-
-
-
-	//設定私訊的模式 0-普通 1-自己 2-自己+GM 3-GM
-	//訊息來到後, 會自動跳到analytics.js進行骰組分析
-	//如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
-
-	if (channelKeyword != "" && trigger == channelKeyword.toString().toLowerCase()) {
-		//mainMsg.shift();
-		rplyVal = await exports.analytics.parseInput({
-			inputStr: inputStr,
-			groupid: groupid,
-			userid: userid,
-			userrole: userrole,
-			botname: "Discord",
-			displayname: displayname,
-			channelid: channelid,
-			displaynameDiscord: displaynameDiscord,
-			membercount: membercount,
-			discordClient: client,
-			discordMessage: message,
-			titleName: titleName
-		})
-	} else {
-		if (channelKeyword == "") {
-			rplyVal = await exports.analytics.parseInput({
-				inputStr: inputStr,
-				groupid: groupid,
-				userid: userid,
-				userrole: userrole,
-				botname: "Discord",
-				displayname: displayname,
-				channelid: channelid,
-				displaynameDiscord: displaynameDiscord,
-				membercount: membercount,
-				discordClient: client,
-				discordMessage: message,
-				titleName: titleName
-			});
-		}
-	}
-	if (rplyVal.requestRolling) handlingRequestRolling(message, rplyVal.requestRolling);
-	if (rplyVal.roleReactFlag) roleReact(channelid, rplyVal)
-	if (rplyVal.newRoleReactFlag) newRoleReact(message, rplyVal)
-
-	if (rplyVal.myName) repeatMessage(message, rplyVal);
-	if (rplyVal.myNames) repeatMessages(message, rplyVal);
-
-	if (rplyVal.sendNews) sendNewstoAll(rplyVal);
-	if (!rplyVal.text && !rplyVal.LevelUp) {
-		return;
-	}
-	try {
-		let isNew = await newMessage.newUserChecker(userid, "Discord");
-		if (process.env.mongoURL && rplyVal.text && isNew) {
-			SendToId(userid, newMessage.firstTimeMessage(), true);
-		}
-	} catch (error) {
-		console.log(`discord bot error #236`, error)
-	}
-
-	/**
-	schedule 功能
-	if (rplyVal.schedule && rplyVal.schedule.switch) {
-		console.log('rplyVal.schedule', rplyVal.schedule)
-			rplyVal.schedule.style == 'at' ? 
-	}
-	*/
-	if (rplyVal.state) {
-		console.log('01')
-		rplyVal.text += '\n' + await count();
-		console.log('02')
-		rplyVal.text += '\nPing: ' + Number(Date.now() - message.createdTimestamp) + 'ms';
-		rplyVal.text += await getAllshardIds();
-		console.log('03')
-	}
-
-	if (groupid && rplyVal && rplyVal.LevelUp) {
-		await SendToReplychannel({ replyText: `<@${userid}>\n${rplyVal.LevelUp}`, channelid });
-	}
-
-	if (rplyVal.discordExport) {
-		message.user.send({
-			content: '這是頻道 ' + message.channel.name + ' 的聊天紀錄',
-			files: [
-				"./tmp/" + rplyVal.discordExport + '.txt'
-			]
-		});
-	}
-	if (rplyVal.discordExportHtml) {
-		if (!link || !mongo) {
-			message.user.send(
-				{
-					content: '這是頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +
-						rplyVal.discordExportHtml[1],
-					files: [
-						"./tmp/" + rplyVal.discordExportHtml[0] + '.html'
-					]
-				});
-
-		} else {
-			message.user.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +
-				rplyVal.discordExportHtml[1] + '\n請注意這是暫存檔案，會不定時移除，有需要請自行下載檔案。\n' +
-				link + ':' + port + "/app/discord/" + rplyVal.discordExportHtml[0] + '.html')
-		}
-	}
-	if (!rplyVal.text) {
-		return;
-	}
-	//Discordcountroll++;
-	//簡單使用數字計算器
-	if (privatemsg > 1 && TargetGM) {
-		let groupInfo = await privateMsgFinder(channelid) || [];
-		groupInfo.forEach((item) => {
-			TargetGMTempID.push(item.userid);
-			TargetGMTempdiyName.push(item.diyName);
-			TargetGMTempdisplayname.push(item.displayname);
-		})
-	}
-	/*
-						if (groupid && userid) {
-							//DISCORD: 585040823232320107
-							displayname = "<@" + userid + "> \n"
-							if (displaynamecheck)
-								rplyVal.text = displayname + rplyVal.text
-						}
-	*/
-	switch (true) {
-		case privatemsg == 1:
-			// 輸入dr  (指令) 私訊自己
-			//
-			if (groupid) {
-				message.reply(
-					{ content: "<@" + userid + '> 暗骰給自己' })
-			}
-			if (userid) {
-				rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
-				SendToReply(
-					{ replyText: rplyVal.text, message });
-			}
-			return;
-		case privatemsg == 2:
-			//輸入ddr(指令) 私訊GM及自己
-			if (groupid) {
-				let targetGMNameTemp = "";
-				for (let i = 0; i < TargetGMTempID.length; i++) {
-					targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
-				}
-				message.reply(
-					{ content: "<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp });
-			}
-			if (userid) {
-				rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text;
-			}
-			SendToReply({ replyText: rplyVal.text, message });
-			for (let i = 0; i < TargetGMTempID.length; i++) {
-				if (userid != TargetGMTempID[i]) {
-					SendToId(TargetGMTempID[i], rplyVal.text);
-				}
-			}
-			return;
-		case privatemsg == 3:
-			//輸入dddr(指令) 私訊GM
-			if (groupid) {
-				let targetGMNameTemp = "";
-				for (let i = 0; i < TargetGMTempID.length; i++) {
-					targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
-				}
-				message.reply(
-					{ content: "<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp })
-			}
-			rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
-			for (let i = 0; i < TargetGMTempID.length; i++) {
-				SendToId(TargetGMTempID[i], rplyVal.text);
-			}
-			return;
-		default:
-			if (userid) {
-				rplyVal.text = `<@${userid}> ${(rplyVal.statue) ? rplyVal.statue : ''}\n${rplyVal.text}`;
-			}
-
-			if (groupid) {
-				message.reply({ content: rplyVal.text, quotes: rplyVal.quotes });
-			} else {
-				SendToReply({ replyText: rplyVal.text, message, quotes: rplyVal.quotes });
-			}
-			return;
-	}
-
-
-});
+	return answer;
+}
 async function repeatMessage(discord, message) {
 	try {
 		await discord.delete();
@@ -1241,7 +668,7 @@ async function getAllshardIds() {
 
 }
 
-async function handlingRequestRolling(message, buttonsNames) {
+async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 	const row = [new MessageActionRow()]
 	for (let i = 0; i < buttonsNames.length; i++) {
 		const name = buttonsNames[i]
@@ -1253,7 +680,8 @@ async function handlingRequestRolling(message, buttonsNames) {
 					.setStyle(buttonsStyle(i)),
 			)
 	}
-	await message.reply({ content: '要求擲骰', components: row });
+
+	await message.reply({ content: `${displayname}要求擲骰`, components: row });
 
 }
 function buttonsStyle(num) {
@@ -1276,6 +704,288 @@ function pushArrayInteractionCommands(arrayCommands) {
 		client.commands.set(command.data.name, command);
 	}
 
+}
+
+async function handlingResponMessage(message, answer = '') {
+	let hasSendPermission = true;
+	//	await repeatMessage(message)
+	/**
+	if (message.guild && message.guild.me) {
+		hasSendPermission = (message.channel && message.channel.permissionsFor(message.guild.me)) ? message.channel.permissionsFor(message.guild.me).has(Permissions.FLAGS.SEND_MESSAGES) : false || message.guild.me.permissions.has(Permissions.FLAGS.ADMINISTRATOR);
+	}
+暫時取消，因不理解DISCORD 的權限檢查
+反正失敗也沒什麼後果
+	 */
+	let inputStr = answer || message.content;
+	//DISCORD <@!USERID> <@!399923133368042763> <@!544563333488111636>
+	//LINE @名字
+	let mainMsg = inputStr.match(msgSplitor); //定義輸入.字串
+	let trigger = (mainMsg && mainMsg[0]) ? mainMsg[0].toString().toLowerCase() : '';
+	if (!trigger) {
+		await nonDice(message)
+		return null
+	}
+
+
+	let groupid = (message.guildId) ? message.guildId : '';
+	//指定啟動詞在第一個詞&把大階強制轉成細階
+	if ((trigger == ".me" || trigger == ".mee") && !z_stop(mainMsg, groupid)) {
+		inputStr = inputStr.replace(/^\.mee\s*/i, ' ').replace(/^\.me\s*/i, ' ');
+		if (inputStr.match(/^\s+$/)) {
+			inputStr = `.me 或 /mee 可以令HKTRPG機械人重覆你的說話\n請輸入復述內容`
+		}
+
+		if (groupid) {
+			await SendToReplychannel({ replyText: inputStr, channelid: message.channel.id });
+		} else {
+			SendToReply({ replyText: inputStr, message });
+
+		}
+		return;
+	}
+	let rplyVal = {};
+	let checkPrivateMsg = privateMsg({ trigger, mainMsg, inputStr });
+	inputStr = checkPrivateMsg.inputStr;
+	let privatemsg = checkPrivateMsg.privatemsg;
+
+	let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
+	if (!target) {
+		await nonDice(message)
+		return null
+	}
+	if (!hasSendPermission) {
+		return;
+	}
+	let userid = '',
+		displayname = '',
+		channelid = '',
+		displaynameDiscord = '',
+		membercount = null,
+		titleName = '';
+	let TargetGMTempID = [];
+	let TargetGMTempdiyName = [];
+	let TargetGMTempdisplayname = [];
+	//得到暗骰的數據, GM的位置
+
+	//檢查是不是有權限可以傳信訊
+	//是不是自己.ME 訊息
+	//TRUE 即正常
+	let userrole = 1;
+
+	if (message.channelId) {
+		channelid = message.channelId;
+	}
+	if (message.guild && message.guild.name) {
+		titleName += message.guild.name + ' ';
+	}
+	if (message.channel && message.channel.name)
+		titleName += message.channel.name;
+
+	if (message.author.id) {
+		userid = message.author.id;
+	}
+	if (message.member && message.member.user && message.member.user.tag) {
+		displayname = message.member.user.tag;
+	}
+	if (message.member && message.member.user && message.member.user.username) {
+		displaynameDiscord = message.member.user.username;
+	}
+	////DISCORD: 585040823232320107
+
+
+	if (groupid && message.channel.permissionsFor(client.user) && message.channel.permissionsFor(client.user).has(Permissions.FLAGS.MANAGE_CHANNELS)) {
+		userrole = 2
+	}
+
+	if (message.member && message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
+		userrole = 3
+	}
+	//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin
+	membercount = (message.guild) ? message.guild.memberCount : 0;
+
+
+
+	//設定私訊的模式 0-普通 1-自己 2-自己+GM 3-GM
+	//訊息來到後, 會自動跳到analytics.js進行骰組分析
+	//如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+
+	if (channelKeyword != "" && trigger == channelKeyword.toString().toLowerCase()) {
+		//mainMsg.shift();
+		rplyVal = await exports.analytics.parseInput({
+			inputStr: inputStr,
+			groupid: groupid,
+			userid: userid,
+			userrole: userrole,
+			botname: "Discord",
+			displayname: displayname,
+			channelid: channelid,
+			displaynameDiscord: displaynameDiscord,
+			membercount: membercount,
+			discordClient: client,
+			discordMessage: message,
+			titleName: titleName
+		})
+	} else {
+		if (channelKeyword == "") {
+			rplyVal = await exports.analytics.parseInput({
+				inputStr: inputStr,
+				groupid: groupid,
+				userid: userid,
+				userrole: userrole,
+				botname: "Discord",
+				displayname: displayname,
+				channelid: channelid,
+				displaynameDiscord: displaynameDiscord,
+				membercount: membercount,
+				discordClient: client,
+				discordMessage: message,
+				titleName: titleName
+			});
+		}
+	}
+	if (rplyVal.requestRolling) handlingRequestRolling(message, rplyVal.requestRolling, displaynameDiscord);
+	if (rplyVal.roleReactFlag) roleReact(channelid, rplyVal)
+	if (rplyVal.newRoleReactFlag) newRoleReact(message, rplyVal)
+
+	if (rplyVal.myName) repeatMessage(message, rplyVal);
+	if (rplyVal.myNames) repeatMessages(message, rplyVal);
+
+	if (rplyVal.sendNews) sendNewstoAll(rplyVal);
+	if (!rplyVal.text && !rplyVal.LevelUp) {
+		return;
+	}
+	try {
+		let isNew = await newMessage.newUserChecker(userid, "Discord");
+		if (process.env.mongoURL && rplyVal.text && isNew) {
+			SendToId(userid, newMessage.firstTimeMessage(), true);
+		}
+	} catch (error) {
+		console.log(`discord bot error #236`, error)
+	}
+	/**
+	schedule 功能
+	if (rplyVal.schedule && rplyVal.schedule.switch) {
+		console.log('rplyVal.schedule', rplyVal.schedule)
+			rplyVal.schedule.style == 'at' ? 
+	}
+	*/
+	if (rplyVal.state) {
+		rplyVal.text += '\n' + await count();
+		rplyVal.text += '\nPing: ' + Number(Date.now() - message.createdTimestamp) + 'ms';
+		rplyVal.text += await getAllshardIds();
+	}
+
+	if (groupid && rplyVal && rplyVal.LevelUp) {
+		await SendToReplychannel({ replyText: `<@${userid}>\n${rplyVal.LevelUp}`, channelid });
+	}
+
+	if (rplyVal.discordExport) {
+		message.author.send({
+			content: '這是頻道 ' + message.channel.name + ' 的聊天紀錄',
+			files: [
+				"./tmp/" + rplyVal.discordExport + '.txt'
+			]
+		});
+	}
+	if (rplyVal.discordExportHtml) {
+		if (!link || !mongo) {
+			message.author.send(
+				{
+					content: '這是頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +
+						rplyVal.discordExportHtml[1],
+					files: [
+						"./tmp/" + rplyVal.discordExportHtml[0] + '.html'
+					]
+				});
+
+		} else {
+			message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +
+				rplyVal.discordExportHtml[1] + '\n請注意這是暫存檔案，會不定時移除，有需要請自行下載檔案。\n' +
+				link + ':' + port + "/app/discord/" + rplyVal.discordExportHtml[0] + '.html')
+		}
+	}
+	if (!rplyVal.text) {
+		return;
+	}
+	//Discordcountroll++;
+	//簡單使用數字計算器
+	if (privatemsg > 1 && TargetGM) {
+		let groupInfo = await privateMsgFinder(channelid) || [];
+		groupInfo.forEach((item) => {
+			TargetGMTempID.push(item.userid);
+			TargetGMTempdiyName.push(item.diyName);
+			TargetGMTempdisplayname.push(item.displayname);
+		})
+	}
+	/*
+						if (groupid && userid) {
+							//DISCORD: 585040823232320107
+							displayname = "<@" + userid + "> \n"
+							if (displaynamecheck)
+								rplyVal.text = displayname + rplyVal.text
+						}
+	*/
+	switch (true) {
+		case privatemsg == 1:
+			// 輸入dr  (指令) 私訊自己
+			//
+			if (groupid) {
+				await SendToReplychannel(
+					{ replyText: "<@" + userid + '> 暗骰給自己', channelid })
+			}
+			if (userid) {
+				rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
+				SendToReply(
+					{ replyText: rplyVal.text, message });
+			}
+			return;
+		case privatemsg == 2:
+			//輸入ddr(指令) 私訊GM及自己
+			if (groupid) {
+				let targetGMNameTemp = "";
+				for (let i = 0; i < TargetGMTempID.length; i++) {
+					targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
+				}
+				await SendToReplychannel(
+					{ replyText: "<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp, channelid });
+			}
+			if (userid) {
+				rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text;
+			}
+			SendToReply({ replyText: rplyVal.text, message });
+			for (let i = 0; i < TargetGMTempID.length; i++) {
+				if (userid != TargetGMTempID[i]) {
+					SendToId(TargetGMTempID[i], rplyVal.text);
+				}
+			}
+			return;
+		case privatemsg == 3:
+			//輸入dddr(指令) 私訊GM
+			if (groupid) {
+				let targetGMNameTemp = "";
+				for (let i = 0; i < TargetGMTempID.length; i++) {
+					targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
+				}
+				await SendToReplychannel(
+					{ replyText: "<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp, channelid })
+			}
+			rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
+			for (let i = 0; i < TargetGMTempID.length; i++) {
+				SendToId(TargetGMTempID[i], rplyVal.text);
+			}
+			return;
+		default:
+			if (userid) {
+				rplyVal.text = `<@${userid}> ${(rplyVal.statue) ? rplyVal.statue : ''}\n${rplyVal.text}`;
+			}
+
+			if (groupid) {
+				await SendToReplychannel({ replyText: rplyVal.text, channelid, quotes: rplyVal.quotes });
+			} else {
+				SendToReply({ replyText: rplyVal.text, message, quotes: rplyVal.quotes });
+			}
+			return;
+	}
 }
 
 /**

@@ -998,8 +998,6 @@ const connect = function () {
 };
 
 function handlingButtonCommand(message) {
-	console.log(message);
-	console.log(message.component.label);
 	return message.component.label || ''
 }
 /**

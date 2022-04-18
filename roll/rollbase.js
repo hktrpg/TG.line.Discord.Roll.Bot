@@ -319,18 +319,21 @@ const discordCommand = [
       .addStringOption(option => option.setName('text4').setDescription('輸入第四個擲骰內容'))
       .addStringOption(option => option.setName('text5').setDescription('輸入第五個擲骰內容')),
     async execute(interaction) {
-      const text1 = interaction.options.getString('text1')
-      const text2 = interaction.options.getString('text2')
-      const text3 = interaction.options.getString('text3')
-      const text4 = interaction.options.getString('text4')
-      const text5 = interaction.options.getString('text5')
-      return `.re ${text1},${text2},${text3},${text4},${text5}`
+      const text1 = interaction.options.getString('text1');
+      const text2 = (interaction.options.getString('text2')) ? `,${interaction.options.getString('text2')}` : '';
+      const text3 = (interaction.options.getString('text3')) ? `,${interaction.options.getString('text3')}` : '';
+      const text4 = (interaction.options.getString('text4')) ? `,${interaction.options.getString('text4')}` : '';
+      const text5 = (interaction.options.getString('text5')) ? `,${interaction.options.getString('text5')}` : '';
+      return `.re ${text1}${text2}${text3}${text4}${text5}`;
     }
   }
 ];
 function handleRequestRolling(text) {
   text = text.replace(/^\.re\s+/i, '').split(',')
   text.splice(5);
+  for (let index = 0; index < text.length; index++) {
+    text[index] = text[index].substring(0, 80);
+  }
   return text;
 }
 module.exports = {

@@ -313,10 +313,18 @@ const discordCommand = [
     data: new SlashCommandBuilder()
       .setName('re')
       .setDescription('要求擲骰功能')
-      .addStringOption(option => option.setName('text').setDescription('輸入擲骰內容, 使用逗號(,)分隔不同骰子').setRequired(true)),
+      .addStringOption(option => option.setName('text1').setDescription('輸入第一個擲骰內容').setRequired(true))
+      .addStringOption(option => option.setName('text2').setDescription('輸入第二個擲骰內容'))
+      .addStringOption(option => option.setName('text3').setDescription('輸入第三個擲骰內容'))
+      .addStringOption(option => option.setName('text4').setDescription('輸入第四個擲骰內容'))
+      .addStringOption(option => option.setName('text5').setDescription('輸入第五個擲骰內容')),
     async execute(interaction) {
-      const text = interaction.options.getString('text')
-      return `.re ${text}`
+      const text1 = interaction.options.getString('text1')
+      const text2 = interaction.options.getString('text2')
+      const text3 = interaction.options.getString('text3')
+      const text4 = interaction.options.getString('text4')
+      const text5 = interaction.options.getString('text5')
+      return `.re ${text1},${text2},${text3},${text4},${text5}`
     }
   }
 ];

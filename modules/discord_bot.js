@@ -73,40 +73,7 @@ const reconnectInterval = 1 * 1000 * 60;
 const shardids = client.shard.ids[0];
 const WebSocket = require('ws');
 var ws;
-const connect = function () {
-	ws = new WebSocket('ws://127.0.0.1:53589');
-	ws.on('open', function open() {
-		console.log(`connectd To core-www from discord! Shard#${shardids}`)
-		ws.send(`connectd To core-www from discord! Shard#${shardids}`);
-	});
-	ws.on('message', function incoming(data) {
-		if (shardids !== 0) return;
-		var object = JSON.parse(data);
-		if (object.botname == 'Discord') {
-			const promises = [
-				object,
-				//client.shard.broadcastEval(client => client.channels.fetch(object.message.target.id)),
-			];
-			Promise.all(promises)
-				.then(async results => {
-					let channel = await client.channels.fetch(results[0].message.target.id);
-					if (channel)
-						channel.send(results[0].message.text)
-				})
-				.catch(err => {
-					console.error(`disocrdbot #99 error ${err}`)
-				});
-			return;
-		}
-	});
-	ws.on('error', (error) => {
-		console.error('Discord socket error', error);
-	});
-	ws.on('close', function () {
-		console.error('Discord socket close');
-		setTimeout(connect, reconnectInterval);
-	});
-};
+
 
 client.once('ready', async () => {
 	initInteractionCommands();
@@ -114,9 +81,112 @@ client.once('ready', async () => {
 	//	if (shardids === 0) getSchedule();
 });
 
+client.on('ready', async () => {
+	client.user.setActivity('🌼bothelp | hktrpg.com🍎');
+	console.log(`Discord: Logged in as ${client.user.tag}!`);
+	var switchSetActivity = 0;
+	// eslint-disable-next-line no-unused-vars
+	const refreshId = setInterval(async () => {
+		if (shardids !== (client.shard.client.options.shardCount - 1)) return;
+		if (adminSecret) {
+			let check = await checkWakeUp();
+			if (!check) {
+				SendToId(adminSecret, 'HKTRPG可能下線了');
+			}
+		}
+	}, 180000);
+	// eslint-disable-next-line no-unused-vars
+	const refreshId2 = setInterval(async () => {
+		switch (switchSetActivity % 2) {
+			case 1:
+				client.user.setActivity('🌼bothelp | hktrpg.com🍎');
+				break;
+			default:
+				client.user.setActivity(await count2());
+				break;
+		}
+		switchSetActivity = (switchSetActivity % 2) ? 2 : 3;
+	}, 180000);
+});
+
+client.on('guildCreate', async guild => {
+	let channels = await guild.channels.fetch();
+	let keys = Array.from(channels.values());
+	let channel = keys.find(channel => {
+		return channel.type === 'GUILD_TEXT' && channel.permissionsFor(guild.me).has('SEND_MESSAGES')
+	});
+
+	if (channel) {
+		//	let channelSend = await guild.channels.fetch(channel.id);
+		let text = new Discord.MessageEmbed()
+			.setColor('#0099ff')
+			//.setTitle(rplyVal.title)
+			//.setURL('https://discord.js.org/')
+			.setAuthor({ name: 'HKTRPG', url: 'https://www.patreon.com/HKTRPG', iconURL: 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png' })
+			.setDescription(newMessage.joinMessage())
+		await channel.send({ embeds: [text] });
+	}
+})
+
+client.on('shardDisconnect', (event, shardID) => {
+	console.log('shardDisconnect: ', event, shardID)
+});
+
+client.on('shardResume', (replayed, shardID) => console.log(`Shard ID ${shardID} resumed connection and replayed ${replayed} events.`));
+
+client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnected.`));
+
 client.on('messageCreate', async message => {
 	if (message.author.bot) return;
 	return handlingResponMessage(message)
+});
+
+client.on('interactionCreate', async message => {
+	switch (true) {
+		case message.isCommand():
+			{
+				const answer = handlingCommand(message)
+				return handlingResponMessage(message, answer);
+			}
+		case message.isButton():
+			{
+				return handlingCommand(message)
+			}
+		default:
+			break;
+	}
+});
+client.on('messageReactionAdd', async (reaction, user) => {
+	if (reaction.me) return;
+	/** 
+	name: '22',
+		id: '947051740547645500',
+		*/
+	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('discord_bot #802 mongoDB error: ', error.name, error.reson))
+	if (!list || list.length === 0) return;
+	const detail = list.detail;
+	const findEmoji = detail.find(function (item) {
+		return item.emoji === reaction.emoji.name || item.emoji === `<:${reaction.emoji.name}:${reaction.emoji.id}>`;
+	});
+	if (findEmoji) {
+		const member = await reaction.message.guild.members.fetch(user.id);
+		member.roles.add(findEmoji.roleID)
+	} else {
+		reaction.users.remove(user.id);
+	}
+});
+
+client.on('messageReactionRemove', async (reaction, user) => {
+	if (reaction.me) return;
+	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('discord_bot #817 mongoDB error: ', error.name, error.reson))
+	if (!list || list.length === 0) return;
+	const detail = list.detail;
+	for (let index = 0; index < detail.length; index++) {
+		if (detail[index].emoji === reaction.emoji.name || detail[index].emoji === `<:${reaction.emoji.name}:${reaction.emoji.id}>`) {
+			const member = await reaction.message.guild.members.fetch(user.id);
+			member.roles.remove(detail[index].roleID)
+		}
+	}
 });
 
 
@@ -219,13 +289,6 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 	return;
 }
 
-client.on('shardDisconnect', (event, shardID) => {
-	console.log('shardDisconnect: ', event, shardID)
-});
-
-client.on('shardResume', (replayed, shardID) => console.log(`Shard ID ${shardID} resumed connection and replayed ${replayed} events.`));
-
-client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnected.`));
 
 async function nonDice(message) {
 	await courtMessage({ result: "", botname: "Discord", inputStr: "", shardids: shardids })
@@ -261,36 +324,7 @@ async function nonDice(message) {
 
 
 //Set Activity 可以自定義正在玩什麼
-client.on('ready', async () => {
-	client.user.setActivity('🌼bothelp | hktrpg.com🍎');
-	console.log(`Discord: Logged in as ${client.user.tag}!`);
-	var switchSetActivity = 0;
-	// eslint-disable-next-line no-unused-vars
-	const refreshId = setInterval(async () => {
-		if (shardids !== (client.shard.client.options.shardCount - 1)) return;
-		if (adminSecret) {
-			let check = await checkWakeUp();
-			if (!check) {
-				SendToId(adminSecret, 'HKTRPG可能下線了');
-			}
-		}
-	}, 180000);
-	// eslint-disable-next-line no-unused-vars
-	const refreshId2 = setInterval(async () => {
-		switch (switchSetActivity % 2) {
-			case 1:
-				client.user.setActivity('🌼bothelp | hktrpg.com🍎');
-				break;
-			default:
-				client.user.setActivity(await count2());
-				break;
-		}
-		switchSetActivity = (switchSetActivity % 2) ? 2 : 3;
-	}, 180000);
 
-
-
-});
 
 function privateMsg({ trigger, mainMsg, inputStr }) {
 	let privatemsg = 0;
@@ -365,26 +399,7 @@ process.on('unhandledRejection', error => {
 	});
 });
 
-client.on('guildCreate', async guild => {
-	let channels = await guild.channels.fetch();
-	let keys = Array.from(channels.values());
-	let channel = keys.find(channel => {
-		return channel.type === 'GUILD_TEXT' && channel.permissionsFor(guild.me).has('SEND_MESSAGES')
-	});
 
-	if (channel) {
-		//	let channelSend = await guild.channels.fetch(channel.id);
-		let text = new Discord.MessageEmbed()
-			.setColor('#0099ff')
-			//.setTitle(rplyVal.title)
-			//.setURL('https://discord.js.org/')
-			.setAuthor({ name: 'HKTRPG', url: 'https://www.patreon.com/HKTRPG', iconURL: 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png' })
-			.setDescription(newMessage.joinMessage())
-		await channel.send({ embeds: [text] });
-	}
-
-
-})
 
 client.login(channelSecret);
 
@@ -440,21 +455,7 @@ function sendNewstoAll(rply) {
 	}
 }
 
-client.on('interactionCreate', async message => {
-	switch (true) {
-		case message.isCommand():
-			{
-				const answer = handlingCommand(message)
-				return handlingResponMessage(message, answer);
-			}
-		case message.isButton():
-			{
-				return handlingCommand(message)
-			}
-		default:
-			break;
-	}
-});
+
 
 
 
@@ -600,40 +601,6 @@ async function checkWakeUp() {
 		});
 
 }
-client.on('messageReactionAdd', async (reaction, user) => {
-	if (reaction.me) return;
-	/** 
-	name: '22',
-		id: '947051740547645500',
-		*/
-	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('discord_bot #802 mongoDB error: ', error.name, error.reson))
-	if (!list || list.length === 0) return;
-	const detail = list.detail;
-	const findEmoji = detail.find(function (item) {
-		return item.emoji === reaction.emoji.name || item.emoji === `<:${reaction.emoji.name}:${reaction.emoji.id}>`;
-	});
-	if (findEmoji) {
-		const member = await reaction.message.guild.members.fetch(user.id);
-		member.roles.add(findEmoji.roleID)
-	} else {
-		reaction.users.remove(user.id);
-	}
-});
-
-client.on('messageReactionRemove', async (reaction, user) => {
-	if (reaction.me) return;
-	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('discord_bot #817 mongoDB error: ', error.name, error.reson))
-	if (!list || list.length === 0) return;
-	const detail = list.detail;
-	for (let index = 0; index < detail.length; index++) {
-		if (detail[index].emoji === reaction.emoji.name || detail[index].emoji === `<:${reaction.emoji.name}:${reaction.emoji.id}>`) {
-			const member = await reaction.message.guild.members.fetch(user.id);
-			member.roles.remove(detail[index].roleID)
-		}
-	}
-});
-
-
 
 function z_stop(mainMsg, groupid) {
 	if (!Object.keys(exports.z_stop).length || !exports.z_stop.initialize().save || !mainMsg || !groupid) {
@@ -987,6 +954,41 @@ async function handlingResponMessage(message, answer = '') {
 			return;
 	}
 }
+
+const connect = function () {
+	ws = new WebSocket('ws://127.0.0.1:53589');
+	ws.on('open', function open() {
+		console.log(`connectd To core-www from discord! Shard#${shardids}`)
+		ws.send(`connectd To core-www from discord! Shard#${shardids}`);
+	});
+	ws.on('message', function incoming(data) {
+		if (shardids !== 0) return;
+		var object = JSON.parse(data);
+		if (object.botname == 'Discord') {
+			const promises = [
+				object,
+				//client.shard.broadcastEval(client => client.channels.fetch(object.message.target.id)),
+			];
+			Promise.all(promises)
+				.then(async results => {
+					let channel = await client.channels.fetch(results[0].message.target.id);
+					if (channel)
+						channel.send(results[0].message.text)
+				})
+				.catch(err => {
+					console.error(`disocrdbot #99 error ${err}`)
+				});
+			return;
+		}
+	});
+	ws.on('error', (error) => {
+		console.error('Discord socket error', error);
+	});
+	ws.on('close', function () {
+		console.error('Discord socket close');
+		setTimeout(connect, reconnectInterval);
+	});
+};
 
 /**
  *

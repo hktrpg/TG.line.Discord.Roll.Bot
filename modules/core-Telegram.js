@@ -46,10 +46,10 @@ TGclient.on('text', async (ctx) => {
 	}
 	//指定啟動詞在第一個詞&把大階強制轉成細階
 	let groupid = ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && userid && ctx.chat.id) ? ctx.chat.id : '';
-	if ((trigger == ".me" || trigger == ".re") && !z_stop(mainMsg, groupid)) {
-		inputStr = inputStr.replace(/^\.me\s*/i, ' ').replace(/^\.re\s*/i, ' ');
+	if ((trigger == ".me" || trigger == ".mee") && !z_stop(mainMsg, groupid)) {
+		inputStr = inputStr.replace(/^\.mee\s*/i, ' ').replace(/^\.me\s*/i, ' ');
 		if (inputStr.match(/^\s+$/)) {
-			inputStr = `.me 或 /re 可以令HKTRPG機械人重覆你的說話\n請輸入復述內容`
+			inputStr = `.me 或 /mee 可以令HKTRPG機械人重覆你的說話\n請輸入復述內容`
 		}
 		SendToId(ctx.chat.id || userid, inputStr);
 		return;

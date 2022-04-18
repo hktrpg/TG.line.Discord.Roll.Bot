@@ -20,7 +20,7 @@ if (process.env.BROADCAST) {
 	});
 }
 const qrcode = require('qrcode-terminal');
-const isHeroku = process.env._ && process.env._.indexOf("heroku");
+const isHeroku = (process.env._ && process.env._.indexOf("heroku")) > 0 ? true : false;
 var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const schema = require('../modules/schema');
 const opt = {
@@ -47,6 +47,7 @@ const maxRetry = 6;
 var retry = 0;
 
 async function startUp() {
+	/**
 	if (process.env.mongoURL) {
 		let data = await schema.whatsapp.findOne({}).catch(error => console.error('whatsapp #52 mongoDB error: ', error.name, error.reson));
 		sessionData = (data && data.sessionData) ? JSON.parse(data.sessionData.toString()) : null;
@@ -64,6 +65,7 @@ async function startUp() {
 
 
 	}
+	 */
 	const client = new Client({
 		session: sessionData || null,
 		authStrategy: new LocalAuth(),
@@ -71,39 +73,41 @@ async function startUp() {
 	});
 	client.initialize();
 	// Save session values to the file upon successful auth
-	client.on('authenticated', async (session) => {
-		sessionData = session;
-		retry = 0;
-		if (process.env.mongoURL) {
-			await schema.whatsapp.findOneAndUpdate({}, { sessionData: JSON.stringify(session) }, opt).catch(error => console.error('whatsapp #78 mongoDB error: ', error.name, error.reson))
-		} else if (!isHeroku)
-			require('fs').writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
-				if (err) {
-					console.error('whatsapp error: ', err);
-				}
-			});
-	});
-
-	client.on('auth_failure', async (msg) => {
-		// Fired if session restore was unsuccessfull
-		console.error(`AUTHENTICATION FAILURE: ${msg}\nRetry #${retry}`);
-		retry++;
-		if (retry > maxRetry) {
-			sessionData = '';
-			if (process.env.mongoURL) {
-				await schema.whatsapp.findOneAndUpdate({}, { sessionData: '' }, opt).catch(error => console.error('whatsapp #94 mongoDB error: ', error.name, error.reson))
-			}
-			if (!isHeroku) {
-				require('fs').unlink(SESSION_FILE_PATH, function (err) {
-					if (err) {
-						console.error('whatsapp error: ', err);
-					}
-				});
-			}
+	/**
+client.on('authenticated', async (session) => {
+sessionData = session;
+retry = 0;
+if (process.env.mongoURL) {
+	await schema.whatsapp.findOneAndUpdate({}, { sessionData: JSON.stringify(session) }, opt).catch(error => console.error('whatsapp #78 mongoDB error: ', error.name, error.reson))
+} else if (!isHeroku)
+	require('fs').writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
+		if (err) {
+			console.error('whatsapp error: ', err);
 		}
-		startUp();
 	});
+});
 
+client.on('auth_failure', async (msg) => {
+
+// Fired if session restore was unsuccessfull
+console.error(`AUTHENTICATION FAILURE: ${msg}\nRetry #${retry}`);
+retry++;
+if (retry > maxRetry) {
+	sessionData = '';
+	if (process.env.mongoURL) {
+		await schema.whatsapp.findOneAndUpdate({}, { sessionData: '' }, opt).catch(error => console.error('whatsapp #94 mongoDB error: ', error.name, error.reson))
+	}
+	if (!isHeroku) {
+		require('fs').unlink(SESSION_FILE_PATH, function (err) {
+			if (err) {
+				console.error('whatsapp error: ', err);
+			}
+		});
+	}
+}
+//startUp();
+});
+*/
 
 
 	client.on('qr', (qr) => {
@@ -305,8 +309,8 @@ async function startUp() {
 
 	client.on('message_ack', async (msg, ack) => {
 		if (ack > 0) {
-			const chat = msg.getChat();
-			chat.clearMessages();
+			const chat = await msg.getChat();
+			await chat.clearMessages();
 		}
 	});
 

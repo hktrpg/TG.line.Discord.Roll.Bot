@@ -468,15 +468,12 @@ function sendNewstoAll(rply) {
 
 async function handlingCommand(message) {
 	const command = client.commands.get(message.commandName);
-	console.log('command', command)
-	console.log('message', message);
 	if (!command) return;
 
 	let answer = await command.execute(message).catch(error => {
 		console.error(error);
 		//await message.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 	})
-	console.log('answer', answer)
 	return answer;
 }
 async function repeatMessage(discord, message) {

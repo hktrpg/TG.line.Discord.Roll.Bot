@@ -6,12 +6,12 @@ const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const adminSecret = process.env.ADMIN_SECRET || '';
 const Discord = require("discord.js-light");
 const fs = require('node:fs');
-const { Client, Intents, Permissions, Collection } = Discord;
+const { Client, Intents, Permissions, Collection, MessageActionRow, MessageButton } = Discord;
 const rollText = require('./getRoll').rollText;
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
 const imageUrl = /^(?:(?:(?<protocol>(?:http|https)):\/\/)?(?:(?<authority>(?:[A-Za-z](?:[A-Za-z\d-]*[A-Za-z\d])?)(?:\.[A-Za-z][A-Za-z\d-]*[A-Za-z\d])*)(?::(?<port>[0-9]+))?\/)(?:(?<path>[^/][^?#;]*\/))?)?(?<file>[^?#/\\]*\.(?<extension>[Jj][Pp][Ee]?[Gg]|[Pp][Nn][Gg]|[Gg][Ii][Ff]))(?:\?(?<query>[^#]*))?(?:#(?<fragment>.*))?$/gm;
 exports.z_stop = require('../roll/z_stop');
-
+const buttonStyles = ['DANGER', 'PRIMARY', 'SECONDARY', 'SUCCESS', 'DANGER']
 
 function channelFilter(channel) {
 	return !channel.lastMessageId || Discord.SnowflakeUtil.deconstruct(channel.lastMessageId).timestamp < Date.now() - 3600000;
@@ -252,7 +252,7 @@ client.on('messageCreate', async message => {
 			});
 		}
 	}
-
+	if (rplyVal.requestRolling) handlingRequestRolling(message, rplyVal.requestRolling);
 	if (rplyVal.roleReactFlag) roleReact(channelid, rplyVal)
 	if (rplyVal.newRoleReactFlag) newRoleReact(message, rplyVal)
 
@@ -724,7 +724,6 @@ function sendNewstoAll(rply) {
 client.on('interactionCreate', async message => {
 	if (!message.isCommand()) return;
 	//	console.log('interaction', message.options)
-	console.log('message', message.options._hoistedOptions)
 	const command = client.commands.get(message.commandName);
 	console.log('command', command)
 	if (!command) return;
@@ -895,7 +894,7 @@ client.on('interactionCreate', async message => {
 			});
 		}
 	}
-
+	if (rplyVal.requestRolling) handlingRequestRolling(message, rplyVal.requestRolling);
 	if (rplyVal.roleReactFlag) roleReact(channelid, rplyVal)
 	if (rplyVal.newRoleReactFlag) newRoleReact(message, rplyVal)
 
@@ -1240,6 +1239,25 @@ async function getAllshardIds() {
 			console.error(`disocrdbot #884 error ${err}`)
 		});
 
+}
+
+async function handlingRequestRolling(message, buttonsNames) {
+	const row = [new MessageActionRow()]
+	for (let i = 0; i < buttonsNames.length; i++) {
+		const name = buttonsNames[i]
+		row[0]
+			.addComponents(
+				new MessageButton()
+					.setCustomId(`${name}_${i}`)
+					.setLabel(name)
+					.setStyle(buttonsStyle(i)),
+			)
+	}
+	await message.reply({ content: '要求擲骰', components: row });
+
+}
+function buttonsStyle(num) {
+	return buttonStyles[num];
 }
 
 function initInteractionCommands() {

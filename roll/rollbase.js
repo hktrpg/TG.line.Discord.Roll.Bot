@@ -28,6 +28,10 @@ const prefixs = function () {
   {
     first: /(^[1-9]$)|(^[1-2][0-9]$)|(^[3][0]$)/i,
     second: tempregex
+  },
+  {
+    first: /^\.re$/i,
+    second: null
   }
   ]
 }
@@ -43,26 +47,37 @@ const getHelpMessage = function () {
 5 3D6 ：	分別骰出5次3d6 最多30次
 ((2d6+1)*2)-5/2>=10 支援括號加減乘除及大於小於(>,<,>=,<=)計算
 支援kh|kl|dh|dl，k keep保留，d drop 放棄，h highest最高，l lowest最低
-如3d6kh 保留最大的1粒骰，3d6dl2 放棄最小的2粒骰`
+如3d6kh 保留最大的1粒骰，3d6dl2 放棄最小的2粒骰
+
+discord 專用功能
+/re 要求擲骰  
+例如 /re 1d100 哈哈, 1d3 SC成功, 1d10 SC失敗`
 }
 const initialize = function () {
   return variables;
 }
 
 const rollDiceCommand = function ({
-  mainMsg
+  mainMsg,
+  inputStr
 }) {
   let rply = {
     default: 'on',
     type: 'text',
     text: ''
   };
-  try {
-    rply.text = nomalDiceRoller(mainMsg[0], mainMsg[1], mainMsg[2]);
-  } catch (error) {
-    rply.text = '';
+  switch (true) {
+    case /^\.re$/i.test(mainMsg[0]):
+      rply.requestRolling = handleRequestRolling(inputStr)
+      return rply;
+    default:
+      try {
+        rply.text = nomalDiceRoller(mainMsg[0], mainMsg[1], mainMsg[2]);
+      } catch (error) {
+        return rply;
+      }
   }
-  return rply;
+
 }
 
 
@@ -292,8 +307,23 @@ const discordCommand = [
       const text = interaction.options.getString('text')
       return `${text}`
     }
+  },
+  {
+    data: new SlashCommandBuilder()
+      .setName('re')
+      .setDescription('要求擲骰功能')
+      .addStringOption(option => option.setName('text').setDescription('輸入擲骰內容, 使用逗號(,)分隔不同骰子').setRequired(true)),
+    async execute(interaction) {
+      const text = interaction.options.getString('text')
+      return `.re ${text}`
+    }
   }
 ];
+function handleRequestRolling(text) {
+  text = text.replace(/^\.re\s+/i, '').split(',')
+  text.splice(5);
+  return text;
+}
 module.exports = {
   Dice: Dice,
   sortNumber: sortNumber,

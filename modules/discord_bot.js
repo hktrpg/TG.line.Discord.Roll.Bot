@@ -156,7 +156,8 @@ client.on('interactionCreate', async message => {
 					await message.reply({ content: '已進行擲骰', ephemeral: true });
 				}
 				else {
-					await message.reply({ content: '並未進行擲骰，請檢查內容', ephemeral: true });
+					const content = handlingCountButton(message);
+					await message.update({ content: content })
 				}
 				return;
 			}
@@ -200,7 +201,21 @@ client.on('messageReactionRemove', async (reaction, user) => {
 
 //inviteDelete
 //messageDelete
+function handlingCountButton(message) {
+	const content = message.message.content;
+	const user = `${message.user.username}`
+	const button = `點擊了「${message.component.label}」`;
+	const regexpButton = new RegExp(`${button}`)
 
+	let newContent = content;
+	if (newContent.match(/要求擲骰/)) newContent = '';
+	if (newContent.match(regexpButton)) {
+		newContent = newContent.replace(regexpButton, `、${user} ${button}`)
+	} else {
+		newContent += `\n${user} ${button}`
+	}
+	return newContent.slice(0, 1000);
+}
 
 function convQuotes(text = "") {
 	const imageMatch = text.match(imageUrl);
@@ -398,7 +413,7 @@ process.on('unhandledRejection', error => {
 	if (error.message === "Missing Access") return;
 	if (error.message === "Missing Permissions") return;
 
-	console.error('Discord Unhandled promise rejection:', error.message);
+	console.error('Discord Unhandled promise rejection:', error);
 
 	process.send({
 		type: "process:msg",

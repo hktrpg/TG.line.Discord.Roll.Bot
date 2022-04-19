@@ -206,17 +206,33 @@ function handlingCountButton(message) {
 	const user = `${message.user.username}`
 	const button = `點擊了「${message.component.label}」`;
 	const regexpButton = new RegExp(`${button}`)
-
 	let newContent = content;
 	if (newContent.match(/要求擲骰\/點擊/)) newContent = '';
 	if (newContent.match(regexpButton)) {
-		newContent = newContent.replace(regexpButton, `、${user} ${button}`)
+		let checkRepeat = checkRepeatName(content, button, user)
+		if (!checkRepeat)
+			newContent = newContent.replace(regexpButton, `、${user} ${button}`)
 	} else {
 		newContent += `\n${user} ${button}`
 	}
 	return newContent.slice(0, 1000);
 }
+function checkRepeatName(content, button, user) {
+	let flag = false;
+	const everylines = content.split(/\n/);
+	for (const line of everylines) {
+		if (line.match(new RegExp(button))) {
+			let splitNames = line.split('、');
+			for (const name of splitNames) {
+				if (name.match(new RegExp(user)) || name.match(new RegExp(`${user} ${button}`))) {
+					flag = true;
+				}
+			}
+		}
 
+	}
+	return flag;
+}
 function convQuotes(text = "") {
 	const imageMatch = text.match(imageUrl);
 	return new Discord.MessageEmbed()

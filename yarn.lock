@@ -85,6 +85,11 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
+"@faker-js/faker@^6.1.2":
+  version "6.1.2"
+  resolved "https://registry.yarnpkg.com/@faker-js/faker/-/faker-6.1.2.tgz#7093ea65e6d78eae388918a46968c083366bd621"
+  integrity sha512-QSvmexHCxeRUk1/yKmoEDaWB5Hohjvtim5g2JJwy8S/l0L4b3y/GxSpE6vN4SBoVGGahEQW21uqyRr7EofI35A==
+
 "@humanwhocodes/config-array@^0.5.0":
   version "0.5.0"
   resolved "https://registry.yarnpkg.com/@humanwhocodes/config-array/-/config-array-0.5.0.tgz#1407967d4c6eecd7388f83acf1eaf4d0c6e58ef9"
@@ -136,12 +141,7 @@
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz#9fb3a3cf3132328151f353de4632e01e52102bea"
   integrity sha512-9NET910DNaIPngYnLLPeg+Ogzqsi9uM4mSboU5y6p8S5DzMTVEsJZrawi+BoDNUVBa2DhJqQYUFvMDfgU062LQ==
 
-"@sindresorhus/is@^4.2.0":
-  version "4.6.0"
-  resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-4.6.0.tgz#3c7c9c46e678feefe7a2e5bb609d3dbd665ffb3f"
-  integrity sha512-t09vSN3MdfsyCHoFcTRCH/iUtG7OJ0CsjzB8cjAmKc/va/kIgeDI/TxsigdncE/4be734m0cvIYwNaV4i2XqAw==
-
-"@sindresorhus/is@^4.3.0":
+"@sindresorhus/is@^4.2.0", "@sindresorhus/is@^4.3.0":
   version "4.6.0"
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-4.6.0.tgz#3c7c9c46e678feefe7a2e5bb609d3dbd665ffb3f"
   integrity sha512-t09vSN3MdfsyCHoFcTRCH/iUtG7OJ0CsjzB8cjAmKc/va/kIgeDI/TxsigdncE/4be734m0cvIYwNaV4i2XqAw==
@@ -1103,13 +1103,6 @@ discord-api-types@^0.28.0:
   version "0.28.0"
   resolved "https://registry.yarnpkg.com/discord-api-types/-/discord-api-types-0.28.0.tgz#59c4a3649d5bad0d3dd4684f595dc5ade79c30a5"
   integrity sha512-Gi36pbzV+2j0q/XPlDJEgX/R+wogLxU2BZFvfTMUHHAQYXqwvqj4iZP5YUGOfKimmJc79rDRrtSPUGz2t4S4GQ==
-
-discord.js-light@^4.6.4:
-  version "4.6.4"
-  resolved "https://registry.yarnpkg.com/discord.js-light/-/discord.js-light-4.6.4.tgz#9a7f5d9feadf3638375dc0a71041f4cf9ca993d2"
-  integrity sha512-nhLV9She8z4+ihT1l4mm/F8mj1jh55ySiyeKxhBbTSv+iOPUMq4ABEkdfmRky7kVN01wG1nqgS6ZhisvXvnQSQ==
-  dependencies:
-    discord.js "^13.6.0"
 
 discord.js-light@^4.6.4:
   version "4.6.5"

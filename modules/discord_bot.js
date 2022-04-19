@@ -208,7 +208,7 @@ function handlingCountButton(message) {
 	const regexpButton = new RegExp(`${button}`)
 
 	let newContent = content;
-	if (newContent.match(/要求擲骰/)) newContent = '';
+	if (newContent.match(/要求擲骰\/點擊/)) newContent = '';
 	if (newContent.match(regexpButton)) {
 		newContent = newContent.replace(regexpButton, `、${user} ${button}`)
 	} else {
@@ -667,7 +667,7 @@ async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 			)
 	}
 
-	await message.reply({ content: `${displayname}要求擲骰`, components: row });
+	await message.reply({ content: `${displayname}要求擲骰/點擊`, components: row });
 
 }
 function buttonsStyle(num) {

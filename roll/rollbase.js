@@ -50,8 +50,8 @@ const getHelpMessage = function () {
 如3d6kh 保留最大的1粒骰，3d6dl2 放棄最小的2粒骰
 
 discord 專用功能
-/re 要求擲骰  
-例如 /re 1d100 哈哈, 1d3 SC成功, 1d10 SC失敗`
+/re 要求擲骰/點擊功能
+例如 /re 1d100 哈哈, 1d3 SC成功, 1d10 SC失敗, 簽到`
 }
 const initialize = function () {
   return variables;
@@ -312,7 +312,7 @@ const discordCommand = [
   {
     data: new SlashCommandBuilder()
       .setName('re')
-      .setDescription('要求擲骰功能')
+      .setDescription('要求擲骰/點擊功能')
       .addStringOption(option => option.setName('text1').setDescription('輸入第一個擲骰內容').setRequired(true))
       .addStringOption(option => option.setName('text2').setDescription('輸入第二個擲骰內容'))
       .addStringOption(option => option.setName('text3').setDescription('輸入第三個擲骰內容'))

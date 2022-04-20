@@ -208,7 +208,7 @@ function handlingCountButton(message, mode) {
 	const content = message.message.content;
 	const user = `${message.user.username}`
 	const button = `${modeString}了「${message.component.label}」`;
-	const regexpButton = new RegExp(`${button}`)
+	const regexpButton = convertRegex(`${button}`)
 	let newContent = content;
 	if (newContent.match(/要求擲骰\/點擊/)) newContent = '';
 	if (newContent.match(regexpButton)) {
@@ -224,10 +224,10 @@ function checkRepeatName(content, button, user) {
 	let flag = false;
 	const everylines = content.split(/\n/);
 	for (const line of everylines) {
-		if (line.match(new RegExp(button))) {
+		if (line.match(convertRegex(button))) {
 			let splitNames = line.split('、');
 			for (const name of splitNames) {
-				if (name.match(new RegExp(user)) || name.match(new RegExp(`${user} ${button}`))) {
+				if (name.match(convertRegex(user)) || name.match(convertRegex(`${user} ${button}`))) {
 					flag = true;
 				}
 			}
@@ -995,6 +995,9 @@ async function handlingResponMessage(message, answer = '') {
 		console.error('handlingResponMessage Error: ', error)
 	}
 }
+const convertRegex = function (str = "") {
+	return new RegExp(str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1"));
+};
 
 const connect = function () {
 	ws = new WebSocket('ws://127.0.0.1:53589');

@@ -24,7 +24,7 @@
 - 使用方法請看 [HKTRPG 官方使用教學](https://bothelp.hktrpg.com/)
   - 歡迎加入[開發，求助及TRPG Discord 群組](https://discord.gg/vx4kcm7)
   - 邀請HKTRPG 加入
-    - [Discord 邀請連結](http://bit.ly/HKTRPG_DISCORD_)
+    - [Discord 邀請連結](https://bit.ly/HKTRPG_DISCORD_2022)
     - [Telegram 邀請連結](http://t.me/hktrpg_bot)
     - [Line 邀請連結](http://bit.ly/HKTRPG_LINE)
     - [網頁版 邀請連結](https://rollbot.hktrpg.com/)

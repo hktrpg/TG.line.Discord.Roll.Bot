@@ -256,7 +256,7 @@ HKTRPG來源自 機器鴨霸獸 https://docs.google.com/document/d/1dYnJqF2_QTp9
 			
 邀請HKTRPG 加入
 Line 邀請連結 http://bit.ly/HKTRPG_LINE
-Discord 邀請連結 http://bit.ly/HKTRPG_DISCORD_
+Discord 邀請連結 https://bit.ly/HKTRPG_DISCORD_2022
 Telegram 邀請連結 http://t.me/hktrpg_bot
 網頁版 邀請連結 https://rollbot.hktrpg.com/
 簡易網上擲骰網頁 https://roll.hktrpg.com/

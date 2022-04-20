@@ -2,6 +2,7 @@
 if (!process.env.mongoURL) {
     return;
 }
+const convertRegex = require("../modules/addon").convertRegex;
 const VIP = require('../modules/veryImportantPerson');
 const limitAtArr = [10, 20, 50, 200, 200, 200, 200, 200];
 const schema = require('../modules/schema.js');
@@ -13,9 +14,6 @@ const opt = {
 var gameName = function () {
     return '【你的名字】.myname / .me .me1 .me泉心'
 }
-const convertRegex = function (str) {
-    return str.toString().replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
-};
 const gameType = function () {
     return 'Tool:myname:hktrpg'
 }
@@ -224,7 +222,7 @@ var rollDiceCommand = async function ({
             }
             if (!myName) {
                 try {
-                    myName = await schema.myName.findOne({ userID: userid, shortName: new RegExp('^' + convertRegex(checkName) + '$', 'i') });
+                    myName = await schema.myName.findOne({ userID: userid, shortName: convertRegex('^' + (checkName) + '$', 'i') });
                 } catch (error) {
                     rply.text = `找不到角色 - ${checkName} \n可能是序號或名字不對`;
                     rply.quotes = true;

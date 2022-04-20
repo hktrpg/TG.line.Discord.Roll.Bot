@@ -2,6 +2,7 @@
 if (!process.env.mongoURL) {
     return;
 }
+const convertRegex = require("../modules/addon").convertRegex;
 const debugMode = (process.env.DEBUG) ? true : false;
 var variables = {};
 const rollDice = require('./rollbase');
@@ -22,10 +23,6 @@ var prefixs = function () {
     }]
 
 }
-
-const convertRegex = function (str) {
-    return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
-};
 const regexMain = new RegExp(/^((-)?\d):(.*)/, 'igm');
 const regexExp = new RegExp(/^exp:(.*)/, 'im');
 const regexName = new RegExp(/^name:(.*)/, 'im');
@@ -238,7 +235,7 @@ exp:SAN
             filter = {
                 userID: userid,
                 title: {
-                    $regex: new RegExp('^' + convertRegex(events.eventName) + '$', "i")
+                    $regex: convertRegex('^' + (events.eventName) + '$', "i")
                 }
             }
             try {
@@ -312,7 +309,7 @@ exp:SAN
             filter = {
                 userID: userid,
                 title: {
-                    $regex: new RegExp('^' + convertRegex(inputStr.replace(/^\.event\s+delete\s+/ig, '').replace(/\s+$/, '')) + '$', "i")
+                    $regex: convertRegex('^' + (inputStr.replace(/^\.event\s+delete\s+/ig, '').replace(/\s+$/, '')) + '$', "i")
                 }
             }
             doc = await schema.eventList.findOne(filter);
@@ -436,7 +433,7 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                     rply.text += "\n" + doc[index].title + "\n";
                     if (doc[index].expName) rply.text += '經驗值的名稱: ' + doc[index].expName + "\n";
                     rply.text += (doc[index].chainTitle) ? `系列名稱: ${doc[index].chainTitle} \n` : '';
-                    if (mainMsg[2] && mainMsg[2].match(new RegExp('^' + convertRegex(doc[index].title) + '$', 'i'))) {
+                    if (mainMsg[2] && mainMsg[2].match(convertRegex('^' + (doc[index].title) + '$', 'i'))) {
                         rply.text += getDetail(doc[index]) + '\n';
                     }
                 }
@@ -509,7 +506,7 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                     eventList = await schema.eventList.aggregate([{
                         $match: {
                             chainTitle: {
-                                $regex: new RegExp('^' + convertRegex(targetEventName) + '$', "i")
+                                $regex: convertRegex('^' + (targetEventName) + '$', "i")
                             }
                         }
                     }, { $sample: { size: 1 } }]);
@@ -523,7 +520,7 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                         eventList = await schema.eventList.aggregate([{
                             $match: {
                                 title: {
-                                    $regex: new RegExp('^' + convertRegex(targetEventName) + '$', "i")
+                                    $regex: convertRegex('^' + (targetEventName) + '$', "i")
                                 }
                             }
                         }, { $sample: { size: 1 } }]);
@@ -858,7 +855,7 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                     {
                         groupid: groupid,
                         userid: {
-                            $not: { $regex: new RegExp(thisMember.userid, 'i') }
+                            $not: { $regex: convertRegex(thisMember.userid, 'i') }
                         }
                     }
                 }, {
@@ -1024,7 +1021,7 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                     {
                         groupid: groupid,
                         userid: {
-                            $not: { $regex: new RegExp(thisMember.userid, 'i') }
+                            $not: { $regex: convertRegex(thisMember.userid, 'i') }
                         }
                     }
                 }, {

@@ -3,6 +3,7 @@ exports.analytics = require('./analytics');
 const schema = require('../modules/schema.js');
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const initCommand = require("./ds-deploy-commands");
+const convertRegex = require("./addon").convertRegex;
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const adminSecret = process.env.ADMIN_SECRET || '';
 const Discord = require("discord.js-light");
@@ -995,9 +996,6 @@ async function handlingResponMessage(message, answer = '') {
 		console.error('handlingResponMessage Error: ', error)
 	}
 }
-const convertRegex = function (str = "") {
-	return new RegExp(str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1"));
-};
 
 const connect = function () {
 	ws = new WebSocket('ws://127.0.0.1:53589');

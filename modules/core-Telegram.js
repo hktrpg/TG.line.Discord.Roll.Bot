@@ -2,7 +2,7 @@
 if (!process.env.TELEGRAM_CHANNEL_SECRET) {
 	return;
 }
-
+const convertRegex = require("./addon").convertRegex;
 const TelegramBot = require('node-telegram-bot-api');
 const agenda = require('../modules/schedule')
 const rollText = require('./getRoll').rollText;
@@ -37,8 +37,8 @@ TGclient.on('text', async (ctx) => {
 	if (inputStr) {
 		if (robotName && inputStr.match(/^[/]/))
 			inputStr = inputStr
-				.replace(new RegExp('@' + robotName + '$', 'i'), '')
-				.replace(new RegExp('^/', 'i'), '');
+				.replace(convertRegex('@' + robotName + '$', 'i'), '')
+				.replace(convertRegex('^/', 'i'), '');
 		mainMsg = inputStr.match(msgSplitor); // 定義輸入字串
 	}
 	if (mainMsg && mainMsg[0]) {

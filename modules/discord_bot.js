@@ -2,7 +2,6 @@
 exports.analytics = require('./analytics');
 const schema = require('../modules/schema.js');
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
-const initCommand = require("./ds-deploy-commands");
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const adminSecret = process.env.ADMIN_SECRET || '';
 const Discord = require("discord.js-light");

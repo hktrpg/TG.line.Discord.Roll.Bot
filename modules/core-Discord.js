@@ -7,7 +7,7 @@ const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const {
 	ShardingManager
 } = require('discord.js-light');
-
+const initCommand = require("./ds-deploy-commands");
 const manager = new ShardingManager('./modules/discord_bot.js', {
 	token: channelSecret,
 	totalShards: "auto",

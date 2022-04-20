@@ -143,6 +143,7 @@ client.on('messageCreate', async message => {
 });
 
 client.on('interactionCreate', async message => {
+	if (message.user && message.user.bot) return;
 	switch (true) {
 		case message.isCommand():
 			{

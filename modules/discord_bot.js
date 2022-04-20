@@ -153,10 +153,11 @@ client.on('interactionCreate', async message => {
 				const answer = handlingButtonCommand(message)
 				const result = await handlingResponMessage(message, answer);
 				if (result === undefined) {
-					await message.reply({ content: '已進行擲骰', ephemeral: true });
+					const content = handlingCountButton(message, 'roll');
+					await message.update({ content: content })
 				}
 				else {
-					const content = handlingCountButton(message);
+					const content = handlingCountButton(message, 'count');
 					await message.update({ content: content })
 				}
 				return;
@@ -201,10 +202,11 @@ client.on('messageReactionRemove', async (reaction, user) => {
 
 //inviteDelete
 //messageDelete
-function handlingCountButton(message) {
+function handlingCountButton(message, mode) {
+	const modeString = (mode === "roll") ? '投擲' : '點擊';
 	const content = message.message.content;
 	const user = `${message.user.username}`
-	const button = `點擊了「${message.component.label}」`;
+	const button = `${modeString}了「${message.component.label}」`;
 	const regexpButton = new RegExp(`${button}`)
 	let newContent = content;
 	if (newContent.match(/要求擲骰\/點擊/)) newContent = '';

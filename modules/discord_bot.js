@@ -676,7 +676,7 @@ async function getAllshardIds() {
 async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 	const row = [new MessageActionRow()]
 	for (let i = 0; i < buttonsNames.length; i++) {
-		const name = buttonsNames[i]
+		const name = buttonsNames[i] || 'null'
 		row[0]
 			.addComponents(
 				new MessageButton()

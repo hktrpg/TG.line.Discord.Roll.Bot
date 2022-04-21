@@ -798,7 +798,7 @@ async function handlingResponMessage(message, answer = '') {
 
 
 		if (groupid && message.channel.permissionsFor(client.user) && message.channel.permissionsFor(client.user).has(Permissions.FLAGS.MANAGE_CHANNELS)) {
-			userrole = 2
+			//	userrole = 2
 		}
 
 		if (message.member && message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) {

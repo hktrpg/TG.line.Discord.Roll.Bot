@@ -126,40 +126,40 @@ const rollDiceCommand = async function ({
 			rply.text = randomLuck(mainMsg);
 			return rply;
 		case /^每日笑話$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/xiaohua/api.php?type=json')
+			rply.text = await axiosDaily('https://ovooa.com/API/xiaohua/api.php?type=json')
 			return rply;
 		}
 		case /^每日動漫$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/dmyiyan/api.php?type=json')
+			rply.text = await axiosDaily('https://ovooa.com/API/dmyiyan/api.php?type=json')
 			return rply;
 		}
 		case /^每日一言$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/yiyan/api.php?type=json')
+			rply.text = await axiosDaily('https://ovooa.com/API/yiyan/api.php?type=json')
 			return rply;
 		}
 		case /^每日黃曆$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/huang/api.php?type=json')
+			rply.text = await axiosDaily('https://ovooa.com/API/huang/api.php?type=json')
 			return rply;
 		}
 		case /^每日毒湯$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/du/api.php?type=json')
+			rply.text = await axiosDaily('https://ovooa.com/API/du/api.php?type=json')
 			return rply;
 		}
 		case /^每日情話$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/qing/api.php?type=json')
+			rply.text = await axiosDaily('https://ovooa.com/API/qing/api.php?type=json')
 			return rply;
 		}
 		case /^每日靈簽$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/chouq/api.php?type=json')
+			rply.text = await axiosDaily('https://ovooa.com/API/chouq/api.php?type=json')
 			return rply;
 		}
 		case /^每日廢話$/.test(mainMsg[0]): {
 			let name = mainMsg[1] || displaynameDiscord || tgDisplayname || displayname || '你';
-			rply.text = await axiosDaily(`http://lkaa.top/API/dog/api.php?msg=${name}&num=500&type=json`)
+			rply.text = await axiosDaily(`https://ovooa.com/API/dog/api.php?msg=${name}&num=500&type=json`)
 			return rply;
 		}
 		case /^每日急口令$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/rao/api.php?type=json')
+			rply.text = await axiosDaily('https://ovooa.com/API/rao/api.php?type=json')
 			return rply;
 		}
 		case /^每日大事$/.test(mainMsg[0]): {
@@ -201,61 +201,61 @@ const rollDiceCommand = async function ({
 		}
 		//白羊座、金牛座、雙子座、巨蟹座、獅子座、處女座、天秤座、天蠍座、射手座、摩羯座、水瓶座、雙魚
 		case (/^每日白羊$/.test(mainMsg[0]) || /^每日牡羊$/.test(mainMsg[0])): {
-			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=白羊&type=json')
+			rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=白羊&type=json')
 			return rply;
 		}
 
 		case /^每日金牛$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=金牛&type=json')
+			rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=金牛&type=json')
 			return rply;
 		}
 
 		case /^每日雙子$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=双子&type=json')
+			rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=双子&type=json')
 			return rply;
 		}
 
 		case /^每日巨蟹$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=巨蟹&type=json')
+			rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=巨蟹&type=json')
 			return rply;
 		}
 
 		case /^每日獅子$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=狮子&type=json')
+			rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=狮子&type=json')
 			return rply;
 		}
 
 		case /^每日處女$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=处女&type=json')
+			rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=处女&type=json')
 			return rply;
 		}
 
 		case (/^每日天秤$/.test(mainMsg[0]) || /^每日天平$/.test(mainMsg[0])): {
-			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=天秤&type=json')
+			rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=天秤&type=json')
 			return rply;
 		}
 
 		case /^每日天蠍$/.test(mainMsg[0]) || /^每日天蝎$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=天蝎&type=json')
+			rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=天蝎&type=json')
 			return rply;
 		}
 
 		case (/^每日射手$/.test(mainMsg[0]) || /^每日人馬$/.test(mainMsg[0])): {
-			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=射手&type=json')
+			rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=射手&type=json')
 			return rply;
 		}
 
 		case (/^每日摩羯$/.test(mainMsg[0]) || /^每日山羊$/.test(mainMsg[0])): {
-			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=摩羯&type=json')
+			rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=摩羯&type=json')
 			return rply;
 		}
 
 		case (/^每日水瓶$/.test(mainMsg[0]) || /^每日寶瓶$/.test(mainMsg[0])): {
-			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=水瓶&type=json')
+			rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=水瓶&type=json')
 			return rply;
 		}
 		case /^每日雙魚$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('http://lkaa.top/API/xz/api.php?msg=双鱼&type=json')
+			rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=双鱼&type=json')
 			return rply;
 		}
 		default:
@@ -820,6 +820,18 @@ function SortIt(input, mainMsg) {
 	return mainMsg[0] + ' \n→ [ ' + a.join(', ') + ' ]';
 }
 async function axiosDaily(url) {
+	let reply = await fetchData(url);
+	if (reply === '錯誤error') {
+		reply = await fetchData(url.replace('https://ovooa.com', 'http://lkaa.top'));
+	}
+	if (reply === '錯誤error') {
+		reply = `'伺服器出現問題，請稍後再試。`;
+	}
+	return reply;
+
+}
+
+async function fetchData(url) {
 	let reply = '';
 	try {
 		const response = await axios.get(encodeURI(url), { timeout: 20000 });
@@ -836,12 +848,11 @@ async function axiosDaily(url) {
 		return reply || '沒有結果，請檢查內容'
 	} catch (error) {
 		if (error.code !== 'ETIMEDOUT' || error.code !== 'ECONNABORTED' || error.code !== 'ECONNRESET' || error.code !== 'undefined') {
-			console.error('axiosDaily error: ', error && error.code);
+			return '錯誤error'
 		}
-		return `'伺服器連線出現問題，請稍後再試，錯誤代碼: ${error.code}`;
+		//return `'伺服器連線出現問題，請稍後再試，錯誤代碼: ${error.code}`;
 	}
 }
-
 function analyzeResponse(response) {
 	switch (typeof response) {
 		case 'string':
@@ -858,7 +869,7 @@ function analyzeResponse(response) {
 			break;
 	}
 }
-/*來源自 http://lkaa.top
+/*來源自 https://ovooa.com
 
 http://api.uuouo.cn/
 http://ybapi.top/

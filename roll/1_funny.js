@@ -1,6 +1,7 @@
 "use strict";
 const rollbase = require('./rollbase.js');
 var variables = {};
+const fs = require('fs');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const axiosRetry = require('axios-retry');
 const chineseConv = require('chinese-conv'); //繁簡轉換
@@ -142,7 +143,13 @@ const rollDiceCommand = async function ({
 			return rply;
 		}
 		case /^每日毒湯$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('https://ovooa.com/API/du/api.php?type=json')
+			try {
+				const data = fs.readFileSync('./assets/dutang.txt', 'utf8').toString();
+				const word = data.split('\n');
+				rply.text = word[rollbase.Dice(word.length) - 1];
+			} catch (e) {
+				console.log('Error:', e.stack);
+			}
 			return rply;
 		}
 		case /^每日情話$/.test(mainMsg[0]): {

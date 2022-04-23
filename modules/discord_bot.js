@@ -797,8 +797,8 @@ async function handlingResponMessage(message, answer = '') {
 		////DISCORD: 585040823232320107
 
 
-		if (groupid && message.channel.permissionsFor(client.user) && message.channel.permissionsFor(client.user).has(Permissions.FLAGS.MANAGE_CHANNELS)) {
-			//	userrole = 2
+		if (groupid && message.channel.permissionsFor(message.member) && message.channel.permissionsFor(message.member).has(Permissions.FLAGS.MANAGE_CHANNELS)) {
+			userrole = 2
 		}
 
 		if (message.member && message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) {

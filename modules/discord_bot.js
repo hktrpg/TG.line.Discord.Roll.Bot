@@ -147,13 +147,18 @@ client.on('messageCreate', async message => {
 
 client.on('interactionCreate', async message => {
 	if (message.user && message.user.bot) return;
+
 	switch (true) {
 		case message.isCommand():
 			{
+
 				const answer = await handlingCommand(message)
 				const result = await handlingResponMessage(message, answer);
-				if (result && result.text)
-					return await message.reply({ content: `${result.text}`, ephemeral: false })
+
+				if (result && result.text) {
+					const displayname = `<@${result.userid}>` || ''
+					return await message.reply({ content: `${displayname}\n${result.text}`, ephemeral: false })
+				}
 				else {
 					return await message.reply({ content: `指令沒有得到回應，請檢查內容`, ephemeral: true })
 				}
@@ -163,8 +168,9 @@ client.on('interactionCreate', async message => {
 				const answer = handlingButtonCommand(message)
 				const result = await handlingResponMessage(message, answer);
 				const messageContent = message.message.content;
+				const displayname = `<@${result.userid}>` || ''
 				if (/的角色卡$/.test(messageContent)) {
-					return await message.reply({ content: `${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${result.text}`, ephemeral: false })
+					return await message.reply({ content: `${displayname}\n${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${result.text}`, ephemeral: false })
 				}
 				if (result && result.text) {
 					const content = handlingCountButton(message, 'roll');
@@ -691,7 +697,7 @@ async function handlingRequestRollingCharacter(message, input) {
 	const buttonsNames = input[0];
 	const characterName = input[1]
 	const row = []
-	const totallyQuotient = ~~(buttonsNames.length / 5) + 1
+	const totallyQuotient = ~~((buttonsNames.length - 1) / 5) + 1;
 	for (let index = 0; index < totallyQuotient; index++) {
 		row.push(new MessageActionRow())
 	}
@@ -1031,7 +1037,6 @@ async function handlingSendMessage(input) {
 			if (userid) {
 				sendText = `<@${userid}> ${(statue) ? statue : ''}\n${sendText}`;
 			}
-
 			if (groupid) {
 				await SendToReplychannel({ replyText: sendText, channelid, quotes: quotes });
 			} else {

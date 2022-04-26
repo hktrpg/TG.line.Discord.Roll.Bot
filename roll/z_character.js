@@ -365,6 +365,25 @@ var rollDiceCommand = async function ({
             //檢查有沒有重覆
             rply.text = '刪除角色卡成功: ' + doc.name
             return rply;
+        case /(^[.]char$)/i.test(mainMsg[0]) && /^button$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]): {
+            if (!groupid) {
+                rply.text = '此功能必須在群組中使用'
+                return rply
+            }
+
+            filter = {
+                id: userid,
+                name: new RegExp('^' + convertRegex(inputStr.replace(/^\.char\s+button\s+/i, '')) + '$', "i")
+            }
+            const doc = await schema.characterCard.findOne(filter);
+            if (!doc) {
+                rply.text = '沒有此角色卡'
+                return rply
+            }
+            if (doc.roll)
+                rply.requestRollingCharacter = [handleRequestRolling(doc.roll), doc.name]
+            return rply;
+        }
 
         case /(^[.]ch$)/i.test(mainMsg[0]) && /^set$/i.test(mainMsg[1]) && /^\S+$/i.test(mainMsg[2]) && /^\S+$/i.test(mainMsg[3]):
             //更新功能
@@ -496,7 +515,6 @@ var rollDiceCommand = async function ({
                 const doc = await schema.characterCard.findOne({
                     _id: docSwitch.cardId
                 });
-                console.log('doc', doc)
                 if (doc.roll)
                     rply.requestRollingCharacter = [handleRequestRolling(doc.roll), doc.name]
             }
@@ -550,7 +568,8 @@ function handleRequestRolling(rolls) {
     let text = [];
     for (let index = 0; index < rolls.length; index++) {
         const roll = rolls[index];
-        text[index] = `${roll.itemA} ${roll.name}`
+        const itemName = new RegExp(convertRegex(roll.name) + '$', 'i')
+        text[index] = (roll.itemA.match(itemName)) ? `${roll.itemA}` : `${roll.itemA} ${roll.name}`
         text[index] = text[index].substring(0, 80);
     }
     return text;

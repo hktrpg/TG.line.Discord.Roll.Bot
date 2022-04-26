@@ -712,12 +712,16 @@ async function handlingRequestRollingCharacter(message, input) {
 					.setStyle(buttonsStyle(i)),
 			)
 	}
-	await message.reply({ content: `${characterName}的角色卡`, components: row });
+	const arrayRow = await splitArray(5, row)
+	for (let index = 0; index < arrayRow.length; index++) {
+		await message.reply({ content: `${characterName}的角色卡`, components: arrayRow[index] });
+	}
+
 }
 
 async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 	const row = []
-	const totallyQuotient = ~~(buttonsNames.length / 5) + 1
+	const totallyQuotient = ~~((buttonsNames.length - 1) / 5) + 1
 	for (let index = 0; index < totallyQuotient; index++) {
 		row.push(new MessageActionRow())
 	}
@@ -732,8 +736,19 @@ async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 					.setStyle(buttonsStyle(i)),
 			)
 	}
-	await message.reply({ content: `${displayname}要求擲骰/點擊`, components: row });
+	const arrayRow = await splitArray(5, row)
+	for (let index = 0; index < arrayRow.length; index++) {
+		await message.reply({ content: `${displayname}要求擲骰/點擊`, components: arrayRow[index] });
+	}
 }
+async function splitArray(perChunk, inputArray) {
+	var myArray = [];
+	for (var i = 0; i < inputArray.length; i += perChunk) {
+		myArray.push(inputArray.slice(i, i + perChunk));
+	}
+	return myArray;
+}
+
 function buttonsStyle(num) {
 	return buttonStyles[num % 5];
 }
@@ -903,7 +918,7 @@ async function handlingResponMessage(message, answer = '') {
 				SendToId(userid, newMessage.firstTimeMessage(), true);
 			}
 		} catch (error) {
-			console.log(`discord bot error #236`, error)
+			console.error(`discord bot error #236`, error)
 		}
 		/**
 		schedule 功能

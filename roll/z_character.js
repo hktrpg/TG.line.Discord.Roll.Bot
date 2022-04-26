@@ -8,7 +8,7 @@ const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const limitArr = [4, 20, 20, 30, 30, 99, 99, 99];
 var gameName = function () {
-    return '角色卡功能 .char (add edit show delete use nonuse) .ch (set show showall)'
+    return '角色卡功能 .char (add edit show delete use nonuse button) .ch (set show showall button)'
 }
 var gameType = function () {
     return 'Tool:trpgcharacter:hktrpg'
@@ -484,7 +484,25 @@ var rollDiceCommand = async function ({
             }
             rply.text = await showCharacter(doc, 'showAllMode');
             return rply;
+        case /(^[.]ch$)/i.test(mainMsg[0]) && /^button$/i.test(mainMsg[1]): {
+            const filter = {
+                id: userid,
+                gpid: channelid || groupid,
+            }
 
+            const docSwitch = await schema.characterGpSwitch.findOne(
+                filter);
+            if (docSwitch && docSwitch.cardId) {
+                const doc = await schema.characterCard.findOne({
+                    _id: docSwitch.cardId
+                });
+                console.log('doc', doc)
+                if (doc.roll)
+                    rply.requestRollingCharacter = [handleRequestRolling(doc.roll), doc.name]
+            }
+            //  rply.requestRolling = handleRequestRolling(inputStr)
+            return rply;
+        }
 
         case /(^[.]ch$)/i.test(mainMsg[0]) && /^\S+$/i.test(mainMsg[1]):
             if (!groupid) {
@@ -527,6 +545,15 @@ var rollDiceCommand = async function ({
             break;
 
     }
+}
+function handleRequestRolling(rolls) {
+    let text = [];
+    for (let index = 0; index < rolls.length; index++) {
+        const roll = rolls[index];
+        text[index] = `${roll.itemA} ${roll.name}`
+        text[index] = text[index].substring(0, 80);
+    }
+    return text;
 }
 
 async function mainCharacter(doc, mainMsg) {

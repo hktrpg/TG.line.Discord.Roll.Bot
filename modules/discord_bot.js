@@ -138,7 +138,9 @@ client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnecte
 
 client.on('messageCreate', async message => {
 	if (message.author.bot) return;
-	return handlingResponMessage(message)
+	const result = await handlingResponMessage(message);
+	return handlingSendMessage(result);
+
 });
 
 client.on('interactionCreate', async message => {
@@ -147,21 +149,28 @@ client.on('interactionCreate', async message => {
 		case message.isCommand():
 			{
 				const answer = await handlingCommand(message)
-				return handlingResponMessage(message, answer);
+				const result = await handlingResponMessage(message, answer);
+				console.log('result', result)
+				return await handlingSendMessage(result);
 			}
 		case message.isButton():
 			{
 				const answer = handlingButtonCommand(message)
 				const result = await handlingResponMessage(message, answer);
+				const messageContent = message.message.content;
+				if (/的角色卡$/.test(messageContent)) {
+					await message.reply({ content: `${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${result}`, ephemeral: false })
+					await message.reply({ content: `${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${result}`, ephemeral: false })
+					return await message.reply({ content: `${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${result}`, ephemeral: false })
+				}
 				if (result === undefined) {
 					const content = handlingCountButton(message, 'roll');
-					await message.update({ content: content })
+					return await message.update({ content: content })
 				}
 				else {
 					const content = handlingCountButton(message, 'count');
-					await message.update({ content: content })
+					return await message.update({ content: content })
 				}
-				return;
 			}
 		default:
 			break;
@@ -673,8 +682,15 @@ async function getAllshardIds() {
 
 }
 
-async function handlingRequestRolling(message, buttonsNames, displayname = '') {
-	const row = [new MessageActionRow()]
+
+async function handlingRequestRollingCharacter(message, input) {
+	const buttonsNames = input[0];
+	const characterName = input[1]
+	const row = []
+	const totallyQuotient = ~~(buttonsNames.length / 5) + 1
+	for (let index = 0; index < totallyQuotient; index++) {
+		row.push(new MessageActionRow())
+	}
 	for (let i = 0; i < buttonsNames.length; i++) {
 		const quot = ~~(i / 5)
 		const name = buttonsNames[i] || 'null'
@@ -686,12 +702,30 @@ async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 					.setStyle(buttonsStyle(i)),
 			)
 	}
+	await message.reply({ content: `${characterName}的角色卡`, components: row });
+}
 
+async function handlingRequestRolling(message, buttonsNames, displayname = '') {
+	const row = []
+	const totallyQuotient = ~~(buttonsNames.length / 5) + 1
+	for (let index = 0; index < totallyQuotient; index++) {
+		row.push(new MessageActionRow())
+	}
+	for (let i = 0; i < buttonsNames.length; i++) {
+		const quot = ~~(i / 5)
+		const name = buttonsNames[i] || 'null'
+		row[quot]
+			.addComponents(
+				new MessageButton()
+					.setCustomId(`${name}_${i}`)
+					.setLabel(name)
+					.setStyle(buttonsStyle(i)),
+			)
+	}
 	await message.reply({ content: `${displayname}要求擲骰/點擊`, components: row });
-
 }
 function buttonsStyle(num) {
-	return buttonStyles[num];
+	return buttonStyles[num % 5];
 }
 
 function initInteractionCommands() {
@@ -714,8 +748,6 @@ function pushArrayInteractionCommands(arrayCommands) {
 
 async function handlingResponMessage(message, answer = '') {
 	try {
-
-
 		let hasSendPermission = true;
 		//	await repeatMessage(message)
 		/**
@@ -755,8 +787,6 @@ async function handlingResponMessage(message, answer = '') {
 		let rplyVal = {};
 		let checkPrivateMsg = privateMsg({ trigger, mainMsg, inputStr });
 		inputStr = checkPrivateMsg.inputStr;
-		let privatemsg = checkPrivateMsg.privatemsg;
-
 		let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
 		if (!target) {
 			await nonDice(message)
@@ -771,9 +801,6 @@ async function handlingResponMessage(message, answer = '') {
 			displaynameDiscord = '',
 			membercount = null,
 			titleName = '';
-		let TargetGMTempID = [];
-		let TargetGMTempdiyName = [];
-		let TargetGMTempdisplayname = [];
 		//得到暗骰的數據, GM的位置
 
 		//檢查是不是有權限可以傳信訊
@@ -848,6 +875,7 @@ async function handlingResponMessage(message, answer = '') {
 				});
 			}
 		}
+		if (rplyVal.requestRollingCharacter) handlingRequestRollingCharacter(message, rplyVal.requestRollingCharacter);
 		if (rplyVal.requestRolling) handlingRequestRolling(message, rplyVal.requestRolling, displaynameDiscord);
 		if (rplyVal.roleReactFlag) roleReact(channelid, rplyVal)
 		if (rplyVal.newRoleReactFlag) newRoleReact(message, rplyVal)
@@ -911,91 +939,104 @@ async function handlingResponMessage(message, answer = '') {
 		}
 		if (!rplyVal.text) {
 			return;
-		}
-		//Discordcountroll++;
-		//簡單使用數字計算器
-		if (privatemsg > 1 && TargetGM) {
-			let groupInfo = await privateMsgFinder(channelid) || [];
-			groupInfo.forEach((item) => {
-				TargetGMTempID.push(item.userid);
-				TargetGMTempdiyName.push(item.diyName);
-				TargetGMTempdisplayname.push(item.displayname);
-			})
-		}
-		/*
-							if (groupid && userid) {
-								//DISCORD: 585040823232320107
-								displayname = "<@" + userid + "> \n"
-								if (displaynamecheck)
-									rplyVal.text = displayname + rplyVal.text
-							}
-		*/
-		switch (true) {
-			case privatemsg == 1:
-				// 輸入dr  (指令) 私訊自己
-				//
-				if (groupid) {
-					await SendToReplychannel(
-						{ replyText: "<@" + userid + '> 暗骰給自己', channelid })
-				}
-				if (userid) {
-					rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
-					SendToReply(
-						{ replyText: rplyVal.text, message });
-				}
-				return;
-			case privatemsg == 2:
-				//輸入ddr(指令) 私訊GM及自己
-				if (groupid) {
-					let targetGMNameTemp = "";
-					for (let i = 0; i < TargetGMTempID.length; i++) {
-						targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
-					}
-					await SendToReplychannel(
-						{ replyText: "<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp, channelid });
-				}
-				if (userid) {
-					rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text;
-				}
-				SendToReply({ replyText: rplyVal.text, message });
-				for (let i = 0; i < TargetGMTempID.length; i++) {
-					if (userid != TargetGMTempID[i]) {
-						SendToId(TargetGMTempID[i], rplyVal.text);
-					}
-				}
-				return;
-			case privatemsg == 3:
-				//輸入dddr(指令) 私訊GM
-				if (groupid) {
-					let targetGMNameTemp = "";
-					for (let i = 0; i < TargetGMTempID.length; i++) {
-						targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
-					}
-					await SendToReplychannel(
-						{ replyText: "<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp, channelid })
-				}
-				rplyVal.text = "<@" + userid + "> 的暗骰\n" + rplyVal.text
-				for (let i = 0; i < TargetGMTempID.length; i++) {
-					SendToId(TargetGMTempID[i], rplyVal.text);
-				}
-				return;
-			default:
-				if (userid) {
-					rplyVal.text = `<@${userid}> ${(rplyVal.statue) ? rplyVal.statue : ''}\n${rplyVal.text}`;
-				}
-
-				if (groupid) {
-					await SendToReplychannel({ replyText: rplyVal.text, channelid, quotes: rplyVal.quotes });
-				} else {
-					SendToReply({ replyText: rplyVal.text, message, quotes: rplyVal.quotes });
-				}
-				return;
-		}
+		} else return {
+			privatemsg: checkPrivateMsg.privatemsg, channelid,
+			groupid,
+			userid,
+			text: rplyVal.text,
+			message,
+			statue: rplyVal.statue,
+			quotes: rplyVal.quotes
+		};
 
 	} catch (error) {
 		console.error('handlingResponMessage Error: ', error)
 	}
 }
+
+async function handlingSendMessage(input) {
+	const privatemsg = input.privatemsg;
+	const channelid = input.channelid;
+	const groupid = input.groupid
+	const userid = input.userid
+	let sendText = input.text
+	const message = input.message
+	const statue = input.statue
+	const quotes = input.quotes
+	let TargetGMTempID = [];
+	let TargetGMTempdiyName = [];
+	let TargetGMTempdisplayname = [];
+	if (privatemsg > 1 && TargetGM) {
+		let groupInfo = await privateMsgFinder(channelid) || [];
+		groupInfo.forEach((item) => {
+			TargetGMTempID.push(item.userid);
+			TargetGMTempdiyName.push(item.diyName);
+			TargetGMTempdisplayname.push(item.displayname);
+		})
+	}
+	switch (true) {
+		case privatemsg == 1:
+			// 輸入dr  (指令) 私訊自己
+			//
+			if (groupid) {
+				await SendToReplychannel(
+					{ replyText: "<@" + userid + '> 暗骰給自己', channelid })
+			}
+			if (userid) {
+				sendText = "<@" + userid + "> 的暗骰\n" + sendText
+				SendToReply(
+					{ replyText: sendText, message });
+			}
+			return;
+		case privatemsg == 2:
+			//輸入ddr(指令) 私訊GM及自己
+			if (groupid) {
+				let targetGMNameTemp = "";
+				for (let i = 0; i < TargetGMTempID.length; i++) {
+					targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
+				}
+				await SendToReplychannel(
+					{ replyText: "<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp, channelid });
+			}
+			if (userid) {
+				sendText = "<@" + userid + "> 的暗骰\n" + sendText;
+			}
+			SendToReply({ replyText: sendText, message });
+			for (let i = 0; i < TargetGMTempID.length; i++) {
+				if (userid != TargetGMTempID[i]) {
+					SendToId(TargetGMTempID[i], sendText);
+				}
+			}
+			return;
+		case privatemsg == 3:
+			//輸入dddr(指令) 私訊GM
+			if (groupid) {
+				let targetGMNameTemp = "";
+				for (let i = 0; i < TargetGMTempID.length; i++) {
+					targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
+				}
+				await SendToReplychannel(
+					{ replyText: "<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp, channelid })
+			}
+			sendText = "<@" + userid + "> 的暗骰\n" + sendText
+			for (let i = 0; i < TargetGMTempID.length; i++) {
+				SendToId(TargetGMTempID[i], sendText);
+			}
+			return;
+		default:
+			if (userid) {
+				sendText = `<@${userid}> ${(statue) ? statue : ''}\n${sendText}`;
+			}
+
+			if (groupid) {
+				await SendToReplychannel({ replyText: sendText, channelid, quotes: quotes });
+			} else {
+				SendToReply({ replyText: sendText, message, quotes: quotes });
+			}
+			return;
+	}
+}
+
 const convertRegex = function (str = "") {
 	return new RegExp(str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1"));
 };

@@ -128,7 +128,7 @@ const rollDiceCommand = async function ({
 			return rply;
 		case /^每日笑話$/.test(mainMsg[0]): {
 			try {
-				const data = fs.readFileSync('./assets/笑話.txt', 'utf8').toString();
+				const data = fs.readFileSync('./assets/joke.txt', 'utf8').toString();
 				const word = data.split('\n');
 				rply.text = word[rollbase.Dice(word.length) - 1];
 			} catch (e) {
@@ -137,12 +137,18 @@ const rollDiceCommand = async function ({
 			return rply;
 		}
 		case /^每日動漫$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('https://ovooa.com/API/dmyiyan/api.php?type=json')
+			try {
+				const data = fs.readFileSync('./assets/acg.txt', 'utf8').toString();
+				const word = data.split('\n');
+				rply.text = word[rollbase.Dice(word.length) - 1];
+			} catch (e) {
+				console.log('Error:', e.stack);
+			}
 			return rply;
 		}
 		case /^每日一言$/.test(mainMsg[0]): {
 			try {
-				const data = fs.readFileSync('./assets/一言.txt', 'utf8').toString();
+				const data = fs.readFileSync('./assets/slogan.txt', 'utf8').toString();
 				const word = data.split('\n');
 				rply.text = word[rollbase.Dice(word.length) - 1];
 			} catch (e) {
@@ -156,7 +162,7 @@ const rollDiceCommand = async function ({
 		}
 		case /^每日毒湯$/.test(mainMsg[0]): {
 			try {
-				const data = fs.readFileSync('./assets/毒湯.txt', 'utf8').toString();
+				const data = fs.readFileSync('./assets/blackjoke.txt', 'utf8').toString();
 				const word = data.split('\n');
 				rply.text = word[rollbase.Dice(word.length) - 1];
 			} catch (e) {
@@ -166,7 +172,7 @@ const rollDiceCommand = async function ({
 		}
 		case /^每日情話$/.test(mainMsg[0]): {
 			try {
-				const data = fs.readFileSync('./assets/情話.txt', 'utf8').toString();
+				const data = fs.readFileSync('./assets/mlove.txt', 'utf8').toString();
 				const word = data.split('\n');
 				rply.text = word[rollbase.Dice(word.length) - 1];
 			} catch (e) {

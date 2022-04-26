@@ -42,8 +42,8 @@ coc6版創角		： 啓動語 .cc6build
 coc7版創角		： 啓動語 .cc7build (歲數7-89)
 coc7版隨機創角	： 啓動語 .cc7build random
 
-coc7 成長或增強檢定： .dp 或 成長檢定 或 幕間成長 (技能%) (名稱)
-例）.DP 50 騎馬 | 成長檢定 45 頭槌 | 幕間成長 40 單車
+coc7 成長或增強檢定： .dp 或 成長檢定 或 幕間成長 (技能%) (名稱) (可以一次輸入多個)
+例）.DP 50 騎乘 80 鬥毆  70 60
 
 coc7版角色背景隨機生成： 啓動語 .cc7bg
 
@@ -341,8 +341,8 @@ const rollDiceCommand = async function ({
 			return rply;
 
 		}
-		case ((trigger == '.dp' || trigger == '成長檢定' || trigger == '幕間成長') && mainMsg[1] > 0 && mainMsg[1] <= 1000): {
-			rply.text = DevelopmentPhase(mainMsg[1], mainMsg[2]);
+		case (trigger == '.dp' || trigger == '成長檢定' || trigger == '幕間成長'): {
+			rply.text = DevelopmentPhase(mainMsg);
 			rply.quotes = true;
 			break;
 		}
@@ -919,9 +919,29 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 
 }
 
-function DevelopmentPhase(target, text) {
+function DevelopmentPhase(input) {
+	let result = ''
+	for (let index = 1; index < input.length; index++) {
+		let target = '',
+			text = '';
+		if (!isNaN(input[index])) {
+			target = input[index];
+		}
+		else continue;
+		if (input[index + 1] && isNaN(input[index + 1])) {
+			text = input[index + 1];
+			index++;
+		}
+		result += everyTimeDevelopmentPhase(target, text) + '\n' + '\n'
+	}
+	return result;
+
+}
+
+function everyTimeDevelopmentPhase(target, text = '') {
 	let result = '';
 	target = Number(target);
+	if (target > 1000) target = 1000;
 	if (text == undefined) text = "";
 	let skill = rollbase.Dice(100);
 	let confident = (target <= 89) ? true : false;
@@ -938,7 +958,6 @@ function DevelopmentPhase(target, text) {
 	}
 	return result;
 }
-
 function ccrt() {
 	let result = '';
 	//var rollcc = Math.floor(Math.random() * 10);

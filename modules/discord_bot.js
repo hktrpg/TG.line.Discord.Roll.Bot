@@ -139,7 +139,9 @@ client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnecte
 client.on('messageCreate', async message => {
 	if (message.author.bot) return;
 	const result = await handlingResponMessage(message);
-	return handlingSendMessage(result);
+	if (result && result.text)
+		return handlingSendMessage(result);
+	return
 
 });
 
@@ -150,8 +152,11 @@ client.on('interactionCreate', async message => {
 			{
 				const answer = await handlingCommand(message)
 				const result = await handlingResponMessage(message, answer);
-				console.log('result', result)
-				return await handlingSendMessage(result);
+				if (result && result.text)
+					return await message.reply({ content: `${result.text}`, ephemeral: false })
+				else {
+					return await message.reply({ content: `指令沒有得到回應，請檢查內容`, ephemeral: true })
+				}
 			}
 		case message.isButton():
 			{
@@ -159,12 +164,11 @@ client.on('interactionCreate', async message => {
 				const result = await handlingResponMessage(message, answer);
 				const messageContent = message.message.content;
 				if (/的角色卡$/.test(messageContent)) {
-					await message.reply({ content: `${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${result}`, ephemeral: false })
-					await message.reply({ content: `${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${result}`, ephemeral: false })
-					return await message.reply({ content: `${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${result}`, ephemeral: false })
+					return await message.reply({ content: `${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${result.text}`, ephemeral: false })
 				}
-				if (result === undefined) {
+				if (result && result.text) {
 					const content = handlingCountButton(message, 'roll');
+					handlingSendMessage(result);
 					return await message.update({ content: content })
 				}
 				else {
@@ -955,7 +959,7 @@ async function handlingResponMessage(message, answer = '') {
 }
 
 async function handlingSendMessage(input) {
-	const privatemsg = input.privatemsg;
+	const privatemsg = input.privatemsg || 0;
 	const channelid = input.channelid;
 	const groupid = input.groupid
 	const userid = input.userid

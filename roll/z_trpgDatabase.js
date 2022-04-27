@@ -177,7 +177,6 @@ var rollDiceCommand = async function ({
                     if (trpgDatabasefunction.trpgDatabasefunction[i].groupid == groupid && mainMsg[2] < trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction.length && mainMsg[2] >= 0) {
                         let temp = trpgDatabasefunction.trpgDatabasefunction[i]
                         temp.trpgDatabasefunction.splice(mainMsg[2], 1)
-                        //console.log('trpgDatabasefunction.trpgDatabasefunction: ', temp)
                         records.settrpgDatabasefunction('trpgDatabase', temp, () => {
                             records.get('trpgDatabase', (msgs) => {
                                 trpgDatabasefunction.trpgDatabasefunction = msgs
@@ -202,7 +201,6 @@ var rollDiceCommand = async function ({
             records.get('trpgDatabase', (msgs) => {
                 trpgDatabasefunction.trpgDatabasefunction = msgs
             })
-            //console.log(trpgDatabasefunction.trpgDatabasefunction)
             if (groupid) {
                 let temp = 0;
                 if (trpgDatabasefunction.trpgDatabasefunction)
@@ -228,7 +226,6 @@ var rollDiceCommand = async function ({
             //let times = /^[.]db/.exec(mainMsg[0])[1] || 1
             //if (times > 30) times = 30;
             //if (times < 1) times = 1
-            //console.log(times)
             if (groupid) {
                 //    console.log(mainMsg[1])
                 let temp = 0;

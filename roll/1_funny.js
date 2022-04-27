@@ -217,7 +217,7 @@ const rollDiceCommand = async function ({
 						respond += `${answerBig[index].title}\n${answerBig[index].content}\n\n`
 					}
 					return chineseConv.tify(respond)
-				}) //console.log('case: ', rply)
+				})
 				.catch(error => {
 					if (error == 'Error: No article found')
 						return '沒有此條目'
@@ -843,7 +843,6 @@ function SortIt(input, mainMsg) {
 		//3 -> 210 , 10, 0
 		var randomIndex = rollbase.Dice(i + 1) - 1
 		//3 ->
-		//console.log('randomIndex: ', randomIndex)
 		var itemAtIndex = a[randomIndex];
 		a[randomIndex] = a[i];
 		a[i] = itemAtIndex;

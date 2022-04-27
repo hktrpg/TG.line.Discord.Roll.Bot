@@ -47,7 +47,6 @@ var rollDiceCommand = async function ({
         default: {
             //.4dfm23,m23,m,23
             //＋∎－
-            //console.log(match)
             var random = '',
                 temp = '';
             var ans = 0

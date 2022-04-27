@@ -147,7 +147,6 @@ if (retry > maxRetry) {
 		let getChatDetail = await client.getChatById(msg.from)
 		if (getChatDetail.isGroup) {
 			groupid = getChatDetail.id._serialized;
-			//console.log('groupid:', groupid)
 			membercount = getChatDetail.participants.length - 1;
 		}
 		let mainMsg = inputStr.match(msgSplitor); //定義輸入字串
@@ -258,8 +257,6 @@ if (retry > maxRetry) {
 		switch (true) {
 			case privatemsg == 1:
 				// 輸入dr  (指令) 私訊自己
-				//
-				//console.log('ctx.message.chat.type: ', ctx.message.chat.type)
 				if (groupid) {
 					SendDR(msg, "@" + displayname + '暗骰給自己');
 				}

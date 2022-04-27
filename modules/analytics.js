@@ -35,7 +35,6 @@ var parseInput = async function ({
 	titleName = '',
 	tgDisplayname = ''
 }) {
-	//console.log('InputStr: ' + inputStr);
 	let result = {
 		text: '',
 		type: 'text',
@@ -164,7 +163,6 @@ var rolldice = async function ({
 	titleName,
 	tgDisplayname
 }) {
-	//	console.log(exports)
 	//在下面位置開始分析trigger
 	if (!groupid) {
 		groupid = '';
@@ -181,7 +179,6 @@ var rolldice = async function ({
 
 	mainMsg[0].match(/^\.(\d{1,2})$/) ? mainMsg.shift() : null;
 
-	//console.log('target', target)
 	let retext = '';
 	let tempsave = {};
 	for (let index = 0; index < rollTimes; index++) {
@@ -231,7 +228,6 @@ var rolldice = async function ({
 	if (retext) {
 		tempsave.text = retext;
 	}
-	//console.log('tempsave: ', tempsave)
 	return tempsave;
 }
 

@@ -46,10 +46,8 @@ var rollDiceCommand = async function ({ mainMsg }) {
             if (mainMsg[1].replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]|[@]/ig, '')) return;
 
             rply.text = await WN(mainMsg[1]).then(async (result) => {
-                // console.log(result)
                 return await WN2(result, mainMsg[2])
             });
-            //console.log('rply.text', rply.text)
             return rply;
         default:
             break;

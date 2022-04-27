@@ -186,7 +186,6 @@ const Title = function () {
 const checkTitle = async function (userlvl, DBTitle) {
     let templvl = 0;
     let temptitle = ""
-    //console.log("DBTitle: ", DBTitle)
     if (DBTitle && DBTitle.length > 0) {
         for (let g = 0; g < DBTitle.length; g++) {
             if (userlvl >= g) {

@@ -129,7 +129,6 @@ var rollDiceCommand = async function ({
                     if (save.save[i].groupid == groupid && mainMsg[2] < save.save[i].blockfunction.length && mainMsg[2] >= 0) {
                         let temp = save.save[i]
                         temp.blockfunction.splice(mainMsg[2], 1)
-                        //console.log(save.save[i])
                         records.set('block', temp, () => {
                             records.get('block', (msgs) => {
                                 save.save = msgs

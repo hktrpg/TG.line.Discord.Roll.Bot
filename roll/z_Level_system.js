@@ -58,7 +58,6 @@ var initialize = function () {
 const checkTitle = async function (userlvl, DBTitle) {
     let templvl = 0;
     let temptitle = ""
-    //console.log("DBTitle: ", DBTitle)
     if (DBTitle && DBTitle.length > 0) {
         for (let g = 0; g < DBTitle.length; g++) {
             if (userlvl >= g) {
@@ -478,7 +477,6 @@ var rollDiceCommand = async function ({
 
             let userlevel = docMember[myselfIndex].Level;
             let userexp = docMember[myselfIndex].EXP;
-            //console.log('trpgLevelSystemfunction.trpgLevelSystemfunction[i]',
             let usermember_count = Math.max(membercount, docMember.length);
             let userRanking = myselfIndex + 1;
             let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
@@ -534,13 +532,13 @@ var rollDiceCommand = async function ({
         case /(^[.]level$)/i.test(mainMsg[0]) && /^showMeAtTheWorld$/i.test(mainMsg[1]): {
             //顯示自己的排名
             let myExp = await schema.trpgLevelSystemMember.findOne({ groupid: groupid, userid: userid })
-            .catch(error => console.error('level_system #537 mongoDB error: ', error.name, error.reson));
+                .catch(error => console.error('level_system #537 mongoDB error: ', error.name, error.reson));
             if (!myExp || !myExp.EXP) {
                 rply.text = "未有找到你的資料，請檢查有沒有開啓經驗值功能";
                 return rply;
             }
             let docMember = await schema.trpgLevelSystemMember.find({ EXP: { $gt: myExp.EXP } }).countDocuments()
-            .catch(error => console.error('level_system #543 mongoDB error: ', error.name, error.reson));
+                .catch(error => console.error('level_system #543 mongoDB error: ', error.name, error.reson));
             rply.text = `你現在的世界排名是第${docMember + 1}名`
             return rply;
 
@@ -600,9 +598,7 @@ var rollDiceCommand = async function ({
         var array = [];
         let answer = ""
         let tempTitleAll = gp.Title || [];
-        //console.log('tempTitleAll ', tempTitleAll)
-        //console.log('who ', who)
-
+    
         for (let key in who) {
             array.push(who[key]);
         }

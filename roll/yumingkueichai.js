@@ -72,7 +72,6 @@ async function compareAllValues(triggermsg, msg) {
         rollresult[i] = rollbase.Dice(6)
     }
     result += "[ " + rollresult + " ] → "
-    //console.log(match);
     //找到一樣->report  剩下最大兩粒
     //目標值 ≧ 12：
     //[1, 3, 5, 3, 3] → 達成值 6 [5,1] → 成功

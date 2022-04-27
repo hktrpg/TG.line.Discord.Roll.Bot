@@ -90,8 +90,6 @@ TGclient.on('text', async (ctx) => {
 	//TRUE 即正常
 	let displaynamecheck = true;
 	let userrole = 1;
-	//console.log('TG: ', message)
-	//console.log('ctx.chat.id', ctx.chat.id)
 	//頻道人數
 	if (ctx.chat && ctx.chat.id) {
 		membercount = await TGclient.getChatMemberCount(ctx.chat.id) - 1;

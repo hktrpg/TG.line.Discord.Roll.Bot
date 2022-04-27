@@ -95,7 +95,8 @@
                                 <li>
                                     <hr class="dropdown-divider">
                                 </li>
-                                <li><a class="dropdown-item" href="https://bit.ly/HKTRPG_DISCORD_2022">Discord 骰子機械人</a></li>
+                                <li><a class="dropdown-item" href="https://bit.ly/HKTRPG_DISCORD_2022">Discord 骰子機械人</a>
+                                </li>
                                 <li><a class="dropdown-item" href="http://t.me/hktrpg_bot">Telegram 骰子機械人</a></li>
                                 <li><a class="dropdown-item" href="http://bit.ly/HKTRPG_LINE">Line 骰子機械人</a></li>
                             </ul>
@@ -310,9 +311,7 @@ That struts and frets his hour upon the stage</textarea>
 
             var content = document.getElementById('outputText').value;
 
-            navigator.clipboard.writeText(content).then(function () {
-                //console.log('Async: Copying to clipboard was successful!');
-            }, function (err) {
+            navigator.clipboard.writeText(content).then(function () {}, function (err) {
                 console.error('Async: Could not copy text: ', err);
             });
             var elements = document.querySelectorAll('.alert');
@@ -357,7 +356,6 @@ That struts and frets his hour upon the stage</textarea>
             //  console.log('regex', regex)
             for (let index = 0; index < inputString.length; index++) {
                 let text = getPinyin(inputString[index]);
-                //console.log('text', text)
                 if (text.match(regex)) {
                     for (let i = 0; i < aToZswitch.length; i++) {
                         if (text.length > 1) {

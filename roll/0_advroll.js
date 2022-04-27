@@ -109,7 +109,6 @@ const rollDiceCommand = async function ({
 		case regexxBy.test(mainMsg[0]): {
 			matchxby = regexxBy.exec(mainMsg[0]);
 			//判斷式 0:"5b10<=80" 1:"5b10" 2:"5" 3:"b" 4:"10" 5:"<=80" 6:"<=" 	7:"<" 8:"=" 	9:"80"
-			//console.log('match', match)
 			let sortMode = (matchxby[5]) ? true : false;
 			if (matchxby && matchxby[4] > 1 && matchxby[4] < 10000 && matchxby[2] > 0 && matchxby[2] <= 600)
 				rply.text = xBy(mainMsg[0].replace(/S/i, ""), mainMsg[1], mainMsg[2], sortMode, botname);
@@ -229,7 +228,6 @@ function d66n(text) {
  *  xBy Dz   成功數1
  */
 function xBy(triggermsg, text01, text02, sortMode, botname) {
-	//console.log('xBy', triggermsg, text01, text02, sortMode, botname)
 	let regex2 = /(([<]|[>])(|[=]))(\d+.*)/i;
 
 	let temptriggermsg = triggermsg;
@@ -254,7 +252,6 @@ function xBy(triggermsg, text01, text02, sortMode, botname) {
 	}
 
 	let match01 = /^((|d)(\d+))$/i.exec(text01);
-	//console.log('match01', match01)
 	//判斷式 0:"d5"  1:"d5" 2:"d" 3:"5" 
 	let text = "";
 	if (text01) text = text01;
@@ -279,8 +276,6 @@ function xBy(triggermsg, text01, text02, sortMode, botname) {
 		if (text02) text = text02;
 	}
 	let returnStr = '(' + triggermsg + ')';
-	//console.log(match)
-	//	console.log(match01)
 	let varcou = new Array();
 	let varsu = 0;
 	for (let i = 0; i < Number(match[2]); i++) {
@@ -289,7 +284,6 @@ function xBy(triggermsg, text01, text02, sortMode, botname) {
 	if (sortMode) {
 		varcou.sort((a, b) => b - a);
 	}
-	//	console.log(varcou)
 	//varcou.sort(rollbase.sortNumber);
 	//(5B7>6) → 7,5,6,4,4 → 
 
@@ -298,7 +292,6 @@ function xBy(triggermsg, text01, text02, sortMode, botname) {
 			case (match[7] == "<" && !match[8]):
 				if (varcou[i] < match[9]) { varsu++; }
 				else {
-					//console.log('01: ', varcou[i])
 					varcou[i] = strikeThrough(varcou[i], botname);
 				}
 				break;

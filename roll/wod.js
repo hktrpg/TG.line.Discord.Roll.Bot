@@ -31,7 +31,6 @@ var rollDiceCommand = async function ({ mainMsg }) {
 		text: ''
 	};
 	let matchwod = /^[.](\d+)(wd|wod)(\d|)((\+|-)(\d+)|)$/i.exec(mainMsg[0]); //判斷式  [0]3wd8+10,[1]3,[2]wd,[3]8,[4]+10,[5]+,[6]10  
-	//console.log(matchwod)
 	if (matchwod && matchwod[1] >= 1 && matchwod[1] <= 600)
 		rply.text = await wod(mainMsg[0], mainMsg[1]);
 	return rply;
@@ -89,7 +88,6 @@ async function wod(triggermsg, text) {
 	}
 	returnStr = returnStr.replace(/[,][ ]$/, '] → ' + varsu + '成功');
 	if (text != null) {
-		//console.log(returnStr)
 		returnStr += ' ; ' + text;
 	}
 	return returnStr;

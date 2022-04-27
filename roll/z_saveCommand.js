@@ -66,7 +66,6 @@ var rollDiceCommand = async function ({
             return rply;
         // .cmd(0) ADD(1) TOPIC(2) CONTACT(3)
         case /(^[.]cmd$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
-            //console.log('mainMsg: ', mainMsg)
             //增加資料庫
             //檢查有沒有重覆
             lv = await VIP.viplevelCheckGroup(groupid);
@@ -153,7 +152,6 @@ var rollDiceCommand = async function ({
                     if (trpgCommandfunction.trpgCommandfunction[i].groupid == groupid && mainMsg[2] < trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction.length && mainMsg[2] >= 0) {
                         temp = trpgCommandfunction.trpgCommandfunction[i]
                         temp.trpgCommandfunction.splice(mainMsg[2], 1)
-                        //console.log('trpgCommandfunction.trpgCommandfunction: ', temp)
                         records.settrpgCommandfunction('trpgCommand', temp, () => {
                             records.get('trpgCommand', (msgs) => {
                                 trpgCommandfunction.trpgCommandfunction = msgs
@@ -178,7 +176,6 @@ var rollDiceCommand = async function ({
             records.get('trpgCommand', (msgs) => {
                 trpgCommandfunction.trpgCommandfunction = msgs
             })
-            //console.log(trpgCommandfunction.trpgCommandfunction)
             if (!groupid) {
                 rply.text = '此功能必須在群組中使用. ';
                 return rply

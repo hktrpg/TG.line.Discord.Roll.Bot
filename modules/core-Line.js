@@ -152,7 +152,6 @@ var handleEvent = async function (event) {
 				displayname: displayname,
 				titleName: titleName
 			});
-			//console.log('channelKeyword', rplyVal)
 		}
 
 	}
@@ -408,7 +407,6 @@ app.on('unhandledRejection', error => {
 });
 function SendToId(targetid, Reply) {
 	let temp = HandleMessage(Reply);
-	//console.log('SendToId: ', temp)
 	client.pushMessage(targetid, temp).catch((err) => {
 		if (err.statusCode == 429) return
 		console.error('#409 line err', err.statusCode, temp);
@@ -435,7 +433,6 @@ async function nonDice(event) {
 	if (profile && profile.displayName) {
 		displayname = profile.displayName;
 	}
-	//console.log(displayname)
 	let LevelUp = await EXPUP(roomorgroupid, userid, displayname, "", null);
 	if (roomorgroupid && LevelUp && LevelUp.text) {
 		return replyMessagebyReplyToken(event, LevelUp.text);

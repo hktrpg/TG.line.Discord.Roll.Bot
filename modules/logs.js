@@ -94,7 +94,6 @@ async function saveLog() {
     //假如過了一小時則上載中途紀錄RollingLog
     if (Date.now() - RollingLog.LastTimeLog >= (oneHour))
         pushToDefiniteLog();
-    //console.log("RollingLog: ", RollingLog)
     return null;
 }
 
@@ -149,7 +148,6 @@ async function getRecords() {
         timeZone: "Asia/HongKong"
     });
 
-    //console.log('RollingLog', RollingLog)
     console.log('Rolling Log is Ready')
     return;
 }

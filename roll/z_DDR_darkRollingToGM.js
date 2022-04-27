@@ -90,7 +90,6 @@ var rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, botn
                     //|| displayname
 
                 }
-                //console.log(temp)
                 if (checkifsamename == 0) {
                     records.pushtrpgDarkRollingfunction('trpgDarkRolling', temp, () => {
                         records.get('trpgDarkRolling', (msgs) => {
@@ -153,7 +152,6 @@ var rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, botn
                     if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid && mainMsg[2] < trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length && mainMsg[2] >= 0) {
                         let temp = trpgDarkRollingfunction.trpgDarkRollingfunction[i]
                         temp.trpgDarkRollingfunction.splice(mainMsg[2], 1)
-                        //console.log('trpgDarkRollingfunction.trpgDarkRollingfunction: ', temp)
                         records.settrpgDarkRollingfunction('trpgDarkRolling', temp, () => {
                             records.get('trpgDarkRolling', (msgs) => {
                                 trpgDarkRollingfunction.trpgDarkRollingfunction = msgs

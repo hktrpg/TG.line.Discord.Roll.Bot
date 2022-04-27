@@ -85,7 +85,7 @@ var rollDiceCommand = async function ({
 			}).page(mainMsg[1].toLowerCase())
 				.then(async page => {
 					return chineseConv.tify(await page.summary())
-				}) //console.log('case: ', rply)
+				})
 				.catch(error => {
 					if (error == 'Error: No article found')
 						return '沒有此條目'
@@ -157,7 +157,6 @@ var rollDiceCommand = async function ({
 			rply.text = await translate(inputStr.replace(mainMsg[0], ""), {
 				to: test[1].replace(/簡體|簡中|簡|zh-cn/, "zh-CN").replace(/英文|英語|英/, "en").replace(/德文|德語|德/, "de").replace(/日文|日語|日/, "ja")
 			}).then(res => {
-				//console.log(res.from.language.iso);
 				return res.text
 			}).catch(err => {
 				console.error('tran error:', err.message)

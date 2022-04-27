@@ -792,7 +792,7 @@ async function handlingResponMessage(message, answer = '') {
 	暫時取消，因不理解DISCORD 的權限檢查
 	反正失敗也沒什麼後果
 		 */
-		let inputStr = answer || message.content;
+		let inputStr = answer || message.content || '';
 		//DISCORD <@!USERID> <@!399923133368042763> <@!544563333488111636>
 		//LINE @名字
 		let mainMsg = inputStr.match(msgSplitor); //定義輸入.字串

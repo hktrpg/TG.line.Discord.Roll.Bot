@@ -155,8 +155,8 @@ client.on('interactionCreate', async message => {
 				const answer = await handlingCommand(message)
 				const result = await handlingResponMessage(message, answer);
 				if (result && result.text) {
-					const displayname = `<@${message.member.id}>` || ''
-					return await message.reply({ content: `${displayname}\n${result.text}`, ephemeral: false })
+					const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
+					return await message.reply({ content: `${displayname}${result.text}`, ephemeral: false })
 				}
 				else {
 					return await message.reply({ content: `指令沒有得到回應，請檢查內容`, ephemeral: true })

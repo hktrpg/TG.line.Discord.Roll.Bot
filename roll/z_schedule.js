@@ -13,20 +13,20 @@ const validDays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
 
 
-var gameName = function () {
+const gameName = function () {
     return '【定時發訊功能】.at /.cron  mins hours delete show'
 }
 
-var gameType = function () {
+const gameType = function () {
     return 'funny:schedule:hktrpg'
 }
-var prefixs = function () {
+const prefixs = function () {
     return [{
         first: /^\.at$|^\.cron$/i,
         second: null
     }]
 }
-var getHelpMessage = function () {
+const getHelpMessage = function () {
     return `【定時任務功能】
     兩種模式
     【at】  指定一個時間
@@ -63,13 +63,16 @@ var getHelpMessage = function () {
 
     .cron / .at delete (序號) 可以刪除指定的定時訊息
     如 .at delete 1   請使用.at show 查詢序號
+
+    .cron-rp-X  / .at-rp-X  - 可以使用.meX 角色扮演發言功能來發定時信息
+    Discord 及VIP限定
     `
 }
-var initialize = function () {
+const initialize = function () {
     return "";
 }
 
-var rollDiceCommand = async function ({
+const rollDiceCommand = async function ({
     inputStr,
     mainMsg,
     groupid,
@@ -250,6 +253,58 @@ var rollDiceCommand = async function ({
                 rply.text = "找不到該序號, 請使用.cron show 重新檢查"
                 return rply;
             }
+            return rply;
+        }
+        case /^\.cron+$/i.test(mainMsg[0]): {
+            if (!groupid) {
+                rply.text = '此功能必須在群組中使用'
+                return rply
+            }
+            if (userrole <= 1) {
+                rply.text = '只有GM以上才可新增'
+                return rply
+            }
+            if (!mainMsg[2]) {
+                rply.text = '未有內容'
+                return rply
+            }
+            let lv = await VIP.viplevelCheckUser(userid);
+            let gpLv = await VIP.viplevelCheckGroup(groupid);
+            lv = (gpLv > lv) ? gpLv : lv;
+            let limit = limitCronArr[lv];
+            let check = {
+                name: differentPeformCron(botname),
+                "data.groupid": groupid
+            }
+            let checkGroupid = await schema.agendaAtHKTRPG.countDocuments(
+                check
+            ).catch(error => console.error('schedule #278 mongoDB error: ', error.name, error.reson));
+            if (checkGroupid >= limit) {
+                rply.text = '.cron 整個群組上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
+                return rply;
+            }
+
+            let checkTime = checkCronTime(mainMsg[1]);
+            if (!checkTime || !checkTime.min || !checkTime.hour) {
+                rply.text = `輸入出錯\n ${this.getHelpMessage()}`;
+                return rply;
+            }
+            let text = inputStr.replace(/^\s?\S+\s+\S+\s+/, '');
+            // "0 6 * * *"
+            let date = `${checkTime.min} ${checkTime.hour} *${checkTime.days ? `/${checkTime.days}` : ''} * ${(checkTime.weeks.length) ? checkTime.weeks : '*'}`;
+            //  console.log('date', date)
+
+            let callBotname = differentPeformCron(botname);
+            const job = agenda.agenda.create(callBotname, { replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid, createAt: new Date(Date.now()) });
+            job.repeatEvery(date);
+
+            try {
+                await job.save();
+            } catch (error) {
+                console.error("schedule #301 Error saving job to collection");
+            }
+
+            rply.text = `已新增排定內容\n將於${checkTime.days ? `每隔${checkTime.days}天` : ''}  ${checkTime.weeks.length ? `每個星期的${checkTime.weeks}` : ''}${!checkTime.weeks && !checkTime.days ? `每天` : ''} ${checkTime.hour}:${checkTime.min} (24小時制)運行`
             return rply;
         }
         case /^\.cron+$/i.test(mainMsg[0]): {

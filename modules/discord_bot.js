@@ -167,12 +167,16 @@ client.on('interactionCreate', async message => {
 				const answer = handlingButtonCommand(message)
 				const result = await handlingResponMessage(message, answer);
 				const messageContent = message.message.content;
-				const displayname = `<@${message.member.id}>` || ''
+				const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
+				if (displayname === '') console.log('message', message)
 				if (/的角色卡$/.test(messageContent)) {
-					return await message.reply({ content: `${displayname}\n${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${result.text}`, ephemeral: false })
+					if (result.text) { return await message.reply({ content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${result.text}`, ephemeral: false }) }
+					else {
+						return await message.reply({ content: `${displayname}沒有反應，請檢查按鈕內容`, ephemeral: true })
+					}
 				}
 				if (/的角色$/.test(messageContent)) {
-					return await message.reply({ content: `${displayname}\n${result.text}`, ephemeral: false })
+					return await message.reply({ content: `${displayname}${result.text}`, ephemeral: false })
 				}
 				if (result && result.text) {
 					const content = handlingCountButton(message, 'roll');

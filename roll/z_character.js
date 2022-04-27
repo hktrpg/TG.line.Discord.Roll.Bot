@@ -572,9 +572,7 @@ const rollDiceCommand = async function ({
             tempMain = await mainCharacter(doc, mainMsg);
             rply = Object.assign({}, rply, tempMain)
             rply.characterName = doc.name;
-            console.log('rply', rply)
             return rply;
-
         default:
             break;
 

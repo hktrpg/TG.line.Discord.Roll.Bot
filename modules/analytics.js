@@ -310,7 +310,7 @@ async function cmdfunction({
 	}
 	(debugMode) ? console.log('            inputStr2: ', newInputStr) : '';
 	if (typeof tempResut === 'object' && tempResut !== null) {
-		if (result.characterName) tempResut.text = `${result.characterName} 進行擲骰\n ${tempResut.text}`
+		if (result.characterName) tempResut.text = `${result.characterName} 進行 ${result.characterReRollName} 擲骰\n ${tempResut.text}`
 		return tempResut;
 	}
 	return;

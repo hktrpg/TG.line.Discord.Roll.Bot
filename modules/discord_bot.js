@@ -154,9 +154,8 @@ client.on('interactionCreate', async message => {
 
 				const answer = await handlingCommand(message)
 				const result = await handlingResponMessage(message, answer);
-
 				if (result && result.text) {
-					const displayname = `<@${result.userid}>` || ''
+					const displayname = `<@${message.member.id}>` || ''
 					return await message.reply({ content: `${displayname}\n${result.text}`, ephemeral: false })
 				}
 				else {
@@ -168,9 +167,12 @@ client.on('interactionCreate', async message => {
 				const answer = handlingButtonCommand(message)
 				const result = await handlingResponMessage(message, answer);
 				const messageContent = message.message.content;
-				const displayname = `<@${result.userid}>` || ''
+				const displayname = `<@${message.member.id}>` || ''
 				if (/的角色卡$/.test(messageContent)) {
 					return await message.reply({ content: `${displayname}\n${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${result.text}`, ephemeral: false })
+				}
+				if (/的角色$/.test(messageContent)) {
+					return await message.reply({ content: `${displayname}\n${result.text}`, ephemeral: false })
 				}
 				if (result && result.text) {
 					const content = handlingCountButton(message, 'roll');
@@ -695,7 +697,8 @@ async function getAllshardIds() {
 
 async function handlingRequestRollingCharacter(message, input) {
 	const buttonsNames = input[0];
-	const characterName = input[1]
+	const characterName = input[1];
+	const charMode = (input[2] == 'char') ? true : false;
 	const row = []
 	const totallyQuotient = ~~((buttonsNames.length - 1) / 5) + 1;
 	for (let index = 0; index < totallyQuotient; index++) {
@@ -714,7 +717,10 @@ async function handlingRequestRollingCharacter(message, input) {
 	}
 	const arrayRow = await splitArray(5, row)
 	for (let index = 0; index < arrayRow.length; index++) {
-		await message.reply({ content: `${characterName}的角色卡`, components: arrayRow[index] });
+		if (charMode)
+			await message.reply({ content: `${characterName}的角色卡`, components: arrayRow[index] });
+		else
+			await message.reply({ content: `${characterName}的角色`, components: arrayRow[index] });
 	}
 
 }

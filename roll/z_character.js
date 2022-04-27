@@ -39,7 +39,7 @@ COC export to roll20?
 */
 
 
-var getHelpMessage = async function () {
+const getHelpMessage = async function () {
     return `【角色卡功能】
 以個人為單位, 一張卡可以在不同的群組使用
 目標是文字團可以快速擲骰，及更新角色狀態。
@@ -82,12 +82,12 @@ var getHelpMessage = async function () {
 https://github.com/hktrpg/TG.line.Discord.Roll.Bot/wiki/Character-Card `
 }
 
-var initialize = function () {
+const initialize = function () {
     return variables;
 }
 
 // eslint-disable-next-line no-unused-vars
-var rollDiceCommand = async function ({
+const rollDiceCommand = async function ({
     inputStr,
     mainMsg,
     groupid,
@@ -199,7 +199,7 @@ var rollDiceCommand = async function ({
             for (let index = 0; index < doc.length; index++) {
                 rply.text += index + ': ' + doc[index].name + '　\n';
             }
-            rply.text += '\n輸入 .char show0 可以顯示0號角色卡\n';
+            rply.text += '\n輸入 .char show0 可以顯示0號角色卡\n 輸入 .char use 角色名字  可以使用角色卡';
             return rply;
         case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]): {
             Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
@@ -388,7 +388,7 @@ var rollDiceCommand = async function ({
                 return rply
             }
             if (doc.roll)
-                rply.requestRollingCharacter = [handleRequestRolling(doc.roll), doc.name]
+                rply.requestRollingCharacter = [handleRequestRolling(doc), doc.name, 'char']
             return rply;
         }
 
@@ -531,7 +531,7 @@ var rollDiceCommand = async function ({
                     _id: docSwitch.cardId
                 });
                 if (doc.roll)
-                    rply.requestRollingCharacter = [handleRequestRolling(doc.roll), doc.name]
+                    rply.requestRollingCharacter = [handleRequestRollingChMode(doc), doc.name, 'ch']
             }
             //  rply.requestRolling = handleRequestRolling(inputStr)
             return rply;
@@ -572,6 +572,7 @@ var rollDiceCommand = async function ({
             tempMain = await mainCharacter(doc, mainMsg);
             rply = Object.assign({}, rply, tempMain)
             rply.characterName = doc.name;
+            console.log('rply', rply)
             return rply;
 
         default:
@@ -579,12 +580,25 @@ var rollDiceCommand = async function ({
 
     }
 }
-function handleRequestRolling(rolls) {
+function handleRequestRolling(doc) {
+    const rolls = doc.roll;
     let text = [];
     for (let index = 0; index < rolls.length; index++) {
         const roll = rolls[index];
         const itemName = new RegExp(convertRegex(roll.name) + '$', 'i')
         text[index] = (roll.itemA.match(itemName)) ? `${roll.itemA}` : `${roll.itemA} ${roll.name}`
+        text[index] = text[index].substring(0, 80);
+    }
+    text.push = `.ch use ${doc.name}`
+    return text;
+}
+
+function handleRequestRollingChMode(doc) {
+    const rolls = doc.roll;
+    let text = [];
+    for (let index = 0; index < rolls.length; index++) {
+        const roll = rolls[index];
+        text[index] = `.ch ${roll.name}`
         text[index] = text[index].substring(0, 80);
     }
     return text;

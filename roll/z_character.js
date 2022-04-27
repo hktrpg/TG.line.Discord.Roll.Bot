@@ -66,7 +66,7 @@ const getHelpMessage = async function () {
 .char use 角色卡名字 - 可以在該群組中使用指定角色卡
 .char nonuse - 可以在該群組中取消使用角色卡
 .char delete 角色卡名字 - 可以刪除指定角色卡
-.char button 角色卡名字 - Discord限定，可以產生按鈕指令
+.char button 角色卡名字 - Discord限定，可以產生按鈕指令，會使用直接擲骰指令
 -----.ch 功能-----
 在群組中使用.char use (角色名) 後, 就可以啟動角色卡功能
 .ch 項目名稱 項目名稱 - 沒有加減的話, 會單純顯示數據或擲骰
@@ -76,7 +76,7 @@ const getHelpMessage = async function () {
 .ch set 項目名稱 新內容 - 直接更改內容
 .ch show - 顯示角色卡的state 和roll 內容
 .ch showall - 顯示角色卡的所有內容
-.ch button  - Discord限定，可以產生按鈕指令
+.ch button  - Discord限定，可以產生按鈕指令，會調用.ch 指令
 -----範例及運算式-----
 角色卡還可以進行運算，詳情請看
 https://github.com/hktrpg/TG.line.Discord.Roll.Bot/wiki/Character-Card `

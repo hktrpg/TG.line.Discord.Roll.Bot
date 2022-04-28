@@ -188,7 +188,6 @@ class Records extends EventEmitter {
             $push 加入新的
             $set  重置舊的
          */
-        // console.log('msg: ', msg)
         schema[dbbase].findOneAndUpdate({}, {
             $push: {
                 trpgDatabaseAllgroup: msg.trpgDatabaseAllgroup
@@ -533,7 +532,6 @@ class Records extends EventEmitter {
                 console.error("Something wrong when updating data!");
             } else {
                 callback();
-                // console.log('DONE?')
             }
             // return JSON.stringify(doc).toString();
         });
@@ -564,7 +562,6 @@ class Records extends EventEmitter {
                 console.error("Something wrong when updating data!");
             } else {
                 callback();
-                // console.log('DONE?')
             }
             // return JSON.stringify(doc).toString();
         });
@@ -610,7 +607,6 @@ class Records extends EventEmitter {
                 console.error("Something wrong when updating data!");
             } else {
                 callback();
-                // console.log('DONE?')
             }
             // return JSON.stringify(doc).toString();
         });
@@ -653,7 +649,6 @@ class Records extends EventEmitter {
                     console.error("Something wrong when updating data!");
                 } else {
                     callback();
-                    // console.log('DONE?')
                 }
                 // return JSON.stringify(doc).toString();
             });

@@ -55,7 +55,6 @@ var rollDiceCommand = async function ({
                 random = (rollbase.Dice(3) - 2)
                 ans += random
                 temp += random
-                // console.log('ans: ', ans, 'temp: ', temp)
                 temp = temp.replace('-1', '－').replace('0', '▉').replace('1', '＋')
             }
             try {

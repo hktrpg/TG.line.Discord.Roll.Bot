@@ -166,7 +166,6 @@ var handleEvent = async function (event) {
 
 
 	if (roomorgroupid && rplyVal && rplyVal.LevelUp) {
-		//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
 		if (displayname) {
 			rplyVal.text = rplyVal.LevelUp + '\n' + rplyVal.text;
 			//await SendToId(roomorgroupid, "@" + displayname + ' \n' + rplyVal.LevelUp
@@ -256,7 +255,6 @@ var handleEvent = async function (event) {
 				displayname += (rplyVal.statue) ? ' ' + rplyVal.statue + '\n' : "\n";
 				rplyVal.text = displayname + rplyVal.text;
 			}
-			//	console.log('rplyVal: ', rplyVal)
 			if (roomorgroupid) {
 				return replyMessagebyReplyToken(event, rplyVal);
 			} else if (userid) {

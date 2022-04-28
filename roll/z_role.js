@@ -459,7 +459,6 @@ case /^\.roleInvites$/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]): {
             roleID: checkName[index].roleID,
             invitesLink: checkName[index].invitesLink
         })
-        console.log('myName', myName)
         try {
             await myName.save();
             rply.text += `序號#${myName.serial}     ID: ${myName.roleID}       ${myName.invitesLink}\n`;

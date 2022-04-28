@@ -71,10 +71,8 @@ var rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, botn
                 if (trpgDarkRollingfunction.trpgDarkRollingfunction)
                     for (let i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
                         if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid) {
-                            // console.log('checked1')
                             for (let a = 0; a < trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
                                 if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].userid == userid) {
-                                    //   console.log('checked')
                                     checkifsamename = 1
                                 }
                             }
@@ -94,7 +92,6 @@ var rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, botn
                     records.pushtrpgDarkRollingfunction('trpgDarkRolling', temp, () => {
                         records.get('trpgDarkRolling', (msgs) => {
                             trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
-                            // console.log(rply);
                         })
 
                     })

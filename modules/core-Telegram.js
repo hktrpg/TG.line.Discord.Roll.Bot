@@ -212,11 +212,6 @@ TGclient.on('text', async (ctx) => {
 			break;
 	}
 
-
-	// console.log("rplyVal: " + rplyVal)
-
-	//  }
-
 })
 
 function SendToId(targetid, text) {

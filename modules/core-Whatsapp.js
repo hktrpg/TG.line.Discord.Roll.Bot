@@ -236,7 +236,6 @@ if (retry > maxRetry) {
 		}
 		//LevelUp功能
 		if (groupid && rplyVal && rplyVal.LevelUp) {
-			//	console.log('result.LevelUp 2:', rplyVal.LevelUp)
 			let text = `@${displayname}${(rplyVal.statue) ? ' ' + rplyVal.statue : ''}
 			${rplyVal.LevelUp}`
 			client.sendMessage(msg.from, text);
@@ -295,7 +294,6 @@ if (retry > maxRetry) {
 				break;
 			default:
 				if (displaynamecheck == false) {
-					//	console.log('displaynamecheck False')
 					SendToId(msg.from, rplyVal, client);
 				} else
 					SendToReply(msg, rplyVal);

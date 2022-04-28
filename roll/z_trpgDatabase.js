@@ -127,7 +127,6 @@ var rollDiceCommand = async function ({
                     records.pushtrpgDatabasefunction('trpgDatabase', temp, () => {
                         records.get('trpgDatabase', (msgs) => {
                             trpgDatabasefunction.trpgDatabasefunction = msgs
-                            // console.log(rply);
                         })
 
                     })
@@ -227,12 +226,10 @@ var rollDiceCommand = async function ({
             //if (times > 30) times = 30;
             //if (times < 1) times = 1
             if (groupid) {
-                //    console.log(mainMsg[1])
                 let temp = 0;
                 if (trpgDatabasefunction.trpgDatabasefunction && mainMsg[1])
                     for (let i = 0; i < trpgDatabasefunction.trpgDatabasefunction.length; i++) {
                         if (trpgDatabasefunction.trpgDatabasefunction[i].groupid == groupid) {
-                            // console.log(trpgDatabasefunction.trpgDatabasefunction[i])
                             //rply.text += '資料庫列表:'
                             for (let a = 0; a < trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
                                 if (trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic.toLowerCase() == mainMsg[1].toLowerCase()) {

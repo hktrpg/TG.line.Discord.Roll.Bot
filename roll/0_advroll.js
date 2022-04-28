@@ -136,7 +136,6 @@ const discordCommand = [
 			.addStringOption(option => option.setName('text').setDescription('輸入內容').setRequired(true)),
 		async execute(interaction) {
 			const text = interaction.options.getString('text')
-			console.log('text', text)
 			if (text !== null)
 				return `.ca ${text}`
 			else return `需要輸入內容\n 如 .ca 1.2 * (2 + 4.5) ， 12.7 米 to inch 
@@ -300,7 +299,6 @@ function xBy(triggermsg, text01, text02, sortMode, botname) {
 					varsu++;
 				}
 				else {
-					//	console.log('02: ', varcou[i])
 					varcou[i] = strikeThrough(varcou[i], botname);
 				}
 				break;
@@ -309,7 +307,6 @@ function xBy(triggermsg, text01, text02, sortMode, botname) {
 					varsu++;
 				}
 				else {
-					//	console.log('03: ', varcou[i])
 					varcou[i] = strikeThrough(varcou[i], botname);
 				}
 				break;
@@ -318,7 +315,6 @@ function xBy(triggermsg, text01, text02, sortMode, botname) {
 					varsu++;
 				}
 				else {
-					//	console.log('04: ', varcou[i])
 					varcou[i] = strikeThrough(varcou[i], botname);
 				}
 				break;
@@ -327,8 +323,6 @@ function xBy(triggermsg, text01, text02, sortMode, botname) {
 					varsu++;
 				}
 				else {
-					//	console.log('05: ', varcou[i])
-					//	console.log('match[7]: ', match[7])
 					varcou[i] = strikeThrough(varcou[i], botname);
 				}
 				break;

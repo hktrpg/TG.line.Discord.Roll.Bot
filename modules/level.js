@@ -26,7 +26,6 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
         return group.groupid == groupid;
     });
     if (filterSwitchV2 && (filterSwitchV2.SwitchV2 === false)) return;
-    //  console.log('filterSwitchV2', filterSwitchV2)
     const gpInfo = await schema.trpgLevelSystem.findOne({
         groupid: groupid,
         SwitchV2: true
@@ -48,7 +47,6 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
                 SwitchV2: gpInfo.SwitchV2
             })
     }
-    // console.log('gpInfo', gpInfo);
     //1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
     if (!gpInfo || !gpInfo.SwitchV2) return;
     let userInfo = await schema.trpgLevelSystemMember.findOne({

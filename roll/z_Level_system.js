@@ -212,7 +212,6 @@ var rollDiceCommand = async function ({
 
             let temprply = setNew(inputStr, doc.Title)
 
-            //  console.log('temprply', doc)
             if (temprply.length < 1) {
                 rply.text = '新增失敗。 未有稱號輸入，格式為 \n.level TitleWord -(等級) (稱號).'
                 return rply
@@ -585,7 +584,6 @@ var rollDiceCommand = async function ({
                 //限制0-500以內
                 if (d[i][1] && d[i][2] && d[i][1] <= 500 && d[i][1] >= 0)
                     result[d[i][1]] = d[i][2]
-                //  console.log(trpgLevelSystemfunction.trpgLevelSystemfunction[which].Title)
             }
 
         return result;
@@ -598,7 +596,7 @@ var rollDiceCommand = async function ({
         var array = [];
         let answer = ""
         let tempTitleAll = gp.Title || [];
-    
+
         for (let key in who) {
             array.push(who[key]);
         }

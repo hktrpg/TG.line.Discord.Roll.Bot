@@ -151,17 +151,9 @@ client.on('interactionCreate', async message => {
 	switch (true) {
 		case message.isCommand():
 			{
-				await message.deferReply({ ephemeral: true });
 				const answer = await handlingCommand(message)
 				const result = await handlingResponMessage(message, answer);
-				if (result && result.text) {
-					const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
-					return await message.followUp({ content: `${displayname}${result.text}`, ephemeral: false })
-						.catch(error => console.error('discord bot #159  error: ', error, result.text));
-				}
-				else {
-					return await message.followUp({ content: `指令沒有得到回應，請檢查內容`, ephemeral: true })
-				}
+				return replilyMessage(message, result)
 			}
 		case message.isButton():
 			{
@@ -196,6 +188,27 @@ client.on('interactionCreate', async message => {
 			break;
 	}
 });
+async function replilyMessage(message, result) {
+	const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
+	if (message.replied) {
+		if (result && result.text) {
+			return await message.reply({ content: `${displayname}${result.text}`, ephemeral: false })
+				.catch(error => console.error('discord bot #159  error: ', error, result.text));
+		}
+	} else {
+		if (result && result.text) {
+			return await message.reply({ content: `${displayname}${result.text}`, ephemeral: false })
+				.catch(async () => {
+					return await message.editReply({ content: `${displayname}${result.text}`, ephemeral: false })
+
+				})
+		}
+		else {
+			return await message.reply({ content: `指令沒有得到回應，請檢查內容`, ephemeral: true }).catch()
+		}
+	}
+
+}
 client.on('messageReactionAdd', async (reaction, user) => {
 	if (reaction.me) return;
 	/** 
@@ -524,10 +537,6 @@ function sendNewstoAll(rply) {
 		SendToId(rply.target[index].userID, rply.sendNews);
 	}
 }
-
-
-
-
 
 async function handlingCommand(message) {
 	const command = client.commands.get(message.commandName);
@@ -915,13 +924,13 @@ async function handlingResponMessage(message, answer = '') {
 				});
 			}
 		}
-		if (rplyVal.requestRollingCharacter) handlingRequestRollingCharacter(message, rplyVal.requestRollingCharacter);
-		if (rplyVal.requestRolling) handlingRequestRolling(message, rplyVal.requestRolling, displaynameDiscord);
-		if (rplyVal.roleReactFlag) roleReact(channelid, rplyVal)
-		if (rplyVal.newRoleReactFlag) newRoleReact(message, rplyVal)
+		if (rplyVal.requestRollingCharacter) await handlingRequestRollingCharacter(message, rplyVal.requestRollingCharacter);
+		if (rplyVal.requestRolling) await handlingRequestRolling(message, rplyVal.requestRolling, displaynameDiscord);
+		if (rplyVal.roleReactFlag) await roleReact(channelid, rplyVal)
+		if (rplyVal.newRoleReactFlag) await newRoleReact(message, rplyVal)
 
-		if (rplyVal.myName) repeatMessage(message, rplyVal);
-		if (rplyVal.myNames) repeatMessages(message, rplyVal);
+		if (rplyVal.myName) await repeatMessage(message, rplyVal);
+		if (rplyVal.myNames) await repeatMessages(message, rplyVal);
 
 		if (rplyVal.sendNews) sendNewstoAll(rplyVal);
 		if (!rplyVal.text && !rplyVal.LevelUp) {

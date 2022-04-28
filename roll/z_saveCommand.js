@@ -79,11 +79,9 @@ var rollDiceCommand = async function ({
                                 rply.text = '關鍵字上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
                                 return rply;
                             }
-                            // console.log('checked1')
                             if (trpgCommandfunction.trpgCommandfunction[0] && trpgCommandfunction.trpgCommandfunction[0].trpgCommandfunction[0])
                                 for (let a = 0; a < trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction.length; a++) {
                                     if (trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction[a].topic == mainMsg[2]) {
-                                        //   console.log('checked')
                                         checkifsamename = 1
                                     }
                                 }
@@ -100,7 +98,6 @@ var rollDiceCommand = async function ({
                     records.pushtrpgCommandfunction('trpgCommand', temp, () => {
                         records.get('trpgCommand', (msgs) => {
                             trpgCommandfunction.trpgCommandfunction = msgs
-                            // console.log(rply);
                         })
 
                     })
@@ -203,7 +200,6 @@ var rollDiceCommand = async function ({
             if (trpgCommandfunction.trpgCommandfunction && mainMsg[1])
                 for (let i = 0; i < trpgCommandfunction.trpgCommandfunction.length; i++) {
                     if (trpgCommandfunction.trpgCommandfunction[i].groupid == groupid) {
-                        // console.log(trpgCommandfunction.trpgCommandfunction[i])
                         //rply.text += '資料庫列表:'
                         for (let a = 0; a < trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction.length; a++) {
                             if (trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction[a].topic.toLowerCase() == mainMsg[1].toLowerCase()) {

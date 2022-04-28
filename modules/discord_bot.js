@@ -156,7 +156,8 @@ client.on('interactionCreate', async message => {
 				const result = await handlingResponMessage(message, answer);
 				if (result && result.text) {
 					const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
-					return await message.reply({ content: `${displayname}${result.text}`, ephemeral: false }).catch(error => console.error('discord bot #159  error: ', error.name, error.reson, result.text));
+					return await message.reply({ content: `${displayname}${result.text}`, ephemeral: false })
+						.catch(error => console.error('discord bot #159  error: ', error, result.text));
 				}
 				else {
 					return await message.reply({ content: `指令沒有得到回應，請檢查內容`, ephemeral: true })
@@ -177,15 +178,18 @@ client.on('interactionCreate', async message => {
 				}
 				if (/的角色$/.test(messageContent)) {
 					return await message.reply({ content: `${displayname}${result.text}`, ephemeral: false })
+						.catch(error => console.error('discord bot #181  error: ', error, result.text));
 				}
 				if (result && result.text) {
 					const content = handlingCountButton(message, 'roll');
 					handlingSendMessage(result);
-					return await message.update({ content: content }).catch(error => console.error('discord bot #184  error: ', error.name, error.reson, content));
+					return await message.update({ content: content })
+						.catch(error => console.error('discord bot #187  error: ', error, content));
 				}
 				else {
 					const content = handlingCountButton(message, 'count');
-					return await message.update({ content: content }).catch(error => console.error('discord bot #188  error: ', error.name, error.reson, content));
+					return await message.update({ content: content })
+						.catch(error => console.error('discord bot #192  error: ', error, content));
 				}
 			}
 		default:

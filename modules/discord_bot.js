@@ -151,16 +151,16 @@ client.on('interactionCreate', async message => {
 	switch (true) {
 		case message.isCommand():
 			{
-
+				await message.deferReply();
 				const answer = await handlingCommand(message)
 				const result = await handlingResponMessage(message, answer);
 				if (result && result.text) {
 					const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
-					return await message.reply({ content: `${displayname}${result.text}`, ephemeral: false })
+					return await message.followUp({ content: `${displayname}${result.text}`, ephemeral: false })
 						.catch(error => console.error('discord bot #159  error: ', error, result.text));
 				}
 				else {
-					return await message.reply({ content: `指令沒有得到回應，請檢查內容`, ephemeral: true })
+					return await message.followUp({ content: `指令沒有得到回應，請檢查內容`, ephemeral: true })
 				}
 			}
 		case message.isButton():

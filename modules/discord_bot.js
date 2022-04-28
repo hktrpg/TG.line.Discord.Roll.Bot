@@ -151,7 +151,7 @@ client.on('interactionCreate', async message => {
 	switch (true) {
 		case message.isCommand():
 			{
-				await message.deferReply();
+				await message.deferReply({ ephemeral: true });
 				const answer = await handlingCommand(message)
 				const result = await handlingResponMessage(message, answer);
 				if (result && result.text) {

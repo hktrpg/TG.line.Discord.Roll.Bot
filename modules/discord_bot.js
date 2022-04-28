@@ -163,20 +163,20 @@ client.on('interactionCreate', async message => {
 				const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
 				if (displayname === '') console.log('message', message)
 				if (/的角色卡$/.test(messageContent)) {
-					if (result.text) { return await message.reply({ content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${result.text}`, ephemeral: false }) }
+					if (result.text) { return await message.reply({ content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${result.text}`, ephemeral: false }).catch() }
 					else {
-						return await message.reply({ content: `${displayname}沒有反應，請檢查按鈕內容`, ephemeral: true })
+						return await message.reply({ content: `${displayname}沒有反應，請檢查按鈕內容`, ephemeral: true }).catch()
 					}
 				}
 				if (/的角色$/.test(messageContent)) {
 					return await message.reply({ content: `${displayname}${result.text}`, ephemeral: false })
-						.catch(error => console.error('discord bot #181  error: ', error, result.text));
+						.catch();
 				}
 				if (result && result.text) {
 					const content = handlingCountButton(message, 'roll');
 					handlingSendMessage(result);
 					return await message.update({ content: content })
-						.catch(error => console.error('discord bot #187  error: ', error, content));
+						.catch();
 				}
 				else {
 					const content = handlingCountButton(message, 'count');

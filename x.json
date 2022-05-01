@@ -1,0 +1,2886 @@
+{
+    "id": 0,
+    "success": true,
+    "message": "Character successfully received.",
+    "data": {
+        "id": 67047094,
+        "userId": 112302584,
+        "username": "Sadzz",
+        "isAssignedToPlayer": true,
+        "readonlyUrl": "https://dndbeyond.com/characters/67047094",
+        "decorations": {
+            "avatarUrl": null,
+            "frameAvatarUrl": null,
+            "backdropAvatarUrl": null,
+            "smallBackdropAvatarUrl": null,
+            "largeBackdropAvatarUrl": null,
+            "thumbnailBackdropAvatarUrl": null,
+            "defaultBackdrop": {
+                "backdropAvatarUrl": "https://www.dndbeyond.com/avatars/61/556/636453169376650613.jpeg",
+                "smallBackdropAvatarUrl": "https://www.dndbeyond.com/avatars/61/557/636453169376963233.jpeg",
+                "largeBackdropAvatarUrl": "https://www.dndbeyond.com/avatars/61/558/636453169377593443.jpeg",
+                "thumbnailBackdropAvatarUrl": "https://www.dndbeyond.com/avatars/61/559/636453169378067426.jpeg"
+            },
+            "avatarId": null,
+            "portraitDecorationKey": null,
+            "frameAvatarDecorationKey": null,
+            "frameAvatarId": null,
+            "backdropAvatarDecorationKey": null,
+            "backdropAvatarId": null,
+            "smallBackdropAvatarDecorationKey": "",
+            "smallBackdropAvatarId": null,
+            "largeBackdropAvatarDecorationKey": "",
+            "largeBackdropAvatarId": null,
+            "thumbnailBackdropAvatarDecorationKey": "",
+            "thumbnailBackdropAvatarId": null,
+            "themeColor": null
+        },
+        "name": "SSSS",
+        "socialName": null,
+        "gender": null,
+        "faith": null,
+        "age": null,
+        "hair": null,
+        "eyes": null,
+        "skin": null,
+        "height": null,
+        "weight": null,
+        "inspiration": false,
+        "baseHitPoints": 6,
+        "bonusHitPoints": null,
+        "overrideHitPoints": null,
+        "removedHitPoints": 0,
+        "temporaryHitPoints": 0,
+        "currentXp": 0,
+        "alignmentId": null,
+        "lifestyleId": null,
+        "stats": [
+            {
+                "id": 1,
+                "name": null,
+                "value": 8
+            },
+            {
+                "id": 2,
+                "name": null,
+                "value": 10
+            },
+            {
+                "id": 3,
+                "name": null,
+                "value": 13
+            },
+            {
+                "id": 4,
+                "name": null,
+                "value": 15
+            },
+            {
+                "id": 5,
+                "name": null,
+                "value": 12
+            },
+            {
+                "id": 6,
+                "name": null,
+                "value": 14
+            }
+        ],
+        "bonusStats": [
+            {
+                "id": 1,
+                "name": null,
+                "value": null
+            },
+            {
+                "id": 2,
+                "name": null,
+                "value": null
+            },
+            {
+                "id": 3,
+                "name": null,
+                "value": null
+            },
+            {
+                "id": 4,
+                "name": null,
+                "value": null
+            },
+            {
+                "id": 5,
+                "name": null,
+                "value": null
+            },
+            {
+                "id": 6,
+                "name": null,
+                "value": null
+            }
+        ],
+        "overrideStats": [
+            {
+                "id": 1,
+                "name": null,
+                "value": null
+            },
+            {
+                "id": 2,
+                "name": null,
+                "value": null
+            },
+            {
+                "id": 3,
+                "name": null,
+                "value": null
+            },
+            {
+                "id": 4,
+                "name": null,
+                "value": null
+            },
+            {
+                "id": 5,
+                "name": null,
+                "value": null
+            },
+            {
+                "id": 6,
+                "name": null,
+                "value": null
+            }
+        ],
+        "background": {
+            "hasCustomBackground": false,
+            "definition": {
+                "id": 7,
+                "entityTypeId": 1669830167,
+                "name": "Acolyte",
+                "description": "<p>You have spent your life in the service of a temple to a specific god or pantheon of gods. You act as an intermediary between the realm of the holy and the mortal world, performing sacred rites and offering sacrifices in order to conduct worshipers into the presence of the divine. You are not necessarily a cleric&mdash;performing sacred rites is not the same thing as channeling divine power.</p>\r\n<p>Choose a god, a pantheon of gods, or some other quasi-divine being, and work with your DM to detail the nature of your religious service. The <a href=\"https://www.dndbeyond.com/sources/phb/appendix-b-gods-of-the-multiverse\">Gods of the Multiverse</a> section contains a sample pantheon, from the Forgotten Realms setting. Were you a lesser functionary in a temple, raised from childhood to assist the priests in the sacred rites? Or were you a high priest who suddenly experienced a call to serve your god in a different way? Perhaps you were the leader of a small cult outside of any established temple structure, or even an occult group that served a fiendish master that you now deny.</p>\r\n<div class=\"line character height1 marginTop20 marginBottom20\">&nbsp;</div>\r\n<dl>\r\n<dt><strong>Skill Proficiencies:</strong> Insight, Religion</dt>\r\n<dt><strong>Languages:</strong> Two of your choice</dt>\r\n<dt><strong>Equipment:</strong> A holy symbol (a gift to you when you entered the priesthood), a prayer book or prayer wheel, 5 sticks of incense, vestments, a set of common clothes, and a pouch containing 15 gp</dt>\r\n</dl>\r\n<blockquote>\r\n<p><strong>FEATURE: SHELTER OF THE FAITHFUL</strong></p>\r\n<p>As an acolyte, you command the respect of those who share your faith, and you can perform the religious ceremonies of your deity. You and your adventuring companions can expect to receive free healing and care at a temple, shrine, or other established presence of your faith, though you must provide any material components needed for spells. Those who share your religion will support you (but only you) at a modest lifestyle.</p>\r\n<p>You might also have ties to a specific temple dedicated to your chosen deity or pantheon, and you have a residence there. This could be the temple where you used to serve, if you remain on good terms with it, or a temple where you have found a new home. While near your temple, you can call upon the priests for assistance, provided the assistance you ask for is not hazardous and you remain in good standing with your temple.</p>\r\n</blockquote>\r\n<div class=\"line character height1 marginTop20 marginBottom20\">&nbsp;</div>\r\n<h5>Suggested Characteristics</h5>\r\n<p>Acolytes are shaped by their experience in temples or other religious communities. Their study of the history and tenets of their faith and their relationships to temples, shrines, or hierarchies affect their mannerisms and ideals. Their flaws might be some hidden hypocrisy or heretical idea, or an ideal or bond taken to an extreme.</p>\r\n<table class=\"compendium-left-aligned-table\">\r\n<thead>\r\n<tr>\r\n<th>d8</th>\r\n<th>Personality Trait</th>\r\n</tr>\r\n</thead>\r\n<tbody>\r\n<tr>\r\n<td>1</td>\r\n<td>I idolize a particular hero of my faith, and constantly refer to that person’s deeds and example.</td>\r\n</tr>\r\n<tr>\r\n<td>2</td>\r\n<td>I can find common ground between the fiercest enemies, empathizing with them and always working toward peace.</td>\r\n</tr>\r\n<tr>\r\n<td>3</td>\r\n<td>I see omens in every event and action. The gods try to speak to us, we just need to listen.</td>\r\n</tr>\r\n<tr>\r\n<td>4</td>\r\n<td>Nothing can shake my optimistic attitude.</td>\r\n</tr>\r\n<tr>\r\n<td>5</td>\r\n<td>I quote (or misquote) sacred texts and proverbs in almost every situation.</td>\r\n</tr>\r\n<tr>\r\n<td>6</td>\r\n<td>I am tolerant (or intolerant) of other faiths and respect (or condemn) the worship of other gods.</td>\r\n</tr>\r\n<tr>\r\n<td>7</td>\r\n<td>I’ve enjoyed fine food, drink, and high society among my temple’s elite. Rough living grates on me.</td>\r\n</tr>\r\n<tr>\r\n<td>8</td>\r\n<td>I’ve spent so long in the temple that I have little practical experience dealing with people in the outside world.</td>\r\n</tr>\r\n</tbody>\r\n</table>\r\n<p>&nbsp;</p>\r\n<table class=\"compendium-left-aligned-table\">\r\n<thead>\r\n<tr>\r\n<th>d6</th>\r\n<th>Ideal</th>\r\n</tr>\r\n</thead>\r\n<tbody>\r\n<tr>\r\n<td>1</td>\r\n<td><strong>Tradition.</strong> The ancient traditions of worship and sacrifice must be preserved and upheld. (Lawful)</td>\r\n</tr>\r\n<tr>\r\n<td>2</td>\r\n<td><strong>Charity.</strong> I always try to help those in need, no matter what the personal cost. (Good)</td>\r\n</tr>\r\n<tr>\r\n<td>3</td>\r\n<td><strong>Change.</strong> We must help bring about the changes the gods are constantly working in the world. (Chaotic)</td>\r\n</tr>\r\n<tr>\r\n<td>4</td>\r\n<td><strong>Power.</strong> I hope to one day rise to the top of my faith’s religious hierarchy. (Lawful)</td>\r\n</tr>\r\n<tr>\r\n<td>5</td>\r\n<td><strong>Faith.</strong> I trust that my deity will guide my actions. I have faith that if I work hard, things will go well. (Lawful)</td>\r\n</tr>\r\n<tr>\r\n<td>6</td>\r\n<td><strong>Aspiration.</strong> I seek to prove myself worthy of my god’s favor by matching my actions against his or her teachings. (Any)</td>\r\n</tr>\r\n</tbody>\r\n</table>\r\n<p>&nbsp;</p>\r\n<table class=\"compendium-left-aligned-table\">\r\n<thead>\r\n<tr>\r\n<th>d6</th>\r\n<th>Bond</th>\r\n</tr>\r\n</thead>\r\n<tbody>\r\n<tr>\r\n<td>1</td>\r\n<td>I would die to recover an ancient relic of my faith that was lost long ago.</td>\r\n</tr>\r\n<tr>\r\n<td>2</td>\r\n<td>I will someday get revenge on the corrupt temple hierarchy who branded me a heretic.</td>\r\n</tr>\r\n<tr>\r\n<td>3</td>\r\n<td>I owe my life to the priest who took me in when my parents died.</td>\r\n</tr>\r\n<tr>\r\n<td>4</td>\r\n<td>Everything I do is for the common people.</td>\r\n</tr>\r\n<tr>\r\n<td>5</td>\r\n<td>I will do anything to protect the temple where I served.</td>\r\n</tr>\r\n<tr>\r\n<td>6</td>\r\n<td>I seek to preserve a sacred text that my enemies consider heretical and seek to destroy.</td>\r\n</tr>\r\n</tbody>\r\n</table>\r\n<p>&nbsp;</p>\r\n<table class=\"compendium-left-aligned-table\">\r\n<thead>\r\n<tr>\r\n<th>d6</th>\r\n<th>Flaw</th>\r\n</tr>\r\n</thead>\r\n<tbody>\r\n<tr>\r\n<td>1</td>\r\n<td>I judge others harshly, and myself even more severely.</td>\r\n</tr>\r\n<tr>\r\n<td>2</td>\r\n<td>I put too much trust in those who wield power within my temple’s hierarchy.</td>\r\n</tr>\r\n<tr>\r\n<td>3</td>\r\n<td>My piety sometimes leads me to blindly trust those that profess faith in my god.</td>\r\n</tr>\r\n<tr>\r\n<td>4</td>\r\n<td>I am inflexible in my thinking.</td>\r\n</tr>\r\n<tr>\r\n<td>5</td>\r\n<td>I am suspicious of strangers and expect the worst of them.</td>\r\n</tr>\r\n<tr>\r\n<td>6</td>\r\n<td>Once I pick a goal, I become obsessed with it to the detriment of everything else in my life.</td>\r\n</tr>\r\n</tbody>\r\n</table>",
+                "snippet": "",
+                "shortDescription": "<p>You have spent your life in the service of a temple to a specific god or pantheon of gods. You act as an intermediary between the realm of the holy and the mortal world, performing sacred rites and offering sacrifices in order to conduct worshipers into the presence of the divine. You are not necessarily a cleric&mdash;performing sacred rites is not the same thing as channeling divine power.</p>\r\n<p>Choose a god, a pantheon of gods, or some other quasi-divine being, and work with your DM to detail the nature of your religious service. The <a title=\"Gods of the Multiverse\" href=\"https://www.dndbeyond.com/sources/phb/appendix-b-gods-of-the-multiverse\">Gods of the Multiverse</a> section contains a sample pantheon, from the Forgotten Realms setting. Were you a lesser functionary in a temple, raised from childhood to assist the priests in the sacred rites? Or were you a high priest who suddenly experienced a call to serve your god in a different way? Perhaps you were the leader of a small cult outside of any established temple structure, or even an occult group that served a fiendish master that you now deny.</p>",
+                "skillProficienciesDescription": "Insight, Religion",
+                "toolProficienciesDescription": "",
+                "languagesDescription": "Two of your choice",
+                "equipmentDescription": "A holy symbol (a gift to you when you entered the priesthood), a prayer book or prayer wheel, 5 sticks of incense, vestments, a set of common clothes, and a pouch containing 15 gp.",
+                "featureName": "Shelter of the Faithful",
+                "featureDescription": "<p>As an acolyte, you command the respect of those who share your faith, and you can perform the religious ceremonies of your deity. You and your adventuring companions can expect to receive free healing and care at a temple, shrine, or other established presence of your faith, though you must provide any material components needed for spells. Those who share your religion will support you (but only you) at a modest lifestyle.</p>\r\n<p>You might also have ties to a specific temple dedicated to your chosen deity or pantheon, and you have a residence there. This could be the temple where you used to serve, if you remain on good terms with it, or a temple where you have found a new home. While near your temple, you can call upon the priests for assistance, provided the assistance you ask for is not hazardous and you remain in good standing with your temple.</p>",
+                "avatarUrl": null,
+                "largeAvatarUrl": null,
+                "suggestedCharacteristicsDescription": "<p>Acolytes are shaped by their experience in temples or other religious communities. Their study of the history and tenets of their faith and their relationships to temples, shrines, or hierarchies affect their mannerisms and ideals. Their flaws might be some hidden hypocrisy or heretical idea, or an ideal or bond taken to an extreme.</p>",
+                "suggestedProficiencies": null,
+                "suggestedLanguages": null,
+                "organization": null,
+                "contractsDescription": "",
+                "spellsPreDescription": "",
+                "spellsPostDescription": "",
+                "personalityTraits": [
+                    {
+                        "id": 43,
+                        "description": "I idolize a particular hero of my faith, and constantly refer to that person’s deeds and example.",
+                        "diceRoll": 1
+                    },
+                    {
+                        "id": 44,
+                        "description": "I can find common ground between the fiercest enemies, empathizing with them and always working toward peace.",
+                        "diceRoll": 2
+                    },
+                    {
+                        "id": 45,
+                        "description": "I see omens in every event and action. The gods try to speak to us, we just need to listen.",
+                        "diceRoll": 3
+                    },
+                    {
+                        "id": 46,
+                        "description": "Nothing can shake my optimistic attitude.",
+                        "diceRoll": 4
+                    },
+                    {
+                        "id": 47,
+                        "description": "I quote (or misquote) sacred texts and proverbs in almost every situation.",
+                        "diceRoll": 5
+                    },
+                    {
+                        "id": 48,
+                        "description": "I am tolerant (or intolerant) of other faiths and respect (or condemn) the worship of other gods.",
+                        "diceRoll": 6
+                    },
+                    {
+                        "id": 49,
+                        "description": "I’ve enjoyed fine food, drink, and high society among my temple’s elite. Rough living grates on me.",
+                        "diceRoll": 7
+                    },
+                    {
+                        "id": 50,
+                        "description": "I’ve spent so long in the temple that I have little practical experience dealing with people in the outside world.",
+                        "diceRoll": 8
+                    }
+                ],
+                "ideals": [
+                    {
+                        "id": 57,
+                        "description": "Tradition. The ancient traditions of worship and sacrifice must be preserved and upheld. (Lawful)",
+                        "diceRoll": 1
+                    },
+                    {
+                        "id": 58,
+                        "description": "Charity. I always try to help those in need, no matter what the personal cost. (Good)",
+                        "diceRoll": 2
+                    },
+                    {
+                        "id": 59,
+                        "description": "Change. We must help bring about the changes the gods are constantly working in the world. (Chaotic)",
+                        "diceRoll": 3
+                    },
+                    {
+                        "id": 60,
+                        "description": "Power. I hope to one day rise to the top of my faith’s religious hierarchy. (Lawful)",
+                        "diceRoll": 4
+                    },
+                    {
+                        "id": 61,
+                        "description": "Faith. I trust that my deity will guide my actions. I have faith that if I work hard, things will go well. (Lawful)",
+                        "diceRoll": 5
+                    },
+                    {
+                        "id": 62,
+                        "description": "Aspiration. I seek to prove myself worthy of my god’s favor by matching my actions against his or her teachings. (Any)",
+                        "diceRoll": 6
+                    }
+                ],
+                "bonds": [
+                    {
+                        "id": 51,
+                        "description": "I would die to recover an ancient relic of my faith that was lost long ago.",
+                        "diceRoll": 1
+                    },
+                    {
+                        "id": 52,
+                        "description": "I will someday get revenge on the corrupt temple hierarchy who branded me a heretic.",
+                        "diceRoll": 2
+                    },
+                    {
+                        "id": 53,
+                        "description": "I owe my life to the priest who took me in when my parents died.",
+                        "diceRoll": 3
+                    },
+                    {
+                        "id": 54,
+                        "description": "Everything I do is for the common people.",
+                        "diceRoll": 4
+                    },
+                    {
+                        "id": 55,
+                        "description": "I will do anything to protect the temple where I served.",
+                        "diceRoll": 5
+                    },
+                    {
+                        "id": 56,
+                        "description": "I seek to preserve a sacred text that my enemies consider heretical and seek to destroy.",
+                        "diceRoll": 6
+                    }
+                ],
+                "flaws": [
+                    {
+                        "id": 63,
+                        "description": "I judge others harshly, and myself even more severely.",
+                        "diceRoll": 1
+                    },
+                    {
+                        "id": 64,
+                        "description": "I put too much trust in those who wield power within my temple’s hierarchy.",
+                        "diceRoll": 2
+                    },
+                    {
+                        "id": 65,
+                        "description": "My piety sometimes leads me to blindly trust those that profess faith in my god.",
+                        "diceRoll": 3
+                    },
+                    {
+                        "id": 66,
+                        "description": "I am inflexible in my thinking.",
+                        "diceRoll": 4
+                    },
+                    {
+                        "id": 67,
+                        "description": "I am suspicious of strangers and expect the worst of them.",
+                        "diceRoll": 5
+                    },
+                    {
+                        "id": 68,
+                        "description": "Once I pick a goal, I become obsessed with it to the detriment of everything else in my life.",
+                        "diceRoll": 6
+                    }
+                ],
+                "isHomebrew": false,
+                "sources": [
+                    {
+                        "sourceId": 1,
+                        "pageNumber": null,
+                        "sourceType": 1
+                    }
+                ],
+                "spellListIds": []
+            },
+            "definitionId": null,
+            "customBackground": {
+                "id": 67047094,
+                "entityTypeId": 1581111423,
+                "name": null,
+                "description": null,
+                "featuresBackground": null,
+                "characteristicsBackground": null,
+                "featuresBackgroundDefinitionId": null,
+                "characteristicsBackgroundDefinitionId": null,
+                "backgroundType": null
+            }
+        },
+        "race": {
+            "isSubRace": false,
+            "baseRaceName": "Tiefling",
+            "entityRaceId": 7,
+            "entityRaceTypeId": 1743923279,
+            "fullName": "Tiefling",
+            "baseRaceId": 7,
+            "baseRaceTypeId": 1743923279,
+            "description": "<p>To be greeted with stares and whispers, to suffer violence and insult on the street, to see mistrust and fear in every eye: this is the lot of the tiefling.</p>\r\n<p class=\"characters-statblock\" style=\"font-family: Roboto Condensed;\"><strong>Racial Traits</strong><br />+2 Charisma, +1 Intelligence, Darkvision, Hellish Resistance, Infernal Legacy</p>",
+            "avatarUrl": "https://www.dndbeyond.com/avatars/7/640/636287076637351751.png?width=350&height=350&fit=bounds&quality=95&auto=webp",
+            "largeAvatarUrl": "https://www.dndbeyond.com/avatars/7/641/636287076637981942.png?width=1000&height=1000&fit=bounds&quality=95&auto=webp",
+            "portraitAvatarUrl": "https://www.dndbeyond.com/avatars/9/388/636327461109911160.jpeg?width=1000&height=1000&fit=bounds&quality=95&auto=webp",
+            "moreDetailsUrl": "/races/7-tiefling",
+            "isHomebrew": false,
+            "groupIds": [
+                5
+            ],
+            "type": 1,
+            "supportsSubrace": null,
+            "subRaceShortName": null,
+            "baseName": "Tiefling",
+            "racialTraits": [
+                {
+                    "definition": {
+                        "id": 60,
+                        "definitionKey": "racial-trait:60",
+                        "entityTypeId": 1960452172,
+                        "displayOrder": 6,
+                        "name": "Darkvision",
+                        "description": "<p>Thanks to your infernal heritage, you have superior vision in dark and dim conditions. You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can’t discern color in darkness, only shades of gray.</p>",
+                        "snippet": "You can see in darkness (shades of gray) up to 60 ft.",
+                        "hideInBuilder": false,
+                        "hideInSheet": false,
+                        "activation": null,
+                        "sourceId": 1,
+                        "sourcePageNumber": 43,
+                        "creatureRules": [],
+                        "spellListIds": [],
+                        "featureType": 1,
+                        "sources": [
+                            {
+                                "sourceId": 1,
+                                "pageNumber": 43,
+                                "sourceType": 1
+                            }
+                        ],
+                        "affectedFeatureDefinitionKeys": [],
+                        "isCalledOut": true,
+                        "entityType": "racial-trait",
+                        "entityID": "60",
+                        "entityRaceId": 7,
+                        "entityRaceTypeId": 1743923279,
+                        "displayConfiguration": {
+                            "RACIALTRAIT": 1,
+                            "ABILITYSCORE": 0,
+                            "LANGUAGE": 0,
+                            "CLASSFEATURE": 0
+                        },
+                        "requiredLevel": null
+                    }
+                },
+                {
+                    "definition": {
+                        "id": 61,
+                        "definitionKey": "racial-trait:61",
+                        "entityTypeId": 1960452172,
+                        "displayOrder": 7,
+                        "name": "Hellish Resistance",
+                        "description": "<p>You have resistance to fire damage.</p>",
+                        "snippet": "You have resistance to fire damage.",
+                        "hideInBuilder": false,
+                        "hideInSheet": false,
+                        "activation": null,
+                        "sourceId": 1,
+                        "sourcePageNumber": 43,
+                        "creatureRules": [],
+                        "spellListIds": [],
+                        "featureType": 1,
+                        "sources": [
+                            {
+                                "sourceId": 1,
+                                "pageNumber": 43,
+                                "sourceType": 1
+                            }
+                        ],
+                        "affectedFeatureDefinitionKeys": [],
+                        "isCalledOut": true,
+                        "entityType": "racial-trait",
+                        "entityID": "61",
+                        "entityRaceId": 7,
+                        "entityRaceTypeId": 1743923279,
+                        "displayConfiguration": {
+                            "RACIALTRAIT": 1,
+                            "ABILITYSCORE": 0,
+                            "LANGUAGE": 0,
+                            "CLASSFEATURE": 0
+                        },
+                        "requiredLevel": null
+                    }
+                },
+                {
+                    "definition": {
+                        "id": 62,
+                        "definitionKey": "racial-trait:62",
+                        "entityTypeId": 1960452172,
+                        "displayOrder": 8,
+                        "name": "Infernal Legacy",
+                        "description": "<p>You know the thaumaturgy cantrip. When you reach 3rd level, you can cast the hellish rebuke spell as a 2nd-level spell once with this trait and regain the ability to do so when you finish a long rest. When you reach 5th level, you can cast the darkness spell once with this trait and regain the ability to do so when you finish a long rest. Charisma is your spellcasting ability for these spells.</p>",
+                        "snippet": "You know the thaumaturgy cantrip. [3rd] You can cast hellish rebuke (2nd) once per long rest. [5th] You can cast darkness once per long rest. CHA is your spellcasting ability.",
+                        "hideInBuilder": false,
+                        "hideInSheet": false,
+                        "activation": null,
+                        "sourceId": 1,
+                        "sourcePageNumber": 43,
+                        "creatureRules": [],
+                        "spellListIds": [],
+                        "featureType": 1,
+                        "sources": [
+                            {
+                                "sourceId": 1,
+                                "pageNumber": 43,
+                                "sourceType": 1
+                            }
+                        ],
+                        "affectedFeatureDefinitionKeys": [],
+                        "isCalledOut": true,
+                        "entityType": "racial-trait",
+                        "entityID": "62",
+                        "entityRaceId": 7,
+                        "entityRaceTypeId": 1743923279,
+                        "displayConfiguration": {
+                            "RACIALTRAIT": 1,
+                            "ABILITYSCORE": 0,
+                            "LANGUAGE": 0,
+                            "CLASSFEATURE": 0
+                        },
+                        "requiredLevel": null
+                    }
+                },
+                {
+                    "definition": {
+                        "id": 104,
+                        "definitionKey": "racial-trait:104",
+                        "entityTypeId": 1960452172,
+                        "displayOrder": 1,
+                        "name": "Ability Score Increase",
+                        "description": "<p>Your Intelligence score increases by 1, and your Charisma score increases by 2.</p>",
+                        "snippet": "",
+                        "hideInBuilder": true,
+                        "hideInSheet": true,
+                        "activation": null,
+                        "sourceId": 1,
+                        "sourcePageNumber": 43,
+                        "creatureRules": [],
+                        "spellListIds": [],
+                        "featureType": 1,
+                        "sources": [
+                            {
+                                "sourceId": 1,
+                                "pageNumber": 43,
+                                "sourceType": 1
+                            }
+                        ],
+                        "affectedFeatureDefinitionKeys": [],
+                        "isCalledOut": false,
+                        "entityType": "racial-trait",
+                        "entityID": "104",
+                        "entityRaceId": 7,
+                        "entityRaceTypeId": 1743923279,
+                        "displayConfiguration": {
+                            "ABILITYSCORE": 1,
+                            "RACIALTRAIT": 1,
+                            "LANGUAGE": 0,
+                            "CLASSFEATURE": 0
+                        },
+                        "requiredLevel": null
+                    }
+                },
+                {
+                    "definition": {
+                        "id": 105,
+                        "definitionKey": "racial-trait:105",
+                        "entityTypeId": 1960452172,
+                        "displayOrder": 9,
+                        "name": "Languages",
+                        "description": "<p>You can speak, read, and write Common and Infernal.</p>",
+                        "snippet": null,
+                        "hideInBuilder": true,
+                        "hideInSheet": true,
+                        "activation": null,
+                        "sourceId": 1,
+                        "sourcePageNumber": 43,
+                        "creatureRules": [],
+                        "spellListIds": [],
+                        "featureType": 1,
+                        "sources": [
+                            {
+                                "sourceId": 1,
+                                "pageNumber": 43,
+                                "sourceType": 1
+                            }
+                        ],
+                        "affectedFeatureDefinitionKeys": [],
+                        "isCalledOut": false,
+                        "entityType": "racial-trait",
+                        "entityID": "105",
+                        "entityRaceId": 7,
+                        "entityRaceTypeId": 1743923279,
+                        "displayConfiguration": {
+                            "LANGUAGE": 1,
+                            "RACIALTRAIT": 1,
+                            "ABILITYSCORE": 0,
+                            "CLASSFEATURE": 0
+                        },
+                        "requiredLevel": null
+                    }
+                },
+                {
+                    "definition": {
+                        "id": 154,
+                        "definitionKey": "racial-trait:154",
+                        "entityTypeId": 1960452172,
+                        "displayOrder": 2,
+                        "name": "Age",
+                        "description": "<p>Tieflings mature at the same rate as humans but live a few years longer.</p>",
+                        "snippet": null,
+                        "hideInBuilder": true,
+                        "hideInSheet": true,
+                        "activation": null,
+                        "sourceId": 1,
+                        "sourcePageNumber": 43,
+                        "creatureRules": [],
+                        "spellListIds": [],
+                        "featureType": 1,
+                        "sources": [
+                            {
+                                "sourceId": 1,
+                                "pageNumber": 43,
+                                "sourceType": 1
+                            }
+                        ],
+                        "affectedFeatureDefinitionKeys": [],
+                        "isCalledOut": false,
+                        "entityType": "racial-trait",
+                        "entityID": "154",
+                        "entityRaceId": 7,
+                        "entityRaceTypeId": 1743923279,
+                        "displayConfiguration": {
+                            "RACIALTRAIT": 1,
+                            "ABILITYSCORE": 0,
+                            "LANGUAGE": 0,
+                            "CLASSFEATURE": 0
+                        },
+                        "requiredLevel": null
+                    }
+                },
+                {
+                    "definition": {
+                        "id": 156,
+                        "definitionKey": "racial-trait:156",
+                        "entityTypeId": 1960452172,
+                        "displayOrder": 4,
+                        "name": "Size",
+                        "description": "<p>Tieflings are about the same size and build as humans. Your size is Medium.</p>",
+                        "snippet": null,
+                        "hideInBuilder": true,
+                        "hideInSheet": true,
+                        "activation": null,
+                        "sourceId": 1,
+                        "sourcePageNumber": 43,
+                        "creatureRules": [],
+                        "spellListIds": [],
+                        "featureType": 1,
+                        "sources": [
+                            {
+                                "sourceId": 1,
+                                "pageNumber": 43,
+                                "sourceType": 1
+                            }
+                        ],
+                        "affectedFeatureDefinitionKeys": [],
+                        "isCalledOut": false,
+                        "entityType": "racial-trait",
+                        "entityID": "156",
+                        "entityRaceId": 7,
+                        "entityRaceTypeId": 1743923279,
+                        "displayConfiguration": {
+                            "RACIALTRAIT": 1,
+                            "ABILITYSCORE": 0,
+                            "LANGUAGE": 0,
+                            "CLASSFEATURE": 0
+                        },
+                        "requiredLevel": null
+                    }
+                },
+                {
+                    "definition": {
+                        "id": 157,
+                        "definitionKey": "racial-trait:157",
+                        "entityTypeId": 1960452172,
+                        "displayOrder": 5,
+                        "name": "Speed",
+                        "description": "<p>Your base walking speed is 30 feet.</p>",
+                        "snippet": null,
+                        "hideInBuilder": true,
+                        "hideInSheet": true,
+                        "activation": null,
+                        "sourceId": 1,
+                        "sourcePageNumber": 43,
+                        "creatureRules": [],
+                        "spellListIds": [],
+                        "featureType": 1,
+                        "sources": [
+                            {
+                                "sourceId": 1,
+                                "pageNumber": 43,
+                                "sourceType": 1
+                            }
+                        ],
+                        "affectedFeatureDefinitionKeys": [],
+                        "isCalledOut": false,
+                        "entityType": "racial-trait",
+                        "entityID": "157",
+                        "entityRaceId": 7,
+                        "entityRaceTypeId": 1743923279,
+                        "displayConfiguration": {
+                            "RACIALTRAIT": 1,
+                            "ABILITYSCORE": 0,
+                            "LANGUAGE": 0,
+                            "CLASSFEATURE": 0
+                        },
+                        "requiredLevel": null
+                    }
+                }
+            ],
+            "weightSpeeds": {
+                "normal": {
+                    "walk": 30,
+                    "fly": 0,
+                    "burrow": 0,
+                    "swim": 0,
+                    "climb": 0
+                },
+                "encumbered": null,
+                "heavilyEncumbered": null,
+                "pushDragLift": null,
+                "override": null
+            },
+            "featIds": [],
+            "size": null,
+            "sizeId": 4,
+            "sources": [
+                {
+                    "sourceId": 1,
+                    "pageNumber": null,
+                    "sourceType": 2
+                },
+                {
+                    "sourceId": 2,
+                    "pageNumber": 42,
+                    "sourceType": 1
+                }
+            ]
+        },
+        "raceDefinitionId": null,
+        "raceDefinitionTypeId": null,
+        "notes": {
+            "allies": null,
+            "personalPossessions": null,
+            "otherHoldings": null,
+            "organizations": null,
+            "enemies": null,
+            "backstory": null,
+            "otherNotes": null
+        },
+        "traits": {
+            "personalityTraits": null,
+            "ideals": null,
+            "bonds": null,
+            "flaws": null,
+            "appearance": null
+        },
+        "preferences": {
+            "useHomebrewContent": false,
+            "progressionType": 2,
+            "encumbranceType": 1,
+            "ignoreCoinWeight": false,
+            "hitPointType": 1,
+            "showUnarmedStrike": false,
+            "showScaledSpells": true,
+            "primarySense": 5,
+            "primaryMovement": 1,
+            "privacyType": 3,
+            "sharingType": 2,
+            "abilityScoreDisplayType": 2,
+            "enforceFeatRules": true,
+            "enforceMulticlassRules": true,
+            "enableOptionalClassFeatures": false,
+            "enableOptionalOrigins": false,
+            "enableDarkMode": false,
+            "enableContainerCurrency": false
+        },
+        "configuration": {
+            "startingEquipmentType": null,
+            "abilityScoreType": 3,
+            "showHelpText": false
+        },
+        "lifestyle": null,
+        "inventory": [],
+        "currencies": {
+            "cp": 0,
+            "sp": 0,
+            "gp": 0,
+            "ep": 0,
+            "pp": 0
+        },
+        "classes": [
+            {
+                "id": 88584748,
+                "entityTypeId": 1446578651,
+                "level": 1,
+                "isStartingClass": true,
+                "hitDiceUsed": 0,
+                "definitionId": 0,
+                "subclassDefinitionId": null,
+                "definition": {
+                    "id": 8,
+                    "name": "Wizard",
+                    "description": "<p>A scholarly magic-user capable of manipulating the structures of reality</p>\r\n<p class=\"characters-statblock\" style=\"font-family: Roboto Condensed; font-size: 14px;\"><strong>Hit Die:</strong> d6<br /><strong>Primary Ability:</strong>&nbsp;Intelligence<br /><strong>Saves:</strong>&nbsp;Intelligence &amp; Wisdom</p>",
+                    "equipmentDescription": "<p class=\"Core-Styles_Core-Body-Last--to-apply-extra-space-\">You start with the following equipment, in addition to the equipment granted by your background:</p>\r\n<ul>\r\n<li class=\"Core-Styles_Core-Bulleted\">(<span class=\"Serif-Character-Style_Italic-Serif\">a</span>) a quarterstaff or (<span class=\"Serif-Character-Style_Italic-Serif\">b</span>) a dagger</li>\r\n<li class=\"Core-Styles_Core-Bulleted\">(<span class=\"Serif-Character-Style_Italic-Serif\">a</span>) a component pouch or (<span class=\"Serif-Character-Style_Italic-Serif\">b</span>) an arcane focus</li>\r\n<li class=\"Core-Styles_Core-Bulleted\">(<span class=\"Serif-Character-Style_Italic-Serif\">a</span>) a scholar’s pack or (<span class=\"Serif-Character-Style_Italic-Serif\">b</span>) an explorer’s pack</li>\r\n<li class=\"Core-Styles_Core-Bulleted\">A spellbook</li>\r\n</ul>",
+                    "parentClassId": null,
+                    "avatarUrl": "https://www.dndbeyond.com/avatars/6/356/636272696880643718.png?width=350&height=350&fit=bounds&quality=95&auto=webp",
+                    "largeAvatarUrl": "https://www.dndbeyond.com/avatars/6/357/636272696881281556.png?width=1000&height=1000&fit=bounds&quality=95&auto=webp",
+                    "portraitAvatarUrl": "https://www.dndbeyond.com/avatars/10/11/636336418370446635.jpeg?width=1000&height=1000&fit=bounds&quality=95&auto=webp",
+                    "moreDetailsUrl": "/characters/classes/wizard",
+                    "spellCastingAbilityId": 4,
+                    "sources": [
+                        {
+                            "sourceId": 1,
+                            "pageNumber": 112,
+                            "sourceType": 1
+                        }
+                    ],
+                    "classFeatures": [
+                        {
+                            "id": 328,
+                            "name": "Ability Score Improvement",
+                            "prerequisite": null,
+                            "description": "<p>When you reach 4th level, and again at 8th, 12th, 16th, and 19th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can’t increase an ability score above 20 using this feature.</p>\r\n<p>Using the optional feats rule, you can forgo taking this feature to take a feat of your choice instead.</p>",
+                            "requiredLevel": 4,
+                            "displayOrder": 6
+                        },
+                        {
+                            "id": 329,
+                            "name": "Ability Score Improvement",
+                            "prerequisite": null,
+                            "description": "<p>When you reach 8th level, and again at 12th, 16th, and 19th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can’t increase an ability score above 20 using this feature.</p>\r\n<p>Using the optional feats rule, you can forgo taking this feature to take a feat of your choice instead.</p>",
+                            "requiredLevel": 8,
+                            "displayOrder": 7
+                        },
+                        {
+                            "id": 330,
+                            "name": "Ability Score Improvement",
+                            "prerequisite": null,
+                            "description": "<p>When you reach 12th level, and again at 16th and 19th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can’t increase an ability score above 20 using this feature.</p>\r\n<p>Using the optional feats rule, you can forgo taking this feature to take a feat of your choice instead.</p>",
+                            "requiredLevel": 12,
+                            "displayOrder": 8
+                        },
+                        {
+                            "id": 332,
+                            "name": "Ability Score Improvement",
+                            "prerequisite": null,
+                            "description": "<p>When you reach 16th level, and again at 19th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can’t increase an ability score above 20 using this feature.</p>\r\n<p>Using the optional feats rule, you can forgo taking this feature to take a feat of your choice instead.</p>",
+                            "requiredLevel": 16,
+                            "displayOrder": 9
+                        },
+                        {
+                            "id": 333,
+                            "name": "Ability Score Improvement",
+                            "prerequisite": null,
+                            "description": "<p>When you reach 19th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can’t increase an ability score above 20 using this feature.</p>\r\n<p>Using the optional feats rule, you can forgo taking this feature to take a feat of your choice instead.</p>",
+                            "requiredLevel": 19,
+                            "displayOrder": 11
+                        },
+                        {
+                            "id": 410,
+                            "name": "Spellcasting",
+                            "prerequisite": null,
+                            "description": "<p class=\"compendium-hr\">As a student of arcane magic, you have a spellbook containing spells that show the first glimmerings of your true power. See <span style=\"color: #99cc00;\"><a style=\"color: #47d18c;\" title=\"Spells Rules\" href=\"https://www.dndbeyond.com/compendium/rules/basic-rules/spellcasting\">Spells Rules</a></span> for the general rules of spellcasting and the <span style=\"color: #993366;\"><a style=\"color: #704cd9;\" title=\"Spells Listing (Wizard)\" href=\"https://www.dndbeyond.com/spells?filter-class=8&amp;filter-search=&amp;filter-sub-class=&amp;filter-concentration=&amp;filter-ritual=&amp;filter-unlocked-content=\">Spells Listing</a></span>&nbsp;for the wizard&nbsp;spell list.</p>\r\n<h5 class=\"compendium-hr\">Cantrips</h5>\r\n<p class=\"Core-Styles_Core-Body\">At 1st level, you know three cantrips of your choice from the wizard spell list. You learn additional wizard cantrips of your choice at higher levels, as shown in the Cantrips Known column of the Wizard table.</p>\r\n<h5 class=\"compendium-hr\">Spellbook</h5>\r\n<p class=\"Core-Styles_Core-Body\">At 1st level, you have a spellbook containing six 1st-level wizard spells of your choice. Your spellbook is the repository of the wizard spells you know, except your cantrips, which are fixed in your mind.</p>\r\n<h5 class=\"compendium-hr\">Preparing and Casting Spells</h5>\r\n<p class=\"Core-Styles_Core-Body\">The Wizard table shows how many spell slots you have to cast your wizard spells of 1st level and higher. To cast one of these spells, you must expend a slot of the spell’s level or higher. You regain all expended spell slots when you finish a long rest.</p>\r\n<p class=\"Core-Styles_Core-Body\">You prepare the list of wizard spells that are available for you to cast. To do so, choose a number of wizard spells from your spellbook equal to your Intelligence modifier + your wizard level (minimum of one spell). The spells must be of a level for which you have spell slots.</p>\r\n<p class=\"Core-Styles_Core-Body\">For example, if you’re a 3rd-level wizard, you have four 1st-level and two 2nd-level spell slots. With an Intelligence of 16, your list of prepared spells can include six spells of 1st or 2nd level, in any combination, chosen from your spellbook. If you prepare the 1st-level spell <span class=\"Serif-Character-Style_Italic-Serif\">magic missile,</span> you can cast it using a 1st-level or a 2nd-level slot. Casting the spell doesn’t remove it from your list of prepared spells.</p>\r\n<p class=\"Core-Styles_Core-Body\">You can change your list of prepared spells when you finish a long rest. Preparing a new list of wizard spells requires time spent studying your spellbook and memorizing the incantations and gestures you must make to cast the spell: at least 1 minute per spell level for each spell on your list.</p>\r\n<h5 class=\"compendium-hr\">Spellcasting Ability</h5>\r\n<p class=\"Core-Styles_Core-Body-Last--to-apply-extra-space-\">Intelligence is your spellcasting ability for your wizard spells, since you learn your spells through dedicated study and memorization. You use your Intelligence whenever a spell refers to your spellcasting ability. In addition, you use your Intelligence modifier when setting the saving throw DC for a wizard spell you cast and when making an attack roll with one.</p>\r\n<p class=\"List-Styles_List-Item-Centered\"><strong><span class=\"Sans-Serif-Character-Styles_Bold-Sans-Serif\">Spell save DC </span></strong>= 8 + your proficiency bonus + your Intelligence modifier</p>\r\n<p class=\"List-Styles_List-Item-Centered ParaOverride-2\"><strong><span class=\"Sans-Serif-Character-Styles_Bold-Sans-Serif\">Spell attack modifier </span></strong>= your proficiency bonus + your Intelligence modifier</p>\r\n<h5 class=\"compendium-hr\">Ritual Casting</h5>\r\n<p class=\"Core-Styles_Core-Body\">You can cast a wizard spell as a ritual if that spell has the ritual tag and you have the spell in your spellbook. You don’t need to have the spell prepared.</p>\r\n<h5 class=\"compendium-hr\">Spellcasting Focus</h5>\r\n<p class=\"Core-Styles_Core-Body\">You can use an arcane focus (see the <span style=\"color: #47d18c;\"><a style=\"color: #47d18c;\" title=\"Adventuring Gear\" href=\"https://www.dndbeyond.com/compendium/rules/basic-rules/equipment#ArcaneFocus\">Adventuring Gear</a></span> section) as a spellcasting focus for your wizard spells.</p>\r\n<h5 class=\"compendium-hr\">Learning Spells of 1st Level and Higher</h5>\r\n<p class=\"Core-Styles_Core-Body\">Each time you gain a wizard level, you can add two wizard spells of your choice to your spellbook for free. Each of these spells must be of a level for which you have spell slots, as shown on the Wizard table. On your adventures, you might find other spells that you can add to your spellbook (see the &ldquo;Your Spellbook&rdquo; sidebar).</p>\r\n<blockquote>\r\n<p class=\"Sidebar-Styles_Sidebar-Heading\"><strong>YOUR SPELLBOOK</strong></p>\r\n<p class=\"Sidebar-Styles_Sidebar-Body\">The spells that you add to your spellbook as you gain levels reflect the arcane research you conduct on your own, as well as intellectual breakthroughs you have had about the nature of the multiverse. You might find other spells during your adventures. You could discover a spell recorded on a scroll in an evil wizard’s chest, for example, or in a dusty tome in an ancient library.</p>\r\n<p class=\"Sidebar-Styles_Sidebar-Body\"><strong><span class=\"Sans-Serif-Character-Styles_Inline-Subhead-Sans-Serif\">Copying a Spell into the Book.</span></strong> When you find a wizard spell of 1st level or higher, you can add it to your spellbook if it is of a spell level you can prepare and if you can spare the time to decipher and copy it.</p>\r\n<p class=\"Sidebar-Styles_Sidebar-Body\">Copying that spell into your spellbook involves reproducing the basic form of the spell, then deciphering the unique system of notation used by the wizard who wrote it. You must practice the spell until you understand the sounds or gestures required, then transcribe it into your spellbook using your own notation.</p>\r\n<p class=\"Sidebar-Styles_Sidebar-Body\">For each level of the spell, the process takes 2 hours and costs 50 gp. The cost represents material components you expend as you experiment with the spell to master it, as well as the fine inks you need to record it. Once you have spent this time and money, you can prepare the spell just like your other spells.</p>\r\n<p class=\"Sidebar-Styles_Sidebar-Body\"><strong><span class=\"Sans-Serif-Character-Styles_Inline-Subhead-Sans-Serif\">Replacing the Book.</span></strong> You can copy a spell from your own spellbook into another book&mdash;for example, if you want to make a backup copy of your spellbook. This is just like copying a new spell into your spellbook, but faster and easier, since you understand your own notation and already know how to cast the spell. You need spend only 1 hour and 10 gp for each level of the copied spell.</p>\r\n<p class=\"Sidebar-Styles_Sidebar-Body\">If you lose your spellbook, you can use the same procedure to transcribe the spells that you have prepared into a new spellbook. Filling out the remainder of your spellbook requires you to find new spells to do so, as normal. For this reason, many wizards keep backup spellbooks in a safe place.</p>\r\n<p class=\"Sidebar-Styles_Sidebar-Body\"><strong><span class=\"Sans-Serif-Character-Styles_Inline-Subhead-Sans-Serif\">The Book’s Appearance.</span></strong> Your spellbook is a unique compilation of spells, with its own decorative flourishes and margin notes. It might be a plain, functional leather volume that you received as a gift from your master, a finely bound gilt-edged tome you found in an ancient library, or even a loose collection of notes scrounged together after you lost your previous spellbook in a mishap.</p>\r\n</blockquote>",
+                            "requiredLevel": 1,
+                            "displayOrder": 3
+                        },
+                        {
+                            "id": 411,
+                            "name": "Arcane Recovery",
+                            "prerequisite": null,
+                            "description": "<p class=\"compendium-hr\">You have learned to regain some of your magical energy by studying your spellbook. Once per day when you finish a short rest, you can choose expended spell slots to recover. The spell slots can have a combined level that is equal to or less than half your wizard level (rounded up), and none of the slots can be 6th level or higher.</p>\r\n<p class=\"Core-Styles_Core-Body\">For example, if you’re a 4th-level wizard, you can recover up to two levels worth of spell slots. You can recover either a 2nd-level spell slot or two 1st-level spell slots.</p>",
+                            "requiredLevel": 1,
+                            "displayOrder": 4
+                        },
+                        {
+                            "id": 412,
+                            "name": "Arcane Tradition",
+                            "prerequisite": null,
+                            "description": "<p class=\"Core-Styles_Core-Body\">When you reach 2nd level, you choose an arcane tradition, shaping your practice of magic through one of eight schools: Abjuration, Conjuration, Divination, Enchantment, Evocation, Illusion, Necromancy, or Transmutation. The School of Evocation&nbsp;is detailed at the end of the class description, and more choices are available in other sources.</p>\r\n<p class=\"Core-Styles_Core-Body\">Your choice grants you features at 2nd level and again at 6th, 10th, and 14th level.</p>",
+                            "requiredLevel": 2,
+                            "displayOrder": 5
+                        },
+                        {
+                            "id": 413,
+                            "name": "Spell Mastery",
+                            "prerequisite": null,
+                            "description": "<p class=\"Core-Styles_Core-Body\">At 18th level, you have achieved such mastery over certain spells that you can cast them at will. Choose a 1st-level wizard spell and a 2nd-level wizard spell that are in your spellbook. You can cast those spells at their lowest level without expending a spell slot when you have them prepared. If you want to cast either spell at a higher level, you must expend a spell slot as normal.</p>\r\n<p class=\"Core-Styles_Core-Body\">By spending 8 hours in study, you can exchange one or both of the spells you chose for different spells of the same levels.</p>",
+                            "requiredLevel": 18,
+                            "displayOrder": 10
+                        },
+                        {
+                            "id": 414,
+                            "name": "Signature Spells",
+                            "prerequisite": null,
+                            "description": "<p class=\"Core-Styles_Core-Body\">When you reach 20th level, you gain mastery over two powerful spells and can cast them with little effort. Choose two 3rd-level wizard spells in your spellbook as your signature spells. You always have these spells prepared, they don’t count against the number of spells you have prepared, and you can cast each of them once at 3rd level without expending a spell slot. When you do so, you can’t do so again until you finish a short or long rest.</p>\r\n<p class=\"Core-Styles_Core-Body\">If you want to cast either spell at a higher level, you must expend a spell slot as normal.</p>",
+                            "requiredLevel": 20,
+                            "displayOrder": 12
+                        },
+                        {
+                            "id": 470,
+                            "name": "Proficiencies",
+                            "prerequisite": null,
+                            "description": "<p><strong><span class=\"Serif-Character-Style_Bold-Serif\">Armor:</span></strong> None<br /><strong><span class=\"Serif-Character-Style_Bold-Serif\">Weapons: </span></strong>Daggers, darts, slings, quarterstaffs, light crossbows<br /><strong><span class=\"Serif-Character-Style_Bold-Serif\">Tools: </span></strong>None<br /><strong><span class=\"Serif-Character-Style_Bold-Serif\">Saving Throws: </span></strong>Intelligence, Wisdom<br /><strong><span class=\"Serif-Character-Style_Bold-Serif\">Skills: </span></strong>Choose two from Arcana, History, Insight, Investigation, Medicine, and Religion</p>",
+                            "requiredLevel": 1,
+                            "displayOrder": 2
+                        },
+                        {
+                            "id": 542,
+                            "name": "Hit Points",
+                            "prerequisite": null,
+                            "description": "<p><strong><span class=\"Serif-Character-Style_Bold-Serif\">Hit Dice: </span></strong>1d6 per wizard level<br /><strong><span class=\"Serif-Character-Style_Bold-Serif\">Hit Points at 1st Level: </span></strong>6 + your Constitution modifier<br /><strong><span class=\"Serif-Character-Style_Bold-Serif\">Hit Points at Higher Levels: </span></strong>1d6 (or 4) + your Constitution modifier per wizard level after 1st</p>",
+                            "requiredLevel": 1,
+                            "displayOrder": 1
+                        }
+                    ],
+                    "hitDice": 6,
+                    "wealthDice": {
+                        "diceCount": 4,
+                        "diceValue": 4,
+                        "diceMultiplier": 10,
+                        "fixedValue": null,
+                        "diceString": "4d4"
+                    },
+                    "canCastSpells": true,
+                    "knowsAllSpells": false,
+                    "spellPrepareType": 1,
+                    "spellContainerName": "Spellbook",
+                    "sourcePageNumber": 112,
+                    "subclassDefinition": null,
+                    "isHomebrew": false,
+                    "primaryAbilities": [
+                        4
+                    ],
+                    "spellRules": {
+                        "multiClassSpellSlotDivisor": 1,
+                        "isRitualSpellCaster": true,
+                        "levelCantripsKnownMaxes": [
+                            0,
+                            3,
+                            3,
+                            3,
+                            4,
+                            4,
+                            4,
+                            4,
+                            4,
+                            4,
+                            5,
+                            5,
+                            5,
+                            5,
+                            5,
+                            5,
+                            5,
+                            5,
+                            5,
+                            5,
+                            5
+                        ],
+                        "levelSpellKnownMaxes": [],
+                        "levelSpellSlots": [
+                            [
+                                0,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0
+                            ],
+                            [
+                                2,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0
+                            ],
+                            [
+                                3,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0
+                            ],
+                            [
+                                4,
+                                2,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0
+                            ],
+                            [
+                                4,
+                                3,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0
+                            ],
+                            [
+                                4,
+                                3,
+                                2,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0
+                            ],
+                            [
+                                4,
+                                3,
+                                3,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0
+                            ],
+                            [
+                                4,
+                                3,
+                                3,
+                                1,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0
+                            ],
+                            [
+                                4,
+                                3,
+                                3,
+                                2,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0
+                            ],
+                            [
+                                4,
+                                3,
+                                3,
+                                3,
+                                1,
+                                0,
+                                0,
+                                0,
+                                0
+                            ],
+                            [
+                                4,
+                                3,
+                                3,
+                                3,
+                                2,
+                                0,
+                                0,
+                                0,
+                                0
+                            ],
+                            [
+                                4,
+                                3,
+                                3,
+                                3,
+                                2,
+                                1,
+                                0,
+                                0,
+                                0
+                            ],
+                            [
+                                4,
+                                3,
+                                3,
+                                3,
+                                2,
+                                1,
+                                0,
+                                0,
+                                0
+                            ],
+                            [
+                                4,
+                                3,
+                                3,
+                                3,
+                                2,
+                                1,
+                                1,
+                                0,
+                                0
+                            ],
+                            [
+                                4,
+                                3,
+                                3,
+                                3,
+                                2,
+                                1,
+                                1,
+                                0,
+                                0
+                            ],
+                            [
+                                4,
+                                3,
+                                3,
+                                3,
+                                2,
+                                1,
+                                1,
+                                1,
+                                0
+                            ],
+                            [
+                                4,
+                                3,
+                                3,
+                                3,
+                                2,
+                                1,
+                                1,
+                                1,
+                                0
+                            ],
+                            [
+                                4,
+                                3,
+                                3,
+                                3,
+                                2,
+                                1,
+                                1,
+                                1,
+                                1
+                            ],
+                            [
+                                4,
+                                3,
+                                3,
+                                3,
+                                3,
+                                1,
+                                1,
+                                1,
+                                1
+                            ],
+                            [
+                                4,
+                                3,
+                                3,
+                                3,
+                                3,
+                                2,
+                                1,
+                                1,
+                                1
+                            ],
+                            [
+                                4,
+                                3,
+                                3,
+                                3,
+                                3,
+                                2,
+                                2,
+                                1,
+                                1
+                            ]
+                        ],
+                        "multiClassSpellSlotRounding": 1
+                    },
+                    "prerequisites": [
+                        {
+                            "description": "Intelligence 13",
+                            "prerequisiteMappings": [
+                                {
+                                    "id": 10365,
+                                    "entityId": 4,
+                                    "entityTypeId": 1472902489,
+                                    "type": "ability-score",
+                                    "subType": "intelligence",
+                                    "value": 13,
+                                    "friendlyTypeName": "Ability Score",
+                                    "friendlySubTypeName": "Intelligence"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "subclassDefinition": null,
+                "classFeatures": [
+                    {
+                        "definition": {
+                            "id": 328,
+                            "definitionKey": "class-feature:328",
+                            "entityTypeId": 12168134,
+                            "displayOrder": 6,
+                            "name": "Ability Score Improvement",
+                            "description": "<p>When you reach 4th level, and again at 8th, 12th, 16th, and 19th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can’t increase an ability score above 20 using this feature.</p>\r\n<p>Using the optional feats rule, you can forgo taking this feature to take a feat of your choice instead.</p>",
+                            "snippet": "",
+                            "activation": null,
+                            "multiClassDescription": "",
+                            "requiredLevel": 4,
+                            "isSubClassFeature": false,
+                            "limitedUse": [],
+                            "hideInBuilder": false,
+                            "hideInSheet": false,
+                            "sourceId": 2,
+                            "sourcePageNumber": 115,
+                            "creatureRules": [],
+                            "levelScales": [],
+                            "infusionRules": [],
+                            "spellListIds": [],
+                            "classId": 8,
+                            "featureType": 1,
+                            "sources": [
+                                {
+                                    "sourceId": 2,
+                                    "pageNumber": 115,
+                                    "sourceType": 1
+                                }
+                            ],
+                            "affectedFeatureDefinitionKeys": [],
+                            "entityType": "class-feature",
+                            "entityID": "328"
+                        },
+                        "levelScale": null
+                    },
+                    {
+                        "definition": {
+                            "id": 329,
+                            "definitionKey": "class-feature:329",
+                            "entityTypeId": 12168134,
+                            "displayOrder": 7,
+                            "name": "Ability Score Improvement",
+                            "description": "<p>When you reach 8th level, and again at 12th, 16th, and 19th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can’t increase an ability score above 20 using this feature.</p>\r\n<p>Using the optional feats rule, you can forgo taking this feature to take a feat of your choice instead.</p>",
+                            "snippet": "",
+                            "activation": null,
+                            "multiClassDescription": "",
+                            "requiredLevel": 8,
+                            "isSubClassFeature": false,
+                            "limitedUse": [],
+                            "hideInBuilder": false,
+                            "hideInSheet": false,
+                            "sourceId": 2,
+                            "sourcePageNumber": 115,
+                            "creatureRules": [],
+                            "levelScales": [],
+                            "infusionRules": [],
+                            "spellListIds": [],
+                            "classId": 8,
+                            "featureType": 1,
+                            "sources": [
+                                {
+                                    "sourceId": 2,
+                                    "pageNumber": 115,
+                                    "sourceType": 1
+                                }
+                            ],
+                            "affectedFeatureDefinitionKeys": [],
+                            "entityType": "class-feature",
+                            "entityID": "329"
+                        },
+                        "levelScale": null
+                    },
+                    {
+                        "definition": {
+                            "id": 330,
+                            "definitionKey": "class-feature:330",
+                            "entityTypeId": 12168134,
+                            "displayOrder": 8,
+                            "name": "Ability Score Improvement",
+                            "description": "<p>When you reach 12th level, and again at 16th and 19th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can’t increase an ability score above 20 using this feature.</p>\r\n<p>Using the optional feats rule, you can forgo taking this feature to take a feat of your choice instead.</p>",
+                            "snippet": "",
+                            "activation": null,
+                            "multiClassDescription": "",
+                            "requiredLevel": 12,
+                            "isSubClassFeature": false,
+                            "limitedUse": [],
+                            "hideInBuilder": false,
+                            "hideInSheet": false,
+                            "sourceId": 2,
+                            "sourcePageNumber": 115,
+                            "creatureRules": [],
+                            "levelScales": [],
+                            "infusionRules": [],
+                            "spellListIds": [],
+                            "classId": 8,
+                            "featureType": 1,
+                            "sources": [
+                                {
+                                    "sourceId": 2,
+                                    "pageNumber": 115,
+                                    "sourceType": 1
+                                }
+                            ],
+                            "affectedFeatureDefinitionKeys": [],
+                            "entityType": "class-feature",
+                            "entityID": "330"
+                        },
+                        "levelScale": null
+                    },
+                    {
+                        "definition": {
+                            "id": 332,
+                            "definitionKey": "class-feature:332",
+                            "entityTypeId": 12168134,
+                            "displayOrder": 9,
+                            "name": "Ability Score Improvement",
+                            "description": "<p>When you reach 16th level, and again at 19th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can’t increase an ability score above 20 using this feature.</p>\r\n<p>Using the optional feats rule, you can forgo taking this feature to take a feat of your choice instead.</p>",
+                            "snippet": "",
+                            "activation": null,
+                            "multiClassDescription": "",
+                            "requiredLevel": 16,
+                            "isSubClassFeature": false,
+                            "limitedUse": [],
+                            "hideInBuilder": false,
+                            "hideInSheet": false,
+                            "sourceId": 2,
+                            "sourcePageNumber": 115,
+                            "creatureRules": [],
+                            "levelScales": [],
+                            "infusionRules": [],
+                            "spellListIds": [],
+                            "classId": 8,
+                            "featureType": 1,
+                            "sources": [
+                                {
+                                    "sourceId": 2,
+                                    "pageNumber": 115,
+                                    "sourceType": 1
+                                }
+                            ],
+                            "affectedFeatureDefinitionKeys": [],
+                            "entityType": "class-feature",
+                            "entityID": "332"
+                        },
+                        "levelScale": null
+                    },
+                    {
+                        "definition": {
+                            "id": 333,
+                            "definitionKey": "class-feature:333",
+                            "entityTypeId": 12168134,
+                            "displayOrder": 11,
+                            "name": "Ability Score Improvement",
+                            "description": "<p>When you reach 19th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can’t increase an ability score above 20 using this feature.</p>\r\n<p>Using the optional feats rule, you can forgo taking this feature to take a feat of your choice instead.</p>",
+                            "snippet": "",
+                            "activation": null,
+                            "multiClassDescription": "",
+                            "requiredLevel": 19,
+                            "isSubClassFeature": false,
+                            "limitedUse": [],
+                            "hideInBuilder": false,
+                            "hideInSheet": false,
+                            "sourceId": 2,
+                            "sourcePageNumber": 115,
+                            "creatureRules": [],
+                            "levelScales": [],
+                            "infusionRules": [],
+                            "spellListIds": [],
+                            "classId": 8,
+                            "featureType": 1,
+                            "sources": [
+                                {
+                                    "sourceId": 2,
+                                    "pageNumber": 115,
+                                    "sourceType": 1
+                                }
+                            ],
+                            "affectedFeatureDefinitionKeys": [],
+                            "entityType": "class-feature",
+                            "entityID": "333"
+                        },
+                        "levelScale": null
+                    },
+                    {
+                        "definition": {
+                            "id": 410,
+                            "definitionKey": "class-feature:410",
+                            "entityTypeId": 12168134,
+                            "displayOrder": 3,
+                            "name": "Spellcasting",
+                            "description": "<p class=\"compendium-hr\">As a student of arcane magic, you have a spellbook containing spells that show the first glimmerings of your true power. See <span style=\"color: #99cc00;\"><a style=\"color: #47d18c;\" title=\"Spells Rules\" href=\"https://www.dndbeyond.com/compendium/rules/basic-rules/spellcasting\">Spells Rules</a></span> for the general rules of spellcasting and the <span style=\"color: #993366;\"><a style=\"color: #704cd9;\" title=\"Spells Listing (Wizard)\" href=\"https://www.dndbeyond.com/spells?filter-class=8&amp;filter-search=&amp;filter-sub-class=&amp;filter-concentration=&amp;filter-ritual=&amp;filter-unlocked-content=\">Spells Listing</a></span>&nbsp;for the wizard&nbsp;spell list.</p>\r\n<h5 class=\"compendium-hr\">Cantrips</h5>\r\n<p class=\"Core-Styles_Core-Body\">At 1st level, you know three cantrips of your choice from the wizard spell list. You learn additional wizard cantrips of your choice at higher levels, as shown in the Cantrips Known column of the Wizard table.</p>\r\n<h5 class=\"compendium-hr\">Spellbook</h5>\r\n<p class=\"Core-Styles_Core-Body\">At 1st level, you have a spellbook containing six 1st-level wizard spells of your choice. Your spellbook is the repository of the wizard spells you know, except your cantrips, which are fixed in your mind.</p>\r\n<h5 class=\"compendium-hr\">Preparing and Casting Spells</h5>\r\n<p class=\"Core-Styles_Core-Body\">The Wizard table shows how many spell slots you have to cast your wizard spells of 1st level and higher. To cast one of these spells, you must expend a slot of the spell’s level or higher. You regain all expended spell slots when you finish a long rest.</p>\r\n<p class=\"Core-Styles_Core-Body\">You prepare the list of wizard spells that are available for you to cast. To do so, choose a number of wizard spells from your spellbook equal to your Intelligence modifier + your wizard level (minimum of one spell). The spells must be of a level for which you have spell slots.</p>\r\n<p class=\"Core-Styles_Core-Body\">For example, if you’re a 3rd-level wizard, you have four 1st-level and two 2nd-level spell slots. With an Intelligence of 16, your list of prepared spells can include six spells of 1st or 2nd level, in any combination, chosen from your spellbook. If you prepare the 1st-level spell <span class=\"Serif-Character-Style_Italic-Serif\">magic missile,</span> you can cast it using a 1st-level or a 2nd-level slot. Casting the spell doesn’t remove it from your list of prepared spells.</p>\r\n<p class=\"Core-Styles_Core-Body\">You can change your list of prepared spells when you finish a long rest. Preparing a new list of wizard spells requires time spent studying your spellbook and memorizing the incantations and gestures you must make to cast the spell: at least 1 minute per spell level for each spell on your list.</p>\r\n<h5 class=\"compendium-hr\">Spellcasting Ability</h5>\r\n<p class=\"Core-Styles_Core-Body-Last--to-apply-extra-space-\">Intelligence is your spellcasting ability for your wizard spells, since you learn your spells through dedicated study and memorization. You use your Intelligence whenever a spell refers to your spellcasting ability. In addition, you use your Intelligence modifier when setting the saving throw DC for a wizard spell you cast and when making an attack roll with one.</p>\r\n<p class=\"List-Styles_List-Item-Centered\"><strong><span class=\"Sans-Serif-Character-Styles_Bold-Sans-Serif\">Spell save DC </span></strong>= 8 + your proficiency bonus + your Intelligence modifier</p>\r\n<p class=\"List-Styles_List-Item-Centered ParaOverride-2\"><strong><span class=\"Sans-Serif-Character-Styles_Bold-Sans-Serif\">Spell attack modifier </span></strong>= your proficiency bonus + your Intelligence modifier</p>\r\n<h5 class=\"compendium-hr\">Ritual Casting</h5>\r\n<p class=\"Core-Styles_Core-Body\">You can cast a wizard spell as a ritual if that spell has the ritual tag and you have the spell in your spellbook. You don’t need to have the spell prepared.</p>\r\n<h5 class=\"compendium-hr\">Spellcasting Focus</h5>\r\n<p class=\"Core-Styles_Core-Body\">You can use an arcane focus (see the <span style=\"color: #47d18c;\"><a style=\"color: #47d18c;\" title=\"Adventuring Gear\" href=\"https://www.dndbeyond.com/compendium/rules/basic-rules/equipment#ArcaneFocus\">Adventuring Gear</a></span> section) as a spellcasting focus for your wizard spells.</p>\r\n<h5 class=\"compendium-hr\">Learning Spells of 1st Level and Higher</h5>\r\n<p class=\"Core-Styles_Core-Body\">Each time you gain a wizard level, you can add two wizard spells of your choice to your spellbook for free. Each of these spells must be of a level for which you have spell slots, as shown on the Wizard table. On your adventures, you might find other spells that you can add to your spellbook (see the &ldquo;Your Spellbook&rdquo; sidebar).</p>\r\n<blockquote>\r\n<p class=\"Sidebar-Styles_Sidebar-Heading\"><strong>YOUR SPELLBOOK</strong></p>\r\n<p class=\"Sidebar-Styles_Sidebar-Body\">The spells that you add to your spellbook as you gain levels reflect the arcane research you conduct on your own, as well as intellectual breakthroughs you have had about the nature of the multiverse. You might find other spells during your adventures. You could discover a spell recorded on a scroll in an evil wizard’s chest, for example, or in a dusty tome in an ancient library.</p>\r\n<p class=\"Sidebar-Styles_Sidebar-Body\"><strong><span class=\"Sans-Serif-Character-Styles_Inline-Subhead-Sans-Serif\">Copying a Spell into the Book.</span></strong> When you find a wizard spell of 1st level or higher, you can add it to your spellbook if it is of a spell level you can prepare and if you can spare the time to decipher and copy it.</p>\r\n<p class=\"Sidebar-Styles_Sidebar-Body\">Copying that spell into your spellbook involves reproducing the basic form of the spell, then deciphering the unique system of notation used by the wizard who wrote it. You must practice the spell until you understand the sounds or gestures required, then transcribe it into your spellbook using your own notation.</p>\r\n<p class=\"Sidebar-Styles_Sidebar-Body\">For each level of the spell, the process takes 2 hours and costs 50 gp. The cost represents material components you expend as you experiment with the spell to master it, as well as the fine inks you need to record it. Once you have spent this time and money, you can prepare the spell just like your other spells.</p>\r\n<p class=\"Sidebar-Styles_Sidebar-Body\"><strong><span class=\"Sans-Serif-Character-Styles_Inline-Subhead-Sans-Serif\">Replacing the Book.</span></strong> You can copy a spell from your own spellbook into another book&mdash;for example, if you want to make a backup copy of your spellbook. This is just like copying a new spell into your spellbook, but faster and easier, since you understand your own notation and already know how to cast the spell. You need spend only 1 hour and 10 gp for each level of the copied spell.</p>\r\n<p class=\"Sidebar-Styles_Sidebar-Body\">If you lose your spellbook, you can use the same procedure to transcribe the spells that you have prepared into a new spellbook. Filling out the remainder of your spellbook requires you to find new spells to do so, as normal. For this reason, many wizards keep backup spellbooks in a safe place.</p>\r\n<p class=\"Sidebar-Styles_Sidebar-Body\"><strong><span class=\"Sans-Serif-Character-Styles_Inline-Subhead-Sans-Serif\">The Book’s Appearance.</span></strong> Your spellbook is a unique compilation of spells, with its own decorative flourishes and margin notes. It might be a plain, functional leather volume that you received as a gift from your master, a finely bound gilt-edged tome you found in an ancient library, or even a loose collection of notes scrounged together after you lost your previous spellbook in a mishap.</p>\r\n</blockquote>",
+                            "snippet": "You can cast prepared wizard spells using INT as your spellcasting modifier (Spell DC {{savedc:int}}, Spell Attack {{spellattack:int}}) and wizard spells in your spellbook as rituals if they have the ritual tag. You can use an arcane focus as a spellcasting focus.",
+                            "activation": null,
+                            "multiClassDescription": "<p><em>This feature is affected by multiclassing</em>. See the <a title=\"Multiclassing - Class Features\" href=\"https://www.dndbeyond.com/compendium/rules/basic-rules/customization-options#ClassFeatures\">Multiclassing</a> rules for more information.</p>\r\n<p class=\"compendium-hr\">As a student of arcane magic, you have a spellbook containing spells that show the first glimmerings of your true power. See <span style=\"color: #99cc00;\"><a style=\"color: #47d18c;\" title=\"Spells Rules\" href=\"https://www.dndbeyond.com/compendium/rules/basic-rules/spellcasting\">Spells Rules</a></span> for the general rules of spellcasting and the <span style=\"color: #993366;\"><a style=\"color: #704cd9;\" title=\"Spells Listing (Wizard)\" href=\"https://www.dndbeyond.com/spells?filter-class=8&amp;filter-search=&amp;filter-sub-class=&amp;filter-concentration=&amp;filter-ritual=&amp;filter-unlocked-content=\">Spells Listing</a></span>&nbsp;for the wizard&nbsp;spell list.</p>\r\n<h5 class=\"compendium-hr\">Cantrips</h5>\r\n<p class=\"Core-Styles_Core-Body\">At 1st level, you know three cantrips of your choice from the wizard spell list. You learn additional wizard cantrips of your choice at higher levels, as shown in the Cantrips Known column of the Wizard table.</p>\r\n<h5 class=\"compendium-hr\">Spellbook</h5>\r\n<p class=\"Core-Styles_Core-Body\">At 1st level, you have a spellbook containing six 1st-level wizard spells of your choice. Your spellbook is the repository of the wizard spells you know, except your cantrips, which are fixed in your mind.</p>\r\n<h5 class=\"compendium-hr\">Preparing and Casting Spells</h5>\r\n<p class=\"Core-Styles_Core-Body\">The Wizard table shows how many spell slots you have to cast your wizard spells of 1st level and higher. To cast one of these spells, you must expend a slot of the spell’s level or higher. You regain all expended spell slots when you finish a long rest.</p>\r\n<p class=\"Core-Styles_Core-Body\">You prepare the list of wizard spells that are available for you to cast. To do so, choose a number of wizard spells from your spellbook equal to your Intelligence modifier + your wizard level (minimum of one spell). The spells must be of a level for which you have spell slots.</p>\r\n<p class=\"Core-Styles_Core-Body\">For example, if you’re a 3rd-level wizard, you have four 1st-level and two 2nd-level spell slots. With an Intelligence of 16, your list of prepared spells can include six spells of 1st or 2nd level, in any combination, chosen from your spellbook. If you prepare the 1st-level spell <span class=\"Serif-Character-Style_Italic-Serif\">magic missile,</span> you can cast it using a 1st-level or a 2nd-level slot. Casting the spell doesn’t remove it from your list of prepared spells.</p>\r\n<p class=\"Core-Styles_Core-Body\">You can change your list of prepared spells when you finish a long rest. Preparing a new list of wizard spells requires time spent studying your spellbook and memorizing the incantations and gestures you must make to cast the spell: at least 1 minute per spell level for each spell on your list.</p>\r\n<h5 class=\"compendium-hr\">Spellcasting Ability</h5>\r\n<p class=\"Core-Styles_Core-Body-Last--to-apply-extra-space-\">Intelligence is your spellcasting ability for your wizard spells, since you learn your spells through dedicated study and memorization. You use your Intelligence whenever a spell refers to your spellcasting ability. In addition, you use your Intelligence modifier when setting the saving throw DC for a wizard spell you cast and when making an attack roll with one.</p>\r\n<p class=\"List-Styles_List-Item-Centered\"><strong><span class=\"Sans-Serif-Character-Styles_Bold-Sans-Serif\">Spell save DC </span></strong>= 8 + your proficiency bonus + your Intelligence modifier</p>\r\n<p class=\"List-Styles_List-Item-Centered ParaOverride-2\"><strong><span class=\"Sans-Serif-Character-Styles_Bold-Sans-Serif\">Spell attack modifier </span></strong>= your proficiency bonus + your Intelligence modifier</p>\r\n<h5 class=\"compendium-hr\">Ritual Casting</h5>\r\n<p class=\"Core-Styles_Core-Body\">You can cast a wizard spell as a ritual if that spell has the ritual tag and you have the spell in your spellbook. You don’t need to have the spell prepared.</p>\r\n<h5 class=\"compendium-hr\">Spellcasting Focus</h5>\r\n<p class=\"Core-Styles_Core-Body\">You can use an arcane focus (see the <span style=\"color: #47d18c;\"><a style=\"color: #47d18c;\" title=\"Adventuring Gear\" href=\"https://www.dndbeyond.com/compendium/rules/basic-rules/equipment#ArcaneFocus\">Adventuring Gear</a></span> section) as a spellcasting focus for your wizard spells.</p>\r\n<h5 class=\"compendium-hr\">Learning Spells of 1st Level and Higher</h5>\r\n<p class=\"Core-Styles_Core-Body\">Each time you gain a wizard level, you can add two wizard spells of your choice to your spellbook for free. Each of these spells must be of a level for which you have spell slots, as shown on the Wizard table. On your adventures, you might find other spells that you can add to your spellbook (see the &ldquo;Your Spellbook&rdquo; sidebar).</p>\r\n<blockquote>\r\n<p class=\"Sidebar-Styles_Sidebar-Heading\"><strong>YOUR SPELLBOOK</strong></p>\r\n<p class=\"Sidebar-Styles_Sidebar-Body\">The spells that you add to your spellbook as you gain levels reflect the arcane research you conduct on your own, as well as intellectual breakthroughs you have had about the nature of the multiverse. You might find other spells during your adventures. You could discover a spell recorded on a scroll in an evil wizard’s chest, for example, or in a dusty tome in an ancient library.</p>\r\n<p class=\"Sidebar-Styles_Sidebar-Body\"><strong><span class=\"Sans-Serif-Character-Styles_Inline-Subhead-Sans-Serif\">Copying a Spell into the Book.</span></strong> When you find a wizard spell of 1st level or higher, you can add it to your spellbook if it is of a spell level you can prepare and if you can spare the time to decipher and copy it.</p>\r\n<p class=\"Sidebar-Styles_Sidebar-Body\">Copying that spell into your spellbook involves reproducing the basic form of the spell, then deciphering the unique system of notation used by the wizard who wrote it. You must practice the spell until you understand the sounds or gestures required, then transcribe it into your spellbook using your own notation.</p>\r\n<p class=\"Sidebar-Styles_Sidebar-Body\">For each level of the spell, the process takes 2 hours and costs 50 gp. The cost represents material components you expend as you experiment with the spell to master it, as well as the fine inks you need to record it. Once you have spent this time and money, you can prepare the spell just like your other spells.</p>\r\n<p class=\"Sidebar-Styles_Sidebar-Body\"><strong><span class=\"Sans-Serif-Character-Styles_Inline-Subhead-Sans-Serif\">Replacing the Book.</span></strong> You can copy a spell from your own spellbook into another book&mdash;for example, if you want to make a backup copy of your spellbook. This is just like copying a new spell into your spellbook, but faster and easier, since you understand your own notation and already know how to cast the spell. You need spend only 1 hour and 10 gp for each level of the copied spell.</p>\r\n<p class=\"Sidebar-Styles_Sidebar-Body\">If you lose your spellbook, you can use the same procedure to transcribe the spells that you have prepared into a new spellbook. Filling out the remainder of your spellbook requires you to find new spells to do so, as normal. For this reason, many wizards keep backup spellbooks in a safe place.</p>\r\n<p class=\"Sidebar-Styles_Sidebar-Body\"><strong><span class=\"Sans-Serif-Character-Styles_Inline-Subhead-Sans-Serif\">The Book’s Appearance.</span></strong> Your spellbook is a unique compilation of spells, with its own decorative flourishes and margin notes. It might be a plain, functional leather volume that you received as a gift from your master, a finely bound gilt-edged tome you found in an ancient library, or even a loose collection of notes scrounged together after you lost your previous spellbook in a mishap.</p>\r\n</blockquote>",
+                            "requiredLevel": 1,
+                            "isSubClassFeature": false,
+                            "limitedUse": [],
+                            "hideInBuilder": false,
+                            "hideInSheet": false,
+                            "sourceId": 2,
+                            "sourcePageNumber": 114,
+                            "creatureRules": [],
+                            "levelScales": [],
+                            "infusionRules": [],
+                            "spellListIds": [],
+                            "classId": 8,
+                            "featureType": 1,
+                            "sources": [
+                                {
+                                    "sourceId": 2,
+                                    "pageNumber": 114,
+                                    "sourceType": 1
+                                }
+                            ],
+                            "affectedFeatureDefinitionKeys": [],
+                            "entityType": "class-feature",
+                            "entityID": "410"
+                        },
+                        "levelScale": null
+                    },
+                    {
+                        "definition": {
+                            "id": 411,
+                            "definitionKey": "class-feature:411",
+                            "entityTypeId": 12168134,
+                            "displayOrder": 4,
+                            "name": "Arcane Recovery",
+                            "description": "<p class=\"compendium-hr\">You have learned to regain some of your magical energy by studying your spellbook. Once per day when you finish a short rest, you can choose expended spell slots to recover. The spell slots can have a combined level that is equal to or less than half your wizard level (rounded up), and none of the slots can be 6th level or higher.</p>\r\n<p class=\"Core-Styles_Core-Body\">For example, if you’re a 4th-level wizard, you can recover up to two levels worth of spell slots. You can recover either a 2nd-level spell slot or two 1st-level spell slots.</p>",
+                            "snippet": "Once per day when you finish a short rest, you can choose expended spell slots to recover - up to a combined level of {{(classlevel/2)@roundup}}, and none of the slots can be 6th level or higher.",
+                            "activation": null,
+                            "multiClassDescription": "",
+                            "requiredLevel": 1,
+                            "isSubClassFeature": false,
+                            "limitedUse": [
+                                {
+                                    "level": null,
+                                    "uses": 1
+                                }
+                            ],
+                            "hideInBuilder": false,
+                            "hideInSheet": false,
+                            "sourceId": 2,
+                            "sourcePageNumber": 115,
+                            "creatureRules": [],
+                            "levelScales": [],
+                            "infusionRules": [],
+                            "spellListIds": [],
+                            "classId": 8,
+                            "featureType": 1,
+                            "sources": [
+                                {
+                                    "sourceId": 2,
+                                    "pageNumber": 115,
+                                    "sourceType": 1
+                                }
+                            ],
+                            "affectedFeatureDefinitionKeys": [],
+                            "entityType": "class-feature",
+                            "entityID": "411"
+                        },
+                        "levelScale": null
+                    },
+                    {
+                        "definition": {
+                            "id": 412,
+                            "definitionKey": "class-feature:412",
+                            "entityTypeId": 12168134,
+                            "displayOrder": 5,
+                            "name": "Arcane Tradition",
+                            "description": "<p class=\"Core-Styles_Core-Body\">When you reach 2nd level, you choose an arcane tradition, shaping your practice of magic through one of eight schools: Abjuration, Conjuration, Divination, Enchantment, Evocation, Illusion, Necromancy, or Transmutation. The School of Evocation&nbsp;is detailed at the end of the class description, and more choices are available in other sources.</p>\r\n<p class=\"Core-Styles_Core-Body\">Your choice grants you features at 2nd level and again at 6th, 10th, and 14th level.</p>",
+                            "snippet": "",
+                            "activation": null,
+                            "multiClassDescription": "",
+                            "requiredLevel": 2,
+                            "isSubClassFeature": false,
+                            "limitedUse": [],
+                            "hideInBuilder": false,
+                            "hideInSheet": false,
+                            "sourceId": 2,
+                            "sourcePageNumber": 115,
+                            "creatureRules": [],
+                            "levelScales": [],
+                            "infusionRules": [],
+                            "spellListIds": [],
+                            "classId": 8,
+                            "featureType": 1,
+                            "sources": [
+                                {
+                                    "sourceId": 2,
+                                    "pageNumber": 115,
+                                    "sourceType": 1
+                                }
+                            ],
+                            "affectedFeatureDefinitionKeys": [],
+                            "entityType": "class-feature",
+                            "entityID": "412"
+                        },
+                        "levelScale": null
+                    },
+                    {
+                        "definition": {
+                            "id": 413,
+                            "definitionKey": "class-feature:413",
+                            "entityTypeId": 12168134,
+                            "displayOrder": 10,
+                            "name": "Spell Mastery",
+                            "description": "<p class=\"Core-Styles_Core-Body\">At 18th level, you have achieved such mastery over certain spells that you can cast them at will. Choose a 1st-level wizard spell and a 2nd-level wizard spell that are in your spellbook. You can cast those spells at their lowest level without expending a spell slot when you have them prepared. If you want to cast either spell at a higher level, you must expend a spell slot as normal.</p>\r\n<p class=\"Core-Styles_Core-Body\">By spending 8 hours in study, you can exchange one or both of the spells you chose for different spells of the same levels.</p>",
+                            "snippet": "You can cast chosen 1st level and 2nd level spells at their lowest level without expending a spell slot when you have them prepared. If you want to cast either spell at a higher level, you must expend a spell slot as normal.",
+                            "activation": null,
+                            "multiClassDescription": "",
+                            "requiredLevel": 18,
+                            "isSubClassFeature": false,
+                            "limitedUse": [],
+                            "hideInBuilder": false,
+                            "hideInSheet": false,
+                            "sourceId": 2,
+                            "sourcePageNumber": 115,
+                            "creatureRules": [],
+                            "levelScales": [],
+                            "infusionRules": [],
+                            "spellListIds": [],
+                            "classId": 8,
+                            "featureType": 1,
+                            "sources": [
+                                {
+                                    "sourceId": 2,
+                                    "pageNumber": 115,
+                                    "sourceType": 1
+                                }
+                            ],
+                            "affectedFeatureDefinitionKeys": [],
+                            "entityType": "class-feature",
+                            "entityID": "413"
+                        },
+                        "levelScale": null
+                    },
+                    {
+                        "definition": {
+                            "id": 414,
+                            "definitionKey": "class-feature:414",
+                            "entityTypeId": 12168134,
+                            "displayOrder": 12,
+                            "name": "Signature Spells",
+                            "description": "<p class=\"Core-Styles_Core-Body\">When you reach 20th level, you gain mastery over two powerful spells and can cast them with little effort. Choose two 3rd-level wizard spells in your spellbook as your signature spells. You always have these spells prepared, they don’t count against the number of spells you have prepared, and you can cast each of them once at 3rd level without expending a spell slot. When you do so, you can’t do so again until you finish a short or long rest.</p>\r\n<p class=\"Core-Styles_Core-Body\">If you want to cast either spell at a higher level, you must expend a spell slot as normal.</p>",
+                            "snippet": "You choose two 3rd-level spells and always have them prepared and they don’t count against the number of spells you have prepared. Once per short rest, you can cast each of them once at 3rd level without expending a spell slot. ",
+                            "activation": null,
+                            "multiClassDescription": "",
+                            "requiredLevel": 20,
+                            "isSubClassFeature": false,
+                            "limitedUse": [],
+                            "hideInBuilder": false,
+                            "hideInSheet": false,
+                            "sourceId": 2,
+                            "sourcePageNumber": 115,
+                            "creatureRules": [],
+                            "levelScales": [],
+                            "infusionRules": [],
+                            "spellListIds": [],
+                            "classId": 8,
+                            "featureType": 1,
+                            "sources": [
+                                {
+                                    "sourceId": 2,
+                                    "pageNumber": 115,
+                                    "sourceType": 1
+                                }
+                            ],
+                            "affectedFeatureDefinitionKeys": [],
+                            "entityType": "class-feature",
+                            "entityID": "414"
+                        },
+                        "levelScale": null
+                    },
+                    {
+                        "definition": {
+                            "id": 470,
+                            "definitionKey": "class-feature:470",
+                            "entityTypeId": 12168134,
+                            "displayOrder": 2,
+                            "name": "Proficiencies",
+                            "description": "<p><strong><span class=\"Serif-Character-Style_Bold-Serif\">Armor:</span></strong> None<br /><strong><span class=\"Serif-Character-Style_Bold-Serif\">Weapons: </span></strong>Daggers, darts, slings, quarterstaffs, light crossbows<br /><strong><span class=\"Serif-Character-Style_Bold-Serif\">Tools: </span></strong>None<br /><strong><span class=\"Serif-Character-Style_Bold-Serif\">Saving Throws: </span></strong>Intelligence, Wisdom<br /><strong><span class=\"Serif-Character-Style_Bold-Serif\">Skills: </span></strong>Choose two from Arcana, History, Insight, Investigation, Medicine, and Religion</p>",
+                            "snippet": "",
+                            "activation": null,
+                            "multiClassDescription": "<p><strong>Multiclass</strong> (no additional proficiencies)</p>",
+                            "requiredLevel": 1,
+                            "isSubClassFeature": false,
+                            "limitedUse": [],
+                            "hideInBuilder": false,
+                            "hideInSheet": false,
+                            "sourceId": 2,
+                            "sourcePageNumber": 113,
+                            "creatureRules": [],
+                            "levelScales": [],
+                            "infusionRules": [],
+                            "spellListIds": [],
+                            "classId": 8,
+                            "featureType": 1,
+                            "sources": [
+                                {
+                                    "sourceId": 2,
+                                    "pageNumber": 113,
+                                    "sourceType": 1
+                                }
+                            ],
+                            "affectedFeatureDefinitionKeys": [],
+                            "entityType": "class-feature",
+                            "entityID": "470"
+                        },
+                        "levelScale": null
+                    },
+                    {
+                        "definition": {
+                            "id": 542,
+                            "definitionKey": "class-feature:542",
+                            "entityTypeId": 12168134,
+                            "displayOrder": 1,
+                            "name": "Hit Points",
+                            "description": "<p><strong><span class=\"Serif-Character-Style_Bold-Serif\">Hit Dice: </span></strong>1d6 per wizard level<br /><strong><span class=\"Serif-Character-Style_Bold-Serif\">Hit Points at 1st Level: </span></strong>6 + your Constitution modifier<br /><strong><span class=\"Serif-Character-Style_Bold-Serif\">Hit Points at Higher Levels: </span></strong>1d6 (or 4) + your Constitution modifier per wizard level after 1st</p>",
+                            "snippet": "",
+                            "activation": null,
+                            "multiClassDescription": "",
+                            "requiredLevel": 1,
+                            "isSubClassFeature": false,
+                            "limitedUse": [],
+                            "hideInBuilder": false,
+                            "hideInSheet": false,
+                            "sourceId": 2,
+                            "sourcePageNumber": 113,
+                            "creatureRules": [],
+                            "levelScales": [],
+                            "infusionRules": [],
+                            "spellListIds": [],
+                            "classId": 8,
+                            "featureType": 1,
+                            "sources": [
+                                {
+                                    "sourceId": 2,
+                                    "pageNumber": 113,
+                                    "sourceType": 1
+                                }
+                            ],
+                            "affectedFeatureDefinitionKeys": [],
+                            "entityType": "class-feature",
+                            "entityID": "542"
+                        },
+                        "levelScale": null
+                    }
+                ]
+            }
+        ],
+        "feats": [],
+        "features": null,
+        "customDefenseAdjustments": [],
+        "customSenses": [],
+        "customSpeeds": [],
+        "customProficiencies": [],
+        "customActions": [],
+        "characterValues": [],
+        "conditions": [],
+        "deathSaves": {
+            "failCount": null,
+            "successCount": null,
+            "isStabilized": false
+        },
+        "adjustmentXp": null,
+        "spellSlots": [
+            {
+                "level": 1,
+                "used": 0,
+                "available": 0
+            },
+            {
+                "level": 2,
+                "used": 0,
+                "available": 0
+            },
+            {
+                "level": 3,
+                "used": 0,
+                "available": 0
+            },
+            {
+                "level": 4,
+                "used": 0,
+                "available": 0
+            },
+            {
+                "level": 5,
+                "used": 0,
+                "available": 0
+            },
+            {
+                "level": 6,
+                "used": 0,
+                "available": 0
+            },
+            {
+                "level": 7,
+                "used": 0,
+                "available": 0
+            },
+            {
+                "level": 8,
+                "used": 0,
+                "available": 0
+            },
+            {
+                "level": 9,
+                "used": 0,
+                "available": 0
+            }
+        ],
+        "pactMagic": [
+            {
+                "level": 1,
+                "used": 0,
+                "available": 0
+            },
+            {
+                "level": 2,
+                "used": 0,
+                "available": 0
+            },
+            {
+                "level": 3,
+                "used": 0,
+                "available": 0
+            },
+            {
+                "level": 4,
+                "used": 0,
+                "available": 0
+            },
+            {
+                "level": 5,
+                "used": 0,
+                "available": 0
+            }
+        ],
+        "activeSourceCategories": [
+            1,
+            7,
+            8
+        ],
+        "spells": {
+            "race": [
+                {
+                    "overrideSaveDc": null,
+                    "limitedUse": null,
+                    "id": 203,
+                    "entityTypeId": 420821570,
+                    "definition": {
+                        "id": 2277,
+                        "name": "Thaumaturgy",
+                        "level": 0,
+                        "school": "Transmutation",
+                        "duration": {
+                            "durationInterval": 1,
+                            "durationUnit": "Minute",
+                            "durationType": "Time"
+                        },
+                        "activation": {
+                            "activationTime": 1,
+                            "activationType": 1
+                        },
+                        "range": {
+                            "origin": "Ranged",
+                            "rangeValue": 30,
+                            "aoeType": null,
+                            "aoeValue": null
+                        },
+                        "asPartOfWeaponAttack": false,
+                        "description": "<p>You manifest a minor wonder, a sign of supernatural power, within range. You create one of the following magical effects within range:</p>\r\n<ul>\r\n<li>Your voice booms up to three times as loud as normal for 1 minute.</li>\r\n<li>You cause flames to flicker, brighten, dim, or change color for 1 minute.</li>\r\n<li>You cause harmless tremors in the ground for 1 minute.</li>\r\n<li>You create an instantaneous sound that originates from a point of your choice within range, such as a rumble of thunder, the cry of a raven, or ominous whispers.</li>\r\n<li>You instantaneously cause an unlocked door or window to fly open or slam shut.</li>\r\n<li>You alter the appearance of your eyes for 1 minute.</li>\r\n</ul>\r\n<p><br />If you cast this spell multiple times, you can have up to three of its 1-minute effects active at a time, and you can dismiss such an effect as an action.</p>",
+                        "snippet": "",
+                        "concentration": false,
+                        "ritual": false,
+                        "rangeArea": null,
+                        "damageEffect": null,
+                        "components": [
+                            1
+                        ],
+                        "componentsDescription": "",
+                        "saveDcAbilityId": null,
+                        "healing": null,
+                        "healingDice": [],
+                        "tempHpDice": [],
+                        "attackType": null,
+                        "canCastAtHigherLevel": false,
+                        "isHomebrew": false,
+                        "version": null,
+                        "sourceId": null,
+                        "sourcePageNumber": 282,
+                        "requiresSavingThrow": false,
+                        "requiresAttackRoll": false,
+                        "atHigherLevels": {
+                            "higherLevelDefinitions": [],
+                            "additionalAttacks": [],
+                            "additionalTargets": [],
+                            "areaOfEffect": [],
+                            "duration": [],
+                            "creatures": [],
+                            "special": [],
+                            "points": [],
+                            "range": []
+                        },
+                        "modifiers": [],
+                        "conditions": [],
+                        "tags": [
+                            "Control"
+                        ],
+                        "castingTimeDescription": "",
+                        "scaleType": "characterlevel",
+                        "sources": [
+                            {
+                                "sourceId": 1,
+                                "pageNumber": null,
+                                "sourceType": 2
+                            },
+                            {
+                                "sourceId": 2,
+                                "pageNumber": 282,
+                                "sourceType": 1
+                            }
+                        ],
+                        "spellGroups": []
+                    },
+                    "definitionId": 0,
+                    "prepared": false,
+                    "countsAsKnownSpell": false,
+                    "usesSpellSlot": false,
+                    "castAtLevel": null,
+                    "alwaysPrepared": false,
+                    "restriction": "",
+                    "spellCastingAbilityId": 6,
+                    "displayAsAttack": null,
+                    "additionalDescription": null,
+                    "castOnlyAsRitual": false,
+                    "ritualCastingType": null,
+                    "range": {
+                        "origin": "Ranged",
+                        "rangeValue": 30,
+                        "aoeType": null,
+                        "aoeValue": null
+                    },
+                    "activation": {
+                        "activationTime": 1,
+                        "activationType": 1
+                    },
+                    "baseLevelAtWill": false,
+                    "atWillLimitedUseLevel": null,
+                    "isSignatureSpell": null,
+                    "componentId": 62,
+                    "componentTypeId": 1960452172,
+                    "spellListId": null
+                }
+            ],
+            "class": [],
+            "background": null,
+            "item": [],
+            "feat": []
+        },
+        "options": {
+            "race": [],
+            "class": [],
+            "background": null,
+            "item": null,
+            "feat": []
+        },
+        "choices": {
+            "race": [],
+            "class": [
+                {
+                    "componentId": 412,
+                    "componentTypeId": 12168134,
+                    "id": "7-412",
+                    "parentChoiceId": null,
+                    "type": 7,
+                    "subType": null,
+                    "optionValue": null,
+                    "label": null,
+                    "isOptional": false,
+                    "isInfinite": false,
+                    "defaultSubtypes": [],
+                    "displayOrder": null,
+                    "options": [],
+                    "optionIds": []
+                },
+                {
+                    "componentId": 470,
+                    "componentTypeId": 12168134,
+                    "id": "2-1597",
+                    "parentChoiceId": null,
+                    "type": 2,
+                    "subType": 1,
+                    "optionValue": null,
+                    "label": "Choose a Wizard Skill",
+                    "isOptional": false,
+                    "isInfinite": false,
+                    "defaultSubtypes": [],
+                    "displayOrder": null,
+                    "options": [],
+                    "optionIds": [
+                        4154,
+                        4155,
+                        4156,
+                        4157,
+                        4158,
+                        4159
+                    ]
+                },
+                {
+                    "componentId": 470,
+                    "componentTypeId": 12168134,
+                    "id": "2-1598",
+                    "parentChoiceId": null,
+                    "type": 2,
+                    "subType": 1,
+                    "optionValue": null,
+                    "label": "Choose a Wizard Skill",
+                    "isOptional": false,
+                    "isInfinite": false,
+                    "defaultSubtypes": [],
+                    "displayOrder": null,
+                    "options": [],
+                    "optionIds": [
+                        4154,
+                        4155,
+                        4156,
+                        4157,
+                        4158,
+                        4159
+                    ]
+                }
+            ],
+            "background": [
+                {
+                    "componentId": 7,
+                    "componentTypeId": 1669830167,
+                    "id": "2-2094",
+                    "parentChoiceId": null,
+                    "type": 2,
+                    "subType": 1,
+                    "optionValue": 3793,
+                    "label": "Choose a Skill",
+                    "isOptional": false,
+                    "isInfinite": false,
+                    "defaultSubtypes": [
+                        "Insight"
+                    ],
+                    "displayOrder": null,
+                    "options": [],
+                    "optionIds": [
+                        3783,
+                        3784,
+                        3785,
+                        3786,
+                        3787,
+                        3788,
+                        3789,
+                        3790,
+                        3791,
+                        3792,
+                        3793,
+                        3794,
+                        3795,
+                        3796,
+                        3797,
+                        3798,
+                        3799,
+                        3800
+                    ]
+                },
+                {
+                    "componentId": 7,
+                    "componentTypeId": 1669830167,
+                    "id": "2-2095",
+                    "parentChoiceId": null,
+                    "type": 2,
+                    "subType": 3,
+                    "optionValue": null,
+                    "label": "Choose a Language",
+                    "isOptional": false,
+                    "isInfinite": false,
+                    "defaultSubtypes": [],
+                    "displayOrder": null,
+                    "options": [],
+                    "optionIds": [
+                        4045,
+                        4049,
+                        4050,
+                        4051,
+                        4052,
+                        4054,
+                        4055,
+                        4056,
+                        4061,
+                        4062,
+                        4063,
+                        4065,
+                        4066,
+                        4068,
+                        4071,
+                        4074,
+                        5064,
+                        5108,
+                        5109,
+                        5110,
+                        5111,
+                        5172,
+                        5173,
+                        5174,
+                        5197,
+                        5198,
+                        5199,
+                        5206
+                    ]
+                },
+                {
+                    "componentId": 7,
+                    "componentTypeId": 1669830167,
+                    "id": "2-2096",
+                    "parentChoiceId": null,
+                    "type": 2,
+                    "subType": 3,
+                    "optionValue": null,
+                    "label": "Choose a Language",
+                    "isOptional": false,
+                    "isInfinite": false,
+                    "defaultSubtypes": [],
+                    "displayOrder": null,
+                    "options": [],
+                    "optionIds": [
+                        4045,
+                        4049,
+                        4050,
+                        4051,
+                        4052,
+                        4054,
+                        4055,
+                        4056,
+                        4061,
+                        4062,
+                        4063,
+                        4065,
+                        4066,
+                        4068,
+                        4071,
+                        4074,
+                        5064,
+                        5108,
+                        5109,
+                        5110,
+                        5111,
+                        5172,
+                        5173,
+                        5174,
+                        5197,
+                        5198,
+                        5199,
+                        5206
+                    ]
+                },
+                {
+                    "componentId": 7,
+                    "componentTypeId": 1669830167,
+                    "id": "2-2097",
+                    "parentChoiceId": null,
+                    "type": 2,
+                    "subType": 1,
+                    "optionValue": 3791,
+                    "label": "Choose a Skill",
+                    "isOptional": false,
+                    "isInfinite": false,
+                    "defaultSubtypes": [
+                        "Religion"
+                    ],
+                    "displayOrder": null,
+                    "options": [],
+                    "optionIds": [
+                        3783,
+                        3784,
+                        3785,
+                        3786,
+                        3787,
+                        3788,
+                        3789,
+                        3790,
+                        3791,
+                        3792,
+                        3793,
+                        3794,
+                        3795,
+                        3796,
+                        3797,
+                        3798,
+                        3799,
+                        3800
+                    ]
+                }
+            ],
+            "item": null,
+            "feat": [],
+            "choiceDefinitions": [
+                {
+                    "id": "1669830167-2",
+                    "options": [
+                        {
+                            "id": 3783,
+                            "label": "Athletics",
+                            "description": null
+                        },
+                        {
+                            "id": 3784,
+                            "label": "Acrobatics",
+                            "description": null
+                        },
+                        {
+                            "id": 3785,
+                            "label": "Sleight of Hand",
+                            "description": null
+                        },
+                        {
+                            "id": 3786,
+                            "label": "Stealth",
+                            "description": null
+                        },
+                        {
+                            "id": 3787,
+                            "label": "Arcana",
+                            "description": null
+                        },
+                        {
+                            "id": 3788,
+                            "label": "History",
+                            "description": null
+                        },
+                        {
+                            "id": 3789,
+                            "label": "Investigation",
+                            "description": null
+                        },
+                        {
+                            "id": 3790,
+                            "label": "Nature",
+                            "description": null
+                        },
+                        {
+                            "id": 3791,
+                            "label": "Religion",
+                            "description": null
+                        },
+                        {
+                            "id": 3792,
+                            "label": "Animal Handling",
+                            "description": null
+                        },
+                        {
+                            "id": 3793,
+                            "label": "Insight",
+                            "description": null
+                        },
+                        {
+                            "id": 3794,
+                            "label": "Medicine",
+                            "description": null
+                        },
+                        {
+                            "id": 3795,
+                            "label": "Perception",
+                            "description": null
+                        },
+                        {
+                            "id": 3796,
+                            "label": "Survival",
+                            "description": null
+                        },
+                        {
+                            "id": 3797,
+                            "label": "Deception",
+                            "description": null
+                        },
+                        {
+                            "id": 3798,
+                            "label": "Intimidation",
+                            "description": null
+                        },
+                        {
+                            "id": 3799,
+                            "label": "Performance",
+                            "description": null
+                        },
+                        {
+                            "id": 3800,
+                            "label": "Persuasion",
+                            "description": null
+                        },
+                        {
+                            "id": 4045,
+                            "label": "Abyssal",
+                            "description": null
+                        },
+                        {
+                            "id": 4049,
+                            "label": "Celestial",
+                            "description": null
+                        },
+                        {
+                            "id": 4050,
+                            "label": "Common",
+                            "description": null
+                        },
+                        {
+                            "id": 4051,
+                            "label": "Deep Speech",
+                            "description": null
+                        },
+                        {
+                            "id": 4052,
+                            "label": "Draconic",
+                            "description": null
+                        },
+                        {
+                            "id": 4054,
+                            "label": "Dwarvish",
+                            "description": null
+                        },
+                        {
+                            "id": 4055,
+                            "label": "Elvish",
+                            "description": null
+                        },
+                        {
+                            "id": 4056,
+                            "label": "Giant",
+                            "description": null
+                        },
+                        {
+                            "id": 4061,
+                            "label": "Gnomish",
+                            "description": null
+                        },
+                        {
+                            "id": 4062,
+                            "label": "Goblin",
+                            "description": null
+                        },
+                        {
+                            "id": 4063,
+                            "label": "Halfling",
+                            "description": null
+                        },
+                        {
+                            "id": 4065,
+                            "label": "Infernal",
+                            "description": null
+                        },
+                        {
+                            "id": 4066,
+                            "label": "Orc",
+                            "description": null
+                        },
+                        {
+                            "id": 4068,
+                            "label": "Primordial",
+                            "description": null
+                        },
+                        {
+                            "id": 4071,
+                            "label": "Sylvan",
+                            "description": null
+                        },
+                        {
+                            "id": 4074,
+                            "label": "Undercommon",
+                            "description": null
+                        },
+                        {
+                            "id": 5064,
+                            "label": "Gith",
+                            "description": null
+                        },
+                        {
+                            "id": 5108,
+                            "label": "Minotaur",
+                            "description": null
+                        },
+                        {
+                            "id": 5109,
+                            "label": "Loxodon",
+                            "description": null
+                        },
+                        {
+                            "id": 5110,
+                            "label": "Kraul",
+                            "description": null
+                        },
+                        {
+                            "id": 5111,
+                            "label": "Vedalken",
+                            "description": null
+                        },
+                        {
+                            "id": 5172,
+                            "label": "Quori",
+                            "description": null
+                        },
+                        {
+                            "id": 5173,
+                            "label": "Daelkyr",
+                            "description": null
+                        },
+                        {
+                            "id": 5174,
+                            "label": "Riedran",
+                            "description": null
+                        },
+                        {
+                            "id": 5197,
+                            "label": "Naush",
+                            "description": null
+                        },
+                        {
+                            "id": 5198,
+                            "label": "Marquesian",
+                            "description": null
+                        },
+                        {
+                            "id": 5199,
+                            "label": "Zemnian",
+                            "description": null
+                        },
+                        {
+                            "id": 5206,
+                            "label": "Leonin",
+                            "description": null
+                        }
+                    ]
+                },
+                {
+                    "id": "12168134-7",
+                    "options": []
+                },
+                {
+                    "id": "12168134-2",
+                    "options": [
+                        {
+                            "id": 4154,
+                            "label": "Arcana",
+                            "description": null
+                        },
+                        {
+                            "id": 4155,
+                            "label": "History",
+                            "description": null
+                        },
+                        {
+                            "id": 4156,
+                            "label": "Insight",
+                            "description": null
+                        },
+                        {
+                            "id": 4157,
+                            "label": "Investigation",
+                            "description": null
+                        },
+                        {
+                            "id": 4158,
+                            "label": "Medicine",
+                            "description": null
+                        },
+                        {
+                            "id": 4159,
+                            "label": "Religion",
+                            "description": null
+                        }
+                    ]
+                }
+            ]
+        },
+        "actions": {
+            "race": [],
+            "class": [
+                {
+                    "componentId": 411,
+                    "componentTypeId": 12168134,
+                    "id": "1041",
+                    "entityTypeId": "222216831",
+                    "limitedUse": {
+                        "name": null,
+                        "statModifierUsesId": null,
+                        "resetType": 2,
+                        "numberUsed": 0,
+                        "minNumberConsumed": 1,
+                        "maxNumberConsumed": 1,
+                        "maxUses": 1,
+                        "operator": 1,
+                        "useProficiencyBonus": false,
+                        "proficiencyBonusOperator": 1,
+                        "resetDice": null
+                    },
+                    "name": "Arcane Recovery",
+                    "description": "",
+                    "snippet": "Once per day when you finish a short rest, you can choose expended spell slots to recover - up to a combined level of {{(classlevel/2)@roundup}}, and none of the slots can be 6th level or higher.",
+                    "abilityModifierStatId": null,
+                    "onMissDescription": "",
+                    "saveFailDescription": "",
+                    "saveSuccessDescription": "",
+                    "saveStatId": null,
+                    "fixedSaveDc": null,
+                    "attackTypeRange": null,
+                    "actionType": 3,
+                    "attackSubtype": null,
+                    "dice": null,
+                    "value": null,
+                    "damageTypeId": null,
+                    "isMartialArts": false,
+                    "isProficient": false,
+                    "spellRangeType": null,
+                    "displayAsAttack": null,
+                    "range": {
+                        "range": null,
+                        "longRange": null,
+                        "aoeType": null,
+                        "aoeSize": null,
+                        "hasAoeSpecialDescription": false,
+                        "minimumRange": null
+                    },
+                    "activation": {
+                        "activationTime": null,
+                        "activationType": 8
+                    },
+                    "numberOfTargets": null,
+                    "fixedToHit": null,
+                    "ammunition": null
+                }
+            ],
+            "background": null,
+            "item": null,
+            "feat": []
+        },
+        "modifiers": {
+            "race": [
+                {
+                    "fixedValue": 60,
+                    "id": "1383",
+                    "entityId": 2,
+                    "entityTypeId": 668550506,
+                    "type": "set-base",
+                    "subType": "darkvision",
+                    "dice": null,
+                    "restriction": "",
+                    "statId": null,
+                    "requiresAttunement": false,
+                    "duration": null,
+                    "friendlyTypeName": "Set Base",
+                    "friendlySubtypeName": "Darkvision",
+                    "isGranted": true,
+                    "bonusTypes": [],
+                    "value": 60,
+                    "availableToMulticlass": true,
+                    "modifierTypeId": 39,
+                    "modifierSubTypeId": 1746,
+                    "componentId": 60,
+                    "componentTypeId": 1960452172
+                },
+                {
+                    "fixedValue": null,
+                    "id": "1384",
+                    "entityId": 7,
+                    "entityTypeId": 349597128,
+                    "type": "resistance",
+                    "subType": "fire",
+                    "dice": null,
+                    "restriction": "",
+                    "statId": null,
+                    "requiresAttunement": false,
+                    "duration": null,
+                    "friendlyTypeName": "Resistance",
+                    "friendlySubtypeName": "Fire",
+                    "isGranted": true,
+                    "bonusTypes": [],
+                    "value": null,
+                    "availableToMulticlass": true,
+                    "modifierTypeId": 5,
+                    "modifierSubTypeId": 134,
+                    "componentId": 61,
+                    "componentTypeId": 1960452172
+                },
+                {
+                    "fixedValue": 1,
+                    "id": "1661",
+                    "entityId": 4,
+                    "entityTypeId": 1472902489,
+                    "type": "bonus",
+                    "subType": "intelligence-score",
+                    "dice": null,
+                    "restriction": "",
+                    "statId": null,
+                    "requiresAttunement": false,
+                    "duration": null,
+                    "friendlyTypeName": "Bonus",
+                    "friendlySubtypeName": "Intelligence Score",
+                    "isGranted": true,
+                    "bonusTypes": [],
+                    "value": 1,
+                    "availableToMulticlass": true,
+                    "modifierTypeId": 1,
+                    "modifierSubTypeId": 5,
+                    "componentId": 104,
+                    "componentTypeId": 1960452172
+                },
+                {
+                    "fixedValue": 2,
+                    "id": "1662",
+                    "entityId": 6,
+                    "entityTypeId": 1472902489,
+                    "type": "bonus",
+                    "subType": "charisma-score",
+                    "dice": null,
+                    "restriction": "",
+                    "statId": null,
+                    "requiresAttunement": false,
+                    "duration": null,
+                    "friendlyTypeName": "Bonus",
+                    "friendlySubtypeName": "Charisma Score",
+                    "isGranted": true,
+                    "bonusTypes": [],
+                    "value": 2,
+                    "availableToMulticlass": true,
+                    "modifierTypeId": 1,
+                    "modifierSubTypeId": 7,
+                    "componentId": 104,
+                    "componentTypeId": 1960452172
+                },
+                {
+                    "fixedValue": null,
+                    "id": "1663",
+                    "entityId": 1,
+                    "entityTypeId": 906033267,
+                    "type": "language",
+                    "subType": "common",
+                    "dice": null,
+                    "restriction": "",
+                    "statId": null,
+                    "requiresAttunement": false,
+                    "duration": null,
+                    "friendlyTypeName": "Language",
+                    "friendlySubtypeName": "Common",
+                    "isGranted": true,
+                    "bonusTypes": [],
+                    "value": null,
+                    "availableToMulticlass": true,
+                    "modifierTypeId": 11,
+                    "modifierSubTypeId": 357,
+                    "componentId": 105,
+                    "componentTypeId": 1960452172
+                },
+                {
+                    "fixedValue": null,
+                    "id": "1664",
+                    "entityId": 13,
+                    "entityTypeId": 906033267,
+                    "type": "language",
+                    "subType": "infernal",
+                    "dice": null,
+                    "restriction": "",
+                    "statId": null,
+                    "requiresAttunement": false,
+                    "duration": null,
+                    "friendlyTypeName": "Language",
+                    "friendlySubtypeName": "Infernal",
+                    "isGranted": true,
+                    "bonusTypes": [],
+                    "value": null,
+                    "availableToMulticlass": true,
+                    "modifierTypeId": 11,
+                    "modifierSubTypeId": 369,
+                    "componentId": 105,
+                    "componentTypeId": 1960452172
+                }
+            ],
+            "class": [
+                {
+                    "fixedValue": null,
+                    "id": "1590",
+                    "entityId": 3,
+                    "entityTypeId": 1782728300,
+                    "type": "proficiency",
+                    "subType": "dagger",
+                    "dice": null,
+                    "restriction": "",
+                    "statId": null,
+                    "requiresAttunement": false,
+                    "duration": null,
+                    "friendlyTypeName": "Proficiency",
+                    "friendlySubtypeName": "Dagger",
+                    "isGranted": true,
+                    "bonusTypes": [],
+                    "value": null,
+                    "availableToMulticlass": false,
+                    "modifierTypeId": 10,
+                    "modifierSubTypeId": 262,
+                    "componentId": 470,
+                    "componentTypeId": 12168134
+                },
+                {
+                    "fixedValue": null,
+                    "id": "1591",
+                    "entityId": 16,
+                    "entityTypeId": 1782728300,
+                    "type": "proficiency",
+                    "subType": "dart",
+                    "dice": null,
+                    "restriction": "",
+                    "statId": null,
+                    "requiresAttunement": false,
+                    "duration": null,
+                    "friendlyTypeName": "Proficiency",
+                    "friendlySubtypeName": "Dart",
+                    "isGranted": true,
+                    "bonusTypes": [],
+                    "value": null,
+                    "availableToMulticlass": false,
+                    "modifierTypeId": 10,
+                    "modifierSubTypeId": 274,
+                    "componentId": 470,
+                    "componentTypeId": 12168134
+                },
+                {
+                    "fixedValue": null,
+                    "id": "1592",
+                    "entityId": 18,
+                    "entityTypeId": 1782728300,
+                    "type": "proficiency",
+                    "subType": "sling",
+                    "dice": null,
+                    "restriction": "",
+                    "statId": null,
+                    "requiresAttunement": false,
+                    "duration": null,
+                    "friendlyTypeName": "Proficiency",
+                    "friendlySubtypeName": "Sling",
+                    "isGranted": true,
+                    "bonusTypes": [],
+                    "value": null,
+                    "availableToMulticlass": false,
+                    "modifierTypeId": 10,
+                    "modifierSubTypeId": 276,
+                    "componentId": 470,
+                    "componentTypeId": 12168134
+                },
+                {
+                    "fixedValue": null,
+                    "id": "1593",
+                    "entityId": 12,
+                    "entityTypeId": 1782728300,
+                    "type": "proficiency",
+                    "subType": "quarterstaff",
+                    "dice": null,
+                    "restriction": "",
+                    "statId": null,
+                    "requiresAttunement": false,
+                    "duration": null,
+                    "friendlyTypeName": "Proficiency",
+                    "friendlySubtypeName": "Quarterstaff",
+                    "isGranted": true,
+                    "bonusTypes": [],
+                    "value": null,
+                    "availableToMulticlass": false,
+                    "modifierTypeId": 10,
+                    "modifierSubTypeId": 270,
+                    "componentId": 470,
+                    "componentTypeId": 12168134
+                },
+                {
+                    "fixedValue": null,
+                    "id": "1594",
+                    "entityId": 15,
+                    "entityTypeId": 1782728300,
+                    "type": "proficiency",
+                    "subType": "crossbow-light",
+                    "dice": null,
+                    "restriction": "",
+                    "statId": null,
+                    "requiresAttunement": false,
+                    "duration": null,
+                    "friendlyTypeName": "Proficiency",
+                    "friendlySubtypeName": "Crossbow, Light",
+                    "isGranted": true,
+                    "bonusTypes": [],
+                    "value": null,
+                    "availableToMulticlass": false,
+                    "modifierTypeId": 10,
+                    "modifierSubTypeId": 273,
+                    "componentId": 470,
+                    "componentTypeId": 12168134
+                },
+                {
+                    "fixedValue": null,
+                    "id": "1595",
+                    "entityId": null,
+                    "entityTypeId": null,
+                    "type": "proficiency",
+                    "subType": "intelligence-saving-throws",
+                    "dice": null,
+                    "restriction": "",
+                    "statId": null,
+                    "requiresAttunement": false,
+                    "duration": null,
+                    "friendlyTypeName": "Proficiency",
+                    "friendlySubtypeName": "Intelligence Saving Throws",
+                    "isGranted": true,
+                    "bonusTypes": [],
+                    "value": null,
+                    "availableToMulticlass": false,
+                    "modifierTypeId": 10,
+                    "modifierSubTypeId": 226,
+                    "componentId": 470,
+                    "componentTypeId": 12168134
+                },
+                {
+                    "fixedValue": null,
+                    "id": "1596",
+                    "entityId": null,
+                    "entityTypeId": null,
+                    "type": "proficiency",
+                    "subType": "wisdom-saving-throws",
+                    "dice": null,
+                    "restriction": "",
+                    "statId": null,
+                    "requiresAttunement": false,
+                    "duration": null,
+                    "friendlyTypeName": "Proficiency",
+                    "friendlySubtypeName": "Wisdom Saving Throws",
+                    "isGranted": true,
+                    "bonusTypes": [],
+                    "value": null,
+                    "availableToMulticlass": false,
+                    "modifierTypeId": 10,
+                    "modifierSubTypeId": 227,
+                    "componentId": 470,
+                    "componentTypeId": 12168134
+                },
+                {
+                    "fixedValue": null,
+                    "id": "1597",
+                    "entityId": null,
+                    "entityTypeId": null,
+                    "type": "proficiency",
+                    "subType": "choose-a-wizard-skill",
+                    "dice": null,
+                    "restriction": "",
+                    "statId": null,
+                    "requiresAttunement": false,
+                    "duration": null,
+                    "friendlyTypeName": "Proficiency",
+                    "friendlySubtypeName": "Choose a Wizard Skill",
+                    "isGranted": true,
+                    "bonusTypes": [],
+                    "value": null,
+                    "availableToMulticlass": false,
+                    "modifierTypeId": 10,
+                    "modifierSubTypeId": 790,
+                    "componentId": 470,
+                    "componentTypeId": 12168134
+                },
+                {
+                    "fixedValue": null,
+                    "id": "1598",
+                    "entityId": null,
+                    "entityTypeId": null,
+                    "type": "proficiency",
+                    "subType": "choose-a-wizard-skill",
+                    "dice": null,
+                    "restriction": "",
+                    "statId": null,
+                    "requiresAttunement": false,
+                    "duration": null,
+                    "friendlyTypeName": "Proficiency",
+                    "friendlySubtypeName": "Choose a Wizard Skill",
+                    "isGranted": true,
+                    "bonusTypes": [],
+                    "value": null,
+                    "availableToMulticlass": false,
+                    "modifierTypeId": 10,
+                    "modifierSubTypeId": 790,
+                    "componentId": 470,
+                    "componentTypeId": 12168134
+                }
+            ],
+            "background": [
+                {
+                    "fixedValue": null,
+                    "id": "2094",
+                    "entityId": 12,
+                    "entityTypeId": 1958004211,
+                    "type": "proficiency",
+                    "subType": "insight",
+                    "dice": null,
+                    "restriction": "",
+                    "statId": null,
+                    "requiresAttunement": false,
+                    "duration": null,
+                    "friendlyTypeName": "Proficiency",
+                    "friendlySubtypeName": "Insight",
+                    "isGranted": false,
+                    "bonusTypes": [],
+                    "value": null,
+                    "availableToMulticlass": true,
+                    "modifierTypeId": 10,
+                    "modifierSubTypeId": 246,
+                    "componentId": 7,
+                    "componentTypeId": 1669830167
+                },
+                {
+                    "fixedValue": null,
+                    "id": "2095",
+                    "entityId": null,
+                    "entityTypeId": null,
+                    "type": "language",
+                    "subType": "choose-a-language",
+                    "dice": null,
+                    "restriction": "",
+                    "statId": null,
+                    "requiresAttunement": false,
+                    "duration": null,
+                    "friendlyTypeName": "Language",
+                    "friendlySubtypeName": "Choose a Language",
+                    "isGranted": true,
+                    "bonusTypes": [],
+                    "value": null,
+                    "availableToMulticlass": true,
+                    "modifierTypeId": 11,
+                    "modifierSubTypeId": 392,
+                    "componentId": 7,
+                    "componentTypeId": 1669830167
+                },
+                {
+                    "fixedValue": null,
+                    "id": "2096",
+                    "entityId": null,
+                    "entityTypeId": null,
+                    "type": "language",
+                    "subType": "choose-a-language",
+                    "dice": null,
+                    "restriction": "",
+                    "statId": null,
+                    "requiresAttunement": false,
+                    "duration": null,
+                    "friendlyTypeName": "Language",
+                    "friendlySubtypeName": "Choose a Language",
+                    "isGranted": true,
+                    "bonusTypes": [],
+                    "value": null,
+                    "availableToMulticlass": true,
+                    "modifierTypeId": 11,
+                    "modifierSubTypeId": 392,
+                    "componentId": 7,
+                    "componentTypeId": 1669830167
+                },
+                {
+                    "fixedValue": null,
+                    "id": "2097",
+                    "entityId": 10,
+                    "entityTypeId": 1958004211,
+                    "type": "proficiency",
+                    "subType": "religion",
+                    "dice": null,
+                    "restriction": "",
+                    "statId": null,
+                    "requiresAttunement": false,
+                    "duration": null,
+                    "friendlyTypeName": "Proficiency",
+                    "friendlySubtypeName": "Religion",
+                    "isGranted": false,
+                    "bonusTypes": [],
+                    "value": null,
+                    "availableToMulticlass": true,
+                    "modifierTypeId": 10,
+                    "modifierSubTypeId": 244,
+                    "componentId": 7,
+                    "componentTypeId": 1669830167
+                }
+            ],
+            "item": [],
+            "feat": [],
+            "condition": []
+        },
+        "classSpells": [
+            {
+                "entityTypeId": 1446578651,
+                "characterClassId": 88584748,
+                "spells": []
+            }
+        ],
+        "customItems": [],
+        "campaign": null,
+        "creatures": [],
+        "optionalOrigins": [],
+        "optionalClassFeatures": [],
+        "dateModified": "2022-05-01T15:58:52.043Z",
+        "providedFrom": "storage",
+        "canEdit": false
+    },
+    "pagination": null
+}

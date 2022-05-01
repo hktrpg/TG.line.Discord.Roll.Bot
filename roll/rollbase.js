@@ -4,6 +4,7 @@ const {
   Random,
   nodeCrypto
 } = require("random-js");
+const { DiceRoller } = require('@dice-roller/rpg-dice-roller');
 const random = new Random(nodeCrypto);
 const { SlashCommandBuilder } = require('@discordjs/builders');
 //value = random.integer(1, 100);

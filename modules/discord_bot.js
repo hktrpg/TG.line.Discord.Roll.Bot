@@ -357,13 +357,11 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 		if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
 			try {
 				if (quotes) {
-					console.log('A', buttonCreate.length)
 					for (let index = 0; index < buttonCreate.length || index === 0; index++) {
 						channel.send({ embeds: [convQuotes(sendText[i])], components: buttonCreate[index] || null });
 					}
 
 				} else {
-					console.log('B', buttonCreate.length)
 					for (let index = 0; index < buttonCreate.length || index === 0; index++) {
 						channel.send({ content: sendText[i], components: buttonCreate[index] || null });
 					}
@@ -737,7 +735,6 @@ async function handlingButtonCreate(message, input) {
 			)
 	}
 	const arrayRow = await splitArray(5, row)
-	console.log('arrayRow', arrayRow)
 	return arrayRow;
 	//for (let index = 0; index < arrayRow.length; index++) {
 	//	await message.reply({ content: ``, components: arrayRow[index] });

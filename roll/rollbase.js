@@ -31,7 +31,7 @@ const prefixs = function () {
     second: tempregex
   },
   {
-    first: /^.r$/i,
+    first: /^.rr$/i,
     second: null
   }
   ]
@@ -66,7 +66,7 @@ const rollDiceCommand = function ({
     text: ''
   };
   switch (true) {
-    case /^\.r$/i.test(mainMsg[0]):
+    case /^\.rr$/i.test(mainMsg[0]):
       {
         try {
           const roll = new DiceRoll(inputStr.replace(/^[.]r\s+/i, ''));

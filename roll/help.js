@@ -91,7 +91,7 @@ ddr dddr 可以私訊已設定的群組GM, 詳情可打.drgm查詢
 支援kh|kl|dh|dl，k keep保留，d drop 放棄，h highest最高，l lowest最低
 如3d6kh 保留最大的1粒骰，3d6dl2 放棄最小的2粒骰
 
-【RPG Dice Roller擲骰】.r
+【RPG Dice Roller擲骰】.rr
 RPG Dice Roller 是英語系統常用擲骰功能
 Foundry VTT也是使用它
 和基本擲骰不同

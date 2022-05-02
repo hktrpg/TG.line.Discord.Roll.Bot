@@ -69,11 +69,11 @@ const rollDiceCommand = function ({
     case /^\.rr$/i.test(mainMsg[0]):
       {
         try {
-          const roll = new DiceRoll(inputStr.replace(/^[.]r\s+/i, ''));
+          const roll = new DiceRoll(inputStr.replace(/^[.]rr\s+/i, ''));
           rply.text = roll.output;
         } catch (err) {
-          rply.text = `${err.name}  \n ${err.message}`;
-          rply.text = `\n 擲骰說明 https://dice-roller.github.io/documentation/guide/notation/dice.html#standard-d-n`
+          rply.text += `${err.name}  \n ${err.message}`;
+          rply.text += `\n 擲骰說明 https://dice-roller.github.io/documentation/guide/notation/dice.html#standard-d-n`
         }
 
         return rply;

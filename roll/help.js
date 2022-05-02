@@ -145,6 +145,8 @@ bothelp about	- 查詢HKTRPG 歷史📜
 🗂️HKTRPG 作品集, (https://hktrpg.github.io/TG.line.Discord.Roll.Bot/PORTFOLIOP)
 ℹ️如果你需要幫助, 加入我們的支援頻道, (https://discord.gg/vx4kcm7)
 ☕贊助伺服器運行及開放VIP資源, (https://www.patreon.com/HKTRPG)`
+			rply.buttonCreate = ['bothelp ver', 'bothelp Base', 'bothelp Dice', 'bothelp Tool', 'bothelp admin', 'bothelp funny', 'bothelp link', 'bothelp privacy', 'bothelp about']
+
 			return rply;
 		case /^ver$/i.test(mainMsg[1]):
 			rply.text = `${version}

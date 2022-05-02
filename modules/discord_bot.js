@@ -248,6 +248,7 @@ client.on('messageReactionRemove', async (reaction, user) => {
 function handlingCountButton(message, mode) {
 	const modeString = (mode === "roll") ? '投擲' : '點擊';
 	const content = message.message.content;
+	if (!/點擊了「|投擲了「|要求擲骰\/點擊/.test(content)) return;
 	const user = `${message.user.username}`
 	const button = `${modeString}了「${message.component.label}」`;
 	const regexpButton = convertRegex(`${button}`)
@@ -340,14 +341,13 @@ function SendToReply({ replyText = "", message, quotes = false }) {
 
 	return;
 }
-async function SendToReplychannel({ replyText = "", channelid = "", quotes = false, groupid = "" }) {
+async function SendToReplychannel({ replyText = "", channelid = "", quotes = false, groupid = "", buttonCreate = "" }) {
 	if (!channelid) return;
 	var channel = (await client.channels.fetch(channelid))
 	if (!channel && groupid) {
 		let guild = await client.guilds.fetch(groupid)
 		channel = await guild.channels.fetch(channelid)
 	}
-
 	if (!channel) {
 		console.error(`discord bot cant find channel #443 ${replyText}`)
 		return;
@@ -357,9 +357,16 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 		if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
 			try {
 				if (quotes) {
-					channel.send({ embeds: [convQuotes(sendText[i])] });
+					console.log('A', buttonCreate.length)
+					for (let index = 0; index < buttonCreate.length || index === 0; index++) {
+						channel.send({ embeds: [convQuotes(sendText[i])], components: buttonCreate[index] || null });
+					}
+
 				} else {
-					channel.send(sendText[i]);
+					console.log('B', buttonCreate.length)
+					for (let index = 0; index < buttonCreate.length || index === 0; index++) {
+						channel.send({ content: sendText[i], components: buttonCreate[index] || null });
+					}
 				}
 				//await message.channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 			}
@@ -711,6 +718,32 @@ async function getAllshardIds() {
 
 }
 
+async function handlingButtonCreate(message, input) {
+	const buttonsNames = input;
+	const row = []
+	const totallyQuotient = ~~((buttonsNames.length - 1) / 5) + 1;
+	for (let index = 0; index < totallyQuotient; index++) {
+		row.push(new MessageActionRow())
+	}
+	for (let i = 0; i < buttonsNames.length; i++) {
+		const quot = ~~(i / 5)
+		const name = buttonsNames[i] || 'null'
+		row[quot]
+			.addComponents(
+				new MessageButton()
+					.setCustomId(`${name}_${i}`)
+					.setLabel(name)
+					.setStyle(buttonsStyle(i)),
+			)
+	}
+	const arrayRow = await splitArray(5, row)
+	console.log('arrayRow', arrayRow)
+	return arrayRow;
+	//for (let index = 0; index < arrayRow.length; index++) {
+	//	await message.reply({ content: ``, components: arrayRow[index] });
+	//}
+
+}
 
 async function handlingRequestRollingCharacter(message, input) {
 	const buttonsNames = input[0];
@@ -926,6 +959,7 @@ async function handlingResponMessage(message, answer = '') {
 		}
 		if (rplyVal.requestRollingCharacter) await handlingRequestRollingCharacter(message, rplyVal.requestRollingCharacter);
 		if (rplyVal.requestRolling) await handlingRequestRolling(message, rplyVal.requestRolling, displaynameDiscord);
+		if (rplyVal.buttonCreate) rplyVal.buttonCreate = await handlingButtonCreate(message, rplyVal.buttonCreate)
 		if (rplyVal.roleReactFlag) await roleReact(channelid, rplyVal)
 		if (rplyVal.newRoleReactFlag) await newRoleReact(message, rplyVal)
 
@@ -995,7 +1029,8 @@ async function handlingResponMessage(message, answer = '') {
 			text: rplyVal.text,
 			message,
 			statue: rplyVal.statue,
-			quotes: rplyVal.quotes
+			quotes: rplyVal.quotes,
+			buttonCreate: rplyVal.buttonCreate
 		};
 
 	} catch (error) {
@@ -1012,6 +1047,7 @@ async function handlingSendMessage(input) {
 	const message = input.message
 	const statue = input.statue
 	const quotes = input.quotes
+	const buttonCreate = input.buttonCreate;
 	let TargetGMTempID = [];
 	let TargetGMTempdiyName = [];
 	let TargetGMTempdisplayname = [];
@@ -1077,9 +1113,9 @@ async function handlingSendMessage(input) {
 				sendText = `<@${userid}> ${(statue) ? statue : ''}\n${sendText}`;
 			}
 			if (groupid) {
-				await SendToReplychannel({ replyText: sendText, channelid, quotes: quotes });
+				await SendToReplychannel({ replyText: sendText, channelid, quotes: quotes, buttonCreate: buttonCreate });
 			} else {
-				SendToReply({ replyText: sendText, message, quotes: quotes });
+				SendToReply({ replyText: sendText, message, quotes: quotes, buttonCreate: buttonCreate });
 			}
 			return;
 	}

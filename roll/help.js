@@ -89,7 +89,19 @@ ddr dddr 可以私訊已設定的群組GM, 詳情可打.drgm查詢
 .5 3D6 ：	分別骰出5次3d6 最多30次
 ((2d6+1)*2)-5/2>=10 支援括號加減乘除及大於小於(>,<,>=,<=)計算
 支援kh|kl|dh|dl，k keep保留，d drop 放棄，h highest最高，l lowest最低
-如3d6kh 保留最大的1粒骰，3d6dl2 放棄最小的2粒骰`
+如3d6kh 保留最大的1粒骰，3d6dl2 放棄最小的2粒骰
+
+【RPG Dice Roller擲骰】.r
+RPG Dice Roller 是英語系統常用擲骰功能
+Foundry VTT也是使用它
+和基本擲骰不同
+有更多仔細的擲骰命令，如1d10r1 5d10!k2
+
+
+擲骰指令請看
+https://dice-roller.github.io/documentation/guide/notation/
+ 
+ `
 }
 var initialize = function () {
 	return variables;

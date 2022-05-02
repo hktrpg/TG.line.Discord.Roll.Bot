@@ -4,6 +4,7 @@ const {
   Random,
   nodeCrypto
 } = require("random-js");
+const { DiceRoller, DiceRoll } = require('@dice-roller/rpg-dice-roller');
 const random = new Random(nodeCrypto);
 const { SlashCommandBuilder } = require('@discordjs/builders');
 //value = random.integer(1, 100);
@@ -30,7 +31,7 @@ const prefixs = function () {
     second: tempregex
   },
   {
-    first: /^\.re$/i,
+    first: /^.r$/i,
     second: null
   }
   ]
@@ -49,9 +50,7 @@ const getHelpMessage = function () {
 支援kh|kl|dh|dl，k keep保留，d drop 放棄，h highest最高，l lowest最低
 如3d6kh 保留最大的1粒骰，3d6dl2 放棄最小的2粒骰
 
-discord 專用功能
-/re 要求擲骰/點擊功能
-例如 /re 1d100 哈哈, 1d3 SC成功, 1d10 SC失敗, 簽到`
+`
 }
 const initialize = function () {
   return variables;
@@ -67,9 +66,19 @@ const rollDiceCommand = function ({
     text: ''
   };
   switch (true) {
-    case /^\.re$/i.test(mainMsg[0]):
-      rply.requestRolling = handleRequestRolling(inputStr)
-      return rply;
+    case /^\.r$/i.test(mainMsg[0]):
+      {
+        try {
+          const roll = new DiceRoll(inputStr.replace(/^[.]r\s+/i, ''));
+          rply.text = roll.output;
+        } catch (err) {
+          rply.text = `${err.name}  \n ${err.message}`;
+          rply.text = `\n 擲骰說明 https://dice-roller.github.io/documentation/guide/notation/dice.html#standard-d-n`
+        }
+
+        return rply;
+      }
+
     default:
       try {
         rply.text = nomalDiceRoller(mainMsg[0], mainMsg[1], mainMsg[2]);
@@ -308,34 +317,8 @@ const discordCommand = [
       const text = interaction.options.getString('text')
       return `${text}`
     }
-  },
-  {
-    data: new SlashCommandBuilder()
-      .setName('re')
-      .setDescription('要求擲骰/點擊功能')
-      .addStringOption(option => option.setName('text1').setDescription('輸入第一個擲骰內容').setRequired(true))
-      .addStringOption(option => option.setName('text2').setDescription('輸入第二個擲骰內容'))
-      .addStringOption(option => option.setName('text3').setDescription('輸入第三個擲骰內容'))
-      .addStringOption(option => option.setName('text4').setDescription('輸入第四個擲骰內容'))
-      .addStringOption(option => option.setName('text5').setDescription('輸入第五個擲骰內容')),
-    async execute(interaction) {
-      const text1 = interaction.options.getString('text1');
-      const text2 = (interaction.options.getString('text2')) ? `,${interaction.options.getString('text2')}` : '';
-      const text3 = (interaction.options.getString('text3')) ? `,${interaction.options.getString('text3')}` : '';
-      const text4 = (interaction.options.getString('text4')) ? `,${interaction.options.getString('text4')}` : '';
-      const text5 = (interaction.options.getString('text5')) ? `,${interaction.options.getString('text5')}` : '';
-      return `.re ${text1}${text2}${text3}${text4}${text5}`;
-    }
   }
 ];
-function handleRequestRolling(text) {
-  text = text.replace(/^\.re\s+/i, '').split(',')
-  text.splice(5);
-  for (let index = 0; index < text.length; index++) {
-    text[index] = text[index].substring(0, 80);
-  }
-  return text;
-}
 module.exports = {
   Dice: Dice,
   sortNumber: sortNumber,

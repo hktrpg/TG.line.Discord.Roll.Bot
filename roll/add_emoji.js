@@ -37,20 +37,27 @@ const keywordSet = require('emojilib')
 for (const emoji in data) {
     data[emoji]['keywords'] = keywordSet[emoji]
 }
-//console.log('data[]', data)
+console.log('data[]', data)
 //let arr = Object.keys(data).map((k) => data[k])
 const arrayEmoji = Object.entries(data);
-
 //console.log('arr[]', arrayEmoji)
 const findEmoji = (target) => {
     const emojis = [];
-    target.forEach(element => {
-        const keywords = element[1].keywords;
-        (/^one_|_one$|^one$/i).test(keywords) ? emojis.push(keywords) : null;
+    let isFindName = false;
+    arrayEmoji.find(element => {
+        const keywords = element[1].name;
+        (new RegExp(`^${target}$`)).test(keywords) ? (emojis.push(element[0])) && (isFindName = true) && console.log(element[0], element[1].name) : null;
     });
+    console.log('isFindName', isFindName)
+    if (!isFindName) {
+        arrayEmoji.forEach(element => {
+            const keywords = element[1].keywords;
+            keywords.includes(target) ? (emojis.push(element[0])) : null;
+        });
+    }
     console.log('emojis', emojis)
+    return emojis;
 }
-findEmoji(arrayEmoji)
 //emoji.search('cof') 
 /**
  * 
@@ -92,21 +99,14 @@ const rollDiceCommand = async function ({
             }
             const emojis = [];
             const emojisText = mainMsg.slice(1)
-            console.log('emojisText', emojisText)
-            console.log(EmojiSet.search({ by_section: 'flags' }))
             // console.log(EmojiSet.search({ by_keyword: 'smile', first_match: true, only_emoji: true }))
             emojisText.forEach(element => {
                 //  emojis.push(emoji(element))
-                element = element.toString()
-                try {
-                    console.log('emoji(element)', EmojiSet.search({ by_keyword: element, first_match: true, only_emoji: true }))
-                } catch (error) {
-                    console.log(error)
-                }
-
+                emojis.push(findEmoji(element))
             });
-            rply.emoji = discordMessage.reference;
-            rply.emoji.emoji = emojis;
+            // rply.emoji = discordMessage.reference;
+            // rply.emoji.emoji = emojis;
+            rply.text = emojis.toString();
             console.log('emojis', emojis)
             return rply;
         }

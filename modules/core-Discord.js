@@ -52,4 +52,5 @@ manager.on('shardCreate', shard => {
 		console.error(error)
 	})
 });
+
 manager.spawn();

@@ -42,19 +42,12 @@ console.log('data[]', data)
 const arrayEmoji = Object.entries(data);
 //console.log('arr[]', arrayEmoji)
 const findEmoji = (target) => {
-    const emojis = [];
-    let isFindName = false;
-    arrayEmoji.find(element => {
-        const keywords = element[1].name;
-        (new RegExp(`^${target}$`)).test(keywords) ? (emojis.push(element[0])) && (isFindName = true) && console.log(element[0], element[1].name) : null;
+    const emojis = arrayEmoji.find(element => {
+        //console.log(element)
+        //  console.log(' element[1].keywords.findIndex(e => e === target.toLowerCase()', element[1].keywords.findIndex(e => e === target.toLowerCase()))
+        return element[1].name === (target.toLowerCase()) || (element[1].keywords.findIndex(e => e === target.toLowerCase()) > -1)
     });
-    console.log('isFindName', isFindName)
-    if (!isFindName) {
-        arrayEmoji.forEach(element => {
-            const keywords = element[1].keywords;
-            keywords.includes(target) ? (emojis.push(element[0])) : null;
-        });
-    }
+
     console.log('emojis', emojis)
     return emojis;
 }

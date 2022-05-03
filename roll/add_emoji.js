@@ -37,19 +37,20 @@ const keywordSet = require('emojilib')
 for (const emoji in data) {
     data[emoji]['keywords'] = keywordSet[emoji]
 }
-console.log('data[]', data)
+//console.log('data[]', data)
 //let arr = Object.keys(data).map((k) => data[k])
-var result = Object.entries(data);
+const arrayEmoji = Object.entries(data);
 
-console.log('arr[]', result)
+//console.log('arr[]', arrayEmoji)
 const findEmoji = (target) => {
     const emojis = [];
     target.forEach(element => {
-        emojis.push(element.keywords.inclues('1'))
+        const keywords = element[1].keywords;
+        (/^one_|_one$|^one$/i).test(keywords) ? emojis.push(keywords) : null;
     });
     console.log('emojis', emojis)
 }
-//findEmoji(arr)
+findEmoji(arrayEmoji)
 //emoji.search('cof') 
 /**
  * 

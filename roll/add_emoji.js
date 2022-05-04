@@ -37,7 +37,9 @@ const keywordSet = require('emojilib')
 for (const emoji in data) {
     data[emoji]['keywords'] = keywordSet[emoji]
 }
+
 console.log('data[]', data)
+data['1️⃣']['keywords'].push('1')
 //let arr = Object.keys(data).map((k) => data[k])
 const arrayEmoji = Object.entries(data);
 //console.log('arr[]', arrayEmoji)

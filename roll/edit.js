@@ -64,7 +64,18 @@ const rollDiceCommand = async function ({
     }
 }
 
-const discordCommand = []
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('edit')
+            .setDescription('【修改舊信息】 請Reply想要修改的信息')
+            .addStringOption(option => option.setName('text').setDescription('輸入內容').setRequired(true)),
+        async execute(interaction) {
+            const text = interaction.options.getString('text')
+            return `.edit ${text}`
+        }
+    }
+];
 module.exports = {
     rollDiceCommand,
     initialize,

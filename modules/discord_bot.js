@@ -959,6 +959,7 @@ async function handlingResponMessage(message, answer = '') {
 		if (rplyVal.buttonCreate) rplyVal.buttonCreate = await handlingButtonCreate(message, rplyVal.buttonCreate)
 		if (rplyVal.roleReactFlag) await roleReact(channelid, rplyVal)
 		if (rplyVal.newRoleReactFlag) await newRoleReact(message, rplyVal)
+		if (rplyVal.discordEditMessage) await handlingEditMessage(message, rplyVal)
 
 		if (rplyVal.myName) await repeatMessage(message, rplyVal);
 		if (rplyVal.myNames) await repeatMessages(message, rplyVal);
@@ -1159,6 +1160,29 @@ const connect = function () {
 
 function handlingButtonCommand(message) {
 	return message.component.label || ''
+}
+async function handlingEditMessage(message, rplyVal) {
+	try {
+		if (message.type !== 'REPLY') return message.reply({ content: '請Reply 你所想要修改的指定信息' });
+		const editReply = rplyVal.discordEditMessage;
+		const channel = await client.channels.fetch(message.reference.channelId);
+		const editMessage = await channel.messages.fetch(message.reference.messageId)
+		if (editMessage.editable)
+			return editMessage.edit({ content: editReply });
+		else
+			if (editMessage.webhookId) {
+				const messageid = editMessage.id;
+				const webhooks = await channel.fetchWebhooks();
+				const webhook = webhooks.find(wh => wh.id == editMessage.webhookId);
+				if (!webhook) return message.reply({ content: '找不到這個訊息的webhook，所以不能修改' });
+				return await webhook.editMessage(messageid, {
+					content: editReply
+				});
+			} else
+				return message.reply({ content: '根據Discord的規則，只能修改此BOT(HKTRPG)和Webhook所發出的訊息，請重新檢查' });
+	} catch (error) {
+		console.error();
+	}
 }
 /**
  *

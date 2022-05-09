@@ -200,21 +200,14 @@ var rollDiceCommand = async function ({
         case /^\.me\S+/i.test(mainMsg[0]): {
             //.myname 泉心造史 https://example.com/example.jpg
             if (!mainMsg[1]) {
-                rply.text = this.getHelpMessage();
-                rply.quotes = true;
-                return rply;
+                return;
             }
             if (!groupid) {
-                rply.text = "這功能只可以在頻道中使用"
+                rply.text = ".me(X) 這功能只可以在頻道中使用"
                 rply.quotes = true;
                 return rply;
             }
             let checkName = checkMeName(mainMsg[0]);
-            if (!checkName) {
-                rply.text = `輸入出錯\n ${this.getHelpMessage()} `;
-                rply.quotes = true;
-                return rply;
-            }
             let myName;
             if (typeof checkName == 'number') {
                 let myNameFind = await schema.myName.find({ userID: userid }).skip(checkName - 1).limit(1);
@@ -226,14 +219,14 @@ var rollDiceCommand = async function ({
                 try {
                     myName = await schema.myName.findOne({ userID: userid, shortName: new RegExp('^' + convertRegex(checkName) + '$', 'i') });
                 } catch (error) {
-                    rply.text = `找不到角色 - ${checkName} \n可能是序號或名字不對`;
-                    rply.quotes = true;
+                    // rply.text = `找不到角色 - ${checkName} \n可能是序號或名字不對`;
+                    // rply.quotes = true;
                     return rply;
                 }
             }
             if (!myName) {
-                rply.text = `找不到角色 - ${checkName} \n可能是序號或名字不對`;
-                rply.quotes = true;
+                //   rply.text = `找不到角色 - ${checkName} \n可能是序號或名字不對`;
+                // rply.quotes = true;
                 return rply;
             }
             rply.myName = showMessage(myName, inputStr);

@@ -14,7 +14,7 @@ const adminSecret = process.env.ADMIN_SECRET;
 const schema = require('../modules/schema.js');
 //const VIP = require('../modules/veryImportantPerson');
 var gameName = function () {
-    return '【Admin Tool】'
+    return '【Admin Tool】.admin debug state account news on'
 }
 
 var gameType = function () {

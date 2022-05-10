@@ -15,7 +15,7 @@ const VIP = require('../modules/veryImportantPerson');
 const limitArr = [30, 200, 200, 500, 500, 500, 500, 500];
 const limitArrPersonal = [1, 200, 200, 500, 500, 500, 500, 500];
 var gameName = function () {
-    return '(公測中)自定義骰子/回應功能 .ra(p)(s)(次數) (add del show 自定骰子名稱)'
+    return '【自定義骰子/回應功能】 .ra(p)(s)(次數) (add del show 自定骰子名稱)'
 }
 var gameType = function () {
     return 'funny:randomAns:hktrpg'

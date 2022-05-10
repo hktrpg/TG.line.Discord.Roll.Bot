@@ -10,7 +10,7 @@ records.get('block', (msgs) => {
 const VIP = require('../modules/veryImportantPerson');
 const limitArr = [30, 200, 200, 300, 300, 300, 300, 300];
 var gameName = function () {
-    return '(公測中)擲骰開關功能 .bk (add del show)'
+return '【擲骰開關功能】 .bk (add del show)'
 }
 
 var gameType = function () {

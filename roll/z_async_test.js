@@ -15,7 +15,7 @@ const opt = {
 	runValidators: true
 }
 var gameName = function () {
-	return 'Wiki查詢/圖片搜索 .wiki .image .tran'
+	return '【Wiki查詢/圖片搜索】 .wiki .image .tran'
 }
 
 var gameType = function () {

@@ -8,7 +8,7 @@ records.get('trpgDarkRolling', (msgs) => {
     trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
 })
 var gameName = function () {
-    return '(公測中)暗骰GM功能 .drgm (addgm del show) dr ddr dddr'
+    return '【暗骰GM功能】 .drgm (addgm del show) dr ddr dddr'
 }
 var gameType = function () {
     return 'Tool:trpgDarkRolling:hktrpg'

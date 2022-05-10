@@ -11,7 +11,7 @@ records.get('trpgCommand', (msgs) => {
 const VIP = require('../modules/veryImportantPerson');
 const limitArr = [30, 200, 200, 300, 300, 300, 300, 300];
 var gameName = function () {
-    return '(公測中)儲存擲骰指令功能 .cmd (add del show 自定關鍵字)'
+    return '【儲存擲骰指令功能】 .cmd (add del show 自定關鍵字)'
 }
 var gameType = function () {
     return 'Tool:trpgCommand:hktrpg'

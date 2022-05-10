@@ -14,7 +14,7 @@ const regex = /(\d+)d(\d+)(kh|kl|dh|dl|k|)(\d+|)/i;
 const variables = {};
 
 const gameName = function () {
-  return '基本擲骰'
+  return '【基本擲骰】.z xDy kl dh'
 }
 
 const gameType = function () {

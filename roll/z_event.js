@@ -10,7 +10,7 @@ const VIP = require('../modules/veryImportantPerson');
 const limitArr = [4, 20, 20, 30, 30, 99, 99, 99];
 const enRecoverTime = 10 * 60 * 1000; //每10分鐘回複一點;
 var gameName = function () {
-    return '事件功能 .event (add edit show delete) .evt (event 任何名字)'
+    return '【事件功能】 .event (add edit show delete) .evt (event 任何名字)'
 }
 var gameType = function () {
     return 'Funny:trpgevent:hktrpg'

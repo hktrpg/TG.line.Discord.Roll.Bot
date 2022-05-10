@@ -9,7 +9,7 @@ const schema = require('../modules/schema.js');
 const defaultRankWord = "{user.name}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點！\n現在排名是{server.member_count}人中的第{user.Ranking}名！{user.RankingPer}！\n調查經驗是{user.exp}點。 "
 
 var gameName = function () {
-    return '(公測中)經驗值功能 .level (show config LevelUpWord RankWord)'
+    return '【經驗值功能】 .level (show config LevelUpWord RankWord)'
 }
 var gameType = function () {
     return 'funny:trpgLevelSystem:hktrpg'

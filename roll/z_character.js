@@ -8,7 +8,7 @@ const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const limitArr = [4, 20, 20, 30, 30, 99, 99, 99];
 var gameName = function () {
-    return '角色卡功能 .char (add edit show delete use nonuse button) .ch (set show showall button)'
+    return '【角色卡功能】 .char (add edit show delete use nonuse button) .ch (set show showall button)'
 }
 var gameType = function () {
     return 'Tool:trpgcharacter:hktrpg'

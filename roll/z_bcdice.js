@@ -13,7 +13,7 @@ const gameName = function () {
 }
 
 const gameType = function () {
-    return 'trpg:bcdice:hktrpg'
+    return 'Dice:bcdice:hktrpg'
 }
 const prefixs = function () {
     //[mainMSG[0]的prefixs,mainMSG[1]的prefixs,   <---這裡是一對  

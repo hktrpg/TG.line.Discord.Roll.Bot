@@ -157,16 +157,28 @@ const discordCommand = [
                 subcommand
                     .setName('登記')
                     .setDescription('登記所使用的骰表ID')
-                    .addStringOption(option => option.setName('useText').setDescription('請輸入骰表ID').setRequired(true)))
+                    .addStringOption(option => option.setName('usetext').setDescription('請輸入骰表ID').setRequired(true)))
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('刪除')
                     .setDescription('移除使用的骰表'))
         ,
         async execute(interaction) {
-            const category = interaction.options.getString('category')
-            if (category !== null)
-                return `${category}`
+            const useText = interaction.options.getString('usetext') || '';
+            const subcommand = interaction.options.getSubcommand()
+            if (useText) {
+                return `.bc use ${useText}`
+            }
+            switch (subcommand) {
+                case '使用說明':
+                    return '.bc help'
+                case '骰組說明':
+                    return '.bc dicehelp'
+                case '刪除':
+                    return '.bc delete'
+                default:
+                    return;
+            }
         }
     }
 ]

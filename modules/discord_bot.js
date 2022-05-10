@@ -1163,7 +1163,8 @@ function handlingButtonCommand(message) {
 }
 async function handlingEditMessage(message, rplyVal) {
 	try {
-		if (message.type !== 'REPLY') return message.reply({ content: '請Reply 你所想要修改的指定信息' });
+		if (message.type !== 'REPLY') return message.reply({ content: '請Reply 你所想要修改的指定訊息' });
+		if (message.channelId !== message.reference.channelId) return message.reply({ content: '請只修改同一個頻道的訊息' });
 		const editReply = rplyVal.discordEditMessage;
 		const channel = await client.channels.fetch(message.reference.channelId);
 		const editMessage = await channel.messages.fetch(message.reference.messageId)

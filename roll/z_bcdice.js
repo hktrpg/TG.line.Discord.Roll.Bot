@@ -151,12 +151,17 @@ const discordCommand = [
                     .setDescription('顯示使用說明'))
             .addSubcommand(subcommand =>
                 subcommand
-                    .setName('使用說明')
-                    .setDescription('顯示使用說明'))
+                    .setName('骰組說明')
+                    .setDescription('顯示BcDice骰組說明'))
             .addSubcommand(subcommand =>
                 subcommand
-                    .setName('server')
-                    .setDescription('Info about the server'))
+                    .setName('登記')
+                    .setDescription('登記所使用的骰表ID')
+                    .addStringOption(option => option.setName('useText').setDescription('請輸入骰表ID').setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('刪除')
+                    .setDescription('移除使用的骰表'))
         ,
         async execute(interaction) {
             const category = interaction.options.getString('category')

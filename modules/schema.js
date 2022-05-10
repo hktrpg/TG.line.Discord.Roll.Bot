@@ -439,7 +439,12 @@ const translateChannel = mongoose.model('translateChannel', new mongoose.Schema(
     groupid: String,
     channelid: String,
     switch: Boolean
+}));
 
+const bcdiceRegedit = mongoose.model('bcdiceRegedit', new mongoose.Schema({
+    botname: String,
+    channelid: String,
+    trpgId: String
 }));
 
 module.exports = {
@@ -479,7 +484,8 @@ module.exports = {
     roleReact,
     randomAnsServer,
     randomAnsPersonal,
-    translateChannel
+    translateChannel,
+    bcdiceRegedit
 }
 //const Cat = mongoose.model('Cat', { name: String });
 //const kitty = new Cat({ name: 'Zildjian' });

@@ -153,25 +153,10 @@ bothelp about	- 查詢HKTRPG 歷史📜
 最近更新: 
 2019/07/21 香港克警合作 黑ICON紀念
 ...前略...
-2021/06/24 🍎
-2021/06/28 更新名人堂, 感謝 陳啟昌, strben,匡匡贊助HKTRPG
-2021/07/01 🌼
-2021/07/03 .admin state 增加顯示數據
-2021/07/08 更新Plurk連接
-2021/07/16 使用Discord js light, 現在有7400群組在使用, 記憶體不夠用了...
-		   更新coc創角, 幼年調查員和PULP版
-2021/07/18 更新Discord說明的方式, 使用Embeds
-2021/09/01 新增作品集
-2021/09/10 新增追逐戰.chase，新增.sc SanCheck功能
-2021/09/18 showMeAtTheWorld
-2021/09/30 新增匯出團錄時，可以去掉不必要的日期標示，Choice 排序功能顯示改良，.CC7build random
-2021/10/09 更新topgg-autoposter，舊版時常CRASH，令HKTRPG出錯
-		   更新了PLURK，令速度提升
- 		   改良CODE，移除了沒用的AWAIT ASYNC，令程式反應更快
-2021/10/20 增加 5B10S：不加總的擲骰，並按大至小排序 - Krymino Lin的意見
-2021/11/01 增加 .x 多重擲骰 如.5 cc 80
-			增加定時發訊功能 .at / .cron
-全部更新可看https://github.com/hktrpg/TG.line.Discord.Roll.Bot/commits/master
+2022/04	https://www.patreon.com/posts/hktrpg-4yue-geng-65565589
+2022/03	https://www.patreon.com/posts/3yue-geng-xin-64158733
+2022/02	https://www.patreon.com/posts/2yue-geng-xin-62329216
+2022/01	https://www.patreon.com/posts/hktrpg-1yue-geng-60706957
 `;
 			return rply;
 		case /^BASE/i.test(mainMsg[1]):

@@ -19,7 +19,7 @@ const prefixs = function () {
 }
 const getHelpMessage = function () {
     return `【舊信息修改功能】Discord限定
-這是用來修改由HKTRPG和webhook(角色扮演功能)所發出的信息的功能
+這是讓管理員用來修改由HKTRPG和webhook(角色扮演功能)所發出的信息的功能
 就像你自己只能修改自己的信息一樣，此功能不能修改其他人或其他BOT的信息。
 使用方法:  
 對想要修改的信息右擊點選reply 然後按以下格式輸入即可

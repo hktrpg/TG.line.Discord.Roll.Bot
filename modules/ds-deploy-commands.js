@@ -16,6 +16,7 @@ const rest = new REST({ version: '9' }).setToken(channelSecret);
 
 loadingSlashCommands();
 
+//removeSlashCommands();
 //testRegisteredSlashCommands();
 registeredGlobalSlashCommands();
 

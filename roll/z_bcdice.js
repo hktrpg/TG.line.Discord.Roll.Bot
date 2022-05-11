@@ -145,37 +145,28 @@ const discordCommand = [
         data: new SlashCommandBuilder()
             .setName('bcdice設定')
             .setDescription('進行bcdice的設定(說明/登記/刪除)')
-            .addSubcommand(subcommand =>
-                subcommand
-                    .setName('使用說明')
-                    .setDescription('顯示使用說明'))
-            .addSubcommand(subcommand =>
-                subcommand
-                    .setName('骰組說明')
-                    .setDescription('顯示BcDice骰組說明'))
-            .addSubcommand(subcommand =>
-                subcommand
-                    .setName('登記')
-                    .setDescription('登記所使用的骰表ID')
-                    .addStringOption(option => option.setName('usetext').setDescription('請輸入骰表ID').setRequired(true)))
-            .addSubcommand(subcommand =>
-                subcommand
-                    .setName('刪除')
-                    .setDescription('移除使用的骰表'))
+            .addStringOption(option =>
+                option.setName('指令')
+                    .setDescription('進行bcdice的設定')
+                    .setRequired(true)
+                    .addChoice('顯示使用說明', 'help')
+                    .addChoice('顯示BcDice骰組使用說明(登記後可使用)', 'dicehelp')
+                    .addChoice('登記使用的骰表ID', 'use')
+                    .addChoice('移除使用的骰表ID', 'delete'))
+            .addStringOption(option => option.setName('usetext').setDescription('如登記，請在這裡填寫ID').setRequired(false))
         ,
         async execute(interaction) {
             const useText = interaction.options.getString('usetext') || '';
-            const subcommand = interaction.options.getSubcommand()
-            if (useText) {
-                return `.bc use ${useText}`
-            }
+            const subcommand = interaction.options.getString('指令') || '';
             switch (subcommand) {
-                case '使用說明':
+                case 'help':
                     return '.bc help'
-                case '骰組說明':
+                case 'dicehelp':
                     return '.bc dicehelp'
-                case '刪除':
+                case 'delete':
                     return '.bc delete'
+                case 'use':
+                    return `.bc use ${useText}`
                 default:
                     return;
             }

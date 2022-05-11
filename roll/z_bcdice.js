@@ -63,7 +63,6 @@ const rollDiceCommand = async function ({
     }
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
-
             rply.text = this.getHelpMessage();
             rply.quotes = true;
             return rply;
@@ -72,13 +71,14 @@ const rollDiceCommand = async function ({
         case /^dicehelp$/i.test(mainMsg[1]): {
             let doc = await schema.bcdiceRegedit.findOne(filter).catch(err => console.error(err))
             if (doc && doc.trpgId) {
-                rply.text = await callHelp(mainMsg[2]);
+                rply.text = await callHelp(doc.trpgId) || '';
                 return rply;
             } else {
                 rply.text = `沒有已設定的骰表ID\n\n` + this.getHelpMessage();
                 rply.quotes = true;
                 return rply;
             }
+
         }
         case /^use+$/i.test(mainMsg[1]): {
             if (userrole <= 1) {

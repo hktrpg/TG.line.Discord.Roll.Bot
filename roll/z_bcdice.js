@@ -21,7 +21,7 @@ const prefixs = function () {
     //如前面是 /^1$/ig, 後面是/^1D100$/ig, 即 prefixs 變成 1 1D100 
     ///^(?=.*he)(?!.*da).*$/ig
     return [{
-        first: /^\.bc$/i,
+        first: /^\.bc$|^\.al$|^\.kk$|^\.mk$|^\.ss$|^\.sg$|^\.UK$|^\.dx$|^\.nc$|^\.sw$/i,
         second: null
     }]
 }
@@ -124,7 +124,18 @@ const rollDiceCommand = async function ({
             }
         }
         default: {
-            break;
+            rply.text = `這骰組已經整合成BcDice
+使用方法
+首先，先在BcDice官方的骰表ID中找出你所想的系統
+然後輸入.bc use (ID) 進行登記
+現在，你可以以.bc (骰子指令)來進行擲骰了。 
+想看骰子說明可輸入.bc dicehelp
+
+注: 登記需要Admin或頻道管理權限
+
+https://bcdice.org/systems/
+`
+            return rply;
         }
     }
 }
@@ -138,7 +149,7 @@ const discordCommand = [
         ,
         async execute(interaction) {
             const text = interaction.options.getString('text')
-            return `.bc ${text}`
+            return `.bc ${ text } `
         }
     },
     {
@@ -166,7 +177,7 @@ const discordCommand = [
                 case 'delete':
                     return '.bc delete'
                 case 'use':
-                    return `.bc use ${useText}`
+                    return `.bc use ${ useText } `
                 default:
                     return;
             }

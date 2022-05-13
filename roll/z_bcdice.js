@@ -68,6 +68,22 @@ const rollDiceCommand = async function ({
             return rply;
 
         }
+        case /^\.kk$/i.test(mainMsg[0]): {
+            let result = await calldice("Kamigakari", mainMsg[1]);
+            (result) ? rply.text = `${mainMsg[1]} ${(mainMsg[2]) ? mainMsg[2] : ''}\n${result}` : null;
+            return rply;
+        }
+        case /^\.dx$/i.test(mainMsg[0]): {
+            let result = await calldice("DoubleCross", mainMsg[1]);
+            (result) ? rply.text = `${mainMsg[1]} ${(mainMsg[2]) ? mainMsg[2] : ''}\n${result}` : null;
+            return rply;
+        }
+        case /^\.sw$/i.test(mainMsg[0]): {
+            let result = await calldice("SwordWorld2.5", mainMsg[1]);
+            (result) ? rply.text = `${mainMsg[1]} ${(mainMsg[2]) ? mainMsg[2] : ''}\n${result}` : null;
+            return rply;
+        }
+
         case /^dicehelp$/i.test(mainMsg[1]): {
             let doc = await schema.bcdiceRegedit.findOne(filter).catch(err => console.error(err))
             if (doc && doc.trpgId) {
@@ -149,7 +165,7 @@ const discordCommand = [
         ,
         async execute(interaction) {
             const text = interaction.options.getString('text')
-            return `.bc ${ text } `
+            return `.bc ${text} `
         }
     },
     {
@@ -177,7 +193,7 @@ const discordCommand = [
                 case 'delete':
                     return '.bc delete'
                 case 'use':
-                    return `.bc use ${ useText } `
+                    return `.bc use ${useText} `
                 default:
                     return;
             }

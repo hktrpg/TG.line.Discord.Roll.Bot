@@ -183,7 +183,6 @@ var rollDiceCommand = async function ({
             }
             let text = (checkTime.threeColum) ? inputStr.replace(/^\s?\S+\s+\S+\s+\S+\s+/, '') : inputStr.replace(/^\s?\S+\s+\S+\s+/, '');
             let date = checkTime.time;
-
             if (roleName.roleName || roleName.imageLink) {
                 if (lv === 0) {
                     rply.text = `.at裡的角色發言功能只供Patreoner使用，請支持伺服器運作，或自建Server\nhttps://www.patreon.com/HKTRPG`;
@@ -287,7 +286,6 @@ var rollDiceCommand = async function ({
             let lv = await VIP.viplevelCheckUser(userid);
             let gpLv = await VIP.viplevelCheckGroup(groupid);
             lv = (gpLv > lv) ? gpLv : lv;
-            console.log('VIP', lv)
             let limit = limitCronArr[lv];
             let check = {
                 name: differentPeformCron(botname),
@@ -364,9 +362,9 @@ function differentPeformAt(botname) {
     }
 }
 function getAndRemoveRoleNameAndLink(input) {
-    let roleName = input.match(/^name=(.*)\n/m) ? input.match(/^name=(.*)\n/m)[1] : null;
-    let imageLink = input.match(/^link=(.*)\n/m) ? input.match(/^link=(.*)\n/m)[1] : null;
-    return { newText: input.replace(/^link=.*\n/m, "").replace(/^name=.*\n/m, ""), roleName, imageLink };
+    let roleName = input.match(/^name=(.*)\n/mi) ? input.match(/^name=(.*)\n/mi)[1] : null;
+    let imageLink = input.match(/^link=(.*)\n/mi) ? input.match(/^link=(.*)\n/mi)[1] : null;
+    return { newText: input.replace(/^link=.*\n/mi, "").replace(/^name=.*\n/im, ""), roleName, imageLink };
 }
 
 function differentPeformCron(botname) {

@@ -519,9 +519,13 @@ client.login(channelSecret);
 		//if (shardids !== 0) return;
 		let data = job.attrs.data;
 		let text = await rollText(data.replyText);
-		SendToReplychannel(
-			{ replyText: text, channelid: data.channelid, quotes: data.quotes = true, groupid: data.groupid }
-		)
+		if (!data.imageLink && !data.roleName)
+			SendToReplychannel(
+				{ replyText: text, channelid: data.channelid, quotes: data.quotes = true, groupid: data.groupid }
+			)
+		else {
+
+		}
 		try {
 			if ((new Date(Date.now()) - data.createAt) >= 30 * 24 * 60 * 60 * 1000 * 6) {
 				await job.remove();

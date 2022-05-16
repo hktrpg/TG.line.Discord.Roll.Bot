@@ -173,6 +173,8 @@ var rollDiceCommand = async function ({
                 rply.text = '.at 整個群組上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
                 return rply;
             }
+            let roleName = getAndRemoveRoleNameAndLink(inputStr);
+            inputStr = roleName.newText;
 
             let checkTime = checkAtTime(mainMsg[1], mainMsg[2]);
             if (!checkTime || checkTime.time == "Invalid Date") {
@@ -182,8 +184,25 @@ var rollDiceCommand = async function ({
             let text = (checkTime.threeColum) ? inputStr.replace(/^\s?\S+\s+\S+\s+\S+\s+/, '') : inputStr.replace(/^\s?\S+\s+\S+\s+/, '');
             let date = checkTime.time;
 
+            if (roleName.roleName || roleName.imageLink) {
+                if (lv === 0) {
+                    rply.text = `.at裡的角色發言功能只供Patreoner使用，請支持伺服器運作，或自建Server\nhttps://www.patreon.com/HKTRPG`;
+                    return rply;
+                }
+                if (!roleName.roleName || !roleName.imageLink) {
+                    rply.text = `請完整設定名字和圖片網址
+                    格式為
+                    .at 時間
+                    name=名字
+                    link=www.sample.com/sample.jpg
+                    XXXXXX信息一堆`;
+                    return rply;
+                }
+
+            }
+
             let callBotname = differentPeformAt(botname);
-            await agenda.agenda.schedule(date, callBotname, { replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid }).catch(error => console.error('agenda error: ', error.name, error.reson))
+            await agenda.agenda.schedule(date, callBotname, { imageLink: roleName.imageLink, roleName: roleName.roleName, replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid }).catch(error => console.error('agenda error: ', error.name, error.reson))
             rply.text = `已新增排定內容\n將於${date.toString().replace(/:\d+\s.*/, '')}運行`
             return rply;
         }
@@ -268,6 +287,7 @@ var rollDiceCommand = async function ({
             let lv = await VIP.viplevelCheckUser(userid);
             let gpLv = await VIP.viplevelCheckGroup(groupid);
             lv = (gpLv > lv) ? gpLv : lv;
+            console.log('VIP', lv)
             let limit = limitCronArr[lv];
             let check = {
                 name: differentPeformCron(botname),
@@ -280,18 +300,38 @@ var rollDiceCommand = async function ({
                 rply.text = '.cron 整個群組上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
                 return rply;
             }
+            let roleName = getAndRemoveRoleNameAndLink(inputStr);
+            inputStr = roleName.newText;
 
             let checkTime = checkCronTime(mainMsg[1]);
             if (!checkTime || !checkTime.min || !checkTime.hour) {
                 rply.text = `輸入出錯\n ${this.getHelpMessage()}`;
                 return rply;
             }
+            if (roleName.roleName || roleName.imageLink) {
+                if (lv === 0) {
+                    rply.text = `.cron裡的角色發言功能只供Patreoner使用，請支持伺服器運作，或自建Server\nhttps://www.patreon.com/HKTRPG`;
+                    return rply;
+                }
+                if (!roleName.roleName || !roleName.imageLink) {
+                    rply.text = `請完整設定名字和圖片網址
+                    格式為
+                    .cron 時間
+                    name=名字
+                    link=www.sample.com/sample.jpg
+                    XXXXXX信息一堆`;
+                    return rply;
+                }
+
+            }
+
+
             let text = inputStr.replace(/^\s?\S+\s+\S+\s+/, '');
             // "0 6 * * *"
             let date = `${checkTime.min} ${checkTime.hour} *${checkTime.days ? `/${checkTime.days}` : ''} * ${(checkTime.weeks.length) ? checkTime.weeks : '*'}`;
 
             let callBotname = differentPeformCron(botname);
-            const job = agenda.agenda.create(callBotname, { replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid, createAt: new Date(Date.now()) });
+            const job = agenda.agenda.create(callBotname, { imageLink: roleName.imageLink, roleName: roleName.roleName, replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid, createAt: new Date(Date.now()) });
             job.repeatEvery(date);
 
             try {
@@ -322,6 +362,11 @@ function differentPeformAt(botname) {
         default:
             break;
     }
+}
+function getAndRemoveRoleNameAndLink(input) {
+    let roleName = input.match(/^name=(.*)\n/m) ? input.match(/^name=(.*)\n/m)[1] : null;
+    let imageLink = input.match(/^link=(.*)\n/m) ? input.match(/^link=(.*)\n/m)[1] : null;
+    return { newText: input.replace(/^link=.*\n/m, "").replace(/^name=.*\n/m, ""), roleName, imageLink };
 }
 
 function differentPeformCron(botname) {

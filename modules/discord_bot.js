@@ -6,10 +6,9 @@ const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const adminSecret = process.env.ADMIN_SECRET || '';
 const Discord = require("discord.js-light");
 const fs = require('node:fs');
-const { Client, Intents, Permissions, Collection, MessageActionRow, MessageButton } = Discord;
+const { Client, Intents, Permissions, Collection, MessageActionRow, MessageButton, WebhookClient } = Discord;
 const rollText = require('./getRoll').rollText;
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
-const imageUrl = /^(?:(?:(?<protocol>(?:http|https)):\/\/)?(?:(?<authority>(?:[A-Za-z](?:[A-Za-z\d-]*[A-Za-z\d])?)(?:\.[A-Za-z][A-Za-z\d-]*[A-Za-z\d])*)(?::(?<port>[0-9]+))?\/)(?:(?<path>[^/][^?#;]*\/))?)?(?<file>[^?#/\\]*\.(?<extension>[Jj][Pp][Ee]?[Gg]|[Pp][Nn][Gg]|[Gg][Ii][Ff]))(?:\?(?<query>[^#]*))?(?:#(?<fragment>.*))?$/gm;
 exports.z_stop = require('../roll/z_stop');
 const buttonStyles = ['DANGER', 'PRIMARY', 'SECONDARY', 'SUCCESS', 'DANGER']
 
@@ -138,6 +137,7 @@ client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnecte
 
 client.on('messageCreate', async message => {
 	if (message.author.bot) return;
+	console.log('message', message)
 	const result = await handlingResponMessage(message);
 	if (result && result.text)
 		return handlingSendMessage(result);
@@ -280,14 +280,14 @@ function checkRepeatName(content, button, user) {
 	return flag;
 }
 function convQuotes(text = "") {
-	const imageMatch = text.match(imageUrl);
+	//const imageMatch = text.match(imageUrl);
 	return new Discord.MessageEmbed()
 		.setColor('#0099ff')
 		//.setTitle(rplyVal.title)
 		//.setURL('https://discord.js.org/')
 		.setAuthor({ name: 'HKTRPG', url: 'https://www.patreon.com/HKTRPG', iconURL: 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png' })
 		.setDescription(text)
-		.setImage((imageMatch && imageMatch.length > 0) ? imageMatch[0] : '')
+		//.setImage((imageMatch && imageMatch.length > 0) ? imageMatch[0] : '')
 }
 
 async function privateMsgFinder(channelid) {
@@ -502,9 +502,13 @@ client.login(channelSecret);
 		//if (shardids !== 0) return;
 		let data = job.attrs.data;
 		let text = await rollText(data.replyText);
-		SendToReplychannel(
-			{ replyText: text, channelid: data.channelid, quotes: data.quotes = true, groupid: data.groupid }
-		)
+		if (!data.imageLink && !data.roleName)
+			SendToReplychannel(
+				{ replyText: text, channelid: data.channelid, quotes: data.quotes = true, groupid: data.groupid }
+			)
+		else {
+			await sendCronWebhook({ channelid: data.channelid, replyText: text, data })
+		}
 		try {
 			await job.remove();
 		} catch (e) {
@@ -519,9 +523,13 @@ client.login(channelSecret);
 		//if (shardids !== 0) return;
 		let data = job.attrs.data;
 		let text = await rollText(data.replyText);
-		SendToReplychannel(
-			{ replyText: text, channelid: data.channelid, quotes: data.quotes = true, groupid: data.groupid }
-		)
+		if (!data.imageLink && !data.roleName)
+			SendToReplychannel(
+				{ replyText: text, channelid: data.channelid, quotes: data.quotes = true, groupid: data.groupid }
+			)
+		else {
+			await sendCronWebhook({ channelid: data.channelid, replyText: text, data })
+		}
 		try {
 			if ((new Date(Date.now()) - data.createAt) >= 30 * 24 * 60 * 60 * 1000 * 6) {
 				await job.remove();
@@ -619,11 +627,10 @@ async function manageWebhook(discord) {
 				return v.name == 'HKTRPG .me Function' && v.type == "Incoming";
 			})
 		}
-
 		return { webhook, isThread };
 	} catch (error) {
-		error
-		await SendToReplychannel({ replyText: '不能新增Webhook.\n 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
+		//console.error(error)
+		await SendToReplychannel({ replyText: '不能新增Webhook.\n 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id || discord.channelId });
 		return;
 	}
 }
@@ -1184,6 +1191,17 @@ async function handlingEditMessage(message, rplyVal) {
 	} catch (error) {
 		console.error();
 	}
+}
+async function sendCronWebhook({ channelid, replyText, data }) {
+	let webhook = await manageWebhook({ channelId: channelid })
+	//threadId: discord.channelId,
+	let obj = {
+		content: replyText,
+		username: data.roleName,
+		avatarURL: data.imageLink
+	};
+	let pair = webhook.isThread ? { threadId: channelid } : {};
+	await webhook.webhook.send({ ...obj, ...pair });
 }
 /**
  *

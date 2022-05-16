@@ -4,6 +4,7 @@ const schema = require('../modules/schema.js');
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const adminSecret = process.env.ADMIN_SECRET || '';
+const Cluster = require('discord-hybrid-sharding');
 const Discord = require("discord.js-light");
 const fs = require('node:fs');
 const { Client, Intents, Permissions, Collection, MessageActionRow, MessageButton } = Discord;
@@ -16,7 +17,7 @@ const buttonStyles = ['DANGER', 'PRIMARY', 'SECONDARY', 'SUCCESS', 'DANGER']
 function channelFilter(channel) {
 	return !channel.lastMessageId || Discord.SnowflakeUtil.deconstruct(channel.lastMessageId).timestamp < Date.now() - 3600000;
 }
-const client = new Client({
+const client = new Discord.Client({
 	makeCache: Discord.Options.cacheWithLimits({
 		ApplicationCommandManager: 0, // guild.commands
 		BaseGuildEmojiManager: 0, // guild.emojis
@@ -49,6 +50,8 @@ const client = new Client({
 			sweepInterval: 3600
 		},
 	}),
+	shards: Cluster.data.SHARD_LIST, // An array of shards that will get spawned
+	shardCount: Cluster.data.TOTAL_SHARDS, // Total number of shards
 	/**
 		  cacheGuilds: true,
 		cacheChannels: true,
@@ -59,6 +62,8 @@ const client = new Client({
 	 */
 	intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.DIRECT_MESSAGE_REACTIONS], partials: ['MESSAGE', 'CHANNEL', 'REACTION'],
 });
+client.cluster = new Cluster.Client(client);
+client.login(channelSecret);
 const msgSplitor = (/\S+/ig);
 const link = process.env.WEB_LINK;
 const port = process.env.PORT || 20721;
@@ -70,7 +75,7 @@ const courtMessage = require('./logs').courtMessage || function () { };
 const newMessage = require('./message');
 
 const reconnectInterval = 1 * 1000 * 60;
-const shardids = client.shard.ids[0];
+const shardids = client.cluster.id;
 const WebSocket = require('ws');
 var ws;
 
@@ -87,7 +92,7 @@ client.on('ready', async () => {
 	var switchSetActivity = 0;
 	// eslint-disable-next-line no-unused-vars
 	const refreshId = setInterval(async () => {
-		if (shardids !== (client.shard.client.options.shardCount - 1)) return;
+		if (shardids !== (Cluster.data.TOTAL_SHARDS - 1)) return;
 		if (adminSecret) {
 			let check = await checkWakeUp();
 			if (!check) {
@@ -433,10 +438,10 @@ function privateMsg({ trigger, mainMsg, inputStr }) {
 
 
 async function count() {
-	if (!client.shard) return;
+	if (!client.cluster) return;
 	const promises = [
-		client.shard.fetchClientValues('guilds.cache.size'),
-		client.shard
+		client.cluster.fetchClientValues('guilds.cache.size'),
+		client.cluster
 			.broadcastEval(c => c.guilds.cache.filter((guild) => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0))
 	];
 
@@ -452,10 +457,10 @@ async function count() {
 
 }
 async function count2() {
-	if (!client.shard) return '🌼bothelp | hktrpg.com🍎';
+	if (!client.cluster) return '🌼bothelp | hktrpg.com🍎';
 	const promises = [
-		client.shard.fetchClientValues('guilds.cache.size'),
-		client.shard
+		client.cluster.fetchClientValues('guilds.cache.size'),
+		client.cluster
 			.broadcastEval(c => c.guilds.cache.filter((guild) => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0))
 	];
 
@@ -489,7 +494,6 @@ process.on('unhandledRejection', error => {
 
 
 
-client.login(channelSecret);
 
 
 
@@ -665,10 +669,10 @@ async function newRoleReact(channel, message) {
 
 }
 async function checkWakeUp() {
-	const number = client.shard.client.options.shardCount;
+	const number = Cluster.data.TOTAL_SHARDS;
 	const promises = [
-		client.shard.broadcastEval(c => c.shard?.ids[0]),
-		client.shard.broadcastEval(c => c.ws.status),
+		client.cluster.broadcastEval(c => c.shard?.ids[0]),
+		client.cluster.broadcastEval(c => c.ws.status),
 	];
 	return Promise.all(promises)
 		.then(results => {
@@ -698,13 +702,13 @@ function z_stop(mainMsg, groupid) {
 
 
 async function getAllshardIds() {
-	if (!client.shard) {
+	if (!client.cluster) {
 		return;
 	}
 	const promises = [
-		client.shard.broadcastEval(c => c.shard?.ids[0]),
-		client.shard.broadcastEval(c => c.ws.status),
-		client.shard.broadcastEval(c => c.ws.ping)
+		client.cluster.broadcastEval(c => c.shard?.ids[0]),
+		client.cluster.broadcastEval(c => c.ws.status),
+		client.cluster.broadcastEval(c => c.ws.ping)
 	];
 	return Promise.all(promises)
 		.then(results => {

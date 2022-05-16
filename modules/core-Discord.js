@@ -11,8 +11,8 @@ const Cluster = require('discord-hybrid-sharding');
 const initCommand = require("./ds-deploy-commands");
 const manager = new Cluster.Manager('./modules/discord_bot.js', {
 	token: channelSecret,
-	shardsPerClusters: 7,
-	totalShards: 15,
+	shardsPerClusters: 10,
+	totalShards: "auto",
 	mode: 'process', // you can also choose "worker"
 	//spawnTimeout: -1,
 	//respawn: true

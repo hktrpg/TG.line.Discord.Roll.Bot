@@ -346,23 +346,23 @@ const rollDiceCommand = async function ({
 			rply.quotes = true;
 			break;
 		}
-		case (trigger == 'cc' && mainMsg[1] <= 1000): {
+		case (trigger == 'cc' && mainMsg[1]): {
 			rply.text = await coc7({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, userName: tgDisplayname || displaynameDiscord || displayname });
 			break;
 		}
-		case (trigger == 'cc1' && mainMsg[1] <= 1000): {
+		case (trigger == 'cc1' && mainMsg[1]): {
 			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: 1, userName: tgDisplayname || displaynameDiscord || displayname });
 			break;
 		}
-		case (trigger == 'cc2' && mainMsg[1] <= 1000): {
+		case (trigger == 'cc2' && mainMsg[1]): {
 			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: 2, userName: tgDisplayname || displaynameDiscord || displayname });
 			break;
 		}
-		case (trigger == 'ccn1' && mainMsg[1] <= 1000): {
+		case (trigger == 'ccn1' && mainMsg[1]): {
 			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: -1, userName: tgDisplayname || displaynameDiscord || displayname });
 			break;
 		}
-		case (trigger == 'ccn2' && mainMsg[1] <= 1000): {
+		case (trigger == 'ccn2' && mainMsg[1]): {
 			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: -2, userName: tgDisplayname || displaynameDiscord || displayname });
 			break;
 		}

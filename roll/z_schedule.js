@@ -63,6 +63,17 @@ var getHelpMessage = function () {
 
     .cron / .at delete (序號) 可以刪除指定的定時訊息
     如 .at delete 1   請使用.at show 查詢序號
+
+    patreoner 限定功能
+    自定發訊者名字和圖片(需要Webhook權限)
+    
+    範例
+    .cron 2258 
+    name=Sad
+    link=https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png
+    wwwww
+    [[2d3]]
+    hello world
     `
 }
 var initialize = function () {

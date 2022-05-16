@@ -62,11 +62,12 @@ const rollDiceCommand = async function ({
     }
 }
 function handleRequestRolling(text) {
-    text = text.replace(/^\.re\s+/i, '').split(',')
-    text.splice(5);
+    text = text.replace(/^\.re\s+/i, '').replace(/[\r\n]/gm, '').split(',')
+    text.splice(10);
     for (let index = 0; index < text.length; index++) {
         text[index] = text[index].substring(0, 80);
     }
+    text = text.filter(n => n)
     return text;
 }
 

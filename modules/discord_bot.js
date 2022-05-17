@@ -137,7 +137,6 @@ client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnecte
 
 client.on('messageCreate', async message => {
 	if (message.author.bot) return;
-	console.log('message', message)
 	const result = await handlingResponMessage(message);
 	if (result && result.text)
 		return handlingSendMessage(result);
@@ -161,7 +160,6 @@ client.on('interactionCreate', async message => {
 				const result = await handlingResponMessage(message, answer);
 				const messageContent = message.message.content;
 				const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
-				if (displayname === '') console.log('message', message)
 				if (/的角色卡$/.test(messageContent)) {
 					if (result.text) { return await message.reply({ content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${result.text}`, ephemeral: false }).catch() }
 					else {
@@ -287,7 +285,7 @@ function convQuotes(text = "") {
 		//.setURL('https://discord.js.org/')
 		.setAuthor({ name: 'HKTRPG', url: 'https://www.patreon.com/HKTRPG', iconURL: 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png' })
 		.setDescription(text)
-		//.setImage((imageMatch && imageMatch.length > 0) ? imageMatch[0] : '')
+	//.setImage((imageMatch && imageMatch.length > 0) ? imageMatch[0] : '')
 }
 
 async function privateMsgFinder(channelid) {

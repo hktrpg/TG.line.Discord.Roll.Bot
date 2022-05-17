@@ -16,7 +16,7 @@ const prefixs = function () {
 	},
 	{
 		first: /(^\.sc$)|(^ccb$)|(^cc$)|(^ccn[1-2]$)|(^cc[1-2]$)|(^成長檢定$)|(^幕間成長$)/i,
-		second: /(^\d+$)|(^help$)/i
+		second: /(^\d+)|(^help$)/i
 	}
 	]
 }
@@ -26,6 +26,9 @@ coc6版擲骰		： ccb 80 技能小於等於80
 coc7版擲骰		： cc 80 技能小於等於80
 coc7版獎勵骰	： cc(1~2) cc1 80 一粒獎勵骰
 coc7版懲罰骰	： ccn(1~2) ccn2 80 兩粒懲罰骰
+coc7版聯合檢定	： 
+cc 80,40 偵查,鬥毆 cc1 80,40 偵查,鬥毆 ccN1 80,40 偵查,鬥毆
+
 coc7版SanCheck	： .sc (SAN值) (成功)/(失敗)
 eg: .sc 50		.sc 50 1/1d3+1		.sc 50 1d10/1d100
 
@@ -346,23 +349,23 @@ const rollDiceCommand = async function ({
 			rply.quotes = true;
 			break;
 		}
-		case (trigger == 'cc' && mainMsg[1] <= 1000): {
+		case (trigger == 'cc' && mainMsg[1] !== null): {
 			rply.text = await coc7({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, userName: tgDisplayname || displaynameDiscord || displayname });
 			break;
 		}
-		case (trigger == 'cc1' && mainMsg[1] <= 1000): {
+		case (trigger == 'cc1' && mainMsg[1] !== null): {
 			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: 1, userName: tgDisplayname || displaynameDiscord || displayname });
 			break;
 		}
-		case (trigger == 'cc2' && mainMsg[1] <= 1000): {
+		case (trigger == 'cc2' && mainMsg[1] !== null): {
 			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: 2, userName: tgDisplayname || displaynameDiscord || displayname });
 			break;
 		}
-		case (trigger == 'ccn1' && mainMsg[1] <= 1000): {
+		case (trigger == 'ccn1' && mainMsg[1] !== null): {
 			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: -1, userName: tgDisplayname || displaynameDiscord || displayname });
 			break;
 		}
-		case (trigger == 'ccn2' && mainMsg[1] <= 1000): {
+		case (trigger == 'ccn2' && mainMsg[1] !== null): {
 			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: -2, userName: tgDisplayname || displaynameDiscord || displayname });
 			break;
 		}
@@ -1024,49 +1027,61 @@ async function coc7({ chack, text = "", userid, groupid, channelid, userName }) 
 	let result = '';
 	let temp = rollbase.Dice(100);
 	let skillPerStyle = "";
-	switch (true) {
-		case (temp == 1): {
-			result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 恭喜！大成功！';
-			skillPerStyle = "criticalSuccess";
-			break;
+	let check = chack.split(',');
+	let name = text.split(',');
+	let checkNum = !check.some(i => !Number.isInteger(Number(i)));
+	if (!checkNum) return;
+	if (check.length >= 2) result += '聯合檢定\n'
+	for (let index = 0; index < check.length; index++) {
+		switch (true) {
+			case (temp == 1): {
+				result += '1D100 ≦ ' + check[index] + "\n" + temp + ' → 恭喜！大成功！';
+				skillPerStyle = "criticalSuccess";
+				break;
+			}
+			case (temp == 100): {
+				result = '1D100 ≦ ' + check[index] + "\n" + temp + ' → 啊！大失敗！';
+				skillPerStyle = "fumble";
+				break;
+			}
+			case (temp >= 96 && check[index] <= 49): {
+				result += '1D100 ≦ ' + check[index] + "\n" + temp + ' → 啊！大失敗！';
+				skillPerStyle = "fumble";
+				break;
+			}
+			case (temp > check[index]): {
+				result += '1D100 ≦ ' + check[index] + "\n" + temp + ' → 失敗';
+				skillPerStyle = "failure";
+				break;
+			}
+			case (temp <= check[index] / 5): {
+				result += '1D100 ≦ ' + check[index] + "\n" + temp + ' → 極限成功';
+				skillPerStyle = "normal";
+				break;
+			}
+			case (temp <= check[index] / 2): {
+				result += '1D100 ≦ ' + check[index] + "\n" + temp + ' → 困難成功';
+				skillPerStyle = "normal";
+				break;
+			}
+			case (temp <= check[index]): {
+				result += '1D100 ≦ ' + check[index] + "\n" + temp + ' → 通常成功';
+				skillPerStyle = "normal";
+				break;
+			}
+			default:
+				break;
 		}
-		case (temp == 100): {
-			result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 啊！大失敗！';
-			skillPerStyle = "fumble";
-			break;
+
+		if (text[index]) result += '：' + (name[index] || '');
+		result += '\n\n'
+		if (userid && groupid && skillPerStyle !== "failure") {
+			await dpRecorder({ userID: userid, groupid, channelid, skillName: name[index], skillPer: check[index], skillPerStyle, skillResult: temp, userName });
 		}
-		case (temp >= 96 && chack <= 49): {
-			result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 啊！大失敗！';
-			skillPerStyle = "fumble";
-			break;
-		}
-		case (temp > chack): {
-			result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 失敗';
-			skillPerStyle = "failure";
-			break;
-		}
-		case (temp <= chack / 5): {
-			result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 極限成功';
-			skillPerStyle = "normal";
-			break;
-		}
-		case (temp <= chack / 2): {
-			result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 困難成功';
-			skillPerStyle = "normal";
-			break;
-		}
-		case (temp <= chack): {
-			result = '1D100 ≦ ' + chack + "：\n" + temp + ' → 通常成功';
-			skillPerStyle = "normal";
-			break;
-		}
-		default:
-			break;
+
 	}
-	if (text) result += '：' + text;
-	if (userid && groupid && skillPerStyle !== "failure") {
-		await dpRecorder({ userID: userid, groupid, channelid, skillName: text, skillPer: chack, skillPerStyle, skillResult: temp, userName });
-	}
+
+
 	return result;
 }
 
@@ -1122,39 +1137,57 @@ async function coc7chack({ chack, temp, text = "", userid, groupid, channelid, u
 
 
 async function coc7bp({ chack, text, userid, groupid, channelid, bpdiceNum, userName }) {
-	let result = '';
-	let temp0 = rollbase.Dice(10) - 1;
-	let countStr = '';
-	if (bpdiceNum > 0) {
-		for (let i = 0; i <= bpdiceNum; i++) {
-			let temp = rollbase.Dice(10);
-			let temp2 = temp.toString() + temp0.toString();
-			if (temp2 > 100) temp2 = parseInt(temp2) - 100;
-			countStr = countStr + temp2 + '、';
+	try {
+		let result = '';
+		let temp0 = rollbase.Dice(10) - 1;
+		let countStr = '';
+		let check = chack.split(',');
+		let name = (text && text.split(',')) || [];
+		let checkNum = !check.some(i => !Number.isInteger(Number(i)));
+		if (!checkNum) return;
+		if (check.length >= 2) result += '聯合檢定\n'
+		if (bpdiceNum > 0) {
+			for (let i = 0; i <= bpdiceNum; i++) {
+				let temp = rollbase.Dice(10);
+				let temp2 = temp.toString() + temp0.toString();
+				if (temp2 > 100) temp2 = parseInt(temp2) - 100;
+				countStr = countStr + temp2 + '、';
+			}
+			countStr = countStr.substring(0, countStr.length - 1)
+			let countArr = countStr.split('、');
+
+
+			for (let index = 0; index < check.length; index++) {
+				let finallyStr = countStr + ' → ' + await coc7chack(
+					{ chack: check[index], temp: Math.min(...countArr), text: name[index], userid, groupid, channelid, userName }
+				);
+				result += '1D100 ≦ ' + check[index] + "\n" + finallyStr + '\n\n';
+			}
+
+
+			return result;
 		}
-		countStr = countStr.substring(0, countStr.length - 1)
-		let countArr = countStr.split('、');
-		countStr = countStr + ' → ' + await coc7chack(
-			{ chack, temp: Math.min(...countArr), text, userid, groupid, channelid, userName }
-		);
-		result = '1D100 ≦ ' + chack + "：\n" + countStr;
-		return result;
-	}
-	if (bpdiceNum < 0) {
-		bpdiceNum = Math.abs(bpdiceNum);
-		for (let i = 0; i <= bpdiceNum; i++) {
-			let temp = rollbase.Dice(10);
-			let temp2 = temp.toString() + temp0.toString();
-			if (temp2 > 100) temp2 = parseInt(temp2) - 100;
-			countStr = countStr + temp2 + '、';
+		if (bpdiceNum < 0) {
+			bpdiceNum = Math.abs(bpdiceNum);
+			for (let i = 0; i <= bpdiceNum; i++) {
+				let temp = rollbase.Dice(10);
+				let temp2 = temp.toString() + temp0.toString();
+				if (temp2 > 100) temp2 = parseInt(temp2) - 100;
+				countStr = countStr + temp2 + '、';
+			}
+			countStr = countStr.substring(0, countStr.length - 1)
+			let countArr = countStr.split('、');
+
+			for (let index = 0; index < check.length; index++) {
+				let finallyStr = countStr + ' → ' + await coc7chack(
+					{ chack: check[index], temp: Math.max(...countArr), text: name[index], userid, groupid, channelid }
+				);
+				result = '1D100 ≦ ' + check[index] + "\n" + finallyStr + '\n\n';
+			}
+			return result;
 		}
-		countStr = countStr.substring(0, countStr.length - 1)
-		let countArr = countStr.split('、');
-		countStr = countStr + ' → ' + await coc7chack(
-			{ chack, temp: Math.max(...countArr), text, userid, groupid, channelid }
-		);
-		result = '1D100 ≦ ' + chack + "：\n" + countStr;
-		return result;
+	} catch (error) {
+		console.log('error', error)
 	}
 }
 function buildpulpchar() {

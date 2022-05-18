@@ -1035,37 +1035,37 @@ async function coc7({ chack, text = "", userid, groupid, channelid, userName }) 
 	for (let index = 0; index < check.length; index++) {
 		switch (true) {
 			case (temp == 1): {
-				result += '1D100 ≦ ' + check[index] + "\n" + temp + ' → 恭喜！大成功！';
+				result += '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 恭喜！大成功！';
 				skillPerStyle = "criticalSuccess";
 				break;
 			}
 			case (temp == 100): {
-				result = '1D100 ≦ ' + check[index] + "\n" + temp + ' → 啊！大失敗！';
+				result = '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 啊！大失敗！';
 				skillPerStyle = "fumble";
 				break;
 			}
 			case (temp >= 96 && check[index] <= 49): {
-				result += '1D100 ≦ ' + check[index] + "\n" + temp + ' → 啊！大失敗！';
+				result += '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 啊！大失敗！';
 				skillPerStyle = "fumble";
 				break;
 			}
 			case (temp > check[index]): {
-				result += '1D100 ≦ ' + check[index] + "\n" + temp + ' → 失敗';
+				result += '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 失敗';
 				skillPerStyle = "failure";
 				break;
 			}
 			case (temp <= check[index] / 5): {
-				result += '1D100 ≦ ' + check[index] + "\n" + temp + ' → 極限成功';
+				result += '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 極限成功';
 				skillPerStyle = "normal";
 				break;
 			}
 			case (temp <= check[index] / 2): {
-				result += '1D100 ≦ ' + check[index] + "\n" + temp + ' → 困難成功';
+				result += '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 困難成功';
 				skillPerStyle = "normal";
 				break;
 			}
 			case (temp <= check[index]): {
-				result += '1D100 ≦ ' + check[index] + "\n" + temp + ' → 通常成功';
+				result += '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 通常成功';
 				skillPerStyle = "normal";
 				break;
 			}
@@ -1161,7 +1161,7 @@ async function coc7bp({ chack, text, userid, groupid, channelid, bpdiceNum, user
 				let finallyStr = countStr + ' → ' + await coc7chack(
 					{ chack: check[index], temp: Math.min(...countArr), text: name[index], userid, groupid, channelid, userName }
 				);
-				result += '1D100 ≦ ' + check[index] + "\n" + finallyStr + '\n\n';
+				result += '1D100 ≦ ' + check[index] + "　\n" + finallyStr + '\n\n';
 			}
 
 
@@ -1182,7 +1182,7 @@ async function coc7bp({ chack, text, userid, groupid, channelid, bpdiceNum, user
 				let finallyStr = countStr + ' → ' + await coc7chack(
 					{ chack: check[index], temp: Math.max(...countArr), text: name[index], userid, groupid, channelid }
 				);
-				result = '1D100 ≦ ' + check[index] + "\n" + finallyStr + '\n\n';
+				result = '1D100 ≦ ' + check[index] + "  \n" + finallyStr + '\n\n';
 			}
 			return result;
 		}

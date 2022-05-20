@@ -3,18 +3,18 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
 	return;
 }
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
-const {
-	ShardingManager
-} = require('discord.js-light');
-const initCommand = require("./ds-deploy-commands");
-const manager = new ShardingManager('./modules/discord_bot.js', {
+const Cluster = require('discord-hybrid-sharding');
+require("./ds-deploy-commands");
+const manager = new Cluster.Manager('./modules/discord_bot.js', {
 	token: channelSecret,
+	shardsPerClusters: 10,
 	totalShards: "auto",
-	spawnTimeout: -1,
-	respawn: true
+	mode: 'process', // you can also choose "worker"
+	//spawnTimeout: -1,
+	//respawn: true
 });
 
-manager.on('shardCreate', shard => {
+manager.on('clusterCreate', shard => {
 	console.log(`Launched shard #${shard.id}`);
 	shard.on('ready', () => {
 		console.log(`Shard ready. Shard Count: #${shard.manager.totalShards}`)
@@ -38,4 +38,4 @@ manager.on('shardCreate', shard => {
 		console.error(error)
 	})
 });
-manager.spawn();
+manager.spawn({ timeout: -1 });

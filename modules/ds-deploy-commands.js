@@ -18,7 +18,7 @@ loadingSlashCommands();
 
 //removeSlashCommands();
 //testRegisteredSlashCommands();
-registeredGlobalSlashCommands();
+//registeredGlobalSlashCommands();
 
 
 function registeredGlobalSlashCommands() {

@@ -1189,6 +1189,21 @@ async function handlingEditMessage(message, rplyVal) {
 		console.error();
 	}
 }
+
+//TOP.GG 
+const togGGToken = process.env.TOPGG;
+if (togGGToken) {
+	const Topgg = require(`@top-gg/sdk`)
+	const api = new Topgg.Api(togGGToken)
+	this.interval = setInterval(async () => {
+		const guilds = await client.cluster.fetchClientValues("guilds.cache.size");
+		api.postStats({
+			serverCount: guilds.reduce((a, c) => a + c, 0),
+			shardCount: client.cluster.ids.size,
+			shardId: client.cluster.id
+		});
+	}, 50000);
+}
 /**
  *
  * const dataFields = [];

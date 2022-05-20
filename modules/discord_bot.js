@@ -1190,6 +1190,7 @@ async function handlingEditMessage(message, rplyVal) {
 		console.error();
 	}
 }
+
 async function sendCronWebhook({ channelid, replyText, data }) {
 	let webhook = await manageWebhook({ channelId: channelid })
 	//threadId: discord.channelId,
@@ -1201,6 +1202,21 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 	let pair = webhook.isThread ? { threadId: channelid } : {};
 	await webhook.webhook.send({ ...obj, ...pair });
 }
+//TOP.GG 
+const togGGToken = process.env.TOPGG;
+if (togGGToken) {
+	const Topgg = require(`@top-gg/sdk`)
+	const api = new Topgg.Api(togGGToken)
+	this.interval = setInterval(async () => {
+		const guilds = await client.cluster.fetchClientValues("guilds.cache.size");
+		api.postStats({
+			serverCount: guilds.reduce((a, c) => a + c, 0),
+			shardCount: client.cluster.ids.size,
+			shardId: client.cluster.id
+		});
+	}, 300000);
+}
+
 /**
  *
  * const dataFields = [];

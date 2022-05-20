@@ -1202,7 +1202,7 @@ if (togGGToken) {
 			shardCount: client.cluster.ids.size,
 			shardId: client.cluster.id
 		});
-	}, 50000);
+	}, 300000);
 }
 /**
  *

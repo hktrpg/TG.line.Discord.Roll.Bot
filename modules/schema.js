@@ -392,7 +392,10 @@ const agendaAtHKTRPG = mongoose.model('agendaAtHKTRPG', new mongoose.Schema({
     priority: Number,
     type: String,
     nextRunAt: Date,
-    lastModifiedBy: String
+    lastModifiedBy: String,
+    roleName: String,
+    imageLink: String
+
 }, { collection: "agendaAtHKTRPG" }));
 const firstTimeMessage = mongoose.model('firstTimeMessage', new mongoose.Schema({
     userID: String,

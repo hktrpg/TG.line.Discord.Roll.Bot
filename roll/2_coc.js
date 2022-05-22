@@ -1182,7 +1182,7 @@ async function coc7bp({ chack, text, userid, groupid, channelid, bpdiceNum, user
 				let finallyStr = countStr + ' → ' + await coc7chack(
 					{ chack: check[index], temp: Math.max(...countArr), text: name[index], userid, groupid, channelid }
 				);
-				result = '1D100 ≦ ' + check[index] + "  \n" + finallyStr + '\n\n';
+				result += '1D100 ≦ ' + check[index] + "  \n" + finallyStr + '\n\n';
 			}
 			return result;
 		}

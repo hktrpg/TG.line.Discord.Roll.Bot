@@ -143,7 +143,7 @@ bothelp privacy	- 查詢HKTRPG 的隱私權條款🔒
 bothelp about	- 查詢HKTRPG 歷史📜
 --------
 🗂️HKTRPG 作品集, (https://hktrpg.github.io/TG.line.Discord.Roll.Bot/PORTFOLIOP)
-ℹ️如果你需要幫助, 加入我們的支援頻道, (https://discord.gg/vx4kcm7)
+ℹ️如果你需要幫助, 加入我們的支援頻道, (https://support.hktrpg.com)
 ☕贊助伺服器運行及開放VIP資源, (https://www.patreon.com/HKTRPG)`
 			rply.buttonCreate = ['bothelp ver', 'bothelp Base', 'bothelp Dice', 'bothelp Tool', 'bothelp admin', 'bothelp funny', 'bothelp link', 'bothelp privacy', 'bothelp about']
 
@@ -251,7 +251,7 @@ HKTRPG來源自 機器鴨霸獸 https://docs.google.com/document/d/1dYnJqF2_QTp9
 
 		case /^link/i.test(mainMsg[1]):
 			rply.text = `TRPG百科 https://www.hktrpg.com/
-意見留言群 https://discord.gg/vx4kcm7
+意見留言群 https://support.hktrpg.com
 			
 邀請HKTRPG 加入
 Line 邀請連結 http://bit.ly/HKTRPG_LINE

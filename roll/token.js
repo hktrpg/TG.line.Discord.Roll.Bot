@@ -2,6 +2,7 @@
 const variables = {};
 const sharp = require('sharp');
 
+const Jimp = require('jimp');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const gameName = function () {
     return '【製作Token】.token'
@@ -54,22 +55,16 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^\S/.test(mainMsg[1]): {
-            try {
+            await tokernMaker('./test/a.png');
 
-                const output = await sharp('./assets/tarot/00.jpg')
-                    .rotate(180)
-                    .resize(300)
-                    .flatten({ background: '#ff6600' })
-                    .composite([{ input: './views/image/api.png', gravity: 'southeast' }])
-                    .sharpen()
-                    .withMetadata()
-                    .webp({ quality: 90 })
+            await tokernMaker('./test/b.png');
+            await tokernMaker('./test/c.png');
+            await tokernMaker('./test/d.jpg');
+            await tokernMaker('./test/f.jpg');
+            await tokernMaker('./test/g.jpg');
+            await tokernMaker('./test/h.jpg');
+            await tokernMaker('./test/i.jpg');
 
-                    .toBuffer()
-                console.log('output', output)
-            } catch (error) {
-                console.log('error', error)
-            }
             return rply;
         }
         default: {
@@ -77,6 +72,34 @@ const rollDiceCommand = async function ({
         }
     }
 }
+
+const tokernMaker = async (imageLocation) => {
+    try {
+        const d = new Date();
+        let time = d.getTime();
+        let image = await Jimp.read('./views/image/ONLINE_TOKEN.png')
+        let targetImage = await Jimp.read(imageLocation)
+        targetImage.resize(Jimp.AUTO, 390)
+        if (targetImage.bitmap.width < 378)
+            targetImage.resize(378, Jimp.AUTO)
+        targetImage
+            .write(`./TEST${time}_${imageLocation.replaceAll('/', '')}.png`);
+        if (targetImage.bitmap.width > 378)
+            targetImage.crop((targetImage.bitmap.width - 378) / 2, 0, 378, targetImage.bitmap.height);
+
+
+        image.composite(targetImage, 70, 27, {
+            mode: Jimp.BLEND_DESTINATION_OVER
+        })
+        image
+            .write(`./testImageMaskImage_${time}_${imageLocation.replaceAll('/', '')}.png`);
+
+        return image;
+    } catch (error) {
+        console.log('error', error)
+    }
+}
+
 
 const discordCommand = []
 

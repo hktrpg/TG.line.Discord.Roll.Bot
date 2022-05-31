@@ -8,25 +8,35 @@ const tokernMaker = async (imageLocation) => {
 		const d = new Date();
 		let time = d.getTime();
 		let name = `./testImageMaskImage_${time}_${imageLocation.replaceAll('/', '')}.png`
-		let targetImage = await sharp(imageLocation).resize({ height: 380 })
+		let image = await sharp(imageLocation).resize({ height: 380 })
+		await image.toFile(name, async () => {
+			let metadata = await sharp(name).metadata()
+			console.log('metadata1', metadata.width, metadata.height)
 
-		let metadata = await targetImage.metadata()
-
-		if (metadata.width < 390) {
-			await targetImage.resize({ width: 390 })
+			if (metadata.width < 390) {
+				await image.resize({ width: 390 }).toFile(name);
+				metadata = await sharp(name).metadata()
+				console.log('metadata2', metadata.width, metadata.height)
+			}
 			metadata = await sharp(name).metadata()
-		}
-		console.log('metadata', metadata.width, metadata.height)
-		if (metadata.width > 390) {
-			await targetImage.extract({ left: parseInt((metadata.width - 390) / 2), top: 0, width: 390, height: metadata.height }).toFile(name);
-		}
+			console.log('metadata2', metadata.width, metadata.height)
+			if (metadata.width > 390) {
+				console.log('AAA')
+				await image.extract({ left: parseInt((metadata.width - 390) / 2), top: 0, width: 390, height: metadata.height }).resize({ width: 390, height: metadata.height }).toFile(name);
+				metadata = await sharp(name).metadata()
+			}
+			if (metadata.height > 520) {
+				await image.extract({ left: 0, top: 0, width: metadata.width, height: 520 }).resize({ width: metadata.width, height: 520 }).toFile(name);
+			}
+			await sharp('./views/image/ONLINE_TOKEN.png')
+				.composite(
+					[{ input: name }
+					]
+				)
+				.toFile(`./testImageMaskImage234_${time}_${imageLocation.replaceAll('/', '')}.png`);
+		});
 
-		await sharp('./views/image/ONLINE_TOKEN.png')
-			.composite(
-				[{ input: name, top: 27, left: 70, blend: 'saturate' }
-				]
-			)
-			.toFile(`./testImageMaskImage23_${time}_${imageLocation.replaceAll('/', '')}.png`);
+
 
 
 		//	return image;
@@ -34,9 +44,9 @@ const tokernMaker = async (imageLocation) => {
 		console.log('error', error)
 	}
 }
-tokernMaker('./test/a.png');
+//tokernMaker('./test/a.png');
 
-//tokernMaker('./test/b.png');
+tokernMaker('./test/b.png');
 //tokernMaker('./test/c.png');
 //tokernMaker('./test/d.jpg');
 //tokernMaker('./test/f.jpg');

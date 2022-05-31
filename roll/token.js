@@ -1,7 +1,6 @@
 "use strict";
 const variables = {};
 const sharp = require('sharp');
-
 const Jimp = require('jimp');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const gameName = function () {
@@ -82,8 +81,6 @@ const tokernMaker = async (imageLocation) => {
         targetImage.resize(Jimp.AUTO, 390)
         if (targetImage.bitmap.width < 378)
             targetImage.resize(378, Jimp.AUTO)
-        targetImage
-            .write(`./TEST${time}_${imageLocation.replaceAll('/', '')}.png`);
         if (targetImage.bitmap.width > 378)
             targetImage.crop((targetImage.bitmap.width - 378) / 2, 0, 378, targetImage.bitmap.height);
 
@@ -91,7 +88,16 @@ const tokernMaker = async (imageLocation) => {
         image.composite(targetImage, 70, 27, {
             mode: Jimp.BLEND_DESTINATION_OVER
         })
-        image
+        const font = await Jimp.loadFont(Jimp.FONT_SANS_128_BLACK);
+        image.print(
+            font,
+            Jimp.HORIZONTAL_ALIGN_CENTER, Jimp.VERTICAL_ALIGN_BOTTOM,
+            {
+                text: 'Hello world!',
+                alignmentX: 0,
+                alignmentY: 0
+            }
+        )
             .write(`./testImageMaskImage_${time}_${imageLocation.replaceAll('/', '')}.png`);
 
         return image;
@@ -103,23 +109,6 @@ const tokernMaker = async (imageLocation) => {
 
 const discordCommand = []
 
-function transparentmask(circle, app) {
-    //fresh white sprite
-    let sprite = new PIXI.Sprite(PIXI.Texture.WHITE);
-    sprite.tint = 0xffffff;
-    sprite.x = 0;
-    sprite.y = 0;
-    sprite.width = 200;
-    sprite.height = 150;
-    //this will do the trick
-    sprite.blendMode = PIXI.BLEND_MODES.SRC_IN;
-
-    let originalContainer = new PIXI.Container();
-    originalContainer.addChild(circle);
-    originalContainer.addChild(sprite);
-    let genTexture = app.renderer.generateTexture(originalContainer);
-    return new PIXI.Sprite(genTexture);
-}
 module.exports = {
     rollDiceCommand,
     initialize,

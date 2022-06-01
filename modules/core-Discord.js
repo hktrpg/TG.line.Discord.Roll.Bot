@@ -3,56 +3,49 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
 	return;
 }
 const sharp = require('sharp');
+const Jimp = require('jimp');
 const tokernMaker = async (imageLocation) => {
-	try {
-		const d = new Date();
-		let time = d.getTime();
-		let name = `./testImageMaskImage_${time}_${imageLocation.replaceAll('/', '')}.png`
-		let image = await sharp(imageLocation).resize({ height: 380 })
-		await image.toFile(name, async () => {
-			let metadata = await sharp(name).metadata()
-			console.log('metadata1', metadata.width, metadata.height)
-
-			if (metadata.width < 390) {
-				await image.resize({ width: 390 }).toFile(name);
-				metadata = await sharp(name).metadata()
-				console.log('metadata2', metadata.width, metadata.height)
-			}
-			metadata = await sharp(name).metadata()
-			console.log('metadata2', metadata.width, metadata.height)
-			if (metadata.width > 390) {
-				console.log('AAA')
-				await image.extract({ left: parseInt((metadata.width - 390) / 2), top: 0, width: 390, height: metadata.height }).resize({ width: 390, height: metadata.height }).toFile(name);
-				metadata = await sharp(name).metadata()
-			}
-			if (metadata.height > 520) {
-				await image.extract({ left: 0, top: 0, width: metadata.width, height: 520 }).resize({ width: metadata.width, height: 520 }).toFile(name);
-			}
-			await sharp('./views/image/ONLINE_TOKEN.png')
-				.composite(
-					[{ input: name }
-					]
-				)
-				.toFile(`./testImageMaskImage234_${time}_${imageLocation.replaceAll('/', '')}.png`);
-		});
+    try {
+        const d = new Date();
+        let time = d.getTime();
+        let image = await Jimp.read('./views/image/ONLINE_TOKEN.png')
+        let targetImage = await Jimp.read(imageLocation)
+        targetImage.resize(Jimp.AUTO, 390)
+        if (targetImage.bitmap.width < 378)
+            targetImage.resize(378, Jimp.AUTO)
+        if (targetImage.bitmap.width > 378)
+            targetImage.crop((targetImage.bitmap.width - 378) / 2, 0, 378, targetImage.bitmap.height);
 
 
+        image.composite(targetImage, 70, 27, {
+            mode: Jimp.BLEND_DESTINATION_OVER
+        })
+        const font = await Jimp.loadFont(Jimp.FONT_SANS_128_BLACK);
+        image.print(
+            font,
+            Jimp.HORIZONTAL_ALIGN_CENTER, Jimp.VERTICAL_ALIGN_BOTTOM,
+            {
+                text: '太惡',
+                alignmentX: 0,
+                alignmentY: 0
+            }
+        )
+            .write(`./testImageMaskImage_${time}_${imageLocation.replaceAll('/', '')}.png`);
 
-
-		//	return image;
-	} catch (error) {
-		console.log('error', error)
-	}
+        return image;
+    } catch (error) {
+        console.log('error', error)
+    }
 }
-//tokernMaker('./test/a.png');
+tokernMaker('./test/a.png');
 
 tokernMaker('./test/b.png');
-//tokernMaker('./test/c.png');
-//tokernMaker('./test/d.jpg');
-//tokernMaker('./test/f.jpg');
-//tokernMaker('./test/g.jpg');
-//tokernMaker('./test/h.jpg');
-//tokernMaker('./test/i.jpg');
+tokernMaker('./test/c.png');
+tokernMaker('./test/d.jpg');
+tokernMaker('./test/f.jpg');
+tokernMaker('./test/g.jpg');
+tokernMaker('./test/h.jpg');
+tokernMaker('./test/i.jpg');
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const Cluster = require('discord-hybrid-sharding');
 require("./ds-deploy-commands");

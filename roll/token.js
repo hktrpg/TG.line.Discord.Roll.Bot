@@ -1,10 +1,10 @@
 "use strict";
 const variables = {};
 const sharp = require('sharp');
-const Jimp = require('jimp');
-const webp = require('webp-converter');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const axios = require('axios');
+
+
 const gameName = function () {
     return '【製作Token】.token'
 }
@@ -50,31 +50,27 @@ const rollDiceCommand = async function ({
         text: ''
     };
     switch (true) {
-        case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
+        case /^help$/i.test(mainMsg[1]): {
             rply.text = this.getHelpMessage();
             rply.quotes = true;
             return rply;
         }
-        case /^\S/.test(mainMsg[1]): {
+        case /^\S/.test(mainMsg[1]) || !mainMsg[1]: {
             //get avatar  or reply message image
-            console.log('discordClient', discordMessage)
-            const member = await discordMessage.guild.members.fetch(discordMessage.author)
-            //   nickname
-            let nickname = member ? member.displayName : discordMessage.author.username;
-            let avatar = member.displayAvatarURL();
+            console.log('discordClient', discordMessage, inputStr, mainMsg)
+            //attachments[0].value.attachment contentType.match('image')
+            const text = await getName(discordMessage, inputStr, mainMsg)
+            console.log('text', text)
+            const avatar = await getAvatar(discordMessage)
             console.log('avatar', avatar)
-            console.log('nickname', nickname)
-            const response = await axios.get(encodeURI(avatar), { timeout: 20000 });
-            console.log('response', response)
-            const result = await sharp(response).toFile("./temp/nodejs_logo.png");
-
-            let name = await tokernMaker('./test/a.png');
+            const response = await getImage(avatar);
+            const token = await tokernMaker(response);
+            console.log('token', token)
             let retries = 5;
             let success = false;
-            while (retries-- > 0 && !(success = await addTextOnImage(name, mainMsg[1], mainMsg[2]))) {
+            while (retries-- > 0 && !(success = await addTextOnImage(token, text.text, text.secondLine))) {
                 await sleep(500);
             }
-            //final send the image4
             return rply;
         }
         default: {
@@ -82,37 +78,70 @@ const rollDiceCommand = async function ({
         }
     }
 }
+const getAvatar = async (discordMessage, inputStr, mainMsg) => {
+    console.log('discordMessage.attachments.length', discordMessage.attachments.size)
+    if (discordMessage.type == 'DEFAULT' && discordMessage.attachments.size == 0) {
+        const member = await discordMessage.guild.members.fetch(discordMessage.author)
+        return member.displayAvatarURL();
+    }
+    if (discordMessage.type == 'DEFAULT' && discordMessage.attachments.size > 0) {
+        const url = discordMessage.attachments.find(data => data.contentType.match(/image/i))
+        return (url && url.url) || null;
+    }
+    if (discordMessage.type == 'REPLY') {
 
+    }
+}
+
+const getName = async (discordMessage, inputStr, mainMsg) => {
+    if (!mainMsg[1]) {
+        const member = await discordMessage.guild.members.fetch(discordMessage.author)
+        let nickname = member ? member.displayName : discordMessage.author.username;
+        return { text: nickname, secondLine: '' }
+    }
+    else {
+        return { text: inputStr.split("\n")[0].replace(/\w+\s?/, ''), secondLine: inputStr.split("\n")[1] || '' }
+    }
+
+}
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+const getImage = async url => {
+    //	const response = await axios(url, { responseType: 'arraybuffer' })
+    //	const buffer64 = Buffer.from(response.data, 'binary').toString('base64')
+    //	return buffer64
+    return (await axios({ url, responseType: "arraybuffer" })).data;
+}
 const tokernMaker = async (imageLocation) => {
     try {
+        //	let imageSteam = await getImage('https://i1.sndcdn.com/artworks-RS7ebM7TRAFPHKKU-7mHBgg-t500x500.jpg')
+        //		console.log('imageSteam', imageSteam)
         const d = new Date();
         let time = d.getTime();
-        let name = `token_${time}_${imageLocation.replaceAll('/', '')}.png`
-        let image = await Jimp.read('./views/image/ONLINE_TOKEN.png')
-        let targetImage = await Jimp.read(imageLocation)
-        targetImage.resize(Jimp.AUTO, 390)
-        if (targetImage.bitmap.width < 378)
-            targetImage.resize(378, Jimp.AUTO)
-        if (targetImage.bitmap.width > 378)
-            targetImage.crop((targetImage.bitmap.width - 378) / 2, 0, 378, targetImage.bitmap.height);
-        await image.composite(targetImage, 70, 27, {
-            mode: Jimp.BLEND_DESTINATION_OVER
-        })
-            .write(`./temp/temp_${name}`);
-        return name;
+        let name = `tempImage_${time}.png`
+        let image = await sharp(imageLocation).resize({ height: 387, width: 375, fit: 'outside' })
+        await image.toFile(`./test/new_${name}`)
+        let newImage = await sharp((`./test/new_${name}`))
+        let metadata = await newImage.metadata();
+        let width = (metadata.width < 375) ? metadata.width : 375;
+        let height = (metadata.height < 387) ? metadata.height : 387;
+        newImage = await newImage.extract({ left: sharp.gravity.center, top: sharp.gravity.center, width, height }).toBuffer()
+        newImage = await sharp('./views/image/ONLINE_TOKEN.png')
+            .composite(
+                [{ input: newImage, blend: 'saturate', top: 28, left: 73 }
+                ]
+            )
+            .toBuffer()
+        return newImage;
     } catch (error) {
         console.log('error', error)
     }
 }
 
-async function addTextOnImage(name, text, text2) {
+async function addTextOnImage(token, text = ' ', text2 = ' ') {
     try {
-        let med = await sharp(`./temp/temp_${name}`).metadata();
-        const width = med.width;
-        const height = med.height;
         const svgImage = `
-	  <svg width="${width}" height="${height}">
+	  <svg width="520" height="520">
 		<style>
 		.outline {     paint-order: stroke;     stroke: black;     stroke-width: 5px; }
 		.title { fill: #bbafaf; font-size: 62px; font-weight: bold;}
@@ -127,7 +156,7 @@ async function addTextOnImage(name, text, text2) {
 	  </svg>
 	  `;
         const svgBuffer = Buffer.from(svgImage);
-        await sharp(`./temp/temp_${name}`)
+        await sharp(token)
             .composite([
                 {
                     input: svgBuffer,
@@ -135,7 +164,7 @@ async function addTextOnImage(name, text, text2) {
                     left: 0,
                 },
             ])
-            .toFile(`./temp/token_${name}`);
+            .toFile(`./temp/token_a.png`);
         return true;
 
     } catch (error) {

@@ -153,6 +153,7 @@ bothelp about	- 查詢HKTRPG 歷史📜
 最近更新: 
 2019/07/21 香港克警合作 黑ICON紀念
 ...前略...
+2022/05 https://www.patreon.com/posts/hktrpg-wu-yue-66190934
 2022/04	https://www.patreon.com/posts/hktrpg-4yue-geng-65565589
 2022/03	https://www.patreon.com/posts/3yue-geng-xin-64158733
 2022/02	https://www.patreon.com/posts/2yue-geng-xin-62329216

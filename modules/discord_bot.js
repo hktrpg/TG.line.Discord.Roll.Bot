@@ -1206,7 +1206,7 @@ if (togGGToken) {
 	this.interval = setInterval(async () => {
 		const guilds = await client.cluster.fetchClientValues("guilds.cache.size");
 		api.postStats({
-			serverCount: guilds.reduce((a, c) => a + c, 0),
+			serverCount: parseInt(guilds.reduce((a, c) => a + c, 0) / (Cluster.data.TOTAL_SHARDS)),
 			shardCount: client.cluster.ids.size,
 			shardId: client.cluster.id
 		});

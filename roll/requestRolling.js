@@ -1,4 +1,7 @@
 "use strict";
+if (!process.env.DISCORD_CHANNEL_SECRET) {
+    return;
+}
 const variables = {};
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const gameName = function () {

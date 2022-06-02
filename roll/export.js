@@ -1,4 +1,7 @@
 "use strict";
+if (!process.env.DISCORD_CHANNEL_SECRET) {
+    return;
+}
 var variables = {};
 const oneMinuts = (process.env.DEBUG) ? 1 : 60000;
 const sevenDay = (process.env.DEBUG) ? 1 : 60 * 24 * 7 * 60000;

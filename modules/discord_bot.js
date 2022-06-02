@@ -7,7 +7,7 @@ const adminSecret = process.env.ADMIN_SECRET || '';
 const Cluster = require('discord-hybrid-sharding');
 const Discord = require("discord.js-light");
 const fs = require('node:fs');
-const { Client, Intents, Permissions, Collection, MessageActionRow, MessageButton, WebhookClient } = Discord;
+const { Client, Intents, Permissions, Collection, MessageActionRow, MessageButton, WebhookClient, MessageAttachment } = Discord;
 const rollText = require('./getRoll').rollText;
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
 exports.z_stop = require('../roll/z_stop');
@@ -974,6 +974,9 @@ async function handlingResponMessage(message, answer = '') {
 		if (rplyVal.myNames) await repeatMessages(message, rplyVal);
 
 		if (rplyVal.sendNews) sendNewstoAll(rplyVal);
+
+		if (rplyVal.sendImage) sendBufferImage(message, rplyVal)
+
 		if (!rplyVal.text && !rplyVal.LevelUp) {
 			return;
 		}
@@ -985,13 +988,7 @@ async function handlingResponMessage(message, answer = '') {
 		} catch (error) {
 			console.error(`discord bot error #236`, error)
 		}
-		/**
-		schedule 功能
-		if (rplyVal.schedule && rplyVal.schedule.switch) {
-			console.log('rplyVal.schedule', rplyVal.schedule)
-				rplyVal.schedule.style == 'at' ? 
-		}
-		*/
+
 		if (rplyVal.state) {
 			rplyVal.text += '\n' + await count();
 			rplyVal.text += '\nPing: ' + Number(Date.now() - message.createdTimestamp) + 'ms';
@@ -1043,6 +1040,11 @@ async function handlingResponMessage(message, answer = '') {
 	} catch (error) {
 		console.error('handlingResponMessage Error: ', error)
 	}
+}
+const sendBufferImage = async (message, rplyVal) => {
+	await message.channel.send({ content: '你的Token 已經送到', files: [{ attachment: rplyVal.sendImage }] });
+	fs.unlinkSync(rplyVal.sendImage);
+	return;
 }
 
 async function handlingSendMessage(input) {

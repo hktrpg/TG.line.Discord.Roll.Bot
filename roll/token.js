@@ -1,8 +1,12 @@
 "use strict";
+if (!process.env.DISCORD_CHANNEL_SECRET) {
+    return;
+}
 const variables = {};
 const sharp = require('sharp');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const axios = require('axios');
+const fs = require('fs');
 
 
 const gameName = function () {
@@ -13,19 +17,23 @@ const gameType = function () {
     return 'Tool:Token:hktrpg'
 }
 const prefixs = function () {
-    //[mainMSG[0]的prefixs,mainMSG[1]的prefixs,   <---這裡是一對  
-    //mainMSG[0]的prefixs,mainMSG[1]的prefixs  ]  <---這裡是一對
-    //如前面是 /^1$/ig, 後面是/^1D100$/ig, 即 prefixs 變成 1 1D100 
-    ///^(?=.*he)(?!.*da).*$/ig
     return [{
-        first: /^token$/i,
+        first: /^\.token$/i,
         second: null
     }]
 }
 const getHelpMessage = function () {
-    return `【製作Token】
-只是一個Demo的第一行
-只是一個Demo末行
+    return `【製作Token】.token
+用來製作跑團Token的功能
+可以自定兩行名字和圖片內容
+
+使用方法:
+reply 或傳送一張圖片時，輸入.token 不然會使用你的頭像 作為token
+然後一行一句內容，作為圖片上的名字
+如.token 
+Sad
+HKTRPG
+
 `
 }
 const initialize = function () {
@@ -35,14 +43,7 @@ const initialize = function () {
 const rollDiceCommand = async function ({
     inputStr,
     mainMsg,
-    groupid,
-    userid,
-    userrole,
-    botname,
-    displayname,
-    channelid,
-    displaynameDiscord,
-    membercount, discordMessage
+    discordMessage
 }) {
     let rply = {
         default: 'on',
@@ -57,20 +58,24 @@ const rollDiceCommand = async function ({
         }
         case /^\S/.test(mainMsg[1]) || !mainMsg[1]: {
             //get avatar  or reply message image
-            console.log('discordClient', discordMessage, inputStr, mainMsg)
-            //attachments[0].value.attachment contentType.match('image')
             const text = await getName(discordMessage, inputStr, mainMsg)
-            console.log('text', text)
             const avatar = await getAvatar(discordMessage)
-            console.log('avatar', avatar)
-            const response = await getImage(avatar);
-            const token = await tokernMaker(response);
-            console.log('token', token)
-            let retries = 5;
-            let success = false;
-            while (retries-- > 0 && !(success = await addTextOnImage(token, text.text, text.secondLine))) {
-                await sleep(500);
+            if (!avatar) {
+                rply.text = `沒有找到reply 的圖示, 請再次檢查 \n\n${this.getHelpMessage()}`
             }
+            const response = await getImage(avatar);
+
+            const d = new Date();
+            let time = d.getTime();
+            let name = `temp_${time}_${text.text}.png`
+
+            const token = await tokernMaker(response, name);
+
+            let newImage = await addTextOnImage(token, text.text, text.secondLine, name)
+            if (!newImage) {
+                rply.text = `製作失敗，可能出現某些錯誤。 \n\n${this.getHelpMessage()}`
+            }
+            rply.sendImage = `./temp/finally_${name}`;
             return rply;
         }
         default: {
@@ -78,8 +83,7 @@ const rollDiceCommand = async function ({
         }
     }
 }
-const getAvatar = async (discordMessage, inputStr, mainMsg) => {
-    console.log('discordMessage.attachments.length', discordMessage.attachments.size)
+const getAvatar = async (discordMessage) => {
     if (discordMessage.type == 'DEFAULT' && discordMessage.attachments.size == 0) {
         const member = await discordMessage.guild.members.fetch(discordMessage.author)
         return member.displayAvatarURL();
@@ -89,22 +93,27 @@ const getAvatar = async (discordMessage, inputStr, mainMsg) => {
         return (url && url.url) || null;
     }
     if (discordMessage.type == 'REPLY') {
-
+        let replyMessage = await discordMessage.fetchReference();
+        const url = replyMessage.attachments.find(data => data.contentType.match(/image/i))
+        return (url && url.url) || null;
     }
 }
 
-const getName = async (discordMessage, inputStr, mainMsg) => {
-    if (!mainMsg[1]) {
-        const member = await discordMessage.guild.members.fetch(discordMessage.author)
-        let nickname = member ? member.displayName : discordMessage.author.username;
-        return { text: nickname, secondLine: '' }
-    }
-    else {
-        return { text: inputStr.split("\n")[0].replace(/\w+\s?/, ''), secondLine: inputStr.split("\n")[1] || '' }
+const getName = async (discordMessage, inputStr) => {
+    /**  if (!mainMsg[1]) {
+          const member = await discordMessage.guild.members.fetch(discordMessage.author)
+          let nickname = member ? member.displayName : discordMessage.author.username;
+          return { text: nickname, secondLine: '' }
+      }
+      else */
+    {
+        let line = inputStr.replace(/^\s?\S+\s?/, '').split("\n");
+        if (line[2]) line.shift();
+        return { text: line[0], secondLine: line[1] || '' }
     }
 
 }
-const sleep = ms => new Promise(r => setTimeout(r, ms));
+
 
 const getImage = async url => {
     //	const response = await axios(url, { responseType: 'arraybuffer' })
@@ -112,16 +121,12 @@ const getImage = async url => {
     //	return buffer64
     return (await axios({ url, responseType: "arraybuffer" })).data;
 }
-const tokernMaker = async (imageLocation) => {
+const tokernMaker = async (imageLocation, name) => {
     try {
-        //	let imageSteam = await getImage('https://i1.sndcdn.com/artworks-RS7ebM7TRAFPHKKU-7mHBgg-t500x500.jpg')
-        //		console.log('imageSteam', imageSteam)
-        const d = new Date();
-        let time = d.getTime();
-        let name = `tempImage_${time}.png`
+
         let image = await sharp(imageLocation).resize({ height: 387, width: 375, fit: 'outside' })
-        await image.toFile(`./test/new_${name}`)
-        let newImage = await sharp((`./test/new_${name}`))
+        await image.toFile(`./temp/new_${name}`)
+        let newImage = await sharp((`./temp/new_${name}`))
         let metadata = await newImage.metadata();
         let width = (metadata.width < 375) ? metadata.width : 375;
         let height = (metadata.height < 387) ? metadata.height : 387;
@@ -132,13 +137,14 @@ const tokernMaker = async (imageLocation) => {
                 ]
             )
             .toBuffer()
+        fs.unlinkSync(`./temp/new_${name}`);
         return newImage;
     } catch (error) {
-        console.log('error', error)
+        console.log('#token 142 error', error)
     }
 }
 
-async function addTextOnImage(token, text = ' ', text2 = ' ') {
+async function addTextOnImage(token, text = ' ', text2 = ' ', name) {
     try {
         const svgImage = `
 	  <svg width="520" height="520">
@@ -156,7 +162,7 @@ async function addTextOnImage(token, text = ' ', text2 = ' ') {
 	  </svg>
 	  `;
         const svgBuffer = Buffer.from(svgImage);
-        await sharp(token)
+        let image = await sharp(token)
             .composite([
                 {
                     input: svgBuffer,
@@ -164,17 +170,17 @@ async function addTextOnImage(token, text = ' ', text2 = ' ') {
                     left: 0,
                 },
             ])
-            .toFile(`./temp/token_a.png`);
+        await image.toFile(`./temp/finally_${name}`)
         return true;
-
     } catch (error) {
-        // console.log(error);
-        return false;
+        return null;
     }
 }
 
 
-const discordCommand = []
+const discordCommand = [
+
+];
 
 module.exports = {
     rollDiceCommand,

@@ -164,7 +164,7 @@ client.on('interactionCreate', async message => {
 				const answer = handlingButtonCommand(message)
 				const result = await handlingResponMessage(message, answer);
 				const messageContent = message.message.content;
-				const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
+				const displayname = (message.member && message.member.id) ? `🕯️<@${message.member.id}>\n` : '';
 				if (/的角色卡$/.test(messageContent)) {
 					if (result.text) { return await message.reply({ content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${result.text}`, ephemeral: false }).catch() }
 					else {
@@ -192,7 +192,7 @@ client.on('interactionCreate', async message => {
 	}
 });
 async function replilyMessage(message, result) {
-	const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
+	const displayname = (message.member && message.member.id) ? `🕯️<@${message.member.id}>\n` : '';
 	if (message.replied) {
 		if (result && result.text) {
 			return await message.reply({ content: `${displayname}${result.text}`, ephemeral: false })
@@ -996,7 +996,7 @@ async function handlingResponMessage(message, answer = '') {
 		}
 
 		if (groupid && rplyVal && rplyVal.LevelUp) {
-			await SendToReplychannel({ replyText: `<@${userid}>\n${rplyVal.LevelUp}`, channelid });
+			await SendToReplychannel({ replyText: `🕯️<@${userid}>\n${rplyVal.LevelUp}`, channelid });
 		}
 
 		if (rplyVal.discordExport) {
@@ -1042,7 +1042,7 @@ async function handlingResponMessage(message, answer = '') {
 	}
 }
 const sendBufferImage = async (message, rplyVal, userid) => {
-	await message.channel.send({ content: `<@${userid}>\n你的Token 已經送到`, files: [{ attachment: rplyVal.sendImage }] });
+	await message.channel.send({ content: `🕯️<@${userid}>\n你的Token 已經送到`, files: [{ attachment: rplyVal.sendImage }] });
 	fs.unlinkSync(rplyVal.sendImage);
 	return;
 }
@@ -1074,10 +1074,10 @@ async function handlingSendMessage(input) {
 			//
 			if (groupid) {
 				await SendToReplychannel(
-					{ replyText: "<@" + userid + '> 暗骰給自己', channelid })
+					{ replyText: "🕯️<@" + userid + '> 暗骰給自己', channelid })
 			}
 			if (userid) {
-				sendText = "<@" + userid + "> 的暗骰\n" + sendText
+				sendText = "🕯️<@" + userid + "> 的暗骰\n" + sendText
 				SendToReply(
 					{ replyText: sendText, message });
 			}
@@ -1090,10 +1090,10 @@ async function handlingSendMessage(input) {
 					targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
 				}
 				await SendToReplychannel(
-					{ replyText: "<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp, channelid });
+					{ replyText: "🕯️<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp, channelid });
 			}
 			if (userid) {
-				sendText = "<@" + userid + "> 的暗骰\n" + sendText;
+				sendText = "🕯️<@" + userid + "> 的暗骰\n" + sendText;
 			}
 			SendToReply({ replyText: sendText, message });
 			for (let i = 0; i < TargetGMTempID.length; i++) {
@@ -1110,16 +1110,16 @@ async function handlingSendMessage(input) {
 					targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
 				}
 				await SendToReplychannel(
-					{ replyText: "<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp, channelid })
+					{ replyText: "🕯️<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp, channelid })
 			}
-			sendText = "<@" + userid + "> 的暗骰\n" + sendText
+			sendText = "🕯️<@" + userid + "> 的暗骰\n" + sendText
 			for (let i = 0; i < TargetGMTempID.length; i++) {
 				SendToId(TargetGMTempID[i], sendText);
 			}
 			return;
 		default:
 			if (userid) {
-				sendText = `<@${userid}> ${(statue) ? statue : ''}\n${sendText}`;
+				sendText = `🕯️<@${userid}> ${(statue) ? statue : ''}\n${sendText}`;
 			}
 			if (groupid) {
 				await SendToReplychannel({ replyText: sendText, channelid, quotes: quotes, buttonCreate: buttonCreate });

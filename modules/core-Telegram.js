@@ -144,7 +144,7 @@ TGclient.on('text', async (ctx) => {
 
 	//LevelUp功能
 	if (groupid && rplyVal && rplyVal.LevelUp) {
-		let text = `@${displayname}${(rplyVal.statue) ? ' ' + rplyVal.statue : ''}
+		let text = `🕯️@${displayname}${(rplyVal.statue) ? ' ' + rplyVal.statue : ''}
 		${rplyVal.LevelUp}`
 		SendToId(groupid, text);
 
@@ -167,9 +167,9 @@ TGclient.on('text', async (ctx) => {
 			// 輸入dr  (指令) 私訊自己
 			//
 			if (ctx.chat.type != 'private') {
-				SendToId(groupid, "@" + displayname + ' 暗骰給自己');
+				SendToId(groupid, "🕯️@" + displayname + ' 暗骰給自己');
 			}
-			rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
+			rplyVal.text = "🕯️@" + displayname + " 的暗骰\n" + rplyVal.text
 			SendToId(userid, rplyVal.text);
 			break;
 		case privatemsg == 2:
@@ -179,9 +179,9 @@ TGclient.on('text', async (ctx) => {
 				for (let i = 0; i < TargetGMTempID.length; i++) {
 					targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
 				}
-				SendToId(groupid, "@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
+				SendToId(groupid, "🕯️@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
 			}
-			rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
+			rplyVal.text = "🕯️@" + displayname + " 的暗骰\n" + rplyVal.text;
 			SendToId(userid, rplyVal.text);
 			for (let i = 0; i < TargetGMTempID.length; i++) {
 				if (userid != TargetGMTempID[i])
@@ -195,9 +195,9 @@ TGclient.on('text', async (ctx) => {
 				for (let i = 0; i < TargetGMTempID.length; i++) {
 					targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
 				}
-				SendToId(groupid, "@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp);
+				SendToId(groupid, "🕯️@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp);
 			}
-			rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
+			rplyVal.text = "🕯️@" + displayname + " 的暗骰\n" + rplyVal.text;
 			for (let i = 0; i < TargetGMTempID.length; i++) {
 				SendToId(TargetGMTempID[i], rplyVal.text);
 			}
@@ -205,7 +205,7 @@ TGclient.on('text', async (ctx) => {
 		default:
 			if (displaynamecheck && displayname) {
 				//285083923223
-				displayname = "@" + ctx.from.username + (rplyVal.statue) ? ' ' + rplyVal.statue : '' + "\n";
+				displayname = "🕯️@" + ctx.from.username + (rplyVal.statue) ? ' ' + rplyVal.statue : '' + "\n";
 				rplyVal.text = displayname + rplyVal.text;
 			}
 			SendToId(groupid || userid, rplyVal.text);
@@ -273,7 +273,7 @@ async function nonDice(ctx) {
 		}
 		let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount, tgDisplayname);
 		if (groupid && LevelUp && LevelUp.text) {
-			SendToId(groupid, `@${displayname}  ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`);
+			SendToId(groupid, `🕯️@${displayname}  ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`);
 		}
 	}
 	return null;

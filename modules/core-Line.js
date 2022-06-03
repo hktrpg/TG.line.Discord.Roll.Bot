@@ -193,12 +193,12 @@ var handleEvent = async function (event) {
 			// 輸入dr  (指令) 私訊自己
 			if (roomorgroupid && userid)
 				if (displayname)
-					replyMessagebyReplyToken(event, "@" + displayname + ' 暗骰給自己');
+					replyMessagebyReplyToken(event, "🕯️ @" + displayname + ' 暗骰給自己');
 				else
 					replyMessagebyReplyToken(event, '正在暗骰給自己');
 			if (userid)
 				if (displayname)
-					SendToId(userid, "@" + displayname + '的暗骰\n' + rplyVal.text);
+					SendToId(userid, "🕯️ @" + displayname + '的暗骰\n' + rplyVal.text);
 				else
 					SendToId(userid, rplyVal.text);
 			break;
@@ -211,14 +211,14 @@ var handleEvent = async function (event) {
 					targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
 				}
 				if (displayname) {
-					replyMessagebyReplyToken(event, "@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
+					replyMessagebyReplyToken(event, "🕯️ @" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
 				} else
 					replyMessagebyReplyToken(event, ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
 			}
 
 			//有名字就顯示
 			if (displayname) {
-				rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
+				rplyVal.text = "🕯️ @" + displayname + " 的暗骰\n" + rplyVal.text;
 			}
 			//傳給自己
 			SendToId(userid, rplyVal.text);
@@ -237,13 +237,13 @@ var handleEvent = async function (event) {
 					targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
 				}
 				if (displayname) {
-					replyMessagebyReplyToken(event, "@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
+					replyMessagebyReplyToken(event, "🕯️ @" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
 				} else {
 					replyMessagebyReplyToken(event, ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
 				}
 			}
 			if (displayname)
-				rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
+				rplyVal.text = "🕯️ @" + displayname + " 的暗骰\n" + rplyVal.text
 			for (let i = 0; i < TargetGMTempID.length; i++) {
 				SendToId(TargetGMTempID[i], rplyVal.text);
 			}
@@ -251,7 +251,7 @@ var handleEvent = async function (event) {
 		default:
 			if (displayname && rplyVal && rplyVal.type != 'image') {
 				//285083923223
-				displayname = "@" + displayname;
+				displayname = "🕯️ @" + displayname;
 				displayname += (rplyVal.statue) ? ' ' + rplyVal.statue + '\n' : "\n";
 				rplyVal.text = displayname + rplyVal.text;
 			}

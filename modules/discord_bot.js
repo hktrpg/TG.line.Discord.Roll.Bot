@@ -86,7 +86,7 @@ client.once('ready', async () => {
 });
 
 client.on('ready', async () => {
-	client.user.setActivity('🌼bothelp | hktrpg.com🍎');
+	client.user.setActivity('🕯️bothelp | hktrpg.com🍎');
 	console.log(`Discord: Logged in as ${client.user.tag}!`);
 	var switchSetActivity = 0;
 	// eslint-disable-next-line no-unused-vars
@@ -103,7 +103,7 @@ client.on('ready', async () => {
 	const refreshId2 = setInterval(async () => {
 		switch (switchSetActivity % 2) {
 			case 1:
-				client.user.setActivity('🌼bothelp | hktrpg.com🍎');
+				client.user.setActivity('🕯️bothelp | hktrpg.com🍎');
 				break;
 			default:
 				client.user.setActivity(await count2());
@@ -455,7 +455,7 @@ async function count() {
 
 }
 async function count2() {
-	if (!client.cluster) return '🌼bothelp | hktrpg.com🍎';
+	if (!client.cluster) return '🕯️bothelp | hktrpg.com🍎';
 	const promises = [
 		client.cluster.fetchClientValues('guilds.cache.size'),
 		client.cluster
@@ -470,7 +470,7 @@ async function count2() {
 		})
 		.catch((err) => {
 			console.error(`disocrdbot #617 error ${err}`)
-			return '🌼bothelp | hktrpg.com🍎';
+			return '🕯️bothelp | hktrpg.com🍎';
 		});
 }
 

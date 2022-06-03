@@ -975,7 +975,7 @@ async function handlingResponMessage(message, answer = '') {
 
 		if (rplyVal.sendNews) sendNewstoAll(rplyVal);
 
-		if (rplyVal.sendImage) sendBufferImage(message, rplyVal)
+		if (rplyVal.sendImage) sendBufferImage(message, rplyVal, userid)
 
 		if (!rplyVal.text && !rplyVal.LevelUp) {
 			return;
@@ -1041,8 +1041,8 @@ async function handlingResponMessage(message, answer = '') {
 		console.error('handlingResponMessage Error: ', error)
 	}
 }
-const sendBufferImage = async (message, rplyVal) => {
-	await message.channel.send({ content: '你的Token 已經送到', files: [{ attachment: rplyVal.sendImage }] });
+const sendBufferImage = async (message, rplyVal, userid) => {
+	await message.channel.send({ content: `<@${userid}>\n你的Token 已經送到`, files: [{ attachment: rplyVal.sendImage }] });
 	fs.unlinkSync(rplyVal.sendImage);
 	return;
 }

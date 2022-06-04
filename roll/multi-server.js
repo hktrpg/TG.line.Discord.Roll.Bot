@@ -89,7 +89,13 @@ const rollDiceCommand = async function ({
                 if (groupid) return;
                 const channel = await discordClient.channels.fetch(mainMsg[3])
                 const member = await channel.fetch(userid)
-                const v = member.members.find(v => v)
+                console.log('member', member)
+                let v;
+                try {
+                    v = (member.members && member.members.find(v => v))
+                } catch (error) {
+                    v = member;
+                }
                 const role = channel.permissionsFor(v).has(Permissions.FLAGS.MANAGE_CHANNELS)
                 if (!role) return;
                 await schema.multiServer.findOneAndUpdate({ guildID: channel.guildId }, { channelid: mainMsg[3], multiId: mainMsg[2], guildID: channel.guildId, guildName: channel.guild.name, channelName: channel.name }, { upsert: true }).catch(error => {

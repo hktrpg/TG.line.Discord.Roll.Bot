@@ -450,8 +450,17 @@ const bcdiceRegedit = mongoose.model('bcdiceRegedit', new mongoose.Schema({
     trpgId: String
 }));
 
+const multiServer = mongoose.model('multiServer', new mongoose.Schema({
+    channelid: String,
+    multiId: String,
+    guildName: String,
+    channelName: String,
+    guildID: String
+}));
+
 module.exports = {
     randomAns,
+    multiServer,
     block,
     chattest,
     randomAnsAllgroup,

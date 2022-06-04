@@ -1225,7 +1225,7 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 	let pair = webhook.isThread ? { threadId: channelid } : {};
 	await webhook.webhook.send({ ...obj, ...pair });
 }
-const handlingMultiServerMessage = async (message) => {
+async function handlingMultiServerMessage(message) {
 	let target = await schema.multiServer.findOne({ channelid: message.channel.id }).catch(error => {
 		console.error('discordbojs #1230 mongoDB error: ', error.name, error.reson)
 	});

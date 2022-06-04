@@ -1246,7 +1246,7 @@ async function handlingMultiServerMessage(message) {
 	} else
 		return;
 }
-const multiServerTarget = (message) => {
+function multiServerTarget(message) {
 	const obj = {
 		content: message.content,
 		username: message._member.nickname || message._member.displayName,

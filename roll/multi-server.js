@@ -92,7 +92,7 @@ const rollDiceCommand = async function ({
                 console.log('member', member)
                 let v;
                 try {
-                    v = (member.members && member.members.find(v => v))
+                    v = (member.members && member.members.find(data => data))
                 } catch (error) {
                     v = member;
                 }

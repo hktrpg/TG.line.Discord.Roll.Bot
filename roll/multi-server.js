@@ -1,10 +1,15 @@
 "use strict";
+if (!process.env.DISCORD_CHANNEL_SECRET) {
+    return;
+}
 const variables = {};
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const schema = require('../modules/schema')
 const rollbase = require('./rollbase.js');
+const Discord = require("discord.js-light");
+const { Permissions } = Discord;
 const gameName = function () {
-    return '【同步聊天】'
+    return '【同步聊天】.chatroom'
 }
 
 const gameType = function () {
@@ -16,14 +21,15 @@ const prefixs = function () {
     //如前面是 /^1$/ig, 後面是/^1D100$/ig, 即 prefixs 變成 1 1D100 
     ///^(?=.*he)(?!.*da).*$/ig
     return [{
-        first: /^Demo$/i,
-        second: /^啊$/i
+        first: /^\.chatroom$/i,
+        second: null
     }]
 }
 const getHelpMessage = function () {
-    return `【示範】
-只是一個Demo的第一行
-只是一個Demo末行`
+    return `【同步聊天】.chatroom
+    .chatroom create
+    .chatroom join
+`
 }
 const initialize = function () {
     return variables;
@@ -39,6 +45,8 @@ const rollDiceCommand = async function ({
     displayname,
     channelid,
     displaynameDiscord,
+    discordClient,
+    discordMessage,
     membercount
 }) {
     let rply = {
@@ -53,19 +61,72 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^create$/i.test(mainMsg[1]) && /^\S/.test(mainMsg[2]): {
-            if (groupid || channelid) return;
-            if (userrole !== 3) return;
-            const d = new Date();
-            const time = d.getTime();
-            const num = rollbase.Dice(100000000);
-            const multiId = `${time}_${num}`
-            rply.text = 
-            return rply;
+            try {
+                if (groupid) return;
+                const channel = await discordClient.channels.fetch(mainMsg[2])
+                const member = await channel.fetch(userid)
+                const v = member.members.find(v => v)
+                const role = channel.permissionsFor(v).has(Permissions.FLAGS.MANAGE_CHANNELS)
+                if (!role) return;
+
+                const d = new Date();
+                const time = d.getTime();
+                const num = rollbase.Dice(100000000);
+                const multiId = `${time}_${num}`
+                await schema.multiServer.findOneAndUpdate({ guildID: channel.guildId }, { channelid: mainMsg[2], multiId, guildID: channel.guildId, guildName: channel.guild.name, channelName: channel.name }, { upsert: true }).catch(error => {
+                    console.error('multiserver #78 mongoDB error: ', error.name, error.reson)
+                    return
+                });
+                rply.text = `已把${channel.guild.name} - ${channel.name}新增到聊天室，想把其他頻道加入，請輸入\n .join ${multiId} (其他頻道的ID)`
+                return rply;
+            } catch (error) {
+                console.error('error', error)
+            }
+            return
         }
         case /^join$/i.test(mainMsg[1]) && /^\S/.test(mainMsg[2]) && /^\S/.test(mainMsg[3]): {
-            rply.text = 'Demo' + mainMsg[1] + inputStr + groupid + userid + userrole + botname + displayname + channelid + displaynameDiscord + membercount;
-            return rply;
+            try {
+                if (groupid) return;
+                const channel = await discordClient.channels.fetch(mainMsg[3])
+                const member = await channel.fetch(userid)
+                const v = member.members.find(v => v)
+                const role = channel.permissionsFor(v).has(Permissions.FLAGS.MANAGE_CHANNELS)
+                if (!role) return;
+                await schema.multiServer.findOneAndUpdate({ guildID: channel.guildId }, { channelid: mainMsg[3], multiId: mainMsg[2], guildID: channel.guildId, guildName: channel.guild.name, channelName: channel.name }, { upsert: true }).catch(error => {
+                    console.error('multiserver #93 mongoDB error: ', error.name, error.reson)
+                    return
+                });
+                rply.text = `已把${channel.guild.name} - ${channel.name}新增到聊天室，想把其他頻道加入，請輸入 .join ${mainMsg[2]} (其他頻道的ID)`
+                return rply;
+            } catch (error) {
+                console.error('error', error)
+            }
+            return;
         }
+        case /^exit$/i.test(mainMsg[1]): {
+            if (!mainMsg[2] && userrole == 3) {
+                await schema.multiServer.findOneAndRemove({ channelid: channelid }).catch(error => {
+                    console.error('multiserver #101 mongoDB error: ', error.name, error.reson)
+                    return
+                });
+                rply.text = `已移除聊天室`
+                return rply;
+            }
+            if (mainMsg[2]) {
+                const channel = await discordClient.channels.fetch(mainMsg[2])
+                const member = await channel.fetch(userid)
+                const v = member.members.find(v => v)
+                const role = channel.permissionsFor(v).has(Permissions.FLAGS.MANAGE_CHANNELS)
+                if (!role) return;
+                await schema.multiServer.findOneAndRemove({ channelid: mainMsg[2] }).catch(error => {
+                    console.error('multiserver #112 mongoDB error: ', error.name, error.reson)
+                    return
+                });
+                rply.text = `已移除聊天室`
+                return rply;
+            }
+        }
+            return;
         default: {
             break;
         }

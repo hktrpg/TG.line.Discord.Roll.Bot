@@ -143,6 +143,7 @@ client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnecte
 client.on('messageCreate', async message => {
 	if (message.author.bot) return;
 	const result = await handlingResponMessage(message);
+	await handlingMultiServerMessage(message);
 	if (result && result.text)
 		return handlingSendMessage(result);
 	return
@@ -632,7 +633,7 @@ async function manageWebhook(discord) {
 		return { webhook, isThread };
 	} catch (error) {
 		//console.error(error)
-		await SendToReplychannel({ replyText: '不能新增Webhook.\n 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id || discord.channelId });
+		await SendToReplychannel({ replyText: '不能新增Webhook.\n 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: (discord.channel && discord.channel.id) || discord.channelId });
 		return;
 	}
 }
@@ -1223,6 +1224,35 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 	};
 	let pair = webhook.isThread ? { threadId: channelid } : {};
 	await webhook.webhook.send({ ...obj, ...pair });
+}
+const handlingMultiServerMessage = async (message) => {
+	let target = await schema.multiServer.findOne({ channelid: message.channel.id }).catch(error => {
+		console.error('discordbojs #1230 mongoDB error: ', error.name, error.reson)
+	});
+	if (target) target = await schema.multiServer.find({ multiId: target.multiId }).catch(error => {
+		console.error('discordbojs #1234 mongoDB error: ', error.name, error.reson)
+	});
+	else return;
+	if (target.length >= 2) {
+		const targetsData = target.filter(v => v.channelid !== message.channel.id);
+		const sendMessage = multiServerTarget(message);
+		for (let index = 0; index < targetsData.length; index++) {
+			const targetData = targetsData[index]
+			let webhook = await manageWebhook({ channelId: targetData.channelid })
+			let pair = webhook.isThread ? { threadId: targetData.channelid } : {};
+			await webhook.webhook.send({ ...sendMessage, ...pair });
+		}
+
+	} else
+		return;
+}
+const multiServerTarget = (message) => {
+	const obj = {
+		content: message.content,
+		username: message._member.nickname || message._member.displayName,
+		avatarURL: message.author.displayAvatarURL()
+	};
+	return obj;
 }
 
 /**

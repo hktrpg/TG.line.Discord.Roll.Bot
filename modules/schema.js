@@ -451,8 +451,11 @@ const bcdiceRegedit = mongoose.model('bcdiceRegedit', new mongoose.Schema({
 }));
 
 const multiServer = mongoose.model('multiServer', new mongoose.Schema({
-    channelid: Array,
-    multiId: String
+    channelid: String,
+    multiId: String,
+    guildName: String,
+    channelName: String,
+    guildID: String
 }));
 
 module.exports = {

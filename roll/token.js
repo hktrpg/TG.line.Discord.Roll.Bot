@@ -43,6 +43,7 @@ const initialize = function () {
 const rollDiceCommand = async function ({
     inputStr,
     mainMsg,
+    discordClient,
     discordMessage
 }) {
     let rply = {
@@ -60,7 +61,7 @@ const rollDiceCommand = async function ({
             //get avatar  or reply message image
             try {
                 const text = await getName(discordMessage, inputStr, mainMsg)
-                const avatar = await getAvatar(discordMessage)
+                const avatar = await getAvatar(discordMessage, discordClient)
                 if (!avatar) {
                     rply.text = `沒有找到reply 的圖示, 請再次檢查 \n\n${this.getHelpMessage()}`
                 }
@@ -88,7 +89,7 @@ const rollDiceCommand = async function ({
         }
     }
 }
-const getAvatar = async (discordMessage) => {
+const getAvatar = async (discordMessage, discordClient) => {
     if (discordMessage.type == 'DEFAULT' && discordMessage.attachments.size == 0) {
         const member = await discordMessage.guild.members.fetch(discordMessage.author)
         return member.displayAvatarURL();
@@ -98,8 +99,9 @@ const getAvatar = async (discordMessage) => {
         return (url && url.url) || null;
     }
     if (discordMessage.type == 'REPLY') {
-        let replyMessage = await discordMessage.fetchReference();
-        const url = replyMessage.attachments.find(data => data.contentType.match(/image/i))
+        const channel = await discordClient.channels.fetch(discordMessage.reference.channelId);
+        const referenceMessage = await channel.messages.fetch(discordMessage.reference.messageId)
+        const url = referenceMessage.attachments.find(data => data.contentType.match(/image/i))
         return (url && url.url) || null;
     }
 }

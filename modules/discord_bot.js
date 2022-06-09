@@ -1205,8 +1205,9 @@ if (togGGToken) {
 	const api = new Topgg.Api(togGGToken)
 	this.interval = setInterval(async () => {
 		const guilds = await client.cluster.fetchClientValues("guilds.cache.size");
+		console.log('guilds.reduce((a, c) => a + c, 0)', guilds.reduce((a, c) => a + c, 0))
 		api.postStats({
-			serverCount: parseInt(guilds.reduce((a, c) => a + c, 0) / 2),
+			serverCount: guilds.reduce((a, c) => a + c, 0),
 			shardCount: Cluster.data.TOTAL_SHARDS,
 			shardId: shardids
 		});

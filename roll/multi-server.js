@@ -3,6 +3,8 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
 const variables = {};
+const VIP = require('../modules/veryImportantPerson');
+const limitArr = [0, 1, 1, 1, 1, 1, 1, 1];
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const schema = require('../modules/schema')
 const rollbase = require('./rollbase.js');
@@ -63,6 +65,9 @@ const rollDiceCommand = async function ({
         case /^create$/i.test(mainMsg[1]) && /^\S/.test(mainMsg[2]): {
             try {
                 if (groupid) return;
+                let lv = await VIP.viplevelCheckUser(userid);
+                let limit = limitArr[lv];
+                if (limit <= 0) return;
                 const channel = await discordClient.channels.fetch(mainMsg[2])
                 const member = await channel.fetch(userid)
                 const v = member.members.find(v => v)
@@ -87,6 +92,9 @@ const rollDiceCommand = async function ({
         case /^join$/i.test(mainMsg[1]) && /^\S/.test(mainMsg[2]) && /^\S/.test(mainMsg[3]): {
             try {
                 if (groupid) return;
+                let lv = await VIP.viplevelCheckUser(userid);
+                let limit = limitArr[lv];
+                if (limit <= 0) return;
                 const channel = await discordClient.channels.fetch(mainMsg[3])
                 const member = await channel.fetch(userid)
                 console.log('member', member)

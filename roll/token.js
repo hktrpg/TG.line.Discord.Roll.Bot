@@ -153,21 +153,23 @@ const tokernMaker = async (imageLocation, name) => {
     }
 }
 
-async function addTextOnImage(token, text = ' ', text2 = ' ', name) {
+async function addTextOnImage(token, text = ' ', text2 = ' ', name, size = '62px', size2 = '62px') {
     try {
         const svgImage = `
 	  <svg width="520" height="520">
 		<style>
 		.outline {     paint-order: stroke;     stroke: black;     stroke-width: 5px; }
 		.title { fill: #bbafaf; font-size: 62px; font-weight: bold;}
+        .text { font-size: ${size};}
+        .text2 {  font-size: ${size2};}
 		.shadow {
 			-webkit-filter: drop-shadow( 3px 3px 2px rgba(0, 0, 0, .7));
 			filter: drop-shadow( 3px 3px 2px rgba(0, 0, 0, .7));
 			/* Similar syntax to box-shadow */
 		  }
 		</style>
-		<text x="50%" y="83%" text-anchor="middle" class="title shadow outline">${text}</text>
-		<text x="50%" y="96%" text-anchor="middle" class="title shadow outline">${text2}</text>
+		<text x="50%" y="83%" text-anchor="middle" class="title shadow outline text">${text}</text>
+		<text x="50%" y="96%" text-anchor="middle" class="title shadow outline text2">${text2}</text>
 	  </svg>
 	  `;
         const svgBuffer = Buffer.from(svgImage);

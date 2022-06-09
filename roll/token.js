@@ -135,9 +135,11 @@ const tokernMaker = async (imageLocation, name) => {
         await image.toFile(`./temp/new_${name}`)
         let newImage = await sharp((`./temp/new_${name}`))
         let metadata = await newImage.metadata();
-        let width = (metadata.width < 375) ? metadata.width : 375;
-        let height = (metadata.height < 387) ? metadata.height : 387;
-        newImage = await newImage.extract({ left: sharp.gravity.center, top: sharp.gravity.center, width, height }).toBuffer()
+        const width = (metadata.width < 375) ? metadata.width : 375;
+        const height = (metadata.height < 387) ? metadata.height : 387;
+        const left = ((metadata.width - 375) / 2) < 0 ? sharp.gravity.center : parseInt((metadata.width - 375) / 2);
+        const top = ((metadata.height - 387) / 2) < 0 ? sharp.gravity.center : parseInt((metadata.height - 387) / 2);
+        newImage = await newImage.extract({ left, top, width, height }).toBuffer()
         newImage = await sharp('./views/image/ONLINE_TOKEN.png')
             .composite(
                 [{ input: newImage, blend: 'saturate', top: 28, left: 73 }

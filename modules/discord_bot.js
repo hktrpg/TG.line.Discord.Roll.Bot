@@ -1201,15 +1201,15 @@ async function handlingEditMessage(message, rplyVal) {
 //TOP.GG 
 const togGGToken = process.env.TOPGG;
 if (togGGToken) {
+	if (shardids !== (Cluster.data.TOTAL_SHARDS - 1)) return;
 	const Topgg = require(`@top-gg/sdk`)
 	const api = new Topgg.Api(togGGToken)
 	this.interval = setInterval(async () => {
 		const guilds = await client.cluster.fetchClientValues("guilds.cache.size");
-		console.log('guilds.reduce((a, c) => a + c, 0)', guilds.reduce((a, c) => a + c, 0))
 		api.postStats({
-			serverCount: guilds.reduce((a, c) => a + c, 0),
+			serverCount: parseInt(guilds.reduce((a, c) => a + c, 0)),
 			shardCount: Cluster.data.TOTAL_SHARDS,
-			shardId: shardids
+			shardId: client.cluster.id
 		});
 	}, 300000);
 }

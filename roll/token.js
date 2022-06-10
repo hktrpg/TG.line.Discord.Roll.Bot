@@ -4,6 +4,8 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
 }
 const variables = {};
 const sharp = require('sharp');
+const { createCanvas, loadImage } = require('canvas')
+
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const axios = require('axios');
 const fs = require('fs');
@@ -80,7 +82,7 @@ const rollDiceCommand = async function ({
                 rply.sendImage = `./temp/finally_${name}`;
                 return rply;
             } catch (error) {
-                console.log('error', error)
+                console.error('error', error)
             }
             return;
         }

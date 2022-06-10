@@ -24,6 +24,7 @@
     "axios-retry": "^3.2.4",
     "bcdice": "^3.3.0",
     "bufferutil": "^4.0.3",
+    "canvas": "^2.9.1",
     "chai": "^4.3.4",
     "chinese-conv": "^1.0.1",
     "crypto-js": "^4.0.0",

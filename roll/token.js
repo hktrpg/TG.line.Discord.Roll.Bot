@@ -91,7 +91,7 @@ const rollDiceCommand = async function ({
 }
 const getAvatar = async (discordMessage, discordClient) => {
     if (discordMessage.type == 'DEFAULT' && discordMessage.attachments.size == 0) {
-        const member = await discordMessage.guild.members.fetch(discordMessage.author)
+        const member = (discordMessage.guild && await discordMessage.guild.members.fetch(discordMessage.author) || discordMessage.author)
         return member.displayAvatarURL();
     }
     if (discordMessage.type == 'DEFAULT' && discordMessage.attachments.size > 0) {

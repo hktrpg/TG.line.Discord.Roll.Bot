@@ -3,18 +3,31 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
 	return;
 }
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
-const Cluster = require('discord-hybrid-sharding');
+const {
+	ShardingManager
+} = require('discord.js-light');
 require("./ds-deploy-commands");
-const manager = new Cluster.Manager('./modules/discord_bot.js', {
+const manager = new ShardingManager('./modules/discord_bot.js', {
 	token: channelSecret,
-	shardsPerClusters: 3,
 	totalShards: "auto",
-	mode: 'process', // you can also choose "worker"
-	//spawnTimeout: -1,
-	//respawn: true
+	spawnTimeout: -1,
+	respawn: true
 });
+//TOP.GG 
+const togGGToken = process.env.TOPGG;
+if (togGGToken) {
+	const { AutoPoster } = require('topgg-autoposter');
+	const poster = AutoPoster(togGGToken, manager);
+	try {
+		poster.on('posted', (stats) => { // ran when succesfully posted
+			console.log(`Posted stats to Top.gg | ${stats.serverCount} servers`)
+		})
+	} catch (error) {
+		console.error('DBL TOP.GG error')
+	}
+}
 
-manager.on('clusterCreate', shard => {
+manager.on('shardCreate', shard => {
 	console.log(`Launched shard #${shard.id}`);
 	shard.on('ready', () => {
 		console.log(`Shard ready. Shard Count: #${shard.manager.totalShards}`)

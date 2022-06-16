@@ -163,7 +163,7 @@ client.on('interactionCreate', async message => {
 				const messageContent = message.message.content;
 				const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
 				if (/的角色卡$/.test(messageContent)) {
-					if (result.text) { return await message.reply({ content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${result.text}`, ephemeral: false }).catch() }
+					if (result && result.text) { return await message.reply({ content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${result.text}`, ephemeral: false }).catch() }
 					else {
 						return await message.reply({ content: `${displayname}沒有反應，請檢查按鈕內容`, ephemeral: true }).catch()
 					}

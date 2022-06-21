@@ -780,7 +780,7 @@ async function handlingRequestRollingCharacter(message, input) {
 			else
 				await message.reply({ content: `${characterName}的角色`, components: arrayRow[index] });
 		} catch (error) {
-			console.error(`error discord_bot #781 ${arrayRow}`)
+			console.error(`error discord_bot handlingRequestRollingCharacter  #781 ${arrayRow}`)
 		}
 
 	}

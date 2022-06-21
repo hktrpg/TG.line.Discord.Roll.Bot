@@ -807,6 +807,7 @@ async function dpRecordSwitch({ onOff = false, groupid = "", channelid = "" }) {
 }
 
 async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName = "", skillPer = 0, skillPerStyle = "", skillResult = 0, userName = "" }) {
+	return;
 	try {
 		let result = await schema.developmentConductor.findOne({
 			groupID: channelid || groupid,
@@ -1076,7 +1077,7 @@ async function coc7({ chack, text = "", userid, groupid, channelid, userName }) 
 		if (text[index]) result += '：' + (name[index] || '');
 		result += '\n\n'
 		if (userid && groupid && skillPerStyle !== "failure") {
-			await dpRecorder({ userID: userid, groupid, channelid, skillName: name[index], skillPer: check[index], skillPerStyle, skillResult: temp, userName });
+			//	await dpRecorder({ userID: userid, groupid, channelid, skillName: name[index], skillPer: check[index], skillPerStyle, skillResult: temp, userName });
 		}
 
 	}

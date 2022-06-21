@@ -110,6 +110,7 @@ client.on('ready', async () => {
 });
 
 client.on('guildCreate', async guild => {
+	return;
 	let channels = await guild.channels.fetch();
 	let keys = Array.from(channels.values());
 	let channel = keys.find(channel => {
@@ -123,7 +124,7 @@ client.on('guildCreate', async guild => {
 			//.setTitle(rplyVal.title)
 			//.setURL('https://discord.js.org/')
 			.setAuthor({ name: 'HKTRPG', url: 'https://www.patreon.com/HKTRPG', iconURL: 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png' })
-			.setDescription(newMessage.joinMessage())
+
 		await channel.send({ embeds: [text] });
 	}
 })
@@ -139,7 +140,7 @@ client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnecte
 client.on('messageCreate', async message => {
 	if (message.author.bot) return;
 	const result = await handlingResponMessage(message);
-	await handlingMultiServerMessage(message);
+	//await handlingMultiServerMessage(message);
 	if (result && result.text)
 		return handlingSendMessage(result);
 	return
@@ -189,6 +190,7 @@ client.on('interactionCreate', async message => {
 	}
 });
 async function replilyMessage(message, result) {
+	return;
 	const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
 	if (message.replied) {
 		if (result && result.text) {
@@ -210,7 +212,7 @@ async function replilyMessage(message, result) {
 
 }
 client.on('messageReactionAdd', async (reaction, user) => {
-	if (reaction.me) return;
+	return;
 	/** 
 	name: '22',
 		id: '947051740547645500',
@@ -230,7 +232,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 });
 
 client.on('messageReactionRemove', async (reaction, user) => {
-	if (reaction.me) return;
+	return;
 	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('discord_bot #817 mongoDB error: ', error.name, error.reson))
 	if (!list || list.length === 0) return;
 	const detail = list.detail;
@@ -978,7 +980,7 @@ async function handlingResponMessage(message, answer = '') {
 			return;
 		}
 		try {
-			let isNew = await newMessage.newUserChecker(userid, "Discord");
+			let isNew = null;
 			if (process.env.mongoURL && rplyVal.text && isNew) {
 				SendToId(userid, newMessage.firstTimeMessage(), true);
 			}

@@ -1,4 +1,5 @@
 "use strict";
+return;
 const schema = require('./schema.js');
 var viplevel;
 const DIYmode = (process.env.DIY) ? true : false;
@@ -27,6 +28,7 @@ var viplevelCheckUser = async function (userid) {
     return rply;
 }
 async function renew() {
+    return;
     viplevel = await schema.veryImportantPerson.find({}).catch(error => console.error('vip #30 mongoDB error: ', error.name, error.reson));
 }
 

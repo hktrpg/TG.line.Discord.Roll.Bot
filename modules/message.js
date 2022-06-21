@@ -2,7 +2,7 @@ const fs = require('fs');
 const schema = require('./schema.js');
 const crypto = require('crypto');
 var userList = null;
-
+return;
 (async () => {
 	try {
 		await getRecords();

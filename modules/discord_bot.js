@@ -774,10 +774,15 @@ async function handlingRequestRollingCharacter(message, input) {
 	}
 	const arrayRow = await splitArray(5, row)
 	for (let index = 0; index < arrayRow.length; index++) {
-		if (charMode)
-			await message.reply({ content: `${characterName}的角色卡`, components: arrayRow[index] });
-		else
-			await message.reply({ content: `${characterName}的角色`, components: arrayRow[index] });
+		try {
+			if (charMode)
+				await message.reply({ content: `${characterName}的角色卡`, components: arrayRow[index] });
+			else
+				await message.reply({ content: `${characterName}的角色`, components: arrayRow[index] });
+		} catch (error) {
+			console.error(`error discord_bot #781 ${arrayRow}`)
+		}
+
 	}
 
 }

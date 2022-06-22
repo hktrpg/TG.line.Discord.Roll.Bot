@@ -106,6 +106,8 @@ const rollDiceCommand = async function ({
                 }
                 const role = channel.permissionsFor(v).has(Permissions.FLAGS.MANAGE_CHANNELS)
                 if (!role) return;
+                let max = await schema.multiServer.find({ multiId: mainMsg[2] })
+                if (max.length >= 2) return;
                 await schema.multiServer.findOneAndUpdate({ guildID: channel.guildId }, { channelid: mainMsg[3], multiId: mainMsg[2], guildID: channel.guildId, guildName: channel.guild.name, channelName: channel.name }, { upsert: true }).catch(error => {
                     console.error('multiserver #93 mongoDB error: ', error.name, error.reson)
                     return

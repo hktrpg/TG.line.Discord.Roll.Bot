@@ -8,7 +8,7 @@ const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const limitArr = [4, 20, 20, 30, 30, 99, 99, 99];
 var gameName = function () {
-    return '角色卡功能 .char (add edit show delete use nonuse) .ch (set show showall)'
+    return '【角色卡功能】 .char (add edit show delete use nonuse button) .ch (set show showall button)'
 }
 var gameType = function () {
     return 'Tool:trpgcharacter:hktrpg'
@@ -35,28 +35,23 @@ const convertRegex = function (str) {
 /*
 TODO?
 COC export to roll20?
-
 */
 
 
-var getHelpMessage = async function () {
+const getHelpMessage = async function () {
     return `【角色卡功能】
 以個人為單位, 一張卡可以在不同的群組使用
 目標是文字團可以快速擲骰，及更新角色狀態。
-
 簡單新增角色卡 .char add name[Sad]~ state[HP:15/15;]~ roll[鬥毆: cc 50;]~ notes[筆記:這是測試,請試試在群組輸入 .char use Sad;]~ 
 新增了角色卡後，可以輸入 .admin account (username) (password) 
 然後在網頁: https://www.hktrpg.com:20721/card/ 中直接進行修改
-
 把結果傳送到已登記的Discord，TG，LINE上的聊天群組的登記方法: 
 由該群組的Admin授權允許 輸入 .admin allowrolling  
 登記該群組到自己的名單中 輸入 .admin registerChannel  
 取消方法
 由該群組的Admin取消授權 輸入 .admin disallowrolling  
 取消登記該群組到名單 輸入 .admin unregisterChannel  
-
 最後網站會顯示群組名稱，點擊就可以使用了
-
 -----.char-----
 .char add name[Sad]~ state[HP:15/15;con:60;san:60]~ roll[鬥毆: cc 50;投擲: cc 15;sc:cc {san}]~ notes[筆記:這是測試,請試試在群組輸入 .char use Sad;]~  
 - 可以新增及更新角色卡
@@ -66,6 +61,7 @@ var getHelpMessage = async function () {
 .char use 角色卡名字 - 可以在該群組中使用指定角色卡
 .char nonuse - 可以在該群組中取消使用角色卡
 .char delete 角色卡名字 - 可以刪除指定角色卡
+.char button 角色卡名字 - Discord限定，可以產生按鈕指令，會使用直接擲骰指令
 -----.ch 功能-----
 在群組中使用.char use (角色名) 後, 就可以啟動角色卡功能
 .ch 項目名稱 項目名稱 - 沒有加減的話, 會單純顯示數據或擲骰
@@ -75,20 +71,22 @@ var getHelpMessage = async function () {
 .ch set 項目名稱 新內容 - 直接更改內容
 .ch show - 顯示角色卡的state 和roll 內容
 .ch showall - 顯示角色卡的所有內容
+.ch button  - Discord限定，可以產生按鈕指令，會調用.ch 指令
 -----範例及運算式-----
 角色卡還可以進行運算，詳情請看
 https://github.com/hktrpg/TG.line.Discord.Roll.Bot/wiki/Character-Card `
 }
 
-var initialize = function () {
+const initialize = function () {
     return variables;
 }
 
 // eslint-disable-next-line no-unused-vars
-var rollDiceCommand = async function ({
+const rollDiceCommand = async function ({
     inputStr,
     mainMsg,
     groupid,
+    botname,
     userid,
     channelid
 }) {
@@ -196,7 +194,7 @@ var rollDiceCommand = async function ({
             for (let index = 0; index < doc.length; index++) {
                 rply.text += index + ': ' + doc[index].name + '　\n';
             }
-            rply.text += '\n輸入 .char show0 可以顯示0號角色卡\n';
+            rply.text += '\n輸入 .char show0 可以顯示0號角色卡\n 輸入 .char use 角色名字  可以使用角色卡';
             return rply;
         case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]): {
             Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
@@ -216,7 +214,7 @@ var rollDiceCommand = async function ({
                 id: userid
             });
             if (check.length >= limit) {
-                rply.text = '你的角色卡上限為' + limit + '張' + '\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n或自組服務器\n源代碼  http://bit.ly/HKTRPG_GITHUB';
+                rply.text = '你的角色卡上限為' + limit + '張' + '\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
                 return rply
             }
             filter = {
@@ -365,6 +363,29 @@ var rollDiceCommand = async function ({
             //檢查有沒有重覆
             rply.text = '刪除角色卡成功: ' + doc.name
             return rply;
+        case /(^[.]char$)/i.test(mainMsg[0]) && /^button$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]): {
+            if (!groupid) {
+                rply.text = '此功能必須在群組中使用'
+                return rply
+            }
+            if (botname !== "Discord") {
+                rply.text = "這是Discord限定功能"
+                return rply;
+            }
+
+            filter = {
+                id: userid,
+                name: new RegExp('^' + convertRegex(inputStr.replace(/^\.char\s+button\s+/i, '')) + '$', "i")
+            }
+            const doc = await schema.characterCard.findOne(filter);
+            if (!doc) {
+                rply.text = '沒有此角色卡'
+                return rply
+            }
+            if (doc.roll)
+                rply.requestRollingCharacter = [handleRequestRolling(doc), doc.name, 'char']
+            return rply;
+        }
 
         case /(^[.]ch$)/i.test(mainMsg[0]) && /^set$/i.test(mainMsg[1]) && /^\S+$/i.test(mainMsg[2]) && /^\S+$/i.test(mainMsg[3]):
             //更新功能
@@ -484,7 +505,32 @@ var rollDiceCommand = async function ({
             }
             rply.text = await showCharacter(doc, 'showAllMode');
             return rply;
+        case /(^[.]ch$)/i.test(mainMsg[0]) && /^button$/i.test(mainMsg[1]): {
+            if (!groupid) {
+                rply.text = '此功能必須在群組中使用'
+                return rply
+            }
+            if (botname !== "Discord") {
+                rply.text = "這是Discord限定功能"
+                return rply;
+            }
+            const filter = {
+                id: userid,
+                gpid: channelid || groupid,
+            }
 
+            const docSwitch = await schema.characterGpSwitch.findOne(
+                filter);
+            if (docSwitch && docSwitch.cardId) {
+                const doc = await schema.characterCard.findOne({
+                    _id: docSwitch.cardId
+                });
+                if (doc.roll)
+                    rply.requestRollingCharacter = [handleRequestRollingChMode(doc), doc.name, 'ch']
+            }
+            //  rply.requestRolling = handleRequestRolling(inputStr)
+            return rply;
+        }
 
         case /(^[.]ch$)/i.test(mainMsg[0]) && /^\S+$/i.test(mainMsg[1]):
             if (!groupid) {
@@ -522,11 +568,33 @@ var rollDiceCommand = async function ({
             rply = Object.assign({}, rply, tempMain)
             rply.characterName = doc.name;
             return rply;
-
         default:
             break;
 
     }
+}
+function handleRequestRolling(doc) {
+    const rolls = doc.roll;
+    let text = [];
+    for (let index = 0; index < rolls.length; index++) {
+        const roll = rolls[index];
+        const itemName = new RegExp(convertRegex(roll.name) + '$', 'i')
+        text[index] = (roll.itemA.match(itemName)) ? `${roll.itemA}` : `${roll.itemA} ${roll.name}`
+        text[index] = text[index].substring(0, 80);
+    }
+    text.push = `.ch use ${doc.name}`
+    return text;
+}
+
+function handleRequestRollingChMode(doc) {
+    const rolls = doc.roll;
+    let text = [];
+    for (let index = 0; index < rolls.length; index++) {
+        const roll = rolls[index];
+        text[index] = `.ch ${roll.name}`
+        text[index] = text[index].substring(0, 80);
+    }
+    return text;
 }
 
 async function mainCharacter(doc, mainMsg) {
@@ -668,7 +736,6 @@ async function showCharacter(Card, mode) {
     -------
     筆記: SAD
     心靈支柱: 特質
-
     ======
     */
     let returnStr = '';
@@ -811,7 +878,6 @@ character = {
             state: [{name:String,itemA:String,itemB:String}],
             roll: [{name:String,itemA:String}],
             notes: [{name:String,itemA:String}]
-
         }
 */
 
@@ -893,16 +959,12 @@ module.exports = {
 state[HP:5/5;MP:3/3;SAN:50/99;護甲:6]~
 roll[投擲:cc 80 投擲;空手鬥毆: cc [[50 +{hp}]]]~
 notes[筆記:SAD;心靈支柱: 特質]~
-
 // state 可以進行增減
 // notes 文字筆記
 // roll 擲骰指令
-
 如果沒有名字 會更新修正正在USE的角色卡
 但沒有的話,  就會出錯
 ============
-
-
 ===
 .char use 使用角色卡
 .char use sad
@@ -911,21 +973,15 @@ notes[筆記:SAD;心靈支柱: 特質]~
 .char nonuse
 .char use
 會取消在此群組使用角色卡
-
 ====
 .char delete  角色卡
 .char delete Sad
 刪除角色卡
-
 ====
-
 顯示SHOW 功能:
-
 .ch show (顯示 名字 state 和roll)
 .ch shows  (顯示 名字 state,notes 和roll)
 .ch show notes (顯示 名字 和notes)
-
-
 角色名字
 HP: 5/5 MP: 3/3 SAN: 50/90 護甲: 6
 -------
@@ -934,33 +990,19 @@ HP: 5/5 MP: 3/3 SAN: 50/90 護甲: 6
 -------
 筆記: SAD
 心靈支柱: 特質
-
 ======
-
 功能 使用角色卡的state 和notes
-
 .ch set HP  10 直接把現在值變成10
 .ch set HP  10/20 直接把現在值變成10 最大值變成20
-
-
-
 .ch HP MP 顯示該內容
 HP 5/5 MP 3/3
-
 .ch HP -5 如果HP是State 自動減5
 .ch HP +5  如果HP是State 自動加5 如果是
-
-
-
 ============
 .ch 輸出指令
 .ch  投擲
 cc 80 投擲
 在指令中可以加上 +{HP} -{san}
 在結果中會進行運算。
-
-
 ======
-
-
 */

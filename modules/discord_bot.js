@@ -179,8 +179,11 @@ client.on('interactionCreate', async message => {
 				if (result && result.text) {
 					const content = handlingCountButton(message, 'roll');
 					handlingSendMessage(result);
-					return await message.update({ content: content })
-						.catch();
+					try {
+						return await message.update({ content: content })
+					} catch (error) {
+						return
+					}
 				}
 				else {
 					const content = handlingCountButton(message, 'count');
@@ -347,7 +350,12 @@ function SendToReply({ replyText = "", message, quotes = false }) {
 }
 async function SendToReplychannel({ replyText = "", channelid = "", quotes = false, groupid = "", buttonCreate = "" }) {
 	if (!channelid) return;
-	var channel = (await client.channels.fetch(channelid))
+	let channel;
+	try {
+		channel = await client.channels.fetch(channelid)
+	} catch (error) {
+		null
+	}
 	if (!channel && groupid) {
 		let guild = await client.guilds.fetch(groupid)
 		channel = await guild.channels.fetch(channelid)
@@ -780,7 +788,7 @@ async function handlingRequestRollingCharacter(message, input) {
 			else
 				await message.reply({ content: `${characterName}的角色`, components: arrayRow[index] });
 		} catch (error) {
-			console.error(`error discord_bot handlingRequestRollingCharacter  #781 ${arrayRow}`)
+			console.error(`error discord_bot handlingRequestRollingCharacter  #781 ${characterName} ${JSON.stringify(arrayRow)}`)
 		}
 
 	}

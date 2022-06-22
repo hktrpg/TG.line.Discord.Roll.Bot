@@ -27,9 +27,6 @@ const initialize = function () {
     return variables;
 }
 
-function getTodayTime(params) {
-
-}
 const rollDiceCommand = async function ({
     inputStr,
     mainMsg,

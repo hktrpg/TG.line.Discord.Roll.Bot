@@ -206,7 +206,7 @@ async function replilyMessage(message, result) {
 		if (result && result.text) {
 			return await message.reply({ content: `${displayname}${result.text}`, ephemeral: false })
 				.catch(async () => {
-					return await message.editReply({ content: `${displayname}${result.text}`, ephemeral: false })
+					return await message.editReply({ content: `${displayname}${result.text}`, ephemeral: false }).catch()
 
 				})
 		}

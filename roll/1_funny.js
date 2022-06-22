@@ -915,7 +915,7 @@ const discordCommand = [
 		async execute(interaction) {
 			const text = interaction.options.getString('text')
 			if (text !== null) {
-				await interaction.reply({ content: '已進行模擬HKTRPG說話', ephemeral: true });
+				await interaction.reply({ content: '已進行模擬HKTRPG說話', ephemeral: true }).catch();
 				return `.me ${text}`
 			}
 			else return `需要輸入內容\n 

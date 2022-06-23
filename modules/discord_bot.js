@@ -408,7 +408,7 @@ async function nonDice(message) {
 	}
 	membercount = (message.guild) ? message.guild.memberCount : 0;
 	try {
-		let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount);
+		let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount, "", message);
 		if (groupid && LevelUp && LevelUp.text) {
 			await SendToReplychannel(
 				{ replyText: `@${displayname}  ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`, channelid: message.channel.id }

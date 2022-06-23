@@ -6,7 +6,7 @@ if (!process.env.mongoURL) {
 }
 var tempSwitchV2 = require('../modules/level');
 const schema = require('../modules/schema.js');
-const defaultRankWord = "{user.name}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點！\n現在排名是{server.member_count}人中的第{user.Ranking}名！{user.RankingPer}！\n調查經驗是{user.exp}點。 "
+const defaultRankWord = "{user.displayName}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點！\n現在排名是{server.member_count}人中的第{user.Ranking}名！{user.RankingPer}！\n調查經驗是{user.exp}點。 "
 
 var gameName = function () {
     return '【經驗值功能】 .level (show config LevelUpWord RankWord)'
@@ -45,8 +45,8 @@ var getHelpMessage = async function () {
 輸入.level showMeAtTheworld 可以查詢自己的世界排名
 -------------
 升級語及RankWord可使用不同代碼
-{user.name} 名字 {user.level} 等級 
-{user.title} 稱號 
+{user.name} 名字  {user.displayName} server昵稱
+{user.level} 等級 {user.title} 稱號 
 {user.exp} 經驗值 {user.Ranking} 現在排名 
 {user.RankingPer} 現在排名百分比 
 {server.member_count} 現在頻道中總人數 
@@ -133,6 +133,7 @@ var rollDiceCommand = async function ({
     displayname,
     displaynameDiscord,
     tgDisplayname,
+    discordMessage,
     membercount
 }) {
     let rply = {
@@ -490,6 +491,11 @@ var rollDiceCommand = async function ({
             // { server.member_count } 現在頻道中總人數 \
 
             rply.text = rankWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count).replace(/{user.title}/ig, userTitle)
+            if (rply.text.match(/{user.displayName}/ig)) {
+                let userDisplayName = await getDisplayName(discordMessage) || username || "無名";
+                rply.text = rply.text.replace(/{user.displayName}/ig, userDisplayName)
+
+            }
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^showMe$/i.test(mainMsg[1]): {
@@ -661,6 +667,12 @@ module.exports = {
     checkTitle: checkTitle
 };
 
+
+async function getDisplayName(message) {
+    const member = await message.guild.members.fetch(message.author)
+    let nickname = member ? member.displayName : message.author.username;
+    return nickname;
+}
 
 /*
 var trpgLevelSystemfunction = [{

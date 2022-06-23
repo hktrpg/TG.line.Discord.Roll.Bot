@@ -47,7 +47,7 @@ var parseInput = async function ({
 	mainMsg = inputStr.match(msgSplitor); //定義輸入字串
 	//EXPUP 功能 + LevelUP 功能
 	if (groupid) {
-		let tempEXPUP = await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount, tgDisplayname);
+		let tempEXPUP = await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount, tgDisplayname, discordMessage);
 		result.LevelUp = (tempEXPUP && tempEXPUP.text) ? tempEXPUP.text : '';
 		result.statue = (tempEXPUP && tempEXPUP.statue) ? tempEXPUP.statue : '';
 	}

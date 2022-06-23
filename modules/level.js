@@ -9,7 +9,7 @@ var tempSwitchV2 = [{
     groupid: '',
     SwitchV2: false
 }];
-async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercount, tgDisplayname) {
+async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercount, tgDisplayname, discordMessage) {
     if (!groupid) {
         return;
     }
@@ -110,14 +110,14 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     //6. 需要 -> 檢查有沒有開啓通知
     if (gpInfo.HiddenV2 == false || levelUP == false) return reply;
     //1. 讀取LEVELUP語
-    reply.text = await returnTheLevelWord(gpInfo, userInfo, membercount, groupid);
+    reply.text = await returnTheLevelWord(gpInfo, userInfo, membercount, groupid, discordMessage);
     return reply;
     //6 / 7 * LVL * (2 * LVL * LVL + 30 * LVL + 100)
 
 
 }
 
-async function returnTheLevelWord(gpInfo, userInfo, membercount, groupid) {
+async function returnTheLevelWord(gpInfo, userInfo, membercount, groupid, discordMessage) {
     let username = userInfo.name;
     let userlevel = userInfo.Level;
     let userexp = userInfo.EXP;
@@ -134,7 +134,11 @@ async function returnTheLevelWord(gpInfo, userInfo, membercount, groupid) {
     let userRanking = myselfIndex + 1;
     let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
     let userTitle = await checkTitle(userlevel, gpInfo.Title);
-    let tempUPWord = gpInfo.LevelUpWord || "恭喜 {user.name}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點了！\n現在排名是{server.member_count}人中的第{user.Ranking}名！";
+    let tempUPWord = gpInfo.LevelUpWord || "恭喜 {user.displayName}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點了！\n現在排名是{server.member_count}人中的第{user.Ranking}名！";
+    if (tempUPWord.match(/{user.displayName}/ig)) {
+        let userDisplayName = await getDisplayName(discordMessage) || username || "無名";
+        tempUPWord = tempUPWord.replace(/{user.displayName}/ig, userDisplayName)
+    }
     return tempUPWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count).replace(/{user.title}/ig, userTitle);
 }
 
@@ -154,6 +158,12 @@ async function newUser(gpInfo, groupid, userid, displayname, displaynameDiscord,
     return;
 }
 
+async function getDisplayName(message) {
+    if (!message) return;
+    const member = await message.guild.members.fetch(message.author)
+    let nickname = member ? member.displayName : message.author.username;
+    return nickname;
+}
 
 const Title = function () {
     var Title = []

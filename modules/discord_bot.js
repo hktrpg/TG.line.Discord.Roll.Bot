@@ -401,14 +401,10 @@ async function nonDice(message) {
 	userid = (message.author && message.author.id) || (message.user && message.user.id);
 
 	if (!groupid || !userid) return;
-	let displayname = '',
-		membercount = null;
-	if (message.member && message.member.user && message.member.user.username) {
-		displayname = message.member.user.username;
-	}
-	membercount = (message.guild) ? message.guild.memberCount : 0;
+	let displayname = (message.member && message.member.user && message.member.user.tag) || (message.user && message.user.username) || '';
+	let membercount = (message.guild) ? message.guild.memberCount : 0;
 	try {
-		let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount);
+		let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount, "", message);
 		if (groupid && LevelUp && LevelUp.text) {
 			await SendToReplychannel(
 				{ replyText: `@${displayname}  ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`, channelid: message.channel.id }

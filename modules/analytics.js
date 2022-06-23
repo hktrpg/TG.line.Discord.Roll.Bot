@@ -46,7 +46,6 @@ var parseInput = async function ({
 	inputStr = inputStr.replace(/^\s/g, '')
 	mainMsg = inputStr.match(msgSplitor); //定義輸入字串
 	//EXPUP 功能 + LevelUP 功能
-	console.log('discordMessage',discordMessage)
 	if (groupid) {
 		let tempEXPUP = await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount, tgDisplayname, discordMessage);
 		result.LevelUp = (tempEXPUP && tempEXPUP.text) ? tempEXPUP.text : '';

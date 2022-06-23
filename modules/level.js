@@ -159,6 +159,7 @@ async function newUser(gpInfo, groupid, userid, displayname, displaynameDiscord,
 }
 
 async function getDisplayName(message) {
+    if (!message) return;
     const member = await message.guild.members.fetch(message.author)
     let nickname = member ? member.displayName : message.author.username;
     return nickname;

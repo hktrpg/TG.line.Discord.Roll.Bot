@@ -45,7 +45,7 @@ var getHelpMessage = async function () {
 輸入.level showMeAtTheworld 可以查詢自己的世界排名
 -------------
 升級語及RankWord可使用不同代碼
-{user.name} 名字  {user.displayName} Server昵稱
+{user.name} 名字  {user.displayName} Discord裡的Server昵稱
 {user.level} 等級 {user.title} 稱號 
 {user.exp} 經驗值 {user.Ranking} 現在排名 
 {user.RankingPer} 現在排名百分比 

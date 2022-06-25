@@ -2380,6 +2380,11 @@ log-symbols@4.1.0:
     chalk "^4.1.0"
     is-unicode-supported "^0.1.0"
 
+log-to-file@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/log-to-file/-/log-to-file-3.0.0.tgz#c30acb8747f72c02aa6e1e8d4b99ce7c3b879e27"
+  integrity sha512-rs6ZzXDpr2Nlj4x56ufamE8p3jJmOnre1aeHiwyYuMABmvD584Ym6AKwU1RNwCQw5uBQuQot10RjH/Nn6mid4Q==
+
 loupe@^2.3.1:
   version "2.3.4"
   resolved "https://registry.yarnpkg.com/loupe/-/loupe-2.3.4.tgz#7e0b9bffc76f148f9be769cb1321d3dcf3cb25f3"

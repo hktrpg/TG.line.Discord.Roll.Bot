@@ -235,7 +235,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 	});
 	if (findEmoji) {
 		const member = await reaction.message.guild.members.fetch(user.id);
-		member.roles.add(findEmoji.roleID)
+		member.roles.add(findEmoji.roleID.replace(/\D/g, ''))
 	} else {
 		reaction.users.remove(user.id);
 	}
@@ -249,7 +249,7 @@ client.on('messageReactionRemove', async (reaction, user) => {
 	for (let index = 0; index < detail.length; index++) {
 		if (detail[index].emoji === reaction.emoji.name || detail[index].emoji === `<:${reaction.emoji.name}:${reaction.emoji.id}>`) {
 			const member = await reaction.message.guild.members.fetch(user.id);
-			member.roles.remove(detail[index].roleID)
+			member.roles.remove(detail[index].roleID.replace(/\D/g, ''))
 		}
 	}
 });

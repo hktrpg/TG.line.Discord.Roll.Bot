@@ -815,7 +815,7 @@ async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 	}
 	const arrayRow = await splitArray(5, row)
 	for (let index = 0; index < arrayRow.length; index++) {
-		await message.reply({ content: `${displayname}要求擲骰/點擊`, components: arrayRow[index] });
+		await message.reply({ content: `${displayname}要求擲骰/點擊`, components: arrayRow[index] }).catch();
 	}
 }
 async function splitArray(perChunk, inputArray) {

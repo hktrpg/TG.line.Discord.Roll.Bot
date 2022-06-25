@@ -166,6 +166,7 @@ client.on('interactionCreate', async message => {
 				const result = await handlingResponMessage(message, answer);
 				const messageContent = message.message.content;
 				const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
+				if (result && !result.text) result.text = ''
 				if (/的角色卡$/.test(messageContent)) {
 					if (result && result.text) { return await message.reply({ content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${result.text}`, ephemeral: false }).catch() }
 					else {
@@ -173,8 +174,7 @@ client.on('interactionCreate', async message => {
 					}
 				}
 				if (/的角色$/.test(messageContent)) {
-					return await message.reply({ content: `${displayname}${result.text}`, ephemeral: false })
-						.catch();
+					return await message.reply({ content: `${displayname}${result.text}`, ephemeral: false }).catch();
 				}
 				if (result && result.text) {
 					const content = handlingCountButton(message, 'roll');
@@ -211,7 +211,12 @@ async function replilyMessage(message, result) {
 				})
 		}
 		else {
-			return await message.reply({ content: `指令沒有得到回應，請檢查內容`, ephemeral: true }).catch()
+			try {
+				return await message.reply({ content: `指令沒有得到回應，請檢查內容`, ephemeral: true })
+			} catch (error) {
+				return;
+			}
+
 		}
 	}
 

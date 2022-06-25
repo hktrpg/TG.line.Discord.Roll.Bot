@@ -12,7 +12,7 @@ const regex = regextemp.replace(/^\//, '').replace(/\/g$/, '')
 const roleReactRegixMessage = /\[\[message\]\](.*)/is;
 const newRoleReactRegixMessageID = /\[\[messageID\]\]\s+(\d+)/is;
 const roleReactRegixDetail = new RegExp(`(\\d+)\\s+(${regex}|(<a?)?:\\w+:(\\d{18}>)?)`, 'g')
-const roleReactRegixDetail2 = new RegExp(`(\\d+)\\s+(${regex}|(<a?)?:\\w+:(\\d{18}>)?)`,)
+const roleReactRegixDetail2 = new RegExp(`^(\\d+)\\s+(${regex}|(<a?)?:\\w+:(\\d{18}>)?)`,)
 var gameName = function () {
     return '【身分組管理】.roleReact'
 }

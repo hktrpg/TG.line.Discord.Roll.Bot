@@ -166,6 +166,7 @@ client.on('interactionCreate', async message => {
 				const result = await handlingResponMessage(message, answer);
 				const messageContent = message.message.content;
 				const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
+				if (result && !result.text) result.text = ''
 				if (/的角色卡$/.test(messageContent)) {
 					if (result && result.text) { return await message.reply({ content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${result.text}`, ephemeral: false }).catch() }
 					else {
@@ -173,8 +174,7 @@ client.on('interactionCreate', async message => {
 					}
 				}
 				if (/的角色$/.test(messageContent)) {
-					return await message.reply({ content: `${displayname}${result.text}`, ephemeral: false })
-						.catch();
+					return await message.reply({ content: `${displayname}${result.text}`, ephemeral: false }).catch();
 				}
 				if (result && result.text) {
 					const content = handlingCountButton(message, 'roll');
@@ -211,7 +211,12 @@ async function replilyMessage(message, result) {
 				})
 		}
 		else {
-			return await message.reply({ content: `指令沒有得到回應，請檢查內容`, ephemeral: true }).catch()
+			try {
+				return await message.reply({ content: `指令沒有得到回應，請檢查內容`, ephemeral: true })
+			} catch (error) {
+				return;
+			}
+
 		}
 	}
 
@@ -230,7 +235,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 	});
 	if (findEmoji) {
 		const member = await reaction.message.guild.members.fetch(user.id);
-		member.roles.add(findEmoji.roleID)
+		member.roles.add(findEmoji.roleID.replace(/\D/g, ''))
 	} else {
 		reaction.users.remove(user.id);
 	}
@@ -244,7 +249,7 @@ client.on('messageReactionRemove', async (reaction, user) => {
 	for (let index = 0; index < detail.length; index++) {
 		if (detail[index].emoji === reaction.emoji.name || detail[index].emoji === `<:${reaction.emoji.name}:${reaction.emoji.id}>`) {
 			const member = await reaction.message.guild.members.fetch(user.id);
-			member.roles.remove(detail[index].roleID)
+			member.roles.remove(detail[index].roleID.replace(/\D/g, ''))
 		}
 	}
 });

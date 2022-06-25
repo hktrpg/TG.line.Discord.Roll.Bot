@@ -37,6 +37,7 @@
     "events": "^3.3.0",
     "express": "^4.17.1",
     "https": "^1.0.0",
+    "log-to-file": "^3.0.0",
     "mathjs": "^9.3.0",
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.33",

@@ -6,6 +6,7 @@ const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const adminSecret = process.env.ADMIN_SECRET || '';
 const Cluster = require('discord-hybrid-sharding');
 const Discord = require("discord.js-light");
+const multiServer = require('../modules/multi-server')
 const fs = require('node:fs');
 const { Client, Intents, Permissions, Collection, MessageActionRow, MessageButton, WebhookClient, MessageAttachment } = Discord;
 const rollText = require('./getRoll').rollText;
@@ -1245,25 +1246,20 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 	await webhook.webhook.send({ ...obj, ...pair });
 }
 async function handlingMultiServerMessage(message) {
-	let target = await schema.multiServer.findOne({ channelid: message.channel.id }).catch(error => {
-		console.error('discordbojs #1230 mongoDB error: ', error.name, error.reson)
-	});
-	if (target) target = await schema.multiServer.find({ multiId: target.multiId }).catch(error => {
-		console.error('discordbojs #1234 mongoDB error: ', error.name, error.reson)
-	});
-	else return;
-	if (target.length >= 2) {
-		const targetsData = target.filter(v => v.channelid !== message.channel.id);
+	let target = multiServer.multiServerChecker(message.channel.id)
+	if (!target) return;
+	else {
+		//	const targetsData = target;
 		const sendMessage = multiServerTarget(message);
-		for (let index = 0; index < targetsData.length; index++) {
-			const targetData = targetsData[index]
-			let webhook = await manageWebhook({ channelId: targetData.channelid })
-			let pair = webhook.isThread ? { threadId: targetData.channelid } : {};
-			await webhook.webhook.send({ ...sendMessage, ...pair });
-		}
+		//	for (let index = 0; index < targetsData.length; index++) {
+		const targetData = target
+		let webhook = await manageWebhook({ channelId: targetData.channelid })
+		let pair = webhook.isThread ? { threadId: targetData.channelid } : {};
+		await webhook.webhook.send({ ...sendMessage, ...pair });
+		//	}
 
-	} else
-		return;
+	}
+	return;
 }
 function multiServerTarget(message) {
 	const obj = {

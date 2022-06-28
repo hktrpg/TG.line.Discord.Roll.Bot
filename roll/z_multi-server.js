@@ -8,6 +8,7 @@ const limitArr = [0, 1, 1, 1, 1, 1, 1, 1];
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const schema = require('../modules/schema')
 const rollbase = require('./rollbase.js');
+const multiServer = require('../modules/multi-server')
 const Discord = require("discord.js-light");
 const { Permissions } = Discord;
 const gameName = function () {
@@ -73,16 +74,17 @@ const rollDiceCommand = async function ({
                 const v = member.members.find(v => v)
                 const role = channel.permissionsFor(v).has(Permissions.FLAGS.MANAGE_CHANNELS)
                 if (!role) return;
-
                 const d = new Date();
                 const time = d.getTime();
                 const num = rollbase.Dice(100000000);
                 const multiId = `${time}_${num}`
-                await schema.multiServer.findOneAndUpdate({ guildID: channel.guildId }, { channelid: mainMsg[2], multiId, guildID: channel.guildId, guildName: channel.guild.name, channelName: channel.name }, { upsert: true }).catch(error => {
+                await schema.multiServer.findOneAndUpdate({ guildID: channel.guildId }, { channelid: mainMsg[2], multiId, guildID: channel.guildId, guildName: channel.guild.name, channelName: channel.name, botname }, { upsert: true }).catch(error => {
                     console.error('multiserver #78 mongoDB error: ', error.name, error.reson)
                     return
                 });
-                rply.text = `已把${channel.guild.name} - ${channel.name}新增到聊天室，想把其他頻道加入，請輸入\n .join ${multiId} (其他頻道的ID)`
+                await multiServer.getRecords();
+                rply.text = `已把${channel.guild.name} - ${channel.name}新增到聊天室`
+                //，想把其他頻道加入，請輸入\n .chatroom join ${multiId} (其他頻道的ID)
                 return rply;
             } catch (error) {
                 console.error('error', error)
@@ -97,7 +99,6 @@ const rollDiceCommand = async function ({
                 if (limit <= 0) return;
                 const channel = await discordClient.channels.fetch(mainMsg[3])
                 const member = await channel.fetch(userid)
-                console.log('member', member)
                 let v;
                 try {
                     v = (member.members && member.members.find(data => data))
@@ -108,10 +109,11 @@ const rollDiceCommand = async function ({
                 if (!role) return;
                 let max = await schema.multiServer.find({ multiId: mainMsg[2] })
                 if (max.length >= 2) return;
-                await schema.multiServer.findOneAndUpdate({ guildID: channel.guildId }, { channelid: mainMsg[3], multiId: mainMsg[2], guildID: channel.guildId, guildName: channel.guild.name, channelName: channel.name }, { upsert: true }).catch(error => {
+                await schema.multiServer.findOneAndUpdate({ guildID: channel.guildId }, { channelid: mainMsg[3], multiId: mainMsg[2], guildID: channel.guildId, guildName: channel.guild.name, channelName: channel.name, botname }, { upsert: true }).catch(error => {
                     console.error('multiserver #93 mongoDB error: ', error.name, error.reson)
                     return
                 });
+                await multiServer.getRecords();
                 rply.text = `已把${channel.guild.name} - ${channel.name}新增到聊天室，想把其他頻道加入，請輸入 .join ${mainMsg[2]} (其他頻道的ID)`
                 return rply;
             } catch (error) {
@@ -125,6 +127,7 @@ const rollDiceCommand = async function ({
                     console.error('multiserver #101 mongoDB error: ', error.name, error.reson)
                     return
                 });
+                await multiServer.getRecords();
                 rply.text = `已移除聊天室`
                 return rply;
             }
@@ -138,6 +141,7 @@ const rollDiceCommand = async function ({
                     console.error('multiserver #112 mongoDB error: ', error.name, error.reson)
                     return
                 });
+                await multiServer.getRecords();
                 rply.text = `已移除聊天室`
                 return rply;
             }

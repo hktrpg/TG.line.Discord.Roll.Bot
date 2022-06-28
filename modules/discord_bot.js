@@ -157,6 +157,7 @@ client.on('interactionCreate', async message => {
 		case message.isCommand():
 			{
 				const answer = await handlingCommand(message)
+				if (!answer) return;
 				const result = await handlingResponMessage(message, answer);
 				return replilyMessage(message, result)
 			}
@@ -564,14 +565,18 @@ function sendNewstoAll(rply) {
 }
 
 async function handlingCommand(message) {
-	const command = client.commands.get(message.commandName);
-	if (!command) return;
+	try {
+		const command = client.commands.get(message.commandName);
+		if (!command) return;
+		let answer = await command.execute(message).catch(error => {
+			console.error(error);
+			//await message.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+		})
+		return answer;
+	} catch (error) {
+		return;
+	}
 
-	let answer = await command.execute(message).catch(error => {
-		console.error(error);
-		//await message.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-	})
-	return answer;
 }
 async function repeatMessage(discord, message) {
 	try {

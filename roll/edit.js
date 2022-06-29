@@ -2,6 +2,7 @@
 if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
+const tools = require('../modules/tools.js');
 const variables = {};
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const gameName = function () {
@@ -51,10 +52,9 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^\S/.test(mainMsg[1] || ''): {
-            if (userrole <= 1) {
-                rply.text = '修改信息時，需要Admin或頻道管理權限，請重新檢查'
-                return rply;
-            }
+            rply.text += tools.__checkIsManager(userrole)
+            if (rply.text) return rply;
+
             rply.discordEditMessage = inputStr.replace(/^\S+\s+/, '')
             return rply;
         }

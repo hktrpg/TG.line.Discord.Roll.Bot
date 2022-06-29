@@ -1,6 +1,7 @@
 "use strict";
 const rollbase = require('./rollbase.js');
 const schema = require('../modules/schema.js');
+const tools = require('../modules/tools.js');
 const mathjs = require('mathjs');
 const gameName = function () {
 	return '【克蘇魯神話】 cc cc(n)1~2 ccb ccrt ccsu .dp .cc7build .cc6build .cc7bg'
@@ -116,36 +117,25 @@ const rollDiceCommand = async function ({
 		}
 		//DevelopmentPhase幕間成長指令開始於此
 		case /^\.dp$/i.test(mainMsg[0]) && /^start$/i.test(mainMsg[1]): {
-			if (!groupid) {
-				rply.text = '本功能只可以在群組中使用'
-				return rply;
-			}
-			if (userrole < 3) {
-				rply.text = '本功能只可以由Admin啓動'
-				return rply;
-			}
+			rply.text += tools.__checkIsChannel(groupid)
+			rply.text += tools.__checkIsAdmin(userrole)
+			if (rply.text) return rply;
 			rply.text = await dpRecordSwitch({ onOff: true, groupid, channelid });
 			rply.quotes = true;
 			return rply;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^stop$/i.test(mainMsg[1]): {
-			if (!groupid) {
-				rply.text = '本功能只可以在群組中使用'
-				return rply;
-			}
-			if (userrole < 3) {
-				rply.text = '本功能只可以由Admin關閉'
-				return rply;
-			}
+			rply.text += tools.__checkIsChannel(groupid)
+			rply.text += tools.__checkIsAdmin(userrole)
+			if (rply.text) return rply;
 			rply.text = await dpRecordSwitch({ onOff: false, groupid, channelid });
 			rply.quotes = true;
 			break;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
-			if (!groupid) {
-				rply.text = '本功能只可以在群組中使用'
-				return rply;
-			}
+			rply.text += tools.__checkIsChannel(groupid)
+			if (rply.text) return rply;
+
 			let switchOn = await schema.developmentConductor.findOne({
 				groupID: channelid || groupid,
 				switch: true
@@ -217,10 +207,8 @@ const rollDiceCommand = async function ({
 		}
 
 		case /^\.dp$/i.test(mainMsg[0]) && /^showall$/i.test(mainMsg[1]): {
-			if (!groupid) {
-				rply.text = '本功能只可以在群組中使用'
-				return rply;
-			}
+			rply.text += tools.__checkIsChannel(groupid)
+			if (rply.text) return rply;
 			let switchOn = await schema.developmentConductor.findOne({
 				groupID: channelid || groupid,
 				switch: true
@@ -257,10 +245,9 @@ const rollDiceCommand = async function ({
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^auto$/i.test(mainMsg[1]): {
 			rply.quotes = true;
-			if (!groupid) {
-				rply.text = '本功能只可以在群組中使用'
-				return rply;
-			}
+			rply.text += tools.__checkIsChannel(groupid)
+			if (rply.text) return rply;
+
 			let switchOn = await schema.developmentConductor.findOne({
 				groupID: channelid || groupid,
 				switch: true
@@ -308,10 +295,9 @@ const rollDiceCommand = async function ({
 			return rply;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^clear$/i.test(mainMsg[1]): {
-			if (!groupid) {
-				rply.text = '本功能只可以在群組中使用'
-				return rply;
-			}
+			rply.text += tools.__checkIsChannel(groupid)
+			if (rply.text) return rply;
+
 			let result = await schema.developmentRollingRecord.deleteMany({
 				groupID: channelid || groupid,
 				userID: userid,
@@ -323,10 +309,9 @@ const rollDiceCommand = async function ({
 			return rply;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^clearall$/i.test(mainMsg[1]): {
-			if (!groupid) {
-				rply.text = '本功能只可以在群組中使用'
-				return rply;
-			}
+			rply.text += tools.__checkIsChannel(groupid)
+			if (rply.text) return rply;
+
 			let result = await schema.developmentRollingRecord.deleteMany({
 				groupID: channelid || groupid,
 				userID: userid,

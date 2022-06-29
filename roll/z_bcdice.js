@@ -6,6 +6,7 @@ const {
     DynamicLoader
 } = require('bcdice');
 const variables = {};
+const tools = require('../modules/tools.js');
 const schema = require('../modules/schema.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const gameName = function () {
@@ -50,6 +51,7 @@ const rollDiceCommand = async function ({
     userrole,
     botname,
     channelid,
+    groupid
 }) {
     let rply = {
         default: 'on',
@@ -97,10 +99,9 @@ const rollDiceCommand = async function ({
 
         }
         case /^use+$/i.test(mainMsg[1]): {
-            if (userrole <= 1) {
-                rply.text = '登記BcDice骰表時，需要Admin或頻道管理權限，請重新檢查'
-                return rply;
-            }
+            rply.text += tools.__checkIsManager(userrole)
+            rply.text += tools.__checkIsChannel(groupid)
+            if (rply.text) return rply;
             if (!mainMsg[2]) {
                 rply.text = `請輸入ID，ID可以在下列網站找到\nhttps://bcdice.org/systems/`
                 return rply;
@@ -119,10 +120,10 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^delete+$/i.test(mainMsg[1]): {
-            if (userrole <= 1) {
-                rply.text = '刪除BcDice骰表時，需要Admin或頻道管理權限，請重新檢查'
-                return rply;
-            }
+            rply.text += tools.__checkIsManager(userrole)
+            rply.text += tools.__checkIsChannel(groupid)
+            if (rply.text) return rply;
+            
             let doc = await schema.bcdiceRegedit.findOneAndDelete(filter, { returnDocument: true }).catch(err => console.error(err))
             if (doc) rply.text = `已刪除BcDice的設定`
             else rply.text = `刪除失敗，請以後再嘗試`

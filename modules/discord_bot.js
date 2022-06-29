@@ -199,8 +199,8 @@ client.on('interactionCreate', async message => {
 });
 async function replilyMessage(message, result) {
 	const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
-	result.text = `${displayname}${result.text}`
 	if (result && result.text) {
+		result.text = `${displayname}${result.text}`
 		await __handlingReplyMessage(message, result);
 	}
 	else {

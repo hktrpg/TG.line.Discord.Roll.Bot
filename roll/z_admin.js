@@ -12,6 +12,7 @@ const password = process.env.CRYPTO_SECRET,
 const adminSecret = process.env.ADMIN_SECRET;
 //admin id
 const schema = require('../modules/schema.js');
+const tools = require('../modules/tools.js');
 //const VIP = require('../modules/veryImportantPerson');
 var gameName = function () {
     return '【Admin Tool】.admin debug state account news on'
@@ -81,10 +82,9 @@ var rollDiceCommand = async function ({
             return rply;
 
         case /^registerChannel$/i.test(mainMsg[1]):
-            if (!groupid && !channelid) {
-                rply.text = "這裡不是群組，如果想在群組使用你的角色卡，請在群組中輸入此指令";
-                return rply;
-            }
+            console.log('registerChannel', groupid, 'registerChannelchannel', channelid);
+            rply.text = tools.__checkIsChannel(groupid)
+            if (rply.text) return rply;
             try {
                 temp = await schema.accountPW.findOne({
                     "id": userid
@@ -146,10 +146,8 @@ var rollDiceCommand = async function ({
             return rply;
 
         case /^unregisterChannel$/i.test(mainMsg[1]):
-            if (!groupid && !channelid) {
-                rply.text = "這裡不是群組，請在群組中輸入此指令";
-                return rply;
-            }
+            rply.text = tools.__checkIsChannel(groupid)
+            if (rply.text) return rply;
             try {
                 await schema.accountPW.updateOne({
                     "id": userid
@@ -168,10 +166,9 @@ var rollDiceCommand = async function ({
             rply.text = "已移除註冊!如果想檢查，請到\nhttps://www.hktrpg.com:20721/card/"
             return rply;
         case /^disallowrolling$/i.test(mainMsg[1]):
-            if (!groupid && !channelid) {
-                rply.text = "這裡不是群組，Admin設定擲骰的頻道時，請在群組中輸入";
-                return rply;
-            }
+            rply.text = tools.__checkIsChannel(groupid)
+            if (rply.text) return rply;
+
             if (userrole < 3) {
                 rply.text = "設定擲骰的頻道時，需要Admin權限";
                 return rply;
@@ -188,14 +185,9 @@ var rollDiceCommand = async function ({
             rply.text = "此頻道已被Admin不允許使用網頁版角色卡擲骰。\nAdmin 希望允許擲骰，可輸入\n.admin allowrolling";
             return rply;
         case /^allowrolling$/i.test(mainMsg[1]):
-            if (!groupid && !channelid) {
-                rply.text = "這裡不是群組，Admin設定擲骰的頻道時，請在群組中使用";
-                return rply;
-            }
-            if (userrole < 3) {
-                rply.text = "設定可以擲骰的頻道時，需要Admin權限";
-                return rply;
-            }
+            rply.text += tools.__checkIsChannel(groupid)
+            rply.text += tools.__checkAdmin(userrole)
+            if (rply.text) return rply;
             try {
                 doc = await schema.allowRolling.findOneAndUpdate({
                     "id": channelid || groupid
@@ -348,7 +340,6 @@ var rollDiceCommand = async function ({
 
         case /^news$/i.test(mainMsg[1]) && /^on$/i.test(mainMsg[2]):
             if (!userid) return rply;
-
             try {
                 doc = await schema.theNewsMessage.updateOne({
                     userID: userid,

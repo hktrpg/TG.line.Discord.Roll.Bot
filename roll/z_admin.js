@@ -82,7 +82,6 @@ var rollDiceCommand = async function ({
             return rply;
 
         case /^registerChannel$/i.test(mainMsg[1]):
-            console.log('registerChannel', groupid, 'registerChannelchannel', channelid);
             rply.text = tools.__checkIsChannel(groupid)
             if (rply.text) return rply;
             try {
@@ -167,12 +166,9 @@ var rollDiceCommand = async function ({
             return rply;
         case /^disallowrolling$/i.test(mainMsg[1]):
             rply.text = tools.__checkIsChannel(groupid)
+            rply.text += tools.__checkIsAdmin(userrole)
             if (rply.text) return rply;
-
-            if (userrole < 3) {
-                rply.text = "設定擲骰的頻道時，需要Admin權限";
-                return rply;
-            }
+            
             try {
                 doc = await schema.allowRolling.findOneAndRemove({
                     "id": channelid || groupid
@@ -186,7 +182,7 @@ var rollDiceCommand = async function ({
             return rply;
         case /^allowrolling$/i.test(mainMsg[1]):
             rply.text += tools.__checkIsChannel(groupid)
-            rply.text += tools.__checkAdmin(userrole)
+            rply.text += tools.__checkIsAdmin(userrole)
             if (rply.text) return rply;
             try {
                 doc = await schema.allowRolling.findOneAndUpdate({

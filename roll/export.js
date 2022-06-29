@@ -5,7 +5,9 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
 var variables = {};
 const oneMinuts = (process.env.DEBUG) ? 1 : 60000;
 const sevenDay = (process.env.DEBUG) ? 1 : 60 * 24 * 7 * 60000;
-var gameName = function () {
+const tools = require('../modules/tools.js');
+
+const gameName = function () {
     return '【Discord 頻道輸出工具】'
 }
 const opt = {
@@ -32,13 +34,13 @@ var gameType = function () {
     return 'Tool:Export:hktrpg'
 }
 const dir = __dirname + '/../tmp/';
-var prefixs = function () {
+const prefixs = function () {
     return [{
         first: /^[.]discord$/i,
         second: null
     }]
 }
-var getHelpMessage = async function () {
+const getHelpMessage = async function () {
     return `測試進行中【聊天紀錄】
 .discord html 可以輸出有分析功能的聊天紀錄
 .discord txt 可以輸出純文字的聊天紀錄
@@ -346,22 +348,14 @@ var rollDiceCommand = async function ({
             你的channel 聊天紀錄 共有 ${totalSize} 項`
             return rply;
         case /^txt$/i.test(mainMsg[1]): {
-            if (!channelid || !groupid) {
-                rply.text = "這是頻道功能，需要在頻道上使用。"
-                return rply;
-            }
+            rply.text += tools.__checkIsChannel(groupid)
+            rply.text += tools.__checkIsManager(userrole)
+            rply.text += tools.__checkIsDiscord(botname)
+            if (rply.text) return rply;
+
             if (!hasReadPermission) {
                 rply.text = `HKTRPG沒有相關權限，禁止使用這功能。
                 HKTRPG需要有查看此頻道對話歷史的權限。`
-                return rply;
-            }
-            if (userrole < 2) {
-                rply.text = `你沒有相關權限，禁止使用這功能。
-                你需要有管理此頻道的權限或管理員權限。`
-                return rply;
-            }
-            if (botname !== "Discord") {
-                rply.text = "這是Discord限定功能"
                 return rply;
             }
 

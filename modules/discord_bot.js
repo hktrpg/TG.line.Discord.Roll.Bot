@@ -199,30 +199,34 @@ client.on('interactionCreate', async message => {
 });
 async function replilyMessage(message, result) {
 	const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
-	if (message.replied) {
-		if (result && result.text) {
-			return await message.reply({ content: `${displayname}${result.text}`, ephemeral: false })
-				.catch(error => console.error('discord bot #159  error: ', error, result.text));
-		}
-	} else {
-		if (result && result.text) {
-			return await message.reply({ content: `${displayname}${result.text}`, ephemeral: false })
-				.catch(async () => {
-					return await message.editReply({ content: `${displayname}${result.text}`, ephemeral: false }).catch()
-
-				})
-		}
-		else {
-			try {
-				return await message.reply({ content: `指令沒有得到回應，請檢查內容`, ephemeral: true })
-			} catch (error) {
-				return;
-			}
-
+	result.text = `${displayname}${result.text}`
+	if (result && result.text) {
+		await __handlingReplyMessage(message, result);
+	}
+	else {
+		try {
+			return await message.reply({ content: `${displayname}指令沒有得到回應，請檢查內容`, ephemeral: true })
+		} catch (error) {
+			return;
 		}
 	}
-
 }
+
+async function __handlingReplyMessage(message, result) {
+	const text = result.text;
+	const sendText = text.toString().match(/[\s\S]{1,2000}/g);
+	for (let index = 0; index < sendText.length; index++) {
+		try {
+			await message.reply({ content: `${result.text}`, ephemeral: false })
+		} catch (error) {
+			await message.editReply({ content: `${result.text}`, ephemeral: false })
+		}
+
+
+	}
+}
+
+
 client.on('messageReactionAdd', async (reaction, user) => {
 	if (reaction.me) return;
 	/** 

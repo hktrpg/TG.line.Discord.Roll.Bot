@@ -4,7 +4,7 @@
 if (!process.env.mongoURL) {
     return;
 }
-const tools = require('../modules/tools.js');
+const checkTools = require('../modules/check.js');
 const tempSwitchV2 = require('../modules/level');
 const schema = require('../modules/schema.js');
 const defaultRankWord = "{user.displayName}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點！\n現在排名是{server.member_count}人中的第{user.Ranking}名！{user.RankingPer}！\n調查經驗是{user.exp}點。 "
@@ -152,8 +152,8 @@ const rollDiceCommand = async function ({
         // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
 
         case /(^[.]level$)/i.test(mainMsg[0]) && /^TitleWord$/i.test(mainMsg[1]) && /^del$/i.test(mainMsg[2]): {
-            rply.text += tools.__checkIsChannel(groupid)
-            rply.text += tools.__checkIsAdmin(userrole)
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isAdmin(userrole)) rply.text += checkTools.notAdmin;
             if (rply.text) return rply;
 
             let doc = await schema.trpgLevelSystem.findOne({
@@ -196,8 +196,8 @@ const rollDiceCommand = async function ({
             //
             //稱號Title
             //
-            rply.text += tools.__checkIsChannel(groupid)
-            rply.text += tools.__checkIsAdmin(userrole)
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isAdmin(userrole)) rply.text += checkTools.notAdmin;
             if (rply.text) return rply;
 
             let doc = await schema.trpgLevelSystem.findOne({
@@ -241,8 +241,8 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^LevelUpWord$/i.test(mainMsg[1]) && /^del$/i.test(mainMsg[2]): {
-            rply.text += tools.__checkIsChannel(groupid)
-            rply.text += tools.__checkIsAdmin(userrole)
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isAdmin(userrole)) rply.text += checkTools.notAdmin;
             if (rply.text) return rply;
 
             let doc = await schema.trpgLevelSystem.findOne({
@@ -254,8 +254,8 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^LevelUpWord$/i.test(mainMsg[1]): {
-            rply.text += tools.__checkIsChannel(groupid)
-            rply.text += tools.__checkIsAdmin(userrole)
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isAdmin(userrole)) rply.text += checkTools.notAdmin;
             if (rply.text) return rply;
 
             let doc = await schema.trpgLevelSystem.findOne({
@@ -284,8 +284,8 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^RankWord$/i.test(mainMsg[1]) && /^del$/i.test(mainMsg[2]): {
-            rply.text += tools.__checkIsChannel(groupid)
-            rply.text += tools.__checkIsAdmin(userrole)
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isAdmin(userrole)) rply.text += checkTools.notAdmin;
             if (rply.text) return rply;
 
             let doc = await schema.trpgLevelSystem.findOne({
@@ -297,8 +297,8 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^RankWord$/i.test(mainMsg[1]): {
-            rply.text += tools.__checkIsChannel(groupid)
-            rply.text += tools.__checkIsAdmin(userrole)
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isAdmin(userrole)) rply.text += checkTools.notAdmin;
             if (rply.text) return rply;
 
             let doc = await schema.trpgLevelSystem.findOne({
@@ -324,8 +324,8 @@ const rollDiceCommand = async function ({
         }
 
         case /(^[.]level$)/i.test(mainMsg[0]) && /^config$/i.test(mainMsg[1]): {
-            rply.text += tools.__checkIsChannel(groupid)
-            rply.text += tools.__checkIsAdmin(userrole)
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isAdmin(userrole)) rply.text += checkTools.notAdmin;
             if (rply.text) return rply;
 
             if (!mainMsg[2]) {

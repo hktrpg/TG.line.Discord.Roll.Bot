@@ -4,7 +4,7 @@ if (!process.env.mongoURL) {
 }
 const records = require('../modules/records.js');
 var trpgDarkRollingfunction = {};
-const tools = require('../modules/tools.js');
+const checkTools = require('../modules/check.js');
 records.get('trpgDarkRolling', (msgs) => {
     trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
 })
@@ -64,8 +64,8 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
             //
             //增加自定義關鍵字
             // .drgm[0] addgm[1] 代替名字[2]  
-            rply.text += tools.__checkIsChannel(groupid)
-            rply.text += tools.__checkIsManager(userrole)
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
             if (rply.text) return rply;
 
             checkifsamename = 0
@@ -107,8 +107,8 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
             //    
             //刪除所有自定義關鍵字
             //
-            rply.text += tools.__checkIsChannel(groupid)
-            rply.text += tools.__checkIsManager(userrole)
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
             if (rply.text) return rply;
 
             if (channelid)
@@ -134,8 +134,8 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
             //刪除GM
             //
             if (!mainMsg[2]) rply.text += '沒有已註冊GM. '
-            rply.text += tools.__checkIsChannel(groupid)
-            rply.text += tools.__checkIsManager(userrole)
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
             if (rply.text) return rply;
             if (channelid)
                 groupid = channelid

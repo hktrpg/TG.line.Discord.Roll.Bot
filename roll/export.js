@@ -5,7 +5,7 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
 var variables = {};
 const oneMinuts = (process.env.DEBUG) ? 1 : 60000;
 const sevenDay = (process.env.DEBUG) ? 1 : 60 * 24 * 7 * 60000;
-const tools = require('../modules/tools.js');
+const checkTools = require('../modules/check.js');
 
 const gameName = function () {
     return '【Discord 頻道輸出工具】'
@@ -348,9 +348,10 @@ var rollDiceCommand = async function ({
             你的channel 聊天紀錄 共有 ${totalSize} 項`
             return rply;
         case /^txt$/i.test(mainMsg[1]): {
-            rply.text += tools.__checkIsChannel(groupid)
-            rply.text += tools.__checkIsManager(userrole)
-            rply.text += tools.__checkIsDiscord(botname)
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
+            if (!checkTools.isDiscord(botname)) rply.text += checkTools.notDiscord;
+
             if (rply.text) return rply;
 
             if (!hasReadPermission) {

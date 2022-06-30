@@ -2,7 +2,7 @@
 if (!process.env.mongoURL) {
     return;
 }
-const tools = require('../modules/tools.js');
+const checkTools = require('../modules/check.js');
 const records = require('../modules/records.js');
 var trpgCommandfunction = {};
 records.get('trpgCommand', (msgs) => {
@@ -71,8 +71,8 @@ const rollDiceCommand = async function ({
             if (!mainMsg[2]) rply.text += ' 沒有標題.\n\n'
             if (!mainMsg[3]) rply.text += ' 沒有擲骰指令\n\n'
             if (mainMsg[3] && mainMsg[3].toLowerCase() == ".cmd") rply.text += '指令不可以儲存.cmd\n\n'
-            rply.text += tools.__checkIsChannel(groupid)
-            rply.text += tools.__checkIsManager(userrole)
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
             if (rply.text) return rply;
 
             lv = await VIP.viplevelCheckGroup(groupid);
@@ -114,8 +114,8 @@ const rollDiceCommand = async function ({
 
         case /(^[.]cmd$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
             //刪除資料庫
-            rply.text += tools.__checkIsChannel(groupid)
-            rply.text += tools.__checkIsManager(userrole)
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
             if (rply.text) return rply;
 
             for (let i = 0; i < trpgCommandfunction.trpgCommandfunction.length; i++) {
@@ -134,8 +134,8 @@ const rollDiceCommand = async function ({
         case /(^[.]cmd$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
             //刪除資料庫
             if (!mainMsg[2]) rply.text += '沒有關鍵字. '
-            rply.text += tools.__checkIsChannel(groupid)
-            rply.text += tools.__checkIsManager(userrole)
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
             if (rply.text) return rply;
 
             for (let i = 0; i < trpgCommandfunction.trpgCommandfunction.length; i++) {

@@ -10,7 +10,7 @@ const moment = require('moment');
 const agenda = require('../modules/schedule')
 const cronRegex = /^(\d\d)(\d\d)((?:-([1-9]?[1-9]|((mon|tues|wed(nes)?|thur(s)?|fri|sat(ur)?|sun)(day)?))){0,1})/i;
 const validDays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
-const tools = require('../modules/tools.js');
+const checkTools = require('../modules/check.js');
 
 
 
@@ -218,8 +218,8 @@ var rollDiceCommand = async function ({
             return rply;
         }
         case /^\.cron+$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
-            rply.text += tools.__checkIsChannel(groupid)
-            rply.text += tools.__checkIsManager(userrole)
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
             if (rply.text) return rply;
 
             let check = {}
@@ -240,8 +240,8 @@ var rollDiceCommand = async function ({
             return rply;
         }
         case /^\.cron$/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]): {
-            rply.text += tools.__checkIsChannel(groupid)
-            rply.text += tools.__checkIsManager(userrole)
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
             if (rply.text) return rply;
 
             if (!mainMsg[2] || !/\d+/i.test(mainMsg[2])) {
@@ -275,8 +275,8 @@ var rollDiceCommand = async function ({
             return rply;
         }
         case /^\.cron+$/i.test(mainMsg[0]): {
-            rply.text += tools.__checkIsChannel(groupid)
-            rply.text += tools.__checkIsManager(userrole)
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
             if (!mainMsg[2]) rply.text += '未有內容'
             if (rply.text) return rply;
 

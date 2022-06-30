@@ -7,7 +7,7 @@ const records = require('../modules/records.js');
 records.get('block', (msgs) => {
     save.save = msgs
 })
-const tools = require('../modules/tools.js');
+const checkTools = require('../modules/check.js');
 const VIP = require('../modules/veryImportantPerson');
 const limitArr = [30, 200, 200, 300, 300, 300, 300, 300];
 const gameName = function () {
@@ -59,8 +59,8 @@ const rollDiceCommand = async function ({
             //增加阻擋用關鍵字
             //if (!mainMsg[2]) return;
             if (!mainMsg[2]) rply.text += '沒有關鍵字. '
-            rply.text += tools.__checkIsChannel(groupid)
-            rply.text += tools.__checkIsManager(userrole)
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
             if (rply.text) return rply;
 
 
@@ -95,8 +95,8 @@ const rollDiceCommand = async function ({
         }
         case /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
             //刪除阻擋用關鍵字
-            rply.text += tools.__checkIsChannel(groupid)
-            rply.text += tools.__checkIsManager(userrole)
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
             if (rply.text) return rply;
 
             for (let i = 0; i < save.save.length; i++) {
@@ -115,8 +115,8 @@ const rollDiceCommand = async function ({
         case /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
             //刪除阻擋用關鍵字
             if (!mainMsg[2]) rply.text += '沒有關鍵字. '
-            rply.text += tools.__checkIsChannel(groupid)
-            rply.text += tools.__checkIsManager(userrole)
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
             if (rply.text) return rply;
 
             for (let i = 0; i < save.save.length; i++) {
@@ -138,7 +138,7 @@ const rollDiceCommand = async function ({
             records.get('block', (msgs) => {
                 save.save = msgs
             })
-            rply.text += tools.__checkIsChannel(groupid)
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
             if (rply.text) return rply;
             
             let temp = 0;

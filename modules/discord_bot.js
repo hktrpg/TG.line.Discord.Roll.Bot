@@ -599,7 +599,7 @@ async function repeatMessage(discord, message) {
 			username: message.myName.username,
 			avatarURL: message.myName.avatarURL
 		};
-		let pair = webhook.isThread ? { threadId: discord.channelId } : {};
+		let pair = (webhook && webhook.isThread) ? { threadId: discord.channelId } : {};
 		await webhook.webhook.send({ ...obj, ...pair });
 	} catch (error) {
 		await SendToReplychannel({ replyText: '不能成功發送扮演發言, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
@@ -621,7 +621,7 @@ async function repeatMessages(discord, message) {
 				username: element.username,
 				avatarURL: element.avatarURL
 			};
-			let pair = webhook.isThread ? { threadId: discord.channelId } : {};
+			let pair = (webhook && webhook.isThread) ? { threadId: discord.channelId } : {};
 			await webhook.webhook.send({ ...obj, ...pair });
 
 		}
@@ -635,7 +635,7 @@ async function repeatMessages(discord, message) {
 async function manageWebhook(discord) {
 	try {
 		const channel = await client.channels.fetch(discord.channelId);
-		const isThread = channel.isThread();
+		const isThread = channel && channel.isThread();
 		let webhooks = isThread ? await channel.guild.fetchWebhooks() : await channel.fetchWebhooks();
 		let webhook = webhooks.find(v => {
 			return v.name == 'HKTRPG .me Function' && v.type == "Incoming" && ((v.channelId == channel.parentId) || !isThread);
@@ -1247,7 +1247,7 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 		username: data.roleName,
 		avatarURL: data.imageLink
 	};
-	let pair = webhook.isThread ? { threadId: channelid } : {};
+	let pair = (webhook && webhook.isThread) ? { threadId: channelid } : {};
 	await webhook.webhook.send({ ...obj, ...pair });
 }
 async function handlingMultiServerMessage(message) {

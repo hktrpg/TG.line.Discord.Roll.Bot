@@ -1,7 +1,7 @@
 "use strict";
 const rollbase = require('./rollbase.js');
 const schema = require('../modules/schema.js');
-const tools = require('../modules/tools.js');
+const checkTools = require('../modules/check.js');
 const mathjs = require('mathjs');
 const gameName = function () {
 	return '【克蘇魯神話】 cc cc(n)1~2 ccb ccrt ccsu .dp .cc7build .cc6build .cc7bg'
@@ -117,23 +117,23 @@ const rollDiceCommand = async function ({
 		}
 		//DevelopmentPhase幕間成長指令開始於此
 		case /^\.dp$/i.test(mainMsg[0]) && /^start$/i.test(mainMsg[1]): {
-			rply.text += tools.__checkIsChannel(groupid)
-			rply.text += tools.__checkIsAdmin(userrole)
+			if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+			if (!checkTools.isAdmin(userrole)) rply.text += checkTools.notAdmin;
 			if (rply.text) return rply;
 			rply.text = await dpRecordSwitch({ onOff: true, groupid, channelid });
 			rply.quotes = true;
 			return rply;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^stop$/i.test(mainMsg[1]): {
-			rply.text += tools.__checkIsChannel(groupid)
-			rply.text += tools.__checkIsAdmin(userrole)
+			if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+			if (!checkTools.isAdmin(userrole)) rply.text += checkTools.notAdmin;
 			if (rply.text) return rply;
 			rply.text = await dpRecordSwitch({ onOff: false, groupid, channelid });
 			rply.quotes = true;
 			break;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
-			rply.text += tools.__checkIsChannel(groupid)
+			if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
 			if (rply.text) return rply;
 
 			let switchOn = await schema.developmentConductor.findOne({
@@ -207,7 +207,7 @@ const rollDiceCommand = async function ({
 		}
 
 		case /^\.dp$/i.test(mainMsg[0]) && /^showall$/i.test(mainMsg[1]): {
-			rply.text += tools.__checkIsChannel(groupid)
+			if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
 			if (rply.text) return rply;
 			let switchOn = await schema.developmentConductor.findOne({
 				groupID: channelid || groupid,
@@ -245,7 +245,7 @@ const rollDiceCommand = async function ({
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^auto$/i.test(mainMsg[1]): {
 			rply.quotes = true;
-			rply.text += tools.__checkIsChannel(groupid)
+			if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
 			if (rply.text) return rply;
 
 			let switchOn = await schema.developmentConductor.findOne({
@@ -295,7 +295,7 @@ const rollDiceCommand = async function ({
 			return rply;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^clear$/i.test(mainMsg[1]): {
-			rply.text += tools.__checkIsChannel(groupid)
+			if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
 			if (rply.text) return rply;
 
 			let result = await schema.developmentRollingRecord.deleteMany({
@@ -309,7 +309,7 @@ const rollDiceCommand = async function ({
 			return rply;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^clearall$/i.test(mainMsg[1]): {
-			rply.text += tools.__checkIsChannel(groupid)
+			if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
 			if (rply.text) return rply;
 
 			let result = await schema.developmentRollingRecord.deleteMany({
@@ -1450,7 +1450,7 @@ function sc(mainMsg) {
 			}
 			if (rollSuccess) {
 				try {
-					lossSan = rollbase.BuildDiceCal(rollSuccess).match(/\d+$/);;
+					lossSan = rollbase.BuildDiceCal(rollSuccess).match(/\d+$/);
 				} catch (error) {
 					lossSan = rollSuccess;
 				}

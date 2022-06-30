@@ -5,7 +5,7 @@ if (!process.env.mongoURL) {
 const adminSecret = process.env.ADMIN_SECRET;
 const rollbase = require('./rollbase.js');
 const schema = require('../modules/schema.js');
-const tools = require('../modules/tools.js');
+const checkTools = require('../modules/check.js');
 exports.z_Level_system = require('./z_Level_system');
 const opt = {
     upsert: true,
@@ -126,8 +126,8 @@ var rollDiceCommand = async function ({
             limit = limitArr[lv];
             if (!mainMsg[2]) rply.text += ' 沒有輸入骰子名稱.'
             if (!mainMsg[3]) rply.text += ' 沒有輸入骰子內容.'
-            rply.text += tools.__checkIsChannel(groupid)
-            rply.text += tools.__checkIsManager(userrole)
+            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
             if (rply.text) return rply;
 
             getData = await schema.randomAns.findOne({ groupid: groupid }).catch(error => console.error('randomans #137 mongoDB error: ', error.name, error.reson));
@@ -172,8 +172,8 @@ var rollDiceCommand = async function ({
             //刪除自定義關鍵字
             //
             if (!mainMsg[2]) rply.text += '沒有骰子名稱. '
-            rply.text += tools.__checkIsChannel(groupid)
-            rply.text += tools.__checkIsManager(userrole)
+            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
             if (rply.text) return rply;
 
             filter = {

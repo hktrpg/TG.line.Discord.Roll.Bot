@@ -2,7 +2,7 @@
 if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
-const tools = require('../modules/tools.js');
+const checkTools = require('../modules/check.js');
 const variables = {};
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const gameName = function () {
@@ -52,7 +52,7 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^\S/.test(mainMsg[1] || ''): {
-            rply.text += tools.__checkIsManager(userrole)
+            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
             if (rply.text) return rply;
 
             rply.discordEditMessage = inputStr.replace(/^\S+\s+/, '')

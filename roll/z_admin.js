@@ -12,7 +12,7 @@ const password = process.env.CRYPTO_SECRET,
 const adminSecret = process.env.ADMIN_SECRET;
 //admin id
 const schema = require('../modules/schema.js');
-const tools = require('../modules/tools.js');
+const checkTools = require('../modules/check.js');
 //const VIP = require('../modules/veryImportantPerson');
 var gameName = function () {
     return '【Admin Tool】.admin debug state account news on'
@@ -82,7 +82,7 @@ var rollDiceCommand = async function ({
             return rply;
 
         case /^registerChannel$/i.test(mainMsg[1]):
-            rply.text = tools.__checkIsChannel(groupid)
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
             if (rply.text) return rply;
             try {
                 temp = await schema.accountPW.findOne({
@@ -145,7 +145,7 @@ var rollDiceCommand = async function ({
             return rply;
 
         case /^unregisterChannel$/i.test(mainMsg[1]):
-            rply.text = tools.__checkIsChannel(groupid)
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
             if (rply.text) return rply;
             try {
                 await schema.accountPW.updateOne({
@@ -165,10 +165,10 @@ var rollDiceCommand = async function ({
             rply.text = "已移除註冊!如果想檢查，請到\nhttps://www.hktrpg.com:20721/card/"
             return rply;
         case /^disallowrolling$/i.test(mainMsg[1]):
-            rply.text = tools.__checkIsChannel(groupid)
-            rply.text += tools.__checkIsAdmin(userrole)
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isAdmin(userrole)) rply.text += checkTools.notAdmin;
             if (rply.text) return rply;
-            
+
             try {
                 doc = await schema.allowRolling.findOneAndRemove({
                     "id": channelid || groupid
@@ -181,8 +181,8 @@ var rollDiceCommand = async function ({
             rply.text = "此頻道已被Admin不允許使用網頁版角色卡擲骰。\nAdmin 希望允許擲骰，可輸入\n.admin allowrolling";
             return rply;
         case /^allowrolling$/i.test(mainMsg[1]):
-            rply.text += tools.__checkIsChannel(groupid)
-            rply.text += tools.__checkIsAdmin(userrole)
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isAdmin(userrole)) rply.text += checkTools.notAdmin;
             if (rply.text) return rply;
             try {
                 doc = await schema.allowRolling.findOneAndUpdate({

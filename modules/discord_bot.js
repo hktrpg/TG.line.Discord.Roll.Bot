@@ -214,12 +214,13 @@ async function replilyMessage(message, result) {
 
 async function __handlingReplyMessage(message, result) {
 	const text = result.text;
-	const sendText = text.toString().match(/[\s\S]{1,2000}/g);
-	for (let index = 0; index < sendText.length; index++) {
+	const sendTexts = text.toString().match(/[\s\S]{1,2000}/g);
+	for (let index = 0; index < sendTexts.length; index++) {
+		const sendText = sendTexts[index];
 		try {
-			await message.reply({ content: `${result.text}`, ephemeral: false })
+			await message.reply({ content: `${sendText}`, ephemeral: false })
 		} catch (error) {
-			await message.editReply({ content: `${result.text}`, ephemeral: false })
+			await message.editReply({ content: `${sendText}`, ephemeral: false })
 		}
 
 

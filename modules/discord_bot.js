@@ -1258,7 +1258,7 @@ async function handlingMultiServerMessage(message) {
 		//	for (let index = 0; index < targetsData.length; index++) {
 		const targetData = target
 		let webhook = await manageWebhook({ channelId: targetData.channelid })
-		let pair = webhook.isThread ? { threadId: targetData.channelid } : {};
+		let pair = (webhook && webhook.isThread) ? { threadId: targetData.channelid } : {};
 		await webhook.webhook.send({ ...sendMessage, ...pair });
 		//	}
 

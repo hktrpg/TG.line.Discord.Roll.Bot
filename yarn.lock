@@ -9,24 +9,24 @@
   dependencies:
     "@babel/highlight" "^7.10.4"
 
-"@babel/helper-validator-identifier@^7.16.7":
-  version "7.16.7"
-  resolved "https://registry.yarnpkg.com/@babel/helper-validator-identifier/-/helper-validator-identifier-7.16.7.tgz#e8c602438c4a8195751243da9031d1607d247cad"
-  integrity sha512-hsEnFemeiW4D08A5gUAZxLBTXpZ39P+a+DGDsHw1yxqyQ/jzFEnxf5uTEGp+3bzAbNOxU1paTgYS4ECU/IgfDw==
+"@babel/helper-validator-identifier@^7.18.6":
+  version "7.18.6"
+  resolved "https://registry.yarnpkg.com/@babel/helper-validator-identifier/-/helper-validator-identifier-7.18.6.tgz#9c97e30d31b2b8c72a1d08984f2ca9b574d7a076"
+  integrity sha512-MmetCkz9ej86nJQV+sFCxoGGrUbU3q02kgLciwkrt9QqEB7cP39oKEY0PakknEO0Gu20SskMRi+AYZ3b1TpN9g==
 
 "@babel/highlight@^7.10.4":
-  version "7.17.12"
-  resolved "https://registry.yarnpkg.com/@babel/highlight/-/highlight-7.17.12.tgz#257de56ee5afbd20451ac0a75686b6b404257351"
-  integrity sha512-7yykMVF3hfZY2jsHZEEgLc+3x4o1O+fYyULu11GynEUQNwB6lua+IIQn1FiJxNucd5UlyJryrwsOh8PL9Sn8Qg==
+  version "7.18.6"
+  resolved "https://registry.yarnpkg.com/@babel/highlight/-/highlight-7.18.6.tgz#81158601e93e2563795adcbfbdf5d64be3f2ecdf"
+  integrity sha512-u7stbOuYjaPezCuLj29hNW1v64M2Md2qupEKP1fHc7WdOA3DgLh37suiSrZYY7haUB7iBeQZ9P1uiRF359do3g==
   dependencies:
-    "@babel/helper-validator-identifier" "^7.16.7"
+    "@babel/helper-validator-identifier" "^7.18.6"
     chalk "^2.0.0"
     js-tokens "^4.0.0"
 
-"@babel/runtime@^7.15.4", "@babel/runtime@^7.18.3":
-  version "7.18.3"
-  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.18.3.tgz#c7b654b57f6f63cf7f8b418ac9ca04408c4579f4"
-  integrity sha512-38Y8f7YUhce/K7RMwTp7m0uCumpv9hZkitCbBClqQIow1qSbCvGkcegKOXpEWCQLfWmevgRiWokZ1GkpfhbZug==
+"@babel/runtime@^7.15.4", "@babel/runtime@^7.18.6":
+  version "7.18.6"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.18.6.tgz#6a1ef59f838debd670421f8c7f2cbb8da9751580"
+  integrity sha512-t9wi7/AW6XtKahAe20Yw0/mMljKq0B1r2fPdvaAdV/KPDZewFXdaaa6K7lxmZBZ8FBNpCiAT6iHPmd6QO9bKfQ==
   dependencies:
     regenerator-runtime "^0.13.4"
 
@@ -141,9 +141,9 @@
   integrity sha512-FFTlPOWZX1kDj9xCAsRzH5xEJfawg1lNoYAA+ecOWJMHOfiZYb1uXOI3ne9U4UILSEPwfE68p3T9wUHwIQfR0g==
 
 "@sapphire/shapeshift@^3.1.0":
-  version "3.3.0"
-  resolved "https://registry.yarnpkg.com/@sapphire/shapeshift/-/shapeshift-3.3.0.tgz#2d7c35daa1cecf93bd62683e7c4102844cf1a97e"
-  integrity sha512-6MNupTaIXtyVCHuejbTIE/Wmw35FKbpfRhiPCkxaQHm76iHICaWNO0oej0lipLb7vhK8mQHQn3zE6umOVvwGLw==
+  version "3.4.0"
+  resolved "https://registry.yarnpkg.com/@sapphire/shapeshift/-/shapeshift-3.4.0.tgz#0dab2397276612bc82413d38ebfa4f4e4e0fa9be"
+  integrity sha512-uV+vErdfbxCgnjgcwkPDADlyS40I20L57YPy254LKbRNfLCg4/ymy510aNSGhLhq/dpNU0s1fQnTbI2YAetzsA==
 
 "@sapphire/snowflake@^3.0.1":
   version "3.2.2"
@@ -284,9 +284,9 @@
   integrity sha512-XAahCdThVuCFDQLT7R7Pk/vqeObFNL3YqRyFZg+AqAP/W1/w3xHaIxuW7WszQqTbIBOPRcItYJIou3i/mppu3Q==
 
 "@types/whatwg-url@^8.2.1":
-  version "8.2.1"
-  resolved "https://registry.yarnpkg.com/@types/whatwg-url/-/whatwg-url-8.2.1.tgz#f1aac222dab7c59e011663a0cb0a3117b2ef05d4"
-  integrity sha512-2YubE1sjj5ifxievI5Ge1sckb9k/Er66HyR2c+3+I6VDUUg1TLPdYYTEbQ+DjRkS4nTxMJhgWfSfMRD2sl2EYQ==
+  version "8.2.2"
+  resolved "https://registry.yarnpkg.com/@types/whatwg-url/-/whatwg-url-8.2.2.tgz#749d5b3873e845897ada99be4448041d4cc39e63"
+  integrity sha512-FtQu10RWgn3D9U4aazdwIE2yzphmTJREDqNdODHrbrZmmMqI0vMheC/6NE/J1Yveaj8H+ela+YwWTjq5PGmuhA==
   dependencies:
     "@types/node" "*"
     "@types/webidl-conversions" "*"
@@ -498,9 +498,9 @@ aws4@^1.8.0:
   integrity sha512-xh1Rl34h6Fi1DC2WWKfxUTVqRsNnr6LsKz2+hfwDxQJWmrx8+c7ylaqBMcHfl1U1r2dsifOvKX3LQuLNZ+XSvA==
 
 axios-retry@^3.2.4:
-  version "3.2.5"
-  resolved "https://registry.yarnpkg.com/axios-retry/-/axios-retry-3.2.5.tgz#64952992837c7d9a12eec156a2694a7945f60895"
-  integrity sha512-a8umkKbfIkTiYJQLx3v3TzKM85TGKB8ZQYz4zwykt2fpO64TsRlUhjaPaAb3fqMWCXFm2YhWcd8V5FHDKO9bSA==
+  version "3.3.1"
+  resolved "https://registry.yarnpkg.com/axios-retry/-/axios-retry-3.3.1.tgz#47624646138aedefbad2ac32f226f4ee94b6dcab"
+  integrity sha512-RohAUQTDxBSWLFEnoIG/6bvmy8l3TfpkclgStjl5MDCMBDgapAWCmr1r/9harQfWC8bzLC8job6UcL1A1Yc+/Q==
   dependencies:
     "@babel/runtime" "^7.15.4"
     is-retry-allowed "^2.2.0"
@@ -1140,23 +1140,23 @@ discord-api-types@^0.33.3:
   integrity sha512-dvO5M52v7m7Dy96+XUnzXNsQ/0npsYpU6dL205kAtEDueswoz3aU3bh1UMoK4cQmcGtB1YRyLKqp+DXi05lzFg==
 
 discord-hybrid-sharding@^1.5.3:
-  version "1.6.2"
-  resolved "https://registry.yarnpkg.com/discord-hybrid-sharding/-/discord-hybrid-sharding-1.6.2.tgz#ffdffdec9d5b80118b1c3c476c43e0e5a32671bc"
-  integrity sha512-qg7p0A+iTGqSxN4i967qtELC751FF3UXvK1TFI9H2TnMNYtI3DVCoPlTG9KaY4IglWqhZ5ytMhucyTwLL9Jx+w==
+  version "1.6.4"
+  resolved "https://registry.yarnpkg.com/discord-hybrid-sharding/-/discord-hybrid-sharding-1.6.4.tgz#d266701c4dbdb33cbd009524b8b8ab563b9558e1"
+  integrity sha512-91rkqbLMRoQUWkQcEFi73wV/Jsy+cNbZqRmZu0weA0lB0GFMtkcF12DvFHUhdRoC5PoeJxrpjCnZgdL/MnA5XQ==
   dependencies:
     node-fetch "^2.6.7"
 
 discord.js-light@^4.6.4:
-  version "4.8.0"
-  resolved "https://registry.yarnpkg.com/discord.js-light/-/discord.js-light-4.8.0.tgz#9adcedc7de3c6d11609a365bcb9a40eaf5472d80"
-  integrity sha512-hIwcwSJ81+lS6UsV6yMat3bfKMaFiwSe6HHia/q4o2+35NwqRDr8AYgQ0IciDr8QRLGkErhyVdeLgs9m40kUAg==
+  version "4.8.1"
+  resolved "https://registry.yarnpkg.com/discord.js-light/-/discord.js-light-4.8.1.tgz#4c4a8b370f722937a447567a1a34220daca926cb"
+  integrity sha512-z+BHqAzD+RXC9FHbpN4m+8HbCiAaXMIxQc72dLdJ27N8G1xLbsVUmLwGs3P93MkshWuoX/g/zgy5C90pcE4HLQ==
   dependencies:
-    discord.js "^13.8.0"
+    discord.js "^13.8.1"
 
-discord.js@^13.6.0, discord.js@^13.8.0:
-  version "13.8.0"
-  resolved "https://registry.yarnpkg.com/discord.js/-/discord.js-13.8.0.tgz#4f923f32a7521b3a82083289cf709039a2f2f8a1"
-  integrity sha512-EPAA/2VLycYN5wSzavqa4iJ6qj3UtQFtHw5TH/60Fj29ymfEsCQVn//o1mTpwDxzwb+rPIrWhkxKIGGnjfv0Iw==
+discord.js@^13.6.0, discord.js@^13.8.1:
+  version "13.8.1"
+  resolved "https://registry.yarnpkg.com/discord.js/-/discord.js-13.8.1.tgz#37627154a887ac395ca72dd814bc7366776bb90a"
+  integrity sha512-jOsD+4tEZWWx0RHVyH+FBcqoTrsL+d5Mm5p+ULQOdU0qSaxhLNkWYig+yDHNZoND7nlkXX3qi+BW+gO5erWylg==
   dependencies:
     "@discordjs/builders" "^0.14.0"
     "@discordjs/collection" "^0.7.0"
@@ -1275,10 +1275,10 @@ engine.io@^4.0.0:
     engine.io-parser "~4.0.0"
     ws "~7.4.2"
 
-engine.io@~3.5.0:
-  version "3.5.0"
-  resolved "https://registry.yarnpkg.com/engine.io/-/engine.io-3.5.0.tgz#9d6b985c8a39b1fe87cd91eb014de0552259821b"
-  integrity sha512-21HlvPUKaitDGE4GXNtQ7PLP0Sz4aWLddMPw2VTyFz1FVZqu/kZsJUO8WNpKuE/OCL7nkfRaOui2ZCJloGznGA==
+engine.io@~3.6.0:
+  version "3.6.0"
+  resolved "https://registry.yarnpkg.com/engine.io/-/engine.io-3.6.0.tgz#8760e8cd5b8454bd0f422b6466426ac6f598f296"
+  integrity sha512-Kc8fo5bbg8F4a2f3HPHTEpGyq/IRIQpyeHu3H1ThR14XDD7VrLcsGBo16HUpahgp8YkHJDaU5gNxJZbuGcuueg==
   dependencies:
     accepts "~1.3.4"
     base64id "2.0.0"
@@ -1655,9 +1655,9 @@ flat@^5.0.2:
   integrity sha512-b6suED+5/3rTpUBdG1gupIl8MPFCAMA0QXwmljLhvCUKcUvdE4gWky9zpuGCcXHOsz4J9wPGNWq6OKpmIzz3hQ==
 
 flatted@^3.1.0:
-  version "3.2.5"
-  resolved "https://registry.yarnpkg.com/flatted/-/flatted-3.2.5.tgz#76c8584f4fc843db64702a6bd04ab7a8bd666da3"
-  integrity sha512-WIWGi2L3DyTUvUrwRKgGi9TwxQMUEqPOPQBVi71R96jZXJdFskXEmf54BoZaS1kknGODoIGASGEzBUYdyMCBJg==
+  version "3.2.6"
+  resolved "https://registry.yarnpkg.com/flatted/-/flatted-3.2.6.tgz#022e9218c637f9f3fc9c35ab9c9193f05add60b2"
+  integrity sha512-0sQoMh9s0BYsm+12Huy/rkKxVu4R1+r96YX5cG44rHV0pQ6iC3Q+mkoMFaGWObMFYQxCVT+ssG1ksneA2MI9KQ==
 
 fluent-ffmpeg@^2.1.2:
   version "2.1.2"
@@ -2422,11 +2422,11 @@ make-dir@^3.0.0:
     semver "^6.0.0"
 
 mathjs@^10.0.0:
-  version "10.6.1"
-  resolved "https://registry.yarnpkg.com/mathjs/-/mathjs-10.6.1.tgz#95b34178eed65cbf7a63d35c468ad3ac912f7ddf"
-  integrity sha512-8iZp6uUKKBoCFoUHze9ydsrSji9/IOEzMhwURyoQXaLL1+ILEZnraw4KzZnUBt/XN6lPJPV+7JO94oil3AmosQ==
+  version "10.6.4"
+  resolved "https://registry.yarnpkg.com/mathjs/-/mathjs-10.6.4.tgz#1b87a1268781d64f0c8b4e5e1b36cf7ecf58bb05"
+  integrity sha512-omQyvRE1jIy+3k2qsqkWASOcd45aZguXZDckr3HtnTYyXk5+2xpVfC3kATgbO2Srjxlqww3TVdhD0oUdZ/hiFA==
   dependencies:
-    "@babel/runtime" "^7.18.3"
+    "@babel/runtime" "^7.18.6"
     complex.js "^2.1.1"
     decimal.js "^10.3.1"
     escape-latex "^1.2.0"
@@ -2698,9 +2698,9 @@ node-fetch@2.6.7, node-fetch@^2.6.1, node-fetch@^2.6.5, node-fetch@^2.6.7:
     whatwg-url "^5.0.0"
 
 node-gyp-build@^4.3.0:
-  version "4.4.0"
-  resolved "https://registry.yarnpkg.com/node-gyp-build/-/node-gyp-build-4.4.0.tgz#42e99687ce87ddeaf3a10b99dc06abc11021f3f4"
-  integrity sha512-amJnQCcgtRVw9SvoebO3BKGESClrfXGCUTX9hSn1OuGQTQBOZmVd0Z0OlecpuRksKvbsUqALE8jls/ErClAPuQ==
+  version "4.5.0"
+  resolved "https://registry.yarnpkg.com/node-gyp-build/-/node-gyp-build-4.5.0.tgz#7a64eefa0b21112f89f58379da128ac177f20e40"
+  integrity sha512-2iGbaQBV+ITgCz76ZEjmhUKAKVf7xfY1sRl4UiKQspfZMH2h06SyhNsnSVy50cwkFQDGLyif6m/6uFXHkOZ6rg==
 
 node-telegram-bot-api@^0.54.0:
   version "0.54.0"
@@ -2928,7 +2928,7 @@ pkg-dir@4.2.0:
     request "^2.88.0"
     request-promise "^4.2.4"
 
-prebuild-install@^7.1.0:
+prebuild-install@^7.1.1:
   version "7.1.1"
   resolved "https://registry.yarnpkg.com/prebuild-install/-/prebuild-install-7.1.1.tgz#de97d5b34a70a0c81334fd24641f2a1702352e45"
   integrity sha512-jAXscXWMcCK8GgCoHOfIr0ODh5ai8mj63L2nWrjuAgXE6tDyYGnx4/8o/rCgU+B4JSyZBKbeZqzhtwtC3ovxjw==
@@ -3298,14 +3298,14 @@ setprototypeof@1.2.0:
   integrity sha512-E5LDX7Wrp85Kil5bhZv46j8jOeboKq5JMmYM3gVGdGH8xFpPWXUMsNrlODCrkoxMEeNi/XZIwuRvY4XNwYMJpw==
 
 sharp@^0.30.6:
-  version "0.30.6"
-  resolved "https://registry.yarnpkg.com/sharp/-/sharp-0.30.6.tgz#02264e9826b5f1577509f70bb627716099778873"
-  integrity sha512-lSdVxFxcndzcXggDrak6ozdGJgmIgES9YVZWtAFrwi+a/H5vModaf51TghBtMPw+71sLxUsTy2j+aB7qLIODQg==
+  version "0.30.7"
+  resolved "https://registry.yarnpkg.com/sharp/-/sharp-0.30.7.tgz#7862bda98804fdd1f0d5659c85e3324b90d94c7c"
+  integrity sha512-G+MY2YW33jgflKPTXXptVO28HvNOo9G3j0MybYAHeEmby+QuD2U98dT6ueht9cv/XDqZspSpIhoSW+BAKJ7Hig==
   dependencies:
     color "^4.2.3"
     detect-libc "^2.0.1"
     node-addon-api "^5.0.0"
-    prebuild-install "^7.1.0"
+    prebuild-install "^7.1.1"
     semver "^7.3.7"
     simple-get "^4.0.1"
     tar-fs "^2.1.1"
@@ -3387,10 +3387,10 @@ socket.io-adapter@~1.1.0:
   resolved "https://registry.yarnpkg.com/socket.io-adapter/-/socket.io-adapter-1.1.2.tgz#ab3f0d6f66b8fc7fca3959ab5991f82221789be9"
   integrity sha512-WzZRUj1kUjrTIrUKpZLEzFZ1OLj5FwLlAFQs9kuZJzJi5DKdU7FsWc36SNmA8iDOtwBQyT8FkrriRM8vXLYz8g==
 
-socket.io-client@2.4.0, socket.io-client@^2.4.0:
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/socket.io-client/-/socket.io-client-2.4.0.tgz#aafb5d594a3c55a34355562fc8aea22ed9119a35"
-  integrity sha512-M6xhnKQHuuZd4Ba9vltCLT9oa+YvTsP8j9NcEiLElfIg8KeYPyhWOes6x4t+LTAC8enQbE/995AdTem2uNyKKQ==
+socket.io-client@2.5.0, socket.io-client@^2.4.0:
+  version "2.5.0"
+  resolved "https://registry.yarnpkg.com/socket.io-client/-/socket.io-client-2.5.0.tgz#34f486f3640dde9c2211fce885ac2746f9baf5cb"
+  integrity sha512-lOO9clmdgssDykiOmVQQitwBAF3I6mYcQAo7hQ7AM6Ny5X7fp8hIJ3HcQs3Rjz4SoggoxA1OgrQyY8EgTbcPYw==
   dependencies:
     backo2 "1.0.2"
     component-bind "1.0.0"
@@ -3423,15 +3423,15 @@ socket.io-parser@~3.4.0:
     isarray "2.0.1"
 
 socket.io@^2.4.1:
-  version "2.4.1"
-  resolved "https://registry.yarnpkg.com/socket.io/-/socket.io-2.4.1.tgz#95ad861c9a52369d7f1a68acf0d4a1b16da451d2"
-  integrity sha512-Si18v0mMXGAqLqCVpTxBa8MGqriHGQh8ccEOhmsmNS3thNCGBwO8WGrwMibANsWtQQ5NStdZwHqZR3naJVFc3w==
+  version "2.5.0"
+  resolved "https://registry.yarnpkg.com/socket.io/-/socket.io-2.5.0.tgz#e1c7fb1823f7fa09dfebb5bb68f9d2ee03a0a2e3"
+  integrity sha512-gGunfS0od3VpwDBpGwVkzSZx6Aqo9uOcf1afJj2cKnKFAoyl16fvhpsUhmUFd4Ldbvl5JvRQed6eQw6oQp6n8w==
   dependencies:
     debug "~4.1.0"
-    engine.io "~3.5.0"
+    engine.io "~3.6.0"
     has-binary2 "~1.0.2"
     socket.io-adapter "~1.1.0"
-    socket.io-client "2.4.0"
+    socket.io-client "2.5.0"
     socket.io-parser "~3.4.0"
 
 socks@^2.6.2:

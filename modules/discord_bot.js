@@ -218,6 +218,7 @@ async function __handlingReplyMessage(message, result) {
 	const sendTexts = text.toString().match(/[\s\S]{1,2000}/g);
 	for (let index = 0; index < sendTexts.length; index++) {
 		const sendText = sendTexts[index];
+		if (sendText.length === 0) continue;
 		try {
 			await message.reply({ content: `${sendText}`, ephemeral: false })
 		} catch (error) {

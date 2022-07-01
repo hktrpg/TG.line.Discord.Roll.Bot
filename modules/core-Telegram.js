@@ -205,7 +205,7 @@ TGclient.on('text', async (ctx) => {
 		default:
 			if (displaynamecheck && displayname) {
 				//285083923223
-				displayname = "@" + ctx.from.username + ((rplyVal.statue) ? ' ' + rplyVal.statue : '') + "\n";
+				displayname = "@" + ctx.from.username + ((rplyVal.statue) ? ' ' + rplyVal.statue : '') + " 🎗️\n";
 				rplyVal.text = displayname + rplyVal.text;
 			}
 			SendToId(groupid || userid, rplyVal.text);

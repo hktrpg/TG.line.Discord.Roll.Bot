@@ -310,10 +310,10 @@
   resolved "https://registry.yarnpkg.com/@ungap/promise-all-settled/-/promise-all-settled-1.1.2.tgz#aa58042711d6e3275dd37dc597e5d31e8c290a44"
   integrity sha512-sL/cEvJWAnClXw0wHk85/2L0G6Sj8UB0Ctc1TEMbKSsmpRosqhwj9gWgFRZSrBr2f9tiXISwNhCPmlfqUqyb9Q==
 
-"@vitalets/google-translate-api@^8.0.0":
-  version "8.0.0"
-  resolved "https://registry.yarnpkg.com/@vitalets/google-translate-api/-/google-translate-api-8.0.0.tgz#3dfbab1e051e4fcfe5ee97e1c5923a0ec0d106ae"
-  integrity sha512-CHOi8DRgDAoLlFQy9pm1KHUauIk5ZXys3+Eh0aSYxzJSuxAE7Z2UL8+5MgNdl1oX7t/O7u+SwGhkhu6+U1bNcg==
+"@vitalets/google-translate-api@^5.1.0":
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/@vitalets/google-translate-api/-/google-translate-api-5.1.0.tgz#06f3a5169beeec5d231f21a6d58322ea05d1761e"
+  integrity sha512-iAfyAqLeBIhqJvS1PFAx6ve2bWTSS3/8L6ss+UKM0/Y7CHartgiMI7OWxSSRTdQDL1z/+SZNO3mJgdVTPcGAnA==
   dependencies:
     configstore "^5.0.1"
     got "^9.6.0"

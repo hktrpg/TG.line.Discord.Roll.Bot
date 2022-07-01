@@ -52,6 +52,7 @@ const client = new Discord.Client({
 	}),
 	shards: Cluster.data.SHARD_LIST, // An array of shards that will get spawned
 	shardCount: Cluster.data.TOTAL_SHARDS, // Total number of shards
+	restRequestTimeout: 45000, // Timeout for REST requests
 	/**
 		  cacheGuilds: true,
 		cacheChannels: true,

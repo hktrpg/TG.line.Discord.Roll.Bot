@@ -252,7 +252,7 @@ var handleEvent = async function (event) {
 			if (displayname && rplyVal && rplyVal.type != 'image') {
 				//285083923223
 				displayname = "@" + displayname;
-				displayname += (rplyVal.statue) ? ' ' + rplyVal.statue + '\n' : " 🎗️\n";
+				displayname += (rplyVal.statue) ? ' ' + rplyVal.statue + '\n' : "\n";
 				rplyVal.text = displayname + rplyVal.text;
 			}
 			if (roomorgroupid) {

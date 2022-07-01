@@ -169,17 +169,17 @@ client.on('interactionCreate', async message => {
 				const result = await handlingResponMessage(message, answer);
 				const messageContent = message.message.content;
 				const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
-				if (result && !result.text) result.text = ''
+				const resultText = (result && result.text) || '';
 				if (/的角色卡$/.test(messageContent)) {
-					if (result && result.text) { return await message.reply({ content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${result.text}`, ephemeral: false }).catch() }
+					if (resultText) { return await message.reply({ content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${resultText}`, ephemeral: false }).catch() }
 					else {
 						return await message.reply({ content: `${displayname}沒有反應，請檢查按鈕內容`, ephemeral: true }).catch()
 					}
 				}
 				if (/的角色$/.test(messageContent)) {
-					return await message.reply({ content: `${displayname}${result.text}`, ephemeral: false }).catch();
+					return await message.reply({ content: `${displayname}${resultText}`, ephemeral: false }).catch();
 				}
-				if (result && result.text) {
+				if (resultText) {
 					const content = handlingCountButton(message, 'roll');
 					handlingSendMessage(result);
 					try {
@@ -375,7 +375,7 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 		channel = await guild.channels.fetch(channelid)
 	}
 	if (!channel) {
-		console.error(`discord bot cant find channel #443 ${replyText}`)
+		//	console.error(`discord bot cant find channel #443 ${replyText}`)
 		return;
 	}
 	const sendText = replyText.toString().match(/[\s\S]{1,2000}/g);

@@ -5,6 +5,7 @@ if (!process.env.mongoURL) {
 const adminSecret = process.env.ADMIN_SECRET;
 const rollbase = require('./rollbase.js');
 const schema = require('../modules/schema.js');
+const checkTools = require('../modules/check.js');
 exports.z_Level_system = require('./z_Level_system');
 const opt = {
     upsert: true,
@@ -123,18 +124,12 @@ var rollDiceCommand = async function ({
             */
             lv = await VIP.viplevelCheckGroup(groupid);
             limit = limitArr[lv];
-            if (!mainMsg[2])
-                rply.text += ' 沒有輸入骰子名稱.'
-            if (!mainMsg[3])
-                rply.text += ' 沒有輸入骰子內容.'
-            if (!groupid)
-                rply.text += ' 此功能必須在群組中使用.'
-            if (groupid && userrole < 1)
-                rply.text += ' 只有GM以上才可新增.'
-            if (rply.text) {
-                rply.text = '新增失敗.\n' + rply.text;
-                return rply;
-            }
+            if (!mainMsg[2]) rply.text += ' 沒有輸入骰子名稱.'
+            if (!mainMsg[3]) rply.text += ' 沒有輸入骰子內容.'
+            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (rply.text) return rply;
+
             getData = await schema.randomAns.findOne({ groupid: groupid }).catch(error => console.error('randomans #137 mongoDB error: ', error.name, error.reson));
             let update = false;
             let findIndex = getData && getData.randomAnsfunction.findIndex((e) => {
@@ -176,14 +171,11 @@ var rollDiceCommand = async function ({
             //
             //刪除自定義關鍵字
             //
-            if (!mainMsg[2])
-                rply.text += '沒有骰子名稱. '
-            if (!groupid)
-                rply.text += '此功能必須在群組中使用. '
-            if (groupid && userrole < 1)
-                rply.text += '只有GM以上才可刪除. '
-            if (rply.text)
-                return rply;
+            if (!mainMsg[2]) rply.text += '沒有骰子名稱. '
+            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (rply.text) return rply;
+
             filter = {
                 groupid: groupid,
             };

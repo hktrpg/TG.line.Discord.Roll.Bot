@@ -4,23 +4,24 @@
 if (!process.env.mongoURL) {
     return;
 }
-var tempSwitchV2 = require('../modules/level');
+const checkTools = require('../modules/check.js');
+const tempSwitchV2 = require('../modules/level');
 const schema = require('../modules/schema.js');
 const defaultRankWord = "{user.displayName}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點！\n現在排名是{server.member_count}人中的第{user.Ranking}名！{user.RankingPer}！\n調查經驗是{user.exp}點。 "
 
-var gameName = function () {
+const gameName = function () {
     return '【經驗值功能】 .level (show config LevelUpWord RankWord)'
 }
-var gameType = function () {
+const gameType = function () {
     return 'funny:trpgLevelSystem:hktrpg'
 }
-var prefixs = function () {
+const prefixs = function () {
     return [{
         first: /(^[.]level$)/ig,
         second: null
     }]
 }
-var getHelpMessage = async function () {
+const getHelpMessage = async function () {
     return `【經驗值功能】
 這是根據開源Discord bot Mee6開發的功能
 按發言次數增加經驗，提升等級，實現服務器內排名等歡樂功能
@@ -52,7 +53,7 @@ var getHelpMessage = async function () {
 {server.member_count} 現在頻道中總人數 
 `
 }
-var initialize = function () {
+const initialize = function () {
     return;
 }
 const checkTitle = async function (userlvl, DBTitle) {
@@ -123,7 +124,7 @@ const Title = function () {
     44-47   外神
     48-50   門
     */
-var rollDiceCommand = async function ({
+const rollDiceCommand = async function ({
     inputStr,
     mainMsg,
     groupid,
@@ -151,14 +152,10 @@ var rollDiceCommand = async function ({
         // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
 
         case /(^[.]level$)/i.test(mainMsg[0]) && /^TitleWord$/i.test(mainMsg[1]) && /^del$/i.test(mainMsg[2]): {
-            if (!groupid) {
-                rply.text = '刪除失敗。你不在群組當中，請在群組中使用。'
-                return rply
-            }
-            if (userrole <= 2) {
-                rply.text = '新增失敗。只有GM以上才可新增。'
-                return rply
-            }
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isAdmin(userrole)) rply.text += checkTools.notAdmin;
+            if (rply.text) return rply;
+
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
             }).catch(error => console.error('level_system #164 mongoDB error: ', error.name, error.reson));
@@ -199,14 +196,10 @@ var rollDiceCommand = async function ({
             //
             //稱號Title
             //
-            if (!groupid) {
-                rply.text = '新增失敗。你不在群組當中，請在群組中使用。'
-                return rply
-            }
-            if (userrole <= 2) {
-                rply.text = '新增失敗。只有GM以上才可新增。'
-                return rply
-            }
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isAdmin(userrole)) rply.text += checkTools.notAdmin;
+            if (rply.text) return rply;
+
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
             }).catch(error => console.error('level_system #212 mongoDB error: ', error.name, error.reson));
@@ -248,14 +241,10 @@ var rollDiceCommand = async function ({
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^LevelUpWord$/i.test(mainMsg[1]) && /^del$/i.test(mainMsg[2]): {
-            if (!groupid) {
-                rply.text = '刪除失敗。\n你不在群組當中，請在群組中使用。'
-                return rply
-            }
-            if (userrole <= 2) {
-                rply.text = '刪除失敗。只有GM以上才可刪除。'
-                return rply
-            }
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isAdmin(userrole)) rply.text += checkTools.notAdmin;
+            if (rply.text) return rply;
+
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
             }).catch(error => console.error('level_system #262 mongoDB error: ', error.name, error.reson));
@@ -265,14 +254,9 @@ var rollDiceCommand = async function ({
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^LevelUpWord$/i.test(mainMsg[1]): {
-            if (!groupid) {
-                rply.text = '新增失敗。你不在群組當中，請在群組中使用。'
-                return rply
-            }
-            if (userrole <= 2) {
-                rply.text = '新增失敗。只有GM以上才可新增。'
-                return rply
-            }
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isAdmin(userrole)) rply.text += checkTools.notAdmin;
+            if (rply.text) return rply;
 
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
@@ -300,14 +284,10 @@ var rollDiceCommand = async function ({
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^RankWord$/i.test(mainMsg[1]) && /^del$/i.test(mainMsg[2]): {
-            if (!groupid) {
-                rply.text = '刪除失敗。\n你不在群組當中，請在群組中使用。'
-                return rply
-            }
-            if (userrole <= 2) {
-                rply.text = '刪除失敗。只有GM以上才可刪除。'
-                return rply
-            }
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isAdmin(userrole)) rply.text += checkTools.notAdmin;
+            if (rply.text) return rply;
+
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
             }).catch(error => console.error('level_system #314 mongoDB error: ', error.name, error.reson));
@@ -317,14 +297,9 @@ var rollDiceCommand = async function ({
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^RankWord$/i.test(mainMsg[1]): {
-            if (!groupid) {
-                rply.text = '新增失敗。你不在群組當中，請在群組中使用。'
-                return rply
-            }
-            if (userrole <= 2) {
-                rply.text = '新增失敗。只有GM以上才可新增。'
-                return rply
-            }
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isAdmin(userrole)) rply.text += checkTools.notAdmin;
+            if (rply.text) return rply;
 
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
@@ -349,14 +324,10 @@ var rollDiceCommand = async function ({
         }
 
         case /(^[.]level$)/i.test(mainMsg[0]) && /^config$/i.test(mainMsg[1]): {
-            if (!groupid) {
-                rply.text = '修改失敗。你不在群組當中，請在群組中使用。'
-                return rply
-            }
-            if (userrole <= 2) {
-                rply.text = '修改失敗。只有GM以上才可修改設定。'
-                return rply
-            }
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isAdmin(userrole)) rply.text += checkTools.notAdmin;
+            if (rply.text) return rply;
+
             if (!mainMsg[2]) {
                 rply.text = '修改失敗。沒有設定onoff\n';
                 rply.text += '\nconfig 11 代表啓動功能 \

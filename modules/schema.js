@@ -455,7 +455,8 @@ const multiServer = mongoose.model('multiServer', new mongoose.Schema({
     multiId: String,
     guildName: String,
     channelName: String,
-    guildID: String
+    guildID: String,
+    botname: String
 }));
 
 module.exports = {

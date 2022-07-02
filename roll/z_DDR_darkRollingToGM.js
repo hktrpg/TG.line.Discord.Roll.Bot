@@ -4,22 +4,23 @@ if (!process.env.mongoURL) {
 }
 const records = require('../modules/records.js');
 var trpgDarkRollingfunction = {};
+const checkTools = require('../modules/check.js');
 records.get('trpgDarkRolling', (msgs) => {
     trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
 })
-var gameName = function () {
+const gameName = function () {
     return '【暗骰GM功能】 .drgm (addgm del show) dr ddr dddr'
 }
-var gameType = function () {
+const gameType = function () {
     return 'Tool:trpgDarkRolling:hktrpg'
 }
-var prefixs = function () {
+const prefixs = function () {
     return [{
         first: /(^[.]drgm$)/ig,
         second: null
     }]
 }
-var getHelpMessage = async function () {
+const getHelpMessage = async function () {
     return `【暗骰GM功能】.drgm(addgm del show) dr ddr dddr
 這是讓你可以私骰GM的功能
 輸入.drgm addgm 讓自己成為GM
@@ -41,11 +42,11 @@ var getHelpMessage = async function () {
 不輸入就會顯示原名
 `
 }
-var initialize = function () {
+const initialize = function () {
     return trpgDarkRollingfunction;
 }
 
-var rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, botname, displayname, channelid }) {
+const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, botname, displayname, channelid }) {
     let checkifsamename = 0;
     let rply = {
         default: 'on',
@@ -59,113 +60,98 @@ var rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, botn
             if (botname == "Line")
                 rply.text += "\n因為Line的機制, 如擲骰時並無顯示用家名字, 請到下列網址,和機器人任意說一句話,成為好友. \n https://line.me/R/ti/p/svMLqy9Mik"
             return rply;
-        case /(^[.]drgm$)/i.test(mainMsg[0]) && /^addgm$/i.test(mainMsg[1]):
+        case /(^[.]drgm$)/i.test(mainMsg[0]) && /^addgm$/i.test(mainMsg[1]): {
             //
             //增加自定義關鍵字
             // .drgm[0] addgm[1] 代替名字[2]  
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
+            if (rply.text) return rply;
+
             checkifsamename = 0
             if (channelid)
                 groupid = channelid
             //因為在DISCROD以頻道作單位
-            if (groupid && userrole >= 1 && userid) {
-                if (trpgDarkRollingfunction.trpgDarkRollingfunction)
-                    for (let i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
-                        if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid) {
-                            for (let a = 0; a < trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
-                                if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].userid == userid) {
-                                    checkifsamename = 1
-                                }
+            if (trpgDarkRollingfunction.trpgDarkRollingfunction)
+                for (let i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
+                    if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid) {
+                        for (let a = 0; a < trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
+                            if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].userid == userid) {
+                                checkifsamename = 1
                             }
                         }
                     }
-                let temp = {
-                    groupid: groupid,
-                    trpgDarkRollingfunction: [{
-                        userid: userid,
-                        diyName: mainMsg[2] || "",
-                        displayname: displayname
-                    }]
-                    //|| displayname
-
                 }
-                if (checkifsamename == 0) {
-                    records.pushtrpgDarkRollingfunction('trpgDarkRolling', temp, () => {
-                        records.get('trpgDarkRolling', (msgs) => {
-                            trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
-                        })
+            let temp = {
+                groupid: groupid,
+                trpgDarkRollingfunction: [{
+                    userid: userid,
+                    diyName: mainMsg[2] || "",
+                    displayname: displayname
+                }]
+                //|| displayname
 
-                    })
-                    rply.text = '新增成功: ' + (mainMsg[2] || displayname ||
-                        "")
-                } else rply.text = '新增失敗. 你已在GM列表'
-            } else {
-                rply.text = '新增失敗.'
-                if (!userid)
-                    rply.text += ' 沒有個人ID....如果是LINE的話, 要先LIKE 這個BOT.'
-                if (!groupid)
-                    //&& !channelid
-                    rply.text += ' 此功能必須在群組中使用.'
-                if (groupid && userrole < 1)
-                    rply.text += ' 只有GM以上才可新增.'
             }
+            if (checkifsamename == 0) {
+                records.pushtrpgDarkRollingfunction('trpgDarkRolling', temp, () => {
+                    records.get('trpgDarkRolling', (msgs) => {
+                        trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
+                    })
+
+                })
+                rply.text = '新增成功: ' + (mainMsg[2] || displayname ||
+                    "")
+            } else rply.text = '新增失敗. 你已在GM列表'
             return rply;
-        case /(^[.]drgm$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
+        } case /(^[.]drgm$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
             //    
             //刪除所有自定義關鍵字
             //
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
+            if (rply.text) return rply;
+
             if (channelid)
                 groupid = channelid
             if (!mainMsg[2]) return;
-            if (groupid && mainMsg[2] && trpgDarkRollingfunction.trpgDarkRollingfunction && userrole >= 2) {
-                for (let i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
-                    if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid) {
-                        let temp = trpgDarkRollingfunction.trpgDarkRollingfunction[i]
-                        temp.trpgDarkRollingfunction = []
-                        records.settrpgDarkRollingfunction('trpgDarkRolling', temp, () => {
-                            records.get('trpgDarkRolling', (msgs) => {
-                                trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
-                            })
+            for (let i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
+                if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid) {
+                    let temp = trpgDarkRollingfunction.trpgDarkRollingfunction[i]
+                    temp.trpgDarkRollingfunction = []
+                    records.settrpgDarkRollingfunction('trpgDarkRolling', temp, () => {
+                        records.get('trpgDarkRolling', (msgs) => {
+                            trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
                         })
-                        rply.text = '刪除所有在表GM'
-                    }
+                    })
+                    rply.text = '刪除所有在表GM'
                 }
-            } else {
-                rply.text = '刪除失敗.'
-                if (!groupid)
-                    rply.text += '此功能必須在群組中使用. '
-                if (groupid && userrole < 2)
-                    rply.text += '只有GM以上才可刪除所有在表GM. '
             }
+
 
             return rply;
         case /(^[.]drgm$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
             //
             //刪除GM
             //
+            if (!mainMsg[2]) rply.text += '沒有已註冊GM. '
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
+            if (rply.text) return rply;
             if (channelid)
                 groupid = channelid
-            if (groupid && mainMsg[2] && trpgDarkRollingfunction.trpgDarkRollingfunction && userrole >= 1) {
-                for (let i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
-                    if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid && mainMsg[2] < trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length && mainMsg[2] >= 0) {
-                        let temp = trpgDarkRollingfunction.trpgDarkRollingfunction[i]
-                        temp.trpgDarkRollingfunction.splice(mainMsg[2], 1)
-                        records.settrpgDarkRollingfunction('trpgDarkRolling', temp, () => {
-                            records.get('trpgDarkRolling', (msgs) => {
-                                trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
-                            })
+            for (let i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
+                if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid && mainMsg[2] < trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length && mainMsg[2] >= 0) {
+                    let temp = trpgDarkRollingfunction.trpgDarkRollingfunction[i]
+                    temp.trpgDarkRollingfunction.splice(mainMsg[2], 1)
+                    records.settrpgDarkRollingfunction('trpgDarkRolling', temp, () => {
+                        records.get('trpgDarkRolling', (msgs) => {
+                            trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
                         })
-                    }
-                    rply.text = '刪除成功: ' + mainMsg[2]
+                    })
                 }
-            } else {
-                rply.text = '刪除失敗.'
-                if (!mainMsg[2])
-                    rply.text += '沒有已註冊GM. '
-                if (!groupid)
-                    rply.text += '此功能必須在群組中使用. '
-                if (groupid && userrole < 1)
-                    rply.text += '只有GM以上才可刪除. '
+                rply.text = '刪除成功: ' + mainMsg[2]
             }
+
             return rply;
         case /(^[.]drgm$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
             //

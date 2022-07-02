@@ -199,7 +199,14 @@ const rollDiceCommand = async function ({
             for (let index = 0; index < doc.length; index++) {
                 rply.text += index + ': ' + doc[index].name + '　\n';
             }
-            rply.text += '\n輸入 .char show0 可以顯示0號角色卡\n 輸入 .char use 角色名字  可以使用角色卡';
+            rply.text += `\n輸入 .char show0 可以顯示0號角色卡
+            .char button 角色名字 可以產生你的角色卡按鈕
+            輸入 .char use 角色名字  可以在頻道中使用角色卡
+            
+            輸入use後，
+            再輸入 .ch button 也可以產生你的角色卡按鈕
+            
+            兩種產生的按鈕指令會有所不同，前者調用.ch後者產生直接擲骰的指令 `;
             return rply;
         case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]): {
             Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料

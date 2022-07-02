@@ -6,6 +6,7 @@ const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const adminSecret = process.env.ADMIN_SECRET || '';
 const Cluster = require('discord-hybrid-sharding');
 const Discord = require("discord.js-light");
+const multiServer = require('../modules/multi-server')
 const fs = require('node:fs');
 const { Client, Intents, Permissions, Collection, MessageActionRow, MessageButton, WebhookClient, MessageAttachment } = Discord;
 const rollText = require('./getRoll').rollText;
@@ -51,6 +52,7 @@ const client = new Discord.Client({
 	}),
 	shards: Cluster.data.SHARD_LIST, // An array of shards that will get spawned
 	shardCount: Cluster.data.TOTAL_SHARDS, // Total number of shards
+	restRequestTimeout: 45000, // Timeout for REST requests
 	/**
 		  cacheGuilds: true,
 		cacheChannels: true,
@@ -157,6 +159,7 @@ client.on('interactionCreate', async message => {
 		case message.isCommand():
 			{
 				const answer = await handlingCommand(message)
+				if (!answer) return;
 				const result = await handlingResponMessage(message, answer);
 				return replilyMessage(message, result)
 			}
@@ -166,17 +169,17 @@ client.on('interactionCreate', async message => {
 				const result = await handlingResponMessage(message, answer);
 				const messageContent = message.message.content;
 				const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
+				const resultText = (result && result.text) || '';
 				if (/的角色卡$/.test(messageContent)) {
-					if (result && result.text) { return await message.reply({ content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${result.text}`, ephemeral: false }).catch() }
+					if (resultText) { return await message.reply({ content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${resultText}`, ephemeral: false }).catch() }
 					else {
 						return await message.reply({ content: `${displayname}沒有反應，請檢查按鈕內容`, ephemeral: true }).catch()
 					}
 				}
 				if (/的角色$/.test(messageContent)) {
-					return await message.reply({ content: `${displayname}${result.text}`, ephemeral: false })
-						.catch();
+					return await message.reply({ content: `${displayname}${resultText}`, ephemeral: false }).catch();
 				}
-				if (result && result.text) {
+				if (resultText) {
 					const content = handlingCountButton(message, 'roll');
 					handlingSendMessage(result);
 					try {
@@ -197,25 +200,36 @@ client.on('interactionCreate', async message => {
 });
 async function replilyMessage(message, result) {
 	const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
-	if (message.replied) {
-		if (result && result.text) {
-			return await message.reply({ content: `${displayname}${result.text}`, ephemeral: false })
-				.catch(error => console.error('discord bot #159  error: ', error, result.text));
-		}
-	} else {
-		if (result && result.text) {
-			return await message.reply({ content: `${displayname}${result.text}`, ephemeral: false })
-				.catch(async () => {
-					return await message.editReply({ content: `${displayname}${result.text}`, ephemeral: false }).catch()
-
-				})
-		}
-		else {
-			return await message.reply({ content: `指令沒有得到回應，請檢查內容`, ephemeral: true }).catch()
+	if (result && result.text) {
+		result.text = `${displayname}${result.text}`
+		await __handlingReplyMessage(message, result);
+	}
+	else {
+		try {
+			return await message.reply({ content: `${displayname}指令沒有得到回應，請檢查內容`, ephemeral: true })
+		} catch (error) {
+			return;
 		}
 	}
-
 }
+
+async function __handlingReplyMessage(message, result) {
+	const text = result.text;
+	const sendTexts = text.toString().match(/[\s\S]{1,2000}/g);
+	for (let index = 0; index < sendTexts.length; index++) {
+		const sendText = sendTexts[index];
+		if (sendText.length === 0) continue;
+		try {
+			await message.reply({ content: `${sendText}`, ephemeral: false })
+		} catch (error) {
+			await message.editReply({ content: `${sendText}`, ephemeral: false })
+		}
+
+
+	}
+}
+
+
 client.on('messageReactionAdd', async (reaction, user) => {
 	if (reaction.me) return;
 	/** 
@@ -230,7 +244,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 	});
 	if (findEmoji) {
 		const member = await reaction.message.guild.members.fetch(user.id);
-		member.roles.add(findEmoji.roleID)
+		member.roles.add(findEmoji.roleID.replace(/\D/g, ''))
 	} else {
 		reaction.users.remove(user.id);
 	}
@@ -244,7 +258,7 @@ client.on('messageReactionRemove', async (reaction, user) => {
 	for (let index = 0; index < detail.length; index++) {
 		if (detail[index].emoji === reaction.emoji.name || detail[index].emoji === `<:${reaction.emoji.name}:${reaction.emoji.id}>`) {
 			const member = await reaction.message.guild.members.fetch(user.id);
-			member.roles.remove(detail[index].roleID)
+			member.roles.remove(detail[index].roleID.replace(/\D/g, ''))
 		}
 	}
 });
@@ -361,7 +375,7 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 		channel = await guild.channels.fetch(channelid)
 	}
 	if (!channel) {
-		console.error(`discord bot cant find channel #443 ${replyText}`)
+		//	console.error(`discord bot cant find channel #443 ${replyText}`)
 		return;
 	}
 	const sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
@@ -559,14 +573,18 @@ function sendNewstoAll(rply) {
 }
 
 async function handlingCommand(message) {
-	const command = client.commands.get(message.commandName);
-	if (!command) return;
+	try {
+		const command = client.commands.get(message.commandName);
+		if (!command) return;
+		let answer = await command.execute(message).catch(error => {
+			console.error(error);
+			//await message.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+		})
+		return answer;
+	} catch (error) {
+		return;
+	}
 
-	let answer = await command.execute(message).catch(error => {
-		console.error(error);
-		//await message.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-	})
-	return answer;
 }
 async function repeatMessage(discord, message) {
 	try {
@@ -583,7 +601,7 @@ async function repeatMessage(discord, message) {
 			username: message.myName.username,
 			avatarURL: message.myName.avatarURL
 		};
-		let pair = webhook.isThread ? { threadId: discord.channelId } : {};
+		let pair = (webhook && webhook.isThread) ? { threadId: discord.channelId } : {};
 		await webhook.webhook.send({ ...obj, ...pair });
 	} catch (error) {
 		await SendToReplychannel({ replyText: '不能成功發送扮演發言, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
@@ -605,7 +623,7 @@ async function repeatMessages(discord, message) {
 				username: element.username,
 				avatarURL: element.avatarURL
 			};
-			let pair = webhook.isThread ? { threadId: discord.channelId } : {};
+			let pair = (webhook && webhook.isThread) ? { threadId: discord.channelId } : {};
 			await webhook.webhook.send({ ...obj, ...pair });
 
 		}
@@ -619,7 +637,7 @@ async function repeatMessages(discord, message) {
 async function manageWebhook(discord) {
 	try {
 		const channel = await client.channels.fetch(discord.channelId);
-		const isThread = channel.isThread();
+		const isThread = channel && channel.isThread();
 		let webhooks = isThread ? await channel.guild.fetchWebhooks() : await channel.fetchWebhooks();
 		let webhook = webhooks.find(v => {
 			return v.name == 'HKTRPG .me Function' && v.type == "Incoming" && ((v.channelId == channel.parentId) || !isThread);
@@ -810,7 +828,7 @@ async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 	}
 	const arrayRow = await splitArray(5, row)
 	for (let index = 0; index < arrayRow.length; index++) {
-		await message.reply({ content: `${displayname}要求擲骰/點擊`, components: arrayRow[index] });
+		await message.reply({ content: `${displayname}要求擲骰/點擊`, components: arrayRow[index] }).catch();
 	}
 }
 async function splitArray(perChunk, inputArray) {
@@ -1231,29 +1249,24 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 		username: data.roleName,
 		avatarURL: data.imageLink
 	};
-	let pair = webhook.isThread ? { threadId: channelid } : {};
+	let pair = (webhook && webhook.isThread) ? { threadId: channelid } : {};
 	await webhook.webhook.send({ ...obj, ...pair });
 }
 async function handlingMultiServerMessage(message) {
-	let target = await schema.multiServer.findOne({ channelid: message.channel.id }).catch(error => {
-		console.error('discordbojs #1230 mongoDB error: ', error.name, error.reson)
-	});
-	if (target) target = await schema.multiServer.find({ multiId: target.multiId }).catch(error => {
-		console.error('discordbojs #1234 mongoDB error: ', error.name, error.reson)
-	});
-	else return;
-	if (target.length >= 2) {
-		const targetsData = target.filter(v => v.channelid !== message.channel.id);
+	let target = multiServer.multiServerChecker(message.channel.id)
+	if (!target) return;
+	else {
+		//	const targetsData = target;
 		const sendMessage = multiServerTarget(message);
-		for (let index = 0; index < targetsData.length; index++) {
-			const targetData = targetsData[index]
-			let webhook = await manageWebhook({ channelId: targetData.channelid })
-			let pair = webhook.isThread ? { threadId: targetData.channelid } : {};
-			await webhook.webhook.send({ ...sendMessage, ...pair });
-		}
+		//	for (let index = 0; index < targetsData.length; index++) {
+		const targetData = target
+		let webhook = await manageWebhook({ channelId: targetData.channelid })
+		let pair = (webhook && webhook.isThread) ? { threadId: targetData.channelid } : {};
+		await webhook.webhook.send({ ...sendMessage, ...pair });
+		//	}
 
-	} else
-		return;
+	}
+	return;
 }
 function multiServerTarget(message) {
 	const obj = {

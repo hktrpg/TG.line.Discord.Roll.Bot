@@ -10,6 +10,7 @@ const moment = require('moment');
 const agenda = require('../modules/schedule')
 const cronRegex = /^(\d\d)(\d\d)((?:-([1-9]?[1-9]|((mon|tues|wed(nes)?|thur(s)?|fri|sat(ur)?|sun)(day)?))){0,1})/i;
 const validDays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+const checkTools = require('../modules/check.js');
 
 
 
@@ -217,14 +218,10 @@ var rollDiceCommand = async function ({
             return rply;
         }
         case /^\.cron+$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
-            if (!groupid) {
-                rply.text = '此功能必須在群組中使用'
-                return rply
-            }
-            if (userrole <= 1) {
-                rply.text = '只有GM以上才可新增'
-                return rply
-            }
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
+            if (rply.text) return rply;
+
             let check = {}
             if (botname == "Discord") {
                 check = {
@@ -243,14 +240,10 @@ var rollDiceCommand = async function ({
             return rply;
         }
         case /^\.cron$/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]): {
-            if (!groupid) {
-                rply.text = '此功能必須在群組中使用'
-                return rply
-            }
-            if (userrole <= 1) {
-                rply.text = '只有GM以上才可新增'
-                return rply
-            }
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
+            if (rply.text) return rply;
+
             if (!mainMsg[2] || !/\d+/i.test(mainMsg[2])) {
                 rply.text = '移除定時訊息指令為 .cron delete (序號) \n 如 .cron delete 1'
                 return rply
@@ -282,18 +275,11 @@ var rollDiceCommand = async function ({
             return rply;
         }
         case /^\.cron+$/i.test(mainMsg[0]): {
-            if (!groupid) {
-                rply.text = '此功能必須在群組中使用'
-                return rply
-            }
-            if (userrole <= 1) {
-                rply.text = '只有GM以上才可新增'
-                return rply
-            }
-            if (!mainMsg[2]) {
-                rply.text = '未有內容'
-                return rply
-            }
+            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
+            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
+            if (!mainMsg[2]) rply.text += '未有內容'
+            if (rply.text) return rply;
+
             let lv = await VIP.viplevelCheckUser(userid);
             let gpLv = await VIP.viplevelCheckGroup(groupid);
             lv = (gpLv > lv) ? gpLv : lv;

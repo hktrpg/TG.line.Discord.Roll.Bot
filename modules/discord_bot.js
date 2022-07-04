@@ -353,10 +353,8 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 		let guild = await client.guilds.fetch(groupid)
 		channel = await guild.channels.fetch(channelid)
 	}
-	if (!channel) {
-		//	console.error(`discord bot cant find channel #443 ${replyText}`)
-		return;
-	}
+	if (!channel) return;
+	//	console.error(`discord bot cant find channel #443 ${replyText}`)
 	const sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
 	for (let i = 0; i < sendText.length; i++) {
 		if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
@@ -474,7 +472,6 @@ process.on('unhandledRejection', error => {
 	if (error.message === "Missing Permissions") return;
 
 	console.error('Discord Unhandled promise rejection:', error);
-
 	process.send({
 		type: "process:msg",
 		data: "discorderror"

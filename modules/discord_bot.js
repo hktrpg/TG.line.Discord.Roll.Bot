@@ -866,9 +866,7 @@ async function handlingResponMessage(message, answer = '') {
 
 		if (rplyVal.sendImage) sendBufferImage(message, rplyVal, userid)
 
-		if (!rplyVal.text && !rplyVal.LevelUp) {
-			return;
-		}
+		if (!rplyVal.text && !rplyVal.LevelUp) return;
 		try {
 			let isNew = await newMessage.newUserChecker(userid, "Discord");
 			if (process.env.mongoURL && rplyVal.text && isNew) {

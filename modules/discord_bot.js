@@ -107,50 +107,13 @@ client.on('guildCreate', async guild => {
 })
 
 client.on('interactionCreate', async message => {
-	if (message.user && message.user.bot) return;
-
-	switch (true) {
-		case message.isCommand():
-			{
-				const answer = await handlingCommand(message)
-				if (!answer) return;
-				const result = await handlingResponMessage(message, answer);
-				return replilyMessage(message, result)
-			}
-		case message.isButton():
-			{
-				const answer = handlingButtonCommand(message)
-				const result = await handlingResponMessage(message, answer);
-				const messageContent = message.message.content;
-				const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
-				const resultText = (result && result.text) || '';
-				if (/的角色卡$/.test(messageContent)) {
-					if (resultText) { return await message.reply({ content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${resultText}`, ephemeral: false }).catch() }
-					else {
-						return await message.reply({ content: `${displayname}沒有反應，請檢查按鈕內容`, ephemeral: true }).catch()
-					}
-				}
-				if (/的角色$/.test(messageContent)) {
-					return await message.reply({ content: `${displayname}${resultText}`, ephemeral: false }).catch();
-				}
-				if (resultText) {
-					const content = handlingCountButton(message, 'roll');
-					handlingSendMessage(result);
-					try {
-						return await message.update({ content: content })
-					} catch (error) {
-						return
-					}
-				}
-				else {
-					const content = handlingCountButton(message, 'count');
-					return await message.update({ content: content })
-						.catch(error => console.error('discord bot #192  error: ', error, content));
-				}
-			}
-		default:
-			break;
+	try {
+		if (message.user && message.user.bot) return;
+		return __handlingInteractionMessage(message);
+	} catch (error) {
+		console.log('discord bot interactionCreate #114 error', error)
 	}
+
 });
 
 
@@ -1197,6 +1160,52 @@ async function __handlingReplyMessage(message, result) {
 		}
 	}
 }
+
+async function __handlingInteractionMessage(message) {
+	switch (true) {
+		case message.isCommand():
+			{
+				const answer = await handlingCommand(message)
+				if (!answer) return;
+				const result = await handlingResponMessage(message, answer);
+				return replilyMessage(message, result)
+			}
+		case message.isButton():
+			{
+				const answer = handlingButtonCommand(message)
+				const result = await handlingResponMessage(message, answer);
+				const messageContent = message.message.content;
+				const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
+				const resultText = (result && result.text) || '';
+				if (/的角色卡$/.test(messageContent)) {
+					if (resultText) { return await message.reply({ content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${resultText}`, ephemeral: false }).catch() }
+					else {
+						return await message.reply({ content: `${displayname}沒有反應，請檢查按鈕內容`, ephemeral: true }).catch()
+					}
+				}
+				if (/的角色$/.test(messageContent)) {
+					return await message.reply({ content: `${displayname}${resultText}`, ephemeral: false }).catch();
+				}
+				if (resultText) {
+					const content = handlingCountButton(message, 'roll');
+					handlingSendMessage(result);
+					try {
+						return await message.update({ content: content })
+					} catch (error) {
+						return
+					}
+				}
+				else {
+					const content = handlingCountButton(message, 'count');
+					return await message.update({ content: content })
+						.catch(error => console.error('discord bot #192  error: ', error, content));
+				}
+			}
+		default:
+			break;
+	}
+}
+
 async function __sendMeMessage({ message, inputStr, groupid }) {
 	inputStr = inputStr.replace(/^\.mee\s*/i, ' ').replace(/^\.me\s*/i, ' ');
 	if (inputStr.match(/^\s+$/)) {

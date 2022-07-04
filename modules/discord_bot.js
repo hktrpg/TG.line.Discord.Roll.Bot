@@ -1,7 +1,6 @@
 "use strict";
 exports.analytics = require('./analytics');
 const schema = require('../modules/schema.js');
-const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const adminSecret = process.env.ADMIN_SECRET || '';
 const Cluster = require('discord-hybrid-sharding');
@@ -900,7 +899,7 @@ async function handlingResponMessage(message, answer = '') {
 		let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
 		if (!target) return await nonDice(message)
 		if (!hasSendPermission) return;
-		
+
 		const userid = (message.author && message.author.id) || (message.user && message.user.id) || '';
 		const displayname = (message.member && message.member.user && message.member.user.tag) || (message.user && message.user.username) || '';
 		const displaynameDiscord = (message.member && message.member.user && message.member.user.username) ? message.member.user.username : '';
@@ -919,40 +918,20 @@ async function handlingResponMessage(message, answer = '') {
 		//訊息來到後, 會自動跳到analytics.js進行骰組分析
 		//如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
 
-		if (channelKeyword != "" && trigger == channelKeyword.toString().toLowerCase()) {
-			//mainMsg.shift();
-			rplyVal = await exports.analytics.parseInput({
-				inputStr: inputStr,
-				groupid: groupid,
-				userid: userid,
-				userrole: userrole,
-				botname: "Discord",
-				displayname: displayname,
-				channelid: channelid,
-				displaynameDiscord: displaynameDiscord,
-				membercount: membercount,
-				discordClient: client,
-				discordMessage: message,
-				titleName: titleName
-			})
-		} else {
-			if (channelKeyword == "") {
-				rplyVal = await exports.analytics.parseInput({
-					inputStr: inputStr,
-					groupid: groupid,
-					userid: userid,
-					userrole: userrole,
-					botname: "Discord",
-					displayname: displayname,
-					channelid: channelid,
-					displaynameDiscord: displaynameDiscord,
-					membercount: membercount,
-					discordClient: client,
-					discordMessage: message,
-					titleName: titleName
-				});
-			}
-		}
+		rplyVal = await exports.analytics.parseInput({
+			inputStr: inputStr,
+			groupid: groupid,
+			userid: userid,
+			userrole: userrole,
+			botname: "Discord",
+			displayname: displayname,
+			channelid: channelid,
+			displaynameDiscord: displaynameDiscord,
+			membercount: membercount,
+			discordClient: client,
+			discordMessage: message,
+			titleName: titleName
+		});
 		if (rplyVal.requestRollingCharacter) await handlingRequestRollingCharacter(message, rplyVal.requestRollingCharacter);
 		if (rplyVal.requestRolling) await handlingRequestRolling(message, rplyVal.requestRolling, displaynameDiscord);
 		if (rplyVal.buttonCreate) rplyVal.buttonCreate = await handlingButtonCreate(message, rplyVal.buttonCreate)

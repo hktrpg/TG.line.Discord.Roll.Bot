@@ -113,7 +113,6 @@ client.on('interactionCreate', async message => {
 	} catch (error) {
 		console.log('discord bot interactionCreate #114 error', error)
 	}
-
 });
 
 

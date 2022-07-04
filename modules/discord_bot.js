@@ -927,7 +927,7 @@ async function handlingResponMessage(message, answer = '') {
 		//檢查是不是有權限可以傳信訊
 		//是不是自己.ME 訊息
 		//TRUE 即正常
-		let userrole = 1;
+		let userrole = __checkUserRole(groupid, message);
 
 		if (message.channelId) {
 			channelid = message.channelId;
@@ -944,15 +944,6 @@ async function handlingResponMessage(message, answer = '') {
 			displaynameDiscord = message.member.user.username;
 		}
 		////DISCORD: 585040823232320107
-
-
-		if (groupid && message.channel.permissionsFor(message.member) && message.channel.permissionsFor(message.member).has(Permissions.FLAGS.MANAGE_CHANNELS)) {
-			userrole = 2
-		}
-
-		if (message.member && message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
-			userrole = 3
-		}
 		//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin
 		membercount = (message.guild) ? message.guild.memberCount : 0;
 
@@ -1078,6 +1069,14 @@ const sendBufferImage = async (message, rplyVal, userid) => {
 	await message.channel.send({ content: `<@${userid}>\n你的Token 已經送到`, files: [{ attachment: rplyVal.sendImage }] });
 	fs.unlinkSync(rplyVal.sendImage);
 	return;
+}
+
+function __checkUserRole(groupid, message) {
+	if (groupid && message.member && message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR))
+		return 3;
+	if (groupid && message.channel.permissionsFor(message.member) && message.channel.permissionsFor(message.member).has(Permissions.FLAGS.MANAGE_CHANNELS)) return 2;
+
+	return 1;
 }
 
 async function handlingSendMessage(input) {

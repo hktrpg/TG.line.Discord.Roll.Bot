@@ -79,41 +79,15 @@ const shardids = client.cluster.id;
 const WebSocket = require('ws');
 var ws;
 
+client.on('messageCreate', async message => {
+	if (message.author.bot) return;
+	const result = await handlingResponMessage(message);
+	await handlingMultiServerMessage(message);
+	if (result && result.text)
+		return handlingSendMessage(result);
+	return
 
-client.once('ready', async () => {
-	initInteractionCommands();
-	if (process.env.BROADCAST) connect();
-	//	if (shardids === 0) getSchedule();
 });
-
-client.on('ready', async () => {
-	client.user.setActivity('🌼bothelp | hktrpg.com🍎');
-	console.log(`Discord: Logged in as ${client.user.tag}!`);
-	var switchSetActivity = 0;
-	// eslint-disable-next-line no-unused-vars
-	const refreshId = setInterval(async () => {
-		if (shardids !== (Cluster.data.TOTAL_SHARDS - 1)) return;
-		if (adminSecret) {
-			let check = await checkWakeUp();
-			if (!check) {
-				SendToId(adminSecret, 'HKTRPG可能下線了');
-			}
-		}
-	}, 180000);
-	// eslint-disable-next-line no-unused-vars
-	const refreshId2 = setInterval(async () => {
-		switch (switchSetActivity % 2) {
-			case 1:
-				client.user.setActivity('🌼bothelp | hktrpg.com🍎');
-				break;
-			default:
-				client.user.setActivity(await count2());
-				break;
-		}
-		switchSetActivity = (switchSetActivity % 2) ? 2 : 3;
-	}, 180000);
-});
-
 client.on('guildCreate', async guild => {
 	let channels = await guild.channels.fetch();
 	let keys = Array.from(channels.values());
@@ -132,24 +106,6 @@ client.on('guildCreate', async guild => {
 		await channel.send({ embeds: [text] });
 	}
 })
-
-client.on('shardDisconnect', (event, shardID) => {
-	console.log('shardDisconnect: ', event, shardID)
-});
-
-client.on('shardResume', (replayed, shardID) => console.log(`Shard ID ${shardID} resumed connection and replayed ${replayed} events.`));
-
-client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnected.`));
-
-client.on('messageCreate', async message => {
-	if (message.author.bot) return;
-	const result = await handlingResponMessage(message);
-	await handlingMultiServerMessage(message);
-	if (result && result.text)
-		return handlingSendMessage(result);
-	return
-
-});
 
 client.on('interactionCreate', async message => {
 	if (message.user && message.user.bot) return;
@@ -197,36 +153,6 @@ client.on('interactionCreate', async message => {
 			break;
 	}
 });
-async function replilyMessage(message, result) {
-	const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
-	if (result && result.text) {
-		result.text = `${displayname}${result.text}`
-		await __handlingReplyMessage(message, result);
-	}
-	else {
-		try {
-			return await message.reply({ content: `${displayname}指令沒有得到回應，請檢查內容`, ephemeral: true })
-		} catch (error) {
-			return;
-		}
-	}
-}
-
-async function __handlingReplyMessage(message, result) {
-	const text = result.text;
-	const sendTexts = text.toString().match(/[\s\S]{1,2000}/g);
-	for (let index = 0; index < sendTexts.length; index++) {
-		const sendText = sendTexts[index];
-		if (sendText.length === 0) continue;
-		try {
-			await message.reply({ content: `${sendText}`, ephemeral: false })
-		} catch (error) {
-			await message.editReply({ content: `${sendText}`, ephemeral: false })
-		}
-
-
-	}
-}
 
 
 client.on('messageReactionAdd', async (reaction, user) => {
@@ -266,6 +192,56 @@ client.on('messageReactionRemove', async (reaction, user) => {
 		console.log('Discord bot messageReactionRemove #268 ', error)
 	}
 });
+
+
+client.once('ready', async () => {
+	initInteractionCommands();
+	if (process.env.BROADCAST) connect();
+	//	if (shardids === 0) getSchedule();
+});
+
+client.on('ready', async () => {
+	client.user.setActivity('🌼bothelp | hktrpg.com🍎');
+	console.log(`Discord: Logged in as ${client.user.tag}!`);
+	var switchSetActivity = 0;
+	// eslint-disable-next-line no-unused-vars
+	const refreshId = setInterval(async () => {
+		if (shardids !== (Cluster.data.TOTAL_SHARDS - 1)) return;
+		if (adminSecret) {
+			let check = await checkWakeUp();
+			if (!check) {
+				SendToId(adminSecret, 'HKTRPG可能下線了');
+			}
+		}
+	}, 180000);
+	// eslint-disable-next-line no-unused-vars
+	const refreshId2 = setInterval(async () => {
+		switch (switchSetActivity % 2) {
+			case 1:
+				client.user.setActivity('🌼bothelp | hktrpg.com🍎');
+				break;
+			default:
+				client.user.setActivity(await count2());
+				break;
+		}
+		switchSetActivity = (switchSetActivity % 2) ? 2 : 3;
+	}, 180000);
+});
+
+async function replilyMessage(message, result) {
+	const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
+	if (result && result.text) {
+		result.text = `${displayname}${result.text}`
+		await __handlingReplyMessage(message, result);
+	}
+	else {
+		try {
+			return await message.reply({ content: `${displayname}指令沒有得到回應，請檢查內容`, ephemeral: true })
+		} catch (error) {
+			return;
+		}
+	}
+}
 
 
 //inviteDelete
@@ -433,7 +409,7 @@ async function nonDice(message) {
 //Set Activity 可以自定義正在玩什麼
 
 
-function privateMsg({ trigger, mainMsg, inputStr }) {
+function __privateMsg({ trigger, mainMsg, inputStr }) {
 	let privatemsg = 0;
 	if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
 		privatemsg = 1;
@@ -857,20 +833,6 @@ function pushArrayInteractionCommands(arrayCommands) {
 	}
 
 }
-async function __sendMeMessage({ message, inputStr, groupid }) {
-	inputStr = inputStr.replace(/^\.mee\s*/i, ' ').replace(/^\.me\s*/i, ' ');
-	if (inputStr.match(/^\s+$/)) {
-		inputStr = `.me 或 /mee 可以令HKTRPG機械人重覆你的說話\n請輸入復述內容`
-	}
-
-	if (groupid) {
-		await SendToReplychannel({ replyText: inputStr, channelid: message.channel.id });
-	} else {
-		SendToReply({ replyText: inputStr, message });
-
-	}
-	return;
-}
 
 async function handlingResponMessage(message, answer = '') {
 	try {
@@ -894,7 +856,7 @@ async function handlingResponMessage(message, answer = '') {
 		if ((trigger == ".me" || trigger == ".mee") && !z_stop(mainMsg, groupid)) return await __sendMeMessage({ message, inputStr, groupid })
 
 		let rplyVal = {};
-		let checkPrivateMsg = privateMsg({ trigger, mainMsg, inputStr });
+		const checkPrivateMsg = __privateMsg({ trigger, mainMsg, inputStr });
 		inputStr = checkPrivateMsg.inputStr;
 		let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
 		if (!target) return await nonDice(message)
@@ -1014,14 +976,6 @@ const sendBufferImage = async (message, rplyVal, userid) => {
 	await message.channel.send({ content: `<@${userid}>\n你的Token 已經送到`, files: [{ attachment: rplyVal.sendImage }] });
 	fs.unlinkSync(rplyVal.sendImage);
 	return;
-}
-
-function __checkUserRole(groupid, message) {
-	if (groupid && message.member && message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR))
-		return 3;
-	if (groupid && message.channel.permissionsFor(message.member) && message.channel.permissionsFor(message.member).has(Permissions.FLAGS.MANAGE_CHANNELS)) return 2;
-
-	return 1;
 }
 
 async function handlingSendMessage(input) {
@@ -1225,6 +1179,50 @@ function multiServerTarget(message) {
 	};
 	return obj;
 }
+
+function __checkUserRole(groupid, message) {
+	if (groupid && message.member && message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR))
+		return 3;
+	if (groupid && message.channel.permissionsFor(message.member) && message.channel.permissionsFor(message.member).has(Permissions.FLAGS.MANAGE_CHANNELS)) return 2;
+
+	return 1;
+}
+
+async function __handlingReplyMessage(message, result) {
+	const text = result.text;
+	const sendTexts = text.toString().match(/[\s\S]{1,2000}/g);
+	for (let index = 0; index < sendTexts.length; index++) {
+		const sendText = sendTexts[index];
+		if (sendText.length === 0) continue;
+		try {
+			await message.reply({ content: `${sendText}`, ephemeral: false })
+		} catch (error) {
+			await message.editReply({ content: `${sendText}`, ephemeral: false })
+		}
+	}
+}
+async function __sendMeMessage({ message, inputStr, groupid }) {
+	inputStr = inputStr.replace(/^\.mee\s*/i, ' ').replace(/^\.me\s*/i, ' ');
+	if (inputStr.match(/^\s+$/)) {
+		inputStr = `.me 或 /mee 可以令HKTRPG機械人重覆你的說話\n請輸入復述內容`
+	}
+	if (groupid) {
+		await SendToReplychannel({ replyText: inputStr, channelid: message.channel.id });
+	} else {
+		SendToReply({ replyText: inputStr, message });
+	}
+	return;
+}
+
+client.on('shardDisconnect', (event, shardID) => {
+	console.log('shardDisconnect: ', event, shardID)
+});
+
+client.on('shardResume', (replayed, shardID) => console.log(`Shard ID ${shardID} resumed connection and replayed ${replayed} events.`));
+
+client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnected.`));
+
+
 
 /**
  *

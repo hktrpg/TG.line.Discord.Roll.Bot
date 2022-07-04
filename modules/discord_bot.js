@@ -412,16 +412,11 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 
 async function nonDice(message) {
 	await courtMessage({ result: "", botname: "Discord", inputStr: "", shardids: shardids })
-	let groupid = '',
-		userid = '';
-	if (message.guild && message.guild.id) {
-		groupid = message.guild.id;
-	}
-	userid = (message.author && message.author.id) || (message.user && message.user.id);
-
+	const groupid = (message.guild && message.guild.id) || '';
+	const userid = (message.author && message.author.id) || (message.user && message.user.id) || '';
 	if (!groupid || !userid) return;
-	let displayname = (message.member && message.member.user && message.member.user.tag) || (message.user && message.user.username) || '';
-	let membercount = (message.guild) ? message.guild.memberCount : 0;
+	const displayname = (message.member && message.member.user && message.member.user.tag) || (message.user && message.user.username) || '';
+	const membercount = (message.guild) ? message.guild.memberCount : 0;
 	try {
 		let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount, "", message);
 		if (groupid && LevelUp && LevelUp.text) {
@@ -432,8 +427,6 @@ async function nonDice(message) {
 	} catch (error) {
 		console.error('await #534 EXPUP error', error);
 	}
-
-
 	return null;
 }
 

@@ -89,22 +89,21 @@ client.on('messageCreate', async message => {
 
 });
 client.on('guildCreate', async guild => {
-	let channels = await guild.channels.fetch();
-	let keys = Array.from(channels.values());
-	let channel = keys.find(channel => {
+	const channels = await guild.channels.fetch();
+	const keys = Array.from(channels.values());
+	const channel = keys.find(channel => {
 		return channel.type === 'GUILD_TEXT' && channel.permissionsFor(guild.me).has('SEND_MESSAGES')
 	});
+	if (!channel) return;
+	//	let channelSend = await guild.channels.fetch(channel.id);
+	const text = new Discord.MessageEmbed()
+		.setColor('#0099ff')
+		//.setTitle(rplyVal.title)
+		//.setURL('https://discord.js.org/')
+		.setAuthor({ name: 'HKTRPG', url: 'https://www.patreon.com/HKTRPG', iconURL: 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png' })
+		.setDescription(newMessage.joinMessage())
+	await channel.send({ embeds: [text] });
 
-	if (channel) {
-		//	let channelSend = await guild.channels.fetch(channel.id);
-		let text = new Discord.MessageEmbed()
-			.setColor('#0099ff')
-			//.setTitle(rplyVal.title)
-			//.setURL('https://discord.js.org/')
-			.setAuthor({ name: 'HKTRPG', url: 'https://www.patreon.com/HKTRPG', iconURL: 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png' })
-			.setDescription(newMessage.joinMessage())
-		await channel.send({ embeds: [text] });
-	}
 })
 
 client.on('interactionCreate', async message => {

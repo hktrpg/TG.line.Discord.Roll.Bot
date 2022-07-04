@@ -887,9 +887,7 @@ async function handlingResponMessage(message, answer = '') {
 			await nonDice(message)
 			return null
 		}
-
-
-		let groupid = (message.guildId) ? message.guildId : '';
+		const groupid = (message.guildId) ? message.guildId : '';
 		//指定啟動詞在第一個詞&把大階強制轉成細階
 		if ((trigger == ".me" || trigger == ".mee") && !z_stop(mainMsg, groupid)) {
 			inputStr = inputStr.replace(/^\.mee\s*/i, ' ').replace(/^\.me\s*/i, ' ');
@@ -916,37 +914,19 @@ async function handlingResponMessage(message, answer = '') {
 		if (!hasSendPermission) {
 			return;
 		}
-		let userid = '',
-			displayname = '',
-			channelid = '',
-			displaynameDiscord = '',
-			membercount = null,
-			titleName = '';
+		const userid = (message.author && message.author.id) || (message.user && message.user.id) || '';
+		const displayname = (message.member && message.member.user && message.member.user.tag) || (message.user && message.user.username) || '';
+		const displaynameDiscord = (message.member && message.member.user && message.member.user.username) ? message.member.user.username : '';
+		const membercount = (message.guild) ? message.guild.memberCount : 0;
+		const titleName = ((message.guild && message.guild.name) ? message.guild.name + ' ' : '') + ((message.channel && message.channel.name) ? message.channel.name : '');
+		const channelid = (message.channelId) ? message.channelId : '';
+		const userrole = __checkUserRole(groupid, message);
+
 		//得到暗骰的數據, GM的位置
 
 		//檢查是不是有權限可以傳信訊
 		//是不是自己.ME 訊息
 		//TRUE 即正常
-		const userrole = __checkUserRole(groupid, message);
-
-		if (message.channelId) {
-			channelid = message.channelId;
-		}
-		if (message.guild && message.guild.name) {
-			titleName += message.guild.name + ' ';
-		}
-		if (message.channel && message.channel.name)
-			titleName += message.channel.name;
-		userid = (message.author && message.author.id) || (message.user && message.user.id);
-		displayname = (message.member && message.member.user && message.member.user.tag) || (message.user && message.user.username) || '';
-
-		if (message.member && message.member.user && message.member.user.username) {
-			displaynameDiscord = message.member.user.username;
-		}
-		////DISCORD: 585040823232320107
-		membercount = (message.guild) ? message.guild.memberCount : 0;
-
-
 
 		//設定私訊的模式 0-普通 1-自己 2-自己+GM 3-GM
 		//訊息來到後, 會自動跳到analytics.js進行骰組分析

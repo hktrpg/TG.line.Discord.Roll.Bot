@@ -927,7 +927,7 @@ async function handlingResponMessage(message, answer = '') {
 		//檢查是不是有權限可以傳信訊
 		//是不是自己.ME 訊息
 		//TRUE 即正常
-		let userrole = __checkUserRole(groupid, message);
+		const userrole = __checkUserRole(groupid, message);
 
 		if (message.channelId) {
 			channelid = message.channelId;
@@ -944,7 +944,6 @@ async function handlingResponMessage(message, answer = '') {
 			displaynameDiscord = message.member.user.username;
 		}
 		////DISCORD: 585040823232320107
-		//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin
 		membercount = (message.guild) ? message.guild.memberCount : 0;
 
 

@@ -858,6 +858,20 @@ function pushArrayInteractionCommands(arrayCommands) {
 	}
 
 }
+async function __sendMeMessage({ message, inputStr, groupid }) {
+	inputStr = inputStr.replace(/^\.mee\s*/i, ' ').replace(/^\.me\s*/i, ' ');
+	if (inputStr.match(/^\s+$/)) {
+		inputStr = `.me 或 /mee 可以令HKTRPG機械人重覆你的說話\n請輸入復述內容`
+	}
+
+	if (groupid) {
+		await SendToReplychannel({ replyText: inputStr, channelid: message.channel.id });
+	} else {
+		SendToReply({ replyText: inputStr, message });
+
+	}
+	return;
+}
 
 async function handlingResponMessage(message, answer = '') {
 	try {
@@ -867,8 +881,7 @@ async function handlingResponMessage(message, answer = '') {
 		if (message.guild && message.guild.me) {
 			hasSendPermission = (message.channel && message.channel.permissionsFor(message.guild.me)) ? message.channel.permissionsFor(message.guild.me).has(Permissions.FLAGS.SEND_MESSAGES) : false || message.guild.me.permissions.has(Permissions.FLAGS.ADMINISTRATOR);
 		}
-	暫時取消，因不理解DISCORD 的權限檢查
-	反正失敗也沒什麼後果
+		暫時取消，因不理解DISCORD 的權限檢查	反正失敗也沒什麼後果
 		 */
 		if (answer) message.content = answer;
 		let inputStr = message.content || '';
@@ -876,37 +889,18 @@ async function handlingResponMessage(message, answer = '') {
 		//LINE @名字
 		let mainMsg = inputStr.match(msgSplitor); //定義輸入.字串
 		let trigger = (mainMsg && mainMsg[0]) ? mainMsg[0].toString().toLowerCase() : '';
-		if (!trigger) {
-			await nonDice(message)
-			return null
-		}
+		if (!trigger) return await nonDice(message)
+
 		const groupid = (message.guildId) ? message.guildId : '';
-		//指定啟動詞在第一個詞&把大階強制轉成細階
-		if ((trigger == ".me" || trigger == ".mee") && !z_stop(mainMsg, groupid)) {
-			inputStr = inputStr.replace(/^\.mee\s*/i, ' ').replace(/^\.me\s*/i, ' ');
-			if (inputStr.match(/^\s+$/)) {
-				inputStr = `.me 或 /mee 可以令HKTRPG機械人重覆你的說話\n請輸入復述內容`
-			}
+		if ((trigger == ".me" || trigger == ".mee") && !z_stop(mainMsg, groupid)) return await __sendMeMessage({ message, inputStr, groupid })
 
-			if (groupid) {
-				await SendToReplychannel({ replyText: inputStr, channelid: message.channel.id });
-			} else {
-				SendToReply({ replyText: inputStr, message });
-
-			}
-			return;
-		}
 		let rplyVal = {};
 		let checkPrivateMsg = privateMsg({ trigger, mainMsg, inputStr });
 		inputStr = checkPrivateMsg.inputStr;
 		let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
-		if (!target) {
-			await nonDice(message)
-			return null
-		}
-		if (!hasSendPermission) {
-			return;
-		}
+		if (!target) return await nonDice(message)
+		if (!hasSendPermission) return;
+		
 		const userid = (message.author && message.author.id) || (message.user && message.user.id) || '';
 		const displayname = (message.member && message.member.user && message.member.user.tag) || (message.user && message.user.username) || '';
 		const displaynameDiscord = (message.member && message.member.user && message.member.user.username) ? message.member.user.username : '';

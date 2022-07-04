@@ -69,3 +69,5 @@ tmp/
 modules/whatsapp-session.json
 
 .wwebjs_auth/
+
+yarn.lock

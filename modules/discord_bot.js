@@ -25,7 +25,7 @@ const client = new Discord.Client({
 		GuildMemberManager: 0, // guild.members
 		GuildStickerManager: 0, // guild.stickers
 		MessageManager: Infinity, // channel.messages
-		PermissionOverwriteManager: 0, // channel.permissionOverwrites
+		PermissionOverwriteManager: Infinity, // channel.permissionOverwrites
 		PresenceManager: 0, // guild.presences
 		ReactionManager: 0, // message.reactions
 		ReactionUserManager: 0, // reaction.users

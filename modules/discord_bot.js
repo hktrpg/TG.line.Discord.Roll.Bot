@@ -25,7 +25,7 @@ const client = new Discord.Client({
 		GuildMemberManager: 0, // guild.members
 		GuildStickerManager: 0, // guild.stickers
 		MessageManager: Infinity, // channel.messages
-		PermissionOverwriteManager: 0, // channel.permissionOverwrites
+		PermissionOverwriteManager: Infinity, // channel.permissionOverwrites
 		PresenceManager: 0, // guild.presences
 		ReactionManager: 0, // message.reactions
 		ReactionUserManager: 0, // reaction.users
@@ -795,13 +795,9 @@ function pushArrayInteractionCommands(arrayCommands) {
 async function handlingResponMessage(message, answer = '') {
 	try {
 		let hasSendPermission = true;
-		//	await repeatMessage(message)
-		/**
 		if (message.guild && message.guild.me) {
-			hasSendPermission = (message.channel && message.channel.permissionsFor(message.guild.me)) ? message.channel.permissionsFor(message.guild.me).has(Permissions.FLAGS.SEND_MESSAGES) : false || message.guild.me.permissions.has(Permissions.FLAGS.ADMINISTRATOR);
+			hasSendPermission = (message.channel && message.channel.permissionsFor(message.guild.me)) ? message.channel.permissionsFor(message.guild.me).has(Permissions.FLAGS.SEND_MESSAGES) : false;
 		}
-		暫時取消，因不理解DISCORD 的權限檢查	反正失敗也沒什麼後果
-		 */
 		if (answer) message.content = answer;
 		let inputStr = message.content || '';
 		//DISCORD <@!USERID> <@!399923133368042763> <@!544563333488111636>

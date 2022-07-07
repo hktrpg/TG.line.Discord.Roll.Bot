@@ -52,8 +52,12 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^\S/.test(mainMsg[1] || ''): {
-            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
-            if (rply.text) return rply;
+            if (rply.text = checkTools.PermissionErrMsg({
+                flag : checkTools.flag.ChkManager,
+                role : userrole
+            })) {
+                return rply;
+            }
 
             rply.discordEditMessage = inputStr.replace(/^\S+\s+/, '')
             return rply;

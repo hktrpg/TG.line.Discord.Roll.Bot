@@ -348,11 +348,14 @@ var rollDiceCommand = async function ({
             你的channel 聊天紀錄 共有 ${totalSize} 項`
             return rply;
         case /^txt$/i.test(mainMsg[1]): {
-            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
-            if (!checkTools.isDiscord(botname)) rply.text += checkTools.notDiscord;
-
-            if (rply.text) return rply;
+            if (rply.text = checkTools.PermissionErrMsg({
+                flag : checkTools.flag.ChkBot,
+                gid : groupid,
+                role : userrole,
+                name : botname
+            })) {
+                return rply;
+            }
 
             if (!hasReadPermission) {
                 rply.text = `HKTRPG沒有相關權限，禁止使用這功能。

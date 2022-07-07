@@ -64,9 +64,13 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
             //
             //增加自定義關鍵字
             // .drgm[0] addgm[1] 代替名字[2]  
-            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
-            if (rply.text) return rply;
+            if (rply.text = checkTools.PermissionErrMsg({
+                flag : checkTools.flag.ChkChannelManager,
+                gid : groupid,
+                role : userrole
+            })) {
+                return rply;
+            }
 
             checkifsamename = 0
             if (channelid)
@@ -107,9 +111,13 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
             //    
             //刪除所有自定義關鍵字
             //
-            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
-            if (rply.text) return rply;
+            if (rply.text = checkTools.PermissionErrMsg({
+                flag : checkTools.flag.ChkChannelManager,
+                gid : groupid,
+                role : userrole
+            })) {
+                return rply;
+            }
 
             if (channelid)
                 groupid = channelid
@@ -134,9 +142,13 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
             //刪除GM
             //
             if (!mainMsg[2]) rply.text += '沒有已註冊GM. '
-            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
-            if (rply.text) return rply;
+            if (rply.text += checkTools.PermissionErrMsg({
+                flag : checkTools.flag.ChkChannelManager,
+                gid : groupid,
+                role : userrole
+            })) {
+                return rply;
+            }
             if (channelid)
                 groupid = channelid
             for (let i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {

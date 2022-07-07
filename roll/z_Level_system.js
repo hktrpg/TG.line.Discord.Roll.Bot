@@ -152,9 +152,13 @@ const rollDiceCommand = async function ({
         // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
 
         case /(^[.]level$)/i.test(mainMsg[0]) && /^TitleWord$/i.test(mainMsg[1]) && /^del$/i.test(mainMsg[2]): {
-            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-            if (!checkTools.isAdmin(userrole)) rply.text += checkTools.notAdmin;
-            if (rply.text) return rply;
+            if (rply.text = checkTools.PermissionErrMsg({
+                flag : checkTools.flag.ChkChannelAdmin,
+                gid : groupid,
+                role : userrole
+            })) {
+                return rply;
+            }
 
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
@@ -196,9 +200,13 @@ const rollDiceCommand = async function ({
             //
             //稱號Title
             //
-            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-            if (!checkTools.isAdmin(userrole)) rply.text += checkTools.notAdmin;
-            if (rply.text) return rply;
+            if (rply.text = checkTools.PermissionErrMsg({
+                flag : checkTools.flag.ChkChannelAdmin,
+                gid : groupid,
+                role : userrole
+            })) {
+                return rply;
+            }
 
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
@@ -241,9 +249,13 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^LevelUpWord$/i.test(mainMsg[1]) && /^del$/i.test(mainMsg[2]): {
-            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-            if (!checkTools.isAdmin(userrole)) rply.text += checkTools.notAdmin;
-            if (rply.text) return rply;
+            if (rply.text = checkTools.PermissionErrMsg({
+                flag : checkTools.flag.ChkChannelAdmin,
+                gid : groupid,
+                role : userrole
+            })) {
+                return rply;
+            }
 
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
@@ -254,9 +266,13 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^LevelUpWord$/i.test(mainMsg[1]): {
-            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-            if (!checkTools.isAdmin(userrole)) rply.text += checkTools.notAdmin;
-            if (rply.text) return rply;
+            if (rply.text = checkTools.PermissionErrMsg({
+                flag : checkTools.flag.ChkChannelAdmin,
+                gid : groupid,
+                role : userrole
+            })) {
+                return rply;
+            }
 
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
@@ -284,9 +300,13 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^RankWord$/i.test(mainMsg[1]) && /^del$/i.test(mainMsg[2]): {
-            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-            if (!checkTools.isAdmin(userrole)) rply.text += checkTools.notAdmin;
-            if (rply.text) return rply;
+            if (rply.text = checkTools.PermissionErrMsg({
+                flag : checkTools.flag.ChkChannelAdmin,
+                gid : groupid,
+                role : userrole
+            })) {
+                return rply;
+            }
 
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
@@ -297,9 +317,13 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^RankWord$/i.test(mainMsg[1]): {
-            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-            if (!checkTools.isAdmin(userrole)) rply.text += checkTools.notAdmin;
-            if (rply.text) return rply;
+            if (rply.text = checkTools.PermissionErrMsg({
+                flag : checkTools.flag.ChkChannelAdmin,
+                gid : groupid,
+                role : userrole
+            })) {
+                return rply;
+            }
 
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
@@ -324,9 +348,13 @@ const rollDiceCommand = async function ({
         }
 
         case /(^[.]level$)/i.test(mainMsg[0]) && /^config$/i.test(mainMsg[1]): {
-            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-            if (!checkTools.isAdmin(userrole)) rply.text += checkTools.notAdmin;
-            if (rply.text) return rply;
+            if (rply.text = checkTools.PermissionErrMsg({
+                flag : checkTools.flag.ChkChannelAdmin,
+                gid : groupid,
+                role : userrole
+            })) {
+                return rply;
+            }
 
             if (!mainMsg[2]) {
                 rply.text = '修改失敗。沒有設定onoff\n';

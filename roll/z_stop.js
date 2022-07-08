@@ -59,10 +59,13 @@ const rollDiceCommand = async function ({
             //增加阻擋用關鍵字
             //if (!mainMsg[2]) return;
             if (!mainMsg[2]) rply.text += '沒有關鍵字. '
-            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
-            if (rply.text) return rply;
-
+            if (rply.text += checkTools.PermissionErrMsg({
+                flag : checkTools.flag.ChkChannelManager,
+                gid : groupid,
+                role : userrole
+            })) {
+                return rply;
+            }
 
             if (mainMsg[2].length <= 1 || /bk/ig.test(mainMsg[2])) {
                 rply.text = '至少兩個字，及不可以阻擋bk'
@@ -95,9 +98,13 @@ const rollDiceCommand = async function ({
         }
         case /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
             //刪除阻擋用關鍵字
-            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
-            if (rply.text) return rply;
+            if (rply.text = checkTools.PermissionErrMsg({
+                flag : checkTools.flag.ChkChannelManager,
+                gid : groupid,
+                role : userrole
+            })) {
+                return rply;
+            }
 
             for (let i = 0; i < save.save.length; i++) {
                 if (save.save[i].groupid == groupid) {
@@ -115,9 +122,13 @@ const rollDiceCommand = async function ({
         case /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
             //刪除阻擋用關鍵字
             if (!mainMsg[2]) rply.text += '沒有關鍵字. '
-            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
-            if (rply.text) return rply;
+            if (rply.text += checkTools.PermissionErrMsg({
+                flag : checkTools.flag.ChkChannelManager,
+                gid : groupid,
+                role : userrole
+            })) {
+                return rply;
+            }
 
             for (let i = 0; i < save.save.length; i++) {
                 if (save.save[i].groupid == groupid && mainMsg[2] < save.save[i].blockfunction.length && mainMsg[2] >= 0) {
@@ -138,8 +149,13 @@ const rollDiceCommand = async function ({
             records.get('block', (msgs) => {
                 save.save = msgs
             })
-            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-            if (rply.text) return rply;
+
+            if (rply.text = checkTools.PermissionErrMsg({
+                flag : checkTools.flag.ChkChannel,
+                gid : groupid
+            })) {
+                return rply;
+            }
             
             let temp = 0;
             for (let i = 0; i < save.save.length; i++) {

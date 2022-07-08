@@ -71,9 +71,13 @@ const rollDiceCommand = async function ({
             if (!mainMsg[2]) rply.text += ' 沒有標題.\n\n'
             if (!mainMsg[3]) rply.text += ' 沒有擲骰指令\n\n'
             if (mainMsg[3] && mainMsg[3].toLowerCase() == ".cmd") rply.text += '指令不可以儲存.cmd\n\n'
-            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
-            if (rply.text) return rply;
+            if (rply.text += checkTools.PermissionErrMsg({
+                flag : checkTools.flag.ChkChannelManager,
+                gid : groupid,
+                role : userrole
+            })) {
+                return rply;
+            }
 
             lv = await VIP.viplevelCheckGroup(groupid);
             limit = limitArr[lv];
@@ -114,9 +118,13 @@ const rollDiceCommand = async function ({
 
         case /(^[.]cmd$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
             //刪除資料庫
-            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
-            if (rply.text) return rply;
+            if (rply.text = checkTools.PermissionErrMsg({
+                flag : checkTools.flag.ChkChannelManager,
+                gid : groupid,
+                role : userrole
+            })) {
+                return rply;
+            }
 
             for (let i = 0; i < trpgCommandfunction.trpgCommandfunction.length; i++) {
                 if (trpgCommandfunction.trpgCommandfunction[i].groupid == groupid) {
@@ -134,9 +142,13 @@ const rollDiceCommand = async function ({
         case /(^[.]cmd$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
             //刪除資料庫
             if (!mainMsg[2]) rply.text += '沒有關鍵字. '
-            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
-            if (rply.text) return rply;
+            if (rply.text += checkTools.PermissionErrMsg({
+                flag : checkTools.flag.ChkChannelManager,
+                gid : groupid,
+                role : userrole
+            })) {
+                return rply;
+            }
 
             for (let i = 0; i < trpgCommandfunction.trpgCommandfunction.length; i++) {
                 if (trpgCommandfunction.trpgCommandfunction[i].groupid == groupid && mainMsg[2] < trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction.length && mainMsg[2] >= 0) {

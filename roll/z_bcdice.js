@@ -99,9 +99,13 @@ const rollDiceCommand = async function ({
 
         }
         case /^use+$/i.test(mainMsg[1]): {
-            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
-            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-            if (rply.text) return rply;
+            if (rply.text = checkTools.PermissionErrMsg({
+                flag : checkTools.flag.ChkChannelManager,
+                gid : groupid,
+                role : userrole
+            })) {
+                return rply;
+            }
             if (!mainMsg[2]) {
                 rply.text = `請輸入ID，ID可以在下列網站找到\nhttps://bcdice.org/systems/`
                 return rply;
@@ -120,9 +124,13 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^delete+$/i.test(mainMsg[1]): {
-            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
-            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-            if (rply.text) return rply;
+            if (rply.text = checkTools.PermissionErrMsg({
+                flag : checkTools.flag.ChkChannelManager,
+                gid : groupid,
+                role : userrole
+            })) {
+                return rply;
+            }
 
             let doc = await schema.bcdiceRegedit.findOneAndDelete(filter, { returnDocument: true }).catch(err => console.error(err))
             if (doc) rply.text = `已刪除BcDice的設定`

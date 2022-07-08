@@ -126,9 +126,13 @@ var rollDiceCommand = async function ({
             limit = limitArr[lv];
             if (!mainMsg[2]) rply.text += ' 沒有輸入骰子名稱.'
             if (!mainMsg[3]) rply.text += ' 沒有輸入骰子內容.'
-            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
-            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-            if (rply.text) return rply;
+            if (rply.text += checkTools.PermissionErrMsg({
+                flag : checkTools.flag.ChkChannelManager,
+                gid : groupid,
+                role : userrole
+            })) {
+                return rply;
+            }
 
             getData = await schema.randomAns.findOne({ groupid: groupid }).catch(error => console.error('randomans #137 mongoDB error: ', error.name, error.reson));
             let update = false;
@@ -172,9 +176,13 @@ var rollDiceCommand = async function ({
             //刪除自定義關鍵字
             //
             if (!mainMsg[2]) rply.text += '沒有骰子名稱. '
-            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
-            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-            if (rply.text) return rply;
+            if (rply.text += checkTools.PermissionErrMsg({
+                flag : checkTools.flag.ChkChannelManager,
+                gid : groupid,
+                role : userrole
+            })) {
+                return rply;
+            }
 
             filter = {
                 groupid: groupid,

@@ -99,9 +99,13 @@ const rollDiceCommand = async function ({
                        */
             if (!mainMsg[2]) rply.text += ' 沒有輸入標題。\n\n'
             if (!mainMsg[3]) rply.text += ' 沒有輸入內容。\n\n'
-            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
-            if (rply.text) return rply;
+            if (rply.text += checkTools.PermissionErrMsg({
+                flag : checkTools.flag.ChkChannelManager,
+                gid : groupid,
+                role : userrole
+            })) {
+                return rply;
+            }
 
             lv = await VIP.viplevelCheckGroup(groupid);
             limit = limitArr[lv];
@@ -143,9 +147,14 @@ const rollDiceCommand = async function ({
         }
         case /(^[.]db$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
             //刪除資料庫
-            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
-            if (rply.text) return rply;
+            if (rply.text = checkTools.PermissionErrMsg({
+                flag : checkTools.flag.ChkChannelManager,
+                gid : groupid,
+                role : userrole
+            })) {
+                return rply;
+            }
+
             for (let i = 0; i < trpgDatabasefunction.trpgDatabasefunction.length; i++) {
                 if (trpgDatabasefunction.trpgDatabasefunction[i].groupid == groupid) {
                     let temp = trpgDatabasefunction.trpgDatabasefunction[i]
@@ -162,9 +171,13 @@ const rollDiceCommand = async function ({
         case /(^[.]db$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
             //刪除資料庫
             if (!mainMsg[2]) rply.text += '沒有關鍵字. \n\n'
-            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
-            if (rply.text) return rply;
+            if (rply.text += checkTools.PermissionErrMsg({
+                flag : checkTools.flag.ChkChannelManager,
+                gid : groupid,
+                role : userrole
+            })) {
+                return rply;
+            }
 
             for (let i = 0; i < trpgDatabasefunction.trpgDatabasefunction.length; i++) {
                 if (trpgDatabasefunction.trpgDatabasefunction[i].groupid == groupid && mainMsg[2] < trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction.length && mainMsg[2] >= 0) {

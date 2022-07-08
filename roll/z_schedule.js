@@ -218,9 +218,13 @@ var rollDiceCommand = async function ({
             return rply;
         }
         case /^\.cron+$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
-            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
-            if (rply.text) return rply;
+            if (rply.text = checkTools.PermissionErrMsg({
+                flag : checkTools.flag.ChkChannelManager,
+                gid : groupid,
+                role : userrole
+            })) {
+                return rply;
+            }
 
             let check = {}
             if (botname == "Discord") {
@@ -240,9 +244,13 @@ var rollDiceCommand = async function ({
             return rply;
         }
         case /^\.cron$/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]): {
-            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
-            if (rply.text) return rply;
+            if (rply.text = checkTools.PermissionErrMsg({
+                flag : checkTools.flag.ChkChannelManager,
+                gid : groupid,
+                role : userrole
+            })) {
+                return rply;
+            }
 
             if (!mainMsg[2] || !/\d+/i.test(mainMsg[2])) {
                 rply.text = '移除定時訊息指令為 .cron delete (序號) \n 如 .cron delete 1'
@@ -275,8 +283,11 @@ var rollDiceCommand = async function ({
             return rply;
         }
         case /^\.cron+$/i.test(mainMsg[0]): {
-            if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-            if (!checkTools.isManager(userrole)) rply.text += checkTools.notManager;
+            rply.text = checkTools.PermissionErrMsg({
+                flag : checkTools.flag.ChkChannelManager,
+                gid : groupid,
+                role : userrole
+            });
             if (!mainMsg[2]) rply.text += '未有內容'
             if (rply.text) return rply;
 

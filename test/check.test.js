@@ -1,5 +1,25 @@
 const check = require('../modules/check');
 
+let rply = {
+    default: 'on',
+    type: 'text',
+    text: ''
+};
+
+beforeEach(() => {
+    rply.text = '';
+});
+
+function ChannelPermission(groupid, userrole) {
+    if (!check.isChannel(groupid))
+        rply.text += check.notChannel;
+
+    if (!check.isAdmin(userrole))
+        rply.text += check.notAdmin;
+
+    return rply.text;
+}
+
 test('Test group id is Channel', () => {
     expect(check.isChannel(5)).toBe(true);
 });
@@ -62,4 +82,40 @@ test('Test bot is discord', () => {
 
 test('Test bot is not discord', () => {
     expect(check.isDiscord('what ever')).toBe(false);
+});
+
+test('Test ChannelAdminErrMsg is not channel but admin', () => {
+    let arg = {
+        flag : check.flag.ChkGuild,
+        gid : 0,
+        role : check.role.admin
+    }
+    expect(check.PermissionErrMsg(arg)).toBe(ChannelPermission(0, check.role.admin));
+});
+
+test('Test ChannelAdminErrMsg is not channel not admin', () => {
+    let arg = {
+        flag : check.flag.ChkGuild,
+        gid : 0,
+        role : check.role.user
+    }
+    expect(check.PermissionErrMsg(arg)).toBe(ChannelPermission(0, check.role.user));
+});
+
+test('Test ChannelAdminErrMsg is channel not admin', () => {
+    let arg = {
+        flag : check.flag.ChkGuild,
+        gid : 1,
+        role : check.role.user
+    }
+    expect(check.PermissionErrMsg(arg)).toBe(ChannelPermission(1, check.role.user));
+});
+
+test('Test ChannelAdminErrMsg is channel and admin', () => {
+    let arg = {
+        flag : check.flag.ChkGuild,
+        gid : 1,
+        role : check.role.admin
+    }
+    expect(check.PermissionErrMsg(arg)).toBe(ChannelPermission(1, check.role.admin));
 });

@@ -117,24 +117,36 @@ const rollDiceCommand = async function ({
 		}
 		//DevelopmentPhase幕間成長指令開始於此
 		case /^\.dp$/i.test(mainMsg[0]) && /^start$/i.test(mainMsg[1]): {
-			if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-			if (!checkTools.isAdmin(userrole)) rply.text += checkTools.notAdmin;
-			if (rply.text) return rply;
+			if (rply.text = checkTools.PermissionErrMsg({
+				flag : checkTools.flag.ChkChannelAdmin,
+				gid : groupid,
+				role : userrole
+			})) {
+				return rply;
+			}
 			rply.text = await dpRecordSwitch({ onOff: true, groupid, channelid });
 			rply.quotes = true;
 			return rply;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^stop$/i.test(mainMsg[1]): {
-			if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-			if (!checkTools.isAdmin(userrole)) rply.text += checkTools.notAdmin;
-			if (rply.text) return rply;
+			if (rply.text = checkTools.PermissionErrMsg({
+				flag : checkTools.flag.ChkChannelAdmin,
+				gid : groupid,
+				role : userrole
+			})) {
+				return rply;
+			}
 			rply.text = await dpRecordSwitch({ onOff: false, groupid, channelid });
 			rply.quotes = true;
 			break;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
-			if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-			if (rply.text) return rply;
+			if (rply.text = checkTools.PermissionErrMsg({
+				flag : checkTools.flag.ChkChannel,
+				gid : groupid
+			})) {
+				return rply;
+			}
 
 			let switchOn = await schema.developmentConductor.findOne({
 				groupID: channelid || groupid,
@@ -207,8 +219,12 @@ const rollDiceCommand = async function ({
 		}
 
 		case /^\.dp$/i.test(mainMsg[0]) && /^showall$/i.test(mainMsg[1]): {
-			if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-			if (rply.text) return rply;
+			if (rply.text = checkTools.PermissionErrMsg({
+				flag : checkTools.flag.ChkChannel,
+				gid : groupid,
+			})) {
+				return rply;
+			}
 			let switchOn = await schema.developmentConductor.findOne({
 				groupID: channelid || groupid,
 				switch: true
@@ -245,8 +261,12 @@ const rollDiceCommand = async function ({
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^auto$/i.test(mainMsg[1]): {
 			rply.quotes = true;
-			if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-			if (rply.text) return rply;
+			if (rply.text = checkTools.PermissionErrMsg({
+				flag : checkTools.flag.ChkChannel,
+				gid : groupid,
+			})) {
+				return rply;
+			}
 
 			let switchOn = await schema.developmentConductor.findOne({
 				groupID: channelid || groupid,
@@ -295,8 +315,12 @@ const rollDiceCommand = async function ({
 			return rply;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^clear$/i.test(mainMsg[1]): {
-			if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-			if (rply.text) return rply;
+			if (rply.text = checkTools.PermissionErrMsg({
+				flag : checkTools.flag.ChkChannel,
+				gid : groupid,
+			})) {
+				return rply;
+			}
 
 			let result = await schema.developmentRollingRecord.deleteMany({
 				groupID: channelid || groupid,
@@ -309,8 +333,12 @@ const rollDiceCommand = async function ({
 			return rply;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^clearall$/i.test(mainMsg[1]): {
-			if (!checkTools.isChannel(groupid)) rply.text += checkTools.notChannel;
-			if (rply.text) return rply;
+			if (rply.text = checkTools.PermissionErrMsg({
+				flag : checkTools.flag.ChkChannel,
+				gid : groupid,
+			})) {
+				return rply;
+			}
 
 			let result = await schema.developmentRollingRecord.deleteMany({
 				groupID: channelid || groupid,

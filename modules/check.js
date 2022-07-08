@@ -1,8 +1,8 @@
 "use strict";
 
 const __notChannel = "這裡不是群組，這是頻道功能，需要在頻道上使用。\n\n";
-const __notAdmin = "你沒有相關權限，禁止使用這功能。\n你需要有群組管理員權限。\n\n";
-const __notManager = "你沒有相關權限，禁止使用這功能。\n你需要有管理此頻道的權限或群組管理員權限。\n\n";
+const __notAdmin = "你沒有相關權限，禁止使用這功能，\n你需要有群組管理員權限。\n\n";
+const __notManager = "你沒有相關權限，禁止使用這功能，\n你需要有管理此頻道的權限或群組管理員權限。\n\n";
 const __notDiscord = "這是Discord限定功能。\n\n"
 
 const role = {

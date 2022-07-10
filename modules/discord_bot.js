@@ -795,9 +795,11 @@ function pushArrayInteractionCommands(arrayCommands) {
 async function handlingResponMessage(message, answer = '') {
 	try {
 		let hasSendPermission = true;
-		if (message.guild && message.guild.me) {
-			hasSendPermission = (message.channel && message.channel.permissionsFor(message.guild.me)) ? message.channel.permissionsFor(message.guild.me).has(Permissions.FLAGS.SEND_MESSAGES) : false;
-		}
+		/**
+				if (message.guild && message.guild.me) {
+					hasSendPermission = (message.channel && message.channel.permissionsFor(message.guild.me)) ? message.channel.permissionsFor(message.guild.me).has(Permissions.FLAGS.SEND_MESSAGES) : false;
+				}
+				 */
 		if (answer) message.content = answer;
 		let inputStr = message.content || '';
 		//DISCORD <@!USERID> <@!399923133368042763> <@!544563333488111636>

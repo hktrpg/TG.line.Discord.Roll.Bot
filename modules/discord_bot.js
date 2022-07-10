@@ -727,6 +727,10 @@ async function handlingRequestRollingCharacter(message, input) {
 	}
 	const arrayRow = await splitArray(5, row)
 	for (let index = 0; index < arrayRow.length; index++) {
+		if (arrayRow[0][0].components.length == 0) {
+			await message.reply({ content: `${characterName}的角色卡 沒有技能 \n不能產生Button`, })
+			continue;
+		}
 		try {
 			if (charMode)
 				await message.reply({ content: `${characterName}的角色卡`, components: arrayRow[index] });
@@ -795,9 +799,11 @@ function pushArrayInteractionCommands(arrayCommands) {
 async function handlingResponMessage(message, answer = '') {
 	try {
 		let hasSendPermission = true;
-		if (message.guild && message.guild.me) {
-			hasSendPermission = (message.channel && message.channel.permissionsFor(message.guild.me)) ? message.channel.permissionsFor(message.guild.me).has(Permissions.FLAGS.SEND_MESSAGES) : false;
-		}
+		/**
+				if (message.guild && message.guild.me) {
+					hasSendPermission = (message.channel && message.channel.permissionsFor(message.guild.me)) ? message.channel.permissionsFor(message.guild.me).has(Permissions.FLAGS.SEND_MESSAGES) : false;
+				}
+				 */
 		if (answer) message.content = answer;
 		let inputStr = message.content || '';
 		//DISCORD <@!USERID> <@!399923133368042763> <@!544563333488111636>

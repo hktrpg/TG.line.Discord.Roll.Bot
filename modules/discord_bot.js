@@ -727,7 +727,7 @@ async function handlingRequestRollingCharacter(message, input) {
 	}
 	const arrayRow = await splitArray(5, row)
 	for (let index = 0; index < arrayRow.length; index++) {
-		if (arrayRow[index][0].components.length == 0) {
+		if (arrayRow[0][0].components.length == 0) {
 			await message.reply({ content: `${characterName}的角色卡 沒有技能 \n不能產生Button`, })
 			continue;
 		}

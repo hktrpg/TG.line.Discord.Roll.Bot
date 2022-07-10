@@ -100,9 +100,9 @@ const rollDiceCommand = async function ({
         }
         case /^use+$/i.test(mainMsg[1]): {
             if (rply.text = checkTools.PermissionErrMsg({
-                flag : checkTools.flag.ChkChannelManager,
-                gid : groupid,
-                role : userrole
+                flag: checkTools.flag.ChkChannelManager,
+                gid: groupid,
+                role: userrole
             })) {
                 return rply;
             }
@@ -115,7 +115,7 @@ const rollDiceCommand = async function ({
                 rply.text = `此骰表ID沒有回應，請檢查是不是正確\nhttps://bcdice.org/systems/`
                 return rply;
             }
-            let doc = await schema.bcdiceRegedit.findOneAndUpdate(filter, { trpgId: mainMsg[2] }, { upsert: true, returnDocument: 'after', returnNewDocument: true }).catch(err => console.error(err))
+            let doc = await schema.bcdiceRegedit.findOneAndUpdate(filter, { trpgId: mainMsg[2] }, { upsert: true, returnDocument: 'after', returnNewDocument: true }).catch(err => null)
             if (doc) rply.text = `已更新BcDice，現在此頻道正在使用 ${doc.trpgId}
 
             使用說明: \n${help}
@@ -125,9 +125,9 @@ const rollDiceCommand = async function ({
         }
         case /^delete+$/i.test(mainMsg[1]): {
             if (rply.text = checkTools.PermissionErrMsg({
-                flag : checkTools.flag.ChkChannelManager,
-                gid : groupid,
-                role : userrole
+                flag: checkTools.flag.ChkChannelManager,
+                gid: groupid,
+                role: userrole
             })) {
                 return rply;
             }

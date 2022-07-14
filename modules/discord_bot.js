@@ -6,6 +6,7 @@ const adminSecret = process.env.ADMIN_SECRET || '';
 const Cluster = require('discord-hybrid-sharding');
 const Discord = require("discord.js-light");
 const multiServer = require('../modules/multi-server')
+const checkMongodb = require('../modules/mongodbConnectionError.js');
 const fs = require('node:fs');
 const { Client, Intents, Permissions, Collection, MessageActionRow, MessageButton, WebhookClient, MessageAttachment } = Discord;
 const rollText = require('./getRoll').rollText;
@@ -80,30 +81,39 @@ const WebSocket = require('ws');
 var ws;
 
 client.on('messageCreate', async message => {
-	if (message.author.bot) return;
-	const result = await handlingResponMessage(message);
-	await handlingMultiServerMessage(message);
-	if (result && result.text)
-		return handlingSendMessage(result);
-	return
+	try {
+		if (message.author.bot) return;
+		const result = await handlingResponMessage(message);
+		await handlingMultiServerMessage(message);
+		if (result && result.text)
+			return handlingSendMessage(result);
+		return;
+	} catch (error) {
+		console.error('discord bot messageCreate #91 error', error);
+	}
 
 });
 client.on('guildCreate', async guild => {
-	const channels = await guild.channels.fetch();
-	const keys = Array.from(channels.values());
-	const channel = keys.find(channel => {
-		return channel.type === 'GUILD_TEXT' && channel.permissionsFor(guild.me).has('SEND_MESSAGES')
-	});
-	if (!channel) return;
-	//	let channelSend = await guild.channels.fetch(channel.id);
-	const text = new Discord.MessageEmbed()
-		.setColor('#0099ff')
-		//.setTitle(rplyVal.title)
-		//.setURL('https://discord.js.org/')
-		.setAuthor({ name: 'HKTRPG', url: 'https://www.patreon.com/HKTRPG', iconURL: 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png' })
-		.setDescription(newMessage.joinMessage())
-	await channel.send({ embeds: [text] });
+	try {
 
+
+		const channels = await guild.channels.fetch();
+		const keys = Array.from(channels.values());
+		const channel = keys.find(channel => {
+			return channel.type === 'GUILD_TEXT' && channel.permissionsFor(guild.me).has('SEND_MESSAGES')
+		});
+		if (!channel) return;
+		//	let channelSend = await guild.channels.fetch(channel.id);
+		const text = new Discord.MessageEmbed()
+			.setColor('#0099ff')
+			//.setTitle(rplyVal.title)
+			//.setURL('https://discord.js.org/')
+			.setAuthor({ name: 'HKTRPG', url: 'https://www.patreon.com/HKTRPG', iconURL: 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png' })
+			.setDescription(newMessage.joinMessage())
+		await channel.send({ embeds: [text] });
+	} catch (error) {
+		console.error('discord bot guildCreate  #114 error', error);
+	}
 })
 
 client.on('interactionCreate', async message => {
@@ -111,14 +121,18 @@ client.on('interactionCreate', async message => {
 		if (message.user && message.user.bot) return;
 		return __handlingInteractionMessage(message);
 	} catch (error) {
-		console.log('discord bot interactionCreate #114 error', error)
+		console.log('discord bot interactionCreate #123 error', error)
 	}
 });
 
 
 client.on('messageReactionAdd', async (reaction, user) => {
+	if (!checkMongodb.mongodbIsOnline) return;
 	if (reaction.me) return;
-	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('discord_bot #802 mongoDB error: ', error.name, error.reson))
+	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => {
+		console.error('discord_bot #802 mongoDB error: ', error.name, error.reson)
+		checkMongodb.mongodbErrorPlus();
+	})
 	try {
 		if (!list || list.length === 0) return;
 		const detail = list.detail;
@@ -295,7 +309,7 @@ function SendToReply({ replyText = "", message, quotes = false }) {
 			}
 			catch (e) {
 				if (e.message !== 'Cannot send messages to this user') {
-					console.error('Discord  GET ERROR:  SendToReply: ', e.message, replyText)
+					console.error('Discord  GET ERROR:  SendToReply: ', e.message, 'e', e, message, replyText)
 				}
 			}
 	}

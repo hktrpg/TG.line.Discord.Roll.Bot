@@ -1,6 +1,7 @@
 if (!process.env.mongoURL) return;
 const oneMinuts = (process.env.DEBUG) ? 1 : 60000;
 //60000 一分鐘多久可以升級及增加經驗
+const checkMongodb = require('./mongodbConnectionError.js');
 exports.rollbase = require('../roll/rollbase');
 const thirtyMinutes = (process.env.DEBUG) ? 1 : 60000 * 30;
 const retry = { number: 0, times: 0 };
@@ -10,6 +11,7 @@ var tempSwitchV2 = [{
     SwitchV2: false
 }];
 async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercount, tgDisplayname, discordMessage) {
+    if (!checkMongodb.mongodbIsOnline) return;
     if (!groupid) {
         return;
     }
@@ -31,6 +33,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
         SwitchV2: true
     }).catch(error => {
         console.error('level #26 mongoDB error: ', error.name, error.reson)
+        checkMongodb.mongodbErrorPlus();
         retry.number++;
         retry.times = new Date();
     });

@@ -1,3 +1,4 @@
+const checkMongodb = require('../modules/mongodbConnectionError.js');
 const schema = require('./schema.js');
 let channelList = [];
 (async () => {
@@ -15,8 +16,12 @@ let channelList = [];
 
 
 async function getRecords() {
+	if (!checkMongodb.mongodbIsOnline) return;
 	let result = await schema.multiServer.find({
-	}).catch(error => console.error('multi-server #20 mongoDB error: ', error.name, error.reson))
+	}).catch(error => {
+		console.error('multi-server #20 mongoDB error: ', error.name, error.reson)
+		checkMongodb.mongodbErrorPlus();
+	})
 	if (result.length > 0) channelList = result;
 }
 

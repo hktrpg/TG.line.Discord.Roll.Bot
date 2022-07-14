@@ -2,6 +2,7 @@
 const rollbase = require('./rollbase.js');
 const schema = require('../modules/schema.js');
 const checkTools = require('../modules/check.js');
+const checkMongodb = require('../modules/mongodbConnectionError.js');
 const mathjs = require('mathjs');
 const gameName = function () {
 	return '【克蘇魯神話】 cc cc(n)1~2 ccb ccrt ccsu .dp .cc7build .cc6build .cc7bg'
@@ -118,9 +119,9 @@ const rollDiceCommand = async function ({
 		//DevelopmentPhase幕間成長指令開始於此
 		case /^\.dp$/i.test(mainMsg[0]) && /^start$/i.test(mainMsg[1]): {
 			if (rply.text = checkTools.PermissionErrMsg({
-				flag : checkTools.flag.ChkChannelAdmin,
-				gid : groupid,
-				role : userrole
+				flag: checkTools.flag.ChkChannelAdmin,
+				gid: groupid,
+				role: userrole
 			})) {
 				return rply;
 			}
@@ -130,9 +131,9 @@ const rollDiceCommand = async function ({
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^stop$/i.test(mainMsg[1]): {
 			if (rply.text = checkTools.PermissionErrMsg({
-				flag : checkTools.flag.ChkChannelAdmin,
-				gid : groupid,
-				role : userrole
+				flag: checkTools.flag.ChkChannelAdmin,
+				gid: groupid,
+				role: userrole
 			})) {
 				return rply;
 			}
@@ -142,8 +143,8 @@ const rollDiceCommand = async function ({
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
 			if (rply.text = checkTools.PermissionErrMsg({
-				flag : checkTools.flag.ChkChannel,
-				gid : groupid
+				flag: checkTools.flag.ChkChannel,
+				gid: groupid
 			})) {
 				return rply;
 			}
@@ -220,8 +221,8 @@ const rollDiceCommand = async function ({
 
 		case /^\.dp$/i.test(mainMsg[0]) && /^showall$/i.test(mainMsg[1]): {
 			if (rply.text = checkTools.PermissionErrMsg({
-				flag : checkTools.flag.ChkChannel,
-				gid : groupid,
+				flag: checkTools.flag.ChkChannel,
+				gid: groupid,
 			})) {
 				return rply;
 			}
@@ -262,8 +263,8 @@ const rollDiceCommand = async function ({
 		case /^\.dp$/i.test(mainMsg[0]) && /^auto$/i.test(mainMsg[1]): {
 			rply.quotes = true;
 			if (rply.text = checkTools.PermissionErrMsg({
-				flag : checkTools.flag.ChkChannel,
-				gid : groupid,
+				flag: checkTools.flag.ChkChannel,
+				gid: groupid,
 			})) {
 				return rply;
 			}
@@ -316,8 +317,8 @@ const rollDiceCommand = async function ({
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^clear$/i.test(mainMsg[1]): {
 			if (rply.text = checkTools.PermissionErrMsg({
-				flag : checkTools.flag.ChkChannel,
-				gid : groupid,
+				flag: checkTools.flag.ChkChannel,
+				gid: groupid,
 			})) {
 				return rply;
 			}
@@ -334,8 +335,8 @@ const rollDiceCommand = async function ({
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^clearall$/i.test(mainMsg[1]): {
 			if (rply.text = checkTools.PermissionErrMsg({
-				flag : checkTools.flag.ChkChannel,
-				gid : groupid,
+				flag: checkTools.flag.ChkChannel,
+				gid: groupid,
 			})) {
 				return rply;
 			}
@@ -820,11 +821,15 @@ async function dpRecordSwitch({ onOff = false, groupid = "", channelid = "" }) {
 }
 
 async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName = "", skillPer = 0, skillPerStyle = "", skillResult = 0, userName = "" }) {
+	if (!checkMongodb.mongodbIsOnline) return;
 	try {
 		let result = await schema.developmentConductor.findOne({
 			groupID: channelid || groupid,
 			switch: true
-		}).catch(error => console.error('coc #687 mongoDB error: ', error.name, error.reson));
+		}).catch(error => {
+			console.error('coc #687 mongoDB error: ', error.name, error.reson)
+			checkMongodb.mongodbErrorPlus();
+		});
 		if (!result) return;
 		/**
 		 * 	

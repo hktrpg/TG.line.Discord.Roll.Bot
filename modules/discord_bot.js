@@ -295,7 +295,7 @@ function SendToReply({ replyText = "", message, quotes = false }) {
 			}
 			catch (e) {
 				if (e.message !== 'Cannot send messages to this user') {
-					console.error('Discord  GET ERROR:  SendToReply: ', e.message, replyText)
+					console.error('Discord  GET ERROR:  SendToReply: ', e.message, 'e', e, message, replyText)
 				}
 			}
 	}

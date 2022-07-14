@@ -459,6 +459,10 @@ const multiServer = mongoose.model('multiServer', new mongoose.Schema({
     botname: String
 }));
 
+const mongodbState = mongoose.model('mongodbState', new mongoose.Schema({
+    errorDate: Date
+}));
+
 module.exports = {
     randomAns,
     multiServer,
@@ -498,7 +502,8 @@ module.exports = {
     randomAnsServer,
     randomAnsPersonal,
     translateChannel,
-    bcdiceRegedit
+    bcdiceRegedit,
+    mongodbState
 }
 //const Cat = mongoose.model('Cat', { name: String });
 //const kitty = new Cat({ name: 'Zildjian' });

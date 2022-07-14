@@ -6,6 +6,7 @@ const adminSecret = process.env.ADMIN_SECRET || '';
 const Cluster = require('discord-hybrid-sharding');
 const Discord = require("discord.js-light");
 const multiServer = require('../modules/multi-server')
+const checkMongodb = require('../modules/mongodbConnectionError.js');
 const fs = require('node:fs');
 const { Client, Intents, Permissions, Collection, MessageActionRow, MessageButton, WebhookClient, MessageAttachment } = Discord;
 const rollText = require('./getRoll').rollText;
@@ -126,8 +127,12 @@ client.on('interactionCreate', async message => {
 
 
 client.on('messageReactionAdd', async (reaction, user) => {
+	if (!checkMongodb.mongodbIsOnline) return;
 	if (reaction.me) return;
-	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('discord_bot #802 mongoDB error: ', error.name, error.reson))
+	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => {
+		console.error('discord_bot #802 mongoDB error: ', error.name, error.reson)
+		checkMongodb.mongodbErrorPlus();
+	})
 	try {
 		if (!list || list.length === 0) return;
 		const detail = list.detail;

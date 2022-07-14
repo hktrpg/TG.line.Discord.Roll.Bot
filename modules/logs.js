@@ -1,7 +1,9 @@
+"use strict";
 if (!process.env.mongoURL) return;
 //Log everyday 01:00
 const debugMode = (process.env.DEBUG) ? true : false;
 const schema = require('./schema.js');
+const checkMongodb = require('./mongodbConnectionError.js');
 //50次 多少條訊息會上傳一次LOG
 const oneHour = 1 * 60 * 60 * 1000;
 const fiveMinutes = 5 * 60 * 1000;
@@ -60,6 +62,7 @@ var getState = async function () {
 //上傳用
 async function saveLog() {
     //更新LogTime 然後上傳紀錄
+    if (!checkMongodb.mongodbIsOnline) return;
     RollingLog.LogTime = Date(Date.now()).toLocaleString("en-US", {
         timeZone: "Asia/HongKong"
     });
@@ -87,7 +90,10 @@ async function saveLog() {
         }
     }, {
         upsert: true
-    }).catch(error => console.error('log #90 mongoDB error: ', error.name, error.reson))
+    }).catch(error => {
+        console.error('log #90 mongoDB error: ', error.name, error.reson)
+        checkMongodb.mongodbErrorPlus();
+    })
     //把擲骰的次數還原 為0
     resetLog();
 

@@ -15,7 +15,7 @@ function mongodbErrorPlus() {
 }
 
 function mongodbIsOnline() {
-    if (mongodbConnectionErrorRetry.error >= 5) return false
+    if (mongodbConnectionErrorRetry.error >= 2) return false
     else true;
 
 }

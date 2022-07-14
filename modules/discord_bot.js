@@ -80,30 +80,39 @@ const WebSocket = require('ws');
 var ws;
 
 client.on('messageCreate', async message => {
-	if (message.author.bot) return;
-	const result = await handlingResponMessage(message);
-	await handlingMultiServerMessage(message);
-	if (result && result.text)
-		return handlingSendMessage(result);
-	return
+	try {
+		if (message.author.bot) return;
+		const result = await handlingResponMessage(message);
+		await handlingMultiServerMessage(message);
+		if (result && result.text)
+			return handlingSendMessage(result);
+		return;
+	} catch (error) {
+		console.error('discord bot messageCreate #91 error', error);
+	}
 
 });
 client.on('guildCreate', async guild => {
-	const channels = await guild.channels.fetch();
-	const keys = Array.from(channels.values());
-	const channel = keys.find(channel => {
-		return channel.type === 'GUILD_TEXT' && channel.permissionsFor(guild.me).has('SEND_MESSAGES')
-	});
-	if (!channel) return;
-	//	let channelSend = await guild.channels.fetch(channel.id);
-	const text = new Discord.MessageEmbed()
-		.setColor('#0099ff')
-		//.setTitle(rplyVal.title)
-		//.setURL('https://discord.js.org/')
-		.setAuthor({ name: 'HKTRPG', url: 'https://www.patreon.com/HKTRPG', iconURL: 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png' })
-		.setDescription(newMessage.joinMessage())
-	await channel.send({ embeds: [text] });
+	try {
 
+
+		const channels = await guild.channels.fetch();
+		const keys = Array.from(channels.values());
+		const channel = keys.find(channel => {
+			return channel.type === 'GUILD_TEXT' && channel.permissionsFor(guild.me).has('SEND_MESSAGES')
+		});
+		if (!channel) return;
+		//	let channelSend = await guild.channels.fetch(channel.id);
+		const text = new Discord.MessageEmbed()
+			.setColor('#0099ff')
+			//.setTitle(rplyVal.title)
+			//.setURL('https://discord.js.org/')
+			.setAuthor({ name: 'HKTRPG', url: 'https://www.patreon.com/HKTRPG', iconURL: 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png' })
+			.setDescription(newMessage.joinMessage())
+		await channel.send({ embeds: [text] });
+	} catch (error) {
+		console.error('discord bot guildCreate  #114 error', error);
+	}
 })
 
 client.on('interactionCreate', async message => {
@@ -111,7 +120,7 @@ client.on('interactionCreate', async message => {
 		if (message.user && message.user.bot) return;
 		return __handlingInteractionMessage(message);
 	} catch (error) {
-		console.log('discord bot interactionCreate #114 error', error)
+		console.log('discord bot interactionCreate #123 error', error)
 	}
 });
 

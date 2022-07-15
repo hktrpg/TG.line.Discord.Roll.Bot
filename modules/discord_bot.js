@@ -112,6 +112,7 @@ client.on('guildCreate', async guild => {
 			.setDescription(newMessage.joinMessage())
 		await channel.send({ embeds: [text] });
 	} catch (error) {
+		if (error.name === 'Missing Access') return;
 		console.error('discord bot guildCreate  #114 error', error);
 	}
 })

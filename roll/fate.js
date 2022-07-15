@@ -6,7 +6,7 @@ const gameName = function () {
     return '【命運Fate】 .4df(m|-)(加值)'
 }
 
-var gameType = function () {
+const gameType = function () {
     return 'Dice:fate'
 }
 var prefixs = function () {

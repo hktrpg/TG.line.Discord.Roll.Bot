@@ -18,7 +18,7 @@ const FUNCTION_LIMIT_PERSONAL = [2, 200, 200, 500, 500, 500, 500, 500];
 const gameName = function () {
     return '【自定義骰子/回應功能】 .ra(p)(s)(次數) (add del show 自定骰子名稱)'
 }
-var gameType = function () {
+const gameType = function () {
     return 'funny:randomAns:hktrpg'
 }
 var prefixs = function () {

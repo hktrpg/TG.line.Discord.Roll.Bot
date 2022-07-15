@@ -66,7 +66,7 @@ const gameName = function () {
 	return '骰子機器人HKTRPG說明';
 }
 
-var gameType = function () {
+const gameType = function () {
 	return 'bothelp:hktrpg'
 }
 var prefixs = function () {

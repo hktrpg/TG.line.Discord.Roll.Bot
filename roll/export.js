@@ -30,7 +30,7 @@ const schema = require('../modules/schema.js');
 const fs = require('fs').promises;
 const moment = require('moment-timezone');
 const CryptoJS = require("crypto-js");
-var gameType = function () {
+const gameType = function () {
     return 'Tool:Export:hktrpg'
 }
 const dir = __dirname + '/../tmp/';

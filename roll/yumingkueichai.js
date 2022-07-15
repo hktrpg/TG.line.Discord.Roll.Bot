@@ -5,7 +5,7 @@ const gameName = function () {
     return '【貓貓鬼差】.kc xDy z'
 }
 
-var gameType = function () {
+const gameType = function () {
     return 'Dice:yumingkueichai:hktrpg'
 }
 var prefixs = function () {

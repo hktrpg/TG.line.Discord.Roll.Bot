@@ -11,7 +11,7 @@ const convertRegex = function (str) {
 const gameName = function () {
     return '【先攻表功能】 .in (remove clear reroll) .init'
 }
-var gameType = function () {
+const gameType = function () {
     return 'Tool:trpgInit:hktrpg'
 }
 var prefixs = function () {

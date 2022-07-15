@@ -18,7 +18,7 @@ const gameName = function () {
 	return '【Wiki查詢/圖片搜索】 .wiki .image .tran'
 }
 
-var gameType = function () {
+const gameType = function () {
 	return 'funny:Wiki:hktrpg'
 }
 var prefixs = function () {

@@ -6,7 +6,7 @@ const gameName = function () {
     return '【魔女狩獵之夜】.wn xDn+-y'
 }
 
-var gameType = function () {
+const gameType = function () {
     return 'Dice:witch-hunting-night:hktrpg'
 }
 var prefixs = function () {

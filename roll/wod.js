@@ -6,7 +6,7 @@ const gameName = function () {
 	return '【WOD黑暗世界】.xWDy'
 }
 
-var gameType = function () {
+const gameType = function () {
 	return 'Dice:WOD:hktrpg'
 }
 var prefixs = function () {

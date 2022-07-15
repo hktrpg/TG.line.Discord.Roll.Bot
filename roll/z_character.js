@@ -10,7 +10,7 @@ const FUNCTION_LIMIT = [4, 20, 20, 30, 30, 99, 99, 99];
 const gameName = function () {
     return '【角色卡功能】 .char (add edit show delete use nonuse button) .ch (set show showall button)'
 }
-var gameType = function () {
+const gameType = function () {
     return 'Tool:trpgcharacter:hktrpg'
 }
 var prefixs = function () {

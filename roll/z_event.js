@@ -12,7 +12,7 @@ const EN_RECOVER_TIME = 10 * 60 * 1000; //每10分鐘回複一點;
 const gameName = function () {
     return '【事件功能】 .event (add edit show delete) .evt (event 任何名字)'
 }
-var gameType = function () {
+const gameType = function () {
     return 'Funny:trpgevent:hktrpg'
 }
 var prefixs = function () {

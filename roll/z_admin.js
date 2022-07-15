@@ -24,7 +24,7 @@ const gameName = function () {
     return '【Admin Tool】.admin debug state account news on'
 }
 
-var gameType = function () {
+const gameType = function () {
     return 'admin:Admin:hktrpg'
 }
 var prefixs = function () {

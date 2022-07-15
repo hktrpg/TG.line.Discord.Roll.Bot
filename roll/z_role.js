@@ -17,7 +17,7 @@ const gameName = function () {
     return '【身分組管理】.roleReact'
 }
 
-var gameType = function () {
+const gameType = function () {
     return 'Tool:role:hktrpg'
 }
 var prefixs = function () {

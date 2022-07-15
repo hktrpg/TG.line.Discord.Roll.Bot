@@ -77,7 +77,7 @@ const initialize = function () {
     return "";
 }
 
-var rollDiceCommand = async function ({
+const rollDiceCommand = async function ({
     inputStr,
     mainMsg,
     userid,

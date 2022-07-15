@@ -31,7 +31,7 @@ const initialize = function () {
     return variables;
 }
 
-var rollDiceCommand = async function ({ mainMsg }) {
+const rollDiceCommand = async function ({ mainMsg }) {
     let rply = {
         default: 'on',
         type: 'text',

@@ -88,7 +88,7 @@ const initialize = function () {
  * {my.title}<---顯示擲骰者稱號
  * {my.level}<---顯示擲骰者等級
  */
-var rollDiceCommand = async function ({
+const rollDiceCommand = async function ({
     mainMsg,
     groupid,
     userrole,

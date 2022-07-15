@@ -35,7 +35,7 @@ const initialize = function () {
     return variables;
 }
 
-var rollDiceCommand = async function ({
+const rollDiceCommand = async function ({
     mainMsg
 }) {
     let rply = {

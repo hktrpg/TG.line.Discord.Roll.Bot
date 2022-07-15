@@ -53,7 +53,7 @@ password 6-16字,英文及以下符號限定 !@#$%^&*
 const initialize = function () {
     return variables;
 }
-var rollDiceCommand = async function ({
+const rollDiceCommand = async function ({
     inputStr,
     mainMsg,
     groupid,

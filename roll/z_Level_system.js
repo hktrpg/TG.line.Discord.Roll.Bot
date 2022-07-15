@@ -4,7 +4,7 @@
 if (!process.env.mongoURL) {
     return;
 }
-const checkMongodb = require('../modules/mongodbConnectionError.js');
+const checkMongodb = require('../modules/dbWatchdog.js');
 const checkTools = require('../modules/check.js');
 const tempSwitchV2 = require('../modules/level');
 const schema = require('../modules/schema.js');

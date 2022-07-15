@@ -1,4 +1,4 @@
-const checkMongodb = require('../modules/mongodbConnectionError.js');
+const checkMongodb = require('../modules/dbWatchdog.js');
 const schema = require('./schema.js');
 let channelList = [];
 (async () => {

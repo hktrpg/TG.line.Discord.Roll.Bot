@@ -1,7 +1,7 @@
 "use strict";
 const schema = require('./schema.js');
-const maxErrorRetry = 3;
-const retryTime = 1000 * 60 * 5;
+const MAX_ERR_RETRY = 3;
+const RETRY_TIME = 1000 * 60 * 5;
 const dbConnErrRetry = {
     LastTimeLog: Date.now(),
     errorCount: 0
@@ -17,7 +17,7 @@ function dbErrorCourtPlus() {
 }
 
 function IsDbOnline() {
-    if (dbConnErrRetry.errorCount >= maxErrorRetry) return false
+    if (dbConnErrRetry.errorCount >= MAX_ERR_RETRY) return false
     else true;
 
 }
@@ -41,7 +41,7 @@ function __init() {
             await __updateRecords();
         }
 
-    }, retryTime)
+    }, RETRY_TIME)
 }
 
 module.exports = {

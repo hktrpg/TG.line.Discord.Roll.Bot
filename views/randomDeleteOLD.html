@@ -287,7 +287,7 @@ That struts and frets his hour upon the stage</textarea>
         ];
         let blockCourt = 0;
         let start = 0;
-        const aToZ = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S",
+        const A_TO_Z = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S",
             "T", "U", "V", "W", "X", "Y", "Z"
         ]
         window.onload = function () {
@@ -324,7 +324,7 @@ That struts and frets his hour upon the stage</textarea>
         function plusBlock(number) {
             blockCourt += number;
             for (let index = start; index < blockCourt; index++) {
-                let text = aToZ[zeroToTwoThree[index]];
+                let text = A_TO_Z[zeroToTwoThree[index]];
                 document.getElementById(`btn-check-outlined-${text}`).checked = true;
             }
             start += number;
@@ -335,8 +335,8 @@ That struts and frets his hour upon the stage</textarea>
             shuffle(zeroToTwoThree);
             blockCourt = 0;
             start = 0;
-            for (let index = 0; index < aToZ.length; index++) {
-                document.getElementById(`btn-check-outlined-${aToZ[index]}`).checked = false;
+            for (let index = 0; index < A_TO_Z.length; index++) {
+                document.getElementById(`btn-check-outlined-${A_TO_Z[index]}`).checked = false;
             }
             blockText();
         }
@@ -383,21 +383,21 @@ That struts and frets his hour upon the stage</textarea>
             }
             return reply;
         }
-        const errorText = ["!", "@", "#", "$", "%", "^", "&", "*", "-", "=", "█", "�", "⊿", "©", ""]
+        const ERROR_TEXT = ["!", "@", "#", "$", "%", "^", "&", "*", "-", "=", "█", "�", "⊿", "©", ""]
 
         function randomError() {
-            return errorText[Math.floor(Math.random() * errorText.length)];
+            return ERROR_TEXT[Math.floor(Math.random() * ERROR_TEXT.length)];
         }
 
         function getBlock() {
             let aToZswitch = [];
-            for (let index = 0; index < aToZ.length; index++) {
-                aToZswitch[index] = document.getElementById(`btn-check-outlined-${aToZ[index]}`).checked
+            for (let index = 0; index < A_TO_Z.length; index++) {
+                aToZswitch[index] = document.getElementById(`btn-check-outlined-${A_TO_Z[index]}`).checked
             }
             let aToZSting = "";
             for (let index = 0; index < aToZswitch.length; index++) {
                 if (aToZswitch[index]) {
-                    aToZSting += aToZ[index];
+                    aToZSting += A_TO_Z[index];
                 }
 
             }

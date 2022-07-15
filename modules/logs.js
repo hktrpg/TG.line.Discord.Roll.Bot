@@ -62,7 +62,7 @@ var getState = async function () {
 //上傳用
 async function saveLog() {
     //更新LogTime 然後上傳紀錄
-    if (!checkMongodb.mongodbIsOnline) return;
+    if (!checkMongodb.IsDbOnline) return;
     RollingLog.LogTime = Date(Date.now()).toLocaleString("en-US", {
         timeZone: "Asia/HongKong"
     });
@@ -92,7 +92,7 @@ async function saveLog() {
         upsert: true
     }).catch(error => {
         console.error('log #90 mongoDB error: ', error.name, error.reson)
-        checkMongodb.mongodbErrorPlus();
+        checkMongodb.dbErrorCourtPlus();
     })
     //把擲骰的次數還原 為0
     resetLog();
@@ -133,10 +133,10 @@ async function pushToDefiniteLog() {
 }
 
 async function getRecords() {
-    if (!checkMongodb.mongodbIsOnline) return;
+    if (!checkMongodb.IsDbOnline) return;
     let theNewData = await schema.RealTimeRollingLog.findOne({}).catch(error => {
         console.error('log # 131 mongoDB error: ', error.name, error.reson)
-        checkMongodb.mongodbErrorPlus();
+        checkMongodb.dbErrorCourtPlus();
     });
 
     if (!theNewData) {

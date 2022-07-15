@@ -9,12 +9,12 @@ __init();
 
 
 
-function mongodbErrorPlus() {
+function dbErrorCourtPlus() {
     mongodbConnectionErrorRetry.error++;
     mongodbConnectionErrorRetry.LastTimeLog = Date.now();
 }
 
-function mongodbIsOnline() {
+function IsDbOnline() {
     if (mongodbConnectionErrorRetry.error >= 2) return false
     else true;
 
@@ -34,7 +34,7 @@ async function __updateRecords() {
 
 function __init() {
     setInterval(async () => {
-        if (mongodbIsOnline) return;
+        if (IsDbOnline) return;
         else {
             await __updateRecords();
         }
@@ -43,6 +43,6 @@ function __init() {
 }
 
 module.exports = {
-    mongodbErrorPlus,
-    mongodbIsOnline
+    dbErrorCourtPlus,
+    IsDbOnline
 };

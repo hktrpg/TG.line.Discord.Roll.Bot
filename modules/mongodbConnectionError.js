@@ -1,8 +1,8 @@
 "use strict";
 const schema = require('./schema.js');
-const mongodbConnectionErrorRetry = {
+const dbConnectionErrorRetry = {
     LastTimeLog: Date.now(),
-    error: 0
+    errorCount: 0
 }
 __init();
 
@@ -10,24 +10,24 @@ __init();
 
 
 function dbErrorCourtPlus() {
-    mongodbConnectionErrorRetry.error++;
-    mongodbConnectionErrorRetry.LastTimeLog = Date.now();
+    dbConnectionErrorRetry.errorCount++;
+    dbConnectionErrorRetry.LastTimeLog = Date.now();
 }
 
 function IsDbOnline() {
-    if (mongodbConnectionErrorRetry.error >= 2) return false
+    if (dbConnectionErrorRetry.errorCount >= 2) return false
     else true;
 
 }
-function __mongodbErrorReset() {
-    mongodbConnectionErrorRetry.error = 0;
+function __dbErrorReset() {
+    dbConnectionErrorRetry.errorCount = 0;
 }
 async function __updateRecords() {
     try {
         await schema.mongodbState.updateOne({}, { $set: { errorDate: Date.now() } }, { upsert: true })
-        __mongodbErrorReset();
+        __dbErrorReset();
     } catch (error) {
-        console.error('mongodbConnectionError updateRecords #36 error: ', error.name, error.reson);
+        console.error('dbConnectionError updateRecords #36 error: ', error.name, error.reson);
     }
 
 }

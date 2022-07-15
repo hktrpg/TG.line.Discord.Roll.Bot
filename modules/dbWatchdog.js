@@ -2,7 +2,7 @@
 const schema = require('./schema.js');
 const maxErrorRetry = 3;
 const retryTime = 1000 * 60 * 5;
-const dbConnectionErrorRetry = {
+const dbConnErrRetry = {
     LastTimeLog: Date.now(),
     errorCount: 0
 }
@@ -12,17 +12,17 @@ __init();
 
 
 function dbErrorCourtPlus() {
-    dbConnectionErrorRetry.errorCount++;
-    dbConnectionErrorRetry.LastTimeLog = Date.now();
+    dbConnErrRetry.errorCount++;
+    dbConnErrRetry.LastTimeLog = Date.now();
 }
 
 function IsDbOnline() {
-    if (dbConnectionErrorRetry.errorCount >= maxErrorRetry) return false
+    if (dbConnErrRetry.errorCount >= maxErrorRetry) return false
     else true;
 
 }
 function __dbErrorReset() {
-    dbConnectionErrorRetry.errorCount = 0;
+    dbConnErrRetry.errorCount = 0;
 }
 async function __updateRecords() {
     try {

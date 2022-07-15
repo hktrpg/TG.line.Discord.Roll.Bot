@@ -28,10 +28,10 @@ var viplevelCheckUser = async function (userid) {
     return rply;
 }
 async function renew() {
-    if (!checkMongodb.mongodbIsOnline) return;
+    if (!checkMongodb.IsDbOnline) return;
     viplevel = await schema.veryImportantPerson.find({}).catch(error => {
         console.error('vip #30 mongoDB error: ', error.name, error.reson)
-        checkMongodb.mongodbErrorPlus();
+        checkMongodb.dbErrorCourtPlus();
     });
 }
 

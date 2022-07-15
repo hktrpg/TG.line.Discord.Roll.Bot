@@ -16,11 +16,11 @@ let channelList = [];
 
 
 async function getRecords() {
-	if (!checkMongodb.mongodbIsOnline) return;
+	if (!checkMongodb.IsDbOnline) return;
 	let result = await schema.multiServer.find({
 	}).catch(error => {
 		console.error('multi-server #20 mongoDB error: ', error.name, error.reson)
-		checkMongodb.mongodbErrorPlus();
+		checkMongodb.dbErrorCourtPlus();
 	})
 	if (result.length > 0) channelList = result;
 }

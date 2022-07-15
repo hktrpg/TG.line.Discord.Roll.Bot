@@ -1,48 +1,50 @@
 "use strict";
 const schema = require('./schema.js');
-const mongodbConnectionErrorRetry = {
+const maxErrorRetry = 3;
+const retryTime = 1000 * 60 * 5;
+const dbConnectionErrorRetry = {
     LastTimeLog: Date.now(),
-    error: 0
+    errorCount: 0
 }
 __init();
 
 
 
 
-function mongodbErrorPlus() {
-    mongodbConnectionErrorRetry.error++;
-    mongodbConnectionErrorRetry.LastTimeLog = Date.now();
+function dbErrorCourtPlus() {
+    dbConnectionErrorRetry.errorCount++;
+    dbConnectionErrorRetry.LastTimeLog = Date.now();
 }
 
-function mongodbIsOnline() {
-    if (mongodbConnectionErrorRetry.error >= 2) return false
+function IsDbOnline() {
+    if (dbConnectionErrorRetry.errorCount >= maxErrorRetry) return false
     else true;
 
 }
-function __mongodbErrorReset() {
-    mongodbConnectionErrorRetry.error = 0;
+function __dbErrorReset() {
+    dbConnectionErrorRetry.errorCount = 0;
 }
 async function __updateRecords() {
     try {
         await schema.mongodbState.updateOne({}, { $set: { errorDate: Date.now() } }, { upsert: true })
-        __mongodbErrorReset();
+        __dbErrorReset();
     } catch (error) {
-        console.error('mongodbConnectionError updateRecords #36 error: ', error.name, error.reson);
+        console.error('dbConnectionError updateRecords #36 error: ', error.name, error.reson);
     }
 
 }
 
 function __init() {
     setInterval(async () => {
-        if (mongodbIsOnline) return;
+        if (IsDbOnline) return;
         else {
             await __updateRecords();
         }
 
-    }, 1000 * 60 * 5)
+    }, retryTime)
 }
 
 module.exports = {
-    mongodbErrorPlus,
-    mongodbIsOnline
+    dbErrorCourtPlus,
+    IsDbOnline
 };

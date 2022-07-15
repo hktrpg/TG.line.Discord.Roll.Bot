@@ -11,7 +11,7 @@ var tempSwitchV2 = [{
     SwitchV2: false
 }];
 async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercount, tgDisplayname, discordMessage) {
-    if (!checkMongodb.mongodbIsOnline) return;
+    if (!checkMongodb.IsDbOnline) return;
     if (!groupid) {
         return;
     }
@@ -33,7 +33,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
         SwitchV2: true
     }).catch(error => {
         console.error('level #26 mongoDB error: ', error.name, error.reson)
-        checkMongodb.mongodbErrorPlus();
+        checkMongodb.dbErrorCourtPlus();
         retry.number++;
         retry.times = new Date();
     });

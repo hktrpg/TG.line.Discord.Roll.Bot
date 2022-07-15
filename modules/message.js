@@ -3,6 +3,7 @@ const fs = require('fs');
 const schema = require('./schema.js');
 const crypto = require('crypto');
 var userList = null;
+const checkMongodb = require('./mongodbConnectionError.js');
 
 (async () => {
 	try {
@@ -39,8 +40,12 @@ function firstTimeMessage() {
 
 
 async function getRecords() {
+	if (!checkMongodb.mongodbIsOnline) return;
 	userList = await schema.firstTimeMessage.find({
-	}).catch(error => console.error('message #42 mongoDB error: ', error.name, error.reson))
+	}).catch(error => {
+		console.error('message #42 mongoDB error: ', error.name, error.reson)
+		checkMongodb.mongodbErrorPlus();
+	})
 	console.log('message userList Got!')
 }
 

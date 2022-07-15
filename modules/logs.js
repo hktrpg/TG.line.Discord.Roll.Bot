@@ -133,7 +133,11 @@ async function pushToDefiniteLog() {
 }
 
 async function getRecords() {
-    let theNewData = await schema.RealTimeRollingLog.findOne({}).catch(error => console.error('log # 131 mongoDB error: ', error.name, error.reson));
+    if (!checkMongodb.mongodbIsOnline) return;
+    let theNewData = await schema.RealTimeRollingLog.findOne({}).catch(error => {
+        console.error('log # 131 mongoDB error: ', error.name, error.reson)
+        checkMongodb.mongodbErrorPlus();
+    });
 
     if (!theNewData) {
         RollingLog.LastTimeLog = Date.now();

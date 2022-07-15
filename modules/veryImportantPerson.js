@@ -1,5 +1,6 @@
 "use strict";
 const schema = require('./schema.js');
+const checkMongodb = require('./mongodbConnectionError.js');
 var viplevel;
 const DIYmode = (process.env.DIY) ? true : false;
 var viplevelCheckGroup = async function (groupID) {
@@ -27,7 +28,11 @@ var viplevelCheckUser = async function (userid) {
     return rply;
 }
 async function renew() {
-    viplevel = await schema.veryImportantPerson.find({}).catch(error => console.error('vip #30 mongoDB error: ', error.name, error.reson));
+    if (!checkMongodb.mongodbIsOnline) return;
+    viplevel = await schema.veryImportantPerson.find({}).catch(error => {
+        console.error('vip #30 mongoDB error: ', error.name, error.reson)
+        checkMongodb.mongodbErrorPlus();
+    });
 }
 
 //每10分鐘更新;

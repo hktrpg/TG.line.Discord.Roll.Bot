@@ -15,7 +15,7 @@ const prefixs = function () {
         second: null
     }]
 }
-var getHelpMessage = async function () {
+const getHelpMessage = async function () {
     return `【魔女狩獵之夜】
 .wn xDDn+-y  x骰池 n罪業值 y調整值 
 .wn 3 骰3次D6,大於3成功 .wn 5D6+3 骰3次D6,大於5成功然後+3
@@ -27,7 +27,7 @@ var getHelpMessage = async function () {
 .wn 3@3+3 骰3次D6,大於3成功 
 .wn 3@D3+2 有第二個D，會使用成功數減去失敗數得出結果(可負數)`
 }
-var initialize = function () {
+const initialize = function () {
     return variables;
 }
 

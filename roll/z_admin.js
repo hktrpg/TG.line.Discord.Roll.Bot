@@ -33,7 +33,7 @@ const prefixs = function () {
         second: null
     }]
 }
-var getHelpMessage = async function () {
+const getHelpMessage = async function () {
     return `【Admin 工具】
 用來Debug 及調整VIP工具
 .admin state        取得Rollbot狀態
@@ -50,7 +50,7 @@ password 6-16字,英文及以下符號限定 !@#$%^&*
 `
 }
 
-var initialize = function () {
+const initialize = function () {
     return variables;
 }
 var rollDiceCommand = async function ({

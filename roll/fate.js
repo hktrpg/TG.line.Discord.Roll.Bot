@@ -19,14 +19,14 @@ const prefixs = function () {
         second: null
     }]
 }
-var getHelpMessage = async function () {
+const getHelpMessage = async function () {
     return `【命運Fate】
 命運骰，又稱胡扯骰，是由兩面「＋」號、兩面「－」號，以及兩面空白▉組成的六面骰
 「＋」號代表＋１，「－」號－１，▉則代表０
 .4df(+|m|-)(加值) 指令: .4df 如常骰出四粒命運骰
 .4df3 .4df+3  四粒命運骰結果+3  .4dfm4 或.4df-4  四粒命運骰結果-4`
 }
-var initialize = function () {
+const initialize = function () {
     return variables;
 }
 

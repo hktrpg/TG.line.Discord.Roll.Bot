@@ -76,7 +76,7 @@ const prefixs = function () {
 	}]
 
 }
-var getHelpMessage = async function () {
+const getHelpMessage = async function () {
 	return `【暗骰功能】
 在指令前輸入dr 結果會私訊你
 ddr dddr 可以私訊已設定的群組GM, 詳情可打.drgm查詢
@@ -103,7 +103,7 @@ https://dice-roller.github.io/documentation/guide/notation/
  
  `
 }
-var initialize = function () {
+const initialize = function () {
 	return variables;
 }
 

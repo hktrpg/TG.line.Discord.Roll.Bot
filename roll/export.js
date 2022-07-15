@@ -60,7 +60,7 @@ const getHelpMessage = async function () {
 
 另外這是開發團錄功能的副產品，團錄功能敬請期待(?)`
 }
-var initialize = function () {
+const initialize = function () {
     return variables;
 }
 

@@ -21,7 +21,7 @@ const prefixs = function () {
         second: null
     }]
 }
-var getHelpMessage = async function () {
+const getHelpMessage = async function () {
     return `【貓貓鬼差】
 .kc xDy z 
 x 投擲多少粒六面骰 留空為4, 只可輸入4,5或留空 
@@ -31,7 +31,7 @@ z 目標值 1-20
 若出現兩對子, 則選較高者
 另外, 若達成值為3, 視為戲劇性失敗.`
 }
-var initialize = function () {
+const initialize = function () {
     return variables;
 }
 

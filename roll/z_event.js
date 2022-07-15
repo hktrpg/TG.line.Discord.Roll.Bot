@@ -64,7 +64,7 @@ const ENemoji = function (per) {
  */
 
 
-var getHelpMessage = function () {
+const getHelpMessage = function () {
     return `【事件功能】.event (add delete show) .evt (random/事件名稱)
 經由新增的事件，會得到一些狀態或增加減少經驗值，
 並可以賺取額外經驗值。
@@ -121,7 +121,7 @@ D. 一個事件可用的總EN 為(10+LV)，負面事件消耗X點EN
 `
 }
 
-var initialize = function () {
+const initialize = function () {
     return variables;
 }
 

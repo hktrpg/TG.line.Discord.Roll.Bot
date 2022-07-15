@@ -15,12 +15,12 @@ const prefixs = function () {
 		second: null
 	}]
 }
-var getHelpMessage = async function () {
+const getHelpMessage = async function () {
 	return `【WOD 黑暗世界擲骰】
 [.](骰數)Wd(加骰)(+成功數) (問題)
 例子 .3wd8 .15wd9+2`
 }
-var initialize = function () {
+const initialize = function () {
 	return variables;
 }
 

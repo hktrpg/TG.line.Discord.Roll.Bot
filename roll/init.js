@@ -20,7 +20,7 @@ const prefixs = function () {
         second: null
     }]
 }
-var getHelpMessage = async function () {
+const getHelpMessage = async function () {
     return `【先攻表功能】 .in (remove clear reroll) .init
 這是讓你快速自定義先攻表的功能
 它可以儲存你的擲骰方法，然後直接重新投擲，而不需要再輸入。
@@ -37,7 +37,7 @@ var getHelpMessage = async function () {
 .initn     - 顯示先攻表，由小到大
 `
 }
-var initialize = function () {
+const initialize = function () {
     return;
 }
 

@@ -29,7 +29,7 @@ const prefixs = function () {
 
 }
 
-var getHelpMessage = async function () {
+const getHelpMessage = async function () {
 	return `【Wiki查詢/即時翻譯】.wiki .image .tran .tran.(目標語言)
 Wiki功能		： .wiki (條目)  
 EG: .wiki BATMAN  
@@ -54,7 +54,7 @@ EG: .tran.ja BATMAN  .tran.日 BATMAN
 注: 翻譯使用Google Translate
 `
 }
-var initialize = function () {
+const initialize = function () {
 	return variables;
 }
 

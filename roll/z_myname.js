@@ -25,7 +25,7 @@ const prefixs = function () {
         second: null
     }]
 }
-var getHelpMessage = function () {
+const getHelpMessage = function () {
     return `【你的名字】Discord限定功能
 TRPG扮演發言功能
 你可以設定一個角色的名字及頭像，
@@ -73,7 +73,7 @@ https://i.imgur.com/VSzO08U.png
 支援擲骰，請使用[[]]來包著擲骰指令
     `
 }
-var initialize = function () {
+const initialize = function () {
     return "";
 }
 

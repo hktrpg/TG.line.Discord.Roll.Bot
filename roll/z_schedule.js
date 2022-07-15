@@ -27,7 +27,7 @@ const prefixs = function () {
         second: null
     }]
 }
-var getHelpMessage = function () {
+const getHelpMessage = function () {
     return `【定時任務功能】
     兩種模式
     【at】  指定一個時間
@@ -77,7 +77,7 @@ var getHelpMessage = function () {
     hello world
     `
 }
-var initialize = function () {
+const initialize = function () {
     return "";
 }
 

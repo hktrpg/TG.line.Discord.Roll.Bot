@@ -26,7 +26,7 @@ const prefixs = function () {
         second: null
     }]
 }
-var getHelpMessage = function () {
+const getHelpMessage = function () {
     return `【身分組管理】Discord限定功能
 讓對指定訊息的Reaction Emoji(😀😃😄)進行點擊的用家
 分配指定的身分組別
@@ -80,7 +80,7 @@ https://i.imgur.com/YCnCyET.mp4
 
     `
 }
-var initialize = function () {
+const initialize = function () {
     return "";
 }
 

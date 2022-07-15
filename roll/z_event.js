@@ -7,7 +7,7 @@ var variables = {};
 const rollDice = require('./rollbase');
 const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
-const limitArr = [4, 20, 20, 30, 30, 99, 99, 99];
+const FUNCTION_LIMIT = [4, 20, 20, 30, 30, 99, 99, 99];
 const enRecoverTime = 10 * 60 * 1000; //每10分鐘回複一點;
 var gameName = function () {
     return '【事件功能】 .event (add edit show delete) .evt (event 任何名字)'
@@ -148,7 +148,7 @@ var rollDiceCommand = async function ({
     let temp;
     let tempMain = {};
     let lv;
-    let limit = limitArr[0];
+    let limit = FUNCTION_LIMIT[0];
     let check;
     let levelLv = 0;
     /**
@@ -196,7 +196,7 @@ exp:SAN
             lv = await VIP.viplevelCheckUser(userid);
             let gpLv = await VIP.viplevelCheckGroup(groupid);
             lv = (gpLv > lv) ? gpLv : lv;
-            limit = limitArr[lv];
+            limit = FUNCTION_LIMIT[lv];
             check = await schema.eventList.find({
                 userID: userid
             });

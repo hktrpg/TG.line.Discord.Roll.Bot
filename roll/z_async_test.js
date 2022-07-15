@@ -9,7 +9,7 @@ var variables = {};
 const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const translateChannel = require('../modules/translate');
-const limitArr = [0, 2, 4, 6, 8, 9, 9, 9];
+const FUNCTION_LIMIT = [0, 2, 4, 6, 8, 9, 9, 9];
 const opt = {
 	upsert: true,
 	runValidators: true
@@ -119,7 +119,7 @@ var rollDiceCommand = async function ({
 				switch: true
 			}).countDocuments().catch(error => console.error('translate #111 mongoDB error: ', error.name, error.reson));
 			let gpLv = await VIP.viplevelCheckGroup(groupid);
-			let limit = limitArr[gpLv];
+			let limit = FUNCTION_LIMIT[gpLv];
 			if (check.length >= limit) {
 				rply.text = '此群組翻譯上限為' + limit + '條頻道' + '\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
 				return rply

@@ -6,7 +6,7 @@ var variables = {};
 const rollDice = require('./rollbase').rollDiceCommand;
 const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
-const limitArr = [4, 20, 20, 30, 30, 99, 99, 99];
+const FUNCTION_LIMIT = [4, 20, 20, 30, 30, 99, 99, 99];
 var gameName = function () {
     return '【角色卡功能】 .char (add edit show delete use nonuse button) .ch (set show showall button)'
 }
@@ -110,7 +110,7 @@ const rollDiceCommand = async function ({
     let temp;
     let tempMain = {};
     let lv;
-    let limit = limitArr[0];
+    let limit = FUNCTION_LIMIT[0];
     let check;
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
@@ -221,7 +221,7 @@ const rollDiceCommand = async function ({
             lv = await VIP.viplevelCheckUser(userid);
             let gpLv = await VIP.viplevelCheckGroup(groupid);
             lv = (gpLv > lv) ? gpLv : lv;
-            limit = limitArr[lv];
+            limit = FUNCTION_LIMIT[lv];
             check = await schema.characterCard.find({
                 id: userid
             });

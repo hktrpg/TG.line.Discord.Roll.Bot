@@ -15,7 +15,7 @@ const opt = {
     runValidators: true
 }
 const VIP = require('../modules/veryImportantPerson');
-const limitArr = (process.env.DEBUG) ? [99, 99, 99, 40, 40, 99, 99, 99] : [2, 20, 40, 40, 40, 99, 99, 99];
+const FUNCTION_LIMIT = (process.env.DEBUG) ? [99, 99, 99, 40, 40, 99, 99, 99] : [2, 20, 40, 40, 40, 99, 99, 99];
 /**
  * 因為資源限制，
  * 每個guild 5分鐘可以使用一次,
@@ -232,7 +232,7 @@ var rollDiceCommand = async function ({
                 return rply;
             }
             lv = await VIP.viplevelCheckUser(userid);
-            limit = limitArr[lv];
+            limit = FUNCTION_LIMIT[lv];
             checkUser = await schema.exportUser.findOne({
                 userID: userid
             });
@@ -366,7 +366,7 @@ var rollDiceCommand = async function ({
             lv = await VIP.viplevelCheckUser(userid);
             let gpLv = await VIP.viplevelCheckGroup(groupid);
             lv = (gpLv > lv) ? gpLv : lv;
-            limit = limitArr[lv];
+            limit = FUNCTION_LIMIT[lv];
             checkUser = await schema.exportUser.findOne({
                 userID: userid
             }).catch(error => console.error('export #372 mongoDB error: ', error.name, error.reson));

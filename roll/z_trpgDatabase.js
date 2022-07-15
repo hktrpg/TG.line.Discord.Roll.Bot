@@ -14,7 +14,7 @@ records.get('trpgDatabaseAllgroup', (msgs) => {
     trpgDatabasefunction.trpgDatabaseAllgroup = msgs
 });
 const VIP = require('../modules/veryImportantPerson');
-const limitArr = [30, 200, 200, 300, 300, 300, 300, 300];
+const FUNCTION_LIMIT = [30, 200, 200, 300, 300, 300, 300, 300];
 const gameName = function () {
     return '【資料庫功能】 .db(p) (add del show 自定關鍵字)'
 }
@@ -80,7 +80,7 @@ const rollDiceCommand = async function ({
     let tempshow = 0;
     let temp2 = 0;
     let lv;
-    let limit = limitArr[0];
+    let limit = FUNCTION_LIMIT[0];
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = await this.getHelpMessage();
@@ -108,7 +108,7 @@ const rollDiceCommand = async function ({
             }
 
             lv = await VIP.viplevelCheckGroup(groupid);
-            limit = limitArr[lv];
+            limit = FUNCTION_LIMIT[lv];
 
             if (trpgDatabasefunction.trpgDatabasefunction)
                 for (let i = 0; i < trpgDatabasefunction.trpgDatabasefunction.length; i++) {

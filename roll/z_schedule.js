@@ -21,7 +21,7 @@ const gameName = function () {
 const gameType = function () {
     return 'funny:schedule:hktrpg'
 }
-var prefixs = function () {
+const prefixs = function () {
     return [{
         first: /^\.at$|^\.cron$/i,
         second: null

@@ -27,7 +27,7 @@ const gameName = function () {
 const gameType = function () {
     return 'admin:Admin:hktrpg'
 }
-var prefixs = function () {
+const prefixs = function () {
     return [{
         first: /^[.]admin$/i,
         second: null

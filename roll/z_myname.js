@@ -19,7 +19,7 @@ const convertRegex = function (str) {
 const gameType = function () {
     return 'Tool:myname:hktrpg'
 }
-var prefixs = function () {
+const prefixs = function () {
     return [{
         first: /^\.myname$|^\.me\S+/i,
         second: null

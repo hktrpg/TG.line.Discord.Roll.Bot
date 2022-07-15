@@ -21,7 +21,7 @@ const gameName = function () {
 const gameType = function () {
 	return 'funny:Wiki:hktrpg'
 }
-var prefixs = function () {
+const prefixs = function () {
 	return [{
 		first: /^[.]wiki$|^[.]tran$|^[.]tran[.]\S+$|^[.]image$|^[.]imagee$|^[.]translate$/i,
 		second: null

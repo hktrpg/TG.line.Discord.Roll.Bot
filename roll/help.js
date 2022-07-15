@@ -69,7 +69,7 @@ const gameName = function () {
 const gameType = function () {
 	return 'bothelp:hktrpg'
 }
-var prefixs = function () {
+const prefixs = function () {
 	return [{
 		first: /^bothelp$/i,
 		second: null

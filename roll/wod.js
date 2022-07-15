@@ -9,7 +9,7 @@ const gameName = function () {
 const gameType = function () {
 	return 'Dice:WOD:hktrpg'
 }
-var prefixs = function () {
+const prefixs = function () {
 	return [{
 		first: /^[.](\d+)(wd)(\d|)((\+|-)(\d+)|)$/i,
 		second: null

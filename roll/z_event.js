@@ -15,7 +15,7 @@ const gameName = function () {
 const gameType = function () {
     return 'Funny:trpgevent:hktrpg'
 }
-var prefixs = function () {
+const prefixs = function () {
     return [{
         first: /(^[.]event$)|(^[.]evt$)/ig,
         second: null

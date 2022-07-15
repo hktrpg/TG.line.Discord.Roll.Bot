@@ -20,7 +20,7 @@ const gameName = function () {
 const gameType = function () {
     return 'Tool:role:hktrpg'
 }
-var prefixs = function () {
+const prefixs = function () {
     return [{
         first: /^\.roleReact$/i,
         second: null

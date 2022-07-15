@@ -14,7 +14,7 @@ const gameName = function () {
 const gameType = function () {
     return 'Tool:trpgInit:hktrpg'
 }
-var prefixs = function () {
+const prefixs = function () {
     return [{
         first: /(^[.]init$)|(^[.]initn$)|(^[.]in$)/ig,
         second: null

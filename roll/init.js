@@ -8,7 +8,7 @@ const rollDice = require('./rollbase').rollDiceCommand;
 const convertRegex = function (str) {
     return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
 };
-var gameName = function () {
+const gameName = function () {
     return '【先攻表功能】 .in (remove clear reroll) .init'
 }
 var gameType = function () {

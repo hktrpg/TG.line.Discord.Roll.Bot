@@ -2,7 +2,7 @@
 var rollbase = require('./rollbase.js');
 var variables = {};
 const mathjs = require('mathjs');
-var gameName = function () {
+const gameName = function () {
     return '【命運Fate】 .4df(m|-)(加值)'
 }
 

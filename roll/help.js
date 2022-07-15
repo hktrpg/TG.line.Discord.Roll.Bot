@@ -62,7 +62,7 @@ if (process.env.HEROKU_RELEASE_VERSION)
 var version = "";
 
 
-var gameName = function () {
+const gameName = function () {
 	return '骰子機器人HKTRPG說明';
 }
 

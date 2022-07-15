@@ -14,7 +14,7 @@ const opt = {
 	upsert: true,
 	runValidators: true
 }
-var gameName = function () {
+const gameName = function () {
 	return '【Wiki查詢/圖片搜索】 .wiki .image .tran'
 }
 

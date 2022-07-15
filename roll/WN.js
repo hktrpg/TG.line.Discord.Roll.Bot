@@ -2,7 +2,7 @@
 const rollbase = require('./rollbase.js');
 var variables = {};
 const mathjs = require('mathjs')
-var gameName = function () {
+const gameName = function () {
     return '【魔女狩獵之夜】.wn xDn+-y'
 }
 

@@ -10,7 +10,7 @@ const opt = {
     runValidators: true,
     new: true
 }
-var gameName = function () {
+const gameName = function () {
     return '【你的名字】.myname / .me .me1 .me泉心'
 }
 const convertRegex = function (str) {

@@ -14,7 +14,7 @@ const checkTools = require('../modules/check.js');
 
 
 
-var gameName = function () {
+const gameName = function () {
     return '【定時發訊功能】.at /.cron  mins hours delete show'
 }
 

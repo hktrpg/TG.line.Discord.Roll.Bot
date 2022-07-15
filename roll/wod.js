@@ -2,7 +2,7 @@
 var rollbase = require('./rollbase.js');
 var variables = {};
 
-var gameName = function () {
+const gameName = function () {
 	return '【WOD黑暗世界】.xWDy'
 }
 

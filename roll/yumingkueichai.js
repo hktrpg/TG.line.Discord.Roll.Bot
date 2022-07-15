@@ -1,7 +1,7 @@
 "use strict";
 var rollbase = require('./rollbase.js');
 var variables = {};
-var gameName = function () {
+const gameName = function () {
     return '【貓貓鬼差】.kc xDy z'
 }
 

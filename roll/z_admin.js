@@ -20,7 +20,7 @@ const pattName = /\s+-n\s+(\S+)/ig;
 const pattNotes = /\s+-no\s+(\S+)/ig;
 const pattSwitch = /\s+-s\s+(\S+)/ig;
 //const VIP = require('../modules/veryImportantPerson');
-var gameName = function () {
+const gameName = function () {
     return '【Admin Tool】.admin debug state account news on'
 }
 

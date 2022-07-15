@@ -6,7 +6,7 @@ var plurkID = '';
 const { PlurkClient } = require('plurk2');
 const EXPUP = require('./level').EXPUP || function () { };
 const courtMessage = require('./logs').courtMessage || function () { };
-
+const SIX_MINUTES = 1000 * 60 * 6;
 const msgSplitor = (/\S+/ig);
 const Plurk_Client = new PlurkClient(process.env.PLURK_APPKEY, process.env.PLURK_APPSECRET, process.env.PLURK_TOKENKEY, process.env.PLURK_TOKENSECRET);
 exports.analytics = require('./analytics');
@@ -27,7 +27,7 @@ function intervalFunc() {
     Plurk_Client.startComet();
 }
 
-setInterval(intervalFunc, 60 * 1000 * 10);
+setInterval(intervalFunc, SIX_MINUTES);
 
 
 Plurk_Client.on('new_plurk', async response => {

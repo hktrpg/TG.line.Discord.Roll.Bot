@@ -8,7 +8,7 @@ const agenda = require('../modules/schedule')
 const rollText = require('./getRoll').rollText;
 exports.analytics = require('./analytics');
 exports.z_stop = require('../roll/z_stop');
-
+const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 const TGclient = new TelegramBot(process.env.TELEGRAM_CHANNEL_SECRET, { polling: true });
 const newMessage = require('./message');
 const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || '';
@@ -222,7 +222,7 @@ function SendToId(targetid, text) {
 	}
 }
 
-const reconnectInterval = 1 * 1000 * 60;
+const RECONNECT_INTERVAL = 1 * 1000 * 60;
 const WebSocket = require('ws');
 var ws;
 var connect = function () {
@@ -253,7 +253,7 @@ var connect = function () {
 
 	ws.on('close', function () {
 		console.log('Telegram socket close');
-		setTimeout(connect, reconnectInterval);
+		setTimeout(connect, RECONNECT_INTERVAL);
 	});
 };
 if (process.env.BROADCAST) connect();
@@ -366,7 +366,7 @@ if (agenda && agenda.agenda) {
 			data.groupid, text
 		)
 		try {
-			if ((new Date(Date.now()) - data.createAt) >= 30 * 24 * 60 * 60 * 1000 * 6) {
+			if ((new Date(Date.now()) - data.createAt) >= SIX_MONTH) {
 				await job.remove();
 				SendToId(
 					data.groupid, "已運行六個月, 移除此定時訊息"

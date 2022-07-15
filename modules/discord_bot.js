@@ -13,7 +13,7 @@ const rollText = require('./getRoll').rollText;
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
 exports.z_stop = require('../roll/z_stop');
 const buttonStyles = ['DANGER', 'PRIMARY', 'SECONDARY', 'SUCCESS', 'DANGER']
-
+const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 function channelFilter(channel) {
 	return !channel.lastMessageId || Discord.SnowflakeUtil.deconstruct(channel.lastMessageId).timestamp < Date.now() - 3600000;
 }
@@ -75,7 +75,7 @@ const courtMessage = require('./logs').courtMessage || function () { };
 
 const newMessage = require('./message');
 
-const reconnectInterval = 1 * 1000 * 60;
+const RECONNECT_INTERVAL = 1 * 1000 * 60;
 const shardids = client.cluster.id;
 const WebSocket = require('ws');
 var ws;
@@ -498,7 +498,7 @@ process.on('unhandledRejection', error => {
 			await sendCronWebhook({ channelid: data.channelid, replyText: text, data })
 		}
 		try {
-			if ((new Date(Date.now()) - data.createAt) >= 30 * 24 * 60 * 60 * 1000 * 6) {
+			if ((new Date(Date.now()) - data.createAt) >= SIX_MONTH) {
 				await job.remove();
 				SendToReplychannel(
 					{ replyText: "已運行六個月, 移除此定時訊息", channelid: data.channelid, quotes: data.quotes = true, groupid: data.groupid }
@@ -1069,7 +1069,7 @@ const connect = function () {
 	});
 	ws.on('close', function () {
 		console.error('Discord socket close');
-		setTimeout(connect, reconnectInterval);
+		setTimeout(connect, RECONNECT_INTERVAL);
 	});
 };
 

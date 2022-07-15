@@ -9,6 +9,7 @@ const EXPUP = require('./level').EXPUP || function () { };
 const line = require('@line/bot-sdk');
 const express = require('express');
 const msgSplitor = (/\S+/ig);
+const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 const agenda = require('../modules/schedule');
 const rollText = require('./getRoll').rollText;
 exports.z_stop = require('../roll/z_stop');
@@ -382,7 +383,7 @@ if (agenda && agenda.agenda && lineAgenda) {
 			data.groupid, text
 		)
 		try {
-			if ((new Date(Date.now()) - data.createAt) >= 30 * 24 * 60 * 60 * 1000 * 6) {
+			if ((new Date(Date.now()) - data.createAt) >= SIX_MONTH) {
 				await job.remove();
 				SendToId(
 					data.groupid, "已運行六個月, 移除此定時訊息"

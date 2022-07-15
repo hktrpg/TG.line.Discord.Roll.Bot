@@ -65,7 +65,7 @@ const client = new Discord.Client({
 });
 client.cluster = new Cluster.Client(client);
 client.login(channelSecret);
-const msgSplitor = (/\S+/ig);
+const MESSAGE_SPLITOR = (/\S+/ig);
 const link = process.env.WEB_LINK;
 const port = process.env.PORT || 20721;
 const mongo = process.env.mongoURL
@@ -823,7 +823,7 @@ async function handlingResponMessage(message, answer = '') {
 		let inputStr = message.content || '';
 		//DISCORD <@!USERID> <@!399923133368042763> <@!544563333488111636>
 		//LINE @名字
-		let mainMsg = inputStr.match(msgSplitor); //定義輸入.字串
+		let mainMsg = inputStr.match(MESSAGE_SPLITOR); //定義輸入.字串
 		let trigger = (mainMsg && mainMsg[0]) ? mainMsg[0].toString().toLowerCase() : '';
 		if (!trigger) return await nonDice(message)
 
@@ -833,7 +833,7 @@ async function handlingResponMessage(message, answer = '') {
 		let rplyVal = {};
 		const checkPrivateMsg = __privateMsg({ trigger, mainMsg, inputStr });
 		inputStr = checkPrivateMsg.inputStr;
-		let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
+		let target = await exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
 		if (!target) return await nonDice(message)
 		if (!hasSendPermission) return;
 

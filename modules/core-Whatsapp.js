@@ -37,7 +37,7 @@ exports.z_stop = require('../roll/z_stop');
 const {
 	Client, LocalAuth
 } = require('whatsapp-web.js');
-const msgSplitor = (/\S+/ig);
+const MESSAGE_SPLITOR = (/\S+/ig);
 // Path where the session data will be stored
 const SESSION_FILE_PATH = './modules/whatsapp-session.json';
 
@@ -149,7 +149,7 @@ if (retry > maxRetry) {
 			groupid = getChatDetail.id._serialized;
 			membercount = getChatDetail.participants.length - 1;
 		}
-		let mainMsg = inputStr.match(msgSplitor); //定義輸入字串
+		let mainMsg = inputStr.match(MESSAGE_SPLITOR); //定義輸入字串
 		if (mainMsg && mainMsg[0]) {
 			trigger = mainMsg[0].toString().toLowerCase();
 
@@ -181,7 +181,7 @@ if (retry > maxRetry) {
 
 
 
-		let target = exports.analytics.findRollList(inputStr.match(msgSplitor));
+		let target = exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
 		if (!target && privatemsg == 0) return null;
 		var userid, displayname, channelid, channelKeyword = '';
 		//得到暗骰的數據, GM的位置

@@ -7,7 +7,7 @@ const { PlurkClient } = require('plurk2');
 const EXPUP = require('./level').EXPUP || function () { };
 const courtMessage = require('./logs').courtMessage || function () { };
 const SIX_MINUTES = 1000 * 60 * 6;
-const msgSplitor = (/\S+/ig);
+const MESSAGE_SPLITOR = (/\S+/ig);
 const Plurk_Client = new PlurkClient(process.env.PLURK_APPKEY, process.env.PLURK_APPSECRET, process.env.PLURK_TOKENKEY, process.env.PLURK_TOKENSECRET);
 exports.analytics = require('./analytics');
 Plurk_Client.request('Users/me')
@@ -42,7 +42,7 @@ Plurk_Client.on('new_plurk', async response => {
         message = response.content_raw,
         inputStr = message.replace(/^\s*@hktrpg\s+/i, '');
 
-    let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
+    let target = await exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
 
     if (!target) {
         await nonDice(groupid, userid, displayname, response.plurk_id)
@@ -50,7 +50,7 @@ Plurk_Client.on('new_plurk', async response => {
     }
 
     if (!message) return;
-    let mainMsg = message.match(msgSplitor); // 定義輸入字串
+    let mainMsg = message.match(MESSAGE_SPLITOR); // 定義輸入字串
     if (mainMsg && mainMsg.length > 1) {
         if (!mainMsg[0].match(/@HKTRPG/i)) return;
         mainMsg.shift();
@@ -95,14 +95,14 @@ Plurk_Client.on('new_response', async response => {
         userrole = (response.plurk.owner_id == response.response.user_id) ? 3 : 1,
         inputStr = message.replace(/^\s*@hktrpg\s+/i, '');
 
-    let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
+    let target = await exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
 
     if (!target) {
         await nonDice(groupid, userid, displayname, response.plurk_id)
         return null
     }
     if (!message) return;
-    let mainMsg = message.match(msgSplitor); // 定義輸入字串
+    let mainMsg = message.match(MESSAGE_SPLITOR); // 定義輸入字串
 
 
     if (mainMsg && mainMsg.length > 1) {

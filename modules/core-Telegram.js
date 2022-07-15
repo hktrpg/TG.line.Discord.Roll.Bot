@@ -14,7 +14,7 @@ const newMessage = require('./message');
 const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || '';
 //var TGcountroll = 0;
 //var TGcounttext = 0;
-const msgSplitor = (/\S+/ig);
+const MESSAGE_SPLITOR = (/\S+/ig);
 
 var robotName = ""
 
@@ -39,7 +39,7 @@ TGclient.on('text', async (ctx) => {
 			inputStr = inputStr
 				.replace(new RegExp('@' + robotName + '$', 'i'), '')
 				.replace(new RegExp('^/', 'i'), '');
-		mainMsg = inputStr.match(msgSplitor); // 定義輸入字串
+		mainMsg = inputStr.match(MESSAGE_SPLITOR); // 定義輸入字串
 	}
 	if (mainMsg && mainMsg[0]) {
 		trigger = mainMsg[0].toString().toLowerCase();
@@ -70,7 +70,7 @@ TGclient.on('text', async (ctx) => {
 			inputStr = inputStr.replace(/^dddr\s+/i, '');
 		}
 	})();
-	let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
+	let target = await exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
 	if (!target) {
 		await nonDice(ctx);
 		return;

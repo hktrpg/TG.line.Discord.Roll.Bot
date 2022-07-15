@@ -14,7 +14,7 @@ const opt = {
 
 const VIP = require('../modules/veryImportantPerson');
 const FUNCTION_LIMIT = [30, 200, 200, 500, 500, 500, 500, 500];
-const FUNCTION_LIMITPersonal = [2, 200, 200, 500, 500, 500, 500, 500];
+const FUNCTION_LIMIT_PERSONAL = [2, 200, 200, 500, 500, 500, 500, 500];
 var gameName = function () {
     return '【自定義骰子/回應功能】 .ra(p)(s)(次數) (add del show 自定骰子名稱)'
 }
@@ -296,7 +296,7 @@ var rollDiceCommand = async function ({
                 //增加自定義關鍵字
                 // .rap[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
                 lv = await VIP.viplevelCheckUser(userid);
-                limit = FUNCTION_LIMITPersonal[lv];
+                limit = FUNCTION_LIMIT_PERSONAL[lv];
                 if (!mainMsg[2])
                     rply.text += ' 沒有輸入骰子名稱.'
                 if (!mainMsg[3])

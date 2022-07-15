@@ -8,7 +8,7 @@ const checkMongodb = require('../modules/dbWatchdog.js');
 const checkTools = require('../modules/check.js');
 const tempSwitchV2 = require('../modules/level');
 const schema = require('../modules/schema.js');
-const defaultRankWord = "{user.displayName}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點！\n現在排名是{server.member_count}人中的第{user.Ranking}名！{user.RankingPer}！\n調查經驗是{user.exp}點。 "
+const DEFAULT_RANK_WORD = "{user.displayName}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點！\n現在排名是{server.member_count}人中的第{user.Ranking}名！{user.RankingPer}！\n調查經驗是{user.exp}點。 "
 
 const gameName = function () {
     return '【經驗值功能】 .level (show config LevelUpWord RankWord)'
@@ -475,7 +475,7 @@ const rollDiceCommand = async function ({
 
             //5.    讀取群組的排名語
 
-            let rankWord = (doc.RankWord) ? doc.RankWord : defaultRankWord;
+            let rankWord = (doc.RankWord) ? doc.RankWord : DEFAULT_RANK_WORD;
 
             let username = tgDisplayname || displaynameDiscord || displayname || "無名";
 

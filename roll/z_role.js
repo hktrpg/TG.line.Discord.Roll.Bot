@@ -3,7 +3,7 @@ if (!process.env.mongoURL) {
     return;
 }
 const VIP = require('../modules/veryImportantPerson');
-const limitAtArr = [3, 10, 50, 200, 200, 200, 200, 200];
+const FUNCTION_LIMIT = [3, 10, 50, 200, 200, 200, 200, 200];
 const schema = require('../modules/schema.js');
 const emojiRegex = require('emoji-regex');
 var regextemp = emojiRegex().toString();
@@ -186,7 +186,7 @@ var rollDiceCommand = async function ({
 
             //新增新的
             let lv = await VIP.viplevelCheckGroup(groupid);
-            let limit = limitAtArr[lv];
+            let limit = FUNCTION_LIMIT[lv];
             let myNamesLength = await schema.roleReact.countDocuments({ groupid: groupid }).catch(error => console.error('role #141 mongoDB error: ', error.name, error.reson));
             if (myNamesLength >= limit) {
                 rply.text = '.roleReact 群組上限為' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
@@ -271,7 +271,7 @@ var rollDiceCommand = async function ({
                 return rply;
             }
             let lv = await VIP.viplevelCheckGroup(groupid);
-            let limit = limitAtArr[lv];
+            let limit = FUNCTION_LIMIT[lv];
             let myNamesLength = await schema.roleReact.countDocuments({ groupid: groupid }).catch(error => console.error('role #141 mongoDB error: ', error.name, error.reson));
             if (myNamesLength >= limit) {
                 rply.text = '.roleReact 群組上限為' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
@@ -429,7 +429,7 @@ case /^\.roleInvites$/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]): {
         return rply;
     }
     const lv = await VIP.viplevelCheckGroup(groupid);
-    const limit = limitAtArr[lv];
+    const limit = FUNCTION_LIMIT[lv];
     const myNamesLength = await schema.roleInvites.countDocuments({ groupid: groupid })
     if (myNamesLength >= limit) {
         rply.text = '.roleInvites 群組上限為' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';

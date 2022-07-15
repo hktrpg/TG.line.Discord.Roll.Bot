@@ -8,7 +8,7 @@ const rollDice = require('./rollbase');
 const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const FUNCTION_LIMIT = [4, 20, 20, 30, 30, 99, 99, 99];
-const enRecoverTime = 10 * 60 * 1000; //每10分鐘回複一點;
+const EN_RECOVER_TIME = 10 * 60 * 1000; //每10分鐘回複一點;
 var gameName = function () {
     return '【事件功能】 .event (add edit show delete) .evt (event 任何名字)'
 }
@@ -413,7 +413,7 @@ exp:SAN
                 }
 
                 //回複EN
-                let EnergyRecover = Math.round(((new Date(Date.now()) - new Date(eventMember.lastActiveAt))) / enRecoverTime);
+                let EnergyRecover = Math.round(((new Date(Date.now()) - new Date(eventMember.lastActiveAt))) / EN_RECOVER_TIME);
                 eventMember.energy = Math.min(maxLv + 20, EnergyRecover + eventMember.energy);
                 eventMember.lastActiveAt = new Date(Date.now());
                 (debugMode) ? eventMember.energy = 99 : null;
@@ -487,7 +487,7 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                 }
 
                 //回複EN
-                let EnergyRecover = Math.round(((new Date(Date.now()) - new Date(eventMember.lastActiveAt))) / enRecoverTime);
+                let EnergyRecover = Math.round(((new Date(Date.now()) - new Date(eventMember.lastActiveAt))) / EN_RECOVER_TIME);
 
                 eventMember.energy = Math.min(maxLv + 20, EnergyRecover + eventMember.energy);
                 if (EnergyRecover > 0 || !eventMember.lastActiveAt)

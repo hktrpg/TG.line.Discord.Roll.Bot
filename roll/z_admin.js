@@ -13,6 +13,12 @@ const adminSecret = process.env.ADMIN_SECRET;
 //admin id
 const schema = require('../modules/schema.js');
 const checkTools = require('../modules/check.js');
+const pattId = /\s+-i\s+(\S+)/ig;
+const pattGP = /\s+-g\s+(\S+)/ig;
+const pattLv = /\s+-l\s+(\S+)/ig;
+const pattName = /\s+-n\s+(\S+)/ig;
+const pattNotes = /\s+-no\s+(\S+)/ig;
+const pattSwitch = /\s+-s\s+(\S+)/ig;
 //const VIP = require('../modules/veryImportantPerson');
 var gameName = function () {
     return '【Admin Tool】.admin debug state account news on'
@@ -83,8 +89,8 @@ var rollDiceCommand = async function ({
 
         case /^registerChannel$/i.test(mainMsg[1]):
             if (rply.text = checkTools.PermissionErrMsg({
-                flag : checkTools.flag.ChkChannel,
-                gid : groupid
+                flag: checkTools.flag.ChkChannel,
+                gid: groupid
             })) {
                 return rply;
             }
@@ -150,8 +156,8 @@ var rollDiceCommand = async function ({
 
         case /^unregisterChannel$/i.test(mainMsg[1]):
             if (rply.text = checkTools.PermissionErrMsg({
-                flag : checkTools.flag.ChkChannel,
-                gid : groupid
+                flag: checkTools.flag.ChkChannel,
+                gid: groupid
             })) {
                 return rply;
             }
@@ -174,9 +180,9 @@ var rollDiceCommand = async function ({
             return rply;
         case /^disallowrolling$/i.test(mainMsg[1]):
             if (rply.text = checkTools.PermissionErrMsg({
-                flag : checkTools.flag.ChkChannelAdmin,
-                gid : groupid,
-                role : userrole
+                flag: checkTools.flag.ChkChannelAdmin,
+                gid: groupid,
+                role: userrole
             })) {
                 return rply;
             }
@@ -194,9 +200,9 @@ var rollDiceCommand = async function ({
             return rply;
         case /^allowrolling$/i.test(mainMsg[1]):
             if (rply.text = checkTools.PermissionErrMsg({
-                flag : checkTools.flag.ChkChannelAdmin,
-                gid : groupid,
-                role : userrole
+                flag: checkTools.flag.ChkChannelAdmin,
+                gid: groupid,
+                role: userrole
             })) {
                 return rply;
             }
@@ -432,13 +438,8 @@ function checkPassword(text) {
     //True 即成功
     return /^[A-Za-z0-9!@#$%^&*]{6,16}$/.test(text);
 }
+
 async function store(mainMsg, mode) {
-    const pattId = /\s+-i\s+(\S+)/ig;
-    const pattGP = /\s+-g\s+(\S+)/ig;
-    const pattLv = /\s+-l\s+(\S+)/ig;
-    const pattName = /\s+-n\s+(\S+)/ig;
-    const pattNotes = /\s+-no\s+(\S+)/ig;
-    const pattSwitch = /\s+-s\s+(\S+)/ig;
     var resultId = pattId.exec(mainMsg);
     var resultGP = pattGP.exec(mainMsg);
     var resultLv = pattLv.exec(mainMsg);

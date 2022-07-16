@@ -218,7 +218,7 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^\.cron+$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
-            if (rply.text = checkTools.PermissionErrMsg({
+            if (rply.text = checkTools.permissionErrMsg({
                 flag : checkTools.flag.ChkChannelManager,
                 gid : groupid,
                 role : userrole
@@ -244,7 +244,7 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^\.cron$/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]): {
-            if (rply.text = checkTools.PermissionErrMsg({
+            if (rply.text = checkTools.permissionErrMsg({
                 flag : checkTools.flag.ChkChannelManager,
                 gid : groupid,
                 role : userrole
@@ -283,7 +283,7 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^\.cron+$/i.test(mainMsg[0]): {
-            rply.text = checkTools.PermissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({
                 flag : checkTools.flag.ChkChannelManager,
                 gid : groupid,
                 role : userrole

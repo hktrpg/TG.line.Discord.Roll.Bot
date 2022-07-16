@@ -34,7 +34,7 @@ function __isChannel(gid) {
     return !!gid;
 }
 
-function isAdmin(user) {
+function __isAdmin(user) {
     return (user === role.admin) ||
         (user === role.superAdmin);
 }
@@ -49,13 +49,13 @@ function __isDiscord(botName) {
     return (botName === "Discord");
 }
 
-function PermissionErrMsg(arg) {
+function permissionErrMsg(arg) {
     let msg = "";
 
     if ((arg.flag & 0x1) && !__isChannel(arg.gid))
         msg += __notChannel;
 
-    if ((arg.flag & 0x2) && !isAdmin(arg.role))
+    if ((arg.flag & 0x2) && !__isAdmin(arg.role))
         msg += __notAdmin;
 
     if ((arg.flag & 0x4) && !__isManager(arg.role))
@@ -70,6 +70,5 @@ function PermissionErrMsg(arg) {
 module.exports = {
     role,
     flag,
-    PermissionErrMsg,
-    isAdmin,
+    permissionErrMsg,
 };

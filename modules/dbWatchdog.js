@@ -1,50 +1,61 @@
 "use strict";
 const schema = require('./schema.js');
+
 const MAX_ERR_RETRY = 3;
 const RETRY_TIME = 1000 * 60 * 5;
-const dbConnErrRetry = {
-    LastTimeLog: Date.now(),
-    errorCount: 0
+let dbConnErr = {
+    timeStamp: Date.now(),
+    retry: 0
 }
+
 __init();
 
-
-
-
-function dbErrorCourtPlus() {
-    dbConnErrRetry.errorCount++;
-    dbConnErrRetry.LastTimeLog = Date.now();
+function dbErrOccurs() {
+    dbConnErr.retry++;
+    dbConnErr.timeStamp = Date.now();
 }
 
-function IsDbOnline() {
-    if (dbConnErrRetry.errorCount >= MAX_ERR_RETRY) return false
-    else true;
-
+function isDbOnline() {
+    return (dbConnErr.retry < MAX_ERR_RETRY);
 }
+
 function __dbErrorReset() {
-    dbConnErrRetry.errorCount = 0;
+    dbConnErr.retry = 0;
 }
+
 async function __updateRecords() {
     try {
-        await schema.mongodbState.updateOne({}, { $set: { errorDate: Date.now() } }, { upsert: true })
+        await schema.mongodbState.updateOne(
+            {},
+            {
+                $set: {
+                    errorDate: Date.now()
+                }
+            },
+            {
+                upsert: true
+            }
+        );
+
         __dbErrorReset();
-    } catch (error) {
-        console.error('dbConnectionError updateRecords #36 error: ', error.name, error.reson);
+    } catch (err) {
+        console.error('dbConnectionError updateRecords #36 error: ', err.name, err.reson);
     }
 
 }
 
 function __init() {
-    setInterval(async () => {
-        if (IsDbOnline) return;
-        else {
-            await __updateRecords();
-        }
-
-    }, RETRY_TIME)
+    setInterval(
+        async () => {
+            if (!isDbOnline) {
+                await __updateRecords();
+            }
+        },
+        RETRY_TIME
+    );
 }
 
 module.exports = {
-    dbErrorCourtPlus,
-    IsDbOnline
+    dbErrOccurs,
+    isDbOnline,
 };

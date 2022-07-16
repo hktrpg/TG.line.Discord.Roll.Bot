@@ -126,7 +126,7 @@ const rollDiceCommand = async function ({
             limit = FUNCTION_LIMIT[lv];
             if (!mainMsg[2]) rply.text += ' 沒有輸入骰子名稱.'
             if (!mainMsg[3]) rply.text += ' 沒有輸入骰子內容.'
-            if (rply.text += checkTools.PermissionErrMsg({
+            if (rply.text += checkTools.permissionErrMsg({
                 flag : checkTools.flag.ChkChannelManager,
                 gid : groupid,
                 role : userrole
@@ -176,7 +176,7 @@ const rollDiceCommand = async function ({
             //刪除自定義關鍵字
             //
             if (!mainMsg[2]) rply.text += '沒有骰子名稱. '
-            if (rply.text += checkTools.PermissionErrMsg({
+            if (rply.text += checkTools.permissionErrMsg({
                 flag : checkTools.flag.ChkChannelManager,
                 gid : groupid,
                 role : userrole

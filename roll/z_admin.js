@@ -88,7 +88,7 @@ const rollDiceCommand = async function ({
             return rply;
 
         case /^registerChannel$/i.test(mainMsg[1]):
-            if (rply.text = checkTools.PermissionErrMsg({
+            if (rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannel,
                 gid: groupid
             })) {
@@ -155,7 +155,7 @@ const rollDiceCommand = async function ({
             return rply;
 
         case /^unregisterChannel$/i.test(mainMsg[1]):
-            if (rply.text = checkTools.PermissionErrMsg({
+            if (rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannel,
                 gid: groupid
             })) {
@@ -179,7 +179,7 @@ const rollDiceCommand = async function ({
             rply.text = "已移除註冊!如果想檢查，請到\nhttps://www.hktrpg.com:20721/card/"
             return rply;
         case /^disallowrolling$/i.test(mainMsg[1]):
-            if (rply.text = checkTools.PermissionErrMsg({
+            if (rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelAdmin,
                 gid: groupid,
                 role: userrole
@@ -199,7 +199,7 @@ const rollDiceCommand = async function ({
             rply.text = "此頻道已被Admin不允許使用網頁版角色卡擲骰。\nAdmin 希望允許擲骰，可輸入\n.admin allowrolling";
             return rply;
         case /^allowrolling$/i.test(mainMsg[1]):
-            if (rply.text = checkTools.PermissionErrMsg({
+            if (rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelAdmin,
                 gid: groupid,
                 role: userrole

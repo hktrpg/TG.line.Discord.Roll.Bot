@@ -348,7 +348,7 @@ const rollDiceCommand = async function ({
             你的channel 聊天紀錄 共有 ${totalSize} 項`
             return rply;
         case /^txt$/i.test(mainMsg[1]): {
-            if (rply.text = checkTools.PermissionErrMsg({
+            if (rply.text = checkTools.permissionErrMsg({
                 flag : checkTools.flag.ChkBot,
                 gid : groupid,
                 role : userrole,

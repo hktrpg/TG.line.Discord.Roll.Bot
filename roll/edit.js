@@ -52,7 +52,7 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^\S/.test(mainMsg[1] || ''): {
-            if (rply.text = checkTools.PermissionErrMsg({
+            if (rply.text = checkTools.permissionErrMsg({
                 flag : checkTools.flag.ChkManager,
                 role : userrole
             })) {

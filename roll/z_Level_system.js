@@ -153,7 +153,7 @@ const rollDiceCommand = async function ({
         // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
 
         case /(^[.]level$)/i.test(mainMsg[0]) && /^TitleWord$/i.test(mainMsg[1]) && /^del$/i.test(mainMsg[2]): {
-            if (rply.text = checkTools.PermissionErrMsg({
+            if (rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelAdmin,
                 gid: groupid,
                 role: userrole
@@ -201,7 +201,7 @@ const rollDiceCommand = async function ({
             //
             //稱號Title
             //
-            if (rply.text = checkTools.PermissionErrMsg({
+            if (rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelAdmin,
                 gid: groupid,
                 role: userrole
@@ -250,7 +250,7 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^LevelUpWord$/i.test(mainMsg[1]) && /^del$/i.test(mainMsg[2]): {
-            if (rply.text = checkTools.PermissionErrMsg({
+            if (rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelAdmin,
                 gid: groupid,
                 role: userrole
@@ -267,7 +267,7 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^LevelUpWord$/i.test(mainMsg[1]): {
-            if (rply.text = checkTools.PermissionErrMsg({
+            if (rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelAdmin,
                 gid: groupid,
                 role: userrole
@@ -301,7 +301,7 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^RankWord$/i.test(mainMsg[1]) && /^del$/i.test(mainMsg[2]): {
-            if (rply.text = checkTools.PermissionErrMsg({
+            if (rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelAdmin,
                 gid: groupid,
                 role: userrole
@@ -318,7 +318,7 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^RankWord$/i.test(mainMsg[1]): {
-            if (rply.text = checkTools.PermissionErrMsg({
+            if (rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelAdmin,
                 gid: groupid,
                 role: userrole
@@ -349,7 +349,7 @@ const rollDiceCommand = async function ({
         }
 
         case /(^[.]level$)/i.test(mainMsg[0]) && /^config$/i.test(mainMsg[1]): {
-            if (rply.text = checkTools.PermissionErrMsg({
+            if (rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelAdmin,
                 gid: groupid,
                 role: userrole
@@ -427,7 +427,7 @@ const rollDiceCommand = async function ({
         }
 
         case /(^[.]level$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
-            if (!checkMongodb.IsDbOnline) return;
+            if (!checkMongodb.isDbOnline) return;
             if (!groupid) {
                 rply.text = '你不在群組當中，請在群組中使用。'
                 return rply
@@ -441,7 +441,7 @@ const rollDiceCommand = async function ({
                 SwitchV2: true
             }).catch(error => {
                 console.error('level_system #442 mongoDB error: ', error.name, error.reson)
-                checkMongodb.dbErrorCourtPlus();
+                checkMongodb.dbErrOccurs();
             });
             if (!doc || !doc.SwitchV2) {
                 rply.text = '此群組並有沒有開啓LEVEL功能. \n.level config 11 代表啓動功能 \

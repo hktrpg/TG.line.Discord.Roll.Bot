@@ -99,7 +99,7 @@ const rollDiceCommand = async function ({
                        */
             if (!mainMsg[2]) rply.text += ' 沒有輸入標題。\n\n'
             if (!mainMsg[3]) rply.text += ' 沒有輸入內容。\n\n'
-            if (rply.text += checkTools.PermissionErrMsg({
+            if (rply.text += checkTools.permissionErrMsg({
                 flag : checkTools.flag.ChkChannelManager,
                 gid : groupid,
                 role : userrole
@@ -147,7 +147,7 @@ const rollDiceCommand = async function ({
         }
         case /(^[.]db$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
             //刪除資料庫
-            if (rply.text = checkTools.PermissionErrMsg({
+            if (rply.text = checkTools.permissionErrMsg({
                 flag : checkTools.flag.ChkChannelManager,
                 gid : groupid,
                 role : userrole
@@ -171,7 +171,7 @@ const rollDiceCommand = async function ({
         case /(^[.]db$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
             //刪除資料庫
             if (!mainMsg[2]) rply.text += '沒有關鍵字. \n\n'
-            if (rply.text += checkTools.PermissionErrMsg({
+            if (rply.text += checkTools.permissionErrMsg({
                 flag : checkTools.flag.ChkChannelManager,
                 gid : groupid,
                 role : userrole

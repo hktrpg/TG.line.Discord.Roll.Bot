@@ -427,7 +427,7 @@ const rollDiceCommand = async function ({
         }
 
         case /(^[.]level$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
-            if (!checkMongodb.isDbOnline) return;
+            if (!checkMongodb.isDbOnline()) return;
             if (!groupid) {
                 rply.text = '你不在群組當中，請在群組中使用。'
                 return rply

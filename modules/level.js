@@ -11,7 +11,7 @@ var tempSwitchV2 = [{
     SwitchV2: false
 }];
 async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercount, tgDisplayname, discordMessage) {
-    if (!checkMongodb.isDbOnline) return;
+    if (!checkMongodb.isDbOnline()) return;
     if (!groupid) {
         return;
     }

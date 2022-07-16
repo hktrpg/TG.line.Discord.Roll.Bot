@@ -62,7 +62,7 @@ var getState = async function () {
 //上傳用
 async function saveLog() {
     //更新LogTime 然後上傳紀錄
-    if (!checkMongodb.isDbOnline) return;
+    if (!checkMongodb.isDbOnline()) return;
     RollingLog.LogTime = Date(Date.now()).toLocaleString("en-US", {
         timeZone: "Asia/HongKong"
     });
@@ -133,7 +133,7 @@ async function pushToDefiniteLog() {
 }
 
 async function getRecords() {
-    if (!checkMongodb.isDbOnline) return;
+    if (!checkMongodb.isDbOnline()) return;
     let theNewData = await schema.RealTimeRollingLog.findOne({}).catch(error => {
         console.error('log # 131 mongoDB error: ', error.name, error.reson)
         checkMongodb.dbErrOccurs();

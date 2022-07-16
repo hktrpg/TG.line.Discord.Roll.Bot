@@ -71,7 +71,7 @@ const rollDiceCommand = async function ({
             if (!mainMsg[2]) rply.text += ' 沒有標題.\n\n'
             if (!mainMsg[3]) rply.text += ' 沒有擲骰指令\n\n'
             if (mainMsg[3] && mainMsg[3].toLowerCase() == ".cmd") rply.text += '指令不可以儲存.cmd\n\n'
-            if (rply.text += checkTools.PermissionErrMsg({
+            if (rply.text += checkTools.permissionErrMsg({
                 flag : checkTools.flag.ChkChannelManager,
                 gid : groupid,
                 role : userrole
@@ -118,7 +118,7 @@ const rollDiceCommand = async function ({
 
         case /(^[.]cmd$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
             //刪除資料庫
-            if (rply.text = checkTools.PermissionErrMsg({
+            if (rply.text = checkTools.permissionErrMsg({
                 flag : checkTools.flag.ChkChannelManager,
                 gid : groupid,
                 role : userrole
@@ -142,7 +142,7 @@ const rollDiceCommand = async function ({
         case /(^[.]cmd$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
             //刪除資料庫
             if (!mainMsg[2]) rply.text += '沒有關鍵字. '
-            if (rply.text += checkTools.PermissionErrMsg({
+            if (rply.text += checkTools.permissionErrMsg({
                 flag : checkTools.flag.ChkChannelManager,
                 gid : groupid,
                 role : userrole

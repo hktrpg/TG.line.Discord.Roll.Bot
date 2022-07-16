@@ -153,7 +153,7 @@ const rollDiceCommand = async function ({
         // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
 
         case /(^[.]level$)/i.test(mainMsg[0]) && /^TitleWord$/i.test(mainMsg[1]) && /^del$/i.test(mainMsg[2]): {
-            if (rply.text = checkTools.PermissionErrMsg({
+            if (rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelAdmin,
                 gid: groupid,
                 role: userrole
@@ -201,7 +201,7 @@ const rollDiceCommand = async function ({
             //
             //稱號Title
             //
-            if (rply.text = checkTools.PermissionErrMsg({
+            if (rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelAdmin,
                 gid: groupid,
                 role: userrole
@@ -250,7 +250,7 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^LevelUpWord$/i.test(mainMsg[1]) && /^del$/i.test(mainMsg[2]): {
-            if (rply.text = checkTools.PermissionErrMsg({
+            if (rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelAdmin,
                 gid: groupid,
                 role: userrole
@@ -267,7 +267,7 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^LevelUpWord$/i.test(mainMsg[1]): {
-            if (rply.text = checkTools.PermissionErrMsg({
+            if (rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelAdmin,
                 gid: groupid,
                 role: userrole
@@ -301,7 +301,7 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^RankWord$/i.test(mainMsg[1]) && /^del$/i.test(mainMsg[2]): {
-            if (rply.text = checkTools.PermissionErrMsg({
+            if (rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelAdmin,
                 gid: groupid,
                 role: userrole
@@ -318,7 +318,7 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^RankWord$/i.test(mainMsg[1]): {
-            if (rply.text = checkTools.PermissionErrMsg({
+            if (rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelAdmin,
                 gid: groupid,
                 role: userrole
@@ -349,7 +349,7 @@ const rollDiceCommand = async function ({
         }
 
         case /(^[.]level$)/i.test(mainMsg[0]) && /^config$/i.test(mainMsg[1]): {
-            if (rply.text = checkTools.PermissionErrMsg({
+            if (rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelAdmin,
                 gid: groupid,
                 role: userrole

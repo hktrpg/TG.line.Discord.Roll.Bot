@@ -99,7 +99,7 @@ const rollDiceCommand = async function ({
 
         }
         case /^use+$/i.test(mainMsg[1]): {
-            if (rply.text = checkTools.PermissionErrMsg({
+            if (rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelManager,
                 gid: groupid,
                 role: userrole
@@ -124,7 +124,7 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^delete+$/i.test(mainMsg[1]): {
-            if (rply.text = checkTools.PermissionErrMsg({
+            if (rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelManager,
                 gid: groupid,
                 role: userrole

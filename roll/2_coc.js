@@ -118,7 +118,7 @@ const rollDiceCommand = async function ({
 		}
 		//DevelopmentPhase幕間成長指令開始於此
 		case /^\.dp$/i.test(mainMsg[0]) && /^start$/i.test(mainMsg[1]): {
-			if (rply.text = checkTools.PermissionErrMsg({
+			if (rply.text = checkTools.permissionErrMsg({
 				flag: checkTools.flag.ChkChannelAdmin,
 				gid: groupid,
 				role: userrole
@@ -130,7 +130,7 @@ const rollDiceCommand = async function ({
 			return rply;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^stop$/i.test(mainMsg[1]): {
-			if (rply.text = checkTools.PermissionErrMsg({
+			if (rply.text = checkTools.permissionErrMsg({
 				flag: checkTools.flag.ChkChannelAdmin,
 				gid: groupid,
 				role: userrole
@@ -142,7 +142,7 @@ const rollDiceCommand = async function ({
 			break;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
-			if (rply.text = checkTools.PermissionErrMsg({
+			if (rply.text = checkTools.permissionErrMsg({
 				flag: checkTools.flag.ChkChannel,
 				gid: groupid
 			})) {
@@ -220,7 +220,7 @@ const rollDiceCommand = async function ({
 		}
 
 		case /^\.dp$/i.test(mainMsg[0]) && /^showall$/i.test(mainMsg[1]): {
-			if (rply.text = checkTools.PermissionErrMsg({
+			if (rply.text = checkTools.permissionErrMsg({
 				flag: checkTools.flag.ChkChannel,
 				gid: groupid,
 			})) {
@@ -262,7 +262,7 @@ const rollDiceCommand = async function ({
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^auto$/i.test(mainMsg[1]): {
 			rply.quotes = true;
-			if (rply.text = checkTools.PermissionErrMsg({
+			if (rply.text = checkTools.permissionErrMsg({
 				flag: checkTools.flag.ChkChannel,
 				gid: groupid,
 			})) {
@@ -316,7 +316,7 @@ const rollDiceCommand = async function ({
 			return rply;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^clear$/i.test(mainMsg[1]): {
-			if (rply.text = checkTools.PermissionErrMsg({
+			if (rply.text = checkTools.permissionErrMsg({
 				flag: checkTools.flag.ChkChannel,
 				gid: groupid,
 			})) {
@@ -334,7 +334,7 @@ const rollDiceCommand = async function ({
 			return rply;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^clearall$/i.test(mainMsg[1]): {
-			if (rply.text = checkTools.PermissionErrMsg({
+			if (rply.text = checkTools.permissionErrMsg({
 				flag: checkTools.flag.ChkChannel,
 				gid: groupid,
 			})) {

@@ -64,7 +64,7 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
             //
             //增加自定義關鍵字
             // .drgm[0] addgm[1] 代替名字[2]  
-            if (rply.text = checkTools.PermissionErrMsg({
+            if (rply.text = checkTools.permissionErrMsg({
                 flag : checkTools.flag.ChkChannelManager,
                 gid : groupid,
                 role : userrole
@@ -111,7 +111,7 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
             //    
             //刪除所有自定義關鍵字
             //
-            if (rply.text = checkTools.PermissionErrMsg({
+            if (rply.text = checkTools.permissionErrMsg({
                 flag : checkTools.flag.ChkChannelManager,
                 gid : groupid,
                 role : userrole
@@ -142,7 +142,7 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
             //刪除GM
             //
             if (!mainMsg[2]) rply.text += '沒有已註冊GM. '
-            if (rply.text += checkTools.PermissionErrMsg({
+            if (rply.text += checkTools.permissionErrMsg({
                 flag : checkTools.flag.ChkChannelManager,
                 gid : groupid,
                 role : userrole

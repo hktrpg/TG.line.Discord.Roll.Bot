@@ -40,7 +40,7 @@ function firstTimeMessage() {
 
 
 async function getRecords() {
-	if (!checkMongodb.isDbOnline) return;
+	if (!checkMongodb.isDbOnline()) return;
 	userList = await schema.firstTimeMessage.find({
 	}).catch(error => {
 		console.error('message #42 mongoDB error: ', error.name, error.reson)

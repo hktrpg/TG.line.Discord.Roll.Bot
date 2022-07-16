@@ -1,6 +1,6 @@
 "use strict";
 const schema = require('./schema.js');
-const checkMongodb = require('./mongodbConnectionError.js');
+const checkMongodb = require('./dbWatchdog.js');
 var viplevel;
 const DIYmode = (process.env.DIY) ? true : false;
 var viplevelCheckGroup = async function (groupID) {

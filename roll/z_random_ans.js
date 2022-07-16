@@ -13,15 +13,15 @@ const opt = {
 }
 
 const VIP = require('../modules/veryImportantPerson');
-const limitArr = [30, 200, 200, 500, 500, 500, 500, 500];
-const limitArrPersonal = [2, 200, 200, 500, 500, 500, 500, 500];
-var gameName = function () {
+const FUNCTION_LIMIT = [30, 200, 200, 500, 500, 500, 500, 500];
+const FUNCTION_LIMIT_PERSONAL = [2, 200, 200, 500, 500, 500, 500, 500];
+const gameName = function () {
     return '【自定義骰子/回應功能】 .ra(p)(s)(次數) (add del show 自定骰子名稱)'
 }
-var gameType = function () {
+const gameType = function () {
     return 'funny:randomAns:hktrpg'
 }
-var prefixs = function () {
+const prefixs = function () {
     return [{
         first: /(^[.](r|)ra(\d+|p|p\d+|s|s\d+|)$)/ig,
         second: null
@@ -88,7 +88,7 @@ const initialize = function () {
  * {my.title}<---顯示擲骰者稱號
  * {my.level}<---顯示擲骰者等級
  */
-var rollDiceCommand = async function ({
+const rollDiceCommand = async function ({
     mainMsg,
     groupid,
     userrole,
@@ -104,7 +104,7 @@ var rollDiceCommand = async function ({
     };
     let times = [];
     let lv;
-    let limit = limitArr[0];
+    let limit = FUNCTION_LIMIT[0];
     let getData;
     let check;
     let temp;
@@ -123,7 +123,7 @@ var rollDiceCommand = async function ({
             使用VIPCHECK
             */
             lv = await VIP.viplevelCheckGroup(groupid);
-            limit = limitArr[lv];
+            limit = FUNCTION_LIMIT[lv];
             if (!mainMsg[2]) rply.text += ' 沒有輸入骰子名稱.'
             if (!mainMsg[3]) rply.text += ' 沒有輸入骰子內容.'
             if (rply.text += checkTools.PermissionErrMsg({
@@ -296,7 +296,7 @@ var rollDiceCommand = async function ({
                 //增加自定義關鍵字
                 // .rap[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
                 lv = await VIP.viplevelCheckUser(userid);
-                limit = limitArrPersonal[lv];
+                limit = FUNCTION_LIMIT_PERSONAL[lv];
                 if (!mainMsg[2])
                     rply.text += ' 沒有輸入骰子名稱.'
                 if (!mainMsg[3])

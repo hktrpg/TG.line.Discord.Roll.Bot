@@ -6,7 +6,7 @@ if (!process.env.LINE_CHANNEL_ACCESSTOKEN || !process.env.mongoURL) {
 const {
     RateLimiterMemory
 } = require('rate-limiter-flexible');
-const msgSplitor = (/\S+/ig)
+const MESSAGE_SPLITOR = (/\S+/ig)
 const schema = require('./schema.js');
 const privateKey = (process.env.KEY_PRIKEY) ? process.env.KEY_PRIKEY : null;
 const certificate = (process.env.KEY_CERT) ? process.env.KEY_CERT : null;
@@ -88,7 +88,7 @@ www.get('/api', async (req, res) => {
         null;
     if (ip && await limitRaterApi(ip)) return;
     let rplyVal = {}
-    var mainMsg = req.query.msg.match(msgSplitor); // 定義輸入字串
+    var mainMsg = req.query.msg.match(MESSAGE_SPLITOR); // 定義輸入字串
     if (mainMsg && mainMsg[0])
         var trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
 
@@ -328,7 +328,7 @@ records.on("new_message", async (message) => {
 
     io.emit(message.roomNumber, message);
     let rplyVal = {}
-    var mainMsg = message.msg.match(msgSplitor); // 定義輸入字串
+    var mainMsg = message.msg.match(MESSAGE_SPLITOR); // 定義輸入字串
     if (mainMsg && mainMsg[0])
         var trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
 

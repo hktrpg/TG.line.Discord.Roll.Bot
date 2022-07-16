@@ -7,15 +7,15 @@ var variables = {};
 const rollDice = require('./rollbase');
 const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
-const limitArr = [4, 20, 20, 30, 30, 99, 99, 99];
-const enRecoverTime = 10 * 60 * 1000; //每10分鐘回複一點;
-var gameName = function () {
+const FUNCTION_LIMIT = [4, 20, 20, 30, 30, 99, 99, 99];
+const EN_RECOVER_TIME = 10 * 60 * 1000; //每10分鐘回複一點;
+const gameName = function () {
     return '【事件功能】 .event (add edit show delete) .evt (event 任何名字)'
 }
-var gameType = function () {
+const gameType = function () {
     return 'Funny:trpgevent:hktrpg'
 }
-var prefixs = function () {
+const prefixs = function () {
     return [{
         first: /(^[.]event$)|(^[.]evt$)/ig,
         second: null
@@ -64,7 +64,7 @@ const ENemoji = function (per) {
  */
 
 
-var getHelpMessage = function () {
+const getHelpMessage = function () {
     return `【事件功能】.event (add delete show) .evt (random/事件名稱)
 經由新增的事件，會得到一些狀態或增加減少經驗值，
 並可以賺取額外經驗值。
@@ -121,11 +121,11 @@ D. 一個事件可用的總EN 為(10+LV)，負面事件消耗X點EN
 `
 }
 
-var initialize = function () {
+const initialize = function () {
     return variables;
 }
 
-var rollDiceCommand = async function ({
+const rollDiceCommand = async function ({
     inputStr,
     mainMsg,
     groupid,
@@ -148,7 +148,7 @@ var rollDiceCommand = async function ({
     let temp;
     let tempMain = {};
     let lv;
-    let limit = limitArr[0];
+    let limit = FUNCTION_LIMIT[0];
     let check;
     let levelLv = 0;
     /**
@@ -196,7 +196,7 @@ exp:SAN
             lv = await VIP.viplevelCheckUser(userid);
             let gpLv = await VIP.viplevelCheckGroup(groupid);
             lv = (gpLv > lv) ? gpLv : lv;
-            limit = limitArr[lv];
+            limit = FUNCTION_LIMIT[lv];
             check = await schema.eventList.find({
                 userID: userid
             });
@@ -413,7 +413,7 @@ exp:SAN
                 }
 
                 //回複EN
-                let EnergyRecover = Math.round(((new Date(Date.now()) - new Date(eventMember.lastActiveAt))) / enRecoverTime);
+                let EnergyRecover = Math.round(((new Date(Date.now()) - new Date(eventMember.lastActiveAt))) / EN_RECOVER_TIME);
                 eventMember.energy = Math.min(maxLv + 20, EnergyRecover + eventMember.energy);
                 eventMember.lastActiveAt = new Date(Date.now());
                 (debugMode) ? eventMember.energy = 99 : null;
@@ -487,7 +487,7 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                 }
 
                 //回複EN
-                let EnergyRecover = Math.round(((new Date(Date.now()) - new Date(eventMember.lastActiveAt))) / enRecoverTime);
+                let EnergyRecover = Math.round(((new Date(Date.now()) - new Date(eventMember.lastActiveAt))) / EN_RECOVER_TIME);
 
                 eventMember.energy = Math.min(maxLv + 20, EnergyRecover + eventMember.energy);
                 if (EnergyRecover > 0 || !eventMember.lastActiveAt)

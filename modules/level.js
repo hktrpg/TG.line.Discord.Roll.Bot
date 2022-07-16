@@ -1,9 +1,9 @@
 if (!process.env.mongoURL) return;
 const oneMinuts = (process.env.DEBUG) ? 1 : 60000;
 //60000 一分鐘多久可以升級及增加經驗
-const checkMongodb = require('./mongodbConnectionError.js');
+const checkMongodb = require('./dbWatchdog.js');
 exports.rollbase = require('../roll/rollbase');
-const thirtyMinutes = (process.env.DEBUG) ? 1 : 60000 * 30;
+const THIRTY_MINUTES = (process.env.DEBUG) ? 1 : 60000 * 30;
 const retry = { number: 0, times: 0 };
 const schema = require('./schema.js');
 var tempSwitchV2 = [{
@@ -16,7 +16,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
         return;
     }
     if (retry.number >= 10) {
-        if ((new Date() - retry.times) < thirtyMinutes)
+        if ((new Date() - retry.times) < THIRTY_MINUTES)
             return;
         else retry.number = 0;
     }

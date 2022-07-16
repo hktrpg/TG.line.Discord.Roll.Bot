@@ -13,7 +13,7 @@
 
 const schema = require('./schema.js');
 const debugMode = (process.env.DEBUG) ? true : false;
-const msgSplitor = (/\S+/ig);
+const MESSAGE_SPLITOR = (/\S+/ig);
 const courtMessage = require('./logs').courtMessage || function () { };
 const getState = require('./logs').getState || function () { };
 const EXPUP = require('./level').EXPUP || function () { };
@@ -44,7 +44,7 @@ var parseInput = async function ({
 
 	let mainMsg = [];
 	inputStr = inputStr.replace(/^\s/g, '')
-	mainMsg = inputStr.match(msgSplitor); //定義輸入字串
+	mainMsg = inputStr.match(MESSAGE_SPLITOR); //定義輸入字串
 	//EXPUP 功能 + LevelUP 功能
 	if (groupid) {
 		let tempEXPUP = await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount, tgDisplayname, discordMessage);
@@ -283,7 +283,7 @@ async function cmdfunction({
 	tgDisplayname
 }) {
 	let newInputStr = result.characterReRollItem || result.text;
-	let mainMsg = newInputStr.match(msgSplitor); //定義輸入字串
+	let mainMsg = newInputStr.match(MESSAGE_SPLITOR); //定義輸入字串
 	//檢查是不是要停止
 	let tempResut = {};
 	try {

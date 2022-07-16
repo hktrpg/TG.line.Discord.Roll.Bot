@@ -6,14 +6,14 @@ const adminSecret = process.env.ADMIN_SECRET || '';
 const Cluster = require('discord-hybrid-sharding');
 const Discord = require("discord.js-light");
 const multiServer = require('../modules/multi-server')
-const checkMongodb = require('../modules/mongodbConnectionError.js');
+const checkMongodb = require('../modules/dbWatchdog.js');
 const fs = require('node:fs');
 const { Client, Intents, Permissions, Collection, MessageActionRow, MessageButton, WebhookClient, MessageAttachment } = Discord;
 const rollText = require('./getRoll').rollText;
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
 exports.z_stop = require('../roll/z_stop');
 const buttonStyles = ['DANGER', 'PRIMARY', 'SECONDARY', 'SUCCESS', 'DANGER']
-
+const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 function channelFilter(channel) {
 	return !channel.lastMessageId || Discord.SnowflakeUtil.deconstruct(channel.lastMessageId).timestamp < Date.now() - 3600000;
 }
@@ -65,7 +65,7 @@ const client = new Discord.Client({
 });
 client.cluster = new Cluster.Client(client);
 client.login(channelSecret);
-const msgSplitor = (/\S+/ig);
+const MESSAGE_SPLITOR = (/\S+/ig);
 const link = process.env.WEB_LINK;
 const port = process.env.PORT || 20721;
 const mongo = process.env.mongoURL
@@ -75,7 +75,7 @@ const courtMessage = require('./logs').courtMessage || function () { };
 
 const newMessage = require('./message');
 
-const reconnectInterval = 1 * 1000 * 60;
+const RECONNECT_INTERVAL = 1 * 1000 * 60;
 const shardids = client.cluster.id;
 const WebSocket = require('ws');
 var ws;
@@ -112,6 +112,7 @@ client.on('guildCreate', async guild => {
 			.setDescription(newMessage.joinMessage())
 		await channel.send({ embeds: [text] });
 	} catch (error) {
+		if (error.message === 'Missing Access') return;
 		console.error('discord bot guildCreate  #114 error', error);
 	}
 })
@@ -497,7 +498,7 @@ process.on('unhandledRejection', error => {
 			await sendCronWebhook({ channelid: data.channelid, replyText: text, data })
 		}
 		try {
-			if ((new Date(Date.now()) - data.createAt) >= 30 * 24 * 60 * 60 * 1000 * 6) {
+			if ((new Date(Date.now()) - data.createAt) >= SIX_MONTH) {
 				await job.remove();
 				SendToReplychannel(
 					{ replyText: "已運行六個月, 移除此定時訊息", channelid: data.channelid, quotes: data.quotes = true, groupid: data.groupid }
@@ -822,7 +823,7 @@ async function handlingResponMessage(message, answer = '') {
 		let inputStr = message.content || '';
 		//DISCORD <@!USERID> <@!399923133368042763> <@!544563333488111636>
 		//LINE @名字
-		let mainMsg = inputStr.match(msgSplitor); //定義輸入.字串
+		let mainMsg = inputStr.match(MESSAGE_SPLITOR); //定義輸入.字串
 		let trigger = (mainMsg && mainMsg[0]) ? mainMsg[0].toString().toLowerCase() : '';
 		if (!trigger) return await nonDice(message)
 
@@ -832,7 +833,7 @@ async function handlingResponMessage(message, answer = '') {
 		let rplyVal = {};
 		const checkPrivateMsg = __privateMsg({ trigger, mainMsg, inputStr });
 		inputStr = checkPrivateMsg.inputStr;
-		let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
+		let target = await exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
 		if (!target) return await nonDice(message)
 		if (!hasSendPermission) return;
 
@@ -1068,7 +1069,7 @@ const connect = function () {
 	});
 	ws.on('close', function () {
 		console.error('Discord socket close');
-		setTimeout(connect, reconnectInterval);
+		setTimeout(connect, RECONNECT_INTERVAL);
 	});
 };
 

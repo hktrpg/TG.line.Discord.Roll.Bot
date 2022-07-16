@@ -9,7 +9,7 @@ records.get('trpgCommand', (msgs) => {
     trpgCommandfunction.trpgCommandfunction = msgs
 })
 const VIP = require('../modules/veryImportantPerson');
-const limitArr = [30, 200, 200, 300, 300, 300, 300, 300];
+const FUNCTION_LIMIT = [30, 200, 200, 300, 300, 300, 300, 300];
 const gameName = function () {
     return '【儲存擲骰指令功能】 .cmd (add del show 自定關鍵字)'
 }
@@ -57,7 +57,7 @@ const rollDiceCommand = async function ({
         text: ''
     };
     let lv;
-    let limit = limitArr[0];
+    let limit = FUNCTION_LIMIT[0];
     let temp = 0;
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
@@ -80,7 +80,7 @@ const rollDiceCommand = async function ({
             }
 
             lv = await VIP.viplevelCheckGroup(groupid);
-            limit = limitArr[lv];
+            limit = FUNCTION_LIMIT[lv];
             checkifsamename = 0
             if (trpgCommandfunction.trpgCommandfunction)
                 for (let i = 0; i < trpgCommandfunction.trpgCommandfunction.length; i++) {

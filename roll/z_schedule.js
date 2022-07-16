@@ -3,31 +3,31 @@ if (!process.env.mongoURL) {
     return;
 }
 const VIP = require('../modules/veryImportantPerson');
-const limitAtArr = [5, 25, 50, 200, 200, 200, 200, 200];
+const FUNCTION_AT_LIMIT = [5, 25, 50, 200, 200, 200, 200, 200];
 const schema = require('../modules/schema')
-const limitCronArr = [2, 15, 30, 45, 99, 99, 99, 99];
+const FUNCTION_CRON_LIMIT = [2, 15, 30, 45, 99, 99, 99, 99];
 const moment = require('moment');
 const agenda = require('../modules/schedule')
-const cronRegex = /^(\d\d)(\d\d)((?:-([1-9]?[1-9]|((mon|tues|wed(nes)?|thur(s)?|fri|sat(ur)?|sun)(day)?))){0,1})/i;
-const validDays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+const CRON_REGEX = /^(\d\d)(\d\d)((?:-([1-9]?[1-9]|((mon|tues|wed(nes)?|thur(s)?|fri|sat(ur)?|sun)(day)?))){0,1})/i;
+const VALID_DAYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 const checkTools = require('../modules/check.js');
 
 
 
-var gameName = function () {
+const gameName = function () {
     return '【定時發訊功能】.at /.cron  mins hours delete show'
 }
 
-var gameType = function () {
+const gameType = function () {
     return 'funny:schedule:hktrpg'
 }
-var prefixs = function () {
+const prefixs = function () {
     return [{
         first: /^\.at$|^\.cron$/i,
         second: null
     }]
 }
-var getHelpMessage = function () {
+const getHelpMessage = function () {
     return `【定時任務功能】
     兩種模式
     【at】  指定一個時間
@@ -77,11 +77,11 @@ var getHelpMessage = function () {
     hello world
     `
 }
-var initialize = function () {
+const initialize = function () {
     return "";
 }
 
-var rollDiceCommand = async function ({
+const rollDiceCommand = async function ({
     inputStr,
     mainMsg,
     groupid,
@@ -173,7 +173,7 @@ var rollDiceCommand = async function ({
             let lv = await VIP.viplevelCheckUser(userid);
             let gpLv = await VIP.viplevelCheckGroup(groupid);
             lv = (gpLv > lv) ? gpLv : lv;
-            let limit = limitAtArr[lv];
+            let limit = FUNCTION_AT_LIMIT[lv];
             let check = {
                 name: differentPeformAt(botname),
                 "data.groupid": groupid
@@ -294,7 +294,7 @@ var rollDiceCommand = async function ({
             let lv = await VIP.viplevelCheckUser(userid);
             let gpLv = await VIP.viplevelCheckGroup(groupid);
             lv = (gpLv > lv) ? gpLv : lv;
-            let limit = limitCronArr[lv];
+            let limit = FUNCTION_CRON_LIMIT[lv];
             let check = {
                 name: differentPeformCron(botname),
                 "data.groupid": groupid
@@ -431,10 +431,10 @@ function checkAtTime(first, second) {
 function checkCronTime(text) {
     //const date = {hour: 14, minute: 30}
     //@{text} - 1133  / 1155-wed / 1125-(1-99)
-    let hour = text.match(cronRegex) && text.match(cronRegex)[1];
-    let min = text.match(cronRegex) && text.match(cronRegex)[2];
-    let days = text.match(cronRegex) && !text.match(cronRegex)[6] && text.match(cronRegex)[4] || null;
-    //let weeks = text.match(cronRegex) && text.match(cronRegex)[6] || null;
+    let hour = text.match(CRON_REGEX) && text.match(CRON_REGEX)[1];
+    let min = text.match(CRON_REGEX) && text.match(CRON_REGEX)[2];
+    let days = text.match(CRON_REGEX) && !text.match(CRON_REGEX)[6] && text.match(CRON_REGEX)[4] || null;
+    //let weeks = text.match(CRON_REGEX) && text.match(CRON_REGEX)[6] || null;
     let weeks = []
     if (hour == 24) {
         hour = "00";
@@ -442,8 +442,8 @@ function checkCronTime(text) {
     if (min == 60) {
         min = "00";
     }
-    for (let index = 0; index < validDays.length; index++) {
-        text.toLowerCase().indexOf(validDays[index]) >= 0 ? weeks.push(index) : null
+    for (let index = 0; index < VALID_DAYS.length; index++) {
+        text.toLowerCase().indexOf(VALID_DAYS[index]) >= 0 ? weeks.push(index) : null
 
     }
 

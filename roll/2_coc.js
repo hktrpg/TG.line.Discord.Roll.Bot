@@ -2,7 +2,7 @@
 const rollbase = require('./rollbase.js');
 const schema = require('../modules/schema.js');
 const checkTools = require('../modules/check.js');
-const checkMongodb = require('../modules/mongodbConnectionError.js');
+const checkMongodb = require('../modules/dbWatchdog.js');
 const mathjs = require('mathjs');
 const gameName = function () {
 	return '【克蘇魯神話】 cc cc(n)1~2 ccb ccrt ccsu .dp .cc7build .cc6build .cc7bg'

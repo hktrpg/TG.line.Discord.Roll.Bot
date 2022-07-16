@@ -10,7 +10,7 @@ const opt = {
     runValidators: true,
     new: true
 }
-var gameName = function () {
+const gameName = function () {
     return '【你的名字】.myname / .me .me1 .me泉心'
 }
 const convertRegex = function (str) {
@@ -19,13 +19,13 @@ const convertRegex = function (str) {
 const gameType = function () {
     return 'Tool:myname:hktrpg'
 }
-var prefixs = function () {
+const prefixs = function () {
     return [{
         first: /^\.myname$|^\.me\S+/i,
         second: null
     }]
 }
-var getHelpMessage = function () {
+const getHelpMessage = function () {
     return `【你的名字】Discord限定功能
 TRPG扮演發言功能
 你可以設定一個角色的名字及頭像，
@@ -73,11 +73,11 @@ https://i.imgur.com/VSzO08U.png
 支援擲骰，請使用[[]]來包著擲骰指令
     `
 }
-var initialize = function () {
+const initialize = function () {
     return "";
 }
 
-var rollDiceCommand = async function ({
+const rollDiceCommand = async function ({
     inputStr,
     mainMsg,
     userid,

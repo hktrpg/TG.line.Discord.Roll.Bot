@@ -1,5 +1,6 @@
-const checkMongodb = require('../modules/mongodbConnectionError.js');
+const checkMongodb = require('../modules/dbWatchdog.js');
 const schema = require('./schema.js');
+const TEN_SECOND = 1000 * 10;
 let channelList = [];
 (async () => {
 	try {
@@ -8,7 +9,7 @@ let channelList = [];
 		console.error('error: multiserver message#10')
 		setTimeout(async () => {
 			await getRecords();
-		}, 1000 * 10)
+		}, TEN_SECOND)
 		//10secs 
 	}
 })();

@@ -1,14 +1,14 @@
 "use strict";
 var rollbase = require('./rollbase.js');
 var variables = {};
-var gameName = function () {
+const gameName = function () {
     return '【貓貓鬼差】.kc xDy z'
 }
 
-var gameType = function () {
+const gameType = function () {
     return 'Dice:yumingkueichai:hktrpg'
 }
-var prefixs = function () {
+const prefixs = function () {
     //[mainMSG[0]的prefixs,mainMSG[1]的prefixs,   <---這裡是一對  
     //mainMSG[0]的prefixs,mainMSG[1]的prefixs  ]  <---這裡是一對
     //如前面是 /^1$/ig, 後面是/^1D100$/ig, 即 prefixs 變成 1 1D100 
@@ -21,7 +21,7 @@ var prefixs = function () {
         second: null
     }]
 }
-var getHelpMessage = async function () {
+const getHelpMessage = async function () {
     return `【貓貓鬼差】
 .kc xDy z 
 x 投擲多少粒六面骰 留空為4, 只可輸入4,5或留空 
@@ -31,11 +31,11 @@ z 目標值 1-20
 若出現兩對子, 則選較高者
 另外, 若達成值為3, 視為戲劇性失敗.`
 }
-var initialize = function () {
+const initialize = function () {
     return variables;
 }
 
-var rollDiceCommand = async function ({
+const rollDiceCommand = async function ({
     mainMsg
 }) {
     let rply = {

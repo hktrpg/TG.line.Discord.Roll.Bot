@@ -3,10 +3,10 @@ if (!process.env.mongoURL) return;
 //Log everyday 01:00
 const debugMode = (process.env.DEBUG) ? true : false;
 const schema = require('./schema.js');
-const checkMongodb = require('./mongodbConnectionError.js');
+const checkMongodb = require('./dbWatchdog.js');
 //50次 多少條訊息會上傳一次LOG
-const oneHour = 1 * 60 * 60 * 1000;
-const fiveMinutes = 5 * 60 * 1000;
+const ONE_HOUR = 1 * 60 * 60 * 1000;
+const FIVE_MINUTES = 5 * 60 * 1000;
 var shardid = 0;
 //每一小時 24 * 60 * 60 * 1000 多久會上傳一次LOG紀錄 
 const RollingLog = {
@@ -41,7 +41,7 @@ const RollingLog = {
 
     }
     try {
-        const loopLogFiveMinutes = setInterval(saveLog, fiveMinutes);
+        const loopLogFiveMinutes = setInterval(saveLog, FIVE_MINUTES);
     } catch (e) {
         console.log(`log error #35 ${e}`)
     }
@@ -98,7 +98,7 @@ async function saveLog() {
     resetLog();
 
     //假如過了一小時則上載中途紀錄RollingLog
-    if (Date.now() - RollingLog.LastTimeLog >= (oneHour))
+    if (Date.now() - RollingLog.LastTimeLog >= (ONE_HOUR))
         pushToDefiniteLog();
     return null;
 }

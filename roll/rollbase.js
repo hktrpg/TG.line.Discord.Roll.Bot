@@ -8,7 +8,7 @@ const { DiceRoller, DiceRoll } = require('@dice-roller/rpg-dice-roller');
 const random = new Random(nodeCrypto);
 const { SlashCommandBuilder } = require('@discordjs/builders');
 //value = random.integer(1, 100);
-const regex = /(\d+)d(\d+)(kh|kl|dh|dl|k|)(\d+|)/i;
+const BASIC_ROLL_REGEX = /(\d+)d(\d+)(kh|kl|dh|dl|k|)(\d+|)/i;
 //var Sided = [];
 //Sided[10000] = [];
 const variables = {};
@@ -20,15 +20,15 @@ const gameName = function () {
 const gameType = function () {
   return 'dice:rollbase:hktrpg'
 }
+const TEMP_REGEX = /^(?=.*\d+d\d+)(?!.*\d+(l|h))(?!.*(k)$)(?!.*(l|h)(l|h|k|d))(?!.*(k|d)(k|d))(?!.*^[a-z])(?!.*[a-c])(?!.*[e-g])(?!.*[i-j])(?!.*[m-z])(?!.*(([d]|[+]|[-]|[*]|[/])([d]|[+]|[-]|[*]|[/])))(?!.*(^([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[)])))(?!.*([(][)]))(?!.*([<][<]))(?!.*([>][>]))(?!.*([<][>]))(?!.*([>][<]))(?!.*(\d+[d]+\d+[d]([^h|l]))|([)]\d))(?!.*(([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[(])$))(?!.*([@]|[!]|[#]|[$]|[%]|[&]|[_]|[~]|[`]|[']|[?]|\.))(?!.*([\u4e00-\u9fa5]))(?!.*([=].*[=]))(?!.*([+]|[-]|[*]|[/])[=])(?!.*[=]([+]|[-]|[*]|[/]|[>]|[<]))(?!.*(\d)[=](\d))(?!.*([-][>])|([-][<])|([<][-])|([>][-]))(?!.*(d)[(]).*$/ig
 const prefixs = function () {
-  const tempregex = /^(?=.*\d+d\d+)(?!.*\d+(l|h))(?!.*(k)$)(?!.*(l|h)(l|h|k|d))(?!.*(k|d)(k|d))(?!.*^[a-z])(?!.*[a-c])(?!.*[e-g])(?!.*[i-j])(?!.*[m-z])(?!.*(([d]|[+]|[-]|[*]|[/])([d]|[+]|[-]|[*]|[/])))(?!.*(^([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[)])))(?!.*([(][)]))(?!.*([<][<]))(?!.*([>][>]))(?!.*([<][>]))(?!.*([>][<]))(?!.*(\d+[d]+\d+[d]([^h|l]))|([)]\d))(?!.*(([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[(])$))(?!.*([@]|[!]|[#]|[$]|[%]|[&]|[_]|[~]|[`]|[']|[?]|\.))(?!.*([\u4e00-\u9fa5]))(?!.*([=].*[=]))(?!.*([+]|[-]|[*]|[/])[=])(?!.*[=]([+]|[-]|[*]|[/]|[>]|[<]))(?!.*(\d)[=](\d))(?!.*([-][>])|([-][<])|([<][-])|([>][-]))(?!.*(d)[(]).*$/ig
   return [{
-    first: tempregex,
+    first: TEMP_REGEX,
     second: null
   },
   {
     first: /(^[1-9]$)|(^[1-2][0-9]$)|(^[3][0]$)/i,
-    second: tempregex
+    second: TEMP_REGEX
   },
   {
     first: /^.rr$/i,
@@ -285,12 +285,12 @@ function onetimeroll(text0) {
     let Str = ''
     // 寫出算式
     let equation = text0
-    while (equation.match(regex) != null) {
+    while (equation.match(BASIC_ROLL_REGEX) != null) {
       // let totally = 0
-      let tempMatch = equation.match(regex)
+      let tempMatch = equation.match(BASIC_ROLL_REGEX)
       if (tempMatch[1] > 1000 || tempMatch[1] <= 0) return '不支援零顆以下及一千顆骰以上'
       if (tempMatch[2] < 1 || tempMatch[2] > 9000000000000000) return '不支援一以下及九千兆以上'
-      equation = equation.replace(regex, RollDice(tempMatch))
+      equation = equation.replace(BASIC_ROLL_REGEX, RollDice(tempMatch))
     }
     // 計算算式
     let aaa = equation

@@ -9,19 +9,19 @@ var variables = {};
 const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const translateChannel = require('../modules/translate');
-const limitArr = [0, 2, 4, 6, 8, 9, 9, 9];
+const FUNCTION_LIMIT = [0, 2, 4, 6, 8, 9, 9, 9];
 const opt = {
 	upsert: true,
 	runValidators: true
 }
-var gameName = function () {
+const gameName = function () {
 	return '【Wiki查詢/圖片搜索】 .wiki .image .tran'
 }
 
-var gameType = function () {
+const gameType = function () {
 	return 'funny:Wiki:hktrpg'
 }
-var prefixs = function () {
+const prefixs = function () {
 	return [{
 		first: /^[.]wiki$|^[.]tran$|^[.]tran[.]\S+$|^[.]image$|^[.]imagee$|^[.]translate$/i,
 		second: null
@@ -29,7 +29,7 @@ var prefixs = function () {
 
 }
 
-var getHelpMessage = async function () {
+const getHelpMessage = async function () {
 	return `【Wiki查詢/即時翻譯】.wiki .image .tran .tran.(目標語言)
 Wiki功能		： .wiki (條目)  
 EG: .wiki BATMAN  
@@ -54,11 +54,11 @@ EG: .tran.ja BATMAN  .tran.日 BATMAN
 注: 翻譯使用Google Translate
 `
 }
-var initialize = function () {
+const initialize = function () {
 	return variables;
 }
 
-var rollDiceCommand = async function ({
+const rollDiceCommand = async function ({
 	inputStr,
 	mainMsg,
 	groupid,
@@ -119,7 +119,7 @@ var rollDiceCommand = async function ({
 				switch: true
 			}).countDocuments().catch(error => console.error('translate #111 mongoDB error: ', error.name, error.reson));
 			let gpLv = await VIP.viplevelCheckGroup(groupid);
-			let limit = limitArr[gpLv];
+			let limit = FUNCTION_LIMIT[gpLv];
 			if (check.length >= limit) {
 				rply.text = '此群組翻譯上限為' + limit + '條頻道' + '\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
 				return rply

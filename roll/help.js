@@ -62,21 +62,21 @@ if (process.env.HEROKU_RELEASE_VERSION)
 var version = "";
 
 
-var gameName = function () {
+const gameName = function () {
 	return '骰子機器人HKTRPG說明';
 }
 
-var gameType = function () {
+const gameType = function () {
 	return 'bothelp:hktrpg'
 }
-var prefixs = function () {
+const prefixs = function () {
 	return [{
 		first: /^bothelp$/i,
 		second: null
 	}]
 
 }
-var getHelpMessage = async function () {
+const getHelpMessage = async function () {
 	return `【暗骰功能】
 在指令前輸入dr 結果會私訊你
 ddr dddr 可以私訊已設定的群組GM, 詳情可打.drgm查詢
@@ -103,12 +103,12 @@ https://dice-roller.github.io/documentation/guide/notation/
  
  `
 }
-var initialize = function () {
+const initialize = function () {
 	return variables;
 }
 
 
-var rollDiceCommand = async function ({
+const rollDiceCommand = async function ({
 	mainMsg
 }) {
 	let rply = {

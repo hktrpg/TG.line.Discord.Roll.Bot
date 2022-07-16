@@ -2,29 +2,29 @@
 var rollbase = require('./rollbase.js');
 var variables = {};
 
-var gameName = function () {
+const gameName = function () {
 	return '【WOD黑暗世界】.xWDy'
 }
 
-var gameType = function () {
+const gameType = function () {
 	return 'Dice:WOD:hktrpg'
 }
-var prefixs = function () {
+const prefixs = function () {
 	return [{
 		first: /^[.](\d+)(wd)(\d|)((\+|-)(\d+)|)$/i,
 		second: null
 	}]
 }
-var getHelpMessage = async function () {
+const getHelpMessage = async function () {
 	return `【WOD 黑暗世界擲骰】
 [.](骰數)Wd(加骰)(+成功數) (問題)
 例子 .3wd8 .15wd9+2`
 }
-var initialize = function () {
+const initialize = function () {
 	return variables;
 }
 
-var rollDiceCommand = async function ({ mainMsg }) {
+const rollDiceCommand = async function ({ mainMsg }) {
 	let rply = {
 		default: 'on',
 		type: 'text',

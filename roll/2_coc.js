@@ -821,14 +821,14 @@ async function dpRecordSwitch({ onOff = false, groupid = "", channelid = "" }) {
 }
 
 async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName = "", skillPer = 0, skillPerStyle = "", skillResult = 0, userName = "" }) {
-	if (!checkMongodb.IsDbOnline) return;
+	if (!checkMongodb.isDbOnline) return;
 	try {
 		let result = await schema.developmentConductor.findOne({
 			groupID: channelid || groupid,
 			switch: true
 		}).catch(error => {
 			console.error('coc #687 mongoDB error: ', error.name, error.reson)
-			checkMongodb.dbErrorCourtPlus();
+			checkMongodb.dbErrOccurs();
 		});
 		if (!result) return;
 		/**

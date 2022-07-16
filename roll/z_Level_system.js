@@ -427,7 +427,7 @@ const rollDiceCommand = async function ({
         }
 
         case /(^[.]level$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
-            if (!checkMongodb.IsDbOnline) return;
+            if (!checkMongodb.isDbOnline) return;
             if (!groupid) {
                 rply.text = '你不在群組當中，請在群組中使用。'
                 return rply
@@ -441,7 +441,7 @@ const rollDiceCommand = async function ({
                 SwitchV2: true
             }).catch(error => {
                 console.error('level_system #442 mongoDB error: ', error.name, error.reson)
-                checkMongodb.dbErrorCourtPlus();
+                checkMongodb.dbErrOccurs();
             });
             if (!doc || !doc.SwitchV2) {
                 rply.text = '此群組並有沒有開啓LEVEL功能. \n.level config 11 代表啓動功能 \

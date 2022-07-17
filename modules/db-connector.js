@@ -1,4 +1,5 @@
 "use strict";
+let startUpMain = false;
 if (!process.env.mongoURL) return;
 const master = require.main?.filename.includes('index');
 const mongoose = require('mongoose');
@@ -14,10 +15,12 @@ const mongoose = require('mongoose');
         await mongoose.connect(process.env.mongoURL, {
             useNewUrlParser: true,
             useFindAndModify: false,
-            useUnifiedTopology: true
+            useUnifiedTopology: true,
+            
         });
     } catch (err) {
         console.error('DB CONNECT GET ERROR: ' + err.name, err.reason)
+        initMain()
     }
 })();
 
@@ -32,6 +35,12 @@ db.on('error', console.error.bind('mlab connection error:', console));
 db.once('open', function () {
     console.log('mlab  connected!');
     if (!master) return;
+    initMain();
+
+});
+function initMain() {
+    if (startUpMain) return;
+    startUpMain = true;
     require('fs').readdirSync(__dirname).forEach(function (file) {
         if (file.match(/\.js$/) && file.match(/^core-/)) {
             var name = file.replace('.js', '');
@@ -39,7 +48,7 @@ db.once('open', function () {
         }
     });
 
-});
+}
 
 module.exports = {
     mongoose

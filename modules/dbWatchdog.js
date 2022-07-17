@@ -2,13 +2,13 @@
 const schema = require('./schema.js');
 
 const MAX_ERR_RETRY = 3;
-const RETRY_TIME = 1000 * 60 * 5;
+const RETRY_TIME = 1000 * 60;
 
 let dbConnErr = {
     timeStamp: Date.now(),
     retry: 0
 }
-
+let timer = -1;
 __init();
 
 function dbErrOccurs() {
@@ -43,16 +43,22 @@ async function __updateRecords() {
         console.error('dbConnectionError updateRecords #36 error: ', err.name, err.reson);
     }
 }
-
+const randomNumber = Math.random()
 function __init() {
-    setInterval(
-        async () => {
-            if (!isDbOnline()) {
-                await __updateRecords();
-            }
-        },
-        RETRY_TIME
-    );
+    console.log('timer', timer)
+    if (timer < 0) {
+        console.log('setInterval')
+        timer = setInterval(
+            async () => {
+                console.log("Hi I am " + randomNumber + " timer!!\n");
+                if (!isDbOnline()) {
+                    await __updateRecords();
+                }
+            },
+            RETRY_TIME
+        );
+        console.log('timer2', timer)
+    }
 }
 
 module.exports = {

@@ -47,7 +47,7 @@ async function __updateRecords() {
 function __init() {
     setInterval(
         async () => {
-            if (!isDbOnline) {
+            if (!isDbOnline()) {
                 await __updateRecords();
             }
         },

@@ -855,7 +855,7 @@ async function axiosDaily(url) {
 		reply = await fetchData(url.replace('https://ovooa.com', 'http://lkaa.top'));
 	}
 	if (reply === '錯誤error') {
-		reply = `伺服器出現問題，請稍後再試。`;
+		reply = `伺服器出現問題，請稍後再試，如果問題持續數天，可以到支援群回報。`;
 	}
 	return reply;
 

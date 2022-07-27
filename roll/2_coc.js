@@ -965,11 +965,11 @@ function everyTimeDevelopmentPhase(target, text = '') {
 	if (target > 1000) target = 1000;
 	if (text == undefined) text = "";
 	let skill = rollbase.Dice(100);
-	let confident = (target <= 89) ? true : false;
+	let confident = (target <= 89);
 	if (target > 95) target = 95;
 	if (skill >= 96 || skill > target) {
 		let improved = rollbase.Dice(10);
-		result = "成長或增強檢定: " + text + "\n1D100 > " + target + "\n擲出: " + skill + " → 成功!\n你的技能增加" + improved + "點!";
+		result = "成長或增強檢定: " + text + "\n1D100 > " + target + "\n擲出: " + skill + " → 成功!\n你的技能增加" + improved + "點，現在是" + (target + improved) + "點。";
 		if (confident && ((target + improved) >= 90)) {
 			result += `\n調查員的技能提升到90%以上，他的當前理智值增加2D6 > ${rollbase.Dice(6) + rollbase.Dice(6)}點。
 這一項獎勵顯示他經由精通一項技能而獲得自信。`

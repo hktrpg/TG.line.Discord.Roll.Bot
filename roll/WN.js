@@ -119,8 +119,8 @@ async function WN2(key, message) {
             return "罪業6以上扣除5點罪業，增加一點代價"
     }
     if (method && method.toString().toLowerCase() == "d") {
-        if (theSins > 6)
-            return "罪業7以上扣除6點罪業，增加一點代價"
+        if (theSins >= 6)
+            return "罪業超過6點時扣除6點罪業，轉化為一點代價"
         else
             if (theSins > 3)
                 betterthan = (key[3])

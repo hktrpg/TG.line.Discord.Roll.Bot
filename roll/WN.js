@@ -18,7 +18,8 @@ const prefixs = function () {
 const getHelpMessage = async function () {
     return `【魔女狩獵之夜】
 .wn xDDn+-y  x骰池 n罪業值 y調整值 
-.wn 3 骰3次D6,大於3成功 .wn 5D6+3 骰3次D6,大於5成功然後+3
+.wn 3 骰3次D6,大於等於4成功 
+.wn 5D4+3 骰5次D6,大於等於5成功然後+3
 .wn 3DD6+2 有第二個D，會使用成功數減去失敗數得出結果(可負數)
 預設值>3
 
@@ -111,18 +112,18 @@ async function WN2(key, message) {
     let method = key[1] || "d";
     let special = key[2] || "";
     let betterthan = 3;
-    let theSins = key[3] || 3
+    let theSins = (key[3]) || 3
     if (method == "@") {
-        betterthan = key[3] || 4
-        if (betterthan > 5)
+        betterthan = (key[3]) || 4
+        if (betterthan >= 6)
             return "罪業6以上扣除5點罪業，增加一點代價"
     }
     if (method && method.toString().toLowerCase() == "d") {
         if (theSins > 6)
             return "罪業7以上扣除6點罪業，增加一點代價"
         else
-            if (theSins > 4)
-                betterthan = 5
+            if (theSins > 3)
+                betterthan = (key[3])
     }
     let Adjustment = key[4] || "";
 

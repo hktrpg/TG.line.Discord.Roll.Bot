@@ -6,12 +6,19 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const axiosRetry = require('axios-retry');
 const chineseConv = require('chinese-conv'); //繁簡轉換
 const axios = require('axios');
+const cheerio = require('cheerio');
 const wiki = require('wikijs').default;
 const gameName = function () {
 	return '【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 運勢 每日塔羅 每日笑話 每日動漫 每日一言 每日廢話 每日黃曆 每日毒湯 每日情話 每日靈簽 每日急口令 每日大事 每日(星座) 每日解答	立flag .me'
 }
 axiosRetry(axios, { retries: 3 });
+(async () => {
+	let res = await axios.get('https://astro.click108.com.tw/daily_3.php?iAstro=3')
+	const $ = cheerio.load(res.data)
+	let test = $('.TODAY_FORTUNE').text()
+	console.log('test', test)
 
+})();
 const gameType = function () {
 	return 'funny:funny:hktrpg'
 }
@@ -21,6 +28,8 @@ const prefixs = function () {
 		second: null
 	}]
 }
+
+
 const getHelpMessage = async function () {
 	return `【趣味擲骰】
 
@@ -300,7 +309,11 @@ const rollDiceCommand = async function ({
 function me(inputStr) {
 	return inputStr.replace(/^[.]re/i, '');
 }
-
+class Astro {
+	constructor(inputStr) {
+		//TODAY_CONTENT
+	}
+}
 /**
  * 占卜&其他
  */
@@ -900,11 +913,11 @@ function analyzeResponse(response) {
 	}
 }
 /*來源自 https://ovooa.com
-
+	
 http://api.uuouo.cn/
 http://ybapi.top/
 http://weizhinb.top/
-
+	
 */
 const discordCommand = [
 	{

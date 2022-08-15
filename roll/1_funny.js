@@ -310,8 +310,9 @@ function me(inputStr) {
 	return inputStr.replace(/^[.]re/i, '');
 }
 class Astro {
-	constructor(inputStr) {
+	constructor(todayContent) {
 		//TODAY_CONTENT
+		this.todayContent = todayContent;
 	}
 }
 /**

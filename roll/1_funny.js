@@ -6,12 +6,12 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const axiosRetry = require('axios-retry');
 const chineseConv = require('chinese-conv'); //繁簡轉換
 const axios = require('axios');
+const cheerio = require('cheerio');
 const wiki = require('wikijs').default;
 const gameName = function () {
 	return '【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 運勢 每日塔羅 每日笑話 每日動漫 每日一言 每日廢話 每日黃曆 每日毒湯 每日情話 每日靈簽 每日急口令 每日大事 每日(星座) 每日解答	立flag .me'
 }
 axiosRetry(axios, { retries: 3 });
-
 const gameType = function () {
 	return 'funny:funny:hktrpg'
 }
@@ -21,6 +21,8 @@ const prefixs = function () {
 		second: null
 	}]
 }
+
+
 const getHelpMessage = async function () {
 	return `【趣味擲骰】
 
@@ -232,61 +234,73 @@ const rollDiceCommand = async function ({
 		}
 		//白羊座、金牛座、雙子座、巨蟹座、獅子座、處女座、天秤座、天蠍座、射手座、摩羯座、水瓶座、雙魚
 		case (/^每日白羊$/.test(mainMsg[0]) || /^每日牡羊$/.test(mainMsg[0])): {
-			rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=白羊&type=json')
+			rply.text = await dailyAstro.getAstro('牡羊')
+			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=白羊&type=json')
 			return rply;
 		}
 
 		case /^每日金牛$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=金牛&type=json')
+			rply.text = await dailyAstro.getAstro('金牛')
+			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=金牛&type=json')
 			return rply;
 		}
 
 		case /^每日雙子$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=双子&type=json')
+			rply.text = await dailyAstro.getAstro('雙子')
+			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=双子&type=json')
 			return rply;
 		}
 
 		case /^每日巨蟹$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=巨蟹&type=json')
+			rply.text = await dailyAstro.getAstro('巨蟹')
+			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=巨蟹&type=json')
 			return rply;
 		}
 
 		case /^每日獅子$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=狮子&type=json')
+			rply.text = await dailyAstro.getAstro('獅子')
+			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=狮子&type=json')
 			return rply;
 		}
 
 		case /^每日處女$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=处女&type=json')
+			rply.text = await dailyAstro.getAstro('處女')
+			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=处女&type=json')
 			return rply;
 		}
 
 		case (/^每日天秤$/.test(mainMsg[0]) || /^每日天平$/.test(mainMsg[0])): {
-			rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=天秤&type=json')
+			rply.text = await dailyAstro.getAstro('天秤')
+			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=天秤&type=json')
 			return rply;
 		}
 
 		case /^每日天蠍$/.test(mainMsg[0]) || /^每日天蝎$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=天蝎&type=json')
+			rply.text = await dailyAstro.getAstro('天蠍')
+			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=天蝎&type=json')
 			return rply;
 		}
 
 		case (/^每日射手$/.test(mainMsg[0]) || /^每日人馬$/.test(mainMsg[0])): {
-			rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=射手&type=json')
+			rply.text = await dailyAstro.getAstro('射手')
+			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=射手&type=json')
 			return rply;
 		}
 
 		case (/^每日摩羯$/.test(mainMsg[0]) || /^每日山羊$/.test(mainMsg[0])): {
-			rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=摩羯&type=json')
+			rply.text = await dailyAstro.getAstro('摩羯')
+			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=摩羯&type=json')
 			return rply;
 		}
 
 		case (/^每日水瓶$/.test(mainMsg[0]) || /^每日寶瓶$/.test(mainMsg[0])): {
-			rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=水瓶&type=json')
+			rply.text = await dailyAstro.getAstro('水瓶')
+			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=水瓶&type=json')
 			return rply;
 		}
 		case /^每日雙魚$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=双鱼&type=json')
+			rply.text = await dailyAstro.getAstro('雙魚')
+			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=双鱼&type=json')
 			return rply;
 		}
 		default:
@@ -300,6 +314,75 @@ const rollDiceCommand = async function ({
 function me(inputStr) {
 	return inputStr.replace(/^[.]re/i, '');
 }
+
+const twelveAstro = [
+	'牡羊', '金牛', '雙子', '巨蟹', '獅子', '處女', '天秤', '天蠍', '射手', '摩羯', '水瓶', '雙魚'
+]
+
+class TwelveAstro {
+	constructor() {
+		this.Astro = [];
+	}
+	async getAstro(name) {
+		try {
+			let astroCode = twelveAstro.indexOf(name);
+			if (!this.Astro[astroCode] || this.Astro[astroCode].date !== this.getDate()) {
+				await this.updateAstro(astroCode);
+			}
+			if (this.Astro[astroCode]) {
+				return this.returnStr(this.Astro[astroCode], name);
+			} else return;
+		} catch (error) {
+			return;
+		}
+	}
+
+	returnStr(astro, name) {
+		return `今日${name}座運程
+你的幸運數字：${astro.TODAY_LUCKY_NUMBER}	
+你的幸運星座：${astro.TODAY_LUCKY_ASTRO}
+短語：${astro.TODAY_WORD}
+整體運勢：
+${astro.TODAY_CONTENT}
+	`;
+	}
+
+
+	async updateAstro(code) {
+		let date = this.getDate();
+		let res = await axios.get(`https://astro.click108.com.tw/daily_${code}.php?iAcDay=${date}&iAstro=${code}`);
+		const $ = cheerio.load(res.data)
+		this.Astro[code] = new Astro($, date);
+	}
+	getDate() {
+		let year = new Date().getFullYear();
+		let month = ('0' + (new Date().getMonth() + 1)).slice(-2);
+		let day = ('0' + new Date().getDate()).slice(-2);
+		return `${year}-${month}-${day}`;
+	}
+
+}
+
+class Astro {
+	constructor($, date) {
+		//TODAY_CONTENT
+		this.TODAY_CONTENT = $('.TODAY_CONTENT').text().replaceAll('                ', '');
+		this.TODAY_WORD = $('.TODAY_WORD').text();
+		this.TODAY_LUCKY_NUMBER = this.matchImgUrl($, 0)
+		this.TODAY_LUCKY_COLOR = this.matchImgUrl($, 1)
+		this.TODAY_LUCKY_DIRECTION = this.matchImgUrl($, 2)
+		this.TODAY_LUCKY_TIME = this.matchImgUrl($, 3)
+		this.TODAY_LUCKY_ASTRO = this.matchImgUrl($, 4)
+		this.date = date;
+	}
+	matchImgUrl($, num) {
+		const LUCKY = $('.TODAY_LUCKY .LUCKY').text().match(/\S+/g);
+		return LUCKY[num];
+
+	}
+}
+
+const dailyAstro = new TwelveAstro();
 
 /**
  * 占卜&其他
@@ -900,11 +983,11 @@ function analyzeResponse(response) {
 	}
 }
 /*來源自 https://ovooa.com
-
+	
 http://api.uuouo.cn/
 http://ybapi.top/
 http://weizhinb.top/
-
+	
 */
 const discordCommand = [
 	{
@@ -1088,6 +1171,8 @@ const discordCommand = [
 		}
 	}
 ];
+
+
 
 const dailyAnswer = [
 	"不一定",

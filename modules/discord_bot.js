@@ -113,6 +113,7 @@ client.on('guildCreate', async guild => {
 		await channel.send({ embeds: [text] });
 	} catch (error) {
 		if (error.message === 'Missing Access') return;
+		if (error.message === 'Missing Permissions') return;
 		console.error('discord bot guildCreate  #114 error', error);
 	}
 })
@@ -447,6 +448,10 @@ process.on('unhandledRejection', error => {
 	if (error.message === "Unknown Channel") return;
 	if (error.message === "Missing Access") return;
 	if (error.message === "Missing Permissions") return;
+	if (error.message === "Invalid Form Body") return;
+	// Invalid Form Body
+	// user_id: Value "&" is not snowflake.
+
 
 	console.error('Discord Unhandled promise rejection:', error);
 	process.send({

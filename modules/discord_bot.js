@@ -166,7 +166,8 @@ client.on('messageReactionRemove', async (reaction, user) => {
 			}
 		}
 	} catch (error) {
-		console.log('Discord bot messageReactionRemove #268 ', error)
+		if (error.message === 'Unknown Member') return;
+		console.error('Discord bot messageReactionRemove #268 ', error)
 	}
 });
 

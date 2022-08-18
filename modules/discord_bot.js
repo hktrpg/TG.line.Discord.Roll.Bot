@@ -306,9 +306,9 @@ function SendToReply({ replyText = "", message, quotes = false }) {
 		if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
 			try {
 				if (quotes) {
-					message.author.send({ embeds: [convQuotes(sendText[i])] });
+					message.author && message.author.send({ embeds: [convQuotes(sendText[i])] });
 				} else
-					message.author.send(sendText[i]);
+					message.author && message.author.send(sendText[i]);
 			}
 			catch (e) {
 				if (e.message !== 'Cannot send messages to this user') {
@@ -449,7 +449,8 @@ process.on('unhandledRejection', error => {
 	if (error.message === "Unknown Channel") return;
 	if (error.message === "Missing Access") return;
 	if (error.message === "Missing Permissions") return;
-	if (error.message === "Invalid Form Body") return;
+	if (error.message && error.message.includes('INTERACTION_NOT_REPLIED')) return;
+	if (error.message && error.message.includes("Invalid Form Body")) return;
 	// Invalid Form Body
 	// user_id: Value "&" is not snowflake.
 

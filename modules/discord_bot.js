@@ -1177,7 +1177,11 @@ async function __handlingReplyMessage(message, result) {
 		try {
 			await message.reply({ content: `${sendText}`, ephemeral: false })
 		} catch (error) {
-			await message.editReply({ content: `${sendText}`, ephemeral: false })
+			try {
+				await message.editReply({ content: `${sendText}`, ephemeral: false })
+			} catch (error) {
+				return;
+			}
 		}
 	}
 }

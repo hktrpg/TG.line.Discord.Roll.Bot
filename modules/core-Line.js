@@ -2,6 +2,7 @@
 if (!process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	return;
 }
+const port = 20831;
 const mainLine = (process.env.DISCORD_CHANNEL_SECRET) ? false : true;
 const lineAgenda = (process.env.LINE_AGENDA) ? true : false;
 exports.analytics = require('./analytics');
@@ -47,7 +48,9 @@ process.on("Line", message => {
 });
 
 var handleEvent = async function (event) {
+
 	let inputStr = (event.message && event.message.text) ? event.message.text : "";
+
 	let trigger = "";
 	let roomorgroupid = event.source.groupId || event.source.roomId || '';
 	let mainMsg = (inputStr) ? inputStr.match(MESSAGE_SPLITOR) : {}; //定義輸入字串
@@ -343,15 +346,34 @@ function HandleMessage(message) {
 	}
 }
 // listen on port
-/*	app.listen(port, () => {
-		console.log(`Line BOT listening on ${port}`);
-	});
+const privateKey = (process.env.KEY_PRIKEY) ? process.env.KEY_PRIKEY : null;
+const certificate = (process.env.KEY_CERT) ? process.env.KEY_CERT : null;
+const ca = (process.env.KEY_CA) ? process.env.KEY_CA : null;
+const fs = require('fs');
+let options = {};
+async function read() {
+	if (!privateKey) return;
+	try {
+		options = {
+			key: (fs.readFileSync(privateKey)) ? fs.readFileSync(privateKey) : null,
+			cert: (fs.readFileSync(certificate)) ? fs.readFileSync(certificate) : null,
+			ca: (fs.readFileSync(ca)) ? fs.readFileSync(ca) : null
+		};
+	} catch (error) {
+		console.error(error, 'error of key')
+	}
+}
 
-	app.get('/aa', function (req, res) {
-		//	res.send(parseInput(req.query.input));
-		res.send('Hello');
-	});
-*/
+(async () => {
+	await read()
+})();
+require('https').createServer(options, app).listen(port, () => {
+	console.log(`Line BOT listening on ${port}`);
+});
+
+
+
+
 
 async function sendNewstoAll(rply) {
 	for (let index = 0; index < rply.target.length; index++) {

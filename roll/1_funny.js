@@ -418,9 +418,9 @@ class WatchMusic100 {
 		const $ = cheerio.load(WatchMusic);
 		let chance = '';
 		$('tr > td').each((i, elem) => {
-			chance = $(elem).text().includes('觀音一百籤') ? $(elem).text().replaceAll(/\n\n/, '') : chance;
-		})
+			chance = $(elem).text().includes('觀音一百籤') ? $(elem).text().replaceAll(/^\s+/g, '').replaceAll(/\s+\n/g, '\n') : chance;
 
+		})
 		return chance;
 	}
 }

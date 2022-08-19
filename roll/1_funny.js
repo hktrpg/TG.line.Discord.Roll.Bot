@@ -398,7 +398,7 @@ class Asakusa100 {
 		return this.Asakusa100[random];
 	}
 	createAsakusa100() {
-		fs.readFileSync('./assets/asakusa100.txt', 'utf8').split('\r\n\r\n').forEach(line => {
+		fs.readFileSync('./assets/Asakusa100.txt', 'utf8').split('\r\n\r\n').forEach(line => {
 			if (!line.includes('REF')) this.Asakusa100.push(line);
 
 		})

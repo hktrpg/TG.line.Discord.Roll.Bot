@@ -349,10 +349,10 @@ const rollDiceCommand = async function ({
             return rply;
         case /^txt$/i.test(mainMsg[1]): {
             if (rply.text = checkTools.permissionErrMsg({
-                flag : checkTools.flag.ChkBot,
-                gid : groupid,
-                role : userrole,
-                name : botname
+                flag: checkTools.flag.ChkBot,
+                gid: groupid,
+                role: userrole,
+                name: botname
             })) {
                 return rply;
             }
@@ -483,6 +483,7 @@ const rollDiceCommand = async function ({
             rply.discordExport = channelid + '_' + hour + minutes + seconds;
             rply.text += `已私訊你 頻道  ${discordMessage.channel.name}  的聊天紀錄
             你的channel聊天紀錄 共有  ${totalSize}  項`
+            console.log('EXPORT TXT DONE')
             return rply;
         } default:
             break;

@@ -3,6 +3,7 @@ if (!process.env.mongoURL) {
     return;
 }
 var variables = {};
+const mathjs = require('mathjs');
 const rollDice = require('./rollbase').rollDiceCommand;
 const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
@@ -678,7 +679,7 @@ async function mainCharacter(doc, mainMsg) {
                             doc.state[index].itemA = findState[i + 1];
                         } else {
                             try {
-                                let num = eval(new String(doc.state[index].itemA) + findState[i + 1].replace('--', '-'));
+                                let num = mathjs.evaluate(new String(doc.state[index].itemA) + findState[i + 1].replace('--', '-'));
                                 if (!isNaN(num)) {
                                     doc.state[index].itemA = num;
                                 }
@@ -935,7 +936,7 @@ async function replaceAsync(str, regex, asyncFn) {
 async function myAsyncFn2(match, p1) {
     let result = ''
     try {
-        result = eval(p1)
+        result = mathjs.evaluate(p1)
     } catch (error) {
         result = p1
     }

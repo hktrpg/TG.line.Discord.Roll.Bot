@@ -161,6 +161,7 @@ const rollDiceCommand = async function ({
 		}
 		case /^每日黃曆$/.test(mainMsg[0]): {
 			rply.text = await axiosDaily('https://ovooa.com/API/huang/api.php?type=json')
+			//http://www.nongli.info/huangli/days/index.php?year=2022&month=08&date=22
 			return rply;
 		}
 		case /^每日毒湯$/.test(mainMsg[0]): {

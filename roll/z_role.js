@@ -11,8 +11,8 @@ const regex = regextemp.replace(/^\//, '').replace(/\/g$/, '')
 //https://www.npmjs.com/package/emoji-regex
 const roleReactRegixMessage = /\[\[message\]\](.*)/is;
 const newRoleReactRegixMessageID = /\[\[messageID\]\]\s+(\d+)/is;
-const roleReactRegixDetail = new RegExp(`(\\d+)\\s+(${regex}|(<a?)?:\\w+:(\\d{18}>)?)`, 'g')
-const roleReactRegixDetail2 = new RegExp(`^(\\d+)\\s+(${regex}|(<a?)?:\\w+:(\\d{18}>)?)`,)
+const roleReactRegixDetail = new RegExp(`(\\d+)\\s+(${regex}|(<a?)?:\\w+:(\\d+>)?)`, 'g')
+const roleReactRegixDetail2 = new RegExp(`^(\\d+)\\s+(${regex}|(<a?)?:\\w+:(\\d+>)?)`,)
 const gameName = function () {
     return '【身分組管理】.roleReact'
 }
@@ -155,6 +155,7 @@ const rollDiceCommand = async function ({
                 return rply;
             }
             let checkName = checknewroleReact(inputStr);
+            console.log('checkName', checkName)
             if (!checkName || !checkName.detail || !checkName.messageID || checkName.detail.length === 0) {
                 rply.text = `輸入資料失敗，
                 本功能已改版，需要自行新增信息，並把信息ID填在下面

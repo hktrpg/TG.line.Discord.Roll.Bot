@@ -1175,6 +1175,8 @@ async function calXP(eventList, thisMemberLV, type) {
         case "times": {
             let createEventerLV = await findMaxLv(eventList.userID);
             typeNumber = await rollDice.DiceINT(5, ((createEventerLV - thisMemberLV) > 0) ? Math.min(createEventerLV - thisMemberLV, 20) : 1);
+            if (typeNumber < 1) typeNumber = 1;
+            if (isNaN(typeNumber)) typeNumber = 1;
             return typeNumber;
         }
 

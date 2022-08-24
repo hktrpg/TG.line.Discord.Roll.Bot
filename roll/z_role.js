@@ -155,7 +155,6 @@ const rollDiceCommand = async function ({
                 return rply;
             }
             let checkName = checknewroleReact(inputStr);
-            console.log('checkName', checkName)
             if (!checkName || !checkName.detail || !checkName.messageID || checkName.detail.length === 0) {
                 rply.text = `輸入資料失敗，
                 本功能已改版，需要自行新增信息，並把信息ID填在下面

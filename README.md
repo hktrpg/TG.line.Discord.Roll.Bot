@@ -15,7 +15,6 @@
 # 【HKTRPG擲骰BOT】
 
 - 最後更新時間![最後更新時間](https://img.shields.io/github/last-commit/hktrpg/TG.line.Discord.Roll.Bot)
-- 2019/07/21 香港克警合作 黑ICON紀念
 
 ## HKTRPG擲骰子專用機械人 Roll Dice Robot
 

@@ -8,6 +8,7 @@ const Discord = require("discord.js-light");
 const multiServer = require('../modules/multi-server')
 const checkMongodb = require('../modules/dbWatchdog.js');
 const fs = require('node:fs');
+const errorCount = [];
 const { Client, Intents, Permissions, Collection, MessageActionRow, MessageButton, WebhookClient, MessageAttachment } = Discord;
 const rollText = require('./getRoll').rollText;
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
@@ -438,6 +439,7 @@ async function count2() {
 		})
 		.catch((err) => {
 			console.error(`disocrdbot #617 error ${err}`)
+			respawnCluster(err);
 			return '🌼bothelp | hktrpg.com🍎';
 		});
 }
@@ -465,7 +467,18 @@ process.on('unhandledRejection', error => {
 
 
 
+function respawnCluster(err) {
+	if (err.toString().match(/CLUSTERING_NO_CHILD_EXISTS/i)) {
+		let number = err.toString().match(/\d+$/i);
+		if (!number) return;
+		if (!errorCount[number]) errorCount[number] = 0;
+		errorCount[number]++;
+		if (errorCount[number] > 3) {
+			client.cluster.evalOnManager(this.clusters.get(number).respawn())
+		}
 
+	}
+}
 
 (async function () {
 	if (!agenda) return;

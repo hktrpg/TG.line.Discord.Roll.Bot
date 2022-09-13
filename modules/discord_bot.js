@@ -530,7 +530,7 @@ async function handlingCommand(message) {
 		const command = client.commands.get(message.commandName);
 		if (!command) return;
 		let answer = await command.execute(message).catch(error => {
-			console.error(error);
+			//console.error(error);
 			//await message.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 		})
 		return answer;

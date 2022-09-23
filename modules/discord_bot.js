@@ -694,19 +694,22 @@ function z_stop(mainMsg, groupid) {
 		return false;
 }
 
-
+const discordPresenceStatus = ['online', 'idle', 'invisible', 'do not disturb']
 async function getAllshardIds() {
 	if (!client.cluster) {
 		return;
 	}
 	const promises = [
-		client.cluster.broadcastEval(c => c.shard?.ids[0]),
+		client.cluster.ids.map(d => `#${d.id}`),
 		client.cluster.broadcastEval(c => c.ws.status),
 		client.cluster.broadcastEval(c => c.ws.ping)
 	];
 	return Promise.all(promises)
 		.then(results => {
-			return '\n所有啓動中的server ID: ' + results[0].join(', ') + '\n所有啓動中的server online?: ' + results[1].join(', ') + '\n所有啓動中的server ping?: ' + results[2].join(', ');
+			console.log('results', results)
+			return `所有啓動中的server ID:   ${results[0].join(', ')} 
+			所有啓動中的server online:   ${results[1].map(ele => discordPresenceStatus[ele]).join(', ')} 
+			所有啓動中的server ping:   ${results[2].map(ele => ele.toFixed(0)).join(', ')}`
 		})
 		.catch(err => {
 			console.error(`disocrdbot #884 error ${err}`)

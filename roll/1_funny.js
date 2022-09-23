@@ -342,9 +342,7 @@ class TwelveAstro {
 		return `今日${name}座運程
 你的幸運數字：${astro.TODAY_LUCKY_NUMBER}	
 你的幸運星座：${astro.TODAY_LUCKY_ASTRO}
-短語：${astro.TODAY_WORD}
-整體運勢：
-${astro.TODAY_CONTENT}
+短語：${astro.TODAY_WORD}${astro.TODAY_CONTENT}
 	`;
 	}
 

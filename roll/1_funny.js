@@ -191,8 +191,9 @@ const rollDiceCommand = async function ({
 			return rply;
 		}
 		case /^每日廢話$/.test(mainMsg[0]): {
-			let name = mainMsg[1] || displaynameDiscord || tgDisplayname || displayname || '你';
-			rply.text = await axiosDaily(`https://ovooa.com/API/dog/api.php?msg=${name}&num=500&type=json`)
+			const name = mainMsg[1] || displaynameDiscord || tgDisplayname || displayname || '你';
+			const req = await axios.post('https://api.howtobullshit.me/bullshit', { Topic: name, MinLen: 500 })
+			rply.text = req.data.replaceAll('&nbsp;', '').replaceAll('<br>', '\n').replaceAll('\\r\\n', '\n\n');
 			return rply;
 		}
 		case /^每日大事$/.test(mainMsg[0]): {

@@ -1302,9 +1302,11 @@ ${build7random()}`;
 					EDUinc = EDUincArr2020[i];
 				}
 				ReStr += '\nＥＤＵ：' + EDUinc;
-				ReStr += '\nＬＵＫ：' + rollbase.BuildDiceCal('3d6*5');
-				ReStr += '\nＬＵＫ加骰取高：' + rollbase.BuildDiceCal('3D6*5');
-				ReStr += '\n幼年調查員的特性：' + rollbase.BuildDiceCal('2d6');
+				const tempBuildLuck = [rollbase.BuildDiceCal('3d6*5'), rollbase.BuildDiceCal('3d6*5')]
+				const tempLuck = [tempBuildLuck[0].match(/\d+$/), tempBuildLuck[1].match(/\d+$/)]
+				ReStr += '\nＬＵＫ第一次：' + `${tempBuildLuck[0]} \nＬＵＫ第二次： ${tempBuildLuck[1]}`;
+				ReStr += '\nＬＵＫ最終值：' + Math.max(...tempLuck);
+				ReStr += '\n\n幼年調查員的特性：' + rollbase.BuildDiceCal('2d6');
 				ReStr += '\n幼年調查員的家境：' + rollbase.BuildDiceCal('1D100');
 				ReStr += '\n幼年調查員可受「幫忙」的次數：' + Math.round((17 - old) / 3);
 				return ReStr;
@@ -1381,8 +1383,19 @@ ${build7random()}`;
 	}
 	ReStr += '\n==';
 
-	ReStr += '\nＬＵＫ：' + rollbase.BuildDiceCal('3d6*5');
-	if (old < 20) ReStr += '\nＬＵＫ加骰：' + rollbase.BuildDiceCal('3D6*5');
+	const tempBuildLuck = [rollbase.BuildDiceCal('3d6*5'), rollbase.BuildDiceCal('3d6*5')]
+	const tempLuck = [tempBuildLuck[0].match(/\d+$/), tempBuildLuck[1].match(/\d+$/)]
+	if (old < 20) {
+		ReStr += '\nＬＵＫ第一次：' + `${tempBuildLuck[0]} \nＬＵＫ第二次： ${tempBuildLuck[1]}`;
+		ReStr += '\nＬＵＫ最終值：' + Math.max(...tempLuck);
+	}
+	else {
+		ReStr += '\nＬＵＫ：' + `${tempBuildLuck[0]} `;
+	}
+
+
+	//ReStr += '\nＬＵＫ：' + rollbase.BuildDiceCal('3d6*5');
+	//if (old < 20) ReStr += '\nＬＵＫ加骰：' + rollbase.BuildDiceCal('3D6*5');
 	ReStr += '\n==\n煤油燈特徵: 1D6&1D20 → ' + rollbase.Dice(6) + ',' + rollbase.Dice(20);
 	return ReStr;
 }
@@ -1748,9 +1761,16 @@ function build7random() {
 		ReStr += '\nＥＤＵ最終值：' + tempEDU;
 	}
 	ReStr += '\n==';
+	if (old < 20) {
+		ReStr += '\nＬＵＫ第一次：' + `${tempBuildLuck[0]} \nＬＵＫ第二次： ${tempBuildLuck[1]}`;
+		ReStr += '\nＬＵＫ最終值：' + Math.max(...tempLuck);
+	}
+	else {
+		ReStr += '\nＬＵＫ：' + `${tempBuildLuck[0]} `;
+	}
 
-	ReStr += '\nＬＵＫ：' + rollbase.BuildDiceCal('3d6*5');
-	if (old < 20) ReStr += '\nＬＵＫ加骰：' + rollbase.BuildDiceCal('3D6*5');
+	//ReStr += '\nＬＵＫ：' + rollbase.BuildDiceCal('3d6*5');
+	//if (old < 20) ReStr += '\nＬＵＫ加骰：' + rollbase.BuildDiceCal('3D6*5');
 	ReStr += `\n==本職技能==`
 	let occAndOtherSkills = getOccupationSkill(randomState);
 	for (let index = 0; index < occAndOtherSkills.finalOSkillList.length; index++) {

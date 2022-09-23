@@ -1,5 +1,5 @@
 "use strict";
-if (!process.env.LINE_CHANNEL_ACCESSTOKEN || !process.env.mongoURL) {
+if (!process.env.mongoURL) {
     return;
 }
 
@@ -370,17 +370,18 @@ function checkNullItem(target) {
     });
 }
 async function loadb(io, records, rplyVal, message) {
+    const unixTimeZero = Date.parse(message.time) + 50;
     for (let i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
         io.emit(message.roomNumber, {
             name: 'HKTRPG -> ' + (message.name || 'Sad'),
             msg: rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i],
-            time: new Date(Date.now() + 500),
+            time: new Date(unixTimeZero),
             roomNumber: message.roomNumber
         });
         records.chatRoomPush({
             name: 'HKTRPG -> ' + (message.name || 'Sad'),
             msg: rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i],
-            time: new Date(Date.now() + 500),
+            time: new Date(unixTimeZero),
             roomNumber: message.roomNumber
         });
         //message.reply.text(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])

@@ -370,7 +370,7 @@ function checkNullItem(target) {
     });
 }
 async function loadb(io, records, rplyVal, message) {
-    const unixTimeZero = Date.parse(message.time) + 50;
+    const unixTimeZero = message.time ? (Date.parse(message.time) + 50) : Date.now();
     for (let i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
         io.emit(message.roomNumber, {
             name: 'HKTRPG -> ' + (message.name || 'Sad'),

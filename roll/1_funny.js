@@ -9,7 +9,7 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const wiki = require('wikijs').default;
 const gameName = function () {
-	return '【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 運勢 每日塔羅 每日笑話 每日動漫 每日一言 每日廢話 每日黃曆 每日毒湯 每日情話 每日靈簽 每日淺草簽 每日急口令 每日大事 每日(星座) 每日解答	立flag .me'
+	return '【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 運勢 每日塔羅 每日笑話 每日動漫 每日一言 每日廢話 每日黃曆 每日毒湯 每日情話 每日靈簽 每日淺草簽 每日大事 每日(星座) 每日解答	立flag .me'
 }
 axiosRetry(axios, { retries: 3 });
 const gameType = function () {
@@ -17,7 +17,7 @@ const gameType = function () {
 }
 const prefixs = function () {
 	return [{
-		first: /^排序|排序$|^隨機|隨機$|^choice|^每日塔羅|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸|^每日笑話$|^每日動漫$|^每日一言$|^每日廢話$|^每日黃曆$|^每日毒湯$|^每日情話$|^每日靈簽$|^每日淺草簽$|^每日急口令$|^每日大事$|^每日解答$|^每日白羊$|^每日牡羊$|^每日金牛$|^每日雙子$|^每日巨蟹$|^每日獅子$|^每日處女$|^每日天秤$|^每日天平$|^每日天蠍$|^每日天蝎$|^每日射手$|^每日人馬$|^每日摩羯$|^每日山羊$|^每日水瓶$|^每日寶瓶$|^每日雙魚$/i,
+		first: /^排序|排序$|^隨機|隨機$|^choice|^每日塔羅|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸|^每日笑話$|^每日動漫$|^每日一言$|^每日廢話$|^每日黃曆$|^每日毒湯$|^每日情話$|^每日靈簽$|^每日淺草簽$|^每日大事$|^每日解答$|^每日白羊$|^每日牡羊$|^每日金牛$|^每日雙子$|^每日巨蟹$|^每日獅子$|^每日處女$|^每日天秤$|^每日天平$|^每日天蠍$|^每日天蝎$|^每日射手$|^每日人馬$|^每日摩羯$|^每日山羊$|^每日水瓶$|^每日寶瓶$|^每日雙魚$/i,
 		second: null
 	}]
 }
@@ -54,7 +54,6 @@ const getHelpMessage = async function () {
 每日情話	顯示一條情話
 每日靈簽	抽取一條觀音簽
 每日淺草簽	抽取一條淺草簽
-每日急口令	顯示一條急口令
 每日大事	顯示今天歷史上的大事
 每日解答    顯示問題的答案
 每日(星座) 顯示每日星座運程 如 每日白羊 每日金牛 每日巨蟹
@@ -194,10 +193,6 @@ const rollDiceCommand = async function ({
 		case /^每日廢話$/.test(mainMsg[0]): {
 			let name = mainMsg[1] || displaynameDiscord || tgDisplayname || displayname || '你';
 			rply.text = await axiosDaily(`https://ovooa.com/API/dog/api.php?msg=${name}&num=500&type=json`)
-			return rply;
-		}
-		case /^每日急口令$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('https://ovooa.com/API/rao/api.php?type=json')
 			return rply;
 		}
 		case /^每日大事$/.test(mainMsg[0]): {
@@ -1187,10 +1182,6 @@ const discordCommand = [
 				subcommand
 					.setName('動漫')
 					.setDescription('顯示一條動漫金句'))
-			.addSubcommand(subcommand =>
-				subcommand
-					.setName('急口令')
-					.setDescription('顯示一條急口令'))
 			.addSubcommand(subcommand =>
 				subcommand
 					.setName('黃曆')

@@ -134,7 +134,7 @@ const rollDiceCommand = async function ({
 				const word = data.split('\n');
 				rply.text = word[rollbase.Dice(word.length) - 1];
 			} catch (e) {
-				console.log('Error:', e.stack);
+				console.error('Error:', e.stack);
 			}
 			return rply;
 		}
@@ -144,7 +144,7 @@ const rollDiceCommand = async function ({
 				const word = data.split('\n');
 				rply.text = word[rollbase.Dice(word.length) - 1];
 			} catch (e) {
-				console.log('Error:', e.stack);
+				console.error('Error:', e.stack);
 			}
 			return rply;
 		}
@@ -154,12 +154,12 @@ const rollDiceCommand = async function ({
 				const word = data.split('\n');
 				rply.text = word[rollbase.Dice(word.length) - 1];
 			} catch (e) {
-				console.log('Error:', e.stack);
+				console.error('Error:', e.stack);
 			}
 			return rply;
 		}
 		case /^每日黃曆$/.test(mainMsg[0]): {
-			rply.text = await axiosDaily('https://ovooa.com/API/huang/api.php?type=json')
+			rply.text = await dailyAlmanac.getAlmanac();
 			return rply;
 		}
 		case /^每日毒湯$/.test(mainMsg[0]): {
@@ -168,7 +168,7 @@ const rollDiceCommand = async function ({
 				const word = data.split('\n');
 				rply.text = word[rollbase.Dice(word.length) - 1];
 			} catch (e) {
-				console.log('Error:', e.stack);
+				console.error('Error:', e.stack);
 			}
 			return rply;
 		}
@@ -178,7 +178,7 @@ const rollDiceCommand = async function ({
 				const word = data.split('\n');
 				rply.text = word[rollbase.Dice(word.length) - 1];
 			} catch (e) {
-				console.log('Error:', e.stack);
+				console.error('Error:', e.stack);
 			}
 			return rply;
 		}
@@ -383,6 +383,56 @@ class Astro {
 	}
 }
 
+
+class DailyAlmanac {
+	constructor() {
+		this.Almanac = {};
+	}
+	async getAlmanac() {
+		try {
+			if (!this.Almanac || this.Almanac.date !== this.getDate()) {
+				await this.updateAlmanac();
+			}
+			if (this.Almanac) {
+				return this.returnStr(this.Almanac);
+			} else return;
+		} catch (error) {
+			console.error(error)
+			return;
+		}
+	}
+
+	returnStr(Almanac) {
+		return `今日黃曆 - ${Almanac.date}
+${Almanac.content}
+	`;
+	}
+
+
+	async updateAlmanac() {
+		let date = this.getDate();
+		let res = await axios.get(encodeURI(`https://tw.18dao.net/%E6%AF%8F%E6%97%A5%E9%BB%83%E6%9B%86/${date}`));
+		const $ = cheerio.load(res.data)
+		this.Almanac = new Almanac($, date);
+	}
+	getDate() {
+		let year = new Date().getFullYear();
+		let month = ((new Date().getMonth() + 1))
+		let day = (new Date().getDate())
+		return `${year}年${month}月${day}日`;
+	}
+
+}
+class Almanac {
+	constructor($, date) {
+		//TODAY_CONTENT
+		this.date = date;
+		this.title = $('.fieldset').text();
+		this.content = $('.right_column').text();
+
+	}
+}
+const dailyAlmanac = new DailyAlmanac();
 const dailyAstro = new TwelveAstro();
 
 class Asakusa100 {

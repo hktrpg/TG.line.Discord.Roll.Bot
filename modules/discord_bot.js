@@ -124,7 +124,7 @@ client.on('interactionCreate', async message => {
 		if (message.user && message.user.bot) return;
 		return __handlingInteractionMessage(message);
 	} catch (error) {
-		console.log('discord bot interactionCreate #123 error', error)
+		console.error('discord bot interactionCreate #123 error', error)
 	}
 });
 
@@ -149,7 +149,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 			reaction.users.remove(user.id);
 		}
 	} catch (error) {
-		console.log('Discord bot messageReactionAdd #249 ', error)
+		console.error('Discord bot messageReactionAdd #249 ', error)
 	}
 
 });
@@ -706,7 +706,6 @@ async function getAllshardIds() {
 	];
 	return Promise.all(promises)
 		.then(results => {
-			console.log('results', results)
 			return `所有啓動中的server ID:   ${results[0].join(', ')} 
 			所有啓動中的server online:   ${results[1].map(ele => discordPresenceStatus[ele]).join(', ')} 
 			所有啓動中的server ping:   ${results[2].map(ele => ele.toFixed(0)).join(', ')}`

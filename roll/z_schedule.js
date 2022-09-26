@@ -3,6 +3,7 @@ if (!process.env.mongoURL) {
     return;
 }
 const VIP = require('../modules/veryImportantPerson');
+const checkMongodb = require('../modules/dbWatchdog.js');
 const FUNCTION_AT_LIMIT = [5, 25, 50, 200, 200, 200, 200, 200];
 const schema = require('../modules/schema')
 const FUNCTION_CRON_LIMIT = [2, 15, 30, 45, 99, 99, 99, 99];
@@ -109,6 +110,7 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^\.at+$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
+            if (!checkMongodb.isDbOnline()) return;
             if (!groupid) {
                 rply.text = '此功能必須在群組中使用'
                 return rply
@@ -131,6 +133,7 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^\.at+$/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]): {
+            if (!checkMongodb.isDbOnline()) return;
             if (!groupid) {
                 rply.text = '此功能必須在群組中使用'
                 return rply
@@ -166,6 +169,7 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^\.at+$/i.test(mainMsg[0]): {
+            if (!checkMongodb.isDbOnline()) return;
             if (!groupid) {
                 rply.text = '此功能必須在群組中使用'
                 return rply
@@ -218,6 +222,7 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^\.cron+$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
+            if (!checkMongodb.isDbOnline()) return;
             if (rply.text = checkTools.permissionErrMsg({
                 flag : checkTools.flag.ChkChannelManager,
                 gid : groupid,

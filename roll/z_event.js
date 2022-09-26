@@ -2,6 +2,7 @@
 if (!process.env.mongoURL) {
     return;
 }
+const checkMongodb = require('../modules/dbWatchdog.js');
 const debugMode = (process.env.DEBUG) ? true : false;
 var variables = {};
 const rollDice = require('./rollbase');
@@ -167,7 +168,7 @@ const rollDiceCommand = async function ({
      * -1:你中招了:你不好運要-SAN了
      * 1:你吃了好味的糖，加SAN人
      */
-
+    if (!checkMongodb.isDbOnline()) return;
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
             rply.text = this.getHelpMessage();

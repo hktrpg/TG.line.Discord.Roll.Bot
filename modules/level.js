@@ -55,7 +55,10 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     let userInfo = await schema.trpgLevelSystemMember.findOne({
         groupid: groupid,
         userid: userid
-    }).catch(error => console.error('level #46 mongoDB error: ', error.name, error.reson));
+    }).catch(error => {
+        console.error('level #46 mongoDB error: ', error.name, error.reson)
+        checkMongodb.dbErrOccurs();
+    });
     if (!userInfo) {
         await newUser(gpInfo, groupid, userid, displayname, displaynameDiscord, tgDisplayname);
         return;
@@ -129,7 +132,10 @@ async function returnTheLevelWord(gpInfo, userInfo, membercount, groupid, discor
         groupid: groupid
     }).sort({
         EXP: -1
-    }).catch(error => console.error('level #120 mongoDB error: ', error.name, error.reson));
+    }).catch(error => {
+        console.error('level #120 mongoDB error: ', error.name, error.reson)
+        checkMongodb.dbErrOccurs();
+    });
     let myselfIndex = docMember.map(function (members) {
         return members.userid;
     }).indexOf(userInfo.userid);
@@ -147,6 +153,7 @@ async function returnTheLevelWord(gpInfo, userInfo, membercount, groupid, discor
 
 
 async function newUser(gpInfo, groupid, userid, displayname, displaynameDiscord, tgDisplayname) {
+    if (!checkMongodb.isDbOnline()) return;
     //3. 沒有 -> 新增
     let temp = {
         userid: userid,
@@ -157,7 +164,10 @@ async function newUser(gpInfo, groupid, userid, displayname, displaynameDiscord,
         Level: 0,
         LastSpeakTime: Date.now()
     }
-    await new schema.trpgLevelSystemMember(temp).save().catch(error => console.error('level #144 mongoDB error: ', error.name, error.reson));
+    await new schema.trpgLevelSystemMember(temp).save().catch(error => {
+        console.error('level #144 mongoDB error: ', error.name, error.reson);
+        checkMongodb.dbErrOccurs();
+    });
     return;
 }
 

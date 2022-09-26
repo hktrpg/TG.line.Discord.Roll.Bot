@@ -2,7 +2,7 @@
 const schema = require('./schema.js');
 
 const MAX_ERR_RETRY = 3;
-const RETRY_TIME = 1000 * 60 * 5;
+const RETRY_TIME = 30 * 1000;
 
 let dbConnErr = {
     timeStamp: Date.now(),
@@ -41,15 +41,16 @@ async function __updateRecords() {
         __dbErrorReset();
     } catch (err) {
         console.error('dbConnectionError updateRecords #36 error: ', err.name, err.reson);
+        dbErrOccurs();
     }
 }
 
 function __init() {
     setInterval(
         async () => {
-            if (!isDbOnline()) {
-                await __updateRecords();
-            }
+            // if (!isDbOnline()) {
+            await __updateRecords();
+            //}
         },
         RETRY_TIME
     );

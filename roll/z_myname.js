@@ -89,6 +89,7 @@ const rollDiceCommand = async function ({
         type: 'text',
         text: ''
     };
+    if (!checkMongodb.isDbOnline()) return;
     if (botname !== "Discord") {
         rply.text = '此功能只能在Discord中使用'
         return rply

@@ -16,7 +16,8 @@ const mongoose = require('mongoose');
             useFindAndModify: false,
             useUnifiedTopology: true,
             socketTimeoutMS: 5000,
-            serverSelectionTimeoutMS: 5000
+            serverSelectionTimeoutMS: 5000,
+          
         });
     } catch (err) {
         console.error('DB CONNECT GET ERROR: ' + err.name, err.reason)

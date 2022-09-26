@@ -15,7 +15,7 @@ const mongoose = require('mongoose');
             useNewUrlParser: true,
             useFindAndModify: false,
             useUnifiedTopology: true,
-            //socketTimeoutMS: 5000,
+            socketTimeoutMS: 5000,
             //serverSelectionTimeoutMS: 5000,
           
         });

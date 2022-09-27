@@ -24,7 +24,8 @@ function isDbOnline() {
 function __dbErrorReset() {
     if (dbConnErr.retry > 0) {
         dbConnErr.retry = 0;
-        console.error('dbConnectionError dbErrorReset #25 dbConnErr.retry Reset');}
+        console.error('dbConnectionError dbErrorReset #25 dbConnErr.retry Reset');
+    }
 }
 
 async function __updateRecords() {
@@ -51,9 +52,9 @@ async function __updateRecords() {
 function __init() {
     setInterval(
         async () => {
-            // if (!isDbOnline()) {
-            await __updateRecords();
-            //}
+            if (!isDbOnline()) {
+                await __updateRecords();
+            }
         },
         RETRY_TIME
     );

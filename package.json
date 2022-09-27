@@ -25,7 +25,6 @@
     "bcdice": "^3.3.0",
     "bufferutil": "^4.0.3",
     "chai": "^4.3.4",
-    "cheerio": "^1.0.0-rc.12",
     "chinese-conv": "^1.0.1",
     "crypto-js": "^4.0.0",
     "discord-api-types": "^0.28.0",
@@ -40,9 +39,15 @@
     "https": "^1.0.0",
     "log-to-file": "^3.0.0",
     "mathjs": "^9.3.0",
+<<<<<<< Updated upstream
+    "moment": "^2.29.1",
+    "moment-timezone": "^0.5.33",
+    "mongoose": "6",
+=======
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.35",
     "mongoose": "^6",
+>>>>>>> Stashed changes
     "node-telegram-bot-api": "^0.54.0",
     "plurk2": "github:zeteticl/node-plurk2",
     "puppeteer": "^13.3.1",

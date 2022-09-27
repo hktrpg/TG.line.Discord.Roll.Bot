@@ -408,6 +408,7 @@ const rollDiceCommand = async function ({
 		default:
 			break;
 	}
+
 	return rply;
 }
 const discordCommand = [
@@ -1026,7 +1027,10 @@ function ccsu() {
 function coc6(chack, text) {
 	let result = '';
 	let temp = rollbase.Dice(100);
-	if (temp == 100) result = 'ccb<=' + chack + '\n' + temp + ' → 啊！大失敗！';
+	if (temp == 100) {
+		result = 'ccb<=' + chack + '\n' + temp + ' → 啊！大失敗！';
+		result.discordColor = "red";
+	}
 	else
 		if (temp <= chack) result = 'ccb<=' + chack + '\n' + temp + ' → 成功';
 		else result = 'ccb<=' + chack + '\n' + temp + ' → 失敗';
@@ -1045,7 +1049,7 @@ function coc6(chack, text) {
  * ```css
 .with-this-code-you-cant-use-any-spaces-and-a-period-at-the-start
 ```
-
+	
 ```diff
 - Type anything after the dash and it should turn red
 ```
@@ -1057,6 +1061,7 @@ async function coc7({ chack, text = "", userid, groupid, channelid, userName }) 
 	let skillPerStyle = "";
 	let check = chack.split(',');
 	let name = text.split(',');
+	let discordColor = null;
 	let checkNum = !check.some(i => !Number.isInteger(Number(i)));
 	if (!checkNum) return;
 	if (check.length >= 2) result += '聯合檢定\n'
@@ -1065,16 +1070,19 @@ async function coc7({ chack, text = "", userid, groupid, channelid, userName }) 
 			case (temp == 1): {
 				result += '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 恭喜！大成功！';
 				skillPerStyle = "criticalSuccess";
+				discordColor = "green";
 				break;
 			}
 			case (temp == 100): {
 				result = '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 啊！大失敗！';
 				skillPerStyle = "fumble";
+				discordColor = "red";
 				break;
 			}
 			case (temp >= 96 && check[index] <= 49): {
 				result += '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 啊！大失敗！';
 				skillPerStyle = "fumble";
+				discordColor = "red";
 				break;
 			}
 			case (temp > check[index]): {
@@ -1116,20 +1124,24 @@ async function coc7({ chack, text = "", userid, groupid, channelid, userName }) 
 async function coc7chack({ chack, temp, text = "", userid, groupid, channelid, userName }) {
 	let result = '';
 	let skillPerStyle = "";
+	let discordColor =null;
 	switch (true) {
 		case (temp == 1): {
 			result = temp + ' → 恭喜！大成功！';
 			skillPerStyle = "criticalSuccess";
+			result.discordColor = "green";
 			break;
 		}
 		case (temp == 100): {
 			result = temp + ' → 啊！大失敗！';
 			skillPerStyle = "fumble";
+			result.discordColor = "red";
 			break;
 		}
 		case (temp >= 96 && chack <= 49): {
 			result = temp + ' → 啊！大失敗！';
 			skillPerStyle = "fumble";
+			result.discordColor = "red";
 			break;
 		}
 		case (temp > chack): {
@@ -1428,10 +1440,10 @@ function build6char() {
 		let DebuffArr = [5,0,5,10,20,40,80]
 		let AppDebuffArr = [0,0,5,10,15,20,25]
 		let EDUincArr = [0,1,2,3,4,4,4]
-
+	
 		if (old < 15) rply.text = ReStr + '等等，核心規則不允許小於15歲的人物哦。';	
 		if (old >= 90) rply.text = ReStr + '等等，核心規則不允許90歲以上的人物哦。'; 
-
+	
 		for (let i=0 ; old >= oldArr[i] ; i ++){
 			Debuff = DebuffArr[i];
 			AppDebuff = AppDebuffArr[i];

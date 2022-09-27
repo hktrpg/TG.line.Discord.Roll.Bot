@@ -139,7 +139,6 @@ const rollDiceCommand = async function ({
                 getData = await schema.randomAns.findOne({ groupid: groupid }).catch(error => console.error('randomans #137 mongoDB error: ', error.name, error.reson));
                 let update = false;
                 let findIndex = getData && getData.randomAnsfunction.findIndex((e) => {
-                    console.log('e', e)
                     return e && e[0] && e[0].toLowerCase() == mainMsg[2].toLowerCase()
                 })
                 if (findIndex >= 0 && findIndex != null) {
@@ -164,8 +163,6 @@ const rollDiceCommand = async function ({
                 temp = {
                     randomAnsfunction: mainMsg.slice(2)
                 }
-                console.log(temp)
-
                 check = await schema.randomAns.updateOne({
                     groupid: groupid
                 }, {

@@ -1233,7 +1233,6 @@ function buildpulpchar() {
  * @param {年齡} text01 
  */
 function build7char(text01) {
-	console.log('text01', text01)
 	//讀取年齡
 	if (!text01) {
 		return `沒有填寫歲數, 先使用隨機角色產生功能 .cc7build random

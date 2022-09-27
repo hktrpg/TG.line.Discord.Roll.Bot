@@ -56,7 +56,8 @@ const getHelpMessage = function () {
     .cron 1921-2-wed-sun
     我將會每隔二天，如果是星期三或星期日就發一次訊息
 
-    .cron  每天晚上七時二十一分擲 
+    .cron  1921 
+    每天晚上七時二十一分擲 
     [[CC 80 幸運]]
 
     星期代碼: Sun Mon Tue Wed thu fri Sat

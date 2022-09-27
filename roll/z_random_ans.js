@@ -172,7 +172,7 @@ const rollDiceCommand = async function ({
                     $push: temp, new: true
                 }, opt).catch(error => console.error('randomans #168 mongoDB error: ', error.name, error.reson));
                 console.log(check)
-                if (check.modifiedCount) {
+                if (check.modifiedCount || check.upsertedCount) {
                     rply.text = `新增成功: \n輸入 .ra ${mainMsg[2]}  \n即可使用\n再輸入.ra add ${mainMsg[2]} 可以添加內容`
                 } else rply.text = '新增失敗'
 

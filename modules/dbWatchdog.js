@@ -2,7 +2,7 @@
 const schema = require('./schema.js');
 
 const MAX_ERR_RETRY = 3;
-const RETRY_TIME = 1000 * 60 * 5;
+const RETRY_TIME = 15 * 1000;// 每10秒更新;
 
 let dbConnErr = {
     timeStamp: Date.now(),
@@ -14,6 +14,7 @@ __init();
 function dbErrOccurs() {
     dbConnErr.retry++;
     dbConnErr.timeStamp = Date.now();
+    console.error('dbConnectionError dbErrOccurs #17 error times#', dbConnErr.retry);
 }
 
 function isDbOnline() {
@@ -21,7 +22,9 @@ function isDbOnline() {
 }
 
 function __dbErrorReset() {
-    dbConnErr.retry = 0;
+    if (dbConnErr.retry > 0) {
+        dbConnErr.retry = 0;
+        console.error('dbConnectionError dbErrorReset #25 dbConnErr.retry Reset');}
 }
 
 async function __updateRecords() {
@@ -40,16 +43,17 @@ async function __updateRecords() {
 
         __dbErrorReset();
     } catch (err) {
-        console.error('dbConnectionError updateRecords #36 error: ', err.name, err.reson);
+        console.error('dbConnectionError updateRecords #36 error: ', err.name);
+        dbErrOccurs();
     }
 }
 
 function __init() {
     setInterval(
         async () => {
-            if (!isDbOnline()) {
-                await __updateRecords();
-            }
+            // if (!isDbOnline()) {
+            await __updateRecords();
+            //}
         },
         RETRY_TIME
     );

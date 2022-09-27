@@ -14,7 +14,10 @@ const mongoose = require('mongoose');
         await mongoose.connect(process.env.mongoURL, {
             useNewUrlParser: true,
             useFindAndModify: false,
-            useUnifiedTopology: true
+            useUnifiedTopology: true,
+            socketTimeoutMS: 15000,
+            //serverSelectionTimeoutMS: 5000,
+          
         });
     } catch (err) {
         console.error('DB CONNECT GET ERROR: ' + err.name, err.reason)

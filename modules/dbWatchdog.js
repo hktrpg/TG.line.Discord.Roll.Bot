@@ -40,7 +40,7 @@ async function __updateRecords() {
 
         __dbErrorReset();
     } catch (err) {
-        console.error('dbConnectionError updateRecords #36 error: ', err.name, err.reson);
+        console.error('dbConnectionError updateRecords #36 error: ', err.name, '\nRetry Times #', dbConnErr.retry);
         dbErrOccurs();
     }
 }

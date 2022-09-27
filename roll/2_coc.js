@@ -1040,7 +1040,16 @@ function coc6(chack, text) {
  * @param {CC 80 的80} chack 
  * @param {攻擊等描述字眼} text 
  */
+/**
+ * 
+ * ```css
+.with-this-code-you-cant-use-any-spaces-and-a-period-at-the-start
+```
 
+```diff
+- Type anything after the dash and it should turn red
+```
+ */
 
 async function coc7({ chack, text = "", userid, groupid, channelid, userName }) {
 	let result = '';

@@ -115,61 +115,72 @@ const rollDiceCommand = async function ({
             rply.quotes = true;
             return rply;
         case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]): {
-            //
-            //增加自定義關鍵字
-            // .ra[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
-            /*
-            只限四張角色卡.
-            使用VIPCHECK
-            */
-            lv = await VIP.viplevelCheckGroup(groupid);
-            limit = FUNCTION_LIMIT[lv];
-            if (!mainMsg[2]) rply.text += ' 沒有輸入骰子名稱.'
-            if (!mainMsg[3]) rply.text += ' 沒有輸入骰子內容.'
-            if (rply.text += checkTools.permissionErrMsg({
-                flag : checkTools.flag.ChkChannelManager,
-                gid : groupid,
-                role : userrole
-            })) {
-                return rply;
-            }
+            try {
 
-            getData = await schema.randomAns.findOne({ groupid: groupid }).catch(error => console.error('randomans #137 mongoDB error: ', error.name, error.reson));
-            let update = false;
-            let findIndex = getData && getData.randomAnsfunction.findIndex((e) => {
-                return e && e[0] && e[0].toLowerCase() == mainMsg[2].toLowerCase()
-            })
-            if (findIndex >= 0 && findIndex != null) {
-                let tempCheck = getData.randomAnsfunction[findIndex].join('') + mainMsg.slice(3).join('')
-                if (tempCheck.length > 3000) {
-                    rply.text = '更新失敗. 總內容不得超過3000字'
+                //
+                //增加自定義關鍵字
+                // .ra[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
+                /*
+                只限四張角色卡.
+                使用VIPCHECK
+                */
+                lv = await VIP.viplevelCheckGroup(groupid);
+                limit = FUNCTION_LIMIT[lv];
+                if (!mainMsg[2]) rply.text += ' 沒有輸入骰子名稱.'
+                if (!mainMsg[3]) rply.text += ' 沒有輸入骰子內容.'
+                if (rply.text += checkTools.permissionErrMsg({
+                    flag: checkTools.flag.ChkChannelManager,
+                    gid: groupid,
+                    role: userrole
+                })) {
                     return rply;
-                } else {
-                    update = true;
-                    getData.randomAnsfunction.set(findIndex, [...getData.randomAnsfunction[findIndex], ...mainMsg.slice(3)])
                 }
-            }
-            if (update) {
-                await getData.save();
-                rply.text = `更新成功\n輸入.ra ${mainMsg[2]} \n即可使用`
+
+                getData = await schema.randomAns.findOne({ groupid: groupid }).catch(error => console.error('randomans #137 mongoDB error: ', error.name, error.reson));
+                let update = false;
+                let findIndex = getData && getData.randomAnsfunction.findIndex((e) => {
+                    console.log('e', e)
+                    return e && e[0] && e[0].toLowerCase() == mainMsg[2].toLowerCase()
+                })
+                if (findIndex >= 0 && findIndex != null) {
+                    let tempCheck = getData.randomAnsfunction[findIndex].join('') + mainMsg.slice(3).join('')
+                    if (tempCheck.length > 3000) {
+                        rply.text = '更新失敗. 總內容不得超過3000字'
+                        return rply;
+                    } else {
+                        update = true;
+                        getData.randomAnsfunction.set(findIndex, [...getData.randomAnsfunction[findIndex], ...mainMsg.slice(3)])
+                    }
+                }
+                if (update) {
+                    await getData.save();
+                    rply.text = `更新成功\n輸入.ra ${mainMsg[2]} \n即可使用`
+                    return rply;
+                }
+                if (getData && getData.randomAnsfunction.length >= limit) {
+                    rply.text = '群組骰子上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
+                    return rply;
+                }
+                temp = {
+                    randomAnsfunction: mainMsg.slice(2)
+                }
+                console.log(temp)
+
+                check = await schema.randomAns.updateOne({
+                    groupid: groupid
+                }, {
+                    $push: temp, new: true
+                }, opt).catch(error => console.error('randomans #168 mongoDB error: ', error.name, error.reson));
+                console.log(check)
+                if (check.modifiedCount) {
+                    rply.text = `新增成功: \n輸入 .ra ${mainMsg[2]}  \n即可使用\n再輸入.ra add ${mainMsg[2]} 可以添加內容`
+                } else rply.text = '新增失敗'
+
                 return rply;
+
+            } catch (error) {
+                console.error(error)
             }
-            if (getData && getData.randomAnsfunction.length >= limit) {
-                rply.text = '群組骰子上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
-                return rply;
-            }
-            temp = {
-                randomAnsfunction: [mainMsg.slice(2)]
-            }
-            check = await schema.randomAns.updateOne({
-                groupid: groupid
-            }, {
-                $push: temp, new: true
-            }, opt).catch(error => console.error('randomans #168 mongoDB error: ', error.name, error.reson));
-            if (check.n == 1) {
-                rply.text = `新增成功: \n輸入 .ra ${mainMsg[2]}  \n即可使用\n再輸入.ra add ${mainMsg[2]} 可以添加內容`
-            } else rply.text = '新增失敗'
-            return rply;
         }
         case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]):
             //
@@ -177,9 +188,9 @@ const rollDiceCommand = async function ({
             //
             if (!mainMsg[2]) rply.text += '沒有骰子名稱. '
             if (rply.text += checkTools.permissionErrMsg({
-                flag : checkTools.flag.ChkChannelManager,
-                gid : groupid,
-                role : userrole
+                flag: checkTools.flag.ChkChannelManager,
+                gid: groupid,
+                role: userrole
             })) {
                 return rply;
             }

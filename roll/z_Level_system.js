@@ -31,9 +31,9 @@ const getHelpMessage = async function () {
 數字11代表等級升級時會進行通知，10代表不會通知，
 00的話代表關閉功能，
 -------------
-預設回應是「 XXXX 《稱號》， 你的克蘇魯神話知識現在是 X點！
-現在排名是XX人中的第XX名！XX%！
-調查經驗是XX點。」
+預設回應是「{user.displayName}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點！
+現在排名是{server.member_count}人中的第{user.Ranking}名！{user.RankingPer}！
+調查經驗是{user.exp}點。」
 -------------
 輸入.level LevelUpWord (內容) 修改在這群組升級時彈出的升級語
 輸入.level RankWord (內容) 修改在這群組查詢等級時的回應

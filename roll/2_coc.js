@@ -1124,7 +1124,7 @@ async function coc7({ chack, text = "", userid, groupid, channelid, userName }) 
 async function coc7chack({ chack, temp, text = "", userid, groupid, channelid, userName }) {
 	let result = '';
 	let skillPerStyle = "";
-	let discordColor =null;
+	let discordColor = null;
 	switch (true) {
 		case (temp == 1): {
 			result = temp + ' → 恭喜！大成功！';

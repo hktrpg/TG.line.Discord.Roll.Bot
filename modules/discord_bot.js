@@ -469,15 +469,24 @@ process.on('unhandledRejection', error => {
 
 
 function respawnCluster(err) {
-	if (err.toString().match(/CLUSTERING_NO_CHILD_EXISTS/i)) {
-		let number = err.toString().match(/\d+$/i);
-		if (!number) return;
-		if (!errorCount[number]) errorCount[number] = 0;
-		errorCount[number]++;
-		if (errorCount[number] > 3) {
+	if (!err.toString().match(/CLUSTERING_NO_CHILD_EXISTS/i)) return;
+	let number = err.toString().match(/\d+$/i);
+	if (!errorCount[number]) errorCount[number] = 0;
+	errorCount[number]++;
+	if (errorCount[number] > 3) {
+		try {
 			client.cluster.evalOnManager(this.clusters.get(number).respawn())
+		} catch (error) {
+			console.error('respawnCluster #480 error', error);
 		}
-
+	}
+}
+function respawnCluster2() {
+	try {
+		let number = client.cluster.id;
+		client.cluster.evalOnManager(this.clusters.get(number).respawn())
+	} catch (error) {
+		console.error('respawnCluster2 error', error);
 	}
 }
 
@@ -905,7 +914,7 @@ async function handlingResponMessage(message, answer = '') {
 		if (rplyVal.sendNews) sendNewstoAll(rplyVal);
 
 		if (rplyVal.sendImage) sendBufferImage(message, rplyVal, userid)
-
+		if (rplyVal.respawn) respawnCluster2();
 		if (!rplyVal.text && !rplyVal.LevelUp) return;
 		try {
 			let isNew = await newMessage.newUserChecker(userid, "Discord");
@@ -1267,7 +1276,6 @@ client.on('shardDisconnect', (event, shardID) => {
 client.on('shardResume', (replayed, shardID) => console.log(`Shard ID ${shardID} resumed connection and replayed ${replayed} events.`));
 
 client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnected.`));
-
 
 
 /**

@@ -11,7 +11,6 @@ var tempSwitchV2 = [{
     SwitchV2: false
 }];
 async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercount, tgDisplayname, discordMessage) {
-    if (!checkMongodb.isDbOnline()) return;
     if (!groupid) {
         return;
     }
@@ -36,6 +35,10 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
         checkMongodb.dbErrOccurs();
         retry.number++;
         retry.times = new Date();
+        if (retry > 20 && !checkMongodb.isDbOnline()) {
+            reply.respawn = true;
+            return reply
+        }
     });
     if (filterSwitchV2 === undefined) {
         if (!gpInfo || !gpInfo.SwitchV2) {
@@ -52,6 +55,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     }
     //1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
     if (!gpInfo || !gpInfo.SwitchV2) return;
+    if (!checkMongodb.isDbOnline()) return;
     let userInfo = await schema.trpgLevelSystemMember.findOne({
         groupid: groupid,
         userid: userid

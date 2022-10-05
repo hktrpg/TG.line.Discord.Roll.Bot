@@ -2,7 +2,7 @@
 if (!process.env.LINE_CHANNEL_ACCESSTOKEN || !process.env.mongoURL) {
     return;
 }
-
+const isHttps = (process.env.HTTPS === '1') ? true : false;
 const {
     RateLimiterMemory
 } = require('rate-limiter-flexible');
@@ -448,12 +448,12 @@ if (isMaster) {
 }
 
 function createWebServer() {
-    if (!options.key) {
-        server = require('http').createServer(www);
-        console.log('http server');
-    } else {
+    if (options.key && isHttps) {
         server = require('https').createServer(options, www);
         console.log('https server');
+    } else {
+        server = require('http').createServer(www);
+        console.log('http server');
     }
 }
 

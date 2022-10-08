@@ -114,7 +114,7 @@ const rollDiceCommand = async function ({
                 return rply;
             }
             if (temp && temp2) {
-                rply.text = "已註冊這頻道。如果想使用角色卡，請到\nhttps://www.hktrpg.com:20721/card/";
+                rply.text = "已註冊這頻道。如果想使用角色卡，請到\nhttps://card.hktrpg.com/";
                 if (!await checkGpAllow(channelid || groupid)) {
                     rply.text += '\n群組未被Admin 允許擲骰，請Admin在這群組輸入\n.admin disallowrolling';
                 }
@@ -127,7 +127,7 @@ const rollDiceCommand = async function ({
                     "titleName": titleName
                 })
                 await temp.save();
-                rply.text = "註冊成功，如果想使用角色卡，請到\nhttps://www.hktrpg.com:20721/card/"
+                rply.text = "註冊成功，如果想使用角色卡，請到\nhttps://card.hktrpg.com/"
                 if (!await checkGpAllow(channelid || groupid)) {
                     rply.text += '\n群組未被Admin 允許擲骰，請Admin在這群組輸入\n.admin disallowrolling';
                 }
@@ -145,7 +145,7 @@ const rollDiceCommand = async function ({
                     }
                 });
                 await temp.save().catch(error => console.error('admin #138 mongoDB error: ', error.name, error.reson));
-                rply.text = "註冊成功。如果想使用角色卡，請到\nhttps://www.hktrpg.com:20721/card/";
+                rply.text = "註冊成功。如果想使用角色卡，請到\nhttps://card.hktrpg.com/";
                 if (!await checkGpAllow(channelid || groupid)) {
                     rply.text += '\n群組未被Admin 允許擲骰，請Admin在這群組輸入\n.admin disallowrolling';
                 }
@@ -176,7 +176,7 @@ const rollDiceCommand = async function ({
                 rply.text += JSON.stringify(e);
                 return rply;
             }
-            rply.text = "已移除註冊!如果想檢查，請到\nhttps://www.hktrpg.com:20721/card/"
+            rply.text = "已移除註冊!如果想檢查，請到\nhttps://card.hktrpg.com/"
             return rply;
         case /^disallowrolling$/i.test(mainMsg[1]):
             if (rply.text = checkTools.permissionErrMsg({
@@ -285,7 +285,7 @@ const rollDiceCommand = async function ({
                 return rply;
             }
             rply.text += "現在你的帳號是: " + name + "\n" + "密碼: " + mainMsg[3];
-            rply.text += "\n登入位置: https://www.hktrpg.com:20721/card/ \n如想經網頁擲骰，可以請Admin在群組輸入\n.admin  allowrolling\n然後希望擲骰玩家可在頻道輸入以下指令登記。\n.admin registerChannel";
+            rply.text += "\n登入位置: https://card.hktrpg.com/ \n如想經網頁擲骰，可以請Admin在群組輸入\n.admin  allowrolling\n然後希望擲骰玩家可在頻道輸入以下指令登記。\n.admin registerChannel";
             return rply;
         case /^debug$/i.test(mainMsg[1]):
             rply.text = "Debug function" + '\ngroupid: ' + groupid + "\nuserid: " + userid;

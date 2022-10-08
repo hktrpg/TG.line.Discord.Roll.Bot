@@ -9,7 +9,7 @@ HKTRPG 興趣使然地創作及維護 TRPG工具，包括
 - 擲骰平台 - [TRPG擲骰聊天室](#擲骰平台)，[手機擲骰](#擲骰平台)
 - 跑團平台 - [烏冬](#跑團平台)，[冰丼](#跑團平台)
 - 跑團工具 - [跑團工具](#跑團工具)
-- TRPG API - [HKTRPG API](https://www.hktrpg.com:20721/api)
+- TRPG API - [HKTRPG API](https://api.hktrpg.com)
 - [ROLL20 相關開發](#roll20)
 - [FoundryVTT相關開發](#foundryvtt)
 - [代托管骰子，FVTT](#代托管骰子機械人及foundry-vtt)
@@ -25,7 +25,7 @@ HKTRPG 興趣使然地創作及維護 TRPG工具，包括
 
 ## 網上角色卡
 
-[Discord連動角色卡](https://www.hktrpg.com:20721/card/)
+[Discord連動角色卡](https://card.hktrpg.com/)
 
 除了可以在Discord，Telegram，Line上操作外，還可以在網站上使用，並把擲骰結果傳送到該聊天平台。
 
@@ -64,7 +64,7 @@ HKTRPG 興趣使然地創作及維護 TRPG工具，包括
 
 ![手機擲骰](https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20roll.jpg?raw=true)
 
-- [TRPG擲骰聊天室](https://www.hktrpg.com:20721/) - 可以擲骰的聊天室
+- [TRPG擲骰聊天室](https://rollbot.hktrpg.com/) - 可以擲骰的聊天室
 
 ![手機擲骰](https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20chatroom.jpg?raw=true)
 

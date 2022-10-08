@@ -47,7 +47,7 @@ const getHelpMessage = async function () {
 
 簡單新增角色卡 .char add name[Sad]~ state[HP:15/15;]~ roll[鬥毆: cc 50;]~ notes[筆記:這是測試,請試試在群組輸入 .char use Sad;]~ 
 新增了角色卡後，可以輸入 .admin account (username) (password) 
-然後在網頁: https://www.hktrpg.com:20721/card/ 中直接進行修改
+然後在網頁: https://card.hktrpg.com/ 中直接進行修改
 
 把結果傳送到已登記的Discord，TG，LINE上的聊天群組的登記方法: 
 由該群組的Admin授權允許 輸入 .admin allowrolling  
@@ -143,7 +143,7 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
-            rply.text = '修改成功\n現在角色卡: ' + doc.name + ' 已經公開。\n請到以下網址查看\n https://www.hktrpg.com:20721/publiccard/ ';
+            rply.text = '修改成功\n現在角色卡: ' + doc.name + ' 已經公開。\n請到以下網址查看\n https://publiccard.hktrpg.com/ ';
             return rply;
         case /(^[.]char$)/i.test(mainMsg[0]) && /^unpublic+/i.test(mainMsg[1]):
             if (!mainMsg[2]) {
@@ -169,7 +169,7 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
-            rply.text = '修改成功\n現在角色卡: ' + doc.name + ' 已經不公開。\n請到以下網址查看\n https://www.hktrpg.com:20721/publiccard/ ';
+            rply.text = '修改成功\n現在角色卡: ' + doc.name + ' 已經不公開。\n請到以下網址查看\n https://publiccard.hktrpg.com/ ';
             return rply;
         case /(^[.]char$)/i.test(mainMsg[0]) && /^show\d+/i.test(mainMsg[1]):
             filter = {

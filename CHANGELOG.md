@@ -14,10 +14,10 @@ TRPG API @HKTRPG 服務
 
 回覆格式為JSON，請求方式為GET
 請求的位置:
-<https://www.hktrpg.com:20721/api/>
+<https://api.hktrpg.com/>
 
 示範:
-<https://www.hktrpg.com:20721/api?msg=1d100>
+<https://api.hktrpg.com?msg=1d100>
 
 [api](views/image/api.png)
 

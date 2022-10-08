@@ -28,7 +28,7 @@
     - [Line 邀請連結](http://bit.ly/HKTRPG_LINE)
     - [網頁版 邀請連結](https://rollbot.hktrpg.com/)
     - [Plurk 邀請連結](https://www.plurk.com/HKTRPG)
-    - [TRPG API 連結](https://www.hktrpg.com:20721/api)
+    - [TRPG API 連結](https://api.hktrpg.com)
   - [HKTRPG 研究社 Facebook](https://www.facebook.com/groups/HKTRPG)
   - [TRPG 百科](https://www.HKTRPG.com/)
   - [名人堂](https://hktrpg.github.io/TG.line.Discord.Roll.Bot/CREDITS.html)

@@ -2,7 +2,7 @@
 if (!process.env.TELEGRAM_CHANNEL_SECRET) {
     return;
 }
-
+process.env.NTBA_FIX_319 = 1;
 const TelegramBot = require('node-telegram-bot-api');
 const agenda = require('../modules/schedule')
 const rollText = require('./getRoll').rollText;

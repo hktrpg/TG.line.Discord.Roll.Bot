@@ -114,7 +114,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     try {
         await userInfo.save();
     } catch (error) {
-        console.log('mongodb #109 error', error)
+        console.error('mongodb #109 error', error)
     }
 
     //6. 需要 -> 檢查有沒有開啓通知

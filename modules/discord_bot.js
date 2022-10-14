@@ -90,7 +90,7 @@ client.on('messageCreate', async message => {
 			return handlingSendMessage(result);
 		return;
 	} catch (error) {
-		console.error('discord bot messageCreate #91 error', error);
+		console.error('discord bot messageCreate #91 error', (error && (error.name || error.message || error.reson)));
 	}
 
 });
@@ -115,7 +115,7 @@ client.on('guildCreate', async guild => {
 	} catch (error) {
 		if (error.message === 'Missing Access') return;
 		if (error.message === 'Missing Permissions') return;
-		console.error('discord bot guildCreate  #114 error', error);
+		console.error('discord bot guildCreate  #114 error', (error && (error.name || error.message || error.reson)));
 	}
 })
 
@@ -124,7 +124,7 @@ client.on('interactionCreate', async message => {
 		if (message.user && message.user.bot) return;
 		return __handlingInteractionMessage(message);
 	} catch (error) {
-		console.error('discord bot interactionCreate #123 error', error)
+		console.error('discord bot interactionCreate #123 error', (error && (error.name || error.message || error.reson)))
 	}
 });
 
@@ -149,7 +149,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 			reaction.users.remove(user.id);
 		}
 	} catch (error) {
-		console.error('Discord bot messageReactionAdd #249 ', error)
+		console.error('Discord bot messageReactionAdd #249 ', (error && (error.name || error.message || error.reson)))
 	}
 
 });
@@ -169,7 +169,7 @@ client.on('messageReactionRemove', async (reaction, user) => {
 		}
 	} catch (error) {
 		if (error.message === 'Unknown Member') return;
-		console.error('Discord bot messageReactionRemove #268 ', error)
+		console.error('Discord bot messageReactionRemove #268 ', (error && (error.name || error.message || error.reson)))
 	}
 });
 
@@ -314,7 +314,7 @@ function SendToReply({ replyText = "", message, quotes = false }) {
 			}
 			catch (e) {
 				if (e.message !== 'Cannot send messages to this user') {
-					console.error('Discord  GET ERROR:  SendToReply: ', e.message, 'e', e, message, replyText)
+					console.error('Discord  GET ERROR:  SendToReply: ', e.message, 'e', message, replyText)
 				}
 			}
 	}
@@ -378,7 +378,7 @@ async function nonDice(message) {
 			);
 		}
 	} catch (error) {
-		console.error('await #534 EXPUP error', error);
+		console.error('await #534 EXPUP error', (error && (error.name || error.message || error.reson)));
 	}
 	return null;
 }
@@ -458,7 +458,7 @@ process.on('unhandledRejection', error => {
 	// user_id: Value "&" is not snowflake.
 
 
-	console.error('Discord Unhandled promise rejection:', error);
+	console.error('Discord Unhandled promise rejection:', (error && (error.name || error.message || error.reson)));
 	process.send({
 		type: "process:msg",
 		data: "discorderror"
@@ -477,7 +477,7 @@ function respawnCluster(err) {
 		try {
 			client.cluster.evalOnManager(this.clusters.get(number).respawn())
 		} catch (error) {
-			console.error('respawnCluster #480 error', error);
+			console.error('respawnCluster #480 error', (error && (error.name || error.message || error.reson)));
 		}
 	}
 }
@@ -486,7 +486,7 @@ function respawnCluster2() {
 		let number = client.cluster.id;
 		client.cluster.evalOnManager(this.clusters.get(number).respawn())
 	} catch (error) {
-		console.error('respawnCluster2 error', error);
+		console.error('respawnCluster2 error', (error && (error.name || error.message || error.reson)));
 	}
 }
 
@@ -685,7 +685,7 @@ async function checkWakeUp() {
 			else return true;
 		})
 		.catch(err => {
-			console.error(`disocrdbot #836 error ${err}`)
+			console.error(`disocrdbot #836 error `, (error && (error.name || error.message || error.reson)))
 			return false
 		});
 
@@ -720,8 +720,8 @@ async function getAllshardIds() {
 			所有啓動中的server online:   ${results[1].map(ele => discordPresenceStatus[ele]).join(', ')} 
 			所有啓動中的server ping:   ${results[2].map(ele => ele.toFixed(0)).join(', ')}`
 		})
-		.catch(err => {
-			console.error(`disocrdbot #884 error ${err}`)
+		.catch(error => {
+			console.error(`disocrdbot #884 error `, (error && (error.name || error.message || error.reson)))
 		});
 
 }
@@ -922,7 +922,7 @@ async function handlingResponMessage(message, answer = '') {
 				SendToId(userid, newMessage.firstTimeMessage(), true);
 			}
 		} catch (error) {
-			console.error(`discord bot error #236`, error)
+			console.error(`discord bot error #236`, (error && (error.name || error.message || error.reson)))
 		}
 
 		if (rplyVal.state) {
@@ -974,7 +974,7 @@ async function handlingResponMessage(message, answer = '') {
 		};
 
 	} catch (error) {
-		console.error('handlingResponMessage Error: ', error)
+		console.error('handlingResponMessage Error: ', (error && (error.name || error.message || error.reson)))
 	}
 }
 const sendBufferImage = async (message, rplyVal, userid) => {
@@ -1090,14 +1090,14 @@ const connect = function () {
 					if (channel)
 						channel.send(results[0].message.text)
 				})
-				.catch(err => {
-					console.error(`disocrdbot #99 error ${err}`)
+				.catch(error => {
+					console.error(`disocrdbot #99 error `, (error && (error.name || error.message || error.reson)))
 				});
 			return;
 		}
 	});
 	ws.on('error', (error) => {
-		console.error('Discord socket error', error);
+		console.error('Discord socket error', (error && (error.name || error.message || error.reson)));
 	});
 	ws.on('close', function () {
 		console.error('Discord socket close');
@@ -1248,7 +1248,7 @@ async function __handlingInteractionMessage(message) {
 				else {
 					const content = handlingCountButton(message, 'count');
 					return await message.update({ content: content })
-						.catch(error => console.error('discord bot #192  error: ', error, content));
+						.catch(error => console.error('discord bot #192  error: ', (error && (error.name || error.message || error.reson)), content));
 				}
 			}
 		default:

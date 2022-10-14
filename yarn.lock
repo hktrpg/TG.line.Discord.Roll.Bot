@@ -909,8 +909,8 @@
     got "^9.6.0"
 
 "@zetetic/duckduckgo-images-api@github:zeteticl/duckduckgo-images-api":
-  version "1.0.7"
-  resolved "https://codeload.github.com/zeteticl/duckduckgo-images-api/tar.gz/139b30ebf02f607850a622482d21b5e7a8006dec"
+  version "1.0.8"
+  resolved "https://codeload.github.com/zeteticl/duckduckgo-images-api/tar.gz/544585d42646e7550c1fd1586098c056a1136b7e"
   dependencies:
     axios "^0.21.1"
 
@@ -2473,7 +2473,12 @@ fluent-ffmpeg@^2.1.2:
     async ">=0.2.9"
     which "^1.1.1"
 
-follow-redirects@^1.14.0, follow-redirects@^1.14.7:
+follow-redirects@^1.14.0:
+  version "1.15.2"
+  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.2.tgz#b460864144ba63f2681096f274c4e57026da2c13"
+  integrity sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==
+
+follow-redirects@^1.14.7:
   version "1.15.1"
   resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.1.tgz#0ca6a452306c9b276e4d3127483e29575e207ad5"
   integrity sha512-yLAMQs+k0b2m7cVxpS1VKJVvoz7SS9Td1zss3XRwXj+ZDH00RJgnuLx7E44wx02kQLrdM3aOOy+FpzS7+8OizA==

@@ -9,7 +9,7 @@ const rollText = require('./getRoll').rollText;
 exports.analytics = require('./analytics');
 exports.z_stop = require('../roll/z_stop');
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
-const TGclient = new TelegramBot(process.env.TELEGRAM_CHANNEL_SECRET, {polling: true});
+const TGclient = new TelegramBot(process.env.TELEGRAM_CHANNEL_SECRET, { polling: true });
 const newMessage = require('./message');
 const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || '';
 //var TGcountroll = 0;
@@ -217,10 +217,14 @@ TGclient.on('text', async (ctx) => {
 })
 
 function SendToId(targetid, text) {
-    for (var i = 0; i < text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-        if (i == 0 || i == 1 || i == text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
-            TGclient.sendMessage(targetid, text.toString().match(/[\s\S]{1,2000}/g)[i]);
+    try {
+        for (var i = 0; i < text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+            if (i == 0 || i == 1 || i == text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
+                TGclient.sendMessage(targetid, text.toString().match(/[\s\S]{1,2000}/g)[i]);
+            }
         }
+    } catch (error) {
+        console.log('tg 277 SendToId error:', (error && (error.message || error.name)));
     }
 }
 
@@ -262,22 +266,26 @@ if (process.env.BROADCAST) connect();
 
 
 async function nonDice(ctx) {
-    await courtMessage({result: "", botname: "Telegram", inputStr: ""})
-    if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.from.id && ctx.chat.id) {
-        let groupid = (ctx.chat.id) ? ctx.chat.id.toString() : '',
-            userid = (ctx.from.id) ? ctx.from.id.toString() : '',
-            displayname = (ctx.from.username) ? ctx.from.username.toString() : '',
-            membercount = null;
-        let tgDisplayname = (ctx.from.first_name) ? ctx.from.first_name : '';
-        if (ctx.chat && ctx.chat.id) {
-            membercount = await TGclient.getChatMemberCount(ctx.chat.id);
+    try {
+        await courtMessage({ result: "", botname: "Telegram", inputStr: "" })
+        if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.from.id && ctx.chat.id) {
+            let groupid = (ctx.chat.id) ? ctx.chat.id.toString() : '',
+                userid = (ctx.from.id) ? ctx.from.id.toString() : '',
+                displayname = (ctx.from.username) ? ctx.from.username.toString() : '',
+                membercount = null;
+            let tgDisplayname = (ctx.from.first_name) ? ctx.from.first_name : '';
+            if (ctx.chat && ctx.chat.id) {
+                membercount = await TGclient.getChatMemberCount(ctx.chat.id);
+            }
+            let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount, tgDisplayname);
+            if (groupid && LevelUp && LevelUp.text) {
+                SendToId(groupid, `@${displayname}  ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`);
+            }
         }
-        let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount, tgDisplayname);
-        if (groupid && LevelUp && LevelUp.text) {
-            SendToId(groupid, `@${displayname}  ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`);
-        }
+        return null;
+    } catch (error) {
+        console.log('tg 287 nonDice error:', (error && (error.message || error.name)));
     }
-    return null;
 }
 
 
@@ -413,6 +421,6 @@ function z_stop(mainMsg = "", groupid = "") {
 
 /*
 bot.command('pipe', (ctx) => ctx.replyWithPhoto({
-	url: 'https://picsum.photos/200/300/?random'
+    url: 'https://picsum.photos/200/300/?random'
 }))
 */

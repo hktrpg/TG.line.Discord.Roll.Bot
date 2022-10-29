@@ -335,6 +335,7 @@ const rollDiceCommand = async function ({
             if (!adminSecret) return rply;
             if (userid !== adminSecret) return rply;
             filter = await store(inputStr, 'id');
+            
             if (!filter.id) return rply;
             try {
                 doc = await schema.veryImportantPerson.updateOne({
@@ -440,12 +441,12 @@ function checkPassword(text) {
 }
 
 async function store(mainMsg, mode) {
-    var resultId = pattId.exec(mainMsg);
-    var resultGP = pattGP.exec(mainMsg);
-    var resultLv = pattLv.exec(mainMsg);
-    var resultName = pattName.exec(mainMsg);
-    var resultNotes = pattNotes.exec(mainMsg);
-    var resultSwitch = pattSwitch.exec(mainMsg);
+    let resultId = pattId.exec(mainMsg);
+    let resultGP = pattGP.exec(mainMsg);
+    let resultLv = pattLv.exec(mainMsg);
+    let resultName = pattName.exec(mainMsg);
+    let resultNotes = pattNotes.exec(mainMsg);
+    let resultSwitch = pattSwitch.exec(mainMsg);
     let reply = {};
     (resultId && mode == 'id') ? reply.id = resultId[1] : null;
     (resultGP && mode == 'gp') ? reply.gpid = resultGP[1] : null;

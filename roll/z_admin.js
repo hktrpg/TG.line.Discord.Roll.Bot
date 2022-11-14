@@ -64,7 +64,8 @@ const rollDiceCommand = async function ({
     channelid,
     displaynameDiscord,
     membercount,
-    titleName
+    titleName,
+    discordClient
 }) {
     let rply = {
         default: 'on',
@@ -331,6 +332,13 @@ const rollDiceCommand = async function ({
                 rply.text = '新增VIP失敗\n因為 ' + error.message
             }
             return rply;
+        case /^respawn$/i.test(mainMsg[1]): {
+            if (!adminSecret) return rply;
+            if (userid !== adminSecret) return rply;
+            if (mainMsg[2] === null) return rply;
+            discordClient.cluster.send({ respawn: true, id: mainMsg[2] });
+            return rply;
+        }
         case /^addVipUser$/i.test(mainMsg[1]):
             if (!adminSecret) return rply;
             if (userid !== adminSecret) return rply;

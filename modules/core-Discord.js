@@ -40,7 +40,7 @@ manager.on('clusterCreate', shard => {
 });
 manager.on("clusterCreate", cluster => {
 	cluster.on("message", async message => {
-		console.log('Respawn message!!', message);
+		console.log('Respawn message!! -> ', message.id);
 		if (message.respawn === true && message.id !== null) {
 			return manager.clusters.get(Number(message.id)).respawn({ delay: 100, timeout: -1 });
 		}

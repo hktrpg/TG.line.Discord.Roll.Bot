@@ -718,7 +718,7 @@ async function getAllshardIds() {
 	];
 	return Promise.all(promises)
 		.then(results => {
-			return `所有啓動中的server ID:   ${results[0].join(', ')} 
+			return `\n所有啓動中的server ID:   ${results[0]} 
 			所有啓動中的server online:   ${results[1].map(ele => discordPresenceStatus[ele]).join(', ')} 
 			所有啓動中的server ping:   ${results[2].map(ele => ele.toFixed(0)).join(', ')}`
 		})

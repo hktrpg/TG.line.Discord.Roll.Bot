@@ -1,8 +1,8 @@
 "use strict";
 const schema = require('./schema.js');
-
 const MAX_ERR_RETRY = 3;
-const RETRY_TIME = 15 * 1000;// 每10秒更新;
+const RETRY_TIME = 15 * 1000;// 每15秒更新;
+const MAX_ERR_RESPAWN = 50;
 
 let dbConnErr = {
     timeStamp: Date.now(),
@@ -10,6 +10,8 @@ let dbConnErr = {
 }
 
 __init();
+
+
 
 function dbErrOccurs() {
     dbConnErr.retry++;
@@ -19,6 +21,10 @@ function dbErrOccurs() {
 
 function isDbOnline() {
     return (dbConnErr.retry < MAX_ERR_RETRY);
+}
+
+function isDbRespawn() {
+    return (dbConnErr.retry > MAX_ERR_RESPAWN)
 }
 
 function __dbErrorReset() {
@@ -59,8 +65,13 @@ function __init() {
         RETRY_TIME
     );
 }
+function discordClientRespawn(discordClient, id) {
+    discordClient.cluster.send({ respawn: true, id });
+}
 
 module.exports = {
     dbErrOccurs,
     isDbOnline,
+    discordClientRespawn,
+    isDbRespawn
 };

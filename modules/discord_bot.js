@@ -78,12 +78,17 @@ const newMessage = require('./message');
 
 const RECONNECT_INTERVAL = 1 * 1000 * 60;
 const shardids = client.cluster.id;
+console.log('shardids', shardids)
 const WebSocket = require('ws');
 var ws;
 
 client.on('messageCreate', async message => {
 	try {
 		if (message.author.bot) return;
+		if (!checkMongodb.isDbOnline() && checkMongodb.isDbRespawn()) {
+			checkMongodb.discordClientRespawn(client, shardids)
+		}
+
 		const result = await handlingResponMessage(message);
 		await handlingMultiServerMessage(message);
 		if (result && result.text)
@@ -96,8 +101,6 @@ client.on('messageCreate', async message => {
 });
 client.on('guildCreate', async guild => {
 	try {
-
-
 		const channels = await guild.channels.fetch();
 		const keys = Array.from(channels.values());
 		const channel = keys.find(channel => {
@@ -475,7 +478,7 @@ function respawnCluster(err) {
 	errorCount[number]++;
 	if (errorCount[number] > 3) {
 		try {
-			client.cluster.evalOnManager(this.clusters.get(number).respawn())
+			client.cluster.evalOnManager(`this.clusters.get(${client.cluster.id}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10000 });
 		} catch (error) {
 			console.error('respawnCluster #480 error', (error && (error.name || error.message || error.reson)));
 		}
@@ -483,8 +486,7 @@ function respawnCluster(err) {
 }
 function respawnCluster2() {
 	try {
-		let number = client.cluster.id;
-		client.cluster.evalOnManager(this.clusters.get(number).respawn())
+		client.cluster.evalOnManager(`this.clusters.get(${client.cluster.id}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10000 });
 	} catch (error) {
 		console.error('respawnCluster2 error', (error && (error.name || error.message || error.reson)));
 	}
@@ -716,7 +718,7 @@ async function getAllshardIds() {
 	];
 	return Promise.all(promises)
 		.then(results => {
-			return `所有啓動中的server ID:   ${results[0].join(', ')} 
+			return `\n所有啓動中的server ID:   ${results[0]} 
 			所有啓動中的server online:   ${results[1].map(ele => discordPresenceStatus[ele]).join(', ')} 
 			所有啓動中的server ping:   ${results[2].map(ele => ele.toFixed(0)).join(', ')}`
 		})

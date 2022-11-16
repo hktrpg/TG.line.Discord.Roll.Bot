@@ -59,36 +59,43 @@ const rollDiceCommand = async function ({
         }
         case /^\S/.test(mainMsg[1]) || !mainMsg[1]: {
             //get avatar  or reply message image
-            try {
-                const text = await getName(discordMessage, inputStr, mainMsg)
-                const avatar = await getAvatar(discordMessage, discordClient)
-                if (!avatar) {
-                    rply.text = `沒有找到reply 的圖示, 請再次檢查 \n\n${this.getHelpMessage()}`
-                }
-                const response = await getImage(avatar);
-
-                const d = new Date();
-                let time = d.getTime();
-                let name = `temp_${time}_${text.text}.png`
-
-                const token = await tokernMaker(response, name);
-
-                let newImage = await addTextOnImage(token, text.text, text.secondLine, name)
-                if (!newImage) {
-                    rply.text = `製作失敗，可能出現某些錯誤。 \n\n${this.getHelpMessage()}`
-                }
-                rply.sendImage = `./temp/finally_${name}`;
-                return rply;
-            } catch (error) {
-                console.log('error', error)
-            }
-            return;
+            return await polaroidTokernMaker(discordMessage, inputStr, mainMsg, discordClient);
         }
         default: {
             break;
         }
     }
 }
+
+
+const polaroidTokernMaker = async (discordMessage, inputStr, mainMsg, discordClient) => {
+    try {
+        let rply = { text: '', sendImage: '' };
+        const text = await getName(discordMessage, inputStr, mainMsg)
+        const avatar = await getAvatar(discordMessage, discordClient)
+        if (!avatar) {
+            rply.text = `沒有找到reply 的圖示, 請再次檢查 \n\n${this.getHelpMessage()}`
+        }
+        const response = await getImage(avatar);
+
+        const d = new Date();
+        let time = d.getTime();
+        let name = `temp_${time}_${text.text}.png`
+
+        const token = await tokernMaker(response, name);
+
+        let newImage = await addTextOnImage(token, text.text, text.secondLine, name)
+        if (!newImage) {
+            rply.text = `製作失敗，可能出現某些錯誤。 \n\n${this.getHelpMessage()}`
+        }
+        rply.sendImage = `./temp/finally_${name}`;
+        return rply;
+    } catch (error) {
+        console.log('error', error)
+    }
+    return rply;
+}
+
 const getAvatar = async (discordMessage, discordClient) => {
     if (discordMessage.type == 'DEFAULT' && discordMessage.attachments.size == 0) {
         const member = (discordMessage.guild && await discordMessage.guild.members.fetch(discordMessage.author) || discordMessage.author)

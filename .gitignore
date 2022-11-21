@@ -71,3 +71,5 @@ modules/whatsapp-session.json
 .wwebjs_auth/
 
 yarn.lock
+
+temp/

@@ -43,6 +43,7 @@
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.35",
     "mongoose": "^6",
+    "node-p5": "^1.0.4",
     "node-telegram-bot-api": "^0.54.0",
     "plurk2": "github:zeteticl/node-plurk2",
     "puppeteer": "^13.3.1",

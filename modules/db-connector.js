@@ -1,6 +1,7 @@
 "use strict";
+const schedule = require('node-schedule');
 if (!process.env.mongoURL) return;
-const reConnectTime = 24 * 60 * 60 * 1000; // One Day
+const restartTime = '30 4 * * *';
 const master = require.main?.filename.includes('index');
 const mongoose = require('mongoose');
 
@@ -28,14 +29,16 @@ async function connectMongoDB() {
 
 (async () => {
     connectMongoDB()
-    restartMongoDB();
+
 })();
+const job = schedule.scheduleJob(restartTime, function () {
+    console.log('04:30 reconnect MongoDB!!');
+    restartMongoDB();
+});
 
 function restartMongoDB() {
-    setTimeout(() => {
-        mongoose.connection.close()
-        connectMongoDB();
-    }, reConnectTime);
+    mongoose.connection.close()
+    connectMongoDB();
 }
 
 mongoose.connection.on('error', err => {

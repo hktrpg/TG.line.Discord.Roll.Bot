@@ -28,15 +28,13 @@ const getHelpMessage = function () {
 用來製作跑團Token的功能
 可以自定兩行名字和圖片內容
 
-分別有兩種製作方式
-1. .token [第一行] [第二行]
-2. .token2 [第一行] [第二行]
-token 為方形(相片型)
-token2 為圓形
+分別有兩種製作外框樣式
+1. .token 為方形(相片型)
+2. .token2 為圓形
 
 使用方法:
-reply 或傳送一張圖片時，輸入.token 不然會使用你的頭像 作為token
-然後一行一句內容，作為圖片上的名字
+reply 或傳送一張圖片時，輸入.token (不然會使用你的頭像 作為token)
+然後一行一句內容，作為圖片上的文字
 如.token 
 Sad
 HKTRPG

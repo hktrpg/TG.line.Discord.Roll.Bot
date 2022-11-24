@@ -456,7 +456,7 @@ class WatchMusic100 {
 	constructor() {
 	}
 	getRandomWatchMusic100() {
-		const random = ('00' + Math.floor(Math.random() * (100))).slice(-3);
+		const random = ('00' + Math.floor(Math.random() * (100) + 1)).slice(-3);
 		const WatchMusic = fs.readFileSync(`./assets/watchmusic100/觀音百籤${random}籤.htm`, 'utf8')
 		const $ = cheerio.load(WatchMusic);
 		let chance = '';

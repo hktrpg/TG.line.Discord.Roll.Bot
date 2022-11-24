@@ -980,7 +980,7 @@ async function handlingResponMessage(message, answer = '') {
 	}
 }
 const sendBufferImage = async (message, rplyVal, userid) => {
-	await message.channel.send({ content: `<@${userid}>\n你的Token 已經送到，現在輸入 .Token 為方型，.token2 為圓型`, files: [{ attachment: rplyVal.sendImage }] });
+	await message.channel.send({ content: `<@${userid}>\n你的Token已經送到，現在輸入 .token 為方型，.token2 為圓型`, files: [{ attachment: rplyVal.sendImage }] });
 	fs.unlinkSync(rplyVal.sendImage);
 	return;
 }

@@ -30,11 +30,14 @@ const getHelpMessage = function () {
 
 分別有兩種製作外框樣式
 1. .token 為方形(相片型)
-2. .token2 為圓形
+2. .token2 為透底圓形
 
 使用方法:
-reply 或傳送一張圖片時，輸入.token (不然會使用你的頭像 作為token)
-然後一行一句內容，作為圖片上的文字
+reply一個有圖片的訊息 或傳送一張圖片時，輸入.token 
+就可以產生一個token圖片
+如果沒有指定圖片，則自動使用你的頭像 作為token
+
+同時可以輸入兩行內容，作為圖片上的文字
 如.token 
 Sad
 HKTRPG

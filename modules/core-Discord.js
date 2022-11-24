@@ -30,9 +30,9 @@ manager.on('clusterCreate', shard => {
 		console.log(b);
 	});
 	shard.on('death', (a, b) => {
-		console.log('Shard died');
-		console.log(a);
-		console.log(b);
+		console.log('Discord Shard died!!');
+		//	console.log(a);
+		//	console.log(b);
 	});
 	shard.on('error', (error) => {
 		console.error(error)

@@ -35,7 +35,7 @@
     "discord.js-light": "^4.6.4",
     "dotenv": "^8.2.0",
     "emoji-regex": "^10.0.0",
-    "engine.io": "^4.0.0",
+    "engine.io": "^6.2.1",
     "events": "^3.3.0",
     "express": "^4.17.1",
     "https": "^1.0.0",

@@ -89,7 +89,7 @@ module.exports = {
     discordCommand
 };
 /**
-{show}
+{show }
 {ask: XXXX}
 {cal: Var 算式+-/*}
 {title}

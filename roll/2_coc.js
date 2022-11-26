@@ -1961,7 +1961,6 @@ const 調查類 = [
 	{ name: "圖書館使用", skill: 20 },
 	{ name: "估價", skill: 5 },
 	{ name: "讀唇", skill: 1 },
-	{ name: "克蘇魯神話", skill: 0 },
 ]
 
 const 戰鬥類 = [

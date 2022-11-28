@@ -89,12 +89,14 @@ module.exports = {
     discordCommand
 };
 /**
-{show }
-{ask: XXXX}
-{cal: Var 算式+-/*}
-{title}
-{content}
-{time XXYYDD HH:MM} <--- 顯示時間 
+{show: XXXX} 顯示某變數
+{ask: XXXX} 開啓可以輸入變數
+{cal: Var 算式+-/*} 計算變數
+{title} 標題
+{content} 內容
+{MAX 10} ? 最大可以按的次數
+{time: XXYYDD HH:MM} <--- 顯示時間
+{image: link=XXXX title=XXX content=XXX } 顯示圖片
 輸入格式 
 =====================
 #setting
@@ -104,7 +106,8 @@ module.exports = {
 =====================
 #1
 {title} 這是標題(可留空)
-{content} {ask: name} 這是內容 現在可以輸入名字: .st set name [名字]
+{image:} 這是內容
+{content} {ask: name} 你現在的HP是{show: HP}這是內容 現在可以輸入名字: .st set name [名字]
 {choice1} 選項1 {goto: #2} {cal: HP +1} {cal: SAN -2} {cal: MP *2}
 {choice2} 選項2 {goto: #3} {cal: varA +1} {cal: varA -2} {cal: varA *2}
 {choice3} 選項3 {goto: #end} 

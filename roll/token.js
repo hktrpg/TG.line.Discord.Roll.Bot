@@ -132,15 +132,7 @@ const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClie
         let time = d.getTime();
         let name = `temp_${time}_${text.text}.png`
 
-        const token = await tokernMaker2(response, name);
-        let colors = await getColors(token, {
-            count: 1,
-            type: 'image/png'
-        });
-        console.log(colors, 'colors')
-        let hexColor = colors.map(color => color.alpha(0.9).hex())
-        console.log(hexColor, 'hexColor')
-
+        const token = await tokernMaker3(response, name);
         const circleToken = await maskImage(token);
         let newImage = await addTextOnImage2(circleToken, text.text, text.secondLine, name)
         if (!newImage) {
@@ -274,6 +266,47 @@ const tokernMaker2 = async (imageLocation, name) => {
                 ]
             )
             .toBuffer()
+        fs.unlinkSync(`./temp/new_${name}`);
+        return newImage;
+    } catch (error) {
+        console.log('#token 142 error', error)
+    }
+}
+
+const tokernMaker3 = async (imageLocation, name) => {
+    try {
+
+        let image = await sharp(imageLocation).resize({ height: 387, width: 375, fit: 'outside' })
+        await image.toFile(`./temp/new_${name}`)
+        let newImage = await sharp((`./temp/new_${name}`))
+        let metadata = await newImage.metadata();
+        const width = (metadata.width < 375) ? metadata.width : 375;
+        const height = (metadata.height < 387) ? metadata.height : 387;
+        const left = ((metadata.width - 375) / 2) < 0 ? sharp.gravity.center : parseInt((metadata.width - 375) / 2);
+        const top = ((metadata.height - 387) / 2) < 0 ? sharp.gravity.center : parseInt((metadata.height - 387) / 2);
+        newImage = await newImage.extract({ left, top, width, height }).toBuffer()
+        const colors = await getColors(newImage, {
+            count: 1,
+            type: 'image/png'
+        });
+        console.log('colors', colors, colors[0]._rgb[0])
+        const rgbColor = colors[0]._rgb;
+        const coloredBase = await sharp('./assets/token/ONLINE_TOKEN_BACKGROUND_COLOR.png')
+            .tint({ r: rgbColor[0], g: rgbColor[1], b: rgbColor[2] })
+            .toBuffer();
+        newImage = await sharp('./views/image/ONLINE TOKEN_BASE.png')
+            .composite(
+                [
+                    { input: newImage, blend: 'saturate', top: 28, left: 70 },
+                ])
+            .toBuffer()
+        newImage = await sharp(coloredBase)
+            .composite(
+                [
+                    { input: newImage, blend: "add", top: 0, left: 0 },
+                ])
+            .toBuffer()
+
         fs.unlinkSync(`./temp/new_${name}`);
         return newImage;
     } catch (error) {

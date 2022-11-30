@@ -73,6 +73,12 @@ https://i.imgur.com/VSzO08U.png
 支援擲骰，請使用[[]]來包著擲骰指令
     `
 }
+const errorMessage =  `輸入出錯\n留意各個資料前要有空格分隔\n 
+範例
+.myname "泉心 造史" https://example.com/example.jpg 造史
+.myname 泉心造史 https://example.com/example.jpg 1
+.myname 泉心造史 https://example.com/example.jpg
+`
 const initialize = function () {
     return "";
 }
@@ -157,7 +163,7 @@ const rollDiceCommand = async function ({
         case /^\.myname$/i.test(mainMsg[0]): {
             //.myname 泉心造史 https://example.com/example.jpg
             if (!mainMsg[2]) {
-                rply.text = this.getHelpMessage();
+                rply.text = errorMessage;
                 rply.quotes = true;
                 return rply;
             }
@@ -169,10 +175,9 @@ const rollDiceCommand = async function ({
                 rply.quotes = true;
                 return rply;
             }
-
             let checkName = checkMyName(inputStr);
             if (!checkName || !checkName.name || !checkName.imageLink) {
-                rply.text = `輸入出錯\n ${this.getHelpMessage()}`;
+                rply.text = errorMessage;
                 rply.quotes = true;
                 return rply;
             }
@@ -181,11 +186,12 @@ const rollDiceCommand = async function ({
                 rply.quotes = true;
                 return rply;
             }
+            console.log(checkName);
             let myName = {};
             try {
                 myName = await schema.myName.findOneAndUpdate({ userID: userid, name: checkName.name }, { imageLink: checkName.imageLink, shortName: checkName.shortName }, opt)
             } catch (error) {
-                rply.text = `輸入出錯\n ${this.getHelpMessage()}`;
+                rply.text = `發生了一點錯誤，請稍後再試`;
                 return rply;
             }
             rply.text = `已新增角色 - ${myName.name}`;
@@ -250,14 +256,18 @@ function showMessage(myName, inputStr) {
 
 
 function checkMyName(inputStr) {
-    let name = inputStr.replace(/^\s?\S+\s+/, '');
-    let finalName = {}
-    if (name.match(/^".*"/)) {
-        finalName = name.match(/"(.*)"\s+(\S+)\s*(\S*)/)
-    } else {
-        finalName = name.match(/^(\S+)\s+(\S+)\s*(\S*)/)
+    try {
+        let name = inputStr.replace(/^\s?\S+\s+/, '');
+        let finalName = {}
+        if (name.match(/^".*"/)) {
+            finalName = name.match(/"(.*)"\s+(\S+)\s*(\S*)/)
+        } else {
+            finalName = name.match(/^(\S+)\s+(\S+)\s*(\S*)/)
+        }
+        return { name: finalName[1], imageLink: finalName[2], shortName: finalName[3] };
+    } catch (err) {
+        return {}
     }
-    return { name: finalName[1], imageLink: finalName[2], shortName: finalName[3] };
 }
 
 function checkMeName(inputStr) {

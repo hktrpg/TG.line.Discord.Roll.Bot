@@ -8,6 +8,7 @@ const sharp = require('sharp');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const axios = require('axios');
 const fs = require('fs');
+const getColors = require('get-image-colors')
 
 
 const gameName = function () {
@@ -19,7 +20,7 @@ const gameType = function () {
 }
 const prefixs = function () {
     return [{
-        first: /^\.token$|^\.token2$/i,
+        first: /^\.token$|^\.token2$|^\.token3$/i,
         second: null
     }]
 }
@@ -69,6 +70,10 @@ const rollDiceCommand = async function ({
             //get avatar  or reply message image
             return await circleTokernMaker(discordMessage, inputStr, mainMsg, discordClient);
         }
+        case /^\.token3/.test(mainMsg[0]): {
+            //get avatar  or reply message image
+            return await circleTokernMaker3(discordMessage, inputStr, mainMsg, discordClient);
+        }
         case /^\S/.test(mainMsg[1]) || !mainMsg[1]: {
             //get avatar  or reply message image
             return await polaroidTokernMaker(discordMessage, inputStr, mainMsg, discordClient);
@@ -94,6 +99,48 @@ const circleTokernMaker = async (discordMessage, inputStr, mainMsg, discordClien
         let name = `temp_${time}_${text.text}.png`
 
         const token = await tokernMaker2(response, name);
+        const circleToken = await maskImage(token);
+        let newImage = await addTextOnImage2(circleToken, text.text, text.secondLine, name)
+        if (!newImage) {
+            rply.text = `製作失敗，可能出現某些錯誤。 \n\n${this.getHelpMessage()}`
+        }
+
+        rply.sendImage = `./temp/finally_${name}`;
+        return rply;
+    } catch (error) {
+        console.log('error', error)
+    }
+    return rply;
+}
+const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClient) => {
+    try {
+        let rply = { text: '', sendImage: '' };
+        const text = await getName(discordMessage, inputStr, mainMsg)
+        const avatar = await getAvatar(discordMessage, discordClient)
+        if (!avatar) {
+            rply.text = `沒有找到reply 的圖示, 請再次檢查 \n\n${this.getHelpMessage()}`
+        }
+        const response = await getImage(avatar);
+        console.log('response', response, avatar)
+
+
+        // `colors` is an array of color objects
+
+
+
+        const d = new Date();
+        let time = d.getTime();
+        let name = `temp_${time}_${text.text}.png`
+
+        const token = await tokernMaker2(response, name);
+        let colors = await getColors(token, {
+            count: 1,
+            type: 'image/png'
+        });
+        console.log(colors, 'colors')
+        let hexColor = colors.map(color => color.alpha(0.9).hex())
+        console.log(hexColor, 'hexColor')
+
         const circleToken = await maskImage(token);
         let newImage = await addTextOnImage2(circleToken, text.text, text.secondLine, name)
         if (!newImage) {

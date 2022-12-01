@@ -99,7 +99,7 @@ const circleTokernMaker = async (discordMessage, inputStr, mainMsg, discordClien
         let name = `temp_${time}_${text.text}.png`
 
         const token = await tokernMaker2(response, name);
-        const circleToken = await maskImage(token);
+        const circleToken = await maskImage(token, './assets/token/tokenCircleMask.png');
         let newImage = await addTextOnImage2(circleToken, text.text, text.secondLine, name)
         if (!newImage) {
             rply.text = `製作失敗，可能出現某些錯誤。 \n\n${this.getHelpMessage()}`
@@ -108,7 +108,7 @@ const circleTokernMaker = async (discordMessage, inputStr, mainMsg, discordClien
         rply.sendImage = `./temp/finally_${name}`;
         return rply;
     } catch (error) {
-        console.log('error', error)
+        console.error('error', error)
     }
     return rply;
 }
@@ -121,20 +121,30 @@ const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClie
             rply.text = `沒有找到reply 的圖示, 請再次檢查 \n\n${this.getHelpMessage()}`
         }
         const response = await getImage(avatar);
-        console.log('response', response, avatar)
-
-
         // `colors` is an array of color objects
-
-
-
         const d = new Date();
         let time = d.getTime();
         let name = `temp_${time}_${text.text}.png`
 
         const token = await tokernMaker3(response, name);
-        const circleToken = await maskImage(token);
-        let newImage = await addTextOnImage2(circleToken, text.text, text.secondLine, name)
+        const circleToken = await maskImage(token, './assets/token/tokenCircleMask.png');
+        const colors = await getColors(circleToken, {
+            count: 1,
+            type: 'image/png'
+        });
+        const rgbColor = colors[0]._rgb;
+        console.log('rgbColor', rgbColor)
+        let coloredBase = await sharp('./assets/token/背景.png')
+            .tint({ r: rgbColor[0], g: rgbColor[1], b: rgbColor[2] })
+            .toBuffer();
+        coloredBase = await maskImage(coloredBase, './assets/token/ONLINE_TOKEN_BACKGROUND_COLOR2.png');
+        const circleToken2 = await sharp(coloredBase)
+            .composite(
+                [
+                    { input: circleToken, top: 0, left: 0 },
+                ])
+            .toBuffer()
+        let newImage = await addTextOnImage2(circleToken2, text.text, text.secondLine, name)
         if (!newImage) {
             rply.text = `製作失敗，可能出現某些錯誤。 \n\n${this.getHelpMessage()}`
         }
@@ -142,14 +152,14 @@ const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClie
         rply.sendImage = `./temp/finally_${name}`;
         return rply;
     } catch (error) {
-        console.log('error', error)
+        console.error('error', error)
     }
     return rply;
 }
 
-async function maskImage(path) {
+async function maskImage(path, maskPath) {
     const image = await jimp.read(path);
-    const mask = await jimp.read('./assets/token/tokenCircleMask.png');
+    const mask = await jimp.read(maskPath);
     image.mask(mask, 0, 0)
     return await image.getBufferAsync(jimp.MIME_PNG);
     //    return await image.writeAsync('./assets/token/test2345.png'); // Returns Promise
@@ -178,7 +188,7 @@ const polaroidTokernMaker = async (discordMessage, inputStr, mainMsg, discordCli
         rply.sendImage = `./temp/finally_${name}`;
         return rply;
     } catch (error) {
-        console.log('error', error)
+        console.error('error', error)
     }
     return rply;
 }
@@ -243,7 +253,7 @@ const tokernMaker = async (imageLocation, name) => {
         fs.unlinkSync(`./temp/new_${name}`);
         return newImage;
     } catch (error) {
-        console.log('#token 142 error', error)
+        console.error('#token 142 error', error)
     }
 }
 
@@ -269,7 +279,7 @@ const tokernMaker2 = async (imageLocation, name) => {
         fs.unlinkSync(`./temp/new_${name}`);
         return newImage;
     } catch (error) {
-        console.log('#token 142 error', error)
+        console.error('#token 142 error', error)
     }
 }
 
@@ -285,32 +295,16 @@ const tokernMaker3 = async (imageLocation, name) => {
         const left = ((metadata.width - 375) / 2) < 0 ? sharp.gravity.center : parseInt((metadata.width - 375) / 2);
         const top = ((metadata.height - 387) / 2) < 0 ? sharp.gravity.center : parseInt((metadata.height - 387) / 2);
         newImage = await newImage.extract({ left, top, width, height }).toBuffer()
-        const colors = await getColors(newImage, {
-            count: 1,
-            type: 'image/png'
-        });
-        console.log('colors', colors, colors[0]._rgb[0])
-        const rgbColor = colors[0]._rgb;
-        const coloredBase = await sharp('./assets/token/ONLINE_TOKEN_BACKGROUND_COLOR.png')
-            .tint({ r: rgbColor[0], g: rgbColor[1], b: rgbColor[2] })
-            .toBuffer();
         newImage = await sharp('./views/image/ONLINE TOKEN_BASE.png')
             .composite(
                 [
                     { input: newImage, blend: 'saturate', top: 28, left: 70 },
                 ])
             .toBuffer()
-        newImage = await sharp(coloredBase)
-            .composite(
-                [
-                    { input: newImage, blend: "add", top: 0, left: 0 },
-                ])
-            .toBuffer()
-
         fs.unlinkSync(`./temp/new_${name}`);
         return newImage;
     } catch (error) {
-        console.log('#token 142 error', error)
+        console.error('#token 142 error', error)
     }
 }
 

@@ -133,9 +133,15 @@ const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClie
             type: 'image/png'
         });
         const rgbColor = colors[0]._rgb;
-        console.log('rgbColor', rgbColor)
-        let coloredBase = await sharp('./assets/token/背景.png')
-            .tint({ r: rgbColor[0], g: rgbColor[1], b: rgbColor[2] })
+        let coloredBase = await sharp({
+            create: {
+                width: 520,
+                height: 520,
+                channels: 4,
+                background: { r: rgbColor[0], g: rgbColor[1], b: rgbColor[2] }
+            }
+        })
+            .png()
             .toBuffer();
         coloredBase = await maskImage(coloredBase, './assets/token/ONLINE_TOKEN_BACKGROUND_COLOR2.png');
         const circleToken2 = await sharp(coloredBase)

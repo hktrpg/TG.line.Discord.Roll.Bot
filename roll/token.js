@@ -9,7 +9,7 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const axios = require('axios');
 const fs = require('fs');
 const getColors = require('get-image-colors')
-
+const generate = require('@ant-design/colors').generate
 
 const gameName = function () {
     return '【製作Token】.token'
@@ -133,17 +133,26 @@ const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClie
             type: 'image/png'
         });
         const rgbColor = colors[0]._rgb;
+        let hexColor = rgbToHex(rgbColor[0], rgbColor[1], rgbColor[2])
+        const fineColors = generate('#' + hexColor);
+        let rgbFineColors = fineColors.map((color) => {
+            return hexToRgb(color)
+        })
+        console.log('rgbFineColors', rgbFineColors)
         let coloredBase = await sharp({
             create: {
                 width: 520,
                 height: 520,
                 channels: 4,
-                background: { r: rgbColor[0], g: rgbColor[1], b: rgbColor[2] }
+                background: { r: rgbFineColors[2].r, g: rgbFineColors[2].g, b: rgbFineColors[2].b }
             }
         })
             .png()
             .toBuffer();
         coloredBase = await maskImage(coloredBase, './assets/token/ONLINE_TOKEN_BACKGROUND_COLOR2.png');
+
+
+
         const circleToken2 = await sharp(coloredBase)
             .composite(
                 [
@@ -380,8 +389,22 @@ async function addTextOnImage2(token, text = ' ', text2 = ' ', name) {
     }
 }
 
+function hexToRgb(hex) {
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : null;
+}
 
-
+function rgbToHex(r, g, b) {
+    return (valueToHex(r) + valueToHex(g) + valueToHex(b));
+}
+function valueToHex(c) {
+    var hex = c.toString(16);
+    return hex
+}
 const discordCommand = [
 
 ];

@@ -73,7 +73,7 @@ https://i.imgur.com/VSzO08U.png
 支援擲骰，請使用[[]]來包著擲骰指令
     `
 }
-const errorMessage =  `輸入出錯\n留意各個資料前要有空格分隔\n 
+const errorMessage = `輸入出錯\n留意各個資料前要有空格分隔\n 
 範例
 .myname "泉心 造史" https://example.com/example.jpg 造史
 .myname 泉心造史 https://example.com/example.jpg 1
@@ -186,7 +186,6 @@ const rollDiceCommand = async function ({
                 rply.quotes = true;
                 return rply;
             }
-            console.log(checkName);
             let myName = {};
             try {
                 myName = await schema.myName.findOneAndUpdate({ userID: userid, name: checkName.name }, { imageLink: checkName.imageLink, shortName: checkName.shortName }, opt)

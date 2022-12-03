@@ -92,7 +92,7 @@ const rollDiceCommand = async function ({
                 rply.text = await callHelp(doc.trpgId) || '';
                 return rply;
             } else {
-                rply.text = `沒有已設定的骰表ID\n\n` + this.getHelpMessage();
+                rply.text = `沒有已設定的骰表ID\n\n請輸入ID，ID可以在下列網站找到\nhttps://bcdice.org/systems/ \n\n使用例子: .bc use CthulhuTech`;
                 rply.quotes = true;
                 return rply;
             }
@@ -107,12 +107,12 @@ const rollDiceCommand = async function ({
                 return rply;
             }
             if (!mainMsg[2]) {
-                rply.text = `請輸入ID，ID可以在下列網站找到\nhttps://bcdice.org/systems/`
+                rply.text = `請輸入ID，ID可以在下列網站找到\nhttps://bcdice.org/systems/\n\n使用例子: .bc use CthulhuTech`
                 return rply;
             }
             let help = await callHelp(mainMsg[2]);
             if (!help) {
-                rply.text = `此骰表ID沒有回應，請檢查是不是正確\nhttps://bcdice.org/systems/`
+                rply.text = `此骰表ID沒有回應，請檢查是不是正確\nhttps://bcdice.org/systems/\n\n使用例子: .bc use CthulhuTech`
                 return rply;
             }
             let doc = await schema.bcdiceRegedit.findOneAndUpdate(filter, { trpgId: mainMsg[2] }, { upsert: true, returnDocument: 'after', returnNewDocument: true }).catch(err => null)
@@ -216,10 +216,15 @@ async function calldice(gameType, message) {
     return (result && result.text) ? result.text : null;
 }
 async function callHelp(gameType) {
-    const loader = new DynamicLoader();
-    const GameSystem = await loader.dynamicLoad(gameType);
-    const result = GameSystem.HELP_MESSAGE || '';
-    return result;
+    try {
+        const loader = new DynamicLoader();
+        const GameSystem = await loader.dynamicLoad(gameType);
+        const result = GameSystem.HELP_MESSAGE || '';
+        return result;
+    } catch (error) {
+        return
+    }
+
 }
 module.exports = {
     rollDiceCommand,

@@ -1112,7 +1112,7 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                         }
                     }
                 })
-                return `你在未來${Math.max(thisMember.decreaseEXPTimes, times)} 次發言都會減少 ${Math.max(isNaN(thisMember.decreaseEXP) ? 0 : thisMember.decreaseEXP, exp)} ${expName} `;
+                return `你在未來 ${Math.max(isNaN(thisMember.decreaseEXPTimes) ? 0 : thisMember.decreaseEXPTimes, times)} 次發言都會減少 ${Math.max(isNaN(thisMember.decreaseEXP) ? 0 : thisMember.decreaseEXP, exp)} ${expName} `;
             }
 
         default:
@@ -1176,8 +1176,8 @@ async function calXP(eventList, thisMemberLV, type) {
         case "times": {
             let createEventerLV = await findMaxLv(eventList.userID);
             typeNumber = await rollDice.DiceINT(5, ((createEventerLV - thisMemberLV) > 0) ? Math.min(createEventerLV - thisMemberLV, 20) : 1);
-            if (typeNumber < 1) typeNumber = 1;
             if (isNaN(typeNumber)) typeNumber = 1;
+            if (typeNumber < 1) typeNumber = 1;
             return typeNumber;
         }
 

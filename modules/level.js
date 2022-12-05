@@ -82,6 +82,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     }
 
     let exp = await exports.rollbase.Dice(9) + 15;
+    if (isNaN(userInfo.decreaseEXPTimes)) userInfo.decreaseEXPTimes = 0;
     switch (true) {
         case (userInfo.decreaseEXPTimes > 0):
             userInfo.EXP -= userInfo.decreaseEXP;

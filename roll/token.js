@@ -134,30 +134,30 @@ const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClie
             type: 'image/png'
         });
         const rgbColor = colors[0]._rgb;
-        const pattern = GeoPattern.generate('GitHub').toDataUri()
+
+        const pattern = GeoPattern.generate('HKTRPG').toString()
+        console.log('pattern', pattern)
+        let url = Buffer.from(
+            pattern
+        )
+        console.log('url', url)
+
+
         let hexColor = rgbToHex(rgbColor[0], rgbColor[1], rgbColor[2])
         const fineColors = generate('#' + hexColor);
         let rgbFineColors = fineColors.map((color) => {
             return hexToRgb(color)
         })
         console.log('rgbFineColors', rgbFineColors)
-        let coloredBase = await sharp({
-            create: {
-                width: 520,
-                height: 520,
-                channels: 4,
-                background: { r: rgbFineColors[2].r, g: rgbFineColors[2].g, b: rgbFineColors[2].b }
-            }
-        })
-            .png()
+        let coloredBase = await sharp(url)
+            .resize(520, 520)
             .toBuffer();
         //https://github.com/oliver-moran/jimp/issues/231
-        console.log('pattern', pattern)
-        let url = Buffer.from(pattern.replace(/^data:image\/svg+xml;base64,/, ""), 'base64')
-        console.log('url', url)
-        coloredBase = await maskImage(url, './assets/token/ONLINE_TOKEN_BACKGROUND_COLOR2.png');
+        console.log('coloredBase1', coloredBase)
 
+        coloredBase = await maskImage(coloredBase, './assets/token/ONLINE_TOKEN_BACKGROUND_COLOR2.png');
 
+        console.log('coloredBase', coloredBase)
 
         const circleToken2 = await sharp(coloredBase)
             .composite(
@@ -169,7 +169,7 @@ const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClie
         if (!newImage) {
             rply.text = `製作失敗，可能出現某些錯誤。 \n\n${this.getHelpMessage()}`
         }
-
+        console.log('newImage', newImage)
         rply.sendImage = `./temp/finally_${name}`;
         return rply;
     } catch (error) {

@@ -10,6 +10,7 @@ const axios = require('axios');
 const fs = require('fs');
 const getColors = require('get-image-colors')
 const generate = require('@ant-design/colors').generate
+const GeoPattern = require('geopattern');
 
 const gameName = function () {
     return '【製作Token】.token'
@@ -133,6 +134,7 @@ const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClie
             type: 'image/png'
         });
         const rgbColor = colors[0]._rgb;
+        const pattern = GeoPattern.generate('GitHub').toDataUri()
         let hexColor = rgbToHex(rgbColor[0], rgbColor[1], rgbColor[2])
         const fineColors = generate('#' + hexColor);
         let rgbFineColors = fineColors.map((color) => {
@@ -149,7 +151,11 @@ const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClie
         })
             .png()
             .toBuffer();
-        coloredBase = await maskImage(coloredBase, './assets/token/ONLINE_TOKEN_BACKGROUND_COLOR2.png');
+        //https://github.com/oliver-moran/jimp/issues/231
+        console.log('pattern', pattern)
+        let url = Buffer.from(pattern.replace(/^data:image\/svg+xml;base64,/, ""), 'base64')
+        console.log('url', url)
+        coloredBase = await maskImage(url, './assets/token/ONLINE_TOKEN_BACKGROUND_COLOR2.png');
 
 
 

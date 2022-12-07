@@ -129,36 +129,17 @@ const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClie
 
         const token = await tokernMaker3(response, name);
         const circleToken = await maskImage(token, './assets/token/tokenCircleMask.png');
-        const colors = await getColors(circleToken, {
-            count: 1,
-            type: 'image/png'
-        });
-        const rgbColor = colors[0]._rgb;
-
-        const pattern = GeoPattern.generate('HKTRPG').toString()
-        console.log('pattern', pattern)
+     
+        const pattern = GeoPattern.generate((text.text || 'HKTRPG')).toString().replace('width="188" height="70"', 'width="520" height="520"')
         let url = Buffer.from(
             pattern
         )
-        console.log('url', url)
-
-
-        let hexColor = rgbToHex(rgbColor[0], rgbColor[1], rgbColor[2])
-        const fineColors = generate('#' + hexColor);
-        let rgbFineColors = fineColors.map((color) => {
-            return hexToRgb(color)
-        })
-        console.log('rgbFineColors', rgbFineColors)
         let coloredBase = await sharp(url)
             .resize(520, 520)
             .toBuffer();
         //https://github.com/oliver-moran/jimp/issues/231
-        console.log('coloredBase1', coloredBase)
-
+        
         coloredBase = await maskImage(coloredBase, './assets/token/ONLINE_TOKEN_BACKGROUND_COLOR2.png');
-
-        console.log('coloredBase', coloredBase)
-
         const circleToken2 = await sharp(coloredBase)
             .composite(
                 [
@@ -424,3 +405,19 @@ module.exports = {
     gameName,
     discordCommand
 };
+
+/**
+ * 
+ * 
+ *    const colors = await getColors(circleToken, {
+            count: 1,
+            type: 'image/png'
+        });
+        const rgbColor = colors[0]._rgb;
+        let hexColor = rgbToHex(rgbColor[0], rgbColor[1], rgbColor[2])
+        const fineColors = generate('#' + hexColor);
+        let rgbFineColors = fineColors.map((color) => {
+            return hexToRgb(color)
+        })
+        console.log('rgbFineColors', rgbFineColors)
+ */

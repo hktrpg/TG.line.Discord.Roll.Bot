@@ -15,7 +15,7 @@ const opt = {
     runValidators: true
 }
 const VIP = require('../modules/veryImportantPerson');
-const FUNCTION_LIMIT = (process.env.DEBUG) ? [99, 99, 99, 40, 40, 99, 99, 99] : [2, 20, 40, 40, 40, 99, 99, 99];
+const FUNCTION_LIMIT = (process.env.DEBUG) ? [99, 99, 99, 40, 40, 99, 99, 99] : [1, 20, 40, 40, 40, 99, 99, 99];
 /**
  * 因為資源限制，
  * 每個guild 5分鐘可以使用一次,
@@ -170,15 +170,19 @@ const rollDiceCommand = async function ({
                 options.before = last_id;
             }
             const messages = await channel.messages.fetch(options);
+            console.log('messages.size', messages)
             totalSize += (messages.size) ? messages.size : 0;
             messages.forEach(element => {
                 let temp;
+                // if (element.attachments && element.attachments.size) console.log('element.attachments',element.attachments.map(attachment => attachment.proxyURL))
                 if (element.type == 'DEFAULT') {
                     temp = {
                         timestamp: element.createdTimestamp,
                         contact: element.content.replace(/<@(.*?)>/ig, replacer),
                         userName: element.author.username,
-                        isbot: element.author.bot
+                        isbot: element.author.bot,
+                        attachments: (element.attachments && element.attachments.size) ? element.attachments.map(attachment => attachment.proxyURL) : [],
+                        embeds: (element.embeds && element.embeds.length) ? element.embeds.map(embed => embed.description) : []
                     }
                 } else
                     if (element.type !== 'DEFAULT') {
@@ -186,7 +190,9 @@ const rollDiceCommand = async function ({
                             timestamp: element.createdTimestamp,
                             contact: element.author.username + '\n' + element.type,
                             userName: '系統信息',
-                            isbot: true
+                            isbot: true,
+                            attachments: (element.attachments && element.attachments.size) ? element.attachments.map(attachment => attachment.proxyURL) : [],
+                            embeds: (element.embeds && element.embeds.length) ? element.embeds.map(embed => embed.description) : []
                         }
                     }
                 sum_messages.push(temp)
@@ -469,7 +475,9 @@ const rollDiceCommand = async function ({
                     }
                     //dateObj  決定有沒有時間
                     data += M[index].userName + '	' + dateObj + '\n';
-                    data += M[index].contact.replace(/<@(.*?)>/ig, replacer)
+                    data += M[index].contact.replace(/<@(.*?)>/ig, replacer);
+                    data += (M[index].embeds.length) ? `\n${M[index].embeds.join('\n')}` : '';
+                    data += (M[index].attachments.length) ? `\n${M[index].attachments.join('\n')}` : '';
                     data += '\n\n';
                 }
             }

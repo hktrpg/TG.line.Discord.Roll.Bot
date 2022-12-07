@@ -33,6 +33,7 @@ const getHelpMessage = function () {
 分別有兩種製作外框樣式
 1. .token 為方形(相片型)
 2. .token2 為透底圓形
+3. .token3 為透底圓形，外框為根據你的Discord名字或輸入名字決定的顏色
 
 使用方法:
 reply一個有圖片的訊息 或傳送一張圖片時，輸入.token 
@@ -54,7 +55,8 @@ const rollDiceCommand = async function ({
     inputStr,
     mainMsg,
     discordClient,
-    discordMessage
+    discordMessage,
+    displaynameDiscord
 }) {
     let rply = {
         default: 'on',
@@ -73,7 +75,7 @@ const rollDiceCommand = async function ({
         }
         case /^\.token3/.test(mainMsg[0]): {
             //get avatar  or reply message image
-            return await circleTokernMaker3(discordMessage, inputStr, mainMsg, discordClient);
+            return await circleTokernMaker3(discordMessage, inputStr, mainMsg, discordClient, displaynameDiscord);
         }
         case /^\S/.test(mainMsg[1]) || !mainMsg[1]: {
             //get avatar  or reply message image
@@ -113,7 +115,7 @@ const circleTokernMaker = async (discordMessage, inputStr, mainMsg, discordClien
     }
     return rply;
 }
-const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClient) => {
+const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClient, displaynameDiscord) => {
     try {
         let rply = { text: '', sendImage: '' };
         const text = await getName(discordMessage, inputStr, mainMsg)
@@ -129,8 +131,8 @@ const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClie
 
         const token = await tokernMaker3(response, name);
         const circleToken = await maskImage(token, './assets/token/tokenCircleMask.png');
-     
-        const pattern = GeoPattern.generate((text.text || 'HKTRPG')).toString().replace('width="188" height="70"', 'width="520" height="520"')
+
+        const pattern = GeoPattern.generate((text.text || displaynameDiscord || 'HKTRPG')).toString().replace('width="188" height="70"', 'width="520" height="520"')
         let url = Buffer.from(
             pattern
         )
@@ -138,7 +140,7 @@ const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClie
             .resize(520, 520)
             .toBuffer();
         //https://github.com/oliver-moran/jimp/issues/231
-        
+
         coloredBase = await maskImage(coloredBase, './assets/token/ONLINE_TOKEN_BACKGROUND_COLOR2.png');
         const circleToken2 = await sharp(coloredBase)
             .composite(
@@ -150,7 +152,6 @@ const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClie
         if (!newImage) {
             rply.text = `製作失敗，可能出現某些錯誤。 \n\n${this.getHelpMessage()}`
         }
-        console.log('newImage', newImage)
         rply.sendImage = `./temp/finally_${name}`;
         return rply;
     } catch (error) {

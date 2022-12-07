@@ -475,10 +475,10 @@ const rollDiceCommand = async function ({
                     }
                     //dateObj  決定有沒有時間
                     data += M[index].userName + '	' + dateObj + '\n';
-                    data += M[index].contact.replace(/<@(.*?)>/ig, replacer);
-                    data += (M[index].embeds.length) ? `\n${M[index].embeds.join('\n')}` : '';
-                    data += (M[index].attachments.length) ? `\n${M[index].attachments.join('\n')}` : '';
-                    data += '\n\n';
+                    data += (M[index].contact) ? M[index].contact.replace(/<@(.*?)>/ig, replacer) + '\n' : '';
+                    data += (M[index].embeds.length) ? `${M[index].embeds.join('\n')}` : '';
+                    data += (M[index].attachments.length) ? `${M[index].attachments.join('\n')}` : '';
+                    data += '\n';
                 }
             }
             try {

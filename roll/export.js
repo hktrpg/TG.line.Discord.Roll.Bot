@@ -51,9 +51,8 @@ const getHelpMessage = async function () {
 另外網頁版內容經過AES加密，後者是純文字檔案
 因為經過server處理，擔心個資外洩請勿使用。
 
-因為資源限制，
-每個群組 20分鐘可以使用一次,
-每個ACC可以一星期使用兩次
+因為資源限制，普通使用者 每個群組 每120分鐘可以使用一次,
+每個ACC可以一星期使用一次
 
 經patreon解鎖功能的話可以一星期使用20次以上，
 及可以一分鐘使用一次。
@@ -379,7 +378,7 @@ const rollDiceCommand = async function ({
             checkGP = await schema.exportGp.findOne({
                 groupID: userid
             }).catch(error => console.error('export #375 mongoDB error: ', error.name, error.reson));
-            gpLimitTime = (lv > 0) ? oneMinuts : oneMinuts * 20;
+            gpLimitTime = (lv > 0) ? oneMinuts : oneMinuts * 120;
             gpRemainingTime = (checkGP) ? theTime - checkGP.lastActiveAt - gpLimitTime : 1;
             userRemainingTime = (checkUser) ? theTime - checkUser.lastActiveAt - sevenDay : 1;
             try {

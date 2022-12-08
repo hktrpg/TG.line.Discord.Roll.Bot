@@ -311,6 +311,7 @@ const rollDiceCommand = async function ({
             if (!adminSecret) return rply;
             if (userid !== adminSecret) return rply;
             filter = await store(inputStr, 'gp');
+            console.log(filter)
             if (!filter.gpid) return rply;
             try {
                 doc = await schema.veryImportantPerson.updateOne({

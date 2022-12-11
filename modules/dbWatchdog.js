@@ -2,7 +2,7 @@
 const schema = require('./schema.js');
 const MAX_ERR_RETRY = 3;
 const RETRY_TIME = 15 * 1000;// 每15秒更新;
-const MAX_ERR_RESPAWN = 50;
+const MAX_ERR_RESPAWN = 20;
 
 let dbConnErr = {
     timeStamp: Date.now(),

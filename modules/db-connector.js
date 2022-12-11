@@ -32,8 +32,8 @@ async function connectMongoDB() {
 
 })();
 const job = schedule.scheduleJob(restartTime, function () {
-    console.log('04:30 reconnect MongoDB!!');
-    restartMongoDB();
+    //  console.log('04:30 reconnect MongoDB!!');
+    //   restartMongoDB();
 });
 
 function restartMongoDB() {

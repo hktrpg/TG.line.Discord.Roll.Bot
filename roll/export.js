@@ -169,7 +169,6 @@ const rollDiceCommand = async function ({
                 options.before = last_id;
             }
             const messages = await channel.messages.fetch(options);
-            console.log('messages.size', messages)
             totalSize += (messages.size) ? messages.size : 0;
             messages.forEach(element => {
                 let temp;

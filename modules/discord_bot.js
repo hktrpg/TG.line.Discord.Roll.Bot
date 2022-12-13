@@ -136,10 +136,12 @@ client.on('interactionCreate', async message => {
 client.on('messageReactionAdd', async (reaction, user) => {
 	if (!checkMongodb.isDbOnline()) return;
 	if (reaction.me) return;
-	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => {
-		console.error('discord_bot #802 mongoDB error: ', error.name, error.reson)
-		checkMongodb.dbErrOccurs();
-	})
+	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId })
+		.cache(30)
+		.catch(error => {
+			console.error('discord_bot #802 mongoDB error: ', error.name, error.reson)
+			checkMongodb.dbErrOccurs();
+		})
 	try {
 		if (!list || list.length === 0) return;
 		const detail = list.detail;

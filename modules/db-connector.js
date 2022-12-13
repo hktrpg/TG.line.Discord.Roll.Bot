@@ -4,13 +4,17 @@ if (!process.env.mongoURL) return;
 const restartTime = '30 4 * * *';
 const master = require.main?.filename.includes('index');
 const mongoose = require('mongoose');
-
+const cachegoose = require('recachegoose');
 /* mongoose.connect(process.env.mongoURL, {
         useNewUrlParser: true,
         useFindAndModify: false,
         useUnifiedTopology: true
     });
 */
+
+cachegoose(mongoose, {
+    engine: 'memory'
+});
 async function connectMongoDB() {
     try {
         await mongoose.connect(process.env.mongoURL, {

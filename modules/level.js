@@ -30,7 +30,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     const gpInfo = await schema.trpgLevelSystem.findOne({
         groupid: groupid,
         SwitchV2: true
-    }).catch(error => {
+    }).cache(60).catch(error => {
         console.error('level #26 mongoDB error: ', error.name, error.reson)
         checkMongodb.dbErrOccurs();
         retry.number++;
@@ -59,10 +59,11 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     let userInfo = await schema.trpgLevelSystemMember.findOne({
         groupid: groupid,
         userid: userid
-    }).catch(error => {
-        console.error('level #46 mongoDB error: ', error.name, error.reson)
-        checkMongodb.dbErrOccurs();
-    });
+    }).cache(60)
+        .catch(error => {
+            console.error('level #46 mongoDB error: ', error.name, error.reson)
+            checkMongodb.dbErrOccurs();
+        });
     if (!userInfo) {
         await newUser(gpInfo, groupid, userid, displayname, displaynameDiscord, tgDisplayname);
         return;

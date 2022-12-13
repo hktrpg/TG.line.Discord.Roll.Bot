@@ -59,7 +59,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     let userInfo = await schema.trpgLevelSystemMember.findOne({
         groupid: groupid,
         userid: userid
-    }).cache(60)
+    })
         .catch(error => {
             console.error('level #46 mongoDB error: ', error.name, error.reson)
             checkMongodb.dbErrOccurs();

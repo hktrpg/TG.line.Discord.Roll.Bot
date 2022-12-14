@@ -27,6 +27,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
         return group.groupid == groupid;
     });
     if (filterSwitchV2 && (filterSwitchV2.SwitchV2 === false)) return;
+    if (!checkMongodb.isDbOnline()) return;
     const gpInfo = await schema.trpgLevelSystem.findOne({
         groupid: groupid,
         SwitchV2: true

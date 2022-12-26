@@ -2,11 +2,11 @@
 const variables = {};
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const gameName = function () {
-    return '【Demo】'
+    return '【成就系統】'
 }
 
 const gameType = function () {
-    return 'Demo:Demo:hktrpg'
+    return 'funny:achievenment:hktrpg'
 }
 const prefixs = function () {
     //[mainMSG[0]的prefixs,mainMSG[1]的prefixs,   <---這裡是一對  

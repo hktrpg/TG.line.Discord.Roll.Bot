@@ -21,7 +21,8 @@ const prefixs = function () {
 const getHelpMessage = function () {
     return `【示範】
 只是一個Demo的第一行
-只是一個Demo末行`
+只是一個Demo末行
+`
 }
 const initialize = function () {
     return variables;

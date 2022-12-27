@@ -2,7 +2,7 @@
 const variables = {};
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const gameName = function () {
-    return '【成就系統】'
+    return '【成就Bingo遊戲】.bingo'
 }
 
 const gameType = function () {
@@ -14,14 +14,36 @@ const prefixs = function () {
     //如前面是 /^1$/ig, 後面是/^1D100$/ig, 即 prefixs 變成 1 1D100 
     ///^(?=.*he)(?!.*da).*$/ig
     return [{
-        first: /^Demo$/i,
-        second: /^啊$/i
+        first: /^\.bingo|\.bingos$/i,
+        second: null
     }]
 }
 const getHelpMessage = function () {
-    return `【示範】
-只是一個Demo的第一行
-只是一個Demo末行`
+    return `【成就Bingo遊戲】
+這是以成就為主題的Bingo遊戲，
+每個Bingo遊戲都有一個標題，並且有3X3 到5X5 的內容。
+當你開始一個Bingo遊戲時，會以那些成就內容拼出Bingo圖案，
+當你看到那個成就是你已達成的，就可以點擊它，
+下面會出現分數計算。
+所有人都可以點擊，並進行分數計算。
+--------------------------------
+.bingo help - 查看說明
+.bingo achievement - 查看你已達成的成就列表
+.bingo achievement 標題 - 查看你已達成的成就列表
+.bingo list - 查看現在有的Bingo遊戲列表
+.bingo list 標題 - 查看該Bingo遊戲的內容列表
+.bingo add  標題 內容1 內容2 .... 內容N (至少9個或以上) - 新增一個Bingo遊戲
+.bingo remove 標題 - 刪除一個Bingo遊戲 (限HKTRPG管理員)
+.bingo 標題名字 - 開始bingo遊戲
+--------------------------------
+.bingog help - 查看說明
+.bingog achievement - 查看你已達成的成就列表
+.bingog list - 查看現在有的Bingo遊戲列表
+.bingog list 標題 - 查看該Bingo遊戲的內容列表
+.bingog add  標題 內容1 內容2 .... 內容N (至少9個或以上) - 新增一個Bingo遊戲
+.bingog remove 標題 - 刪除一個Bingo遊戲 (限頻道管理員)
+.bingog 標題名字 - 開始bingo遊戲
+`
 }
 const initialize = function () {
     return variables;

@@ -27,6 +27,8 @@ const getHelpMessage = function () {
 下面會出現分數計算。
 所有人都可以點擊，並進行分數計算。
 --------------------------------
+【私人群組版】
+.bingo button - 顯示Bingo遊戲按鈕
 .bingo help - 查看說明
 .bingo achievement - 查看你已達成的成就列表
 .bingo achievement 標題 - 查看你已達成的成就列表
@@ -36,13 +38,15 @@ const getHelpMessage = function () {
 .bingo remove 標題 - 刪除一個Bingo遊戲 (限HKTRPG管理員)
 .bingo 標題名字 - 開始bingo遊戲
 --------------------------------
-.bingog help - 查看說明
-.bingog achievement - 查看你已達成的成就列表
-.bingog list - 查看現在有的Bingo遊戲列表
-.bingog list 標題 - 查看該Bingo遊戲的內容列表
-.bingog add  標題 內容1 內容2 .... 內容N (至少9個或以上) - 新增一個Bingo遊戲
-.bingog remove 標題 - 刪除一個Bingo遊戲 (限頻道管理員)
-.bingog 標題名字 - 開始bingo遊戲
+【公用版】
+.bingos button - 顯示Bingo遊戲按鈕
+.bingos help - 查看說明
+.bingos achievement - 查看你已達成的成就列表
+.bingos list - 查看現在有的Bingo遊戲列表
+.bingos list 標題 - 查看該Bingo遊戲的內容列表
+.bingos add  標題 內容1 內容2 .... 內容N (至少9個或以上) - 新增一個Bingo遊戲
+.bingos remove 標題 - 刪除一個Bingo遊戲 (限頻道管理員)
+.bingos 標題名字 - 開始bingo遊戲
 `
 }
 const initialize = function () {

@@ -463,7 +463,32 @@ const mongodbState = mongoose.model('mongodbState', new mongoose.Schema({
     errorDate: Date
 }));
 
+const Achievement = mongoose.model('achievement', new mongoose.Schema({
+    groupID: String,
+    title: String,
+    detail: [{
+        name: String,
+        description: String,
+    }]
+}));
+
+const AchievementUserScore = mongoose.model('achievementUserScore', new mongoose.Schema({
+    userID: String,
+    achievement: [{
+        title: String,
+        achieved: [{
+            name: String
+        }],
+        achievementId: String,
+        score: Number,
+    }]
+
+}));
+
+
 module.exports = {
+    AchievementUserScore,
+    Achievement,
     randomAns,
     multiServer,
     block,

@@ -1,6 +1,7 @@
 "use strict";
 const variables = {};
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const schema = require('../modules/schema.js');
 const gameName = function () {
     return '【成就Bingo遊戲】.bingo'
 }
@@ -76,11 +77,39 @@ const rollDiceCommand = async function ({
             rply.quotes = true;
             return rply;
         }
-        case /^\d+$/i.test(mainMsg[1]): {
-            rply.text = 'Demo' + mainMsg[1] + inputStr + groupid + userid + userrole + botname + displayname + channelid + displaynameDiscord + membercount;
+        case /^.bingos$/i.test(mainMsg[0]) && /^button$/.test(mainMsg[1]): {
+            console.log('button')
+            let achievement = await Achievement.init('0000000000');
+            console.log('achievement', achievement);
+            try {
+                rply.buttonCreate = achievement.button();
+            } catch (e) {
+                console.log('e', e)
+                rply.text = e;
+            }
             return rply;
         }
-        case /^\S/.test(mainMsg[1] || ''): {
+        case /^.bingos$/.test(mainMsg[0]) && /^achievement$/.test(mainMsg[1]): {
+            rply.text = 'Demo'
+            return rply;
+        }
+        case /^.bingos$/.test(mainMsg[0]) && /^list$/.test(mainMsg[1]): {
+            rply.text = 'Demo'
+            return rply;
+        }
+        case /^.bingos$/.test(mainMsg[0]) && /^add$/.test(mainMsg[1]): {
+            rply.text = 'Demo'
+            return rply;
+        }
+        case /^.bingos$/.test(mainMsg[0]) && /^remove$/.test(mainMsg[1]): {
+            rply.text = 'Demo'
+            return rply;
+        }
+        case /^.bingos$/.test(mainMsg[0]) && /^button$/.test(mainMsg[1]): {
+            rply.text = 'Demo'
+            return rply;
+        }
+        case /^.bingos$/.test(mainMsg[0]) && /^\S+$/.test(mainMsg[1]): {
             rply.text = 'Demo'
             return rply;
         }
@@ -100,6 +129,53 @@ module.exports = {
     gameName,
     discordCommand
 };
+
+class Achievement {
+    constructor(data) {
+        this.groupID = data.groupID;
+        this.title = data.title;
+        this.detail = data.detail;
+    }
+    static async init(groupID) {
+        console.log('AAA', groupID)
+        try {
+            let data = await this.getDate(groupID);
+            let achievement = new Achievement(data);
+            return achievement;
+        } catch (error) {
+            console.log('error', error)
+        }
+
+    }
+    //https://stackoverflow.com/questions/43431550/async-await-class-constructor
+    async getDate(groupID) {
+        return schema.Achievement.find({ groupID })
+    }
+    button() {
+        if (this.detail.length > 0) {
+            let response = [];
+            for (let index = 0; index < this.detail.length; index++) {
+                response.push(`.bingos ${this.detail[index].name}`)
+
+            }
+            return response
+        }
+        else {
+            throw '未有遊戲，請先新增遊戲';
+        }
+    }
+
+
+}
+
+class AchievementUserSroce {
+    constructor(data) {
+        this.userID = data.userID;
+        this.achievement = data.achievement;
+    }
+}
+
+
 /**
  成就系統
 A. 分成四個部分

@@ -461,7 +461,7 @@ process.on('unhandledRejection', error => {
 	// user_id: Value "&" is not snowflake.
 
 
-	console.error('Discord Unhandled promise rejection:', (error && (error.name || error.message || error.reson)));
+	console.error('Discord Unhandled promise rejection:', (error && (error.name || error.message || error.reson), error));
 	process.send({
 		type: "process:msg",
 		data: "discorderror"

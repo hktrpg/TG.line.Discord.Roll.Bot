@@ -466,10 +466,7 @@ const mongodbState = mongoose.model('mongodbState', new mongoose.Schema({
 const Achievement = mongoose.model('achievement', new mongoose.Schema({
     groupID: String,
     title: String,
-    detail: [{
-        name: String,
-        description: String,
-    }]
+    detail: Array
 }));
 
 const AchievementUserScore = mongoose.model('achievementUserScore', new mongoose.Schema({

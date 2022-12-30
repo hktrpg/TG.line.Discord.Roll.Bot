@@ -5,6 +5,8 @@ const schema = require('../modules/schema.js');
 const gameName = function () {
     return '【成就Bingo遊戲】.bingo'
 }
+const VIP = require('../modules/veryImportantPerson');
+const FUNCTION_LIMIT = [5, 100, 200, 500, 500, 500, 500, 500];
 
 const gameType = function () {
     return 'funny:achievenment:hktrpg'
@@ -77,40 +79,58 @@ const rollDiceCommand = async function ({
             rply.quotes = true;
             return rply;
         }
-        case /^.bingos$/i.test(mainMsg[0]) && /^button$/.test(mainMsg[1]): {
+        case /^.bingos$/.test(mainMsg[0]) && /^achievement$/.test(mainMsg[1]): {
+            rply.text = 'Demo'
+            return rply;
+        }
+        case /^.bingos$/.test(mainMsg[0]) && /^list$/.test(mainMsg[1]): {
             console.log('button')
             let achievement = await Achievement.init('0000000000');
             console.log('achievement', achievement);
             try {
-                rply.buttonCreate = achievement.button();
+                let list = achievement.list();
+                rply.text = list.list;
+                rply.buttonCreate = list.button;
             } catch (e) {
                 console.log('e', e)
                 rply.text = e;
             }
             return rply;
         }
-        case /^.bingos$/.test(mainMsg[0]) && /^achievement$/.test(mainMsg[1]): {
-            rply.text = 'Demo'
-            return rply;
-        }
-        case /^.bingos$/.test(mainMsg[0]) && /^list$/.test(mainMsg[1]): {
-            rply.text = 'Demo'
-            return rply;
-        }
         case /^.bingos$/.test(mainMsg[0]) && /^add$/.test(mainMsg[1]): {
-            rply.text = 'Demo'
+            try {
+                console.log('add')
+                let result = await Achievement.add('0000000000', mainMsg);
+                console.log('result2', result)
+                rply.text = result.text;
+                rply.buttonCreate = result.button;
+            } catch (error) {
+                rply.text = error;
+            }
             return rply;
         }
         case /^.bingos$/.test(mainMsg[0]) && /^remove$/.test(mainMsg[1]): {
-            rply.text = 'Demo'
-            return rply;
-        }
-        case /^.bingos$/.test(mainMsg[0]) && /^button$/.test(mainMsg[1]): {
-            rply.text = 'Demo'
+            if (!adminSecret) return rply;
+            if (userid !== adminSecret) return rply;
+            try {
+                rply.text = await Achievement.remove('0000000000', mainMsg);
+            } catch (error) {
+                console.log('error', error)
+                rply.text = error;
+            }
             return rply;
         }
         case /^.bingos$/.test(mainMsg[0]) && /^\S+$/.test(mainMsg[1]): {
-            rply.text = 'Demo'
+            let achievement = await Achievement.init('0000000000', mainMsg[1]);
+            console.log('achievement', achievement);
+            try {
+                let list = achievement.play(mainMsg[1]);
+                // rply.text = list.list;
+                rply.buttonCreate = list.button;
+            } catch (e) {
+                console.log('e', e)
+                rply.text = e;
+            }
             return rply;
         }
         default: {
@@ -119,6 +139,18 @@ const rollDiceCommand = async function ({
     }
 }
 
+
+function sliceString(str, length) {
+    let result = [];
+    if (typeof str === 'string') {
+        return str.split(0, length)
+    }
+    for (let i = 0; i < str.length; i++) {
+        str[i].slice(0, length)
+    }
+    return result;
+
+}
 const discordCommand = []
 module.exports = {
     rollDiceCommand,
@@ -131,41 +163,113 @@ module.exports = {
 };
 
 class Achievement {
-    constructor(data) {
-        this.groupID = data.groupID;
-        this.title = data.title;
-        this.detail = data.detail;
+    constructor() {
+        this.achievements = [];
     }
-    static async init(groupID) {
-        console.log('AAA', groupID)
-        try {
-            let data = await this.getDate(groupID);
-            let achievement = new Achievement(data);
-            return achievement;
-        } catch (error) {
-            console.log('error', error)
-        }
+    static init(groupID, title) {
+        console.log('AAA', groupID, title)
+        return (async function (groupID, title) {
+            console.log('AAA2', groupID, title)
+            try {
+                let achievement = new Achievement()
+                // Do async stuff
+                console.log('title3', title)
+                let data = await achievement.build(groupID, title)
+                console.log('data', data)
+                // Return instance
+                achievement.achievements = data;
+                return achievement
+            } catch (error) {
+                console.log('error', error)
+                return
+            }
+        }(groupID, title))
+    }
 
+    async build(groupID, title = null) {
+        console.log('groupID', groupID)
+        let obj = { groupID: groupID };
+        if (title) obj.title = title;
+        console.log('obj', obj)
+        let data = schema.Achievement.find(obj).catch(error => console.error(error));
+        console.log('data', data)
+        return data
     }
     //https://stackoverflow.com/questions/43431550/async-await-class-constructor
-    async getDate(groupID) {
-        return schema.Achievement.find({ groupID })
-    }
-    button() {
-        if (this.detail.length > 0) {
-            let response = [];
-            for (let index = 0; index < this.detail.length; index++) {
-                response.push(`.bingos ${this.detail[index].name}`)
 
+    list() {
+        if (this.achievements && this.achievements.length > 0) {
+            let response = { list: '', button: [] };
+            for (let index = 0; index < this.achievements.length; index++) {
+                response.button.push(`.bingos ${this.achievements[index].title}`)
+                response.list += `${index + 1}. ${this.achievements[index].title}\n`
             }
             return response
         }
         else {
-            throw '未有遊戲，請先新增遊戲';
+            throw '未有遊戲，請先新增遊戲\n.bingos add 標題 內容1 內容2 .... 內容N (至少9個或以上) - 新增一個Bingo遊戲';
         }
     }
+    static async add(groupID, text) {
+        return (async function (groupID, text) {
+            if (text.length <= 10) throw '至少需要9個內容';
+            let data = {
+                groupID: groupID,
+                title: sliceString(text[2], 50),
+                detail: sliceString(text.splice(3), 30)
+            }
+            let query = { groupID: data.groupID, title: data.title };
 
+            let result = await schema.Achievement.findOne(query)
+                .catch(error => console.error(error));
+            console.log('result', result)
+            if (result) throw '已有相同標題的遊戲，請用其他標題重新輸入';
+            let achievement = new schema.Achievement({ groupID: data.groupID, title: data.title, detail: data.detail })
+            let addResult = await achievement.save()
+            console.log('addResult', addResult)
+            if (addResult) return { text: '已新增成功', button: randomOrderArray(data.detail) }
+            else throw '新增失敗，請重新輸入';
+        }(groupID, text))
+    }
+    randomOrderArray(array) {
+        let result = [];
+        let temp = [];
+        for (let i = 0; i < array.length; i++) {
+            temp.push(array[i]);
+        }
+        for (let i = 0; i < array.length; i++) {
+            let index = Math.floor(Math.random() * temp.length);
+            result.push(temp[index]);
+            temp.splice(index, 1);
+        }
+        return result;
+    }
+    static async remove(groupID, text) {
+        let data = {
+            groupID: groupID,
+            title: sliceString(text[2], 50)
+        }
+        let query = { groupID: data.groupID, title: data.title };
 
+        let result = await schema.Achievement.findOneAndRemove(query)
+            .catch(error => console.error(error));
+        console.log('result', result)
+        if (result) return '已刪除成功'
+        else throw '刪除失敗，請檢查然後重新輸入\n.bingos list - 列出所有遊戲';
+    }
+    play() {
+        if (this.achievements && this.achievements.length === 1) {
+            let response = { list: '', button: [] };
+            for (let index = 0; index < this.achievements[0].detail.length; index++) {
+                response.button.push(`${this.achievements[0].detail[index]}`)
+            }
+            response.button = this.randomOrderArray(response.button);
+            return response
+        }
+        else {
+            throw '沒有此遊戲，請先檢查遊戲標題是否正確\n.bingos list - 列出所有遊戲';
+        }
+    }
 }
 
 class AchievementUserSroce {

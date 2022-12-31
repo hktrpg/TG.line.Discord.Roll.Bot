@@ -471,14 +471,11 @@ const Achievement = mongoose.model('achievement', new mongoose.Schema({
 
 const AchievementUserScore = mongoose.model('achievementUserScore', new mongoose.Schema({
     userID: String,
-    achievement: [{
-        title: String,
-        achieved: [{
-            name: String
-        }],
-        achievementId: String,
-        score: Number,
-    }]
+    achievementId: String,
+    title: String,
+    achieved: [String],
+    score: Number,
+
 
 }));
 

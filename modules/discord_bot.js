@@ -9,6 +9,8 @@ const multiServer = require('../modules/multi-server')
 const checkMongodb = require('../modules/dbWatchdog.js');
 const fs = require('node:fs');
 const errorCount = [];
+const bingoSize = [9, 16, 25]
+const bingoRowSize = [3, 4, 5]
 const { Client, Intents, Permissions, Collection, MessageActionRow, MessageButton, WebhookClient, MessageAttachment } = Discord;
 const rollText = require('./getRoll').rollText;
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
@@ -728,6 +730,48 @@ async function getAllshardIds() {
 
 }
 
+function compareArrayNumber(number, array) {
+	// 9 [3, 4, 5][9,16,25]
+	if (!array || !array.length) return;
+	for (let index = 0; index < array.length; index++) {
+		if (number < array[index]) {
+			return index - 1;
+		}
+	}
+	return array.length - 1;
+}
+
+async function handlingBingoButtonCreate(message, input) {
+	const rowSize = bingoSize[compareArrayNumber(input.length, bingoSize)];
+	const rowLength = bingoRowSize[compareArrayNumber(input.length, bingoSize)];
+	console.log('rowSize', rowSize, 'rowLength', rowLength)
+	const buttonsNames = input.slice(0, rowSize);
+	const row = []
+
+	const totallyQuotient = ~~((buttonsNames.length - 1) / rowLength) + 1;
+	for (let index = 0; index < totallyQuotient; index++) {
+		row.push(new MessageActionRow())
+	}
+	for (let i = 0; i < buttonsNames.length; i++) {
+		const quot = ~~(i / rowLength)
+		const name = buttonsNames[i] || 'null'
+		row[quot]
+			.addComponents(
+				new MessageButton()
+					.setCustomId(`${name}_${i}`)
+					.setLabel(name)
+					.setStyle(buttonsStyle(i)),
+			)
+	}
+	const arrayRow = await splitArray(rowLength, row)
+	console.log('arrayRow', arrayRow)
+	return arrayRow;
+	//for (let index = 0; index < arrayRow.length; index++) {
+	//	await message.reply({ content: ``, components: arrayRow[index] });
+	//}
+
+}
+
 async function handlingButtonCreate(message, input) {
 	const buttonsNames = input;
 	const row = []
@@ -905,7 +949,11 @@ async function handlingResponMessage(message, answer = '') {
 		});
 		if (rplyVal.requestRollingCharacter) await handlingRequestRollingCharacter(message, rplyVal.requestRollingCharacter);
 		if (rplyVal.requestRolling) await handlingRequestRolling(message, rplyVal.requestRolling, displaynameDiscord);
+		console.log('rplyVal', rplyVal)
 		if (rplyVal.buttonCreate) rplyVal.buttonCreate = await handlingButtonCreate(message, rplyVal.buttonCreate)
+		if (rplyVal.bingoButtonCreate) rplyVal.buttonCreate = await handlingBingoButtonCreate(message, rplyVal.bingoButtonCreate)
+
+		console.log(rplyVal)
 		if (rplyVal.roleReactFlag) await roleReact(channelid, rplyVal)
 		if (rplyVal.newRoleReactFlag) await newRoleReact(message, rplyVal)
 		if (rplyVal.discordEditMessage) await handlingEditMessage(message, rplyVal)
@@ -976,7 +1024,7 @@ async function handlingResponMessage(message, answer = '') {
 		};
 
 	} catch (error) {
-		console.error('handlingResponMessage Error: ', (error && (error.name || error.message || error.reson)))
+		console.error('handlingResponMessage Error: ', (error))
 	}
 }
 const sendBufferImage = async (message, rplyVal, userid) => {

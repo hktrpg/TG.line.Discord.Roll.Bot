@@ -3,13 +3,11 @@ exports.analytics = require('./analytics');
 const schema = require('../modules/schema.js');
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const adminSecret = process.env.ADMIN_SECRET || '';
-const schedule = require('node-schedule');
 const Cluster = require('discord-hybrid-sharding');
 const Discord = require("discord.js-light");
 const multiServer = require('../modules/multi-server')
 const checkMongodb = require('../modules/dbWatchdog.js');
 const fs = require('node:fs');
-const restartTime = '30 4 * * *';
 const errorCount = [];
 const { Client, Intents, Permissions, Collection, MessageActionRow, MessageButton, WebhookClient, MessageAttachment } = Discord;
 const rollText = require('./getRoll').rollText;
@@ -464,7 +462,7 @@ process.on('unhandledRejection', error => {
 	// user_id: Value "&" is not snowflake.
 
 
-	console.error('Discord Unhandled promise rejection:', (error && (error.name || error.message || error.reson)));
+	console.error('Discord Unhandled promise rejection:', (error));
 	process.send({
 		type: "process:msg",
 		data: "discorderror"
@@ -497,6 +495,12 @@ function respawnCluster2() {
 
 (async function () {
 	if (!agenda) return;
+	agenda.define('0430restartdiscord', async (job) => {
+		console.log('04:30 restart discord!!');
+		client.cluster.send({ respawn: true, id: shardids });
+	});
+
+
 	agenda.define("scheduleAtMessageDiscord", async (job) => {
 		//const date = new Date(2012, 11, 21, 5, 30, 0);
 		//const date = new Date(Date.now() + 5000);
@@ -1281,10 +1285,9 @@ client.on('shardDisconnect', (event, shardID) => {
 client.on('shardResume', (replayed, shardID) => console.log(`Shard ID ${shardID} resumed connection and replayed ${replayed} events.`));
 
 client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnected.`));
-const job = schedule.scheduleJob(restartTime, function () {
-	console.log('04:30 restart discord!!');
-	client.cluster.send({ respawn: true, shardids });
-});
+
+
+
 
 /**
  *

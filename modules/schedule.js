@@ -2,6 +2,7 @@
 if (!process.env.mongoURL) {
     return;
 }
+const restartTime = '30 04 * * *';
 const Agenda = require("agenda");
 //const mongoConnectionString = "mongodb://127.0.0.1/agenda";
 //const agenda = new Agenda({ mongo: mongoose.mongoose });
@@ -21,6 +22,7 @@ const agenda = new Agenda({ db: { address: process.env.mongoURL, collection: 'ag
     // IIFE to give access to async/await
     try {
         await agenda.start()
+        await agenda.every(restartTime, '0430restartdiscord');
     } catch (error) {
         console.error(`agenda start error #25`, error)
     }

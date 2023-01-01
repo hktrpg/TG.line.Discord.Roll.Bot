@@ -1,7 +1,7 @@
 "use strict";
 const schedule = require('node-schedule');
 if (!process.env.mongoURL) return;
-const restartTime = '30 4 * * *';
+const restartTime = '30 04 */3 * *';
 const master = require.main?.filename.includes('index');
 const mongoose = require('mongoose');
 const cachegoose = require('recachegoose');

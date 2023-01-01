@@ -1286,6 +1286,14 @@ async function __handlingInteractionMessage(message) {
 				if (/的角色$/.test(messageContent)) {
 					return await message.reply({ content: `${displayname}${resultText}`, ephemeral: false }).catch();
 				}
+				if (/Bingo遊戲 - /.test(messageContent)) {
+					console.log('Bingo遊戲start', message.message.components)
+					return await message.reply({ content: `${displayname}${resultText}`, ephemeral: false }).catch();
+					/**
+					 * 
+					 * 
+					 */
+				}
 				if (resultText) {
 					const content = handlingCountButton(message, 'roll');
 					handlingSendMessage(result);

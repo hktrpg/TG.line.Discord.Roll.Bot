@@ -495,12 +495,6 @@ function respawnCluster2() {
 
 (async function () {
 	if (!agenda) return;
-	agenda.define('0430restartdiscord', async (job) => {
-		console.log('04:30 restart discord!!');
-		client.cluster.send({ respawn: true, id: shardids });
-	});
-
-
 	agenda.define("scheduleAtMessageDiscord", async (job) => {
 		//const date = new Date(2012, 11, 21, 5, 30, 0);
 		//const date = new Date(Date.now() + 5000);

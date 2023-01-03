@@ -1291,6 +1291,28 @@ async function __handlingInteractionMessage(message) {
 					return await message.reply({ content: `${displayname}${resultText}`, ephemeral: false }).catch();
 					/**
 					 * 
+					 * tic tac toe winning move = 
+					 * 
+					 *  1 2 3
+						4 5 6
+						7 8 9
+					 * 	-----------------
+					左打敘	1, 1+(rowLength+1), 1+(rowLength+1)*2 || 1+(rowLength+1)*(rowLength-1)
+					右打敍	(rowLength) ,(rowLength)+(rowLength-1),(rowLength)+(rowLength-1)+(rowLength-1)
+					左至右第一行	
+					左至右第二行
+					左至右第三行	
+					上至下第一行
+					上至下第二行
+					上至下第三行
+						-----------------
+						1 5 9	+4
+						3 5 7	+2
+						1 2 3	+1
+						4 5 6	+1
+						7 8 9	+1
+						1 4 7	+3
+						2 5 8	+3
 					 * 
 					 */
 				}

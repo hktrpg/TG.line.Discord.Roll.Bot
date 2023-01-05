@@ -1286,35 +1286,32 @@ async function __handlingInteractionMessage(message) {
 				if (/的角色$/.test(messageContent)) {
 					return await message.reply({ content: `${displayname}${resultText}`, ephemeral: false }).catch();
 				}
-				if (/Bingo遊戲 - /.test(messageContent)) {
-					console.log('Bingo遊戲start', message.message.components)
-					return await message.reply({ content: `${displayname}${resultText}`, ephemeral: false }).catch();
-					/**
-					 * 
-					 * tic tac toe winning move = 
-					 * 
-					 *  1 2 3
-						4 5 6
-						7 8 9
-					 * 	-----------------
-					左打敘	1, 1+(rowLength+1), 1+(rowLength+1)*2 || 1+(rowLength+1)*(rowLength-1)
-					右打敍	(rowLength) ,(rowLength)+(rowLength-1),(rowLength)+(rowLength-1)+(rowLength-1)
-					左至右第一行	
-					左至右第二行
-					左至右第三行	
-					上至下第一行
-					上至下第二行
-					上至下第三行
-						-----------------
-						1 5 9	+4
-						3 5 7	+2
-						1 2 3	+1
-						4 5 6	+1
-						7 8 9	+1
-						1 4 7	+3
-						2 5 8	+3
-					 * 
-					 */
+				if (/Bingos遊戲 - /.test(messageContent)) {
+					try {
+						const enter = message.content;
+						const fullList = message.message.components;
+						const gameName = messageContent.match(/Bingos遊戲 - (.*)/);
+						const groupID = '0000000000';
+						/**
+						 * 1.	確認按了那個
+						 * 2.	對比db
+						 * 			2.1	 find Achievement 確認是否有這個成就
+						 * 					2.1.1	沒有的話，回覆沒有這個成就，玩不了
+						 * 					2.1.2	有的話，繼續
+						 * 			2.2	 find AchievementUserScore
+						 * 						2.2.1	沒有的話，新增一個User
+						 * 						2.2.2	對比achieved 和enter，進行開關更新
+						 * 						2.2.3	把fullList變成Array [1-X]，然後用checkScore檢查分數
+						 * 3.
+						 * 4.	以新Message 回覆這個按鈕的結果(隱藏)，但有顯示的按鈕
+						 * 5.	更新原本的Message的分數
+						 * ----------------------------------
+						 * 
+						 */
+						return await message.reply({ content: `${displayname}${resultText}`, ephemeral: false }).catch();
+					} catch (error) {
+						console.error('Bingo遊戲error', error)
+					}
 				}
 				if (resultText) {
 					const content = handlingCountButton(message, 'roll');

@@ -299,11 +299,12 @@ class Achievement {
     }
     play() {
         if (this.achievements && this.achievements.length === 1) {
+            console.log('this.achievements',)
             let response = { list: '', button: [] };
             for (let index = 0; index < this.achievements[0].detail.length; index++) {
                 response.button.push(`${this.achievements[0].detail[index]}`)
             }
-            response.list = `Bingo遊戲 - ${this.achievements[0].title}\n----------------\n`
+            response.list = `Bingo${this.achievements[0].groupID === '0000000000' ? 's' : ''}遊戲 - ${this.achievements[0].title}\n----------------\n`
             response.button = Achievement.randomOrderArray(response.button);
             return response
         }

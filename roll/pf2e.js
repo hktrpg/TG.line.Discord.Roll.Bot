@@ -24,6 +24,8 @@ const getHelpMessage = function () {
     return `【Pf2e】.pf2
 這是一個Pf2e的資料庫，只要輸入 .pf2 查找的內容，
 就會顯示相關資料，如果沒有資料，就會顯示類似字眼
+
+資料來源自 https://www.goddessfantasy.net/bbs/index.php?topic=134913.0 #1 仙堂麻尋
     `
 }
 const initialize = function () {

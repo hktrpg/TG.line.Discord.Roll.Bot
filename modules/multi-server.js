@@ -1,3 +1,7 @@
+"use strict";
+if (!process.env.mongoURL) {
+    return;
+}
 const checkMongodb = require('../modules/dbWatchdog.js');
 const schema = require('./schema.js');
 const TEN_SECOND = 1000 * 10;

@@ -759,7 +759,7 @@ const cocManias = [
 	['61) 孤獨恐懼症（Monophobia）：對于一人獨處的恐懼。'],
 	['62) 不潔恐懼症（Mysophobia）：對污垢或污染的恐懼。'],
 	['63) 粘液恐懼症（Myxophobia）：對粘液（史萊姆）的恐懼。'],
-	['64) 尸體恐懼症（Necrophobia）：對尸體的恐懼。'],
+	['64) 屍體恐懼症（Necrophobia）：對屍體的恐懼。'],
 	['65) 數字8恐懼症（Octophobia）：對數字8的恐懼。'],
 	['66) 恐牙症（Odontophobia）：對牙齒的恐懼。'],
 	['67) 恐夢症（Oneirophobia）：對夢境的恐懼。'],

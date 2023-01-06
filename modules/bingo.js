@@ -38,6 +38,10 @@ class BingoGame {
         }
         return score;
     }
+    static(list) {
+        let bingo = [];
+        
+    }
 }
 
 const bingoThree = new BingoGame(3);

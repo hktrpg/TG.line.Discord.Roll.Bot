@@ -470,6 +470,7 @@ const Achievement = mongoose.model('achievement', new mongoose.Schema({
 }));
 
 const AchievementUserScore = mongoose.model('achievementUserScore', new mongoose.Schema({
+    groupID: String,
     userID: String,
     achievementId: String,
     title: String,

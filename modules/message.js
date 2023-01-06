@@ -1,4 +1,7 @@
 "use strict";
+if (!process.env.mongoURL) {
+    return;
+}
 const fs = require('fs');
 const schema = require('./schema.js');
 const crypto = require('crypto');

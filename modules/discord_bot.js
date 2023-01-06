@@ -94,7 +94,7 @@ client.on('messageCreate', async message => {
 			return handlingSendMessage(result);
 		return;
 	} catch (error) {
-		console.error('discord bot messageCreate #91 error', (error && (error.name || error.message || error.reson)));
+		console.error('discord bot messageCreate #91 error', (error && error.name && error.message));
 	}
 
 });
@@ -117,7 +117,7 @@ client.on('guildCreate', async guild => {
 	} catch (error) {
 		if (error.message === 'Missing Access') return;
 		if (error.message === 'Missing Permissions') return;
-		console.error('discord bot guildCreate  #114 error', (error && (error.name || error.message || error.reson)));
+		console.error('discord bot guildCreate  #114 error', (error && error.name), (error && error.message), (error && error.reson));
 	}
 })
 
@@ -126,7 +126,7 @@ client.on('interactionCreate', async message => {
 		if (message.user && message.user.bot) return;
 		return __handlingInteractionMessage(message);
 	} catch (error) {
-		console.error('discord bot interactionCreate #123 error', (error && (error.name || error.message || error.reson)))
+		console.error('discord bot interactionCreate #123 error', (error && error.name), (error && error.message), (error && error.reson));
 	}
 });
 
@@ -153,7 +153,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 			reaction.users.remove(user.id);
 		}
 	} catch (error) {
-		console.error('Discord bot messageReactionAdd #249 ', (error && (error.name || error.message || error.reson)))
+		console.error('Discord bot messageReactionAdd #249 ', (error && error.name), (error && error.message), (error && error.reson))
 	}
 
 });
@@ -173,7 +173,7 @@ client.on('messageReactionRemove', async (reaction, user) => {
 		}
 	} catch (error) {
 		if (error.message === 'Unknown Member') return;
-		console.error('Discord bot messageReactionRemove #268 ', (error && (error.name || error.message || error.reson)))
+		console.error('Discord bot messageReactionRemove #268 ', (error && error.name), (error && error.message), (error && error.reson))
 	}
 });
 
@@ -382,7 +382,7 @@ async function nonDice(message) {
 			);
 		}
 	} catch (error) {
-		console.error('await #534 EXPUP error', (error && (error.name || error.message || error.reson)));
+		console.error('await #534 EXPUP error', (error && error.name), (error && error.message), (error && error.reson));
 	}
 	return null;
 }
@@ -481,7 +481,7 @@ function respawnCluster(err) {
 		try {
 			client.cluster.evalOnManager(`this.clusters.get(${client.cluster.id}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10000 });
 		} catch (error) {
-			console.error('respawnCluster #480 error', (error && (error.name || error.message || error.reson)));
+			console.error('respawnCluster #480 error', (error && error.name), (error && error.message), (error && error.reson));
 		}
 	}
 }
@@ -489,7 +489,7 @@ function respawnCluster2() {
 	try {
 		client.cluster.evalOnManager(`this.clusters.get(${client.cluster.id}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10000 });
 	} catch (error) {
-		console.error('respawnCluster2 error', (error && (error.name || error.message || error.reson)));
+		console.error('respawnCluster2 error', (error && error.name), (error && error.message), (error && error.reson));
 	}
 }
 
@@ -688,7 +688,7 @@ async function checkWakeUp() {
 			else return true;
 		})
 		.catch(err => {
-			console.error(`disocrdbot #836 error `, (error && (error.name || error.message || error.reson)))
+			console.error(`disocrdbot #836 error `, (error && error.name), (error && error.message), (error && error.reson))
 			return false
 		});
 
@@ -724,7 +724,7 @@ async function getAllshardIds() {
 			所有啓動中的server ping:   ${results[2].map(ele => ele.toFixed(0)).join(', ')}`
 		})
 		.catch(error => {
-			console.error(`disocrdbot #884 error `, (error && (error.name || error.message || error.reson)))
+			console.error(`disocrdbot #884 error `, (error && error.name), (error && error.message), (error && error.reson))
 		});
 
 }
@@ -919,14 +919,16 @@ async function handlingResponMessage(message, answer = '') {
 		if (rplyVal.sendImage) sendBufferImage(message, rplyVal, userid)
 		if (rplyVal.respawn) respawnCluster2();
 		if (!rplyVal.text && !rplyVal.LevelUp) return;
-		try {
-			let isNew = await newMessage.newUserChecker(userid, "Discord");
-			if (process.env.mongoURL && rplyVal.text && isNew) {
-				SendToId(userid, newMessage.firstTimeMessage(), true);
+		if (process.env.mongoURL)
+			try {
+
+				let isNew = await newMessage.newUserChecker(userid, "Discord");
+				if (process.env.mongoURL && rplyVal.text && isNew) {
+					SendToId(userid, newMessage.firstTimeMessage(), true);
+				}
+			} catch (error) {
+				console.error(`discord bot error #236`, (error && error.name && error.message));
 			}
-		} catch (error) {
-			console.error(`discord bot error #236`, (error && (error.name || error.message || error.reson)))
-		}
 
 		if (rplyVal.state) {
 			rplyVal.text += '\n' + await count();
@@ -977,7 +979,7 @@ async function handlingResponMessage(message, answer = '') {
 		};
 
 	} catch (error) {
-		console.error('handlingResponMessage Error: ', (error && (error.name || error.message || error.reson)))
+		console.error('handlingResponMessage Error: ', (error && error.name), (error && error.message), (error && error.reson))
 	}
 }
 const sendBufferImage = async (message, rplyVal, userid) => {
@@ -1094,13 +1096,13 @@ const connect = function () {
 						channel.send(results[0].message.text)
 				})
 				.catch(error => {
-					console.error(`disocrdbot #99 error `, (error && (error.name || error.message || error.reson)))
+					console.error(`disocrdbot #99 error `, (error && error.name), (error && error.message), (error && error.reson))
 				});
 			return;
 		}
 	});
 	ws.on('error', (error) => {
-		console.error('Discord socket error', (error && (error.name || error.message || error.reson)));
+		console.error('Discord socket error', (error && error.name), (error && error.message), (error && error.reson));
 	});
 	ws.on('close', function () {
 		console.error('Discord socket close');
@@ -1164,6 +1166,7 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 	await webhook.webhook.send({ ...obj, ...pair });
 }
 async function handlingMultiServerMessage(message) {
+	if (!process.env.mongoURL) return;
 	let target = multiServer.multiServerChecker(message.channel.id)
 	if (!target) return;
 	else {

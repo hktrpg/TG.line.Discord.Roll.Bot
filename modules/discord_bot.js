@@ -77,7 +77,7 @@ const courtMessage = require('./logs').courtMessage || function () { };
 const newMessage = require('./message');
 
 const RECONNECT_INTERVAL = 1 * 1000 * 60;
-const shardids = client.cluster.id;
+const shardid = client.cluster.id;
 const WebSocket = require('ws');
 var ws;
 
@@ -85,7 +85,7 @@ client.on('messageCreate', async message => {
 	try {
 		if (message.author.bot) return;
 		if (!checkMongodb.isDbOnline() && checkMongodb.isDbRespawn()) {
-			checkMongodb.discordClientRespawn(client, shardids)
+			checkMongodb.discordClientRespawn(client, shardid)
 		}
 
 		const result = await handlingResponMessage(message);
@@ -181,7 +181,7 @@ client.on('messageReactionRemove', async (reaction, user) => {
 client.once('ready', async () => {
 	initInteractionCommands();
 	if (process.env.BROADCAST) connect();
-	//	if (shardids === 0) getSchedule();
+	//	if (shardid === 0) getSchedule();
 });
 
 client.on('ready', async () => {
@@ -190,14 +190,11 @@ client.on('ready', async () => {
 	var switchSetActivity = 0;
 	// eslint-disable-next-line no-unused-vars
 	const refreshId = setInterval(async () => {
-		if (shardids !== (Cluster.data.TOTAL_SHARDS - 1)) return;
-		if (adminSecret) {
-			let check = await checkWakeUp();
-			if (!check) {
-				SendToId(adminSecret, 'HKTRPG可能下線了');
-			}
+		let wakeup = await checkWakeUp();
+		if (!wakeup && adminSecret) {
+			SendToId(adminSecret, 'HKTRPG可能下線了');
 		}
-	}, 180000);
+	}, 1000 * 60 * 3);
 	// eslint-disable-next-line no-unused-vars
 	const refreshId2 = setInterval(async () => {
 		switch (switchSetActivity % 2) {
@@ -368,7 +365,7 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 
 
 async function nonDice(message) {
-	await courtMessage({ result: "", botname: "Discord", inputStr: "", shardids: shardids })
+	await courtMessage({ result: "", botname: "Discord", inputStr: "", shardids: shardid })
 	const groupid = (message.guild && message.guild.id) || '';
 	const userid = (message.author && message.author.id) || (message.user && message.user.id) || '';
 	if (!groupid || !userid) return;
@@ -416,7 +413,6 @@ async function count() {
 		client.cluster
 			.broadcastEval(c => c.guilds.cache.filter((guild) => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0))
 	];
-
 	return Promise.all(promises)
 		.then(results => {
 			const totalGuilds = results[0].reduce((acc, guildCount) => acc + guildCount, 0);
@@ -676,16 +672,25 @@ async function newRoleReact(channel, message) {
 
 }
 async function checkWakeUp() {
-	const number = Cluster.data.TOTAL_SHARDS;
 	const promises = [
-		client.cluster.broadcastEval(c => c.shard?.ids[0]),
-		client.cluster.broadcastEval(c => c.ws.status),
+		client.cluster.broadcastEval(c => c.ws.status)
 	];
 	return Promise.all(promises)
 		.then(results => {
-			if (results[0].length !== number || results[1].reduce((a, b) => a + b, 0) >= 1)
+			const indexes = results[0].reduce((r, n, i) => {
+				n !== 0 && r.push(i);
+				return r;
+			}, []);
+			if (indexes.length > 0) {
+				indexes.forEach(index => {
+					checkMongodb.discordClientRespawn(client, index)
+				})
 				return false
+			}
 			else return true;
+			//if (results[0].length !== number || results[0].reduce((a, b) => a + b, 0) >= 1)
+			//		return false
+			//	else return true;
 		})
 		.catch(err => {
 			console.error(`disocrdbot #836 error `, (error && error.name), (error && error.message), (error && error.reson))
@@ -1078,11 +1083,11 @@ const convertRegex = function (str = "") {
 const connect = function () {
 	ws = new WebSocket('ws://127.0.0.1:53589');
 	ws.on('open', function open() {
-		console.log(`connectd To core-www from discord! Shard#${shardids}`)
-		ws.send(`connectd To core-www from discord! Shard#${shardids}`);
+		console.log(`connectd To core-www from discord! Shard#${shardid}`)
+		ws.send(`connectd To core-www from discord! Shard#${shardid}`);
 	});
 	ws.on('message', function incoming(data) {
-		if (shardids !== 0) return;
+		if (shardid !== 0) return;
 		var object = JSON.parse(data);
 		if (object.botname == 'Discord') {
 			const promises = [
@@ -1141,7 +1146,7 @@ async function handlingEditMessage(message, rplyVal) {
 //TOP.GG 
 const togGGToken = process.env.TOPGG;
 if (togGGToken) {
-	if (shardids !== (Cluster.data.TOTAL_SHARDS - 1)) return;
+	if (shardid !== (Cluster.data.TOTAL_SHARDS - 1)) return;
 	const Topgg = require(`@top-gg/sdk`)
 	const api = new Topgg.Api(togGGToken)
 	this.interval = setInterval(async () => {

@@ -4,6 +4,7 @@ if (!process.env.mongoURL) return;
 const restartTime = '30 04 */3 * *';
 const master = require.main?.filename.includes('index');
 const mongoose = require('mongoose');
+mongoose.set('strictQuery', false);
 const cachegoose = require('recachegoose');
 /* mongoose.connect(process.env.mongoURL, {
         useNewUrlParser: true,

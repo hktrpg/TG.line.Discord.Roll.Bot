@@ -190,8 +190,8 @@ client.on('ready', async () => {
 	var switchSetActivity = 0;
 	// eslint-disable-next-line no-unused-vars
 	const refreshId = setInterval(async () => {
-		let check = await checkWakeUp();
-		if (!check) {
+		let wakeup = await checkWakeUp();
+		if (!wakeup && adminSecret) {
 			SendToId(adminSecret, 'HKTRPG可能下線了');
 		}
 	}, 1000 * 60 * 3);

@@ -332,8 +332,12 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 		null
 	}
 	if (!channel && groupid) {
-		let guild = await client.guilds.fetch(groupid)
-		channel = await guild.channels.fetch(channelid)
+		try {
+			let guild = await client.guilds.fetch(groupid)
+			channel = await guild.channels.fetch(channelid)
+		} catch (error) {
+			null
+		}
 	}
 	if (!channel) return;
 	//	console.error(`discord bot cant find channel #443 ${replyText}`)

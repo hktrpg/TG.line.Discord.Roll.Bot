@@ -65,7 +65,7 @@ const rollDiceCommand = async function ({
     };
     switch (true) {
         case /^help$/i.test(mainMsg[1]): {
-            rply.text = this.getHelpMessage();
+            rply.text = getHelpMessage();
             rply.quotes = true;
             return rply;
         }
@@ -93,7 +93,8 @@ const circleTokernMaker = async (discordMessage, inputStr, mainMsg, discordClien
         const text = await getName(discordMessage, inputStr, mainMsg)
         const avatar = await getAvatar(discordMessage, discordClient)
         if (!avatar) {
-            rply.text = `沒有找到reply 的圖示, 請再次檢查 \n\n${this.getHelpMessage()}`
+            rply.text = `沒有找到reply 的圖示, 請再次檢查 \n\n${getHelpMessage()}`;
+            return rply;
         }
         const response = await getImage(avatar);
 
@@ -105,7 +106,8 @@ const circleTokernMaker = async (discordMessage, inputStr, mainMsg, discordClien
         const circleToken = await maskImage(token, './assets/token/tokenCircleMask.png');
         let newImage = await addTextOnImage2(circleToken, text.text, text.secondLine, name)
         if (!newImage) {
-            rply.text = `製作失敗，可能出現某些錯誤。 \n\n${this.getHelpMessage()}`
+            rply.text = `製作失敗，可能出現某些錯誤。 \n\n${getHelpMessage()}`
+            return rply;
         }
 
         rply.sendImage = `./temp/finally_${name}`;
@@ -121,7 +123,8 @@ const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClie
         const text = await getName(discordMessage, inputStr, mainMsg)
         const avatar = await getAvatar(discordMessage, discordClient)
         if (!avatar) {
-            rply.text = `沒有找到reply 的圖示, 請再次檢查 \n\n${this.getHelpMessage()}`
+            rply.text = `沒有找到reply 的圖示, 請再次檢查 \n\n${getHelpMessage()}`;
+            return rply;
         }
         const response = await getImage(avatar);
         // `colors` is an array of color objects
@@ -150,7 +153,8 @@ const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClie
             .toBuffer()
         let newImage = await addTextOnImage2(circleToken2, text.text, text.secondLine, name)
         if (!newImage) {
-            rply.text = `製作失敗，可能出現某些錯誤。 \n\n${this.getHelpMessage()}`
+            rply.text = `製作失敗，可能出現某些錯誤。 \n\n${getHelpMessage()}`
+            return rply;
         }
         rply.sendImage = `./temp/finally_${name}`;
         return rply;
@@ -174,8 +178,10 @@ const polaroidTokernMaker = async (discordMessage, inputStr, mainMsg, discordCli
         const text = await getName(discordMessage, inputStr, mainMsg)
         const avatar = await getAvatar(discordMessage, discordClient)
         if (!avatar) {
-            rply.text = `沒有找到reply 的圖示, 請再次檢查 \n\n${this.getHelpMessage()}`
+            rply.text = `沒有找到reply 的圖示, 請再次檢查 \n\n${getHelpMessage()}`;
+            return rply;
         }
+
         const response = await getImage(avatar);
 
         const d = new Date();
@@ -186,7 +192,8 @@ const polaroidTokernMaker = async (discordMessage, inputStr, mainMsg, discordCli
 
         let newImage = await addTextOnImage(token, text.text, text.secondLine, name)
         if (!newImage) {
-            rply.text = `製作失敗，可能出現某些錯誤。 \n\n${this.getHelpMessage()}`
+            rply.text = `製作失敗，可能出現某些錯誤。 \n\n${getHelpMessage()}`;
+            return rply;
         }
         rply.sendImage = `./temp/finally_${name}`;
         return rply;

@@ -133,7 +133,7 @@ const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClie
         let name = `temp_${time}_${text.text}.png`
 
         const token = await tokernMaker3(response, name);
-        const circleToken = await maskImage(token, './assets/token/tokenCircleMask.png');
+        const circleToken = await maskImage(token, './assets/token/tokenCircleMask3.png');
 
         const pattern = GeoPattern.generate((text.text || displaynameDiscord || 'HKTRPG')).toString().replace('width="188" height="70"', 'width="520" height="520"')
         let url = Buffer.from(
@@ -144,7 +144,7 @@ const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClie
             .toBuffer();
         //https://github.com/oliver-moran/jimp/issues/231
 
-        coloredBase = await maskImage(coloredBase, './assets/token/ONLINE_TOKEN_BACKGROUND_COLOR2.png');
+        coloredBase = await maskImage(coloredBase, './assets/token/ONLINE_TOKEN_BACKGROUND_COLOR3.png');
         const circleToken2 = await sharp(coloredBase)
             .composite(
                 [
@@ -364,8 +364,8 @@ async function addTextOnImage2(token, text = ' ', text2 = ' ', name) {
 			/* Similar syntax to box-shadow */
 		  }
 		</style>
-		<text x="50%" y="85%" text-anchor="middle" class="title shadow outline">${text}</text>
-		<text x="50%" y="99%" text-anchor="middle" class="title shadow outline">${text2}</text>
+		<text x="50%" y="84%" text-anchor="middle" class="title shadow outline">${text}</text>
+		<text x="50%" y="97%" text-anchor="middle" class="title shadow outline">${text2}</text>
 	  </svg>
 	  `;
         const svgBuffer = Buffer.from(svgImage);

@@ -271,18 +271,18 @@ const tokernMaker = async (imageLocation, name) => {
 const tokernMaker2 = async (imageLocation, name) => {
     try {
 
-        let image = await sharp(imageLocation).resize({ height: 387, width: 375, fit: 'outside' })
+        let image = await sharp(imageLocation).resize({ height: 520, width: 520, fit: 'outside' })
         await image.toFile(`./temp/new_${name}`)
         let newImage = await sharp((`./temp/new_${name}`))
         let metadata = await newImage.metadata();
-        const width = (metadata.width < 375) ? metadata.width : 375;
-        const height = (metadata.height < 387) ? metadata.height : 387;
-        const left = ((metadata.width - 375) / 2) < 0 ? sharp.gravity.center : parseInt((metadata.width - 375) / 2);
-        const top = ((metadata.height - 387) / 2) < 0 ? sharp.gravity.center : parseInt((metadata.height - 387) / 2);
+        const width = (metadata.width < 520) ? metadata.width : 520;
+        const height = (metadata.height < 520) ? metadata.height : 520;
+        const left = ((metadata.width - 520) / 2) < 0 ? sharp.gravity.center : parseInt((metadata.width - 520) / 2);
+        const top = ((metadata.height - 520) / 2) < 0 ? sharp.gravity.center : parseInt((metadata.height - 520) / 2);
         newImage = await newImage.extract({ left, top, width, height }).toBuffer()
         newImage = await sharp('./views/image/ONLINE TOKEN_BASE.png')
             .composite(
-                [{ input: newImage, blend: 'saturate', top: 28, left: 70 }
+                [{ input: newImage, blend: 'saturate', top: 0, left: 0 }
                 ]
             )
             .toBuffer()
@@ -296,19 +296,19 @@ const tokernMaker2 = async (imageLocation, name) => {
 const tokernMaker3 = async (imageLocation, name) => {
     try {
 
-        let image = await sharp(imageLocation).resize({ height: 387, width: 375, fit: 'outside' })
+        let image = await sharp(imageLocation).resize({ height: 520, width: 520, fit: 'outside' })
         await image.toFile(`./temp/new_${name}`)
         let newImage = await sharp((`./temp/new_${name}`))
         let metadata = await newImage.metadata();
-        const width = (metadata.width < 375) ? metadata.width : 375;
-        const height = (metadata.height < 387) ? metadata.height : 387;
-        const left = ((metadata.width - 375) / 2) < 0 ? sharp.gravity.center : parseInt((metadata.width - 375) / 2);
-        const top = ((metadata.height - 387) / 2) < 0 ? sharp.gravity.center : parseInt((metadata.height - 387) / 2);
+        const width = (metadata.width < 520) ? metadata.width : 520;
+        const height = (metadata.height < 520) ? metadata.height : 520;
+        const left = ((metadata.width - 520) / 2) < 0 ? sharp.gravity.center : parseInt((metadata.width - 520) / 2);
+        const top = ((metadata.height - 520) / 2) < 0 ? sharp.gravity.center : parseInt((metadata.height - 520) / 2);
         newImage = await newImage.extract({ left, top, width, height }).toBuffer()
         newImage = await sharp('./views/image/ONLINE TOKEN_BASE.png')
             .composite(
                 [
-                    { input: newImage, blend: 'saturate', top: 28, left: 70 },
+                    { input: newImage, blend: 'saturate', top: 0, left: 0 },
                 ])
             .toBuffer()
         fs.unlinkSync(`./temp/new_${name}`);
@@ -364,8 +364,8 @@ async function addTextOnImage2(token, text = ' ', text2 = ' ', name) {
 			/* Similar syntax to box-shadow */
 		  }
 		</style>
-		<text x="50%" y="82%" text-anchor="middle" class="title shadow outline">${text}</text>
-		<text x="50%" y="95%" text-anchor="middle" class="title shadow outline">${text2}</text>
+		<text x="50%" y="85%" text-anchor="middle" class="title shadow outline">${text}</text>
+		<text x="50%" y="99%" text-anchor="middle" class="title shadow outline">${text2}</text>
 	  </svg>
 	  `;
         const svgBuffer = Buffer.from(svgImage);

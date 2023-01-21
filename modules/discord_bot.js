@@ -1289,6 +1289,41 @@ async function __handlingInteractionMessage(message) {
 				}
 				if (/Bingos遊戲 - /.test(messageContent)) {
 					try {
+						/**
+						 * 
+Bingos遊戲 - 名字
+----------------
+XXX已取得 - YYYY
+YYY已還原 - ZZZZ
+----------------
+得分
+XXXXX : 20分
+----------------
+
+Bingos - 名字
+----------------
+XXX已取得 - YYYY
+----------------
+
+
+const inputString = "Bingos遊戲 - 名字\n----------------\nXXX已取得 - YYYY\nYYY已還原 - ZZZZ\n----------------\n得分\nXXXXX : 20分\n----------------";
+
+const delimiter = "----------------";
+
+const parts = inputString.split(delimiter);
+
+console.log(parts[1]);  // "XXX已取得 - YYYY\nYYY已還原 - ZZZZ\n"
+console.log(parts[2]);  // "得分\nXXXXX : 20分\n"
+
+
+
+parts[1] = "New Text 1";
+parts[2] = "New Text 2";
+
+const result = parts.join(delimiter);
+console.log(result);
+
+						 */
 						const input = message.content;
 						const buttonlist = message.message.components;
 						console.log('buttonlist', buttonlist);

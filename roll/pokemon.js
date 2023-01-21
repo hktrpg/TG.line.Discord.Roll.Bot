@@ -8,6 +8,14 @@ const gameName = function () {
 const gameType = function () {
     return 'Demo:Demo:hktrpg'
 }
+
+/*
+ * 輸入方式，
+攻方  VS 防方
+攻 (招式名，屬性)  VS  防 (POKEMON名，POKEMON NO，屬性1，屬性2)
+ * @returns 
+ * 
+ */
 const prefixs = function () {
     //[mainMSG[0]的prefixs,mainMSG[1]的prefixs,   <---這裡是一對  
     //mainMSG[0]的prefixs,mainMSG[1]的prefixs  ]  <---這裡是一對

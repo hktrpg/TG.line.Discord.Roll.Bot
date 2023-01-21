@@ -318,24 +318,9 @@ const tokernMaker3 = async (imageLocation, name) => {
     }
 }
 
-async function addTextOnImage(token, text = ' ', text2 = ' ', name) {
+async function addTextOnImage(token, text = '', text2 = '', name) {
     try {
-        const svgImage = `
-	  <svg width="520" height="520">
-		<style>
-		.outline {     paint-order: stroke;     stroke: black;     stroke-width: 5px; }
-		.title { fill: #bbafaf; font-size: 62px; font-weight: bold;}
-		.shadow {
-			-webkit-filter: drop-shadow( 3px 3px 2px rgba(0, 0, 0, .7));
-			filter: drop-shadow( 3px 3px 2px rgba(0, 0, 0, .7));
-			/* Similar syntax to box-shadow */
-		  }
-		</style>
-		<text x="50%" y="83%" text-anchor="middle" class="title shadow outline">${text}</text>
-		<text x="50%" y="96%" text-anchor="middle" class="title shadow outline">${text2}</text>
-	  </svg>
-	  `;
-        const svgBuffer = Buffer.from(svgImage);
+        const svgBuffer = colorTextBuilder({ text, text2, size: [92, 61], position: 96 });
         let image = await sharp(token)
             .composite([
                 {
@@ -353,22 +338,7 @@ async function addTextOnImage(token, text = ' ', text2 = ' ', name) {
 
 async function addTextOnImage2(token, text = ' ', text2 = ' ', name) {
     try {
-        const svgImage = `
-	  <svg width="520" height="520">
-		<style>
-		.outline {     paint-order: stroke;     stroke: black;     stroke-width: 5px; }
-		.title { fill: #bbafaf; font-size: 76px; font-weight: bold;}
-		.shadow {
-			-webkit-filter: drop-shadow( 3px 3px 2px rgba(0, 0, 0, .7));
-			filter: drop-shadow( 3px 3px 2px rgba(0, 0, 0, .7));
-			/* Similar syntax to box-shadow */
-		  }
-		</style>
-		<text x="50%" y="84%" text-anchor="middle" class="title shadow outline">${text}</text>
-		<text x="50%" y="97%" text-anchor="middle" class="title shadow outline">${text2}</text>
-	  </svg>
-	  `;
-        const svgBuffer = Buffer.from(svgImage);
+        const svgBuffer = colorTextBuilder({ text, text2, size: [96, 66], position: 96 });
         let image = await sharp(token)
             .composite([
                 {
@@ -403,6 +373,30 @@ function valueToHex(c) {
 const discordCommand = [
 
 ];
+
+
+function colorTextBuilder({ size, text, text2, position }) {
+    const singleLine = text2 ? false : true;
+    const textSize = singleLine ? size[0] : size[1];
+    let svgScript = `
+    <svg width="520" height="520">
+      <style>
+      .outline {     paint-order: stroke;     stroke: black;     stroke-width: 5px; }
+      .title { fill: #bbafaf; font-size: ${textSize}px; font-weight: bold;}
+      .shadow {
+          -webkit-filter: drop-shadow( 3px 3px 2px rgba(0, 0, 0, .7));
+          filter: drop-shadow( 3px 3px 2px rgba(0, 0, 0, .7));
+          /* Similar syntax to box-shadow */
+        }
+      </style>
+    `;
+    svgScript += singleLine ? `<text x="50%" y="${position}%" text-anchor="middle" class="title shadow outline">${text}</text></svg>` :
+        `<text x="50%" y="84%" text-anchor="middle" class="title shadow outline">${text}</text>
+  <text x="50%" y="97%" text-anchor="middle" class="title shadow outline">${text2}</text></svg>`;
+
+    return singleLine ? Buffer.from(svgScript) : Buffer.from(svgScript);
+}
+
 
 module.exports = {
     rollDiceCommand,

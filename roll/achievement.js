@@ -271,6 +271,51 @@ class Achievement {
 
         }(groupID, text))
     }
+
+    static getString() {
+        const inputString = "Bingos遊戲 - 名字\n----------------\nXXX已取得 - YYYY\nYYY已還原 - ZZZZ\n----------------\n得分\nXXXXX : 20分\n----------------";
+
+        const delimiter = "----------------";
+
+        const parts = inputString.split(delimiter);
+
+        console.log(parts[1]);  // "XXX已取得 - YYYY\nYYY已還原 - ZZZZ\n"
+        console.log(parts[2]);  // "得分\nXXXXX : 20分\n"
+    }
+
+    static updateString(name, action, newItem) {
+        const inputString = "XXX已取得 - YYYY\nYYY已還原 - ZZZZ";
+
+        const updateName = "XXX";
+        const updateStatus = "已還原";
+        const newItem = "新項目";
+
+        const lines = inputString.split("\n");
+        let updated = false;
+
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i].startsWith(updateName)) {
+                const parts = lines[i].split(" - ");
+                parts[0] = updateName + updateStatus;
+                parts[1] = newItem;
+                lines[i] = parts.join(" - ");
+                updated = true;
+                break;
+            }
+        }
+
+        if (!updated) {
+            lines.push(updateName + updateStatus + " - " + newItem);
+        }
+
+        const result = lines.join("\n");
+        console.log(result);
+
+        //const newString = updateString("XXX", "已還原", "新項目");
+        //console.log(newString);
+    }
+
+
     static randomOrderArray(array) {
         let result = [];
         let temp = [];
@@ -304,7 +349,7 @@ class Achievement {
             for (let index = 0; index < this.achievements[0].detail.length; index++) {
                 response.button.push(`${this.achievements[0].detail[index]}`)
             }
-            response.list = `Bingo${this.achievements[0].groupID === '0000000000' ? 's' : ''}遊戲 - ${this.achievements[0].title}\n----------------\n`
+            response.list = `Bingo${this.achievements[0].groupID === '0000000000' ? 's' : ''}遊戲 - ${this.achievements[0].title}\n----------------\n----------------\n----------------\n`
             response.button = Achievement.randomOrderArray(response.button);
             return response
         }

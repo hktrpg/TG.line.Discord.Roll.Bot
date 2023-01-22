@@ -244,6 +244,7 @@ class Achievement {
     }
     static async add(groupID, text) {
         return (async function (groupID, text) {
+            let countScore = (text.match('--'))
             if (text.length <= 11) throw '至少需要9個內容';
             let data = {
                 groupID: groupID,
@@ -270,6 +271,30 @@ class Achievement {
 
 
         }(groupID, text))
+    }
+
+    static checkVariable(variable) {
+        const input = ".bingo add --noscore aASD     AD   G BB    CCCC DD EE-sadasd FF GG JJ SSSS FFWWW";
+        const options = {
+            "--noscore": false,
+            "--score": false,
+            "-v": false,
+            "-ver": false
+        };
+
+        const words = input.split(" ");
+        let newInput = ""
+
+        for (let i = 0; i < words.length; i++) {
+            if (options.hasOwnProperty(words[i])) {
+                options[words[i]] = true;
+            } else {
+                newInput += words[i] + " ";
+            }
+        }
+
+        console.log("Found options:", options);
+        console.log("New input:", newInput);
     }
 
     static getString() {

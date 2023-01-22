@@ -1249,7 +1249,12 @@ async function __handlingInteractionMessage(message) {
 					}
 				}
 				if (/的角色$/.test(messageContent)) {
-					return await message.reply({ content: `${displayname}${resultText}`, ephemeral: false }).catch();
+					try {
+						return await message.reply({ content: `${displayname}${resultText}`, ephemeral: false })
+					} catch (error) {
+						null;
+					}
+
 				}
 				if (resultText) {
 					const content = handlingCountButton(message, 'roll');

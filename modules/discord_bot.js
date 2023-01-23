@@ -456,6 +456,7 @@ process.on('unhandledRejection', error => {
 	if (error.message === "Unknown Channel") return;
 	if (error.message === "Missing Access") return;
 	if (error.message === "Missing Permissions") return;
+	if (error.message && error.message.includes('Unknown interaction')) return;
 	if (error.message && error.message.includes('INTERACTION_NOT_REPLIED')) return;
 	if (error.message && error.message.includes("Invalid Form Body")) return;
 	// Invalid Form Body

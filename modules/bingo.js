@@ -23,7 +23,7 @@ class BingoGame {
 
         //        this.calledNumbers = [];
     }
-    checkScore(calledNumbers) {
+    static checkScore(calledNumbers) {
         const { size, board, prizes } = this;
         let score = calledNumbers.length;
         // 檢查行是否有中獎
@@ -47,20 +47,17 @@ class BingoGame {
         const achievementUser = await schema.AchievementUserScore.findOne({ groupID, userID, title: gameName[1] });
         if (!achievementUser) {
             //沒有的話，新增一個User
-            await schema.AchievementUserScore.create({
-                groupID, userID, title: gameName[1], achieved: [input],
-                score: 1
-            });
-            //await message.reply({ content: `恭喜你獲得成就 ${gameName[1]} 的第一個成就點數`, ephemeral: true }).catch();
-            await message.edit({ content: `${messageContent}\n${displayname}獲得1分`}).catch();
+            return await this.newUser({ groupID, userID, gameName, input, messageContent, displayname })
         }
         else {
             if (achievementUser.achieved.includes(input)) {
+                //檢查有沒有按過 - 有，進行還原，計分，更新DB及回覆
                 //remove achievementUser.achieved input
                 achievementUser.achieved = achievementUser.achieved.filter(item => item !== input)
                 return await message.reply({ content: `${displayname}你已經按過這個了`, ephemeral: true }).catch();
             }
             else {
+                //檢查有沒有按過 - 沒有，進行+分及計分，更新DB及回覆
                 achievementUser.achieved.push(input);
 
             }
@@ -88,6 +85,97 @@ class BingoGame {
             return await message.reply({ content: `${displayname}${resultText}`, ephemeral: false }).catch();
         }
     }
+    static async newUser({ groupID, userID, gameName, input, messageContent, displayname }) {
+        let obj = {
+            groupID, userID, title: gameName[1], achieved: [input],
+        }
+        if (achievement.countScore) obj.score = 1;
+        await schema.AchievementUserScore.create(obj);
+        //await message.reply({ content: `恭喜你獲得成就 ${gameName[1]} 的第一個成就點數`, ephemeral: true }).catch();
+        let data = this.getString(messageContent)
+        let newAction = this.updateAction(data.action, displayname, true, input)
+        let newScore = this.updateScore(data.score, displayname, 1)
+        let newMessageContent = this.updateMessageContent({ messageContent, score: newScore, action: newAction })
+        return await message.edit({ content: `${newMessageContent}` }).catch();
+        /*
+        Bingos遊戲 - 名字
+        ----------------
+        XXX已取得 - YYYY
+        YYY已還原 - ZZZZ
+        ----------------
+        XXXXX : 20分
+        ----------------";
+
+        */
+    }
+    static getString(inputString) {
+        //const inputString = "Bingos遊戲 - 名字\n----------------\nXXX已取得 - YYYY\nYYY已還原 - ZZZZ\n----------------\n得分\nXXXXX : 20分\n----------------";
+        const delimiter = "----------------";
+        const parts = inputString.split(delimiter) || [];
+        return { action: parts[1], score: parts[2] }
+        // console.log(parts[1]);  // "XXX已取得 - YYYY\nYYY已還原 - ZZZZ\n"
+        // console.log(parts[2]);  // "得分\nXXXXX : 20分\n"
+    }
+    static updateSring({ messageContent, action, score }) {
+        //const inputString = "Bingos遊戲 - 名字\n----------------\nXXX已取得 - YYYY\nYYY已還原 - ZZZZ\n----------------\n得分\nXXXXX : 20分\n----------------";
+        const delimiter = "----------------";
+        const parts = messageContent.split(delimiter);
+        (action) ? parts[1] = action : null;
+        (score) ? parts[2] = score : null;
+        return parts.join(delimiter);
+
+    }
+
+    static updateAction(inputString, updateName, updateStatus, newItem) {
+        // const inputString = "XXX已取得 - YYYY\nYYY已還原 - ZZZZ";
+        // const updateName = "XXX";
+        // const updateStatus = "已還原";
+        // const newItem = "新項目";
+        const status = (updateStatus) ? "已取得" : "已還原";
+        const lines = inputString.split("\n");
+        let updated = false;
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i].startsWith(updateName)) {
+                const parts = lines[i].split(" - ");
+                parts[0] = updateName + status;
+                parts[1] = newItem;
+                lines[i] = parts.join(" - ");
+                updated = true;
+                break;
+            }
+        }
+        if (!updated) {
+            lines.push(updateName + updateStatus + " - " + newItem);
+        }
+        return lines.join("\n");
+        //const newString = updateString("XXX", "已還原", "新項目");
+        //console.log(newString);
+    }
+    static updateScore(inputString, updateName, newScore) {
+        // const inputString = "XXX已取得 - YYYY\nYYY已還原 - ZZZZ";
+        // const updateName = "XXX";
+        // const updateStatus = "已還原";
+        // const newItem = "新項目";
+        const lines = inputString.split("\n");
+        let updated = false;
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i].startsWith(updateName)) {
+                const parts = lines[i].split(" - ");
+                parts[0] = updateName;
+                parts[1] = newScore + '分';
+                lines[i] = parts.join(" - ");
+                updated = true;
+                break;
+            }
+        }
+        if (!updated) {
+            lines.push(updateName + updateStatus + " - " + newScore + '分');
+        }
+        return lines.join("\n");
+        //const newString = updateString("XXX", "已還原", "新項目");
+        //console.log(newString);
+    }
+
 
 
 }

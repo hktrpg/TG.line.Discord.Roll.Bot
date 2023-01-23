@@ -273,8 +273,7 @@ class Achievement {
         }(groupID, text))
     }
 
-    static checkVariable(variable) {
-        const input = ".bingo add --noscore aASD     AD   G BB    CCCC DD EE-sadasd FF GG JJ SSSS FFWWW";
+    static checkVariable(input) {
         const options = {
             "--noscore": false,
             "--score": false,

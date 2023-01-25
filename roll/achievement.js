@@ -312,7 +312,7 @@ class Achievement {
 
         const updateName = "XXX";
         const updateStatus = "已還原";
-        const newItem = "新項目";
+    //    const newItem = "新項目";
 
         const lines = inputString.split("\n");
         let updated = false;

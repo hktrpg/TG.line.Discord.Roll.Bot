@@ -8,19 +8,21 @@ class BingoGame {
         for (let i = 0; i < size * size; i++) {
             this.board.push(i + 1);
         }
+        //console.log('this.board', this.board)
+        //3X3 = [1, 2, 3, 4, 5, 6, 7, 8, 9] 
         //Bingo條件
         this.prizes = [];
         for (let i = 0; i < size; i++) {
-            // 橫排
+            // 橫排  [0, 1, 2] [3, 4, 5] [6, 7, 8]
             this.prizes.push({ type: 'row', indices: Array.from({ length: size }, (_, j) => i * size + j) });
             // 直排
             this.prizes.push({ type: 'column', indices: Array.from({ length: size }, (_, j) => j * size + i) });
         }
         // 左上至右下
         this.prizes.push({ type: 'diagonal', indices: Array.from({ length: size }, (_, i) => i * size + i) });
-        // 右上至左下
+        // 右上至左下 [3, 5, 7]
         this.prizes.push({ type: 'diagonal', indices: Array.from({ length: size }, (_, i) => i * size + size - i - 1) });
-
+        console.log('this.prizes', this.prizes)
         //        this.calledNumbers = [];
     }
     static checkScore(calledNumbers) {
@@ -50,21 +52,22 @@ class BingoGame {
             return await this.newUser({ groupID, userID, gameName, input, messageContent, displayname })
         }
         else {
+            //檢查有沒有按過 - 有，進行還原
             if (achievementUser.achieved.includes(input)) {
-                //檢查有沒有按過 - 有，進行還原，計分，更新DB及回覆
-                //remove achievementUser.achieved input
-                achievementUser.achieved = achievementUser.achieved.filter(item => item !== input)
-                return await message.reply({ content: `${displayname}你已經按過這個了`, ephemeral: true }).catch();
+                achievementUser.achieved = achievementUser.achieved.filter(item => item !== input);
+                //remove achievementUser.achieved input        
             }
             else {
                 //檢查有沒有按過 - 沒有，進行+分及計分，更新DB及回覆
                 achievementUser.achieved.push(input);
-
             }
+            //，計分
             let score = achievementUser.score + 1;
+            //，更新DB
             await schema.AchievementUserScore.updateOne({ groupID, userID, title: gameName[1] }, {
                 achieved: achievementUser.achieved, score
             });
+            //回覆
 
             /**
              * 1.	確認按了那個
@@ -176,7 +179,29 @@ class BingoGame {
         //console.log(newString);
     }
 
-
+    static checkBingo(bingo, rowLength) {
+        //上至下
+        for (let i = 0; i < rowLength.length; i++) {
+            let bingoRow = []
+            for (let index = 0; index < rowLength.length; index++) {
+                bingoRow[index] = bingo[i + (index * rowLength)];//rowLength = 3 , 0,3,6 ; 1,4,7 ; 2,5,8
+                if (bingoRow.every((value) => value === true)) {
+                    return true;
+                }
+            }
+        }
+        //左至右
+        for (let i = 0; i < rowLength.length; i++) {
+            let bingoColumn = []
+            for (let index = 0; index < rowLength.length; index++) {
+                bingoColumn[index] = bingo[(rowLength * i) + index];//rowLength = 3 , 0,1,2 ; 3,4,5 ; 6,7,8
+                if (bingoColumn.every((value) => value === true)) {
+                    return true;
+                }
+            }
+        }
+        //左上至右下
+    }
 
 }
 
@@ -189,27 +214,3 @@ module.exports = {
     BingoGame
 };
 
-function checkBingo(bingo, rowLength) {
-    //上至下
-
-    for (let i = 0; i < rowLength.length; i++) {
-        let bingoRow = []
-        for (let index = 0; index < rowLength.length; index++) {
-            bingoRow[index] = bingo[i + (index * rowLength)];//rowLength = 3 , 0,3,6 ; 1,4,7 ; 2,5,8
-            if (bingoRow.every((value) => value === true)) {
-                return true;
-            }
-        }
-    }
-    //左至右
-    for (let i = 0; i < rowLength.length; i++) {
-        let bingoColumn = []
-        for (let index = 0; index < rowLength.length; index++) {
-            bingoColumn[index] = bingo[(rowLength * i) + index];//rowLength = 3 , 0,1,2 ; 3,4,5 ; 6,7,8
-            if (bingoColumn.every((value) => value === true)) {
-                return true;
-            }
-        }
-    }
-    //左上至右下
-}

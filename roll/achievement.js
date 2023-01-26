@@ -104,22 +104,23 @@ const rollDiceCommand = async function ({
                 let achievement = await Achievement.init('0000000000');
                 let docCount = await achievement.countDoc('0000000000');
                 console.log('docCount', docCount)
-                if (docCount >= 20) return rply.text = '遊戲數量已達上限';
-
-                let result = await Achievement.add('0000000000', mainMsg);
-                console.log('result', result)
-                let achievement2 = await Achievement.init('0000000000', mainMsg[2]);
-                try {
-                    let list = achievement2.play(mainMsg[2]);
-                    console.log('list', list)
-                    rply.text = list.list;
-                    rply.bingoButtonCreate = list.button;
-                } catch (e) {
-                    console.log('eRRORRRRRRRRRRRRRRRR', e)
-                    rply.text = e;
+                if (docCount >= 20) {
+                    rply.text = '遊戲數量已達上限';
                     return rply;
                 }
+
+                let result = await Achievement.add('0000000000', mainMsg)
+
+                console.log('resultXXXXXXXXXXXXXXXXX', result)
+                let achievement2 = await Achievement.init('0000000000', mainMsg[2]);
+
+                let list = achievement2.play(mainMsg[2]);
+                console.log('list', list)
+                rply.text = list.list;
+                rply.bingoButtonCreate = list.button;
+
             } catch (error) {
+                console.log('error::: ', error)
                 rply.text = error;
                 return rply;
             }
@@ -133,6 +134,7 @@ const rollDiceCommand = async function ({
             } catch (error) {
                 console.log('error', error)
                 rply.text = error;
+                return rply;
             }
             return rply;
         }
@@ -147,6 +149,7 @@ const rollDiceCommand = async function ({
             } catch (e) {
                 console.log('e', e)
                 rply.text = e;
+                return rply;
             }
             return rply;
         }
@@ -247,100 +250,46 @@ class Achievement {
     }
     static async add(groupID, text) {
         console.log('groupID', groupID, text);
-        (async (groupID, text) => {
-            //  let countScore = (text.match('--'));
-            if (text.length <= 11) throw '至少需要9個內容';
-            let data = {
-                groupID: groupID,
-                title: sliceString(text[2], 50),
-                detail: sliceString(text.splice(3), 30)
-            }
-            console.log('data,3-', data)
-            let query = { groupID: data.groupID, title: data.title };
-
-            let result = await schema.Achievement.findOne(query)
-                .catch(error => console.error(error));
-            console.log('result4', result)
-            if (result) throw '已有相同標題的Bingo遊戲，請用其他標題重新輸入';
-            console.log('????')
-            try {
-                let achievement = new schema.Achievement({ groupID: data.groupID, title: data.title, detail: data.detail })
-                let addResult = await achievement.save()
-                console.log('addResult', addResult)
-                if (addResult) return { text: '已新增成功', button: data.detail }
-                else throw '新增失敗，請重新輸入';
-            } catch (error) {
-                console.log('error', error)
-            }
-
-
-        })(groupID, text)
-    }
-
-    static checkVariable(input) {
         const options = {
-            "--noscore": false,
-            "--score": false,
-            "-v": false,
-            "-ver": false
+            noscore: false,
         };
-
-        const words = input.split(" ");
-        let newInput = ""
-
-        for (let i = 0; i < words.length; i++) {
-            if (options.hasOwnProperty(words[i])) {
-                options[words[i]] = true;
-            } else {
-                newInput += words[i] + " ";
-            }
+        if (text.some(x => x.toLowerCase() == '--noscore')) {
+            options.noscore = true;
+            text.splice(text.indexOf('--noscore'), 1);
         }
+        text = this.removeDupText(text);
+        if (text.length <= 11) throw '至少需要9個內容，請重新輸入，並注意沒有重覆的內容。';
+        let data = {
+            groupID: groupID,
+            title: sliceString(text[2], 50),
+            detail: sliceString(text.splice(3), 30)
+        }
+        console.log('data,3-', data)
+        let query = { groupID: data.groupID, title: data.title };
 
-        console.log("Found options:", options);
-        console.log("New input:", newInput);
+        let result = await schema.Achievement.findOne(query)
+            .catch(error => console.error(error));
+        console.log('result4', result)
+        if (result) throw ('已有相同標題的Bingo遊戲，請用其他標題重新輸入');
+        console.log('????')
+        try {
+            let achievement = new schema.Achievement({ groupID: data.groupID, title: data.title, detail: data.detail })
+            let addResult = await achievement.save()
+            console.log('addResult', addResult)
+            if (addResult) return { text: '已新增成功', button: data.detail }
+            else throw '新增失敗，請重新輸入';
+        } catch (error) {
+            console.log('error', error)
+        }
     }
 
-    static getString() {
-        const inputString = "Bingos遊戲 - 名字\n----------------\nXXX已取得 - YYYY\nYYY已還原 - ZZZZ\n----------------\n得分\nXXXXX : 20分\n----------------";
-
-        const delimiter = "----------------";
-
-        const parts = inputString.split(delimiter);
-
-        console.log(parts[1]);  // "XXX已取得 - YYYY\nYYY已還原 - ZZZZ\n"
-        console.log(parts[2]);  // "得分\nXXXXX : 20分\n"
-    }
-
-    static updateString(name, action, newItem) {
-        const inputString = "XXX已取得 - YYYY\nYYY已還原 - ZZZZ";
-
-        const updateName = "XXX";
-        const updateStatus = "已還原";
-        //    const newItem = "新項目";
-
-        const lines = inputString.split("\n");
-        let updated = false;
-
-        for (let i = 0; i < lines.length; i++) {
-            if (lines[i].startsWith(updateName)) {
-                const parts = lines[i].split(" - ");
-                parts[0] = updateName + updateStatus;
-                parts[1] = newItem;
-                lines[i] = parts.join(" - ");
-                updated = true;
-                break;
-            }
-        }
-
-        if (!updated) {
-            lines.push(updateName + updateStatus + " - " + newItem);
-        }
-
-        const result = lines.join("\n");
-        console.log(result);
-
-        //const newString = updateString("XXX", "已還原", "新項目");
-        //console.log(newString);
+    static removeDupText(arr) {
+        let res = [];
+        arr.forEach(function (i) {
+            if (!(res.includes(i) || res.includes(i.toLowerCase())))
+                res.push(i)
+        });
+        return res;
     }
 
 

@@ -33,8 +33,9 @@ class BingoGame {
         for (const prize of prizes) {
             let win = true;
             for (const index of prize.indices) {
-                if (!calledNumbers.includes(board[index])) {
+                if (!calledNumbers.includes(index)) {
                     win = false;
+                    break;
                 }
             }
             if (win) score += size;
@@ -76,15 +77,19 @@ class BingoGame {
             //，計分 --- 使用achievementUser.achieved和buttonlist進行對比，
             //找出那個buttonlist的index，然後對比achievementUser.achieved的index
             let length = buttonlist[0].components.length;
+            console.log('length', length);
             let acceptedList = this.buttonlistCheck(buttonlist, achievementUser.achieved);
             let score = 0;
             switch (length) {
                 case 3:
                     score = bingoThree.checkScore(acceptedList);
+                    break;
                 case 4:
                     score = bingoFour.checkScore(acceptedList);
+                    break;
                 case 5:
                     score = bingoFive.checkScore(acceptedList);
+                    break;
             }
             //，更新DB
             console.log('score', score)
@@ -194,21 +199,11 @@ class BingoGame {
     static updateAction(inputString, updateName, updateStatus, newItem) {
         console.log('inputString', inputString, 'updateName', updateName, 'newItem', newItem)
         const status = (updateStatus) ? "已取得" : "已還原";
-        const lines = inputString.split("\n");
-        let updated = false;
-        for (let i = 0; i < lines.length; i++) {
-            if (lines[i].startsWith(updateName)) {
-                const parts = lines[i].split(" - ");
-                parts[0] = updateName + status;
-                parts[1] = newItem;
-                lines[i] = parts.join(" - ");
-                updated = true;
-                break;
-            }
+        let lines = inputString.split("\n");
+        if (lines.length > 7) {
+            lines = lines.slice(-7);
         }
-        if (!updated) {
-            lines.push(updateName + status + " - " + newItem);
-        }
+        lines.push(updateName + status + " - " + newItem);
         console.log('lines', lines);
         return "\n" + (lines.join("\n") + "\n").replace(/(^[ \t]*\n)/gm, "");
         //const newString = updateString("XXX", "已還原", "新項目");

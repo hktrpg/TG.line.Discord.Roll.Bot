@@ -182,7 +182,7 @@ var rolldice = async function ({
 	let retext = '';
 	let tempsave = {};
 	for (let index = 0; index < rollTimes; index++) {
-		if (rollTimes > 1 && /^dice/i.test(target.gameType())) {
+		if (rollTimes > 1 && /^dice|^funny/i.test(target.gameType())) {
 			tempsave = await target.rollDiceCommand({
 				inputStr: inputStr,
 				mainMsg: mainMsg,

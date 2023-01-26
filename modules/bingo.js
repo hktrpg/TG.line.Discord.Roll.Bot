@@ -28,6 +28,7 @@ class BingoGame {
     checkScore(calledNumbers) {
         const { size, board, prizes } = this;
         let score = calledNumbers.length;
+        console.log('calledNumbers', calledNumbers, 'size', size, 'board', board, 'prizes', prizes)
         // 檢查行是否有中獎
         for (const prize of prizes) {
             let win = true;
@@ -50,9 +51,11 @@ class BingoGame {
         if (!achievement) return await message.reply({ content: `${gameName} 這個成就好像已被刪除，玩不了啊`, ephemeral: true }).catch();
         const achievementUser = await schema.AchievementUserScore.findOne({ groupID, userID, title: gameName[1] });
         let displaynameUpdated = displayname.replace(/\n/, '');
+        let newMessageContent = '';
         if (!achievementUser) {
             //沒有的話，新增一個User
-            return await this.newUser({ groupID, userID, gameName, input, messageContent, displayname: displaynameUpdated })
+            newMessageContent = await this.newUser({ groupID, userID, gameName, input, messageContent, displayname: displaynameUpdated })
+            return await message.update({ content: newMessageContent, ephemeral: true }).catch();
         }
         else {
             let state = false;
@@ -89,7 +92,7 @@ class BingoGame {
                 achieved: achievementUser.achieved, score
             });
             //更新回覆
-            let newMessageContent = await this.updateUser({ groupID, userID, gameName, input, messageContent, displayname: displaynameUpdated, score, state })
+            newMessageContent = await this.updateUser({ groupID, userID, gameName, input, messageContent, displayname: displaynameUpdated, score, state })
             /**
              * 1.	確認按了那個
              * 2.	對比db
@@ -122,7 +125,7 @@ class BingoGame {
         for (const [index, value] of buttonSort.entries()) {
             console.log(index, value);
             if (achieved.includes(value)) {
-                result.push(index + 1);
+                result.push(index);
             }
         }
         return result;
@@ -158,8 +161,7 @@ class BingoGame {
         let data = this.getString(messageContent)
         let newAction = this.updateAction(data.action, displayname, true, input)
         let newScore = this.updateScore(data.score, displayname, 1)
-        let newMessageContent = this.updateSring({ messageContent, score: newScore, action: newAction })
-        return await message.edit({ content: `${newMessageContent}` }).catch();
+        return this.updateSring({ messageContent, score: newScore, action: newAction })
         /*
         Bingos遊戲 - 名字
         ----------------

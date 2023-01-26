@@ -107,18 +107,21 @@ const rollDiceCommand = async function ({
                 if (docCount >= 20) return rply.text = '遊戲數量已達上限';
 
                 let result = await Achievement.add('0000000000', mainMsg);
-
+                console.log('result', result)
                 let achievement2 = await Achievement.init('0000000000', mainMsg[2]);
                 try {
                     let list = achievement2.play(mainMsg[2]);
+                    console.log('list', list)
                     rply.text = list.list;
                     rply.bingoButtonCreate = list.button;
                 } catch (e) {
-                    console.log('e', e)
+                    console.log('eRRORRRRRRRRRRRRRRRR', e)
                     rply.text = e;
+                    return rply;
                 }
             } catch (error) {
                 rply.text = error;
+                return rply;
             }
             return rply;
         }
@@ -191,7 +194,7 @@ class Achievement {
                 // Do async stuff
                 console.log('title3', title)
                 let data = await achievement.build(groupID, title)
-                console.log('data', data)
+                console.log('data33', data)
                 // Return instance
                 achievement.achievements = data;
                 return achievement
@@ -209,8 +212,8 @@ class Achievement {
         let obj = { groupID: groupID };
         if (title) obj.title = title;
         console.log('obj', obj)
-        let data = schema.Achievement.find(obj).catch(error => console.error(error));
-        console.log('data', data)
+        let data = await schema.Achievement.find(obj).catch(error => console.error(error));
+        console.log('data50', data)
         return data
     }
     //https://stackoverflow.com/questions/43431550/async-await-class-constructor
@@ -243,20 +246,21 @@ class Achievement {
 
     }
     static async add(groupID, text) {
-        return (async function (groupID, text) {
-            let countScore = (text.match('--'))
+        console.log('groupID', groupID, text);
+        (async (groupID, text) => {
+            //  let countScore = (text.match('--'));
             if (text.length <= 11) throw '至少需要9個內容';
             let data = {
                 groupID: groupID,
                 title: sliceString(text[2], 50),
                 detail: sliceString(text.splice(3), 30)
             }
-            console.log('data,3', data)
+            console.log('data,3-', data)
             let query = { groupID: data.groupID, title: data.title };
 
             let result = await schema.Achievement.findOne(query)
                 .catch(error => console.error(error));
-            console.log('result', result)
+            console.log('result4', result)
             if (result) throw '已有相同標題的Bingo遊戲，請用其他標題重新輸入';
             console.log('????')
             try {
@@ -270,7 +274,7 @@ class Achievement {
             }
 
 
-        }(groupID, text))
+        })(groupID, text)
     }
 
     static checkVariable(input) {
@@ -312,7 +316,7 @@ class Achievement {
 
         const updateName = "XXX";
         const updateStatus = "已還原";
-    //    const newItem = "新項目";
+        //    const newItem = "新項目";
 
         const lines = inputString.split("\n");
         let updated = false;

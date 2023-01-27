@@ -50,12 +50,13 @@ class BingoGame {
         const achievement = await schema.Achievement.findOne({ groupID, title: gameName[1] });
         //2.1.1	沒有的話，回覆沒有這個成就，玩不了
         if (!achievement) return await message.reply({ content: `${gameName} 這個成就好像已被刪除，玩不了啊`, ephemeral: true }).catch();
+        const countScore = achievement.countScore;
         const achievementUser = await schema.AchievementUserScore.findOne({ groupID, userID, title: gameName[1] });
         let displaynameUpdated = displayname.replace(/\n/, '');
         let newMessageContent = '';
         if (!achievementUser) {
             //沒有的話，新增一個User
-            newMessageContent = await this.newUser({ groupID, userID, gameName, input, messageContent, displayname: displaynameUpdated })
+            newMessageContent = await this.newUser({ groupID, userID, gameName, input, messageContent, displayname: displaynameUpdated, countScore })
             return await message.update({ content: newMessageContent, ephemeral: true }).catch();
         }
         else {
@@ -67,12 +68,13 @@ class BingoGame {
                 //remove achievementUser.achieved input        
             }
             else {
-                //檢查有沒有按過 - 沒有，進行+分及計分，更新DB及回覆
+                //檢查有沒有按過 - 沒有，
                 achievementUser.achieved.push(input);
                 state = true;
             }
             console.log('achievementUser.achieved', achievementUser, achievementUser.achieved)
             console.log('buttonlist', buttonlist)
+            console.log('achievement', achievement)
 
             //，計分 --- 使用achievementUser.achieved和buttonlist進行對比，
             //找出那個buttonlist的index，然後對比achievementUser.achieved的index
@@ -97,7 +99,7 @@ class BingoGame {
                 achieved: achievementUser.achieved, score
             });
             //更新回覆
-            newMessageContent = await this.updateUser({ groupID, userID, gameName, input, messageContent, displayname: displaynameUpdated, score, state })
+            newMessageContent = await this.updateUser({ groupID, userID, gameName, input, messageContent, displayname: displaynameUpdated, score, state, countScore })
             /**
              * 1.	確認按了那個
              * 2.	對比db
@@ -135,7 +137,7 @@ class BingoGame {
         }
         return result;
     }
-    static async updateUser({ input, messageContent, displayname, score, state = false }) {
+    static async updateUser({ input, messageContent, displayname, score, state = false, countScore }) {
         //await message.reply({ content: `恭喜你獲得成就 ${gameName[1]} 的第一個成就點數`, ephemeral: true }).catch();
         console.log('state', state)
         let data = this.getString(messageContent)
@@ -143,7 +145,7 @@ class BingoGame {
         console.log('newAction', newAction)
         let newScore = this.updateScore(data.score, displayname, score)
         console.log('newScore', newScore)
-        let newMessageContent = this.updateSring({ messageContent, score: newScore, action: newAction })
+        let newMessageContent = this.updateString({ messageContent, score: newScore, action: newAction, countScore })
         return newMessageContent;
         /*
         Bingos遊戲 - 名字
@@ -156,7 +158,7 @@ class BingoGame {
 
         */
     }
-    static async newUser({ groupID, userID, gameName, input, messageContent, displayname }) {
+    static async newUser({ groupID, userID, gameName, input, messageContent, displayname, countScore }) {
         let obj = {
             groupID, userID, title: gameName[1], achieved: [input], score: 1
         }
@@ -166,7 +168,7 @@ class BingoGame {
         let data = this.getString(messageContent)
         let newAction = this.updateAction(data.action, displayname, true, input)
         let newScore = this.updateScore(data.score, displayname, 1)
-        return this.updateSring({ messageContent, score: newScore, action: newAction })
+        return this.updateString({ messageContent, score: newScore, action: newAction, countScore })
         /*
         Bingos遊戲 - 名字
         ----------------
@@ -186,12 +188,13 @@ class BingoGame {
         // console.log(parts[1]);  // "XXX已取得 - YYYY\nYYY已還原 - ZZZZ\n"
         // console.log(parts[2]);  // "得分\nXXXXX : 20分\n"
     }
-    static updateSring({ messageContent, action, score }) {
+    static updateString({ messageContent, action, score, countScore }) {
         //const inputString = "Bingos遊戲 - 名字\n----------------\nXXX已取得 - YYYY\nYYY已還原 - ZZZZ\n----------------\n得分\nXXXXX : 20分\n----------------";
         const delimiter = "----------------";
         const parts = messageContent.split(delimiter);
         (action) ? parts[1] = action : null;
         (score) ? parts[2] = score : null;
+        (countScore) ? null : parts[2] = '';
         return parts.join(delimiter);
 
     }

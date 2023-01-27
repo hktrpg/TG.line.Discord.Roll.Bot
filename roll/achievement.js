@@ -76,10 +76,12 @@ const rollDiceCommand = async function ({
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
             rply.text = this.getHelpMessage();
             rply.quotes = true;
-            rply.buttonCreate = ['.bingos list']
+            rply.buttonCreate = ['.bingo list', '.bingos list', 'bingos achievement']
             return rply;
         }
         case /^.bingos$/.test(mainMsg[0]) && /^achievement$/.test(mainMsg[1]): {
+            //查看已做過的成就
+            //查看成就詳細內容
             rply.text = 'Demo'
             return rply;
         }
@@ -127,6 +129,7 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^.bingos$/.test(mainMsg[0]) && /^remove$/.test(mainMsg[1]): {
+            //刪除bingo表格
             try {
                 if (!adminSecret) return rply;
                 if (userid !== adminSecret) return rply;
@@ -139,6 +142,7 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^.bingos$/.test(mainMsg[0]) && /^\S+$/.test(mainMsg[1]): {
+            //顯示bingo表格，進行遊戲
             let achievement = await Achievement.init('0000000000', mainMsg[1]);
             console.log('achievement', achievement);
 
@@ -251,10 +255,10 @@ class Achievement {
     static async add(groupID, text) {
         console.log('groupID', groupID, text);
         const options = {
-            noscore: false,
+            countScore: true,
         };
         if (text.some(x => x.toLowerCase() == '--noscore')) {
-            options.noscore = true;
+            options.countScore = false;
             text.splice(text.indexOf('--noscore'), 1);
         }
         text = this.removeDupText(text);
@@ -273,7 +277,7 @@ class Achievement {
         if (result) throw ('已有相同標題的Bingo遊戲，請用其他標題重新輸入');
         console.log('????')
         try {
-            let achievement = new schema.Achievement({ groupID: data.groupID, title: data.title, detail: data.detail })
+            let achievement = new schema.Achievement({ groupID: data.groupID, title: data.title, detail: data.detail, countScore: options.countScore })
             let addResult = await achievement.save()
             console.log('addResult', addResult)
             if (addResult) return { text: '已新增成功', button: data.detail }

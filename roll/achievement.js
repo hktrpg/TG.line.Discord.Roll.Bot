@@ -79,10 +79,16 @@ const rollDiceCommand = async function ({
             rply.buttonCreate = ['.bingo list', '.bingos list', 'bingos achievement']
             return rply;
         }
+        case /^\S+$/.test(mainMsg[2]) && /^achievement$/.test(mainMsg[1]): {
+            //查看已做過的成就
+            //查看成就詳細內容
+            rply.text = await Achievement.getAchievementDetail(userid, mainMsg[2]);
+            return rply;
+        }
         case /^.bingos$/.test(mainMsg[0]) && /^achievement$/.test(mainMsg[1]): {
             //查看已做過的成就
             //查看成就詳細內容
-            rply.text = 'Demo'
+            rply.text = await Achievement.getAchievementList(userid);
             return rply;
         }
         case /^.bingos$/.test(mainMsg[0]) && /^list$/.test(mainMsg[1]): {
@@ -286,7 +292,23 @@ class Achievement {
             console.log('error', error)
         }
     }
+    static async getAchievementList(userID) {
+        let achievement = await schema.AchievementUserScore.find({ userID: userID }, 'title countScore score').catch(error => console.error(error));
+        /**
+         * 你已進行過的成就 
+         * 1. 標題1 - (分數: 10)
+         * 2. 標題2 - (分數: 20) 
+         * 3. 標題3 - (不設分數)
+         */
+        let response = `你已進行過的成就\n`;
+        if (achievement.length === 0) return '你還沒有進行任何成就';
+        for (let index = 0; index < achievement.length; index++) {
+            let score = achievement[index].countScore ? `(分數: ${achievement[index].score})` : '(不設分數)';
+            response += `${index + 1}. ${achievement[index].title} - ${score}\n`
+        }
+        return response;
 
+    }
     static removeDupText(arr) {
         let res = [];
         arr.forEach(function (i) {

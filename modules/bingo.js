@@ -160,7 +160,7 @@ class BingoGame {
     }
     static async newUser({ groupID, userID, gameName, input, messageContent, displayname, countScore }) {
         let obj = {
-            groupID, userID, title: gameName[1], achieved: [input], score: 1
+            groupID, userID, title: gameName[1], achieved: [input], score: 1, countScore
         }
         // if (achievement.countScore) obj.score = 1;
         await schema.AchievementUserScore.create(obj);

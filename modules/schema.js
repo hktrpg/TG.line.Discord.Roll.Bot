@@ -477,6 +477,7 @@ const AchievementUserScore = mongoose.model('achievementUserScore', new mongoose
     title: String,
     achieved: [String],
     score: Number,
+    countScore: Boolean
 }));
 
 

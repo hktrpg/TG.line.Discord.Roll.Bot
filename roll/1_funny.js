@@ -12,6 +12,7 @@ const identity = 'HKTRPG (https://www.hktrpg.com; admin@hktrpg.com) wiki.js';
 const gameName = function () {
 	return '【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 運勢 每日塔羅 每日笑話 每日動漫 每日一言 每日廢話 每日黃曆 每日毒湯 每日情話 每日靈簽 每日淺草簽 每日大事 每日(星座) 每日解答	立flag .me'
 }
+
 axiosRetry(axios, { retries: 3 });
 const gameType = function () {
 	return 'funny:funny:hktrpg'
@@ -130,33 +131,15 @@ const rollDiceCommand = async function ({
 			rply.text = randomLuck(mainMsg);
 			return rply;
 		case /^每日笑話$/.test(mainMsg[0]): {
-			try {
-				const data = fs.readFileSync('./assets/joke.txt', 'utf8').toString();
-				const word = data.split('\n');
-				rply.text = word[rollbase.Dice(word.length) - 1];
-			} catch (e) {
-				console.error('Error:', e.stack);
-			}
+			rply.text = joke.getFunnyRandomResult();
 			return rply;
 		}
 		case /^每日動漫$/.test(mainMsg[0]): {
-			try {
-				const data = fs.readFileSync('./assets/acg.txt', 'utf8').toString();
-				const word = data.split('\n');
-				rply.text = word[rollbase.Dice(word.length) - 1];
-			} catch (e) {
-				console.error('Error:', e.stack);
-			}
+			rply.text = acg.getFunnyRandomResult();
 			return rply;
 		}
 		case /^每日一言$/.test(mainMsg[0]): {
-			try {
-				const data = fs.readFileSync('./assets/slogan.txt', 'utf8').toString();
-				const word = data.split('\n');
-				rply.text = word[rollbase.Dice(word.length) - 1];
-			} catch (e) {
-				console.error('Error:', e.stack);
-			}
+			rply.text = slogan.getFunnyRandomResult();
 			return rply;
 		}
 		case /^每日黃曆$/.test(mainMsg[0]): {
@@ -164,23 +147,11 @@ const rollDiceCommand = async function ({
 			return rply;
 		}
 		case /^每日毒湯$/.test(mainMsg[0]): {
-			try {
-				const data = fs.readFileSync('./assets/blackjoke.txt', 'utf8').toString();
-				const word = data.split('\n');
-				rply.text = word[rollbase.Dice(word.length) - 1];
-			} catch (e) {
-				console.error('Error:', e.stack);
-			}
+			rply.text = blackjoke.getFunnyRandomResult();
 			return rply;
 		}
 		case /^每日情話$/.test(mainMsg[0]): {
-			try {
-				const data = fs.readFileSync('./assets/mlove.txt', 'utf8').toString();
-				const word = data.split('\n');
-				rply.text = word[rollbase.Dice(word.length) - 1];
-			} catch (e) {
-				console.error('Error:', e.stack);
-			}
+			rply.text = mlove.getFunnyRandomResult();
 			return rply;
 		}
 		case /^每日靈簽$/.test(mainMsg[0]): {
@@ -311,6 +282,24 @@ const rollDiceCommand = async function ({
 	}
 }
 
+class FunnyRandom {
+	constructor(txt) {
+		this.random = FunnyRandom.convertArray(txt);
+	}
+	static convertArray(txt) {
+		const data = fs.readFileSync(txt, 'utf8').toString();
+		return data.split('\n');
+	}
+	getFunnyRandomResult() {
+		try {
+			return this.random[rollbase.Dice(this.random.length) - 1];
+		} catch (error) {
+			console.log('Funny #330', error);
+			return '出現問題，請以後再試';
+		}
+	}
+}
+
 /**
  * .ME
  */
@@ -434,6 +423,11 @@ class Almanac {
 }
 const dailyAlmanac = new DailyAlmanac();
 const dailyAstro = new TwelveAstro();
+const joke = new FunnyRandom('./assets/joke.txt');
+const acg = new FunnyRandom('./assets/acg.txt');
+const slogan = new FunnyRandom('./assets/slogan.txt');
+const blackjoke = new FunnyRandom('./assets/blackjoke.txt');
+const mlove = new FunnyRandom('./assets/mlove.txt');
 
 class Asakusa100 {
 	constructor() {

@@ -73,24 +73,24 @@ const rollDiceCommand = async function ({
 }
 
 const typeChart = {
-    normal: { normal: 1, fighting: 1, flying: 1, poison: 1, ground: 1, rock: 0.5, bug: 1, ghost: 0, steel: 0.5, fire: 1, water: 1, grass: 1, electric: 1, psychic: 1, ice: 1, dragon: 1, dark: 1, fairy: 1 },
-    fighting: { normal: 2, fighting: 1, flying: 0.5, poison: 0.5, ground: 1, rock: 2, bug: 0.5, ghost: 0, steel: 2, fire: 1, water: 1, grass: 1, electric: 1, psychic: 0.5, ice: 2, dragon: 1, dark: 2, fairy: 0.5 },
-    flying: { normal: 1, fighting: 2, flying: 1, poison: 1, ground: 1, rock: 0.5, bug: 2, ghost: 1, steel: 0.5, fire: 1, water: 1, grass: 2, electric: 0.5, psychic: 1, ice: 1, dragon: 1, dark: 1, fairy: 1 },
-    poison: { normal: 1, fighting: 1, flying: 1, poison: 0.5, ground: 0, rock: 0.5, bug: 1, ghost: 0.5, steel: 0, fire: 1, water: 1, grass: 2, electric: 1, psychic: 1, ice: 1, dragon: 1, dark: 1, fairy: 2 },
-    ground: { normal: 1, fighting: 1, flying: 0, poison: 2, ground: 1, rock: 2, bug: 0.5, ghost: 1, steel: 2, fire: 2, water: 1, grass: 0.5, electric: 2, psychic: 1, ice: 1, dragon: 1, dark: 1, fairy: 1 },
-    rock: { normal: 1, fighting: 0.5, flying: 2, poison: 1, ground: 0.5, rock: 1, bug: 2, ghost: 1, steel: 0.5, fire: 2, water: 1, grass: 1, electric: 1, psychic: 1, ice: 2, dragon: 1, dark: 1, fairy: 1 },
-    bug: { normal: 1, fighting: 0.5, flying: 0.5, poison: 0.5, ground: 1, rock: 1, bug: 1, ghost: 0.5, steel: 0.5, fire: 0.5, water: 1, grass: 2, electric: 1, psychic: 2, ice: 1, dragon: 1, dark: 2, fairy: 0.5 },
-    ghost: { normal: 0, fighting: 1, flying: 1, poison: 1, ground: 1, rock: 1, bug: 1, ghost: 2, steel: 1, fire: 1, water: 1, grass: 1, electric: 1, psychic: 2, ice: 1, dragon: 1, dark: 0.5, fairy: 1 },
-    steel: { normal: 1, fighting: 1, flying: 1, poison: 1, ground: 1, rock: 2, bug: 1, ghost: 1, steel: 0.5, fire: 0.5, water: 0.5, grass: 1, electric: 0.5, psychic: 1, ice: 2, dragon: 1, dark: 1, fairy: 2 },
-    fire: { normal: 1, fighting: 1, flying: 1, poison: 1, ground: 1, rock: 0.5, bug: 2, ghost: 1, steel: 2, fire: 0.5, water: 0.5, grass: 2, electric: 1, psychic: 1, ice: 2, dragon: 0.5, dark: 1, fairy: 1 },
-    water: { normal: 1, fighting: 1, flying: 1, poison: 1, ground: 2, rock: 2, bug: 1, ghost: 1, steel: 1, fire: 2, water: 0.5, grass: 0.5, electric: 1, psychic: 1, ice: 1, dragon: 0.5, dark: 1, fairy: 1 },
-    grass: { normal: 1, fighting: 1, flying: 0.5, poison: 0.5, ground: 2, rock: 2, bug: 0.5, ghost: 1, steel: 0.5, fire: 0.5, water: 2, grass: 0.5, electric: 1, psychic: 1, ice: 1, dragon: 0.5, dark: 1, fairy: 1 },
-    electric: { normal: 1, fighting: 1, flying: 2, poison: 1, ground: 0, rock: 1, bug: 1, ghost: 1, steel: 1, fire: 1, water: 2, grass: 0.5, electric: 0.5, psychic: 1, ice: 1, dragon: 0.5, dark: 1, fairy: 1 },
-    psychic: { normal: 1, fighting: 2, flying: 1, poison: 2, ground: 1, rock: 1, bug: 1, ghost: 1, steel: 0.5, fire: 1, water: 1, grass: 1, electric: 1, psychic: 0.5, ice: 1, dragon: 1, dark: 0, fairy: 1 },
-    ice: { normal: 1, fighting: 1, flying: 2, poison: 1, ground: 2, rock: 1, bug: 1, ghost: 1, steel: 2, fire: 0.5, water: 0.5, grass: 2, electric: 1, psychic: 1, ice: 0.5, dragon: 2, dark: 1, fairy: 1 },
-    dragon: { normal: 1, fighting: 1, flying: 1, poison: 1, ground: 1, rock: 1, bug: 1, ghost: 1, steel: 0.5, fire: 1, water: 1, grass: 1, electric: 1, psychic: 1, ice: 1, dragon: 2, dark: 1, fairy: 0 },
-    dark: { normal: 1, fighting: 0.5, flying: 1, poison: 1, ground: 1, rock: 1, bug: 1, ghost: 2, steel: 1, fire: 1, water: 1, grass: 1, electric: 1, psychic: 2, ice: 1, dragon: 1, dark: 0.5, fairy: 0.5 },
-    fairy: { normal: 1, fighting: 2, flying: 1, poison: 0.5, ground: 1, rock: 1, bug: 1, ghost: 1, steel: 0.5, fire: 0.5, water: 1, grass: 1, electric: 1, psychic: 1, ice: 1, dragon: 2, dark: 2, fairy: 1 }
+    normal: { normal: '普通', fighting: '普通', flying: '普通', poison: '普通', ground: '普通', rock: '弱效', bug: '普通', ghost: '無效', steel: '弱效', fire: '普通', water: '普通', grass: '普通', electric: '普通', psychic: '普通', ice: '普通', dragon: '普通', dark: '普通', fairy: '普通' },
+    fighting: { normal: '克制', fighting: '普通', flying: '弱效', poison: '弱效', ground: '普通', rock: '克制', bug: '弱效', ghost: '無效', steel: '克制', fire: '普通', water: '普通', grass: '普通', electric: '普通', psychic: '弱效', ice: '克制', dragon: '普通', dark: '克制', fairy: '弱效' },
+    flying: { normal: '普通', fighting: '克制', flying: '普通', poison: '普通', ground: '普通', rock: '弱效', bug: '克制', ghost: '普通', steel: '弱效', fire: '普通', water: '普通', grass: '克制', electric: '弱效', psychic: '普通', ice: '普通', dragon: '普通', dark: '普通', fairy: '普通' },
+    poison: { normal: '普通', fighting: '普通', flying: '普通', poison: '弱效', ground: '無效', rock: '弱效', bug: '普通', ghost: '弱效', steel: '無效', fire: '普通', water: '普通', grass: '克制', electric: '普通', psychic: '普通', ice: '普通', dragon: '普通', dark: '普通', fairy: '克制' },
+    ground: { normal: '普通', fighting: '普通', flying: '無效', poison: '克制', ground: '普通', rock: '克制', bug: '弱效', ghost: '普通', steel: '克制', fire: '克制', water: '普通', grass: '弱效', electric: '克制', psychic: '普通', ice: '普通', dragon: '普通', dark: '普通', fairy: '普通' },
+    rock: { normal: '普通', fighting: '弱效', flying: '克制', poison: '普通', ground: '弱效', rock: '普通', bug: '克制', ghost: '普通', steel: '弱效', fire: '克制', water: '普通', grass: '普通', electric: '普通', psychic: '普通', ice: '克制', dragon: '普通', dark: '普通', fairy: '普通' },
+    bug: { normal: '普通', fighting: '弱效', flying: '弱效', poison: '弱效', ground: '普通', rock: '普通', bug: '普通', ghost: '弱效', steel: '弱效', fire: '弱效', water: '普通', grass: '克制', electric: '普通', psychic: '克制', ice: '普通', dragon: '普通', dark: '克制', fairy: '弱效' },
+    ghost: { normal: '無效', fighting: '普通', flying: '普通', poison: '普通', ground: '普通', rock: '普通', bug: '普通', ghost: '克制', steel: '普通', fire: '普通', water: '普通', grass: '普通', electric: '普通', psychic: '克制', ice: '普通', dragon: '普通', dark: '弱效', fairy: '普通' },
+    steel: { normal: '普通', fighting: '普通', flying: '普通', poison: '普通', ground: '普通', rock: '克制', bug: '普通', ghost: '普通', steel: '弱效', fire: '弱效', water: '弱效', grass: '普通', electric: '弱效', psychic: '普通', ice: '克制', dragon: '普通', dark: '普通', fairy: '克制' },
+    fire: { normal: '普通', fighting: '普通', flying: '普通', poison: '普通', ground: '普通', rock: '弱效', bug: '克制', ghost: '普通', steel: '克制', fire: '弱效', water: '弱效', grass: '克制', electric: '普通', psychic: '普通', ice: '克制', dragon: '弱效', dark: '普通', fairy: '普通' },
+    water: { normal: '普通', fighting: '普通', flying: '普通', poison: '普通', ground: '克制', rock: '克制', bug: '普通', ghost: '普通', steel: '普通', fire: '克制', water: '弱效', grass: '弱效', electric: '普通', psychic: '普通', ice: '普通', dragon: '弱效', dark: '普通', fairy: '普通' },
+    grass: { normal: '普通', fighting: '普通', flying: '弱效', poison: '弱效', ground: '克制', rock: '克制', bug: '弱效', ghost: '普通', steel: '弱效', fire: '弱效', water: '克制', grass: '弱效', electric: '普通', psychic: '普通', ice: '普通', dragon: '弱效', dark: '普通', fairy: '普通' },
+    electric: { normal: '普通', fighting: '普通', flying: '克制', poison: '普通', ground: '無效', rock: '普通', bug: '普通', ghost: '普通', steel: '普通', fire: '普通', water: '克制', grass: '弱效', electric: '弱效', psychic: '普通', ice: '普通', dragon: '弱效', dark: '普通', fairy: '普通' },
+    psychic: { normal: '普通', fighting: '克制', flying: '普通', poison: '克制', ground: '普通', rock: '普通', bug: '普通', ghost: '普通', steel: '弱效', fire: '普通', water: '普通', grass: '普通', electric: '普通', psychic: '弱效', ice: '普通', dragon: '普通', dark: '無效', fairy: '普通' },
+    ice: { normal: '普通', fighting: '普通', flying: '克制', poison: '普通', ground: '克制', rock: '普通', bug: '普通', ghost: '普通', steel: '克制', fire: '弱效', water: '弱效', grass: '克制', electric: '普通', psychic: '普通', ice: '弱效', dragon: '克制', dark: '普通', fairy: '普通' },
+    dragon: { normal: '普通', fighting: '普通', flying: '普通', poison: '普通', ground: '普通', rock: '普通', bug: '普通', ghost: '普通', steel: '弱效', fire: '普通', water: '普通', grass: '普通', electric: '普通', psychic: '普通', ice: '普通', dragon: '克制', dark: '普通', fairy: '無效' },
+    dark: { normal: '普通', fighting: '弱效', flying: '普通', poison: '普通', ground: '普通', rock: '普通', bug: '普通', ghost: '克制', steel: '普通', fire: '普通', water: '普通', grass: '普通', electric: '普通', psychic: '克制', ice: '普通', dragon: '普通', dark: '弱效', fairy: '弱效' },
+    fairy: { normal: '普通', fighting: '克制', flying: '普通', poison: '弱效', ground: '普通', rock: '普通', bug: '普通', ghost: '普通', steel: '弱效', fire: '弱效', water: '普通', grass: '普通', electric: '普通', psychic: '普通', ice: '普通', dragon: '克制', dark: '克制', fairy: '普通' }
 };
 
 // 定義函式

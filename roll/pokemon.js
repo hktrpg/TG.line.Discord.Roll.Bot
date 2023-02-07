@@ -44,16 +44,8 @@ const initialize = function () {
 }
 
 const rollDiceCommand = async function ({
-    inputStr,
     mainMsg,
-    groupid,
-    userid,
-    userrole,
-    botname,
-    displayname,
-    channelid,
-    displaynameDiscord,
-    membercount
+
 }) {
     let rply = {
         default: 'on',
@@ -77,6 +69,7 @@ const rollDiceCommand = async function ({
         case /^move$/.test(mainMsg[1]): {
             rply.quotes = true;
             rply.text = pokeMove.search(mainMsg[2])
+            console.log('rply.text move', rply.text)
             return rply;
         }
         case /^dex$/.test(mainMsg[1]): {
@@ -167,7 +160,7 @@ https://raw.githubusercontent.com/hazmole/PokeRole/master/static/${pokemon.info.
     }
     search(name) {
         try {
-            let result = this.fuse.search(name, { limit: 8 });
+            let result = this.fuse.search(name, { limit: 12 });
             console.log('search:\n', result)
             let rply = '';
             if (result.length === 0) return '沒有找到相關資料';
@@ -213,7 +206,7 @@ class Moves {
             }
         });
         console.log('data', data[0])
-        return new Pokemon(data);
+        return new Moves(data);
     }
     getVS(string) {
         if (typeof (string) === 'number') { string = ('000' + string).slice(-3) }
@@ -230,21 +223,31 @@ class Moves {
         }
         return undefined;
     }
+    static showMove(move) {
+        let result = '';
+        result += `【${move.name}】 ${Pokemon.findKeyByKey([move.type])}  威力：${move.power}
+命中：${move.accuracy}
+招式傷害：${move.damage}
+招式內容：${move.effect}
+招式描述：${move.desc}`
+        return result;
+    }
     search(name) {
         try {
-            let result = this.fuse.search(name, { findAllMatches: true, limit: 8 });
-            console.log('search:\n', result)
+            let result = this.fuse.search(name, { limit: 12 });
+            console.log('search!?!?:\n', result)
             let rply = '';
             if (result.length === 0) return '沒有找到相關資料';
             if (result[0].item.name === name) {
-                return `【${result[0].item.name}】
-        ${result[0].item.desc} \n
-         `;
+                console.log('??????')
+                rply = Moves.showMove(result[0].item);
+                console.log('search2:\n', rply)
+                return rply;
             }
             if (result.length <= 2) {
+                console.log('2000!!!')
                 for (let i = 0; i < result.length; i++) {
-                    rply += `【${result[i].item.name}】
-${result[i].item.desc} \n
+                    rply += `${Moves.showMove(result[i].item)} \n
  `;
                 }
             }
@@ -254,6 +257,7 @@ ${result[i].item.desc} \n
                     rply += `${result[i].item.name}\n`;
                 }
             }
+            console.log('rply2233', rply)
             return rply;
         }
         catch (error) {
@@ -397,7 +401,7 @@ function commandVS(mainMsg) {
 攻方命中：${attacker.accuracy}
 攻方招式傷害：${attacker.damage}
 攻方招式內容：${attacker.effect}
-${attacker.desc}
+攻方招式描述：${attacker.desc}
 `: '';
         rply.text += (defender) ?
             `--------------------

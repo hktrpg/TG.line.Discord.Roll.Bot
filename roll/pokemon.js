@@ -5,8 +5,7 @@ const Fuse = require('fuse.js')
 const gameName = function () {
     return '【Demo】'
 }
-const data = require('../assets/pokemon/moves-bug.js')
-console.log(data)
+
 const gameType = function () {
     return 'Demo:Demo:hktrpg'
 }
@@ -77,6 +76,70 @@ const rollDiceCommand = async function ({
         }
     }
 }
+
+
+class Pokemon {
+    constructor(data) {
+        this.pokemonData = data;
+        this.fuse = new Fuse(this.pokemonData, {
+            keys: ['name'],
+            includeScore: true,
+            threshold: 0.3
+        });
+    }
+
+    static init() {
+        let data = [];
+        for (let i = 0; i < datalink.length; i++) {
+            let temp = require(datalink[i]);
+            data = data.concat(Pokemon.objectToArray(temp.helpdoc))
+        }
+
+        return new Pokemon(data);
+    }
+    static objectToArray(input) {
+        let data = [];
+        for (let i = 0; i < Object.keys(input).length; i++) {
+            data.push({
+                name: Object.keys(input)[i],
+                desc: Object.values(input)[i]
+            });
+        }
+        return data;
+    }
+    search(name) {
+        try {
+            let result = this.fuse.search(name);
+            let rply = '';
+            if (result.length === 0) return '沒有找到相關資料';
+            if (result[0].item.name === name) {
+                return `【${result[0].item.name}】
+        ${result[0].item.desc} \n
+         `;
+            }
+            if (result.length <= 2) {
+                for (let i = 0; i < result.length; i++) {
+                    rply += `【${result[i].item.name}】
+${result[i].item.desc} \n
+ `;
+                }
+            }
+            else {
+                rply += '找到太多相關資料，請更精確的查詢\n\n';
+                for (let i = 0; i < result.length; i++) {
+                    rply += `${result[i].item.name}\n`;
+                }
+            }
+            return rply;
+        }
+        catch (error) {
+            console.log(error);
+            return '發生錯誤';
+        }
+    }
+}
+const pokedex = Pokemon.init('../assets/pokedex-');
+const pokeMove = Pokemon.init('../assets/moves-');
 /**
  * 無效 = 0 = -999 
  * 弱效 = 1 = -1

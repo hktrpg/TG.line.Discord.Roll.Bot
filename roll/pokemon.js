@@ -64,17 +64,24 @@ const rollDiceCommand = async function ({
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
             rply.text = this.getHelpMessage();
             rply.quotes = true;
-            rply.button = ['']
+            rply.buttonCreate = ['.poke vs 火之誓約 夢幻', '.poke dex 超夢']
             return rply;
         }
-        case /^vs$/.test(mainMsg[1] || ''): {
+        case /^vs$/.test(mainMsg[1]): {
             let text = commandVS(mainMsg).text;
+            rply.quotes = true;
             console.log('text', text)
             rply.text = text;
             return rply;
         }
-        case /^sh$/.test(mainMsg[1] || ''): {
-            rply.text = 'Demo'
+        case /^move$/.test(mainMsg[1]): {
+            rply.quotes = true;
+            rply.text = pokeMove.search(mainMsg[2])
+            return rply;
+        }
+        case /^dex$/.test(mainMsg[1]): {
+            rply.quotes = true;
+            rply.text = pokeDex.search(mainMsg[2])
             return rply;
         }
         default: {
@@ -137,23 +144,35 @@ class Pokemon {
         }
         return result;
     }
+    static showPokemon(pokemon) {
+        let rply = '';
+        console.log('pokemon', pokemon)
+        try {
+            rply += `#${pokemon.id} 【${pokemon.name}】 ${pokemon.type}
+${pokemon.info.category} ${pokemon.info.height}m / ${pokemon.info.weight}kg
+建議等級:${pokemon.rank}  基礎HP:${pokemon.baseHP}  特性:${pokemon.ability} 
+力量 ${displayValue(pokemon.attr.str.value, pokemon.attr.str.max)}
+靈巧 ${displayValue(pokemon.attr.dex.value, pokemon.attr.dex.max)}
+活力 ${displayValue(pokemon.attr.vit.value, pokemon.attr.vit.max)}
+特殊 ${displayValue(pokemon.attr.spe.value, pokemon.attr.spe.max)}
+洞察 ${displayValue(pokemon.attr.ins.value, pokemon.attr.ins.max)}
+${(pokemon.evolution.stage) ? `進化階段: ${pokemon.evolution.stage}` : ''} ${(pokemon.evolution.time) ? `進化時間: ${pokemon.evolution.time}` : ''}
+https://raw.githubusercontent.com/hazmole/PokeRole/master/static/${pokemon.info.image}`
+
+        } catch (error) {
+            console.error('!!!', error)
+        }
+        console.log('rply!!!!!!!!!!', rply)
+        return rply;
+    }
     search(name) {
         try {
-            let result = this.fuse.search(name, { findAllMatches: true, limit: 5 });
+            let result = this.fuse.search(name, { limit: 8 });
             console.log('search:\n', result)
             let rply = '';
             if (result.length === 0) return '沒有找到相關資料';
-            if (result[0].item.name === name) {
-                return `【${result[0].item.name}】
-        ${result[0].item.desc} \n
-         `;
-            }
-            if (result.length <= 2) {
-                for (let i = 0; i < result.length; i++) {
-                    rply += `【${result[i].item.name}】
-${result[i].item.desc} \n
- `;
-                }
+            if (result.length <= 2 || result[0].item.name === name) {
+                rply = Pokemon.showPokemon(result[0].item);
             }
             else {
                 rply += '找到太多相關資料，請更精確的查詢\n\n';
@@ -197,9 +216,6 @@ class Moves {
         return new Pokemon(data);
     }
     getVS(string) {
-        /**
-         * 
-         */
         if (typeof (string) === 'number') { string = ('000' + string).slice(-3) }
         let result = this.fuse.search(string, { limit: 1 })
         console.log('result1', result)
@@ -216,7 +232,7 @@ class Moves {
     }
     search(name) {
         try {
-            let result = this.fuse.search(name, { findAllMatches: true, limit: 5 });
+            let result = this.fuse.search(name, { findAllMatches: true, limit: 8 });
             console.log('search:\n', result)
             let rply = '';
             if (result.length === 0) return '沒有找到相關資料';
@@ -246,7 +262,7 @@ ${result[i].item.desc} \n
         }
     }
 }
-const pokedex = Pokemon.init('pokedex-');
+const pokeDex = Pokemon.init('pokedex-');
 const pokeMove = Moves.init('moves-');
 /**
  * 無效 = 0 = -999 
@@ -336,7 +352,7 @@ function commandVS(mainMsg) {
             attackerType = attacker.type
         }
         let defenderType = Pokemon.findKeyByValue(mainMsg[3]);
-        let defender = (defenderType.length) ? null : pokedex.getVS(mainMsg[3]);
+        let defender = (defenderType.length) ? null : pokeDex.getVS(mainMsg[3]);
         if (defender) {
             defenderType = defender.type
         }
@@ -347,9 +363,9 @@ function commandVS(mainMsg) {
             console.log('defenderType2', defenderType2)
             if (defenderType2) defenderType = defenderType.concat(defenderType2);
         }
-        if (!defenderType || !attackerType) {
+        if (!defenderType.length || !attackerType) {
             rply.text += (!attackerType) ? '找不到攻方屬性，請確認名稱，你可以輸入完整招式名稱或屬性\n' : '';
-            rply.text += (!defenderType) ? '找不到防方屬性，請確認名稱，你可以輸入小精靈名稱，編號或屬性\n' : '';
+            rply.text += (!defenderType.length) ? '找不到防方屬性，請確認名稱，你可以輸入小精靈名稱，編號或屬性\n' : '';
             return rply;
 
         }
@@ -377,15 +393,16 @@ function commandVS(mainMsg) {
 `
         rply.text += (attacker) ?
             `--------------------
-攻方招式：${attacker.name}
+攻方招式：【${attacker.name}】 威力：${attacker.power}
+攻方命中：${attacker.accuracy}
+攻方招式傷害：${attacker.damage}
 攻方招式內容：${attacker.effect}
 ${attacker.desc}
-攻方招式傷害：${attacker.damage}
 `: '';
         rply.text += (defender) ?
             `--------------------
 防方小精靈：${defender.name}
-防方小精靈圖片：${defender.info.image}
+防方小精靈圖片：https://raw.githubusercontent.com/hazmole/PokeRole/master/static/${defender.info.image}
 `: '';
         return rply;
     } catch (error) {
@@ -393,6 +410,17 @@ ${attacker.desc}
         rply.text = `輸入錯誤，請輸入正確的招式名稱或小精靈名稱\n${getHelpMessage()}`
         return rply;
     }
+}
+
+function displayValue(current, total) {
+    let result = '';
+    for (let i = 0; i < current; i++) {
+        result += '●';
+    }
+    for (let i = 0; i < total - current; i++) {
+        result += '○';
+    }
+    return result;
 }
 
 const discordCommand = []

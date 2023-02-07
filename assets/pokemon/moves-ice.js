@@ -1,5 +1,6 @@
 var MoveList;
-if(!MoveList) MoveList = [];
+if(!MoveList) MoveList = []; 
+module.exports.MoveList = MoveList;
 
 Array.prototype.push.apply(MoveList, [
 	{

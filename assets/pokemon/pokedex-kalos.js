@@ -1,5 +1,6 @@
 var Pokedex;
-if(!Pokedex) Pokedex = [];
+if(!Pokedex) Pokedex = []; 
+module.exports.Pokedex= Pokedex;
 
 Array.prototype.push.apply(Pokedex, [
 {

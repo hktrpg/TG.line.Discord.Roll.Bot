@@ -5,7 +5,8 @@ const Fuse = require('fuse.js')
 const gameName = function () {
     return '【Demo】'
 }
-
+const data = require('../assets/pokemon/moves-bug.js')
+console.log(data)
 const gameType = function () {
     return 'Demo:Demo:hktrpg'
 }
@@ -145,6 +146,7 @@ function checkEffectiveness(moveType, enemyType1, enemyType2) {
 console.log(checkEffectiveness("fire", "grass", "ice")); // 輸出 0.25
 console.log(checkEffectiveness("electric", "water")); // 輸出 2
 console.log(checkEffectiveness("poison", "steel")); // 輸出 0
+
 const discordCommand = []
 module.exports = {
     rollDiceCommand,

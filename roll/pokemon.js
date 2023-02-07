@@ -68,69 +68,10 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^vs$/.test(mainMsg[1] || ''): {
-            try {
-                console.log('WW')
-                //招式名,屬性  VS  POKEMON名,POKEMON NO,屬性1,屬性2
-                let attackerType = Moves.findKeyByValue(mainMsg[2]);
-                console.log('attackerType', attackerType)
-                let attacker = pokeMove.getVS(mainMsg[2]);
-                if (!attackerType && attacker) {
-                    attackerType = attacker.type
-                }
-                let defenderType = Pokemon.findKeyByValue(mainMsg[3]);
-                let defender = pokedex.getVS(mainMsg[3]);
-                if (!defenderType.length && defender) {
-                    defenderType = defender.type
-                }
-
-                console.log('defenderType', defenderType, defender)
-                if (mainMsg[4]) {
-                    let defenderType2 = Pokemon.findKeyByValue(mainMsg[4]);
-                    console.log('defenderType2', defenderType2)
-                    if (defenderType2) defenderType = defenderType.concat(defenderType2);
-                }
-                if (!defenderType || !attackerType) {
-                    rply.text += (!attackerType) ? '找不到攻方屬性，請確認名稱，你可以輸入完整招式名稱或屬性\n' : '';
-                    rply.text += (!defenderType) ? '找不到防方屬性，請確認名稱，你可以輸入小精靈名稱，編號或屬性\n' : '';
-                    return rply;
-
-                }
-                console.log('attacker', attacker, attackerType)
-                console.log('defender', defender, defenderType)
-                let typeEffect = checkEffectiveness(attackerType, defenderType);
-                /**
-                 * 攻方屬性：attackerType
-                 * 防方屬性：defenderType
-                 * 屬性效果：typeEffect.script
-                 * --------------------
-                 * 攻方招式：attacker.name
-                 * 攻方招式內容：attacker.effect desc
-                 * 攻方招式傷害：attacker.damage
-                 * --------------------
-                 * 防方小精靈：defender.name
-                 * 防方小精靈圖片：defender.info.image
-                 */
-                rply.text +=
-                    `攻方屬性：${attackerType}
-防方屬性：${defenderType}
-屬性效果：${typeEffect.script}
-`
-                rply.text += (attacker) ?
-                    `--------------------
-攻方招式：${attacker.name}
-攻方招式內容：${attacker.effect}
-${attacker.desc}
-攻方招式傷害：${attacker.damage}
-`: '';
-                rply.text += (defender) ?
-                    `--------------------
-防方小精靈：${defender.name}
-防方小精靈圖片：${defender.info.image}
-`: '';
-                return rply;
-            } catch (error) {
-                console.error(error)
-            }
+            let text = commandVS(mainMsg).text;
+            console.log('text', text)
+            rply.text = text;
+            return rply;
         }
         case /^sh$/.test(mainMsg[1] || ''): {
             rply.text = 'Demo'
@@ -184,6 +125,17 @@ class Pokemon {
             }
         }
         return [];
+    }
+    static findKeyByKey(value) {
+        let result = [];
+        for (const key in typeName) {
+            for (let i = 0; i < value.length; i++) {
+                if (key === value[i]) {
+                    result.push(typeName[key])
+                }
+            }
+        }
+        return result;
     }
     search(name) {
         try {
@@ -370,6 +322,78 @@ function checkEffectiveness(moveType, enemyType) {
 console.log(checkEffectiveness("Fire", ["Grass", "Ice"])); // 輸出 0.25
 console.log(checkEffectiveness("Electric", ["Water"])); // 輸出 2
 console.log(checkEffectiveness("Poison", ["Steel"])); // 輸出 0
+
+function commandVS(mainMsg) {
+    try {
+        let rply = {
+            text: ''
+        }
+        //招式名,屬性  VS  POKEMON名,POKEMON NO,屬性1,屬性2
+        let attackerType = Moves.findKeyByValue(mainMsg[2]);
+        console.log('attackerType', attackerType)
+        let attacker = (attackerType) ? null : pokeMove.getVS(mainMsg[2]);
+        if (attacker) {
+            attackerType = attacker.type
+        }
+        let defenderType = Pokemon.findKeyByValue(mainMsg[3]);
+        let defender = (defenderType.length) ? null : pokedex.getVS(mainMsg[3]);
+        if (defender) {
+            defenderType = defender.type
+        }
+
+        console.log('defenderType', defenderType, defender)
+        if (mainMsg[4]) {
+            let defenderType2 = Pokemon.findKeyByValue(mainMsg[4]);
+            console.log('defenderType2', defenderType2)
+            if (defenderType2) defenderType = defenderType.concat(defenderType2);
+        }
+        if (!defenderType || !attackerType) {
+            rply.text += (!attackerType) ? '找不到攻方屬性，請確認名稱，你可以輸入完整招式名稱或屬性\n' : '';
+            rply.text += (!defenderType) ? '找不到防方屬性，請確認名稱，你可以輸入小精靈名稱，編號或屬性\n' : '';
+            return rply;
+
+        }
+        console.log('attacker', attacker, attackerType)
+        console.log('defender', defender, defenderType)
+        let typeEffect = checkEffectiveness(attackerType, defenderType);
+        /**
+         * 攻方屬性：attackerType
+         * 防方屬性：defenderType
+         * 屬性效果：typeEffect.script
+         * --------------------
+         * 攻方招式：attacker.name
+         * 攻方招式內容：attacker.effect desc
+         * 攻方招式傷害：attacker.damage
+         * --------------------
+         * 防方小精靈：defender.name
+         * 防方小精靈圖片：defender.info.image
+         */
+        let attackerTypeChinese = Pokemon.findKeyByKey([attackerType]);
+        let defenderTypeChinese = Pokemon.findKeyByKey(defenderType);
+        rply.text +=
+            `攻方屬性：${attackerTypeChinese}
+防方屬性：${defenderTypeChinese}
+屬性效果：${typeEffect.script}
+`
+        rply.text += (attacker) ?
+            `--------------------
+攻方招式：${attacker.name}
+攻方招式內容：${attacker.effect}
+${attacker.desc}
+攻方招式傷害：${attacker.damage}
+`: '';
+        rply.text += (defender) ?
+            `--------------------
+防方小精靈：${defender.name}
+防方小精靈圖片：${defender.info.image}
+`: '';
+        return rply;
+    } catch (error) {
+        console.error(error)
+        rply.text = `輸入錯誤，請輸入正確的招式名稱或小精靈名稱\n${getHelpMessage()}`
+        return rply;
+    }
+}
 
 const discordCommand = []
 module.exports = {

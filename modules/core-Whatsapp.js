@@ -196,6 +196,7 @@ if (retry > maxRetry) {
 		let TargetGMTempdisplayname = [];
 
 		userid = msg.author;
+		console.log(await msg.getContact)
 		displayname = msg.getContact().then(a => {
 			return a.pushname
 		})
@@ -332,8 +333,6 @@ if (retry > maxRetry) {
 				const imageMatch = rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i].match(imageUrl) || null;
 				if (imageMatch && imageMatch.length) {
 					try {
-						console.log('SendToReply')
-
 						let imageVaild = await isImageURL(imageMatch[0]);
 						if (imageVaild) {
 							const media = await MessageMedia.fromUrl(imageMatch[0]);
@@ -377,7 +376,6 @@ async function SendToId(targetid, rplyVal, client) {
 			const imageMatch = rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i].match(imageUrl) || null;
 			if (imageMatch && imageMatch.length) {
 				try {
-					console.log('sendid')
 					let imageVaild = await isImageURL(imageMatch[0]);
 					if (imageVaild) {
 						const media = await MessageMedia.fromUrl(imageMatch[0]);

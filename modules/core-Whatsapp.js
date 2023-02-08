@@ -196,7 +196,7 @@ if (retry > maxRetry) {
 		let TargetGMTempdisplayname = [];
 
 		userid = msg.author;
-		console.log(await msg.getContact)
+		console.log(await msg.getContact())
 		displayname = msg.getContact().then(a => {
 			return a.pushname
 		})

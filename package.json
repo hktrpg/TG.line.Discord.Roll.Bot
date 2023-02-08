@@ -42,6 +42,7 @@
     "geopattern": "^1.2.3",
     "get-image-colors": "^4.0.1",
     "https": "^1.0.0",
+    "image-url-validator": "^1.0.4",
     "jimp": "^0.16.2",
     "log-to-file": "^3.0.0",
     "mathjs": "^9.3.0",

@@ -1,6 +1,7 @@
 "use strict";
 exports.analytics = require('./analytics');
 const schema = require('../modules/schema.js');
+const isImageURL = require('image-url-validator').default;
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const adminSecret = process.env.ADMIN_SECRET || '';
 const Cluster = require('discord-hybrid-sharding');
@@ -18,7 +19,7 @@ const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 function channelFilter(channel) {
 	return !channel.lastMessageId || Discord.SnowflakeUtil.deconstruct(channel.lastMessageId).timestamp < Date.now() - 3600000;
 }
-const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)/g);
+const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)$/i);
 const client = new Discord.Client({
 	makeCache: Discord.Options.cacheWithLimits({
 		ApplicationCommandManager: 0, // guild.commands
@@ -262,7 +263,7 @@ function checkRepeatName(content, button, user) {
 	}
 	return flag;
 }
-function convQuotes(text = "") {
+async function convQuotes(text = "") {
 	const imageMatch = text.match(imageUrl) || null;
 	let embed = new Discord.MessageEmbed()
 		.setColor('#0099ff')
@@ -270,7 +271,15 @@ function convQuotes(text = "") {
 		//.setURL('https://discord.js.org/')
 		.setAuthor({ name: 'HKTRPG', url: 'https://www.patreon.com/HKTRPG', iconURL: 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png' })
 		.setDescription(text)
-	if (imageMatch) embed = embed.setImage(imageMatch[0])
+	if (imageMatch.length) {
+		console.log(imageMatch, text)
+		let imageVaild = await isImageURL(imageMatch[0]);
+		if (imageVaild) {
+			embed = embed.setImage(imageMatch[0]);
+			embed.setDescription(text.replace(imageMatch[0], ''));
+		}
+	}
+	console.log('embed', embed)
 	return embed;
 
 }
@@ -292,7 +301,7 @@ async function SendToId(targetid, replyText, quotes) {
 			if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
 				try {
 					if (quotes) {
-						user.send({ embeds: [convQuotes(sendText[i])] });
+						user.send({ embeds: [await convQuotes(sendText[i])] });
 					} else { user.send(sendText[i]); }
 				}
 				catch (e) {
@@ -306,13 +315,13 @@ async function SendToId(targetid, replyText, quotes) {
 
 }
 
-function SendToReply({ replyText = "", message, quotes = false }) {
+async function SendToReply({ replyText = "", message, quotes = false }) {
 	let sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
 	for (let i = 0; i < sendText.length; i++) {
 		if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
 			try {
 				if (quotes) {
-					message.author && message.author.send({ embeds: [convQuotes(sendText[i])] });
+					message.author && message.author.send({ embeds: [await convQuotes(sendText[i])] });
 				} else
 					message.author && message.author.send(sendText[i]);
 			}
@@ -350,7 +359,7 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 			try {
 				if (quotes) {
 					for (let index = 0; index < buttonCreate.length || index === 0; index++) {
-						channel.send({ embeds: [convQuotes(sendText[i])], components: buttonCreate[index] || null });
+						channel.send({ embeds: [await convQuotes(sendText[i])], components: buttonCreate[index] || null });
 					}
 
 				} else {

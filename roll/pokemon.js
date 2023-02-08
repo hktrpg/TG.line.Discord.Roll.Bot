@@ -56,7 +56,7 @@ const rollDiceCommand = async function ({
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
             rply.text = this.getHelpMessage();
             rply.quotes = true;
-            rply.buttonCreate = ['.poke vs 火之誓約 夢幻', '.poke dex 超夢']
+            rply.buttonCreate = ['.poke', '.poke vs 火之誓約 夢幻', '.poke mon 超夢', '.poke move 火焰輪']
             return rply;
         }
         case /^vs$/.test(mainMsg[1]): {
@@ -115,7 +115,7 @@ class Pokemon {
         if (result.length) return result[0].item;
         return undefined;
     }
-    static findKeyByValue(value) {
+    static findTypeByCht(value) {
         for (const key in typeName) {
             if (typeName[key] === value) {
                 return [key];
@@ -123,7 +123,7 @@ class Pokemon {
         }
         return [];
     }
-    static findKeyByKey(value) {
+    static findTypeByEng(value) {
         let result = [];
         for (const key in typeName) {
             for (let i = 0; i < value.length; i++) {
@@ -138,7 +138,7 @@ class Pokemon {
         let rply = '';
         console.log('pokemon', pokemon)
         try {
-            rply += `#${pokemon.id} 【${pokemon.name}】 ${pokemon.type}
+            rply += `#${pokemon.id} 【${pokemon.name}】 ${Pokemon.findTypeByEng(pokemon.type)} 
 ${pokemon.info.category} ${pokemon.info.height}m / ${pokemon.info.weight}kg
 建議等級：${pokemon.rank}  基礎HP：${pokemon.baseHP}  特性：${pokemon.ability} 
 力量 ${displayValue(pokemon.attr.str.value, pokemon.attr.str.max)}
@@ -212,7 +212,7 @@ class Moves {
         if (result)
             return result[0].item;
     }
-    static findKeyByValue(value) {
+    static findTypeByCht(value) {
         for (const key in typeName) {
             if (typeName[key] === value) {
                 return key;
@@ -222,7 +222,7 @@ class Moves {
     }
     static showMove(move) {
         let result = '';
-        result += `【${move.name}】 ${Pokemon.findKeyByKey([move.type])}     威力：${move.power}
+        result += `【${move.name}】 ${Pokemon.findTypeByEng([move.type])}     威力：${move.power}
 命中：${move.accuracy}
 招式傷害：${move.damage}
 招式內容：${move.effect}
@@ -346,13 +346,13 @@ function commandVS(mainMsg) {
             text: ''
         }
         //招式名,屬性  VS  POKEMON名,POKEMON NO,屬性1,屬性2
-        let attackerType = Moves.findKeyByValue(mainMsg[2]);
+        let attackerType = Moves.findTypeByCht(mainMsg[2]);
         console.log('attackerType', attackerType)
         let attacker = (attackerType) ? null : pokeMove.getVS(mainMsg[2]);
         if (attacker) {
             attackerType = attacker.type
         }
-        let defenderType = Pokemon.findKeyByValue(mainMsg[3]);
+        let defenderType = Pokemon.findTypeByCht(mainMsg[3]);
         let defender = (defenderType.length) ? null : pokeDex.getVS(mainMsg[3]);
         if (defender) {
             defenderType = defender.type
@@ -360,7 +360,7 @@ function commandVS(mainMsg) {
 
         console.log('defenderType', defenderType, defender)
         if (mainMsg[4]) {
-            let defenderType2 = Pokemon.findKeyByValue(mainMsg[4]);
+            let defenderType2 = Pokemon.findTypeByCht(mainMsg[4]);
             console.log('defenderType2', defenderType2)
             if (defenderType2) defenderType = defenderType.concat(defenderType2);
         }
@@ -385,8 +385,8 @@ function commandVS(mainMsg) {
          * 防方小精靈：defender.name
          * 防方小精靈圖片：defender.info.image
          */
-        let attackerTypeChinese = Pokemon.findKeyByKey([attackerType]);
-        let defenderTypeChinese = Pokemon.findKeyByKey(defenderType);
+        let attackerTypeChinese = Pokemon.findTypeByEng([attackerType]);
+        let defenderTypeChinese = Pokemon.findTypeByEng(defenderType);
         rply.text +=
             `攻方屬性：${attackerTypeChinese}
 防方屬性：${defenderTypeChinese}

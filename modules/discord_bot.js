@@ -18,6 +18,7 @@ const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 function channelFilter(channel) {
 	return !channel.lastMessageId || Discord.SnowflakeUtil.deconstruct(channel.lastMessageId).timestamp < Date.now() - 3600000;
 }
+const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)/g);
 const client = new Discord.Client({
 	makeCache: Discord.Options.cacheWithLimits({
 		ApplicationCommandManager: 0, // guild.commands
@@ -262,14 +263,16 @@ function checkRepeatName(content, button, user) {
 	return flag;
 }
 function convQuotes(text = "") {
-	//const imageMatch = text.match(imageUrl);
-	return new Discord.MessageEmbed()
+	const imageMatch = text.match(imageUrl) || null;
+	let embed = new Discord.MessageEmbed()
 		.setColor('#0099ff')
 		//.setTitle(rplyVal.title)
 		//.setURL('https://discord.js.org/')
 		.setAuthor({ name: 'HKTRPG', url: 'https://www.patreon.com/HKTRPG', iconURL: 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png' })
 		.setDescription(text)
-	//.setImage((imageMatch && imageMatch.length > 0) ? imageMatch[0] : '')
+	if (imageMatch) embed = embed.setImage(imageMatch[0])
+	return embed;
+
 }
 
 async function privateMsgFinder(channelid) {

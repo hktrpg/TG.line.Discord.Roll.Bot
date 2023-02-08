@@ -329,7 +329,7 @@ if (retry > maxRetry) {
 	async function SendToReply(msg, rplyVal) {
 		for (let i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 			if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
-				const imageMatch = text.match(imageUrl) || null;
+				const imageMatch = rplyVal.text.match(imageUrl) || null;
 				if (imageMatch && imageMatch.length) {
 					let imageVaild = await isImageURL(imageMatch[0]);
 					if (imageVaild) {
@@ -366,7 +366,7 @@ startUp()
 async function SendToId(targetid, rplyVal, client) {
 	for (let i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 		if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
-			const imageMatch = text.match(imageUrl) || null;
+			const imageMatch = rplyVal.text.match(imageUrl) || null;
 			if (imageMatch && imageMatch.length) {
 				let imageVaild = await isImageURL(imageMatch[0]);
 				if (imageVaild) {

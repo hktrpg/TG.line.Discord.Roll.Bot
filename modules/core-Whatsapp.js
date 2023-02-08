@@ -9,12 +9,12 @@ if (process.env.BROADCAST) {
 		console.log('connected To core-www from Whatsapp!')
 		ws.send('connected To core-www from Whatsapp!');
 	});
-	ws.on('message', function incoming(data) {
+	ws.on('message', async function incoming(data) {
 		var object = JSON.parse(data);
 		if (object.botname == 'Whatsapp') {
 			if (!object.message.text) return;
 			console.log('connect To core-www from Whatsapp!')
-			SendToId(object.message.target.id, object.message.text);
+			await SendToId(object.message.target.id, object.message.text);
 			return;
 		}
 	});
@@ -35,8 +35,10 @@ const newMessage = require('./message');
 exports.analytics = require('./analytics');
 exports.z_stop = require('../roll/z_stop');
 const {
-	Client, LocalAuth
+	Client, LocalAuth, MessageMedia
 } = require('whatsapp-web.js');
+const isImageURL = require('image-url-validator').default;
+const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)$/i);
 const MESSAGE_SPLITOR = (/\S+/ig);
 // Path where the session data will be stored
 const SESSION_FILE_PATH = './modules/whatsapp-session.json';
@@ -260,7 +262,7 @@ if (retry > maxRetry) {
 					SendDR(msg, "@" + displayname + '暗骰給自己');
 				}
 				rplyVal.text = "@" + displayname + "的暗骰\n" + rplyVal.text
-				SendToId(userid, rplyVal, client);
+				await SendToId(userid, rplyVal, client);
 				break;
 			case privatemsg == 2:
 				//輸入ddr(指令) 私訊GM及自己
@@ -272,10 +274,10 @@ if (retry > maxRetry) {
 					SendDR(msg, "@" + displayname + '暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
 				}
 				rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
-				SendToId(msg.from, rplyVal, client);
+				await SendToId(msg.from, rplyVal, client);
 				for (let i = 0; i < TargetGMTempID.length; i++) {
 					if (userid != TargetGMTempID[i])
-						SendToId(TargetGMTempID[i], rplyVal, client);
+						await SendToId(TargetGMTempID[i], rplyVal, client);
 				}
 				break;
 			case privatemsg == 3:
@@ -289,14 +291,14 @@ if (retry > maxRetry) {
 				}
 				rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
 				for (let i = 0; i < TargetGMTempID.length; i++) {
-					SendToId(TargetGMTempID[i], rplyVal, client);
+					await SendToId(TargetGMTempID[i], rplyVal, client);
 				}
 				break;
 			default:
 				if (displaynamecheck == false) {
-					SendToId(msg.from, rplyVal, client);
+					await SendToId(msg.from, rplyVal, client);
 				} else
-					SendToReply(msg, rplyVal);
+					await SendToReply(msg, rplyVal);
 				break;
 		}
 		// msg.delete();
@@ -324,9 +326,17 @@ if (retry > maxRetry) {
 		return msg.reply(text);
 	}
 
-	function SendToReply(msg, rplyVal) {
+	async function SendToReply(msg, rplyVal) {
 		for (let i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 			if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
+				const imageMatch = text.match(imageUrl) || null;
+				if (imageMatch && imageMatch.length) {
+					let imageVaild = await isImageURL(imageMatch[0]);
+					if (imageVaild) {
+						const media = await MessageMedia.fromUrl(imageMatch[0]);
+						client.sendMessage(media);
+					}
+				}
 				msg.reply(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);
 			}
 		}
@@ -353,10 +363,20 @@ if (retry > maxRetry) {
 }
 startUp()
 
-function SendToId(targetid, rplyVal, client) {
+async function SendToId(targetid, rplyVal, client) {
 	for (let i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 		if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
+			const imageMatch = text.match(imageUrl) || null;
+			if (imageMatch && imageMatch.length) {
+				let imageVaild = await isImageURL(imageMatch[0]);
+				if (imageVaild) {
+					const media = await MessageMedia.fromUrl(imageMatch[0]);
+					client.sendMessage(media);
+				}
+			}
 			client.sendMessage(targetid, rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);
+
+
 		}
 	}
 }

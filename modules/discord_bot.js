@@ -2,6 +2,7 @@
 exports.analytics = require('./analytics');
 const schema = require('../modules/schema.js');
 const isImageURL = require('image-url-validator').default;
+const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)$/i);
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const adminSecret = process.env.ADMIN_SECRET || '';
 const Cluster = require('discord-hybrid-sharding');
@@ -19,7 +20,6 @@ const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 function channelFilter(channel) {
 	return !channel.lastMessageId || Discord.SnowflakeUtil.deconstruct(channel.lastMessageId).timestamp < Date.now() - 3600000;
 }
-const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)$/i);
 const client = new Discord.Client({
 	makeCache: Discord.Options.cacheWithLimits({
 		ApplicationCommandManager: 0, // guild.commands

@@ -331,11 +331,19 @@ if (retry > maxRetry) {
 			if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
 				const imageMatch = rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i].match(imageUrl) || null;
 				if (imageMatch && imageMatch.length) {
-					let imageVaild = await isImageURL(imageMatch[0]);
-					if (imageVaild) {
-						const media = await MessageMedia.fromUrl(imageMatch[0]);
-						client.sendMessage(media);
+					try {
+
+
+						let imageVaild = await isImageURL(imageMatch[0]);
+						if (imageVaild) {
+							const media = await MessageMedia.fromUrl(imageMatch[0]);
+							client.sendMessage(media);
+						}
+					} catch (error) {
+						console.log(error);
 					}
+
+
 				}
 				msg.reply(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);
 			}
@@ -368,10 +376,14 @@ async function SendToId(targetid, rplyVal, client) {
 		if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
 			const imageMatch = rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i].match(imageUrl) || null;
 			if (imageMatch && imageMatch.length) {
-				let imageVaild = await isImageURL(imageMatch[0]);
-				if (imageVaild) {
-					const media = await MessageMedia.fromUrl(imageMatch[0]);
-					client.sendMessage(media);
+				try {
+					let imageVaild = await isImageURL(imageMatch[0]);
+					if (imageVaild) {
+						const media = await MessageMedia.fromUrl(imageMatch[0]);
+						client.sendMessage(media);
+					}
+				} catch (error) {
+					console.error(error)
 				}
 			}
 			client.sendMessage(targetid, rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);

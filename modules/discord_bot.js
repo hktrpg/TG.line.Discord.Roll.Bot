@@ -2,7 +2,7 @@
 exports.analytics = require('./analytics');
 const schema = require('../modules/schema.js');
 const isImageURL = require('image-url-validator').default;
-const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)$/i);
+const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)(\s?)$/i);
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const adminSecret = process.env.ADMIN_SECRET || '';
 const Cluster = require('discord-hybrid-sharding');
@@ -264,14 +264,15 @@ function checkRepeatName(content, button, user) {
 	return flag;
 }
 async function convQuotes(text = "") {
-	const imageMatch = text.match(imageUrl) || null;
 	let embed = new Discord.MessageEmbed()
 		.setColor('#0099ff')
 		//.setTitle(rplyVal.title)
 		//.setURL('https://discord.js.org/')
 		.setAuthor({ name: 'HKTRPG', url: 'https://www.patreon.com/HKTRPG', iconURL: 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png' })
 		.setDescription(text)
+	const imageMatch = text.match(imageUrl) || null;
 	if (imageMatch && imageMatch.length) {
+		imageMatch[0] = imageMatch[0].replace(/\s?$/, '');
 		let imageVaild = await isImageURL(imageMatch[0]);
 		if (imageVaild) {
 			embed = embed.setImage(imageMatch[0]);

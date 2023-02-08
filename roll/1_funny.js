@@ -114,6 +114,7 @@ const rollDiceCommand = async function ({
 			rply.text = dailyAnswerChoice(inputStr);
 			return rply;
 		case /塔羅/i.test(mainMsg[0]):
+			rply.quotes = true;
 			if (mainMsg[0].match(/^每日塔羅/) != null)
 				rply.text = NomalDrawTarot(mainMsg[1], mainMsg[2]); //預設抽 79 張
 			if (mainMsg[0].match(/^時間塔羅/) != null)

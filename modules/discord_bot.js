@@ -271,15 +271,13 @@ async function convQuotes(text = "") {
 		//.setURL('https://discord.js.org/')
 		.setAuthor({ name: 'HKTRPG', url: 'https://www.patreon.com/HKTRPG', iconURL: 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png' })
 		.setDescription(text)
-	if (imageMatch.length) {
-		console.log(imageMatch, text)
+	if (imageMatch && imageMatch.length) {
 		let imageVaild = await isImageURL(imageMatch[0]);
 		if (imageVaild) {
 			embed = embed.setImage(imageMatch[0]);
 			embed.setDescription(text.replace(imageMatch[0], ''));
 		}
 	}
-	console.log('embed', embed)
 	return embed;
 
 }

@@ -162,6 +162,7 @@ bothelp about	- 查詢HKTRPG 歷史📜
 			return rply;
 		case /^BASE/i.test(mainMsg[1]):
 			rply.text = await getHelpMessage();
+			rply.buttonCreate = ['dr 1d100', '2d6+10 攻擊', '.5 3d6', '.5 4d6dl1', '.rr 5d10!k2']
 			return rply;
 		case /^about$/i.test(mainMsg[1]):
 			rply.text = `關於HKTRPG
@@ -181,8 +182,10 @@ HKTRPG來源自 機器鴨霸獸 https://docs.google.com/document/d/1dYnJqF2_QTp9
 		case /^Dice/i.test(mainMsg[1]):
 			if (mainMsg[1].match(/^DICE$/i)) {
 				rply.text = '輸入 bothelp Dice序號 如bothelp Dice1 即可看到內容\n'
+				rply.buttonCreate = [];
 				for (let num in Dice) {
 					rply.text += num + '. ' + Dice[num].gameName() + '\n';
+					rply.buttonCreate.push('bothelp Dice' + num);
 				}
 			}
 			if (mainMsg[1].match(/^Dice\d+$/i)) {
@@ -194,8 +197,10 @@ HKTRPG來源自 機器鴨霸獸 https://docs.google.com/document/d/1dYnJqF2_QTp9
 		case /^Tool/i.test(mainMsg[1]):
 			if (mainMsg[1].match(/^Tool$/i)) {
 				rply.text = '輸入 bothelp Tool序號 如bothelp Tool1 即可看到內容\n'
+				rply.buttonCreate = [];
 				for (let num in Tool) {
 					rply.text += num + '. ' + Tool[num].gameName() + '\n';
+					rply.buttonCreate.push('bothelp Tool' + num);
 				}
 			}
 			if (mainMsg[1].match(/^Tool\d+$/i)) {
@@ -210,9 +215,11 @@ HKTRPG來源自 機器鴨霸獸 https://docs.google.com/document/d/1dYnJqF2_QTp9
 		}
 		case /^admin/i.test(mainMsg[1]):
 			if (mainMsg[1].match(/^admin$/i)) {
-				rply.text = '輸入 bothelp admin序號 如bothelp admin1 即可看到內容\n'
+				rply.text = '輸入 bothelp admin序號 如bothelp admin1 即可看到內容\n';
+				rply.buttonCreate = [];
 				for (let num in admin) {
 					rply.text += num + '. ' + admin[num].gameName() + '\n';
+					rply.buttonCreate.push('bothelp admin' + num);
 				}
 			}
 			if (mainMsg[1].match(/^admin\d+$/i)) {
@@ -224,9 +231,11 @@ HKTRPG來源自 機器鴨霸獸 https://docs.google.com/document/d/1dYnJqF2_QTp9
 
 		case /^funny/i.test(mainMsg[1]):
 			if (mainMsg[1].match(/^funny$/i)) {
-				rply.text = '輸入 bothelp funny序號 如bothelp funny1 即可看到內容\n'
+				rply.text = '輸入 bothelp funny序號 如bothelp funny1 即可看到內容\n';
+				rply.buttonCreate = [];
 				for (let num in funny) {
 					rply.text += num + '. ' + funny[num].gameName() + '\n';
+					rply.buttonCreate.push('bothelp Funny' + num);
 				}
 			}
 			if (mainMsg[1].match(/^funny\d+$/i)) {
@@ -238,9 +247,11 @@ HKTRPG來源自 機器鴨霸獸 https://docs.google.com/document/d/1dYnJqF2_QTp9
 
 		case /^help/i.test(mainMsg[1]):
 			if (mainMsg[1].match(/^help$/i)) {
-				rply.text = '輸入 bothelp help序號 如bothelp help1 即可看到內容\n'
+				rply.text = '輸入 bothelp help序號 如bothelp help1 即可看到內容\n';
+				rply.buttonCreate = [];
 				for (let num in help) {
 					rply.text += num + '. ' + help[num].gameName() + '\n';
+					rply.buttonCreate.push('bothelp help' + num);
 				}
 			}
 			if (mainMsg[1].match(/^help\d+$/i)) {

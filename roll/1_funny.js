@@ -103,6 +103,7 @@ const rollDiceCommand = async function ({
 	switch (true) {
 		case /^help$/i.test(mainMsg[1]):
 			rply.text = await this.getHelpMessage();
+			rply.buttonCreate = ['隨機 跑團 溫習 打遊戲', '排序 A君 C君 F君 G君', '.re 簽到', '.re 1d100', '今日運勢', '每日塔羅', '立FLAG', '每日大事', '每日笑話', '每日廢話', '每日一言', '每日黃曆', '每日毒湯', '每日情話', '每日靈簽', '每日淺草簽', '每日動漫', '每日解答']
 			return rply;
 		case /^排序|排序$/i.test(mainMsg[0]) && (mainMsg.length >= 4):
 			rply.text = SortIt(inputStr, mainMsg);

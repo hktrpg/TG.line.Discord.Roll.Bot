@@ -3,11 +3,11 @@ const variables = {};
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const Fuse = require('fuse.js')
 const gameName = function () {
-    return '【Demo】'
+    return '【PokeRole】.poke '
 }
 
 const gameType = function () {
-    return 'Demo:Demo:hktrpg'
+    return 'Dice:pokerole:hktrpg'
 }
 
 /*
@@ -25,19 +25,28 @@ image = info.image
  * 
  */
 const prefixs = function () {
-    //[mainMSG[0]的prefixs,mainMSG[1]的prefixs,   <---這裡是一對  
-    //mainMSG[0]的prefixs,mainMSG[1]的prefixs  ]  <---這裡是一對
-    //如前面是 /^1$/ig, 後面是/^1D100$/ig, 即 prefixs 變成 1 1D100 
-    ///^(?=.*he)(?!.*da).*$/ig
     return [{
         first: /^\.poke$/i,
         second: null
     }]
 }
 const getHelpMessage = function () {
-    return `【示範】
-只是一個Demo的第一行
-只是一個Demo末行`
+    return `【PokeRole】.poke
+這是一個Pokemon的資料庫，
+進行小精靈，招式的查詢以及 對戰的屬性相克結果，
+.poke 可以查看更多指令
+.poke mon (名稱/編號)  可以查看小精靈的資料
+.poke move (招式名稱)  可以查看招式的資料
+.poke vs 攻方(招式名稱/屬性) 防方(小精靈名稱/編號/屬性1,2)  可以進行對戰模擬
+--------------------
+例子：
+.poke mon 超夢
+.poke move 火焰輪
+.poke vs 火之誓約 夢幻
+.poke vs 火 100  
+.poke vs 火 超能力 水
+
+`
 }
 const initialize = function () {
     return variables;
@@ -56,20 +65,18 @@ const rollDiceCommand = async function ({
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
             rply.text = this.getHelpMessage();
             rply.quotes = true;
-            rply.buttonCreate = ['.poke', '.poke vs 火之誓約 夢幻', '.poke mon 超夢', '.poke move 火焰輪']
+            rply.buttonCreate = ['.poke', '.poke mon 超夢', '.poke move 火焰輪', '.poke vs 火之誓約 夢幻', '.poke vs 火 100', '.poke vs 火 超能力 水']
             return rply;
         }
         case /^vs$/.test(mainMsg[1]): {
             let text = commandVS(mainMsg).text;
             rply.quotes = true;
-            console.log('text', text)
             rply.text = text;
             return rply;
         }
         case /^move$/.test(mainMsg[1]): {
             rply.quotes = true;
             rply.text = pokeMove.search(mainMsg[2])
-            console.log('rply.text move', rply.text)
             return rply;
         }
         case /^mon$/.test(mainMsg[1]): {
@@ -96,22 +103,17 @@ class Pokemon {
 
     static init(link) {
         let data = [];
-        console.log('init')
         require('fs').readdirSync('./assets/pokemon/').forEach(function (file) {
             if (file.match(/\.js$/) && file.match(new RegExp('^' + link, 'i'))) {
-                //   console.log('file', file)
                 let importData = require('../assets/pokemon/' + file);
-                //   console.log('importData', importData)
                 data = data.concat(importData.Pokedex)
             }
         });
-        console.log('data', data[0])
         return new Pokemon(data);
     }
     getVS(string) {
         if (typeof (string) === 'number') { string = ('000' + string).slice(-3) }
         let result = this.fuse.search(string, { limit: 1 })
-        console.log('result1', result)
         if (result.length) return result[0].item;
         return undefined;
     }
@@ -136,7 +138,6 @@ class Pokemon {
     }
     static showPokemon(pokemon) {
         let rply = '';
-        console.log('pokemon', pokemon)
         try {
             rply += `#${pokemon.id} 【${pokemon.name}】 ${Pokemon.findTypeByEng(pokemon.type)} 
 ${pokemon.info.category} ${pokemon.info.height}m / ${pokemon.info.weight}kg
@@ -150,15 +151,13 @@ ${(pokemon.evolution.stage) ? `進化階段：${pokemon.evolution.stage}` : ''} 
 https://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/assets/pokemon/${pokemon.info.image}`
 
         } catch (error) {
-            console.error('!!!', error)
+            console.error('pokemon #145 error', error)
         }
-        console.log('rply!!!!!!!!!!', rply)
         return rply;
     }
     search(name) {
         try {
             let result = this.fuse.search(name, { limit: 12 });
-            console.log('search:\n', result)
             let rply = '';
             if (result.length === 0) return '沒有找到相關資料';
             if (result.length <= 2 || result[0].item.name === name) {
@@ -173,7 +172,7 @@ https://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/assets/
             return rply;
         }
         catch (error) {
-            console.log(error);
+            console.error('pokemon error #166' + error);
             return '發生錯誤';
         }
     }
@@ -193,22 +192,17 @@ class Moves {
 
     static init(link) {
         let data = [];
-        console.log('initMoves')
         require('fs').readdirSync('./assets/pokemon/').forEach(function (file) {
             if (file.match(/\.js$/) && file.match(new RegExp('^' + link, 'i'))) {
-                //   console.log('file', file)
                 let importData = require('../assets/pokemon/' + file);
-                //console.log('importData', importData)
                 data = data.concat(importData.MoveList)
             }
         });
-        console.log('data', data[0])
         return new Moves(data);
     }
     getVS(string) {
         if (typeof (string) === 'number') { string = ('000' + string).slice(-3) }
         let result = this.fuse.search(string, { limit: 1 })
-        console.log('result1', result)
         if (result)
             return result[0].item;
     }
@@ -232,17 +226,13 @@ class Moves {
     search(name) {
         try {
             let result = this.fuse.search(name, { limit: 12 });
-            console.log('search!?!?:\n', result)
             let rply = '';
             if (result.length === 0) return '沒有找到相關資料';
             if (result[0].item.name === name) {
-                console.log('??????')
                 rply = Moves.showMove(result[0].item);
-                console.log('search2:\n', rply)
                 return rply;
             }
             if (result.length <= 2) {
-                console.log('2000!!!')
                 for (let i = 0; i < result.length; i++) {
                     rply += `${Moves.showMove(result[i].item)} \n
  `;
@@ -254,11 +244,10 @@ class Moves {
                     rply += `${result[i].item.name}\n`;
                 }
             }
-            console.log('rply2233', rply)
             return rply;
         }
         catch (error) {
-            console.log(error);
+            console.error('pokemon error #241', error);
             return '發生錯誤';
         }
     }
@@ -334,12 +323,6 @@ function checkEffectiveness(moveType, enemyType) {
 }
 
 
-
-// 測試程式
-console.log(checkEffectiveness("Fire", ["Grass", "Ice"])); // 輸出 0.25
-console.log(checkEffectiveness("Electric", ["Water"])); // 輸出 2
-console.log(checkEffectiveness("Poison", ["Steel"])); // 輸出 0
-
 function commandVS(mainMsg) {
     try {
         let rply = {
@@ -347,7 +330,6 @@ function commandVS(mainMsg) {
         }
         //招式名,屬性  VS  POKEMON名,POKEMON NO,屬性1,屬性2
         let attackerType = Moves.findTypeByCht(mainMsg[2]);
-        console.log('attackerType', attackerType)
         let attacker = (attackerType) ? null : pokeMove.getVS(mainMsg[2]);
         if (attacker) {
             attackerType = attacker.type
@@ -358,10 +340,8 @@ function commandVS(mainMsg) {
             defenderType = defender.type
         }
 
-        console.log('defenderType', defenderType, defender)
         if (mainMsg[4]) {
             let defenderType2 = Pokemon.findTypeByCht(mainMsg[4]);
-            console.log('defenderType2', defenderType2)
             if (defenderType2) defenderType = defenderType.concat(defenderType2);
         }
         if (!defenderType.length || !attackerType) {
@@ -370,8 +350,6 @@ function commandVS(mainMsg) {
             return rply;
 
         }
-        console.log('attacker', attacker, attackerType)
-        console.log('defender', defender, defenderType)
         let typeEffect = checkEffectiveness(attackerType, defenderType);
         /**
          * 攻方屬性：attackerType
@@ -407,7 +385,6 @@ function commandVS(mainMsg) {
 `: '';
         return rply;
     } catch (error) {
-        console.error(error)
         rply.text = `輸入錯誤，請輸入正確的招式名稱或小精靈名稱\n${getHelpMessage()}`
         return rply;
     }

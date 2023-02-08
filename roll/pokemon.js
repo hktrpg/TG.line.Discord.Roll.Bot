@@ -148,7 +148,7 @@ ${pokemon.info.category} ${pokemon.info.height}m / ${pokemon.info.weight}kg
 特殊 ${displayValue(pokemon.attr.spe.value, pokemon.attr.spe.max)}
 洞察 ${displayValue(pokemon.attr.ins.value, pokemon.attr.ins.max)}
 ${(pokemon.evolution.stage) ? `進化階段：${pokemon.evolution.stage}` : ''} ${(pokemon.evolution.time) ? `進化時間：${pokemon.evolution.time}` : ''}
-https://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/assets/pokemon/${pokemon.info.image}`
+https://github.com/hktrpg/TG.line.Discord.Roll.Bot/raw/master/assets/pokemon/image/${pokemon.info.image}`
 
         } catch (error) {
             console.error('pokemon #145 error', error)
@@ -381,7 +381,7 @@ function commandVS(mainMsg) {
         rply.text += (defender) ?
             `--------------------
 防方小精靈：${defender.name}
-防方小精靈圖片：https://raw.githubusercontent.com/hazmole/PokeRole/master/static/${defender.info.image}
+防方小精靈圖片：https://github.com/hktrpg/TG.line.Discord.Roll.Bot/raw/master/assets/pokemon/image/${defender.info.image}
 `: '';
         return rply;
     } catch (error) {

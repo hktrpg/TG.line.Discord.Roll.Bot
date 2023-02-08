@@ -45,7 +45,10 @@ const getHelpMessage = function () {
 .poke vs 火之誓約 夢幻
 .poke vs 火 100  
 .poke vs 火 超能力 水
-
+--------------------
+資料來源：
+https://hazmole.github.io/PokeRole/
+及 免費開源TRPG中文化團隊
 `
 }
 const initialize = function () {

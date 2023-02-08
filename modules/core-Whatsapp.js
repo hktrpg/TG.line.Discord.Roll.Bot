@@ -196,10 +196,8 @@ if (retry > maxRetry) {
 		let TargetGMTempdisplayname = [];
 
 		userid = msg.author;
-		console.log(await msg.getContact())
-		displayname = msg.getContact().then(a => {
-			return a.pushname
-		})
+		let getContact = await msg.getContact();
+		displayname = (getContact && getContact.pushname) || '';
 		let rplyVal = {};
 		if (mainMsg && mainMsg[0])
 			trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階

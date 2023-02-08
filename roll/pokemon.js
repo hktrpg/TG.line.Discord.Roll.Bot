@@ -72,7 +72,7 @@ const rollDiceCommand = async function ({
             console.log('rply.text move', rply.text)
             return rply;
         }
-        case /^dex$/.test(mainMsg[1]): {
+        case /^mon$/.test(mainMsg[1]): {
             rply.quotes = true;
             rply.text = pokeDex.search(mainMsg[2])
             return rply;
@@ -109,9 +109,6 @@ class Pokemon {
         return new Pokemon(data);
     }
     getVS(string) {
-        /**
-         * 
-         */
         if (typeof (string) === 'number') { string = ('000' + string).slice(-3) }
         let result = this.fuse.search(string, { limit: 1 })
         console.log('result1', result)
@@ -143,14 +140,14 @@ class Pokemon {
         try {
             rply += `#${pokemon.id} 【${pokemon.name}】 ${pokemon.type}
 ${pokemon.info.category} ${pokemon.info.height}m / ${pokemon.info.weight}kg
-建議等級:${pokemon.rank}  基礎HP:${pokemon.baseHP}  特性:${pokemon.ability} 
+建議等級：${pokemon.rank}  基礎HP：${pokemon.baseHP}  特性：${pokemon.ability} 
 力量 ${displayValue(pokemon.attr.str.value, pokemon.attr.str.max)}
 靈巧 ${displayValue(pokemon.attr.dex.value, pokemon.attr.dex.max)}
 活力 ${displayValue(pokemon.attr.vit.value, pokemon.attr.vit.max)}
 特殊 ${displayValue(pokemon.attr.spe.value, pokemon.attr.spe.max)}
 洞察 ${displayValue(pokemon.attr.ins.value, pokemon.attr.ins.max)}
-${(pokemon.evolution.stage) ? `進化階段: ${pokemon.evolution.stage}` : ''} ${(pokemon.evolution.time) ? `進化時間: ${pokemon.evolution.time}` : ''}
-https://raw.githubusercontent.com/hazmole/PokeRole/master/static/${pokemon.info.image}`
+${(pokemon.evolution.stage) ? `進化階段：${pokemon.evolution.stage}` : ''} ${(pokemon.evolution.time) ? `進化時間：${pokemon.evolution.time}` : ''}
+https://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/assets/pokemon/${pokemon.info.image}`
 
         } catch (error) {
             console.error('!!!', error)
@@ -225,7 +222,7 @@ class Moves {
     }
     static showMove(move) {
         let result = '';
-        result += `【${move.name}】 ${Pokemon.findKeyByKey([move.type])}  威力：${move.power}
+        result += `【${move.name}】 ${Pokemon.findKeyByKey([move.type])}     威力：${move.power}
 命中：${move.accuracy}
 招式傷害：${move.damage}
 招式內容：${move.effect}

@@ -84,7 +84,7 @@ const rollDiceCommand = async function ({
         }
         case /^mon$/.test(mainMsg[1]): {
             rply.quotes = true;
-            rply.text = pokeDex.search(mainMsg[2])
+            rply.text = pokeDex.search(mainMsg.slice(2))
             return rply;
         }
         default: {
@@ -188,8 +188,8 @@ class Moves {
         this.fuse = new Fuse(this.pokemonData, {
             keys: ['name', 'id', 'alias'],
             includeScore: true,
-            findAllMatches: true,
-            threshold: 0
+            findAllMatches: false,
+            threshold: 0.4
         });
     }
 

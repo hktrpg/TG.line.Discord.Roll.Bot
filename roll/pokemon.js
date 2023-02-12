@@ -1,11 +1,11 @@
 "use strict";
 const variables = {};
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const Fuse = require('fuse.js')
+const Fuse = require('fuse.js');
+const { randomInt } = require('mathjs');
 const gameName = function () {
     return '【PokeRole】.poke '
 }
-
 const gameType = function () {
     return 'Dice:pokerole:hktrpg'
 }
@@ -36,11 +36,13 @@ const getHelpMessage = function () {
 進行小精靈，招式的查詢以及 對戰的屬性相克結果，
 .poke 可以查看更多指令
 .poke mon (名稱/編號)  可以查看小精靈的資料
+.poke mon (名稱/編號) (--d)  可以查看小精靈的招式表
 .poke move (招式名稱)  可以查看招式的資料
 .poke vs 攻方(招式名稱/屬性) 防方(小精靈名稱/編號/屬性1,2)  可以進行對戰模擬
 --------------------
 例子：
 .poke mon 超夢
+.poke mon 超夢 --d
 .poke move 火焰輪
 .poke vs 火之誓約 夢幻
 .poke vs 火 100  
@@ -79,12 +81,15 @@ const rollDiceCommand = async function ({
         }
         case /^move$/.test(mainMsg[1]): {
             rply.quotes = true;
-            rply.text = pokeMove.search(mainMsg[2])
+            rply.text = pokeMove.search(mainMsg.slice(2).join(' '))
             return rply;
         }
         case /^mon$/.test(mainMsg[1]): {
             rply.quotes = true;
-            rply.text = pokeDex.search(mainMsg.slice(2))
+            let check = removeAndCheck(mainMsg)
+            let detail = check.detail;
+            let name = (!check.newMainMsg[2]) ? randomInt(1, 890).toString() : check.newMainMsg.slice(2).join(' ');
+            rply.text = pokeDex.search(name, detail)
             return rply;
         }
         default: {
@@ -139,10 +144,10 @@ class Pokemon {
         }
         return result;
     }
-    static showPokemon(pokemon) {
+    static showPokemon(pokemon, detail = false) {
         let rply = '';
         try {
-            rply += `#${pokemon.id} 【${pokemon.name}】 ${Pokemon.findTypeByEng(pokemon.type)} 
+            rply += `#${pokemon.id} 【${pokemon.name}】 ${pokemon.alias} ${Pokemon.findTypeByEng(pokemon.type)} 
 ${pokemon.info.category} ${pokemon.info.height}m / ${pokemon.info.weight}kg
 建議等級：${pokemon.rank}  基礎HP：${pokemon.baseHP}  特性：${pokemon.ability} 
 力量 ${displayValue(pokemon.attr.str.value, pokemon.attr.str.max)}
@@ -151,20 +156,28 @@ ${pokemon.info.category} ${pokemon.info.height}m / ${pokemon.info.weight}kg
 特殊 ${displayValue(pokemon.attr.spe.value, pokemon.attr.spe.max)}
 洞察 ${displayValue(pokemon.attr.ins.value, pokemon.attr.ins.max)}
 ${(pokemon.evolution.stage) ? `進化階段：${pokemon.evolution.stage}` : ''} ${(pokemon.evolution.time) ? `進化時間：${pokemon.evolution.time}` : ''}
-https://github.com/hktrpg/TG.line.Discord.Roll.Bot/raw/master/assets/pokemon/${pokemon.info.image}`
+`
+            if (detail) {
+                rply += '------招式------\n'
+                for (let index = 0; index < pokemon.moves.length; index++) {
+                    rply += `等級：${pokemon.moves[index].rank} 【${pokemon.moves[index].name}】 ${Pokemon.findTypeByEng([pokemon.moves[index].type])}
+                    `
+                }
+            }
+            rply += `https://github.com/hktrpg/TG.line.Discord.Roll.Bot/raw/master/assets/pokemon/${pokemon.info.image}`;
 
         } catch (error) {
             console.error('pokemon #145 error', error)
         }
         return rply;
     }
-    search(name) {
+    search(name, detail) {
         try {
             let result = this.fuse.search(name, { limit: 12 });
             let rply = '';
             if (result.length === 0) return '沒有找到相關資料';
             if (result.length <= 2 || result[0].item.name === name) {
-                rply = Pokemon.showPokemon(result[0].item);
+                rply = Pokemon.showPokemon(result[0].item, detail);
             }
             else {
                 rply += '找到太多相關資料，請更精確的查詢\n\n';
@@ -179,6 +192,19 @@ https://github.com/hktrpg/TG.line.Discord.Roll.Bot/raw/master/assets/pokemon/${p
             return '發生錯誤';
         }
     }
+}
+
+
+function removeAndCheck(mainMsg) {
+    const patternDetail = /^--[dD]$/;
+    return {
+        detail: mainMsg.some(function (element) {
+            return patternDetail.test(element);
+        }),
+        newMainMsg: mainMsg.filter(function (element) {
+            return !patternDetail.test(element);
+        })
+    };
 }
 
 
@@ -219,7 +245,7 @@ class Moves {
     }
     static showMove(move) {
         let result = '';
-        result += `【${move.name}】 ${Pokemon.findTypeByEng([move.type])}     威力：${move.power}
+        result += `【${move.name}】 ${move.alias} ${Pokemon.findTypeByEng([move.type])} 威力：${move.power}
 命中：${move.accuracy}
 招式傷害：${move.damage}
 招式內容：${move.effect}

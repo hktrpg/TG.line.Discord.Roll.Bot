@@ -1,7 +1,8 @@
 "use strict";
 const variables = {};
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const Fuse = require('fuse.js')
+const Fuse = require('fuse.js');
+const { randomInt } = require('mathjs');
 const gameName = function () {
     return '【PokeRole】.poke '
 }
@@ -79,12 +80,14 @@ const rollDiceCommand = async function ({
         }
         case /^move$/.test(mainMsg[1]): {
             rply.quotes = true;
-            rply.text = pokeMove.search(mainMsg[2])
+            rply.text = pokeMove.search(mainMsg.slice(2).join(' '))
             return rply;
         }
         case /^mon$/.test(mainMsg[1]): {
             rply.quotes = true;
-            rply.text = pokeDex.search(mainMsg.slice(2))
+            let name = (!mainMsg[2]) ? randomInt(1, 890).toString() : mainMsg.slice(2).join(' ');
+            console.log(name)
+            rply.text = pokeDex.search(name)
             return rply;
         }
         default: {
@@ -142,7 +145,7 @@ class Pokemon {
     static showPokemon(pokemon) {
         let rply = '';
         try {
-            rply += `#${pokemon.id} 【${pokemon.name}】 ${Pokemon.findTypeByEng(pokemon.type)} 
+            rply += `#${pokemon.id} 【${pokemon.name}】 ${pokemon.alias} ${Pokemon.findTypeByEng(pokemon.type)} 
 ${pokemon.info.category} ${pokemon.info.height}m / ${pokemon.info.weight}kg
 建議等級：${pokemon.rank}  基礎HP：${pokemon.baseHP}  特性：${pokemon.ability} 
 力量 ${displayValue(pokemon.attr.str.value, pokemon.attr.str.max)}
@@ -219,7 +222,7 @@ class Moves {
     }
     static showMove(move) {
         let result = '';
-        result += `【${move.name}】 ${Pokemon.findTypeByEng([move.type])}     威力：${move.power}
+        result += `【${move.name}】 ${move.alias} ${Pokemon.findTypeByEng([move.type])} 威力：${move.power}
 命中：${move.accuracy}
 招式傷害：${move.damage}
 招式內容：${move.effect}

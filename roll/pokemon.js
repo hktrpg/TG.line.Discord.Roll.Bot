@@ -158,7 +158,7 @@ ${pokemon.info.category} ${pokemon.info.height}m / ${pokemon.info.weight}kg
 ${(pokemon.evolution.stage) ? `進化階段：${pokemon.evolution.stage}` : ''} ${(pokemon.evolution.time) ? `進化時間：${pokemon.evolution.time}` : ''}
 `
             if (detail) {
-                rply += '------招式------n'
+                rply += '------招式------\n'
                 for (let index = 0; index < pokemon.moves.length; index++) {
                     rply += `等級：${pokemon.moves[index].rank} 【${pokemon.moves[index].name}】 ${Pokemon.findTypeByEng([pokemon.moves[index].type])}
                     `

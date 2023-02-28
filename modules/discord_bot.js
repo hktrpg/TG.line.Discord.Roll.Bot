@@ -105,7 +105,7 @@ client.on('guildCreate', async guild => {
 		const channels = await guild.channels.fetch();
 		const keys = Array.from(channels.values());
 		const channel = keys.find(channel => {
-			return channel.type === 'GUILD_TEXT' && channel.permissionsFor(guild.me).has('SEND_MESSAGES')
+			return channel.type === 'GUILD_TEXT' && channel.permissionsFor(guild.members.me).has('SEND_MESSAGES')
 		});
 		if (!channel) return;
 		//	let channelSend = await guild.channels.fetch(channel.id);

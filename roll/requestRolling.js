@@ -3,7 +3,7 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
 const variables = {};
-const { SlashCommandBuilder } = require('@discordjs/builders');
+const { SlashCommandBuilder } = require('discord.js');
 const gameName = function () {
     return '【要求擲骰/點擊功能】'
 }

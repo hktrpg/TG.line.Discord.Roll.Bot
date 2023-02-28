@@ -8,7 +8,7 @@ const {
 const variables = {};
 const checkTools = require('../modules/check.js');
 const schema = require('../modules/schema.js');
-const { SlashCommandBuilder } = require('@discordjs/builders');
+const { SlashCommandBuilder } = require('discord.js');
 const gameName = function () {
     return '【BcDice】.bc'
 }
@@ -185,10 +185,10 @@ const discordCommand = [
                 option.setName('指令')
                     .setDescription('進行bcdice的設定')
                     .setRequired(true)
-                    .addChoice('顯示使用說明', 'help')
-                    .addChoice('顯示BcDice骰組使用說明(登記後可使用)', 'dicehelp')
-                    .addChoice('登記使用的骰表ID', 'use')
-                    .addChoice('移除使用的骰表ID', 'delete'))
+                    .addChoices({ name: '顯示使用說明', value: 'help' },
+                        { name: '顯示BcDice骰組使用說明(登記後可使用)', value: 'dicehelp' },
+                        { name: '登記使用的骰表ID', value: 'use' },
+                        { name: '移除使用的骰表ID', value: 'delete' }))
             .addStringOption(option => option.setName('usetext').setDescription('如登記，請在這裡填寫ID').setRequired(false))
         ,
         async execute(interaction) {

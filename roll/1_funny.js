@@ -2,7 +2,7 @@
 const rollbase = require('./rollbase.js');
 var variables = {};
 const fs = require('fs');
-const { SlashCommandBuilder } = require('@discordjs/builders');
+const { SlashCommandBuilder } = require('discord.js');
 const axiosRetry = require('axios-retry');
 const chineseConv = require('chinese-conv'); //繁簡轉換
 const axios = require('axios');
@@ -1146,9 +1146,10 @@ const discordCommand = [
 				option.setName('category')
 					.setDescription('塔羅種類')
 					.setRequired(true)
-					.addChoice('每日塔羅(單張)', '每日塔羅')
-					.addChoice('大十字塔羅', '大十字塔羅')
-					.addChoice('時間塔羅', '時間塔羅'))
+					.addChoices(
+						{ name: '每日塔羅(單張)', value: '每日塔羅' },
+						{ name: '大十字塔羅', value: '大十字塔羅' },
+						{ name: '時間塔羅', value: '時間塔羅' }))
 		,
 		async execute(interaction) {
 			const category = interaction.options.getString('category')
@@ -1180,19 +1181,19 @@ const discordCommand = [
 						option.setName('star')
 							.setDescription('哪個星座')
 							.setRequired(true)
-							.addChoice('白羊', '每日白羊')
-							.addChoice('金牛', '每日金牛')
-							.addChoice('巨蟹', '每日巨蟹')
-							.addChoice('獅子', '每日獅子')
-							.addChoice('雙子', '每日雙子')
-							.addChoice('處女', '每日處女')
-							.addChoice('天秤', '每日天秤')
-							.addChoice('天蠍', '每日天蠍')
-							.addChoice('射手', '每日射手')
-							.addChoice('摩羯', '每日摩羯')
-							.addChoice('水瓶', '每日水瓶')
-							.addChoice('雙魚', '每日雙魚')
-					))
+							.addChoices({ name: '白羊', value: '每日白羊' },
+								{ name: '金牛', value: '每日金牛' },
+								{ name: '巨蟹', value: '每日巨蟹' },
+								{ name: '獅子', value: '每日獅子' },
+								{ name: '雙子', value: '每日雙子' },
+								{ name: '處女', value: '每日處女' },
+								{ name: '天秤', value: '每日天秤' },
+								{ name: '天蠍', value: '每日天蠍' },
+								{ name: '射手', value: '每日射手' },
+								{ name: '摩羯', value: '每日摩羯' },
+								{ name: '水瓶', value: '每日水瓶' },
+								{ name: '雙魚', value: '每日雙魚' }
+							)))
 			.addSubcommand(subcommand =>
 				subcommand
 					.setName('塔羅')

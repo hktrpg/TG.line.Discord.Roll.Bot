@@ -1,7 +1,7 @@
 "use strict";
 const variables = {};
 const rollbase = require('./rollbase.js');
-const { SlashCommandBuilder } = require('@discordjs/builders');
+const { SlashCommandBuilder } = require('discord.js');
 const gameName = function () {
     return '【5E工具 - .5ebuild】'
 }

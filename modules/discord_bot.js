@@ -6,22 +6,22 @@ const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)(\s?)$/i);
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const adminSecret = process.env.ADMIN_SECRET || '';
 const Cluster = require('discord-hybrid-sharding');
-const Discord = require("discord.js-light");
+const { Client, GatewayIntentBits, Partials, Options, Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, Events, EmbedBuilder, PermissionsBitField } = require('discord.js');
+
 const multiServer = require('../modules/multi-server')
 const checkMongodb = require('../modules/dbWatchdog.js');
 const fs = require('node:fs');
 const errorCount = [];
-const { Client, Intents, Permissions, Collection, MessageActionRow, MessageButton, WebhookClient, MessageAttachment } = Discord;
 const rollText = require('./getRoll').rollText;
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
 exports.z_stop = require('../roll/z_stop');
-const buttonStyles = ['DANGER', 'PRIMARY', 'SECONDARY', 'SUCCESS', 'DANGER']
+const buttonStyles = [ButtonStyle.Danger, ButtonStyle.Primary, ButtonStyle.Secondary, ButtonStyle.Success, ButtonStyle.Danger]
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 function channelFilter(channel) {
 	return !channel.lastMessageId || Discord.SnowflakeUtil.deconstruct(channel.lastMessageId).timestamp < Date.now() - 3600000;
 }
-const client = new Discord.Client({
-	makeCache: Discord.Options.cacheWithLimits({
+const client = new Client({
+	makeCache: Options.cacheWithLimits({
 		ApplicationCommandManager: 0, // guild.commands
 		BaseGuildEmojiManager: 0, // guild.emojis
 		GuildBanManager: 0, // guild.bans
@@ -64,7 +64,10 @@ const client = new Discord.Client({
 		cacheEmojis: false,
 		cachePresences: false
 	 */
-	intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.DIRECT_MESSAGE_REACTIONS], partials: ['MESSAGE', 'CHANNEL', 'REACTION'],
+	intents: [GatewayIntentBits.Guilds,
+	GatewayIntentBits.GuildMessages,
+	GatewayIntentBits.MessageContent,
+	GatewayIntentBits.GuildMembers], partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
 client.cluster = new Cluster.Client(client);
 client.login(channelSecret);
@@ -109,7 +112,7 @@ client.on('guildCreate', async guild => {
 		});
 		if (!channel) return;
 		//	let channelSend = await guild.channels.fetch(channel.id);
-		const text = new Discord.MessageEmbed()
+		const text = new EmbedBuilder()
 			.setColor('#0099ff')
 			//.setTitle(rplyVal.title)
 			//.setURL('https://discord.js.org/')
@@ -264,7 +267,7 @@ function checkRepeatName(content, button, user) {
 	return flag;
 }
 async function convQuotes(text = "") {
-	let embed = new Discord.MessageEmbed()
+	let embed = new EmbedBuilder()
 		.setColor('#0099ff')
 		//.setTitle(rplyVal.title)
 		//.setURL('https://discord.js.org/')
@@ -370,7 +373,7 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 			}
 			catch (e) {
 				if (e.message !== 'Missing Permissions') {
-					console.error('Discord  GET ERROR: SendToReplychannel: ', e.message, replyText, channelid);
+					console.error('Discord  GET ERROR: SendToReplychannel: ', e, replyText, channelid);
 				}
 			}
 
@@ -755,14 +758,14 @@ async function handlingButtonCreate(message, input) {
 	const row = []
 	const totallyQuotient = ~~((buttonsNames.length - 1) / 5) + 1;
 	for (let index = 0; index < totallyQuotient; index++) {
-		row.push(new MessageActionRow())
+		row.push(new ActionRowBuilder())
 	}
 	for (let i = 0; i < buttonsNames.length; i++) {
 		const quot = ~~(i / 5)
 		const name = buttonsNames[i] || 'null'
 		row[quot]
 			.addComponents(
-				new MessageButton()
+				new ButtonBuilder()
 					.setCustomId(`${name}_${i}`)
 					.setLabel(name)
 					.setStyle(buttonsStyle(i)),
@@ -783,14 +786,14 @@ async function handlingRequestRollingCharacter(message, input) {
 	const row = []
 	const totallyQuotient = ~~((buttonsNames.length - 1) / 5) + 1;
 	for (let index = 0; index < totallyQuotient; index++) {
-		row.push(new MessageActionRow())
+		row.push(new ActionRowBuilder())
 	}
 	for (let i = 0; i < buttonsNames.length; i++) {
 		const quot = ~~(i / 5)
 		const name = buttonsNames[i] || 'null'
 		row[quot]
 			.addComponents(
-				new MessageButton()
+				new ButtonBuilder()
 					.setCustomId(`${name}_${i}`)
 					.setLabel(name)
 					.setStyle(buttonsStyle(i)),
@@ -819,14 +822,14 @@ async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 	const row = []
 	const totallyQuotient = ~~((buttonsNames.length - 1) / 5) + 1
 	for (let index = 0; index < totallyQuotient; index++) {
-		row.push(new MessageActionRow())
+		row.push(new ActionRowBuilder())
 	}
 	for (let i = 0; i < buttonsNames.length; i++) {
 		const quot = ~~(i / 5)
 		const name = buttonsNames[i] || 'null'
 		row[quot]
 			.addComponents(
-				new MessageButton()
+				new ButtonBuilder()
 					.setCustomId(`${name}_${i}`)
 					.setLabel(name)
 					.setStyle(buttonsStyle(i)),
@@ -872,7 +875,7 @@ async function handlingResponMessage(message, answer = '') {
 		let hasSendPermission = true;
 		/**
 				if (message.guild && message.guild.me) {
-					hasSendPermission = (message.channel && message.channel.permissionsFor(message.guild.me)) ? message.channel.permissionsFor(message.guild.me).has(Permissions.FLAGS.SEND_MESSAGES) : false;
+					hasSendPermission = (message.channel && message.channel.permissionsFor(message.guild.me)) ? message.channel.permissionsFor(message.guild.me).has(PermissionsBitField.Flags.SEND_MESSAGES) : false;
 				}
 				 */
 		if (answer) message.content = answer;
@@ -1000,7 +1003,7 @@ async function handlingResponMessage(message, answer = '') {
 		};
 
 	} catch (error) {
-		console.error('handlingResponMessage Error: ', (error && error.name), (error && error.message), (error && error.reson))
+		console.error('handlingResponMessage Error: ', error, (error && error.name), (error && error.message), (error && error.reson))
 	}
 }
 const sendBufferImage = async (message, rplyVal, userid) => {
@@ -1213,9 +1216,9 @@ function multiServerTarget(message) {
 }
 
 function __checkUserRole(groupid, message) {
-	if (groupid && message.member && message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR))
+	if (groupid && message.member && message.member.permissions.has(PermissionsBitField.Flags.Administrator))
 		return 3;
-	if (groupid && message.channel.permissionsFor(message.member) && message.channel.permissionsFor(message.member).has(Permissions.FLAGS.MANAGE_CHANNELS)) return 2;
+	if (groupid && message.channel.permissionsFor(message.member) && message.channel.permissionsFor(message.member).has(PermissionsBitField.Flags.ManageChannels)) return 2;
 
 	return 1;
 }

@@ -4,7 +4,7 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
 }
 const checkTools = require('../modules/check.js');
 const variables = {};
-const { SlashCommandBuilder } = require('@discordjs/builders');
+const { SlashCommandBuilder } = require('discord.js');
 const gameName = function () {
     return '【舊信息修改功能】Discord限定'
 }

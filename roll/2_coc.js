@@ -7,7 +7,7 @@ const mathjs = require('mathjs');
 const gameName = function () {
 	return '【克蘇魯神話】 cc cc(n)1~2 ccb ccrt ccsu .dp .cc7build .cc6build .cc7bg'
 }
-const { SlashCommandBuilder } = require('@discordjs/builders');
+const { SlashCommandBuilder } = require('discord.js');
 const gameType = function () {
 	return 'Dice:CoC'
 }
@@ -445,10 +445,10 @@ const discordCommand = [
 			.addStringOption(option =>
 				option.setName('paney')
 					.setDescription('獎勵或懲罰骰')
-					.addChoice('1粒獎勵骰', '1')
-					.addChoice('2粒獎勵骰', '2')
-					.addChoice('1粒懲罰骰', 'n1')
-					.addChoice('2粒懲罰骰', 'n2'))
+					.addChoices({ name: '1粒獎勵骰', value: '1' },
+						{ name: '2粒獎勵骰', value: '2' },
+						{ name: '1粒懲罰骰', value: 'n1' },
+						{ name: '2粒懲罰骰', value: 'n2' }))
 		,
 		async execute(interaction) {
 			const text = interaction.options.getString('text')
@@ -513,13 +513,13 @@ const discordCommand = [
 			.addStringOption(option =>
 				option.setName('mode')
 					.setDescription('功能')
-					.addChoice('顯示擲骰紀錄', 'show')
-					.addChoice('顯示全頻道所有大成功大失敗擲骰紀錄', 'showall')
-					.addChoice('開啓紀錄功能', 'start')
-					.addChoice('停止紀錄功能', 'stop')
-					.addChoice('進行自動成長並清除擲骰紀錄', 'auto')
-					.addChoice('清除擲骰紀錄', 'clear')
-					.addChoice('清除擲骰紀錄包括大成功大失敗', 'clearall')
+					.addChoices({ name: '顯示擲骰紀錄', value: 'show' },
+						{ name: '顯示全頻道所有大成功大失敗擲骰紀錄', value: 'showall' },
+						{ name: '開啓紀錄功能', value: 'start' },
+						{ name: '停止紀錄功能', value: 'stop' },
+						{ name: '進行自動成長並清除擲骰紀錄', value: 'auto' },
+						{ name: '清除擲骰紀錄', value: 'clear' },
+						{ name: '清除擲骰紀錄包括大成功大失敗', value: 'clearall' })
 			),
 		async execute(interaction) {
 			const mode = interaction.options.getString('mode')

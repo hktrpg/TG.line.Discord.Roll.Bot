@@ -5,7 +5,7 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
 const variables = {};
 const jimp = require('jimp');
 const sharp = require('sharp');
-const { SlashCommandBuilder } = require('@discordjs/builders');
+const { SlashCommandBuilder } = require('discord.js');
 const axios = require('axios');
 const fs = require('fs');
 const getColors = require('get-image-colors')

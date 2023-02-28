@@ -26,7 +26,7 @@ const client = new Client({
 		BaseGuildEmojiManager: 0, // guild.emojis
 		GuildBanManager: 0, // guild.bans
 		GuildInviteManager: 0, // guild.invites
-		GuildMemberManager: 0, // guild.members
+		GuildMemberManager: Infinity, // guild.members
 		GuildStickerManager: 0, // guild.stickers
 		MessageManager: Infinity, // channel.messages
 		PermissionOverwriteManager: Infinity, // channel.permissionOverwrites

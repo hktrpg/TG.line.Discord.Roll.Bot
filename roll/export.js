@@ -2,6 +2,7 @@
 if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
+const { PermissionFlagsBits, PermissionsBitField } = require('discord.js');
 var variables = {};
 const oneMinuts = (process.env.DEBUG) ? 1 : 60000;
 const sevenDay = (process.env.DEBUG) ? 1 : 60 * 24 * 7 * 60000;
@@ -96,7 +97,10 @@ const rollDiceCommand = async function ({
     let theTime = new Date();
     let demoMode = false;
     if (groupid) {
-        hasReadPermission = discordMessage.channel.permissionsFor(discordMessage.guild.me).has("READ_MESSAGE_HISTORY") || discordMessage.guild.me.hasPermission("ADMINISTRATOR");
+        console.log('discordMessage.guild.members.me', discordMessage.guild.members.me && discordMessage.guild.members.me.hasPermission())
+        console.log('discordMessage.channel.permissionsFor(discordMessage.guild.me)', discordMessage.channel, discordMessage.channel.permissionsFor(discordMessage.guild.members.me))
+        //interaction.guild.members.me.permissions.has(PermissionsBitField.Flags.ManageMessages)
+        hasReadPermission = discordMessage.channel.permissionsFor(discordMessage.guild.members.me).has(PermissionFlagsBits.ReadMessageHistory) || discordMessage.guild.members.me.hasPermission(PermissionsBitField.Flags.Administrator);
     }
 
     function replacer(first, second) {

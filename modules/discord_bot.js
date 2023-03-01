@@ -649,7 +649,7 @@ async function manageWebhook(discord) {
 		}
 		return { webhook, isThread };
 	} catch (error) {
-		console.error(error)
+		//	console.error(error)
 		await SendToReplychannel({ replyText: '不能新增Webhook.\n 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: (discord.channel && discord.channel.id) || discord.channelId });
 		return;
 	}
@@ -838,7 +838,12 @@ async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 	}
 	const arrayRow = await splitArray(5, row)
 	for (let index = 0; index < arrayRow.length; index++) {
-		await message.reply({ content: `${displayname}要求擲骰/點擊`, components: arrayRow[index] }).catch();
+		try {
+			await message.reply({ content: `${displayname}要求擲骰/點擊`, components: arrayRow[index] })
+		} catch (error) {
+
+		}
+
 	}
 }
 async function splitArray(perChunk, inputArray) {
@@ -1227,7 +1232,7 @@ function __checkUserRole(groupid, message) {
 		if (groupid && message.channel && message.channel.permissionsFor(message.member) && message.channel.permissionsFor(message.member).has(PermissionsBitField.Flags.ManageChannels)) return 2;
 		return 1;
 	} catch (error) {
-		console.log('error', error)
+		//	console.log('error', error)
 		return 1;
 	}
 

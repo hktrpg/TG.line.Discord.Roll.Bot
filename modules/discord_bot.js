@@ -1221,11 +1221,16 @@ function multiServerTarget(message) {
 }
 
 function __checkUserRole(groupid, message) {
-	if (groupid && message.member && message.member.permissions.has(PermissionsBitField.Flags.Administrator))
-		return 3;
-	if (groupid && message.channel.permissionsFor(message.member) && message.channel.permissionsFor(message.member).has(PermissionsBitField.Flags.ManageChannels)) return 2;
+	try {
+		if (groupid && message.member && message.member.permissions.has(PermissionsBitField.Flags.Administrator))
+			return 3;
+		if (groupid && message.channel.permissionsFor(message.member) && message.channel.permissionsFor(message.member).has(PermissionsBitField.Flags.ManageChannels)) return 2;
+		return 1;
+	} catch (error) {
+		console.log('error', error)
+		return 1;
+	}
 
-	return 1;
 }
 
 async function __handlingReplyMessage(message, result) {

@@ -67,10 +67,8 @@ const client = new Client({
 	 */
 	intents: [GatewayIntentBits.Guilds,
 	GatewayIntentBits.GuildMessages, GatewayIntentBits.DirectMessages,
-	GatewayIntentBits.GuildMessages,
 	GatewayIntentBits.GuildMessageReactions,
-	GatewayIntentBits.MessageContent,
-	GatewayIntentBits.GuildMembers], partials: [Partials.Message, Partials.Channel, Partials.Reaction],
+	GatewayIntentBits.MessageContent], partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
 client.cluster = new Cluster.Client(client);
 client.login(channelSecret);

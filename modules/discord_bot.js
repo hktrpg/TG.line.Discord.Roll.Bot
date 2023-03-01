@@ -138,7 +138,6 @@ client.on('interactionCreate', async message => {
 
 
 client.on('messageReactionAdd', async (reaction, user) => {
-	console.log('messageReactionAdd', reaction.message.id, reaction.emoji.name, user.id)
 	if (!checkMongodb.isDbOnline()) return;
 	if (reaction.me) return;
 	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId })

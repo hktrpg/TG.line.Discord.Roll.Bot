@@ -1123,6 +1123,7 @@ const connect = function () {
 			Promise.all(promises)
 				.then(async results => {
 					let channel = await client.channels.fetch(results[0].message.target.id);
+					console.log('channel', channel)
 					if (channel)
 						channel.send(results[0].message.text)
 				})

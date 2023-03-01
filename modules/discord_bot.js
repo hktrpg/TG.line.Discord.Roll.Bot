@@ -1,5 +1,6 @@
 "use strict";
 exports.analytics = require('./analytics');
+const debugMode = (process.env.DEBUG) ? true : false;
 const schema = require('../modules/schema.js');
 const isImageURL = require('image-url-validator').default;
 const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)(\s?)$/i);
@@ -1313,7 +1314,7 @@ client.on('shardResume', (replayed, shardID) => console.log(`Shard ID ${shardID}
 client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnected.`));
 
 
-
+if (debugMode) process.on('warning', e => console.warn(e.stack));
 
 /**
  *

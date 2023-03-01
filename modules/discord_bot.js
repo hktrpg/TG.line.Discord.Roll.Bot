@@ -66,6 +66,7 @@ const client = new Client({
 		cachePresences: false
 	 */
 	intents: [GatewayIntentBits.Guilds,
+	GatewayIntentBits.GuildMessages, GatewayIntentBits.DirectMessages,
 	GatewayIntentBits.GuildMessages,
 	GatewayIntentBits.MessageContent,
 	GatewayIntentBits.GuildMembers], partials: [Partials.Message, Partials.Channel, Partials.Reaction],

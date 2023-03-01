@@ -93,7 +93,8 @@ client.on('messageCreate', async message => {
 		if (!checkMongodb.isDbOnline() && checkMongodb.isDbRespawn()) {
 			checkMongodb.discordClientRespawn(client, shardid)
 		}
-
+		let channel = await client.channels.fetch('497815705027084299');
+		console.log('channel', channel)
 		const result = await handlingResponMessage(message);
 		await handlingMultiServerMessage(message);
 		if (result && result.text)
@@ -1112,7 +1113,7 @@ const connect = function () {
 		ws.send(`connectd To core-www from discord! Shard#${shardid}`);
 	});
 	ws.on('message', function incoming(data) {
-		if (shardid !== 0) return;
+		//if (shardid !== 0) return;
 		var object = JSON.parse(data);
 		console.log('object', object)
 		if (object.botname == 'Discord') {
@@ -1122,6 +1123,7 @@ const connect = function () {
 			];
 			Promise.all(promises)
 				.then(async results => {
+					console.log('results', results)
 					let channel = await client.channels.fetch(results[0].message.target.id);
 					console.log('channel', channel)
 					if (channel)

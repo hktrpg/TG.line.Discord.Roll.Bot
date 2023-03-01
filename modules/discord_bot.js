@@ -68,6 +68,7 @@ const client = new Client({
 	intents: [GatewayIntentBits.Guilds,
 	GatewayIntentBits.GuildMessages, GatewayIntentBits.DirectMessages,
 	GatewayIntentBits.GuildMessages,
+	GatewayIntentBits.GuildMessageReactions,
 	GatewayIntentBits.MessageContent,
 	GatewayIntentBits.GuildMembers], partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
@@ -139,6 +140,7 @@ client.on('interactionCreate', async message => {
 
 
 client.on('messageReactionAdd', async (reaction, user) => {
+	console.log('messageReactionAdd', reaction.message.id, reaction.emoji.name, user.id)
 	if (!checkMongodb.isDbOnline()) return;
 	if (reaction.me) return;
 	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId })
@@ -589,7 +591,6 @@ async function repeatMessage(discord, message) {
 		//error
 	}
 	let webhook = await manageWebhook(discord);
-	console.log('manageWebhook', webhook)
 	try {
 		let text = await rollText(message.myName.content);
 		//threadId: discord.channelId,
@@ -601,7 +602,7 @@ async function repeatMessage(discord, message) {
 		let pair = (webhook && webhook.isThread) ? { threadId: discord.channelId } : {};
 		await webhook.webhook.send({ ...obj, ...pair });
 	} catch (error) {
-		console.error('repeatMessage error', error.name, error.message, error.reson, error.stack);
+		console.error('repeatMessage error', error.name, error.message, error.reson);
 		await SendToReplychannel({ replyText: 'A不能成功發送扮演發言, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
 		return;
 	}
@@ -644,10 +645,8 @@ async function manageWebhook(discord) {
 		//'Incoming'
 		if (!webhook) {
 			const hooks = isThread ? await client.channels.fetch(channel.parentId) : channel;
-			console.log("hooks", hooks)
 			await hooks.createWebhook({ name: "HKTRPG .me Function", avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" })
 			webhooks = await channel.fetchWebhooks();
-			console.log("webhooks", webhooks)
 			webhook = webhooks.find(v => {
 				return v.name == 'HKTRPG .me Function' && v.type == 1;
 			})

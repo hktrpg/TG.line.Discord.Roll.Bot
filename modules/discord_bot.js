@@ -1124,6 +1124,7 @@ const connect = function () {
 			Promise.all(promises)
 				.then(async results => {
 					console.log('results', results)
+					console.log('results[0]', results[0])
 					let channel = await client.channels.fetch(results[0].message.target.id);
 					console.log('channel', channel)
 					if (channel)

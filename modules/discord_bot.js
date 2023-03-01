@@ -7,7 +7,7 @@ const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)(\s?)$/i);
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const adminSecret = process.env.ADMIN_SECRET || '';
 const Cluster = require('discord-hybrid-sharding');
-const { Client, GatewayIntentBits, Partials, Options, Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, Events, EmbedBuilder, PermissionsBitField } = require('discord.js');
+const { Client, GatewayIntentBits, Partials, Options, Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, Events, EmbedBuilder, PermissionsBitField, AttachmentBuilder } = require('discord.js');
 
 const multiServer = require('../modules/multi-server')
 const checkMongodb = require('../modules/dbWatchdog.js');
@@ -969,7 +969,7 @@ async function handlingResponMessage(message, answer = '') {
 			message.author.send({
 				content: '這是頻道 ' + message.channel.name + ' 的聊天紀錄',
 				files: [
-					"./tmp/" + rplyVal.discordExport + '.txt'
+					new AttachmentBuilder("./tmp/" + rplyVal.discordExport + '.txt')
 				]
 			});
 		}
@@ -1008,7 +1008,11 @@ async function handlingResponMessage(message, answer = '') {
 	}
 }
 const sendBufferImage = async (message, rplyVal, userid) => {
-	await message.channel.send({ content: `<@${userid}>\n你的Token已經送到，現在輸入 .token 為方型，.token2 為圓型 .token3 為按名字決定的隨機顏色`, files: [{ attachment: rplyVal.sendImage }] });
+	await message.channel.send({
+		content: `<@${userid}>\n你的Token已經送到，現在輸入 .token 為方型，.token2 為圓型 .token3 為按名字決定的隨機顏色`, files: [
+			new AttachmentBuilder(rplyVal.sendImage)
+		]
+	});
 	fs.unlinkSync(rplyVal.sendImage);
 	return;
 }
@@ -1314,7 +1318,9 @@ client.on('shardResume', (replayed, shardID) => console.log(`Shard ID ${shardID}
 client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnected.`));
 
 
-if (debugMode) process.on('warning', e => console.warn(e.stack));
+if (debugMode) process.on('warning', e => {
+	console.warn(e.stack)
+});
 
 /**
  *

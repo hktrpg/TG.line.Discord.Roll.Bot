@@ -1115,7 +1115,6 @@ const connect = function () {
 	ws.on('message', function incoming(data) {
 		//if (shardid !== 0) return;
 		var object = JSON.parse(data);
-		console.log('object', object)
 		if (object.botname == 'Discord') {
 			const promises = [
 				object,
@@ -1123,12 +1122,8 @@ const connect = function () {
 			];
 			Promise.all(promises)
 				.then(async results => {
-					console.log('results', results)
-					console.log('results[0]', results[0])
 					let channel = await client.channels.fetch(results[0].message.target.id);
-					console.log('channel', channel)
-					if (channel)
-						channel.send(results[0].message.text)
+					if (channel) channel.send(results[0].message.text)
 				})
 				.catch(error => {
 					console.error(`disocrdbot #99 error `, (error && error.name), (error && error.message), (error && error.reson))

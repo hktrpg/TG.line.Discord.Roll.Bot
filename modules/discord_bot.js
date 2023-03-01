@@ -1224,7 +1224,7 @@ function __checkUserRole(groupid, message) {
 	try {
 		if (groupid && message.member && message.member.permissions.has(PermissionsBitField.Flags.Administrator))
 			return 3;
-		if (groupid && message.channel.permissionsFor(message.member) && message.channel.permissionsFor(message.member).has(PermissionsBitField.Flags.ManageChannels)) return 2;
+		if (groupid && message.channel && message.channel.permissionsFor(message.member) && message.channel.permissionsFor(message.member).has(PermissionsBitField.Flags.ManageChannels)) return 2;
 		return 1;
 	} catch (error) {
 		console.log('error', error)

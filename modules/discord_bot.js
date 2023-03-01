@@ -94,7 +94,6 @@ client.on('messageCreate', async message => {
 			checkMongodb.discordClientRespawn(client, shardid)
 		}
 		let channel = await client.channels.fetch('497815705027084299');
-		console.log('channel', channel)
 		const result = await handlingResponMessage(message);
 		await handlingMultiServerMessage(message);
 		if (result && result.text)

@@ -93,14 +93,13 @@ client.on('messageCreate', async message => {
 		if (!checkMongodb.isDbOnline() && checkMongodb.isDbRespawn()) {
 			checkMongodb.discordClientRespawn(client, shardid)
 		}
-		let channel = await client.channels.fetch('497815705027084299');
 		const result = await handlingResponMessage(message);
 		await handlingMultiServerMessage(message);
 		if (result && result.text)
 			return handlingSendMessage(result);
 		return;
 	} catch (error) {
-		console.error('discord bot messageCreate #91 error', (error && error.name && error.message));
+		console.error('discord bot messageCreate #91 error', (error && error.name && error.message) & error.stack);
 	}
 
 });

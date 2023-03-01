@@ -123,7 +123,7 @@ const rollDiceCommand = async function ({
             totalSize += (messages.size) ? messages.size : 0;
             messages.forEach(element => {
                 let temp;
-                if (element.type == 'DEFAULT') {
+                if (element.type === 0) {
                     temp = {
                         timestamp: element.createdTimestamp,
                         contact: element.content.replace(/<@(.*?)>/ig, replacer),
@@ -131,7 +131,7 @@ const rollDiceCommand = async function ({
                         isbot: element.author.bot
                     }
                 } else
-                    if (element.type !== 'DEFAULT') {
+                    if (element.type !== 0) {
                         temp = {
                             timestamp: element.createdTimestamp,
                             contact: element.author.username + '\n' + element.type,
@@ -174,7 +174,7 @@ const rollDiceCommand = async function ({
             messages.forEach(element => {
                 let temp;
                 // if (element.attachments && element.attachments.size) console.log('element.attachments',element.attachments.map(attachment => attachment.proxyURL))
-                if (element.type == 'DEFAULT') {
+                if (element.type === 0) {
                     temp = {
                         timestamp: element.createdTimestamp,
                         contact: element.content.replace(/<@(.*?)>/ig, replacer),
@@ -184,7 +184,7 @@ const rollDiceCommand = async function ({
                         embeds: (element.embeds && element.embeds.length) ? element.embeds.map(embed => embed.description) : []
                     }
                 } else
-                    if (element.type !== 'DEFAULT') {
+                    if (element.type !== 0) {
                         temp = {
                             timestamp: element.createdTimestamp,
                             contact: element.author.username + '\n' + element.type,

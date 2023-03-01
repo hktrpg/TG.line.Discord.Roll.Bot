@@ -7,7 +7,7 @@ const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)(\s?)$/i);
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const adminSecret = process.env.ADMIN_SECRET || '';
 const Cluster = require('discord-hybrid-sharding');
-const { Client, GatewayIntentBits, Partials, Options, Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, Events, EmbedBuilder, PermissionsBitField, AttachmentBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, Partials, Options, Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, Events, EmbedBuilder, PermissionsBitField, AttachmentBuilder, ChannelType } = require('discord.js');
 
 const multiServer = require('../modules/multi-server')
 const checkMongodb = require('../modules/dbWatchdog.js');
@@ -110,7 +110,7 @@ client.on('guildCreate', async guild => {
 		const channels = await guild.channels.fetch();
 		const keys = Array.from(channels.values());
 		const channel = keys.find(channel => {
-			return channel.type === 'GUILD_TEXT' && channel.permissionsFor(guild.members.me).has('SEND_MESSAGES')
+			return channel.type === ChannelType.GuildText && channel.permissionsFor(guild.members.me).has('SEND_MESSAGES')
 		});
 		if (!channel) return;
 		//	let channelSend = await guild.channels.fetch(channel.id);
@@ -589,6 +589,7 @@ async function repeatMessage(discord, message) {
 		//error
 	}
 	let webhook = await manageWebhook(discord);
+	console.log('manageWebhook', webhook)
 	try {
 		let text = await rollText(message.myName.content);
 		//threadId: discord.channelId,
@@ -600,7 +601,8 @@ async function repeatMessage(discord, message) {
 		let pair = (webhook && webhook.isThread) ? { threadId: discord.channelId } : {};
 		await webhook.webhook.send({ ...obj, ...pair });
 	} catch (error) {
-		await SendToReplychannel({ replyText: '不能成功發送扮演發言, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
+		console.error('repeatMessage error', error.name, error.message, error.reson, error.stack);
+		await SendToReplychannel({ replyText: 'A不能成功發送扮演發言, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
 		return;
 	}
 
@@ -636,21 +638,23 @@ async function manageWebhook(discord) {
 		const isThread = channel && channel.isThread();
 		let webhooks = isThread ? await channel.guild.fetchWebhooks() : await channel.fetchWebhooks();
 		let webhook = webhooks.find(v => {
-			return v.name == 'HKTRPG .me Function' && v.type == "Incoming" && ((v.channelId == channel.parentId) || !isThread);
+			return v.name == 'HKTRPG .me Function' && v.type == 1 && ((v.channelId == channel.parentId) || !isThread);
 		})
 		//type Channel Follower
 		//'Incoming'
 		if (!webhook) {
 			const hooks = isThread ? await client.channels.fetch(channel.parentId) : channel;
-			await hooks.createWebhook("HKTRPG .me Function", { avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" })
+			console.log("hooks", hooks)
+			await hooks.createWebhook({ name: "HKTRPG .me Function", avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" })
 			webhooks = await channel.fetchWebhooks();
+			console.log("webhooks", webhooks)
 			webhook = webhooks.find(v => {
-				return v.name == 'HKTRPG .me Function' && v.type == "Incoming";
+				return v.name == 'HKTRPG .me Function' && v.type == 1;
 			})
 		}
 		return { webhook, isThread };
 	} catch (error) {
-		//console.error(error)
+		console.error(error)
 		await SendToReplychannel({ replyText: '不能新增Webhook.\n 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: (discord.channel && discord.channel.id) || discord.channelId });
 		return;
 	}
@@ -1145,6 +1149,7 @@ function handlingButtonCommand(message) {
 }
 async function handlingEditMessage(message, rplyVal) {
 	try {
+		//type = reply
 		if (message.type !== 19) return message.reply({ content: '請Reply 你所想要修改的指定訊息' });
 		if (message.channelId !== message.reference.channelId) return message.reply({ content: '請只修改同一個頻道的訊息' });
 		const editReply = rplyVal.discordEditMessage;

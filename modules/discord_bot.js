@@ -109,7 +109,7 @@ client.on('guildCreate', async guild => {
 		const channels = await guild.channels.fetch();
 		const keys = Array.from(channels.values());
 		const channel = keys.find(channel => {
-			return channel.type === ChannelType.GuildText && channel.permissionsFor(guild.members.me).has('SEND_MESSAGES')
+			return channel.type === ChannelType.GuildText && channel.permissionsFor(guild.members.me).has(PermissionsBitField.Flags.SendMessages)
 		});
 		if (!channel) return;
 		//	let channelSend = await guild.channels.fetch(channel.id);
@@ -1114,6 +1114,7 @@ const connect = function () {
 	ws.on('message', function incoming(data) {
 		if (shardid !== 0) return;
 		var object = JSON.parse(data);
+		console.log('object', object)
 		if (object.botname == 'Discord') {
 			const promises = [
 				object,

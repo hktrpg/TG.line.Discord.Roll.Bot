@@ -1114,22 +1114,22 @@ const connect = function () {
 	});
 	ws.on('message', function incoming(data) {
 		//if (shardid !== 0) return;
-		var object = JSON.parse(data);
-		if (object.botname == 'Discord') {
-			const promises = [
-				object,
-				//client.shard.broadcastEval(client => client.channels.fetch(object.message.target.id)),
-			];
-			Promise.all(promises)
-				.then(async results => {
-					let channel = await client.channels.fetch(results[0].message.target.id);
-					if (channel) channel.send(results[0].message.text)
-				})
-				.catch(error => {
-					console.error(`disocrdbot #99 error `, (error && error.name), (error && error.message), (error && error.reson))
-				});
-			return;
-		}
+		const object = JSON.parse(data);
+		if (object.botname !== 'Discord') return;
+		const promises = [
+			object,
+			//client.shard.broadcastEval(client => client.channels.fetch(object.message.target.id)),
+		];
+		Promise.all(promises)
+			.then(async results => {
+				let channel = await client.channels.fetch(results[0].message.target.id);
+				if (channel) channel.send(results[0].message.text)
+			})
+			.catch(error => {
+				console.error(`disocrdbot #99 error `, (error && error.name), (error && error.message), (error && error.reson))
+			});
+		return;
+
 	});
 	ws.on('error', (error) => {
 		console.error('Discord socket error', (error && error.name), (error && error.message), (error && error.reson));

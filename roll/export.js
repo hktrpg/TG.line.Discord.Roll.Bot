@@ -97,10 +97,7 @@ const rollDiceCommand = async function ({
     let theTime = new Date();
     let demoMode = false;
     if (groupid) {
-        console.log('discordMessage.guild.members.me', discordMessage.guild.members.me && discordMessage.guild.members.me.hasPermission())
-        console.log('discordMessage.channel.permissionsFor(discordMessage.guild.me)', discordMessage.channel, discordMessage.channel.permissionsFor(discordMessage.guild.members.me))
-        //interaction.guild.members.me.permissions.has(PermissionsBitField.Flags.ManageMessages)
-        hasReadPermission = discordMessage.channel.permissionsFor(discordMessage.guild.members.me).has(PermissionFlagsBits.ReadMessageHistory) || discordMessage.guild.members.me.hasPermission(PermissionsBitField.Flags.Administrator);
+        hasReadPermission = discordMessage.channel.permissionsFor(discordMessage.guild.members.me).has(PermissionFlagsBits.ReadMessageHistory) || discordMessage.guild.members.me.permissions.has(PermissionFlagsBits.Administrator);
     }
 
     function replacer(first, second) {

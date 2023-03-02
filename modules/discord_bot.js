@@ -617,7 +617,6 @@ async function repeatMessage(discord, message) {
 		let pair = (webhook && webhook.isThread) ? { threadId: discord.channelId } : {};
 		await webhook.webhook.send({ ...obj, ...pair });
 	} catch (error) {
-		console.error('repeatMessage error', error.name, error.message, error.reson);
 		await SendToReplychannel({ replyText: '不能成功發送扮演發言, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
 		return;
 	}

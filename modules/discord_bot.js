@@ -22,18 +22,23 @@ function channelFilter(channel) {
 	return !channel.lastMessageId || Discord.SnowflakeUtil.deconstruct(channel.lastMessageId).timestamp < Date.now() - 36000;
 }
 const client = new Client({
-	makeCache: Options.cacheWithLimits({
-		sweepers: {
-			...Options.DefaultSweeperSettings,
-			messages: {
-				interval: 3600, // Every hour...
-				lifetime: 1800,	// Remove messages older than 30 minutes.
-			},
-			users: {
-				interval: 3600, // Every hour...
-				filter: user => user.bot && user.id !== client.user.id, // Remove all bots.
-			},
+	sweepers: {
+		...Options.DefaultSweeperSettings,
+		messages: {
+			interval: 1800, // Every hour...
+			lifetime: 900,	// Remove messages older than 30 minutes.
 		},
+		users: {
+			interval: 1800, // Every hour...
+			lifetime: 900,	// Remove messages older than 30 minutes.
+			filter: user => user.bot && user.id !== client.user.id, // Remove all bots.
+		},
+		threads: {
+			interval: 1800, // Every hour...
+			lifetime: 900,	// Remove messages older than 30 minutes.
+		}
+	},
+	makeCache: Options.cacheWithLimits({
 		ApplicationCommandManager: 0, // guild.commands
 		BaseGuildEmojiManager: 0, // guild.emojis
 		GuildBanManager: 0, // guild.bans

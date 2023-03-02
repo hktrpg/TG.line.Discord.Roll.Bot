@@ -1,32 +1,33 @@
 "use strict";
 exports.analytics = require('./analytics');
+const debugMode = (process.env.DEBUG) ? true : false;
 const schema = require('../modules/schema.js');
 const isImageURL = require('image-url-validator').default;
 const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)(\s?)$/i);
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const adminSecret = process.env.ADMIN_SECRET || '';
 const Cluster = require('discord-hybrid-sharding');
-const Discord = require("discord.js-light");
+const { Client, GatewayIntentBits, Partials, Options, Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, Events, EmbedBuilder, PermissionsBitField, AttachmentBuilder, ChannelType } = require('discord.js');
+
 const multiServer = require('../modules/multi-server')
 const checkMongodb = require('../modules/dbWatchdog.js');
 const fs = require('node:fs');
 const errorCount = [];
-const { Client, Intents, Permissions, Collection, MessageActionRow, MessageButton, WebhookClient, MessageAttachment } = Discord;
 const rollText = require('./getRoll').rollText;
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
 exports.z_stop = require('../roll/z_stop');
-const buttonStyles = ['DANGER', 'PRIMARY', 'SECONDARY', 'SUCCESS', 'DANGER']
+const buttonStyles = [ButtonStyle.Danger, ButtonStyle.Primary, ButtonStyle.Secondary, ButtonStyle.Success, ButtonStyle.Danger]
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 function channelFilter(channel) {
 	return !channel.lastMessageId || Discord.SnowflakeUtil.deconstruct(channel.lastMessageId).timestamp < Date.now() - 3600000;
 }
-const client = new Discord.Client({
-	makeCache: Discord.Options.cacheWithLimits({
+const client = new Client({
+	makeCache: Options.cacheWithLimits({
 		ApplicationCommandManager: 0, // guild.commands
 		BaseGuildEmojiManager: 0, // guild.emojis
 		GuildBanManager: 0, // guild.bans
 		GuildInviteManager: 0, // guild.invites
-		GuildMemberManager: 0, // guild.members
+		GuildMemberManager: Infinity, // guild.members
 		GuildStickerManager: 0, // guild.stickers
 		MessageManager: Infinity, // channel.messages
 		PermissionOverwriteManager: Infinity, // channel.permissionOverwrites
@@ -64,7 +65,10 @@ const client = new Discord.Client({
 		cacheEmojis: false,
 		cachePresences: false
 	 */
-	intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.DIRECT_MESSAGE_REACTIONS], partials: ['MESSAGE', 'CHANNEL', 'REACTION'],
+	intents: [GatewayIntentBits.Guilds,
+	GatewayIntentBits.GuildMessages, GatewayIntentBits.DirectMessages,
+	GatewayIntentBits.GuildMessageReactions,
+	GatewayIntentBits.MessageContent], partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
 client.cluster = new Cluster.Client(client);
 client.login(channelSecret);
@@ -89,14 +93,13 @@ client.on('messageCreate', async message => {
 		if (!checkMongodb.isDbOnline() && checkMongodb.isDbRespawn()) {
 			checkMongodb.discordClientRespawn(client, shardid)
 		}
-
 		const result = await handlingResponMessage(message);
 		await handlingMultiServerMessage(message);
 		if (result && result.text)
 			return handlingSendMessage(result);
 		return;
 	} catch (error) {
-		console.error('discord bot messageCreate #91 error', (error && error.name && error.message));
+		console.error('discord bot messageCreate #91 error', (error && error.name && error.message) & error.stack);
 	}
 
 });
@@ -105,11 +108,11 @@ client.on('guildCreate', async guild => {
 		const channels = await guild.channels.fetch();
 		const keys = Array.from(channels.values());
 		const channel = keys.find(channel => {
-			return channel.type === 'GUILD_TEXT' && channel.permissionsFor(guild.members.me).has('SEND_MESSAGES')
+			return channel.type === ChannelType.GuildText && channel.permissionsFor(guild.members.me).has(PermissionsBitField.Flags.SendMessages)
 		});
 		if (!channel) return;
 		//	let channelSend = await guild.channels.fetch(channel.id);
-		const text = new Discord.MessageEmbed()
+		const text = new EmbedBuilder()
 			.setColor('#0099ff')
 			//.setTitle(rplyVal.title)
 			//.setURL('https://discord.js.org/')
@@ -264,7 +267,7 @@ function checkRepeatName(content, button, user) {
 	return flag;
 }
 async function convQuotes(text = "") {
-	let embed = new Discord.MessageEmbed()
+	let embed = new EmbedBuilder()
 		.setColor('#0099ff')
 		//.setTitle(rplyVal.title)
 		//.setURL('https://discord.js.org/')
@@ -370,7 +373,7 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 			}
 			catch (e) {
 				if (e.message !== 'Missing Permissions') {
-					console.error('Discord  GET ERROR: SendToReplychannel: ', e.message, replyText, channelid);
+					console.error('Discord  GET ERROR: SendToReplychannel: ', e, replyText, channelid);
 				}
 			}
 
@@ -595,7 +598,8 @@ async function repeatMessage(discord, message) {
 		let pair = (webhook && webhook.isThread) ? { threadId: discord.channelId } : {};
 		await webhook.webhook.send({ ...obj, ...pair });
 	} catch (error) {
-		await SendToReplychannel({ replyText: '不能成功發送扮演發言, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
+		console.error('repeatMessage error', error.name, error.message, error.reson);
+		await SendToReplychannel({ replyText: 'A不能成功發送扮演發言, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
 		return;
 	}
 
@@ -631,21 +635,21 @@ async function manageWebhook(discord) {
 		const isThread = channel && channel.isThread();
 		let webhooks = isThread ? await channel.guild.fetchWebhooks() : await channel.fetchWebhooks();
 		let webhook = webhooks.find(v => {
-			return v.name == 'HKTRPG .me Function' && v.type == "Incoming" && ((v.channelId == channel.parentId) || !isThread);
+			return v.name == 'HKTRPG .me Function' && v.type == 1 && ((v.channelId == channel.parentId) || !isThread);
 		})
 		//type Channel Follower
 		//'Incoming'
 		if (!webhook) {
 			const hooks = isThread ? await client.channels.fetch(channel.parentId) : channel;
-			await hooks.createWebhook("HKTRPG .me Function", { avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" })
+			await hooks.createWebhook({ name: "HKTRPG .me Function", avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" })
 			webhooks = await channel.fetchWebhooks();
 			webhook = webhooks.find(v => {
-				return v.name == 'HKTRPG .me Function' && v.type == "Incoming";
+				return v.name == 'HKTRPG .me Function' && v.type == 1;
 			})
 		}
 		return { webhook, isThread };
 	} catch (error) {
-		//console.error(error)
+		//	console.error(error)
 		await SendToReplychannel({ replyText: '不能新增Webhook.\n 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: (discord.channel && discord.channel.id) || discord.channelId });
 		return;
 	}
@@ -755,14 +759,14 @@ async function handlingButtonCreate(message, input) {
 	const row = []
 	const totallyQuotient = ~~((buttonsNames.length - 1) / 5) + 1;
 	for (let index = 0; index < totallyQuotient; index++) {
-		row.push(new MessageActionRow())
+		row.push(new ActionRowBuilder())
 	}
 	for (let i = 0; i < buttonsNames.length; i++) {
 		const quot = ~~(i / 5)
 		const name = buttonsNames[i] || 'null'
 		row[quot]
 			.addComponents(
-				new MessageButton()
+				new ButtonBuilder()
 					.setCustomId(`${name}_${i}`)
 					.setLabel(name)
 					.setStyle(buttonsStyle(i)),
@@ -783,14 +787,14 @@ async function handlingRequestRollingCharacter(message, input) {
 	const row = []
 	const totallyQuotient = ~~((buttonsNames.length - 1) / 5) + 1;
 	for (let index = 0; index < totallyQuotient; index++) {
-		row.push(new MessageActionRow())
+		row.push(new ActionRowBuilder())
 	}
 	for (let i = 0; i < buttonsNames.length; i++) {
 		const quot = ~~(i / 5)
 		const name = buttonsNames[i] || 'null'
 		row[quot]
 			.addComponents(
-				new MessageButton()
+				new ButtonBuilder()
 					.setCustomId(`${name}_${i}`)
 					.setLabel(name)
 					.setStyle(buttonsStyle(i)),
@@ -819,14 +823,14 @@ async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 	const row = []
 	const totallyQuotient = ~~((buttonsNames.length - 1) / 5) + 1
 	for (let index = 0; index < totallyQuotient; index++) {
-		row.push(new MessageActionRow())
+		row.push(new ActionRowBuilder())
 	}
 	for (let i = 0; i < buttonsNames.length; i++) {
 		const quot = ~~(i / 5)
 		const name = buttonsNames[i] || 'null'
 		row[quot]
 			.addComponents(
-				new MessageButton()
+				new ButtonBuilder()
 					.setCustomId(`${name}_${i}`)
 					.setLabel(name)
 					.setStyle(buttonsStyle(i)),
@@ -834,7 +838,12 @@ async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 	}
 	const arrayRow = await splitArray(5, row)
 	for (let index = 0; index < arrayRow.length; index++) {
-		await message.reply({ content: `${displayname}要求擲骰/點擊`, components: arrayRow[index] }).catch();
+		try {
+			await message.reply({ content: `${displayname}要求擲骰/點擊`, components: arrayRow[index] })
+		} catch (error) {
+
+		}
+
 	}
 }
 async function splitArray(perChunk, inputArray) {
@@ -872,7 +881,7 @@ async function handlingResponMessage(message, answer = '') {
 		let hasSendPermission = true;
 		/**
 				if (message.guild && message.guild.me) {
-					hasSendPermission = (message.channel && message.channel.permissionsFor(message.guild.me)) ? message.channel.permissionsFor(message.guild.me).has(Permissions.FLAGS.SEND_MESSAGES) : false;
+					hasSendPermission = (message.channel && message.channel.permissionsFor(message.guild.me)) ? message.channel.permissionsFor(message.guild.me).has(PermissionsBitField.Flags.SEND_MESSAGES) : false;
 				}
 				 */
 		if (answer) message.content = answer;
@@ -965,7 +974,7 @@ async function handlingResponMessage(message, answer = '') {
 			message.author.send({
 				content: '這是頻道 ' + message.channel.name + ' 的聊天紀錄',
 				files: [
-					"./tmp/" + rplyVal.discordExport + '.txt'
+					new AttachmentBuilder("./tmp/" + rplyVal.discordExport + '.txt')
 				]
 			});
 		}
@@ -1000,11 +1009,15 @@ async function handlingResponMessage(message, answer = '') {
 		};
 
 	} catch (error) {
-		console.error('handlingResponMessage Error: ', (error && error.name), (error && error.message), (error && error.reson))
+		console.error('handlingResponMessage Error: ', error, (error && error.name), (error && error.message), (error && error.reson))
 	}
 }
 const sendBufferImage = async (message, rplyVal, userid) => {
-	await message.channel.send({ content: `<@${userid}>\n你的Token已經送到，現在輸入 .token 為方型，.token2 為圓型 .token3 為按名字決定的隨機顏色`, files: [{ attachment: rplyVal.sendImage }] });
+	await message.channel.send({
+		content: `<@${userid}>\n你的Token已經送到，現在輸入 .token 為方型，.token2 為圓型 .token3 為按名字決定的隨機顏色`, files: [
+			new AttachmentBuilder(rplyVal.sendImage)
+		]
+	});
 	fs.unlinkSync(rplyVal.sendImage);
 	return;
 }
@@ -1103,24 +1116,23 @@ const connect = function () {
 		ws.send(`connectd To core-www from discord! Shard#${shardid}`);
 	});
 	ws.on('message', function incoming(data) {
-		if (shardid !== 0) return;
-		var object = JSON.parse(data);
-		if (object.botname == 'Discord') {
-			const promises = [
-				object,
-				//client.shard.broadcastEval(client => client.channels.fetch(object.message.target.id)),
-			];
-			Promise.all(promises)
-				.then(async results => {
-					let channel = await client.channels.fetch(results[0].message.target.id);
-					if (channel)
-						channel.send(results[0].message.text)
-				})
-				.catch(error => {
-					console.error(`disocrdbot #99 error `, (error && error.name), (error && error.message), (error && error.reson))
-				});
-			return;
-		}
+		//if (shardid !== 0) return;
+		const object = JSON.parse(data);
+		if (object.botname !== 'Discord') return;
+		const promises = [
+			object,
+			//client.shard.broadcastEval(client => client.channels.fetch(object.message.target.id)),
+		];
+		Promise.all(promises)
+			.then(async results => {
+				let channel = await client.channels.fetch(results[0].message.target.id);
+				if (channel) channel.send(results[0].message.text)
+			})
+			.catch(error => {
+				console.error(`disocrdbot #99 error `, (error && error.name), (error && error.message), (error && error.reson))
+			});
+		return;
+
 	});
 	ws.on('error', (error) => {
 		console.error('Discord socket error', (error && error.name), (error && error.message), (error && error.reson));
@@ -1136,7 +1148,8 @@ function handlingButtonCommand(message) {
 }
 async function handlingEditMessage(message, rplyVal) {
 	try {
-		if (message.type !== 'REPLY') return message.reply({ content: '請Reply 你所想要修改的指定訊息' });
+		//type = reply
+		if (message.type !== 19) return message.reply({ content: '請Reply 你所想要修改的指定訊息' });
 		if (message.channelId !== message.reference.channelId) return message.reply({ content: '請只修改同一個頻道的訊息' });
 		const editReply = rplyVal.discordEditMessage;
 		const channel = await client.channels.fetch(message.reference.channelId);
@@ -1213,11 +1226,16 @@ function multiServerTarget(message) {
 }
 
 function __checkUserRole(groupid, message) {
-	if (groupid && message.member && message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR))
-		return 3;
-	if (groupid && message.channel.permissionsFor(message.member) && message.channel.permissionsFor(message.member).has(Permissions.FLAGS.MANAGE_CHANNELS)) return 2;
+	try {
+		if (groupid && message.member && message.member.permissions.has(PermissionsBitField.Flags.Administrator))
+			return 3;
+		if (groupid && message.channel && message.channel.permissionsFor(message.member) && message.channel.permissionsFor(message.member).has(PermissionsBitField.Flags.ManageChannels)) return 2;
+		return 1;
+	} catch (error) {
+		//	console.log('error', error)
+		return 1;
+	}
 
-	return 1;
 }
 
 async function __handlingReplyMessage(message, result) {
@@ -1310,7 +1328,9 @@ client.on('shardResume', (replayed, shardID) => console.log(`Shard ID ${shardID}
 client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnected.`));
 
 
-
+if (debugMode) process.on('warning', e => {
+	console.warn(e.stack)
+});
 
 /**
  *

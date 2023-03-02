@@ -5,11 +5,11 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
 const variables = {};
 const VIP = require('../modules/veryImportantPerson');
 const FUNCTION_LIMIT = [0, 1, 1, 1, 1, 1, 1, 1];
-const { SlashCommandBuilder } = require('@discordjs/builders');
+const { SlashCommandBuilder, PermissionsBitField } = require('discord.js');
 const schema = require('../modules/schema')
 const rollbase = require('./rollbase.js');
 const multiServer = require('../modules/multi-server')
-const Discord = require("discord.js-light");
+const Discord = require("discord.js");
 const { Permissions } = Discord;
 const gameName = function () {
     return '【同步聊天】.chatroom'
@@ -72,7 +72,7 @@ const rollDiceCommand = async function ({
                 const channel = await discordClient.channels.fetch(mainMsg[2])
                 const member = await channel.fetch(userid)
                 const v = member.members.find(v => v)
-                const role = channel.permissionsFor(v).has(Permissions.FLAGS.MANAGE_CHANNELS)
+                const role = channel.permissionsFor(v).has(PermissionsBitField.Flags.ManageChannels)
                 if (!role) return;
                 const d = new Date();
                 const time = d.getTime();
@@ -105,7 +105,7 @@ const rollDiceCommand = async function ({
                 } catch (error) {
                     v = member;
                 }
-                const role = channel.permissionsFor(v).has(Permissions.FLAGS.MANAGE_CHANNELS)
+                const role = channel.permissionsFor(v).has(PermissionsBitField.Flags.ManageChannels)
                 if (!role) return;
                 let max = await schema.multiServer.find({ multiId: mainMsg[2] })
                 if (max.length >= 2) return;
@@ -135,7 +135,7 @@ const rollDiceCommand = async function ({
                 const channel = await discordClient.channels.fetch(mainMsg[2])
                 const member = await channel.fetch(userid)
                 const v = member.members.find(v => v)
-                const role = channel.permissionsFor(v).has(Permissions.FLAGS.MANAGE_CHANNELS)
+                const role = channel.permissionsFor(v).has(PermissionsBitField.Flags.ManageChannels)
                 if (!role) return;
                 await schema.multiServer.findOneAndRemove({ channelid: mainMsg[2] }).catch(error => {
                     console.error('multiserver #112 mongoDB error: ', error.name, error.reson)

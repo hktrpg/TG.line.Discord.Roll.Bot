@@ -5,7 +5,7 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
 const variables = {};
 const jimp = require('jimp');
 const sharp = require('sharp');
-const { SlashCommandBuilder } = require('@discordjs/builders');
+const { SlashCommandBuilder } = require('discord.js');
 const axios = require('axios');
 const fs = require('fs');
 const getColors = require('get-image-colors')
@@ -204,15 +204,16 @@ const polaroidTokernMaker = async (discordMessage, inputStr, mainMsg, discordCli
 }
 
 const getAvatar = async (discordMessage, discordClient) => {
-    if (discordMessage.type == 'DEFAULT' && discordMessage.attachments.size == 0) {
+    if (discordMessage.type === 0 && discordMessage.attachments.size === 0) {
         const member = (discordMessage.guild && await discordMessage.guild.members.fetch(discordMessage.author) || discordMessage.author)
         return member.displayAvatarURL();
     }
-    if (discordMessage.type == 'DEFAULT' && discordMessage.attachments.size > 0) {
+    if (discordMessage.type === 0 && discordMessage.attachments.size > 0) {
         const url = discordMessage.attachments.find(data => data.contentType.match(/image/i))
         return (url && url.url) || null;
     }
-    if (discordMessage.type == 'REPLY') {
+    //19 = reply
+    if (discordMessage.type === 19) {
         const channel = await discordClient.channels.fetch(discordMessage.reference.channelId);
         const referenceMessage = await channel.messages.fetch(discordMessage.reference.messageId)
         const url = referenceMessage.attachments.find(data => data.contentType.match(/image/i))

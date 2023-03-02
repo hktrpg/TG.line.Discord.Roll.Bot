@@ -1,7 +1,7 @@
 "use strict";
 const rollbase = require('./rollbase.js');
 const mathjs = require('mathjs');
-const { SlashCommandBuilder } = require('@discordjs/builders');
+const { SlashCommandBuilder } = require('discord.js');
 const variables = {};
 const regexxBy = /^((\d+)(b)(\d+))(S?)/i
 const regexxUy = /^(\d+)(u)(\d+)/i

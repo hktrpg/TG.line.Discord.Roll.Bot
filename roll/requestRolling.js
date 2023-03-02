@@ -3,7 +3,7 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
 const variables = {};
-const { SlashCommandBuilder } = require('@discordjs/builders');
+const { SlashCommandBuilder } = require('discord.js');
 const gameName = function () {
     return '【要求擲骰/點擊功能】'
 }
@@ -24,8 +24,8 @@ const prefixs = function () {
 const getHelpMessage = function () {
     return `【要求擲骰/點擊功能】
     Discord 專用功能
-    /re 要求擲骰/點擊功能
-    範例 /re 1d100 哈哈, 1d3 SC成功, 1d10 SC失敗, 簽到`
+    .re 要求擲骰/點擊功能
+    範例 .re 1d100 哈哈, 1d3 SC成功, 1d10 SC失敗, 簽到`
 }
 const initialize = function () {
     return variables;

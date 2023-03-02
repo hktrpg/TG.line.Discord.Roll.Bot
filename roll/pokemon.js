@@ -1,6 +1,6 @@
 "use strict";
 const variables = {};
-const { SlashCommandBuilder } = require('@discordjs/builders');
+const { SlashCommandBuilder } = require('discord.js');
 const Fuse = require('fuse.js');
 const { randomInt } = require('mathjs');
 const gameName = function () {

@@ -2,6 +2,7 @@
 if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
+const { PermissionFlagsBits, PermissionsBitField } = require('discord.js');
 var variables = {};
 const oneMinuts = (process.env.DEBUG) ? 1 : 60000;
 const sevenDay = (process.env.DEBUG) ? 1 : 60 * 24 * 7 * 60000;
@@ -96,7 +97,7 @@ const rollDiceCommand = async function ({
     let theTime = new Date();
     let demoMode = false;
     if (groupid) {
-        hasReadPermission = discordMessage.channel.permissionsFor(discordMessage.guild.me).has("READ_MESSAGE_HISTORY") || discordMessage.guild.me.hasPermission("ADMINISTRATOR");
+        hasReadPermission = discordMessage.channel.permissionsFor(discordMessage.guild.members.me).has(PermissionFlagsBits.ReadMessageHistory) || discordMessage.guild.members.me.permissions.has(PermissionFlagsBits.Administrator);
     }
 
     function replacer(first, second) {
@@ -122,7 +123,7 @@ const rollDiceCommand = async function ({
             totalSize += (messages.size) ? messages.size : 0;
             messages.forEach(element => {
                 let temp;
-                if (element.type == 'DEFAULT') {
+                if (element.type === 0) {
                     temp = {
                         timestamp: element.createdTimestamp,
                         contact: element.content.replace(/<@(.*?)>/ig, replacer),
@@ -130,7 +131,7 @@ const rollDiceCommand = async function ({
                         isbot: element.author.bot
                     }
                 } else
-                    if (element.type !== 'DEFAULT') {
+                    if (element.type !== 0) {
                         temp = {
                             timestamp: element.createdTimestamp,
                             contact: element.author.username + '\n' + element.type,
@@ -173,7 +174,7 @@ const rollDiceCommand = async function ({
             messages.forEach(element => {
                 let temp;
                 // if (element.attachments && element.attachments.size) console.log('element.attachments',element.attachments.map(attachment => attachment.proxyURL))
-                if (element.type == 'DEFAULT') {
+                if (element.type === 0) {
                     temp = {
                         timestamp: element.createdTimestamp,
                         contact: element.content.replace(/<@(.*?)>/ig, replacer),
@@ -183,7 +184,7 @@ const rollDiceCommand = async function ({
                         embeds: (element.embeds && element.embeds.length) ? element.embeds.map(embed => embed.description) : []
                     }
                 } else
-                    if (element.type !== 'DEFAULT') {
+                    if (element.type !== 0) {
                         temp = {
                             timestamp: element.createdTimestamp,
                             contact: element.author.username + '\n' + element.type,

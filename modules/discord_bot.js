@@ -759,14 +759,15 @@ async function getAllshardIds() {
 		[...client.cluster.ids.keys()],
 		client.cluster.broadcastEval(c => c.ws.status),
 		client.cluster.broadcastEval(c => c.ws.ping),
-		client.cluster.evalOnManager('process.memoryUsage().rss / 1024 ** 2')
+		client.cluster.id,
+
 	];
 	return Promise.all(promises)
 		.then(results => {
-			return `\n所有啓動中的server ID:   ${results[0]} 
-			所有啓動中的server online:   ${results[1].map(ele => discordPresenceStatus[ele]).join(', ')} 
-			所有啓動中的server ping:   ${results[2].map(ele => ele.toFixed(0)).join(', ')}
-			使用的Ram: ${results[3].toFixed(0) + 'mb'}`
+			return `\n現在的shard ID: ${results[3]}
+			所有啓動中的shard ID:   ${results[0]} 
+			所有啓動中的shard online:   ${results[1].map(ele => discordPresenceStatus[ele]).join(', ')} 
+			所有啓動中的shard ping:   ${results[2].map(ele => ele.toFixed(0)).join(', ')}`
 		})
 		.catch(error => {
 			console.error(`disocrdbot #884 error `, (error && error.name), (error && error.message), (error && error.reson))

@@ -23,7 +23,6 @@ function channelFilter(channel) {
 }
 const client = new Client({
 	sweepers: {
-		...Options.DefaultSweeperSettings,
 		messages: {
 			interval: 1800, // Every hour...
 			lifetime: 900,	// Remove messages older than 30 minutes.

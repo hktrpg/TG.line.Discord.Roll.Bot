@@ -766,7 +766,7 @@ async function getAllshardIds() {
 		.then(results => {
 			return `\n現在的shard ID: ${results[3]}
 			所有啓動中的shard ID:   ${results[0]} 
-			所有啓動中的shard online:   ${results[1].map(ele => discordPresenceStatus[ele]).join(', ')} 
+			所有啓動中的shard online:   ${results[1].map(ele => discordPresenceStatus[ele]).join(', ').replace(/online/g, '在線')} 
 			所有啓動中的shard ping:   ${results[2].map(ele => ele.toFixed(0)).join(', ')}`
 		})
 		.catch(error => {

@@ -4,10 +4,10 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
 }
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
-const Cluster = require('discord-hybrid-sharding');
+const { ClusterManager } = require('discord-hybrid-sharding');
 require("./ds-deploy-commands");
 let maxShard = 1;
-const manager = new Cluster.Manager('./modules/discord_bot.js', {
+const manager = new ClusterManager('./modules/discord_bot.js', {
 	token: channelSecret,
 	shardsPerClusters: 3,
 	totalShards: "auto",

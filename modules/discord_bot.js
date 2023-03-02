@@ -6,7 +6,7 @@ const isImageURL = require('image-url-validator').default;
 const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)(\s?)$/i);
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const adminSecret = process.env.ADMIN_SECRET || '';
-const Cluster = require('discord-hybrid-sharding');
+const { ClusterClient, getInfo } = require('discord-hybrid-sharding');
 const { Client, GatewayIntentBits, Partials, Options, Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, Events, EmbedBuilder, PermissionsBitField, AttachmentBuilder, ChannelType } = require('discord.js');
 
 const multiServer = require('../modules/multi-server')
@@ -73,8 +73,8 @@ const client = new Client({
 			sweepInterval: 3600
 		},
 	}),
-	shards: Cluster.data.SHARD_LIST, // An array of shards that will get spawned
-	shardCount: Cluster.data.TOTAL_SHARDS, // Total number of shards
+	shards: getInfo().SHARD_LIST,  // An array of shards that will get spawned
+	shardCount: getInfo().TOTAL_SHARDS, // Total number of shards
 	restRequestTimeout: 45000, // Timeout for REST requests
 	/**
 		  cacheGuilds: true,
@@ -89,7 +89,7 @@ const client = new Client({
 	GatewayIntentBits.GuildMessageReactions,
 	GatewayIntentBits.MessageContent], partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
-client.cluster = new Cluster.Client(client);
+client.cluster = new ClusterClient(client);
 client.login(channelSecret);
 const MESSAGE_SPLITOR = (/\S+/ig);
 const link = process.env.WEB_LINK;
@@ -756,7 +756,7 @@ async function getAllshardIds() {
 		return;
 	}
 	const promises = [
-		client.cluster.ids.map(d => `#${d.id}`),
+		[...client.cluster.ids.keys()],
 		client.cluster.broadcastEval(c => c.ws.status),
 		client.cluster.broadcastEval(c => c.ws.ping)
 	];

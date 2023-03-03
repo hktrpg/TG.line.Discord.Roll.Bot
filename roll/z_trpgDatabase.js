@@ -91,18 +91,12 @@ const rollDiceCommand = async function ({
         case /(^[.]db$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]): {
             //增加資料庫
             //檢查有沒有重覆
-            //if (!mainMsg[2]) return;
-            //if (!mainMsg[3]) return;
-            /*
-                       只限四張角色卡.
-                       使用VIPCHECK
-                       */
             if (!mainMsg[2]) rply.text += ' 沒有輸入標題。\n\n'
             if (!mainMsg[3]) rply.text += ' 沒有輸入內容。\n\n'
             if (rply.text += checkTools.permissionErrMsg({
-                flag : checkTools.flag.ChkChannelManager,
-                gid : groupid,
-                role : userrole
+                flag: checkTools.flag.ChkChannelManager,
+                gid: groupid,
+                role: userrole
             })) {
                 return rply;
             }
@@ -148,9 +142,9 @@ const rollDiceCommand = async function ({
         case /(^[.]db$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
             //刪除資料庫
             if (rply.text = checkTools.permissionErrMsg({
-                flag : checkTools.flag.ChkChannelManager,
-                gid : groupid,
-                role : userrole
+                flag: checkTools.flag.ChkChannelManager,
+                gid: groupid,
+                role: userrole
             })) {
                 return rply;
             }
@@ -172,9 +166,9 @@ const rollDiceCommand = async function ({
             //刪除資料庫
             if (!mainMsg[2]) rply.text += '沒有關鍵字. \n\n'
             if (rply.text += checkTools.permissionErrMsg({
-                flag : checkTools.flag.ChkChannelManager,
-                gid : groupid,
-                role : userrole
+                flag: checkTools.flag.ChkChannelManager,
+                gid: groupid,
+                role: userrole
             })) {
                 return rply;
             }
@@ -199,54 +193,57 @@ const rollDiceCommand = async function ({
             records.get('trpgDatabase', (msgs) => {
                 trpgDatabasefunction.trpgDatabasefunction = msgs
             })
-            if (groupid) {
-                let temp = 0;
-                if (trpgDatabasefunction.trpgDatabasefunction)
-                    for (let i = 0; i < trpgDatabasefunction.trpgDatabasefunction.length; i++) {
-                        if (trpgDatabasefunction.trpgDatabasefunction[i].groupid == groupid) {
-                            rply.text += '資料庫列表:'
-                            for (let a = 0; a < trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
-                                temp = 1;
-                                rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + '. ' + trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic : '       ' + a + '. ' + trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic;
-                            }
-                        }
-                    }
-                if (temp == 0) rply.text = '沒有已設定的關鍵字. '
-            } else {
-                rply.text = '不在群組. '
+            if (!groupid) {
+                rply.text = '不在群組. ';
+                return rply;
             }
+            let temp = 0;
+            if (trpgDatabasefunction.trpgDatabasefunction)
+                for (let i = 0; i < trpgDatabasefunction.trpgDatabasefunction.length; i++) {
+                    if (trpgDatabasefunction.trpgDatabasefunction[i].groupid == groupid) {
+                        rply.text += '資料庫列表:'
+                        for (let a = 0; a < trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
+                            temp = 1;
+                            rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + '. ' + trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic : '       ' + a + '. ' + trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic;
+                        }
+
+                    }
+                    if (temp == 0) rply.text = '沒有已設定的關鍵字. '
+                }
             rply.quotes = true;
             //顯示資料庫
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
             return rply
-        case /(^[.]db$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
+        case /(^[.]db$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]): {
             //顯示關鍵字
             //let times = /^[.]db/.exec(mainMsg[0])[1] || 1
             //if (times > 30) times = 30;
             //if (times < 1) times = 1
-            if (groupid) {
-                let temp = 0;
-                if (trpgDatabasefunction.trpgDatabasefunction && mainMsg[1])
-                    for (let i = 0; i < trpgDatabasefunction.trpgDatabasefunction.length; i++) {
-                        if (trpgDatabasefunction.trpgDatabasefunction[i].groupid == groupid) {
-                            //rply.text += '資料庫列表:'
-                            for (let a = 0; a < trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
-                                if (trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic.toLowerCase() == mainMsg[1].toLowerCase()) {
-                                    temp = 1
-                                    rply.text = trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic + '\n' + trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].contact;
-
-                                }
+            if (!groupid) {
+                rply.text = '不在群組. '
+                return rply;
+            }
+            let temp = 0;
+            if (trpgDatabasefunction.trpgDatabasefunction && mainMsg[1])
+                for (let i = 0; i < trpgDatabasefunction.trpgDatabasefunction.length; i++) {
+                    if (trpgDatabasefunction.trpgDatabasefunction[i].groupid == groupid) {
+                        //rply.text += '資料庫列表:'
+                        for (let a = 0; a < trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
+                            if (trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic.toLowerCase() == mainMsg[1].toLowerCase()) {
+                                temp = 1
+                                rply.text = `【${trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic}】\n${trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].contact}`;
 
                             }
+
                         }
                     }
-                if (temp == 0) rply.text = '沒有相關關鍵字. '
-                rply.text = await replaceAsync(rply.text, /{(.*?)}/ig, replacer);
-            } else {
-                rply.text = '不在群組. '
-            }
-            rply.text = rply.text.replace(/,/mg, ' ')
+                }
+            if (temp == 0) rply.text = '沒有相關關鍵字. '
+            rply.text = await replaceAsync(rply.text, /{(.*?)}/ig, replacer);
+
+            // rply.text = rply.text.replace(/,/mg, ' ')
             return rply;
+        }
         case /(^[.]dbp$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
             //if (!mainMsg[2]) return;
             if (rply && trpgDatabasefunction.trpgDatabaseAllgroup && mainMsg[2])
@@ -314,7 +311,8 @@ const rollDiceCommand = async function ({
                     for (let a = 0; a < trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup.length; a++) {
                         if (trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic.toLowerCase() == mainMsg[1].toLowerCase()) {
                             temp2 = 1
-                            rply.text = trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic + '\n' + trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].contact;
+                            rply.text = `【${trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic}】
+${trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].contact}`;
 
 
                         }

@@ -1264,67 +1264,67 @@ class DailyFuckUp {
 		this.subject = subject;
 	}
 
-	隨便取一句(列表) {
-		let 座標 = Math.floor(Math.random() * 列表.length);
-		return 列表[座標];
+	static randomSentence(list) {
+		let row = Math.floor(Math.random() * list.length);
+		return list[row];
 	}
 
-	隨便取一個數(最小值 = 0, 最大值 = 100) {
-		let 數字 = Math.random() * (最大值 - 最小值) + 最小值;
-		return 數字;
+	static randomNumber(min = 0, max = 100) {
+		let number = Math.random() * (max - min) + min;
+		return number;
 	}
 
-	來點名人名言() {
-		let 名言 = 隨便取一句(名人名言)
-		名言 = 名言.replace("曾經說過", 隨便取一句(前面墊話))
-		名言 = 名言.replace("這不禁令我深思", 隨便取一句(後面墊話))
-		return 名言
+	genCelebrity() {
+		let quotes = randomSentence(celebrityQuotes)
+		quotes = quotes.replace("曾經說過", randomSentence(前面墊話))
+		quotes = quotes.replace("這不禁令我深思", randomSentence(後面墊話))
+		return quotes
 	}
 
-	來點論述() {
-		let 句子 = 隨便取一句(論述);
-		句子 = 句子.replace(RegExp("主題", "g"), 主題);
-		return 句子;
+	genDiscuss() {
+		let sentence = randomSentence(discuss);
+		sentence = sentence.replace(RegExp("主題", "g"), 主題);
+		return sentence;
 	}
 
-	增加段落(章節) {
-		if (章節[章節.length - 1] === " ") {
-			章節 = 章節.slice(0, -2)
+	addParagraph(chapter) {
+		if (chapter[chapter.length - 1] === " ") {
+			chapter = chapter.slice(0, -2)
 		}
-		return "　　" + 章節 + "。 "
+		return "　　" + chapter + "。 "
 	}
 
-	產生文章() {
-		主題 = $('input').value
+	generateArticles() {
+		主題 = this.subject
 		let 文章 = []
 		for (let 空 in 主題) {
-			let 章節 = "";
-			let 章節長度 = 0;
-			while (章節長度 < 6000) {
-				let 隨機數 = 隨便取一個數();
-				if (隨機數 < 5 && 章節.length > 200) {
-					章節 = 增加段落(章節);
-					文章.push(章節);
-					章節 = "";
+			let chapter = "";
+			let chapterLength = 0;
+			while (chapterLength < 6000) {
+				let 隨機數 = randomNumber();
+				if (隨機數 < 5 && chapter.length > 200) {
+					chapter = addParagraph(chapter);
+					文章.push(chapter);
+					chapter = "";
 				} else if (隨機數 < 20) {
-					let 句子 = 來點名人名言();
-					章節長度 = 章節長度 + 句子.length;
-					章節 = 章節 + 句子;
+					let sentence = genCelebrity();
+					chapterLength = chapterLength + sentence.length;
+					chapter = chapter + sentence;
 				} else {
-					let 句子 = 來點論述();
-					章節長度 = 章節長度 + 句子.length;
-					章節 = 章節 + 句子;
+					let sentence = genDiscuss();
+					chapterLength = chapterLength + sentence.length;
+					chapter = chapter + sentence;
 				}
 			}
-			章節 = 增加段落(章節);
-			文章.push(章節);
+			chapter = addParagraph(chapter);
+			文章.push(chapter);
 		}
 		let 排版 = "<div>" + 文章.join("</div><div>") + "</div>";
 		$("#文章").innerHTML = 排版;
 		gtag('event', 'generator', { 'event_category': 'bullshitgenerator', 'event_label': 'generator', 'value': 主題 });
 	}
 
-	論述 = [
+	static discuss = [
 		"現在，解決主題的問題，是非常非常重要的。 所以， ",
 		"我們不得不面對一個非常尷尬的事實，那就是， ",
 		"主題的發生，到底需要如何做到，不主題的發生，又會如何產生。 ",
@@ -1378,17 +1378,17 @@ class DailyFuckUp {
 		"主題所帶來的影響和後果是深遠的，必須慎重對待。",
 	]
 
-	名人名言 = [
-		馬丁路德金曾經說過：“黑夜雖然會延遲，但白天一定會到來。”
-貝多芬曾經說過：“人生就像一首交響樂，需要高低起伏才會有美妙的旋律。”
-約翰·藍儂曾經說過：“生命是發生在你身上的事情，當你忙於為其餘的東西而忘了它時，它就會溜走。”
-艾倫·德珍尼斯曾經說過：“生命中最困難的部分是不知道該怎麼做，而最容易的部分是知道該怎麼做卻不去做。”
-奧斯卡·王爾德曾經說過：“人生就像一場戲劇，演員們出場、扮演角色，但當燈光熄滅時，他們又得回到現實中來。”
-約翰·華納克爾曾經說過：“成功不是最終目的，失敗也不是致命的，勇氣繼續前進才是最重要的。”
-亞伯拉罕·林肯曾經說過：“你可以愛上你的工作，也可以恨你的工作，但你必須為它付出努力。”
-比爾·蓋茨曾經說過：“成功不是取決於你有多聰明，而是取決於你有多認真。”
-納爾遜·曼德拉曾經說過：“教育是改變世界的最強大的武器。”
-史蒂夫·喬布斯曾經說過：“你的工作將佔用你生命中大部分時間，為什麼不要做你熱愛的工作呢？”
+	celebrityQuotes = [
+		"馬丁路德金曾經說過：“黑夜雖然會延遲，但白天一定會到來。這不禁令我深思",
+		"貝多芬曾經說過：“人生就像一首交響樂，需要高低起伏才會有美妙的旋律。這不禁令我深思",
+		"約翰·藍儂曾經說過：“生命是發生在你身上的事情，當你忙於為其餘的東西而忘了它時，它就會溜走。這不禁令我深思",
+		"艾倫·德珍尼斯曾經說過：“生命中最困難的部分是不知道該怎麼做，而最容易的部分是知道該怎麼做卻不去做。這不禁令我深思",
+		"奧斯卡·王爾德曾經說過：“人生就像一場戲劇，演員們出場、扮演角色，但當燈光熄滅時，他們又得回到現實中來。這不禁令我深思",
+		"約翰·華納克爾曾經說過：“成功不是最終目的，失敗也不是致命的，勇氣繼續前進才是最重要的。這不禁令我深思",
+		"亞伯拉罕·林肯曾經說過：“你可以愛上你的工作，也可以恨你的工作，但你必須為它付出努力。這不禁令我深思",
+		"比爾·蓋茨曾經說過：“成功不是取決於你有多聰明，而是取決於你有多認真。這不禁令我深思",
+		"納爾遜·曼德拉曾經說過：“教育是改變世界的最強大的武器。這不禁令我深思",
+		"史蒂夫·喬布斯曾經說過：“你的工作將佔用你生命中大部分時間，為什麼不要做你熱愛的工作呢？這不禁令我深思",
 		"伏爾泰曾經說過，不經巨大的困難，不會有偉大的事業。這不禁令我深思",
 		"富勒曾經說過，苦難磨鍊一些人，也毀滅另一些人。這不禁令我深思",
 		"文森特·皮爾曾經說過，改變你的想法，你就改變了自己的世界。這不禁令我深思",

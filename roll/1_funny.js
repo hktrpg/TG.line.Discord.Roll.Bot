@@ -166,8 +166,8 @@ const rollDiceCommand = async function ({
 		}
 		case /^每日廢話$/.test(mainMsg[0]): {
 			const name = mainMsg[1] || displaynameDiscord || tgDisplayname || displayname || '你';
-			const req = await axios.post('https://api.howtobullshit.me/bullshit', { Topic: name, MinLen: 500 })
-			rply.text = req.data.replaceAll('&nbsp;', '').replaceAll('<br>', '\n').replaceAll('\\r\\n', '\n\n');
+			const req = DailyFuckUp.generateArticles(name);
+			rply.text = req;
 			return rply;
 		}
 		case /^每日大事$/.test(mainMsg[0]): {
@@ -1260,10 +1260,6 @@ const discordCommand = [
 
 
 class DailyFuckUp {
-	constructor(subject) {
-		this.subject = subject;
-	}
-
 	static randomSentence(list) {
 		let row = Math.floor(Math.random() * list.length);
 		return list[row];
@@ -1274,61 +1270,57 @@ class DailyFuckUp {
 		return number;
 	}
 
-	genCelebrity() {
-		let quotes = randomSentence(celebrityQuotes)
-		quotes = quotes.replace("曾經說過", randomSentence(前面墊話))
-		quotes = quotes.replace("這不禁令我深思", randomSentence(後面墊話))
+	static genCelebrity() {
+		let quotes = DailyFuckUp.randomSentence(DailyFuckUp.celebrityQuotes)
+		quotes = quotes.replace("曾經說過", DailyFuckUp.randomSentence(DailyFuckUp.formerFuck))
+		quotes = quotes.replace("這不禁令我深思", DailyFuckUp.randomSentence(DailyFuckUp.afterFuck))
 		return quotes
 	}
 
-	genDiscuss() {
-		let sentence = randomSentence(discuss);
-		sentence = sentence.replace(RegExp("主題", "g"), 主題);
+	static genDiscuss(subject) {
+		let sentence = DailyFuckUp.randomSentence(DailyFuckUp.discuss);
+		sentence = sentence.replace(RegExp("主題", "g"), subject);
 		return sentence;
 	}
 
-	addParagraph(chapter) {
+	static addParagraph(chapter) {
 		if (chapter[chapter.length - 1] === " ") {
 			chapter = chapter.slice(0, -2)
 		}
 		return "　　" + chapter + "。 "
 	}
 
-	generateArticles() {
-		主題 = this.subject
-		let 文章 = []
-		for (let 空 in 主題) {
-			let chapter = "";
-			let chapterLength = 0;
-			while (chapterLength < 6000) {
-				let 隨機數 = randomNumber();
-				if (隨機數 < 5 && chapter.length > 200) {
-					chapter = addParagraph(chapter);
-					文章.push(chapter);
-					chapter = "";
-				} else if (隨機數 < 20) {
-					let sentence = genCelebrity();
-					chapterLength = chapterLength + sentence.length;
-					chapter = chapter + sentence;
-				} else {
-					let sentence = genDiscuss();
-					chapterLength = chapterLength + sentence.length;
-					chapter = chapter + sentence;
-				}
+	static generateArticles(subject) {
+		let text = []
+		let chapter = "";
+		let chapterLength = 0;
+		while (chapterLength < 300) {
+			let num = DailyFuckUp.randomNumber();
+			if (num < 5 && chapter.length > 200) {
+				chapter = DailyFuckUp.addParagraph(chapter) + "\n";;
+				text.push(chapter);
+				chapter = "";
+			} else if (num < 20) {
+				let sentence = DailyFuckUp.genCelebrity();
+				chapterLength = chapterLength + sentence.length;
+				chapter = chapter + sentence;
+			} else {
+				let sentence = DailyFuckUp.genDiscuss(subject);
+				chapterLength = chapterLength + sentence.length;
+				chapter = chapter + sentence;
 			}
-			chapter = addParagraph(chapter);
-			文章.push(chapter);
 		}
-		let 排版 = "<div>" + 文章.join("</div><div>") + "</div>";
-		$("#文章").innerHTML = 排版;
-		gtag('event', 'generator', { 'event_category': 'bullshitgenerator', 'event_label': 'generator', 'value': 主題 });
+		chapter = DailyFuckUp.addParagraph(chapter);
+		text.push(chapter);
+		console.log('text', text)
+
+		let result = text.join("\n\n").replace('。。', '。');
+		return result;
 	}
 
 	static discuss = [
-		"現在，解決主題的問題，是非常非常重要的。 所以， ",
-		"我們不得不面對一個非常尷尬的事實，那就是， ",
+		"現在，解決主題的問題，是非常非常重要的。 ",
 		"主題的發生，到底需要如何做到，不主題的發生，又會如何產生。 ",
-		"而這些並不是完全重要，更加重要的問題是， ",
 		"主題，到底應該如何實現。 ",
 		"帶著這些問題，我們來審視一下主題。 ",
 		"所謂主題，關鍵是主題需要如何寫。 ",
@@ -1346,13 +1338,6 @@ class DailyFuckUp {
 		"生活中，若主題出現了，我們就不得不考慮它出現了的事實。 ",
 		"這種事實對本人來說意義重大，相信對這個世界也是有一定意義的。 ",
 		"我們都知道，只要有意義，那麼就必須慎重考慮。 ",
-		"既然如此， ",
-		"那麼， ",
-		"我認為， ",
-		"一般來說， ",
-		"總結的來說， ",
-		"既然如何， ",
-		"經過上述討論",
 		"在現今社會，一些重要的問題始終存在著。因此，我們需要關注這些問題並找到有效的解決方案。",
 		"從長遠來看，我們必須重視某些問題的影響，因為它們可能對我們的未來產生深遠的影響。",
 		"解決問題需要集中精力和全面的思考。只有這樣，才能找到最佳解決方案。",
@@ -1378,7 +1363,7 @@ class DailyFuckUp {
 		"主題所帶來的影響和後果是深遠的，必須慎重對待。",
 	]
 
-	celebrityQuotes = [
+	static celebrityQuotes = [
 		"馬丁路德金曾經說過：“黑夜雖然會延遲，但白天一定會到來。這不禁令我深思",
 		"貝多芬曾經說過：“人生就像一首交響樂，需要高低起伏才會有美妙的旋律。這不禁令我深思",
 		"約翰·藍儂曾經說過：“生命是發生在你身上的事情，當你忙於為其餘的東西而忘了它時，它就會溜走。這不禁令我深思",
@@ -1491,9 +1476,10 @@ class DailyFuckUp {
 		"吉格·金克拉曾經說過，如果你能做夢，你就能實現它。這不禁令我深思",
 	]
 
-	後面墊話 = ["這不禁令我深思。 ", "帶著這句話，我們還要更加慎重的審視這個問題： ", "這啓發了我， ", "我希望諸位也能好好地體會這句話。 ", "這句話語雖然很短，但令我浮想聯翩。 ", "無可否認，這句話帶給我們極大的啟示。", "我深深體會到這句話所蘊含的深意。", "這句話真正引起了我的共鳴。", "這句話不僅引發了我們的關注，也引起了我們的思考。", "我們需要認真對待這句話所提出的挑戰。", "這句話所傳達的信息絕對不容忽視。", "這句話令我們更加清晰地看到了問題的本質。", "這句話讓我們看到了問題的另一面。", "我深信這句話會成為我們思考的重要起點。", "我們必須從這句話中學到更多的東西。", "這句話能夠激發我們內心深處的共鳴。", "我們需要從這句話中學到一個重要的教訓。", "這句話引起了我們對問題的關注，也啟發了我們的思考。", "這句話不僅是一句警句，更是一個重要的提醒。", "這句話在我們思考的過程中發揮了重要的作用。", "這句話讓我們看到了一個全新的視角。", "這句話可以幫助我們更好地理解問題的本質。", "我們必須從這句話中吸取更多的智慧和啟示。", "這句話深刻地反映了現實的困境和挑戰。", "這句話讓我們更加明白了自己的不足之處。", "這句話揭示了問題的一個重要方面。", "這句話讓我們更加認識到自己的責任和使命。", "這句話提醒我們要時刻保持警醒和警覺。", "這句話讓我們更加堅定了自己的信念和決心。", "這句話可以幫助我們更好地理解自己和他人。", "這句話是一個重要的思想火花，可以引發更多的啟示。", "這句話可以幫助我們更好地理解自己的身份和使命。", "這句話讓我們更加明白了人生的真諦和意義。", "這句話可以激勵我們更加努力地工作和生活。", "這句話是一個非常寶貴的啟示和提醒。", "這句話讓我們看到了問題的一個新的方向和出路。", "這句話可以幫助我們更好地面對人生的挑戰和困境。", "這句話讓我們更加明白了自己的優點和不足。", "這句話是一個非常實用的工作和生活的指導原則。", "這句話可以幫助我們更好地理解人性和社會。", "這句話讓我們更加意識到自己的權利和義務。", "這句話讓我們更加了解了一個文化或一個國家的特點和價值觀。", "這句話可以啟發我們更多的創造力和想像力。", "這句話讓我們更加明白了生命的珍貴和脆弱。",]
+	static afterFuck = ["這不禁令我深思。 ", "帶著這句話，我們還要更加慎重的審視這個問題： ", "這啓發了我， ", "我希望諸位也能好好地體會這句話。 ", "這句話語雖然很短，但令我浮想聯翩。 ", "無可否認，這句話帶給我們極大的啟示。", "我深深體會到這句話所蘊含的深意。", "這句話真正引起了我的共鳴。", "這句話不僅引發了我們的關注，也引起了我們的思考。", "我們需要認真對待這句話所提出的挑戰。", "這句話所傳達的信息絕對不容忽視。", "這句話令我們更加清晰地看到了問題的本質。", "這句話讓我們看到了問題的另一面。", "我深信這句話會成為我們思考的重要起點。", "我們必須從這句話中學到更多的東西。", "這句話能夠激發我們內心深處的共鳴。", "我們需要從這句話中學到一個重要的教訓。", "這句話引起了我們對問題的關注，也啟發了我們的思考。", "這句話不僅是一句警句，更是一個重要的提醒。", "這句話在我們思考的過程中發揮了重要的作用。", "這句話讓我們看到了一個全新的視角。", "這句話可以幫助我們更好地理解問題的本質。", "我們必須從這句話中吸取更多的智慧和啟示。", "這句話深刻地反映了現實的困境和挑戰。", "這句話讓我們更加明白了自己的不足之處。", "這句話揭示了問題的一個重要方面。", "這句話讓我們更加認識到自己的責任和使命。", "這句話提醒我們要時刻保持警醒和警覺。", "這句話讓我們更加堅定了自己的信念和決心。", "這句話可以幫助我們更好地理解自己和他人。", "這句話是一個重要的思想火花，可以引發更多的啟示。", "這句話可以幫助我們更好地理解自己的身份和使命。", "這句話讓我們更加明白了人生的真諦和意義。", "這句話可以激勵我們更加努力地工作和生活。", "這句話是一個非常寶貴的啟示和提醒。", "這句話讓我們看到了問題的一個新的方向和出路。", "這句話可以幫助我們更好地面對人生的挑戰和困境。", "這句話讓我們更加明白了自己的優點和不足。", "這句話是一個非常實用的工作和生活的指導原則。", "這句話可以幫助我們更好地理解人性和社會。", "這句話讓我們更加意識到自己的權利和義務。", "這句話讓我們更加了解了一個文化或一個國家的特點和價值觀。", "這句話可以啟發我們更多的創造力和想像力。", "這句話讓我們更加明白了生命的珍貴和脆弱。"]
 
-	前面墊話 = ["曾經說過", "在不經意間這樣說過", "事先聲明", "先說一聲", "需要先強調", "需要先說明", "需要先說明一下", "必須說明的是", "在進入主題前", "先講個小故事", "提前說一聲", "在討論這個問題之前", "稍微講一下背景", "簡單提一下前情", "在談到這個話題之前", "想要先聲明的是", "在關於這個問題之前", "先講一下自己的經驗", "在探討這個議題之前", "插播一個話題", "在談論這件事之前", "必須先交代一下", "在談到這個事情之前", "在進入正題前", "關於這個話題，我想先說", "提前交代一下", "先說一下自己的立場", "在闡述我的想法之前", "在探討這個問題之前", "在談論這個主題之前", "在進行分析之前", "先提一下問題的重要性", "在深入探討這個問題之前", "在談到這個議題之前",]
+	static formerFuck = ["曾經說過", "在不經意間這樣說過", "事先聲明", "先說一聲", "需要先強調", "需要先說明", "需要先說明一下", "必須說明的是", "講過一個小故事", "討論過這問題", "曾經稍微講過背景", "曾經簡單提過一下", "談到這個話題", "想要先聲明的是", "在關於這個問題", "根據自己的經驗", "曾探討過這個議題", "在談論過這件事", "過交代過", "談到這個事情時，說過", "在進入正題前，曾說過", "關於這個話題，曾說過", "交代過一下", "說過自己的立場", "闡述過想法", "探討過這個問題", "談論過這個主題", "曾分析過", "提過，一下問題的重要性", "曾深入探討這個問題", "談到這個議題"]
+
 }
 
 

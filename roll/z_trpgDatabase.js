@@ -219,7 +219,7 @@ const rollDiceCommand = async function ({
             //let times = /^[.]db/.exec(mainMsg[0])[1] || 1
             //if (times > 30) times = 30;
             //if (times < 1) times = 1
-            if (groupid) {
+            if (!groupid) {
                 rply.text = '不在群組. '
                 return rply;
             }
@@ -230,9 +230,8 @@ const rollDiceCommand = async function ({
                         //rply.text += '資料庫列表:'
                         for (let a = 0; a < trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
                             if (trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic.toLowerCase() == mainMsg[1].toLowerCase()) {
-                                console.log('找到關鍵字: ' + trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a])
                                 temp = 1
-                                rply.text = trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic + '\n' + trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].contact;
+                                rply.text = `【${trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic}】\n${trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].contact}`;
 
                             }
 

@@ -6,7 +6,7 @@ const isImageURL = require('image-url-validator').default;
 const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)(\s?)$/i);
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const adminSecret = process.env.ADMIN_SECRET || '';
-const Cluster = require('discord-hybrid-sharding');
+const { ClusterClient, getInfo } = require('discord-hybrid-sharding');
 const { Client, GatewayIntentBits, Partials, Options, Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, Events, EmbedBuilder, PermissionsBitField, AttachmentBuilder, ChannelType } = require('discord.js');
 
 const multiServer = require('../modules/multi-server')
@@ -73,8 +73,8 @@ const client = new Client({
 			sweepInterval: 3600
 		},
 	}),
-	shards: Cluster.data.SHARD_LIST, // An array of shards that will get spawned
-	shardCount: Cluster.data.TOTAL_SHARDS, // Total number of shards
+	shards: getInfo().SHARD_LIST,  // An array of shards that will get spawned
+	shardCount: getInfo().TOTAL_SHARDS, // Total number of shards
 	restRequestTimeout: 45000, // Timeout for REST requests
 	/**
 		  cacheGuilds: true,
@@ -89,7 +89,7 @@ const client = new Client({
 	GatewayIntentBits.GuildMessageReactions,
 	GatewayIntentBits.MessageContent], partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
-client.cluster = new Cluster.Client(client);
+client.cluster = new ClusterClient(client);
 client.login(channelSecret);
 const MESSAGE_SPLITOR = (/\S+/ig);
 const link = process.env.WEB_LINK;
@@ -756,15 +756,18 @@ async function getAllshardIds() {
 		return;
 	}
 	const promises = [
-		client.cluster.ids.map(d => `#${d.id}`),
+		[...client.cluster.ids.keys()],
 		client.cluster.broadcastEval(c => c.ws.status),
-		client.cluster.broadcastEval(c => c.ws.ping)
+		client.cluster.broadcastEval(c => c.ws.ping),
+		client.cluster.id,
+
 	];
 	return Promise.all(promises)
 		.then(results => {
-			return `\n所有啓動中的server ID:   ${results[0]} 
-			所有啓動中的server online:   ${results[1].map(ele => discordPresenceStatus[ele]).join(', ')} 
-			所有啓動中的server ping:   ${results[2].map(ele => ele.toFixed(0)).join(', ')}`
+			return `\n現在的shard ID: ${results[3]}
+			所有啓動中的shard ID:   ${results[0]} 
+			所有啓動中的shard online:   ${results[1].map(ele => discordPresenceStatus[ele]).join(', ').replace(/online/g, '在線')} 
+			所有啓動中的shard ping:   ${results[2].map(ele => ele.toFixed(0)).join(', ')}`
 		})
 		.catch(error => {
 			console.error(`disocrdbot #884 error `, (error && error.name), (error && error.message), (error && error.reson))
@@ -1193,14 +1196,14 @@ async function handlingEditMessage(message, rplyVal) {
 //TOP.GG 
 const togGGToken = process.env.TOPGG;
 if (togGGToken) {
-	if (shardid !== (Cluster.data.TOTAL_SHARDS - 1)) return;
+	if (shardid !== (getInfo().TOTAL_SHARDS - 1)) return;
 	const Topgg = require(`@top-gg/sdk`)
 	const api = new Topgg.Api(togGGToken)
 	this.interval = setInterval(async () => {
 		const guilds = await client.cluster.fetchClientValues("guilds.cache.size");
 		api.postStats({
 			serverCount: parseInt(guilds.reduce((a, c) => a + c, 0)),
-			shardCount: Cluster.data.TOTAL_SHARDS,
+			shardCount: getInfo().TOTAL_SHARDS,
 			shardId: client.cluster.id
 		});
 	}, 300000);

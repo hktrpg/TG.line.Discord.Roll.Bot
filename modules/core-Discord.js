@@ -4,10 +4,10 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
 }
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
-const Cluster = require('discord-hybrid-sharding');
+const { ClusterManager, HeartbeatManager } = require('discord-hybrid-sharding');
 require("./ds-deploy-commands");
 let maxShard = 1;
-const manager = new Cluster.Manager('./modules/discord_bot.js', {
+const manager = new ClusterManager('./modules/discord_bot.js', {
 	token: channelSecret,
 	shardsPerClusters: 3,
 	totalShards: "auto",
@@ -15,7 +15,6 @@ const manager = new Cluster.Manager('./modules/discord_bot.js', {
 	//spawnTimeout: -1,
 	//respawn: true
 });
-
 manager.on('clusterCreate', shard => {
 	console.log(`Launched shard #${shard.id}`);
 	shard.on('ready', () => {
@@ -44,7 +43,7 @@ manager.on('clusterCreate', shard => {
 manager.on("clusterCreate", cluster => {
 	cluster.on("message", async message => {
 		if (message.respawn === true && message.id !== null) {
-				console.log('Respawn message!! -> ', message.id);
+			console.log('Respawn message!! -> ', message.id);
 			return manager.clusters.get(Number(message.id)).respawn({ delay: 100, timeout: -1 });
 		}
 	})
@@ -61,4 +60,13 @@ manager.on("clusterCreate", cluster => {
 	});
 })();
 
+manager.extend(
+	//new ReClusterManager(),
+	new HeartbeatManager({
+		interval: 2000, // Interval to send a heartbeat
+		maxMissedHeartbeats: 10, // Maximum amount of missed Heartbeats until Cluster will get respawned
+	})
+)
+
 manager.spawn({ timeout: -1 });
+//manager.recluster?.start({ restartMode: 'gracefulSwitch', totalShards: getInfo().TOTAL_SHARDS })

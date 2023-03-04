@@ -48,8 +48,10 @@ manager.on("clusterCreate", cluster => {
 		}
 	})
 });
+/**
 (async function () {
 	if (!agenda) return;
+	
 	agenda.define('0455restartdiscord', async (job) => {
 		console.log('04:55 restart discord!!');
 		for (let index = 0; index < maxShard; index++) {
@@ -59,7 +61,7 @@ manager.on("clusterCreate", cluster => {
 
 	});
 })();
-
+ */
 manager.extend(
 	//new ReClusterManager(),
 	new HeartbeatManager({

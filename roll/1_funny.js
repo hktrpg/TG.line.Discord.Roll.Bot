@@ -1312,8 +1312,7 @@ class DailyFuckUp {
 		}
 		chapter = DailyFuckUp.addParagraph(chapter);
 		text.push(chapter);
-		console.log('text', text)
-
+	
 		let result = text.join("\n\n").replace('。。', '。');
 		return result;
 	}

@@ -653,7 +653,7 @@ async function manageWebhook(discord) {
 		const isThread = channel && channel.isThread();
 		let webhooks = isThread ? await channel.guild.fetchWebhooks() : await channel.fetchWebhooks();
 		let webhook = webhooks.find(v => {
-			return (v.name == 'HKTRPG .me Function' && v.type == 1 && ((v.channelId == channel.parentId) && v.token));
+			return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
 		})
 
 		//type Channel Follower
@@ -663,7 +663,7 @@ async function manageWebhook(discord) {
 			await hooks.createWebhook({ name: "HKTRPG .me Function", avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" })
 			webhooks = await channel.fetchWebhooks();
 			webhook = webhooks.find(v => {
-				return v.name == 'HKTRPG .me Function' && v.type == 1 && v.token;
+				return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
 			})
 		}
 		return { webhook, isThread };

@@ -215,7 +215,7 @@ const rollDiceCommand = async function ({
             let checkName = checkMeName(mainMsg[0]);
             let myName;
             if (typeof checkName == 'number') {
-                let myNameFind = await schema.myName.find({ userID: userid }).skip(checkName - 1).limit(1);
+                let myNameFind = await schema.myName.find({ userID: userid }).skip(((checkName - 1) < 0 ? 1 : (checkName - 1))).limit(1);
                 if (myNameFind) {
                     myName = myNameFind[0];
                 }

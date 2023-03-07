@@ -118,7 +118,7 @@ client.on('messageCreate', async message => {
 			return handlingSendMessage(result);
 		return;
 	} catch (error) {
-		console.error('discord bot messageCreate #91 error', (error && error.name && error.message) & error.stack);
+		console.error('discord bot messageCreate #91 error', error, (error && error.name && error.message) & error.stack);
 	}
 
 });
@@ -1231,7 +1231,7 @@ async function handlingMultiServerMessage(message) {
 		const targetData = target
 		let webhook = await manageWebhook({ channelId: targetData.channelid })
 		let pair = (webhook && webhook.isThread) ? { threadId: targetData.channelid } : {};
-		await webhook.webhook.send({ ...sendMessage, ...pair });
+		await webhook?.webhook.send({ ...sendMessage, ...pair });
 		//	}
 
 	}
@@ -1240,7 +1240,7 @@ async function handlingMultiServerMessage(message) {
 function multiServerTarget(message) {
 	const obj = {
 		content: message.content,
-		username: message._member.nickname || message._member.displayName,
+		username: message?._member?.nickname || message?._member?.displayName,
 		avatarURL: message.author.displayAvatarURL()
 	};
 	return obj;

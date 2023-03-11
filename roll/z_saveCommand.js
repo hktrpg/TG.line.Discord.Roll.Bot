@@ -72,9 +72,9 @@ const rollDiceCommand = async function ({
             if (!mainMsg[3]) rply.text += ' 沒有擲骰指令\n\n'
             if (mainMsg[3] && mainMsg[3].toLowerCase() == ".cmd") rply.text += '指令不可以儲存.cmd\n\n'
             if (rply.text += checkTools.permissionErrMsg({
-                flag : checkTools.flag.ChkChannelManager,
-                gid : groupid,
-                role : userrole
+                flag: checkTools.flag.ChkChannelManager,
+                gid: groupid,
+                role: userrole
             })) {
                 return rply;
             }
@@ -85,7 +85,7 @@ const rollDiceCommand = async function ({
             if (trpgCommandfunction.trpgCommandfunction)
                 for (let i = 0; i < trpgCommandfunction.trpgCommandfunction.length; i++) {
                     if (trpgCommandfunction.trpgCommandfunction[i].groupid == groupid) {
-                        if (trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction.length >= 30) {
+                        if (trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction.length >= limit) {
                             rply.text = '關鍵字上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
                             return rply;
                         }
@@ -119,9 +119,9 @@ const rollDiceCommand = async function ({
         case /(^[.]cmd$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
             //刪除資料庫
             if (rply.text = checkTools.permissionErrMsg({
-                flag : checkTools.flag.ChkChannelManager,
-                gid : groupid,
-                role : userrole
+                flag: checkTools.flag.ChkChannelManager,
+                gid: groupid,
+                role: userrole
             })) {
                 return rply;
             }
@@ -143,9 +143,9 @@ const rollDiceCommand = async function ({
             //刪除資料庫
             if (!mainMsg[2]) rply.text += '沒有關鍵字. '
             if (rply.text += checkTools.permissionErrMsg({
-                flag : checkTools.flag.ChkChannelManager,
-                gid : groupid,
-                role : userrole
+                flag: checkTools.flag.ChkChannelManager,
+                gid: groupid,
+                role: userrole
             })) {
                 return rply;
             }

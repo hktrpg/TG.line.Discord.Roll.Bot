@@ -206,8 +206,8 @@ const rollDiceCommand = async function ({
                         }
                     }
                 }
-            if (temp == 0) rply.text = '沒有相關關鍵字. '
-            rply.text = rply.text.replace(/,/mg, ' ')
+            if (temp == 0) rply.text = '沒有相關關鍵字. ';
+            //rply.text = rply.text.replace(/,/mg, ' ')
             return rply;
         default:
             break;

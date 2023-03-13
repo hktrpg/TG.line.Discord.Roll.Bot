@@ -343,7 +343,6 @@ const rollDiceCommand = async function ({
         case /^respawnall$/i.test(mainMsg[1]): {
             if (!adminSecret) return rply;
             if (userid !== adminSecret) return rply;
-            if (mainMsg[2] === null) return rply;
             discordClient.cluster.send({ respawnall: true });
             return rply;
         }

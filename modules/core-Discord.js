@@ -60,7 +60,6 @@ manager.on("clusterCreate", cluster => {
 		console.log('04:55 restart discord!!');
 		for (let index = 0; index < maxShard; index++) {
 			manager.clusters.get(Number(index)).respawn({ delay: 2000, timeout: -1 })
-
 		}
 
 	});

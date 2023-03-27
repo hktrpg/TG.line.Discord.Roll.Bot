@@ -115,9 +115,11 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     }
     //8. 更新MLAB資料
     try {
+        if (!checkMongodb.isDbOnline()) return;
         await userInfo.save();
     } catch (error) {
-        console.error('mongodb #109 error', error)
+        console.error('mongodb #109 error', error);
+        checkMongodb.dbErrOccurs();
     }
 
     //6. 需要 -> 檢查有沒有開啓通知

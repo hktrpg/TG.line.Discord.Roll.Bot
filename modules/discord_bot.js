@@ -110,7 +110,8 @@ client.on('messageCreate', async message => {
 	try {
 		if (message.author.bot) return;
 		if (!checkMongodb.isDbOnline() && checkMongodb.isDbRespawn()) {
-			checkMongodb.discordClientRespawn(client, shardid)
+			//checkMongodb.discordClientRespawn(client, shardid)
+			respawnCluster2();
 		}
 		const result = await handlingResponMessage(message);
 		await handlingMultiServerMessage(message);

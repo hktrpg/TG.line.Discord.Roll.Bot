@@ -2,7 +2,7 @@
 const schema = require('./schema.js');
 const MAX_ERR_RETRY = 3;
 const RETRY_TIME = 15 * 1000;// 每15秒更新;
-const MAX_ERR_RESPAWN = 20;
+const MAX_ERR_RESPAWN = 10;
 
 let dbConnErr = {
     timeStamp: Date.now(),
@@ -20,6 +20,7 @@ function dbErrOccurs() {
 }
 
 function isDbOnline() {
+    //console.log('!!', dbConnErr.retry < MAX_ERR_RETRY)
     return (dbConnErr.retry < MAX_ERR_RETRY);
 }
 

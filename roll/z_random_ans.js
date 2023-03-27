@@ -2,6 +2,7 @@
 if (!process.env.mongoURL) {
     return;
 }
+const checkMongodb = require('../modules/dbWatchdog.js');
 const adminSecret = process.env.ADMIN_SECRET;
 const rollbase = require('./rollbase.js');
 const schema = require('../modules/schema.js');
@@ -109,7 +110,9 @@ const rollDiceCommand = async function ({
     let check;
     let temp;
     let filter;
+    if (!checkMongodb.isDbOnline()) return;
     switch (true) {
+
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = await this.getHelpMessage();
             rply.quotes = true;

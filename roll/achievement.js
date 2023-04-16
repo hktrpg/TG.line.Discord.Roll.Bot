@@ -31,6 +31,9 @@ const getHelpMessage = function () {
 下面會出現分數計算。
 所有人都可以點擊，並進行分數計算。
 --------------------------------
+但也有不計分版本，可以在新增遊戲時加上 --noscore
+用來方便紀錄一些個人資訊，例如跑團地雷。
+--------------------------------
 【私人群組版】
 .bingo help - 查看說明
 .bingo achievement - 查看你已達成的成就列表
@@ -38,7 +41,7 @@ const getHelpMessage = function () {
 .bingo list - 查看現在有的Bingo遊戲列表
 .bingo list 標題 - 查看該Bingo遊戲的內容列表
 .bingo add  標題 內容1 內容2 .... 內容N (至少9個或以上) - 新增一個Bingo遊戲
-.bingo remove 標題 - 刪除一個Bingo遊戲 (限機械人管理員)
+.bingo remove 標題 - 刪除一個Bingo遊戲 (限群組管理員)
 .bingo 標題名字 - 開始bingo遊戲
 --------------------------------
 【公用版】
@@ -47,8 +50,10 @@ const getHelpMessage = function () {
 .bingos list - 查看現在有的Bingo遊戲列表
 .bingos list 標題 - 查看該Bingo遊戲的內容列表
 .bingos add  標題 內容1 內容2 .... 內容N (至少9個或以上) - 新增一個Bingo遊戲
-.bingos remove 標題 - 刪除一個Bingo遊戲 (限頻道管理員)
+ 加入 --noscore 可以關閉分數計算(因為有些成就是不會有分數的)
 .bingos 標題名字 - 開始bingo遊戲
+--------------------------------
+
 `
 }
 const initialize = function () {
@@ -82,15 +87,10 @@ const rollDiceCommand = async function ({
         case /^\S+$/.test(mainMsg[2]) && /^achievement$/.test(mainMsg[1]): {
             //查看已做過的成就
             //查看成就詳細內容
-            rply.text = await Achievement.getAchievementDetail(userid, mainMsg[2]);
+            rply.text = (mainMsg[2]) ? await Achievement.getAchievementDetail(userid, mainMsg[2]) : await Achievement.getAchievement(userid);
             return rply;
         }
-        case /^.bingos$/.test(mainMsg[0]) && /^achievement$/.test(mainMsg[1]): {
-            //查看已做過的成就
-            //查看成就詳細內容
-            rply.text = await Achievement.getAchievementList(userid);
-            return rply;
-        }
+
         case /^.bingos$/.test(mainMsg[0]) && /^list$/.test(mainMsg[1]): {
             console.log('button')
             let achievement = await Achievement.init('0000000000');
@@ -219,6 +219,41 @@ class Achievement {
     }
     async countDoc(groupID) {
         return await schema.Achievement.countDocuments({ groupID: groupID }).catch(error => console.error(error));
+    }
+    static async getAchievement(userid) {
+        let data = await schema.Achievement.findOne({ groupID: '0000000000', userid: userid }).catch(error => console.error(error));
+        if (!data) return '查無此成就';
+        let result = '';
+        if (data.achievement) {
+            let achievement = data.achievement;
+            for (let i = 0; i < achievement.length; i++) {
+                result += achievement[i].title + '：' + achievement[i].detail + '\n';
+            }
+        } else {
+            result = '尚未達成任何成就';
+
+        }
+        return result;
+    }
+    static async getAchievementDetail(userid, title) {
+        let data = await schema.Achievement.findOne({ groupID: '0000000000', title: title }).catch(error => console.error(error));
+        if (!data) return '查無此成就';
+        let result = '';
+        if (data.achievement) {
+            let achievement = data.achievement;
+            let index = achievement.findIndex((element) => {
+                return element.userid === userid;
+            });
+            if (index !== -1) {
+                result = achievement[index].detail;
+            } else {
+                result = '尚未達成此成就';
+            }
+        } else {
+            result = '尚未達成此成就';
+        }
+        return result;
+
     }
     async build(groupID, title = null) {
         console.log('groupID', groupID)

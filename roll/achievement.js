@@ -76,7 +76,7 @@ const rollDiceCommand = async function ({
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
             rply.text = this.getHelpMessage();
             rply.quotes = true;
-            rply.buttonCreate = ['.bingo list', '.bingos list', 'bingos achievement']
+            rply.buttonCreate = ['.bingo list', '.bingos list', '.bingo achievement', '.bingos achievement']
             return rply;
         }
         case /^\S+$/.test(mainMsg[2]) && /^achievement$/.test(mainMsg[1]): {

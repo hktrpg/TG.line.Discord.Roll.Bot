@@ -75,7 +75,7 @@ const client = new Client({
 	}),
 	shards: getInfo().SHARD_LIST,  // An array of shards that will get spawned
 	shardCount: getInfo().TOTAL_SHARDS, // Total number of shards
-	restRequestTimeout: 15000, // Timeout for REST requests
+	restRequestTimeout: 45000, // Timeout for REST requests
 	/**
 		  cacheGuilds: true,
 		cacheChannels: true,

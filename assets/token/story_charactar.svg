@@ -8,13 +8,13 @@
   <rect x="50" y="200" width="250" height="400" fill="#FFA500"/>
   <image x="60" y="150" width="230" height="380" xlink:href="https://ih1.redbubble.net/image.1897894798.5454/st,small,507x507-pad,600x600,f8f8f8.jpg" />
 
-  <g transform="translate(0,20) rotate(0)">
+  <g transform="translate(-80,-50) rotate(0)">
   <image x="500" y="400" width="80" height="80" xlink:href="https://ih1.redbubble.net/image.1897894798.5454/st,small,507x507-pad,600x600,f8f8f8.jpg" />
   <image x="600" y="400" width="80" height="80" xlink:href="https://ih1.redbubble.net/image.1897894798.5454/st,small,507x507-pad,600x600,f8f8f8.jpg" />
   <image x="700" y="400" width="80" height="80" xlink:href="https://ih1.redbubble.net/image.1897894798.5454/st,small,507x507-pad,600x600,f8f8f8.jpg" />
 </g>
-<g  fill="white" stroke="black" stroke-width="1" transform="translate(20,-150) rotate(0)">
-  <rect x="340" y="200" width="410" height="300" fill="#FFDAB9"/>
+<g  fill="white" stroke="black" stroke-width="1" transform="translate(20,-180) rotate(0)">
+  <rect x="340" y="230" width="410" height="260" fill="#FFDAB9"/>
 
   <text x="350" y="300" font-size="30" font-family="Noto Sans TC" fill="#000000" text-shadow="1px 1px 1px #FFFFFF">ＳＴＲ：</text>
   <text x="500" y="300" font-size="30" font-family="Noto Sans TC" fill="#FFFFFF" text-shadow="1px 1px 1px #000000">20</text>
@@ -28,9 +28,9 @@
   <text x="700" y="450" font-size="30" font-family="Noto Sans TC" fill="#FFFFFF" text-shadow="1px 1px 1px #000000">18</text>
   <text x="580" y="400" font-size="30" font-family="Noto Sans TC" fill="#000000" text-shadow="1px 1px 1px #FFFFFF">ＰＯＷ：</text>
   <text x="700" y="400" font-size="30" font-family="Noto Sans TC" fill="#FFFFFF" text-shadow="1px 1px 1px #000000">13</text>
-  <text x="580" y="300" font-size="30" font-family="Noto Sans TC" fill="#FFFFFF" text-shadow="1px 1px 1px #000000">ＩＮＴ：</text>
+  <text x="580" y="300" font-size="30" font-family="Noto Sans TC" fill="#000000" text-shadow="1px 1px 1px #000000">ＩＮＴ：</text>
   <text x="700" y="300" font-size="30" font-family="Noto Sans TC" fill="#FFFFFF" text-shadow="1px 1px 1px #000000">16</text>
-  <text x="580" y="350" font-size="30" font-family="Noto Sans TC" fill="#FFFFFF" text-shadow="1px 1px 1px #000000">ＥＤＵ：</text>
+  <text x="580" y="350" font-size="30" font-family="Noto Sans TC" fill="#000000" text-shadow="1px 1px 1px #000000">ＥＤＵ：</text>
   <text x="700" y="350" font-size="30" font-family="Noto Sans TC" fill="#FFFFFF" text-shadow="1px 1px 1px #000000">14</text>
 </g>
   <rect x="50" y="480" width="700" height="100" fill="#FFDAB9" filter="url(#shadowFilter)"/>

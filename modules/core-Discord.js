@@ -9,7 +9,7 @@ require("./ds-deploy-commands");
 let maxShard = 1;
 const manager = new ClusterManager('./modules/discord_bot.js', {
 	token: channelSecret,
-	shardsPerClusters: 3,
+	shardsPerClusters: 2,
 	totalShards: "auto",
 	mode: 'process', // you can also choose "worker"
 	//spawnTimeout: -1,

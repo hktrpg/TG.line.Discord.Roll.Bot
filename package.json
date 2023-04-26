@@ -47,7 +47,7 @@
     "moment-timezone": "^0.5.35",
     "mongoose": "^6",
     "node-schedule": "^2.1.0",
-    "node-telegram-bot-api": "^0.54.0",
+    "node-telegram-bot-api": "^0.61.0",
     "plurk2": "github:zeteticl/node-plurk2",
     "puppeteer": "^13.3.1",
     "qrcode-terminal": "^0.12.0",

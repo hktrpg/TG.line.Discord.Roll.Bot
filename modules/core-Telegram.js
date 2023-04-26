@@ -36,6 +36,10 @@ TGclient.on('text', async (ctx) => {
         robotName = botInfo.username;
     }
     if (ctx.from.id) userid = ctx.from.id;
+    const options = {};
+    if (ctx.is_topic_message) {
+        options.message_thread_id = ctx.message_thread_id;
+    }
     if (inputStr) {
         if (robotName && inputStr.match(/^[/]/))
             inputStr = inputStr
@@ -148,7 +152,7 @@ TGclient.on('text', async (ctx) => {
     if (groupid && rplyVal && rplyVal.LevelUp) {
         let text = `@${displayname}${(rplyVal.statue) ? ' ' + rplyVal.statue : ''}
 		${rplyVal.LevelUp}`
-        SendToId(groupid, text);
+        SendToId(groupid, text, options);
 
     }
     if (!rplyVal.text) {
@@ -169,10 +173,10 @@ TGclient.on('text', async (ctx) => {
             // 輸入dr  (指令) 私訊自己
             //
             if (ctx.chat.type != 'private') {
-                SendToId(groupid, "@" + displayname + ' 暗骰給自己');
+                SendToId(groupid, "@" + displayname + ' 暗骰給自己', options);
             }
             rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
-            SendToId(userid, rplyVal.text);
+            SendToId(userid, rplyVal.text, options);
             break;
         case privatemsg == 2:
             //輸入ddr(指令) 私訊GM及自己
@@ -181,7 +185,7 @@ TGclient.on('text', async (ctx) => {
                 for (let i = 0; i < TargetGMTempID.length; i++) {
                     targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
                 }
-                SendToId(groupid, "@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
+                SendToId(groupid, "@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp, options);
             }
             rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
             SendToId(userid, rplyVal.text);
@@ -197,7 +201,7 @@ TGclient.on('text', async (ctx) => {
                 for (let i = 0; i < TargetGMTempID.length; i++) {
                     targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
                 }
-                SendToId(groupid, "@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp);
+                SendToId(groupid, "@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp, options);
             }
             rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
             for (let i = 0; i < TargetGMTempID.length; i++) {
@@ -210,17 +214,17 @@ TGclient.on('text', async (ctx) => {
                 displayname = "@" + ctx.from.username + ((rplyVal.statue) ? ' ' + rplyVal.statue : '') + "\n";
                 rplyVal.text = displayname + rplyVal.text;
             }
-            SendToId(groupid || userid, rplyVal.text);
+            SendToId((groupid || userid), rplyVal.text, options);
             break;
     }
 
 })
 
-function SendToId(targetid, text) {
+function SendToId(targetid, text, options) {
     try {
         for (var i = 0; i < text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
             if (i == 0 || i == 1 || i == text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
-                TGclient.sendMessage(targetid, text.toString().match(/[\s\S]{1,2000}/g)[i]);
+                TGclient.sendMessage(targetid, text.toString().match(/[\s\S]{1,2000}/g)[i], options);
             }
         }
     } catch (error) {

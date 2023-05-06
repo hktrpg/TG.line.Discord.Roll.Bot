@@ -73,3 +73,7 @@ modules/whatsapp-session.json
 yarn.lock
 
 temp/
+
+dist/
+
+*.dev.js

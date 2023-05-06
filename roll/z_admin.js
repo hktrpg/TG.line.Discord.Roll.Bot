@@ -87,7 +87,14 @@ const rollDiceCommand = async function ({
             rply.state = true;
             rply.quotes = true;
             return rply;
-
+        case /^mongod$/i.test(mainMsg[1]): {
+            if (!adminSecret) return rply;
+            if (userid !== adminSecret) return rply;
+            let mongod = await schema.mongodbState();
+            rply.text = JSON.stringify(mongod.connections);
+            rply.quotes = true;
+            return rply;
+        }
         case /^registerChannel$/i.test(mainMsg[1]):
             if (rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannel,

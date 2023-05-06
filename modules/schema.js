@@ -459,11 +459,21 @@ const multiServer = mongoose.model('multiServer', new mongoose.Schema({
     botname: String
 }));
 
-const mongodbState = mongoose.model('mongodbState', new mongoose.Schema({
-    errorDate: Date
-}));
+
+
+const mongodbState = async () => {
+    try {
+        let ans = await mongoose.connection.db.command({ serverStatus: 1 });
+        return ans;
+    } catch (error) {
+
+    }
+
+}
+
 
 module.exports = {
+    mongodbState,
     randomAns,
     multiServer,
     block,

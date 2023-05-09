@@ -124,3 +124,135 @@ module.exports = {
 
 =====================
  */
+
+
+const input = `#setting
+{cal: hp 100}
+{cal: mp 20}
+{cal: name none}
+#1
+{title:這是標題(可留空)} 
+{image:} 這是內容
+{content} {ask: name} 你現在的HP是{show: HP}這是內容 現在可以輸入名字: .st set name [名字]
+{choice} 選項1 {goto: #2} {cal: HP +1} {cal: SAN -2} {cal: MP *2}
+{choice} 選項2 {goto: #3} {cal: varA +1} {cal: varA -2} {cal: varA *2}
+{choice} 選項3 {goto: #end}
+#2
+{title:這是標題(可留空)} 
+{content} 這是內容
+{choice} 選項2 {if: HP >=10} {goto: #3} {cal: varA +1} {cal: varA -2} {cal: varA *2}
+{choice} 選項3 {goto: #end}
+#end
+{title:這是標題(可留空)} 
+{content} 這是內容 {show: HP} {show: MP} {show: varA}`;
+
+const lines = input.split('\n');
+const data = [];
+
+let currentBlock = {};
+
+for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    if (line.startsWith('#')) {
+        if (currentBlock.id) {
+            data.push(currentBlock);
+        }
+        currentBlock = { id: line.slice(1), other: [], choices: [], content: {} };
+    } else {
+        const [type, value] = parseLine(line);
+        console.log('type', type, value)
+        if (!value) continue
+        if (type === 'other') {
+            currentBlock.other.push(value);
+        } else if (type === 'choice') {
+            //console.log('choice block', value)
+            currentBlock.choices.push(value);
+        } else if (type === 'content') {
+            //console.log('choice block', value)
+            currentBlock.content = value;
+        }
+    }
+}
+
+if (currentBlock.id) {
+    data.push(currentBlock);
+}
+
+console.log('rusult: ', data, JSON.stringify(data, null, 2));
+
+function parseLine(line) {
+    // console.log('line', line)
+    //console.log('/xx', line.slice(1, -1))
+    let linePurpose = line.match(/\{(.*?)\}/);
+    // console.log('linePurpose', linePurpose)
+    if (linePurpose[1].match(/choice/i)) {
+        line = line.replace(/\{choice\}/i, '')
+        return ['choice', analyzieChoice(line)];
+    } else
+        if (linePurpose[1].match(/content/i)) {
+            line = line.replace(/\{content\}/i, '')
+            return ['content', analyzieContent(line)];
+        } else {
+            //if()
+            return ['other', analyzieOther(line)];
+        }
+}
+function analyzieOther(line) {
+    const result = {
+        content: ''
+    }
+    do {
+        let object = line.match(/\{(.*?)\}/);
+        if (object[1].match(/.*:.*/)) {
+            let objectDetail = object[1].match(/(.*):(.*)/);
+            result[objectDetail[1].replace(/^\s+/, '').replace(/\s+$/, '')] = objectDetail[2].replace(/^\s+/, '').replace(/\s+$/, '');
+        } else {
+            result[object] = null;
+        }
+        line = line.replace(/\{(.*?)\}/, '')
+        // console.log('X', line)
+    } while (line.match(/\{.*?\}/));
+    result.content = line.replace(/^\s+/, '').replace(/\s+$/, '');
+    console.log('return Other', result)
+    return result;
+}
+
+function analyzieContent(line) {
+    const content = {
+        content: '',
+        ask: ''
+    }
+    let object = line.match(/\{ask:(.*?)\}/i);
+    if (object && object[1]) {
+        content.ask = object[1].replace(/^\s+/, '').replace(/\s+$/, '');
+        line = line.replace(/\{ask:(.*?)\}/i, '')
+
+    }
+    // console.log('X', line)
+    content.content = line.replace(/^\s+/, '').replace(/\s+$/, '');
+
+    return content;
+}
+
+
+function analyzieChoice(line) {
+    const choice = {
+        content: '',
+        object: []
+    }
+    do {
+        let object = line.match(/\{(.*?)\}/);
+        if (object[1].match(/.*:.*/)) {
+            let objectDetail = object[1].match(/(.*):(.*)/);
+            choice.object[objectDetail[1].replace(/^\s+/, '').replace(/\s+$/, '')] = objectDetail[2].replace(/^\s+/, '').replace(/\s+$/, '');
+        } else {
+            choice.object[object] = null;
+        }
+        line = line.replace(/\{(.*?)\}/, '')
+        // console.log('X', line)
+    } while (line.match(/\{.*?\}/));
+    choice.content = line.replace(/^\s+/, '').replace(/\s+$/, '');
+    console.log('return choice', choice)
+    return choice;
+}

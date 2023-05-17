@@ -394,17 +394,8 @@ const example_Love_language =
 {choice} 我每天都需要身體的接觸 {goto: #30} {cal: E +1}
 {choice} 我每天都需要肯定的言語（如：別人表達感激我的付出和努力） {goto: #30} {cal: A +1}
 #30
-{content} 
-{show: A }分 肯定的言詞 (Words of affirmation)
-提示: 想要說肯定的言詞，就必須學會用正面的態度處理心中的傷痛及憤怒。
-{show: A }分精心的時刻 (Quality time)
-提示: 精心時刻隱含的意義是：「我在乎你，你也在乎我。我們喜歡兩人在一起的感覺。」
-{show: A }分接受禮物(Receiving gifts)
-提示: 重要的不是禮物本身，而是籍禮物所傳達的愛。
-{show: A }分 服務的行動(Acts of service)
-提示: 服務的行動是真心誠意的付出，不是出於害怕，而是自由意志的選擇。
-{show: A }分 身體的接觸(Physical touch)
-提示: 你必須了解你要觸摸的對象，到底何種形式的觸摸對他／她來說才代表愛。
+{content} <br>{show: A }分 肯定的言詞 (Words of affirmation) <br>提示: 想要說肯定的言詞，就必須學會用正面的態度處理心中的傷痛及憤怒。 <br>{show: B }分精心的時刻 (Quality time) <br>提示: 精心時刻隱含的意義是：「我在乎你，你也在乎我。我們喜歡兩人在一起的感覺。」 <br>{show: C }分接受禮物(Receiving gifts) <br>提示: 重要的不是禮物本身，而是籍禮物所傳達的愛。 <br>{show: D }分 服務的行動(Acts of service) <br>提示: 服務的行動是真心誠意的付出，不是出於害怕，而是自由意志的選擇。 <br>{show: E }分 身體的接觸(Physical touch) <br>提示: 你必須了解你要觸摸的對象，到底何種形式的觸摸對他／她來說才代表愛。 <br>
+
 `;
 
 

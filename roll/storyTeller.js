@@ -151,7 +151,7 @@ class StoryInputer {
     constructor() {
         this.story = {}
     }
-
+    //document.write(a[1].choices[1].object['goto']);
     static parse(input) {
         const lines = input.split('\n');
         const data = [];
@@ -160,13 +160,14 @@ class StoryInputer {
 
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
-
+            if (!line || line.match(/^\s+$/)) continue
             if (line.startsWith('#')) {
                 if (currentBlock.id) {
                     data.push(currentBlock);
                 }
                 currentBlock = { id: line.slice(1), other: [], choices: [], content: {} };
             } else {
+
                 const [type, value] = StoryInputer.parseLine(line);
                 if (!value) continue
                 if (type === 'other') {
@@ -184,14 +185,19 @@ class StoryInputer {
         if (currentBlock.id) {
             data.push(currentBlock);
         }
+        // let result = (data, null, 2)
         return data;
     }
 
     static parseLine(line) {
-        // console.log('line', line)
+        //         
+        if (!line) return
+        document.write('line', line)
         //console.log('/xx', line.slice(1, -1))
         let linePurpose = line.match(/\{(.*?)\}/);
-        // console.log('linePurpose', linePurpose)
+
+
+        document.write('linePurpose', linePurpose)
         if (linePurpose[1].match(/choice/i)) {
             line = line.replace(/\{choice\}/i, '')
             return ['choice', StoryInputer.analyzieChoice(line)];
@@ -285,10 +291,11 @@ const input = `#setting
 {title:這是標題(可留空)} 
 {content} 這是內容 {show: HP} {show: MP} {show: varA}`;
 
-(\d+)", "options": \[\{ "type": "(.*)", "text": "(.*)" \}, \{ "type": "(.*)", "text": "(.*)" \}\] \},
 
 const example_Love_language =
-    `#setting
+    `
+    #setting
+{title: 你的名字是?}
 {cal: A 0}
 {cal: B 0}
 {cal: C 0}
@@ -386,10 +393,25 @@ const example_Love_language =
 #29
 {choice} 我每天都需要身體的接觸 {goto: #30} {cal: E +1}
 {choice} 我每天都需要肯定的言語（如：別人表達感激我的付出和努力） {goto: #30} {cal: A +1}
-	
+#30
+{content} 
+{show: A }分 肯定的言詞 (Words of affirmation)
+提示: 想要說肯定的言詞，就必須學會用正面的態度處理心中的傷痛及憤怒。
+{show: A }分精心的時刻 (Quality time)
+提示: 精心時刻隱含的意義是：「我在乎你，你也在乎我。我們喜歡兩人在一起的感覺。」
+{show: A }分接受禮物(Receiving gifts)
+提示: 重要的不是禮物本身，而是籍禮物所傳達的愛。
+{show: A }分 服務的行動(Acts of service)
+提示: 服務的行動是真心誠意的付出，不是出於害怕，而是自由意志的選擇。
+{show: A }分 身體的接觸(Physical touch)
+提示: 你必須了解你要觸摸的對象，到底何種形式的觸摸對他／她來說才代表愛。
 `;
 
+
+
 /**
+ [ { "id": "setting", "other": [ { "content": "", "cal": "A 0" }, { "content": "", "cal": "B 0" }, { "content": "", "cal": "C 0" }, { "content": "", "cal": "D 0" }, { "content": "", "cal": "E 0" } ], "choices": [ { "content": "選項$3", "object": [] } ], "content": {} }, { "id": "0", "other": [], "choices": [ { "content": "我喜歡收到寫滿讚美與肯定的小紙條", "object": [] }, { "content": "我喜歡被擁抱的感覺", "object": [] } ], "content": {} }, { "id": "1", "other": [], "choices": [ { "content": "我喜歡和在我心目中佔有特殊地位的人獨處", "object": [] }, { "content": "每當有人給我實際的幫助，我就會覺得他是愛我的", "object": [] } ], "content": {} }, { "id": "2", "other": [], "choices": [ { "content": "我喜歡收到禮物", "object": [] }, { "content": "我有空就喜歡去探訪朋友和所愛的人", "object": [] } ], "content": {} }, { "id": "3", "other": [], "choices": [ { "content": "有人幫我做事，我就會覺得被愛", "object": [] }, { "content": "有人碰觸我的身體，我就會覺得被愛", "object": [] } ], "content": {} }, { "id": "4", "other": [], "choices": [ { "content": "當我所愛、所景仰的人攬著我的肩膀，我就會有被愛的感覺", "object": [] }, { "content": "當我所愛、所景仰的人送我禮物，我就會有被愛的感覺", "object": [] } ], "content": {} }, { "id": "5", "other": [], "choices": [ { "content": "我喜歡和朋友或所愛的人到處走走", "object": [] }, { "content": "我喜歡和在我心目中有特殊地位的人擊掌或牽手", "object": [] } ], "content": {} }, { "id": "6", "other": [], "choices": [ { "content": "愛的具體象徵（禮物）對我很重要", "object": [] }, { "content": "受到別人的肯定讓我有被愛的感覺", "object": [] } ], "content": {} }, { "id": "7", "other": [], "choices": [ { "content": "我喜歡和我所喜歡的人促膝長談", "object": [] }, { "content": "我喜歡聽到別人說我很漂亮，很迷人或很有氣質", "object": [] } ], "content": {} }, { "id": "8", "other": [], "choices": [ { "content": "我喜歡和好友及所愛的人在一起", "object": [] }, { "content": "我喜歡收到朋友或所愛的人贈送的禮物", "object": [] } ], "content": {} }, { "id": "9", "other": [], "choices": [ { "content": "我喜歡聽到別人接納我的話", "object": [] }, { "content": "如果有人幫我的忙，我會知道他是愛我的", "object": [] } ], "content": {} }, { "id": "10", "other": [], "choices": [ { "content": "我喜歡和朋友與所愛的人一起做同一件事", "object": [] }, { "content": "我喜歡聽到別人對我說友善的話", "object": [] } ], "content": {} }, { "id": "11", "other": [], "choices": [ { "content": "別人的表現要比他的言語更能感動我", "object": [] }, { "content": "被擁抱讓我覺得與對方很親近，也覺得自己很重要", "object": [] } ], "content": {} }, { "id": "12", "other": [], "choices": [ { "content": "我珍惜別人的讚美，儘量避免受到批評", "object": [] }, { "content": "送我許多小禮物要比送我一份大禮物更能感動我", "object": [] } ], "content": {} }, { "id": "13", "other": [], "choices": [ { "content": "當我和人聊天或一起做事時，我會覺得與他很親近", "object": [] }, { "content": "朋友或所愛的人若常常與我有身體的接觸，我會覺得與他很親近", "object": [] } ], "content": {} }, { "id": "14", "other": [], "choices": [ { "content": "我喜歡聽到別人稱讚我的成就", "object": [] }, { "content": "當別人勉強自己為我做一件事，我會覺得他很愛我", "object": [] } ], "content": {} }, { "id": "15", "other": [], "choices": [ { "content": "我喜歡朋友或所愛的人走過我身邊時，故意用身體觸碰我的感覺", "object": [] }, { "content": "我喜歡別人聽我說話，而且表現出興趣十足的樣子", "object": [] } ], "content": {} }, { "id": "16", "other": [], "choices": [ { "content": "當朋友或所愛的人幫助我完成工作，我會覺得被愛", "object": [] }, { "content": "我很喜歡收到朋友或所愛的人送的禮物", "object": [] } ], "content": {} }, { "id": "17", "other": [], "choices": [ { "content": "我喜歡聽到別人稱讚我的外表", "object": [] }, { "content": "當別人願意體諒我的感受時，我會有被愛的感覺", "object": [] } ], "content": {} }, { "id": "18", "other": [], "choices": [ { "content": "在我心目中有特殊地位的人觸碰我的身體時，我覺得有安全感", "object": [] }, { "content": "服務的行動讓我覺得被愛", "object": [] } ], "content": {} }, { "id": "19", "other": [], "choices": [ { "content": "我很感激在我心目中有特殊地位的人為我付出那麼多", "object": [] }, { "content": "我喜歡收到在我心目中有特殊地位的人送我禮物", "object": [] } ], "content": {} }, { "id": "20", "other": [], "choices": [ { "content": "我很喜歡被人呵護備至的感覺", "object": [] }, { "content": "我很喜歡被人服務的感覺", "object": [] } ], "content": {} }, { "id": "21", "other": [], "choices": [ { "content": "有人送我生日禮物時，我會覺得被愛及受重視", "object": [] }, { "content": "有人在我生日那天對我說出特別的話，我會覺得被愛", "object": [] } ], "content": {} }, { "id": "22", "other": [], "choices": [ { "content": "有人送我禮物，我就知道他有想到我的需要", "object": [] }, { "content": "有人幫我作家事，我會覺得被愛", "object": [] } ], "content": {} }, { "id": "23", "other": [], "choices": [ { "content": "我很感激有人耐心聽我說話而且不插嘴", "object": [] }, { "content": "我很感激有人記得某個特別日子並且送我禮物", "object": [] } ], "content": {} }, { "id": "24", "other": [], "choices": [ { "content": "我喜歡知道我所愛的人因為關心我，幫我做家事或買麵包等", "object": [] }, { "content": "我喜歡和在我心目中有特殊地位的人一起去逛街、旅行", "object": [] } ], "content": {} }, { "id": "25", "other": [], "choices": [ { "content": "我喜歡和最親近的人牽手、擁抱、親吻", "object": [] }, { "content": "有人不為了特別理由而送我禮物，我會覺得很開心", "object": [] } ], "content": {} }, { "id": "26", "other": [], "choices": [ { "content": "我喜歡聽到有人向我表示感謝", "object": [] }, { "content": "與人交談時，我喜歡對方注視我的眼睛", "object": [] } ], "content": {} }, { "id": "27", "other": [], "choices": [ { "content": "朋友或所愛的人所送的禮物，我會特別珍惜", "object": [] }, { "content": "朋友或所愛的人碰觸我的身體，那種感覺真好", "object": [] } ], "content": {} }, { "id": "28", "other": [], "choices": [ { "content": "有人熱心做我所要求的事時，我會覺得被愛", "object": [] }, { "content": "聽到別人對我表示感激，我會覺得被愛", "object": [] } ], "content": {} }, { "id": "29", "other": [], "choices": [ { "content": "我每天都需要身體的接觸", "object": [] }, { "content": "我每天都需要肯定的言語（如：別人表達感激我的付出和努力）", "object": [] } ], "content": {} } ]#1
+ * 
  * 
  * 1 幻想現在你即將要走入一片森林，如果你可以帶一隻動物陪你，那是甚麼？形容一下牠。
 

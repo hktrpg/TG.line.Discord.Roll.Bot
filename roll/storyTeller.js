@@ -278,10 +278,10 @@ const input = `#setting
 #1
 {title:這是標題(可留空)} 
 {image:} 這是內容
-{content} {ask: name} 你現在的HP是{show: HP}這是內容 現在可以輸入名字: .st set name [名字]
 {choice} 選項1 {goto: #2} {cal: HP +1} {cal: SAN -2} {cal: MP *2}
 {choice} 選項2 {goto: #3} {cal: varA +1} {cal: varA -2} {cal: varA *2}
 {choice} 選項3 {goto: #end}
+{content} {ask: name} 你現在的HP是{show: HP}這是內容 現在可以輸入名字: .st set name [名字]
 #2
 {title:這是標題(可留空)} 
 {content} 這是內容

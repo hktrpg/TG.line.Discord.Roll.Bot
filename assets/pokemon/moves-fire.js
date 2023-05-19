@@ -199,7 +199,7 @@ Array.prototype.push.apply(MoveList, [
 		"accuracy": "力量 + 鬥毆",
 		"damage": "力量 + 5",
 		"effect": "反作用力傷害。骰 3 顆機率骰以使目標陷入「灼傷 3 級」狀態。",
-		"desc": "使用者點燃自己，然後不顧一切地向目標發起猛烈攻擊。。"
+		"desc": "使用者點燃自己，然後不顧一切地向目標發起猛烈攻擊。"
 	},
 	{
 		"name": "交錯火焰", "alias": "クロスフレイム|Fusion Flare",

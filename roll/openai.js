@@ -24,7 +24,7 @@ const prefixs = function () {
     //如前面是 /^1$/ig, 後面是/^1D100$/ig, 即 prefixs 變成 1 1D100 
     ///^(?=.*he)(?!.*da).*$/ig
     return [{
-        first: /^\.ai$/i,
+        first: /^([.]ai)|(^[.]aimage)$/i,
         second: null
     }]
 }
@@ -36,29 +36,49 @@ const getHelpMessage = function () {
 const initialize = function () {
     return variables;
 }
-
-async function handleRequestAi(inputStr) {
+async function handleImageAi(inputStr) {
     try {
+        let response = await openai.createImage({
 
+            "prompt": `${inputStr.replace(/^\.ai/i, '')}`,
+            "n": 1,
+            "size": "1024x1024"
 
+        })
+        response = await handleImage(response)
+        // if (response?.data?.error) return '可能是輸入太長了，或是有不支援的字元，請重新輸入'
+        return response;
+    } catch (error) {
+        console.error(error)
+    }
+}
+async function handleImage(data) {
+    if (data?.data?.data?.length === 0) return '沒有輸出的圖片, 請重新輸入描述';
+    let response = "";
+    for (let index = 0; index < data.data.data.length; index++) {
+        response += data.data.data[index].url + "\n";
+    }
+    return response;
+}
+async function handleChatAi(inputStr) {
+    try {
         let response = await openai.createChatCompletion({
             "model": "gpt-3.5-turbo",
-            "max_tokens": 100,
+            "max_tokens": 3100,
             "messages": [
                 {
                     "role": "system",
-                    "content": "You are an helpful assistant."
+                    "content": "你叫HKTRPG TRPG助手。你的所有回答以正體中文為準."
                 },
                 {
                     "role": "user",
-                    "content": "Who are you?"
+                    "content": `${inputStr.replace(/^\.aimage/i, '')}`
                 }
             ]
 
         })
-        console.log(response)
         if (response?.data?.error) return '可能是輸入太長了，或是有不支援的字元，請重新輸入'
-        return response?.data?.choices[0]?.text;
+        return response?.data?.choices[0]?.message?.content;
     } catch (error) {
         console.error(error)
     }
@@ -87,9 +107,13 @@ const rollDiceCommand = async function ({
             rply.quotes = true;
             return rply;
         }
-
-        case /^\S/.test(mainMsg[1] || ''): {
-            rply.text = await handleRequestAi(inputStr);
+        case /^\S/.test(mainMsg[1]) && /^.aimage/i.test(mainMsg[0]): {
+            rply.text = await handleImageAi(inputStr);
+            rply.quotes = true;
+            return rply;
+        }
+        case /^\S/.test(mainMsg[1]): {
+            rply.text = await handleChatAi(inputStr);
             rply.quotes = true;
             return rply;
         }

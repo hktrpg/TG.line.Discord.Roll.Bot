@@ -29,9 +29,12 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = function () {
-    return `【示範】
-只是一個Demo的第一行
-只是一個Demo末行`
+    return `【OpenAi】
+.aimage [描述] - 產生DALL-E圖片
+.ai [對話] - 使用gpt-3.5-turbo產生對話
+
+使用: https://github.com/PawanOsman/ChatGPT#nodejs
+`
 }
 const initialize = function () {
     return variables;

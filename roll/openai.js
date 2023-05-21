@@ -38,18 +38,30 @@ const initialize = function () {
 }
 
 async function handleRequestAi(inputStr) {
-    let response = await openai.createCompletion({
-        model: "text-davinci-003",
-        prompt: `Human: ${inputStr}\nAI:`,
-        temperature: 0.7,
-        max_tokens: 2048,
-        top_p: 1,
-        frequency_penalty: 0,
-        presence_penalty: 0,
-        stop: ["Human: ", "AI: "],
-    })
-    console.log(response.data.choices[0].text)
-    return response?.data.choices[0].text;
+    try {
+
+
+        let response = await openai.createChatCompletion({
+            "model": "gpt-3.5-turbo",
+            "max_tokens": 100,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are an helpful assistant."
+                },
+                {
+                    "role": "user",
+                    "content": "Who are you?"
+                }
+            ]
+
+        })
+        console.log(response)
+        if (response?.data?.error) return '可能是輸入太長了，或是有不支援的字元，請重新輸入'
+        return response?.data?.choices[0]?.text;
+    } catch (error) {
+        console.error(error)
+    }
 }
 
 const rollDiceCommand = async function ({
@@ -78,6 +90,7 @@ const rollDiceCommand = async function ({
 
         case /^\S/.test(mainMsg[1] || ''): {
             rply.text = await handleRequestAi(inputStr);
+            rply.quotes = true;
             return rply;
         }
         default: {

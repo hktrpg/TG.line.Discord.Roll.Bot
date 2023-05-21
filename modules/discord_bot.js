@@ -288,26 +288,26 @@ function checkRepeatName(content, button, user) {
 }
 async function convQuotes(text = "") {
 	let embeds = []
-	//let imageEmbeds = [];
+	let embed = new EmbedBuilder()
+		.setColor('#0099ff')
+		//.setTitle(rplyVal.title)
+		//.setURL('https://discord.js.org/')
+		.setAuthor({ name: 'HKTRPG', url: 'https://www.patreon.com/HKTRPG', iconURL: 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png' })
 	const imageMatch = text.match(imageUrl) || null;
 	if (imageMatch && imageMatch.length) {
 		for (let index = 0; (index < imageMatch.length) && index < 10; index++) {
 			imageMatch[index] = imageMatch[index].replace(/\s?$/, '');
 			let imageVaild = await isImageURL(imageMatch[index]);
 			if (imageVaild) {
-				let imageEmbed = new EmbedBuilder().setImage(imageMatch[index]);
-				embeds.push(imageEmbed);
+				let imageEmbed = new EmbedBuilder().setURL('https://www.patreon.com/HKTRPG').setImage(imageMatch[index]);
+				if (imageMatch.length === 1) embed.setImage(imageMatch[index]);
+				else embeds.push(imageEmbed);
 				text = text.replace(imageMatch[index], '')
 			}
 
 		}
 	}
-	let embed = new EmbedBuilder()
-		.setColor('#0099ff')
-		//.setTitle(rplyVal.title)
-		//.setURL('https://discord.js.org/')
-		.setAuthor({ name: 'HKTRPG', url: 'https://www.patreon.com/HKTRPG', iconURL: 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png' })
-		.setDescription(text)
+	embed.setDescription(text)
 	embeds.unshift(embed);
 	return embeds;
 

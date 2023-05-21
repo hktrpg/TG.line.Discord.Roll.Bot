@@ -37,24 +37,25 @@ const initialize = function () {
     return variables;
 }
 async function handleImageAi(inputStr) {
+    let input = inputStr.replace(/^\.aimage/i, '');
     try {
         let response = await openai.createImage({
 
-            "prompt": `${inputStr.replace(/^\.ai/i, '')}`,
+            "prompt": `${input}`,
             "n": 1,
             "size": "1024x1024"
 
         })
-        response = await handleImage(response)
+        response = await handleImage(response, input)
         // if (response?.data?.error) return '可能是輸入太長了，或是有不支援的字元，請重新輸入'
         return response;
     } catch (error) {
         console.error(error)
     }
 }
-async function handleImage(data) {
+async function handleImage(data, input) {
     if (data?.data?.data?.length === 0) return '沒有輸出的圖片, 請重新輸入描述';
-    let response = "";
+    let response = `${input}:\n`;
     for (let index = 0; index < data.data.data.length; index++) {
         response += data.data.data[index].url + "\n";
     }

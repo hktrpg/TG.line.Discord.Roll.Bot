@@ -3,7 +3,7 @@ exports.analytics = require('./analytics');
 const debugMode = (process.env.DEBUG) ? true : false;
 const schema = require('../modules/schema.js');
 const isImageURL = require('image-url-validator').default;
-const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)(\s?)$/i);
+const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)(\s?)$/igm);
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const adminSecret = process.env.ADMIN_SECRET || '';
 const { ClusterClient, getInfo } = require('discord-hybrid-sharding');
@@ -287,22 +287,29 @@ function checkRepeatName(content, button, user) {
 	return flag;
 }
 async function convQuotes(text = "") {
+	let embeds = []
+	//let imageEmbeds = [];
+	const imageMatch = text.match(imageUrl) || null;
+	if (imageMatch && imageMatch.length) {
+		for (let index = 0; (index < imageMatch.length) && index < 10; index++) {
+			imageMatch[index] = imageMatch[index].replace(/\s?$/, '');
+			let imageVaild = await isImageURL(imageMatch[index]);
+			if (imageVaild) {
+				let imageEmbed = new EmbedBuilder().setImage(imageMatch[index]);
+				embeds.push(imageEmbed);
+				text = text.replace(imageMatch[index], '')
+			}
+
+		}
+	}
 	let embed = new EmbedBuilder()
 		.setColor('#0099ff')
 		//.setTitle(rplyVal.title)
 		//.setURL('https://discord.js.org/')
 		.setAuthor({ name: 'HKTRPG', url: 'https://www.patreon.com/HKTRPG', iconURL: 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png' })
 		.setDescription(text)
-	const imageMatch = text.match(imageUrl) || null;
-	if (imageMatch && imageMatch.length) {
-		imageMatch[0] = imageMatch[0].replace(/\s?$/, '');
-		let imageVaild = await isImageURL(imageMatch[0]);
-		if (imageVaild) {
-			embed = embed.setImage(imageMatch[0]);
-			embed.setDescription(text.replace(imageMatch[0], ''));
-		}
-	}
-	return embed;
+	embeds.unshift(embed);
+	return embeds;
 
 }
 
@@ -323,7 +330,7 @@ async function SendToId(targetid, replyText, quotes) {
 			if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
 				try {
 					if (quotes) {
-						user.send({ embeds: [await convQuotes(sendText[i])] });
+						user.send({ embeds: await convQuotes(sendText[i]) });
 					} else { user.send(sendText[i]); }
 				}
 				catch (e) {
@@ -343,7 +350,7 @@ async function SendToReply({ replyText = "", message, quotes = false }) {
 		if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
 			try {
 				if (quotes) {
-					message.author && message.author.send({ embeds: [await convQuotes(sendText[i])] });
+					message.author && message.author.send({ embeds: await convQuotes(sendText[i]) });
 				} else
 					message.author && message.author.send(sendText[i]);
 			}
@@ -381,7 +388,7 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 			try {
 				if (quotes) {
 					for (let index = 0; index < buttonCreate.length || index === 0; index++) {
-						channel.send({ embeds: [await convQuotes(sendText[i])], components: buttonCreate[index] || null });
+						channel.send({ embeds: await convQuotes(sendText[i]), components: buttonCreate[index] || null });
 					}
 
 				} else {

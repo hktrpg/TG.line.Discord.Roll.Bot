@@ -7525,7 +7525,7 @@ webidl-conversions@^7.0.0:
   resolved "https://registry.yarnpkg.com/webidl-conversions/-/webidl-conversions-7.0.0.tgz#256b4e1882be7debbf01d05f0aa2039778ea080a"
   integrity sha512-VwddBukDzu71offAQR975unBIGqfKZpM+8ZX6ySk8nYhVoo5CYaZyzt3YBvYtRtO+aoGlqxPg/B87NGVZ/fu6g==
 
-whatsapp-web.js@^1.19.4:
+whatsapp-web.js@^1.20.0:
   version "1.20.0"
   resolved "https://registry.yarnpkg.com/whatsapp-web.js/-/whatsapp-web.js-1.20.0.tgz#25584ff7edac61bee09b00bb6fb396714a172434"
   integrity sha512-YaiXyr44D+mLC+zqMV+Jd2E97OXCeUf18nqcIkS+M/SGQ11bPpe8MhQXF/OZ3eIuOnDsZVu30qb+K5YI+tSCZg==

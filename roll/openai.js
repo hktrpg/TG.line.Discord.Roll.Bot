@@ -54,7 +54,7 @@ async function handleImageAi(inputStr) {
         return response;
     } catch (error) {
         console.error('AI error', error.response.status, error.response.statusText, `${inputStr.replace(/^\.ai/i, '')}`)
-        return 'AI error', error.response.status, error.response.statusText, ` ${inputStr.replace(/^\.ai/i, '')}`;
+        return 'AI error', error.response.status + error.response.statusText + ` ${inputStr.replace(/^\.ai/i, '')}`;
     }
 }
 async function handleImage(data, input) {
@@ -86,7 +86,7 @@ async function handleChatAi(inputStr) {
         return response?.data?.choices[0]?.message?.content;
     } catch (error) {
         console.error('AI error', error.response.status, error.response.statusText, `${inputStr.replace(/^\.ai/i, '')}`)
-        return 'AI error', error.response.status, error.response.statusText, ` ${inputStr.replace(/^\.ai/i, '')}`;
+        return 'AI error', error.response.status + error.response.statusText + ` ${inputStr.replace(/^\.ai/i, '')}`;
     }
 }
 

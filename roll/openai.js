@@ -3,8 +3,8 @@ if (!process.env.OPENAI_SECRET) return;
 
 const { Configuration, OpenAIApi } = require('openai');
 const configuration = new Configuration({
-    apiKey: "sk-1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKL",
-    basePath: "https://4aiu6ctrknfxkoaigkigzh5lwm0cciuc.lambda-url.ap-east-1.on.aws/",
+    apiKey: process.env.OPENAI_SECRET,
+    basePath: process.env.OPENAI_BASEPATH,
 });
 const openai = new OpenAIApi(configuration);
 
@@ -76,7 +76,7 @@ async function handleChatAi(inputStr) {
                 },
                 {
                     "role": "user",
-                    "content": `${inputStr.replace(/^\.ai/i, '')}`
+                    "content": `${inputStr.replace(/^\.aimage/i, '')}`
                 }
             ]
 

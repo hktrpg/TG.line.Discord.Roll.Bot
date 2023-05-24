@@ -53,7 +53,7 @@ async function handleImageAi(inputStr) {
         // if (response?.data?.error) return '可能是輸入太長了，或是有不支援的字元，請重新輸入'
         return response;
     } catch (error) {
-        console.error(error)
+        console.error('AI error', error.response.status, error.response.statusText, error.data.message)
     }
 }
 async function handleImage(data, input) {
@@ -84,7 +84,7 @@ async function handleChatAi(inputStr) {
         if (response?.data?.error) return '可能是輸入太長了，或是有不支援的字元，請重新輸入'
         return response?.data?.choices[0]?.message?.content;
     } catch (error) {
-        console.error(error)
+        console.error('AI error', error.response.status, error.response.statusText, error.data.message)
     }
 }
 

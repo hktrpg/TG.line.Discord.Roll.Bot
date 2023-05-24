@@ -76,7 +76,7 @@ async function handleChatAi(inputStr) {
                 },
                 {
                     "role": "user",
-                    "content": `${inputStr.replace(/^\.aimage/i, '')}`
+                    "content": `${inputStr.replace(/^\.ai/i, '')}`
                 }
             ]
 

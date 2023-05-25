@@ -139,3 +139,59 @@ module.exports = {
     gameName,
     discordCommand
 };
+
+const { Configuration, OpenAIApi } = require('openai');
+
+// 建立apiKey的陣列
+const apiKeys = [
+  process.env.OPENAI_SECRET_1,
+  process.env.OPENAI_SECRET_2,
+  process.env.OPENAI_SECRET_3,
+  process.env.OPENAI_SECRET_4,
+  process.env.OPENAI_SECRET_5,
+  process.env.OPENAI_SECRET_6,
+  process.env.OPENAI_SECRET_7,
+  process.env.OPENAI_SECRET_8,
+  process.env.OPENAI_SECRET_9,
+  process.env.OPENAI_SECRET_10,
+];
+
+// 設定最大重試次數
+const maxRetries = 10;
+
+// 建立 openai 實例的函式
+function getOpenaiInstance(apiKeyIndex = 0, retryCount = 0) {
+  // 設定 configuration
+  const configuration = new Configuration({
+    apiKey: apiKeys[apiKeyIndex],
+    basePath: process.env.OPENAI_BASEPATH,
+  });
+
+  // 產生 openai 實例
+  const openai = new OpenAIApi(configuration);
+
+  // 設定 onError 事件，當發生錯誤時會觸發此事件
+  openai.onError = async (error) => {
+    if (error.response && error.response.status === 429 && retryCount < maxRetries) {
+      // 如果是因為使用上限而發生錯誤，且還可以重試，就換下一個 apiKey 重試
+      const nextApiKeyIndex = (apiKeyIndex + 1) % apiKeys.length;
+      await wait(60 * 60); // 等待一小時
+      return getOpenaiInstance(nextApiKeyIndex, retryCount + 1);
+    } else {
+      // 如果是其他錯誤，或已超過最大重試次數，就拋出錯誤
+      throw error;
+    }
+  };
+
+  return openai;
+}
+
+// 建立等待的函式
+function wait(seconds) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, seconds * 1000);
+  });
+}
+
+// 使用方式
+const openai = getOpenaiInstance();

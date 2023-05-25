@@ -739,7 +739,7 @@ async function checkWakeUp() {
 			//		return false
 			//	else return true;
 		})
-		.catch(err => {
+		.catch(error => {
 			console.error(`disocrdbot #836 error `, (error && error.name), (error && error.message), (error && error.reson))
 			return false
 		});

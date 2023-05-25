@@ -1,18 +1,33 @@
 "use strict";
-if (!process.env.OPENAI_SECRET) return;
+if (!process.env.OPENAI_BASEPATH && !process.env.OPENAI_SECRET_1) return;
 
 const { Configuration, OpenAIApi } = require('openai');
-const configuration = new Configuration({
-    apiKey: process.env.OPENAI_SECRET,
+const apiKeys = [
+];
+
+const addApiKey = () => {
+    for (let index = 0; index < 10; index++) {
+        if (!process.env[`OPENAI_SECRET_${index}`]) continue;
+        apiKeys.push(process.env[`OPENAI_SECRET_${index}`]);
+    }
+}
+addApiKey();
+
+let configuration = new Configuration({
+    apiKey: apiKeys[0],
     basePath: process.env.OPENAI_BASEPATH,
 });
-const openai = new OpenAIApi(configuration);
+let openai = new OpenAIApi(configuration);
+let currentApiKeyIndex = 0;
+let errorCount = 0;
+
+
 
 const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
 
 const gameName = function () {
-    return '【Demo】'
+    return '【OpenAi】'
 }
 
 const gameType = function () {
@@ -51,10 +66,16 @@ async function handleImageAi(inputStr) {
         })
         response = await handleImage(response, input)
         // if (response?.data?.error) return '可能是輸入太長了，或是有不支援的字元，請重新輸入'
+        errorCount = 0;
         return response;
     } catch (error) {
-        console.error('AI error', error.response.status, error.response.statusText, `${inputStr.replace(/^\.ai/i, '')}`)
-        return 'AI error', error.response.status + error.response.statusText + ` ${inputStr.replace(/^\.ai/i, '')}`;
+        if (errorCount < apiKeys.length) {
+            await handleError();
+            return await handleImageAi(inputStr);
+        } else {
+            console.error('AI error', error.response.status, error.response.statusText, `${inputStr.replace(/^\.ai/i, '')}`)
+            return 'AI error', error.response.status + error.response.statusText + ` ${inputStr.replace(/^\.ai/i, '')}`;
+        }
     }
 }
 async function handleImage(data, input) {
@@ -64,6 +85,15 @@ async function handleImage(data, input) {
         response += data.data.data[index].url + "\n";
     }
     return response;
+}
+
+async function handleError() {
+    errorCount++;
+    currentApiKeyIndex = (currentApiKeyIndex + 1) % apiKeys.length;
+    openai = new OpenAIApi(new Configuration({
+        apiKey: apiKeys[currentApiKeyIndex],
+        basePath: process.env.OPENAI_BASEPATH,
+    }));
 }
 async function handleChatAi(inputStr) {
     try {
@@ -82,11 +112,16 @@ async function handleChatAi(inputStr) {
             ]
 
         })
-        if (response?.data?.error) return '可能是輸入太長了，或是有不支援的字元，請重新輸入'
+        errorCount = 0;
         return response?.data?.choices[0]?.message?.content;
     } catch (error) {
-        console.error('AI error', error.response.status, error.response.statusText, `${inputStr.replace(/^\.ai/i, '')}`)
-        return 'AI error', error.response.status + error.response.statusText + ` ${inputStr.replace(/^\.ai/i, '')}`;
+        if (errorCount < apiKeys.length) {
+            await handleError();
+            return await handleChatAi(inputStr);
+        } else {
+            console.error('AI error', error.response.status, error.response.statusText, `${inputStr.replace(/^\.ai/i, '')}`)
+            return 'AI error', error.response.status + error.response.statusText + ` ${inputStr.replace(/^\.ai/i, '')}`;
+        }
     }
 }
 
@@ -139,3 +174,8 @@ module.exports = {
     gameName,
     discordCommand
 };
+
+
+
+// 建立apiKey的陣列
+

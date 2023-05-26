@@ -219,7 +219,7 @@ client.on('ready', async () => {
 		if (!wakeup && adminSecret) {
 			SendToId(adminSecret, 'HKTRPG可能下線了');
 		}
-	}, 1000 * 60 * 3);
+	}, 1000 * 60 * 5);
 	// eslint-disable-next-line no-unused-vars
 	const refreshId2 = setInterval(async () => {
 		switch (switchSetActivity % 2) {

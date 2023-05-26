@@ -6,7 +6,7 @@ const apiKeys = [
 ];
 
 const addApiKey = () => {
-    for (let index = 0; index < 10; index++) {
+    for (let index = 0; index < 99; index++) {
         if (!process.env[`OPENAI_SECRET_${index}`]) continue;
         apiKeys.push(process.env[`OPENAI_SECRET_${index}`]);
     }
@@ -70,9 +70,10 @@ async function handleImageAi(inputStr) {
         return response;
     } catch (error) {
         if (errorCount < apiKeys.length) {
-            await handleError();
+            await handleError(error);
             return await handleImageAi(inputStr);
         } else {
+            errorCount = 0;
             console.error('AI error', error.response.status, error.response.statusText, `${inputStr.replace(/^\.ai/i, '')}`)
             return 'AI error', error.response.status + error.response.statusText + ` ${inputStr.replace(/^\.ai/i, '')}`;
         }
@@ -87,8 +88,14 @@ async function handleImage(data, input) {
     return response;
 }
 
-async function handleError() {
+async function handleError(error) {
     errorCount++;
+    if (error.response.status === 401) {
+        console.error('remove api key 401', apiKeys[currentApiKeyIndex])
+        apiKeys.splice(currentApiKeyIndex, 1);
+        currentApiKeyIndex--;
+        errorCount--;
+    }
     currentApiKeyIndex = (currentApiKeyIndex + 1) % apiKeys.length;
     openai = new OpenAIApi(new Configuration({
         apiKey: apiKeys[currentApiKeyIndex],
@@ -116,9 +123,10 @@ async function handleChatAi(inputStr) {
         return response?.data?.choices[0]?.message?.content;
     } catch (error) {
         if (errorCount < apiKeys.length) {
-            await handleError();
+            await handleError(error);
             return await handleChatAi(inputStr);
         } else {
+            errorCount = 0;
             console.error('AI error', error.response.status, error.response.statusText, `${inputStr.replace(/^\.ai/i, '')}`)
             return 'AI error', error.response.status + error.response.statusText + ` ${inputStr.replace(/^\.ai/i, '')}`;
         }

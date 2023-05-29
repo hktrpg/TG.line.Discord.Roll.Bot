@@ -39,7 +39,7 @@ const prefixs = function () {
     //如前面是 /^1$/ig, 後面是/^1D100$/ig, 即 prefixs 變成 1 1D100 
     ///^(?=.*he)(?!.*da).*$/ig
     return [{
-        first: /^([.]ai)|(^[.]aimage)$/i,
+        first: /^([.]ai)|(^[.]aimage)|(^[.]ait)$/i,
         second: null
     }]
 }
@@ -47,6 +47,7 @@ const getHelpMessage = function () {
     return `【OpenAi】
 .aimage [描述] - 產生DALL-E圖片
 .ai [對話] - 使用gpt-3.5-turbo產生對話
+.ait [內容] 或 附件 - 使用 gpt-3.5-turbo進行正體中文翻譯
 
 使用: https://github.com/PawanOsman/ChatGPT#nodejs
 `
@@ -102,6 +103,37 @@ async function handleError(error) {
         basePath: process.env.OPENAI_BASEPATH,
     }));
 }
+async function handleTranslate(inputStr) {
+    try {
+        let response = await openai.createChatCompletion({
+            "model": "gpt-3.5-turbo",
+            "max_tokens": 3100,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "你叫HKTRPG TRPG助手。你以正體中文回答所有問題."
+                },
+                {
+                    "role": "user",
+                    "content": `${inputStr.replace(/^\.ait$/i, '')}\n\n以上內容翻譯成正體中文`
+                }
+            ]
+
+        })
+        errorCount = 0;
+        return response?.data?.choices[0]?.message?.content;
+    } catch (error) {
+        if (errorCount < apiKeys.length) {
+            await handleError(error);
+            return await handleChatAi(inputStr);
+        } else {
+            errorCount = 0;
+            console.error('AI error', error.response.status, error.response.statusText, `${inputStr.replace(/^\.ai/i, '')}`)
+            return 'AI error', error.response.status + error.response.statusText + ` ${inputStr.replace(/^\.ai/i, '')}`;
+        }
+    }
+}
+
 async function handleChatAi(inputStr) {
     try {
         let response = await openai.createChatCompletion({
@@ -110,7 +142,7 @@ async function handleChatAi(inputStr) {
             "messages": [
                 {
                     "role": "system",
-                    "content": "你叫HKTRPG TRPG助手。你的所有回答以正體中文為準."
+                    "content": "你叫HKTRPG TRPG助手。你以正體中文回答所有問題."
                 },
                 {
                     "role": "user",
@@ -156,7 +188,13 @@ const rollDiceCommand = async function ({
             rply.quotes = true;
             return rply;
         }
-        case /^\S/.test(mainMsg[1]) && /^.aimage/i.test(mainMsg[0]): {
+
+        case /^.ait$/i.test(mainMsg[0]): {
+            rply.text = await handleTranslate(inputStr);
+            rply.quotes = true;
+            return rply;
+        }
+        case /^\S/.test(mainMsg[1]) && /^.aimage$/i.test(mainMsg[0]): {
             rply.text = await handleImageAi(inputStr);
             rply.quotes = true;
             return rply;

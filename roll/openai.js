@@ -103,7 +103,18 @@ async function handleError(error) {
         basePath: process.env.OPENAI_BASEPATH,
     }));
 }
-async function handleTranslate(inputStr) {
+async function handleTranslate(inputStr, discordMessage) {
+    if (discordMessage.type === 0 && discordMessage.attachments.size > 0) {
+        const url = discordMessage.attachments.find(data => data.contentType.match(/image/i))
+        return (url && url.url) || null;
+    }
+    //19 = reply
+    if (discordMessage.type === 19) {
+        const channel = await discordClient.channels.fetch(discordMessage.reference.channelId);
+        const referenceMessage = await channel.messages.fetch(discordMessage.reference.messageId)
+        const url = referenceMessage.attachments.find(data => data.contentType.match(/image/i))
+        return (url && url.url) || null;
+    }
     try {
         let response = await openai.createChatCompletion({
             "model": "gpt-3.5-turbo",
@@ -169,6 +180,7 @@ const rollDiceCommand = async function ({
     inputStr,
     mainMsg,
     groupid,
+    discordMessage,
     userid,
     userrole,
     botname,
@@ -190,7 +202,7 @@ const rollDiceCommand = async function ({
         }
 
         case /^.ait$/i.test(mainMsg[0]): {
-            rply.text = await handleTranslate(inputStr);
+            rply.text = await handleTranslate(inputStr, discordMessage);
             rply.quotes = true;
             return rply;
         }
@@ -222,6 +234,24 @@ module.exports = {
 };
 
 
-
-// 建立apiKey的陣列
+function splitStringByLength(str, length) {
+    let result = [[]];
+    let current = 0;
+    let lines = str.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+        let remaining = length - current;
+        while (line.length > remaining) {
+            let part = line.substring(0, remaining);
+            result[result.length - 1].push(part);
+            result.push([]);
+            line = line.substring(remaining);
+            current = 0;
+            remaining = length;
+        }
+        result[result.length - 1].push(line);
+        current += line.length;
+    }
+    return result.filter(a => a.length > 0);
+}
 

@@ -176,8 +176,12 @@ class TranslateAi extends OpenAI {
     }
     async getText(str, discordMessage, discordClient) {
         let text = [];
-        if (str.replace(/^\S?\.ait\S+$/i, '').length > 0) text.push(str.replace(/^\S?\.ait\S+$/i, ''));
-        console.log(discordMessage,)
+        str = str.replace(/^\S?\.ait\S?/i, '');
+        if (str.length > 0) {
+            //       console.log('str.replace(/^\S?\.ait\S+/)', str.replace(/^\S?\.ait\S+/i, ''))
+            text.push(str);
+        }
+        console.log('discordMessage:', discordMessage, ' text: ', text, ' str:', str)
 
         if (discordMessage?.type === 0 && discordMessage?.attachments?.size > 0) {
             const url = Array.from(discordMessage.attachments.filter(data => data.contentType.match(/text/i))?.values());
@@ -187,6 +191,7 @@ class TranslateAi extends OpenAI {
                 text.push(data);
             }
         }
+        console.log(' text2: ', text, ' str:', str)
         //19 = reply
         if (discordMessage?.type === 19) {
             const channel = await discordClient.channels.fetch(discordMessage.reference.channelId);
@@ -198,48 +203,61 @@ class TranslateAi extends OpenAI {
                 text.push(data);
             }
         }
+        console.log(' text3: ', text, ' str:', str)
+      
         let result = this.splitStringByLength(text.join('\n'), 1900);
+        console.log(' result: ', result, ' str:', str)
+      
         return result;
 
     }
-
-    async handleTranslate(inputStr, discordMessage, discordClient) {
-        let text = await this.getText(inputStr, discordMessage, discordClient);
-        console.log(text);
+    async translateChat(inputStr) {
+        console.log('translateChat: ', inputStr)
         try {
-            let response = [];
-            for (let index = 0; index < text.length; index++) {
-                let result = await openai.createChatCompletion({
-                    "model": "gpt-3.5-turbo",
-                    "max_tokens": 2100,
-                    "messages": [
-                        {
-                            "role": "system",
-                            "content": "你叫HKTRPG TRPG助手。你以正體中文回答所有問題."
-                        },
-                        {
-                            "role": "user",
-                            "content": `${text[index]}\n\n以上內容翻譯成正體中文`
-                        }
-                    ]
+            let result = await this.openai.createChatCompletion({
+                "model": "gpt-3.5-turbo",
+                "max_tokens": 2100,
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "你叫HKTRPG TRPG助手。你以正體中文回答所有問題."
+                    },
+                    {
+                        "role": "user",
+                        "content": `${inputStr}\n\n把以上內容翻譯成正體中文`
+                    }
+                ]
 
-                })
-                response.push(result?.data?.choices[0]?.message?.content);
-            }
-
+            })
             this.errorCount = 0;
-            return response;
+            return result?.data?.choices[0]?.message?.content;
         } catch (error) {
             console.log('error', error)
             if (this.errorCount < this.apiKeys.length) {
                 await super.handleError(error);
-                return await this.handleTranslate(inputStr);
+                return await this.translateChat(inputStr);
             } else {
                 this.errorCount = 0;
                 console.error('AI error', error.response?.status, error.response?.statusText, `${inputStr.replace(/^\.ait/i, '')}`)
                 return 'AI error', error.response?.status + error.response?.statusText + ` ${inputStr.replace(/^\.ait/i, '')}`;
             }
         }
+    }
+    async translateText(translateScript) {
+        let response = [];
+        for (let index = 0; index < translateScript.length; index++) {
+            let result = await this.translateChat(translateScript[index]);
+            response.push(result);
+        }
+        return response;
+
+    }
+    async handleTranslate(inputStr, discordMessage, discordClient) {
+        let translateScript = await this.getText(inputStr, discordMessage, discordClient);
+        console.log('translateScript: ', translateScript);
+        let response = await this.translateText(translateScript);
+        return response.join('\n');
+
     }
     splitStringByLength(str, length) {
         let result = [];

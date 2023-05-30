@@ -176,7 +176,7 @@ class TranslateAi extends OpenAI {
     }
     async getText(str, discordMessage, discordClient) {
         let text = [];
-        str = str.replace(/^\S?\.ait\S?/i, '');
+        str = str.replace(/^\s*\.ait\s*/i, '');
         if (str.length > 0) {
             //       console.log('str.replace(/^\S?\.ait\S+/)', str.replace(/^\S?\.ait\S+/i, ''))
             text.push(str);
@@ -204,10 +204,10 @@ class TranslateAi extends OpenAI {
             }
         }
         console.log(' text3: ', text, ' str:', str)
-      
+
         let result = this.splitStringByLength(text.join('\n'), 1900);
         console.log(' result: ', result, ' str:', str)
-      
+
         return result;
 
     }
@@ -232,8 +232,8 @@ class TranslateAi extends OpenAI {
             this.errorCount = 0;
             return result?.data?.choices[0]?.message?.content;
         } catch (error) {
-            console.log('error', error)
-            if (this.errorCount < this.apiKeys.length) {
+            //console.log('error', error)
+            if (this.errorCount < (this.apiKeys.length) * 3) {
                 await super.handleError(error);
                 return await this.translateChat(inputStr);
             } else {
@@ -264,11 +264,13 @@ class TranslateAi extends OpenAI {
         let currentLine = 0;
         let currentStringLength = 0;
         const lines = str.split('\n');
+        console.log(lines)
         for (let i = 0; i < lines.length; i++) {
             let line = lines[i];
             let lineLength = line.length;
             if (lineLength > length) {
-                let lineSplit = line.split(/.{1,10}/g);
+                console.log('A')
+                let lineSplit = line.split(`/.{1,${length}}/g`);
                 for (let j = 0; j < lineSplit.length; j++) {
                     currentLine++;
                     result[currentLine] = lineSplit[j];
@@ -276,16 +278,20 @@ class TranslateAi extends OpenAI {
                 currentStringLength = 0;
             }
             if (currentStringLength + lineLength > length) {
+                console.log('B')
                 currentLine++;
                 result[currentLine] = line;
                 currentStringLength = 0;
             }
             if (currentStringLength + lineLength < length) {
-                result[currentLine] += line + '\n';
+
+                console.log('C: ', result[currentLine], ' line: ', line);
+                (result[currentLine] === undefined) ? result[currentLine] = line + '\n' : result[currentLine] += line + '\n';
                 currentStringLength += lineLength;
             }
 
         }
+        console.log('result: ', result)
         return result.filter(a => a.length > 0);
     }
 

@@ -1,7 +1,7 @@
 "use strict";
 if (!process.env.OPENAI_BASEPATH && !process.env.OPENAI_SECRET_1) return;
 const { Configuration, OpenAIApi } = require('openai');
-
+const fetch = require('node-fetch');
 const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
 
@@ -35,61 +35,7 @@ const initialize = function () {
     return variables;
 }
 
-async function getText(str, discordMessage) {
-    let text = [];
-    if (str.replace(/^\.ait\S+$/i, '').length > 0) text.push(str.replace(/^\.ait\S+$/i, ''));
 
-    if (discordMessage.type === 0 && discordMessage.attachments.size > 0) {
-        const url = discordMessage.attachments.filter(data => data.contentType.match(/text/i))
-        //down 
-        for (let index = 0; index < url.length; index++) {
-            const response = await fetch(url.url);
-            const data = await response.text();
-            console.log(data)
-            text.push(data);
-        }
-    }
-    //19 = reply
-    if (discordMessage.type === 19) {
-        const channel = await discordClient.channels.fetch(discordMessage.reference.channelId);
-        const referenceMessage = await channel.messages.fetch(discordMessage.reference.messageId)
-        const url = referenceMessage.attachments.find(data => data.contentType.match(/text/i))
-        return (url && url.url) || null;
-    }
-
-}
-
-async function handleTranslate(inputStr, discordMessage) {
-    let text = getText(inputStr, discordMessage);
-    try {
-        let response = await openai.createChatCompletion({
-            "model": "gpt-3.5-turbo",
-            "max_tokens": 3100,
-            "messages": [
-                {
-                    "role": "system",
-                    "content": "你叫HKTRPG TRPG助手。你以正體中文回答所有問題."
-                },
-                {
-                    "role": "user",
-                    "content": `${inputStr.replace(/^\.ait$/i, '')}\n\n以上內容翻譯成正體中文`
-                }
-            ]
-
-        })
-        errorCount = 0;
-        return response?.data?.choices[0]?.message?.content;
-    } catch (error) {
-        if (errorCount < apiKeys.length) {
-            await handleError(error);
-            return await handleChatAi(inputStr);
-        } else {
-            errorCount = 0;
-            console.error('AI error', error.response.status, error.response.statusText, `${inputStr.replace(/^\.ai/i, '')}`)
-            return 'AI error', error.response.status + error.response.statusText + ` ${inputStr.replace(/^\.ai/i, '')}`;
-        }
-    }
-}
 
 
 
@@ -99,6 +45,7 @@ const rollDiceCommand = async function ({
     groupid,
     discordMessage,
     userid,
+    discordClient,
     userrole,
     botname,
     displayname,
@@ -113,7 +60,7 @@ const rollDiceCommand = async function ({
     };
     switch (true) {
         case /^.ait$/i.test(mainMsg[0]): {
-            rply.text = await handleTranslate(inputStr, discordMessage);
+            rply.text = await translateAi.handleTranslate(inputStr, discordMessage, discordClient);
             rply.quotes = true;
             return rply;
         }
@@ -223,6 +170,109 @@ class ImageAi extends OpenAI {
 
 }
 
+class TranslateAi extends OpenAI {
+    constructor() {
+        super();
+    }
+    async getText(str, discordMessage, discordClient) {
+        let text = [];
+        if (str.replace(/^\S?\.ait\S+$/i, '').length > 0) text.push(str.replace(/^\S?\.ait\S+$/i, ''));
+        console.log(discordMessage,)
+
+        if (discordMessage?.type === 0 && discordMessage?.attachments?.size > 0) {
+            const url = Array.from(discordMessage.attachments.filter(data => data.contentType.match(/text/i))?.values());
+            for (let index = 0; index < url.length; index++) {
+                const response = await fetch(url[index].url);
+                const data = await response.text();
+                text.push(data);
+            }
+        }
+        //19 = reply
+        if (discordMessage?.type === 19) {
+            const channel = await discordClient.channels.fetch(discordMessage.reference.channelId);
+            const referenceMessage = await channel.messages.fetch(discordMessage.reference.messageId)
+            const url = Array.from(referenceMessage.attachments.filter(data => data.contentType.match(/text/i))?.values());
+            for (let index = 0; index < url.length; index++) {
+                const response = await fetch(url[index].url);
+                const data = await response.text();
+                text.push(data);
+            }
+        }
+        let result = this.splitStringByLength(text.join('\n'), 1900);
+        return result;
+
+    }
+
+    async handleTranslate(inputStr, discordMessage, discordClient) {
+        let text = await this.getText(inputStr, discordMessage, discordClient);
+        console.log(text);
+        try {
+            let response = [];
+            for (let index = 0; index < text.length; index++) {
+                let result = await openai.createChatCompletion({
+                    "model": "gpt-3.5-turbo",
+                    "max_tokens": 2100,
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": "你叫HKTRPG TRPG助手。你以正體中文回答所有問題."
+                        },
+                        {
+                            "role": "user",
+                            "content": `${text[index]}\n\n以上內容翻譯成正體中文`
+                        }
+                    ]
+
+                })
+                response.push(result?.data?.choices[0]?.message?.content);
+            }
+
+            this.errorCount = 0;
+            return response;
+        } catch (error) {
+            console.log('error', error)
+            if (this.errorCount < this.apiKeys.length) {
+                await super.handleError(error);
+                return await this.handleTranslate(inputStr);
+            } else {
+                this.errorCount = 0;
+                console.error('AI error', error.response?.status, error.response?.statusText, `${inputStr.replace(/^\.ait/i, '')}`)
+                return 'AI error', error.response?.status + error.response?.statusText + ` ${inputStr.replace(/^\.ait/i, '')}`;
+            }
+        }
+    }
+    splitStringByLength(str, length) {
+        let result = [];
+        let currentLine = 0;
+        let currentStringLength = 0;
+        const lines = str.split('\n');
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i];
+            let lineLength = line.length;
+            if (lineLength > length) {
+                let lineSplit = line.split(/.{1,10}/g);
+                for (let j = 0; j < lineSplit.length; j++) {
+                    currentLine++;
+                    result[currentLine] = lineSplit[j];
+                }
+                currentStringLength = 0;
+            }
+            if (currentStringLength + lineLength > length) {
+                currentLine++;
+                result[currentLine] = line;
+                currentStringLength = 0;
+            }
+            if (currentStringLength + lineLength < length) {
+                result[currentLine] += line + '\n';
+                currentStringLength += lineLength;
+            }
+
+        }
+        return result.filter(a => a.length > 0);
+    }
+
+}
+
 class ChatAi extends OpenAI {
     constructor() {
         super();
@@ -262,31 +312,6 @@ class ChatAi extends OpenAI {
 const openai = new OpenAI();
 const chatAi = new ChatAi();
 const imageAi = new ImageAi();
+const translateAi = new TranslateAi();
 
-function splitStringByLength(str, length) {
-    let result = [];
-    let currentLine = 0;
-    let currentStringLength = 0;
-    const lines = str.split('\n');
-    for (let i = 0; i < lines.length; i++) {
-        let line = lines[i];
-        let lineLength = line.length;
-        if (lineLength > length) {
-            currentLine++;
-            result[currentLine] = line;
-            currentStringLength = 0;
-        }
-        if (currentStringLength + lineLength > length) {
-            currentLine++;
-            result[currentLine] = line;
-            currentStringLength = 0;
-        }
-        if (currentStringLength + lineLength < length) {
-            result[currentLine] += line + '\n';
-            currentStringLength += lineLength;
-        }
-
-    }
-    return result.filter(a => a.length > 0);
-}
 

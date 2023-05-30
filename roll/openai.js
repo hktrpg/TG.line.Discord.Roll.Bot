@@ -1,27 +1,6 @@
 "use strict";
 if (!process.env.OPENAI_BASEPATH && !process.env.OPENAI_SECRET_1) return;
-
 const { Configuration, OpenAIApi } = require('openai');
-const apiKeys = [
-];
-
-const addApiKey = () => {
-    for (let index = 0; index < 99; index++) {
-        if (!process.env[`OPENAI_SECRET_${index}`]) continue;
-        apiKeys.push(process.env[`OPENAI_SECRET_${index}`]);
-    }
-}
-addApiKey();
-
-let configuration = new Configuration({
-    apiKey: apiKeys[0],
-    basePath: process.env.OPENAI_BASEPATH,
-});
-let openai = new OpenAIApi(configuration);
-let currentApiKeyIndex = 0;
-let errorCount = 0;
-
-
 
 const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
@@ -55,66 +34,11 @@ const getHelpMessage = function () {
 const initialize = function () {
     return variables;
 }
-async function handleImageAi(inputStr) {
-    let input = inputStr.replace(/^\.aimage/i, '');
-    try {
-        let response = await openai.createImage({
 
-            "prompt": `${input}`,
-            "n": 1,
-            "size": "1024x1024"
 
-        })
-        response = await handleImage(response, input)
-        // if (response?.data?.error) return '可能是輸入太長了，或是有不支援的字元，請重新輸入'
-        errorCount = 0;
-        return response;
-    } catch (error) {
-        if (errorCount < apiKeys.length) {
-            await handleError(error);
-            return await handleImageAi(inputStr);
-        } else {
-            errorCount = 0;
-            console.error('AI error', error.response.status, error.response.statusText, `${inputStr.replace(/^\.ai/i, '')}`)
-            return 'AI error', error.response.status + error.response.statusText + ` ${inputStr.replace(/^\.ai/i, '')}`;
-        }
-    }
-}
-async function handleImage(data, input) {
-    if (data?.data?.data?.length === 0) return '沒有輸出的圖片, 請重新輸入描述';
-    let response = `${input}:\n`;
-    for (let index = 0; index < data.data.data.length; index++) {
-        response += data.data.data[index].url + "\n";
-    }
-    return response;
-}
 
-async function handleError(error) {
-    errorCount++;
-    if (error.response.status === 401) {
-        console.error('remove api key 401', apiKeys[currentApiKeyIndex])
-        apiKeys.splice(currentApiKeyIndex, 1);
-        currentApiKeyIndex--;
-        errorCount--;
-    }
-    currentApiKeyIndex = (currentApiKeyIndex + 1) % apiKeys.length;
-    openai = new OpenAIApi(new Configuration({
-        apiKey: apiKeys[currentApiKeyIndex],
-        basePath: process.env.OPENAI_BASEPATH,
-    }));
-}
 async function handleTranslate(inputStr, discordMessage) {
-    if (discordMessage.type === 0 && discordMessage.attachments.size > 0) {
-        const url = discordMessage.attachments.find(data => data.contentType.match(/image/i))
-        return (url && url.url) || null;
-    }
-    //19 = reply
-    if (discordMessage.type === 19) {
-        const channel = await discordClient.channels.fetch(discordMessage.reference.channelId);
-        const referenceMessage = await channel.messages.fetch(discordMessage.reference.messageId)
-        const url = referenceMessage.attachments.find(data => data.contentType.match(/image/i))
-        return (url && url.url) || null;
-    }
+    let 
     try {
         let response = await openai.createChatCompletion({
             "model": "gpt-3.5-turbo",
@@ -145,36 +69,7 @@ async function handleTranslate(inputStr, discordMessage) {
     }
 }
 
-async function handleChatAi(inputStr) {
-    try {
-        let response = await openai.createChatCompletion({
-            "model": "gpt-3.5-turbo",
-            "max_tokens": 3100,
-            "messages": [
-                {
-                    "role": "system",
-                    "content": "你叫HKTRPG TRPG助手。你以正體中文回答所有問題."
-                },
-                {
-                    "role": "user",
-                    "content": `${inputStr.replace(/^\.ai/i, '')}`
-                }
-            ]
 
-        })
-        errorCount = 0;
-        return response?.data?.choices[0]?.message?.content;
-    } catch (error) {
-        if (errorCount < apiKeys.length) {
-            await handleError(error);
-            return await handleChatAi(inputStr);
-        } else {
-            errorCount = 0;
-            console.error('AI error', error.response.status, error.response.statusText, `${inputStr.replace(/^\.ai/i, '')}`)
-            return 'AI error', error.response.status + error.response.statusText + ` ${inputStr.replace(/^\.ai/i, '')}`;
-        }
-    }
-}
 
 const rollDiceCommand = async function ({
     inputStr,
@@ -195,24 +90,23 @@ const rollDiceCommand = async function ({
         text: ''
     };
     switch (true) {
-        case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
-            rply.text = this.getHelpMessage();
-            rply.quotes = true;
-            return rply;
-        }
-
         case /^.ait$/i.test(mainMsg[0]): {
             rply.text = await handleTranslate(inputStr, discordMessage);
             rply.quotes = true;
             return rply;
         }
         case /^\S/.test(mainMsg[1]) && /^.aimage$/i.test(mainMsg[0]): {
-            rply.text = await handleImageAi(inputStr);
+            rply.text = await imageAi.handleImageAi(inputStr);
             rply.quotes = true;
             return rply;
         }
         case /^\S/.test(mainMsg[1]): {
-            rply.text = await handleChatAi(inputStr);
+            rply.text = await chatAi.handleChatAi(inputStr);
+            rply.quotes = true;
+            return rply;
+        }
+        case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
+            rply.text = this.getHelpMessage();
             rply.quotes = true;
             return rply;
         }
@@ -234,23 +128,142 @@ module.exports = {
 };
 
 
+class OpenAI {
+    constructor() {
+        this.apiKeys = [];
+        this.addApiKey();
+        this.configuration = new Configuration({
+            apiKey: this.apiKeys[0],
+            basePath: process.env.OPENAI_BASEPATH,
+        });
+        this.openai = new OpenAIApi(this.configuration);
+        this.currentApiKeyIndex = 0;
+        this.errorCount = 0;
+    }
+    addApiKey() {
+        for (let index = 0; index < 99; index++) {
+            if (!process.env[`OPENAI_SECRET_${index}`]) continue;
+            this.apiKeys.push(process.env[`OPENAI_SECRET_${index}`]);
+        }
+    }
+    handleError(error) {
+        this.errorCount++;
+        if (error.response?.status === 401) {
+            console.error('remove api key 401', this.apiKeys[this.currentApiKeyIndex])
+            this.apiKeys.splice(this.currentApiKeyIndex, 1);
+            this.currentApiKeyIndex--;
+            this.errorCount--;
+        }
+        this.currentApiKeyIndex = (this.currentApiKeyIndex + 1) % this.apiKeys.length;
+        this.openai = new OpenAIApi(new Configuration({
+            apiKey: this.apiKeys[this.currentApiKeyIndex],
+            basePath: process.env.OPENAI_BASEPATH,
+        }));
+    }
+}
+
+class ImageAi extends OpenAI {
+    constructor() {
+        super();
+    }
+    async handleImageAi(inputStr) {
+        let input = inputStr.replace(/^\.aimage/i, '');
+        try {
+            let response = await this.openai.createImage({
+                "prompt": `${input}`,
+                "n": 1,
+                "size": "1024x1024"
+
+            })
+            response = await this.handleImage(response, input)
+            // if (response?.data?.error) return '可能是輸入太長了，或是有不支援的字元，請重新輸入'
+            this.errorCount = 0;
+            return response;
+        } catch (error) {
+            if (this.errorCount < this.apiKeys.length) {
+                await super.handleError(error);
+                return await this.handleImageAi(inputStr);
+            } else {
+                this.errorCount = 0;
+                console.error('AI error', error.response.status, error.response.statusText, `${inputStr.replace(/^\.ai/i, '')}`)
+                return 'AI error', error.response.status + error.response.statusText + ` ${inputStr.replace(/^\.ai/i, '')}`;
+            }
+        }
+    }
+    handleImage(data, input) {
+        if (data?.data?.data?.length === 0) return '沒有輸出的圖片, 請重新輸入描述';
+        let response = `${input}:\n`;
+        for (let index = 0; index < data.data.data.length; index++) {
+            response += data.data.data[index].url + "\n";
+        }
+        return response;
+    }
+
+}
+
+class ChatAi extends OpenAI {
+    constructor() {
+        super();
+    }
+    async handleChatAi(inputStr) {
+        try {
+            let response = await this.openai.createChatCompletion({
+                "model": "gpt-3.5-turbo",
+                "max_tokens": 3100,
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "你叫HKTRPG TRPG助手。你以正體中文回答所有問題."
+                    },
+                    {
+                        "role": "user",
+                        "content": `${inputStr.replace(/^\.ai/i, '')}`
+                    }
+                ]
+
+            })
+            this.errorCount = 0;
+            return response?.data?.choices[0]?.message?.content;
+        } catch (error) {
+            if (this.errorCount < this.apiKeys.length) {
+                await super.handleError(error);
+                return await this.handleChatAi(inputStr);
+            } else {
+                this.errorCount = 0;
+                console.error('AI error', error.response.status, error.response.statusText, `${inputStr.replace(/^\.ai/i, '')}`)
+                return 'AI error', error.response.status + error.response.statusText + ` ${inputStr.replace(/^\.ai/i, '')}`;
+            }
+        }
+    }
+}
+
+const openai = new OpenAI();
+const chatAi = new ChatAi();
+const imageAi = new ImageAi();
+
 function splitStringByLength(str, length) {
-    let result = [[]];
-    let current = 0;
-    let lines = str.split('\n');
+    let result = [];
+    let currentLine = 0;
+    let currentStringLength = 0;
+    const lines = str.split('\n');
     for (let i = 0; i < lines.length; i++) {
         let line = lines[i];
-        let remaining = length - current;
-        while (line.length > remaining) {
-            let part = line.substring(0, remaining);
-            result[result.length - 1].push(part);
-            result.push([]);
-            line = line.substring(remaining);
-            current = 0;
-            remaining = length;
+        let lineLength = line.length;
+        if (lineLength > length) {
+            currentLine++;
+            result[currentLine] = line;
+            currentStringLength = 0;
         }
-        result[result.length - 1].push(line);
-        current += line.length;
+        if (currentStringLength + lineLength > length) {
+            currentLine++;
+            result[currentLine] = line;
+            currentStringLength = 0;
+        }
+        if (currentStringLength + lineLength < length) {
+            result[currentLine] += line + '\n';
+            currentStringLength += lineLength;
+        }
+
     }
     return result.filter(a => a.length > 0);
 }

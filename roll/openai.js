@@ -35,10 +35,32 @@ const initialize = function () {
     return variables;
 }
 
+async function getText(str, discordMessage) {
+    let text = [];
+    if (str.replace(/^\.ait\S+$/i, '').length > 0) text.push(str.replace(/^\.ait\S+$/i, ''));
 
+    if (discordMessage.type === 0 && discordMessage.attachments.size > 0) {
+        const url = discordMessage.attachments.filter(data => data.contentType.match(/text/i))
+        //down 
+        for (let index = 0; index < url.length; index++) {
+            const response = await fetch(url.url);
+            const data = await response.text();
+            console.log(data)
+            text.push(data);
+        }
+    }
+    //19 = reply
+    if (discordMessage.type === 19) {
+        const channel = await discordClient.channels.fetch(discordMessage.reference.channelId);
+        const referenceMessage = await channel.messages.fetch(discordMessage.reference.messageId)
+        const url = referenceMessage.attachments.find(data => data.contentType.match(/text/i))
+        return (url && url.url) || null;
+    }
+
+}
 
 async function handleTranslate(inputStr, discordMessage) {
-    let 
+    let text = getText(inputStr, discordMessage);
     try {
         let response = await openai.createChatCompletion({
             "model": "gpt-3.5-turbo",

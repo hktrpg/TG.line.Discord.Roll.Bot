@@ -637,13 +637,13 @@ async function mainCharacter(doc, mainMsg) {
                     last = 'state';
                     await findState.push(resutltState);
                 } else
-                    if (mainMsg[name].match(/^[+-/*]\S+d\S/i) && last == 'state') {
+                    if (mainMsg[name].match(/^[+-/*]\d+/i) && last == 'state') {
                         last = '';
                         let res = mainMsg[name].charAt(0)
                         let number = await countNum(mainMsg[name].substring(1));
                         number ? await findState.push(res + number) : null;
                     } else
-                        if (mainMsg[name].match(/^[0-9+\-*/.]\S+$/i) && last == 'state') {
+                        if (mainMsg[name].match(/^\d+$/i) && last == 'state') {
                             last = '';
                             await findState.push(mainMsg[name]);
                         } else {

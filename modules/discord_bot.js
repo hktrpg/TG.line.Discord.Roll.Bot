@@ -1302,14 +1302,14 @@ async function __handlingInteractionMessage(message) {
 				const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
 				const resultText = (result && result.text) || '';
 				if (/的角色卡$/.test(messageContent)) {
-					if (resultText) { return await message.reply({ content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${resultText}`, ephemeral: false }).catch() }
+					if (resultText) { return await message.deferReply({ content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${resultText}`, ephemeral: false }).catch() }
 					else {
-						return await message.reply({ content: `${displayname}沒有反應，請檢查按鈕內容`, ephemeral: true }).catch()
+						return await message.deferReply({ content: `${displayname}沒有反應，請檢查按鈕內容`, ephemeral: true }).catch()
 					}
 				}
 				if (/的角色$/.test(messageContent)) {
 					try {
-						return await message.reply({ content: `${displayname}${resultText}`, ephemeral: false })
+						return await message.deferReply({ content: `${displayname}${resultText}`, ephemeral: false })
 					} catch (error) {
 						null;
 					}

@@ -176,22 +176,22 @@ class TranslateAi extends OpenAI {
     }
     async getText(str, discordMessage, discordClient) {
         let text = [];
+        let textLength = 0;
         str = str.replace(/^\s*\.ait\s*/i, '');
         if (str.length > 0) {
             //       console.log('str.replace(/^\S?\.ait\S+/)', str.replace(/^\S?\.ait\S+/i, ''))
             text.push(str);
+            textLength += str.length;
         }
-        console.log('discordMessage:', discordMessage, ' text: ', text, ' str:', str)
-
         if (discordMessage?.type === 0 && discordMessage?.attachments?.size > 0) {
             const url = Array.from(discordMessage.attachments.filter(data => data.contentType.match(/text/i))?.values());
             for (let index = 0; index < url.length; index++) {
                 const response = await fetch(url[index].url);
                 const data = await response.text();
                 text.push(data);
+                textLength += data.length;
             }
         }
-        console.log(' text2: ', text, ' str:', str)
         //19 = reply
         if (discordMessage?.type === 19) {
             const channel = await discordClient.channels.fetch(discordMessage.reference.channelId);
@@ -201,18 +201,16 @@ class TranslateAi extends OpenAI {
                 const response = await fetch(url[index].url);
                 const data = await response.text();
                 text.push(data);
+                textLength += data.length;
             }
         }
-        console.log(' text3: ', text, ' str:', str)
 
         let result = this.splitStringByLength(text.join('\n'), 1900);
-        console.log(' result: ', result, ' str:', str)
 
-        return result;
+        return { translateScript: result, textLength };
 
     }
     async translateChat(inputStr) {
-        console.log('translateChat: ', inputStr)
         try {
             let result = await this.openai.createChatCompletion({
                 "model": "gpt-3.5-turbo",
@@ -246,6 +244,7 @@ class TranslateAi extends OpenAI {
     async translateText(translateScript) {
         let response = [];
         for (let index = 0; index < translateScript.length; index++) {
+            concole.log('translateScript[index]', index)
             let result = await this.translateChat(translateScript[index]);
             response.push(result);
         }
@@ -253,9 +252,10 @@ class TranslateAi extends OpenAI {
 
     }
     async handleTranslate(inputStr, discordMessage, discordClient) {
-        let translateScript = await this.getText(inputStr, discordMessage, discordClient);
-        console.log('translateScript: ', translateScript);
+        let { translateScript, textLength } = await this.getText(inputStr, discordMessage, discordClient);
+        console.log('translateScript: ', translateScript, ' textLength: ', textLength, ' inputStr: ', inputStr);
         let response = await this.translateText(translateScript);
+
         return response.join('\n');
 
     }
@@ -269,7 +269,6 @@ class TranslateAi extends OpenAI {
             let line = lines[i];
             let lineLength = line.length;
             if (lineLength > length) {
-                console.log('A')
                 let lineSplit = line.split(`/.{1,${length}}/g`);
                 for (let j = 0; j < lineSplit.length; j++) {
                     currentLine++;
@@ -278,20 +277,16 @@ class TranslateAi extends OpenAI {
                 currentStringLength = 0;
             }
             if (currentStringLength + lineLength > length) {
-                console.log('B')
                 currentLine++;
                 result[currentLine] = line;
                 currentStringLength = 0;
             }
             if (currentStringLength + lineLength < length) {
-
-                console.log('C: ', result[currentLine], ' line: ', line);
                 (result[currentLine] === undefined) ? result[currentLine] = line + '\n' : result[currentLine] += line + '\n';
                 currentStringLength += lineLength;
             }
 
         }
-        console.log('result: ', result)
         return result.filter(a => a.length > 0);
     }
 

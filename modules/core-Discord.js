@@ -43,12 +43,12 @@ manager.on('clusterCreate', shard => {
 manager.on("clusterCreate", cluster => {
 	cluster.on("message", async message => {
 		if (message.respawn === true && message.id !== null) {
-			console.log('Respawn message!! -> ', message.id);
+			console.log('Respawn shared!! -> ', message.id);
 			return manager.clusters.get(Number(message.id)).respawn({ delay: 100, timeout: 30000 });
 		}
 		if (message.respawnall === true) {
-			console.log('Respawn all message!!');
-			return manager.respawnAll({ clusterDelay: 5000, respawnDelay: 5500, timeout: 30000 });
+			console.log('Respawn all shared!!');
+			return manager.respawnAll({ clusterDelay: 1000 * 60, respawnDelay: 500, timeout: 1000 * 60 * 2 });
 		}
 	})
 });
@@ -58,9 +58,7 @@ manager.on("clusterCreate", cluster => {
 
 	agenda.define('0455restartdiscord', async (job) => {
 		console.log('04:55 restart discord!!');
-		for (let index = 0; index < maxShard; index++) {
-			manager.clusters.get(Number(index)).respawn({ delay: 2000, timeout: -1 })
-		}
+		manager.respawnAll({ clusterDelay: 1000 * 60, respawnDelay: 500, timeout: 1000 * 60 * 2 });
 
 	});
 })();

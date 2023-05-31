@@ -2,6 +2,7 @@
 if (!process.env.OPENAI_BASEPATH && !process.env.OPENAI_SECRET_1) return;
 const { Configuration, OpenAIApi } = require('openai');
 const fetch = require('node-fetch');
+const fs = require('fs').promises;
 const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
 
@@ -117,6 +118,7 @@ class OpenAI {
     }
     handleError(error) {
         this.errorCount++;
+        console.log('error', error.response?.status, error.response?.config?.headers?.Authorization)
         if (error.response?.status === 401) {
             console.error('remove api key 401', this.apiKeys[this.currentApiKeyIndex])
             this.apiKeys.splice(this.currentApiKeyIndex, 1);
@@ -128,6 +130,13 @@ class OpenAI {
             apiKey: this.apiKeys[this.currentApiKeyIndex],
             basePath: process.env.OPENAI_BASEPATH,
         }));
+    }
+    wait(minutes = 1) {
+        return new Promise(resolve => {
+            setTimeout(() => {
+                resolve();
+            }, minutes * 60 * 1000); // 1 minute = 60 seconds * 1000 milliseconds
+        });
     }
 }
 
@@ -205,10 +214,19 @@ class TranslateAi extends OpenAI {
             }
         }
 
+
         let result = this.splitStringByLength(text.join('\n'), 1900);
 
         return { translateScript: result, textLength };
 
+    }
+    async createFile(data) {
+        try {
+            await fs.writeFile('example.txt', data, { encoding: 'utf8' });
+            console.log('File has been saved!');
+        } catch (err) {
+            console.error(err);
+        }
     }
     async translateChat(inputStr) {
         try {
@@ -231,7 +249,11 @@ class TranslateAi extends OpenAI {
             return result?.data?.choices[0]?.message?.content;
         } catch (error) {
             //console.log('error', error)
-            if (this.errorCount < (this.apiKeys.length) * 3) {
+            if (this.errorCount < (this.apiKeys.length * 5)) {
+                if ((this.errorCount % this.apiKeys.length) === 0) {
+                    await super.wait(2);
+                }
+                console.log('this.errorCount', this.errorCount)
                 await super.handleError(error);
                 return await this.translateChat(inputStr);
             } else {
@@ -244,7 +266,7 @@ class TranslateAi extends OpenAI {
     async translateText(translateScript) {
         let response = [];
         for (let index = 0; index < translateScript.length; index++) {
-            concole.log('translateScript[index]', index)
+            console.log('translateScript[index]', index)
             let result = await this.translateChat(translateScript[index]);
             response.push(result);
         }
@@ -253,10 +275,14 @@ class TranslateAi extends OpenAI {
     }
     async handleTranslate(inputStr, discordMessage, discordClient) {
         let { translateScript, textLength } = await this.getText(inputStr, discordMessage, discordClient);
-        console.log('translateScript: ', translateScript, ' textLength: ', textLength, ' inputStr: ', inputStr);
+        console.log('translateScript: ', ' textLength: ', textLength,);
         let response = await this.translateText(translateScript);
-
-        return response.join('\n');
+        response = response.join('\n');
+        if (textLength > 1900) {
+            await this.createFile(response);
+            return '輸出的文字太多了，請看附件';
+        }
+        return response
 
     }
     splitStringByLength(str, length) {
@@ -264,7 +290,6 @@ class TranslateAi extends OpenAI {
         let currentLine = 0;
         let currentStringLength = 0;
         const lines = str.split('\n');
-        console.log(lines)
         for (let i = 0; i < lines.length; i++) {
             let line = lines[i];
             let lineLength = line.length;

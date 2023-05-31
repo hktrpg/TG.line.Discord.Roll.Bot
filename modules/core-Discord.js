@@ -10,7 +10,7 @@ let maxShard = 1;
 const manager = new ClusterManager('./modules/discord_bot.js', {
 	token: channelSecret,
 	shardsPerClusters: 2,
-	totalShards: 10,
+	totalShards: "auto",
 	mode: 'process', // you can also choose "worker"
 	//spawnTimeout: -1,
 	//respawn: true

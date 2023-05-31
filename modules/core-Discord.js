@@ -10,7 +10,7 @@ let maxShard = 1;
 const manager = new ClusterManager('./modules/discord_bot.js', {
 	token: channelSecret,
 	shardsPerClusters: 2,
-	totalShards: "auto",
+	totalShards: 10,
 	mode: 'process', // you can also choose "worker"
 	//spawnTimeout: -1,
 	//respawn: true
@@ -48,7 +48,7 @@ manager.on("clusterCreate", cluster => {
 		}
 		if (message.respawnall === true) {
 			console.log('Respawn all shared!!');
-			return manager.respawnAll({ clusterDelay: 1000 * 60 * 2 * 2, respawnDelay: 1000 * 60 * 2, timeout: 1000 * 60 * 2 * 4 });
+			return manager.respawnAll({ clusterDelay: 1000 * 60, respawnDelay: 500, timeout: 1000 * 60 * 2 });
 		}
 	})
 });
@@ -58,7 +58,7 @@ manager.on("clusterCreate", cluster => {
 
 	agenda.define('0455restartdiscord', async (job) => {
 		console.log('04:55 restart discord!!');
-		manager.respawnAll({ clusterDelay: 1000 * 60 * 2 * 2, respawnDelay: 1000 * 60 * 2, timeout: 1000 * 60 * 2 * 4 });
+		manager.respawnAll({ clusterDelay: 1000 * 60, respawnDelay: 500, timeout: 1000 * 60 * 2 });
 
 	});
 })();

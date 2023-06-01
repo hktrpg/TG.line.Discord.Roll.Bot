@@ -61,7 +61,10 @@ const rollDiceCommand = async function ({
     };
     switch (true) {
         case /^.ait$/i.test(mainMsg[0]): {
-            rply.text = await translateAi.handleTranslate(inputStr, discordMessage, discordClient);
+            const { filetext, sendfile, text } = await translateAi.handleTranslate(inputStr, discordMessage, discordClient);
+            filetext && (rply.fileText = filetext);
+            sendfile && (rply.fileLink = [sendfile]);
+            text && (rply.text = text);
             rply.quotes = true;
             return rply;
         }
@@ -215,15 +218,19 @@ class TranslateAi extends OpenAI {
         }
 
 
-        let result = this.splitStringByLength(text.join('\n'), 1900);
+        let result = this.splitStringByLength(text.join('\n'), 1500);
 
         return { translateScript: result, textLength };
 
     }
     async createFile(data) {
         try {
-            await fs.writeFile('example.txt', data, { encoding: 'utf8' });
+            const d = new Date();
+            let time = d.getTime();
+            let name = `translated_${time}.txt`
+            await fs.writeFile(`./temp/${name}`, data, { encoding: 'utf8' });
             console.log('File has been saved!');
+            return `./temp/${name}`;
         } catch (err) {
             console.error(err);
         }
@@ -279,10 +286,10 @@ class TranslateAi extends OpenAI {
         let response = await this.translateText(translateScript);
         response = response.join('\n');
         if (textLength > 1900) {
-            await this.createFile(response);
-            return '輸出的文字太多了，請看附件';
+            let sendfile = await this.createFile(response);
+            return { fileText: '輸出的文字太多了，請看附件', sendfile };
         }
-        return response
+        return { text: response }
 
     }
     splitStringByLength(str, length) {

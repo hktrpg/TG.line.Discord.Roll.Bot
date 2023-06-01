@@ -977,6 +977,7 @@ async function handlingResponMessage(message, answer = '') {
 		if (rplyVal.sendNews) sendNewstoAll(rplyVal);
 
 		if (rplyVal.sendImage) sendBufferImage(message, rplyVal, userid)
+		if (rplyVal.fileLink?.length > 0) sendFiles(message, rplyVal, userid)
 		if (rplyVal.respawn) respawnCluster2();
 		if (!rplyVal.text && !rplyVal.LevelUp) return;
 		if (process.env.mongoURL)
@@ -1049,6 +1050,25 @@ const sendBufferImage = async (message, rplyVal, userid) => {
 		]
 	});
 	fs.unlinkSync(rplyVal.sendImage);
+	return;
+}
+const sendFiles = async (message, rplyVal, userid) => {
+	let text = rplyVal.fileText || '';
+	let files = [];
+	for (let index = 0; index < rplyVal.fileLink.length; index++) {
+		files.push(new AttachmentBuilder(rplyVal.fileLink[index]))
+	}
+	try {
+		await message.channel.send({
+			content: `<@${userid}>\n${text}`, files
+		});
+	} catch (error) {
+		console.error;
+	}
+	for (let index = 0; index < rplyVal.fileLink.length; index++) {
+		fs.unlinkSync(files[index]);
+	}
+
 	return;
 }
 

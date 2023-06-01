@@ -3,6 +3,8 @@ if (!process.env.OPENAI_BASEPATH && !process.env.OPENAI_SECRET_1) return;
 const { Configuration, OpenAIApi } = require('openai');
 const fetch = require('node-fetch');
 const fs = require('fs').promises;
+const VIP = require('../modules/veryImportantPerson');
+const TRANSLATE_LIMIT_PERSONAL = [500, 100000, 200000, 300000, 400000, 500000, 600000, 700000];
 const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
 
@@ -61,7 +63,7 @@ const rollDiceCommand = async function ({
     };
     switch (true) {
         case /^.ait$/i.test(mainMsg[0]): {
-            const { filetext, sendfile, text } = await translateAi.handleTranslate(inputStr, discordMessage, discordClient);
+            const { filetext, sendfile, text } = await translateAi.handleTranslate(inputStr, discordMessage, discordClient, userid);
             filetext && (rply.fileText = filetext);
             sendfile && (rply.fileLink = [sendfile]);
             text && (rply.text = text);
@@ -257,7 +259,7 @@ class TranslateAi extends OpenAI {
         } catch (error) {
             //console.log('error', error)
             if (this.errorCount < (this.apiKeys.length * 5)) {
-                if ((this.errorCount % this.apiKeys.length) === 0) {
+                if (((this.errorCount !== 0) && this.errorCount % this.apiKeys.length) === 0) {
                     await super.wait(2);
                 }
                 console.log('this.errorCount', this.errorCount)
@@ -280,9 +282,12 @@ class TranslateAi extends OpenAI {
         return response;
 
     }
-    async handleTranslate(inputStr, discordMessage, discordClient) {
+    async handleTranslate(inputStr, discordMessage, discordClient, userid) {
+        let lv = await VIP.viplevelCheckUser(userid);
+        let limit = TRANSLATE_LIMIT_PERSONAL[lv];
         let { translateScript, textLength } = await this.getText(inputStr, discordMessage, discordClient);
         console.log('translateScript: ', ' textLength: ', textLength,);
+        if (textLength > limit) return { text: `輸入的文字太多了，請分批輸入，你是VIP LV${lv}，限制為${limit}字` };
         let response = await this.translateText(translateScript);
         response = response.join('\n');
         if (textLength > 1900) {

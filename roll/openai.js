@@ -30,6 +30,8 @@ const getHelpMessage = function () {
 .aimage [描述] - 產生DALL-E圖片
 .ai [對話] - 使用gpt-3.5-turbo產生對話
 .ait [內容] 或 附件 - 使用 gpt-3.5-turbo進行正體中文翻譯
+附件需要使用.txt檔案上傳，普通使用者限500字內容，升級VIP後上限會提升，
+AI翻譯需時，請耐心等待，也可能會出錯而失敗，10000字可能需要十分鐘以上。
 
 使用: https://github.com/PawanOsman/ChatGPT#nodejs
 `
@@ -123,7 +125,6 @@ class OpenAI {
     }
     handleError(error) {
         this.errorCount++;
-        console.log('error', error.response?.status, error.response?.config?.headers?.Authorization)
         if (error.response?.status === 401) {
             console.error('remove api key 401', this.apiKeys[this.currentApiKeyIndex])
             this.apiKeys.splice(this.currentApiKeyIndex, 1);
@@ -168,8 +169,8 @@ class ImageAi extends OpenAI {
                 return await this.handleImageAi(inputStr);
             } else {
                 this.errorCount = 0;
-                console.error('AI error', error.response.status, error.response.statusText, `${inputStr.replace(/^\.ai/i, '')}`)
-                return 'AI error', error.response.status + error.response.statusText + ` ${inputStr.replace(/^\.ai/i, '')}`;
+                console.error('AI error', error.response?.status, error.response?.statusText, `${inputStr.replace(/^\.ai/i, '')}`)
+                return 'AI error', error.response?.status + error.response?.statusText + ` ${inputStr.replace(/^\.ai/i, '')}`;
             }
         }
     }
@@ -193,7 +194,6 @@ class TranslateAi extends OpenAI {
         let textLength = 0;
         str = str.replace(/^\s*\.ait\s*/i, '');
         if (str.length > 0) {
-            //       console.log('str.replace(/^\S?\.ait\S+/)', str.replace(/^\S?\.ait\S+/i, ''))
             text.push(str);
             textLength += str.length;
         }
@@ -231,7 +231,6 @@ class TranslateAi extends OpenAI {
             let time = d.getTime();
             let name = `translated_${time}.txt`
             await fs.writeFile(`./temp/${name}`, data, { encoding: 'utf8' });
-            console.log('File has been saved!');
             return `./temp/${name}`;
         } catch (err) {
             console.error(err);
@@ -257,12 +256,10 @@ class TranslateAi extends OpenAI {
             this.errorCount = 0;
             return result?.data?.choices[0]?.message?.content;
         } catch (error) {
-            //console.log('error', error)
             if (this.errorCount < (this.apiKeys.length * 5)) {
                 if (((this.errorCount !== 0) && this.errorCount % this.apiKeys.length) === 0) {
                     await super.wait(2);
                 }
-                console.log('this.errorCount', this.errorCount)
                 await super.handleError(error);
                 return await this.translateChat(inputStr);
             } else {
@@ -275,7 +272,6 @@ class TranslateAi extends OpenAI {
     async translateText(translateScript) {
         let response = [];
         for (let index = 0; index < translateScript.length; index++) {
-            console.log('translateScript[index]', index)
             let result = await this.translateChat(translateScript[index]);
             response.push(result);
         }
@@ -286,7 +282,6 @@ class TranslateAi extends OpenAI {
         let lv = await VIP.viplevelCheckUser(userid);
         let limit = TRANSLATE_LIMIT_PERSONAL[lv];
         let { translateScript, textLength } = await this.getText(inputStr, discordMessage, discordClient);
-        console.log('translateScript: ', ' textLength: ', textLength,);
         if (textLength > limit) return { text: `輸入的文字太多了，請分批輸入，你是VIP LV${lv}，限制為${limit}字` };
         let response = await this.translateText(translateScript);
         response = response.join('\n');
@@ -358,8 +353,8 @@ class ChatAi extends OpenAI {
                 return await this.handleChatAi(inputStr);
             } else {
                 this.errorCount = 0;
-                console.error('AI error', error.response.status, error.response.statusText, `${inputStr.replace(/^\.ai/i, '')}`)
-                return 'AI error', error.response.status + error.response.statusText + ` ${inputStr.replace(/^\.ai/i, '')}`;
+                console.error('AI error', error.response?.status, error.response?.statusText, `${inputStr.replace(/^\.ai/i, '')}`)
+                return 'AI error', error.response?.status + error.response?.statusText + ` ${inputStr.replace(/^\.ai/i, '')}`;
             }
         }
     }

@@ -730,7 +730,7 @@ async function checkWakeUp() {
 			}, []);
 			if (indexes.length > 0) {
 				indexes.forEach(index => {
-					checkMongodb.discordClientRespawn(client, index)
+					//checkMongodb.discordClientRespawn(client, index)
 				})
 				return false
 			}

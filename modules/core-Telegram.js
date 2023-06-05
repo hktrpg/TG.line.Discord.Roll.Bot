@@ -3,6 +3,7 @@ if (!process.env.TELEGRAM_CHANNEL_SECRET) {
     return;
 }
 process.env.NTBA_FIX_319 = 1;
+const candle = require('../modules/candleDays.js');
 const TelegramBot = require('node-telegram-bot-api');
 const agenda = require('../modules/schedule')
 const rollText = require('./getRoll').rollText;
@@ -150,7 +151,7 @@ TGclient.on('text', async (ctx) => {
 
     //LevelUp功能
     if (groupid && rplyVal && rplyVal.LevelUp) {
-        let text = `@${displayname}${(rplyVal.statue) ? ' ' + rplyVal.statue : ''}
+        let text = `@${displayname}${(rplyVal.statue) ? ' ' + rplyVal.statue : ''}${(candle.checker()) ? ' ' + candle.checker() : ''}
 		${rplyVal.LevelUp}`
         SendToId(groupid, text, options);
 
@@ -211,7 +212,7 @@ TGclient.on('text', async (ctx) => {
         default:
             if (displaynamecheck && displayname) {
                 //285083923223
-                displayname = "@" + ctx.from.username + ((rplyVal.statue) ? ' ' + rplyVal.statue : '') + "\n";
+                displayname = "@" + ctx.from.username + ((rplyVal.statue) ? ' ' + rplyVal.statue : '') + ((candle.checker()) ? ' ' + candle.checker() : '') + "\n";
                 rplyVal.text = displayname + rplyVal.text;
             }
             SendToId((groupid || userid), rplyVal.text, options);

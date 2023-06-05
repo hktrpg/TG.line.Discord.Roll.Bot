@@ -19,6 +19,7 @@ if (process.env.BROADCAST) {
 		}
 	});
 }
+const candle = require('../modules/candleDays.js'); 
 const qrcode = require('qrcode-terminal');
 const isHeroku = (process.env._ && process.env._.indexOf("heroku")) > 0 ? true : false;
 var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
@@ -237,7 +238,7 @@ if (retry > maxRetry) {
 		}
 		//LevelUp功能
 		if (groupid && rplyVal && rplyVal.LevelUp) {
-			let text = `@${displayname}${(rplyVal.statue) ? ' ' + rplyVal.statue : ''}
+			let text = `@${displayname}${(rplyVal.statue) ? ' ' + rplyVal.statue : ''}${(candle.checker()) ? ' ' + candle.checker() : ''}
 			${rplyVal.LevelUp}`
 			client.sendMessage(msg.from, text);
 		}
@@ -342,7 +343,7 @@ if (retry > maxRetry) {
 
 
 				}
-				msg.reply(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);
+				msg.reply(`${(candle.checker()) ? candle.checker() +' ': ''}${rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]}`);
 			}
 		}
 	}

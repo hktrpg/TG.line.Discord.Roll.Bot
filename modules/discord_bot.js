@@ -6,6 +6,7 @@ const isImageURL = require('image-url-validator').default;
 const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)(\s?)$/igm);
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const adminSecret = process.env.ADMIN_SECRET || '';
+const candle = require('../modules/candleDays.js');
 const { ClusterClient, getInfo } = require('discord-hybrid-sharding');
 const { Client, GatewayIntentBits, Partials, Options, Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, Events, EmbedBuilder, PermissionsBitField, AttachmentBuilder, ChannelType } = require('discord.js');
 
@@ -210,7 +211,7 @@ client.once('ready', async () => {
 });
 
 client.on('ready', async () => {
-	client.user.setActivity('🌼bothelp | hktrpg.com🍎');
+	client.user.setActivity(`${candle.checker() || '🌼'}bothelp | hktrpg.com🍎`);
 	console.log(`Discord: Logged in as ${client.user.tag}!`);
 	var switchSetActivity = 0;
 	// eslint-disable-next-line no-unused-vars
@@ -224,7 +225,7 @@ client.on('ready', async () => {
 	const refreshId2 = setInterval(async () => {
 		switch (switchSetActivity % 2) {
 			case 1:
-				client.user.setActivity('🌼bothelp | hktrpg.com🍎');
+				client.user.setActivity(`${candle.checker() || '🌼'}bothelp | hktrpg.com🍎`);
 				break;
 			default:
 				client.user.setActivity(await count2());
@@ -235,7 +236,7 @@ client.on('ready', async () => {
 });
 
 async function replilyMessage(message, result) {
-	const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
+	const displayname = (message.member && message.member.id) ? `<@${message.member.id}>${candle.checker()}\n` : '';
 	if (result && result.text) {
 		result.text = `${displayname}${result.text}`
 		await __handlingReplyMessage(message, result);
@@ -420,7 +421,7 @@ async function nonDice(message) {
 		let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount, "", message);
 		if (groupid && LevelUp && LevelUp.text) {
 			await SendToReplychannel(
-				{ replyText: `@${displayname}  ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`, channelid: message.channel.id }
+				{ replyText: `@${displayname} ${candle.checker()} ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`, channelid: message.channel.id }
 			);
 		}
 	} catch (error) {

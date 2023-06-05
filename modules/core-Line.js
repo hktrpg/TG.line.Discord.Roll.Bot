@@ -3,6 +3,7 @@ if (!process.env.LINE_CHANNEL_ACCESSTOKEN) {
 	return;
 }
 const port = 20831;
+const candle = require('../modules/candleDays.js'); 
 const mainLine = (process.env.DISCORD_CHANNEL_SECRET) ? false : true;
 const lineAgenda = (process.env.LINE_AGENDA) ? true : false;
 exports.analytics = require('./analytics');
@@ -256,6 +257,7 @@ var handleEvent = async function (event) {
 			if (displayname && rplyVal && rplyVal.type != 'image') {
 				//285083923223
 				displayname = "@" + displayname;
+				displayname +=(candle.checker()) ? ' ' + candle.checker() : '';
 				displayname += (rplyVal.statue) ? ' ' + rplyVal.statue + '\n' : "\n";
 				rplyVal.text = displayname + rplyVal.text;
 			}

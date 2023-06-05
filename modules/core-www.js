@@ -6,6 +6,7 @@ if (!process.env.LINE_CHANNEL_ACCESSTOKEN || !process.env.mongoURL) {
 const {
     RateLimiterMemory
 } = require('rate-limiter-flexible');
+const candle = require('../modules/candleDays.js');
 const MESSAGE_SPLITOR = (/\S+/ig)
 const schema = require('./schema.js');
 const privateKey = (process.env.KEY_PRIKEY) ? process.env.KEY_PRIKEY : null;
@@ -208,7 +209,7 @@ io.on('connection', async (socket) => {
         // 訊息來到後, 會自動跳到analytics.js進行骰組分析
         // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
         if (rplyVal && rplyVal.text) {
-            socket.emit('rolling', result.characterReRollName + '：\n' + rplyVal.text)
+            socket.emit('rolling', result.characterReRollName + '：\n' + rplyVal.text + candle.checker())
             if (message.rollTarget && message.rollTarget.id && message.rollTarget.botname && message.userName && message.userPassword && message.cardName) {
                 let filter = {
                     userName: message.userName,

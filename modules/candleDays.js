@@ -3,7 +3,7 @@
  * @description 檢查今天是否是指定日期，如果是的話，回傳指定的字串，否則回傳空字串，用於檢查是否需要顯示蠟燭，或是其他用途。
  * @example 在.env 中設定 CANDLE_DATES=2,14,🌷 12,25,🕯️
  * @example 在程式中使用：
- *          const candle = require('./modules/candleDays.js'); 
+ *          const candle = require('../modules/candleDays.js'); 
  *          candle.checker();
  * @example 以上設定會在每年的 6 月 4 日顯示蠟燭，2 月 14 日顯示🌷，12 月 25 日顯示🕯️
  * @example 日期格式為：月,日,顯示的字串，月和日必須為數字，顯示的字串可以不填，預設為🕯️

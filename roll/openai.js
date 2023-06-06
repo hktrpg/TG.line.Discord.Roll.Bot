@@ -249,7 +249,7 @@ class TranslateAi extends OpenAI {
                     },
                     {
                         "role": "user",
-                        "content": `${inputStr}\n\n把以上內容翻譯成正體中文`
+                        "content": `${inputStr}\n\n把以上內容翻譯成正體中文，名詞KEEPERS=KP，INVESTIGATORS為調查員，ROLL是擲骰。GAME MASTER是GM。劇本是模組。日文漢字人名不需翻譯。`
                     }
                 ]
 

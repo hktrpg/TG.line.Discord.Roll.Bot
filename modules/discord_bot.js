@@ -1145,7 +1145,7 @@ async function handlingSendMessage(input) {
 			return;
 		default:
 			if (userid) {
-				sendText = `<@${userid}> ${(statue) ? statue : ''}\n${sendText}`;
+				sendText = `<@${userid}> ${(statue) ? statue : ''}${candle.checker()}\n${sendText}`;
 			}
 			if (groupid) {
 				await SendToReplychannel({ replyText: sendText, channelid, quotes: quotes, buttonCreate: buttonCreate });

@@ -1467,8 +1467,8 @@ function sc(mainMsg) {
 	let sc = (scMode) ? mainMsg[2] && mainMsg[2].match(/^(.+)\/(.+)$/i) : null;
 	(!sc) ? scMode = false : null;
 
-	let rollFail = sc && sc[2];
-	let rollSuccess = sc && sc[1];
+	let rollFail = (sc && sc[2] && sc[2].match(/(\d+)d(\d+)/i) && sc[2].match(/(\d+)d(\d+)/i)[0]) || (sc && sc[2] && sc[2].match(/(\d+)/i) && sc[2].match(/(\d+)/i)[0]);
+	let rollSuccess = (sc && sc[1] && sc[1].match(/(\d+)d(\d+)/i) && sc[1].match(/(\d+)d(\d+)/i)[0]) || (sc && sc[1] && sc[1].match(/(\d+)/i) && sc[1].match(/(\d+)/i)[0]);
 
 	let lossSan = 0;
 
@@ -1506,7 +1506,7 @@ function sc(mainMsg) {
 			}
 			if (lossSan) {
 				let nowSan = ((san - lossSan) < 0) ? 0 : san - lossSan;
-				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 成功!\n失去${lossSan}點San\n現在San值是${nowSan}點`
+				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 成功!\n失去${rollSuccess} → ${lossSan}點San\n現在San值是${nowSan}點`
 			} else
 				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 成功!\n不需要減少San`
 
@@ -1528,7 +1528,7 @@ function sc(mainMsg) {
 			if (lossSan) {
 				lossSan = lossSan.match(/\d+$/);
 				let nowSan = ((san - lossSan) < 0) ? 0 : san - lossSan;
-				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 失敗!\n失去${lossSan}點San\n現在San值是${nowSan}點`
+				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 失敗!\n失去${rollFail} → ${lossSan}點San\n現在San值是${nowSan}點`
 			} else
 				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 失敗!\n但不需要減少San`
 

@@ -105,7 +105,7 @@ class Pokemon {
             keys: ['name', 'id', 'alias'],
             includeScore: true,
             findAllMatches: true,
-            threshold: 0
+            threshold: 0.6
         });
     }
 

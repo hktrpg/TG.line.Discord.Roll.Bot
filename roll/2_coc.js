@@ -42,6 +42,14 @@ P.S.追逐戰功能使用了可選規則及我對規則書之獨斷理解，
 coc7版 即時型瘋狂： 啓動語 ccrt
 coc7版 總結型瘋狂： 啓動語 ccsu
 
+coc7版 神話生物： 啓動語 ccmm P283
+coc7版 神話神祇： 啓動語 ccmd 
+coc7版 神話組織： 啓動語 ccml IB P125
+coc7版 神話魔法： 啓動語 ccmt P246
+coc7版 神話典籍： 啓動語 ccnpc  P225
+
+coc7版 施法推骰： 啓動語 ccpc P178
+
 coc pulp版創角	： 啓動語 .ccpulpbuild
 coc6版創角		： 啓動語 .cc6build
 coc7版創角		： 啓動語 .cc7build (歲數7-89)

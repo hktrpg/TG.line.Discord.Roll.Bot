@@ -28,13 +28,11 @@ const prefixs = function () {
 const getHelpMessage = function () {
     return `【OpenAi】
 .aimage [描述] - 產生DALL-E圖片
-.ai [對話] - 使用gpt-3.5-turbo產生對話
-.ait [內容] 或 附件 - 使用 gpt-3.5-turbo進行正體中文翻譯
+.ai [對話] - 使用gpt-4產生對話
+.ait [內容] 或 附件 - 使用 gpt-4進行正體中文翻譯
 附件需要使用.txt檔案上傳，普通使用者限500字內容，升級VIP後上限會提升，
 AI翻譯需時，請耐心等待，也可能會出錯而失敗，10000字可能需要十分鐘以上。
 超過1900字會以.TXT附件形式回覆，請注意查收。
-
-使用: https://github.com/PawanOsman/ChatGPT#nodejs
 `
 }
 const initialize = function () {
@@ -240,7 +238,7 @@ class TranslateAi extends OpenAI {
     async translateChat(inputStr) {
         try {
             let result = await this.openai.createChatCompletion({
-                "model": "gpt-3.5-turbo",
+                "model": "gpt-4",
                 "max_tokens": 2100,
                 "messages": [
                     {
@@ -332,7 +330,7 @@ class ChatAi extends OpenAI {
     async handleChatAi(inputStr) {
         try {
             let response = await this.openai.createChatCompletion({
-                "model": "gpt-3.5-turbo",
+                "model": "gpt-4",
                 "max_tokens": 3100,
                 "timeout": 3000,
                 "messages": [
@@ -355,7 +353,7 @@ class ChatAi extends OpenAI {
                 return await this.handleChatAi(inputStr);
             } else {
                 this.errorCount = 0;
-                console.error('AI error', error.response?.status, error.response?.statusText, `${inputStr.replace(/^\.ai/i, '')}`)
+                console.error('AI error', error, error.response?.status, error.response?.statusText, `${inputStr.replace(/^\.ai/i, '')}`)
                 return 'AI error', error.response?.status + error.response?.statusText + ` ${inputStr.replace(/^\.ai/i, '')}`;
             }
         }

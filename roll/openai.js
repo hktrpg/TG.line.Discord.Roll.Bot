@@ -112,6 +112,7 @@ class OpenAI {
             apiKey: this.apiKeys[0],
             basePath: process.env.OPENAI_BASEPATH,
         });
+        this.model = process.env.OPENAI_MODEL || "gpt-4";
         this.openai = new OpenAIApi(this.configuration);
         this.currentApiKeyIndex = 0;
         this.errorCount = 0;
@@ -238,7 +239,7 @@ class TranslateAi extends OpenAI {
     async translateChat(inputStr) {
         try {
             let result = await this.openai.createChatCompletion({
-                "model": "gpt-4",
+                "model": this.model,
                 "max_tokens": 2100,
                 "messages": [
                     {
@@ -330,7 +331,7 @@ class ChatAi extends OpenAI {
     async handleChatAi(inputStr) {
         try {
             let response = await this.openai.createChatCompletion({
-                "model": "gpt-4",
+                "model": this.model,
                 "max_tokens": 3100,
                 "messages": [
                     {

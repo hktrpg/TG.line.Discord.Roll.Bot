@@ -352,7 +352,7 @@ class ChatAi extends OpenAI {
                 return await this.handleChatAi(inputStr);
             } else {
                 this.errorCount = 0;
-                console.error('AI error', error, error.response?.status, error.response?.statusText, `${inputStr.replace(/^\.ai/i, '')}`)
+                console.error('AI error', error.response?.status, error.response?.statusText, `${inputStr.replace(/^\.ai/i, '')}`)
                 return 'AI error', error.response?.status + error.response?.statusText + ` ${inputStr.replace(/^\.ai/i, '')}`;
             }
         }

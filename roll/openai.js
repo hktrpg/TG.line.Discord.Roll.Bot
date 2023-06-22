@@ -332,7 +332,6 @@ class ChatAi extends OpenAI {
             let response = await this.openai.createChatCompletion({
                 "model": "gpt-4",
                 "max_tokens": 3100,
-                "timeout": 3000,
                 "messages": [
                     {
                         "role": "system",

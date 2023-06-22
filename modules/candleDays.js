@@ -19,7 +19,7 @@ class CandleChecker {
         const today = new Date();
         this.todayMonth = today.getMonth() + 1;
         this.todayDate = today.getDate();
-        this.scheduleFunction()
+        this.scheduleFunction();
         this.isCandleDay = false;
         this.checkForCandle();
     }
@@ -49,12 +49,12 @@ class CandleChecker {
     scheduleFunction() {
         const now = new Date(); // 當前日期和時間
         const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1); // 明天日期
-        const msUntilMidnight = tomorrow.getTime() - now.getTime() + 1000; // 距離明天 00:00 +1000 的毫秒數
-        setTimeout(function () {
+        const msUntilMidnight = tomorrow.getTime() - now.getTime() + 5000; // 距離明天 00:00 +1000 的毫秒數
+        setTimeout(() => {
             this.scheduleFunction(); // 設定下一次定時任務
             this.updateToday(); // 更新今天的日期
             this.checkForCandle();// 檢查是否是指定日期，如果是的話，設定 this.isCandleDay 為 true
-        }, msUntilMidnight); // 設定定時器等待到明天 00:00
+        }, msUntilMidnight); // 設定定時器等待到明天 00:00+5秒 後執行
     }
     updateToday() {
         const today = new Date();

@@ -163,7 +163,7 @@ class ImageAi extends OpenAI {
             this.errorCount = 0;
             return response;
         } catch (error) {
-            if (this.errorCount < this.apiKeys.length) {
+            if (this.errorCount < (this.apiKeys.length * 5)) {
                 await super.handleError(error);
                 return await this.handleImageAi(inputStr);
             } else {
@@ -347,7 +347,7 @@ class ChatAi extends OpenAI {
             this.errorCount = 0;
             return response?.data?.choices[0]?.message?.content;
         } catch (error) {
-            if (this.errorCount < this.apiKeys.length) {
+            if (this.errorCount < (this.apiKeys.length * 5)) {
                 await super.handleError(error);
                 return await this.handleChatAi(inputStr);
             } else {

@@ -1,5 +1,5 @@
 "use strict";
-if (!process.env.OPENAI_BASEPATH && !process.env.OPENAI_SECRET_1) return;
+if (!process.env.OPENAI_BASEPATH || !process.env.OPENAI_SECRET_1) return;
 const { Configuration, OpenAIApi } = require('openai');
 const fetch = require('node-fetch');
 const fs = require('fs').promises;
@@ -169,8 +169,8 @@ class ImageAi extends OpenAI {
                 return await this.handleImageAi(inputStr);
             } else {
                 this.errorCount = 0;
-                console.error('AI error', error.response?.status, error.response?.statusText, `${inputStr.replace(/^\.ai/i, '')}`)
-                return 'AI error', error.response?.status + error.response?.statusText + ` ${inputStr.replace(/^\.ai/i, '')}`;
+                console.error('AI error', error.response?.status, error.response?.statusText, `${inputStr.replace(/^\.aimage/i, '')}`)
+                return 'AI error', error.response?.status + error.response?.statusText + ` ${inputStr.replace(/^\.aimage/i, '')}`;
             }
         }
     }
@@ -244,11 +244,11 @@ class TranslateAi extends OpenAI {
                 "messages": [
                     {
                         "role": "system",
-                        "content": "你叫HKTRPG TRPG助手。你以正體中文回答所有問題."
+                        "content": "你叫HKTRPG TRPG助手。你的責任是把所有輸入的內容翻譯成正體中文。名詞表: KEEPERS=KP，INVESTIGATORS為調查員，ROLL是擲骰。GAME MASTER是GM。劇本是模組。日文漢字人名不需翻譯。"
                     },
                     {
                         "role": "user",
-                        "content": `${inputStr}\n\n把以上內容翻譯成正體中文，名詞KEEPERS=KP，INVESTIGATORS為調查員，ROLL是擲骰。GAME MASTER是GM。劇本是模組。日文漢字人名不需翻譯。`
+                        "content": `${inputStr}\n\n`
                     }
                 ]
 

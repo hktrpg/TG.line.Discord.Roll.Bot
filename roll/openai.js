@@ -7,6 +7,7 @@ const VIP = require('../modules/veryImportantPerson');
 const TRANSLATE_LIMIT_PERSONAL = [500, 100000, 200000, 300000, 400000, 500000, 600000, 700000];
 const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
+const splitLength = 1000;
 
 const gameName = function () {
     return '【OpenAi】'
@@ -220,7 +221,7 @@ class TranslateAi extends OpenAI {
         }
 
 
-        let result = this.splitStringByLength(text.join('\n'), 1500);
+        let result = this.splitStringByLength(text.join('\n'), splitLength);
 
         return { translateScript: result, textLength };
 

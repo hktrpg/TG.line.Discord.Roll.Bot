@@ -41,7 +41,12 @@ const initialize = function () {
 }
 
 
+/* TO DO LIST
+https://github.com/mozilla/readability
+https://www.npmjs.com/package/textract
 
+
+*/
 
 
 const rollDiceCommand = async function ({

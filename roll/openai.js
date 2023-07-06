@@ -239,7 +239,7 @@ class TranslateAi extends OpenAI {
     }
     async translateChat(inputStr) {
         try {
-            let result = await this.openai.createChatCompletion({
+            let response = await this.openai.createChatCompletion({
                 "model": this.model,
                 "max_tokens": 2100,
                 "messages": [
@@ -249,15 +249,26 @@ class TranslateAi extends OpenAI {
                     },
                     {
                         "role": "user",
-                        "content": `${inputStr}\n\n
-                        -----------------------
-                        "你叫HKTRPG TRPG助手。你的責任是把以上輸入的內容翻譯成正體中文。名詞表: KEEPERS=KP，INVESTIGATORS為調查員，ROLL是擲骰。GAME MASTER是GM。劇本是模組。日文漢字人名不需翻譯。"`
+                        "content": `${inputStr}\n\n`
                     }
                 ]
 
             })
             this.errorCount = 0;
-            return result?.data?.choices[0]?.message?.content;
+            if (response.status === 200 && (typeof response.data === 'string' || response.data instanceof String)) {
+                const dataStr = response.data;
+                const dataArray = dataStr.split('\n\n').filter(Boolean); // 將字符串分割成數組
+                const parsedData = [];
+
+                dataArray.forEach((str) => {
+                    const obj = JSON.parse(str.substring(6)); // 將子字符串轉換為對象
+                    parsedData.push(obj);
+                });
+                const contents = parsedData.map((obj) => obj.choices[0].delta.content);
+                const mergedContent = contents.join('');
+                return mergedContent;
+            }
+            return response?.data?.choices[0]?.message?.content;
         } catch (error) {
             if (this.errorCount < (this.apiKeys.length * 5)) {
                 if (((this.errorCount !== 0) && this.errorCount % this.apiKeys.length) === 0) {
@@ -325,10 +336,7 @@ class TranslateAi extends OpenAI {
         return result.filter(a => a.length > 0);
     }
 
-}ata:
-'data: {"choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":"H"}}],"created":1688616378,"id":"nQecjB6A99bmaL3zQJupMjBMng2B","model":"gpt-4-poe","object":"chat.completion.chunk"}\n\ndata: {"choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":"ello! "}}],"created":1688616378,"id":"nQecjB6A99bmaL3zQJupMjBMng2B","model":"gpt-4-poe","object":"chat.completion.chunk"}\n\ndata: {"choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","c…88616378,"id":"nQecjB6A99bmaL3zQJupMjBMng2B","model":"gpt-4-poe","object":"chat.completion.chunk"}\n\ndata: {"choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":"help you today?"}}],"created":1688616378,"id":"nQecjB6A99bmaL3zQJupMjBMng2B","model":"gpt-4-poe","object":"chat.completion.chunk"}\n\ndata: {"choices":[{"index":0,"finish_reason":"stop","delta":{}}],"created":1688616378,"id":"nQecjB6A99bmaL3zQJupMjBMng2B","model":"gpt-4-poe","object":"chat.completion.chunk"}\n\n'
-
-
+}
 class ChatAi extends OpenAI {
     constructor() {
         super();
@@ -351,26 +359,20 @@ class ChatAi extends OpenAI {
 
             })
             this.errorCount = 0;
-            console.log('response', response)
-            //
             if (response.status === 200 && (typeof response.data === 'string' || response.data instanceof String)) {
                 const dataStr = response.data;
                 const dataArray = dataStr.split('\n\n').filter(Boolean); // 將字符串分割成數組
                 const parsedData = [];
-
                 dataArray.forEach((str) => {
                     const obj = JSON.parse(str.substring(6)); // 將子字符串轉換為對象
                     parsedData.push(obj);
                 });
-                console.log('parsedData', parsedData)
                 const contents = parsedData.map((obj) => obj.choices[0].delta.content);
-                console.log('contents', contents)
                 const mergedContent = contents.join('');
                 return mergedContent;
             }
             return response?.data?.choices[0]?.message?.content;
         } catch (error) {
-            console.log(error)
             if (this.errorCount < (this.apiKeys.length * 5)) {
                 await super.handleError(error);
                 return await this.handleChatAi(inputStr);

@@ -349,7 +349,7 @@ class ChatAi extends OpenAI {
                 "messages": [
                     {
                         "role": "system",
-                        "content": "你叫HKTRPG TRPG助手。你以正體中文回答所有問題."
+                        "content": "你的責任是把以正體中文回答所有問題.你現在叫HKTRPG TRPG助手。"
                     },
                     {
                         "role": "user",

@@ -2,22 +2,11 @@
 
 const dotenv = require('dotenv');
 const fs = require('fs');
-let Env = dotenv.config({ override: true })
-process.env = Env.parsed;
-fs.watch('.env', (eventType, filename) => {
-  if (eventType === 'change') {
-    console.log('.env file changed, reloading environment variables...');
-    // Reload environment variables from .env file
-    let tempEnv = dotenv.config({ override: true })
-    process.env = tempEnv.parsed;
-  }
-});
+dotenv.config({ override: true })
 if (process.env.mongoURL) {
   require('./modules/db-connector');
   return;
 }
-
-
 
 require('fs').readdirSync(__dirname + '/modules/').forEach(function (file) {
   if (file.match(/\.js$/) && file.match(/^core-/)) {

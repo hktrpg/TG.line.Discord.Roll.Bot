@@ -1,6 +1,7 @@
 "use strict";
 if (!process.env.OPENAI_BASEPATH || !process.env.OPENAI_SECRET_1) return;
 const { Configuration, OpenAIApi } = require('openai');
+const dotenv = require('dotenv');
 const fetch = require('node-fetch');
 const fs = require('fs').promises;
 const fs2 = require('fs');
@@ -9,7 +10,6 @@ const TRANSLATE_LIMIT_PERSONAL = [500, 100000, 200000, 300000, 400000, 500000, 6
 const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
 const splitLength = 1000;
-
 const gameName = function () {
     return '【OpenAi】'
 }
@@ -64,7 +64,6 @@ const rollDiceCommand = async function ({
         type: 'text',
         text: ''
     };
-    
     switch (true) {
         case /^.ait$/i.test(mainMsg[0]): {
             const { filetext, sendfile, text } = await translateAi.handleTranslate(inputStr, discordMessage, discordClient, userid);
@@ -85,7 +84,6 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
-            console.log('process.env.OPENAI_SECRET_1', process.env.OPENAI_SECRET_1)
             rply.text = this.getHelpMessage();
             rply.quotes = true;
             return rply;
@@ -128,16 +126,15 @@ class OpenAI {
             if (!process.env[`OPENAI_SECRET_${index}`]) continue;
             this.apiKeys.push(process.env[`OPENAI_SECRET_${index}`]);
         }
-        console.log('this.apiKeys', this.apiKeys)
     }
     watchEnvironment() {
         fs2.watch('.env', (eventType, filename) => {
             if (eventType === 'change') {
+                let tempEnv = dotenv.config({ override: true })
+                process.env = tempEnv.parsed;
                 this.currentApiKeyIndex = 0;
                 this.errorCount = 0;
                 this.addApiKey();
-              
-                console.log('env change',this.apiKeys[this.currentApiKeyIndex]);
                 this.openai = new OpenAIApi(new Configuration({
                     apiKey: this.apiKeys[0],
                     basePath: process.env.OPENAI_BASEPATH

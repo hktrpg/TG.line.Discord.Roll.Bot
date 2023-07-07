@@ -3,6 +3,7 @@ if (!process.env.OPENAI_BASEPATH || !process.env.OPENAI_SECRET_1) return;
 const { Configuration, OpenAIApi } = require('openai');
 const fetch = require('node-fetch');
 const fs = require('fs').promises;
+const fs2 = require('fs');
 const VIP = require('../modules/veryImportantPerson');
 const TRANSLATE_LIMIT_PERSONAL = [500, 100000, 200000, 300000, 400000, 500000, 600000, 700000];
 const variables = {};
@@ -63,6 +64,7 @@ const rollDiceCommand = async function ({
         type: 'text',
         text: ''
     };
+    
     switch (true) {
         case /^.ait$/i.test(mainMsg[0]): {
             const { filetext, sendfile, text } = await translateAi.handleTranslate(inputStr, discordMessage, discordClient, userid);
@@ -83,6 +85,7 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
+            console.log('process.env.OPENAI_SECRET_1', process.env.OPENAI_SECRET_1)
             rply.text = this.getHelpMessage();
             rply.quotes = true;
             return rply;
@@ -109,6 +112,7 @@ class OpenAI {
     constructor() {
         this.apiKeys = [];
         this.addApiKey();
+        this.watchEnvironment();
         this.configuration = new Configuration({
             apiKey: this.apiKeys[0],
             basePath: process.env.OPENAI_BASEPATH,
@@ -119,10 +123,27 @@ class OpenAI {
         this.errorCount = 0;
     }
     addApiKey() {
+        this.apiKeys = [];
         for (let index = 0; index < 99; index++) {
             if (!process.env[`OPENAI_SECRET_${index}`]) continue;
             this.apiKeys.push(process.env[`OPENAI_SECRET_${index}`]);
         }
+        console.log('this.apiKeys', this.apiKeys)
+    }
+    watchEnvironment() {
+        fs2.watch('.env', (eventType, filename) => {
+            if (eventType === 'change') {
+                this.currentApiKeyIndex = 0;
+                this.errorCount = 0;
+                this.addApiKey();
+              
+                console.log('env change',this.apiKeys[this.currentApiKeyIndex]);
+                this.openai = new OpenAIApi(new Configuration({
+                    apiKey: this.apiKeys[0],
+                    basePath: process.env.OPENAI_BASEPATH
+                }));
+            }
+        });
     }
     handleError(error) {
         this.errorCount++;

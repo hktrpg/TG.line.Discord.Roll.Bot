@@ -1,14 +1,15 @@
 "use strict";
 if (!process.env.OPENAI_BASEPATH || !process.env.OPENAI_SECRET_1) return;
 const { Configuration, OpenAIApi } = require('openai');
+const dotenv = require('dotenv');
 const fetch = require('node-fetch');
 const fs = require('fs').promises;
+const fs2 = require('fs');
 const VIP = require('../modules/veryImportantPerson');
 const TRANSLATE_LIMIT_PERSONAL = [500, 100000, 200000, 300000, 400000, 500000, 600000, 700000];
 const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
 const splitLength = 1000;
-
 const gameName = function () {
     return '【OpenAi】'
 }
@@ -109,6 +110,7 @@ class OpenAI {
     constructor() {
         this.apiKeys = [];
         this.addApiKey();
+        this.watchEnvironment();
         this.configuration = new Configuration({
             apiKey: this.apiKeys[0],
             basePath: process.env.OPENAI_BASEPATH,
@@ -119,10 +121,26 @@ class OpenAI {
         this.errorCount = 0;
     }
     addApiKey() {
+        this.apiKeys = [];
         for (let index = 0; index < 99; index++) {
             if (!process.env[`OPENAI_SECRET_${index}`]) continue;
             this.apiKeys.push(process.env[`OPENAI_SECRET_${index}`]);
         }
+    }
+    watchEnvironment() {
+        fs2.watch('.env', (eventType, filename) => {
+            if (eventType === 'change') {
+                let tempEnv = dotenv.config({ override: true })
+                process.env = tempEnv.parsed;
+                this.currentApiKeyIndex = 0;
+                this.errorCount = 0;
+                this.addApiKey();
+                this.openai = new OpenAIApi(new Configuration({
+                    apiKey: this.apiKeys[0],
+                    basePath: process.env.OPENAI_BASEPATH
+                }));
+            }
+        });
     }
     handleError(error) {
         this.errorCount++;

@@ -132,6 +132,7 @@ class OpenAI {
             if (eventType === 'change') {
                 let tempEnv = dotenv.config({ override: true })
                 process.env = tempEnv.parsed;
+                console.log('.env Changed')
                 this.currentApiKeyIndex = 0;
                 this.errorCount = 0;
                 this.addApiKey();

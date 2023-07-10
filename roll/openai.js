@@ -41,10 +41,6 @@ const initialize = function () {
     return variables;
 }
 
-
-
-
-
 const rollDiceCommand = async function ({
     inputStr,
     mainMsg,
@@ -109,6 +105,7 @@ module.exports = {
 class OpenAI {
     constructor() {
         this.apiKeys = [];
+        this.basePath = [];
         this.addApiKey();
         this.watchEnvironment();
         this.configuration = new Configuration({
@@ -119,6 +116,16 @@ class OpenAI {
         this.openai = new OpenAIApi(this.configuration);
         this.currentApiKeyIndex = 0;
         this.errorCount = 0;
+    }
+    addBasePath() {
+        this.basePath = [];
+        //OPENAI_BASEPATH_00_10=
+        //OPENAI_BASEPATH_11_20=
+        //OPENAI_BASEPATH_21_30=
+        for (let index = 0; index < 10; index++) {
+            if (!process.env[`OPENAI_BASEPATH_${index}0_${index + 1}0`]) continue;
+            this.basePath.push(process.env[`OPENAI_BASEPATH_${index}0_${index + 1}0`]);
+        }
     }
     addApiKey() {
         this.apiKeys = [];

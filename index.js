@@ -1,8 +1,8 @@
 "use strict";
 
-const dotenv = require('dotenv');
+require('dotenv').config({ override: true });
 const fs = require('fs');
-dotenv.config({ override: true })
+
 if (process.env.mongoURL) {
   require('./modules/db-connector');
   return;

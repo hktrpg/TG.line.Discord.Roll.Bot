@@ -221,7 +221,7 @@ client.on('ready', async () => {
 		if (wakeup === true) heatBeat = 0;
 		if ((wakeup === false || wakeup.length > 0) && adminSecret) {
 			heatBeat++;
-			if (heatBeat >= 5) SendToId(adminSecret, `HKTRPG ID: ${wakeup.join('')} 可能下線了 請盡快檢查.`);
+			if (heatBeat >= 5) SendToId(adminSecret, `HKTRPG ID: ${wakeup.join(', ')} 可能下線了 請盡快檢查.`);
 		}
 	}, 1000 * 60 * 0.5);
 	// eslint-disable-next-line no-unused-vars

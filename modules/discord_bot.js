@@ -215,12 +215,15 @@ client.on('ready', async () => {
 	console.log(`Discord: Logged in as ${client.user.tag}!`);
 	var switchSetActivity = 0;
 	// eslint-disable-next-line no-unused-vars
+	let heatBeat = 0;
 	const refreshId = setInterval(async () => {
 		let wakeup = await checkWakeUp();
-		if (!wakeup && adminSecret) {
-			SendToId(adminSecret, 'HKTRPG可能下線了');
+		if (wakeup === true) heatBeat = 0;
+		if ((wakeup === false || wakeup.length > 0) && adminSecret) {
+			heatBeat++;
+			if (heatBeat >= 5) SendToId(adminSecret, `HKTRPG ID: ${wakeup.join('')} 可能下線了 請盡快檢查.`);
 		}
-	}, 1000 * 60 * 5);
+	}, 1000 * 60 * 0.5);
 	// eslint-disable-next-line no-unused-vars
 	const refreshId2 = setInterval(async () => {
 		switch (switchSetActivity % 2) {
@@ -733,7 +736,7 @@ async function checkWakeUp() {
 				indexes.forEach(index => {
 					//checkMongodb.discordClientRespawn(client, index)
 				})
-				return false
+				return indexes;
 			}
 			else return true;
 			//if (results[0].length !== number || results[0].reduce((a, b) => a + b, 0) >= 1)

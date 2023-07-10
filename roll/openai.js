@@ -1,7 +1,9 @@
 "use strict";
 if (!process.env.OPENAI_BASEPATH || !process.env.OPENAI_SECRET_1) return;
+
 const { Configuration, OpenAIApi } = require('openai');
 const dotenv = require('dotenv');
+dotenv.config({ override: true });
 const fetch = require('node-fetch');
 const fs = require('fs').promises;
 const fs2 = require('fs');
@@ -104,34 +106,29 @@ module.exports = {
 
 class OpenAI {
     constructor() {
-        this.apiKeys = [];
-        this.basePath = [];
+        this.apiKeys = [{ key: '', basePath: '' }];
         this.addApiKey();
         this.watchEnvironment();
         this.configuration = new Configuration({
-            apiKey: this.apiKeys[0],
-            basePath: process.env.OPENAI_BASEPATH,
+            apiKey: this.apiKeys[0].key,
+            basePath: this.apiKeys[0].basePath,
         });
         this.model = process.env.OPENAI_MODEL || "gpt-4";
         this.openai = new OpenAIApi(this.configuration);
         this.currentApiKeyIndex = 0;
         this.errorCount = 0;
     }
-    addBasePath() {
-        this.basePath = [];
-        //OPENAI_BASEPATH_00_10=
-        //OPENAI_BASEPATH_11_20=
-        //OPENAI_BASEPATH_21_30=
-        for (let index = 0; index < 10; index++) {
-            if (!process.env[`OPENAI_BASEPATH_${index}0_${index + 1}0`]) continue;
-            this.basePath.push(process.env[`OPENAI_BASEPATH_${index}0_${index + 1}0`]);
-        }
-    }
     addApiKey() {
         this.apiKeys = [];
-        for (let index = 0; index < 99; index++) {
+        let base = -1;
+        for (let index = 0; index < 100; index++) {
+            if (base % 10 === 0) base++;
             if (!process.env[`OPENAI_SECRET_${index}`]) continue;
-            this.apiKeys.push(process.env[`OPENAI_SECRET_${index}`]);
+            this.apiKeys.push({
+                key: process.env[`OPENAI_SECRET_${index}`],
+                basePath: process.env[`OPENAI_BASEPATH_${base}1_${base + 1}0`] || process.env.OPENAI_BASEPATH
+                    || 'https://api.openai.com/v1'
+            });
         }
     }
     watchEnvironment() {
@@ -160,8 +157,8 @@ class OpenAI {
         }
         this.currentApiKeyIndex = (this.currentApiKeyIndex + 1) % this.apiKeys.length;
         this.openai = new OpenAIApi(new Configuration({
-            apiKey: this.apiKeys[this.currentApiKeyIndex],
-            basePath: process.env.OPENAI_BASEPATH,
+            apiKey: this.apiKeys[this.currentApiKeyIndex].key,
+            basePath: this.apiKeys[this.currentApiKeyIndex].basePath,
         }));
     }
     wait(minutes = 1) {

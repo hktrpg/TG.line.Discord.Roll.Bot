@@ -1,13 +1,14 @@
 "use strict";
 const { Snowflake } = require('nodejs-snowflake');
-
+//https://www.npmjs.com/package/nodejs-snowflake
 class DiscordDefer {
     constructor() {
         this.deferID = [];
     }
 
     addDeferID() {
-        this.defer.push(message);
+        const uid = new Snowflake(config);
+        this.defer.push();
     }
 
     async resolveDefer() {

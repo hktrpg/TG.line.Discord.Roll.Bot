@@ -6149,6 +6149,11 @@ node-webpmux@^3.1.0:
   resolved "https://registry.yarnpkg.com/node-webpmux/-/node-webpmux-3.1.7.tgz#7dc96bdf7daed96311f0f5a4dba2664633002593"
   integrity sha512-ySkL4lBCto86OyQ0blAGzylWSECcn5I0lM3bYEhe75T8Zxt/BFUMHa8ktUguR7zwXNdS/Hms31VfSsYKN1383g==
 
+nodejs-snowflake@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/nodejs-snowflake/-/nodejs-snowflake-2.0.1.tgz#d82fb1c7398404c5ac984d6f1cdfb1b5aef7bd80"
+  integrity sha512-zMfDorNNsJm1OWWx/OUUGVT0bQ3TwC2ti4URD8UjnpffVLtLpy3eBDIaV5TnLs91YrRhwBD6L0StqU6YtnZt9A==
+
 normalize-path@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/normalize-path/-/normalize-path-3.0.0.tgz#0dcd69ff23a1c9b11fd0978316644a0388216a65"

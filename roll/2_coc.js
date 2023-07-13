@@ -572,6 +572,31 @@ module.exports = {
 class CreateCult {
 	constructor() {
 	}
+	/*
+	回應格式
+	------------------
+	Cult 產生器
+	首領名字: XXXXXX
+
+	首領身份:
+	-> 1-10;
+	
+	屬性: A-D STR, CON, SIZ, DEX, INT, APP, POW, and EDU
+	
+	技能: QUICK-REFERENCE SKILLS  A-E
+
+	特質:  個性: 
+	-1-100
+
+	能力來源: 
+	SOURCES OF POWER 1-3, 4-6, 7-8, 9-10
+	------------------
+	邪教名稱?
+
+	CULT GOALS—WANTS 1-10
+
+	CULT GOALS—MEANS 1-10
+	 */
 	createCult() {
 		let cult = {
 			leaderPosition: this.leaderPosition(),

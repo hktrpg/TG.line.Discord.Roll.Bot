@@ -1876,7 +1876,7 @@ function chaseGenerator(num) {
 			`
 			let itemsNumber = rollbase.DiceINT(2, 5);
 			let result = shuffle(request);
-			rply += `可能進行檢定: `;
+			rply += `可能進行的檢定: `;
 			for (let index = 0; index < itemsNumber; index++) {
 				rply += `${result[index]} `;
 			}

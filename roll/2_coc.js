@@ -44,7 +44,7 @@ coc7版 總結型瘋狂： 啓動語 ccsu
 
 coc7版 神話生物： 啓動語 .ccmm P283
 coc7版 神話神祇： 啓動語 .ccmd 
-coc7版 神話組織： 啓動語 .ccml IB P125
+coc7版 神話組織： 啓動語 .ccml IB P125 DONE
 coc7版 神話魔法： 啓動語 .ccmt P246
 coc7版 神話典籍： 啓動語 .ccnpc  P225
 

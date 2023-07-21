@@ -40,9 +40,13 @@ class CandleChecker {
     }
 
     checker() {
-        if (this.isCandleDay) {
-            return this.monthDays.find((day) => day.month === this.todayMonth && day.day === this.todayDate).candle || '🕯️';
-        } else {
+        try {
+            if (this.isCandleDay) {
+                return (this.monthDays?.find((day) => day.month === this.todayMonth && day.day === this.todayDate)?.candle) || '🕯️';
+            } else {
+                return '';
+            }
+        } catch (error) {
             return '';
         }
     }

@@ -9,17 +9,20 @@ const rest = new REST().setToken(channelSecret);
 
 
 
+process.nextTick(() => {
+    loadingSlashCommands();
+});
 
 
-loadingSlashCommands();
 
 //removeSlashCommands();
 //testRegisteredSlashCommands();
 //registeredGlobalSlashCommands();
 
 
-function registeredGlobalSlashCommands() {
-    rest.put(Routes.applicationCommands(clientId), { body: commands })
+async function registeredGlobalSlashCommands() {
+    console.log('Started refreshing application (/) commands.', commands)
+    return rest.put(Routes.applicationCommands(clientId), { body: commands })
         .then(() => {
             console.log('Successfully Global registered application commands.')
             return "Successfully Global registered application commands.";
@@ -30,8 +33,9 @@ function registeredGlobalSlashCommands() {
         });
 }
 
-function testRegisteredSlashCommands(guildId) {
-    rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands })
+async function testRegisteredSlashCommands(guildId) {
+    console.log('Started refreshing application (/) commands.', commands)
+    return rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands })
         .then(() => {
             console.log('Successfully registered application commands.')
             return "Successfully registered application commands." + (guildId);
@@ -47,8 +51,9 @@ function testRegisteredSlashCommands(guildId) {
 
 
 function loadingSlashCommands() {
-    const commandFiles = fs.readdirSync('./roll/').filter(file => file.endsWith('.js') && (file.startsWith('help')));
+    const commandFiles = fs.readdirSync('./roll/').filter(file => file.endsWith('.js'));
     for (const file of commandFiles) {
+        console.log(`Loading command ${file}`);
         const command = require(`../roll/${file}`);
         if (command?.discordCommand?.length > 0) {
             pushArraySlashCommands(command.discordCommand)

@@ -90,13 +90,23 @@ const rollDiceCommand = async function ({
         case /^registeredGlobal$/i.test(mainMsg[1]): {
             if (!adminSecret) return rply;
             if (userid !== adminSecret) return rply;
-            return deploy.registeredGlobalSlashCommands();
+            rply.text = await deploy.registeredGlobalSlashCommands();
+            return rply;
         }
         case /^testRegistered$/i.test(mainMsg[1]): {
             if (!adminSecret) return rply;
             if (userid !== adminSecret) return rply;
             if (!mainMsg[2]) return rply;
-            return deploy.testRegisteredSlashCommands(mainMsg[2]);
+            rply.text = await deploy.testRegisteredSlashCommands(mainMsg[2]);
+            return rply;
+        }
+        case /^removeRegistered$/i.test(mainMsg[1]): {
+            if (!adminSecret) return rply;
+            if (userid !== adminSecret) return rply;
+            if (!mainMsg[2]) return rply;
+            rply.text = await deploy.removeSlashCommands(mainMsg[2]);
+            console.log(rply.text)
+            return rply;
         }
         case /^state$/i.test(mainMsg[1]):
             rply.state = true;

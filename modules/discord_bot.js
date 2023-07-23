@@ -208,9 +208,6 @@ client.once('ready', async () => {
 	initInteractionCommands();
 	if (process.env.BROADCAST) connect();
 	//	if (shardid === 0) getSchedule();
-});
-
-client.on('ready', async () => {
 	client.user.setActivity(`${candle.checker() || '🌼'}bothelp | hktrpg.com🍎`);
 	console.log(`Discord: Logged in as ${client.user.tag}!`);
 	var switchSetActivity = 0;
@@ -237,6 +234,7 @@ client.on('ready', async () => {
 		switchSetActivity = (switchSetActivity % 2) ? 2 : 3;
 	}, 180000);
 });
+
 
 async function replilyMessage(message, result) {
 	const displayname = (message.member && message.member.id) ? `<@${message.member.id}>${candle.checker()}\n` : '';

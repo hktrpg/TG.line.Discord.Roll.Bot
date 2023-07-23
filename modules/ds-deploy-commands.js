@@ -1,14 +1,12 @@
 "use strict";
-const { SlashCommandBuilder } = require('discord.js');
-const { REST } = require('@discordjs/rest');
-const { Routes } = require('discord-api-types/v9');
-const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
+const { REST, Routes } = require('discord.js');
 const fs = require('node:fs');
 const clientId = process.env.DISCORD_CHANNEL_CLIENTID || "544561773488111636";
 const guildId = process.env.DISCORD_CHANNEL_GUILDID || "628181436129607680";
+const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const commands = []
     .map(command => command.toJSON());
-const rest = new REST({ version: '9' }).setToken(channelSecret);
+const rest = new REST().setToken(channelSecret);
 
 
 
@@ -25,19 +23,23 @@ function registeredGlobalSlashCommands() {
     rest.put(Routes.applicationCommands(clientId), { body: commands })
         .then(() => {
             console.log('Successfully Global registered application commands.')
+            return "Successfully Global registered application commands.";
         })
         .catch(err => {
             console.error(err)
+            return "Error Global registered application commands." + err;
         });
 }
 
-function testRegisteredSlashCommands() {
-    rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands })
+function testRegisteredSlashCommands(taregeGuildId) {
+    rest.put(Routes.applicationGuildCommands(clientId, (guildId || taregeGuildId)), { body: commands })
         .then(() => {
             console.log('Successfully registered application commands.')
+            return "Successfully registered application commands." + (guildId || taregeGuildId);
         })
         .catch(err => {
             console.error(err)
+            return "Error Global registered application commands." + err;
         });
 }
 
@@ -46,10 +48,10 @@ function testRegisteredSlashCommands() {
 
 
 function loadingSlashCommands() {
-    const commandFiles = fs.readdirSync('./roll/').filter(file => file.endsWith('.js'));
+    const commandFiles = fs.readdirSync('./roll/').filter(file => file.endsWith('.js') && (file.startsWith('help') ));
     for (const file of commandFiles) {
         const command = require(`../roll/${file}`);
-        if (command && command.discordCommand) {
+        if (command?.discordCommand?.length > 0) {
             pushArraySlashCommands(command.discordCommand)
         }
     }
@@ -74,7 +76,13 @@ function removeSlashCommands() {
             return Promise.all(promises);
         });
 }
-//https://github.com/discordjs/guide/tree/main/code-samples/creating-your-bot/command-handling
 
-    //https://discordjs.guide/creating-your-bot/creating-commands.html#command-deployment-script
-//    https://discordjs.guide/popular-topics/builders.html#links
+
+module.exports = {
+    registeredGlobalSlashCommands,
+    testRegisteredSlashCommands,
+    removeSlashCommands
+};
+//https://github.com/discordjs/guide/tree/main/code-samples/creating-your-bot/command-handling
+//https://discordjs.guide/creating-your-bot/creating-commands.html#command-deployment-script
+//https://discordjs.guide/popular-topics/builders.html#links

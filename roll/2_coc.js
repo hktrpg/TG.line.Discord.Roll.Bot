@@ -1533,7 +1533,7 @@ async function coc7bp({ chack, text, userid, groupid, channelid, bpdiceNum, user
 			return result;
 		}
 	} catch (error) {
-		console.log('error', error)
+		console.error('error coc #1536', error)
 	}
 }
 function buildpulpchar() {

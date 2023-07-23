@@ -213,6 +213,7 @@ client.once('ready', async () => {
 	var switchSetActivity = 0;
 	// eslint-disable-next-line no-unused-vars
 	let heatBeat = 0;
+	await sleep(2);
 	const refreshId = setInterval(async () => {
 		let wakeup = await checkWakeUp();
 		if (wakeup === true) heatBeat = 0;
@@ -1387,6 +1388,12 @@ client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnecte
 if (debugMode) process.on('warning', e => {
 	console.warn(e.stack)
 });
+
+const sleep = async (minutes) => {
+	await new Promise(resolve => {
+		return setTimeout(resolve, minutes * 1000 * 60);
+	});
+};
 
 /**
  *

@@ -50,6 +50,7 @@ app.get('/oauth/redirect', (req, res) => {
             return apiClient('/current_user')
         })
         .then(({ store, rawJson }) => {
+            console.log('Got user data from API', rawJson, store)
             const { id } = rawJson.data
             database[id] = { ...rawJson.data, token }
             console.log(`Saved user ${store.find('user', id).full_name} to the database`)

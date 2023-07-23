@@ -1,27 +1,27 @@
 "use strict";
-
-var Dice = [],
+const fs = require('node:fs');
+const Dice = [],
 	Tool = [],
 	admin = [],
 	funny = [],
 	help = [],
 	link = [];
 const start = async () => {
-	await require('fs').readdirSync(__dirname).forEach(async function (file) {
-		try {
-			if (file.match(/\.js$/) !== null && file !== 'index.js' && file !== 'demo.js' && file !== 'help.js') {
-				let tryFile = require('./' + file);
-				if (tryFile.gameType && tryFile.gameType()) {
-					var type = require('./' + file).gameType().replace(/:.*/i, '')
-					var name = file.replace('.js', '');
-					exports[type + '_' + name] = await require('./' + file);
-				}
+	try {
+		const commandFiles = fs.readdirSync('./roll/').filter(file => file.endsWith('.js'));
+		for (const file of commandFiles) {
+			const tryFile = require(`../roll/${file}`);
+			if (tryFile.gameType && tryFile.gameType()) {
+				var type = require('./' + file).gameType().replace(/:.*/i, '')
+				var name = file.replace('.js', '');
+				exports[type + '_' + name] = await require('./' + file);
 			}
 
-		} catch (error) {
-			console.error('help.js error: ', error)
 		}
-	})
+	} catch (error) {
+		console.error('help.js error: ', error)
+	}
+
 
 	version = "v1." + Object.keys(exports).length + "." + heroku_version.replace(/[v]/, '');
 	if (process.env.HEROKU_RELEASE_CREATED_AT) {

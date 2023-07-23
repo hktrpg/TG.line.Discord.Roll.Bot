@@ -19,6 +19,7 @@ const pattLv = /\s+-l\s+(\S+)/ig;
 const pattName = /\s+-n\s+(\S+)/ig;
 const pattNotes = /\s+-no\s+(\S+)/ig;
 const pattSwitch = /\s+-s\s+(\S+)/ig;
+const deploy = require('../modules/ds-deploy-commands.js');
 //const VIP = require('../modules/veryImportantPerson');
 const gameName = function () {
     return '【Admin Tool】.admin debug state account news on'
@@ -49,6 +50,9 @@ password 6-16字,英文及以下符號限定 !@#$%^&*
 
 `
 }
+const discordCommand = [
+
+];
 
 const initialize = function () {
     return variables;
@@ -83,6 +87,19 @@ const rollDiceCommand = async function ({
             rply.text = await this.getHelpMessage();
             rply.quotes = true;
             return rply;
+        case /^registeredGlobal$/i.test(mainMsg[1]): {
+            if (!adminSecret) return rply;
+            if (userid !== adminSecret) return rply;
+            rply.text = await deploy.registeredGlobalSlashCommands();
+            return rply;
+        }
+        case /^testRegistered$/i.test(mainMsg[1]): {
+            if (!adminSecret) return rply;
+            if (userid !== adminSecret) return rply;
+            if (!mainMsg[2]) return rply;
+            rply.text = await deploy.testRegisteredSlashCommands(mainMsg[2]);
+            return rply;
+        }
         case /^state$/i.test(mainMsg[1]):
             rply.state = true;
             rply.quotes = true;
@@ -508,7 +525,8 @@ module.exports = {
     getHelpMessage: getHelpMessage,
     prefixs: prefixs,
     gameType: gameType,
-    gameName: gameName
+    gameName: gameName,
+    discordCommand: discordCommand
 };
 /**
 

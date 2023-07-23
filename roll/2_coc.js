@@ -43,7 +43,7 @@ coc7版 即時型瘋狂： 啓動語 ccrt
 coc7版 總結型瘋狂： 啓動語 ccsu
 
 
-coc7版 神話組織 隨機產生： 啓動語 .ccml
+coc7版 神話組織 隨機產生： 啓動語 .cccc
 coc7版 神話資料 隨機產生： 啓動語 .ccdr
 coc7版 施法推骰後果： 啓動語 .ccpc
 
@@ -556,11 +556,11 @@ const discordCommand = [
 	}
 	, {
 		data: new SlashCommandBuilder()
-			.setName('ccml')
+			.setName('cccc')
 			.setDescription('隨機產生 神話組織')
 		,
 		async execute() {
-			return `.ccml`
+			return `.cccc`
 		}
 	}, {
 		data: new SlashCommandBuilder()

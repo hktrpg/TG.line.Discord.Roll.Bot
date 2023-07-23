@@ -1298,10 +1298,11 @@ async function __handlingReplyMessage(message, result) {
 		const sendText = sendTexts[index];
 		if (sendText.length === 0) continue;
 		try {
-			await message.reply({ content: `${sendText}`, ephemeral: false })
+			//message.author && message.author.send({ embeds: await convQuotes(sendText[i]) });
+			await message.reply({ embeds: await convQuotes(sendText), ephemeral: false })
 		} catch (error) {
 			try {
-				await message.editReply({ content: `${sendText}`, ephemeral: false })
+				await message.editReply({ embeds: await convQuotes(sendText), ephemeral: false })
 			} catch (error) {
 				return;
 			}

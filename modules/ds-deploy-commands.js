@@ -2,7 +2,6 @@
 const { REST, Routes } = require('discord.js');
 const fs = require('node:fs');
 const clientId = process.env.DISCORD_CHANNEL_CLIENTID || "544561773488111636";
-const guildId = process.env.DISCORD_CHANNEL_GUILDID || "628181436129607680";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const commands = []
     .map(command => command.toJSON());
@@ -31,11 +30,11 @@ function registeredGlobalSlashCommands() {
         });
 }
 
-function testRegisteredSlashCommands(taregeGuildId) {
-    rest.put(Routes.applicationGuildCommands(clientId, (guildId || taregeGuildId)), { body: commands })
+function testRegisteredSlashCommands(guildId) {
+    rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands })
         .then(() => {
             console.log('Successfully registered application commands.')
-            return "Successfully registered application commands." + (guildId || taregeGuildId);
+            return "Successfully registered application commands." + (guildId);
         })
         .catch(err => {
             console.error(err)
@@ -48,7 +47,7 @@ function testRegisteredSlashCommands(taregeGuildId) {
 
 
 function loadingSlashCommands() {
-    const commandFiles = fs.readdirSync('./roll/').filter(file => file.endsWith('.js') && (file.startsWith('help') ));
+    const commandFiles = fs.readdirSync('./roll/').filter(file => file.endsWith('.js') && (file.startsWith('help')));
     for (const file of commandFiles) {
         const command = require(`../roll/${file}`);
         if (command?.discordCommand?.length > 0) {
@@ -64,7 +63,7 @@ function pushArraySlashCommands(arrayCommands) {
 }
 
 
-function removeSlashCommands() {
+function removeSlashCommands(guildId) {
     //remove all old command, devlopment only
     rest.get(Routes.applicationGuildCommands(clientId, guildId))
         .then(data => {

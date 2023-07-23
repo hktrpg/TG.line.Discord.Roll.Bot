@@ -21,7 +21,6 @@ process.nextTick(() => {
 
 
 async function registeredGlobalSlashCommands() {
-    console.log('Started refreshing application (/) commands.', commands)
     return rest.put(Routes.applicationCommands(clientId), { body: commands })
         .then(() => {
             console.log('Successfully Global registered application commands.')
@@ -34,7 +33,6 @@ async function registeredGlobalSlashCommands() {
 }
 
 async function testRegisteredSlashCommands(guildId) {
-    console.log('Started refreshing application (/) commands.', commands)
     return rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands })
         .then(() => {
             console.log('Successfully registered application commands.')
@@ -53,7 +51,6 @@ async function testRegisteredSlashCommands(guildId) {
 function loadingSlashCommands() {
     const commandFiles = fs.readdirSync('./roll/').filter(file => file.endsWith('.js'));
     for (const file of commandFiles) {
-        console.log(`Loading command ${file}`);
         const command = require(`../roll/${file}`);
         if (command?.discordCommand?.length > 0) {
             pushArraySlashCommands(command.discordCommand)

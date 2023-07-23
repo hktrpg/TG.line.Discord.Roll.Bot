@@ -100,14 +100,6 @@ const rollDiceCommand = async function ({
             rply.text = await deploy.testRegisteredSlashCommands(mainMsg[2]);
             return rply;
         }
-        case /^removeRegistered$/i.test(mainMsg[1]): {
-            if (!adminSecret) return rply;
-            if (userid !== adminSecret) return rply;
-            if (!mainMsg[2]) return rply;
-            rply.text = await deploy.removeSlashCommands(mainMsg[2]);
-            console.log(rply.text)
-            return rply;
-        }
         case /^state$/i.test(mainMsg[1]):
             rply.state = true;
             rply.quotes = true;

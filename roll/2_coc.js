@@ -13,7 +13,7 @@ const gameType = function () {
 }
 const prefixs = function () {
 	return [{
-		first: /(^ccrt$)|(^\.chase$)|(^ccsu$)|(^cc7版創角$)|(^[.]dp$)|(^[.]cc7build$)|(^[.]ccpulpbuild$)|(^[.]cc6build$)|(^[.]cc7bg$)|(^cc6版創角$)|(^cc7版角色背景$)/i,
+		first: /(^\.cccc$)|(^\.ccdr$)|(^\.ccpc$)|(^ccrt$)|(^\.chase$)|(^ccsu$)|(^cc7版創角$)|(^[.]dp$)|(^[.]cc7build$)|(^[.]ccpulpbuild$)|(^[.]cc6build$)|(^[.]cc7bg$)|(^cc6版創角$)|(^cc7版角色背景$)/i,
 		second: null
 	},
 	{
@@ -41,6 +41,11 @@ P.S.追逐戰功能使用了可選規則及我對規則書之獨斷理解，
 
 coc7版 即時型瘋狂： 啓動語 ccrt
 coc7版 總結型瘋狂： 啓動語 ccsu
+
+
+coc7版 神話組織 隨機產生： 啓動語 .ccml
+coc7版 神話資料 隨機產生： 啓動語 .ccdr
+coc7版 施法推骰後果： 啓動語 .ccpc
 
 coc pulp版創角	： 啓動語 .ccpulpbuild
 coc6版創角		： 啓動語 .cc6build
@@ -405,6 +410,22 @@ const rollDiceCommand = async function ({
 			rply.quotes = true;
 			break;
 		}
+		case /(^\.cccc)/i.test(mainMsg[0]): {
+			rply.text = CreateCult.createCult();
+			rply.quotes = true;
+			return rply;
+		};
+		case /(^\.ccpc)/i.test(mainMsg[0]): {
+			rply.text = MythoyCollection.getMythonData('pushedCasting');
+			rply.quotes = true;
+			return rply;
+		};
+		case /(^\.ccdr)/i.test(mainMsg[0]): {
+			rply.text = MythoyCollection.getMythos();
+			rply.quotes = true;
+			return rply;
+		};
+
 		default:
 			break;
 	}
@@ -533,6 +554,31 @@ const discordCommand = [
 			return `.cc7bg`
 		}
 	}
+	, {
+		data: new SlashCommandBuilder()
+			.setName('ccml')
+			.setDescription('隨機產生 神話組織')
+		,
+		async execute() {
+			return `.ccml`
+		}
+	}, {
+		data: new SlashCommandBuilder()
+			.setName('ccdr')
+			.setDescription('隨機產生 神話資料')
+		,
+		async execute() {
+			return `.ccdr`
+		}
+	}, {
+		data: new SlashCommandBuilder()
+			.setName('ccpc')
+			.setDescription('施法推骰後果')
+		,
+		async execute() {
+			return `.ccpc`
+		}
+	}
 ];
 
 module.exports = {
@@ -544,6 +590,287 @@ module.exports = {
 	gameName,
 	discordCommand
 };
+
+class CreateCult {
+	constructor() {
+	}
+	/*
+	回應格式
+	------------------
+	Cult 產生器
+	首領名字: XXXXXX
+
+	首領身份:
+	-> 1-10;
+	
+	屬性: A-D STR, CON, SIZ, DEX, INT, APP, POW, and EDU
+	
+	技能: QUICK-REFERENCE SKILLS  A-E
+
+	特質:  個性: 
+	-1-100
+
+	能力來源: 
+	SOURCES OF POWER 1-3, 4-6, 7-8, 9-10
+	------------------
+	邪教名稱?
+
+	CULT GOALS—WANTS 1-10
+
+	CULT GOALS—MEANS 1-10
+	 */
+	static createCult() {
+		let cult = {
+			leaderPosition: this.leaderPosition(),
+			characteristics: this.characteristics(),
+			skill: this.skill(),
+			description: this.description(),
+			personality: this.personality(),
+			spells: this.spells(),
+			sourcesOfPower: this.sourcesOfPower(),
+			cultGoals: this.cultGoals(),
+			cultGoalsMeans: this.cultGoalsMeans(),
+		}
+		let cultText = `Cult 產生器
+	首領身份:
+	${cult.leaderPosition}
+	
+	屬性: 
+	${cult.characteristics}
+	
+	技能: 
+	${cult.skill}
+
+	法術:
+	${cult.spells}
+
+	特質: 
+	${cult.description}
+	
+	個性: 
+	${cult.personality}
+
+	能力來源: 
+	${cult.sourcesOfPower}
+	------------------
+	教派目標:
+	${cult.cultGoals}
+
+	實現目標的手標:
+	${cult.cultGoalsMeans}`
+		return cultText;
+	}
+	static leaderPosition() {
+		return this.LeaderPosition[rollbase.Dice(10) - 1];
+	}
+	static characteristics() {
+		//四選一
+		let selectedCharacteristics = this.characteristicsSet[rollbase.Dice(4) - 1];
+		// 使用 Fisher–Yates 洗牌算法隨機排列屬性
+		selectedCharacteristics = this.FisherYates(selectedCharacteristics);
+		let text = '';
+		for (let i = 0; i < this.sixState.length; i++) {
+			text += `${this.sixState[i]}: ${selectedCharacteristics[i]} `;
+			if (i % 3 === 0 && i !== 0) {
+				text += '\n';
+			}
+		}
+		return text;
+	}
+
+	static skill() {
+		let text = '';
+		let skillStates = this.SkillStatesSet[rollbase.Dice(this.SkillStatesSet.length) - 1];
+		//使用 Fisher–Yates 洗牌算法隨機排列技能
+		skillStates = this.FisherYates(skillStates);
+		let skillNames = this.WightRandom(this.SkillNameSet(), Object.keys(this.SkillNameSet()).length);
+		for (let i = 0; i < skillStates.length; i++) {
+			text += `${skillNames[i]}: ${skillStates[i]} `;
+			if (i % 3 === 0 && i !== 0) {
+				text += '\n';
+			}
+		}
+		return text;
+	}
+	static description() {
+		return this.descriptionSet[rollbase.Dice(this.descriptionSet.length) - 1];
+	}
+	static personality() {
+		return this.traitsSet[rollbase.Dice(this.traitsSet.length) - 1];
+	}
+	static spells() {
+		let text = '';
+		let num = 0;
+		let spells = this.spellsSet[rollbase.Dice(this.spellsSet.length) - 1];
+		text = rollbase.BuildDiceCal(spells);
+		num = text.match(/\d+$/i)[0];
+		text += '\n';
+		for (let i = 0; i < num; i++) {
+			text += ` ${MythoyCollection.getMythonData('magic')},`;
+		}
+		text = text.replace(/,$/i, '');
+		return text;
+	}
+	static sourcesOfPower() {
+		let text = '';
+		let num = rollbase.Dice(10);
+		switch (num) {
+			case 1: case 2: case 3:
+				text = this.SourcesOfPowerSet[0];
+				break;
+			case 4: case 5: case 6:
+				text = this.SourcesOfPowerSet[1];
+				break;
+			case 7: case 8:
+				text = this.SourcesOfPowerSet[2];
+				break;
+			case 9: case 10:
+				text = this.SourcesOfPowerSet[3];
+				break;
+		}
+		return text;
+	}
+	static cultGoals() {
+		return this.CultWants[rollbase.Dice(this.CultWants.length) - 1];
+	}
+	static cultGoalsMeans() {
+		return this.CultMeans[rollbase.Dice(this.CultMeans.length) - 1];
+	}
+	static WightRandom(options, num_choices) {
+
+		let choices = new Set();
+		while (choices.size < num_choices) {
+			let total_weight = 0;
+			for (let j in options) {
+				total_weight += options[j];
+			}
+			let rnd = Math.random() * total_weight;
+			for (let j in options) {
+				if (rnd < options[j]) {
+					choices.add(j);
+					options[j] = options[j] / 2;
+					break;
+				}
+				rnd -= options[j];
+			}
+		}
+		return Array.from(choices);
+	}
+	static FisherYates(arr) {
+		for (let j = arr.length - 1; j > 0; j--) {
+			const k = Math.floor(Math.random() * (j + 1));
+			[arr[j], arr[k]] = [arr[k], arr[j]];
+		}
+		return arr;
+	}
+
+	static sixState = ["STR", "CON", "SIZ", "DEX", "INT", "APP", "POW", "EDU"]
+	static characteristicsSet = [[75, 70, 65, 60, 55, 50, 40, 35],
+	[80, 75, 70, 60, 55, 50, 40, 35],
+	[90, 85, 80, 80, 70, 60, 60, 50],
+	[100, 80, 60, 60, 45, 40, 35, 35]
+	];
+
+	static LeaderPosition = [
+		`富有商人
+	金錢就是力量。擁有成功的小企業者；跨國公司董事會上的一員；有權勢的電影製片人；投資銀行家等等。`,
+		`家族女/男家長
+	血緣是一種具有特殊且具有束縛力的連結。阿巴拉契亞山脈中一個廣大家族的古老祖母；一個大型且有貴族氣質的家庭的尊貴曾祖父；一位強大巫師的後裔；一對雙胞胎的單親父或母。`,
+		`幫派領導者
+	罪犯有一種在雷達之下運作的方式——這種經驗可能在隱藏克蘇魯教派的活動時有所幫助。城市街頭幫派的領導者；犯罪組織的老大；大規模的毒品卡特爾的領導者；其他孩子們景仰的正在冒出頭角的街頭小混混。`,
+		`宗教領導者
+	已經位於影響力的位置，可以接觸到大量的人群，其中一些人急需幫助，更容易受到欺詐和誘惑。
+	這些宗教領袖可能免於課稅。主流宗教的神父，拉比，伊瑪目，或牧師。`,
+		`大學教授/老師
+	擁有接觸許多易受影響，年輕心靈的人的機會。一位高中老師或校長；擁有圖書館鑰匙的大學教授，圖書館內充滿著陳舊的書冊；
+	具有影響力的青年領袖，可帶領具有可被重新導向的活動組織的青年。`,
+		`政治家
+	政治影響力可以指導政策，線兜，甚至改變法律。市長或城市議會成員；州議會人員；州長甚至國家總統。 `,
+		`農民/工廠工人
+	"藍領" 宗教教派領袖可能對確保社會運作平穩的人有影響力，例如工廠員工，農村工人，建築行業和維修工人。`,
+		`軍官
+	在軍隊之中有個邪教是一個可怕的想法。可能是部隊中位階較高的官員，或者是在情報機構中的執行者，例如FBI或CIA，或是說，其他國家的相似機構。`,
+		`船長 
+	在海上，船長處於一個非常有威力的位置。可能是大型運輸船的船長，一艘帆船，一艘商船，甚至是一艘郵輪的船長。`,
+		`異類 
+	這些人士在社會邊緣活動，往往被忽視，例如巡迴銷售員，在家工作的網頁開發員，或者是一位藍調吉他手/歌手。`
+	]
+
+	static SkillStatesSet = [[80, 60, 60, 60, 50, 40],
+	[100, 80, 60, 60, 50, 40],
+	[90, 80, 70, 70, 60, 55],
+	[80, 75, 70, 65, 65, 60, 60, 55, 55, 50, 40, 25],
+	[90, 85, 75, 70, 60, 60, 60, 55, 50, 40, 30, 25]];
+
+	static SkillNameSet() {
+		return Object.assign({}, this.CombatSkills, this.CharacterSkills, this.UsefulSkills, this.ActionSkills);
+	};
+	static CombatSkills = { '閃避': 4, '鬥毆': 2, '鬥毆(刀/劍/棒)': 2, '射擊（手槍）': 3, '投擲': 1 };//1
+	static CharacterSkills = {
+		'信用評級': 4, '人類學': 1, '估價': 1, '考古學': 2, '語言': 1, '法律': 1, '博物學': 1, '物理學': 1
+	};//1
+	static UsefulSkills = { '克蘇魯神話': 10, '心理學': 4, '巧手': 3, '鎖匠': 2, '機械修理': 1, '駕駛汽車': 2, '喬裝': 2, '藝術/工藝（演技）': 3 }
+	static ActionSkills = { '偵查': 4, '話術': 1, '取悅': 3, '恐嚇': 2, '說服': 1, '攀爬': 1, '跳躍': 1, '聆聽': 1 }//1-5
+
+	static descriptionSet = ['肌肉發達', '毛髮蓬鬆', '眼神狂野', '全身冒汗', '牙齒狀況差', '非常高大', '非常“平凡”外表', '瘦骨嶙峋', '衣著整潔無瑕', '眯著眼睛', '深邃的眼睛', '下垂的', '多疤痕', '瘢痕累累', '眼睛眼距近', '有皺紋', '刺青', '高額頭', '雕刻般的', '眼睛深陷', '有鬍子', '下巴雙層', '鼻子歪曲', '突出的眉骨', '禿頭', '修剪整齊的指甲', '嬌小', '消瘦', '超重', '長滿老繭的手', '細薄的頭髮', '長指甲', '細長的', '苗條', '運動型', '沾滿墨水的手指', '豐滿的頭髮', '小手', '怪誕', '濕疹', '口臭', '全身同色的衣服', '缺指', '狹長的臉', '乾燥的皮膚', '高挑的', '穿耳環的', '臉頰凹陷', '豐滿', '單眼', '屍體般的', '面具', '腐爛的', '缺少一肢', '無毛的', '疾病纏身的', '縮小的', '虛弱的', '高聳的', '骨瘦如柴的', '貧血的', '彎曲的', '佝僂的', '靈巧的', '笨重的', '蒼白的', '野獸般的', '蠟色的', '狐狸般的', '臉龐像小天使的', '憔悴的', '令人厭惡的', '不老的', '肉感的', '枯萎的', '青筋浮現的皮膚', '纖維狀', '拋光過的', '繃緊的', '時髦的', '醜陋的', '骯髒的', '強壯的', '纖細的', '結實的', '眼鏡', '有吸引力的', '不修邊幅的', '獨眼鏡', '華麗的', '普通的外表', '一頭白髮', '陰森的笑容', '老式的', '堂堂皇皇的', '彎腰駝背的', '華美的', '迷人的', '貓眼狀的', '閃亮的眼睛']
+
+	static traitsSet = ['浪漫', '不友善的', '好色', '冷漠', '傲慢', '無情', '挑剔', '固執', '自負', '心不在焉', '反覆無常', '好鬥', '粗鄙', '虐待狂', '神經質', '過分講究', '揮霍', '強迫', '矯揉造作', '自戀', '猶豫', '吝嗇', '不穩定', '掠奪成性', '魯莽', '悲慘的', '嫉妒的', '無禮的', '武斷的', '快活的', '極端的', '精密計算的', '吹噓的', '殘忍的', '討厭的', '糟糕的', '著迷', '敏感的', '和藹可親的', '有耐心的', '敏銳的', '幽默的', '親切的', '活潑的', '機智的', '有秩序的', '整潔的', '好奇的', '清醒的', '受過教育的', '精確', '即興', '穩定', '有野心', '專制', '嚴厲', '要求多', '真誠', '欺騙', '忠誠', '粗魯', '好爭吵', '尖酸刻薄', '難以寬恕', '粗糙', '不耐煩', '強烈', '殺人的', '瘋狂的', '無憂無慮', '嚴格', '狡猾', '心不在焉', '神祕', '不道德的', '尷尬', '冷靜', '挫折', '親切', '操控他人', '癮君子', '完美主義者', '放鬆', '驕傲', '諷刺', '保守', '緊張', '虛榮', '嗜血', '急躁', '謹慎', '精力充沛', '衝動', '物質主義', '輕浮', '做作', '冷酷', '偏執', '過度情緒', '無情緒'];
+
+
+	static spellsSet = ['1d4+1', '1d6+1d4+2', '3d6+4', '4d6+10'];
+	static SourcesOfPowerSet = [`神話生物
+	與神話生物如深潛者，人面鼠，修格斯，星之吸血鬼等有某種形式的關聯。
+	為了某種形式的服務或犧牲，怪獸保護並幫助教派領袖。`,
+		`文物
+	賦予法術般的能力，防護，攻擊方式或類似的物品(如充當魔法點數或甚至POW點數的存儲裝置)。該文物可能來自地球之外或遠古時代。`,
+		`科技
+	也許來自Xoth (克蘇魯在來到地球前的家)，可能來自另一個維度或另一個世界，這種裝置可能提供法術般效能，存儲魔法點數，可能是魔法武器，或者如盔甲一般提供防護。`,
+		`授予的力量
+	某種形式的"祝福"，由克蘇魯或其僕從植入教派領袖的心靈中。這種力量可能複製相同或降低的法術效果(通常為一半)所消耗的魔法點數或POW。這種力量也可能是另外的形式。
+	某種形式的物理或感官變化：觸手從臉部或身體上生長，某種形式的物理或感官變化：觸手從臉部或身體上生長，鱗狀皮膚護甲，高度的感官等等。`]
+
+
+	static CultWants = [`財富
+	無論是海洋中的金子、金融預測，還是寶貴的古代文物，邪教都相信克蘇魯會賦予某種形式的財富。這可能是對個人或團體具有特定且有幫助的東西。不要低估金錢的力量——它可以驅使人們做出最卑劣的行為。`,
+		`魔法力量
+	了解強大的咒語和儀式。這樣的魔法可能提供寶貴的洞察宇宙（高等學問）的知識，或者可能是控制和/或殺死他人——通過魔法掌控生命的力量。揭示現實祕密是一種令人陶醉且引人入勝的酒，許多人都會希望饗飽其間。或許，獲得魔法力量是達成更大目標的手段。`,
+		`慾望
+	可能意指伴侶關係或身體慾望和欲望。世界上有很多孤獨的人，他們幾乎可以為了與他人建立聯繫而做任何事。有些人沉迷於極致的快感，在邪教中成為會員，可以使他們的行為和慾望合法化。`,
+		`救贖
+	Cthulhu的崛起將帶來前所未有的恐懼和破壞。有些人相信，通過安撫Cthulhu，他們將能夠從這場大災難中幸免於難，他們是那些將在Cthulhu的統治下開創新時代的被選擇者。現在邪教所做的就是購買他們的拯救來臨。`,
+		`權力控制他人
+	控制其他人：個人，一個組織，一個社區，一個城市，一個國家等。使人們順從邪教的意志是其使命的關鍵。也許是通過魔法，洗腦，或是微妙的條件製造。邪教希望人們為他們效力，這可能是為了推動某種計劃，或者只是邪教所認為Cthulhu要求的。
+	`,
+		`宇宙理解
+	真理的追尋者，無論這真理有多驚悚或詛咒。"真理"有時候是主觀的 - 主觀越強，創造一個吸引人的故事就越好。知識就是力量。誰知道深入探索神話之謎會帶來什麼結果。`,
+		`暴力
+	有些人希望看到世界燃燒。這些邪教徒以克蘇魯的名義殺人和傷害人。他們將自己的行為視為最終的自由，放棄道德以在克蘇魯的桌旁獲得一席之地 - 他們相信他們是人類發展的下一階段的先驅。有些人可能使用暴力作為實施更大計劃的手段，而其他人則將其用作掩蓋更可怕真相的幌子。`,
+		`尋找解決方案
+	看似善意的目標，如治療疾病，清除腐敗的權威，理解人類行為 - 這些目標卻被克蘇魯的影響扭曲和腐敗。善意的路徑變向了黑暗。`,
+		`惡習上癮
+	為了滿足某種成癮，無論是平凡的(藥物，賭博，權力等)或是源自神話（魔法，知識，變革等）。對某物成癮的人可能更容易被控制——這個邪教想要控制它的成員。`,
+		`愛
+	不要與肉體的親密混淆，愛是大多數人的強大驅動力。一個邪教可能利用對家人，伴侶，或者友情的愛來控制人們。也許愛的目標已經以某種方式扭曲了。也許這個邪教是出於對人類的愛而行動，以非常錯誤的方式試圖“拯救”世界。`]
+	//手指
+	static CultMeans = [
+		`犧牲
+		為了某種目的，教派信徒犧牲活的人類和/或動物。這可能是為了證明他們的忠誠，作為某種力量的來源，或是大計劃的一部分。`,
+		`儀式
+		為了進行一種或多種形式的儀式，需要一小群或大量的參與者。儀式可能完全為教派服務，或者是滿足Cthulhu的意志以完成某事（無論大小）。`,
+		`集結
+		可能是收集知識（神祕學典籍）, 特定的資源，甚至是特定的人。教派必須為了Cthulhu只知的理由收集“某物”。`,
+		`服務
+		通過服務神祕神靈—與Cthulhu有連結的一個， 教派正在滿足Cthulhu的意志。作為回報，教派將以某種方式得到實體的幫助。或者，教派已深陷於此實體之中，必須服從其命令。也許這個實體與Cthulhu沒有實際的連結，但它宣稱有連結只是為了對教派獲得更多的權力。`,
+		`創造
+	這個邪教被命令要建造些什麼。這可能是一個魔法之門，一個神秘的工藝品，一個可以集中巨大力量的地方，或者是一個寺廟。也許它只是創建一個秘密網絡，以便有一天接管一個城鎮，一個城市，一個國家，或者是世界。`,
+		`摧毀
+	邪教被命令去摧毀某物——也許是那些阻礙，激怒，或者傷害克蘇魯的東西。這可能是摧毀一座古老的寺廟，一個神秘的屏障，或者是推翻一個與克蘇魯的目標相牴觸的政府或組織。`,
+		`轉變
+	邪教徒必須進行轉變——無論身體還是心靈。人類的能力有限，無法完成克蘇魯的目標，或者對於即將到來的世界太過脆弱，所以邪教徒尋求將自己轉變成更強大的存在。這可能是人類進化的新階段，或者是與神話同化，就像深海族那樣。`,
+		`追獵並殺死
+	摧毀克蘇魯的敵人，如某些人類的派系或另一個像那些上古之物這樣的神話種族，他們的行為是對抗的。這樣的存在可能成為克蘇魯恐怖計劃的問題。也許在追捕和殺死他們的目標時，邪教會得到些回報：吃掉他們的殺戮能給他們提供神話力量或洞見等等。`]
+}
+
 
 
 const oldArr = [15, 20, 40, 50, 60, 70, 80]
@@ -1206,7 +1533,7 @@ async function coc7bp({ chack, text, userid, groupid, channelid, bpdiceNum, user
 			return result;
 		}
 	} catch (error) {
-		console.log('error', error)
+		console.error('error coc #1536', error)
 	}
 }
 function buildpulpchar() {
@@ -1560,7 +1887,7 @@ function chaseGenerator(num) {
 			`
 			let itemsNumber = rollbase.DiceINT(2, 5);
 			let result = shuffle(request);
-			rply += `可能進行檢定: `;
+			rply += `可能進行的檢定: `;
 			for (let index = 0; index < itemsNumber; index++) {
 				rply += `${result[index]} `;
 			}
@@ -1803,7 +2130,7 @@ function getOccupationSkill(state) {
 		for (let index2 = 0; index2 < temp.length; index2++) {
 			skillsPool.push(temp[index2]);
 		}
-		//skillsPool = ["戰鬥類", "醫療"] - 決定POOL有什麼
+		//skillsPool = ["戰鬥類", "醫療"] - 決定POOL有什麼d
 		//skillsPool (15) ['戰鬥類', '醫療', '戰鬥類', '醫療', '移動類', '隱密類', '戰鬥類
 		if (index == CR) {
 			skillResult.push("信譽");
@@ -1989,3 +2316,67 @@ const APP = ["語言類", "交際類"]
 const EDU = ["調查類", "醫療類", "學問類"]
 const SIZ = ["戰鬥類", "交際類"]
 const INT = ["隱密類", "職業興趣", "調查類"]
+class MythoyCollection {
+	constructor() { }
+
+	static getMythos() {
+		return `克蘇魯神話邪神:
+		${this.getMythonData("god")}
+
+		克蘇魯神話生物:
+		${this.getMythonData("monster")}
+
+		克蘇魯神話書籍:
+		${this.getMythonData("MagicBook")}
+
+		克蘇魯神話法術:
+		${this.getMythonData("magic")}
+		`
+	}
+	static getMythonData(dataType) {
+		return this.cases[dataType] ? this.cases[dataType]() : this.cases._default();
+	}
+	static cases = {
+		god: () => { return this.getRandomData(this.MythoyGodList) },
+		monster: () => { return this.getRandomData(this.mosterList) },
+		magic: () => { return this.getRandomData(this.Magic) },
+		MagicBook: () => { return this.getRandomData(this.MagicBookList) },
+		pushedCasting: () => {
+			return `${this.getRandomData(this.pushedCastingRoll)}
+			對於更強大的法術（例如召喚神靈或消耗POW的法術），副作用可能更嚴重：
+			${this.getRandomData(this.pushedPowerfulCastingRoll)}
+			`
+		},
+		_default: () => { return "沒有找到符合的資料" }
+	}
+	static getRandomData(array) {
+		return array[Math.floor(Math.random() * array.length)];
+	}
+	static mosterList = [
+		"拜亞基", "鑽地魔蟲", "星之彩", "蠕行者", "達貢&海德拉（特殊深潜者）", "黑山羊幼崽", "深潜者", "混種深潜者", "巨噬蠕蟲", "空鬼", "古老者", "炎之精", "飛水螅", "無形眷族", "妖鬼", "食屍鬼", "格拉基之僕", "諾弗·刻", "伊斯之偉大種族", "庭達羅斯的獵犬", "恐怖獵手", "羅伊格爾", "米-戈", "夜魘", "人面鼠", "潜沙怪", "蛇人", "外神僕役", "夏蓋妖蟲", "夏塔克鳥", "修格斯", "修格斯主宰(人型)", "修格斯主宰(修格斯形態)", "克蘇魯的星之眷族", "星之精", "喬喬人", "耶庫伯人", "冷蛛", "昆揚人", "月獸", "空鬼", "潛沙怪", "冷原人", "圖姆哈人"
+	];
+	static MythoyGodList = ["阿布霍斯", "阿特拉克·納克亞", "阿薩托斯", "芭絲特", "昌格納·方庚", "克圖格亞", "偉大的克蘇魯", "賽伊格亞", "道羅斯", "埃霍特", "加塔諾托亞", "格拉基", "哈斯塔，不可名狀者", "伊塔庫亞", "黃衣之王，哈斯塔的化身", "諾登斯", "奈亞拉托提普(人類形態)", "奈亞拉托提普(怪物形態)", "尼約格薩", "蘭-提格斯", "莎布-尼古拉斯", "修德梅爾", "撒托古亞", "圖爾茲查", "烏波·薩斯拉", "烏波·薩斯拉的子嗣", "伊戈羅納克", "伊波·茲特爾", "伊格", "猶格·索托斯", "佐斯·奧摩格"];
+	static Magic = ["維瑞之印", "守衛術", "忘卻之波", "肢體凋萎術", "真言術", "折磨術", "靈魂分配術", "耶德·艾塔德放逐術", "束縛術", "祝福刀鋒術", "葛哥洛斯形體扭曲術", "深淵之息", "黃金蜂蜜酒釀造法", "透特之詠", "記憶模糊術", "紐格塔緊握術", "外貌濫用術", "致盲術/複明術", "創造納克-提特之障壁", "拉萊耶造霧術", "僵屍製造術", "腐爛外皮之詛咒", "致死術", "支配術", "阿撒托斯的恐怖詛咒", "蘇萊曼之塵", "舊印開光術", "綠腐術", "恐懼注入術", "血肉熔解術", "心理暗示術", "精神震爆術", "精神交換術", "精神轉移術", "塔昆·阿提普之鏡", "伊本-加茲之粉", "蒲林的埃及十字架", "修德·梅’爾之赤印", "復活術", "枯萎術", "哈斯塔之歌", "請神術", "聯絡術", "通神術", "附魔術", "迷身術（迷惑犧牲者）", "邪眼術", "猶格-索托斯之拳", "血肉防護術", "時空門法術", "召喚術", "束縛術"];
+	static MagicBookList = ["阿齊夫(死靈之書原版)", "死靈之書", "不可名狀的教團", "拉萊耶文本", "格拉基啟示錄", "死靈之書", "戈爾·尼格拉爾", "伊波恩之書", "水中之喀特", "綠之書", "不可名狀的教團", "伊波恩之書", "來自被詛咒者，或（關於古老而恐怖的教團的論文）", "死亡崇拜", "艾歐德之書", "蠕蟲之秘密", "食屍鬼教團", "伊波恩之書", "埃爾特當陶片", "暗黑儀式", "諾姆羊皮卷", "達爾西第四之書", "斯克洛斯之書", "斷罪處刑之書", "智者瑪格洛魯姆", "暗黑大典", "格哈恩殘篇", "納克特抄本", "不可名狀的教團", "伊希之儀式", "刻萊諾殘篇", "狂僧克利薩努斯的懺悔", "迪詹之書", "達貢禱文", "反思錄", "怪物及其族類", "惡魔崇拜", "深淵棲息者", "鉉子七奧書", "亞洲的神秘奧跡，含有從《戈爾·尼格拉爾》中摘抄的注釋", "巨噬蠕蟲頌", "蓋夫抄本", "薩塞克斯手稿", "鑽地啟示錄", "《死靈之書》中的克蘇魯", "伊拉內克紙草", "卡納瑪戈斯聖約書", "水中之喀特", "海底的教團", "真實的魔法", "納斯編年史", "遠古的恐怖", "骷髏黑書", "伊斯提之歌", "來自被詛咒者", "波納佩聖典", "神秘學基礎", "置身高壓水域", "魔法與黑巫術", "黃衣之王", "黑之契經", "《波納佩聖典》所述的史前太平洋", "伊戈爾倫理學", "來自亞狄斯的幻象", "利誇利亞的傳說", "哈利湖啟示錄", "姆-拉斯紙草", "撒都該人的勝利", "新英格蘭樂土上的奇術異事", "混沌之魂", "猶基亞頌歌", "秘密窺視者", "約翰森的敘述", "致夏蓋的安魂彌撒", "艾歐德之書", "越過幻象", "關於新英格蘭的既往巫術", "阿撒托斯及其他", "黑色的瘋狂之神", "伊波恩生平", "全能的奧蘇姆", "地底掘進者", "巨石的子民", "撒拉遜人的宗教儀式", "水鰭書", "波利尼西亞神話學，附有對克蘇魯傳說圈的記錄", "異界的監視者", "科學的奇跡", "薩波斯的卡巴拉", "贊蘇石板", "魚之書", "失落帝國的遺跡", "托斯卡納的宗教儀式", "夜之魍魎", "太平洋史前史：初步調查", "納卡爾之鑰", "宣福者美多迪烏斯", "翡翠石板", "金枝", "易經", "揭開面紗的伊西斯", "所羅門之鑰", "女巫之錘", "諾查丹瑪斯的預言", "西歐的异教巫術崇拜", "光明篇",]
+
+	static pushedCastingRoll = [
+		'1 .視力模糊或暫時失明。',
+		'2: 殘缺不全的尖叫聲、聲音或其他噪音。',
+		'3: 強烈的風或其他大氣效應。',
+		'4: 流血——可能是由於施法者、在場其他人或環境（如牆壁）的出血。',
+		'5: 奇異的幻象和幻覺。',
+		'6: 周圍的小動物爆炸。',
+		'7: 異臭的硫磺味。',
+		'8: 不小心召喚了神話生物。'
+	]
+	static pushedPowerfulCastingRoll = ['1: 大地震動，牆壁破裂。',
+		'2: 巨大的雷電聲。',
+		'3: 血從天而降。',
+		'4: 施法者的手被乾枯和燒焦。',
+		'5: 施法者不正常地老化（年齡增加2D10歲，並應用特徵修正，請參見老化規則）。',
+		'6: 強大或眾多的神話生物出現，從施法者開始攻擊附近所有人！',
+		'7: 施法者或附近的所有人被吸到遙遠的時間或地方。',
+		'8: 不小心召喚了神話神明。',
+	]
+
+}

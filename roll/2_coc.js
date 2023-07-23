@@ -13,7 +13,7 @@ const gameType = function () {
 }
 const prefixs = function () {
 	return [{
-		first: /(^\.cccc$)|(^ccrt$)|(^\.chase$)|(^ccsu$)|(^cc7版創角$)|(^[.]dp$)|(^[.]cc7build$)|(^[.]ccpulpbuild$)|(^[.]cc6build$)|(^[.]cc7bg$)|(^cc6版創角$)|(^cc7版角色背景$)/i,
+		first: /(^\.cccc$)|(^\.ccdr$)|(^\.ccpc$)|(^ccrt$)|(^\.chase$)|(^ccsu$)|(^cc7版創角$)|(^[.]dp$)|(^[.]cc7build$)|(^[.]ccpulpbuild$)|(^[.]cc6build$)|(^[.]cc7bg$)|(^cc6版創角$)|(^cc7版角色背景$)/i,
 		second: null
 	},
 	{
@@ -42,13 +42,10 @@ P.S.追逐戰功能使用了可選規則及我對規則書之獨斷理解，
 coc7版 即時型瘋狂： 啓動語 ccrt
 coc7版 總結型瘋狂： 啓動語 ccsu
 
-coc7版 神話生物： 啓動語 .ccmm P283
-coc7版 神話神祇： 啓動語 .ccmd 
-coc7版 神話組織： 啓動語 .ccml IB P125 DONE
-coc7版 神話魔法： 啓動語 .ccmt P246
-coc7版 神話典籍： 啓動語 .ccnpc  P225
 
-coc7版 施法推骰： 啓動語 .ccpc P178
+coc7版 神話組織 隨機產生： 啓動語 .ccml
+coc7版 神話資料 隨機產生： 啓動語 .ccdr
+coc7版 施法推骰後果： 啓動語 .ccpc
 
 coc pulp版創角	： 啓動語 .ccpulpbuild
 coc6版創角		： 啓動語 .cc6build
@@ -416,21 +413,19 @@ const rollDiceCommand = async function ({
 		case /(^\.cccc)/i.test(mainMsg[0]): {
 			rply.text = CreateCult.createCult();
 			rply.quotes = true;
-			//CTHULHU CULT
-			/*
-1. Leader Position: 平日地位
-2. 屬性: A-D Rank
-3. Skill技能:A-E Rank
-4. DESCRIPTION 1D100
-5. PERSONALITY 1D100 
-6. spells.
-7. SOURCES OF POWER 
-8. CULT GOALS—WANTS
-9. CULT GOALS—MEANS
-
-*/
 			return rply;
 		};
+		case /(^\.ccpc)/i.test(mainMsg[0]): {
+			rply.text = MythoyCollection.getMythonData('pushedCasting');
+			rply.quotes = true;
+			return rply;
+		};
+		case /(^\.ccdr)/i.test(mainMsg[0]): {
+			rply.text = MythoyCollection.getMythos();
+			rply.quotes = true;
+			return rply;
+		};
+
 		default:
 			break;
 	}
@@ -559,6 +554,31 @@ const discordCommand = [
 			return `.cc7bg`
 		}
 	}
+	, {
+		data: new SlashCommandBuilder()
+			.setName('ccml')
+			.setDescription('隨機產生 神話組織')
+		,
+		async execute() {
+			return `.ccml`
+		}
+	}, {
+		data: new SlashCommandBuilder()
+			.setName('ccdr')
+			.setDescription('隨機產生 神話資料')
+		,
+		async execute() {
+			return `.ccdr`
+		}
+	}, {
+		data: new SlashCommandBuilder()
+			.setName('ccpc')
+			.setDescription('施法推骰後果')
+		,
+		async execute() {
+			return `.ccpc`
+		}
+	}
 ];
 
 module.exports = {
@@ -621,6 +641,9 @@ class CreateCult {
 	技能: 
 	${cult.skill}
 
+	法術:
+	${cult.spells}
+
 	特質: 
 	${cult.description}
 	
@@ -677,9 +700,16 @@ class CreateCult {
 	}
 	static spells() {
 		let text = '';
+		let num = 0;
 		let spells = this.spellsSet[rollbase.Dice(this.spellsSet.length) - 1];
 		text = rollbase.BuildDiceCal(spells);
-		return spells;
+		num = text.match(/\d+$/i)[0];
+		text += '\n';
+		for (let i = 0; i < num; i++) {
+			text += ` ${MythoyCollection.getMythonData('magic')},`;
+		}
+		text = text.replace(/,$/i, '');
+		return text;
 	}
 	static sourcesOfPower() {
 		let text = '';
@@ -733,25 +763,6 @@ class CreateCult {
 		}
 		return arr;
 	}
-	static pushedCastingRoll = [
-		'1 .視力模糊或暫時失明。',
-		'2: 殘缺不全的尖叫聲、聲音或其他噪音。',
-		'3: 強烈的風或其他大氣效應。',
-		'4: 流血——可能是由於施法者、在場其他人或環境（如牆壁）的出血。',
-		'5: 奇異的幻象和幻覺。',
-		'6: 周圍的小動物爆炸。',
-		'7: 異臭的硫磺味。',
-		'8: 不小心召喚了神話生物。',
-		'1: 大地震動，牆壁破裂。',
-		'2: 巨大的雷電聲。',
-		'3: 血從天而降。',
-		'4: 施法者的手被乾枯和燒焦。',
-		'5: 施法者不正常地老化（年齡增加2D10歲，並應用特徵修正，請參見老化規則）。',
-		'6: 強大或眾多的神話生物出現，從施法者開始攻擊附近所有人！',
-		'7: 施法者或附近的所有人被吸到遙遠的時間或地方。',
-		'8: 不小心召喚了神話神明。',
-		'對於更強大的法術（例如召喚神靈或消耗POW的法術），副作用可能更嚴重：',
-	]
 
 	static sixState = ["STR", "CON", "SIZ", "DEX", "INT", "APP", "POW", "EDU"]
 	static characteristicsSet = [[75, 70, 65, 60, 55, 50, 40, 35],
@@ -2305,3 +2316,67 @@ const APP = ["語言類", "交際類"]
 const EDU = ["調查類", "醫療類", "學問類"]
 const SIZ = ["戰鬥類", "交際類"]
 const INT = ["隱密類", "職業興趣", "調查類"]
+class MythoyCollection {
+	constructor() { }
+
+	static getMythos() {
+		return `克蘇魯神話邪神:
+		${this.getMythonData("god")}
+
+		克蘇魯神話生物:
+		${this.getMythonData("monster")}
+
+		克蘇魯神話書籍:
+		${this.getMythonData("MagicBook")}
+
+		克蘇魯神話法術:
+		${this.getMythonData("magic")}
+		`
+	}
+	static getMythonData(dataType) {
+		return this.cases[dataType] ? this.cases[dataType]() : this.cases._default();
+	}
+	static cases = {
+		god: () => { return this.getRandomData(this.MythoyGodList) },
+		monster: () => { return this.getRandomData(this.mosterList) },
+		magic: () => { return this.getRandomData(this.Magic) },
+		MagicBook: () => { return this.getRandomData(this.MagicBookList) },
+		pushedCasting: () => {
+			return `${this.getRandomData(this.pushedCastingRoll)}
+			對於更強大的法術（例如召喚神靈或消耗POW的法術），副作用可能更嚴重：
+			${this.getRandomData(this.pushedPowerfulCastingRoll)}
+			`
+		},
+		_default: () => { return "沒有找到符合的資料" }
+	}
+	static getRandomData(array) {
+		return array[Math.floor(Math.random() * array.length)];
+	}
+	static mosterList = [
+		"拜亞基", "鑽地魔蟲", "星之彩", "蠕行者", "達貢&海德拉（特殊深潜者）", "黑山羊幼崽", "深潜者", "混種深潜者", "巨噬蠕蟲", "空鬼", "古老者", "炎之精", "飛水螅", "無形眷族", "妖鬼", "食屍鬼", "格拉基之僕", "諾弗·刻", "伊斯之偉大種族", "庭達羅斯的獵犬", "恐怖獵手", "羅伊格爾", "米-戈", "夜魘", "人面鼠", "潜沙怪", "蛇人", "外神僕役", "夏蓋妖蟲", "夏塔克鳥", "修格斯", "修格斯主宰(人型)", "修格斯主宰(修格斯形態)", "克蘇魯的星之眷族", "星之精", "喬喬人", "耶庫伯人", "冷蛛", "昆揚人", "月獸", "空鬼", "潛沙怪", "冷原人", "圖姆哈人"
+	];
+	static MythoyGodList = ["阿布霍斯", "阿特拉克·納克亞", "阿薩托斯", "芭絲特", "昌格納·方庚", "克圖格亞", "偉大的克蘇魯", "賽伊格亞", "道羅斯", "埃霍特", "加塔諾托亞", "格拉基", "哈斯塔，不可名狀者", "伊塔庫亞", "黃衣之王，哈斯塔的化身", "諾登斯", "奈亞拉托提普(人類形態)", "奈亞拉托提普(怪物形態)", "尼約格薩", "蘭-提格斯", "莎布-尼古拉斯", "修德梅爾", "撒托古亞", "圖爾茲查", "烏波·薩斯拉", "烏波·薩斯拉的子嗣", "伊戈羅納克", "伊波·茲特爾", "伊格", "猶格·索托斯", "佐斯·奧摩格"];
+	static Magic = ["維瑞之印", "守衛術", "忘卻之波", "肢體凋萎術", "真言術", "折磨術", "靈魂分配術", "耶德·艾塔德放逐術", "束縛術", "祝福刀鋒術", "葛哥洛斯形體扭曲術", "深淵之息", "黃金蜂蜜酒釀造法", "透特之詠", "記憶模糊術", "紐格塔緊握術", "外貌濫用術", "致盲術/複明術", "創造納克-提特之障壁", "拉萊耶造霧術", "僵屍製造術", "腐爛外皮之詛咒", "致死術", "支配術", "阿撒托斯的恐怖詛咒", "蘇萊曼之塵", "舊印開光術", "綠腐術", "恐懼注入術", "血肉熔解術", "心理暗示術", "精神震爆術", "精神交換術", "精神轉移術", "塔昆·阿提普之鏡", "伊本-加茲之粉", "蒲林的埃及十字架", "修德·梅’爾之赤印", "復活術", "枯萎術", "哈斯塔之歌", "請神術", "聯絡術", "通神術", "附魔術", "迷身術（迷惑犧牲者）", "邪眼術", "猶格-索托斯之拳", "血肉防護術", "時空門法術", "召喚術", "束縛術"];
+	static MagicBookList = ["阿齊夫(死靈之書原版)", "死靈之書", "不可名狀的教團", "拉萊耶文本", "格拉基啟示錄", "死靈之書", "戈爾·尼格拉爾", "伊波恩之書", "水中之喀特", "綠之書", "不可名狀的教團", "伊波恩之書", "來自被詛咒者，或（關於古老而恐怖的教團的論文）", "死亡崇拜", "艾歐德之書", "蠕蟲之秘密", "食屍鬼教團", "伊波恩之書", "埃爾特當陶片", "暗黑儀式", "諾姆羊皮卷", "達爾西第四之書", "斯克洛斯之書", "斷罪處刑之書", "智者瑪格洛魯姆", "暗黑大典", "格哈恩殘篇", "納克特抄本", "不可名狀的教團", "伊希之儀式", "刻萊諾殘篇", "狂僧克利薩努斯的懺悔", "迪詹之書", "達貢禱文", "反思錄", "怪物及其族類", "惡魔崇拜", "深淵棲息者", "鉉子七奧書", "亞洲的神秘奧跡，含有從《戈爾·尼格拉爾》中摘抄的注釋", "巨噬蠕蟲頌", "蓋夫抄本", "薩塞克斯手稿", "鑽地啟示錄", "《死靈之書》中的克蘇魯", "伊拉內克紙草", "卡納瑪戈斯聖約書", "水中之喀特", "海底的教團", "真實的魔法", "納斯編年史", "遠古的恐怖", "骷髏黑書", "伊斯提之歌", "來自被詛咒者", "波納佩聖典", "神秘學基礎", "置身高壓水域", "魔法與黑巫術", "黃衣之王", "黑之契經", "《波納佩聖典》所述的史前太平洋", "伊戈爾倫理學", "來自亞狄斯的幻象", "利誇利亞的傳說", "哈利湖啟示錄", "姆-拉斯紙草", "撒都該人的勝利", "新英格蘭樂土上的奇術異事", "混沌之魂", "猶基亞頌歌", "秘密窺視者", "約翰森的敘述", "致夏蓋的安魂彌撒", "艾歐德之書", "越過幻象", "關於新英格蘭的既往巫術", "阿撒托斯及其他", "黑色的瘋狂之神", "伊波恩生平", "全能的奧蘇姆", "地底掘進者", "巨石的子民", "撒拉遜人的宗教儀式", "水鰭書", "波利尼西亞神話學，附有對克蘇魯傳說圈的記錄", "異界的監視者", "科學的奇跡", "薩波斯的卡巴拉", "贊蘇石板", "魚之書", "失落帝國的遺跡", "托斯卡納的宗教儀式", "夜之魍魎", "太平洋史前史：初步調查", "納卡爾之鑰", "宣福者美多迪烏斯", "翡翠石板", "金枝", "易經", "揭開面紗的伊西斯", "所羅門之鑰", "女巫之錘", "諾查丹瑪斯的預言", "西歐的异教巫術崇拜", "光明篇",]
+
+	static pushedCastingRoll = [
+		'1 .視力模糊或暫時失明。',
+		'2: 殘缺不全的尖叫聲、聲音或其他噪音。',
+		'3: 強烈的風或其他大氣效應。',
+		'4: 流血——可能是由於施法者、在場其他人或環境（如牆壁）的出血。',
+		'5: 奇異的幻象和幻覺。',
+		'6: 周圍的小動物爆炸。',
+		'7: 異臭的硫磺味。',
+		'8: 不小心召喚了神話生物。'
+	]
+	static pushedPowerfulCastingRoll = ['1: 大地震動，牆壁破裂。',
+		'2: 巨大的雷電聲。',
+		'3: 血從天而降。',
+		'4: 施法者的手被乾枯和燒焦。',
+		'5: 施法者不正常地老化（年齡增加2D10歲，並應用特徵修正，請參見老化規則）。',
+		'6: 強大或眾多的神話生物出現，從施法者開始攻擊附近所有人！',
+		'7: 施法者或附近的所有人被吸到遙遠的時間或地方。',
+		'8: 不小心召喚了神話神明。',
+	]
+
+}

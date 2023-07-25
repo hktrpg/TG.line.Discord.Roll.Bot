@@ -8,7 +8,7 @@ if (process.env.mongoURL) {
   return;
 }
 
-require('fs').readdirSync(__dirname + '/modules/').forEach(function (file) {
+fs.readdirSync(__dirname + '/modules/').forEach(function (file) {
   if (file.match(/\.js$/) && file.match(/^core-/)) {
     var name = file.replace('.js', '');
     exports[name] = require('./modules/' + file);

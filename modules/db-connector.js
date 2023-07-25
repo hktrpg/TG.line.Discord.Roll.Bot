@@ -33,7 +33,7 @@ async function connectMongoDB() {
 }
 
 (async () => {
-    if (!master) return;
+    
     await connectMongoDB()
     const job = schedule.scheduleJob(restartTime, function () {
         console.log('04:30 reconnect MongoDB!!');

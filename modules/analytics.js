@@ -1,30 +1,26 @@
 "use strict";
+// Load `*.js` under roll directory as properties
+//  i.e., `User.js` will become `exports['User']` or `exports.User`
+(function () {
+	require('fs').readdirSync('./roll/').forEach(function (file) {
+		if (file.match(/\.js$/) !== null && file !== 'index.js' && file !== 'demo.js') {
+			const name = file.replace('.js', '');
+			exports[name] = require('../roll/' + file);
+		}
+	})
+}())
 
-const fs = require('fs');
-const path = require('path');
+
 const schema = require('./schema.js');
-const debugMode = Boolean(process.env.DEBUG);
+const debugMode = (process.env.DEBUG) ? true : false;
 const MESSAGE_SPLITOR = (/\S+/ig);
 const courtMessage = require('./logs').courtMessage || function () { };
 const getState = require('./logs').getState || function () { };
 const EXPUP = require('./level').EXPUP || function () { };
 
-const modules = {};
-const moduleDir = path.join(__dirname, '../roll');
-
-// Load `*.js` under roll directory as properties
-//  i.e., `User.js` will become `exports['User']` or `exports.User`
-fs.readdirSync(moduleDir)
-	.filter(file => file.match(/\.js$/) && file !== 'index.js' && file !== 'demo.js')
-	.forEach(file => {
-		const name = file.replace('.js', '');
-		modules[name] = require(path.join(moduleDir, file));
-	});
-
-
 //用來呼叫骰組,新增骰組的話,要寫條件式到下面呼叫
 //格式是 exports.骰組檔案名字.function名
-async function parseInput({
+var parseInput = async function ({
 	inputStr = "",
 	groupid = null,
 	userid = null,
@@ -47,18 +43,16 @@ async function parseInput({
 	};
 
 	let mainMsg = [];
-	mainMsg = inputStr.trim().match(MESSAGE_SPLITOR) || [];
+	inputStr = inputStr.replace(/^\s/g, '')
+	mainMsg = inputStr.match(MESSAGE_SPLITOR); //定義輸入字串
 	//EXPUP 功能 + LevelUP 功能
 	if (groupid) {
-		//modules.level.EXPUP
 		let tempEXPUP = await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount, tgDisplayname, discordMessage);
 		result.LevelUp = (tempEXPUP && tempEXPUP.text) ? tempEXPUP.text : '';
 		result.statue = (tempEXPUP && tempEXPUP.statue) ? tempEXPUP.statue : '';
 	}
 
-
 	//檢查是不是要停止  z_stop功能
-	//modules.common.z_stop
 	if (groupid && mainMsg[0] && z_stop(mainMsg, groupid)) {
 		return result;
 	}
@@ -67,7 +61,7 @@ async function parseInput({
 	let rollDiceResult = {};
 
 	try {
-		rollDiceResult = await modules.common.rolldice({
+		rollDiceResult = await rolldice({
 			inputStr: inputStr,
 			groupid: groupid,
 			userid: userid,
@@ -89,8 +83,7 @@ async function parseInput({
 
 	}
 	if (rollDiceResult) {
-		//result = JSON.parse(JSON.stringify(Object.assign({}, result, rollDiceResult)));
-		Object.assign(result, rollDiceResult);
+		result = JSON.parse(JSON.stringify(Object.assign({}, result, rollDiceResult)));
 	}
 
 	//cmdfunction  .cmd 功能   z_saveCommand 功能
@@ -110,8 +103,8 @@ async function parseInput({
 			titleName: titleName,
 			tgDisplayname: tgDisplayname
 		});
-		if (typeof cmdFunctionResult === 'object' && !cmdFunctionResult) {
-			Object.assign(result, cmdFunctionResult);
+		if (typeof cmdFunctionResult === 'object' && cmdFunctionResult !== null) {
+			result = Object.assign({}, result, cmdFunctionResult)
 		}
 	}
 
@@ -148,14 +141,13 @@ async function parseInput({
 		result.text = await stateText();
 	}
 	//courtMessage + saveLog
-	//await courtMessage({ result, botname, inputStr })
-	await modules.common.courtMessage({ result, botname, inputStr });
+	await courtMessage({ result, botname, inputStr })
 	return result;
 }
 
 
 
-const rolldice = async ({
+var rolldice = async function ({
 	inputStr,
 	groupid,
 	userid,
@@ -170,7 +162,7 @@ const rolldice = async ({
 	discordMessage,
 	titleName,
 	tgDisplayname
-}) => {
+}) {
 	//在下面位置開始分析trigger
 	if (!groupid) {
 		groupid = '';

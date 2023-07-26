@@ -1810,7 +1810,7 @@ function calculatorlossSan(rollSuccess, rollFail) {
 			const result = rollbase.BuildDiceCal(roll).match(/\d+$/);
 			return result;
 		} catch {
-			return mathjs.evaluate(result);
+			return mathjs.evaluate(roll);
 		}
 	}
 	const rollSuccessLoss = parseRoll(rollSuccess);

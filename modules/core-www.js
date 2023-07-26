@@ -65,7 +65,7 @@ process.on('uncaughtException', (warning) => {
     console.warn(warning.message); // Print the warning message
     // const clock = setTimeout(createWebServer, 60000 * 5);
 });
-const io = require('socket.io')(server);
+
 const records = require('./records.js');
 const { re } = require('mathjs');
 const port = process.env.WWWPORT || 20721;
@@ -86,8 +86,9 @@ function createWebServer(options = {}, www) {
 
     return server;
 }
-
 const server = createWebServer(options, www);
+const io = require('socket.io')(server);
+
 
 // 加入線上人數計數
 let onlineCount = 0;

@@ -1,8 +1,9 @@
 "use strict";
-if (!process.env.LINE_CHANNEL_ACCESSTOKEN || !process.env.mongoURL) {
+if (!process.env.mongoURL) {
     return;
 }
-
+const express = require('express');
+const www = express();
 const {
     RateLimiterMemory
 } = require('rate-limiter-flexible');
@@ -14,12 +15,11 @@ const certificate = (process.env.KEY_CERT) ? process.env.KEY_CERT : null;
 const APIswitch = (process.env.API) ? process.env.API : null;
 const ca = (process.env.KEY_CA) ? process.env.KEY_CA : null;
 const isMaster = (process.env.MASTER) ? process.env.MASTER : null;
-const www = require('./core-Line').app;
 const salt = process.env.SALT;
 const crypto = require('crypto');
 const mainCharacter = require('../roll/z_character').mainCharacter;
 const fs = require('fs');
-var options = {
+const options = {
     key: null,
     cert: null,
     ca: null
@@ -57,6 +57,7 @@ async function read() {
 var server;
 createWebServer();
 process.on('uncaughtException', (warning) => {
+    console.log('uncaughtException', warning); // Print the warning name
     console.warn(warning.name); // Print the warning name
     console.warn(warning.message); // Print the warning message
     var clock = setTimeout(createWebServer, 60000 * 5);
@@ -461,3 +462,6 @@ function createWebServer() {
 function jsonEscape(str) {
     return str.replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/\t/g, "\\t");
 }
+module.exports = {
+    app: www
+};

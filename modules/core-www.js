@@ -19,7 +19,7 @@ const salt = process.env.SALT;
 const crypto = require('crypto');
 const mainCharacter = require('../roll/z_character').mainCharacter;
 const fs = require('fs');
-const options = {
+let options = {
     key: null,
     cert: null,
     ca: null

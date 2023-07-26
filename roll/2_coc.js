@@ -1734,36 +1734,6 @@ ${build7random()}`;
 
 
 function build6char() {
-	/*	//讀取年齡
-		if (text01 == undefined) text01 = 18;
-		let old = text01;
-		let ReStr = '調查員年齡設為：' + old + '\n';
-		//設定 因年齡減少的點數 和 EDU加骰次數
-		let Debuff = 0;
-		let AppDebuff = 0;
-		let EDUinc = 0;
-		let oldArr = [15,20,40,50,60,70,80]
-		let DebuffArr = [5,0,5,10,20,40,80]
-		let AppDebuffArr = [0,0,5,10,15,20,25]
-		let EDUincArr = [0,1,2,3,4,4,4]
-
-		if (old < 15) rply.text = ReStr + '等等，核心規則不允許小於15歲的人物哦。';	
-		if (old >= 90) rply.text = ReStr + '等等，核心規則不允許90歲以上的人物哦。'; 
-
-		for (let i=0 ; old >= oldArr[i] ; i ++){
-			Debuff = DebuffArr[i];
-			AppDebuff = AppDebuffArr[i];
-			EDUinc = EDUincArr[i];
-		}
-		ReStr  += '==\n';
-		if (old < 20) ReStr  += '年齡調整：從STR、SIZ擇一減去' + Debuff + '點\n（請自行手動選擇計算）。\n將EDU減去5點。LUK可擲兩次取高。' ;
-		else
-			if (old >= 40)	ReStr  += '年齡調整：從STR、CON或DEX中「總共」減去' + Debuff + '點\n（請自行手動選擇計算）。\n將APP減去' + AppDebuff +'點。可做' + EDUinc + '次EDU的成長擲骰。' ;
-		else ReStr  += '年齡調整：可做' + EDUinc + '次EDU的成長擲骰。' ;
-		ReStr  += '\n=='; 
-	 if (old>=40) ReStr  += '\n（以下箭號三項，自選共減' + Debuff + '點。）' ;
-		if (old<20) ReStr  += '\n（以下箭號兩項，擇一減去' + Debuff + '點。）' ;
-	 */
 	let ReStr = '六版核心創角：';
 	ReStr += '\nＳＴＲ：' + rollbase.BuildDiceCal('3d6');
 	ReStr += '\nＤＥＸ：' + rollbase.BuildDiceCal('3d6');
@@ -1793,26 +1763,17 @@ function sc(mainMsg) {
 	let scMode = (/\//).test(mainMsg[2] || null);
 	let sc = (scMode) ? mainMsg[2] && mainMsg[2].match(/^(.+)\/(.+)$/i) : null;
 	(!sc) ? scMode = false : null;
-
-	let rollFail = (sc && sc[2] && sc[2].match(/(\d+)d(\d+)/i) && sc[2].match(/(\d+)d(\d+)/i)[0]) || (sc && sc[2] && sc[2].match(/(\d+)/i) && sc[2].match(/(\d+)/i)[0]);
-	let rollSuccess = (sc && sc[1] && sc[1].match(/(\d+)d(\d+)/i) && sc[1].match(/(\d+)d(\d+)/i)[0]) || (sc && sc[1] && sc[1].match(/(\d+)/i) && sc[1].match(/(\d+)/i)[0]);
-
-	let lossSan = 0;
-
+	let rollSuccess = (sc && sc[1] && sc[1].replace(/[^+\-*\dD]/ig, ""));
+	let rollFail = (sc && sc[2] && sc[2].replace(/[^+\-*\dD]/ig, ""));
+	let lossSan = calculatorlossSan(rollSuccess, rollFail);
 	switch (true) {
 		case (rollDice === 100) || (rollDice >= 96 && rollDice <= 100 && san <= 49): {
 			if (!scMode) {
 				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 大失敗!`;
 			}
 			if (rollFail) {
-				let result = rollFail.replace(/(\d+)d(\d+)/i, replacer)
-				try {
-					lossSan = mathjs.evaluate(result);
-				} catch (error) {
-					lossSan = result;
-				}
-				let nowSan = ((san - lossSan) < 0) ? 0 : san - lossSan;
-				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 大失敗!\n失去最大值 ${lossSan}點San\n現在San值是${nowSan}點`
+				let nowSan = ((san - lossSan.rollFumbleLoss) < 0) ? 0 : san - lossSan.rollFumbleLoss;
+				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 大失敗!\n失去${rollFail}最大值 ${lossSan.rollFumbleLoss}點San\n現在San值是${nowSan}點`
 			}
 			return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 大失敗!`
 		}
@@ -1821,19 +1782,9 @@ function sc(mainMsg) {
 			if (!scMode) {
 				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 成功!`
 			}
-			if (rollSuccess) {
-				try {
-					lossSan = rollbase.BuildDiceCal(rollSuccess).match(/\d+$/);
-				} catch (error) {
-					lossSan = rollSuccess;
-				}
-			}
-			if (!lossSan && rollSuccess) {
-				lossSan = rollSuccess;
-			}
 			if (lossSan) {
-				let nowSan = ((san - lossSan) < 0) ? 0 : san - lossSan;
-				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 成功!\n失去${rollSuccess} → ${lossSan}點San\n現在San值是${nowSan}點`
+				let nowSan = ((san - lossSan.rollSuccessLoss) < 0) ? 0 : san - lossSan.rollSuccessLoss;
+				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 成功!\n失去${rollSuccess} → ${lossSan.rollSuccessLoss}點San\n現在San值是${nowSan}點`
 			} else
 				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 成功!\n不需要減少San`
 
@@ -1841,21 +1792,9 @@ function sc(mainMsg) {
 			if (!scMode) {
 				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 失敗!`
 			}
-			if (rollFail) {
-
-				try {
-					lossSan = rollbase.BuildDiceCal(rollFail)
-				} catch (error) {
-					lossSan = rollFail;
-				}
-			}
-			if (!lossSan && rollFail) {
-				lossSan = rollFail;
-			}
 			if (lossSan) {
-				lossSan = lossSan.match(/\d+$/);
-				let nowSan = ((san - lossSan) < 0) ? 0 : san - lossSan;
-				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 失敗!\n失去${rollFail} → ${lossSan}點San\n現在San值是${nowSan}點`
+				let nowSan = ((san - lossSan.rollFailLoss) < 0) ? 0 : san - lossSan.rollFailLoss;
+				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 失敗!\n失去${rollFail} → ${lossSan.rollFailLoss}點San\n現在San值是${nowSan}點`
 			} else
 				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 失敗!\n但不需要減少San`
 
@@ -1865,8 +1804,31 @@ function sc(mainMsg) {
 	}
 }
 
-function replacer(a, b, c) {
-	return b * c;
+function calculatorlossSan(rollSuccess, rollFail) {
+	const parseRoll = (roll) => {
+		try {
+			const result = rollbase.BuildDiceCal(roll).match(/\d+$/);
+			return result;
+		} catch {
+			return mathjs.evaluate(result);
+		}
+	}
+	const rollSuccessLoss = parseRoll(rollSuccess);
+	const rollFailLoss = parseRoll(rollFail);
+
+	let rollFumbleLoss;
+	try {
+		const result = `${rollFail.replace("d", "*")}`;
+		rollFumbleLoss = mathjs.evaluate(result);
+	} catch {
+		rollFumbleLoss = rollFail;
+	}
+	return {
+		rollSuccessLoss: rollSuccessLoss || 0,
+		rollFailLoss: rollFailLoss || 0,
+		rollFumbleLoss: rollFumbleLoss || 0
+	}
+
 }
 
 function chase() {

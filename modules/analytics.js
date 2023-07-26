@@ -9,7 +9,6 @@ const readdir = util.promisify(fs.readdir);
 (async function () {
 	const files = await readdir('./roll/');
 	files.forEach((file) => {
-		console.log('Loading roll file: ', file)
 		const name = path.basename(file, '.js');
 		if ((name !== 'index' || name !== 'demo') && file.endsWith('.js')) {
 			exports[name] = require(path.join(__dirname, '../roll/', file));

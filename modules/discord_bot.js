@@ -203,6 +203,12 @@ client.on('messageReactionRemove', async (reaction, user) => {
 	}
 });
 
+const sleep = async (minutes) => {
+	await new Promise(resolve => {
+		return setTimeout(resolve, minutes * 1000 * 60);
+	});
+};
+
 
 client.once('ready', async () => {
 	initInteractionCommands();
@@ -1389,11 +1395,6 @@ if (debugMode) process.on('warning', e => {
 	console.warn(e.stack)
 });
 
-const sleep = async (minutes) => {
-	await new Promise(resolve => {
-		return setTimeout(resolve, minutes * 1000 * 60);
-	});
-};
 
 /**
  *

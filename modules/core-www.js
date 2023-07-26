@@ -58,6 +58,7 @@ const http = require('http');
 const https = require('https');
 
 function createWebServer(options = {}, www) {
+    if (!process.env.CREATEWEB) return;
     const server = options.key
         ? https.createServer(options, www)
         : http.createServer(www);
@@ -78,6 +79,7 @@ process.on('uncaughtException', (warning) => {
 });
 const io = require('socket.io')(server);
 const records = require('./records.js');
+const { re } = require('mathjs');
 const port = process.env.WWWPORT || 20721;
 const channelKeyword = '';
 exports.analytics = require('./analytics');

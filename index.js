@@ -3,10 +3,7 @@
 require('dotenv').config({ override: true });
 const fs = require('fs');
 
-if (process.env.mongoURL) {
-  require('./modules/db-connector');
-  return;
-}
+
 
 fs.readdirSync(__dirname + '/modules/').forEach(function (file) {
   if (file.match(/\.js$/) && file.match(/^core-/)) {

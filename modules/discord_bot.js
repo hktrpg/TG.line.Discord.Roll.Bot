@@ -1,6 +1,6 @@
 "use strict";
 exports.analytics = require('./analytics');
-const debugMode = (process.env.DEBUG) ? true : false;
+const debugMode = !!process.env.DEBUG;
 const schema = require('../modules/schema.js');
 const isImageURL = require('image-url-validator').default;
 const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)(\s?)$/igm);

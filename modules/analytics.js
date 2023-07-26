@@ -1,11 +1,18 @@
 "use strict";
 // Load `*.js` under roll directory as properties
 //  i.e., `User.js` will become `exports['User']` or `exports.User`
-(function () {
-	require('fs').readdirSync('./roll/').forEach(function (file) {
-		if (file.match(/\.js$/) !== null && file !== 'index.js' && file !== 'demo.js') {
-			const name = file.replace('.js', '');
-			exports[name] = require('../roll/' + file);
+const fs = require('fs');
+const path = require('path');
+const util = require('util');
+const readdir = util.promisify(fs.readdir);
+
+(async function () {
+	const files = await readdir('./roll/');
+	files.forEach((file) => {
+		console.log('Loading roll file: ', file)
+		const name = path.basename(file, '.js');
+		if ((name !== 'index' || name !== 'demo') && file.endsWith('.js')) {
+			exports[name] = require(path.join(__dirname, '../roll/', file));
 		}
 	})
 }())
@@ -20,7 +27,7 @@ const EXPUP = require('./level').EXPUP || function () { };
 
 //用來呼叫骰組,新增骰組的話,要寫條件式到下面呼叫
 //格式是 exports.骰組檔案名字.function名
-var parseInput = async function ({
+const parseInput = async function ({
 	inputStr = "",
 	groupid = null,
 	userid = null,
@@ -147,7 +154,7 @@ var parseInput = async function ({
 
 
 
-var rolldice = async function ({
+const rolldice = async function ({
 	inputStr,
 	groupid,
 	userid,

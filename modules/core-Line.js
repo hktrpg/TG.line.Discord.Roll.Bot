@@ -2,7 +2,7 @@
 if (!process.env.LINE_CHANNEL_ACCESSTOKEN || !process.env.LINE_CHANNEL_SECRET) {
 	return;
 }
-const port = 20831;
+const port = process.env.LINEPORT || 20831;
 const candle = require('../modules/candleDays.js');
 const mainLine = Boolean(process.env.DISCORD_CHANNEL_SECRET);
 const lineAgenda = Boolean(process.env.LINE_AGENDA)

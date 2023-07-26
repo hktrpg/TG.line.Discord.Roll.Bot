@@ -78,7 +78,7 @@ process.on('uncaughtException', (warning) => {
 });
 const io = require('socket.io')(server);
 const records = require('./records.js');
-const port = process.env.PORT || 20721;
+const port = process.env.WWWPORT || 20721;
 const channelKeyword = '';
 exports.analytics = require('./analytics');
 

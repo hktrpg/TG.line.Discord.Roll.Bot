@@ -27,7 +27,7 @@ const EXPUP = require('./level').EXPUP || function () { };
 
 //用來呼叫骰組,新增骰組的話,要寫條件式到下面呼叫
 //格式是 exports.骰組檔案名字.function名
-const parseInput = async function ({
+const parseInput = async ({
 	inputStr = "",
 	groupid = null,
 	userid = null,
@@ -41,7 +41,7 @@ const parseInput = async function ({
 	discordMessage,
 	titleName = '',
 	tgDisplayname = ''
-}) {
+}) => {
 	let result = {
 		text: '',
 		type: 'text',
@@ -154,7 +154,7 @@ const parseInput = async function ({
 
 
 
-const rolldice = async function ({
+const rolldice = async ({
 	inputStr,
 	groupid,
 	userid,
@@ -169,7 +169,7 @@ const rolldice = async function ({
 	discordMessage,
 	titleName,
 	tgDisplayname
-}) {
+}) => {
 	//在下面位置開始分析trigger
 	if (!groupid) {
 		groupid = '';

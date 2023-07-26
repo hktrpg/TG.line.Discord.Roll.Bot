@@ -65,6 +65,9 @@ function createWebServer(options = {}, www) {
 
     const protocol = options.key ? 'https' : 'http';
     console.log(`${protocol} server`);
+    server.listen(port, () => {
+        console.log("Web Server Started. port:" + port);
+    });
 
     return server;
 }
@@ -370,10 +373,6 @@ records.on("new_message", async (message) => {
         rplyVal.text = '\n' + rplyVal.text
         loadb(io, records, rplyVal, message);
     }
-});
-
-server.listen(port, () => {
-    console.log("Web Server Started. port:" + port);
 });
 
 function SHA(text) {

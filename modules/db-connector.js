@@ -1,6 +1,6 @@
 "use strict";
-const schedule = require('node-schedule');
 if (!process.env.mongoURL) return;
+const schedule = require('node-schedule');
 const restartTime = '30 04 */3 * *';
 const master = require.main?.filename.includes('index');
 const mongoose = require('mongoose');
@@ -33,21 +33,23 @@ async function connectMongoDB() {
 }
 
 (async () => {
-    connectMongoDB()
-
+    
+    await connectMongoDB()
+    const job = schedule.scheduleJob(restartTime, function () {
+        console.log('04:30 reconnect MongoDB!!');
+        restartMongoDB();
+    });
 })();
-const job = schedule.scheduleJob(restartTime, function () {
-    console.log('04:30 reconnect MongoDB!!');
-    restartMongoDB();
-});
 
-function restartMongoDB() {
+
+async function restartMongoDB() {
     mongoose.connection.close()
-    connectMongoDB();
+    await connectMongoDB();
 }
 
 mongoose.connection.on('error', err => {
-    console.error('DB CONNECT ON GET ERROR: ' + err.name, err.reason)
+    console.error('DB CONNECT ON GET ERROR: ' + err.name, err.reason);
+    restartMongoDB();
 });
 
 const db = mongoose.connection;

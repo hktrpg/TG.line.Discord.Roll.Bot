@@ -3,12 +3,9 @@
 require('dotenv').config({ override: true });
 const fs = require('fs');
 
-if (process.env.mongoURL) {
-  require('./modules/db-connector');
-  return;
-}
 
-require('fs').readdirSync(__dirname + '/modules/').forEach(function (file) {
+
+fs.readdirSync(__dirname + '/modules/').forEach(function (file) {
   if (file.match(/\.js$/) && file.match(/^core-/)) {
     var name = file.replace('.js', '');
     exports[name] = require('./modules/' + file);

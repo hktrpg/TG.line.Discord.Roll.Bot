@@ -1,8 +1,9 @@
 "use strict";
-if (!process.env.LINE_CHANNEL_ACCESSTOKEN || !process.env.mongoURL) {
+if (!process.env.mongoURL) {
     return;
 }
-
+const express = require('express');
+const www = express();
 const {
     RateLimiterMemory
 } = require('rate-limiter-flexible');
@@ -14,12 +15,11 @@ const certificate = (process.env.KEY_CERT) ? process.env.KEY_CERT : null;
 const APIswitch = (process.env.API) ? process.env.API : null;
 const ca = (process.env.KEY_CA) ? process.env.KEY_CA : null;
 const isMaster = (process.env.MASTER) ? process.env.MASTER : null;
-const www = require('./core-Line').app;
 const salt = process.env.SALT;
 const crypto = require('crypto');
 const mainCharacter = require('../roll/z_character').mainCharacter;
 const fs = require('fs');
-var options = {
+const options = {
     key: null,
     cert: null,
     ca: null
@@ -54,17 +54,32 @@ async function read() {
 (async () => {
     read()
 })();
-var server;
-createWebServer();
+const http = require('http');
+const https = require('https');
+
+function createWebServer(options = {}, www) {
+    const server = options.key
+        ? https.createServer(options, www)
+        : http.createServer(www);
+
+    const protocol = options.key ? 'https' : 'http';
+    console.log(`${protocol} server`);
+
+    return server;
+}
+
+const server = createWebServer(options, www);
+
 process.on('uncaughtException', (warning) => {
+    console.log('uncaughtException', warning); // Print the warning name
     console.warn(warning.name); // Print the warning name
     console.warn(warning.message); // Print the warning message
-    var clock = setTimeout(createWebServer, 60000 * 5);
+    // const clock = setTimeout(createWebServer, 60000 * 5);
 });
 const io = require('socket.io')(server);
 const records = require('./records.js');
 const port = process.env.PORT || 20721;
-var channelKeyword = '';
+const channelKeyword = '';
 exports.analytics = require('./analytics');
 
 // 加入線上人數計數
@@ -448,16 +463,9 @@ if (isMaster) {
     });
 }
 
-function createWebServer() {
-    if (!options.key) {
-        server = require('http').createServer(www);
-        console.log('http server');
-    } else {
-        server = require('https').createServer(options, www);
-        console.log('https server');
-    }
-}
-
 function jsonEscape(str) {
     return str.replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/\t/g, "\\t");
 }
+module.exports = {
+    app: www
+};

@@ -57,6 +57,21 @@ async function read() {
 const http = require('http');
 const https = require('https');
 
+
+
+process.on('uncaughtException', (warning) => {
+    console.log('uncaughtException', warning); // Print the warning name
+    console.warn(warning.name); // Print the warning name
+    console.warn(warning.message); // Print the warning message
+    // const clock = setTimeout(createWebServer, 60000 * 5);
+});
+const io = require('socket.io')(server);
+const records = require('./records.js');
+const { re } = require('mathjs');
+const port = process.env.WWWPORT || 20721;
+const channelKeyword = '';
+exports.analytics = require('./analytics');
+
 function createWebServer(options = {}, www) {
     if (!process.env.CREATEWEB) return;
     const server = options.key
@@ -73,19 +88,6 @@ function createWebServer(options = {}, www) {
 }
 
 const server = createWebServer(options, www);
-
-process.on('uncaughtException', (warning) => {
-    console.log('uncaughtException', warning); // Print the warning name
-    console.warn(warning.name); // Print the warning name
-    console.warn(warning.message); // Print the warning message
-    // const clock = setTimeout(createWebServer, 60000 * 5);
-});
-const io = require('socket.io')(server);
-const records = require('./records.js');
-const { re } = require('mathjs');
-const port = process.env.WWWPORT || 20721;
-const channelKeyword = '';
-exports.analytics = require('./analytics');
 
 // 加入線上人數計數
 let onlineCount = 0;

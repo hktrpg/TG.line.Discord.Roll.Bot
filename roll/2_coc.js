@@ -108,7 +108,8 @@ const rollDiceCommand = async function ({
 			break;
 		}
 		case /^\.sc$/i.test(mainMsg[0]): {
-			rply.text = sc(mainMsg);
+			let sc = new SanCheck(mainMsg);
+			rply.text = sc.run();
 			rply.quotes = true;
 			break;
 		}
@@ -1752,83 +1753,118 @@ function PcBG() {
 	return '背景描述生成器（僅供娛樂用，不具實際參考價值）\n==\n調查員是一個' + PersonalDescriptionArr[rollbase.Dice(PersonalDescriptionArr.length) - 1] + '人。\n【信念】：說到這個人，他' + IdeologyBeliefsArr[rollbase.Dice(IdeologyBeliefsArr.length) - 1] + '。\n【重要之人】：對他來說，最重要的人是' + SignificantPeopleArr[rollbase.Dice(SignificantPeopleArr.length) - 1] + '，這個人對他來說之所以重要，是因為' + SignificantPeopleWhyArr[rollbase.Dice(SignificantPeopleWhyArr.length) - 1] + '。\n【意義非凡之地】：對他而言，最重要的地點是' + MeaningfulLocationsArr[rollbase.Dice(MeaningfulLocationsArr.length) - 1] + '。\n【寶貴之物】：他最寶貴的東西就是' + TreasuredPossessionsArr[rollbase.Dice(TreasuredPossessionsArr.length) - 1] + '。\n【特徵】：總括來說，調查員是一個' + TraitsArr[rollbase.Dice(TraitsArr.length) - 1] + '。';
 }
 
-function sc(mainMsg) {
-	//可接受輸入: .sc 50	.sc 50 哈哈		.sc 50 1/3		.sc 50 1d3+3/1d100 
-	if (!mainMsg || !mainMsg[0] || !mainMsg[1]) return;
-	let san = (mainMsg[1].match(/^\d+$/)) ? mainMsg[1].match(/^\d+$/) : null;
-	if (!san) return;
-
-	let rollDice = rollbase.Dice(100);
-	//scMode 代表會扣SC 或有正常輸入扣SAN的數字 
-	let scMode = (/\//).test(mainMsg[2] || null);
-	let sc = (scMode) ? mainMsg[2] && mainMsg[2].match(/^(.+)\/(.+)$/i) : null;
-	(!sc) ? scMode = false : null;
-	let rollSuccess = (sc && sc[1] && sc[1].replace(/[^+\-*\dD]/ig, ""));
-	let rollFail = (sc && sc[2] && sc[2].replace(/[^+\-*\dD]/ig, ""));
-	let lossSan = calculatorlossSan(rollSuccess, rollFail);
-	switch (true) {
-		case (rollDice === 100) || (rollDice >= 96 && rollDice <= 100 && san <= 49): {
-			if (!scMode) {
-				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 大失敗!`;
-			}
-			if (rollFail) {
-				let nowSan = ((san - lossSan.rollFumbleLoss) < 0) ? 0 : san - lossSan.rollFumbleLoss;
-				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 大失敗!\n失去${rollFail}最大值 ${lossSan.rollFumbleLoss}點San\n現在San值是${nowSan}點`
-			}
-			return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 大失敗!`
-		}
-		case rollDice <= san:
-			//成功
-			if (!scMode) {
-				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 成功!`
-			}
-			if (lossSan) {
-				let nowSan = ((san - lossSan.rollSuccessLoss) < 0) ? 0 : san - lossSan.rollSuccessLoss;
-				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 成功!\n失去${rollSuccess} → ${lossSan.rollSuccessLoss}點San\n現在San值是${nowSan}點`
-			} else
-				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 成功!\n不需要減少San`
-
-		case rollDice > san: {
-			if (!scMode) {
-				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 失敗!`
-			}
-			if (lossSan) {
-				let nowSan = ((san - lossSan.rollFailLoss) < 0) ? 0 : san - lossSan.rollFailLoss;
-				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 失敗!\n失去${rollFail} → ${lossSan.rollFailLoss}點San\n現在San值是${nowSan}點`
-			} else
-				return `San Check\n1d100 ≦ ${san}\n擲出:${rollDice} → 失敗!\n但不需要減少San`
-
-		}
-		default:
-			return;
+class SanCheck {
+	constructor(mainMsg) {
+		this.mainMsg = mainMsg;
+		this.rollDice = rollbase.Dice(100);
+		this.currentSan = this.getSanity(mainMsg[1]);
+		this.scMode = this.getScMode(mainMsg[2]);
+		this.sc = this.getSc(mainMsg[2]);
+		this.rollSuccess = this.getRollSuccess(this.sc);
+		this.rollFail = this.getRollFail(this.sc);
+		this.lossSan = this.calculateLossSanity(this.rollSuccess, this.rollFail);
 	}
-}
 
-function calculatorlossSan(rollSuccess, rollFail) {
-	const parseRoll = (roll) => {
+	getSanity(mainMsg) {
+		const sanityMatch = mainMsg.match(/^\d+$/);
+		return sanityMatch ? sanityMatch[0] : null;
+	}
+
+	getScMode(mainMsg) {
+		return (/\//).test(mainMsg || null);
+	}
+
+	getSc(mainMsg) {
+		return this.scMode ? mainMsg && mainMsg.match(/^(.+)\/(.+)$/i) : null;
+	}
+
+	getRollSuccess(sc) {
+		return sc && sc[1] ? sc[1].replace(/[^+\-*\dD]/ig, "") : null;
+	}
+
+	getRollFail(sc) {
+		return sc && sc[2] ? sc[2].replace(/[^+\-*\dD]/ig, "") : null;
+	}
+
+	calculateLossSanity(rollSuccess = '', rollFail = '') {
+		const parseRoll = (roll) => {
+			try {
+				return Math.max(rollbase.BuildDiceCal(roll).match(/\S+$/)?.[0], 0)
+			} catch { }
+			try {
+				return Math.max(mathjs.evaluate(roll), 0);
+			} catch { }
+			return roll;
+		};
+
+		const rollSuccessLoss = parseRoll(rollSuccess) || 0;
+		const rollFailLoss = parseRoll(rollFail) || 0;
+
+		let rollFumbleLoss = rollFail;
+		const regExp = /d/ig;
 		try {
-			const result = rollbase.BuildDiceCal(roll).match(/\d+$/);
-			return result;
-		} catch {
-			return mathjs.evaluate(roll);
+			rollFumbleLoss = mathjs.evaluate(rollFail.replace(regExp, '*'));
+		} catch { }
+
+		return {
+			rollSuccessLoss,
+			rollFailLoss,
+			rollFumbleLoss
+		};
+
+	}
+	run() {
+		if (!this.currentSan) return '請輸入正確的San值，\n格式是 .sc 50 或 .sc 50 1/3 或 .sc 50 1d3+3/1d100';
+		const diceFumble = (this.rollDice === 100) || (this.rollDice >= 96 && this.rollDice <= 100 && this.currentSan <= 49);
+		const diceSuccess = this.rollDice <= this.currentSan;
+		const diceFail = this.rollDice > this.currentSan;
+
+		if (diceFumble) {
+			return this.handleDiceFumble();
+		} else if (diceSuccess) {
+			return this.handleDiceSuccess();
+		} else if (diceFail) {
+			return this.handleDiceLoss();
 		}
-	}
-	const rollSuccessLoss = parseRoll(rollSuccess);
-	const rollFailLoss = parseRoll(rollFail);
 
-	let rollFumbleLoss;
-	try {
-		const result = `${rollFail.replace("d", "*")}`;
-		rollFumbleLoss = mathjs.evaluate(result);
-	} catch {
-		rollFumbleLoss = rollFail;
-	}
-	return {
-		rollSuccessLoss: rollSuccessLoss || 0,
-		rollFailLoss: rollFailLoss || 0,
-		rollFumbleLoss: rollFumbleLoss || 0
+		//可接受輸入: .sc 50	.sc 50 哈哈		.sc 50 1/3		.sc 50 1d3+3/1d100 
+		//scMode 代表會扣SC 或有正常輸入扣SAN的數字 
+
 	}
 
+	handleDiceFumble() {
+		if (!this.scMode) {
+			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 大失敗!`;
+		}
+		if (this.rollFail) {
+			let updatedSan = ((this.currentSan - this.lossSan.rollFumbleLoss) < 0) ? 0 : this.currentSan - this.lossSan.rollFumbleLoss;
+			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 大失敗!\n失去${this.rollFail}最大值 ${this.lossSan.rollFumbleLoss}點San\n現在San值是${updatedSan}點`.replace('是NaN點', ' 算式錯誤，未能計算');
+		}
+		return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 大失敗!`
+	}
+	handleDiceSuccess() {
+		//成功
+		if (!this.scMode) {
+			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 成功!`
+		}
+		if (this.lossSan) {
+			let updatedSan = ((this.currentSan - this.lossSan.rollSuccessLoss) < 0) ? 0 : this.currentSan - this.lossSan.rollSuccessLoss;
+			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 成功!\n失去${this.rollSuccess} → ${this.lossSan.rollSuccessLoss}點San\n現在San值是${updatedSan}點`.replace('是NaN點', ' 算式錯誤，未能計算');
+		} else
+			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 成功!\n不需要減少San`
+
+	}
+	handleDiceLoss() {
+		if (!this.scMode) {
+			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 失敗!`
+		}
+		if (this.lossSan) {
+			let updatedSan = ((this.currentSan - this.lossSan.rollFailLoss) < 0) ? 0 : this.currentSan - this.lossSan.rollFailLoss;
+			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 失敗!\n失去${this.rollFail} → ${this.lossSan.rollFailLoss}點San\n現在San值是${updatedSan}點`.replace('是NaN點', ' 算式錯誤，未能計算');
+		} else
+			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 失敗!\n但不需要減少San`
+
+	}
 }
 
 function chase() {

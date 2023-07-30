@@ -10,27 +10,31 @@
  * @example 日期之間以空白隔開，可以設定多個日期，例如：CANDLE_DATES=2,14,🌷 12,25,🕯️
  * 
  */
-
+const _DEFAULT_CANDLE = '🕯️';
 class CandleChecker {
     constructor() {
         this.monthDays = [
         ];
+        this.today = {};
         this.#importDates();
-        const today = new Date();
-        this.todayMonth = today.getMonth() + 1;
-        this.todayDate = today.getDate();
+        this.#updateToday();
         this.#scheduleFunction();
         this.isCandleDay = false;
+        this.todayCandle = '';
         this.#checkForCandle();
     }
 
     #checkForCandle() {
-        for (const day of this.monthDays) {
-            if (day.month === this.todayMonth && day.day === this.todayDate) {
-                this.isCandleDay = true;
-                break;
-            }
+        this.isCandleDay = this.monthDays.some(({ month, day }) =>
+            month === this.today.Month && day === this.today.Date
+        )
+        if (this.isCandleDay) {
+            this.todayCandle = this.monthDays.find(({ month, day }) =>
+                month === this.today.Month && day === this.today.Date
+            ).candle || _DEFAULT_CANDLE;
         }
+        else this.todayCandle = '';
+        console.log(`[CandleChecker] Today is ${this.today.Month}/${this.today.Date}, isCandleDay: ${this.isCandleDay}, candle: ${this.checker()}`);
     }
     #importDates() {
         process.env.CANDLE_DATES?.split(/\s+/).forEach((date) => {
@@ -40,15 +44,7 @@ class CandleChecker {
     }
 
     checker() {
-        try {
-            if (this.isCandleDay) {
-                return (this.monthDays?.find((day) => day.month === this.todayMonth && day.day === this.todayDate)?.candle) || '🕯️';
-            } else {
-                return '';
-            }
-        } catch (error) {
-            return '';
-        }
+        return this.todayCandle;
     }
     #scheduleFunction() {
         const now = new Date(); // 當前日期和時間
@@ -62,8 +58,10 @@ class CandleChecker {
     }
     #updateToday() {
         const today = new Date();
-        this.todayMonth = today.getMonth() + 1;
-        this.todayDate = today.getDate();
+        this.today = {
+            Month: today.getMonth() + 1,
+            Date: today.getDate()
+        }
     }
 }
 

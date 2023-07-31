@@ -1075,7 +1075,13 @@ const sendFiles = async (message, rplyVal, userid) => {
 		console.error;
 	}
 	for (let index = 0; index < rplyVal.fileLink.length; index++) {
-		fs.unlinkSync(files[index]);
+		try {
+			fs.unlinkSync(files[index]);
+		}
+		catch (error) {
+			console.error('discord bot error #1082', (error?.name, error?.message), files);
+		}
+
 	}
 
 	return;

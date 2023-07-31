@@ -465,10 +465,7 @@ const mongodbState = async () => {
     try {
         let ans = await mongoose.connection.db.command({ serverStatus: 1 });
         return ans;
-    } catch (error) {
-
-    }
-
+    } catch (error) { }
 }
 
 

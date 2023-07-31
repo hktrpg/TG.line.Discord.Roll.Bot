@@ -193,7 +193,7 @@ class ImageAi extends OpenAI {
                 return await this.handleImageAi(inputStr);
             } else {
                 this.errorCount = 0;
-                console.error('AI error', error.response?.status, error.response?.statusText, `${inputStr.replace(/^\.aimage/i, '')}`)
+                console.error('AI error', error.response?.status, error.response?.statusText)
                 return 'AI error', error.response?.status + error.response?.statusText + ` ${inputStr.replace(/^\.aimage/i, '')}`;
             }
         }
@@ -301,7 +301,7 @@ class TranslateAi extends OpenAI {
                 return await this.translateChat(inputStr);
             } else {
                 this.errorCount = 0;
-                console.error('AI error', error.response?.status, error.response?.statusText, `${inputStr.replace(/^\.ait/i, '')}`)
+                console.error('AI error', error.response?.status, error.response?.statusText)
                 return 'AI error', error.response?.status + error.response?.statusText + ` ${inputStr.replace(/^\.ait/i, '')}`;
             }
         }
@@ -401,7 +401,7 @@ class ChatAi extends OpenAI {
                 return await this.handleChatAi(inputStr);
             } else {
                 this.errorCount = 0;
-                console.error('AI error', error.response?.status, error.response?.statusText, `${inputStr.replace(/^\.ai/i, '')}`)
+                console.error('AI error', error.response?.status, error.response?.statusText)
                 return 'AI error', error.response?.status + error.response?.statusText + ` ${inputStr.replace(/^\.ai/i, '')}`;
             }
         }

@@ -10,29 +10,33 @@
  * @example 日期之間以空白隔開，可以設定多個日期，例如：CANDLE_DATES=2,14,🌷 12,25,🕯️
  * 
  */
-
+const _DEFAULT_CANDLE = '🕯️';
 class CandleChecker {
     constructor() {
         this.monthDays = [
         ];
-        this.importDates();
-        const today = new Date();
-        this.todayMonth = today.getMonth() + 1;
-        this.todayDate = today.getDate();
-        this.scheduleFunction();
+        this.today = {};
+        this.#importDates();
+        this.#updateToday();
+        this.#scheduleFunction();
         this.isCandleDay = false;
-        this.checkForCandle();
+        this.todayCandle = '';
+        this.#checkForCandle();
     }
 
-    checkForCandle() {
-        for (const day of this.monthDays) {
-            if (day.month === this.todayMonth && day.day === this.todayDate) {
-                this.isCandleDay = true;
-                break;
-            }
+    #checkForCandle() {
+        this.isCandleDay = this.monthDays.some(({ month, day }) =>
+            month === this.today.Month && day === this.today.Date
+        )
+        if (this.isCandleDay) {
+            this.todayCandle = this.monthDays.find(({ month, day }) =>
+                month === this.today.Month && day === this.today.Date
+            ).candle || _DEFAULT_CANDLE;
         }
+        else this.todayCandle = '';
+        console.log(`[CandleChecker] Today is ${this.today.Month}/${this.today.Date}, isCandleDay: ${this.isCandleDay}, candle: ${this.checker()}`);
     }
-    importDates() {
+    #importDates() {
         process.env.CANDLE_DATES?.split(/\s+/).forEach((date) => {
             const [month, day, candle] = date.split(',');
             this.monthDays.push({ month: Number(month), day: Number(day), candle: candle || '🕯️' });
@@ -40,30 +44,24 @@ class CandleChecker {
     }
 
     checker() {
-        try {
-            if (this.isCandleDay) {
-                return (this.monthDays?.find((day) => day.month === this.todayMonth && day.day === this.todayDate)?.candle) || '🕯️';
-            } else {
-                return '';
-            }
-        } catch (error) {
-            return '';
-        }
+        return this.todayCandle;
     }
-    scheduleFunction() {
+    #scheduleFunction() {
         const now = new Date(); // 當前日期和時間
         const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1); // 明天日期
         const msUntilMidnight = tomorrow.getTime() - now.getTime() + 5000; // 距離明天 00:00 +1000 的毫秒數
         setTimeout(() => {
-            this.scheduleFunction(); // 設定下一次定時任務
-            this.updateToday(); // 更新今天的日期
-            this.checkForCandle();// 檢查是否是指定日期，如果是的話，設定 this.isCandleDay 為 true
+            this.#scheduleFunction(); // 設定下一次定時任務
+            this.#updateToday(); // 更新今天的日期
+            this.#checkForCandle();// 檢查是否是指定日期，如果是的話，設定 this.isCandleDay 為 true
         }, msUntilMidnight); // 設定定時器等待到明天 00:00+5秒 後執行
     }
-    updateToday() {
+    #updateToday() {
         const today = new Date();
-        this.todayMonth = today.getMonth() + 1;
-        this.todayDate = today.getDate();
+        this.today = {
+            Month: today.getMonth() + 1,
+            Date: today.getDate()
+        }
     }
 }
 

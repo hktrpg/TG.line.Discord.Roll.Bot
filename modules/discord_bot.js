@@ -13,7 +13,7 @@ const { Client, GatewayIntentBits, Partials, Options } = Discord;
 const { Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, Events, EmbedBuilder, PermissionsBitField, AttachmentBuilder, ChannelType } = Discord;
 
 const multiServer = require('../modules/multi-server')
-const checkMongodb = require('../modules/dbWatchdog.js');
+const dbWatchdog = require('../modules/dbWatchdog.js');
 const fs = require('node:fs');
 const errorCount = [];
 const { rollText } = require('./getRoll');
@@ -96,7 +96,7 @@ const MESSAGE_SPLITOR = (/\S+/ig);
 const link = process.env.WEB_LINK;
 const port = process.env.PORT || 20721;
 const mongo = process.env.mongoURL
-var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
+const TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const EXPUP = require('./level').EXPUP || function () { };
 const courtMessage = require('./logs').courtMessage || function () { };
 
@@ -110,8 +110,8 @@ var ws;
 client.on('messageCreate', async message => {
 	try {
 		if (message.author.bot) return;
-		if (!checkMongodb.isDbOnline() && checkMongodb.isDbRespawn()) {
-			//checkMongodb.discordClientRespawn(client, shardid)
+		if (!dbWatchdog.isDbOnline() && dbWatchdog.isDbRespawn()) {
+			//dbWatchdog.discordClientRespawn(client, shardid)
 			respawnCluster2();
 		}
 		const result = await handlingResponMessage(message);
@@ -158,13 +158,13 @@ client.on('interactionCreate', async message => {
 
 
 client.on('messageReactionAdd', async (reaction, user) => {
-	if (!checkMongodb.isDbOnline()) return;
+	if (!dbWatchdog.isDbOnline()) return;
 	if (reaction.me) return;
 	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId })
 		.cache(30)
 		.catch(error => {
 			console.error('discord_bot #802 mongoDB error: ', error.name, error.reson)
-			checkMongodb.dbErrOccurs();
+			dbWatchdog.dbErrOccurs();
 		})
 	try {
 		if (!list || list.length === 0) return;
@@ -185,7 +185,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 });
 
 client.on('messageReactionRemove', async (reaction, user) => {
-	if (!checkMongodb.isDbOnline()) return;
+	if (!dbWatchdog.isDbOnline()) return;
 	if (reaction.me) return;
 	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('discord_bot #817 mongoDB error: ', error.name, error.reson))
 	try {
@@ -739,7 +739,7 @@ async function checkWakeUp() {
 			}, []);
 			if (indexes.length > 0) {
 				indexes.forEach(index => {
-					//checkMongodb.discordClientRespawn(client, index)
+					//dbWatchdog.discordClientRespawn(client, index)
 				})
 				return indexes;
 			}

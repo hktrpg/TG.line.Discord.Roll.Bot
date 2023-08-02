@@ -122,7 +122,7 @@ class OpenAI {
         this.apiKeys = [];
         let base = -1;
         for (let index = 0; index < 100; index++) {
-            if (base % 10 === 0) base++;
+            if (index % 10 === 0) base++;
             if (!process.env[`OPENAI_SECRET_${index}`]) continue;
             this.apiKeys.push({
                 key: process.env[`OPENAI_SECRET_${index}`],
@@ -141,8 +141,8 @@ class OpenAI {
                 this.errorCount = 0;
                 this.addApiKey();
                 this.openai = new OpenAIApi(new Configuration({
-                    apiKey: this.apiKeys[0],
-                    basePath: process.env.OPENAI_BASEPATH
+                    apiKey: this.apiKeys[0]?.key,
+                    basePath: this.apiKeys[0]?.basePath,
                 }));
             }
         });

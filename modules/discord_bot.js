@@ -992,7 +992,7 @@ async function handlingResponMessage(message, answer = '') {
 		if (process.env.mongoURL)
 			try {
 
-				let isNew = await newMessage.newUserChecker(userid, "Discord");
+				const isNew = await newMessage.newUserChecker(userid, "Discord");
 				if (process.env.mongoURL && rplyVal.text && isNew) {
 					SendToId(userid, newMessage.firstTimeMessage(), true);
 				}

@@ -126,7 +126,8 @@ class OpenAI {
             if (!process.env[`OPENAI_SECRET_${index}`]) continue;
             this.apiKeys.push({
                 key: process.env[`OPENAI_SECRET_${index}`],
-                basePath: process.env[`OPENAI_BASEPATH_${base}1_${base + 1}0`] || process.env.OPENAI_BASEPATH
+                basePath: process.env[`OPENAI_BASEPATH_${base}1_${base + 1}0`]
+                    || process.env.OPENAI_BASEPATH
                     || 'https://api.openai.com/v1'
             });
         }

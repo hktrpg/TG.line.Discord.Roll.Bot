@@ -106,12 +106,12 @@ module.exports = {
 
 class OpenAI {
     constructor() {
-        this.apiKeys = [{ key: '', basePath: '' }];
+        this.apiKeys = [];
         this.addApiKey();
         this.watchEnvironment();
         this.configuration = new Configuration({
-            apiKey: this.apiKeys[0].key,
-            basePath: this.apiKeys[0].basePath,
+            apiKey: this.apiKeys[0]?.key,
+            basePath: this.apiKeys[0]?.basePath,
         });
         this.model = process.env.OPENAI_MODEL || "gpt-4";
         this.openai = new OpenAIApi(this.configuration);

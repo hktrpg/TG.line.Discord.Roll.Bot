@@ -1,5 +1,5 @@
 "use strict";
-if (!process.env.OPENAI_BASEPATH || !process.env.OPENAI_SECRET_1) return;
+if (!process.env.OPENAI_SWITCH) return;
 
 const { Configuration, OpenAIApi } = require('openai');
 const dotenv = require('dotenv');
@@ -121,7 +121,7 @@ class OpenAI {
     addApiKey() {
         this.apiKeys = [];
         let base = -1;
-        for (let index = 0; index < 100; index++) {
+        for (let index = 1; index < 100; index++) {
             if (index % 10 === 0) base++;
             if (!process.env[`OPENAI_SECRET_${index}`]) continue;
             this.apiKeys.push({

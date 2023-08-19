@@ -1,5 +1,5 @@
 "use strict";
-if (!process.env.OPENAI_BASEPATH || !process.env.OPENAI_SECRET_1) return;
+if (!process.env.OPENAI_SWITCH) return;
 
 const { Configuration, OpenAIApi } = require('openai');
 const dotenv = require('dotenv');
@@ -106,12 +106,12 @@ module.exports = {
 
 class OpenAI {
     constructor() {
-        this.apiKeys = [{ key: '', basePath: '' }];
+        this.apiKeys = [];
         this.addApiKey();
         this.watchEnvironment();
         this.configuration = new Configuration({
-            apiKey: this.apiKeys[0].key,
-            basePath: this.apiKeys[0].basePath,
+            apiKey: this.apiKeys[0]?.key,
+            basePath: this.apiKeys[0]?.basePath,
         });
         this.model = process.env.OPENAI_MODEL || "gpt-4";
         this.openai = new OpenAIApi(this.configuration);
@@ -121,12 +121,13 @@ class OpenAI {
     addApiKey() {
         this.apiKeys = [];
         let base = -1;
-        for (let index = 0; index < 100; index++) {
+        for (let index = 1; index < 100; index++) {
             if (index % 10 === 0) base++;
             if (!process.env[`OPENAI_SECRET_${index}`]) continue;
             this.apiKeys.push({
                 key: process.env[`OPENAI_SECRET_${index}`],
-                basePath: process.env[`OPENAI_BASEPATH_${base}1_${base + 1}0`] || process.env.OPENAI_BASEPATH
+                basePath: process.env[`OPENAI_BASEPATH_${base}1_${base + 1}0`]
+                    || process.env.OPENAI_BASEPATH
                     || 'https://api.openai.com/v1'
             });
         }

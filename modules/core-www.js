@@ -67,7 +67,6 @@ process.on('uncaughtException', (warning) => {
 });
 
 const records = require('./records.js');
-const { re } = require('mathjs');
 const port = process.env.WWWPORT || 20721;
 const channelKeyword = '';
 exports.analytics = require('./analytics');
@@ -268,33 +267,22 @@ io.on('connection', async (socket) => {
     socket.on('removeChannel', async message => {
         if (await limitRaterCard(socket.handshake.address)) return;
         //回傳 message 給發送訊息的 Client
-        let filter = {
-            userName: message.userName,
-            password: SHA(message.userPassword)
-        }
-        let doc = await schema.accountPW.findOne(filter).catch(error => console.error('www #246 mongoDB error: ', error.name, error.reson));
-        let temp;
-        if (doc && doc.id) {
-            message.card.state = checkNullItem(message.card.state);
-            message.card.roll = checkNullItem(message.card.roll);
-            message.card.notes = checkNullItem(message.card.notes);
-            temp = await schema.characterCard.findOneAndUpdate({
-                id: doc.id,
-                _id: message.card._id
+        try {
+            await schema.accountPW.updateOne({
+                "userName": message.userName,
+                "password": SHA(message.userPassword)
             }, {
-                $set: {
-                    public: message.card.public,
-                    state: message.card.state,
-                    roll: message.card.roll,
-                    notes: message.card.notes,
+                $pull: {
+                    channel: {
+                        "id": message.channelId,
+                        "botname": message.botname
+                    }
                 }
-            }).catch(error => console.error('www #262 mongoDB error: ', error.name, error.reson));
+            });
+        } catch (e) {
+            console.error('core-www ERROR:', e);
         }
-        if (temp) {
-            socket.emit('updateCard', true)
-        } else {
-            socket.emit('updateCard', false)
-        }
+
     })
 
     socket.on('updateCard', async message => {

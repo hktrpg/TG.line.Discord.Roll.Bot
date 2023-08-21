@@ -222,11 +222,25 @@
                 <span class="iconify" data-icon="grommet-icons:channel" data-inline="false" data-width="20px"
                     data-height="20px"></span>擲骰頻道
             </h4>
-            <label><input type="radio" name="gpListRadio" value=null checked />
-                不進行群組擲骰</label>
-            <div v-for="(gp,i) in gpList">
-                <label> <input type="radio" name="gpListRadio" v-bind:value="gp._id" />
-                    編號: {{i+1}} 平台: {{gp.botname}} 群組名稱: {{gp.titleName}}</label>
+            <button type="button" class="btn btn-warning float-right" v-on:click="config()">
+                設定
+            </button>
+            <label>
+                <input type="radio" name="gpListRadio" value="null" checked />
+                不進行群組擲骰
+            </label>
+            <div v-for="(gp, i) in gpList">
+                <label>
+                    <input type="radio" name="gpListRadio" v-bind:value="gp._id" />
+                    編號: {{i+1}} 平台: {{gp.botname}} 群組名稱: {{gp.titleName}}
+                </label>
+                <button type="button" class="btn btn-danger" v-if="gp.showDeleteButton"
+                    v-on:click="confirmRemoveChannel(gp)">
+                    {{ gp.confirmDelete ? '確定' : '移除?' }}
+                </button>
+                <button type="button" class="btn btn-danger" v-if="gp.showCancelButton" v-on:click="cancelButton(gp)">
+                    取消
+                </button>
             </div>
         </div>
         <br>
@@ -596,7 +610,6 @@
                     userPassword: userPassword
                 })
                 socket.on("getListInfo", function (listInfo) {
-                    console.log('listInfo', listInfo)
                     let list = listInfo.temp;
                     if (listInfo && listInfo.id && listInfo.id.length > 0) {
                         card.gpList = listInfo.id
@@ -629,8 +642,37 @@
                 }
             },
             methods: {
+                config() {
+                    for (let gp of this.gpList) {
+                        gp.showDeleteButton = !gp.showDeleteButton;
+                        gp.confirmDelete = false;
+                        gp.showCancelButton = (gp.showDeleteButton && gp.confirmDelete)
+                    }
+                },
+                cancelButton(gp) {
+                    gp.confirmDelete = false;
+                    gp.showCancelButton = false;
+
+                },
+                confirmRemoveChannel(gp) {
+                    if (gp.confirmDelete) {
+                        this.removeChannel(gp);
+                    } else {
+                        gp.confirmDelete = true;
+                        gp.showCancelButton = true;
+                    }
+                },
+                removeChannel(gp) {
+                    socket.emit('removeChannel', {
+                        botname: gp.botname,
+                        userName: userName,
+                        userPassword: userPassword,
+                        channelId: gp.id
+                    });
+                    location.reload();
+                },
                 rolling(item) {
-                    var obj = '';
+                    let obj = '';
                     if (document.querySelector('input[name="gpListRadio"]:checked')) {
                         let temp = document.querySelector('input[name="gpListRadio"]:checked').value;
                         obj = card.gpList.find(function (item, index, array) {

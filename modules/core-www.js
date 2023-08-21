@@ -67,7 +67,6 @@ process.on('uncaughtException', (warning) => {
 });
 
 const records = require('./records.js');
-const { re } = require('mathjs');
 const port = process.env.WWWPORT || 20721;
 const channelKeyword = '';
 exports.analytics = require('./analytics');
@@ -262,6 +261,27 @@ io.on('connection', async (socket) => {
 
         }
 
+
+    })
+
+    socket.on('removeChannel', async message => {
+        if (await limitRaterCard(socket.handshake.address)) return;
+        //回傳 message 給發送訊息的 Client
+        try {
+            await schema.accountPW.updateOne({
+                "userName": message.userName,
+                "password": SHA(message.userPassword)
+            }, {
+                $pull: {
+                    channel: {
+                        "id": message.channelId,
+                        "botname": message.botname
+                    }
+                }
+            });
+        } catch (e) {
+            console.error('core-www ERROR:', e);
+        }
 
     })
 

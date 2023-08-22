@@ -216,18 +216,18 @@ client.once('ready', async () => {
 	//	if (shardid === 0) getSchedule();
 	client.user.setActivity(`${candle.checker() || '🌼'}bothelp | hktrpg.com🍎`);
 	console.log(`Discord: Logged in as ${client.user.tag}!`);
-	var switchSetActivity = 0;
+	let switchSetActivity = 0;
 	// eslint-disable-next-line no-unused-vars
 	let heatBeat = 0;
-	await sleep(2);
+	await sleep(5);
 	const refreshId = setInterval(async () => {
 		let wakeup = await checkWakeUp();
 		if (wakeup === true) heatBeat = 0;
-		if ((wakeup === false || wakeup.length > 0) && adminSecret) {
+		else if ((wakeup === false || wakeup.length > 0) && adminSecret) {
 			heatBeat++;
-			if (heatBeat >= 5) SendToId(adminSecret, `HKTRPG ID: ${wakeup.join(', ')} 可能下線了 請盡快檢查.`);
+			if (heatBeat >= 3) SendToId(adminSecret, `HKTRPG ID: ${wakeup.join(', ')} 可能下線了 請盡快檢查.`);
 		}
-	}, 1000 * 60 * 0.5);
+	}, 1000 * 60);
 	// eslint-disable-next-line no-unused-vars
 	const refreshId2 = setInterval(async () => {
 		switch (switchSetActivity % 2) {
@@ -1184,7 +1184,7 @@ const connect = function () {
 		//if (shardid !== 0) return;
 		const object = JSON.parse(data);
 		if (object.botname !== 'Discord') return;
-	
+
 		try {
 			let channel = await client.channels.fetch(object.message.target.id);
 			if (channel) {

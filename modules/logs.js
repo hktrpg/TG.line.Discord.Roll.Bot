@@ -7,7 +7,7 @@ const checkMongodb = require('./dbWatchdog.js');
 //50次 多少條訊息會上傳一次LOG
 const ONE_HOUR = 1 * 60 * 60 * 1000;
 const FIVE_MINUTES = 5 * 60 * 1000;
-var shardid = 0;
+let shardid = 0;
 //每一小時 24 * 60 * 60 * 1000 多久會上傳一次LOG紀錄 
 const RollingLog = {
     LastTimeLog: "",

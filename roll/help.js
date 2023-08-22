@@ -109,7 +109,7 @@ const rollDiceCommand = async function ({
 	switch (true) {
 		case !mainMsg[1]:
 			rply.text =
-				`【HKTRPG擲骰ROLLBOT🤖】
+				`【HKTRPG擲骰ROLLBOT🤖】(${await version.version()})
 HKTRPG是在Discord, Line, Telegram, Whatsapp和網頁上都可以使用的骰子機械人！
 功能：暗骰, 各類TRPG骰子擲骰, 自定義骰子, 頻道經驗值, 占卜, 先攻表, TRPG角色卡, 搜圖,
 翻譯, Discord 聊天紀錄匯出, 數學計算, 隨機抽選, wiki查詢, 資料庫快速查詢功能
@@ -120,7 +120,7 @@ HKTRPG是在Discord, Line, Telegram, Whatsapp和網頁上都可以使用的骰�
 請輸入你想查詢的項目名字.
 或到 (https://bothelp.hktrpg.com/) 觀看詳細使用說明.
 -------
-bothelp ver		- 查詢詳細版本及公告(${await version.version()})
+bothelp ver		- 查詢詳細版本及公告
 bothelp Base	- 查詢trpg 基本擲骰指令🎲
 bothelp Dice	- 查詢trpg 不同系統擲骰指令💻
 bothelp Tool	- 查詢trpg 輔助工具🧰

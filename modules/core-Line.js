@@ -48,7 +48,7 @@ process.on("Line", message => {
 	return;
 });
 
-var handleEvent = async function (event) {
+let handleEvent = async function (event) {
 
 	let inputStr = (event.message && event.message.text) ? event.message.text : "";
 
@@ -288,7 +288,7 @@ var handleEvent = async function (event) {
 	//Reply Max: 2000 characters
 
 }
-var replyMessagebyReplyToken = function (event, Reply) {
+let replyMessagebyReplyToken = function (event, Reply) {
 	let temp = HandleMessage(Reply);
 	return client.replyMessage(event.replyToken, temp).catch(() => {
 		if (temp.type == 'image') {

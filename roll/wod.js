@@ -1,6 +1,6 @@
 "use strict";
-var rollbase = require('./rollbase.js');
-var variables = {};
+let rollbase = require('./rollbase.js');
+let variables = {};
 
 const gameName = function () {
 	return '【WOD黑暗世界】.xWDy'
@@ -53,10 +53,10 @@ module.exports = {
 
 async function wod(triggermsg, text) {
 
-	var returnStr = triggermsg + ' [';
-	var varcou = 0;
-	var varsu = 0;
-	var match = /^[.](\d+)(wd|wod)(\d|)((\+|-)(\d+)|)$/i.exec(triggermsg); //判斷式  [0]3wd8+10,[1]3,[2]wd,[3]8,[4]+10,[5]+,[6]10  
+	let returnStr = triggermsg + ' [';
+	let varcou = 0;
+	let varsu = 0;
+	let match = /^[.](\d+)(wd|wod)(\d|)((\+|-)(\d+)|)$/i.exec(triggermsg); //判斷式  [0]3wd8+10,[1]3,[2]wd,[3]8,[4]+10,[5]+,[6]10  
 	if (match[3] == "") {
 		match[3] = 10
 	}

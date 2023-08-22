@@ -1,5 +1,5 @@
 "use strict";
-var variables = {};
+let variables = {};
 const opt = {
     upsert: true,
     runValidators: true

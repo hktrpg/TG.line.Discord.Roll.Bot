@@ -6,7 +6,7 @@ const VIP = require('../modules/veryImportantPerson');
 const FUNCTION_LIMIT = [3, 10, 50, 200, 200, 200, 200, 200];
 const schema = require('../modules/schema.js');
 const emojiRegex = require('emoji-regex');
-var regextemp = emojiRegex().toString();
+let regextemp = emojiRegex().toString();
 const regex = regextemp.replace(/^\//, '').replace(/\/g$/, '')
 //https://www.npmjs.com/package/emoji-regex
 const roleReactRegixMessage = /\[\[message\]\](.*)/is;
@@ -194,11 +194,11 @@ const rollDiceCommand = async function ({
                 return rply;
             }
             const dateObj = new Date();
-            var month = dateObj.getMonth() + 1; //months from 1-12
-            var day = dateObj.getDate();
-            var year = dateObj.getFullYear();
-            var hour = dateObj.getHours()
-            var minute = dateObj.getMinutes()
+            let month = dateObj.getMonth() + 1; //months from 1-12
+            let day = dateObj.getDate();
+            let year = dateObj.getFullYear();
+            let hour = dateObj.getHours()
+            let minute = dateObj.getMinutes()
             let listSerial = await schema.roleReact.find({ groupid: groupid }, "serial").catch(error => console.error('role #268 mongoDB error: ', error.name, error.reson));
             let serial = findTheNextSerial(listSerial);
             let myName = new schema.roleReact({

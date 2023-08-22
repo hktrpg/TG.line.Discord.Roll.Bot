@@ -1,4 +1,4 @@
-var MoveList;
+let MoveList;
 if(!MoveList) MoveList = []; 
 module.exports.MoveList = MoveList;
 

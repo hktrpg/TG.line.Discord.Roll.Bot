@@ -1,4 +1,4 @@
-var Pokedex;
+let Pokedex;
 if(!Pokedex) Pokedex = []; 
 module.exports.Pokedex= Pokedex;
 

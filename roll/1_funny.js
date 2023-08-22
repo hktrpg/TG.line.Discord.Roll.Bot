@@ -1,6 +1,6 @@
 "use strict";
 const rollbase = require('./rollbase.js');
-var variables = {};
+let variables = {};
 const fs = require('fs');
 const { SlashCommandBuilder } = require('discord.js');
 const axiosRetry = require('axios-retry');
@@ -1006,11 +1006,11 @@ function choice(input, str) {
 function SortIt(input, mainMsg) {
 	let a = input.replace(mainMsg[0], '').match(/\S+/ig);
 	for (let i = a.length - 1; i >= 0; i--) {
-		//var randomIndex = Math.floor(Math.random() * (i + 1));  
+		//let randomIndex = Math.floor(Math.random() * (i + 1));  
 		//3 -> 210 , 10, 0
-		var randomIndex = rollbase.Dice(i + 1) - 1
+		let randomIndex = rollbase.Dice(i + 1) - 1
 		//3 ->
-		var itemAtIndex = a[randomIndex];
+		let itemAtIndex = a[randomIndex];
 		a[randomIndex] = a[i];
 		a[i] = itemAtIndex;
 	}

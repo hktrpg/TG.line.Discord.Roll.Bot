@@ -1,6 +1,6 @@
 "use strict";
 const rollbase = require('./rollbase.js');
-var variables = {};
+let variables = {};
 const mathjs = require('mathjs')
 const gameName = function () {
     return '【魔女狩獵之夜】.wn xDn+-y'

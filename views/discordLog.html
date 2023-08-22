@@ -409,18 +409,18 @@
          * 6. 每日訊息數(拆線圖)
          * 
          */
-        /* var rawData = [{
+        /* let rawData = [{
                     timestamp: 2441246400,
                     contact: 'Test45',
                     userName: 'Test45',
                     isbot: false,
                 }]*/
-        var aesData = [];
+        let aesData = [];
 
         function getDAesString(encrypted, key, iv) { //解密
-            var keyy = CryptoJS.enc.Utf8.parse(key);
-            var ivv = CryptoJS.enc.Utf8.parse(iv.slice(0, 16));
-            var decrypted = CryptoJS.AES.decrypt(encrypted, keyy, {
+            let keyy = CryptoJS.enc.Utf8.parse(key);
+            let ivv = CryptoJS.enc.Utf8.parse(iv.slice(0, 16));
+            let decrypted = CryptoJS.AES.decrypt(encrypted, keyy, {
                 iv: ivv,
                 mode: CryptoJS.mode.CBC,
                 padding: CryptoJS.pad.Pkcs7
@@ -429,11 +429,11 @@
         }
 
         function getDAes(key, iv, data) { //解密
-            var decryptedStr = getDAesString(data, key, iv);
+            let decryptedStr = getDAesString(data, key, iv);
             return decryptedStr;
         }
 
-        var demoData = [{
+        let demoData = [{
             timestamp: 340875548000,
             contact: 'Demo 信息 @HKTRPG',
             userName: 'Sad',
@@ -474,19 +474,19 @@
             userName: 'Zetetic',
             isbot: false,
         }]
-        var rawData = [];
+        let rawData = [];
 
 
         //總共聊天天數 - 由什麼時候開始
-        var totallydate = totallyDay(rawData) || "";
-        var totallyDate = new Vue({
+        let totallydate = totallyDay(rawData) || "";
+        let totallyDate = new Vue({
             el: '#totallyDate',
             data: {
                 message: totallydate
             },
             methods: {
                 reNewtotallyDate: function (input) {
-                    var newtotallydate2 = totallyDay(input);
+                    let newtotallydate2 = totallyDay(input);
                     this.message = newtotallydate2;
                 }
             },
@@ -495,13 +495,13 @@
                 console.log('totallyDate updated')
             }
         })
-        var md = new MobileDetect(window.navigator.userAgent);
-        var isMobile = true;
+        let md = new MobileDetect(window.navigator.userAgent);
+        let isMobile = true;
         if (!md.mobile() && !md.phone() && !md.tablet()) {
             isMobile = false;
         }
 
-        var switchLoading = (isMobile) ? false : true;
+        let switchLoading = (isMobile) ? false : true;
         if (switchLoading) {
             document.getElementById("myNav").style.display = "block";
         } else {
@@ -537,7 +537,7 @@
         }
 
         function reNew() {
-            var key = document.getElementById("passw0rd").value;
+            let key = document.getElementById("passw0rd").value;
             if (key.length < 4) return;
             while (key.length < 32) {
                 key += key;
@@ -545,7 +545,7 @@
                     key = key.slice(0, 32)
                 }
             }
-            var newAesData = JSON.parse(getDAes(key, key, aesData));
+            let newAesData = JSON.parse(getDAes(key, key, aesData));
             if (!Array.isArray(newAesData)) return;
             newAesData.sort(function (a, b) {
                 return a.timestamp - b.timestamp;
@@ -569,8 +569,8 @@
         }
 
         //總共傳了多少訊息 - BOT 及非BOT
-        var totallymessage = analysicTotallymessage(rawData);
-        var totallyMessage = new Vue({
+        let totallymessage = analysicTotallymessage(rawData);
+        let totallyMessage = new Vue({
             el: '#totallyMessage',
             data: {
                 message0: totallymessage[0],
@@ -578,7 +578,7 @@
             },
             methods: {
                 reNewTotallyMessage: function (input) {
-                    var newTotallymessage = analysicTotallymessage(input);
+                    let newTotallymessage = analysicTotallymessage(input);
                     this.message0 = newTotallymessage[0];
                     this.message1 = newTotallymessage[1];
                 }
@@ -588,9 +588,9 @@
                 console.log('totallyMessage updated')
             }
         })
-        var newTotallyDay = ((totallydate).toString().match(/\d+/i) < 1) ? 1 : (totallydate).toString()
+        let newTotallyDay = ((totallydate).toString().match(/\d+/i) < 1) ? 1 : (totallydate).toString()
             .match(/\d+/i);
-        var averageMessage = new Vue({
+        let averageMessage = new Vue({
             el: '#averageMessage',
             data: {
                 message: (Math.ceil(totallymessage[0] / newTotallyDay * 100) / 100).toFixed(2) + '個'
@@ -614,20 +614,20 @@
 
 
         //最多訊息數日子頭三，訊息數 O   
-        var analysicdate = analysicDate(rawData)
-        var allDateforChart3 = JSON.parse(JSON.stringify(analysicdate));
+        let analysicdate = analysicDate(rawData)
+        let allDateforChart3 = JSON.parse(JSON.stringify(analysicdate));
         analysicdate.sort(function (b, a) {
             return a.number - b.number;
         });
 
-        var top3Date = JSON.parse(JSON.stringify(analysicdate));
+        let top3Date = JSON.parse(JSON.stringify(analysicdate));
 
         top3Date.splice(3, top3Date.length - 1);
         top3Date.forEach((e, i) => {
-            var temptop3Date = e.date.toString().match(/^(\d\d\d\d)(\d\d)(\d\d)/)
+            let temptop3Date = e.date.toString().match(/^(\d\d\d\d)(\d\d)(\d\d)/)
             top3Date[i].date = [temptop3Date[1], '年', temptop3Date[2], '月', temptop3Date[3], '日'].join('');
         })
-        var analysicDateVue = new Vue({
+        let analysicDateVue = new Vue({
             el: '#analysicDate',
             data: {
                 messages: top3Date
@@ -683,7 +683,7 @@
 
         //最多訊息數日子頭三， 訊息數 O
         function analysicDate(result) {
-            var reNewResult = result.filter(message => {
+            let reNewResult = result.filter(message => {
                 return message.isbot == false
             })
             let tempresult = [];
@@ -717,7 +717,7 @@
         }
         //群友的頭六名的訊息數(不包括BOT) (棒型圖)
         function analysicPeopleTalk(messages) {
-            var tempData = [];
+            let tempData = [];
             messages.forEach(message => {
                 if (message.isbot == false)
                     if (!tempData[message.userName]) {
@@ -728,7 +728,7 @@
         }
 
         function analysicPeopleTalk2(messages) {
-            var tempData2 = [];
+            let tempData2 = [];
             messages.forEach(message => {
                 if (!tempData2[message.userName]) {
                     tempData2[message.userName] = 1;
@@ -774,12 +774,12 @@
     </script>
     <script>
         function dhm2(unix_timestamp) {
-            var date = new Date(unix_timestamp)
-            var year = date.getFullYear().toString();
-            var month = (date.getMonth() + 1).toString().padStart(2, '0');
-            var day = date.getDate().toString().padStart(2, '0');
-            var dhm2hour = date.getHours();
-            var dhm2minute = date.getMinutes();
+            let date = new Date(unix_timestamp)
+            let year = date.getFullYear().toString();
+            let month = (date.getMonth() + 1).toString().padStart(2, '0');
+            let day = date.getDate().toString().padStart(2, '0');
+            let dhm2hour = date.getHours();
+            let dhm2minute = date.getMinutes();
             return [year, '年', month, '月', day, '日', ' ', dhm2hour, ':', dhm2minute].join('');
         };
         const appMain = new Vue({
@@ -803,12 +803,12 @@
                     return text.replace(re, matchedText => `<strong>${matchedText}</strong>`);
                 },
                 dhm2(unix_timestamp) {
-                    var dhm2date = new Date(unix_timestamp)
-                    var year = dhm2date.getFullYear().toString();
-                    var month = (dhm2date.getMonth() + 1).toString().padStart(2, '0');
-                    var day = dhm2date.getDate().toString().padStart(2, '0');
-                    var dhm2hour = dhm2date.getHours().toString().padStart(2, '0');
-                    var dhm2minute = dhm2date.getMinutes().toString().padStart(2, '0');
+                    let dhm2date = new Date(unix_timestamp)
+                    let year = dhm2date.getFullYear().toString();
+                    let month = (dhm2date.getMonth() + 1).toString().padStart(2, '0');
+                    let day = dhm2date.getDate().toString().padStart(2, '0');
+                    let dhm2hour = dhm2date.getHours().toString().padStart(2, '0');
+                    let dhm2minute = dhm2date.getMinutes().toString().padStart(2, '0');
                     return [year, '年', month, '月', day, '日', '\n', dhm2hour, ':', dhm2minute].join('');
                 }
             },
@@ -831,37 +831,37 @@
     <script>
         function drawWordCloud(newData) {
             //文字雲/關鍵字，及字型大小（這邊只放三個）
-            var fill = d3.scaleOrdinal(d3.schemeCategory10);
+            let fill = d3.scaleOrdinal(d3.schemeCategory10);
             //取得呈現處的寬、高
-            var cloudw = parseInt(d3.select("#tag").style("width"), 10);
-            var cloudH = parseInt(d3.select("#tag").style("height"), 10);
-            var text = "";
+            let cloudw = parseInt(d3.select("#tag").style("width"), 10);
+            let cloudH = parseInt(d3.select("#tag").style("height"), 10);
+            let text = "";
             (newData || rawData).forEach(Data => {
                 if (Data.isbot == false) {
                     text += Data.contact + ' ';
                 }
             })
-            var wordFreq = {};
-            var resultJieba = call_jieba_cut(text, function (_result) {
+            let wordFreq = {};
+            let resultJieba = call_jieba_cut(text, function (_result) {
                 _result.forEach(function (s) {
                     wordFreq[s] ? wordFreq[s]++ : wordFreq[s] = 1;
                 });
 
-                var wordFreqNew = Object.keys(wordFreq).map((key) => {
+                let wordFreqNew = Object.keys(wordFreq).map((key) => {
                     return {
                         text: key,
                         freq: wordFreq[key]
                     }
                 });
 
-                var wordFreqNew2 = wordFreqNew.filter((key) => {
+                let wordFreqNew2 = wordFreqNew.filter((key) => {
                     return (key.text.match(/^\S\S/) && !key.text.toString().match(/^\d+$/))
                 });
                 wordFreqNew2.sort(function (b, a) {
                     return a.freq - b.freq;
                 });
 
-                var wordFreqNew3 = wordFreqNew2.map((key, index) => {
+                let wordFreqNew3 = wordFreqNew2.map((key, index) => {
                     return {
                         text: key.text,
                         size: (60 - index) > 1 ? (60 - index) : 1
@@ -917,12 +917,12 @@
 
 
     <script>
-        var peopleTalk;
+        let peopleTalk;
         drawTop6DataChart(rawData);
 
         function drawTop6DataChart(input) {
             peopleTalk = analysicPeopleTalk(input);
-            var top6Labels = [],
+            let top6Labels = [],
                 top6Data = [];
             Object.keys(peopleTalk).forEach((item, index) => {
                 if (index < 6) {
@@ -935,8 +935,8 @@
             Chart.defaults.global.defaultFontFamily = "'Arial', sans-serif";
             Chart.defaults.global.defaultFontSize = 16;
             Chart.defaults.global.defaultFontStyle = 'normal';
-            var ctx = document.getElementById("myChart").getContext('2d');
-            var myChart = new Chart(ctx, {
+            let ctx = document.getElementById("myChart").getContext('2d');
+            let myChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: top6Data,
@@ -983,8 +983,8 @@
 
     <script>
         function drawAlluserChart(input) {
-            var peopleTalk2 = analysicPeopleTalk2(input);
-            var allUesr = [];
+            let peopleTalk2 = analysicPeopleTalk2(input);
+            let allUesr = [];
             Object.keys(peopleTalk2).forEach((item, index) => {
                 allUesr[index] = {
                     Data: peopleTalk2[item],
@@ -994,8 +994,8 @@
             allUesr.sort(function (b, a) {
                 return a.Data - b.Data;
             });
-            var ctx2 = document.getElementById("myChart2").getContext('2d');
-            var myChart2 = new Chart(ctx2, {
+            let ctx2 = document.getElementById("myChart2").getContext('2d');
+            let myChart2 = new Chart(ctx2, {
                 type: 'doughnut',
                 data: {
                     labels: allUesr.map((e) => {
@@ -1052,13 +1052,13 @@
         }
     </script>
     <script>
-        var chart3cfg;
+        let chart3cfg;
 
         function drawallDateforChart3() {
-            var dataCFG = [];
+            let dataCFG = [];
 
             allDateforChart3.forEach((e, i) => {
-                var tempTime3 = e.date.toString().match(/^(\d\d\d\d)(\d\d)(\d\d)/)
+                let tempTime3 = e.date.toString().match(/^(\d\d\d\d)(\d\d)(\d\d)/)
                 dataCFG[i] = {
                     t: toTimestamp(tempTime3[1], tempTime3[2], tempTime3[3]),
                     y: e.number
@@ -1070,7 +1070,7 @@
             });
 
             function toTimestamp(year, month, day) {
-                var datum = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
+                let datum = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
                 return datum.getTime();
             }
             chart3cfg = {
@@ -1116,9 +1116,9 @@
                                 if (!tick) {
                                     return;
                                 }
-                                var majorUnit = scale._majorUnit;
-                                var firstTick = ticks[0];
-                                var curri, ilen, val, tick, currMajor, lastMajor;
+                                let majorUnit = scale._majorUnit;
+                                let firstTick = ticks[0];
+                                let curri, ilen, val, tick, currMajor, lastMajor;
 
                                 val = moment(ticks[0].value);
                                 if ((majorUnit === 'minute' && val.second() === 0) ||
@@ -1162,7 +1162,7 @@
                         mode: 'index',
                         callbacks: {
                             label: function (tooltipItem, myData) {
-                                var label = myData.datasets[tooltipItem.datasetIndex].label || '';
+                                let label = myData.datasets[tooltipItem.datasetIndex].label || '';
                                 if (label) {
                                     label += ': ';
                                 }
@@ -1173,26 +1173,26 @@
                     }
                 }
             };
-            var ctx3 = document.getElementById("myChart3").getContext('2d');
-            var myChart3 = new Chart(ctx3, chart3cfg);
+            let ctx3 = document.getElementById("myChart3").getContext('2d');
+            let myChart3 = new Chart(ctx3, chart3cfg);
         }
         //// [{t:1602677527,y:600},{t:1622677527,y:300},{t:1702677527,y:900}],
     </script>
     <script>
-        var hde = document.documentElement,
+        let hde = document.documentElement,
             b = document.body,
             st = 'scrollTop',
             sh = 'scrollHeight';
-        var progressbar = document.getElementById("progressbar");
-        var pos = ((hde[sh] || b[sh]) <= hde.clientHeight) ? 100 : getVerticalScrollPercentage(b);
+        let progressbar = document.getElementById("progressbar");
+        let pos = ((hde[sh] || b[sh]) <= hde.clientHeight) ? 100 : getVerticalScrollPercentage(b);
         progressbar.innerHTML = Math.round(pos) + '%';
         progressbar.style.width = Math.max(Math.round(pos), 10) + '%';
         document.getElementById("touchBar").addEventListener("mousedown",
             function clicked(e) {
-                var br = document.getElementById("touchBar").getBoundingClientRect();
+                let br = document.getElementById("touchBar").getBoundingClientRect();
                 // x & y are relative to the clicked element
-                var x = e.clientX - br.left;
-                var level = Math.round(x / document.getElementById("touchBar").offsetWidth * 100) / 100;
+                let x = e.clientX - br.left;
+                let level = Math.round(x / document.getElementById("touchBar").offsetWidth * 100) / 100;
 
                 window.scrollTo({
                     top: level * ((hde[sh] || b[sh]) - hde.clientHeight),
@@ -1209,27 +1209,27 @@
         };
 
         function getVerticalScrollPercentage(elm) {
-            var percent = (hde[st] || b[st]) / ((hde[sh] || b[sh]) - hde.clientHeight) * 100;
+            let percent = (hde[st] || b[st]) / ((hde[sh] || b[sh]) - hde.clientHeight) * 100;
             return percent
         }
     </script>
 
     <script>
         $(document).ready(function () {
-            var activeSystemClass = $('.list-group-item.active');
+            let activeSystemClass = $('.list-group-item.active');
 
             //something is entered in search form
             $('#system-search').keyup(function () {
-                var that = this;
+                let that = this;
                 // affect all table rows on in systems table
-                var tableBody = $('.table-list-search tbody');
-                var tableRowsClass = $('.table-list-search tbody tr');
+                let tableBody = $('.table-list-search tbody');
+                let tableRowsClass = $('.table-list-search tbody tr');
                 $('.search-sf').remove();
                 tableRowsClass.each(function (i, val) {
 
                     //Lower text for case insensitive
-                    var rowText = $(val).text().toLowerCase();
-                    var inputText = $(that).val().toLowerCase();
+                    let rowText = $(val).text().toLowerCase();
+                    let inputText = $(that).val().toLowerCase();
                     if (inputText != '') {
                         $('.search-query-sf').remove();
                         tableBody.prepend(

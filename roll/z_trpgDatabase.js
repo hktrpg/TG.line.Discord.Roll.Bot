@@ -5,7 +5,7 @@ if (!process.env.mongoURL) {
 const rollbase = require('./rollbase.js');
 const records = require('../modules/records.js');
 const schema = require('../modules/schema.js');
-var trpgDatabasefunction = {};
+let trpgDatabasefunction = {};
 records.get('trpgDatabase', (msgs) => {
     trpgDatabasefunction.trpgDatabasefunction = msgs
 });

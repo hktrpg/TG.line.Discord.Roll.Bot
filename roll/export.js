@@ -3,7 +3,7 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
 const { PermissionFlagsBits, PermissionsBitField } = require('discord.js');
-var variables = {};
+let variables = {};
 const oneMinuts = (process.env.DEBUG) ? 1 : 60000;
 const sevenDay = (process.env.DEBUG) ? 1 : 60 * 24 * 7 * 60000;
 const checkTools = require('../modules/check.js');
@@ -338,12 +338,12 @@ const rollDiceCommand = async function ({
                     await fs.mkdir(dir);
             }
             data = await fs.readFile(__dirname + '/../views/discordLog.html', 'utf-8')
-            var key = makeid(32);
-            var randomLink = makeid(7);
-            var newAESDate = AES(key, key, JSON.stringify(newRawDate));
+            let key = makeid(32);
+            let randomLink = makeid(7);
+            let newAESDate = AES(key, key, JSON.stringify(newRawDate));
             //aesData = [];
             newValue = data.replace(/aesData\s=\s\[\]/, 'aesData = ' + JSON.stringify(newAESDate.toString('base64'))).replace(/<h1>聊天紀錄<\/h1>/, '<h1>' + channelName + ' 的聊天紀錄</h1>');
-            var tempB = key;
+            let tempB = key;
             await fs.writeFile(dir + channelid + '_' + hour + minutes + seconds + '_' + randomLink + '.html', newValue); // need to be in an async function
             rply.discordExportHtml = [
                 tempA + '_' + randomLink,
@@ -500,10 +500,10 @@ const rollDiceCommand = async function ({
 
 
 function getAesString(data, key, iv) { //加密
-    var keyy = CryptoJS.enc.Utf8.parse(key);
+    let keyy = CryptoJS.enc.Utf8.parse(key);
     //alert(key）;
-    var ivv = CryptoJS.enc.Utf8.parse(iv);
-    var encrypted = CryptoJS.AES.encrypt(data, keyy, {
+    let ivv = CryptoJS.enc.Utf8.parse(iv);
+    let encrypted = CryptoJS.AES.encrypt(data, keyy, {
         iv: ivv,
         mode: CryptoJS.mode.CBC,
         padding: CryptoJS.pad.Pkcs7
@@ -513,25 +513,25 @@ function getAesString(data, key, iv) { //加密
 
 
 function AES(key, iv, data) {
-    var crypto = require('crypto');
+    let crypto = require('crypto');
     let algo = "aes-256-cbc"; // we are using 128 bit here because of the 16 byte key. use 256 is the key is 32 byte.
-    var cipher = crypto.createCipheriv(algo, Buffer.from(key, 'utf-8'), iv.slice(0, 16));
-    // var encrypted = cipher.update(data, 'utf-8', 'base64'); // `base64` here represents output encoding
+    let cipher = crypto.createCipheriv(algo, Buffer.from(key, 'utf-8'), iv.slice(0, 16));
+    // let encrypted = cipher.update(data, 'utf-8', 'base64'); // `base64` here represents output encoding
     //encrypted += cipher.final('base64');
-    var encrypted = Buffer.concat([cipher.update(Buffer.from(data)), cipher.final()]);
+    let encrypted = Buffer.concat([cipher.update(Buffer.from(data)), cipher.final()]);
     return encrypted;
 }
 
 function getAES(key, iv, data) { //加密
-    var encrypted = getAesString(data, key, iv); //密文
-    //    var encrypted1 = CryptoJS.enc.Utf8.parse(encrypted);
+    let encrypted = getAesString(data, key, iv); //密文
+    //    let encrypted1 = CryptoJS.enc.Utf8.parse(encrypted);
     return encrypted;
 }
 
 function makeid(length) {
-    var result = '';
-    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    var charactersLength = characters.length;
+    let result = '';
+    let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let charactersLength = characters.length;
     for (let i = 0; i < length; i++) {
         result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
@@ -539,8 +539,8 @@ function makeid(length) {
 }
 const millisToMinutesAndSeconds = (millis) => {
     millis = millis * -1;
-    var minutes = Math.floor(millis / 60000);
-    var seconds = ((millis % 60000) / 1000).toFixed(0);
+    let minutes = Math.floor(millis / 60000);
+    let seconds = ((millis % 60000) / 1000).toFixed(0);
     //ES6 interpolated literals/template literals 
     //If seconds is less than 10 put a zero in front.
     return `${minutes}分鐘${(seconds < 10 ? "0" : "")}${seconds}秒`;

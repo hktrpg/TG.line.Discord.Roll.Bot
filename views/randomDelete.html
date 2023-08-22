@@ -237,7 +237,7 @@ That struts and frets his hour upon the stage</textarea>
         integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous">
     </script>
     <script>
-        var zeroToTwoThree = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+        let zeroToTwoThree = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
         let blockCourt = 0;
         let start = 0;
         const A_TO_Z = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M"]
@@ -246,7 +246,7 @@ That struts and frets his hour upon the stage</textarea>
         const FIRST = ["M", "E", "C", "L", "Y", "R", "B", "S", "N", "I", "O", "A", "T"]
         const SECOND = ["E", "R", "O", "I", "Q", "Q", "K", "B", "P", "H", "F", "M", "D"]
 
-        var aToZswitch = [];
+        let aToZswitch = [];
 
 
 
@@ -309,12 +309,12 @@ That struts and frets his hour upon the stage</textarea>
 
         function copyToClipBoard() {
 
-            var content = document.getElementById('outputText').value;
+            let content = document.getElementById('outputText').value;
 
             navigator.clipboard.writeText(content).then(function () {}, function (err) {
                 console.error('Async: Could not copy text: ', err);
             });
-            var elements = document.querySelectorAll('.alert');
+            let elements = document.querySelectorAll('.alert');
             show(elements);
             setTimeout(function () {
                 hide(elements);
@@ -325,14 +325,14 @@ That struts and frets his hour upon the stage</textarea>
 
         function hide(elements) {
             elements = elements.length ? elements : [elements];
-            for (var index = 0; index < elements.length; index++) {
+            for (let index = 0; index < elements.length; index++) {
                 elements[index].style.display = 'none';
             }
         }
 
         function show(elements, specifiedDisplay) {
             elements = elements.length ? elements : [elements];
-            for (var index = 0; index < elements.length; index++) {
+            for (let index = 0; index < elements.length; index++) {
                 elements[index].style.display = specifiedDisplay || 'block';
             }
         }

@@ -4,7 +4,7 @@ if (!process.env.mongoURL) {
 }
 const checkMongodb = require('../modules/dbWatchdog.js');
 const debugMode = (process.env.DEBUG) ? true : false;
-var variables = {};
+let variables = {};
 const rollDice = require('./rollbase');
 const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
@@ -205,7 +205,7 @@ exp:SAN
 
             //取得本來的資料, 如有重覆, 以新的覆蓋
             //doc = await schema.event.findOne(filter);
-            var mainSplit = await analysicDetail(events.MainData)
+            let mainSplit = await analysicDetail(events.MainData)
             if (mainSplit.length < 3 || mainSplit.length > Number(3 + levelLv)) {
                 rply.text = '新增事件失敗\n一個事件需要至少設定 3 個結果\n你現在的VIP LV最多同時可設定 ' + Number(3 + levelLv) + ' 個事件'
                 return rply;
@@ -226,7 +226,7 @@ exp:SAN
                 return rply;
             }
 
-            var listDatas = {
+            let listDatas = {
                 title: events.eventName,
                 userID: userid,
                 userName: displaynameDiscord || displayname || '',
@@ -255,7 +255,7 @@ exp:SAN
             }
             tempMain = await schema.eventList.findOne(filter);
 
-            var eventsDatas = {
+            let eventsDatas = {
                 userID: userid,
                 userName: displaynameDiscord || displayname || '',
                 eventList: {
@@ -275,7 +275,7 @@ exp:SAN
                 if (!temp) {
                     temp = new schema.eventMember(eventsDatas);
                 } else {
-                    var findEventId = temp.eventList.findIndex((obj => obj.eventID == tempMain._id));
+                    let findEventId = temp.eventList.findIndex((obj => obj.eventID == tempMain._id));
                     if (findEventId >= 0) {
                         temp.eventList[findEventId] = {
                             title: events.eventName,

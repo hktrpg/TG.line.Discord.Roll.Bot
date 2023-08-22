@@ -328,7 +328,7 @@
     </script>
 
     <script>
-        var socket = io();
+        let socket = io();
         document.getElementById("body").onload = function () {
             login();
         };
@@ -357,11 +357,11 @@
 
 
 
-        var divNumber = 0;
+        let divNumber = 0;
 
 
         function addElement(message, type, closeDelay) {
-            var $cont = $("#alerts-container");
+            let $cont = $("#alerts-container");
             if ($cont.length == 0) {
                 // alerts-container does not exist, create it
                 $cont = $('<div id="alerts-container">')
@@ -379,7 +379,7 @@
             type = type || "info";
 
             // create the alert div
-            var alert = $('<div>')
+            let alert = $('<div>')
                 .addClass("alert text-wrap text-break warning alert-dismissible fade show overlay alert-" + type)
                 .append(
                     $('<button type="button" class="close" data-dismiss="alert">')
@@ -404,7 +404,7 @@
         }
 
 
-        var card = Vue.createApp({
+        let card = Vue.createApp({
             data() {
                 return {
                     id: "",
@@ -450,7 +450,7 @@
             });
         }
 
-        var cardList = Vue.createApp({
+        let cardList = Vue.createApp({
             data() {
                 return {
                     list: []

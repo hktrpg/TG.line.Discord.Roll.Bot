@@ -1,6 +1,6 @@
 "use strict";
-var rollbase = require('./rollbase.js');
-var variables = {};
+let rollbase = require('./rollbase.js');
+let variables = {};
 const mathjs = require('mathjs');
 const gameName = function () {
     return '【命運Fate】 .4df(m|-)(加值)'
@@ -47,9 +47,9 @@ const rollDiceCommand = async function ({
         default: {
             //.4dfm23,m23,m,23
             //＋∎－
-            var random = '',
+            let random = '',
                 temp = '';
-            var ans = 0
+            let ans = 0
 
             for (let i = 0; i < 4; i++) {
                 random = (rollbase.Dice(3) - 2)

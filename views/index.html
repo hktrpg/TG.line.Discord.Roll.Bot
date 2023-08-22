@@ -253,8 +253,8 @@
     }
     gtag('js', new Date());
     gtag('config', 'UA-111430056-7');
-    var socket = io();
-    var color = 3;
+    let socket = io();
+    let color = 3;
 
     function readme() {
         $('#readmeModalCenter').modal("show")
@@ -266,18 +266,18 @@
     }
 
     function save() {
-        var roomText = document.getElementById("roomNumber");
+        let roomText = document.getElementById("roomNumber");
         console.log('roomText', document.getElementById(
             "content").innerText)
-        var string = ('HKTRPG' + (roomText && (
+        let string = ('HKTRPG' + (roomText && (
             roomText.value || ''))) + '\n' + (document.getElementById(
             "content") && (document.getElementById(
             "content").innerText || '')).replace(/(.*\d+:\d+:\d+)/g, '\n$1')
 
 
-        var link = document.createElement('a');
+        let link = document.createElement('a');
         link.download = 'HKTRPG' + (roomText.value || '');
-        var blob = new Blob([string], {
+        let blob = new Blob([string], {
             type: 'text/plain;charset=utf-8;'
         });
         link.href = window.URL.createObjectURL(blob);
@@ -289,22 +289,22 @@
     }
 
     function scorllToBottom() {
-        var content = document.getElementById("container-content");
+        let content = document.getElementById("container-content");
         content.scrollTop = content.scrollHeight;
     }
     document.addEventListener("DOMContentLoaded", () => {
-        var roomNumber = "公共房間"
-        var max_record = 100;
-        //  var status = document.getElementById("status");
-        var online = document.getElementById("online");
-        var room = document.getElementById("room");
-        var roomText = document.getElementById("roomNumber");
-        var changeRoomNumber = document.getElementById("changeRoomNumber-form");
-        var sendForm = document.getElementById("send-form");
-        var content = document.getElementById("content");
-        var nameInputBox = document.getElementById("name");
-        var msgInputBox = document.getElementById("msg");
-        var name = getLocalStorage("name");
+        let roomNumber = "公共房間"
+        let max_record = 100;
+        //  let status = document.getElementById("status");
+        let online = document.getElementById("online");
+        let room = document.getElementById("room");
+        let roomText = document.getElementById("roomNumber");
+        let changeRoomNumber = document.getElementById("changeRoomNumber-form");
+        let sendForm = document.getElementById("send-form");
+        let content = document.getElementById("content");
+        let nameInputBox = document.getElementById("name");
+        let msgInputBox = document.getElementById("msg");
+        let name = getLocalStorage("name");
 
         if (name) {
             nameInputBox.value = name;
@@ -366,7 +366,7 @@
             e.preventDefault();
             $('#msg').focus();
             if (!msgInputBox) return;
-            var formData = {
+            let formData = {
                 time: new Date(Date.now())
             };
             formData.msg = msgInputBox.value;
@@ -381,23 +381,23 @@
 
         async function addMsgToBox(d) {
             color++;
-            var msgBox = document.createElement("div");
+            let msgBox = document.createElement("div");
             msgBox.className = "card";
-            var msgBoxHeader = document.createElement("div");
+            let msgBoxHeader = document.createElement("div");
             msgBoxHeader.className = "card-header2";
-            var msgBoxBody = document.createElement("div");
+            let msgBoxBody = document.createElement("div");
 
             msgBoxBody.classList.add("card-body2")
 
-            var space = document.createElement("span");
-            var nameBox = document.createElement("span");
+            let space = document.createElement("span");
+            let nameBox = document.createElement("span");
             nameBox.className = "badge badge-primary";
-            var timeBox = document.createElement("span")
+            let timeBox = document.createElement("span")
             timeBox.className = "badge badge-secondary";
-            var name = document.createTextNode(d.name);
+            let name = document.createTextNode(d.name);
 
-            var time = document.createTextNode(new Date(d.time).toLocaleString());
-            var msg = document.createTextNode(d.msg.replace(/^\n/, ''), setTimeout(function () {
+            let time = document.createTextNode(new Date(d.time).toLocaleString());
+            let msg = document.createTextNode(d.msg.replace(/^\n/, ''), setTimeout(function () {
                 scorllToBottom();
             }, 50));
 
@@ -419,7 +419,7 @@
         }
 
         function rmMsgFromBox() {
-            var childs = content.children;
+            let childs = content.children;
             childs[0].remove();
         }
 

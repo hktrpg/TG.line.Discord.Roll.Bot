@@ -9,7 +9,7 @@ const random = new Random(nodeCrypto);
 const { SlashCommandBuilder } = require('discord.js');
 //value = random.integer(1, 100);
 const BASIC_ROLL_REGEX = /(\d+)d(\d+)(kh|kl|dh|dl|k|)(\d+|)/i;
-//var Sided = [];
+//let Sided = [];
 //Sided[10000] = [];
 const variables = {};
 
@@ -129,7 +129,7 @@ const RollDice = function (inputStr) {
   let finalStr = '['
   let temp = []
   let temp2 = []
-  var totally = 0
+  let totally = 0
   if (!comStr[1] || !comStr[2]) return;
 
   for (let i = 0; i < comStr[1]; i++) {

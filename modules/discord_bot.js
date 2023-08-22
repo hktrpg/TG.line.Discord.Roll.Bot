@@ -1180,22 +1180,21 @@ const connect = function () {
 		console.log(`connectd To core-www from discord! Shard#${shardid}`)
 		ws.send(`connectd To core-www from discord! Shard#${shardid}`);
 	});
-	ws.on('message', function incoming(data) {
+	ws.on('message', async function incoming(data) {
 		//if (shardid !== 0) return;
 		const object = JSON.parse(data);
 		if (object.botname !== 'Discord') return;
-		const promises = [
-			object,
-			//client.shard.broadcastEval(client => client.channels.fetch(object.message.target.id)),
-		];
-		Promise.all(promises)
-			.then(async results => {
-				let channel = await client.channels.fetch(results[0].message.target.id);
-				if (channel) channel.send(results[0].message.text)
-			})
-			.catch(error => {
-				console.error(`disocrdbot #99 error `, (error && error.name), (error && error.message), (error && error.reson))
-			});
+	
+		try {
+			let channel = await client.channels.fetch(object.message.target.id);
+			if (channel) {
+				console.log('Discord socket message:', shardid)
+				await channel.send(object.message.text)
+			}
+		}
+		catch (error) {
+			console.error(`disocrdbot #99 error `, (error && error.name), (error && error.message), (error && error.reson))
+		};
 		return;
 
 	});

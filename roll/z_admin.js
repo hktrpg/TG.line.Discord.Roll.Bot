@@ -141,7 +141,7 @@ const rollDiceCommand = async function ({
             if (temp && temp2) {
                 rply.text = "已註冊這頻道。如果想使用角色卡，請到\nhttps://card.hktrpg.com/";
                 if (!await checkGpAllow(channelid || groupid)) {
-                    rply.text += '\n群組未被Admin 允許擲骰，請Admin在這群組輸入\n.admin disallowrolling';
+                    rply.text += '\n此頻道並未被Admin允許經網頁擲骰，請Admin先在此頻道輸入\n.admin  allowrolling進行授權。';
                 }
                 return rply;
             }
@@ -154,7 +154,7 @@ const rollDiceCommand = async function ({
                 await temp.save();
                 rply.text = "註冊成功，如果想使用角色卡，請到\nhttps://card.hktrpg.com/"
                 if (!await checkGpAllow(channelid || groupid)) {
-                    rply.text += '\n群組未被Admin 允許擲骰，請Admin在這群組輸入\n.admin disallowrolling';
+                    rply.text += '\n此頻道並未被Admin允許經網頁擲骰，請Admin在此頻道輸入\n.admin  allowrolling';
                 }
                 return rply;
             }
@@ -172,7 +172,7 @@ const rollDiceCommand = async function ({
                 await temp.save().catch(error => console.error('admin #138 mongoDB error: ', error.name, error.reson));
                 rply.text = "註冊成功。如果想使用角色卡，請到\nhttps://card.hktrpg.com/";
                 if (!await checkGpAllow(channelid || groupid)) {
-                    rply.text += '\n群組未被Admin 允許擲骰，請Admin在這群組輸入\n.admin disallowrolling';
+                    rply.text += '\n此頻道並未被Admin允許經網頁擲骰，請Admin在此頻道輸入\n.admin  allowrolling';
                 }
                 return rply;
             }
@@ -221,7 +221,7 @@ const rollDiceCommand = async function ({
                 rply.text += JSON.stringify(e);
                 return rply;
             }
-            rply.text = "此頻道已被Admin不允許使用網頁版角色卡擲骰。\nAdmin 希望允許擲骰，可輸入\n.admin allowrolling";
+            rply.text = "此頻道已被Admin取消使用網頁版角色卡擲骰的權限。\n如Admin希望允許網頁擲骰，可輸入\n.admin allowrolling";
             return rply;
         case /^allowrolling$/i.test(mainMsg[1]):
             if (rply.text = checkTools.permissionErrMsg({
@@ -250,7 +250,7 @@ const rollDiceCommand = async function ({
                 rply.text += JSON.stringify(e);
                 return rply;
             }
-            rply.text = "此頻道已被Admin允許使用網頁版角色卡擲骰，希望擲骰玩家可在此頻道輸入以下指令登記。\n.admin registerChannel\nAdmin 希望取消允許，可輸入\n.admin disallowrolling";
+            rply.text = "此頻道已被Admin允許使用網頁版角色卡擲骰，希望經網頁擲骰的玩家可在此頻道輸入以下指令登記。\n.admin registerChannel\n\n如Admin希望取消本頻道的網頁擲骰許可，可輸入\n.admin disallowrolling";
             return rply;
         case /^account$/i.test(mainMsg[1]):
             if (groupid) {
@@ -310,7 +310,7 @@ const rollDiceCommand = async function ({
                 return rply;
             }
             rply.text += "現在你的帳號是: " + name + "\n" + "密碼: " + mainMsg[3];
-            rply.text += "\n登入位置: https://card.hktrpg.com/ \n如想經網頁擲骰，可以請Admin在群組輸入\n.admin  allowrolling\n然後希望擲骰玩家可在頻道輸入以下指令登記。\n.admin registerChannel";
+            rply.text += "\n登入位置: https://card.hktrpg.com/ \n如想經網頁擲骰，可以請Admin在頻道中輸入\n.admin  allowrolling\n然後希望擲骰玩家可在該頻道輸入以下指令登記。\n.admin registerChannel";
             return rply;
         case /^debug$/i.test(mainMsg[1]):
             rply.text = "Debug function" + '\ngroupid: ' + groupid + "\nuserid: " + userid;

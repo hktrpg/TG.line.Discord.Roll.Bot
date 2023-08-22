@@ -1189,7 +1189,7 @@ const connect = function () {
 			let channel = await client.channels.fetch(object.message.target.id);
 			if (channel) {
 				console.log('Discord socket message:', shardid)
-				channel.send(object.message.text)
+				await channel.send(object.message.text)
 			}
 		}
 		catch (error) {

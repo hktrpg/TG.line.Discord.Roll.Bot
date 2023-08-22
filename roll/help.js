@@ -292,6 +292,18 @@ HKTRPG 研究社 Facebook https://www.facebook.com/groups/HKTRPG
 	}
 }
 
+class Version {
+	constructor() {
+		this.filesCourt = 0;
+		this.pullsNumber = 0;
+		this.lastUpdate = '00000000';
+	}
+	version() {
+		return `1.${this.filesCourt}.${this.pullsNumber}.${this.lastUpdate}`
+	}
+
+}
+
 /**
  * if (botname == "Line")
 				rply.text += "\n因為Line的機制, 如擲骰時並無顯示用家名字, 請到下列網址,和機器人任意說一句話,成為好友. \n https://line.me/R/ti/p/svMLqy9Mik\nP.S. Line 修改政策，免費帳號的Line Bot現在有每月500次的私訊限制，超過時DR等私訊功能會失效。(可以認為這功能在Line已失效，半天已400個DR私訊要求)"

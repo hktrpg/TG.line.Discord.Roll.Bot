@@ -657,7 +657,7 @@ class CreateCult {
 	教派目標:
 	${cult.cultGoals}
 
-	實現目標的手標:
+	實現目標的手段:
 	${cult.cultGoalsMeans}`
 		return cultText;
 	}
@@ -706,11 +706,17 @@ class CreateCult {
 		text = rollbase.BuildDiceCal(spells);
 		num = text.match(/\d+$/i)[0];
 		text += '\n';
-		for (let i = 0; i < num; i++) {
-			text += ` ${MythoyCollection.getMythonData('magic')},`;
-		}
+		text += ` ${this.getLeaderMythonList(num).join(', ')},`;
 		text = text.replace(/,$/i, '');
 		return text;
+	}
+	static getLeaderMythonList(count) {
+		const shuffledArr = MythoyCollection.Magic.slice();
+		for (let i = shuffledArr.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1));
+			[shuffledArr[i], shuffledArr[j]] = [shuffledArr[j], shuffledArr[i]];
+		}
+		return shuffledArr.slice(0, count);
 	}
 	static sourcesOfPower() {
 		let text = '';

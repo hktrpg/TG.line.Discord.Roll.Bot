@@ -218,15 +218,15 @@ client.once('ready', async () => {
 	console.log(`Discord: Logged in as ${client.user.tag}!`);
 	let switchSetActivity = 0;
 	// eslint-disable-next-line no-unused-vars
-	await sleep(6);
-	const CHECK_INTERVAL = 1000 * 60;
+	//await sleep(6);
+	const HEARTBEAT_CHECK_INTERVAL = 1000 * 60;
 	const WARNING_THRESHOLD = 3;
 	const CRITICAL_THRESHOLD = 5;
 	const restartServer = () => {
 		require('child_process').exec('sudo reboot');
 	}
 	let heartbeat = 0;
-
+	console.log('Discord Heartbeat: Ready...')
 	setInterval(async () => {
 		const isAwake = await checkWakeUp();
 		if (isAwake) {
@@ -235,6 +235,7 @@ client.once('ready', async () => {
 		}
 		if (!isAwake || isAwake.length > 0) {
 			heartbeat++;
+			console.log(`Discord Heartbeat: ID: ${isAwake.length} - ${heartbeat}... `)
 		}
 		if (heartbeat > WARNING_THRESHOLD && adminSecret) {
 			SendToId(adminSecret, `HKTRPG ID: ${wakeup.join(', ')} 可能下線了 請盡快檢查.`);
@@ -249,7 +250,7 @@ client.once('ready', async () => {
 			restartServer();
 		}
 
-	}, CHECK_INTERVAL);
+	}, HEARTBEAT_CHECK_INTERVAL);
 	// eslint-disable-next-line no-unused-vars
 	const refreshId2 = setInterval(async () => {
 		switch (switchSetActivity % 2) {

@@ -218,16 +218,38 @@ client.once('ready', async () => {
 	console.log(`Discord: Logged in as ${client.user.tag}!`);
 	let switchSetActivity = 0;
 	// eslint-disable-next-line no-unused-vars
-	let heatBeat = 0;
-	await sleep(5);
-	const refreshId = setInterval(async () => {
-		let wakeup = await checkWakeUp();
-		if (wakeup === true) heatBeat = 0;
-		else if ((wakeup === false || wakeup.length > 0) && adminSecret) {
-			heatBeat++;
-			if (heatBeat >= 3) SendToId(adminSecret, `HKTRPG ID: ${wakeup.join(', ')} 可能下線了 請盡快檢查.`);
+	await sleep(6);
+	const CHECK_INTERVAL = 1000 * 60;
+	const WARNING_THRESHOLD = 3;
+	const CRITICAL_THRESHOLD = 5;
+	const restartServer = () => {
+		require('child_process').exec('sudo reboot');
+	}
+	let heartbeat = 0;
+
+	setInterval(async () => {
+		const isAwake = await checkWakeUp();
+		if (isAwake) {
+			heartbeat = 0;
+			return;
 		}
-	}, 1000 * 60);
+		if (!isAwake || isAwake.length > 0) {
+			heartbeat++;
+		}
+		if (heartbeat > WARNING_THRESHOLD && adminSecret) {
+			SendToId(adminSecret, `HKTRPG ID: ${wakeup.join(', ')} 可能下線了 請盡快檢查.`);
+		}
+		if (heartbeat > CRITICAL_THRESHOLD) {
+			if (isAwake.length > 0)
+				for (let i = 0; i < isAwake.length; i++)
+					client.cluster.evalOnManager(`this.clusters.get(${isAwake[i]}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10000 });
+		}
+
+		if (heartbeat > 20) {
+			restartServer();
+		}
+
+	}, CHECK_INTERVAL);
 	// eslint-disable-next-line no-unused-vars
 	const refreshId2 = setInterval(async () => {
 		switch (switchSetActivity % 2) {

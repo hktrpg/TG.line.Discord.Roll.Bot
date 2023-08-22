@@ -289,7 +289,7 @@ class Version {
 	}
 	async version() {
 		await this.update();
-		return `1.${this.filesCourt}.${this.pullsNumber}.${this.lastUpdate}`
+		return `v1.${this.filesCourt}.${this.pullsNumber}.${this.lastUpdate}`
 	}
 	async update() {
 		try {

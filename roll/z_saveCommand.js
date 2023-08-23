@@ -4,7 +4,7 @@ if (!process.env.mongoURL) {
 }
 const checkTools = require('../modules/check.js');
 const records = require('../modules/records.js');
-var trpgCommandfunction = {};
+let trpgCommandfunction = {};
 records.get('trpgCommand', (msgs) => {
     trpgCommandfunction.trpgCommandfunction = msgs
 })

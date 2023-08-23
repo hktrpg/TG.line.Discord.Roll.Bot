@@ -10,7 +10,7 @@ if (process.env.BROADCAST) {
 		ws.send('connected To core-www from Whatsapp!');
 	});
 	ws.on('message', async function incoming(data) {
-		var object = JSON.parse(data);
+		let object = JSON.parse(data);
 		if (object.botname == 'Whatsapp') {
 			if (!object.message.text) return;
 			console.log('connect To core-www from Whatsapp!')
@@ -22,7 +22,7 @@ if (process.env.BROADCAST) {
 const candle = require('../modules/candleDays.js'); 
 const qrcode = require('qrcode-terminal');
 const isHeroku = (process.env._ && process.env._.indexOf("heroku")) > 0 ? true : false;
-var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
+let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const schema = require('../modules/schema');
 const opt = {
 	upsert: true,
@@ -45,9 +45,9 @@ const MESSAGE_SPLITOR = (/\S+/ig);
 const SESSION_FILE_PATH = './modules/whatsapp-session.json';
 
 // Load the session data if it has been previously saved
-var sessionData;
+let sessionData;
 const maxRetry = 6;
-var retry = 0;
+let retry = 0;
 
 async function startUp() {
 	/**
@@ -186,7 +186,7 @@ if (retry > maxRetry) {
 
 		let target = exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
 		if (!target && privatemsg == 0) return null;
-		var userid, displayname, channelid, channelKeyword = '';
+		let userid, displayname, channelid, channelKeyword = '';
 		//得到暗骰的數據, GM的位置
 		//是不是自己.ME 訊息
 		//TRUE 即正常

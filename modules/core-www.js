@@ -106,14 +106,15 @@ www.get('/api', async (req, res) => {
         return;
     }
 
-    var ip = req.headers['x-forwarded-for'] ||
+    let ip = req.headers['x-forwarded-for'] ||
         req.socket.remoteAddress ||
         null;
     if (ip && await limitRaterApi(ip)) return;
     let rplyVal = {}
-    var mainMsg = req.query.msg.match(MESSAGE_SPLITOR); // 定義輸入字串
+    let trigger = '';
+    let mainMsg = req.query.msg.match(MESSAGE_SPLITOR); // 定義輸入字串
     if (mainMsg && mainMsg[0])
-        var trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
+        trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
 
     // 訊息來到後, 會自動跳到analytics.js進行骰組分析
     // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
@@ -350,7 +351,7 @@ io.on('connection', async (socket) => {
         // 如果 msg 內容鍵值小於 2 等於是訊息傳送不完全
         // 因此我們直接 return ，終止函式執行。
         if (!msg) return;
-        var roomNumber = msg || "公共房間";
+        let roomNumber = msg || "公共房間";
         records.chatRoomGet(roomNumber, (msgs) => {
             socket.emit("chatRecord", msgs);
         });
@@ -372,9 +373,10 @@ records.on("new_message", async (message) => {
 
     io.emit(message.roomNumber, message);
     let rplyVal = {}
-    var mainMsg = message.msg.match(MESSAGE_SPLITOR); // 定義輸入字串
+    let trigger = '';
+    let mainMsg = message.msg.match(MESSAGE_SPLITOR); // 定義輸入字串
     if (mainMsg && mainMsg[0])
-        var trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
+        trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
 
     // 訊息來到後, 會自動跳到analytics.js進行骰組分析
     // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
@@ -458,7 +460,7 @@ async function limitRaterApi(address) {
 /**
  * 
  */
-var sendTo;
+let sendTo;
 if (isMaster) {
     const WebSocket = require('ws');
     //將 express 放進 http 中開啟 Server 的 3000 port ，正確開啟後會在 console 中印出訊息

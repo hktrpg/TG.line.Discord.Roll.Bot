@@ -458,9 +458,9 @@
     <script>
         $('#warning-update').hide();
         $('#warning-updateError').hide();
-        var socket = io();
-        var userName = localStorage.getItem("userName");
-        var userPassword = localStorage.getItem("userPassword");
+        let socket = io();
+        let userName = localStorage.getItem("userName");
+        let userPassword = localStorage.getItem("userPassword");
         document.getElementById("userName_id").value = userName;
         document.getElementById("userPassword_id").value = userPassword;
         document.getElementById("body").onload = function () {
@@ -523,10 +523,10 @@
             }
 
         }
-        var divNumber = 0;
+        let divNumber = 0;
 
         function addElement(message, type, closeDelay) {
-            var $cont = $("#alerts-container");
+            let $cont = $("#alerts-container");
             if ($cont.length == 0) {
                 // alerts-container does not exist, create it
                 $cont = $('<div id="alerts-container">')
@@ -544,7 +544,7 @@
             type = type || "info";
 
             // create the alert div
-            var alert = $('<div>')
+            let alert = $('<div>')
                 .addClass("alert text-wrap text-break warning alert-dismissible fade show overlay alert-" + type)
                 .append(
                     $('<button type="button" class="close" data-dismiss="alert">')
@@ -629,7 +629,7 @@
             }
         }
 
-        var card = Vue.createApp({
+        let card = Vue.createApp({
             data() {
                 return {
                     id: "",
@@ -702,7 +702,7 @@
                     "</strong>", "warning", 4000);
             }
         })
-        var cardList = Vue.createApp({
+        let cardList = Vue.createApp({
             data() {
                 return {
                     list: []

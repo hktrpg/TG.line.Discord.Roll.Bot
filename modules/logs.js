@@ -50,7 +50,7 @@ const RollingLog = {
 
 
 
-var getState = async function () {
+const getState = async function () {
     let theNewData = await schema.RealTimeRollingLog.findOne({}).catch(error => console.error('log # 52 mongoDB error: ', error.name, error.reson));
     if (!theNewData) return;
     theNewData.RealTimeRollingLogfunction.LogTime = theNewData.RealTimeRollingLogfunction.LogTime.replace(/\s+GMT.*$/, '');

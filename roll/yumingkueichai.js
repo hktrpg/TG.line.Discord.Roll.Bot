@@ -1,6 +1,6 @@
 "use strict";
-var rollbase = require('./rollbase.js');
-var variables = {};
+let rollbase = require('./rollbase.js');
+let variables = {};
 const gameName = function () {
     return '【貓貓鬼差】.kc xDy z'
 }
@@ -58,7 +58,7 @@ const rollDiceCommand = async function ({
 async function compareAllValues(triggermsg, msg) {
     let result = ""
     let rollresult = []
-    var match = /^(|4|5)(d)(\d+|)$/i.exec(triggermsg);
+    let match = /^(|4|5)(d)(\d+|)$/i.exec(triggermsg);
     //判斷式  [0]4d3,[1]4,[2]d,[3]3  
     let x = match[1] || 4;
     let y = match[3] || 0

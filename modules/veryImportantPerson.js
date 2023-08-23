@@ -1,26 +1,26 @@
 "use strict";
 const schema = require('./schema.js');
 const checkMongodb = require('./dbWatchdog.js');
-var viplevel;
+let viplevel;
 const DIYmode = (process.env.DIY) ? true : false;
-var viplevelCheckGroup = async function (groupID) {
+let viplevelCheckGroup = async function (groupID) {
     let rply = 0;
     if (!viplevel) {
         viplevel = await schema.veryImportantPerson.find({}).catch(error => console.error('vip #8 mongoDB error: ', error.name, error.reson));
     }
-    var findGP = viplevel.find(function (item) {
+    let findGP = viplevel.find(function (item) {
         return item.gpid == groupID && item.switch !== false;
     });
     rply = (findGP) ? findGP.level : 0;
     rply = (DIYmode) ? 5 : rply;
     return rply;
 }
-var viplevelCheckUser = async function (userid) {
+let viplevelCheckUser = async function (userid) {
     let rply = 0;
     if (!viplevel) {
         viplevel = await schema.veryImportantPerson.find({}).catch(error => console.error('vip #20 mongoDB error: ', error.name, error.reson));
     }
-    var findUser = viplevel.find(function (item) {
+    let findUser = viplevel.find(function (item) {
         return item.id == userid && item.switch !== false; // 
     });
     rply = (findUser) ? findUser.level : 0;

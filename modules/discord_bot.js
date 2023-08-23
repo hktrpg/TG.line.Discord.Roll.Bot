@@ -96,7 +96,7 @@ const MESSAGE_SPLITOR = (/\S+/ig);
 const link = process.env.WEB_LINK;
 const port = process.env.PORT || 20721;
 const mongo = process.env.mongoURL
-var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
+let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const EXPUP = require('./level').EXPUP || function () { };
 const courtMessage = require('./logs').courtMessage || function () { };
 
@@ -105,7 +105,7 @@ const newMessage = require('./message');
 const RECONNECT_INTERVAL = 1 * 1000 * 60;
 const shardid = client.cluster.id;
 const WebSocket = require('ws');
-var ws;
+let ws;
 
 client.on('messageCreate', async message => {
 	try {
@@ -909,8 +909,8 @@ async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 	}
 }
 async function splitArray(perChunk, inputArray) {
-	var myArray = [];
-	for (var i = 0; i < inputArray.length; i += perChunk) {
+	let myArray = [];
+	for (let i = 0; i < inputArray.length; i += perChunk) {
 		myArray.push(inputArray.slice(i, i + perChunk));
 	}
 	return myArray;

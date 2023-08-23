@@ -261,10 +261,10 @@
     <script>
         //COOKIE
         document.addEventListener("DOMContentLoaded", () => {
-            //var nameInputBox = document.getElementById("result").innerHTML;
-            var maxDieValue = getCookie("diceMax");
-            var diceNumberValue = getCookie("numDice");
-            var name = getCookie("name");
+            //let nameInputBox = document.getElementById("result").innerHTML;
+            let maxDieValue = getCookie("diceMax");
+            let diceNumberValue = getCookie("numDice");
+            let name = getCookie("name");
             if (name) {
                 document.getElementById("result").innerHTML = name;
             }
@@ -279,10 +279,10 @@
 
 
         function getCookie(cname) {
-            var name = cname + "=";
-            var ca = document.cookie.split(';');
+            let name = cname + "=";
+            let ca = document.cookie.split(';');
             for (let i = 0; i < ca.length; i++) {
-                var c = ca[i];
+                let c = ca[i];
                 while (c.charAt(0) == ' ') {
                     c = c.substring(1);
                 }
@@ -294,9 +294,9 @@
         }
 
         function setCookie(cname, cvalue) {
-            var d = new Date();
+            let d = new Date();
             d.setTime(d.getTime() + (365 * 24 * 60 * 60 * 1000));
-            var expires = "expires=" + d.toUTCString();
+            let expires = "expires=" + d.toUTCString();
             document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
             // alert(cname + "=" + cvalue + ";" + expires + ";path=/")
 
@@ -305,9 +305,9 @@
         //
         //
         //
-        var dNumList = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
-        var dDiceList = [2, 4, 6, 8, 10, 12, 16, 20, 24, 30, 50, 100];
-        //var toggleList = [false, false];
+        let dNumList = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+        let dDiceList = [2, 4, 6, 8, 10, 12, 16, 20, 24, 30, 50, 100];
+        //let toggleList = [false, false];
 
         function dNumPlus(dNum, number, dId) {
             dNumList[dNum] += number;
@@ -323,9 +323,9 @@
         };
 
         function resultRoll2() {
-            //			var dNum = document.getElementById("numDice").value;
-            //		var dDice = document.getElementById("diceMax").value;			
-            var result = 0;
+            //			let dNum = document.getElementById("numDice").value;
+            //		let dDice = document.getElementById("diceMax").value;			
+            let result = 0;
             const maxDieVal = document.getElementById("diceMax").value;
             const diceNumber = document.getElementById("numDice").value;
             if (!diceNumber || !maxDieVal) return;
@@ -354,7 +354,7 @@
 
         function resultRoll(dNum, dDice) {
 
-            var result = 0;
+            let result = 0;
             const maxDieVal = 1 * dDice;
             const diceNumber = 1 * dNumList[dNum];
             if (!diceNumber || !maxDieVal) return;
@@ -383,7 +383,7 @@
         };
 
         function ClearAll() {
-            var result = "";
+            let result = "";
             document.getElementById("result").innerHTML = result;
             //document.getElementById('prevResult').innerHTML = prevResult;
             aa()
@@ -391,7 +391,7 @@
         };
 
         function aa() {
-            var content = document.getElementById("resultall");
+            let content = document.getElementById("resultall");
             content.scrollTop = content.scrollHeight;
 
             setCookie("name", document.getElementById("result").innerHTML);

@@ -7,7 +7,7 @@ const fs = require('fs');
 
 fs.readdirSync(__dirname + '/modules/').forEach(function (file) {
   if (file.match(/\.js$/) && file.match(/^core-/)) {
-    var name = file.replace('.js', '');
+    let name = file.replace('.js', '');
     exports[name] = require('./modules/' + file);
   }
 });

@@ -2,7 +2,7 @@
 if (!process.env.mongoURL) {
     return;
 }
-var variables = {};
+let variables = {};
 const mathjs = require('mathjs');
 const rollDice = require('./rollbase').rollDiceCommand;
 const schema = require('../modules/schema.js');

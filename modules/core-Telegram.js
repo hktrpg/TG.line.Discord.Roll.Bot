@@ -13,14 +13,14 @@ const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 const TGclient = new TelegramBot(process.env.TELEGRAM_CHANNEL_SECRET, { polling: true });
 const newMessage = require('./message');
 const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || '';
-//var TGcountroll = 0;
-//var TGcounttext = 0;
+//let TGcountroll = 0;
+//let TGcounttext = 0;
 const MESSAGE_SPLITOR = (/\S+/ig);
 
-var robotName = ""
+let robotName = ""
 
 
-var TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
+let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const EXPUP = require('./level').EXPUP || function () {
 };
 const courtMessage = require('./logs').courtMessage || function () {
@@ -223,7 +223,7 @@ TGclient.on('text', async (ctx) => {
 
 function SendToId(targetid, text, options) {
     try {
-        for (var i = 0; i < text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
+        for (let i = 0; i < text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
             if (i == 0 || i == 1 || i == text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
                 TGclient.sendMessage(targetid, text.toString().match(/[\s\S]{1,2000}/g)[i], options);
             }
@@ -235,15 +235,15 @@ function SendToId(targetid, text, options) {
 
 const RECONNECT_INTERVAL = 1 * 1000 * 60;
 const WebSocket = require('ws');
-var ws;
-var connect = function () {
+let ws;
+let connect = function () {
     ws = new WebSocket('ws://127.0.0.1:53589');
     ws.on('open', function open() {
         console.log('connected To core-www from Telegram!')
         ws.send('connected To core-www from Telegram!');
     });
     ws.on('message', function incoming(data) {
-        var object = JSON.parse(data);
+        let object = JSON.parse(data);
         if (object.botname == 'Telegram') {
             if (!object.text) return;
             console.log('Telegram have message')

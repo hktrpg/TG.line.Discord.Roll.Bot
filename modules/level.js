@@ -6,7 +6,7 @@ exports.rollbase = require('../roll/rollbase');
 const THIRTY_MINUTES = (process.env.DEBUG) ? 1 : 60000 * 30;
 const retry = { number: 0, times: 0 };
 const schema = require('./schema.js');
-var tempSwitchV2 = [{
+let tempSwitchV2 = [{
     groupid: '',
     SwitchV2: false
 }];
@@ -188,7 +188,7 @@ async function getDisplayName(message) {
 }
 
 const Title = function () {
-    var Title = []
+    let Title = []
     Title[0] = "無名調查員";
     Title[3] = "雀";
     Title[4] = "調查員";

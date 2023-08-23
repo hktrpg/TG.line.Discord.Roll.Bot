@@ -523,8 +523,8 @@
 
         });
 
-        var textX = 50;
-        var textY = 550;
+        let textX = 50;
+        let textY = 550;
 
         switchCard('#collapseRoll')
         const app = new PIXI.Application({
@@ -547,13 +547,13 @@
 
 
         Dropzone.autoDiscover = false;
-        //  var canvas = new fabric.Canvas('canvas');
-        var imgUploadBG = new Dropzone("#img-upload-BG", {
+        //  let canvas = new fabric.Canvas('canvas');
+        let imgUploadBG = new Dropzone("#img-upload-BG", {
             url: "UploadImages"
         });
-        var readerBG = new FileReader();
+        let readerBG = new FileReader();
         readerBG.onload = function (event) {
-            var data = event.target.result;
+            let data = event.target.result;
             createBG(data)
             app.stage.sortChildren();
         };
@@ -564,12 +564,12 @@
 
 
 
-        var imgUploadCharacter = new Dropzone("#img-upload-character", {
+        let imgUploadCharacter = new Dropzone("#img-upload-character", {
             url: "UploadImagesCharacter"
         });
-        var readerCharacter = new FileReader();
+        let readerCharacter = new FileReader();
         readerCharacter.onload = function (event) {
-            var data = event.target.result;
+            let data = event.target.result;
             createCharacter(data)
             app.stage.sortChildren();
         };
@@ -579,12 +579,12 @@
         });
 
 
-        var imgUploadDialogBox = new Dropzone("#img-upload-DialogBox", {
+        let imgUploadDialogBox = new Dropzone("#img-upload-DialogBox", {
             url: "UploadImagesDialogBox"
         });
-        var readerDialogBox = new FileReader();
+        let readerDialogBox = new FileReader();
         readerDialogBox.onload = function (event) {
-            var data = event.target.result;
+            let data = event.target.result;
             createDialogBox(data)
             app.stage.sortChildren();
         };
@@ -596,7 +596,7 @@
         //PIXI START
 
         function unclickAll() {
-            var filterSelected = $('.form-check-input:checkbox:checked');
+            let filterSelected = $('.form-check-input:checkbox:checked');
             for (let index = 0; index < filterSelected.length; index++) {
                 filterSelected[index].checked = false;
             }
@@ -623,9 +623,9 @@
         function filterON() {
             //$('input[name^="complete"]:checked').length;
             // character.filters = [blurFilter];
-            var num = $('#v-model-select-dynamic option:selected');
-            var filterSelected = $('.form-check-input:checkbox:checked');
-            var filters = []
+            let num = $('#v-model-select-dynamic option:selected');
+            let filterSelected = $('.form-check-input:checkbox:checked');
+            let filters = []
             for (let index = 0; index < filterSelected.length; index++) {
                 if (filterSelected[index].value)
                     filters.push(eval(filterSelected[index].value))
@@ -803,7 +803,7 @@
             );
             // create our little character friend..
             const background = new PIXI.Sprite(texture);
-            var filter = new PIXI.filters.AsciiFilter();
+            let filter = new PIXI.filters.AsciiFilter();
             background.interactive = true;
             background.anchor.set(0.5);
             background.orig = texture.orig;
@@ -914,8 +914,8 @@
 
 
         function resize() {
-            var $canvas = $("#main");
-            var $parent = $canvas.parent();
+            let $canvas = $("#main");
+            let $parent = $canvas.parent();
             $canvas.width($parent.width() - 2);
             $canvas.height($parent.height() - 2);
         }
@@ -957,7 +957,7 @@
         document.addEventListener('contextmenu', e => {
             e.preventDefault();
         });
-        var shiftDown = false;
+        let shiftDown = false;
         document.addEventListener("keydown", function (event) {
             if (event.which === 16)
                 shiftDown = true;
@@ -968,7 +968,7 @@
         });
 
 
-        var selectList = Vue.createApp({
+        let selectList = Vue.createApp({
             data() {
                 return {
                     list: app.stage.children,

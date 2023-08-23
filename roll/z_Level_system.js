@@ -82,7 +82,7 @@ const checkTitle = async function (userlvl, DBTitle) {
     return temptitle;
 }
 const Title = function () {
-    var Title = []
+    let Title = []
     Title[0] = "無名調查員";
     Title[3] = "雀";
     Title[4] = "調查員";
@@ -602,7 +602,7 @@ const rollDiceCommand = async function ({
 
 
     async function rankingList(gp, who, RankNumber, Title, docMemberCount) {
-        var array = [];
+        let array = [];
         let answer = ""
         let tempTitleAll = gp.Title || [];
 
@@ -612,7 +612,7 @@ const rollDiceCommand = async function ({
         array.sort(function (a, b) {
             return b.Level - a.Level;
         });
-        var rank = 1;
+        let rank = 1;
         for (let i = 0; i < array.length; i++) {
             if (i > 0 && array[i].Level < array[i - 1].Level) {
                 rank++;
@@ -649,7 +649,7 @@ const rollDiceCommand = async function ({
             return '0';
         } // terminate early
         fixed = (!fixed || fixed < 0) ? 0 : fixed; // number of decimal places to show
-        var b = (num).toPrecision(2).split("e"), // get power
+        let b = (num).toPrecision(2).split("e"), // get power
             k = b.length === 1 ? 0 : Math.floor(Math.min(b[1].slice(1), 14) / 3), // floor at decimals, ceiling at trillions
             c = k < 1 ? num.toFixed(0 + fixed) : (num / Math.pow(10, k * 3)).toFixed(1 + fixed), // divide by power
             d = c < 0 ? c : Math.abs(c), // enforce -0 is 0
@@ -679,7 +679,7 @@ async function getDisplayName(message) {
 }
 
 /*
-var trpgLevelSystemfunction = [{
+let trpgLevelSystemfunction = [{
         nickname: "Bob",
         EXP: 100
     },
@@ -701,7 +701,7 @@ var trpgLevelSystemfunction = [{
     }
 ];
 function rankingList(who) {
-    var array = [];
+    let array = [];
 
     for (let key in trpgLevelSystemfunction) {
         array.push(trpgLevelSystemfunction[key]);
@@ -712,7 +712,7 @@ function rankingList(who) {
         return b.EXP - a.EXP;
     });
 
-    var rank = 1;
+    let rank = 1;
     for (let i = 0; i < array.length; i++) {
         if (i > 0 && array[i].EXP < array[i - 1].EXP) {
             rank++;

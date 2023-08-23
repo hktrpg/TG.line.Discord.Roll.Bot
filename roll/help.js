@@ -13,8 +13,8 @@ const start = async () => {
 		for (const file of commandFiles) {
 			const tryFile = require(`../roll/${file}`);
 			if (tryFile.gameType && tryFile.gameType()) {
-				var type = require('./' + file).gameType().replace(/:.*/i, '')
-				var name = file.replace('.js', '');
+				let type = require('./' + file).gameType().replace(/:.*/i, '')
+				let name = file.replace('.js', '');
 				exports[type + '_' + name] = await require('./' + file);
 			}
 
@@ -44,7 +44,7 @@ const start = async () => {
 	}
 }
 start();
-var variables = {};
+let variables = {};
 //heroku labs:enable runtime-dyno-metadata -a <app name>
 
 

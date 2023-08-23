@@ -3,7 +3,7 @@ if (!process.env.mongoURL) {
     return;
 }
 const records = require('../modules/records.js');
-var trpgDarkRollingfunction = {};
+let trpgDarkRollingfunction = {};
 const checkTools = require('../modules/check.js');
 records.get('trpgDarkRolling', (msgs) => {
     trpgDarkRollingfunction.trpgDarkRollingfunction = msgs

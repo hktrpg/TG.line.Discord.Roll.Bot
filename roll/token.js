@@ -356,7 +356,7 @@ async function addTextOnImage2(token, text = ' ', text2 = ' ', name) {
 }
 
 function hexToRgb(hex) {
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result ? {
         r: parseInt(result[1], 16),
         g: parseInt(result[2], 16),
@@ -368,7 +368,7 @@ function rgbToHex(r, g, b) {
     return (valueToHex(r) + valueToHex(g) + valueToHex(b));
 }
 function valueToHex(c) {
-    var hex = c.toString(16);
+    let hex = c.toString(16);
     return hex
 }
 const discordCommand = [

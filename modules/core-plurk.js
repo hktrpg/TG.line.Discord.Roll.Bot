@@ -2,7 +2,7 @@
 if (!process.env.PLURK_SWITCH) {
     return;
 }
-var plurkID = '';
+let plurkID = '';
 const { PlurkClient } = require('plurk2');
 const EXPUP = require('./level').EXPUP || function () { };
 const courtMessage = require('./logs').courtMessage || function () { };

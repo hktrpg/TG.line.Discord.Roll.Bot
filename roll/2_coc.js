@@ -1316,9 +1316,9 @@ function everyTimeDevelopmentPhase(target, text = '') {
 }
 function ccrt() {
 	let result = '';
-	//var rollcc = Math.floor(Math.random() * 10);
-	//var time = Math.floor(Math.random() * 10) + 1;
-	//var PP = Math.floor(Math.random() * 100);
+	//let rollcc = Math.floor(Math.random() * 10);
+	//let time = Math.floor(Math.random() * 10) + 1;
+	//let PP = Math.floor(Math.random() * 100);
 	let rollcc = rollbase.Dice(10) - 1
 	let time = rollbase.Dice(10)
 	let PP = rollbase.Dice(100) - 1
@@ -1969,7 +1969,7 @@ const blockEasy = [5, 5, 5, 10, 10, 15]
 const blockIntermediate = [5, 5, 10, 10, 15, 15, 25]
 
 function shuffle(array) {
-	var currentIndex = array.length, randomIndex;
+	let currentIndex = array.length, randomIndex;
 
 	// While there remain elements to shuffle...
 	while (currentIndex != 0) {

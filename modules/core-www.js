@@ -251,7 +251,7 @@ io.on('connection', async (socket) => {
                 rplyVal.text = '@' + message.cardName + ' - ' + message.item + '\n' + rplyVal.text;
                 if (message.rollTarget.botname) {
                     if (!sendTo) return;
-                    sendTo({
+                    await sendTo({
                         target: message.rollTarget,
                         text: rplyVal.text
                     })
@@ -494,7 +494,7 @@ if (isMaster) {
                 let clients = [];
                 let promises = [];
 
-                wss.clients.forEach(function each(client) {
+                wss.clients.forEach(function (client) {
                     if (client.readyState === WebSocket.OPEN) {
                         // For Discord, we don't want to send a message to the Discord bot itself
                         promises.push(new Promise((resolve) => {

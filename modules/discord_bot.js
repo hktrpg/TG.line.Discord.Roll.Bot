@@ -1203,9 +1203,12 @@ const connect = function () {
 		console.log(`connectd To core-www from discord! Shard#${shardid}`)
 		ws.send(`connectd To core-www from discord! Shard#${shardid}`);
 	});
+	ws.onmessage = async function (event) {
+		console.log('Discord socket onmessage:', event.data)
+	}
 	ws.on('message', async function incoming(data) {
 		//if (shardid !== 0) return;
-		console.log('Discord socket message:', data)
+		console.log('!!Discord socket message:', data)
 		const object = JSON.parse(data);
 		if (object.botname !== 'Discord') return;
 		try {

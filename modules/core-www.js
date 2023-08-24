@@ -503,8 +503,8 @@ if (isMaster) {
                     message: params,
                     clients: clients
                 }
-                console.log('send to discord')
-                clients[0].send(JSON.stringify(object));
+                console.log('send to discord', object)
+                object.clients[0].send(JSON.stringify(object));
             }
             else {
                 let object = {

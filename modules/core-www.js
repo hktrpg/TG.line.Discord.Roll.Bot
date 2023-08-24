@@ -472,6 +472,7 @@ if (isMaster) {
     wss.on('connection', function connection(ws) {
         if (!ws._socket.remoteAddress == "::ffff:127.0.0.1") return;
         ws.on('message', function incoming(message) {
+            console.log('message', message)
             if (typeof message === 'string')
                 console.log('received: %s', message);
             else if (typeof message === 'object') {
@@ -502,6 +503,7 @@ if (isMaster) {
                     message: params,
                     clients: clients
                 }
+                console.log('send to discord')
                 clients[0].send(JSON.stringify(object));
             }
             else {

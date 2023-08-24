@@ -1205,6 +1205,7 @@ const connect = function () {
 	});
 	ws.on('message', async function incoming(data) {
 		//if (shardid !== 0) return;
+		console.log('Discord socket message:', data)
 		const object = JSON.parse(data);
 		if (object.botname !== 'Discord') return;
 		try {

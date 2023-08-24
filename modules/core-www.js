@@ -494,12 +494,13 @@ if (isMaster) {
                 let clients = [];
 
                 await Promise.all(
-                    wss.clients.map(async client => {
+                    Object.values(wss.clients).map(async client => {
                         if (client.readyState === WebSocket.OPEN) {
                             clients.push(client);
                         }
                     })
                 );
+
                 let object = {
                     botname: params.target.botname,
                     message: params,

@@ -508,10 +508,10 @@ if (isMaster) {
                 let object = {
                     botname: params.target.botname,
                     message: params,
-                    clients: clients
+                    clients: promises
                 }
                 console.log('send to discord', object, clients.length, promises.length)
-                clients[0].send(JSON.stringify(object));
+                promises[0].send(JSON.stringify(object));
             }
             else {
                 let object = {

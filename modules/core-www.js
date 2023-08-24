@@ -476,15 +476,30 @@ if (isMaster) {
             console.log('received: %s', message);
         });
         sendTo = function (params) {
+            /*
+            Get Client list, and store in an array name clients
+            Send message to first client with readyState OPEN and array clients
+            If client is not OPEN, remove it from clients array
+            Client will return a message to server, and server will send message to next client
+
+            */
+            let clients = [];
             let object = {
                 botname: params.target.botname,
-                message: params
+                message: params,
             }
+
             wss.clients.forEach(function each(client) {
                 if (client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify(object));
+                    //For Discord, we don't want to send message to Discord bot itself
+                    if (object.botname !== 'Discord') client.send(JSON.stringify(object));
+                    else clients.push(client);
                 }
             });
+            
+
+            clients[0].send(JSON.stringify(object));
+
         }
     });
 }

@@ -512,6 +512,7 @@ if (isMaster) {
                 }
                 console.log('send to discord', object, clients.length, promises.length)
                 clients[0].send(JSON.stringify(object));
+                wss.clients[0].send('00000');
             }
             else {
                 let object = {

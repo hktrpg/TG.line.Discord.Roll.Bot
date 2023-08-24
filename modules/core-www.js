@@ -493,7 +493,7 @@ if (isMaster) {
             if (params.target.botname === 'Discord') {
                 let clients = Array.from(wss.clients).filter(
                     (client) => client.readyState === WebSocket.OPEN
-                );  
+                );
 
                 let object = {
                     botname: params.target.botname,
@@ -503,7 +503,7 @@ if (isMaster) {
                 console.log('send to discord', object)
                 object.clients[0].send(JSON.stringify(object));
             }
-            else {
+            {
                 let object = {
                     botname: params.target.botname,
                     message: params

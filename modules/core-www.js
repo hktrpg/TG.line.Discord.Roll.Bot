@@ -491,10 +491,12 @@ if (isMaster) {
 
             */
             if (params.target.botname === 'Discord') {
-                let clients = Array.from(wss.clients).filter(
-                    (client) => client.readyState === WebSocket.OPEN
-                );
+                let clients = Array.from(wss.clients).filter(client => client.readyState === WebSocket.OPEN);
 
+                await Promise.all(clients.map(async (client) => {
+                    // For Discord, we don't want to send a message to the Discord bot itself
+                    await clients.push(client);
+                }));
                 let object = {
                     botname: params.target.botname,
                     message: params,
@@ -503,7 +505,7 @@ if (isMaster) {
                 console.log('send to discord', object)
                 object.clients[0].send(JSON.stringify(object));
             }
-            {
+            else {
                 let object = {
                     botname: params.target.botname,
                     message: params

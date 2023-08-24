@@ -491,19 +491,27 @@ if (isMaster) {
 
             */
             if (params.target.botname === 'Discord') {
-                let clients = Array.from(wss.clients).filter(client => client.readyState === WebSocket.OPEN);
+                let clients = [];
+                let promises = [];
 
-                await Promise.all(clients.map(async (client) => {
-                    // For Discord, we don't want to send a message to the Discord bot itself
-                    await clients.push(client);
-                }));
+                wss.clients.forEach(function each(client) {
+                    if (client.readyState === WebSocket.OPEN) {
+                        // For Discord, we don't want to send a message to the Discord bot itself
+                        promises.push(new Promise((resolve) => {
+                            clients.push(client);
+                            resolve();
+                        }));
+                    }
+                });
+
+                await Promise.all(promises);
                 let object = {
                     botname: params.target.botname,
                     message: params,
                     clients: clients
                 }
-                console.log('send to discord', object)
-                object.clients[0].send(JSON.stringify(object));
+                console.log('send to discord', object, clients.length, promises.length)
+                clients[0].send(JSON.stringify(object));
             }
             else {
                 let object = {

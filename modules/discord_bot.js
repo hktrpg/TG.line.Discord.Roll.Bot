@@ -1207,12 +1207,16 @@ const connect = function () {
 		//if (shardid !== 0) return;
 		const object = JSON.parse(data);
 		if (object.botname !== 'Discord') return;
-
 		try {
 			let channel = await client.channels.fetch(object.message.target.id);
 			if (channel) {
 				console.log('Discord socket message:', shardid)
 				await channel.send(object.message.text)
+			} else {
+				if (object.clients.length >= 2) {
+					object.clients.shift();
+					ws.send(object);
+				}
 			}
 		}
 		catch (error) {

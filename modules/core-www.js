@@ -471,9 +471,15 @@ if (isMaster) {
     });
     wss.on('connection', function connection(ws) {
         if (!ws._socket.remoteAddress == "::ffff:127.0.0.1") return;
-
         ws.on('message', function incoming(message) {
-            console.log('received: %s', message);
+            if (typeof message === 'string')
+                console.log('received: %s', message);
+            else if (typeof message === 'object') {
+                const object = JSON.parse(message);
+                if (object.botname === 'Discord') {
+                    object.clients[0].send(JSON.stringify(object));
+                }
+            }
         });
         sendTo = function (params) {
             /*
@@ -483,23 +489,32 @@ if (isMaster) {
             Client will return a message to server, and server will send message to next client
 
             */
-            let clients = [];
-            let object = {
-                botname: params.target.botname,
-                message: params,
-            }
-
-            wss.clients.forEach(function each(client) {
-                if (client.readyState === WebSocket.OPEN) {
-                    //For Discord, we don't want to send message to Discord bot itself
-                    if (object.botname !== 'Discord') client.send(JSON.stringify(object));
-                    else clients.push(client);
+            if (params.target.botname === 'Discord') {
+                let clients = [];
+                wss.clients.forEach(function each(client) {
+                    if (client.readyState === WebSocket.OPEN) {
+                        //For Discord, we don't want to send message to Discord bot itself
+                        clients.push(client);
+                    }
+                });
+                let object = {
+                    botname: params.target.botname,
+                    message: params,
+                    clients: clients
                 }
-            });
-            
-
-            clients[0].send(JSON.stringify(object));
-
+                clients[0].send(JSON.stringify(object));
+            }
+            else {
+                let object = {
+                    botname: params.target.botname,
+                    message: params
+                }
+                wss.clients.forEach(function each(client) {
+                    if (client.readyState === WebSocket.OPEN) {
+                        client.send(JSON.stringify(object));
+                    }
+                });
+            }
         }
     });
 }

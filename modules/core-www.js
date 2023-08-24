@@ -482,7 +482,7 @@ if (isMaster) {
                 }
             }
         });
-        sendTo = function (params) {
+        sendTo = async function (params) {
             /*
             Get Client list, and store in an array name clients
             Send message to first client with readyState OPEN and array clients
@@ -492,12 +492,14 @@ if (isMaster) {
             */
             if (params.target.botname === 'Discord') {
                 let clients = [];
-                wss.clients.forEach(async function each(client) {
-                    if (client.readyState === WebSocket.OPEN) {
-                        //For Discord, we don't want to send message to Discord bot itself
-                        await clients.push(client);
-                    }
-                });
+
+                await Promise.all(
+                    wss.clients.map(async client => {
+                        if (client.readyState === WebSocket.OPEN) {
+                            clients.push(client);
+                        }
+                    })
+                );
                 let object = {
                     botname: params.target.botname,
                     message: params,

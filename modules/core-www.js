@@ -491,13 +491,9 @@ if (isMaster) {
 
             */
             if (params.target.botname === 'Discord') {
-                let clients = [];
-                for (const client of wss.clients) {
-                    if (client.readyState === WebSocket.OPEN) {
-                        // For Discord, we don't want to send a message to the Discord bot itself
-                        clients.push(client);
-                    }
-                }
+                let clients = Array.from(wss.clients).filter(
+                    (client) => client.readyState === WebSocket.OPEN
+                );  
 
                 let object = {
                     botname: params.target.botname,

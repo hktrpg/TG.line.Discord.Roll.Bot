@@ -1215,7 +1215,7 @@ const connect = function () {
 			} else {
 				if (object.clients.length >= 2) {
 					object.clients.shift();
-					ws.send(object);
+					ws.send(JSON.stringify(object));
 				}
 			}
 		}

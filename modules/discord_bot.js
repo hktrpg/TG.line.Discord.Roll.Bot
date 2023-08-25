@@ -1209,7 +1209,7 @@ const connect = function () {
 		if (object.botname !== 'Discord') return;
 
 		try {
-			let channel = await client.channels.fetch(object.message.target.id);
+			let channel = await client.channels.cache.get(object.message.target.id);
 			if (channel) {
 				console.log('Discord socket message:', shardid)
 				await channel.send(object.message.text)

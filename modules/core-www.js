@@ -508,7 +508,7 @@ if (isMaster) {
                     }
                     console.log('send to discord', object, clients.length, promises.length)
                     clients[0].send(JSON.stringify(object));
-                    wss.clients[0].send('00000');
+                    // wss.clients[0].send('00000');
                     // paths is going to have an array with the paths of all the pdfs already generated
                 });
 

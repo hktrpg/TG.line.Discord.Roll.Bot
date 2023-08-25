@@ -494,25 +494,24 @@ if (isMaster) {
                 let clients = [];
                 let promises = [];
 
-                wss.clients.forEach(function (client) {
+
+                for (const client of wss.clients) {
                     if (client.readyState === WebSocket.OPEN) {
-                        // For Discord, we don't want to send a message to the Discord bot itself
-                        promises.push(new Promise((resolve) => {
-                            clients.push(client);
-                            resolve();
-                        }));
+                        clients.push(client);
                     }
+                };
+                Promise.all(clients).then((clients) => {
+                    let object = {
+                        botname: params.target.botname,
+                        message: params,
+                        clients: clients
+                    }
+                    console.log('send to discord', object, clients.length, promises.length)
+                    clients[0].send(JSON.stringify(object));
+                    wss.clients[0].send('00000');
+                    // paths is going to have an array with the paths of all the pdfs already generated
                 });
 
-                await Promise.all(promises);
-                let object = {
-                    botname: params.target.botname,
-                    message: params,
-                    clients: clients
-                }
-                console.log('send to discord', object, clients.length, promises.length)
-                clients[0].send(JSON.stringify(object));
-                wss.clients[0].send('00000');
             }
             else {
                 let object = {

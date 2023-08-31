@@ -712,10 +712,17 @@
   dependencies:
     "@babel/helper-plugin-utils" "^7.22.5"
 
-"@babel/runtime@^7.15.4", "@babel/runtime@^7.22.6", "@babel/runtime@^7.7.2":
+"@babel/runtime@^7.15.4", "@babel/runtime@^7.7.2":
   version "7.22.10"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.22.10.tgz#ae3e9631fd947cb7e3610d3e9d8fef5f76696682"
   integrity sha512-21t/fkKLMZI4pqP2wlmsQAWnYW1PDyKyyUV4vCi+B25ydmdaYTKXPwCj0BzSUnZf4seIiYvSA3jcZ3gdsMFkLQ==
+  dependencies:
+    regenerator-runtime "^0.14.0"
+
+"@babel/runtime@^7.22.6":
+  version "7.22.11"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.22.11.tgz#7a9ba3bbe406ad6f9e8dd4da2ece453eb23a77a4"
+  integrity sha512-ee7jVNlWN09+KftVOu9n7S8gQzD/Z6hN/I8VBRXW4P1+Xe7kJGXMwu8vds4aGIMHZnNbdpSWCfZZtinytpcAvA==
   dependencies:
     regenerator-runtime "^0.14.0"
 
@@ -777,10 +784,10 @@
     enabled "2.0.x"
     kuler "^2.0.0"
 
-"@dice-roller/rpg-dice-roller@^5.1.0":
-  version "5.4.1"
-  resolved "https://registry.yarnpkg.com/@dice-roller/rpg-dice-roller/-/rpg-dice-roller-5.4.1.tgz#5f912a2023e41b28f0aab2c3cb46b0177ef429e2"
-  integrity sha512-Tbi/ej65KoHhUPlb/zlj+V/4gMNhF3W6fP+KBF7+mHgFUWnJ1ADKHKHe4jygwn1y8pRlLDAprYCEvQTK2FoRgg==
+"@dice-roller/rpg-dice-roller@5.3.2":
+  version "5.3.2"
+  resolved "https://registry.yarnpkg.com/@dice-roller/rpg-dice-roller/-/rpg-dice-roller-5.3.2.tgz#b4a899545dce6c08035024256903d143084a6337"
+  integrity sha512-DoOWEgYmkTWWtJ2giuwAaWqG9j/huVHaYdXJE7tu4BOBq9Jlu/4YWlx8lrtV58vPAxTwSFq+/9ZakHYinf7Usw==
   dependencies:
     mathjs "^11.2.1"
     random-js "^2.1.0"
@@ -5676,9 +5683,9 @@ makeerror@1.0.12:
     tmpl "1.0.5"
 
 mathjs@^11.2.1:
-  version "11.9.1"
-  resolved "https://registry.yarnpkg.com/mathjs/-/mathjs-11.9.1.tgz#b3bb1f710f63b2f0e504df3abaf6b38bbf92f653"
-  integrity sha512-VdB9ELZ6Dwda13j5d1eCBETmPO8m9qIJETUdfZmTA9cPnXUiIk7UuoAmvxFqtfAe32XYuRugAec2Ndv0/RfRhg==
+  version "11.10.0"
+  resolved "https://registry.yarnpkg.com/mathjs/-/mathjs-11.10.0.tgz#2fd6e79c630859699b5a35a0e85ec86d3b5f98b3"
+  integrity sha512-PXzIHU+36OUCTJVkc6dwMB2MFMRykxcN9y+EnIhy/HUAIGYQMKEpDJrEjdLb7kCi1JSarmbZqNSpKFGxpZhWzw==
   dependencies:
     "@babel/runtime" "^7.22.6"
     complex.js "^2.1.1"

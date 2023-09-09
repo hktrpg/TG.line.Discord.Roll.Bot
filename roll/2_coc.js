@@ -2118,11 +2118,12 @@ class Build7Char {
 				return builderClass.build(text, age);
 			}
 		}
-		return '未匹配到有效模式';
+		return `你輸入的指令不正確，請重新輸入，指令為 
+coc7版創角				： 啓動語 .cc7build (歲數7-89)
+coc7版隨機創角			： 啓動語 .cc7build random 或留空
+coc7版自由分配點數創角	： 啓動語 .cc7build .xyz (歲數15-89)`;
 	}
 }
-
-
 
 class RandomBuilder {
 	/**
@@ -2453,7 +2454,7 @@ class XYZBuilder {
 			ReStr += `${rollbase.BuildDiceCal('3d6*5')}\n`
 		}
 		if (this.z) ReStr += `---------\n`
-		if (this.age >= 15 && this.age <= 89) {
+		if (this.age && !isNaN(this.age)) {
 			ReStr += `${this.ageAdjustment(this.age)}`
 			//設定 因年齡減少的點數 和 EDU加骰次數
 		} else {
@@ -2471,25 +2472,29 @@ class XYZBuilder {
 		let AppDebuff = 0;
 		let EDUinc = 0;
 		let ReStr = '';
-		for (let i = 0; age >= oldArr[i]; i++) {
+		let newAge = age;
+		if (newAge < 15) newAge = 15;
+		if (newAge > 89) age = 89;
+		for (let i = 0; newAge >= oldArr[i]; i++) {
 			Debuff = DebuffArr[i];
 			AppDebuff = AppDebuffArr[i];
 			EDUinc = EDUincArr[i];
 		}
+		ReStr += '年齡：' + newAge + '\n';
 		switch (true) {
-			case (age >= 15 && age <= 19):
+			case (newAge >= 15 && newAge <= 19):
 				ReStr += '年齡調整：從STR或SIZ中減去' + Debuff + '點\n（請自行手動選擇計算）。\nEDU減去5點。';
 				ReStr += '\n---------';
 				break;
-			case (age >= 20 && age <= 39):
+			case (newAge >= 20 && newAge <= 39):
 				ReStr += '年齡調整：可做' + EDUinc + '次EDU的成長擲骰。';
 				ReStr += '\n---------';
 				break;
-			case (age >= 40 && age <= 49):
+			case (newAge >= 40 && newAge <= 49):
 				ReStr += '年齡調整：從STR、DEX或CON中減去' + Debuff + '點\n（請自行手動選擇計算）。\nAPP減去' + AppDebuff + '點。進行' + EDUinc + '次EDU的成長擲骰。';
 				ReStr += '\n---------';
 				break;
-			case (age >= 50):
+			case (newAge >= 50):
 				ReStr += '年齡調整：從STR、DEX或CON中減去' + Debuff + '點\n（從一，二或全部三項中選擇）\n（請自行手動選擇計算）。\nAPP減去' + AppDebuff + '點。進行' + EDUinc + '次EDU的成長擲骰。';
 				ReStr += '\n---------';
 				break;
@@ -2502,11 +2507,11 @@ class XYZBuilder {
 			ReStr += '\n第' + i + '次EDU成長 → ' + EDURoll;
 
 			let EDUplus = rollbase.Dice(10);
-			ReStr += ' → 如果成長則成長' + EDUplus + '點';
+			ReStr += ' → 如果高於現有EDU，則成長' + EDUplus + '點';
 		}
 		const tempBuildLuck = [rollbase.BuildDiceCal('3d6*5'), rollbase.BuildDiceCal('3d6*5')]
 		const tempLuck = [tempBuildLuck[0].match(/\d+$/), tempBuildLuck[1].match(/\d+$/)]
-		if (age < 20) {
+		if (newAge < 20) {
 			ReStr += '\nＬＵＫ第一次：' + `${tempBuildLuck[0]} \nＬＵＫ第二次： ${tempBuildLuck[1]}`;
 			ReStr += '\nＬＵＫ最終值：' + Math.max(...tempLuck);
 		}

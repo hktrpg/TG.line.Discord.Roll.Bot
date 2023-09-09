@@ -51,9 +51,13 @@ coc6版創角				： 啓動語 .cc6build
 coc7版創角				： 啓動語 .cc7build (歲數7-89)
 coc7版隨機創角			： 啓動語 .cc7build random
 coc7版自由分配點數創角	： 啓動語 .cc7build .xyz (歲數7-89)
-x = x (3d6*5)
-y = y (2d6+6)*5
-z = z (3d6*5)
+如.cc7build .752 
+就會擲出
+7次 3d6 * 5
+5次 (2d6+6) * 5 
+2次 3d6 * 5
+可只輸入.  不輸入xyz
+預設值為 .53 即5次 3d6 * 5 和3次 (2d6+6) * 5 
 
 coc7 成長或增強檢定： .dp 或 成長檢定 或 幕間成長 (技能%) (名稱) (可以一次輸入多個)
 例）.DP 50 騎乘 80 鬥毆  70 60
@@ -394,7 +398,7 @@ const rollDiceCommand = async function ({
 		}
 
 		case /(^cc7版創角$)|(^[.]cc7build$)/i.test(mainMsg[0]): {
-			rply.text = builder.build(mainMsg[1] || 'random', mainMsg[2]);
+			rply.text = builder.build(mainMsg[1] || 'random', mainMsg[2]).replace(/\*5/ig, ' * 5');
 			rply.quotes = true;
 			break;
 		}
@@ -2117,6 +2121,8 @@ class Build7Char {
 		return '未匹配到有效模式';
 	}
 }
+
+
 
 class RandomBuilder {
 	/**

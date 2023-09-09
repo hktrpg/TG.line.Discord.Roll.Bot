@@ -185,12 +185,12 @@ const rollDiceCommand = async function ({
 			};
 			let successResultWithoutName = {
 				data: false,
-				text: `------------
+				text: `=======
 				無記名成功結果`}
 				;
 			let criticalSuccessNfumbleResult = {
 				data: false,
-				text: `------------
+				text: `=======
 				大成功與大失敗`}
 				;
 			for (let index = 0; index < result.length; index++) {
@@ -213,14 +213,14 @@ const rollDiceCommand = async function ({
 			}
 			/**
 			 * 成功的擲骰結果
-			 * -------------
+			 * =======
 			 * 空手 50	拳擊 60	拳	80
 			 * 空手 50	拳擊 60	拳	80 	
-			 * ------------
+			 * =======
 			 * 無記名成功結果
 			 * 21-08-04 12:33 技能	80
 			 * 21-08-04 13:33 技能	80
-			 * ------------
+			 * =======
 			 * 大成功與大失敗
 			 * 技能	80	大失敗
 			 * 拳	80	大成功
@@ -260,7 +260,7 @@ const rollDiceCommand = async function ({
 			let criticalSuccessNfumbleResult = {
 				data: false,
 				text: `大成功與大失敗
-				------------`}
+				=======`}
 				;
 			for (let index = 0; index < result.length; index++) {
 				if (result[index].skillPerStyle == 'criticalSuccess' || result[index].skillPerStyle == 'fumble') {
@@ -300,7 +300,7 @@ const rollDiceCommand = async function ({
 				rply.text = '未有CC擲骰紀錄';
 				return rply;
 			}
-			rply.text = `自動成長檢定\n----------`;
+			rply.text = `自動成長檢定\n========`;
 			for (let index = 0; index < result.length; index++) {
 				let target = Number(result[index].skillPer);
 				let name = result[index].skillName || '無名技能';
@@ -603,7 +603,7 @@ class CreateCult {
 	}
 	/*
 	回應格式
-	------------------
+	==============
 	Cult 產生器
 	首領名字: XXXXXX
 
@@ -619,7 +619,7 @@ class CreateCult {
 
 	能力來源: 
 	SOURCES OF POWER 1-3, 4-6, 7-8, 9-10
-	------------------
+	==============
 	邪教名稱?
 
 	CULT GOALS—WANTS 1-10
@@ -659,7 +659,7 @@ class CreateCult {
 
 	能力來源: 
 	${cult.sourcesOfPower}
-	------------------
+	==============
 	教派目標:
 	${cult.cultGoals}
 
@@ -1717,7 +1717,7 @@ function chase() {
 	let rply = `CoC 7ed追逐戰產生器\n`;
 	let round = rollbase.Dice(5) + 5;
 	for (let index = 0; index < round; index++) {
-		rply += `${chaseGenerator(index)}\n----------\n`;
+		rply += `${chaseGenerator(index)}\n========\n`;
 	}
 	return rply;
 }
@@ -2440,20 +2440,20 @@ class XYZBuilder {
 		this.z = (text.match(/[.]\d+/i) && text[3]) || 0;
 		this.age = age?.match(/^\d+/i) || 0;
 		let ReStr = `自由分配屬性點數創角方案
----------
+=======
 `;
 		for (let i = 0; i < this.x; i++) {
 			ReStr += `${rollbase.BuildDiceCal('3d6*5')}\n`
 		}
-		if (this.x) ReStr += `---------\n`
+		if (this.x) ReStr += `=======\n`
 		for (let i = 0; i < this.y; i++) {
 			ReStr += `${rollbase.BuildDiceCal('2d6*5+6')}\n`
 		}
-		if (this.y) ReStr += `---------\n`
+		if (this.y) ReStr += `=======\n`
 		for (let i = 0; i < this.z; i++) {
 			ReStr += `${rollbase.BuildDiceCal('3d6*5')}\n`
 		}
-		if (this.z) ReStr += `---------\n`
+		if (this.z) ReStr += `=======\n`
 		if (this.age && !isNaN(this.age)) {
 			ReStr += `${this.ageAdjustment(this.age)}`
 			//設定 因年齡減少的點數 和 EDU加骰次數
@@ -2461,7 +2461,7 @@ class XYZBuilder {
 			ReStr += `沒有年齡調整\n如果在後面加上年齡，就會自動計算年齡調整 如 
 .cc7build .533 40`;
 			const tempBuildLuck = [rollbase.BuildDiceCal('3d6*5'), rollbase.BuildDiceCal('3d6*5')]
-			ReStr += '\n---------\nＬＵＫ：' + `${tempBuildLuck[0]} `;
+			ReStr += '\n=======\nＬＵＫ：' + `${tempBuildLuck[0]} `;
 		}
 
 
@@ -2484,19 +2484,19 @@ class XYZBuilder {
 		switch (true) {
 			case (newAge >= 15 && newAge <= 19):
 				ReStr += '年齡調整：從STR或SIZ中減去' + Debuff + '點\n（請自行手動選擇計算）。\nEDU減去5點。';
-				ReStr += '\n---------';
+				ReStr += '\n=======';
 				break;
 			case (newAge >= 20 && newAge <= 39):
 				ReStr += '年齡調整：可做' + EDUinc + '次EDU的成長擲骰。';
-				ReStr += '\n---------';
+				ReStr += '\n=======';
 				break;
 			case (newAge >= 40 && newAge <= 49):
 				ReStr += '年齡調整：從STR、DEX或CON中減去' + Debuff + '點\n（請自行手動選擇計算）。\nAPP減去' + AppDebuff + '點。進行' + EDUinc + '次EDU的成長擲骰。';
-				ReStr += '\n---------';
+				ReStr += '\n=======';
 				break;
 			case (newAge >= 50):
 				ReStr += '年齡調整：從STR、DEX或CON中減去' + Debuff + '點\n（從一，二或全部三項中選擇）\n（請自行手動選擇計算）。\nAPP減去' + AppDebuff + '點。進行' + EDUinc + '次EDU的成長擲骰。';
-				ReStr += '\n---------';
+				ReStr += '\n=======';
 				break;
 
 			default:
@@ -2516,8 +2516,9 @@ class XYZBuilder {
 			ReStr += '\nＬＵＫ最終值：' + Math.max(...tempLuck);
 		}
 		else {
-			ReStr += '\n---------\nＬＵＫ：' + `${tempBuildLuck[0]} `;
+			ReStr += '\n=======\nＬＵＫ：' + `${tempBuildLuck[0]} `;
 		}
+		ReStr += '\n=======\n煤油燈特徵: 1D6&1D20 → ' + rollbase.Dice(6) + ',' + rollbase.Dice(20);
 		return ReStr;
 	}
 }

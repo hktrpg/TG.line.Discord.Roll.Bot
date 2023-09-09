@@ -2094,8 +2094,8 @@ class BuilderRegistry {
 		this.builders = new Map();
 	}
 
-	registerBuilder(patten, builderClass) {
-		this.builders.set(patten, new builderClass());
+	registerBuilder(pattern, builderClass) {
+		this.builders.set(pattern, new builderClass());
 	}
 
 	getBuilder(name) {
@@ -2113,8 +2113,8 @@ class Build7Char {
 	}
 
 	build(text, age) {
-		for (const [patten, builderClass] of this.builderRegistry.builders) {
-			if (text.match(patten)) {
+		for (const [pattern, builderClass] of this.builderRegistry.builders) {
+			if (text.match(pattern)) {
 				return builderClass.build(text, age);
 			}
 		}
@@ -2137,7 +2137,7 @@ class RandomBuilder {
 		this.old = rollbase.DiceINT(15, 89);
 		this.ReStr = `調查員年齡設為：${this.old}\n`;
 	}
-	static patten() {
+	static pattern() {
 		return /^random$/i;
 	}
 
@@ -2267,7 +2267,7 @@ class RandomBuilder {
 }
 
 class AgeBuilder {
-	static patten() {
+	static pattern() {
 		return /^\d+$/i;
 	}
 
@@ -2429,7 +2429,7 @@ class AgeBuilder {
 }
 
 class XYZBuilder {
-	static patten() {
+	static pattern() {
 		return /^([.])/i;
 	}
 
@@ -2518,9 +2518,9 @@ class XYZBuilder {
 }
 
 const builder = new Build7Char();
-builder.registerBuilder(RandomBuilder.patten(), RandomBuilder);
-builder.registerBuilder(XYZBuilder.patten(), XYZBuilder);
-builder.registerBuilder(AgeBuilder.patten(), AgeBuilder);
+builder.registerBuilder(RandomBuilder.pattern(), RandomBuilder);
+builder.registerBuilder(XYZBuilder.pattern(), XYZBuilder);
+builder.registerBuilder(AgeBuilder.pattern(), AgeBuilder);
 
 
 

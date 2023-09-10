@@ -2447,7 +2447,7 @@ class XYZBuilder {
 		}
 		if (this.x) ReStr += `=======\n`
 		for (let i = 0; i < this.y; i++) {
-			ReStr += `${rollbase.BuildDiceCal('2d6*5+6')}\n`
+			ReStr += `${rollbase.BuildDiceCal('(2d6+6)*5')}\n`
 		}
 		if (this.y) ReStr += `=======\n`
 		for (let i = 0; i < this.z; i++) {

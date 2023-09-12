@@ -398,7 +398,7 @@ const rollDiceCommand = async function ({
 		}
 
 		case /(^cc7版創角$)|(^[.]cc7build$)/i.test(mainMsg[0]): {
-			rply.text = builder.build(mainMsg[1] || 'random', mainMsg[2]).replace(/\*5/ig, ' * 5');
+			rply.text = builder.build(mainMsg[1] || 'random', mainMsg[2]).replace(/\*5/ig, ' * 5').trim();
 			rply.quotes = true;
 			break;
 		}
@@ -2106,6 +2106,10 @@ class BuilderRegistry {
 class Build7Char {
 	constructor() {
 		this.builderRegistry = new BuilderRegistry();
+		this.defaultRegistry;
+	}
+	defaultBuiler(builderClass) {
+		this.defaultRegistry = new builderClass();
 	}
 
 	registerBuilder(name, builderClass) {
@@ -2118,10 +2122,15 @@ class Build7Char {
 				return builderClass.build(text, age);
 			}
 		}
-		return `你輸入的指令不正確，請重新輸入，指令為 
+
+		return `你輸入的指令不正確，指令為 
 coc7版創角				： 啓動語 .cc7build (歲數7-89)
 coc7版隨機創角			： 啓動語 .cc7build random 或留空
-coc7版自由分配點數創角	： 啓動語 .cc7build .xyz (歲數15-89)`;
+coc7版自由分配點數創角	： 啓動語 .cc7build .xyz (歲數15-89)
+
+先以coc7版隨機模式來創角
+${this.defaultRegistry.build()}
+`;
 	}
 }
 
@@ -2135,8 +2144,6 @@ class RandomBuilder {
 	 * 
 	 */
 	constructor() {
-		this.old = rollbase.DiceINT(15, 89);
-		this.ReStr = `調查員年齡設為：${this.old}\n`;
 	}
 	static pattern() {
 		return /^random$/i;
@@ -2144,33 +2151,35 @@ class RandomBuilder {
 
 	build() {
 		//設定 因年齡減少的點數 和 EDU加骰次數
-		let ReStr = '';
+		let old = rollbase.DiceINT(15, 89);
+		let ReStr = `
+=======coc7版隨機創角=======
+調查員年齡設為：${old}\n`;
 		let Debuff = 0;
 		let AppDebuff = 0;
 		let EDUinc = 0;
-
-		for (let i = 0; this.old >= oldArr[i]; i++) {
+		for (let i = 0; old >= oldArr[i]; i++) {
 			Debuff = DebuffArr[i];
 			AppDebuff = AppDebuffArr[i];
 			EDUinc = EDUincArr[i];
 		}
 		ReStr += '=======\n';
 		switch (true) {
-			case (this.old >= 15 && this.old <= 19):
+			case (old >= 15 && old <= 19):
 				ReStr += '年齡調整：從STR或SIZ中減去' + Debuff + '點\n（請自行手動選擇計算）。\nEDU減去5點。LUK骰兩次取高。';
 				ReStr += '\n=======';
 				ReStr += '\n（以下箭號兩項，減值' + Debuff + '點。）';
 				break;
-			case (this.old >= 20 && this.old <= 39):
+			case (old >= 20 && old <= 39):
 				ReStr += '年齡調整：可做' + EDUinc + '次EDU的成長擲骰。';
 				ReStr += '\n=======';
 				break;
-			case (this.old >= 40 && this.old <= 49):
+			case (old >= 40 && old <= 49):
 				ReStr += '年齡調整：從STR、DEX或CON中減去' + Debuff + '點\n（請自行手動選擇計算）。\nAPP減去' + AppDebuff + '點。進行' + EDUinc + '次EDU的成長擲骰。';
 				ReStr += '\n=======';
 				ReStr += '\n（以下箭號三項，自選減去' + Debuff + '點。）';
 				break;
-			case (this.old >= 50):
+			case (old >= 50):
 				ReStr += '年齡調整：從STR、DEX或CON中減去' + Debuff + '點\n（從一，二或全部三項中選擇）\n（請自行手動選擇計算）。\nAPP減去' + AppDebuff + '點。進行' + EDUinc + '次EDU的成長擲骰。';
 				ReStr += '\n=======';
 				ReStr += '\n（以下箭號三項，自選減去' + Debuff + '點。）';
@@ -2193,30 +2202,30 @@ class RandomBuilder {
 		let randomState = shuffle(eightState);
 		let randomStateNumber = checkState(randomState);
 		ReStr += '\nＳＴＲ：' + randomStateNumber[0];
-		if (this.old >= 40) ReStr += ' ←（可選） ';
-		if (this.old < 20) ReStr += ' ←（可選）';
+		if (old >= 40) ReStr += ' ←（可選） ';
+		if (old < 20) ReStr += ' ←（可選）';
 
 		ReStr += '\nＤＥＸ：' + randomStateNumber[1];
-		if (this.old >= 40) ReStr += ' ← （可選）';
+		if (old >= 40) ReStr += ' ← （可選）';
 
 		ReStr += '\nＰＯＷ：' + randomStateNumber[2];
 
 		ReStr += '\nＣＯＮ：' + randomStateNumber[3];
-		if (this.old >= 40) ReStr += ' ← （可選）'
+		if (old >= 40) ReStr += ' ← （可選）'
 
-		if (this.old >= 40) {
+		if (old >= 40) {
 			ReStr += '\nＡＰＰ：' + `${randomStateNumber[4]}-${AppDebuff} = ${randomStateNumber[4] - AppDebuff}`;
 		} else ReStr += '\nＡＰＰ：' + randomStateNumber[4];
 
 
 		ReStr += '\nＳＩＺ：' + randomStateNumber[5];
-		if (this.old < 20) {
+		if (old < 20) {
 			ReStr += ' ←（可選）';
 		}
 
 		ReStr += '\nＩＮＴ：' + randomStateNumber[6]
 
-		if (this.old < 20) ReStr += '\nＥＤＵ：' + randomStateNumber[7];
+		if (old < 20) ReStr += '\nＥＤＵ：' + randomStateNumber[7];
 		else {
 			ReStr += '\n=======';
 			ReStr += '\nＥＤＵ初始值：' + randomStateNumber[7]
@@ -2241,7 +2250,7 @@ class RandomBuilder {
 		const tempBuildLuck = [rollbase.BuildDiceCal('3d6*5'), rollbase.BuildDiceCal('3d6*5')]
 		const tempLuck = [tempBuildLuck[0].match(/\d+$/), tempBuildLuck[1].match(/\d+$/)]
 
-		if (this.old < 20) {
+		if (old < 20) {
 			ReStr += '\nＬＵＫ第一次：' + `${tempBuildLuck[0]} \nＬＵＫ第二次： ${tempBuildLuck[1]}`;
 			ReStr += '\nＬＵＫ最終值：' + Math.max(...tempLuck);
 		}
@@ -2250,7 +2259,7 @@ class RandomBuilder {
 		}
 
 		//ReStr += '\nＬＵＫ：' + rollbase.BuildDiceCal('3d6*5');
-		//if (this.old < 20) ReStr += '\nＬＵＫ加骰：' + rollbase.BuildDiceCal('3D6*5');
+		//if (old < 20) ReStr += '\nＬＵＫ加骰：' + rollbase.BuildDiceCal('3D6*5');
 		ReStr += `\n==本職技能==`
 		let occAndOtherSkills = getOccupationSkill(randomState);
 		for (let index = 0; index < occAndOtherSkills.finalOSkillList.length; index++) {
@@ -2524,6 +2533,7 @@ class XYZBuilder {
 }
 
 const builder = new Build7Char();
+builder.defaultBuiler(RandomBuilder);
 builder.registerBuilder(RandomBuilder.pattern(), RandomBuilder);
 builder.registerBuilder(XYZBuilder.pattern(), XYZBuilder);
 builder.registerBuilder(AgeBuilder.pattern(), AgeBuilder);

@@ -1444,7 +1444,7 @@ async function coc7({ chack, text = "", userid, groupid, channelid, userName }) 
 	return result;
 }
 
-async function coc7chack({ chack, temp, text = "", userid, groupid, channelid, userName }) {
+async function coc7chack({ chack, temp, text = "", userid, groupid, channelid, userName, bpdiceNum }) {
 	let result = '';
 	let skillPerStyle = "";
 	switch (true) {
@@ -1487,7 +1487,7 @@ async function coc7chack({ chack, temp, text = "", userid, groupid, channelid, u
 			break;
 	}
 	if (text) result += '：' + text;
-	if (userid && groupid && skillPerStyle !== "failure") {
+	if (userid && groupid && skillPerStyle !== "failure" && bpdiceNum <= 0) {
 		await dpRecorder({ userID: userid, groupid, channelid, skillName: text, skillPer: chack, skillPerStyle, skillResult: temp, userName });
 	}
 	return result;
@@ -1518,7 +1518,7 @@ async function coc7bp({ chack, text, userid, groupid, channelid, bpdiceNum, user
 
 			for (let index = 0; index < check.length; index++) {
 				let finallyStr = countStr + ' → ' + await coc7chack(
-					{ chack: check[index], temp: Math.min(...countArr), text: name[index], userid, groupid, channelid, userName }
+					{ chack: check[index], temp: Math.min(...countArr), text: name[index], userid, groupid, channelid, userName, bpdiceNum }
 				);
 				result += '1D100 ≦ ' + check[index] + "　\n" + finallyStr + '\n\n';
 			}
@@ -1527,8 +1527,7 @@ async function coc7bp({ chack, text, userid, groupid, channelid, bpdiceNum, user
 			return result;
 		}
 		if (bpdiceNum < 0) {
-			bpdiceNum = Math.abs(bpdiceNum);
-			for (let i = 0; i <= bpdiceNum; i++) {
+			for (let i = 0; i <= Math.abs(bpdiceNum); i++) {
 				let temp = rollbase.Dice(10);
 				let temp2 = temp.toString() + temp0.toString();
 				if (temp2 > 100) temp2 = parseInt(temp2) - 100;
@@ -1539,7 +1538,7 @@ async function coc7bp({ chack, text, userid, groupid, channelid, bpdiceNum, user
 
 			for (let index = 0; index < check.length; index++) {
 				let finallyStr = countStr + ' → ' + await coc7chack(
-					{ chack: check[index], temp: Math.max(...countArr), text: name[index], userid, groupid, channelid }
+					{ chack: check[index], temp: Math.max(...countArr), text: name[index], userid, groupid, channelid, bpdiceNum }
 				);
 				result += '1D100 ≦ ' + check[index] + "  \n" + finallyStr + '\n\n';
 			}

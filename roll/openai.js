@@ -1,7 +1,7 @@
 "use strict";
 if (!process.env.OPENAI_SWITCH) return;
 
-const { Configuration, OpenAIApi } = require('openai');
+const OpenAIApi = require('openai');
 const dotenv = require('dotenv');
 dotenv.config({ override: true });
 const fetch = require('node-fetch');
@@ -109,10 +109,10 @@ class OpenAI {
         this.apiKeys = [];
         this.addApiKey();
         this.watchEnvironment();
-        this.configuration = new Configuration({
-            apiKey: this.apiKeys[0]?.key,
-            basePath: this.apiKeys[0]?.basePath,
-        });
+        this.configuration = {
+            apiKey: this.apiKeys[0]?.apiKey,
+            baseURL: this.apiKeys[0]?.baseURL,
+        };
         this.model = process.env.OPENAI_MODEL || "gpt-4";
         this.openai = new OpenAIApi(this.configuration);
         this.currentApiKeyIndex = 0;
@@ -120,13 +120,13 @@ class OpenAI {
     }
     addApiKey() {
         this.apiKeys = [];
-        let base = -1;
+        let base = 0;
         for (let index = 1; index < 100; index++) {
             if (index % 10 === 0) base++;
             if (!process.env[`OPENAI_SECRET_${index}`]) continue;
             this.apiKeys.push({
-                key: process.env[`OPENAI_SECRET_${index}`],
-                basePath: process.env[`OPENAI_BASEPATH_${base}1_${base + 1}0`]
+                apiKey: process.env[`OPENAI_SECRET_${index}`],
+                baseURL: process.env[`OPENAI_BASEPATH_${base}1_${base + 1}0`]
                     || process.env.OPENAI_BASEPATH
                     || 'https://api.openai.com/v1'
             });
@@ -141,26 +141,26 @@ class OpenAI {
                 this.currentApiKeyIndex = 0;
                 this.errorCount = 0;
                 this.addApiKey();
-                this.openai = new OpenAIApi(new Configuration({
-                    apiKey: this.apiKeys[0]?.key,
-                    basePath: this.apiKeys[0]?.basePath,
-                }));
+                this.openai = new OpenAIApi({
+                    apiKey: this.apiKeys[0]?.apiKey,
+                    baseURL: this.apiKeys[0]?.baseURL,
+                });
             }
         });
     }
     handleError(error) {
         this.errorCount++;
-        if (error.response?.status === 401) {
+        if (error.status === 401) {
             console.error('remove api key 401', this.apiKeys[this.currentApiKeyIndex])
             this.apiKeys.splice(this.currentApiKeyIndex, 1);
             this.currentApiKeyIndex--;
             this.errorCount--;
         }
         this.currentApiKeyIndex = (this.currentApiKeyIndex + 1) % this.apiKeys.length;
-        this.openai = new OpenAIApi(new Configuration({
-            apiKey: this.apiKeys[this.currentApiKeyIndex].key,
-            basePath: this.apiKeys[this.currentApiKeyIndex].basePath,
-        }));
+        this.openai = new OpenAIApi({
+            apiKey: this.apiKeys[this.currentApiKeyIndex].apiKey,
+            baseURL: this.apiKeys[this.currentApiKeyIndex].baseURL,
+        });
     }
     wait(minutes = 1) {
         return new Promise(resolve => {
@@ -178,7 +178,7 @@ class ImageAi extends OpenAI {
     async handleImageAi(inputStr) {
         let input = inputStr.replace(/^\.aimage/i, '');
         try {
-            let response = await this.openai.createImage({
+            let response = await this.openai.images.generate({
                 "prompt": `${input}`,
                 "n": 1,
                 "size": "1024x1024"
@@ -194,8 +194,11 @@ class ImageAi extends OpenAI {
                 return await this.handleImageAi(inputStr);
             } else {
                 this.errorCount = 0;
-                console.error('AI error', error.response?.status, error.response?.statusText)
-                return 'AI error', error.response?.status + error.response?.statusText + ` ${inputStr.replace(/^\.aimage/i, '')}`;
+                if (error instanceof OpenAIApi.APIError) {
+                    return 'AI error: ', error.status + `.\n ${inputStr.replace(/^\.aimage/i, '')}`;
+                } else {
+                    return 'AI error ', `.\n ${inputStr.replace(/^\.aimage/i, '')}`;
+                }
             }
         }
     }
@@ -263,7 +266,7 @@ class TranslateAi extends OpenAI {
     }
     async translateChat(inputStr) {
         try {
-            let response = await this.openai.createChatCompletion({
+            let response = await this.openai.chat.completions.create({
                 "model": this.model,
                 "max_tokens": 2100,
                 "messages": [
@@ -292,18 +295,21 @@ class TranslateAi extends OpenAI {
                 const mergedContent = contents.join('');
                 return mergedContent;
             }
-            return response?.data?.choices[0]?.message?.content;
+            return response.choices[0].message.content;
         } catch (error) {
             if (this.errorCount < (this.apiKeys.length * 5)) {
-                if (((this.errorCount !== 0) && this.errorCount % this.apiKeys.length) === 0) {
+                if (((this.errorCount !== 0) && this.errorCount % thisiKeys.length) === 0) {
                     await super.wait(2);
                 }
                 await super.handleError(error);
                 return await this.translateChat(inputStr);
             } else {
                 this.errorCount = 0;
-                console.error('AI error', error.response?.status, error.response?.statusText)
-                return 'AI error', error.response?.status + error.response?.statusText + ` ${inputStr.replace(/^\.ait/i, '')}`;
+                if (error instanceof OpenAIApi.APIError) {
+                    return 'AI error: ', error.status + `.\n ${inputStr.replace(/^\.ai/i, '')}`;
+                } else {
+                    return 'AI error ', `.\n ${inputStr.replace(/^\.ai/i, '')}`;
+                }
             }
         }
     }
@@ -367,7 +373,7 @@ class ChatAi extends OpenAI {
     }
     async handleChatAi(inputStr) {
         try {
-            let response = await this.openai.createChatCompletion({
+            let response = await this.openai.chat.completions.create({
                 "model": this.model,
                 "max_tokens": 3100,
                 "messages": [
@@ -395,15 +401,19 @@ class ChatAi extends OpenAI {
                 const mergedContent = contents.join('');
                 return mergedContent;
             }
-            return response?.data?.choices[0]?.message?.content;
+            return response.choices[0].message.content;
         } catch (error) {
             if (this.errorCount < (this.apiKeys.length * 5)) {
                 await super.handleError(error);
                 return await this.handleChatAi(inputStr);
             } else {
                 this.errorCount = 0;
-                console.error('AI error', error.response?.status, error.response?.statusText)
-                return 'AI error', error.response?.status + error.response?.statusText + ` ${inputStr.replace(/^\.ai/i, '')}`;
+                if (error instanceof OpenAIApi.APIError) {
+                    return 'AI error: ', error.status + `.\n ${inputStr.replace(/^\.ai/i, '')}`;
+                } else {
+                    return 'AI error ', `.\n ${inputStr.replace(/^\.ai/i, '')}`;
+                }
+
             }
         }
     }

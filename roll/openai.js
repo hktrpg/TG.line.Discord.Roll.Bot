@@ -195,9 +195,9 @@ class ImageAi extends OpenAI {
             } else {
                 this.errorCount = 0;
                 if (error instanceof OpenAIApi.APIError) {
-                    return 'AI error: ', error.status + `.\n ${inputStr.replace(/^\.aimage/i, '')}`;
+                    return 'AI error: ' + error.status + `.\n ${inputStr.replace(/^\.aimage/i, '')}`;
                 } else {
-                    return 'AI error ', `.\n ${inputStr.replace(/^\.aimage/i, '')}`;
+                    return 'AI error ' + `.\n ${inputStr.replace(/^\.aimage/i, '')}`;
                 }
             }
         }
@@ -306,9 +306,9 @@ class TranslateAi extends OpenAI {
             } else {
                 this.errorCount = 0;
                 if (error instanceof OpenAIApi.APIError) {
-                    return 'AI error: ', error.status + `.\n ${inputStr.replace(/^\.ai/i, '')}`;
+                    return 'AI error: ' + error.status + `.\n ${inputStr.replace(/^\.ait/i, '')}`;
                 } else {
-                    return 'AI error ', `.\n ${inputStr.replace(/^\.ai/i, '')}`;
+                    return 'AI error ' + `.\n ${inputStr.replace(/^\.ait/i, '')}`;
                 }
             }
         }
@@ -409,9 +409,9 @@ class ChatAi extends OpenAI {
             } else {
                 this.errorCount = 0;
                 if (error instanceof OpenAIApi.APIError) {
-                    return 'AI error: ', error.status + `.\n ${inputStr.replace(/^\.ai/i, '')}`;
+                    return 'AI error: ' + error.status + `.\n ${inputStr.replace(/^\.ai/i, '')}`;
                 } else {
-                    return 'AI error ', `.\n ${inputStr.replace(/^\.ai/i, '')}`;
+                    return 'AI error ' + `.\n ${inputStr.replace(/^\.ai/i, '')}`;
                 }
 
             }

@@ -55,7 +55,7 @@
     "mongoose": "^6",
     "node-schedule": "^2.1.0",
     "node-telegram-bot-api": "^0.61.0",
-    "openai": "^3.2.1",
+    "openai": "^4.7.1",
     "plurk2": "github:zeteticl/node-plurk2",
     "puppeteer": "^13.3.1",
     "qrcode-terminal": "^0.12.0",

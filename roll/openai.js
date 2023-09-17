@@ -114,6 +114,7 @@ class OpenAI {
             baseURL: this.apiKeys[0]?.baseURL,
         };
         this.model = process.env.OPENAI_MODEL || "gpt-4";
+        if (this.apiKeys.length === 0) return;
         this.openai = new OpenAIApi(this.configuration);
         this.currentApiKeyIndex = 0;
         this.errorCount = 0;
@@ -141,6 +142,7 @@ class OpenAI {
                 this.currentApiKeyIndex = 0;
                 this.errorCount = 0;
                 this.addApiKey();
+                if (this.apiKeys.length === 0) return;
                 this.openai = new OpenAIApi({
                     apiKey: this.apiKeys[0]?.apiKey,
                     baseURL: this.apiKeys[0]?.baseURL,
@@ -298,7 +300,7 @@ class TranslateAi extends OpenAI {
             return response.choices[0].message.content;
         } catch (error) {
             if (this.errorCount < (this.apiKeys.length * 5)) {
-                if (((this.errorCount !== 0) && this.errorCount % thisiKeys.length) === 0) {
+                if (((this.errorCount !== 0) && this.errorCount % this.apiKeys.length) === 0) {
                     await super.wait(2);
                 }
                 await super.handleError(error);

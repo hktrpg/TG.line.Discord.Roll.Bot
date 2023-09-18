@@ -1,15 +1,15 @@
 "use strict";
 if (!process.env.OPENAI_SWITCH) return;
 
-const { Configuration, OpenAIApi } = require('openai');
+const OpenAIApi = require('openai');
 const dotenv = require('dotenv');
 dotenv.config({ override: true });
 const fetch = require('node-fetch');
-const GPT3 = "gpt-3.5-turbo-0613"
-const GPT4 = "gpt-4-0613"
 const fs = require('fs').promises;
 const fs2 = require('fs');
 const VIP = require('../modules/veryImportantPerson');
+const GPT3 = "gpt-3.5-turbo-0613";
+const GPT4 = "gpt-4-0613";
 const TRANSLATE_LIMIT_PERSONAL = [500, 100000, 200000, 300000, 400000, 500000, 600000, 700000];
 const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
@@ -33,12 +33,11 @@ const prefixs = function () {
 }
 const getHelpMessage = function () {
     return `【OpenAi】
-.aimage [描述] - 產生DALL-E圖片
-.ai [對話] - 使用gpt-3.5產生對話
-.ait [內容] 或 附件 - 使用 gpt-3.5進行正體中文翻譯
-.ai4 [對話] - 使用gpt-4產生對話
-.ait4 [內容] 或 附件 - 使用 gpt-4進行正體中文翻譯
-
+    .ai [對話] - 使用gpt-3.5產生對話
+    .ait [內容] 或 附件 - 使用 gpt-3.5進行正體中文翻譯
+    .ai4 [對話] - 使用gpt-4產生對話
+    .ait4 [內容] 或 附件 - 使用 gpt-4進行正體中文翻譯
+    
 附件需要使用.txt檔案上傳，普通使用者限500字內容，升級VIP後上限會提升，
 AI翻譯需時，請耐心等待，也可能會出錯而失敗，10000字可能需要十分鐘以上。
 超過1900字會以.TXT附件形式回覆，請注意查收。
@@ -116,23 +115,25 @@ class OpenAI {
         this.apiKeys = [];
         this.addApiKey();
         this.watchEnvironment();
-        this.configuration = new Configuration({
-            apiKey: this.apiKeys[0]?.key,
-            basePath: this.apiKeys[0]?.basePath,
-        });
+        this.configuration = {
+            apiKey: this.apiKeys[0]?.apiKey,
+            baseURL: this.apiKeys[0]?.baseURL,
+        };
+        this.model = process.env.OPENAI_MODEL || "gpt-4";
+        if (this.apiKeys.length === 0) return;
         this.openai = new OpenAIApi(this.configuration);
         this.currentApiKeyIndex = 0;
         this.errorCount = 0;
     }
     addApiKey() {
         this.apiKeys = [];
-        let base = -1;
+        let base = 0;
         for (let index = 1; index < 100; index++) {
             if (index % 10 === 0) base++;
             if (!process.env[`OPENAI_SECRET_${index}`]) continue;
             this.apiKeys.push({
-                key: process.env[`OPENAI_SECRET_${index}`],
-                basePath: process.env[`OPENAI_BASEPATH_${base}1_${base + 1}0`]
+                apiKey: process.env[`OPENAI_SECRET_${index}`],
+                baseURL: process.env[`OPENAI_BASEPATH_${base}1_${base + 1}0`]
                     || process.env.OPENAI_BASEPATH
                     || 'https://api.openai.com/v1'
             });
@@ -147,26 +148,27 @@ class OpenAI {
                 this.currentApiKeyIndex = 0;
                 this.errorCount = 0;
                 this.addApiKey();
-                this.openai = new OpenAIApi(new Configuration({
-                    apiKey: this.apiKeys[0]?.key,
-                    basePath: this.apiKeys[0]?.basePath,
-                }));
+                if (this.apiKeys.length === 0) return;
+                this.openai = new OpenAIApi({
+                    apiKey: this.apiKeys[0]?.apiKey,
+                    baseURL: this.apiKeys[0]?.baseURL,
+                });
             }
         });
     }
     handleError(error) {
         this.errorCount++;
-        if (error.response?.status === 401) {
+        if (error.status === 401) {
             console.error('remove api key 401', this.apiKeys[this.currentApiKeyIndex])
             this.apiKeys.splice(this.currentApiKeyIndex, 1);
             this.currentApiKeyIndex--;
             this.errorCount--;
         }
         this.currentApiKeyIndex = (this.currentApiKeyIndex + 1) % this.apiKeys.length;
-        this.openai = new OpenAIApi(new Configuration({
-            apiKey: this.apiKeys[this.currentApiKeyIndex].key,
-            basePath: this.apiKeys[this.currentApiKeyIndex].basePath,
-        }));
+        this.openai = new OpenAIApi({
+            apiKey: this.apiKeys[this.currentApiKeyIndex].apiKey,
+            baseURL: this.apiKeys[this.currentApiKeyIndex].baseURL,
+        });
     }
     wait(minutes = 1) {
         return new Promise(resolve => {
@@ -184,7 +186,7 @@ class ImageAi extends OpenAI {
     async handleImageAi(inputStr) {
         let input = inputStr.replace(/^\.aimage/i, '');
         try {
-            let response = await this.openai.createImage({
+            let response = await this.openai.images.generate({
                 "prompt": `${input}`,
                 "n": 1,
                 "size": "1024x1024"
@@ -200,8 +202,11 @@ class ImageAi extends OpenAI {
                 return await this.handleImageAi(inputStr);
             } else {
                 this.errorCount = 0;
-                console.error('AI error', error.response?.status, error.response?.statusText)
-                return 'AI error', error.response?.status + error.response?.statusText + ` ${inputStr.replace(/^\.aimage/i, '')}`;
+                if (error instanceof OpenAIApi.APIError) {
+                    return 'AI error: ' + error.status + `.\n ${inputStr.replace(/^\.aimage/i, '')}`;
+                } else {
+                    return 'AI error ' + `.\n ${inputStr.replace(/^\.aimage/i, '')}`;
+                }
             }
         }
     }
@@ -223,7 +228,7 @@ class TranslateAi extends OpenAI {
     async getText(str, discordMessage, discordClient) {
         let text = [];
         let textLength = 0;
-        str = str.replace(/^\s*\.ait\s*/i, '');
+        str = str.replace(/^\s*\.ait\d?\s*/i, '');
         if (str.length > 0) {
             text.push(str);
             textLength += str.length;
@@ -269,7 +274,7 @@ class TranslateAi extends OpenAI {
     }
     async translateChat(inputStr, mode) {
         try {
-            let response = await this.openai.createChatCompletion({
+            let response = await this.openai.chat.completions.create({
                 "model": mode,
                 "max_tokens": 4000,
                 "messages": [
@@ -298,7 +303,7 @@ class TranslateAi extends OpenAI {
                 const mergedContent = contents.join('');
                 return mergedContent;
             }
-            return response?.data?.choices[0]?.message?.content;
+            return response.choices[0].message.content;
         } catch (error) {
             if (this.errorCount < (this.apiKeys.length * 5)) {
                 if (((this.errorCount !== 0) && this.errorCount % this.apiKeys.length) === 0) {
@@ -308,8 +313,11 @@ class TranslateAi extends OpenAI {
                 return await this.translateChat(inputStr, mode);
             } else {
                 this.errorCount = 0;
-                console.error('AI error', error.response?.status, error.response?.statusText)
-                return 'AI error', error.response?.status + error.response?.statusText + ` ${inputStr.replace(/^\.ait/i, '')}`;
+                if (error instanceof OpenAIApi.APIError) {
+                    return 'AI error: ' + error.status + `.\n ${inputStr.replace(/^\.ait\d?/i, '')}`;
+                } else {
+                    return 'AI error ' + `.\n ${inputStr.replace(/^\.ait\d?/i, '')}`;
+                }
             }
         }
     }
@@ -374,7 +382,7 @@ class ChatAi extends OpenAI {
     }
     async handleChatAi(inputStr, mode) {
         try {
-            let response = await this.openai.createChatCompletion({
+            let response = await this.openai.chat.completions.create({
                 "model": mode,
                 "max_tokens": 4000,
                 "messages": [
@@ -406,15 +414,19 @@ class ChatAi extends OpenAI {
                 const mergedContent = contents.join('');
                 return mergedContent;
             }
-            return response?.data?.choices[0]?.message?.content;
+            return response.choices[0].message.content;
         } catch (error) {
             if (this.errorCount < (this.apiKeys.length * 5)) {
                 await super.handleError(error);
                 return await this.handleChatAi(inputStr);
             } else {
                 this.errorCount = 0;
-                console.error('AI error', error.response?.status, error.response?.statusText)
-                return 'AI error', error.response?.status + error.response?.statusText + ` ${inputStr.replace(/^\.ai/i, '')}`;
+                if (error instanceof OpenAIApi.APIError) {
+                    return 'AI error: ' + error.status + `.\n ${inputStr.replace(/^\.ai\d?/i, '')}`;
+                } else {
+                    return 'AI error ' + `.\n ${inputStr.replace(/^\.ai\d?/i, '')}`;
+                }
+
             }
         }
     }

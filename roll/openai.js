@@ -5,6 +5,8 @@ const { Configuration, OpenAIApi } = require('openai');
 const dotenv = require('dotenv');
 dotenv.config({ override: true });
 const fetch = require('node-fetch');
+const GPT3 = "gpt-3.5-turbo-0613"
+const GPT4 = "gpt-4-0613"
 const fs = require('fs').promises;
 const fs2 = require('fs');
 const VIP = require('../modules/veryImportantPerson');
@@ -25,15 +27,18 @@ const prefixs = function () {
     //如前面是 /^1$/ig, 後面是/^1D100$/ig, 即 prefixs 變成 1 1D100 
     ///^(?=.*he)(?!.*da).*$/ig
     return [{
-        first: /^([.]ai)|(^[.]aimage)|(^[.]ait)$/i,
+        first: /^([.]ai)|(^[.]aimage)|(^[.]ait)|(^[.]ai4)|(^[.]ait4)$/i,
         second: null
     }]
 }
 const getHelpMessage = function () {
     return `【OpenAi】
 .aimage [描述] - 產生DALL-E圖片
-.ai [對話] - 使用gpt-4產生對話
-.ait [內容] 或 附件 - 使用 gpt-4進行正體中文翻譯
+.ai [對話] - 使用gpt-3.5產生對話
+.ait [內容] 或 附件 - 使用 gpt-3.5進行正體中文翻譯
+.ai4 [對話] - 使用gpt-4產生對話
+.ait4 [內容] 或 附件 - 使用 gpt-4進行正體中文翻譯
+
 附件需要使用.txt檔案上傳，普通使用者限500字內容，升級VIP後上限會提升，
 AI翻譯需時，請耐心等待，也可能會出錯而失敗，10000字可能需要十分鐘以上。
 超過1900字會以.TXT附件形式回覆，請注意查收。
@@ -63,8 +68,9 @@ const rollDiceCommand = async function ({
         text: ''
     };
     switch (true) {
-        case /^.ait$/i.test(mainMsg[0]): {
-            const { filetext, sendfile, text } = await translateAi.handleTranslate(inputStr, discordMessage, discordClient, userid);
+        case /^.ait/i.test(mainMsg[0]): {
+            const mode = mainMsg[0].includes('4') ? GPT4 : GPT3;
+            const { filetext, sendfile, text } = await translateAi.handleTranslate(inputStr, discordMessage, discordClient, userid, mode);
             filetext && (rply.fileText = filetext);
             sendfile && (rply.fileLink = [sendfile]);
             text && (rply.text = text);
@@ -77,7 +83,8 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^\S/.test(mainMsg[1]): {
-            rply.text = await chatAi.handleChatAi(inputStr);
+            const mode = mainMsg[0].includes('4') ? GPT4 : GPT3;
+            rply.text = await chatAi.handleChatAi(inputStr, mode);
             rply.quotes = true;
             return rply;
         }
@@ -113,7 +120,6 @@ class OpenAI {
             apiKey: this.apiKeys[0]?.key,
             basePath: this.apiKeys[0]?.basePath,
         });
-        this.model = process.env.OPENAI_MODEL || "gpt-4";
         this.openai = new OpenAIApi(this.configuration);
         this.currentApiKeyIndex = 0;
         this.errorCount = 0;
@@ -261,11 +267,11 @@ class TranslateAi extends OpenAI {
             console.error(err);
         }
     }
-    async translateChat(inputStr) {
+    async translateChat(inputStr, mode) {
         try {
             let response = await this.openai.createChatCompletion({
-                "model": this.model,
-                "max_tokens": 2100,
+                "model": mode,
+                "max_tokens": 4000,
                 "messages": [
                     {
                         "role": "system",
@@ -299,7 +305,7 @@ class TranslateAi extends OpenAI {
                     await super.wait(2);
                 }
                 await super.handleError(error);
-                return await this.translateChat(inputStr);
+                return await this.translateChat(inputStr, mode);
             } else {
                 this.errorCount = 0;
                 console.error('AI error', error.response?.status, error.response?.statusText)
@@ -307,21 +313,22 @@ class TranslateAi extends OpenAI {
             }
         }
     }
-    async translateText(translateScript) {
+    async translateText(translateScript, mode) {
         let response = [];
         for (let index = 0; index < translateScript.length; index++) {
-            let result = await this.translateChat(translateScript[index]);
+            let result = await this.translateChat(translateScript[index], mode);
             response.push(result);
         }
         return response;
 
     }
-    async handleTranslate(inputStr, discordMessage, discordClient, userid) {
+    async handleTranslate(inputStr, discordMessage, discordClient, userid, mode) {
         let lv = await VIP.viplevelCheckUser(userid);
+        if (mode === GPT4 && lv < 1) return { text: `GPT-4是實驗功能，現在只有VIP才能使用，\n支援HKTRPG及升級請到\nhttps://www.patreon.com/hktrpg` };
         let limit = TRANSLATE_LIMIT_PERSONAL[lv];
         let { translateScript, textLength } = await this.getText(inputStr, discordMessage, discordClient);
         if (textLength > limit) return { text: `輸入的文字太多了，請分批輸入，你是VIP LV${lv}，限制為${limit}字` };
-        let response = await this.translateText(translateScript);
+        let response = await this.translateText(translateScript, mode);
         response = response.join('\n');
         if (textLength > 1900) {
             let sendfile = await this.createFile(response);
@@ -365,11 +372,11 @@ class ChatAi extends OpenAI {
     constructor() {
         super();
     }
-    async handleChatAi(inputStr) {
+    async handleChatAi(inputStr, mode) {
         try {
             let response = await this.openai.createChatCompletion({
-                "model": this.model,
-                "max_tokens": 3100,
+                "model": mode,
+                "max_tokens": 4000,
                 "messages": [
                     {
                         "role": "system",
@@ -377,12 +384,16 @@ class ChatAi extends OpenAI {
                     },
                     {
                         "role": "user",
-                        "content": `${inputStr.replace(/^\.ai/i, '')}`
+                        "content": `${inputStr.replace(/^\.ai\d?/i, '')}`
                     }
                 ]
 
             })
             this.errorCount = 0;
+            if (mode === GPT4) {
+                let lv = await VIP.viplevelCheckUser(userid);
+                if (lv < 1) return { text: `GPT-4是實驗功能，現在只有VIP才能使用，\n支援HKTRPG及升級請到\nhttps://www.patreon.com/hktrpg` };
+            }
             if (response.status === 200 && (typeof response.data === 'string' || response.data instanceof String)) {
                 const dataStr = response.data;
                 const dataArray = dataStr.split('\n\n').filter(Boolean); // 將字符串分割成數組

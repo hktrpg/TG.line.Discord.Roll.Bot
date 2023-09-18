@@ -10,6 +10,7 @@ const fs2 = require('fs');
 const VIP = require('../modules/veryImportantPerson');
 const GPT3 = "gpt-3.5-turbo-0613";
 const GPT4 = "gpt-4-0613";
+const adminSecret = process.env.ADMIN_SECRET;
 const TRANSLATE_LIMIT_PERSONAL = [500, 100000, 200000, 300000, 400000, 500000, 600000, 700000];
 const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
@@ -35,8 +36,7 @@ const getHelpMessage = function () {
     return `【OpenAi】
     .ai [對話] - 使用gpt-3.5產生對話
     .ait [內容] 或 附件 - 使用 gpt-3.5進行正體中文翻譯
-    .ai4 [對話] - 使用gpt-4產生對話
-    .ait4 [內容] 或 附件 - 使用 gpt-4進行正體中文翻譯
+
     
 附件需要使用.txt檔案上傳，普通使用者限500字內容，升級VIP後上限會提升，
 AI翻譯需時，請耐心等待，也可能會出錯而失敗，10000字可能需要十分鐘以上。
@@ -69,6 +69,10 @@ const rollDiceCommand = async function ({
     switch (true) {
         case /^.ait/i.test(mainMsg[0]): {
             const mode = mainMsg[0].includes('4') ? GPT4 : GPT3;
+            if (mode === GPT4) {
+                if (!adminSecret) return rply;
+                if (userid !== adminSecret) return rply;
+            }
             const { filetext, sendfile, text } = await translateAi.handleTranslate(inputStr, discordMessage, discordClient, userid, mode);
             filetext && (rply.fileText = filetext);
             sendfile && (rply.fileLink = [sendfile]);
@@ -84,8 +88,8 @@ const rollDiceCommand = async function ({
         case /^\S/.test(mainMsg[1]): {
             const mode = mainMsg[0].includes('4') ? GPT4 : GPT3;
             if (mode === GPT4) {
-                let lv = await VIP.viplevelCheckUser(userid);
-                if (lv < 1) return { text: `GPT-4是實驗功能，現在只有VIP才能使用，\n支援HKTRPG及升級請到\nhttps://www.patreon.com/hktrpg` };
+                if (!adminSecret) return rply;
+                if (userid !== adminSecret) return rply;
             }
             rply.text = await chatAi.handleChatAi(inputStr, mode, userid);
             rply.quotes = true;

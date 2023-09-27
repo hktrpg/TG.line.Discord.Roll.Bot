@@ -3,16 +3,11 @@ if (!process.env.mongoURL) {
     return;
 }
 const rollbase = require('./rollbase.js');
-const records = require('../modules/records.js');
+//const records = require('../modules/records.js');
+
 const schema = require('../modules/schema.js');
-let trpgDatabasefunction = {};
-records.get('trpgDatabase', (msgs) => {
-    trpgDatabasefunction.trpgDatabasefunction = msgs
-});
+
 const checkTools = require('../modules/check.js');
-records.get('trpgDatabaseAllgroup', (msgs) => {
-    trpgDatabasefunction.trpgDatabaseAllgroup = msgs
-});
 const VIP = require('../modules/veryImportantPerson');
 const FUNCTION_LIMIT = [30, 200, 200, 300, 300, 300, 300, 300];
 const gameName = function () {
@@ -56,7 +51,7 @@ P.S.如果沒立即生效 用.db show 刷新一下
 `
 }
 const initialize = function () {
-    return trpgDatabasefunction;
+    return { _trpgDB, _trpgDBgp };
 }
 exports.z_Level_system = require('./z_Level_system');
 // eslint-disable-next-line no-unused-vars
@@ -75,8 +70,7 @@ const rollDiceCommand = async function ({
         type: 'text',
         text: ''
     };
-    let checkifsamename = 0;
-    let checkifsamenamegroup = 0;
+
     let tempshow = 0;
     let temp2 = 0;
     let lv;
@@ -91,8 +85,9 @@ const rollDiceCommand = async function ({
         case /(^[.]db$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]): {
             //增加資料庫
             //檢查有沒有重覆
-            if (!mainMsg[2]) rply.text += ' 沒有輸入標題。\n\n'
-            if (!mainMsg[3]) rply.text += ' 沒有輸入內容。\n\n'
+
+            if (!mainMsg[2]) rply.text += ' 沒有輸入標題。\n\n';
+            if (!mainMsg[3]) rply.text += ' 沒有輸入內容。\n\n';
             if (rply.text += checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelManager,
                 gid: groupid,
@@ -104,40 +99,58 @@ const rollDiceCommand = async function ({
             lv = await VIP.viplevelCheckGroup(groupid);
             limit = FUNCTION_LIMIT[lv];
 
-            if (trpgDatabasefunction.trpgDatabasefunction)
-                for (let i = 0; i < trpgDatabasefunction.trpgDatabasefunction.length; i++) {
-                    if (trpgDatabasefunction.trpgDatabasefunction[i].groupid == groupid) {
-                        if (trpgDatabasefunction.trpgDatabasefunction[0] && trpgDatabasefunction.trpgDatabasefunction[0].trpgDatabasefunction[0]) {
-                            if (trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction.length >= limit) {
-                                rply.text = '關鍵字上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
-                                return rply;
-                            }
-                            for (let a = 0; a < trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
-                                if (trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic == mainMsg[2]) {
-                                    checkifsamename = 1
-                                }
-                            }
-                        }
-                    }
-                }
-            let temp = {
-                groupid: groupid,
-                trpgDatabasefunction: [{
-                    topic: mainMsg[2],
-                    contact: inputStr.replace(/\.db\s+add\s+/i, '').replace(mainMsg[2], '').replace(/^\s+/, '')
-                }]
+            //1.找出這個GP的LIMIT
+
+
+            const gpList = schema.trpgDatabase.findOne({ groupid: groupid });
+            if (!gpList) {
+                const temp = new schema.trpgDatabase({
+                    groupid: groupid,
+                    trpgDatabasefunction: [{
+                        topic: mainMsg[2],
+                        contact: inputStr.replace(/\.db\s+add\s+/i, '').replace(mainMsg[2], '').replace(/^\s+/, '')
+                    }]
+                });
+                await temp.save();
+                rply.text = `新增成功: ${mainMsg[2]}
+                使用.db ${mainMsg[2]} 來顯示內容`;
+                return rply;
             }
-            if (checkifsamename == 0) {
-                records.pushtrpgDatabasefunction('trpgDatabase', temp, () => {
-                    records.get('trpgDatabase', (msgs) => {
-                        trpgDatabasefunction.trpgDatabasefunction = msgs
-                    })
 
-                })
-                rply.text = '新增成功: ' + mainMsg[2]
-            } else rply.text = '新增失敗. 重複標題'
+            console.log('gpList', gpList)
+            const dbDoc = gpList?.trpgDatabasefunction || [];
+            console.log('dbDoc', dbDoc);
+            if (dbDoc.length > limit) {
+                rply.text = '關鍵字上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
+                return rply;
+            }
 
+
+            //2.檢查有沒有重覆
+            const doublecheck = dbDoc?.find(x => x.topic == mainMsg[2]);
+            console.log('doublecheck', doublecheck)
+            //checkifsamename=1
+            if (doublecheck) {
+                rply.text = '有重複關鍵字，請重新輸入。可以輸入.db show 來查看關鍵字。';
+                return rply;
+            }
+
+            let temp =
+            {
+                topic: mainMsg[2],
+                contact: inputStr.replace(/\.db\s+add\s+/i, '').replace(mainMsg[2], '').replace(/^\s+/, '')
+            };
+            if (!gpList) {
+            }
+            gpList.settrpgDatabasefunction.push(temp);
+            await gpList.save();
+
+            rply.text = `新增成功: ${mainMsg[2]}
+            使用.db ${mainMsg[2]} 來顯示內容`;
             return rply;
+
+
+
         }
         case /(^[.]db$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
             //刪除資料庫
@@ -148,23 +161,16 @@ const rollDiceCommand = async function ({
             })) {
                 return rply;
             }
-
-            for (let i = 0; i < trpgDatabasefunction.trpgDatabasefunction.length; i++) {
-                if (trpgDatabasefunction.trpgDatabasefunction[i].groupid == groupid) {
-                    let temp = trpgDatabasefunction.trpgDatabasefunction[i]
-                    temp.trpgDatabasefunction = []
-                    records.settrpgDatabasefunction('trpgDatabase', temp, () => {
-                        records.get('trpgDatabase', (msgs) => {
-                            trpgDatabasefunction.trpgDatabasefunction = msgs
-                        })
-                    })
-                    rply.text = '刪除所有關鍵字'
-                }
-            }
+            await schema.trpgDatabase.findOneAndDelete({ groupid: groupid });
+            rply.text = '刪除所有關鍵字'
             return rply;
         case /(^[.]db$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
             //刪除資料庫
-            if (!mainMsg[2]) rply.text += '沒有關鍵字. \n\n'
+            if (!mainMsg[2]) {
+                rply.text += '沒有關鍵字. \n\n';
+                return rply;
+            }
+
             if (rply.text += checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelManager,
                 gid: groupid,
@@ -173,13 +179,13 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
-            for (let i = 0; i < trpgDatabasefunction.trpgDatabasefunction.length; i++) {
-                if (trpgDatabasefunction.trpgDatabasefunction[i].groupid == groupid && mainMsg[2] < trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction.length && mainMsg[2] >= 0) {
-                    let temp = trpgDatabasefunction.trpgDatabasefunction[i]
+            for (let i = 0; i < _trpgDB.length; i++) {
+                if (_trpgDB[i].groupid == groupid && mainMsg[2] < _trpgDB[i].trpgDatabasefunction.length && mainMsg[2] >= 0) {
+                    let temp = _trpgDB[i]
                     temp.trpgDatabasefunction.splice(mainMsg[2], 1)
                     records.settrpgDatabasefunction('trpgDatabase', temp, () => {
                         records.get('trpgDatabase', (msgs) => {
-                            trpgDatabasefunction.trpgDatabasefunction = msgs
+                            _trpgDB = msgs
                         })
                     })
                 }
@@ -191,20 +197,20 @@ const rollDiceCommand = async function ({
         case /(^[.]db$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
             //顯示
             records.get('trpgDatabase', (msgs) => {
-                trpgDatabasefunction.trpgDatabasefunction = msgs
+                _trpgDB = msgs
             })
             if (!groupid) {
                 rply.text = '不在群組. ';
                 return rply;
             }
             let temp = 0;
-            if (trpgDatabasefunction.trpgDatabasefunction)
-                for (let i = 0; i < trpgDatabasefunction.trpgDatabasefunction.length; i++) {
-                    if (trpgDatabasefunction.trpgDatabasefunction[i].groupid == groupid) {
+            if (_trpgDB)
+                for (let i = 0; i < _trpgDB.length; i++) {
+                    if (_trpgDB[i].groupid == groupid) {
                         rply.text += '資料庫列表:'
-                        for (let a = 0; a < trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
+                        for (let a = 0; a < _trpgDB[i].trpgDatabasefunction.length; a++) {
                             temp = 1;
-                            rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + '. ' + trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic : '       ' + a + '. ' + trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic;
+                            rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + '. ' + _trpgDB[i].trpgDatabasefunction[a].topic : '       ' + a + '. ' + _trpgDB[i].trpgDatabasefunction[a].topic;
                         }
 
                     }
@@ -224,14 +230,14 @@ const rollDiceCommand = async function ({
                 return rply;
             }
             let temp = 0;
-            if (trpgDatabasefunction.trpgDatabasefunction && mainMsg[1])
-                for (let i = 0; i < trpgDatabasefunction.trpgDatabasefunction.length; i++) {
-                    if (trpgDatabasefunction.trpgDatabasefunction[i].groupid == groupid) {
+            if (_trpgDB && mainMsg[1])
+                for (let i = 0; i < _trpgDB.length; i++) {
+                    if (_trpgDB[i].groupid == groupid) {
                         //rply.text += '資料庫列表:'
-                        for (let a = 0; a < trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
-                            if (trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic.toLowerCase() == mainMsg[1].toLowerCase()) {
+                        for (let a = 0; a < _trpgDB[i].trpgDatabasefunction.length; a++) {
+                            if (_trpgDB[i].trpgDatabasefunction[a].topic.toLowerCase() == mainMsg[1].toLowerCase()) {
                                 temp = 1
-                                rply.text = `【${trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic}】\n${trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].contact}`;
+                                rply.text = `【${_trpgDB[i].trpgDatabasefunction[a].topic}】\n${_trpgDB[i].trpgDatabasefunction[a].contact}`;
 
                             }
 
@@ -246,15 +252,15 @@ const rollDiceCommand = async function ({
         }
         case /(^[.]dbp$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
             //if (!mainMsg[2]) return;
-            if (rply && trpgDatabasefunction.trpgDatabaseAllgroup && mainMsg[2])
-                if (rply && trpgDatabasefunction.trpgDatabaseAllgroup && trpgDatabasefunction.trpgDatabaseAllgroup[0] && trpgDatabasefunction.trpgDatabaseAllgroup[0].trpgDatabaseAllgroup[0]) {
-                    if (trpgDatabasefunction.trpgDatabaseAllgroup[0].trpgDatabaseAllgroup.length > 100) {
+            if (rply && _trpgDBgp && mainMsg[2])
+                if (rply && _trpgDBgp && _trpgDBgp[0] && _trpgDBgp[0].trpgDatabaseAllgroup[0]) {
+                    if (_trpgDBgp[0].trpgDatabaseAllgroup.length > 100) {
                         rply.text = '只可以有100個關鍵字啊'
                         return rply;
                     }
-                    for (let i = 0; i < trpgDatabasefunction.trpgDatabaseAllgroup.length; i++) {
-                        for (let a = 0; a < trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup.length; a++) {
-                            if (trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic.toLowerCase() == mainMsg[2].toLowerCase()) {
+                    for (let i = 0; i < _trpgDBgp.length; i++) {
+                        for (let a = 0; a < _trpgDBgp[i].trpgDatabaseAllgroup.length; a++) {
+                            if (_trpgDBgp[i].trpgDatabaseAllgroup[a].topic.toLowerCase() == mainMsg[2].toLowerCase()) {
                                 checkifsamenamegroup = 1
                             }
                         }
@@ -270,7 +276,7 @@ const rollDiceCommand = async function ({
                 if (checkifsamenamegroup == 0) {
                     records.pushtrpgDatabaseAllgroup('trpgDatabaseAllgroup', tempA, () => {
                         records.get('trpgDatabaseAllgroup', (msgs) => {
-                            trpgDatabasefunction.trpgDatabaseAllgroup = msgs
+                            _trpgDBgp = msgs
                         });
                     })
                     rply.text = '新增成功: ' + mainMsg[2]
@@ -287,14 +293,14 @@ const rollDiceCommand = async function ({
             return rply;
         case /(^[.]dbp$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
             records.get('trpgDatabaseAllgroup', (msgs) => {
-                trpgDatabasefunction.trpgDatabaseAllgroup = msgs
+                _trpgDBgp = msgs
             })
-            if (trpgDatabasefunction.trpgDatabaseAllgroup)
-                for (let i = 0; i < trpgDatabasefunction.trpgDatabaseAllgroup.length; i++) {
+            if (_trpgDBgp)
+                for (let i = 0; i < _trpgDBgp.length; i++) {
                     rply.text += '資料庫列表:'
-                    for (let a = 0; a < trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup.length; a++) {
+                    for (let a = 0; a < _trpgDBgp[i].trpgDatabaseAllgroup.length; a++) {
                         tempshow = 1;
-                        rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + '. ' + trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic : '      ' + a + '. ' + trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic;
+                        rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + '. ' + _trpgDBgp[i].trpgDatabaseAllgroup[a].topic : '      ' + a + '. ' + _trpgDBgp[i].trpgDatabaseAllgroup[a].topic;
 
                     }
                 }
@@ -306,13 +312,13 @@ const rollDiceCommand = async function ({
             //let timesgp = /^[.]dbp/.exec(mainMsg[0])[1] || 1
             //  if (timesgp > 30) timesgp = 30;
             //  if (timesgp < 1) timesgp = 1
-            if (trpgDatabasefunction.trpgDatabaseAllgroup && mainMsg[1])
-                for (let i = 0; i < trpgDatabasefunction.trpgDatabaseAllgroup.length; i++) {
-                    for (let a = 0; a < trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup.length; a++) {
-                        if (trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic.toLowerCase() == mainMsg[1].toLowerCase()) {
+            if (_trpgDBgp && mainMsg[1])
+                for (let i = 0; i < _trpgDBgp.length; i++) {
+                    for (let a = 0; a < _trpgDBgp[i].trpgDatabaseAllgroup.length; a++) {
+                        if (_trpgDBgp[i].trpgDatabaseAllgroup[a].topic.toLowerCase() == mainMsg[1].toLowerCase()) {
                             temp2 = 1
-                            rply.text = `【${trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic}】
-${trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].contact}`;
+                            rply.text = `【${_trpgDBgp[i].trpgDatabaseAllgroup[a].topic}】
+${_trpgDBgp[i].trpgDatabaseAllgroup[a].contact}`;
 
 
                         }
@@ -483,6 +489,11 @@ async function replaceAsync(str, regex, asyncFn) {
 }
 
 
+async function reNewDb(dbName, dbData) {
+    records.get(dbName, (msgs) => {
+        dbData = msgs
+    });
+}
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,

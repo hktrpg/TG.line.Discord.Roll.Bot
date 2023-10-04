@@ -1,6 +1,9 @@
+// @ts-expect-error TS(6200): Definitions of the following identifiers conflict ... Remove this comment to see the full error message
 "use strict";
 const variables = {};
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const { SlashCommandBuilder } = require('discord.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'Fuse'.
 const Fuse = require('fuse.js')
 const gameName = function () {
     return '【Pf2e】.pf2 '
@@ -18,7 +21,7 @@ const prefixs = function () {
     return [{
         first: /^\.Pf2$/i,
         second: null
-    }]
+    }];
 }
 const getHelpMessage = function () {
     return `【Pf2e】.pf2
@@ -32,18 +35,21 @@ const initialize = function () {
     return variables;
 }
 
-const rollDiceCommand = async function ({
-    inputStr,
-    mainMsg,
-    groupid,
-    userid,
-    userrole,
-    botname,
-    displayname,
-    channelid,
-    displaynameDiscord,
-    membercount
-}) {
+const rollDiceCommand = async function(
+    this: any,
+    {
+        inputStr,
+        mainMsg,
+        groupid,
+        userid,
+        userrole,
+        botname,
+        displayname,
+        channelid,
+        displaynameDiscord,
+        membercount
+    }: any
+) {
     let rply = {
         default: 'on',
         type: 'text',
@@ -52,6 +58,7 @@ const rollDiceCommand = async function ({
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
             rply.text = this.getHelpMessage();
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             return rply;
         }
@@ -69,7 +76,9 @@ const rollDiceCommand = async function ({
 
 
 class Pf2e {
-    constructor(data) {
+    fuse: any;
+    pf2eData: any;
+    constructor(data: any) {
         this.pf2eData = data;
         this.fuse = new Fuse(this.pf2eData, {
             keys: ['name'],
@@ -79,25 +88,27 @@ class Pf2e {
     }
 
     static init() {
-        let data = [];
+        let data: any = [];
         for (let i = 0; i < datalink.length; i++) {
+            // @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
             let temp = require(datalink[i]);
             data = data.concat(Pf2e.objectToArray(temp.helpdoc))
         }
 
         return new Pf2e(data);
     }
-    static objectToArray(input) {
+    static objectToArray(input: any) {
         let data = [];
         for (let i = 0; i < Object.keys(input).length; i++) {
             data.push({
                 name: Object.keys(input)[i],
+                // @ts-expect-error TS(2550): Property 'values' does not exist on type 'ObjectCo... Remove this comment to see the full error message
                 desc: Object.values(input)[i]
             });
         }
         return data;
     }
-    search(name) {
+    search(name: any) {
         try {
             let result = this.fuse.search(name);
             let rply = '';
@@ -131,6 +142,7 @@ ${result[i].item.desc} \n
 const pf2 = Pf2e.init();
 
 const discordCommand = []
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     rollDiceCommand,
     initialize,

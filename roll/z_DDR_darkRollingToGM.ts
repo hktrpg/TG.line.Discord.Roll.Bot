@@ -1,25 +1,34 @@
 "use strict";
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 if (!process.env.mongoURL) {
+    // @ts-expect-error TS(1108): A 'return' statement can only be used within a fun... Remove this comment to see the full error message
     return;
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'records'.
 const records = require('../modules/records.js');
 let trpgDarkRollingfunction = {};
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'checkTools... Remove this comment to see the full error message
 const checkTools = require('../modules/check.js');
-records.get('trpgDarkRolling', (msgs) => {
+records.get('trpgDarkRolling', (msgs: any) => {
+    // @ts-expect-error TS(2339): Property 'trpgDarkRollingfunction' does not exist ... Remove this comment to see the full error message
     trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
 })
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'gameName'.
 const gameName = function () {
     return '【暗骰GM功能】 .drgm (addgm del show) dr ddr dddr'
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'gameType'.
 const gameType = function () {
     return 'Tool:trpgDarkRolling:hktrpg'
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'prefixs'.
 const prefixs = function () {
     return [{
         first: /(^[.]drgm$)/ig,
         second: null
-    }]
+    }];
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'getHelpMes... Remove this comment to see the full error message
 const getHelpMessage = async function () {
     return `【暗骰GM功能】.drgm(addgm del show) dr ddr dddr
 這是讓你可以私骰GM的功能
@@ -42,11 +51,24 @@ const getHelpMessage = async function () {
 不輸入就會顯示原名
 `
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'initialize... Remove this comment to see the full error message
 const initialize = function () {
     return trpgDarkRollingfunction;
 }
 
-const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, botname, displayname, channelid }) {
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'rollDiceCo... Remove this comment to see the full error message
+const rollDiceCommand = async function(
+    this: any,
+    {
+        mainMsg,
+        groupid,
+        userid,
+        userrole,
+        botname,
+        displayname,
+        channelid
+    }: any
+) {
     let checkifsamename = 0;
     let rply = {
         default: 'on',
@@ -56,6 +78,7 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = await this.getHelpMessage();
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             if (botname == "Line")
                 rply.text += "\n因為Line的機制, 如擲骰時並無顯示用家名字, 請到下列網址,和機器人任意說一句話,成為好友. \n https://line.me/R/ti/p/svMLqy9Mik"
@@ -76,10 +99,15 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
             if (channelid)
                 groupid = channelid
             //因為在DISCROD以頻道作單位
+            // @ts-expect-error TS(2339): Property 'trpgDarkRollingfunction' does not exist ... Remove this comment to see the full error message
             if (trpgDarkRollingfunction.trpgDarkRollingfunction)
+                // @ts-expect-error TS(2339): Property 'trpgDarkRollingfunction' does not exist ... Remove this comment to see the full error message
                 for (let i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
+                    // @ts-expect-error TS(2339): Property 'trpgDarkRollingfunction' does not exist ... Remove this comment to see the full error message
                     if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid) {
+                        // @ts-expect-error TS(2339): Property 'trpgDarkRollingfunction' does not exist ... Remove this comment to see the full error message
                         for (let a = 0; a < trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
+                            // @ts-expect-error TS(2339): Property 'trpgDarkRollingfunction' does not exist ... Remove this comment to see the full error message
                             if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].userid == userid) {
                                 checkifsamename = 1
                             }
@@ -98,7 +126,8 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
             }
             if (checkifsamename == 0) {
                 records.pushtrpgDarkRollingfunction('trpgDarkRolling', temp, () => {
-                    records.get('trpgDarkRolling', (msgs) => {
+                    records.get('trpgDarkRolling', (msgs: any) => {
+                        // @ts-expect-error TS(2339): Property 'trpgDarkRollingfunction' does not exist ... Remove this comment to see the full error message
                         trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
                     })
 
@@ -122,12 +151,16 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
             if (channelid)
                 groupid = channelid
             if (!mainMsg[2]) return;
+            // @ts-expect-error TS(2339): Property 'trpgDarkRollingfunction' does not exist ... Remove this comment to see the full error message
             for (let i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
+                // @ts-expect-error TS(2339): Property 'trpgDarkRollingfunction' does not exist ... Remove this comment to see the full error message
                 if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid) {
+                    // @ts-expect-error TS(2339): Property 'trpgDarkRollingfunction' does not exist ... Remove this comment to see the full error message
                     let temp = trpgDarkRollingfunction.trpgDarkRollingfunction[i]
                     temp.trpgDarkRollingfunction = []
                     records.settrpgDarkRollingfunction('trpgDarkRolling', temp, () => {
-                        records.get('trpgDarkRolling', (msgs) => {
+                        records.get('trpgDarkRolling', (msgs: any) => {
+                            // @ts-expect-error TS(2339): Property 'trpgDarkRollingfunction' does not exist ... Remove this comment to see the full error message
                             trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
                         })
                     })
@@ -151,12 +184,16 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
             }
             if (channelid)
                 groupid = channelid
+            // @ts-expect-error TS(2339): Property 'trpgDarkRollingfunction' does not exist ... Remove this comment to see the full error message
             for (let i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
+                // @ts-expect-error TS(2339): Property 'trpgDarkRollingfunction' does not exist ... Remove this comment to see the full error message
                 if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid && mainMsg[2] < trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length && mainMsg[2] >= 0) {
+                    // @ts-expect-error TS(2339): Property 'trpgDarkRollingfunction' does not exist ... Remove this comment to see the full error message
                     let temp = trpgDarkRollingfunction.trpgDarkRollingfunction[i]
                     temp.trpgDarkRollingfunction.splice(mainMsg[2], 1)
                     records.settrpgDarkRollingfunction('trpgDarkRolling', temp, () => {
-                        records.get('trpgDarkRolling', (msgs) => {
+                        records.get('trpgDarkRolling', (msgs: any) => {
+                            // @ts-expect-error TS(2339): Property 'trpgDarkRollingfunction' does not exist ... Remove this comment to see the full error message
                             trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
                         })
                     })
@@ -171,17 +208,23 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
             //
             if (channelid)
                 groupid = channelid
-            records.get('trpgDarkRolling', (msgs) => {
+            records.get('trpgDarkRolling', (msgs: any) => {
+                // @ts-expect-error TS(2339): Property 'trpgDarkRollingfunction' does not exist ... Remove this comment to see the full error message
                 trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
             })
             if (groupid) {
                 let temp = 0;
+                // @ts-expect-error TS(2339): Property 'trpgDarkRollingfunction' does not exist ... Remove this comment to see the full error message
                 if (trpgDarkRollingfunction.trpgDarkRollingfunction)
+                    // @ts-expect-error TS(2339): Property 'trpgDarkRollingfunction' does not exist ... Remove this comment to see the full error message
                     for (let i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
+                        // @ts-expect-error TS(2339): Property 'trpgDarkRollingfunction' does not exist ... Remove this comment to see the full error message
                         if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid) {
                             rply.text += '已註冊暗骰GM列表:'
+                            // @ts-expect-error TS(2339): Property 'trpgDarkRollingfunction' does not exist ... Remove this comment to see the full error message
                             for (let a = 0; a < trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
                                 temp = 1
+                                // @ts-expect-error TS(2339): Property 'trpgDarkRollingfunction' does not exist ... Remove this comment to see the full error message
                                 rply.text += ("\n") + a + '. ' + (trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].diyName || trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].displayname) + ("\n")
                             }
                         }
@@ -200,6 +243,7 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
 
 
 
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,

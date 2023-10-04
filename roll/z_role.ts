@@ -1,10 +1,16 @@
 "use strict";
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 if (!process.env.mongoURL) {
+    // @ts-expect-error TS(1108): A 'return' statement can only be used within a fun... Remove this comment to see the full error message
     return;
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'VIP'.
 const VIP = require('../modules/veryImportantPerson');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'FUNCTION_L... Remove this comment to see the full error message
 const FUNCTION_LIMIT = [3, 10, 50, 200, 200, 200, 200, 200];
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'schema'.
 const schema = require('../modules/schema.js');
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const emojiRegex = require('emoji-regex');
 let regextemp = emojiRegex().toString();
 const regex = regextemp.replace(/^\//, '').replace(/\/g$/, '')
@@ -13,19 +19,23 @@ const roleReactRegixMessage = /\[\[message\]\](.*)/is;
 const newRoleReactRegixMessageID = /\[\[messageID\]\]\s+(\d+)/is;
 const roleReactRegixDetail = new RegExp(`(\\d+)\\s+(${regex}|(<a?)?:\\w+:(\\d+>)?)`, 'g')
 const roleReactRegixDetail2 = new RegExp(`^(\\d+)\\s+(${regex}|(<a?)?:\\w+:(\\d+>)?)`,)
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'gameName'.
 const gameName = function () {
     return '【身分組管理】.roleReact'
 }
 
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'gameType'.
 const gameType = function () {
     return 'Tool:role:hktrpg'
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'prefixs'.
 const prefixs = function () {
     return [{
         first: /^\.roleReact$/i,
         second: null
-    }]
+    }];
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'getHelpMes... Remove this comment to see the full error message
 const getHelpMessage = function () {
     return `【身分組管理】Discord限定功能
 讓對指定訊息的Reaction Emoji(😀😃😄)進行點擊的用家
@@ -80,17 +90,22 @@ https://i.imgur.com/YCnCyET.mp4
 
     `
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'initialize... Remove this comment to see the full error message
 const initialize = function () {
     return "";
 }
 
-const rollDiceCommand = async function ({
-    inputStr,
-    mainMsg,
-    botname,
-    userrole,
-    groupid
-}) {
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'rollDiceCo... Remove this comment to see the full error message
+const rollDiceCommand = async function(
+    this: any,
+    {
+        inputStr,
+        mainMsg,
+        botname,
+        userrole,
+        groupid
+    }: any
+) {
     let rply = {
         default: 'on',
         type: 'text',
@@ -103,6 +118,7 @@ const rollDiceCommand = async function ({
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
             rply.text = this.getHelpMessage();
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             return rply;
         }
@@ -112,7 +128,7 @@ const rollDiceCommand = async function ({
         }
         //new Type role React
         case /^\.roleReact$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
-            let list = await schema.roleReact.find({ groupid: groupid }).catch(error => console.error('role #188 mongoDB error: ', error.name, error.reson));
+            let list = await schema.roleReact.find({ groupid: groupid }).catch((error: any) => console.error('role #188 mongoDB error: ', error.name, error.reson));
             rply.text = roleReactList(list);
             return rply;
         }
@@ -123,7 +139,7 @@ const rollDiceCommand = async function ({
                 return rply
             }
             try {
-                let myNames = await schema.roleReact.findOneAndRemove({ groupid: groupid, serial: mainMsg[2] }).catch(error => console.error('role #111 mongoDB error: ', error.name, error.reson));
+                let myNames = await schema.roleReact.findOneAndRemove({ groupid: groupid, serial: mainMsg[2] }).catch((error: any) => console.error('role #111 mongoDB error: ', error.name, error.reson));
                 if (myNames) {
                     rply.text = `移除成功，#${myNames.serial}\n${myNames.message}`
                     return rply
@@ -151,6 +167,7 @@ const rollDiceCommand = async function ({
                 946739512439073384
 
                 希望取得詳細使用說明請輸入.roleReact help 或到 https://bothelp.hktrpg.com`
+                // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
                 rply.quotes = true;
                 return rply;
             }
@@ -167,19 +184,23 @@ const rollDiceCommand = async function ({
                 946739512439073384
 
                 希望取得詳細使用說明請輸入.roleReact help 或到 https://bothelp.hktrpg.com`
+                // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
                 rply.quotes = true;
                 return rply;
             }
 
             //已存在相同
-            let list = await schema.roleReact.findOne({ groupid: groupid, messageID: checkName.messageID }).catch(error => console.error('role #240 mongoDB error: ', error.name, error.reson));
+            let list = await schema.roleReact.findOne({ groupid: groupid, messageID: checkName.messageID }).catch((error: any) => console.error('role #240 mongoDB error: ', error.name, error.reson));
             if (list) {
                 list.detail.push.apply(list.detail, checkName.detail);
                 await list.save()
-                    .catch(error => console.error('role #244 mongoDB error: ', error.name, error.reson));
+                    .catch((error: any) => console.error('role #244 mongoDB error: ', error.name, error.reson));
                 rply.text = `已成功更新。你現在可以試試role功能\n可以使用.roleReact show /  delete 操作 ${list.serial}`
+                // @ts-expect-error TS(2339): Property 'newRoleReactFlag' does not exist on type... Remove this comment to see the full error message
                 rply.newRoleReactFlag = true;
+                // @ts-expect-error TS(2339): Property 'newRoleReactMessageId' does not exist on... Remove this comment to see the full error message
                 rply.newRoleReactMessageId = checkName.messageID;
+                // @ts-expect-error TS(2339): Property 'newRoleReactDetail' does not exist on ty... Remove this comment to see the full error message
                 rply.newRoleReactDetail = checkName.detail;
                 return rply;
             }
@@ -187,9 +208,10 @@ const rollDiceCommand = async function ({
             //新增新的
             let lv = await VIP.viplevelCheckGroup(groupid);
             let limit = FUNCTION_LIMIT[lv];
-            let myNamesLength = await schema.roleReact.countDocuments({ groupid: groupid }).catch(error => console.error('role #141 mongoDB error: ', error.name, error.reson));
+            let myNamesLength = await schema.roleReact.countDocuments({ groupid: groupid }).catch((error: any) => console.error('role #141 mongoDB error: ', error.name, error.reson));
             if (myNamesLength >= limit) {
                 rply.text = '.roleReact 群組上限為' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
+                // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
                 rply.quotes = true;
                 return rply;
             }
@@ -199,7 +221,7 @@ const rollDiceCommand = async function ({
             let year = dateObj.getFullYear();
             let hour = dateObj.getHours()
             let minute = dateObj.getMinutes()
-            let listSerial = await schema.roleReact.find({ groupid: groupid }, "serial").catch(error => console.error('role #268 mongoDB error: ', error.name, error.reson));
+            let listSerial = await schema.roleReact.find({ groupid: groupid }, "serial").catch((error: any) => console.error('role #268 mongoDB error: ', error.name, error.reson));
             let serial = findTheNextSerial(listSerial);
             let myName = new schema.roleReact({
                 message: `${year}/${month}/${day}  ${hour}:${minute} - ID: ${checkName.messageID}`,
@@ -209,10 +231,13 @@ const rollDiceCommand = async function ({
                 detail: checkName.detail
             })
             try {
-                await myName.save().catch(error => console.error('role #277 mongoDB error: ', error.name, error.reson));
+                await myName.save().catch((error: any) => console.error('role #277 mongoDB error: ', error.name, error.reson));
                 rply.text = `已成功增加。你現在可以試試role功能\n繼續用add 同樣的messageID 可以新增新的emoji 到同一信息\n刪除可以使用.roleReact delete ${serial}`
+                // @ts-expect-error TS(2339): Property 'newRoleReactFlag' does not exist on type... Remove this comment to see the full error message
                 rply.newRoleReactFlag = true;
+                // @ts-expect-error TS(2339): Property 'newRoleReactMessageId' does not exist on... Remove this comment to see the full error message
                 rply.newRoleReactMessageId = checkName.messageID;
+                // @ts-expect-error TS(2339): Property 'newRoleReactDetail' does not exist on ty... Remove this comment to see the full error message
                 rply.newRoleReactDetail = checkName.detail;
                 return rply;
             } catch (error) {
@@ -315,7 +340,7 @@ const rollDiceCommand = async function ({
 
 */
 
-function checkRoleReact(inputStr) {
+function checkRoleReact(inputStr: any) {
     let message = inputStr.match(roleReactRegixMessage)
     inputStr = inputStr.replace(roleReactRegixMessage)
     let detail = []
@@ -331,7 +356,7 @@ function checkRoleReact(inputStr) {
 }
 
 
-function checknewroleReact(inputStr) {
+function checknewroleReact(inputStr: any) {
     let messageID = inputStr.match(newRoleReactRegixMessageID)
     inputStr = inputStr.replace(newRoleReactRegixMessageID)
     let detail = []
@@ -348,7 +373,7 @@ function checknewroleReact(inputStr) {
 
 
 
-const rejectUser = (reason) => {
+const rejectUser = (reason: any) => {
     switch (reason) {
         case 'notInGroup':
             return "這功能只可以在頻道中使用"
@@ -363,7 +388,7 @@ const rejectUser = (reason) => {
 
 
 
-function roleReactList(list) {
+function roleReactList(list: any) {
     let reply = '';
     if (list && list.length > 0) {
         list.sort(compareSerial);
@@ -382,7 +407,7 @@ function roleReactList(list) {
 }
 
 
-function compareSerial(a, b) {
+function compareSerial(a: any, b: any) {
     if (a.serial < b.serial) {
         return -1;
     }
@@ -392,7 +417,7 @@ function compareSerial(a, b) {
     return 0;
 }
 
-function findTheNextSerial(list) {
+function findTheNextSerial(list: any) {
     if (list.length === 0) return 1;
     let serialList = []
     for (let index = 0; index < list.length; index++) {
@@ -411,6 +436,7 @@ function findTheNextSerial(list) {
 }
 
 
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,

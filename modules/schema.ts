@@ -1,7 +1,10 @@
 "use strict";
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 if (!process.env.mongoURL) {
+    // @ts-expect-error TS(1108): A 'return' statement can only be used within a fun... Remove this comment to see the full error message
     return;
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'mongoose'.
 const mongoose = require('./db-connector.js').mongoose;
 //const Schema = mongoose.Schema;
 //const Message = mongoose.model('Message', schema);
@@ -183,6 +186,7 @@ const RealTimeRollingLog = mongoose.model('RealTimeRollingLog', {
     }
 });
 
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'RollingLog... Remove this comment to see the full error message
 const RollingLog = mongoose.model('RollingLog', {
     RollingLogfunction: {
         LogTime: String,
@@ -397,6 +401,7 @@ const agendaAtHKTRPG = mongoose.model('agendaAtHKTRPG', new mongoose.Schema({
     imageLink: String
 
 }, { collection: "agendaAtHKTRPG" }));
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'firstTimeM... Remove this comment to see the full error message
 const firstTimeMessage = mongoose.model('firstTimeMessage', new mongoose.Schema({
     userID: String,
     botname: String
@@ -419,6 +424,7 @@ const whatsapp = mongoose.model('whatsapp', new mongoose.Schema({
     sessionData: String
 }));
 
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'roleReact'... Remove this comment to see the full error message
 const roleReact = mongoose.model('roleReact', new mongoose.Schema({
     message: String,
     messageID: String,
@@ -438,6 +444,7 @@ const roleInvites = mongoose.model('roleInvites', new mongoose.Schema({
     serial: Number
 }));
 
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'translateC... Remove this comment to see the full error message
 const translateChannel = mongoose.model('translateChannel', new mongoose.Schema({
     groupid: String,
     channelid: String,
@@ -450,6 +457,7 @@ const bcdiceRegedit = mongoose.model('bcdiceRegedit', new mongoose.Schema({
     trpgId: String
 }));
 
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'multiServe... Remove this comment to see the full error message
 const multiServer = mongoose.model('multiServer', new mongoose.Schema({
     channelid: String,
     multiId: String,
@@ -469,6 +477,7 @@ const mongodbState = async () => {
 }
 
 
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     mongodbState,
     randomAns,
@@ -510,6 +519,7 @@ module.exports = {
     randomAnsPersonal,
     translateChannel,
     bcdiceRegedit,
+    // @ts-expect-error TS(1117): An object literal cannot have multiple properties ... Remove this comment to see the full error message
     mongodbState
 }
 //const Cat = mongoose.model('Cat', { name: String });

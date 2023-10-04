@@ -1,8 +1,12 @@
+// @ts-expect-error TS(6200): Definitions of the following identifiers conflict ... Remove this comment to see the full error message
 "use strict";
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 if (!process.env.DISCORD_CHANNEL_SECRET) {
+    // @ts-expect-error TS(1108): A 'return' statement can only be used within a fun... Remove this comment to see the full error message
     return;
 }
 const variables = {};
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const { SlashCommandBuilder } = require('discord.js');
 const gameName = function () {
     return '【要求擲骰/點擊功能】'
@@ -19,7 +23,7 @@ const prefixs = function () {
     return [{
         first: /^\.re$/i,
         second: null
-    }]
+    }];
 }
 const getHelpMessage = function () {
     return `【要求擲骰/點擊功能】
@@ -31,18 +35,21 @@ const initialize = function () {
     return variables;
 }
 
-const rollDiceCommand = async function ({
-    inputStr,
-    mainMsg,
-    groupid,
-    userid,
-    userrole,
-    botname,
-    displayname,
-    channelid,
-    displaynameDiscord,
-    membercount
-}) {
+const rollDiceCommand = async function(
+    this: any,
+    {
+        inputStr,
+        mainMsg,
+        groupid,
+        userid,
+        userrole,
+        botname,
+        displayname,
+        channelid,
+        displaynameDiscord,
+        membercount
+    }: any
+) {
     let rply = {
         default: 'on',
         type: 'text',
@@ -51,11 +58,13 @@ const rollDiceCommand = async function ({
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
             rply.text = this.getHelpMessage();
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             return rply;
         }
         case /^\.re$/i.test(mainMsg[0]):
             {
+                // @ts-expect-error TS(2339): Property 'requestRolling' does not exist on type '... Remove this comment to see the full error message
                 rply.requestRolling = handleRequestRolling(inputStr)
                 return rply;
             }
@@ -64,13 +73,14 @@ const rollDiceCommand = async function ({
         }
     }
 }
-function handleRequestRolling(text) {
+// @ts-expect-error TS(2393): Duplicate function implementation.
+function handleRequestRolling(text: any) {
     text = text.replace(/^\.re\s+/i, '').replace(/[\r\n]/gm, '').split(',')
     text.splice(10);
     for (let index = 0; index < text.length; index++) {
         text[index] = text[index].substring(0, 80);
     }
-    text = text.filter(n => n)
+    text = text.filter((n: any) => n)
     return text;
 }
 
@@ -79,12 +89,12 @@ const discordCommand = [
         data: new SlashCommandBuilder()
             .setName('re')
             .setDescription('要求擲骰/點擊功能')
-            .addStringOption(option => option.setName('text1').setDescription('輸入第一個擲骰內容').setRequired(true))
-            .addStringOption(option => option.setName('text2').setDescription('輸入第二個擲骰內容'))
-            .addStringOption(option => option.setName('text3').setDescription('輸入第三個擲骰內容'))
-            .addStringOption(option => option.setName('text4').setDescription('輸入第四個擲骰內容'))
-            .addStringOption(option => option.setName('text5').setDescription('輸入第五個擲骰內容')),
-        async execute(interaction) {
+            .addStringOption((option: any) => option.setName('text1').setDescription('輸入第一個擲骰內容').setRequired(true))
+            .addStringOption((option: any) => option.setName('text2').setDescription('輸入第二個擲骰內容'))
+            .addStringOption((option: any) => option.setName('text3').setDescription('輸入第三個擲骰內容'))
+            .addStringOption((option: any) => option.setName('text4').setDescription('輸入第四個擲骰內容'))
+            .addStringOption((option: any) => option.setName('text5').setDescription('輸入第五個擲骰內容')),
+        async execute(interaction: any) {
             const text1 = interaction.options.getString('text1');
             const text2 = (interaction.options.getString('text2')) ? `,${interaction.options.getString('text2')}` : '';
             const text3 = (interaction.options.getString('text3')) ? `,${interaction.options.getString('text3')}` : '';
@@ -94,6 +104,7 @@ const discordCommand = [
         }
     }
 ]
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     rollDiceCommand,
     initialize,

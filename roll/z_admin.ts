@@ -1,17 +1,25 @@
+// @ts-expect-error TS(6200): Definitions of the following identifiers conflict ... Remove this comment to see the full error message
 "use strict";
 let variables = {};
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'opt'.
 const opt = {
     upsert: true,
     runValidators: true
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'salt'.
 const salt = process.env.SALT;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'crypto'.
 const crypto = require('crypto');
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 const password = process.env.CRYPTO_SECRET,
     algorithm = 'aes-256-ctr';
 //32bit ASCII
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'adminSecre... Remove this comment to see the full error message
 const adminSecret = process.env.ADMIN_SECRET;
 //admin id
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'schema'.
 const schema = require('../modules/schema.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'checkTools... Remove this comment to see the full error message
 const checkTools = require('../modules/check.js');
 const pattId = /\s+-i\s+(\S+)/ig;
 const pattGP = /\s+-g\s+(\S+)/ig;
@@ -19,6 +27,7 @@ const pattLv = /\s+-l\s+(\S+)/ig;
 const pattName = /\s+-n\s+(\S+)/ig;
 const pattNotes = /\s+-no\s+(\S+)/ig;
 const pattSwitch = /\s+-s\s+(\S+)/ig;
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const deploy = require('../modules/ds-deploy-commands.js');
 //const VIP = require('../modules/veryImportantPerson');
 const gameName = function () {
@@ -32,7 +41,7 @@ const prefixs = function () {
     return [{
         first: /^[.]admin$/i,
         second: null
-    }]
+    }];
 }
 const getHelpMessage = async function () {
     return `【Admin 工具】
@@ -57,20 +66,23 @@ const discordCommand = [
 const initialize = function () {
     return variables;
 }
-const rollDiceCommand = async function ({
-    inputStr,
-    mainMsg,
-    groupid,
-    userid,
-    userrole,
-    botname,
-    displayname,
-    channelid,
-    displaynameDiscord,
-    membercount,
-    titleName,
-    discordClient
-}) {
+const rollDiceCommand = async function(
+    this: any,
+    {
+        inputStr,
+        mainMsg,
+        groupid,
+        userid,
+        userrole,
+        botname,
+        displayname,
+        channelid,
+        displaynameDiscord,
+        membercount,
+        titleName,
+        discordClient
+    }: any
+) {
     let rply = {
         default: 'on',
         type: 'text',
@@ -85,6 +97,7 @@ const rollDiceCommand = async function ({
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = await this.getHelpMessage();
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             return rply;
         case /^registeredGlobal$/i.test(mainMsg[1]): {
@@ -101,7 +114,9 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^state$/i.test(mainMsg[1]):
+            // @ts-expect-error TS(2339): Property 'state' does not exist on type '{ default... Remove this comment to see the full error message
             rply.state = true;
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             return rply;
         case /^mongod$/i.test(mainMsg[1]): {
@@ -109,6 +124,7 @@ const rollDiceCommand = async function ({
             if (userid !== adminSecret) return rply;
             let mongod = await schema.mongodbState();
             rply.text = JSON.stringify(mongod.connections);
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             return rply;
         }
@@ -140,7 +156,7 @@ const rollDiceCommand = async function ({
             }
             if (temp && temp2) {
                 rply.text = "已註冊這頻道。如果想使用角色卡，請到\nhttps://card.hktrpg.com/";
-                if (!await checkGpAllow(channelid || groupid)) {
+                if (!(await checkGpAllow(channelid || groupid))) {
                     rply.text += '\n此頻道並未被Admin允許經網頁擲骰，請Admin先在此頻道輸入\n.admin  allowrolling進行授權。';
                 }
                 return rply;
@@ -153,7 +169,7 @@ const rollDiceCommand = async function ({
                 })
                 await temp.save();
                 rply.text = "註冊成功，如果想使用角色卡，請到\nhttps://card.hktrpg.com/"
-                if (!await checkGpAllow(channelid || groupid)) {
+                if (!(await checkGpAllow(channelid || groupid))) {
                     rply.text += '\n此頻道並未被Admin允許經網頁擲骰，請Admin在此頻道輸入\n.admin  allowrolling';
                 }
                 return rply;
@@ -169,9 +185,9 @@ const rollDiceCommand = async function ({
                         "titleName": titleName
                     }
                 });
-                await temp.save().catch(error => console.error('admin #138 mongoDB error: ', error.name, error.reson));
+                await temp.save().catch((error: any) => console.error('admin #138 mongoDB error: ', error.name, error.reson));
                 rply.text = "註冊成功。如果想使用角色卡，請到\nhttps://card.hktrpg.com/";
-                if (!await checkGpAllow(channelid || groupid)) {
+                if (!(await checkGpAllow(channelid || groupid))) {
                     rply.text += '\n此頻道並未被Admin允許經網頁擲骰，請Admin在此頻道輸入\n.admin  allowrolling';
                 }
                 return rply;
@@ -275,6 +291,7 @@ const rollDiceCommand = async function ({
                 rply.text = "使用者密碼，6-16字，英文及以下符號限定!@#$%^&*";
                 return rply;
             }
+            // @ts-expect-error TS(2339): Property 'createHmac' does not exist on type 'Cryp... Remove this comment to see the full error message
             hash = crypto.createHmac('sha256', mainMsg[3])
                 .update(salt)
                 .digest('hex');
@@ -336,9 +353,11 @@ const rollDiceCommand = async function ({
             if (userid !== adminSecret) return rply;
             filter = await store(inputStr, 'gp');
             console.log(filter)
+            // @ts-expect-error TS(2339): Property 'gpid' does not exist on type '{}'.
             if (!filter.gpid) return rply;
             try {
                 doc = await schema.veryImportantPerson.updateOne({
+                    // @ts-expect-error TS(2339): Property 'gpid' does not exist on type '{}'.
                     gpid: filter.gpid
                 }, {
                     $set: filter,
@@ -354,6 +373,7 @@ const rollDiceCommand = async function ({
                 //.admin addVipGroup -i  ID -l LV -n NAME -no NOTES -s SWITCH
             } catch (error) {
                 console.error('新增VIP GET ERROR: ', error)
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 rply.text = '新增VIP失敗\n因為 ' + error.message
             }
             return rply;
@@ -374,9 +394,11 @@ const rollDiceCommand = async function ({
             if (!adminSecret) return rply;
             if (userid !== adminSecret) return rply;
             filter = await store(inputStr, 'id');
+            // @ts-expect-error TS(2339): Property 'id' does not exist on type '{}'.
             if (!filter.id) return rply;
             try {
                 doc = await schema.veryImportantPerson.updateOne({
+                    // @ts-expect-error TS(2339): Property 'id' does not exist on type '{}'.
                     id: filter.id
                 }, {
                     $set: filter,
@@ -391,6 +413,7 @@ const rollDiceCommand = async function ({
                 //.admin addVipGroup -i  ID -l LV -n NAME -no NOTES -s SWITCH
             } catch (error) {
                 console.error('新增VIP GET ERROR: ', error)
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 rply.text = '新增VIP失敗\n因為 ' + error.message
             }
             return rply;
@@ -413,6 +436,7 @@ const rollDiceCommand = async function ({
                 //.admin addVipGroup -i  ID -l LV -n NAME -no NOTES -s SWITCH
             } catch (error) {
                 console.error('新增VIP GET ERROR: ', error)
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 rply.text = '更新失敗\n因為 ' + error.message
             }
             return rply;
@@ -435,6 +459,7 @@ const rollDiceCommand = async function ({
                 //.admin addVipGroup -i  ID -l LV -n NAME -no NOTES -s SWITCH
             } catch (error) {
                 console.error('新增VIP GET ERROR: ', error)
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 rply.text = '更新失敗\n因為 ' + error.message
             }
             return rply;
@@ -444,7 +469,9 @@ const rollDiceCommand = async function ({
             if (userid !== adminSecret) return;
             let target = await schema.theNewsMessage.find({ botname: botname, switch: true });
             //   let alluser = await schema.firstTimeMessage.find({ botname: botname });
+            // @ts-expect-error TS(2339): Property 'sendNews' does not exist on type '{ defa... Remove this comment to see the full error message
             rply.sendNews = inputStr.replace(/\s?\S+\s+\S+\s+/, '');
+            // @ts-expect-error TS(2339): Property 'target' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.target = target;
             // rply.alluser = alluser;
             return rply;
@@ -454,12 +481,14 @@ const rollDiceCommand = async function ({
     }
 }
 
-function checkUserName(text) {
+// @ts-expect-error TS(2393): Duplicate function implementation.
+function checkUserName(text: any) {
     //True 即成功
     return /^[A-Za-z0-9\u3000\u3400-\u4DBF\u4E00-\u9FFF]{4,16}$/.test(text);
 }
 
-async function checkGpAllow(target) {
+// @ts-expect-error TS(2393): Duplicate function implementation.
+async function checkGpAllow(target: any) {
     let doc;
     try {
         doc = await schema.allowRolling.findOne({
@@ -473,12 +502,14 @@ async function checkGpAllow(target) {
 }
 
 
-function checkPassword(text) {
+// @ts-expect-error TS(2393): Duplicate function implementation.
+function checkPassword(text: any) {
     //True 即成功
     return /^[A-Za-z0-9!@#$%^&*]{6,16}$/.test(text);
 }
 
-async function store(mainMsg, mode) {
+// @ts-expect-error TS(2393): Duplicate function implementation.
+async function store(mainMsg: any, mode: any) {
     const resultId = pattId.exec(mainMsg);
     const resultGP = pattGP.exec(mainMsg);
     const resultLv = pattLv.exec(mainMsg);
@@ -487,38 +518,55 @@ async function store(mainMsg, mode) {
     const resultSwitch = pattSwitch.exec(mainMsg);
     console.log('resultLv,', resultId, resultGP, resultLv, resultName, resultNotes, resultSwitch)
     let reply = {};
+    // @ts-expect-error TS(2339): Property 'id' does not exist on type '{}'.
     (resultId && mode == 'id') ? reply.id = resultId[1] : null;
+    // @ts-expect-error TS(2339): Property 'gpid' does not exist on type '{}'.
     (resultGP && mode == 'gp') ? reply.gpid = resultGP[1] : null;
+    // @ts-expect-error TS(2339): Property 'level' does not exist on type '{}'.
     (resultLv) ? reply.level = Number(resultLv[1]) : null;
+    // @ts-expect-error TS(2339): Property 'name' does not exist on type '{}'.
     (resultName) ? reply.name = resultName[1] : null;
+    // @ts-expect-error TS(2339): Property 'notes' does not exist on type '{}'.
     (resultNotes) ? reply.notes = resultNotes[1] : null;
+    // @ts-expect-error TS(2339): Property 'switch' does not exist on type '{}'.
     (resultSwitch && resultSwitch[1].toLowerCase() == 'true') ? reply.switch = true : null;
+    // @ts-expect-error TS(2339): Property 'switch' does not exist on type '{}'.
     (resultSwitch && resultSwitch[1].toLowerCase() == 'false') ? reply.switch = false : null;
     return reply;
 }
 
 
 
-function encrypt(text) {
+// @ts-expect-error TS(2393): Duplicate function implementation.
+function encrypt(text: any) {
+    // @ts-expect-error TS(2339): Property 'randomBytes' does not exist on type 'Cry... Remove this comment to see the full error message
     let iv = crypto.randomBytes(16);
+    // @ts-expect-error TS(2339): Property 'createCipheriv' does not exist on type '... Remove this comment to see the full error message
     let cipher = crypto.createCipheriv(algorithm, Buffer.from(password, 'utf-8'), iv);
     let encrypted = cipher.update(text);
+    // @ts-expect-error TS(2580): Cannot find name 'Buffer'. Do you need to install ... Remove this comment to see the full error message
     encrypted = Buffer.concat([encrypted, cipher.final()]);
     return iv.toString('hex') + ':' + encrypted.toString('hex');
 }
 
 
 
-function decrypt(text) {
+// @ts-expect-error TS(2393): Duplicate function implementation.
+function decrypt(text: any) {
     let textParts = text.split(':');
+    // @ts-expect-error TS(2580): Cannot find name 'Buffer'. Do you need to install ... Remove this comment to see the full error message
     let iv = Buffer.from(textParts.shift(), 'hex');
+    // @ts-expect-error TS(2580): Cannot find name 'Buffer'. Do you need to install ... Remove this comment to see the full error message
     let encryptedText = Buffer.from(textParts.join(':'), 'hex');
+    // @ts-expect-error TS(2339): Property 'createDecipheriv' does not exist on type... Remove this comment to see the full error message
     let decipher = crypto.createDecipheriv(algorithm, Buffer.from(password, 'utf-8'), iv);
     let decrypted = decipher.update(encryptedText);
+    // @ts-expect-error TS(2580): Cannot find name 'Buffer'. Do you need to install ... Remove this comment to see the full error message
     decrypted = Buffer.concat([decrypted, decipher.final()]);
     return decrypted.toString();
 }
 
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,

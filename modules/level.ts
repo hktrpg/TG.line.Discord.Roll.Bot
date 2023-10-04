@@ -1,22 +1,34 @@
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 if (!process.env.mongoURL) return;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'oneMinuts'... Remove this comment to see the full error message
 const oneMinuts = (process.env.DEBUG) ? 1 : 60000;
 //60000 一分鐘多久可以升級及增加經驗
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'checkMongo... Remove this comment to see the full error message
 const checkMongodb = require('./dbWatchdog.js');
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 exports.rollbase = require('../roll/rollbase');
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 const THIRTY_MINUTES = (process.env.DEBUG) ? 1 : 60000 * 30;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'retry'.
 const retry = { number: 0, times: 0 };
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'schema'.
 const schema = require('./schema.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'tempSwitch... Remove this comment to see the full error message
 let tempSwitchV2 = [{
     groupid: '',
     SwitchV2: false
 }];
-async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercount, tgDisplayname, discordMessage) {
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'EXPUP'.
+async function EXPUP(groupid: any, userid: any, displayname: any, displaynameDiscord: any, membercount: any, tgDisplayname: any, discordMessage: any) {
     if (!groupid) {
         return;
     }
+    // @ts-expect-error TS(2339): Property 'number' does not exist on type 'number'.
     if (retry.number >= 10) {
+        // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
         if ((new Date() - retry.times) < THIRTY_MINUTES)
             return;
+        // @ts-expect-error TS(2339): Property 'number' does not exist on type 'number'.
         else retry.number = 0;
     }
     let reply = {
@@ -31,12 +43,15 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     const gpInfo = await schema.trpgLevelSystem.findOne({
         groupid: groupid,
         SwitchV2: true
-    }).cache(60).catch(error => {
+    }).cache(60).catch((error: any) => {
         console.error('level #26 mongoDB error: ', error.name, error.reson)
         checkMongodb.dbErrOccurs();
+        // @ts-expect-error TS(2339): Property 'number' does not exist on type 'number'.
         retry.number++;
+        // @ts-expect-error TS(2339): Property 'times' does not exist on type 'number'.
         retry.times = new Date();
         if (retry > 20 && !checkMongodb.isDbOnline()) {
+            // @ts-expect-error TS(2339): Property 'respawn' does not exist on type '{ text:... Remove this comment to see the full error message
             reply.respawn = true;
             return reply
         }
@@ -61,7 +76,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
         groupid: groupid,
         userid: userid
     })
-        .catch(error => {
+        .catch((error: any) => {
             console.error('level #46 mongoDB error: ', error.name, error.reson)
             checkMongodb.dbErrOccurs();
         });
@@ -74,6 +89,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     (userInfo.multiEXPTimes > 0) ? reply.statue += "🧙‍♂️🧙‍♀️" : null;
     (userInfo.stopExp > 0) ? reply.statue += "☢️☣️" : null;
     //4. 有-> 檢查上次紀錄的時間 超過60000 (1分鐘) 即增加15+(1-9) 經驗值
+    // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
     if ((new Date(Date.now()) - userInfo.LastSpeakTime) < oneMinuts) {
         return reply;
     }
@@ -83,7 +99,8 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
         return reply;
     }
 
-    let exp = await exports.rollbase.Dice(9) + 15;
+    // @ts-expect-error TS(2304): Cannot find name 'exports'.
+    let exp = (await exports.rollbase.Dice(9)) + 15;
     if (isNaN(userInfo.decreaseEXPTimes)) userInfo.decreaseEXPTimes = 0;
     switch (true) {
         case (userInfo.decreaseEXPTimes > 0):
@@ -132,7 +149,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
 
 }
 
-async function returnTheLevelWord(gpInfo, userInfo, membercount, groupid, discordMessage) {
+async function returnTheLevelWord(gpInfo: any, userInfo: any, membercount: any, groupid: any, discordMessage: any) {
     let username = userInfo.name;
     let userlevel = userInfo.Level;
     let userexp = userInfo.EXP;
@@ -141,11 +158,11 @@ async function returnTheLevelWord(gpInfo, userInfo, membercount, groupid, discor
         groupid: groupid
     }).sort({
         EXP: -1
-    }).catch(error => {
+    }).catch((error: any) => {
         console.error('level #120 mongoDB error: ', error.name, error.reson)
         checkMongodb.dbErrOccurs();
     });
-    let myselfIndex = docMember.map(function (members) {
+    let myselfIndex = docMember.map(function (members: any) {
         return members.userid;
     }).indexOf(userInfo.userid);
 
@@ -154,39 +171,42 @@ async function returnTheLevelWord(gpInfo, userInfo, membercount, groupid, discor
     let userTitle = await checkTitle(userlevel, gpInfo.Title);
     let tempUPWord = gpInfo.LevelUpWord || "恭喜 {user.displayName}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點了！\n現在排名是{server.member_count}人中的第{user.Ranking}名！";
     if (tempUPWord.match(/{user.displayName}/ig)) {
-        let userDisplayName = await getDisplayName(discordMessage) || username || "無名";
+        let userDisplayName = (await getDisplayName(discordMessage)) || username || "無名";
         tempUPWord = tempUPWord.replace(/{user.displayName}/ig, userDisplayName)
     }
     return tempUPWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count).replace(/{user.title}/ig, userTitle);
 }
 
 
-async function newUser(gpInfo, groupid, userid, displayname, displaynameDiscord, tgDisplayname) {
+async function newUser(gpInfo: any, groupid: any, userid: any, displayname: any, displaynameDiscord: any, tgDisplayname: any) {
     if (!checkMongodb.isDbOnline()) return;
     //3. 沒有 -> 新增
     let temp = {
         userid: userid,
         groupid: groupid,
         name: tgDisplayname || displaynameDiscord || displayname || '無名',
-        EXP: await exports.rollbase.Dice(9) + 15,
+        // @ts-expect-error TS(2304): Cannot find name 'exports'.
+        EXP: (await exports.rollbase.Dice(9)) + 15,
         //EXP: math.floor(math.random() * 10) + 15,
         Level: 0,
         LastSpeakTime: Date.now()
     }
-    await new schema.trpgLevelSystemMember(temp).save().catch(error => {
+    await new schema.trpgLevelSystemMember(temp).save().catch((error: any) => {
         console.error('level #144 mongoDB error: ', error.name, error.reson);
         checkMongodb.dbErrOccurs();
     });
     return;
 }
 
-async function getDisplayName(message) {
+// @ts-expect-error TS(2393): Duplicate function implementation.
+async function getDisplayName(message: any) {
     if (!message) return;
     const member = await message.guild.members.fetch(message.author)
     let nickname = member ? member.displayName : message.author.username;
     return nickname;
 }
 
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'Title'.
 const Title = function () {
     let Title = []
     Title[0] = "無名調查員";
@@ -213,7 +233,8 @@ const Title = function () {
     return Title;
 }
 
-const checkTitle = async function (userlvl, DBTitle) {
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'checkTitle... Remove this comment to see the full error message
+const checkTitle = async function (userlvl: any, DBTitle: any) {
     let templvl = 0;
     let temptitle = ""
     if (DBTitle && DBTitle.length > 0) {
@@ -237,6 +258,7 @@ const checkTitle = async function (userlvl, DBTitle) {
         }
     return temptitle;
 }
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     EXPUP,
     tempSwitchV2

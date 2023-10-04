@@ -1,8 +1,12 @@
 "use strict";
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const winston = require('winston');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'path'.
 const path = require('path');
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const { format } = require('logform');
 const { combine, timestamp, printf, json } = format;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'schema'.
 const schema = require('./schema.js');
 const MAX_ERR_RETRY = 3;
 const RETRY_TIME = 15 * 1000;// 每15秒更新;
@@ -12,7 +16,7 @@ let dbConnErr = {
     timeStamp: Date.now(),
     retry: 0
 }
-const severityLevelOnly = format(info => {
+const severityLevelOnly = format((info: any) => {
     info.severityLevel = info.level;
     delete info.level;
     delete info.service;
@@ -26,6 +30,7 @@ const logger = winston.createLogger({
     level: 'info',
     format: winston.format.json(),
     defaultMeta: { service: 'user-service' },
+    // @ts-expect-error TS(1117): An object literal cannot have multiple properties ... Remove this comment to see the full error message
     format: combine(
         severityLevelOnly(),
         json()
@@ -33,6 +38,7 @@ const logger = winston.createLogger({
     transports: [
         new winston.transports.Console(),
         new winston.transports.File({
+            // @ts-expect-error TS(2304): Cannot find name '__dirname'.
             filename: path.join(__dirname, "..", 'log/', 'hktrpg-mongod.log'),
             level: 'info',
             maxFiles: 5,
@@ -82,6 +88,7 @@ async function __updateRecords() {
 
         __dbErrorReset();
     } catch (err) {
+        // @ts-expect-error TS(2571): Object is of type 'unknown'.
         console.error('dbConnectionError updateRecords #36 error: ', err.name);
         dbErrOccurs();
     }
@@ -118,10 +125,11 @@ function __init() {
         mongod_RETRY_TIME
     );
 }
-function discordClientRespawn(discordClient, id) {
+function discordClientRespawn(discordClient: any, id: any) {
     discordClient.cluster.send({ respawn: true, id });
 }
 
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     dbErrOccurs,
     isDbOnline,

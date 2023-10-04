@@ -1,25 +1,35 @@
 "use strict";
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 if (!process.env.mongoURL) {
+    // @ts-expect-error TS(1108): A 'return' statement can only be used within a fun... Remove this comment to see the full error message
     return;
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'math'.
 const math = require('mathjs')
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'schema'.
 const schema = require('../modules/schema.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'rollDice'.
 const rollDice = require('./rollbase').rollDiceCommand;
-const convertRegex = function (str) {
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'convertReg... Remove this comment to see the full error message
+const convertRegex = function (str: any) {
     return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
 };
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'gameName'.
 const gameName = function () {
     return '【先攻表功能】 .in (remove clear reroll) .init'
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'gameType'.
 const gameType = function () {
     return 'Tool:trpgInit:hktrpg'
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'prefixs'.
 const prefixs = function () {
     return [{
         first: /(^[.]init$)|(^[.]initn$)|(^[.]in$)/ig,
         second: null
-    }]
+    }];
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'getHelpMes... Remove this comment to see the full error message
 const getHelpMessage = async function () {
     return `【先攻表功能】 .in (remove clear reroll) .init
 這是讓你快速自定義先攻表的功能
@@ -37,19 +47,24 @@ const getHelpMessage = async function () {
 .initn     - 顯示先攻表，由小到大
 `
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'initialize... Remove this comment to see the full error message
 const initialize = function () {
     return;
 }
 
-const rollDiceCommand = async function ({
-    inputStr,
-    mainMsg,
-    groupid,
-    displaynameDiscord,
-    botname,
-    displayname,
-    channelid
-}) {
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'rollDiceCo... Remove this comment to see the full error message
+const rollDiceCommand = async function(
+    this: any,
+    {
+        inputStr,
+        mainMsg,
+        groupid,
+        displaynameDiscord,
+        botname,
+        displayname,
+        channelid
+    }: any
+) {
     let temp;
     let result;
     let objIndex;
@@ -61,6 +76,7 @@ const rollDiceCommand = async function ({
     };
     if ((/^help$/i.test(mainMsg[1])) && /^[.]in|[.]init$/i.test(mainMsg[0])) {
         rply.text = await this.getHelpMessage();
+        // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
         rply.quotes = true;
         if (botname == "Line")
             rply.text += "\n因為Line的機制, 如擲骰時並無顯示用家名字, 請到下列網址,和機器人任意說一句話,成為好友. \n https://line.me/R/ti/p/svMLqy9Mik"
@@ -120,7 +136,7 @@ const rollDiceCommand = async function ({
                 rply.text = "找不到先攻表, 如有疑問, 可以輸入.init help 觀看說明"
                 return rply;
             }
-            objIndex = temp.list.findIndex((obj => obj.name.toLowerCase() == name.toLowerCase()));
+            objIndex = temp.list.findIndex(((obj: any) => obj.name.toLowerCase() == name.toLowerCase()));
             if (objIndex == -1) {
                 rply.text = "找不到該角色"
                 return rply;
@@ -154,13 +170,14 @@ const rollDiceCommand = async function ({
                     await temp.save();
                 } catch (error) {
                     rply.text = "先攻表更新失敗，\n" + error;
+                    // @ts-expect-error TS(2571): Object is of type 'unknown'.
                     console.error('init #154 mongoDB error: ', error.name, error.reson)
                     return rply;
                 }
                 rply.text = name + ' 的先攻值是 ' + Number(result);
                 return rply;
             }
-            objIndex = temp.list.findIndex((obj => obj.name.toLowerCase() == name.toLowerCase())) >= 0 ? temp.list.findIndex((obj => obj.name.toLowerCase() == name.toLowerCase())) : temp.list.length || 0;
+            objIndex = temp.list.findIndex(((obj: any) => obj.name.toLowerCase() == name.toLowerCase())) >= 0 ? temp.list.findIndex(((obj: any) => obj.name.toLowerCase() == name.toLowerCase())) : temp.list.length || 0;
             temp.list.set(Number(objIndex), {
                 name: (temp.list[objIndex] && temp.list[objIndex].name) || name,
                 result: Number(result),
@@ -202,7 +219,7 @@ const rollDiceCommand = async function ({
 }
 
 
-async function countInit(num) {
+async function countInit(num: any) {
     let result;
     let temp = await rollDice({
         mainMsg: [num]
@@ -215,9 +232,9 @@ async function countInit(num) {
     return result;
 }
 
-async function showInit(doc) {
+async function showInit(doc: any) {
     let result = '┌──────先攻表──────┐\n';
-    doc.list.sort(function (a, b) {
+    doc.list.sort(function (a: any, b: any) {
         return b.result - a.result;
     });
 
@@ -234,9 +251,9 @@ async function showInit(doc) {
     }
     return result;
 }
-async function showInitn(doc) {
+async function showInitn(doc: any) {
     let result = '┌─────先攻表─────┐\n';
-    doc.list.sort(function (a, b) {
+    doc.list.sort(function (a: any, b: any) {
         return a.result - b.result;
     });
     for (let i = 0; i < doc.list.length; i++) {
@@ -253,6 +270,7 @@ async function showInitn(doc) {
     }
     return result;
 }
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,

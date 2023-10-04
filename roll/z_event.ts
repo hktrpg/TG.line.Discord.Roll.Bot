@@ -1,42 +1,57 @@
 "use strict";
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 if (!process.env.mongoURL) {
+    // @ts-expect-error TS(1108): A 'return' statement can only be used within a fun... Remove this comment to see the full error message
     return;
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'checkMongo... Remove this comment to see the full error message
 const checkMongodb = require('../modules/dbWatchdog.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'debugMode'... Remove this comment to see the full error message
 const debugMode = (process.env.DEBUG) ? true : false;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'variables'... Remove this comment to see the full error message
 let variables = {};
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'rollDice'.
 const rollDice = require('./rollbase');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'schema'.
 const schema = require('../modules/schema.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'VIP'.
 const VIP = require('../modules/veryImportantPerson');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'FUNCTION_L... Remove this comment to see the full error message
 const FUNCTION_LIMIT = [4, 20, 20, 30, 30, 99, 99, 99];
 const EN_RECOVER_TIME = 10 * 60 * 1000; //每10分鐘回複一點;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'gameName'.
 const gameName = function () {
     return '【事件功能】 .event (add edit show delete) .evt (event 任何名字)'
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'gameType'.
 const gameType = function () {
     return 'Funny:trpgevent:hktrpg'
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'prefixs'.
 const prefixs = function () {
     return [{
         first: /(^[.]event$)|(^[.]evt$)/ig,
         second: null
-    }]
+    }];
 
 }
 
-const convertRegex = function (str) {
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'convertReg... Remove this comment to see the full error message
+const convertRegex = function (str: any) {
     return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
 };
 const regexMain = new RegExp(/^((-)?\d):(.*)/, 'igm');
 const regexExp = new RegExp(/^exp:(.*)/, 'im');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'regexName'... Remove this comment to see the full error message
 const regexName = new RegExp(/^name:(.*)/, 'im');
 const regexChainTitle = new RegExp(/^chain:(.*)/, 'im');
 
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'opt'.
 const opt = {
     upsert: true,
     runValidators: true
 }
-const ENemoji = function (per) {
+const ENemoji = function (per: any) {
     switch (true) {
         case (per <= 0):
             return '▯▯▯▯▯▯'
@@ -65,6 +80,7 @@ const ENemoji = function (per) {
  */
 
 
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'getHelpMes... Remove this comment to see the full error message
 const getHelpMessage = function () {
     return `【事件功能】.event (add delete show) .evt (random/事件名稱)
 經由新增的事件，會得到一些狀態或增加減少經驗值，
@@ -122,18 +138,23 @@ D. 一個事件可用的總EN 為(10+LV)，負面事件消耗X點EN
 `
 }
 
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'initialize... Remove this comment to see the full error message
 const initialize = function () {
     return variables;
 }
 
-const rollDiceCommand = async function ({
-    inputStr,
-    mainMsg,
-    groupid,
-    userid,
-    displayname,
-    displaynameDiscord
-}) {
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'rollDiceCo... Remove this comment to see the full error message
+const rollDiceCommand = async function(
+    this: any,
+    {
+        inputStr,
+        mainMsg,
+        groupid,
+        userid,
+        displayname,
+        displaynameDiscord
+    }: any
+) {
     let rply = {
         default: 'on',
         type: 'text',
@@ -172,12 +193,14 @@ const rollDiceCommand = async function ({
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
             rply.text = this.getHelpMessage();
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             return rply;
         }
         case /(^[.]event$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]): {
             events = await analysicInputData(inputStr); //分析輸入的資料
 
+            // @ts-expect-error TS(2339): Property 'MainData' does not exist on type '{}'.
             if (!events || !events.MainData || !events.eventName) {
                 rply.text = `沒有輸入事件或名字，請重新整理內容 格式為
 .event add
@@ -205,6 +228,7 @@ exp:SAN
 
             //取得本來的資料, 如有重覆, 以新的覆蓋
             //doc = await schema.event.findOne(filter);
+            // @ts-expect-error TS(2339): Property 'MainData' does not exist on type '{}'.
             let mainSplit = await analysicDetail(events.MainData)
             if (mainSplit.length < 3 || mainSplit.length > Number(3 + levelLv)) {
                 rply.text = '新增事件失敗\n一個事件需要至少設定 3 個結果\n你現在的VIP LV最多同時可設定 ' + Number(3 + levelLv) + ' 個事件'
@@ -227,11 +251,14 @@ exp:SAN
             }
 
             let listDatas = {
+                // @ts-expect-error TS(2339): Property 'eventName' does not exist on type '{}'.
                 title: events.eventName,
                 userID: userid,
                 userName: displaynameDiscord || displayname || '',
                 detail: mainSplit,
+                // @ts-expect-error TS(2339): Property 'expName' does not exist on type '{}'.
                 expName: events.expName || '',
+                // @ts-expect-error TS(2339): Property 'eventChain' does not exist on type '{}'.
                 chainTitle: events.eventChain || ''
             }
 
@@ -239,6 +266,7 @@ exp:SAN
             filter = {
                 userID: userid,
                 title: {
+                    // @ts-expect-error TS(2339): Property 'eventName' does not exist on type '{}'.
                     $regex: new RegExp('^' + convertRegex(events.eventName) + '$', "i")
                 }
             }
@@ -246,6 +274,7 @@ exp:SAN
                 doc = await schema.eventList.updateOne(filter, listDatas, opt);
             } catch (error) {
                 console.error('新增事件 GET ERROR: ', error)
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 rply.text = '新增事件失敗\n因為 ' + error.message
                 return rply;
             }
@@ -259,10 +288,13 @@ exp:SAN
                 userID: userid,
                 userName: displaynameDiscord || displayname || '',
                 eventList: {
+                    // @ts-expect-error TS(2339): Property 'eventName' does not exist on type '{}'.
                     title: events.eventName,
+                    // @ts-expect-error TS(2339): Property '_id' does not exist on type '{}'.
                     eventID: tempMain._id
                 }
             }
+            // @ts-expect-error TS(2339): Property '_id' does not exist on type '{}'.
             if (!tempMain._id) {
                 rply.text = '新增事件失敗'
                 return rply;
@@ -275,16 +307,21 @@ exp:SAN
                 if (!temp) {
                     temp = new schema.eventMember(eventsDatas);
                 } else {
-                    let findEventId = temp.eventList.findIndex((obj => obj.eventID == tempMain._id));
+                    // @ts-expect-error TS(2339): Property '_id' does not exist on type '{}'.
+                    let findEventId = temp.eventList.findIndex(((obj: any) => obj.eventID == tempMain._id));
                     if (findEventId >= 0) {
                         temp.eventList[findEventId] = {
+                            // @ts-expect-error TS(2339): Property 'eventName' does not exist on type '{}'.
                             title: events.eventName,
+                            // @ts-expect-error TS(2339): Property '_id' does not exist on type '{}'.
                             eventID: tempMain._id
                         }
                         temp.userName = displaynameDiscord || displayname || '';
                     } else {
                         temp.eventList.push({
+                            // @ts-expect-error TS(2339): Property 'eventName' does not exist on type '{}'.
                             title: events.eventName,
+                            // @ts-expect-error TS(2339): Property '_id' does not exist on type '{}'.
                             eventID: tempMain._id
                         })
                         temp.userName = displaynameDiscord || displayname || '';
@@ -296,14 +333,19 @@ exp:SAN
 
             } catch (error) {
                 console.error('新增事件 GET ERROR: ', error)
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 rply.text = '新增事件失敗\n因為 ' + error.message
                 return rply;
             }
             //增加資料庫
             //檢查有沒有重覆
+            // @ts-expect-error TS(2339): Property 'title' does not exist on type '{}'.
             rply.text = '新增/修改事件 - ' + tempMain.title + '\n經驗值的名稱: ' + tempMain.expName + '\n';
+            // @ts-expect-error TS(2339): Property 'chainTitle' does not exist on type '{}'.
             rply.text += (tempMain.chainTitle) ? `系列名稱: ${tempMain.chainTitle}\n` : '';
+            // @ts-expect-error TS(2339): Property 'detail' does not exist on type '{}'.
             for (let index = 0; index < tempMain.detail.length; index++) {
+                // @ts-expect-error TS(2339): Property 'detail' does not exist on type '{}'.
                 rply.text += '類型:' + tempMain.detail[index].result + ' 內容: ' + tempMain.detail[index].event + '\n';
 
             }
@@ -328,6 +370,7 @@ exp:SAN
                 }, {
                     $pull: {
                         eventList: {
+                            // @ts-expect-error TS(2339): Property '_id' does not exist on type '{}'.
                             eventID: doc._id
                         }
                     }
@@ -339,6 +382,7 @@ exp:SAN
             }
             //增加資料庫
             //檢查有沒有重覆
+            // @ts-expect-error TS(2339): Property 'title' does not exist on type '{}'.
             rply.text = '刪除事件成功: ' + doc.title
             return rply;
         }
@@ -388,6 +432,7 @@ exp:SAN
         }
         case (/(^[.]event$)/i.test(mainMsg[0]) || /(^[.]evt$)/i.test(mainMsg[0])) && /^show$/i.test(mainMsg[1]):
             {
+                // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
                 rply.quotes = true;
                 filter = {
                     userID: userid
@@ -414,6 +459,7 @@ exp:SAN
                 }
 
                 //回複EN
+                // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                 let EnergyRecover = Math.round(((new Date(Date.now()) - new Date(eventMember.lastActiveAt))) / EN_RECOVER_TIME);
                 eventMember.energy = Math.min(maxLv + 20, EnergyRecover + eventMember.energy);
                 eventMember.lastActiveAt = new Date(Date.now());
@@ -431,13 +477,20 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                         rply.text += `\n${result[index].date.getMonth() + 1}月${result[index].date.getDate()}日 ${result[index].date.getHours()}:${(result[index].date.getMinutes() < 10) ? '0' + result[index].date.getMinutes() : result[index].date.getMinutes()} - ${result[index].activityDetail}`
                     }
                 }
+                // @ts-expect-error TS(2339): Property 'length' does not exist on type '{}'.
                 if (doc && doc.length > 0)
                     rply.text += "\n====你創作的事件列表===="
+                // @ts-expect-error TS(2339): Property 'length' does not exist on type '{}'.
                 for (let index = 0; index < doc.length; index++) {
+                    // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                     rply.text += "\n" + doc[index].title + "\n";
+                    // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                     if (doc[index].expName) rply.text += '經驗值的名稱: ' + doc[index].expName + "\n";
+                    // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                     rply.text += (doc[index].chainTitle) ? `系列名稱: ${doc[index].chainTitle} \n` : '';
+                    // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                     if (mainMsg[2] && mainMsg[2].match(new RegExp('^' + convertRegex(doc[index].title) + '$', 'i'))) {
+                        // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                         rply.text += getDetail(doc[index]) + '\n';
                     }
                 }
@@ -445,6 +498,7 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
             }
         case /(^[.]evt$)/i.test(mainMsg[0]) && /^\S+$/i.test(mainMsg[1]): {
             {
+                // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
                 rply.quotes = true;
                 if (!groupid) {
                     rply.text = '你不在群組.請在群組使用此功能 '
@@ -488,6 +542,7 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                 }
 
                 //回複EN
+                // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                 let EnergyRecover = Math.round(((new Date(Date.now()) - new Date(eventMember.lastActiveAt))) / EN_RECOVER_TIME);
 
                 eventMember.energy = Math.min(maxLv + 20, EnergyRecover + eventMember.energy);
@@ -500,6 +555,7 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                 const targetEventName = convertRegex(mainMsg[1]);
                 let eventMode = '';
                 let eventList = [];
+                // @ts-expect-error TS(2339): Property 'match' does not exist on type 'RegExp'.
                 if (targetEventName.match(/^random$/i)) {
                     eventMode = 'random';
                 } else {
@@ -510,6 +566,7 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                     eventList = await schema.eventList.aggregate([{
                         $match: {
                             chainTitle: {
+                                // @ts-expect-error TS(2345): Argument of type 'RegExp' is not assignable to par... Remove this comment to see the full error message
                                 $regex: new RegExp('^' + convertRegex(targetEventName) + '$', "i")
                             }
                         }
@@ -524,6 +581,7 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                         eventList = await schema.eventList.aggregate([{
                             $match: {
                                 title: {
+                                    // @ts-expect-error TS(2345): Argument of type 'RegExp' is not assignable to par... Remove this comment to see the full error message
                                     $regex: new RegExp('^' + convertRegex(targetEventName) + '$', "i")
                                 }
                             }
@@ -580,10 +638,10 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                 }
 
                 await eventMember.save();
-                let randomDetail = eventList[0].detail[await rollDice.Dice(eventList[0].detail.length) - 1];
+                let randomDetail = eventList[0].detail[(await rollDice.Dice(eventList[0].detail.length)) - 1];
                 let eventText = randomDetail.event.split(';');
 
-                rply.text += `====${eventList[0].title}====\n ${eventText[await rollDice.Dice(eventText.length) - 1]} `;
+                rply.text += `====${eventList[0].title}====\n ${eventText[(await rollDice.Dice(eventText.length)) - 1]} `;
 
                 rply.text += `\n${await eventProcessExp({ randomDetail: randomDetail, groupid: groupid, eventList: eventList[0], thisMember: thisMember })} `
                 await schema.eventMember.findOneAndUpdate({ userID: eventList[0].userID }, { $inc: { earnedEXP: earedXP, totailEarnedEXP: earedXP } })
@@ -596,7 +654,7 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
     }
 }
 
-function getDetail(doc) {
+function getDetail(doc: any) {
     let text = '';
     for (let index = 0; index < doc.detail.length; index++) {
         text += '類型:' + doc.detail[index].result + ' 內容: ' + doc.detail[index].event + '\n'
@@ -604,7 +662,7 @@ function getDetail(doc) {
     return text;
 }
 
-async function analysicInputData(inputStr) {
+async function analysicInputData(inputStr: any) {
     let MainData = (inputStr.match(regexMain)) ? inputStr.match(regexMain) : '';
     let ExpName = (inputStr.match(regexExp)) ? inputStr.match(regexExp)[1].replace(/^\s+/, '').replace(/\s+$/, '') : '';
     let eventName = (inputStr.match(regexName)) ? inputStr.match(regexName)[1].replace(/^\s+/, '').replace(/\s+$/, '') : '';
@@ -617,7 +675,7 @@ async function analysicInputData(inputStr) {
     }
     return result;
 }
-async function analysicDetail(data) {
+async function analysicDetail(data: any) {
     let info = [];
     for (let index = 0; index < data.length; index++) {
         let temp = data[index].match(/(-?\d+):(.*)/);
@@ -631,6 +689,7 @@ async function analysicDetail(data) {
 }
 
 
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,
@@ -720,7 +779,12 @@ D. 一個事件可用的總EN 為(10+LV)，負面事件消耗X點EN
  * 
  */
 
-async function eventProcessExp({ randomDetail, groupid, eventList, thisMember }) {
+async function eventProcessExp({
+    randomDetail,
+    groupid,
+    eventList,
+    thisMember
+}: any) {
     let expName = (eventList.expName) ? `「${eventList.expName} 」` : '經驗'
     switch (randomDetail.result) {
         case 1: {
@@ -1122,24 +1186,24 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
 
     }
 }
-async function calXP(eventList, thisMemberLV, type) {
+async function calXP(eventList: any, thisMemberLV: any, type: any) {
 
     let typeNumber = 1;
     switch (type) {
         case "exp": {
             //正面事件  把負面的數字相加
-            let eventPosit = eventList.detail.map(item => {
+            let eventPosit = eventList.detail.map((item: any) => {
                 if (item.result < 0 && !isNaN(item.result)) {
                     return item.result;
                 } else return 0
             });
-            eventPosit = eventPosit.filter(item => item < 0);
-            let eventPositiveLV = (eventPosit.length > 0) ? eventPosit.reduce((b, a) =>
+            eventPosit = eventPosit.filter((item: any) => item < 0);
+            let eventPositiveLV = (eventPosit.length > 0) ? eventPosit.reduce((b: any, a: any) =>
                 Number(a) + Number(b)) : 1;
 
 
             let createEventerLV = await findMaxLv(eventList.userID);
-            typeNumber = await rollDice.DiceINT(Math.max(createEventerLV, thisMemberLV) + 20, Math.min(createEventerLV, thisMemberLV)) + 15;
+            typeNumber = (await rollDice.DiceINT(Math.max(createEventerLV, thisMemberLV) + 20, Math.min(createEventerLV, thisMemberLV))) + 15;
 
             typeNumber *= (Math.abs(createEventerLV - thisMemberLV) / 20 + 1);
 
@@ -1151,19 +1215,19 @@ async function calXP(eventList, thisMemberLV, type) {
         }
         case "expNeg": {
             //負面事件  把正面的數字相加
-            let eventNeg = eventList.detail.map(item => {
+            let eventNeg = eventList.detail.map((item: any) => {
                 if (item.result > 0 && !isNaN(item.result)) {
                     return item.result;
                 } else return 0
             });
-            eventNeg = eventNeg.filter(item => item < 0);
-            let eventNegLV = (eventNeg.length > 0) ? eventNeg.reduce((b, a) =>
+            eventNeg = eventNeg.filter((item: any) => item < 0);
+            let eventNegLV = (eventNeg.length > 0) ? eventNeg.reduce((b: any, a: any) =>
                 Number(a) + Number(b)) : 1;
 
 
             let createEventerLV = await findMaxLv(eventList.userID);
 
-            typeNumber = await rollDice.DiceINT(Math.max(createEventerLV, thisMemberLV) + 20, Math.min(createEventerLV, thisMemberLV)) + 15;
+            typeNumber = (await rollDice.DiceINT(Math.max(createEventerLV, thisMemberLV) + 20, Math.min(createEventerLV, thisMemberLV))) + 15;
 
             typeNumber *= (Math.abs(createEventerLV - thisMemberLV) / 20 + 1);
 
@@ -1193,14 +1257,14 @@ async function calXP(eventList, thisMemberLV, type) {
     //100之一 ->50之一 * 1.0X ( 相差LV)% *1.0X(負面級數)^(幾個事件) 
 
 }
-async function findMaxLv(userid) {
+async function findMaxLv(userid: any) {
     let maxLV = await schema.trpgLevelSystemMember.findOne({ userid: userid }).sort({ Level: -1 });
     if (!maxLV) return 1;
     return maxLV.Level;
 }
 
 
-async function findCreater(userid) {
+async function findCreater(userid: any) {
     let creater = await schema.eventMember.findOne({ userID: userid }).sort({ Level: -1 });
     if (!creater) return null;
     return creater;

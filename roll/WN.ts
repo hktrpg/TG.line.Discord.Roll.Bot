@@ -1,6 +1,9 @@
+// @ts-expect-error TS(6200): Definitions of the following identifiers conflict ... Remove this comment to see the full error message
 "use strict";
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const rollbase = require('./rollbase.js');
 let variables = {};
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const mathjs = require('mathjs')
 const gameName = function () {
     return '【魔女狩獵之夜】.wn xDn+-y'
@@ -13,7 +16,7 @@ const prefixs = function () {
     return [{
         first: /^.wn$/i,
         second: null
-    }]
+    }];
 }
 const getHelpMessage = async function () {
     return `【魔女狩獵之夜】
@@ -32,7 +35,12 @@ const initialize = function () {
     return variables;
 }
 
-const rollDiceCommand = async function ({ mainMsg }) {
+const rollDiceCommand = async function(
+    this: any,
+    {
+        mainMsg
+    }: any
+) {
     let rply = {
         default: 'on',
         type: 'text',
@@ -41,6 +49,7 @@ const rollDiceCommand = async function ({ mainMsg }) {
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = await this.getHelpMessage();
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             return rply;
         case /^\d/i.test(mainMsg[1]):
@@ -55,7 +64,7 @@ const rollDiceCommand = async function ({ mainMsg }) {
     }
 }
 
-async function WN(message) {
+async function WN(message: any) {
 
     //x@n(+-y)(D)
     //xD(D)n(+-y)
@@ -98,12 +107,13 @@ async function WN(message) {
     key[4] = tempmessage || ''
     return key
 }
-async function Dice(msg) {
+// @ts-expect-error TS(2300): Duplicate identifier 'Dice'.
+async function Dice(msg: any) {
     if (msg)
         return rollbase.BuildRollDice(msg)
     else msg
 }
-async function WN2(key, message) {
+async function WN2(key: any, message: any) {
     //[0]5 [1]^@|^D [2]D [3]!+-5 [4]+-5
     let result = [];
     let success = 0
@@ -164,6 +174,7 @@ async function WN2(key, message) {
 
 
 
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,

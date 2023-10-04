@@ -1,11 +1,16 @@
+// @ts-expect-error TS(6200): Definitions of the following identifiers conflict ... Remove this comment to see the full error message
 "use strict";
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'math'.
 const math = require('mathjs');
 const {
   Random,
   nodeCrypto
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 } = require("random-js");
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const { DiceRoller, DiceRoll } = require('@dice-roller/rpg-dice-roller');
 const random = new Random(nodeCrypto);
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const { SlashCommandBuilder } = require('discord.js');
 //value = random.integer(1, 100);
 const BASIC_ROLL_REGEX = /(\d+)d(\d+)(kh|kl|dh|dl|k|)(\d+|)/i;
@@ -34,7 +39,7 @@ const prefixs = function () {
     first: /^.rr$/i,
     second: null
   }
-  ]
+  ];
 }
 
 
@@ -59,7 +64,7 @@ const initialize = function () {
 const rollDiceCommand = function ({
   mainMsg,
   inputStr
-}) {
+}: any) {
   let rply = {
     default: 'on',
     type: 'text',
@@ -72,6 +77,7 @@ const rollDiceCommand = function ({
           const roll = new DiceRoll(inputStr.replace(/^[.]rr\s+/i, ''));
           rply.text = roll.output;
         } catch (err) {
+          // @ts-expect-error TS(2571): Object is of type 'unknown'.
           rply.text += `${err.name}  \n ${err.message}`;
           rply.text += `\n 擲骰說明 https://dice-roller.github.io/documentation/guide/notation/dice.html#standard-d-n`
         }
@@ -81,6 +87,7 @@ const rollDiceCommand = function ({
 
     default:
       try {
+        // @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
         rply.text = nomalDiceRoller(mainMsg[0], mainMsg[1], mainMsg[2]);
         return rply;
       } catch (error) {
@@ -97,13 +104,14 @@ const rollDiceCommand = function ({
  * @param {純數字, 10即骰出1D100} diceSided 
  */
 
-const Dice = function (diceSided) {
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'Dice'.
+const Dice = function (diceSided: any) {
   let result = '';
   result = random.integer(1, Math.floor(diceSided))
   return result
 }
 
-const DiceINT = function (start, end) {
+const DiceINT = function (start: any, end: any) {
   let result = '';
   let points = [Math.floor(start), Math.floor(end)]
   points.sort(function (a, b) {
@@ -113,11 +121,11 @@ const DiceINT = function (start, end) {
   return result
 }
 
-const sortNumber = function (a, b) {
+const sortNumber = function (a: any, b: any) {
   return a - b
 }
 
-const RollDice = function (inputStr) {
+const RollDice = function (inputStr: any) {
   // 先把inputStr變成字串（不知道為什麼非這樣不可）
   //kh kl dh dl
   //kh or khN Keeps highest N
@@ -142,6 +150,7 @@ const RollDice = function (inputStr) {
     }
     //由大至細
     temp2.sort(function (a, b) {
+      // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
       return b - a
     });
   }
@@ -151,29 +160,34 @@ const RollDice = function (inputStr) {
     case 'kh': //khN Keeps highest N
       for (let i = 0; i < temp2.length; i++) {
         if (i < comStr[4])
+          // @ts-expect-error TS(2365): Operator '+=' cannot be applied to types 'number' ... Remove this comment to see the full error message
           totally += temp2[i]
       }
       break;
     case 'kl': //klN Keeps lowest N
       for (let i = 0; i < temp2.length; i++) {
         if (i >= temp2.length - comStr[4])
+          // @ts-expect-error TS(2365): Operator '+=' cannot be applied to types 'number' ... Remove this comment to see the full error message
           totally += temp2[i]
       }
       break;
     case 'dh': //Drops highest N
       for (let i = 0; i < temp2.length; i++) {
         if (i >= comStr[4])
+          // @ts-expect-error TS(2365): Operator '+=' cannot be applied to types 'number' ... Remove this comment to see the full error message
           totally += temp2[i]
       }
       break;
     case 'dl': //dlN Drops lowest N
       for (let i = 0; i < temp2.length; i++) {
         if (i < temp2.length - comStr[4])
+          // @ts-expect-error TS(2365): Operator '+=' cannot be applied to types 'number' ... Remove this comment to see the full error message
           totally += temp2[i]
       }
       break;
     default:
       for (let i = 0; i < temp.length; i++) {
+        // @ts-expect-error TS(2365): Operator '+=' cannot be applied to types 'number' ... Remove this comment to see the full error message
         totally += temp[i]
       }
       break;
@@ -190,11 +204,11 @@ const RollDice = function (inputStr) {
   return finalStr
 }
 
-const FunnyDice = function (diceSided) {
+const FunnyDice = function (diceSided: any) {
   return random.integer(0, Math.floor(diceSided)) // 猜拳，從0開始
 }
 
-const BuildDiceCal = function (inputStr) {
+const BuildDiceCal = function (inputStr: any) {
   // 首先判斷是否是誤啟動（檢查是否有符合骰子格式）
   if (inputStr.toLowerCase().match(/\d+d\d+/i) == null) return undefined
   // 排除小數點
@@ -222,11 +236,11 @@ const BuildDiceCal = function (inputStr) {
   return finalStr
 }
 
-const shuffleTarget = function (target) {
+const shuffleTarget = function (target: any) {
   return random.shuffle(target)
 }
 
-const BuildRollDice = function (inputStr) {
+const BuildRollDice = function (inputStr: any) {
   // 先把inputStr變成字串（不知道為什麼非這樣不可）
   let comStr = inputStr.toString().toLowerCase()
   let finalStr = '('
@@ -244,7 +258,7 @@ const BuildRollDice = function (inputStr) {
  * @param {文字描述 || 1D100} text1 
  * @param {文字描述} text2 
  */
-const nomalDiceRoller = function (text0, text1, text2) {
+const nomalDiceRoller = function (text0: any, text1: any, text2: any) {
   // 首先判斷是否是誤啟動（檢查是否有符合骰子格式）
   // if (inputStr.toLowerCase().match(/\d+d\d+/) == null) return undefined
   // 再來先把第一個分段拆出來，待會判斷是否是複數擲骰
@@ -280,7 +294,7 @@ const nomalDiceRoller = function (text0, text1, text2) {
 }
 
 // 單次擲骰
-function onetimeroll(text0) {
+function onetimeroll(text0: any) {
   try {
     let Str = ''
     // 寫出算式
@@ -312,13 +326,14 @@ const discordCommand = [
     data: new SlashCommandBuilder()
       .setName('hk')
       .setDescription('最基本指令模式')
-      .addStringOption(option => option.setName('text').setDescription('輸入平日的HKTRPG文字指令').setRequired(true)),
-    async execute(interaction) {
+      .addStringOption((option: any) => option.setName('text').setDescription('輸入平日的HKTRPG文字指令').setRequired(true)),
+    async execute(interaction: any) {
       const text = interaction.options.getString('text')
       return `${text}`
     }
   }
 ];
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
   Dice: Dice,
   sortNumber: sortNumber,

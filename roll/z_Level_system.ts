@@ -1,27 +1,37 @@
 //參考
 //https://github.com/cookkkie/mee6
 "use strict";
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 if (!process.env.mongoURL) {
+    // @ts-expect-error TS(1108): A 'return' statement can only be used within a fun... Remove this comment to see the full error message
     return;
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'checkMongo... Remove this comment to see the full error message
 const checkMongodb = require('../modules/dbWatchdog.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'checkTools... Remove this comment to see the full error message
 const checkTools = require('../modules/check.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'tempSwitch... Remove this comment to see the full error message
 const tempSwitchV2 = require('../modules/level');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'schema'.
 const schema = require('../modules/schema.js');
 const DEFAULT_RANK_WORD = "{user.displayName}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點！\n現在排名是{server.member_count}人中的第{user.Ranking}名！{user.RankingPer}！\n調查經驗是{user.exp}點。 "
 
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'gameName'.
 const gameName = function () {
     return '【經驗值功能】 .level (show config LevelUpWord RankWord)'
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'gameType'.
 const gameType = function () {
     return 'funny:trpgLevelSystem:hktrpg'
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'prefixs'.
 const prefixs = function () {
     return [{
         first: /(^[.]level$)/ig,
         second: null
-    }]
+    }];
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'getHelpMes... Remove this comment to see the full error message
 const getHelpMessage = async function () {
     return `【經驗值功能】
 這是根據開源Discord bot Mee6開發的功能
@@ -54,10 +64,12 @@ const getHelpMessage = async function () {
 {server.member_count} 現在頻道中總人數 
 `
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'initialize... Remove this comment to see the full error message
 const initialize = function () {
     return;
 }
-const checkTitle = async function (userlvl, DBTitle) {
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'checkTitle... Remove this comment to see the full error message
+const checkTitle = async function (userlvl: any, DBTitle: any) {
     let templvl = 0;
     let temptitle = ""
     if (DBTitle && DBTitle.length > 0) {
@@ -81,6 +93,7 @@ const checkTitle = async function (userlvl, DBTitle) {
         }
     return temptitle;
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'Title'.
 const Title = function () {
     let Title = []
     Title[0] = "無名調查員";
@@ -125,19 +138,23 @@ const Title = function () {
     44-47   外神
     48-50   門
     */
-const rollDiceCommand = async function ({
-    inputStr,
-    mainMsg,
-    groupid,
-    userid,
-    userrole,
-    botname,
-    displayname,
-    displaynameDiscord,
-    tgDisplayname,
-    discordMessage,
-    membercount
-}) {
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'rollDiceCo... Remove this comment to see the full error message
+const rollDiceCommand = async function(
+    this: any,
+    {
+        inputStr,
+        mainMsg,
+        groupid,
+        userid,
+        userrole,
+        botname,
+        displayname,
+        displaynameDiscord,
+        tgDisplayname,
+        discordMessage,
+        membercount
+    }: any
+) {
     let rply = {
         default: 'on',
         type: 'text',
@@ -146,6 +163,7 @@ const rollDiceCommand = async function ({
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = await this.getHelpMessage();
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             if (botname == "Line")
                 rply.text += "\n因為Line的機制, 如擲骰時並無顯示用家名字, 請到下列網址,和機器人任意說一句話,成為好友. \n https://line.me/R/ti/p/svMLqy9Mik"
@@ -163,7 +181,7 @@ const rollDiceCommand = async function ({
 
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('level_system #164 mongoDB error: ', error.name, error.reson));
+            }).catch((error: any) => console.error('level_system #164 mongoDB error: ', error.name, error.reson));
 
             //問題: 如果沒有GP 的話, 可以刪除嗎?
             if (!doc || doc.Title.length < 1) {
@@ -183,7 +201,7 @@ const rollDiceCommand = async function ({
             }
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('level_system #184 mongoDB error: ', error.name, error.reson));
+            }).catch((error: any) => console.error('level_system #184 mongoDB error: ', error.name, error.reson));
             if (!doc || doc.Title.length < 1) {
                 rply.text = "正在使用預設稱號。"
                 return rply
@@ -211,7 +229,7 @@ const rollDiceCommand = async function ({
 
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('level_system #212 mongoDB error: ', error.name, error.reson));
+            }).catch((error: any) => console.error('level_system #212 mongoDB error: ', error.name, error.reson));
 
             let temprply = setNew(inputStr, doc.Title)
 
@@ -225,7 +243,7 @@ const rollDiceCommand = async function ({
                 $set: {
                     "Title": temprply
                 }
-            }).catch(error => console.error('level_system #227 mongoDB error: ', error.name, error.reson));
+            }).catch((error: any) => console.error('level_system #227 mongoDB error: ', error.name, error.reson));
             rply.text = '新增稱號成功: \n'
             for (let te = 0; te < temprply.length; te++) {
                 if (temprply[te])
@@ -240,7 +258,7 @@ const rollDiceCommand = async function ({
             }
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('level_system #242 mongoDB error: ', error.name, error.reson));
+            }).catch((error: any) => console.error('level_system #242 mongoDB error: ', error.name, error.reson));
             if (!doc || !doc.LevelUpWord) {
                 rply.text = '正在使用預設升級語. ';
                 return rply;
@@ -260,9 +278,9 @@ const rollDiceCommand = async function ({
 
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('level_system #262 mongoDB error: ', error.name, error.reson));
+            }).catch((error: any) => console.error('level_system #262 mongoDB error: ', error.name, error.reson));
             doc.LevelUpWord = "";
-            await doc.save().catch(error => console.error('level_system #264 mongoDB error: ', error.name, error.reson));
+            await doc.save().catch((error: any) => console.error('level_system #264 mongoDB error: ', error.name, error.reson));
             rply.text = "刪除升級語成功."
             return rply;
         }
@@ -277,9 +295,9 @@ const rollDiceCommand = async function ({
 
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('level_system #280 mongoDB error: ', error.name, error.reson));
+            }).catch((error: any) => console.error('level_system #280 mongoDB error: ', error.name, error.reson));
             doc.LevelUpWord = inputStr.replace(/\s?.*\s+\w+\s+/i, '');
-            await doc.save().catch(error => console.error('level_system #282 mongoDB error: ', error.name, error.reson));
+            await doc.save().catch((error: any) => console.error('level_system #282 mongoDB error: ', error.name, error.reson));
             rply.text = "新增升級語成功.\n" + inputStr.replace(/\s?.*\s+\w+\s+/i, '');
 
             return rply;
@@ -291,7 +309,7 @@ const rollDiceCommand = async function ({
             }
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('level_system #294 mongoDB error: ', error.name, error.reson));
+            }).catch((error: any) => console.error('level_system #294 mongoDB error: ', error.name, error.reson));
             if (!doc || !doc.RankWord) {
                 rply.text = '正在使用預設查詢語. ';
                 return rply;
@@ -311,7 +329,7 @@ const rollDiceCommand = async function ({
 
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('level_system #314 mongoDB error: ', error.name, error.reson));
+            }).catch((error: any) => console.error('level_system #314 mongoDB error: ', error.name, error.reson));
             doc.RankWord = "";
             await doc.save();
             rply.text = "刪除查詢語成功."
@@ -328,7 +346,7 @@ const rollDiceCommand = async function ({
 
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('level_system #332 mongoDB error: ', error.name, error.reson));
+            }).catch((error: any) => console.error('level_system #332 mongoDB error: ', error.name, error.reson));
             doc.RankWord = inputStr.replace(/\s?.*\s+\w+\s+/i, '');
             await doc.save();
             rply.text = "新增查詢語成功.\n" + inputStr.replace(/\s?.*\s+\w+\s+/i, '');
@@ -341,7 +359,7 @@ const rollDiceCommand = async function ({
             }
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('level_system #345 mongoDB error: ', error.name, error.reson));
+            }).catch((error: any) => console.error('level_system #345 mongoDB error: ', error.name, error.reson));
             rply.text = '現在設定: ' + '\n經驗值功能: ';
             rply.text += (doc && doc.SwitchV2) ? '啓動\n升級通知功能: ' : '關閉\n升級通知功能: ';
             rply.text += (doc && doc.HiddenV2) ? '啓動' : '關閉';
@@ -366,7 +384,7 @@ const rollDiceCommand = async function ({
             }
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('level_system #370 mongoDB error: ', error.name, error.reson));
+            }).catch((error: any) => console.error('level_system #370 mongoDB error: ', error.name, error.reson));
             if (!doc) {
                 doc = new schema.trpgLevelSystem({
                     groupid: groupid
@@ -377,7 +395,8 @@ const rollDiceCommand = async function ({
                     doc.SwitchV2 = false;
                     doc.HiddenV2 = false;
                     await doc.save();
-                    let temp = tempSwitchV2.tempSwitchV2.find(function (group) {
+                    // @ts-expect-error TS(2339): Property 'tempSwitchV2' does not exist on type '{ ... Remove this comment to see the full error message
+                    let temp = tempSwitchV2.tempSwitchV2.find(function (group: any) {
                         return group.groupid == groupid;
                     });
                     temp.SwitchV2 = false;
@@ -387,7 +406,8 @@ const rollDiceCommand = async function ({
                     doc.SwitchV2 = false;
                     doc.HiddenV2 = true;
                     await doc.save();
-                    let temp = tempSwitchV2.tempSwitchV2.find(function (group) {
+                    // @ts-expect-error TS(2339): Property 'tempSwitchV2' does not exist on type '{ ... Remove this comment to see the full error message
+                    let temp = tempSwitchV2.tempSwitchV2.find(function (group: any) {
                         return group.groupid == groupid;
                     });
                     temp.SwitchV2 = false;
@@ -397,7 +417,8 @@ const rollDiceCommand = async function ({
                     doc.SwitchV2 = true;
                     doc.HiddenV2 = true;
                     await doc.save();
-                    let temp = tempSwitchV2.tempSwitchV2.find(function (group) {
+                    // @ts-expect-error TS(2339): Property 'tempSwitchV2' does not exist on type '{ ... Remove this comment to see the full error message
+                    let temp = tempSwitchV2.tempSwitchV2.find(function (group: any) {
                         return group.groupid == groupid;
                     });
                     temp.SwitchV2 = true;
@@ -407,7 +428,8 @@ const rollDiceCommand = async function ({
                     doc.SwitchV2 = true;
                     doc.HiddenV2 = false;
                     await doc.save();
-                    let temp = tempSwitchV2.tempSwitchV2.find(function (group) {
+                    // @ts-expect-error TS(2339): Property 'tempSwitchV2' does not exist on type '{ ... Remove this comment to see the full error message
+                    let temp = tempSwitchV2.tempSwitchV2.find(function (group: any) {
                         return group.groupid == groupid;
                     });
                     temp.SwitchV2 = true;
@@ -439,7 +461,7 @@ const rollDiceCommand = async function ({
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid,
                 SwitchV2: true
-            }).catch(error => {
+            }).catch((error: any) => {
                 console.error('level_system #442 mongoDB error: ', error.name, error.reson)
                 checkMongodb.dbErrOccurs();
             });
@@ -453,9 +475,9 @@ const rollDiceCommand = async function ({
                 groupid: groupid
             }).sort({
                 EXP: -1
-            }).catch(error => console.error('level_system #453 mongoDB error: ', error.name, error.reson));
+            }).catch((error: any) => console.error('level_system #453 mongoDB error: ', error.name, error.reson));
             //要尋找其中自己的userid
-            let myselfIndex = docMember.map(function (members) {
+            let myselfIndex = docMember.map(function (members: any) {
                 return members.userid;
             }).indexOf(userid.toString());
             if (myselfIndex < 0) {
@@ -496,7 +518,7 @@ const rollDiceCommand = async function ({
 
             rply.text = rankWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count).replace(/{user.title}/ig, userTitle)
             if (rply.text.match(/{user.displayName}/ig)) {
-                let userDisplayName = await getDisplayName(discordMessage) || username || "無名";
+                let userDisplayName = (await getDisplayName(discordMessage)) || username || "無名";
                 rply.text = rply.text.replace(/{user.displayName}/ig, userDisplayName)
             }
             return rply;
@@ -517,7 +539,7 @@ const rollDiceCommand = async function ({
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid,
                 SwitchV2: true
-            }).catch(error => console.error('level_system #514 mongoDB error: ', error.name, error.reson));
+            }).catch((error: any) => console.error('level_system #514 mongoDB error: ', error.name, error.reson));
             if (!doc || !doc.SwitchV2) {
                 rply.text = '此群組並有沒有開啓LEVEL功能. \n.level config 11 代表啓動功能 \
                     \n 數字11代表等級升級時會進行通知，10代表不會自動通知，\
@@ -528,25 +550,27 @@ const rollDiceCommand = async function ({
                 groupid: groupid
             }).sort({
                 EXP: -1
-            }).limit(RankNumber).catch(error => console.error('level_system #525 mongoDB error: ', error.name, error.reson));
+            }).limit(RankNumber).catch((error: any) => console.error('level_system #525 mongoDB error: ', error.name, error.reson));
             if (docMember.length < 1) {
                 rply.text = '此群組未有足夠資料\n'
                 return rply;
             }
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
+            // @ts-expect-error TS(2554): Expected 5 arguments, but got 4.
             rply.text = await rankingList(doc, docMember, RankNumber, "群組排行榜");
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^showMeAtTheWorld$/i.test(mainMsg[1]): {
             //顯示自己的排名
             let myExp = await schema.trpgLevelSystemMember.findOne({ groupid: groupid, userid: userid })
-                .catch(error => console.error('level_system #537 mongoDB error: ', error.name, error.reson));
+                .catch((error: any) => console.error('level_system #537 mongoDB error: ', error.name, error.reson));
             if (!myExp || !myExp.EXP) {
                 rply.text = "未有找到你的資料，請檢查有沒有開啓經驗值功能";
                 return rply;
             }
             let docMember = await schema.trpgLevelSystemMember.find({ EXP: { $gt: myExp.EXP } }).countDocuments()
-                .catch(error => console.error('level_system #543 mongoDB error: ', error.name, error.reson));
+                .catch((error: any) => console.error('level_system #543 mongoDB error: ', error.name, error.reson));
             rply.text = `你現在的世界排名是第${docMember + 1}名`
             return rply;
 
@@ -562,13 +586,14 @@ const rollDiceCommand = async function ({
             }
             let docMember = await schema.trpgLevelSystemMember.find({}, { name: 1, EXP: 1, Level: 1 }).sort({
                 EXP: -1
-            }).limit(RankNumber).catch(error => console.error('level_system #559 mongoDB error: ', error.name, error.reson));
-            let docMemberCount = await schema.trpgLevelSystemMember.countDocuments({}).catch(error => console.error('level_system #560 mongoDB error: ', error.name, error.reson));
+            }).limit(RankNumber).catch((error: any) => console.error('level_system #559 mongoDB error: ', error.name, error.reson));
+            let docMemberCount = await schema.trpgLevelSystemMember.countDocuments({}).catch((error: any) => console.error('level_system #560 mongoDB error: ', error.name, error.reson));
 
             if (docMember.length < 1) {
                 rply.text = '此群組未有足夠資料\n'
                 return rply;
             }
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             rply.text = await rankingList({}, docMember, RankNumber, "世界排行榜", docMemberCount);
             return rply;
@@ -578,7 +603,7 @@ const rollDiceCommand = async function ({
             break;
     }
 
-    function setNew(a, result) {
+    function setNew(a: any, result: any) {
         let b = /-(\d+)\s+(\S+)/ig
         let e = /-(\d+)\s+(\S+)/
         //let f = [];
@@ -591,7 +616,9 @@ const rollDiceCommand = async function ({
         if (d)
             for (let i = 0; i < d.length; i++) {
                 //限制0-500以內
+                // @ts-expect-error TS(2531): Object is possibly 'null'.
                 if (d[i][1] && d[i][2] && d[i][1] <= 500 && d[i][1] >= 0)
+                    // @ts-expect-error TS(2531): Object is possibly 'null'.
                     result[d[i][1]] = d[i][2]
             }
 
@@ -601,7 +628,7 @@ const rollDiceCommand = async function ({
 
 
 
-    async function rankingList(gp, who, RankNumber, Title, docMemberCount) {
+    async function rankingList(gp: any, who: any, RankNumber: any, Title: any, docMemberCount: any) {
         let array = [];
         let answer = ""
         let tempTitleAll = gp.Title || [];
@@ -632,8 +659,8 @@ const rollDiceCommand = async function ({
                             answer += "└"
                         }
                 answer += "第" + (Number([b]) + 1) + "名 "
-                answer += "《" + await checkTitle(array[b].Level, tempTitleAll) + "》 "
-                answer += array[b].name + " " + array[b].Level + "級 " + await kMGTPE(parseInt(array[b].EXP), 1) + "經驗\n";
+                answer += "《" + (await checkTitle(array[b].Level, tempTitleAll)) + "》 "
+                answer += array[b].name + " " + array[b].Level + "級 " + (await kMGTPE(parseInt(array[b].EXP), 1)) + "經驗\n";
             }
         }
         return answer;
@@ -641,7 +668,7 @@ const rollDiceCommand = async function ({
     }
 
     //將千位以上變成約數
-    async function kMGTPE(num, fixed) {
+    async function kMGTPE(num: any, fixed: any) {
         if (num === null) {
             return null;
         } // terminate early
@@ -659,6 +686,7 @@ const rollDiceCommand = async function ({
 }
 
 
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,
@@ -671,7 +699,7 @@ module.exports = {
 };
 
 
-async function getDisplayName(message) {
+async function getDisplayName(message: any) {
     if (!message) return;
     const member = await message.guild.members.fetch(message.author)
     let nickname = member ? member.displayName : message.author.username;

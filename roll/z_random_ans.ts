@@ -1,33 +1,48 @@
 "use strict";
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 if (!process.env.mongoURL) {
+    // @ts-expect-error TS(1108): A 'return' statement can only be used within a fun... Remove this comment to see the full error message
     return;
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'checkMongo... Remove this comment to see the full error message
 const checkMongodb = require('../modules/dbWatchdog.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'adminSecre... Remove this comment to see the full error message
 const adminSecret = process.env.ADMIN_SECRET;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'rollbase'.
 const rollbase = require('./rollbase.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'schema'.
 const schema = require('../modules/schema.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'checkTools... Remove this comment to see the full error message
 const checkTools = require('../modules/check.js');
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 exports.z_Level_system = require('./z_Level_system');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'opt'.
 const opt = {
     upsert: true,
     runValidators: true
 }
 
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'VIP'.
 const VIP = require('../modules/veryImportantPerson');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'FUNCTION_L... Remove this comment to see the full error message
 const FUNCTION_LIMIT = [30, 200, 200, 500, 500, 500, 500, 500];
 const FUNCTION_LIMIT_PERSONAL = [2, 200, 200, 500, 500, 500, 500, 500];
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'gameName'.
 const gameName = function () {
     return '【自定義骰子/回應功能】 .ra(p)(s)(次數) (add del show 自定骰子名稱)'
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'gameType'.
 const gameType = function () {
     return 'funny:randomAns:hktrpg'
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'prefixs'.
 const prefixs = function () {
     return [{
         first: /(^[.](r|)ra(\d+|p|p\d+|s|s\d+|)$)/ig,
         second: null
-    }]
+    }];
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'getHelpMes... Remove this comment to see the full error message
 const getHelpMessage = async function () {
     return `【自定義骰子/回應功能】
 這是根據骰子名稱來隨機抽選功能,只要符合內容,以後就會隨機擲骰
@@ -73,6 +88,7 @@ add 後面第一個是骰子名稱, 可以是漢字,數字和英文或emoji
 * {my.level}    <---顯示擲骰者等級
 `
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'initialize... Remove this comment to see the full error message
 const initialize = function () {
     return;
 }
@@ -89,15 +105,19 @@ const initialize = function () {
  * {my.title}<---顯示擲骰者稱號
  * {my.level}<---顯示擲骰者等級
  */
-const rollDiceCommand = async function ({
-    mainMsg,
-    groupid,
-    userrole,
-    userid,
-    displayname,
-    displaynameDiscord,
-    membercount
-}) {
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'rollDiceCo... Remove this comment to see the full error message
+const rollDiceCommand = async function(
+    this: any,
+    {
+        mainMsg,
+        groupid,
+        userrole,
+        userid,
+        displayname,
+        displaynameDiscord,
+        membercount
+    }: any
+) {
     let rply = {
         default: 'on',
         type: 'text',
@@ -106,7 +126,7 @@ const rollDiceCommand = async function ({
     let times = [];
     let lv;
     let limit = FUNCTION_LIMIT[0];
-    let getData;
+    let getData: any;
     let check;
     let temp;
     let filter;
@@ -115,6 +135,7 @@ const rollDiceCommand = async function ({
 
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = await this.getHelpMessage();
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             return rply;
         case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]): {
@@ -139,9 +160,9 @@ const rollDiceCommand = async function ({
                     return rply;
                 }
 
-                getData = await schema.randomAns.findOne({ groupid: groupid }).catch(error => console.error('randomans #137 mongoDB error: ', error.name, error.reson));
+                getData = await schema.randomAns.findOne({ groupid: groupid }).catch((error: any) => console.error('randomans #137 mongoDB error: ', error.name, error.reson));
                 let update = false;
-                let findIndex = getData && getData.randomAnsfunction.findIndex((e) => {
+                let findIndex = getData && getData.randomAnsfunction.findIndex((e: any) => {
                     return e && e[0] && e[0].toLowerCase() == mainMsg[2].toLowerCase()
                 })
                 if (findIndex >= 0 && findIndex != null) {
@@ -170,7 +191,7 @@ const rollDiceCommand = async function ({
                     groupid: groupid
                 }, {
                     $push: temp, new: true
-                }, opt).catch(error => console.error('randomans #168 mongoDB error: ', error.name, error.reson));
+                }, opt).catch((error: any) => console.error('randomans #168 mongoDB error: ', error.name, error.reson));
                 if (check.modifiedCount || check.upsertedCount) {
                     rply.text = `新增成功: \n輸入 .ra ${mainMsg[2]}  \n即可使用\n再輸入.ra add ${mainMsg[2]} 可以添加內容`
                 } else rply.text = '新增失敗'
@@ -197,17 +218,17 @@ const rollDiceCommand = async function ({
             filter = {
                 groupid: groupid,
             };
-            getData = await schema.randomAns.findOne(filter).catch(error => console.error('randomans #189 mongoDB error: ', error.name, error.reson));
+            getData = await schema.randomAns.findOne(filter).catch((error: any) => console.error('randomans #189 mongoDB error: ', error.name, error.reson));
             if (!getData) {
                 rply.text += '沒有此骰子. '
                 return rply;
             }
-            temp = getData.randomAnsfunction.filter(e => e[0].toLowerCase() === mainMsg[2].toLowerCase());
+            temp = getData.randomAnsfunction.filter((e: any) => e[0].toLowerCase() === mainMsg[2].toLowerCase());
             if (temp.length == 0) {
                 rply.text += '沒有此骰子. \n現在已更新刪除方式, 刪除請輸入 .ra del 名字'
                 return rply;
             }
-            temp.forEach(f => getData.randomAnsfunction.splice(getData.randomAnsfunction.findIndex(e => e[0] === f[0]), 1));
+            temp.forEach((f: any) => getData.randomAnsfunction.splice(getData.randomAnsfunction.findIndex((e: any) => e[0] === f[0]), 1));
             check = await getData.save();
             if (check) {
                 rply.text += '刪除成功\n' + temp;
@@ -221,16 +242,19 @@ const rollDiceCommand = async function ({
                 rply.text += '此功能必須在群組中使用. '
                 return rply;
             }
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
-            getData = await schema.randomAns.findOne({ groupid: groupid }).catch(error => console.error('randomans #214 mongoDB error: ', error.name, error.reson));
+            getData = await schema.randomAns.findOne({ groupid: groupid }).catch((error: any) => console.error('randomans #214 mongoDB error: ', error.name, error.reson));
             if (!getData || getData.randomAnsfunction.length == 0) {
                 rply.text = '沒有已設定的骰子.\n本功能已改版，\n.rap 轉成個人專用的骰組，\n原全服群組(.rap)變成.ras\n .ra => random answer (group) \n.rap => random answer personal \n .ras => random answer server'
                 return rply
             }
             if (mainMsg[2]) {
-                temp = getData.randomAnsfunction.find(e => e[0].toLowerCase() == mainMsg[2].toLowerCase())
+                temp = getData.randomAnsfunction.find((e: any) => e[0].toLowerCase() == mainMsg[2].toLowerCase())
                 for (let i in temp) {
+                    // @ts-expect-error TS(2367): This condition will always return 'false' since th... Remove this comment to see the full error message
                     rply.text += (i == 0) ? '群組自定義骰子 ' + temp[i] + '\n' : '';
+                    // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                     rply.text += ((i % 2 && i != 1) && i !== 0) ? ("\n") + i + '. ' + temp[i] + "        " : (i == 0) ? '' : i + '. ' + temp[i] + "        ";
                 }
             }
@@ -239,6 +263,7 @@ const rollDiceCommand = async function ({
             }
             rply.text += '群組自定義骰子列表:';
             for (let a in getData.randomAnsfunction) {
+                // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                 rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + '. ' + getData.randomAnsfunction[a][0] : "     " + a + '. ' + getData.randomAnsfunction[a][0];
             }
             //顯示自定義關鍵字
@@ -252,15 +277,20 @@ const rollDiceCommand = async function ({
             if (!groupid) {
                 rply.text = '此功能必須在群組中使用. '
             }
+            // @ts-expect-error TS(2322): Type 'string | 1' is not assignable to type 'any[]... Remove this comment to see the full error message
             times = /^[.](r|)ra(\d+|)/i.exec(mainMsg[0])[2] || 1;
+            // @ts-expect-error TS(2531): Object is possibly 'null'.
             check = /^[.](r|)ra(\d+|)/i.exec(mainMsg[0])[1] || '';
+            // @ts-expect-error TS(2365): Operator '>' cannot be applied to types 'any[]' an... Remove this comment to see the full error message
             if (times > 30) times = 30;
+            // @ts-expect-error TS(2365): Operator '<' cannot be applied to types 'any[]' an... Remove this comment to see the full error message
             if (times < 1) times = 1
-            getData = await schema.randomAns.findOne({ groupid: groupid }).catch(error => console.error('randomans #248 mongoDB error: ', error.name, error.reson));
+            getData = await schema.randomAns.findOne({ groupid: groupid }).catch((error: any) => console.error('randomans #248 mongoDB error: ', error.name, error.reson));
             if (!getData) return;
             for (let i in mainMsg) {
+                // @ts-expect-error TS(2367): This condition will always return 'false' since th... Remove this comment to see the full error message
                 if (i == 0) continue;
-                temp = getData.randomAnsfunction.find(e => e[0].toLowerCase() == mainMsg[i].toLowerCase())
+                temp = getData.randomAnsfunction.find((e: any) => e[0].toLowerCase() == mainMsg[i].toLowerCase())
                 if (!temp && mainMsg[i].match(/^\d+$/)) {
                     temp = getData.randomAnsfunction[mainMsg[i]]
                 }
@@ -268,15 +298,17 @@ const rollDiceCommand = async function ({
                 if (check) {
                     //repeat mode
                     rply.text += temp[0] + ' → ';
+                    // @ts-expect-error TS(2365): Operator '<' cannot be applied to types 'number' a... Remove this comment to see the full error message
                     for (let num = 0; num < times; num++) {
                         let randomNumber = rollbase.Dice(temp.length - 1);
                         rply.text += (num == 0) ? temp[randomNumber] : ', ' + temp[randomNumber];
+                        // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                         rply.text += (num == times - 1) ? '\n' : '';
                     }
                 } else {
                     //not repeat mode
                     rply.text += temp[0] + ' → ';
-                    let items = [];
+                    let items: any = [];
                     let tempItems = [...temp]
                     tempItems.splice(0, 1);
                     if (tempItems.length === 0) continue;
@@ -290,8 +322,10 @@ const rollDiceCommand = async function ({
                             .map((a) => a.value)
                             .concat(items)
                     }
+                    // @ts-expect-error TS(2365): Operator '<' cannot be applied to types 'number' a... Remove this comment to see the full error message
                     for (let num = 0; num < times; num++) {
                         rply.text += (num == 0) ? items[num] : ', ' + items[num];
+                        // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                         rply.text += (num == times - 1) ? '\n' : '';
                     }
                 }
@@ -317,7 +351,7 @@ const rollDiceCommand = async function ({
                     rply.text = '新增失敗.\n' + rply.text;
                     return rply;
                 }
-                getData = await schema.randomAnsPersonal.findOne({ "title": { $regex: new RegExp('^' + escapeRegExp(mainMsg[2]) + '$', "i") }, "userid": userid }).catch(error => console.error('randomans #306 mongoDB error: ', error.name, error.reson));
+                getData = await schema.randomAnsPersonal.findOne({ "title": { $regex: new RegExp('^' + escapeRegExp(mainMsg[2]) + '$', "i") }, "userid": userid }).catch((error: any) => console.error('randomans #306 mongoDB error: ', error.name, error.reson));
                 const [, , , ...rest] = mainMsg;
                 const answerLength = getData && getData.answer.join('').length;
 
@@ -332,7 +366,7 @@ const rollDiceCommand = async function ({
                     return rply;
                 }
 
-                let list = await schema.randomAnsPersonal.find({ userid: userid }, 'serial').catch(error => console.error('randomans #321 mongoDB error: ', error.name, error.reson));
+                let list = await schema.randomAnsPersonal.find({ userid: userid }, 'serial').catch((error: any) => console.error('randomans #321 mongoDB error: ', error.name, error.reson));
                 if (list && list.length >= limit) {
                     rply.text = '個人骰子上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
                     return rply;
@@ -348,6 +382,7 @@ const rollDiceCommand = async function ({
                     rply.text = `新增成功  \n序號: ${checkResult.serial}\n標題: ${checkResult.title}\n內容: ${checkResult.answer}\n\n輸入 .rap ${checkResult.title}\n或 .rap ${checkResult.serial} \n再輸入.rap add ${mainMsg[2]} 可以添加內容`
                 } catch (error) {
                     rply.text = '新增失敗, 請稍後再試'
+                    // @ts-expect-error TS(2571): Object is of type 'unknown'.
                     console.error('randomans #331 mongoDB error: ', error.name, error.reson)
                 }
                 return rply;
@@ -356,9 +391,10 @@ const rollDiceCommand = async function ({
             //
             //顯示列表
             //
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             if (mainMsg[2]) {
-                temp = await schema.randomAnsPersonal.findOne({ "title": { $regex: new RegExp('^' + escapeRegExp(mainMsg[2]) + '$', "i") }, "userid": userid }).catch(error => console.error('randomans #346 mongoDB error: ', error.name, error.reson));
+                temp = await schema.randomAnsPersonal.findOne({ "title": { $regex: new RegExp('^' + escapeRegExp(mainMsg[2]) + '$', "i") }, "userid": userid }).catch((error: any) => console.error('randomans #346 mongoDB error: ', error.name, error.reson));
                 if (!temp) {
                     rply.text = '找不到該骰子名稱, 請重新檢查'
                     return rply;
@@ -366,18 +402,21 @@ const rollDiceCommand = async function ({
                 rply.text += `自定義骰子  \n標題: ${temp.title} \n`
                 let tempanswer = temp.answer;
                 for (let i in tempanswer) {
+                    // @ts-expect-error TS(2367): This condition will always return 'false' since th... Remove this comment to see the full error message
                     rply.text += (i == 0) ? '#' + i + '. ' + tempanswer[i] + '\n' : '';
+                    // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                     rply.text += ((i % 2 && i != 1) && i !== 0) ? ("\n") + '#' + i + '. ' + tempanswer[i] + "        " : (i == 0) ? '' : '#' + i + '. ' + tempanswer[i] + "        ";
                 }
                 return rply;
             }
-            getData = await schema.randomAnsPersonal.find({ "userid": userid }).catch(error => console.error('randomans #359 mongoDB error: ', error.name, error.reson));
+            getData = await schema.randomAnsPersonal.find({ "userid": userid }).catch((error: any) => console.error('randomans #359 mongoDB error: ', error.name, error.reson));
             if (!getData || getData.length == 0) {
                 rply.text = '沒有已設定的骰子.\n本功能已改版，\n.rap 轉成個人專用的骰組，\n原全服群組(.rap)變成.ras\n .ra => random answer (group) \n.rap => random answer personal \n .ras => random answer server'
                 return rply
             }
             rply.text += '個人自定義骰子列表';
             for (let a in getData) {
+                // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                 rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + '#' + getData[a].serial + '. ' + getData[a].title : "     " + '#' + getData[a].serial + '. ' + getData[a].title;
             }
             //顯示自定義關鍵字
@@ -387,10 +426,11 @@ const rollDiceCommand = async function ({
 
         case /(^[.]rap$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]):
             {
+                // @ts-expect-error TS(2488): Type 'string | any[] | undefined' must have a '[Sy... Remove this comment to see the full error message
                 const [, , ...target] = escapeRegExp(mainMsg);
                 let dataList = await schema.randomAnsPersonal.deleteMany(
                     { "title": { $regex: new RegExp('^(' + target.join('|') + ')$', "i") }, "userid": userid }
-                ).catch(error => console.error('randomans #378 mongoDB error: ', error.name, error.reson));
+                ).catch((error: any) => console.error('randomans #378 mongoDB error: ', error.name, error.reson));
                 rply.text = dataList.n + ' 項已已刪除';
                 return rply
             }
@@ -398,9 +438,13 @@ const rollDiceCommand = async function ({
             //
             //rap使用抽選功能
             //
+            // @ts-expect-error TS(2322): Type 'string | 1' is not assignable to type 'any[]... Remove this comment to see the full error message
             times = /^[.](r|)rap(\d+|)/i.exec(mainMsg[0])[2] || 1;
+            // @ts-expect-error TS(2531): Object is possibly 'null'.
             let repeat = /^[.](r|)rap(\d+|)/i.exec(mainMsg[0])[1] || '';
+            // @ts-expect-error TS(2365): Operator '>' cannot be applied to types 'any[]' an... Remove this comment to see the full error message
             if (times > 30) times = 30;
+            // @ts-expect-error TS(2365): Operator '<' cannot be applied to types 'any[]' an... Remove this comment to see the full error message
             if (times < 1) times = 1
             const [, ...target] = escapeRegExp(mainMsg);
             getData = await schema.randomAnsPersonal.find(
@@ -410,7 +454,7 @@ const rollDiceCommand = async function ({
                         { "title": { $regex: new RegExp(`^(${target.join('|')})$`, "i") } },
                         { "serial": isNumber(target) }]
                 }
-            ).catch(error => console.error('randomans #398 mongoDB error: ', error.name, error.reson));
+            ).catch((error: any) => console.error('randomans #398 mongoDB error: ', error.name, error.reson));
             if (!getData || getData.length == 0) {
                 rply.text = '沒有這骰子, 請重新再試.\n本功能已改版，\n.rap 轉成個人專用的骰組，\n原全服群組(.rap)變成.ras\n .ra => random answer (group) \n.rap => random answer personal \n .ras => random answer server'
                 return rply
@@ -420,15 +464,17 @@ const rollDiceCommand = async function ({
                 if (repeat) {
                     //repeat mode
                     rply.text += temp.title + ' → ';
+                    // @ts-expect-error TS(2365): Operator '<' cannot be applied to types 'number' a... Remove this comment to see the full error message
                     for (let num = 0; num < times; num++) {
                         let randomNumber = rollbase.Dice(temp.answer.length - 1);
                         rply.text += (num == 0) ? temp.answer[randomNumber] : ', ' + temp.answer[randomNumber];
+                        // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                         rply.text += (num == times - 1) ? '\n' : '';
                     }
                 } else {
                     //not repeat mode
                     rply.text += temp.title + ' → ';
-                    let items = [];
+                    let items: any = [];
                     let tempItems = [...temp.answer]
                     if (tempItems.length === 0) continue;
                     while (items.length < times) {
@@ -441,8 +487,10 @@ const rollDiceCommand = async function ({
                             .map((a) => a.value)
                             .concat(items)
                     }
+                    // @ts-expect-error TS(2365): Operator '<' cannot be applied to types 'number' a... Remove this comment to see the full error message
                     for (let num = 0; num < times; num++) {
                         rply.text += (num == 0) ? items[num] : ', ' + items[num];
+                        // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                         rply.text += (num == times - 1) ? '\n' : '';
                     }
                 }
@@ -466,7 +514,7 @@ const rollDiceCommand = async function ({
                     rply.text = '新增失敗.\n' + rply.text;
                     return rply;
                 }
-                getData = await schema.randomAnsServer.findOne({ "title": { $regex: new RegExp('^' + escapeRegExp(mainMsg[2]) + '$', "i") } }).catch(error => console.error('randomans #451 mongoDB error: ', error.name, error.reson));
+                getData = await schema.randomAnsServer.findOne({ "title": { $regex: new RegExp('^' + escapeRegExp(mainMsg[2]) + '$', "i") } }).catch((error: any) => console.error('randomans #451 mongoDB error: ', error.name, error.reson));
                 if (getData) {
                     rply.text = '新增失敗. 和現存的骰子重複了名稱'
                     return rply;
@@ -488,6 +536,7 @@ const rollDiceCommand = async function ({
                     rply.text = `新增成功  \n序號: ${checkResult.serial}\n標題: ${checkResult.title}\n內容: ${checkResult.answer}\n\n輸入 .ras ${checkResult.title}\n或 .ras ${checkResult.serial} \n即可使用`
                 } catch (error) {
                     rply.text = '新增失敗'
+                    // @ts-expect-error TS(2571): Object is of type 'unknown'.
                     console.error('randomans #463 mongoDB error: ', error.name, error.reson)
                 }
                 return rply;
@@ -496,9 +545,10 @@ const rollDiceCommand = async function ({
             //
             //顯示列表
             //
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             if (mainMsg[2]) {
-                temp = await schema.randomAnsServer.findOne({ "title": { $regex: new RegExp('^' + escapeRegExp(mainMsg[2]) + '$', "i") } }).catch(error => console.error('randomans #482 mongoDB error: ', error.name, error.reson));
+                temp = await schema.randomAnsServer.findOne({ "title": { $regex: new RegExp('^' + escapeRegExp(mainMsg[2]) + '$', "i") } }).catch((error: any) => console.error('randomans #482 mongoDB error: ', error.name, error.reson));
                 if (!temp) {
                     rply.text = '找不到這骰子名稱, 請重新檢查'
                     return rply;
@@ -506,18 +556,21 @@ const rollDiceCommand = async function ({
                 rply.text += `自定義骰子  \n標題: ${temp.title} \n`
                 let tempanswer = temp.answer;
                 for (let i in tempanswer) {
+                    // @ts-expect-error TS(2367): This condition will always return 'false' since th... Remove this comment to see the full error message
                     rply.text += (i == 0) ? '#' + i + '. ' + tempanswer[i] + '\n' : '';
+                    // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                     rply.text += ((i % 2 && i != 1) && i !== 0) ? ("\n") + '#' + i + '. ' + tempanswer[i] + "        " : (i == 0) ? '' : '#' + i + '. ' + tempanswer[i] + "        ";
                 }
                 return rply;
             }
-            getData = await schema.randomAnsServer.find({}).catch(error => console.error('randomans #495 mongoDB error: ', error.name, error.reson));
+            getData = await schema.randomAnsServer.find({}).catch((error: any) => console.error('randomans #495 mongoDB error: ', error.name, error.reson));
             if (!getData || getData.length == 0) {
                 rply.text = '沒有已設定的骰子.\n本功能已改版，\n.rap 轉成個人專用的骰組，\n原全服群組(.rap)變成.ras\n .ra => random answer (group) \n.rap => random answer personal \n .ras => random answer server'
                 return rply
             }
             rply.text += '全HKTRPG自定義骰子列表';
             for (let a in getData) {
+                // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                 rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + '#' + getData[a].serial + '. ' + getData[a].title : "     " + '#' + getData[a].serial + '. ' + getData[a].title;
             }
             //顯示自定義關鍵字
@@ -528,7 +581,7 @@ const rollDiceCommand = async function ({
             {
                 if (!adminSecret) return rply;
                 if (userid !== adminSecret) return rply;
-                let allData = await schema.randomAnsAllgroup.findOne({}).catch(error => console.error('randomans #512 mongoDB error: ', error.name, error.reson));
+                let allData = await schema.randomAnsAllgroup.findOne({}).catch((error: any) => console.error('randomans #512 mongoDB error: ', error.name, error.reson));
                 let dataList = allData.randomAnsAllgroup;
 
                 for (let index = 0; index < dataList.length; index++) {
@@ -539,7 +592,7 @@ const rollDiceCommand = async function ({
                         answer: rest,
                         serial: index + 1
                     })
-                    await newAnswer.save().catch(error => console.error('randomans #523 mongoDB error: ', error.name, error.reson));
+                    await newAnswer.save().catch((error: any) => console.error('randomans #523 mongoDB error: ', error.name, error.reson));
 
                 }
                 rply.text = dataList.length + ' Done';
@@ -554,7 +607,7 @@ const rollDiceCommand = async function ({
                     {
                         "serial": isNumber(target)
                     }
-                ).catch(error => console.error('randomans #538 mongoDB error: ', error.name, error.reson));
+                ).catch((error: any) => console.error('randomans #538 mongoDB error: ', error.name, error.reson));
                 rply.text = dataList.n + ' Done';
                 return rply
             }
@@ -562,9 +615,13 @@ const rollDiceCommand = async function ({
             //
             //ras使用抽選功能
             //
+            // @ts-expect-error TS(2322): Type 'string | 1' is not assignable to type 'any[]... Remove this comment to see the full error message
             times = /^[.](r|)ras(\d+|)/i.exec(mainMsg[0])[2] || 1;
+            // @ts-expect-error TS(2531): Object is possibly 'null'.
             let repeat = /^[.](r|)ras(\d+|)/i.exec(mainMsg[0])[1] || '';
+            // @ts-expect-error TS(2365): Operator '>' cannot be applied to types 'any[]' an... Remove this comment to see the full error message
             if (times > 30) times = 30;
+            // @ts-expect-error TS(2365): Operator '<' cannot be applied to types 'any[]' an... Remove this comment to see the full error message
             if (times < 1) times = 1
             const [, ...target] = escapeRegExp(mainMsg);
             getData = await schema.randomAnsServer.find(
@@ -573,7 +630,7 @@ const rollDiceCommand = async function ({
                         { "title": { $regex: new RegExp(`^(${target.join('|')})$`, "i") } },
                         { "serial": isNumber(target) }]
                 }
-            ).catch(error => console.error('randomans #557 mongoDB error: ', error.name, error.reson));
+            ).catch((error: any) => console.error('randomans #557 mongoDB error: ', error.name, error.reson));
             if (!getData || getData.length == 0) {
                 rply.text = '沒有這骰子名稱, 請重新再試.\n本功能已改版，\n.rap 轉成個人專用的骰組，\n原全服群組(.rap)變成.ras\n .ra => random answer (group) \n.rap => random answer personal \n .ras => random answer server'
                 return rply
@@ -583,15 +640,17 @@ const rollDiceCommand = async function ({
                 if (repeat) {
                     //repeat mode
                     rply.text += temp.title + ' → ';
+                    // @ts-expect-error TS(2365): Operator '<' cannot be applied to types 'number' a... Remove this comment to see the full error message
                     for (let num = 0; num < times; num++) {
                         let randomNumber = rollbase.Dice(temp.answer.length - 1);
                         rply.text += (num == 0) ? temp.answer[randomNumber] : ', ' + temp.answer[randomNumber];
+                        // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                         rply.text += (num == times - 1) ? '\n' : '';
                     }
                 } else {
                     //not repeat mode
                     rply.text += temp.title + ' → ';
-                    let items = [];
+                    let items: any = [];
                     let tempItems = [...temp.answer]
                     if (tempItems.length === 0) continue;
                     while (items.length < times) {
@@ -604,8 +663,10 @@ const rollDiceCommand = async function ({
                             .map((a) => a.value)
                             .concat(items)
                     }
+                    // @ts-expect-error TS(2365): Operator '<' cannot be applied to types 'number' a... Remove this comment to see the full error message
                     for (let num = 0; num < times; num++) {
                         rply.text += (num == 0) ? items[num] : ', ' + items[num];
+                        // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                         rply.text += (num == times - 1) ? '\n' : '';
                     }
                 }
@@ -618,16 +679,18 @@ const rollDiceCommand = async function ({
             break;
     }
 
-    async function replacer(first, second) {
+    async function replacer(first: any, second: any) {
         let temp = '',
             num = 0,
             temp2 = '';
         switch (true) {
             case /^ran:\d+/i.test(second):
+                // @ts-expect-error TS(2322): Type 'RegExpExecArray | null' is not assignable to... Remove this comment to see the full error message
                 temp = /^ran:(\d+)/i.exec(second)
                 if (!temp || !temp[1]) return ' ';
                 return rollbase.Dice(temp[1]) || ' ';
             case /^random:\d+/i.test(second):
+                // @ts-expect-error TS(2322): Type 'RegExpExecArray | null' is not assignable to... Remove this comment to see the full error message
                 temp = /^random:(\d+)-(\d+)/i.exec(second)
                 if (!temp || !temp[1] || !temp[2]) return ' ';
                 return rollbase.DiceINT(temp[1], temp[2]) || ' ';
@@ -636,16 +699,21 @@ const rollDiceCommand = async function ({
                 if (!temp) return ' ';
                 num = rollbase.DiceINT(0, temp.length - 1)
                 num = (num < 1) ? 0 : num;
+                // @ts-expect-error TS(2339): Property 'name' does not exist on type 'string'.
                 temp = (temp && temp[num] && temp[num].name) ? temp[num].name : ' ';
                 return temp || ' ';
             // * {allgp.name} <---隨機全GP其中一人名字
             case /^allgp.title$/i.test(second):
+                // @ts-expect-error TS(2554): Expected 1 arguments, but got 5.
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
                 if (!temp) return ' ';
+                // @ts-expect-error TS(2339): Property 'Title' does not exist on type 'string'.
                 if (temp.Title.length == 0) {
+                    // @ts-expect-error TS(2339): Property 'Title' does not exist on type 'string'.
                     temp.Title = exports.z_Level_system.Title();
                 }
-                temp2 = await temp.Title.filter(function (item) {
+                // @ts-expect-error TS(2339): Property 'Title' does not exist on type 'string'.
+                temp2 = await temp.Title.filter(function (item: any) {
                     return item;
                 });
                 num = rollbase.DiceINT(0, temp2.length - 1)
@@ -665,6 +733,7 @@ const rollDiceCommand = async function ({
                 temp2 = await ranking(userid, gpMember)
                 if (!temp2) return ' ';
                 num = (temp && gpMember.length) ? Math.max(membercount, gpMember.length) : membercount;
+                // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                 temp2 = Math.ceil(temp2 / num * 10000) / 100 + '%';
                 return temp2 || ' ';
             }
@@ -672,28 +741,36 @@ const rollDiceCommand = async function ({
                 let gpMember = await findGpMember(groupid);
                 //* {my.Ranking} 顯示擲骰者現在排名 \
                 if (!gpMember) return ' ';
-                return await ranking(userid, gpMember) || ' ';
+                return (await ranking(userid, gpMember)) || ' ';
             }
             case /^my.exp$/i.test(second):
                 //* {my.exp} 顯示擲骰者經驗值
+                // @ts-expect-error TS(2554): Expected 1 arguments, but got 5.
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
                 temp2 = await findUser(groupid, userid);
+                // @ts-expect-error TS(2339): Property 'EXP' does not exist on type 'string'.
                 if (!temp || !temp2 || !temp2.EXP) return ' ';
+                // @ts-expect-error TS(2339): Property 'EXP' does not exist on type 'string'.
                 return temp2.EXP || ' ';
             case /^my.name$/i.test(second):
                 //* {my.name} <---顯示擲骰者名字
                 return displaynameDiscord || displayname || "無名";
             case /^my.title$/i.test(second):
                 // * {my.title}<---顯示擲骰者稱號
+                // @ts-expect-error TS(2554): Expected 1 arguments, but got 5.
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
                 temp2 = await findUser(groupid, userid);
+                // @ts-expect-error TS(2339): Property 'Level' does not exist on type 'string'.
                 if (!temp || !temp2 || !temp2.Level || !temp.Title) return ' ';
                 //   let userTitle = await this.checkTitle(userlevel, trpgLevelSystemfunction.trpgLevelSystemfunction[i].Title);
-                return await exports.z_Level_system.checkTitle(temp2.Level, temp.Title) || ' ';
+                // @ts-expect-error TS(2304): Cannot find name 'exports'.
+                return (await exports.z_Level_system.checkTitle(temp2.Level, temp.Title)) || ' ';
             case /^my.level$/i.test(second):
                 //* {my.level}<---顯示擲骰者等級
                 temp2 = await findUser(groupid, userid);
+                // @ts-expect-error TS(2339): Property 'Level' does not exist on type 'string'.
                 if (!temp2 || !temp2.Level) return ' ';
+                // @ts-expect-error TS(2339): Property 'Level' does not exist on type 'string'.
                 return temp2.Level || ' ';
             case /^br$/i.test(second):
                 temp = '\n'
@@ -706,44 +783,50 @@ const rollDiceCommand = async function ({
 }
 
 
-async function findGp(groupid) {
+// @ts-expect-error TS(2393): Duplicate function implementation.
+async function findGp(groupid: any) {
+    // @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
     if (!process.env.mongoURL || !groupid) {
         return;
     }
     //1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
     let gpInfo = await schema.trpgLevelSystem.findOne({
         groupid: groupid
-    }).catch(error => console.error('randomans #696 mongoDB error: ', error.name, error.reson));
+    }).catch((error: any) => console.error('randomans #696 mongoDB error: ', error.name, error.reson));
     if (!gpInfo || gpInfo.SwitchV2 != 1) return;
     // userInfo.name = displaynameDiscord || displayname || '無名'
     return gpInfo;
     //6 / 7 * LVL * (2 * LVL * LVL + 30 * LVL + 100)
 }
-async function findGpMember(groupid) {
+// @ts-expect-error TS(2393): Duplicate function implementation.
+async function findGpMember(groupid: any) {
+    // @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
     if (!process.env.mongoURL || !groupid) {
         return;
     }
     //1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
     let gpInfo = await schema.trpgLevelSystemMember.find({
         groupid: groupid
-    }).catch(error => console.error('randomans #709 mongoDB error: ', error.name, error.reson));
+    }).catch((error: any) => console.error('randomans #709 mongoDB error: ', error.name, error.reson));
     // userInfo.name = displaynameDiscord || displayname || '無名'
     return gpInfo;
     //6 / 7 * LVL * (2 * LVL * LVL + 30 * LVL + 100)
 }
 
-async function findUser(groupid, userid) {
+// @ts-expect-error TS(2393): Duplicate function implementation.
+async function findUser(groupid: any, userid: any) {
     if (!groupid || !userid) return;
     let userInfo = await schema.trpgLevelSystemMember.findOne({
         groupid: groupid,
         userid: userid
-    }).catch(error => console.error('randomans #720 mongoDB error: ', error.name, error.reson));
+    }).catch((error: any) => console.error('randomans #720 mongoDB error: ', error.name, error.reson));
     // userInfo.name = displaynameDiscord || displayname || '無名'
     return userInfo;
     //6 / 7 * LVL * (2 * LVL * LVL + 30 * LVL + 100)
 }
 
-async function ranking(who, data) {
+// @ts-expect-error TS(2393): Duplicate function implementation.
+async function ranking(who: any, data: any) {
     let array = [];
     let answer = "0";
     for (let key in data) {
@@ -761,15 +844,16 @@ async function ranking(who, data) {
     }
     for (let b = 0; b < array.length; b++) {
         if (array[b].userid == who)
+            // @ts-expect-error TS(2322): Type 'number' is not assignable to type 'string'.
             answer = b + 1;
 
     }
     return answer;
 }
 
-async function replaceAsync(str, regex, asyncFn) {
-    const promises = [];
-    str.replace(regex, (match, ...args) => {
+async function replaceAsync(str: any, regex: any, asyncFn: any) {
+    const promises: any = [];
+    str.replace(regex, (match: any, ...args: any[]) => {
         const promise = asyncFn(match, ...args);
         promises.push(promise);
     });
@@ -778,7 +862,8 @@ async function replaceAsync(str, regex, asyncFn) {
 }
 
 
-function findTheNextSerial(list) {
+// @ts-expect-error TS(2393): Duplicate function implementation.
+function findTheNextSerial(list: any) {
     if (list.length === 0) return 1;
     let serialList = []
     for (let index = 0; index < list.length; index++) {
@@ -796,7 +881,7 @@ function findTheNextSerial(list) {
     return serialList[list.length - 1] + 1;
 }
 
-function isNumber(list) {
+function isNumber(list: any) {
     let numberlist = [];
     for (let index = 0; index < list.length; index++) {
         let n = list[index];
@@ -806,7 +891,7 @@ function isNumber(list) {
     return numberlist;
 }
 
-function escapeRegExp(target) {
+function escapeRegExp(target: any) {
     if (typeof target == "string")
         return target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
     if (Array.isArray(target)) {
@@ -816,6 +901,7 @@ function escapeRegExp(target) {
         return target;
     }
 }
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,

@@ -1,14 +1,19 @@
 "use strict";
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 if (!process.env.WHATSAPP_SWITCH) {
+// @ts-expect-error TS(1108): A 'return' statement can only be used within a fun... Remove this comment to see the full error message
 	return;
 }
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 if (process.env.BROADCAST) {
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 	const WebSocket = require('ws');
 	const ws = new WebSocket('ws://127.0.0.1:53589');
 	ws.on('open', function open() {
 		console.log('connected To core-www from Whatsapp!')
 		ws.send('connected To core-www from Whatsapp!');
 	});
+// @ts-expect-error TS(7006): Parameter 'data' implicitly has an 'any' type.
 	ws.on('message', async function incoming(data) {
 		let object = JSON.parse(data);
 		if (object.botname == 'Whatsapp') {
@@ -19,11 +24,17 @@ if (process.env.BROADCAST) {
 		}
 	});
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'candle'.
 const candle = require('../modules/candleDays.js'); 
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const qrcode = require('qrcode-terminal');
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 const isHeroku = (process.env._ && process.env._.indexOf("heroku")) > 0 ? true : false;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'TargetGM'.
 let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'schema'.
 const schema = require('../modules/schema');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'opt'.
 const opt = {
 	upsert: true,
 	runValidators: true
@@ -31,22 +42,32 @@ const opt = {
 const herokuPuppeteer = { headless: true, 'executablePath': '/app/.apt/usr/bin/google-chrome-stable' };
 const normalPuppeteer = { headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] };
 
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'newMessage... Remove this comment to see the full error message
 const newMessage = require('./message');
 
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 exports.analytics = require('./analytics');
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 exports.z_stop = require('../roll/z_stop');
 const {
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'Client'.
 	Client, LocalAuth, MessageMedia
+// @ts-expect-error TS(2580): Cannot find name 'require'. Do you need to install... Remove this comment to see the full error message
 } = require('whatsapp-web.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'isImageURL... Remove this comment to see the full error message
 const isImageURL = require('image-url-validator').default;
-const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)$/i);
-const MESSAGE_SPLITOR = (/\S+/ig);
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'imageUrl'.
+const imageUrl = (((/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)$/i)));
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'MESSAGE_SP... Remove this comment to see the full error message
+const MESSAGE_SPLITOR = (((/\S+/ig)));
 // Path where the session data will be stored
 const SESSION_FILE_PATH = './modules/whatsapp-session.json';
 
 // Load the session data if it has been previously saved
+// @ts-expect-error TS(7034): Variable 'sessionData' implicitly has type 'any' i... Remove this comment to see the full error message
 let sessionData;
 const maxRetry = 6;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'retry'.
 let retry = 0;
 
 async function startUp() {
@@ -70,6 +91,7 @@ async function startUp() {
 	}
 	 */
 	const client = new Client({
+// @ts-expect-error TS(7005): Variable 'sessionData' implicitly has an 'any' typ... Remove this comment to see the full error message
 		session: sessionData || null,
 		authStrategy: new LocalAuth(),
 		puppeteer: (isHeroku) ? herokuPuppeteer : normalPuppeteer
@@ -113,6 +135,7 @@ if (retry > maxRetry) {
 */
 
 
+// @ts-expect-error TS(7006): Parameter 'qr' implicitly has an 'any' type.
 	client.on('qr', (qr) => {
 		// Generate and scan this code with your phone
 		console.log('QR RECEIVED\n', qr);
@@ -142,6 +165,7 @@ if (retry > maxRetry) {
 		to:"852******@c.us"
 		type:"chat"
 		*/
+// @ts-expect-error TS(7006): Parameter 'msg' implicitly has an 'any' type.
 	client.on('message', async msg => {
 		if (!msg.body || msg.fromMe || msg.isForwarded) return;
 		let displaynamecheck = true;
@@ -184,6 +208,7 @@ if (retry > maxRetry) {
 
 
 
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 		let target = exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
 		if (!target && privatemsg == 0) return null;
 		let userid, displayname, channelid, channelKeyword = '';
@@ -192,8 +217,11 @@ if (retry > maxRetry) {
 		//TRUE 即正常
 
 		let userrole = 3;
+// @ts-expect-error TS(7034): Variable 'TargetGMTempID' implicitly has type 'any... Remove this comment to see the full error message
 		let TargetGMTempID = [];
+// @ts-expect-error TS(7034): Variable 'TargetGMTempdiyName' implicitly has type... Remove this comment to see the full error message
 		let TargetGMTempdiyName = [];
+// @ts-expect-error TS(7034): Variable 'TargetGMTempdisplayname' implicitly has ... Remove this comment to see the full error message
 		let TargetGMTempdisplayname = [];
 
 		userid = msg.author;
@@ -212,6 +240,7 @@ if (retry > maxRetry) {
 
 		if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 			mainMsg.shift();
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 			rplyVal = await exports.analytics.parseInput({
 				inputStr: inputStr,
 				groupid: groupid,
@@ -224,6 +253,7 @@ if (retry > maxRetry) {
 			})
 		} else {
 			if (channelKeyword == '') {
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 				rplyVal = await exports.analytics.parseInput({
 					inputStr: inputStr,
 					groupid: groupid,
@@ -237,17 +267,22 @@ if (retry > maxRetry) {
 			}
 		}
 		//LevelUp功能
+// @ts-expect-error TS(2339): Property 'LevelUp' does not exist on type '{}'.
 		if (groupid && rplyVal && rplyVal.LevelUp) {
+// @ts-expect-error TS(2339): Property 'statue' does not exist on type '{}'.
 			let text = `@${displayname}${(rplyVal.statue) ? ' ' + rplyVal.statue : ''}${(candle.checker()) ? ' ' + candle.checker() : ''}
+// @ts-expect-error TS(2339): Property 'LevelUp' does not exist on type '{}'.
 			${rplyVal.LevelUp}`
 			client.sendMessage(msg.from, text);
 		}
+// @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
 		if (!rplyVal.text) {
 			return;
 		}
 		//TGcountroll++;
 		if (privatemsg > 1 && TargetGM) {
 			let groupInfo = privateMsgFinder(groupid) || [];
+// @ts-expect-error TS(7006): Parameter 'item' implicitly has an 'any' type.
 			groupInfo.forEach((item) => {
 				TargetGMTempID.push(item.userid);
 				TargetGMTempdiyName.push(item.diyName);
@@ -261,6 +296,7 @@ if (retry > maxRetry) {
 				if (groupid) {
 					SendDR(msg, "@" + displayname + '暗骰給自己');
 				}
+// @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
 				rplyVal.text = "@" + displayname + "的暗骰\n" + rplyVal.text
 				await SendToId(userid, rplyVal, client);
 				break;
@@ -269,14 +305,18 @@ if (retry > maxRetry) {
 				if (groupid) {
 					let targetGMNameTemp = "";
 					for (let i = 0; i < TargetGMTempID.length; i++) {
+// @ts-expect-error TS(7005): Variable 'TargetGMTempdiyName' implicitly has an '... Remove this comment to see the full error message
 						targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
 					}
 					SendDR(msg, "@" + displayname + '暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
 				}
+// @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
 				rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
 				await SendToId(msg.from, rplyVal, client);
 				for (let i = 0; i < TargetGMTempID.length; i++) {
+// @ts-expect-error TS(7005): Variable 'TargetGMTempID' implicitly has an 'any[]... Remove this comment to see the full error message
 					if (userid != TargetGMTempID[i])
+// @ts-expect-error TS(7005): Variable 'TargetGMTempID' implicitly has an 'any[]... Remove this comment to see the full error message
 						await SendToId(TargetGMTempID[i], rplyVal, client);
 				}
 				break;
@@ -285,12 +325,15 @@ if (retry > maxRetry) {
 				if (groupid) {
 					let targetGMNameTemp = "";
 					for (let i = 0; i < TargetGMTempID.length; i++) {
+// @ts-expect-error TS(7005): Variable 'TargetGMTempdiyName' implicitly has an '... Remove this comment to see the full error message
 						targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
 					}
 					SendDR(msg, "@" + displayname + '暗骰進行中 \n目標: ' + targetGMNameTemp);
 				}
+// @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
 				rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
 				for (let i = 0; i < TargetGMTempID.length; i++) {
+// @ts-expect-error TS(7005): Variable 'TargetGMTempID' implicitly has an 'any[]... Remove this comment to see the full error message
 					await SendToId(TargetGMTempID[i], rplyVal, client);
 				}
 				break;
@@ -304,6 +347,7 @@ if (retry > maxRetry) {
 		// msg.delete();
 	})
 
+// @ts-expect-error TS(7006): Parameter 'msg' implicitly has an 'any' type.
 	client.on('message_ack', async (msg, ack) => {
 		if (ack > 0) {
 			const chat = await msg.getChat();
@@ -311,6 +355,7 @@ if (retry > maxRetry) {
 		}
 	});
 
+// @ts-expect-error TS(7006): Parameter 'msg' implicitly has an 'any' type.
 	client.on('group_join', async (msg) => {
 		console.log("Whatsapp joined");
 		if (msg.client.info.me._serialized == msg.id.participant)
@@ -322,10 +367,12 @@ if (retry > maxRetry) {
 
 
 
+// @ts-expect-error TS(7006): Parameter 'msg' implicitly has an 'any' type.
 	async function SendDR(msg, text) {
 		return msg.reply(text);
 	}
 
+// @ts-expect-error TS(7006): Parameter 'msg' implicitly has an 'any' type.
 	async function SendToReply(msg, rplyVal) {
 		for (let i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 			if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
@@ -347,8 +394,10 @@ if (retry > maxRetry) {
 			}
 		}
 	}
+// @ts-expect-error TS(7006): Parameter 'channelid' implicitly has an 'any' type... Remove this comment to see the full error message
 	function privateMsgFinder(channelid) {
 		if (!TargetGM || !TargetGM.trpgDarkRollingfunction) return;
+// @ts-expect-error TS(7006): Parameter 'data' implicitly has an 'any' type.
 		let groupInfo = TargetGM.trpgDarkRollingfunction.find(data =>
 			data.groupid == channelid
 		)
@@ -356,6 +405,7 @@ if (retry > maxRetry) {
 			return groupInfo.trpgDarkRollingfunction
 		else return [];
 	}
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 	process.on('unhandledRejection', () => {
 
 	});
@@ -369,6 +419,7 @@ if (retry > maxRetry) {
 }
 startUp()
 
+// @ts-expect-error TS(7006): Parameter 'targetid' implicitly has an 'any' type.
 async function SendToId(targetid, rplyVal, client) {
 	for (let i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 		if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
@@ -391,12 +442,16 @@ async function SendToId(targetid, rplyVal, client) {
 	}
 }
 
+// @ts-expect-error TS(7006): Parameter 'mainMsg' implicitly has an 'any' type.
 function z_stop(mainMsg, groupid) {
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 	if (!Object.keys(exports.z_stop).length || !exports.z_stop.initialize().save || !mainMsg || !groupid) {
 		return false;
 	}
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 	let groupInfo = exports.z_stop.initialize().save.find(e => e.groupid == groupid)
 	if (!groupInfo || !groupInfo.blockfunction) return;
+// @ts-expect-error TS(7006): Parameter 'e' implicitly has an 'any' type.
 	let match = groupInfo.blockfunction.find(e => mainMsg[0].toLowerCase().includes(e.toLowerCase()))
 	if (match) {
 		return true;

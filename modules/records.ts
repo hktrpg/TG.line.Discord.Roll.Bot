@@ -2,18 +2,22 @@
 "use strict";
 const {
     EventEmitter
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 } = require("events");
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 require('events').EventEmitter.defaultMaxListeners = Infinity;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'schema'.
 const schema = require('./schema.js');
 let instance;
 let MAX = 100;
 const Message = schema.chatRoom;
 
 class Records extends EventEmitter {
+    emit: any;
     constructor() {
         super();
     }
-    set(dbbase, msg, callback) {
+    set(dbbase: any, msg: any, callback: any) {
         schema[dbbase].findOneAndUpdate({
             groupid: msg.groupid
         }, {
@@ -22,7 +26,7 @@ class Records extends EventEmitter {
             }
         }, {
             upsert: true
-        }, (err, doc) => {
+        }, (err: any, doc: any) => {
             if (err) {
                 console.error("Something wrong when updating data!");
             } else
@@ -31,7 +35,7 @@ class Records extends EventEmitter {
         });
     }
 
-    pushblockfunction(dbbase, msg, callback) {
+    pushblockfunction(dbbase: any, msg: any, callback: any) {
         /*
             提醒:
             $push 加入新的
@@ -46,7 +50,7 @@ class Records extends EventEmitter {
         }, {
             new: true,
             upsert: true
-        }, (err, doc) => {
+        }, (err: any, doc: any) => {
             if (err) {
                 console.error("Something wrong when updating data!");
             } else
@@ -55,7 +59,7 @@ class Records extends EventEmitter {
     }
 
     //randomAns開始
-    pushrandomAnsfunction(dbbase, msg, callback) {
+    pushrandomAnsfunction(dbbase: any, msg: any, callback: any) {
         /*
             提醒:
             $push 加入新的
@@ -70,14 +74,14 @@ class Records extends EventEmitter {
         }, {
             new: true,
             upsert: true
-        }, (err, doc) => {
+        }, (err: any, doc: any) => {
             if (err) {
                 console.error("Something wrong when updating data!");
             } else
                 callback();
         });
     }
-    setrandomAnsfunction(dbbase, msg, callback) {
+    setrandomAnsfunction(dbbase: any, msg: any, callback: any) {
         schema[dbbase].findOneAndUpdate({
             groupid: msg.groupid
         }, {
@@ -86,7 +90,7 @@ class Records extends EventEmitter {
             }
         }, {
             upsert: true
-        }, (err, doc) => {
+        }, (err: any, doc: any) => {
             if (err) {
                 console.error("Something wrong when updating data!");
             } else
@@ -95,7 +99,7 @@ class Records extends EventEmitter {
         });
     }
 
-    pushrandomAnsAllgroup(dbbase, msg, callback) {
+    pushrandomAnsAllgroup(dbbase: any, msg: any, callback: any) {
         /*
             提醒:
             $push 加入新的
@@ -108,21 +112,21 @@ class Records extends EventEmitter {
         }, {
             new: true,
             upsert: true
-        }, (err, doc) => {
+        }, (err: any, doc: any) => {
             if (err) {
                 console.error("Something wrong when updating data!");
             } else
                 callback();
         });
     }
-    setrandomAnsAllgroup(dbbase, msg, callback) {
+    setrandomAnsAllgroup(dbbase: any, msg: any, callback: any) {
         schema[dbbase].findOneAndUpdate({}, {
             $set: {
                 randomAnsAllgroup: msg.randomAnsAllgroup
             }
         }, {
             upsert: true
-        }, (err, doc) => {
+        }, (err: any, doc: any) => {
             if (err) {
                 console.error("Something wrong when updating data!");
             } else
@@ -131,10 +135,10 @@ class Records extends EventEmitter {
         });
     }
 
-    get(target, callback) {
+    get(target: any, callback: any) {
         // 取出所有資料
         if (schema[target])
-            schema[target].find({}, (err, msgs) => {
+            schema[target].find({}, (err: any, msgs: any) => {
                 callback(msgs);
             });
     }
@@ -142,7 +146,7 @@ class Records extends EventEmitter {
     /*
         trpgDatabase開始
     */
-    pushtrpgDatabasefunction(dbbase, msg, callback) {
+    pushtrpgDatabasefunction(dbbase: any, msg: any, callback: any) {
         /*
             提醒:
             $push 加入新的
@@ -157,14 +161,14 @@ class Records extends EventEmitter {
         }, {
             new: true,
             upsert: true
-        }, (err, doc) => {
+        }, (err: any, doc: any) => {
             if (err) {
                 console.error("Something wrong when updating data!");
             } else
                 callback();
         });
     }
-    settrpgDatabasefunction(dbbase, msg, callback) {
+    settrpgDatabasefunction(dbbase: any, msg: any, callback: any) {
         schema[dbbase].findOneAndUpdate({
             groupid: msg.groupid
         }, {
@@ -173,7 +177,7 @@ class Records extends EventEmitter {
             }
         }, {
             upsert: true
-        }, (err, doc) => {
+        }, (err: any, doc: any) => {
             if (err) {
                 console.error("Something wrong when updating data!");
             } else
@@ -182,7 +186,7 @@ class Records extends EventEmitter {
         });
     }
 
-    pushtrpgDatabaseAllgroup(dbbase, msg, callback) {
+    pushtrpgDatabaseAllgroup(dbbase: any, msg: any, callback: any) {
         /*
             提醒:
             $push 加入新的
@@ -195,21 +199,21 @@ class Records extends EventEmitter {
         }, {
             new: true,
             upsert: true
-        }, (err, doc) => {
+        }, (err: any, doc: any) => {
             if (err) {
                 console.error("Something wrong when updating data!");
             } else
                 callback();
         });
     }
-    settrpgDatabaseAllgroup(dbbase, msg, callback) {
+    settrpgDatabaseAllgroup(dbbase: any, msg: any, callback: any) {
         schema[dbbase].findOneAndUpdate({}, {
             $set: {
                 trpgDatabaseAllgroup: msg.trpgDatabaseAllgroup
             }
         }, {
             upsert: true
-        }, (err, doc) => {
+        }, (err: any, doc: any) => {
             if (err) {
                 console.error("Something wrong when updating data!");
             } else
@@ -222,7 +226,7 @@ class Records extends EventEmitter {
     /*
           setGroupSetting開始
       */
-    pushGroupSettingfunction(dbbase, msg, callback) {
+    pushGroupSettingfunction(dbbase: any, msg: any, callback: any) {
         /*
             提醒:
             $push 加入新的
@@ -237,14 +241,14 @@ class Records extends EventEmitter {
         }, {
             new: true,
             upsert: true
-        }, (err, doc) => {
+        }, (err: any, doc: any) => {
             if (err) {
                 console.error("Something wrong when updating data!");
             } else
                 callback();
         });
     }
-    setGroupSettingfunction(dbbase, msg, callback) {
+    setGroupSettingfunction(dbbase: any, msg: any, callback: any) {
         schema[dbbase].findOneAndUpdate({
             groupid: msg.groupid
         }, {
@@ -253,7 +257,7 @@ class Records extends EventEmitter {
             }
         }, {
             upsert: true
-        }, (err, doc) => {
+        }, (err: any, doc: any) => {
             if (err) {
                 console.error("Something wrong when updating data!");
             } else
@@ -266,7 +270,7 @@ class Records extends EventEmitter {
     /*
         trpgsaveCommand開始
     */
-    pushtrpgCommandfunction(dbbase, msg, callback) {
+    pushtrpgCommandfunction(dbbase: any, msg: any, callback: any) {
         /*
             提醒:
             $push 加入新的
@@ -281,14 +285,14 @@ class Records extends EventEmitter {
         }, {
             new: true,
             upsert: true
-        }, (err, doc) => {
+        }, (err: any, doc: any) => {
             if (err) {
                 console.error("Something wrong when updating data!");
             } else
                 callback();
         });
     }
-    settrpgCommandfunction(dbbase, msg, callback) {
+    settrpgCommandfunction(dbbase: any, msg: any, callback: any) {
         schema[dbbase].findOneAndUpdate({
             groupid: msg.groupid
         }, {
@@ -297,7 +301,7 @@ class Records extends EventEmitter {
             }
         }, {
             upsert: true
-        }, (err, doc) => {
+        }, (err: any, doc: any) => {
             if (err) {
                 console.error("Something wrong when updating data!");
             } else
@@ -311,7 +315,7 @@ class Records extends EventEmitter {
             trpgDarkRollingfunction開始
         */
 
-    pushtrpgDarkRollingfunction(dbbase, msg, callback) {
+    pushtrpgDarkRollingfunction(dbbase: any, msg: any, callback: any) {
         /*
             提醒:
             $push 加入新的
@@ -326,14 +330,14 @@ class Records extends EventEmitter {
         }, {
             new: true,
             upsert: true
-        }, (err, doc) => {
+        }, (err: any, doc: any) => {
             if (err) {
                 console.error("Something wrong when updating data!");
             } else
                 callback();
         });
     }
-    settrpgDarkRollingfunction(dbbase, msg, callback) {
+    settrpgDarkRollingfunction(dbbase: any, msg: any, callback: any) {
         schema[dbbase].findOneAndUpdate({
             groupid: msg.groupid
         }, {
@@ -342,7 +346,7 @@ class Records extends EventEmitter {
             }
         }, {
             upsert: true
-        }, (err, doc) => {
+        }, (err: any, doc: any) => {
             if (err) {
                 console.error("Something wrong when updating data!");
             } else
@@ -353,7 +357,7 @@ class Records extends EventEmitter {
     /*
             trpgLevelSystem開始
         */
-    pushtrpgLevelSystemfunction(dbbase, msg, callback) {
+    pushtrpgLevelSystemfunction(dbbase: any, msg: any, callback: any) {
         /*
             提醒:
             $push 加入新的
@@ -368,14 +372,14 @@ class Records extends EventEmitter {
         }, {
             new: true,
             upsert: true
-        }, (err, doc) => {
+        }, (err: any, doc: any) => {
             if (err) {
                 console.error("Something wrong when updating data!");
             } else
                 callback();
         });
     }
-    settrpgLevelSystemfunctionLevelUpWord(dbbase, msg, callback) {
+    settrpgLevelSystemfunctionLevelUpWord(dbbase: any, msg: any, callback: any) {
         schema[dbbase].findOneAndUpdate({
             groupid: msg.groupid
         }, {
@@ -393,7 +397,7 @@ class Records extends EventEmitter {
         }, {
             upsert: true,
             setDefaultsOnInsert: true
-        }, (err, doc) => {
+        }, (err: any, doc: any) => {
             if (err) {
                 console.error("Something wrong when updating data!");
             } else
@@ -401,7 +405,7 @@ class Records extends EventEmitter {
             // return JSON.stringify(doc).toString();
         });
     }
-    settrpgLevelSystemfunctionRankWord(dbbase, msg, callback) {
+    settrpgLevelSystemfunctionRankWord(dbbase: any, msg: any, callback: any) {
         schema[dbbase].findOneAndUpdate({
             groupid: msg.groupid
         }, {
@@ -419,7 +423,7 @@ class Records extends EventEmitter {
         }, {
             upsert: true,
             setDefaultsOnInsert: true
-        }, (err, doc) => {
+        }, (err: any, doc: any) => {
             if (err) {
                 console.error("Something wrong when updating data!");
             } else
@@ -427,7 +431,7 @@ class Records extends EventEmitter {
             // return JSON.stringify(doc).toString();
         });
     }
-    settrpgLevelSystemfunctionConfig(dbbase, msg, callback) {
+    settrpgLevelSystemfunctionConfig(dbbase: any, msg: any, callback: any) {
         schema[dbbase].findOneAndUpdate({
             groupid: msg.groupid
         }, {
@@ -445,7 +449,7 @@ class Records extends EventEmitter {
         }, {
             upsert: true,
             setDefaultsOnInsert: true
-        }, (err, doc) => {
+        }, (err: any, doc: any) => {
             if (err) {
                 console.error("Something wrong when updating data!");
             } else
@@ -453,7 +457,7 @@ class Records extends EventEmitter {
             // return JSON.stringify(doc).toString();
         });
     }
-    settrpgLevelSystemfunctionNewUser(dbbase, msg, callback) {
+    settrpgLevelSystemfunctionNewUser(dbbase: any, msg: any, callback: any) {
         schema[dbbase].findOneAndUpdate({
             groupid: msg.groupid
         }, {
@@ -471,7 +475,7 @@ class Records extends EventEmitter {
         }, {
             upsert: true,
             //   setDefaultsOnInsert: true
-        }, (err, doc) => {
+        }, (err: any, doc: any) => {
             if (err) {
                 console.error(`log #476 ${err}`);
                 console.error("Something wrong when updating data!");
@@ -480,7 +484,7 @@ class Records extends EventEmitter {
             // return JSON.stringify(doc).toString();
         });
     }
-    settrpgLevelSystemfunctionTitleWord(dbbase, msg, callback) {
+    settrpgLevelSystemfunctionTitleWord(dbbase: any, msg: any, callback: any) {
         schema[dbbase].findOneAndUpdate({
             groupid: msg.groupid
         }, {
@@ -500,7 +504,7 @@ class Records extends EventEmitter {
         }, {
             upsert: true,
             setDefaultsOnInsert: true
-        }, (err, doc) => {
+        }, (err: any, doc: any) => {
             if (err) {
                 console.error("Something wrong when updating data!");
             } else
@@ -509,7 +513,7 @@ class Records extends EventEmitter {
         });
     }
 
-    settrpgLevelSystemfunctionEXPup(dbbase, msgA, msg, callback) {
+    settrpgLevelSystemfunctionEXPup(dbbase: any, msgA: any, msg: any, callback: any) {
         schema[dbbase].findOneAndUpdate({
             groupid: msgA.groupid
         }, {
@@ -526,7 +530,7 @@ class Records extends EventEmitter {
             }
         }, {
             //   setDefaultsOnInsert: true
-        }, (err, doc) => {
+        }, (err: any, doc: any) => {
             if (err) {
                 console.error(`log #531 ${err}`);
                 console.error("Something wrong when updating data!");
@@ -537,7 +541,7 @@ class Records extends EventEmitter {
         });
     }
 
-    maxtrpgLevelSystemfunctionEXPup(dbbase, userid, exp, lv, msgA, msg, callback) {
+    maxtrpgLevelSystemfunctionEXPup(dbbase: any, userid: any, exp: any, lv: any, msgA: any, msg: any, callback: any) {
         schema[dbbase].findOneAndUpdate({
             groupid: msgA.groupid,
             'trpgLevelSystemfunction.userid': userid
@@ -556,7 +560,7 @@ class Records extends EventEmitter {
             }
         }, {
             //   setDefaultsOnInsert: true
-        }, (err, doc) => {
+        }, (err: any, doc: any) => {
             if (err) {
                 console.error(`log #562 ${err}`);
                 console.error("Something wrong when updating data!");
@@ -571,7 +575,7 @@ class Records extends EventEmitter {
     SAVE THE LOG
     SAVELOG功能
     */
-    settrpgSaveLogfunctionRealTime(dbbase, msg, callback) {
+    settrpgSaveLogfunctionRealTime(dbbase: any, msg: any, callback: any) {
         schema[dbbase].findOneAndUpdate({}, {
             $setOnInsert: {
                 "RealTimeRollingLogfunction.StartTime": msg.StartTime,
@@ -601,7 +605,7 @@ class Records extends EventEmitter {
             upsert: true,
             setDefaultsOnInsert: true
             //   setDefaultsOnInsert: true
-        }, (err, doc) => {
+        }, (err: any, doc: any) => {
             if (err) {
                 console.error(`log #608 ${err}`);
                 console.error("Something wrong when updating data!");
@@ -612,7 +616,7 @@ class Records extends EventEmitter {
         });
     }
 
-    maxTrpgSaveLogfunction(dbbase, msg, callback) {
+    maxTrpgSaveLogfunction(dbbase: any, msg: any, callback: any) {
         schema[dbbase].findOneAndUpdate({
             "RollingLogfunction.LogTime": {
                 '$gte': msg.start,
@@ -643,7 +647,7 @@ class Records extends EventEmitter {
             upsert: true
             //   setDefaultsOnInsert: true
         },
-            (err, doc) => {
+            (err: any, doc: any) => {
                 if (err) {
                     console.error(`log #651 ${err}`);
                     console.error("Something wrong when updating data!");
@@ -657,7 +661,7 @@ class Records extends EventEmitter {
 
     //chatRoomWWW Record
 
-    async chatRoomPush(msg) {
+    async chatRoomPush(msg: any) {
         const m = new Message(msg);
         await m.save();
         this.emit("new_message", msg);
@@ -687,24 +691,24 @@ class Records extends EventEmitter {
         })
     }
 
-    chatRoomGet(roomNumber, callback) {
+    chatRoomGet(roomNumber: any, callback: any) {
         Message.find({
             roomNumber: roomNumber
-        }, (err, msgs) => {
+        }, (err: any, msgs: any) => {
             callback(msgs);
         });
     }
 
-    chatRoomSetMax(max) {
+    chatRoomSetMax(max: any) {
         MAX = max;
     }
 
     chatRoomGetMax() {
         return MAX;
     }
-
 }
 
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = (function () {
     if (!instance) {
         instance = new Records();

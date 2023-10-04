@@ -1,5 +1,7 @@
+// @ts-expect-error TS(6200): Definitions of the following identifiers conflict ... Remove this comment to see the full error message
 "use strict";
 const variables = {};
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const { SlashCommandBuilder } = require('discord.js');
 const gameName = function () {
     return '【Demo】'
@@ -16,7 +18,7 @@ const prefixs = function () {
     return [{
         first: /^Demo$/i,
         second: /^啊$/i
-    }]
+    }];
 }
 const getHelpMessage = function () {
     return `【示範】
@@ -28,18 +30,21 @@ const initialize = function () {
     return variables;
 }
 
-const rollDiceCommand = async function ({
-    inputStr,
-    mainMsg,
-    groupid,
-    userid,
-    userrole,
-    botname,
-    displayname,
-    channelid,
-    displaynameDiscord,
-    membercount
-}) {
+const rollDiceCommand = async function(
+    this: any,
+    {
+        inputStr,
+        mainMsg,
+        groupid,
+        userid,
+        userrole,
+        botname,
+        displayname,
+        channelid,
+        displaynameDiscord,
+        membercount
+    }: any
+) {
     let rply = {
         default: 'on',
         type: 'text',
@@ -48,6 +53,7 @@ const rollDiceCommand = async function ({
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
             rply.text = this.getHelpMessage();
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             return rply;
         }
@@ -66,6 +72,7 @@ const rollDiceCommand = async function ({
 }
 
 const discordCommand = []
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     rollDiceCommand,
     initialize,

@@ -1,13 +1,20 @@
+// @ts-expect-error TS(6200): Definitions of the following identifiers conflict ... Remove this comment to see the full error message
 "use strict";
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 if (!process.env.mongoURL) {
+    // @ts-expect-error TS(1108): A 'return' statement can only be used within a fun... Remove this comment to see the full error message
     return;
 }
 const {
     DynamicLoader
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 } = require('bcdice');
 const variables = {};
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'checkTools... Remove this comment to see the full error message
 const checkTools = require('../modules/check.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'schema'.
 const schema = require('../modules/schema.js');
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const { SlashCommandBuilder } = require('discord.js');
 const gameName = function () {
     return '【BcDice】.bc'
@@ -24,7 +31,7 @@ const prefixs = function () {
     return [{
         first: /^\.bc$|^\.al$|^\.kk$|^\.mk$|^\.ss$|^\.sg$|^\.UK$|^\.dx$|^\.nc$|^\.sw$/i,
         second: null
-    }]
+    }];
 }
 const getHelpMessage = function () {
     return `【BcDice】日系擲骰
@@ -45,14 +52,17 @@ const initialize = function () {
     return variables;
 }
 
-const rollDiceCommand = async function ({
-    inputStr,
-    mainMsg,
-    userrole,
-    botname,
-    channelid,
-    groupid
-}) {
+const rollDiceCommand = async function(
+    this: any,
+    {
+        inputStr,
+        mainMsg,
+        userrole,
+        botname,
+        channelid,
+        groupid
+    }: any
+) {
     let rply = {
         default: 'on',
         type: 'text',
@@ -66,6 +76,7 @@ const rollDiceCommand = async function ({
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
             rply.text = this.getHelpMessage();
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             return rply;
 
@@ -87,12 +98,13 @@ const rollDiceCommand = async function ({
         }
 
         case /^dicehelp$/i.test(mainMsg[1]): {
-            let doc = await schema.bcdiceRegedit.findOne(filter).catch(err => console.error(err))
+            let doc = await schema.bcdiceRegedit.findOne(filter).catch((err: any) => console.error(err))
             if (doc && doc.trpgId) {
-                rply.text = await callHelp(doc.trpgId) || '';
+                rply.text = (await callHelp(doc.trpgId)) || '';
                 return rply;
             } else {
                 rply.text = `沒有已設定的骰表ID\n\n請輸入ID，ID可以在下列網站找到\nhttps://bcdice.org/systems/ \n\n使用例子: .bc use CthulhuTech`;
+                // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
                 rply.quotes = true;
                 return rply;
             }
@@ -115,7 +127,7 @@ const rollDiceCommand = async function ({
                 rply.text = `此骰表ID沒有回應，請檢查是不是正確\nhttps://bcdice.org/systems/\n\n使用例子: .bc use CthulhuTech`
                 return rply;
             }
-            let doc = await schema.bcdiceRegedit.findOneAndUpdate(filter, { trpgId: mainMsg[2] }, { upsert: true, returnDocument: 'after', returnNewDocument: true }).catch(err => null)
+            let doc = await schema.bcdiceRegedit.findOneAndUpdate(filter, { trpgId: mainMsg[2] }, { upsert: true, returnDocument: 'after', returnNewDocument: true }).catch((err: any) => null)
             if (doc) rply.text = `已更新BcDice，現在此頻道正在使用 ${doc.trpgId}
 
             使用說明: \n${help}
@@ -132,13 +144,13 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
-            let doc = await schema.bcdiceRegedit.findOneAndDelete(filter, { returnDocument: true }).catch(err => console.error(err))
+            let doc = await schema.bcdiceRegedit.findOneAndDelete(filter, { returnDocument: true }).catch((err: any) => console.error(err))
             if (doc) rply.text = `已刪除BcDice的設定`
             else rply.text = `刪除失敗，請以後再嘗試`
             return rply;
         }
         case /^\S/.test(mainMsg[1] || ''): {
-            let doc = await schema.bcdiceRegedit.findOne(filter).catch(err => console.error(err))
+            let doc = await schema.bcdiceRegedit.findOne(filter).catch((err: any) => console.error(err))
             if (doc && doc.trpgId) {
                 rply.text = await calldice(doc.trpgId, inputStr.replace(/^\S+/, ''))
                 return rply;
@@ -170,9 +182,9 @@ const discordCommand = [
         data: new SlashCommandBuilder()
             .setName('bcdice擲骰')
             .setDescription('進行BcDice擲骰')
-            .addStringOption(option => option.setName('text').setDescription('擲骰內容').setRequired(true))
+            .addStringOption((option: any) => option.setName('text').setDescription('擲骰內容').setRequired(true))
         ,
-        async execute(interaction) {
+        async execute(interaction: any) {
             const text = interaction.options.getString('text')
             return `.bc ${text} `
         }
@@ -181,17 +193,16 @@ const discordCommand = [
         data: new SlashCommandBuilder()
             .setName('bcdice設定')
             .setDescription('進行bcdice的設定(說明/登記/刪除)')
-            .addStringOption(option =>
-                option.setName('指令')
-                    .setDescription('進行bcdice的設定')
-                    .setRequired(true)
-                    .addChoices({ name: '顯示使用說明', value: 'help' },
-                        { name: '顯示BcDice骰組使用說明(登記後可使用)', value: 'dicehelp' },
-                        { name: '登記使用的骰表ID', value: 'use' },
-                        { name: '移除使用的骰表ID', value: 'delete' }))
-            .addStringOption(option => option.setName('usetext').setDescription('如登記，請在這裡填寫ID').setRequired(false))
+            .addStringOption((option: any) => option.setName('指令')
+            .setDescription('進行bcdice的設定')
+            .setRequired(true)
+            .addChoices({ name: '顯示使用說明', value: 'help' },
+                { name: '顯示BcDice骰組使用說明(登記後可使用)', value: 'dicehelp' },
+                { name: '登記使用的骰表ID', value: 'use' },
+                { name: '移除使用的骰表ID', value: 'delete' }))
+            .addStringOption((option: any) => option.setName('usetext').setDescription('如登記，請在這裡填寫ID').setRequired(false))
         ,
-        async execute(interaction) {
+        async execute(interaction: any) {
             const useText = interaction.options.getString('usetext') || '';
             const subcommand = interaction.options.getString('指令') || '';
             switch (subcommand) {
@@ -209,13 +220,13 @@ const discordCommand = [
         }
     }
 ]
-async function calldice(gameType, message) {
+async function calldice(gameType: any, message: any) {
     const loader = new DynamicLoader();
     const GameSystem = await loader.dynamicLoad(gameType);
     const result = GameSystem.eval(message);
     return (result && result.text) ? result.text : null;
 }
-async function callHelp(gameType) {
+async function callHelp(gameType: any) {
     try {
         const loader = new DynamicLoader();
         const GameSystem = await loader.dynamicLoad(gameType);
@@ -226,6 +237,7 @@ async function callHelp(gameType) {
     }
 
 }
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     rollDiceCommand,
     initialize,

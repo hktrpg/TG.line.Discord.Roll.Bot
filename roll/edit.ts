@@ -1,9 +1,14 @@
+// @ts-expect-error TS(6200): Definitions of the following identifiers conflict ... Remove this comment to see the full error message
 "use strict";
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 if (!process.env.DISCORD_CHANNEL_SECRET) {
+    // @ts-expect-error TS(1108): A 'return' statement can only be used within a fun... Remove this comment to see the full error message
     return;
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'checkTools... Remove this comment to see the full error message
 const checkTools = require('../modules/check.js');
 const variables = {};
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const { SlashCommandBuilder } = require('discord.js');
 const gameName = function () {
     return '【舊信息修改功能】Discord限定'
@@ -16,7 +21,7 @@ const prefixs = function () {
     return [{
         first: /^\.edit$/i,
         second: null
-    }]
+    }];
 }
 const getHelpMessage = function () {
     return `【舊信息修改功能】Discord限定
@@ -35,11 +40,14 @@ const initialize = function () {
     return variables;
 }
 
-const rollDiceCommand = async function ({
-    inputStr,
-    mainMsg,
-    userrole,
-}) {
+const rollDiceCommand = async function(
+    this: any,
+    {
+        inputStr,
+        mainMsg,
+        userrole
+    }: any
+) {
     let rply = {
         default: 'on',
         type: 'text',
@@ -48,6 +56,7 @@ const rollDiceCommand = async function ({
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
             rply.text = this.getHelpMessage();
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             return rply;
         }
@@ -59,6 +68,7 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
+            // @ts-expect-error TS(2339): Property 'discordEditMessage' does not exist on ty... Remove this comment to see the full error message
             rply.discordEditMessage = inputStr.replace(/^\S+\s+/, '')
             return rply;
         }
@@ -73,13 +83,14 @@ const discordCommand = [
         data: new SlashCommandBuilder()
             .setName('edit')
             .setDescription('【修改舊信息】 請Reply想要修改的信息')
-            .addStringOption(option => option.setName('text').setDescription('輸入內容').setRequired(true)),
-        async execute(interaction) {
+            .addStringOption((option: any) => option.setName('text').setDescription('輸入內容').setRequired(true)),
+        async execute(interaction: any) {
             const text = interaction.options.getString('text')
             return `.edit ${text}`
         }
     }
 ];
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     rollDiceCommand,
     initialize,

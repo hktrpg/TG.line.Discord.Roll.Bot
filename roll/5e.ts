@@ -1,6 +1,9 @@
+// @ts-expect-error TS(6200): Definitions of the following identifiers conflict ... Remove this comment to see the full error message
 "use strict";
 const variables = {};
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const rollbase = require('./rollbase.js');
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const { SlashCommandBuilder } = require('discord.js');
 const gameName = function () {
     return '【5E工具 - .5ebuild】'
@@ -17,7 +20,7 @@ const prefixs = function () {
     return [{
         first: /^\.5ebuild$/i,
         second: null
-    }]
+    }];
 }
 const getHelpMessage = function () {
     return `【5E 工具】
@@ -46,10 +49,13 @@ const initialize = function () {
  * 
  * 
  * **/
-const rollDiceCommand = async function ({
-    mainMsg,
-    inputStr,
-}) {
+const rollDiceCommand = async function(
+    this: any,
+    {
+        mainMsg,
+        inputStr
+    }: any
+) {
     let rply = {
         default: 'on',
         type: 'text',
@@ -58,11 +64,14 @@ const rollDiceCommand = async function ({
     switch (true) {
         case /^help$/i.test(mainMsg[1]): {
             rply.text = this.getHelpMessage();
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             return rply;
         }
         case /^\.5eBuild+$/i.test(mainMsg[0]): {
+            // @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
             rply.text = randomStats();
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             return rply;
         }
@@ -81,13 +90,18 @@ const randomStats = function () {
         for (let i = 0; i < 6; i++) {
             roll[i] = { result: rollbase.nomalDiceRoller('4d6dl1').replace('4d6dl1：\n', '') }
             roll[i] = { ...roll[i], stats: roll[i].result.match(/\d+$/) }
+            // @ts-expect-error TS(2339): Property 'stats' does not exist on type '{ result:... Remove this comment to see the full error message
             roll[i] = { ...roll[i], mod: Math.floor((roll[i].stats - 10) / 2) };
+            // @ts-expect-error TS(2339): Property 'stats' does not exist on type '{ result:... Remove this comment to see the full error message
             total += Number(roll[i].stats);
+            // @ts-expect-error TS(2339): Property 'mod' does not exist on type '{ result: a... Remove this comment to see the full error message
             mod += Number(roll[i].mod);
         }
+        // @ts-expect-error TS(2339): Property 'stats' does not exist on type '{ result:... Remove this comment to see the full error message
         roll.sort((b, a) => a.stats - b.stats);
         output += '5e 屬性產生器(.6 4D6dl1)\n==================\n';
         for (let i = 0; i < 6; i++) {
+            // @ts-expect-error TS(2339): Property 'mod' does not exist on type '{ result: a... Remove this comment to see the full error message
             output += `**屬性${i + 1}**: ${roll[i].result} (${roll[i].mod > 0 ? '+' : ''}${roll[i].mod})\n`;
         }
         output += '==================\n';
@@ -109,6 +123,7 @@ const discordCommand = [
         }
     }
 ]
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     rollDiceCommand,
     initialize,

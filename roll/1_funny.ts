@@ -1,12 +1,21 @@
+// @ts-expect-error TS(6200): Definitions of the following identifiers conflict ... Remove this comment to see the full error message
 "use strict";
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const rollbase = require('./rollbase.js');
 let variables = {};
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'fs'.
 const fs = require('fs');
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const { SlashCommandBuilder } = require('discord.js');
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const axiosRetry = require('axios-retry');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'chineseCon... Remove this comment to see the full error message
 const chineseConv = require('chinese-conv'); //繁簡轉換
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'axios'.
 const axios = require('axios');
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const cheerio = require('cheerio');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'wiki'.
 const wiki = require('wikijs').default;
 const identity = 'HKTRPG (https://www.hktrpg.com; admin@hktrpg.com) wiki.js';
 const gameName = function () {
@@ -21,7 +30,7 @@ const prefixs = function () {
 	return [{
 		first: /^排序|排序$|^隨機|隨機$|^choice|^每日塔羅|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸|^每日笑話$|^每日動漫$|^每日一言$|^每日廢話$|^每日黃曆$|^每日毒湯$|^每日情話$|^每日靈簽$|^每日淺草簽$|^每日大事$|^每日解答$|^每日白羊$|^每日牡羊$|^每日金牛$|^每日雙子$|^每日巨蟹$|^每日獅子$|^每日處女$|^每日天秤$|^每日天平$|^每日天蠍$|^每日天蝎$|^每日射手$|^每日人馬$|^每日摩羯$|^每日山羊$|^每日水瓶$|^每日寶瓶$|^每日雙魚$/i,
 		second: null
-	}]
+	}];
 }
 
 
@@ -66,8 +75,11 @@ const initialize = function () {
 }
 
 const rollDiceCommand = async function ({
+// @ts-expect-error TS(7031): Binding element 'inputStr' implicitly has an 'any'... Remove this comment to see the full error message
 	inputStr,
+// @ts-expect-error TS(7031): Binding element 'mainMsg' implicitly has an 'any' ... Remove this comment to see the full error message
 	mainMsg,
+// @ts-expect-error TS(7031): Binding element 'displayname' implicitly has an 'a... Remove this comment to see the full error message
 	displayname, displaynameDiscord, tgDisplayname
 }) {
 	let rply = {
@@ -102,7 +114,9 @@ const rollDiceCommand = async function ({
 
 	switch (true) {
 		case /^help$/i.test(mainMsg[1]):
+// @ts-expect-error TS(2683): 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
 			rply.text = await this.getHelpMessage();
+// @ts-expect-error TS(2339): Property 'buttonCreate' does not exist on type '{ ... Remove this comment to see the full error message
 			rply.buttonCreate = ['隨機 跑團 溫習 打遊戲', '排序 A君 C君 F君 G君', '.re 簽到', '.re 1d100', '今日運勢', '每日塔羅', '立FLAG', '每日大事', '每日笑話', '每日廢話', '每日一言', '每日黃曆', '每日毒湯', '每日情話', '每日靈簽', '每日淺草簽', '每日動漫', '每日解答']
 			return rply;
 		case /^排序|排序$/i.test(mainMsg[0]) && (mainMsg.length >= 4):
@@ -115,6 +129,7 @@ const rollDiceCommand = async function ({
 			rply.text = dailyAnswerChoice(inputStr);
 			return rply;
 		case /塔羅/i.test(mainMsg[0]):
+// @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
 			rply.quotes = true;
 			if (mainMsg[0].match(/^每日塔羅/) != null)
 				rply.text = NomalDrawTarot(mainMsg[1], mainMsg[2]); //預設抽 79 張
@@ -145,6 +160,7 @@ const rollDiceCommand = async function ({
 			return rply;
 		}
 		case /^每日黃曆$/.test(mainMsg[0]): {
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			rply.text = await dailyAlmanac.getAlmanac();
 			return rply;
 		}
@@ -179,14 +195,17 @@ const rollDiceCommand = async function ({
 				headers: { 'User-Agent': identity },
 				apiUrl: 'https://zh.wikipedia.org/w/api.php'
 			}).page(`${month}月${day}日`)
+// @ts-expect-error TS(7006): Parameter 'page' implicitly has an 'any' type.
 				.then(async page => {
 					let temp = await page.content();
+// @ts-expect-error TS(7006): Parameter 'v' implicitly has an 'any' type.
 					let answerFestival = temp.find(v => {
-						return v && v.title.match(/(节日)|(節日)|(习俗)|(假日)|(节假)/)
+						return v && v.title.match(/(节日)|(節日)|(习俗)|(假日)|(节假)/);
 					})
 					respond += `${(answerFestival && answerFestival.title) ? `${answerFestival.title}\n` : ''}${(answerFestival && answerFestival.content) ? `${answerFestival.content}\n` : ''}\n`
+// @ts-expect-error TS(7006): Parameter 'v' implicitly has an 'any' type.
 					let answerBig = temp.find(v => {
-						return v && v.title.match(/(大事记)|(大事記)/)
+						return v && v.title.match(/(大事记)|(大事記)/);
 					})
 					if (answerBig && answerBig.items) answerBig = answerBig.items;
 
@@ -196,11 +215,13 @@ const rollDiceCommand = async function ({
 					}
 					return chineseConv.tify(respond)
 				})
+// @ts-expect-error TS(7006): Parameter 'error' implicitly has an 'any' type.
 				.catch(error => {
 					if (error == 'Error: No article found')
 						return '沒有此條目'
 					else {
 						console.error('每日大事error', error)
+// @ts-expect-error TS(2683): 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
 						console.error('每日大事 this.page', this.page)
 
 						return '條目出錯';
@@ -210,72 +231,96 @@ const rollDiceCommand = async function ({
 		}
 		//白羊座、金牛座、雙子座、巨蟹座、獅子座、處女座、天秤座、天蠍座、射手座、摩羯座、水瓶座、雙魚
 		case (/^每日白羊$/.test(mainMsg[0]) || /^每日牡羊$/.test(mainMsg[0])): {
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			rply.text = await dailyAstro.getAstro('牡羊')
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=白羊&type=json')
 			return rply;
 		}
 
 		case /^每日金牛$/.test(mainMsg[0]): {
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			rply.text = await dailyAstro.getAstro('金牛')
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=金牛&type=json')
 			return rply;
 		}
 
 		case /^每日雙子$/.test(mainMsg[0]): {
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			rply.text = await dailyAstro.getAstro('雙子')
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=双子&type=json')
 			return rply;
 		}
 
 		case /^每日巨蟹$/.test(mainMsg[0]): {
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			rply.text = await dailyAstro.getAstro('巨蟹')
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=巨蟹&type=json')
 			return rply;
 		}
 
 		case /^每日獅子$/.test(mainMsg[0]): {
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			rply.text = await dailyAstro.getAstro('獅子')
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=狮子&type=json')
 			return rply;
 		}
 
 		case /^每日處女$/.test(mainMsg[0]): {
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			rply.text = await dailyAstro.getAstro('處女')
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=处女&type=json')
 			return rply;
 		}
 
 		case (/^每日天秤$/.test(mainMsg[0]) || /^每日天平$/.test(mainMsg[0])): {
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			rply.text = await dailyAstro.getAstro('天秤')
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=天秤&type=json')
 			return rply;
 		}
 
 		case /^每日天蠍$/.test(mainMsg[0]) || /^每日天蝎$/.test(mainMsg[0]): {
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			rply.text = await dailyAstro.getAstro('天蠍')
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=天蝎&type=json')
 			return rply;
 		}
 
 		case (/^每日射手$/.test(mainMsg[0]) || /^每日人馬$/.test(mainMsg[0])): {
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			rply.text = await dailyAstro.getAstro('射手')
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=射手&type=json')
 			return rply;
 		}
 
 		case (/^每日摩羯$/.test(mainMsg[0]) || /^每日山羊$/.test(mainMsg[0])): {
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			rply.text = await dailyAstro.getAstro('摩羯')
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=摩羯&type=json')
 			return rply;
 		}
 
 		case (/^每日水瓶$/.test(mainMsg[0]) || /^每日寶瓶$/.test(mainMsg[0])): {
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			rply.text = await dailyAstro.getAstro('水瓶')
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=水瓶&type=json')
 			return rply;
 		}
 		case /^每日雙魚$/.test(mainMsg[0]): {
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			rply.text = await dailyAstro.getAstro('雙魚')
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=双鱼&type=json')
 			return rply;
 		}
@@ -285,15 +330,19 @@ const rollDiceCommand = async function ({
 }
 
 class FunnyRandom {
+// @ts-expect-error TS(7006): Parameter 'txt' implicitly has an 'any' type.
 	constructor(txt) {
+// @ts-expect-error TS(2339): Property 'random' does not exist on type 'FunnyRan... Remove this comment to see the full error message
 		this.random = FunnyRandom.convertArray(txt);
 	}
+// @ts-expect-error TS(7006): Parameter 'txt' implicitly has an 'any' type.
 	static convertArray(txt) {
 		const data = fs.readFileSync(txt, 'utf8').toString();
 		return data.split('\n');
 	}
 	getFunnyRandomResult() {
 		try {
+// @ts-expect-error TS(2339): Property 'random' does not exist on type 'FunnyRan... Remove this comment to see the full error message
 			return this.random[rollbase.Dice(this.random.length) - 1];
 		} catch (error) {
 			console.log('Funny #330', error);
@@ -305,6 +354,7 @@ class FunnyRandom {
 /**
  * .ME
  */
+// @ts-expect-error TS(7006): Parameter 'inputStr' implicitly has an 'any' type.
 function me(inputStr) {
 	return inputStr.replace(/^[.]re/i, '');
 }
@@ -315,15 +365,20 @@ const twelveAstro = [
 
 class TwelveAstro {
 	constructor() {
+// @ts-expect-error TS(2339): Property 'Astro' does not exist on type 'TwelveAst... Remove this comment to see the full error message
 		this.Astro = [];
 	}
+// @ts-expect-error TS(7006): Parameter 'name' implicitly has an 'any' type.
 	async getAstro(name) {
 		try {
 			let astroCode = twelveAstro.indexOf(name);
+// @ts-expect-error TS(2339): Property 'Astro' does not exist on type 'TwelveAst... Remove this comment to see the full error message
 			if (!this.Astro[astroCode] || this.Astro[astroCode].date !== this.getDate()) {
 				await this.updateAstro(astroCode);
 			}
+// @ts-expect-error TS(2339): Property 'Astro' does not exist on type 'TwelveAst... Remove this comment to see the full error message
 			if (this.Astro[astroCode]) {
+// @ts-expect-error TS(2339): Property 'Astro' does not exist on type 'TwelveAst... Remove this comment to see the full error message
 				return this.returnStr(this.Astro[astroCode], name);
 			} else return;
 		} catch (error) {
@@ -331,6 +386,7 @@ class TwelveAstro {
 		}
 	}
 
+// @ts-expect-error TS(7006): Parameter 'astro' implicitly has an 'any' type.
 	returnStr(astro, name) {
 		return `今日${name}座運程
 你的幸運數字：${astro.TODAY_LUCKY_NUMBER}	
@@ -340,10 +396,12 @@ class TwelveAstro {
 	}
 
 
+// @ts-expect-error TS(7006): Parameter 'code' implicitly has an 'any' type.
 	async updateAstro(code) {
 		let date = this.getDate();
 		let res = await axios.get(`https://astro.click108.com.tw/daily_${code}.php?iAcDay=${date}&iAstro=${code}`);
 		const $ = cheerio.load(res.data)
+// @ts-expect-error TS(2339): Property 'Astro' does not exist on type 'TwelveAst... Remove this comment to see the full error message
 		this.Astro[code] = new Astro($, date);
 	}
 	getDate() {
@@ -356,17 +414,27 @@ class TwelveAstro {
 }
 
 class Astro {
+// @ts-expect-error TS(7006): Parameter '$' implicitly has an 'any' type.
 	constructor($, date) {
 		//TODAY_CONTENT
+// @ts-expect-error TS(2339): Property 'TODAY_CONTENT' does not exist on type 'A... Remove this comment to see the full error message
 		this.TODAY_CONTENT = $('.TODAY_CONTENT').text().replaceAll('                ', '');
+// @ts-expect-error TS(2339): Property 'TODAY_WORD' does not exist on type 'Astr... Remove this comment to see the full error message
 		this.TODAY_WORD = $('.TODAY_WORD').text();
+// @ts-expect-error TS(2339): Property 'TODAY_LUCKY_NUMBER' does not exist on ty... Remove this comment to see the full error message
 		this.TODAY_LUCKY_NUMBER = this.matchImgUrl($, 0)
+// @ts-expect-error TS(2339): Property 'TODAY_LUCKY_COLOR' does not exist on typ... Remove this comment to see the full error message
 		this.TODAY_LUCKY_COLOR = this.matchImgUrl($, 1)
+// @ts-expect-error TS(2339): Property 'TODAY_LUCKY_DIRECTION' does not exist on... Remove this comment to see the full error message
 		this.TODAY_LUCKY_DIRECTION = this.matchImgUrl($, 2)
+// @ts-expect-error TS(2339): Property 'TODAY_LUCKY_TIME' does not exist on type... Remove this comment to see the full error message
 		this.TODAY_LUCKY_TIME = this.matchImgUrl($, 3)
+// @ts-expect-error TS(2339): Property 'TODAY_LUCKY_ASTRO' does not exist on typ... Remove this comment to see the full error message
 		this.TODAY_LUCKY_ASTRO = this.matchImgUrl($, 4)
+// @ts-expect-error TS(2339): Property 'date' does not exist on type 'Astro'.
 		this.date = date;
 	}
+// @ts-expect-error TS(7006): Parameter '$' implicitly has an 'any' type.
 	matchImgUrl($, num) {
 		const LUCKY = $('.TODAY_LUCKY .LUCKY').text().match(/\S+/g);
 		return LUCKY[num];
@@ -377,14 +445,18 @@ class Astro {
 
 class DailyAlmanac {
 	constructor() {
+// @ts-expect-error TS(2339): Property 'Almanac' does not exist on type 'DailyAl... Remove this comment to see the full error message
 		this.Almanac = {};
 	}
 	async getAlmanac() {
 		try {
+// @ts-expect-error TS(2339): Property 'Almanac' does not exist on type 'DailyAl... Remove this comment to see the full error message
 			if (!this.Almanac || this.Almanac.date !== this.getDate()) {
 				await this.updateAlmanac();
 			}
+// @ts-expect-error TS(2339): Property 'Almanac' does not exist on type 'DailyAl... Remove this comment to see the full error message
 			if (this.Almanac) {
+// @ts-expect-error TS(2339): Property 'Almanac' does not exist on type 'DailyAl... Remove this comment to see the full error message
 				return this.returnStr(this.Almanac);
 			} else return;
 		} catch (error) {
@@ -393,6 +465,7 @@ class DailyAlmanac {
 		}
 	}
 
+// @ts-expect-error TS(7006): Parameter 'Almanac' implicitly has an 'any' type.
 	returnStr(Almanac) {
 		return `今日黃曆 - ${Almanac.date}
 ${Almanac.content}
@@ -404,6 +477,7 @@ ${Almanac.content}
 		let date = this.getDate();
 		let res = await axios.get(encodeURI(`https://tw.18dao.net/%E6%AF%8F%E6%97%A5%E9%BB%83%E6%9B%86/${date}`));
 		const $ = cheerio.load(res.data)
+// @ts-expect-error TS(2339): Property 'Almanac' does not exist on type 'DailyAl... Remove this comment to see the full error message
 		this.Almanac = new Almanac($, date);
 	}
 	getDate() {
@@ -415,10 +489,14 @@ ${Almanac.content}
 
 }
 class Almanac {
+// @ts-expect-error TS(7006): Parameter '$' implicitly has an 'any' type.
 	constructor($, date) {
 		//TODAY_CONTENT
+// @ts-expect-error TS(2339): Property 'date' does not exist on type 'Almanac'.
 		this.date = date;
+// @ts-expect-error TS(2339): Property 'title' does not exist on type 'Almanac'.
 		this.title = $('.fieldset').text();
+// @ts-expect-error TS(2339): Property 'content' does not exist on type 'Almanac... Remove this comment to see the full error message
 		this.content = $('.right_column').text();
 
 	}
@@ -433,15 +511,19 @@ const mlove = new FunnyRandom('./assets/mlove.txt');
 
 class Asakusa100 {
 	constructor() {
+// @ts-expect-error TS(2339): Property 'Asakusa100' does not exist on type 'Asak... Remove this comment to see the full error message
 		this.Asakusa100 = [];
 	}
 	getRandomAsakusa100() {
+// @ts-expect-error TS(2339): Property 'Asakusa100' does not exist on type 'Asak... Remove this comment to see the full error message
 		let random = Math.floor(Math.random() * (this.Asakusa100.length));
+// @ts-expect-error TS(2339): Property 'Asakusa100' does not exist on type 'Asak... Remove this comment to see the full error message
 		return this.Asakusa100[random];
 	}
 	createAsakusa100() {
 		const rawdata = fs.readFileSync('./assets/Asakusa100.json');
 		const asakusa100 = JSON.parse(rawdata);
+// @ts-expect-error TS(2339): Property 'Asakusa100' does not exist on type 'Asak... Remove this comment to see the full error message
 		this.Asakusa100 = asakusa100.json;
 	}
 }
@@ -458,6 +540,7 @@ class WatchMusic100 {
 		const WatchMusic = fs.readFileSync(`./assets/watchmusic100/觀音百籤${random}籤.htm`, 'utf8')
 		const $ = cheerio.load(WatchMusic);
 		let chance = '';
+// @ts-expect-error TS(7006): Parameter 'i' implicitly has an 'any' type.
 		$('tr > td').each((i, elem) => {
 			chance = $(elem).text().includes('觀音一百籤') ? $(elem).text().replaceAll(/^\s+/g, '').replaceAll(/\s+\n/g, '\n') : chance;
 
@@ -619,6 +702,7 @@ wwwwwwwwwwwwwwwww', '\
 	return rplyArr[rollbase.Dice(rplyArr.length) - 1];
 }
 
+// @ts-expect-error TS(7006): Parameter 'TEXT' implicitly has an 'any' type.
 function randomLuck(TEXT) {
 	const rplyArr = ['超吉', '超級上吉', '大吉', '吉', '中吉', '小吉', '吉', '小吉', '吉', '吉', '中吉', '吉', '中吉', '吉', '中吉', '小吉', '末吉', '吉', '中吉', '小吉', '末吉', '中吉', '小吉', '小吉', '吉', '小吉', '末吉', '中吉', '小吉', '凶', '小凶', '沒凶', '大凶', '很凶', '你不要知道比較好呢', '命運在手中,何必問我'];
 	//	rply.text = TEXT[0] + ' ： ' + rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
@@ -628,6 +712,7 @@ function randomLuck(TEXT) {
 /**
  * Tarot塔羅牌
  */
+// @ts-expect-error TS(7006): Parameter 'text' implicitly has an 'any' type.
 function MultiDrawTarot(text, text2, type) {
 	let returnStr = '';
 	let cards = []
@@ -662,6 +747,7 @@ function MultiDrawTarot(text, text2, type) {
 	return returnStr;
 }
 
+// @ts-expect-error TS(7006): Parameter 'text' implicitly has an 'any' type.
 function NomalDrawTarot(text, text2) {
 	let returnStr = '';
 	returnStr = '【每日塔羅】/大十字塔羅/時間塔羅'
@@ -995,14 +1081,17 @@ const TarotList2 = ["愚者 ＋",
  *  choice 及SORT
  */
 
+// @ts-expect-error TS(7006): Parameter 'input' implicitly has an 'any' type.
 function dailyAnswerChoice(input) {
 	return input + ' \n→ ' + dailyAnswer[rollbase.Dice(dailyAnswer.length) - 1];
 }
+// @ts-expect-error TS(7006): Parameter 'input' implicitly has an 'any' type.
 function choice(input, str) {
 	let array = input.replace(str[0], '').match(/\S+/ig);
 	return str[0] + ' [ ' + array.join(' ') + ' ] \n→ ' + array[rollbase.Dice(array.length) - 1];
 }
 
+// @ts-expect-error TS(7006): Parameter 'input' implicitly has an 'any' type.
 function SortIt(input, mainMsg) {
 	let a = input.replace(mainMsg[0], '').match(/\S+/ig);
 	for (let i = a.length - 1; i >= 0; i--) {
@@ -1016,6 +1105,7 @@ function SortIt(input, mainMsg) {
 	}
 	return mainMsg[0] + ' \n→ [ ' + a.join(', ') + ' ]';
 }
+// @ts-expect-error TS(7006): Parameter 'url' implicitly has an 'any' type.
 async function axiosDaily(url) {
 	let reply = await fetchData(url);
 	if (reply === '錯誤error') {
@@ -1028,6 +1118,7 @@ async function axiosDaily(url) {
 
 }
 
+// @ts-expect-error TS(7006): Parameter 'url' implicitly has an 'any' type.
 async function fetchData(url) {
 	let reply = '';
 	try {
@@ -1044,12 +1135,14 @@ async function fetchData(url) {
 		reply = reply.replace(/\\r/g, '\n').replace(/\\n/g, '\n')
 		return reply || '沒有結果，請檢查內容'
 	} catch (error) {
+// @ts-expect-error TS(2571): Object is of type 'unknown'.
 		if (error.code !== 'ETIMEDOUT' || error.code !== 'ECONNABORTED' || error.code !== 'ECONNRESET' || error.code !== 'undefined') {
 			return '錯誤error'
 		}
 		//return `'伺服器連線出現問題，請稍後再試，錯誤代碼: ${error.code}`;
 	}
 }
+// @ts-expect-error TS(7006): Parameter 'response' implicitly has an 'any' type.
 function analyzeResponse(response) {
 	switch (typeof response) {
 		case 'string':
@@ -1078,7 +1171,9 @@ const discordCommand = [
 		data: new SlashCommandBuilder()
 			.setName('mee')
 			.setDescription('【複述功能】 /mee 模擬HKTRPG說話 ')
+// @ts-expect-error TS(7006): Parameter 'option' implicitly has an 'any' type.
 			.addStringOption(option => option.setName('text').setDescription('複述內容').setRequired(true)),
+// @ts-expect-error TS(7006): Parameter 'interaction' implicitly has an 'any' ty... Remove this comment to see the full error message
 		async execute(interaction) {
 			const text = interaction.options.getString('text')
 			if (text !== null) {
@@ -1093,8 +1188,10 @@ const discordCommand = [
 		data: new SlashCommandBuilder()
 			.setName('排序')
 			.setDescription('進行隨機排序')
+// @ts-expect-error TS(7006): Parameter 'option' implicitly has an 'any' type.
 			.addStringOption(option => option.setName('text').setDescription('輸入所有內容，以空格分隔').setRequired(true))
 		,
+// @ts-expect-error TS(7006): Parameter 'interaction' implicitly has an 'any' ty... Remove this comment to see the full error message
 		async execute(interaction) {
 			const text = interaction.options.getString('text')
 			if (text !== null)
@@ -1106,8 +1203,10 @@ const discordCommand = [
 		data: new SlashCommandBuilder()
 			.setName('隨機')
 			.setDescription('進行隨機抽選')
+// @ts-expect-error TS(7006): Parameter 'option' implicitly has an 'any' type.
 			.addStringOption(option => option.setName('text').setDescription('輸入所有內容，以空格分隔').setRequired(true))
 		,
+// @ts-expect-error TS(7006): Parameter 'interaction' implicitly has an 'any' ty... Remove this comment to see the full error message
 		async execute(interaction) {
 			const text = interaction.options.getString('text')
 			if (text !== null)
@@ -1118,8 +1217,10 @@ const discordCommand = [
 		data: new SlashCommandBuilder()
 			.setName('choice')
 			.setDescription('進行隨機抽選')
+// @ts-expect-error TS(7006): Parameter 'option' implicitly has an 'any' type.
 			.addStringOption(option => option.setName('text').setDescription('輸入所有內容，以空格分隔').setRequired(true))
 		,
+// @ts-expect-error TS(7006): Parameter 'interaction' implicitly has an 'any' ty... Remove this comment to see the full error message
 		async execute(interaction) {
 			const text = interaction.options.getString('text')
 			if (text !== null)
@@ -1130,8 +1231,10 @@ const discordCommand = [
 		data: new SlashCommandBuilder()
 			.setName('運勢')
 			.setDescription('進行隨機抽選')
+// @ts-expect-error TS(7006): Parameter 'option' implicitly has an 'any' type.
 			.addStringOption(option => option.setName('text').setDescription('可選: 什麼的運勢'))
 		,
+// @ts-expect-error TS(7006): Parameter 'interaction' implicitly has an 'any' ty... Remove this comment to see the full error message
 		async execute(interaction) {
 			const text = interaction.options.getString('text')
 			if (text !== null)
@@ -1142,6 +1245,7 @@ const discordCommand = [
 		data: new SlashCommandBuilder()
 			.setName('塔羅')
 			.setDescription('進行塔羅占卜')
+// @ts-expect-error TS(7006): Parameter 'option' implicitly has an 'any' type.
 			.addStringOption(option =>
 				option.setName('category')
 					.setDescription('塔羅種類')
@@ -1151,6 +1255,7 @@ const discordCommand = [
 						{ name: '大十字塔羅', value: '大十字塔羅' },
 						{ name: '時間塔羅', value: '時間塔羅' }))
 		,
+// @ts-expect-error TS(7006): Parameter 'interaction' implicitly has an 'any' ty... Remove this comment to see the full error message
 		async execute(interaction) {
 			const category = interaction.options.getString('category')
 			if (category !== null)
@@ -1161,8 +1266,10 @@ const discordCommand = [
 		data: new SlashCommandBuilder()
 			.setName('立flag')
 			.setDescription('立FLAG')
+// @ts-expect-error TS(7006): Parameter 'option' implicitly has an 'any' type.
 			.addStringOption(option => option.setName('text').setDescription('可選: 立什麼FLAG'))
 		,
+// @ts-expect-error TS(7006): Parameter 'interaction' implicitly has an 'any' ty... Remove this comment to see the full error message
 		async execute(interaction) {
 			const text = interaction.options.getString('text')
 			if (text !== null)
@@ -1173,10 +1280,12 @@ const discordCommand = [
 		data: new SlashCommandBuilder()
 			.setName('每日')
 			.setDescription('進行每日功能')
+// @ts-expect-error TS(7006): Parameter 'subcommand' implicitly has an 'any' typ... Remove this comment to see the full error message
 			.addSubcommand(subcommand =>
 				subcommand
 					.setName('星座')
 					.setDescription('顯示每日星座運程')
+// @ts-expect-error TS(7006): Parameter 'option' implicitly has an 'any' type.
 					.addStringOption(option =>
 						option.setName('star')
 							.setDescription('哪個星座')
@@ -1194,52 +1303,65 @@ const discordCommand = [
 								{ name: '水瓶', value: '每日水瓶' },
 								{ name: '雙魚', value: '每日雙魚' }
 							)))
+// @ts-expect-error TS(7006): Parameter 'subcommand' implicitly has an 'any' typ... Remove this comment to see the full error message
 			.addSubcommand(subcommand =>
 				subcommand
 					.setName('塔羅')
 					.setDescription('抽取一張塔羅牌'))
+// @ts-expect-error TS(7006): Parameter 'subcommand' implicitly has an 'any' typ... Remove this comment to see the full error message
 			.addSubcommand(subcommand =>
 				subcommand
 					.setName('一言')
 					.setDescription('顯示一條金句'))
+// @ts-expect-error TS(7006): Parameter 'subcommand' implicitly has an 'any' typ... Remove this comment to see the full error message
 			.addSubcommand(subcommand =>
 				subcommand
 					.setName('毒湯')
 					.setDescription('顯示一條有毒的雞湯'))
+// @ts-expect-error TS(7006): Parameter 'subcommand' implicitly has an 'any' typ... Remove this comment to see the full error message
 			.addSubcommand(subcommand =>
 				subcommand
 					.setName('情話')
 					.setDescription('顯示一條情話'))
+// @ts-expect-error TS(7006): Parameter 'subcommand' implicitly has an 'any' typ... Remove this comment to see the full error message
 			.addSubcommand(subcommand =>
 				subcommand
 					.setName('靈簽')
 					.setDescription('抽取一條觀音簽'))
+// @ts-expect-error TS(7006): Parameter 'subcommand' implicitly has an 'any' typ... Remove this comment to see the full error message
 			.addSubcommand(subcommand =>
 				subcommand
 					.setName('淺草簽')
 					.setDescription('抽取一條淺草簽'))
+// @ts-expect-error TS(7006): Parameter 'subcommand' implicitly has an 'any' typ... Remove this comment to see the full error message
 			.addSubcommand(subcommand =>
 				subcommand
 					.setName('大事')
 					.setDescription('顯示今天歷史上的大事'))
+// @ts-expect-error TS(7006): Parameter 'subcommand' implicitly has an 'any' typ... Remove this comment to see the full error message
 			.addSubcommand(subcommand =>
 				subcommand
 					.setName('笑話')
 					.setDescription('顯示一條笑話'))
+// @ts-expect-error TS(7006): Parameter 'subcommand' implicitly has an 'any' typ... Remove this comment to see the full error message
 			.addSubcommand(subcommand =>
 				subcommand
 					.setName('動漫')
 					.setDescription('顯示一條動漫金句'))
+// @ts-expect-error TS(7006): Parameter 'subcommand' implicitly has an 'any' typ... Remove this comment to see the full error message
 			.addSubcommand(subcommand =>
 				subcommand
 					.setName('黃曆')
 					.setDescription('顯示今日黃曆'))
+// @ts-expect-error TS(7006): Parameter 'subcommand' implicitly has an 'any' typ... Remove this comment to see the full error message
 			.addSubcommand(subcommand =>
 				subcommand
 					.setName('廢話')
+// @ts-expect-error TS(7006): Parameter 'option' implicitly has an 'any' type.
 					.setDescription('生產一條你或對像的廢話').addStringOption(option => option.setName('name').setDescription('可選: 對像的名字，留白則使用你的名字')))
 
 		,
+// @ts-expect-error TS(7006): Parameter 'interaction' implicitly has an 'any' ty... Remove this comment to see the full error message
 		async execute(interaction) {
 			await interaction.deferReply({});
 			const category = interaction.options.getString('category')
@@ -1260,6 +1382,7 @@ const discordCommand = [
 
 
 class DailyFuckUp {
+// @ts-expect-error TS(7006): Parameter 'list' implicitly has an 'any' type.
 	static randomSentence(list) {
 		let row = Math.floor(Math.random() * list.length);
 		return list[row];
@@ -1277,12 +1400,14 @@ class DailyFuckUp {
 		return quotes
 	}
 
+// @ts-expect-error TS(7006): Parameter 'subject' implicitly has an 'any' type.
 	static genDiscuss(subject) {
 		let sentence = DailyFuckUp.randomSentence(DailyFuckUp.discuss);
 		sentence = sentence.replace(RegExp("主題", "g"), subject);
 		return sentence;
 	}
 
+// @ts-expect-error TS(7006): Parameter 'chapter' implicitly has an 'any' type.
 	static addParagraph(chapter) {
 		if (chapter[chapter.length - 1] === " ") {
 			chapter = chapter.slice(0, -2)
@@ -1290,6 +1415,7 @@ class DailyFuckUp {
 		return "　　" + chapter + "。 "
 	}
 
+// @ts-expect-error TS(7006): Parameter 'subject' implicitly has an 'any' type.
 	static generateArticles(subject) {
 		let text = []
 		let chapter = "";
@@ -1486,6 +1612,7 @@ class DailyFuckUp {
 
 const dailyAnswer = ["不一定", "需要別人的幫助", "需要慎重考慮", "相信你自己", "你是對的", "放棄吧", "聽聽別人的建議", "需要堅持", "不要放棄", "不要錯過機會", "會有轉機", "等待機會", "花更多時間來决定", "再多考慮", "你可能要放棄些東西", "考慮下別人的感受", "這事不靠譜", "別讓它影響到你", "做能讓你快樂的那個决定", "掃清障礙", "不要覺得憂慮", "主動一點", "時間會給你答案", "現在就開始", "別猶豫", "决定了就做", "顯而易見的結果", "保存實力", "時機還不成熟", "你需要掌握更多的信息", "去找個人傾訴", "你需要去探索真相", "把握機會", "决定了就堅持", "很麻煩2現在比以往任何時候的情况都要好", "重新思考", "列出原因", "期待一下,令人期待的事情馬上會發生", "培養一項新的愛好", "走容易走的路", "時間不對", "給自己點時間", "坦誠相告", "著眼未來", "信任", "別傻傻等待", "希望渺茫", "需要新的開始", "其實你已經有了答案", "聽聽別人的建議", "試著放棄", "不要猶豫", "趁早放棄", "再努力一些", "忘掉過去", "可以", "值得一試", "抓住機會", "不要嘗試", "聽長輩的建議", "不要堅持", "你可以的", "不靠譜", "打消念頭", "等待機會", "重新計劃", "重新開始", "擺脫現在的環境", "建議多次嘗試", "需要休息一下再决定", "冷靜思考再决定", "珍惜他或者她", "坦白一切", "努力一下", "主動出擊", "不要太主動", "冷靜處理", "謹慎做决定", "獨立面對", "從過去尋找答案", "多和家人溝通", "多和朋友溝通", "暗中觀察", "不太確定", "沒太大可能", "沒什麽把握", "學會放棄", "放弃這個念頭", "不值得一試", "風險很大", "不要再浪費時間", "做多重計劃", "再堅持一下", "不能繼續下去", "不會有結果", "結果不會讓你滿意", "結果出乎你的意料", "堅持就有結果", "付諸行動", "你會成功", "成功率很高", "沒問題", "耐心處理", "不要主動出擊", "好運馬上來了", "會有變化", "無濟于事", "是個好主意", "不太穩妥", "放空自己", "信任", "相信自己的判斷", "堅持就能看見真理", "會有轉折", "會有改變", "相信自己的第一直覺", "定下目標", "學會獨立思考", "學會捨得", "繼續前行", "不懼未來", "需要些時間", "還有更好的選擇", "不合適", "結果不理想", "抓住新的機會", "尋找新的機會", "尋找更好的方法", "聽取家人的建議", "接受它", "當面溝通", "多次嘗試", "你一定會成功", "可以確定是的", "不重要", "錯誤的想法", "爭取機會", "或許很難", "放心去嘗試", "沒有好結果", "花點時間處理", "堅持自己的想法", "多方面思考再决定", "別猶豫", "思考風險再决定", "有希望", "不要失去信心", "擺脫現在的關係", "十分困難", "需要一些準備", "需要條件", "改變自己再决定", "參考朋友的建議", "分享想法會有收穫", "不算是", "考慮全面", "非常肯定", "也許希望很小", "不是最佳選擇", "再找找別的辦法", "趁早放棄", "一定要堅持", "時間會改變一切", "充實自己再做决定", "從回憶中找答案", "不可以嘗試", "不要做讓自己後悔的事", "不做你會後悔", "抓緊行動", "機不可失", "等待好機會", "整理思路", "可以確定", "控制自己", "做充分準備", "需要好的建議", "幷沒有那麽好", "不是最好的選擇", "不要抱太大希望", "完全正確", "很遺憾", "這不是一個好辦法", "不能否認", "千真萬確", "一定是", "完全肯定", "尋找可能", "細心觀察", "勇于面對", "爲未來做打算", "背向而馳", "憑藉自己的直覺", "深思熟慮再决定", "不是唯一的選擇", "最好的選擇", "找個人給你點意見", "請教你媽媽", "誰說的准呢先觀望著", "把心踹懷裏", "答案在鏡子裏", "這事兒不靠譜", "天上要掉餡餅了", "有好運", "要有耐心", "你需要知道真相", "還有另一種情况", "觀望", "別讓他影響到你", "照你想做的那樣去", "但行好事莫問前程", "走容易走的路", "試試賣萌", "借助他人的經驗", "再多考慮", "機會稍縱即逝", "制定一個新計劃", "GO", "情况很快會發生變化", "轉移你的注意力", "告訴自己什麽是最重要的", "爲什麽不", "別傻等了", "不要忘記", "WHY", "NOT", "去解决", "尋找更多的選擇8上帝爲你關一扇門必定會爲你開一扇窗", "隨波逐流未必是好事", "問天問大地不如問問自己", "你就是答案", "去爭取機會", "改變不了世界就改變自己", "主動一點人生會大不相同", "學會妥協", "掌握更多信息", "相信你的最初想法", "勿忘初心方得始終", "掃清障礙", "把重心放在工作學習上", "培養一項新的愛好", "對他人慷慨", "去做其他的事情", "觀察形勢", "休息休息一會兒", "這是你最後的機會", "再考慮一下", "幷不明智", "等待更好的", "很快能解决", "重要", "去做", "不要過火", "事情開始變得有趣了", "保存你的實力", "不確定因素有點多", "結果不錯,你可能不得不放棄其他東西", "不要憂慮", "不需要", "去傾訴,告訴別人這對你意味著什麽", "無論你做何種選擇結果都是對的", "保持頭腦清醒", "克服困難", "實際一點", "你需要一點幫助", "協作", "尋找更多的選擇", "負責", "阻止", "你必須現在就行動", "遵守規則", "堅持", "需要花點時間", "你不會失望", "不要迫于壓力而改變初衷", "不要忽略身邊的人", "抗拒", "不值得鬥爭", "玩得開心就好", "毋庸置疑", "你也許會失望", "去改變", "一個强有力的承諾將會換回更好的結果", "也許有更好的解决方案", "不要害怕", "想法太對選擇太少", "一笑而過", "取决于你的選擇", "隨他去", "你需要考慮其他方面", "一年後就不那麽重要了", "醒醒吧別做夢了", "意義非凡", "默數十秒再問我", "去行動", "發揮你的想像力", "保持冷靜", "你必須彌補這個缺點", "你會後悔的", "毫無疑問", "當然", "現在比以往任何時候的情况都要好", "相信你的直覺", "這是一個機會", "去問你爸爸", "從來沒有", "尋找一個指路人", "去嘗試", "荒謬", "不賭", "不值得冒險", "不妥協", "關注你的家庭生活", "肯定", "不可預測", "絕對不", "我確定", "儘早完成,令人期待的事情馬上就要發生", "你需要適應", "表示懷疑", "它會帶來好運", "看看會發生什麽", "記錄下倆", "不宜在這個時候", "决定了就去做", "別要求太多", "放棄第一個方案", "Hold不住", "謹慎小心", "注意細節", "注意身後", "不要猶豫", "繼續前行", "情况很快會發生改變", "不要被情緒左右", "轉移注意力", "著眼未來", "問自己什麽是最重要的", "不要等了", "保持樂觀", "沒有更好的選擇", "你需要主動", "妥協", "有比這更重要的東西", "你需要掌握更多的信息", "删除記憶", "專注于你的工作", "你需要考慮其他的方面", "相信自己的直覺", "形勢不明", "先讓自己休息", "重新考慮", "不要做的太過分", "保持現狀/有意料之外的事會發生不妨等待", "花更多的時間來决定", "你開心就好", "有風險但也有機會", "算了吧", "當然咯", "千萬別傻,保持你的好奇心去挖掘真相", "把心揣懷裏", "時機不對", "照你想做的那樣去做", "量力而行", "拋棄首選方案", "最佳方案不一定可行", "注意細節", "說出來吧", "誰都不能保證", "不要陷得太深", "至關重要", "這是一定的", "不妨賭一把", "需要多思考一下", "這個問題確實不好回答", "其實都還不錯", "你認爲好的那個", "或許還沒有", "沒有足够的條件", "目前不滿足", "可以接受", "停止", "對比一下再决定", "勿忘初心", "不重要", "多讀書少思考", "放棄第一個選擇", "不該堅持", "學會放棄", "捨得才有機會獲得", "你是對的", "你值得這麽做", "沒有你想的那麽簡單", "不會更糟糕", "別騙自己", "想太多了", "睡一覺再决定", "不是最佳選擇", "不合適", "把注意力轉移一下", "不要强求", "時間會告訴你答案", "這件事不好回答", "要看你自己", "這個問題沒有答案", "你懂得，不用問我", "用心去做", "不能言傳", "改變自己", "無所謂", "全力以赴", "爭取早日擺脫", "顯而易見的道理", "沒有理由拒絕", "想想未來吧", "開心就好", "及時行樂", "看情况再說", "不聽老人言，吃虧在眼前", "無須多言", "熬過去就好", "一切都是好的", "是非難辨", "搞不清楚狀况", "不要太樂觀", "用心感受", "嗯", "明天就有變化", "等一周再說", "都可以", "都值得去做", "太早决定不好", "別懷疑自己", "你要果斷一些", "靜觀其變", "看起來不靠譜", "放輕鬆", "不想要就趁早放棄", "尋找新的開始", "都可以", "放下吧", "忽略別人的看法", "不需要解釋", "愛拼才會贏", "讓他、她知道", "其他選擇", "沒有意義", "你的答案在心裏", "換位思考", "嘗試新的生活", "接受它", "一切都是最好的安排", "完美", "不要放縱自己", "跟隨大衆的審美", "不太滿意的結果", "沒有更好的選擇", "堅持到底", "不要", "隨心所欲", "大膽去做", "聽人勸吃飽飯", "你還是不够努力", "不要欺騙自己", "注意細節", "珍惜現在", "讓別人替你分擔", "分享會有驚喜", "走下去", "淘汰它", "心誠則靈", "行與不行一試便知", "真心對待", "最後的决定", "二選一，選前者", "找人幫你做", "相信大家的眼光", "難得糊塗", "從現在開始努力", "回頭是岸", "求同存異", "或許還不是時候", "先苦後甜", "樹立信心再來一次", "過了這村沒這店", "運氣不佳不建議做", "別一條路走到黑", "別再委屈自己", "多看看外面的世界", "問下你們老師", "這是個問題嘛？", "無法回答", "相信科學", "少吃多動就會有收穫", "幹嘛想不開來笑一個", "誰也幫不了你", "瞭解自己的人會給你答案", "沒效果", "言多必失", "敞開心扉", "梳理一下再决定", "想想得了", "最後的疼愛是手放開", "別想那麽多沒用的", "沒用的", "不起作用", "適得其反", "空說無用", "沒什麽不妥", "長點心吧", "還有別的選擇嘛？", "別往心裏去", "控制自己", "今生無緣", "幸福快來了", "不是現在這個人、事、物", "再給自己一次機會", "未必適合你", "沒問題的", "不計得失方能成功", "愛幹嘛就幹嘛", "分散注意力", "緩解壓力繼續前行", "說多無益", "別膽少", "直接點", "只有你最清楚", "問問你閨蜜或基友", "看樣子是不行", "沒什麽差別", "摸著自己的胸再問一次", "親愛的那是不可能的", "反正也不會實現", "無所謂了", "試一次就知道", "別怕麻煩", "自己拿主意吧", "別人說的話隨便聽一聽", "我也幫不上忙", "和昨天一樣", "別忘了你的承諾", "恐怕來不及", "反復無常", "不要自討苦吃", "不要自討沒趣", "枉然", "取長補短", "不能硬來", "不明智的選擇", "犯不著", "理清頭緒答案就有了", "放輕鬆再問一遍", "你喜歡的就是好的", "如果有選擇我選第一個", "做自己喜歡的事", "很重要的事情要花點功夫", "對自己好一點", "愛惜自己", "沒有對比就沒有傷害", "醒醒吧", "不要輕易放棄", "浪費功夫", "依賴別人也不是辦法", "別人幫不了你", "沒有辦法感同身受", "不要好了傷疤忘了疼", "要矜持點", "簡單易行的方式", "找值得信賴的人諮詢", "少點套路", "什麽都沒有把握", "主意不錯哦", "要有野心", "好景不長", "不要自尋煩惱", "清理自己的過去", "提高自己", "誰也做不了你的主", "這個還真不好說", "給自己一點壓力", "別管對錯去做吧", "你需要點套路", "懶得想不如簡單點", "看開一點", "支持你", "不適合你的", "你這麽好看說什麽都對", "多讀書少提問", "活在當下", "別灰心再試一下", "沒有絕對的答案", "不存在優勢", "抓住重點", "這跟我沒關係", "好主意", "搞不定", "想想就好，別衝動", "鼓勵一下，你行滴", "無疑是一個好選擇", "看情况咯", "費盡心思也無濟于事", "性格不合", "試試賣萌、耍酷", "冷靜冷靜", "主動聯繫", "一包辣條壓壓驚", "痛苦的選擇", "離開", "顧及別人感受", "傻人有傻福", "一切從簡", "重新考慮一下", "千萬小心", "太天真", "別想太多啦", "忍一忍就過去了", "何必認真", "都是緣分", "提醒自己過去的事", "隨你吧", "這不重要吧", "你說對了呢", "仁者見仁智者見智", "無解", "是個謎", "無所謂", "不要反復果斷點", "不要感情用事", "放手一搏", "什麽都不用做", "轉機馬上到了", "要敢于直面現實", "改變不了自己，就放弃", "接受現狀", "可能不會有", "現實很殘酷", "不知道啊", "你一定是對的", "跟以前一樣", "還是老樣子", "不如讓自己開心一點", "糟糕", "猜不透就不猜", "別理睬", "忍", "陽光總在風雨後", "小心爲上", "不提也罷", "不該問我，問問自己", "想不通就明天再想", "問你身邊的异性", "問你身邊的朋友", "問你身邊的同性", "答案即將揭曉", "肯定沒戲", "別抱太大希望", "慢慢來", "不必在乎", "沒有準確答案", "如往常一樣", "沒什麽不妥", "安心去做", "抓緊實現", "你搞不定", "這個問題沒有答案", "需要找個專家問問", "樂觀面對", "不要做鴕鳥", "清醒地認識自己", "擺脫一切幹擾", "試試手氣重新來過", "別讓自己變得不像自己", "別著急，再好好想想", "問天問地不如問問自己", "毫無意義的事", "不要强加于人", "及時行樂", "與人溝通，會有收穫", "樂趣在于探索", "找不到相關的信息", "大膽提出建議", "無話可說", "別忘了自己的夢想", "說好的獨立解决呢", "拒絕回答一切問題", "不太想管你這種閑事", "安心的去做", "難道告訴你結果不妙嘛", "無聊的問題", "別人說的都對", "好人有好報", "祈禱一下，就會有奇迹", "不够虔誠，重新問一次", "不要騙自己", "很尷尬的局面", "沒必要堅持", "放手一搏", "換個角度思考", "神仙都幫不了你", "心靈鶏湯救不了你", "遠水救不了近火", "更多選擇更多歡笑", "軟硬兼施", "全面推進", "妥協吧", "只是時間問題罷了", "天時地利只欠人和", "等風來", "回家問你媽媽", "不一定是你滿意的結果", "强扭的瓜不甜", "真的未必能做到", "沒可能完成", "嘗試三次不行就撤", "誰說你不行，去他打", "你怎樣做都是錯,真理永遠掌握在少數人手中", "別猶豫加油做", "去吧，不然會後悔", "智者是不需要任何答案的", "反向思考", "淡定", "不知道", "找個人請教一下", "話聽三分", "你的地盤你做主", "這個問題太深奧", "决定了就去做"]
 
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
 	rollDiceCommand,
 	initialize,

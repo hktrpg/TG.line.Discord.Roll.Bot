@@ -1,33 +1,45 @@
 "use strict";
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 if (!process.env.mongoURL) {
+    // @ts-expect-error TS(1108): A 'return' statement can only be used within a fun... Remove this comment to see the full error message
     return;
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'VIP'.
 const VIP = require('../modules/veryImportantPerson');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'checkMongo... Remove this comment to see the full error message
 const checkMongodb = require('../modules/dbWatchdog.js');
 const FUNCTION_AT_LIMIT = [5, 25, 50, 200, 200, 200, 200, 200];
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'schema'.
 const schema = require('../modules/schema')
 const FUNCTION_CRON_LIMIT = [2, 15, 30, 45, 99, 99, 99, 99];
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'moment'.
 const moment = require('moment');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'agenda'.
 const agenda = require('../modules/schedule')
 const CRON_REGEX = /^(\d\d)(\d\d)((?:-([1-9]?[1-9]|((mon|tues|wed(nes)?|thur(s)?|fri|sat(ur)?|sun)(day)?))){0,1})/i;
 const VALID_DAYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'checkTools... Remove this comment to see the full error message
 const checkTools = require('../modules/check.js');
 
 
 
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'gameName'.
 const gameName = function () {
     return '【定時發訊功能】.at /.cron  mins hours delete show'
 }
 
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'gameType'.
 const gameType = function () {
     return 'funny:schedule:hktrpg'
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'prefixs'.
 const prefixs = function () {
     return [{
         first: /^\.at$|^\.cron$/i,
         second: null
-    }]
+    }];
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'getHelpMes... Remove this comment to see the full error message
 const getHelpMessage = function () {
     return `【定時任務功能】
     兩種模式
@@ -79,22 +91,28 @@ const getHelpMessage = function () {
     hello world
     `
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'initialize... Remove this comment to see the full error message
 const initialize = function () {
     return "";
 }
 
-const rollDiceCommand = async function ({
-    inputStr,
-    mainMsg,
-    groupid,
-    userid,
-    userrole,
-    botname,
-    //displayname,
-    channelid,
-    // displaynameDiscord,
-    //membercount
-}) {
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'rollDiceCo... Remove this comment to see the full error message
+const rollDiceCommand = async function(
+    this: any,
+    {
+        inputStr,
+        mainMsg,
+        groupid,
+        userid,
+        userrole,
+        botname,
+
+        //displayname,
+        // displaynameDiscord,
+        //membercount
+        channelid
+    }: any
+) {
     let rply = {
         default: 'on',
         type: 'text',
@@ -107,6 +125,7 @@ const rollDiceCommand = async function ({
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
             rply.text = this.getHelpMessage();
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             return rply;
         }
@@ -129,7 +148,7 @@ const rollDiceCommand = async function ({
             }
             const jobs = await agenda.agenda.jobs(
                 check
-            ).catch(error => console.error('agenda error: ', error.name, error.reson))
+            ).catch((error: any) => console.error('agenda error: ', error.name, error.reson))
             rply.text = showJobs(jobs);
             return rply;
         }
@@ -156,7 +175,7 @@ const rollDiceCommand = async function ({
             }
             const jobs = await agenda.agenda.jobs(
                 check
-            ).catch(error => console.error('agenda error: ', error.name, error.reson))
+            ).catch((error: any) => console.error('agenda error: ', error.name, error.reson))
             try {
                 let data = jobs[Number(mainMsg[2]) - 1];
                 await jobs[Number(mainMsg[2]) - 1].remove();
@@ -185,7 +204,7 @@ const rollDiceCommand = async function ({
             }
             let checkGroupid = await schema.agendaAtHKTRPG.countDocuments(
                 check
-            ).catch(error => console.error('schedule  #171 mongoDB error: ', error.name, error.reson));
+            ).catch((error: any) => console.error('schedule  #171 mongoDB error: ', error.name, error.reson));
             if (checkGroupid >= limit) {
                 rply.text = '.at 整個群組上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
                 return rply;
@@ -218,7 +237,7 @@ const rollDiceCommand = async function ({
             }
 
             let callBotname = differentPeformAt(botname);
-            await agenda.agenda.schedule(date, callBotname, { imageLink: roleName.imageLink, roleName: roleName.roleName, replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid }).catch(error => console.error('agenda error: ', error.name, error.reson))
+            await agenda.agenda.schedule(date, callBotname, { imageLink: roleName.imageLink, roleName: roleName.roleName, replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid }).catch((error: any) => console.error('agenda error: ', error.name, error.reson))
             rply.text = `已新增排定內容\n將於${date.toString().replace(/:\d+\s.*/, '')}運行`
             return rply;
         }
@@ -245,7 +264,7 @@ const rollDiceCommand = async function ({
             }
             const jobs = await agenda.agenda.jobs(
                 check
-            ).catch(error => console.error('agenda error: ', error.name, error.reson))
+            ).catch((error: any) => console.error('agenda error: ', error.name, error.reson))
             rply.text = showCronJobs(jobs);
             return rply;
         }
@@ -307,7 +326,7 @@ const rollDiceCommand = async function ({
             }
             let checkGroupid = await schema.agendaAtHKTRPG.countDocuments(
                 check
-            ).catch(error => console.error('schedule #278 mongoDB error: ', error.name, error.reson));
+            ).catch((error: any) => console.error('schedule #278 mongoDB error: ', error.name, error.reson));
             if (checkGroupid >= limit) {
                 rply.text = '.cron 整個群組上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
                 return rply;
@@ -360,7 +379,7 @@ const rollDiceCommand = async function ({
         }
     }
 }
-function differentPeformAt(botname) {
+function differentPeformAt(botname: any) {
     switch (botname) {
         case "Discord":
             return "scheduleAtMessageDiscord"
@@ -375,13 +394,13 @@ function differentPeformAt(botname) {
             break;
     }
 }
-function getAndRemoveRoleNameAndLink(input) {
+function getAndRemoveRoleNameAndLink(input: any) {
     let roleName = input.match(/^name=(.*)\n/mi) ? input.match(/^name=(.*)\n/mi)[1] : null;
     let imageLink = input.match(/^link=(.*)\n/mi) ? input.match(/^link=(.*)\n/mi)[1] : null;
     return { newText: input.replace(/^link=.*\n/mi, "").replace(/^name=.*\n/im, ""), roleName, imageLink };
 }
 
-function differentPeformCron(botname) {
+function differentPeformCron(botname: any) {
     switch (botname) {
         case "Discord":
             return "scheduleCronMessageDiscord"
@@ -398,7 +417,7 @@ function differentPeformCron(botname) {
 
 
 }
-function checkAtTime(first, second) {
+function checkAtTime(first: any, second: any) {
     //const date = new Date(2012, 11, 21, 5, 30, 0);
     //const date = new Date(Date.now() + 5000);
     //   如 20220604 1900 < 年月日 時間
@@ -434,7 +453,7 @@ function checkAtTime(first, second) {
             break;
     }
 }
-function checkCronTime(text) {
+function checkCronTime(text: any) {
     //const date = {hour: 14, minute: 30}
     //@{text} - 1133  / 1155-wed / 1125-(1-99)
     let hour = text.match(CRON_REGEX) && text.match(CRON_REGEX)[1];
@@ -462,7 +481,7 @@ function checkCronTime(text) {
 
 
 
-function showJobs(jobs) {
+function showJobs(jobs: any) {
     let reply = '';
     if (jobs && jobs.length > 0) {
         for (let index = 0; index < jobs.length; index++) {
@@ -472,7 +491,7 @@ function showJobs(jobs) {
     } else reply = "沒有找到定時任務"
     return reply;
 }
-function showCronJobs(jobs) {
+function showCronJobs(jobs: any) {
     let reply = '';
     if (jobs && jobs.length > 0) {
         for (let index = 0; index < jobs.length; index++) {
@@ -486,6 +505,7 @@ function showCronJobs(jobs) {
 }
 
 
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,

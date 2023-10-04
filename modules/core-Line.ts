@@ -1,37 +1,61 @@
+// @ts-expect-error TS(6200): Definitions of the following identifiers conflict ... Remove this comment to see the full error message
 'use strict';
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 if (!process.env.LINE_CHANNEL_ACCESSTOKEN || !process.env.LINE_CHANNEL_SECRET) {
+// @ts-expect-error TS(1108): A 'return' statement can only be used within a fun... Remove this comment to see the full error message
 	return;
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'port'.
 const port = process.env.LINEPORT || 20831;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'candle'.
 const candle = require('../modules/candleDays.js');
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 const mainLine = Boolean(process.env.DISCORD_CHANNEL_SECRET);
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 const lineAgenda = Boolean(process.env.LINE_AGENDA)
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 exports.analytics = require('./analytics');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'EXPUP'.
 const EXPUP = require('./level').EXPUP || function () { };
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const line = require('@line/bot-sdk');
 
-const MESSAGE_SPLITOR = (/\S+/ig);
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'MESSAGE_SP... Remove this comment to see the full error message
+const MESSAGE_SPLITOR = (((/\S+/ig)));
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'SIX_MONTH'... Remove this comment to see the full error message
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'agenda'.
 const agenda = require('../modules/schedule');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'rollText'.
 const rollText = require('./getRoll').rollText;
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 exports.z_stop = require('../roll/z_stop');
 // create LINE SDK config from env variables
 const config = {
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 	channelAccessToken: process.env.LINE_CHANNEL_ACCESSTOKEN,
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 	channelSecret: process.env.LINE_CHANNEL_SECRET,
 };
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'TargetGM'.
 const TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'courtMessa... Remove this comment to see the full error message
 const courtMessage = require('./logs').courtMessage || function () { };
 // create LINE SDK client
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'channelKey... Remove this comment to see the full error message
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'client'.
 const client = new line.Client(config);
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'newMessage... Remove this comment to see the full error message
 const newMessage = require('./message');
 // create Express app
 // about Express itself: https://expressjs.com/
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'app'.
 const app = require('./core-www.js').app;
 
 // register a webhook handler with middleware
 // about the middleware, please refer to doc
+// @ts-expect-error TS(7006): Parameter 'req' implicitly has an 'any' type.
 app.post('/', line.middleware(config), (req, res) => {
 	Promise
 		.all(req.body.events.map(handleEvent))
@@ -42,12 +66,14 @@ app.post('/', line.middleware(config), (req, res) => {
 		});
 });
 // event handler
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 process.on("Line", message => {
 	if (!message.text || !mainLine) return;
 	SendToId(message.target.id, message.text);
 	return;
 });
 
+// @ts-expect-error TS(7006): Parameter 'event' implicitly has an 'any' type.
 let handleEvent = async function (event) {
 
 	let inputStr = (event.message && event.message.text) ? event.message.text : "";
@@ -66,6 +92,7 @@ let handleEvent = async function (event) {
 		}
 		if (roomorgroupid) {
 			let temp = HandleMessage(inputStr);
+// @ts-expect-error TS(7006): Parameter 'err' implicitly has an 'any' type.
 			client.replyMessage(event.replyToken, temp).catch((err) => {
 				console.error('#60 line err', err.statusCode);
 			});
@@ -100,6 +127,7 @@ let handleEvent = async function (event) {
 		return Promise.resolve(null);
 	}
 	let target = '';
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 	if (inputStr) target = await exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
 	if (!target) {
 		await nonDice(event);
@@ -108,8 +136,11 @@ let handleEvent = async function (event) {
 	let userid = event.source.userId || '',
 		displayname = '',
 		titleName = '';
+// @ts-expect-error TS(7034): Variable 'TargetGMTempID' implicitly has type 'any... Remove this comment to see the full error message
 	let TargetGMTempID = [];
+// @ts-expect-error TS(7034): Variable 'TargetGMTempdiyName' implicitly has type... Remove this comment to see the full error message
 	let TargetGMTempdiyName = [];
+// @ts-expect-error TS(7034): Variable 'TargetGMTempdisplayname' implicitly has ... Remove this comment to see the full error message
 	let TargetGMTempdisplayname = [];
 	if (userid) {
 		try {
@@ -137,6 +168,7 @@ let handleEvent = async function (event) {
 	let rplyVal = {};
 	if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 		//mainMsg.shift()
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 		rplyVal = await exports.analytics.parseInput({
 			inputStr: inputStr,
 			groupid: roomorgroupid,
@@ -148,6 +180,7 @@ let handleEvent = async function (event) {
 		})
 	} else {
 		if (channelKeyword == '') {
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 			rplyVal = await exports.analytics.parseInput({
 				inputStr: inputStr,
 				groupid: roomorgroupid,
@@ -161,30 +194,38 @@ let handleEvent = async function (event) {
 
 	}
 
+// @ts-expect-error TS(2339): Property 'sendNews' does not exist on type '{}'.
 	if (rplyVal.sendNews) sendNewstoAll(rplyVal);
 	//LevelUp功能
+// @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
 	if (!rplyVal.text && !rplyVal.LevelUp)
 		return;
-	if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Line")) {
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
+	if (process.env.mongoURL && rplyVal.text && (await newMessage.newUserChecker(userid, "Line"))) {
 		SendToId(userid, newMessage.firstTimeMessage());
 	}
 
 
+// @ts-expect-error TS(2339): Property 'LevelUp' does not exist on type '{}'.
 	if (roomorgroupid && rplyVal && rplyVal.LevelUp) {
 		if (displayname) {
+// @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
 			rplyVal.text = rplyVal.LevelUp + '\n' + rplyVal.text;
 			//await SendToId(roomorgroupid, "@" + displayname + ' \n' + rplyVal.LevelUp
 		} else {
 			//await SendToId(roomorgroupid, rplyVal.LevelUp)
+// @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
 			rplyVal.text = rplyVal.LevelUp + '\n' + rplyVal.text;
 		}
 	}
 	//Linecountroll++;
+// @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
 	if (!rplyVal.text) {
 		return;
 	}
 	if (privatemsg > 1 && TargetGM) {
-		let groupInfo = await privateMsgFinder(roomorgroupid) || [];
+		let groupInfo = (await privateMsgFinder(roomorgroupid)) || [];
+// @ts-expect-error TS(7006): Parameter 'item' implicitly has an 'any' type.
 		groupInfo.forEach((item) => {
 			TargetGMTempID.push(item.userid);
 			TargetGMTempdiyName.push(item.diyName);
@@ -203,8 +244,10 @@ let handleEvent = async function (event) {
 					replyMessagebyReplyToken(event, '正在暗骰給自己');
 			if (userid)
 				if (displayname)
+// @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
 					SendToId(userid, "@" + displayname + '的暗骰\n' + rplyVal.text);
 				else
+// @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
 					SendToId(userid, rplyVal.text);
 			break;
 		case privatemsg == 2:
@@ -213,6 +256,7 @@ let handleEvent = async function (event) {
 			if (roomorgroupid) {
 				let targetGMNameTemp = "";
 				for (let i = 0; i < TargetGMTempID.length; i++) {
+// @ts-expect-error TS(7005): Variable 'TargetGMTempdiyName' implicitly has an '... Remove this comment to see the full error message
 					targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
 				}
 				if (displayname) {
@@ -223,12 +267,16 @@ let handleEvent = async function (event) {
 
 			//有名字就顯示
 			if (displayname) {
+// @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
 				rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
 			}
 			//傳給自己
+// @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
 			SendToId(userid, rplyVal.text);
 			for (let i = 0; i < TargetGMTempID.length; i++) {
+// @ts-expect-error TS(7005): Variable 'TargetGMTempID' implicitly has an 'any[]... Remove this comment to see the full error message
 				if (userid != TargetGMTempID[i]) {
+// @ts-expect-error TS(7005): Variable 'TargetGMTempID' implicitly has an 'any[]... Remove this comment to see the full error message
 					SendToId(TargetGMTempID[i], rplyVal.text);
 				}
 			}
@@ -239,6 +287,7 @@ let handleEvent = async function (event) {
 			if (roomorgroupid) {
 				let targetGMNameTemp = "";
 				for (let i = 0; i < TargetGMTempID.length; i++) {
+// @ts-expect-error TS(7005): Variable 'TargetGMTempdiyName' implicitly has an '... Remove this comment to see the full error message
 					targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
 				}
 				if (displayname) {
@@ -248,17 +297,22 @@ let handleEvent = async function (event) {
 				}
 			}
 			if (displayname)
+// @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
 				rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
 			for (let i = 0; i < TargetGMTempID.length; i++) {
+// @ts-expect-error TS(7005): Variable 'TargetGMTempID' implicitly has an 'any[]... Remove this comment to see the full error message
 				SendToId(TargetGMTempID[i], rplyVal.text);
 			}
 			break;
 		default:
+// @ts-expect-error TS(2339): Property 'type' does not exist on type '{}'.
 			if (displayname && rplyVal && rplyVal.type != 'image') {
 				//285083923223
 				displayname = "@" + displayname;
 				displayname += (candle.checker()) ? ' ' + candle.checker() : '';
+// @ts-expect-error TS(2339): Property 'statue' does not exist on type '{}'.
 				displayname += (rplyVal.statue) ? ' ' + rplyVal.statue + '\n' : "\n";
+// @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
 				rplyVal.text = displayname + rplyVal.text;
 			}
 			if (roomorgroupid) {
@@ -288,14 +342,18 @@ let handleEvent = async function (event) {
 	//Reply Max: 2000 characters
 
 }
+// @ts-expect-error TS(7006): Parameter 'event' implicitly has an 'any' type.
 let replyMessagebyReplyToken = function (event, Reply) {
 	let temp = HandleMessage(Reply);
 	return client.replyMessage(event.replyToken, temp).catch(() => {
+// @ts-expect-error TS(2532): Object is possibly 'undefined'.
 		if (temp.type == 'image') {
 			let tempB = {
 				type: 'text',
+// @ts-expect-error TS(2532): Object is possibly 'undefined'.
 				text: temp.originalContentUrl
 			};
+// @ts-expect-error TS(7006): Parameter 'err' implicitly has an 'any' type.
 			client.replyMessage(event.replyToken, tempB).catch((err) => {
 				console.error('#292 line err', err.statusCode);
 			});
@@ -306,6 +364,7 @@ let replyMessagebyReplyToken = function (event, Reply) {
 
 }
 
+// @ts-expect-error TS(2393): Duplicate function implementation.
 function HandleMessage(message) {
 	let temp = [];
 	switch (true) {
@@ -348,11 +407,17 @@ function HandleMessage(message) {
 	}
 }
 // listen on port
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'privateKey... Remove this comment to see the full error message
 const privateKey = (process.env.KEY_PRIKEY) ? process.env.KEY_PRIKEY : null;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'certificat... Remove this comment to see the full error message
 const certificate = (process.env.KEY_CERT) ? process.env.KEY_CERT : null;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'ca'.
 const ca = (process.env.KEY_CA) ? process.env.KEY_CA : null;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'fs'.
 const fs = require('fs');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'options'.
 let options = {};
+// @ts-expect-error TS(2393): Duplicate function implementation.
 async function read() {
 	if (!privateKey) return;
 	try {
@@ -369,6 +434,7 @@ async function read() {
 (async () => {
 	await read()
 })();
+// @ts-expect-error TS(2580): Cannot find name 'require'. Do you need to install... Remove this comment to see the full error message
 require('https').createServer(options, app).listen(port, () => {
 	console.log(`Line BOT listening on ${port}`);
 });
@@ -377,12 +443,14 @@ require('https').createServer(options, app).listen(port, () => {
 
 
 
+// @ts-expect-error TS(2393): Duplicate function implementation.
 async function sendNewstoAll(rply) {
 	for (let index = 0; index < rply.target.length; index++) {
 		SendToId(rply.target[index].userID, rply.sendNews);
 	}
 }
 if (agenda && agenda.agenda && lineAgenda) {
+// @ts-expect-error TS(7006): Parameter 'job' implicitly has an 'any' type.
 	agenda.agenda.define("scheduleAtMessageLine", async (job) => {
 		//指定時間一次	
 		let data = job.attrs.data;
@@ -398,6 +466,7 @@ if (agenda && agenda.agenda && lineAgenda) {
 		}
 	});
 
+// @ts-expect-error TS(7006): Parameter 'job' implicitly has an 'any' type.
 	agenda.agenda.define("scheduleCronMessageLine", async (job) => {
 		//指定時間一次	
 		let data = job.attrs.data;
@@ -407,6 +476,7 @@ if (agenda && agenda.agenda && lineAgenda) {
 			data.groupid, text
 		)
 		try {
+// @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
 			if ((new Date(Date.now()) - data.createAt) >= SIX_MONTH) {
 				await job.remove();
 				SendToId(
@@ -420,23 +490,29 @@ if (agenda && agenda.agenda && lineAgenda) {
 }
 
 
+// @ts-expect-error TS(7006): Parameter 'error' implicitly has an 'any' type.
 app.on('UnhandledPromiseRejection', error => {
 	// Will print "unhandledRejection err is not defined"
 	console.error('Line UnhandledPromiseRejection: ', error.message);
 });
+// @ts-expect-error TS(7006): Parameter 'error' implicitly has an 'any' type.
 app.on('unhandledRejection', error => {
 	// Will print "unhandledRejection err is not defined"
 	console.error('Line unhandledRejection: ', error.message);
 });
+// @ts-expect-error TS(2393): Duplicate function implementation.
 function SendToId(targetid, Reply) {
 	let temp = HandleMessage(Reply);
+// @ts-expect-error TS(7006): Parameter 'err' implicitly has an 'any' type.
 	client.pushMessage(targetid, temp).catch((err) => {
 		if (err.statusCode == 429) return
 		console.error('#409 line err', err.statusCode, temp);
 	});
 }
+// @ts-expect-error TS(2393): Duplicate function implementation.
 async function privateMsgFinder(channelid) {
 	if (!TargetGM || !TargetGM.trpgDarkRollingfunction) return;
+// @ts-expect-error TS(7006): Parameter 'data' implicitly has an 'any' type.
 	let groupInfo = TargetGM.trpgDarkRollingfunction.find(data =>
 		data.groupid == channelid
 	)
@@ -444,6 +520,7 @@ async function privateMsgFinder(channelid) {
 		return groupInfo.trpgDarkRollingfunction
 	else return [];
 }
+// @ts-expect-error TS(2393): Duplicate function implementation.
 async function nonDice(event) {
 	await courtMessage({ result: "", botname: "Line", inputStr: "" })
 	let roomorgroupid = event.source.groupId || event.source.roomId || '',
@@ -465,12 +542,16 @@ async function nonDice(event) {
 	return null;
 }
 
+// @ts-expect-error TS(7006): Parameter 'mainMsg' implicitly has an 'any' type.
 function z_stop(mainMsg, groupid) {
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 	if (!Object.keys(exports.z_stop).length || !exports.z_stop.initialize().save || !mainMsg || !groupid) {
 		return false;
 	}
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 	let groupInfo = exports.z_stop.initialize().save.find(e => e.groupid == groupid)
 	if (!groupInfo || !groupInfo.blockfunction) return;
+// @ts-expect-error TS(7006): Parameter 'e' implicitly has an 'any' type.
 	let match = groupInfo.blockfunction.find(e => mainMsg[0].toLowerCase().includes(e.toLowerCase()))
 	if (match) {
 		return true;

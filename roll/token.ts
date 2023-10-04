@@ -1,15 +1,26 @@
+// @ts-expect-error TS(6200): Definitions of the following identifiers conflict ... Remove this comment to see the full error message
 "use strict";
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 if (!process.env.DISCORD_CHANNEL_SECRET) {
+    // @ts-expect-error TS(1108): A 'return' statement can only be used within a fun... Remove this comment to see the full error message
     return;
 }
 const variables = {};
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const jimp = require('jimp');
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const sharp = require('sharp');
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const { SlashCommandBuilder } = require('discord.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'axios'.
 const axios = require('axios');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'fs'.
 const fs = require('fs');
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const getColors = require('get-image-colors')
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const generate = require('@ant-design/colors').generate
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const GeoPattern = require('geopattern');
 
 const gameName = function () {
@@ -23,7 +34,7 @@ const prefixs = function () {
     return [{
         first: /^\.token$|^\.token2$|^\.token3$/i,
         second: null
-    }]
+    }];
 }
 const getHelpMessage = function () {
     return `【製作Token】.token
@@ -57,7 +68,7 @@ const rollDiceCommand = async function ({
     discordClient,
     discordMessage,
     displaynameDiscord
-}) {
+}: any) {
     let rply = {
         default: 'on',
         type: 'text',
@@ -66,6 +77,7 @@ const rollDiceCommand = async function ({
     switch (true) {
         case /^help$/i.test(mainMsg[1]): {
             rply.text = getHelpMessage();
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             return rply;
         }
@@ -87,9 +99,10 @@ const rollDiceCommand = async function ({
     }
 }
 
-const circleTokernMaker = async (discordMessage, inputStr, mainMsg, discordClient) => {
+const circleTokernMaker = async (discordMessage: any, inputStr: any, mainMsg: any, discordClient: any) => {
     try {
         let rply = { text: '', sendImage: '' };
+        // @ts-expect-error TS(2554): Expected 2 arguments, but got 3.
         const text = await getName(discordMessage, inputStr, mainMsg)
         const avatar = await getAvatar(discordMessage, discordClient)
         if (!avatar) {
@@ -115,11 +128,13 @@ const circleTokernMaker = async (discordMessage, inputStr, mainMsg, discordClien
     } catch (error) {
         console.error('error', error)
     }
+    // @ts-expect-error TS(2304): Cannot find name 'rply'.
     return rply;
 }
-const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClient, displaynameDiscord) => {
+const circleTokernMaker3 = async (discordMessage: any, inputStr: any, mainMsg: any, discordClient: any, displaynameDiscord: any) => {
     try {
         let rply = { text: '', sendImage: '' };
+        // @ts-expect-error TS(2554): Expected 2 arguments, but got 3.
         const text = await getName(discordMessage, inputStr, mainMsg)
         const avatar = await getAvatar(discordMessage, discordClient)
         if (!avatar) {
@@ -136,6 +151,7 @@ const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClie
         const circleToken = await maskImage(token, './assets/token/tokenCircleMask3.png');
 
         const pattern = GeoPattern.generate((text.text || displaynameDiscord || 'HKTRPG')).toString().replace('width="188" height="70"', 'width="520" height="520"')
+        // @ts-expect-error TS(2580): Cannot find name 'Buffer'. Do you need to install ... Remove this comment to see the full error message
         let url = Buffer.from(
             pattern
         )
@@ -161,10 +177,11 @@ const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClie
     } catch (error) {
         console.error('error', error)
     }
+    // @ts-expect-error TS(2304): Cannot find name 'rply'.
     return rply;
 }
 
-async function maskImage(path, maskPath) {
+async function maskImage(path: any, maskPath: any) {
     const image = await jimp.read(path);
     const mask = await jimp.read(maskPath);
     image.mask(mask, 0, 0)
@@ -172,9 +189,10 @@ async function maskImage(path, maskPath) {
     //    return await image.writeAsync('./assets/token/test2345.png'); // Returns Promise
 }
 
-const polaroidTokernMaker = async (discordMessage, inputStr, mainMsg, discordClient) => {
+const polaroidTokernMaker = async (discordMessage: any, inputStr: any, mainMsg: any, discordClient: any) => {
     try {
         let rply = { text: '', sendImage: '' };
+        // @ts-expect-error TS(2554): Expected 2 arguments, but got 3.
         const text = await getName(discordMessage, inputStr, mainMsg)
         const avatar = await getAvatar(discordMessage, discordClient)
         if (!avatar) {
@@ -200,28 +218,29 @@ const polaroidTokernMaker = async (discordMessage, inputStr, mainMsg, discordCli
     } catch (error) {
         console.error('error', error)
     }
+    // @ts-expect-error TS(2304): Cannot find name 'rply'.
     return rply;
 }
 
-const getAvatar = async (discordMessage, discordClient) => {
+const getAvatar = async (discordMessage: any, discordClient: any) => {
     if (discordMessage.type === 0 && discordMessage.attachments.size === 0) {
-        const member = (discordMessage.guild && await discordMessage.guild.members.fetch(discordMessage.author) || discordMessage.author)
+        const member = (discordMessage.guild && (await discordMessage.guild.members.fetch(discordMessage.author)) || discordMessage.author)
         return member.displayAvatarURL();
     }
     if (discordMessage.type === 0 && discordMessage.attachments.size > 0) {
-        const url = discordMessage.attachments.find(data => data.contentType.match(/image/i))
+        const url = discordMessage.attachments.find((data: any) => data.contentType.match(/image/i))
         return (url && url.url) || null;
     }
     //19 = reply
     if (discordMessage.type === 19) {
         const channel = await discordClient.channels.fetch(discordMessage.reference.channelId);
         const referenceMessage = await channel.messages.fetch(discordMessage.reference.messageId)
-        const url = referenceMessage.attachments.find(data => data.contentType.match(/image/i))
+        const url = referenceMessage.attachments.find((data: any) => data.contentType.match(/image/i))
         return (url && url.url) || null;
     }
 }
 
-const getName = async (discordMessage, inputStr) => {
+const getName = async (discordMessage: any, inputStr: any) => {
     /**  if (!mainMsg[1]) {
           const member = await discordMessage.guild.members.fetch(discordMessage.author)
           let nickname = member ? member.displayName : discordMessage.author.username;
@@ -237,13 +256,13 @@ const getName = async (discordMessage, inputStr) => {
 }
 
 
-const getImage = async url => {
+const getImage = async (url: any) => {
     //	const response = await axios(url, { responseType: 'arraybuffer' })
     //	const buffer64 = Buffer.from(response.data, 'binary').toString('base64')
     //	return buffer64
     return (await axios({ url, responseType: "arraybuffer" })).data;
 }
-const tokernMaker = async (imageLocation, name) => {
+const tokernMaker = async (imageLocation: any, name: any) => {
     try {
 
         let image = await sharp(imageLocation).resize({ height: 387, width: 375, fit: 'outside' })
@@ -252,7 +271,9 @@ const tokernMaker = async (imageLocation, name) => {
         let metadata = await newImage.metadata();
         const width = (metadata.width < 375) ? metadata.width : 375;
         const height = (metadata.height < 387) ? metadata.height : 387;
+        // @ts-expect-error TS(2345): Argument of type 'number' is not assignable to par... Remove this comment to see the full error message
         const left = ((metadata.width - 375) / 2) < 0 ? sharp.gravity.center : parseInt((metadata.width - 375) / 2);
+        // @ts-expect-error TS(2345): Argument of type 'number' is not assignable to par... Remove this comment to see the full error message
         const top = ((metadata.height - 387) / 2) < 0 ? sharp.gravity.center : parseInt((metadata.height - 387) / 2);
         newImage = await newImage.extract({ left, top, width, height }).toBuffer()
         newImage = await sharp('./views/image/ONLINE_TOKEN.png')
@@ -269,7 +290,7 @@ const tokernMaker = async (imageLocation, name) => {
 }
 
 
-const tokernMaker2 = async (imageLocation, name) => {
+const tokernMaker2 = async (imageLocation: any, name: any) => {
     try {
 
         let image = await sharp(imageLocation).resize({ height: 520, width: 520, fit: 'outside' })
@@ -278,7 +299,9 @@ const tokernMaker2 = async (imageLocation, name) => {
         let metadata = await newImage.metadata();
         const width = (metadata.width < 520) ? metadata.width : 520;
         const height = (metadata.height < 520) ? metadata.height : 520;
+        // @ts-expect-error TS(2345): Argument of type 'number' is not assignable to par... Remove this comment to see the full error message
         const left = ((metadata.width - 520) / 2) < 0 ? sharp.gravity.center : parseInt((metadata.width - 520) / 2);
+        // @ts-expect-error TS(2345): Argument of type 'number' is not assignable to par... Remove this comment to see the full error message
         const top = ((metadata.height - 520) / 2) < 0 ? sharp.gravity.center : parseInt((metadata.height - 520) / 2);
         newImage = await newImage.extract({ left, top, width, height }).toBuffer()
         newImage = await sharp('./views/image/ONLINE TOKEN_BASE.png')
@@ -294,7 +317,7 @@ const tokernMaker2 = async (imageLocation, name) => {
     }
 }
 
-const tokernMaker3 = async (imageLocation, name) => {
+const tokernMaker3 = async (imageLocation: any, name: any) => {
     try {
 
         let image = await sharp(imageLocation).resize({ height: 520, width: 520, fit: 'outside' })
@@ -303,7 +326,9 @@ const tokernMaker3 = async (imageLocation, name) => {
         let metadata = await newImage.metadata();
         const width = (metadata.width < 520) ? metadata.width : 520;
         const height = (metadata.height < 520) ? metadata.height : 520;
+        // @ts-expect-error TS(2345): Argument of type 'number' is not assignable to par... Remove this comment to see the full error message
         const left = ((metadata.width - 520) / 2) < 0 ? sharp.gravity.center : parseInt((metadata.width - 520) / 2);
+        // @ts-expect-error TS(2345): Argument of type 'number' is not assignable to par... Remove this comment to see the full error message
         const top = ((metadata.height - 520) / 2) < 0 ? sharp.gravity.center : parseInt((metadata.height - 520) / 2);
         newImage = await newImage.extract({ left, top, width, height }).toBuffer()
         newImage = await sharp('./views/image/ONLINE TOKEN_BASE.png')
@@ -319,7 +344,7 @@ const tokernMaker3 = async (imageLocation, name) => {
     }
 }
 
-async function addTextOnImage(token, text = '', text2 = '', name) {
+async function addTextOnImage(token: any, text = '', text2 = '', name: any) {
     try {
         const svgBuffer = colorTextBuilder({ text, text2, size: [92, 61], position: 96 });
         let image = await sharp(token)
@@ -337,7 +362,7 @@ async function addTextOnImage(token, text = '', text2 = '', name) {
     }
 }
 
-async function addTextOnImage2(token, text = ' ', text2 = ' ', name) {
+async function addTextOnImage2(token: any, text = ' ', text2 = ' ', name: any) {
     try {
         const svgBuffer = colorTextBuilder({ text, text2, size: [96, 66], position: 96 });
         let image = await sharp(token)
@@ -355,7 +380,7 @@ async function addTextOnImage2(token, text = ' ', text2 = ' ', name) {
     }
 }
 
-function hexToRgb(hex) {
+function hexToRgb(hex: any) {
     let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result ? {
         r: parseInt(result[1], 16),
@@ -364,10 +389,10 @@ function hexToRgb(hex) {
     } : null;
 }
 
-function rgbToHex(r, g, b) {
+function rgbToHex(r: any, g: any, b: any) {
     return (valueToHex(r) + valueToHex(g) + valueToHex(b));
 }
-function valueToHex(c) {
+function valueToHex(c: any) {
     let hex = c.toString(16);
     return hex
 }
@@ -376,7 +401,12 @@ const discordCommand = [
 ];
 
 
-function colorTextBuilder({ size, text, text2, position }) {
+function colorTextBuilder({
+    size,
+    text,
+    text2,
+    position
+}: any) {
     const singleLine = text2 ? false : true;
     const textSize = singleLine ? size[0] : size[1];
     let svgScript = `
@@ -395,10 +425,12 @@ function colorTextBuilder({ size, text, text2, position }) {
         `<text x="50%" y="84%" text-anchor="middle" class="title shadow outline">${text}</text>
   <text x="50%" y="97%" text-anchor="middle" class="title shadow outline">${text2}</text></svg>`;
 
+    // @ts-expect-error TS(2580): Cannot find name 'Buffer'. Do you need to install ... Remove this comment to see the full error message
     return singleLine ? Buffer.from(svgScript) : Buffer.from(svgScript);
 }
 
 
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     rollDiceCommand,
     initialize,

@@ -1,7 +1,11 @@
+// @ts-expect-error TS(6200): Definitions of the following identifiers conflict ... Remove this comment to see the full error message
 "use strict";
 const variables = {};
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const { SlashCommandBuilder } = require('discord.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'Fuse'.
 const Fuse = require('fuse.js');
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const { randomInt } = require('mathjs');
 const gameName = function () {
     return '【PokeRole】.poke '
@@ -28,7 +32,7 @@ const prefixs = function () {
     return [{
         first: /^\.poke$/i,
         second: null
-    }]
+    }];
 }
 const getHelpMessage = function () {
     return `【PokeRole】.poke
@@ -57,10 +61,12 @@ const initialize = function () {
     return variables;
 }
 
-const rollDiceCommand = async function ({
-    mainMsg,
-
-}) {
+const rollDiceCommand = async function(
+    this: any,
+    {
+        mainMsg
+    }: any
+) {
     let rply = {
         default: 'on',
         type: 'text',
@@ -69,22 +75,27 @@ const rollDiceCommand = async function ({
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
             rply.text = this.getHelpMessage();
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
+            // @ts-expect-error TS(2339): Property 'buttonCreate' does not exist on type '{ ... Remove this comment to see the full error message
             rply.buttonCreate = ['.poke', '.poke mon 超夢', '.poke move 火焰輪', '.poke vs 火之誓約 夢幻', '.poke vs 火 100', '.poke vs 火 超能力 水']
             return rply;
         }
         case /^vs$/.test(mainMsg[1]): {
             let text = commandVS(mainMsg).text;
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             rply.text = text;
             return rply;
         }
         case /^move$/.test(mainMsg[1]): {
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             rply.text = pokeMove.search(mainMsg.slice(2).join(' '))
             return rply;
         }
         case /^mon$/.test(mainMsg[1]): {
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             let check = removeAndCheck(mainMsg)
             let detail = check.detail;
@@ -99,7 +110,9 @@ const rollDiceCommand = async function ({
 }
 
 class Pokemon {
-    constructor(data) {
+    fuse: any;
+    pokemonData: any;
+    constructor(data: any) {
         this.pokemonData = data;
         this.fuse = new Fuse(this.pokemonData, {
             keys: ['name', 'id', 'alias'],
@@ -109,42 +122,46 @@ class Pokemon {
         });
     }
 
-    static init(link) {
-        let data = [];
-        require('fs').readdirSync('./assets/pokemon/').forEach(function (file) {
+    static init(link: any) {
+        let data: any = [];
+        // @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
+        require('fs').readdirSync('./assets/pokemon/').forEach(function (file: any) {
             if (file.match(/\.js$/) && file.match(new RegExp('^' + link, 'i'))) {
+                // @ts-expect-error TS(2580): Cannot find name 'require'. Do you need to install... Remove this comment to see the full error message
                 let importData = require('../assets/pokemon/' + file);
                 data = data.concat(importData.Pokedex)
             }
         });
         return new Pokemon(data);
     }
-    getVS(string) {
+    getVS(string: any) {
         if (typeof (string) === 'number') { string = ('000' + string).slice(-3) }
         let result = this.fuse.search(string, { limit: 1 })
         if (result.length) return result[0].item;
         return undefined;
     }
-    static findTypeByCht(value) {
+    static findTypeByCht(value: any) {
         for (const key in typeName) {
+            // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
             if (typeName[key] === value) {
                 return [key];
             }
         }
         return [];
     }
-    static findTypeByEng(value) {
+    static findTypeByEng(value: any) {
         let result = [];
         for (const key in typeName) {
             for (let i = 0; i < value.length; i++) {
                 if (key === value[i]) {
+                    // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                     result.push(typeName[key])
                 }
             }
         }
         return result;
     }
-    static showPokemon(pokemon, detail = false) {
+    static showPokemon(pokemon: any, detail = false) {
         let rply = '';
         try {
             rply += `#${pokemon.id} 【${pokemon.name}】 ${pokemon.alias} ${Pokemon.findTypeByEng(pokemon.type)} 
@@ -171,7 +188,7 @@ ${(pokemon.evolution.stage) ? `進化階段：${pokemon.evolution.stage}` : ''} 
         }
         return rply;
     }
-    search(name, detail) {
+    search(name: any, detail: any) {
         try {
             let result = this.fuse.search(name, { limit: 12 });
             let rply = '';
@@ -195,13 +212,13 @@ ${(pokemon.evolution.stage) ? `進化階段：${pokemon.evolution.stage}` : ''} 
 }
 
 
-function removeAndCheck(mainMsg) {
+function removeAndCheck(mainMsg: any) {
     const patternDetail = /^--[dD]$/;
     return {
-        detail: mainMsg.some(function (element) {
+        detail: mainMsg.some(function (element: any) {
             return patternDetail.test(element);
         }),
-        newMainMsg: mainMsg.filter(function (element) {
+        newMainMsg: mainMsg.filter(function (element: any) {
             return !patternDetail.test(element);
         })
     };
@@ -209,7 +226,9 @@ function removeAndCheck(mainMsg) {
 
 
 class Moves {
-    constructor(data) {
+    fuse: any;
+    pokemonData: any;
+    constructor(data: any) {
         this.pokemonData = data;
         this.fuse = new Fuse(this.pokemonData, {
             keys: ['name', 'id', 'alias'],
@@ -219,31 +238,34 @@ class Moves {
         });
     }
 
-    static init(link) {
-        let data = [];
-        require('fs').readdirSync('./assets/pokemon/').forEach(function (file) {
+    static init(link: any) {
+        let data: any = [];
+        // @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
+        require('fs').readdirSync('./assets/pokemon/').forEach(function (file: any) {
             if (file.match(/\.js$/) && file.match(new RegExp('^' + link, 'i'))) {
+                // @ts-expect-error TS(2580): Cannot find name 'require'. Do you need to install... Remove this comment to see the full error message
                 let importData = require('../assets/pokemon/' + file);
                 data = data.concat(importData.MoveList)
             }
         });
         return new Moves(data);
     }
-    getVS(string) {
+    getVS(string: any) {
         if (typeof (string) === 'number') { string = ('000' + string).slice(-3) }
         let result = this.fuse.search(string, { limit: 1 })
         if (result)
             return result[0].item;
     }
-    static findTypeByCht(value) {
+    static findTypeByCht(value: any) {
         for (const key in typeName) {
+            // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
             if (typeName[key] === value) {
                 return key;
             }
         }
         return undefined;
     }
-    static showMove(move) {
+    static showMove(move: any) {
         let result = '';
         result += `【${move.name}】 ${move.alias} ${Pokemon.findTypeByEng([move.type])} 威力：${move.power}
 命中：${move.accuracy}
@@ -252,7 +274,7 @@ class Moves {
 招式描述：${move.desc}`
         return result;
     }
-    search(name) {
+    search(name: any) {
         try {
             let result = this.fuse.search(name, { limit: 12 });
             let rply = '';
@@ -324,7 +346,7 @@ const effect = {
 
 }
 // 定義函式
-function checkEffectiveness(moveType, enemyType) {
+function checkEffectiveness(moveType: any, enemyType: any) {
     try {
 
         /**
@@ -341,14 +363,17 @@ function checkEffectiveness(moveType, enemyType) {
         let enemyType1 = enemyType[0];
         let enemyType2 = enemyType[1];
         let effectiveness = 0;
+        // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
         let level = typeChart[moveType][enemyType1];
         if (level == -999) return { effect: -999, script: "免疫該攻擊傷害" };
         effectiveness += level;
         if (enemyType2) {
+            // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
             level = typeChart[moveType][enemyType2];
             if (level == -999) return { effect: -999, script: "免疫該攻擊傷害" };
             effectiveness += level;
         }
+        // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
         let result = { value: effectiveness, script: effect[effectiveness] };
         return result;
 
@@ -359,7 +384,7 @@ function checkEffectiveness(moveType, enemyType) {
 }
 
 
-function commandVS(mainMsg) {
+function commandVS(mainMsg: any) {
     try {
         let rply = {
             text: ''
@@ -422,12 +447,14 @@ function commandVS(mainMsg) {
 `: '';
         return rply;
     } catch (error) {
+        // @ts-expect-error TS(2304): Cannot find name 'rply'.
         rply.text = `輸入錯誤，請輸入正確的招式名稱或小精靈名稱\n${getHelpMessage()}`
+        // @ts-expect-error TS(2304): Cannot find name 'rply'.
         return rply;
     }
 }
 
-function displayValue(current, total) {
+function displayValue(current: any, total: any) {
     let result = '';
     for (let i = 0; i < current; i++) {
         result += '●';
@@ -439,6 +466,7 @@ function displayValue(current, total) {
 }
 
 const discordCommand = []
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     rollDiceCommand,
     initialize,

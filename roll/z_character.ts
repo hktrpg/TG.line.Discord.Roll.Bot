@@ -1,12 +1,20 @@
+// @ts-expect-error TS(6200): Definitions of the following identifiers conflict ... Remove this comment to see the full error message
 "use strict";
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 if (!process.env.mongoURL) {
+    // @ts-expect-error TS(1108): A 'return' statement can only be used within a fun... Remove this comment to see the full error message
     return;
 }
 let variables = {};
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const mathjs = require('mathjs');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'rollDice'.
 const rollDice = require('./rollbase').rollDiceCommand;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'schema'.
 const schema = require('../modules/schema.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'VIP'.
 const VIP = require('../modules/veryImportantPerson');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'FUNCTION_L... Remove this comment to see the full error message
 const FUNCTION_LIMIT = [4, 20, 20, 30, 30, 99, 99, 99];
 const gameName = function () {
     return '【角色卡功能】 .char (add edit show delete use nonuse button) .ch (set show showall button)'
@@ -18,18 +26,21 @@ const prefixs = function () {
     return [{
         first: /(^[.]char$)|(^[.]ch$)/ig,
         second: null
-    }]
+    }];
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'regexName'... Remove this comment to see the full error message
 const regexName = new RegExp(/name\[(.*?)\]~/, 'i');
 const regexState = new RegExp(/state\[(.*?)\]~/, 'i');
 const regexRoll = new RegExp(/roll\[(.*?)\]~/, 'i');
 const regexNotes = new RegExp(/notes\[(.*?)\]~/, 'i');
 const re = new RegExp(/(.*?):(.*?)(;|$)/, 'ig');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'opt'.
 const opt = {
     upsert: true,
     runValidators: true
 }
-const convertRegex = function (str) {
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'convertReg... Remove this comment to see the full error message
+const convertRegex = function (str: any) {
     return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
 };
 
@@ -88,14 +99,17 @@ const initialize = function () {
 }
 
 // eslint-disable-next-line no-unused-vars
-const rollDiceCommand = async function ({
-    inputStr,
-    mainMsg,
-    groupid,
-    botname,
-    userid,
-    channelid
-}) {
+const rollDiceCommand = async function(
+    this: any,
+    {
+        inputStr,
+        mainMsg,
+        groupid,
+        botname,
+        userid,
+        channelid
+    }: any
+) {
     let rply = {
         default: 'on',
         type: 'text',
@@ -116,6 +130,7 @@ const rollDiceCommand = async function ({
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = await this.getHelpMessage();
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             return rply;
         // .ch(0) ADD(1) TOPIC(2) CONTACT(3)
@@ -134,7 +149,9 @@ const rollDiceCommand = async function ({
                 return rply
             }
             try {
+                // @ts-expect-error TS(2339): Property 'public' does not exist on type '{}'.
                 doc.public = true;
+                // @ts-expect-error TS(2339): Property 'save' does not exist on type '{}'.
                 await doc.save();
 
             } catch (error) {
@@ -143,6 +160,7 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
+            // @ts-expect-error TS(2339): Property 'name' does not exist on type '{}'.
             rply.text = '修改成功\n現在角色卡: ' + doc.name + ' 已經公開。\n請到以下網址查看\n https://publiccard.hktrpg.com/ ';
             return rply;
         case /(^[.]char$)/i.test(mainMsg[0]) && /^unpublic+/i.test(mainMsg[1]):
@@ -160,7 +178,9 @@ const rollDiceCommand = async function ({
                 return rply
             }
             try {
+                // @ts-expect-error TS(2339): Property 'public' does not exist on type '{}'.
                 doc.public = false;
+                // @ts-expect-error TS(2339): Property 'save' does not exist on type '{}'.
                 await doc.save();
 
             } catch (error) {
@@ -169,6 +189,7 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
+            // @ts-expect-error TS(2339): Property 'name' does not exist on type '{}'.
             rply.text = '修改成功\n現在角色卡: ' + doc.name + ' 已經不公開。\n請到以下網址查看\n https://publiccard.hktrpg.com/ ';
             return rply;
         case /(^[.]char$)/i.test(mainMsg[0]) && /^show\d+/i.test(mainMsg[1]):
@@ -182,7 +203,9 @@ const rollDiceCommand = async function ({
             } catch (error) {
                 console.error('char  show GET ERROR: ', error);
             }
+            // @ts-expect-error TS(2339): Property 'length' does not exist on type '{}'.
             if (temp < doc.length) {
+                // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                 rply.text = await showCharacter(doc[temp], 'showAllMode');
             }
             return rply;
@@ -197,7 +220,9 @@ const rollDiceCommand = async function ({
             } catch (error) {
                 console.error('char  show GET ERROR: ', error);
             }
+            // @ts-expect-error TS(2339): Property 'length' does not exist on type '{}'.
             for (let index = 0; index < doc.length; index++) {
+                // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                 rply.text += index + ': ' + doc[index].name + '　\n';
             }
             rply.text += `\n輸入 .char show0 可以顯示0號角色卡
@@ -211,6 +236,7 @@ const rollDiceCommand = async function ({
             return rply;
         case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]): {
             Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
+            // @ts-expect-error TS(2339): Property 'name' does not exist on type '{}'.
             if (!Card.name) {
                 rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 \n.char add name[Sad]~ \nstate[HP:15/15;MP:6/6;]~\nroll[投擲:cc 80 投擲;鬥毆:cc 40 鬥毆;]~\nnotes[心靈支柱: 無;notes:這是測試,請試試在群組輸入 .char use Sad;]~\n'
                 return rply;
@@ -232,15 +258,20 @@ const rollDiceCommand = async function ({
             }
             filter = {
                 id: userid,
+                // @ts-expect-error TS(2339): Property 'name' does not exist on type '{}'.
                 name: new RegExp('^' + convertRegex(Card.name) + '$', "i")
             }
             //取得本來的資料, 如有重覆, 以新的覆蓋
             doc = await schema.characterCard.findOne(filter);
             //把舊和新的合併
             if (doc) {
+                // @ts-expect-error TS(2339): Property 'name' does not exist on type '{}'.
                 doc.name = Card.name;
+                // @ts-expect-error TS(2339): Property 'state' does not exist on type '{}'.
                 Card.state = await Merge(doc.state, Card.state, 'name');
+                // @ts-expect-error TS(2339): Property 'roll' does not exist on type '{}'.
                 Card.roll = await Merge(doc.roll, Card.roll, 'name');
+                // @ts-expect-error TS(2339): Property 'notes' does not exist on type '{}'.
                 Card.notes = await Merge(doc.notes, Card.notes, 'name');
             }
             try {
@@ -248,6 +279,7 @@ const rollDiceCommand = async function ({
                     Card, opt);
             } catch (error) {
                 console.error('新增角色卡 GET ERROR: ', error)
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 rply.text = '新增角色卡失敗\n因為 ' + error.message
                 return rply;
             }
@@ -259,6 +291,7 @@ const rollDiceCommand = async function ({
 
         case /(^[.]char$)/i.test(mainMsg[0]) && /^edit$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             Card = await analysicInputCharacterCard(inputStr); //分析輸入的資料
+            // @ts-expect-error TS(2339): Property 'name' does not exist on type '{}'.
             if (!Card.name) {
                 rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 .char edit name[Sad]~ \nstate[HP:15/15;MP:6/6;]~\nroll[投擲:cc 80 投擲;鬥毆:cc 40 鬥毆;]~\nnotes[心靈支柱: 無;notes:這是測試,請試試在群組輸入 .char use Sad;]~\n'
                 return rply;
@@ -269,6 +302,7 @@ const rollDiceCommand = async function ({
             */
             filter = {
                 id: userid,
+                // @ts-expect-error TS(2339): Property 'name' does not exist on type '{}'.
                 name: new RegExp('^' + convertRegex(Card.name) + "$", "i")
             }
             //取得本來的資料, 如有重覆, 以新的覆蓋
@@ -276,9 +310,13 @@ const rollDiceCommand = async function ({
             doc = await schema.characterCard.findOne(filter);
             //把舊和新的合併
             if (doc) {
+                // @ts-expect-error TS(2339): Property 'name' does not exist on type '{}'.
                 doc.name = Card.name;
+                // @ts-expect-error TS(2339): Property 'state' does not exist on type '{}'.
                 Card.state = await Merge(doc.state, Card.state, 'name');
+                // @ts-expect-error TS(2339): Property 'roll' does not exist on type '{}'.
                 Card.roll = await Merge(doc.roll, Card.roll, 'name');
+                // @ts-expect-error TS(2339): Property 'notes' does not exist on type '{}'.
                 Card.notes = await Merge(doc.notes, Card.notes, 'name');
             } else {
                 rply.text = '沒有此角色卡, 請重新檢查'
@@ -289,6 +327,7 @@ const rollDiceCommand = async function ({
                     Card);
             } catch (error) {
                 console.error('修改角色卡 GET ERROR:  ', error)
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 rply.text = '修改角色卡失敗\n因為 ' + error.message
                 return rply;
             }
@@ -318,7 +357,9 @@ const rollDiceCommand = async function ({
                     gpid: channelid || groupid,
                     id: userid,
                 }, {
+                    // @ts-expect-error TS(2339): Property 'name' does not exist on type '{}'.
                     name: doc.name,
+                    // @ts-expect-error TS(2339): Property '_id' does not exist on type '{}'.
                     cardId: doc._id
                 }, opt);
             } catch (error) {
@@ -327,6 +368,7 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
+            // @ts-expect-error TS(2339): Property 'name' does not exist on type '{}'.
             rply.text = '修改成功\n現在使用角色卡: ' + doc.name;
             return rply;
         case /(^[.]char$)/i.test(mainMsg[0]) && /^nonuse$/i.test(mainMsg[1]):
@@ -363,6 +405,7 @@ const rollDiceCommand = async function ({
             }
             try {
                 let filterRemove = {
+                    // @ts-expect-error TS(2339): Property '_id' does not exist on type '{}'.
                     cardId: doc._id
                 }
                 await schema.characterCard.findOneAndRemove(filter);
@@ -374,6 +417,7 @@ const rollDiceCommand = async function ({
             }
             //增加資料庫
             //檢查有沒有重覆
+            // @ts-expect-error TS(2339): Property 'name' does not exist on type '{}'.
             rply.text = '刪除角色卡成功: ' + doc.name
             return rply;
         case /(^[.]char$)/i.test(mainMsg[0]) && /^button$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]): {
@@ -396,6 +440,7 @@ const rollDiceCommand = async function ({
                 return rply
             }
             if (doc.roll)
+                // @ts-expect-error TS(2339): Property 'requestRollingCharacter' does not exist ... Remove this comment to see the full error message
                 rply.requestRollingCharacter = [handleRequestRolling(doc), doc.name, 'char']
             return rply;
         }
@@ -426,8 +471,10 @@ const rollDiceCommand = async function ({
 
             docSwitch = await schema.characterGpSwitch.findOne(
                 filter);
+            // @ts-expect-error TS(2339): Property 'cardId' does not exist on type '{}'.
             if (docSwitch && docSwitch.cardId) {
                 doc = await schema.characterCard.findOne({
+                    // @ts-expect-error TS(2339): Property 'cardId' does not exist on type '{}'.
                     _id: docSwitch.cardId
                 });
             } else {
@@ -441,15 +488,22 @@ const rollDiceCommand = async function ({
                     name: useName,
                     itemA: useItemA.replace(/^[.]ch\s+/, '').replace(/^[.]char\s+/, '')
                 }];
+                // @ts-expect-error TS(2339): Property 'state' does not exist on type '{}'.
                 doc.state = await Merge(doc.state, useCard, 'name', true);
+                // @ts-expect-error TS(2339): Property 'roll' does not exist on type '{}'.
                 doc.roll = await Merge(doc.roll, useCard, 'name', true);
+                // @ts-expect-error TS(2339): Property 'notes' does not exist on type '{}'.
                 doc.notes = await Merge(doc.notes, useCard, 'name', true);
                 try {
+                    // @ts-expect-error TS(2339): Property 'save' does not exist on type '{}'.
                     let a = await doc.save();
                     if (a) {
-                        let resutltState = await findObject(doc.state, mainMsg[2]) || '';
-                        let resutltNotes = await findObject(doc.notes, mainMsg[2]) || '';
-                        let resutltRoll = await findObject(doc.roll, mainMsg[2]) || '';
+                        // @ts-expect-error TS(2339): Property 'state' does not exist on type '{}'.
+                        let resutltState = (await findObject(doc.state, mainMsg[2])) || '';
+                        // @ts-expect-error TS(2339): Property 'notes' does not exist on type '{}'.
+                        let resutltNotes = (await findObject(doc.notes, mainMsg[2])) || '';
+                        // @ts-expect-error TS(2339): Property 'roll' does not exist on type '{}'.
+                        let resutltRoll = (await findObject(doc.roll, mainMsg[2])) || '';
                         if (resutltState) {
                             rply.text += a.name + '\n' + resutltState.name + ': ' + resutltState.itemA;
                             rply.text += (resutltState.itemB) ? '/' + resutltState.itemB : '';
@@ -486,8 +540,10 @@ const rollDiceCommand = async function ({
 
             docSwitch = await schema.characterGpSwitch.findOne(
                 filter);
+            // @ts-expect-error TS(2339): Property 'cardId' does not exist on type '{}'.
             if (docSwitch && docSwitch.cardId) {
                 doc = await schema.characterCard.findOne({
+                    // @ts-expect-error TS(2339): Property 'cardId' does not exist on type '{}'.
                     _id: docSwitch.cardId
                 });
             } else {
@@ -508,8 +564,10 @@ const rollDiceCommand = async function ({
 
             docSwitch = await schema.characterGpSwitch.findOne(
                 filter);
+            // @ts-expect-error TS(2339): Property 'cardId' does not exist on type '{}'.
             if (docSwitch && docSwitch.cardId) {
                 doc = await schema.characterCard.findOne({
+                    // @ts-expect-error TS(2339): Property 'cardId' does not exist on type '{}'.
                     _id: docSwitch.cardId
                 });
             } else {
@@ -539,6 +597,7 @@ const rollDiceCommand = async function ({
                     _id: docSwitch.cardId
                 });
                 if (doc.roll)
+                    // @ts-expect-error TS(2339): Property 'requestRollingCharacter' does not exist ... Remove this comment to see the full error message
                     rply.requestRollingCharacter = [handleRequestRollingChMode(doc), doc.name, 'ch']
             }
             //  rply.requestRolling = handleRequestRolling(inputStr)
@@ -557,8 +616,10 @@ const rollDiceCommand = async function ({
 
             docSwitch = await schema.characterGpSwitch.findOne(
                 filter);
+            // @ts-expect-error TS(2339): Property 'cardId' does not exist on type '{}'.
             if (docSwitch && docSwitch.cardId) {
                 doc = await schema.characterCard.findOne({
+                    // @ts-expect-error TS(2339): Property 'cardId' does not exist on type '{}'.
                     _id: docSwitch.cardId
                 });
             } else {
@@ -579,6 +640,7 @@ const rollDiceCommand = async function ({
 
             tempMain = await mainCharacter(doc, mainMsg);
             rply = Object.assign({}, rply, tempMain)
+            // @ts-expect-error TS(2339): Property 'name' does not exist on type '{}'.
             rply.characterName = doc.name;
             return rply;
         default:
@@ -586,7 +648,7 @@ const rollDiceCommand = async function ({
 
     }
 }
-function handleRequestRolling(doc) {
+function handleRequestRolling(doc: any) {
     const rolls = doc.roll;
     let text = [];
     for (let index = 0; index < rolls.length; index++) {
@@ -595,11 +657,12 @@ function handleRequestRolling(doc) {
         text[index] = (roll.itemA.match(itemName)) ? `${roll.itemA}` : `${roll.itemA} ${roll.name}`
         text[index] = text[index].substring(0, 80);
     }
+    // @ts-expect-error TS(2322): Type 'string' is not assignable to type '(...items... Remove this comment to see the full error message
     text.push = `.ch use ${doc.name}`
     return text;
 }
 
-function handleRequestRollingChMode(doc) {
+function handleRequestRollingChMode(doc: any) {
     const rolls = doc.roll;
     let text = [];
     for (let index = 0; index < rolls.length; index++) {
@@ -610,9 +673,10 @@ function handleRequestRollingChMode(doc) {
     return text;
 }
 
-async function mainCharacter(doc, mainMsg) {
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'mainCharac... Remove this comment to see the full error message
+async function mainCharacter(doc: any, mainMsg: any) {
     mainMsg.shift();
-    let findState = [];
+    let findState: any = [];
     let findNotes = [];
     let findRoll = {};
     let last = ""
@@ -653,15 +717,18 @@ async function mainCharacter(doc, mainMsg) {
     }
     //如果是roll的, 就變成擲骰MODE(最優先)
     //如果是另外兩個
-    async function myAsyncFn(match, p1) {
+    async function myAsyncFn(match: any, p1: any) {
         let result = await replacer(doc, p1);
         return result;
     }
     if (Object.keys(findRoll).length > 0) { //把{}進行replace
         //https://stackoverflow.com/questions/33631041/javascript-async-await-in-replace
         //ref source
+        // @ts-expect-error TS(2551): Property 'characterReRollItem' does not exist on t... Remove this comment to see the full error message
         tempRply.characterReRollItem = await replaceAsync(findRoll.itemA, /\{(.*?)\}/ig, await myAsyncFn);
+        // @ts-expect-error TS(2551): Property 'characterReRollItem' does not exist on t... Remove this comment to see the full error message
         tempRply.characterReRollItem = await replaceAsync(tempRply.characterReRollItem, /\[\[(.*?)\]\]/ig, await myAsyncFn2);
+        // @ts-expect-error TS(2339): Property 'name' does not exist on type '{}'.
         tempRply.characterReRollName = findRoll.name;
         tempRply.characterReRoll = true;
     }
@@ -670,7 +737,7 @@ async function mainCharacter(doc, mainMsg) {
             //如果i 是object , i+1 是STRING 和數字, 就進行加減
             //否則就正常輸出
             if (typeof (findState[i]) == 'object' && typeof (findState[i + 1]) == 'string') {
-                doc.state.forEach(async (element, index) => {
+                doc.state.forEach(async (element: any, index: any) => {
                     if (element.name === findState[i].name) {
                         //如果是一個數字, 取代本來的數值
                         //不然就嘗試計算它
@@ -729,9 +796,9 @@ async function mainCharacter(doc, mainMsg) {
 
 
 
-async function findObject(doc, mainMsg) {
+async function findObject(doc: any, mainMsg: any) {
     let re = mainMsg.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
-    let resutlt = doc.find(element => {
+    let resutlt = doc.find((element: any) => {
         if (element.name)
             return element.name.match(new RegExp('^' + re + '$', 'i'))
     });
@@ -739,7 +806,7 @@ async function findObject(doc, mainMsg) {
     return resutlt;
 }
 
-async function showCharacter(Card, mode) {
+async function showCharacter(Card: any, mode: any) {
     /*
     角色名字
     HP: 5/5 MP: 3/3 SAN: 50/90 護甲: 6
@@ -809,7 +876,7 @@ async function showCharacter(Card, mode) {
 }
 
 
-async function replacer(doc, match) {
+async function replacer(doc: any, match: any) {
     let result = ""
     let state = await findObject(doc.state, match);
 
@@ -823,12 +890,14 @@ async function replacer(doc, match) {
     }
     return result;
 }
-async function analysicInputCharacterCard(inputStr) {
+async function analysicInputCharacterCard(inputStr: any) {
     let characterName = (inputStr.match(regexName)) ? inputStr.match(regexName)[1] : '';
     let characterStateTemp = (inputStr.match(regexState)) ? inputStr.match(regexState)[1] : '';
     let characterRollTemp = (inputStr.match(regexRoll)) ? inputStr.match(regexRoll)[1] : '';
     let characterNotesTemp = (inputStr.match(regexNotes)) ? inputStr.match(regexNotes)[1] : '';
+    // @ts-expect-error TS(2554): Expected 3 arguments, but got 2.
     let characterState = (characterStateTemp) ? await analysicStr(characterStateTemp, true) : [];
+    // @ts-expect-error TS(2554): Expected 3 arguments, but got 2.
     let characterRoll = (characterRollTemp) ? await analysicStr(characterRollTemp, false) : [];
     let characterNotes = (characterNotesTemp) ? await analysicStr(characterNotesTemp, false, 'notes') : [];
     //Remove duplicates from an array of objects in JavaScript
@@ -847,13 +916,16 @@ async function analysicInputCharacterCard(inputStr) {
     return character;
 }
 
-async function analysicStr(inputStr, state, term) {
+async function analysicStr(inputStr: any, state: any, term: any) {
     let character = [];
     let myArray = [];
+    // @ts-expect-error TS(2322): Type 'RegExpExecArray | null' is not assignable to... Remove this comment to see the full error message
     while ((myArray = re.exec(inputStr)) !== null) {
         if (myArray[2].match(/.*?\/.*/) && state) {
             let temp2 = /(.*)\/(.*)/.exec(myArray[2])
+            // @ts-expect-error TS(2531): Object is possibly 'null'.
             myArray[2] = temp2[1]
+            // @ts-expect-error TS(2531): Object is possibly 'null'.
             myArray[3] = temp2[2]
         }
 
@@ -897,7 +969,7 @@ character = {
 */
 
 //https://stackoverflow.com/questions/7146217/merge-2-arrays-of-objects
-async function Merge(target, source, prop, updateMode) {
+async function Merge(target: any, source: any, prop: any, updateMode: any) {
     /**
      * target 本來的資料
      * source 新資料
@@ -906,9 +978,9 @@ async function Merge(target, source, prop, updateMode) {
      */
     if (!target) target = []
     if (!source) source = []
-    const mergeByProperty = (target, source, prop) => {
-        source.forEach(sourceElement => {
-            let targetElement = target.find(targetElement => {
+    const mergeByProperty = (target: any, source: any, prop: any) => {
+        source.forEach((sourceElement: any) => {
+            let targetElement = target.find((targetElement: any) => {
                 return sourceElement[prop].match(new RegExp('^' + convertRegex(targetElement[prop]) + '$', 'i'));
             })
             if (updateMode)
@@ -923,9 +995,9 @@ async function Merge(target, source, prop, updateMode) {
 
 }
 
-async function replaceAsync(str, regex, asyncFn) {
-    const promises = [];
-    str.replace(regex, (match, ...args) => {
+async function replaceAsync(str: any, regex: any, asyncFn: any) {
+    const promises: any = [];
+    str.replace(regex, (match: any, ...args: any[]) => {
         const promise = asyncFn(match, ...args);
         promises.push(promise);
     });
@@ -933,7 +1005,7 @@ async function replaceAsync(str, regex, asyncFn) {
     return str.replace(regex, () => data.shift());
 }
 
-async function myAsyncFn2(match, p1) {
+async function myAsyncFn2(match: any, p1: any) {
     let result = ''
     try {
         result = mathjs.evaluate(p1)
@@ -943,7 +1015,7 @@ async function myAsyncFn2(match, p1) {
     return result;
 }
 
-async function countNum(num) {
+async function countNum(num: any) {
     let result;
     let temp = await rollDice({
         mainMsg: [num]
@@ -955,6 +1027,7 @@ async function countNum(num) {
     }
     return result;
 }
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,

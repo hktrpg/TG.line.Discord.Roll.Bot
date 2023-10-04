@@ -1,14 +1,20 @@
 "use strict";
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 if (!process.env.mongoURL) return;
 //Log everyday 01:00
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'debugMode'... Remove this comment to see the full error message
 const debugMode = (process.env.DEBUG) ? true : false;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'schema'.
 const schema = require('./schema.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'checkMongo... Remove this comment to see the full error message
 const checkMongodb = require('./dbWatchdog.js');
 //50次 多少條訊息會上傳一次LOG
 const ONE_HOUR = 1 * 60 * 60 * 1000;
 const FIVE_MINUTES = 5 * 60 * 1000;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'shardid'.
 let shardid = 0;
 //每一小時 24 * 60 * 60 * 1000 多久會上傳一次LOG紀錄 
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'RollingLog... Remove this comment to see the full error message
 const RollingLog = {
     LastTimeLog: "",
     StartTime: "",
@@ -50,8 +56,9 @@ const RollingLog = {
 
 
 
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'getState'.
 const getState = async function () {
-    let theNewData = await schema.RealTimeRollingLog.findOne({}).catch(error => console.error('log # 52 mongoDB error: ', error.name, error.reson));
+    let theNewData = await schema.RealTimeRollingLog.findOne({}).catch((error: any) => console.error('log # 52 mongoDB error: ', error.name, error.reson));
     if (!theNewData) return;
     theNewData.RealTimeRollingLogfunction.LogTime = theNewData.RealTimeRollingLogfunction.LogTime.replace(/\s+GMT.*$/, '');
     theNewData.RealTimeRollingLogfunction.StartTime = theNewData.RealTimeRollingLogfunction.StartTime.replace(/\s+GMT.*$/, '');
@@ -63,6 +70,7 @@ const getState = async function () {
 async function saveLog() {
     //更新LogTime 然後上傳紀錄
     if (!checkMongodb.isDbOnline()) return;
+    // @ts-expect-error TS(2554): Expected 0 arguments, but got 1.
     RollingLog.LogTime = Date(Date.now()).toLocaleString("en-US", {
         timeZone: "Asia/HongKong"
     });
@@ -90,7 +98,7 @@ async function saveLog() {
         }
     }, {
         upsert: true
-    }).catch(error => {
+    }).catch((error: any) => {
         console.error('log #90 mongoDB error: ', error.name, error.reson)
         checkMongodb.dbErrOccurs();
     })
@@ -98,6 +106,7 @@ async function saveLog() {
     resetLog();
 
     //假如過了一小時則上載中途紀錄RollingLog
+    // @ts-expect-error TS(2363): The right-hand side of an arithmetic operation mus... Remove this comment to see the full error message
     if (Date.now() - RollingLog.LastTimeLog >= (ONE_HOUR))
         pushToDefiniteLog();
     return null;
@@ -106,8 +115,9 @@ async function saveLog() {
 async function pushToDefiniteLog() {
     if (shardid !== 0) return;
     //更新最後的RollingLog 儲存時間
+    // @ts-expect-error TS(2322): Type 'number' is not assignable to type 'string'.
     RollingLog.LastTimeLog = Date.now();
-    let theNewData = await schema.RealTimeRollingLog.findOne({}).catch(error => console.error('log #105 mongoDB error: ', error.name, error.reson));
+    let theNewData = await schema.RealTimeRollingLog.findOne({}).catch((error: any) => console.error('log #105 mongoDB error: ', error.name, error.reson));
     let temp = {
         RollingLogfunction:
         {
@@ -128,22 +138,26 @@ async function pushToDefiniteLog() {
             ApiCountText: theNewData.RealTimeRollingLogfunction.ApiCountText
         }
     }
-    await schema.RollingLog.create(temp).catch(error => console.error('logs #126 mongoDB error: ', error.name, error.reson));
+    await schema.RollingLog.create(temp).catch((error: any) => console.error('logs #126 mongoDB error: ', error.name, error.reson));
     return;
 }
 
+// @ts-expect-error TS(2393): Duplicate function implementation.
 async function getRecords() {
     if (!checkMongodb.isDbOnline()) return;
-    let theNewData = await schema.RealTimeRollingLog.findOne({}).catch(error => {
+    let theNewData = await schema.RealTimeRollingLog.findOne({}).catch((error: any) => {
         console.error('log # 131 mongoDB error: ', error.name, error.reson)
         checkMongodb.dbErrOccurs();
     });
 
     if (!theNewData) {
+        // @ts-expect-error TS(2322): Type 'number' is not assignable to type 'string'.
         RollingLog.LastTimeLog = Date.now();
+        // @ts-expect-error TS(2554): Expected 0 arguments, but got 1.
         RollingLog.StartTime = Date(Date.now()).toLocaleString("en-US", {
             timeZone: "Asia/HongKong"
         });
+        // @ts-expect-error TS(2554): Expected 0 arguments, but got 1.
         RollingLog.LogTime = Date(Date.now()).toLocaleString("en-US", {
             timeZone: "Asia/HongKong"
         });
@@ -151,9 +165,11 @@ async function getRecords() {
     }
 
     RollingLog.LastTimeLog = theNewData.RealTimeRollingLogfunction.LastTimeLog || Date.now();
+    // @ts-expect-error TS(2554): Expected 0 arguments, but got 1.
     RollingLog.StartTime = theNewData.RealTimeRollingLogfunction.StartTime || Date(Date.now()).toLocaleString("en-US", {
         timeZone: "Asia/HongKong"
     });
+    // @ts-expect-error TS(2554): Expected 0 arguments, but got 1.
     RollingLog.LogTime = theNewData.RealTimeRollingLogfunction.LogTime || Date(Date.now()).toLocaleString("en-US", {
         timeZone: "Asia/HongKong"
     });
@@ -181,7 +197,14 @@ function resetLog() {
 }
 
 
-async function courtMessage({ result, botname, inputStr, shardids = 0 }) {
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'courtMessa... Remove this comment to see the full error message
+async function courtMessage({
+    result,
+    botname,
+    inputStr,
+    shardids = 0
+}: any) {
+    // @ts-expect-error TS(2588): Cannot assign to 'shardid' because it is a constan... Remove this comment to see the full error message
     if (shardids !== 0) shardid = shardids;
     if (result && result.text) {
         //SAVE THE LOG
@@ -253,6 +276,7 @@ async function courtMessage({ result, botname, inputStr, shardids = 0 }) {
 
 
 
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     courtMessage,
     getState

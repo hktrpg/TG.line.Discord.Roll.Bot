@@ -1,15 +1,26 @@
+// @ts-expect-error TS(6200): Definitions of the following identifiers conflict ... Remove this comment to see the full error message
 "use strict";
 //heroku labs:enable runtime-dyno-metadata -a <app name>
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'chineseCon... Remove this comment to see the full error message
 let chineseConv = require('chinese-conv'); //繁簡轉換
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'duckImage'... Remove this comment to see the full error message
 const duckImage = require("@zetetic/duckduckgo-images-api")
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'wiki'.
 const wiki = require('wikijs').default;
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const rollbase = require('./rollbase.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'translate'... Remove this comment to see the full error message
 const translate = require('@vitalets/google-translate-api').translate;
 let variables = {};
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'schema'.
 const schema = require('../modules/schema.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'VIP'.
 const VIP = require('../modules/veryImportantPerson');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'translateC... Remove this comment to see the full error message
 const translateChannel = require('../modules/translate');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'FUNCTION_L... Remove this comment to see the full error message
 const FUNCTION_LIMIT = [0, 2, 4, 6, 8, 9, 9, 9];
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'opt'.
 const opt = {
 	upsert: true,
 	runValidators: true
@@ -25,7 +36,7 @@ const prefixs = function () {
 	return [{
 		first: /^[.]wiki$|^[.]tran$|^[.]tran[.]\S+$|^[.]image$|^[.]imagee$|^[.]translate$/i,
 		second: null
-	}]
+	}];
 
 }
 
@@ -59,11 +70,17 @@ const initialize = function () {
 }
 
 const rollDiceCommand = async function ({
+// @ts-expect-error TS(7031): Binding element 'inputStr' implicitly has an 'any'... Remove this comment to see the full error message
 	inputStr,
+// @ts-expect-error TS(7031): Binding element 'mainMsg' implicitly has an 'any' ... Remove this comment to see the full error message
 	mainMsg,
+// @ts-expect-error TS(7031): Binding element 'groupid' implicitly has an 'any' ... Remove this comment to see the full error message
 	groupid,
+// @ts-expect-error TS(7031): Binding element 'channelid' implicitly has an 'any... Remove this comment to see the full error message
 	channelid,
+// @ts-expect-error TS(7031): Binding element 'botname' implicitly has an 'any' ... Remove this comment to see the full error message
 	botname,
+// @ts-expect-error TS(7031): Binding element 'userrole' implicitly has an 'any'... Remove this comment to see the full error message
 	userrole
 }) {
 	let rply = {
@@ -77,15 +94,18 @@ const rollDiceCommand = async function ({
 
 	switch (true) {
 		case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
+// @ts-expect-error TS(2683): 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
 			rply.text = await this.getHelpMessage();
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /[.]wiki/i.test(mainMsg[0]):
 			rply.text = await wiki({
 				apiUrl: 'https://zh.wikipedia.org/w/api.php'
 			}).page(mainMsg[1].toLowerCase())
+// @ts-expect-error TS(7006): Parameter 'page' implicitly has an 'any' type.
 				.then(async page => {
 					return chineseConv.tify(await page.summary())
 				})
+// @ts-expect-error TS(7006): Parameter 'error' implicitly has an 'any' type.
 				.catch(error => {
 					if (error == 'Error: No article found')
 						return '沒有此條目'
@@ -97,8 +117,10 @@ const rollDiceCommand = async function ({
 		case /\S+/.test(mainMsg[1]) && /^[.]tran$/i.test(mainMsg[0]):
 			rply.text = await translate(inputStr.replace(mainMsg[0], ""), {
 				to: 'zh-TW'
+// @ts-expect-error TS(7006): Parameter 'res' implicitly has an 'any' type.
 			}).then(res => {
 				return res.text
+// @ts-expect-error TS(7006): Parameter 'err' implicitly has an 'any' type.
 			}).catch(err => {
 				return err.message;
 			});
@@ -152,12 +174,15 @@ const rollDiceCommand = async function ({
 	}
 	 */
 		case /\S+/.test(mainMsg[1]) && /^[.]tran[.]\S+$/.test(mainMsg[0]):
+// @ts-expect-error TS(2322): Type 'RegExp' is not assignable to type 'string'.
 			lang = /.tran.(\S+)/;
 			test = mainMsg[0].match(lang)
 			rply.text = await translate(inputStr.replace(mainMsg[0], ""), {
 				to: test[1].replace(/簡體|簡中|簡|zh-cn/, "zh-CN").replace(/英文|英語|英/, "en").replace(/德文|德語|德/, "de").replace(/日文|日語|日/, "ja")
+// @ts-expect-error TS(7006): Parameter 'res' implicitly has an 'any' type.
 			}).then(res => {
 				return res.text
+// @ts-expect-error TS(7006): Parameter 'err' implicitly has an 'any' type.
 			}).catch(err => {
 				console.error('tran error:', err.message)
 				return err.message + "\n常用語言代碼: 英=en, 簡=zh-cn, 德=de, 日=ja\n例子: .tran.英\n.tran.日\n.tran.de";
@@ -188,6 +213,7 @@ const rollDiceCommand = async function ({
 	}
 }
 
+// @ts-expect-error TS(2393): Duplicate function implementation.
 async function searchImage(inputStr, mainMsg, safe) {
 	let keyword = inputStr.replace(mainMsg[0] + " ", "")
 	//let page = Math.floor((Math.random() * (10)) * 10) + 1;
@@ -200,6 +226,7 @@ async function searchImage(inputStr, mainMsg, safe) {
 		query: keyword,
 		moderate: safe
 	})
+// @ts-expect-error TS(7006): Parameter 'images' implicitly has an 'any' type.
 		.then(async images => {
 			if (images[0] && images[0].image) {
 				//let resultnum = Math.floor((Math.random() * (images.length)) + 0)
@@ -209,12 +236,14 @@ async function searchImage(inputStr, mainMsg, safe) {
 				return '沒有結果'
 			}
 
+// @ts-expect-error TS(7006): Parameter 'err' implicitly has an 'any' type.
 		}).catch(err => {
 			console.error('duckImage error: ', err & err.respone && err.respone.statusText)
 		})
 }
 
 
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
 	rollDiceCommand: rollDiceCommand,
 	initialize: initialize,

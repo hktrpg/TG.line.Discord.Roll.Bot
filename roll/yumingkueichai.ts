@@ -1,4 +1,6 @@
+// @ts-expect-error TS(6200): Definitions of the following identifiers conflict ... Remove this comment to see the full error message
 "use strict";
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 let rollbase = require('./rollbase.js');
 let variables = {};
 const gameName = function () {
@@ -19,7 +21,7 @@ const prefixs = function () {
     }, {
         first: /^[.]KC$/i,
         second: null
-    }]
+    }];
 }
 const getHelpMessage = async function () {
     return `【貓貓鬼差】
@@ -35,9 +37,12 @@ const initialize = function () {
     return variables;
 }
 
-const rollDiceCommand = async function ({
-    mainMsg
-}) {
+const rollDiceCommand = async function(
+    this: any,
+    {
+        mainMsg
+    }: any
+) {
     let rply = {
         default: 'on',
         type: 'text',
@@ -55,12 +60,14 @@ const rollDiceCommand = async function ({
     }
 }
 
-async function compareAllValues(triggermsg, msg) {
+async function compareAllValues(triggermsg: any, msg: any) {
     let result = ""
     let rollresult = []
     let match = /^(|4|5)(d)(\d+|)$/i.exec(triggermsg);
     //判斷式  [0]4d3,[1]4,[2]d,[3]3  
+    // @ts-expect-error TS(2531): Object is possibly 'null'.
     let x = match[1] || 4;
+    // @ts-expect-error TS(2531): Object is possibly 'null'.
     let y = match[3] || 0
     let z = msg || 0
     if (y > 20) y = 20
@@ -141,6 +148,7 @@ async function compareAllValues(triggermsg, msg) {
     return result;
 }
 
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,

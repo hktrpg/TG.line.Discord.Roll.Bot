@@ -1,24 +1,30 @@
 "use strict";
 
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 require('dotenv').config({ override: true });
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'fs'.
 const fs = require('fs');
 
 
 
-fs.readdirSync(__dirname + '/modules/').forEach(function (file) {
+// @ts-expect-error TS(2304): Cannot find name '__dirname'.
+fs.readdirSync(__dirname + '/modules/').forEach(function (file: any) {
   if (file.match(/\.js$/) && file.match(/^core-/)) {
     let name = file.replace('.js', '');
+    // @ts-expect-error TS(2304): Cannot find name 'exports'.
     exports[name] = require('./modules/' + file);
   }
 });
 
-process.on('warning', (warning) => {
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
+process.on('warning', (warning: any) => {
   console.warn('warning', warning.name); // Print the warning name
   console.warn('warning', warning.message); // Print the warning message
   console.warn('warning', warning.stack); // Print the stack trace
 });
 
-process.stdout.on('error', function (err) {
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
+process.stdout.on('error', function (err: any) {
   if (err.code == "EPIPE") {
     console.log('EPIPE err:', err);
   }

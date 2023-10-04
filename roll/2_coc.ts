@@ -1,12 +1,19 @@
+// @ts-expect-error TS(6200): Definitions of the following identifiers conflict ... Remove this comment to see the full error message
 "use strict";
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const rollbase = require('./rollbase.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'schema'.
 const schema = require('../modules/schema.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'checkTools... Remove this comment to see the full error message
 const checkTools = require('../modules/check.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'checkMongo... Remove this comment to see the full error message
 const checkMongodb = require('../modules/dbWatchdog.js');
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const mathjs = require('mathjs');
 const gameName = function () {
 	return '【克蘇魯神話】 cc cc(n)1~2 ccb ccrt ccsu .dp .cc7build .cc6build .cc7bg'
 }
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const { SlashCommandBuilder } = require('discord.js');
 const gameType = function () {
 	return 'Dice:CoC'
@@ -20,7 +27,7 @@ const prefixs = function () {
 		first: /(^\.sc$)|(^ccb$)|(^cc$)|(^ccn[1-2]$)|(^cc[1-2]$)|(^成長檢定$)|(^幕間成長$)/i,
 		second: /(^\d+)|(^help$)/i
 	}
-	]
+	];
 }
 const getHelpMessage = function () {
 	return `【克蘇魯神話】
@@ -83,13 +90,21 @@ const initialize = function () {
 }
 
 const rollDiceCommand = async function ({
+// @ts-expect-error TS(7031): Binding element 'mainMsg' implicitly has an 'any' ... Remove this comment to see the full error message
 	mainMsg,
+// @ts-expect-error TS(7031): Binding element 'groupid' implicitly has an 'any' ... Remove this comment to see the full error message
 	groupid,
+// @ts-expect-error TS(7031): Binding element 'userid' implicitly has an 'any' t... Remove this comment to see the full error message
 	userid,
+// @ts-expect-error TS(7031): Binding element 'userrole' implicitly has an 'any'... Remove this comment to see the full error message
 	userrole,
+// @ts-expect-error TS(7031): Binding element 'channelid' implicitly has an 'any... Remove this comment to see the full error message
 	channelid,
+// @ts-expect-error TS(7031): Binding element 'displayname' implicitly has an 'a... Remove this comment to see the full error message
 	displayname,
+// @ts-expect-error TS(7031): Binding element 'displaynameDiscord' implicitly ha... Remove this comment to see the full error message
 	displaynameDiscord,
+// @ts-expect-error TS(7031): Binding element 'tgDisplayname' implicitly has an ... Remove this comment to see the full error message
 	tgDisplayname
 }) {
 	let rply = {
@@ -100,28 +115,35 @@ const rollDiceCommand = async function ({
 	let trigger = mainMsg[0].toLowerCase();
 	switch (true) {
 		case (/^help$/i.test(mainMsg[1])): {
+// @ts-expect-error TS(2683): 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
 			rply.text = this.getHelpMessage();
+// @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
 			rply.quotes = true;
 			break;
 		}
 		case /^ccrt$/i.test(mainMsg[0]): {
 			rply.text = ccrt();
+// @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
 			rply.quotes = true;
 			break;
 		}
 		case /^ccsu$/i.test(mainMsg[0]): {
 			rply.text = ccsu();
+// @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
 			rply.quotes = true;
 			break;
 		}
 		case /^\.sc$/i.test(mainMsg[0]): {
 			let sc = new SanCheck(mainMsg);
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			rply.text = sc.run();
+// @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
 			rply.quotes = true;
 			break;
 		}
 		case /^\.chase$/i.test(mainMsg[0]): {
 			rply.text = chase();
+// @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
 			rply.quotes = true;
 			break;
 		}
@@ -139,6 +161,7 @@ const rollDiceCommand = async function ({
 				return rply;
 			}
 			rply.text = await dpRecordSwitch({ onOff: true, groupid, channelid });
+// @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
 			rply.quotes = true;
 			return rply;
 		}
@@ -151,6 +174,7 @@ const rollDiceCommand = async function ({
 				return rply;
 			}
 			rply.text = await dpRecordSwitch({ onOff: false, groupid, channelid });
+// @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
 			rply.quotes = true;
 			break;
 		}
@@ -165,6 +189,7 @@ const rollDiceCommand = async function ({
 			let switchOn = await schema.developmentConductor.findOne({
 				groupID: channelid || groupid,
 				switch: true
+// @ts-expect-error TS(7006): Parameter 'error' implicitly has an 'any' type.
 			}).catch(error => console.error('coc #149 mongoDB error: ', error.name, error.reson));
 			if (!switchOn) {
 				rply.text = '本頻道未開啓CC紀錄功能, 請使用 .dp start 開啓'
@@ -173,7 +198,9 @@ const rollDiceCommand = async function ({
 			let result = await schema.developmentRollingRecord.find({
 				groupID: channelid || groupid,
 				userID: userid,
+// @ts-expect-error TS(7006): Parameter 'error' implicitly has an 'any' type.
 			}).sort({ date: -1 }).catch(error => console.error('coc #157 mongoDB error: ', error.name, error.reson));
+// @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
 			rply.quotes = true;
 			if (!result || result.length == 0) {
 				rply.text = '未有CC擲骰紀錄';
@@ -242,6 +269,7 @@ const rollDiceCommand = async function ({
 			let switchOn = await schema.developmentConductor.findOne({
 				groupID: channelid || groupid,
 				switch: true
+// @ts-expect-error TS(7006): Parameter 'error' implicitly has an 'any' type.
 			}).catch(error => console.error('coc #224 mongoDB error: ', error.name, error.reson));
 			if (!switchOn) {
 				rply.text = '本頻道未開啓CC紀錄功能, 請使用 .dp start 開啓'
@@ -255,7 +283,9 @@ const rollDiceCommand = async function ({
 				}, {
 					skillPerStyle: 'fumble'
 				}]
+// @ts-expect-error TS(7006): Parameter 'error' implicitly has an 'any' type.
 			}).sort({ userName: -1 }).catch(error => console.error('coc #237 mongoDB error: ', error.name, error.reson));
+// @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
 			rply.quotes = true;
 			let criticalSuccessNfumbleResult = {
 				data: false,
@@ -274,6 +304,7 @@ const rollDiceCommand = async function ({
 			return rply;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^auto$/i.test(mainMsg[1]): {
+// @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
 			rply.quotes = true;
 			if (rply.text = checkTools.permissionErrMsg({
 				flag: checkTools.flag.ChkChannel,
@@ -285,6 +316,7 @@ const rollDiceCommand = async function ({
 			let switchOn = await schema.developmentConductor.findOne({
 				groupID: channelid || groupid,
 				switch: true
+// @ts-expect-error TS(7006): Parameter 'error' implicitly has an 'any' type.
 			}).catch(error => console.error('coc #264 mongoDB error: ', error.name, error.reson));
 			if (!switchOn) {
 				rply.text = '本頻道未開啓CC紀錄功能, 請使用 .dp start 開啓'
@@ -295,6 +327,7 @@ const rollDiceCommand = async function ({
 				groupID: channelid || groupid,
 				userID: userid,
 				skillPerStyle: 'normal'
+// @ts-expect-error TS(7006): Parameter 'error' implicitly has an 'any' type.
 			}).sort({ date: -1 }).catch(error => console.error('coc #274 mongoDB error: ', error.name, error.reson));
 			if (!result || result.length == 0) {
 				rply.text = '未有CC擲骰紀錄';
@@ -323,6 +356,7 @@ const rollDiceCommand = async function ({
 				groupID: channelid || groupid,
 				userID: userid,
 				skillPerStyle: 'normal'
+// @ts-expect-error TS(7006): Parameter 'error' implicitly has an 'any' type.
 			}).catch(error => console.error('coc #302 mongoDB error: ', error.name, error.reson));
 			rply.text += `\n--------
 			成長結束，已清除擲骰紀錄`
@@ -340,8 +374,10 @@ const rollDiceCommand = async function ({
 				groupID: channelid || groupid,
 				userID: userid,
 				skillPerStyle: 'normal'
+// @ts-expect-error TS(7006): Parameter 'error' implicitly has an 'any' type.
 			}).catch(error => console.error('coc #316 mongoDB error: ', error.name, error.reson));
 
+// @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
 			rply.quotes = true;
 			rply.text = `已清除 ${result.n}項紀錄, 如想大成功大失敗紀錄也清除, 請使用 .dp clearall`
 			return rply;
@@ -365,7 +401,9 @@ const rollDiceCommand = async function ({
 					skillPerStyle: 'normal'
 				}]
 
+// @ts-expect-error TS(7006): Parameter 'error' implicitly has an 'any' type.
 			}).catch(error => console.error('coc #338 mongoDB error: ', error.name, error.reson));
+// @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
 			rply.quotes = true;
 			rply.text = `已清除你在本頻道的所有CC擲骰紀錄, 共計${result.n}項`
 			return rply;
@@ -373,62 +411,77 @@ const rollDiceCommand = async function ({
 		}
 		case (trigger == '.dp' || trigger == '成長檢定' || trigger == '幕間成長'): {
 			rply.text = DevelopmentPhase(mainMsg);
+// @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
 			rply.quotes = true;
 			break;
 		}
 		case (trigger == 'cc' && mainMsg[1] !== null): {
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			rply.text = await coc7({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, userName: tgDisplayname || displaynameDiscord || displayname });
 			break;
 		}
 		case (trigger == 'cc1' && mainMsg[1] !== null): {
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: 1, userName: tgDisplayname || displaynameDiscord || displayname });
 			break;
 		}
 		case (trigger == 'cc2' && mainMsg[1] !== null): {
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: 2, userName: tgDisplayname || displaynameDiscord || displayname });
 			break;
 		}
 		case (trigger == 'ccn1' && mainMsg[1] !== null): {
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: -1, userName: tgDisplayname || displaynameDiscord || displayname });
 			break;
 		}
 		case (trigger == 'ccn2' && mainMsg[1] !== null): {
+// @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
 			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: -2, userName: tgDisplayname || displaynameDiscord || displayname });
 			break;
 		}
 
 		case /(^cc7版創角$)|(^[.]cc7build$)/i.test(mainMsg[0]): {
 			rply.text = builder.build(mainMsg[1] || 'random', mainMsg[2]).replace(/\*5/ig, ' * 5').trim();
+// @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
 			rply.quotes = true;
 			break;
 		}
 		case /(^ccpulp版創角$)|(^[.]ccpulpbuild$)/i.test(mainMsg[0]): {
+// @ts-expect-error TS(2554): Expected 0 arguments, but got 1.
 			rply.text = (buildpulpchar(mainMsg[1])).replace(/\*5/ig, ' * 5');
+// @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
 			rply.quotes = true;
 			break;
 		}
 		case /(^cc6版創角$)|(^[.]cc6build$)/i.test(mainMsg[0]): {
+// @ts-expect-error TS(2554): Expected 0 arguments, but got 1.
 			rply.text = build6char(mainMsg[1]);
+// @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
 			rply.quotes = true;
 			break;
 		}
 		case /(^cc7版角色背景$)|(^[.]cc7bg$)/i.test(mainMsg[0]): {
 			rply.text = PcBG();
+// @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
 			rply.quotes = true;
 			break;
 		}
 		case /(^\.cccc)/i.test(mainMsg[0]): {
 			rply.text = CreateCult.createCult();
+// @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
 			rply.quotes = true;
 			return rply;
 		};
 		case /(^\.ccpc)/i.test(mainMsg[0]): {
 			rply.text = MythoyCollection.getMythonData('pushedCasting');
+// @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
 			rply.quotes = true;
 			return rply;
 		};
 		case /(^\.ccdr)/i.test(mainMsg[0]): {
 			rply.text = MythoyCollection.getMythos();
+// @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
 			rply.quotes = true;
 			return rply;
 		};
@@ -459,7 +512,9 @@ const discordCommand = [
 		data: new SlashCommandBuilder()
 			.setName('ccb')
 			.setDescription('coc6版擲骰')
+// @ts-expect-error TS(7006): Parameter 'option' implicitly has an 'any' type.
 			.addStringOption(option => option.setName('text').setDescription('目標技能大小及名字').setRequired(true)),
+// @ts-expect-error TS(7006): Parameter 'interaction' implicitly has an 'any' ty... Remove this comment to see the full error message
 		async execute(interaction) {
 			const text = interaction.options.getString('text')
 			if (text !== null)
@@ -469,7 +524,9 @@ const discordCommand = [
 		data: new SlashCommandBuilder()
 			.setName('cc')
 			.setDescription('coc7版擲骰')
+// @ts-expect-error TS(7006): Parameter 'option' implicitly has an 'any' type.
 			.addStringOption(option => option.setName('text').setDescription('目標技能大小及名字').setRequired(true))
+// @ts-expect-error TS(7006): Parameter 'option' implicitly has an 'any' type.
 			.addStringOption(option =>
 				option.setName('paney')
 					.setDescription('獎勵或懲罰骰')
@@ -478,6 +535,7 @@ const discordCommand = [
 						{ name: '1粒懲罰骰', value: 'n1' },
 						{ name: '2粒懲罰骰', value: 'n2' }))
 		,
+// @ts-expect-error TS(7006): Parameter 'interaction' implicitly has an 'any' ty... Remove this comment to see the full error message
 		async execute(interaction) {
 			const text = interaction.options.getString('text')
 			const paney = interaction.options.getString('paney') || '';
@@ -488,9 +546,13 @@ const discordCommand = [
 		data: new SlashCommandBuilder()
 			.setName('sc')
 			.setDescription('coc7版SanCheck')
+// @ts-expect-error TS(7006): Parameter 'option' implicitly has an 'any' type.
 			.addStringOption(option => option.setName('text').setDescription('你的San值').setRequired(true))
+// @ts-expect-error TS(7006): Parameter 'option' implicitly has an 'any' type.
 			.addStringOption(option => option.setName('success').setDescription('成功扣多少San'))
+// @ts-expect-error TS(7006): Parameter 'option' implicitly has an 'any' type.
 			.addStringOption(option => option.setName('failure').setDescription('失敗扣多少San')),
+// @ts-expect-error TS(7006): Parameter 'interaction' implicitly has an 'any' ty... Remove this comment to see the full error message
 		async execute(interaction) {
 			const text = interaction.options.getString('text')
 			const success = interaction.options.getString('success')
@@ -504,20 +566,25 @@ const discordCommand = [
 		data: new SlashCommandBuilder()
 			.setName('build')
 			.setDescription('創角功能')
+// @ts-expect-error TS(7006): Parameter 'subcommand' implicitly has an 'any' typ... Remove this comment to see the full error message
 			.addSubcommand(subcommand =>
 				subcommand
 					.setName('ccpulpbuild')
 					.setDescription('pulp版創角'))
+// @ts-expect-error TS(7006): Parameter 'subcommand' implicitly has an 'any' typ... Remove this comment to see the full error message
 			.addSubcommand(subcommand =>
 				subcommand
 					.setName('cc6build')
 					.setDescription('coc6版創角'))
+// @ts-expect-error TS(7006): Parameter 'subcommand' implicitly has an 'any' typ... Remove this comment to see the full error message
 			.addSubcommand(subcommand =>
 				subcommand
 					.setName('cc7build')
+// @ts-expect-error TS(7006): Parameter 'option' implicitly has an 'any' type.
 					.setDescription('coc7版創角').addStringOption(option => option.setName('age').setDescription('可選: (歲數7-89) 如果沒有會使用隨機開角')))
 
 		,
+// @ts-expect-error TS(7006): Parameter 'interaction' implicitly has an 'any' ty... Remove this comment to see the full error message
 		async execute(interaction) {
 			const age = interaction.options.getString('age') || '';
 			const subcommand = interaction.options.getSubcommand()
@@ -529,7 +596,9 @@ const discordCommand = [
 		data: new SlashCommandBuilder()
 			.setName('dp')
 			.setDescription('coc7 成長或增強檢定')
+// @ts-expect-error TS(7006): Parameter 'option' implicitly has an 'any' type.
 			.addStringOption(option => option.setName('text').setDescription('目標技能大小及名字').setRequired(true)),
+// @ts-expect-error TS(7006): Parameter 'interaction' implicitly has an 'any' ty... Remove this comment to see the full error message
 		async execute(interaction) {
 			const text = interaction.options.getString('text')
 			return `.dp ${text}`
@@ -538,6 +607,7 @@ const discordCommand = [
 		data: new SlashCommandBuilder()
 			.setName('dpg')
 			.setDescription('coc7 成長檢定紀錄功能')
+// @ts-expect-error TS(7006): Parameter 'option' implicitly has an 'any' type.
 			.addStringOption(option =>
 				option.setName('mode')
 					.setDescription('功能')
@@ -549,6 +619,7 @@ const discordCommand = [
 						{ name: '清除擲骰紀錄', value: 'clear' },
 						{ name: '清除擲骰紀錄包括大成功大失敗', value: 'clearall' })
 			),
+// @ts-expect-error TS(7006): Parameter 'interaction' implicitly has an 'any' ty... Remove this comment to see the full error message
 		async execute(interaction) {
 			const mode = interaction.options.getString('mode')
 			return `.dp ${mode}`
@@ -588,6 +659,7 @@ const discordCommand = [
 	}
 ];
 
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
 	rollDiceCommand,
 	initialize,
@@ -710,12 +782,14 @@ class CreateCult {
 		let num = 0;
 		let spells = this.spellsSet[rollbase.Dice(this.spellsSet.length) - 1];
 		text = rollbase.BuildDiceCal(spells);
+// @ts-expect-error TS(2322): Type 'string' is not assignable to type 'number'.
 		num = text.match(/\d+$/i)[0];
 		text += '\n';
 		text += ` ${this.getLeaderMythonList(num).join(', ')},`;
 		text = text.replace(/,$/i, '');
 		return text;
 	}
+// @ts-expect-error TS(7006): Parameter 'count' implicitly has an 'any' type.
 	static getLeaderMythonList(count) {
 		const shuffledArr = MythoyCollection.Magic.slice();
 		for (let i = shuffledArr.length - 1; i > 0; i--) {
@@ -749,6 +823,7 @@ class CreateCult {
 	static cultGoalsMeans() {
 		return this.CultMeans[rollbase.Dice(this.CultMeans.length) - 1];
 	}
+// @ts-expect-error TS(7006): Parameter 'options' implicitly has an 'any' type.
 	static WightRandom(options, num_choices) {
 
 		let choices = new Set();
@@ -769,6 +844,7 @@ class CreateCult {
 		}
 		return Array.from(choices);
 	}
+// @ts-expect-error TS(7006): Parameter 'arr' implicitly has an 'any' type.
 	static FisherYates(arr) {
 		for (let j = arr.length - 1; j > 0; j--) {
 			const k = Math.floor(Math.random() * (j + 1));
@@ -1152,10 +1228,12 @@ async function dpRecordSwitch({ onOff = false, groupid = "", channelid = "" }) {
 			new: true,
 			upsert: true,
 			returnDocument: true
+// @ts-expect-error TS(7006): Parameter 'error' implicitly has an 'any' type.
 		}).catch(error => console.error('coc #673 mongoDB error: ', error.name, error.reson));
 		return `現在這頻道的COC 成長紀錄功能為 ${(result.switch) ? '開啓' : '關閉'}
 以後CC擲骰將 ${(result.switch) ? '會' : '不會'}進行紀錄`
 	} catch (error) {
+// @ts-expect-error TS(2571): Object is of type 'unknown'.
 		console.error(`dpRecordSwitch ERROR ${error.message}`)
 		return '發生錯誤';
 	}
@@ -1167,6 +1245,7 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 		let result = await schema.developmentConductor.findOne({
 			groupID: channelid || groupid,
 			switch: true
+// @ts-expect-error TS(7006): Parameter 'error' implicitly has an 'any' type.
 		}).catch(error => {
 			console.error('coc #687 mongoDB error: ', error.name, error.reson)
 			checkMongodb.dbErrOccurs();
@@ -1193,6 +1272,7 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 					new: true,
 					upsert: true,
 					returnDocument: true
+// @ts-expect-error TS(7006): Parameter 'error' implicitly has an 'any' type.
 				}).catch(error => console.error('coc #710 mongoDB error: ', error.name, error.reson));
 		} else {
 			await schema.developmentRollingRecord.create({
@@ -1203,12 +1283,14 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 				date: Date.now(),
 				skillPer: skillPer,
 				skillResult: skillResult
+// @ts-expect-error TS(7006): Parameter 'error' implicitly has an 'any' type.
 			}).catch(error => console.error('coc #720 mongoDB error: ', error.name, error.reson));
 			let countNumber = await schema.developmentRollingRecord.find({
 				groupID: channelid || groupid,
 				userID: userID,
 				skillName: "",
 				skillPerStyle: 'normal',
+// @ts-expect-error TS(7006): Parameter 'error' implicitly has an 'any' type.
 			}).countDocuments().catch(error => console.error('coc #726 mongoDB error: ', error.name, error.reson));
 			if (countNumber > 10) {
 				let moreThanTen = await schema.developmentRollingRecord.find({
@@ -1216,9 +1298,12 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 					userID: userID,
 					skillName: "",
 					skillPerStyle: 'normal',
+// @ts-expect-error TS(7006): Parameter 'error' implicitly has an 'any' type.
 				}).sort({ date: 1 }).limit(countNumber - 10).catch(error => console.error('coc #733 mongoDB error: ', error.name, error.reson));
 
+// @ts-expect-error TS(7006): Parameter 'doc' implicitly has an 'any' type.
 				moreThanTen.forEach(async function (doc) {
+// @ts-expect-error TS(7006): Parameter 'error' implicitly has an 'any' type.
 					await schema.developmentRollingRecord.deleteOne({ _id: doc._id }).catch(error => console.error('coc #736 mongoDB error: ', error.name, error.reson));
 				})
 			}
@@ -1240,20 +1325,25 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 				skillPer: skillPer,
 				skillResult: skillResult,
 				userName: userName
+// @ts-expect-error TS(7006): Parameter 'error' implicitly has an 'any' type.
 			}).catch(error => console.error('coc #757 mongoDB error: ', error.name, error.reson));
 			let countNumber = await schema.developmentRollingRecord.find({
 				groupID: channelid || groupid,
 				userID: userID,
 				skillPerStyle: skillPerStyle,
+// @ts-expect-error TS(7006): Parameter 'error' implicitly has an 'any' type.
 			}).countDocuments().catch(error => console.error('coc #762 mongoDB error: ', error.name, error.reson));
 			if (countNumber > 10) {
 				let moreThanTen = await schema.developmentRollingRecord.find({
 					groupID: channelid || groupid,
 					userID: userID,
 					skillPerStyle: skillPerStyle,
+// @ts-expect-error TS(7006): Parameter 'error' implicitly has an 'any' type.
 				}).sort({ date: 1 }).limit(countNumber - 10).catch(error => console.error('coc #768 mongoDB error: ', error.name, error.reson));
 
+// @ts-expect-error TS(7006): Parameter 'doc' implicitly has an 'any' type.
 				moreThanTen.forEach(async function (doc) {
+// @ts-expect-error TS(7006): Parameter 'error' implicitly has an 'any' type.
 					await schema.developmentRollingRecord.deleteOne({ _id: doc._id }).catch(error => console.error('coc #771 mongoDB error: ', error.name, error.reson));
 				})
 			}
@@ -1261,6 +1351,7 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 
 
 	} catch (error) {
+// @ts-expect-error TS(2571): Object is of type 'unknown'.
 		console.error(`dpRecordSwitch ERROR ${error.message}`)
 		return '發生錯誤';
 	}
@@ -1281,6 +1372,7 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 
 }
 
+// @ts-expect-error TS(7006): Parameter 'input' implicitly has an 'any' type.
 function DevelopmentPhase(input) {
 	let result = ''
 	for (let index = 1; index < input.length; index++) {
@@ -1300,6 +1392,7 @@ function DevelopmentPhase(input) {
 
 }
 
+// @ts-expect-error TS(7006): Parameter 'target' implicitly has an 'any' type.
 function everyTimeDevelopmentPhase(target, text = '') {
 	let result = '';
 	target = Number(target);
@@ -1363,6 +1456,7 @@ function ccsu() {
  * @param {數字 如CB 80 的80} chack 
  * @param {後面的文字,如偵查} text 
  */
+// @ts-expect-error TS(7006): Parameter 'chack' implicitly has an 'any' type.
 function coc6(chack, text) {
 	let result = '';
 	let temp = rollbase.Dice(100);
@@ -1382,12 +1476,14 @@ function coc6(chack, text) {
  */
 
 
+// @ts-expect-error TS(7031): Binding element 'chack' implicitly has an 'any' ty... Remove this comment to see the full error message
 async function coc7({ chack, text = "", userid, groupid, channelid, userName }) {
 	let result = '';
 	let temp = rollbase.Dice(100);
 	let skillPerStyle = "";
 	let check = chack.split(',');
 	let name = text.split(',');
+// @ts-expect-error TS(7006): Parameter 'i' implicitly has an 'any' type.
 	let checkNum = !check.some(i => !Number.isInteger(Number(i)));
 	if (!checkNum) return;
 	if (check.length >= 2) result += '聯合檢定\n'
@@ -1444,6 +1540,7 @@ async function coc7({ chack, text = "", userid, groupid, channelid, userName }) 
 	return result;
 }
 
+// @ts-expect-error TS(7031): Binding element 'chack' implicitly has an 'any' ty... Remove this comment to see the full error message
 async function coc7chack({ chack, temp, text = "", userid, groupid, channelid, userName, bpdiceNum }) {
 	let result = '';
 	let skillPerStyle = "";
@@ -1495,6 +1592,7 @@ async function coc7chack({ chack, temp, text = "", userid, groupid, channelid, u
 
 
 
+// @ts-expect-error TS(7031): Binding element 'chack' implicitly has an 'any' ty... Remove this comment to see the full error message
 async function coc7bp({ chack, text, userid, groupid, channelid, bpdiceNum, userName }) {
 	try {
 		let result = '';
@@ -1502,6 +1600,7 @@ async function coc7bp({ chack, text, userid, groupid, channelid, bpdiceNum, user
 		let countStr = '';
 		let check = chack.split(',');
 		let name = (text && text.split(',')) || [];
+// @ts-expect-error TS(7006): Parameter 'i' implicitly has an 'any' type.
 		let checkNum = !check.some(i => !Number.isInteger(Number(i)));
 		if (!checkNum) return;
 		if (check.length >= 2) result += '聯合檢定\n'
@@ -1509,6 +1608,7 @@ async function coc7bp({ chack, text, userid, groupid, channelid, bpdiceNum, user
 			for (let i = 0; i <= bpdiceNum; i++) {
 				let temp = rollbase.Dice(10);
 				let temp2 = temp.toString() + temp0.toString();
+// @ts-expect-error TS(2365): Operator '>' cannot be applied to types 'string' a... Remove this comment to see the full error message
 				if (temp2 > 100) temp2 = parseInt(temp2) - 100;
 				countStr = countStr + temp2 + '、';
 			}
@@ -1517,9 +1617,10 @@ async function coc7bp({ chack, text, userid, groupid, channelid, bpdiceNum, user
 
 
 			for (let index = 0; index < check.length; index++) {
-				let finallyStr = countStr + ' → ' + await coc7chack(
+				let finallyStr = countStr + ' → ' + (await coc7chack(
+// @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
 					{ chack: check[index], temp: Math.min(...countArr), text: name[index], userid, groupid, channelid, userName, bpdiceNum }
-				);
+				));
 				result += '1D100 ≦ ' + check[index] + "　\n" + finallyStr + '\n\n';
 			}
 
@@ -1530,6 +1631,7 @@ async function coc7bp({ chack, text, userid, groupid, channelid, bpdiceNum, user
 			for (let i = 0; i <= Math.abs(bpdiceNum); i++) {
 				let temp = rollbase.Dice(10);
 				let temp2 = temp.toString() + temp0.toString();
+// @ts-expect-error TS(2365): Operator '>' cannot be applied to types 'string' a... Remove this comment to see the full error message
 				if (temp2 > 100) temp2 = parseInt(temp2) - 100;
 				countStr = countStr + temp2 + '、';
 			}
@@ -1537,9 +1639,10 @@ async function coc7bp({ chack, text, userid, groupid, channelid, bpdiceNum, user
 			let countArr = countStr.split('、');
 
 			for (let index = 0; index < check.length; index++) {
-				let finallyStr = countStr + ' → ' + await coc7chack(
+				let finallyStr = countStr + ' → ' + (await coc7chack(
+// @ts-expect-error TS(2345): Argument of type '{ chack: any; temp: number; text... Remove this comment to see the full error message
 					{ chack: check[index], temp: Math.max(...countArr), text: name[index], userid, groupid, channelid, bpdiceNum }
-				);
+				));
 				result += '1D100 ≦ ' + check[index] + "  \n" + finallyStr + '\n\n';
 			}
 			return result;
@@ -1599,42 +1702,58 @@ function PcBG() {
 }
 
 class SanCheck {
+// @ts-expect-error TS(7006): Parameter 'mainMsg' implicitly has an 'any' type.
 	constructor(mainMsg) {
+// @ts-expect-error TS(2339): Property 'mainMsg' does not exist on type 'SanChec... Remove this comment to see the full error message
 		this.mainMsg = mainMsg;
+// @ts-expect-error TS(2339): Property 'rollDice' does not exist on type 'SanChe... Remove this comment to see the full error message
 		this.rollDice = rollbase.Dice(100);
+// @ts-expect-error TS(2339): Property 'currentSan' does not exist on type 'SanC... Remove this comment to see the full error message
 		this.currentSan = this.getSanity(mainMsg[1]);
+// @ts-expect-error TS(2339): Property 'scMode' does not exist on type 'SanCheck... Remove this comment to see the full error message
 		this.scMode = this.getScMode(mainMsg[2]);
+// @ts-expect-error TS(2339): Property 'sc' does not exist on type 'SanCheck'.
 		this.sc = this.getSc(mainMsg[2]);
+// @ts-expect-error TS(2339): Property 'rollSuccess' does not exist on type 'San... Remove this comment to see the full error message
 		this.rollSuccess = this.getRollSuccess(this.sc);
+// @ts-expect-error TS(2339): Property 'rollFail' does not exist on type 'SanChe... Remove this comment to see the full error message
 		this.rollFail = this.getRollFail(this.sc);
+// @ts-expect-error TS(2339): Property 'lossSan' does not exist on type 'SanChec... Remove this comment to see the full error message
 		this.lossSan = this.calculateLossSanity(this.rollSuccess, this.rollFail);
 	}
 
+// @ts-expect-error TS(7006): Parameter 'mainMsg' implicitly has an 'any' type.
 	getSanity(mainMsg) {
 		const sanityMatch = mainMsg.match(/^\d+$/);
 		return sanityMatch ? sanityMatch[0] : null;
 	}
 
+// @ts-expect-error TS(7006): Parameter 'mainMsg' implicitly has an 'any' type.
 	getScMode(mainMsg) {
-		return (/\//).test(mainMsg || null);
+		return (((/\//))).test(mainMsg || null);
 	}
 
+// @ts-expect-error TS(7006): Parameter 'mainMsg' implicitly has an 'any' type.
 	getSc(mainMsg) {
+// @ts-expect-error TS(2339): Property 'scMode' does not exist on type 'SanCheck... Remove this comment to see the full error message
 		return this.scMode ? mainMsg && mainMsg.match(/^(.+)\/(.+)$/i) : null;
 	}
 
+// @ts-expect-error TS(7006): Parameter 'sc' implicitly has an 'any' type.
 	getRollSuccess(sc) {
 		return sc && sc[1] ? sc[1].replace(/[^+\-*\dD]/ig, "") : null;
 	}
 
+// @ts-expect-error TS(7006): Parameter 'sc' implicitly has an 'any' type.
 	getRollFail(sc) {
 		return sc && sc[2] ? sc[2].replace(/[^+\-*\dD]/ig, "") : null;
 	}
 
 	calculateLossSanity(rollSuccess = '', rollFail = '') {
+// @ts-expect-error TS(7006): Parameter 'roll' implicitly has an 'any' type.
 		const parseRoll = (roll) => {
 			try {
-				return Math.max(rollbase.BuildDiceCal(roll).match(/\S+$/)?.[0], 0)
+				return Math.max(rollbase.BuildDiceCal(roll).match(/\S+$/)?.[0], 0);
 			} catch { }
 			try {
 				return Math.max(mathjs.evaluate(roll), 0);
@@ -1659,9 +1778,13 @@ class SanCheck {
 
 	}
 	run() {
+// @ts-expect-error TS(2339): Property 'currentSan' does not exist on type 'SanC... Remove this comment to see the full error message
 		if (!this.currentSan) return '請輸入正確的San值，\n格式是 .sc 50 或 .sc 50 1/3 或 .sc 50 1d3+3/1d100';
+// @ts-expect-error TS(2339): Property 'rollDice' does not exist on type 'SanChe... Remove this comment to see the full error message
 		const diceFumble = (this.rollDice === 100) || (this.rollDice >= 96 && this.rollDice <= 100 && this.currentSan <= 49);
+// @ts-expect-error TS(2339): Property 'rollDice' does not exist on type 'SanChe... Remove this comment to see the full error message
 		const diceSuccess = this.rollDice <= this.currentSan;
+// @ts-expect-error TS(2339): Property 'rollDice' does not exist on type 'SanChe... Remove this comment to see the full error message
 		const diceFail = this.rollDice > this.currentSan;
 
 		if (diceFumble) {
@@ -1678,35 +1801,53 @@ class SanCheck {
 	}
 
 	handleDiceFumble() {
+// @ts-expect-error TS(2339): Property 'scMode' does not exist on type 'SanCheck... Remove this comment to see the full error message
 		if (!this.scMode) {
+// @ts-expect-error TS(2339): Property 'currentSan' does not exist on type 'SanC... Remove this comment to see the full error message
 			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 大失敗!`;
 		}
+// @ts-expect-error TS(2339): Property 'rollFail' does not exist on type 'SanChe... Remove this comment to see the full error message
 		if (this.rollFail) {
+// @ts-expect-error TS(2339): Property 'currentSan' does not exist on type 'SanC... Remove this comment to see the full error message
 			let updatedSan = ((this.currentSan - this.lossSan.rollFumbleLoss) < 0) ? 0 : this.currentSan - this.lossSan.rollFumbleLoss;
+// @ts-expect-error TS(2339): Property 'currentSan' does not exist on type 'SanC... Remove this comment to see the full error message
 			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 大失敗!\n失去${this.rollFail}最大值 ${this.lossSan.rollFumbleLoss}點San\n現在San值是${updatedSan}點`.replace('是NaN點', ' 算式錯誤，未能計算');
 		}
+// @ts-expect-error TS(2339): Property 'currentSan' does not exist on type 'SanC... Remove this comment to see the full error message
 		return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 大失敗!`
 	}
 	handleDiceSuccess() {
 		//成功
+// @ts-expect-error TS(2339): Property 'scMode' does not exist on type 'SanCheck... Remove this comment to see the full error message
 		if (!this.scMode) {
+// @ts-expect-error TS(2339): Property 'currentSan' does not exist on type 'SanC... Remove this comment to see the full error message
 			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 成功!`
 		}
+// @ts-expect-error TS(2339): Property 'lossSan' does not exist on type 'SanChec... Remove this comment to see the full error message
 		if (this.lossSan) {
+// @ts-expect-error TS(2339): Property 'currentSan' does not exist on type 'SanC... Remove this comment to see the full error message
 			let updatedSan = ((this.currentSan - this.lossSan.rollSuccessLoss) < 0) ? 0 : this.currentSan - this.lossSan.rollSuccessLoss;
+// @ts-expect-error TS(2339): Property 'currentSan' does not exist on type 'SanC... Remove this comment to see the full error message
 			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 成功!\n失去${this.rollSuccess} → ${this.lossSan.rollSuccessLoss}點San\n現在San值是${updatedSan}點`.replace('是NaN點', ' 算式錯誤，未能計算');
 		} else
+// @ts-expect-error TS(2339): Property 'currentSan' does not exist on type 'SanC... Remove this comment to see the full error message
 			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 成功!\n不需要減少San`
 
 	}
 	handleDiceLoss() {
+// @ts-expect-error TS(2339): Property 'scMode' does not exist on type 'SanCheck... Remove this comment to see the full error message
 		if (!this.scMode) {
+// @ts-expect-error TS(2339): Property 'currentSan' does not exist on type 'SanC... Remove this comment to see the full error message
 			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 失敗!`
 		}
+// @ts-expect-error TS(2339): Property 'lossSan' does not exist on type 'SanChec... Remove this comment to see the full error message
 		if (this.lossSan) {
+// @ts-expect-error TS(2339): Property 'currentSan' does not exist on type 'SanC... Remove this comment to see the full error message
 			let updatedSan = ((this.currentSan - this.lossSan.rollFailLoss) < 0) ? 0 : this.currentSan - this.lossSan.rollFailLoss;
+// @ts-expect-error TS(2339): Property 'currentSan' does not exist on type 'SanC... Remove this comment to see the full error message
 			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 失敗!\n失去${this.rollFail} → ${this.lossSan.rollFailLoss}點San\n現在San值是${updatedSan}點`.replace('是NaN點', ' 算式錯誤，未能計算');
 		} else
+// @ts-expect-error TS(2339): Property 'currentSan' does not exist on type 'SanC... Remove this comment to see the full error message
 			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 失敗!\n但不需要減少San`
 
 	}
@@ -1720,6 +1861,7 @@ function chase() {
 	}
 	return rply;
 }
+// @ts-expect-error TS(7006): Parameter 'num' implicitly has an 'any' type.
 function chaseGenerator(num) {
 	let rply = "";
 	let chase = rollbase.Dice(100);
@@ -1807,6 +1949,7 @@ const blockHard = [5, 5, 10, 10, 15, 15, 25, 50, 100];
 const blockEasy = [5, 5, 5, 10, 10, 15]
 const blockIntermediate = [5, 5, 10, 10, 15, 15, 25]
 
+// @ts-expect-error TS(7006): Parameter 'array' implicitly has an 'any' type.
 function shuffle(array) {
 	let currentIndex = array.length, randomIndex;
 
@@ -1825,9 +1968,11 @@ function shuffle(array) {
 	return array;
 }
 
+// @ts-expect-error TS(7006): Parameter 'state' implicitly has an 'any' type.
 function getOccupationSkill(state) {
 	//state = [STR,DEX,....]
 	let skillsPool = [];
+// @ts-expect-error TS(7034): Variable 'skillResult' implicitly has type 'any[]'... Remove this comment to see the full error message
 	let skillResult = [];
 	let CR = rollbase.Dice(8) - 1;
 	for (let index = 0; index < 8; index++) {
@@ -1865,6 +2010,7 @@ function getOccupationSkill(state) {
 			continue;
 		}
 		sortSkillList.forEach(v => {
+// @ts-expect-error TS(7005): Variable 'skillResult' implicitly has an 'any[]' t... Remove this comment to see the full error message
 			if (v.name == skillResult[i]) {
 				finalOSkillList.push(v.sort[0].name);
 				v.sort.shift();
@@ -1874,10 +2020,12 @@ function getOccupationSkill(state) {
 	}
 
 
+// @ts-expect-error TS(7034): Variable 'tempOtherSkillList' implicitly has type ... Remove this comment to see the full error message
 	let tempOtherSkillList = [];
 	sortSkillList.forEach(element => {
 		tempOtherSkillList.push(element.sort)
 	});
+// @ts-expect-error TS(7005): Variable 'tempOtherSkillList' implicitly has an 'a... Remove this comment to see the full error message
 	let tempFinalOtherSkillList = shuffle([...tempOtherSkillList.flat()])
 	let finalOtherSkillList = []
 	for (let index = 0; index < 4; index++) {
@@ -1889,6 +2037,7 @@ function getOccupationSkill(state) {
 	//
 
 }
+// @ts-expect-error TS(7006): Parameter 'state' implicitly has an 'any' type.
 function checkState(state) {
 	let result = [];
 	result[0] = eightStateNumber[state.indexOf("STR")]
@@ -2038,7 +2187,9 @@ class MythoyCollection {
 		${this.getMythonData("magic")}
 		`
 	}
+// @ts-expect-error TS(7006): Parameter 'dataType' implicitly has an 'any' type.
 	static getMythonData(dataType) {
+// @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
 		return this.cases[dataType] ? this.cases[dataType]() : this.cases._default();
 	}
 	static cases = {
@@ -2054,6 +2205,7 @@ class MythoyCollection {
 		},
 		_default: () => { return "沒有找到符合的資料" }
 	}
+// @ts-expect-error TS(7006): Parameter 'array' implicitly has an 'any' type.
 	static getRandomData(array) {
 		return array[Math.floor(Math.random() * array.length)];
 	}
@@ -2090,32 +2242,45 @@ class MythoyCollection {
 
 class BuilderRegistry {
 	constructor() {
+// @ts-expect-error TS(2339): Property 'builders' does not exist on type 'Builde... Remove this comment to see the full error message
 		this.builders = new Map();
 	}
 
+// @ts-expect-error TS(7006): Parameter 'pattern' implicitly has an 'any' type.
 	registerBuilder(pattern, builderClass) {
+// @ts-expect-error TS(2339): Property 'builders' does not exist on type 'Builde... Remove this comment to see the full error message
 		this.builders.set(pattern, new builderClass());
 	}
 
+// @ts-expect-error TS(7006): Parameter 'name' implicitly has an 'any' type.
 	getBuilder(name) {
+// @ts-expect-error TS(2339): Property 'builders' does not exist on type 'Builde... Remove this comment to see the full error message
 		return this.builders.get(name);
 	}
 }
 
 class Build7Char {
 	constructor() {
+// @ts-expect-error TS(2339): Property 'builderRegistry' does not exist on type ... Remove this comment to see the full error message
 		this.builderRegistry = new BuilderRegistry();
+// @ts-expect-error TS(2339): Property 'defaultRegistry' does not exist on type ... Remove this comment to see the full error message
 		this.defaultRegistry;
 	}
+// @ts-expect-error TS(7006): Parameter 'builderClass' implicitly has an 'any' t... Remove this comment to see the full error message
 	defaultBuiler(builderClass) {
+// @ts-expect-error TS(2339): Property 'defaultRegistry' does not exist on type ... Remove this comment to see the full error message
 		this.defaultRegistry = new builderClass();
 	}
 
+// @ts-expect-error TS(7006): Parameter 'name' implicitly has an 'any' type.
 	registerBuilder(name, builderClass) {
+// @ts-expect-error TS(2339): Property 'builderRegistry' does not exist on type ... Remove this comment to see the full error message
 		this.builderRegistry.registerBuilder(name, builderClass);
 	}
 
+// @ts-expect-error TS(7006): Parameter 'text' implicitly has an 'any' type.
 	build(text, age) {
+// @ts-expect-error TS(2339): Property 'builderRegistry' does not exist on type ... Remove this comment to see the full error message
 		for (const [pattern, builderClass] of this.builderRegistry.builders) {
 			if (text.match(pattern)) {
 				return builderClass.build(text, age);
@@ -2128,6 +2293,7 @@ coc7版隨機創角			： 啓動語 .cc7build random 或留空
 coc7版自由分配點數創角	： 啓動語 .cc7build .xyz (歲數15-89)
 
 先以coc7版隨機模式來創角
+// @ts-expect-error TS(2339): Property 'defaultRegistry' does not exist on type ... Remove this comment to see the full error message
 ${this.defaultRegistry.build()}
 `;
 	}
@@ -2280,6 +2446,7 @@ class AgeBuilder {
 		return /^\d+$/i;
 	}
 
+// @ts-expect-error TS(7006): Parameter 'text' implicitly has an 'any' type.
 	build(text) {
 		let old = "";
 		let ReStr = "調查員年齡設為：";
@@ -2291,18 +2458,24 @@ class AgeBuilder {
 		let Debuff = 0;
 		let AppDebuff = 0;
 		let EDUinc = 0;
+// @ts-expect-error TS(2365): Operator '<' cannot be applied to types 'string' a... Remove this comment to see the full error message
 		if (old < 7) {
 			ReStr += '\n等等，核心規則或日本拓展沒有適用小於7歲的人物哦。\n先當成15歲處理\n';
+// @ts-expect-error TS(2322): Type 'number' is not assignable to type 'string'.
 			old = 15;
 		}
 
+// @ts-expect-error TS(2365): Operator '>=' cannot be applied to types 'string' ... Remove this comment to see the full error message
 		if (old >= 7 && old <= 14) {
 			ReStr += '\n等等，核心規則沒有適用小於15歲的人物哦。\n先使用日本CoC 7th 2020 拓展 - 7到14歲的幼年調查員規則吧\n';
 		}
+// @ts-expect-error TS(2365): Operator '>=' cannot be applied to types 'string' ... Remove this comment to see the full error message
 		if (old >= 90) {
 			ReStr += '\n等等，核心規則沒有適用於90歲以上的人物哦。\n先當成89歲處理\n';
+// @ts-expect-error TS(2322): Type 'number' is not assignable to type 'string'.
 			old = 89;
 		}
+// @ts-expect-error TS(2365): Operator '>=' cannot be applied to types 'string' ... Remove this comment to see the full error message
 		for (let i = 0; old >= oldArr[i]; i++) {
 			Debuff = DebuffArr[i];
 			AppDebuff = AppDebuffArr[i];
@@ -2310,8 +2483,10 @@ class AgeBuilder {
 		}
 		ReStr += '=======\n';
 		switch (true) {
+// @ts-expect-error TS(2365): Operator '>=' cannot be applied to types 'string' ... Remove this comment to see the full error message
 			case (old >= 7 && old <= 14):
 				{
+// @ts-expect-error TS(2365): Operator '>=' cannot be applied to types 'string' ... Remove this comment to see the full error message
 					if (old >= 7 && old <= 12) {
 						ReStr += '\nＳＴＲ：' + rollbase.BuildDiceCal('3d4*5');
 						ReStr += '\nＤＥＸ：' + rollbase.BuildDiceCal('3d6*5');
@@ -2323,6 +2498,7 @@ class AgeBuilder {
 						ReStr += '\nＩＮＴ：' + rollbase.BuildDiceCal('(2d6+6)*5');
 
 					}
+// @ts-expect-error TS(2365): Operator '>=' cannot be applied to types 'string' ... Remove this comment to see the full error message
 					if (old >= 13 && old <= 14) {
 						ReStr += '\nＳＴＲ：' + rollbase.BuildDiceCal('(2d6+1)*5');
 						ReStr += '\nＤＥＸ：' + rollbase.BuildDiceCal('3d6*5');
@@ -2334,6 +2510,7 @@ class AgeBuilder {
 						ReStr += '\nＩＮＴ：' + rollbase.BuildDiceCal('(2d6+6)*5');
 
 					}
+// @ts-expect-error TS(2365): Operator '>=' cannot be applied to types 'string' ... Remove this comment to see the full error message
 					for (let i = 0; old >= OldArr2020[i]; i++) {
 						EDUinc = EDUincArr2020[i];
 					}
@@ -2344,24 +2521,29 @@ class AgeBuilder {
 					ReStr += '\nＬＵＫ最終值：' + Math.max(...tempLuck);
 					ReStr += '\n\n幼年調查員的特性：' + rollbase.BuildDiceCal('2d6');
 					ReStr += '\n幼年調查員的家境：' + rollbase.BuildDiceCal('1D100');
+// @ts-expect-error TS(2363): The right-hand side of an arithmetic operation mus... Remove this comment to see the full error message
 					ReStr += '\n幼年調查員可受「幫忙」的次數：' + Math.round((17 - old) / 3);
 					return ReStr;
 				}
 
+// @ts-expect-error TS(2365): Operator '>=' cannot be applied to types 'string' ... Remove this comment to see the full error message
 			case (old >= 15 && old <= 19):
 				ReStr += '年齡調整：從STR或SIZ中減去' + Debuff + '點\n（請自行手動選擇計算）。\nEDU減去5點。LUK骰兩次取高。';
 				ReStr += '\n=======';
 				ReStr += '\n（以下箭號兩項，減值' + Debuff + '點。）';
 				break;
+// @ts-expect-error TS(2365): Operator '>=' cannot be applied to types 'string' ... Remove this comment to see the full error message
 			case (old >= 20 && old <= 39):
 				ReStr += '年齡調整：可做' + EDUinc + '次EDU的成長擲骰。';
 				ReStr += '\n=======';
 				break;
+// @ts-expect-error TS(2365): Operator '>=' cannot be applied to types 'string' ... Remove this comment to see the full error message
 			case (old >= 40 && old <= 49):
 				ReStr += '年齡調整：從STR、DEX或CON中減去' + Debuff + '點\n（請自行手動選擇計算）。\nAPP減去' + AppDebuff + '點。進行' + EDUinc + '次EDU的成長擲骰。';
 				ReStr += '\n=======';
 				ReStr += '\n（以下箭號三項，自選減去' + Debuff + '點。）';
 				break;
+// @ts-expect-error TS(2365): Operator '>=' cannot be applied to types 'string' ... Remove this comment to see the full error message
 			case (old >= 50):
 				ReStr += '年齡調整：從STR、DEX或CON中減去' + Debuff + '點\n（從一，二或全部三項中選擇）\n（請自行手動選擇計算）。\nAPP減去' + AppDebuff + '點。進行' + EDUinc + '次EDU的成長擲骰。';
 				ReStr += '\n=======';
@@ -2372,29 +2554,36 @@ class AgeBuilder {
 				break;
 		}
 		ReStr += '\nＳＴＲ：' + rollbase.BuildDiceCal('3d6*5');
+// @ts-expect-error TS(2365): Operator '>=' cannot be applied to types 'string' ... Remove this comment to see the full error message
 		if (old >= 40) ReStr += ' ←（可選） ';
+// @ts-expect-error TS(2365): Operator '<' cannot be applied to types 'string' a... Remove this comment to see the full error message
 		if (old < 20) ReStr += ' ←（可選）';
 
 		ReStr += '\nＤＥＸ：' + rollbase.BuildDiceCal('3d6*5');
+// @ts-expect-error TS(2365): Operator '>=' cannot be applied to types 'string' ... Remove this comment to see the full error message
 		if (old >= 40) ReStr += ' ← （可選）';
 
 		ReStr += '\nＰＯＷ：' + rollbase.BuildDiceCal('3d6*5');
 
 		ReStr += '\nＣＯＮ：' + rollbase.BuildDiceCal('3d6*5');
+// @ts-expect-error TS(2365): Operator '>=' cannot be applied to types 'string' ... Remove this comment to see the full error message
 		if (old >= 40) ReStr += ' ← （可選）'
 
+// @ts-expect-error TS(2365): Operator '>=' cannot be applied to types 'string' ... Remove this comment to see the full error message
 		if (old >= 40) {
 			ReStr += '\nＡＰＰ：' + rollbase.BuildDiceCal('(3d6*5)-' + AppDebuff)
 		} else ReStr += '\nＡＰＰ：' + rollbase.BuildDiceCal('3d6*5');
 
 
 		ReStr += '\nＳＩＺ：' + rollbase.BuildDiceCal('(2d6+6)*5');
+// @ts-expect-error TS(2365): Operator '<' cannot be applied to types 'string' a... Remove this comment to see the full error message
 		if (old < 20) {
 			ReStr += ' ←（可選）';
 		}
 
 		ReStr += '\nＩＮＴ：' + rollbase.BuildDiceCal('(2d6+6)*5');
 
+// @ts-expect-error TS(2365): Operator '<' cannot be applied to types 'string' a... Remove this comment to see the full error message
 		if (old < 20) ReStr += '\nＥＤＵ：' + rollbase.BuildDiceCal('((2d6+6)*5)-5');
 		else {
 			let firstEDU = '(' + rollbase.BuildRollDice('2d6') + '+6)*5';
@@ -2421,6 +2610,7 @@ class AgeBuilder {
 
 		const tempBuildLuck = [rollbase.BuildDiceCal('3d6*5'), rollbase.BuildDiceCal('3d6*5')]
 		const tempLuck = [tempBuildLuck[0].match(/\d+$/), tempBuildLuck[1].match(/\d+$/)]
+// @ts-expect-error TS(2365): Operator '<' cannot be applied to types 'string' a... Remove this comment to see the full error message
 		if (old < 20) {
 			ReStr += '\nＬＵＫ第一次：' + `${tempBuildLuck[0]} \nＬＵＫ第二次： ${tempBuildLuck[1]}`;
 			ReStr += '\nＬＵＫ最終值：' + Math.max(...tempLuck);
@@ -2442,27 +2632,40 @@ class XYZBuilder {
 		return /^([.])/i;
 	}
 
+// @ts-expect-error TS(7006): Parameter 'text' implicitly has an 'any' type.
 	build(text, age) {
+// @ts-expect-error TS(2339): Property 'x' does not exist on type 'XYZBuilder'.
 		this.x = (text.match(/[.]\d+/i) && text[1]) || 5;
+// @ts-expect-error TS(2339): Property 'y' does not exist on type 'XYZBuilder'.
 		this.y = (text.match(/[.]\d+/i) && text[2]) || 3;
+// @ts-expect-error TS(2339): Property 'z' does not exist on type 'XYZBuilder'.
 		this.z = (text.match(/[.]\d+/i) && text[3]) || 0;
+// @ts-expect-error TS(2339): Property 'age' does not exist on type 'XYZBuilder'... Remove this comment to see the full error message
 		this.age = age?.match(/^\d+/i) || 0;
 		let ReStr = `自由分配屬性點數創角方案
 =======
 `;
+// @ts-expect-error TS(2339): Property 'x' does not exist on type 'XYZBuilder'.
 		for (let i = 0; i < this.x; i++) {
 			ReStr += `${rollbase.BuildDiceCal('3d6*5')}\n`
 		}
+// @ts-expect-error TS(2339): Property 'x' does not exist on type 'XYZBuilder'.
 		if (this.x) ReStr += `=======\n`
+// @ts-expect-error TS(2339): Property 'y' does not exist on type 'XYZBuilder'.
 		for (let i = 0; i < this.y; i++) {
 			ReStr += `${rollbase.BuildDiceCal('(2d6+6)*5')}\n`
 		}
+// @ts-expect-error TS(2339): Property 'y' does not exist on type 'XYZBuilder'.
 		if (this.y) ReStr += `=======\n`
+// @ts-expect-error TS(2339): Property 'z' does not exist on type 'XYZBuilder'.
 		for (let i = 0; i < this.z; i++) {
 			ReStr += `${rollbase.BuildDiceCal('3d6*5')}\n`
 		}
+// @ts-expect-error TS(2339): Property 'z' does not exist on type 'XYZBuilder'.
 		if (this.z) ReStr += `=======\n`
+// @ts-expect-error TS(2339): Property 'age' does not exist on type 'XYZBuilder'... Remove this comment to see the full error message
 		if (this.age && !isNaN(this.age)) {
+// @ts-expect-error TS(2339): Property 'age' does not exist on type 'XYZBuilder'... Remove this comment to see the full error message
 			ReStr += `${this.ageAdjustment(this.age)}`
 			//設定 因年齡減少的點數 和 EDU加骰次數
 		} else {
@@ -2475,6 +2678,7 @@ class XYZBuilder {
 
 		return ReStr;
 	}
+// @ts-expect-error TS(7006): Parameter 'age' implicitly has an 'any' type.
 	ageAdjustment(age) {
 		let Debuff = 0;
 		let AppDebuff = 0;

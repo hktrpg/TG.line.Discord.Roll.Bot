@@ -1,6 +1,9 @@
+// @ts-expect-error TS(6200): Definitions of the following identifiers conflict ... Remove this comment to see the full error message
 "use strict";
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 let rollbase = require('./rollbase.js');
 let variables = {};
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const mathjs = require('mathjs');
 const gameName = function () {
     return '【命運Fate】 .4df(m|-)(加值)'
@@ -17,7 +20,7 @@ const prefixs = function () {
     return [{
         first: /^[.]4df(\d+|(\+|m|-)(\d+)|)/i,
         second: null
-    }]
+    }];
 }
 const getHelpMessage = async function () {
     return `【命運Fate】
@@ -30,10 +33,13 @@ const initialize = function () {
     return variables;
 }
 
-const rollDiceCommand = async function ({
-    inputStr,
-    mainMsg
-}) {
+const rollDiceCommand = async function(
+    this: any,
+    {
+        inputStr,
+        mainMsg
+    }: any
+) {
     let rply = {
         default: 'on',
         type: 'text',
@@ -42,6 +48,7 @@ const rollDiceCommand = async function ({
     switch (true) {
         case /^help$/i.test(mainMsg[1]):
             rply.text = await this.getHelpMessage();
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             return rply;
         default: {
@@ -52,7 +59,9 @@ const rollDiceCommand = async function ({
             let ans = 0
 
             for (let i = 0; i < 4; i++) {
+                // @ts-expect-error TS(2322): Type 'number' is not assignable to type 'string'.
                 random = (rollbase.Dice(3) - 2)
+                // @ts-expect-error TS(2322): Type 'string' is not assignable to type 'number'.
                 ans += random
                 temp += random
                 temp = temp.replace('-1', '－').replace('0', '▉').replace('1', '＋')
@@ -65,6 +74,7 @@ const rollDiceCommand = async function ({
 
                 }
             } catch (error) {
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 rply.text = `.4df 輸入出錯 \n${error.message}`
             }
 
@@ -75,6 +85,7 @@ const rollDiceCommand = async function ({
 }
 
 
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,

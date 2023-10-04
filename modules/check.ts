@@ -30,26 +30,26 @@ const flag = {
     ChkManager: __flag.Manager,
 }
 
-function __isChannel(gid) {
+function __isChannel(gid: any) {
     return !!gid;
 }
 
-function __isAdmin(user) {
+function __isAdmin(user: any) {
     return (user === role.admin) ||
         (user === role.superAdmin);
 }
 
-function __isManager(user) {
+function __isManager(user: any) {
     return (user === role.dm) ||
         (user === role.admin) ||
         (user === role.superAdmin);
 }
 
-function __isDiscord(botName) {
+function __isDiscord(botName: any) {
     return (botName === "Discord");
 }
 
-function permissionErrMsg(arg) {
+function permissionErrMsg(arg: any) {
     let msg = "";
 
     if ((arg.flag & 0x1) && !__isChannel(arg.gid))
@@ -67,6 +67,7 @@ function permissionErrMsg(arg) {
     return msg;
 }
 
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     role,
     flag,

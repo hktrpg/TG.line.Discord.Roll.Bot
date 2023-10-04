@@ -12,6 +12,10 @@
  */
 const _DEFAULT_CANDLE = '🕯️';
 class CandleChecker {
+    isCandleDay: any;
+    monthDays: any;
+    today: any;
+    todayCandle: any;
     constructor() {
         this.monthDays = [
         ];
@@ -25,11 +29,17 @@ class CandleChecker {
     }
 
     #checkForCandle() {
-        this.isCandleDay = this.monthDays.some(({ month, day }) =>
+        this.isCandleDay = this.monthDays.some(({
+            month,
+            day
+        }: any) =>
             month === this.today.Month && day === this.today.Date
         )
         if (this.isCandleDay) {
-            this.todayCandle = this.monthDays.find(({ month, day }) =>
+            this.todayCandle = this.monthDays.find(({
+                month,
+                day
+            }: any) =>
                 month === this.today.Month && day === this.today.Date
             ).candle || _DEFAULT_CANDLE;
         }
@@ -37,7 +47,8 @@ class CandleChecker {
         console.log(`[CandleChecker] Today is ${this.today.Month}/${this.today.Date}, isCandleDay: ${this.isCandleDay}, candle: ${this.checker()}`);
     }
     #importDates() {
-        process.env.CANDLE_DATES?.split(/\s+/).forEach((date) => {
+        // @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
+        process.env.CANDLE_DATES?.split(/\s+/).forEach((date: any) => {
             const [month, day, candle] = date.split(',');
             this.monthDays.push({ month: Number(month), day: Number(day), candle: candle || '🕯️' });
         })
@@ -68,5 +79,6 @@ class CandleChecker {
 // 使用方法：
 const candleChecker = new CandleChecker(); // 初始化
 // 當日期改變後，使用此方法檢查今天是否是指定日期
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 exports.checker = () => candleChecker.checker();
 

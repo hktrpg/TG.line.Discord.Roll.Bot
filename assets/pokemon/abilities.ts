@@ -1,4 +1,4 @@
-let AbilityList;
+let AbilityList: any;
 if(!AbilityList) AbilityList = [];
 
 Array.prototype.push.apply(AbilityList, [

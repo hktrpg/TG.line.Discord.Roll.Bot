@@ -1,13 +1,18 @@
 "use strict";
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 if (!process.env.mongoURL) {
+    // @ts-expect-error TS(1108): A 'return' statement can only be used within a fun... Remove this comment to see the full error message
     return;
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'restartTim... Remove this comment to see the full error message
 const restartTime = '55 4 * * *';
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const Agenda = require("agenda");
 //const mongoConnectionString = "mongodb://127.0.0.1/agenda";
 //const agenda = new Agenda({ mongo: mongoose.mongoose });
 
 // Or override the default collection name:
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'agenda'.
 const agenda = new Agenda({ db: { address: process.env.mongoURL, collection: 'agendaAtHKTRPG' }, maxConcurrency: 20000, defaultConcurrency: 2000 });
 
 // or pass additional connection options:
@@ -29,7 +34,7 @@ const agenda = new Agenda({ db: { address: process.env.mongoURL, collection: 'ag
 })();
 
 
-agenda.on("fail", (err, job) => {
+agenda.on("fail", (err: any, job: any) => {
     console.error(`#33 Job failed with error: ${err.message}`);
 });
 /**
@@ -45,6 +50,7 @@ agenda.on("fail", (err, job) => {
 //discordSchedule.scheduleAtMessage
 
 
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     agenda
 };

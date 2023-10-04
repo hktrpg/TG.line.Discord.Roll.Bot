@@ -1,32 +1,46 @@
 "use strict";
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 if (!process.env.mongoURL) {
+    // @ts-expect-error TS(1108): A 'return' statement can only be used within a fun... Remove this comment to see the full error message
     return;
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'rollbase'.
 const rollbase = require('./rollbase.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'records'.
 const records = require('../modules/records.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'schema'.
 const schema = require('../modules/schema.js');
 let trpgDatabasefunction = {};
-records.get('trpgDatabase', (msgs) => {
+records.get('trpgDatabase', (msgs: any) => {
+    // @ts-expect-error TS(2339): Property 'trpgDatabasefunction' does not exist on ... Remove this comment to see the full error message
     trpgDatabasefunction.trpgDatabasefunction = msgs
 });
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'checkTools... Remove this comment to see the full error message
 const checkTools = require('../modules/check.js');
-records.get('trpgDatabaseAllgroup', (msgs) => {
+records.get('trpgDatabaseAllgroup', (msgs: any) => {
+    // @ts-expect-error TS(2339): Property 'trpgDatabaseAllgroup' does not exist on ... Remove this comment to see the full error message
     trpgDatabasefunction.trpgDatabaseAllgroup = msgs
 });
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'VIP'.
 const VIP = require('../modules/veryImportantPerson');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'FUNCTION_L... Remove this comment to see the full error message
 const FUNCTION_LIMIT = [30, 200, 200, 300, 300, 300, 300, 300];
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'gameName'.
 const gameName = function () {
     return '【資料庫功能】 .db(p) (add del show 自定關鍵字)'
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'gameType'.
 const gameType = function () {
     return 'funny:trpgDatabase:hktrpg'
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'prefixs'.
 const prefixs = function () {
     return [{
         first: /(^[.]db(p|)$)/ig,
         second: null
-    }]
+    }];
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'getHelpMes... Remove this comment to see the full error message
 const getHelpMessage = async function () {
     return `【資料庫功能】
 這是根據關鍵字來顯示數據的,
@@ -55,21 +69,27 @@ P.S.如果沒立即生效 用.db show 刷新一下
 * {my.level}    <---顯示擲骰者等級
 `
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'initialize... Remove this comment to see the full error message
 const initialize = function () {
     return trpgDatabasefunction;
 }
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 exports.z_Level_system = require('./z_Level_system');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'rollDiceCo... Remove this comment to see the full error message
 // eslint-disable-next-line no-unused-vars
-const rollDiceCommand = async function ({
-    inputStr,
-    mainMsg,
-    groupid,
-    userrole,
-    userid,
-    displayname,
-    displaynameDiscord,
-    membercount
-}) {
+const rollDiceCommand = async function(
+    this: any,
+    {
+        inputStr,
+        mainMsg,
+        groupid,
+        userrole,
+        userid,
+        displayname,
+        displaynameDiscord,
+        membercount
+    }: any
+) {
     let rply = {
         default: 'on',
         type: 'text',
@@ -84,6 +104,7 @@ const rollDiceCommand = async function ({
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = await this.getHelpMessage();
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             return rply;
 
@@ -104,15 +125,22 @@ const rollDiceCommand = async function ({
             lv = await VIP.viplevelCheckGroup(groupid);
             limit = FUNCTION_LIMIT[lv];
 
+            // @ts-expect-error TS(2339): Property 'trpgDatabasefunction' does not exist on ... Remove this comment to see the full error message
             if (trpgDatabasefunction.trpgDatabasefunction)
+                // @ts-expect-error TS(2339): Property 'trpgDatabasefunction' does not exist on ... Remove this comment to see the full error message
                 for (let i = 0; i < trpgDatabasefunction.trpgDatabasefunction.length; i++) {
+                    // @ts-expect-error TS(2339): Property 'trpgDatabasefunction' does not exist on ... Remove this comment to see the full error message
                     if (trpgDatabasefunction.trpgDatabasefunction[i].groupid == groupid) {
+                        // @ts-expect-error TS(2339): Property 'trpgDatabasefunction' does not exist on ... Remove this comment to see the full error message
                         if (trpgDatabasefunction.trpgDatabasefunction[0] && trpgDatabasefunction.trpgDatabasefunction[0].trpgDatabasefunction[0]) {
+                            // @ts-expect-error TS(2339): Property 'trpgDatabasefunction' does not exist on ... Remove this comment to see the full error message
                             if (trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction.length >= limit) {
                                 rply.text = '關鍵字上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
                                 return rply;
                             }
+                            // @ts-expect-error TS(2339): Property 'trpgDatabasefunction' does not exist on ... Remove this comment to see the full error message
                             for (let a = 0; a < trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
+                                // @ts-expect-error TS(2339): Property 'trpgDatabasefunction' does not exist on ... Remove this comment to see the full error message
                                 if (trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic == mainMsg[2]) {
                                     checkifsamename = 1
                                 }
@@ -129,7 +157,8 @@ const rollDiceCommand = async function ({
             }
             if (checkifsamename == 0) {
                 records.pushtrpgDatabasefunction('trpgDatabase', temp, () => {
-                    records.get('trpgDatabase', (msgs) => {
+                    records.get('trpgDatabase', (msgs: any) => {
+                        // @ts-expect-error TS(2339): Property 'trpgDatabasefunction' does not exist on ... Remove this comment to see the full error message
                         trpgDatabasefunction.trpgDatabasefunction = msgs
                     })
 
@@ -149,12 +178,16 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
+            // @ts-expect-error TS(2339): Property 'trpgDatabasefunction' does not exist on ... Remove this comment to see the full error message
             for (let i = 0; i < trpgDatabasefunction.trpgDatabasefunction.length; i++) {
+                // @ts-expect-error TS(2339): Property 'trpgDatabasefunction' does not exist on ... Remove this comment to see the full error message
                 if (trpgDatabasefunction.trpgDatabasefunction[i].groupid == groupid) {
+                    // @ts-expect-error TS(2339): Property 'trpgDatabasefunction' does not exist on ... Remove this comment to see the full error message
                     let temp = trpgDatabasefunction.trpgDatabasefunction[i]
                     temp.trpgDatabasefunction = []
                     records.settrpgDatabasefunction('trpgDatabase', temp, () => {
-                        records.get('trpgDatabase', (msgs) => {
+                        records.get('trpgDatabase', (msgs: any) => {
+                            // @ts-expect-error TS(2339): Property 'trpgDatabasefunction' does not exist on ... Remove this comment to see the full error message
                             trpgDatabasefunction.trpgDatabasefunction = msgs
                         })
                     })
@@ -173,12 +206,16 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
+            // @ts-expect-error TS(2339): Property 'trpgDatabasefunction' does not exist on ... Remove this comment to see the full error message
             for (let i = 0; i < trpgDatabasefunction.trpgDatabasefunction.length; i++) {
+                // @ts-expect-error TS(2339): Property 'trpgDatabasefunction' does not exist on ... Remove this comment to see the full error message
                 if (trpgDatabasefunction.trpgDatabasefunction[i].groupid == groupid && mainMsg[2] < trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction.length && mainMsg[2] >= 0) {
+                    // @ts-expect-error TS(2339): Property 'trpgDatabasefunction' does not exist on ... Remove this comment to see the full error message
                     let temp = trpgDatabasefunction.trpgDatabasefunction[i]
                     temp.trpgDatabasefunction.splice(mainMsg[2], 1)
                     records.settrpgDatabasefunction('trpgDatabase', temp, () => {
-                        records.get('trpgDatabase', (msgs) => {
+                        records.get('trpgDatabase', (msgs: any) => {
+                            // @ts-expect-error TS(2339): Property 'trpgDatabasefunction' does not exist on ... Remove this comment to see the full error message
                             trpgDatabasefunction.trpgDatabasefunction = msgs
                         })
                     })
@@ -190,7 +227,8 @@ const rollDiceCommand = async function ({
 
         case /(^[.]db$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
             //顯示
-            records.get('trpgDatabase', (msgs) => {
+            records.get('trpgDatabase', (msgs: any) => {
+                // @ts-expect-error TS(2339): Property 'trpgDatabasefunction' does not exist on ... Remove this comment to see the full error message
                 trpgDatabasefunction.trpgDatabasefunction = msgs
             })
             if (!groupid) {
@@ -198,18 +236,24 @@ const rollDiceCommand = async function ({
                 return rply;
             }
             let temp = 0;
+            // @ts-expect-error TS(2339): Property 'trpgDatabasefunction' does not exist on ... Remove this comment to see the full error message
             if (trpgDatabasefunction.trpgDatabasefunction)
+                // @ts-expect-error TS(2339): Property 'trpgDatabasefunction' does not exist on ... Remove this comment to see the full error message
                 for (let i = 0; i < trpgDatabasefunction.trpgDatabasefunction.length; i++) {
+                    // @ts-expect-error TS(2339): Property 'trpgDatabasefunction' does not exist on ... Remove this comment to see the full error message
                     if (trpgDatabasefunction.trpgDatabasefunction[i].groupid == groupid) {
                         rply.text += '資料庫列表:'
+                        // @ts-expect-error TS(2339): Property 'trpgDatabasefunction' does not exist on ... Remove this comment to see the full error message
                         for (let a = 0; a < trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
                             temp = 1;
+                            // @ts-expect-error TS(2339): Property 'trpgDatabasefunction' does not exist on ... Remove this comment to see the full error message
                             rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + '. ' + trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic : '       ' + a + '. ' + trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic;
                         }
 
                     }
                     if (temp == 0) rply.text = '沒有已設定的關鍵字. '
                 }
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             //顯示資料庫
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
@@ -224,13 +268,19 @@ const rollDiceCommand = async function ({
                 return rply;
             }
             let temp = 0;
+            // @ts-expect-error TS(2339): Property 'trpgDatabasefunction' does not exist on ... Remove this comment to see the full error message
             if (trpgDatabasefunction.trpgDatabasefunction && mainMsg[1])
+                // @ts-expect-error TS(2339): Property 'trpgDatabasefunction' does not exist on ... Remove this comment to see the full error message
                 for (let i = 0; i < trpgDatabasefunction.trpgDatabasefunction.length; i++) {
+                    // @ts-expect-error TS(2339): Property 'trpgDatabasefunction' does not exist on ... Remove this comment to see the full error message
                     if (trpgDatabasefunction.trpgDatabasefunction[i].groupid == groupid) {
                         //rply.text += '資料庫列表:'
+                        // @ts-expect-error TS(2339): Property 'trpgDatabasefunction' does not exist on ... Remove this comment to see the full error message
                         for (let a = 0; a < trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
+                            // @ts-expect-error TS(2339): Property 'trpgDatabasefunction' does not exist on ... Remove this comment to see the full error message
                             if (trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic.toLowerCase() == mainMsg[1].toLowerCase()) {
                                 temp = 1
+                                // @ts-expect-error TS(2339): Property 'trpgDatabasefunction' does not exist on ... Remove this comment to see the full error message
                                 rply.text = `【${trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic}】\n${trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].contact}`;
 
                             }
@@ -246,14 +296,20 @@ const rollDiceCommand = async function ({
         }
         case /(^[.]dbp$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
             //if (!mainMsg[2]) return;
+            // @ts-expect-error TS(2339): Property 'trpgDatabaseAllgroup' does not exist on ... Remove this comment to see the full error message
             if (rply && trpgDatabasefunction.trpgDatabaseAllgroup && mainMsg[2])
+                // @ts-expect-error TS(2339): Property 'trpgDatabaseAllgroup' does not exist on ... Remove this comment to see the full error message
                 if (rply && trpgDatabasefunction.trpgDatabaseAllgroup && trpgDatabasefunction.trpgDatabaseAllgroup[0] && trpgDatabasefunction.trpgDatabaseAllgroup[0].trpgDatabaseAllgroup[0]) {
+                    // @ts-expect-error TS(2339): Property 'trpgDatabaseAllgroup' does not exist on ... Remove this comment to see the full error message
                     if (trpgDatabasefunction.trpgDatabaseAllgroup[0].trpgDatabaseAllgroup.length > 100) {
                         rply.text = '只可以有100個關鍵字啊'
                         return rply;
                     }
+                    // @ts-expect-error TS(2339): Property 'trpgDatabaseAllgroup' does not exist on ... Remove this comment to see the full error message
                     for (let i = 0; i < trpgDatabasefunction.trpgDatabaseAllgroup.length; i++) {
+                        // @ts-expect-error TS(2339): Property 'trpgDatabaseAllgroup' does not exist on ... Remove this comment to see the full error message
                         for (let a = 0; a < trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup.length; a++) {
+                            // @ts-expect-error TS(2339): Property 'trpgDatabaseAllgroup' does not exist on ... Remove this comment to see the full error message
                             if (trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic.toLowerCase() == mainMsg[2].toLowerCase()) {
                                 checkifsamenamegroup = 1
                             }
@@ -269,7 +325,8 @@ const rollDiceCommand = async function ({
                 }
                 if (checkifsamenamegroup == 0) {
                     records.pushtrpgDatabaseAllgroup('trpgDatabaseAllgroup', tempA, () => {
-                        records.get('trpgDatabaseAllgroup', (msgs) => {
+                        records.get('trpgDatabaseAllgroup', (msgs: any) => {
+                            // @ts-expect-error TS(2339): Property 'trpgDatabaseAllgroup' does not exist on ... Remove this comment to see the full error message
                             trpgDatabasefunction.trpgDatabaseAllgroup = msgs
                         });
                     })
@@ -286,14 +343,19 @@ const rollDiceCommand = async function ({
             }
             return rply;
         case /(^[.]dbp$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
-            records.get('trpgDatabaseAllgroup', (msgs) => {
+            records.get('trpgDatabaseAllgroup', (msgs: any) => {
+                // @ts-expect-error TS(2339): Property 'trpgDatabaseAllgroup' does not exist on ... Remove this comment to see the full error message
                 trpgDatabasefunction.trpgDatabaseAllgroup = msgs
             })
+            // @ts-expect-error TS(2339): Property 'trpgDatabaseAllgroup' does not exist on ... Remove this comment to see the full error message
             if (trpgDatabasefunction.trpgDatabaseAllgroup)
+                // @ts-expect-error TS(2339): Property 'trpgDatabaseAllgroup' does not exist on ... Remove this comment to see the full error message
                 for (let i = 0; i < trpgDatabasefunction.trpgDatabaseAllgroup.length; i++) {
                     rply.text += '資料庫列表:'
+                    // @ts-expect-error TS(2339): Property 'trpgDatabaseAllgroup' does not exist on ... Remove this comment to see the full error message
                     for (let a = 0; a < trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup.length; a++) {
                         tempshow = 1;
+                        // @ts-expect-error TS(2339): Property 'trpgDatabaseAllgroup' does not exist on ... Remove this comment to see the full error message
                         rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + '. ' + trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic : '      ' + a + '. ' + trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic;
 
                     }
@@ -306,12 +368,18 @@ const rollDiceCommand = async function ({
             //let timesgp = /^[.]dbp/.exec(mainMsg[0])[1] || 1
             //  if (timesgp > 30) timesgp = 30;
             //  if (timesgp < 1) timesgp = 1
+            // @ts-expect-error TS(2339): Property 'trpgDatabaseAllgroup' does not exist on ... Remove this comment to see the full error message
             if (trpgDatabasefunction.trpgDatabaseAllgroup && mainMsg[1])
+                // @ts-expect-error TS(2339): Property 'trpgDatabaseAllgroup' does not exist on ... Remove this comment to see the full error message
                 for (let i = 0; i < trpgDatabasefunction.trpgDatabaseAllgroup.length; i++) {
+                    // @ts-expect-error TS(2339): Property 'trpgDatabaseAllgroup' does not exist on ... Remove this comment to see the full error message
                     for (let a = 0; a < trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup.length; a++) {
+                        // @ts-expect-error TS(2339): Property 'trpgDatabaseAllgroup' does not exist on ... Remove this comment to see the full error message
                         if (trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic.toLowerCase() == mainMsg[1].toLowerCase()) {
                             temp2 = 1
+                            // @ts-expect-error TS(2339): Property 'trpgDatabaseAllgroup' does not exist on ... Remove this comment to see the full error message
                             rply.text = `【${trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic}】
+// @ts-expect-error TS(2339): Property 'trpgDatabaseAllgroup' does not exist on ... Remove this comment to see the full error message
 ${trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].contact}`;
 
 
@@ -325,16 +393,18 @@ ${trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].contact}`
             break;
 
     }
-    async function replacer(first, second) {
+    async function replacer(first: any, second: any) {
         let temp = '',
             num = 0,
             temp2 = '';
         switch (true) {
             case /^ran:\d+/i.test(second):
+                // @ts-expect-error TS(2322): Type 'RegExpExecArray | null' is not assignable to... Remove this comment to see the full error message
                 temp = /^ran:(\d+)/i.exec(second)
                 if (!temp || !temp[1]) return ' ';
                 return rollbase.Dice(temp[1]) || ' ';
             case /^random:\d+/i.test(second):
+                // @ts-expect-error TS(2322): Type 'RegExpExecArray | null' is not assignable to... Remove this comment to see the full error message
                 temp = /^random:(\d+)-(\d+)/i.exec(second)
                 if (!temp || !temp[1] || !temp[2]) return ' ';
                 return rollbase.DiceINT(temp[1], temp[2]) || ' ';
@@ -343,16 +413,21 @@ ${trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].contact}`
                 if (!temp) return ' ';
                 num = rollbase.DiceINT(0, temp.length - 1)
                 num = (num < 1) ? 0 : num;
+                // @ts-expect-error TS(2339): Property 'name' does not exist on type 'string'.
                 temp = temp[num].name
                 return temp || ' ';
             // * {allgp.name} <---隨機全GP其中一人名字
             case /^allgp.title$/i.test(second):
+                // @ts-expect-error TS(2554): Expected 1 arguments, but got 5.
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
                 if (!temp) return ' ';
+                // @ts-expect-error TS(2339): Property 'Title' does not exist on type 'string'.
                 if (temp.Title.length == 0) {
+                    // @ts-expect-error TS(2339): Property 'Title' does not exist on type 'string'.
                     temp.Title = exports.z_Level_system.Title();
                 }
-                temp2 = await temp.Title.filter(function (item) {
+                // @ts-expect-error TS(2339): Property 'Title' does not exist on type 'string'.
+                temp2 = await temp.Title.filter(function (item: any) {
                     return item;
                 });
                 num = rollbase.DiceINT(0, temp2.length - 1)
@@ -372,6 +447,7 @@ ${trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].contact}`
                 temp2 = await ranking(userid, gpMember)
                 if (!temp2) return ' ';
                 num = (temp && gpMember.length) ? Math.max(membercount, gpMember.length) : membercount;
+                // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                 temp2 = Math.ceil(temp2 / num * 10000) / 100 + '%';
                 return temp2 || ' ';
             }
@@ -379,28 +455,36 @@ ${trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].contact}`
                 let gpMember = await findGpMember(groupid);
                 //* {my.Ranking} 顯示擲骰者現在排名 \
                 if (!gpMember) return ' ';
-                return await ranking(userid, gpMember) || ' ';
+                return (await ranking(userid, gpMember)) || ' ';
             }
             case /^my.exp$/i.test(second):
                 //* {my.exp} 顯示擲骰者經驗值
+                // @ts-expect-error TS(2554): Expected 1 arguments, but got 5.
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
                 temp2 = await findUser(groupid, userid);
+                // @ts-expect-error TS(2339): Property 'EXP' does not exist on type 'string'.
                 if (!temp || !temp2 || !temp2.EXP) return ' ';
+                // @ts-expect-error TS(2339): Property 'EXP' does not exist on type 'string'.
                 return temp2.EXP || ' ';
             case /^my.name$/i.test(second):
                 //* {my.name} <---顯示擲骰者名字
                 return displaynameDiscord || displayname || "無名";
             case /^my.title$/i.test(second):
                 // * {my.title}<---顯示擲骰者稱號
+                // @ts-expect-error TS(2554): Expected 1 arguments, but got 5.
                 temp = await findGp(groupid, userid, displayname, displaynameDiscord, membercount);
                 temp2 = await findUser(groupid, userid);
+                // @ts-expect-error TS(2339): Property 'Level' does not exist on type 'string'.
                 if (!temp || !temp2 || !temp2.Level || !temp.Title) return ' ';
                 //   let userTitle = await this.checkTitle(userlevel, trpgLevelSystemfunction.trpgLevelSystemfunction[i].Title);
-                return await exports.z_Level_system.checkTitle(temp2.Level, temp.Title) || ' ';
+                // @ts-expect-error TS(2304): Cannot find name 'exports'.
+                return (await exports.z_Level_system.checkTitle(temp2.Level, temp.Title)) || ' ';
             case /^my.level$/i.test(second):
                 //* {my.level}<---顯示擲骰者等級
                 temp2 = await findUser(groupid, userid);
+                // @ts-expect-error TS(2339): Property 'Level' does not exist on type 'string'.
                 if (!temp2 || !temp2.Level) return ' ';
+                // @ts-expect-error TS(2339): Property 'Level' does not exist on type 'string'.
                 return temp2.Level || ' ';
             case /^br$/i.test(second):
                 temp = '\n'
@@ -411,44 +495,46 @@ ${trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].contact}`
 
     }
 }
-async function findGp(groupid) {
+async function findGp(groupid: any) {
+    // @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
     if (!process.env.mongoURL || !groupid) {
         return;
     }
     //1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
     let gpInfo = await schema.trpgLevelSystem.findOne({
         groupid: groupid
-    }).catch(error => console.error('db #430 mongoDB error: ', error.name, error.reson));
+    }).catch((error: any) => console.error('db #430 mongoDB error: ', error.name, error.reson));
     if (!gpInfo || gpInfo.SwitchV2 != 1) return;
     // userInfo.name = displaynameDiscord || displayname || '無名'
     return gpInfo;
     //6 / 7 * LVL * (2 * LVL * LVL + 30 * LVL + 100)
 }
-async function findGpMember(groupid) {
+async function findGpMember(groupid: any) {
+    // @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
     if (!process.env.mongoURL || !groupid) {
         return;
     }
     //1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
     let gpInfo = await schema.trpgLevelSystemMember.find({
         groupid: groupid
-    }).catch(error => console.error('db #443 mongoDB error: ', error.name, error.reson));
+    }).catch((error: any) => console.error('db #443 mongoDB error: ', error.name, error.reson));
     // userInfo.name = displaynameDiscord || displayname || '無名'
     return gpInfo;
     //6 / 7 * LVL * (2 * LVL * LVL + 30 * LVL + 100)
 }
 
-async function findUser(groupid, userid) {
+async function findUser(groupid: any, userid: any) {
     if (!groupid || !userid) return;
     let userInfo = await schema.trpgLevelSystemMember.findOne({
         groupid: groupid,
         userid: userid
-    }).catch(error => console.error('db #454 mongoDB error: ', error.name, error.reson));
+    }).catch((error: any) => console.error('db #454 mongoDB error: ', error.name, error.reson));
     // userInfo.name = displaynameDiscord || displayname || '無名'
     return userInfo;
     //6 / 7 * LVL * (2 * LVL * LVL + 30 * LVL + 100)
 }
 
-async function ranking(who, data) {
+async function ranking(who: any, data: any) {
     let array = [];
     let answer = "0";
     for (let key in data) {
@@ -466,15 +552,16 @@ async function ranking(who, data) {
     }
     for (let b = 0; b < array.length; b++) {
         if (array[b].userid == who)
+            // @ts-expect-error TS(2322): Type 'number' is not assignable to type 'string'.
             answer = b + 1;
 
     }
     return answer;
 }
 
-async function replaceAsync(str, regex, asyncFn) {
-    const promises = [];
-    str.replace(regex, (match, ...args) => {
+async function replaceAsync(str: any, regex: any, asyncFn: any) {
+    const promises: any = [];
+    str.replace(regex, (match: any, ...args: any[]) => {
         const promise = asyncFn(match, ...args);
         promises.push(promise);
     });
@@ -483,6 +570,7 @@ async function replaceAsync(str, regex, asyncFn) {
 }
 
 
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,

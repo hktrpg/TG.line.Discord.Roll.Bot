@@ -1,24 +1,41 @@
 "use strict";
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 if (!process.env.mongoURL) {
+    // @ts-expect-error TS(1108): A 'return' statement can only be used within a fun... Remove this comment to see the full error message
     return;
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'express'.
 const express = require('express');
 const www = express();
 const {
     RateLimiterMemory
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 } = require('rate-limiter-flexible');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'candle'.
 const candle = require('../modules/candleDays.js');
-const MESSAGE_SPLITOR = (/\S+/ig)
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'MESSAGE_SP... Remove this comment to see the full error message
+const MESSAGE_SPLITOR = (((/\S+/ig)))
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'schema'.
 const schema = require('./schema.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'privateKey... Remove this comment to see the full error message
 const privateKey = (process.env.KEY_PRIKEY) ? process.env.KEY_PRIKEY : null;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'certificat... Remove this comment to see the full error message
 const certificate = (process.env.KEY_CERT) ? process.env.KEY_CERT : null;
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 const APIswitch = (process.env.API) ? process.env.API : null;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'ca'.
 const ca = (process.env.KEY_CA) ? process.env.KEY_CA : null;
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 const isMaster = (process.env.MASTER) ? process.env.MASTER : null;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'salt'.
 const salt = process.env.SALT;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'crypto'.
 const crypto = require('crypto');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'mainCharac... Remove this comment to see the full error message
 const mainCharacter = require('../roll/z_character').mainCharacter;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'fs'.
 const fs = require('fs');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'options'.
 let options = {
     key: null,
     cert: null,
@@ -54,29 +71,39 @@ async function read() {
 (async () => {
     read()
 })();
+// @ts-expect-error TS(2580): Cannot find name 'require'. Do you need to install... Remove this comment to see the full error message
 const http = require('http');
+// @ts-expect-error TS(2580): Cannot find name 'require'. Do you need to install... Remove this comment to see the full error message
 const https = require('https');
 
 
 
-process.on('uncaughtException', (warning) => {
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
+process.on('uncaughtException', (warning: any) => {
     console.log('uncaughtException', warning); // Print the warning name
     console.warn(warning.name); // Print the warning name
     console.warn(warning.message); // Print the warning message
     // const clock = setTimeout(createWebServer, 60000 * 5);
 });
 
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'records'.
 const records = require('./records.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'port'.
 const port = process.env.WWWPORT || 20721;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'channelKey... Remove this comment to see the full error message
 const channelKeyword = '';
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 exports.analytics = require('./analytics');
 
-function createWebServer(options = {}, www) {
+function createWebServer(options = {}, www: any) {
+    // @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
     if (!process.env.CREATEWEB) return;
+    // @ts-expect-error TS(2339): Property 'key' does not exist on type '{}'.
     const server = options.key
         ? https.createServer(options, www)
         : http.createServer(www);
 
+    // @ts-expect-error TS(2339): Property 'key' does not exist on type '{}'.
     const protocol = options.key ? 'https' : 'http';
     console.log(`${protocol} server`);
     server.listen(port, () => {
@@ -85,18 +112,21 @@ function createWebServer(options = {}, www) {
 
     return server;
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'server'.
 const server = createWebServer(options, www);
+// @ts-expect-error TS(2580): Cannot find name 'require'. Do you need to install... Remove this comment to see the full error message
 const io = require('socket.io')(server);
 
 
 // 加入線上人數計數
 let onlineCount = 0;
 
-www.get('/', (req, res) => {
+www.get('/', (req: any, res: any) => {
+    // @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
     res.sendFile(process.cwd() + '/views/index.html');
 });
-www.get('/api', async (req, res) => {
-    if (!APIswitch || await limitRaterApi(req.ip)) return;
+www.get('/api', async (req: any, res: any) => {
+    if (!APIswitch || (await limitRaterApi(req.ip))) return;
 
     if (
         !req || !req.query || !req.query.msg
@@ -109,7 +139,7 @@ www.get('/api', async (req, res) => {
     let ip = req.headers['x-forwarded-for'] ||
         req.socket.remoteAddress ||
         null;
-    if (ip && await limitRaterApi(ip)) return;
+    if (ip && (await limitRaterApi(ip))) return;
     let rplyVal = {}
     let trigger = '';
     let mainMsg = req.query.msg.match(MESSAGE_SPLITOR); // 定義輸入字串
@@ -119,6 +149,7 @@ www.get('/api', async (req, res) => {
     // 訊息來到後, 會自動跳到analytics.js進行骰組分析
     // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
     if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
+        // @ts-expect-error TS(2304): Cannot find name 'exports'.
         rplyVal = await exports.analytics.parseInput({
             inputStr: mainMsg.join(' '),
             botname: "Api"
@@ -126,6 +157,7 @@ www.get('/api', async (req, res) => {
 
     } else {
         if (channelKeyword == '') {
+            // @ts-expect-error TS(2304): Cannot find name 'exports'.
             rplyVal = await exports.analytics.parseInput({
                 inputStr: mainMsg.join(' '),
                 botname: "Api"
@@ -133,44 +165,51 @@ www.get('/api', async (req, res) => {
         }
     }
 
+    // @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
     if (!rplyVal || !rplyVal.text) rplyVal.text = '';
     res.writeHead(200, { 'Content-type': 'application/json' })
+    // @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
     res.end(`{"message":"${jsonEscape(rplyVal.text)}"}`)
     return;
 
 
 });
 
-www.get('/card', (req, res) => {
+www.get('/card', (req: any, res: any) => {
+    // @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
     res.sendFile(process.cwd() + '/views/characterCard.html');
 });
-www.get('/publiccard', (req, res) => {
+www.get('/publiccard', (req: any, res: any) => {
+    // @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
     res.sendFile(process.cwd() + '/views/characterCardPublic.html');
 });
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 if (process.env.DISCORD_CHANNEL_SECRET) {
-    www.get('/app/discord/:id', (req, res) => {
+    www.get('/app/discord/:id', (req: any, res: any) => {
         if (req.originalUrl.match(/html$/))
+            // @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
             res.sendFile(process.cwd() + '/tmp/' + req.originalUrl.replace('/app/discord/', ''));
     });
 }
-www.get('/:xx', (req, res) => {
+www.get('/:xx', (req: any, res: any) => {
+    // @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
     res.sendFile(process.cwd() + '/views/index.html');
 });
 
-io.on('connection', async (socket) => {
-    socket.on('getListInfo', async message => {
+io.on('connection', async (socket: any) => {
+    socket.on('getListInfo', async (message: any) => {
         if (await limitRaterCard(socket.handshake.address)) return;
         //回傳 message 給發送訊息的 Client
         let filter = {
             userName: message.userName,
             password: SHA(message.userPassword)
         }
-        let doc = await schema.accountPW.findOne(filter).catch(error => console.error('www #144 mongoDB error: ', error.name, error.reson));
+        let doc = await schema.accountPW.findOne(filter).catch((error: any) => console.error('www #144 mongoDB error: ', error.name, error.reson));
         let temp;
         if (doc && doc.id) {
             temp = await schema.characterCard.find({
                 id: doc.id
-            }).catch(error => console.error('www #149 mongoDB error: ', error.name, error.reson));
+            }).catch((error: any) => console.error('www #149 mongoDB error: ', error.name, error.reson));
         }
         let id = [];
         if (doc && doc.channel) {
@@ -194,17 +233,19 @@ io.on('connection', async (socket) => {
                 temp
             })
         } catch (error) {
+            // @ts-expect-error TS(2571): Object is of type 'unknown'.
             console.error('www #170 mongoDB error: ', error.name, error.reson)
         }
 
     })
 
-    socket.on('publicRolling', async message => {
+    socket.on('publicRolling', async (message: any) => {
         if (await limitRaterChatRoom(socket.handshake.address)) return;
         if (!message.item || !message.doc) return;
         let rplyVal = {}
         let result = await mainCharacter(message.doc, ['', message.item])
         if (result && result.characterReRoll) {
+            // @ts-expect-error TS(2304): Cannot find name 'exports'.
             rplyVal = await exports.analytics.parseInput({
                 inputStr: result.characterReRollItem,
                 botname: "WWW"
@@ -213,16 +254,19 @@ io.on('connection', async (socket) => {
 
         // 訊息來到後, 會自動跳到analytics.js進行骰組分析
         // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+        // @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
         if (rplyVal && rplyVal.text) {
+            // @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
             socket.emit('publicRolling', result.characterReRollName + '：\n' + rplyVal.text)
         }
     })
-    socket.on('rolling', async message => {
+    socket.on('rolling', async (message: any) => {
         if (await limitRaterChatRoom(socket.handshake.address)) return;
         if (!message.item || !message.doc) return;
         let rplyVal = {}
         let result = await mainCharacter(message.doc, ['', message.item])
         if (result && result.characterReRoll) {
+            // @ts-expect-error TS(2304): Cannot find name 'exports'.
             rplyVal = await exports.analytics.parseInput({
                 inputStr: result.characterReRollItem,
                 botname: "WWW"
@@ -231,7 +275,9 @@ io.on('connection', async (socket) => {
 
         // 訊息來到後, 會自動跳到analytics.js進行骰組分析
         // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+        // @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
         if (rplyVal && rplyVal.text) {
+            // @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
             socket.emit('rolling', result.characterReRollName + '：\n' + rplyVal.text + candle.checker())
             if (message.rollTarget && message.rollTarget.id && message.rollTarget.botname && message.userName && message.userPassword && message.cardName) {
                 let filter = {
@@ -240,19 +286,21 @@ io.on('connection', async (socket) => {
                     "channel.id": message.rollTarget.id,
                     "channel.botname": message.rollTarget.botname
                 }
-                let result = await schema.accountPW.findOne(filter).catch(error => console.error('www #214 mongoDB error: ', error.name, error.reson));
+                let result = await schema.accountPW.findOne(filter).catch((error: any) => console.error('www #214 mongoDB error: ', error.name, error.reson));
                 if (!result) return;
                 let filter2 = {
                     "botname": message.rollTarget.botname,
                     "id": message.rollTarget.id
                 }
-                let allowRollingResult = await schema.allowRolling.findOne(filter2).catch(error => console.error('www #220 mongoDB error: ', error.name, error.reson));
+                let allowRollingResult = await schema.allowRolling.findOne(filter2).catch((error: any) => console.error('www #220 mongoDB error: ', error.name, error.reson));
                 if (!allowRollingResult) return;
+                // @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
                 rplyVal.text = '@' + message.cardName + ' - ' + message.item + '\n' + rplyVal.text;
                 if (message.rollTarget.botname) {
                     if (!sendTo) return;
                     sendTo({
                         target: message.rollTarget,
+                        // @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
                         text: rplyVal.text
                     })
                 }
@@ -265,7 +313,7 @@ io.on('connection', async (socket) => {
 
     })
 
-    socket.on('removeChannel', async message => {
+    socket.on('removeChannel', async (message: any) => {
         if (await limitRaterCard(socket.handshake.address)) return;
         //回傳 message 給發送訊息的 Client
         try {
@@ -286,14 +334,14 @@ io.on('connection', async (socket) => {
 
     })
 
-    socket.on('updateCard', async message => {
+    socket.on('updateCard', async (message: any) => {
         if (await limitRaterCard(socket.handshake.address)) return;
         //回傳 message 給發送訊息的 Client
         let filter = {
             userName: message.userName,
             password: SHA(message.userPassword)
         }
-        let doc = await schema.accountPW.findOne(filter).catch(error => console.error('www #246 mongoDB error: ', error.name, error.reson));
+        let doc = await schema.accountPW.findOne(filter).catch((error: any) => console.error('www #246 mongoDB error: ', error.name, error.reson));
         let temp;
         if (doc && doc.id) {
             message.card.state = checkNullItem(message.card.state);
@@ -309,7 +357,7 @@ io.on('connection', async (socket) => {
                     roll: message.card.roll,
                     notes: message.card.notes,
                 }
-            }).catch(error => console.error('www #262 mongoDB error: ', error.name, error.reson));
+            }).catch((error: any) => console.error('www #262 mongoDB error: ', error.name, error.reson));
         }
         if (temp) {
             socket.emit('updateCard', true)
@@ -328,7 +376,7 @@ io.on('connection', async (socket) => {
     socket.emit("maxRecord", records.chatRoomGetMax());
     // 發送紀錄
     //socket.emit("chatRecord", records.get());
-    records.chatRoomGet("公共房間", (msgs) => {
+    records.chatRoomGet("公共房間", (msgs: any) => {
         socket.emit("chatRecord", msgs);
     });
 
@@ -337,7 +385,7 @@ io.on('connection', async (socket) => {
         socket.emit("greet", onlineCount);
     });
 
-    socket.on("send", async (msg) => {
+    socket.on("send", async (msg: any) => {
         if (await limitRaterChatRoom(socket.handshake.address)) return;
         // 如果 msg 內容鍵值小於 2 等於是訊息傳送不完全
         // 因此我們直接 return ，終止函式執行。
@@ -346,13 +394,13 @@ io.on('connection', async (socket) => {
         records.chatRoomPush(msg);
     });
 
-    socket.on("newRoom", async (msg) => {
+    socket.on("newRoom", async (msg: any) => {
         if (await limitRaterChatRoom(socket.handshake.address)) return;
         // 如果 msg 內容鍵值小於 2 等於是訊息傳送不完全
         // 因此我們直接 return ，終止函式執行。
         if (!msg) return;
         let roomNumber = msg || "公共房間";
-        records.chatRoomGet(roomNumber, (msgs) => {
+        records.chatRoomGet(roomNumber, (msgs: any) => {
             socket.emit("chatRecord", msgs);
         });
 
@@ -365,7 +413,7 @@ io.on('connection', async (socket) => {
     });
 });
 
-records.on("new_message", async (message) => {
+records.on("new_message", async (message: any) => {
     // 廣播訊息到聊天室
     if (message.msg && message.name.match(/^HKTRPG/ig)) {
         return;
@@ -381,6 +429,7 @@ records.on("new_message", async (message) => {
     // 訊息來到後, 會自動跳到analytics.js進行骰組分析
     // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
     if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
+        // @ts-expect-error TS(2304): Cannot find name 'exports'.
         rplyVal = await exports.analytics.parseInput({
             inputStr: mainMsg.join(' '),
             botname: "WWW"
@@ -388,30 +437,34 @@ records.on("new_message", async (message) => {
 
     } else {
         if (channelKeyword == '') {
+            // @ts-expect-error TS(2304): Cannot find name 'exports'.
             rplyVal = await exports.analytics.parseInput({
                 inputStr: mainMsg.join(' '),
                 botname: "WWW"
             })
         }
     }
+    // @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
     if (rplyVal && rplyVal.text) {
+        // @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
         rplyVal.text = '\n' + rplyVal.text
         loadb(io, records, rplyVal, message);
     }
 });
 
-function SHA(text) {
+function SHA(text: any) {
+    // @ts-expect-error TS(2339): Property 'createHmac' does not exist on type 'Cryp... Remove this comment to see the full error message
     return crypto.createHmac('sha256', text)
         .update(salt)
         .digest('hex');
 }
 
-function checkNullItem(target) {
-    return target = target.filter(function (item) {
+function checkNullItem(target: any) {
+    return target = target.filter(function (item: any) {
         return item.name;
     });
 }
-async function loadb(io, records, rplyVal, message) {
+async function loadb(io: any, records: any, rplyVal: any, message: any) {
     const unixTimeZero = message.time ? (Date.parse(message.time) + 50) : Date.now();
     for (let i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
         io.emit(message.roomNumber, {
@@ -429,7 +482,7 @@ async function loadb(io, records, rplyVal, message) {
         //message.reply.text(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])
     }
 }
-async function limitRaterChatRoom(address) {
+async function limitRaterChatRoom(address: any) {
     try {
         await rateLimiterChatRoom.consume(address)
         return false;
@@ -439,7 +492,7 @@ async function limitRaterChatRoom(address) {
 }
 
 
-async function limitRaterCard(address) {
+async function limitRaterCard(address: any) {
     try {
         await rateLimiterCard.consume(address)
         return false;
@@ -448,7 +501,7 @@ async function limitRaterCard(address) {
     }
 }
 
-async function limitRaterApi(address) {
+async function limitRaterApi(address: any) {
     try {
         await rateLimiterApi.consume(address)
         return false;
@@ -460,8 +513,9 @@ async function limitRaterApi(address) {
 /**
  * 
  */
-let sendTo;
+let sendTo: any;
 if (isMaster) {
+    // @ts-expect-error TS(2580): Cannot find name 'require'. Do you need to install... Remove this comment to see the full error message
     const WebSocket = require('ws');
     //將 express 放進 http 中開啟 Server 的 3000 port ，正確開啟後會在 console 中印出訊息
     const wss = new WebSocket.Server({
@@ -469,18 +523,19 @@ if (isMaster) {
     }, () => {
         console.log('open server 53589!')
     });
-    wss.on('connection', function connection(ws) {
+    wss.on('connection', function connection(ws: any) {
+        // @ts-expect-error TS(2367): This condition will always return 'false' since th... Remove this comment to see the full error message
         if (!ws._socket.remoteAddress == "::ffff:127.0.0.1") return;
 
-        ws.on('message', function incoming(message) {
+        ws.on('message', function incoming(message: any) {
             console.log('received: %s', message);
         });
-        sendTo = function (params) {
+        sendTo = function (params: any) {
             let object = {
                 botname: params.target.botname,
                 message: params
             }
-            wss.clients.forEach(function each(client) {
+            wss.clients.forEach(function each(client: any) {
                 if (client.readyState === WebSocket.OPEN) {
                     client.send(JSON.stringify(object));
                 }
@@ -489,9 +544,10 @@ if (isMaster) {
     });
 }
 
-function jsonEscape(str) {
+function jsonEscape(str: any) {
     return str.replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/\t/g, "\\t");
 }
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     app: www
 };

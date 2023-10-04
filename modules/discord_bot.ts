@@ -1,27 +1,47 @@
 "use strict";
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 exports.analytics = require('./analytics');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'debugMode'... Remove this comment to see the full error message
 const debugMode = !!process.env.DEBUG;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'schema'.
 const schema = require('../modules/schema.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'isImageURL... Remove this comment to see the full error message
 const isImageURL = require('image-url-validator').default;
-const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)(\s?)$/igm);
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'imageUrl'.
+const imageUrl = (((/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)(\s?)$/igm)));
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'channelSec... Remove this comment to see the full error message
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'adminSecre... Remove this comment to see the full error message
 const adminSecret = process.env.ADMIN_SECRET || '';
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'candle'.
 const candle = require('../modules/candleDays.js');
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 const { ClusterClient, getInfo } = require('discord-hybrid-sharding');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'Discord'.
 const Discord = require('discord.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'Client'.
 const { Client, GatewayIntentBits, Partials, Options } = Discord;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'Permission... Remove this comment to see the full error message
 const { Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, Events, EmbedBuilder, PermissionsBitField, AttachmentBuilder, ChannelType } = Discord;
 
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'multiServe... Remove this comment to see the full error message
 const multiServer = require('../modules/multi-server')
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'checkMongo... Remove this comment to see the full error message
 const checkMongodb = require('../modules/dbWatchdog.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'fs'.
 const fs = require('node:fs');
-const errorCount = [];
+const errorCount: any = [];
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'rollText'.
 const { rollText } = require('./getRoll');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'agenda'.
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 exports.z_stop = require('../roll/z_stop');
 const buttonStyles = [ButtonStyle.Danger, ButtonStyle.Primary, ButtonStyle.Secondary, ButtonStyle.Success, ButtonStyle.Danger]
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'SIX_MONTH'... Remove this comment to see the full error message
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
-const channelFilter = channel => !channel.lastMessageId || Discord.SnowflakeUtil.deconstruct(channel.lastMessageId).timestamp < Date.now() - 36000;
+const channelFilter = (channel: any) => !channel.lastMessageId || Discord.SnowflakeUtil.deconstruct(channel.lastMessageId).timestamp < Date.now() - 36000;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'client'.
 const client = new Client({
 	sweepers: {
 		...Options.DefaultSweeperSettings,
@@ -46,6 +66,7 @@ const client = new Client({
 		GuildInviteManager: 0, // guild.invites
 		GuildMemberManager: {
 			maxSize: 200,
+// @ts-expect-error TS(7006): Parameter 'member' implicitly has an 'any' type.
 			keepOverLimit: (member) => member.id === client.user.id,
 		}, // guild.members
 		GuildStickerManager: 0, // guild.stickers
@@ -92,21 +113,34 @@ const client = new Client({
 });
 client.cluster = new ClusterClient(client);
 client.login(channelSecret);
-const MESSAGE_SPLITOR = (/\S+/ig);
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'MESSAGE_SP... Remove this comment to see the full error message
+const MESSAGE_SPLITOR = (((/\S+/ig)));
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'link'.
 const link = process.env.WEB_LINK;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'port'.
 const port = process.env.PORT || 20721;
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 const mongo = process.env.mongoURL
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'TargetGM'.
 let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'EXPUP'.
 const EXPUP = require('./level').EXPUP || function () { };
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'courtMessa... Remove this comment to see the full error message
 const courtMessage = require('./logs').courtMessage || function () { };
 
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'newMessage... Remove this comment to see the full error message
 const newMessage = require('./message');
 
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'RECONNECT_... Remove this comment to see the full error message
 const RECONNECT_INTERVAL = 1 * 1000 * 60;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'shardid'.
 const shardid = client.cluster.id;
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'WebSocket'... Remove this comment to see the full error message
 const WebSocket = require('ws');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'ws'.
 let ws;
 
+// @ts-expect-error TS(7006): Parameter 'message' implicitly has an 'any' type.
 client.on('messageCreate', async message => {
 	try {
 		if (message.author.bot) return;
@@ -120,15 +154,18 @@ client.on('messageCreate', async message => {
 			return handlingSendMessage(result);
 		return;
 	} catch (error) {
+// @ts-expect-error TS(2571): Object is of type 'unknown'.
 		console.error('discord bot messageCreate #91 error', error, (error && error.name && error.message) & error.stack);
 	}
 
 });
+// @ts-expect-error TS(7006): Parameter 'guild' implicitly has an 'any' type.
 client.on('guildCreate', async guild => {
 	try {
 		const channels = await guild.channels.fetch();
 		const keys = Array.from(channels.values());
 		const channel = keys.find(channel => {
+// @ts-expect-error TS(2571): Object is of type 'unknown'.
 			return channel.type === ChannelType.GuildText && channel.permissionsFor(guild.members.me).has(PermissionsBitField.Flags.SendMessages)
 		});
 		if (!channel) return;
@@ -139,29 +176,37 @@ client.on('guildCreate', async guild => {
 			//.setURL('https://discord.js.org/')
 			.setAuthor({ name: 'HKTRPG', url: 'https://www.patreon.com/HKTRPG', iconURL: 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png' })
 			.setDescription(newMessage.joinMessage())
+// @ts-expect-error TS(2571): Object is of type 'unknown'.
 		await channel.send({ embeds: [text] });
 	} catch (error) {
+// @ts-expect-error TS(2571): Object is of type 'unknown'.
 		if (error.message === 'Missing Access') return;
+// @ts-expect-error TS(2571): Object is of type 'unknown'.
 		if (error.message === 'Missing Permissions') return;
+// @ts-expect-error TS(2571): Object is of type 'unknown'.
 		console.error('discord bot guildCreate  #114 error', (error && error.name), (error && error.message), (error && error.reson));
 	}
 })
 
+// @ts-expect-error TS(7006): Parameter 'message' implicitly has an 'any' type.
 client.on('interactionCreate', async message => {
 	try {
 		if (message.user && message.user.bot) return;
 		return __handlingInteractionMessage(message);
 	} catch (error) {
+// @ts-expect-error TS(2571): Object is of type 'unknown'.
 		console.error('discord bot interactionCreate #123 error', (error && error.name), (error && error.message), (error && error.reson));
 	}
 });
 
 
+// @ts-expect-error TS(7006): Parameter 'reaction' implicitly has an 'any' type.
 client.on('messageReactionAdd', async (reaction, user) => {
 	if (!checkMongodb.isDbOnline()) return;
 	if (reaction.me) return;
 	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId })
 		.cache(30)
+// @ts-expect-error TS(7006): Parameter 'error' implicitly has an 'any' type.
 		.catch(error => {
 			console.error('discord_bot #802 mongoDB error: ', error.name, error.reson)
 			checkMongodb.dbErrOccurs();
@@ -169,6 +214,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 	try {
 		if (!list || list.length === 0) return;
 		const detail = list.detail;
+// @ts-expect-error TS(7006): Parameter 'item' implicitly has an 'any' type.
 		const findEmoji = detail.find(function (item) {
 			return item.emoji === reaction.emoji.name || item.emoji === `<:${reaction.emoji.name}:${reaction.emoji.id}>`;
 		});
@@ -179,14 +225,17 @@ client.on('messageReactionAdd', async (reaction, user) => {
 			reaction.users.remove(user.id);
 		}
 	} catch (error) {
+// @ts-expect-error TS(2571): Object is of type 'unknown'.
 		console.error('Discord bot messageReactionAdd #249 ', (error && error.name), (error && error.message), (error && error.reson))
 	}
 
 });
 
+// @ts-expect-error TS(7006): Parameter 'reaction' implicitly has an 'any' type.
 client.on('messageReactionRemove', async (reaction, user) => {
 	if (!checkMongodb.isDbOnline()) return;
 	if (reaction.me) return;
+// @ts-expect-error TS(7006): Parameter 'error' implicitly has an 'any' type.
 	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('discord_bot #817 mongoDB error: ', error.name, error.reson))
 	try {
 		if (!list || list.length === 0) return;
@@ -198,11 +247,14 @@ client.on('messageReactionRemove', async (reaction, user) => {
 			}
 		}
 	} catch (error) {
+// @ts-expect-error TS(2571): Object is of type 'unknown'.
 		if (error.message === 'Unknown Member') return;
+// @ts-expect-error TS(2571): Object is of type 'unknown'.
 		console.error('Discord bot messageReactionRemove #268 ', (error && error.name), (error && error.message), (error && error.reson))
 	}
 });
 
+// @ts-expect-error TS(7006): Parameter 'minutes' implicitly has an 'any' type.
 const sleep = async (minutes) => {
 	await new Promise(resolve => {
 		return setTimeout(resolve, minutes * 1000 * 60);
@@ -212,6 +264,7 @@ const sleep = async (minutes) => {
 
 client.once('ready', async () => {
 	initInteractionCommands();
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 	if (process.env.BROADCAST) connect();
 	//	if (shardid === 0) getSchedule();
 	client.user.setActivity(`${candle.checker() || '🌼'}bothelp | hktrpg.com🍎`);
@@ -223,6 +276,7 @@ client.once('ready', async () => {
 	const WARNING_THRESHOLD = 3;
 	const CRITICAL_THRESHOLD = 5;
 	const restartServer = () => {
+// @ts-expect-error TS(2580): Cannot find name 'require'. Do you need to install... Remove this comment to see the full error message
 		require('child_process').exec('sudo reboot');
 	}
 	let heartbeat = 0;
@@ -238,6 +292,7 @@ client.once('ready', async () => {
 			console.log(`Discord Heartbeat: ID: ${isAwake.length} - ${heartbeat}... `)
 		}
 		if (heartbeat > WARNING_THRESHOLD && adminSecret) {
+// @ts-expect-error TS(2304): Cannot find name 'wakeup'.
 			SendToId(adminSecret, `HKTRPG ID: ${wakeup.join(', ')} 可能下線了 請盡快檢查.`);
 		}
 		if (heartbeat > CRITICAL_THRESHOLD) {
@@ -266,6 +321,7 @@ client.once('ready', async () => {
 });
 
 
+// @ts-expect-error TS(7006): Parameter 'message' implicitly has an 'any' type.
 async function replilyMessage(message, result) {
 	const displayname = (message.member && message.member.id) ? `<@${message.member.id}>${candle.checker()}\n` : '';
 	if (result && result.text) {
@@ -284,6 +340,7 @@ async function replilyMessage(message, result) {
 
 //inviteDelete
 //messageDelete
+// @ts-expect-error TS(7006): Parameter 'message' implicitly has an 'any' type.
 function handlingCountButton(message, mode) {
 	const modeString = (mode === "roll") ? '投擲' : '點擊';
 	const content = message.message.content;
@@ -302,6 +359,7 @@ function handlingCountButton(message, mode) {
 	}
 	return newContent.slice(0, 1000);
 }
+// @ts-expect-error TS(7006): Parameter 'content' implicitly has an 'any' type.
 function checkRepeatName(content, button, user) {
 	let flag = false;
 	const everylines = content.split(/\n/);
@@ -345,8 +403,10 @@ async function convQuotes(text = "") {
 
 }
 
+// @ts-expect-error TS(7006): Parameter 'channelid' implicitly has an 'any' type... Remove this comment to see the full error message
 async function privateMsgFinder(channelid) {
 	if (!TargetGM || !TargetGM.trpgDarkRollingfunction) return;
+// @ts-expect-error TS(7006): Parameter 'data' implicitly has an 'any' type.
 	let groupInfo = TargetGM.trpgDarkRollingfunction.find(data =>
 		data.groupid == channelid
 	)
@@ -354,18 +414,24 @@ async function privateMsgFinder(channelid) {
 		return groupInfo.trpgDarkRollingfunction
 	else return [];
 }
+// @ts-expect-error TS(7006): Parameter 'targetid' implicitly has an 'any' type.
 async function SendToId(targetid, replyText, quotes) {
 	let user = await client.users.fetch(targetid);
 	if (typeof replyText === "string") {
 		let sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
+// @ts-expect-error TS(2531): Object is possibly 'null'.
 		for (let i = 0; i < sendText.length; i++) {
+// @ts-expect-error TS(2531): Object is possibly 'null'.
 			if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
 				try {
 					if (quotes) {
+// @ts-expect-error TS(2531): Object is possibly 'null'.
 						user.send({ embeds: await convQuotes(sendText[i]) });
+// @ts-expect-error TS(2531): Object is possibly 'null'.
 					} else { user.send(sendText[i]); }
 				}
 				catch (e) {
+// @ts-expect-error TS(2571): Object is of type 'unknown'.
 					console.error('Discord GET ERROR:  SendtoID: ', e.message, replyText)
 				}
 		}
@@ -376,18 +442,25 @@ async function SendToId(targetid, replyText, quotes) {
 
 }
 
+// @ts-expect-error TS(7031): Binding element 'message' implicitly has an 'any' ... Remove this comment to see the full error message
 async function SendToReply({ replyText = "", message, quotes = false }) {
 	let sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
+// @ts-expect-error TS(2531): Object is possibly 'null'.
 	for (let i = 0; i < sendText.length; i++) {
+// @ts-expect-error TS(2531): Object is possibly 'null'.
 		if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
 			try {
 				if (quotes) {
+// @ts-expect-error TS(2531): Object is possibly 'null'.
 					message.author && message.author.send({ embeds: await convQuotes(sendText[i]) });
 				} else
+// @ts-expect-error TS(2531): Object is possibly 'null'.
 					message.author && message.author.send(sendText[i]);
 			}
 			catch (e) {
+// @ts-expect-error TS(2571): Object is of type 'unknown'.
 				if (e.message !== 'Cannot send messages to this user') {
+// @ts-expect-error TS(2571): Object is of type 'unknown'.
 					console.error('Discord  GET ERROR:  SendToReply: ', e.message, 'e', message, replyText)
 				}
 			}
@@ -415,22 +488,27 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 	if (!channel) return;
 	//	console.error(`discord bot cant find channel #443 ${replyText}`)
 	const sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
+// @ts-expect-error TS(2531): Object is possibly 'null'.
 	for (let i = 0; i < sendText.length; i++) {
+// @ts-expect-error TS(2531): Object is possibly 'null'.
 		if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
 			try {
 				if (quotes) {
 					for (let index = 0; index < buttonCreate.length || index === 0; index++) {
+// @ts-expect-error TS(2531): Object is possibly 'null'.
 						channel.send({ embeds: await convQuotes(sendText[i]), components: buttonCreate[index] || null });
 					}
 
 				} else {
 					for (let index = 0; index < buttonCreate.length || index === 0; index++) {
+// @ts-expect-error TS(2531): Object is possibly 'null'.
 						channel.send({ content: sendText[i], components: buttonCreate[index] || null });
 					}
 				}
 				//await message.channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
 			}
 			catch (e) {
+// @ts-expect-error TS(2571): Object is of type 'unknown'.
 				if (e.message !== 'Missing Permissions') {
 					console.error('Discord  GET ERROR: SendToReplychannel: ', e, replyText, channelid);
 				}
@@ -441,6 +519,7 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 }
 
 
+// @ts-expect-error TS(7006): Parameter 'message' implicitly has an 'any' type.
 async function nonDice(message) {
 	await courtMessage({ result: "", botname: "Discord", inputStr: "", shardids: shardid })
 	const groupid = (message.guild && message.guild.id) || '';
@@ -456,6 +535,7 @@ async function nonDice(message) {
 			);
 		}
 	} catch (error) {
+// @ts-expect-error TS(2571): Object is of type 'unknown'.
 		console.error('await #534 EXPUP error', (error && error.name), (error && error.message), (error && error.reson));
 	}
 	return null;
@@ -465,6 +545,7 @@ async function nonDice(message) {
 //Set Activity 可以自定義正在玩什麼
 
 
+// @ts-expect-error TS(7031): Binding element 'trigger' implicitly has an 'any' ... Remove this comment to see the full error message
 function __privateMsg({ trigger, mainMsg, inputStr }) {
 	let privatemsg = 0;
 	if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
@@ -488,11 +569,14 @@ async function count() {
 	const promises = [
 		client.cluster.fetchClientValues('guilds.cache.size'),
 		client.cluster
+// @ts-expect-error TS(7006): Parameter 'c' implicitly has an 'any' type.
 			.broadcastEval(c => c.guilds.cache.filter((guild) => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0))
 	];
 	return Promise.all(promises)
 		.then(results => {
+// @ts-expect-error TS(7006): Parameter 'acc' implicitly has an 'any' type.
 			const totalGuilds = results[0].reduce((acc, guildCount) => acc + guildCount, 0);
+// @ts-expect-error TS(7006): Parameter 'acc' implicitly has an 'any' type.
 			const totalMembers = results[1].reduce((acc, memberCount) => acc + memberCount, 0);
 			return (`正在運行HKTRPG的Discord 群組數量: ${totalGuilds}\nDiscord 會員數量: ${totalMembers}`);
 		})
@@ -506,12 +590,15 @@ async function count2() {
 	const promises = [
 		client.cluster.fetchClientValues('guilds.cache.size'),
 		client.cluster
+// @ts-expect-error TS(7006): Parameter 'c' implicitly has an 'any' type.
 			.broadcastEval(c => c.guilds.cache.filter((guild) => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0))
 	];
 
 	return Promise.all(promises)
 		.then(results => {
+// @ts-expect-error TS(7006): Parameter 'acc' implicitly has an 'any' type.
 			const totalGuilds = results[0].reduce((acc, guildCount) => acc + guildCount, 0);
+// @ts-expect-error TS(7006): Parameter 'acc' implicitly has an 'any' type.
 			const totalMembers = results[1].reduce((acc, memberCount) => acc + memberCount, 0);
 			return (` ${totalGuilds}群組📶-\n ${totalMembers}會員📶`);
 		})
@@ -523,6 +610,7 @@ async function count2() {
 }
 
 // handle the error event
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 process.on('unhandledRejection', error => {
 	if (error.message === "Unknown Role") return;
 	if (error.message === "Cannot send messages to this user") return;
@@ -537,6 +625,7 @@ process.on('unhandledRejection', error => {
 
 
 	console.error('Discord Unhandled promise rejection:', (error));
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 	process.send({
 		type: "process:msg",
 		data: "discorderror"
@@ -546,6 +635,7 @@ process.on('unhandledRejection', error => {
 
 
 
+// @ts-expect-error TS(7006): Parameter 'err' implicitly has an 'any' type.
 function respawnCluster(err) {
 	if (!err.toString().match(/CLUSTERING_NO_CHILD_EXISTS/i)) return;
 	let number = err.toString().match(/\d+$/i);
@@ -555,6 +645,7 @@ function respawnCluster(err) {
 		try {
 			client.cluster.evalOnManager(`this.clusters.get(${client.cluster.id}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10000 });
 		} catch (error) {
+// @ts-expect-error TS(2571): Object is of type 'unknown'.
 			console.error('respawnCluster #480 error', (error && error.name), (error && error.message), (error && error.reson));
 		}
 	}
@@ -563,12 +654,14 @@ function respawnCluster2() {
 	try {
 		client.cluster.evalOnManager(`this.clusters.get(${client.cluster.id}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10000 });
 	} catch (error) {
+// @ts-expect-error TS(2571): Object is of type 'unknown'.
 		console.error('respawnCluster2 error', (error && error.name), (error && error.message), (error && error.reson));
 	}
 }
 
 (async function () {
 	if (!agenda) return;
+// @ts-expect-error TS(7006): Parameter 'job' implicitly has an 'any' type.
 	agenda.define("scheduleAtMessageDiscord", async (job) => {
 		//const date = new Date(2012, 11, 21, 5, 30, 0);
 		//const date = new Date(Date.now() + 5000);
@@ -590,6 +683,7 @@ function respawnCluster2() {
 		}
 	})
 
+// @ts-expect-error TS(7006): Parameter 'job' implicitly has an 'any' type.
 	agenda.define("scheduleCronMessageDiscord", async (job) => {
 		//const date = new Date(2012, 11, 21, 5, 30, 0);
 		//const date = new Date(Date.now() + 5000);
@@ -605,6 +699,7 @@ function respawnCluster2() {
 			await sendCronWebhook({ channelid: data.channelid, replyText: text, data })
 		}
 		try {
+// @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
 			if ((new Date(Date.now()) - data.createAt) >= SIX_MONTH) {
 				await job.remove();
 				SendToReplychannel(
@@ -619,16 +714,19 @@ function respawnCluster2() {
 }())
 
 
+// @ts-expect-error TS(7006): Parameter 'rply' implicitly has an 'any' type.
 function sendNewstoAll(rply) {
 	for (let index = 0; index < rply.target.length; index++) {
 		SendToId(rply.target[index].userID, rply.sendNews);
 	}
 }
 
+// @ts-expect-error TS(7006): Parameter 'message' implicitly has an 'any' type.
 async function handlingCommand(message) {
 	try {
 		const command = client.commands.get(message.commandName);
 		if (!command) return;
+// @ts-expect-error TS(7006): Parameter 'error' implicitly has an 'any' type.
 		let answer = await command.execute(message).catch(error => {
 			//console.error(error);
 			//await message.reply({ content: 'There was an error while executing this command!', ephemeral: true });
@@ -639,6 +737,7 @@ async function handlingCommand(message) {
 	}
 
 }
+// @ts-expect-error TS(7006): Parameter 'discord' implicitly has an 'any' type.
 async function repeatMessage(discord, message) {
 	try {
 		await discord.delete();
@@ -655,6 +754,7 @@ async function repeatMessage(discord, message) {
 			avatarURL: message.myName.avatarURL
 		};
 		let pair = (webhook && webhook.isThread) ? { threadId: discord.channelId } : {};
+// @ts-expect-error TS(2532): Object is possibly 'undefined'.
 		await webhook.webhook.send({ ...obj, ...pair });
 	} catch (error) {
 		await SendToReplychannel({ replyText: '不能成功發送扮演發言, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
@@ -665,6 +765,7 @@ async function repeatMessage(discord, message) {
 
 }
 
+// @ts-expect-error TS(7006): Parameter 'discord' implicitly has an 'any' type.
 async function repeatMessages(discord, message) {
 	try {
 		let webhook = await manageWebhook(discord);
@@ -677,6 +778,7 @@ async function repeatMessages(discord, message) {
 				avatarURL: element.avatarURL
 			};
 			let pair = (webhook && webhook.isThread) ? { threadId: discord.channelId } : {};
+// @ts-expect-error TS(2532): Object is possibly 'undefined'.
 			await webhook.webhook.send({ ...obj, ...pair });
 
 		}
@@ -687,11 +789,13 @@ async function repeatMessages(discord, message) {
 	}
 
 }
+// @ts-expect-error TS(7006): Parameter 'discord' implicitly has an 'any' type.
 async function manageWebhook(discord) {
 	try {
 		const channel = await client.channels.fetch(discord.channelId);
 		const isThread = channel && channel.isThread();
 		let webhooks = isThread ? await channel.guild.fetchWebhooks() : await channel.fetchWebhooks();
+// @ts-expect-error TS(7006): Parameter 'v' implicitly has an 'any' type.
 		let webhook = webhooks.find(v => {
 			return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
 		})
@@ -702,6 +806,7 @@ async function manageWebhook(discord) {
 			const hooks = isThread ? await client.channels.fetch(channel.parentId) : channel;
 			await hooks.createWebhook({ name: "HKTRPG .me Function", avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" })
 			webhooks = await channel.fetchWebhooks();
+// @ts-expect-error TS(7006): Parameter 'v' implicitly has an 'any' type.
 			webhook = webhooks.find(v => {
 				return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
 			})
@@ -714,6 +819,7 @@ async function manageWebhook(discord) {
 	}
 }
 
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'roleReact'... Remove this comment to see the full error message
 async function roleReact(channelid, message) {
 	try {
 		const detail = message.roleReactDetail
@@ -722,6 +828,7 @@ async function roleReact(channelid, message) {
 		for (let index = 0; index < detail.length; index++) {
 			sendMessage.react(detail[index].emoji);
 		}
+// @ts-expect-error TS(7006): Parameter 'error' implicitly has an 'any' type.
 		await schema.roleReact.findByIdAndUpdate(message.roleReactMongooseId, { messageID: sendMessage.id }).catch(error => console.error('discord_bot #786 mongoDB error: ', error.name, error.reson))
 
 	} catch (error) {
@@ -733,6 +840,7 @@ async function roleReact(channelid, message) {
 
 }
 
+// @ts-expect-error TS(7006): Parameter 'channel' implicitly has an 'any' type.
 async function newRoleReact(channel, message) {
 	try {
 		const detail = message.newRoleReactDetail
@@ -752,15 +860,18 @@ async function newRoleReact(channel, message) {
 }
 async function checkWakeUp() {
 	const promises = [
+// @ts-expect-error TS(7006): Parameter 'c' implicitly has an 'any' type.
 		client.cluster.broadcastEval(c => c.ws.status)
 	];
 	return Promise.all(promises)
 		.then(results => {
+// @ts-expect-error TS(7006): Parameter 'r' implicitly has an 'any' type.
 			const indexes = results[0].reduce((r, n, i) => {
 				n !== 0 && r.push(i);
 				return r;
 			}, []);
 			if (indexes.length > 0) {
+// @ts-expect-error TS(7006): Parameter 'index' implicitly has an 'any' type.
 				indexes.forEach(index => {
 					//checkMongodb.discordClientRespawn(client, index)
 				})
@@ -778,12 +889,16 @@ async function checkWakeUp() {
 
 }
 
+// @ts-expect-error TS(7006): Parameter 'mainMsg' implicitly has an 'any' type.
 function z_stop(mainMsg, groupid) {
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 	if (!Object.keys(exports.z_stop).length || !exports.z_stop.initialize().save || !mainMsg || !groupid) {
 		return false;
 	}
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 	let groupInfo = exports.z_stop.initialize().save.find(e => e.groupid == groupid)
 	if (!groupInfo || !groupInfo.blockfunction) return;
+// @ts-expect-error TS(7006): Parameter 'e' implicitly has an 'any' type.
 	let match = groupInfo.blockfunction.find(e => mainMsg[0].toLowerCase().includes(e.toLowerCase()))
 	if (match) {
 		return true;
@@ -798,7 +913,9 @@ async function getAllshardIds() {
 	}
 	const promises = [
 		[...client.cluster.ids.keys()],
+// @ts-expect-error TS(7006): Parameter 'c' implicitly has an 'any' type.
 		client.cluster.broadcastEval(c => c.ws.status),
+// @ts-expect-error TS(7006): Parameter 'c' implicitly has an 'any' type.
 		client.cluster.broadcastEval(c => c.ws.ping),
 		client.cluster.id,
 
@@ -807,8 +924,10 @@ async function getAllshardIds() {
 		.then(results => {
 			return `\n現在的shard ID: ${results[3]}
 			所有啓動中的shard ID:   ${results[0]} 
+// @ts-expect-error TS(7006): Parameter 'ele' implicitly has an 'any' type.
 			所有啓動中的shard online:   ${results[1].map(ele => discordPresenceStatus[ele]).join(', ').replace(/online/g, '在線')} 
-			所有啓動中的shard ping:   ${results[2].map(ele => ele.toFixed(0)).join(', ')}`
+// @ts-expect-error TS(7006): Parameter 'ele' implicitly has an 'any' type.
+			所有啓動中的shard ping:   ${results[2].map(ele => ele.toFixed(0)).join(', ')}`;
 		})
 		.catch(error => {
 			console.error(`disocrdbot #884 error `, (error && error.name), (error && error.message), (error && error.reson))
@@ -816,6 +935,7 @@ async function getAllshardIds() {
 
 }
 
+// @ts-expect-error TS(7006): Parameter 'message' implicitly has an 'any' type.
 async function handlingButtonCreate(message, input) {
 	const buttonsNames = input;
 	const row = []
@@ -842,6 +962,7 @@ async function handlingButtonCreate(message, input) {
 
 }
 
+// @ts-expect-error TS(7006): Parameter 'message' implicitly has an 'any' type.
 async function handlingRequestRollingCharacter(message, input) {
 	const buttonsNames = input[0];
 	const characterName = input[1];
@@ -881,6 +1002,7 @@ async function handlingRequestRollingCharacter(message, input) {
 
 }
 
+// @ts-expect-error TS(7006): Parameter 'message' implicitly has an 'any' type.
 async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 	const row = []
 	const totallyQuotient = ~~((buttonsNames.length - 1) / 5) + 1
@@ -908,6 +1030,7 @@ async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 
 	}
 }
+// @ts-expect-error TS(7006): Parameter 'perChunk' implicitly has an 'any' type.
 async function splitArray(perChunk, inputArray) {
 	let myArray = [];
 	for (let i = 0; i < inputArray.length; i += perChunk) {
@@ -916,14 +1039,17 @@ async function splitArray(perChunk, inputArray) {
 	return myArray;
 }
 
+// @ts-expect-error TS(7006): Parameter 'num' implicitly has an 'any' type.
 function buttonsStyle(num) {
 	return buttonStyles[num % 5];
 }
 
 function initInteractionCommands() {
 	client.commands = new Collection();
+// @ts-expect-error TS(7006): Parameter 'file' implicitly has an 'any' type.
 	const commandFiles = fs.readdirSync('./roll').filter(file => file.endsWith('.js'));
 	for (const file of commandFiles) {
+// @ts-expect-error TS(2580): Cannot find name 'require'. Do you need to install... Remove this comment to see the full error message
 		const command = require(`../roll/${file}`);
 		if (command && command.discordCommand) {
 			pushArrayInteractionCommands(command.discordCommand)
@@ -931,6 +1057,7 @@ function initInteractionCommands() {
 
 	}
 }
+// @ts-expect-error TS(7006): Parameter 'arrayCommands' implicitly has an 'any' ... Remove this comment to see the full error message
 function pushArrayInteractionCommands(arrayCommands) {
 	for (const command of arrayCommands) {
 		client.commands.set(command.data.name, command);
@@ -938,6 +1065,7 @@ function pushArrayInteractionCommands(arrayCommands) {
 
 }
 
+// @ts-expect-error TS(7006): Parameter 'message' implicitly has an 'any' type.
 async function handlingResponMessage(message, answer = '') {
 	try {
 		let hasSendPermission = true;
@@ -960,6 +1088,7 @@ async function handlingResponMessage(message, answer = '') {
 		let rplyVal = {};
 		const checkPrivateMsg = __privateMsg({ trigger, mainMsg, inputStr });
 		inputStr = checkPrivateMsg.inputStr;
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 		let target = await exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
 		if (!target) return await nonDice(message)
 		if (!hasSendPermission) return;
@@ -982,6 +1111,7 @@ async function handlingResponMessage(message, answer = '') {
 		//訊息來到後, 會自動跳到analytics.js進行骰組分析
 		//如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
 
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 		rplyVal = await exports.analytics.parseInput({
 			inputStr: inputStr,
 			groupid: groupid,
@@ -996,85 +1126,121 @@ async function handlingResponMessage(message, answer = '') {
 			discordMessage: message,
 			titleName: titleName
 		});
+// @ts-expect-error TS(2339): Property 'requestRollingCharacter' does not exist ... Remove this comment to see the full error message
 		if (rplyVal.requestRollingCharacter) await handlingRequestRollingCharacter(message, rplyVal.requestRollingCharacter);
+// @ts-expect-error TS(2339): Property 'requestRolling' does not exist on type '... Remove this comment to see the full error message
 		if (rplyVal.requestRolling) await handlingRequestRolling(message, rplyVal.requestRolling, displaynameDiscord);
+// @ts-expect-error TS(2339): Property 'buttonCreate' does not exist on type '{}... Remove this comment to see the full error message
 		if (rplyVal.buttonCreate) rplyVal.buttonCreate = await handlingButtonCreate(message, rplyVal.buttonCreate)
+// @ts-expect-error TS(2339): Property 'roleReactFlag' does not exist on type '{... Remove this comment to see the full error message
 		if (rplyVal.roleReactFlag) await roleReact(channelid, rplyVal)
+// @ts-expect-error TS(2339): Property 'newRoleReactFlag' does not exist on type... Remove this comment to see the full error message
 		if (rplyVal.newRoleReactFlag) await newRoleReact(message, rplyVal)
+// @ts-expect-error TS(2339): Property 'discordEditMessage' does not exist on ty... Remove this comment to see the full error message
 		if (rplyVal.discordEditMessage) await handlingEditMessage(message, rplyVal)
 
+// @ts-expect-error TS(2339): Property 'myName' does not exist on type '{}'.
 		if (rplyVal.myName) await repeatMessage(message, rplyVal);
+// @ts-expect-error TS(2339): Property 'myNames' does not exist on type '{}'.
 		if (rplyVal.myNames) await repeatMessages(message, rplyVal);
 
+// @ts-expect-error TS(2339): Property 'sendNews' does not exist on type '{}'.
 		if (rplyVal.sendNews) sendNewstoAll(rplyVal);
 
+// @ts-expect-error TS(2339): Property 'sendImage' does not exist on type '{}'.
 		if (rplyVal.sendImage) sendBufferImage(message, rplyVal, userid)
+// @ts-expect-error TS(2339): Property 'fileLink' does not exist on type '{}'.
 		if (rplyVal.fileLink?.length > 0) sendFiles(message, rplyVal, userid)
+// @ts-expect-error TS(2339): Property 'respawn' does not exist on type '{}'.
 		if (rplyVal.respawn) respawnCluster2();
+// @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
 		if (!rplyVal.text && !rplyVal.LevelUp) return;
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 		if (process.env.mongoURL)
 			try {
 
 				const isNew = await newMessage.newUserChecker(userid, "Discord");
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 				if (process.env.mongoURL && rplyVal.text && isNew) {
 					SendToId(userid, newMessage.firstTimeMessage(), true);
 				}
 			} catch (error) {
+// @ts-expect-error TS(2571): Object is of type 'unknown'.
 				console.error(`discord bot error #236`, (error && error.name && error.message));
 			}
 
+// @ts-expect-error TS(2339): Property 'state' does not exist on type '{}'.
 		if (rplyVal.state) {
-			rplyVal.text += '\n' + await count();
+// @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
+			rplyVal.text += '\n' + (await count());
+// @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
 			rplyVal.text += '\nPing: ' + Number(Date.now() - message.createdTimestamp) + 'ms';
+// @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
 			rplyVal.text += await getAllshardIds();
 		}
 
+// @ts-expect-error TS(2339): Property 'LevelUp' does not exist on type '{}'.
 		if (groupid && rplyVal && rplyVal.LevelUp) {
+// @ts-expect-error TS(2339): Property 'LevelUp' does not exist on type '{}'.
 			await SendToReplychannel({ replyText: `<@${userid}>\n${rplyVal.LevelUp}`, channelid });
 		}
 
+// @ts-expect-error TS(2339): Property 'discordExport' does not exist on type '{... Remove this comment to see the full error message
 		if (rplyVal.discordExport) {
 			message.author.send({
 				content: '這是頻道 ' + message.channel.name + ' 的聊天紀錄',
 				files: [
+// @ts-expect-error TS(2339): Property 'discordExport' does not exist on type '{... Remove this comment to see the full error message
 					new AttachmentBuilder("./tmp/" + rplyVal.discordExport + '.txt')
 				]
 			});
 		}
+// @ts-expect-error TS(2339): Property 'discordExportHtml' does not exist on typ... Remove this comment to see the full error message
 		if (rplyVal.discordExportHtml) {
 			if (!link || !mongo) {
 				message.author.send(
 					{
 						content: '這是頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +
+// @ts-expect-error TS(2339): Property 'discordExportHtml' does not exist on typ... Remove this comment to see the full error message
 							rplyVal.discordExportHtml[1],
 						files: [
+// @ts-expect-error TS(2339): Property 'discordExportHtml' does not exist on typ... Remove this comment to see the full error message
 							"./tmp/" + rplyVal.discordExportHtml[0] + '.html'
 						]
 					});
 
 			} else {
 				message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +
+// @ts-expect-error TS(2339): Property 'discordExportHtml' does not exist on typ... Remove this comment to see the full error message
 					rplyVal.discordExportHtml[1] + '\n請注意這是暫存檔案，會不定時移除，有需要請自行下載檔案。\n' +
+// @ts-expect-error TS(2339): Property 'discordExportHtml' does not exist on typ... Remove this comment to see the full error message
 					link + ':' + port + "/app/discord/" + rplyVal.discordExportHtml[0] + '.html')
 			}
 		}
+// @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
 		if (!rplyVal.text) {
 			return;
 		} else return {
 			privatemsg: checkPrivateMsg.privatemsg, channelid,
 			groupid,
 			userid,
+// @ts-expect-error TS(2339): Property 'text' does not exist on type '{}'.
 			text: rplyVal.text,
 			message,
+// @ts-expect-error TS(2339): Property 'statue' does not exist on type '{}'.
 			statue: rplyVal.statue,
+// @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{}'.
 			quotes: rplyVal.quotes,
+// @ts-expect-error TS(2339): Property 'buttonCreate' does not exist on type '{}... Remove this comment to see the full error message
 			buttonCreate: rplyVal.buttonCreate
 		};
 
 	} catch (error) {
+// @ts-expect-error TS(2571): Object is of type 'unknown'.
 		console.error('handlingResponMessage Error: ', error, (error && error.name), (error && error.message), (error && error.reson))
 	}
 }
+// @ts-expect-error TS(7006): Parameter 'message' implicitly has an 'any' type.
 const sendBufferImage = async (message, rplyVal, userid) => {
 	await message.channel.send({
 		content: `<@${userid}>\n你的Token已經送到，現在輸入 .token 為方型，.token2 為圓型 .token3 為按名字決定的隨機顏色`, files: [
@@ -1084,6 +1250,7 @@ const sendBufferImage = async (message, rplyVal, userid) => {
 	fs.unlinkSync(rplyVal.sendImage);
 	return;
 }
+// @ts-expect-error TS(7006): Parameter 'message' implicitly has an 'any' type.
 const sendFiles = async (message, rplyVal, userid) => {
 	let text = rplyVal.fileText || '';
 	let files = [];
@@ -1102,6 +1269,7 @@ const sendFiles = async (message, rplyVal, userid) => {
 			fs.unlinkSync(files[index]);
 		}
 		catch (error) {
+// @ts-expect-error TS(2571): Object is of type 'unknown'.
 			console.error('discord bot error #1082', (error?.name, error?.message), files);
 		}
 
@@ -1110,6 +1278,7 @@ const sendFiles = async (message, rplyVal, userid) => {
 	return;
 }
 
+// @ts-expect-error TS(7006): Parameter 'input' implicitly has an 'any' type.
 async function handlingSendMessage(input) {
 	const privatemsg = input.privatemsg || 0;
 	const channelid = input.channelid;
@@ -1120,11 +1289,14 @@ async function handlingSendMessage(input) {
 	const statue = input.statue
 	const quotes = input.quotes
 	const buttonCreate = input.buttonCreate;
+// @ts-expect-error TS(7034): Variable 'TargetGMTempID' implicitly has type 'any... Remove this comment to see the full error message
 	let TargetGMTempID = [];
+// @ts-expect-error TS(7034): Variable 'TargetGMTempdiyName' implicitly has type... Remove this comment to see the full error message
 	let TargetGMTempdiyName = [];
 	let TargetGMTempdisplayname = [];
 	if (privatemsg > 1 && TargetGM) {
-		let groupInfo = await privateMsgFinder(channelid) || [];
+		let groupInfo = (await privateMsgFinder(channelid)) || [];
+// @ts-expect-error TS(7006): Parameter 'item' implicitly has an 'any' type.
 		groupInfo.forEach((item) => {
 			TargetGMTempID.push(item.userid);
 			TargetGMTempdiyName.push(item.diyName);
@@ -1150,6 +1322,7 @@ async function handlingSendMessage(input) {
 			if (groupid) {
 				let targetGMNameTemp = "";
 				for (let i = 0; i < TargetGMTempID.length; i++) {
+// @ts-expect-error TS(7005): Variable 'TargetGMTempdiyName' implicitly has an '... Remove this comment to see the full error message
 					targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
 				}
 				await SendToReplychannel(
@@ -1160,7 +1333,9 @@ async function handlingSendMessage(input) {
 			}
 			SendToReply({ replyText: sendText, message });
 			for (let i = 0; i < TargetGMTempID.length; i++) {
+// @ts-expect-error TS(7005): Variable 'TargetGMTempID' implicitly has an 'any[]... Remove this comment to see the full error message
 				if (userid != TargetGMTempID[i]) {
+// @ts-expect-error TS(7005): Variable 'TargetGMTempID' implicitly has an 'any[]... Remove this comment to see the full error message
 					SendToId(TargetGMTempID[i], sendText);
 				}
 			}
@@ -1170,6 +1345,7 @@ async function handlingSendMessage(input) {
 			if (groupid) {
 				let targetGMNameTemp = "";
 				for (let i = 0; i < TargetGMTempID.length; i++) {
+// @ts-expect-error TS(7005): Variable 'TargetGMTempdiyName' implicitly has an '... Remove this comment to see the full error message
 					targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
 				}
 				await SendToReplychannel(
@@ -1177,6 +1353,7 @@ async function handlingSendMessage(input) {
 			}
 			sendText = "<@" + userid + "> 的暗骰\n" + sendText
 			for (let i = 0; i < TargetGMTempID.length; i++) {
+// @ts-expect-error TS(7005): Variable 'TargetGMTempID' implicitly has an 'any[]... Remove this comment to see the full error message
 				SendToId(TargetGMTempID[i], sendText);
 			}
 			return;
@@ -1187,22 +1364,28 @@ async function handlingSendMessage(input) {
 			if (groupid) {
 				await SendToReplychannel({ replyText: sendText, channelid, quotes: quotes, buttonCreate: buttonCreate });
 			} else {
+// @ts-expect-error TS(2345): Argument of type '{ replyText: any; message: any; ... Remove this comment to see the full error message
 				SendToReply({ replyText: sendText, message, quotes: quotes, buttonCreate: buttonCreate });
 			}
 			return;
 	}
 }
 
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'convertReg... Remove this comment to see the full error message
 const convertRegex = function (str = "") {
 	return new RegExp(str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1"));
 };
 
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'connect'.
 const connect = function () {
 	ws = new WebSocket('ws://127.0.0.1:53589');
+// @ts-expect-error TS(2339): Property 'on' does not exist on type 'WebSocket'.
 	ws.on('open', function open() {
 		console.log(`connectd To core-www from discord! Shard#${shardid}`)
+// @ts-expect-error TS(7005): Variable 'ws' implicitly has an 'any' type.
 		ws.send(`connectd To core-www from discord! Shard#${shardid}`);
 	});
+// @ts-expect-error TS(2339): Property 'on' does not exist on type 'WebSocket'.
 	ws.on('message', async function incoming(data) {
 		//if (shardid !== 0) return;
 		const object = JSON.parse(data);
@@ -1215,23 +1398,28 @@ const connect = function () {
 			}
 		}
 		catch (error) {
+// @ts-expect-error TS(2571): Object is of type 'unknown'.
 			console.error(`disocrdbot #99 error `, (error && error.name), (error && error.message), (error && error.reson))
 		};
 		return;
 
 	});
+// @ts-expect-error TS(2339): Property 'on' does not exist on type 'WebSocket'.
 	ws.on('error', (error) => {
 		console.error('Discord socket error', (error && error.name), (error && error.message), (error && error.reson));
 	});
+// @ts-expect-error TS(2339): Property 'on' does not exist on type 'WebSocket'.
 	ws.on('close', function () {
 		console.error('Discord socket close');
 		setTimeout(connect, RECONNECT_INTERVAL);
 	});
 };
 
+// @ts-expect-error TS(7006): Parameter 'message' implicitly has an 'any' type.
 function handlingButtonCommand(message) {
 	return message.component.label || ''
 }
+// @ts-expect-error TS(7006): Parameter 'message' implicitly has an 'any' type.
 async function handlingEditMessage(message, rplyVal) {
 	try {
 		//type = reply
@@ -1246,6 +1434,7 @@ async function handlingEditMessage(message, rplyVal) {
 			if (editMessage.webhookId) {
 				const messageid = editMessage.id;
 				const webhooks = await channel.fetchWebhooks();
+// @ts-expect-error TS(7006): Parameter 'wh' implicitly has an 'any' type.
 				const webhook = webhooks.find(wh => wh.id == editMessage.webhookId);
 				if (!webhook) return message.reply({ content: '找不到這個訊息的webhook，所以不能修改' });
 				return await webhook.editMessage(messageid, {
@@ -1259,14 +1448,19 @@ async function handlingEditMessage(message, rplyVal) {
 }
 
 //TOP.GG 
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 const togGGToken = process.env.TOPGG;
 if (togGGToken) {
+// @ts-expect-error TS(1108): A 'return' statement can only be used within a fun... Remove this comment to see the full error message
 	if (shardid !== (getInfo().TOTAL_SHARDS - 1)) return;
+// @ts-expect-error TS(2580): Cannot find name 'require'. Do you need to install... Remove this comment to see the full error message
 	const Topgg = require(`@top-gg/sdk`)
 	const api = new Topgg.Api(togGGToken)
+// @ts-expect-error TS(7017): Element implicitly has an 'any' type because type ... Remove this comment to see the full error message
 	this.interval = setInterval(async () => {
 		const guilds = await client.cluster.fetchClientValues("guilds.cache.size");
 		api.postStats({
+// @ts-expect-error TS(7006): Parameter 'a' implicitly has an 'any' type.
 			serverCount: parseInt(guilds.reduce((a, c) => a + c, 0)),
 			shardCount: getInfo().TOTAL_SHARDS,
 			shardId: client.cluster.id
@@ -1274,6 +1468,7 @@ if (togGGToken) {
 	}, 300000);
 }
 
+// @ts-expect-error TS(7031): Binding element 'channelid' implicitly has an 'any... Remove this comment to see the full error message
 async function sendCronWebhook({ channelid, replyText, data }) {
 	let webhook = await manageWebhook({ channelId: channelid })
 	let obj = {
@@ -1282,9 +1477,12 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 		avatarURL: data.imageLink
 	};
 	let pair = (webhook && webhook.isThread) ? { threadId: channelid } : {};
+// @ts-expect-error TS(2532): Object is possibly 'undefined'.
 	await webhook.webhook.send({ ...obj, ...pair });
 }
+// @ts-expect-error TS(7006): Parameter 'message' implicitly has an 'any' type.
 async function handlingMultiServerMessage(message) {
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 	if (!process.env.mongoURL) return;
 	let target = multiServer.multiServerChecker(message.channel.id)
 	if (!target) return;
@@ -1301,6 +1499,7 @@ async function handlingMultiServerMessage(message) {
 	}
 	return;
 }
+// @ts-expect-error TS(7006): Parameter 'message' implicitly has an 'any' type.
 function multiServerTarget(message) {
 	const obj = {
 		content: message.content,
@@ -1310,6 +1509,7 @@ function multiServerTarget(message) {
 	return obj;
 }
 
+// @ts-expect-error TS(7006): Parameter 'groupid' implicitly has an 'any' type.
 function __checkUserRole(groupid, message) {
 	try {
 		if (groupid && message.member && message.member.permissions.has(PermissionsBitField.Flags.Administrator))
@@ -1323,6 +1523,7 @@ function __checkUserRole(groupid, message) {
 
 }
 
+// @ts-expect-error TS(7006): Parameter 'message' implicitly has an 'any' type.
 async function __handlingReplyMessage(message, result) {
 	const text = result.text;
 	const sendTexts = text.toString().match(/[\s\S]{1,2000}/g);
@@ -1342,6 +1543,7 @@ async function __handlingReplyMessage(message, result) {
 	}
 }
 
+// @ts-expect-error TS(7006): Parameter 'message' implicitly has an 'any' type.
 async function __handlingInteractionMessage(message) {
 	switch (true) {
 		case message.isCommand():
@@ -1360,7 +1562,7 @@ async function __handlingInteractionMessage(message) {
 				const resultText = (result && result.text) || '';
 				if (/的角色卡$/.test(messageContent)) {
 					try {
-						if (resultText) { return await message.reply({ content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${resultText}`, ephemeral: false }).catch() }
+						if (resultText) { return await message.reply({ content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${resultText}`, ephemeral: false }).catch(); }
 						else {
 							return await message.reply({ content: `${displayname}沒有反應，請檢查按鈕內容`, ephemeral: true }).catch()
 						}
@@ -1388,6 +1590,7 @@ async function __handlingInteractionMessage(message) {
 				else {
 					const content = handlingCountButton(message, 'count');
 					return await message.update({ content: content })
+// @ts-expect-error TS(7006): Parameter 'error' implicitly has an 'any' type.
 						.catch(error => console.error('discord bot #192  error: ', (error && (error.name || error.message || error.reson)), content));
 				}
 			}
@@ -1396,6 +1599,7 @@ async function __handlingInteractionMessage(message) {
 	}
 }
 
+// @ts-expect-error TS(7031): Binding element 'message' implicitly has an 'any' ... Remove this comment to see the full error message
 async function __sendMeMessage({ message, inputStr, groupid }) {
 	inputStr = inputStr.replace(/^\.mee\s*/i, ' ').replace(/^\.me\s*/i, ' ');
 	if (inputStr.match(/^\s+$/)) {
@@ -1409,15 +1613,19 @@ async function __sendMeMessage({ message, inputStr, groupid }) {
 	return;
 }
 
+// @ts-expect-error TS(7006): Parameter 'event' implicitly has an 'any' type.
 client.on('shardDisconnect', (event, shardID) => {
 	console.log('shardDisconnect: ', event, shardID)
 });
 
+// @ts-expect-error TS(7006): Parameter 'replayed' implicitly has an 'any' type.
 client.on('shardResume', (replayed, shardID) => console.log(`Shard ID ${shardID} resumed connection and replayed ${replayed} events.`));
 
+// @ts-expect-error TS(7006): Parameter 'id' implicitly has an 'any' type.
 client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnected.`));
 
 
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 if (debugMode) process.on('warning', e => {
 	console.warn(e.stack)
 });

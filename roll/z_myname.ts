@@ -1,30 +1,40 @@
 "use strict";
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 if (!process.env.mongoURL) {
+    // @ts-expect-error TS(1108): A 'return' statement can only be used within a fun... Remove this comment to see the full error message
     return;
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'VIP'.
 const VIP = require('../modules/veryImportantPerson');
 const limitAtArr = [10, 20, 50, 200, 200, 200, 200, 200];
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'schema'.
 const schema = require('../modules/schema.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'opt'.
 const opt = {
     upsert: true,
     runValidators: true,
     new: true
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'gameName'.
 const gameName = function () {
     return '【你的名字】.myname / .me .me1 .me泉心'
 }
-const convertRegex = function (str) {
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'convertReg... Remove this comment to see the full error message
+const convertRegex = function (str: any) {
     return str.toString().replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
 };
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'gameType'.
 const gameType = function () {
     return 'Tool:myname:hktrpg'
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'prefixs'.
 const prefixs = function () {
     return [{
         first: /^\.myname$|^\.me\S+/i,
         second: null
-    }]
+    }];
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'getHelpMes... Remove this comment to see the full error message
 const getHelpMessage = function () {
     return `【你的名字】Discord限定功能
 TRPG扮演發言功能
@@ -79,17 +89,22 @@ const errorMessage = `輸入出錯\n留意各個資料前要有空格分隔\n
 .myname 泉心造史 https://example.com/example.jpg 1
 .myname 泉心造史 https://example.com/example.jpg
 `
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'initialize... Remove this comment to see the full error message
 const initialize = function () {
     return "";
 }
 
-const rollDiceCommand = async function ({
-    inputStr,
-    mainMsg,
-    userid,
-    botname,
-    groupid
-}) {
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'rollDiceCo... Remove this comment to see the full error message
+const rollDiceCommand = async function(
+    this: any,
+    {
+        inputStr,
+        mainMsg,
+        userid,
+        botname,
+        groupid
+    }: any
+) {
     let rply = {
         default: 'on',
         type: 'text',
@@ -102,6 +117,7 @@ const rollDiceCommand = async function ({
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
             rply.text = this.getHelpMessage();
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             return rply;
         }
@@ -110,6 +126,7 @@ const rollDiceCommand = async function ({
             if (groupid) {
                 let result = showNames(myNames);
                 if (typeof result == 'string') rply.text = result;
+                // @ts-expect-error TS(2339): Property 'myNames' does not exist on type '{ defau... Remove this comment to see the full error message
                 else rply.myNames = result;
             }
 
@@ -146,16 +163,19 @@ const rollDiceCommand = async function ({
 
                 if (myNames) {
                     rply.text = `移除成功，${myNames}`
+                    // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
                     rply.quotes = true;
                     return rply
                 } else {
                     rply.text = '移除出錯\n移除角色指令為 .myname delete (序號/名字縮寫) \n 如 .myname delete 1 / .myname delete 小雲\n序號請使用.myname show 查詢'
+                    // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
                     rply.quotes = true;
                     return rply
                 }
             } catch (error) {
                 //   console.error("移除角色失敗, inputStr: ", inputStr);
                 rply.text = '移除出錯\n移除角色指令為 .myname delete (序號/名字縮寫) \n 如 .myname delete 1 / .myname delete 小雲\n序號請使用.myname show 查詢'
+                // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
                 rply.quotes = true;
                 return rply
             }
@@ -164,6 +184,7 @@ const rollDiceCommand = async function ({
             //.myname 泉心造史 https://example.com/example.jpg
             if (!mainMsg[2]) {
                 rply.text = errorMessage;
+                // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
                 rply.quotes = true;
                 return rply;
             }
@@ -172,17 +193,20 @@ const rollDiceCommand = async function ({
             let myNamesLength = await schema.myName.countDocuments({ userID: userid })
             if (myNamesLength >= limit) {
                 rply.text = '.myname 個人上限為' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
+                // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
                 rply.quotes = true;
                 return rply;
             }
             let checkName = checkMyName(inputStr);
             if (!checkName || !checkName.name || !checkName.imageLink) {
                 rply.text = errorMessage;
+                // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
                 rply.quotes = true;
                 return rply;
             }
             if (!checkName.imageLink.match(/^http/i)) {
                 rply.text = `輸入出錯\n 圖示link 必須符合 http/https 開頭`;
+                // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
                 rply.quotes = true;
                 return rply;
             }
@@ -193,11 +217,14 @@ const rollDiceCommand = async function ({
                 rply.text = `發生了一點錯誤，請稍後再試`;
                 return rply;
             }
+            // @ts-expect-error TS(2339): Property 'name' does not exist on type '{}'.
             rply.text = `已新增角色 - ${myName.name}`;
             let myNames = await schema.myName.find({ userID: userid })
 
+            // @ts-expect-error TS(2339): Property 'myNames' does not exist on type '{ defau... Remove this comment to see the full error message
             if (groupid) { rply.myNames = [showName(myNames, myName.name)]; }
             else {
+                // @ts-expect-error TS(2339): Property 'name' does not exist on type '{}'.
                 rply.text += showName(myNames, myName.name).content;
             }
             return rply;
@@ -209,6 +236,7 @@ const rollDiceCommand = async function ({
             }
             if (!groupid) {
                 rply.text = ".me(X) 這功能只可以在頻道中使用"
+                // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
                 rply.quotes = true;
                 return rply;
             }
@@ -234,6 +262,7 @@ const rollDiceCommand = async function ({
                 // rply.quotes = true;
                 return rply;
             }
+            // @ts-expect-error TS(2339): Property 'myName' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.myName = showMessage(myName, inputStr);
             return rply;
         }
@@ -243,7 +272,7 @@ const rollDiceCommand = async function ({
     }
 }
 
-function showMessage(myName, inputStr) {
+function showMessage(myName: any, inputStr: any) {
     let result = {
         content: inputStr.replace(/^\s?\S+\s+/, ''),
         username: myName.name,
@@ -254,7 +283,7 @@ function showMessage(myName, inputStr) {
 }
 
 
-function checkMyName(inputStr) {
+function checkMyName(inputStr: any) {
     try {
         let name = inputStr.replace(/^\s?\S+\s+/, '');
         let finalName = {}
@@ -263,13 +292,14 @@ function checkMyName(inputStr) {
         } else {
             finalName = name.match(/^(\S+)\s+(\S+)\s*(\S*)/)
         }
+        // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
         return { name: finalName[1], imageLink: finalName[2], shortName: finalName[3] };
     } catch (err) {
         return {}
     }
 }
 
-function checkMeName(inputStr) {
+function checkMeName(inputStr: any) {
     let name = inputStr.replace(/^\.me/i, '');
     if (name.match(/^\d+$/)) {
         name = Number(name)
@@ -280,7 +310,7 @@ function checkMeName(inputStr) {
 
 
 
-function showNames(names) {
+function showNames(names: any) {
     let reply = [];
     if (names && names.length > 0) {
         for (let index = 0; index < names.length; index++) {
@@ -292,11 +322,12 @@ function showNames(names) {
                 avatarURL: name.imageLink
             }
         }
+    // @ts-expect-error TS(2322): Type 'string' is not assignable to type 'any[]'.
     } else reply = "沒有找到角色"
     return reply;
 }
 
-function showNamesInText(names) {
+function showNamesInText(names: any) {
     let reply = '';
     if (names && names.length > 0) {
         for (let index = 0; index < names.length; index++) {
@@ -309,7 +340,7 @@ function showNamesInText(names) {
     return reply;
 }
 
-function showName(names, targetName) {
+function showName(names: any, targetName: any) {
     let reply = {};
     if (names && names.length > 0) {
         for (let index = 0; index < names.length; index++) {
@@ -327,6 +358,7 @@ function showName(names, targetName) {
 
 
 
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,

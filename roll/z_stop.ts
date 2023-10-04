@@ -1,28 +1,39 @@
 "use strict";
+// @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
 if (!process.env.mongoURL) {
+    // @ts-expect-error TS(1108): A 'return' statement can only be used within a fun... Remove this comment to see the full error message
     return;
 }
 let save = {};
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'records'.
 const records = require('../modules/records.js');
-records.get('block', (msgs) => {
+records.get('block', (msgs: any) => {
+    // @ts-expect-error TS(2339): Property 'save' does not exist on type '{}'.
     save.save = msgs
 })
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'checkTools... Remove this comment to see the full error message
 const checkTools = require('../modules/check.js');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'VIP'.
 const VIP = require('../modules/veryImportantPerson');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'FUNCTION_L... Remove this comment to see the full error message
 const FUNCTION_LIMIT = [30, 200, 200, 300, 300, 300, 300, 300];
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'gameName'.
 const gameName = function () {
     return '【擲骰開關功能】 .bk (add del show)'
 }
 
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'gameType'.
 const gameType = function () {
     return 'admin:Block:hktrpg'
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'prefixs'.
 const prefixs = function () {
     return [{
         first: /^[.]bk$/ig,
         second: null
-    }]
+    }];
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'getHelpMes... Remove this comment to see the full error message
 const getHelpMessage = async function () {
     return `【擲骰開關功能】
 這是根據關鍵字來開關功能,只要符合內容,
@@ -34,15 +45,20 @@ P.S.如果沒立即生效 用.bk show 刷新一下
 輸入.bk show 顯示關鍵字
 輸入.bk del (編號)或all 即可刪除`
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'initialize... Remove this comment to see the full error message
 const initialize = function () {
     return save;
 }
 
-const rollDiceCommand = async function ({
-    mainMsg,
-    groupid,
-    userrole
-}) {
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'rollDiceCo... Remove this comment to see the full error message
+const rollDiceCommand = async function(
+    this: any,
+    {
+        mainMsg,
+        groupid,
+        userrole
+    }: any
+) {
     let rply = {
         default: 'on',
         type: 'text',
@@ -53,6 +69,7 @@ const rollDiceCommand = async function ({
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = await this.getHelpMessage();
+            // @ts-expect-error TS(2339): Property 'quotes' does not exist on type '{ defaul... Remove this comment to see the full error message
             rply.quotes = true;
             return rply;
         case /^add$/i.test(mainMsg[1]) && /^\S+$/ig.test(mainMsg[2]): {
@@ -73,7 +90,8 @@ const rollDiceCommand = async function ({
             }
             lv = await VIP.viplevelCheckGroup(groupid);
             limit = FUNCTION_LIMIT[lv];
-            let findVIP = save.save.find(function (item) {
+            // @ts-expect-error TS(2339): Property 'save' does not exist on type '{}'.
+            let findVIP = save.save.find(function (item: any) {
                 return item._doc.groupid;
             });
             if (findVIP)
@@ -87,7 +105,8 @@ const rollDiceCommand = async function ({
                 blockfunction: mainMsg[2]
             }
             records.pushblockfunction('block', temp, () => {
-                records.get('block', (msgs) => {
+                records.get('block', (msgs: any) => {
+                    // @ts-expect-error TS(2339): Property 'save' does not exist on type '{}'.
                     save.save = msgs
                 })
 
@@ -106,12 +125,16 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
+            // @ts-expect-error TS(2339): Property 'save' does not exist on type '{}'.
             for (let i = 0; i < save.save.length; i++) {
+                // @ts-expect-error TS(2339): Property 'save' does not exist on type '{}'.
                 if (save.save[i].groupid == groupid) {
+                    // @ts-expect-error TS(2339): Property 'save' does not exist on type '{}'.
                     let temp = save.save[i]
                     temp.blockfunction = []
                     records.set('block', temp, () => {
-                        records.get('block', (msgs) => {
+                        records.get('block', (msgs: any) => {
+                            // @ts-expect-error TS(2339): Property 'save' does not exist on type '{}'.
                             save.save = msgs
                         })
                     })
@@ -130,12 +153,16 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
+            // @ts-expect-error TS(2339): Property 'save' does not exist on type '{}'.
             for (let i = 0; i < save.save.length; i++) {
+                // @ts-expect-error TS(2339): Property 'save' does not exist on type '{}'.
                 if (save.save[i].groupid == groupid && mainMsg[2] < save.save[i].blockfunction.length && mainMsg[2] >= 0) {
+                    // @ts-expect-error TS(2339): Property 'save' does not exist on type '{}'.
                     let temp = save.save[i]
                     temp.blockfunction.splice(mainMsg[2], 1)
                     records.set('block', temp, () => {
-                        records.get('block', (msgs) => {
+                        records.get('block', (msgs: any) => {
+                            // @ts-expect-error TS(2339): Property 'save' does not exist on type '{}'.
                             save.save = msgs
                         })
                     })
@@ -146,7 +173,8 @@ const rollDiceCommand = async function ({
             return rply;
 
         case /^show$/i.test(mainMsg[1]): {
-            records.get('block', (msgs) => {
+            records.get('block', (msgs: any) => {
+                // @ts-expect-error TS(2339): Property 'save' does not exist on type '{}'.
                 save.save = msgs
             })
 
@@ -158,11 +186,15 @@ const rollDiceCommand = async function ({
             }
             
             let temp = 0;
+            // @ts-expect-error TS(2339): Property 'save' does not exist on type '{}'.
             for (let i = 0; i < save.save.length; i++) {
+                // @ts-expect-error TS(2339): Property 'save' does not exist on type '{}'.
                 if (save.save[i].groupid == groupid) {
                     rply.text += '阻擋用關鍵字列表:'
+                    // @ts-expect-error TS(2339): Property 'save' does not exist on type '{}'.
                     for (let a = 0; a < save.save[i].blockfunction.length; a++) {
                         temp = 1
+                        // @ts-expect-error TS(2339): Property 'save' does not exist on type '{}'.
                         rply.text += ("\n") + a + '. ' + save.save[i].blockfunction[a]
                     }
                 }
@@ -178,6 +210,7 @@ const rollDiceCommand = async function ({
 }
 
 
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,

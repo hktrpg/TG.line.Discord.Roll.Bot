@@ -1,20 +1,33 @@
 "use strict";
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'fs'.
 const fs = require('node:fs');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'axios'.
 const axios = require('axios');
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'Dice'.
 const Dice = [],
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'Tool'.
 	Tool = [],
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'admin'.
 	admin = [],
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'funny'.
 	funny = [],
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'help'.
 	help = [],
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'link'.
 	link = [];
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'start'.
 const start = async () => {
 	try {
+// @ts-expect-error TS(7006): Parameter 'file' implicitly has an 'any' type.
 		const commandFiles = fs.readdirSync('./roll/').filter(file => file.endsWith('.js'));
 		for (const file of commandFiles) {
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 			const tryFile = require(`../roll/${file}`);
 			if (tryFile.gameType && tryFile.gameType()) {
+// @ts-expect-error TS(2552): Cannot find name 'require'. Did you mean '_require... Remove this comment to see the full error message
 				let type = require('./' + file).gameType().replace(/:.*/i, '')
 				let name = file.replace('.js', '');
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 				exports[type + '_' + name] = await require('./' + file);
 			}
 
@@ -22,48 +35,60 @@ const start = async () => {
 	} catch (error) {
 		console.error('help.js error: ', error)
 	}
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 	for (let name of Object.keys(exports)) {
 		if (name.match(/^DICE/i)) {
+// @ts-expect-error TS(2339): Property 'push' does not exist on type '(msg: any)... Remove this comment to see the full error message
 			Dice.push(exports[name])
 		}
 		if (name.match(/^Tool/i)) {
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 			Tool.push(exports[name]);
 		}
 		if (name.match(/^admin/i)) {
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 			admin.push(exports[name]);
 		}
 		if (name.match(/^funny/i)) {
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 			funny.push(exports[name]);
 		}
 		if (name.match(/^help/i)) {
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 			help.push(exports[name]);
 		}
 		if (name.match(/^link/i)) {
+// @ts-expect-error TS(2304): Cannot find name 'exports'.
 			link.push(exports[name]);
 		}
 	}
 }
 start();
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'variables'... Remove this comment to see the full error message
 let variables = {};
 //heroku labs:enable runtime-dyno-metadata -a <app name>
 
 
 
 
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'gameName'.
 const gameName = function () {
 	return '骰子機器人HKTRPG說明';
 }
 
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'gameType'.
 const gameType = function () {
 	return 'bothelp:hktrpg'
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'prefixs'.
 const prefixs = function () {
 	return [{
 		first: /^bothelp$/i,
 		second: null
-	}]
+	}];
 
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'getHelpMes... Remove this comment to see the full error message
 const getHelpMessage = async function () {
 	return `【暗骰功能】
 在指令前輸入dr 結果會私訊你
@@ -91,12 +116,15 @@ https://dice-roller.github.io/documentation/guide/notation/
  
  `
 }
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'initialize... Remove this comment to see the full error message
 const initialize = function () {
 	return variables;
 }
 
 
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'rollDiceCo... Remove this comment to see the full error message
 const rollDiceCommand = async function ({
+// @ts-expect-error TS(7031): Binding element 'mainMsg' implicitly has an 'any' ... Remove this comment to see the full error message
 	mainMsg
 }) {
 	let rply = {
@@ -133,6 +161,7 @@ bothelp about	- 查詢HKTRPG 歷史📜
 🗂️HKTRPG 作品集, (https://hktrpg.github.io/TG.line.Discord.Roll.Bot/PORTFOLIOP)
 ℹ️如果你需要幫助, 加入我們的支援頻道, (https://support.hktrpg.com)
 ☕贊助伺服器運行及開放VIP資源, (https://www.patreon.com/HKTRPG)`
+// @ts-expect-error TS(2339): Property 'buttonCreate' does not exist on type '{ ... Remove this comment to see the full error message
 			rply.buttonCreate = ['bothelp ver', 'bothelp Base', 'bothelp Dice', 'bothelp Tool', 'bothelp admin', 'bothelp funny', 'bothelp link', 'bothelp privacy', 'bothelp about']
 
 			return rply;
@@ -150,6 +179,7 @@ bothelp about	- 查詢HKTRPG 歷史📜
 			return rply;
 		case /^BASE/i.test(mainMsg[1]):
 			rply.text = await getHelpMessage();
+// @ts-expect-error TS(2339): Property 'buttonCreate' does not exist on type '{ ... Remove this comment to see the full error message
 			rply.buttonCreate = ['dr 1d100', '2d6+10 攻擊', '.5 3d6', '.5 4d6dl1', '.rr 5d10!k2']
 			return rply;
 		case /^about$/i.test(mainMsg[1]):
@@ -170,30 +200,41 @@ HKTRPG來源自 機器鴨霸獸 https://docs.google.com/document/d/1dYnJqF2_QTp9
 		case /^Dice/i.test(mainMsg[1]):
 			if (mainMsg[1].match(/^DICE$/i)) {
 				rply.text = '輸入 bothelp Dice序號 如bothelp Dice1 即可看到內容\n'
+// @ts-expect-error TS(2339): Property 'buttonCreate' does not exist on type '{ ... Remove this comment to see the full error message
 				rply.buttonCreate = [];
 				for (let num in Dice) {
+// @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
 					rply.text += num + '. ' + Dice[num].gameName() + '\n';
+// @ts-expect-error TS(2339): Property 'buttonCreate' does not exist on type '{ ... Remove this comment to see the full error message
 					rply.buttonCreate.push('bothelp Dice' + num);
 				}
 			}
 			if (mainMsg[1].match(/^Dice\d+$/i)) {
 				let temp = mainMsg[1].replace(/^dice/i, '');
+// @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
 				if (!Dice[temp]) return;
+// @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
 				rply.text = await Dice[temp].getHelpMessage();
 			}
 			return rply;
 		case /^Tool/i.test(mainMsg[1]):
 			if (mainMsg[1].match(/^Tool$/i)) {
 				rply.text = '輸入 bothelp Tool序號 如bothelp Tool1 即可看到內容\n'
+// @ts-expect-error TS(2339): Property 'buttonCreate' does not exist on type '{ ... Remove this comment to see the full error message
 				rply.buttonCreate = [];
+// @ts-expect-error TS(7005): Variable 'Tool' implicitly has an 'any[]' type.
 				for (let num in Tool) {
+// @ts-expect-error TS(7005): Variable 'Tool' implicitly has an 'any[]' type.
 					rply.text += num + '. ' + Tool[num].gameName() + '\n';
+// @ts-expect-error TS(2339): Property 'buttonCreate' does not exist on type '{ ... Remove this comment to see the full error message
 					rply.buttonCreate.push('bothelp Tool' + num);
 				}
 			}
 			if (mainMsg[1].match(/^Tool\d+$/i)) {
 				let temp = mainMsg[1].replace(/^Tool/i, '');
+// @ts-expect-error TS(7005): Variable 'Tool' implicitly has an 'any[]' type.
 				if (!Tool[temp]) return;
+// @ts-expect-error TS(7005): Variable 'Tool' implicitly has an 'any[]' type.
 				rply.text = await Tool[temp].getHelpMessage();
 			}
 			return rply;
@@ -204,15 +245,21 @@ HKTRPG來源自 機器鴨霸獸 https://docs.google.com/document/d/1dYnJqF2_QTp9
 		case /^admin/i.test(mainMsg[1]):
 			if (mainMsg[1].match(/^admin$/i)) {
 				rply.text = '輸入 bothelp admin序號 如bothelp admin1 即可看到內容\n';
+// @ts-expect-error TS(2339): Property 'buttonCreate' does not exist on type '{ ... Remove this comment to see the full error message
 				rply.buttonCreate = [];
+// @ts-expect-error TS(7005): Variable 'admin' implicitly has an 'any[]' type.
 				for (let num in admin) {
+// @ts-expect-error TS(7005): Variable 'admin' implicitly has an 'any[]' type.
 					rply.text += num + '. ' + admin[num].gameName() + '\n';
+// @ts-expect-error TS(2339): Property 'buttonCreate' does not exist on type '{ ... Remove this comment to see the full error message
 					rply.buttonCreate.push('bothelp admin' + num);
 				}
 			}
 			if (mainMsg[1].match(/^admin\d+$/i)) {
 				let temp = mainMsg[1].replace(/^admin/i, '');
+// @ts-expect-error TS(7005): Variable 'admin' implicitly has an 'any[]' type.
 				if (!admin[temp]) return;
+// @ts-expect-error TS(7005): Variable 'admin' implicitly has an 'any[]' type.
 				rply.text = await admin[temp].getHelpMessage();
 			}
 			return rply;
@@ -220,15 +267,21 @@ HKTRPG來源自 機器鴨霸獸 https://docs.google.com/document/d/1dYnJqF2_QTp9
 		case /^funny/i.test(mainMsg[1]):
 			if (mainMsg[1].match(/^funny$/i)) {
 				rply.text = '輸入 bothelp funny序號 如bothelp funny1 即可看到內容\n';
+// @ts-expect-error TS(2339): Property 'buttonCreate' does not exist on type '{ ... Remove this comment to see the full error message
 				rply.buttonCreate = [];
+// @ts-expect-error TS(7005): Variable 'funny' implicitly has an 'any[]' type.
 				for (let num in funny) {
+// @ts-expect-error TS(7005): Variable 'funny' implicitly has an 'any[]' type.
 					rply.text += num + '. ' + funny[num].gameName() + '\n';
+// @ts-expect-error TS(2339): Property 'buttonCreate' does not exist on type '{ ... Remove this comment to see the full error message
 					rply.buttonCreate.push('bothelp Funny' + num);
 				}
 			}
 			if (mainMsg[1].match(/^funny\d+$/i)) {
 				let temp = mainMsg[1].replace(/^funny/i, '');
+// @ts-expect-error TS(7005): Variable 'funny' implicitly has an 'any[]' type.
 				if (!funny[temp]) return;
+// @ts-expect-error TS(7005): Variable 'funny' implicitly has an 'any[]' type.
 				rply.text = await funny[temp].getHelpMessage();
 			}
 			return rply;
@@ -236,15 +289,21 @@ HKTRPG來源自 機器鴨霸獸 https://docs.google.com/document/d/1dYnJqF2_QTp9
 		case /^help/i.test(mainMsg[1]):
 			if (mainMsg[1].match(/^help$/i)) {
 				rply.text = '輸入 bothelp help序號 如bothelp help1 即可看到內容\n';
+// @ts-expect-error TS(2339): Property 'buttonCreate' does not exist on type '{ ... Remove this comment to see the full error message
 				rply.buttonCreate = [];
+// @ts-expect-error TS(7005): Variable 'help' implicitly has an 'any[]' type.
 				for (let num in help) {
+// @ts-expect-error TS(7005): Variable 'help' implicitly has an 'any[]' type.
 					rply.text += num + '. ' + help[num].gameName() + '\n';
+// @ts-expect-error TS(2339): Property 'buttonCreate' does not exist on type '{ ... Remove this comment to see the full error message
 					rply.buttonCreate.push('bothelp help' + num);
 				}
 			}
 			if (mainMsg[1].match(/^help\d+$/i)) {
 				let temp = mainMsg[1].replace(/^help/i, '');
+// @ts-expect-error TS(7005): Variable 'help' implicitly has an 'any[]' type.
 				if (!help[temp]) return;
+// @ts-expect-error TS(7005): Variable 'help' implicitly has an 'any[]' type.
 				rply.text = await help[temp].getHelpMessage();
 			}
 			return rply;
@@ -280,45 +339,60 @@ HKTRPG 研究社 Facebook https://www.facebook.com/groups/HKTRPG
 	}
 }
 
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'Version'.
 class Version {
 	constructor() {
+// @ts-expect-error TS(2339): Property 'repo' does not exist on type 'Version'.
 		this.repo = 'hktrpg/TG.line.Discord.Roll.Bot';
+// @ts-expect-error TS(2339): Property 'filesCourt' does not exist on type 'Vers... Remove this comment to see the full error message
 		this.filesCourt = 0;
+// @ts-expect-error TS(2339): Property 'pullsNumber' does not exist on type 'Ver... Remove this comment to see the full error message
 		this.pullsNumber = 0;
+// @ts-expect-error TS(2339): Property 'lastUpdate' does not exist on type 'Vers... Remove this comment to see the full error message
 		this.lastUpdate = '00000000';
 	}
 	async version() {
 		await this.update();
+// @ts-expect-error TS(2339): Property 'filesCourt' does not exist on type 'Vers... Remove this comment to see the full error message
 		return `v1.${this.filesCourt}.${this.pullsNumber}.${this.lastUpdate}`
 	}
 	async update() {
 		try {
 			const {
 				data
+// @ts-expect-error TS(2339): Property 'repo' does not exist on type 'Version'.
 			} = await axios.get(`https://api.github.com/repos/${this.repo}/pulls?state=closed&sort=updated&direction=desc&per_page=1`);
+// @ts-expect-error TS(2339): Property 'pullsNumber' does not exist on type 'Ver... Remove this comment to see the full error message
 			this.pullsNumber = data[0].number;
+// @ts-expect-error TS(2339): Property 'lastUpdate' does not exist on type 'Vers... Remove this comment to see the full error message
 			this.lastUpdate = this.YYYYMMDD(data[0].merged_at);
 		} catch (error) {
 			console.log('help #302 version error: ', error)
 		}
+// @ts-expect-error TS(2339): Property 'filesCourt' does not exist on type 'Vers... Remove this comment to see the full error message
 		this.filesCourt = Object.keys(exports).length;
 	}
+// @ts-expect-error TS(7006): Parameter 'lastUpdateDate' implicitly has an 'any'... Remove this comment to see the full error message
 	YYYYMMDD(lastUpdateDate) {
 		//2023-08-21T16:19:00Z
 		const date = new Date(lastUpdateDate);
 		const year = date.getFullYear().toString().slice(-2);
+// @ts-expect-error TS(2550): Property 'padStart' does not exist on type 'string... Remove this comment to see the full error message
 		const month = (date.getMonth() + 1).toString().padStart(2, '0');
+// @ts-expect-error TS(2550): Property 'padStart' does not exist on type 'string... Remove this comment to see the full error message
 		const day = date.getDate().toString().padStart(2, '0');
 		return `${year}${month}${day}`;
 
 	}
 }
 
+// @ts-expect-error TS(2451): Cannot redeclare block-scoped variable 'version'.
 const version = new Version();
 /**
  * if (botname == "Line")
 				rply.text += "\n因為Line的機制, 如擲骰時並無顯示用家名字, 請到下列網址,和機器人任意說一句話,成為好友. \n https://line.me/R/ti/p/svMLqy9Mik\nP.S. Line 修改政策，免費帳號的Line Bot現在有每月500次的私訊限制，超過時DR等私訊功能會失效。(可以認為這功能在Line已失效，半天已400個DR私訊要求)"
  */
+// @ts-expect-error TS(2580): Cannot find name 'module'. Do you need to install ... Remove this comment to see the full error message
 module.exports = {
 	rollDiceCommand: rollDiceCommand,
 	initialize: initialize,

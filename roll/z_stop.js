@@ -163,7 +163,7 @@ const rollDiceCommand = async function ({
                     rply.text += '阻擋用關鍵字列表:'
                     for (let a = 0; a < save.save[i].blockfunction.length; a++) {
                         temp = 1
-                        rply.text += ("\n") + a + '. ' + save.save[i].blockfunction[a]
+                        rply.text += ("\n") + a + ": " + save.save[i].blockfunction[a]
                     }
                 }
             }

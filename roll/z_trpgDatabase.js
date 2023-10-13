@@ -204,7 +204,7 @@ const rollDiceCommand = async function ({
                         rply.text += '資料庫列表:'
                         for (let a = 0; a < trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction.length; a++) {
                             temp = 1;
-                            rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + '. ' + trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic : '       ' + a + '. ' + trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic;
+                            rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + ': ' + trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic : '       ' + a + ': ' + trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction[a].topic;
                         }
 
                     }
@@ -294,7 +294,7 @@ const rollDiceCommand = async function ({
                     rply.text += '資料庫列表:'
                     for (let a = 0; a < trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup.length; a++) {
                         tempshow = 1;
-                        rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + '. ' + trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic : '      ' + a + '. ' + trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic;
+                        rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + ': ' + trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic : '      ' + a + ': ' + trpgDatabasefunction.trpgDatabaseAllgroup[i].trpgDatabaseAllgroup[a].topic;
 
                     }
                 }

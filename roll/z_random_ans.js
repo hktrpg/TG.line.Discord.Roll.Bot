@@ -231,7 +231,7 @@ const rollDiceCommand = async function ({
                 temp = getData.randomAnsfunction.find(e => e[0].toLowerCase() == mainMsg[2].toLowerCase())
                 for (let i in temp) {
                     rply.text += (i == 0) ? '群組自定義骰子 ' + temp[i] + '\n' : '';
-                    rply.text += ((i % 2 && i != 1) && i !== 0) ? ("\n") + i + '. ' + temp[i] + "        " : (i == 0) ? '' : i + '. ' + temp[i] + "        ";
+                    rply.text += ((i % 2 && i != 1) && i !== 0) ? ("\n") + i + ": " + temp[i] + "        " : (i == 0) ? '' : i + ": " + temp[i] + "        ";
                 }
             }
             if (rply.text) {
@@ -239,7 +239,7 @@ const rollDiceCommand = async function ({
             }
             rply.text += '群組自定義骰子列表:';
             for (let a in getData.randomAnsfunction) {
-                rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + '. ' + getData.randomAnsfunction[a][0] : "     " + a + '. ' + getData.randomAnsfunction[a][0];
+                rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + ": " + getData.randomAnsfunction[a][0] : "     " + a + ": " + getData.randomAnsfunction[a][0];
             }
             //顯示自定義關鍵字
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
@@ -366,8 +366,8 @@ const rollDiceCommand = async function ({
                 rply.text += `自定義骰子  \n標題: ${temp.title} \n`
                 let tempanswer = temp.answer;
                 for (let i in tempanswer) {
-                    rply.text += (i == 0) ? '#' + i + '. ' + tempanswer[i] + '\n' : '';
-                    rply.text += ((i % 2 && i != 1) && i !== 0) ? ("\n") + '#' + i + '. ' + tempanswer[i] + "        " : (i == 0) ? '' : '#' + i + '. ' + tempanswer[i] + "        ";
+                    rply.text += (i == 0) ? '#' + i + ": " + tempanswer[i] + '\n' : '';
+                    rply.text += ((i % 2 && i != 1) && i !== 0) ? ("\n") + '#' + i + ": " + tempanswer[i] + "        " : (i == 0) ? '' : '#' + i + ": " + tempanswer[i] + "        ";
                 }
                 return rply;
             }
@@ -378,7 +378,7 @@ const rollDiceCommand = async function ({
             }
             rply.text += '個人自定義骰子列表';
             for (let a in getData) {
-                rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + '#' + getData[a].serial + '. ' + getData[a].title : "     " + '#' + getData[a].serial + '. ' + getData[a].title;
+                rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + '#' + getData[a].serial + ": " + getData[a].title : "     " + '#' + getData[a].serial + ": " + getData[a].title;
             }
             //顯示自定義關鍵字
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
@@ -506,8 +506,8 @@ const rollDiceCommand = async function ({
                 rply.text += `自定義骰子  \n標題: ${temp.title} \n`
                 let tempanswer = temp.answer;
                 for (let i in tempanswer) {
-                    rply.text += (i == 0) ? '#' + i + '. ' + tempanswer[i] + '\n' : '';
-                    rply.text += ((i % 2 && i != 1) && i !== 0) ? ("\n") + '#' + i + '. ' + tempanswer[i] + "        " : (i == 0) ? '' : '#' + i + '. ' + tempanswer[i] + "        ";
+                    rply.text += (i == 0) ? '#' + i + ": " + tempanswer[i] + '\n' : '';
+                    rply.text += ((i % 2 && i != 1) && i !== 0) ? ("\n") + '#' + i + ": " + tempanswer[i] + "        " : (i == 0) ? '' : '#' + i + ": " + tempanswer[i] + "        ";
                 }
                 return rply;
             }
@@ -518,7 +518,7 @@ const rollDiceCommand = async function ({
             }
             rply.text += '全HKTRPG自定義骰子列表';
             for (let a in getData) {
-                rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + '#' + getData[a].serial + '. ' + getData[a].title : "     " + '#' + getData[a].serial + '. ' + getData[a].title;
+                rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + '#' + getData[a].serial + ": " + getData[a].title : "     " + '#' + getData[a].serial + ": " + getData[a].title;
             }
             //顯示自定義關鍵字
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')

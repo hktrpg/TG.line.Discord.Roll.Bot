@@ -70,11 +70,6 @@ const rollDiceCommand = async function ({
         type: 'text',
         text: ''
     };
-
-    let tempshow = 0;
-    let temp2 = 0;
-    let lv;
-    let limit = FUNCTION_LIMIT[0];
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
             rply.text = await this.getHelpMessage();
@@ -88,6 +83,7 @@ const rollDiceCommand = async function ({
 
             if (!mainMsg[2]) rply.text += ' 沒有輸入標題。\n\n';
             if (!mainMsg[3]) rply.text += ' 沒有輸入內容。\n\n';
+            if (rply.text) return rply;
             if (rply.text += checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelManager,
                 gid: groupid,
@@ -96,13 +92,14 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
-            lv = await VIP.viplevelCheckGroup(groupid);
-            limit = FUNCTION_LIMIT[lv];
+            let lv = await VIP.viplevelCheckGroup(groupid);
+            let limit = FUNCTION_LIMIT[lv];
 
             //1.找出這個GP的LIMIT
 
 
-            const gpList = schema.trpgDatabase.findOne({ groupid: groupid });
+            const gpList = await schema.trpgDatabase.findOne({ groupid: groupid });
+            console.log('gpList', gpList);
             if (!gpList) {
                 const temp = new schema.trpgDatabase({
                     groupid: groupid,
@@ -119,8 +116,10 @@ const rollDiceCommand = async function ({
 
             console.log('gpList', gpList)
             const dbDoc = gpList?.trpgDatabasefunction || [];
+            let count = dbDoc.filter(item => item.topic !== undefined && item.topic !== "").length;
+
             console.log('dbDoc', dbDoc);
-            if (dbDoc.length > limit) {
+            if (count > limit) {
                 rply.text = '關鍵字上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
                 return rply;
             }
@@ -129,9 +128,8 @@ const rollDiceCommand = async function ({
             //2.檢查有沒有重覆
             const doublecheck = dbDoc?.find(x => x.topic == mainMsg[2]);
             console.log('doublecheck', doublecheck)
-            //checkifsamename=1
             if (doublecheck) {
-                rply.text = '有重複關鍵字，請重新輸入。可以輸入.db show 來查看關鍵字。';
+                rply.text = '有重複關鍵字，請重新輸入。可以輸入 .db show 來查看關鍵字。';
                 return rply;
             }
 
@@ -140,9 +138,18 @@ const rollDiceCommand = async function ({
                 topic: mainMsg[2],
                 contact: inputStr.replace(/\.db\s+add\s+/i, '').replace(mainMsg[2], '').replace(/^\s+/, '')
             };
-            if (!gpList) {
+
+            let pushed = false;
+            dbDoc.forEach(item => {
+                if (Object.keys(item).length === 0) {
+                    item = temp;
+                    pushed = true;
+                }
+            });
+
+            if (!pushed) {
+                dbDoc.push(temp);
             }
-            gpList.settrpgDatabasefunction.push(temp);
             await gpList.save();
 
             rply.text = `新增成功: ${mainMsg[2]}
@@ -152,7 +159,7 @@ const rollDiceCommand = async function ({
 
 
         }
-        case /(^[.]db$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
+        case /(^[.]db$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]): {
             //刪除資料庫
             if (rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelManager,
@@ -164,7 +171,8 @@ const rollDiceCommand = async function ({
             await schema.trpgDatabase.findOneAndDelete({ groupid: groupid });
             rply.text = '刪除所有關鍵字'
             return rply;
-        case /(^[.]db$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
+        }
+        case /(^[.]db$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]): {
             //刪除資料庫
             if (!mainMsg[2]) {
                 rply.text += '沒有關鍵字. \n\n';
@@ -179,47 +187,64 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
-            for (let i = 0; i < _trpgDB.length; i++) {
-                if (_trpgDB[i].groupid == groupid && mainMsg[2] < _trpgDB[i].trpgDatabasefunction.length && mainMsg[2] >= 0) {
-                    let temp = _trpgDB[i]
-                    temp.trpgDatabasefunction.splice(mainMsg[2], 1)
-                    records.settrpgDatabasefunction('trpgDatabase', temp, () => {
-                        records.get('trpgDatabase', (msgs) => {
-                            _trpgDB = msgs
-                        })
-                    })
-                }
-                rply.text = '刪除成功: ' + mainMsg[2]
+            const gpList = await schema.trpgDatabase.findOne({ groupid: groupid });
+            if (!gpList) {
+                rply.text = '在這個頻道並沒有 已紀錄的database，請使用.db add 先新增資料. \n\n';
+                return rply;
             }
+
+            const dbDoc = gpList?.trpgDatabasefunction || [];
+            dbDoc.forEach(item => {
+                if (item.topic == mainMsg[2]) {
+                    item.topic = "";
+                    item.contact = "";
+                }
+            });
+            await gpList.save();
+            rply.text = '刪除成功: ' + mainMsg[2];
+            rply.text += `\n使用.db show 來顯示所有關鍵字`;
+
 
             return rply;
 
-        case /(^[.]db$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+        } case /(^[.]db$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
             //顯示
-            records.get('trpgDatabase', (msgs) => {
-                _trpgDB = msgs
-            })
             if (!groupid) {
                 rply.text = '不在群組. ';
                 return rply;
             }
-            let temp = 0;
-            if (_trpgDB)
-                for (let i = 0; i < _trpgDB.length; i++) {
-                    if (_trpgDB[i].groupid == groupid) {
-                        rply.text += '資料庫列表:'
-                        for (let a = 0; a < _trpgDB[i].trpgDatabasefunction.length; a++) {
-                            temp = 1;
-                            rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + '. ' + _trpgDB[i].trpgDatabasefunction[a].topic : '       ' + a + '. ' + _trpgDB[i].trpgDatabasefunction[a].topic;
-                        }
+            const gpList = await schema.trpgDatabase.findOne({ groupid: groupid });
+            console.log('gpList', gpList)
+            const dbDoc = gpList?.trpgDatabasefunction || [];
+            console.log('dbDoc', dbDoc);
+            let count = dbDoc.filter(item => item.topic !== undefined && item.topic !== "").length;
+            console.log('count', count)
+            if (count == 0) {
+                rply.text = `沒有已設定的關鍵字.
+使用.db add (關鍵字) (內容)即可增加關鍵字`;
+                return rply;
+            }
+            rply.text += '資料庫列表:'
+            let showNum = 0;
+            for (let num = 0; num < dbDoc.length; num++) {
+                console.log('num', num)
+                if (!dbDoc[num].topic) continue;
 
-                    }
-                    if (temp == 0) rply.text = '沒有已設定的關鍵字. '
-                }
+                rply.text += (showNum % 3 == 0) ? "\n" : "      ";
+
+                rply.text += `${num + 1}. ${dbDoc[num].topic}`;
+                showNum++;
+
+            }
+
+
             rply.quotes = true;
             //顯示資料庫
+            console.log('rply.text', rply.text)
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
+            console.log('rply.text2', rply.text)
             return rply
+        }
         case /(^[.]db$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]): {
             //顯示關鍵字
             //let times = /^[.]db/.exec(mainMsg[0])[1] || 1

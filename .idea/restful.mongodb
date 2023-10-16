@@ -1,0 +1,93 @@
+// 使用 npm 安裝相依套件 mongodb、express、body-parser
+const MongoClient = require('mongodb').MongoClient;
+const express = require('express');
+const bodyParser = require('body-parser');
+
+// 定義資料庫連線 URL 和資料庫名稱
+const url = 'mongodb://localhost:27017';
+const dbName = 'mydb';
+
+// 定義 ChatData 類別
+class ChatData {
+  constructor(chatid, topic, dbData) {
+    this.chatid = chatid;
+    this.topic = topic;
+    this.dbData = dbData;
+  }
+}
+
+// 定義 Database 類別
+class Database {
+  constructor() {
+    this.client = new MongoClient(url);
+  }
+
+  async connect() {
+    try {
+      await this.client.connect();
+      console.log('Connected to the database');
+      this.db = this.client.db(dbName);
+    } catch (error) {
+      console.error('Database connection error:', error);
+    }
+  }
+
+  async disconnect() {
+    try {
+      await this.client.close();
+      console.log('Disconnected from the database');
+    } catch (error) {
+      console.error('Database disconnection error:', error);
+    }
+  }
+
+  async saveData(chatData) {
+    try {
+      const collection = this.db.collection('chatData');
+      await collection.insertOne(chatData);
+      console.log('Data saved successfully');
+    } catch (error) {
+      console.error('Data saving error:', error);
+    }
+  }
+
+  async getAllData() {
+    try {
+      const collection = this.db.collection('chatData');
+      const data = await collection.find().toArray();
+      return data;
+    } catch (error) {
+      console.error('Data retrieval error:', error);
+      return [];
+    }
+  }
+}
+
+// 建立 express app
+const app = express();
+app.use(bodyParser.json());
+
+// 建立 RESTful API 路由
+app.get('/api/chatData', async (req, res) => {
+  const database = new Database();
+  await database.connect();
+  const data = await database.getAllData();
+  await database.disconnect();
+  res.json(data);
+});
+
+app.post('/api/chatData', async (req, res) => {
+  const { chatid, topic, dbData } = req.body;
+  const chatData = new ChatData(chatid, topic, dbData);
+  const database = new Database();
+  await database.connect();
+  await database.saveData(chatData);
+  await database.disconnect();
+  res.json({ message: 'Data saved successfully' });
+});
+
+// 監聽指定的伺服器埠號
+const port = 3000;
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});

@@ -412,8 +412,8 @@ if (agenda && agenda.agenda) {
 		let data = job.attrs.data;
 		let text = await rollText(data.replyText);
 		//SendToReply(ctx, text)
-		SendToId(
-			data.groupid, text
+		await SendToId(
+			data.groupid, text, client
 		)
 		try {
 			await job.remove();
@@ -427,14 +427,15 @@ if (agenda && agenda.agenda) {
 		let data = job.attrs.data;
 		let text = await rollText(data.replyText);
 		//SendToReply(ctx, text)
-		SendToId(
-			data.groupid, text
+		//	await SendToId(msg.from, rplyVal, client);
+		await SendToId(
+			data.groupid, text, client
 		)
 		try {
 			if ((new Date(Date.now()) - data.createAt) >= SIX_MONTH) {
 				await job.remove();
-				SendToId(
-					data.groupid, "已運行六個月, 移除此定時訊息"
+				await SendToId(
+					data.groupid, "已運行六個月, 移除此定時訊息", client
 				)
 			}
 		} catch (e) {

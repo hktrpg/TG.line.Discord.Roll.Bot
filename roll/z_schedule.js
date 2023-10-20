@@ -225,9 +225,9 @@ const rollDiceCommand = async function ({
         case /^\.cron+$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
             if (!checkMongodb.isDbOnline()) return;
             if (rply.text = checkTools.permissionErrMsg({
-                flag : checkTools.flag.ChkChannelManager,
-                gid : groupid,
-                role : userrole
+                flag: checkTools.flag.ChkChannelManager,
+                gid: groupid,
+                role: userrole
             })) {
                 return rply;
             }
@@ -251,9 +251,9 @@ const rollDiceCommand = async function ({
         }
         case /^\.cron$/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]): {
             if (rply.text = checkTools.permissionErrMsg({
-                flag : checkTools.flag.ChkChannelManager,
-                gid : groupid,
-                role : userrole
+                flag: checkTools.flag.ChkChannelManager,
+                gid: groupid,
+                role: userrole
             })) {
                 return rply;
             }
@@ -290,9 +290,9 @@ const rollDiceCommand = async function ({
         }
         case /^\.cron+$/i.test(mainMsg[0]): {
             rply.text = checkTools.permissionErrMsg({
-                flag : checkTools.flag.ChkChannelManager,
-                gid : groupid,
-                role : userrole
+                flag: checkTools.flag.ChkChannelManager,
+                gid: groupid,
+                role: userrole
             });
             if (!mainMsg[2]) rply.text += '未有內容'
             if (rply.text) return rply;
@@ -368,8 +368,8 @@ function differentPeformAt(botname) {
         case "Telegram":
             return "scheduleAtMessageTelegram"
 
-        // case "Line":
-        //      return "scheduleAtMessageLine"
+        case "Whatsapp":
+            return "scheduleAtMessageWhatsapp"
 
         default:
             break;

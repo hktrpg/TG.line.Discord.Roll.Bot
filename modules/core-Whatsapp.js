@@ -325,11 +325,11 @@ if (retry > maxRetry) {
 		agenda.agenda.define("scheduleAtMessageWhatsapp", async (job) => {
 			//指定時間一次
 			let data = job.attrs.data;
-			//let text = await rollText(data.replyText);
+			let text = { text: data.replyText };
 			//SendToReply(ctx, text)
 			console.log("data.groupid", data.groupid, data.replyText)
 			await SendToId(
-				data.groupid, data.replyText, client
+				data.groupid, text, client
 			)
 			try {
 				await job.remove();
@@ -341,19 +341,19 @@ if (retry > maxRetry) {
 		agenda.agenda.define("scheduleCronMessageWhatsapp", async (job) => {
 			//指定時間
 			let data = job.attrs.data;
-			//	let text = await rollText(data.replyText);
+			let text = { text: data.replyText };
 			//SendToReply(ctx, text)
 			//	await SendToId(msg.from, rplyVal, client);
 			console.log("data.groupid", data.groupid, data.replyText)
 			await SendToId(
-				data.groupid, data.replyText, client
+				data.groupid, text, client
 			)
 			try {
 				if ((new Date(Date.now()) - data.createAt) >= SIX_MONTH) {
 					console.log("data.groupid", data.groupid, data.replyText)
 					await job.remove();
 					await SendToId(
-						data.groupid, "已運行六個月, 移除此定時訊息", client
+						data.groupid, { text: "已運行六個月, 移除此定時訊息" }, client
 					)
 				}
 			} catch (e) {

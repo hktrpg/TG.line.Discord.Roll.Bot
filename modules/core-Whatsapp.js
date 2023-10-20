@@ -321,6 +321,46 @@ if (retry > maxRetry) {
 
 
 
+	if (agenda && agenda.agenda) {
+		agenda.agenda.define("scheduleAtMessageWhatsapp", async (job) => {
+			//指定時間一次
+			let data = job.attrs.data;
+			let text = await rollText(data.replyText);
+			//SendToReply(ctx, text)
+			await SendToId(
+				data.groupid, text, client
+			)
+			try {
+				await job.remove();
+			} catch (e) {
+				console.error("TG Error removing job from collection:scheduleAtMessageWhatsapp", e);
+			}
+
+		});
+		agenda.agenda.define("scheduleCronMessageWhatsapp", async (job) => {
+			//指定時間
+			let data = job.attrs.data;
+			let text = await rollText(data.replyText);
+			//SendToReply(ctx, text)
+			//	await SendToId(msg.from, rplyVal, client);
+			await SendToId(
+				data.groupid, text, client
+			)
+			try {
+				if ((new Date(Date.now()) - data.createAt) >= SIX_MONTH) {
+					await job.remove();
+					await SendToId(
+						data.groupid, "已運行六個月, 移除此定時訊息", client
+					)
+				}
+			} catch (e) {
+				console.error("Error removing job from collection:scheduleCronMessageWhatsapp", e);
+			}
+
+		});
+
+	}
+
 
 
 
@@ -404,45 +444,4 @@ function z_stop(mainMsg, groupid) {
 		return true;
 	} else
 		return false;
-}
-
-
-if (agenda && agenda.agenda) {
-	agenda.agenda.define("scheduleAtMessageWhatsapp", async (job) => {
-		//指定時間一次
-		let data = job.attrs.data;
-		let text = await rollText(data.replyText);
-		//SendToReply(ctx, text)
-		await SendToId(
-			data.groupid, text, client
-		)
-		try {
-			await job.remove();
-		} catch (e) {
-			console.error("TG Error removing job from collection:scheduleAtMessageWhatsapp", e);
-		}
-
-	});
-	agenda.agenda.define("scheduleCronMessageWhatsapp", async (job) => {
-		//指定時間
-		let data = job.attrs.data;
-		let text = await rollText(data.replyText);
-		//SendToReply(ctx, text)
-		//	await SendToId(msg.from, rplyVal, client);
-		await SendToId(
-			data.groupid, text, client
-		)
-		try {
-			if ((new Date(Date.now()) - data.createAt) >= SIX_MONTH) {
-				await job.remove();
-				await SendToId(
-					data.groupid, "已運行六個月, 移除此定時訊息", client
-				)
-			}
-		} catch (e) {
-			console.error("Error removing job from collection:scheduleCronMessageWhatsapp", e);
-		}
-
-	});
-
 }

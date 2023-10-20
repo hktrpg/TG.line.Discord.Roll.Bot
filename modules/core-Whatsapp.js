@@ -327,7 +327,7 @@ if (retry > maxRetry) {
 			let data = job.attrs.data;
 			//let text = await rollText(data.replyText);
 			//SendToReply(ctx, text)
-			console.log("data.groupid", data.groupid)
+			console.log("data.groupid", data.groupid, data.replyText)
 			await SendToId(
 				data.groupid, data.replyText, client
 			)
@@ -344,13 +344,13 @@ if (retry > maxRetry) {
 			//	let text = await rollText(data.replyText);
 			//SendToReply(ctx, text)
 			//	await SendToId(msg.from, rplyVal, client);
-			console.log("data.groupid", data.groupid)
+			console.log("data.groupid", data.groupid, data.replyText)
 			await SendToId(
 				data.groupid, data.replyText, client
 			)
 			try {
 				if ((new Date(Date.now()) - data.createAt) >= SIX_MONTH) {
-					console.log("data.groupid", data.groupid)
+					console.log("data.groupid", data.groupid, data.replyText)
 					await job.remove();
 					await SendToId(
 						data.groupid, "已運行六個月, 移除此定時訊息", client
@@ -372,6 +372,7 @@ if (retry > maxRetry) {
 	}
 
 	async function SendToReply(msg, rplyVal) {
+		console.log("msg, rplyVal", msg, rplyVal)
 		for (let i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 			if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
 				const imageMatch = rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i].match(imageUrl) || null;
@@ -415,6 +416,7 @@ if (retry > maxRetry) {
 startUp()
 
 async function SendToId(targetid, rplyVal, client) {
+	console.log("targetid, rplyVal, client", targetid, rplyVal)
 	for (let i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 		if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
 			const imageMatch = rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i].match(imageUrl) || null;

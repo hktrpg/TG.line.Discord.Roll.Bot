@@ -19,6 +19,7 @@ if (process.env.BROADCAST) {
 		}
 	});
 }
+const rollText = require('./getRoll').rollText;
 const candle = require('../modules/candleDays.js');
 const agenda = require('../modules/schedule')
 const qrcode = require('qrcode-terminal');

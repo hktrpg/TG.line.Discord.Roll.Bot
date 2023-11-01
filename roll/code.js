@@ -120,7 +120,6 @@ class JS extends Piston {
         this.language = "js";
         this.name = "main.js";
         this.version = "14.16.0";
-        console.log(this.code);
     }
 }
 class Java extends Piston {
@@ -128,6 +127,7 @@ class Java extends Piston {
         super();
         this.name = "main.java";
         this.code = `
+        import java.util.*;
 public class main {
   public static void main(String[] args) {
    ${code}
@@ -135,7 +135,6 @@ public class main {
 }`;
         this.language = "java";
         this.version = "15.0.2";
-        console.log(this.code);
     }
 }
 

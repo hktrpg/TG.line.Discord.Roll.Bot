@@ -103,7 +103,6 @@ class Piston {
                 compile_memory_limit: this.compile_memory_limit,
                 run_memory_limit: this.run_memory_limit
             });
-            console.log("response", response);
             return response.data;
         }
         catch (error) {
@@ -126,7 +125,7 @@ class Java extends Piston {
     constructor(code) {
         super();
         this.name = "main.java";
-        this.code = `
+        this.code = (code.includes("class ")) ? code : `
         import java.util.*;
 public class main {
   public static void main(String[] args) {

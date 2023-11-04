@@ -14,7 +14,7 @@ const prefixs = function () {
     //如前面是 /^1$/ig, 後面是/^1D100$/ig, 即 prefixs 變成 1 1D100 
     ///^(?=.*he)(?!.*da).*$/ig
     return [{
-        first: /^\.code$/i,second: null
+        first: /^\.code$/i
     }]
 }
 const getHelpMessage = function () {
@@ -114,6 +114,15 @@ class Piston {
     }
 }
 
+class JS extends Piston {
+    constructor(code) {
+        super();
+        this.code = code;
+        this.language = "javascript";
+        this.name = "temp.js";
+        this.version = "18.15.0";
+    }
+}
 
 class JS extends Piston {
     constructor(code) {

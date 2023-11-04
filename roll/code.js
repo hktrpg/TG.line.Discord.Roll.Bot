@@ -114,15 +114,6 @@ class Piston {
     }
 }
 
-class JS extends Piston {
-    constructor(code) {
-        super();
-        this.code = code;
-        this.language = "javascript";
-        this.name = "temp.js";
-        this.version = "18.15.0";
-    }
-}
 
 class JS extends Piston {
     constructor(code) {

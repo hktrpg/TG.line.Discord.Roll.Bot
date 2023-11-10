@@ -291,7 +291,8 @@ class TranslateAi extends OpenAI {
                     },
                     {
                         "role": "user",
-                        "content": `${inputStr}\n\n`
+                        "content": `使用正體中文翻譯以下文字
+                        ${inputStr}\n\n`
                     }
                 ]
 

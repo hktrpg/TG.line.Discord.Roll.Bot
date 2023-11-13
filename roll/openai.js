@@ -69,6 +69,10 @@ const rollDiceCommand = async function ({
     switch (true) {
         case /^.ait/i.test(mainMsg[0]): {
             const mode = mainMsg[0].includes('4') ? GPT4 : GPT3;
+            if (mode === GPT4) {
+                if (!adminSecret) return rply;
+                if (userid !== adminSecret) return rply;
+            }
             const { filetext, sendfile, text } = await translateAi.handleTranslate(inputStr, discordMessage, discordClient, userid, mode);
             filetext && (rply.fileText = filetext);
             sendfile && (rply.fileLink = [sendfile]);
@@ -83,6 +87,10 @@ const rollDiceCommand = async function ({
         }
         case /^\S/.test(mainMsg[1]): {
             const mode = mainMsg[0].includes('4') ? GPT4 : GPT3;
+            if (mode === GPT4) {
+                if (!adminSecret) return rply;
+                if (userid !== adminSecret) return rply;
+            }
             rply.text = await chatAi.handleChatAi(inputStr, mode, userid);
             rply.quotes = true;
             return rply;

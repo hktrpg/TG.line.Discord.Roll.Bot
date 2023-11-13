@@ -69,10 +69,6 @@ const rollDiceCommand = async function ({
     switch (true) {
         case /^.ait/i.test(mainMsg[0]): {
             const mode = mainMsg[0].includes('4') ? GPT4 : GPT3;
-            if (mode === GPT4) {
-                if (!adminSecret) return rply;
-                if (userid !== adminSecret) return rply;
-            }
             const { filetext, sendfile, text } = await translateAi.handleTranslate(inputStr, discordMessage, discordClient, userid, mode);
             filetext && (rply.fileText = filetext);
             sendfile && (rply.fileLink = [sendfile]);
@@ -87,10 +83,6 @@ const rollDiceCommand = async function ({
         }
         case /^\S/.test(mainMsg[1]): {
             const mode = mainMsg[0].includes('4') ? GPT4 : GPT3;
-            if (mode === GPT4) {
-                if (!adminSecret) return rply;
-                if (userid !== adminSecret) return rply;
-            }
             rply.text = await chatAi.handleChatAi(inputStr, mode, userid);
             rply.quotes = true;
             return rply;
@@ -340,7 +332,7 @@ class TranslateAi extends OpenAI {
     }
     async handleTranslate(inputStr, discordMessage, discordClient, userid, mode) {
         let lv = await VIP.viplevelCheckUser(userid);
-        if (mode === GPT4 && lv < 1) return { text: `GPT-4是實驗功能，現在只有VIP才能使用，\n支援HKTRPG及升級請到\nhttps://www.patreon.com/hktrpg` };
+        if (mode === GPT4 && lv < 2) return { text: `GPT-4是實驗功能，現在只有VIP3才能使用，\n支援HKTRPG及升級請到\nhttps://www.patreon.com/hktrpg` };
         let limit = TRANSLATE_LIMIT_PERSONAL[lv];
         let { translateScript, textLength } = await this.getText(inputStr, discordMessage, discordClient);
         if (textLength > limit) return { text: `輸入的文字太多了，請分批輸入，你是VIP LV${lv}，限制為${limit}字` };
@@ -389,6 +381,8 @@ class ChatAi extends OpenAI {
         super();
     }
     async handleChatAi(inputStr, mode, userid) {
+        let lv = await VIP.viplevelCheckUser(userid);
+        if (mode === GPT4 && lv < 2) return { text: `GPT-4是實驗功能，現在只有VIP3才能使用，\n支援HKTRPG及升級請到\nhttps://www.patreon.com/hktrpg` };
         try {
             let response = await this.openai.chat.completions.create({
                 "model": mode,

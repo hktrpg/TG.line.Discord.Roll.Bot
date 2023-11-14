@@ -15,6 +15,9 @@ const TRANSLATE_LIMIT_PERSONAL = [500, 100000, 200000, 300000, 400000, 500000, 6
 const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
 const splitLength = 1000;
+const MODULES = [{ name: "gpt-3.5-turbo-1106", token: 16, input_price: 0.005, output_price: 0.01 },
+{ name: "gpt-4-1106-preview", token: 128, input_price: 0.16, output_price: 0.48 },
+{ name: "gpt-3.5-turbo-0613", token: 4, input_price: 0.0075, output_price: 0.01 },]
 const gameName = function () {
     return '【OpenAi】'
 }
@@ -443,4 +446,27 @@ const chatAi = new ChatAi();
 const imageAi = new ImageAi();
 const translateAi = new TranslateAi();
 
+
+/**
+ * gpt-tokenizer
+ * 設計計算Token上限
+ * 
+ * 首先，每個Token都是由一個字元組成，所以我們先計算字元上限
+ * 先將整個內容放進tokenizer
+ * 如果<於token 上限，則直接回傳
+ * 完成
+ * 
+ * 如不,
+ * 進行分割，將內容分割成數個字串
+ * 並將每個字串放進tokenizer
+ * 
+ * 
+ * 分割條件
+ * 1. 以句號分割
+ * 2. 以逗號分割
+ * 3. 以行來分割
+ * 4. 以空格分割
+ * 5. 以字數分割
+ * 
+ */
 

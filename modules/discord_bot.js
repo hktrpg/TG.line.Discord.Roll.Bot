@@ -1326,11 +1326,14 @@ function __checkUserRole(groupid, message) {
 async function __handlingReplyMessage(message, result) {
 	const text = result.text;
 	const sendTexts = text.toString().match(/[\s\S]{1,2000}/g);
-	await message.editReply({ embeds: await convQuotes(sendTexts[0]), ephemeral: false })
-	for (let index = 1; index < sendTexts?.length && index < 4; index++) {
+	for (let index = 0; index < sendTexts?.length && index < 4; index++) {
 		const sendText = sendTexts[index];
 		try {
-			await message.channel.send({ embeds: await convQuotes(sendText), ephemeral: false })
+			if (index == 0)
+				await message.reply({ embeds: await convQuotes(sendText), ephemeral: false })
+			else
+				await message.channel.send({ embeds: await convQuotes(sendText), ephemeral: false })
+
 		} catch (error) {
 			try {
 				await message.editReply({ embeds: await convQuotes(sendText), ephemeral: false })

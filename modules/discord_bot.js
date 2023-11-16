@@ -1327,7 +1327,7 @@ async function __handlingReplyMessage(message, result) {
 	const text = result.text;
 	const sendTexts = text.toString().match(/[\s\S]{1,2000}/g);
 	await message.editReply({ embeds: await convQuotes(sendTexts[0]), ephemeral: false })
-	for (let index = 1; index < sendTexts?.length; index++) {
+	for (let index = 1; index < sendTexts?.length && index < 4; index++) {
 		const sendText = sendTexts[index];
 		try {
 			await message.channel.send({ embeds: await convQuotes(sendText), ephemeral: false })

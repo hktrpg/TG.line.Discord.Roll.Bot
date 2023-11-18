@@ -117,6 +117,7 @@ const rollDiceCommand = async function ({
 		case /^\.sc$/i.test(mainMsg[0]): {
 			let sc = new SanCheck(mainMsg);
 			rply.text = sc.run();
+			rply.buttonCreate = sc.getButton();
 			rply.quotes = true;
 			break;
 		}
@@ -1608,6 +1609,7 @@ class SanCheck {
 		this.rollSuccess = this.getRollSuccess(this.sc);
 		this.rollFail = this.getRollFail(this.sc);
 		this.lossSan = this.calculateLossSanity(this.rollSuccess, this.rollFail);
+		this.buttonCreate = ["ccrt", "ccsu"];
 	}
 
 	getSanity(mainMsg) {
@@ -1659,7 +1661,17 @@ class SanCheck {
 
 	}
 	run() {
-		if (!this.currentSan) return '請輸入正確的San值，\n格式是 .sc 50 或 .sc 50 1/3 或 .sc 50 1d3+3/1d100';
+		if (!this.currentSan) {
+			this.scMode = this.getScMode(this.mainMsg[1]);
+			this.sc = this.getSc(this.mainMsg[1]);
+			console.log(`sc: ${this.sc}`)
+			this.rollSuccess = this.getRollSuccess(this.sc);
+			this.rollFail = this.getRollFail(this.sc);
+			if (this.rollSuccess) this.buttonCreate.unshift(this.rollSuccess);
+			if (this.rollFail) this.buttonCreate.unshift(this.rollFail);
+			this.buttonCreate.unshift("1d100");
+			return `手動San Check模式`;
+		}
 		const diceFumble = (this.rollDice === 100) || (this.rollDice >= 96 && this.rollDice <= 100 && this.currentSan <= 49);
 		const diceSuccess = this.rollDice <= this.currentSan;
 		const diceFail = this.rollDice > this.currentSan;
@@ -1709,6 +1721,9 @@ class SanCheck {
 		} else
 			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 失敗!\n但不需要減少San`
 
+	}
+	getButton() {
+		return this.buttonCreate;
 	}
 }
 

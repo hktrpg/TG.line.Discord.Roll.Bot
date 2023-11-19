@@ -90,7 +90,8 @@ const rollDiceCommand = async function ({
 	channelid,
 	displayname,
 	displaynameDiscord,
-	tgDisplayname
+	tgDisplayname,
+	botname
 }) {
 	let rply = {
 		default: 'on',
@@ -115,8 +116,9 @@ const rollDiceCommand = async function ({
 			break;
 		}
 		case /^\.sc$/i.test(mainMsg[0]): {
-			let sc = new SanCheck(mainMsg);
+			let sc = new SanCheck(mainMsg, botname);
 			rply.text = sc.run();
+			rply.buttonCreate = sc.getButton();
 			rply.quotes = true;
 			break;
 		}
@@ -1599,7 +1601,7 @@ function PcBG() {
 }
 
 class SanCheck {
-	constructor(mainMsg) {
+	constructor(mainMsg, botname) {
 		this.mainMsg = mainMsg;
 		this.rollDice = rollbase.Dice(100);
 		this.currentSan = this.getSanity(mainMsg[1]);
@@ -1608,6 +1610,8 @@ class SanCheck {
 		this.rollSuccess = this.getRollSuccess(this.sc);
 		this.rollFail = this.getRollFail(this.sc);
 		this.lossSan = this.calculateLossSanity(this.rollSuccess, this.rollFail);
+		this.buttonCreate = ["ccrt", "ccsu"];
+		this.botname = botname;
 	}
 
 	getSanity(mainMsg) {
@@ -1658,7 +1662,26 @@ class SanCheck {
 		};
 
 	}
+	runDiscord() {
+		let arr = [];
+		let str = `手動San Check模式 \n 請選擇要擲骰的方式\n  1d100 - 基本San Check\n`;
+		this.scMode = this.getScMode(this.mainMsg[1]);
+		this.sc = this.getSc(this.mainMsg[1]);
+		this.rollSuccess = this.getRollSuccess(this.sc);
+		this.rollFail = this.getRollFail(this.sc);
+		if (this.rollSuccess) {
+			str += ` ${this.rollSuccess} - 成功時San Check\n`;
+			arr.push(this.rollSuccess);
+		}
+		if (this.rollFail) {
+			str += ` ${this.rollFail} - 失敗時San Check\n`;
+			arr.push(this.rollFail);
+		}
+		this.buttonCreate.unshift("1d100",...arr);
+		return str;
+	}
 	run() {
+		if (!this.currentSan && this.botname == "Discord") return this.runDiscord();
 		if (!this.currentSan) return '請輸入正確的San值，\n格式是 .sc 50 或 .sc 50 1/3 或 .sc 50 1d3+3/1d100';
 		const diceFumble = (this.rollDice === 100) || (this.rollDice >= 96 && this.rollDice <= 100 && this.currentSan <= 49);
 		const diceSuccess = this.rollDice <= this.currentSan;
@@ -1709,6 +1732,9 @@ class SanCheck {
 		} else
 			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 失敗!\n但不需要減少San`
 
+	}
+	getButton() {
+		return this.buttonCreate;
 	}
 }
 

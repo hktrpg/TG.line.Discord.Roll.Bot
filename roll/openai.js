@@ -470,3 +470,47 @@ const translateAi = new TranslateAi();
  * 
  */
 
+function splitTextByTokens(text, tokenLimit) {
+    const tokens = encode(text);
+    const results = [];
+    let remains = tokens;
+
+    while (remains.length > 0) {
+        let offset = Math.floor(tokenLimit * remains.length / tokens.length);
+        let subtext = remains.substring(0, offset);
+
+        // 超過token上限，試圖找到最接近而不超過上限的文字
+        while (encode(subtext).length > tokenLimit && offset > 0) {
+            offset--;
+            subtext = remains.substring(0, offset);
+        }
+
+        // 往上檢查文字結尾
+        let bound = Math.min(Math.floor(offset * 1.05), remains.length);
+        let found = false;
+        for (let i = offset; i < bound; i++) {
+            if (remains[i] === '.' || remains[i] === '!') {
+                results.push(remains.substring(0, i + 1));
+                remains = remains.substring(i + 1);
+                found = true;
+                break;
+            }
+        }
+
+        // 沒有找到分割條件1，嘗試分割條件2
+        if (!found) {
+            let newlineIndex = subtext.lastIndexOf('\n');
+            if (newlineIndex !== -1) {
+                results.push(remains.substring(0, newlineIndex + 1));
+                remains = remains.substring(newlineIndex + 1);
+            } else {
+                // 直接把整段當成一段
+                results.push(remains);
+                remains = '';
+            }
+        }
+    }
+
+    return results;
+}
+

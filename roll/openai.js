@@ -489,7 +489,7 @@ function splitTextByTokens(text, tokenLimit) {
         let bound = Math.min(Math.floor(offset * 1.05), remains.length);
         let found = false;
         for (let i = offset; i < bound; i++) {
-            if (remains[i] === '.' || remains[i] === '!') {
+            if (remains[i].match(/[。！!]|(\. )/)) {
                 results.push(remains.substring(0, i + 1));
                 remains = remains.substring(i + 1);
                 found = true;

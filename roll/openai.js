@@ -1,6 +1,6 @@
 "use strict";
 if (!process.env.OPENAI_SWITCH) return;
-
+const { encode } = require('gpt-tokenizer');
 const OpenAIApi = require('openai');
 const dotenv = require('dotenv');
 dotenv.config({ override: true });

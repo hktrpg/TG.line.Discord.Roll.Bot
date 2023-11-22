@@ -8,16 +8,12 @@ const fetch = require('node-fetch');
 const fs = require('fs').promises;
 const fs2 = require('fs');
 const VIP = require('../modules/veryImportantPerson');
-const GPT3 = "gpt-3.5-turbo-0613";
-const GPT4 = "gpt-4-0613";
+const GPT3 = { name: "gpt-3.5-turbo-1106", token: 16000, input_price: 0.005, output_price: 0.01 };
+const GPT4 = { name: "gpt-4-1106-preview", token: 128000, input_price: 0.16, output_price: 0.48 };
 const adminSecret = process.env.ADMIN_SECRET;
 const TRANSLATE_LIMIT_PERSONAL = [500, 100000, 200000, 300000, 400000, 500000, 600000, 700000];
 const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
-const splitLength = 1000;
-const MODULES = [{ name: "gpt-3.5-turbo-1106", token: 16, input_price: 0.005, output_price: 0.01 },
-{ name: "gpt-4-1106-preview", token: 128, input_price: 0.16, output_price: 0.48 },
-{ name: "gpt-3.5-turbo-0613", token: 4, input_price: 0.0075, output_price: 0.01 },]
 const gameName = function () {
     return '【OpenAi】'
 }
@@ -130,7 +126,7 @@ class OpenAI {
             apiKey: this.apiKeys[0]?.apiKey,
             baseURL: this.apiKeys[0]?.baseURL,
         };
-        this.model = process.env.OPENAI_MODEL || "gpt-4";
+        this.model = process.env.OPENAI_MODEL || GPT3.name;
         if (this.apiKeys.length === 0) return;
         this.openai = new OpenAIApi(this.configuration);
         this.currentApiKeyIndex = 0;
@@ -181,7 +177,7 @@ class OpenAI {
             baseURL: this.apiKeys[this.currentApiKeyIndex].baseURL,
         });
     }
-    wait(minutes = 1) {
+    waitMins(minutes = 1) {
         return new Promise(resolve => {
             setTimeout(() => {
                 resolve();
@@ -236,9 +232,10 @@ class TranslateAi extends OpenAI {
     constructor() {
         super();
     }
-    async getText(str, discordMessage, discordClient) {
+    async getText(str, mode, discordMessage, discordClient) {
         let text = [];
         let textLength = 0;
+        const splitLength = mode.token;
         str = str.replace(/^\s*\.ait\d?\s*/i, '');
         if (str.length > 0) {
             text.push(str);
@@ -267,7 +264,7 @@ class TranslateAi extends OpenAI {
         }
 
 
-        let result = this.splitStringByLength(text.join('\n'), splitLength);
+        let result = this.splitTextByTokens(text.join('\n'), splitLength);
 
         return { translateScript: result, textLength };
 
@@ -286,11 +283,11 @@ class TranslateAi extends OpenAI {
     async translateChat(inputStr, mode) {
         try {
             let response = await this.openai.chat.completions.create({
-                "model": mode,
+                "model": mode.name,
                 "messages": [
                     {
                         "role": "system",
-                        "content": "你叫HKTRPG TRPG助手。你的責任是把所有輸入的內容翻譯成正體中文。名詞表: KEEPERS=KP，INVESTIGATORS為調查員，ROLL是擲骰。GAME MASTER是GM。劇本是模組。日文漢字人名不需翻譯。"
+                        "content": "你叫HKTRPG TRPG助手。你的責任是把所有輸入的內容翻譯成正體中文。名詞表: KEEPERS=KP，INVESTIGATORS為調查員，ROLL是擲骰，GAME MASTER是GM，劇本是模組。翻譯人名時在後面用「」包著原文。只輸出翻譯文章，禁示輸出原文或以外結果。"
                     },
                     {
                         "role": "user",
@@ -318,7 +315,7 @@ class TranslateAi extends OpenAI {
         } catch (error) {
             if (this.errorCount < (this.apiKeys.length * 5)) {
                 if (((this.errorCount !== 0) && this.errorCount % this.apiKeys.length) === 0) {
-                    await super.wait(2);
+                    await super.waitMins(2);
                 }
                 await super.handleError(error);
                 return await this.translateChat(inputStr, mode);
@@ -345,7 +342,7 @@ class TranslateAi extends OpenAI {
         let lv = await VIP.viplevelCheckUser(userid);
         if (mode === GPT4 && lv < 2) return { text: `GPT-4是實驗功能，現在只有VIP3才能使用，\n支援HKTRPG及升級請到\nhttps://www.patreon.com/hktrpg` };
         let limit = TRANSLATE_LIMIT_PERSONAL[lv];
-        let { translateScript, textLength } = await this.getText(inputStr, discordMessage, discordClient);
+        let { translateScript, textLength } = await this.getText(inputStr, mode, discordMessage, discordClient);
         if (textLength > limit) return { text: `輸入的文字太多了，請分批輸入，你是VIP LV${lv}，限制為${limit}字` };
         let response = await this.translateText(translateScript, mode);
         response = response.join('\n');
@@ -356,6 +353,53 @@ class TranslateAi extends OpenAI {
         return { text: response }
 
     }
+    splitTextByTokens(text, inputTokenLimit) {
+        const tokens = encode(text);
+        const results = [];
+        let remains = text;
+        const tokenLimit = inputTokenLimit - 300;
+        console.log("inputTokenLimit", inputTokenLimit)
+        while (remains.length > 0) {
+            let offset = Math.floor(tokenLimit * remains.length / tokens.length);
+            console.log("offset", offset)
+            let subtext = remains.substring(0, offset);
+
+            // 超過token上限，試圖找到最接近而不超過上限的文字
+            while (encode(subtext).length > tokenLimit && offset > 0) {
+                offset--;
+                subtext = remains.substring(0, offset);
+            }
+
+            // 往上檢查文字結尾
+            let bound = Math.min(Math.floor(offset * 1.05), remains.length);
+            let found = false;
+            for (let i = offset; i < bound; i++) {
+                if (remains[i].match(/[。！!]|(\. )/)) {
+                    results.push(remains.substring(0, i + 1));
+                    remains = remains.substring(i + 1);
+                    found = true;
+                    break;
+                }
+            }
+
+            // 沒有找到分割條件1，嘗試分割條件2
+            if (!found) {
+                let newlineIndex = subtext.lastIndexOf('\n');
+                if (newlineIndex !== -1) {
+                    results.push(remains.substring(0, newlineIndex + 1));
+                    remains = remains.substring(newlineIndex + 1);
+                } else {
+                    // 直接把整段當成一段
+                    results.push(remains);
+                    remains = '';
+                }
+            }
+        }
+
+        return results;
+    }
+
+
     splitStringByLength(str, length) {
         let result = [];
         let currentLine = 0;
@@ -396,7 +440,7 @@ class ChatAi extends OpenAI {
         if (mode === GPT4 && lv < 2) return { text: `GPT-4是實驗功能，現在只有VIP3才能使用，\n支援HKTRPG及升級請到\nhttps://www.patreon.com/hktrpg` };
         try {
             let response = await this.openai.chat.completions.create({
-                "model": mode,
+                "model": mode.name,
                 "messages": [
                     {
                         "role": "system",
@@ -470,47 +514,4 @@ const translateAi = new TranslateAi();
  * 
  */
 
-function splitTextByTokens(text, tokenLimit) {
-    const tokens = encode(text);
-    const results = [];
-    let remains = tokens;
-
-    while (remains.length > 0) {
-        let offset = Math.floor(tokenLimit * remains.length / tokens.length);
-        let subtext = remains.substring(0, offset);
-
-        // 超過token上限，試圖找到最接近而不超過上限的文字
-        while (encode(subtext).length > tokenLimit && offset > 0) {
-            offset--;
-            subtext = remains.substring(0, offset);
-        }
-
-        // 往上檢查文字結尾
-        let bound = Math.min(Math.floor(offset * 1.05), remains.length);
-        let found = false;
-        for (let i = offset; i < bound; i++) {
-            if (remains[i].match(/[。！!]|(\. )/)) {
-                results.push(remains.substring(0, i + 1));
-                remains = remains.substring(i + 1);
-                found = true;
-                break;
-            }
-        }
-
-        // 沒有找到分割條件1，嘗試分割條件2
-        if (!found) {
-            let newlineIndex = subtext.lastIndexOf('\n');
-            if (newlineIndex !== -1) {
-                results.push(remains.substring(0, newlineIndex + 1));
-                remains = remains.substring(newlineIndex + 1);
-            } else {
-                // 直接把整段當成一段
-                results.push(remains);
-                remains = '';
-            }
-        }
-    }
-
-    return results;
-}
 

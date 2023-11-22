@@ -1326,12 +1326,14 @@ function __checkUserRole(groupid, message) {
 async function __handlingReplyMessage(message, result) {
 	const text = result.text;
 	const sendTexts = text.toString().match(/[\s\S]{1,2000}/g);
-	for (let index = 0; index < sendTexts.length; index++) {
+	for (let index = 0; index < sendTexts?.length && index < 4; index++) {
 		const sendText = sendTexts[index];
-		if (sendText.length === 0) continue;
 		try {
-			//message.author && message.author.send({ embeds: await convQuotes(sendText[i]) });
-			await message.reply({ embeds: await convQuotes(sendText), ephemeral: false })
+			if (index == 0)
+				await message.reply({ embeds: await convQuotes(sendText), ephemeral: false })
+			else
+				await message.channel.send({ embeds: await convQuotes(sendText), ephemeral: false })
+
 		} catch (error) {
 			try {
 				await message.editReply({ embeds: await convQuotes(sendText), ephemeral: false })
@@ -1449,5 +1451,5 @@ if (debugMode) process.on('warning', e => {
 )
 .addField('Inline field title', 'Some value here', true)
  */
-	//.setImage('https://i.imgur.com/wSTFkRM.png')
-	//.setFooter('Some footer text here', 'https://i.imgur.com/wSTFkRM.png');
+//.setImage('https://i.imgur.com/wSTFkRM.png')
+//.setFooter('Some footer text here', 'https://i.imgur.com/wSTFkRM.png');

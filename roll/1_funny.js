@@ -177,7 +177,8 @@ const rollDiceCommand = async function ({
 			let respond = `${month}月${day}日\n\n`;
 			rply.text = await wiki({
 				headers: { 'User-Agent': identity },
-				apiUrl: 'https://zh.wikipedia.org/w/api.php'
+				apiUrl: 'https://zh.wikipedia.org/w/api.php',
+				setpagelanguage: "zh-hant"
 			}).page(`${month}月${day}日`)
 				.then(async page => {
 					let temp = await page.content();
@@ -186,11 +187,11 @@ const rollDiceCommand = async function ({
 					})
 					respond += `${(answerFestival && answerFestival.title) ? `${answerFestival.title}\n` : ''}${(answerFestival && answerFestival.content) ? `${answerFestival.content}\n` : ''}\n`
 					let answerBig = temp.find(v => {
-						return v && v.title.match(/(大事记)|(大事記)/)
+						return v && v.title.match(/(大事)/)
 					})
 					if (answerBig && answerBig.items) answerBig = answerBig.items;
 
-					for (let index = 0; index < answerBig.length; index++) {
+					for (let index = 0; index < answerBig?.length; index++) {
 
 						respond += `${answerBig[index].title}\n${answerBig[index].content}\n\n`
 					}
@@ -1312,7 +1313,7 @@ class DailyFuckUp {
 		}
 		chapter = DailyFuckUp.addParagraph(chapter);
 		text.push(chapter);
-	
+
 		let result = text.join("\n\n").replace('。。', '。');
 		return result;
 	}

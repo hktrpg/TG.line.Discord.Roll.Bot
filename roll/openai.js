@@ -287,12 +287,24 @@ class TranslateAi extends OpenAI {
                 "messages": [
                     {
                         "role": "system",
-                        "content": "你叫HKTRPG TRPG助手。你的責任是把所有輸入的內容翻譯成正體中文。名詞表: KEEPERS=KP，INVESTIGATORS為調查員，ROLL是擲骰，GAME MASTER是GM，劇本是模組。翻譯人名時在後面用「」包著原文。只輸出翻譯文章，禁示輸出原文或以外結果。"
+                        "content":`你是一位精通台灣繁體中文的專業翻譯，曾參與不同繁體中文版的翻譯工作，因此對於翻譯有深入的理解。
+                        規則：
+                        – 翻譯時要準確傳達內容。
+                        ​
+                        – 翻譯時注意人名，在已翻譯的人名後面用括號保留人名的原文。
+                        ​
+                        – 分成兩次翻譯，並且只打印最後一次結果：
+                        ​
+                        1. 根據內容直譯，不要遺漏任何訊息
+                        ​
+                        2. 根據第一次直譯的結果重新意譯，遵守原意的前提下讓內容更通俗易懂，符合台灣繁體中文的表達習慣
+                        ​
+                        – 每輪翻譯後，都要重新比對原文，找到扭曲原意或者遺漏的內容，然後再補充到下一輪的翻譯當中。（Chain of Density 概念）`
                     },
                     {
                         "role": "user",
-                        "content": `使用正體中文翻譯以下文字
-                        ${inputStr}\n\n`
+                        "content": `把以下文字翻譯成正體中文\n\n
+                        ${inputStr}\n`
                     }
                 ]
 
@@ -302,7 +314,6 @@ class TranslateAi extends OpenAI {
                 const dataStr = response.data;
                 const dataArray = dataStr.split('\n\n').filter(Boolean); // 將字符串分割成數組
                 const parsedData = [];
-
                 dataArray.forEach((str) => {
                     const obj = JSON.parse(str.substring(6)); // 將子字符串轉換為對象
                     parsedData.push(obj);

@@ -358,18 +358,14 @@ class TranslateAi extends OpenAI {
         const results = [];
         let remains = text;
         const tokenLimit = inputTokenLimit - 300;
-        console.log("inputTokenLimit", inputTokenLimit)
         while (remains.length > 0) {
             let offset = Math.floor(tokenLimit * remains.length / tokens.length);
-            console.log("offset", offset)
             let subtext = remains.substring(0, offset);
-
             // 超過token上限，試圖找到最接近而不超過上限的文字
             while (encode(subtext).length > tokenLimit && offset > 0) {
                 offset--;
                 subtext = remains.substring(0, offset);
             }
-
             // 往上檢查文字結尾
             let bound = Math.min(Math.floor(offset * 1.05), remains.length);
             let found = false;
@@ -397,37 +393,6 @@ class TranslateAi extends OpenAI {
         }
 
         return results;
-    }
-
-
-    splitStringByLength(str, length) {
-        let result = [];
-        let currentLine = 0;
-        let currentStringLength = 0;
-        const lines = str.split('\n');
-        for (let i = 0; i < lines.length; i++) {
-            let line = lines[i];
-            let lineLength = line.length;
-            if (lineLength > length) {
-                let lineSplit = line.split(`/.{1,${length}}/g`);
-                for (let j = 0; j < lineSplit.length; j++) {
-                    currentLine++;
-                    result[currentLine] = lineSplit[j];
-                }
-                currentStringLength = 0;
-            }
-            if (currentStringLength + lineLength > length) {
-                currentLine++;
-                result[currentLine] = line;
-                currentStringLength = 0;
-            }
-            if (currentStringLength + lineLength < length) {
-                (result[currentLine] === undefined) ? result[currentLine] = line + '\n' : result[currentLine] += line + '\n';
-                currentStringLength += lineLength;
-            }
-
-        }
-        return result.filter(a => a.length > 0);
     }
 
 }

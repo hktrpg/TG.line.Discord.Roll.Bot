@@ -45,6 +45,7 @@
     "fuse.js": "^6.6.2",
     "geopattern": "^1.2.3",
     "get-image-colors": "^4.0.1",
+    "gpt-tokenizer": "^2.1.2",
     "https": "^1.0.0",
     "image-url-validator": "^1.0.4",
     "jimp": "^0.16.2",

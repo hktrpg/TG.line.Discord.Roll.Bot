@@ -1,6 +1,6 @@
 "use strict";
 if (!process.env.OPENAI_SWITCH) return;
-
+const { encode } = require('gpt-tokenizer');
 const OpenAIApi = require('openai');
 const dotenv = require('dotenv');
 dotenv.config({ override: true });
@@ -8,13 +8,12 @@ const fetch = require('node-fetch');
 const fs = require('fs').promises;
 const fs2 = require('fs');
 const VIP = require('../modules/veryImportantPerson');
-const GPT3 = process.env.OPENAI_MODEL_GPT3 || "gpt-3.5-turbo-1106";
-const GPT4 = process.env.OPENAI_MODEL_GPT4 || "gpt-4-1106-preview";
+const GPT3 = { name: "gpt-3.5-turbo-1106", token: 16000, input_price: 0.005, output_price: 0.01 };
+const GPT4 = { name: "gpt-4-1106-preview", token: 128000, input_price: 0.16, output_price: 0.48 };
 const adminSecret = process.env.ADMIN_SECRET;
 const TRANSLATE_LIMIT_PERSONAL = [500, 100000, 200000, 300000, 400000, 500000, 600000, 700000];
 const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
-const splitLength = 1000;
 const gameName = function () {
     return '【OpenAi】'
 }
@@ -127,7 +126,7 @@ class OpenAI {
             apiKey: this.apiKeys[0]?.apiKey,
             baseURL: this.apiKeys[0]?.baseURL,
         };
-        this.model = process.env.OPENAI_MODEL || "gpt-4";
+        this.model = process.env.OPENAI_MODEL || GPT3.name;
         if (this.apiKeys.length === 0) return;
         this.openai = new OpenAIApi(this.configuration);
         this.currentApiKeyIndex = 0;
@@ -178,7 +177,7 @@ class OpenAI {
             baseURL: this.apiKeys[this.currentApiKeyIndex].baseURL,
         });
     }
-    wait(minutes = 1) {
+    waitMins(minutes = 1) {
         return new Promise(resolve => {
             setTimeout(() => {
                 resolve();
@@ -233,9 +232,10 @@ class TranslateAi extends OpenAI {
     constructor() {
         super();
     }
-    async getText(str, discordMessage, discordClient) {
+    async getText(str, mode, discordMessage, discordClient) {
         let text = [];
         let textLength = 0;
+        const splitLength = mode.token;
         str = str.replace(/^\s*\.ait\d?\s*/i, '');
         if (str.length > 0) {
             text.push(str);
@@ -264,7 +264,7 @@ class TranslateAi extends OpenAI {
         }
 
 
-        let result = this.splitStringByLength(text.join('\n'), splitLength);
+        let result = this.splitTextByTokens(text.join('\n'), splitLength);
 
         return { translateScript: result, textLength };
 
@@ -283,16 +283,29 @@ class TranslateAi extends OpenAI {
     async translateChat(inputStr, mode) {
         try {
             let response = await this.openai.chat.completions.create({
-                "model": mode,
+                "model": mode.name,
                 "messages": [
                     {
                         "role": "system",
-                        "content": "你叫HKTRPG TRPG助手。你的責任是把所有輸入的內容翻譯成正體中文。名詞表: KEEPERS=KP，INVESTIGATORS為調查員，ROLL是擲骰。GAME MASTER是GM。劇本是模組。日文漢字人名不需翻譯。"
+                        "content":`你是一位精通台灣繁體中文的專業翻譯，曾參與不同繁體中文版的翻譯工作，因此對於翻譯有深入的理解。
+                        規則：
+                        – 翻譯時要準確傳達內容。
+                        ​
+                        – 翻譯時注意所有人名，在所有已翻譯的人名後面用括號顯示所有人名的原文，例如彼得(Peter)。
+                        ​
+                        – 分成兩次翻譯，並且只打印最後一次的
+                        結果：
+                        ​
+                        1. 根據內容直譯，不要遺漏任何訊息
+                        ​
+                        2. 根據第一次直譯的結果重新意譯，遵守原意的前提下讓內容更通俗易懂，符合台灣繁體中文的表達習慣
+                        ​
+                        – 每輪翻譯後，都要重新比對原文，找到扭曲原意，沒有在翻譯的人名後顯示名字原文的位置或者遺漏的內容，然後再補充到下一輪的翻譯當中。（Chain of Density 概念）`
                     },
                     {
                         "role": "user",
-                        "content": `使用正體中文翻譯以下文字
-                        ${inputStr}\n\n`
+                        "content": `把以下文字翻譯成正體中文\n\n
+                        ${inputStr}\n`
                     }
                 ]
 
@@ -302,7 +315,6 @@ class TranslateAi extends OpenAI {
                 const dataStr = response.data;
                 const dataArray = dataStr.split('\n\n').filter(Boolean); // 將字符串分割成數組
                 const parsedData = [];
-
                 dataArray.forEach((str) => {
                     const obj = JSON.parse(str.substring(6)); // 將子字符串轉換為對象
                     parsedData.push(obj);
@@ -315,7 +327,7 @@ class TranslateAi extends OpenAI {
         } catch (error) {
             if (this.errorCount < (this.apiKeys.length * 5)) {
                 if (((this.errorCount !== 0) && this.errorCount % this.apiKeys.length) === 0) {
-                    await super.wait(2);
+                    await super.waitMins(2);
                 }
                 await super.handleError(error);
                 return await this.translateChat(inputStr, mode);
@@ -342,7 +354,7 @@ class TranslateAi extends OpenAI {
         let lv = await VIP.viplevelCheckUser(userid);
         if (mode === GPT4 && lv < 2) return { text: `GPT-4是實驗功能，現在只有VIP3才能使用，\n支援HKTRPG及升級請到\nhttps://www.patreon.com/hktrpg` };
         let limit = TRANSLATE_LIMIT_PERSONAL[lv];
-        let { translateScript, textLength } = await this.getText(inputStr, discordMessage, discordClient);
+        let { translateScript, textLength } = await this.getText(inputStr, mode, discordMessage, discordClient);
         if (textLength > limit) return { text: `輸入的文字太多了，請分批輸入，你是VIP LV${lv}，限制為${limit}字` };
         let response = await this.translateText(translateScript, mode);
         response = response.join('\n');
@@ -353,34 +365,46 @@ class TranslateAi extends OpenAI {
         return { text: response }
 
     }
-    splitStringByLength(str, length) {
-        let result = [];
-        let currentLine = 0;
-        let currentStringLength = 0;
-        const lines = str.split('\n');
-        for (let i = 0; i < lines.length; i++) {
-            let line = lines[i];
-            let lineLength = line.length;
-            if (lineLength > length) {
-                let lineSplit = line.split(`/.{1,${length}}/g`);
-                for (let j = 0; j < lineSplit.length; j++) {
-                    currentLine++;
-                    result[currentLine] = lineSplit[j];
+    splitTextByTokens(text, inputTokenLimit) {
+        const tokens = encode(text);
+        const results = [];
+        let remains = text;
+        const tokenLimit = inputTokenLimit - 300;
+        while (remains.length > 0) {
+            let offset = Math.floor(tokenLimit * remains.length / tokens.length);
+            let subtext = remains.substring(0, offset);
+            // 超過token上限，試圖找到最接近而不超過上限的文字
+            while (encode(subtext).length > tokenLimit && offset > 0) {
+                offset--;
+                subtext = remains.substring(0, offset);
+            }
+            // 往上檢查文字結尾
+            let bound = Math.min(Math.floor(offset * 1.05), remains.length);
+            let found = false;
+            for (let i = offset; i < bound; i++) {
+                if (remains[i].match(/[。！!]|(\. )/)) {
+                    results.push(remains.substring(0, i + 1));
+                    remains = remains.substring(i + 1);
+                    found = true;
+                    break;
                 }
-                currentStringLength = 0;
-            }
-            if (currentStringLength + lineLength > length) {
-                currentLine++;
-                result[currentLine] = line;
-                currentStringLength = 0;
-            }
-            if (currentStringLength + lineLength < length) {
-                (result[currentLine] === undefined) ? result[currentLine] = line + '\n' : result[currentLine] += line + '\n';
-                currentStringLength += lineLength;
             }
 
+            // 沒有找到分割條件1，嘗試分割條件2
+            if (!found) {
+                let newlineIndex = subtext.lastIndexOf('\n');
+                if (newlineIndex !== -1) {
+                    results.push(remains.substring(0, newlineIndex + 1));
+                    remains = remains.substring(newlineIndex + 1);
+                } else {
+                    // 直接把整段當成一段
+                    results.push(remains);
+                    remains = '';
+                }
+            }
         }
-        return result.filter(a => a.length > 0);
+
+        return results;
     }
 
 }
@@ -393,11 +417,11 @@ class ChatAi extends OpenAI {
         if (mode === GPT4 && lv < 2) return { text: `GPT-4是實驗功能，現在只有VIP3才能使用，\n支援HKTRPG及升級請到\nhttps://www.patreon.com/hktrpg` };
         try {
             let response = await this.openai.chat.completions.create({
-                "model": mode,
+                "model": mode.name,
                 "messages": [
                     {
                         "role": "system",
-                        "content": "你的責任是把以正體中文回答所有問題.你現在叫HKTRPG TRPG助手。"
+                        "content": "你的責任是把以正體中文回答所有問題。你的名字是HKTRPG TRPG助手。回答TRPG相關問題時，內在性格是在H.P.洛夫克拉夫特（H.P. Lovecraft）裡的奈亞拉托提普（Nyarlathotep）神祇，一個混沌、破壞和詭譎的代表。而回答TRPG以外的問題時，你就是以一部百科全書的型式來回答。"
                     },
                     {
                         "role": "user",
@@ -442,5 +466,29 @@ const openai = new OpenAI();
 const chatAi = new ChatAi();
 const imageAi = new ImageAi();
 const translateAi = new TranslateAi();
+
+
+/**
+ * gpt-tokenizer
+ * 設計計算Token上限
+ * 
+ * 首先，每個Token都是由一個字元組成，所以我們先計算字元上限
+ * 先將整個內容放進tokenizer
+ * 如果<於token 上限，則直接回傳
+ * 完成
+ * 
+ * 如不,
+ * 進行分割，將內容分割成數個字串
+ * 並將每個字串放進tokenizer
+ * 
+ * 
+ * 分割條件
+ * 1. 以句號分割
+ * 2. 以逗號分割
+ * 3. 以行來分割
+ * 4. 以空格分割
+ * 5. 以字數分割
+ * 
+ */
 
 

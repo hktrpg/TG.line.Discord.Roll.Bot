@@ -141,6 +141,13 @@ www.get('/api', async (req, res) => {
 
 });
 
+// 將/publiccard/css/設置為靜態資源的路徑
+www.use('/publiccard/css/', express.static(process.cwd() + '/views/css/'));
+
+// 將/publiccard/includes/設置為靜態資源的路徑
+www.use('/publiccard/includes/', express.static(process.cwd() + '/views/includes/'));
+
+
 www.get('/card', (req, res) => {
     res.sendFile(process.cwd() + '/views/characterCard.html');
 });

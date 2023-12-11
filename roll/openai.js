@@ -10,6 +10,7 @@ const fs2 = require('fs');
 const VIP = require('../modules/veryImportantPerson');
 const GPT3 = { name: "gpt-3.5-turbo-1106", token: 16000, input_price: 0.005, output_price: 0.01 };
 const GPT4 = { name: "gpt-4-1106-preview", token: 128000, input_price: 0.16, output_price: 0.48 };
+const DALLE3 = { name: "dall-e-3", price: 0.20, size1: "1024x1024", size2: "1024x1792" };
 const adminSecret = process.env.ADMIN_SECRET;
 const TRANSLATE_LIMIT_PERSONAL = [500, 100000, 200000, 300000, 400000, 500000, 600000, 700000];
 const variables = {};
@@ -80,6 +81,10 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^\S/.test(mainMsg[1]) && /^.aimage$/i.test(mainMsg[0]): {
+            if (!adminSecret) return rply;
+            if (userid !== adminSecret) return rply;
+            let lv = await VIP.viplevelCheckUser(userid);
+            if ( lv < 1) return { text: `這是實驗功能，現在只有VIP才能使用，\n支援HKTRPG及升級請到\nhttps://www.patreon.com/hktrpg` };
             rply.text = await imageAi.handleImageAi(inputStr);
             rply.quotes = true;
             return rply;
@@ -194,9 +199,10 @@ class ImageAi extends OpenAI {
         let input = inputStr.replace(/^\.aimage/i, '');
         try {
             let response = await this.openai.images.generate({
+                "model": DALLE3.name,
                 "prompt": `${input}`,
                 "n": 1,
-                "size": "1024x1024"
+                "size": DALLE3.size1,
 
             })
             response = await this.handleImage(response, input)
@@ -218,10 +224,11 @@ class ImageAi extends OpenAI {
         }
     }
     handleImage(data, input) {
-        if (data?.data?.data?.length === 0) return '沒有輸出的圖片, 請重新輸入描述';
+        console.log(data, input)
+        if (data?.data?.length === 0) return '沒有輸出的圖片, 請重新輸入描述';
         let response = `${input}:\n`;
-        for (let index = 0; index < data.data.data.length; index++) {
-            response += data.data.data[index].url + "\n";
+        for (let index = 0; index < data.data.length; index++) {
+            response += data.data[index].url + "\n";
         }
         return response;
     }
@@ -287,7 +294,7 @@ class TranslateAi extends OpenAI {
                 "messages": [
                     {
                         "role": "system",
-                        "content":`你是一位精通台灣繁體中文的專業翻譯，曾參與不同繁體中文版的翻譯工作，因此對於翻譯有深入的理解。
+                        "content": `你是一位精通台灣繁體中文的專業翻譯，曾參與不同繁體中文版的翻譯工作，因此對於翻譯有深入的理解。
                         規則：
                         – 翻譯時要準確傳達內容。
                         ​
@@ -351,7 +358,6 @@ class TranslateAi extends OpenAI {
     }
     async handleTranslate(inputStr, discordMessage, discordClient, userid, mode) {
         let lv = await VIP.viplevelCheckUser(userid);
-        if (mode === GPT4 && lv < 2) return { text: `GPT-4是實驗功能，現在只有VIP3才能使用，\n支援HKTRPG及升級請到\nhttps://www.patreon.com/hktrpg` };
         let limit = TRANSLATE_LIMIT_PERSONAL[lv];
         let { translateScript, textLength } = await this.getText(inputStr, mode, discordMessage, discordClient);
         if (textLength > limit) return { text: `輸入的文字太多了，請分批輸入，你是VIP LV${lv}，限制為${limit}字` };
@@ -412,8 +418,6 @@ class ChatAi extends OpenAI {
         super();
     }
     async handleChatAi(inputStr, mode, userid) {
-        let lv = await VIP.viplevelCheckUser(userid);
-        if (mode === GPT4 && lv < 2) return { text: `GPT-4是實驗功能，現在只有VIP3才能使用，\n支援HKTRPG及升級請到\nhttps://www.patreon.com/hktrpg` };
         try {
             let response = await this.openai.chat.completions.create({
                 "model": mode.name,

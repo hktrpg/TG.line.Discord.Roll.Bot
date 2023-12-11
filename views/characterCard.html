@@ -16,7 +16,6 @@
     <title>Character Card 角色卡 @ HKTRPG</title>
     <link rel="icon" href="https://avatars2.githubusercontent.com/u/48795428?s=280&v=4" />
     <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
-
     <!--https://blog.gtwang.org/programming/javascript-aes-symmetric-encryption-tutorial/-->
 </head>
 
@@ -301,10 +300,15 @@
         integrity="sha384-w1Q4orYjBQndcko6MimVbzY0tgp4pWB4lZ7lr30WKz0vr/aWKhXdBNmNb5D92v7s" crossorigin="anonymous">
         </script>
     <script>
+        const TITLE = "HKTRPG 私人角色卡";
         $(function () {
-            $("#header").load("includes/header.html");
+            $("#header").load("includes/header.html", function () {
+                $("#title").text(TITLE);
+            });
             $("#footer").load("includes/footer.html");
         });
+
+
     </script>
     <script>
         $('#warning-update').hide();

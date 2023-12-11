@@ -42,10 +42,6 @@ EG: .wiki BATMAN
 預設翻譯成正體中文 
 EG: .tran BATMAN 
 
-VIP功能:同步式頻道傳譯功能
-.translate on
-.translate off
-
 可翻譯成其他語言 ： .tran.(語系) (內容)
 EG: .tran.ja BATMAN  .tran.日 BATMAN
 常用語言代碼: 英=en, 簡=zh-cn, 德=de, 日=ja

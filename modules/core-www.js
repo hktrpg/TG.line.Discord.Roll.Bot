@@ -157,6 +157,11 @@ www.get('/card', (req, res) => {
 www.get('/publiccard', (req, res) => {
     res.sendFile(process.cwd() + '/views/characterCardPublic.html');
 });
+www.get('/tool/randomDelete.html', (req, res) => {
+    res.sendFile(process.cwd() + '/views/randomDelete.html');
+});
+
+
 if (process.env.DISCORD_CHANNEL_SECRET) {
     www.get('/app/discord/:id', (req, res) => {
         if (req.originalUrl.match(/html$/))

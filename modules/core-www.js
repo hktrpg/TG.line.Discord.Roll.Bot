@@ -157,8 +157,8 @@ www.get('/card', (req, res) => {
 www.get('/publiccard', (req, res) => {
     res.sendFile(process.cwd() + '/views/characterCardPublic.html');
 });
-www.get('/tool/randomDelete.html', (req, res) => {
-    res.sendFile(process.cwd() + '/views/randomDelete.html');
+www.get('/signal', (req, res) => {
+    res.sendFile(process.cwd() + '/views/signalToNoise.html');
 });
 
 

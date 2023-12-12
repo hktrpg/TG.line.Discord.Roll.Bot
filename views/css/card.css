@@ -1,0 +1,88 @@
+.overlay {
+    position: fixed;
+    z-index: 999;
+}
+
+.btn-link {
+    font-weight: 400;
+    color: #000000 !important;
+    text-decoration: none;
+    padding: 0px 8px 0px 8px !important;
+    border-bottom: 00px !important;
+    margin-bottom: 25px !important;
+    height: 32px !important;
+
+}
+
+.btn-link:hover {
+    background-color: #F79489;
+}
+
+.bg-color {
+    background-color: #F9F1F0
+}
+
+.board1 {
+    border: 1px solid #F8AFA6;
+    border-radius: 8px;
+    background-color: #FADCD9
+}
+
+.bg-color2 {
+    background-color: #F79489;
+}
+
+.bg-color3 {
+    background-color: #F8AFA6
+}
+
+.bg-color4 {
+    background-color: #FADCD9
+}
+
+.textNote {
+    background-color: #FADCD9;
+    resize: none;
+    height: 100px;
+    border: none;
+    padding: 1px 1px 1px 1px;
+    border-radius: 8px;
+}
+
+.textName {
+    height: 32px;
+    width: 100px;
+    background-color: #FADCD9;
+    resize: none;
+    overflow: hidden;
+    white-space: nowrap;
+    text-align: center;
+    border: none;
+    padding: 1px 1px 1px 1px;
+    border-radius: 8px;
+}
+
+.textState:hover {
+    background-color: #F79489;
+}
+
+.textName:hover {
+    background-color: #F79489;
+}
+
+.textNote:hover {
+    background-color: #F79489;
+}
+
+.textState {
+    border: none;
+    padding: 1px 1px 1px 1px;
+    border-radius: 8px;
+    width: 153px;
+    height: 32px;
+    background-color: #FADCD9;
+    resize: none;
+    overflow: hidden;
+    white-space: nowrap;
+    text-align: center;
+}

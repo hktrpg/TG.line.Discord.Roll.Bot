@@ -141,12 +141,27 @@ www.get('/api', async (req, res) => {
 
 });
 
+// 將/publiccard/css/設置為靜態資源的路徑
+www.use('/:path/css/', express.static(process.cwd() + '/views/css/'));
+www.use('/css/', express.static(process.cwd() + '/views/css/'));
+// 將/publiccard/includes/設置為靜態資源的路徑
+www.use('/:path/includes/', express.static(process.cwd() + '/views/includes/'));
+www.use('/:path/scripts/', express.static(process.cwd() + '/views/scripts/'));
+www.use('/includes/', express.static(process.cwd() + '/views/includes/'));
+www.use('/scripts/', express.static(process.cwd() + '/views/scripts/'));
+
+
 www.get('/card', (req, res) => {
     res.sendFile(process.cwd() + '/views/characterCard.html');
 });
 www.get('/publiccard', (req, res) => {
     res.sendFile(process.cwd() + '/views/characterCardPublic.html');
 });
+www.get('/signal', (req, res) => {
+    res.sendFile(process.cwd() + '/views/signalToNoise.html');
+});
+
+
 if (process.env.DISCORD_CHANNEL_SECRET) {
     www.get('/app/discord/:id', (req, res) => {
         if (req.originalUrl.match(/html$/))

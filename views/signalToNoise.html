@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-tw">
 
 <head>
     <!-- Required meta tags -->
@@ -22,8 +22,9 @@
     <meta property="og:url" content="https://www.hktrpg.com/tool/randomDelete.html">
     <meta property="og:description" content="Signal to Noise 可用 文字轉換器">
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+        integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/cnchar-all/cnchar.all.min.js"></script>
 
     <title>文字轉換器 Signal to Noise @ HKTRPG</title>
@@ -34,95 +35,7 @@
 
 <body>
     <div class="container">
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <div class="container-fluid">
-                <a class="navbar-brand">
-                    <span class="badge bg-danger">
-                        文字轉換器 @ Signal to Noise 可用
-                        <span class="iconify" data-icon="mdi:dice-multiple-outline" data-inline="false"
-                            style="color: black;" data-width="32" data-height="32"></span>
-                        <span class="iconify" data-icon="bi:chat-square-text" data-inline="false" style="color: black;"
-                            data-width="32" data-height="32"></span>
-                    </span>
-                </a>
-
-
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
-                    aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item">
-                            <a class="nav-link active" aria-current="page"
-                                href="https://www.hktrpg.com/wiki/index.php">主頁</a>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                                角色卡
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <li><a class="dropdown-item" href="https://card.hktrpg.com/">私人角色卡</a></li>
-                                <li><a class="dropdown-item" href="https://publiccard.hktrpg.com/">公開角色卡</a>
-                                </li>
-                            </ul>
-                        </li>
-
-
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown1" role="button"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                                跑團平台
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown1">
-                                <li><a class="dropdown-item" href="https://z01.hktrpg.com/">2.5D - 烏冬</a></li>
-                                <li><a class="dropdown-item" href="https://z02.hktrpg.com/">四平八穩 - 冰丼</a></li>
-                            </ul>
-                        </li>
-
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown2" role="button"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                                擲骰
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown2">
-                                <li><a class="dropdown-item" href="https://rollbot.hktrpg.com/">聊天室擲骰</a></li>
-                                <li><a class="dropdown-item" href="https://roll.hktrpg.com/">簡易擲骰平台</a></li>
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>
-                                <li><a class="dropdown-item" href="https://discord.hktrpg.com">Discord 骰子機械人</a>
-                                </li>
-                                <li><a class="dropdown-item" href="http://t.me/hktrpg_bot">Telegram 骰子機械人</a></li>
-                                <li><a class="dropdown-item" href="http://bit.ly/HKTRPG_LINE">Line 骰子機械人</a></li>
-                            </ul>
-                        </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link"
-                                href="https://hktrpg.github.io/TG.line.Discord.Roll.Bot/PORTFOLIOP">HKTRPG作品集</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="https://www.patreon.com/HKTRPG"><span class="iconify"
-                                    data-icon="logos:patreon"></span>訂閱</a>
-                        </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link" href="https://github.com/hktrpg/TG.line.Discord.Roll.Bot">
-                                <span class="iconify" data-icon="bytesize:github" data-inline="false" data-width="25px"
-                                    data-height="25px"></span>
-                            </a>
-                        </li>
-
-                    </ul>
-
-                </div>
-            </div>
-        </nav>
+        <div id="header"></div>
 
         <div class="row">
             <div class="col-8  h-75">
@@ -209,11 +122,15 @@ That struts and frets his hour upon the stage</textarea>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        文章亂碼產生器<br>
-                        原理是自動抽選一些英文字母作為亂碼<br>
-                        附有把文字轉換成拼音的功能<br>
+                        Signal to Noise TRPG專用 文章亂碼產生器<br>
+                        這是一款由2名玩家的在星際間傳送書信TRPG遊戲。<br>
+                        期間兩人的書信會被星際間的雜訊干擾，導致信息出現亂碼<br><br>
+
+                        這個亂碼產生器的原理是自動抽選一些英文字母作為亂碼<br>
+                        附有把中文>拼音>中文的功能<br>
                         所以如果中文文字的拼音也符合亂碼值<br>
                         也會被轉換<br>
+                        原規則請參考<a href="https://preview.drivethrurpg.com/en/product/367142/Signal-to-Noise">DriveThruRPG Signal to Noise</a>  <br>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
@@ -222,9 +139,9 @@ That struts and frets his hour upon the stage</textarea>
                 </div>
             </div>
         </div>
-        <div class="footer-copyright text-center py-2">©2020-2021 GNU HKTRPG -
-            <a href="https://www.patreon.com/HKTRPG"> 餵飼 Sad</a>
-        </div>
+        <footer>
+            <div id="footer"></div>
+        </footer>
 
 
     </div>
@@ -235,7 +152,7 @@ That struts and frets his hour upon the stage</textarea>
     <!-- Option 1: Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous">
-    </script>
+        </script>
     <script>
         let zeroToTwoThree = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
         let blockCourt = 0;
@@ -311,7 +228,7 @@ That struts and frets his hour upon the stage</textarea>
 
             let content = document.getElementById('outputText').value;
 
-            navigator.clipboard.writeText(content).then(function () {}, function (err) {
+            navigator.clipboard.writeText(content).then(function () { }, function (err) {
                 console.error('Async: Could not copy text: ', err);
             });
             let elements = document.querySelectorAll('.alert');
@@ -368,12 +285,12 @@ That struts and frets his hour upon the stage</textarea>
                             }
 
                         } else
-                        if (aToZswitch[i]) {
-                            text = text.replace(FIRST[i], SECOND[i])
-                            text = text.replace(FIRST[i].toLowerCase(), SECOND[i].toLowerCase())
+                            if (aToZswitch[i]) {
+                                text = text.replace(FIRST[i], SECOND[i])
+                                text = text.replace(FIRST[i].toLowerCase(), SECOND[i].toLowerCase())
 
 
-                        }
+                            }
                     }
 
                     reply += text;
@@ -447,11 +364,30 @@ That struts and frets his hour upon the stage</textarea>
             return array;
         }
     </script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+        integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous">
+        </script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
+        integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous">
+        </script>
+    <script>
+        const TITLE = "文字轉換器 @ Signal to Noise 可用";
+        $(function () {
+            $("#header").load("includes/header.html", function () {
+                $("#title").text(TITLE);
+            });
+            $("#footer").load("includes/footer.html");
+        });
+    </script>
     <!-- Option 2: Separate Popper and Bootstrap JS -->
     <!--
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous"></script>
     -->
+
 </body>
 
 </html>

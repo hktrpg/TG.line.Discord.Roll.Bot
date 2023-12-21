@@ -8,7 +8,7 @@ const fetch = require('node-fetch');
 const fs = require('fs').promises;
 const fs2 = require('fs');
 const VIP = require('../modules/veryImportantPerson');
-const GPT3 = { name: "gpt-3.5-turbo-1106", token: 16000, input_price: 0.005, output_price: 0.01 };
+const GPT3 = { name: "gpt-3.5-turbo-1106", token: 4096, input_price: 0.005, output_price: 0.01 };
 const GPT4 = { name: "gpt-4-1106-preview", token: 128000, input_price: 0.16, output_price: 0.48 };
 const DALLE3 = { name: "dall-e-3", price: 0.20, size1: "1024x1024", size2: "1024x1792" };
 const adminSecret = process.env.ADMIN_SECRET;
@@ -84,7 +84,7 @@ const rollDiceCommand = async function ({
             if (!adminSecret) return rply;
             if (userid !== adminSecret) return rply;
             let lv = await VIP.viplevelCheckUser(userid);
-            if ( lv < 1) return { text: `這是實驗功能，現在只有VIP才能使用，\n支援HKTRPG及升級請到\nhttps://www.patreon.com/hktrpg` };
+            if (lv < 1) return { text: `這是實驗功能，現在只有VIP才能使用，\n支援HKTRPG及升級請到\nhttps://www.patreon.com/hktrpg` };
             rply.text = await imageAi.handleImageAi(inputStr);
             rply.quotes = true;
             return rply;
@@ -131,7 +131,7 @@ class OpenAI {
             apiKey: this.apiKeys[0]?.apiKey,
             baseURL: this.apiKeys[0]?.baseURL,
         };
-        this.model = process.env.OPENAI_MODEL || GPT3.name;
+        this.model = GPT3.name;
         if (this.apiKeys.length === 0) return;
         this.openai = new OpenAIApi(this.configuration);
         this.currentApiKeyIndex = 0;
@@ -224,7 +224,6 @@ class ImageAi extends OpenAI {
         }
     }
     handleImage(data, input) {
-        console.log(data, input)
         if (data?.data?.length === 0) return '沒有輸出的圖片, 請重新輸入描述';
         let response = `${input}:\n`;
         for (let index = 0; index < data.data.length; index++) {
@@ -272,7 +271,6 @@ class TranslateAi extends OpenAI {
 
 
         let result = this.splitTextByTokens(text.join('\n'), splitLength);
-
         return { translateScript: result, textLength };
 
     }
@@ -289,6 +287,7 @@ class TranslateAi extends OpenAI {
     }
     async translateChat(inputStr, mode) {
         try {
+
             let response = await this.openai.chat.completions.create({
                 "model": mode.name,
                 "messages": [
@@ -333,7 +332,7 @@ class TranslateAi extends OpenAI {
         } catch (error) {
             if (this.errorCount < (this.apiKeys.length * 5)) {
                 if (((this.errorCount !== 0) && this.errorCount % this.apiKeys.length) === 0) {
-                    await super.waitMins(2);
+                    await super.waitMins(1);
                 }
                 await super.handleError(error);
                 return await this.translateChat(inputStr, mode);
@@ -371,12 +370,12 @@ class TranslateAi extends OpenAI {
 
     }
     splitTextByTokens(text, inputTokenLimit) {
-        const tokens = encode(text);
         const results = [];
         let remains = text;
-        const tokenLimit = inputTokenLimit - 300;
+        const tokenLimit = inputTokenLimit * 0.4;
         while (remains.length > 0) {
-            let offset = Math.floor(tokenLimit * remains.length / tokens.length);
+            const tokens = encode(remains);
+            let offset = (tokens > tokenLimit) ? remains.length : Math.floor(tokenLimit * remains.length / tokens.length);
             let subtext = remains.substring(0, offset);
             // 超過token上限，試圖找到最接近而不超過上限的文字
             while (encode(subtext).length > tokenLimit && offset > 0) {
@@ -408,7 +407,6 @@ class TranslateAi extends OpenAI {
                 }
             }
         }
-
         return results;
     }
 

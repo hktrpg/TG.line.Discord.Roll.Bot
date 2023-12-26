@@ -2,7 +2,7 @@
 if (!process.env.DISCORD_CHANNEL_SECRET) {
 	return;
 }
-const DELAY = process.env.DISCORDDELAY || 1000 * 5;
+const DELAY = process.env.DISCORDDELAY || 1000 * 15;
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const { ClusterManager, HeartbeatManager } = require('discord-hybrid-sharding');

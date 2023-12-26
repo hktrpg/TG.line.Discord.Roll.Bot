@@ -1,16 +1,8 @@
 "use strict";
 
 require('dotenv').config({ override: true });
-const fs = require('fs');
 
-
-
-fs.readdirSync(__dirname + '/modules/').forEach(function (file) {
-  if (file.match(/\.js$/) && file.match(/^core-/)) {
-    let name = file.replace('.js', '');
-    exports[name] = require('./modules/' + file);
-  }
-});
+require("./modules/db-connector");
 
 process.on('warning', (warning) => {
   console.warn('warning', warning.name); // Print the warning name

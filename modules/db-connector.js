@@ -4,6 +4,7 @@
 const mongoose = require('mongoose');
 const cachegoose = require('recachegoose');
 const schedule = require('node-schedule');
+const fs = require('fs');
 
 // Config
 const mongoUrl = process.env.mongoURL;
@@ -21,9 +22,16 @@ cachegoose(mongoose, {
 async function connect() {
     try {
         await mongoose.connect(mongoUrl, {
-            socketTimeoutMS: 15000
+            socketTimeoutMS: 60000 * 2,
+            serverSelectionTimeoutMS: 60000 * 2
         });
         console.log('Connected to MongoDB');
+        fs.readdirSync(__dirname ).forEach(function (file) {
+            if (file.match(/\.js$/) && file.match(/^core-/)) {
+                let name = file.replace('.js', '');
+                exports[name] = require("./" + file);
+            }
+        });
     } catch (error) {
         console.error('MongoDB Connection Error:', error);
     }

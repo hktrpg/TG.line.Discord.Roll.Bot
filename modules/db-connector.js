@@ -41,6 +41,7 @@ const restartMongo = schedule.scheduleJob(restartTime, async () => {
 });
 
 async function restart() {
+    console.log('Restarting MongoDB...');
     await mongoose.connection.close();
     await connect();
 }

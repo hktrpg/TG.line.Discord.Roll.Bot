@@ -109,7 +109,7 @@ const WebSocket = require('ws');
 let ws;
 
 client.on('messageCreate', async message => {
-	if(NOTRESPONEMODE)return;
+	if (NOTRESPONEMODE) return;
 	try {
 		if (message.author.bot) return;
 		if (!checkMongodb.isDbOnline() && checkMongodb.isDbRespawn()) {
@@ -127,7 +127,7 @@ client.on('messageCreate', async message => {
 
 });
 client.on('guildCreate', async guild => {
-	if(NOTRESPONEMODE)return;
+	if (NOTRESPONEMODE) return;
 	try {
 		const channels = await guild.channels.fetch();
 		const keys = Array.from(channels.values());
@@ -151,7 +151,7 @@ client.on('guildCreate', async guild => {
 })
 
 client.on('interactionCreate', async message => {
-	if(NOTRESPONEMODE)return;
+	if (NOTRESPONEMODE) return;
 	try {
 		if (message.user && message.user.bot) return;
 		return __handlingInteractionMessage(message);
@@ -162,7 +162,7 @@ client.on('interactionCreate', async message => {
 
 
 client.on('messageReactionAdd', async (reaction, user) => {
-	if(NOTRESPONEMODE)return;
+	if (NOTRESPONEMODE) return;
 	if (!checkMongodb.isDbOnline()) return;
 	if (reaction.me) return;
 	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId })
@@ -190,7 +190,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 });
 
 client.on('messageReactionRemove', async (reaction, user) => {
-	if(NOTRESPONEMODE)return;
+	if (NOTRESPONEMODE) return;
 	if (!checkMongodb.isDbOnline()) return;
 	if (reaction.me) return;
 	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('discord_bot #817 mongoDB error: ', error.name, error.reson))
@@ -217,6 +217,7 @@ const sleep = async (minutes) => {
 
 
 client.once('ready', async () => {
+	if (NOTRESPONEMODE) return;
 	initInteractionCommands();
 	if (process.env.BROADCAST) connect();
 	//	if (shardid === 0) getSchedule();

@@ -12,13 +12,13 @@ if (!mongoUrl) return;
 
 const restartTime = '30 04 */3 * *';
 const master = require.main?.filename.includes('index');
-
+/**
 // MongoDB Connection
 mongoose.set('strictQuery', false);
 cachegoose(mongoose, {
     engine: 'memory'
 });
-
+ */
 async function connect() {
     try {
         await mongoose.connect(mongoUrl, {

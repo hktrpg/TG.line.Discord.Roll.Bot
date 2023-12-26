@@ -33,7 +33,7 @@ async function connect() {
             }
         });
     } catch (error) {
-        console.error('MongoDB Connection Error:', error);
+        console.error('MongoDB Connection Error!');
     }
 }
 

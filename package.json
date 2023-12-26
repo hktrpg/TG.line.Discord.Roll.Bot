@@ -50,7 +50,7 @@
     "image-url-validator": "^1.0.4",
     "jimp": "^0.16.2",
     "log-to-file": "^3.0.3",
-    "mathjs": "^12.2.1",
+    "mathjs": "^9.3.0",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.35",
     "mongoose": "^6",

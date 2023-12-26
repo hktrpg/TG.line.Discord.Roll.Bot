@@ -71,5 +71,5 @@ manager.extend(
 	})
 )
 
-manager.spawn({ timeout: 1000 * 30, delay: 1000 * 30 });
+manager.spawn({ timeout: -1, delay: 1000 * 20 });
 //manager.recluster?.start({ restartMode: 'gracefulSwitch', totalShards: getInfo().TOTAL_SHARDS })

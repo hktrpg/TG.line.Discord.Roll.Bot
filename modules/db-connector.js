@@ -21,7 +21,8 @@ cachegoose(mongoose, {
 async function connect() {
     try {
         await mongoose.connect(mongoUrl, {
-            socketTimeoutMS: 15000
+            connectTimeoutMS: 1000 * 60 * 2,
+            socketTimeoutMS: 1000 * 60 * 2
         });
         console.log('Connected to MongoDB');
     } catch (error) {

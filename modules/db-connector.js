@@ -23,7 +23,7 @@ async function connect() {
     try {
         await mongoose.connect(mongoUrl, {
             socketTimeoutMS: 60000 * 2,
-            serverSelectionTimeoutMS: 60000 * 2
+            serverSelectionTimeoutMS: 60000 * 3
         });
         console.log('Connected to MongoDB');
         fs.readdirSync(__dirname ).forEach(function (file) {

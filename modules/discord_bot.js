@@ -1,6 +1,6 @@
 "use strict";
 exports.analytics = require('./analytics');
-const NOTRESPONEMODE = TRUE;
+const NOTRESPONEMODE = true;
 const debugMode = !!process.env.DEBUG;
 const schema = require('../modules/schema.js');
 const isImageURL = require('image-url-validator').default;

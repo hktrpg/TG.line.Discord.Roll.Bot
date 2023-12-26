@@ -2,6 +2,7 @@
 if (!process.env.DISCORD_CHANNEL_SECRET) {
 	return;
 }
+const DELAY = process.env.DISCORDDELAY || 1000 * 0;
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const { ClusterManager, HeartbeatManager } = require('discord-hybrid-sharding');
@@ -71,5 +72,5 @@ manager.extend(
 	})
 )
 
-manager.spawn({ timeout: -1, delay: 1000 * 20 });
+manager.spawn({ timeout: -1, delay: DELAY });
 //manager.recluster?.start({ restartMode: 'gracefulSwitch', totalShards: getInfo().TOTAL_SHARDS })

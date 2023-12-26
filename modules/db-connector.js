@@ -55,8 +55,7 @@ async function restart() {
 
 // Handle connection errors
 mongoose.connection.on('error', async (error) => {
-    console.error('MongoDB Connection Error:', error);
-    await restart();
+    console.error('MongoDB Connection Error:', error.message);
 });
 
 // Export mongoose

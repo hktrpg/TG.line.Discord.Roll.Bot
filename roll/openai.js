@@ -12,7 +12,7 @@ const GPT3 = { name: "gpt-3.5-turbo-1106", token: 4096, input_price: 0.005, outp
 const GPT4 = { name: "gpt-4-1106-preview", token: 128000, input_price: 0.16, output_price: 0.48 };
 const DALLE3 = { name: "dall-e-3", price: 0.20, size1: "1024x1024", size2: "1024x1792" };
 const adminSecret = process.env.ADMIN_SECRET;
-const TRANSLATE_LIMIT_PERSONAL = [500, 100000, 200000, 300000, 400000, 500000, 600000, 700000];
+const TRANSLATE_LIMIT_PERSONAL = [500, 100000, 150000, 150000, 150000, 150000, 150000, 150000];
 const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
 const gameName = function () {
@@ -252,8 +252,10 @@ class TranslateAi extends OpenAI {
             for (let index = 0; index < url.length; index++) {
                 const response = await fetch(url[index].url);
                 const data = await response.text();
-                text.push(data);
                 textLength += data.length;
+                if (textLength > 150000) return { textLength };
+                text.push(data);
+         
             }
         }
         //19 = reply
@@ -264,12 +266,12 @@ class TranslateAi extends OpenAI {
             for (let index = 0; index < url.length; index++) {
                 const response = await fetch(url[index].url);
                 const data = await response.text();
-                text.push(data);
                 textLength += data.length;
+                if (textLength > 150000) return { textLength};
+                text.push(data);
+
             }
         }
-
-
         let result = this.splitTextByTokens(text.join('\n'), splitLength);
         return { translateScript: result, textLength };
 

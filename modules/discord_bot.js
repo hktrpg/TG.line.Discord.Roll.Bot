@@ -577,7 +577,7 @@ function respawnCluster2() {
 		//if (shardids !== 0) return;
 		let data = job.attrs.data;
 		let text = await rollText(data.replyText);
-		if ((/<@\S/g).test(text)) quotes = false;
+		if ((/<@\S+>/g).test(text)) quotes = false;
 		if (!data.imageLink && !data.roleName)
 			SendToReplychannel(
 				{ replyText: text, channelid: data.channelid, quotes: quotes, groupid: data.groupid }
@@ -599,7 +599,7 @@ function respawnCluster2() {
 		//if (shardids !== 0) return;
 		let data = job.attrs.data;
 		let text = await rollText(data.replyText);
-		if ((/<@\S/g).test(text)) quotes = false;
+		if ((/<@\S+>/g).test(text)) quotes = false;
 		if (!data.imageLink && !data.roleName)
 			SendToReplychannel(
 				{ replyText: text, channelid: data.channelid, quotes: quotes, groupid: data.groupid }

@@ -569,6 +569,7 @@ function respawnCluster2() {
 
 (async function () {
 	if (!agenda) return;
+	let quotes = true;
 	agenda.define("scheduleAtMessageDiscord", async (job) => {
 		//const date = new Date(2012, 11, 21, 5, 30, 0);
 		//const date = new Date(Date.now() + 5000);
@@ -576,9 +577,10 @@ function respawnCluster2() {
 		//if (shardids !== 0) return;
 		let data = job.attrs.data;
 		let text = await rollText(data.replyText);
+		if ((/<@\S/g).test(text)) quotes = false;
 		if (!data.imageLink && !data.roleName)
 			SendToReplychannel(
-				{ replyText: text, channelid: data.channelid, quotes: data.quotes = true, groupid: data.groupid }
+				{ replyText: text, channelid: data.channelid, quotes: quotes, groupid: data.groupid }
 			)
 		else {
 			await sendCronWebhook({ channelid: data.channelid, replyText: text, data })
@@ -597,9 +599,10 @@ function respawnCluster2() {
 		//if (shardids !== 0) return;
 		let data = job.attrs.data;
 		let text = await rollText(data.replyText);
+		if ((/<@\S/g).test(text)) quotes = false;
 		if (!data.imageLink && !data.roleName)
 			SendToReplychannel(
-				{ replyText: text, channelid: data.channelid, quotes: data.quotes = true, groupid: data.groupid }
+				{ replyText: text, channelid: data.channelid, quotes: quotes, groupid: data.groupid }
 			)
 		else {
 			await sendCronWebhook({ channelid: data.channelid, replyText: text, data })
@@ -608,7 +611,7 @@ function respawnCluster2() {
 			if ((new Date(Date.now()) - data.createAt) >= SIX_MONTH) {
 				await job.remove();
 				SendToReplychannel(
-					{ replyText: "已運行六個月, 移除此定時訊息", channelid: data.channelid, quotes: data.quotes = true, groupid: data.groupid }
+					{ replyText: "已運行六個月, 移除此定時訊息", channelid: data.channelid, quotes: true, groupid: data.groupid }
 				)
 			}
 		} catch (e) {

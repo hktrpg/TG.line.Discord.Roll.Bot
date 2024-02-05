@@ -19,13 +19,13 @@ if (process.env.BROADCAST) {
 		}
 	});
 }
-const rollText = require('./getRoll').rollText;
+const rollText = require('../modules/getRoll.js').rollText;
 const candle = require('../modules/candleDays.js');
-const agenda = require('../modules/schedule')
+const agenda = require('../modules/schedule.js')
 const qrcode = require('qrcode-terminal');
 const isHeroku = (process.env._ && process.env._.indexOf("heroku")) > 0 ? true : false;
-let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
-const schema = require('../modules/schema');
+let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM.js').initialize() : '';
+const schema = require('../modules/schema.js');
 const opt = {
 	upsert: true,
 	runValidators: true
@@ -33,10 +33,10 @@ const opt = {
 const herokuPuppeteer = { headless: true, 'executablePath': '/app/.apt/usr/bin/google-chrome-stable' };
 const normalPuppeteer = { headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] };
 
-const newMessage = require('./message');
+const newMessage = require('../modules/message.js');
 
-exports.analytics = require('./analytics');
-exports.z_stop = require('../roll/z_stop');
+exports.analytics = require('../modules/analytics.js');
+exports.z_stop = require('../roll/z_stop.js');
 const {
 	Client, LocalAuth, MessageMedia
 } = require('whatsapp-web.js');

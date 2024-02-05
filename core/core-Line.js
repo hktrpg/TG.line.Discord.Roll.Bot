@@ -6,26 +6,26 @@ const port = process.env.LINEPORT || 20831;
 const candle = require('../modules/candleDays.js');
 const mainLine = Boolean(process.env.DISCORD_CHANNEL_SECRET);
 const lineAgenda = Boolean(process.env.LINE_AGENDA)
-exports.analytics = require('./analytics');
-const EXPUP = require('./level').EXPUP || function () { };
+exports.analytics = require('../modules/analytics.js');
+const EXPUP = require('../modules/level.js').EXPUP || function () { };
 const line = require('@line/bot-sdk');
 
 const MESSAGE_SPLITOR = (/\S+/ig);
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
-const agenda = require('../modules/schedule');
-const rollText = require('./getRoll').rollText;
-exports.z_stop = require('../roll/z_stop');
+const agenda = require('../modules/schedule.js');
+const rollText = require('../modules/getRoll.js').rollText;
+exports.z_stop = require('../roll/z_stop.js');
 // create LINE SDK config from env variables
 const config = {
 	channelAccessToken: process.env.LINE_CHANNEL_ACCESSTOKEN,
 	channelSecret: process.env.LINE_CHANNEL_SECRET,
 };
-const TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
-const courtMessage = require('./logs').courtMessage || function () { };
+const TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM.js').initialize() : '';
+const courtMessage = require('../modules/logs.js').courtMessage || function () { };
 // create LINE SDK client
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const client = new line.Client(config);
-const newMessage = require('./message');
+const newMessage = require('../modules/message.js');
 // create Express app
 // about Express itself: https://expressjs.com/
 const app = require('./core-www.js').app;

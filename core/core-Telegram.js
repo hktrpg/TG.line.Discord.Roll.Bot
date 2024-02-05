@@ -5,13 +5,13 @@ if (!process.env.TELEGRAM_CHANNEL_SECRET) {
 process.env.NTBA_FIX_319 = 1;
 const candle = require('../modules/candleDays.js');
 const TelegramBot = require('node-telegram-bot-api');
-const agenda = require('../modules/schedule')
-const rollText = require('./getRoll').rollText;
-exports.analytics = require('./analytics');
-exports.z_stop = require('../roll/z_stop');
+const agenda = require('../modules/schedule.js')
+const rollText = require('../modules/getRoll.js').rollText;
+exports.analytics = require('../modules/analytics.js');
+exports.z_stop = require('../roll/z_stop.js');
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 const TGclient = new TelegramBot(process.env.TELEGRAM_CHANNEL_SECRET, { polling: true });
-const newMessage = require('./message');
+const newMessage = require('../modules/message.js');
 const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || '';
 //let TGcountroll = 0;
 //let TGcounttext = 0;
@@ -20,10 +20,10 @@ const MESSAGE_SPLITOR = (/\S+/ig);
 let robotName = ""
 
 
-let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
-const EXPUP = require('./level').EXPUP || function () {
+let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM.js').initialize() : '';
+const EXPUP = require('../modules/level.js').EXPUP || function () {
 };
-const courtMessage = require('./logs').courtMessage || function () {
+const courtMessage = require('../modules/logs.js').courtMessage || function () {
 };
 
 TGclient.on('text', async (ctx) => {

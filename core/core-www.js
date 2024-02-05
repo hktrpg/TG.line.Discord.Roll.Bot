@@ -9,7 +9,7 @@ const {
 } = require('rate-limiter-flexible');
 const candle = require('../modules/candleDays.js');
 const MESSAGE_SPLITOR = (/\S+/ig)
-const schema = require('./schema.js');
+const schema = require('../modules/schema.js');
 const privateKey = (process.env.KEY_PRIKEY) ? process.env.KEY_PRIKEY : null;
 const certificate = (process.env.KEY_CERT) ? process.env.KEY_CERT : null;
 const APIswitch = (process.env.API) ? process.env.API : null;
@@ -17,7 +17,7 @@ const ca = (process.env.KEY_CA) ? process.env.KEY_CA : null;
 const isMaster = (process.env.MASTER) ? process.env.MASTER : null;
 const salt = process.env.SALT;
 const crypto = require('crypto');
-const mainCharacter = require('../roll/z_character').mainCharacter;
+const mainCharacter = require('../roll/z_character.js').mainCharacter;
 const fs = require('fs');
 let options = {
     key: null,
@@ -66,10 +66,10 @@ process.on('uncaughtException', (warning) => {
     // const clock = setTimeout(createWebServer, 60000 * 5);
 });
 
-const records = require('./records.js');
+const records = require('../modules/records.js');
 const port = process.env.WWWPORT || 20721;
 const channelKeyword = '';
-exports.analytics = require('./analytics');
+exports.analytics = require('../modules/analytics.js');
 
 function createWebServer(options = {}, www) {
     if (!process.env.CREATEWEB) return;

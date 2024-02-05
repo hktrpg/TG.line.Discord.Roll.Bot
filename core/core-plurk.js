@@ -4,12 +4,12 @@ if (!process.env.PLURK_SWITCH) {
 }
 let plurkID = '';
 const { PlurkClient } = require('plurk2');
-const EXPUP = require('./level').EXPUP || function () { };
-const courtMessage = require('./logs').courtMessage || function () { };
+const EXPUP = require('../modules/level').EXPUP || function () { };
+const courtMessage = require('../modules/logs').courtMessage || function () { };
 const SIX_MINUTES = 1000 * 60 * 6;
 const MESSAGE_SPLITOR = (/\S+/ig);
 const Plurk_Client = new PlurkClient(process.env.PLURK_APPKEY, process.env.PLURK_APPSECRET, process.env.PLURK_TOKENKEY, process.env.PLURK_TOKENSECRET);
-exports.analytics = require('./analytics');
+exports.analytics = require('../modules/analytics');
 Plurk_Client.request('Users/me')
     .then(profile => {
         console.log(`Plurk 名稱: ${profile.full_name}`);

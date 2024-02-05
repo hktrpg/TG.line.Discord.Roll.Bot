@@ -19,21 +19,21 @@ cachegoose(mongoose, {
 });
 
 async function connect() {
-    try {
-        await mongoose.connect(mongoUrl, {
-            connectTimeoutMS: 1000 * 60 * 2,
-            socketTimeoutMS: 1000 * 60 * 2
-        });
-        console.log('Connected to MongoDB');
-    } catch (error) {
-        console.error('MongoDB Connection Error:', error);
-    }
-}
+    return new Promise((resolve, reject) => {
+        try {
+            mongoose.connect(mongoUrl, {
+                connectTimeoutMS: 1000 * 60 * 2,
+                socketTimeoutMS: 1000 * 60 * 2
+            });
+            console.log('Connected to MongoDB');
+            resolve();
+        } catch (error) {
+            console.error('MongoDB Connection Error:', error);
+            reject(error);
+        }
+    })
 
-// Connect on start
-(async () => {
-    await connect();
-})();
+}
 
 // Reconnect cron job
 const restartMongo = schedule.scheduleJob(restartTime, async () => {
@@ -55,5 +55,5 @@ mongoose.connection.on('error', async (error) => {
 
 // Export mongoose
 module.exports = {
-    mongoose
+    mongoose , connect
 };

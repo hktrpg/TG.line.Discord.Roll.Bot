@@ -6,7 +6,7 @@ const DELAY = process.env.DISCORDDELAY || 1000 * 7;
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const { ClusterManager, HeartbeatManager } = require('discord-hybrid-sharding');
-require("./ds-deploy-commands");
+require("../modules/ds-deploy-commands");
 let maxShard = 1;
 const manager = new ClusterManager('./modules/discord_bot.js', {
 	token: channelSecret,

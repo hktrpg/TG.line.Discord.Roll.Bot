@@ -117,7 +117,7 @@ const rollDiceCommand = async function ({
                 return rply
             }
             let check = {}
-            if (botname == "Discord") {
+            if (botname == "Discord" && userrole < 3) {
                 check = {
                     name: differentPeformAt(botname),
                     "data.channelid": channelid,
@@ -131,6 +131,18 @@ const rollDiceCommand = async function ({
                 check
             ).catch(error => console.error('agenda error: ', error.name, error.reson))
             rply.text = showJobs(jobs);
+            if (userrole == 3 && botname == "Discord") {
+                rply.text = `\n本頻道列表\n\n${rply.text}`
+                check = {
+                    name: differentPeformAt(botname),
+                    "data.groupid": groupid
+                }
+                const jobs = await agenda.agenda.jobs(
+                    check
+                ).catch(error => console.error('agenda error: ', error.name, error.reson))
+                rply.text = `本群組列表\n\n${showJobs(jobs)} \n\n${rply.text
+                    } `;
+            }
             return rply;
         }
         case /^\.at+$/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]): {
@@ -144,7 +156,7 @@ const rollDiceCommand = async function ({
                 return rply
             }
             let check = {}
-            if (botname == "Discord") {
+            if (botname == "Discord" && userrole < 3) {
                 check = {
                     name: differentPeformAt(botname),
                     "data.channelid": channelid,
@@ -233,7 +245,7 @@ const rollDiceCommand = async function ({
             }
 
             let check = {}
-            if (botname == "Discord") {
+            if (botname == "Discord" && userrole < 3) {
                 check = {
                     name: differentPeformCron(botname),
                     "data.channelid": channelid,
@@ -247,6 +259,18 @@ const rollDiceCommand = async function ({
                 check
             ).catch(error => console.error('agenda error: ', error.name, error.reson))
             rply.text = showCronJobs(jobs);
+            if (userrole == 3 && botname == "Discord") {
+                rply.text = `\n本頻道列表\n\n${rply.text}`
+                check = {
+                    name: differentPeformCron(botname),
+                    "data.groupid": groupid
+                }
+                const jobs = await agenda.agenda.jobs(
+                    check
+                ).catch(error => console.error('agenda error: ', error.name, error.reson))
+                rply.text = `本群組列表\n\n${showCronJobs(jobs)} \n\n${rply.text
+                    } `;
+            }
             return rply;
         }
         case /^\.cron$/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]): {
@@ -263,13 +287,14 @@ const rollDiceCommand = async function ({
                 return rply
             }
             let check = {}
-            if (botname == "Discord") {
+            if (botname == "Discord" && userrole < 3) {
                 check = {
                     name: differentPeformCron(botname),
                     "data.channelid": channelid,
                     "data.groupid": groupid
                 }
-            } else check = {
+            }
+            else check = {
                 name: differentPeformCron(botname),
                 "data.groupid": groupid
             }
@@ -279,7 +304,7 @@ const rollDiceCommand = async function ({
             try {
                 let data = jobs[Number(mainMsg[2]) - 1];
                 await jobs[Number(mainMsg[2]) - 1].remove();
-                rply.text = `已刪除序號#${Number(mainMsg[2])} \n${data.attrs.data.replyText}`;
+                rply.text = `已刪除序號#${Number(mainMsg[2])} \n${data.attrs.data.replyText} `;
 
             } catch (e) {
                 console.error("Remove Cron Error removing job from collection, input: ", inputStr);
@@ -317,7 +342,7 @@ const rollDiceCommand = async function ({
 
             let checkTime = checkCronTime(mainMsg[1]);
             if (!checkTime || !checkTime.min || !checkTime.hour) {
-                rply.text = `輸入出錯\n ${this.getHelpMessage()}`;
+                rply.text = `輸入出錯\n ${this.getHelpMessage()} `;
                 return rply;
             }
             if (roleName.roleName || roleName.imageLink) {

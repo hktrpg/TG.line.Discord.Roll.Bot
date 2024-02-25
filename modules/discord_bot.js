@@ -1314,6 +1314,11 @@ function multiServerTarget(message) {
 }
 
 function __checkUserRole(groupid, message) {
+	/**
+	 * 1 - 一般使用者
+	 * 2 - 頻道管理員
+	 * 3 - 群組管理員
+	 */
 	try {
 		if (groupid && message.member && message.member.permissions.has(PermissionsBitField.Flags.Administrator))
 			return 3;

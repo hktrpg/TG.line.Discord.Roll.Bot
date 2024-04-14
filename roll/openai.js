@@ -253,9 +253,8 @@ class TranslateAi extends OpenAI {
                 const response = await fetch(url[index].url);
                 const data = await response.text();
                 textLength += data.length;
-                if (textLength > 150000) return { textLength };
                 text.push(data);
-         
+
             }
         }
         //19 = reply
@@ -267,7 +266,6 @@ class TranslateAi extends OpenAI {
                 const response = await fetch(url[index].url);
                 const data = await response.text();
                 textLength += data.length;
-                if (textLength > 150000) return { textLength};
                 text.push(data);
 
             }

@@ -1094,7 +1094,7 @@ const discordCommand = [
 		data: new SlashCommandBuilder()
 			.setName('排序')
 			.setDescription('進行隨機排序')
-			.addStringOption(option => option.setName('text').setDescription('輸入所有內容，以空格分隔').setRequired(true))
+			.addStringOption(option => option.setName('text').setDescription('輸入所有內容，以空格分隔 如 排序 選項A 選項B 選項C').setRequired(true))
 		,
 		async execute(interaction) {
 			const text = interaction.options.getString('text')
@@ -1107,7 +1107,7 @@ const discordCommand = [
 		data: new SlashCommandBuilder()
 			.setName('隨機')
 			.setDescription('進行隨機抽選')
-			.addStringOption(option => option.setName('text').setDescription('輸入所有內容，以空格分隔').setRequired(true))
+			.addStringOption(option => option.setName('text').setDescription('輸入所有內容，以空格分隔 如 選項A 選項B 選項C').setRequired(true))
 		,
 		async execute(interaction) {
 			const text = interaction.options.getString('text')
@@ -1119,7 +1119,7 @@ const discordCommand = [
 		data: new SlashCommandBuilder()
 			.setName('choice')
 			.setDescription('進行隨機抽選')
-			.addStringOption(option => option.setName('text').setDescription('輸入所有內容，以空格分隔').setRequired(true))
+			.addStringOption(option => option.setName('text').setDescription('輸入所有內容，以空格分隔 如 選項A 選項B 選項C').setRequired(true))
 		,
 		async execute(interaction) {
 			const text = interaction.options.getString('text')
@@ -1134,9 +1134,11 @@ const discordCommand = [
 			.addStringOption(option => option.setName('text').setDescription('可選: 什麼的運勢'))
 		,
 		async execute(interaction) {
+			console.log(interaction.options.getString('text'))
 			const text = interaction.options.getString('text')
 			if (text !== null)
 				return `${text}的運勢`
+			else return `今日運勢`
 		}
 	},
 	{
@@ -1168,6 +1170,7 @@ const discordCommand = [
 			const text = interaction.options.getString('text')
 			if (text !== null)
 				return `${text}立FLAG`
+			else return `立FLAG`
 		}
 	},
 	{

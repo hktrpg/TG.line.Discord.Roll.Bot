@@ -738,6 +738,12 @@ async function findObject(doc, mainMsg) {
 
     return resutlt;
 }
+const colorEmoji = [
+    "🟫", "🟥", "🟧", "🟨",
+]
+const colorEmoji2 = [
+    "🟢", "🔵", "🟤", "🟣"
+]
 
 async function showCharacter(Card, mode) {
     /*
@@ -757,12 +763,15 @@ async function showCharacter(Card, mode) {
         returnStr += '新增/修改成功\n'
     }
     returnStr += Card.name + '　\n';
-    let a = 1
+    let a = 0;
     if (Card.state.length > 0) {
         for (let i = 0; i < Card.state.length; i++) {
-            if ((a) % 4 == 0 && (Card.state[i].itemA || Card.state[i].itemB)) {
+
+            if (a != 0 && (a) % 4 == 0 && (Card.state[i].itemA || Card.state[i].itemB)) {
                 returnStr += '　\n'
             }
+            returnStr += colorEmoji[(i + 1) % 4];
+
             if (mode == 'addMode' || mode == 'showAllMode') {
                 returnStr += Card.state[i].name + ': ' + Card.state[i].itemA;
                 returnStr += (Card.state[i].itemB) ? '/' + Card.state[i].itemB : '';
@@ -784,15 +793,17 @@ async function showCharacter(Card, mode) {
 
     if (Card.roll.length > 0) {
         for (let i = 0; i < Card.roll.length; i++) {
+            returnStr += colorEmoji2[(i + 1) % 4];
             if (mode == 'addMode' || mode == 'showAllMode') {
                 returnStr += Card.roll[i].name + ': ' + Card.roll[i].itemA + '  ';
 
             } else {
                 returnStr += (Card.roll[i].itemA) ? Card.roll[i].name + ': ' + Card.roll[i].itemA + '  ' : '';
             }
-            if (i % 2 || i == Card.roll.length - 1) {
+            if (i != 0 && ((i + 1) % 2 == 0 || (i == Card.roll.length - 1))) {
                 returnStr += '　\n';
             }
+
         }
         returnStr += '-------\n'
     }

@@ -592,7 +592,7 @@ function handleRequestRolling(doc) {
     for (let index = 0; index < rolls.length; index++) {
         const roll = rolls[index];
         const itemName = new RegExp(convertRegex(roll.name) + '$', 'i')
-        text[index] = (roll.itemA.match(itemName)) ? `${roll.itemA}` : `${roll.itemA} ${roll.name}`
+        text[index] = (roll.itemA.match(itemName)) ? `${roll.itemA}` : `${roll.itemA} [${roll.name}]`
         text[index] = text[index].substring(0, 80);
     }
     text.push = `.ch use ${doc.name}`

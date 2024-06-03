@@ -35,7 +35,7 @@
     "chinese-conv": "^1.0.1",
     "crypto-js": "^4.2.0",
     "discord-hybrid-sharding": "^2.1.4",
-    "discord.js": "14.14.1",
+    "discord.js": "14.11",
     "dotenv": "^8.2.0",
     "emoji-regex": "^10.0.0",
     "engine.io": "^6.4.2",

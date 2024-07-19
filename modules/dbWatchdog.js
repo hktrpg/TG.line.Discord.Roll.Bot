@@ -100,7 +100,7 @@ function __init() {
         async () => {
             let ans = await schema.mongodbState();
             if (!ans) return;
-            console.log(ans)
+           // console.log(ans)
             const currentdate = new Date();
             const datetime = "Time: " + currentdate.getDate() + "/"
                 + (currentdate.getMonth() + 1) + "/"

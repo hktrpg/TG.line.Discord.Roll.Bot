@@ -94,7 +94,7 @@ const randomStats = function () {
         output += `總合 \`[${total}] (${mod > 0 ? '+' : ''}${mod})\``;
         return output;
     } catch (error) {
-        console.log('#5E工具 - .5ebuild - randomStats Error: ' + error);
+        console.error('#5E工具 - .5ebuild - randomStats Error: ' + error);
     }
 }
 

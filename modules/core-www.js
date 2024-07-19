@@ -60,7 +60,7 @@ const https = require('https');
 
 
 process.on('uncaughtException', (warning) => {
-    console.log('uncaughtException', warning); // Print the warning name
+    console.error('uncaughtException', warning); // Print the warning name
     console.warn(warning.name); // Print the warning name
     console.warn(warning.message); // Print the warning message
     // const clock = setTimeout(createWebServer, 60000 * 5);

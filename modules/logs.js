@@ -34,7 +34,7 @@ const RollingLog = {
     try {
         await getRecords();
     } catch (e) {
-        console.log(`log error #35 ${e}`)
+        console.error(`log error #35 ${e}`)
         setTimeout(async () => {
             await getRecords();
         }, 100)
@@ -43,7 +43,7 @@ const RollingLog = {
     try {
         const loopLogFiveMinutes = setInterval(saveLog, FIVE_MINUTES);
     } catch (e) {
-        console.log(`log error #35 ${e}`)
+        console.error(`log error #35 ${e}`)
     }
 })();
 

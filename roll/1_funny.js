@@ -297,7 +297,7 @@ class FunnyRandom {
 		try {
 			return this.random[rollbase.Dice(this.random.length) - 1];
 		} catch (error) {
-			console.log('Funny #330', error);
+			console.error('Funny #330', error);
 			return '出現問題，請以後再試';
 		}
 	}
@@ -1134,7 +1134,7 @@ const discordCommand = [
 			.addStringOption(option => option.setName('text').setDescription('可選: 什麼的運勢'))
 		,
 		async execute(interaction) {
-			console.log(interaction.options.getString('text'))
+		//	console.log(interaction.options.getString('text'))
 			const text = interaction.options.getString('text')
 			if (text !== null)
 				return `${text}的運勢`

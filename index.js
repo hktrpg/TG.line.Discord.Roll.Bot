@@ -20,7 +20,7 @@ process.on('warning', (warning) => {
 
 process.stdout.on('error', function (err) {
   if (err.code == "EPIPE") {
-    console.log('EPIPE err:', err);
+    console.error('EPIPE err:', err);
   }
 });
 /*

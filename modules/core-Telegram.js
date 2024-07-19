@@ -229,7 +229,7 @@ function SendToId(targetid, text, options) {
             }
         }
     } catch (error) {
-        console.log('tg 277 SendToId error:', (error && (error.message || error.name)));
+        console.error('tg 277 SendToId error:', (error && (error.message || error.name)));
     }
 }
 
@@ -289,7 +289,7 @@ async function nonDice(ctx) {
         }
         return null;
     } catch (error) {
-        console.log('tg 287 nonDice error:', (error && (error.message || error.name)));
+        console.error('tg 287 nonDice error:', (error && (error.message || error.name)));
     }
 }
 

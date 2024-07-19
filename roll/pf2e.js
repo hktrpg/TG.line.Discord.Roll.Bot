@@ -123,7 +123,7 @@ ${result[i].item.desc} \n
             return rply;
         }
         catch (error) {
-            console.log(error);
+            console.error(error);
             return '發生錯誤';
         }
     }

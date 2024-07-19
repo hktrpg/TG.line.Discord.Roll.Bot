@@ -8,8 +8,8 @@ const fetch = require('node-fetch');
 const fs = require('fs').promises;
 const fs2 = require('fs');
 const VIP = require('../modules/veryImportantPerson');
-const GPT3 = { name: "gpt-3.5-turbo-0125", token: 4096, input_price: 0.005, output_price: 0.01 };
-const GPT4 = { name: "gpt-4-0125-preview", token: 128000, input_price: 0.16, output_price: 0.48 };
+const GPT3 = { name: "gpt-4o-mini", token: 12000, input_price: 0.0018, output_price: 0.0072 };
+const GPT4 = { name: "gpt-4o", token: 16000, input_price: 0.06, output_price: 0.18 };
 const DALLE3 = { name: "dall-e-2", price: 0.20, size1: "1024x1024", size2: "512×512" };
 const adminSecret = process.env.ADMIN_SECRET;
 const TRANSLATE_LIMIT_PERSONAL = [500, 100000, 150000, 150000, 150000, 150000, 150000, 150000];
@@ -34,8 +34,8 @@ const prefixs = function () {
 }
 const getHelpMessage = function () {
     return `【OpenAi】
-    .ai [對話] - 使用gpt-3.5產生對話
-    .ait [內容] 或 附件 - 使用 gpt-3.5進行正體中文翻譯
+    .ai [對話] - 使用gpt-4o-mini產生對話
+    .ait [內容] 或 附件 - 使用 gpt-4o-mini進行正體中文翻譯
 
     
 附件需要使用.txt檔案上傳，普通使用者限500字內容，升級VIP後上限會提升，

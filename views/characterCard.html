@@ -70,6 +70,10 @@
             <button type="button" class="btn btn-warning float-right" v-on:click="config()">
                 設定
             </button>
+            <button type="button" class="btn btn-danger float-right" v-if="name" @click="toggleDeleteMode">
+                <span class="iconify" data-icon="mdi:delete" data-inline="false"></span>刪除模式
+            </button>
+            
             <label>
                 <input type="radio" name="gpListRadio" value="null" checked />
                 不進行群組擲骰
@@ -100,7 +104,7 @@
             -
         </button>
         <div class="row align-items-start m-1 p-1">
-            <div v-for="item in state" id="state" class=" board1" style="height: 36px;">
+            <div v-for="(item, index) in state" id="state" class=" board1" style="height: 36px;">
                 <div>
                     <textarea class=" textName" v-model="item.name" style="width:50px;padding: 1px 1px 1px 1px">
                     {{item.name}}
@@ -115,8 +119,12 @@
                     <button type="button" class="btn btn-link" v-on:click="rolling(item.name)"><span class="iconify "
                             data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
                             data-height="20px"></span></button>
+                    <button type="button" class="btn btn-danger" v-if="deleteMode" @click="deleteItem(0, index)">
+                        <span class="iconify" data-icon="mdi:delete" data-inline="false"></span>
+                    </button>
                 </div>
             </div>
+            
         </div>
 
         <br>

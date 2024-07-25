@@ -174,7 +174,7 @@ const rollDiceCommand = async function ({
             messages.forEach(element => {
                 let temp;
                 // if (element.attachments && element.attachments.size) console.log('element.attachments',element.attachments.map(attachment => attachment.proxyURL))
-                if (element.type === 0) {
+                if (element.type === 0 || element.type === 19) {
                     temp = {
                         timestamp: element.createdTimestamp,
                         contact: element.content.replace(/<@(.*?)>/ig, replacer),

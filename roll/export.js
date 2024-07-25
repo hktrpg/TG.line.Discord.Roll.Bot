@@ -100,18 +100,23 @@ const rollDiceCommand = async function ({
         hasReadPermission = discordMessage.channel.permissionsFor(discordMessage.guild.members.me).has(PermissionFlagsBits.ReadMessageHistory) || discordMessage.guild.members.me.permissions.has(PermissionFlagsBits.Administrator);
     }
 
-    function replacer(first, second) {
-        let users = discordClient.users.fetch(second);
+    async function replacer(first, second) {
+        console.log('first', first, 'second', second);
+
+        let users = await discordClient.users.fetch(second);
+        console.log('users', users);
         if (users && users.username) {
             return '@' + users.username;
-        } else return first;
+        } else {
+            return first;
+        }
     }
 
     async function lots_of_messages_getter_HTML(channel, demo) {
         const sum_messages = [];
         let last_id;
         let totalSize = 0;
-        // eslint-disable-next-line no-constant-condition
+    
         while (true) {
             const options = {
                 limit: 100
@@ -121,26 +126,28 @@ const rollDiceCommand = async function ({
             }
             const messages = await channel.messages.fetch(options);
             totalSize += (messages.size) ? messages.size : 0;
-            messages.forEach(element => {
+    
+            for (const element of messages.values()) {
                 let temp;
                 if (element.type === 0) {
+                    const content = await replaceMentions(element.content);
                     temp = {
                         timestamp: element.createdTimestamp,
-                        contact: element.content.replace(/<@(.*?)>/ig, replacer),
+                        contact: content,
                         userName: element.author.username,
                         isbot: element.author.bot
-                    }
-                } else
-                    if (element.type !== 0) {
-                        temp = {
-                            timestamp: element.createdTimestamp,
-                            contact: element.author.username + '\n' + element.type,
-                            userName: '系統信息',
-                            isbot: true
-                        }
-                    }
-                sum_messages.push(temp)
-            });
+                    };
+                } else {
+                    temp = {
+                        timestamp: element.createdTimestamp,
+                        contact: element.author.username + '\n' + element.type,
+                        userName: '系統信息',
+                        isbot: true
+                    };
+                }
+                sum_messages.push(temp);
+            }
+    
             last_id = messages.last().id;
             if (messages.size != 100) {
                 break;
@@ -151,7 +158,7 @@ const rollDiceCommand = async function ({
                 }
             }
         }
-
+    
         return {
             sum_messages: sum_messages,
             totalSize: totalSize
@@ -161,7 +168,7 @@ const rollDiceCommand = async function ({
         const sum_messages = [];
         let last_id;
         let totalSize = 0;
-        // eslint-disable-next-line no-constant-condition
+
         while (true) {
             const options = {
                 limit: 100
@@ -171,31 +178,32 @@ const rollDiceCommand = async function ({
             }
             const messages = await channel.messages.fetch(options);
             totalSize += (messages.size) ? messages.size : 0;
-            messages.forEach(element => {
+
+            for (const element of messages.values()) {
                 let temp;
-                // if (element.attachments && element.attachments.size) console.log('element.attachments',element.attachments.map(attachment => attachment.proxyURL))
                 if (element.type === 0 || element.type === 19) {
+                    const content = await replaceMentions(element.content);
                     temp = {
                         timestamp: element.createdTimestamp,
-                        contact: element.content.replace(/<@(.*?)>/ig, replacer),
+                        contact: content,
                         userName: element.author.username,
                         isbot: element.author.bot,
                         attachments: (element.attachments && element.attachments.size) ? element.attachments.map(attachment => attachment.proxyURL) : [],
                         embeds: (element.embeds && element.embeds.length) ? element.embeds.map(embed => embed.description) : []
-                    }
-                } else
-                    if (element.type !== 0) {
-                        temp = {
-                            timestamp: element.createdTimestamp,
-                            contact: element.author.username + '\n' + element.type,
-                            userName: '系統信息',
-                            isbot: true,
-                            attachments: (element.attachments && element.attachments.size) ? element.attachments.map(attachment => attachment.proxyURL) : [],
-                            embeds: (element.embeds && element.embeds.length) ? element.embeds.map(embed => embed.description) : []
-                        }
-                    }
-                sum_messages.push(temp)
-            });
+                    };
+                } else if (element.interaction && element.interaction.commandName) {
+                    temp = {
+                        timestamp: element.createdTimestamp,
+                        contact: element.interaction.user.username + '使用' + element.interaction.commandName + "\n",
+                        userName: '系統信息',
+                        isbot: true,
+                        attachments: (element.attachments && element.attachments.size) ? element.attachments.map(attachment => attachment.proxyURL) : [],
+                        embeds: (element.embeds && element.embeds.length) ? element.embeds.map(embed => embed.description) : []
+                    };
+                }
+                sum_messages.push(temp);
+            }
+
             last_id = messages.last().id;
             if (messages.size != 100) {
                 break;
@@ -212,6 +220,26 @@ const rollDiceCommand = async function ({
             totalSize: totalSize
         };
     }
+
+    async function replaceMentions(content) {
+        const mentionRegex = /<@(.*?)>/ig;
+        const matches = content.match(mentionRegex);
+        if (!matches) return content;
+
+        const replacements = await Promise.all(matches.map(async (match) => {
+            const userId = match.slice(2, -1);
+            const user = await discordClient.users.fetch(userId);
+            return user ? `@${user.username}` : match;
+        }));
+
+        let replacedContent = content;
+        matches.forEach((match, index) => {
+            replacedContent = replacedContent.replace(match, replacements[index]);
+        });
+
+        return replacedContent;
+    }
+
     switch (true) {
         case /^help$/i.test(mainMsg[1]):
             rply.text = await this.getHelpMessage();
@@ -364,7 +392,7 @@ const rollDiceCommand = async function ({
 
             if (!hasReadPermission) {
                 rply.text = `HKTRPG沒有相關權限，禁止使用這功能。
-                HKTRPG需要有查看此頻道對話歷史的權限。`
+                    HKTRPG需要有查看此頻道對話歷史的權限。`
                 return rply;
             }
 
@@ -396,10 +424,10 @@ const rollDiceCommand = async function ({
             }
             if (userRemainingTime < 0 && checkUser && checkUser.times >= limit) {
                 rply.text = `你每星期完整下載聊天紀錄的上限為 ${limit} 次，
-                冷卻剩餘 ${millisToMinutesAndSeconds(userRemainingTime)} 時間，
-                現在正處於Demo模式，可以輸出500條信息，
-                
-                支援及解鎖上限 https://www.patreon.com/HKTRPG`;
+                    冷卻剩餘 ${millisToMinutesAndSeconds(userRemainingTime)} 時間，
+                    現在正處於Demo模式，可以輸出500條信息，
+                    
+                    支援及解鎖上限 https://www.patreon.com/HKTRPG`;
                 return rply;
             }
 
@@ -413,7 +441,6 @@ const rollDiceCommand = async function ({
                 checkGP.lastActiveAt = theTime;
                 await checkGP.save();
             }
-
 
             console.log('USE EXPORT TXT')
             discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間');
@@ -461,7 +488,7 @@ const rollDiceCommand = async function ({
                         data += '(🤖)'
                     }
                     data += M[index].userName + '	' + '\n';
-                    data += M[index].contact.replace(/<@(.*?)>/ig, replacer)
+                    data += await replaceMentions(M[index].contact);
                     data += '\n\n';
                 } else {
                     let time = M[index].timestamp.toString().slice(0, -3);
@@ -474,7 +501,7 @@ const rollDiceCommand = async function ({
                     }
                     //dateObj  決定有沒有時間
                     data += M[index].userName + '	' + dateObj + '\n';
-                    data += (M[index].contact) ? M[index].contact.replace(/<@(.*?)>/ig, replacer) + '\n' : '';
+                    data += (M[index].contact) ? await replaceMentions(M[index].contact) + '\n' : '';
                     data += (M[index].embeds.length) ? `${M[index].embeds.join('\n')}` : '';
                     data += (M[index].attachments.length) ? `${M[index].attachments.join('\n')}` : '';
                     data += '\n';
@@ -489,10 +516,11 @@ const rollDiceCommand = async function ({
             await fs.writeFile(dir + channelid + '_' + hour + minutes + seconds + '.txt', data); // need to be in an async function
             rply.discordExport = channelid + '_' + hour + minutes + seconds;
             rply.text += `已私訊你 頻道  ${discordMessage.channel.name}  的聊天紀錄
-            你的channel聊天紀錄 共有  ${totalSize}  項`
+                你的channel聊天紀錄 共有  ${totalSize}  項`
             console.log('EXPORT TXT DONE')
             return rply;
-        } default:
+        }
+        default:
             break;
     }
 }

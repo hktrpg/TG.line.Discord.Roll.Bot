@@ -5,8 +5,12 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
 const { PermissionFlagsBits, PermissionsBitField } = require('discord.js');
 let variables = {};
 const oneMinuts = (process.env.DEBUG) ? 1 : 60000;
-const sevenDay = (process.env.DEBUG) ? 1 : 60 * 24 * 7 * 60000;
+const sevenDay = (process.env.DEBUG) ? 1 : 60 * 24 * 7 * 60000  ;
 const checkTools = require('../modules/check.js');
+const moment = require('moment-timezone');
+const { pipeline, Readable } = require('stream');
+const { promisify } = require('util');
+const pipelineAsync = promisify(pipeline);
 
 const gameName = function () {
     return '【Discord 頻道輸出工具】'
@@ -28,8 +32,7 @@ const FUNCTION_LIMIT = (process.env.DEBUG) ? [99, 99, 99, 40, 40, 99, 99, 99] : 
  * 
  */
 const schema = require('../modules/schema.js');
-const fs = require('fs').promises;
-const moment = require('moment-timezone');
+const fs = require('fs');
 const CryptoJS = require("crypto-js");
 const gameType = function () {
     return 'Tool:Export:hktrpg'
@@ -63,6 +66,7 @@ const getHelpMessage = async function () {
 const initialize = function () {
     return variables;
 }
+
 
 const rollDiceCommand = async function ({
     inputStr,
@@ -372,7 +376,11 @@ const rollDiceCommand = async function ({
             //aesData = [];
             newValue = data.replace(/aesData\s=\s\[\]/, 'aesData = ' + JSON.stringify(newAESDate.toString('base64'))).replace(/<h1>聊天紀錄<\/h1>/, '<h1>' + channelName + ' 的聊天紀錄</h1>');
             let tempB = key;
-            await fs.writeFile(dir + channelid + '_' + hour + minutes + seconds + '_' + randomLink + '.html', newValue); // need to be in an async function
+            const writeStream = fs.createWriteStream(dir + channelid + '_' + hour + minutes + seconds + '_' + randomLink + '.html');
+            await pipelineAsync(
+                Readable.from([newValue]),
+                writeStream
+            );
             rply.discordExportHtml = [
                 tempA + '_' + randomLink,
                 tempB
@@ -482,6 +490,7 @@ const rollDiceCommand = async function ({
             });
             let withouttime = (/-withouttime/i).test(inputStr);
             //加不加時間標記下去
+            const writeStream = fs.createWriteStream(dir + channelid + '_' + hour + minutes + seconds + '.txt');
             for (let index = M.length - 1; index >= 0; index--) {
                 if (withouttime) {
                     if (M[index].isbot) {
@@ -507,13 +516,10 @@ const rollDiceCommand = async function ({
                     data += '\n';
                 }
             }
-            try {
-                await fs.access(dir)
-            } catch (error) {
-                if (error && error.code === 'ENOENT')
-                    await fs.mkdir(dir);
-            }
-            await fs.writeFile(dir + channelid + '_' + hour + minutes + seconds + '.txt', data); // need to be in an async function
+            await pipelineAsync(
+                Readable.from([data]),
+                writeStream
+            );
             rply.discordExport = channelid + '_' + hour + minutes + seconds;
             rply.text += `已私訊你 頻道  ${discordMessage.channel.name}  的聊天紀錄
                 你的channel聊天紀錄 共有  ${totalSize}  項`

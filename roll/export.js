@@ -101,10 +101,7 @@ const rollDiceCommand = async function ({
     }
 
     async function replacer(first, second) {
-        console.log('first', first, 'second', second);
-
         let users = await discordClient.users.fetch(second);
-        console.log('users', users);
         if (users && users.username) {
             return '@' + users.username;
         } else {
@@ -116,7 +113,7 @@ const rollDiceCommand = async function ({
         const sum_messages = [];
         let last_id;
         let totalSize = 0;
-    
+
         while (true) {
             const options = {
                 limit: 100
@@ -126,7 +123,7 @@ const rollDiceCommand = async function ({
             }
             const messages = await channel.messages.fetch(options);
             totalSize += (messages.size) ? messages.size : 0;
-    
+
             for (const element of messages.values()) {
                 let temp;
                 if (element.type === 0) {
@@ -147,7 +144,7 @@ const rollDiceCommand = async function ({
                 }
                 sum_messages.push(temp);
             }
-    
+
             last_id = messages.last().id;
             if (messages.size != 100) {
                 break;
@@ -158,7 +155,7 @@ const rollDiceCommand = async function ({
                 }
             }
         }
-    
+
         return {
             sum_messages: sum_messages,
             totalSize: totalSize
@@ -201,7 +198,8 @@ const rollDiceCommand = async function ({
                         embeds: (element.embeds && element.embeds.length) ? element.embeds.map(embed => embed.description) : []
                     };
                 }
-                sum_messages.push(temp);
+                if (temp)
+                    sum_messages.push(temp);
             }
 
             last_id = messages.last().id;

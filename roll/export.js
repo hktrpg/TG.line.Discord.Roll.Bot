@@ -161,7 +161,7 @@ const rollDiceCommand = async function ({
             totalSize: totalSize
         };
     }
-    async function lots_of_messages_getter_TXT(channel, demo) {
+    async function lots_of_messages_getter_TXT(channel, demo, members) {
         const sum_messages = [];
         let last_id;
         let totalSize = 0;
@@ -178,11 +178,11 @@ const rollDiceCommand = async function ({
 
             for (const element of messages.values()) {
                 let temp;
-                const content = await replaceMentions(element.content);
+                const content = await replaceMentions(element.content, members);
                 const processedEmbeds = await Promise.all(
                     (element.embeds && element.embeds.length) ? element.embeds.map(async embed => {
                         if (embed.description) {
-                            return await replaceMentions(embed.description);
+                            return await replaceMentions(embed.description, members);
                         }
                         return embed.description;
                     }) : []
@@ -228,19 +228,22 @@ const rollDiceCommand = async function ({
         };
     }
 
-    async function replaceMentions(content) {
+    async function replaceMentions(content, members) {
         if (!content) return content;
         const mentionRegex = /<@(.*?)>/ig;
         const matches = content.match(mentionRegex);
         if (!matches) return content;
-        const members = discordMessage.guild.members.cache.map(member => member);
+
+
         const replacements = await Promise.all(matches.map(async (match) => {
             const userId = match.slice(2, -1); // 提取用戶 ID
             try {
+                let name = "";
                 // 嘗試獲取所有用戶
                 const member = members.find(member => member.id === userId); // 嘗試獲取用戶
-                const name = member.nickname || member.displayName;
-                return member ? `@${name}` : match; // 如果用戶存在，返回用戶名
+                if (member) name = member.nickname || member.displayName;
+                if (!member) name = await discordClient.users.fetch(userId).then(user => user.username).catch(() => ""); // 嘗試獲取用戶名
+                return name ? `@${name}` : match; // 如果用戶存在，返回用戶名
             } catch (error) {
                 return match; // 如果出現錯誤，返回原始的 match
             }
@@ -459,7 +462,8 @@ const rollDiceCommand = async function ({
 
             console.log('USE EXPORT TXT')
             discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間');
-            M = await lots_of_messages_getter_TXT(C, demoMode);
+            const members = discordMessage.guild.members.cache.map(member => member);
+            M = await lots_of_messages_getter_TXT(C, demoMode, members);
             if (M.length == 0) {
                 rply.text = "未能讀取信息";
                 return rply;

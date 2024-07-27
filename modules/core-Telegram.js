@@ -146,7 +146,10 @@ TGclient.on('text', async (ctx) => {
     if (!rplyVal.text && !rplyVal.LevelUp)
         return;
     if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Telegram")) {
-        TGclient.sendMessage(userid, newMessage.firstTimeMessage());
+        TGclient.sendMessage(userid, newMessage.firstTimeMessage()).catch((error) => {
+            console.log(error.code);  // => 'ETELEGRAM'
+            console.log(error.response.body); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
+        });
     }
 
     //LevelUp功能
@@ -219,15 +222,16 @@ TGclient.on('text', async (ctx) => {
             break;
     }
 
-}).catch((error) => {
-    console.error('tg 223 error:', (error && (error.message || error.name)));
-});
+})
 
 function SendToId(targetid, text, options) {
     try {
         for (let i = 0; i < text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
             if (i == 0 || i == 1 || i == text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
-                TGclient.sendMessage(targetid, text.toString().match(/[\s\S]{1,2000}/g)[i], options);
+                TGclient.sendMessage(targetid, text.toString().match(/[\s\S]{1,2000}/g)[i], options).catch((error) => {
+                    console.log(error.code);  // => 'ETELEGRAM'
+                    console.log(error.response.body); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
+                });
             }
         }
     } catch (error) {
@@ -249,7 +253,10 @@ let connect = function () {
         if (object.botname == 'Telegram') {
             if (!object.text) return;
             console.log('Telegram have message')
-            TGclient.sendMessage(object.target.id, object.text);
+            TGclient.sendMessage(object.target.id, object.text).catch((error) => {
+                console.log(error.code);  // => 'ETELEGRAM'
+                console.log(error.response.body); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
+            });
             return;
         }
         if (object.botname == 'Line') {
@@ -302,19 +309,13 @@ TGclient.on('new_chat_members', async (ctx) => {
         console.log("Telegram joined");
         SendToId(ctx.chat.id, newMessage.joinMessage());
     }
-}).catch((error) => {
-    console.error('tg 306 error:', (error && (error.message || error.name)));
 });
 
 TGclient.on('group_chat_created', async (ctx) => {
     SendToId(ctx.chat.id, newMessage.joinMessage());
-}).catch((error) => {
-    console.error('tg 312 error:', (error && (error.message || error.name)));
 });
 TGclient.on('supergroup_chat_created', async (ctx) => {
     SendToId(ctx.chat.id, newMessage.joinMessage());
-}).catch((error) => {
-    console.error('tg 317 error:', (error && (error.message || error.name)));
 });
 
 
@@ -430,6 +431,10 @@ function z_stop(mainMsg = "", groupid = "") {
     } else
         return false;
 }
+
+TGclient.on('error', (error) => {
+    console.error('Global error handler:', error);
+});
 
 
 /*

@@ -225,9 +225,13 @@ const rollDiceCommand = async function ({
         if (!matches) return content;
 
         const replacements = await Promise.all(matches.map(async (match) => {
-            const userId = match.slice(2, -1);
-            const user = await discordClient.users.fetch(userId);
-            return user ? `@${user.username}` : match;
+            const userId = match.slice(2, -1); // 提取用戶 ID
+            try {
+                const user = await discordClient.users.fetch(userId); // 嘗試獲取用戶
+                return user ? `@${user.username}` : match; // 如果用戶存在，返回用戶名
+            } catch (error) {
+                return match; // 如果出現錯誤，返回原始的 match
+            }
         }));
 
         let replacedContent = content;
@@ -237,6 +241,7 @@ const rollDiceCommand = async function ({
 
         return replacedContent;
     }
+
 
     switch (true) {
         case /^help$/i.test(mainMsg[1]):

@@ -219,7 +219,9 @@ TGclient.on('text', async (ctx) => {
             break;
     }
 
-})
+}).catch((error) => {
+    console.error('tg 223 error:', (error && (error.message || error.name)));
+});
 
 function SendToId(targetid, text, options) {
     try {
@@ -300,13 +302,19 @@ TGclient.on('new_chat_members', async (ctx) => {
         console.log("Telegram joined");
         SendToId(ctx.chat.id, newMessage.joinMessage());
     }
+}).catch((error) => {
+    console.error('tg 306 error:', (error && (error.message || error.name)));
 });
 
 TGclient.on('group_chat_created', async (ctx) => {
     SendToId(ctx.chat.id, newMessage.joinMessage());
+}).catch((error) => {
+    console.error('tg 312 error:', (error && (error.message || error.name)));
 });
 TGclient.on('supergroup_chat_created', async (ctx) => {
     SendToId(ctx.chat.id, newMessage.joinMessage());
+}).catch((error) => {
+    console.error('tg 317 error:', (error && (error.message || error.name)));
 });
 
 

@@ -126,7 +126,7 @@ const rollDiceCommand = async function ({
 
             for (const element of messages.values()) {
                 let temp;
-                if (element.type === 0) {
+                if (element.type === 0 || element.type === 19) {
                     const content = await replaceMentions(element.content);
                     temp = {
                         timestamp: element.createdTimestamp,
@@ -178,24 +178,33 @@ const rollDiceCommand = async function ({
 
             for (const element of messages.values()) {
                 let temp;
+                const content = await replaceMentions(element.content);
+                const processedEmbeds = await Promise.all(
+                    (element.embeds && element.embeds.length) ? element.embeds.map(async embed => {
+                        if (embed.description) {
+                            return await replaceMentions(embed.description);
+                        }
+                        return embed.description;
+                    }) : []
+                );
                 if (element.type === 0 || element.type === 19) {
-                    const content = await replaceMentions(element.content);
+
                     temp = {
                         timestamp: element.createdTimestamp,
                         contact: content,
                         userName: element.author.username,
                         isbot: element.author.bot,
                         attachments: (element.attachments && element.attachments.size) ? element.attachments.map(attachment => attachment.proxyURL) : [],
-                        embeds: (element.embeds && element.embeds.length) ? element.embeds.map(embed => embed.description) : []
+                        embeds: processedEmbeds
                     };
                 } else if (element.interaction && element.interaction.commandName) {
                     temp = {
                         timestamp: element.createdTimestamp,
-                        contact: element.interaction.user.username + '使用' + element.interaction.commandName + "\n",
+                        contact: (element.interaction.nickname || element.interaction.user.username) + '使用' + element.interaction.commandName + "\n",
                         userName: '系統信息',
                         isbot: true,
                         attachments: (element.attachments && element.attachments.size) ? element.attachments.map(attachment => attachment.proxyURL) : [],
-                        embeds: (element.embeds && element.embeds.length) ? element.embeds.map(embed => embed.description) : []
+                        embeds: processedEmbeds
                     };
                 }
                 if (temp)
@@ -220,15 +229,18 @@ const rollDiceCommand = async function ({
     }
 
     async function replaceMentions(content) {
+        if (!content) return content;
         const mentionRegex = /<@(.*?)>/ig;
         const matches = content.match(mentionRegex);
         if (!matches) return content;
-
+        const members = discordMessage.guild.members.cache.map(member => member);
         const replacements = await Promise.all(matches.map(async (match) => {
             const userId = match.slice(2, -1); // 提取用戶 ID
             try {
-                const user = await discordClient.users.fetch(userId); // 嘗試獲取用戶
-                return user ? `@${user.username}` : match; // 如果用戶存在，返回用戶名
+                // 嘗試獲取所有用戶
+                const member = members.find(member => member.id === userId); // 嘗試獲取用戶
+                const name = member.nickname || member.displayName;
+                return member ? `@${name}` : match; // 如果用戶存在，返回用戶名
             } catch (error) {
                 return match; // 如果出現錯誤，返回原始的 match
             }
@@ -491,7 +503,7 @@ const rollDiceCommand = async function ({
                         data += '(🤖)'
                     }
                     data += M[index].userName + '	' + '\n';
-                    data += await replaceMentions(M[index].contact);
+                    data += M[index].contact;
                     data += '\n\n';
                 } else {
                     let time = M[index].timestamp.toString().slice(0, -3);
@@ -504,7 +516,7 @@ const rollDiceCommand = async function ({
                     }
                     //dateObj  決定有沒有時間
                     data += M[index].userName + '	' + dateObj + '\n';
-                    data += (M[index].contact) ? await replaceMentions(M[index].contact) + '\n' : '';
+                    data += (M[index].contact) ? (M[index].contact) + '\n' : '';
                     data += (M[index].embeds.length) ? `${M[index].embeds.join('\n')}` : '';
                     data += (M[index].attachments.length) ? `${M[index].attachments.join('\n')}` : '';
                     data += '\n';

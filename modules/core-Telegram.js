@@ -436,11 +436,11 @@ TGclient.on('error', (error) => {
     console.error('Global error handler:', error);
 });
 
-bot.on('polling_error', (error) => {
+TGclient.on('polling_error', (error) => {
     console.error("polling_error handler:", error.code);  // => 'EFATAL'
 });
 
-bot.on('webhook_error', (error) => {
+TGclient.on('webhook_error', (error) => {
     console.log("webhook_error handler:",error.code);  // => 'EPARSE'
 });
 

@@ -403,7 +403,7 @@ ${Almanac.content}
 
 	async updateAlmanac() {
 		let date = this.getDate();
-		let res = await axios.get(encodeURI(`https://tw.18dao.net/%E6%AF%8F%E6%97%A5%E9%BB%83%E6%9B%86/${date}`));
+		let res = await axios.get(encodeURI(`https://tw.18dao.net/每日黃曆/${date}`));
 		const $ = cheerio.load(res.data)
 		this.Almanac = new Almanac($, date);
 	}

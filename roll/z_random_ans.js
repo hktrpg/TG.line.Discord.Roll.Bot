@@ -269,7 +269,7 @@ const rollDiceCommand = async function ({
                     //repeat mode
                     rply.text += temp[0] + ' → ';
                     for (let num = 0; num < times; num++) {
-                        let randomNumber = rollbase.Dice(temp.length - 1);
+                        let randomNumber = rollbase.Dice(temp.length) - 1;
                         rply.text += (num == 0) ? temp[randomNumber] : ', ' + temp[randomNumber];
                         rply.text += (num == times - 1) ? '\n' : '';
                     }
@@ -421,7 +421,7 @@ const rollDiceCommand = async function ({
                     //repeat mode
                     rply.text += temp.title + ' → ';
                     for (let num = 0; num < times; num++) {
-                        let randomNumber = rollbase.Dice(temp.answer.length - 1);
+                        let randomNumber = rollbase.Dice(temp.answer.length) - 1;
                         rply.text += (num == 0) ? temp.answer[randomNumber] : ', ' + temp.answer[randomNumber];
                         rply.text += (num == times - 1) ? '\n' : '';
                     }
@@ -584,7 +584,7 @@ const rollDiceCommand = async function ({
                     //repeat mode
                     rply.text += temp.title + ' → ';
                     for (let num = 0; num < times; num++) {
-                        let randomNumber = rollbase.Dice(temp.answer.length - 1);
+                        let randomNumber = rollbase.Dice(temp.answer.length) - 1;
                         rply.text += (num == 0) ? temp.answer[randomNumber] : ', ' + temp.answer[randomNumber];
                         rply.text += (num == times - 1) ? '\n' : '';
                     }

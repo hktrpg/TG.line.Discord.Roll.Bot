@@ -631,43 +631,32 @@ function randomLuck(TEXT) {
  */
 function MultiDrawTarot(text, text2, type) {
 	let returnStr = '';
-	let cards = []
+	let cards = rollbase.shuffleTarget(TarotList2);
+
+	const formatText = (prefix, text, text2) => {
+		return `${prefix}\n${text ? "；" + text : ""}${text2 ? " " + text2 : ""}`;
+	};
+
 	switch (type) {
 		case 1:
-			returnStr = '【時間塔羅】/每日塔羅/大十字塔羅\n';
-			(text) ? returnStr += "；" + text + " " + text2 : '';
-			cards = rollbase.shuffleTarget(TarotList2);
-			returnStr += '過去: ' + cards[0] + '\n'
-			returnStr += '現在: ' + cards[1] + '\n'
-			returnStr += '未來: ' + cards[2] + '\n'
+			returnStr = formatText('【時間塔羅】/每日塔羅/大十字塔羅', text, text2);
+			returnStr += `過去: ${cards[0]}\n現在: ${cards[1]}\n未來: ${cards[2]}\n`;
 			break;
 		case 2:
-			returnStr = '【大十字塔羅】/每日塔羅/時間塔羅\n';
-			(text) ? returnStr += "；" + text + " " + text2 : '';
-			cards = rollbase.shuffleTarget(TarotList2);
-			returnStr += '現況: ' + cards[0] + '\n'
-			returnStr += '助力: ' + cards[1] + '\n'
-			returnStr += '目標: ' + cards[2] + '\n'
-			returnStr += '基礎: ' + cards[3] + '\n'
-			returnStr += '過去: ' + cards[4] + '\n'
-			returnStr += '未來: ' + cards[5] + '\n'
-			returnStr += '自我: ' + cards[6] + '\n'
-			returnStr += '環境: ' + cards[7] + '\n'
-			returnStr += '恐懼: ' + cards[8] + '\n'
-			returnStr += '結論: ' + cards[9] + '\n'
+			returnStr = formatText('【大十字塔羅】/每日塔羅/時間塔羅', text, text2);
+			returnStr += `現況: ${cards[0]}\n助力: ${cards[1]}\n目標: ${cards[2]}\n基礎: ${cards[3]}\n過去: ${cards[4]}\n未來: ${cards[5]}\n自我: ${cards[6]}\n環境: ${cards[7]}\n恐懼: ${cards[8]}\n結論: ${cards[9]}\n`;
 			break;
 		default:
 			break;
-
 	}
 	return returnStr;
 }
 
+
 function NomalDrawTarot(text, text2) {
 	let returnStr = '';
 	returnStr = '【每日塔羅】/大十字塔羅/時間塔羅'
-	if (text)
-		returnStr += "；" + text + " " + text2
+	returnStr += `${text ? "\n；" + text : ""}${text2 ? " " + text2 : ""}`
 	let ans = rollbase.shuffleTarget(TarotList)
 	returnStr += '\n' + ans[0]
 	return returnStr;
@@ -1134,7 +1123,7 @@ const discordCommand = [
 			.addStringOption(option => option.setName('text').setDescription('可選: 什麼的運勢'))
 		,
 		async execute(interaction) {
-		//	console.log(interaction.options.getString('text'))
+			//	console.log(interaction.options.getString('text'))
 			const text = interaction.options.getString('text')
 			if (text !== null)
 				return `${text}的運勢`

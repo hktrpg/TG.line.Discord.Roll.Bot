@@ -3449,7 +3449,7 @@ discord-api-types@0.37.83:
   resolved "https://registry.npmjs.org/discord-api-types/-/discord-api-types-0.37.83.tgz"
   integrity sha512-urGGYeWtWNYMKnYlZnOnDHm8fVRffQs3U0SpE8RHeiuLKb/u92APS8HoQnPTFbnXmY1vVnXjXO4dOxcAn3J+DA==
 
-discord-hybrid-sharding@^2.1.4:
+discord-hybrid-sharding@^2.2.0:
   version "2.2.0"
 
 discord.js@14.11:
@@ -4638,7 +4638,7 @@ has@^1.0.3:
     cheerio "^1.0.0-rc.12"
     chinese-conv "^1.0.1"
     crypto-js "^4.2.0"
-    discord-hybrid-sharding "^2.1.4"
+    discord-hybrid-sharding "^2.2.0"
     discord.js "14.11"
     dotenv "^8.2.0"
     emoji-regex "^10.0.0"

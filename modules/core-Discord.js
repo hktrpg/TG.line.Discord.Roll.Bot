@@ -58,8 +58,8 @@ manager.on("clusterCreate", cluster => {
 	if (!agenda) return;
 
 	agenda.define('0455restartdiscord', async (job) => {
-		console.log('04:55 restart discord!!');
-		manager.respawnAll({ clusterDelay: 1000 * 60, respawnDelay: 500, timeout: 1000 * 60 * 2 });
+		//	console.log('04:55 restart discord!!');
+		//	manager.respawnAll({ clusterDelay: 1000 * 60, respawnDelay: 500, timeout: 1000 * 60 * 2 });
 
 	});
 })();

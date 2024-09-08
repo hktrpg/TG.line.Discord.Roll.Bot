@@ -1544,6 +1544,13 @@
     file-type "^16.5.4"
     form-data "^4.0.0"
 
+"@mongodb-js/saslprep@^1.1.0":
+  version "1.1.9"
+  resolved "https://registry.yarnpkg.com/@mongodb-js/saslprep/-/saslprep-1.1.9.tgz#e974bab8eca9faa88677d4ea4da8d09a52069004"
+  integrity sha512-tVkljjeEaAhCqTzajSdgbQ6gE6f3oneVwa3iXR6csiEwXXOFsiC6Uh9iAjAhXPtqa/XMDHWjjeNH/77m/Yq2dw==
+  dependencies:
+    sparse-bitfield "^3.0.3"
+
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
   resolved "https://registry.npmjs.org/@nodelib/fs.scandir/-/fs.scandir-2.1.5.tgz"
@@ -4730,6 +4737,66 @@ has@^1.0.3:
   dependencies:
     function-bind "^1.1.1"
 
+"hktrpg@file:.":
+  version "1.32.0"
+  dependencies:
+    "@ant-design/colors" "^6.0.0"
+    "@dice-roller/rpg-dice-roller" "5.3.2"
+    "@line/bot-sdk" "^7.2.0"
+    "@top-gg/sdk" "^3.1.3"
+    "@vitalets/google-translate-api" "^9"
+    "@zetetic/duckduckgo-images-api" "https://github.com/zeteticl/duckduckgo-images-api"
+    agenda "^4.2.1"
+    axios "^1.7.4"
+    axios-retry "^3.2.4"
+    bcdice "^4.5.0"
+    bufferutil "^4.0.3"
+    chai "^4.3.4"
+    cheerio "^1.0.0-rc.12"
+    chinese-conv "^1.0.1"
+    crypto-js "^4.2.0"
+    discord-hybrid-sharding "^2.1.4"
+    discord.js "14.11"
+    dotenv "^8.2.0"
+    emoji-regex "^10.0.0"
+    engine.io "^6.4.2"
+    events "^3.3.0"
+    express "^4.19.2"
+    fuse.js "^6.6.2"
+    geopattern "^1.2.3"
+    get-image-colors "^4.0.1"
+    gpt-tokenizer "^2.1.2"
+    hktrpg "file:."
+    https "^1.0.0"
+    image-url-validator "^1.0.4"
+    jimp "^0.16.2"
+    log-to-file "^3.0.3"
+    mathjs "^9.3.0"
+    moment "^2.29.4"
+    moment-timezone "^0.5.35"
+    mongoose "^6"
+    node-schedule "^2.1.0"
+    node-telegram-bot-api "^0.64.0"
+    openai "^4.24.1"
+    plurk2 "https://github.com/zeteticl/node-plurk2"
+    puppeteer "^13.7.0"
+    qrcode-terminal "^0.12.0"
+    random-js "^2.1.0"
+    rate-limiter-flexible "^2.2.3"
+    recachegoose "^9.1.0"
+    sharp "^0.32.6"
+    simple-get "^4.0.1"
+    socket.io "^2.4.1"
+    socket.io-client "^2.4.0"
+    timer "^1.0.1"
+    topgg-autoposter "^2.0.0"
+    utf-8-validate "^5.0.5"
+    uws "^9.14.0"
+    whatsapp-web.js "https://github.com/pedroslopez/whatsapp-web.js#webpack-exodus"
+    wikijs "6.4.1"
+    winston "^3.11.0"
+    ws "^7.5.3"
+
 html-escaper@^2.0.0:
   version "2.0.2"
   resolved "https://registry.npmjs.org/html-escaper/-/html-escaper-2.0.2.tgz"
@@ -6070,7 +6137,7 @@ moment@^2.29.4:
   resolved "https://registry.npmjs.org/moment/-/moment-2.29.4.tgz"
   integrity sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w==
 
-mongodb-connection-string-url@^2.5.4:
+mongodb-connection-string-url@^2.6.0:
   version "2.6.0"
   resolved "https://registry.npmjs.org/mongodb-connection-string-url/-/mongodb-connection-string-url-2.6.0.tgz"
   integrity sha512-WvTZlI9ab0QYtTYnuMLgobULWhokRjtC7db9LtcVfJ+Hsnyr5eo6ZtNAt3Ly24XZScGMelOcGtm7lSn0332tPQ==
@@ -6078,26 +6145,26 @@ mongodb-connection-string-url@^2.5.4:
     "@types/whatwg-url" "^8.2.1"
     whatwg-url "^11.0.0"
 
-mongodb@4.16.0, mongodb@^4.1.0:
-  version "4.16.0"
-  resolved "https://registry.npmjs.org/mongodb/-/mongodb-4.16.0.tgz"
-  integrity sha512-0EB113Fsucaq1wsY0dOhi1fmZOwFtLOtteQkiqOXGklvWMnSH3g2QS53f0KTP+/6qOkuoXE2JksubSZNmxeI+g==
+mongodb@4.17.2, mongodb@^4.1.0:
+  version "4.17.2"
+  resolved "https://registry.yarnpkg.com/mongodb/-/mongodb-4.17.2.tgz#237c0534e36a3449bd74c6bf6d32f87a1ca7200c"
+  integrity sha512-mLV7SEiov2LHleRJPMPrK2PMyhXFZt2UQLC4VD4pnth3jMjYKHhtqfwwkkvS/NXuo/Fp3vbhaNcXrIDaLRb9Tg==
   dependencies:
     bson "^4.7.2"
-    mongodb-connection-string-url "^2.5.4"
+    mongodb-connection-string-url "^2.6.0"
     socks "^2.7.1"
   optionalDependencies:
     "@aws-sdk/credential-providers" "^3.186.0"
-    saslprep "^1.0.3"
+    "@mongodb-js/saslprep" "^1.1.0"
 
 mongoose@^6:
-  version "6.11.5"
-  resolved "https://registry.npmjs.org/mongoose/-/mongoose-6.11.5.tgz"
-  integrity sha512-ZarPe1rCHG4aVb78xLuok4BBIm0HMz/Y/CjxYXCk3Qz1mEhS7bPMy6ZhSX2/Dng//R7ei8719j6K87UVM/1b3g==
+  version "6.13.1"
+  resolved "https://registry.yarnpkg.com/mongoose/-/mongoose-6.13.1.tgz#f9ac0daea91105bcdfe66611b86fb89db9938ca6"
+  integrity sha512-Ugeg9N7qjirvp8Ea2Lr2EaXcAOFLveG5M/GMQ0UnTbyldBx6MuuItfbPP7CIACej+tyc8Z3NryQlfYT+PgYifA==
   dependencies:
     bson "^4.7.2"
     kareem "2.5.1"
-    mongodb "4.16.0"
+    mongodb "4.17.2"
     mpath "0.9.0"
     mquery "4.0.3"
     ms "2.1.3"
@@ -7181,13 +7248,6 @@ sanitize-filename@^1.5.3:
   integrity sha512-y/52Mcy7aw3gRm7IrcGDFx/bCk4AhRh2eI9luHOQM86nZsqwiRkkq2GekHXBBD+SmPidc8i2PqtYZl+pWJ8Oeg==
   dependencies:
     truncate-utf8-bytes "^1.0.0"
-
-saslprep@^1.0.3:
-  version "1.0.3"
-  resolved "https://registry.npmjs.org/saslprep/-/saslprep-1.0.3.tgz"
-  integrity sha512-/MY/PEMbk2SuY5sScONwhUDsV2p77Znkb/q3nSVstq/yQzYJOH/Azh29p9oJLsl3LnQwSvZDKagDGBsBwSooag==
-  dependencies:
-    sparse-bitfield "^3.0.3"
 
 sax@>=0.6.0:
   version "1.2.4"

@@ -100,10 +100,10 @@
                 <span class="iconify" data-icon="carbon:data-base" data-inline="false" data-width="20px"
                     data-height="20px"></span>基本屬性
             </h4>
-            <button type="button" class="btn btn-warning float-right" v-if="name" @click="newItem(0)">
+            <button type="button" class="btn btn-warning float-right" v-if="name" onclick="newItem(0)">
                 +
             </button>
-            <button type="button" class="btn btn-warning float-right" v-if="name" @click="removeItem(0)">
+            <button type="button" class="btn btn-warning float-right" v-if="name" onclick="removeItem(0)">
                 -
             </button>
             <div class="row align-items-start m-1 p-1">
@@ -119,7 +119,7 @@
                         <textarea class="textState" v-model="item.itemB" style="width:55px;padding: 1px 1px 1px 1px">
                             {{item.itemB}}
                         </textarea>
-                        <button type="button" class="btn btn-link" @click="rolling(item.name)">
+                        <button type="button" class="btn btn-link" onclick="rolling(item.name)">
                             <span class="iconify" data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
                                 data-height="20px"></span>
                         </button>
@@ -144,7 +144,7 @@
                 -
             </button>
             <div class="row align-items-start m-1 p-1" id="roll">
-                <div v-for="item in roll" class="board1" style="height: 36px;padding: 1px 1px 1px 1px">
+                <div v-for="(item, index)  in roll" class="board1" style="height: 36px;padding: 1px 1px 1px 1px">
                     <textarea class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">
                     {{item.name}}
                 </textarea><span class="pb-2">:</span>
@@ -172,7 +172,7 @@
                 -
             </button>
             <div class="row align-items-end" id="notes">
-                <div v-for="item in notes" class="board1">
+                <div v-for="(item, index)  in notes" class="board1">
                     <textarea class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">
                     {{item.name}}
                 </textarea>：
@@ -525,7 +525,7 @@
 
                 },
                 removeItem(index, form) {
-                    console.log("removeItem", index, form);
+           
                     switch (form) {
                         case 0:
                             this.state.splice(index, 1); // 刪除基本屬性項目

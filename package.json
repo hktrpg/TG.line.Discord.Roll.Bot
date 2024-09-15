@@ -65,7 +65,7 @@
     "recachegoose": "^9.1.0",
     "sharp": "^0.32.6",
     "simple-get": "^4.0.1",
-    "socket.io": "^2.4.1",
+    "socket.io": "^4.7.5",
     "socket.io-client": "^2.4.0",
     "timer": "^1.0.1",
     "topgg-autoposter": "^2.0.0",

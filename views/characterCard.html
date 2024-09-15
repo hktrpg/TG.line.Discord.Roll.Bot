@@ -118,7 +118,7 @@
                             <span class="iconify" data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
                                 data-height="20px"></span>
                         </button>
-                        <button type="button" class="btn btn-danger" v-if="deleteMode"
+                        <button type="button" class="btn btn-danger btn-delete" v-if="deleteMode"
                             @click="removeItem(index, 0)">刪除</button>
                     </div>
                 </div>
@@ -147,7 +147,7 @@
                 </textarea><button type="button" class="btn btn-link" v-on:click="rolling(item.name)"><span
                             class="iconify " data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
                             data-height="20px"></span></button>
-                    <button type="button" class="btn btn-danger" v-if="deleteMode" @click="removeItem(index, 1)">
+                    <button type="button" class="btn btn-danger btn-delete" v-if="deleteMode" @click="removeItem(index, 1)">
                         刪除
                     </button>
                 </div>
@@ -173,7 +173,7 @@
                     <textarea class="col textNote" v-model="item.itemA" style="width:180px">
                     {{item.itemA}}
                 </textarea>
-                    <button type="button" class="btn btn-danger" v-if="deleteMode" @click="removeItem(index, 2)">
+                    <button type="button" class="btn btn-danger btn-delete" v-if="deleteMode" @click="removeItem(index, 2)">
                         刪除
                     </button>
                 </div>

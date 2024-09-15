@@ -288,7 +288,8 @@ function handlingCountButton(message, mode) {
 	const modeString = (mode === "roll") ? '投擲' : '點擊';
 	const content = message.message.content;
 	if (!/點擊了「|投擲了「|要求擲骰\/點擊/.test(content)) return;
-	const user = `${(message.member?.nickname || message.user.displayName)}(${message.user.username})`
+	const user = `${(message.member?.nickname || message.user.displayName) ? `${message.member?.nickname || message.user.displayName} (${message.user.username})` : message.user.username}`;
+
 	const button = `${modeString}了「${message.component.label}」`;
 	const regexpButton = convertRegex(`${button}`)
 	let newContent = content;

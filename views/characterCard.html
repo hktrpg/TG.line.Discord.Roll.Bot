@@ -108,10 +108,10 @@
                     <div>
                         <textarea class="textName" v-model="item.name"
                             style="width:50px;padding: 1px;">{{item.name}}</textarea>
-                        <span>：</span>
+                        <span class="centered-text">：</span>
                         <textarea class="textState" v-model="item.itemA"
                             style="width:55px;padding: 1px;">{{item.itemA}}</textarea>
-                        <span>／</span>
+                        <span class="centered-text">／</span>
                         <textarea class="textState" v-model="item.itemB"
                             style="width:55px;padding: 1px;">{{item.itemB}}</textarea>
                         <button type="button" class="btn btn-link" @click="rolling(item.name)">
@@ -147,7 +147,8 @@
                 </textarea><button type="button" class="btn btn-link" v-on:click="rolling(item.name)"><span
                             class="iconify " data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
                             data-height="20px"></span></button>
-                    <button type="button" class="btn btn-danger btn-delete" v-if="deleteMode" @click="removeItem(index, 1)">
+                    <button type="button" class="btn btn-danger btn-delete" v-if="deleteMode"
+                        @click="removeItem(index, 1)">
                         刪除
                     </button>
                 </div>
@@ -173,7 +174,8 @@
                     <textarea class="col textNote" v-model="item.itemA" style="width:180px">
                     {{item.itemA}}
                 </textarea>
-                    <button type="button" class="btn btn-danger btn-delete" v-if="deleteMode" @click="removeItem(index, 2)">
+                    <button type="button" class="btn btn-danger btn-delete" v-if="deleteMode"
+                        @click="removeItem(index, 2)">
                         刪除
                     </button>
                 </div>

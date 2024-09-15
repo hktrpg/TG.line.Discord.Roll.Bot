@@ -153,7 +153,7 @@ const rollDiceCommand = async function ({
                             rply.text = '關鍵字上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
                             return rply;
                         }
-                        existingCommand = trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction.find(cmd => cmd.topic === mainMsg[2]);
+                        existingCommand = trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction.find(cmd => cmd.topic.toLowerCase() === mainMsg[2].toLowerCase());
                         break;
                     }
                 }
@@ -170,7 +170,6 @@ const rollDiceCommand = async function ({
             };
 
             if (existingCommand) {
-                console.log('Updating existing command', existingCommand);
                 // 更新已存在的標題
                 const newContact = mainMsg.slice(3).join(' ').trim();
                 temp = {

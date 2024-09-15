@@ -241,19 +241,19 @@ function findRollList(mainMsg) {
 	if (!mainMsg || !mainMsg[0]) return;
 	mainMsg[0].match(/^\.(\d{1,2})$/) ? mainMsg.shift() : null;
 	if (!mainMsg[1]) mainMsg[1] = '';
-	let idList = Object.keys(exports).map(i => exports[i]);
-	let findTarget = idList.find(item => {
+
+	const idList = Object.values(exports);
+	const findTarget = idList.find(item => {
 		if (item.prefixs && item.prefixs()) {
-			for (let index = 0; index < item.prefixs().length; index++) {
-				if (mainMsg && mainMsg[0] && mainMsg[0].match(item.prefixs()[index].first) && (mainMsg[1] && mainMsg[1].match(item.prefixs()[index].second) || item.prefixs()[index].second == null)) {
-					return true
-				}
-			}
+			return item.prefixs().some(prefix =>
+				mainMsg && mainMsg[0].match(prefix.first) &&
+				(mainMsg[1] && mainMsg[1].match(prefix.second) || prefix.second == null)
+			);
 		}
 	});
-	idList = null;
 	return findTarget;
 }
+
 
 async function stateText() {
 	let state = await getState() || '';

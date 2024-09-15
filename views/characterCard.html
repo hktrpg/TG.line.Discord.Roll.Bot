@@ -95,42 +95,36 @@
             </div>
         </div>
         <br>
-        <div id="attributeList">
+        <div id="attributeList" class="mt-4">
             <h4 class="bg-color3 p-1">
                 <span class="iconify" data-icon="carbon:data-base" data-inline="false" data-width="20px"
-                    data-height="20px"></span>基本屬性
+                    data-height="20px"></span> 基本屬性
             </h4>
-            <button type="button" class="btn btn-warning float-right" v-if="name" onclick="newItem(0)">
-                +
-            </button>
-            <button type="button" class="btn btn-warning float-right" v-if="name" onclick="removeItem(0)">
-                -
-            </button>
+
+            <button type="button" class="btn btn-warning float-right" v-if="name" @click="newItem(0)">+</button>
+            <button type="button" class="btn btn-warning float-right" v-if="name" @click="removeItem(0)">-</button>
             <div class="row align-items-start m-1 p-1">
-                <div v-for="(item, index) in state" id="state" class="board1" style="height: 36px;">
+                <div v-for="(item, index) in state" class="board1" style="height: 36px;">
                     <div>
-                        <textarea class="textName" v-model="item.name" style="width:50px;padding: 1px 1px 1px 1px">
-                            {{item.name}}
-                        </textarea><span style="height: 62px;">：</span>
-                        <textarea class="textState" v-model="item.itemA" style="width:55px;padding: 1px 1px 1px 1px;">
-                            {{item.itemA}}
-                        </textarea>
-                        <span style="height: 32px;">／ </span>
-                        <textarea class="textState" v-model="item.itemB" style="width:55px;padding: 1px 1px 1px 1px">
-                            {{item.itemB}}
-                        </textarea>
-                        <button type="button" class="btn btn-link" onclick="rolling(item.name)">
+                        <textarea class="textName" v-model="item.name"
+                            style="width:50px;padding: 1px;">{{item.name}}</textarea>
+                        <span>：</span>
+                        <textarea class="textState" v-model="item.itemA"
+                            style="width:55px;padding: 1px;">{{item.itemA}}</textarea>
+                        <span>／</span>
+                        <textarea class="textState" v-model="item.itemB"
+                            style="width:55px;padding: 1px;">{{item.itemB}}</textarea>
+                        <button type="button" class="btn btn-link" @click="rolling(item.name)">
                             <span class="iconify" data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
                                 data-height="20px"></span>
                         </button>
-                        <button type="button" class="btn btn-danger" v-if="deleteMode" @click="removeItem(index, 0)">
-                            刪除
-                        </button>
+                        <button type="button" class="btn btn-danger" v-if="deleteMode"
+                            @click="removeItem(index, 0)">刪除</button>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <br>
         <div id="rollList">
             <h4 class=" bg-color3 p-1">
@@ -525,7 +519,7 @@
 
                 },
                 removeItem(index, form) {
-           
+
                     switch (form) {
                         case 0:
                             this.state.splice(index, 1); // 刪除基本屬性項目

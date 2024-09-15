@@ -305,6 +305,20 @@ class Records extends EventEmitter {
             // return JSON.stringify(doc).toString();
         });
     }
+    editSettrpgCommandfunction(dbbase, msg, callback) {
+        schema[dbbase].findOneAndUpdate(
+            { groupid: msg.groupid, "trpgCommandfunction.topic": msg.trpgCommandfunction.topic },
+            { $set: { "trpgCommandfunction.$.contact": msg.trpgCommandfunction.contact } },
+            { new: true, upsert: false }, // 不用 upsert，因為我們希望更新已存在的項目
+            (err, doc) => {
+                if (err) {
+                    console.error("Something wrong when updating data!", err);
+                } else {
+                    callback(doc); // 返回更新後的文檔
+                }
+            }
+        );
+    }
 
 
     /*

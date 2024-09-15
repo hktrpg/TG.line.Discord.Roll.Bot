@@ -11,7 +11,7 @@ records.get('trpgCommand', (msgs) => {
 const VIP = require('../modules/veryImportantPerson');
 const FUNCTION_LIMIT = [30, 200, 200, 300, 300, 300, 300, 300];
 const gameName = function () {
-    return '【儲存擲骰指令功能】 .cmd (add del show 自定關鍵字)'
+    return '【儲存擲骰指令功能】 .cmd (add edit del show 自定關鍵字)'
 }
 const gameType = function () {
     return 'Tool:trpgCommand:hktrpg'
@@ -27,6 +27,7 @@ const getHelpMessage = async function () {
 這是根據關鍵字來再現擲骰指令
 
 輸入.cmd add (關鍵字) (指令)即可增加關鍵字
+輸入.cmd edit (關鍵字) (指令)即可修改關鍵指令
 輸入.cmd show 顯示所有關鍵字
 輸入.cmd del(編號)或all 即可刪除
 輸入.cmd  (關鍵字) 即可執行 
@@ -65,11 +66,11 @@ const rollDiceCommand = async function ({
             rply.quotes = true;
             return rply;
         // .cmd(0) ADD(1) TOPIC(2) CONTACT(3)
-        case /(^[.]cmd$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
+        case /(^[.]cmd$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|edit|del|show)$)/ig.test(mainMsg[2]):
             //增加資料庫
             //檢查有沒有重覆
             if (!mainMsg[2]) rply.text += ' 沒有標題.\n\n'
-            if (!mainMsg[3]) rply.text += ' 沒有擲骰指令\n\n'
+            if (!mainMsg[3]) rply.text += ' 沒有擲骰指令\n格式為\n.cmd add (關鍵字) (指令)\n'
             if (mainMsg[3] && mainMsg[3].toLowerCase() == ".cmd") rply.text += '指令不可以儲存.cmd\n\n'
             if (rply.text += checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelManager,
@@ -111,11 +112,91 @@ const rollDiceCommand = async function ({
                     })
 
                 })
-                rply.text = '新增成功: ' + mainMsg[2] + '\n' + inputStr.replace(/\.cmd\s+add\s+/i, '').replace(mainMsg[2], '').replace(/^\s+/, '')
+                rply.text = '新增成功: 可使用.cmd \n' + mainMsg[2] + '\n' + inputStr.replace(/\.cmd\s+add\s+/i, '').replace(mainMsg[2], '').replace(/^\s+/, '')
             } else rply.text = '新增失敗. 重複標題'
 
             return rply;
+        case /(^[.]cmd$)/i.test(mainMsg[0]) && /^edit$/i.test(mainMsg[1]) && /^(?!(add|edit|del|show)$)/ig.test(mainMsg[2]):
+            // 編輯或新增資料庫
+            if (!mainMsg[2]) {
+                rply.text += '沒有標題。\n\n';
 
+            }
+            if (mainMsg.length < 4) {
+                rply.text += '沒有擲骰指令\n格式為\n.cmd edit (關鍵字) (指令)\n\n\n';
+
+            }
+            if (mainMsg[3] && mainMsg[3].toLowerCase() === ".cmd") {
+                rply.text += '指令不可以儲存.cmd。\n\n';
+
+            }
+
+            const permissionError = checkTools.permissionErrMsg({
+                flag: checkTools.flag.ChkChannelManager,
+                gid: groupid,
+                role: userrole
+            });
+            if (permissionError) {
+                rply.text += permissionError;
+                return rply;
+            }
+
+            lv = await VIP.viplevelCheckGroup(groupid);
+            limit = FUNCTION_LIMIT[lv];
+            let existingCommand = null;
+
+            // 檢查是否已存在相同標題
+            if (trpgCommandfunction.trpgCommandfunction) {
+                for (let i = 0; i < trpgCommandfunction.trpgCommandfunction.length; i++) {
+                    if (trpgCommandfunction.trpgCommandfunction[i].groupid === groupid) {
+                        if (trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction.length >= limit) {
+                            rply.text = '關鍵字上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
+                            return rply;
+                        }
+                        existingCommand = trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction.find(cmd => cmd.topic === mainMsg[2]);
+                        break;
+                    }
+                }
+            }
+            if (rply.text) return rply;
+
+            const newContact = mainMsg.slice(3).join(' ').trim();
+            temp = {
+                groupid: groupid,
+                trpgCommandfunction: [{
+                    topic: mainMsg[2],
+                    contact: newContact
+                }]
+            };
+
+            if (existingCommand) {
+                console.log('Updating existing command', existingCommand);
+                // 更新已存在的標題
+                const newContact = mainMsg.slice(3).join(' ').trim();
+                temp = {
+                    groupid: groupid,
+                    trpgCommandfunction: {
+                        topic: mainMsg[2],
+                        contact: newContact
+                    }
+                };
+                records.editSettrpgCommandfunction('trpgCommand', temp, () => {
+                    records.get('trpgCommand', (msgs) => {
+                        trpgCommandfunction.trpgCommandfunction = msgs;
+                    });
+                });
+                rply.text = '編輯成功: ' + mainMsg[2] + '\n' + newContact;
+            } else {
+                // 新增新標題
+                records.pushtrpgCommandfunction('trpgCommand', temp, () => {
+                    records.get('trpgCommand', (msgs) => {
+                        trpgCommandfunction.trpgCommandfunction = msgs;
+                    });
+                });
+                rply.text = '新增成功: ' + mainMsg[2] + '\n' + newContact;
+            }
+
+            return rply;
         case /(^[.]cmd$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
             //刪除資料庫
             if (rply.text = checkTools.permissionErrMsg({
@@ -187,27 +268,44 @@ const rollDiceCommand = async function ({
             //顯示資料庫
             rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
             return rply
-        case /(^[.]cmd$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
-            //顯示關鍵字
+        case /(^[.]cmd$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|edit|del|show)$)/ig.test(mainMsg[1]):
+            // 顯示關鍵字
             if (!groupid) {
-                rply.text = '此功能必須在群組中使用. ';
-                return rply
+                rply.text = '此功能必須在群組中使用.';
+                return rply;
             }
-            if (trpgCommandfunction.trpgCommandfunction && mainMsg[1])
+
+            let found = false; // 用來標記是否找到相關的關鍵字
+            if (trpgCommandfunction.trpgCommandfunction && mainMsg[1]) {
                 for (let i = 0; i < trpgCommandfunction.trpgCommandfunction.length; i++) {
                     if (trpgCommandfunction.trpgCommandfunction[i].groupid == groupid) {
-                        //rply.text += '資料庫列表:'
+                        // 首先根據 topic 查找
                         for (let a = 0; a < trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction.length; a++) {
                             if (trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction[a].topic.toLowerCase() == mainMsg[1].toLowerCase()) {
-                                temp = 1
                                 rply.text = trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction[a].contact;
                                 rply.cmd = true;
+                                found = true;
+                                break;
                             }
                         }
+
+                        // 如果根據 topic 沒有找到，檢查是否為數字
+                        if (!found && !isNaN(mainMsg[1])) {
+                            const index = parseInt(mainMsg[1]);
+                            if (index >= 0 && index < trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction.length) {
+                                rply.text = trpgCommandfunction.trpgCommandfunction[i].trpgCommandfunction[index].contact;
+                                rply.cmd = true;
+                                found = true;
+                            }
+                        }
+
+                        // 如果找到則跳出外層循環
+                        if (found) break;
                     }
                 }
-            if (temp == 0) rply.text = '沒有相關關鍵字. ';
-            //rply.text = rply.text.replace(/,/mg, ' ')
+            }
+
+            if (!found) rply.text = '沒有相關關鍵字. ';
             return rply;
         default:
             break;

@@ -39,29 +39,35 @@
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
+        <div id="buttonlist">
+            <button type="button" class="btn btn-primary float-right" onclick="logout()">
+                <span class="iconify" data-icon="mdi:login" data-inline="false"></span>登入/登出
+            </button>
+            <button type="button" class="btn btn-secondary float-right" onclick="selectCard()">
+                <span class="iconify" data-icon="grommet-icons:select" data-inline="false"></span>選擇角色卡
+            </button>
+            <button type="button" class="btn btn-warning float-right" v-if="name" @click="toggleDeleteMode(0)">
+                <span class="iconify" data-icon="carbon:column-delete" data-inline="false"></span>
+                {{ deleteMode ? '關閉刪除欄位模式' : '開啟刪除欄位模式' }}
+            </button>
 
-        <button type="button" class="btn btn-primary float-right" onclick="logout()">
-            <span class="iconify" data-icon="mdi:login" data-inline="false"></span>登入/登出
-        </button>
-        <button type="button" class="btn btn-secondary float-right" onclick="selectCard()">
-            <span class="iconify" data-icon="grommet-icons:select" data-inline="false"></span>選擇角色卡
-        </button>
-        <button type="button" class="btn btn-info float-right" v-if="name" onclick="updateCard()">
-            <span class="iconify" data-icon="ic:outline-save-alt" data-inline="false"></span>儲存角色卡
-        </button>
-        <button type="button" class="btn btn-dark float-right" onclick="readme()">
-            <span class="iconify" data-icon="gg:readme" data-inline="false"></span>說明
-        </button>
-        <h3>
-            <span class="iconify" data-icon="wpf:name" data-inline="false"></span> {{name}}
-        </h3>
-        <div class="form-check" v-if="name">
-            <input class="form-check-input" type="checkbox" value="true" v-model="public" id="invalidCheck">
-            <label class="form-check-label" for="invalidCheck">
-                公開這角色卡
-            </label>
+            <button type="button" class="btn btn-info float-right" v-if="name" onclick="updateCard()">
+                <span class="iconify" data-icon="ic:outline-save-alt" data-inline="false"></span>儲存角色卡
+            </button>
+            <button type="button" class="btn btn-dark float-right" onclick="readme()">
+                <span class="iconify" data-icon="gg:readme" data-inline="false"></span>說明
+            </button>
+            <h3>
+                <span class="iconify" data-icon="wpf:name" data-inline="false"></span> {{name}}
+            </h3>
+            <div class="form-check" v-if="name">
+                <input class="form-check-input" type="checkbox" value="true" v-model="public" id="invalidCheck">
+                <label class="form-check-label" for="invalidCheck">
+                    公開這角色卡
+                </label>
+            </div>
         </div>
-        <div v-if="gpList">
+        <div id="groupList" v-if="gpList">
             <br>
             <h4 class="bg-color3 p-1">
                 <span class="iconify" data-icon="grommet-icons:channel" data-inline="false" data-width="20px"
@@ -89,78 +95,94 @@
             </div>
         </div>
         <br>
-        <h4 class="bg-color3 p-1">
-            <span class="iconify" data-icon="carbon:data-base" data-inline="false" data-width="20px"
-                data-height="20px"></span>基本屬性
-        </h4>
-        <button type="button" class="btn btn-warning float-right" v-if="name" onclick="newItem(0)">
-            +
-        </button>
-        <button type="button" class="btn btn-warning float-right" v-if="name" onclick="removeItem(0)">
-            -
-        </button>
-        <div class="row align-items-start m-1 p-1">
-            <div v-for="item in state" id="state" class=" board1" style="height: 36px;">
-                <div>
-                    <textarea class=" textName" v-model="item.name" style="width:50px;padding: 1px 1px 1px 1px">
-                    {{item.name}}
-                </textarea><span style="height: 62px;">：</span>
-                    <textarea class=" textState" v-model="item.itemA" style="width:55px;padding: 1px 1px 1px 1px;">
-                    {{item.itemA}}
-                </textarea>
-                    <span style="height: 32px;">／ </span>
-                    <textarea class=" textState" v-model="item.itemB" style="width:55px;padding: 1px 1px 1px 1px">
-                    {{item.itemB}}
-                </textarea>
-                    <button type="button" class="btn btn-link" v-on:click="rolling(item.name)"><span class="iconify "
-                            data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
-                            data-height="20px"></span></button>
+        <div id="attributeList">
+            <h4 class="bg-color3 p-1">
+                <span class="iconify" data-icon="carbon:data-base" data-inline="false" data-width="20px"
+                    data-height="20px"></span>基本屬性
+            </h4>
+            <button type="button" class="btn btn-warning float-right" v-if="name" @click="newItem(0)">
+                +
+            </button>
+            <button type="button" class="btn btn-warning float-right" v-if="name" @click="removeItem(0)">
+                -
+            </button>
+            <div class="row align-items-start m-1 p-1">
+                <div v-for="(item, index) in state" id="state" class="board1" style="height: 36px;">
+                    <div>
+                        <textarea class="textName" v-model="item.name" style="width:50px;padding: 1px 1px 1px 1px">
+                            {{item.name}}
+                        </textarea><span style="height: 62px;">：</span>
+                        <textarea class="textState" v-model="item.itemA" style="width:55px;padding: 1px 1px 1px 1px;">
+                            {{item.itemA}}
+                        </textarea>
+                        <span style="height: 32px;">／ </span>
+                        <textarea class="textState" v-model="item.itemB" style="width:55px;padding: 1px 1px 1px 1px">
+                            {{item.itemB}}
+                        </textarea>
+                        <button type="button" class="btn btn-link" @click="rolling(item.name)">
+                            <span class="iconify" data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
+                                data-height="20px"></span>
+                        </button>
+                        <button type="button" class="btn btn-danger" v-if="deleteMode" @click="removeItem(index, 0)">
+                            刪除
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-
+        
         <br>
-        <h4 class=" bg-color3 p-1">
-            <span class="iconify" data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
-                data-height="20px"></span>擲骰
-        </h4>
-        <button type="button" class="btn btn-warning float-right" v-if="name" onclick="newItem(1)">
-            +
-        </button>
-        <button type="button" class="btn btn-warning float-right" v-if="name" onclick="removeItem(1)">
-            -
-        </button>
-        <div class="row align-items-start m-1 p-1" id="roll">
-            <div v-for="item in roll" class="board1" style="height: 36px;padding: 1px 1px 1px 1px">
-                <textarea class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">
+        <div id="rollList">
+            <h4 class=" bg-color3 p-1">
+                <span class="iconify" data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
+                    data-height="20px"></span>擲骰
+            </h4>
+            <button type="button" class="btn btn-warning float-right" v-if="name" onclick="newItem(1)">
+                +
+            </button>
+            <button type="button" class="btn btn-warning float-right" v-if="name" onclick="removeItem(1)">
+                -
+            </button>
+            <div class="row align-items-start m-1 p-1" id="roll">
+                <div v-for="item in roll" class="board1" style="height: 36px;padding: 1px 1px 1px 1px">
+                    <textarea class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">
                     {{item.name}}
                 </textarea><span class="pb-2">:</span>
-                <textarea class="col textState" v-model="item.itemA" style="width:80px;padding: 1px 1px 1px 1px">
+                    <textarea class="col textState" v-model="item.itemA" style="width:80px;padding: 1px 1px 1px 1px">
                     {{item.itemA}}
                 </textarea><button type="button" class="btn btn-link" v-on:click="rolling(item.name)"><span
-                        class="iconify " data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
-                        data-height="20px"></span></button>
+                            class="iconify " data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
+                            data-height="20px"></span></button>
+                    <button type="button" class="btn btn-danger" v-if="deleteMode" @click="removeItem(index, 1)">
+                        刪除
+                    </button>
+                </div>
             </div>
         </div>
         <br>
-        <h4 class=" bg-color3 p-1">
-            <span class="iconify" data-icon="clarity:note-edit-line" data-inline="false" data-width="20px"
-                data-height="20px"></span>筆記
-        </h4>
-        <button type="button" class="btn btn-warning float-right" v-if="name" onclick="newItem(2)">
-            +
-        </button>
-        <button type="button" class="btn btn-warning float-right" v-if="name" onclick="removeItem(2)">
-            -
-        </button>
-        <div class="row align-items-end" id="notes">
-            <div v-for="item in notes" class="board1">
-                <textarea class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">
+        <div id="noteList">
+            <h4 class=" bg-color3 p-1">
+                <span class="iconify" data-icon="clarity:note-edit-line" data-inline="false" data-width="20px"
+                    data-height="20px"></span>筆記
+            </h4>
+            <button type="button" class="btn btn-warning float-right" v-if="name" onclick="newItem(2)">
+                +
+            </button>
+            <button type="button" class="btn btn-warning float-right" v-if="name" onclick="removeItem(2)">
+                -
+            </button>
+            <div class="row align-items-end" id="notes">
+                <div v-for="item in notes" class="board1">
+                    <textarea class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">
                     {{item.name}}
                 </textarea>：
-                <textarea class="col textNote" v-model="item.itemA" style="width:180px">
+                    <textarea class="col textNote" v-model="item.itemA" style="width:180px">
                     {{item.itemA}}
                 </textarea>
+                    <button type="button" class="btn btn-danger" v-if="deleteMode" @click="removeItem(index, 2)">
+                        刪除
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -493,10 +515,31 @@
                     roll: [],
                     notes: [],
                     gpList: "",
-                    public: false
+                    public: false,
+                    deleteMode: false
                 }
             },
             methods: {
+                toggleDeleteMode(form) {
+                    this.deleteMode = !this.deleteMode; // 切換刪除模式
+
+                },
+                removeItem(index, form) {
+                    console.log("removeItem", index, form);
+                    switch (form) {
+                        case 0:
+                            this.state.splice(index, 1); // 刪除基本屬性項目
+                            break;
+                        case 1:
+                            this.roll.splice(index, 1); // 刪除擲骰項目
+                            break;
+                        case 2:
+                            this.notes.splice(index, 1); // 刪除筆記項目
+                            break;
+                        default:
+                            break;
+                    }
+                },
                 config() {
                     for (let gp of this.gpList) {
                         gp.showDeleteButton = !gp.showDeleteButton;

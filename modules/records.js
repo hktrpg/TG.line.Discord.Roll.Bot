@@ -306,15 +306,18 @@ class Records extends EventEmitter {
         });
     }
     editSettrpgCommandfunction(dbbase, msg, callback) {
+        console.log("editSettrpgCommandfunction: " + msg.trpgCommandfunction[0]?.topic);
+        const topicRegex = new RegExp(`^${msg.trpgCommandfunction[0]?.topic}$`, 'i');
+        console.log("topicRegex: " + topicRegex);
         schema[dbbase].findOneAndUpdate(
-            { groupid: msg.groupid, "trpgCommandfunction.topic": msg.trpgCommandfunction.topic },
-            { $set: { "trpgCommandfunction.$.contact": msg.trpgCommandfunction.contact } },
-            { new: true, upsert: false }, // 不用 upsert，因為我們希望更新已存在的項目
+            { groupid: msg.groupid, "trpgCommandfunction.topic": topicRegex },
+            { $set: { "trpgCommandfunction.$.contact": msg.trpgCommandfunction[0].contact } },
+            { new: true, upsert: false }, 
             (err, doc) => {
                 if (err) {
                     console.error("Something wrong when updating data!", err);
                 } else {
-                    callback(doc); // 返回更新後的文檔
+                    callback(doc); 
                 }
             }
         );

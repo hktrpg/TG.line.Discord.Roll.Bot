@@ -305,6 +305,23 @@ class Records extends EventEmitter {
             // return JSON.stringify(doc).toString();
         });
     }
+    editSettrpgCommandfunction(dbbase, msg, callback) {
+        console.log("editSettrpgCommandfunction: " + msg.trpgCommandfunction[0]?.topic);
+        const topicRegex = new RegExp(`^${msg.trpgCommandfunction[0]?.topic}$`, 'i');
+        console.log("topicRegex: " + topicRegex);
+        schema[dbbase].findOneAndUpdate(
+            { groupid: msg.groupid, "trpgCommandfunction.topic": topicRegex },
+            { $set: { "trpgCommandfunction.$.contact": msg.trpgCommandfunction[0].contact } },
+            { new: true, upsert: false }, 
+            (err, doc) => {
+                if (err) {
+                    console.error("Something wrong when updating data!", err);
+                } else {
+                    callback(doc); 
+                }
+            }
+        );
+    }
 
 
     /*

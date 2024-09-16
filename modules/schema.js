@@ -417,12 +417,22 @@ const myName = mongoose.model('myName', new mongoose.Schema({
 
 
 
-const sanCheck = mongoose.model('sanCheck', new mongoose.Schema({
+const san = mongoose.model('san', new mongoose.Schema({
     groupid: String,
     channelid: String,
     userID: String,
+    name: String,
     san: Number
 }));
+
+const sanCheckList = mongoose.model('sanCheckList', new mongoose.Schema({
+    sanCheckId: { type: mongoose.Schema.Types.ObjectId, ref: 'san' }, // 參考原始的 sanCheck
+    checkedAt: { type: Date, default: Date.now }, // 記錄改善時間
+    formula: String, // 記錄算式
+    result: Number // 記錄改善結果
+}));
+
+
 
 
 const whatsapp = mongoose.model('whatsapp', new mongoose.Schema({

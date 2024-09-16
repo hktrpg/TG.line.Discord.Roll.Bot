@@ -415,6 +415,16 @@ const myName = mongoose.model('myName', new mongoose.Schema({
     imageLink: String
 }));
 
+
+
+const sanCheck = mongoose.model('sanCheck', new mongoose.Schema({
+    groupid: String,
+    channelid: String,
+    userID: String,
+    san: Number
+}));
+
+
 const whatsapp = mongoose.model('whatsapp', new mongoose.Schema({
     sessionData: String
 }));

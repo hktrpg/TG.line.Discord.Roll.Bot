@@ -30,10 +30,10 @@ const getHelpMessage = async () => {
 這是根據關鍵字來再現擲骰指令
 
 輸入.cmd add (關鍵字) (指令)即可增加關鍵字
-輸入.cmd edit (關鍵字) (指令)即可修改關鍵指令
-輸入.cmd show 顯示所有關鍵字
+輸入.cmd edit (關鍵字) (指令)即可修改指令
+輸入.cmd show 顯示所有關鍵字及編號
 輸入.cmd del(編號)或all 即可刪除
-輸入.cmd  (關鍵字) 即可執行 
+輸入.cmd  (關鍵字/編號) 即可執行 
 
 例如輸入 .cmd add  pc1鬥毆 cc 80 鬥毆 
 再輸入.cmd pc1鬥毆  就會執行後方的指令

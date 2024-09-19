@@ -3,6 +3,7 @@ if (!process.env.OPENAI_SWITCH) return;
 const { encode } = require('gpt-tokenizer');
 const OpenAIApi = require('openai');
 const dotenv = require('dotenv');
+const handleMessage = require('../modules/discord/handleMessage');
 dotenv.config({ override: true });
 const fetch = require('node-fetch');
 const fs = require('fs').promises;
@@ -34,7 +35,7 @@ const prefixs = function () {
 }
 const getHelpMessage = function () {
     return `【OpenAi】
-    .ai [對話] - 使用gpt-4o-mini產生對話
+    .ai [對話] 及reply內容 - 使用gpt-4o-mini產生對話
     .ait [內容] 或 附件 - 使用 gpt-4o-mini進行正體中文翻譯
 
     
@@ -84,7 +85,11 @@ const rollDiceCommand = async function ({
             if (!adminSecret) return rply;
             if (userid !== adminSecret) return rply;
             let lv = await VIP.viplevelCheckUser(userid);
-            if (lv < 1) return { text: `這是實驗功能，現在只有VIP才能使用，\n支援HKTRPG及升級請到\nhttps://www.patreon.com/hktrpg` };
+            if (lv < 1) {
+                rply.text = `這是實驗功能，現在只有VIP才能使用，\n支援HKTRPG及升級請到\nhttps://www.patreon.com/hktrpg`
+                return rply;
+            }
+
             rply.text = await imageAi.handleImageAi(inputStr);
             rply.quotes = true;
             return rply;
@@ -95,6 +100,12 @@ const rollDiceCommand = async function ({
                 if (!adminSecret) return rply;
                 if (userid !== adminSecret) return rply;
             }
+            if (botname === "Discord") {
+
+                const replyContent = await handleMessage.getReplyContent(discordMessage);
+                inputStr = `${replyContent}\n${inputStr.replace(/^\.ai\d?/i, '')} `;
+            }
+
             rply.text = await chatAi.handleChatAi(inputStr, mode, userid);
             rply.quotes = true;
             return rply;

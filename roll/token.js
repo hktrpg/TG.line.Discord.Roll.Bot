@@ -2,6 +2,8 @@
 if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
+
+
 const variables = {};
 const jimp = require('jimp');
 const sharp = require('sharp');
@@ -11,9 +13,14 @@ const fs = require('fs');
 const getColors = require('get-image-colors')
 const generate = require('@ant-design/colors').generate
 const GeoPattern = require('geopattern');
+const { ImgurClient } = require('imgur');
+const imgClient = new ImgurClient({
+    clientId: process.env.IMGUR_CLIENT_ID,
+    refreshToken: process.env.IMGUR_REFRESH_TOKEN,
+});
 
 const gameName = function () {
-    return '【製作Token】.token'
+    return '【製作Token】.token .token2 .token3 upload'
 }
 
 const gameType = function () {
@@ -26,7 +33,7 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = function () {
-    return `【製作Token】.token
+    return `【製作Token】.token1-3 .token upload
 用來製作跑團Token的功能
 可以自定兩行名字和圖片內容
 
@@ -44,6 +51,11 @@ reply一個有圖片的訊息 或傳送一張圖片時，輸入.token
 如.token 
 Sad
 HKTRPG
+
+.token upload
+可以直接上傳圖片到imgur，並取得連結
+使用reply一個有圖片的訊息 或傳送一張圖片時，輸入.token upload
+上限為10MB
 
 `
 }
@@ -81,10 +93,34 @@ const rollDiceCommand = async function ({
             //get avatar  or reply message image
             return await polaroidTokernMaker(discordMessage, inputStr, mainMsg, discordClient);
         }
+        case /^upload$/.test(mainMsg[1]): {
+            return await uploadImage(discordMessage, discordClient);
+        }
+
+
         default: {
             break;
         }
     }
+}
+
+
+const uploadImage = async (discordMessage, discordClient) => {
+    let rply = { text: '', sendImage: '' };
+    const avatar = await getAvatar(discordMessage, discordClient)
+
+    if (!avatar) {
+        rply.text = `沒有找到reply裡有圖片, 請再次檢查 \n\n${getHelpMessage()}`;
+        return rply;
+    }
+    const image = await getImage(avatar);
+    const response = await client.upload({
+        image: createReadStream(image),
+        type: 'stream',
+    });
+    console.log(response.data);
+    rply.text = response.data.link;
+    return rply;
 }
 
 const circleTokernMaker = async (discordMessage, inputStr, mainMsg, discordClient) => {
@@ -209,14 +245,14 @@ const getAvatar = async (discordMessage, discordClient) => {
         return member.displayAvatarURL();
     }
     if (discordMessage.type === 0 && discordMessage.attachments.size > 0) {
-        const url = discordMessage.attachments.find(data => data.contentType.match(/image/i))
+        const url = discordMessage.attachments.find(data => data.contentType.match(/image/i) && data.size < 30000000)
         return (url && url.url) || null;
     }
     //19 = reply
     if (discordMessage.type === 19) {
         const channel = await discordClient.channels.fetch(discordMessage.reference.channelId);
         const referenceMessage = await channel.messages.fetch(discordMessage.reference.messageId)
-        const url = referenceMessage.attachments.find(data => data.contentType.match(/image/i))
+        const url = referenceMessage.attachments.find(data => data.contentType.match(/image/i) && data.size < 30000000)
         return (url && url.url) || null;
     }
 }

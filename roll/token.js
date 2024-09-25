@@ -112,7 +112,7 @@ const uploadImage = async (discordMessage, discordClient) => {
     const avatar = await getAvatar(discordMessage, discordClient)
 
     //reject if url  not JPEG PNGGIFAPNGTIFFMP4MPEGAVIWEBMquicktimex-matroskax-flvx-msvideox-ms-wmv
-    if (avatar && !avatar.match(/\.(jpg|jpeg|png|gif|apng|tiff|mp4|mpeg|avi|webm|mov|mkv|flv|wmv)$/i)) {
+    if (avatar && !avatar.match(/\.(jpg|jpeg|png|gif|apng|tiff|mp4|mpeg|avi|webm|mov|mkv|flv|wmv)/i)) {
         rply.text = '上傳失敗，請檢查圖片格式\n 可能支持的格式\njpg|jpeg|png|gif|apng|tiff|mp4|mpeg|avi|webm|mov|mkv|flv|wmv';
         return rply;
     }

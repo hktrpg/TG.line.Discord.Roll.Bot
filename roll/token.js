@@ -7,6 +7,7 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
 const variables = {};
 const jimp = require('jimp');
 const sharp = require('sharp');
+const { createReadStream } = require('fs');
 const { SlashCommandBuilder } = require('discord.js');
 const axios = require('axios');
 const fs = require('fs');
@@ -16,11 +17,12 @@ const GeoPattern = require('geopattern');
 const { ImgurClient } = require('imgur');
 const imgClient = new ImgurClient({
     clientId: process.env.IMGUR_CLIENT_ID,
-    refreshToken: process.env.IMGUR_REFRESH_TOKEN,
+    //  refreshToken: process.env.IMGUR_REFRESH_TOKEN,
+    clientSecret: process.env.IMGUR_CLIENT_SECRET,
 });
 
 const gameName = function () {
-    return '【製作Token】.token .token2 .token3 upload'
+    return '【製作Token】.token .token2 .token3 .tokenupload'
 }
 
 const gameType = function () {
@@ -28,12 +30,12 @@ const gameType = function () {
 }
 const prefixs = function () {
     return [{
-        first: /^\.token$|^\.token2$|^\.token3$/i,
+        first: /^\.token$|^\.token2$|^\.token3$|^\.tokenupload$/i,
         second: null
     }]
 }
 const getHelpMessage = function () {
-    return `【製作Token】.token1-3 .token upload
+    return `【製作Token】.token1-3 .tokenupload
 用來製作跑團Token的功能
 可以自定兩行名字和圖片內容
 
@@ -52,10 +54,9 @@ reply一個有圖片的訊息 或傳送一張圖片時，輸入.token
 Sad
 HKTRPG
 
-.token upload
+.tokenupload
 可以直接上傳圖片到imgur，並取得連結
-使用reply一個有圖片的訊息 或傳送一張圖片時，輸入.token upload
-上限為10MB
+使用reply一個有圖片的訊息 或傳送一張圖片時，輸入.tokenupload
 
 `
 }
@@ -81,11 +82,14 @@ const rollDiceCommand = async function ({
             rply.quotes = true;
             return rply;
         }
-        case /^\.token2/.test(mainMsg[0]): {
+        case /^\.tokenupload$/.test(mainMsg[0]): {
+            return await uploadImage(discordMessage, discordClient);
+        }
+        case /^\.token2$/.test(mainMsg[0]): {
             //get avatar  or reply message image
             return await circleTokernMaker(discordMessage, inputStr, mainMsg, discordClient);
         }
-        case /^\.token3/.test(mainMsg[0]): {
+        case /^\.token3$/.test(mainMsg[0]): {
             //get avatar  or reply message image
             return await circleTokernMaker3(discordMessage, inputStr, mainMsg, discordClient, displaynameDiscord);
         }
@@ -93,9 +97,7 @@ const rollDiceCommand = async function ({
             //get avatar  or reply message image
             return await polaroidTokernMaker(discordMessage, inputStr, mainMsg, discordClient);
         }
-        case /^upload$/.test(mainMsg[1]): {
-            return await uploadImage(discordMessage, discordClient);
-        }
+
 
 
         default: {
@@ -109,17 +111,31 @@ const uploadImage = async (discordMessage, discordClient) => {
     let rply = { text: '', sendImage: '' };
     const avatar = await getAvatar(discordMessage, discordClient)
 
+    //reject if url  not JPEG PNGGIFAPNGTIFFMP4MPEGAVIWEBMquicktimex-matroskax-flvx-msvideox-ms-wmv
+    if (avatar && !avatar.match(/\.(jpg|jpeg|png|gif|apng|tiff|mp4|mpeg|avi|webm|mov|mkv|flv|wmv)$/i)) {
+        rply.text = '上傳失敗，請檢查圖片格式\n 可能支持的格式\njpg|jpeg|png|gif|apng|tiff|mp4|mpeg|avi|webm|mov|mkv|flv|wmv';
+        return rply;
+    }
+
+
+
+
+
+
     if (!avatar) {
         rply.text = `沒有找到reply裡有圖片, 請再次檢查 \n\n${getHelpMessage()}`;
         return rply;
     }
-    const image = await getImage(avatar);
-    const response = await client.upload({
-        image: createReadStream(image),
-        type: 'stream',
+
+    const response = await imgClient.upload({
+        image: avatar
     });
-    console.log(response.data);
-    rply.text = response.data.link;
+    // rply.text = response.data.link || '上傳失敗，請檢查圖片格式\n' + response.data;
+
+
+    rply.text = (typeof response.data === 'object' && response.data.link)
+        ? response.data.link
+        : '上傳失敗，請檢查\n' + (typeof response.data === 'string' ? response.data : '');
     return rply;
 }
 
@@ -145,7 +161,6 @@ const circleTokernMaker = async (discordMessage, inputStr, mainMsg, discordClien
             rply.text = `製作失敗，可能出現某些錯誤。 \n\n${getHelpMessage()}`
             return rply;
         }
-
         rply.sendImage = `./temp/finally_${name}`;
         return rply;
     } catch (error) {
@@ -245,14 +260,14 @@ const getAvatar = async (discordMessage, discordClient) => {
         return member.displayAvatarURL();
     }
     if (discordMessage.type === 0 && discordMessage.attachments.size > 0) {
-        const url = discordMessage.attachments.find(data => data.contentType.match(/image/i) && data.size < 30000000)
+        const url = discordMessage.attachments.find(data => data.contentType.match(/image/i))
         return (url && url.url) || null;
     }
     //19 = reply
     if (discordMessage.type === 19) {
         const channel = await discordClient.channels.fetch(discordMessage.reference.channelId);
         const referenceMessage = await channel.messages.fetch(discordMessage.reference.messageId)
-        const url = referenceMessage.attachments.find(data => data.contentType.match(/image/i) && data.size < 30000000)
+        const url = referenceMessage.attachments.find(data => data.contentType.match(/image/i))
         return (url && url.url) || null;
     }
 }

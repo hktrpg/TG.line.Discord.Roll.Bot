@@ -31,7 +31,7 @@
     "bcdice": "^4.5.0",
     "bufferutil": "^4.0.3",
     "chai": "^4.3.4",
-    "cheerio": "^1.0.0-rc.12",
+    "cheerio": "1.0.0-rc.12",
     "chinese-conv": "^1.0.1",
     "crypto-js": "^4.2.0",
     "discord-hybrid-sharding": "^2.1.4",

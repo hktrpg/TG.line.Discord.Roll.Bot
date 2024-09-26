@@ -7,12 +7,11 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
 const variables = {};
 const jimp = require('jimp');
 const sharp = require('sharp');
-const { createReadStream } = require('fs');
+const url = require('url');
+const path = require('path');
 const { SlashCommandBuilder } = require('discord.js');
 const axios = require('axios');
 const fs = require('fs');
-const getColors = require('get-image-colors')
-const generate = require('@ant-design/colors').generate
 const GeoPattern = require('geopattern');
 const { imgbox } = require("imgbox")
 
@@ -107,8 +106,8 @@ const uploadImage = async (discordMessage, discordClient) => {
     const avatar = await getAvatar(discordMessage, discordClient)
 
     //reject if url  not JPEG PNGGIFAPNGTIFFMP4MPEGAVIWEBMquicktimex-matroskax-flvx-msvideox-ms-wmv
-    if (avatar && !avatar.match(/\.(jpg|jpeg|png|gif|apng|tiff|mp4|mpeg|avi|webm|mov|mkv|flv|wmv)/i)) {
-        rply.text = '上傳失敗，請檢查圖片格式\n 可能支持的格式\njpg|jpeg|png|gif|apng|tiff|mp4|mpeg|avi|webm|mov|mkv|flv|wmv';
+    if (avatar && !avatar.match(/\.(jpg|jpeg|png|gif)/i)) {
+        rply.text = '上傳失敗，請檢查圖片格式\n 可能支持的格式\njpg|jpeg|png|gif';
         return rply;
     }
 
@@ -123,7 +122,7 @@ const uploadImage = async (discordMessage, discordClient) => {
     }
     console.log('avatar', avatar)
     const file = [{
-        filename: 'test.png',
+        filename: `temp_${new Date().getTime()}.${getFileExtension(avatar)}`,
         url: avatar
     }]
 
@@ -445,7 +444,12 @@ function colorTextBuilder({ size, text, text2, position }) {
 
     return singleLine ? Buffer.from(svgScript) : Buffer.from(svgScript);
 }
-
+function getFileExtension(imageUrl) {
+    const parsedUrl = url.parse(imageUrl);
+    const pathname = parsedUrl.pathname;
+    const extname = path.extname(pathname);
+    return extname;
+}
 
 module.exports = {
     rollDiceCommand,

@@ -121,12 +121,14 @@ const uploadImage = async (discordMessage, discordClient) => {
         rply.text = `沒有找到reply裡有圖片, 請再次檢查 \n\n${getHelpMessage()}`;
         return rply;
     }
-    const file = {
+    console.log('avatar', avatar)
+    const file = [{
         filename: 'test.png',
         url: avatar
-    }
+    }]
 
     const response = await imgbox(file);
+    console.log('response', response)
     // rply.text = response.data.link || '上傳失敗，請檢查圖片格式\n' + response.data;
 
 

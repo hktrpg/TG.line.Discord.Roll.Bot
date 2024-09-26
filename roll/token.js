@@ -105,6 +105,10 @@ const uploadImage = async (discordMessage, discordClient) => {
     let rply = { text: '', sendImage: '' };
     const avatar = await getAvatar(discordMessage, discordClient)
 
+    if (!avatar) {
+        rply.text = `沒有找到reply裡有圖片, 請再次檢查 }`;
+        return rply;
+    }
     //reject if url  not JPEG PNGGIFAPNGTIFFMP4MPEGAVIWEBMquicktimex-matroskax-flvx-msvideox-ms-wmv
     if (avatar && !avatar.match(/\.(jpg|jpeg|png|gif)/i)) {
         rply.text = '上傳失敗，請檢查圖片格式\n 可能支持的格式\njpg|jpeg|png|gif';
@@ -113,22 +117,13 @@ const uploadImage = async (discordMessage, discordClient) => {
 
 
 
-
-
-
-    if (!avatar) {
-        rply.text = `沒有找到reply裡有圖片, 請再次檢查 \n\n${getHelpMessage()}`;
-        return rply;
-    }
-    console.log('avatar', avatar)
     const file = [{
         filename: `temp_${new Date().getTime()}.${getFileExtension(avatar)}`,
         url: avatar
     }]
 
     const response = await imgbox(file);
-    console.log('response', response)
-    // rply.text = response.data.link || '上傳失敗，請檢查圖片格式\n' + response.data;
+
 
 
     rply.text = (response.ok && response.files && response.files[0].url) ? response.files[0].original_url : '上傳失敗，請檢查圖片內容\n';

@@ -14,12 +14,7 @@ const fs = require('fs');
 const getColors = require('get-image-colors')
 const generate = require('@ant-design/colors').generate
 const GeoPattern = require('geopattern');
-const { ImgurClient } = require('imgur');
-const imgClient = new ImgurClient({
-    clientId: process.env.IMGUR_CLIENT_ID,
-    //  refreshToken: process.env.IMGUR_REFRESH_TOKEN,
-    clientSecret: process.env.IMGUR_CLIENT_SECRET,
-});
+const {UploaderV2} = require("myimgbox")
 
 const gameName = function () {
     return '【製作Token】.token .token2 .token3 .tokenupload'
@@ -126,16 +121,16 @@ const uploadImage = async (discordMessage, discordClient) => {
         rply.text = `沒有找到reply裡有圖片, 請再次檢查 \n\n${getHelpMessage()}`;
         return rply;
     }
+    const file = {
+        filename: 'test.png',
+        url: avatar
+    }
 
-    const response = await imgClient.upload({
-        image: avatar
-    });
+    const response = await UploaderV2(file);
     // rply.text = response.data.link || '上傳失敗，請檢查圖片格式\n' + response.data;
 
 
-    rply.text = (typeof response.data === 'object' && response.data.link)
-        ? response.data.link
-        : '上傳失敗，請檢查\n' + (typeof response.data === 'string' ? response.data : '');
+    rply.text = (response.ok && response.files && response.files[0].url) ? response.files[0].original_url : '上傳失敗，請檢查圖片內容\n';
     return rply;
 }
 

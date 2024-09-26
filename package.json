@@ -48,6 +48,7 @@
     "hktrpg": "file:",
     "https": "^1.0.0",
     "image-url-validator": "^1.0.4",
+    "imgbox": "^1.1.4",
     "imgur": "^2.4.2",
     "jimp": "^0.16.2",
     "log-to-file": "^3.0.3",

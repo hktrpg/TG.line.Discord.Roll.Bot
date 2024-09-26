@@ -14,7 +14,7 @@ const fs = require('fs');
 const getColors = require('get-image-colors')
 const generate = require('@ant-design/colors').generate
 const GeoPattern = require('geopattern');
-const {UploaderV2} = require("myimgbox")
+const { imgbox } = require("imgbox")
 
 const gameName = function () {
     return '【製作Token】.token .token2 .token3 .tokenupload'
@@ -126,7 +126,7 @@ const uploadImage = async (discordMessage, discordClient) => {
         url: avatar
     }
 
-    const response = await UploaderV2(file);
+    const response = await imgbox(file);
     // rply.text = response.data.link || '上傳失敗，請檢查圖片格式\n' + response.data;
 
 

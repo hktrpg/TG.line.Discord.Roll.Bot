@@ -4857,7 +4857,7 @@ hasown@^2.0.0, hasown@^2.0.1, hasown@^2.0.2:
     geopattern "^1.2.3"
     get-image-colors "^4.0.1"
     gpt-tokenizer "^2.1.2"
-    hktrpg "file:C:/Users/Couga/AppData/Local/Yarn/Cache/v6/npm-hktrpg-1.32.0-7397f8b4-49a6-4bcc-84df-99abb1552455-1727293220396/node_modules/hktrpg"
+    hktrpg "file:../../../Users/Couga/AppData/Local/Yarn/Cache/v6/npm-hktrpg-1.32.0-95adcf14-8195-4b7d-bbf5-649231d48a00-1727343548428/node_modules/hktrpg"
     https "^1.0.0"
     image-url-validator "^1.0.4"
     imgur "^2.4.2"
@@ -5020,6 +5020,15 @@ image-url-validator@^1.0.4:
     is-url "1.2.4"
     request "2.88.2"
     request-promise-native "1.0.9"
+
+imgbox@^1.1.4:
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/imgbox/-/imgbox-1.1.4.tgz#b56df5e932e2189265b7337b993349e8f056d89a"
+  integrity sha512-sl+MLnVrM9gaQVa1ODnkOZCdFoj5dpRTYH7J0kfJdAMubqHZrRP+jaIjOjwjlTiMG8sj1nltYdGBHC/zkPUQGA==
+  dependencies:
+    axios "^0.21.1"
+    form-data "^4.0.0"
+    is-url "^1.2.4"
 
 imgur@^2.4.2:
   version "2.4.2"
@@ -5287,7 +5296,7 @@ is-typedarray@~1.0.0:
   resolved "https://registry.npmjs.org/is-typedarray/-/is-typedarray-1.0.0.tgz"
   integrity sha512-cyA56iCMHAh5CdzjJIa4aohJyeO1YbwLi3Jc35MmRU6poroFjIGZzUzupGiRPOjgHg9TLu43xbpwXk523fMxKA==
 
-is-url@1.2.4:
+is-url@1.2.4, is-url@^1.2.4:
   version "1.2.4"
   resolved "https://registry.npmjs.org/is-url/-/is-url-1.2.4.tgz"
   integrity sha512-ITvGim8FhRiYe4IQ5uHSkj7pVaPDrCTkNd3yq3cV7iZAcJdHTUMPMEHcqSOy9xZ9qFenQCvi+2wjH9a1nXqHww==

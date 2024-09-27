@@ -2427,9 +2427,9 @@
   resolved "https://registry.npmjs.org/@yarnpkg/lockfile/-/lockfile-1.1.0.tgz"
   integrity sha512-GpSwvyXOcOOlV70vbnzjj4fW5xW/FdUF6nQEt1ENy7m4ZCczi1+/buVUPAqmGfqznsORNFzUMjctTIp8a9tuCQ==
 
-"@zetetic/duckduckgo-images-api@https://github.com/zeteticl/duckduckgo-images-api":
+"@zetetic/duckduckgo-images-api@https://github.com/zeteticl/duckduckgo-images-api.git":
   version "1.0.8"
-  resolved "git+ssh://git@github.com/zeteticl/duckduckgo-images-api.git#544585d42646e7550c1fd1586098c056a1136b7e"
+  resolved "https://github.com/zeteticl/duckduckgo-images-api.git#544585d42646e7550c1fd1586098c056a1136b7e"
   dependencies:
     axios "^0.21.1"
 
@@ -4914,67 +4914,6 @@ hasown@^2.0.0, hasown@^2.0.1, hasown@^2.0.2:
   dependencies:
     function-bind "^1.1.2"
 
-"hktrpg@file:.":
-  version "1.32.0"
-  dependencies:
-    "@aws-sdk/client-sso-oidc" "^3.654.0"
-    "@dice-roller/rpg-dice-roller" "5.3.2"
-    "@line/bot-sdk" "^7.2.0"
-    "@top-gg/sdk" "^3.1.3"
-    "@vitalets/google-translate-api" "^9"
-    "@zetetic/duckduckgo-images-api" "https://github.com/zeteticl/duckduckgo-images-api"
-    agenda "^4.2.1"
-    axios "^1.7.4"
-    axios-retry "^3.2.4"
-    bcdice "^4.5.0"
-    bufferutil "^4.0.3"
-    chai "^4.3.4"
-    cheerio "1.0.0-rc.12"
-    chinese-conv "^1.0.1"
-    crypto-js "^4.2.0"
-    discord-hybrid-sharding "^2.1.4"
-    discord.js "14.11"
-    dotenv "^8.2.0"
-    emoji-regex "^10.0.0"
-    engine.io "^6.4.2"
-    events "^3.3.0"
-    express "^4.19.2"
-    fuse.js "^6.6.2"
-    geopattern "^1.2.3"
-    gpt-tokenizer "^2.1.2"
-    hktrpg "file:C:/Users/Couga/AppData/Local/Yarn/Cache/v6/npm-hktrpg-1.32.0-e9309184-b301-4071-bdbd-5f2911918192-1727365815767/node_modules/hktrpg"
-    https "^1.0.0"
-    image-url-validator "^1.0.4"
-    imgbox "^1.1.4"
-    imgur "^2.4.2"
-    jimp "^0.16.2"
-    log-to-file "^3.0.3"
-    mathjs "^9.3.0"
-    moment "^2.29.4"
-    moment-timezone "^0.5.35"
-    mongoose "^6"
-    node-schedule "^2.1.0"
-    node-telegram-bot-api "^0.64.0"
-    openai "^4.24.1"
-    plurk2 "https://github.com/zeteticl/node-plurk2"
-    puppeteer "^13.7.0"
-    qrcode-terminal "^0.12.0"
-    random-js "^2.1.0"
-    rate-limiter-flexible "^2.2.3"
-    recachegoose "^9.1.0"
-    sharp "^0.32.6"
-    simple-get "^4.0.1"
-    socket.io "^2.4.1"
-    socket.io-client "^2.4.0"
-    timer "^1.0.1"
-    topgg-autoposter "^2.0.0"
-    utf-8-validate "^5.0.5"
-    uws "^9.14.0"
-    whatsapp-web.js "^1.26.0"
-    wikijs "6.4.1"
-    winston "^3.11.0"
-    ws "^8.17.1"
-
 html-escaper@^2.0.0:
   version "2.0.2"
   resolved "https://registry.npmjs.org/html-escaper/-/html-escaper-2.0.2.tgz"
@@ -6811,9 +6750,9 @@ pkg-dir@^7.0.0:
   dependencies:
     find-up "^6.3.0"
 
-"plurk2@https://github.com/zeteticl/node-plurk2":
+"plurk2@https://github.com/zeteticl/node-plurk2.git":
   version "0.5.2"
-  resolved "git+ssh://git@github.com/zeteticl/node-plurk2.git#bf3fa4ae68129757693344e547581cbdb26078e1"
+  resolved "https://github.com/zeteticl/node-plurk2.git#bf3fa4ae68129757693344e547581cbdb26078e1"
   dependencies:
     "@types/node" "^10.17.26"
     "@types/request-promise" "^4.1.37"

@@ -7,19 +7,13 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
 const variables = {};
 const jimp = require('jimp');
 const sharp = require('sharp');
-const { createReadStream } = require('fs');
+const url = require('url');
+const path = require('path');
 const { SlashCommandBuilder } = require('discord.js');
 const axios = require('axios');
 const fs = require('fs');
-const getColors = require('get-image-colors')
-const generate = require('@ant-design/colors').generate
 const GeoPattern = require('geopattern');
-const { ImgurClient } = require('imgur');
-const imgClient = new ImgurClient({
-    clientId: process.env.IMGUR_CLIENT_ID,
-    //  refreshToken: process.env.IMGUR_REFRESH_TOKEN,
-    clientSecret: process.env.IMGUR_CLIENT_SECRET,
-});
+const { imgbox } = require("imgbox")
 
 const gameName = function () {
     return '【製作Token】.token .token2 .token3 .tokenupload'
@@ -111,31 +105,28 @@ const uploadImage = async (discordMessage, discordClient) => {
     let rply = { text: '', sendImage: '' };
     const avatar = await getAvatar(discordMessage, discordClient)
 
-    //reject if url  not JPEG PNGGIFAPNGTIFFMP4MPEGAVIWEBMquicktimex-matroskax-flvx-msvideox-ms-wmv
-    if (avatar && !avatar.match(/\.(jpg|jpeg|png|gif|apng|tiff|mp4|mpeg|avi|webm|mov|mkv|flv|wmv)/i)) {
-        rply.text = '上傳失敗，請檢查圖片格式\n 可能支持的格式\njpg|jpeg|png|gif|apng|tiff|mp4|mpeg|avi|webm|mov|mkv|flv|wmv';
-        return rply;
-    }
-
-
-
-
-
-
     if (!avatar) {
-        rply.text = `沒有找到reply裡有圖片, 請再次檢查 \n\n${getHelpMessage()}`;
+        rply.text = `沒有找到reply裡有圖片, 請再次檢查 }`;
+        return rply;
+    }
+    //reject if url  not JPEG PNGGIFAPNGTIFFMP4MPEGAVIWEBMquicktimex-matroskax-flvx-msvideox-ms-wmv
+    if (avatar && !avatar.match(/\.(jpg|jpeg|png|gif)/i)) {
+        rply.text = '上傳失敗，請檢查圖片格式\n 可能支持的格式\njpg|jpeg|png|gif';
         return rply;
     }
 
-    const response = await imgClient.upload({
-        image: avatar
-    });
-    // rply.text = response.data.link || '上傳失敗，請檢查圖片格式\n' + response.data;
 
 
-    rply.text = (typeof response.data === 'object' && response.data.link)
-        ? response.data.link
-        : '上傳失敗，請檢查\n' + (typeof response.data === 'string' ? response.data : '');
+    const file = [{
+        filename: `temp_${new Date().getTime()}.${getFileExtension(avatar)}`,
+        url: avatar
+    }]
+
+    const response = await imgbox(file);
+
+
+
+    rply.text = (response.ok && response.files && response.files[0].url) ? response.files[0].original_url : '上傳失敗，請檢查圖片內容\n';
     return rply;
 }
 
@@ -448,7 +439,12 @@ function colorTextBuilder({ size, text, text2, position }) {
 
     return singleLine ? Buffer.from(svgScript) : Buffer.from(svgScript);
 }
-
+function getFileExtension(imageUrl) {
+    const parsedUrl = url.parse(imageUrl);
+    const pathname = parsedUrl.pathname;
+    const extname = path.extname(pathname);
+    return extname;
+}
 
 module.exports = {
     rollDiceCommand,

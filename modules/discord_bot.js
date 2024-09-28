@@ -1081,7 +1081,7 @@ async function handlingResponMessage(message, answer = '') {
 }
 const sendBufferImage = async (message, rplyVal, userid) => {
 	await message.channel.send({
-		content: `<@${userid}>\n你的Token已經送到，現在輸入 .token 為方型，.token2 為圓型 .token3 為按名字決定的隨機顏色`, files: [
+		content: `<@${userid}>\n你的Token已經送到，現在輸入 .token 為方型，.token2 為圓型 .token3 為按名字決定的隨機顏色，reply 圖片輸入.tokenupload 可以自動上傳`, files: [
 			new AttachmentBuilder(rplyVal.sendImage)
 		]
 	});

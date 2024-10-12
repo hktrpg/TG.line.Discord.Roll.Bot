@@ -5,6 +5,8 @@ if (!process.env.mongoURL) {
 let variables = {};
 const mathjs = require('mathjs');
 const rollDice = require('./rollbase').rollDiceCommand;
+const rollDiceCoc = require('./2_coc').rollDiceCommand;
+const rollDiceAdv = require('./0_advroll').rollDiceCommand;
 const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const FUNCTION_LIMIT = [4, 20, 20, 30, 30, 99, 99, 99];
@@ -25,6 +27,8 @@ const regexState = new RegExp(/state\[(.*?)\]~/, 'i');
 const regexRoll = new RegExp(/roll\[(.*?)\]~/, 'i');
 const regexNotes = new RegExp(/notes\[(.*?)\]~/, 'i');
 const re = new RegExp(/(.*?):(.*?)(;|$)/, 'ig');
+const regexRollDice = new RegExp(/<([^<>]*)>/, 'ig');
+
 const opt = {
     upsert: true,
     runValidators: true
@@ -74,6 +78,7 @@ const getHelpMessage = async function () {
 .ch 項目名稱 (數字)  - 可以立即把如HP變成該數字
 .ch 項目名稱 (+-*/數字)  - 可以立即對如HP進行四則運算
 .ch 項目名稱 (+-*/xDy)  - 可以對如HP進行擲骰四則運算
+.ch 項目名稱 <xDy>  - 可以
 .ch set 項目名稱 新內容 - 直接更改內容
 .ch show - 顯示角色卡的state 和roll 內容
 .ch showall - 顯示角色卡的所有內容
@@ -580,6 +585,7 @@ const rollDiceCommand = async function ({
             tempMain = await mainCharacter(doc, mainMsg);
             rply = Object.assign({}, rply, tempMain)
             rply.characterName = doc.name;
+            console.log('rply', rply)
             return rply;
         default:
             break;
@@ -612,6 +618,26 @@ function handleRequestRollingChMode(doc) {
 
 async function mainCharacter(doc, mainMsg) {
     mainMsg.shift();
+    let msgString = mainMsg.match(regexRollDice);
+    console.log('msgString', msgString)
+
+
+
+    let temp = await rollDice({
+        mainMsg: ["1d3"],
+        inputStr: "1d3"
+
+    })
+    let temp2 = await rollDiceCoc({
+        mainMsg: ["1d3"],
+        inputStr: "1d3"
+    })
+    let temp3 = await rollDiceAdv({
+        mainMsg: ["1d3"],
+        inputStr: "1d3"
+    })
+
+
     let findState = [];
     let findNotes = [];
     let findRoll = {};

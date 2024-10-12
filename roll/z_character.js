@@ -582,10 +582,9 @@ const rollDiceCommand = async function ({
              * 
              */
 
-            tempMain = await mainCharacter(doc, mainMsg);
+            tempMain = await mainCharacter(doc, mainMsg, inputStr);
             rply = Object.assign({}, rply, tempMain)
             rply.characterName = doc.name;
-            console.log('rply', rply)
             return rply;
         default:
             break;
@@ -616,28 +615,10 @@ function handleRequestRollingChMode(doc) {
     return text;
 }
 
-async function mainCharacter(doc, mainMsg) {
+async function mainCharacter(doc, mainMsg, inputStr) {
+    let tempMsg = await replacePlaceholders(mainMsg, inputStr)
+    mainMsg = tempMsg.split(/\s+/);
     mainMsg.shift();
-    let msgString = mainMsg.match(regexRollDice);
-    console.log('msgString', msgString)
-
-
-
-    let temp = await rollDice({
-        mainMsg: ["1d3"],
-        inputStr: "1d3"
-
-    })
-    let temp2 = await rollDiceCoc({
-        mainMsg: ["1d3"],
-        inputStr: "1d3"
-    })
-    let temp3 = await rollDiceAdv({
-        mainMsg: ["1d3"],
-        inputStr: "1d3"
-    })
-
-
     let findState = [];
     let findNotes = [];
     let findRoll = {};
@@ -958,6 +939,32 @@ async function Merge(target, source, prop, updateMode) {
     mergeByProperty(target, source, prop);
     return target;
 
+}
+
+async function replacePlaceholders(mainMsg, inputStr) {
+    const matches = [...inputStr.matchAll(regexRollDice)];
+
+    const results = await Promise.all(matches.map(async (match) => {
+        const content = match[1];
+        const contentSplit = content.split(/\s+/);
+        const [resultOne, resultTwo, resultThree] = await Promise.all([
+            await rollDice({ mainMsg: contentSplit, inputStr: content }),
+            await rollDiceCoc({ mainMsg: contentSplit, inputStr: content }),
+            await rollDiceAdv({ mainMsg: contentSplit, inputStr: content })
+        ]);
+        const texts = [resultOne?.text, resultTwo?.text, resultThree?.text];
+        const numbers = texts
+            .map(text => (text ? text.match(/(\d+)(?=\D*$)/) : null))
+            .filter(num => num !== null)
+            .map(num => num[0]);
+        return numbers.length > 0 ? numbers[numbers.length - 1] : match[0];
+    }));
+
+    let resultString = inputStr;
+    matches.forEach((match, index) => {
+        resultString = resultString.replace(match[0], results[index]);
+    });
+    return resultString;
 }
 
 async function replaceAsync(str, regex, asyncFn) {

@@ -616,7 +616,7 @@ function handleRequestRollingChMode(doc) {
 }
 
 async function mainCharacter(doc, mainMsg, inputStr) {
-    let tempMsg = await replacePlaceholders(mainMsg, inputStr)
+    let tempMsg = await replacePlaceholders(mainMsg, inputStr, doc)
     mainMsg = tempMsg.split(/\s+/);
     mainMsg.shift();
     let findState = [];
@@ -941,8 +941,10 @@ async function Merge(target, source, prop, updateMode) {
 
 }
 
-async function replacePlaceholders(mainMsg, inputStr) {
+async function replacePlaceholders(mainMsg, inputStr, doc) {
     const matches = [...inputStr.matchAll(regexRollDice)];
+
+    let resutltState = await findObject(doc.state, mainMsg[name]);
 
     const results = await Promise.all(matches.map(async (match) => {
         const content = match[1];

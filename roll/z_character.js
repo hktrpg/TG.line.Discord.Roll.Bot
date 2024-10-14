@@ -944,22 +944,34 @@ async function Merge(target, source, prop, updateMode) {
 async function replacePlaceholders(mainMsg, inputStr, doc) {
     const matches = [...inputStr.matchAll(regexRollDice)];
 
-    let resutltState = await findObject(doc.state, mainMsg[name]);
-
-    const results = await Promise.all(matches.map(async (match) => {
+    const replacedMatches = await Promise.all(matches.map(async (match) => {
         const content = match[1];
         const contentSplit = content.split(/\s+/);
+        let replacedContent = content;
+
+        for (const str of contentSplit) {
+            const result = await findObject(doc.state, str);
+            if (result !== undefined) {
+                replacedContent = replacedContent.replace(str, result.itemA);
+            }
+        }
+
+        return replacedContent;
+    }));
+
+    const results = await Promise.all(replacedMatches.map(async (match) => {
+        const contentSplit = match.split(/\s+/);
         const [resultOne, resultTwo, resultThree] = await Promise.all([
-            await rollDice({ mainMsg: contentSplit, inputStr: content }),
-            await rollDiceCoc({ mainMsg: contentSplit, inputStr: content }),
-            await rollDiceAdv({ mainMsg: contentSplit, inputStr: content })
+            await rollDice({ mainMsg: contentSplit, inputStr: match }),
+            await rollDiceCoc({ mainMsg: contentSplit, inputStr: match }),
+            await rollDiceAdv({ mainMsg: contentSplit, inputStr: match })
         ]);
         const texts = [resultOne?.text, resultTwo?.text, resultThree?.text];
         const numbers = texts
             .map(text => (text ? text.match(/(\d+)(?=\D*$)/) : null))
             .filter(num => num !== null)
             .map(num => num[0]);
-        return numbers.length > 0 ? numbers[numbers.length - 1] : match[0];
+        return numbers.length > 0 ? numbers[numbers.length - 1] : match;
     }));
 
     let resultString = inputStr;
@@ -968,6 +980,8 @@ async function replacePlaceholders(mainMsg, inputStr, doc) {
     });
     return resultString;
 }
+
+
 
 async function replaceAsync(str, regex, asyncFn) {
     const promises = [];

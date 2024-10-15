@@ -84,7 +84,7 @@ const getHelpMessage = async function () {
 .ch showall - 顯示角色卡的所有內容
 .ch button  - Discord限定，可以產生按鈕指令，會調用.ch 指令
 -----範例及運算式-----
-角色卡還可以進行運算，如<> {}，詳情請看
+角色卡還可以進行運算<> {}，如 -<1d3> {san} <.sc san 1/1d3>，詳情請看
 https://bothelp.hktrpg.com/hktrpg-guan-fang-shi-yong-jiao-xue/trpg-gong-neng/kai-shi-jin-hang-trpg/jiao-se-ka `
 }
 

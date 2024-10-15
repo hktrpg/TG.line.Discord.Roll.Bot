@@ -5,6 +5,8 @@ if (!process.env.mongoURL) {
 let variables = {};
 const mathjs = require('mathjs');
 const rollDice = require('./rollbase').rollDiceCommand;
+const rollDiceCoc = require('./2_coc').rollDiceCommand;
+const rollDiceAdv = require('./0_advroll').rollDiceCommand;
 const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const FUNCTION_LIMIT = [4, 20, 20, 30, 30, 99, 99, 99];
@@ -25,6 +27,8 @@ const regexState = new RegExp(/state\[(.*?)\]~/, 'i');
 const regexRoll = new RegExp(/roll\[(.*?)\]~/, 'i');
 const regexNotes = new RegExp(/notes\[(.*?)\]~/, 'i');
 const re = new RegExp(/(.*?):(.*?)(;|$)/, 'ig');
+const regexRollDice = new RegExp(/<([^<>]*)>/, 'ig');
+
 const opt = {
     upsert: true,
     runValidators: true
@@ -74,13 +78,14 @@ const getHelpMessage = async function () {
 .ch 項目名稱 (數字)  - 可以立即把如HP變成該數字
 .ch 項目名稱 (+-*/數字)  - 可以立即對如HP進行四則運算
 .ch 項目名稱 (+-*/xDy)  - 可以對如HP進行擲骰四則運算
+.ch 項目名稱 <xDy>  - 可以
 .ch set 項目名稱 新內容 - 直接更改內容
 .ch show - 顯示角色卡的state 和roll 內容
 .ch showall - 顯示角色卡的所有內容
 .ch button  - Discord限定，可以產生按鈕指令，會調用.ch 指令
 -----範例及運算式-----
-角色卡還可以進行運算，詳情請看
-https://github.com/hktrpg/TG.line.Discord.Roll.Bot/wiki/Character-Card `
+角色卡還可以進行運算，如<> {}，詳情請看
+https://bothelp.hktrpg.com/hktrpg-guan-fang-shi-yong-jiao-xue/trpg-gong-neng/kai-shi-jin-hang-trpg/jiao-se-ka `
 }
 
 const initialize = function () {
@@ -577,7 +582,7 @@ const rollDiceCommand = async function ({
              * 
              */
 
-            tempMain = await mainCharacter(doc, mainMsg);
+            tempMain = await mainCharacter(doc, mainMsg, inputStr);
             rply = Object.assign({}, rply, tempMain)
             rply.characterName = doc.name;
             return rply;
@@ -610,7 +615,9 @@ function handleRequestRollingChMode(doc) {
     return text;
 }
 
-async function mainCharacter(doc, mainMsg) {
+async function mainCharacter(doc, mainMsg, inputStr) {
+    let tempMsg = await replacePlaceholders(mainMsg, inputStr, doc)
+    mainMsg = tempMsg.split(/\s+/);
     mainMsg.shift();
     let findState = [];
     let findNotes = [];
@@ -933,6 +940,48 @@ async function Merge(target, source, prop, updateMode) {
     return target;
 
 }
+
+async function replacePlaceholders(mainMsg, inputStr, doc) {
+    const matches = [...inputStr.matchAll(regexRollDice)];
+
+    const replacedMatches = await Promise.all(matches.map(async (match) => {
+        const content = match[1];
+        const contentSplit = content.split(/\s+/);
+        let replacedContent = content;
+
+        for (const str of contentSplit) {
+            const result = await findObject(doc.state, str);
+            if (result !== undefined) {
+                replacedContent = replacedContent.replace(str, result.itemA);
+            }
+        }
+
+        return replacedContent;
+    }));
+
+    const results = await Promise.all(replacedMatches.map(async (match) => {
+        const contentSplit = match.split(/\s+/);
+        const [resultOne, resultTwo, resultThree] = await Promise.all([
+            await rollDice({ mainMsg: contentSplit, inputStr: match }),
+            await rollDiceCoc({ mainMsg: contentSplit, inputStr: match }),
+            await rollDiceAdv({ mainMsg: contentSplit, inputStr: match })
+        ]);
+        const texts = [resultOne?.text, resultTwo?.text, resultThree?.text];
+        const numbers = texts
+            .map(text => (text ? text.match(/(\d+)(?=\D*$)/) : null))
+            .filter(num => num !== null)
+            .map(num => num[0]);
+        return numbers.length > 0 ? numbers[numbers.length - 1] : match;
+    }));
+
+    let resultString = inputStr;
+    matches.forEach((match, index) => {
+        resultString = resultString.replace(match[0], results[index]);
+    });
+    return resultString;
+}
+
+
 
 async function replaceAsync(str, regex, asyncFn) {
     const promises = [];

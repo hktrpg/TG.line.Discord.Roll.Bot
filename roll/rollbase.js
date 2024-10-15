@@ -56,9 +56,10 @@ const initialize = function () {
   return variables;
 }
 
-const rollDiceCommand = function ({
+const rollDiceCommand = async function ({
   mainMsg,
-  inputStr
+  inputStr,
+  rolldice
 }) {
   let rply = {
     default: 'on',
@@ -69,6 +70,11 @@ const rollDiceCommand = function ({
     case /^\.rr$/i.test(mainMsg[0]):
       {
         try {
+          console.log(await rolldice({
+            inputStr: "1d10", mainMsg: [
+              "1d10"
+            ]
+          }))
           const roll = new DiceRoll(inputStr.replace(/^[.]rr\s+/i, ''));
           rply.text = roll.output;
         } catch (err) {
@@ -78,6 +84,7 @@ const rollDiceCommand = function ({
 
         return rply;
       }
+
 
     default:
       try {

@@ -191,6 +191,7 @@ const rolldice = async ({
 		if (rollTimes > 1 && /^dice|^funny/i.test(target.gameType())) {
 			tempsave = await target.rollDiceCommand({
 				inputStr: inputStr,
+				rolldice,
 				mainMsg: mainMsg,
 				groupid: groupid,
 				userid: userid,
@@ -211,6 +212,7 @@ const rolldice = async ({
 		} else {
 			tempsave = await target.rollDiceCommand({
 				inputStr: inputStr,
+				rolldice,
 				mainMsg: mainMsg,
 				groupid: groupid,
 				userid: userid,

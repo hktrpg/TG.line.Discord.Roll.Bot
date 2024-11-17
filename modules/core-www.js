@@ -218,7 +218,7 @@ io.on('connection', async (socket) => {
         if (await limitRaterChatRoom(socket.handshake.address)) return;
         if (!message.item || !message.doc) return;
         let rplyVal = {}
-        let result = await mainCharacter(message.doc, ['', message.item])
+        let result = await mainCharacter(message.doc, ['', message.item], `.ch ${message.item}`)
         if (result && result.characterReRoll) {
             rplyVal = await exports.analytics.parseInput({
                 inputStr: result.characterReRollItem,
@@ -236,7 +236,7 @@ io.on('connection', async (socket) => {
         if (await limitRaterChatRoom(socket.handshake.address)) return;
         if (!message.item || !message.doc) return;
         let rplyVal = {}
-        let result = await mainCharacter(message.doc, ['', message.item])
+        let result = await mainCharacter(message.doc, ['', message.item], `.ch ${message.item}`)
         if (result && result.characterReRoll) {
             rplyVal = await exports.analytics.parseInput({
                 inputStr: result.characterReRollItem,

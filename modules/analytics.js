@@ -238,22 +238,39 @@ const rolldice = async ({
 }
 
 function findRollList(mainMsg) {
-	if (!mainMsg || !mainMsg[0]) return;
-	mainMsg[0].match(/^\.(\d{1,2})$/) ? mainMsg.shift() : null;
+	// Return early if mainMsg is null/undefined or empty
+	if (!mainMsg || !Array.isArray(mainMsg) || mainMsg.length === 0) return;
+
+	// Check if first element matches pattern and shift if true
+	if (mainMsg[0] && mainMsg[0].match(/^\.(\d{1,2})$/)) {
+		mainMsg.shift();
+	}
+
+	// Set default empty string for mainMsg[1] if undefined
 	if (!mainMsg[1]) mainMsg[1] = '';
 
 	const idList = Object.values(exports);
 	const findTarget = idList.find(item => {
-		if (item.prefixs && item.prefixs()) {
-			return item.prefixs().some(prefix =>
-				mainMsg && mainMsg[0].match(prefix.first) &&
-				(mainMsg[1] && mainMsg[1].match(prefix.second) || prefix.second == null)
-			);
+		if (item && item.prefixs && typeof item.prefixs === 'function') {
+			const prefixList = item.prefixs();
+			if (!Array.isArray(prefixList)) return false;
+
+			return prefixList.some(prefix => {
+				// Check if mainMsg[0] exists and matches first prefix
+				if (!mainMsg || !mainMsg[0] || !prefix || !prefix.first) return false;
+				const firstMatch = mainMsg[0].match(prefix.first);
+				if (!firstMatch) return false;
+
+				// Check second prefix if it exists
+				if (prefix.second === null) return true;
+				return mainMsg[1] && mainMsg[1].match(prefix.second);
+			});
 		}
+		return false;
 	});
+
 	return findTarget;
 }
-
 
 async function stateText() {
 	let state = await getState() || '';

@@ -414,8 +414,8 @@ function differentPeformCron(botname) {
         case "Telegram":
             return "scheduleCronMessageTelegram"
 
-        case "Line":
-            return "scheduleCronMessageLine"
+        case "Whatsapp":
+            return "scheduleCronMessageWhatsapp"
 
         default:
             break;

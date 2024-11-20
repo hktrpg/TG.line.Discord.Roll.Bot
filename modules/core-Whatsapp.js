@@ -23,6 +23,7 @@ const rollText = require('./getRoll').rollText;
 const candle = require('../modules/candleDays.js');
 const agenda = require('../modules/schedule')
 const qrcode = require('qrcode-terminal');
+const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 const isHeroku = (process.env._ && process.env._.indexOf("heroku")) > 0 ? true : false;
 let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const schema = require('../modules/schema');

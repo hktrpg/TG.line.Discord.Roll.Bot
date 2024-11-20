@@ -467,7 +467,116 @@ const mongodbState = async () => {
         return ans;
     } catch (error) { }
 }
+chattest.index({ type: 1 });
 
+block.index({ groupid: 1 });
+
+randomAns.index({ groupid: 1 });
+
+randomAnsPersonal.index({ userid: 1 });
+randomAnsPersonal.index({ serial: 1 });
+
+randomAnsServer.index({ serial: 1 });
+randomAnsServer.index({ title: 1 });
+
+trpgDatabase.index({ groupid: 1 });
+trpgDatabase.index({ 'trpgDatabasefunction.topic': 1 });
+
+GroupSetting.index({ groupid: 1 });
+GroupSetting.index({ 'user.userid': 1 });
+
+trpgCommand.index({ groupid: 1 });
+trpgCommand.index({ 'trpgCommandfunction.topic': 1 });
+
+trpgLevelSystem.index({ groupid: 1 });
+trpgLevelSystem.index({ Switch: 1 });
+trpgLevelSystem.index({ SwitchV2: 1 });
+trpgLevelSystem.index({ 'trpgLevelSystemfunction.userid': 1 });
+trpgLevelSystem.index({ 'trpgLevelSystemfunction.LastSpeakTime': 1 });
+
+trpgLevelSystemMember.index({ groupid: 1 });
+trpgLevelSystemMember.index({ userid: 1 });
+trpgLevelSystemMember.index({ name: 1 });
+trpgLevelSystemMember.index({ LastSpeakTime: 1 });
+
+trpgDarkRolling.index({ groupid: 1 });
+trpgDarkRolling.index({ 'trpgDarkRollingfunction.userid': 1 });
+
+RealTimeRollingLog.index({ 'RealTimeRollingLogfunction.LastTimeLog': 1 });
+
+RollingLog.index({ 'RollingLogfunction.LogTime': 1 });
+
+veryImportantPerson.index({ gpid: 1 });
+veryImportantPerson.index({ id: 1 });
+veryImportantPerson.index({ endDate: 1 });
+
+codelist.index({ code: 1 });
+codelist.index({ endDate: 1 });
+
+characterGpSwitch.index({ id: 1 });
+characterGpSwitch.index({ cardId: 1 });
+
+accountPW.index({ id: 1 });
+accountPW.index({ userName: 1 });
+accountPW.index({ 'channel.id': 1, 'channel.botname': 1 });
+
+allowRolling.index({ id: 1, botname: 1 });
+
+chatRoom.index({ roomNumber: 1 });
+chatRoom.index({ time: 1 });
+
+characterCard.index({ id: 1 });
+characterCard.index({ public: 1 });
+
+exportGp.index({ groupID: 1 });
+exportGp.index({ lastActiveAt: 1 });
+
+exportUser.index({ userID: 1 });
+exportUser.index({ lastActiveAt: 1 });
+
+init.index({ groupID: 1 });
+
+eventMember.index({ userID: 1 });
+eventMember.index({ lastActiveAt: 1 });
+eventMember.index({ 'eventList.eventID': 1 });
+
+eventList.index({ userID: 1 });
+eventList.index({ chainTitle: 1 });
+
+developmentConductor.index({ groupID: 1 });
+
+developmentRollingRecord.index({ userID: 1 });
+developmentRollingRecord.index({ groupID: 1 });
+developmentRollingRecord.index({ date: 1 });
+
+agendaAtHKTRPG.index({ nextRunAt: 1 });
+agendaAtHKTRPG.index({ name: 1 });
+
+firstTimeMessage.index({ userID: 1, botname: 1 });
+
+theNewsMessage.index({ userID: 1 });
+
+myName.index({ userID: 1 });
+
+whatsapp.index({ sessionData: 1 });
+
+roleReact.index({ messageID: 1 });
+roleReact.index({ groupid: 1 });
+roleReact.index({ serial: 1 });
+
+roleInvites.index({ roleID: 1 });
+roleInvites.index({ groupid: 1 });
+roleInvites.index({ serial: 1 });
+
+translateChannel.index({ groupid: 1, channelid: 1 });
+
+bcdiceRegedit.index({ channelid: 1 });
+bcdiceRegedit.index({ botname: 1, channelid: 1 });
+
+multiServer.index({ channelid: 1 });
+multiServer.index({ multiId: 1 });
+multiServer.index({ guildID: 1 });
+multiServer.index({ botname: 1, channelid: 1 });
 
 module.exports = {
     mongodbState,

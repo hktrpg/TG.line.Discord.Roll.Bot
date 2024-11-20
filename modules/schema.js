@@ -3,64 +3,63 @@ if (!process.env.mongoURL) {
     return;
 }
 const mongoose = require('./db-connector.js').mongoose;
-//const Schema = mongoose.Schema;
-//const Message = mongoose.model('Message', schema);
 
-const chattest = mongoose.model('chattest', {
+const chattest = mongoose.model('chattest', new mongoose.Schema({
     default: String,
     text: String,
-    type: String
-});
-const block = mongoose.model('block', {
-    groupid: String,
+    type: { type: String, index: true }
+}));
+
+const block = mongoose.model('block', new mongoose.Schema({
+    groupid: { type: String, index: true },
     blockfunction: Array
-});
+}));
 
-const randomAns = mongoose.model('randomAns', {
-    groupid: String,
+const randomAns = mongoose.model('randomAns', new mongoose.Schema({
+    groupid: { type: String, index: true },
     randomAnsfunction: Array
-});
+}));
 
-const randomAnsPersonal = mongoose.model('randomAnsPersonal', {
-    userid: String,
+const randomAnsPersonal = mongoose.model('randomAnsPersonal', new mongoose.Schema({
+    userid: { type: String, index: true },
     title: String,
     answer: Array,
-    serial: Number
-});
+    serial: { type: Number, index: true }
+}));
 
-//cancel
-const randomAnsAllgroup = mongoose.model('randomAnsAllgroup', {
+const randomAnsAllgroup = mongoose.model('randomAnsAllgroup', new mongoose.Schema({
     randomAnsAllgroup: Array
-});
+}));
 
-const randomAnsServer = mongoose.model('randomAnsServer', {
-    title: String,
+const randomAnsServer = mongoose.model('randomAnsServer', new mongoose.Schema({
+    title: { type: String, index: true },
     answer: Array,
-    serial: Number
-});
+    serial: { type: Number, index: true }
+}));
 
-
-const trpgDatabase = mongoose.model('trpgDatabase', {
-    groupid: String,
+const trpgDatabase = mongoose.model('trpgDatabase', new mongoose.Schema({
+    groupid: { type: String, index: true },
     trpgDatabasefunction: [{
-        topic: String,
+        topic: { type: String, index: true },
         contact: String
     }]
-});
+}));
 
-const trpgDatabaseAllgroup = mongoose.model('trpgDatabaseAllgroup', {
+const trpgDatabaseAllgroup = mongoose.model('trpgDatabaseAllgroup', new mongoose.Schema({
     trpgDatabaseAllgroup: [{
         topic: String,
         contact: String
     }]
-});
-const GroupSetting = mongoose.model('GroupSetting', {
-    groupid: String,
+}));
+
+const GroupSetting = mongoose.model('GroupSetting', new mongoose.Schema({
+    groupid: { type: String, index: true },
     togm: Array,
     user: [{
         userid: {
             type: String,
-            required: true
+            required: true,
+            index: true
         },
         name: String,
         date: {
@@ -71,100 +70,70 @@ const GroupSetting = mongoose.model('GroupSetting', {
         Permission: String,
         Abiliy: Array
     }]
-});
-const trpgCommand = mongoose.model('trpgCommand', {
-    groupid: String,
+}));
+
+const trpgCommand = mongoose.model('trpgCommand', new mongoose.Schema({
+    groupid: { type: String, index: true },
     trpgCommandfunction: [{
-        topic: String,
+        topic: { type: String, index: true },
         contact: String
     }]
-});
-const trpgLevelSystem = mongoose.model('trpgLevelSystem', {
-    groupid: String,
+}));
+
+const trpgLevelSystem = mongoose.model('trpgLevelSystem', new mongoose.Schema({
+    groupid: { type: String, index: true },
     LevelUpWord: String,
-    //在這群組升級時的升級語
     RankWord: String,
-    //在這群組查詢等級時的回應
-    Switch: {
-        type: String
-    },
-    //是否啓動功能 config 1X 則1
-    Hidden: {
-        type: String
-    },
-    SwitchV2: {
-        type: Boolean
-    },
-    //是否啓動功能 config 1X 則1
-    HiddenV2: {
-        type: Boolean
-    },
-    //大於此Lvl即為稱號.
+    Switch: { type: String, index: true },
+    Hidden: { type: String },
+    SwitchV2: { type: Boolean, index: true },
+    HiddenV2: { type: Boolean },
     Title: Array,
-    //是否顯示升級語 config X1 則1
     trpgLevelSystemfunction: [{
-        userid: String,
+        userid: { type: String, index: true },
         name: String,
         EXP: Number,
-        //現在經驗值
         Level: String,
-        //等級
         LastSpeakTime: {
             type: Date,
-            default: Date.now
-            //最後說話時間, 間隔一分鐘才提升經驗
+            default: Date.now,
+            index: true
         }
     }]
-});
-const trpgLevelSystemMember = mongoose.model('trpgLevelSystemMember', {
-    groupid: String,
-    userid: String,
-    name: String,
+}));
+
+const trpgLevelSystemMember = mongoose.model('trpgLevelSystemMember', new mongoose.Schema({
+    groupid: { type: String, index: true },
+    userid: { type: String, index: true },
+    name: { type: String, index: true },
     EXP: Number,
     TitleName: String,
-    //現在經驗值
     Level: Number,
-    //等級
     multiEXPTimes: Number,
     multiEXP: Number,
     stopExp: Number,
     decreaseEXP: Number,
     decreaseEXPTimes: Number,
-    //EVENT事件
-    /**
-     * 4. 停止得到經驗(X分鐘內)
-     * 5. 發言經驗減少X(X分鐘內)
-     * 6. 發言經驗增加X(X分鐘內)
-    7. 吸收對方經驗(X分鐘內)
-    8. 對方得到經驗值 X 倍(X分鐘內)
-     */
     LastSpeakTime: {
         type: Date,
-        default: Date.now
-        //最後說話時間, 間隔一分鐘才提升經驗
+        default: Date.now,
+        index: true
     }
-});
-const trpgDarkRolling = mongoose.model('trpgDarkRolling', {
-    groupid: String,
+}));
+
+const trpgDarkRolling = mongoose.model('trpgDarkRolling', new mongoose.Schema({
+    groupid: { type: String, index: true },
     trpgDarkRollingfunction: [{
-        userid: String,
+        userid: { type: String, index: true },
         diyName: String,
         displayname: String
     }]
-});
-//
-//目的: 記錄發言數量及擲骰數量
-//紀錄擲骰結果
-//每日上傳一次
-//同時每500次顯示一次
-//
-const RealTimeRollingLog = mongoose.model('RealTimeRollingLog', {
+}));
+
+const RealTimeRollingLog = mongoose.model('RealTimeRollingLog', new mongoose.Schema({
     RealTimeRollingLogfunction: {
-        //第一次運行紀錄RollingLogfunction的時間
         StartTime: String,
-        //一小時一次
-        LastTimeLog: Date,
-        //RealTimeLog
+        LastTimeLog: { type: Date, index: true },
         LogTime: String,
         DiscordCountRoll: Number,
         DiscordCountText: Number,
@@ -181,11 +150,11 @@ const RealTimeRollingLog = mongoose.model('RealTimeRollingLog', {
         ApiCountRoll: Number,
         ApiCountText: Number
     }
-});
+}));
 
-const RollingLog = mongoose.model('RollingLog', {
+const RollingLog = mongoose.model('RollingLog', new mongoose.Schema({
     RollingLogfunction: {
-        LogTime: String,
+        LogTime: { type: String, index: true },
         DiscordCountRoll: Number,
         DiscordCountText: Number,
         LineCountRoll: Number,
@@ -199,22 +168,24 @@ const RollingLog = mongoose.model('RollingLog', {
         PlurkCountRoll: Number,
         PlurkCountText: Number
     }
-});
+}));
+
 const veryImportantPerson = mongoose.model('veryImportantPerson', new mongoose.Schema({
-    gpid: String,
-    id: String,
+    gpid: { type: String, index: true },
+    id: { type: String, index: true },
     level: Number,
     startDate: Date,
-    endDate: Date,
+    endDate: { type: Date, index: true },
     name: String,
     notes: String,
     code: String,
     switch: Boolean
 }));
+
 const codelist = mongoose.model('codelist', new mongoose.Schema({
-    code: String,
+    code: { type: String, index: true },
     level: Number,
-    endDate: Date,
+    endDate: { type: Date, index: true },
     renew: Number,
     allowTime: Number,
     usedTime: Number,
@@ -224,35 +195,42 @@ const codelist = mongoose.model('codelist', new mongoose.Schema({
     notes: String,
 }));
 
-
 const characterGpSwitch = mongoose.model('characterGpSwitch', new mongoose.Schema({
     gpid: Array,
-    id: String,
+    id: { type: String, index: true },
     name: String,
-    cardId: String
+    cardId: { type: String, index: true }
 }));
+
 const accountPW = mongoose.model('accountPW', new mongoose.Schema({
-    id: String,
-    userName: String,
+    id: { type: String, index: true },
+    userName: { type: String, index: true },
     password: String,
     channel: [{
         id: String,
         botname: String,
         titleName: String
     }]
+}, {
+    indexes: [
+        { 'channel.id': 1, 'channel.botname': 1 }
+    ]
 }));
 
 const allowRolling = mongoose.model('allowRolling', new mongoose.Schema({
     id: String,
     botname: String,
     titleName: String
+}, {
+    indexes: [
+        { id: 1, botname: 1 }
+    ]
 }));
 
-
 const chatRoom = mongoose.model('chatRoom', new mongoose.Schema({
-    name: { // 欄位名稱
-        type: String, // 欄位資料型別
-        required: true, // 必須要有值
+    name: {
+        type: String,
+        required: true,
         maxlength: 50
     },
     msg: {
@@ -261,18 +239,20 @@ const chatRoom = mongoose.model('chatRoom', new mongoose.Schema({
     },
     time: {
         type: Date,
-        required: true
+        required: true,
+        index: true
     },
     roomNumber: {
         type: String,
         required: true,
-        maxlength: 50
+        maxlength: 50,
+        index: true
     }
 }));
 
 const characterCard = mongoose.model('characterCard', new mongoose.Schema({
-    id: String,
-    public: Boolean,
+    id: { type: String, index: true },
+    public: { type: Boolean, index: true },
     name: {
         type: String,
         maxlength: 50
@@ -315,17 +295,18 @@ const characterCard = mongoose.model('characterCard', new mongoose.Schema({
 }));
 
 const exportGp = mongoose.model('exportGp', new mongoose.Schema({
-    groupID: String,
-    lastActiveAt: Date
+    groupID: { type: String, index: true },
+    lastActiveAt: { type: Date, index: true }
 }));
 
 const exportUser = mongoose.model('exportUser', new mongoose.Schema({
-    userID: String,
-    lastActiveAt: Date,
+    userID: { type: String, index: true },
+    lastActiveAt: { type: Date, index: true },
     times: Number
 }));
+
 const init = mongoose.model('init', new mongoose.Schema({
-    groupID: String,
+    groupID: { type: String, index: true },
     list: [{
         name: String,
         result: Number,
@@ -333,17 +314,16 @@ const init = mongoose.model('init', new mongoose.Schema({
     }]
 }));
 
-//個人新增event 時的紀錄。eventList會使用ID 來紀錄
 const eventMember = mongoose.model('eventMember', new mongoose.Schema({
-    userID: String,
+    userID: { type: String, index: true },
     userName: String,
     earnedEXP: Number,
     totailEarnedEXP: Number,
     energy: Number,
-    lastActiveAt: Date,
+    lastActiveAt: { type: Date, index: true },
     eventList: [{
         title: String,
-        eventID: String
+        eventID: { type: String, index: true }
     }],
     activityList: [{
         date: Date,
@@ -351,11 +331,10 @@ const eventMember = mongoose.model('eventMember', new mongoose.Schema({
     }]
 }));
 
-//整個event 列表，會從這裡進行抽取
 const eventList = mongoose.model('eventList', new mongoose.Schema({
     title: String,
-    chainTitle: String,
-    userID: String,
+    chainTitle: { type: String, index: true },
+    userID: { type: String, index: true },
     userName: String,
     expName: String,
     detail: [{
@@ -364,102 +343,109 @@ const eventList = mongoose.model('eventList', new mongoose.Schema({
     }]
 }));
 
-
-//成長的開關控制
 const developmentConductor = mongoose.model('developmentConductor', new mongoose.Schema({
-    groupID: String,
+    groupID: { type: String, index: true },
     switch: Boolean
 }));
 
-//成長的每一個擲骰結果
 const developmentRollingRecord = mongoose.model('developmentRollingRecord', new mongoose.Schema({
-    userID: String,
-    groupID: String,
-    date: Date,
+    userID: { type: String, index: true },
+    groupID: { type: String, index: true },
+    date: { type: Date, index: true },
     skillName: String,
     skillPer: Number,
     skillResult: Number,
     skillPerStyle: String,
     userName: String
-    //成功,失敗,大成功,大失敗
 }));
 
-//.schedule Cron
-//限制30次?
 const agendaAtHKTRPG = mongoose.model('agendaAtHKTRPG', new mongoose.Schema({
-    name: String,
+    name: { type: String, index: true },
     data: Object,
     priority: Number,
     type: String,
-    nextRunAt: Date,
+    nextRunAt: { type: Date, index: true },
     lastModifiedBy: String,
     roleName: String,
     imageLink: String
-
 }, { collection: "agendaAtHKTRPG" }));
+
 const firstTimeMessage = mongoose.model('firstTimeMessage', new mongoose.Schema({
     userID: String,
     botname: String
+}, {
+    indexes: [
+        { userID: 1, botname: 1 }
+    ]
 }));
 
 const theNewsMessage = mongoose.model('theNewsMessage', new mongoose.Schema({
-    userID: String,
+    userID: { type: String, index: true },
     botname: String,
     switch: Boolean
 }));
 
 const myName = mongoose.model('myName', new mongoose.Schema({
-    userID: String,
+    userID: { type: String, index: true },
     name: String,
     shortName: String,
     imageLink: String
 }));
 
 const whatsapp = mongoose.model('whatsapp', new mongoose.Schema({
-    sessionData: String
+    sessionData: { type: String, index: true }
 }));
 
 const roleReact = mongoose.model('roleReact', new mongoose.Schema({
     message: String,
-    messageID: String,
-    groupid: String,
-    serial: Number,
+    messageID: { type: String, index: true },
+    groupid: { type: String, index: true },
+    serial: { type: Number, index: true },
     detail: [{
         roleID: String,
         emoji: String,
     }]
-
 }));
 
 const roleInvites = mongoose.model('roleInvites', new mongoose.Schema({
-    roleID: String,
+    roleID: { type: String, index: true },
     invitesLink: String,
-    groupid: String,
-    serial: Number
+    groupid: { type: String, index: true },
+    serial: { type: Number, index: true }
 }));
 
 const translateChannel = mongoose.model('translateChannel', new mongoose.Schema({
     groupid: String,
     channelid: String,
     switch: Boolean
+}, {
+    indexes: [
+        { groupid: 1, channelid: 1 }
+    ]
 }));
 
 const bcdiceRegedit = mongoose.model('bcdiceRegedit', new mongoose.Schema({
     botname: String,
-    channelid: String,
+    channelid: { type: String, index: true },
     trpgId: String
+}, {
+    indexes: [
+        { botname: 1, channelid: 1 }
+    ]
 }));
 
 const multiServer = mongoose.model('multiServer', new mongoose.Schema({
-    channelid: String,
-    multiId: String,
+    channelid: { type: String, index: true },
+    multiId: { type: String, index: true },
     guildName: String,
     channelName: String,
-    guildID: String,
+    guildID: { type: String, index: true },
     botname: String
+}, {
+    indexes: [
+        { botname: 1, channelid: 1 }
+    ]
 }));
-
-
 
 const mongodbState = async () => {
     try {
@@ -467,116 +453,6 @@ const mongodbState = async () => {
         return ans;
     } catch (error) { }
 }
-chattest.index({ type: 1 });
-
-block.index({ groupid: 1 });
-
-randomAns.index({ groupid: 1 });
-
-randomAnsPersonal.index({ userid: 1 });
-randomAnsPersonal.index({ serial: 1 });
-
-randomAnsServer.index({ serial: 1 });
-randomAnsServer.index({ title: 1 });
-
-trpgDatabase.index({ groupid: 1 });
-trpgDatabase.index({ 'trpgDatabasefunction.topic': 1 });
-
-GroupSetting.index({ groupid: 1 });
-GroupSetting.index({ 'user.userid': 1 });
-
-trpgCommand.index({ groupid: 1 });
-trpgCommand.index({ 'trpgCommandfunction.topic': 1 });
-
-trpgLevelSystem.index({ groupid: 1 });
-trpgLevelSystem.index({ Switch: 1 });
-trpgLevelSystem.index({ SwitchV2: 1 });
-trpgLevelSystem.index({ 'trpgLevelSystemfunction.userid': 1 });
-trpgLevelSystem.index({ 'trpgLevelSystemfunction.LastSpeakTime': 1 });
-
-trpgLevelSystemMember.index({ groupid: 1 });
-trpgLevelSystemMember.index({ userid: 1 });
-trpgLevelSystemMember.index({ name: 1 });
-trpgLevelSystemMember.index({ LastSpeakTime: 1 });
-
-trpgDarkRolling.index({ groupid: 1 });
-trpgDarkRolling.index({ 'trpgDarkRollingfunction.userid': 1 });
-
-RealTimeRollingLog.index({ 'RealTimeRollingLogfunction.LastTimeLog': 1 });
-
-RollingLog.index({ 'RollingLogfunction.LogTime': 1 });
-
-veryImportantPerson.index({ gpid: 1 });
-veryImportantPerson.index({ id: 1 });
-veryImportantPerson.index({ endDate: 1 });
-
-codelist.index({ code: 1 });
-codelist.index({ endDate: 1 });
-
-characterGpSwitch.index({ id: 1 });
-characterGpSwitch.index({ cardId: 1 });
-
-accountPW.index({ id: 1 });
-accountPW.index({ userName: 1 });
-accountPW.index({ 'channel.id': 1, 'channel.botname': 1 });
-
-allowRolling.index({ id: 1, botname: 1 });
-
-chatRoom.index({ roomNumber: 1 });
-chatRoom.index({ time: 1 });
-
-characterCard.index({ id: 1 });
-characterCard.index({ public: 1 });
-
-exportGp.index({ groupID: 1 });
-exportGp.index({ lastActiveAt: 1 });
-
-exportUser.index({ userID: 1 });
-exportUser.index({ lastActiveAt: 1 });
-
-init.index({ groupID: 1 });
-
-eventMember.index({ userID: 1 });
-eventMember.index({ lastActiveAt: 1 });
-eventMember.index({ 'eventList.eventID': 1 });
-
-eventList.index({ userID: 1 });
-eventList.index({ chainTitle: 1 });
-
-developmentConductor.index({ groupID: 1 });
-
-developmentRollingRecord.index({ userID: 1 });
-developmentRollingRecord.index({ groupID: 1 });
-developmentRollingRecord.index({ date: 1 });
-
-agendaAtHKTRPG.index({ nextRunAt: 1 });
-agendaAtHKTRPG.index({ name: 1 });
-
-firstTimeMessage.index({ userID: 1, botname: 1 });
-
-theNewsMessage.index({ userID: 1 });
-
-myName.index({ userID: 1 });
-
-whatsapp.index({ sessionData: 1 });
-
-roleReact.index({ messageID: 1 });
-roleReact.index({ groupid: 1 });
-roleReact.index({ serial: 1 });
-
-roleInvites.index({ roleID: 1 });
-roleInvites.index({ groupid: 1 });
-roleInvites.index({ serial: 1 });
-
-translateChannel.index({ groupid: 1, channelid: 1 });
-
-bcdiceRegedit.index({ channelid: 1 });
-bcdiceRegedit.index({ botname: 1, channelid: 1 });
-
-multiServer.index({ channelid: 1 });
-multiServer.index({ multiId: 1 });
-multiServer.index({ guildID: 1 });
-multiServer.index({ botname: 1, channelid: 1 });
 
 module.exports = {
     mongodbState,
@@ -620,14 +496,4 @@ module.exports = {
     translateChannel,
     bcdiceRegedit,
     mongodbState
-}
-//const Cat = mongoose.model('Cat', { name: String });
-//const kitty = new Cat({ name: 'Zildjian' });
-/*
-module.exports = new Schema({
-    default: String,
-    text: String,
-    type: String
-
-});
-*/
+};

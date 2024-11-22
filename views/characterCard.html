@@ -366,9 +366,18 @@
             socket.emit('updateCard', {
                 userName: userName,
                 userPassword: userPassword,
-                card: card
-            })
-
+                card: {
+                    _id: card._id,
+                    id: card.id,
+                    name: card.name,
+                    state: card.state,
+                    roll: card.roll,
+                    notes: card.notes,
+                    gpList: card.gpList,
+                    public: card.public,
+                    deleteMode: card.deleteMode
+                }
+            });
         }
         socket.on("updateCard", function (result) {
             popup(result);

@@ -1,0 +1,142 @@
+== 獸人的餅乾 ==
+
+[set] stealth = 10
+[set] has_key = false
+[set] has_cookie = false
+[set] guard_sleeping = false
+[set] noise = 0
+
+[text] 你是一名小偷，聽說獸人衛兵的房間裡有一罐特製餅乾。
+[text] 現在是深夜，你潛伏在獸人營地的陰影處。
+
+[show_stat] stealth
+[show_stat] noise
+
+[choice]
+-> 觀察獸人的房間 | observe_room
+-> 直接闖入 | rush_in
+
+[label] observe_room
+[text] 你仔細觀察獸人的房間...
+[roll] 1d20 + stealth
+[if] roll > 15
+    [text] 你發現獸人正在打呼，而鑰匙就掛在門邊的掛鉤上。
+    [set] guard_sleeping = true
+    [choice]
+    -> 潛入偷取鑰匙 | steal_key
+    -> 找找看有沒有其他進入方式 | find_other_way
+[else]
+    [text] 獸人似乎醒著，正在房間內走動。
+    [choice]
+    -> 等待時機 | wait_chance
+    -> 找找看有沒有其他進入方式 | find_other_way
+[endif]
+
+[label] steal_key
+[roll] 2d6
+[if] roll > 7
+    [text] 你成功無聲地取得了鑰匙！
+    [set] has_key = true
+    [modify_stat] stealth +2
+    [choice]
+    -> 使用鑰匙開門 | use_key
+    -> 先觀察一下情況 | observe_again
+[else]
+    [text] 糟糕！你不小心碰倒了旁邊的掃把！
+    [set] noise = noise + 5
+    [goto] guard_wakes_up
+[endif]
+
+[label] find_other_way
+[text] 你在房子周圍搜尋...
+[roll] 1d20
+[if] roll > 12
+    [text] 你發現後窗沒關好，有一條縫隙。
+    [choice]
+    -> 從窗戶潛入 | window_entry
+    -> 回到正門 | back_to_front
+[else]
+    [text] 似乎沒有其他方便的進入途徑。
+    [goto] back_to_front
+[endif]
+
+[label] window_entry
+[roll] 2d6 + stealth
+[if] roll > 15
+    [text] 你成功從窗戶溜了進去！
+    [goto] inside_room
+[else]
+    [text] 窗戶發出了吱呀聲...
+    [set] noise = noise + 8
+    [goto] guard_wakes_up
+[endif]
+
+[label] inside_room
+[text] 你已經進入了房間，能看到餅乾罐就放在櫥櫃上。
+[if] noise > 5
+    [text] 但是之前發出的聲響讓獸人有些不安分...
+[endif]
+
+[choice]
+-> 快速抓取餅乾 | quick_grab
+-> 放輕腳步慢慢接近 | sneak_grab
+
+[label] quick_grab
+[roll] 1d20
+[if] roll > 10
+    [text] 你一個箭步上前抓住餅乾罐！
+    [set] has_cookie = true
+    [goto] escape_attempt
+[else]
+    [goto] guard_wakes_up
+[endif]
+
+[label] sneak_grab
+[roll] 1d20 + stealth
+[if] roll > 18
+    [text] 你小心翼翼地取得了餅乾罐。
+    [set] has_cookie = true
+    [modify_stat] stealth +3
+    [goto] escape_attempt
+[else]
+    [set] noise = noise + 3
+    [if] noise > 10
+        [goto] guard_wakes_up
+    [else]
+        [text] 地板發出輕微的嘎吱聲...
+        [choice]
+        -> 繼續嘗試 | sneak_grab
+        -> 快速抓取 | quick_grab
+    [endif]
+[endif]
+
+[label] guard_wakes_up
+[text] 獸人警衛驚醒了！他怒吼著撲向你！
+[if] has_cookie
+    [choice]
+    -> 丟下餅乾逃跑 | escape_without_cookie
+    -> 拼命保住餅乾逃跑 | desperate_escape
+[else]
+    [text] 你只好狼狽逃竄...
+    [goto] game_over_fail
+[endif]
+
+[label] escape_attempt
+[text] 你得到了餅乾，現在要逃出去...
+[roll] 2d6 + stealth
+[if] roll > 12
+    [goto] game_over_success
+[else]
+    [goto] guard_wakes_up
+[endif]
+
+[label] game_over_success
+[text] 成功了！你帶著美味的獸人餅乾安全逃脫！
+[show_stat] stealth
+[save_point] mission_complete
+[clear]
+
+[label] game_over_fail
+[text] 任務失敗...也許下次應該更小心一點。
+[show_stat] stealth
+[clear]

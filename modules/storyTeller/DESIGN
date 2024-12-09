@@ -1,0 +1,509 @@
+# 章節名稱
+== 章節1 ==
+
+// 顯示文本
+[text] 這是要顯示的故事文本
+
+// 能力值顯示
+[show_stat] hp
+[show_stat] mp,str,int
+
+// 能力值修改
+[modify_stat] hp +10
+[modify_stat] mp -5
+[modify_stat] str *1.5
+
+// 條件判斷
+[if] hp > 50
+    [text] 你感覺狀態很好
+[else]
+    [text] 你感覺不太妙
+[endif]
+
+// 擲骰
+[roll] 2d6 
+[roll] 1d20 + str
+
+// 選項分支
+[choice]
+-> 往左走 | goto_left
+-> 往右走 | goto_right
+-> 原地等待 | wait
+
+// 跳轉標記
+[label] goto_left
+[text] 你選擇往左走...
+
+// API呼叫
+[api_call] GET https://api.example.com/weather
+[api_call] POST https://api.example.com/save_game
+
+// 變數設定
+[set] has_key = true
+[set] monster_hp = 100
+
+// 變數條件判斷
+[if] has_key == true
+    [text] 你可以開啟這扇門
+[endif]
+
+// 支線任務標記
+[quest_start] 尋找遺失的鑰匙
+[quest_complete] 尋找遺失的鑰匙
+
+// 背景音樂控制
+[bgm] play forest_theme
+[bgm] stop
+
+// 效果音播放
+[sfx] door_open
+
+// 延遲執行
+[delay] 2000
+
+// 清除畫面
+[clear]
+
+// 存檔點
+[save_point] checkpoint1
+
+// 基礎顯示相關
+[image] background/forest.png
+[image_overlay] effects/fog.png 0.5
+[portrait] npc/orc_guard.png right
+[portrait] character/thief.png left
+[emote] surprised
+[shake_screen] 500ms
+[flash_screen] #FF0000 200ms
+[fade] in 1000ms
+[fade] out 1000ms
+
+// 介面相關
+[ui_show] inventory
+[ui_hide] stats
+[tooltip] 這是一個提示文字
+[highlight] 重要物品
+[cursor] pointer
+[window_style] dark
+[font_size] 24
+[text_color] #FF0000
+[text_speed] 50
+
+// 動畫效果
+[animation] character/walk_left 500ms
+[animation] effects/sparkle 1000ms loop
+[particle] effects/dust
+[transition] slide_left
+[camera] pan_right 1000ms
+[camera] zoom 1.5 1000ms
+
+// 物品系統
+[item_add] bread 1
+[item_remove] key 1
+[item_check] gold >= 100
+[inventory_full] goto inventory_full_handler
+[equipment] equip sword
+[equipment] unequip shield
+
+// 成就系統
+[achievement] unlock "Master Thief"
+[achievement_points] +100
+[leaderboard] update "Stealth Score"
+
+// 戰鬥系統
+[battle_start] orc_guard
+[battle_action] attack
+[battle_effect] poison 3
+[battle_end] victory
+[damage] 25
+[heal] 10
+[status] add stun 2
+[status] remove poison
+
+// 時間系統
+[time] 23:45
+[time_pass] 15min
+[weather] rain
+[day_night] night
+[calendar] day 5
+
+// 地圖系統
+[map] show
+[map] hide
+[location] mark "盜賊公會"
+[location] unmark "秘密基地"
+[waypoint] set camp
+[minimap] toggle
+
+// 任務追蹤
+[quest_objective] add "找到鑰匙"
+[quest_objective] complete "潛入房間"
+[quest_reward] gold 100
+[quest_status] active
+[quest_fail] "守衛發現"
+
+// 對話系統
+[dialogue_start] orc_guard
+[dialogue_option] 友好 | friendship_path
+[dialogue_option] 威脅 | threaten_path
+[dialogue_end]
+[relationship] orc_guard +1
+[reputation] thieves_guild +10
+
+// 技能系統
+[skill_learn] lockpicking
+[skill_check] stealth > 50
+[skill_exp] stealth +10
+[skill_level_up] stealth
+[skill_effect] invisible 30s
+
+// 商店系統
+[shop_open] black_market
+[shop_buy] lockpick 50g
+[shop_sell] stolen_goods
+[shop_close]
+
+// 條件分支進階
+[switch] player_class
+    case "thief": goto thief_route
+    case "warrior": goto warrior_route
+    default: goto default_route
+[endswitch]
+
+// 隨機事件
+[random_event] 30%
+    [text] 突然下起雨來...
+    [weather] rain
+[end_random]
+
+// 計數器和標記
+[counter] attempts +1
+[flag] set door_unlocked
+[flag] check trap_triggered
+[flag] clear enemy_alerted
+
+// 音效進階
+[bgm] fade_out 3000ms
+[bgm] cross_fade forest_night 2000ms
+[sfx] footsteps volume 0.5
+[sfx] loop wind
+[voice] orc/angry_01
+
+// 場景控制
+[scene] change tavern
+[scene] load basement
+[scene] preload castle
+[scene] unload forest
+
+// 自定義變數運算
+[calc] total_score = (stealth * 2) + (luck / 2)
+[calc] final_damage = base_damage * (1 + strength / 100)
+
+// 腳本控制
+[script] pause
+[script] resume
+[script] speed 2.0
+[script] reset
+
+// 存檔相關
+[save] auto
+[save] slot_1
+[load] last_save
+[checkpoint] create
+[checkpoint] load
+
+// 多語言支援
+[language] set zh-TW
+[translate] key_item_found
+
+// 遊戲設定
+[difficulty] set hard
+[tutorial] show lockpicking
+[hint] enable
+[auto_save] on
+
+// 外部整合
+[discord] update "潛入獸人的房間"
+[steam] achievement "完美潛入"
+[twitch] alert "新訂閱者！"
+
+// 除錯功能
+[debug] show_stats
+[debug] god_mode
+[debug] collision
+[debug] log "檢查點1"
+
+
+// 角色系統進階
+[character_create] name class appearance
+[character_delete] slot_1
+[character_copy] slot_1 slot_2
+[character_import] save_file.json
+[character_export] current_character.json
+[character_customize] open
+[character_preset] load warrior_01
+
+// 社交系統
+[friend_add] player_id
+[friend_remove] player_id
+[friend_list] show
+[guild_join] thieves_guild
+[guild_leave] current_guild
+[guild_rank] promote member
+[party_invite] player_id
+[party_kick] player_id
+[chat] global "Hello"
+[chat] guild "任務完成"
+[chat] whisper player_id "密語"
+
+// 寵物/隨從系統
+[pet_summon] cat
+[pet_dismiss] current_pet
+[pet_command] follow
+[pet_command] attack target
+[pet_feed] fish
+[pet_customize] appearance
+[companion_hire] mercenary
+[companion_dismiss] guard
+[companion_order] defend_position
+[mount_summon] horse
+[mount_dismiss]
+
+// 建造系統
+[build_mode] enter
+[build_mode] exit
+[build_place] wall 10,20
+[build_remove] door
+[build_rotate] 90
+[build_copy] selection
+[build_paste] 15,25
+[build_save] template_1
+[build_load] house_template
+
+// 種植/生產系統
+[plant_seed] wheat
+[harvest_crop] wheat
+[craft_start] potion
+[craft_cancel] current_craft
+[cook_food] bread
+[brew_potion] healing
+[forge_weapon] sword
+[enchant_item] weapon fire
+
+// 環境互動
+[door_open] door_1
+[door_close] door_2
+[door_lock] door_3
+[door_unlock] door_4
+[switch_toggle] lever_1
+[light_on] torch_1
+[light_off] lamp_2
+[destroy] crate
+[repair] bridge
+[hide_in] bush
+[climb] wall
+[swim] across
+[push] boulder
+
+// 高級戰鬥系統
+[combo] start sword_dance
+[combo] add slash
+[combo] execute
+[stance] change defensive
+[guard] start
+[parry] attempt
+[dodge] roll
+[stealth_kill] target
+[backstab] enemy
+[critical_hit] calculate
+[chain_attack] start
+[special_move] execute ultimate
+[formation] change triangle
+[targeting] lock enemy
+[targeting] release
+
+// 魔法系統
+[spell_cast] fireball
+[spell_charge] lightning
+[spell_cancel] current_spell
+[mana_drain] 20
+[mana_restore] 10
+[magic_shield] activate
+[magic_reflect] on
+[summon] creature skeleton
+[banish] summoned_creature
+[teleport] to waypoint_1
+[portal_open] destination
+[portal_close]
+
+// 天氣與環境效果進階
+[weather_system] dynamic
+[weather_change] storm 30min
+[wind_direction] north
+[wind_speed] high
+[temperature] decrease 5
+[fog_density] increase
+[lighting] dim
+[atmosphere] tense
+[environment_effect] leaves_falling
+[environment_effect] snow_accumulation
+
+// 物理效果
+[physics_enable] object_1
+[physics_disable] group_2
+[gravity] modify 0.5
+[collision] check
+[ragdoll] activate
+[force_apply] push 100
+[velocity] set 5,0,0
+[acceleration] modify
+[friction] surface ice
+[bounce] enable
+
+// 相機進階控制
+[camera_mode] first_person
+[camera_mode] third_person
+[camera_mode] free
+[camera_follow] target
+[camera_orbit] object
+[camera_shake] intensity duration
+[camera_focus] object
+[camera_blur] amount
+[camera_filter] sepia
+[camera_split_screen] 2
+
+// AI行為系統
+[ai_state] patrol
+[ai_state] alert
+[ai_state] combat
+[ai_behavior] aggressive
+[ai_behavior] defensive
+[ai_path] calculate
+[ai_target] select
+[ai_group] form
+[ai_command] scatter
+[ai_learning] enable
+
+// 任務生成系統
+[quest_generate] random
+[quest_modify] difficulty hard
+[quest_chain] start
+[quest_branch] create
+[quest_condition] add time_limit
+[quest_scaling] level
+[quest_reward] random
+[quest_share] party
+
+// 成就與統計進階
+[stats_track] kills
+[stats_track] distance_traveled
+[stats_track] items_collected
+[stats_display] session
+[stats_display] all_time
+[stats_reset]
+[achievement_progress] update
+[achievement_compare] friends
+[ranking_update] global
+[ranking_display] local
+
+// 網絡功能
+[network_status] check
+[network_connect] server_1
+[network_disconnect]
+[sync_data] inventory
+[sync_data] quest_progress
+[latency] check
+[server_time] get
+[matchmaking] start
+[matchmaking] cancel
+
+// 進階遊戲控制
+[game_speed] 0.5
+[game_pause] menu
+[game_resume]
+[game_state] save
+[game_state] load
+[game_mode] change survival
+[difficulty_scale] dynamic
+[challenge_mode] activate
+[permadeath] enable
+[new_game_plus] start
+
+// 用戶界面進階
+[ui_layout] change compact
+[ui_theme] switch dark
+[ui_scale] 1.2
+[ui_customize] start
+[ui_widget] add minimap
+[ui_widget] remove chat
+[ui_position] save
+[ui_position] load
+[ui_animation] enable
+[ui_feedback] haptic
+
+// 聲音進階控制
+[audio_mix] dynamic
+[audio_channel] voice 0.8
+[audio_channel] music 0.5
+[audio_channel] effects 0.7
+[audio_position] source_1
+[audio_reverb] cave
+[audio_echo] enable
+[sound_filter] lowpass
+[voice_modulation] pitch 1.2
+[ambient_sound] forest
+
+// 特效系統
+[effect_chain] start
+[effect_add] glow
+[effect_add] distortion
+[effect_remove] blur
+[post_processing] enable hdr
+[shader] apply water
+[particle_system] create fire
+[particle_modify] color
+[particle_modify] size
+[decal] apply blood
+
+// 創建角色
+[character_create] "老智者" "NPC" {
+    appearance: {
+        height: 180,
+        build: "瘦長",
+        hair: "白色長髮",
+        eyes: "深邃藍色",
+        skin: "蒼白",
+        features: ["長鬍子", "皺紋", "智慧的眼神"]
+    },
+    voice: {
+        pitch: "低沉",
+        tone: "沉穩",
+        accent: "古典"
+    },
+    personality: {
+        traits: ["智慧", "冷靜", "耐心"],
+        quirks: ["常常撫摸鬍子", "說話喜歡用謎語"],
+        habits: ["冥想", "收集古書"]
+    }
+}
+
+[character_create] "年輕冒險者" "玩家角色" {
+    appearance: {
+        height: 175,
+        build: "健壯",
+        hair: "褐色短髮",
+        eyes: "琥珀色",
+        skin: "小麥色",
+        features: ["充滿活力", "敏捷", "身手矯健"]
+    },
+    voice: {
+        pitch: "中等",
+        tone: "活潑",
+        accent: "現代"
+    },
+    personality: {
+        traits: ["勇敢", "好奇", "衝動"],
+        quirks: ["說話快速", "愛打斷別人"],
+        habits: ["四處探索", "收集寶物"]
+    }
+}

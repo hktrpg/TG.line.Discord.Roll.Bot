@@ -5,13 +5,19 @@
 [text] 這是要顯示的故事文本
 
 // 能力值顯示
-[show_stat] hp
-[show_stat] mp,str,int
+[stat_show] hp
+[stat_show] mp,str,int
+
+// 除錯功能
+[debug] stats_show
+[debug] god_mode
+[debug] collision
+[debug] log "檢查點1"
 
 // 能力值修改
-[modify_stat] hp +10
-[modify_stat] mp -5
-[modify_stat] str *1.5
+[stat_modify] hp +10
+[stat_modify] mp -5
+[stat_modify] str *1.5
 
 // 條件判斷
 [if] hp > 50
@@ -34,18 +40,73 @@
 [label] goto_left
 [text] 你選擇往左走...
 
-// API呼叫
-[api_call] GET https://api.example.com/weather
-[api_call] POST https://api.example.com/save_game
-
-// 變數設定
-[set] has_key = true
-[set] monster_hp = 100
+// 自定義變數運算
+[calc] total_score = (stealth * 2) + (luck / 2)
+[calc] final_damage = base_damage * (1 + strength / 100)
 
 // 變數條件判斷
 [if] has_key == true
     [text] 你可以開啟這扇門
 [endif]
+
+// 時間系統
+[time] 23:45
+[time_pass] 15min
+[calendar] 12 Dec 2021
+
+
+// 隨機事件
+[random_event] 30%
+    [text] 突然下起雨來...
+    [weather] rain
+[end_random]
+
+// API呼叫
+[api] GET https://api.example.com/weather
+[api] POST https://api.example.com/save_game
+
+// 變數設定
+[set] has_key = true
+[set] monster_hp = 100
+
+
+// 延遲執行
+[delay] 2000
+
+// 存檔點
+[save_point] checkpoint1
+
+[load_point] checkpoint1
+
+
+// 基礎顯示相關
+[image] background/forest.png
+[image_overlay] effects/fog.png 0.5
+[portrait] npc/orc_guard.png right
+[portrait] character/thief.png left
+[emote] surprised
+// [shake_screen] 500ms
+[flash_screen] #FF0000 200ms
+//[fade] in 1000ms
+//[fade] out 1000ms
+
+
+// 物品系統
+[item_add] bread 1
+[item_remove] key 1
+[item_check] gold >= 100
+[inventory_full] goto inventory_full_handler
+[equipment] equip sword
+[equipment] unequip shield
+
+// 計數器和標記
+[counter] attempts +1
+[flag] set door_unlocked
+[flag] check trap_triggered
+[flag] clear enemy_alerted
+
+//
+
 
 // 支線任務標記
 [quest_start] 尋找遺失的鑰匙
@@ -58,25 +119,11 @@
 // 效果音播放
 [sfx] door_open
 
-// 延遲執行
-[delay] 2000
 
-// 清除畫面
-[clear]
 
-// 存檔點
-[save_point] checkpoint1
 
-// 基礎顯示相關
-[image] background/forest.png
-[image_overlay] effects/fog.png 0.5
-[portrait] npc/orc_guard.png right
-[portrait] character/thief.png left
-[emote] surprised
-[shake_screen] 500ms
-[flash_screen] #FF0000 200ms
-[fade] in 1000ms
-[fade] out 1000ms
+
+
 
 // 介面相關
 [ui_show] inventory
@@ -97,13 +144,7 @@
 [camera] pan_right 1000ms
 [camera] zoom 1.5 1000ms
 
-// 物品系統
-[item_add] bread 1
-[item_remove] key 1
-[item_check] gold >= 100
-[inventory_full] goto inventory_full_handler
-[equipment] equip sword
-[equipment] unequip shield
+
 
 // 成就系統
 [achievement] unlock "Master Thief"
@@ -120,12 +161,7 @@
 [status] add stun 2
 [status] remove poison
 
-// 時間系統
-[time] 23:45
-[time_pass] 15min
-[weather] rain
-[day_night] night
-[calendar] day 5
+
 
 // 地圖系統
 [map] show
@@ -170,17 +206,9 @@
     default: goto default_route
 [endswitch]
 
-// 隨機事件
-[random_event] 30%
-    [text] 突然下起雨來...
-    [weather] rain
-[end_random]
 
-// 計數器和標記
-[counter] attempts +1
-[flag] set door_unlocked
-[flag] check trap_triggered
-[flag] clear enemy_alerted
+
+
 
 // 音效進階
 [bgm] fade_out 3000ms
@@ -195,9 +223,7 @@
 [scene] preload castle
 [scene] unload forest
 
-// 自定義變數運算
-[calc] total_score = (stealth * 2) + (luck / 2)
-[calc] final_damage = base_damage * (1 + strength / 100)
+
 
 // 腳本控制
 [script] pause
@@ -227,11 +253,7 @@
 [steam] achievement "完美潛入"
 [twitch] alert "新訂閱者！"
 
-// 除錯功能
-[debug] show_stats
-[debug] god_mode
-[debug] collision
-[debug] log "檢查點1"
+
 
 
 // 角色系統進階

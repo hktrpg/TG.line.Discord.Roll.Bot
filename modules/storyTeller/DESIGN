@@ -19,6 +19,26 @@
 [stat_modify] mp -5
 [stat_modify] str *1.5
 
+// 選項分支
+[choice]
+-> 往左走 | goto_left
+-> 往右走 | goto_right
+-> 原地等待 | wait
+
+
+// 條件判斷
+[if] hp > 50
+    [choice]
+        -> 往左走 | goto_left
+        -> 往右走 | goto_right
+        -> 原地等待 | wait
+[else]
+    [choice]
+        -> 往左走 | goto_left
+        -> 往右走 | goto_right
+[endif]
+
+
 // 條件判斷
 [if] hp > 50
     [text] 你感覺狀態很好
@@ -30,29 +50,25 @@
 [roll] 2d6 
 [roll] 1d20 + str
 
-// 選項分支
-[choice]
--> 往左走 | goto_left
--> 往右走 | goto_right
--> 原地等待 | wait
+
+
 
 // 跳轉標記
 [label] goto_left
 [text] 你選擇往左走...
 
-// 自定義變數運算
-[calc] total_score = (stealth * 2) + (luck / 2)
-[calc] final_damage = base_damage * (1 + strength / 100)
+// global variable
+[var] total_score = 0
+[var] has_key = false
+[var] total_score = (stealth * 2) + (luck / 2)
+
 
 // 變數條件判斷
 [if] has_key == true
     [text] 你可以開啟這扇門
 [endif]
 
-// 時間系統
-[time] 23:45
-[time_pass] 15min
-[calendar] 12 Dec 2021
+
 
 
 // 隨機事件
@@ -61,21 +77,12 @@
     [weather] rain
 [end_random]
 
-// API呼叫
-[api] GET https://api.example.com/weather
-[api] POST https://api.example.com/save_game
-
-// 變數設定
-[set] has_key = true
-[set] monster_hp = 100
-
 
 // 延遲執行
 [delay] 2000
 
 // 存檔點
 [save_point] checkpoint1
-
 [load_point] checkpoint1
 
 
@@ -85,28 +92,43 @@
 [portrait] npc/orc_guard.png right
 [portrait] character/thief.png left
 [emote] surprised
+
+
+
+// 物品系統
+[item_add] key 1
+[item_description] key "一把鑰匙，打開某些門"
+[item_show] key
+[item_remove] key 1
+
+
+
+
+-----------------------------------------------------------
+[counter] attempts +1
+[item_check] gold >= 100
+[equipment] equip sword
+[equipment] unequip shield
 // [shake_screen] 500ms
 [flash_screen] #FF0000 200ms
+
 //[fade] in 1000ms
 //[fade] out 1000ms
 
 
-// 物品系統
-[item_add] bread 1
-[item_remove] key 1
-[item_check] gold >= 100
-[inventory_full] goto inventory_full_handler
-[equipment] equip sword
-[equipment] unequip shield
 
-// 計數器和標記
-[counter] attempts +1
-[flag] set door_unlocked
-[flag] check trap_triggered
-[flag] clear enemy_alerted
+// API呼叫
+[api] GET https://api.example.com/weather
+[api] POST https://api.example.com/save_game
 
-//
+// 變數設定
+[set] has_key = true
+[set] monster_hp = 100
 
+// 時間系統
+[time] 23:45
+[time_pass] 15min
+[calendar] 12 Dec 2021
 
 // 支線任務標記
 [quest_start] 尋找遺失的鑰匙

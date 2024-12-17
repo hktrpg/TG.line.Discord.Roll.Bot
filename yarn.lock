@@ -6417,9 +6417,9 @@ mongodb@4.17.2, mongodb@^4.1.0:
     "@mongodb-js/saslprep" "^1.1.0"
 
 mongoose@^6:
-  version "6.13.3"
-  resolved "https://registry.npmjs.org/mongoose/-/mongoose-6.13.3.tgz"
-  integrity sha512-TCB/k6ZmkLZGZY/HJ78Ep45Za63591ZuZu5+HCISTe+0lsqbDeomqwezh+Ir7gMLa0wJwIy6CNkl5dxhCXTu9Q==
+  version "6.13.5"
+  resolved "https://registry.yarnpkg.com/mongoose/-/mongoose-6.13.5.tgz#33e628d259787221e8c6ecc740189896f35c7edc"
+  integrity sha512-podJEaIF/5N2mQymkyyUzN2NeL/68MOyYjf3O0zsgCU2B2Omnhg6NhGHVavt9ZH/VxOrwKE9XphbuHDFK+T06g==
   dependencies:
     bson "^4.7.2"
     kareem "2.5.1"

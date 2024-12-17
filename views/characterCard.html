@@ -101,8 +101,8 @@
                     data-height="20px"></span> 基本屬性
             </h4>
 
-            <button type="button" class="btn btn-warning float-right" v-if="name" @click="newItem(0)">+</button>
-            <button type="button" class="btn btn-warning float-right" v-if="name" @click="removeItem(0)">-</button>
+            <button type="button" class="btn btn-warning float-right" v-if="name" @click="addItem(0)">+</button>
+            <button type="button" class="btn btn-warning float-right" v-if="name" @click="removeLastItem(0)">-</button>
             <div class="row align-items-start m-1 p-1">
                 <div v-for="(item, index) in state" class="board1" style="height: 36px;">
                     <div>
@@ -525,6 +525,48 @@
                 }
             },
             methods: {
+                addItem(form) {
+                    switch (form) {
+                        case 0:
+                            this.state.push({
+                                name: "",
+                                itemA: "",
+                                itemB: ""
+                            });
+                            break;
+                        case 1:
+                            this.roll.push({
+                                name: "",
+                                itemA: ""
+                            });
+                            break;
+                        case 2:
+                            this.notes.push({
+                                name: "",
+                                itemA: ""
+                            });
+                            break;
+                    }
+                },
+                removeLastItem(form) {
+                    switch (form) {
+                        case 0:
+                            if (this.state.length > 0) {
+                                this.state.pop();
+                            }
+                            break;
+                        case 1:
+                            if (this.roll.length > 0) {
+                                this.roll.pop();
+                            }
+                            break;
+                        case 2:
+                            if (this.notes.length > 0) {
+                                this.notes.pop();
+                            }
+                            break;
+                    }
+                },
                 toggleDeleteMode(form) {
                     this.deleteMode = !this.deleteMode; // 切換刪除模式
 

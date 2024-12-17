@@ -4,6 +4,7 @@ if (!process.env.mongoURL) {
 }
 const express = require('express');
 const www = express();
+const jwt = require('jsonwebtoken'); // Add JWT package
 const {
     RateLimiterMemory
 } = require('rate-limiter-flexible');
@@ -24,6 +25,16 @@ let options = {
     cert: null,
     ca: null
 };
+
+// Middleware to verify JWT token
+const verifyToken = async (token) => {
+    try {
+        return jwt.verify(token, JWT_SECRET);
+    } catch (error) {
+        return null;
+    }
+};
+
 const rateLimiterChatRoom = new RateLimiterMemory({
     points: 90, // 5 points
     duration: 60, // per second
@@ -57,6 +68,39 @@ async function read() {
 const http = require('http');
 const https = require('https');
 
+// Add login endpoint
+www.post('/login', async (req, res) => {
+    if (await limitRaterCard(req.ip)) return;
+
+    const { userName, password } = req.body;
+    const hashedPassword = SHA(password);
+
+    try {
+        const user = await schema.accountPW.findOne({
+            userName: userName,
+            password: hashedPassword
+        });
+
+        if (!user) {
+            return res.status(401).json({ message: 'Invalid credentials' });
+        }
+
+        // Generate JWT token
+        const token = jwt.sign(
+            { 
+                userId: user.id,
+                userName: user.userName 
+            },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
+        res.json({ token });
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
 
 
 process.on('uncaughtException', (warning) => {
@@ -91,6 +135,41 @@ const io = require('socket.io')(server);
 
 // 加入線上人數計數
 let onlineCount = 0;
+
+// Add login endpoint
+www.post('/login', async (req, res) => {
+    if (await limitRaterCard(req.ip)) return;
+
+    const { userName, password } = req.body;
+    const hashedPassword = SHA(password);
+
+    try {
+        const user = await schema.accountPW.findOne({
+            userName: userName,
+            password: hashedPassword
+        });
+
+        if (!user) {
+            return res.status(401).json({ message: 'Invalid credentials' });
+        }
+
+        // Generate JWT token
+        const token = jwt.sign(
+            { 
+                userId: user.id,
+                userName: user.userName 
+            },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
+        res.json({ token });
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
 
 www.get('/', (req, res) => {
     res.sendFile(process.cwd() + '/views/index.html');
@@ -172,34 +251,64 @@ www.get('/:xx', (req, res) => {
     res.sendFile(process.cwd() + '/views/index.html');
 });
 
+function SHA(text) {
+    return crypto.createHmac('sha256', text)
+        .update(salt)
+        .digest('hex');
+}
+
+function checkNullItem(target) {
+    return target = target.filter(function (item) {
+        return item.name;
+    });
+}
+
 io.on('connection', async (socket) => {
+    // 加入驗證事件處理
+    socket.on('authenticate', async token => {
+        const decoded = await verifyToken(token);
+        if (decoded) {
+            socket.user = decoded;
+            socket.emit('authenticated');
+        } else {
+            socket.emit('unauthorized');
+        }
+    });
+
     socket.on('getListInfo', async message => {
         if (await limitRaterCard(socket.handshake.address)) return;
-        //回傳 message 給發送訊息的 Client
-        let filter = {
-            userName: message.userName,
-            password: SHA(message.userPassword)
+
+        const decoded = await verifyToken(message.token);
+        if (!decoded) {
+            socket.emit('unauthorized');
+            return;
         }
-        let doc = await schema.accountPW.findOne(filter).catch(error => console.error('www #144 mongoDB error: ', error.name, error.reson));
+
+        let doc = await schema.accountPW.findOne({
+            id: decoded.userId
+        }).catch(error => console.error('mongoDB error: ', error.name, error.reason));
+        
         let temp;
         if (doc && doc.id) {
             temp = await schema.characterCard.find({
                 id: doc.id
-            }).catch(error => console.error('www #149 mongoDB error: ', error.name, error.reson));
+            }).catch(error => console.error('mongoDB error: ', error.name, error.reason));
         }
+        
         let id = [];
         if (doc && doc.channel) {
             id = doc.channel;
         }
+        
         socket.emit('getListInfo', {
             temp,
             id
-        })
-    })
+        });
+    });
 
     socket.on('getPublicListInfo', async () => {
         if (await limitRaterCard(socket.handshake.address)) return;
-        //回傳 message 給發送訊息的 Client
+        
         let filter = {
             public: true
         }
@@ -207,86 +316,96 @@ io.on('connection', async (socket) => {
         try {
             socket.emit('getPublicListInfo', {
                 temp
-            })
+            });
         } catch (error) {
-            console.error('www #170 mongoDB error: ', error.name, error.reson)
+            console.error('mongoDB error: ', error.name, error.reason);
         }
-
-    })
+    });
 
     socket.on('publicRolling', async message => {
         if (await limitRaterChatRoom(socket.handshake.address)) return;
         if (!message.item || !message.doc) return;
+
         let rplyVal = {}
         let result = await mainCharacter(message.doc, ['', message.item], `.ch ${message.item}`)
         if (result && result.characterReRoll) {
             rplyVal = await exports.analytics.parseInput({
                 inputStr: result.characterReRollItem,
                 botname: "WWW"
-            })
+            });
         }
 
-        // 訊息來到後, 會自動跳到analytics.js進行骰組分析
-        // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
         if (rplyVal && rplyVal.text) {
             socket.emit('publicRolling', result.characterReRollName + '：\n' + rplyVal.text)
         }
-    })
+    });
+
     socket.on('rolling', async message => {
         if (await limitRaterChatRoom(socket.handshake.address)) return;
+        
+        const decoded = await verifyToken(message.token);
+        if (!decoded) {
+            socket.emit('unauthorized');
+            return;
+        }
+
         if (!message.item || !message.doc) return;
+
         let rplyVal = {}
         let result = await mainCharacter(message.doc, ['', message.item], `.ch ${message.item}`)
         if (result && result.characterReRoll) {
             rplyVal = await exports.analytics.parseInput({
                 inputStr: result.characterReRollItem,
                 botname: "WWW"
-            })
+            });
         }
 
-        // 訊息來到後, 會自動跳到analytics.js進行骰組分析
-        // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
         if (rplyVal && rplyVal.text) {
-            socket.emit('rolling', result.characterReRollName + '：\n' + rplyVal.text + candle.checker())
-            if (message.rollTarget && message.rollTarget.id && message.rollTarget.botname && message.userName && message.userPassword && message.cardName) {
+            socket.emit('rolling', result.characterReRollName + '：\n' + rplyVal.text + candle.checker());
+            
+            if (message.rollTarget && message.rollTarget.id && message.rollTarget.botname && message.cardName) {
                 let filter = {
-                    userName: message.userName,
-                    password: SHA(message.userPassword),
+                    id: decoded.userId,
                     "channel.id": message.rollTarget.id,
                     "channel.botname": message.rollTarget.botname
                 }
-                let result = await schema.accountPW.findOne(filter).catch(error => console.error('www #214 mongoDB error: ', error.name, error.reson));
+                let result = await schema.accountPW.findOne(filter)
+                    .catch(error => console.error('mongoDB error: ', error.name, error.reason));
+                
                 if (!result) return;
+
                 let filter2 = {
                     "botname": message.rollTarget.botname,
                     "id": message.rollTarget.id
                 }
-                let allowRollingResult = await schema.allowRolling.findOne(filter2).catch(error => console.error('www #220 mongoDB error: ', error.name, error.reson));
+                let allowRollingResult = await schema.allowRolling.findOne(filter2)
+                    .catch(error => console.error('mongoDB error: ', error.name, error.reason));
+                
                 if (!allowRollingResult) return;
+
                 rplyVal.text = '@' + message.cardName + ' - ' + message.item + '\n' + rplyVal.text;
-                if (message.rollTarget.botname) {
-                    if (!sendTo) return;
+                if (message.rollTarget.botname && sendTo) {
                     sendTo({
                         target: message.rollTarget,
                         text: rplyVal.text
-                    })
+                    });
                 }
-
-
             }
-
         }
-
-
-    })
+    });
 
     socket.on('removeChannel', async message => {
         if (await limitRaterCard(socket.handshake.address)) return;
-        //回傳 message 給發送訊息的 Client
+        
+        const decoded = await verifyToken(message.token);
+        if (!decoded) {
+            socket.emit('unauthorized');
+            return;
+        }
+
         try {
             await schema.accountPW.updateOne({
-                "userName": message.userName,
-                "password": SHA(message.userPassword)
+                id: decoded.userId
             }, {
                 $pull: {
                     channel: {
@@ -295,27 +414,27 @@ io.on('connection', async (socket) => {
                     }
                 }
             });
-        } catch (e) {
-            console.error('core-www ERROR:', e);
+        } catch (error) {
+            console.error('ERROR:', error);
         }
-
-    })
+    });
 
     socket.on('updateCard', async message => {
         if (await limitRaterCard(socket.handshake.address)) return;
-        //回傳 message 給發送訊息的 Client
-        let filter = {
-            userName: message.userName,
-            password: SHA(message.userPassword)
+        
+        const decoded = await verifyToken(message.token);
+        if (!decoded) {
+            socket.emit('unauthorized');
+            return;
         }
-        let doc = await schema.accountPW.findOne(filter).catch(error => console.error('www #246 mongoDB error: ', error.name, error.reson));
-        let temp;
-        if (doc && doc.id) {
-            message.card.state = checkNullItem(message.card.state);
-            message.card.roll = checkNullItem(message.card.roll);
-            message.card.notes = checkNullItem(message.card.notes);
-            temp = await schema.characterCard.findOneAndUpdate({
-                id: doc.id,
+
+        message.card.state = checkNullItem(message.card.state);
+        message.card.roll = checkNullItem(message.card.roll);
+        message.card.notes = checkNullItem(message.card.notes);
+
+        try {
+            const temp = await schema.characterCard.findOneAndUpdate({
+                id: decoded.userId,
                 _id: message.card._id
             }, {
                 $set: {
@@ -324,29 +443,23 @@ io.on('connection', async (socket) => {
                     roll: message.card.roll,
                     notes: message.card.notes,
                 }
-            }).catch(error => console.error('www #262 mongoDB error: ', error.name, error.reson));
+            });
+
+            socket.emit('updateCard', !!temp);
+        } catch (error) {
+            console.error('mongoDB error: ', error.name, error.reason);
+            socket.emit('updateCard', false);
         }
-        if (temp) {
-            socket.emit('updateCard', true)
-        } else {
-            socket.emit('updateCard', false)
-        }
-    })
+    });
 
-
-
-    // 有連線發生時增加人數
+    // 聊天室相關功能
     onlineCount++;
-    // 發送人數給網頁
     io.emit("online", onlineCount);
-    // 發送紀錄最大值
     socket.emit("maxRecord", records.chatRoomGetMax());
-    // 發送紀錄
-    //socket.emit("chatRecord", records.get());
+    
     records.chatRoomGet("公共房間", (msgs) => {
         socket.emit("chatRecord", msgs);
     });
-
 
     socket.on("greet", () => {
         socket.emit("greet", onlineCount);
@@ -354,27 +467,21 @@ io.on('connection', async (socket) => {
 
     socket.on("send", async (msg) => {
         if (await limitRaterChatRoom(socket.handshake.address)) return;
-        // 如果 msg 內容鍵值小於 2 等於是訊息傳送不完全
-        // 因此我們直接 return ，終止函式執行。
         if (Object.keys(msg).length < 2) return;
-        msg.msg = '\n' + msg.msg
+        msg.msg = '\n' + msg.msg;
         records.chatRoomPush(msg);
     });
 
     socket.on("newRoom", async (msg) => {
         if (await limitRaterChatRoom(socket.handshake.address)) return;
-        // 如果 msg 內容鍵值小於 2 等於是訊息傳送不完全
-        // 因此我們直接 return ，終止函式執行。
         if (!msg) return;
         let roomNumber = msg || "公共房間";
         records.chatRoomGet(roomNumber, (msgs) => {
             socket.emit("chatRecord", msgs);
         });
-
     });
 
     socket.on('disconnect', () => {
-        // 有人離線了，扣人
         onlineCount = (onlineCount < 0) ? 0 : onlineCount -= 1;
         io.emit("online", onlineCount);
     });

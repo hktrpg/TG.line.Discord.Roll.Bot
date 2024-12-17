@@ -32,7 +32,7 @@ const opt = {
 	runValidators: true
 }
 const herokuPuppeteer = { headless: true, 'executablePath': '/app/.apt/usr/bin/google-chrome-stable' };
-const normalPuppeteer = { headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] };
+const normalPuppeteer = { headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'], 'executablePath': '/usr/bin/google-chrome' };
 
 const newMessage = require('./message');
 

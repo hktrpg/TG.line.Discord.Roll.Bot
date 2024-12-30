@@ -13,8 +13,8 @@ const readdir = util.promisify(fs.readdir);
 		if ((name !== 'index' || name !== 'demo') && file.endsWith('.js')) {
 			exports[name] = require(path.join(__dirname, '../roll/', file));
 		}
-	})
-}())
+	});
+}());
 
 
 const schema = require('./schema.js');
@@ -26,21 +26,23 @@ const EXPUP = require('./level').EXPUP || function () { };
 
 //用來呼叫骰組,新增骰組的話,要寫條件式到下面呼叫
 //格式是 exports.骰組檔案名字.function名
-const parseInput = async ({
-	inputStr = "",
-	groupid = null,
-	userid = null,
-	userrole = 1,
-	botname = null,
-	displayname = null,
-	channelid = null,
-	displaynameDiscord = null,
-	membercount = 0,
-	discordClient,
-	discordMessage,
-	titleName = '',
-	tgDisplayname = ''
-}) => {
+const parseInput = async (params) => {
+	const {
+		inputStr = "",
+		groupid = null,
+		userid = null,
+		userrole = 1,
+		botname = null,
+		displayname = null,
+		channelid = null,
+		displaynameDiscord = null,
+		membercount = 0,
+		discordClient,
+		discordMessage,
+		titleName = '',
+		tgDisplayname = ''
+	} = params;
+
 	let result = {
 		text: '',
 		type: 'text',
@@ -48,106 +50,99 @@ const parseInput = async ({
 		statue: ''
 	};
 
-	let mainMsg = [];
-	inputStr = inputStr.replace(/^\s/g, '')
-	mainMsg = inputStr.match(MESSAGE_SPLITOR); //定義輸入字串
-	//EXPUP 功能 + LevelUP 功能
+	let mainMsg = inputStr.replace(/^\s/g, '').match(MESSAGE_SPLITOR); // 定義輸入字串
+
+	// EXPUP 功能 + LevelUP 功能
 	if (groupid) {
 		let tempEXPUP = await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount, tgDisplayname, discordMessage);
-		result.LevelUp = (tempEXPUP && tempEXPUP.text) ? tempEXPUP.text : '';
-		result.statue = (tempEXPUP && tempEXPUP.statue) ? tempEXPUP.statue : '';
+		result.LevelUp = tempEXPUP?.text || '';
+		result.statue = tempEXPUP?.statue || '';
 	}
 
-	//檢查是不是要停止  z_stop功能
+	// 檢查是不是要停止 z_stop 功能
 	if (groupid && mainMsg[0] && z_stop(mainMsg, groupid)) {
 		return result;
 	}
 
-	//rolldice 擲骰功能
-	let rollDiceResult = {};
-
+	// rolldice 擲骰功能
 	try {
-		rollDiceResult = await rolldice({
-			inputStr: inputStr,
-			groupid: groupid,
-			userid: userid,
-			userrole: userrole,
-			mainMsg: mainMsg,
-			botname: botname,
-			displayname: displayname,
-			channelid: channelid,
-			displaynameDiscord: displaynameDiscord,
-			membercount: membercount,
-			discordClient: discordClient,
-			discordMessage: discordMessage,
-			titleName: titleName,
-			tgDisplayname: tgDisplayname
-		})
-
+		let rollDiceResult = await rolldice({
+			inputStr,
+			groupid,
+			userid,
+			userrole,
+			mainMsg,
+			botname,
+			displayname,
+			channelid,
+			displaynameDiscord,
+			membercount,
+			discordClient,
+			discordMessage,
+			titleName,
+			tgDisplayname
+		});
+		if (rollDiceResult) {
+			result = { ...result, ...rollDiceResult };
+		}
 	} catch (error) {
 		console.error('rolldice GET ERROR:', error.stack, error.name, ' inputStr: ', inputStr, ' botname: ', botname, ' Time: ', new Date());
-
-	}
-	if (rollDiceResult) {
-		result = JSON.parse(JSON.stringify(Object.assign({}, result, rollDiceResult)));
 	}
 
-	//cmdfunction  .cmd 功能   z_saveCommand 功能
+	// cmdfunction .cmd 功能 z_saveCommand 功能
 	if (result.cmd && result.text) {
 		let cmdFunctionResult = await cmdfunction({
-			inputStr: inputStr,
-			groupid: groupid,
-			userid: userid,
-			userrole: userrole,
-			mainMsg: mainMsg,
-			botname: botname,
-			displayname: displayname,
-			channelid: channelid,
-			displaynameDiscord: displaynameDiscord,
-			membercount: membercount,
-			result: result,
-			titleName: titleName,
-			tgDisplayname: tgDisplayname
+			inputStr,
+			groupid,
+			userid,
+			userrole,
+			mainMsg,
+			botname,
+			displayname,
+			channelid,
+			displaynameDiscord,
+			membercount,
+			result,
+			titleName,
+			tgDisplayname
 		});
-		if (typeof cmdFunctionResult === 'object' && cmdFunctionResult !== null) {
-			result = Object.assign({}, result, cmdFunctionResult)
+		if (cmdFunctionResult) {
+			result = { ...result, ...cmdFunctionResult };
 		}
 	}
 
-
+	// characterReRoll 功能
 	if (result.characterReRoll) {
 		let characterReRoll = await cmdfunction({
-			inputStr: inputStr,
-			groupid: groupid,
-			userid: userid,
-			userrole: userrole,
-			mainMsg: mainMsg,
-			botname: botname,
-			displayname: displayname,
-			channelid: channelid,
-			displaynameDiscord: displaynameDiscord,
-			membercount: membercount,
-			result: result,
-			titleName: titleName,
-			tgDisplayname: tgDisplayname
+			inputStr,
+			groupid,
+			userid,
+			userrole,
+			mainMsg,
+			botname,
+			displayname,
+			channelid,
+			displaynameDiscord,
+			membercount,
+			result,
+			titleName,
+			tgDisplayname
 		});
 		if (result.text && characterReRoll.text) {
-			result.text = result.text = `${result.characterName}  投擲  ${result.characterReRollName} 
-			${characterReRoll.text} 
-			======
-			${result.text}`;
+			result.text = `${result.characterName} 投擲 ${result.characterReRollName}\n${characterReRoll.text}\n======\n${result.text}`;
 		} else {
-			(result && result.text) ? null : result.text = "";
-			result.text += (characterReRoll && characterReRoll.text) ? '======\n' + characterReRoll.text : "";
+			result.text = result.text || '';
+			result.text += characterReRoll.text ? `======\n${characterReRoll.text}` : '';
 		}
-
 	}
 
+	// state 功能
 	if (result.state) {
 		result.text = await stateText();
 	}
-	//courtMessage + saveLog
-	await courtMessage({ result, botname, inputStr })
+
+	// courtMessage + saveLog
+	await courtMessage({ result, botname, inputStr });
 	return result;
 }
 
@@ -337,17 +332,18 @@ async function cmdfunction({
 
 
 function z_stop(mainMsg, groupid) {
-	if (!Object.keys(exports.z_stop).length || !exports.z_stop.initialize().save) {
-		return false;
-	}
-	let groupInfo = exports.z_stop.initialize().save.find(e => e.groupid == groupid)
-	if (!groupInfo || !groupInfo.blockfunction) return;
-	let match = groupInfo.blockfunction.find(e => mainMsg[0].toLowerCase().includes(e.toLowerCase()))
+	const zStopData = exports.z_stop.initialize().save;
+	if (!zStopData) return false;
+
+	const groupInfo = zStopData.find(e => e.groupid == groupid);
+	if (!groupInfo || !groupInfo.blockfunction) return false;
+
+	const match = groupInfo.blockfunction.find(e => mainMsg[0].toLowerCase().includes(e.toLowerCase()));
 	if (match) {
-		(debugMode) ? console.log('Match AND STOP') : '';
+		if (debugMode) console.log('Match AND STOP');
 		return true;
-	} else
-		return false;
+	}
+	return false;
 }
 
 

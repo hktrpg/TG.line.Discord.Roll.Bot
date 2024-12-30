@@ -13,592 +13,130 @@ class Records extends EventEmitter {
     constructor() {
         super();
     }
+
+    async updateRecord(dbbase, query, update, options, callback) {
+        try {
+            const doc = await schema[dbbase].findOneAndUpdate(query, update, options);
+            callback(doc);
+        } catch (err) {
+            console.error("Something wrong when updating data!", err);
+        }
+    }
+
     set(dbbase, msg, callback) {
-        schema[dbbase].findOneAndUpdate({
-            groupid: msg.groupid
-        }, {
-            $set: {
-                blockfunction: msg.blockfunction
-            }
-        }, {
-            upsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.error("Something wrong when updating data!");
-            } else
-                callback();
-            // return JSON.stringify(doc).toString();
-        });
+        this.updateRecord(dbbase, { groupid: msg.groupid }, { $set: { blockfunction: msg.blockfunction } }, { upsert: true }, callback);
     }
 
     pushblockfunction(dbbase, msg, callback) {
-        /*
-            提醒:
-            $push 加入新的
-            $set  重置舊的
-         */
-        schema[dbbase].findOneAndUpdate({
-            groupid: msg.groupid
-        }, {
-            $push: {
-                blockfunction: msg.blockfunction
-            }
-        }, {
-            new: true,
-            upsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.error("Something wrong when updating data!");
-            } else
-                callback();
-        });
+        this.updateRecord(dbbase, { groupid: msg.groupid }, { $push: { blockfunction: msg.blockfunction } }, { new: true, upsert: true }, callback);
     }
 
-    //randomAns開始
     pushrandomAnsfunction(dbbase, msg, callback) {
-        /*
-            提醒:
-            $push 加入新的
-            $set  重置舊的
-         */
-        schema[dbbase].findOneAndUpdate({
-            groupid: msg.groupid
-        }, {
-            $push: {
-                randomAnsfunction: msg.randomAnsfunction
-            }
-        }, {
-            new: true,
-            upsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.error("Something wrong when updating data!");
-            } else
-                callback();
-        });
+        this.updateRecord(dbbase, { groupid: msg.groupid }, { $push: { randomAnsfunction: msg.randomAnsfunction } }, { new: true, upsert: true }, callback);
     }
+
     setrandomAnsfunction(dbbase, msg, callback) {
-        schema[dbbase].findOneAndUpdate({
-            groupid: msg.groupid
-        }, {
-            $set: {
-                randomAnsfunction: msg.randomAnsfunction
-            }
-        }, {
-            upsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.error("Something wrong when updating data!");
-            } else
-                callback();
-            // return JSON.stringify(doc).toString();
-        });
+        this.updateRecord(dbbase, { groupid: msg.groupid }, { $set: { randomAnsfunction: msg.randomAnsfunction } }, { upsert: true }, callback);
     }
 
     pushrandomAnsAllgroup(dbbase, msg, callback) {
-        /*
-            提醒:
-            $push 加入新的
-            $set  重置舊的
-         */
-        schema[dbbase].findOneAndUpdate({}, {
-            $push: {
-                randomAnsAllgroup: msg.randomAnsAllgroup
-            }
-        }, {
-            new: true,
-            upsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.error("Something wrong when updating data!");
-            } else
-                callback();
-        });
+        this.updateRecord(dbbase, {}, { $push: { randomAnsAllgroup: msg.randomAnsAllgroup } }, { new: true, upsert: true }, callback);
     }
+
     setrandomAnsAllgroup(dbbase, msg, callback) {
-        schema[dbbase].findOneAndUpdate({}, {
-            $set: {
-                randomAnsAllgroup: msg.randomAnsAllgroup
-            }
-        }, {
-            upsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.error("Something wrong when updating data!");
-            } else
-                callback();
-            // return JSON.stringify(doc).toString();
-        });
+        this.updateRecord(dbbase, {}, { $set: { randomAnsAllgroup: msg.randomAnsAllgroup } }, { upsert: true }, callback);
     }
 
     get(target, callback) {
-        // 取出所有資料
-        if (schema[target])
+        if (schema[target]) {
             schema[target].find({}, (err, msgs) => {
                 callback(msgs);
             });
+        }
     }
 
-    /*
-        trpgDatabase開始
-    */
     pushtrpgDatabasefunction(dbbase, msg, callback) {
-        /*
-            提醒:
-            $push 加入新的
-            $set  重置舊的
-         */
-        schema[dbbase].findOneAndUpdate({
-            groupid: msg.groupid
-        }, {
-            $push: {
-                trpgDatabasefunction: msg.trpgDatabasefunction
-            }
-        }, {
-            new: true,
-            upsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.error("Something wrong when updating data!");
-            } else
-                callback();
-        });
+        this.updateRecord(dbbase, { groupid: msg.groupid }, { $push: { trpgDatabasefunction: msg.trpgDatabasefunction } }, { new: true, upsert: true }, callback);
     }
+
     settrpgDatabasefunction(dbbase, msg, callback) {
-        schema[dbbase].findOneAndUpdate({
-            groupid: msg.groupid
-        }, {
-            $set: {
-                trpgDatabasefunction: msg.trpgDatabasefunction
-            }
-        }, {
-            upsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.error("Something wrong when updating data!");
-            } else
-                callback();
-            // return JSON.stringify(doc).toString();
-        });
+        this.updateRecord(dbbase, { groupid: msg.groupid }, { $set: { trpgDatabasefunction: msg.trpgDatabasefunction } }, { upsert: true }, callback);
     }
 
     pushtrpgDatabaseAllgroup(dbbase, msg, callback) {
-        /*
-            提醒:
-            $push 加入新的
-            $set  重置舊的
-         */
-        schema[dbbase].findOneAndUpdate({}, {
-            $push: {
-                trpgDatabaseAllgroup: msg.trpgDatabaseAllgroup
-            }
-        }, {
-            new: true,
-            upsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.error("Something wrong when updating data!");
-            } else
-                callback();
-        });
+        this.updateRecord(dbbase, {}, { $push: { trpgDatabaseAllgroup: msg.trpgDatabaseAllgroup } }, { new: true, upsert: true }, callback);
     }
+
     settrpgDatabaseAllgroup(dbbase, msg, callback) {
-        schema[dbbase].findOneAndUpdate({}, {
-            $set: {
-                trpgDatabaseAllgroup: msg.trpgDatabaseAllgroup
-            }
-        }, {
-            upsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.error("Something wrong when updating data!");
-            } else
-                callback();
-            // return JSON.stringify(doc).toString();
-        });
+        this.updateRecord(dbbase, {}, { $set: { trpgDatabaseAllgroup: msg.trpgDatabaseAllgroup } }, { upsert: true }, callback);
     }
 
-
-    /*
-          setGroupSetting開始
-      */
     pushGroupSettingfunction(dbbase, msg, callback) {
-        /*
-            提醒:
-            $push 加入新的
-            $set  重置舊的
-         */
-        schema[dbbase].findOneAndUpdate({
-            groupid: msg.groupid
-        }, {
-            $push: {
-                GroupSettingfunction: msg.GroupSettingfunction
-            }
-        }, {
-            new: true,
-            upsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.error("Something wrong when updating data!");
-            } else
-                callback();
-        });
+        this.updateRecord(dbbase, { groupid: msg.groupid }, { $push: { GroupSettingfunction: msg.GroupSettingfunction } }, { new: true, upsert: true }, callback);
     }
+
     setGroupSettingfunction(dbbase, msg, callback) {
-        schema[dbbase].findOneAndUpdate({
-            groupid: msg.groupid
-        }, {
-            $set: {
-                GroupSettingfunction: msg.GroupSettingfunction
-            }
-        }, {
-            upsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.error("Something wrong when updating data!");
-            } else
-                callback();
-            // return JSON.stringify(doc).toString();
-        });
+        this.updateRecord(dbbase, { groupid: msg.groupid }, { $set: { GroupSettingfunction: msg.GroupSettingfunction } }, { upsert: true }, callback);
     }
 
-
-    /*
-        trpgsaveCommand開始
-    */
     pushtrpgCommandfunction(dbbase, msg, callback) {
-        /*
-            提醒:
-            $push 加入新的
-            $set  重置舊的
-         */
-        schema[dbbase].findOneAndUpdate({
-            groupid: msg.groupid
-        }, {
-            $push: {
-                trpgCommandfunction: msg.trpgCommandfunction
-            }
-        }, {
-            new: true,
-            upsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.error("Something wrong when updating data!");
-            } else
-                callback();
-        });
+        this.updateRecord(dbbase, { groupid: msg.groupid }, { $push: { trpgCommandfunction: msg.trpgCommandfunction } }, { new: true, upsert: true }, callback);
     }
+
     settrpgCommandfunction(dbbase, msg, callback) {
-        schema[dbbase].findOneAndUpdate({
-            groupid: msg.groupid
-        }, {
-            $set: {
-                trpgCommandfunction: msg.trpgCommandfunction
-            }
-        }, {
-            upsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.error("Something wrong when updating data!");
-            } else
-                callback();
-            // return JSON.stringify(doc).toString();
-        });
+        this.updateRecord(dbbase, { groupid: msg.groupid }, { $set: { trpgCommandfunction: msg.trpgCommandfunction } }, { upsert: true }, callback);
     }
+
     editSettrpgCommandfunction(dbbase, msg, callback) {
-        console.log("editSettrpgCommandfunction: " + msg.trpgCommandfunction[0]?.topic);
         const topicRegex = new RegExp(`^${msg.trpgCommandfunction[0]?.topic}$`, 'i');
-        console.log("topicRegex: " + topicRegex);
-        schema[dbbase].findOneAndUpdate(
-            { groupid: msg.groupid, "trpgCommandfunction.topic": topicRegex },
-            { $set: { "trpgCommandfunction.$.contact": msg.trpgCommandfunction[0].contact } },
-            { new: true, upsert: false }, 
-            (err, doc) => {
-                if (err) {
-                    console.error("Something wrong when updating data!", err);
-                } else {
-                    callback(doc); 
-                }
-            }
-        );
+        this.updateRecord(dbbase, { groupid: msg.groupid, "trpgCommandfunction.topic": topicRegex }, { $set: { "trpgCommandfunction.$.contact": msg.trpgCommandfunction[0].contact } }, { new: true, upsert: false }, callback);
     }
-
-
-    /*
-            trpgDarkRollingfunction開始
-        */
 
     pushtrpgDarkRollingfunction(dbbase, msg, callback) {
-        /*
-            提醒:
-            $push 加入新的
-            $set  重置舊的
-         */
-        schema[dbbase].findOneAndUpdate({
-            groupid: msg.groupid
-        }, {
-            $push: {
-                trpgDarkRollingfunction: msg.trpgDarkRollingfunction
-            }
-        }, {
-            new: true,
-            upsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.error("Something wrong when updating data!");
-            } else
-                callback();
-        });
+        this.updateRecord(dbbase, { groupid: msg.groupid }, { $push: { trpgDarkRollingfunction: msg.trpgDarkRollingfunction } }, { new: true, upsert: true }, callback);
     }
+
     settrpgDarkRollingfunction(dbbase, msg, callback) {
-        schema[dbbase].findOneAndUpdate({
-            groupid: msg.groupid
-        }, {
-            $set: {
-                trpgDarkRollingfunction: msg.trpgDarkRollingfunction
-            }
-        }, {
-            upsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.error("Something wrong when updating data!");
-            } else
-                callback();
-            // return JSON.stringify(doc).toString();
-        });
+        this.updateRecord(dbbase, { groupid: msg.groupid }, { $set: { trpgDarkRollingfunction: msg.trpgDarkRollingfunction } }, { upsert: true }, callback);
     }
-    /*
-            trpgLevelSystem開始
-        */
+
     pushtrpgLevelSystemfunction(dbbase, msg, callback) {
-        /*
-            提醒:
-            $push 加入新的
-            $set  重置舊的
-         */
-        schema[dbbase].findOneAndUpdate({
-            groupid: msg.groupid
-        }, {
-            $push: {
-                trpgLevelSystemfunction: msg.trpgLevelSystemfunction
-            }
-        }, {
-            new: true,
-            upsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.error("Something wrong when updating data!");
-            } else
-                callback();
-        });
+        this.updateRecord(dbbase, { groupid: msg.groupid }, { $push: { trpgLevelSystemfunction: msg.trpgLevelSystemfunction } }, { new: true, upsert: true }, callback);
     }
+
     settrpgLevelSystemfunctionLevelUpWord(dbbase, msg, callback) {
-        schema[dbbase].findOneAndUpdate({
-            groupid: msg.groupid
-        }, {
-            $set: {
-                LevelUpWord: msg.LevelUpWord
-                //在這群組升級時的升級語
-                //RankWord: msg.RankWord,
-                //在這群組查詢等級時的回應
-                //Switch: msg.Switch,
-                //是否啓動功能 config 1X 則1
-                //Hidden: msg.Hidden,
-                //是否顯示升級語 config X1 則1
-                //trpgLevelSystemfunction: msg.trpgLevelSystemfunction
-            }
-        }, {
-            upsert: true,
-            setDefaultsOnInsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.error("Something wrong when updating data!");
-            } else
-                callback();
-            // return JSON.stringify(doc).toString();
-        });
+        this.updateRecord(dbbase, { groupid: msg.groupid }, { $set: { LevelUpWord: msg.LevelUpWord } }, { upsert: true, setDefaultsOnInsert: true }, callback);
     }
+
     settrpgLevelSystemfunctionRankWord(dbbase, msg, callback) {
-        schema[dbbase].findOneAndUpdate({
-            groupid: msg.groupid
-        }, {
-            $set: {
-                //LevelUpWord: msg.LevelUpWord
-                //在這群組升級時的升級語
-                RankWord: msg.RankWord
-                //在這群組查詢等級時的回應
-                //Switch: msg.Switch,
-                //是否啓動功能 config 1X 則1
-                //Hidden: msg.Hidden,
-                //是否顯示升級語 config X1 則1
-                //trpgLevelSystemfunction: msg.trpgLevelSystemfunction
-            }
-        }, {
-            upsert: true,
-            setDefaultsOnInsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.error("Something wrong when updating data!");
-            } else
-                callback();
-            // return JSON.stringify(doc).toString();
-        });
+        this.updateRecord(dbbase, { groupid: msg.groupid }, { $set: { RankWord: msg.RankWord } }, { upsert: true, setDefaultsOnInsert: true }, callback);
     }
+
     settrpgLevelSystemfunctionConfig(dbbase, msg, callback) {
-        schema[dbbase].findOneAndUpdate({
-            groupid: msg.groupid
-        }, {
-            $set: {
-                //LevelUpWord: msg.LevelUpWord
-                //在這群組升級時的升級語
-                //RankWord: msg.RankWord
-                //在這群組查詢等級時的回應
-                Switch: msg.Switch,
-                //是否啓動功能 config 1X 則1
-                Hidden: msg.Hidden
-                //是否顯示升級語 config X1 則1
-                //trpgLevelSystemfunction: msg.trpgLevelSystemfunction
-            }
-        }, {
-            upsert: true,
-            setDefaultsOnInsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.error("Something wrong when updating data!");
-            } else
-                callback();
-            // return JSON.stringify(doc).toString();
-        });
+        this.updateRecord(dbbase, { groupid: msg.groupid }, { $set: { Switch: msg.Switch, Hidden: msg.Hidden } }, { upsert: true, setDefaultsOnInsert: true }, callback);
     }
+
     settrpgLevelSystemfunctionNewUser(dbbase, msg, callback) {
-        schema[dbbase].findOneAndUpdate({
-            groupid: msg.groupid
-        }, {
-            $push: {
-                //LevelUpWord: msg.LevelUpWord
-                //在這群組升級時的升級語
-                //RankWord: msg.RankWord
-                //在這群組查詢等級時的回應
-                //Switch: msg.Switch,
-                //是否啓動功能 config 1X 則1
-                //Hidden: msg.Hidden,
-                //是否顯示升級語 config X1 則1
-                trpgLevelSystemfunction: msg.trpgLevelSystemfunction
-            }
-        }, {
-            upsert: true,
-            //   setDefaultsOnInsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.error(`log #476 ${err}`);
-                console.error("Something wrong when updating data!");
-            } else
-                callback();
-            // return JSON.stringify(doc).toString();
-        });
+        this.updateRecord(dbbase, { groupid: msg.groupid }, { $push: { trpgLevelSystemfunction: msg.trpgLevelSystemfunction } }, { upsert: true }, callback);
     }
+
     settrpgLevelSystemfunctionTitleWord(dbbase, msg, callback) {
-        schema[dbbase].findOneAndUpdate({
-            groupid: msg.groupid
-        }, {
-            $set: {
-                //在這群的稱號
-                Title: msg.Title
-                //LevelUpWord: msg.LevelUpWord
-                //在這群組升級時的升級語
-                //RankWord: msg.RankWord
-                //在這群組查詢等級時的回應
-                //Switch: msg.Switch,
-                //是否啓動功能 config 1X 則1
-                //Hidden: msg.Hidden,
-                //是否顯示升級語 config X1 則1
-                //trpgLevelSystemfunction: msg.trpgLevelSystemfunction
-            }
-        }, {
-            upsert: true,
-            setDefaultsOnInsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.error("Something wrong when updating data!");
-            } else
-                callback();
-            // return JSON.stringify(doc).toString();
-        });
+        this.updateRecord(dbbase, { groupid: msg.groupid }, { $set: { Title: msg.Title } }, { upsert: true, setDefaultsOnInsert: true }, callback);
     }
 
     settrpgLevelSystemfunctionEXPup(dbbase, msgA, msg, callback) {
-        schema[dbbase].findOneAndUpdate({
-            groupid: msgA.groupid
-        }, {
-            $set: {
-                //LevelUpWord: msg.LevelUpWord
-                //在這群組升級時的升級語
-                //RankWord: msg.RankWord
-                //在這群組查詢等級時的回應
-                //Switch: msg.Switch,
-                //是否啓動功能 config 1X 則1
-                //Hidden: msg.Hidden,
-                //是否顯示升級語 config X1 則1
-                trpgLevelSystemfunction: msg
-            }
-        }, {
-            //   setDefaultsOnInsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.error(`log #531 ${err}`);
-                console.error("Something wrong when updating data!");
-            } else {
-                callback();
-            }
-            // return JSON.stringify(doc).toString();
-        });
+        this.updateRecord(dbbase, { groupid: msgA.groupid }, { $set: { trpgLevelSystemfunction: msg } }, {}, callback);
     }
 
     maxtrpgLevelSystemfunctionEXPup(dbbase, userid, exp, lv, msgA, msg, callback) {
-        schema[dbbase].findOneAndUpdate({
-            groupid: msgA.groupid,
-            'trpgLevelSystemfunction.userid': userid
-        }, {
-            $max: {
-                //LevelUpWord: msg.LevelUpWord
-                //在這群組升級時的升級語
-                //RankWord: msg.RankWord
-                //在這群組查詢等級時的回應
-                //Switch: msg.Switch,
-                //是否啓動功能 config 1X 則1
-                //Hidden: msg.Hidden,
-                //是否顯示升級語 config X1 則1
-                'trpgLevelSystemfunction.$.EXP': exp,
-                'trpgLevelSystemfunction.$.Level': lv
-            }
-        }, {
-            //   setDefaultsOnInsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.error(`log #562 ${err}`);
-                console.error("Something wrong when updating data!");
-            } else {
-                callback();
-            }
-            // return JSON.stringify(doc).toString();
-        });
+        this.updateRecord(dbbase, { groupid: msgA.groupid, 'trpgLevelSystemfunction.userid': userid }, { $max: { 'trpgLevelSystemfunction.$.EXP': exp, 'trpgLevelSystemfunction.$.Level': lv } }, {}, callback);
     }
 
-    /*
-    SAVE THE LOG
-    SAVELOG功能
-    */
     settrpgSaveLogfunctionRealTime(dbbase, msg, callback) {
-        schema[dbbase].findOneAndUpdate({}, {
-            $setOnInsert: {
-                "RealTimeRollingLogfunction.StartTime": msg.StartTime,
-            },
-            $set: {
-                "RealTimeRollingLogfunction.LogTime": msg.LogTime,
-                "RealTimeRollingLogfunction.LastTimeLog": msg.LastTimeLog
-            },
+        this.updateRecord(dbbase, {}, {
+            $setOnInsert: { "RealTimeRollingLogfunction.StartTime": msg.StartTime },
+            $set: { "RealTimeRollingLogfunction.LogTime": msg.LogTime, "RealTimeRollingLogfunction.LastTimeLog": msg.LastTimeLog },
             $max: {
-                //實時資料 使用SET
                 "RealTimeRollingLogfunction.DiscordCountRoll": msg.DiscordCountRoll,
                 "RealTimeRollingLogfunction.DiscordCountText": msg.DiscordCountText,
                 "RealTimeRollingLogfunction.LineCountRoll": msg.LineCountRoll,
@@ -609,38 +147,14 @@ class Records extends EventEmitter {
                 "RealTimeRollingLogfunction.WhatsappCountText": msg.WhatsappCountText,
                 "RealTimeRollingLogfunction.WWWCountRoll": msg.WWWCountRoll,
                 "RealTimeRollingLogfunction.WWWCountText": msg.WWWCountText
-                //中途紀錄資料 使用PUSH 每天紀錄一次
-                // RollingLogfunction: msg,
-                //擲骰的結果紀錄
-                //Sided: msg
             }
-        }, {
-            upsert: true,
-            setDefaultsOnInsert: true
-            //   setDefaultsOnInsert: true
-        }, (err, doc) => {
-            if (err) {
-                console.error(`log #608 ${err}`);
-                console.error("Something wrong when updating data!");
-            } else {
-                callback();
-            }
-            // return JSON.stringify(doc).toString();
-        });
+        }, { upsert: true, setDefaultsOnInsert: true }, callback);
     }
 
     maxTrpgSaveLogfunction(dbbase, msg, callback) {
-        schema[dbbase].findOneAndUpdate({
-            "RollingLogfunction.LogTime": {
-                '$gte': msg.start,
-                '$lte': msg.end
-            }
-        }, {
-            $set: {
-                "RollingLogfunction.LogTime": msg.LogTime,
-            },
+        this.updateRecord(dbbase, { "RollingLogfunction.LogTime": { '$gte': msg.start, '$lte': msg.end } }, {
+            $set: { "RollingLogfunction.LogTime": msg.LogTime },
             $max: {
-                //大於則更新
                 "RollingLogfunction.DiscordCountRoll": msg.DiscordCountRoll,
                 "RollingLogfunction.DiscordCountText": msg.DiscordCountText,
                 "RollingLogfunction.LineCountRoll": msg.LineCountRoll,
@@ -651,28 +165,9 @@ class Records extends EventEmitter {
                 "RollingLogfunction.WhatsappCountText": msg.WhatsappCountText,
                 "RollingLogfunction.WWWCountRoll": msg.WWWCountRoll,
                 "RollingLogfunction.WWWCountText": msg.WWWCountText
-                //中途紀錄資料 使用PUSH 每天紀錄一次
-                // RollingLogfunction: msg,
-                //擲骰的結果紀錄
-                //Sided: msg
             }
-        }, {
-            upsert: true
-            //   setDefaultsOnInsert: true
-        },
-            (err, doc) => {
-                if (err) {
-                    console.error(`log #651 ${err}`);
-                    console.error("Something wrong when updating data!");
-                } else {
-                    callback();
-                }
-                // return JSON.stringify(doc).toString();
-            });
+        }, { upsert: true }, callback);
     }
-
-
-    //chatRoomWWW Record
 
     async chatRoomPush(msg) {
         const m = new Message(msg);
@@ -681,12 +176,6 @@ class Records extends EventEmitter {
         let count = await Message.countDocuments({
             'roomNumber': msg.roomNumber
         });
-        /**
-         * 計算有多少個
-         * 比較超出了多少個
-         * 找出那個的日子
-         * 之前的全部刪除
-         */
         if (count < MAX) return;
         let over = count - MAX;
         let d = await Message.find({

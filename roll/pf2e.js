@@ -21,12 +21,25 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = function () {
-    return `【Pf2e】.pf2
-這是一個Pf2e的資料庫，只要輸入 .pf2 查找的內容，
-就會顯示相關資料，如果沒有資料，就會顯示類似字眼
-
-資料來源自 https://www.goddessfantasy.net/bbs/index.php?topic=134913.0 #1 仙堂麻尋
-    `
+    return `【🎲Pathfinder 2E查詢系統】
+╭────── 🔍基本查詢 ──────
+│ 指令格式:
+│ 　• .pf2 [關鍵字]
+│
+├────── 📚功能說明 ──────
+│ • 自動搜尋相關資料
+│ • 無完全符合時顯示相似結果
+│ • 支援中文關鍵字搜尋
+│
+├────── 💡使用提示 ──────
+│ • 建議使用精確關鍵字
+│ • 可查詢技能、特徵、職業等
+│
+├────── 📖資料來源 ──────
+│ • 感謝 仙堂麻尋 提供資料
+│ • 純美蘋果園 Pf2e中文化
+│ • goddessfantasy.net#134913
+╰──────────────`
 }
 const initialize = function () {
     return variables;

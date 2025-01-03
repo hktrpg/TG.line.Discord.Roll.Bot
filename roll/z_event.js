@@ -583,8 +583,30 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                 let randomDetail = eventList[0].detail[await rollDice.Dice(eventList[0].detail.length) - 1];
                 let eventText = randomDetail.event.split(';');
 
-                rply.text += `====${eventList[0].title}====\n ${eventText[await rollDice.Dice(eventText.length) - 1]} `;
+                const formatEvent = (chainTitle, title, text) => {
+                    const maxLength = Math.max(
+                        chainTitle.length,
+                        title.length,
+                        text.length
+                    );
 
+                    const line = "─".repeat(Math.min(maxLength + 2, 30)); 
+
+                    return `🔗 **隨機事件發生**
+                ╭${line}
+                │ ${chainTitle}
+                ├${line}
+                │ ⭐ ${title}
+                │ 
+                │ 💭 ${text}
+                ╰${line}`;
+                }
+
+                rply.text += formatEvent(
+                    eventList[0].chainTitle,
+                    eventList[0].title,
+                    eventText[await rollDice.Dice(eventText.length) - 1]
+                );
                 rply.text += `\n${await eventProcessExp({ randomDetail: randomDetail, groupid: groupid, eventList: eventList[0], thisMember: thisMember })} `
                 await schema.eventMember.findOneAndUpdate({ userID: eventList[0].userID }, { $inc: { earnedEXP: earedXP, totailEarnedEXP: earedXP } })
                 return rply;
@@ -916,9 +938,9 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                         }
                     }
                 })
-                let reply = `你已增加 ${totalEXP} 點${expName} 及`;
+                let reply = `你已增加 ${totalEXP} 點${expName} `;
                 for (let index = 0; index < name.length; index++) {
-                    reply += `\n${name[index] || '無名'} 減少了${expMember[index]} 點${expName} `
+                    reply += `及 \n${name[index] || '無名'} 減少了${expMember[index]} 點${expName} `
                 }
                 return reply;
             }
@@ -1083,9 +1105,9 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                     }
                 })
 
-                let reply = `你已減少 ${totalEXP} 點${expName} 及`;
+                let reply = `你已減少 ${totalEXP} 點${expName} `;
                 for (let index = 0; index < name.length; index++) {
-                    reply += `\n${name[index] || '無名'} 增加了${expMember[index]} 點${expName} `
+                    reply += `及 \n${name[index] || '無名'} 增加了${expMember[index]} 點${expName} `
                 }
 
                 return reply;

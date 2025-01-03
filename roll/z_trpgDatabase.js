@@ -28,32 +28,59 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = async function () {
-    return `【資料庫功能】
-這是根據關鍵字來顯示數據的,
-例如輸入 .db add 九大陣營 守序善良 (...太長省略) 中立邪惡 混亂邪惡 
-再輸入.db 九大陣營  守序善良 (...太長省略) 中立邪惡 混亂邪惡
-add 後面第一個是關鍵字, 可以是漢字,數字,英文及emoji
-P.S.如果沒立即生效 用.db show 刷新一下
-輸入.db add (關鍵字) (內容)即可增加關鍵字
-輸入.db show 顯示所有關鍵字
-輸入.db del(編號)或all 即可刪除
-輸入.db  (關鍵字) 即可顯示 
-如使用輸入.dbp 會變成全服版,全服可看, 可用add show功能 
-新增指令 - 輸入.dbp newType 可以觀看效果
-* {br}          <--隔一行
-* {ran:100}     <---隨機1-100
-* {random:5-20} <---隨機5-20
-* {server.member_count}  <---現在頻道中總人數 
-* {my.name}     <---顯示擲骰者名字
-以下需要開啓.level 功能
-* {allgp.name}  <---隨機全GP其中一人名字
-* {allgp.title}  <---隨機全GP其中一種稱號
-* {my.RankingPer}  <---現在排名百分比 
-* {my.Ranking}  <---顯示擲骰者現在排名 
-* {my.exp}      <---顯示擲骰者經驗值
-* {my.title}    <---顯示擲骰者稱號
-* {my.level}    <---顯示擲骰者等級
-`
+    return `【📚資料庫功能】
+╭──── 💡功能簡介 ────
+│ 資料庫可以儲存和調用自定義內容
+│ 支援文字、數字、表情符號
+│ 分為個人資料庫和全服資料庫
+│
+├──── 📝基本指令 ────
+│ • .db add 關鍵字 內容
+│   新增資料項目
+│ • .db show
+│   顯示資料清單
+│ • .db del 編號/all
+│   刪除指定/全部
+│ • .db 關鍵字
+│   顯示資料內容
+│
+├──── 🌐全服指令 ────
+│ • .dbp add/show
+│   新增/顯示全服資料
+│ • .dbp newType
+│   查看特殊效果範例
+│
+├──── ✨特殊標記 ────
+│ ■ 基礎功能:
+│ • {br} - 換行
+│ • {ran:100} - 隨機1-100
+│ • {random:5-20} - 隨機5-20
+│ • {server.member_count} - 總人數
+│ • {my.name} - 使用者名字
+│
+│ ■ 等級相關(.level):
+│ • {my.level} - 等級
+│ • {my.exp} - 經驗值
+│ • {my.title} - 稱號
+│ • {my.Ranking} - 排名
+│ • {my.RankingPer} - 排名百分比
+│ • {allgp.name} - 隨機成員名
+│ • {allgp.title} - 隨機稱號
+│
+├──── 📖使用範例 ────
+│ 1. 基本資料儲存:
+│ .db add 防具表 皮甲{br}鎖甲{br}板甲
+│
+│ 2. 隨機回應:
+│ .db add 運氣 今天的運氣是{ran:100}分
+│
+│ 3. 動態資訊:
+│ .db add 伺服器 目前有{server.member_count}人
+│ {my.name}的等級是{my.level}
+├──── ⚠️注意事項 ────
+│ • 關鍵字可用中英數+表情
+│ • 未生效時用show重整
+╰──────────────`
 }
 const initialize = function () {
     return trpgDatabasefunction;

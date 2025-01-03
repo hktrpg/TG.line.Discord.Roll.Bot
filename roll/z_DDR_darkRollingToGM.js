@@ -21,26 +21,71 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = async function () {
-    return `【暗骰GM功能】.drgm(addgm del show) dr ddr dddr
-這是讓你可以私骰GM的功能
-輸入.drgm addgm 讓自己成為GM
-輸入.drgm show 顯示GM列表
-輸入.drgm del(編號)或all 即可刪除
-輸入dr  (指令) 私訊自己 
-輸入ddr (指令) 私訊GM及自己
-輸入dddr(指令) 私訊GM
--------
-想成為GM的人先輸入.drgm addgm
-然後別人DDR 或DDDR (指令)即可以私訊給這位GM
-例如輸入 ddr cc 80 鬥毆 
-就會把結果私訊GM及自己
-例如輸入 dddr cc 80 鬥毆 
-就會把結果只私訊GM
-
-輸入.drgm addgm (代名) 即可成為GM,如果想化名一下,
-可以在addgm 後輸入一個名字, 暗骰時就會顯示
-不輸入就會顯示原名
-`
+    return `【🎲暗骰GM系統】
+╭──── 📝系統簡介 ────
+│ • GM專用私骰管理系統
+│ • 可設置多個GM接收暗骰
+│ • 支援自定義GM顯示名稱
+│
+├──── 👑GM管理 ────
+│ ■ 基本指令:
+│ • .drgm addgm
+│   註冊成為GM
+│
+│ • .drgm addgm [代稱]
+│   以特定名稱註冊為GM
+│   不填寫則顯示原名
+│
+│ • .drgm show
+│   顯示目前GM列表
+│
+│ • .drgm del [編號]
+│   刪除指定GM
+│
+│ • .drgm del all
+│   清空所有GM
+│
+├──── 🎲暗骰指令 ────
+│ ■ 三種暗骰模式:
+│
+│ • dr [指令]
+│   結果只傳送給自己
+│   例: dr cc 80 鬥毆
+│
+│ • ddr [指令]
+│   結果傳送給GM和自己
+│   例: ddr cc 80 鬥毆
+│
+│ • dddr [指令]
+│   結果只傳送給GM
+│   例: dddr cc 80 鬥毆
+│
+├──── 💡使用範例 ────
+│ 1️⃣ 設置GM:
+│ • .drgm addgm
+│   以原名註冊為GM
+│
+│ • .drgm addgm 主持人A
+│   以"主持人A"註冊為GM
+│
+│ 2️⃣ 進行暗骰:
+│ • dr 2d6
+│   骰2顆六面骰,自己看結果
+│
+│ • ddr cc 50 潛行
+│   進行潛行檢定
+│   自己和GM都能看到結果
+│
+│ • dddr .sc 1/1d3
+│   進行San Check
+│   只有GM能看到結果
+│
+├──── ⚠️注意事項 ────
+│ • 建議先用.drgm show確認GM
+│ • 可設置多名GM同時收到暗骰
+│ • GM可用代稱保持神秘感
+│ • 刪除時需注意編號更動
+╰──────────────`
 }
 const initialize = function () {
     return trpgDarkRollingfunction;

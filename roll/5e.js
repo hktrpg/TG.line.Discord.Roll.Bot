@@ -20,8 +20,11 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = function () {
-    return `【5E 工具】
-    .5eBuild: 5e角色建立器`
+    return `【⚔️D&D 5E工具箱】
+╭────── 🎲角色創建 ──────
+│ .5eBuild - 5E角色建立器
+│ 　⚔️ 自動計算屬性值
+╰──────────────`
 }
 const initialize = function () {
     return variables;

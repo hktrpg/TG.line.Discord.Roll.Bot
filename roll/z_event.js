@@ -584,13 +584,20 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                 let eventText = randomDetail.event.split(';');
 
                 const formatEvent = (chainTitle, title, text) => {
+                    chainTitle = (chainTitle || '').toString();
+                    title = (title || '').toString();
+                    text = (text || '').toString();
+                    chainTitle = chainTitle.trim();
+                    title = title.trim();
+                    text = text.trim();
                     const maxLength = Math.max(
                         chainTitle.length,
                         title.length,
-                        text.length
+                        text.length,
+                        4
                     );
 
-                    const line = "─".repeat(Math.min(maxLength + 2, 10)); 
+                    const line = "─".repeat(Math.min(maxLength + 2, 10));
 
                     return `🔗 **隨機事件發生**
 ╭${line}

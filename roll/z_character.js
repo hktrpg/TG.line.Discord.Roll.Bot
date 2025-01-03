@@ -45,47 +45,124 @@ COC export to roll20?
 
 
 const getHelpMessage = async function () {
-    return `【角色卡功能】
-以個人為單位, 一張卡可以在不同的群組使用
-目標是文字團可以快速擲骰，及更新角色狀態。
-
-簡單新增角色卡 .char add name[Sad]~ state[HP:15/15;]~ roll[鬥毆: cc 50;]~ notes[筆記:這是測試,請試試在群組輸入 .char use Sad;]~ 
-新增了角色卡後，可以輸入 .admin account (username) (password) 
-然後在網頁: https://card.hktrpg.com/ 中直接進行修改
-
-把結果傳送到已登記的Discord，TG，LINE上的聊天群組的登記方法: 
-由該群組的Admin授權允許 輸入 .admin allowrolling  
-登記該群組到自己的名單中 輸入 .admin registerChannel  
-取消方法
-由該群組的Admin取消授權 輸入 .admin disallowrolling  
-取消登記該群組到名單 輸入 .admin unregisterChannel  
-
-最後網站會顯示群組名稱，點擊就可以使用了
-
------.char-----
-.char add name[Sad]~ state[HP:15/15;con:60;san:60]~ roll[鬥毆: cc 50;投擲: cc 15;sc:cc {san}]~ notes[筆記:這是測試,請試試在群組輸入 .char use Sad;]~  
-- 可以新增及更新角色卡
-.char Show - 可以顯示角色卡列表
-.char Show0 - 可以顯示0號角色卡內容 0可以用其他數字取代
-.char edit name[角色卡名字]~ - 可以以add的格式修改指定角色卡
-.char use 角色卡名字 - 可以在該群組中使用指定角色卡
-.char nonuse - 可以在該群組中取消使用角色卡
-.char delete 角色卡名字 - 可以刪除指定角色卡
-.char button 角色卡名字 - Discord限定，可以產生按鈕指令，會使用直接擲骰指令
------.ch 功能-----
-在群組中使用.char use (角色名) 後, 就可以啟動角色卡功能
-.ch 項目名稱 項目名稱 - 沒有加減的話, 會單純顯示數據或擲骰
-.ch 項目名稱 (數字)  - 可以立即把如HP變成該數字
-.ch 項目名稱 (+-*/數字)  - 可以立即對如HP進行四則運算
-.ch 項目名稱 (+-*/xDy)  - 可以對如HP進行擲骰四則運算
-.ch 項目名稱 <xDy>  - 可以
-.ch set 項目名稱 新內容 - 直接更改內容
-.ch show - 顯示角色卡的state 和roll 內容
-.ch showall - 顯示角色卡的所有內容
-.ch button  - Discord限定，可以產生按鈕指令，會調用.ch 指令
------範例及運算式-----
-角色卡還可以進行運算<> {}，如 -<1d3> {san} <.sc san 1/1d3>，詳情請看
-https://bothelp.hktrpg.com/hktrpg-guan-fang-shi-yong-jiao-xue/trpg-gong-neng/kai-shi-jin-hang-trpg/jiao-se-ka `
+    return `【🎭HKTRPG角色卡系統】
+╭──── 📝系統簡介 ────
+│ • 個人專屬角色管理系統
+│ • 支援跨群組使用單一角色
+│ • 網頁版與聊天軟件同步更新
+│ • 提供即時擲骰與數值管理
+│
+├──── 🔰基礎流程 ────
+│ 1️⃣ 建立角色卡
+│    .char add 製作新角色
+│
+│ 2️⃣ 建立網頁帳號
+│    .admin account [帳號] [密碼]
+│
+│ 3️⃣ 設定群組可接受從網頁進行的擲骰(非必要)
+│    .admin allowrolling
+│    .admin registerChannel
+│
+│ 4️⃣ 開始使用角色
+│    .char use [角色名]
+│    .ch [各種操作指令]
+│
+├──── 🆕建立角色 ────
+│ ■ 完整建卡格式:
+│ .char add
+│ name[Sad]~
+│ state[HP:15/15;MP:10/10;San:80;力量:50;敏捷:60;]~
+│ roll[鬥毆: cc 50;射擊: cc 45;SanCheck: .sc {San};]~
+│ notes[筆記:這是測試,請試試在群組輸入 .char use Sad]~
+│
+│ ■ 修改角色卡:
+│ .char edit name[角色名]~
+│ state[...]~ roll[...]~ notes[...]~
+│
+├──── 💻管理方式 ────
+│ ■ 網頁版(推薦):
+│ 1) 建立管理帳號
+│    .admin account [帳號] [密碼]
+│
+│ 2) 登入管理網站
+│    https://card.hktrpg.com
+│
+│ 3) 可視化編輯介面
+│    直接修改並儲存即可
+│
+│ ■ 聊天軟件:
+│ 1) 使用.char edit指令
+│ 2) 格式同建立角色卡
+│
+├──── 📊數據管理 ────
+│ ■ 基礎指令:
+│ • .char show (列出清單)
+│ • .char show0 (顯示角色卡0號詳細)
+│ • .char use [名稱] (使用)
+│ • .char nonuse (停用)
+│ • .char delete [名稱] (刪除)
+│ • .ch show (顯示狀態)
+│ • .ch showall (顯示全部內容)
+│ 
+│ ■ 數值操作:
+│ • .ch [項目]
+│   顯示當前數值
+│ • .ch [項目] [數字]
+│   直接設定數值
+│ • .ch [項目] +/-[數字]
+│   增加或減少數值
+│ • .ch [項目] */[數字]
+│   乘除數值運算
+│ • .ch [項目] +/-[xDy]
+│   增減擲骰結果
+│ • .ch set [項目] 新內容
+│   直接更改內容
+│
+├──── 🎲特殊功能 ────
+│ ■ 快捷按鈕(Discord):
+│ • .ch button
+│   生成角色狀態按鈕
+│ • .char button [角色名]
+│   生成擲骰指令按鈕
+│
+│ ■ 運算功能:
+│ • {變數}: 引用角色數值
+│   例: {HP} {san}
+│   可運算: 1+{HP} -> 1+15
+│
+│ • <>: 擲骰運算
+│   <1D100> 基本擲骰
+│   <cc {射擊}> 技能檢定
+│   <.sc {san} 1/1d3> 理智檢定
+│
+│ ■ 實用範例:
+│ • .ch hp +3
+│   回復3點生命
+│ • .ch san -<1d6>
+│   減少1D6點理智
+│ • .ch str <3D6dl2>
+│   擲3D6取低2次
+│
+├──── 🌐群組設定 ────
+│ ■ 管理員指令:
+│ • .admin allowrolling
+│   允許擲骰結果轉發
+│ • .admin registerChannel
+│   登記群組至轉發名單
+│
+│ ■ 取消設定:
+│ • .admin disallowrolling
+│   取消擲骰結果轉發
+│ • .admin unregisterChannel
+│   移除群組轉發設定
+│
+├──── ⚠️注意事項 ────
+│ • 項目名稱請勿使用空格
+│ • 日常更新建議使用.ch
+│ • 大幅修改建議用網頁版
+│ • 可Pin按鈕方便重複使用
+│ • 跨群組需分別設定使用
+╰──────────────`
 }
 
 const initialize = function () {

@@ -27,58 +27,54 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = function () {
-    return `【身分組管理】Discord限定功能
-讓對指定訊息的Reaction Emoji(😀😃😄)進行點擊的用家
-分配指定的身分組別
-
-示範
-https://i.imgur.com/YCnCyET.mp4
-
-注意: 此功能需求【編輯身分組】及【增加Reaction】的權限，請確定授權。
-另外，使用者需要【管理者】權限。
-
-指令列表
-
-1.設定Reaction給予身份組
-首先去User Setting=>Advanced=>開啓Developer Mode
-這會令你可以COPY ID
-再去Server Setting=>Roles=>新增或設定希望分配的身分組
-然後對該身分組按右鍵並按COPY ID，把該ID記下來
-
-接著，去任意頻道中發佈一段信息，並對該信息按右鍵後按COPY ID，和記下ID
-
-範例
-按🎨可得身分組-畫家
-按😁可得身分組-大笑
-
-然後按以下格式輸入指令
-
+    return `【👥身分組管理】(Discord限定)
+╭──── 📝系統簡介 ────
+│ • 點擊表情符號自動分配身分組
+│ • 需要管理者權限及相關授權
+│ • 需開啟開發者模式複製ID
+│
+├──── ⚙️基本設定 ────
+│ 1. 開啟開發者模式:
+│    User Setting > Advanced > 
+│    Developer Mode
+│
+│ 2. 準備身分組ID:
+│    Server Setting > Roles > 
+│    右鍵身分組 > Copy ID
+│
+│ 3. 準備訊息ID:
+│    發佈訊息 > 右鍵 > Copy ID
+│
+├──── 💫指令列表 ────
+│ ■ 新增反應配置:
 .roleReact add
-身份組ID Emoji
+身分組ID 表情符號
 [[messageID]]
-發佈訊息的ID
-
-範例
+訊息ID
+│
+│ 範例:
 .roleReact add
-232312882291231263 🎨 
-123123478897792323 😁 
+232312882291231263 🎨
+123123478897792323 😁
 [[messageID]]
 12312347889779233
-
-完成
-注意, 可以重覆輸入同樣ID來增加新emoji
-
-2.顯示列表
-.roleReact show
-
-3.刪除
-.roleReact delete 序號
-刪除方式是 delete 後面接上序號
-範例
-.roleReact delete 1
-
-
-    `
+├──── 🎯效果說明 ────
+│ • 訊息12312347889779233出現🎨及😁
+│ • 按下 🎨 獲得「畫家」身分組
+│ • 按下 😁 獲得「大笑」身分組
+├────
+│ ■ 管理指令:
+│ • .roleReact show
+│   顯示現有配置
+│
+│ • .roleReact delete 序號
+│   刪除指定配置
+│
+├──── ⚠️注意事項 ────
+│ • 需要編輯身分組權限
+│ • 需要增加Reaction權限
+│ • 可重複輸入相同信息ID配置更多表情
+╰──────────────`
 }
 const initialize = function () {
     return "";

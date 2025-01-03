@@ -590,7 +590,7 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                         text.length
                     );
 
-                    const line = "─".repeat(Math.min(maxLength + 2, 30)); 
+                    const line = "─".repeat(Math.min(maxLength + 2, 8)); 
 
                     return `🔗 **隨機事件發生**
                 ╭${line}

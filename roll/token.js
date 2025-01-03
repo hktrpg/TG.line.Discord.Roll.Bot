@@ -29,30 +29,43 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = function () {
-    return `【製作Token】.token1-3 .tokenupload
-用來製作跑團Token的功能
-可以自定兩行名字和圖片內容
-
-分別有兩種製作外框樣式
-1. .token 為方形(相片型)
-2. .token2 為透底圓形
-3. .token3 為透底圓形，外框為根據你的Discord名字或輸入名字決定的顏色
-
-使用方法:
-reply一個有圖片的訊息 或傳送一張圖片時，輸入.token 
-就可以產生一個token圖片
-如果沒有指定圖片，則自動使用你的頭像 作為token
-
-同時可以輸入兩行內容，作為圖片上的文字
-如.token 
-Sad
-HKTRPG
-
-.tokenupload
-可以直接上傳圖片到imgur，並取得連結
-使用reply一個有圖片的訊息 或傳送一張圖片時，輸入.tokenupload
-
-`
+    return `【🎭Token製作系統】
+╭────── 🖼️基本功能 ──────
+│ 製作指令:
+│ 　• .token  - 方形相片風格
+│ 　• .token2 - 透明底圓形
+│ 　• .token3 - 彩色邊框圓形
+│
+├────── 🎨Token生成 ──────
+│ 圖片來源:
+│ 　• 回覆含圖片的訊息
+│ 　• 直接傳送圖片
+│ 　• 無圖片時使用個人頭像
+│
+│ 文字設定:
+│ 　• 可輸入兩行自訂文字
+│
+├────── 🌈特殊功能 ──────
+│ Token3邊框顏色:
+│ 　• 自動採用Discord暱稱色彩
+│ 　• 可指定特定顏色
+│
+├────── 📤圖片上傳 ──────
+│ • .tokenupload
+│ 　- 將圖片上傳至imgur
+│ 　- 自動產生分享連結
+│
+├────── 📝使用範例 ──────
+│ 基本製作:
+│ 上傳或回覆圖片並輸入
+│ 　.token
+│ 　Sad
+│ 　HKTRPG
+│
+│ 圖片上傳:
+│ 　.tokenupload
+│ 　[回覆圖片或直接傳送]
+╰──────────────`
 }
 const initialize = function () {
     return variables;

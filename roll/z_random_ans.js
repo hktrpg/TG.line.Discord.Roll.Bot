@@ -172,8 +172,16 @@ const rollDiceCommand = async function ({
                     $push: temp, new: true
                 }, opt).catch(error => console.error('randomans #168 mongoDB error: ', error.name, error.reson));
                 if (check.modifiedCount || check.upsertedCount) {
-                    rply.text = `新增成功: \n輸入 .ra ${mainMsg[2]}  \n即可使用\n再輸入.ra add ${mainMsg[2]} 可以添加內容`
-                } else rply.text = '新增失敗'
+                    rply.text = `✅ 新增成功\n` +
+                        `🎲 骰子名稱：${mainMsg[2]}\n` +
+                        `📝 選項數量：${mainMsg.slice(3).length}\n` +
+                        `🔍 選項內容：${mainMsg.slice(3).join('、')}\n\n` +
+                        `💡 使用方式：\n` +
+                        `→ 一般抽取：.ra ${mainMsg[2]}\n` +
+                        `→ 重複抽取：.rra ${mainMsg[2]}\n` +
+                        `→ 指定次數：.ra[次數] ${mainMsg[2]}\n` +
+                        `→ 添加選項：.ra add ${mainMsg[2]} [新選項]`;
+                } else rply.text = '❌ 新增失敗，請稍後再試';
 
                 return rply;
 
@@ -182,10 +190,12 @@ const rollDiceCommand = async function ({
             }
         }
         case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]):
-            //
             //刪除自定義關鍵字
-            //
-            if (!mainMsg[2]) rply.text += '沒有骰子名稱. '
+            if (!mainMsg[2]) {
+                rply.text = '❌ 未輸入骰子名稱';
+                return rply;
+            }
+
             if (rply.text += checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelManager,
                 gid: groupid,
@@ -199,108 +209,178 @@ const rollDiceCommand = async function ({
             };
             getData = await schema.randomAns.findOne(filter).catch(error => console.error('randomans #189 mongoDB error: ', error.name, error.reson));
             if (!getData) {
-                rply.text += '沒有此骰子. '
+                rply.text = '❌ 找不到骰組資料';
                 return rply;
             }
+
             temp = getData.randomAnsfunction.filter(e => e[0].toLowerCase() === mainMsg[2].toLowerCase());
             if (temp.length == 0) {
-                rply.text += '沒有此骰子. \n現在已更新刪除方式, 刪除請輸入 .ra del 名字'
+                rply.text = `❌ 找不到名為「${mainMsg[2]}」的骰子\n` +
+                    `💡 請輸入 .ra show 檢視現有骰子清單`;
                 return rply;
             }
+
             temp.forEach(f => getData.randomAnsfunction.splice(getData.randomAnsfunction.findIndex(e => e[0] === f[0]), 1));
             check = await getData.save();
+
             if (check) {
-                rply.text += '刪除成功\n' + temp;
+                const deletedOptions = temp[0].slice(1); // 移除第一個元素(骰子名稱)
+                rply.text = `✅ 刪除成功\n` +
+                    `🎲 骰子名稱: ${temp[0][0]}\n` +
+                    `📝 選項數量: ${deletedOptions.length}\n` +
+                    `🔍 選項內容: ${deletedOptions.join(' ')}\n\n` +
+                    `💡 你可以使用以下指令重新添加此骰子:\n` +
+                    `.ra add ${temp[0][0]} ${deletedOptions.join(' ')}`;
+            } else {
+                rply.text = '❌ 刪除失敗，請稍後再試';
             }
             return rply;
         case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
-            //
-            //顯示列表
-            //
             if (!groupid) {
-                rply.text += '此功能必須在群組中使用. '
+                rply.text = '❌ 此功能必須在群組中使用';
                 return rply;
             }
             rply.quotes = true;
             getData = await schema.randomAns.findOne({ groupid: groupid }).catch(error => console.error('randomans #214 mongoDB error: ', error.name, error.reson));
             if (!getData || getData.randomAnsfunction.length == 0) {
-                rply.text = '沒有已設定的骰子.\n本功能已改版，\n.rap 轉成個人專用的骰組，\n原全服群組(.rap)變成.ras\n .ra => random answer (group) \n.rap => random answer personal \n .ras => random answer server'
-                return rply
+                rply.text = `❌ 沒有已設定的骰子\n\n` +
+                    `💡 本功能已改版：\n` +
+                    `🎲 .ra  - 群組專用骰組\n` +
+                    `🎲 .rap - 個人專用骰組\n` +
+                    `🎲 .ras - 全服務器骰組`;
+                return rply;
             }
             if (mainMsg[2]) {
-                temp = getData.randomAnsfunction.find(e => e[0].toLowerCase() == mainMsg[2].toLowerCase())
-                for (let i in temp) {
-                    rply.text += (i == 0) ? '群組自定義骰子 ' + temp[i] + '\n' : '';
-                    rply.text += ((i % 2 && i != 1) && i !== 0) ? ("\n") + i + ": " + temp[i] + "        " : (i == 0) ? '' : i + ": " + temp[i] + "        ";
+                temp = getData.randomAnsfunction.find(e => e[0].toLowerCase() == mainMsg[2].toLowerCase());
+                if (!temp) {
+                    rply.text = `❌ 找不到名為「${mainMsg[2]}」的骰子\n💡 請輸入 .ra show 檢視現有骰子清單`;
+                    rply.text += '\n\n💡 提示：';
+                    rply.text += '\n🔸 .ra[次數] [骰子名稱] - 不重複抽取';
+                    rply.text += '\n🔸 .rra[次數] [骰子名稱] - 重複抽取';
+                    rply.text += '\n🔸 次數最多為30次';
+                    return rply;
                 }
+                rply.text = `🎲 群組骰子：${temp[0]}\n`;
+                rply.text += `📝 選項數量：${temp.length - 1}\n`;
+                rply.text += `🔍 選項內容：\n`;
+                for (let i = 1; i < temp.length; i++) {
+                    rply.text += `#${i}：${temp[i]}\n`;
+                }
+                return rply;
             }
-            if (rply.text) {
-                return rply
-            }
-            rply.text += '群組自定義骰子列表:';
+
+            rply.text = `📑 群組骰子列表\n`;
             for (let a in getData.randomAnsfunction) {
-                rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + a + ": " + getData.randomAnsfunction[a][0] : "     " + a + ": " + getData.randomAnsfunction[a][0];
+                rply.text += `#${a}：${getData.randomAnsfunction[a][0]}\n`;
             }
-            //顯示自定義關鍵字
-            rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
-            rply.text += '\n\n在.ra show 後面輸入骰子名稱, 可以顯示詳細內容\n輸入 .ra (列表序號或骰子名稱) 可以進行隨機擲骰'
-            return rply
+            rply.text += `\n💡 查看骰子內容：.ra show 骰子名稱\n`;
+            rply.text += `💡 使用骰子：.ra 骰子名稱`;
+            rply.text += '\n\n💡 提示：';
+            rply.text += '\n🔸 .ra[次數] [骰子名稱] - 不重複抽取';
+            rply.text += '\n🔸 .rra[次數] [骰子名稱] - 重複抽取';
+            rply.text += '\n🔸 次數最多為30次';
+            return rply;
         case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]):
-            //
-            //RA使用抽選功能
-            //
             if (!groupid) {
-                rply.text = '此功能必須在群組中使用. '
+                rply.text = '❌ 此功能必須在群組中使用';
+                return rply;
             }
             times = /^[.](r|)ra(\d+|)/i.exec(mainMsg[0])[2] || 1;
             check = /^[.](r|)ra(\d+|)/i.exec(mainMsg[0])[1] || '';
-            if (times > 30) times = 30;
-            if (times < 1) times = 1
+            if (times > 30) {
+                times = 30;
+                rply.text = '💡 最多投擲30次，已自動調整\n';
+            }
+            if (times < 1) times = 1;
+
             getData = await schema.randomAns.findOne({ groupid: groupid }).catch(error => console.error('randomans #248 mongoDB error: ', error.name, error.reson));
-            if (!getData) return;
+            if (!getData) {
+                rply.text = '❌ 找不到骰組資料';
+                return rply;
+            }
+
+            let results = [];
+            let notFoundDices = [];
             for (let i in mainMsg) {
                 if (i == 0) continue;
                 temp = getData.randomAnsfunction.find(e => e[0].toLowerCase() == mainMsg[i].toLowerCase())
                 if (!temp && mainMsg[i].match(/^\d+$/)) {
                     temp = getData.randomAnsfunction[mainMsg[i]]
                 }
-                if (!temp) continue;
-                if (check) {
-                    //repeat mode
-                    rply.text += temp[0] + ' → ';
-                    for (let num = 0; num < times; num++) {
-                        let randomNumber = rollbase.Dice(temp.length) - 1;
-                        rply.text += (num == 0) ? temp[randomNumber] : ', ' + temp[randomNumber];
-                        rply.text += (num == times - 1) ? '\n' : '';
-                    }
-                } else {
-                    //not repeat mode
-                    rply.text += temp[0] + ' → ';
-                    let items = [];
-                    let tempItems = [...temp]
-                    tempItems.splice(0, 1);
-                    if (tempItems.length === 0) continue;
-                    while (items.length < times) {
-                        items = tempItems
-                            .map((a) => ({
-                                sort: Math.random(),
-                                value: a
-                            }))
-                            .sort((a, b) => a.sort - b.sort)
-                            .map((a) => a.value)
-                            .concat(items)
-                    }
-                    for (let num = 0; num < times; num++) {
-                        rply.text += (num == 0) ? items[num] : ', ' + items[num];
-                        rply.text += (num == times - 1) ? '\n' : '';
-                    }
+                if (!temp) {
+                    notFoundDices.push(mainMsg[i]);
+                    continue;
                 }
 
+                let rollResult = {
+                    name: temp[0],
+                    results: [],
+                    mode: check ? '重複' : '不重複'
+                };
+
+                if (check) {
+                    // repeat mode
+                    for (let num = 0; num < times; num++) {
+                        let randomNumber = rollbase.Dice(temp.length - 1) - 1 + 1;
+                        rollResult.results.push({
+                            index: num + 1,
+                            value: temp[randomNumber]
+                        });
+                    }
+                } else {
+                    // not repeat mode
+                    let tempItems = [...temp].slice(1);
+                    if (tempItems.length === 0) continue;
+
+                    // 如果要抽取的次數大於選項數，提供警告
+                    if (times > tempItems.length) {
+                        rollResult.warning = `⚠️ 要抽取${times}次但選項只有${tempItems.length}個，已自動調整為不重複抽取${tempItems.length}次`;
+                        times = tempItems.length;
+                    }
+
+                    let shuffled = tempItems
+                        .map((a) => ({ sort: Math.random(), value: a }))
+                        .sort((a, b) => a.sort - b.sort)
+                        .map((a) => a.value);
+
+                    rollResult.results = shuffled.slice(0, times).map((value, index) => ({
+                        index: index + 1,
+                        value: value
+                    }));
+                }
+                results.push(rollResult);
             }
+
+            // Format output
+            if (results.length === 0) {
+                rply.text = '❌ 找不到指定的骰子\n';
+                if (notFoundDices.length > 0) {
+                    rply.text += `💡 無效的骰子名稱：${notFoundDices.join('、')}\n`;
+                    rply.text += `💡 請使用 .ra show 檢視可用的骰子清單`;
+                }
+                return rply;
+            }
+
+            rply.text = results.map(roll => {
+                let output = [];
+                output.push(`🎲 ${roll.name}`);
+                output.push(`📋 模式：${roll.mode}抽取 | 抽取次數：${roll.results.length}次`);
+                if (roll.warning) {
+                    output.push(roll.warning);
+                }
+                output.push('');  // 空行
+                output.push(roll.results.map(r =>
+                    `#${r.index.toString().padStart(2, '0')} → ${r.value}`
+                ).join('\n'));
+                return output.join('\n');
+            }).join('\n\n══════════════\n\n');
+
             rply.text = await replaceAsync(rply.text, /{(.*?)}/ig, replacer);
+
+
+
+
             return rply;
-
-
         case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]):
             {    //
                 //增加自定義關鍵字

@@ -590,16 +590,16 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                         text.length
                     );
 
-                    const line = "─".repeat(Math.min(maxLength + 2, 8)); 
+                    const line = "─".repeat(Math.min(maxLength + 2, 10)); 
 
                     return `🔗 **隨機事件發生**
-                ╭${line}
-                │ ${chainTitle}
-                ├${line}
-                │ ⭐ ${title}
-                │ 
-                │ 💭 ${text}
-                ╰${line}`;
+╭${line}
+│ ${chainTitle}
+├${line}
+│ ⭐ ${title}
+│ 
+│ 💭 ${text}
+╰${line}`;
                 }
 
                 rply.text += formatEvent(

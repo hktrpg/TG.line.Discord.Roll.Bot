@@ -27,19 +27,48 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = function () {
-    return `【BcDice】日系擲骰
-這是讓你可以使用Bcdice 那100種擲骰系統的功能
-
-使用方法
-首先，先在BCDICE官方的骰表ID中找出你所想的系統
-然後輸入.bc use (ID) 進行登記
-現在，你可以以.bc (骰子指令)來進行擲骰了。 
-想看骰子說明可輸入.bc dicehelp
-
-注: 登記需要Admin或頻道管理權限
-
-https://bcdice.org/systems/
-`
+    return `【🎲BcDice日系擲骰系統】
+╭────── 🎯系統簡介 ──────
+│ • 支援100+種日系TRPG骰表
+│ • 完整支援原版擲骰指令
+│ • 可自由切換不同遊戲系統
+│
+├────── 📋使用步驟 ──────
+│ 1. 查找系統ID
+│ 　 在官方網站尋找想用的系統
+│ 　 https://bcdice.org/systems/
+│
+│ 2. 登記系統
+│ 　 .bc use [系統ID]
+│ 　 需要管理員權限
+│
+│ 3. 開始擲骰
+│ 　 .bc [骰子指令]
+│ 　 依照選擇的系統使用指令
+│
+├────── 📚常用指令 ──────
+│ • .bc use PathFinder
+│ 　切換為開拓者系統
+│
+│ • .bc use Insane
+│ 　切換為迷途之人系統
+│
+│ • .bc dicehelp
+│ 　查看當前系統說明
+│
+├────── 🔍熱門系統ID ──────
+│ • 克蘇魯神話: Cthulhu
+│ • 新克蘇魯: Cthulhu7th
+│ • 迷途之人: Insane
+│ • 魔導書大戰: MagicaLogia
+│ • 忍神: ShinobiGami
+│ • 劍世界: SwordWorld
+│
+├────── ⚠️注意事項 ──────
+│ • 需要管理權限才能切換系統
+│ • 每個頻道可設定不同系統
+│ • 指令依各系統規則而異
+╰──────────────`
 }
 const initialize = function () {
     return variables;

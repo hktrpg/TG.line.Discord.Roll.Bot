@@ -19,10 +19,11 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = function () {
-    return `【示範】
-只是一個Demo的第一行
-只是一個Demo末行
-`
+    return `【🎯示範功能】
+╭────── ℹ️說明 ──────
+│ 只是一個Demo的第一行
+│ 只是一個Demo末行
+╰──────────────`
 }
 const initialize = function () {
     return variables;

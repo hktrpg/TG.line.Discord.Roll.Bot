@@ -65,31 +65,49 @@ const prefixs = function () {
 
 }
 const getHelpMessage = async function () {
-	return `【暗骰功能】
-在指令前輸入dr 結果會私訊你
-ddr dddr 可以私訊已設定的群組GM, 詳情可打.drgm查詢
-
-【基本擲骰】1d100(khN|klN|dhN|dlN)
-例如輸入(2d6+1)*2 攻撃！
-會輸出）(2d6+1)*2：攻撃！  (10[5+5]+1)2 = 22
-如上面一樣,在骰子數字後方隔空白位打字,可以進行發言。
-
-.5 3D6 ：	分別骰出5次3d6 最多30次
-((2d6+1)*2)-5/2>=10 支援括號加減乘除及大於小於(>,<,>=,<=)計算
-支援kh|kl|dh|dl，k keep保留，d drop 放棄，h highest最高，l lowest最低
-如3d6kh 保留最大的1粒骰，3d6dl2 放棄最小的2粒骰
-
-【RPG Dice Roller擲骰】.rr
-RPG Dice Roller 是英語系統常用擲骰功能
-Foundry VTT也是使用它
-和基本擲骰不同
-有更多仔細的擲骰命令，如1d10r1 5d10!k2
-
-
-擲骰指令請看
-https://dice-roller.github.io/documentation/guide/notation/
- 
- `
+    return `【🎲擲骰系統】
+╭────── 🎯暗骰功能 ──────
+│ • dr [指令] - 結果私訊給你
+│ • ddr/dddr - 私訊給已設定的GM
+│ • .drgm - 查詢GM設定詳情
+│
+├────── 📊基本擲骰 ──────
+│ 標準格式: [次數]d[面數][運算符][修正值]
+│ 
+│ 基本用法:
+│ 　• 2d6+1 - 擲兩顆六面骰+1
+│ 　• (2d6+1)*2 攻撃！
+│ 　  範例輸出: (10[5+5]+1)2 = 22
+│
+│ 進階功能:
+│ 　• .5 3D6 - 投擲5次3d6
+│ 　• 支援四則運算與括號
+│ 　• 支援比較符號 >, <, >=, <=
+│
+│ 保留/放棄骰值:
+│ 　• kh - keep highest 保留最高
+│ 　• kl - keep lowest 保留最低
+│ 　• dh - drop highest 放棄最高
+│ 　• dl - drop lowest 放棄最低
+│ 　
+│ 範例:
+│ 　• 3d6kh1 - 保留最高一顆
+│ 　• 3d6dl2 - 放棄最低兩顆
+│
+├────── 🎲RPG Dice Roller ──────
+│ 使用指令: .rr [骰子表示式]
+│
+│ 特色:
+│ 　• 支援Foundry VTT格式
+│ 　• 提供更詳細的擲骰選項
+│
+│ 範例:
+│ 　• 1d10r1 - 遇1重骰
+│ 　• 5d10!k2 - 爆擊後保留2顆
+│
+│ 📚完整指令說明:
+│ dice-roller.github.io/documentation
+╰──────────────`
 }
 const initialize = function () {
 	return variables;
@@ -108,31 +126,53 @@ const rollDiceCommand = async function ({
 	//let result = {};
 	switch (true) {
 		case !mainMsg[1]:
-			rply.text =
-				`【HKTRPG擲骰ROLLBOT🤖】(${await version.version()})
-HKTRPG是在Discord, Line, Telegram, Whatsapp和網頁上都可以使用的骰子機械人！
-功能：暗骰, 各類TRPG骰子擲骰, 自定義骰子, 頻道經驗值, 占卜, 先攻表, TRPG角色卡, 搜圖,
-翻譯, Discord 聊天紀錄匯出, 數學計算, 隨機抽選, wiki查詢, 資料庫快速查詢功能
-定時發訊息
-及其他
--------
-請問有什麼可以幫助你?
-請輸入你想查詢的項目名字.
-或到 (https://bothelp.hktrpg.com/) 觀看詳細使用說明.
--------
-bothelp ver		- 查詢詳細版本及公告
-bothelp Base	- 查詢trpg 基本擲骰指令🎲
-bothelp Dice	- 查詢trpg 不同系統擲骰指令💻
-bothelp Tool	- 查詢trpg 輔助工具🧰
-bothelp admin	- 查詢系統工具⚙️
-bothelp funny	- 查詢趣味功能😂
-bothelp link	- 查詢HKTRPG 不同平台連結🔗
-bothelp privacy	- 查詢HKTRPG 的隱私權條款🔒
-bothelp about	- 查詢HKTRPG 歷史📜
---------
-🗂️HKTRPG 作品集, (https://hktrpg.github.io/TG.line.Discord.Roll.Bot/PORTFOLIOP)
-ℹ️如果你需要幫助, 加入我們的支援頻道, (https://support.hktrpg.com)
-☕贊助伺服器運行及開放VIP資源, (https://www.patreon.com/HKTRPG)`
+			rply.text = `【HKTRPG擲骰機器人 🎲】v${await version.version()}
+╭───── 👋 歡迎使用 ─────
+│ HKTRPG是跨平台骰子機器人
+│ 支援Discord、Line、Telegram
+│ Whatsapp與網頁版
+│
+├───── 🎯 核心功能 ─────
+│ • 基礎擲骰與暗骰
+│ • 各類TRPG系統骰子
+│ • 自定義骰子
+│ • 角色卡系統
+│ • 先攻表
+│ • 經驗值系統
+│
+├───── 🛠️ 實用工具 ─────
+│ • 資料庫快速查詢
+│ • Discord聊天紀錄匯出
+│ • 定時發送訊息
+│ • 圖片搜尋
+│ • 即時翻譯
+│ • Wiki查詢
+│ • 數學計算
+│
+├───── 📖 查詢指令 ─────
+│ • bothelp ver   - 版本與公告
+│ • bothelp Base  - 基本擲骰指令🎲
+│ • bothelp Dice  - 系統擲骰指令💻
+│ • bothelp Tool  - 輔助工具指令🧰
+│ • bothelp admin - 管理工具指令⚙️
+│ • bothelp funny - 娛樂功能指令😂
+│ • bothelp link  - 相關平台連結🔗
+│ • bothelp privacy- 隱私權條款🔒
+│ • bothelp about - 歷史沿革📜
+│
+├───── 🔗 重要連結 ─────
+│ 📚 使用教學:
+│ https://bothelp.hktrpg.com
+│
+│ 🗂️ 作品集:
+│ https://hktrpg.github.io/TG.line.Discord.Roll.Bot/PORTFOLIOP
+│
+│ ℹ️ 支援社群:
+│ https://support.hktrpg.com
+│
+│ ☕ 贊助伺服器運行及開放VIP資源:
+│ https://www.patreon.com/HKTRPG
+╰──────────────────`
 			rply.buttonCreate = ['bothelp ver', 'bothelp Base', 'bothelp Dice', 'bothelp Tool', 'bothelp admin', 'bothelp funny', 'bothelp link', 'bothelp privacy', 'bothelp about']
 
 			return rply;
@@ -153,23 +193,46 @@ bothelp about	- 查詢HKTRPG 歷史📜
 			rply.buttonCreate = ['dr 1d100', '2d6+10 攻擊', '.5 3d6', '.5 4d6dl1', '.rr 5d10!k2']
 			return rply;
 		case /^about$/i.test(mainMsg[1]):
-			rply.text = `關於HKTRPG
-
-HKTRPG來源自 機器鴨霸獸 https://docs.google.com/document/d/1dYnJqF2_QTp90ld4YXj6X8kgxvjUoHrB4E2seqlDlAk/edit	
-最早由LarryLo Retsnimle開發，
-是一個開放源碼骰子機器人計畫，供他人使用開發和使用。
-
-現在的HKTRPG基礎是根據該計畫而開發，
-感謝當時源碼大量的注釋，讓當時第一次接觸JS的我，
-慢慢學到怎寫CODE。
-
-現在HKTRPG 以GNU GENERAL PUBLIC LICENSE授權，
-是被廣泛使用的自由軟體授權條款，給予了終端使用者運行、學習、共享和修改軟體的自由。
+			rply.text = `【HKTRPG歷史淵源 📜】
+╭──── 💫 起源 ────
+│ HKTRPG的誕生來自開源項目
+│ 「機器鴨霸獸」
+│ 最早由LarryLo Retsnimle開發
+│ 
+├──── 🌱 傳承 ────
+│ • 開放源碼的骰子機器人計畫
+│ • 供社群自由使用與開發
+│ • 詳細的程式碼注釋
+│ • 幫助新人學習JS開發
+│
+├──── 📋 授權條款 ────
+│ • GNU通用公共授權條款(GPL)
+│ • 賦予使用者四大自由:
+│   - 自由執行
+│   - 自由學習
+│   - 自由分享
+│   - 自由修改
+│
+├──── 💝 特別感謝 ────
+│ 感謝原始開發者LarryLo的貢獻
+│ 讓更多人能夠參與開發
+│ 共同建立更好的TRPG社群
+│
+╰──────────────────
+原始資料來源:
+https://docs.google.com/document/d/1dYnJqF2_QTp90ld4YXj6X8kgxvjUoHrB4E2seqlDlAk/edit
 `
 			return rply;
 		case /^Dice/i.test(mainMsg[1]):
 			if (mainMsg[1].match(/^DICE$/i)) {
-				rply.text = '輸入 bothelp Dice序號 如bothelp Dice1 即可看到內容\n'
+				rply.text = `【🎲 查看骰子說明】
+╭─────────────
+│ 指令格式: bothelp Dice序號
+│ 例如: bothelp Dice1
+│
+│ 請輸入序號查看詳細內容
+╰─────────────
+`
 				rply.buttonCreate = [];
 				for (let num in Dice) {
 					rply.text += num + ": " + Dice[num].gameName() + '\n';
@@ -184,7 +247,14 @@ HKTRPG來源自 機器鴨霸獸 https://docs.google.com/document/d/1dYnJqF2_QTp9
 			return rply;
 		case /^Tool/i.test(mainMsg[1]):
 			if (mainMsg[1].match(/^Tool$/i)) {
-				rply.text = '輸入 bothelp Tool序號 如bothelp Tool1 即可看到內容\n'
+				rply.text = `【🛠️ 查看工具說明】
+╭─────────────
+│ 指令格式: bothelp Tool序號
+│ 例如: bothelp Tool1
+│
+│ 請輸入序號查看詳細內容
+╰─────────────
+`
 				rply.buttonCreate = [];
 				for (let num in Tool) {
 					rply.text += num + ": " + Tool[num].gameName() + '\n';
@@ -198,12 +268,23 @@ HKTRPG來源自 機器鴨霸獸 https://docs.google.com/document/d/1dYnJqF2_QTp9
 			}
 			return rply;
 		case /^privacy/i.test(mainMsg[1]): {
-			rply.text = "隱私權聲明\nhttps://bothelp.hktrpg.com/hktrpg-guan-fang-shi-yong-jiao-xue/qi-ta-qing-bao/yin-si-quan-sheng-ming";
+			rply.text = `【🔒 隱私權聲明】
+╭─────────────
+│ 詳細內容請參閱:
+│ https://bothelp.hktrpg.com/hktrpg-guan-fang-shi-yong-jiao-xue/qi-ta-qing-bao/yin-si-quan-sheng-ming
+╰─────────────`
 			return rply;
 		}
 		case /^admin/i.test(mainMsg[1]):
 			if (mainMsg[1].match(/^admin$/i)) {
-				rply.text = '輸入 bothelp admin序號 如bothelp admin1 即可看到內容\n';
+				rply.text = `【⚙️ 管理指令說明】
+╭─────────────
+│ 指令格式: bothelp admin序號
+│ 例如: bothelp admin1
+│
+│ 請輸入序號查看詳細內容
+╰─────────────
+`
 				rply.buttonCreate = [];
 				for (let num in admin) {
 					rply.text += num + ": " + admin[num].gameName() + '\n';
@@ -219,7 +300,14 @@ HKTRPG來源自 機器鴨霸獸 https://docs.google.com/document/d/1dYnJqF2_QTp9
 
 		case /^funny/i.test(mainMsg[1]):
 			if (mainMsg[1].match(/^funny$/i)) {
-				rply.text = '輸入 bothelp funny序號 如bothelp funny1 即可看到內容\n';
+				rply.text = `【😄 娛樂功能說明】
+╭─────────────
+│ 指令格式: bothelp funny序號
+│ 例如: bothelp funny1
+│
+│ 請輸入序號查看詳細內容
+╰─────────────
+`
 				rply.buttonCreate = [];
 				for (let num in funny) {
 					rply.text += num + ": " + funny[num].gameName() + '\n';
@@ -235,7 +323,14 @@ HKTRPG來源自 機器鴨霸獸 https://docs.google.com/document/d/1dYnJqF2_QTp9
 
 		case /^help/i.test(mainMsg[1]):
 			if (mainMsg[1].match(/^help$/i)) {
-				rply.text = '輸入 bothelp help序號 如bothelp help1 即可看到內容\n';
+				rply.text = `【❓ 說明文件查詢】
+╭─────────────
+│ 指令格式: bothelp help序號
+│ 例如: bothelp help1
+│
+│ 請輸入序號查看詳細內容
+╰─────────────
+`
 				rply.buttonCreate = [];
 				for (let num in help) {
 					rply.text += num + ": " + help[num].gameName() + '\n';
@@ -250,27 +345,30 @@ HKTRPG來源自 機器鴨霸獸 https://docs.google.com/document/d/1dYnJqF2_QTp9
 			return rply;
 
 		case /^link/i.test(mainMsg[1]):
-			rply.text = `TRPG百科 https://www.hktrpg.com/
-Discord支援群 https://support.hktrpg.com
-			
-邀請HKTRPG 加入
-Line 邀請連結 http://bit.ly/HKTRPG_LINE
-Discord 邀請連結 https://discord.hktrpg.com
-Telegram 邀請連結 http://t.me/hktrpg_bot
-網頁版 邀請連結 https://rollbot.hktrpg.com/
-簡易網上擲骰網頁 https://roll.hktrpg.com/
-			
-HKTRPG 研究社 Facebook https://www.facebook.com/groups/HKTRPG
-解鎖功能及贊助 https://www.patreon.com/HKTRPG 
-源代碼 http://bit.ly/HKTRPG_GITHUB
+			rply.text = `【🎲 HKTRPG擲骰機器人】
+╭──────────────────
+│ 🌐 官方網站
+│ https://www.hktrpg.com/
+│
+│ 💬 官方支援群
+│ https://support.hktrpg.com
+│
+│ 🤖 邀請機器人
+│ LINE:    http://bit.ly/HKTRPG_LINE
+│ Discord: https://discord.hktrpg.com
+│ Telegram: http://t.me/hktrpg_bot
+│ Web版:    https://rollbot.hktrpg.com/
+│ Plurk版: https://www.plurk.com/HKTRPG
+│ 快速擲骰: https://roll.hktrpg.com/
+| WhatsApp: https://api.whatsapp.com/send?phone=85294427421&text=運勢
+│
+│ 📱 社群連結
+│ FB社團:   https://www.facebook.com/groups/HKTRPG
+│ 贊助支持: https://www.patreon.com/HKTRPG
+│ GitHub:   http://bit.ly/HKTRPG_GITHUB
+╰──────────────────
 `
 			return rply;
-		/**
-	case /^report/i.test(mainMsg[1]):
-		rply.text = await this.getHelpMessage();
-		return rply;
-
-		 */
 		case /^req/i.test(mainMsg[1]):
 			rply.text = `請到以下問卷填寫意見，所有意見內容將改善RollBot
 			https://forms.gle/uXq6taCPGJ2M99Gp9`

@@ -31,27 +31,44 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = function () {
-    return `【PokeRole】.poke
-這是一個Pokemon的資料庫，
-進行小精靈，招式的查詢以及 對戰的屬性相克結果，
-.poke 可以查看更多指令
-.poke mon (名稱/編號)  可以查看小精靈的資料
-.poke mon (名稱/編號) (--d)  可以查看小精靈的招式表
-.poke move (招式名稱)  可以查看招式的資料
-.poke vs 攻方(招式名稱/屬性) 防方(小精靈名稱/編號/屬性1,2)  可以進行對戰模擬
---------------------
-例子：
-.poke mon 超夢
-.poke mon 超夢 --d
-.poke move 火焰輪
-.poke vs 火之誓約 夢幻
-.poke vs 火 100  
-.poke vs 火 超能力 水
---------------------
-資料來源：
-https://hazmole.github.io/PokeRole/
-及 免費開源TRPG中文化團隊
-`
+    return `【🎮寶可夢PokeRole】
+╭────── 📖基礎查詢 ──────
+│ • .poke - 顯示完整指令列表
+│
+├────── 🔍寶可夢資料 ──────
+│ 基本查詢:
+│ 　• .poke mon [名稱/編號]
+│ 　  例: .poke mon 超夢
+│
+│ 招式列表:
+│ 　• .poke mon [名稱/編號] --d
+│ 　  例: .poke mon 超夢 --d
+│
+├────── ⚔️招式查詢 ──────
+│ • .poke move [招式名稱]
+│ 　例: .poke move 火焰輪
+│
+├────── 🏆對戰模擬 ──────
+│ 格式:
+│ .poke vs [攻擊方] [防守方]
+│
+│ 攻擊方可使用:
+│ 　• 招式名稱
+│ 　• 屬性
+│
+│ 防守方可使用:
+│ 　• 寶可夢名稱/編號
+│ 　• 單一或雙重屬性
+│
+│ 範例:
+│ 　• .poke vs 火之誓約 夢幻
+│ 　• .poke vs 火 100
+│ 　• .poke vs 火 超能力,水
+│
+├────── 📚資料來源 ──────
+│ • hazmole.github.io/PokeRole
+│ • 免費開源TRPG中文化團隊
+╰──────────────`
 }
 const initialize = function () {
     return variables;

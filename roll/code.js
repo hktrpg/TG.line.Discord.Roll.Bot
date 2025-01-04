@@ -18,13 +18,32 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = function () {
-    return `【.code】 [語言] [指令]
-使用piston Api
-格式: .code [語言] 
-[指令]
-
-現支援: js java
-`
+    return `【🔠程式碼執行系統】
+╭────── 💻代碼運行 ──────
+│ 指令格式:
+│ .code [程式語言] 
+│ [程式碼內容]
+│
+│ 🛠️系統說明:
+│ 　• 使用Piston API執行程式
+│ 　• 即時編譯並返回結果
+│ 　• 支援多行程式碼
+│
+│ ✅支援的程式語言:
+│ 　• JavaScript (js)
+│ 　• Java (java)
+│
+│ 📝使用範例:
+.code js
+console.log("Hello World!");
+│
+.code java
+public class Main {
+public static void main(String[] args) {
+         System.out.println("Hello World!");
+     }
+ }
+╰──────────────`
 }
 const initialize = function () {
     return variables;

@@ -443,26 +443,21 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                 let gp = await schema.trpgLevelSystem.findOne({ groupid: groupid });
                 if (!gp || !gp.SwitchV2) {
                     rply.text = '此群組並有沒有開啓LEVEL功能. \n.level config 11 代表啓動功能 \
-                    \n 數字11代表等級升級時會進行通知，10代表不會自動通知，\
-                    \n 00的話代表不啓動功能\n'
+                        \n 數字11代表等級升級時會進行通知，10代表不會自動通知，\
+                        \n 00的話代表不啓動功能\n'
                     return rply;
                 }
-                //用來看EN還有多少, 沒有就RETURN
-                //沒有就新增一個
 
                 let eventMember = await schema.eventMember.findOne({
                     userID: userid
                 });
-                //尋找所有群組的資料，用來設定EN上限            
                 let thisMember = await schema.trpgLevelSystemMember.findOne({ groupid: groupid, userid: userid });
                 if (!thisMember) {
                     rply.text = `錯誤發生，未有這群組的資料`;
                     return rply;
                 }
                 let maxLv = await findMaxLv(userid);
-                /**
-                 * 檢查ENERGY，如果沒有則新增，數字為EN= 20+LV
-                 */
+
                 if (!eventMember) {
                     eventMember = new schema.eventMember({
                         userID: userid,
@@ -470,14 +465,12 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                         energy: maxLv + 20,
                         lastActiveAt: new Date(Date.now())
                     });
-
                 }
 
                 if (!eventMember.energy || !eventMember.lastActiveAt) {
                     eventMember.energy = maxLv + 20;
                 }
 
-                //回複EN
                 let EnergyRecover = Math.round(((new Date(Date.now()) - new Date(eventMember.lastActiveAt))) / EN_RECOVER_TIME);
 
                 eventMember.energy = Math.min(maxLv + 20, EnergyRecover + eventMember.energy);
@@ -485,8 +478,6 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                     eventMember.lastActiveAt = new Date(Date.now());
                 (debugMode) ? eventMember.energy = 99 : null;
 
-
-                //查看是什麼事件, 隨機, 系列, 指定
                 const targetEventName = convertRegex(mainMsg[1]);
                 let eventMode = '';
                 let eventList = [];
@@ -521,11 +512,8 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                         if (eventList.length > 0) {
                             eventMode = 'title'
                         }
-
-
                     }
                 }
-
 
                 let earedXP = 0;
 
@@ -564,14 +552,17 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                         break;
 
                     default:
-
                         rply.text = `沒有以「${targetEventName} 」命名的事件呢.`
                         return rply;
                 }
 
                 await eventMember.save();
                 let randomDetail = eventList[0].detail[await rollDice.Dice(eventList[0].detail.length) - 1];
-                let eventText = randomDetail.event.split(';');
+                let eventText = [];
+                // 檢查randomDetail是否存在且有event屬性
+                if (randomDetail && randomDetail.event) {
+                    eventText = randomDetail.event.split(';').filter(text => text && text.trim());
+                }
 
                 const formatEvent = (chainTitle, title, text) => {
                     chainTitle = (chainTitle || '').toString();
@@ -599,11 +590,21 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
 ╰${line}`;
                 }
 
-                rply.text += formatEvent(
-                    eventList[0].chainTitle,
-                    eventList[0].title,
-                    eventText[await rollDice.Dice(eventText.length) - 1]
-                );
+                // 確保eventText有內容才進行擲骰
+                if (!eventText || eventText.length === 0) {
+                    rply.text += formatEvent(
+                        eventList[0].chainTitle,
+                        eventList[0].title,
+                        '無事發生'  // 預設文字
+                    );
+                } else {
+                    rply.text += formatEvent(
+                        eventList[0].chainTitle,
+                        eventList[0].title,
+                        eventText[await rollDice.Dice(eventText.length) - 1]
+                    );
+                }
+
                 rply.text += `\n${await eventProcessExp({ randomDetail: randomDetail, groupid: groupid, eventList: eventList[0], thisMember: thisMember })} `
                 await schema.eventMember.findOneAndUpdate({ userID: eventList[0].userID }, { $inc: { earnedEXP: earedXP, totailEarnedEXP: earedXP } })
                 return rply;

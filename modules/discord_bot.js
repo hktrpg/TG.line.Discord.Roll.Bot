@@ -340,7 +340,11 @@ async function convQuotes(text = "") {
 
 		}
 	}
-	embed.setDescription(text)
+	if (text && text.trim().length > 0) {
+		embed.setDescription(text)
+	} else {
+		embed.setDescription(" - ")
+	}
 	embeds.unshift(embed);
 	return embeds;
 

@@ -12,7 +12,13 @@ const userCache = new Map();
 // 讀取訊息檔案的工具函數
 const readJsonFile = (filename) => {
     try {
-        return JSON.parse(fs.readFileSync(filename));
+        const data = fs.readFileSync(filename);
+        if (!data) throw new Error('File is empty');
+        const parsed = JSON.parse(data);
+        if (!parsed.joinMessage || !parsed.firstTimeUseMessage) {
+            throw new Error('Invalid message format');
+        }
+        return parsed;
     } catch (error) {
         console.error(`Error reading ${filename}:`, error);
         return { joinMessage: [], firstTimeUseMessage: [] };
@@ -21,15 +27,27 @@ const readJsonFile = (filename) => {
 
 // 更新訊息快取的函數
 function updateMessageCache() {
-    messageCache = readJsonFile("./assets/message.json");
-    //console.log('Message cache updated at:', new Date().toISOString());
+    try {
+        const newCache = readJsonFile("./assets/message.json");
+        if (Object.keys(newCache).length > 0) {
+            messageCache = newCache;
+            console.log('[MessageCache] Updated successfully');
+        }
+    } catch (error) {
+        console.error('[MessageCache] Update failed:', error);
+    }
 }
 
-// 設定每小時更新一次
-setInterval(updateMessageCache, 60 * 60 * 1000);
+// 使用防抖動的計時器
+let updateTimer;
+const startUpdateTimer = () => {
+    if (updateTimer) clearInterval(updateTimer);
+    updateTimer = setInterval(updateMessageCache, 60 * 60 * 1000);
+};
 
-// 初始讀取訊息檔案
+// 初始設定
 let messageCache = readJsonFile("./assets/message.json");
+startUpdateTimer();
 
 function joinMessages(messages) {
     return messages.join("\n");

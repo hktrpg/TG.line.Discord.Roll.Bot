@@ -19,8 +19,17 @@ const readJsonFile = (filename) => {
     }
 };
 
-// 快取訊息內容
-const messageCache = readJsonFile("./assets/message.json");
+// 更新訊息快取的函數
+function updateMessageCache() {
+    messageCache = readJsonFile("./assets/message.json");
+    //console.log('Message cache updated at:', new Date().toISOString());
+}
+
+// 設定每小時更新一次
+setInterval(updateMessageCache, 60 * 60 * 1000);
+
+// 初始讀取訊息檔案
+let messageCache = readJsonFile("./assets/message.json");
 
 function joinMessages(messages) {
     return messages.join("\n");

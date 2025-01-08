@@ -27,126 +27,129 @@ const EXPUP = require('./level').EXPUP || function () { };
 //用來呼叫骰組,新增骰組的話,要寫條件式到下面呼叫
 //格式是 exports.骰組檔案名字.function名
 const parseInput = async (params) => {
-	const {
-		inputStr = "",
-		groupid = null,
-		userid = null,
-		userrole = 1,
-		botname = null,
-		displayname = null,
-		channelid = null,
-		displaynameDiscord = null,
-		membercount = 0,
-		discordClient,
-		discordMessage,
-		titleName = '',
-		tgDisplayname = ''
-	} = params;
-
-	let result = {
-		text: '',
-		type: 'text',
-		LevelUp: '',
-		statue: ''
-	};
-
-	let mainMsg = inputStr.replace(/^\s/g, '').match(MESSAGE_SPLITOR); // 定義輸入字串
-
-	// EXPUP 功能 + LevelUP 功能
-	if (groupid) {
-		let tempEXPUP = await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount, tgDisplayname, discordMessage);
-		result.LevelUp = tempEXPUP?.text || '';
-		result.statue = tempEXPUP?.statue || '';
-	}
-
-	// 檢查是不是要停止 z_stop 功能
-	if (groupid && mainMsg[0] && z_stop(mainMsg, groupid)) {
-		return result;
-	}
-
-	// rolldice 擲骰功能
-	try {
-		let rollDiceResult = await rolldice({
-			inputStr,
-			groupid,
-			userid,
-			userrole,
-			mainMsg,
-			botname,
-			displayname,
-			channelid,
-			displaynameDiscord,
-			membercount,
-			discordClient,
-			discordMessage,
-			titleName,
-			tgDisplayname
-		});
-		if (rollDiceResult) {
-			result = { ...result, ...rollDiceResult };
-		}
-	} catch (error) {
-		console.error('rolldice GET ERROR:', error.stack, error.name, ' inputStr: ', inputStr, ' botname: ', botname, ' Time: ', new Date());
-	}
-
-	// cmdfunction .cmd 功能 z_saveCommand 功能
-	if (result.cmd && result.text) {
-		let cmdFunctionResult = await cmdfunction({
-			inputStr,
-			groupid,
-			userid,
-			userrole,
-			mainMsg,
-			botname,
-			displayname,
-			channelid,
-			displaynameDiscord,
-			membercount,
-			result,
-			titleName,
-			tgDisplayname
-		});
-		if (cmdFunctionResult) {
-			result = { ...result, ...cmdFunctionResult };
-		}
-	}
-
-	// characterReRoll 功能
-	if (result.characterReRoll) {
-		let characterReRoll = await cmdfunction({
-			inputStr,
-			groupid,
-			userid,
-			userrole,
-			mainMsg,
-			botname,
-			displayname,
-			channelid,
-			displaynameDiscord,
-			membercount,
-			result,
-			titleName,
-			tgDisplayname
-		});
-		if (result.text && characterReRoll.text) {
-			result.text = `${result.characterName} 投擲 ${result.characterReRollName}\n${characterReRoll.text}\n======\n${result.text}`;
-		} else {
-			result.text = result.text || '';
-			result.text += characterReRoll.text ? `======\n${characterReRoll.text}` : '';
-		}
-	}
-
-	// state 功能
-	if (result.state) {
-		result.text = await stateText();
-	}
-
-	// courtMessage + saveLog
-	await courtMessage({ result, botname, inputStr });
-	return result;
+    const result = initializeResult();
+    const mainMsg = preprocessInput(params.inputStr);
+    
+    await handleExpUp(params, result);
+    
+    if (shouldStop(params.groupid, mainMsg)) {
+        return result;
+    }
+    
+    await processRolldice(params, result, mainMsg);
+    await processCmdFunction(params, result);
+    await processCharacterReroll(params, result); 
+    await processState(result);
+    
+    await courtMessage({ result, botname: params.botname, inputStr: params.inputStr });
+    return result;
 }
 
+function initializeResult() {
+    return {
+        text: '',
+        type: 'text', 
+        LevelUp: '',
+        statue: ''
+    };
+}
 
+function preprocessInput(inputStr) {
+    return inputStr.replace(/^\s/g, '').match(MESSAGE_SPLITOR);
+}
+
+async function handleExpUp(params, result) {
+    if (params.groupid) {
+        let tempEXPUP = await EXPUP(params.groupid, params.userid, params.displayname, params.displaynameDiscord, params.membercount, params.tgDisplayname, params.discordMessage);
+        result.LevelUp = tempEXPUP?.text || '';
+        result.statue = tempEXPUP?.statue || '';
+    }
+}
+
+function shouldStop(groupid, mainMsg) {
+    return groupid && mainMsg[0] && z_stop(mainMsg, groupid);
+}
+
+async function processRolldice(params, result, mainMsg) {
+    try {
+        let rollDiceResult = await rolldice({
+            inputStr: params.inputStr,
+            groupid: params.groupid,
+            userid: params.userid,
+            userrole: params.userrole,
+            mainMsg: mainMsg,
+            botname: params.botname,
+            displayname: params.displayname,
+            channelid: params.channelid,
+            displaynameDiscord: params.displaynameDiscord,
+            membercount: params.membercount,
+            discordClient: params.discordClient,
+            discordMessage: params.discordMessage,
+            titleName: params.titleName,
+            tgDisplayname: params.tgDisplayname
+        });
+        if (rollDiceResult) {
+            result = { ...result, ...rollDiceResult };
+        }
+    } catch (error) {
+        console.error('rolldice GET ERROR:', error.stack, error.name, ' inputStr: ', params.inputStr, ' botname: ', params.botname, ' Time: ', new Date());
+    }
+}
+
+async function processCmdFunction(params, result) {
+    if (result.cmd && result.text) {
+        let cmdFunctionResult = await cmdfunction({
+            inputStr: params.inputStr,
+            groupid: params.groupid,
+            userid: params.userid,
+            userrole: params.userrole,
+            mainMsg: preprocessInput(params.inputStr),
+            botname: params.botname,
+            displayname: params.displayname,
+            channelid: params.channelid,
+            displaynameDiscord: params.displaynameDiscord,
+            membercount: params.membercount,
+            result: result,
+            titleName: params.titleName,
+            tgDisplayname: params.tgDisplayname
+        });
+        if (cmdFunctionResult) {
+            result = { ...result, ...cmdFunctionResult };
+        }
+    }
+}
+
+async function processCharacterReroll(params, result) {
+    if (result.characterReRoll) {
+        let characterReRoll = await cmdfunction({
+            inputStr: params.inputStr,
+            groupid: params.groupid,
+            userid: params.userid,
+            userrole: params.userrole,
+            mainMsg: preprocessInput(params.inputStr),
+            botname: params.botname,
+            displayname: params.displayname,
+            channelid: params.channelid,
+            displaynameDiscord: params.displaynameDiscord,
+            membercount: params.membercount,
+            result: result,
+            titleName: params.titleName,
+            tgDisplayname: params.tgDisplayname
+        });
+        if (result.text && characterReRoll.text) {
+            result.text = `${result.characterName} 投擲 ${result.characterReRollName}\n${characterReRoll.text}\n======\n${result.text}`;
+        } else {
+            result.text = result.text || '';
+            result.text += characterReRoll.text ? `======\n${characterReRoll.text}` : '';
+        }
+    }
+}
+
+async function processState(result) {
+    if (result.state) {
+        result.text = await stateText();
+    }
+}
 
 const rolldice = async ({
 	inputStr,

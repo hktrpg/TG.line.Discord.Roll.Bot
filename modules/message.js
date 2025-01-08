@@ -31,7 +31,7 @@ function updateMessageCache() {
         const newCache = readJsonFile("./assets/message.json");
         if (Object.keys(newCache).length > 0) {
             messageCache = newCache;
-            console.log('[MessageCache] Updated successfully');
+            //console.log('[MessageCache] Updated successfully');
         }
     } catch (error) {
         console.error('[MessageCache] Update failed:', error);

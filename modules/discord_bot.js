@@ -529,21 +529,19 @@ async function count2() {
 
 // handle the error event
 process.on('unhandledRejection', error => {
-	if (error.message && [
-		"Unknown Role",
-		"Cannot send messages to this user",
-		"Unknown Channel",
-		"Missing Access",
-		"Missing Permissions"
-	].includes(error.message)) return;
+	if (error.message === "Unknown Role") return;
+	if (error.message === "Cannot send messages to this user") return;
+	if (error.message === "Unknown Channel") return;
+	if (error.message === "Missing Access") return;
+	if (error.message === "Missing Permissions") return;
+	if (error.message && error.message.includes('Unknown interaction')) return;
+	if (error.message && error.message.includes('INTERACTION_NOT_REPLIED')) return;
+	if (error.message && error.message.includes("Invalid Form Body")) return;
+	// Invalid Form Body
+	// user_id: Value "&" is not snowflake.
 
-	if (error.message && (
-		error.message.includes('Unknown interaction') ||
-		error.message.includes('INTERACTION_NOT_REPLIED') ||
-		error.message.includes("Invalid Form Body")
-	)) return;
 
-	console.error('Discord Unhandled promise rejection:', error);
+	console.error('Discord Unhandled promise rejection:', (error));
 	process.send({
 		type: "process:msg",
 		data: "discorderror"
@@ -635,7 +633,319 @@ function sendNewstoAll(rply) {
 	}
 }
 
-// 優化 message handler
+async function handlingCommand(message) {
+	try {
+		const command = client.commands.get(message.commandName);
+		if (!command) return;
+		let answer = await command.execute(message).catch(error => {
+			//console.error(error);
+			//await message.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+		})
+		return answer;
+	} catch (error) {
+		return;
+	}
+
+}
+async function repeatMessage(discord, message) {
+	try {
+		await discord.delete();
+	} catch (error) {
+		//error
+	}
+	let webhook = await manageWebhook(discord);
+	try {
+		let text = await rollText(message.myName.content);
+		//threadId: discord.channelId,
+		let obj = {
+			content: text,
+			username: message.myName.username,
+			avatarURL: message.myName.avatarURL
+		};
+		let pair = (webhook && webhook.isThread) ? { threadId: discord.channelId } : {};
+		await webhook.webhook.send({ ...obj, ...pair });
+	} catch (error) {
+		await SendToReplychannel({ replyText: '不能成功發送扮演發言, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
+		return;
+	}
+
+
+
+}
+
+async function repeatMessages(discord, message) {
+	try {
+		let webhook = await manageWebhook(discord);
+		for (let index = 0; index < message.myNames.length; index++) {
+			const element = message.myNames[index];
+			let text = await rollText(element.content);
+			let obj = {
+				content: text,
+				username: element.username,
+				avatarURL: element.avatarURL
+			};
+			let pair = (webhook && webhook.isThread) ? { threadId: discord.channelId } : {};
+			await webhook.webhook.send({ ...obj, ...pair });
+
+		}
+
+	} catch (error) {
+		await SendToReplychannel({ replyText: '不能成功發送扮演發言, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
+		return;
+	}
+
+}
+async function manageWebhook(discord) {
+	try {
+		const channel = await client.channels.fetch(discord.channelId);
+		const isThread = channel && channel.isThread();
+		let webhooks = isThread ? await channel.guild.fetchWebhooks() : await channel.fetchWebhooks();
+		let webhook = webhooks.find(v => {
+			return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
+		})
+
+		//type Channel Follower
+		//'Incoming'
+		if (!webhook) {
+			const hooks = isThread ? await client.channels.fetch(channel.parentId) : channel;
+			await hooks.createWebhook({ name: "HKTRPG .me Function", avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" })
+			webhooks = await channel.fetchWebhooks();
+			webhook = webhooks.find(v => {
+				return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
+			})
+		}
+		return { webhook, isThread };
+	} catch (error) {
+		//	console.error(error)
+		await SendToReplychannel({ replyText: '不能新增Webhook.\n 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: (discord.channel && discord.channel.id) || discord.channelId });
+		return;
+	}
+}
+
+async function roleReact(channelid, message) {
+	try {
+		const detail = message.roleReactDetail
+		const channel = await client.channels.fetch(channelid);
+		const sendMessage = await channel.send(message.roleReactMessage);
+		for (let index = 0; index < detail.length; index++) {
+			sendMessage.react(detail[index].emoji);
+		}
+		await schema.roleReact.findByIdAndUpdate(message.roleReactMongooseId, { messageID: sendMessage.id }).catch(error => console.error('discord_bot #786 mongoDB error: ', error.name, error.reson))
+
+	} catch (error) {
+		await SendToReplychannel({ replyText: '不能成功增加ReAction, 請檢查你有授權HKTRPG 新增ReAction的權限, \n此為本功能必須權限', channelid });
+		return;
+	}
+
+
+
+}
+
+async function newRoleReact(channel, message) {
+	try {
+		const detail = message.newRoleReactDetail
+		const channels = await client.channels.fetch(channel.channelId);
+		const sendMessage = await channels.messages.fetch(message.newRoleReactMessageId)
+		for (let index = 0; index < detail.length; index++) {
+			sendMessage.react(detail[index].emoji);
+		}
+
+	} catch (error) {
+		await SendToReplychannel({ replyText: '不能成功增加ReAction, 請檢查你有授權HKTRPG 新增ReAction的權限, \n此為本功能必須權限' });
+		return;
+	}
+
+
+
+}
+async function checkWakeUp() {
+	const promises = [
+		client.cluster.broadcastEval(c => c.ws.status)
+	];
+	return Promise.all(promises)
+		.then(results => {
+			const indexes = results[0].reduce((r, n, i) => {
+				n !== 0 && r.push(i);
+				return r;
+			}, []);
+			if (indexes.length > 0) {
+				indexes.forEach(index => {
+					//checkMongodb.discordClientRespawn(client, index)
+				})
+				return indexes;
+			}
+			else return true;
+			//if (results[0].length !== number || results[0].reduce((a, b) => a + b, 0) >= 1)
+			//		return false
+			//	else return true;
+		})
+		.catch(error => {
+			console.error(`disocrdbot #836 error `, (error && error.name), (error && error.message), (error && error.reson))
+			return false
+		});
+
+}
+
+function z_stop(mainMsg, groupid) {
+	if (!Object.keys(exports.z_stop).length || !exports.z_stop.initialize().save || !mainMsg || !groupid) {
+		return false;
+	}
+	let groupInfo = exports.z_stop.initialize().save.find(e => e.groupid == groupid)
+	if (!groupInfo || !groupInfo.blockfunction) return;
+	let match = groupInfo.blockfunction.find(e => mainMsg[0].toLowerCase().includes(e.toLowerCase()))
+	if (match) {
+		return true;
+	} else
+		return false;
+}
+
+const discordPresenceStatus = ['online', 'idle', 'invisible', 'do not disturb']
+async function getAllshardIds() {
+	if (!client.cluster) {
+		return;
+	}
+	const promises = [
+		[...client.cluster.ids.keys()],
+		client.cluster.broadcastEval(c => c.ws.status),
+		client.cluster.broadcastEval(c => c.ws.ping),
+		client.cluster.id,
+
+	];
+	return Promise.all(promises)
+		.then(results => {
+			return `\n現在的shard ID: ${results[3]}
+			所有啓動中的shard ID:   ${results[0].join(", ")} 
+			所有啓動中的shard online:   ${results[1].map(ele => discordPresenceStatus[ele]).join(', ').replace(/online/g, '在線')} 
+			所有啓動中的shard ping:   ${results[2].map(ele => ele.toFixed(0)).join(', ')}`
+		})
+		.catch(error => {
+			console.error(`disocrdbot #884 error `, (error && error.name), (error && error.message), (error && error.reson))
+		});
+
+}
+
+async function handlingButtonCreate(message, input) {
+	const buttonsNames = input;
+	const row = []
+	const totallyQuotient = ~~((buttonsNames.length - 1) / 5) + 1;
+	for (let index = 0; index < totallyQuotient; index++) {
+		row.push(new ActionRowBuilder())
+	}
+	for (let i = 0; i < buttonsNames.length; i++) {
+		const quot = ~~(i / 5)
+		const name = buttonsNames[i] || 'null'
+		row[quot]
+			.addComponents(
+				new ButtonBuilder()
+					.setCustomId(`${name}_${i}`)
+					.setLabel(name)
+					.setStyle(buttonsStyle(i)),
+			)
+	}
+	const arrayRow = await splitArray(5, row)
+	return arrayRow;
+	//for (let index = 0; index < arrayRow.length; index++) {
+	//	await message.reply({ content: ``, components: arrayRow[index] });
+	//}
+
+}
+
+async function handlingRequestRollingCharacter(message, input) {
+	const buttonsNames = input[0];
+	const characterName = input[1];
+	const charMode = (input[2] == 'char') ? true : false;
+	const row = []
+	const totallyQuotient = ~~((buttonsNames.length - 1) / 5) + 1;
+	for (let index = 0; index < totallyQuotient; index++) {
+		row.push(new ActionRowBuilder())
+	}
+	for (let i = 0; i < buttonsNames.length; i++) {
+		const quot = ~~(i / 5)
+		const name = buttonsNames[i] || 'null'
+		row[quot]
+			.addComponents(
+				new ButtonBuilder()
+					.setCustomId(`${name}_${i}`)
+					.setLabel(name)
+					.setStyle(buttonsStyle(i)),
+			)
+	}
+	const arrayRow = await splitArray(5, row)
+	for (let index = 0; index < arrayRow.length; index++) {
+		if (arrayRow[0][0].components.length == 0) {
+			await message.reply({ content: `${characterName}的角色卡 沒有技能 \n不能產生Button`, })
+			continue;
+		}
+		try {
+			if (charMode)
+				await message.reply({ content: `${characterName}的角色卡`, components: arrayRow[index] });
+			else
+				await message.reply({ content: `${characterName}的角色`, components: arrayRow[index] });
+		} catch (error) {
+			console.error(`error discord_bot handlingRequestRollingCharacter  #781 ${characterName} ${JSON.stringify(arrayRow)}`)
+		}
+
+	}
+
+}
+
+async function handlingRequestRolling(message, buttonsNames, displayname = '') {
+	const row = []
+	const totallyQuotient = ~~((buttonsNames.length - 1) / 5) + 1
+	for (let index = 0; index < totallyQuotient; index++) {
+		row.push(new ActionRowBuilder())
+	}
+	for (let i = 0; i < buttonsNames.length; i++) {
+		const quot = ~~(i / 5)
+		const name = buttonsNames[i] || 'null'
+		row[quot]
+			.addComponents(
+				new ButtonBuilder()
+					.setCustomId(`${name}_${i}`)
+					.setLabel(name)
+					.setStyle(buttonsStyle(i)),
+			)
+	}
+	const arrayRow = await splitArray(5, row)
+	for (let index = 0; index < arrayRow.length; index++) {
+		try {
+			await message.reply({ content: `${displayname}要求擲骰/點擊`, components: arrayRow[index] })
+		} catch (error) {
+
+		}
+
+	}
+}
+async function splitArray(perChunk, inputArray) {
+	let myArray = [];
+	for (let i = 0; i < inputArray.length; i += perChunk) {
+		myArray.push(inputArray.slice(i, i + perChunk));
+	}
+	return myArray;
+}
+
+function buttonsStyle(num) {
+	return buttonStyles[num % 5];
+}
+
+function initInteractionCommands() {
+	client.commands = new Collection();
+	const commandFiles = fs.readdirSync('./roll').filter(file => file.endsWith('.js'));
+	for (const file of commandFiles) {
+		const command = require(`../roll/${file}`);
+		if (command && command.discordCommand) {
+			pushArrayInteractionCommands(command.discordCommand)
+		}
+
+	}
+}
+function pushArrayInteractionCommands(arrayCommands) {
+	for (const command of arrayCommands) {
+		client.commands.set(command.data.name, command);
+	}
+
+}
+
 async function handlingResponMessage(message, answer = '') {
 	try {
 		let hasSendPermission = true;
@@ -895,34 +1205,37 @@ const convertRegex = function (str = "") {
 	return new RegExp(str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1"));
 };
 
-// 簡化 WebSocket 連接邏輯
-function connect() {
+const connect = function () {
 	ws = new WebSocket('ws://127.0.0.1:53589');
-	
-	ws.on('open', () => {
-	  console.log(`Connected to core-www from discord! Shard#${shardid}`);
-	  ws.send(`Connected to core-www from discord! Shard#${shardid}`);
+	ws.on('open', function open() {
+		console.log(`connectd To core-www from discord! Shard#${shardid}`)
+		ws.send(`connectd To core-www from discord! Shard#${shardid}`);
 	});
-  
-	ws.on('message', async (data) => {
-	  const object = JSON.parse(data);
-	  if (object.botname !== 'Discord') return;
-  
-	  try {
-		const channel = await client.channels.cache.get(object.message.target.id);
-		if (channel) await channel.send(object.message.text);
-	  } catch (error) {
-		console.error('Discord message send error:', error.message);
-	  }
+	ws.on('message', async function incoming(data) {
+		//if (shardid !== 0) return;
+		const object = JSON.parse(data);
+		if (object.botname !== 'Discord') return;
+
+		try {
+			let channel = await client.channels.cache.get(object.message.target.id);
+			if (channel) {
+				await channel.send(object.message.text)
+			}
+		}
+		catch (error) {
+			console.error(`disocrdbot #99 error `, (error && error.name), (error && error.message), (error && error.reson))
+		};
+		return;
+
 	});
-  
-	ws.on('error', error => console.error('Discord socket error:', error.message));
-	
-	ws.on('close', () => {
-	  console.error('Discord socket closed - attempting reconnect...');
-	  setTimeout(connect, RECONNECT_INTERVAL);
+	ws.on('error', (error) => {
+		console.error('Discord socket error', (error && error.name), (error && error.message), (error && error.reson));
 	});
-  }
+	ws.on('close', function () {
+		console.error('Discord socket close');
+		setTimeout(connect, RECONNECT_INTERVAL);
+	});
+};
 
 function handlingButtonCommand(message) {
 	return message.component.label || ''
@@ -1123,3 +1436,33 @@ client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnecte
 if (debugMode) process.on('warning', e => {
 	console.warn(e.stack)
 });
+
+
+/**
+ *
+ * const dataFields = [];
+  try {
+	await manager.broadcastEval((bot) => {
+	  return [bot.shard?.ids, bot.ws.status, bot.ws.ping, bot.guilds.cache.size];
+	}).then(async (results) => {
+	  results.map((data) => {
+		dataFields.push({
+		  status: data[1] === 0 ? 'online' : 'offline',
+		  ping: `${data[2]}ms`,
+		  guilds: data[3],
+		});
+	  });
+	});
+  } catch (e: any) {
+	console.log(e);
+  }
+.addFields(
+	{ name: 'Regular field title', value: 'Some value here' },
+	{ name: '\u200B', value: '\u200B' },
+	{ name: 'Inline field title', value: 'Some value here', inline: true },
+	{ name: 'Inline field title', value: 'Some value here', inline: true },
+)
+.addField('Inline field title', 'Some value here', true)
+ */
+//.setImage('https://i.imgur.com/wSTFkRM.png')
+//.setFooter('Some footer text here', 'https://i.imgur.com/wSTFkRM.png');

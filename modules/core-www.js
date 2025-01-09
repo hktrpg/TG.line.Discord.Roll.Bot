@@ -24,35 +24,45 @@ let options = {
     cert: null,
     ca: null
 };
-const rateLimiterChatRoom = new RateLimiterMemory({
-    points: 90, // 5 points
-    duration: 60, // per second
-});
-const rateLimiterCard = new RateLimiterMemory({
-    points: 20, // 5 points
-    duration: 60, // per second
-});
 
-const rateLimiterApi = new RateLimiterMemory({
-    points: 10000, // 5 points
-    duration: 10, // per second
-});
+// Rate Limiter 整合
+const rateLimitConfig = {
+    chatRoom: { points: 90, duration: 60 },
+    card: { points: 20, duration: 60 }, 
+    api: { points: 10000, duration: 10 }
+};
 
-async function read() {
-    if (!privateKey) return;
+const rateLimits = Object.entries(rateLimitConfig).reduce((acc, [key, config]) => {
+    acc[key] = new RateLimiterMemory(config);
+    return acc;
+}, {});
+
+const checkRateLimit = async (type, address) => {
     try {
-        options = {
-            key: (fs.readFileSync(privateKey)) ? fs.readFileSync(privateKey) : null,
-            cert: (fs.readFileSync(certificate)) ? fs.readFileSync(certificate) : null,
-            ca: (fs.readFileSync(ca)) ? fs.readFileSync(ca) : null
+        await rateLimits[type].consume(address);
+        return false;
+    } catch {
+        return true;
+    }
+};
+
+// SSL相關功能整合
+const initSSL = () => {
+    if (!privateKey) return {};
+    try {
+        return {
+            key: privateKey ? fs.readFileSync(privateKey) : null,
+            cert: certificate ? fs.readFileSync(certificate) : null,
+            ca: ca ? fs.readFileSync(ca) : null
         };
     } catch (error) {
-        console.error('error of key', error)
+        console.error('SSL key reading error:', error.message);
+        return {};
     }
-}
+};
 
 (async () => {
-    read()
+    options = initSSL();
 })();
 const http = require('http');
 const https = require('https');
@@ -80,7 +90,7 @@ function createWebServer(options = {}, www) {
     const protocol = options.key ? 'https' : 'http';
     console.log(`${protocol} server`);
     server.listen(port, () => {
-        console.log("Web Server Started. port:" + port);
+        console.log("Web Server Started. Link: " + protocol + "://localhost:" + port);
     });
 
     return server;
@@ -445,31 +455,15 @@ async function loadb(io, records, rplyVal, message) {
     }
 }
 async function limitRaterChatRoom(address) {
-    try {
-        await rateLimiterChatRoom.consume(address)
-        return false;
-    } catch (error) {
-        return true;
-    }
+    return await checkRateLimit('chatRoom', address);
 }
 
-
 async function limitRaterCard(address) {
-    try {
-        await rateLimiterCard.consume(address)
-        return false;
-    } catch (error) {
-        return true;
-    }
+    return await checkRateLimit('card', address);
 }
 
 async function limitRaterApi(address) {
-    try {
-        await rateLimiterApi.consume(address)
-        return false;
-    } catch (error) {
-        return true;
-    }
+    return await checkRateLimit('api', address);
 }
 
 /**
@@ -478,26 +472,31 @@ async function limitRaterApi(address) {
 let sendTo;
 if (isMaster) {
     const WebSocket = require('ws');
-    //將 express 放進 http 中開啟 Server 的 3000 port ，正確開啟後會在 console 中印出訊息
     const wss = new WebSocket.Server({
-        port: 53589
-    }, () => {
-        console.log('open server 53589!')
+        port: 53589,
+        verifyClient: (info) => {
+            return info.req.socket.remoteAddress === "::ffff:127.0.0.1";
+        }
     });
-    wss.on('connection', function connection(ws) {
-        if (!ws._socket.remoteAddress == "::ffff:127.0.0.1") return;
 
+    wss.on('connection', function connection(ws) {
         ws.on('message', function incoming(message) {
-            console.log('received: %s', message);
+            try {
+               // console.log('received:', message);
+            } catch (err) {
+                console.error('WebSocket message error:', err);
+            }
         });
+
         sendTo = function (params) {
-            let object = {
+            const payload = JSON.stringify({
                 botname: params.target.botname,
                 message: params
-            }
+            });
+
             wss.clients.forEach(function each(client) {
                 if (client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify(object));
+                    client.send(payload);
                 }
             });
         }

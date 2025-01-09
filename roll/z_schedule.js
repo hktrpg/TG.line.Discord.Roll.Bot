@@ -121,7 +121,7 @@ const rollDiceCommand = async function ({
             }
             const jobs = await agenda.agenda.jobs(
                 check
-            ).catch(error => console.error('agenda error: ', error.name, error.reson))
+            ).catch(error => console.error('agenda error: ', error.name, error.reason))
             rply.text = showJobs(jobs);
             if (userrole == 3 && botname == "Discord") {
                 rply.text = `\n本頻道列表\n\n${rply.text}`
@@ -131,7 +131,7 @@ const rollDiceCommand = async function ({
                 }
                 const jobs = await agenda.agenda.jobs(
                     check
-                ).catch(error => console.error('agenda error: ', error.name, error.reson))
+                ).catch(error => console.error('agenda error: ', error.name, error.reason))
                 rply.text = `本群組列表\n\n${showJobs(jobs)} \n\n${rply.text
                     } `;
             }
@@ -160,7 +160,7 @@ const rollDiceCommand = async function ({
             }
             const jobs = await agenda.agenda.jobs(
                 check
-            ).catch(error => console.error('agenda error: ', error.name, error.reson))
+            ).catch(error => console.error('agenda error: ', error.name, error.reason))
             try {
                 let data = jobs[Number(mainMsg[2]) - 1];
                 await jobs[Number(mainMsg[2]) - 1].remove();
@@ -189,7 +189,7 @@ const rollDiceCommand = async function ({
             }
             let checkGroupid = await schema.agendaAtHKTRPG.countDocuments(
                 check
-            ).catch(error => console.error('schedule  #171 mongoDB error: ', error.name, error.reson));
+            ).catch(error => console.error('schedule  #171 mongoDB error: ', error.name, error.reason));
             if (checkGroupid >= limit) {
                 rply.text = '.at 整個群組上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
                 return rply;
@@ -222,7 +222,7 @@ const rollDiceCommand = async function ({
             }
 
             let callBotname = differentPeformAt(botname);
-            await agenda.agenda.schedule(date, callBotname, { imageLink: roleName.imageLink, roleName: roleName.roleName, replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid }).catch(error => console.error('agenda error: ', error.name, error.reson))
+            await agenda.agenda.schedule(date, callBotname, { imageLink: roleName.imageLink, roleName: roleName.roleName, replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid }).catch(error => console.error('agenda error: ', error.name, error.reason))
             rply.text = `已新增排定內容\n將於${date.toString().replace(/:\d+\s.*/, '')}運行`
             return rply;
         }
@@ -249,7 +249,7 @@ const rollDiceCommand = async function ({
             }
             const jobs = await agenda.agenda.jobs(
                 check
-            ).catch(error => console.error('agenda error: ', error.name, error.reson))
+            ).catch(error => console.error('agenda error: ', error.name, error.reason))
             rply.text = showCronJobs(jobs);
             if (userrole == 3 && botname == "Discord") {
                 rply.text = `\n本頻道列表\n\n${rply.text}`
@@ -259,7 +259,7 @@ const rollDiceCommand = async function ({
                 }
                 const jobs = await agenda.agenda.jobs(
                     check
-                ).catch(error => console.error('agenda error: ', error.name, error.reson))
+                ).catch(error => console.error('agenda error: ', error.name, error.reason))
                 rply.text = `本群組列表\n\n${showCronJobs(jobs)} \n\n${rply.text
                     } `;
             }
@@ -324,7 +324,7 @@ const rollDiceCommand = async function ({
             }
             let checkGroupid = await schema.agendaAtHKTRPG.countDocuments(
                 check
-            ).catch(error => console.error('schedule #278 mongoDB error: ', error.name, error.reson));
+            ).catch(error => console.error('schedule #278 mongoDB error: ', error.name, error.reason));
             if (checkGroupid >= limit) {
                 rply.text = '.cron 整個群組上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
                 return rply;

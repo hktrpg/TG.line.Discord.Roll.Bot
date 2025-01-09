@@ -151,7 +151,7 @@ client.on('guildCreate', async guild => {
 	} catch (error) {
 		if (error.message === 'Missing Access') return;
 		if (error.message === 'Missing Permissions') return;
-		console.error('discord bot guildCreate  #114 error', (error && error.name), (error && error.message), (error && error.reson));
+		console.error('discord bot guildCreate  #114 error', (error && error.name), (error && error.message), (error && error.reason));
 	}
 })
 
@@ -160,7 +160,7 @@ client.on('interactionCreate', async message => {
 		if (message.user && message.user.bot) return;
 		return __handlingInteractionMessage(message);
 	} catch (error) {
-		console.error('discord bot interactionCreate #123 error', (error && error.name), (error && error.message), (error && error.reson));
+		console.error('discord bot interactionCreate #123 error', (error && error.name), (error && error.message), (error && error.reason));
 	}
 });
 
@@ -171,7 +171,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId })
 		.cache(30)
 		.catch(error => {
-			console.error('discord_bot #802 mongoDB error: ', error.name, error.reson)
+			console.error('discord_bot #802 mongoDB error: ', error.name, error.reason)
 			checkMongodb.dbErrOccurs();
 		})
 	try {
@@ -187,7 +187,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 			reaction.users.remove(user.id);
 		}
 	} catch (error) {
-		console.error('Discord bot messageReactionAdd #249 ', (error && error.name), (error && error.message), (error && error.reson))
+		console.error('Discord bot messageReactionAdd #249 ', (error && error.name), (error && error.message), (error && error.reason))
 	}
 
 });
@@ -195,7 +195,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 client.on('messageReactionRemove', async (reaction, user) => {
 	if (!checkMongodb.isDbOnline()) return;
 	if (reaction.me) return;
-	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('discord_bot #817 mongoDB error: ', error.name, error.reson))
+	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('discord_bot #817 mongoDB error: ', error.name, error.reason))
 	try {
 		if (!list || list.length === 0) return;
 		const detail = list.detail;
@@ -207,7 +207,7 @@ client.on('messageReactionRemove', async (reaction, user) => {
 		}
 	} catch (error) {
 		if (error.message === 'Unknown Member') return;
-		console.error('Discord bot messageReactionRemove #268 ', (error && error.name), (error && error.message), (error && error.reson))
+		console.error('Discord bot messageReactionRemove #268 ', (error && error.name), (error && error.message), (error && error.reason))
 	}
 });
 
@@ -469,7 +469,7 @@ async function nonDice(message) {
 			);
 		}
 	} catch (error) {
-		console.error('await #534 EXPUP error', (error && error.name), (error && error.message), (error && error.reson));
+		console.error('await #534 EXPUP error', (error && error.name), (error && error.message), (error && error.reason));
 	}
 	return null;
 }
@@ -568,7 +568,7 @@ function respawnCluster(err) {
 		try {
 			client.cluster.evalOnManager(`this.clusters.get(${client.cluster.id}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10000 });
 		} catch (error) {
-			console.error('respawnCluster #480 error', (error && error.name), (error && error.message), (error && error.reson));
+			console.error('respawnCluster #480 error', (error && error.name), (error && error.message), (error && error.reason));
 		}
 	}
 }
@@ -576,7 +576,7 @@ function respawnCluster2() {
 	try {
 		client.cluster.evalOnManager(`this.clusters.get(${client.cluster.id}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10000 });
 	} catch (error) {
-		console.error('respawnCluster2 error', (error && error.name), (error && error.message), (error && error.reson));
+		console.error('respawnCluster2 error', (error && error.name), (error && error.message), (error && error.reason));
 	}
 }
 
@@ -745,7 +745,7 @@ async function roleReact(channelid, message) {
 		for (let index = 0; index < detail.length; index++) {
 			sendMessage.react(detail[index].emoji);
 		}
-		await schema.roleReact.findByIdAndUpdate(message.roleReactMongooseId, { messageID: sendMessage.id }).catch(error => console.error('discord_bot #786 mongoDB error: ', error.name, error.reson))
+		await schema.roleReact.findByIdAndUpdate(message.roleReactMongooseId, { messageID: sendMessage.id }).catch(error => console.error('discord_bot #786 mongoDB error: ', error.name, error.reason))
 
 	} catch (error) {
 		await SendToReplychannel({ replyText: '不能成功增加ReAction, 請檢查你有授權HKTRPG 新增ReAction的權限, \n此為本功能必須權限', channelid });
@@ -795,7 +795,7 @@ async function checkWakeUp() {
 			//	else return true;
 		})
 		.catch(error => {
-			console.error(`disocrdbot #836 error `, (error && error.name), (error && error.message), (error && error.reson))
+			console.error(`disocrdbot #836 error `, (error && error.name), (error && error.message), (error && error.reason))
 			return false
 		});
 
@@ -834,7 +834,7 @@ async function getAllshardIds() {
 			所有啓動中的shard ping:   ${results[2].map(ele => ele.toFixed(0)).join(', ')}`
 		})
 		.catch(error => {
-			console.error(`disocrdbot #884 error `, (error && error.name), (error && error.message), (error && error.reson))
+			console.error(`disocrdbot #884 error `, (error && error.name), (error && error.message), (error && error.reason))
 		});
 
 }
@@ -1095,7 +1095,7 @@ async function handlingResponMessage(message, answer = '') {
 		};
 
 	} catch (error) {
-		console.error('handlingResponMessage Error: ', error, (error && error.name), (error && error.message), (error && error.reson))
+		console.error('handlingResponMessage Error: ', error, (error && error.name), (error && error.message), (error && error.reason))
 	}
 }
 const sendBufferImage = async (message, rplyVal, userid) => {
@@ -1238,13 +1238,13 @@ const connect = function () {
 			}
 		}
 		catch (error) {
-			console.error(`disocrdbot #99 error `, (error && error.name), (error && error.message), (error && error.reson))
+			console.error(`disocrdbot #99 error `, (error && error.name), (error && error.message), (error && error.reason))
 		};
 		return;
 
 	});
 	ws.on('error', (error) => {
-		console.error('Discord socket error', (error && error.name), (error && error.message), (error && error.reson));
+		console.error('Discord socket error', (error && error.name), (error && error.message), (error && error.reason));
 	});
 	ws.on('close', function () {
 		console.error('Discord socket close');
@@ -1418,7 +1418,7 @@ async function __handlingInteractionMessage(message) {
 				else {
 					const content = handlingCountButton(message, 'count');
 					return await message.update({ content: content })
-						.catch(error => console.error('discord bot #192  error: ', (error && (error.name || error.message || error.reson)), content));
+						.catch(error => console.error('discord bot #192  error: ', (error && (error.name || error.message || error.reason)), content));
 				}
 			}
 		default:

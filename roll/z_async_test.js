@@ -148,7 +148,7 @@ const rollDiceCommand = async function ({
 			let check = await schema.translateChannel.find({
 				groupid: groupid,
 				switch: true
-			}).countDocuments().catch(error => console.error('translate #111 mongoDB error: ', error.name, error.reson));
+			}).countDocuments().catch(error => console.error('translate #111 mongoDB error: ', error.name, error.reason));
 			let gpLv = await VIP.viplevelCheckGroup(groupid);
 			let limit = FUNCTION_LIMIT[gpLv];
 			if (check.length >= limit) {

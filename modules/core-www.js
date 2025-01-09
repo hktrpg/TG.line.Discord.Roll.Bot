@@ -190,12 +190,12 @@ io.on('connection', async (socket) => {
             userName: message.userName,
             password: SHA(message.userPassword)
         }
-        let doc = await schema.accountPW.findOne(filter).catch(error => console.error('www #144 mongoDB error: ', error.name, error.reson));
+        let doc = await schema.accountPW.findOne(filter).catch(error => console.error('www #144 mongoDB error: ', error.name, error.reason));
         let temp;
         if (doc && doc.id) {
             temp = await schema.characterCard.find({
                 id: doc.id
-            }).catch(error => console.error('www #149 mongoDB error: ', error.name, error.reson));
+            }).catch(error => console.error('www #149 mongoDB error: ', error.name, error.reason));
         }
         let id = [];
         if (doc && doc.channel) {
@@ -219,7 +219,7 @@ io.on('connection', async (socket) => {
                 temp
             })
         } catch (error) {
-            console.error('www #170 mongoDB error: ', error.name, error.reson)
+            console.error('www #170 mongoDB error: ', error.name, error.reason)
         }
 
     })
@@ -265,13 +265,13 @@ io.on('connection', async (socket) => {
                     "channel.id": message.rollTarget.id,
                     "channel.botname": message.rollTarget.botname
                 }
-                let result = await schema.accountPW.findOne(filter).catch(error => console.error('www #214 mongoDB error: ', error.name, error.reson));
+                let result = await schema.accountPW.findOne(filter).catch(error => console.error('www #214 mongoDB error: ', error.name, error.reason));
                 if (!result) return;
                 let filter2 = {
                     "botname": message.rollTarget.botname,
                     "id": message.rollTarget.id
                 }
-                let allowRollingResult = await schema.allowRolling.findOne(filter2).catch(error => console.error('www #220 mongoDB error: ', error.name, error.reson));
+                let allowRollingResult = await schema.allowRolling.findOne(filter2).catch(error => console.error('www #220 mongoDB error: ', error.name, error.reason));
                 if (!allowRollingResult) return;
                 rplyVal.text = '@' + message.cardName + ' - ' + message.item + '\n' + rplyVal.text;
                 if (message.rollTarget.botname) {
@@ -318,7 +318,7 @@ io.on('connection', async (socket) => {
             userName: message.userName,
             password: SHA(message.userPassword)
         }
-        let doc = await schema.accountPW.findOne(filter).catch(error => console.error('www #246 mongoDB error: ', error.name, error.reson));
+        let doc = await schema.accountPW.findOne(filter).catch(error => console.error('www #246 mongoDB error: ', error.name, error.reason));
         let temp;
         if (doc && doc.id) {
             message.card.state = checkNullItem(message.card.state);
@@ -334,7 +334,7 @@ io.on('connection', async (socket) => {
                     roll: message.card.roll,
                     notes: message.card.notes,
                 }
-            }).catch(error => console.error('www #262 mongoDB error: ', error.name, error.reson));
+            }).catch(error => console.error('www #262 mongoDB error: ', error.name, error.reason));
         }
         if (temp) {
             socket.emit('updateCard', true)

@@ -18,7 +18,7 @@ const translate = require('@vitalets/google-translate-api');
 
 async function getRecords() {
 	let result = await schema.translateChannel.find({
-	}).catch(error => console.error('translate #20 mongoDB error: ', error.name, error.reson))
+	}).catch(error => console.error('translate #20 mongoDB error: ', error.name, error.reason))
 	console.log('translateChannel channelList Got!')
 	if (result) channelList.push(...result);
 }

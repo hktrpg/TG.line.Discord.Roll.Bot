@@ -6,7 +6,7 @@ const DIYmode = (process.env.DIY) ? true : false;
 let viplevelCheckGroup = async function (groupID) {
     let rply = 0;
     if (!viplevel) {
-        viplevel = await schema.veryImportantPerson.find({}).catch(error => console.error('vip #8 mongoDB error: ', error.name, error.reson));
+        viplevel = await schema.veryImportantPerson.find({}).catch(error => console.error('vip #8 mongoDB error: ', error.name, error.reason));
     }
     let findGP = viplevel.find(function (item) {
         return item.gpid == groupID && item.switch !== false;
@@ -18,7 +18,7 @@ let viplevelCheckGroup = async function (groupID) {
 let viplevelCheckUser = async function (userid) {
     let rply = 0;
     if (!viplevel) {
-        viplevel = await schema.veryImportantPerson.find({}).catch(error => console.error('vip #20 mongoDB error: ', error.name, error.reson));
+        viplevel = await schema.veryImportantPerson.find({}).catch(error => console.error('vip #20 mongoDB error: ', error.name, error.reason));
     }
     let findUser = viplevel.find(function (item) {
         return item.id == userid && item.switch !== false; // 
@@ -30,7 +30,7 @@ let viplevelCheckUser = async function (userid) {
 async function renew() {
     if (!checkMongodb.isDbOnline()) return;
     viplevel = await schema.veryImportantPerson.find({}).catch(error => {
-        console.error('vip #30 mongoDB error: ', error.name, error.reson)
+        console.error('vip #30 mongoDB error: ', error.name, error.reason)
         checkMongodb.dbErrOccurs();
     });
 }

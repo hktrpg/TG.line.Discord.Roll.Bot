@@ -440,10 +440,10 @@ const rollDiceCommand = async function ({
             limit = FUNCTION_LIMIT[lv];
             checkUser = await schema.exportUser.findOne({
                 userID: userid
-            }).catch(error => console.error('export #372 mongoDB error: ', error.name, error.reson));
+            }).catch(error => console.error('export #372 mongoDB error: ', error.name, error.reason));
             checkGP = await schema.exportGp.findOne({
                 groupID: userid
-            }).catch(error => console.error('export #375 mongoDB error: ', error.name, error.reson));
+            }).catch(error => console.error('export #375 mongoDB error: ', error.name, error.reason));
             gpLimitTime = (lv > 0) ? oneMinuts : oneMinuts * 120;
             gpRemainingTime = (checkGP) ? theTime - checkGP.lastActiveAt - gpLimitTime : 1;
             userRemainingTime = (checkUser) ? theTime - checkUser.lastActiveAt - sevenDay : 1;
@@ -474,7 +474,7 @@ const rollDiceCommand = async function ({
                     groupID: userid
                 }, {
                     lastActiveAt: new Date()
-                }, opt).catch(error => console.error('export #408 mongoDB error: ', error.name, error.reson));
+                }, opt).catch(error => console.error('export #408 mongoDB error: ', error.name, error.reason));
             } else {
                 checkGP.lastActiveAt = theTime;
                 await checkGP.save();
@@ -494,7 +494,7 @@ const rollDiceCommand = async function ({
                 }, {
                     lastActiveAt: new Date(),
                     times: 1
-                }, opt).catch(error => console.error('export #428 mongoDB error: ', error.name, error.reson));
+                }, opt).catch(error => console.error('export #428 mongoDB error: ', error.name, error.reason));
             } else {
                 if (userRemainingTime && userRemainingTime > 0) {
                     update = {
@@ -512,7 +512,7 @@ const rollDiceCommand = async function ({
                 if (update)
                     await schema.exportUser.updateOne({
                         userID: userid
-                    }, update, opt).catch(error => console.error('export #446 mongoDB error: ', error.name, error.reson));
+                    }, update, opt).catch(error => console.error('export #446 mongoDB error: ', error.name, error.reason));
             }
             totalSize = M.totalSize;
             M = M.sum_messages;

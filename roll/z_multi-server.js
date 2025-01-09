@@ -79,7 +79,7 @@ const rollDiceCommand = async function ({
                 const num = rollbase.Dice(100000000);
                 const multiId = `${time}_${num}`
                 await schema.multiServer.findOneAndUpdate({ guildID: channel.guildId }, { channelid: mainMsg[2], multiId, guildID: channel.guildId, guildName: channel.guild.name, channelName: channel.name, botname }, { upsert: true }).catch(error => {
-                    console.error('multiserver #78 mongoDB error: ', error.name, error.reson)
+                    console.error('multiserver #78 mongoDB error: ', error.name, error.reason)
                     return
                 });
                 await multiServer.getRecords();
@@ -110,7 +110,7 @@ const rollDiceCommand = async function ({
                 let max = await schema.multiServer.find({ multiId: mainMsg[2] })
                 if (max.length >= 2) return;
                 await schema.multiServer.findOneAndUpdate({ guildID: channel.guildId }, { channelid: mainMsg[3], multiId: mainMsg[2], guildID: channel.guildId, guildName: channel.guild.name, channelName: channel.name, botname }, { upsert: true }).catch(error => {
-                    console.error('multiserver #93 mongoDB error: ', error.name, error.reson)
+                    console.error('multiserver #93 mongoDB error: ', error.name, error.reason)
                     return
                 });
                 await multiServer.getRecords();
@@ -124,7 +124,7 @@ const rollDiceCommand = async function ({
         case /^exit$/i.test(mainMsg[1]): {
             if (!mainMsg[2] && userrole == 3) {
                 await schema.multiServer.findOneAndRemove({ channelid: channelid }).catch(error => {
-                    console.error('multiserver #101 mongoDB error: ', error.name, error.reson)
+                    console.error('multiserver #101 mongoDB error: ', error.name, error.reason)
                     return
                 });
                 await multiServer.getRecords();
@@ -138,7 +138,7 @@ const rollDiceCommand = async function ({
                 const role = channel.permissionsFor(v).has(PermissionsBitField.Flags.ManageChannels)
                 if (!role) return;
                 await schema.multiServer.findOneAndRemove({ channelid: mainMsg[2] }).catch(error => {
-                    console.error('multiserver #112 mongoDB error: ', error.name, error.reson)
+                    console.error('multiserver #112 mongoDB error: ', error.name, error.reason)
                     return
                 });
                 await multiServer.getRecords();

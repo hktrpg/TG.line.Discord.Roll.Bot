@@ -1,0 +1,109 @@
+# 章節名稱
+== 章節1 ==
+
+// 顯示文本
+[text] 這是要顯示的故事文本
+
+// 能力值顯示
+[stat_show] hp
+[stat_show] mp,str,int
+
+// 除錯功能
+[debug] stats_show
+[debug] god_mode
+[debug] collision
+[debug] log "檢查點1"
+
+// 能力值修改
+[stat_modify] hp +10
+[stat_modify] mp -5
+[stat_modify] str *1.5
+
+// 選項分支
+[choice]
+-> 往左走 | goto_left
+-> 往右走 | goto_right
+-> 原地等待 | wait
+
+
+// 條件判斷
+[if] hp > 50
+    [choice]
+        -> 往左走 | goto_left
+        -> 往右走 | goto_right
+        -> 原地等待 | wait
+[else]
+    [choice]
+        -> 往左走 | goto_left
+        -> 往右走 | goto_right
+[endif]
+
+
+// 條件判斷
+[if] hp > 50
+    [text] 你感覺狀態很好
+[else]
+    [text] 你感覺不太妙
+[endif]
+
+// 擲骰
+[roll] 2d6 
+[roll] 1d20 + str
+
+
+
+
+// 跳轉標記
+[label] goto_left
+[text] 你選擇往左走...
+
+// global variable
+[var] total_score = 0
+[var] has_key = false
+[var] total_score = (stealth * 2) + (luck / 2)
+
+
+// 變數條件判斷
+[if] has_key == true
+    [text] 你可以開啟這扇門
+[endif]
+
+
+
+
+// 隨機事件
+[random_event] 30%
+    [text] 突然下起雨來...
+    [weather] rain
+[end_random]
+
+
+// 延遲執行
+[delay] 2000
+
+// 存檔點
+[save_point] checkpoint1
+[load_point] checkpoint1
+
+
+// 基礎顯示相關
+[image] background/forest.png
+[image_overlay] effects/fog.png 0.5
+[portrait] npc/orc_guard.png right
+[portrait] character/thief.png left
+[emote] surprised
+
+
+
+// 物品系統
+[item_add] key 1
+[item_description] key "一把鑰匙，打開某些門"
+[item_show] key
+[item_remove] key 1
+
+設計一個nodejs API 系統，使用JS 及mongoose，可以用以上格式來輸入劇本並進行遊戲, 使用考慮未來擴充功能的架構
+功能:
+以個人ID 或 頻道ID 或 GroupID 作為單位
+可以以以上格式新增劇本
+選擇劇本後, 開啓房間作為一場遊戲
+

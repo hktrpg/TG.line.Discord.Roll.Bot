@@ -233,38 +233,52 @@ const rolldice = async ({
 }
 
 function findRollList(mainMsg) {
-	// Return early if mainMsg is null/undefined or empty
-	if (!mainMsg || !Array.isArray(mainMsg) || mainMsg.length === 0) return;
+    if (!mainMsg?.length) return null;
 
-	// Check if first element matches pattern and shift if true
-	if (mainMsg[0] && mainMsg[0].match(/^\.(\d{1,2})$/)) {
-		mainMsg.shift();
-	}
+    if (mainMsg[0]?.match(/^\.(\d{1,2})$/)) {
+        mainMsg.shift();
+    }
 
-	// Set default empty string for mainMsg[1] if undefined
-	if (!mainMsg[1]) mainMsg[1] = '';
+    mainMsg[1] = mainMsg[1] || '';
 
-	const idList = Object.values(exports);
-	const findTarget = idList.find(item => {
-		if (item && item.prefixs && typeof item.prefixs === 'function') {
-			const prefixList = item.prefixs();
-			if (!Array.isArray(prefixList)) return false;
+    return Object.values(exports).find(item => {
+        try {
+            const prefixs = item?.prefixs?.();
+            if (!Array.isArray(prefixs)) return false;
 
-			return prefixList.some(prefix => {
-				// Check if mainMsg[0] exists and matches first prefix
-				if (!mainMsg || !mainMsg[0] || !prefix || !prefix.first) return false;
-				const firstMatch = mainMsg[0].match(prefix.first);
-				if (!firstMatch) return false;
+            return prefixs.some(({ first, second }) => {
+                if (!first || !mainMsg[0]) return false;
+                const firstMatch = mainMsg[0].match(first);
+                return firstMatch && (second === null || mainMsg[1]?.match(second));
+            });
+        } catch (err) {
+            console.error('findRollList error:', err);
+            return false;
+        }
+    });
+}
 
-				// Check second prefix if it exists
-				if (prefix.second === null) return true;
-				return mainMsg[1] && mainMsg[1].match(prefix.second);
-			});
-		}
-		return false;
-	});
+function z_stop(mainMsg, groupid) {
+    try {
+        const zStopData = exports.z_stop?.initialize()?.save;
+        if (!zStopData) return false;
 
-	return findTarget;
+        const groupInfo = zStopData.find(e => e.groupid === groupid);
+        if (!groupInfo?.blockfunction?.length) return false;
+
+        const isBlocked = groupInfo.blockfunction.some(func => 
+            mainMsg[0].toLowerCase().includes(func.toLowerCase())
+        );
+
+        if (isBlocked && debugMode) {
+            console.log('Command blocked by z_stop');
+        }
+
+        return isBlocked;
+    } catch (err) {
+        console.error('z_stop error:', err);
+        return false;
+    }
 }
 
 async function stateText() {
@@ -328,22 +342,6 @@ async function cmdfunction({
 		return tempResut;
 	}
 	return;
-}
-
-
-function z_stop(mainMsg, groupid) {
-	const zStopData = exports.z_stop.initialize().save;
-	if (!zStopData) return false;
-
-	const groupInfo = zStopData.find(e => e.groupid == groupid);
-	if (!groupInfo || !groupInfo.blockfunction) return false;
-
-	const match = groupInfo.blockfunction.find(e => mainMsg[0].toLowerCase().includes(e.toLowerCase()));
-	if (match) {
-		if (debugMode) console.log('Match AND STOP');
-		return true;
-	}
-	return false;
 }
 
 

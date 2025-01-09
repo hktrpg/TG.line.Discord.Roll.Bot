@@ -26,17 +26,17 @@ const client = new Client({
 	sweepers: {
 		...Options.DefaultSweeperSettings,
 		messages: {
-			interval: 1800, // Every hour...
-			lifetime: 900,	// Remove messages older than 30 minutes.
+			interval: 3600, // 每小時清理
+			lifetime: 1800, // 30分鐘後清理
 		},
 		users: {
-			interval: 1800, // Every hour...
-			lifetime: 900,	// Remove messages older than 30 minutes.
+			interval: 3600,
+			lifetime: 1800,
 			filter: () => null,
 		},
 		threads: {
-			interval: 1800, // Every hour...
-			lifetime: 900,	// Remove messages older than 30 minutes.
+			interval: 3600,
+			lifetime: 1800,
 		}
 	},
 	makeCache: Options.cacheWithLimits({
@@ -45,11 +45,11 @@ const client = new Client({
 		GuildBanManager: 0, // guild.bans
 		GuildInviteManager: 0, // guild.invites
 		GuildMemberManager: {
-			maxSize: 200,
+			maxSize: 100, // 減少成員快取
 			keepOverLimit: (member) => member.id === client.user.id,
 		}, // guild.members
 		GuildStickerManager: 0, // guild.stickers
-		MessageManager: 200, // channel.messages
+		MessageManager: 100, // 減少訊息快取
 		//PermissionOverwriteManager: 200, // channel.permissionOverwrites
 		PresenceManager: 0, // guild.presences
 		ReactionManager: 0, // message.reactions
@@ -57,7 +57,7 @@ const client = new Client({
 		StageInstanceManager: 0, // guild.stageInstances
 		ThreadManager: 0, // channel.threads
 		ThreadMemberManager: 0, // threadchannel.members
-		UserManager: 200, // client.users
+		UserManager: 100, // 減少訊息快取
 		VoiceStateManager: 0,// guild.voiceStates
 
 		//GuildManager: 200, // roles require guilds
@@ -110,17 +110,25 @@ let ws;
 client.on('messageCreate', async message => {
 	try {
 		if (message.author.bot) return;
-		if (!checkMongodb.isDbOnline() && checkMongodb.isDbRespawn()) {
-			//checkMongodb.discordClientRespawn(client, shardid)
+		
+		// 使用批次處理
+		const [dbStatus, result] = await Promise.all([
+			checkMongodb.isDbOnline(),
+			handlingResponMessage(message)
+		]);
+
+		if (!dbStatus && checkMongodb.isDbRespawn()) {
 			respawnCluster2();
 		}
-		const result = await handlingResponMessage(message);
+
 		await handlingMultiServerMessage(message);
-		if (result && result.text)
+
+		if (result?.text) {
 			return handlingSendMessage(result);
-		return;
+		}
+
 	} catch (error) {
-		console.error('discord bot messageCreate #91 error', error, (error && error.name && error.message) & error.stack);
+		console.error('Discord messageCreate error:', error?.message);
 	}
 
 });
@@ -324,7 +332,7 @@ async function convQuotes(text = "") {
 	let embed = new EmbedBuilder()
 		.setColor('#0099ff')
 		//.setTitle(rplyVal.title)
-		//.setURL('https://discord.js.org/')
+		//.setURL('https://www.patreon.com/HKTRPG')
 		.setAuthor({ name: 'HKTRPG', url: 'https://www.patreon.com/HKTRPG', iconURL: 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png' })
 	const imageMatch = text.match(imageUrl) || null;
 	if (imageMatch && imageMatch.length) {
@@ -697,23 +705,30 @@ async function repeatMessages(discord, message) {
 }
 async function manageWebhook(discord) {
 	try {
-		const channel = await client.channels.fetch(discord.channelId);
-		const isThread = channel && channel.isThread();
-		let webhooks = isThread ? await channel.guild.fetchWebhooks() : await channel.fetchWebhooks();
-		let webhook = webhooks.find(v => {
-			return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
-		})
-
-		//type Channel Follower
-		//'Incoming'
+		const channel = await client.channels.cache.get(discord.channelId) 
+			|| await client.channels.fetch(discord.channelId);
+		
+		if (!channel) return null;
+	
+		const isThread = channel.isThread();
+		const webhooks = await retryOperation(() => 
+			isThread ? channel.guild.fetchWebhooks() : channel.fetchWebhooks()
+		);
+	
+		let webhook = webhooks.find(v => 
+			(v.channelId == channel.parentId || v.channelId == channel.id) && v.token
+		);
+	
 		if (!webhook) {
 			const hooks = isThread ? await client.channels.fetch(channel.parentId) : channel;
-			await hooks.createWebhook({ name: "HKTRPG .me Function", avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" })
-			webhooks = await channel.fetchWebhooks();
-			webhook = webhooks.find(v => {
-				return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
-			})
+			webhook = await retryOperation(() => 
+				hooks.createWebhook({
+					name: "HKTRPG .me Function",
+					avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png"
+				})
+			);
 		}
+	
 		return { webhook, isThread };
 	} catch (error) {
 		//	console.error(error)

@@ -110,17 +110,25 @@ let ws;
 client.on('messageCreate', async message => {
 	try {
 		if (message.author.bot) return;
-		if (!checkMongodb.isDbOnline() && checkMongodb.isDbRespawn()) {
-			//checkMongodb.discordClientRespawn(client, shardid)
+
+		// 使用批次處理
+		const [dbStatus, result] = await Promise.all([
+			checkMongodb.isDbOnline(),
+			handlingResponMessage(message)
+		]);
+
+		if (!dbStatus && checkMongodb.isDbRespawn()) {
 			respawnCluster2();
 		}
-		const result = await handlingResponMessage(message);
+
 		await handlingMultiServerMessage(message);
-		if (result && result.text)
+
+		if (result?.text) {
 			return handlingSendMessage(result);
-		return;
+		}
+
 	} catch (error) {
-		console.error('discord bot messageCreate #91 error', error, (error && error.name && error.message) & error.stack);
+		console.error('Discord messageCreate error:', error?.message);
 	}
 
 });

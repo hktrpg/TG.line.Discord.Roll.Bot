@@ -41,7 +41,6 @@ class VIPManager {
         const vipInfo = this.vipCache?.find(item =>
             item[searchKey] === id && item.switch !== false
         );
-        console.log(vipInfo);
         return vipInfo?.level || 0;
     }
 }

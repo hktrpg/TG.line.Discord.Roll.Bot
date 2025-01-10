@@ -147,8 +147,8 @@ TGclient.on('text', async (ctx) => {
         return;
     if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Telegram")) {
         TGclient.sendMessage(userid, newMessage.firstTimeMessage()).catch((error) => {
-            console.log(error.code);  // => 'ETELEGRAM'
-            console.log(error.response.body); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
+            console.error(error.code);  // => 'ETELEGRAM'
+            console.error(error.response.body); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
         });
     }
 
@@ -229,8 +229,8 @@ function SendToId(targetid, text, options) {
         for (let i = 0; i < text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
             if (i == 0 || i == 1 || i == text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
                 TGclient.sendMessage(targetid, text.toString().match(/[\s\S]{1,2000}/g)[i], options).catch((error) => {
-                    console.log(error.code);  // => 'ETELEGRAM'
-                    console.log(error.response.body); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
+                    console.error(error.code);  // => 'ETELEGRAM'
+                    console.error(error.response.body); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
                 });
             }
         }
@@ -254,8 +254,8 @@ let connect = function () {
             if (!object.text) return;
             console.log('Telegram have message')
             TGclient.sendMessage(object.target.id, object.text).catch((error) => {
-                console.log(error.code);  // => 'ETELEGRAM'
-                console.log(error.response.body); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
+                console.error(error.code);  // => 'ETELEGRAM'
+                console.error(error.response.body); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
             });
             return;
         }

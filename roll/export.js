@@ -133,7 +133,7 @@ const rollDiceCommand = async function ({
         }
     }
 
-    async function lots_of_messages_getter_HTML(channel, demo) {
+    async function lots_of_messages_getter_HTML(channel, demo, members) {
         const sum_messages = [];
         let last_id;
         let totalSize = 0;
@@ -151,7 +151,7 @@ const rollDiceCommand = async function ({
             for (const element of messages.values()) {
                 let temp;
                 if (element.type === 0 || element.type === 19) {
-                    const content = await replaceMentions(element.content);
+                    const content = await replaceMentions(element.content, members);
                     temp = {
                         timestamp: element.createdTimestamp,
                         contact: content,
@@ -365,7 +365,8 @@ const rollDiceCommand = async function ({
 
 
             discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間');
-            M = await lots_of_messages_getter_HTML(C, demoMode);
+            const members = discordMessage.guild.members.cache.map(member => member);
+            M = await lots_of_messages_getter_HTML(C, demoMode, members);
             if (M.length == 0) {
                 rply.text = "未能讀取信息";
                 return rply;

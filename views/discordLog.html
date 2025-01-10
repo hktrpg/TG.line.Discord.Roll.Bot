@@ -112,6 +112,314 @@
             right: 35px;
         }
     }
+    /* 整體樣式優化 */
+    body {
+        margin-top: 2%;
+        background-color: #f5f6fa;
+        color: #2f3542;
+        font-family: 'Noto Sans TC', sans-serif;
+    }
+
+    /* 表格美化 */
+    table {
+        font-family: 'Noto Sans TC', sans-serif;
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100%;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    td, th {
+        border: none;
+        padding: 12px;
+        transition: all 0.3s ease;
+    }
+
+    th {
+        background-color: #3742fa;
+        color: white;
+        font-weight: 500;
+    }
+
+    tr:hover {
+        background-color: rgba(55, 66, 250, 0.05);
+    }
+
+    /* 卡片樣式改進 */
+    .color-01 {
+        background: linear-gradient(135deg, #f4e9c3 0%, #f1dc73 100%);
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        padding: 20px;
+        transition: transform 0.3s ease;
+    }
+
+    .color-02 {
+        background: linear-gradient(135deg, #bed7f0 0%, #76bff7 100%);
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        padding: 20px;
+        color: white;
+    }
+
+    /* 按鈕美化 */
+    .btn {
+        border-radius: 25px;
+        padding: 10px 25px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background: #3742fa;
+        border: none;
+        box-shadow: 0 4px 15px rgba(55, 66, 250, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(55, 66, 250, 0.4);
+    }
+
+    /* 文字輸入框美化 */
+    input[type=text], select {
+        border-radius: 25px;
+        border: 2px solid #dcdde1;
+        padding: 15px 25px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    input[type=text]:focus {
+        border-color: #3742fa;
+        box-shadow: 0 2px 15px rgba(55, 66, 250, 0.2);
+    }
+
+    /* 導航欄美化 */
+    .navbar {
+        box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        border-radius: 0 0 15px 15px;
+    }
+
+    /* 圖表容器美化 */
+    #tag {
+        background: rgb(255, 230, 230);
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    /* 進度條美化 */
+    .progress {
+        height: 10px !important;
+        border-radius: 5px;
+        background-color: #dcdde1;
+    }
+
+    .progress-bar {
+        background: linear-gradient(90deg, #3742fa 0%, #5352ed 100%);
+        border-radius: 5px;
+    }
+    /* 全域樣式優化 */
+    :root {
+        --primary-color: #3742fa;
+        --secondary-color: #ff6b6b;
+        --accent-color: #ffd93d;
+        --text-color: #2f3542;
+        --bg-color: #f5f6fa;
+    }
+
+    body {
+        margin-top: 2%;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        font-family: 'Noto Sans TC', sans-serif;
+        line-height: 1.6;
+    }
+
+    /* 卡片容器美化 */
+    .container-md {
+        padding: 2rem;
+    }
+
+    .row > div {
+        margin-bottom: 1.5rem;
+    }
+
+
+    .color-01:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    }
+
+
+
+    .color-02:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    }
+
+    /* 按鈕樣式改進 */
+    .btn {
+        border-radius: 50px;
+        padding: 12px 30px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn:after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -2;
+    }
+
+    .btn:before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0%;
+        height: 100%;
+        background-color: rgba(255,255,255,0.2);
+        transition: all .3s;
+        z-index: -1;
+    }
+
+    .btn:hover:before {
+        width: 100%;
+    }
+
+    /* 導航欄美化 */
+    .navbar {
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        border-radius: 0 0 20px 20px;
+    }
+
+    .nav-link {
+        position: relative;
+        padding: 8px 15px;
+        margin: 0 5px;
+        transition: all 0.3s ease;
+    }
+
+    .nav-link:before {
+        content: "";
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: 0;
+        left: 0;
+        background-color: var(--primary-color);
+        transition: all 0.3s ease;
+    }
+
+    .nav-link:hover:before {
+        width: 100%;
+    }
+
+    /* 表格設計優化 */
+    .table {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+
+    .table thead th {
+        background-color: var(--primary-color);
+        color: white;
+        font-weight: 500;
+        border: none;
+        padding: 15px;
+    }
+
+    .table td {
+        padding: 15px;
+        border: none;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .table tbody tr:hover {
+        background-color: rgba(55,66,250,0.03);
+    }
+
+    /* 圖表容器美化 */
+    canvas {
+        border-radius: 12px;
+        padding: 10px;
+        background: #87cbff
+    }
+
+    /* 搜尋框美化 */
+    input[type="text"], 
+    input[type="password"] {
+        border-radius: 50px;
+        padding: 15px 25px;
+        border: 2px solid transparent;
+        background: white;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+
+    input[type="text"]:focus,
+    input[type="password"]:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 4px 20px rgba(55,66,250,0.15);
+        outline: none;
+    }
+
+    /* 進度條美化 */
+    .progress {
+        height: 8px !important;
+        border-radius: 4px;
+        background-color: rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+
+    /* 統計數字動畫 */
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+
+    /* 捲動條美化 */
+    ::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 5px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 5px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #2f3542;
+    }
 </style>
 
 <head>

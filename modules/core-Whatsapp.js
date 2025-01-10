@@ -230,7 +230,7 @@ async function processMessage(msg, groupInfo) {
 			TargetGMTempdisplayname.push(item.displayname);
 		})
 	}
-	return { rplyVal, privatemsg, displayname, groupid, TargetGMTempID, TargetGMTempdiyName, TargetGMTempdisplayname, userid, client };
+	return { rplyVal, privatemsg, displayname, groupid, TargetGMTempID, TargetGMTempdiyName, TargetGMTempdisplayname, userid };
 }
 
 async function handleReply(result, msg, client) {

@@ -6,6 +6,7 @@
         text-align: center;
     }
 
+
     table {
         font-family: arial, sans-serif;
         border-collapse: collapse;
@@ -207,7 +208,7 @@
     #tag {
         background: rgb(255, 230, 230);
         border-radius: 12px;
-        padding: 15px;
+        
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
 
@@ -1169,127 +1170,136 @@
         });
     </script>
     <script>
-        function drawWordCloud(newData) {
-            d3.select("#tag").select("svg").remove();
+    function drawWordCloud(newData) {
+    d3.select("#tag").select("svg").remove();
 
-            if (!newData || newData.length === 0) {
-                console.log('No data for word cloud');
-                return;
+    if (!newData || newData.length === 0) {
+        console.log('No data for word cloud');
+        return;
+    }
+
+    const fill = d3.scaleOrdinal(d3.schemeCategory10);
+    const margin = { top: 20, right: 20, bottom: 20, left: 20 };
+    const containerWidth = document.getElementById("tag").offsetWidth;
+    const cloudw = Math.min(containerWidth - margin.left - margin.right, 350);
+    const cloudH = 250 - margin.top - margin.bottom;
+
+    const text = newData
+        .filter(data => !data.isbot)
+        .map(data => data.contact)
+        .join(' ');
+
+    call_jieba_cut(text, function (_result) {
+        const wordFreq = {};
+        _result.forEach(s => {
+            if (s.length >= 2) {
+                wordFreq[s] = (wordFreq[s] || 0) + 1;
             }
+        });
 
-            const fill = d3.scaleOrdinal(d3.schemeCategory10);
-            const containerWidth = document.getElementById("tag").offsetWidth;
-            const cloudw = Math.min(containerWidth, 350);
-            const cloudH = 250;
+        const words = Object.entries(wordFreq)
+            .filter(([key]) =>
+                key.match(/^\S\S/) &&
+                !key.match(/^\d+$/) &&
+                key.length <= 8)
+            .map(([text, freq]) => ({
+                text,
+                freq,
+                score: Math.log(freq + 1)
+            }))
+            .sort((a, b) => b.freq - a.freq)
+            .slice(0, 100)
+            .map((item, index) => ({
+                text: item.text,
+                size: Math.max(60 - index * 0.4, 30),
+                freq: item.freq
+            }));
 
-            const text = newData
-                .filter(data => !data.isbot)
-                .map(data => data.contact)
-                .join(' ');
+        const layout = d3.layout.cloud()
+            .size([cloudw, cloudH])
+            .words(words)
+            .padding(0)  // 增加間距
+            .rotate(() => (~~(Math.random() * 3) - 1) * 30)
+            .fontSize(d => d.size)
+            .spiral('archimedean')
+            .random(() => 0.5)
+            .on("end", draw);
 
-            call_jieba_cut(text, function (_result) {
-                const wordFreq = {};
-                _result.forEach(s => {
-                    if (s.length >= 2) {
-                        wordFreq[s] = (wordFreq[s] || 0) + 1;
-                    }
+        layout.start();
+
+        function draw(words) {
+            // 創建具有邊距的 SVG
+            const svg = d3.select("#tag")
+                .append("svg")
+                .attr("width", cloudw + margin.left + margin.right)
+                .attr("height", cloudH + margin.top + margin.bottom)
+                .style("display", "block")  // 確保 SVG 是塊級元素
+                .style("margin", "auto");   // 使 SVG 居中
+
+            // 創建一個考慮邊距的容器
+            const container = svg.append("g")
+                .attr("transform", `translate(${(cloudw + margin.left + margin.right)/2},${(cloudH + margin.top + margin.bottom)/2})`);
+
+            const texts = container.selectAll("text")
+                .data(words)
+                .enter()
+                .append("text")
+                .style("font-size", d => `${d.size}px`)
+                .style("font-family", "'Microsoft JhengHei', 'Noto Sans TC', sans-serif")
+                .style("fill", (d, i) => fill(i))
+                .attr("text-anchor", "middle")
+                .attr("transform", d => `translate(${d.x},${d.y}) rotate(${d.rotate || 0})`)
+                .text(d => d.text)
+                .style("cursor", "pointer")
+                .style("opacity", 0);
+
+            // 添加漸入動畫
+            texts.transition()
+                .duration(800)
+                .delay((d, i) => i * 50)
+                .style("opacity", 1);
+
+            // 互動效果
+            texts.each(function () {
+                const text = d3.select(this);
+                const originalColor = text.style("fill");
+                const originalSize = text.style("font-size");
+
+                text.on("pointerenter", function (event, d) {
+                    const element = d3.select(this);
+                    element
+                        .transition()
+                        .duration(200)
+                        .style("font-size", `${d.size * 1.2}px`)
+                        .style("fill", "#ff4757");
+
+                    // 添加提示文字
+                    container.append("text")
+                        .attr("class", "tooltip")
+                        .attr("text-anchor", "middle")
+                        .attr("x", 0)
+                        .attr("y", cloudH/2 + 20)  // 調整位置到底部
+                        .style("font-size", "12px")
+                        .style("fill", "#666")
+                        .text(`出現次數: ${d.freq}`);
                 });
 
-                const words = Object.entries(wordFreq)
-                    .filter(([key]) =>
-                        key.match(/^\S\S/) &&
-                        !key.match(/^\d+$/) &&
-                        key.length <= 8)
-                    .map(([text, freq]) => ({
-                        text,
-                        freq,
-                        score: Math.log(freq + 1)
-                    }))
-                    .sort((a, b) => b.freq - a.freq)
-                    .slice(0, 80)  // 增加到80個詞
-                    .map((item, index) => ({
-                        text: item.text,
-                        size: Math.max(40 - index * 0.4, 12),  // 調整字體大小範圍
-                        freq: item.freq
-                    }));
+                text.on("pointerleave", function () {
+                    const element = d3.select(this);
+                    element
+                        .transition()
+                        .duration(200)
+                        .style("font-size", originalSize)
+                        .style("fill", originalColor);
 
-                const layout = d3.layout.cloud()
-                    .size([cloudw, cloudH])
-                    .words(words)
-                    .padding(1)  // 減少間距
-                    .rotate(() => (~~(Math.random() * 3) - 1) * 30)
-                    .fontSize(d => d.size)
-                    .spiral('archimedean')
-                    .on("end", draw);
-
-                layout.start();
-
-                function draw(words) {
-                    const svg = d3.select("#tag")
-                        .append("svg")
-                        .attr("width", cloudw)
-                        .attr("height", cloudH)
-                        .append("g")
-                        .attr("transform", `translate(${cloudw / 2},${cloudH / 2})`);
-
-                    const texts = svg.selectAll("text")
-                        .data(words)
-                        .enter()
-                        .append("text")
-                        .style("font-size", d => `${d.size}px`)
-                        .style("font-family", "'Microsoft JhengHei', 'Noto Sans TC', sans-serif")
-                        .style("fill", (d, i) => fill(i))
-                        .attr("text-anchor", "middle")
-                        .attr("transform", d => `translate(${d.x},${d.y}) rotate(${d.rotate || 0})`)
-                        .text(d => d.text)
-                        .style("cursor", "pointer")
-                        .style("opacity", 0);
-
-                    texts.transition()
-                        .duration(800)
-                        .delay((d, i) => i * 50)
-                        .style("opacity", 1);
-
-                    texts.each(function () {
-                        const text = d3.select(this);
-                        const originalColor = text.style("fill");
-
-                        text.on("pointerenter", function (event, d) {
-                            const element = d3.select(this);
-                            element
-                                .transition()
-                                .duration(200)
-                                .style("font-size", `${d.size * 1.2}px`)
-                                .style("fill", "#ff4757");  // 懸停時變為紅色
-
-                            svg.append("text")
-                                .attr("class", "tooltip")
-                                .attr("x", d.x)
-                                .attr("y", d.y + 20)
-                                .attr("text-anchor", "middle")
-                                .attr("transform", `translate(${d.x},${d.y + 20})`)
-                                .style("font-size", "12px")
-                                .style("fill", "#666")
-                                .text(`出現次數: ${d.freq}`);
-                        });
-
-                        text.on("pointerleave", function (event, d) {
-                            const element = d3.select(this);
-                            element
-                                .transition()
-                                .duration(200)
-                                .style("font-size", `${d.size}px`)
-                                .style("fill", originalColor);  // 恢復原始顏色
-
-                            svg.selectAll(".tooltip").remove();
-                        });
-                    });
-                }
-
-                document.getElementById("myNav").style.display = "none";
+                    container.selectAll(".tooltip").remove();
+                });
             });
         }
-    </script>
+
+        document.getElementById("myNav").style.display = "none";
+    });
+}   </script>
 
 
 

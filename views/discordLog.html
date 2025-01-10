@@ -862,88 +862,122 @@
     </script>
     <script>
         function drawWordCloud(newData) {
-            // 先清除現有的 word cloud
             d3.select("#tag").select("svg").remove();
 
-            // 確保有資料
             if (!newData || newData.length === 0) {
                 console.log('No data for word cloud');
                 return;
             }
 
-            // 設定基本參數
-            let fill = d3.scaleOrdinal(d3.schemeCategory10);
-            let cloudw = 350;  // 固定寬度
-            let cloudH = 250;  // 固定高度
+            const fill = d3.scaleOrdinal(d3.schemeCategory10);
+            const containerWidth = document.getElementById("tag").offsetWidth;
+            const cloudw = Math.min(containerWidth, 350);
+            const cloudH = 250;
 
-            // 收集文字
-            let text = newData
+            const text = newData
                 .filter(data => !data.isbot)
                 .map(data => data.contact)
                 .join(' ');
 
-            // 使用 jieba 分詞
             call_jieba_cut(text, function (_result) {
-                let wordFreq = {};
-                _result.forEach(function (s) {
-                    wordFreq[s] = (wordFreq[s] || 0) + 1;
+                const wordFreq = {};
+                _result.forEach(s => {
+                    if (s.length >= 2) {
+                        wordFreq[s] = (wordFreq[s] || 0) + 1;
+                    }
                 });
 
-                // 轉換成陣列格式
-                let words = Object.keys(wordFreq)
-                    .filter(key => key.match(/^\S\S/) && !key.match(/^\d+$/))
-                    .map(key => ({
-                        text: key,
-                        freq: wordFreq[key]
+                const words = Object.entries(wordFreq)
+                    .filter(([key]) =>
+                        key.match(/^\S\S/) &&
+                        !key.match(/^\d+$/) &&
+                        key.length <= 8)
+                    .map(([text, freq]) => ({
+                        text,
+                        freq,
+                        score: Math.log(freq + 1)
                     }))
-                    .sort((b, a) => a.freq - b.freq)
-                    .slice(0, 50)  // 限制顯示前50個詞
+                    .sort((a, b) => b.freq - a.freq)
+                    .slice(0, 80)  // 增加到80個詞
                     .map((item, index) => ({
                         text: item.text,
-                        size: Math.max(40 - index * 0.5, 12)  // 調整字體大小範圍
+                        size: Math.max(40 - index * 0.4, 12),  // 調整字體大小範圍
+                        freq: item.freq
                     }));
 
-                // 創建 word cloud layout
-                let layout = d3.layout.cloud()
+                const layout = d3.layout.cloud()
                     .size([cloudw, cloudH])
                     .words(words)
-                    .padding(3)
-                    .rotate(() => ~~(Math.random() * 2) * 90)
+                    .padding(1)  // 減少間距
+                    .rotate(() => (~~(Math.random() * 3) - 1) * 30)
                     .fontSize(d => d.size)
+                    .spiral('archimedean')
                     .on("end", draw);
 
-                // 開始生成
                 layout.start();
 
-                // 繪製 word cloud
                 function draw(words) {
-                    let svg = d3.select("#tag").append("svg")
+                    const svg = d3.select("#tag")
+                        .append("svg")
                         .attr("width", cloudw)
                         .attr("height", cloudH)
                         .append("g")
                         .attr("transform", `translate(${cloudw / 2},${cloudH / 2})`);
 
-                    svg.selectAll("text")
+                    const texts = svg.selectAll("text")
                         .data(words)
-                        .enter().append("text")
+                        .enter()
+                        .append("text")
                         .style("font-size", d => `${d.size}px`)
-                        .style("font-family", "Microsoft JhengHei, sans-serif")
+                        .style("font-family", "'Microsoft JhengHei', 'Noto Sans TC', sans-serif")
                         .style("fill", (d, i) => fill(i))
                         .attr("text-anchor", "middle")
-                        .attr("transform", d => `translate(${d.x},${d.y})rotate(${d.rotate})`)
+                        .attr("transform", d => `translate(${d.x},${d.y}) rotate(${d.rotate || 0})`)
                         .text(d => d.text)
                         .style("cursor", "pointer")
-                        .on("mouseover", function () {
-                            d3.select(this)
-                                .style("opacity", 0.7);
-                        })
-                        .on("mouseout", function () {
-                            d3.select(this)
-                                .style("opacity", 1);
+                        .style("opacity", 0);
+
+                    texts.transition()
+                        .duration(800)
+                        .delay((d, i) => i * 50)
+                        .style("opacity", 1);
+
+                    texts.each(function () {
+                        const text = d3.select(this);
+                        const originalColor = text.style("fill");
+
+                        text.on("pointerenter", function (event, d) {
+                            const element = d3.select(this);
+                            element
+                                .transition()
+                                .duration(200)
+                                .style("font-size", `${d.size * 1.2}px`)
+                                .style("fill", "#ff4757");  // 懸停時變為紅色
+
+                            svg.append("text")
+                                .attr("class", "tooltip")
+                                .attr("x", d.x)
+                                .attr("y", d.y + 20)
+                                .attr("text-anchor", "middle")
+                                .attr("transform", `translate(${d.x},${d.y + 20})`)
+                                .style("font-size", "12px")
+                                .style("fill", "#666")
+                                .text(`出現次數: ${d.freq}`);
                         });
+
+                        text.on("pointerleave", function (event, d) {
+                            const element = d3.select(this);
+                            element
+                                .transition()
+                                .duration(200)
+                                .style("font-size", `${d.size}px`)
+                                .style("fill", originalColor);  // 恢復原始顏色
+
+                            svg.selectAll(".tooltip").remove();
+                        });
+                    });
                 }
 
-                // 隱藏loading
                 document.getElementById("myNav").style.display = "none";
             });
         }

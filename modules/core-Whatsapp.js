@@ -164,6 +164,7 @@ async function processMessage(msg, groupInfo) {
 		groupid = groupInfo.id;
 		membercount = groupInfo.memberCount;
 	}
+	
 	if (mainMsg && mainMsg[0]) {
 		trigger = mainMsg[0].toString().toLowerCase();
 	}
@@ -205,7 +206,7 @@ async function processMessage(msg, groupInfo) {
 	if (trigger == ".me" || trigger == ".mee") {
 		displaynamecheck = false;
 	}
-
+	console.log('groupInfo', groupid, membercount);
 	if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 		mainMsg.shift();
 		rplyVal = await exports.analytics.parseInput({

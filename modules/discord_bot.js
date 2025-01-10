@@ -497,23 +497,29 @@ function __privateMsg({ trigger, mainMsg, inputStr }) {
 
 
 async function count() {
-	if (!client.cluster) return;
-	const promises = [
-		client.cluster.fetchClientValues('guilds.cache.size'),
-		client.cluster
-			.broadcastEval(c => c.guilds.cache.filter((guild) => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0))
-	];
-	return Promise.all(promises)
-		.then(results => {
-			const totalGuilds = results[0].reduce((acc, guildCount) => acc + guildCount, 0);
-			const totalMembers = results[1].reduce((acc, memberCount) => acc + memberCount, 0);
-			return (`正在運行HKTRPG的Discord 群組數量: ${totalGuilds}\nDiscord 會員數量: ${totalMembers}`);
-		})
-		.catch(err => {
-			console.error(`disocrdbot #596 error ${err}`)
-		});
+    if (!client.cluster) return '';
+    
+    try {
+        const [guildSizes, memberCounts] = await Promise.all([
+            client.cluster.fetchClientValues('guilds.cache.size'),
+            client.cluster.broadcastEval(c => 
+                c.guilds.cache
+                    .filter(guild => guild.available)
+                    .reduce((acc, guild) => acc + guild.memberCount, 0)
+            )
+        ]);
 
+        const totalGuilds = guildSizes.reduce((acc, count) => acc + count, 0);
+        const totalMembers = memberCounts.reduce((acc, count) => acc + count, 0);
+
+        return `群組總數: ${totalGuilds.toLocaleString()}
+│ 　• 會員總數: ${totalMembers.toLocaleString()}`;
+    } catch (err) {
+        console.error(`Discord統計錯誤: ${err}`);
+        return '無法獲取統計資料';
+    }
 }
+
 async function count2() {
 	if (!client.cluster) return '🌼bothelp | hktrpg.com🍎';
 	const promises = [
@@ -809,27 +815,95 @@ function z_stop(mainMsg, groupid) {
 
 const discordPresenceStatus = ['online', 'idle', 'invisible', 'do not disturb']
 async function getAllshardIds() {
-	if (!client.cluster) {
-		return;
-	}
-	const promises = [
-		[...client.cluster.ids.keys()],
-		client.cluster.broadcastEval(c => c.ws.status),
-		client.cluster.broadcastEval(c => c.ws.ping),
-		client.cluster.id,
+    if (!client.cluster) return '';
 
-	];
-	return Promise.all(promises)
-		.then(results => {
-			return `\n現在的shard ID: ${results[3]}
-			所有啓動中的shard ID:   ${results[0].join(", ")} 
-			所有啓動中的shard online:   ${results[1].map(ele => discordPresenceStatus[ele]).join(', ').replace(/online/g, '在線')} 
-			所有啓動中的shard ping:   ${results[2].map(ele => ele.toFixed(0)).join(', ')}`
-		})
-		.catch(error => {
-			console.error(`disocrdbot #884 error `, (error && error.name), (error && error.message), (error && error.reason))
-		});
+    try {
+        const [shardIds, wsStatus, wsPing, clusterId] = await Promise.all([
+            [...client.cluster.ids.keys()],
+            client.cluster.broadcastEval(c => c.ws.status),
+            client.cluster.broadcastEval(c => c.ws.ping),
+            client.cluster.id
+        ]);
 
+        const statusMap = {
+            'online': '✅在線',
+            'idle': '⚠️閒置',
+            'dnd': '🔴勿擾',
+            'offline': '❌離線',
+            'invisible': '⚫隱身'
+        };
+
+        const groupSize = 5;
+        const formatNumber = num => num.toLocaleString();
+
+        // 轉換狀態和延遲
+        const onlineStatus = wsStatus.map(status => 
+            statusMap[discordPresenceStatus[status]] || status);
+        const pingTimes = wsPing.map(ping => {
+            const p = Math.round(ping);
+            return p > 1000 ? `❌${formatNumber(p)}` : 
+                   p > 500 ? `⚠️${formatNumber(p)}` : 
+                   formatNumber(p);
+        });
+
+        // 分組函數
+        const groupArray = (arr, size) => arr.reduce((acc, curr, i) => {
+            const groupIndex = Math.floor(i / size);
+            (acc[groupIndex] = acc[groupIndex] || []).push(curr);
+            return acc;
+        }, []);
+
+        // 格式化分組
+        const formatGroup = (groupedData, isStatus = false) => {
+            return groupedData.map((group, index) => {
+                const start = index * groupSize;
+                const end = Math.min((index + 1) * groupSize - 1, groupedData.flat().length - 1);
+                const range = `${start}-${end}`;
+
+                if (isStatus) {
+                    const hasNonOnline = group.some(status => !status.includes('✅'));
+                    const prefix = hasNonOnline ? '❗' : '│';
+                    return `${prefix} 　• 群組${range}　${group.join(", ")}`;
+                }
+                return `│ 　• 群組${range}　${group.join(", ")}`;
+            }).join('\n');
+        };
+
+        const groupedIds = groupArray(shardIds, groupSize);
+        const groupedStatus = groupArray(onlineStatus, groupSize);
+        const groupedPing = groupArray(pingTimes, groupSize);
+
+        // 統計摘要
+        const totalShards = onlineStatus.length;
+        const onlineCount = onlineStatus.filter(s => s.includes('✅')).length;
+
+        return `
+├────── 🔄分流狀態 ──────
+│ 概況統計:
+│ 　• 目前分流: ${clusterId}
+│ 　• 分流總數: ${totalShards}
+│ 　• 在線分流: ${onlineCount}
+│
+├────── 🔍分流列表 ──────
+│ 已啟動分流:
+${formatGroup(groupedIds)}
+│
+├────── ⚡連線狀態 ──────
+│ 各分流狀態:
+${formatGroup(groupedStatus, true)}
+│
+├────── 📊延遲統計 ──────
+│ 響應時間(ms):
+${formatGroup(groupedPing)}
+╰──────────────`;
+    } catch (error) {
+        console.error('Discord分流監控錯誤:', error);
+        return `
+├────── ⚠️錯誤信息 ──────
+│ 無法獲取分流狀態
+│ 請稍後再試
+╰──────────────`;
+    }
 }
 
 async function handlingButtonCreate(message, input) {
@@ -1040,10 +1114,24 @@ async function handlingResponMessage(message, answer = '') {
 			}
 
 		if (rplyVal.state) {
-			rplyVal.text += '\n' + await count();
-			rplyVal.text += '\nPing: ' + Number(Date.now() - message.createdTimestamp) + 'ms';
-			rplyVal.text += await getAllshardIds();
+			const [countResult, shardResult] = await Promise.all([
+				count(),
+				getAllshardIds()
+			]);
+
+			const ping = Number(Date.now() - message.createdTimestamp);
+			const pingStatus = ping > 1000 ? '❌' : ping > 500 ? '⚠️' : '✅';
+
+			rplyVal.text += `
+			【📊 Discord統計資訊】
+			╭────── 🌐使用統計 ──────
+			│ 群組數據:
+			│ 　• ${countResult}
+			│ 連線延遲:
+			│ 　• ${pingStatus} ${ping}ms
+			${shardResult}`;
 		}
+
 
 		if (groupid && rplyVal && rplyVal.LevelUp) {
 			await SendToReplychannel({ replyText: `<@${userid}>\n${rplyVal.LevelUp}`, channelid });

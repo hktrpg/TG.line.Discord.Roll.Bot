@@ -268,21 +268,50 @@ function findRollList(mainMsg) {
 }
 
 async function stateText() {
-	let state = await getState() || '';
-	if (!Object.keys(state).length || !state.LogTime) return;
-	let text = "";
-	text = '系統開始紀錄時間: ' + state.StartTime.replace(' GMT+0800 (Hong Kong Standard Time)', '');
-	text += '\n 現在時間: ' + state.LogTime.replace(' GMT+0800 (GMT+08:00)', '');
-	text += '\n Line總擲骰次數: ' + state.LineCountRoll;
-	text += '\n Discord總擲骰次數: ' + state.DiscordCountRoll;
-	text += '\n Telegram總擲骰次數: ' + state.TelegramCountRoll;
-	text += '\n Whatsapp總擲骰次數: ' + state.WhatsappCountRoll;
-	text += '\n 網頁版總擲骰次數: ' + state.WWWCountRoll;
-	text += '\n 使用經驗值功能的群組: ' + await schema.trpgLevelSystem.countDocuments({ Switch: '1' }).catch(error => console.error('analytics #266 mongoDB error: ', error.name, error.reason));
-	text += '\n 已新增的角色卡: ' + await schema.characterCard.countDocuments({}).catch(error => console.error('analytics #267 mongoDB error: ', error.name, error.reason));
-	text += '\n HKTRPG使用者數量: ' + await schema.firstTimeMessage.countDocuments({}).catch(error => console.error('analytics #268 mongoDB error: ', error.name, error.reason));
-	text += '\n 擲骰系統使用的隨機方式: random-js nodeCrypto';
-	return text;
+    let state = await getState() || '';
+    if (!Object.keys(state).length || !state.LogTime) return;
+
+    const cleanDateTime = (dateStr) => dateStr
+        .replace(' GMT+0800 (Hong Kong Standard Time)', '')
+        .replace(' GMT+0800 (GMT+08:00)', '');
+
+    const formatNumber = (num) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+    // 使用 Promise.all 同時獲取所有統計數據
+    const [levelSystemCount, characterCardCount, userCount] = await Promise.all([
+        schema.trpgLevelSystem.countDocuments({ Switch: '1' })
+            .catch(error => console.error('analytics #266 mongoDB error: ', error.name, error.reason)),
+        schema.characterCard.countDocuments({})
+            .catch(error => console.error('analytics #267 mongoDB error: ', error.name, error.reason)),
+        schema.firstTimeMessage.countDocuments({})
+            .catch(error => console.error('analytics #268 mongoDB error: ', error.name, error.reason))
+    ]);
+
+    return `【📊 HKTRPG系統狀態報告】
+╭────── ⏰時間資訊 ──────
+│ 系統啟動:
+│ 　• ${cleanDateTime(state.StartTime)}
+│ 現在時間:
+│ 　• ${cleanDateTime(state.LogTime)}
+│
+├────── 🎲擲骰統計 ──────
+│ 各平台使用次數:
+│ 　• Line　　 ${formatNumber(state.LineCountRoll)}
+│ 　• Discord　${formatNumber(state.DiscordCountRoll)}
+│ 　• Telegram ${formatNumber(state.TelegramCountRoll)}
+│ 　• Whatsapp ${formatNumber(state.WhatsappCountRoll)}
+│ 　• 網頁版　 ${formatNumber(state.WWWCountRoll)}
+│
+├────── 📊系統數據 ──────
+│ 功能使用統計:
+│ 　• 經驗值群組 ${formatNumber(levelSystemCount)}
+│ 　• 角色卡數量 ${formatNumber(characterCardCount)}
+│ 　• 使用者總數 ${formatNumber(userCount)}
+│
+├────── ⚙️系統資訊 ──────
+│ 隨機數生成:
+│ 　• random-js	• nodeCrypto
+╰──────────────`;
 }
 
 

@@ -62,13 +62,6 @@ const {
 const isImageURL = require('image-url-validator').default;
 const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)$/i);
 const MESSAGE_SPLITOR = (/\S+/ig);
-// Path where the session data will be stored
-const SESSION_FILE_PATH = './modules/whatsapp-session.json';
-
-// Load the session data if it has been previously saved
-let sessionData;
-const maxRetry = 6;
-let retry = 0;
 
 async function startUp() {
   try {
@@ -257,11 +250,11 @@ async function processMessage(msg, groupInfo) {
 			TargetGMTempdisplayname.push(item.displayname);
 		})
 	}
-	return { rplyVal, privatemsg, displayname, groupid, TargetGMTempID, TargetGMTempdiyName, TargetGMTempdisplayname, userid };
+	return { rplyVal, privatemsg, displayname, groupid, TargetGMTempID, TargetGMTempdiyName, TargetGMTempdisplayname, userid, displaynamecheck };
 }
 
 async function handleReply(result, msg, client) {
-	const { rplyVal, privatemsg, displayname, groupid, TargetGMTempID, TargetGMTempdiyName, TargetGMTempdisplayname, userid } = result;
+	const { rplyVal, privatemsg, displayname, groupid, TargetGMTempID, TargetGMTempdiyName, TargetGMTempdisplayname, userid, displaynamecheck } = result;
 	switch (true) {
 		case privatemsg == 1:
 			if (groupid) {

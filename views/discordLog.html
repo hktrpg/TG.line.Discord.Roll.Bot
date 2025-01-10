@@ -417,21 +417,87 @@
                 }]*/
         let aesData = [];
 
-        function getDAesString(encrypted, key, iv) { //解密
-            let keyy = CryptoJS.enc.Utf8.parse(key);
-            let ivv = CryptoJS.enc.Utf8.parse(iv.slice(0, 16));
-            let decrypted = CryptoJS.AES.decrypt(encrypted, keyy, {
-                iv: ivv,
-                mode: CryptoJS.mode.CBC,
-                padding: CryptoJS.pad.Pkcs7
-            });
-            return decrypted.toString(CryptoJS.enc.Utf8);
+        function lightDecrypt(encryptedStr, key) {
+            try {
+                // 如果輸入是空的或不是字串，直接返回
+                if (!encryptedStr || typeof encryptedStr !== 'string') {
+                    console.error('Invalid input data');
+                    return null;
+                }
+
+                // 確保金鑰長度正確
+                const normalizedKey = key.padEnd(16, key).slice(0, 16);
+
+                // 建立固定的 IV
+                const iv = CryptoJS.lib.WordArray.create(new Uint8Array(16));
+
+                // 準備金鑰
+                const keyWords = CryptoJS.enc.Utf8.parse(normalizedKey);
+
+                // 解密
+                const decrypted = CryptoJS.AES.decrypt(
+                    encryptedStr,
+                    keyWords,
+                    {
+                        iv: iv,
+                        mode: CryptoJS.mode.CBC,
+                        padding: CryptoJS.pad.Pkcs7
+                    }
+                );
+
+                // 將解密後的數據轉換為 UTF-8 字串
+                const jsonStr = decrypted.toString(CryptoJS.enc.Utf8);
+
+                // 解析 JSON
+                const minData = JSON.parse(jsonStr);
+
+                // 還原完整的數據結構
+                return minData.map(item => ({
+                    timestamp: item.t,
+                    contact: item.c,
+                    userName: item.u,
+                    isbot: item.b
+                }));
+            } catch (e) {
+                console.error('Decryption failed:', e);
+                return null;
+            }
         }
 
-        function getDAes(key, iv, data) { //解密
-            let decryptedStr = getDAesString(data, key, iv);
-            return decryptedStr;
+        function reNew() {
+            const key = document.getElementById("passw0rd").value;
+            if (!key || key.length < 4) {
+                alert('請輸入至少4個字元的密碼');
+                return;
+            }
+
+            const newAesData = lightDecrypt(aesData, key);
+            if (!newAesData) {
+                alert('解密失敗，請確認密碼是否正確');
+                return;
+            }
+
+            // 更新視圖
+            newAesData.sort((a, b) => a.timestamp - b.timestamp);
+
+            if (!isMobile) {
+                drawWordCloud(newAesData);
+            }
+            totallyMessage.reNewTotallyMessage(newAesData);
+            averageMessage.reNewAaverageMessage(newAesData);
+            totallyDate.reNewtotallyDate(newAesData);
+            analysicDateVue.reNewanalysicDate(newAesData);
+            appMain.reNewappMain(newAesData);
+            drawTop6DataChart(newAesData);
+            drawAlluserChart(newAesData);
+
+            const analysicdate = analysicDate(newAesData);
+            analysicdate.sort((b, a) => a.number - b.number);
+            allDateforChart3 = JSON.parse(JSON.stringify(analysicdate));
+            drawallDateforChart3();
         }
+
+
 
         let demoData = [{
             timestamp: 340875548000,
@@ -527,38 +593,6 @@
             drawTop6DataChart(demoData);
             drawAlluserChart(demoData);
             analysicdate = analysicDate(demoData)
-            analysicdate.sort(function (b, a) {
-                return a.number - b.number;
-            });
-            allDateforChart3 = JSON.parse(JSON.stringify(analysicdate));
-            drawallDateforChart3();
-        }
-
-        function reNew() {
-            let key = document.getElementById("passw0rd").value;
-            if (key.length < 4) return;
-            while (key.length < 32) {
-                key += key;
-                if (key.length > 32) {
-                    key = key.slice(0, 32)
-                }
-            }
-            let newAesData = JSON.parse(getDAes(key, key, aesData));
-            if (!Array.isArray(newAesData)) return;
-            newAesData.sort(function (a, b) {
-                return a.timestamp - b.timestamp;
-            });
-            if (isMobile == false) {
-                drawWordCloud(newAesData);
-            }
-            totallyMessage.reNewTotallyMessage(newAesData);
-            averageMessage.reNewAaverageMessage(newAesData);
-            totallyDate.reNewtotallyDate(newAesData);
-            analysicDateVue.reNewanalysicDate(newAesData);
-            appMain.reNewappMain(newAesData);
-            drawTop6DataChart(newAesData);
-            drawAlluserChart(newAesData);
-            analysicdate = analysicDate(newAesData)
             analysicdate.sort(function (b, a) {
                 return a.number - b.number;
             });
@@ -830,7 +864,7 @@
         function drawWordCloud(newData) {
             // 先清除現有的 word cloud
             d3.select("#tag").select("svg").remove();
-            
+
             // 確保有資料
             if (!newData || newData.length === 0) {
                 console.log('No data for word cloud');
@@ -887,7 +921,7 @@
                         .attr("width", cloudw)
                         .attr("height", cloudH)
                         .append("g")
-                        .attr("transform", `translate(${cloudw/2},${cloudH/2})`);
+                        .attr("transform", `translate(${cloudw / 2},${cloudH / 2})`);
 
                     svg.selectAll("text")
                         .data(words)
@@ -899,11 +933,11 @@
                         .attr("transform", d => `translate(${d.x},${d.y})rotate(${d.rotate})`)
                         .text(d => d.text)
                         .style("cursor", "pointer")
-                        .on("mouseover", function() {
+                        .on("mouseover", function () {
                             d3.select(this)
                                 .style("opacity", 0.7);
                         })
-                        .on("mouseout", function() {
+                        .on("mouseout", function () {
                             d3.select(this)
                                 .style("opacity", 1);
                         });

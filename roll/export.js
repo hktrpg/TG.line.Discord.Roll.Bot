@@ -7,7 +7,7 @@ let variables = {};
 const oneMinuts = (process.env.DEBUG) ? 1 : 60000;
 const sevenDay = (process.env.DEBUG) ? 1 : 60 * 24 * 7 * 60000;
 const checkTools = require('../modules/check.js');
-
+const crypto = require('crypto');
 const gameName = function () {
     return '【Discord 頻道輸出工具】'
 }
@@ -406,17 +406,20 @@ const rollDiceCommand = async function ({
                     await fs.mkdir(dir);
             }
             data = await fs.readFile(__dirname + '/../views/discordLog.html', 'utf-8')
-            let key = makeid(32);
+            // 在 rollDiceCommand 中使用
+            let key = makeid(16); // 使用16位元的金鑰
             let randomLink = makeid(7);
-            let newAESDate = AES(key, key, JSON.stringify(newRawDate));
-            //aesData = [];
-            newValue = data.replace(/aesData\s=\s\[\]/, 'aesData = ' + JSON.stringify(newAESDate.toString('base64'))).replace(/<h1>聊天紀錄<\/h1>/, '<h1>' + channelName + ' 的聊天紀錄</h1>');
+            let encryptedData = lightEncrypt(newRawDate, key);
+            newValue = data.replace(/aesData\s=\s\[\]/,
+                'aesData = "' + encryptedData + '"')
+                .replace(/<h1>聊天紀錄<\/h1>/,
+                    '<h1>' + channelName + ' 的聊天紀錄</h1>');
             let tempB = key;
             const writeStream = createWriteStream(dir + channelid + '_' + hour + minutes + seconds + '_' + randomLink + '.html');
             const contentStream = new stream.Readable();
             contentStream.push(newValue);
             contentStream.push(null);
-            
+
             await pipeline(
                 contentStream,
                 writeStream
@@ -594,7 +597,6 @@ function getAesString(data, key, iv) { //加密
 
 
 function AES(key, iv, data) {
-    let crypto = require('crypto');
     let algo = "aes-256-cbc"; // we are using 128 bit here because of the 16 byte key. use 256 is the key is 32 byte.
     let cipher = crypto.createCipheriv(algo, Buffer.from(key, 'utf-8'), iv.slice(0, 16));
     // let encrypted = cipher.update(data, 'utf-8', 'base64'); // `base64` here represents output encoding
@@ -608,6 +610,45 @@ function getAES(key, iv, data) { //加密
     //    let encrypted1 = CryptoJS.enc.Utf8.parse(encrypted);
     return encrypted;
 }
+
+function generateKey() {
+    // 生成16字節的隨機密鑰
+    return crypto.randomBytes(16).toString('hex');
+}
+
+
+function lightEncrypt(data, key) {
+    try {
+        const iv = Buffer.alloc(16, 0);
+        const cipher = crypto.createCipheriv('aes-128-cbc',
+            Buffer.from(key.slice(0, 16)),
+            iv);
+
+        // 壓縮數據並轉換為字串
+        const minData = data.map(item => ({
+            t: item.timestamp,
+            c: item.contact,
+            u: item.userName,
+            b: item.isbot
+        }));
+        const jsonString = JSON.stringify(minData);
+
+        // 加密數據
+        const encrypted = Buffer.concat([
+            cipher.update(jsonString, 'utf8'),
+            cipher.final()
+        ]);
+
+        // 轉換為 base64
+        return encrypted.toString('base64');
+    } catch (e) {
+        console.error('Encryption error:', e);
+        throw e;
+    }
+}
+
+
+
 
 function makeid(length) {
     let result = '';

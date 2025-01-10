@@ -90,7 +90,6 @@ async function startUp() {
         
         // 基本訊息處理
         const chatDetail = await client.getChatById(msg.from);
-		console.log('chatDetail', chatDetail);
         const groupInfo = chatDetail.isGroup ? {
           id: chatDetail.id._serialized,
           memberCount: chatDetail.participants.length - 1
@@ -207,7 +206,6 @@ async function processMessage(msg, groupInfo) {
 	if (trigger == ".me" || trigger == ".mee") {
 		displaynamecheck = false;
 	}
-	console.log('groupInfo', groupid, membercount);
 	if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 		mainMsg.shift();
 		rplyVal = await exports.analytics.parseInput({

@@ -482,7 +482,7 @@ if (isMaster) {
     wss.on('connection', function connection(ws) {
         ws.on('message', function incoming(message) {
             try {
-               // console.log('received:', message);
+                console.log('received: %s', message);
             } catch (err) {
                 console.error('WebSocket message error:', err);
             }

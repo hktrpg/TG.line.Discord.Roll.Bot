@@ -127,10 +127,37 @@ async function startUp() {
         msg.reply(newMessage.joinMessage());
     });
 
-    setupAgenda();
+    setupAgenda(client);
   } catch (err) {
     console.error('[WhatsApp StartUp Error]', err);
   }
+}
+
+function setupAgenda(client) {
+  if (!agenda || !agenda.agenda) return;
+  
+  agenda.agenda.define("scheduleAtMessageWhatsapp", async (job) => {
+    try {
+      const { groupid, replyText } = job.attrs.data;
+      await SendToId(groupid, { text: replyText }, client);
+      await job.remove();
+    } catch (err) {
+      console.error("Schedule Error:", err);
+    }
+  });
+
+  agenda.agenda.define("scheduleCronMessageWhatsapp", async (job) => {
+    try {
+      const { groupid, replyText, createAt } = job.attrs.data;
+      await SendToId(groupid, { text: replyText }, client);
+      if ((new Date(Date.now()) - createAt) >= SIX_MONTH) {
+        await job.remove();
+        await SendToId(groupid, { text: "已運行六個月, 移除此定時訊息" }, client);
+      }
+    } catch (err) {
+      console.error("Schedule Error:", err);
+    }
+  });
 }
 
 async function processMessage(msg, groupInfo) {
@@ -278,33 +305,6 @@ async function handleReply(result, msg, client) {
 				await SendToReply(msg, rplyVal);
 			break;
 	}
-}
-
-function setupAgenda() {
-	if (!agenda || !agenda.agenda) return;
-	
-	agenda.agenda.define("scheduleAtMessageWhatsapp", async (job) => {
-		try {
-			const { groupid, replyText } = job.attrs.data;
-			await SendToId(groupid, { text: replyText }, client);
-			await job.remove();
-		} catch (err) {
-			console.error("Schedule Error:", err);
-		}
-	});
-
-	agenda.agenda.define("scheduleCronMessageWhatsapp", async (job) => {
-		try {
-			const { groupid, replyText, createAt } = job.attrs.data;
-			await SendToId(groupid, { text: replyText }, client);
-			if ((new Date(Date.now()) - createAt) >= SIX_MONTH) {
-				await job.remove();
-				await SendToId(groupid, { text: "已運行六個月, 移除此定時訊息" }, client);
-			}
-		} catch (err) {
-			console.error("Schedule Error:", err);
-		}
-	});
 }
 
 async function SendDR(msg, text) {

@@ -123,7 +123,7 @@
         integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <!-- production version, optimized for size and speed -->
-    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.5/d3.layout.cloud.min.js"
         integrity="sha512-HjKxWye8lJGPu5q1u/ZYkHlJrJdm6KGr89E6tOrXeKm1mItb1xusPU8QPcKVhP8F9LjpZT7vsu1Fa+dQywP4eg=="
@@ -372,13 +372,13 @@
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
         integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous">
-    </script>
+        </script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
         integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous">
-    </script>
+        </script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
         integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous">
-    </script>
+        </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.js"
         integrity="sha512-QEiC894KVkN9Tsoi6+mKf8HaCLJvyA6QIRzY5KrfINXYuP9NxdIkRQhGq3BZi0J4I7V5SidGM3XUQ5wFiMDuWg=="
         crossorigin="anonymous"></script>
@@ -496,13 +496,11 @@
             }
         })
         let md = new MobileDetect(window.navigator.userAgent);
-        let isMobile = true;
-        if (!md.mobile() && !md.phone() && !md.tablet()) {
-            isMobile = false;
-        }
+        let isMobile = !!md.mobile() || !!md.phone() || !!md.tablet();
 
-        let switchLoading = (isMobile) ? false : true;
-        if (switchLoading) {
+        // 修改顯示邏輯
+        if (!isMobile) {
+            document.getElementById("wordCloud").style.display = "block";
             document.getElementById("myNav").style.display = "block";
         } else {
             document.getElementById("wordCloud").style.display = "none";
@@ -644,7 +642,7 @@
                     top3Date.forEach((e, i) => {
                         temptop3Date = e.date.toString().match(/^(\d\d\d\d)(\d\d)(\d\d)/)
                         top3Date[i].date = [temptop3Date[1], '年', temptop3Date[2], '月',
-                            temptop3Date[3], '日'
+                        temptop3Date[3], '日'
                         ].join('');
                     })
                     this.messages = top3Date
@@ -830,87 +828,90 @@
     </script>
     <script>
         function drawWordCloud(newData) {
-            //文字雲/關鍵字，及字型大小（這邊只放三個）
+            // 先清除現有的 word cloud
+            d3.select("#tag").select("svg").remove();
+            
+            // 確保有資料
+            if (!newData || newData.length === 0) {
+                console.log('No data for word cloud');
+                return;
+            }
+
+            // 設定基本參數
             let fill = d3.scaleOrdinal(d3.schemeCategory10);
-            //取得呈現處的寬、高
-            let cloudw = parseInt(d3.select("#tag").style("width"), 10);
-            let cloudH = parseInt(d3.select("#tag").style("height"), 10);
-            let text = "";
-            (newData || rawData).forEach(Data => {
-                if (Data.isbot == false) {
-                    text += Data.contact + ' ';
-                }
-            })
-            let wordFreq = {};
-            let resultJieba = call_jieba_cut(text, function (_result) {
+            let cloudw = 350;  // 固定寬度
+            let cloudH = 250;  // 固定高度
+
+            // 收集文字
+            let text = newData
+                .filter(data => !data.isbot)
+                .map(data => data.contact)
+                .join(' ');
+
+            // 使用 jieba 分詞
+            call_jieba_cut(text, function (_result) {
+                let wordFreq = {};
                 _result.forEach(function (s) {
-                    wordFreq[s] ? wordFreq[s]++ : wordFreq[s] = 1;
+                    wordFreq[s] = (wordFreq[s] || 0) + 1;
                 });
 
-                let wordFreqNew = Object.keys(wordFreq).map((key) => {
-                    return {
+                // 轉換成陣列格式
+                let words = Object.keys(wordFreq)
+                    .filter(key => key.match(/^\S\S/) && !key.match(/^\d+$/))
+                    .map(key => ({
                         text: key,
                         freq: wordFreq[key]
-                    }
-                });
+                    }))
+                    .sort((b, a) => a.freq - b.freq)
+                    .slice(0, 50)  // 限制顯示前50個詞
+                    .map((item, index) => ({
+                        text: item.text,
+                        size: Math.max(40 - index * 0.5, 12)  // 調整字體大小範圍
+                    }));
 
-                let wordFreqNew2 = wordFreqNew.filter((key) => {
-                    return (key.text.match(/^\S\S/) && !key.text.toString().match(/^\d+$/))
-                });
-                wordFreqNew2.sort(function (b, a) {
-                    return a.freq - b.freq;
-                });
+                // 創建 word cloud layout
+                let layout = d3.layout.cloud()
+                    .size([cloudw, cloudH])
+                    .words(words)
+                    .padding(3)
+                    .rotate(() => ~~(Math.random() * 2) * 90)
+                    .fontSize(d => d.size)
+                    .on("end", draw);
 
-                let wordFreqNew3 = wordFreqNew2.map((key, index) => {
-                    return {
-                        text: key.text,
-                        size: (60 - index) > 1 ? (60 - index) : 1
-                    }
-                });
+                // 開始生成
+                layout.start();
 
-                d3.layout.cloud().size([cloudw, cloudH])
-                    .words(wordFreqNew3)
-                    .padding(2)
-                    .rotate(function () {
-                        return ~~((Math.random() * 6) - 3) * 30
-                    })
-                    .fontSize(function (d) {
-                        return d.size;
-                    })
-                    .on("end", draw)
-                    .start();
+                // 繪製 word cloud
+                function draw(words) {
+                    let svg = d3.select("#tag").append("svg")
+                        .attr("width", cloudw)
+                        .attr("height", cloudH)
+                        .append("g")
+                        .attr("transform", `translate(${cloudw/2},${cloudH/2})`);
+
+                    svg.selectAll("text")
+                        .data(words)
+                        .enter().append("text")
+                        .style("font-size", d => `${d.size}px`)
+                        .style("font-family", "Microsoft JhengHei, sans-serif")
+                        .style("fill", (d, i) => fill(i))
+                        .attr("text-anchor", "middle")
+                        .attr("transform", d => `translate(${d.x},${d.y})rotate(${d.rotate})`)
+                        .text(d => d.text)
+                        .style("cursor", "pointer")
+                        .on("mouseover", function() {
+                            d3.select(this)
+                                .style("opacity", 0.7);
+                        })
+                        .on("mouseout", function() {
+                            d3.select(this)
+                                .style("opacity", 1);
+                        });
+                }
+
+                // 隱藏loading
                 document.getElementById("myNav").style.display = "none";
             });
-
-            function draw(words) {
-                d3.select("#tag").select("svg").remove();
-                d3.select("#tag").append("svg")
-                    .attr("width", cloudw)
-                    .attr("height", cloudH)
-                    .append("g")
-                    .attr("transform", "translate(" + cloudw / 2 + "," + cloudH / 2 + ")")
-                    .selectAll("text")
-                    .data(words)
-                    .enter().append("text")
-                    .transition()
-                    .duration(800)
-                    .style("font-size", function (d) {
-                        return d.size + "px";
-                    })
-                    .style("font-family", "Microsoft JhengHei")
-                    .style("cursor", 'pointer')
-                    .style("fill", function (d, i) {
-                        return fill(i);
-                    })
-                    .attr("text-anchor", "middle")
-                    .attr("transform", function (d) {
-                        return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
-                    })
-                    .text(function (d) {
-                        return d.text;
-                    })
-
-            }
         }
     </script>
 
@@ -1113,19 +1114,18 @@
                                 sampleSize: 100
                             },
                             afterBuildTicks: function (scale, ticks) {
-                                if (!tick) {
+                                if (!ticks || ticks.length === 0) {
                                     return;
                                 }
                                 let majorUnit = scale._majorUnit;
                                 let firstTick = ticks[0];
-                                let curri, ilen, val, tick, currMajor, lastMajor;
+                                let val, currMajor, lastMajor;
 
-                                val = moment(ticks[0].value);
+                                val = moment(firstTick.value);
                                 if ((majorUnit === 'minute' && val.second() === 0) ||
                                     (majorUnit === 'hour' && val.minute() === 0) ||
                                     (majorUnit === 'day' && val.hour() === 9) ||
-                                    (majorUnit === 'month' && val.date() <= 3 && val.isoWeekday() ===
-                                        1) ||
+                                    (majorUnit === 'month' && val.date() <= 3 && val.isoWeekday() === 1) ||
                                     (majorUnit === 'year' && val.month() === 0)) {
                                     firstTick.major = true;
                                 } else {
@@ -1133,8 +1133,8 @@
                                 }
                                 lastMajor = val.get(majorUnit);
 
-                                for (curri = 1, ilen = ticks.length; curri < ilen; curri++) {
-                                    tick = ticks[curri];
+                                for (let curri = 1, ilen = ticks.length; curri < ilen; curri++) {
+                                    let tick = ticks[curri];
                                     val = moment(tick.value);
                                     currMajor = val.get(majorUnit);
                                     tick.major = currMajor !== lastMajor;

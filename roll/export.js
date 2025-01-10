@@ -29,6 +29,10 @@ const FUNCTION_LIMIT = (process.env.DEBUG) ? [99, 99, 99, 40, 40, 99, 99, 99] : 
  */
 const schema = require('../modules/schema.js');
 const fs = require('fs').promises;
+const stream = require('stream');
+const { promisify } = require('util');
+const pipeline = promisify(stream.pipeline);
+const { createWriteStream } = require('fs');
 const moment = require('moment-timezone');
 const CryptoJS = require("crypto-js");
 const gameType = function () {
@@ -284,8 +288,6 @@ const rollDiceCommand = async function ({
             rply.quotes = true;
             return rply;
         case /^html$/i.test(mainMsg[1]):
-            rply.text = "功能暫停，請先使用TXT版 .discord txt"
-            return rply;
             if (!channelid || !groupid) {
                 rply.text = "這是頻道功能，需要在頻道上使用。"
                 return rply;
@@ -410,7 +412,16 @@ const rollDiceCommand = async function ({
             //aesData = [];
             newValue = data.replace(/aesData\s=\s\[\]/, 'aesData = ' + JSON.stringify(newAESDate.toString('base64'))).replace(/<h1>聊天紀錄<\/h1>/, '<h1>' + channelName + ' 的聊天紀錄</h1>');
             let tempB = key;
-            await fs.writeFile(dir + channelid + '_' + hour + minutes + seconds + '_' + randomLink + '.html', newValue); // need to be in an async function
+            const writeStream = createWriteStream(dir + channelid + '_' + hour + minutes + seconds + '_' + randomLink + '.html');
+            const contentStream = new stream.Readable();
+            contentStream.push(newValue);
+            contentStream.push(null);
+            
+            await pipeline(
+                contentStream,
+                writeStream
+            );
+
             rply.discordExportHtml = [
                 tempA + '_' + randomLink,
                 tempB
@@ -520,15 +531,18 @@ const rollDiceCommand = async function ({
                 return a.timestamp - b.timestamp;
             });
             let withouttime = (/-withouttime/i).test(inputStr);
-            //加不加時間標記下去
+            const writeStream = createWriteStream(dir + channelid + '_' + hour + minutes + seconds + '.txt');
+            const contentStream = new stream.Readable();
+
             for (let index = M.length - 1; index >= 0; index--) {
+                let line = '';
                 if (withouttime) {
                     if (M[index].isbot) {
-                        data += '(🤖)'
+                        line += '(🤖)';
                     }
-                    data += M[index].userName + '	' + '\n';
-                    data += M[index].contact;
-                    data += '\n\n';
+                    line += M[index].userName + '\t\n';
+                    line += M[index].contact;
+                    line += '\n\n';
                 } else {
                     let time = M[index].timestamp.toString().slice(0, -3);
                     const dateObj = moment
@@ -536,23 +550,23 @@ const rollDiceCommand = async function ({
                         .tz('Asia/Taipei')
                         .format('YYYY-MM-DD HH:mm:ss');
                     if (M[index].isbot) {
-                        data += '(🤖)'
+                        line += '(🤖)';
                     }
-                    //dateObj  決定有沒有時間
-                    data += M[index].userName + '	' + dateObj + '\n';
-                    data += (M[index].contact) ? (M[index].contact) + '\n' : '';
-                    data += (M[index].embeds.length) ? `${M[index].embeds.join('\n')}` : '';
-                    data += (M[index].attachments.length) ? `${M[index].attachments.join('\n')}` : '';
-                    data += '\n';
+                    line += M[index].userName + '\t' + dateObj + '\n';
+                    line += (M[index].contact) ? (M[index].contact) + '\n' : '';
+                    line += (M[index].embeds.length) ? `${M[index].embeds.join('\n')}` : '';
+                    line += (M[index].attachments.length) ? `${M[index].attachments.join('\n')}` : '';
+                    line += '\n';
                 }
+                contentStream.push(line);
             }
-            try {
-                await fs.access(dir)
-            } catch (error) {
-                if (error && error.code === 'ENOENT')
-                    await fs.mkdir(dir);
-            }
-            await fs.writeFile(dir + channelid + '_' + hour + minutes + seconds + '.txt', data); // need to be in an async function
+            contentStream.push(null);
+
+            await pipeline(
+                contentStream,
+                writeStream
+            );
+
             rply.discordExport = channelid + '_' + hour + minutes + seconds;
             rply.text += `已私訊你 頻道  ${discordMessage.channel.name}  的聊天紀錄
                 你的channel聊天紀錄 共有  ${totalSize}  項`

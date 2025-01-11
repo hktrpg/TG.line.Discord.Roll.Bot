@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-Hant-HK">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css">
+    <title>錯誤頁面 @ HKTRPG</title>
+    <link rel="icon" href="https://avatars2.githubusercontent.com/u/48795428?s=280&v=4" />
+    <style>
+        body {
+            background-color: #212529;
+            /* 深色背景 */
+            color: #ffffff;
+            /* 白色文字 */
+        }
+
+        .error-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .error-code {
+            font-size: 6rem;
+            font-weight: bold;
+        }
+
+        .btn-home,
+        .btn-help {
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+
+        .btn-home:hover,
+        .btn-help:hover {
+            background-color: #007bff;
+            /* 主題色 */
+        }
+
+        .logo {
+            width: 150px;
+            /* Logo 大小 */
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div id="header"></div>
+    </header>
+
+    <div class="error-container">
+        <img src="https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png"
+            alt="HKTRPG Logo" class="logo">
+        <div class="error-code">404</div>
+        <h1>找不到頁面</h1>
+        <p>抱歉，我們找不到您要尋找的內容。請檢查網址或返回首頁。</p>
+        <a href="https://wiki.hktrpg.com" class="btn btn-primary btn-home">返回首頁</a>
+        <a href="https://bothelp.hktrpg.com" class="btn btn-secondary btn-help">使用教學</a>
+    </div>
+
+    <footer>
+        <div id="footer"></div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+        $(function () {
+            $("#header").load("header.html");
+            $("#footer").load("footer.html");
+        });
+    </script>
+</body>
+
+</html>

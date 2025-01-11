@@ -28,7 +28,7 @@ let options = {
 // Rate Limiter 整合
 const rateLimitConfig = {
     chatRoom: { points: 90, duration: 60 },
-    card: { points: 20, duration: 60 }, 
+    card: { points: 20, duration: 60 },
     api: { points: 10000, duration: 10 }
 };
 
@@ -169,6 +169,23 @@ www.get('/publiccard', (req, res) => {
 });
 www.get('/signal', (req, res) => {
     res.sendFile(process.cwd() + '/views/signalToNoise.html');
+});
+
+app.get('/log/:filename', (req, res) => {
+    const filename = req.params.filename;
+    const filePath = path.join(process.cwd(), 'tmp', filename);
+
+    // 檢查文件擴展名是否為 .html
+    if (path.extname(filename) === '.html') {
+        res.sendFile(filePath, (err) => {
+            if (err) {
+                // 如果文件未找到，顯示 error.html
+                res.status(err.status).sendFile(path.join(__dirname, 'includes', 'error.html'));
+            }
+        });
+    } else {
+        res.status(400).sendFile(path.join(__dirname, 'includes', 'error.html'));
+    }
 });
 
 

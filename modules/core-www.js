@@ -171,7 +171,7 @@ www.get('/signal', (req, res) => {
     res.sendFile(process.cwd() + '/views/signalToNoise.html');
 });
 
-app.get('/log/:filename', (req, res) => {
+www.get('/log/:filename', (req, res) => {
     const filename = req.params.filename;
     const filePath = path.join(process.cwd(), 'tmp', filename);
 

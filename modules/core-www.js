@@ -7,6 +7,7 @@ const www = express();
 const {
     RateLimiterMemory
 } = require('rate-limiter-flexible');
+const path = require('path'); 
 const candle = require('../modules/candleDays.js');
 const MESSAGE_SPLITOR = (/\S+/ig)
 const schema = require('./schema.js');

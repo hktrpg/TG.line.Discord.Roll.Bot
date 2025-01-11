@@ -7,7 +7,8 @@ const www = express();
 const {
     RateLimiterMemory
 } = require('rate-limiter-flexible');
-const LOGLINK = (process.env.LOGLINK) ? process.env.LOGLINK : null;
+//const loglink = (LOGLINK) ? LOGLINK + '/tmp/' : process.cwd() + '/tmp/';
+const LOGLINK = (process.env.LOGLINK) ? process.env.LOGLINK + '/tmp/' : process.cwd() + '/tmp/';
 const candle = require('../modules/candleDays.js');
 const MESSAGE_SPLITOR = (/\S+/ig)
 const schema = require('./schema.js');
@@ -176,16 +177,17 @@ www.get('/signal', (req, res) => {
 
 
 www.get('/log/:id', (req, res) => {
-    const loglink = (LOGLINK) ? LOGLINK + '/tmp/' : process.cwd() + '/tmp/';
-
+    console.log(LOGLINK + req.params.id)
+    res.sendFile(LOGLINK + req.params.id);
+   
     if (req.originalUrl.match(/html$/)) {
         //if can't find the file, send error.html
-        if (!fs.existsSync(loglink + req.params.id)) {
+        if (!fs.existsSync(LOGLINK + req.params.id)) {
             res.sendFile(process.cwd() + '/views/includes/error.html');
             return;
         }
         //res.sendFile(process.cwd() + '/tmp/' + req.originalUrl.replace('/log/', ''));
-        res.sendFile(loglink + req.params.id);
+        res.sendFile(LOGLINK + req.params.id);
 
     }
     else

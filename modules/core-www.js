@@ -176,6 +176,8 @@ www.get('/signal', (req, res) => {
 
 
 www.get('/log/:id', (req, res) => {
+    console.log("req.original", req.params.id, req.originalUrl)
+
     if (req.originalUrl.match(/html$/)) {
         //if can't find the file, send error.html
         if (!fs.existsSync(process.cwd() + '/tmp/' + req.params.id)) {

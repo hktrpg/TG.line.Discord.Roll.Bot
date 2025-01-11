@@ -7,7 +7,7 @@ const www = express();
 const {
     RateLimiterMemory
 } = require('rate-limiter-flexible');
-const path = require('path'); 
+const path = require('path');
 const candle = require('../modules/candleDays.js');
 const MESSAGE_SPLITOR = (/\S+/ig)
 const schema = require('./schema.js');
@@ -172,30 +172,25 @@ www.get('/signal', (req, res) => {
     res.sendFile(process.cwd() + '/views/signalToNoise.html');
 });
 
-www.get('/log/:filename', (req, res) => {
-    const filename = req.params.filename;
-    const filePath = path.join(process.cwd(), 'tmp', filename);
 
-    // 檢查文件擴展名是否為 .html
-    if (path.extname(filename) === '.html') {
-        res.sendFile(filePath, (err) => {
-            if (err) {
-                // 如果文件未找到，顯示 error.html
-                res.status(err.status).sendFile(path.join(__dirname, 'includes', 'error.html'));
-            }
-        });
-    } else {
-        res.status(400).sendFile(path.join(__dirname, 'includes', 'error.html'));
+
+
+www.get('/log/:id', (req, res) => {
+    if (req.originalUrl.match(/html$/)) {
+        //if can't find the file, send error.html
+        if (!fs.existsSync(process.cwd() + '/tmp/' + req.params.id)) {
+            res.sendFile(process.cwd() + '/views/includes/error.html');
+            return;
+        }
+        //res.sendFile(process.cwd() + '/tmp/' + req.originalUrl.replace('/log/', ''));
+        res.sendFile(process.cwd() + '/tmp/' + req.params.id);
+
     }
+    else
+        //send error.html
+        res.sendFile(process.cwd() + '/views/includes/error.html');
 });
 
-
-if (process.env.DISCORD_CHANNEL_SECRET) {
-    www.get('/app/discord/:id', (req, res) => {
-        if (req.originalUrl.match(/html$/))
-            res.sendFile(process.cwd() + '/tmp/' + req.originalUrl.replace('/app/discord/', ''));
-    });
-}
 www.get('/:xx', (req, res) => {
     res.sendFile(process.cwd() + '/views/index.html');
 });

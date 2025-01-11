@@ -90,7 +90,7 @@ function createWebServer(options = {}, www) {
     const protocol = options.key ? 'https' : 'http';
     console.log(`${protocol} server`);
     server.listen(port, () => {
-        console.log("Web Server Started. Link: " + protocol + "://localhost:" + port);
+        console.log("Web Server Started. Link: " + protocol + "://127.0.0.1:" + port);
     });
 
     return server;

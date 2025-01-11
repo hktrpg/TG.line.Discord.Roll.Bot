@@ -176,7 +176,7 @@ www.get('/signal', (req, res) => {
 
 
 www.get('/log/:id', (req, res) => {
-    const loglink = (LOGLINK) ? LOGLINK + 'tmp/' : process.cwd() + '/tmp/';
+    const loglink = (LOGLINK) ? LOGLINK + '/tmp/' : process.cwd() + '/tmp/';
 
     if (req.originalUrl.match(/html$/)) {
         //if can't find the file, send error.html

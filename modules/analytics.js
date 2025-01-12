@@ -132,7 +132,9 @@ const parseInput = async (params) => {
 			result.text = `${result.characterName} 投擲 ${result.characterReRollName}\n${characterReRoll.text}\n======\n${result.text}`;
 		} else {
 			result.text = result.text || '';
-			result.text += characterReRoll.text ? `======\n${characterReRoll.text}` : '';
+			if (characterReRoll && characterReRoll.text) {
+				result.text += `======\n${characterReRoll.text}`;
+			}
 		}
 	}
 
@@ -268,26 +270,26 @@ function findRollList(mainMsg) {
 }
 
 async function stateText() {
-    let state = await getState() || '';
-    if (!Object.keys(state).length || !state.LogTime) return;
+	let state = await getState() || '';
+	if (!Object.keys(state).length || !state.LogTime) return;
 
-    const cleanDateTime = (dateStr) => dateStr
-        .replace(' GMT+0800 (Hong Kong Standard Time)', '')
-        .replace(' GMT+0800 (GMT+08:00)', '');
+	const cleanDateTime = (dateStr) => dateStr
+		.replace(' GMT+0800 (Hong Kong Standard Time)', '')
+		.replace(' GMT+0800 (GMT+08:00)', '');
 
-    const formatNumber = (num) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+	const formatNumber = (num) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
-    // 使用 Promise.all 同時獲取所有統計數據
-    const [levelSystemCount, characterCardCount, userCount] = await Promise.all([
-        schema.trpgLevelSystem.countDocuments({ Switch: '1' })
-            .catch(error => console.error('analytics #266 mongoDB error: ', error.name, error.reason)),
-        schema.characterCard.countDocuments({})
-            .catch(error => console.error('analytics #267 mongoDB error: ', error.name, error.reason)),
-        schema.firstTimeMessage.countDocuments({})
-            .catch(error => console.error('analytics #268 mongoDB error: ', error.name, error.reason))
-    ]);
+	// 使用 Promise.all 同時獲取所有統計數據
+	const [levelSystemCount, characterCardCount, userCount] = await Promise.all([
+		schema.trpgLevelSystem.countDocuments({ Switch: '1' })
+			.catch(error => console.error('analytics #266 mongoDB error: ', error.name, error.reason)),
+		schema.characterCard.countDocuments({})
+			.catch(error => console.error('analytics #267 mongoDB error: ', error.name, error.reason)),
+		schema.firstTimeMessage.countDocuments({})
+			.catch(error => console.error('analytics #268 mongoDB error: ', error.name, error.reason))
+	]);
 
-    return `【📊 HKTRPG系統狀態報告】
+	return `【📊 HKTRPG系統狀態報告】
 ╭────── ⏰時間資訊 ──────
 │ 系統啟動:
 │ 　• ${cleanDateTime(state.StartTime)}

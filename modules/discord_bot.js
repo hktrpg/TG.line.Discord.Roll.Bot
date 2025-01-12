@@ -497,27 +497,27 @@ function __privateMsg({ trigger, mainMsg, inputStr }) {
 
 
 async function count() {
-    if (!client.cluster) return '';
-    
-    try {
-        const [guildSizes, memberCounts] = await Promise.all([
-            client.cluster.fetchClientValues('guilds.cache.size'),
-            client.cluster.broadcastEval(c => 
-                c.guilds.cache
-                    .filter(guild => guild.available)
-                    .reduce((acc, guild) => acc + guild.memberCount, 0)
-            )
-        ]);
+	if (!client.cluster) return '';
 
-        const totalGuilds = guildSizes.reduce((acc, count) => acc + count, 0);
-        const totalMembers = memberCounts.reduce((acc, count) => acc + count, 0);
+	try {
+		const [guildSizes, memberCounts] = await Promise.all([
+			client.cluster.fetchClientValues('guilds.cache.size'),
+			client.cluster.broadcastEval(c =>
+				c.guilds.cache
+					.filter(guild => guild.available)
+					.reduce((acc, guild) => acc + guild.memberCount, 0)
+			)
+		]);
 
-        return `群組總數: ${totalGuilds.toLocaleString()}
+		const totalGuilds = guildSizes.reduce((acc, count) => acc + count, 0);
+		const totalMembers = memberCounts.reduce((acc, count) => acc + count, 0);
+
+		return `群組總數: ${totalGuilds.toLocaleString()}
 │ 　• 會員總數: ${totalMembers.toLocaleString()}`;
-    } catch (err) {
-        console.error(`Discord統計錯誤: ${err}`);
-        return '無法獲取統計資料';
-    }
+	} catch (err) {
+		console.error(`Discord統計錯誤: ${err}`);
+		return '無法獲取統計資料';
+	}
 }
 
 async function count2() {
@@ -815,69 +815,69 @@ function z_stop(mainMsg, groupid) {
 
 const discordPresenceStatus = ['online', 'idle', 'invisible', 'do not disturb']
 async function getAllshardIds() {
-    if (!client.cluster) return '';
+	if (!client.cluster) return '';
 
-    try {
-        const [shardIds, wsStatus, wsPing, clusterId] = await Promise.all([
-            [...client.cluster.ids.keys()],
-            client.cluster.broadcastEval(c => c.ws.status),
-            client.cluster.broadcastEval(c => c.ws.ping),
-            client.cluster.id
-        ]);
+	try {
+		const [shardIds, wsStatus, wsPing, clusterId] = await Promise.all([
+			[...client.cluster.ids.keys()],
+			client.cluster.broadcastEval(c => c.ws.status),
+			client.cluster.broadcastEval(c => c.ws.ping),
+			client.cluster.id
+		]);
 
-        const statusMap = {
-            'online': '✅在線',
-            'idle': '⚠️閒置',
-            'dnd': '🔴勿擾',
-            'offline': '❌離線',
-            'invisible': '⚫隱身'
-        };
+		const statusMap = {
+			'online': '✅在線',
+			'idle': '⚠️閒置',
+			'dnd': '🔴勿擾',
+			'offline': '❌離線',
+			'invisible': '⚫隱身'
+		};
 
-        const groupSize = 5;
-        const formatNumber = num => num.toLocaleString();
+		const groupSize = 5;
+		const formatNumber = num => num.toLocaleString();
 
-        // 轉換狀態和延遲
-        const onlineStatus = wsStatus.map(status => 
-            statusMap[discordPresenceStatus[status]] || status);
-        const pingTimes = wsPing.map(ping => {
-            const p = Math.round(ping);
-            return p > 1000 ? `❌${formatNumber(p)}` : 
-                   p > 500 ? `⚠️${formatNumber(p)}` : 
-                   formatNumber(p);
-        });
+		// 轉換狀態和延遲
+		const onlineStatus = wsStatus.map(status =>
+			statusMap[discordPresenceStatus[status]] || status);
+		const pingTimes = wsPing.map(ping => {
+			const p = Math.round(ping);
+			return p > 1000 ? `❌${formatNumber(p)}` :
+				p > 500 ? `⚠️${formatNumber(p)}` :
+					formatNumber(p);
+		});
 
-        // 分組函數
-        const groupArray = (arr, size) => arr.reduce((acc, curr, i) => {
-            const groupIndex = Math.floor(i / size);
-            (acc[groupIndex] = acc[groupIndex] || []).push(curr);
-            return acc;
-        }, []);
+		// 分組函數
+		const groupArray = (arr, size) => arr.reduce((acc, curr, i) => {
+			const groupIndex = Math.floor(i / size);
+			(acc[groupIndex] = acc[groupIndex] || []).push(curr);
+			return acc;
+		}, []);
 
-        // 格式化分組
-        const formatGroup = (groupedData, isStatus = false) => {
-            return groupedData.map((group, index) => {
-                const start = index * groupSize;
-                const end = Math.min((index + 1) * groupSize - 1, groupedData.flat().length - 1);
-                const range = `${start}-${end}`;
+		// 格式化分組
+		const formatGroup = (groupedData, isStatus = false) => {
+			return groupedData.map((group, index) => {
+				const start = index * groupSize;
+				const end = Math.min((index + 1) * groupSize - 1, groupedData.flat().length - 1);
+				const range = `${start}-${end}`;
 
-                if (isStatus) {
-                    const hasNonOnline = group.some(status => !status.includes('✅'));
-                    const prefix = hasNonOnline ? '❗' : '│';
-                    return `${prefix} 　• 群組${range}　${group.join(", ")}`;
-                }
-                return `│ 　• 群組${range}　${group.join(", ")}`;
-            }).join('\n');
-        };
+				if (isStatus) {
+					const hasNonOnline = group.some(status => !status.includes('✅'));
+					const prefix = hasNonOnline ? '❗' : '│';
+					return `${prefix} 　• 群組${range}　${group.join(", ")}`;
+				}
+				return `│ 　• 群組${range}　${group.join(", ")}`;
+			}).join('\n');
+		};
 
-        const groupedIds = groupArray(shardIds, groupSize);
-        const groupedStatus = groupArray(onlineStatus, groupSize);
-        const groupedPing = groupArray(pingTimes, groupSize);
+		const groupedIds = groupArray(shardIds, groupSize);
+		const groupedStatus = groupArray(onlineStatus, groupSize);
+		const groupedPing = groupArray(pingTimes, groupSize);
 
-        // 統計摘要
-        const totalShards = onlineStatus.length;
-        const onlineCount = onlineStatus.filter(s => s.includes('✅')).length;
+		// 統計摘要
+		const totalShards = onlineStatus.length;
+		const onlineCount = onlineStatus.filter(s => s.includes('✅')).length;
 
-        return `
+		return `
 ├────── 🔄分流狀態 ──────
 │ 概況統計:
 │ 　• 目前分流: ${clusterId}
@@ -896,14 +896,14 @@ ${formatGroup(groupedStatus, true)}
 │ 響應時間(ms):
 ${formatGroup(groupedPing)}
 ╰──────────────`;
-    } catch (error) {
-        console.error('Discord分流監控錯誤:', error);
-        return `
+	} catch (error) {
+		console.error('Discord分流監控錯誤:', error);
+		return `
 ├────── ⚠️錯誤信息 ──────
 │ 無法獲取分流狀態
 │ 請稍後再試
 ╰──────────────`;
-    }
+	}
 }
 
 async function handlingButtonCreate(message, input) {
@@ -1176,7 +1176,7 @@ async function handlingResponMessage(message, answer = '') {
 		};
 
 	} catch (error) {
-		console.error('handlingResponMessage Error: ', error, (error && error.name), (error && error.message), (error && error.reason))
+		console.error('handlingResponMessage Error: ', error, (error && error.name), (error && error.message), (error && error.reason), inputStr)
 	}
 }
 const sendBufferImage = async (message, rplyVal, userid) => {

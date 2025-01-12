@@ -1,427 +1,5 @@
 <!doctype html>
 <html lang="zh-Hant-HK">
-<!-- HKTRPG Sad-->
-<style>
-    .center {
-        text-align: center;
-    }
-
-
-    table {
-        font-family: arial, sans-serif;
-        border-collapse: collapse;
-        width: 100%;
-    }
-
-    td,
-    th {
-        border: 1px solid #dddddd;
-        padding: 4px;
-    }
-
-    th {
-        background-color: #eeeeee;
-    }
-
-    input[type=text],
-    select {
-        width: 100%;
-        padding: 12px 20px;
-        margin: 8px 0;
-        display: inline-block;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        box-sizing: border-box;
-        margin-top: 25px;
-    }
-
-    .bg-color {
-        background-color: #EDEAE5;
-        color: black;
-    }
-
-    .color-01 {
-        background-color: #f0d25d80;
-        color: black;
-    }
-
-    .color-02 {
-        background-color: #90ccf4c7;
-        color: white;
-    }
-
-
-
-    .preline {
-        white-space:
-            pre-line;
-    }
-
-    body {
-        margin-top: 2%
-    }
-
-    .overlay {
-        height: 100%;
-        width: 100%;
-        display: none;
-        position: fixed;
-        z-index: 1;
-        top: 0;
-        left: 0;
-        background-color: rgb(0, 0, 0);
-        background-color: rgba(247, 248, 177, 0.5);
-    }
-
-    .overlay-content {
-        position: relative;
-        top: 25%;
-        width: 100%;
-        text-align: center;
-        margin-top: 30px;
-    }
-
-    .overlay a {
-        padding: 8px;
-        text-decoration: none;
-        font-size: 36px;
-        color: #818181;
-        display: block;
-        transition: 0.3s;
-    }
-
-    .overlay a:hover,
-    .overlay a:focus {
-        color: #f1f1f1;
-    }
-
-    .overlay .closebtn {
-        position: absolute;
-        top: 20px;
-        right: 45px;
-        font-size: 60px;
-    }
-
-    @media screen and (max-height: 450px) {
-        .overlay a {
-            font-size: 20px
-        }
-
-        .overlay .closebtn {
-            font-size: 40px;
-            top: 15px;
-            right: 35px;
-        }
-    }
-    /* 整體樣式優化 */
-    body {
-        margin-top: 2%;
-        background-color: #f5f6fa;
-        color: #2f3542;
-        font-family: 'Noto Sans TC', sans-serif;
-    }
-
-    /* 表格美化 */
-    table {
-        font-family: 'Noto Sans TC', sans-serif;
-        border-collapse: separate;
-        border-spacing: 0;
-        width: 100%;
-        box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-        border-radius: 8px;
-        overflow: hidden;
-    }
-
-    td, th {
-        border: none;
-        padding: 12px;
-        transition: all 0.3s ease;
-    }
-
-    th {
-        background-color: #3742fa;
-        color: white;
-        font-weight: 500;
-    }
-
-    tr:hover {
-        background-color: rgba(55, 66, 250, 0.05);
-    }
-
-    /* 卡片樣式改進 */
-    .color-01 {
-        background: linear-gradient(135deg, #f4e9c3 0%, #f1dc73 100%);
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        padding: 20px;
-        transition: transform 0.3s ease;
-    }
-
-    .color-02 {
-        background: linear-gradient(135deg, #bed7f0 0%, #76bff7 100%);
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        padding: 20px;
-        color: white;
-    }
-
-    /* 按鈕美化 */
-    .btn {
-        border-radius: 25px;
-        padding: 10px 25px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-    }
-
-    .btn-primary {
-        background: #3742fa;
-        border: none;
-        box-shadow: 0 4px 15px rgba(55, 66, 250, 0.3);
-    }
-
-    .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(55, 66, 250, 0.4);
-    }
-
-    /* 文字輸入框美化 */
-    input[type=text], select {
-        border-radius: 25px;
-        border: 2px solid #dcdde1;
-        padding: 15px 25px;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    }
-
-    input[type=text]:focus {
-        border-color: #3742fa;
-        box-shadow: 0 2px 15px rgba(55, 66, 250, 0.2);
-    }
-
-    /* 導航欄美化 */
-    .navbar {
-        box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-        border-radius: 0 0 15px 15px;
-    }
-
-    /* 圖表容器美化 */
-    #tag {
-        background: rgb(255, 230, 230);
-        border-radius: 12px;
-        
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-
-    /* 進度條美化 */
-    .progress {
-        height: 10px !important;
-        border-radius: 5px;
-        background-color: #dcdde1;
-    }
-
-    .progress-bar {
-        background: linear-gradient(90deg, #3742fa 0%, #5352ed 100%);
-        border-radius: 5px;
-    }
-    /* 全域樣式優化 */
-    :root {
-        --primary-color: #3742fa;
-        --secondary-color: #ff6b6b;
-        --accent-color: #ffd93d;
-        --text-color: #2f3542;
-        --bg-color: #f5f6fa;
-    }
-
-    body {
-        margin-top: 2%;
-        background-color: var(--bg-color);
-        color: var(--text-color);
-        font-family: 'Noto Sans TC', sans-serif;
-        line-height: 1.6;
-    }
-
-    /* 卡片容器美化 */
-    .container-md {
-        padding: 2rem;
-    }
-
-    .row > div {
-        margin-bottom: 1.5rem;
-    }
-
-
-    .color-01:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 40px rgba(0,0,0,0.15);
-    }
-
-
-
-    .color-02:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 40px rgba(0,0,0,0.15);
-    }
-
-    /* 按鈕樣式改進 */
-    .btn {
-        border-radius: 50px;
-        padding: 12px 30px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .btn:after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: -2;
-    }
-
-    .btn:before {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 0%;
-        height: 100%;
-        background-color: rgba(255,255,255,0.2);
-        transition: all .3s;
-        z-index: -1;
-    }
-
-    .btn:hover:before {
-        width: 100%;
-    }
-
-    /* 導航欄美化 */
-    .navbar {
-        background: rgba(255, 255, 255, 0.95) !important;
-        backdrop-filter: blur(10px);
-        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-        border-radius: 0 0 20px 20px;
-    }
-
-    .nav-link {
-        position: relative;
-        padding: 8px 15px;
-        margin: 0 5px;
-        transition: all 0.3s ease;
-    }
-
-    .nav-link:before {
-        content: "";
-        position: absolute;
-        width: 0;
-        height: 2px;
-        bottom: 0;
-        left: 0;
-        background-color: var(--primary-color);
-        transition: all 0.3s ease;
-    }
-
-    .nav-link:hover:before {
-        width: 100%;
-    }
-
-    /* 表格設計優化 */
-    .table {
-        background: white;
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-    }
-
-    .table thead th {
-        background-color: var(--primary-color);
-        color: white;
-        font-weight: 500;
-        border: none;
-        padding: 15px;
-    }
-
-    .table td {
-        padding: 15px;
-        border: none;
-        border-bottom: 1px solid rgba(0,0,0,0.05);
-    }
-
-    .table tbody tr:hover {
-        background-color: rgba(55,66,250,0.03);
-    }
-
-    /* 圖表容器美化 */
-    canvas {
-        border-radius: 12px;
-        padding: 10px;
-        background: #87cbff
-    }
-
-    /* 搜尋框美化 */
-    input[type="text"], 
-    input[type="password"] {
-        border-radius: 50px;
-        padding: 15px 25px;
-        border: 2px solid transparent;
-        background: white;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        transition: all 0.3s ease;
-    }
-
-    input[type="text"]:focus,
-    input[type="password"]:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 4px 20px rgba(55,66,250,0.15);
-        outline: none;
-    }
-
-    /* 進度條美化 */
-    .progress {
-        height: 8px !important;
-        border-radius: 4px;
-        background-color: rgba(0,0,0,0.05);
-        overflow: hidden;
-    }
-
-    .progress-bar {
-        background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-        border-radius: 4px;
-        transition: width 0.3s ease;
-    }
-
-    /* 統計數字動畫 */
-    .stat-number {
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--primary-color);
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-    }
-
-    /* 捲動條美化 */
-    ::-webkit-scrollbar {
-        width: 10px;
-    }
-
-    ::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 5px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-        background: var(--primary-color);
-        border-radius: 5px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-        background: #2f3542;
-    }
-</style>
 
 <head>
     <!-- Required meta tags -->
@@ -434,9 +12,7 @@
     <!-- production version, optimized for size and speed -->
     <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
     <script src="https://d3js.org/d3.v6.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.5/d3.layout.cloud.min.js"
-        integrity="sha512-HjKxWye8lJGPu5q1u/ZYkHlJrJdm6KGr89E6tOrXeKm1mItb1xusPU8QPcKVhP8F9LjpZT7vsu1Fa+dQywP4eg=="
-        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.7/d3.layout.cloud.min.js"></script>
     <script src="https://pulipulichen.github.io/jieba-js/jquery.js"></script>
     <script src="https://pulipulichen.github.io/jieba-js/require-jieba-js.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
@@ -447,8 +23,449 @@
         integrity="sha512-nOQuvD9nKirvxDdvQ9OMqe2dgapbPB7vYAMrzJihw5m+aNcf0dX53m6YxM4LgA9u8e9eg9QX+/+mPu8kCNpV2A=="
         crossorigin="anonymous"></script>
     <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
-
     <!--https://blog.gtwang.org/programming/javascript-aes-symmetric-encryption-tutorial/-->
+    <style>
+        .center {
+            text-align: center;
+        }
+
+
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td,
+        th {
+            border: 1px solid #dddddd;
+            padding: 4px;
+        }
+
+        th {
+            background-color: #eeeeee;
+        }
+
+        input[type=text],
+        select {
+            width: 100%;
+            padding: 12px 20px;
+            margin: 8px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            margin-top: 25px;
+        }
+
+        .bg-color {
+            background-color: #EDEAE5;
+            color: black;
+        }
+
+        .color-01 {
+            background-color: #f0d25d80;
+            color: black;
+        }
+
+        .color-02 {
+            background-color: #90ccf4c7;
+            color: white;
+        }
+
+
+
+        .preline {
+            white-space:
+                pre-line;
+        }
+
+        body {
+            margin-top: 2%
+        }
+
+        .overlay {
+            height: 100%;
+            width: 100%;
+            display: none;
+            position: fixed;
+            z-index: 1;
+            top: 0;
+            left: 0;
+            background-color: rgb(0, 0, 0);
+            background-color: rgba(247, 248, 177, 0.5);
+        }
+
+        .overlay-content {
+            position: relative;
+            top: 25%;
+            width: 100%;
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .overlay a {
+            padding: 8px;
+            text-decoration: none;
+            font-size: 36px;
+            color: #818181;
+            display: block;
+            transition: 0.3s;
+        }
+
+        .overlay a:hover,
+        .overlay a:focus {
+            color: #f1f1f1;
+        }
+
+        .overlay .closebtn {
+            position: absolute;
+            top: 20px;
+            right: 45px;
+            font-size: 60px;
+        }
+
+        @media screen and (max-height: 450px) {
+            .overlay a {
+                font-size: 20px
+            }
+
+            .overlay .closebtn {
+                font-size: 40px;
+                top: 15px;
+                right: 35px;
+            }
+        }
+
+        /* 整體樣式優化 */
+        body {
+            margin-top: 2%;
+            background-color: #f5f6fa;
+            color: #2f3542;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+
+        /* 表格美化 */
+        table {
+            font-family: 'Noto Sans TC', sans-serif;
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        td,
+        th {
+            border: none;
+            padding: 12px;
+            transition: all 0.3s ease;
+        }
+
+        th {
+            background-color: #3742fa;
+            color: white;
+            font-weight: 500;
+        }
+
+        tr:hover {
+            background-color: rgba(55, 66, 250, 0.05);
+        }
+
+        /* 卡片樣式改進 */
+        .color-01 {
+            background: linear-gradient(135deg, #f4e9c3 0%, #f1dc73 100%);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .color-02 {
+            background: linear-gradient(135deg, #bed7f0 0%, #76bff7 100%);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            color: white;
+        }
+
+        /* 按鈕美化 */
+        .btn {
+            border-radius: 25px;
+            padding: 10px 25px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #3742fa;
+            border: none;
+            box-shadow: 0 4px 15px rgba(55, 66, 250, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(55, 66, 250, 4);
+        }
+
+        /* 文字輸入框美化 */
+        input[type=text],
+        select {
+            border-radius: 25px;
+            border: 2px solid #dcdde1;
+            padding: 15px 25px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        input[type=text]:focus {
+            border-color: #3742fa;
+            box-shadow: 0 2px 15px rgba(55, 66, 250, 0.2);
+        }
+
+        /* 導航欄美化 */
+        .navbar {
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 0 0 15px 15px;
+        }
+
+        /* 圖表容器美化 */
+        #tag {
+            background: rgb(255, 230, 230);
+            border-radius: 12px;
+
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 進度條美化 */
+        .progress {
+            height: 10px !important;
+            border-radius: 5px;
+            background-color: #dcdde1;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #3742fa 0%, #5352ed 100%);
+            border-radius: 5px;
+        }
+
+        /* 全域樣式優化 */
+        :root {
+            --primary-color: #3742fa;
+            --secondary-color: #ff6b6b;
+            --accent-color: #ffd93d;
+            --text-color: #2f3542;
+            --bg-color: #f5f6fa;
+        }
+
+        body {
+            margin-top: 2%;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Noto Sans TC', sans-serif;
+            line-height: 1.6;
+        }
+
+        /* 卡片容器美化 */
+        .container-md {
+            padding: 2rem;
+        }
+
+        .row>div {
+            margin-bottom: 1.5rem;
+        }
+
+
+        .color-01:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+
+
+        .color-02:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 按鈕樣式改進 */
+        .btn {
+            border-radius: 50px;
+            padding: 12px 30px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+
+        .btn:before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.2);
+            transition: all .3s;
+            z-index: -1;
+        }
+
+        .btn:hover:before {
+            width: 100%;
+        }
+
+        /* 導航欄美化 */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            border-radius: 0 0 20px 20px;
+        }
+
+        .nav-link {
+            position: relative;
+            padding: 8px 15px;
+            margin: 0 5px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:before {
+            content: "";
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: var(--primary-color);
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover:before {
+            width: 100%;
+        }
+
+        /* 表格設計優化 */
+        .table {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .table thead th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 500;
+            border: none;
+            padding: 15px;
+        }
+
+        .table td {
+            padding: 15px;
+            border: none;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(55, 66, 250, 0.03);
+        }
+
+        /* 圖表容器美化 */
+        canvas {
+            border-radius: 12px;
+            padding: 10px;
+            background: #87cbff
+        }
+
+        /* 搜尋框美化 */
+        input[type="text"],
+        input[type="password"] {
+            border-radius: 50px;
+            padding: 15px 25px;
+            border: 2px solid transparent;
+            background: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 20px rgba(55, 66, 250, 0.15);
+            outline: none;
+        }
+
+        /* 進度條美化 */
+        .progress {
+            height: 8px !important;
+            border-radius: 4px;
+            background-color: rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* 統計數字動畫 */
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 捲動條美化 */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2f3542;
+        }
+
+        .form-control {
+            margin-bottom: 10px;
+        }
+
+        select.form-control {
+            background-color: white;
+            border: 2px solid #dcdde1;
+            border-radius: 25px;
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+        }
+
+        select.form-control:focus {
+            border-color: #3742fa;
+            box-shadow: 0 2px 15px rgba(55, 66, 250, 0.2);
+        }
+    </style>
 </head>
 
 <body class="bg-color center" id="body">
@@ -601,7 +618,30 @@
             </div>
             <br>
             <div class="page-header" style="color: #90CCF4;">
-                <input type="text" placeholder="Filter" v-model="filter" />
+                <div class="row">
+                    <div class="col-md-4" class="form-control">
+                        <input type="text" placeholder="搜尋全部" v-model="filter" />
+                    </div>
+                    <div class="col-md-4" class="form-control">
+                        <select v-model="currentFilter">
+                            <option value="all">全部訊息</option>
+                            <option value="user">只顯示使用者</option>
+                            <option value="bot">只顯示機器人</option>
+                            <option value="command">只顯示指令</option>
+                            <option value="dice">只顯示擲骰</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4" class="form-control">
+                        <select v-model="pageSize">
+                            <option value="20">顯示 20 行</option>
+                            <option value="50">顯示 50 行</option>
+                            <option value="100">顯示 100 行</option>
+                            <option value="500">顯示 500 行</option>
+                            <option value="1000">顯示 1000 行</option>
+                            <option value="-1">顯示全部</option>
+                        </select>
+                    </div>
+                </div>
             </div>
             <table class="table table-bordered" style="word-break:break-all; word-wrap:break-all;">
                 <thead class="thead ">
@@ -691,7 +731,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.js"
         integrity="sha512-QEiC894KVkN9Tsoi6+mKf8HaCLJvyA6QIRzY5KrfINXYuP9NxdIkRQhGq3BZi0J4I7V5SidGM3XUQ5wFiMDuWg=="
         crossorigin="anonymous"></script>
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.css"
         integrity="sha512-SUJFImtiT87gVCOXl3aGC00zfDl6ggYAw5+oheJvRJ8KBXZrr/TMISSdVJ5bBarbQDRC2pR5Kto3xTR0kpZInA=="
         crossorigin="anonymous" />
@@ -1127,13 +1166,15 @@
             el: "#appMain",
             data: {
                 filter: "",
-                rows: rawData
+                rows: rawData,
+                currentFilter: "all",
+                pageSize: "100",
             },
             methods: {
                 reNewappMain(input) {
-                    this.rows = input
+                    this.rows = input;
                 },
-
+                // ...existing methods...
                 highlightMatches(text, isbot) {
                     const matchExists = text
                         .toLowerCase()
@@ -1155,151 +1196,172 @@
             },
             computed: {
                 filteredRows() {
-                    return this.rows.filter(row => {
+                    let filtered = this.rows.filter(row => {
                         const contact = row.contact.toString().toLowerCase();
                         const userName = row.userName.toString().toLowerCase();
                         const timestamp = dhm2(row.timestamp).toString().toLowerCase();
                         const searchTerm = this.filter.toLowerCase();
-                        return (
-                            contact.includes(searchTerm) || userName.includes(searchTerm) ||
-                            timestamp.includes(searchTerm)
-                        );
+
+                        // 基本搜尋條件
+                        const basicSearch = contact.includes(searchTerm) ||
+                            userName.includes(searchTerm) ||
+                            timestamp.includes(searchTerm);
+
+                        // 根據過濾器類型進行過濾
+                        switch (this.currentFilter) {
+                            case 'user':
+                                return basicSearch && !row.isbot;
+                            case 'bot':
+                                return basicSearch && row.isbot;
+                            case 'command':
+                                return basicSearch && contact.startsWith('.');
+                            case 'dice':
+                                return basicSearch && contact.match(/\d+[dD]\d+/);
+                            default:
+                                return basicSearch;
+                        }
                     });
+
+                    // 根據頁面大小限制結果
+                    if (this.pageSize > 0) {
+                        return filtered.slice(0, parseInt(this.pageSize));
+                    }
+                    return filtered;
                 }
             }
         });
     </script>
     <script>
-    function drawWordCloud(newData) {
-    d3.select("#tag").select("svg").remove();
+        function drawWordCloud(newData) {
+            d3.select("#tag").select("svg").remove();
 
-    if (!newData || newData.length === 0) {
-        console.log('No data for word cloud');
-        return;
-    }
-
-    const fill = d3.scaleOrdinal(d3.schemeCategory10);
-    const margin = { top: 20, right: 20, bottom: 20, left: 20 };
-    const containerWidth = document.getElementById("tag").offsetWidth;
-    const cloudw = Math.min(containerWidth - margin.left - margin.right, 350);
-    const cloudH = 250 - margin.top - margin.bottom;
-
-    const text = newData
-        .filter(data => !data.isbot)
-        .map(data => data.contact)
-        .join(' ');
-
-    call_jieba_cut(text, function (_result) {
-        const wordFreq = {};
-        _result.forEach(s => {
-            if (s.length >= 2) {
-                wordFreq[s] = (wordFreq[s] || 0) + 1;
+            if (!newData || newData.length === 0) {
+                console.log('No data for word cloud');
+                return;
             }
-        });
 
-        const words = Object.entries(wordFreq)
-            .filter(([key]) =>
-                key.match(/^\S\S/) &&
-                !key.match(/^\d+$/) &&
-                key.length <= 8)
-            .map(([text, freq]) => ({
-                text,
-                freq,
-                score: Math.log(freq + 1)
-            }))
-            .sort((a, b) => b.freq - a.freq)
-            .slice(0, 100)
-            .map((item, index) => ({
-                text: item.text,
-                size: Math.max(60 - index * 0.4, 30),
-                freq: item.freq
-            }));
+            const fill = d3.scaleOrdinal(d3.schemeCategory10);
+            const margin = { top: 20, right: 20, bottom: 20, left: 20 };
+            const containerWidth = document.getElementById("tag").offsetWidth;
+            const cloudw = Math.min(containerWidth - margin.left - margin.right, 350);
+            const cloudH = 250 - margin.top - margin.bottom;
 
-        const layout = d3.layout.cloud()
-            .size([cloudw, cloudH])
-            .words(words)
-            .padding(0)  // 增加間距
-            .rotate(() => (~~(Math.random() * 3) - 1) * 30)
-            .fontSize(d => d.size)
-            .spiral('archimedean')
-            .random(() => 0.5)
-            .on("end", draw);
+            const text = newData
+                .filter(data => !data.isbot)
+                .map(data => data.contact)
+                .join(' ');
 
-        layout.start();
+            call_jieba_cut(text, function (_result) {
+                const wordFreq = {};
+                _result.forEach(s => {
+                    if (s.length >= 2) {
+                        wordFreq[s] = (wordFreq[s] || 0) + 1;
+                    }
+                });
 
-        function draw(words) {
-            // 創建具有邊距的 SVG
-            const svg = d3.select("#tag")
-                .append("svg")
-                .attr("width", cloudw + margin.left + margin.right)
-                .attr("height", cloudH + margin.top + margin.bottom)
-                .style("display", "block")  // 確保 SVG 是塊級元素
-                .style("margin", "auto");   // 使 SVG 居中
+                const words = Object.entries(wordFreq)
+                    .filter(([key]) =>
+                        key.match(/^\S\S/) &&
+                        !key.match(/^\d+$/) &&
+                        key.length <= 8)
+                    .map(([text, freq]) => ({
+                        text,
+                        freq,
+                        score: Math.log(freq + 1)
+                    }))
+                    .sort((a, b) => b.freq - a.freq)
+                    .slice(0, 100)
+                    .map((item, index) => ({
+                        text: item.text,
+                        size: Math.max(60 - index * 0.4, 30),
+                        freq: item.freq
+                    }));
 
-            // 創建一個考慮邊距的容器
-            const container = svg.append("g")
-                .attr("transform", `translate(${(cloudw + margin.left + margin.right)/2},${(cloudH + margin.top + margin.bottom)/2})`);
+                const layout = d3.layout.cloud()
+                    .size([cloudw, cloudH])
+                    .words(words)
+                    .padding(0)  // 增加間距
+                    .rotate(() => (~~(Math.random() * 3) - 1) * 30)
+                    .fontSize(d => d.size)
+                    .spiral('archimedean')
+                    .random(() => 0.5)
+                    .on("end", draw);
 
-            const texts = container.selectAll("text")
-                .data(words)
-                .enter()
-                .append("text")
-                .style("font-size", d => `${d.size}px`)
-                .style("font-family", "'Microsoft JhengHei', 'Noto Sans TC', sans-serif")
-                .style("fill", (d, i) => fill(i))
-                .attr("text-anchor", "middle")
-                .attr("transform", d => `translate(${d.x},${d.y}) rotate(${d.rotate || 0})`)
-                .text(d => d.text)
-                .style("cursor", "pointer")
-                .style("opacity", 0);
+                layout.start();
 
-            // 添加漸入動畫
-            texts.transition()
-                .duration(800)
-                .delay((d, i) => i * 50)
-                .style("opacity", 1);
+                function draw(words) {
+                    // 創建具有邊距的 SVG
+                    const svg = d3.select("#tag")
+                        .append("svg")
+                        .attr("width", cloudw + margin.left + margin.right)
+                        .attr("height", cloudH + margin.top + margin.bottom)
+                        .style("display", "block")  // 確保 SVG 是塊級元素
+                        .style("margin", "auto");   // 使 SVG 居中
 
-            // 互動效果
-            texts.each(function () {
-                const text = d3.select(this);
-                const originalColor = text.style("fill");
-                const originalSize = text.style("font-size");
+                    // 創建一個考慮邊距的容器
+                    const container = svg.append("g")
+                        .attr("transform", `translate(${(cloudw + margin.left + margin.right) / 2},${(cloudH + margin.top + margin.bottom) / 2})`);
 
-                text.on("pointerenter", function (event, d) {
-                    const element = d3.select(this);
-                    element
-                        .transition()
-                        .duration(200)
-                        .style("font-size", `${d.size * 1.2}px`)
-                        .style("fill", "#ff4757");
-
-                    // 添加提示文字
-                    container.append("text")
-                        .attr("class", "tooltip")
+                    const texts = container.selectAll("text")
+                        .data(words)
+                        .enter()
+                        .append("text")
+                        .style("font-size", d => `${d.size}px`)
+                        .style("font-family", "'Microsoft JhengHei', 'Noto Sans TC', sans-serif")
+                        .style("fill", (d, i) => fill(i))
                         .attr("text-anchor", "middle")
-                        .attr("x", 0)
-                        .attr("y", cloudH/2 + 20)  // 調整位置到底部
-                        .style("font-size", "12px")
-                        .style("fill", "#666")
-                        .text(`出現次數: ${d.freq}`);
-                });
+                        .attr("transform", d => `translate(${d.x},${d.y}) rotate(${d.rotate || 0})`)
+                        .text(d => d.text)
+                        .style("cursor", "pointer")
+                        .style("opacity", 0);
 
-                text.on("pointerleave", function () {
-                    const element = d3.select(this);
-                    element
-                        .transition()
-                        .duration(200)
-                        .style("font-size", originalSize)
-                        .style("fill", originalColor);
+                    // 添加漸入動畫
+                    texts.transition()
+                        .duration(800)
+                        .delay((d, i) => i * 50)
+                        .style("opacity", 1);
 
-                    container.selectAll(".tooltip").remove();
-                });
+                    // 互動效果
+                    texts.each(function () {
+                        const text = d3.select(this);
+                        const originalColor = text.style("fill");
+                        const originalSize = text.style("font-size");
+
+                        text.on("pointerenter", function (event, d) {
+                            const element = d3.select(this);
+                            element
+                                .transition()
+                                .duration(200)
+                                .style("font-size", `${d.size * 1.2}px`)
+                                .style("fill", "#ff4757");
+
+                            // 添加提示文字
+                            container.append("text")
+                                .attr("class", "tooltip")
+                                .attr("text-anchor", "middle")
+                                .attr("x", 0)
+                                .attr("y", cloudH / 2 + 20)  // 調整位置到底部
+                                .style("font-size", "12px")
+                                .style("fill", "#666")
+                                .text(`出現次數: ${d.freq}`);
+                        });
+
+                        text.on("pointerleave", function () {
+                            const element = d3.select(this);
+                            element
+                                .transition()
+                                .duration(200)
+                                .style("font-size", originalSize)
+                                .style("fill", originalColor);
+
+                            container.selectAll(".tooltip").remove();
+                        });
+                    });
+                }
+
+                document.getElementById("myNav").style.display = "none";
             });
-        }
-
-        document.getElementById("myNav").style.display = "none";
-    });
-}   </script>
+        }   </script>
 
 
 
@@ -1644,7 +1706,136 @@
             });
         });
     </script>
+    <script>
+        function initializeVueComponents() {
+            let totallydate = totallyDay(rawData) || "";
+            let totallymessage = analysicTotallymessage(rawData);
+            let newTotallyDay = Math.max(1, Number(totallydate.match(/\d+/i)[0]));
+            let analysicdate = analysicDate(rawData);
+            let top3Date = getTop3Dates(analysicdate);
 
+            new Vue({
+                el: '#totallyDate',
+                data: { message: totallydate },
+                methods: {
+                    reNewtotallyDate(input) {
+                        this.message = totallyDay(input);
+                    }
+                }
+            });
+
+            new Vue({
+                el: '#totallyMessage',
+                data: {
+                    message0: totallymessage[0],
+                    message1: totallymessage[1]
+                },
+                methods: {
+                    reNewTotallyMessage(input) {
+                        let newTotallymessage = analysicTotallymessage(input);
+                        this.message0 = newTotallymessage[0];
+                        this.message1 = newTotallymessage[1];
+                    }
+                }
+            });
+
+            new Vue({
+                el: '#averageMessage',
+                data: {
+                    message: (totallymessage[0] / newTotallyDay).toFixed(2) + '個'
+                },
+                methods: {
+                    reNewAaverageMessage(input) {
+                        newTotallyDay = Math.max(1, Number(totallyDay(input).match(/\d+/i)[0]));
+                        totallymessage = analysicTotallymessage(input);
+                        this.message = (totallymessage[0] / newTotallyDay).toFixed(2) + '個';
+                    }
+                }
+            });
+
+            new Vue({
+                el: '#analysicDate',
+                data: { messages: top3Date },
+                methods: {
+                    reNewanalysicDate(input) {
+                        analysicdate = analysicDate(input);
+                        this.messages = getTop3Dates(analysicdate);
+                    }
+                }
+            });
+
+            new Vue({
+                el: "#appMain",
+                data: {
+                    filter: "",
+                    rows: rawData,
+                    currentFilter: "all",
+                    pageSize: "100",
+                },
+                methods: {
+                    reNewappMain(input) {
+                        this.rows = input;
+                    },
+                    highlightMatches(text, isbot) {
+                        const matchExists = text.toLowerCase().includes(this.filter.toLowerCase());
+                        if (!matchExists) return text;
+                        const re = new RegExp(this.filter, "ig");
+                        if (isbot) text += '(🤖)';
+                        return text.replace(re, matchedText => `<strong>${matchedText}</strong>`);
+                    },
+                    dhm2(unix_timestamp) {
+                        let date = new Date(unix_timestamp);
+                        return `${date.getFullYear()}年${(date.getMonth() + 1).toString().padStart(2, '0')}月${date.getDate().toString().padStart(2, '0')}日\n${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+                    }
+                },
+                computed: {
+                    filteredRows() {
+                        let searchTerm = this.filter.toLowerCase();
+                        return this.rows.filter(row => {
+                            const contact = row.contact.toLowerCase();
+                            const userName = row.userName.toLowerCase();
+                            const timestamp = this.dhm2(row.timestamp).toLowerCase();
+                            const basicSearch = contact.includes(searchTerm) || userName.includes(searchTerm) || timestamp.includes(searchTerm);
+
+                            switch (this.currentFilter) {
+                                case 'user':
+                                    return basicSearch && !row.isbot;
+                                case 'bot':
+                                    return basicSearch && row.isbot;
+                                case 'command':
+                                    return basicSearch && contact.startsWith('.');
+                                case 'dice':
+                                    return basicSearch && /\d+[dD]\d+/.test(contact);
+                                default:
+                                    return basicSearch;
+                            }
+                        }).slice(0, this.pageSize > 0 ? parseInt(this.pageSize) : undefined);
+                    }
+                }
+            });
+        }
+
+        function getTop3Dates(analysicdate) {
+            let top3Date = JSON.parse(JSON.stringify(analysicdate));
+            top3Date.sort((a, b) => b.number - a.number).splice(3);
+            top3Date.forEach(e => {
+                let match = e.date.match(/^(\d\d\d\d)(\d\d)(\d\d)/);
+                e.date = `${match[1]}年${match[2]}月${match[3]}日`;
+            });
+            return top3Date;
+        }
+
+        function initializeCharts() {
+            drawTop6DataChart(rawData);
+            drawAlluserChart(rawData);
+            drawallDateforChart3();
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            initializeVueComponents();
+            initializeCharts();
+        });
+    </script>
 </body>
 <!-- HKTRPG Sad -- 20201015-->
 

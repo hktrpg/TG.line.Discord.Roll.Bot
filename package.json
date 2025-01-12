@@ -25,7 +25,7 @@
     "@line/bot-sdk": "^7.2.0",
     "@top-gg/sdk": "^3.1.3",
     "@vitalets/google-translate-api": "^9",
-    "@KshitijMhatre/duckduckgo-images-api": "https://github.com/KshitijMhatre/duckduckgo-images-api.git",
+    "@eredac/duckduckgo-images-api": "https://github.com/eredac/duckduckgo-images-api.git",
     "agenda": "^4.2.1",
     "axios": "^1.7.4",
     "axios-retry": "^3.2.4",

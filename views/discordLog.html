@@ -643,7 +643,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <table class="table table-bordered" style="word-break:break-all; word-wrap:break-all;">
                 <thead class="thead ">
                     <tr class="d-flex">
@@ -1260,7 +1260,7 @@
 
             call_jieba_cut(text, function (_result) {
                 // 建立停用詞表
-                const stopWords = new Set(['showme', 'level', 'char', '3d3',
+                const stopWords = new Set(['showme', 'level', 'char', '3d3', 'cron', '每日',
                     'the', 'is', 'at', 'of', 'in', 'on', 'to', 'it', 'or', 'and', 'for',
                     'was', 'be', 'have', 'had', 'do', 'did', 'done', 'would', 'could',
                     'should', 'might', 'may', 'can', 'will', 'shall', 'that', 'this',
@@ -1269,7 +1269,7 @@
                     'few', 'more', 'most', 'other', 'some', 'such', 'show', 'CC', 'ai',
                     'ch', 'ait', 'sc', 'use', 'hello', 'hp', 'db', 'myname',
                     '的', '了', '和', '是', '就', '都', '而', '及', '與', '這', '那',
-                    '但', '並', '個', '從', '或', '所', '他', '她', '們', '說', '然後','一個'
+                    '但', '並', '個', '從', '或', '所', '他', '她', '們', '說', '然後', '一個'
                 ]);
 
                 // 詞頻統計
@@ -1323,7 +1323,7 @@
                     .slice(0, 50)
                     .map((item, index) => ({
                         text: item.text,
-                        size: Math.max(65 - index * 0.5, 35),  // 調整字體大小範圍
+                        size: Math.max(65 - index * 0.5, 20),  // 調整字體大小範圍
                         freq: item.freq,
                         score: item.score
                     }));

@@ -1266,7 +1266,7 @@
 
             call_jieba_cut(text, function (_result) {
                 // 建立停用詞表
-                const stopWords = new Set(['showme', 'level', 'char', '3d3', 'cron', '每日',
+                const stopWords = new Set(['showme', 'level', 'char', '3d3', 'cron',
                     'the', 'is', 'at', 'of', 'in', 'on', 'to', 'it', 'or', 'and', 'for',
                     'was', 'be', 'have', 'had', 'do', 'did', 'done', 'would', 'could',
                     'should', 'might', 'may', 'can', 'will', 'shall', 'that', 'this',
@@ -1274,7 +1274,7 @@
                     'whose', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each',
                     'few', 'more', 'most', 'other', 'some', 'such', 'show', 'CC', 'ai',
                     'ch', 'ait', 'sc', 'use', 'hello', 'hp', 'db', 'myname',
-                    '然後', '一個'
+                    '然後', '一個', 'state', 'with', '一些', 'Fixed', 'your', 'button'
                 ]);
 
                 // 詞頻統計
@@ -1314,7 +1314,7 @@
                         return isValidLength && isNotNumber && isNotStopWord &&
                             hasNoSpecialChar && (isValidChinese || isValidEnglish);
                     })
-                    .filter(([_, freq]) => freq >= 2)  // 最小詞頻閾值
+                    .filter(([_, freq]) => freq >= 3)  // 最小詞頻閾值
                     .map(([text, freq]) => {
                         const tfidf = calculateTFIDF(text, freq);
                         const isChinese = text.match(/[\u4e00-\u9fff]/);
@@ -1328,7 +1328,7 @@
                     .slice(0, 100)
                     .map((item, index) => ({
                         text: item.text,
-                        size: Math.max(50 - index * 0.5, 2),  // 調整字體大小範圍
+                        size: Math.max(50 - index * 0.5, 10),  // 調整字體大小範圍
                         freq: item.freq,
                         score: item.score
                     }));

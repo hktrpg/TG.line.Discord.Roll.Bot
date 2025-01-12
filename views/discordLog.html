@@ -1240,11 +1240,17 @@
                 return;
             }
 
-            const fill = d3.scaleOrdinal(d3.schemeCategory10);
-            const margin = { top: 20, right: 20, bottom: 20, left: 20 };
+            // 使用更柔和的配色方案
+            const colorScheme = [
+                '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4',
+                '#d1bb5a', '#D4A5A5', '#9B9B9B', '#A8E6CF'
+            ];
+            const fill = d3.scaleOrdinal(colorScheme);
+
+            const margin = { top: 30, right: 30, bottom: 30, left: 30 };
             const containerWidth = document.getElementById("tag").offsetWidth;
-            const cloudw = Math.min(containerWidth - margin.left - margin.right, 350);
-            const cloudH = 250 - margin.top - margin.bottom;
+            const cloudw = Math.min(containerWidth - margin.left - margin.right, 400);
+            const cloudH = 300 - margin.top - margin.bottom;
 
             const text = newData
                 .filter(data => !data.isbot)
@@ -1252,6 +1258,20 @@
                 .join(' ');
 
             call_jieba_cut(text, function (_result) {
+                // 建立停用詞表
+                const stopWords = new Set([
+                    'the', 'is', 'at', 'of', 'in', 'on', 'to', 'it', 'or', 'and', 'for',
+                    'was', 'be', 'have', 'had', 'do', 'did', 'done', 'would', 'could',
+                    'should', 'might', 'may', 'can', 'will', 'shall', 'that', 'this',
+                    'these', 'those', 'then', 'than', 'what', 'which', 'who', 'whom',
+                    'whose', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each',
+                    'few', 'more', 'most', 'other', 'some', 'such', 'show', 'CC', 'ai',
+                    'ch', 'ait', 'sc', 'use', 'hello', 'hp', 'db', 'myname',
+                    '的', '了', '和', '是', '就', '都', '而', '及', '與', '這', '那',
+                    '但', '並', '個', '從', '或', '所', '他', '她', '們', '說'
+                ]);
+
+                // 詞頻統計
                 const wordFreq = {};
                 _result.forEach(s => {
                     if (s.length >= 2) {
@@ -1259,46 +1279,75 @@
                     }
                 });
 
+                // 計算 TF-IDF
+                const totalDocs = newData.length;
+                const docsWithTerm = {};
+                newData.forEach(doc => {
+                    const uniqueWords = new Set(_result);
+                    uniqueWords.forEach(word => {
+                        docsWithTerm[word] = (docsWithTerm[word] || 0) + 1;
+                    });
+                });
+
+                function calculateTFIDF(term, freq) {
+                    const tf = freq;
+                    const idf = Math.log((totalDocs + 1) / (docsWithTerm[term] + 1)) + 1;
+                    return tf * idf;
+                }
+
+                // 詞彙篩選和處理
                 const words = Object.entries(wordFreq)
-                    .filter(([key]) =>
-                        key.match(/^\S\S/) &&
-                        !key.match(/^\d+$/) &&
-                        key.length <= 8)
-                    .map(([text, freq]) => ({
-                        text,
-                        freq,
-                        score: Math.log(freq + 1)
-                    }))
-                    .sort((a, b) => b.freq - a.freq)
-                    .slice(0, 100)
+                    .filter(([key]) => {
+                        const isValidLength = key.length >= 2 && key.length <= 8;
+                        const isNotNumber = !key.match(/^\d+$/);
+                        const isNotStopWord = !stopWords.has(key.toLowerCase());
+                        const hasNoSpecialChar = !key.match(/[^\w\s\u4e00-\u9fff]/);
+                        const isValidChinese = (key.match(/[\u4e00-\u9fff]/g) || []).length >= 2;
+                        const isValidEnglish = key.match(/^[a-zA-Z]+$/) ? key.length >= 4 : true;
+
+                        return isValidLength && isNotNumber && isNotStopWord &&
+                            hasNoSpecialChar && (isValidChinese || isValidEnglish);
+                    })
+                    .filter(([_, freq]) => freq >= 1)  // 最小詞頻閾值
+                    .map(([text, freq]) => {
+                        const tfidf = calculateTFIDF(text, freq);
+                        const isChinese = text.match(/[\u4e00-\u9fff]/);
+                        return {
+                            text,
+                            freq,
+                            score: tfidf * (isChinese ? 1.5 : 1)  // 中文權重提升
+                        };
+                    })
+                    .sort((a, b) => b.score - a.score)
+                    .slice(0, 50)
                     .map((item, index) => ({
                         text: item.text,
-                        size: Math.max(60 - index * 0.4, 30),
-                        freq: item.freq
+                        size: Math.max(65 - index * 0.5, 35),  // 調整字體大小範圍
+                        freq: item.freq,
+                        score: item.score
                     }));
 
+                // 文字雲布局
                 const layout = d3.layout.cloud()
                     .size([cloudw, cloudH])
                     .words(words)
-                    .padding(0)  // 增加間距
-                    .rotate(() => (~~(Math.random() * 3) - 1) * 30)
+                    .padding(2)  // 增加詞間距
+                    .rotate(() => (~~(Math.random() * 2)) * 30)  // 只允許0度和90度旋轉
                     .fontSize(d => d.size)
-                    .spiral('archimedean')
+                    .spiral('rectangular')  // 使用矩形螺旋布局
                     .random(() => 0.5)
                     .on("end", draw);
 
                 layout.start();
 
                 function draw(words) {
-                    // 創建具有邊距的 SVG
                     const svg = d3.select("#tag")
                         .append("svg")
                         .attr("width", cloudw + margin.left + margin.right)
                         .attr("height", cloudH + margin.top + margin.bottom)
-                        .style("display", "block")  // 確保 SVG 是塊級元素
-                        .style("margin", "auto");   // 使 SVG 居中
+                        .style("display", "block")
+                        .style("margin", "auto");
 
-                    // 創建一個考慮邊距的容器
                     const container = svg.append("g")
                         .attr("transform", `translate(${(cloudw + margin.left + margin.right) / 2},${(cloudH + margin.top + margin.bottom) / 2})`);
 
@@ -1309,19 +1358,20 @@
                         .style("font-size", d => `${d.size}px`)
                         .style("font-family", "'Microsoft JhengHei', 'Noto Sans TC', sans-serif")
                         .style("fill", (d, i) => fill(i))
+                        .style("font-weight", "500")
                         .attr("text-anchor", "middle")
                         .attr("transform", d => `translate(${d.x},${d.y}) rotate(${d.rotate || 0})`)
                         .text(d => d.text)
                         .style("cursor", "pointer")
                         .style("opacity", 0);
 
-                    // 添加漸入動畫
+                    // 改進漸入動畫
                     texts.transition()
-                        .duration(800)
-                        .delay((d, i) => i * 50)
+                        .duration(1000)
+                        .delay((d, i) => i * 30)
                         .style("opacity", 1);
 
-                    // 互動效果
+                    // 改進互動效果
                     texts.each(function () {
                         const text = d3.select(this);
                         const originalColor = text.style("fill");
@@ -1332,18 +1382,20 @@
                             element
                                 .transition()
                                 .duration(200)
-                                .style("font-size", `${d.size * 1.2}px`)
-                                .style("fill", "#ff4757");
+                                .style("font-size", `${d.size * 1.3}px`)
+                                .style("fill", "#ff4757")
+                                .style("font-weight", "bold");
 
-                            // 添加提示文字
+                            // 改進提示文字
                             container.append("text")
                                 .attr("class", "tooltip")
                                 .attr("text-anchor", "middle")
                                 .attr("x", 0)
-                                .attr("y", cloudH / 2 + 20)  // 調整位置到底部
-                                .style("font-size", "12px")
-                                .style("fill", "#666")
-                                .text(`出現次數: ${d.freq}`);
+                                .attr("y", cloudH / 2 + 30)
+                                .style("font-size", "14px")
+                                .style("fill", "#2c3e50")
+                                .style("font-weight", "bold")
+                                .text(`"${d.text}" 出現次數: ${d.freq} (權重: ${d.score.toFixed(2)})`);
                         });
 
                         text.on("pointerleave", function () {
@@ -1352,16 +1404,16 @@
                                 .transition()
                                 .duration(200)
                                 .style("font-size", originalSize)
-                                .style("fill", originalColor);
+                                .style("fill", originalColor)
+                                .style("font-weight", "500");
 
                             container.selectAll(".tooltip").remove();
                         });
                     });
                 }
-
-                document.getElementById("myNav").style.display = "none";
             });
-        }   </script>
+        }   
+    </script>
 
 
 

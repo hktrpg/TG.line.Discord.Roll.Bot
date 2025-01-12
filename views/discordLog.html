@@ -1243,12 +1243,18 @@
 
             // 使用更柔和的配色方案
             const colorScheme = [
-                '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4',
-                '#d1bb5a', '#D4A5A5', '#9B9B9B', '#A8E6CF'
+                '#2C3E50', // 深藍灰
+                '#E74C3C', // 深紅
+                '#2980B9', // 深藍
+                '#8E44AD', // 深紫
+                '#D35400', // 深橘
+                '#16A085', // 深綠
+                '#34495E', // 石板藍
+                '#C0392B'  // 酒紅
             ];
             const fill = d3.scaleOrdinal(colorScheme);
 
-            const margin = { top: 30, right: 30, bottom: 30, left: 30 };
+            const margin = { top: 0, right: 0, bottom: 55, left: 0 };
             const containerWidth = document.getElementById("tag").offsetWidth;
             const cloudw = Math.min(containerWidth - margin.left - margin.right, 400);
             const cloudH = 300 - margin.top - margin.bottom;
@@ -1268,8 +1274,7 @@
                     'whose', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each',
                     'few', 'more', 'most', 'other', 'some', 'such', 'show', 'CC', 'ai',
                     'ch', 'ait', 'sc', 'use', 'hello', 'hp', 'db', 'myname',
-                    '的', '了', '和', '是', '就', '都', '而', '及', '與', '這', '那',
-                    '但', '並', '個', '從', '或', '所', '他', '她', '們', '說', '然後', '一個'
+                    '然後', '一個'
                 ]);
 
                 // 詞頻統計
@@ -1320,10 +1325,10 @@
                         };
                     })
                     .sort((a, b) => b.score - a.score)
-                    .slice(0, 50)
+                    .slice(0, 100)
                     .map((item, index) => ({
                         text: item.text,
-                        size: Math.max(65 - index * 0.5, 20),  // 調整字體大小範圍
+                        size: Math.max(50 - index * 0.5, 2),  // 調整字體大小範圍
                         freq: item.freq,
                         score: item.score
                     }));
@@ -1332,10 +1337,10 @@
                 const layout = d3.layout.cloud()
                     .size([cloudw, cloudH])
                     .words(words)
-                    .padding(2)  // 增加詞間距
+                    .padding(1)  // 增加詞間距
                     .rotate(() => (~~(Math.random() * 2)) * 30)  // 只允許0度和90度旋轉
                     .fontSize(d => d.size)
-                    .spiral('rectangular')  // 使用矩形螺旋布局
+                    .spiral('rectangular')  // 使用矩形螺旋布局 
                     .random(() => 0.5)
                     .on("end", draw);
 

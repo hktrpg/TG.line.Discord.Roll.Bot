@@ -1176,7 +1176,11 @@ async function handlingResponMessage(message, answer = '') {
 		};
 
 	} catch (error) {
-		console.error('handlingResponMessage Error: ', error, (error && error.name), (error && error.message), (error && error.reason), inputStr)
+		console.error(`handlingResponMessage Error:
+		Name: ${error && error.name}
+		Message: ${error && error.message}
+		Reason: ${error && error.reason}
+		Input: ${inputStr}`);
 	}
 }
 const sendBufferImage = async (message, rplyVal, userid) => {

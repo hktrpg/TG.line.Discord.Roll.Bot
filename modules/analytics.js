@@ -86,7 +86,12 @@ const parseInput = async (params) => {
 			result = { ...result, ...rollDiceResult };
 		}
 	} catch (error) {
-		console.error('rolldice GET ERROR:', error.stack, error.name, ' inputStr: ', inputStr, ' botname: ', botname, ' Time: ', new Date());
+		console.error(`rolldice GET ERROR:
+			Stack: ${error.stack}
+			Name: ${error.name}
+			Input: ${inputStr}
+			Botname: ${botname}
+			Time: ${new Date()}`);
 	}
 
 	// cmdfunction .cmd 功能 z_saveCommand 功能
@@ -351,7 +356,11 @@ async function cmdfunction({
 			tgDisplayname: tgDisplayname
 		})
 	} catch (error) {
-		console.error('cmdfunction GET ERROR:', error, ' inputStr: ', newInputStr, ' botname: ', botname, ' Time: ', new Date());
+		console.error(`cmdfunction GET ERROR:
+			Error: ${error}
+			Input: ${newInputStr}
+			Botname: ${botname}
+			Time: ${new Date()}`);
 	}
 	(debugMode) ? console.log('            inputStr2: ', newInputStr) : '';
 	if (typeof tempResut === 'object' && tempResut !== null) {

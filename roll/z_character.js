@@ -353,6 +353,22 @@ async function handleButton(mainMsg, inputStr, userid, groupid, channelid, botna
         rply.text = "這是Discord限定功能";
         return rply;
     }
+    if (inputStr.match(/^\.ch\s+button/i)) {
+        const filter = {
+            id: userid,
+            gpid: channelid || groupid,
+        }
+        const docSwitch = await schema.characterGpSwitch.findOne(filter);
+        if (docSwitch && docSwitch.cardId) {
+            const doc = await schema.characterCard.findOne({
+                _id: docSwitch.cardId
+            });
+            if (doc.roll) {
+                rply.requestRollingCharacter = [handleRequestRollingChMode(doc), doc.name, 'ch'];
+            }
+            return rply;
+        }
+    }
     let filter = {
         id: userid,
         name: new RegExp('^' + convertRegex(inputStr.replace(/^\.char\s+button\s+/i, '')) + '$', "i")

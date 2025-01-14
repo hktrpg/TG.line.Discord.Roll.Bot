@@ -1,0 +1,275 @@
+<!-- filepath: index.html -->
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VTuber Name Card</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --gradient-blue: #60a5fa;
+            --gradient-pink: #f472b6;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(to bottom, #eff6ff, #f5f3ff);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .container {
+            max-width: 1024px;
+            margin: 0 auto;
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .avatar-container {
+            position: relative;
+            width: 12rem;
+            height: 12rem;
+            margin: 0 auto;
+        }
+
+        .avatar-glow {
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(to right, var(--gradient-blue), var(--gradient-pink));
+            border-radius: 50%;
+            opacity: 0.75;
+            filter: blur(8px);
+            transition: opacity 1s;
+        }
+
+        .avatar {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 4px solid white;
+            background: linear-gradient(to bottom right, #dbeafe, #fce7f3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .social-links, .stream-tags, .stats-chart, .logo-section, .message-section, .status-bars {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            border: 1px solid #dbeafe;
+        }
+
+        .tag {
+            display: inline-block;
+            background: linear-gradient(to right, #dbeafe, #fce7f3);
+            padding: 0.25rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            color: #1e40af;
+        }
+
+        .status-bars {
+            margin-top: 1.5rem;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            margin: 1rem 0;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 0.5rem;
+            background: #e5e7eb;
+            border-radius: 9999px;
+            margin: 0 1rem;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, var(--gradient-blue), var(--gradient-pink));
+            border-radius: 9999px;
+        }
+
+        h2, h3 {
+            color: #1e40af;
+            margin-bottom: 0.5rem;
+        }
+
+        .social-item {
+            color: #4b5563;
+            transition: color 0.3s;
+        }
+
+        .social-item:hover {
+            color: var(--gradient-blue);
+        }
+
+        .logo-area {
+            height: 6rem;
+            background: linear-gradient(to bottom right, #dbeafe, #fce7f3);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .message {
+            background: linear-gradient(to right, #dbeafe, #fce7f3);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="grid">
+            <!-- Left Column -->
+            <div class="column">
+                <div class="avatar-container">
+                    <div class="avatar-glow"></div>
+                    <div class="avatar">
+                        <span>頭像</span>
+                    </div>
+                </div>
+                
+                <div class="social-links">
+                    <h3>可以在這些地方找到我</h3>
+                    <div class="social-item">Twitter: @username</div>
+                    <div class="social-item">YouTube: Channel name</div>
+                    <div class="social-item">Twitch: username</div>
+                </div>
+            </div>
+
+            <!-- Middle Column -->
+            <div class="column">
+                <div class="stream-tags">
+                    <h2>直播TAG</h2>
+                    <span class="tag">#直播中</span>
+                </div>
+
+                <div class="stats-chart">
+                    <h3>我的屬性和技能點</h3>
+                    <canvas id="radarChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="column">
+                <div class="logo-section">
+                    <h3>LOGO</h3>
+                    <div class="logo-area">Logo區域</div>
+                </div>
+
+                <div class="message-section">
+                    <h3>想說的話</h3>
+                    <div class="message">
+                        <p>歡迎來到我的直播間！</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Bars -->
+        <div class="status-bars">
+            <div class="status-item">
+                <span>事前準備</span>
+                <div class="progress-bar">
+                    <div class="progress" style="width: 70%"></div>
+                </div>
+                <span>隨機應變</span>
+            </div>
+            <div class="status-item">
+                <span>單一專業</span>
+                <div class="progress-bar">
+                    <div class="progress" style="width: 60%"></div>
+                </div>
+                <span>多項才藝</span>
+            </div>
+            <div class="status-item">
+                <span>邊緣人</span>
+                <div class="progress-bar">
+                    <div class="progress" style="width: 85%"></div>
+                </div>
+                <span>社牛</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const stats = [
+                { subject: '企劃力', value: 80 },
+                { subject: '雜談力', value: 90 },
+                { subject: '親和力', value: 85 },
+                { subject: '主持力', value: 75 },
+                { subject: '表演力', value: 70 },
+                { subject: '才藝力', value: 85 }
+            ];
+
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: stats.map(stat => stat.subject),
+                    datasets: [{
+                        data: stats.map(stat => stat.value),
+                        backgroundColor: 'rgba(96, 165, 250, 0.3)',
+                        borderColor: 'rgba(96, 165, 250, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(96, 165, 250, 1)'
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            angleLines: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            pointLabels: {
+                                color: '#4a5568',
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

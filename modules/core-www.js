@@ -7,6 +7,8 @@ const www = express();
 const {
     RateLimiterMemory
 } = require('rate-limiter-flexible');
+//const loglink = (LOGLINK) ? LOGLINK + '/tmp/' : process.cwd() + '/tmp/';
+const LOGLINK = (process.env.LOGLINK) ? process.env.LOGLINK + '/tmp/' : process.cwd() + '/tmp/';
 const candle = require('../modules/candleDays.js');
 const MESSAGE_SPLITOR = (/\S+/ig)
 const schema = require('./schema.js');
@@ -24,35 +26,45 @@ let options = {
     cert: null,
     ca: null
 };
-const rateLimiterChatRoom = new RateLimiterMemory({
-    points: 90, // 5 points
-    duration: 60, // per second
-});
-const rateLimiterCard = new RateLimiterMemory({
-    points: 20, // 5 points
-    duration: 60, // per second
-});
 
-const rateLimiterApi = new RateLimiterMemory({
-    points: 10000, // 5 points
-    duration: 10, // per second
-});
+// Rate Limiter 整合
+const rateLimitConfig = {
+    chatRoom: { points: 90, duration: 60 },
+    card: { points: 20, duration: 60 },
+    api: { points: 10000, duration: 10 }
+};
 
-async function read() {
-    if (!privateKey) return;
+const rateLimits = Object.entries(rateLimitConfig).reduce((acc, [key, config]) => {
+    acc[key] = new RateLimiterMemory(config);
+    return acc;
+}, {});
+
+const checkRateLimit = async (type, address) => {
     try {
-        options = {
-            key: (fs.readFileSync(privateKey)) ? fs.readFileSync(privateKey) : null,
-            cert: (fs.readFileSync(certificate)) ? fs.readFileSync(certificate) : null,
-            ca: (fs.readFileSync(ca)) ? fs.readFileSync(ca) : null
+        await rateLimits[type].consume(address);
+        return false;
+    } catch {
+        return true;
+    }
+};
+
+// SSL相關功能整合
+const initSSL = () => {
+    if (!privateKey) return {};
+    try {
+        return {
+            key: privateKey ? fs.readFileSync(privateKey) : null,
+            cert: certificate ? fs.readFileSync(certificate) : null,
+            ca: ca ? fs.readFileSync(ca) : null
         };
     } catch (error) {
-        console.error('error of key', error)
+        console.error('SSL key reading error:', error.message);
+        return {};
     }
-}
+};
 
 (async () => {
-    read()
+    options = initSSL();
 })();
 const http = require('http');
 const https = require('https');
@@ -80,7 +92,7 @@ function createWebServer(options = {}, www) {
     const protocol = options.key ? 'https' : 'http';
     console.log(`${protocol} server`);
     server.listen(port, () => {
-        console.log("Web Server Started. port:" + port);
+        console.log("Web Server Started. Link: " + protocol + "://127.0.0.1:" + port);
     });
 
     return server;
@@ -162,12 +174,24 @@ www.get('/signal', (req, res) => {
 });
 
 
-if (process.env.DISCORD_CHANNEL_SECRET) {
-    www.get('/app/discord/:id', (req, res) => {
-        if (req.originalUrl.match(/html$/))
-            res.sendFile(process.cwd() + '/tmp/' + req.originalUrl.replace('/app/discord/', ''));
-    });
-}
+
+
+www.get('/log/:id', (req, res) => {
+    if (req.originalUrl.match(/html$/)) {
+        //if can't find the file, send error.html
+        if (!fs.existsSync(LOGLINK + req.params.id)) {
+            res.sendFile(process.cwd() + '/views/includes/error.html');
+            return;
+        }
+        //res.sendFile(process.cwd() + '/tmp/' + req.originalUrl.replace('/log/', ''));
+        res.sendFile(LOGLINK + req.params.id);
+
+    }
+    else
+        //send error.html
+        res.sendFile(process.cwd() + '/views/includes/error.html');
+});
+
 www.get('/:xx', (req, res) => {
     res.sendFile(process.cwd() + '/views/index.html');
 });
@@ -180,12 +204,12 @@ io.on('connection', async (socket) => {
             userName: message.userName,
             password: SHA(message.userPassword)
         }
-        let doc = await schema.accountPW.findOne(filter).catch(error => console.error('www #144 mongoDB error: ', error.name, error.reson));
+        let doc = await schema.accountPW.findOne(filter).catch(error => console.error('www #144 mongoDB error: ', error.name, error.reason));
         let temp;
         if (doc && doc.id) {
             temp = await schema.characterCard.find({
                 id: doc.id
-            }).catch(error => console.error('www #149 mongoDB error: ', error.name, error.reson));
+            }).catch(error => console.error('www #149 mongoDB error: ', error.name, error.reason));
         }
         let id = [];
         if (doc && doc.channel) {
@@ -209,7 +233,7 @@ io.on('connection', async (socket) => {
                 temp
             })
         } catch (error) {
-            console.error('www #170 mongoDB error: ', error.name, error.reson)
+            console.error('www #170 mongoDB error: ', error.name, error.reason)
         }
 
     })
@@ -255,13 +279,13 @@ io.on('connection', async (socket) => {
                     "channel.id": message.rollTarget.id,
                     "channel.botname": message.rollTarget.botname
                 }
-                let result = await schema.accountPW.findOne(filter).catch(error => console.error('www #214 mongoDB error: ', error.name, error.reson));
+                let result = await schema.accountPW.findOne(filter).catch(error => console.error('www #214 mongoDB error: ', error.name, error.reason));
                 if (!result) return;
                 let filter2 = {
                     "botname": message.rollTarget.botname,
                     "id": message.rollTarget.id
                 }
-                let allowRollingResult = await schema.allowRolling.findOne(filter2).catch(error => console.error('www #220 mongoDB error: ', error.name, error.reson));
+                let allowRollingResult = await schema.allowRolling.findOne(filter2).catch(error => console.error('www #220 mongoDB error: ', error.name, error.reason));
                 if (!allowRollingResult) return;
                 rplyVal.text = '@' + message.cardName + ' - ' + message.item + '\n' + rplyVal.text;
                 if (message.rollTarget.botname) {
@@ -308,7 +332,7 @@ io.on('connection', async (socket) => {
             userName: message.userName,
             password: SHA(message.userPassword)
         }
-        let doc = await schema.accountPW.findOne(filter).catch(error => console.error('www #246 mongoDB error: ', error.name, error.reson));
+        let doc = await schema.accountPW.findOne(filter).catch(error => console.error('www #246 mongoDB error: ', error.name, error.reason));
         let temp;
         if (doc && doc.id) {
             message.card.state = checkNullItem(message.card.state);
@@ -324,7 +348,7 @@ io.on('connection', async (socket) => {
                     roll: message.card.roll,
                     notes: message.card.notes,
                 }
-            }).catch(error => console.error('www #262 mongoDB error: ', error.name, error.reson));
+            }).catch(error => console.error('www #262 mongoDB error: ', error.name, error.reason));
         }
         if (temp) {
             socket.emit('updateCard', true)
@@ -445,31 +469,15 @@ async function loadb(io, records, rplyVal, message) {
     }
 }
 async function limitRaterChatRoom(address) {
-    try {
-        await rateLimiterChatRoom.consume(address)
-        return false;
-    } catch (error) {
-        return true;
-    }
+    return await checkRateLimit('chatRoom', address);
 }
 
-
 async function limitRaterCard(address) {
-    try {
-        await rateLimiterCard.consume(address)
-        return false;
-    } catch (error) {
-        return true;
-    }
+    return await checkRateLimit('card', address);
 }
 
 async function limitRaterApi(address) {
-    try {
-        await rateLimiterApi.consume(address)
-        return false;
-    } catch (error) {
-        return true;
-    }
+    return await checkRateLimit('api', address);
 }
 
 /**
@@ -478,26 +486,31 @@ async function limitRaterApi(address) {
 let sendTo;
 if (isMaster) {
     const WebSocket = require('ws');
-    //將 express 放進 http 中開啟 Server 的 3000 port ，正確開啟後會在 console 中印出訊息
     const wss = new WebSocket.Server({
-        port: 53589
-    }, () => {
-        console.log('open server 53589!')
+        port: 53589,
+        verifyClient: (info) => {
+            return info.req.socket.remoteAddress === "::ffff:127.0.0.1";
+        }
     });
-    wss.on('connection', function connection(ws) {
-        if (!ws._socket.remoteAddress == "::ffff:127.0.0.1") return;
 
+    wss.on('connection', function connection(ws) {
         ws.on('message', function incoming(message) {
-            console.log('received: %s', message);
+            try {
+                console.log('received: %s', message);
+            } catch (err) {
+                console.error('WebSocket message error:', err);
+            }
         });
+
         sendTo = function (params) {
-            let object = {
+            const payload = JSON.stringify({
                 botname: params.target.botname,
                 message: params
-            }
+            });
+
             wss.clients.forEach(function each(client) {
                 if (client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify(object));
+                    client.send(payload);
                 }
             });
         }

@@ -110,17 +110,25 @@ let ws;
 client.on('messageCreate', async message => {
 	try {
 		if (message.author.bot) return;
-		if (!checkMongodb.isDbOnline() && checkMongodb.isDbRespawn()) {
-			//checkMongodb.discordClientRespawn(client, shardid)
+
+		// 使用批次處理
+		const [dbStatus, result] = await Promise.all([
+			checkMongodb.isDbOnline(),
+			handlingResponMessage(message)
+		]);
+
+		if (!dbStatus && checkMongodb.isDbRespawn()) {
 			respawnCluster2();
 		}
-		const result = await handlingResponMessage(message);
+
 		await handlingMultiServerMessage(message);
-		if (result && result.text)
+
+		if (result?.text) {
 			return handlingSendMessage(result);
-		return;
+		}
+
 	} catch (error) {
-		console.error('discord bot messageCreate #91 error', error, (error && error.name && error.message) & error.stack);
+		console.error('Discord messageCreate error:', error?.message);
 	}
 
 });
@@ -143,7 +151,7 @@ client.on('guildCreate', async guild => {
 	} catch (error) {
 		if (error.message === 'Missing Access') return;
 		if (error.message === 'Missing Permissions') return;
-		console.error('discord bot guildCreate  #114 error', (error && error.name), (error && error.message), (error && error.reson));
+		console.error('discord bot guildCreate  #114 error', (error && error.name), (error && error.message), (error && error.reason));
 	}
 })
 
@@ -152,7 +160,7 @@ client.on('interactionCreate', async message => {
 		if (message.user && message.user.bot) return;
 		return __handlingInteractionMessage(message);
 	} catch (error) {
-		console.error('discord bot interactionCreate #123 error', (error && error.name), (error && error.message), (error && error.reson));
+		console.error('discord bot interactionCreate #123 error', (error && error.name), (error && error.message), (error && error.reason));
 	}
 });
 
@@ -163,7 +171,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId })
 		.cache(30)
 		.catch(error => {
-			console.error('discord_bot #802 mongoDB error: ', error.name, error.reson)
+			console.error('discord_bot #802 mongoDB error: ', error.name, error.reason)
 			checkMongodb.dbErrOccurs();
 		})
 	try {
@@ -179,7 +187,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 			reaction.users.remove(user.id);
 		}
 	} catch (error) {
-		console.error('Discord bot messageReactionAdd #249 ', (error && error.name), (error && error.message), (error && error.reson))
+		console.error('Discord bot messageReactionAdd #249 ', (error && error.name), (error && error.message), (error && error.reason))
 	}
 
 });
@@ -187,7 +195,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 client.on('messageReactionRemove', async (reaction, user) => {
 	if (!checkMongodb.isDbOnline()) return;
 	if (reaction.me) return;
-	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('discord_bot #817 mongoDB error: ', error.name, error.reson))
+	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('discord_bot #817 mongoDB error: ', error.name, error.reason))
 	try {
 		if (!list || list.length === 0) return;
 		const detail = list.detail;
@@ -199,7 +207,7 @@ client.on('messageReactionRemove', async (reaction, user) => {
 		}
 	} catch (error) {
 		if (error.message === 'Unknown Member') return;
-		console.error('Discord bot messageReactionRemove #268 ', (error && error.name), (error && error.message), (error && error.reson))
+		console.error('Discord bot messageReactionRemove #268 ', (error && error.name), (error && error.message), (error && error.reason))
 	}
 });
 
@@ -461,7 +469,7 @@ async function nonDice(message) {
 			);
 		}
 	} catch (error) {
-		console.error('await #534 EXPUP error', (error && error.name), (error && error.message), (error && error.reson));
+		console.error('await #534 EXPUP error', (error && error.name), (error && error.message), (error && error.reason));
 	}
 	return null;
 }
@@ -489,23 +497,29 @@ function __privateMsg({ trigger, mainMsg, inputStr }) {
 
 
 async function count() {
-	if (!client.cluster) return;
-	const promises = [
-		client.cluster.fetchClientValues('guilds.cache.size'),
-		client.cluster
-			.broadcastEval(c => c.guilds.cache.filter((guild) => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0))
-	];
-	return Promise.all(promises)
-		.then(results => {
-			const totalGuilds = results[0].reduce((acc, guildCount) => acc + guildCount, 0);
-			const totalMembers = results[1].reduce((acc, memberCount) => acc + memberCount, 0);
-			return (`正在運行HKTRPG的Discord 群組數量: ${totalGuilds}\nDiscord 會員數量: ${totalMembers}`);
-		})
-		.catch(err => {
-			console.error(`disocrdbot #596 error ${err}`)
-		});
+	if (!client.cluster) return '';
 
+	try {
+		const [guildSizes, memberCounts] = await Promise.all([
+			client.cluster.fetchClientValues('guilds.cache.size'),
+			client.cluster.broadcastEval(c =>
+				c.guilds.cache
+					.filter(guild => guild.available)
+					.reduce((acc, guild) => acc + guild.memberCount, 0)
+			)
+		]);
+
+		const totalGuilds = guildSizes.reduce((acc, count) => acc + count, 0);
+		const totalMembers = memberCounts.reduce((acc, count) => acc + count, 0);
+
+		return `群組總數: ${totalGuilds.toLocaleString()}
+│ 　• 會員總數: ${totalMembers.toLocaleString()}`;
+	} catch (err) {
+		console.error(`Discord統計錯誤: ${err}`);
+		return '無法獲取統計資料';
+	}
 }
+
 async function count2() {
 	if (!client.cluster) return '🌼bothelp | hktrpg.com🍎';
 	const promises = [
@@ -560,7 +574,7 @@ function respawnCluster(err) {
 		try {
 			client.cluster.evalOnManager(`this.clusters.get(${client.cluster.id}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10000 });
 		} catch (error) {
-			console.error('respawnCluster #480 error', (error && error.name), (error && error.message), (error && error.reson));
+			console.error('respawnCluster #480 error', (error && error.name), (error && error.message), (error && error.reason));
 		}
 	}
 }
@@ -568,7 +582,7 @@ function respawnCluster2() {
 	try {
 		client.cluster.evalOnManager(`this.clusters.get(${client.cluster.id}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10000 });
 	} catch (error) {
-		console.error('respawnCluster2 error', (error && error.name), (error && error.message), (error && error.reson));
+		console.error('respawnCluster2 error', (error && error.name), (error && error.message), (error && error.reason));
 	}
 }
 
@@ -730,7 +744,7 @@ async function roleReact(channelid, message) {
 		for (let index = 0; index < detail.length; index++) {
 			sendMessage.react(detail[index].emoji);
 		}
-		await schema.roleReact.findByIdAndUpdate(message.roleReactMongooseId, { messageID: sendMessage.id }).catch(error => console.error('discord_bot #786 mongoDB error: ', error.name, error.reson))
+		await schema.roleReact.findByIdAndUpdate(message.roleReactMongooseId, { messageID: sendMessage.id }).catch(error => console.error('discord_bot #786 mongoDB error: ', error.name, error.reason))
 
 	} catch (error) {
 		await SendToReplychannel({ replyText: '不能成功增加ReAction, 請檢查你有授權HKTRPG 新增ReAction的權限, \n此為本功能必須權限', channelid });
@@ -780,7 +794,7 @@ async function checkWakeUp() {
 			//	else return true;
 		})
 		.catch(error => {
-			console.error(`disocrdbot #836 error `, (error && error.name), (error && error.message), (error && error.reson))
+			console.error(`disocrdbot #836 error `, (error && error.name), (error && error.message), (error && error.reason))
 			return false
 		});
 
@@ -801,27 +815,95 @@ function z_stop(mainMsg, groupid) {
 
 const discordPresenceStatus = ['online', 'idle', 'invisible', 'do not disturb']
 async function getAllshardIds() {
-	if (!client.cluster) {
-		return;
-	}
-	const promises = [
-		[...client.cluster.ids.keys()],
-		client.cluster.broadcastEval(c => c.ws.status),
-		client.cluster.broadcastEval(c => c.ws.ping),
-		client.cluster.id,
+	if (!client.cluster) return '';
 
-	];
-	return Promise.all(promises)
-		.then(results => {
-			return `\n現在的shard ID: ${results[3]}
-			所有啓動中的shard ID:   ${results[0].join(", ")} 
-			所有啓動中的shard online:   ${results[1].map(ele => discordPresenceStatus[ele]).join(', ').replace(/online/g, '在線')} 
-			所有啓動中的shard ping:   ${results[2].map(ele => ele.toFixed(0)).join(', ')}`
-		})
-		.catch(error => {
-			console.error(`disocrdbot #884 error `, (error && error.name), (error && error.message), (error && error.reson))
+	try {
+		const [shardIds, wsStatus, wsPing, clusterId] = await Promise.all([
+			[...client.cluster.ids.keys()],
+			client.cluster.broadcastEval(c => c.ws.status),
+			client.cluster.broadcastEval(c => c.ws.ping),
+			client.cluster.id
+		]);
+
+		const statusMap = {
+			'online': '✅在線',
+			'idle': '⚠️閒置',
+			'dnd': '🔴勿擾',
+			'offline': '❌離線',
+			'invisible': '⚫隱身'
+		};
+
+		const groupSize = 5;
+		const formatNumber = num => num.toLocaleString();
+
+		// 轉換狀態和延遲
+		const onlineStatus = wsStatus.map(status =>
+			statusMap[discordPresenceStatus[status]] || status);
+		const pingTimes = wsPing.map(ping => {
+			const p = Math.round(ping);
+			return p > 1000 ? `❌${formatNumber(p)}` :
+				p > 500 ? `⚠️${formatNumber(p)}` :
+					formatNumber(p);
 		});
 
+		// 分組函數
+		const groupArray = (arr, size) => arr.reduce((acc, curr, i) => {
+			const groupIndex = Math.floor(i / size);
+			(acc[groupIndex] = acc[groupIndex] || []).push(curr);
+			return acc;
+		}, []);
+
+		// 格式化分組
+		const formatGroup = (groupedData, isStatus = false) => {
+			return groupedData.map((group, index) => {
+				const start = index * groupSize;
+				const end = Math.min((index + 1) * groupSize - 1, groupedData.flat().length - 1);
+				const range = `${start}-${end}`;
+
+				if (isStatus) {
+					const hasNonOnline = group.some(status => !status.includes('✅'));
+					const prefix = hasNonOnline ? '❗' : '│';
+					return `${prefix} 　• 群組${range}　${group.join(", ")}`;
+				}
+				return `│ 　• 群組${range}　${group.join(", ")}`;
+			}).join('\n');
+		};
+
+		const groupedIds = groupArray(shardIds, groupSize);
+		const groupedStatus = groupArray(onlineStatus, groupSize);
+		const groupedPing = groupArray(pingTimes, groupSize);
+
+		// 統計摘要
+		const totalShards = onlineStatus.length;
+		const onlineCount = onlineStatus.filter(s => s.includes('✅')).length;
+
+		return `
+├────── 🔄分流狀態 ──────
+│ 概況統計:
+│ 　• 目前分流: ${clusterId}
+│ 　• 分流總數: ${totalShards}
+│ 　• 在線分流: ${onlineCount}
+│
+├────── 🔍分流列表 ──────
+│ 已啟動分流:
+${formatGroup(groupedIds)}
+│
+├────── ⚡連線狀態 ──────
+│ 各分流狀態:
+${formatGroup(groupedStatus, true)}
+│
+├────── 📊延遲統計 ──────
+│ 響應時間(ms):
+${formatGroup(groupedPing)}
+╰──────────────`;
+	} catch (error) {
+		console.error('Discord分流監控錯誤:', error);
+		return `
+├────── ⚠️錯誤信息 ──────
+│ 無法獲取分流狀態
+│ 請稍後再試
+╰──────────────`;
+	}
 }
 
 async function handlingButtonCreate(message, input) {
@@ -1032,10 +1114,24 @@ async function handlingResponMessage(message, answer = '') {
 			}
 
 		if (rplyVal.state) {
-			rplyVal.text += '\n' + await count();
-			rplyVal.text += '\nPing: ' + Number(Date.now() - message.createdTimestamp) + 'ms';
-			rplyVal.text += await getAllshardIds();
+			const [countResult, shardResult] = await Promise.all([
+				count(),
+				getAllshardIds()
+			]);
+
+			const ping = Number(Date.now() - message.createdTimestamp);
+			const pingStatus = ping > 1000 ? '❌' : ping > 500 ? '⚠️' : '✅';
+
+			rplyVal.text += `
+			【📊 Discord統計資訊】
+			╭────── 🌐使用統計 ──────
+			│ 群組數據:
+			│ 　• ${countResult}
+			│ 連線延遲:
+			│ 　• ${pingStatus} ${ping}ms
+			${shardResult}`;
 		}
+
 
 		if (groupid && rplyVal && rplyVal.LevelUp) {
 			await SendToReplychannel({ replyText: `<@${userid}>\n${rplyVal.LevelUp}`, channelid });
@@ -1063,7 +1159,7 @@ async function handlingResponMessage(message, answer = '') {
 			} else {
 				message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +
 					rplyVal.discordExportHtml[1] + '\n請注意這是暫存檔案，會不定時移除，有需要請自行下載檔案。\n' +
-					link + ':' + port + "/app/discord/" + rplyVal.discordExportHtml[0] + '.html')
+					link + rplyVal.discordExportHtml[0] + '.html')
 			}
 		}
 		if (!rplyVal.text) {
@@ -1080,7 +1176,11 @@ async function handlingResponMessage(message, answer = '') {
 		};
 
 	} catch (error) {
-		console.error('handlingResponMessage Error: ', error, (error && error.name), (error && error.message), (error && error.reson))
+		console.error(`handlingResponMessage Error:
+		Name: ${error && error.name}
+		Message: ${error && error.message}
+		Reason: ${error && error.reason}
+		Input: ${inputStr}`);
 	}
 }
 const sendBufferImage = async (message, rplyVal, userid) => {
@@ -1223,13 +1323,13 @@ const connect = function () {
 			}
 		}
 		catch (error) {
-			console.error(`disocrdbot #99 error `, (error && error.name), (error && error.message), (error && error.reson))
+			console.error(`disocrdbot #99 error `, (error && error.name), (error && error.message), (error && error.reason))
 		};
 		return;
 
 	});
 	ws.on('error', (error) => {
-		console.error('Discord socket error', (error && error.name), (error && error.message), (error && error.reson));
+		console.error('Discord socket error', (error && error.name), (error && error.message), (error && error.reason));
 	});
 	ws.on('close', function () {
 		console.error('Discord socket close');
@@ -1403,7 +1503,7 @@ async function __handlingInteractionMessage(message) {
 				else {
 					const content = handlingCountButton(message, 'count');
 					return await message.update({ content: content })
-						.catch(error => console.error('discord bot #192  error: ', (error && (error.name || error.message || error.reson)), content));
+						.catch(error => console.error('discord bot #192  error: ', (error && (error.name || error.message || error.reason)), content));
 				}
 			}
 		default:

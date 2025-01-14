@@ -24,7 +24,7 @@ async function getRecords() {
 	if (!checkMongodb.isDbOnline()) return;
 	let result = await schema.multiServer.find({
 	}).catch(error => {
-		console.error('multi-server #20 mongoDB error: ', error.name, error.reson)
+		console.error('multi-server #20 mongoDB error: ', error.name, error.reason)
 		checkMongodb.dbErrOccurs();
 	})
 	if (result.length > 0) channelList = result;

@@ -445,7 +445,7 @@ async function findGp(groupid) {
     //1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
     let gpInfo = await schema.trpgLevelSystem.findOne({
         groupid: groupid
-    }).catch(error => console.error('db #430 mongoDB error: ', error.name, error.reson));
+    }).catch(error => console.error('db #430 mongoDB error: ', error.name, error.reason));
     if (!gpInfo || gpInfo.SwitchV2 != 1) return;
     // userInfo.name = displaynameDiscord || displayname || '無名'
     return gpInfo;
@@ -458,7 +458,7 @@ async function findGpMember(groupid) {
     //1. 檢查GROUP ID 有沒有開啓CONFIG 功能 1
     let gpInfo = await schema.trpgLevelSystemMember.find({
         groupid: groupid
-    }).catch(error => console.error('db #443 mongoDB error: ', error.name, error.reson));
+    }).catch(error => console.error('db #443 mongoDB error: ', error.name, error.reason));
     // userInfo.name = displaynameDiscord || displayname || '無名'
     return gpInfo;
     //6 / 7 * LVL * (2 * LVL * LVL + 30 * LVL + 100)
@@ -469,7 +469,7 @@ async function findUser(groupid, userid) {
     let userInfo = await schema.trpgLevelSystemMember.findOne({
         groupid: groupid,
         userid: userid
-    }).catch(error => console.error('db #454 mongoDB error: ', error.name, error.reson));
+    }).catch(error => console.error('db #454 mongoDB error: ', error.name, error.reason));
     // userInfo.name = displaynameDiscord || displayname || '無名'
     return userInfo;
     //6 / 7 * LVL * (2 * LVL * LVL + 30 * LVL + 100)

@@ -176,7 +176,7 @@ const rollDiceCommand = async function ({
 			let switchOn = await schema.developmentConductor.findOne({
 				groupID: channelid || groupid,
 				switch: true
-			}).catch(error => console.error('coc #149 mongoDB error: ', error.name, error.reson));
+			}).catch(error => console.error('coc #149 mongoDB error: ', error.name, error.reason));
 			if (!switchOn) {
 				rply.text = '本頻道未開啓CC紀錄功能, 請使用 .dp start 開啓'
 				return rply;
@@ -184,7 +184,7 @@ const rollDiceCommand = async function ({
 			let result = await schema.developmentRollingRecord.find({
 				groupID: channelid || groupid,
 				userID: userid,
-			}).sort({ date: -1 }).catch(error => console.error('coc #157 mongoDB error: ', error.name, error.reson));
+			}).sort({ date: -1 }).catch(error => console.error('coc #157 mongoDB error: ', error.name, error.reason));
 			rply.quotes = true;
 			if (!result || result.length == 0) {
 				rply.text = '未有CC擲骰紀錄';
@@ -253,7 +253,7 @@ const rollDiceCommand = async function ({
 			let switchOn = await schema.developmentConductor.findOne({
 				groupID: channelid || groupid,
 				switch: true
-			}).catch(error => console.error('coc #224 mongoDB error: ', error.name, error.reson));
+			}).catch(error => console.error('coc #224 mongoDB error: ', error.name, error.reason));
 			if (!switchOn) {
 				rply.text = '本頻道未開啓CC紀錄功能, 請使用 .dp start 開啓'
 				return rply;
@@ -266,7 +266,7 @@ const rollDiceCommand = async function ({
 				}, {
 					skillPerStyle: 'fumble'
 				}]
-			}).sort({ userName: -1 }).catch(error => console.error('coc #237 mongoDB error: ', error.name, error.reson));
+			}).sort({ userName: -1 }).catch(error => console.error('coc #237 mongoDB error: ', error.name, error.reason));
 			rply.quotes = true;
 			let criticalSuccessNfumbleResult = {
 				data: false,
@@ -296,7 +296,7 @@ const rollDiceCommand = async function ({
 			let switchOn = await schema.developmentConductor.findOne({
 				groupID: channelid || groupid,
 				switch: true
-			}).catch(error => console.error('coc #264 mongoDB error: ', error.name, error.reson));
+			}).catch(error => console.error('coc #264 mongoDB error: ', error.name, error.reason));
 			if (!switchOn) {
 				rply.text = '本頻道未開啓CC紀錄功能, 請使用 .dp start 開啓'
 				return rply;
@@ -306,7 +306,7 @@ const rollDiceCommand = async function ({
 				groupID: channelid || groupid,
 				userID: userid,
 				skillPerStyle: 'normal'
-			}).sort({ date: -1 }).catch(error => console.error('coc #274 mongoDB error: ', error.name, error.reson));
+			}).sort({ date: -1 }).catch(error => console.error('coc #274 mongoDB error: ', error.name, error.reason));
 			if (!result || result.length == 0) {
 				rply.text = '未有CC擲骰紀錄';
 				return rply;
@@ -334,7 +334,7 @@ const rollDiceCommand = async function ({
 				groupID: channelid || groupid,
 				userID: userid,
 				skillPerStyle: 'normal'
-			}).catch(error => console.error('coc #302 mongoDB error: ', error.name, error.reson));
+			}).catch(error => console.error('coc #302 mongoDB error: ', error.name, error.reason));
 			rply.text += `\n--------
 			成長結束，已清除擲骰紀錄`
 			return rply;
@@ -351,7 +351,7 @@ const rollDiceCommand = async function ({
 				groupID: channelid || groupid,
 				userID: userid,
 				skillPerStyle: 'normal'
-			}).catch(error => console.error('coc #316 mongoDB error: ', error.name, error.reson));
+			}).catch(error => console.error('coc #316 mongoDB error: ', error.name, error.reason));
 
 			rply.quotes = true;
 			rply.text = `已清除 ${result.n}項紀錄, 如想大成功大失敗紀錄也清除, 請使用 .dp clearall`
@@ -376,7 +376,7 @@ const rollDiceCommand = async function ({
 					skillPerStyle: 'normal'
 				}]
 
-			}).catch(error => console.error('coc #338 mongoDB error: ', error.name, error.reson));
+			}).catch(error => console.error('coc #338 mongoDB error: ', error.name, error.reason));
 			rply.quotes = true;
 			rply.text = `已清除你在本頻道的所有CC擲骰紀錄, 共計${result.n}項`
 			return rply;
@@ -1164,7 +1164,7 @@ async function dpRecordSwitch({ onOff = false, groupid = "", channelid = "" }) {
 			new: true,
 			upsert: true,
 			returnDocument: true
-		}).catch(error => console.error('coc #673 mongoDB error: ', error.name, error.reson));
+		}).catch(error => console.error('coc #673 mongoDB error: ', error.name, error.reason));
 		return `現在這頻道的COC 成長紀錄功能為 ${(result.switch) ? '開啓' : '關閉'}
 以後CC擲骰將 ${(result.switch) ? '會' : '不會'}進行紀錄`
 	} catch (error) {
@@ -1180,7 +1180,7 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 			groupID: channelid || groupid,
 			switch: true
 		}).catch(error => {
-			console.error('coc #687 mongoDB error: ', error.name, error.reson)
+			console.error('coc #687 mongoDB error: ', error.name, error.reason)
 			checkMongodb.dbErrOccurs();
 		});
 		if (!result) return;
@@ -1205,7 +1205,7 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 					new: true,
 					upsert: true,
 					returnDocument: true
-				}).catch(error => console.error('coc #710 mongoDB error: ', error.name, error.reson));
+				}).catch(error => console.error('coc #710 mongoDB error: ', error.name, error.reason));
 		} else {
 			await schema.developmentRollingRecord.create({
 				groupID: channelid || groupid,
@@ -1215,23 +1215,23 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 				date: Date.now(),
 				skillPer: skillPer,
 				skillResult: skillResult
-			}).catch(error => console.error('coc #720 mongoDB error: ', error.name, error.reson));
+			}).catch(error => console.error('coc #720 mongoDB error: ', error.name, error.reason));
 			let countNumber = await schema.developmentRollingRecord.find({
 				groupID: channelid || groupid,
 				userID: userID,
 				skillName: "",
 				skillPerStyle: 'normal',
-			}).countDocuments().catch(error => console.error('coc #726 mongoDB error: ', error.name, error.reson));
+			}).countDocuments().catch(error => console.error('coc #726 mongoDB error: ', error.name, error.reason));
 			if (countNumber > 10) {
 				let moreThanTen = await schema.developmentRollingRecord.find({
 					groupID: channelid || groupid,
 					userID: userID,
 					skillName: "",
 					skillPerStyle: 'normal',
-				}).sort({ date: 1 }).limit(countNumber - 10).catch(error => console.error('coc #733 mongoDB error: ', error.name, error.reson));
+				}).sort({ date: 1 }).limit(countNumber - 10).catch(error => console.error('coc #733 mongoDB error: ', error.name, error.reason));
 
 				moreThanTen.forEach(async function (doc) {
-					await schema.developmentRollingRecord.deleteOne({ _id: doc._id }).catch(error => console.error('coc #736 mongoDB error: ', error.name, error.reson));
+					await schema.developmentRollingRecord.deleteOne({ _id: doc._id }).catch(error => console.error('coc #736 mongoDB error: ', error.name, error.reason));
 				})
 			}
 
@@ -1252,21 +1252,21 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 				skillPer: skillPer,
 				skillResult: skillResult,
 				userName: userName
-			}).catch(error => console.error('coc #757 mongoDB error: ', error.name, error.reson));
+			}).catch(error => console.error('coc #757 mongoDB error: ', error.name, error.reason));
 			let countNumber = await schema.developmentRollingRecord.find({
 				groupID: channelid || groupid,
 				userID: userID,
 				skillPerStyle: skillPerStyle,
-			}).countDocuments().catch(error => console.error('coc #762 mongoDB error: ', error.name, error.reson));
+			}).countDocuments().catch(error => console.error('coc #762 mongoDB error: ', error.name, error.reason));
 			if (countNumber > 10) {
 				let moreThanTen = await schema.developmentRollingRecord.find({
 					groupID: channelid || groupid,
 					userID: userID,
 					skillPerStyle: skillPerStyle,
-				}).sort({ date: 1 }).limit(countNumber - 10).catch(error => console.error('coc #768 mongoDB error: ', error.name, error.reson));
+				}).sort({ date: 1 }).limit(countNumber - 10).catch(error => console.error('coc #768 mongoDB error: ', error.name, error.reason));
 
 				moreThanTen.forEach(async function (doc) {
-					await schema.developmentRollingRecord.deleteOne({ _id: doc._id }).catch(error => console.error('coc #771 mongoDB error: ', error.name, error.reson));
+					await schema.developmentRollingRecord.deleteOne({ _id: doc._id }).catch(error => console.error('coc #771 mongoDB error: ', error.name, error.reason));
 				})
 			}
 		}

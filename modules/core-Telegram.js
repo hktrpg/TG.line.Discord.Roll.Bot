@@ -99,7 +99,10 @@ TGclient.on('text', async (ctx) => {
     let userrole = 1;
     //頻道人數
     if (ctx.chat && ctx.chat.id) {
-        membercount = await TGclient.getChatMemberCount(ctx.chat.id) - 1;
+        membercount = await TGclient.getChatMemberCount(ctx.chat.id).catch((error) => {
+            return 0;
+        });
+
     }
     //285083923223
     //userrole = 3
@@ -147,8 +150,8 @@ TGclient.on('text', async (ctx) => {
         return;
     if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Telegram")) {
         TGclient.sendMessage(userid, newMessage.firstTimeMessage()).catch((error) => {
-            console.log(error.code);  // => 'ETELEGRAM'
-            console.log(error.response.body); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
+            console.error(error.code);  // => 'ETELEGRAM'
+            console.error(error.response.body); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
         });
     }
 
@@ -229,8 +232,8 @@ function SendToId(targetid, text, options) {
         for (let i = 0; i < text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
             if (i == 0 || i == 1 || i == text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
                 TGclient.sendMessage(targetid, text.toString().match(/[\s\S]{1,2000}/g)[i], options).catch((error) => {
-                    console.log(error.code);  // => 'ETELEGRAM'
-                    console.log(error.response.body); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
+                    console.error(error.code);  // => 'ETELEGRAM'
+                    console.error(error.response.body); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
                 });
             }
         }
@@ -254,8 +257,8 @@ let connect = function () {
             if (!object.text) return;
             console.log('Telegram have message')
             TGclient.sendMessage(object.target.id, object.text).catch((error) => {
-                console.log(error.code);  // => 'ETELEGRAM'
-                console.log(error.response.body); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
+                console.error(error.code);  // => 'ETELEGRAM'
+                console.error(error.response.body); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
             });
             return;
         }
@@ -289,7 +292,10 @@ async function nonDice(ctx) {
                 membercount = null;
             let tgDisplayname = (ctx.from.first_name) ? ctx.from.first_name : '';
             if (ctx.chat && ctx.chat.id) {
-                membercount = await TGclient.getChatMemberCount(ctx.chat.id);
+                membercount = await TGclient.getChatMemberCount(ctx.chat.id).catch((error) => {
+                    return 0;
+                });
+
             }
             let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount, tgDisplayname);
             if (groupid && LevelUp && LevelUp.text) {
@@ -406,9 +412,10 @@ if (agenda && agenda.agenda) {
 
 
 async function isAdmin(gpId, chatid) {
-    let member = await TGclient.getChatMember(gpId, chatid);
-    if (member.status === "creator") return true
-    if (member.status === "administrator") return true
+    let member = await TGclient.getChatMember(gpId, chatid).catch((error) => {
+    });
+    if (member?.status === "creator") return true
+    if (member?.status === "administrator") return true
     return false;
 }
 
@@ -441,7 +448,7 @@ TGclient.on('polling_error', (error) => {
 });
 
 TGclient.on('webhook_error', (error) => {
-    console.log("webhook_error handler:",error.code);  // => 'EPARSE'
+    console.log("webhook_error handler:", error.code);  // => 'EPARSE'
 });
 
 

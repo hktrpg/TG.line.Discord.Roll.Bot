@@ -167,7 +167,7 @@ const rollDiceCommand = async function ({
                     await temp.save();
                 } catch (error) {
                     rply.text = "先攻表更新失敗，\n" + error;
-                    console.error('init #154 mongoDB error: ', error.name, error.reson)
+                    console.error('init #154 mongoDB error: ', error.name, error.reason)
                     return rply;
                 }
                 rply.text = name + ' 的先攻值是 ' + Number(result);

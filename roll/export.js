@@ -7,7 +7,7 @@ let variables = {};
 const oneMinuts = (process.env.DEBUG) ? 1 : 60000;
 const sevenDay = (process.env.DEBUG) ? 1 : 60 * 24 * 7 * 60000;
 const checkTools = require('../modules/check.js');
-
+const crypto = require('crypto');
 const gameName = function () {
     return '【Discord 頻道輸出工具】'
 }
@@ -29,6 +29,10 @@ const FUNCTION_LIMIT = (process.env.DEBUG) ? [99, 99, 99, 40, 40, 99, 99, 99] : 
  */
 const schema = require('../modules/schema.js');
 const fs = require('fs').promises;
+const stream = require('stream');
+const { promisify } = require('util');
+const pipeline = promisify(stream.pipeline);
+const { createWriteStream } = require('fs');
 const moment = require('moment-timezone');
 const CryptoJS = require("crypto-js");
 const gameType = function () {
@@ -129,7 +133,7 @@ const rollDiceCommand = async function ({
         }
     }
 
-    async function lots_of_messages_getter_HTML(channel, demo) {
+    async function lots_of_messages_getter_HTML(channel, demo, members) {
         const sum_messages = [];
         let last_id;
         let totalSize = 0;
@@ -147,7 +151,7 @@ const rollDiceCommand = async function ({
             for (const element of messages.values()) {
                 let temp;
                 if (element.type === 0 || element.type === 19) {
-                    const content = await replaceMentions(element.content);
+                    const content = await replaceMentions(element.content, members);
                     temp = {
                         timestamp: element.createdTimestamp,
                         contact: content,
@@ -284,8 +288,6 @@ const rollDiceCommand = async function ({
             rply.quotes = true;
             return rply;
         case /^html$/i.test(mainMsg[1]):
-            rply.text = "功能暫停，請先使用TXT版 .discord txt"
-            return rply;
             if (!channelid || !groupid) {
                 rply.text = "這是頻道功能，需要在頻道上使用。"
                 return rply;
@@ -363,7 +365,8 @@ const rollDiceCommand = async function ({
 
 
             discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間');
-            M = await lots_of_messages_getter_HTML(C, demoMode);
+            const members = discordMessage.guild.members.cache.map(member => member);
+            M = await lots_of_messages_getter_HTML(C, demoMode, members);
             if (M.length == 0) {
                 rply.text = "未能讀取信息";
                 return rply;
@@ -404,13 +407,25 @@ const rollDiceCommand = async function ({
                     await fs.mkdir(dir);
             }
             data = await fs.readFile(__dirname + '/../views/discordLog.html', 'utf-8')
-            let key = makeid(32);
+            // 在 rollDiceCommand 中使用
+            let key = makeid(16); // 使用16位元的金鑰
             let randomLink = makeid(7);
-            let newAESDate = AES(key, key, JSON.stringify(newRawDate));
-            //aesData = [];
-            newValue = data.replace(/aesData\s=\s\[\]/, 'aesData = ' + JSON.stringify(newAESDate.toString('base64'))).replace(/<h1>聊天紀錄<\/h1>/, '<h1>' + channelName + ' 的聊天紀錄</h1>');
+            let encryptedData = lightEncrypt(newRawDate, key);
+            newValue = data.replace(/aesData\s=\s\[\]/,
+                'aesData = "' + encryptedData + '"')
+                .replace(/<h1>聊天紀錄<\/h1>/,
+                    '<h1>' + channelName + ' 的聊天紀錄</h1>');
             let tempB = key;
-            await fs.writeFile(dir + channelid + '_' + hour + minutes + seconds + '_' + randomLink + '.html', newValue); // need to be in an async function
+            const writeStream = createWriteStream(dir + channelid + '_' + hour + minutes + seconds + '_' + randomLink + '.html');
+            const contentStream = new stream.Readable();
+            contentStream.push(newValue);
+            contentStream.push(null);
+
+            await pipeline(
+                contentStream,
+                writeStream
+            );
+
             rply.discordExportHtml = [
                 tempA + '_' + randomLink,
                 tempB
@@ -440,10 +455,10 @@ const rollDiceCommand = async function ({
             limit = FUNCTION_LIMIT[lv];
             checkUser = await schema.exportUser.findOne({
                 userID: userid
-            }).catch(error => console.error('export #372 mongoDB error: ', error.name, error.reson));
+            }).catch(error => console.error('export #372 mongoDB error: ', error.name, error.reason));
             checkGP = await schema.exportGp.findOne({
                 groupID: userid
-            }).catch(error => console.error('export #375 mongoDB error: ', error.name, error.reson));
+            }).catch(error => console.error('export #375 mongoDB error: ', error.name, error.reason));
             gpLimitTime = (lv > 0) ? oneMinuts : oneMinuts * 120;
             gpRemainingTime = (checkGP) ? theTime - checkGP.lastActiveAt - gpLimitTime : 1;
             userRemainingTime = (checkUser) ? theTime - checkUser.lastActiveAt - sevenDay : 1;
@@ -474,7 +489,7 @@ const rollDiceCommand = async function ({
                     groupID: userid
                 }, {
                     lastActiveAt: new Date()
-                }, opt).catch(error => console.error('export #408 mongoDB error: ', error.name, error.reson));
+                }, opt).catch(error => console.error('export #408 mongoDB error: ', error.name, error.reason));
             } else {
                 checkGP.lastActiveAt = theTime;
                 await checkGP.save();
@@ -494,7 +509,7 @@ const rollDiceCommand = async function ({
                 }, {
                     lastActiveAt: new Date(),
                     times: 1
-                }, opt).catch(error => console.error('export #428 mongoDB error: ', error.name, error.reson));
+                }, opt).catch(error => console.error('export #428 mongoDB error: ', error.name, error.reason));
             } else {
                 if (userRemainingTime && userRemainingTime > 0) {
                     update = {
@@ -512,7 +527,7 @@ const rollDiceCommand = async function ({
                 if (update)
                     await schema.exportUser.updateOne({
                         userID: userid
-                    }, update, opt).catch(error => console.error('export #446 mongoDB error: ', error.name, error.reson));
+                    }, update, opt).catch(error => console.error('export #446 mongoDB error: ', error.name, error.reason));
             }
             totalSize = M.totalSize;
             M = M.sum_messages;
@@ -520,15 +535,18 @@ const rollDiceCommand = async function ({
                 return a.timestamp - b.timestamp;
             });
             let withouttime = (/-withouttime/i).test(inputStr);
-            //加不加時間標記下去
+            const writeStream = createWriteStream(dir + channelid + '_' + hour + minutes + seconds + '.txt');
+            const contentStream = new stream.Readable();
+
             for (let index = M.length - 1; index >= 0; index--) {
+                let line = '';
                 if (withouttime) {
                     if (M[index].isbot) {
-                        data += '(🤖)'
+                        line += '(🤖)';
                     }
-                    data += M[index].userName + '	' + '\n';
-                    data += M[index].contact;
-                    data += '\n\n';
+                    line += M[index].userName + '\t\n';
+                    line += M[index].contact;
+                    line += '\n\n';
                 } else {
                     let time = M[index].timestamp.toString().slice(0, -3);
                     const dateObj = moment
@@ -536,23 +554,23 @@ const rollDiceCommand = async function ({
                         .tz('Asia/Taipei')
                         .format('YYYY-MM-DD HH:mm:ss');
                     if (M[index].isbot) {
-                        data += '(🤖)'
+                        line += '(🤖)';
                     }
-                    //dateObj  決定有沒有時間
-                    data += M[index].userName + '	' + dateObj + '\n';
-                    data += (M[index].contact) ? (M[index].contact) + '\n' : '';
-                    data += (M[index].embeds.length) ? `${M[index].embeds.join('\n')}` : '';
-                    data += (M[index].attachments.length) ? `${M[index].attachments.join('\n')}` : '';
-                    data += '\n';
+                    line += M[index].userName + '\t' + dateObj + '\n';
+                    line += (M[index].contact) ? (M[index].contact) + '\n' : '';
+                    line += (M[index].embeds.length) ? `${M[index].embeds.join('\n')}` : '';
+                    line += (M[index].attachments.length) ? `${M[index].attachments.join('\n')}` : '';
+                    line += '\n';
                 }
+                contentStream.push(line);
             }
-            try {
-                await fs.access(dir)
-            } catch (error) {
-                if (error && error.code === 'ENOENT')
-                    await fs.mkdir(dir);
-            }
-            await fs.writeFile(dir + channelid + '_' + hour + minutes + seconds + '.txt', data); // need to be in an async function
+            contentStream.push(null);
+
+            await pipeline(
+                contentStream,
+                writeStream
+            );
+
             rply.discordExport = channelid + '_' + hour + minutes + seconds;
             rply.text += `已私訊你 頻道  ${discordMessage.channel.name}  的聊天紀錄
                 你的channel聊天紀錄 共有  ${totalSize}  項`
@@ -580,7 +598,6 @@ function getAesString(data, key, iv) { //加密
 
 
 function AES(key, iv, data) {
-    let crypto = require('crypto');
     let algo = "aes-256-cbc"; // we are using 128 bit here because of the 16 byte key. use 256 is the key is 32 byte.
     let cipher = crypto.createCipheriv(algo, Buffer.from(key, 'utf-8'), iv.slice(0, 16));
     // let encrypted = cipher.update(data, 'utf-8', 'base64'); // `base64` here represents output encoding
@@ -594,6 +611,45 @@ function getAES(key, iv, data) { //加密
     //    let encrypted1 = CryptoJS.enc.Utf8.parse(encrypted);
     return encrypted;
 }
+
+function generateKey() {
+    // 生成16字節的隨機密鑰
+    return crypto.randomBytes(16).toString('hex');
+}
+
+
+function lightEncrypt(data, key) {
+    try {
+        const iv = Buffer.alloc(16, 0);
+        const cipher = crypto.createCipheriv('aes-128-cbc',
+            Buffer.from(key.slice(0, 16)),
+            iv);
+
+        // 壓縮數據並轉換為字串
+        const minData = data.map(item => ({
+            t: item.timestamp,
+            c: item.contact,
+            u: item.userName,
+            b: item.isbot
+        }));
+        const jsonString = JSON.stringify(minData);
+
+        // 加密數據
+        const encrypted = Buffer.concat([
+            cipher.update(jsonString, 'utf8'),
+            cipher.final()
+        ]);
+
+        // 轉換為 base64
+        return encrypted.toString('base64');
+    } catch (e) {
+        console.error('Encryption error:', e);
+        throw e;
+    }
+}
+
+
+
 
 function makeid(length) {
     let result = '';

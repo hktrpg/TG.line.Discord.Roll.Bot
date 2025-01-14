@@ -397,7 +397,7 @@ class Version {
 			this.pullsNumber = data[0].number;
 			this.lastUpdate = this.YYYYMMDD(data[0].merged_at);
 		} catch (error) {
-			console.log('help #302 version error: ', error)
+			console.error('help #302 version error: ', error)
 		}
 		this.filesCourt = Object.keys(exports).length;
 	}

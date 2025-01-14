@@ -51,7 +51,7 @@ const RollingLog = {
 
 
 const getState = async function () {
-    let theNewData = await schema.RealTimeRollingLog.findOne({}).catch(error => console.error('log # 52 mongoDB error: ', error.name, error.reson));
+    let theNewData = await schema.RealTimeRollingLog.findOne({}).catch(error => console.error('log # 52 mongoDB error: ', error.name, error.reason));
     if (!theNewData) return;
     theNewData.RealTimeRollingLogfunction.LogTime = theNewData.RealTimeRollingLogfunction.LogTime.replace(/\s+GMT.*$/, '');
     theNewData.RealTimeRollingLogfunction.StartTime = theNewData.RealTimeRollingLogfunction.StartTime.replace(/\s+GMT.*$/, '');
@@ -91,7 +91,7 @@ async function saveLog() {
     }, {
         upsert: true
     }).catch(error => {
-        console.error('log #90 mongoDB error: ', error.name, error.reson)
+        console.error('log #90 mongoDB error: ', error.name, error.reason)
         checkMongodb.dbErrOccurs();
     })
     //把擲骰的次數還原 為0
@@ -107,7 +107,7 @@ async function pushToDefiniteLog() {
     if (shardid !== 0) return;
     //更新最後的RollingLog 儲存時間
     RollingLog.LastTimeLog = Date.now();
-    let theNewData = await schema.RealTimeRollingLog.findOne({}).catch(error => console.error('log #105 mongoDB error: ', error.name, error.reson));
+    let theNewData = await schema.RealTimeRollingLog.findOne({}).catch(error => console.error('log #105 mongoDB error: ', error.name, error.reason));
     let temp = {
         RollingLogfunction:
         {
@@ -128,14 +128,14 @@ async function pushToDefiniteLog() {
             ApiCountText: theNewData.RealTimeRollingLogfunction.ApiCountText
         }
     }
-    await schema.RollingLog.create(temp).catch(error => console.error('logs #126 mongoDB error: ', error.name, error.reson));
+    await schema.RollingLog.create(temp).catch(error => console.error('logs #126 mongoDB error: ', error.name, error.reason));
     return;
 }
 
 async function getRecords() {
     if (!checkMongodb.isDbOnline()) return;
     let theNewData = await schema.RealTimeRollingLog.findOne({}).catch(error => {
-        console.error('log # 131 mongoDB error: ', error.name, error.reson)
+        console.error('log # 131 mongoDB error: ', error.name, error.reason)
         checkMongodb.dbErrOccurs();
     });
 

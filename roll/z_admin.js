@@ -191,7 +191,7 @@ const rollDiceCommand = async function ({
                         "titleName": titleName
                     }
                 });
-                await temp.save().catch(error => console.error('admin #138 mongoDB error: ', error.name, error.reson));
+                await temp.save().catch(error => console.error('admin #138 mongoDB error: ', error.name, error.reason));
                 rply.text = "註冊成功。如果想使用角色卡，請到\nhttps://card.hktrpg.com/";
                 if (!await checkGpAllow(channelid || groupid)) {
                     rply.text += '\n此頻道並未被Admin允許經網頁擲骰，請Admin在此頻道輸入\n.admin  allowrolling';

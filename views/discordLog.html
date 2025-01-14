@@ -1,118 +1,5 @@
 <!doctype html>
 <html lang="zh-Hant-HK">
-<!-- HKTRPG Sad-->
-<style>
-    .center {
-        text-align: center;
-    }
-
-    table {
-        font-family: arial, sans-serif;
-        border-collapse: collapse;
-        width: 100%;
-    }
-
-    td,
-    th {
-        border: 1px solid #dddddd;
-        padding: 4px;
-    }
-
-    th {
-        background-color: #eeeeee;
-    }
-
-    input[type=text],
-    select {
-        width: 100%;
-        padding: 12px 20px;
-        margin: 8px 0;
-        display: inline-block;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        box-sizing: border-box;
-        margin-top: 25px;
-    }
-
-    .bg-color {
-        background-color: #EDEAE5;
-        color: black;
-    }
-
-    .color-01 {
-        background-color: #f0d25d80;
-        color: black;
-    }
-
-    .color-02 {
-        background-color: #90ccf4c7;
-        color: white;
-    }
-
-
-
-    .preline {
-        white-space:
-            pre-line;
-    }
-
-    body {
-        margin-top: 2%
-    }
-
-    .overlay {
-        height: 100%;
-        width: 100%;
-        display: none;
-        position: fixed;
-        z-index: 1;
-        top: 0;
-        left: 0;
-        background-color: rgb(0, 0, 0);
-        background-color: rgba(247, 248, 177, 0.5);
-    }
-
-    .overlay-content {
-        position: relative;
-        top: 25%;
-        width: 100%;
-        text-align: center;
-        margin-top: 30px;
-    }
-
-    .overlay a {
-        padding: 8px;
-        text-decoration: none;
-        font-size: 36px;
-        color: #818181;
-        display: block;
-        transition: 0.3s;
-    }
-
-    .overlay a:hover,
-    .overlay a:focus {
-        color: #f1f1f1;
-    }
-
-    .overlay .closebtn {
-        position: absolute;
-        top: 20px;
-        right: 45px;
-        font-size: 60px;
-    }
-
-    @media screen and (max-height: 450px) {
-        .overlay a {
-            font-size: 20px
-        }
-
-        .overlay .closebtn {
-            font-size: 40px;
-            top: 15px;
-            right: 35px;
-        }
-    }
-</style>
 
 <head>
     <!-- Required meta tags -->
@@ -123,11 +10,9 @@
         integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <!-- production version, optimized for size and speed -->
-    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
     <script src="https://d3js.org/d3.v6.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.5/d3.layout.cloud.min.js"
-        integrity="sha512-HjKxWye8lJGPu5q1u/ZYkHlJrJdm6KGr89E6tOrXeKm1mItb1xusPU8QPcKVhP8F9LjpZT7vsu1Fa+dQywP4eg=="
-        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.7/d3.layout.cloud.min.js"></script>
     <script src="https://pulipulichen.github.io/jieba-js/jquery.js"></script>
     <script src="https://pulipulichen.github.io/jieba-js/require-jieba-js.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
@@ -138,8 +23,449 @@
         integrity="sha512-nOQuvD9nKirvxDdvQ9OMqe2dgapbPB7vYAMrzJihw5m+aNcf0dX53m6YxM4LgA9u8e9eg9QX+/+mPu8kCNpV2A=="
         crossorigin="anonymous"></script>
     <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
-
     <!--https://blog.gtwang.org/programming/javascript-aes-symmetric-encryption-tutorial/-->
+    <style>
+        .center {
+            text-align: center;
+        }
+
+
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td,
+        th {
+            border: 1px solid #dddddd;
+            padding: 4px;
+        }
+
+        th {
+            background-color: #eeeeee;
+        }
+
+        input[type=text],
+        select {
+            width: 100%;
+            padding: 12px 20px;
+            margin: 8px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            margin-top: 25px;
+        }
+
+        .bg-color {
+            background-color: #EDEAE5;
+            color: black;
+        }
+
+        .color-01 {
+            background-color: #f0d25d80;
+            color: black;
+        }
+
+        .color-02 {
+            background-color: #90ccf4c7;
+            color: white;
+        }
+
+
+
+        .preline {
+            white-space:
+                pre-line;
+        }
+
+        body {
+            margin-top: 2%
+        }
+
+        .overlay {
+            height: 100%;
+            width: 100%;
+            display: none;
+            position: fixed;
+            z-index: 1;
+            top: 0;
+            left: 0;
+            background-color: rgb(0, 0, 0);
+            background-color: rgba(247, 248, 177, 0.5);
+        }
+
+        .overlay-content {
+            position: relative;
+            top: 25%;
+            width: 100%;
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .overlay a {
+            padding: 8px;
+            text-decoration: none;
+            font-size: 36px;
+            color: #818181;
+            display: block;
+            transition: 0.3s;
+        }
+
+        .overlay a:hover,
+        .overlay a:focus {
+            color: #f1f1f1;
+        }
+
+        .overlay .closebtn {
+            position: absolute;
+            top: 20px;
+            right: 45px;
+            font-size: 60px;
+        }
+
+        @media screen and (max-height: 450px) {
+            .overlay a {
+                font-size: 20px
+            }
+
+            .overlay .closebtn {
+                font-size: 40px;
+                top: 15px;
+                right: 35px;
+            }
+        }
+
+        /* 整體樣式優化 */
+        body {
+            margin-top: 2%;
+            background-color: #f5f6fa;
+            color: #2f3542;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+
+        /* 表格美化 */
+        table {
+            font-family: 'Noto Sans TC', sans-serif;
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        td,
+        th {
+            border: none;
+            padding: 12px;
+            transition: all 0.3s ease;
+        }
+
+        th {
+            background-color: #3742fa;
+            color: white;
+            font-weight: 500;
+        }
+
+        tr:hover {
+            background-color: rgba(55, 66, 250, 0.05);
+        }
+
+        /* 卡片樣式改進 */
+        .color-01 {
+            background: linear-gradient(135deg, #f4e9c3 0%, #f1dc73 100%);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .color-02 {
+            background: linear-gradient(135deg, #bed7f0 0%, #76bff7 100%);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            color: white;
+        }
+
+        /* 按鈕美化 */
+        .btn {
+            border-radius: 25px;
+            padding: 10px 25px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #3742fa;
+            border: none;
+            box-shadow: 0 4px 15px rgba(55, 66, 250, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(55, 66, 250, 4);
+        }
+
+        /* 文字輸入框美化 */
+        input[type=text],
+        select {
+            border-radius: 25px;
+            border: 2px solid #dcdde1;
+            padding: 15px 25px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        input[type=text]:focus {
+            border-color: #3742fa;
+            box-shadow: 0 2px 15px rgba(55, 66, 250, 0.2);
+        }
+
+        /* 導航欄美化 */
+        .navbar {
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 0 0 15px 15px;
+        }
+
+        /* 圖表容器美化 */
+        #tag {
+            background: rgb(255, 230, 230);
+            border-radius: 12px;
+
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 進度條美化 */
+        .progress {
+            height: 10px !important;
+            border-radius: 5px;
+            background-color: #dcdde1;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #3742fa 0%, #5352ed 100%);
+            border-radius: 5px;
+        }
+
+        /* 全域樣式優化 */
+        :root {
+            --primary-color: #3742fa;
+            --secondary-color: #ff6b6b;
+            --accent-color: #ffd93d;
+            --text-color: #2f3542;
+            --bg-color: #f5f6fa;
+        }
+
+        body {
+            margin-top: 2%;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Noto Sans TC', sans-serif;
+            line-height: 1.6;
+        }
+
+        /* 卡片容器美化 */
+        .container-md {
+            padding: 2rem;
+        }
+
+        .row>div {
+            margin-bottom: 1.5rem;
+        }
+
+
+        .color-01:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+
+
+        .color-02:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 按鈕樣式改進 */
+        .btn {
+            border-radius: 50px;
+            padding: 12px 30px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+
+        .btn:before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.2);
+            transition: all .3s;
+            z-index: -1;
+        }
+
+        .btn:hover:before {
+            width: 100%;
+        }
+
+        /* 導航欄美化 */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            border-radius: 0 0 20px 20px;
+        }
+
+        .nav-link {
+            position: relative;
+            padding: 8px 15px;
+            margin: 0 5px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:before {
+            content: "";
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: var(--primary-color);
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover:before {
+            width: 100%;
+        }
+
+        /* 表格設計優化 */
+        .table {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .table thead th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 500;
+            border: none;
+            padding: 15px;
+        }
+
+        .table td {
+            padding: 15px;
+            border: none;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(55, 66, 250, 0.03);
+        }
+
+        /* 圖表容器美化 */
+        canvas {
+            border-radius: 12px;
+            padding: 10px;
+            background: #87cbff
+        }
+
+        /* 搜尋框美化 */
+        input[type="text"],
+        input[type="password"] {
+            border-radius: 50px;
+            padding: 15px 25px;
+            border: 2px solid transparent;
+            background: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 20px rgba(55, 66, 250, 0.15);
+            outline: none;
+        }
+
+        /* 進度條美化 */
+        .progress {
+            height: 8px !important;
+            border-radius: 4px;
+            background-color: rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* 統計數字動畫 */
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 捲動條美化 */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2f3542;
+        }
+
+        .form-control {
+            margin-bottom: 10px;
+        }
+
+        select.form-control {
+            background-color: white;
+            border: 2px solid #dcdde1;
+            border-radius: 25px;
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+        }
+
+        select.form-control:focus {
+            border-color: #3742fa;
+            box-shadow: 0 2px 15px rgba(55, 66, 250, 0.2);
+        }
+    </style>
 </head>
 
 <body class="bg-color center" id="body">
@@ -292,8 +618,32 @@
             </div>
             <br>
             <div class="page-header" style="color: #90CCF4;">
-                <input type="text" placeholder="Filter" v-model="filter" />
+                <div class="row">
+                    <div class="col-md-4" class="form-control">
+                        <input type="text" placeholder="搜尋全部" v-model="filter" />
+                    </div>
+                    <div class="col-md-4" class="form-control">
+                        <select v-model="currentFilter">
+                            <option value="all">全部訊息</option>
+                            <option value="user">只顯示使用者</option>
+                            <option value="bot">只顯示機器人</option>
+                            <option value="command">只顯示指令</option>
+                            <option value="dice">只顯示擲骰</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4" class="form-control">
+                        <select v-model="pageSize">
+                            <option value="20">顯示 20 行</option>
+                            <option value="50">顯示 50 行</option>
+                            <option value="100">顯示 100 行</option>
+                            <option value="500">顯示 500 行</option>
+                            <option value="1000">顯示 1000 行</option>
+                            <option value="-1">顯示全部</option>
+                        </select>
+                    </div>
+                </div>
             </div>
+
             <table class="table table-bordered" style="word-break:break-all; word-wrap:break-all;">
                 <thead class="thead ">
                     <tr class="d-flex">
@@ -324,7 +674,7 @@
 
         </div>
         <br> <br>
-        <div class="footer-copyright text-center py-3">©2020-2021 GNU HKTRPG -
+        <div class="footer-copyright text-center py-3">©2020-2025 GNU HKTRPG -
             <a href="https://www.patreon.com/HKTRPG"> 餵飼 Sad</a>
         </div>
         <br> <br>
@@ -372,17 +722,16 @@
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
         integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous">
-    </script>
+        </script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
         integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous">
-    </script>
+        </script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
         integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous">
-    </script>
+        </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.js"
         integrity="sha512-QEiC894KVkN9Tsoi6+mKf8HaCLJvyA6QIRzY5KrfINXYuP9NxdIkRQhGq3BZi0J4I7V5SidGM3XUQ5wFiMDuWg=="
         crossorigin="anonymous"></script>
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.css"
         integrity="sha512-SUJFImtiT87gVCOXl3aGC00zfDl6ggYAw5+oheJvRJ8KBXZrr/TMISSdVJ5bBarbQDRC2pR5Kto3xTR0kpZInA=="
         crossorigin="anonymous" />
@@ -417,21 +766,87 @@
                 }]*/
         let aesData = [];
 
-        function getDAesString(encrypted, key, iv) { //解密
-            let keyy = CryptoJS.enc.Utf8.parse(key);
-            let ivv = CryptoJS.enc.Utf8.parse(iv.slice(0, 16));
-            let decrypted = CryptoJS.AES.decrypt(encrypted, keyy, {
-                iv: ivv,
-                mode: CryptoJS.mode.CBC,
-                padding: CryptoJS.pad.Pkcs7
-            });
-            return decrypted.toString(CryptoJS.enc.Utf8);
+        function lightDecrypt(encryptedStr, key) {
+            try {
+                // 如果輸入是空的或不是字串，直接返回
+                if (!encryptedStr || typeof encryptedStr !== 'string') {
+                    console.error('Invalid input data');
+                    return null;
+                }
+
+                // 確保金鑰長度正確
+                const normalizedKey = key.padEnd(16, key).slice(0, 16);
+
+                // 建立固定的 IV
+                const iv = CryptoJS.lib.WordArray.create(new Uint8Array(16));
+
+                // 準備金鑰
+                const keyWords = CryptoJS.enc.Utf8.parse(normalizedKey);
+
+                // 解密
+                const decrypted = CryptoJS.AES.decrypt(
+                    encryptedStr,
+                    keyWords,
+                    {
+                        iv: iv,
+                        mode: CryptoJS.mode.CBC,
+                        padding: CryptoJS.pad.Pkcs7
+                    }
+                );
+
+                // 將解密後的數據轉換為 UTF-8 字串
+                const jsonStr = decrypted.toString(CryptoJS.enc.Utf8);
+
+                // 解析 JSON
+                const minData = JSON.parse(jsonStr);
+
+                // 還原完整的數據結構
+                return minData.map(item => ({
+                    timestamp: item.t,
+                    contact: item.c,
+                    userName: item.u,
+                    isbot: item.b
+                }));
+            } catch (e) {
+                console.error('Decryption failed:', e);
+                return null;
+            }
         }
 
-        function getDAes(key, iv, data) { //解密
-            let decryptedStr = getDAesString(data, key, iv);
-            return decryptedStr;
+        function reNew() {
+            const key = document.getElementById("passw0rd").value;
+            if (!key || key.length < 4) {
+                alert('請輸入至少4個字元的密碼');
+                return;
+            }
+
+            const newAesData = lightDecrypt(aesData, key);
+            if (!newAesData) {
+                alert('解密失敗，請確認密碼是否正確');
+                return;
+            }
+
+            // 更新視圖
+            newAesData.sort((a, b) => a.timestamp - b.timestamp);
+
+            if (!isMobile) {
+                drawWordCloud(newAesData);
+            }
+            totallyMessage.reNewTotallyMessage(newAesData);
+            averageMessage.reNewAaverageMessage(newAesData);
+            totallyDate.reNewtotallyDate(newAesData);
+            analysicDateVue.reNewanalysicDate(newAesData);
+            appMain.reNewappMain(newAesData);
+            drawTop6DataChart(newAesData);
+            drawAlluserChart(newAesData);
+
+            const analysicdate = analysicDate(newAesData);
+            analysicdate.sort((b, a) => a.number - b.number);
+            allDateforChart3 = JSON.parse(JSON.stringify(analysicdate));
+            drawallDateforChart3();
         }
+
+
 
         let demoData = [{
             timestamp: 340875548000,
@@ -496,13 +911,11 @@
             }
         })
         let md = new MobileDetect(window.navigator.userAgent);
-        let isMobile = true;
-        if (!md.mobile() && !md.phone() && !md.tablet()) {
-            isMobile = false;
-        }
+        let isMobile = !!md.mobile() || !!md.phone() || !!md.tablet();
 
-        let switchLoading = (isMobile) ? false : true;
-        if (switchLoading) {
+        // 修改顯示邏輯
+        if (!isMobile) {
+            document.getElementById("wordCloud").style.display = "block";
             document.getElementById("myNav").style.display = "block";
         } else {
             document.getElementById("wordCloud").style.display = "none";
@@ -529,38 +942,6 @@
             drawTop6DataChart(demoData);
             drawAlluserChart(demoData);
             analysicdate = analysicDate(demoData)
-            analysicdate.sort(function (b, a) {
-                return a.number - b.number;
-            });
-            allDateforChart3 = JSON.parse(JSON.stringify(analysicdate));
-            drawallDateforChart3();
-        }
-
-        function reNew() {
-            let key = document.getElementById("passw0rd").value;
-            if (key.length < 4) return;
-            while (key.length < 32) {
-                key += key;
-                if (key.length > 32) {
-                    key = key.slice(0, 32)
-                }
-            }
-            let newAesData = JSON.parse(getDAes(key, key, aesData));
-            if (!Array.isArray(newAesData)) return;
-            newAesData.sort(function (a, b) {
-                return a.timestamp - b.timestamp;
-            });
-            if (isMobile == false) {
-                drawWordCloud(newAesData);
-            }
-            totallyMessage.reNewTotallyMessage(newAesData);
-            averageMessage.reNewAaverageMessage(newAesData);
-            totallyDate.reNewtotallyDate(newAesData);
-            analysicDateVue.reNewanalysicDate(newAesData);
-            appMain.reNewappMain(newAesData);
-            drawTop6DataChart(newAesData);
-            drawAlluserChart(newAesData);
-            analysicdate = analysicDate(newAesData)
             analysicdate.sort(function (b, a) {
                 return a.number - b.number;
             });
@@ -644,7 +1025,7 @@
                     top3Date.forEach((e, i) => {
                         temptop3Date = e.date.toString().match(/^(\d\d\d\d)(\d\d)(\d\d)/)
                         top3Date[i].date = [temptop3Date[1], '年', temptop3Date[2], '月',
-                            temptop3Date[3], '日'
+                        temptop3Date[3], '日'
                         ].join('');
                     })
                     this.messages = top3Date
@@ -786,13 +1167,15 @@
             el: "#appMain",
             data: {
                 filter: "",
-                rows: rawData
+                rows: rawData,
+                currentFilter: "all",
+                pageSize: "100",
             },
             methods: {
                 reNewappMain(input) {
-                    this.rows = input
+                    this.rows = input;
                 },
-
+                // ...existing methods...
                 highlightMatches(text, isbot) {
                     const matchExists = text
                         .toLowerCase()
@@ -814,104 +1197,228 @@
             },
             computed: {
                 filteredRows() {
-                    return this.rows.filter(row => {
+                    let filtered = this.rows.filter(row => {
                         const contact = row.contact.toString().toLowerCase();
                         const userName = row.userName.toString().toLowerCase();
                         const timestamp = dhm2(row.timestamp).toString().toLowerCase();
                         const searchTerm = this.filter.toLowerCase();
-                        return (
-                            contact.includes(searchTerm) || userName.includes(searchTerm) ||
-                            timestamp.includes(searchTerm)
-                        );
+
+                        // 基本搜尋條件
+                        const basicSearch = contact.includes(searchTerm) ||
+                            userName.includes(searchTerm) ||
+                            timestamp.includes(searchTerm);
+
+                        // 根據過濾器類型進行過濾
+                        switch (this.currentFilter) {
+                            case 'user':
+                                return basicSearch && !row.isbot;
+                            case 'bot':
+                                return basicSearch && row.isbot;
+                            case 'command':
+                                return basicSearch && contact.startsWith('.');
+                            case 'dice':
+                                return basicSearch && contact.match(/\d+[dD]\d+/);
+                            default:
+                                return basicSearch;
+                        }
                     });
+
+                    // 根據頁面大小限制結果
+                    if (this.pageSize > 0) {
+                        return filtered.slice(0, parseInt(this.pageSize));
+                    }
+                    return filtered;
                 }
             }
         });
     </script>
     <script>
         function drawWordCloud(newData) {
-            //文字雲/關鍵字，及字型大小（這邊只放三個）
-            let fill = d3.scaleOrdinal(d3.schemeCategory10);
-            //取得呈現處的寬、高
-            let cloudw = parseInt(d3.select("#tag").style("width"), 10);
-            let cloudH = parseInt(d3.select("#tag").style("height"), 10);
-            let text = "";
-            (newData || rawData).forEach(Data => {
-                if (Data.isbot == false) {
-                    text += Data.contact + ' ';
-                }
-            })
-            let wordFreq = {};
-            let resultJieba = call_jieba_cut(text, function (_result) {
-                _result.forEach(function (s) {
-                    wordFreq[s] ? wordFreq[s]++ : wordFreq[s] = 1;
-                });
+            d3.select("#tag").select("svg").remove();
 
-                let wordFreqNew = Object.keys(wordFreq).map((key) => {
-                    return {
-                        text: key,
-                        freq: wordFreq[key]
-                    }
-                });
-
-                let wordFreqNew2 = wordFreqNew.filter((key) => {
-                    return (key.text.match(/^\S\S/) && !key.text.toString().match(/^\d+$/))
-                });
-                wordFreqNew2.sort(function (b, a) {
-                    return a.freq - b.freq;
-                });
-
-                let wordFreqNew3 = wordFreqNew2.map((key, index) => {
-                    return {
-                        text: key.text,
-                        size: (60 - index) > 1 ? (60 - index) : 1
-                    }
-                });
-
-                d3.layout.cloud().size([cloudw, cloudH])
-                    .words(wordFreqNew3)
-                    .padding(2)
-                    .rotate(function () {
-                        return ~~((Math.random() * 6) - 3) * 30
-                    })
-                    .fontSize(function (d) {
-                        return d.size;
-                    })
-                    .on("end", draw)
-                    .start();
-                document.getElementById("myNav").style.display = "none";
-            });
-
-            function draw(words) {
-                d3.select("#tag").select("svg").remove();
-                d3.select("#tag").append("svg")
-                    .attr("width", cloudw)
-                    .attr("height", cloudH)
-                    .append("g")
-                    .attr("transform", "translate(" + cloudw / 2 + "," + cloudH / 2 + ")")
-                    .selectAll("text")
-                    .data(words)
-                    .enter().append("text")
-                    .transition()
-                    .duration(800)
-                    .style("font-size", function (d) {
-                        return d.size + "px";
-                    })
-                    .style("font-family", "Microsoft JhengHei")
-                    .style("cursor", 'pointer')
-                    .style("fill", function (d, i) {
-                        return fill(i);
-                    })
-                    .attr("text-anchor", "middle")
-                    .attr("transform", function (d) {
-                        return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
-                    })
-                    .text(function (d) {
-                        return d.text;
-                    })
-
+            if (!newData || newData.length === 0) {
+                console.log('No data for word cloud');
+                return;
             }
-        }
+
+            // 使用更柔和的配色方案
+            const colorScheme = [
+                '#2C3E50', // 深藍灰
+                '#E74C3C', // 深紅
+                '#2980B9', // 深藍
+                '#8E44AD', // 深紫
+                '#D35400', // 深橘
+                '#16A085', // 深綠
+                '#34495E', // 石板藍
+                '#C0392B'  // 酒紅
+            ];
+            const fill = d3.scaleOrdinal(colorScheme);
+
+            const margin = { top: 0, right: 0, bottom: 55, left: 0 };
+            const containerWidth = document.getElementById("tag").offsetWidth;
+            const cloudw = Math.min(containerWidth - margin.left - margin.right, 400);
+            const cloudH = 300 - margin.top - margin.bottom;
+
+            const text = newData
+                .filter(data => !data.isbot)
+                .map(data => data.contact)
+                .join(' ');
+
+            call_jieba_cut(text, function (_result) {
+                // 建立停用詞表
+                const stopWords = new Set(['showme', 'level', 'char', '3d3', 'cron',
+                    'the', 'is', 'at', 'of', 'in', 'on', 'to', 'it', 'or', 'and', 'for',
+                    'was', 'be', 'have', 'had', 'do', 'did', 'done', 'would', 'could',
+                    'should', 'might', 'may', 'can', 'will', 'shall', 'that', 'this',
+                    'these', 'those', 'then', 'than', 'what', 'which', 'who', 'whom',
+                    'whose', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each',
+                    'few', 'more', 'most', 'other', 'some', 'such', 'show', 'CC', 'ai',
+                    'ch', 'ait', 'sc', 'use', 'hello', 'hp', 'db', 'myname',
+                    '然後', '一個', 'state', 'with', '一些', 'Fixed', 'your', 'button'
+                ]);
+
+                // 詞頻統計
+                const wordFreq = {};
+                _result.forEach(s => {
+                    if (s.length >= 2) {
+                        wordFreq[s] = (wordFreq[s] || 0) + 1;
+                    }
+                });
+
+                // 計算 TF-IDF
+                const totalDocs = newData.length;
+                const docsWithTerm = {};
+                newData.forEach(doc => {
+                    const uniqueWords = new Set(_result);
+                    uniqueWords.forEach(word => {
+                        docsWithTerm[word] = (docsWithTerm[word] || 0) + 1;
+                    });
+                });
+
+                function calculateTFIDF(term, freq) {
+                    const tf = freq;
+                    const idf = Math.log((totalDocs + 1) / (docsWithTerm[term] + 1)) + 1;
+                    return tf * idf;
+                }
+
+                // 詞彙篩選和處理
+                const words = Object.entries(wordFreq)
+                    .filter(([key]) => {
+                        const isValidLength = key.length >= 2 && key.length <= 8;
+                        const isNotNumber = !key.match(/^\d+$/);
+                        const isNotStopWord = !stopWords.has(key.toLowerCase());
+                        const hasNoSpecialChar = !key.match(/[^\w\s\u4e00-\u9fff]/);
+                        const isValidChinese = (key.match(/[\u4e00-\u9fff]/g) || []).length >= 2;
+                        const isValidEnglish = key.match(/^[a-zA-Z]+$/) ? key.length >= 4 : true;
+
+                        return isValidLength && isNotNumber && isNotStopWord &&
+                            hasNoSpecialChar && (isValidChinese || isValidEnglish);
+                    })
+                    .filter(([_, freq]) => freq >= 3)  // 最小詞頻閾值
+                    .map(([text, freq]) => {
+                        const tfidf = calculateTFIDF(text, freq);
+                        const isChinese = text.match(/[\u4e00-\u9fff]/);
+                        return {
+                            text,
+                            freq,
+                            score: tfidf * (isChinese ? 1.5 : 1)  // 中文權重提升
+                        };
+                    })
+                    .sort((a, b) => b.score - a.score)
+                    .slice(0, 100)
+                    .map((item, index) => ({
+                        text: item.text,
+                        size: Math.max(50 - index * 0.5, 10),  // 調整字體大小範圍
+                        freq: item.freq,
+                        score: item.score
+                    }));
+
+                // 文字雲布局
+                const layout = d3.layout.cloud()
+                    .size([cloudw, cloudH])
+                    .words(words)
+                    .padding(1)  // 增加詞間距
+                    .rotate(() => (~~(Math.random() * 2)) * 30)  // 只允許0度和90度旋轉
+                    .fontSize(d => d.size)
+                    .spiral('rectangular')  // 使用矩形螺旋布局 
+                    .random(() => 0.5)
+                    .on("end", draw);
+
+                layout.start();
+
+                function draw(words) {
+                    const svg = d3.select("#tag")
+                        .append("svg")
+                        .attr("width", cloudw + margin.left + margin.right)
+                        .attr("height", cloudH + margin.top + margin.bottom)
+                        .style("display", "block")
+                        .style("margin", "auto");
+
+                    const container = svg.append("g")
+                        .attr("transform", `translate(${(cloudw + margin.left + margin.right) / 2},${(cloudH + margin.top + margin.bottom) / 2})`);
+
+                    const texts = container.selectAll("text")
+                        .data(words)
+                        .enter()
+                        .append("text")
+                        .style("font-size", d => `${d.size}px`)
+                        .style("font-family", "'Microsoft JhengHei', 'Noto Sans TC', sans-serif")
+                        .style("fill", (d, i) => fill(i))
+                        .style("font-weight", "500")
+                        .attr("text-anchor", "middle")
+                        .attr("transform", d => `translate(${d.x},${d.y}) rotate(${d.rotate || 0})`)
+                        .text(d => d.text)
+                        .style("cursor", "pointer")
+                        .style("opacity", 0);
+
+                    // 改進漸入動畫
+                    texts.transition()
+                        .duration(1000)
+                        .delay((d, i) => i * 30)
+                        .style("opacity", 1);
+
+                    // 改進互動效果
+                    texts.each(function () {
+                        const text = d3.select(this);
+                        const originalColor = text.style("fill");
+                        const originalSize = text.style("font-size");
+
+                        text.on("pointerenter", function (event, d) {
+                            const element = d3.select(this);
+                            element
+                                .transition()
+                                .duration(200)
+                                .style("font-size", `${d.size * 1.3}px`)
+                                .style("fill", "#ff4757")
+                                .style("font-weight", "bold");
+
+                            // 改進提示文字
+                            container.append("text")
+                                .attr("class", "tooltip")
+                                .attr("text-anchor", "middle")
+                                .attr("x", 0)
+                                .attr("y", cloudH / 2 + 30)
+                                .style("font-size", "14px")
+                                .style("fill", "#2c3e50")
+                                .style("font-weight", "bold")
+                                .text(`"${d.text}" 出現次數: ${d.freq} (權重: ${d.score.toFixed(2)})`);
+                        });
+
+                        text.on("pointerleave", function () {
+                            const element = d3.select(this);
+                            element
+                                .transition()
+                                .duration(200)
+                                .style("font-size", originalSize)
+                                .style("fill", originalColor)
+                                .style("font-weight", "500");
+
+                            container.selectAll(".tooltip").remove();
+                        });
+                    });
+                }
+            });
+        }   
     </script>
 
 
@@ -1113,19 +1620,18 @@
                                 sampleSize: 100
                             },
                             afterBuildTicks: function (scale, ticks) {
-                                if (!tick) {
+                                if (!ticks || ticks.length === 0) {
                                     return;
                                 }
                                 let majorUnit = scale._majorUnit;
                                 let firstTick = ticks[0];
-                                let curri, ilen, val, tick, currMajor, lastMajor;
+                                let val, currMajor, lastMajor;
 
-                                val = moment(ticks[0].value);
+                                val = moment(firstTick.value);
                                 if ((majorUnit === 'minute' && val.second() === 0) ||
                                     (majorUnit === 'hour' && val.minute() === 0) ||
                                     (majorUnit === 'day' && val.hour() === 9) ||
-                                    (majorUnit === 'month' && val.date() <= 3 && val.isoWeekday() ===
-                                        1) ||
+                                    (majorUnit === 'month' && val.date() <= 3 && val.isoWeekday() === 1) ||
                                     (majorUnit === 'year' && val.month() === 0)) {
                                     firstTick.major = true;
                                 } else {
@@ -1133,8 +1639,8 @@
                                 }
                                 lastMajor = val.get(majorUnit);
 
-                                for (curri = 1, ilen = ticks.length; curri < ilen; curri++) {
-                                    tick = ticks[curri];
+                                for (let curri = 1, ilen = ticks.length; curri < ilen; curri++) {
+                                    let tick = ticks[curri];
                                     val = moment(tick.value);
                                     currMajor = val.get(majorUnit);
                                     tick.major = currMajor !== lastMajor;
@@ -1258,7 +1764,136 @@
             });
         });
     </script>
+    <script>
+        function initializeVueComponents() {
+            let totallydate = totallyDay(rawData) || "";
+            let totallymessage = analysicTotallymessage(rawData);
+            let newTotallyDay = Math.max(1, Number(totallydate.match(/\d+/i)[0]));
+            let analysicdate = analysicDate(rawData);
+            let top3Date = getTop3Dates(analysicdate);
 
+            new Vue({
+                el: '#totallyDate',
+                data: { message: totallydate },
+                methods: {
+                    reNewtotallyDate(input) {
+                        this.message = totallyDay(input);
+                    }
+                }
+            });
+
+            new Vue({
+                el: '#totallyMessage',
+                data: {
+                    message0: totallymessage[0],
+                    message1: totallymessage[1]
+                },
+                methods: {
+                    reNewTotallyMessage(input) {
+                        let newTotallymessage = analysicTotallymessage(input);
+                        this.message0 = newTotallymessage[0];
+                        this.message1 = newTotallymessage[1];
+                    }
+                }
+            });
+
+            new Vue({
+                el: '#averageMessage',
+                data: {
+                    message: (totallymessage[0] / newTotallyDay).toFixed(2) + '個'
+                },
+                methods: {
+                    reNewAaverageMessage(input) {
+                        newTotallyDay = Math.max(1, Number(totallyDay(input).match(/\d+/i)[0]));
+                        totallymessage = analysicTotallymessage(input);
+                        this.message = (totallymessage[0] / newTotallyDay).toFixed(2) + '個';
+                    }
+                }
+            });
+
+            new Vue({
+                el: '#analysicDate',
+                data: { messages: top3Date },
+                methods: {
+                    reNewanalysicDate(input) {
+                        analysicdate = analysicDate(input);
+                        this.messages = getTop3Dates(analysicdate);
+                    }
+                }
+            });
+
+            new Vue({
+                el: "#appMain",
+                data: {
+                    filter: "",
+                    rows: rawData,
+                    currentFilter: "all",
+                    pageSize: "100",
+                },
+                methods: {
+                    reNewappMain(input) {
+                        this.rows = input;
+                    },
+                    highlightMatches(text, isbot) {
+                        const matchExists = text.toLowerCase().includes(this.filter.toLowerCase());
+                        if (!matchExists) return text;
+                        const re = new RegExp(this.filter, "ig");
+                        if (isbot) text += '(🤖)';
+                        return text.replace(re, matchedText => `<strong>${matchedText}</strong>`);
+                    },
+                    dhm2(unix_timestamp) {
+                        let date = new Date(unix_timestamp);
+                        return `${date.getFullYear()}年${(date.getMonth() + 1).toString().padStart(2, '0')}月${date.getDate().toString().padStart(2, '0')}日\n${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+                    }
+                },
+                computed: {
+                    filteredRows() {
+                        let searchTerm = this.filter.toLowerCase();
+                        return this.rows.filter(row => {
+                            const contact = row.contact.toLowerCase();
+                            const userName = row.userName.toLowerCase();
+                            const timestamp = this.dhm2(row.timestamp).toLowerCase();
+                            const basicSearch = contact.includes(searchTerm) || userName.includes(searchTerm) || timestamp.includes(searchTerm);
+
+                            switch (this.currentFilter) {
+                                case 'user':
+                                    return basicSearch && !row.isbot;
+                                case 'bot':
+                                    return basicSearch && row.isbot;
+                                case 'command':
+                                    return basicSearch && contact.startsWith('.');
+                                case 'dice':
+                                    return basicSearch && /\d+[dD]\d+/.test(contact);
+                                default:
+                                    return basicSearch;
+                            }
+                        }).slice(0, this.pageSize > 0 ? parseInt(this.pageSize) : undefined);
+                    }
+                }
+            });
+        }
+
+        function getTop3Dates(analysicdate) {
+            let top3Date = JSON.parse(JSON.stringify(analysicdate));
+            top3Date.sort((a, b) => b.number - a.number).splice(3);
+            top3Date.forEach(e => {
+                let match = e.date.match(/^(\d\d\d\d)(\d\d)(\d\d)/);
+                e.date = `${match[1]}年${match[2]}月${match[3]}日`;
+            });
+            return top3Date;
+        }
+
+        function initializeCharts() {
+            drawTop6DataChart(rawData);
+            drawAlluserChart(rawData);
+            drawallDateforChart3();
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            initializeVueComponents();
+            initializeCharts();
+        });
+    </script>
 </body>
 <!-- HKTRPG Sad -- 20201015-->
 

@@ -151,12 +151,12 @@
         .attribute-group {
             display: flex;
             flex-wrap: wrap;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
+            justify-content: space-between !important;
+            margin-bottom: 0.1rem;
         }
 
         .attribute {
-            flex: 0 0 30%;
+            flex: 0 1 30%;
             margin-bottom: 0.5rem;
             white-space: nowrap;
             font-weight: bold;
@@ -258,8 +258,8 @@
 
         const themeDict = {
             1: {
-                messageBg: 'linear-gradient(to right, #f9a8d4, #fbcfe8)',
-                statusBg: 'linear-gradient(to left, #f9a8d4, #fbcfe8)',
+                messageBg: 'linear-gradient(to right, #f2faff, #e6f4f1)',
+                statusBg: 'linear-gradient(to left, #e6f4f1, #f2faff)',
                 backgroundColor: 'linear-gradient(to bottom, #e5e7eb, #f3f4f6)'
             },
             2: {
@@ -307,10 +307,10 @@
                 { type: '醫療', value: 20 }
             ],
             diceRolls: {
-                心理學: "50%",
-                信譽: "30%",
-                偵查: "25%",
-                鬥毆: "15%"
+                心理學: "50",
+                信譽: "30",
+                偵查: "25",
+                鬥毆: "15"
             },
             notes: {
                 items: [
@@ -339,9 +339,9 @@
         document.getElementById('basic-attributes').innerHTML = attributesHTML;
 
         const diceRollsHTML = `
-            <div class="attribute-group">
+            <div class="attribute-group" style="flex= 0 0 30%;">
                 ${Object.entries(character.diceRolls).map(([key, value]) => {
-            return `<span class="attribute">${key}：<span style="color: var(--text-color);">${value}</span></span>`;
+            return `<span class="attribute"  >${key}：<span style="color: var(--text-color); ">${value}</span></span>`;
         }).join('')}
             </div>
         `;

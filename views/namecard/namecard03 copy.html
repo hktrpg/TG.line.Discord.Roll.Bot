@@ -10,7 +10,8 @@
         :root {
             --gradient-blue: #60a5fa;
             --gradient-pink: #f472b6;
-            --grid-background: rgba(255, 255, 255, 0.9);
+            --avatar-bg: linear-gradient(to bottom right, #dbeafe, #fce7f3);
+            --note-bg: linear-gradient(to bottom right, #dbeafe, #fce7f3);
         }
 
         body {
@@ -24,31 +25,44 @@
         .theme-1 {
             --gradient-blue: #60a5fa;
             --gradient-pink: #f472b6;
-            --grid-background: rgba(255, 255, 255, 0.9);
+            --avatar-bg: linear-gradient(to bottom right, #dbeafe, #fce7f3);
+            --note-bg: linear-gradient(to bottom right, #dbeafe, #fce7f3);
         }
 
         .theme-2 {
-            --gradient-blue: #4ade80; /* 綠色 */
-            --gradient-pink: #fbbf24; /* 黃色 */
-            --grid-background: rgba(255, 255, 255, 0.8);
+            --gradient-blue: #4ade80;
+            /* 綠色 */
+            --gradient-pink: #fbbf24;
+            /* 黃色 */
+            --avatar-bg: linear-gradient(to bottom right, #bbf7d0, #fef08a);
+            --note-bg: linear-gradient(to bottom right, #fef08a, #bbf7d0);
         }
 
         .theme-3 {
-            --gradient-blue: #3b82f6; /* 藍色 */
-            --gradient-pink: #9333ea; /* 紫色 */
-            --grid-background: rgba(255, 255, 255, 0.85);
+            --gradient-blue: #3b82f6;
+            /* 藍色 */
+            --gradient-pink: #9333ea;
+            /* 紫色 */
+            --avatar-bg: linear-gradient(to bottom right, #dbeafe, #e9d5ff);
+            --note-bg: linear-gradient(to bottom right, #e9d5ff, #a5b4fc);
         }
 
         .theme-4 {
-            --gradient-blue: #f97316; /* 橙色 */
-            --gradient-pink: #eab308; /* 黃色 */
-            --grid-background: rgba(255, 255, 255, 0.9);
+            --gradient-blue: #f97316;
+            /* 橙色 */
+            --gradient-pink: #eab308;
+            /* 黃色 */
+            --avatar-bg: linear-gradient(to bottom right, #fed7aa, #fff7ed);
+            --note-bg: linear-gradient(to bottom right, #fff7ed, #fbbf24);
         }
 
         .theme-5 {
-            --gradient-blue: #8b5cf6; /* 紫色 */
-            --gradient-pink: #f43f5e; /* 粉紅色 */
-            --grid-background: rgba(255, 255, 255, 0.75);
+            --gradient-blue: #8b5cf6;
+            /* 紫色 */
+            --gradient-pink: #f43f5e;
+            /* 粉紅色 */
+            --avatar-bg: linear-gradient(to bottom right, #f0abfc, #fbcfe8);
+            --note-bg: linear-gradient(to bottom right, #fbcfe8, #f0abfc);
         }
 
         .container {
@@ -62,9 +76,6 @@
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 2rem;
-            background: var(--grid-background);
-            border-radius: 0.5rem;
-            padding: 1rem;
         }
 
         @media (max-width: 768px) {
@@ -92,6 +103,9 @@
             width: 12rem;
             height: 12rem;
             margin: 0 auto 1.5rem;
+            background: var(--avatar-bg);
+            /* 使用變數 */
+            border-radius: 50%;
         }
 
         .avatar {
@@ -100,7 +114,8 @@
             height: 100%;
             border-radius: 50%;
             border: 4px solid white;
-            background: linear-gradient(to bottom right, #dbeafe, #fce7f3);
+            background: var(--avatar-bg);
+            /* 使用變數 */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -113,7 +128,8 @@
         }
 
         .message {
-            background: linear-gradient(to right, #dbeafe, #fce7f3);
+            background: var(--note-bg);
+            /* 使用變數 */
             padding: 1rem;
             border-radius: 0.5rem;
             margin-top: 1.5rem;
@@ -212,9 +228,31 @@
             <div class="column">
                 <h3>技能類型</h3>
                 <canvas id="skillsChart"></canvas>
-                <div class="message">
-                    <h3>生活水平</h3>
-                    <p>身無分文</p>
+                <div>
+                    <h3>性格與偏好</h3>
+                    <div class="status-bars">
+                        <div class="status-item">
+                            <span>事前準備</span>
+                            <div class="progress-bar">
+                                <div class="progress" style="width: 70%"></div>
+                            </div>
+                            <span>隨機應變</span>
+                        </div>
+                        <div class="status-item">
+                            <span>單一專業</span>
+                            <div class="progress-bar">
+                                <div class="progress" style="width: 60%"></div>
+                            </div>
+                            <span>多項才藝</span>
+                        </div>
+                        <div class="status-item">
+                            <span>邊緣人</span>
+                            <div class="progress-bar">
+                                <div class="progress" style="width: 85%"></div>
+                            </div>
+                            <span>社牛</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -228,35 +266,12 @@
             </div>
         </div>
 
-        <h3>性格與偏好</h3>
-        <div class="status-bars">
-            <div class="status-item">
-                <span>事前準備</span>
-                <div class="progress-bar">
-                    <div class="progress" style="width: 70%"></div>
-                </div>
-                <span>隨機應變</span>
-            </div>
-            <div class="status-item">
-                <span>單一專業</span>
-                <div class="progress-bar">
-                    <div class="progress" style="width: 60%"></div>
-                </div>
-                <span>多項才藝</span>
-            </div>
-            <div class="status-item">
-                <span>邊緣人</span>
-                <div class="progress-bar">
-                    <div class="progress" style="width: 85%"></div>
-                </div>
-                <span>社牛</span>
-            </div>
-        </div>
+
     </div>
 
     <script>
         // 設定主題顏色的變數
-        let cssstyle = 4; // 可以改成 1 到 5 的任意值來選擇不同的主題
+        let cssstyle = 2; // 可以改成 1 到 5 的任意值來選擇不同的主題
 
         // 根據 cssstyle 設定主題顏色
         document.body.className = `theme-${cssstyle}`;
@@ -304,7 +319,12 @@
                 隨身物品: "筆記：這是測試,請試試在群組輸入 .char use Sad",
                 心靈支柱: "無",
                 資產: "物品："
-            }
+            },
+            traits: [
+                { name: "細心", value: "高" },
+                { name: "隨和", value: "中" },
+                { name: "冒險精神", value: "低" }
+            ]
         };
 
         // 顯示玩家資訊
@@ -317,8 +337,8 @@
         const attributesHTML = `
             <div class="attribute-group">
                 ${Object.entries(attributes.attributesList).map(([key, value]) => {
-                    return `<span class="attribute">${key}：${value}</span>`;
-                }).join('')}
+            return `<span class="attribute">${key}：${value}</span>`;
+        }).join('')}
             </div>
         `;
         document.getElementById('basic-attributes').innerHTML = attributesHTML;
@@ -341,6 +361,16 @@
             <p>資產：${character.notes.資產}</p>
         `;
         document.getElementById('notes').innerHTML = notesHTML;
+
+        // 顯示性格與偏好
+        const traitsHTML = `
+            <div class="attribute-group">
+                ${character.traits.map(trait => {
+            return `<span class="attribute">${trait.name}：${trait.value}</span>`;
+        }).join('')}
+            </div>
+        `;
+        document.getElementById('characterTraits').innerHTML = traitsHTML;
 
         // 繪製技能圖表
         const ctx = document.getElementById('skillsChart').getContext('2d');

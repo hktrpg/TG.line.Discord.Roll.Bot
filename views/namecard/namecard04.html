@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRPG COC角色卡</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --gradient-start: #60a5fa;
+            --gradient-end: #f472b6;
+            --avatar-bg: linear-gradient(to bottom right, #dbeafe, #fce7f3);
+            --note-bg: linear-gradient(to bottom right, #f9a8d4, #fbcfe8);
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --text-color: #1e40af;
+            --attribute-color: #4a5568;
+            --subtext-color: #6b7280;
+            --border-radius: 0.5rem;
+            --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(to bottom, #eff6ff, #f5f3ff);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .container {
+            max-width: 1024px;
+            margin: 2rem auto;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            background: var(--card-bg);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .column {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+        }
+
+        .column:hover {
+            transform: translateY(-5px);
+        }
+
+        h2 {
+            color: #b83b6f;
+            margin-bottom: 1rem;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        h3 {
+            color: #4c51bf;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .avatar-container {
+            width: 12rem;
+            height: 12rem;
+            margin: 0 auto 1.5rem;
+            border-radius: 50%;
+            border: 4px solid white;
+            box-shadow: var(--box-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .avatar-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .stats-chart {
+            margin-top: 1.5rem;
+        }
+
+        .message {
+            background: var(--note-bg);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-top: 1.5rem;
+            box-shadow: var(--box-shadow);
+        }
+
+        .player-info {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .player-info span {
+            color: var(--subtext-color);
+        }
+
+        .status-bars {
+            margin-top: 1.5rem;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            margin: 1rem 0;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 0.5rem;
+            background: #e5e7eb;
+            border-radius: 9999px;
+            margin: 0 1rem;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+            border-radius: 9999px;
+        }
+
+        .attribute-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .attribute {
+            flex: 0 0 30%;
+            margin-bottom: 0.5rem;
+            white-space: nowrap;
+            font-weight: bold;
+            color: var(--attribute-color);
+        }
+
+        .flex-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .flex-item {
+            flex: 1 1 30%;
+            margin: 0.5rem;
+            text-align: center;
+        }
+
+        .divider {
+            height: 1px;
+            background: #e5e7eb;
+            margin: 1rem 0;
+        }
+
+        .icon {
+            margin-right: 0.5rem;
+            color: var(--text-color);
+        }
+
+        .theme-1 {
+            --gradient-start: #60a5fa;
+            --gradient-end: #f472b6;
+            --text-color: #1e40af;
+        }
+
+        .theme-2 {
+            --gradient-start: #ff7f50;
+            --gradient-end: #ff6347;
+            --text-color: #1e40af;
+        }
+
+        .theme-3 {
+            --gradient-start: #6a5acd;
+            --gradient-end: #836fff;
+            --text-color: #1e40af;
+        }
+
+        .theme-4 {
+            --gradient-start: #3cb371;
+            --gradient-end: #2e8b57;
+            --text-color: #1e40af;
+        }
+
+        .theme-5 {
+            --gradient-start: #f08080;
+            --gradient-end: #ff69b4;
+            --text-color: #1e40af;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="grid">
+            <div class="column">
+                <div class="player-info">
+                    <h2 id="characterName">角色名字</h2>
+                    <div class="info flex-container">
+                        <span class="flex-item" id="playerName">玩家名字</span>
+                        <span class="flex-item" id="characterID">角色ID</span>
+                    </div>
+                </div>
+                <div class="avatar-container">
+                    <img id="avatarImage" src="https://d1vzi28wh99zvq.cloudfront.net/images/21286/483040.jpg"
+                        alt="角色頭像">
+                </div>
+                <h3>基本屬性</h3>
+                <div id="basic-attributes"></div>
+            </div>
+
+            <div class="column">
+                <h3>技能類型</h3>
+                <canvas id="skillsChart"></canvas>
+
+                <div class="status-bars">
+                    <h3>性格與偏好</h3>
+                    <div class="status-item">
+                        <i class="fas fa-check icon"></i>
+                        <span>事前準備</span>
+                        <div class="progress-bar">
+                            <div class="progress" style="width: 70%"></div>
+                        </div>
+                        <span>隨機應變</span>
+                    </div>
+                    <div class="status-item">
+                        <i class="fas fa-star icon"></i>
+                        <span>單一專業</span>
+                        <div class="progress-bar">
+                            <div class="progress" style="width: 60%"></div>
+                        </div>
+                        <span>多項才藝</span>
+                    </div>
+                    <div class="status-item">
+                        <i class="fas fa-users icon"></i>
+                        <span>邊緣人</span>
+                        <div class="progress-bar">
+                            <div class="progress" style="width: 85%"></div>
+                        </div>
+                        <span>社牛</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="column">
+                <h3>擲骰</h3>
+                <div id="dice-rolls"></div>
+                <div class="divider"></div>
+                <div class="message">
+                    <h3>筆記</h3>
+                    <div id="notes"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 設定頭像圖片網址，方便修改
+        const avatarImageUrl = "https://d1vzi28wh99zvq.cloudfront.net/images/21286/483040.jpg"; // 替換為您的圖片網址
+
+        // 設定主題顏色的變數
+        const cssstyle = 1; // 可以改成 1 到 5 的任意值來選擇不同的主題
+
+        // 根據 cssstyle 設定主題顏色
+        document.body.className = `theme-${cssstyle}`;
+
+        // 角色資料
+        const character = {
+            playerName: "李華",
+            characterName: "角色名字",
+            id: "角色ID",
+            attributes: {
+                attributesList: {
+                    HP: "15 / 150",
+                    MP: "0 / 0",
+                    san: "60 / 60 ",
+                    幸運: "552 / 5",
+                    力量: 0,
+                    敏捷: 0,
+                    意志: 1,
+                    體質: 0,
+                    外貌: 0,
+                    教育: 0,
+                    體型: 0,
+                    智力: 0,
+                    靈感: 0,
+                    體格: -2,
+                    DB: -2,
+                    MOV: 8
+                }
+            },
+            skills: [
+                { type: '交際', value: 50 },
+                { type: '學問', value: 40 },
+                { type: '職業', value: 30 },
+                { type: '調查+隱密', value: 60 },
+                { type: '戰鬥', value: 30 },
+                { type: '醫療', value: 20 }
+            ],
+            diceRolls: {
+                心理學: "CC 10",
+                信譽: "CC 0",
+                偵查: "CC 25",
+                其他: "CC 15"
+            },
+            notes: {
+                items: [
+                    { label: "現金", value: "1,000日元" },
+                    { label: "隨身物品", value: "筆記：這是測試,請試試在群組輸入 .char use Sad" },
+                    { label: "心靈支柱", value: "無" },
+                    { label: "資產", value: "物品：" }
+                ]
+            }
+        };
+
+        // 顯示玩家資訊
+        document.getElementById('playerName').innerText = character.playerName;
+        document.getElementById('characterName').innerText = character.characterName;
+        document.getElementById('characterID').innerText = character.id;
+
+        // 設定頭像圖片來源
+        document.getElementById('avatarImage').src = avatarImageUrl;
+
+        // 動態顯示基本屬性
+        const attributes = character.attributes;
+        const attributesHTML = `
+            <div class="attribute-group">
+                ${Object.entries(attributes.attributesList).map(([key, value]) => {
+            return `<span class="attribute">${key}：<span style="color: var(--text-color);">${value}</span></span>`;
+        }).join('')}
+            </div>
+        `;
+        document.getElementById('basic-attributes').innerHTML = attributesHTML;
+
+        // 動態顯示擲骰
+        const diceRollsHTML = `
+            <div class="attribute-group">
+                ${Object.entries(character.diceRolls).map(([key, value]) => {
+            return `<span class="attribute">${key}：<span style="color: var(--text-color);">${value}</span></span>`;
+        }).join('')}
+            </div>
+        `;
+        document.getElementById('dice-rolls').innerHTML = diceRollsHTML;
+
+        // 動態顯示筆記
+        const notesHTML = character.notes.items.map(item => {
+            return `<p>${item.label}：<span style="color: var(--text-color);">${item.value}</span></p>`;
+        }).join('');
+        document.getElementById('notes').innerHTML = notesHTML;
+
+        // 繪製技能圖表
+        const ctx = document.getElementById('skillsChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: character.skills.map(skill => skill.type),
+                datasets: [{
+                    data: character.skills.map(skill => skill.value),
+                    backgroundColor: 'rgba(255, 105, 180, 0.3)', // 背景顏色
+                    borderColor: 'rgba(255, 105, 180, 1)', // 邊框顏色
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(255, 105, 180, 1)' // 點的背景顏色
+                }]
+            },
+            options: {
+                scales: {
+                    r: {
+                        angleLines: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        },
+                        pointLabels: {
+                            color: '#4a5568',
+                            font: {
+                                size: 12
+                            }
+                        },
+                        suggestedMin: 0,
+                        suggestedMax: 100
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -11,8 +11,8 @@
         :root {
             --gradient-start: #60a5fa;
             --gradient-end: #f472b6;
-            --message-bg: linear-gradient(to right, #f9a8d4, #ffffff);
-            --status-bg: linear-gradient(to right, #60a5fa, #f472b6);
+            --message-bg: linear-gradient(to right, #d7ffec, #cae1ff);
+            --status-bg: linear-gradient(to right, #cae1ff, #d7ffec);
             --container-bg: linear-gradient(to right, #b5e1fe, #f3f7ff);
             --card-bg: linear-gradient(to right, #ffffff, #ffffff);
             --text-color: #1e40af;
@@ -26,7 +26,7 @@
         body {
             margin: 0;
             min-height: 100vh;
-            background: linear-gradient(to bottom, #516ea7, #3f434b);
+            background: linear-gradient(to bottom, #516ea7, #d6e4ff);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
@@ -37,11 +37,9 @@
             border-radius: var(--border-radius);
             box-shadow: var(--box-shadow);
             background: var(--container-bg);
-            
         }
 
         .grid {
-            
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 2rem;
@@ -70,6 +68,7 @@
             margin-bottom: 1rem;
             text-align: center;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+            text-decoration: underline; /* Add underline */
         }
 
         h3 {
@@ -89,12 +88,14 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            position: relative;
         }
 
         .avatar-container img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            border: 5px solid #ffffff; /* Add border */
         }
 
         .stats-chart {
@@ -200,14 +201,15 @@
                     </div>
                 </div>
                 <div class="avatar-container">
-                    <img id="avatarImage" src="https://d1vzi28wh99zvq.cloudfront.net/images/21286/483040.jpg" alt="角色頭像">
+                    <img id="avatarImage" src="https://d1vzi28wh99zvq.cloudfront.net/images/21286/483040.jpg"
+                        alt="角色頭像">
                 </div>
                 <h3>基本屬性</h3>
                 <div id="basic-attributes"></div>
             </div>
 
             <div class="column">
-                <h3>技能類型</h3>
+                <h3 id="skillsTitle">技能類型</h3>
                 <canvas id="skillsChart"></canvas>
 
                 <div class="status-bars">
@@ -240,11 +242,11 @@
             </div>
 
             <div class="column">
-                <h3>擲骰</h3>
+                <h3 id="diceTitle">擲骰</h3>
                 <div id="dice-rolls"></div>
                 <div class="divider"></div>
                 <div class="message">
-                    <h3>筆記</h3>
+                    <h3 id="notesTitle">筆記</h3>
                     <div id="notes"></div>
                 </div>
             </div>
@@ -252,32 +254,24 @@
     </div>
 
     <script>
-        const avatarImageUrl = "https://d1vzi28wh99zvq.cloudfront.net/images/21286/483040.jpg";
-
-        const cssstyle = 1; // 可以改成 1 到 5 的任意值來選擇不同的主題
-
-        const themeDict = {
-            1: {
-                messageBg: 'linear-gradient(to right, #f2faff, #e6f4f1)',
-                statusBg: 'linear-gradient(to left, #e6f4f1, #f2faff)',
-                backgroundColor: 'linear-gradient(to bottom, #e5e7eb, #f3f4f6)'
-            },
-            2: {
-                messageBg: 'linear-gradient(to right, #ff7f50, #ff6347)',
-                statusBg: 'linear-gradient(to right, #ff6b6b, #ff3d3d)',
-                backgroundColor: 'linear-gradient(to bottom, #fff5f5, #ffe5e5)'
-            }
-        };
-
-        const currentTheme = themeDict[cssstyle];
-        document.documentElement.style.setProperty('--message-bg', currentTheme.messageBg);
-        document.documentElement.style.setProperty('--status-bg', currentTheme.statusBg);
-        document.body.style.background = currentTheme.backgroundColor;
+        const icons = [
+            'fas fa-check',
+            'fas fa-star',
+            'fas fa-heart',
+            'fas fa-smile',
+            'fas fa-thumbs-up',
+            'fas fa-lightbulb',
+            'fas fa-user-friends',
+            'fas fa-flag',
+            'fas fa-clipboard-list',
+            'fas fa-comment-dots'
+        ];
+        const avatarImageUrl = "https://images2.imgbox.com/df/86/GVcHJFVv_o.png";
 
         const character = {
-            playerName: "李華",
-            characterName: "角色名字",
-            id: "角色ID",
+            characterName: "傑克·史密斯",
+            playerName: "D&D",
+            id: "@DD",
             attributes: {
                 attributesList: {
                     HP: "15 / 15",
@@ -300,10 +294,10 @@
             },
             skills: [
                 { type: '交際', value: 50 },
-                { type: '學問', value: 40 },
-                { type: '職業', value: 30 },
+                { type: '學問', value: 80 },
+                { type: '職業', value: 40 },
                 { type: '調查+隱密', value: 60 },
-                { type: '戰鬥', value: 30 },
+                { type: '戰鬥', value: 100 },
                 { type: '醫療', value: 20 }
             ],
             diceRolls: {
@@ -313,27 +307,73 @@
                 鬥毆: "15"
             },
             notes: {
+                title: "筆記",
                 items: [
                     { label: "現金", value: "1,000日元" },
                     { label: "隨身物品", value: "筆記：這是測試,請試試在群組輸入 .char use Sad" },
                     { label: "心靈支柱", value: "無" },
                     { label: "資產", value: "物品：" }
                 ]
-            }
+            },
+            diceTitle: "擲骰", // 新增擲骰標題
+            skillsTitle: "技能類型" // 新增技能類型標題
         };
 
         document.getElementById('playerName').innerText = character.playerName;
         document.getElementById('characterName').innerText = character.characterName;
         document.getElementById('characterID').innerText = character.id;
-
         document.getElementById('avatarImage').src = avatarImageUrl;
+
+        // 更新技能類型標題
+        document.getElementById('skillsTitle').innerText = character.skillsTitle;
+
+        // 更新擲骰標題
+        document.getElementById('diceTitle').innerText = character.diceTitle;
+
+        // 更新筆記標題
+        document.getElementById('notesTitle').innerText = character.notes.title;
+
+        // 生成筆記的 HTML
+        const notesHTML = character.notes.items.map(item => {
+            return `<p>${item.label}：<span style="color: var(--text-color);">${item.value}</span></p>`;
+        }).join('');
+        document.getElementById('notes').innerHTML = notesHTML;
+
+        const personalityPreferences = {
+            title: '性格與偏好',
+            items: [
+                { label: '事前準備', value: 80, alternative: '隨機應變', icon: icons[0] },
+                { label: '單一專業', value: 60, alternative: '多項才藝', icon: icons[1] },
+                { label: '邊緣人', value: 85, alternative: '社牛', icon: icons[2] }
+            ]
+        };
+
+        // 生成性格與偏好的 HTML
+        const statusItemsHTML = personalityPreferences.items.map(item => {
+            return `
+                <div class="status-item">
+                    <i class="${item.icon} icon"></i>
+                    <span>${item.label}</span>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: ${item.value}%"></div>
+                    </div>
+                    <span>${item.alternative}</span>
+                </div>
+            `;
+        }).join('');
+
+        // 替換原有的性格與偏好內容
+        document.querySelector('.status-bars').innerHTML = `
+            <h3>${personalityPreferences.title}</h3>
+            ${statusItemsHTML}
+        `;
 
         const attributes = character.attributes;
         const attributesHTML = `
             <div class="attribute-group">
                 ${Object.entries(attributes.attributesList).map(([key, value]) => {
-            return `<span class="attribute">${key}：<span style="color: var(--text-color);">${value}</span></span>`;
-        }).join('')}
+                return `<span class="attribute">${key}：<span style="color: var(--text-color);">${value}</span></span>`;
+            }).join('')}
             </div>
         `;
         document.getElementById('basic-attributes').innerHTML = attributesHTML;
@@ -341,16 +381,11 @@
         const diceRollsHTML = `
             <div class="attribute-group" style="flex= 0 0 30%;">
                 ${Object.entries(character.diceRolls).map(([key, value]) => {
-            return `<span class="attribute"  >${key}：<span style="color: var(--text-color); ">${value}</span></span>`;
-        }).join('')}
+                return `<span class="attribute">${key}：<span style="color: var(--text-color);">${value}</span></span>`;
+            }).join('')}
             </div>
         `;
         document.getElementById('dice-rolls').innerHTML = diceRollsHTML;
-
-        const notesHTML = character.notes.items.map(item => {
-            return `<p>${item.label}：<span style="color: var(--text-color);">${item.value}</span></p>`;
-        }).join('');
-        document.getElementById('notes').innerHTML = notesHTML;
 
         const ctx = document.getElementById('skillsChart').getContext('2d');
         new Chart(ctx, {
@@ -391,6 +426,20 @@
                 }
             }
         });
+
+        // Centering logic for player name and character ID
+        const playerNameEl = document.getElementById('playerName');
+        const characterIDEl = document.getElementById('characterID');
+
+        if (!character.playerName) {
+            playerNameEl.style.display = 'none';
+            characterIDEl.style.textAlign = 'center';
+            characterIDEl.style.width = '100%'; // Force full width
+        } else if (!character.id) {
+            characterIDEl.style.display = 'none';
+            playerNameEl.style.textAlign = 'center';
+            playerNameEl.style.width = '100%'; // Force full width
+        }
     </script>
 </body>
 

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRPG 遊玩喜好卡</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <!-- 在<head>中加入Google字體 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8b5cf6;
+            --primary-light: #a78bfa;
+            --secondary: #ec4899;
+            --secondary-light: #f472b6;
+            --gradient-start: #8b5cf6;
+            --gradient-end: #ec4899;
+            --background: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-primary: #1f2937;
+            --text-secondary: #4b5563;
+            --border-radius: 0.5rem;
+            --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            font-family: 'Noto Sans TC', sans-serif;
+            padding: 2rem;
+            color: var(--text-primary);
+        }
+
+        .container {
+            backdrop-filter: blur(10px);
+            max-width: 210mm;
+            /* A4 width */
+            height: auto;
+            /* A4 height */
+            margin: 0 auto;
+            padding: 2.5rem;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            overflow: auto;
+        }
+
+        .header {
+            grid-column: span 2;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--primary-light);
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--gradient-start);
+            overflow: hidden;
+        }
+
+        .avatar:hover {
+            transform: scale(1.1);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+
+        .title {
+            flex-grow: 1;
+        }
+
+        h1,
+        h2,
+        h3 {
+            color: var(--primary);
+            margin: 0;
+        }
+
+        .section {
+            animation: fadeIn 0.8s ease forwards;
+            background: white;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .modules {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .module-item {
+            backdrop-filter: blur(5px);
+            position: relative;
+            padding: 0.5rem;
+            border-radius: var(--border-radius);
+            background: #f9fafb;
+            border: 1px solid var(--primary-light);
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: var(--primary-light);
+            height: 100%;
+            border-radius: var(--border-radius);
+            position: absolute;
+            left: 0;
+            top: 0;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            position: relative;
+            z-index: 1;
+            color: black;
+            /* 將文字顏色設為黑色 */
+        }
+
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .time-slot {
+            padding: 0.5rem;
+            border-radius: var(--border-radius);
+            background: #f9fafb;
+            text-align: center;
+            border: 1px solid var(--primary-light);
+            transition: all 0.3s ease;
+        }
+
+
+        .tools {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .tool-item {
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            background: var(--primary-light);
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .relationship-types {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .relationship-type {
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        /* 新增戀愛RP創作傾向的樣式 */
+        .preference-grid {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .preference-item {
+            position: relative;
+            width: 80px;
+            height: 20px;
+            background: #f9fafb;
+            border-radius: var(--border-radius);
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .preference-indicator {
+            height: 100%;
+            border-radius: var(--border-radius);
+            position: absolute;
+            left: 0;
+            top: 0;
+            transition: width 0.3s ease;
+        }
+
+        .filled {
+            background: var(--primary);
+            width: 70%;
+            /* 根據偏好設定 */
+        }
+
+        .half-filled {
+            background: var(--primary);
+            width: 50%;
+            /* 根據偏好設定 */
+        }
+
+        .empty {
+            background: transparent;
+            width: 0%;
+        }
+
+        /* 新增回應式設計 */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                height: auto;
+                width: 100%;
+                padding: 1rem;
+            }
+
+            .header {
+                grid-column: span 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="avatar">
+                <img src="https://images2.imgbox.com/fe/48/hWl3l46t_o.png" alt="Avatar"
+                    style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            <div class="title">
+                <h1>TRPG 遊玩喜好卡</h1>
+                <p>ID: HKTRPG | 暱稱: Sad</p>
+            </div>
+        </div>
+
+        <section class="section">
+            <h2>可約團時間</h2>
+            <div class="time-slots">
+                <div class="time-slot">早上 1000-1200</div>
+                <div class="time-slot">中午 1300-1800</div>
+                <div class="time-slot">晚上 2030-2400</div>
+            </div>
+
+            <h3>遊玩方式</h3>
+            <div class="modules tools">
+                <div class="tool-item">文字</div>
+                <div class="tool-item">半文字</div>
+                <div class="tool-item">語音</div>
+                <div class="tool-item">面團</div>
+                <div class="tool-item">POST</div>
+            </div>
+
+            <h3>使用工具</h3>
+            <div class="tools">
+                <div class="tool-item">CCFOLIA</div>
+                <div class="tool-item">Discord</div>
+                <div class="tool-item">Roll20</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>關係性RP傾向</h2>
+            <div class="relationship-types">
+                <div class="relationship-type">友情關係</div>
+                <div class="relationship-type">戀愛關係</div>
+                <div class="relationship-type">搭檔關係</div>
+                <div class="relationship-type">其他</div>
+                <div class="relationship-type">不限</div>
+            </div>
+
+            <h3>戀愛RP創作傾向</h3>
+            <div class="preference-grid">
+                <div class="preference-item">
+                    <span class="preference-indicator filled"></span>
+                    <span class="progress-text">NL</span>
+                </div>
+                <div class="preference-item">
+                    <span class="preference-indicator half-filled"></span>
+                    <span class="progress-text">BL</span>
+                </div>
+                <div class="preference-item">
+                    <span class="preference-indicator empty"></span>
+                    <span class="progress-text">GL</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>偏好模組類型</h2>
+            <div class="modules">
+                <div class="module-item">
+                    <div class="progress-bar" style="width: 80%;"></div>
+                    <span class="progress-text">傳統經典 (80%)</span>
+                </div>
+                <div class="module-item">
+                    <div class="progress-bar" style="width: 50%;"></div>
+                    <span class="progress-text">恐怖 (50%)</span>
+                </div>
+                <div class="module-item">
+                    <div class="progress-bar" style="width: 70%;"></div>
+                    <span class="progress-text">懸疑推理 (70%)</span>
+                </div>
+                <div class="module-item">
+                    <div class="progress-bar" style="width: 30%;"></div>
+                    <span class="progress-text">戰鬥 (30%)</span>
+                </div>
+                <div class="module-item">
+                    <div class="progress-bar" style="width: 60%;"></div>
+                    <span class="progress-text">輕鬆歡樂 (60%)</span>
+                </div>
+                <div class="module-item">
+                    <div class="progress-bar" style="width: 90%;"></div>
+                    <span class="progress-text">情感豐富 (90%)</span>
+                </div>
+                <div class="module-item">
+                    <div class="progress-bar" style="width: 40%;"></div>
+                    <span class="progress-text">戀愛角色互動 (40%)</span>
+                </div>
+                <div class="module-item">
+                    <div class="progress-bar" style="width: 20%;"></div>
+                    <span class="progress-text">都市 (20%)</span>
+                </div>
+                <div class="module-item">
+                    <div class="progress-bar" style="width: 10%;"></div>
+                    <span class="progress-text">封閉環境 (10%)</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>創作類型</h2>
+            <div class="modules">
+                <div class="module-item">
+                    <div class="progress-bar" style="width: 75%;"></div>
+                    <span class="progress-text">模組劇本 (75%)</span>
+                </div>
+                <div class="module-item">
+                    <div class="progress-bar" style="width: 50%;"></div>
+                    <span class="progress-text">團務房間設計 (50%)</span>
+                </div>
+                <div class="module-item">
+                    <div class="progress-bar" style="width: 65%;"></div>
+                    <span class="progress-text">繪圖 (65%)</span>
+                </div>
+                <div class="module-item">
+                    <div class="progress-bar" style="width: 40%;"></div>
+                    <span class="progress-text">小說 (40%)</span>
+                </div>
+                <div class="module-item">
+                    <div class="progress-bar" style="width: 20%;"></div>
+                    <span class="progress-text">其他 (20%)</span>
+                </div>
+            </div>
+        </section>
+    </div>
+</body>
+
+</html>

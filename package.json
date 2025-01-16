@@ -51,7 +51,7 @@
     "mathjs": "^9.3.0",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.35",
-    "mongoose": "^6",
+    "mongoose": "^8",
     "node-schedule": "^2.1.0",
     "node-telegram-bot-api": "^0.64.0",
     "openai": "^4.24.1",

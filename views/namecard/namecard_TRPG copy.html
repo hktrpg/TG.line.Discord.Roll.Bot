@@ -11,14 +11,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #8b5cf6;
+            --primary: #a78bfa;
             --primary-light: #a78bfa;
             --secondary: #ec4899;
             --secondary-light: #f472b6;
-            --gradient-start: #8b5cf6;
-            --gradient-end: #ec4899;
+            --gradient-start: #a78bfa;
+            --gradient-end: #e47eb1;
             --background: #f3f4f6;
-            --card-bg: #ffffff;
+            --card-bg: #f3f3f3;
             --text-primary: #1f2937;
             --text-secondary: #4b5563;
             --border-radius: 0.5rem;
@@ -37,15 +37,11 @@
         .container {
             backdrop-filter: blur(10px);
             max-width: 210mm;
-            /* A4 width */
-            height: auto;
-            /* A4 height */
             margin: 0 auto;
-            padding: 2.5rem;
+            padding: 2rem;
             background: var(--card-bg);
             border-radius: var(--border-radius);
             box-shadow: var(--box-shadow);
-            padding: 2rem;
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 2rem;
@@ -85,7 +81,6 @@
             }
         }
 
-
         .title {
             flex-grow: 1;
         }
@@ -121,10 +116,11 @@
             border: 1px solid var(--primary-light);
             text-align: center;
             overflow: hidden;
+            white-space: nowrap;
         }
 
         .progress-bar {
-            background: var(--primary-light);
+            background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
             height: 100%;
             border-radius: var(--border-radius);
             position: absolute;
@@ -137,7 +133,6 @@
             position: relative;
             z-index: 1;
             color: black;
-            /* 將文字顏色設為黑色 */
         }
 
         .time-slots {
@@ -155,7 +150,6 @@
             border: 1px solid var(--primary-light);
             transition: all 0.3s ease;
         }
-
 
         .tools {
             display: flex;
@@ -187,50 +181,75 @@
             font-size: 0.9rem;
         }
 
-        /* 新增戀愛RP創作傾向的樣式 */
-        .preference-grid {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .preference-item {
+        .new-progressbar {
             position: relative;
-            width: 80px;
-            height: 20px;
             background: #f9fafb;
             border-radius: var(--border-radius);
-            text-align: center;
             overflow: hidden;
+            padding: 0.1rem; /* Adjusted padding to reduce gaps */
+            margin: 0.5rem 0;
+            height: 1.5rem;
+            white-space: nowrap;
         }
 
-        .preference-indicator {
+        .new-progress {
             height: 100%;
             border-radius: var(--border-radius);
-            position: absolute;
-            left: 0;
-            top: 0;
             transition: width 0.3s ease;
         }
 
-        .filled {
+        .filled-80 {
+            width: 80%;
             background: var(--primary);
-            width: 70%;
-            /* 根據偏好設定 */
         }
 
-        .half-filled {
-            background: var(--primary);
+        .filled-50 {
             width: 50%;
-            /* 根據偏好設定 */
+            background: var(--primary-light);
         }
 
-        .empty {
-            background: transparent;
-            width: 0%;
+        .filled-30 {
+            width: 30%;
+            background: #ffcc00;
         }
 
-        /* 新增回應式設計 */
+        .filled-20 {
+            width: 20%;
+            background: #ff9900;
+        }
+
+        .filled-10 {
+            width: 10%;
+            background: #ff3300;
+        }
+
+        /* 新增背景顏色 */
+        .new-progressbar.nl,
+        .new-progressbar.bl,
+        .new-progressbar.text,
+        .new-progressbar.halftext,
+        .new-progressbar.voice,
+        .new-progressbar.team,
+        .new-progressbar.post,
+        .new-progressbar.ccfolia,
+        .new-progressbar.discord,
+        .new-progressbar.roll20 {
+            background: rgba(167, 139, 250, 0.2); /* 淺紫色 */
+        }
+
+        .new-progress.nl,
+        .new-progress.bl,
+        .new-progress.text,
+        .new-progress.halftext,
+        .new-progress.voice,
+        .new-progress.team,
+        .new-progress.post,
+        .new-progress.ccfolia,
+        .new-progress.discord,
+        .new-progress.roll20 {
+            background: #a78bfa; /* 深紫色 */
+        }
+
         @media (max-width: 768px) {
             .container {
                 grid-template-columns: 1fr;
@@ -269,18 +288,34 @@
 
             <h3>遊玩方式</h3>
             <div class="modules tools">
-                <div class="tool-item">文字</div>
-                <div class="tool-item">半文字</div>
-                <div class="tool-item">語音</div>
-                <div class="tool-item">面團</div>
-                <div class="tool-item">POST</div>
+                <div class="new-progressbar text">
+                    <div class="new-progress filled-80">文字</div>
+                </div>
+                <div class="new-progressbar halftext">
+                    <div class="new-progress filled-50">半文字</div>
+                </div>
+                <div class="new-progressbar voice">
+                    <div class="new-progress filled-30">語音</div>
+                </div>
+                <div class="new-progressbar team">
+                    <div class="new-progress filled-20">面團</div>
+                </div>
+                <div class="new-progressbar post">
+                    <div class="new-progress filled-10">POST</div>
+                </div>
             </div>
 
             <h3>使用工具</h3>
             <div class="tools">
-                <div class="tool-item">CCFOLIA</div>
-                <div class="tool-item">Discord</div>
-                <div class="tool-item">Roll20</div>
+                <div class="new-progressbar ccfolia">
+                    <div class="new-progress filled-80">CCFOLIA</div>
+                </div>
+                <div class="new-progressbar discord">
+                    <div class="new-progress filled-50">Discord</div>
+                </div>
+                <div class="new-progressbar roll20">
+                    <div class="new-progress filled-30">Roll20</div>
+                </div>
             </div>
         </section>
 
@@ -295,18 +330,15 @@
             </div>
 
             <h3>戀愛RP創作傾向</h3>
-            <div class="preference-grid">
-                <div class="preference-item">
-                    <span class="preference-indicator filled"></span>
-                    <span class="progress-text">NL</span>
+            <div class="modules">
+                <div class="new-progressbar nl">
+                    <div class="new-progress filled-80">NL</div>
                 </div>
-                <div class="preference-item">
-                    <span class="preference-indicator half-filled"></span>
-                    <span class="progress-text">BL</span>
+                <div class="new-progressbar bl">
+                    <div class="new-progress filled-50">BL</div>
                 </div>
-                <div class="preference-item">
-                    <span class="preference-indicator empty"></span>
-                    <span class="progress-text">GL</span>
+                <div class="new-progressbar">
+                    <div class="new-progress filled-0">GL</div>
                 </div>
             </div>
         </section>

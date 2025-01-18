@@ -6,9 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TRPG 遊玩喜好卡</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
-    <!-- 在<head>中加入Google字體 -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #a78bfa;
@@ -32,6 +30,7 @@
             font-family: 'Noto Sans TC', sans-serif;
             padding: 2rem;
             color: var(--text-primary);
+            font-weight: 400; /* 確保字體不使用粗體 */
         }
 
         .container {
@@ -90,6 +89,7 @@
         h3 {
             color: var(--primary);
             margin: 0;
+            font-weight: 400; /* 確保標題不使用粗體 */
         }
 
         .section {
@@ -181,14 +181,32 @@
             font-size: 0.9rem;
         }
 
+        .text-middle {
+            display: flex;
+            width: 100%;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+            align-items: center;
+            height: 100%;
+        }
+
+        .text-center {
+            justify-content: center;
+            align-items: center;
+            display: flex;
+            height: 100%;
+        }
+
         .new-progressbar {
             position: relative;
             background: #f9fafb;
             border-radius: var(--border-radius);
             overflow: hidden;
-            padding: 0.1rem; /* Adjusted padding to reduce gaps */
+            padding: 0.1rem;
             margin: 0.5rem 0;
-            height: 1.5rem;
+            height: 2.3rem;
+            display: flex;
+            align-items: center;
             white-space: nowrap;
         }
 
@@ -223,7 +241,6 @@
             background: #ff3300;
         }
 
-        /* 新增背景顏色 */
         .new-progressbar.nl,
         .new-progressbar.bl,
         .new-progressbar.text,
@@ -234,7 +251,7 @@
         .new-progressbar.ccfolia,
         .new-progressbar.discord,
         .new-progressbar.roll20 {
-            background: rgba(167, 139, 250, 0.2); /* 淺紫色 */
+            background: rgba(167, 139, 250, 0.2);
         }
 
         .new-progress.nl,
@@ -247,7 +264,7 @@
         .new-progress.ccfolia,
         .new-progress.discord,
         .new-progress.roll20 {
-            background: #a78bfa; /* 深紫色 */
+            background: #a78bfa;
         }
 
         @media (max-width: 768px) {
@@ -281,64 +298,60 @@
         <section class="section">
             <h2>可約團時間</h2>
             <div class="time-slots">
-                <div class="time-slot">早上 1000-1200</div>
-                <div class="time-slot">中午 1300-1800</div>
-                <div class="time-slot">晚上 2030-2400</div>
+                <div class="time-slot">早上</div>
+                <div class="time-slot">中午</div>
+                <div class="time-slot">晚上</div>
             </div>
 
-            <h3>遊玩方式</h3>
-            <div class="modules tools">
-                <div class="new-progressbar text">
-                    <div class="new-progress filled-80">文字</div>
-                </div>
-                <div class="new-progressbar halftext">
-                    <div class="new-progress filled-50">半文字</div>
-                </div>
-                <div class="new-progressbar voice">
-                    <div class="new-progress filled-30">語音</div>
-                </div>
-                <div class="new-progressbar team">
-                    <div class="new-progress filled-20">面團</div>
-                </div>
-                <div class="new-progressbar post">
-                    <div class="new-progress filled-10">POST</div>
-                </div>
+            <h2>遊玩方式</h2>
+            <div class="relationship-types">
+                <div class="relationship-type">語音</div>
+                <div class="relationship-type">戀愛關係</div>
+                <div class="relationship-type">面團</div>
+                <div class="relationship-type">文字</div>
+                <div class="relationship-type">文字+語音</div>
             </div>
 
-            <h3>使用工具</h3>
-            <div class="tools">
-                <div class="new-progressbar ccfolia">
-                    <div class="new-progress filled-80">CCFOLIA</div>
-                </div>
-                <div class="new-progressbar discord">
-                    <div class="new-progress filled-50">Discord</div>
-                </div>
-                <div class="new-progressbar roll20">
-                    <div class="new-progress filled-30">Roll20</div>
-                </div>
+            <h2>跑團平台</h2>
+            <div class="relationship-types">
+                <div class="relationship-type">CCFOLIA</div>
+                <div class="relationship-type">Discord</div>
+                <div class="relationship-type">Roll20</div>
+                <div class="relationship-type">Google Sheet</div>
+                <div class="relationship-type">FVTT</div>
+                <div class="relationship-type">不限</div>
             </div>
         </section>
 
         <section class="section">
-            <h2>關係性RP傾向</h2>
-            <div class="relationship-types">
-                <div class="relationship-type">友情關係</div>
-                <div class="relationship-type">戀愛關係</div>
-                <div class="relationship-type">搭檔關係</div>
-                <div class="relationship-type">其他</div>
-                <div class="relationship-type">不限</div>
+            <h2>關係扮演傾向</h2>
+            <div class="modules tools">
+                <div class="new-progressbar text">
+                    <div class="new-progress filled-80 text-middle">友情關係</div>
+                </div>
+                <div class="new-progressbar halftext">
+                    <div class="new-progress filled-50 text-middle">情人關係</div>
+                </div>
+                <div class="new-progressbar voice">
+                    <div class="new-progress filled-30 text-middle">搭檔關係</div>
+                </div>
+                <div class="new-progressbar team">
+                    <div class="new-progress filled-20 text-middle">不限</div>
+                </div>
             </div>
-
-            <h3>戀愛RP創作傾向</h3>
+            <h2>性向傾向</h2>
             <div class="modules">
-                <div class="new-progressbar nl">
-                    <div class="new-progress filled-80">NL</div>
+                <div class="module-item">
+                    <div class="progress-bar" style="width: 75%;"></div>
+                    <span class="progress-text">NL</span>
                 </div>
-                <div class="new-progressbar bl">
-                    <div class="new-progress filled-50">BL</div>
+                <div class="module-item">
+                    <div class="progress-bar" style="width: 50%;"></div>
+                    <span class="progress-text">BL</span>
                 </div>
-                <div class="new-progressbar">
-                    <div class="new-progress filled-0">GL</div>
+                <div class="module-item">
+                    <div class="progress-bar" style="width: 65%;"></div>
+                    <span class="progress-text">GL</span>
                 </div>
             </div>
         </section>
@@ -386,11 +399,11 @@
         </section>
 
         <section class="section">
-            <h2>創作類型</h2>
+            <h2>喜好地雷題材</h2>
             <div class="modules">
                 <div class="module-item">
                     <div class="progress-bar" style="width: 75%;"></div>
-                    <span class="progress-text">模組劇本 (75%)</span>
+                    <span class="progress-text">PVP</span>
                 </div>
                 <div class="module-item">
                     <div class="progress-bar" style="width: 50%;"></div>

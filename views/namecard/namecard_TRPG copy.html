@@ -9,28 +9,92 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #a78bfa;
-            --primary-light: #a78bfa;
-            --secondary: #ec4899;
-            --secondary-light: #f472b6;
-            --gradient-start: #a78bfa;
-            --gradient-end: #e47eb1;
-            --background: #f3f4f6;
-            --card-bg: #f3f3f3;
-            --text-primary: #1f2937;
-            --text-secondary: #4b5563;
+            --primary-color: #a78bfa;
+            /* 主色 */
+            --primary-light-color: #a78bfa;
+            /* 主色輕 */
+            --secondary-color: #ec4899;
+            /* 次色 */
+            --secondary-light-color: #f472b6;
+            /* 次色輕 */
+            --gradient-start-color: #a78bfa;
+            /* 漸層起始色 */
+            --gradient-end-color: #e47eb1;
+            /* 漸層結束色 */
+            --background-color: #f3f4f6;
+            /* 背景色 */
+            --card-background-color: #f3f3f3;
+            /* 卡片背景色 */
+            --text-primary-color: #1f2937;
+            /* 主要文字顏色 */
+            --text-secondary-color: #4b5563;
+            /* 次要文字顏色 */
+            --text-highlight-color: #000;
+            /* 強調文字顏色 */
             --border-radius: 0.5rem;
+            /* 圓角半徑 */
             --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            /* 陰影 */
+            --body-bg-color: #fda085;
+            /* 主體背景色 */
+            --body-bg-light-color: #f6d365;
+            /* 主體輕背景色 */
+            --neutral-color: #ffffff;
+            /* 中立色（白色） */
+            --slot-bg-color: #f9fafb;
+            /* 時間槽背景色 */
+            --module-border-color: 1px solid var(--primary-light-color);
+            /* 模組邊框色 */
+            /* 填充75%背景色 */
+            --filled-50-bg-color: var(--primary-light-color);
+            /* 填充50%背景色 */
+
+            --filled-25-bg-color: #ff9900;
+            /* 填充25%背景色 */
+            --filled-10-bg-color: #ff3300;
+            /* 填充10%背景色 */
+            --mine-bg-color-start: #f71414;
+            /* 地雷起始色 */
+            --mine-bg-color-end: #ce1f1f;
+            /* 地雷結束色 */
+            --mine-bg-color: linear-gradient(to right, var(--mine-bg-color-start), var(--mine-bg-color-end));
+            /* 地雷背景色 */
+
+
+            --fine-bg-color-start: #ffcc00;
+            /* 良好背景色 */
+            --fine-bg-color-end: #ff9900;
+            /* 良好背景色 */
+            --fine-bg-color: linear-gradient(to right, var(--fine-bg-color-start), var(--fine-bg-color-end));
+
+            --bar-bg-color: rgba(167, 139, 250, 0.2);
+
+            --filled-25:
+                linear-gradient(to right, #ec4899, #f3b1b1);
+
+
+
+            --filled-50:
+                linear-gradient(to right, #ff5733, #ffcc00);
+
+
+            --filled-75:
+                linear-gradient(to right, #00b894, #dfe6e9);
+
+
+            --filled-100:
+                linear-gradient(to right, #8e44ad, #3498db);
+            --gradient-color: linear-gradient(to right, var(--gradient-start-color), var(--gradient-end-color));
         }
 
         body {
             margin: 0;
             min-height: 100vh;
-            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            background: linear-gradient(135deg, var(--body-bg-light-color) 0%, var(--body-bg-color) 100%);
             font-family: 'Noto Sans TC', sans-serif;
             padding: 2rem;
-            color: var(--text-primary);
-            font-weight: 400; /* 確保字體不使用粗體 */
+            color: var(--text-primary-color);
+            font-weight: 400;
         }
 
         .container {
@@ -38,7 +102,7 @@
             max-width: 210mm;
             margin: 0 auto;
             padding: 2rem;
-            background: var(--card-bg);
+            background: var(--card-background-color);
             border-radius: var(--border-radius);
             box-shadow: var(--box-shadow);
             display: grid;
@@ -53,14 +117,14 @@
             align-items: center;
             gap: 1rem;
             padding-bottom: 1rem;
-            border-bottom: 2px solid var(--primary-light);
+            border-bottom: 2px solid var(--primary-light-color);
         }
 
         .avatar {
             width: 80px;
             height: 80px;
             border-radius: 50%;
-            background: var(--gradient-start);
+            background: var(--gradient-start-color);
             overflow: hidden;
         }
 
@@ -87,14 +151,16 @@
         h1,
         h2,
         h3 {
-            color: var(--primary);
-            margin: 0;
-            font-weight: 400; /* 確保標題不使用粗體 */
+            color: var(--primary-color);
+            margin-bottom: 0;
+            margin-top: 1rem;
+            font-weight: 400;
         }
 
         .section {
             animation: fadeIn 0.8s ease forwards;
-            background: white;
+            background: var(--neutral-color);
+            /* 使用有意義的變數 */
             padding: 1rem;
             border-radius: var(--border-radius);
             box-shadow: var(--box-shadow);
@@ -104,7 +170,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             gap: 0.5rem;
-            margin-top: 1rem;
+            margin-top: 0.5rem;
         }
 
         .module-item {
@@ -112,15 +178,15 @@
             position: relative;
             padding: 0.5rem;
             border-radius: var(--border-radius);
-            background: #f9fafb;
-            border: 1px solid var(--primary-light);
+            background: var(--background-color);
+            border: var(--module-border-color);
             text-align: center;
             overflow: hidden;
             white-space: nowrap;
         }
 
         .progress-bar {
-            background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+            background: var(--gradient-color);
             height: 100%;
             border-radius: var(--border-radius);
             position: absolute;
@@ -132,37 +198,41 @@
         .progress-text {
             position: relative;
             z-index: 1;
-            color: black;
+            color: var(--text-primary-color);
         }
 
         .time-slots {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            margin-top: 1rem;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
         }
 
         .time-slot {
             padding: 0.5rem;
             border-radius: var(--border-radius);
-            background: #f9fafb;
+            background: var(--slot-bg-color);
             text-align: center;
-            border: 1px solid var(--primary-light);
+            border: var(--module-border-color);
             transition: all 0.3s ease;
+        }
+
+        .time-slot-filled {
+            background: var(--gradient-color);
         }
 
         .tools {
             display: flex;
             gap: 1rem;
             flex-wrap: wrap;
-            margin-top: 1rem;
+            margin-top: 0.5rem;
         }
 
         .tool-item {
             padding: 0.5rem 1rem;
             border-radius: var(--border-radius);
-            background: var(--primary-light);
-            color: white;
+            background: var(--primary-light-color);
+            color: var(--neutral-color);
             font-size: 0.9rem;
         }
 
@@ -176,8 +246,8 @@
         .relationship-type {
             padding: 0.5rem 1rem;
             border-radius: var(--border-radius);
-            background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
-            color: white;
+            background: var(--gradient-color);
+            color: var(--neutral-color);
             font-size: 0.9rem;
         }
 
@@ -199,7 +269,7 @@
 
         .new-progressbar {
             position: relative;
-            background: #f9fafb;
+            background: var(--slot-bg-color);
             border-radius: var(--border-radius);
             overflow: hidden;
             padding: 0.1rem;
@@ -216,30 +286,29 @@
             transition: width 0.3s ease;
         }
 
-        .filled-80 {
-            width: 80%;
-            background: var(--primary);
+        .filled-100 {
+            width: 100%;
+            background: var(--gradient-color);
+        }
+
+        .filled-75 {
+            width: 60%;
+            background: var(--gradient-color);
         }
 
         .filled-50 {
-            width: 50%;
-            background: var(--primary-light);
+            width: 40%;
+            background: var(--gradient-color);
         }
 
-        .filled-30 {
-            width: 30%;
-            background: #ffcc00;
+
+
+        .filled-25 {
+            width: 25%;
+            background: var(--gradient-color);
         }
 
-        .filled-20 {
-            width: 20%;
-            background: #ff9900;
-        }
 
-        .filled-10 {
-            width: 10%;
-            background: #ff3300;
-        }
 
         .new-progressbar.nl,
         .new-progressbar.bl,
@@ -251,7 +320,7 @@
         .new-progressbar.ccfolia,
         .new-progressbar.discord,
         .new-progressbar.roll20 {
-            background: rgba(167, 139, 250, 0.2);
+            background: var(--bar-bg-color);
         }
 
         .new-progress.nl,
@@ -264,7 +333,16 @@
         .new-progress.ccfolia,
         .new-progress.discord,
         .new-progress.roll20 {
-            background: #a78bfa;
+            background: var(--primary-color);
+        }
+
+        /* 新增地雷進度條樣式 */
+        .mine-progress {
+            background: var(--mine-bg-color);
+        }
+
+        .fine-progress {
+            background: var(--fine-bg-color);
         }
 
         @media (max-width: 768px) {
@@ -298,15 +376,17 @@
         <section class="section">
             <h2>可約團時間</h2>
             <div class="time-slots">
-                <div class="time-slot">早上</div>
-                <div class="time-slot">中午</div>
-                <div class="time-slot">晚上</div>
+                <div class="time-slot time-slot-filled">平日早上</div>
+                <div class="time-slot">平日中午</div>
+                <div class="time-slot">平日晚上</div>
+                <div class="time-slot time-slot-filled">周末早上</div>
+                <div class="time-slot">周末中午</div>
+                <div class="time-slot">周末晚上</div>
             </div>
 
             <h2>遊玩方式</h2>
             <div class="relationship-types">
                 <div class="relationship-type">語音</div>
-                <div class="relationship-type">戀愛關係</div>
                 <div class="relationship-type">面團</div>
                 <div class="relationship-type">文字</div>
                 <div class="relationship-type">文字+語音</div>
@@ -327,30 +407,28 @@
             <h2>關係扮演傾向</h2>
             <div class="modules tools">
                 <div class="new-progressbar text">
-                    <div class="new-progress filled-80 text-middle">友情關係</div>
+                    <div class="new-progress filled-75 text-middle">友情關係</div>
                 </div>
                 <div class="new-progressbar halftext">
                     <div class="new-progress filled-50 text-middle">情人關係</div>
                 </div>
                 <div class="new-progressbar voice">
-                    <div class="new-progress filled-30 text-middle">搭檔關係</div>
+                    <div class="new-progress filled-100 text-middle">搭檔關係</div>
                 </div>
-                <div class="new-progressbar team">
-                    <div class="new-progress filled-20 text-middle">不限</div>
-                </div>
+
             </div>
             <h2>性向傾向</h2>
             <div class="modules">
                 <div class="module-item">
-                    <div class="progress-bar" style="width: 75%;"></div>
-                    <span class="progress-text">NL</span>
+                    <div class="progress-bar " style="width: 75%;"></div>
+                    <span class="progress-text ">NL</span>
                 </div>
                 <div class="module-item">
                     <div class="progress-bar" style="width: 50%;"></div>
                     <span class="progress-text">BL</span>
                 </div>
                 <div class="module-item">
-                    <div class="progress-bar" style="width: 65%;"></div>
+                    <div class="progress-bar" style="width: 25%;"></div>
                     <span class="progress-text">GL</span>
                 </div>
             </div>
@@ -360,20 +438,20 @@
             <h2>偏好模組類型</h2>
             <div class="modules">
                 <div class="module-item">
-                    <div class="progress-bar" style="width: 80%;"></div>
-                    <span class="progress-text">傳統經典 (80%)</span>
+                    <div class="progress-bar" style="width: 75%;"></div>
+                    <span class="progress-text">傳統經典 (75%)</span>
                 </div>
                 <div class="module-item">
                     <div class="progress-bar" style="width: 50%;"></div>
                     <span class="progress-text">恐怖 (50%)</span>
                 </div>
                 <div class="module-item">
-                    <div class="progress-bar" style="width: 70%;"></div>
-                    <span class="progress-text">懸疑推理 (70%)</span>
+                    <div class="progress-bar" style="width: 75%;"></div>
+                    <span class="progress-text">懸疑推理 (75%)</span>
                 </div>
                 <div class="module-item">
-                    <div class="progress-bar" style="width: 30%;"></div>
-                    <span class="progress-text">戰鬥 (30%)</span>
+                    <div class="progress-bar" style="width: 25%;"></div>
+                    <span class="progress-text">戰鬥 (25%)</span>
                 </div>
                 <div class="module-item">
                     <div class="progress-bar" style="width: 60%;"></div>
@@ -385,15 +463,15 @@
                 </div>
                 <div class="module-item">
                     <div class="progress-bar" style="width: 40%;"></div>
-                    <span class="progress-text">戀愛角色互動 (40%)</span>
+                    <span class="progress-text">戀愛互動 (40%)</span>
                 </div>
                 <div class="module-item">
-                    <div class="progress-bar" style="width: 20%;"></div>
-                    <span class="progress-text">都市 (20%)</span>
+                    <div class="progress-bar" style="width: 25%;"></div>
+                    <span class="progress-text">都市 (25%)</span>
                 </div>
                 <div class="module-item">
                     <div class="progress-bar" style="width: 10%;"></div>
-                    <span class="progress-text">封閉環境 (10%)</span>
+                    <span class="progress-text">密室 (10%)</span>
                 </div>
             </div>
         </section>
@@ -402,25 +480,38 @@
             <h2>喜好地雷題材</h2>
             <div class="modules">
                 <div class="module-item">
-                    <div class="progress-bar" style="width: 75%;"></div>
+                    <div class="progress-bar fine-progress" style="width: 100%;"></div>
                     <span class="progress-text">PVP</span>
                 </div>
                 <div class="module-item">
-                    <div class="progress-bar" style="width: 50%;"></div>
-                    <span class="progress-text">團務房間設計 (50%)</span>
+                    <div class="progress-bar " style="width: 100%;"></div>
+                    <span class="progress-text">血腥</span>
                 </div>
                 <div class="module-item">
-                    <div class="progress-bar" style="width: 65%;"></div>
-                    <span class="progress-text">繪圖 (65%)</span>
+                    <div class="progress-bar" style="width: 100%;"></div>
+                    <span class="progress-text">性描述</span>
                 </div>
                 <div class="module-item">
-                    <div class="progress-bar" style="width: 40%;"></div>
-                    <span class="progress-text">小說 (40%)</span>
+                    <div class="progress-bar fine-progress" style="width: 100%;"></div>
+                    <span class="progress-text">獵奇</span>
                 </div>
                 <div class="module-item">
-                    <div class="progress-bar" style="width: 20%;"></div>
-                    <span class="progress-text">其他 (20%)</span>
+                    <div class="progress-bar mine-progress" style="width: 100%;"></div>
+                    <span class="progress-text">虐待兒童</span>
                 </div>
+                <div class="module-item">
+                    <div class="progress-bar" style="width: 100%;"></div>
+                    <span class="progress-text">LOST</span>
+                </div>
+                <div class="module-item">
+                    <div class="progress-bar" style="width: 100%;"></div>
+                    <span class="progress-text">精神疾病</span>
+                </div>
+                <div class="module-item">
+                    <div class="progress-bar mine-progress" style="width: 100%;"></div>
+                    <span class="progress-text">藥物</span>
+                </div>
+
             </div>
         </section>
     </div>

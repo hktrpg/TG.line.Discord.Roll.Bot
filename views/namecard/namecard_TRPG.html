@@ -38,6 +38,7 @@
             --fine-bg-color: linear-gradient(to right, var(--fine-bg-color-start), var(--fine-bg-color-end));
             --bar-bg-color: rgba(167, 139, 250, 0.2);
             --gradient-color: linear-gradient(to right, var(--gradient-start-color), var(--gradient-end-color));
+
         }
 
         body {
@@ -73,16 +74,32 @@
             border-bottom: 2px solid var(--primary-light-color);
         }
 
+        .avatar-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            width: 250px;
+            /* 增加寬度 */
+        }
+
         .avatar {
-            width: 80px;
-            height: 80px;
+            width: 120px;
+            /* 增加尺寸 */
+            height: 120px;
+            /* 增加尺寸 */
             border-radius: 50%;
             background: var(--gradient-start-color);
             overflow: hidden;
+            margin-bottom: 0.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            /* 添加陰影 */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            /* 添加過渡效果 */
         }
 
         .avatar:hover {
-            transform: scale(1.1);
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
         @keyframes fadeIn {
@@ -99,6 +116,22 @@
 
         .title {
             flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            /* 改為左對齊 */
+        }
+
+        .title h1 {
+            margin: 0;
+            padding: 0;
+            line-height: 1.2;
+        }
+
+        .title p {
+            margin: 0.5rem 0 0 0;
+            color: var(--text-secondary-color);
         }
 
         h1,
@@ -238,7 +271,7 @@
 
         .filled-75 {
             width: 60%;
-            background: var(--gradient-color);
+            background: var (--gradient-color);
         }
 
         .filled-50 {
@@ -277,12 +310,17 @@
             background: var(--primary-color);
         }
 
+
         .mine-progress {
             background: var(--mine-bg-color);
         }
 
         .fine-progress {
             background: var(--fine-bg-color);
+        }
+
+        .like-progress {
+            background: var(--gradient-color);
         }
 
         @media (max-width: 768px) {
@@ -297,6 +335,281 @@
                 grid-column: span 1;
             }
         }
+
+        .edit-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .edit-btn:hover {
+            background: var(--primary-light-color);
+        }
+
+        .edit-mode input,
+        .edit-mode select {
+            width: 100%;
+            padding: 0.3rem;
+            border: 1px solid var(--primary-light-color);
+            border-radius: var(--border-radius);
+            background: white;
+        }
+
+        .save-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .edit-slider {
+            width: 100%;
+            margin: 5px 0;
+        }
+
+        .edit-select {
+            width: 100%;
+            padding: 5px;
+            margin: 5px 0;
+        }
+
+        .edit-tag {
+            display: inline-flex;
+            align-items: center;
+            margin: 5px;
+            padding: 5px 10px;
+            background: var(--primary-light-color);
+            color: white;
+            border-radius: var(--border-radius);
+        }
+
+        .edit-tag button {
+            margin-left: 5px;
+            border: none;
+            background: none;
+            color: white;
+            cursor: pointer;
+        }
+
+        /* 添加刪除按鈕樣式 */
+        .delete-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 0.2rem 0.5rem;
+            cursor: pointer;
+            margin-left: 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .delete-btn:hover {
+            background: #dc2626;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            margin: 0.5rem 0;
+        }
+
+        /* 美化編輯模式的樣式 */
+        .module-item.editing {
+            padding: 1rem;
+            background: var(--neutral-color);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .edit-input {
+            width: 90%;
+            padding: 0.5rem;
+            border: 1px solid var(--primary-light-color);
+            border-radius: var(--border-radius);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .edit-range {
+            width: 100%;
+            height: 6px;
+            background: var(--background-color);
+            border-radius: 3px;
+            -webkit-appearance: none;
+        }
+
+        .edit-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .add-button {
+            background: var(--gradient-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            transition: opacity 0.3s ease;
+        }
+
+        .add-button:hover {
+            opacity: 0.9;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            background: #dc2626;
+        }
+
+        .edit-section {
+            margin-bottom: 1rem;
+        }
+
+        .edit-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var (--text-secondary-color);
+            font-size: 0.9rem;
+        }
+
+        .percentage-display {
+            color: var(--primary-color);
+            font-size: 0.9rem;
+            text-align: center;
+            margin-top: 0.5rem;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .header-btn {
+            height: 38px;
+            min-width: 100px;
+            padding: 0 1.5rem;
+            border-radius: var(--border-radius);
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            font-weight: 500;
+            color: white;
+        }
+
+        .edit-btn {
+            background: var(--primary-color);
+        }
+
+        .edit-btn:hover {
+            background: var(--primary-light-color);
+        }
+
+        .save-btn {
+            background: var(--secondary-color);
+        }
+
+        .save-btn:hover {
+            opacity: 0.9;
+        }
+
+        .header-input-group {
+            margin-top: 0.5rem;
+            align-self: flex-start;
+            /* 改為左對齊 */
+        }
+
+        .input-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .input-label span {
+            color: var(--text-secondary-color);
+            font-weight: 500;
+            min-width: 3rem;
+        }
+
+        .header-input {
+            padding: 0.5rem;
+            border: 1px solid var(--primary-light-color);
+            border-radius: var(--border-radius);
+            background: white;
+            font-size: 0.9rem;
+            width: 150px;
+        }
+
+        .header-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.2);
+        }
+
+        .avatar-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .avatar-input {
+            width: 200px;
+            /* 調整輸入框寬度 */
+            padding: 0.5rem;
+            border: 1px solid var(--primary-light-color);
+            border-radius: var(--border-radius);
+            background: white;
+            font-size: 0.9rem;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .avatar-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.2);
+        }
+
+        .avatar-label {
+            color: var(--text-secondary-color);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
     </style>
 </head>
 
@@ -304,6 +617,8 @@
     <div class="container" id="app"></div>
 
     <script>
+        let isEditMode = false;
+        let originalData = null; // 新增: 用於儲存原始資料
         const data = {
             title: "TRPG 遊玩喜好卡",
             id: "HKTRPG",
@@ -362,91 +677,411 @@
                 title: "喜好/地雷題材",
                 items: [
                     { text: "PVP", type: "fine-progress" },
-                    { text: "血腥", type: "" },
-                    { text: "性描述", type: "" },
+                    { text: "血腥", type: "like-progress" },
+                    { text: "性描述", type: "like-progress" },
                     { text: "獵奇", type: "fine-progress" },
                     { text: "虐待兒童", type: "mine-progress" },
-                    { text: "LOST", type: "" },
-                    { text: "精神疾病", type: "" },
+                    { text: "LOST", type: "like-progress" },
+                    { text: "精神疾病", type: "like-progress" },
                     { text: "藥物", type: "mine-progress" }
                 ]
             }
         };
 
-        document.getElementById('app').innerHTML = `
-            <div class="header">
-                <div class="avatar">
-                    <img src="${data.avatar}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
-                </div>
-                <div class="title">
-                    <h1>${data.title}</h1>
-                    <p>ID: ${data.id} | 暱稱: ${data.nickname}</p>
-                </div>
-            </div>
-            <section class="section">
-                <h2>${data.availableTimes.title}</h2>
-                <div class="time-slots">
-                    ${data.availableTimes.slots.map(slot => `
-                        <div class="time-slot ${slot.filled ? 'time-slot-filled' : ''}">${slot.text}</div>
-                    `).join('')}
-                </div>
-                <h2>${data.playStyles.title}</h2>
-                <div class="relationship-types">
-                    ${data.playStyles.styles.map(style => `
-                        <div class="relationship-type">${style}</div>
-                    `).join('')}
-                </div>
-                <h2>${data.platforms.title}</h2>
-                <div class="relationship-types">
-                    ${data.platforms.list.map(platform => `
-                        <div class="relationship-type">${platform}</div>
-                    `).join('')}
-                </div>
-            </section>
-            <section class="section">
-                <h2>${data.relationships.title}</h2>
-                <div class="modules">
-                    ${data.relationships.types.map(type => `
-                        <div class="module-item">
-    <div class="progress-bar ${type.fill}" style="width: ${type.fill === 'filled-100' ? '100%' : type.fill === 'filled-75' ? '75%' : type.fill === 'filled-50' ? '50%' : type.fill === 'filled-25' ? '25%' : '0%'};"></div>
-    <span class="progress-text">${type.text}</span>
-</div>
-                    `).join('')}
-                </div>
-                <h2>${data.orientations.title}</h2>
-                <div class="modules">
-                    ${data.orientations.types.map(orientation => `
-                        <div class="module-item">
-                            <div class="progress-bar" style="width: ${orientation.percentage}%;"></div>
-                            <span class="progress-text">${orientation.text}</span>
+        function toggleEditMode() {
+            if (!isEditMode) {
+                // 進入編輯模式時，備份當前資料
+                originalData = JSON.parse(JSON.stringify(data));
+            } else {
+                // 取消編輯時，恢復原始資料
+                if (originalData) {
+                    data.id = originalData.id;
+                    data.nickname = originalData.nickname;
+                    data.avatar = originalData.avatar;
+                    data.playStyles.styles = [...originalData.playStyles.styles];
+                    data.platforms.list = [...originalData.platforms.list];
+                    data.availableTimes.slots = originalData.availableTimes.slots.map(slot => ({ ...slot }));
+                    data.relationships.types = originalData.relationships.types.map(type => ({ ...type }));
+                    data.orientations.types = originalData.orientations.types.map(type => ({ ...type }));
+                    data.preferredModules.modules = originalData.preferredModules.modules.map(module => ({ ...module }));
+                    data.landmines.items = originalData.landmines.items.map(item => ({ ...item }));
+                }
+                originalData = null;
+            }
+            isEditMode = !isEditMode;
+            renderApp();
+        }
+
+        function saveData() {
+            // 原有的保存邏輯
+            data.id = document.getElementById('edit-id').value;
+            data.nickname = document.getElementById('edit-nickname').value;
+            data.avatar = document.getElementById('edit-avatar').value;
+
+            // 新增: 保存可約團時間
+            data.availableTimes.slots = Array.from(document.getElementsByClassName('time-slot-edit'))
+                .map(checkbox => ({
+                    text: checkbox.getAttribute('data-text'),
+                    filled: checkbox.checked
+                }));
+
+            // 修改：保存遊玩方式 (過濾空白)
+            data.playStyles.styles = Array.from(document.getElementsByClassName('play-style-edit'))
+                .map(input => input.value.trim())
+                .filter(value => value !== '');
+
+            // 修改：保存跑團平台 (過濾空白)
+            data.platforms.list = Array.from(document.getElementsByClassName('platform-edit'))
+                .map(input => input.value.trim())
+                .filter(value => value !== '');
+
+            // 保存關係扮演傾向
+            data.relationships.types = Array.from(document.getElementsByClassName('relationship-edit'))
+                .map(el => ({
+                    text: el.getAttribute('data-text'),
+                    fill: `filled-${el.value}`
+                }));
+
+            // 保存性向傾向
+            data.orientations.types = Array.from(document.getElementsByClassName('orientation-edit'))
+                .map(el => ({
+                    text: el.getAttribute('data-text'),
+                    percentage: parseInt(el.value)
+                }));
+
+            // 保存偏好模組類型
+            data.preferredModules.modules = Array.from(document.getElementsByClassName('module-edit'))
+                .map(el => ({
+                    text: el.getAttribute('data-text'),
+                    percentage: parseInt(el.value)
+                }));
+
+            // 保存喜好/地雷題材
+            data.landmines.items = Array.from(document.getElementsByClassName('landmine-edit'))
+                .map(el => ({
+                    text: el.getAttribute('data-text'),
+                    type: el.value
+                }));
+
+            isEditMode = false;
+            renderApp();
+        }
+
+        // 新增刪除函數
+        function deletePlayStyle(index) {
+            data.playStyles.styles.splice(index, 1);
+            renderApp();
+        }
+
+        function deletePlatform(index) {
+            data.platforms.list.splice(index, 1);
+            renderApp();
+        }
+
+        // 添加新增函數
+        function addRelationshipType() {
+            data.relationships.types.push({ text: "新關係", fill: "filled-0" });
+            renderApp();
+        }
+
+        function addOrientation() {
+            data.orientations.types.push({ text: "新傾向", percentage: 50 });
+            renderApp();
+        }
+
+        function addPreferredModule() {
+            data.preferredModules.modules.push({ text: "新偏好", percentage: 50 });
+            renderApp();
+        }
+
+        function addLandmine() {
+            data.landmines.items.push({ text: "新題材", type: "fine-progress" });
+            renderApp();
+        }
+
+        // 添加刪除函數
+        function deleteRelationshipType(index) {
+            data.relationships.types.splice(index, 1);
+            renderApp();
+        }
+
+        function deleteOrientation(index) {
+            data.orientations.types.splice(index, 1);
+            renderApp();
+        }
+
+        function deletePreferredModule(index) {
+            data.preferredModules.modules.splice(index, 1);
+            renderApp();
+        }
+
+        function deleteLandmine(index) {
+            data.landmines.items.splice(index, 1);
+            renderApp();
+        }
+
+        function renderApp() {
+            document.getElementById('app').innerHTML = `
+                <div class="header">
+                    <div class="avatar-section">
+                        <div class="avatar">
+                            <img src="${data.avatar}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
                         </div>
-                    `).join('')}
+                        ${isEditMode ? `
+                            <div class="avatar-input-group">
+                                <label class="avatar-label">頭像網址</label>
+                                <input type="text" id="edit-avatar" class="avatar-input" 
+                                    value="${data.avatar}" 
+                                    placeholder="輸入圖片網址">
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="title">
+                        <h1>${data.title}</h1>
+                        ${isEditMode ? `
+                            <div class="header-input-group">
+                                <label class="input-label">
+                                    <span>ID:</span>
+                                    <input type="text" id="edit-id" class="header-input" value="${data.id}">
+                                </label>
+                                <label class="input-label">
+                                    <span>暱稱:</span>
+                                    <input type="text" id="edit-nickname" class="header-input" value="${data.nickname}">
+                                </label>
+                            </div>
+                        ` : `
+                            <p style="margin-top: 0.5rem;">ID: ${data.id} | 暱稱: ${data.nickname}</p>
+                        `}
+                    </div>
+                    <div class="header-buttons">
+                        <button class="header-btn edit-btn" onclick="toggleEditMode()">
+                            ${isEditMode ? '取消編輯' : '編輯'}
+                        </button>
+                        ${isEditMode ? `
+                            <button class="header-btn save-btn" onclick="saveData()">儲存更改</button>
+                        ` : ''}
+                    </div>
                 </div>
-            </section>
-            <section class="section">
-                <h2>${data.preferredModules.title}</h2>
-                <div class="modules">
-                    ${data.preferredModules.modules.map(module => `
-                        <div class="module-item">
-                            <div class="progress-bar" style="width: ${module.percentage}%;"></div>
-                            <span class="progress-text">${module.text} (${module.percentage}%)</span>
-                        </div>
-                    `).join('')}
-                </div>
-            </section>
-            <section class="section">
-    <h2>${data.landmines.title}</h2>
-    <p style="color: #1f2937;">紅色代表<span style="color: #f71414;">NG</span>, 黃色代表<span style="color: #ffcc00;">接受</span>, 紫色代表<span style="color: #a78bfa;">喜愛</span></p>
-    <div class="modules">
-        ${data.landmines.items.map(item => `
-            <div class="module-item">
-                <div class="progress-bar ${item.type}" style="width: 100%;"></div>
-                <span class="progress-text">${item.text}</span>
-            </div>
-        `).join('')}
-    </div>
-</section>
-        `;
+                <section class="section">
+                    <h2>${data.availableTimes.title}</h2>
+                    <div class="time-slots">
+                        ${data.availableTimes.slots.map(slot => `
+                            ${isEditMode ? `
+                                <label class="time-slot">
+                                    <input type="checkbox" class="time-slot-edit" 
+                                        data-text="${slot.text}"
+                                        ${slot.filled ? 'checked' : ''}>
+                                    ${slot.text}
+                                </label>
+                            ` : `
+                                <div class="time-slot ${slot.filled ? 'time-slot-filled' : ''}">${slot.text}</div>
+                            `}
+                        `).join('')}
+                    </div>
+                    <h2>${data.playStyles.title}</h2>
+                    <div class="modules">
+                        ${isEditMode ? `
+                            ${data.playStyles.styles.map((style, index) => `
+                                <div class="module-item editing">
+                                    <button class="delete-btn" onclick="deletePlayStyle(${index})">×</button>
+                                    <div class="edit-section">
+                                        <label class="edit-label">遊玩方式</label>
+                                        <input type="text" class="play-style-edit edit-input" value="${style}" 
+                                            onchange="data.playStyles.styles[${index}] = this.value">
+                                    </div>
+                                </div>
+                            `).join('')}
+                            <button class="add-button" onclick="addPlayStyle()">
+                                <i class="fas fa-plus"></i> 新增方式
+                            </button>
+                        ` : `
+                            ${data.playStyles.styles.filter(style => style.trim() !== '').map(style => `
+                                <div class="relationship-type">${style}</div>
+                            `).join('')}
+                        `}
+                    </div>
+                    
+                    <h2>${data.platforms.title}</h2>
+                    <div class="modules">
+                        ${isEditMode ? `
+                            ${data.platforms.list.map((platform, index) => `
+                                <div class="module-item editing">
+                                    <button class="delete-btn" onclick="deletePlatform(${index})">×</button>
+                                    <div class="edit-section">
+                                        <label class="edit-label">平台名稱</label>
+                                        <input type="text" class="platform-edit edit-input" value="${platform}"
+                                            onchange="data.platforms.list[${index}] = this.value">
+                                    </div>
+                                </div>
+                            `).join('')}
+                            <button class="add-button" onclick="addPlatform()">
+                                <i class="fas fa-plus"></i> 新增平台
+                            </button>
+                        ` : `
+                            ${data.platforms.list.filter(platform => platform.trim() !== '').map(platform => `
+                                <div class="relationship-type">${platform}</div>
+                            `).join('')}
+                        `}
+                    </div>
+                </section>
+               
+           
+                <section class="section">
+                    <h2>${data.relationships.title}</h2>
+                    <div class="modules">
+                        ${data.relationships.types.map((type, index) => `
+                            ${isEditMode ? `
+                                <div class="module-item editing">
+                                    <button class="delete-btn" onclick="deleteRelationshipType(${index})">×</button>
+                                    <div class="edit-section">
+                                        <label class="edit-label">關係名稱</label>
+                                        <input type="text" class="edit-input" value="${type.text}" 
+                                            onchange="data.relationships.types[${index}].text = this.value">
+                                    </div>
+                                    <div class="edit-section">
+                                        <label class="edit-label">關係程度</label>
+                                        <select class="edit-input relationship-edit" data-text="${type.text}">
+                                            <option value="0" ${type.fill === 'filled-0' ? 'selected' : ''}>無</option>
+                                            <option value="25" ${type.fill === 'filled-25' ? 'selected' : ''}>低</option>
+                                            <option value="50" ${type.fill === 'filled-50' ? 'selected' : ''}>中</option>
+                                            <option value="75" ${type.fill === 'filled-75' ? 'selected' : ''}>高</option>
+                                            <option value="100" ${type.fill === 'filled-100' ? 'selected' : ''}>極高</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            ` : `
+                                <div class="module-item">
+                                    <div class="progress-bar ${type.fill}"></div>
+                                    <span class="progress-text">${type.text}</span>
+                                </div>
+                            `}
+                        `).join('')}
+                        ${isEditMode ? `<button class="add-button" onclick="addRelationshipType()">
+                            <i class="fas fa-plus"></i> 新增關係
+                        </button>` : ''}
+                    </div>
+
+                    <h2>${data.orientations.title}</h2>
+                    <div class="modules">
+                        ${data.orientations.types.map((orientation, index) => `
+                            ${isEditMode ? `
+                                <div class="module-item editing">
+                                    <button class="delete-btn" onclick="deleteOrientation(${index})">×</button>
+                                    <div class="edit-section">
+                                        <label class="edit-label">性向名稱</label>
+                                        <input type="text" class="edit-input" value="${orientation.text}" 
+                                            onchange="data.orientations.types[${index}].text = this.value">
+                                    </div>
+                                    <div class="edit-section">
+                                        <label class="edit-label">傾向程度</label>
+                                        <input type="range" class="orientation-edit edit-slider" 
+                                            data-text="${orientation.text}"
+                                            value="${orientation.percentage}" 
+                                            min="0" max="100"
+                                            oninput="this.nextElementSibling.textContent = this.value + '%'">
+                                        <div class="percentage-display">${orientation.percentage}%</div>
+                                    </div>
+                                </div>
+                            ` : `
+                                <div class="module-item">
+                                    <div class="progress-bar" style="width: ${orientation.percentage}%;"></div>
+                                    <span class="progress-text">${orientation.text}</span>
+                                </div>
+                            `}
+                        `).join('')}
+                        ${isEditMode ? `<button class="add-button" onclick="addOrientation()">
+                            <i class="fas fa-plus"></i> 新增性向
+                        </button>` : ''}
+                    </div>
+                </section>
+                <section class="section">
+                    <h2>${data.preferredModules.title}</h2>
+                    <div class="modules">
+                        ${data.preferredModules.modules.map((module, index) => `
+                            ${isEditMode ? `
+                                <div class="module-item editing">
+                                    <button class="delete-btn" onclick="deletePreferredModule(${index})">×</button>
+                                    <div class="edit-section">
+                                        <label class="edit-label">模組名稱</label>
+                                        <input type="text" class="edit-input" value="${module.text}" 
+                                            onchange="data.preferredModules.modules[${index}].text = this.value">
+                                    </div>
+                                    <div class="edit-section">
+                                        <label class="edit-label">喜好程度</label>
+                                        <input type="range" class="module-edit edit-slider" 
+                                            data-text="${module.text}"
+                                            value="${module.percentage}" 
+                                            min="0" max="100"
+                                            oninput="this.nextElementSibling.textContent = this.value + '%'">
+                                        <div class="percentage-display">${module.percentage}%</div>
+                                    </div>
+                                </div>
+                            ` : `
+                                <div class="module-item">
+                                    <div class="progress-bar" style="width: ${module.percentage}%;"></div>
+                                    <span class="progress-text">${module.text} (${module.percentage}%)</span>
+                                </div>
+                            `}
+                        `).join('')}
+                        ${isEditMode ? `<button class="add-button" onclick="addPreferredModule()">
+                            <i class="fas fa-plus"></i> 新增模組
+                        </button>` : ''}
+                    </div>
+                    </section>
+<section class="section">
+                    <h2>${data.landmines.title}</h2>
+                    <p style="color: #1f2937;">
+                        紅色代表<span style="color: #f71414;">NG</span>, 
+                        黃色代表<span style="color: #ffcc00;">接受</span>, 
+                        紫色代表<span style="color: #a78bfa;">喜愛</span>
+                    </p>
+                    <div class="modules">
+                        ${data.landmines.items.map((item, index) => `
+                            ${isEditMode ? `
+                                <div class="module-item editing">
+                                    <button class="delete-btn" onclick="deleteLandmine(${index})">×</button>
+                                    <div class="edit-section">
+                                        <label class="edit-label">題材名稱</label>
+                                        <input type="text" class="edit-input" value="${item.text}" 
+                                            onchange="data.landmines.items[${index}].text = this.value">
+                                    </div>
+                                    <div class="edit-section">
+                                        <label class="edit-label">接受程度</label>
+                                        <select class="edit-input landmine-edit" data-text="${item.text}">
+                                            <option value="mine-progress" ${item.type === 'mine-progress' ? 'selected' : ''}>NG</option>
+                                            <option value="fine-progress" ${item.type === 'fine-progress' ? 'selected' : ''}>接受</option>
+                                            <option value="like-progress" ${item.type === 'like-progress' ? 'selected' : ''}>喜愛</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            ` : `
+                                <div class="module-item">
+                                    <div class="progress-bar ${item.type}" style="width: 100%;"></div>
+                                    <span class="progress-text">${item.text}</span>
+                                </div>
+                            `}
+                        `).join('')}
+                        ${isEditMode ? `<button class="add-button" onclick="addLandmine()">
+                            <i class="fas fa-plus"></i> 新增題材
+                        </button>` : ''}
+                    </div>
+                </section>
+            `;
+        }
+
+        // 新增輔助函數
+        function addPlayStyle() {
+            data.playStyles.styles.push('');
+            renderApp();
+        }
+
+        function addPlatform() {
+            data.platforms.list.push('');
+            renderApp();
+        }
+
+        // 初始渲染
+        renderApp();
     </script>
 </body>
 

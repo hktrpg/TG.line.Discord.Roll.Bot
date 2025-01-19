@@ -313,7 +313,7 @@
                 title: "可約團時間",
                 slots: [
                     { text: "平日早上", filled: true },
-                    { text: "平日中午", filled: false },
+                    { text: "平日中午", filled: true },
                     { text: "平日晚上", filled: false },
                     { text: "周末早上", filled: true },
                     { text: "周末中午", filled: false },
@@ -331,7 +331,7 @@
             relationships: {
                 title: "關係扮演傾向",
                 types: [
-                    { text: "友情關係", fill: "filled-75" },
+                    { text: "友情關係", fill: "filled-0" },
                     { text: "情人關係", fill: "filled-50" },
                     { text: "搭檔關係", fill: "filled-100" }
                 ]
@@ -359,7 +359,7 @@
                 ]
             },
             landmines: {
-                title: "喜好地雷題材",
+                title: "喜好/地雷題材",
                 items: [
                     { text: "PVP", type: "fine-progress" },
                     { text: "血腥", type: "" },
@@ -408,9 +408,9 @@
                 <div class="modules">
                     ${data.relationships.types.map(type => `
                         <div class="module-item">
-                            <div class="progress-bar ${type.fill}" style="width: ${type.fill === 'filled-100' ? '100%' : type.fill === 'filled-75' ? '75%' : '50%'};"></div>
-                            <span class="progress-text">${type.text}</span>
-                        </div>
+    <div class="progress-bar ${type.fill}" style="width: ${type.fill === 'filled-100' ? '100%' : type.fill === 'filled-75' ? '75%' : type.fill === 'filled-50' ? '50%' : type.fill === 'filled-25' ? '25%' : '0%'};"></div>
+    <span class="progress-text">${type.text}</span>
+</div>
                     `).join('')}
                 </div>
                 <h2>${data.orientations.title}</h2>
@@ -435,16 +435,17 @@
                 </div>
             </section>
             <section class="section">
-                <h2>${data.landmines.title}</h2>
-                <div class="modules">
-                    ${data.landmines.items.map(item => `
-                        <div class="module-item">
-                            <div class="progress-bar ${item.type}" style="width: 100%;"></div>
-                            <span class="progress-text">${item.text}</span>
-                        </div>
-                    `).join('')}
-                </div>
-            </section>
+    <h2>${data.landmines.title}</h2>
+    <p style="color: #1f2937;">紅色代表<span style="color: #f71414;">NG</span>, 黃色代表<span style="color: #ffcc00;">接受</span>, 紫色代表<span style="color: #a78bfa;">喜愛</span></p>
+    <div class="modules">
+        ${data.landmines.items.map(item => `
+            <div class="module-item">
+                <div class="progress-bar ${item.type}" style="width: 100%;"></div>
+                <span class="progress-text">${item.text}</span>
+            </div>
+        `).join('')}
+    </div>
+</section>
         `;
     </script>
 </body>

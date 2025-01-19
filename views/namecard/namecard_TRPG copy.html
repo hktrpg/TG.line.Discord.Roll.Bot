@@ -10,80 +10,33 @@
     <style>
         :root {
             --primary-color: #a78bfa;
-            /* 主色 */
             --primary-light-color: #a78bfa;
-            /* 主色輕 */
             --secondary-color: #ec4899;
-            /* 次色 */
             --secondary-light-color: #f472b6;
-            /* 次色輕 */
             --gradient-start-color: #a78bfa;
-            /* 漸層起始色 */
             --gradient-end-color: #e47eb1;
-            /* 漸層結束色 */
             --background-color: #f3f4f6;
-            /* 背景色 */
             --card-background-color: #f3f3f3;
-            /* 卡片背景色 */
             --text-primary-color: #1f2937;
-            /* 主要文字顏色 */
             --text-secondary-color: #4b5563;
-            /* 次要文字顏色 */
             --text-highlight-color: #000;
-            /* 強調文字顏色 */
             --border-radius: 0.5rem;
-            /* 圓角半徑 */
             --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            /* 陰影 */
             --body-bg-color: #fda085;
-            /* 主體背景色 */
             --body-bg-light-color: #f6d365;
-            /* 主體輕背景色 */
             --neutral-color: #ffffff;
-            /* 中立色（白色） */
             --slot-bg-color: #f9fafb;
-            /* 時間槽背景色 */
             --module-border-color: 1px solid var(--primary-light-color);
-            /* 模組邊框色 */
-            /* 填充75%背景色 */
             --filled-50-bg-color: var(--primary-light-color);
-            /* 填充50%背景色 */
-
             --filled-25-bg-color: #ff9900;
-            /* 填充25%背景色 */
             --filled-10-bg-color: #ff3300;
-            /* 填充10%背景色 */
             --mine-bg-color-start: #f71414;
-            /* 地雷起始色 */
             --mine-bg-color-end: #ce1f1f;
-            /* 地雷結束色 */
             --mine-bg-color: linear-gradient(to right, var(--mine-bg-color-start), var(--mine-bg-color-end));
-            /* 地雷背景色 */
-
-
             --fine-bg-color-start: #ffcc00;
-            /* 良好背景色 */
             --fine-bg-color-end: #ff9900;
-            /* 良好背景色 */
             --fine-bg-color: linear-gradient(to right, var(--fine-bg-color-start), var(--fine-bg-color-end));
-
             --bar-bg-color: rgba(167, 139, 250, 0.2);
-
-            --filled-25:
-                linear-gradient(to right, #ec4899, #f3b1b1);
-
-
-
-            --filled-50:
-                linear-gradient(to right, #ff5733, #ffcc00);
-
-
-            --filled-75:
-                linear-gradient(to right, #00b894, #dfe6e9);
-
-
-            --filled-100:
-                linear-gradient(to right, #8e44ad, #3498db);
             --gradient-color: linear-gradient(to right, var(--gradient-start-color), var(--gradient-end-color));
         }
 
@@ -160,7 +113,6 @@
         .section {
             animation: fadeIn 0.8s ease forwards;
             background: var(--neutral-color);
-            /* 使用有意義的變數 */
             padding: 1rem;
             border-radius: var(--border-radius);
             box-shadow: var(--box-shadow);
@@ -260,13 +212,6 @@
             height: 100%;
         }
 
-        .text-center {
-            justify-content: center;
-            align-items: center;
-            display: flex;
-            height: 100%;
-        }
-
         .new-progressbar {
             position: relative;
             background: var(--slot-bg-color);
@@ -301,14 +246,10 @@
             background: var(--gradient-color);
         }
 
-
-
         .filled-25 {
             width: 25%;
             background: var(--gradient-color);
         }
-
-
 
         .new-progressbar.nl,
         .new-progressbar.bl,
@@ -336,7 +277,6 @@
             background: var(--primary-color);
         }
 
-        /* 新增地雷進度條樣式 */
         .mine-progress {
             background: var(--mine-bg-color);
         }
@@ -361,160 +301,152 @@
 </head>
 
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="avatar">
-                <img src="https://images2.imgbox.com/fe/48/hWl3l46t_o.png" alt="Avatar"
-                    style="width: 100%; height: 100%; object-fit: cover;">
-            </div>
-            <div class="title">
-                <h1>TRPG 遊玩喜好卡</h1>
-                <p>ID: HKTRPG | 暱稱: Sad</p>
-            </div>
-        </div>
+    <div class="container" id="app"></div>
 
-        <section class="section">
-            <h2>可約團時間</h2>
-            <div class="time-slots">
-                <div class="time-slot time-slot-filled">平日早上</div>
-                <div class="time-slot">平日中午</div>
-                <div class="time-slot">平日晚上</div>
-                <div class="time-slot time-slot-filled">周末早上</div>
-                <div class="time-slot">周末中午</div>
-                <div class="time-slot">周末晚上</div>
-            </div>
+    <script>
+        const data = {
+            title: "TRPG 遊玩喜好卡",
+            id: "HKTRPG",
+            nickname: "Sad",
+            avatar: "https://images2.imgbox.com/fe/48/hWl3l46t_o.png",
+            availableTimes: {
+                title: "可約團時間",
+                slots: [
+                    { text: "平日早上", filled: true },
+                    { text: "平日中午", filled: false },
+                    { text: "平日晚上", filled: false },
+                    { text: "周末早上", filled: true },
+                    { text: "周末中午", filled: false },
+                    { text: "周末晚上", filled: false }
+                ]
+            },
+            playStyles: {
+                title: "遊玩方式",
+                styles: ["語音", "面團", "文字", "文字+語音"]
+            },
+            platforms: {
+                title: "跑團平台",
+                list: ["CCFOLIA", "Discord", "Roll20", "Google Sheet", "FVTT", "不限"]
+            },
+            relationships: {
+                title: "關係扮演傾向",
+                types: [
+                    { text: "友情關係", fill: "filled-75" },
+                    { text: "情人關係", fill: "filled-50" },
+                    { text: "搭檔關係", fill: "filled-100" }
+                ]
+            },
+            orientations: {
+                title: "性向傾向",
+                types: [
+                    { text: "NL", percentage: 75 },
+                    { text: "BL", percentage: 50 },
+                    { text: "GL", percentage: 25 }
+                ]
+            },
+            preferredModules: {
+                title: "偏好模組類型",
+                modules: [
+                    { text: "傳統經典", percentage: 75 },
+                    { text: "恐怖", percentage: 50 },
+                    { text: "懸疑推理", percentage: 75 },
+                    { text: "戰鬥", percentage: 25 },
+                    { text: "輕鬆歡樂", percentage: 60 },
+                    { text: "情感豐富", percentage: 90 },
+                    { text: "戀愛互動", percentage: 40 },
+                    { text: "都市", percentage: 25 },
+                    { text: "密室", percentage: 10 }
+                ]
+            },
+            landmines: {
+                title: "喜好地雷題材",
+                items: [
+                    { text: "PVP", type: "fine-progress" },
+                    { text: "血腥", type: "" },
+                    { text: "性描述", type: "" },
+                    { text: "獵奇", type: "fine-progress" },
+                    { text: "虐待兒童", type: "mine-progress" },
+                    { text: "LOST", type: "" },
+                    { text: "精神疾病", type: "" },
+                    { text: "藥物", type: "mine-progress" }
+                ]
+            }
+        };
 
-            <h2>遊玩方式</h2>
-            <div class="relationship-types">
-                <div class="relationship-type">語音</div>
-                <div class="relationship-type">面團</div>
-                <div class="relationship-type">文字</div>
-                <div class="relationship-type">文字+語音</div>
-            </div>
-
-            <h2>跑團平台</h2>
-            <div class="relationship-types">
-                <div class="relationship-type">CCFOLIA</div>
-                <div class="relationship-type">Discord</div>
-                <div class="relationship-type">Roll20</div>
-                <div class="relationship-type">Google Sheet</div>
-                <div class="relationship-type">FVTT</div>
-                <div class="relationship-type">不限</div>
-            </div>
-        </section>
-
-        <section class="section">
-            <h2>關係扮演傾向</h2>
-            <div class="modules tools">
-                <div class="new-progressbar text">
-                    <div class="new-progress filled-75 text-middle">友情關係</div>
+        document.getElementById('app').innerHTML = `
+            <div class="header">
+                <div class="avatar">
+                    <img src="${data.avatar}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
                 </div>
-                <div class="new-progressbar halftext">
-                    <div class="new-progress filled-50 text-middle">情人關係</div>
-                </div>
-                <div class="new-progressbar voice">
-                    <div class="new-progress filled-100 text-middle">搭檔關係</div>
-                </div>
-
-            </div>
-            <h2>性向傾向</h2>
-            <div class="modules">
-                <div class="module-item">
-                    <div class="progress-bar " style="width: 75%;"></div>
-                    <span class="progress-text ">NL</span>
-                </div>
-                <div class="module-item">
-                    <div class="progress-bar" style="width: 50%;"></div>
-                    <span class="progress-text">BL</span>
-                </div>
-                <div class="module-item">
-                    <div class="progress-bar" style="width: 25%;"></div>
-                    <span class="progress-text">GL</span>
-                </div>
-            </div>
-        </section>
-
-        <section class="section">
-            <h2>偏好模組類型</h2>
-            <div class="modules">
-                <div class="module-item">
-                    <div class="progress-bar" style="width: 75%;"></div>
-                    <span class="progress-text">傳統經典 (75%)</span>
-                </div>
-                <div class="module-item">
-                    <div class="progress-bar" style="width: 50%;"></div>
-                    <span class="progress-text">恐怖 (50%)</span>
-                </div>
-                <div class="module-item">
-                    <div class="progress-bar" style="width: 75%;"></div>
-                    <span class="progress-text">懸疑推理 (75%)</span>
-                </div>
-                <div class="module-item">
-                    <div class="progress-bar" style="width: 25%;"></div>
-                    <span class="progress-text">戰鬥 (25%)</span>
-                </div>
-                <div class="module-item">
-                    <div class="progress-bar" style="width: 60%;"></div>
-                    <span class="progress-text">輕鬆歡樂 (60%)</span>
-                </div>
-                <div class="module-item">
-                    <div class="progress-bar" style="width: 90%;"></div>
-                    <span class="progress-text">情感豐富 (90%)</span>
-                </div>
-                <div class="module-item">
-                    <div class="progress-bar" style="width: 40%;"></div>
-                    <span class="progress-text">戀愛互動 (40%)</span>
-                </div>
-                <div class="module-item">
-                    <div class="progress-bar" style="width: 25%;"></div>
-                    <span class="progress-text">都市 (25%)</span>
-                </div>
-                <div class="module-item">
-                    <div class="progress-bar" style="width: 10%;"></div>
-                    <span class="progress-text">密室 (10%)</span>
+                <div class="title">
+                    <h1>${data.title}</h1>
+                    <p>ID: ${data.id} | 暱稱: ${data.nickname}</p>
                 </div>
             </div>
-        </section>
-
-        <section class="section">
-            <h2>喜好地雷題材</h2>
-            <div class="modules">
-                <div class="module-item">
-                    <div class="progress-bar fine-progress" style="width: 100%;"></div>
-                    <span class="progress-text">PVP</span>
+            <section class="section">
+                <h2>${data.availableTimes.title}</h2>
+                <div class="time-slots">
+                    ${data.availableTimes.slots.map(slot => `
+                        <div class="time-slot ${slot.filled ? 'time-slot-filled' : ''}">${slot.text}</div>
+                    `).join('')}
                 </div>
-                <div class="module-item">
-                    <div class="progress-bar " style="width: 100%;"></div>
-                    <span class="progress-text">血腥</span>
+                <h2>${data.playStyles.title}</h2>
+                <div class="relationship-types">
+                    ${data.playStyles.styles.map(style => `
+                        <div class="relationship-type">${style}</div>
+                    `).join('')}
                 </div>
-                <div class="module-item">
-                    <div class="progress-bar" style="width: 100%;"></div>
-                    <span class="progress-text">性描述</span>
+                <h2>${data.platforms.title}</h2>
+                <div class="relationship-types">
+                    ${data.platforms.list.map(platform => `
+                        <div class="relationship-type">${platform}</div>
+                    `).join('')}
                 </div>
-                <div class="module-item">
-                    <div class="progress-bar fine-progress" style="width: 100%;"></div>
-                    <span class="progress-text">獵奇</span>
+            </section>
+            <section class="section">
+                <h2>${data.relationships.title}</h2>
+                <div class="modules">
+                    ${data.relationships.types.map(type => `
+                        <div class="module-item">
+                            <div class="progress-bar ${type.fill}" style="width: ${type.fill === 'filled-100' ? '100%' : type.fill === 'filled-75' ? '75%' : '50%'};"></div>
+                            <span class="progress-text">${type.text}</span>
+                        </div>
+                    `).join('')}
                 </div>
-                <div class="module-item">
-                    <div class="progress-bar mine-progress" style="width: 100%;"></div>
-                    <span class="progress-text">虐待兒童</span>
+                <h2>${data.orientations.title}</h2>
+                <div class="modules">
+                    ${data.orientations.types.map(orientation => `
+                        <div class="module-item">
+                            <div class="progress-bar" style="width: ${orientation.percentage}%;"></div>
+                            <span class="progress-text">${orientation.text}</span>
+                        </div>
+                    `).join('')}
                 </div>
-                <div class="module-item">
-                    <div class="progress-bar" style="width: 100%;"></div>
-                    <span class="progress-text">LOST</span>
+            </section>
+            <section class="section">
+                <h2>${data.preferredModules.title}</h2>
+                <div class="modules">
+                    ${data.preferredModules.modules.map(module => `
+                        <div class="module-item">
+                            <div class="progress-bar" style="width: ${module.percentage}%;"></div>
+                            <span class="progress-text">${module.text} (${module.percentage}%)</span>
+                        </div>
+                    `).join('')}
                 </div>
-                <div class="module-item">
-                    <div class="progress-bar" style="width: 100%;"></div>
-                    <span class="progress-text">精神疾病</span>
+            </section>
+            <section class="section">
+                <h2>${data.landmines.title}</h2>
+                <div class="modules">
+                    ${data.landmines.items.map(item => `
+                        <div class="module-item">
+                            <div class="progress-bar ${item.type}" style="width: 100%;"></div>
+                            <span class="progress-text">${item.text}</span>
+                        </div>
+                    `).join('')}
                 </div>
-                <div class="module-item">
-                    <div class="progress-bar mine-progress" style="width: 100%;"></div>
-                    <span class="progress-text">藥物</span>
-                </div>
-
-            </div>
-        </section>
-    </div>
+            </section>
+        `;
+    </script>
 </body>
 
 </html>

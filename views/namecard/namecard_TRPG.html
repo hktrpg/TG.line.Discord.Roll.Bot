@@ -7,6 +7,7 @@
     <title>TRPG 遊玩喜好卡</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400&display=swap" rel="stylesheet">
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
         :root {
             --primary-color: #a78bfa;
@@ -610,6 +611,35 @@
             font-size: 0.9rem;
             font-weight: 500;
         }
+
+        .export-btn {
+            background: #10b981;
+            color: white;
+            height: 38px;
+            min-width: 100px;
+            padding: 0 1.5rem;
+            border-radius: var(--border-radius);
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        .export-btn:hover {
+            background: #059669;
+        }
+
+        .container.exporting {
+            background: var(--card-background-color);
+            margin: 0;
+            width: 210mm;
+            position: relative;
+        }
     </style>
 </head>
 
@@ -699,6 +729,7 @@
             } else {
                 // 取消編輯時，恢復原始資料
                 if (originalData) {
+                    data.title = originalData.title; // 恢復標題
                     data.id = originalData.id;
                     data.nickname = originalData.nickname;
                     data.avatar = originalData.avatar;
@@ -720,6 +751,7 @@
 
         function saveData() {
             // 原有的保存邏輯
+            data.title = document.getElementById('edit-title').value; // 保存標題
             data.id = document.getElementById('edit-id').value;
             data.nickname = document.getElementById('edit-nickname').value;
             data.avatar = document.getElementById('edit-avatar').value;
@@ -832,6 +864,41 @@
             renderApp();
         }
 
+        async function exportToPNG() {
+            // 暫時移除編輯按鈕
+            const headerButtons = document.querySelector('.header-buttons');
+            const buttonsHTML = headerButtons.innerHTML;
+            headerButtons.innerHTML = '';
+            
+            try {
+                // 設定匯出樣式
+                const container = document.querySelector('.container');
+                container.classList.add('exporting');
+                
+                // 使用html2canvas捕獲內容
+                const canvas = await html2canvas(container, {
+                    scale: 2, // 提高解析度
+                    useCORS: true, // 允許載入外部圖片
+                    backgroundColor: null,
+                    logging: false
+                });
+                
+                // 創建下載連結
+                const link = document.createElement('a');
+                link.download = `${data.id}_TRPG_Card.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (error) {
+                console.error('匯出失敗:', error);
+                alert('匯出失敗，請稍後再試');
+            } finally {
+                // 恢復原始狀態
+                const container = document.querySelector('.container');
+                container.classList.remove('exporting');
+                headerButtons.innerHTML = buttonsHTML;
+            }
+        }
+
         function renderApp() {
             document.getElementById('app').innerHTML = `
                 <div class="header">
@@ -849,7 +916,16 @@
                         ` : ''}
                     </div>
                     <div class="title">
-                        <h1>${data.title}</h1>
+                        ${isEditMode ? `
+                            <div class="header-input-group">
+                                <label class="input-label">
+                                    <span>標題:</span>
+                                    <input type="text" id="edit-title" class="header-input" value="${data.title}">
+                                </label>
+                            </div>
+                        ` : `
+                            <h1>${data.title}</h1>
+                        `}
                         ${isEditMode ? `
                             <div class="header-input-group">
                                 <label class="input-label">
@@ -866,6 +942,9 @@
                         `}
                     </div>
                     <div class="header-buttons">
+                        <button class="header-btn export-btn" onclick="exportToPNG()">
+                            匯出PNG
+                        </button>
                         <button class="header-btn edit-btn" onclick="toggleEditMode()">
                             ${isEditMode ? '取消編輯' : '編輯'}
                         </button>

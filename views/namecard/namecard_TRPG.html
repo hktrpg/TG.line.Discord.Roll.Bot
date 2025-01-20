@@ -431,7 +431,7 @@
             width: 90%;
             padding: 0.5rem;
             border: 1px solid var(--primary-light-color);
-            border-radius: var(--border-radius);
+            border-radius: var (--border-radius);
             margin-bottom: 0.5rem;
             font-size: 0.9rem;
         }
@@ -659,6 +659,10 @@
                     { text: "GL", percentage: 25 }
                 ]
             },
+            message: {
+                title: "想說的話",
+                content: "我是SAD, 大家多多指教"
+            },
             preferredModules: {
                 title: "偏好模組類型",
                 modules: [
@@ -705,6 +709,8 @@
                     data.orientations.types = originalData.orientations.types.map(type => ({ ...type }));
                     data.preferredModules.modules = originalData.preferredModules.modules.map(module => ({ ...module }));
                     data.landmines.items = originalData.landmines.items.map(item => ({ ...item }));
+                    // 新增：恢復想說的話的內容
+                    data.message.content = originalData.message.content;
                 }
                 originalData = null;
             }
@@ -762,6 +768,12 @@
                     text: el.getAttribute('data-text'),
                     type: el.value
                 }));
+
+            // 保存想說的話內容
+            const messageTextarea = document.querySelector('textarea.edit-input');
+            if (messageTextarea) {
+                data.message.content = messageTextarea.value;
+            }
 
             isEditMode = false;
             renderApp();
@@ -993,6 +1005,19 @@
                             <i class="fas fa-plus"></i> 新增性向
                         </button>` : ''}
                     </div>
+                      <h2>${data.message.title}</h2>
+                    ${isEditMode ? `
+                        <div class="module-item editing">
+                            <div class="edit-section">
+                                <textarea class="edit-input" style="width: 100%; min-height: 60px;" 
+                                    onchange="data.message.content = this.value">${data.message.content}</textarea>
+                            </div>
+                        </div>
+                    ` : `
+                        <div class="module-item" style="text-align: left; padding: 1rem;">
+                            ${data.message.content}
+                        </div>
+                    `}
                 </section>
                 <section class="section">
                     <h2>${data.preferredModules.title}</h2>

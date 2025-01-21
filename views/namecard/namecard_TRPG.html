@@ -53,7 +53,7 @@
         }
 
         .container {
-            backdrop-filter: blur(10px);
+         
             max-width: 210mm;
             margin: 0 auto;
             padding: 2rem;
@@ -128,6 +128,7 @@
             margin: 0;
             padding: 0;
             line-height: 1.2;
+            color: var(--primary-color); /* 添加這行確保標題顏色 */
         }
 
         .title p {
@@ -160,7 +161,7 @@
         }
 
         .module-item {
-            backdrop-filter: blur(5px);
+         
             position: relative;
             padding: 0.5rem;
             border-radius: var(--border-radius);
@@ -639,6 +640,36 @@
             margin: 0;
             width: 210mm;
             position: relative;
+            backdrop-filter: none !important; /* 移除模糊效果 */
+            box-shadow: none !important; /* 移除陰影 */
+        }
+
+        .container.exporting .section {
+            background: var(--neutral-color);
+            box-shadow: none !important; /* 移除陰影 */
+        }
+
+        .container.exporting .module-item {
+            background: var(--background-color);
+        }
+
+        .container.exporting .time-slot:not(.time-slot-filled) {
+            background: var(--slot-bg-color);
+            color: var(--text-primary-color);
+        }
+
+        .container.exporting .time-slot.time-slot-filled {
+            background: var(--gradient-color);
+            color: var(--neutral-color);
+        }
+
+        .container.exporting .relationship-type {
+            background: var(--gradient-color);
+            color: var(--neutral-color);
+        }
+
+        .container.exporting .title h1 {
+            color: var(--primary-color); /* 添加這行確保匯出時的標題顏色 */
         }
     </style>
 </head>
@@ -869,24 +900,32 @@
             const headerButtons = document.querySelector('.header-buttons');
             const buttonsHTML = headerButtons.innerHTML;
             headerButtons.innerHTML = '';
-            
+
             try {
                 // 設定匯出樣式
                 const container = document.querySelector('.container');
                 container.classList.add('exporting');
-                
+
                 // 使用html2canvas捕獲內容
                 const canvas = await html2canvas(container, {
                     scale: 2, // 提高解析度
                     useCORS: true, // 允許載入外部圖片
-                    backgroundColor: null,
-                    logging: false
+                    backgroundColor: '#f3f3f3', // 設定背景色
+                    logging: false,
+                    onclone: (doc) => {
+                        // 在克隆的文檔中調整樣式
+                        const clonedContainer = doc.querySelector('.container');
+                        if (clonedContainer) {
+                            clonedContainer.style.padding = '2rem';
+                            clonedContainer.style.boxSizing = 'border-box';
+                        }
+                    }
                 });
-                
+
                 // 創建下載連結
                 const link = document.createElement('a');
                 link.download = `${data.id}_TRPG_Card.png`;
-                link.href = canvas.toDataURL('image/png');
+                link.href = canvas.toDataURL('image/png', 1.0); // 使用最高品質
                 link.click();
             } catch (error) {
                 console.error('匯出失敗:', error);

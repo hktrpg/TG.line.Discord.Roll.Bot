@@ -1029,6 +1029,7 @@ function pushArrayInteractionCommands(arrayCommands) {
 }
 
 async function handlingResponMessage(message, answer = '') {
+	let inputStr = '';
 	try {
 		let hasSendPermission = true;
 		/**
@@ -1037,7 +1038,7 @@ async function handlingResponMessage(message, answer = '') {
 				}
 				 */
 		if (answer) message.content = answer;
-		let inputStr = message.content || '';
+		inputStr = message.content || '';
 		//DISCORD <@!USERID> <@!399923133368042763> <@!544563333488111636>
 		//LINE @名字
 		let mainMsg = inputStr.match(MESSAGE_SPLITOR); //定義輸入.字串

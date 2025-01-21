@@ -1491,20 +1491,22 @@ async function __handlingInteractionMessage(message) {
 					}
 
 				}
-				if (resultText) {
-					const content = handlingCountButton(message, 'roll');
-					handlingSendMessage(result);
-					try {
-						return await message.update({ content: content })
-					} catch (error) {
-						return
+
+				try {
+					if (resultText) {
+						const content = handlingCountButton(message, 'roll');
+						// 先更新原訊息
+						await message.update({ content: content }).catch(() => null);
+						// 再發送新訊息
+						await handlingSendMessage(result);
+					} else {
+						const content = handlingCountButton(message, 'count');
+						await message.update({ content: content }).catch(() => null);
 					}
+				} catch (error) {
+					console.error('Button interaction error:', error?.message || error);
 				}
-				else {
-					const content = handlingCountButton(message, 'count');
-					return await message.update({ content: content })
-						.catch(error => console.error('discord bot #192  error: ', (error && (error.name || error.message || error.reason)), content));
-				}
+				return;
 			}
 		default:
 			break;

@@ -191,7 +191,7 @@ const rolldice = async ({
 	let tempsave = {};
 	for (let index = 0; index < rollTimes; index++) {
 		if (rollTimes > 1 && /^dice|^funny/i.test(target.gameType())) {
-			tempsave = await target.rollDiceCommand({
+			let result = await target.rollDiceCommand({
 				inputStr: inputStr,
 				mainMsg: mainMsg,
 				groupid: groupid,
@@ -207,11 +207,12 @@ const rolldice = async ({
 				titleName: titleName,
 				tgDisplayname: tgDisplayname
 			});
-			if (tempsave && tempsave.text) {
-				retext += `#${index + 1}： ${tempsave.text.replace(/\n/g, '')}\n`
+			if (result && result.text) {
+				retext += `#${index + 1}： ${result.text.replace(/\n/g, '')}\n`;
+				tempsave = result;
 			}
 		} else {
-			tempsave = await target.rollDiceCommand({
+			let result = await target.rollDiceCommand({
 				inputStr: inputStr,
 				mainMsg: mainMsg,
 				groupid: groupid,
@@ -227,16 +228,17 @@ const rolldice = async ({
 				titleName: titleName,
 				tgDisplayname: tgDisplayname
 			});
+			if (result) {
+				tempsave = result;
+			}
 		}
-
 	}
 
-
-
-	if (retext) {
+	if (retext && tempsave) {
 		tempsave.text = retext;
 	}
-	return tempsave;
+
+	return tempsave || {};
 }
 
 function findRollList(mainMsg) {

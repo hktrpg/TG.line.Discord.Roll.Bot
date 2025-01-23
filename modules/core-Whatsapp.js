@@ -31,25 +31,25 @@ const opt = {
 	upsert: true,
 	runValidators: true
 }
-const herokuPuppeteer = { 
-  headless: true, 
-  'executablePath': '/app/.apt/usr/bin/google-chrome-stable'
+const herokuPuppeteer = {
+	headless: true,
+	'executablePath': '/app/.apt/usr/bin/google-chrome-stable'
 };
 
-const normalPuppeteer = { 
-  headless: true, 
-  args: [
-    '--no-sandbox',
-    '--disable-setuid-sandbox',
-    '--disable-dev-shm-usage',
-    '--disable-accelerated-2d-canvas',
-    '--disable-gpu'
-  ],
-  'executablePath': process.platform === 'win32' 
-    ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
-    : (process.platform === 'linux' 
-      ? '/usr/bin/google-chrome'
-      : '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
+const normalPuppeteer = {
+	headless: true,
+	args: [
+		'--no-sandbox',
+		'--disable-setuid-sandbox',
+		'--disable-dev-shm-usage',
+		'--disable-accelerated-2d-canvas',
+		'--disable-gpu'
+	],
+	'executablePath': process.platform === 'win32'
+		? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
+		: (process.platform === 'linux'
+			? '/usr/bin/google-chrome'
+			: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
 };
 
 const newMessage = require('./message');
@@ -64,93 +64,95 @@ const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)$/i);
 const MESSAGE_SPLITOR = (/\S+/ig);
 
 async function startUp() {
-  try {
-    const client = new Client({
-      authStrategy: new LocalAuth(),
-      puppeteer: (isHeroku) ? herokuPuppeteer : normalPuppeteer
-    });
-    
-    client.initialize().catch(err => {
-      console.error('[WhatsApp Init Error]', err);
-      if (err.message.includes('Failed to launch')) {
-        console.log('請確認已安裝 Google Chrome，或手動設定 Chrome 路徑');
-      }
-    });
+	try {
+		const client = new Client({
+			authStrategy: new LocalAuth(),
+			puppeteer: (isHeroku) ? herokuPuppeteer : normalPuppeteer
+		});
 
-    client.on('qr', (qr) => {
-      console.log('QR RECEIVED');
-      qrcode.generate(qr, { small: true });
-    });
+		client.initialize().catch(err => {
+			console.error('[WhatsApp Init Error]', err);
+			if (err.message.includes('Failed to launch')) {
+				console.log('請確認已安裝 Google Chrome，或手動設定 Chrome 路徑');
+			}
+		});
 
-    client.on('ready', () => console.log('Client is ready!'));
+		client.on('qr', (qr) => {
+			console.log('QR RECEIVED');
+			qrcode.generate(qr, { small: true });
+		});
 
-    client.on('message', async msg => {
-      try {
-        if (!msg.body || msg.fromMe || msg.isForwarded) return;
-        
-        // 基本訊息處理
-        const chatDetail = await client.getChatById(msg.from);
-        const groupInfo = chatDetail.isGroup ? {
-          id: chatDetail.id._serialized,
-          memberCount: chatDetail.participants.length - 1
-        } : null;
-        
-        // 分析訊息內容
-        const result = await processMessage(msg, groupInfo);
-        if (!result) return;
-        
-        // 發送回覆
-        await handleReply(result, msg, client);
-        
-      } catch (err) {
-        console.error('[WhatsApp Message Error]', err);
-      }
-    });
+		client.on('ready', () => console.log('Client is ready!'));
 
-    client.on('message_ack', async (msg, ack) => {
-      if (ack > 0) {
-        const chat = await msg.getChat();
-        await chat.clearMessages();
-      }
-    });
+		client.on('message', async msg => {
+			try {
+				if (!msg.body || msg.fromMe || msg.isForwarded) return;
 
-    client.on('group_join', async (msg) => {
-      console.log("Whatsapp joined");
-      if (msg.client.info.me._serialized == msg.id.participant)
-        msg.reply(newMessage.joinMessage());
-    });
+				// 基本訊息處理
+				const chatDetail = await client.getChatById(msg.from);
+				const groupInfo = chatDetail.isGroup ? {
+					id: chatDetail.id._serialized,
+					memberCount: chatDetail.participants.length - 1
+				} : null;
 
-    setupAgenda(client);
-  } catch (err) {
-    console.error('[WhatsApp StartUp Error]', err);
-  }
+				// 分析訊息內容
+				const result = await processMessage(msg, groupInfo);
+				if (!result) return;
+
+				// 發送回覆
+				await handleReply(result, msg, client);
+
+			} catch (err) {
+				console.error('[WhatsApp Message Error]', err);
+			}
+		});
+
+		client.on('message_ack', async (msg, ack) => {
+			if (ack > 0) {
+				const chat = await msg.getChat();
+				await chat.clearMessages();
+			}
+		});
+
+		client.on('group_join', async (msg) => {
+			console.log("Whatsapp joined");
+			if (msg.client.info.me._serialized == msg.id.participant)
+				msg.reply(newMessage.joinMessage());
+		});
+
+		setupAgenda(client);
+	} catch (err) {
+		console.error('[WhatsApp StartUp Error]', err);
+	}
 }
 
 function setupAgenda(client) {
-  if (!agenda || !agenda.agenda) return;
-  
-  agenda.agenda.define("scheduleAtMessageWhatsapp", async (job) => {
-    try {
-      const { groupid, replyText } = job.attrs.data;
-      await SendToId(groupid, { text: replyText }, client);
-      await job.remove();
-    } catch (err) {
-      console.error("Schedule Error:", err);
-    }
-  });
+	if (!agenda || !agenda.agenda) return;
 
-  agenda.agenda.define("scheduleCronMessageWhatsapp", async (job) => {
-    try {
-      const { groupid, replyText, createAt } = job.attrs.data;
-      await SendToId(groupid, { text: replyText }, client);
-      if ((new Date(Date.now()) - createAt) >= SIX_MONTH) {
-        await job.remove();
-        await SendToId(groupid, { text: "已運行六個月, 移除此定時訊息" }, client);
-      }
-    } catch (err) {
-      console.error("Schedule Error:", err);
-    }
-  });
+	agenda.agenda.define("scheduleAtMessageWhatsapp", async (job) => {
+		try {
+			const { groupid, replyText } = job.attrs.data;
+			const rollText = await rollText(replyText);
+			await SendToId(groupid, { text: rollText }, client);
+			await job.remove();
+		} catch (err) {
+			console.error("Schedule Error:", err);
+		}
+	});
+
+	agenda.agenda.define("scheduleCronMessageWhatsapp", async (job) => {
+		try {
+			const { groupid, replyText, createAt } = job.attrs.data;
+			const rollText = await rollText(replyText);
+			await SendToId(groupid, { text: rollText }, client);
+			if ((new Date(Date.now()) - createAt) >= SIX_MONTH) {
+				await job.remove();
+				await SendToId(groupid, { text: "已運行六個月, 移除此定時訊息" }, client);
+			}
+		} catch (err) {
+			console.error("Schedule Error:", err);
+		}
+	});
 }
 
 async function processMessage(msg, groupInfo) {
@@ -164,7 +166,7 @@ async function processMessage(msg, groupInfo) {
 		groupid = groupInfo.id;
 		membercount = groupInfo.memberCount;
 	}
-	
+
 	if (mainMsg && mainMsg[0]) {
 		trigger = mainMsg[0].toString().toLowerCase();
 	}
@@ -354,6 +356,6 @@ async function SendToId(targetid, rplyVal, client) {
 	}
 }
 
-process.on('unhandledRejection', () => {});
+process.on('unhandledRejection', () => { });
 
 startUp();

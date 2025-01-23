@@ -132,8 +132,8 @@ function setupAgenda(client) {
 	agenda.agenda.define("scheduleAtMessageWhatsapp", async (job) => {
 		try {
 			const { groupid, replyText } = job.attrs.data;
-			const rollText = await rollText(replyText);
-			await SendToId(groupid, { text: rollText }, client);
+			const text = await rollText(replyText);
+			await SendToId(groupid, { text: text }, client);
 			await job.remove();
 		} catch (err) {
 			console.error("Schedule Error:", err);
@@ -143,8 +143,8 @@ function setupAgenda(client) {
 	agenda.agenda.define("scheduleCronMessageWhatsapp", async (job) => {
 		try {
 			const { groupid, replyText, createAt } = job.attrs.data;
-			const rollText = await rollText(replyText);
-			await SendToId(groupid, { text: rollText }, client);
+			const text = await rollText(replyText);
+			await SendToId(groupid, { text: text }, client);
 			if ((new Date(Date.now()) - createAt) >= SIX_MONTH) {
 				await job.remove();
 				await SendToId(groupid, { text: "已運行六個月, 移除此定時訊息" }, client);

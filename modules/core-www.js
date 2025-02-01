@@ -5,6 +5,7 @@ if (!process.env.mongoURL) {
 const express = require('express');
 const www = express();
 const helmet = require('helmet');
+const cors = require('cors');
 const {
     RateLimiterMemory
 } = require('rate-limiter-flexible');
@@ -105,19 +106,24 @@ const io = require('socket.io')(server);
 
 // 加入線上人數計數
 let onlineCount = 0;
-www.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-    res.header('Access-Control-Allow-Headers', 'Content-Type');
-    next();
-});
+
 
 www.use(helmet({
     contentSecurityPolicy: {
         directives: cspConfig
     }
 }));
-
+www.use(cors({
+    origin: /\.hktrpg\.com$/, // Accepts all subdomains of hktrpg.com
+    methods: ['GET', 'POST'],
+    allowedHeaders: [
+        'Content-Type',
+        'Authorization'
+    ],
+    credentials: true,
+    maxAge: 86400,
+    optionsSuccessStatus: 200
+}));
 
 
 www.get('/', (req, res) => {

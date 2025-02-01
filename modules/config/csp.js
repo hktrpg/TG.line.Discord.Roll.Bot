@@ -28,7 +28,10 @@ const cspConfig = {
         "https://stackpath.bootstrapcdn.com",
         "https://www.googletagmanager.com",
         "https://www.google-analytics.com",
-        "https://static.cloudflareinsights.com"
+        "https://static.cloudflareinsights.com",
+        "https://api.iconify.design",
+        "wss://card.hktrpg.com",
+        "ws://card.hktrpg.com"
     ],
     connectSrc: [
         "'self'",
@@ -37,7 +40,7 @@ const cspConfig = {
         "https:",
         "wss://card.hktrpg.com",
         "ws://card.hktrpg.com",
-        "https://www.google-analytics.com"
+        "https://www.google-analytics.com",
     ],
     // Keep other existing directives
     styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://stackpath.bootstrapcdn.com"],

@@ -108,26 +108,6 @@ const io = require('socket.io')(server);
 let onlineCount = 0;
 
 
-www.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            scriptSrc: [
-                "'self'",
-                "'unsafe-inline'", // Allow inline scripts
-                "'unsafe-eval'", // Allow Vue.js
-                "https://unpkg.com",
-                "https://cdn.jsdelivr.net",
-                "https://code.jquery.com",
-                "https://code.iconify.design"
-            ],
-            styleSrc: ["'self'", "'unsafe-inline'"],
-            imgSrc: ["'self'", "data:", "https:", "https://github.com", "https://avatars2.githubusercontent.com"],
-            connectSrc: ["'self'", "wss:", "https:"],
-            fontSrc: ["'self'", "data:", "https:"],
-        }
-    }
-}));
 www.use(cors());
 
 www.get('/', (req, res) => {

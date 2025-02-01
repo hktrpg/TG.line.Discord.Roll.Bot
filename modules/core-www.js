@@ -106,10 +106,7 @@ const io = require('socket.io')(server);
 
 // 加入線上人數計數
 let onlineCount = 0;
-www.use((req, res, next) => {
-    res.locals.nonce = crypto.randomBytes(16).toString('base64');
-    next();
-});
+
 
 www.use(helmet({
     contentSecurityPolicy: {
@@ -117,11 +114,17 @@ www.use(helmet({
             defaultSrc: ["'self'"],
             scriptSrc: [
                 "'self'",
-                (req, res) => `'nonce-${res.locals.nonce}'`
+                "'unsafe-inline'", // Allow inline scripts
+                "'unsafe-eval'", // Allow Vue.js
+                "https://unpkg.com",
+                "https://cdn.jsdelivr.net",
+                "https://code.jquery.com",
+                "https://code.iconify.design"
             ],
             styleSrc: ["'self'", "'unsafe-inline'"],
-            imgSrc: ["'self'", "data:", "https:"],
+            imgSrc: ["'self'", "data:", "https:", "https://github.com", "https://avatars2.githubusercontent.com"],
             connectSrc: ["'self'", "wss:", "https:"],
+            fontSrc: ["'self'", "data:", "https:"],
         }
     }
 }));

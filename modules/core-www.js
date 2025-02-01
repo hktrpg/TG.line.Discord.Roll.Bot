@@ -5,7 +5,6 @@ if (!process.env.mongoURL) {
 const express = require('express');
 const www = express();
 const helmet = require('helmet');
-const cors = require('cors');
 const {
     RateLimiterMemory
 } = require('rate-limiter-flexible');
@@ -106,7 +105,52 @@ const io = require('socket.io')(server);
 
 // 加入線上人數計數
 let onlineCount = 0;
-www.use(helmet());
+www.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    next();
+});
+
+www.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: [
+                "'self'",
+                "'unsafe-inline'",
+                "https://unpkg.com",
+                "https://code.jquery.com",
+                "https://cdn.jsdelivr.net",
+                "https://code.iconify.design",
+                "https://stackpath.bootstrapcdn.com",
+                "https://www.googletagmanager.com"
+            ],
+            styleSrc: [
+                "'self'",
+                "'unsafe-inline'",
+                "https://cdn.jsdelivr.net",
+                "https://stackpath.bootstrapcdn.com"
+            ],
+            imgSrc: [
+                "'self'",
+                "data:",
+                "https:",
+                "https://avatars2.githubusercontent.com",
+                "https://www.hktrpg.com"
+            ],
+            connectSrc: ["'self'", "wss:", "https:"],
+            fontSrc: ["'self'", "data:", "https:"],
+            objectSrc: ["'none'"],
+            mediaSrc: ["'self'"],
+            frameSrc: ["'self'"],
+            sandbox: ['allow-forms', 'allow-scripts', 'allow-same-origin'],
+            childSrc: ["'self'"],
+            workerSrc: ["'self'"]
+        }
+    }
+}));
+
 
 
 www.get('/', (req, res) => {

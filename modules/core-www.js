@@ -119,12 +119,14 @@ www.use(helmet({
             scriptSrc: [
                 "'self'",
                 "'unsafe-inline'",
+                "'unsafe-eval'", // For dynamic script execution
                 "https://unpkg.com",
                 "https://code.jquery.com",
                 "https://cdn.jsdelivr.net",
                 "https://code.iconify.design",
                 "https://stackpath.bootstrapcdn.com",
-                "https://www.googletagmanager.com"
+                "https://www.googletagmanager.com",
+                "https://www.google-analytics.com"
             ],
             styleSrc: [
                 "'self'",
@@ -137,9 +139,15 @@ www.use(helmet({
                 "data:",
                 "https:",
                 "https://avatars2.githubusercontent.com",
-                "https://www.hktrpg.com"
+                "https://www.hktrpg.com",
+                "https://www.google-analytics.com"
             ],
-            connectSrc: ["'self'", "wss:", "https:"],
+            connectSrc: [
+                "'self'",
+                "wss:",
+                "https:",
+                "https://www.google-analytics.com"
+            ],
             fontSrc: ["'self'", "data:", "https:"],
             objectSrc: ["'none'"],
             mediaSrc: ["'self'"],

@@ -128,7 +128,8 @@ www.use(helmet({
                 "https://stackpath.bootstrapcdn.com",
                 "https://www.googletagmanager.com",
                 "https://www.google-analytics.com",
-                "https://static.cloudflareinsights.com"
+                "https://static.cloudflareinsights.com",
+                "https://api.iconify.design"
             ],
             scriptSrcAttr: ["'unsafe-inline'"],
             scriptSrcElem: [

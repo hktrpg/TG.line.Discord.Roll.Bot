@@ -106,8 +106,7 @@ const io = require('socket.io')(server);
 
 // 加入線上人數計數
 let onlineCount = 0;
-
-
+www.use(helmet());
 
 
 www.get('/', (req, res) => {

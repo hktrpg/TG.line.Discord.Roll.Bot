@@ -106,7 +106,25 @@ const io = require('socket.io')(server);
 
 // 加入線上人數計數
 let onlineCount = 0;
-www.use(helmet());
+www.use((req, res, next) => {
+    res.locals.nonce = crypto.randomBytes(16).toString('base64');
+    next();
+});
+
+www.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: [
+                "'self'",
+                (req, res) => `'nonce-${res.locals.nonce}'`
+            ],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            imgSrc: ["'self'", "data:", "https:"],
+            connectSrc: ["'self'", "wss:", "https:"],
+        }
+    }
+}));
 www.use(cors());
 
 www.get('/', (req, res) => {

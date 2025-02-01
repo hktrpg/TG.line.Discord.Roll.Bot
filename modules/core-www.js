@@ -8,7 +8,7 @@ const helmet = require('helmet');
 const {
     RateLimiterMemory
 } = require('rate-limiter-flexible');
-
+const cspConfig = require('../modules/config/csp.js');
 //const loglink = (LOGLINK) ? LOGLINK + '/tmp/' : process.cwd() + '/tmp/';
 const LOGLINK = (process.env.LOGLINK) ? process.env.LOGLINK + '/tmp/' : process.cwd() + '/tmp/';
 const candle = require('../modules/candleDays.js');
@@ -114,64 +114,7 @@ www.use((req, res, next) => {
 
 www.use(helmet({
     contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            scriptSrc: [
-                "'self'",
-                "'unsafe-inline'",
-                "'unsafe-eval'",
-                "'unsafe-hashes'",
-                "https://unpkg.com",
-                "https://code.jquery.com",
-                "https://cdn.jsdelivr.net",
-                "https://code.iconify.design",
-                "https://stackpath.bootstrapcdn.com",
-                "https://www.googletagmanager.com",
-                "https://www.google-analytics.com",
-                "https://static.cloudflareinsights.com",
-                "https://api.iconify.design"
-            ],
-            scriptSrcAttr: ["'unsafe-inline'"],
-            scriptSrcElem: [
-                "'self'",
-                "'unsafe-inline'",
-                "https://unpkg.com",
-                "https://code.jquery.com",
-                "https://cdn.jsdelivr.net",
-                "https://code.iconify.design",
-                "https://stackpath.bootstrapcdn.com",
-                "https://www.googletagmanager.com",
-                "https://www.google-analytics.com",
-                "https://static.cloudflareinsights.com"
-            ],
-            styleSrc: [
-                "'self'",
-                "'unsafe-inline'",
-                "https://cdn.jsdelivr.net",
-                "https://stackpath.bootstrapcdn.com"
-            ],
-            imgSrc: [
-                "'self'",
-                "data:",
-                "https:",
-                "https://avatars2.githubusercontent.com",
-                "https://www.hktrpg.com",
-                "https://www.google-analytics.com"
-            ],
-            connectSrc: [
-                "'self'",
-                "wss:",
-                "https:",
-                "https://www.google-analytics.com"
-            ],
-            fontSrc: ["'self'", "data:", "https:"],
-            objectSrc: ["'none'"],
-            mediaSrc: ["'self'"],
-            frameSrc: ["'self'"],
-            sandbox: ['allow-forms', 'allow-scripts', 'allow-same-origin'],
-            childSrc: ["'self'"],
-            workerSrc: ["'self'"]
-        }
+        directives: cspConfig
     }
 }));
 

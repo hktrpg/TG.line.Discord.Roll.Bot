@@ -108,7 +108,7 @@ const io = require('socket.io')(server);
 let onlineCount = 0;
 
 
-www.use(cors());
+
 
 www.get('/', (req, res) => {
     res.sendFile(process.cwd() + '/views/index.html');

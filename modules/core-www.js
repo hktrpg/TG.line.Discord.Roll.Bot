@@ -4,9 +4,12 @@ if (!process.env.mongoURL) {
 }
 const express = require('express');
 const www = express();
+const helmet = require('helmet');
+const cors = require('cors');
 const {
     RateLimiterMemory
 } = require('rate-limiter-flexible');
+
 //const loglink = (LOGLINK) ? LOGLINK + '/tmp/' : process.cwd() + '/tmp/';
 const LOGLINK = (process.env.LOGLINK) ? process.env.LOGLINK + '/tmp/' : process.cwd() + '/tmp/';
 const candle = require('../modules/candleDays.js');
@@ -103,6 +106,8 @@ const io = require('socket.io')(server);
 
 // 加入線上人數計數
 let onlineCount = 0;
+www.use(helmet());
+www.use(cors());
 
 www.get('/', (req, res) => {
     res.sendFile(process.cwd() + '/views/index.html');

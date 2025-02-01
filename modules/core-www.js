@@ -119,14 +119,29 @@ www.use(helmet({
             scriptSrc: [
                 "'self'",
                 "'unsafe-inline'",
-                "'unsafe-eval'", // For dynamic script execution
+                "'unsafe-eval'",
+                "'unsafe-hashes'",
                 "https://unpkg.com",
                 "https://code.jquery.com",
                 "https://cdn.jsdelivr.net",
                 "https://code.iconify.design",
                 "https://stackpath.bootstrapcdn.com",
                 "https://www.googletagmanager.com",
-                "https://www.google-analytics.com"
+                "https://www.google-analytics.com",
+                "https://static.cloudflareinsights.com"
+            ],
+            scriptSrcAttr: ["'unsafe-inline'"],
+            scriptSrcElem: [
+                "'self'",
+                "'unsafe-inline'",
+                "https://unpkg.com",
+                "https://code.jquery.com",
+                "https://cdn.jsdelivr.net",
+                "https://code.iconify.design",
+                "https://stackpath.bootstrapcdn.com",
+                "https://www.googletagmanager.com",
+                "https://www.google-analytics.com",
+                "https://static.cloudflareinsights.com"
             ],
             styleSrc: [
                 "'self'",

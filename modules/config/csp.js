@@ -14,6 +14,8 @@ const cspConfig = {
         "https://www.google-analytics.com",
         "https://static.cloudflareinsights.com",
         "https://api.iconify.design",
+        "wss://rollbot.hktrpg.com",
+        "ws://rollbot.hktrpg.com",
         "wss://card.hktrpg.com",
         "ws://card.hktrpg.com"
     ],
@@ -30,6 +32,7 @@ const cspConfig = {
         "https://www.google-analytics.com",
         "https://static.cloudflareinsights.com",
         "https://api.iconify.design",
+        "https://rollbot.hktrpg.com",
         "wss://card.hktrpg.com",
         "ws://card.hktrpg.com"
     ],
@@ -38,11 +41,14 @@ const cspConfig = {
         "wss:",
         "ws:",
         "https:",
+        "wss://rollbot.hktrpg.com",
+        "ws://rollbot.hktrpg.com",
         "wss://card.hktrpg.com",
         "ws://card.hktrpg.com",
         "https://www.google-analytics.com",
+        "https://rollbot.hktrpg.com",
+        "https://card.hktrpg.com"
     ],
-    // Keep other existing directives
     styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://stackpath.bootstrapcdn.com"],
     imgSrc: ["'self'", "data:", "https:", "https://avatars2.githubusercontent.com", "https://www.hktrpg.com"],
     fontSrc: ["'self'", "data:", "https:"],

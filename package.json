@@ -25,7 +25,7 @@
     "@line/bot-sdk": "^7.2.0",
     "@top-gg/sdk": "^3.1.3",
     "@vitalets/google-translate-api": "^9",
-    "@zetetic/duckduckgo-images-api": "https://github.com/zeteticl/duckduckgo-images-api.git",
+    "@zetetic/duckduckgo-images-api": "https://github.com/zeteticl/duckduckgo-images-api.git#master",
     "agenda": "^4.2.1",
     "axios": "^1.7.4",
     "axios-retry": "^3.2.4",
@@ -33,6 +33,7 @@
     "chai": "^4.3.4",
     "cheerio": "1.0.0-rc.12",
     "chinese-conv": "^1.0.1",
+    "cors": "^2.8.5",
     "crypto-js": "^4.2.0",
     "discord-hybrid-sharding": "^2.1.4",
     "discord.js": "14.11",
@@ -43,6 +44,7 @@
     "fuse.js": "^6.6.2",
     "geopattern": "^1.2.3",
     "gpt-tokenizer": "^2.1.2",
+    "helmet": "^8.0.0",
     "https": "^1.0.0",
     "image-url-validator": "^1.0.4",
     "imgbox": "^1.1.4",
@@ -55,7 +57,7 @@
     "node-schedule": "^2.1.0",
     "node-telegram-bot-api": "^0.64.0",
     "openai": "^4.24.1",
-    "plurk2": "https://github.com/zeteticl/node-plurk2.git",
+    "plurk2": "https://github.com/zeteticl/node-plurk2.git#master",
     "qrcode-terminal": "^0.12.0",
     "random-js": "^2.1.0",
     "rate-limiter-flexible": "^2.2.3",
@@ -86,5 +88,6 @@
     "eslint": "^7.30.0",
     "jest": "^28.1.2",
     "yarn-audit-fix": "^9.3.10"
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

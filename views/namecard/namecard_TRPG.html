@@ -53,7 +53,7 @@
         }
 
         .container {
-         
+
             max-width: 210mm;
             margin: 0 auto;
             padding: 2rem;
@@ -128,7 +128,8 @@
             margin: 0;
             padding: 0;
             line-height: 1.2;
-            color: var(--primary-color); /* 添加這行確保標題顏色 */
+            color: var(--primary-color);
+            /* 添加這行確保標題顏色 */
         }
 
         .title p {
@@ -161,7 +162,7 @@
         }
 
         .module-item {
-         
+
             position: relative;
             padding: 0.5rem;
             border-radius: var(--border-radius);
@@ -640,13 +641,16 @@
             margin: 0;
             width: 210mm;
             position: relative;
-            backdrop-filter: none !important; /* 移除模糊效果 */
-            box-shadow: none !important; /* 移除陰影 */
+            backdrop-filter: none !important;
+            /* 移除模糊效果 */
+            box-shadow: none !important;
+            /* 移除陰影 */
         }
 
         .container.exporting .section {
             background: var(--neutral-color);
-            box-shadow: none !重要; /* 移除陰影 */
+            box-shadow: none !important;
+            /* 移除陰影 */
         }
 
         .container.exporting .module-item {
@@ -669,7 +673,8 @@
         }
 
         .container.exporting .title h1 {
-            color: var(--primary-color); /* 添加這行確保匯出時的標題顏色 */
+            color: var(--primary-color);
+            /* 添加這行確保匯出時的標題顏色 */
         }
     </style>
 </head>
@@ -1005,9 +1010,9 @@
                 </div>
                 <section class="section">
                     <h2>
-                        ${isEditMode 
-                            ? `<input type="text" id="edit-availableTimes-title" class="header-input" value="${data.availableTimes.title}">`
-                            : data.availableTimes.title}
+                        ${isEditMode
+                    ? `<input type="text" id="edit-availableTimes-title" class="header-input" value="${data.availableTimes.title}">`
+                    : data.availableTimes.title}
                     </h2>
                     <div class="time-slots">
                         ${data.availableTimes.slots.map(slot => `
@@ -1024,9 +1029,9 @@
                         `).join('')}
                     </div>
                     <h2>
-                        ${isEditMode 
-                            ? `<input type="text" id="edit-playStyles-title" class="header-input" value="${data.playStyles.title}">`
-                            : data.playStyles.title}
+                        ${isEditMode
+                    ? `<input type="text" id="edit-playStyles-title" class="header-input" value="${data.playStyles.title}">`
+                    : data.playStyles.title}
                     </h2>
                     <div class="modules">
                         ${isEditMode ? `
@@ -1051,9 +1056,9 @@
                     </div>
                     
                     <h2>
-                        ${isEditMode 
-                            ? `<input type="text" id="edit-platforms-title" class="header-input" value="${data.platforms.title}">`
-                            : data.platforms.title}
+                        ${isEditMode
+                    ? `<input type="text" id="edit-platforms-title" class="header-input" value="${data.platforms.title}">`
+                    : data.platforms.title}
                     </h2>
                     <div class="modules">
                         ${isEditMode ? `
@@ -1081,9 +1086,9 @@
            
                 <section class="section">
                     <h2>
-                        ${isEditMode 
-                            ? `<input type="text" id="edit-relationships-title" class="header-input" value="${data.relationships.title}">`
-                            : data.relationships.title}
+                        ${isEditMode
+                    ? `<input type="text" id="edit-relationships-title" class="header-input" value="${data.relationships.title}">`
+                    : data.relationships.title}
                     </h2>
                     <div class="modules">
                         ${data.relationships.types.map((type, index) => `
@@ -1119,9 +1124,9 @@
                     </div>
 
                     <h2>
-                        ${isEditMode 
-                            ? `<input type="text" id="edit-orientations-title" class="header-input" value="${data.orientations.title}">`
-                            : data.orientations.title}
+                        ${isEditMode
+                    ? `<input type="text" id="edit-orientations-title" class="header-input" value="${data.orientations.title}">`
+                    : data.orientations.title}
                     </h2>
                     <div class="modules">
                         ${data.orientations.types.map((orientation, index) => `
@@ -1155,9 +1160,9 @@
                         </button>` : ''}
                     </div>
                       <h2>
-                        ${isEditMode 
-                            ? `<input type="text" id="edit-message-title" class="header-input" value="${data.message.title}">`
-                            : data.message.title}
+                        ${isEditMode
+                    ? `<input type="text" id="edit-message-title" class="header-input" value="${data.message.title}">`
+                    : data.message.title}
                     </h2>
                     ${isEditMode ? `
                         <div class="module-item editing">
@@ -1174,9 +1179,9 @@
                 </section>
                 <section class="section">
                     <h2>
-                        ${isEditMode 
-                            ? `<input type="text" id="edit-preferredModules-title" class="header-input" value="${data.preferredModules.title}">`
-                            : data.preferredModules.title}
+                        ${isEditMode
+                    ? `<input type="text" id="edit-preferredModules-title" class="header-input" value="${data.preferredModules.title}">`
+                    : data.preferredModules.title}
                     </h2>
                     <div class="modules">
                         ${data.preferredModules.modules.map((module, index) => `
@@ -1212,9 +1217,9 @@
                     </section>
 <section class="section">
                     <h2>
-                        ${isEditMode 
-                            ? `<input type="text" id="edit-landmines-title" class="header-input" value="${data.landmines.title}">`
-                            : data.landmines.title}
+                        ${isEditMode
+                    ? `<input type="text" id="edit-landmines-title" class="header-input" value="${data.landmines.title}">`
+                    : data.landmines.title}
                     </h2>
                     <p style="color: #1f2937;">
                         紅色代表<span style="color: #f71414;">NG</span>, 

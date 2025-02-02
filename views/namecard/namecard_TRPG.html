@@ -83,6 +83,16 @@
             /* 增加寬度 */
         }
 
+        .no-animations {
+            animation: none !important;
+            transition: none !important;
+        }
+
+        .no-animations * {
+            animation: none !important;
+            transition: none !important;
+        }
+
         .avatar {
             width: 120px;
             /* 增加尺寸 */
@@ -103,7 +113,17 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
-       
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
         .title {
             flex-grow: 1;
@@ -137,6 +157,7 @@
         }
 
         .section {
+            animation: fadeIn 0.8s ease forwards;
             background: var(--neutral-color);
             padding: 1rem;
             border-radius: var(--border-radius);
@@ -224,7 +245,7 @@
             padding: 0.5rem 1rem;
             border-radius: var(--border-radius);
             background: var(--gradient-color);
-            color: var (--neutral-color);
+            color: var(--neutral-color);
             font-size: 0.9rem;
         }
 
@@ -832,17 +853,6 @@
                 data.message.content = messageTextarea.value;
             }
 
-            // Save section titles
-            data.availableTimes.title = document.getElementById('edit-availableTimes-title').value;
-            data.playStyles.title = document.getElementById('edit-playStyles-title').value;
-            data.platforms.title = document.getElementById('edit-platforms-title').value;
-            data.relationships.title = document.getElementById('edit-relationships-title').value;
-            data.orientations.title = document.getElementById('edit-orientations-title').value;
-            // NEW: Save additional section titles
-            data.message.title = document.getElementById('edit-message-title').value;
-            data.preferredModules.title = document.getElementById('edit-preferredModules-title').value;
-            data.landmines.title = document.getElementById('edit-landmines-title').value;
-
             isEditMode = false;
             renderApp();
         }
@@ -900,49 +910,51 @@
             renderApp();
         }
 
+        // Modify exportToPNG function
         async function exportToPNG() {
-            // 暫時移除編輯按鈕
             const headerButtons = document.querySelector('.header-buttons');
             const buttonsHTML = headerButtons.innerHTML;
             headerButtons.innerHTML = '';
 
             try {
-                // 設定匯出樣式
                 const container = document.querySelector('.container');
                 container.classList.add('exporting');
+                container.classList.add('no-animations'); // Add class to disable animations
 
-                // 使用html2canvas捕獲內容
+                // Wait for any ongoing animations to complete
+                await new Promise(resolve => setTimeout(resolve, 100));
+
                 const canvas = await html2canvas(container, {
-                    scale: 2, // 提高解析度
-                    useCORS: true, // 允許載入外部圖片
-                    backgroundColor: '#f3f3f3', // 設定背景色
+                    allowTaint: true,
+
+                    useCORS: true,
+                    backgroundColor: '#f3f3f3',
                     logging: false,
                     onclone: (doc) => {
-                        // 在克隆的文檔中調整樣式
                         const clonedContainer = doc.querySelector('.container');
                         if (clonedContainer) {
                             clonedContainer.style.padding = '2rem';
                             clonedContainer.style.boxSizing = 'border-box';
+                            clonedContainer.classList.add('no-animations');
                         }
                     }
                 });
 
-                // 創建下載連結
                 const link = document.createElement('a');
                 link.download = `${data.id}_TRPG_Card.png`;
-                link.href = canvas.toDataURL('image/png', 1.0); // 使用最高品質
+                link.href = canvas.toDataURL('image/png', 1.0);
                 link.click();
+
             } catch (error) {
                 console.error('匯出失敗:', error);
                 alert('匯出失敗，請稍後再試');
             } finally {
-                // 恢復原始狀態
                 const container = document.querySelector('.container');
                 container.classList.remove('exporting');
+                container.classList.remove('no-animations'); // Remove class to re-enable animations
                 headerButtons.innerHTML = buttonsHTML;
             }
         }
-
         function renderApp() {
             document.getElementById('app').innerHTML = `
                 <div class="header">
@@ -998,11 +1010,7 @@
                     </div>
                 </div>
                 <section class="section">
-                    <h2>
-                        ${isEditMode
-                    ? `<input type="text" id="edit-availableTimes-title" class="header-input" value="${data.availableTimes.title}">`
-                    : data.availableTimes.title}
-                    </h2>
+                    <h2>${data.availableTimes.title}</h2>
                     <div class="time-slots">
                         ${data.availableTimes.slots.map(slot => `
                             ${isEditMode ? `
@@ -1017,11 +1025,7 @@
                             `}
                         `).join('')}
                     </div>
-                    <h2>
-                        ${isEditMode
-                    ? `<input type="text" id="edit-playStyles-title" class="header-input" value="${data.playStyles.title}">`
-                    : data.playStyles.title}
-                    </h2>
+                    <h2>${data.playStyles.title}</h2>
                     <div class="modules">
                         ${isEditMode ? `
                             ${data.playStyles.styles.map((style, index) => `
@@ -1044,11 +1048,7 @@
                         `}
                     </div>
                     
-                    <h2>
-                        ${isEditMode
-                    ? `<input type="text" id="edit-platforms-title" class="header-input" value="${data.platforms.title}">`
-                    : data.platforms.title}
-                    </h2>
+                    <h2>${data.platforms.title}</h2>
                     <div class="modules">
                         ${isEditMode ? `
                             ${data.platforms.list.map((platform, index) => `
@@ -1074,11 +1074,7 @@
                
            
                 <section class="section">
-                    <h2>
-                        ${isEditMode
-                    ? `<input type="text" id="edit-relationships-title" class="header-input" value="${data.relationships.title}">`
-                    : data.relationships.title}
-                    </h2>
+                    <h2>${data.relationships.title}</h2>
                     <div class="modules">
                         ${data.relationships.types.map((type, index) => `
                             ${isEditMode ? `
@@ -1112,11 +1108,7 @@
                         </button>` : ''}
                     </div>
 
-                    <h2>
-                        ${isEditMode
-                    ? `<input type="text" id="edit-orientations-title" class="header-input" value="${data.orientations.title}">`
-                    : data.orientations.title}
-                    </h2>
+                    <h2>${data.orientations.title}</h2>
                     <div class="modules">
                         ${data.orientations.types.map((orientation, index) => `
                             ${isEditMode ? `
@@ -1148,11 +1140,7 @@
                             <i class="fas fa-plus"></i> 新增性向
                         </button>` : ''}
                     </div>
-                      <h2>
-                        ${isEditMode
-                    ? `<input type="text" id="edit-message-title" class="header-input" value="${data.message.title}">`
-                    : data.message.title}
-                    </h2>
+                      <h2>${data.message.title}</h2>
                     ${isEditMode ? `
                         <div class="module-item editing">
                             <div class="edit-section">
@@ -1167,11 +1155,7 @@
                     `}
                 </section>
                 <section class="section">
-                    <h2>
-                        ${isEditMode
-                    ? `<input type="text" id="edit-preferredModules-title" class="header-input" value="${data.preferredModules.title}">`
-                    : data.preferredModules.title}
-                    </h2>
+                    <h2>${data.preferredModules.title}</h2>
                     <div class="modules">
                         ${data.preferredModules.modules.map((module, index) => `
                             ${isEditMode ? `
@@ -1205,11 +1189,7 @@
                     </div>
                     </section>
 <section class="section">
-                    <h2>
-                        ${isEditMode
-                    ? `<input type="text" id="edit-landmines-title" class="header-input" value="${data.landmines.title}">`
-                    : data.landmines.title}
-                    </h2>
+                    <h2>${data.landmines.title}</h2>
                     <p style="color: #1f2937;">
                         紅色代表<span style="color: #f71414;">NG</span>, 
                         黃色代表<span style="color: #ffcc00;">接受</span>, 

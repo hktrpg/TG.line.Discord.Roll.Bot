@@ -234,7 +234,7 @@
             padding: 0.5rem 1rem;
             border-radius: var(--border-radius);
             background: var(--gradient-color);
-            color: var(--neutral-color);
+            color: var (--neutral-color);
             font-size: 0.9rem;
         }
 
@@ -646,7 +646,7 @@
 
         .container.exporting .section {
             background: var(--neutral-color);
-            box-shadow: none !important; /* 移除陰影 */
+            box-shadow: none !重要; /* 移除陰影 */
         }
 
         .container.exporting .module-item {
@@ -838,6 +838,17 @@
                 data.message.content = messageTextarea.value;
             }
 
+            // Save section titles
+            data.availableTimes.title = document.getElementById('edit-availableTimes-title').value;
+            data.playStyles.title = document.getElementById('edit-playStyles-title').value;
+            data.platforms.title = document.getElementById('edit-platforms-title').value;
+            data.relationships.title = document.getElementById('edit-relationships-title').value;
+            data.orientations.title = document.getElementById('edit-orientations-title').value;
+            // NEW: Save additional section titles
+            data.message.title = document.getElementById('edit-message-title').value;
+            data.preferredModules.title = document.getElementById('edit-preferredModules-title').value;
+            data.landmines.title = document.getElementById('edit-landmines-title').value;
+
             isEditMode = false;
             renderApp();
         }
@@ -993,7 +1004,11 @@
                     </div>
                 </div>
                 <section class="section">
-                    <h2>${data.availableTimes.title}</h2>
+                    <h2>
+                        ${isEditMode 
+                            ? `<input type="text" id="edit-availableTimes-title" class="header-input" value="${data.availableTimes.title}">`
+                            : data.availableTimes.title}
+                    </h2>
                     <div class="time-slots">
                         ${data.availableTimes.slots.map(slot => `
                             ${isEditMode ? `
@@ -1008,7 +1023,11 @@
                             `}
                         `).join('')}
                     </div>
-                    <h2>${data.playStyles.title}</h2>
+                    <h2>
+                        ${isEditMode 
+                            ? `<input type="text" id="edit-playStyles-title" class="header-input" value="${data.playStyles.title}">`
+                            : data.playStyles.title}
+                    </h2>
                     <div class="modules">
                         ${isEditMode ? `
                             ${data.playStyles.styles.map((style, index) => `
@@ -1031,7 +1050,11 @@
                         `}
                     </div>
                     
-                    <h2>${data.platforms.title}</h2>
+                    <h2>
+                        ${isEditMode 
+                            ? `<input type="text" id="edit-platforms-title" class="header-input" value="${data.platforms.title}">`
+                            : data.platforms.title}
+                    </h2>
                     <div class="modules">
                         ${isEditMode ? `
                             ${data.platforms.list.map((platform, index) => `
@@ -1057,7 +1080,11 @@
                
            
                 <section class="section">
-                    <h2>${data.relationships.title}</h2>
+                    <h2>
+                        ${isEditMode 
+                            ? `<input type="text" id="edit-relationships-title" class="header-input" value="${data.relationships.title}">`
+                            : data.relationships.title}
+                    </h2>
                     <div class="modules">
                         ${data.relationships.types.map((type, index) => `
                             ${isEditMode ? `
@@ -1091,7 +1118,11 @@
                         </button>` : ''}
                     </div>
 
-                    <h2>${data.orientations.title}</h2>
+                    <h2>
+                        ${isEditMode 
+                            ? `<input type="text" id="edit-orientations-title" class="header-input" value="${data.orientations.title}">`
+                            : data.orientations.title}
+                    </h2>
                     <div class="modules">
                         ${data.orientations.types.map((orientation, index) => `
                             ${isEditMode ? `
@@ -1123,7 +1154,11 @@
                             <i class="fas fa-plus"></i> 新增性向
                         </button>` : ''}
                     </div>
-                      <h2>${data.message.title}</h2>
+                      <h2>
+                        ${isEditMode 
+                            ? `<input type="text" id="edit-message-title" class="header-input" value="${data.message.title}">`
+                            : data.message.title}
+                    </h2>
                     ${isEditMode ? `
                         <div class="module-item editing">
                             <div class="edit-section">
@@ -1138,7 +1173,11 @@
                     `}
                 </section>
                 <section class="section">
-                    <h2>${data.preferredModules.title}</h2>
+                    <h2>
+                        ${isEditMode 
+                            ? `<input type="text" id="edit-preferredModules-title" class="header-input" value="${data.preferredModules.title}">`
+                            : data.preferredModules.title}
+                    </h2>
                     <div class="modules">
                         ${data.preferredModules.modules.map((module, index) => `
                             ${isEditMode ? `
@@ -1172,7 +1211,11 @@
                     </div>
                     </section>
 <section class="section">
-                    <h2>${data.landmines.title}</h2>
+                    <h2>
+                        ${isEditMode 
+                            ? `<input type="text" id="edit-landmines-title" class="header-input" value="${data.landmines.title}">`
+                            : data.landmines.title}
+                    </h2>
                     <p style="color: #1f2937;">
                         紅色代表<span style="color: #f71414;">NG</span>, 
                         黃色代表<span style="color: #ffcc00;">接受</span>, 

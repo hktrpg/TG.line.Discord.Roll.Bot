@@ -175,7 +175,7 @@
 
             position: relative;
             padding: 0.5rem;
-            border-radius: var (--border-radius);
+            border-radius: var(--border-radius);
             background: var(--background-color);
             border: var(--module-border-color);
             text-align: center;
@@ -284,7 +284,7 @@
 
         .filled-75 {
             width: 60%;
-            background: var (--gradient-color);
+            background: var(--gradient-color);
         }
 
         .filled-50 {
@@ -352,7 +352,7 @@
         .edit-btn {
             background: var(--primary-color);
             color: white;
-            border: none;
+
             padding: 0.5rem 1rem;
             border-radius: var(--border-radius);
             cursor: pointer;
@@ -444,7 +444,7 @@
             width: 90%;
             padding: 0.5rem;
             border: 1px solid var(--primary-light-color);
-            border-radius: var (--border-radius);
+            border-radius: var(--border-radius);
             margin-bottom: 0.5rem;
             font-size: 0.9rem;
         }
@@ -511,7 +511,7 @@
         .edit-label {
             display: block;
             margin-bottom: 0.5rem;
-            color: var (--text-secondary-color);
+            color: var(--text-secondary-color);
             font-size: 0.9rem;
         }
 
@@ -993,8 +993,10 @@
                 const container = document.querySelector('.container');
                 container.classList.add('exporting');
                 container.classList.add('no-animations');
-
+                console.log(container.scrollWidth);
                 const canvas = await html2canvas(container, {
+                    width: container.scrollWidth + 10,
+                    x: -5,
                     allowTaint: true,
                     useCORS: true,
                     backgroundColor: '#f3f3f3',

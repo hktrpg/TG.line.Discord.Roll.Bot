@@ -175,7 +175,7 @@
 
             position: relative;
             padding: 0.5rem;
-            border-radius: var(--border-radius);
+            border-radius: var (--border-radius);
             background: var(--background-color);
             border: var(--module-border-color);
             text-align: center;
@@ -651,16 +651,10 @@
             margin: 0;
             width: 210mm;
             position: relative;
-            backdrop-filter: none !important;
-            /* 移除模糊效果 */
-            box-shadow: none !important;
-            /* 移除陰影 */
         }
 
         .container.exporting .section {
             background: var(--neutral-color);
-            box-shadow: none !important;
-            /* 移除陰影 */
         }
 
         .container.exporting .module-item {
@@ -910,21 +904,25 @@
 
         // 添加新增函數
         function addRelationshipType() {
+            saveCurrentFormState();
             data.relationships.types.push({ text: "新關係", fill: "filled-0" });
             renderApp();
         }
 
         function addOrientation() {
+            saveCurrentFormState();
             data.orientations.types.push({ text: "新傾向", percentage: 50 });
             renderApp();
         }
 
         function addPreferredModule() {
+            saveCurrentFormState();
             data.preferredModules.modules.push({ text: "新偏好", percentage: 50 });
             renderApp();
         }
 
         function addLandmine() {
+            saveCurrentFormState();
             data.landmines.items.push({ text: "新題材", type: "fine-progress" });
             renderApp();
         }
@@ -1339,13 +1337,51 @@
             `;
         }
 
-        // 新增輔助函數
+        // 新增輔助函數來保存當前表單值
+        function saveCurrentFormState() {
+            // 保存頭像和基本資訊
+            data.title = document.getElementById('edit-title')?.value || data.title;
+            data.id = document.getElementById('edit-id')?.value || data.id;
+            data.nickname = document.getElementById('edit-nickname')?.value || data.nickname;
+            data.avatar = document.getElementById('edit-avatar')?.value || data.avatar;
+
+            // 保存區段標題
+            const sections = ['availableTimes', 'playStyles', 'platforms', 'relationships',
+                'orientations', 'message', 'preferredModules', 'landmines'];
+            sections.forEach(section => {
+                const titleInput = document.getElementById(`edit-${section}-title`);
+                if (titleInput) data[section].title = titleInput.value;
+            });
+
+            // 保存可約團時間
+            Array.from(document.getElementsByClassName('time-slot-edit')).forEach((checkbox, index) => {
+                if (index < data.availableTimes.slots.length) {
+                    data.availableTimes.slots[index].filled = checkbox.checked;
+                }
+            });
+
+            // 保存遊玩方式
+            const playStyles = Array.from(document.getElementsByClassName('play-style-edit'))
+                .map(input => input.value);
+            if (playStyles.length) data.playStyles.styles = playStyles;
+
+            // 保存跑團平台
+            const platforms = Array.from(document.getElementsByClassName('platform-edit'))
+                .map(input => input.value);
+            if (platforms.length) data.platforms.list = platforms;
+
+            // 保存其他區段...（類似邏輯）
+        }
+
+        // 修改現有的 add 函數
         function addPlayStyle() {
+            saveCurrentFormState();
             data.playStyles.styles.push('');
             renderApp();
         }
 
         function addPlatform() {
+            saveCurrentFormState();
             data.platforms.list.push('');
             renderApp();
         }

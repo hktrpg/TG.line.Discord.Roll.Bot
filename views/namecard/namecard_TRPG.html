@@ -695,78 +695,110 @@
     <script>
         let isEditMode = false;
         let originalData = null; // 新增: 用於儲存原始資料
-        const data = {
-            title: "TRPG 遊玩喜好卡",
-            id: "HKTRPG",
-            nickname: "Sad",
-            avatar: "https://images2.imgbox.com/fe/48/hWl3l46t_o.png",
-            availableTimes: {
-                title: "可約團時間",
-                slots: [
-                    { text: "平日早上", filled: true },
-                    { text: "平日中午", filled: true },
-                    { text: "平日晚上", filled: false },
-                    { text: "周末早上", filled: true },
-                    { text: "周末中午", filled: false },
-                    { text: "周末晚上", filled: false }
-                ]
-            },
-            playStyles: {
-                title: "遊玩方式",
-                styles: ["語音", "面團", "文字", "文字+語音"]
-            },
-            platforms: {
-                title: "跑團平台",
-                list: ["CCFOLIA", "Discord", "Roll20", "Google Sheet", "FVTT", "不限"]
-            },
-            relationships: {
-                title: "關係扮演傾向",
-                types: [
-                    { text: "友情關係", fill: "filled-0" },
-                    { text: "情人關係", fill: "filled-50" },
-                    { text: "搭檔關係", fill: "filled-100" }
-                ]
-            },
-            orientations: {
-                title: "性向傾向",
-                types: [
-                    { text: "NL", percentage: 75 },
-                    { text: "BL", percentage: 50 },
-                    { text: "GL", percentage: 25 }
-                ]
-            },
-            message: {
-                title: "想說的話",
-                content: "我是SAD, 大家多多指教"
-            },
-            preferredModules: {
-                title: "偏好模組類型",
-                modules: [
-                    { text: "傳統經典", percentage: 75 },
-                    { text: "恐怖", percentage: 50 },
-                    { text: "懸疑推理", percentage: 75 },
-                    { text: "戰鬥", percentage: 25 },
-                    { text: "輕鬆歡樂", percentage: 60 },
-                    { text: "情感豐富", percentage: 90 },
-                    { text: "戀愛互動", percentage: 40 },
-                    { text: "都市", percentage: 25 },
-                    { text: "密室", percentage: 10 }
-                ]
-            },
-            landmines: {
-                title: "喜好/地雷題材",
-                items: [
-                    { text: "PVP", type: "fine-progress" },
-                    { text: "血腥", type: "like-progress" },
-                    { text: "性描述", type: "like-progress" },
-                    { text: "獵奇", type: "fine-progress" },
-                    { text: "虐待兒童", type: "mine-progress" },
-                    { text: "LOST", type: "like-progress" },
-                    { text: "精神疾病", type: "like-progress" },
-                    { text: "藥物", type: "mine-progress" }
-                ]
+        function getDataFromUrl() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const jsonData = urlParams.get('data');
+                if (jsonData) {
+                    // 先用 atob 解碼 Base64，再用 decodeURIComponent 解碼 UTF-8
+                    const decodedData = JSON.parse(decodeURIComponent(atob(jsonData)));
+                    return decodedData;
+                }
+            } catch (error) {
+                console.error('URL參數解析失敗:', error);
             }
-        };
+            return null;
+        }
+        const data = {
+            ...getDataFromUrl() || {
+                title: "TRPG 遊玩喜好卡",
+                id: "HKTRPG",
+                nickname: "Sad",
+                avatar: "https://images2.imgbox.com/fe/48/hWl3l46t_o.png",
+                availableTimes: {
+                    title: "可約團時間",
+                    slots: [
+                        { text: "平日早上", filled: true },
+                        { text: "平日中午", filled: true },
+                        { text: "平日晚上", filled: false },
+                        { text: "周末早上", filled: true },
+                        { text: "周末中午", filled: false },
+                        { text: "周末晚上", filled: false }
+                    ]
+                },
+                playStyles: {
+                    title: "遊玩方式",
+                    styles: ["語音", "面團", "文字", "文字+語音"]
+                },
+                platforms: {
+                    title: "跑團平台",
+                    list: ["CCFOLIA", "Discord", "Roll20", "Google Sheet", "FVTT", "不限"]
+                },
+                relationships: {
+                    title: "關係扮演傾向",
+                    types: [
+                        { text: "友情關係", fill: "filled-0" },
+                        { text: "情人關係", fill: "filled-50" },
+                        { text: "搭檔關係", fill: "filled-100" }
+                    ]
+                },
+                orientations: {
+                    title: "性向傾向",
+                    types: [
+                        { text: "NL", percentage: 75 },
+                        { text: "BL", percentage: 50 },
+                        { text: "GL", percentage: 25 }
+                    ]
+                },
+                message: {
+                    title: "想說的話",
+                    content: "我是SAD, 大家多多指教"
+                },
+                preferredModules: {
+                    title: "偏好模組類型",
+                    modules: [
+                        { text: "傳統經典", percentage: 75 },
+                        { text: "恐怖", percentage: 50 },
+                        { text: "懸疑推理", percentage: 75 },
+                        { text: "戰鬥", percentage: 25 },
+                        { text: "輕鬆歡樂", percentage: 60 },
+                        { text: "情感豐富", percentage: 90 },
+                        { text: "戀愛互動", percentage: 40 },
+                        { text: "都市", percentage: 25 },
+                        { text: "密室", percentage: 10 }
+                    ]
+                },
+                landmines: {
+                    title: "喜好/地雷題材",
+                    items: [
+                        { text: "PVP", type: "fine-progress" },
+                        { text: "血腥", type: "like-progress" },
+                        { text: "性描述", type: "like-progress" },
+                        { text: "獵奇", type: "fine-progress" },
+                        { text: "虐待兒童", type: "mine-progress" },
+                        { text: "LOST", type: "like-progress" },
+                        { text: "精神疾病", type: "like-progress" },
+                        { text: "藥物", type: "mine-progress" }
+                    ]
+                }
+            }
+        }
+        function generateShareLink() {
+            try {
+                const jsonString = JSON.stringify(data);
+                // 使用 encodeURIComponent 進行 UTF-8 編碼
+                const base64Data = btoa(encodeURIComponent(jsonString));
+                const currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.set('data', base64Data);
+
+                const shareUrl = currentUrl.toString();
+                alert('分享連結已複製到剪貼簿!\n' + shareUrl);
+                navigator.clipboard.writeText(shareUrl);
+            } catch (error) {
+                console.error('產生分享連結失敗:', error);
+                alert('產生分享連結失敗');
+            }
+        }
 
         function toggleEditMode() {
             if (!isEditMode) {
@@ -938,6 +970,7 @@
             url: null
         };
 
+
         // Modify exportToPNG function:
         async function exportToPNG() {
             const headerButtons = document.querySelector('.header-buttons');
@@ -1034,6 +1067,9 @@
                     <div class="header-buttons">
                         <button class="header-btn export-btn" onclick="exportToPNG()">
                             匯出PNG
+                        </button>
+                        <button class="header-btn export-btn" onclick="generateShareLink()">
+                            分享連結
                         </button>
                         <button class="header-btn edit-btn" onclick="toggleEditMode()">
                             ${isEditMode ? '取消編輯' : '編輯'}

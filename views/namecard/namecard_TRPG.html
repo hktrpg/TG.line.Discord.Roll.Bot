@@ -828,25 +828,25 @@
         }
 
         function saveData() {
-            // 原有的保存邏輯
-            data.title = document.getElementById('edit-title').value; // 保存標題
+            // 保存標題
+            data.title = document.getElementById('edit-title').value;
             data.id = document.getElementById('edit-id').value;
             data.nickname = document.getElementById('edit-nickname').value;
             data.avatar = document.getElementById('edit-avatar').value;
 
-            // 新增: 保存可約團時間
+            // 保存可約團時間
             data.availableTimes.slots = Array.from(document.getElementsByClassName('time-slot-edit'))
                 .map(checkbox => ({
                     text: checkbox.getAttribute('data-text'),
                     filled: checkbox.checked
                 }));
 
-            // 修改：保存遊玩方式 (過濾空白)
+            // 保存遊玩方式 (過濾空白)
             data.playStyles.styles = Array.from(document.getElementsByClassName('play-style-edit'))
                 .map(input => input.value.trim())
                 .filter(value => value !== '');
 
-            // 修改：保存跑團平台 (過濾空白)
+            // 保存跑團平台 (過濾空白)
             data.platforms.list = Array.from(document.getElementsByClassName('platform-edit'))
                 .map(input => input.value.trim())
                 .filter(value => value !== '');
@@ -854,28 +854,28 @@
             // 保存關係扮演傾向
             data.relationships.types = Array.from(document.getElementsByClassName('relationship-edit'))
                 .map(el => ({
-                    text: el.getAttribute('data-text'),
+                    text: el.closest('.module-item').querySelector('.edit-input').value,
                     fill: `filled-${el.value}`
                 }));
 
             // 保存性向傾向
             data.orientations.types = Array.from(document.getElementsByClassName('orientation-edit'))
                 .map(el => ({
-                    text: el.getAttribute('data-text'),
+                    text: el.closest('.module-item').querySelector('.edit-input').value,
                     percentage: parseInt(el.value)
                 }));
 
             // 保存偏好模組類型
             data.preferredModules.modules = Array.from(document.getElementsByClassName('module-edit'))
                 .map(el => ({
-                    text: el.getAttribute('data-text'),
+                    text: el.closest('.module-item').querySelector('.edit-input').value,
                     percentage: parseInt(el.value)
                 }));
 
             // 保存喜好/地雷題材
             data.landmines.items = Array.from(document.getElementsByClassName('landmine-edit'))
                 .map(el => ({
-                    text: el.getAttribute('data-text'),
+                    text: el.closest('.module-item').querySelector('.edit-input').value,
                     type: el.value
                 }));
 
@@ -885,11 +885,19 @@
                 data.message.content = messageTextarea.value;
             }
 
+            // 保存各個區塊的標題
+            data.availableTimes.title = document.getElementById('edit-availableTimes-title').value;
+            data.playStyles.title = document.getElementById('edit-playStyles-title').value;
+            data.platforms.title = document.getElementById('edit-platforms-title').value;
+            data.relationships.title = document.getElementById('edit-relationships-title').value;
+            data.orientations.title = document.getElementById('edit-orientations-title').value;
+            data.message.title = document.getElementById('edit-message-title').value;
+            data.preferredModules.title = document.getElementById('edit-preferredModules-title').value;
+            data.landmines.title = document.getElementById('edit-landmines-title').value;
+
             isEditMode = false;
             renderApp();
         }
-
-        // 新增刪除函數
         function deletePlayStyle(index) {
             data.playStyles.styles.splice(index, 1);
             renderApp();
@@ -1080,7 +1088,11 @@
                     </div>
                 </div>
                 <section class="section">
-                    <h2>${data.availableTimes.title}</h2>
+                     <h2>
+                        ${isEditMode
+                    ? `<input type="text" id="edit-availableTimes-title" class="header-input" value="${data.availableTimes.title}">`
+                    : data.availableTimes.title}
+                    </h2>
                     <div class="time-slots">
                         ${data.availableTimes.slots.map(slot => `
                             ${isEditMode ? `
@@ -1095,7 +1107,11 @@
                             `}
                         `).join('')}
                     </div>
-                    <h2>${data.playStyles.title}</h2>
+                    <h2>
+                        ${isEditMode
+                    ? `<input type="text" id="edit-playStyles-title" class="header-input" value="${data.playStyles.title}">`
+                    : data.playStyles.title}
+                    </h2>
                     <div class="modules">
                         ${isEditMode ? `
                             ${data.playStyles.styles.map((style, index) => `
@@ -1118,7 +1134,11 @@
                         `}
                     </div>
                     
-                    <h2>${data.platforms.title}</h2>
+                    <h2>
+                        ${isEditMode
+                    ? `<input type="text" id="edit-platforms-title" class="header-input" value="${data.platforms.title}">`
+                    : data.platforms.title}
+                    </h2>
                     <div class="modules">
                         ${isEditMode ? `
                             ${data.platforms.list.map((platform, index) => `
@@ -1144,7 +1164,11 @@
                
            
                 <section class="section">
-                    <h2>${data.relationships.title}</h2>
+                    <h2>
+                        ${isEditMode
+                    ? `<input type="text" id="edit-relationships-title" class="header-input" value="${data.relationships.title}">`
+                    : data.relationships.title}
+                    </h2>
                     <div class="modules">
                         ${data.relationships.types.map((type, index) => `
                             ${isEditMode ? `
@@ -1178,7 +1202,11 @@
                         </button>` : ''}
                     </div>
 
-                    <h2>${data.orientations.title}</h2>
+                    <h2>
+                        ${isEditMode
+                    ? `<input type="text" id="edit-orientations-title" class="header-input" value="${data.orientations.title}">`
+                    : data.orientations.title}
+                    </h2>
                     <div class="modules">
                         ${data.orientations.types.map((orientation, index) => `
                             ${isEditMode ? `
@@ -1210,7 +1238,11 @@
                             <i class="fas fa-plus"></i> 新增性向
                         </button>` : ''}
                     </div>
-                      <h2>${data.message.title}</h2>
+                      <h2>
+                        ${isEditMode
+                    ? `<input type="text" id="edit-message-title" class="header-input" value="${data.message.title}">`
+                    : data.message.title}
+                    </h2>
                     ${isEditMode ? `
                         <div class="module-item editing">
                             <div class="edit-section">
@@ -1225,7 +1257,11 @@
                     `}
                 </section>
                 <section class="section">
-                    <h2>${data.preferredModules.title}</h2>
+                    <h2>
+                        ${isEditMode
+                    ? `<input type="text" id="edit-preferredModules-title" class="header-input" value="${data.preferredModules.title}">`
+                    : data.preferredModules.title}
+                    </h2>
                     <div class="modules">
                         ${data.preferredModules.modules.map((module, index) => `
                             ${isEditMode ? `
@@ -1259,7 +1295,11 @@
                     </div>
                     </section>
 <section class="section">
-                    <h2>${data.landmines.title}</h2>
+                    <h2>
+                        ${isEditMode
+                    ? `<input type="text" id="edit-landmines-title" class="header-input" value="${data.landmines.title}">`
+                    : data.landmines.title}
+                    </h2>
                     <p style="color: #1f2937;">
                         紅色代表<span style="color: #f71414;">NG</span>, 
                         黃色代表<span style="color: #ffcc00;">接受</span>, 

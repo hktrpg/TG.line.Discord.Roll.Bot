@@ -222,6 +222,7 @@
             cursor: pointer;
             transition: transform 0.3s ease, opacity 0.3s ease;
         }
+
         button:hover {
             opacity: 0.85;
             transform: scale(1.05);
@@ -275,6 +276,7 @@
             transition: transform 0.3s ease, opacity 0.3s ease;
             margin-bottom: 1rem;
         }
+
         .btn-edit:hover {
             opacity: 0.8;
             transform: scale(1.05);
@@ -291,6 +293,7 @@
             cursor: pointer;
             transition: opacity 0.3s ease;
         }
+
         .btn-add:hover {
             opacity: 0.85;
         }
@@ -306,6 +309,7 @@
             cursor: pointer;
             transition: opacity 0.3s ease;
         }
+
         .btn-remove:hover {
             opacity: 0.85;
         }
@@ -321,10 +325,12 @@
             cursor: pointer;
             transition: transform 0.3s ease, opacity 0.3s ease;
         }
+
         .btn-save:hover {
             opacity: 0.8;
             transform: scale(1.05);
         }
+
         .btn-cancel {
             background: #6B7280;
             border: none;
@@ -335,6 +341,7 @@
             cursor: pointer;
             transition: transform 0.3s ease, opacity 0.3s ease;
         }
+
         .btn-cancel:hover {
             opacity: 0.8;
             transform: scale(1.05);
@@ -352,6 +359,7 @@
             transition: transform 0.3s ease, opacity 0.3s ease;
             margin-bottom: 1rem;
         }
+
         .btn-export:hover {
             opacity: 0.8;
             transform: scale(1.05);
@@ -369,6 +377,7 @@
             transition: transform 0.3s ease, opacity 0.3s ease;
             margin-bottom: 1rem;
         }
+
         .btn-share:hover {
             opacity: 0.8;
             transform: scale(1.05);
@@ -392,7 +401,7 @@
                     <h2 id="characterName">角色名字</h2>
                     <div class="info flex-container">
                         <span class="flex-item" id="playerName">玩家名字</span>
-                        <span class="flex-item" id="characterID">角色ID</span>
+                        <span class="flex-item" id="snsID">SNS ID</span>
                     </div>
                 </div>
                 <div class="avatar-container">
@@ -404,7 +413,7 @@
             </div>
 
             <div class="column">
-                <h3 id="skillsTitle">技能類型</h3>
+                <h3 id="skillsTitle">技能</h3>
                 <canvas id="skillsChart"></canvas>
 
                 <div class="status-bars">
@@ -437,7 +446,7 @@
             </div>
 
             <div class="column">
-                <h3 id="diceTitle">擲骰</h3>
+                <h3 id="diceTitle">技能</h3>
                 <div id="dice-rolls"></div>
                 <div class="divider"></div>
                 <div class="message">
@@ -510,8 +519,8 @@
                     { label: "資產", value: "物品：" }
                 ]
             },
-            diceTitle: "擲骰", // 新增擲骰標題
-            skillsTitle: "技能類型", // 新增技能類型標題
+            diceTitle: "技能", // 新增技能標題
+            skillsTitle: "能力分析", // 新增技能類型標題
             attributeTitle: "基本屬性",
             personalityPreferencesTitle: '性格與偏好',
             personalityPreferences: {
@@ -526,7 +535,7 @@
 
         document.getElementById('playerName').innerText = character.playerName;
         document.getElementById('characterName').innerText = character.characterName;
-        document.getElementById('characterID').innerText = character.id;
+        document.getElementById('snsID').innerText = character.id;
         document.getElementById('avatarImage').src = avatarImageUrl;
 
         // 更新技能類型標題
@@ -534,7 +543,7 @@
 
         // 更新基本屬性標題
         document.getElementById('attributeTitle').innerText = character.attributeTitle;
-        // 更新擲骰標題
+        // 更新技能標題
         document.getElementById('diceTitle').innerText = character.diceTitle;
 
         // 更新筆記標題
@@ -629,14 +638,14 @@
 
         // Centering logic for player name and character ID
         const playerNameEl = document.getElementById('playerName');
-        const characterIDEl = document.getElementById('characterID');
+        const snsIDEl = document.getElementById('snsID');
 
         if (!character.playerName) {
             playerNameEl.style.display = 'none';
-            characterIDEl.style.textAlign = 'center';
-            characterIDEl.style.width = '100%'; // Force full width
+            snsIDEl.style.textAlign = 'center';
+            snsIDEl.style.width = '100%'; // Force full width
         } else if (!character.id) {
-            characterIDEl.style.display = 'none';
+            snsIDEl.style.display = 'none';
             playerNameEl.style.textAlign = 'center';
             playerNameEl.style.width = '100%'; // Force full width
         }
@@ -667,7 +676,7 @@
   <div>
     <label>角色名字: <input type="text" id="editCharacterName" value="${character.characterName}"></label>
     <label>玩家名字: <input type="text" id="editPlayerName" value="${character.playerName}"></label>
-    <label>角色ID: <input type="text" id="editCharacterID" value="${character.id}"></label></br>
+    <label>SNS ID: <input type="text" id="editsnsID" value="${character.id}"></label></br>
     <label>頭像網址: <input type="text" id="editAvatar" value="${document.getElementById('avatarImage').src}"></label>
   </div>
   <hr>
@@ -707,7 +716,7 @@
   </div>
   <hr>
   <div>
-    <h3>擲骰</h3>
+    <h3>技能</h3>
     <div id="editDiceRollsContainer">
       <div id="editDiceRollsList">
         ${character.diceRolls.map(dice =>
@@ -718,7 +727,7 @@
         </div>`
             ).join('')}
       </div>
-      <button onclick="addDice()" class="btn-add">新增擲骰</button>
+      <button onclick="addDice()" class="btn-add">新增技能</button>
     </div>
   </div>
   <hr>
@@ -749,16 +758,16 @@
           <input type="number" class="personality-value" value="${item.value}">
           <input type="text" class="personality-alt" value="${item.alternative}">
           <select class="personality-icon">
-            <option value="fas fa-check" ${item.icon==='fas fa-check'?'selected':''}>打勾</option>
-            <option value="fas fa-star" ${item.icon==='fas fa-star'?'selected':''}>星星</option>
-            <option value="fas fa-heart" ${item.icon==='fas fa-heart'?'selected':''}>愛心</option>
-            <option value="fas fa-smile" ${item.icon==='fas fa-smile'?'selected':''}>笑臉</option>
-            <option value="fas fa-thumbs-up" ${item.icon==='fas fa-thumbs-up'?'selected':''}>讚</option>
-            <option value="fas fa-lightbulb" ${item.icon==='fas fa-lightbulb'?'selected':''}>燈泡</option>
-            <option value="fas fa-user-friends" ${item.icon==='fas fa-user-friends'?'selected':''}>好友</option>
-            <option value="fas fa-flag" ${item.icon==='fas fa-flag'?'selected':''}>旗幟</option>
-            <option value="fas fa-clipboard-list" ${item.icon==='fas fa-clipboard-list'?'selected':''}>清單</option>
-            <option value="fas fa-comment-dots" ${item.icon==='fas fa-comment-dots'?'selected':''}>留言</option>
+            <option value="fas fa-check" ${item.icon === 'fas fa-check' ? 'selected' : ''}>打勾</option>
+            <option value="fas fa-star" ${item.icon === 'fas fa-star' ? 'selected' : ''}>星星</option>
+            <option value="fas fa-heart" ${item.icon === 'fas fa-heart' ? 'selected' : ''}>愛心</option>
+            <option value="fas fa-smile" ${item.icon === 'fas fa-smile' ? 'selected' : ''}>笑臉</option>
+            <option value="fas fa-thumbs-up" ${item.icon === 'fas fa-thumbs-up' ? 'selected' : ''}>讚</option>
+            <option value="fas fa-lightbulb" ${item.icon === 'fas fa-lightbulb' ? 'selected' : ''}>燈泡</option>
+            <option value="fas fa-user-friends" ${item.icon === 'fas fa-user-friends' ? 'selected' : ''}>好友</option>
+            <option value="fas fa-flag" ${item.icon === 'fas fa-flag' ? 'selected' : ''}>旗幟</option>
+            <option value="fas fa-clipboard-list" ${item.icon === 'fas fa-clipboard-list' ? 'selected' : ''}>清單</option>
+            <option value="fas fa-comment-dots" ${item.icon === 'fas fa-comment-dots' ? 'selected' : ''}>留言</option>
           </select>
           <button onclick="removePersonality(${index})" class="btn-remove">移除</button>
         </div>`
@@ -796,7 +805,7 @@
             // Update basic info
             character.characterName = document.getElementById('editCharacterName').value;
             character.playerName = document.getElementById('editPlayerName').value;
-            character.id = document.getElementById('editCharacterID').value;
+            character.id = document.getElementById('editsnsID').value;
             let newAvatar = document.getElementById('editAvatar').value;
 
             // Collect attributes and filter out if both fields are empty
@@ -981,7 +990,7 @@
               <h2 id="characterName">${character.characterName}</h2>
               <div class="info flex-container">
                   <span class="flex-item" id="playerName">${character.playerName}</span>
-                  <span class="flex-item" id="characterID">${character.id}</span>
+                  <span class="flex-item" id="snsID">${character.id}</span>
               </div>
           </div>
           <div class="avatar-container">
@@ -1097,7 +1106,7 @@
                 const avatarImg = document.getElementById('avatarImage');
                 const data = {
                     avatar: avatarImg.src,
-                    id: document.getElementById('characterID').innerText
+                    id: document.getElementById('snsID').innerText
                 };
 
                 // Use cached image or fetch new one
@@ -1145,26 +1154,121 @@
             try {
                 const urlParams = new URLSearchParams(window.location.search);
                 const jsonData = urlParams.get('data');
-                if (jsonData) {
-                    // 先用 atob 解碼 Base64，再用 decodeURIComponent 解碼 UTF-8
-                    const decodedData = JSON.parse(decodeURIComponent(atob(jsonData)));
-                    return decodedData;
+                const v3Data = urlParams.get('v3data');
+
+                if (v3Data) {
+                    // Parse v3 format data
+                    const decodedString = decodeURIComponent(v3Data);
+                    const sections = decodedString.split('~');
+                    const parsed = {};
+
+                    sections.forEach(section => {
+                        const match = section.match(/(\w+)\[(.*?)\]/);
+                        if (match) {
+                            parsed[match[1]] = match[2];
+                        }
+                    });
+
+                    // Convert to sharedData format
+                    const convertedData = {
+                        characterName: parsed.name || "無名氏",
+                        playerName: "",
+                        id: parsed.id || "",
+                        attributes: {
+                            attributesList: {}
+                        },
+                        skills: [],
+                        diceRolls: {},
+                        notes: {
+                            title: "筆記",
+                            items: []
+                        },
+                        diceTitle: "技能",
+                        skillsTitle: "能力分析",
+                        attributeTitle: "基本屬性",
+                        personalityPreferencesTitle: "性格與偏好",
+                        personalityPreferences: {
+                            items: [
+                                { label: '事前準備', value: 70, alternative: '隨機應變', icon: 'fas fa-check' },
+                                { label: '單一專業', value: 60, alternative: '多項才藝', icon: 'fas fa-star' },
+                                { label: '邊緣人', value: 85, alternative: '社牛', icon: 'fas fa-users' }
+                            ]
+                        }
+                    };
+
+                    // Parse state section
+                    if (parsed.state) {
+                        const states = parsed.state.split(';');
+                        states.forEach(state => {
+                            const [key, value] = state.split(':');
+                            if (key && value) {
+                                convertedData.attributes.attributesList[key] = value;
+                            }
+                        });
+                    }
+
+                    // Parse analysis section (skills)
+                    if (parsed.analysis) {
+                        const analyses = parsed.analysis.split(';');
+                        convertedData.skills = analyses
+                            .filter(analysis => analysis)
+                            .map(analysis => {
+                                const [type, value] = analysis.split(':');
+                                return {
+                                    type: type,
+                                    value: parseInt(value) || 0
+                                };
+                            });
+                    }
+
+                    // Parse roll section
+                    if (parsed.roll) {
+                        const rolls = parsed.roll.split(';');
+                        rolls.forEach(roll => {
+                            const [key, value] = roll.split(':');
+                            if (key && value) {
+                                convertedData.diceRolls[key] = value.split(' ')[1] || value;
+                            }
+                        });
+                    }
+
+                    // Parse notes section
+                    if (parsed.notes) {
+                        const notes = parsed.notes.split(';');
+                        convertedData.notes.items = notes
+                            .filter(note => note)
+                            .map(note => {
+                                const [label, value] = note.split(':');
+                                return {
+                                    label: label || "",
+                                    value: value || ""
+                                };
+                            });
+                    }
+
+                    return convertedData;
+                } else if (jsonData) {
+                    // Handle existing JSON format
+                    return JSON.parse(decodeURIComponent(atob(jsonData)));
                 }
             } catch (error) {
                 console.error('URL參數解析失敗:', error);
             }
             return null;
         }
-        
         // NEW: Generate share link function
         function generateShareLink() {
             try {
+                // Convert character data to JSON string
                 const jsonString = JSON.stringify(character);
-                // 使用 encodeURIComponent 進行 UTF-8 編碼
+                // Use encodeURIComponent for UTF-8 encoding
                 const base64Data = btoa(encodeURIComponent(jsonString));
-                const currentUrl = new URL(window.location.href);
+
+                // Create new URL with only base path (no parameters)
+                const currentUrl = new URL(window.location.href.split('?')[0]);
+                // Add only the JSON data parameter
                 currentUrl.searchParams.set('data', base64Data);
-    
+
                 const shareUrl = currentUrl.toString();
                 alert('分享連結已複製到剪貼簿!\n' + shareUrl);
                 navigator.clipboard.writeText(shareUrl);

@@ -17,7 +17,7 @@
             --gradient-start-color: #a78bfa;
             --gradient-end-color: #e47eb1;
             --background-color: #f3f4f6;
-            --card-background-color: #f3f3f3;
+            --card-background-color: var(--card2-bg-color);
             --text-primary-color: #1f2937;
             --text-secondary-color: #4b5563;
             --text-highlight-color: #000;
@@ -39,13 +39,19 @@
             --fine-bg-color: linear-gradient(to right, var(--fine-bg-color-start), var(--fine-bg-color-end));
             --bar-bg-color: rgba(167, 139, 250, 0.2);
             --gradient-color: linear-gradient(to right, var(--gradient-start-color), var(--gradient-end-color));
-
+            --card2-bg-color: linear-gradient(to right, #b5e1fe, #f3f7ff);
+            --bg2-color: linear-gradient(to bottom, #516ea7, #d6e4ff);
+            --bg-color: linear-gradient(135deg, var(--body-bg-light-color) 0%, var(--body-bg-color) 100%);
+            --btn-share-bg-color: linear-gradient(to right, #4ade80, #22d3ee);
+            --btn-export-bg-color: linear-gradient(to right, #10B981, #99bffd);
+            --btn-edit-bg-color: linear-gradient(to right, #60a5fa, #f472b6);
+            --btn-edit-bg-color-hover: linear-gradient(to right, #3b82f6, #f472b6);
         }
 
         body {
             margin: 0;
             min-height: 100vh;
-            background: linear-gradient(135deg, var(--body-bg-light-color) 0%, var(--body-bg-color) 100%);
+            background: var(--bg2-color);
             font-family: 'Noto Sans TC', sans-serif;
             padding: 2rem;
             color: var(--text-primary-color);
@@ -53,7 +59,6 @@
         }
 
         .container {
-
             max-width: 210mm;
             margin: 0 auto;
             padding: 2rem;
@@ -360,9 +365,8 @@
         }
 
         .edit-btn {
-            background: var(--primary-color);
+            background: var(--btn-edit-bg-color);
             color: white;
-
             padding: 0.5rem 1rem;
             border-radius: var(--border-radius);
             cursor: pointer;
@@ -370,7 +374,8 @@
         }
 
         .edit-btn:hover {
-            background: var(--primary-light-color);
+            opacity: 0.7;
+
         }
 
         .edit-mode input,
@@ -534,7 +539,7 @@
         .header-buttons {
             display: flex;
             gap: 0.5rem;
-           
+
             display: flex;
             flex-direction: column;
             align-items: flex-end;
@@ -557,13 +562,7 @@
             color: white;
         }
 
-        .edit-btn {
-            background: var(--primary-color);
-        }
 
-        .edit-btn:hover {
-            background: var(--primary-light-color);
-        }
 
         .save-btn {
             background: var(--secondary-color);
@@ -637,7 +636,7 @@
         }
 
         .export-btn {
-            background: #10b981;
+            background: var(--btn-export-bg-color);
             color: white;
             height: 38px;
             min-width: 100px;
@@ -655,7 +654,15 @@
         }
 
         .export-btn:hover {
-            background: #059669;
+            opacity: 0.7;
+        }
+
+        .share-btn {
+            background: var(--btn-share-bg-color);
+        }
+
+        .share-btn:hover {
+            opacity: 0.7;
         }
 
         .container.exporting {
@@ -692,6 +699,7 @@
             color: var(--primary-color);
             /* 添加這行確保匯出時的標題顏色 */
         }
+
         .progress-overlay {
             position: fixed;
             top: 0;
@@ -1162,9 +1170,9 @@
                     </div>
                     <div class="header-buttons">
                         <button class="header-btn export-btn" onclick="exportToPNG()">
-                            匯出PNG(需時)
+                            匯出PNG
                         </button>
-                        <button class="header-btn export-btn" onclick="generateShareLink()">
+                        <button class="header-btn share-btn" onclick="generateShareLink()">
                             分享連結
                         </button>
                         <button class="header-btn edit-btn" onclick="toggleEditMode()">

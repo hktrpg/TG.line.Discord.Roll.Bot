@@ -232,6 +232,16 @@
         .draggable:active {
             cursor: grabbing;
         }
+
+        /* NEW: Drag visual feedback styles */
+        .sortable-chosen {
+            background-color: rgba(96, 165, 250, 0.2);
+            border: 2px dashed #60a5fa;
+        }
+
+        .sortable-ghost {
+            opacity: 0.5;
+        }
     </style>
 </head>
 
@@ -521,7 +531,7 @@
   <div>
     <label>角色名字: <input type="text" id="editCharacterName" value="${character.characterName}"></label>
     <label>玩家名字: <input type="text" id="editPlayerName" value="${character.playerName}"></label>
-    <label>角色ID: <input type="text" id="editCharacterID" value="${character.id}"></label>
+    <label>角色ID: <input type="text" id="editCharacterID" value="${character.id}"></label></br>
     <label>頭像網址: <input type="text" id="editAvatar" value="${document.getElementById('avatarImage').src}"></label>
   </div>
   <hr>
@@ -611,161 +621,173 @@
   <button onclick="saveEdit()">保存修改</button>
   <button onclick="cancelEdit()">取消</button>
             `;
-        // NEW: Initialize Sortable for each container
-        Sortable.create(document.getElementById('editAttributesList'));
-        Sortable.create(document.getElementById('editSkillsList'));
-        Sortable.create(document.getElementById('editDiceRollsList'));
-        Sortable.create(document.getElementById('editNotesItemsList'));
-        Sortable.create(document.getElementById('editPersonalityList'));
-    }
-
-    // NEW: Save edit form data back into character and re-render view
-    function saveEdit() {
-        // Update basic info
-        character.characterName = document.getElementById('editCharacterName').value;
-        character.playerName = document.getElementById('editPlayerName').value;
-        character.id = document.getElementById('editCharacterID').value;
-        let newAvatar = document.getElementById('editAvatar').value;
-
-        // Collect attributes and filter out if both fields are empty
-        const attrElems = document.querySelectorAll('#editAttributesList > div');
-        const newAttributes = Array.from(attrElems).map(div => {
-            const key = div.querySelector('.attr-key').value.trim();
-            const value = div.querySelector('.attr-value').value.trim();
-            return { key, value };
-        }).filter(item => item.key !== "" || item.value !== "");
-        character.attributes.attributesList = newAttributes;
-
-        // Collect skills and filter out if both fields are empty
-        const skillElems = document.querySelectorAll('#editSkillsList > div');
-        let newSkills = [];
-        skillElems.forEach(div => {
-            const typeVal = div.querySelector('.skill-type').value.trim();
-            const valueVal = div.querySelector('.skill-value').value.trim();
-            if (typeVal !== "" || valueVal !== "") {
-                newSkills.push({ type: typeVal, value: parseInt(valueVal, 10) || 0 });
-            }
-        });
-        character.skills = newSkills;
-
-        // Collect diceRolls and filter out if both fields are empty
-        const diceElems = document.querySelectorAll('#editDiceRollsList > div');
-        const newDice = Array.from(diceElems).map(div => {
-            const key = div.querySelector('.dice-key').value.trim();
-            const value = div.querySelector('.dice-value').value.trim();
-            return { key, value };
-        }).filter(item => item.key !== "" || item.value !== "");
-        character.diceRolls = newDice;
-
-        // Collect notes and filter out if both fields are empty
-        character.notes.title = document.getElementById('editNotesTitle').value;
-        const noteElems = document.querySelectorAll('#editNotesItemsList > div');
-        const newNotes = Array.from(noteElems).map(div => {
-            const label = div.querySelector('.note-label').value.trim();
-            const value = div.querySelector('.note-value').value.trim();
-            return { label, value };
-        }).filter(item => item.label !== "" || item.value !== "");
-        character.notes.items = newNotes;
-
-        // Collect personalityPreferences and filter out if both label and alternative are empty
-        const persElems = document.querySelectorAll('#editPersonalityList > div');
-        const newPers = Array.from(persElems).map(div => {
-            const label = div.querySelector('.personality-label').value.trim();
-            const value = parseInt(div.querySelector('.personality-value').value.trim(), 10) || 0;
-            const alternative = div.querySelector('.personality-alt').value.trim();
-            const icon = div.querySelector('.personality-icon').value.trim();
-            return { label, value, alternative, icon };
-        }).filter(item => item.label !== "" || item.alternative !== "");
-        character.personalityPreferences.items = newPers;
-
-        // Update avatar image in character view, if present
-        const avatarContainer = document.querySelector('.avatar-container');
-        if (avatarContainer) {
-            avatarContainer.innerHTML = `<img id="avatarImage" src="${newAvatar}" alt="角色頭像">`;
+            // NEW: Initialize Sortable with visual feedback settings
+            const sortableOptions = {
+                ghostClass: 'sortable-ghost',
+                chosenClass: 'sortable-chosen',
+                onStart: function (evt) {
+                    evt.item.style.transform = 'scale(1.05)';
+                    evt.item.title = '拖動中...';
+                },
+                onEnd: function (evt) {
+                    evt.item.style.transform = 'scale(1)';
+                    evt.item.title = '';
+                }
+            };
+            Sortable.create(document.getElementById('editAttributesList'), sortableOptions);
+            Sortable.create(document.getElementById('editSkillsList'), sortableOptions);
+            Sortable.create(document.getElementById('editDiceRollsList'), sortableOptions);
+            Sortable.create(document.getElementById('editNotesItemsList'), sortableOptions);
+            Sortable.create(document.getElementById('editPersonalityList'), sortableOptions);
         }
 
-        // Re-render original view (using your existing code)
-        renderViewMode();
-        isEditMode = false;
-    }
+        // NEW: Save edit form data back into character and re-render view
+        function saveEdit() {
+            // Update basic info
+            character.characterName = document.getElementById('editCharacterName').value;
+            character.playerName = document.getElementById('editPlayerName').value;
+            character.id = document.getElementById('editCharacterID').value;
+            let newAvatar = document.getElementById('editAvatar').value;
 
-    // NEW: Cancel edit and re-render view mode
-    function cancelEdit() {
-        renderViewMode();
-        isEditMode = false;
-    }
+            // Collect attributes and filter out if both fields are empty
+            const attrElems = document.querySelectorAll('#editAttributesList > div');
+            const newAttributes = Array.from(attrElems).map(div => {
+                const key = div.querySelector('.attr-key').value.trim();
+                const value = div.querySelector('.attr-value').value.trim();
+                return { key, value };
+            }).filter(item => item.key !== "" || item.value !== "");
+            character.attributes.attributesList = newAttributes;
 
-    // NEW: Helper functions for dynamic add/remove operations.
-    function removeAttr(keyToRemove) {
-        console.log('Removing attribute', keyToRemove);
-        // Remove matching attribute by key from the edit form
-        const container = document.getElementById('editAttributesList');
-        container.innerHTML = Array.from(container.querySelectorAll('div'))
-            .filter(div => div.querySelector('.attr-key').value.trim() !== keyToRemove)
-            .map(div => div.outerHTML).join('');
-    }
-    // Modified addAttribute() to insert new attribute directly into the list container
-    function addAttribute() {
-        const attributesList = document.getElementById('editAttributesList');
-        attributesList.insertAdjacentHTML('beforeend', `
+            // Collect skills and filter out if both fields are empty
+            const skillElems = document.querySelectorAll('#editSkillsList > div');
+            let newSkills = [];
+            skillElems.forEach(div => {
+                const typeVal = div.querySelector('.skill-type').value.trim();
+                const valueVal = div.querySelector('.skill-value').value.trim();
+                if (typeVal !== "" || valueVal !== "") {
+                    newSkills.push({ type: typeVal, value: parseInt(valueVal, 10) || 0 });
+                }
+            });
+            character.skills = newSkills;
+
+            // Collect diceRolls and filter out if both fields are empty
+            const diceElems = document.querySelectorAll('#editDiceRollsList > div');
+            const newDice = Array.from(diceElems).map(div => {
+                const key = div.querySelector('.dice-key').value.trim();
+                const value = div.querySelector('.dice-value').value.trim();
+                return { key, value };
+            }).filter(item => item.key !== "" || item.value !== "");
+            character.diceRolls = newDice;
+
+            // Collect notes and filter out if both fields are empty
+            character.notes.title = document.getElementById('editNotesTitle').value;
+            const noteElems = document.querySelectorAll('#editNotesItemsList > div');
+            const newNotes = Array.from(noteElems).map(div => {
+                const label = div.querySelector('.note-label').value.trim();
+                const value = div.querySelector('.note-value').value.trim();
+                return { label, value };
+            }).filter(item => item.label !== "" || item.value !== "");
+            character.notes.items = newNotes;
+
+            // Collect personalityPreferences and filter out if both label and alternative are empty
+            const persElems = document.querySelectorAll('#editPersonalityList > div');
+            const newPers = Array.from(persElems).map(div => {
+                const label = div.querySelector('.personality-label').value.trim();
+                const value = parseInt(div.querySelector('.personality-value').value.trim(), 10) || 0;
+                const alternative = div.querySelector('.personality-alt').value.trim();
+                const icon = div.querySelector('.personality-icon').value.trim();
+                return { label, value, alternative, icon };
+            }).filter(item => item.label !== "" || item.alternative !== "");
+            character.personalityPreferences.items = newPers;
+
+            // Update avatar image in character view, if present
+            const avatarContainer = document.querySelector('.avatar-container');
+            if (avatarContainer) {
+                avatarContainer.innerHTML = `<img id="avatarImage" src="${newAvatar}" alt="角色頭像">`;
+            }
+
+            // Re-render original view (using your existing code)
+            renderViewMode();
+            isEditMode = false;
+        }
+
+        // NEW: Cancel edit and re-render view mode
+        function cancelEdit() {
+            renderViewMode();
+            isEditMode = false;
+        }
+
+        // NEW: Helper functions for dynamic add/remove operations.
+        function removeAttr(keyToRemove) {
+            console.log('Removing attribute', keyToRemove);
+            // Remove matching attribute by key from the edit form
+            const container = document.getElementById('editAttributesList');
+            container.innerHTML = Array.from(container.querySelectorAll('div'))
+                .filter(div => div.querySelector('.attr-key').value.trim() !== keyToRemove)
+                .map(div => div.outerHTML).join('');
+        }
+        // Modified addAttribute() to insert new attribute directly into the list container
+        function addAttribute() {
+            const attributesList = document.getElementById('editAttributesList');
+            attributesList.insertAdjacentHTML('beforeend', `
               <div draggable="true" class="draggable">
                 <input type="text" class="attr-key" placeholder="屬性名稱">
                 : <input type="text" class="attr-value" placeholder="屬性值">
                 <button onclick="this.parentElement.remove()">移除</button>
               </div>
             `);
-    }
-    function removeSkill(index) {
-        const container = document.getElementById('editSkillsList');
-        container.removeChild(container.children[index]);
-    }
-    function addSkill() {
-        const container = document.getElementById('editSkillsList');
-        container.insertAdjacentHTML('beforeend', `
+        }
+        function removeSkill(index) {
+            const container = document.getElementById('editSkillsList');
+            container.removeChild(container.children[index]);
+        }
+        function addSkill() {
+            const container = document.getElementById('editSkillsList');
+            container.insertAdjacentHTML('beforeend', `
               <div draggable="true" class="draggable">
                 <input type="text" class="skill-type" placeholder="技能名稱">
                 <input type="number" class="skill-value" placeholder="數值">
                 <button onclick="this.parentElement.remove()">移除</button>
               </div>
             `);
-    }
-    function removeDice(keyToRemove) {
-        const container = document.getElementById('editDiceRollsList');
-        container.innerHTML = Array.from(container.querySelectorAll('div'))
-            .filter(div => div.querySelector('.dice-key').value.trim() !== keyToRemove)
-            .map(div => div.outerHTML).join('');
-    }
-    function addDice() {
-        const container = document.getElementById('editDiceRollsList');
-        container.insertAdjacentHTML('beforeend', `
+        }
+        function removeDice(keyToRemove) {
+            const container = document.getElementById('editDiceRollsList');
+            container.innerHTML = Array.from(container.querySelectorAll('div'))
+                .filter(div => div.querySelector('.dice-key').value.trim() !== keyToRemove)
+                .map(div => div.outerHTML).join('');
+        }
+        function addDice() {
+            const container = document.getElementById('editDiceRollsList');
+            container.insertAdjacentHTML('beforeend', `
               <div draggable="true" class="draggable">
                 <input type="text" class="dice-key" placeholder="骰項">
                 : <input type="text" class="dice-value" placeholder="數值">
                 <button onclick="this.parentElement.remove()">移除</button>
               </div>
             `);
-    }
-    function removeNote(index) {
-        const container = document.getElementById('editNotesItemsList');
-        container.removeChild(container.children[index]);
-    }
-    function addNote() {
-        const container = document.getElementById('editNotesItemsList');
-        container.insertAdjacentHTML('beforeend', `
+        }
+        function removeNote(index) {
+            const container = document.getElementById('editNotesItemsList');
+            container.removeChild(container.children[index]);
+        }
+        function addNote() {
+            const container = document.getElementById('editNotesItemsList');
+            container.insertAdjacentHTML('beforeend', `
               <div draggable="true" class="draggable">
                 <input type="text" class="note-label" placeholder="標籤">
                 : <input type="text" class="note-value" placeholder="內容">
                 <button onclick="this.parentElement.remove()">移除</button>
               </div>
             `);
-    }
-    function removePersonality(index) {
-        const container = document.getElementById('editPersonalityList');
-        container.removeChild(container.children[index]);
-    }
-    function addPersonality() {
-        const container = document.getElementById('editPersonalityList');
-        container.insertAdjacentHTML('beforeend', `
+        }
+        function removePersonality(index) {
+            const container = document.getElementById('editPersonalityList');
+            container.removeChild(container.children[index]);
+        }
+        function addPersonality() {
+            const container = document.getElementById('editPersonalityList');
+            container.insertAdjacentHTML('beforeend', `
               <div draggable="true" class="draggable">
                 <input type="text" class="personality-label" placeholder="名稱">
                 <input type="number" class="personality-value" placeholder="數值">
@@ -774,18 +796,18 @@
                 <button onclick="this.parentElement.remove()">移除</button>
               </div>
             `);
-    }
+        }
 
-    // NEW: In renderViewMode, add conversion steps similarly before using map()
-    function renderViewMode() {
-        if (!Array.isArray(character.attributes.attributesList)) {
-            character.attributes.attributesList = Object.entries(character.attributes.attributesList).map(([key, value]) => ({ key, value }));
-        }
-        if (!Array.isArray(character.diceRolls)) {
-            character.diceRolls = Object.entries(character.diceRolls).map(([key, value]) => ({ key, value }));
-        }
-        const container = document.querySelector('.container');
-        container.innerHTML = `
+        // NEW: In renderViewMode, add conversion steps similarly before using map()
+        function renderViewMode() {
+            if (!Array.isArray(character.attributes.attributesList)) {
+                character.attributes.attributesList = Object.entries(character.attributes.attributesList).map(([key, value]) => ({ key, value }));
+            }
+            if (!Array.isArray(character.diceRolls)) {
+                character.diceRolls = Object.entries(character.diceRolls).map(([key, value]) => ({ key, value }));
+            }
+            const container = document.querySelector('.container');
+            container.innerHTML = `
   <!-- Rebuild the view mode using updated character data -->
   <button id="editBtn" onclick="toggleEditMode()">編輯角色</button>
   <div class="grid">
@@ -804,8 +826,8 @@
           <div id="basic-attributes">
               <div class="attribute-group">
                   ${character.attributes.attributesList.map(attr =>
-                      `<span class="attribute">${attr.key}：<span style="color: var(--text-color);">${attr.value}</span></span>`
-                  ).join('')}
+                `<span class="attribute">${attr.key}：<span style="color: var(--text-color);">${attr.value}</span></span>`
+            ).join('')}
               </div>
           </div>
       </div>
@@ -844,35 +866,35 @@
       </div>
   </div>
         `;
-        // Re-initialize any dynamic elements like the Chart
-        const ctx = document.getElementById('skillsChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'radar',
-            data: {
-                labels: character.skills.map(skill => skill.type),
-                datasets: [{
-                    data: character.skills.map(skill => skill.value),
-                    backgroundColor: 'rgba(255, 105, 180, 0.3)',
-                    borderColor: 'rgba(255, 105, 180, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: 'rgba(255, 105, 180, 1)'
-                }]
-            },
-            options: {
-                scales: {
-                    r: {
-                        angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
-                        grid: { color: 'rgba(0, 0, 0, 0.1)' },
-                        pointLabels: { color: '#4a5568', font: { size: 12 } },
-                        suggestedMin: 0,
-                        suggestedMax: 100
-                    }
+            // Re-initialize any dynamic elements like the Chart
+            const ctx = document.getElementById('skillsChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: character.skills.map(skill => skill.type),
+                    datasets: [{
+                        data: character.skills.map(skill => skill.value),
+                        backgroundColor: 'rgba(255, 105, 180, 0.3)',
+                        borderColor: 'rgba(255, 105, 180, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(255, 105, 180, 1)'
+                    }]
                 },
-                plugins: { legend: { display: false } }
-            }
-        });
-    }
-</script>
+                options: {
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                            pointLabels: { color: '#4a5568', font: { size: 12 } },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+    </script>
 </body>
 
 </html>

@@ -448,6 +448,49 @@
         .flex-item.solo {
             flex: 0 0 100%;
         }
+
+        /* NEW: Progress indicator styles */
+        .progress-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .progress-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-bar-container {
+            width: 300px;
+            height: 20px;
+            background: #f3f3f3;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            color: #4a5568;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 
@@ -1181,28 +1224,66 @@
             url: null
         };
 
-        // NEW: Export to PNG function
+        // NEW: Create progress overlay
+        function createProgressOverlay() {
+            const overlay = document.createElement('div');
+            overlay.className = 'progress-overlay';
+            overlay.innerHTML = `
+                <div class="progress-container">
+                    <div class="progress-text">正在匯出 PNG...</div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-status">準備中...</div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            return overlay;
+        }
+
+        // NEW: Update progress function
+        function updateProgress(overlay, progress, status) {
+            const fill = overlay.querySelector('.progress-bar-fill');
+            const statusText = overlay.querySelector('.progress-status');
+            fill.style.width = `${progress}%`;
+            if (status) {
+                statusText.textContent = status;
+            }
+        }
+
+        // MODIFIED: Export to PNG function with progress
         async function exportToPNG() {
-            // Temporarily remove header buttons from the export
+            const overlay = createProgressOverlay();
             const headerButtons = document.querySelector('.header-buttons');
             const buttonsHTML = headerButtons.innerHTML;
             headerButtons.style.display = 'none';
 
             try {
+                // Update progress: Start
+                updateProgress(overlay, 10, '準備匯出...');
+
                 const avatarImg = document.getElementById('avatarImage');
                 const data = {
                     avatar: avatarImg.src,
                     id: document.getElementById('snsID').innerText
                 };
 
-                // Use cached image or fetch new one
+                // Update progress: Image processing
+                updateProgress(overlay, 30, '處理圖片中...');
+
                 if (!imageCache.base64 || imageCache.url !== data.avatar) {
                     imageCache.base64 = await proxyImage(data.avatar);
                     imageCache.url = data.avatar;
                 }
 
+                // Update progress: Preparing canvas
+                updateProgress(overlay, 50, '準備畫布...');
+
                 const container = document.querySelector('.container');
                 container.classList.add('exporting', 'no-animations');
+
+                // Update progress: Rendering
+                updateProgress(overlay, 70, '渲染圖片中...');
 
                 const canvas = await html2canvas(container, {
                     width: container.scrollWidth + 10,
@@ -1219,14 +1300,31 @@
                     }
                 });
 
+                // Update progress: Finalizing
+                updateProgress(overlay, 90, '完成匯出...');
+
                 const link = document.createElement('a');
                 link.download = `${data.id}_TRPG_Card.png`;
                 link.href = canvas.toDataURL('image/png', 1.0);
                 link.click();
 
+                // Update progress: Complete
+                updateProgress(overlay, 100, '匯出完成！');
+                
+                // Remove overlay after a short delay
+                setTimeout(() => {
+                    overlay.remove();
+                }, 1000);
+
             } catch (error) {
                 console.error('匯出失敗:', error);
-                alert('匯出失敗，請稍後再試。');
+                overlay.querySelector('.progress-text').textContent = '匯出失敗';
+                overlay.querySelector('.progress-status').textContent = '請稍後再試';
+                overlay.querySelector('.progress-bar-fill').style.backgroundColor = '#EF4444';
+                
+                setTimeout(() => {
+                    overlay.remove();
+                }, 2000);
             } finally {
                 const container = document.querySelector('.container');
                 container.classList.remove('exporting', 'no-animations');

@@ -108,6 +108,16 @@
             /* 添加過渡效果 */
         }
 
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar.hidden {
+            display: none;
+        }
+
         .avatar:hover {
             transform: scale(1.05);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
@@ -525,7 +535,10 @@
         .header-buttons {
             display: flex;
             gap: 0.5rem;
-            align-items: center;
+           
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
         }
 
         .header-btn {
@@ -737,7 +750,7 @@
                     ]
                 },
                 orientations: {
-                    title: "性向傾向",
+                    title: "愛情傾向",
                     types: [
                         { text: "NL", percentage: 75 },
                         { text: "BL", percentage: 50 },
@@ -1031,7 +1044,7 @@
             document.getElementById('app').innerHTML = `
                 <div class="header">
                     <div class="avatar-section">
-                        <div class="avatar">
+                        <div class="avatar ${data.avatar ? '' : 'hidden'}">
         <img src="${imageCache.base64 || data.avatar}" 
              alt="Avatar" 
              style="width: 100%; height: 100%; object-fit: cover;"
@@ -1074,7 +1087,7 @@
                     </div>
                     <div class="header-buttons">
                         <button class="header-btn export-btn" onclick="exportToPNG()">
-                            匯出PNG
+                            匯出PNG(需時)
                         </button>
                         <button class="header-btn export-btn" onclick="generateShareLink()">
                             分享連結

@@ -382,6 +382,55 @@
             opacity: 0.8;
             transform: scale(1.05);
         }
+
+        /* NEW: Styles for notes overflow handling */
+        .notes-overflow {
+            grid-column: span 3;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--box-shadow);
+            margin-top: 2rem;
+        }
+
+        .notes-card {
+            background: var(--message-bg);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-top: 1.5rem;
+            box-shadow: var(--box-shadow);
+        }
+
+        .notes-overflow h3 {
+            color: #4c51bf;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .notes-content {
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        /* Scrollbar styling for notes overflow */
+        .notes-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .notes-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .notes-content::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .notes-content::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
     </style>
 </head>
 
@@ -1034,11 +1083,20 @@
           <div class="message">
               <h3 id="notesTitle">${character.notes.title}</h3>
               <div id="notes">
-                  ${character.notes.items.map(item => `<p>${item.label}：<span style="color: var(--text-color);">${item.value}</span></p>`).join('')}
+                  ${renderNotes(character.notes.items.slice(0, 4))}
               </div>
           </div>
       </div>
   </div>
+  ${character.notes.items.length > 4 ? `
+      <div class="notes-overflow">
+        <div class="notes-card">
+          <h3>更多${character.notes.title}</h3>
+          <div class="notes-content">
+              ${renderNotes(character.notes.items.slice(4))}
+          </div></div>
+      </div>
+  ` : ''}
         `;
             // Re-initialize any dynamic elements like the Chart
             const ctx = document.getElementById('skillsChart').getContext('2d');
@@ -1283,6 +1341,13 @@
         if (sharedData) {
             character = sharedData;
             renderViewMode();
+        }
+
+        // NEW: Helper function to render notes
+        function renderNotes(notes) {
+            return notes.map(item =>
+                `<p>${item.label}：<span style="color: var(--text-color);">${item.value}</span></p>`
+            ).join('');
         }
     </script>
 </body>

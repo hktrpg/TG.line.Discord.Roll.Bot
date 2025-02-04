@@ -431,6 +431,23 @@
         .notes-content::-webkit-scrollbar-thumb:hover {
             background: #555;
         }
+
+        .info.flex-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            width: 100%;
+        }
+
+        .flex-item {
+            flex: 1 1 auto;
+            text-align: center;
+        }
+
+        /* NEW: Class for when only one item is present */
+        .flex-item.solo {
+            flex: 0 0 100%;
+        }
     </style>
 </head>
 
@@ -462,7 +479,7 @@
             </div>
 
             <div class="column">
-                <h3 id="skillsTitle">技能</h3>
+                <h3 id="skillsTitle">能力分析</h3>
                 <canvas id="skillsChart"></canvas>
 
                 <div class="status-bars">
@@ -733,7 +750,7 @@
   <div>
 
     <h3>基本屬性</h3>
-
+ <label>基本屬性標題: <input type="text" id="editAttributeTitle" value="${character.attributeTitle}"></label><br>
     <div id="editAttributesContainer">
       <div id="editAttributesList">
         ${character.attributes.attributesList.map(attr =>
@@ -749,7 +766,8 @@
   </div>
   <hr>
   <div>
-    <h3>技能</h3>
+    <h3>能力分析</h3>
+     <label>能力分析標題: <input type="text" id="editSkillsTitle" value="${character.skillsTitle}"></label><br>
     <div id="editSkillsContainer">
       <div id="editSkillsList">
         ${character.skills.map((skill, index) =>
@@ -766,6 +784,7 @@
   <hr>
   <div>
     <h3>技能</h3>
+    <label>技能標題: <input type="text" id="editDiceTitle" value="${character.diceTitle}"></label><br>
     <div id="editDiceRollsContainer">
       <div id="editDiceRollsList">
         ${character.diceRolls.map(dice =>
@@ -799,6 +818,7 @@
   <hr>
   <div>
     <h3>性格與偏好</h3>
+      <label>性格與偏好標題: <input type="text" id="editPersonalityTitle" value="${character.personalityPreferencesTitle}"></label>
     <div id="editPersonalityContainer">
       <div id="editPersonalityList">
         ${character.personalityPreferences.items.map((item, index) =>
@@ -856,6 +876,12 @@
             character.playerName = document.getElementById('editPlayerName').value;
             character.id = document.getElementById('editsnsID').value;
             let newAvatar = document.getElementById('editAvatar').value;
+
+            // Save title changes
+            character.attributeTitle = document.getElementById('editAttributeTitle').value;
+            character.diceTitle = document.getElementById('editDiceTitle').value;
+            character.skillsTitle = document.getElementById('editSkillsTitle').value;
+            character.personalityPreferencesTitle = document.getElementById('editPersonalityTitle').value;
 
             // Collect attributes and filter out if both fields are empty
             const attrElems = document.querySelectorAll('#editAttributesList > div');
@@ -1038,8 +1064,10 @@
           <div class="player-info">
               <h2 id="characterName">${character.characterName}</h2>
               <div class="info flex-container">
-                  <span class="flex-item" id="playerName">${character.playerName}</span>
-                  <span class="flex-item" id="snsID">${character.id}</span>
+                  ${character.playerName ? 
+                    `<span class="flex-item${!character.id ? ' solo' : ''}" id="playerName">${character.playerName}</span>` : ''}
+                ${character.id ? 
+                    `<span class="flex-item${!character.playerName ? ' solo' : ''}" id="snsID">${character.id}</span>` : ''}
               </div>
           </div>
           <div class="avatar-container">

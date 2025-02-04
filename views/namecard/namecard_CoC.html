@@ -68,7 +68,8 @@
             margin-bottom: 1rem;
             text-align: center;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-            text-decoration: underline; /* Add underline */
+            text-decoration: underline;
+            /* Add underline */
         }
 
         h3 {
@@ -95,7 +96,8 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border: 5px solid #ffffff; /* Add border */
+            border: 5px solid #ffffff;
+            /* Add border */
         }
 
         .stats-chart {
@@ -204,7 +206,7 @@
                     <img id="avatarImage" src="https://d1vzi28wh99zvq.cloudfront.net/images/21286/483040.jpg"
                         alt="角色頭像">
                 </div>
-                <h3>基本屬性</h3>
+                <h3 id="attributeTitle">基本屬性</h3>
                 <div id="basic-attributes"></div>
             </div>
 
@@ -316,7 +318,17 @@
                 ]
             },
             diceTitle: "擲骰", // 新增擲骰標題
-            skillsTitle: "技能類型" // 新增技能類型標題
+            skillsTitle: "技能類型", // 新增技能類型標題
+            attributeTitle: "基本屬性",
+            personalityPreferencesTitle: '性格與偏好',
+            personalityPreferences: {
+                items: [
+                    { label: '事前準備', value: 80, alternative: '隨機應變', icon: icons[0] },
+                    { label: '單一專業', value: 60, alternative: '多項才藝', icon: icons[1] },
+                    { label: '邊緣人', value: 85, alternative: '社牛', icon: icons[2] }
+                ]
+            }
+
         };
 
         document.getElementById('playerName').innerText = character.playerName;
@@ -327,6 +339,8 @@
         // 更新技能類型標題
         document.getElementById('skillsTitle').innerText = character.skillsTitle;
 
+        // 更新基本屬性標題
+        document.getElementById('attributeTitle').innerText = character.attributeTitle;
         // 更新擲骰標題
         document.getElementById('diceTitle').innerText = character.diceTitle;
 
@@ -339,17 +353,10 @@
         }).join('');
         document.getElementById('notes').innerHTML = notesHTML;
 
-        const personalityPreferences = {
-            title: '性格與偏好',
-            items: [
-                { label: '事前準備', value: 80, alternative: '隨機應變', icon: icons[0] },
-                { label: '單一專業', value: 60, alternative: '多項才藝', icon: icons[1] },
-                { label: '邊緣人', value: 85, alternative: '社牛', icon: icons[2] }
-            ]
-        };
+
 
         // 生成性格與偏好的 HTML
-        const statusItemsHTML = personalityPreferences.items.map(item => {
+        const statusItemsHTML = character.personalityPreferences.items.map(item => {
             return `
                 <div class="status-item">
                     <i class="${item.icon} icon"></i>
@@ -364,7 +371,7 @@
 
         // 替換原有的性格與偏好內容
         document.querySelector('.status-bars').innerHTML = `
-            <h3>${personalityPreferences.title}</h3>
+            <h3>${character.personalityPreferencesTitle}</h3>
             ${statusItemsHTML}
         `;
 
@@ -372,8 +379,8 @@
         const attributesHTML = `
             <div class="attribute-group">
                 ${Object.entries(attributes.attributesList).map(([key, value]) => {
-                return `<span class="attribute">${key}：<span style="color: var(--text-color);">${value}</span></span>`;
-            }).join('')}
+            return `<span class="attribute">${key}：<span style="color: var(--text-color);">${value}</span></span>`;
+        }).join('')}
             </div>
         `;
         document.getElementById('basic-attributes').innerHTML = attributesHTML;
@@ -381,8 +388,8 @@
         const diceRollsHTML = `
             <div class="attribute-group" style="flex= 0 0 30%;">
                 ${Object.entries(character.diceRolls).map(([key, value]) => {
-                return `<span class="attribute">${key}：<span style="color: var(--text-color);">${value}</span></span>`;
-            }).join('')}
+            return `<span class="attribute">${key}：<span style="color: var(--text-color);">${value}</span></span>`;
+        }).join('')}
             </div>
         `;
         document.getElementById('dice-rolls').innerHTML = diceRollsHTML;

@@ -209,6 +209,22 @@
             transform: scale(1.05);
         }
 
+        /* NEW: Generic button styles to beautify all buttons */
+        button {
+            background: #60a5fa;
+            border: none;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        button:hover {
+            opacity: 0.85;
+            transform: scale(1.05);
+        }
+
         input[type="text"] {
             background: #fff;
             border: 1px solid #d1d5db;
@@ -242,13 +258,92 @@
         .sortable-ghost {
             opacity: 0.5;
         }
+
+        /* Remove previous generic button styles and add new button classes */
+
+        /* Button for the main edit action in view mode */
+        .btn-edit {
+            background: linear-gradient(to right, #60a5fa, #f472b6);
+            border: none;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            margin-bottom: 1rem;
+        }
+        .btn-edit:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+
+        /* Button for add new item actions */
+        .btn-add {
+            background: #10B981;
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+        .btn-add:hover {
+            opacity: 0.85;
+        }
+
+        /* Button for remove actions */
+        .btn-remove {
+            background: #EF4444;
+            border: none;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 0.375rem;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+        .btn-remove:hover {
+            opacity: 0.85;
+        }
+
+        /* Buttons for save and cancel in edit mode */
+        .btn-save {
+            background: linear-gradient(to right, #2563EB, #3B82F6);
+            border: none;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .btn-save:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+        .btn-cancel {
+            background: #6B7280;
+            border: none;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .btn-cancel:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <!-- Added Edit button -->
-        <button id="editBtn" onclick="toggleEditMode()">編輯角色</button>
+        <!-- Replace Edit button with new class -->
+        <button id="editBtn" class="btn-edit" onclick="toggleEditMode()">編輯角色</button>
         <div class="grid">
             <div class="column">
                 <div class="player-info">
@@ -535,19 +630,22 @@
     <label>頭像網址: <input type="text" id="editAvatar" value="${document.getElementById('avatarImage').src}"></label>
   </div>
   <hr>
+    <h2>可拖動項目以重新排序</h2>
   <div>
+
     <h3>基本屬性</h3>
+
     <div id="editAttributesContainer">
       <div id="editAttributesList">
         ${character.attributes.attributesList.map(attr =>
                 `<div draggable="true" class="draggable">
           <input type="text" class="attr-key" value="${attr.key}">
           : <input type="text" class="attr-value" value="${attr.value}">
-          <button onclick="removeAttr('${attr.key}')">移除</button>
+          <button onclick="removeAttr('${attr.key}')" class="btn-remove">移除</button>
         </div>`
             ).join('')}
       </div>
-      <button onclick="addAttribute()">新增屬性</button>
+      <button onclick="addAttribute()" class="btn-add">新增屬性</button>
     </div>
   </div>
   <hr>
@@ -559,11 +657,11 @@
                 `<div draggable="true" class="draggable">
           <input type="text" class="skill-type" value="${skill.type}">
           <input type="number" class="skill-value" value="${skill.value}">
-          <button onclick="removeSkill(${index})">移除</button>
+          <button onclick="removeSkill(${index})" class="btn-remove">移除</button>
         </div>`
             ).join('')}
       </div>
-      <button onclick="addSkill()">新增技能</button>
+      <button onclick="addSkill()" class="btn-add">新增技能</button>
     </div>
   </div>
   <hr>
@@ -575,11 +673,11 @@
                 `<div draggable="true" class="draggable">
           <input type="text" class="dice-key" value="${dice.key}">
           : <input type="text" class="dice-value" value="${dice.value}">
-          <button onclick="removeDice('${dice.key}')">移除</button>
+          <button onclick="removeDice('${dice.key}')" class="btn-remove">移除</button>
         </div>`
             ).join('')}
       </div>
-      <button onclick="addDice()">新增擲骰</button>
+      <button onclick="addDice()" class="btn-add">新增擲骰</button>
     </div>
   </div>
   <hr>
@@ -592,11 +690,11 @@
                 `<div draggable="true" class="draggable">
           <input type="text" class="note-label" value="${item.label}">
           : <input type="text" class="note-value" value="${item.value}">
-          <button onclick="removeNote(${index})">移除</button>
+          <button onclick="removeNote(${index})" class="btn-remove">移除</button>
         </div>`
             ).join('')}
       </div>
-      <button onclick="addNote()">新增筆記</button>
+      <button onclick="addNote()" class="btn-add">新增筆記</button>
     </div>
   </div>
   <hr>
@@ -609,17 +707,28 @@
           <input type="text" class="personality-label" value="${item.label}">
           <input type="number" class="personality-value" value="${item.value}">
           <input type="text" class="personality-alt" value="${item.alternative}">
-          <input type="text" class="personality-icon" value="${item.icon}">
-          <button onclick="removePersonality(${index})">移除</button>
+          <select class="personality-icon">
+            <option value="fas fa-check" ${item.icon==='fas fa-check'?'selected':''}>打勾</option>
+            <option value="fas fa-star" ${item.icon==='fas fa-star'?'selected':''}>星星</option>
+            <option value="fas fa-heart" ${item.icon==='fas fa-heart'?'selected':''}>愛心</option>
+            <option value="fas fa-smile" ${item.icon==='fas fa-smile'?'selected':''}>笑臉</option>
+            <option value="fas fa-thumbs-up" ${item.icon==='fas fa-thumbs-up'?'selected':''}>讚</option>
+            <option value="fas fa-lightbulb" ${item.icon==='fas fa-lightbulb'?'selected':''}>燈泡</option>
+            <option value="fas fa-user-friends" ${item.icon==='fas fa-user-friends'?'selected':''}>好友</option>
+            <option value="fas fa-flag" ${item.icon==='fas fa-flag'?'selected':''}>旗幟</option>
+            <option value="fas fa-clipboard-list" ${item.icon==='fas fa-clipboard-list'?'selected':''}>清單</option>
+            <option value="fas fa-comment-dots" ${item.icon==='fas fa-comment-dots'?'selected':''}>留言</option>
+          </select>
+          <button onclick="removePersonality(${index})" class="btn-remove">移除</button>
         </div>`
             ).join('')}
       </div>
-      <button onclick="addPersonality()">新增性格偏好</button>
+      <button onclick="addPersonality()" class="btn-add">新增性格偏好</button>
     </div>
   </div>
   <br>
-  <button onclick="saveEdit()">保存修改</button>
-  <button onclick="cancelEdit()">取消</button>
+  <button onclick="saveEdit()" class="btn-save">保存修改</button>
+  <button onclick="cancelEdit()" class="btn-cancel">取消</button>
             `;
             // NEW: Initialize Sortable with visual feedback settings
             const sortableOptions = {
@@ -733,7 +842,7 @@
               <div draggable="true" class="draggable">
                 <input type="text" class="attr-key" placeholder="屬性名稱">
                 : <input type="text" class="attr-value" placeholder="屬性值">
-                <button onclick="this.parentElement.remove()">移除</button>
+                <button onclick="this.parentElement.remove()" class="btn-remove">移除</button>
               </div>
             `);
         }
@@ -747,7 +856,7 @@
               <div draggable="true" class="draggable">
                 <input type="text" class="skill-type" placeholder="技能名稱">
                 <input type="number" class="skill-value" placeholder="數值">
-                <button onclick="this.parentElement.remove()">移除</button>
+                <button onclick="this.parentElement.remove()" class="btn-remove">移除</button>
               </div>
             `);
         }
@@ -763,7 +872,7 @@
               <div draggable="true" class="draggable">
                 <input type="text" class="dice-key" placeholder="骰項">
                 : <input type="text" class="dice-value" placeholder="數值">
-                <button onclick="this.parentElement.remove()">移除</button>
+                <button onclick="this.parentElement.remove()" class="btn-remove">移除</button>
               </div>
             `);
         }
@@ -777,7 +886,7 @@
               <div draggable="true" class="draggable">
                 <input type="text" class="note-label" placeholder="標籤">
                 : <input type="text" class="note-value" placeholder="內容">
-                <button onclick="this.parentElement.remove()">移除</button>
+                <button onclick="this.parentElement.remove()" class="btn-remove">移除</button>
               </div>
             `);
         }
@@ -792,8 +901,19 @@
                 <input type="text" class="personality-label" placeholder="名稱">
                 <input type="number" class="personality-value" placeholder="數值">
                 <input type="text" class="personality-alt" placeholder="對立">
-                <input type="text" class="personality-icon" placeholder="圖示類名">
-                <button onclick="this.parentElement.remove()">移除</button>
+                <select class="personality-icon">
+                    <option value="fas fa-check">打勾</option>
+                    <option value="fas fa-star">星星</option>
+                    <option value="fas fa-heart">愛心</option>
+                    <option value="fas fa-smile">笑臉</option>
+                    <option value="fas fa-thumbs-up">讚</option>
+                    <option value="fas fa-lightbulb">燈泡</option>
+                    <option value="fas fa-user-friends">好友</option>
+                    <option value="fas fa-flag">旗幟</option>
+                    <option value="fas fa-clipboard-list">清單</option>
+                    <option value="fas fa-comment-dots">留言</option>
+                </select>
+                <button onclick="this.parentElement.remove()" class="btn-remove">移除</button>
               </div>
             `);
         }
@@ -809,7 +929,7 @@
             const container = document.querySelector('.container');
             container.innerHTML = `
   <!-- Rebuild the view mode using updated character data -->
-  <button id="editBtn" onclick="toggleEditMode()">編輯角色</button>
+  <button id="editBtn" class="btn-edit" onclick="toggleEditMode()">編輯角色</button>
   <div class="grid">
       <div class="column">
           <div class="player-info">

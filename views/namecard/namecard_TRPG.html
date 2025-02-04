@@ -464,7 +464,6 @@
             height: 6px;
             background: var(--background-color);
             border-radius: 3px;
-            -webkit-appearance: none;
         }
 
         .edit-range::-webkit-slider-thumb {
@@ -693,11 +692,60 @@
             color: var(--primary-color);
             /* 添加這行確保匯出時的標題顏色 */
         }
+        .progress-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .progress-content {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            text-align: center;
+            width: 300px;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 10px;
+            background: var(--background-color);
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--gradient-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            color: var(--text-primary-color);
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 
 <body>
     <div class="container" id="app"></div>
+    <div class="progress-overlay" id="progressOverlay">
+        <div class="progress-content">
+            <div class="progress-text" id="progressText">準備匯出...</div>
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progressBarFill"></div>
+            </div>
+        </div>
+    </div>
 
     <script>
         let isEditMode = false;
@@ -992,21 +1040,30 @@
 
         // Modify exportToPNG function:
         async function exportToPNG() {
+            const overlay = document.getElementById('progressOverlay');
+            const progressText = document.getElementById('progressText');
+            const progressBarFill = document.getElementById('progressBarFill');
             const headerButtons = document.querySelector('.header-buttons');
             const buttonsHTML = headerButtons.innerHTML;
             headerButtons.innerHTML = '';
 
             try {
+                overlay.style.display = 'flex';
+                updateProgress(10, '準備圖片資源...');
+
                 // Use cached image or fetch new one
                 if (!imageCache.base64 || imageCache.url !== data.avatar) {
+                    updateProgress(20, '載入頭像圖片...');
                     imageCache.base64 = await proxyImage(data.avatar);
                     imageCache.url = data.avatar;
                 }
 
+                updateProgress(40, '準備轉換為圖片...');
                 const container = document.querySelector('.container');
                 container.classList.add('exporting');
                 container.classList.add('no-animations');
-                console.log(container.scrollWidth);
+
+                updateProgress(60, '產生圖片中...');
                 const canvas = await html2canvas(container, {
                     width: container.scrollWidth + 10,
                     x: -5,
@@ -1022,20 +1079,38 @@
                     }
                 });
 
+                updateProgress(80, '準備下載...');
                 const link = document.createElement('a');
                 link.download = `${data.id}_TRPG_Card.png`;
                 link.href = canvas.toDataURL('image/png', 1.0);
-                link.click();
+
+                updateProgress(90, '完成中...');
+                setTimeout(() => {
+                    link.click();
+                    updateProgress(100, '匯出完成！');
+                    setTimeout(() => {
+                        overlay.style.display = 'none';
+                        progressBarFill.style.width = '0%';
+                    }, 1000);
+                }, 500);
 
             } catch (error) {
                 console.error('匯出失敗:', error);
                 alert('匯出失敗，請稍後再試。');
+                overlay.style.display = 'none';
             } finally {
                 const container = document.querySelector('.container');
                 container.classList.remove('exporting');
                 container.classList.remove('no-animations');
                 headerButtons.innerHTML = buttonsHTML;
             }
+        }
+
+        function updateProgress(percentage, text) {
+            const progressBarFill = document.getElementById('progressBarFill');
+            const progressText = document.getElementById('progressText');
+            progressBarFill.style.width = `${percentage}%`;
+            progressText.textContent = text;
         }
 
         // Update avatar image rendering in renderApp():

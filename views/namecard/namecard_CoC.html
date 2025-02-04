@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TRPG COC角色卡</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- NEW: Include SortableJS library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         :root {
@@ -201,6 +203,7 @@
             transition: transform 0.3s ease, opacity 0.3s ease;
             margin-bottom: 1rem;
         }
+
         #editBtn:hover {
             opacity: 0.8;
             transform: scale(1.05);
@@ -214,10 +217,20 @@
             font-size: 1rem;
             transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
+
         input[type="text"]:focus {
             border-color: #6366f1;
             box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
             outline: none;
+        }
+
+        /* NEW: Cursor change for draggable items */
+        .draggable {
+            cursor: grab;
+        }
+
+        .draggable:active {
+            cursor: grabbing;
         }
     </style>
 </head>
@@ -493,8 +506,16 @@
             }
         }
 
-        // NEW: Render an independent edit form for all character data
+        // NEW: In renderEditForm, convert attributes and diceRolls if needed
         function renderEditForm() {
+            // Convert attributesList to array if still an object
+            if (!Array.isArray(character.attributes.attributesList)) {
+                character.attributes.attributesList = Object.entries(character.attributes.attributesList).map(([key, value]) => ({ key, value }));
+            }
+            // Convert diceRolls to array if still an object
+            if (!Array.isArray(character.diceRolls)) {
+                character.diceRolls = Object.entries(character.diceRolls).map(([key, value]) => ({ key, value }));
+            }
             document.querySelector('.container').innerHTML = `
   <h2>編輯角色資料</h2>
   <div>
@@ -506,42 +527,48 @@
   <hr>
   <div>
     <h3>基本屬性</h3>
-    <div id="editAttributes">
-      ${Object.entries(character.attributes.attributesList).map(([key, value]) => 
-        `<div>
-          <input type="text" class="attr-key" value="${key}">
-          : <input type="text" class="attr-value" value="${value}">
-          <button onclick="removeAttribute('${key}')">移除</button>
+    <div id="editAttributesContainer">
+      <div id="editAttributesList">
+        ${character.attributes.attributesList.map(attr =>
+                `<div draggable="true" class="draggable">
+          <input type="text" class="attr-key" value="${attr.key}">
+          : <input type="text" class="attr-value" value="${attr.value}">
+          <button onclick="removeAttr('${attr.key}')">移除</button>
         </div>`
-      ).join('')}
+            ).join('')}
+      </div>
       <button onclick="addAttribute()">新增屬性</button>
     </div>
   </div>
   <hr>
   <div>
     <h3>技能</h3>
-    <div id="editSkills">
-      ${character.skills.map((skill, index) => 
-        `<div>
+    <div id="editSkillsContainer">
+      <div id="editSkillsList">
+        ${character.skills.map((skill, index) =>
+                `<div draggable="true" class="draggable">
           <input type="text" class="skill-type" value="${skill.type}">
           <input type="number" class="skill-value" value="${skill.value}">
           <button onclick="removeSkill(${index})">移除</button>
         </div>`
-      ).join('')}
+            ).join('')}
+      </div>
       <button onclick="addSkill()">新增技能</button>
     </div>
   </div>
   <hr>
   <div>
     <h3>擲骰</h3>
-    <div id="editDiceRolls">
-      ${Object.entries(character.diceRolls).map(([key, value]) => 
-        `<div>
-          <input type="text" class="dice-key" value="${key}">
-          : <input type="text" class="dice-value" value="${value}">
-          <button onclick="removeDice('${key}')">移除</button>
+    <div id="editDiceRollsContainer">
+      <div id="editDiceRollsList">
+        ${character.diceRolls.map(dice =>
+                `<div draggable="true" class="draggable">
+          <input type="text" class="dice-key" value="${dice.key}">
+          : <input type="text" class="dice-value" value="${dice.value}">
+          <button onclick="removeDice('${dice.key}')">移除</button>
         </div>`
-      ).join('')}
+            ).join('')}
+      </div>
       <button onclick="addDice()">新增擲骰</button>
     </div>
   </div>
@@ -549,30 +576,34 @@
   <div>
     <h3>筆記</h3>
     <label>筆記標題: <input type="text" id="editNotesTitle" value="${character.notes.title}"></label>
-    <div id="editNotesItems">
-      ${character.notes.items.map((item, index) => 
-        `<div>
+    <div id="editNotesItemsContainer">
+      <div id="editNotesItemsList">
+        ${character.notes.items.map((item, index) =>
+                `<div draggable="true" class="draggable">
           <input type="text" class="note-label" value="${item.label}">
           : <input type="text" class="note-value" value="${item.value}">
           <button onclick="removeNote(${index})">移除</button>
         </div>`
-      ).join('')}
+            ).join('')}
+      </div>
       <button onclick="addNote()">新增筆記</button>
     </div>
   </div>
   <hr>
   <div>
     <h3>性格與偏好</h3>
-    <div id="editPersonality">
-      ${character.personalityPreferences.items.map((item, index) => 
-        `<div>
+    <div id="editPersonalityContainer">
+      <div id="editPersonalityList">
+        ${character.personalityPreferences.items.map((item, index) =>
+                `<div draggable="true" class="draggable">
           <input type="text" class="personality-label" value="${item.label}">
           <input type="number" class="personality-value" value="${item.value}">
           <input type="text" class="personality-alt" value="${item.alternative}">
           <input type="text" class="personality-icon" value="${item.icon}">
           <button onclick="removePersonality(${index})">移除</button>
         </div>`
-      ).join('')}
+            ).join('')}
+      </div>
       <button onclick="addPersonality()">新增性格偏好</button>
     </div>
   </div>
@@ -580,156 +611,162 @@
   <button onclick="saveEdit()">保存修改</button>
   <button onclick="cancelEdit()">取消</button>
             `;
-        }
+        // NEW: Initialize Sortable for each container
+        Sortable.create(document.getElementById('editAttributesList'));
+        Sortable.create(document.getElementById('editSkillsList'));
+        Sortable.create(document.getElementById('editDiceRollsList'));
+        Sortable.create(document.getElementById('editNotesItemsList'));
+        Sortable.create(document.getElementById('editPersonalityList'));
+    }
 
-        // NEW: Save edit form data back into character and re-render view
-        function saveEdit() {
-            // Update basic info
-            character.characterName = document.getElementById('editCharacterName').value;
-            character.playerName = document.getElementById('editPlayerName').value;
-            character.id = document.getElementById('editCharacterID').value;
-            let newAvatar = document.getElementById('editAvatar').value;
+    // NEW: Save edit form data back into character and re-render view
+    function saveEdit() {
+        // Update basic info
+        character.characterName = document.getElementById('editCharacterName').value;
+        character.playerName = document.getElementById('editPlayerName').value;
+        character.id = document.getElementById('editCharacterID').value;
+        let newAvatar = document.getElementById('editAvatar').value;
 
-            // Collect attributes
-            const attrElems = document.querySelectorAll('#editAttributes > div');
-            const newAttributes = {};
-            attrElems.forEach(div => {
-                const key = div.querySelector('.attr-key').value.trim();
-                const value = div.querySelector('.attr-value').value.trim();
-                if(key) newAttributes[key] = value;
-            });
-            character.attributes.attributesList = newAttributes;
+        // Collect attributes and filter out if both fields are empty
+        const attrElems = document.querySelectorAll('#editAttributesList > div');
+        const newAttributes = Array.from(attrElems).map(div => {
+            const key = div.querySelector('.attr-key').value.trim();
+            const value = div.querySelector('.attr-value').value.trim();
+            return { key, value };
+        }).filter(item => item.key !== "" || item.value !== "");
+        character.attributes.attributesList = newAttributes;
 
-            // Collect skills
-            const skillElems = document.querySelectorAll('#editSkills > div');
-            character.skills = Array.from(skillElems).map(div => {
-                return {
-                    type: div.querySelector('.skill-type').value.trim(),
-                    value: parseInt(div.querySelector('.skill-value').value, 10) || 0
-                };
-            });
-
-            // Collect diceRolls
-            const diceElems = document.querySelectorAll('#editDiceRolls > div');
-            const newDice = {};
-            diceElems.forEach(div => {
-                const key = div.querySelector('.dice-key').value.trim();
-                const value = div.querySelector('.dice-value').value.trim();
-                if(key) newDice[key] = value;
-            });
-            character.diceRolls = newDice;
-
-            // Collect notes
-            character.notes.title = document.getElementById('editNotesTitle').value;
-            const noteElems = document.querySelectorAll('#editNotesItems > div');
-            character.notes.items = Array.from(noteElems).map(div => {
-                return {
-                    label: div.querySelector('.note-label').value.trim(),
-                    value: div.querySelector('.note-value').value.trim()
-                };
-            });
-
-            // Collect personalityPreferences
-            const persElems = document.querySelectorAll('#editPersonality > div');
-            character.personalityPreferences.items = Array.from(persElems).map(div => {
-                return {
-                    label: div.querySelector('.personality-label').value.trim(),
-                    value: parseInt(div.querySelector('.personality-value').value, 10) || 0,
-                    alternative: div.querySelector('.personality-alt').value.trim(),
-                    icon: div.querySelector('.personality-icon').value.trim()
-                };
-            });
-
-            // Update avatar image in character view, if present
-            const avatarContainer = document.querySelector('.avatar-container');
-            if (avatarContainer) {
-                avatarContainer.innerHTML = `<img id="avatarImage" src="${newAvatar}" alt="角色頭像">`;
+        // Collect skills and filter out if both fields are empty
+        const skillElems = document.querySelectorAll('#editSkillsList > div');
+        let newSkills = [];
+        skillElems.forEach(div => {
+            const typeVal = div.querySelector('.skill-type').value.trim();
+            const valueVal = div.querySelector('.skill-value').value.trim();
+            if (typeVal !== "" || valueVal !== "") {
+                newSkills.push({ type: typeVal, value: parseInt(valueVal, 10) || 0 });
             }
+        });
+        character.skills = newSkills;
 
-            // Re-render original view (using your existing code)
-            renderViewMode();
-            isEditMode = false;
+        // Collect diceRolls and filter out if both fields are empty
+        const diceElems = document.querySelectorAll('#editDiceRollsList > div');
+        const newDice = Array.from(diceElems).map(div => {
+            const key = div.querySelector('.dice-key').value.trim();
+            const value = div.querySelector('.dice-value').value.trim();
+            return { key, value };
+        }).filter(item => item.key !== "" || item.value !== "");
+        character.diceRolls = newDice;
+
+        // Collect notes and filter out if both fields are empty
+        character.notes.title = document.getElementById('editNotesTitle').value;
+        const noteElems = document.querySelectorAll('#editNotesItemsList > div');
+        const newNotes = Array.from(noteElems).map(div => {
+            const label = div.querySelector('.note-label').value.trim();
+            const value = div.querySelector('.note-value').value.trim();
+            return { label, value };
+        }).filter(item => item.label !== "" || item.value !== "");
+        character.notes.items = newNotes;
+
+        // Collect personalityPreferences and filter out if both label and alternative are empty
+        const persElems = document.querySelectorAll('#editPersonalityList > div');
+        const newPers = Array.from(persElems).map(div => {
+            const label = div.querySelector('.personality-label').value.trim();
+            const value = parseInt(div.querySelector('.personality-value').value.trim(), 10) || 0;
+            const alternative = div.querySelector('.personality-alt').value.trim();
+            const icon = div.querySelector('.personality-icon').value.trim();
+            return { label, value, alternative, icon };
+        }).filter(item => item.label !== "" || item.alternative !== "");
+        character.personalityPreferences.items = newPers;
+
+        // Update avatar image in character view, if present
+        const avatarContainer = document.querySelector('.avatar-container');
+        if (avatarContainer) {
+            avatarContainer.innerHTML = `<img id="avatarImage" src="${newAvatar}" alt="角色頭像">`;
         }
 
-        // NEW: Cancel edit and re-render view mode
-        function cancelEdit() {
-            renderViewMode();
-            isEditMode = false;
-        }
+        // Re-render original view (using your existing code)
+        renderViewMode();
+        isEditMode = false;
+    }
 
-        // NEW: Helper functions for dynamic add/remove operations.
-        function removeAttribute(keyToRemove) {
-            // Remove matching attribute by key from the edit form
-            const container = document.getElementById('editAttributes');
-            container.innerHTML = Array.from(container.querySelectorAll('div'))
-              .filter(div => div.querySelector('.attr-key').value.trim() !== keyToRemove)
-              .map(div => div.outerHTML).join('') +
-              `<button onclick="addAttribute()">新增屬性</button>`;
-        }
-        function addAttribute() {
-            const container = document.getElementById('editAttributes');
-            const addBtn = container.querySelector('button[onclick="addAttribute()"]');
-            addBtn.insertAdjacentHTML('beforebegin', `
-              <div>
+    // NEW: Cancel edit and re-render view mode
+    function cancelEdit() {
+        renderViewMode();
+        isEditMode = false;
+    }
+
+    // NEW: Helper functions for dynamic add/remove operations.
+    function removeAttr(keyToRemove) {
+        console.log('Removing attribute', keyToRemove);
+        // Remove matching attribute by key from the edit form
+        const container = document.getElementById('editAttributesList');
+        container.innerHTML = Array.from(container.querySelectorAll('div'))
+            .filter(div => div.querySelector('.attr-key').value.trim() !== keyToRemove)
+            .map(div => div.outerHTML).join('');
+    }
+    // Modified addAttribute() to insert new attribute directly into the list container
+    function addAttribute() {
+        const attributesList = document.getElementById('editAttributesList');
+        attributesList.insertAdjacentHTML('beforeend', `
+              <div draggable="true" class="draggable">
                 <input type="text" class="attr-key" placeholder="屬性名稱">
                 : <input type="text" class="attr-value" placeholder="屬性值">
                 <button onclick="this.parentElement.remove()">移除</button>
               </div>
             `);
-        }
-        function removeSkill(index) {
-            const container = document.getElementById('editSkills');
-            container.removeChild(container.children[index]);
-        }
-        function addSkill() {
-            const container = document.getElementById('editSkills');
-            container.insertAdjacentHTML('beforeend', `
-              <div>
+    }
+    function removeSkill(index) {
+        const container = document.getElementById('editSkillsList');
+        container.removeChild(container.children[index]);
+    }
+    function addSkill() {
+        const container = document.getElementById('editSkillsList');
+        container.insertAdjacentHTML('beforeend', `
+              <div draggable="true" class="draggable">
                 <input type="text" class="skill-type" placeholder="技能名稱">
                 <input type="number" class="skill-value" placeholder="數值">
                 <button onclick="this.parentElement.remove()">移除</button>
               </div>
             `);
-        }
-        function removeDice(keyToRemove) {
-            const container = document.getElementById('editDiceRolls');
-            container.innerHTML = Array.from(container.querySelectorAll('div'))
-              .filter(div => div.querySelector('.dice-key').value.trim() !== keyToRemove)
-              .map(div => div.outerHTML).join('') +
-              `<button onclick="addDice()">新增擲骰</button>`;
-        }
-        function addDice() {
-            const container = document.getElementById('editDiceRolls');
-            container.insertAdjacentHTML('beforeend', `
-              <div>
+    }
+    function removeDice(keyToRemove) {
+        const container = document.getElementById('editDiceRollsList');
+        container.innerHTML = Array.from(container.querySelectorAll('div'))
+            .filter(div => div.querySelector('.dice-key').value.trim() !== keyToRemove)
+            .map(div => div.outerHTML).join('');
+    }
+    function addDice() {
+        const container = document.getElementById('editDiceRollsList');
+        container.insertAdjacentHTML('beforeend', `
+              <div draggable="true" class="draggable">
                 <input type="text" class="dice-key" placeholder="骰項">
                 : <input type="text" class="dice-value" placeholder="數值">
                 <button onclick="this.parentElement.remove()">移除</button>
               </div>
             `);
-        }
-        function removeNote(index) {
-            const container = document.getElementById('editNotesItems');
-            container.removeChild(container.children[index]);
-        }
-        function addNote() {
-            const container = document.getElementById('editNotesItems');
-            container.insertAdjacentHTML('beforeend', `
-              <div>
+    }
+    function removeNote(index) {
+        const container = document.getElementById('editNotesItemsList');
+        container.removeChild(container.children[index]);
+    }
+    function addNote() {
+        const container = document.getElementById('editNotesItemsList');
+        container.insertAdjacentHTML('beforeend', `
+              <div draggable="true" class="draggable">
                 <input type="text" class="note-label" placeholder="標籤">
                 : <input type="text" class="note-value" placeholder="內容">
                 <button onclick="this.parentElement.remove()">移除</button>
               </div>
             `);
-        }
-        function removePersonality(index) {
-            const container = document.getElementById('editPersonality');
-            container.removeChild(container.children[index]);
-        }
-        function addPersonality() {
-            const container = document.getElementById('editPersonality');
-            container.insertAdjacentHTML('beforeend', `
-              <div>
+    }
+    function removePersonality(index) {
+        const container = document.getElementById('editPersonalityList');
+        container.removeChild(container.children[index]);
+    }
+    function addPersonality() {
+        const container = document.getElementById('editPersonalityList');
+        container.insertAdjacentHTML('beforeend', `
+              <div draggable="true" class="draggable">
                 <input type="text" class="personality-label" placeholder="名稱">
                 <input type="number" class="personality-value" placeholder="數值">
                 <input type="text" class="personality-alt" placeholder="對立">
@@ -737,12 +774,18 @@
                 <button onclick="this.parentElement.remove()">移除</button>
               </div>
             `);
-        }
+    }
 
-        // NEW: Re-render view mode from character
-        function renderViewMode() {
-            const container = document.querySelector('.container');
-            container.innerHTML = `
+    // NEW: In renderViewMode, add conversion steps similarly before using map()
+    function renderViewMode() {
+        if (!Array.isArray(character.attributes.attributesList)) {
+            character.attributes.attributesList = Object.entries(character.attributes.attributesList).map(([key, value]) => ({ key, value }));
+        }
+        if (!Array.isArray(character.diceRolls)) {
+            character.diceRolls = Object.entries(character.diceRolls).map(([key, value]) => ({ key, value }));
+        }
+        const container = document.querySelector('.container');
+        container.innerHTML = `
   <!-- Rebuild the view mode using updated character data -->
   <button id="editBtn" onclick="toggleEditMode()">編輯角色</button>
   <div class="grid">
@@ -760,9 +803,9 @@
           <h3 id="attributeTitle">${character.attributeTitle}</h3>
           <div id="basic-attributes">
               <div class="attribute-group">
-                  ${Object.entries(character.attributes.attributesList).map(([key, value]) => {
-                      return `<span class="attribute">${key}：<span style="color: var(--text-color);">${value}</span></span>`;
-                  }).join('')}
+                  ${character.attributes.attributesList.map(attr =>
+                      `<span class="attribute">${attr.key}：<span style="color: var(--text-color);">${attr.value}</span></span>`
+                  ).join('')}
               </div>
           </div>
       </div>
@@ -788,9 +831,7 @@
           <div id="dice-rolls">
               <!-- Fixed dice-rolls container without invalid inline style -->
               <div class="attribute-group">
-                ${Object.entries(character.diceRolls).map(([key, value]) => {
-                    return `<span class="attribute">${key}：<span style="color: var(--text-color);">${value}</span></span>`;
-                }).join('')}
+                ${character.diceRolls.map(dice => `<span class="attribute">${dice.key}：<span style="color: var(--text-color);">${dice.value}</span></span>`).join('')}
               </div>
           </div>
           <div class="divider"></div>
@@ -831,7 +872,7 @@
             }
         });
     }
-    </script>
+</script>
 </body>
 
 </html>

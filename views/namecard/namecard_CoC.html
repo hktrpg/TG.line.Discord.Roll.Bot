@@ -529,11 +529,11 @@
                     <h3>性格與偏好</h3>
                     <div class="status-item">
                         <i class="fas fa-check icon"></i>
-                        <span>事前準備</span>
+                        <span>活潑開朗</span>
                         <div class="progress-bar">
                             <div class="progress" style="width: 70%"></div>
                         </div>
-                        <span>隨機應變</span>
+                        <span>靜思內省</span>
                     </div>
                     <div class="status-item">
                         <i class="fas fa-star icon"></i>
@@ -541,15 +541,15 @@
                         <div class="progress-bar">
                             <div class="progress" style="width: 60%"></div>
                         </div>
-                        <span>多項才藝</span>
+                        <span>敏銳直觀</span>
                     </div>
                     <div class="status-item">
                         <i class="fas fa-users icon"></i>
-                        <span>邊緣人</span>
+                        <span>理性思維</span>
                         <div class="progress-bar">
                             <div class="progress" style="width: 85%"></div>
                         </div>
-                        <span>社牛</span>
+                        <span>情感共鳴</span>
                     </div>
                 </div>
             </div>
@@ -634,9 +634,9 @@
             personalityPreferencesTitle: '性格與偏好',
             personalityPreferences: {
                 items: [
-                    { label: '事前準備', value: 80, alternative: '隨機應變', icon: icons[0] },
-                    { label: '單一專業', value: 60, alternative: '多項才藝', icon: icons[1] },
-                    { label: '邊緣人', value: 85, alternative: '社牛', icon: icons[2] }
+                    { label: '活潑開朗', value: 70, alternative: '靜思內省', icon: 'fas fa-check' },
+                    { label: '實事求是', value: 60, alternative: '敏銳直觀', icon: 'fas fa-star' },
+                    { label: '理性思維', value: 85, alternative: '情感共鳴', icon: 'fas fa-users' }
                 ]
             }
 
@@ -1107,9 +1107,9 @@
           <div class="player-info">
               <h2 id="characterName">${character.characterName}</h2>
               <div class="info flex-container">
-                  ${character.playerName ? 
+                  ${character.playerName ?
                     `<span class="flex-item${!character.id ? ' solo' : ''}" id="playerName">${character.playerName}</span>` : ''}
-                ${character.id ? 
+                ${character.id ?
                     `<span class="flex-item${!character.playerName ? ' solo' : ''}" id="snsID">${character.id}</span>` : ''}
               </div>
           </div>
@@ -1120,8 +1120,8 @@
           <div id="basic-attributes">
               <div class="attribute-group">
                   ${character.attributes.attributesList.map(attr =>
-                `<span class="attribute">${attr.key}：<span style="color: var(--text-color);">${attr.value}</span></span>`
-            ).join('')}
+                        `<span class="attribute">${attr.key}：<span style="color: var(--text-color);">${attr.value}</span></span>`
+                    ).join('')}
               </div>
           </div>
       </div>
@@ -1310,7 +1310,7 @@
 
                 // Update progress: Complete
                 updateProgress(overlay, 100, '匯出完成！');
-                
+
                 // Remove overlay after a short delay
                 setTimeout(() => {
                     overlay.remove();
@@ -1321,7 +1321,7 @@
                 overlay.querySelector('.progress-text').textContent = '匯出失敗';
                 overlay.querySelector('.progress-status').textContent = '請稍後再試';
                 overlay.querySelector('.progress-bar-fill').style.backgroundColor = '#EF4444';
-                
+
                 setTimeout(() => {
                     overlay.remove();
                 }, 2000);
@@ -1373,9 +1373,9 @@
                         personalityPreferencesTitle: "性格與偏好",
                         personalityPreferences: {
                             items: [
-                                { label: '事前準備', value: 70, alternative: '隨機應變', icon: 'fas fa-check' },
-                                { label: '單一專業', value: 60, alternative: '多項才藝', icon: 'fas fa-star' },
-                                { label: '邊緣人', value: 85, alternative: '社牛', icon: 'fas fa-users' }
+                                { label: '活潑開朗', value: 70, alternative: '靜思內省', icon: 'fas fa-check' },
+                                { label: '實事求是', value: 60, alternative: '敏銳直觀', icon: 'fas fa-star' },
+                                { label: '理性思維', value: 85, alternative: '情感共鳴', icon: 'fas fa-users' }
                             ]
                         }
                     };

@@ -13,8 +13,23 @@
            CSS Variables
         -------------------------------------------------------------------------- */
         :root {
-            /* Colors */
+
+            /* Main Colors */
             --color-primary: #a78bfa;
+            /* **後景色漸層** */
+            --background-gradient-2: linear-gradient(to bottom, var(--color-indigo), var(--color-light-blue));
+            /* **背景色漸層** */
+            --card-background: linear-gradient(to right, var(--color-primary-light), var(--color-primary-lighter));
+            /* **NG, 接受, 喜愛** */
+            --progress-mine: linear-gradient(to right, var(--color-danger), var(--color-danger-dark));
+            --progress-fine: linear-gradient(to right, var(--color-warning), var(--color-warning-light));
+            --progress-bar: rgba(var(--color-primary), 0.2);
+            /* **漸變色** */
+            --progress-gradient: linear-gradient(to right, var(--color-gradient-start), var(--color-gradient-end));
+
+            /* Colors */
+
+
             --color-primary-light: #b5e1fe;
             --color-primary-lighter: #f3f7ff;
             --color-secondary: #ec4899;
@@ -27,7 +42,7 @@
             --color-slot: #f9fafb;
             --color-body: #fda085;
             --color-body-light: #f6d365;
-            --color-gradient-start: var(--color-primary);
+            --color-gradient-start: #a78bfa;
             --color-gradient-end: #e47eb1;
             --color-success: #4ade80;
             --color-info: #22d3ee;
@@ -46,8 +61,7 @@
             /* Backgrounds */
             --background-color: var(--color-background);
             --background-gradient: linear-gradient(135deg, var(--color-body-light) 0%, var(--color-body) 100%);
-            --background-gradient-2: linear-gradient(to bottom, var(--color-indigo), var(--color-light-blue));
-            --card-background: linear-gradient(to right, var(--color-primary-light), var(--color-primary-lighter));
+
 
             /* Borders & Shadows */
             --border-radius: 0.5rem;
@@ -60,10 +74,6 @@
             --fill-color-10: var(--color-danger);
 
             /* Progress Colors */
-            --progress-mine: linear-gradient(to right, var(--color-danger), var(--color-danger-dark));
-            --progress-fine: linear-gradient(to right, var(--color-warning), var(--color-warning-light));
-            --progress-bar: rgba(var(--color-primary), 0.2);
-            --progress-gradient: linear-gradient(to right, var(--color-gradient-start), var(--color-gradient-end));
 
             /* Button Backgrounds */
             --button-share: linear-gradient(to right, var(--color-success), var(--color-info));
@@ -292,7 +302,6 @@
             padding: 0.5rem 1rem;
             border-radius: var(--border-radius);
             background: var(--progress-gradient);
-            color: var(--color-neutral);
             font-size: 0.9rem;
         }
 
@@ -797,6 +806,49 @@
         .color-picker-group label {
             margin-right: 0.5rem;
         }
+
+        #colorSettingsModal {
+            width: 400px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .color-group {
+            margin-bottom: 20px;
+        }
+
+        .color-group h4 {
+            margin: 10px 0;
+            color: var(--color-text-primary);
+        }
+
+        .color-picker-group {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+        }
+
+        .color-picker-group label {
+            min-width: 100px;
+        }
+
+        .color-picker-group input[type="color"] {
+            width: 50px;
+            height: 30px;
+            padding: 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--color-text-secondary);
+        }
     </style>
 </head>
 
@@ -820,18 +872,70 @@
     <div id="colorSettingsModal">
         <div class="modal-header">
             <h3>色彩設定</h3>
-            <button onclick="closeColorSettings()">關閉</button>
+            <button onclick="closeColorSettings()" class="close-btn">×</button>
         </div>
-        <div class="color-picker-group">
-            <label for="primaryColor">主色:</label>
-            <input type="color" id="primaryColor" value="#a78bfa" oninput="updateColor('--primary-color', this.value)">
+        <div class="color-settings">
+            <div class="color-group">
+                <h4>主要顏色</h4>
+                <div class="color-picker-group">
+                    <label>標題文字:</label>
+                    <input type="color" id="primaryColor" value="#a78bfa"
+                        oninput="updateMainColor('--color-primary', this.value)">
+                </div>
+            </div>
+
+            <div class="color-group">
+                <h4>後景色漸層</h4>
+                <div class="color-picker-group">
+                    <label>起始色:</label>
+                    <input type="color" id="bgGradientStart" value="#516ea7"
+                        oninput="updateGradient('background', this.value, document.getElementById('bgGradientEnd').value)">
+                </div>
+                <div class="color-picker-group">
+                    <label>結束色:</label>
+                    <input type="color" id="bgGradientEnd" value="#d6e4ff"
+                        oninput="updateGradient('background', document.getElementById('bgGradientStart').value, this.value)">
+                </div>
+            </div>
+
+            <div class="color-group">
+                <h4>前景色漸層</h4>
+                <div class="color-picker-group">
+                    <label>起始色:</label>
+                    <input type="color" id="cardGradientStart" value="#b5e1fe"
+                        oninput="updateGradient('card', this.value, document.getElementById('cardGradientEnd').value)">
+                </div>
+                <div class="color-picker-group">
+                    <label>結束色:</label>
+                    <input type="color" id="cardGradientEnd" value="#f3f7ff"
+                        oninput="updateGradient('card', document.getElementById('cardGradientStart').value, this.value)">
+                </div>
+            </div>
+
+            <div class="color-group">
+                <h4>進度條顏色</h4>
+                <div class="color-picker-group">
+                    <label>NG色調:</label>
+                    <input type="color" id="mineColor" value="#f71414"
+                        oninput="updateProgressColor('mine', this.value)">
+                </div>
+                <div class="color-picker-group">
+                    <label>接受色調:</label>
+                    <input type="color" id="fineColor" value="#ffcc00"
+                        oninput="updateProgressColor('fine', this.value)">
+                </div>
+                <div class="color-picker-group">
+                    <label>喜愛漸層起始:</label>
+                    <input type="color" id="likeGradientStart" value="#a78bfa"
+                        oninput="updateGradient('progress', this.value, document.getElementById('likeGradientEnd').value)">
+                </div>
+                <div class="color-picker-group">
+                    <label>喜愛漸層結束:</label>
+                    <input type="color" id="likeGradientEnd" value="#e47eb1"
+                    oninput="updateGradient('progress', document.getElementById('likeGradientStart').value, this.value)">
+                </div>
+            </div>
         </div>
-        <div class="color-picker-group">
-            <label for="secondaryColor">次色:</label>
-            <input type="color" id="secondaryColor" value="#ec4899"
-                oninput="updateColor('--secondary-color', this.value)">
-        </div>
-        <!-- 可以根據需求新增更多色彩選項 -->
     </div>
 
     <script>
@@ -1476,9 +1580,9 @@
                     : data.landmines.title}
                     </h2>
                     <p >
-                        紅色代表<span style="color: #f71414;">NG</span>, 
-                        黃色代表<span style="color: #ffcc00;">接受</span>, 
-                        紫色代表<span style="color: #a78bfa;">喜愛</span>
+                        <span style="background: var(--progress-mine);">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>代表NG, 
+                        <span style="background: var(--progress-fine);">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>代表接受, 
+                        <span style="background: var(--progress-gradient);">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>代表喜愛
                     </p>
                     <div class="modules">
                         ${data.landmines.items.map((item, index) => `
@@ -1580,6 +1684,46 @@
 
         function updateColor(cssVar, colorValue) {
             document.documentElement.style.setProperty(cssVar, colorValue);
+        }
+
+        function updateMainColor(variable, value) {
+            document.documentElement.style.setProperty(variable, value);
+        }
+
+        function updateGradient(type, startColor, endColor) {
+            switch (type) {
+                case 'background':
+                    document.documentElement.style.setProperty('--background-gradient-2',
+                        `linear-gradient(to bottom, ${startColor}, ${endColor})`);
+                    break;
+                case 'card':
+                    document.documentElement.style.setProperty('--card-background',
+                        `linear-gradient(to right, ${startColor}, ${endColor})`);
+                    break;
+                case 'progress':
+                    document.documentElement.style.setProperty('--progress-gradient',
+                        `linear-gradient(to right, ${startColor}, ${endColor})`);
+                    break;
+            }
+        }
+
+        function updateProgressColor(type, color) {
+            if (type === 'mine') {
+                document.documentElement.style.setProperty('--progress-mine',
+                    `linear-gradient(to right, ${color}, ${adjustColor(color, -20)})`);
+            } else if (type === 'fine') {
+                document.documentElement.style.setProperty('--progress-fine',
+                    `linear-gradient(to right, ${color}, ${adjustColor(color, 20)})`);
+            }
+        }
+
+        function adjustColor(color, amount) {
+            const hex = color.replace('#', '');
+            const num = parseInt(hex, 16);
+            const r = Math.min(255, Math.max(0, (num >> 16) + amount));
+            const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amount));
+            const b = Math.min(255, Math.max(0, (num & 0x0000FF) + amount));
+            return `#${(r << 16 | g << 8 | b).toString(16).padStart(6, '0')}`;
         }
     </script>
 </body>

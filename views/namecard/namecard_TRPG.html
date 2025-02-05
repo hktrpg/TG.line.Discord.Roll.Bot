@@ -46,6 +46,7 @@
             --btn-export-bg-color: linear-gradient(to right, #10B981, #99bffd);
             --btn-edit-bg-color: linear-gradient(to right, #60a5fa, #f472b6);
             --btn-edit-bg-color-hover: linear-gradient(to right, #3b82f6, #f472b6);
+
         }
 
         body {
@@ -96,6 +97,14 @@
         .no-animations * {
             animation: none !important;
             transition: none !important;
+        }
+
+        .color-btn {
+            background: var(--btn-share-bg-color);
+        }
+
+        .color-btn:hover {
+            opacity: 0.7;
         }
 
         .avatar {
@@ -741,6 +750,45 @@
             color: var(--text-primary-color);
             margin-bottom: 1rem;
         }
+
+        /* 新增：色彩設定彈出視窗樣式 */
+        #colorSettingsModal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            z-index: 1001;
+            display: none;
+        }
+
+        #colorSettingsModal .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #colorSettingsOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+        }
+
+        .color-picker-group {
+            margin: 0.5rem 0;
+        }
+
+        .color-picker-group label {
+            margin-right: 0.5rem;
+        }
     </style>
 </head>
 
@@ -753,6 +801,29 @@
                 <div class="progress-bar-fill" id="progressBarFill"></div>
             </div>
         </div>
+    </div>
+
+    <!-- 新增：色彩設定按鈕 -->
+    <button class="header-btn color-btn" style="position: fixed; top: 10px; right: 10px;"
+        onclick="openColorSettings()">色彩設定</button>
+
+    <!-- 新增：色彩設定彈出視窗及遮罩 -->
+    <div id="colorSettingsOverlay" onclick="closeColorSettings()"></div>
+    <div id="colorSettingsModal">
+        <div class="modal-header">
+            <h3>色彩設定</h3>
+            <button onclick="closeColorSettings()">關閉</button>
+        </div>
+        <div class="color-picker-group">
+            <label for="primaryColor">主色:</label>
+            <input type="color" id="primaryColor" value="#a78bfa" oninput="updateColor('--primary-color', this.value)">
+        </div>
+        <div class="color-picker-group">
+            <label for="secondaryColor">次色:</label>
+            <input type="color" id="secondaryColor" value="#ec4899"
+                oninput="updateColor('--secondary-color', this.value)">
+        </div>
+        <!-- 可以根據需求新增更多色彩選項 -->
     </div>
 
     <script>
@@ -1486,6 +1557,22 @@
 
         // 初始渲染
         renderApp();
+
+        function openColorSettings() {
+            // document.getElementById('colorSettingsOverlay').style.display = 'block';
+            document.getElementById('colorSettingsModal').style.display = 'block';
+            // Removed any blur effect on main view if it was present.
+            // For example: document.getElementById('app').style.filter = 'none';
+        }
+
+        function closeColorSettings() {
+            document.getElementById('colorSettingsOverlay').style.display = 'none';
+            document.getElementById('colorSettingsModal').style.display = 'none';
+        }
+
+        function updateColor(cssVar, colorValue) {
+            document.documentElement.style.setProperty(cssVar, colorValue);
+        }
     </script>
 </body>
 

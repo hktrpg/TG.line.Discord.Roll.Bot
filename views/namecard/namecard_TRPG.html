@@ -9,53 +9,80 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400&display=swap" rel="stylesheet">
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
+        /* --------------------------------------------------------------------------
+           CSS Variables
+        -------------------------------------------------------------------------- */
         :root {
-            --primary-color: #a78bfa;
-            --primary-light-color: #a78bfa;
-            --secondary-color: #ec4899;
-            --secondary-light-color: #f472b6;
-            --gradient-start-color: #a78bfa;
-            --gradient-end-color: #e47eb1;
-            --background-color: #f3f4f6;
-            --card-background-color: var(--card2-bg-color);
-            --text-primary-color: #1f2937;
-            --text-secondary-color: #4b5563;
-            --text-highlight-color: #000;
+            /* Colors */
+            --color-primary: #a78bfa;
+            --color-primary-light: #b5e1fe;
+            --color-primary-lighter: #f3f7ff;
+            --color-secondary: #ec4899;
+            --color-secondary-light: #f472b6;
+            --color-text-primary: #1f2937;
+            --color-text-secondary: #4b5563;
+            --color-text-highlight: #000;
+            --color-neutral: #ffffff;
+            --color-background: #f3f4f6;
+            --color-slot: #f9fafb;
+            --color-body: #fda085;
+            --color-body-light: #f6d365;
+            --color-gradient-start: var(--color-primary);
+            --color-gradient-end: #e47eb1;
+            --color-success: #4ade80;
+            --color-info: #22d3ee;
+            --color-warning: #ffcc00;
+            --color-warning-light: #ff9900;
+            --color-danger: #f71414;
+            --color-danger-dark: #ce1f1f;
+            --color-blue: #60a5fa;
+            --color-blue-dark: #3b82f6;
+            --color-emerald: #10B981;
+            --color-sky: #99bffd;
+            --color-indigo: #516ea7;
+            --color-light-blue: #d6e4ff;
+
+
+            /* Backgrounds */
+            --background-color: var(--color-background);
+            --background-gradient: linear-gradient(135deg, var(--color-body-light) 0%, var(--color-body) 100%);
+            --background-gradient-2: linear-gradient(to bottom, var(--color-indigo), var(--color-light-blue));
+            --card-background: linear-gradient(to right, var(--color-primary-light), var(--color-primary-lighter));
+
+            /* Borders & Shadows */
             --border-radius: 0.5rem;
             --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            --body-bg-color: #fda085;
-            --body-bg-light-color: #f6d365;
-            --neutral-color: #ffffff;
-            --slot-bg-color: #f9fafb;
-            --module-border-color: 1px solid var(--primary-light-color);
-            --filled-50-bg-color: var(--primary-light-color);
-            --filled-25-bg-color: #ff9900;
-            --filled-10-bg-color: #ff3300;
-            --mine-bg-color-start: #f71414;
-            --mine-bg-color-end: #ce1f1f;
-            --mine-bg-color: linear-gradient(to right, var(--mine-bg-color-start), var(--mine-bg-color-end));
-            --fine-bg-color-start: #ffcc00;
-            --fine-bg-color-end: #ff9900;
-            --fine-bg-color: linear-gradient(to right, var(--fine-bg-color-start), var(--fine-bg-color-end));
-            --bar-bg-color: rgba(167, 139, 250, 0.2);
-            --gradient-color: linear-gradient(to right, var(--gradient-start-color), var(--gradient-end-color));
-            --card2-bg-color: linear-gradient(to right, #b5e1fe, #f3f7ff);
-            --bg2-color: linear-gradient(to bottom, #516ea7, #d6e4ff);
-            --bg-color: linear-gradient(135deg, var(--body-bg-light-color) 0%, var(--body-bg-color) 100%);
-            --btn-share-bg-color: linear-gradient(to right, #4ade80, #22d3ee);
-            --btn-export-bg-color: linear-gradient(to right, #10B981, #99bffd);
-            --btn-edit-bg-color: linear-gradient(to right, #60a5fa, #f472b6);
-            --btn-edit-bg-color-hover: linear-gradient(to right, #3b82f6, #f472b6);
+            --border-color: var(--color-primary);
 
+            /* Fill Colors */
+            --fill-color-50: var(--color-primary);
+            --fill-color-25: var(--color-warning);
+            --fill-color-10: var(--color-danger);
+
+            /* Progress Colors */
+            --progress-mine: linear-gradient(to right, var(--color-danger), var(--color-danger-dark));
+            --progress-fine: linear-gradient(to right, var(--color-warning), var(--color-warning-light));
+            --progress-bar: rgba(var(--color-primary), 0.2);
+            --progress-gradient: linear-gradient(to right, var(--color-gradient-start), var(--color-gradient-end));
+
+            /* Button Backgrounds */
+            --button-share: linear-gradient(to right, var(--color-success), var(--color-info));
+            --button-export: linear-gradient(to right, var(--color-emerald), var(--color-sky));
+            --button-edit: linear-gradient(to right, var(--color-blue), var(--color-secondary-light));
+            --button-edit-hover: linear-gradient(to right, var(--color-blue-dark), var(--color-secondary-light));
+            --button-color-edit: linear-gradient(to right, var(--color-primary), var(--color-secondary-light));
         }
 
+        /* --------------------------------------------------------------------------
+           Base & Layout Styles
+        -------------------------------------------------------------------------- */
         body {
             margin: 0;
             min-height: 100vh;
-            background: var(--bg2-color);
+            background: var(--background-gradient-2);
             font-family: 'Noto Sans TC', sans-serif;
             padding: 2rem;
-            color: var(--text-primary-color);
+            color: var(--color-text-primary);
             font-weight: 400;
         }
 
@@ -63,7 +90,7 @@
             max-width: 210mm;
             margin: 0 auto;
             padding: 2rem;
-            background: var(--card-background-color);
+            background: var(--card-background);
             border-radius: var(--border-radius);
             box-shadow: var(--box-shadow);
             display: grid;
@@ -78,7 +105,7 @@
             align-items: center;
             gap: 1rem;
             padding-bottom: 1rem;
-            border-bottom: 2px solid var(--primary-light-color);
+            border-bottom: 2px solid var(--color-primary-light);
         }
 
         .avatar-section {
@@ -99,21 +126,13 @@
             transition: none !important;
         }
 
-        .color-btn {
-            background: var(--btn-share-bg-color);
-        }
-
-        .color-btn:hover {
-            opacity: 0.7;
-        }
-
         .avatar {
             width: 120px;
             /* 增加尺寸 */
             height: 120px;
             /* 增加尺寸 */
             border-radius: 50%;
-            background: var(--gradient-start-color);
+            background: var(--color-gradient-start);
             overflow: hidden;
             margin-bottom: 0.5rem;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
@@ -162,19 +181,19 @@
             margin: 0;
             padding: 0;
             line-height: 1.2;
-            color: var(--primary-color);
+            color: var(--color-primary);
             /* 添加這行確保標題顏色 */
         }
 
         .title p {
             margin: 0.5rem 0 0 0;
-            color: var(--text-secondary-color);
+            color: var(--color-text-secondary);
         }
 
         h1,
         h2,
         h3 {
-            color: var(--primary-color);
+            color: var(--color-primary);
             margin-bottom: 0;
             margin-top: 1rem;
             font-weight: 400;
@@ -182,7 +201,7 @@
 
         .section {
             animation: fadeIn 0.8s ease forwards;
-            background: var(--neutral-color);
+            background: var(--color-neutral);
             padding: 1rem;
             border-radius: var(--border-radius);
             box-shadow: var(--box-shadow);
@@ -201,14 +220,14 @@
             padding: 0.5rem;
             border-radius: var(--border-radius);
             background: var(--background-color);
-            border: var(--module-border-color);
+            border: 1px solid var(--color-primary-light);
             text-align: center;
             overflow: hidden;
             white-space: nowrap;
         }
 
         .progress-bar {
-            background: var(--gradient-color);
+            background: var(--progress-gradient);
             height: 100%;
             border-radius: var(--border-radius);
             position: absolute;
@@ -220,7 +239,11 @@
         .progress-text {
             position: relative;
             z-index: 1;
-            color: var(--text-primary-color);
+            color: var(--color-text-primary);
+        }
+
+        .btn-color {
+            background: var(--button-color-edit);
         }
 
         .time-slots {
@@ -233,14 +256,14 @@
         .time-slot {
             padding: 0.5rem;
             border-radius: var(--border-radius);
-            background: var(--slot-bg-color);
+            background: var(--color-slot);
             text-align: center;
-            border: var(--module-border-color);
+            border: 1px solid var(--color-primary-light);
             transition: all 0.3s ease;
         }
 
         .time-slot-filled {
-            background: var(--gradient-color);
+            background: var(--progress-gradient);
         }
 
         .tools {
@@ -253,8 +276,8 @@
         .tool-item {
             padding: 0.5rem 1rem;
             border-radius: var(--border-radius);
-            background: var(--primary-light-color);
-            color: var(--neutral-color);
+            background: var(--color-primary-light);
+            color: var(--color-neutral);
             font-size: 0.9rem;
         }
 
@@ -268,8 +291,8 @@
         .relationship-type {
             padding: 0.5rem 1rem;
             border-radius: var(--border-radius);
-            background: var(--gradient-color);
-            color: var(--neutral-color);
+            background: var(--progress-gradient);
+            color: var(--color-neutral);
             font-size: 0.9rem;
         }
 
@@ -284,7 +307,7 @@
 
         .new-progressbar {
             position: relative;
-            background: var(--slot-bg-color);
+            background: var(--color-slot);
             border-radius: var(--border-radius);
             overflow: hidden;
             padding: 0.1rem;
@@ -303,22 +326,22 @@
 
         .filled-100 {
             width: 100%;
-            background: var(--gradient-color);
+            background: var(--progress-gradient);
         }
 
         .filled-75 {
             width: 60%;
-            background: var(--gradient-color);
+            background: var(--progress-gradient);
         }
 
         .filled-50 {
             width: 40%;
-            background: var(--gradient-color);
+            background: var(--progress-gradient);
         }
 
         .filled-25 {
             width: 25%;
-            background: var(--gradient-color);
+            background: var(--progress-gradient);
         }
 
         .new-progressbar.nl,
@@ -331,7 +354,7 @@
         .new-progressbar.ccfolia,
         .new-progressbar.discord,
         .new-progressbar.roll20 {
-            background: var(--bar-bg-color);
+            background: var(--progress-bar);
         }
 
         .new-progress.nl,
@@ -344,20 +367,20 @@
         .new-progress.ccfolia,
         .new-progress.discord,
         .new-progress.roll20 {
-            background: var(--primary-color);
+            background: var(--color-primary);
         }
 
 
         .mine-progress {
-            background: var(--mine-bg-color);
+            background: var(--progress-mine);
         }
 
         .fine-progress {
-            background: var(--fine-bg-color);
+            background: var(--progress-fine);
         }
 
         .like-progress {
-            background: var(--gradient-color);
+            background: var(--progress-gradient);
         }
 
         @media (max-width: 768px) {
@@ -373,8 +396,8 @@
             }
         }
 
-        .edit-btn {
-            background: var(--btn-edit-bg-color);
+        .btn--edit {
+            background: var(--button-edit);
             color: white;
             padding: 0.5rem 1rem;
             border-radius: var(--border-radius);
@@ -382,7 +405,7 @@
             transition: all 0.3s ease;
         }
 
-        .edit-btn:hover {
+        .btn--edit:hover {
             opacity: 0.7;
 
         }
@@ -391,13 +414,13 @@
         .edit-mode select {
             width: 100%;
             padding: 0.3rem;
-            border: 1px solid var(--primary-light-color);
+            border: 1px solid var(--color-primary-light);
             border-radius: var(--border-radius);
             background: white;
         }
 
         .save-btn {
-            background: var(--primary-color);
+            background: var(--color-secondary);
             color: white;
             border: none;
             padding: 0.5rem 1rem;
@@ -422,7 +445,7 @@
             align-items: center;
             margin: 5px;
             padding: 5px 10px;
-            background: var(--primary-light-color);
+            background: var(--color-primary-light);
             color: white;
             border-radius: var(--border-radius);
         }
@@ -437,18 +460,25 @@
 
         /* 添加刪除按鈕樣式 */
         .delete-btn {
-            background: #ef4444;
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--color-danger);
             color: white;
             border: none;
-            border-radius: var(--border-radius);
-            padding: 0.2rem 0.5rem;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            margin-left: 0.5rem;
-            font-size: 0.8rem;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
         }
 
         .delete-btn:hover {
-            background: #dc2626;
+            opacity: 0.7;
         }
 
         .input-group {
@@ -460,14 +490,14 @@
         /* 美化編輯模式的樣式 */
         .module-item.editing {
             padding: 1rem;
-            background: var(--neutral-color);
+            background: var(--color-neutral);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .edit-input {
             width: 90%;
             padding: 0.5rem;
-            border: 1px solid var(--primary-light-color);
+            border: 1px solid var(--color-primary-light);
             border-radius: var(--border-radius);
             margin-bottom: 0.5rem;
             font-size: 0.9rem;
@@ -484,13 +514,13 @@
             -webkit-appearance: none;
             width: 16px;
             height: 16px;
-            background: var(--primary-color);
+            background: var(--color-primary);
             border-radius: 50%;
             cursor: pointer;
         }
 
         .add-button {
-            background: var(--gradient-color);
+            background: var(--progress-gradient);
             color: white;
             border: none;
             padding: 0.5rem 1rem;
@@ -505,28 +535,6 @@
             opacity: 0.9;
         }
 
-        .delete-btn {
-            position: absolute;
-            top: 0.5rem;
-            right: 0.5rem;
-            background: #ef4444;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background-color 0.3s ease;
-        }
-
-        .delete-btn:hover {
-            background: #dc2626;
-        }
-
         .edit-section {
             margin-bottom: 1rem;
         }
@@ -534,12 +542,12 @@
         .edit-label {
             display: block;
             margin-bottom: 0.5rem;
-            color: var(--text-secondary-color);
+            color: var(--color-text-secondary);
             font-size: 0.9rem;
         }
 
         .percentage-display {
-            color: var(--primary-color);
+            color: var(--color-primary);
             font-size: 0.9rem;
             text-align: center;
             margin-top: 0.5rem;
@@ -574,7 +582,7 @@
 
 
         .save-btn {
-            background: var(--secondary-color);
+            background: var(--color-secondary);
         }
 
         .save-btn:hover {
@@ -594,14 +602,14 @@
         }
 
         .input-label span {
-            color: var(--text-secondary-color);
+            color: var(--color-text-secondary);
             font-weight: 500;
             min-width: 3rem;
         }
 
         .header-input {
             padding: 0.5rem;
-            border: 1px solid var(--primary-light-color);
+            border: 1px solid var(--color-primary-light);
             border-radius: var(--border-radius);
             background: white;
             font-size: 0.9rem;
@@ -610,7 +618,7 @@
 
         .header-input:focus {
             outline: none;
-            border-color: var(--primary-color);
+            border-color: var(--color-primary);
             box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.2);
         }
 
@@ -624,7 +632,7 @@
             width: 200px;
             /* 調整輸入框寬度 */
             padding: 0.5rem;
-            border: 1px solid var(--primary-light-color);
+            border: 1px solid var(--color-primary-light);
             border-radius: var(--border-radius);
             background: white;
             font-size: 0.9rem;
@@ -634,18 +642,18 @@
 
         .avatar-input:focus {
             outline: none;
-            border-color: var(--primary-color);
+            border-color: var(--color-primary);
             box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.2);
         }
 
         .avatar-label {
-            color: var(--text-secondary-color);
+            color: var(--color-text-secondary);
             font-size: 0.9rem;
             font-weight: 500;
         }
 
-        .export-btn {
-            background: var(--btn-export-bg-color);
+        .btn--export {
+            background: var(--button-export);
             color: white;
             height: 38px;
             min-width: 100px;
@@ -662,27 +670,27 @@
             font-weight: 500;
         }
 
-        .export-btn:hover {
+        .btn--export:hover {
             opacity: 0.7;
         }
 
-        .share-btn {
-            background: var(--btn-share-bg-color);
+        .btn--share {
+            background: var(--button-share);
         }
 
-        .share-btn:hover {
+        .btn--share:hover {
             opacity: 0.7;
         }
 
         .container.exporting {
-            background: var(--card-background-color);
+            background: var(--card-background);
             margin: 0;
             width: 210mm;
             position: relative;
         }
 
         .container.exporting .section {
-            background: var(--neutral-color);
+            background: var(--color-neutral);
         }
 
         .container.exporting .module-item {
@@ -690,22 +698,22 @@
         }
 
         .container.exporting .time-slot:not(.time-slot-filled) {
-            background: var(--slot-bg-color);
-            color: var(--text-primary-color);
+            background: var(--color-slot);
+            color: var(--color-text-primary);
         }
 
         .container.exporting .time-slot.time-slot-filled {
-            background: var(--gradient-color);
-            color: var(--neutral-color);
+            background: var(--progress-gradient);
+            color: var(--color-neutral);
         }
 
         .container.exporting .relationship-type {
-            background: var(--gradient-color);
-            color: var(--neutral-color);
+            background: var(--progress-gradient);
+            color: var(--color-neutral);
         }
 
         .container.exporting .title h1 {
-            color: var(--primary-color);
+            color: var(--color-primary);
             /* 添加這行確保匯出時的標題顏色 */
         }
 
@@ -741,13 +749,13 @@
 
         .progress-bar-fill {
             height: 100%;
-            background: var(--gradient-color);
+            background: var(--progress-gradient);
             width: 0%;
             transition: width 0.3s ease;
         }
 
         .progress-text {
-            color: var(--text-primary-color);
+            color: var(--color-text-primary);
             margin-bottom: 1rem;
         }
 
@@ -757,7 +765,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: #fff;
+            background: var(--color-neutral);
             padding: 1rem;
             border-radius: var(--border-radius);
             box-shadow: var(--box-shadow);
@@ -804,7 +812,7 @@
     </div>
 
     <!-- 新增：色彩設定按鈕 -->
-    <button class="header-btn color-btn" style="position: fixed; top: 10px; right: 10px;"
+    <button class="header-btn btn-color" style="position: fixed; top: 10px; right: 10px;"
         onclick="openColorSettings()">色彩設定</button>
 
     <!-- 新增：色彩設定彈出視窗及遮罩 -->
@@ -1240,13 +1248,13 @@
                         `}
                     </div>
                     <div class="header-buttons">
-                        <button class="header-btn export-btn" onclick="exportToPNG()">
+                        <button class="header-btn btn--export" onclick="exportToPNG()">
                             匯出PNG
                         </button>
-                        <button class="header-btn share-btn" onclick="generateShareLink()">
+                        <button class="header-btn btn--share" onclick="generateShareLink()">
                             分享連結
                         </button>
-                        <button class="header-btn edit-btn" onclick="toggleEditMode()">
+                        <button class="header-btn btn--edit" onclick="toggleEditMode()">
                             ${isEditMode ? '取消編輯' : '編輯'}
                         </button>
                         ${isEditMode ? `
@@ -1467,7 +1475,7 @@
                     ? `<input type="text" id="edit-landmines-title" class="header-input" value="${data.landmines.title}">`
                     : data.landmines.title}
                     </h2>
-                    <p style="color: #1f2937;">
+                    <p >
                         紅色代表<span style="color: #f71414;">NG</span>, 
                         黃色代表<span style="color: #ffcc00;">接受</span>, 
                         紫色代表<span style="color: #a78bfa;">喜愛</span>

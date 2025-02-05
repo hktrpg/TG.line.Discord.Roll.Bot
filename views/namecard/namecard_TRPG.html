@@ -26,17 +26,17 @@
             --progress-bar: rgba(var(--color-primary), 0.2);
             /* **漸變色** */
             --progress-gradient: linear-gradient(to right, var(--color-gradient-start), var(--color-gradient-end));
+            /* **主要文字顏色** */
+            --color-text-primary: #1f2937;
+            /* **ID暱稱文字顏色** */
+            --color-text-secondary: #4b5563;
 
             /* Colors */
-
-
             --color-primary-light: #b5e1fe;
             --color-primary-lighter: #f3f7ff;
             --color-secondary: #ec4899;
             --color-secondary-light: #f472b6;
-            --color-text-primary: #1f2937;
-            --color-text-secondary: #4b5563;
-            --color-text-highlight: #000;
+
             --color-neutral: #ffffff;
             --color-background: #f3f4f6;
             --color-slot: #f9fafb;
@@ -79,7 +79,6 @@
             --button-share: linear-gradient(to right, var(--color-success), var(--color-info));
             --button-export: linear-gradient(to right, var(--color-emerald), var(--color-sky));
             --button-edit: linear-gradient(to right, var(--color-blue), var(--color-secondary-light));
-            --button-edit-hover: linear-gradient(to right, var(--color-blue-dark), var(--color-secondary-light));
             --button-color-edit: linear-gradient(to right, var(--color-primary), var(--color-secondary-light));
         }
 
@@ -882,6 +881,16 @@
                     <input type="color" id="primaryColor" value="#a78bfa"
                         oninput="updateMainColor('--color-primary', this.value)">
                 </div>
+                <div class="color-picker-group">
+                    <label>主要文字:</label>
+                    <input type="color" id="textPrimaryColor" value="#1f2937"
+                        oninput="updateTextColor('primary', this.value)">
+                </div>
+                <div class="color-picker-group">
+                    <label>次要文字:</label>
+                    <input type="color" id="textSecondaryColor" value="#4b5563"
+                        oninput="updateTextColor('secondary', this.value)">
+                </div>
             </div>
 
             <div class="color-group">
@@ -932,7 +941,7 @@
                 <div class="color-picker-group">
                     <label>喜愛漸層結束:</label>
                     <input type="color" id="likeGradientEnd" value="#e47eb1"
-                    oninput="updateGradient('progress', document.getElementById('likeGradientStart').value, this.value)">
+                        oninput="updateGradient('progress', document.getElementById('likeGradientStart').value, this.value)">
                 </div>
             </div>
         </div>
@@ -1029,6 +1038,8 @@
                 },
                 colorSettings: {
                     primaryColor: '#a78bfa',
+                    textPrimary: '#1f2937',    // 新增
+                    textSecondary: '#4b5563',  // 新增
                     background: {
                         start: '#516ea7',
                         end: '#d6e4ff'
@@ -1633,7 +1644,7 @@
                     </div>
                 </section>
             `;
-            
+
             // 更新色彩設定面板的初始值
             if (document.getElementById('colorSettingsModal')) {
                 document.getElementById('primaryColor').value = data.colorSettings.primaryColor;
@@ -1645,6 +1656,8 @@
                 document.getElementById('likeGradientEnd').value = data.colorSettings.progress.end;
                 document.getElementById('mineColor').value = data.colorSettings.progress.mine;
                 document.getElementById('fineColor').value = data.colorSettings.progress.fine;
+                document.getElementById('textPrimaryColor').value = data.colorSettings.textPrimary;
+                document.getElementById('textSecondaryColor').value = data.colorSettings.textSecondary;
             }
 
             // 應用色彩設定
@@ -1757,6 +1770,16 @@
             }
         }
 
+        function updateTextColor(type, color) {
+            if (type === 'primary') {
+                document.documentElement.style.setProperty('--color-text-primary', color);
+                data.colorSettings.textPrimary = color;
+            } else if (type === 'secondary') {
+                document.documentElement.style.setProperty('--color-text-secondary', color);
+                data.colorSettings.textSecondary = color;
+            }
+        }
+
         function adjustColor(color, amount) {
             const hex = color.replace('#', '');
             const num = parseInt(hex, 16);
@@ -1774,6 +1797,8 @@
             updateGradient('progress', cs.progress.start, cs.progress.end);
             updateProgressColor('mine', cs.progress.mine);
             updateProgressColor('fine', cs.progress.fine);
+            updateTextColor('primary', cs.textPrimary);
+            updateTextColor('secondary', cs.textSecondary);
         }
 
         // 在頁面載入時應用色彩設定

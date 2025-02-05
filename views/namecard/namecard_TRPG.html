@@ -1026,6 +1026,23 @@
                         { text: "精神疾病", type: "like-progress" },
                         { text: "藥物", type: "mine-progress" }
                     ]
+                },
+                colorSettings: {
+                    primaryColor: '#a78bfa',
+                    background: {
+                        start: '#516ea7',
+                        end: '#d6e4ff'
+                    },
+                    card: {
+                        start: '#b5e1fe',
+                        end: '#f3f7ff'
+                    },
+                    progress: {
+                        start: '#a78bfa',
+                        end: '#e47eb1',
+                        mine: '#f71414',
+                        fine: '#ffcc00'
+                    }
                 }
             }
         }
@@ -1616,6 +1633,22 @@
                     </div>
                 </section>
             `;
+            
+            // 更新色彩設定面板的初始值
+            if (document.getElementById('colorSettingsModal')) {
+                document.getElementById('primaryColor').value = data.colorSettings.primaryColor;
+                document.getElementById('bgGradientStart').value = data.colorSettings.background.start;
+                document.getElementById('bgGradientEnd').value = data.colorSettings.background.end;
+                document.getElementById('cardGradientStart').value = data.colorSettings.card.start;
+                document.getElementById('cardGradientEnd').value = data.colorSettings.card.end;
+                document.getElementById('likeGradientStart').value = data.colorSettings.progress.start;
+                document.getElementById('likeGradientEnd').value = data.colorSettings.progress.end;
+                document.getElementById('mineColor').value = data.colorSettings.progress.mine;
+                document.getElementById('fineColor').value = data.colorSettings.progress.fine;
+            }
+
+            // 應用色彩設定
+            applyColorSettings();
         }
 
         // 新增輔助函數來保存當前表單值
@@ -1688,6 +1721,7 @@
 
         function updateMainColor(variable, value) {
             document.documentElement.style.setProperty(variable, value);
+            data.colorSettings.primaryColor = value;
         }
 
         function updateGradient(type, startColor, endColor) {
@@ -1695,14 +1729,18 @@
                 case 'background':
                     document.documentElement.style.setProperty('--background-gradient-2',
                         `linear-gradient(to bottom, ${startColor}, ${endColor})`);
+                    data.colorSettings.background = { start: startColor, end: endColor };
                     break;
                 case 'card':
                     document.documentElement.style.setProperty('--card-background',
                         `linear-gradient(to right, ${startColor}, ${endColor})`);
+                    data.colorSettings.card = { start: startColor, end: endColor };
                     break;
                 case 'progress':
                     document.documentElement.style.setProperty('--progress-gradient',
                         `linear-gradient(to right, ${startColor}, ${endColor})`);
+                    data.colorSettings.progress.start = startColor;
+                    data.colorSettings.progress.end = endColor;
                     break;
             }
         }
@@ -1711,9 +1749,11 @@
             if (type === 'mine') {
                 document.documentElement.style.setProperty('--progress-mine',
                     `linear-gradient(to right, ${color}, ${adjustColor(color, -20)})`);
+                data.colorSettings.progress.mine = color;
             } else if (type === 'fine') {
                 document.documentElement.style.setProperty('--progress-fine',
                     `linear-gradient(to right, ${color}, ${adjustColor(color, 20)})`);
+                data.colorSettings.progress.fine = color;
             }
         }
 
@@ -1725,6 +1765,19 @@
             const b = Math.min(255, Math.max(0, (num & 0x0000FF) + amount));
             return `#${(r << 16 | g << 8 | b).toString(16).padStart(6, '0')}`;
         }
+
+        function applyColorSettings() {
+            const cs = data.colorSettings;
+            updateMainColor('--color-primary', cs.primaryColor);
+            updateGradient('background', cs.background.start, cs.background.end);
+            updateGradient('card', cs.card.start, cs.card.end);
+            updateGradient('progress', cs.progress.start, cs.progress.end);
+            updateProgressColor('mine', cs.progress.mine);
+            updateProgressColor('fine', cs.progress.fine);
+        }
+
+        // 在頁面載入時應用色彩設定
+        document.addEventListener('DOMContentLoaded', applyColorSettings);
     </script>
 </body>
 

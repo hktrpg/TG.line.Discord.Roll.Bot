@@ -11,6 +11,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- NEW: Include html2canvas library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rampart+One&family=Noto+Sans+TC:wght@400&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --gradient-start: #60a5fa;
@@ -490,6 +494,17 @@
         .progress-text {
             color: #4a5568;
             margin-bottom: 1rem;
+        }
+
+        .footer {
+            grid-column: span 2;
+            text-align: right;
+            color: var(--color-text-secondary);
+            opacity: 0.7;
+            font-size: 0.8rem;
+            padding: 10px 0 0 0;
+            margin: 0 0 0 0;
+            font-family: "Rampart One", serif;
         }
     </style>
 </head>
@@ -1167,6 +1182,7 @@
               ${renderNotes(character.notes.items.slice(4))}
           </div></div>
       </div>
+        <div class="footer">@HKTRPG 請隨意取用</div>
   ` : ''}
         `;
             // Re-initialize any dynamic elements like the Chart

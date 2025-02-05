@@ -6,8 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TRPG 遊玩喜好卡</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400&display=swap" rel="stylesheet">
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rampart+One&family=Noto+Sans+TC:wght@400&display=swap"
+        rel="stylesheet">
     <style>
         /* --------------------------------------------------------------------------
            CSS Variables
@@ -98,13 +101,13 @@
         .container {
             max-width: 210mm;
             margin: 0 auto;
-            padding: 2rem;
+            padding:  2rem 2rem 0rem 2rem;
             background: var(--card-background);
             border-radius: var(--border-radius);
             box-shadow: var(--box-shadow);
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 2rem;
+            gap: 1.5rem;
             overflow: auto;
         }
 
@@ -230,7 +233,8 @@
             opacity: 0.7;
             font-size: 0.8rem;
             padding: 0 0 0 0;
-            margin:  0 0 0 0 ;
+            margin: 0 0 0 0;
+            font-family: "Rampart One", serif;
         }
 
         .module-item {
@@ -1294,8 +1298,7 @@
 
                 updateProgress(60, '產生圖片中...');
                 const canvas = await html2canvas(container, {
-                    width: container.scrollWidth + 10,
-                    x: -5,
+             
                     allowTaint: true,
                     useCORS: true,
                     backgroundColor: '#f3f3f3',
@@ -1653,7 +1656,7 @@
                         </button>` : ''}
                     </div>
                 </section>
-                <div class="footer">@HKTRPG</div>
+                <div class="footer">@HKTRPG 請隨意取用</div>
             `;
 
             // 更新色彩設定面板的初始值

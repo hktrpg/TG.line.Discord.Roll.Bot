@@ -25,6 +25,7 @@ const cspConfig = {
         "'self'",
         "'unsafe-inline'",
         "https://unpkg.com",
+        "https://html2canvas.hertzen.com",
         "https://fonts.googleapis.com",
         "https://cdnjs.cloudflare.com",
         "https://code.jquery.com",

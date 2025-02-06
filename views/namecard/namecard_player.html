@@ -1,0 +1,1826 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRPG 遊玩喜好卡</title>
+    <meta name="description" content="HKTRPG - 線上TRPG 遊玩喜好卡 - 用於匯出名片">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rampart+One&family=Noto+Sans+TC:wght@400&display=swap"
+        rel="stylesheet">
+    <style>
+        /* --------------------------------------------------------------------------
+           CSS Variables
+        -------------------------------------------------------------------------- */
+        :root {
+
+            /* Main Colors */
+            --color-primary: #a78bfa;
+            /* **後景色漸層** */
+            --background-gradient-2: linear-gradient(to bottom, var(--color-indigo), var(--color-light-blue));
+            /* **背景色漸層** */
+            --card-background: linear-gradient(to right, var(--color-primary-light), var(--color-primary-lighter));
+            /* **NG, 接受, 喜愛** */
+            --progress-mine: linear-gradient(to right, var(--color-danger), var(--color-danger-dark));
+            --progress-fine: linear-gradient(to right, var(--color-warning), var(--color-warning-light));
+            --progress-bar: rgba(var(--color-primary), 0.2);
+            /* **漸變色** */
+            --progress-gradient: linear-gradient(to right, var(--color-gradient-start), var(--color-gradient-end));
+            /* **主要文字顏色** */
+            --color-text-primary: #1f2937;
+            /* **ID暱稱文字顏色** */
+            --color-text-secondary: #4b5563;
+            /* border color */
+            --color-border: #e2e8f0;
+
+            /* Colors */
+            --color-primary-light: #b5e1fe;
+            --color-primary-lighter: #f3f7ff;
+            --color-secondary: #ec4899;
+            --color-secondary-light: #f472b6;
+            --color-neutral: #ffffff;
+            --color-background: #f3f4f6;
+            --color-slot: #f9fafb;
+            --color-body: #fda085;
+            --color-body-light: #f6d365;
+            --color-gradient-start: #a78bfa;
+            --color-gradient-end: #e47eb1;
+            --color-success: #4ade80;
+            --color-info: #22d3ee;
+            --color-warning: #ffcc00;
+            --color-warning-light: #ff9900;
+            --color-danger: #f71414;
+            --color-danger-dark: #ce1f1f;
+            --color-blue: #60a5fa;
+            --color-blue-dark: #3b82f6;
+            --color-emerald: #10B981;
+            --color-sky: #99bffd;
+            --color-indigo: #516ea7;
+            --color-light-blue: #d6e4ff;
+
+
+            /* Backgrounds */
+            --background-color: var(--color-background);
+            --background-gradient: linear-gradient(135deg, var(--color-body-light) 0%, var(--color-body) 100%);
+
+
+            /* Borders & Shadows */
+            --border-radius: 0.5rem;
+            --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+
+            /* Fill Colors */
+            --fill-color-50: var(--color-primary);
+            --fill-color-25: var(--color-warning);
+            --fill-color-10: var(--color-danger);
+
+            /* Progress Colors */
+
+            /* Button Backgrounds */
+            --button-share: linear-gradient(to right, var(--color-success), var(--color-info));
+            --button-export: linear-gradient(to right, var(--color-secondary-light), var(--color-info));
+            --button-edit: linear-gradient(to right, var(--color-emerald), var(--color-sky));
+            --button-color-edit: linear-gradient(to right, var(--color-sky), var(--color-blue));
+        }
+
+        /* --------------------------------------------------------------------------
+           Base & Layout Styles
+        -------------------------------------------------------------------------- */
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--background-gradient-2);
+            font-family: 'Noto Sans TC', sans-serif;
+            padding: 2rem;
+            color: var(--color-text-primary);
+            font-weight: 400;
+        }
+
+        .container {
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 2rem 2rem 0rem 2rem;
+            background: var(--card-background);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            overflow: auto;
+        }
+
+        .header {
+            grid-column: span 2;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--color-border);
+        }
+
+        .avatar-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            width: 250px;
+        }
+
+        .no-animations {
+            animation: none !important;
+            transition: none !important;
+        }
+
+        .no-animations * {
+            animation: none !important;
+            transition: none !important;
+        }
+
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--color-sky);
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar.hidden {
+            display: none;
+        }
+
+        .avatar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .title {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            /* 改為左對齊 */
+        }
+
+        .title h1 {
+            margin: 0;
+            padding: 0;
+            line-height: 1.2;
+            color: var(--color-primary);
+            /* 添加這行確保標題顏色 */
+        }
+
+        .title p {
+            margin: 0.5rem 0 0 0;
+            color: var(--color-text-secondary);
+        }
+
+        h1,
+        h2,
+        h3 {
+            color: var(--color-primary);
+            margin-bottom: 0;
+            margin-top: 1rem;
+            font-weight: 400;
+        }
+
+        .section {
+            animation: fadeIn 0.8s ease forwards;
+            background: var(--color-neutral);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .modules {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .footer {
+            grid-column: span 2;
+            text-align: right;
+            color: var(--color-text-secondary);
+            opacity: 0.7;
+            font-size: 0.8rem;
+            padding: 0 0 0 0;
+            margin: 0 0 0 0;
+            font-family: "Rampart One", serif;
+        }
+
+        .module-item {
+
+            position: relative;
+            padding: 0.5rem;
+            border-radius: var(--border-radius);
+            background: var(--background-color);
+            border: 1px solid var(--color-border);
+            text-align: center;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .progress-bar {
+            background: var(--progress-gradient);
+            height: 100%;
+            border-radius: var(--border-radius);
+            position: absolute;
+            left: 0;
+            top: 0;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            position: relative;
+            z-index: 1;
+            color: var(--color-text-primary);
+        }
+
+        .btn-color {
+            background: var(--button-color-edit);
+        }
+
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .time-slot {
+            padding: 0.5rem;
+            border-radius: var(--border-radius);
+            background: var(--color-slot);
+            text-align: center;
+            border: 1px solid var(--color-border);
+            transition: all 0.3s ease;
+        }
+
+        .time-slot-filled {
+            background: var(--progress-gradient);
+        }
+
+        .tools {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+
+        .tool-item {
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            background: var(--color-primary-light);
+            color: var(--color-text-primary);
+            font-size: 0.9rem;
+        }
+
+        .relationship-types {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .relationship-type {
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            background: var(--progress-gradient);
+            font-size: 0.9rem;
+            border: 1px solid var(--color-border);
+        }
+
+        .text-middle {
+            display: flex;
+            width: 100%;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+            align-items: center;
+            height: 100%;
+        }
+
+        .new-progressbar {
+            position: relative;
+            background: var(--color-slot);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            padding: 0.1rem;
+            margin: 0.5rem 0;
+            height: 2.3rem;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        .new-progress {
+            height: 100%;
+            border-radius: var(--border-radius);
+            transition: width 0.3s ease;
+        }
+
+        .filled-100 {
+            width: 100%;
+            background: var(--progress-gradient);
+        }
+
+        .filled-75 {
+            width: 60%;
+            background: var(--progress-gradient);
+        }
+
+        .filled-50 {
+            width: 40%;
+            background: var(--progress-gradient);
+        }
+
+        .filled-25 {
+            width: 25%;
+            background: var(--progress-gradient);
+        }
+
+        .new-progressbar.nl,
+        .new-progressbar.bl,
+        .new-progressbar.text,
+        .new-progressbar.halftext,
+        .new-progressbar.voice,
+        .new-progressbar.team,
+        .new-progressbar.post,
+        .new-progressbar.ccfolia,
+        .new-progressbar.discord,
+        .new-progressbar.roll20 {
+            background: var(--progress-bar);
+        }
+
+        .new-progress.nl,
+        .new-progress.bl,
+        .new-progress.text,
+        .new-progress.halftext,
+        .new-progress.voice,
+        .new-progress.team,
+        .new-progress.post,
+        .new-progress.ccfolia,
+        .new-progress.discord,
+        .new-progress.roll20 {
+            background: var(--color-primary);
+        }
+
+
+        .mine-progress {
+            background: var(--progress-mine);
+        }
+
+        .fine-progress {
+            background: var(--progress-fine);
+        }
+
+        .like-progress {
+            background: var(--progress-gradient);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                height: auto;
+                width: 100%;
+                padding: 1rem;
+            }
+
+            .header {
+                grid-column: span 1;
+            }
+        }
+
+        .btn--edit {
+            background: var(--button-edit);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn--edit:hover {
+            opacity: 0.7;
+
+        }
+
+        .edit-mode input,
+        .edit-mode select {
+            width: 100%;
+            padding: 0.3rem;
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius);
+            background: white;
+        }
+
+        .save-btn {
+            background: var(--color-secondary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .edit-slider {
+            width: 100%;
+            margin: 5px 0;
+        }
+
+        .edit-select {
+            width: 100%;
+            padding: 5px;
+            margin: 5px 0;
+        }
+
+        .edit-tag {
+            display: inline-flex;
+            align-items: center;
+            margin: 5px;
+            padding: 5px 10px;
+            background: var(--color-primary-light);
+            color: white;
+            border-radius: var(--border-radius);
+        }
+
+        .edit-tag button {
+            margin-left: 5px;
+            border: none;
+            background: none;
+            color: white;
+            cursor: pointer;
+        }
+
+        /* 添加刪除按鈕樣式 */
+        .delete-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--color-danger);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            opacity: 0.7;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            margin: 0.5rem 0;
+        }
+
+        /* 美化編輯模式的樣式 */
+        .module-item.editing {
+            padding: 1rem;
+            background: var(--color-neutral);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .edit-input {
+            width: 90%;
+            padding: 0.5rem;
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .edit-range {
+            width: 100%;
+            height: 6px;
+            background: var(--background-color);
+            border-radius: 3px;
+        }
+
+        .edit-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--color-primary);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .add-button {
+            background: var(--progress-gradient);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            transition: opacity 0.3s ease;
+        }
+
+        .add-button:hover {
+            opacity: 0.9;
+        }
+
+        .edit-section {
+            margin-bottom: 1rem;
+        }
+
+        .edit-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--color-text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .percentage-display {
+            color: var(--color-primary);
+            font-size: 0.9rem;
+            text-align: center;
+            margin-top: 0.5rem;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 0.5rem;
+
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .header-btn {
+            height: 38px;
+            min-width: 100px;
+            padding: 0 1.5rem;
+            border-radius: var(--border-radius);
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            font-weight: 500;
+            color: white;
+        }
+
+
+
+        .save-btn {
+            background: var(--color-secondary);
+        }
+
+        .save-btn:hover {
+            opacity: 0.9;
+        }
+
+        .header-input-group {
+            margin-top: 0.5rem;
+            align-self: flex-start;
+            /* 改為左對齊 */
+        }
+
+        .input-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .input-label span {
+            color: var(--color-text-secondary);
+            font-weight: 500;
+            min-width: 3rem;
+        }
+
+        .header-input {
+            padding: 0.5rem;
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius);
+            background: white;
+            font-size: 0.9rem;
+            width: 150px;
+        }
+
+        .header-input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.2);
+        }
+
+        .avatar-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .avatar-input {
+            width: 200px;
+            /* 調整輸入框寬度 */
+            padding: 0.5rem;
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius);
+            background: white;
+            font-size: 0.9rem;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .avatar-input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.2);
+        }
+
+        .avatar-label {
+            color: var(--color-text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .btn--export {
+            background: var(--button-export);
+            color: white;
+            height: 38px;
+            min-width: 100px;
+            padding: 0 1.5rem;
+            border-radius: var(--border-radius);
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        .btn--export:hover {
+            opacity: 0.7;
+        }
+
+        .btn--share {
+            background: var(--button-share);
+        }
+
+        .btn--share:hover {
+            opacity: 0.7;
+        }
+
+        .container.exporting {
+            background: var(--card-background);
+            margin: 0;
+            width: 210mm;
+            position: relative;
+        }
+
+        .container.exporting .section {
+            background: var(--color-neutral);
+        }
+
+        .container.exporting .module-item {
+            background: var(--background-color);
+        }
+
+        .container.exporting .time-slot:not(.time-slot-filled) {
+            background: var(--color-slot);
+            color: var(--color-text-primary);
+        }
+
+        .container.exporting .time-slot.time-slot-filled {
+            background: var(--progress-gradient);
+            color: var(--color-text-primary);
+        }
+
+        .container.exporting .relationship-type {
+            background: var(--progress-gradient);
+            color: var(--color-text-primary);
+        }
+
+        .container.exporting .title h1 {
+            color: var(--color-primary);
+            /* 添加這行確保匯出時的標題顏色 */
+        }
+
+        .progress-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .progress-content {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            text-align: center;
+            width: 300px;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 10px;
+            background: var(--background-color);
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--progress-gradient);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            color: var(--color-text-primary);
+            margin-bottom: 1rem;
+        }
+
+        /* 新增：色彩設定彈出視窗樣式 */
+        #colorSettingsModal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--color-neutral);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            z-index: 1001;
+            display: none;
+        }
+
+        #colorSettingsModal .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #colorSettingsOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+        }
+
+        .color-picker-group {
+            margin: 0.5rem 0;
+        }
+
+        .color-picker-group label {
+            margin-right: 0.5rem;
+        }
+
+        #colorSettingsModal {
+            width: 400px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .color-group {
+            margin-bottom: 20px;
+        }
+
+        .color-group h4 {
+            margin: 10px 0;
+            color: var(--color-text-primary);
+        }
+
+        .color-picker-group {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+        }
+
+        .color-picker-group label {
+            min-width: 100px;
+        }
+
+        .color-picker-group input[type="color"] {
+            width: 50px;
+            height: 30px;
+            padding: 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--color-text-secondary);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container" id="app"></div>
+    <div class="progress-overlay" id="progressOverlay">
+        <div class="progress-content">
+            <div class="progress-text" id="progressText">準備匯出...</div>
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progressBarFill"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增：色彩設定按鈕 -->
+    <button class="header-btn btn-color" style="position: fixed; top: 10px; right: 10px;"
+        onclick="openColorSettings()">色彩設定</button>
+
+    <!-- 新增：色彩設定彈出視窗及遮罩 -->
+    <div id="colorSettingsOverlay" onclick="closeColorSettings()"></div>
+    <div id="colorSettingsModal">
+        <div class="modal-header">
+            <h3>色彩設定</h3>
+            <button onclick="closeColorSettings()" class="close-btn">×</button>
+        </div>
+        <div class="color-settings">
+            <div class="color-group">
+                <h4>主要顏色</h4>
+                <div class="color-picker-group">
+                    <label>標題文字:</label>
+                    <input type="color" id="primaryColor" value="#a78bfa"
+                        oninput="updateMainColor('--color-primary', this.value)">
+                </div>
+                <div class="color-picker-group">
+                    <label>主要文字:</label>
+                    <input type="color" id="textPrimaryColor" value="#1f2937"
+                        oninput="updateTextColor('primary', this.value)">
+                </div>
+                <div class="color-picker-group">
+                    <label>次要文字:</label>
+                    <input type="color" id="textSecondaryColor" value="#4b5563"
+                        oninput="updateTextColor('secondary', this.value)">
+                </div>
+            </div>
+
+            <div class="color-group">
+                <h4>後景色漸層</h4>
+                <div class="color-picker-group">
+                    <label>起始色:</label>
+                    <input type="color" id="bgGradientStart" value="#516ea7"
+                        oninput="updateGradient('background', this.value, document.getElementById('bgGradientEnd').value)">
+                </div>
+                <div class="color-picker-group">
+                    <label>結束色:</label>
+                    <input type="color" id="bgGradientEnd" value="#d6e4ff"
+                        oninput="updateGradient('background', document.getElementById('bgGradientStart').value, this.value)">
+                </div>
+            </div>
+
+            <div class="color-group">
+                <h4>前景色漸層</h4>
+                <div class="color-picker-group">
+                    <label>起始色:</label>
+                    <input type="color" id="cardGradientStart" value="#b5e1fe"
+                        oninput="updateGradient('card', this.value, document.getElementById('cardGradientEnd').value)">
+                </div>
+                <div class="color-picker-group">
+                    <label>結束色:</label>
+                    <input type="color" id="cardGradientEnd" value="#f3f7ff"
+                        oninput="updateGradient('card', document.getElementById('cardGradientStart').value, this.value)">
+                </div>
+            </div>
+
+            <div class="color-group">
+                <h4>進度條顏色</h4>
+                <div class="color-picker-group">
+                    <label>NG色調:</label>
+                    <input type="color" id="mineColor" value="#f71414"
+                        oninput="updateProgressColor('mine', this.value)">
+                </div>
+                <div class="color-picker-group">
+                    <label>接受色調:</label>
+                    <input type="color" id="fineColor" value="#ffcc00"
+                        oninput="updateProgressColor('fine', this.value)">
+                </div>
+                <div class="color-picker-group">
+                    <label>喜愛漸層起始:</label>
+                    <input type="color" id="likeGradientStart" value="#a78bfa"
+                        oninput="updateGradient('progress', this.value, document.getElementById('likeGradientEnd').value)">
+                </div>
+                <div class="color-picker-group">
+                    <label>喜愛漸層結束:</label>
+                    <input type="color" id="likeGradientEnd" value="#e47eb1"
+                        oninput="updateGradient('progress', document.getElementById('likeGradientStart').value, this.value)">
+                </div>
+            </div>
+            <div class="color-group">
+                <h4>邊框顏色</h4>
+                <div class="color-picker-group">
+                    <label>邊框色調:</label>
+                    <input type="color" id="borderColor" value="#e2e8f0" 
+                        oninput="updateBorderColor(this.value)">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isEditMode = false;
+        let originalData = null; 
+        function getDataFromUrl() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const jsonData = urlParams.get('data');
+                if (jsonData) {
+                    // 先用 atob 解碼 Base64，再用 decodeURIComponent 解碼 UTF-8
+                    const decodedData = JSON.parse(decodeURIComponent(atob(jsonData)));
+                    return decodedData;
+                }
+            } catch (error) {
+                console.error('URL參數解析失敗:', error);
+            }
+            return null;
+        }
+        const data = {
+            ...getDataFromUrl() || {
+                title: "TRPG 遊玩喜好卡",
+                id: "HKTRPG",
+                nickname: "Sad",
+                avatar: "https://images2.imgbox.com/ea/b2/Bn8DmRTW_o.png",
+                availableTimes: {
+                    title: "可約團時間",
+                    slots: [
+                        { text: "平日早上", filled: false },
+                        { text: "平日中午", filled: false },
+                        { text: "平日晚上", filled: true },
+                        { text: "周末早上", filled: false },
+                        { text: "周末中午", filled: true },
+                        { text: "周末晚上", filled: true }
+                    ]
+                },
+                playStyles: {
+                    title: "遊玩方式",
+                    styles: ["語音", "面團", "文字", "文字+語音"]
+                },
+                platforms: {
+                    title: "跑團平台",
+                    list: ["CCFOLIA", "Discord", "Roll20", "Google Sheet", "FVTT", "不限"]
+                },
+                relationships: {
+                    title: "關係扮演傾向",
+                    types: [
+                        { text: "友情關係", fill: "filled-100" },
+                        { text: "情人關係", fill: "filled-25" },
+                        { text: "搭檔關係", fill: "filled-100" }
+                    ]
+                },
+                orientations: {
+                    title: "愛情傾向",
+                    types: [
+                        { text: "NL", percentage: 100 },
+                        { text: "BL", percentage: 0 },
+                        { text: "GL", percentage: 25 }
+                    ]
+                },
+                message: {
+                    title: "想說的話",
+                    content: "我是SAD, 大家多多指教"
+                },
+                preferredModules: {
+                    title: "偏好模組類型",
+                    modules: [
+                        { text: "傳統經典", percentage: 75 },
+                        { text: "恐怖", percentage: 100 },
+                        { text: "懸疑推理", percentage: 75 },
+                        { text: "戰鬥", percentage: 25 },
+                        { text: "輕鬆歡樂", percentage: 60 },
+                        { text: "情感豐富", percentage: 40 },
+                        { text: "戀愛互動", percentage: 25 },
+                        { text: "現代怪談", percentage: 80 },
+                        { text: "密室", percentage: 10 }
+                    ]
+                },
+                landmines: {
+                    title: "喜好/地雷題材",
+                    items: [
+                        { text: "PVP", type: "fine-progress" },
+                        { text: "血腥", type: "like-progress" },
+                        { text: "性描述", type: "fine-progress" },
+                        { text: "獵奇", type: "fine-progress" },
+                        { text: "虐待兒童", type: "mine-progress" },
+                        { text: "LOST", type: "like-progress" },
+                        { text: "精神疾病", type: "like-progress" },
+                        { text: "藥物", type: "fine-progress" }
+                    ]
+                },
+                colorSettings: {
+                    primaryColor: '#4c51bf',
+                    textPrimary: '#1f2937',    
+                    textSecondary: '#4b5563',  
+                    background: {
+                        start: '#b4ccf0',
+                        end: '#f4f9ff'
+                    },
+                    card: {
+                        start: '#b8d0ff',
+                        end: '#f3f7ff'
+                    },
+                    progress: {
+                        start: '#d8e6ff',
+                        end: '#cae1ff',
+                        mine: '#f71414',
+                        fine: '#ffcc00'
+                    },
+                    borderColor: '#b5e1fe'  
+                }
+            }
+        }
+        function generateShareLink() {
+            try {
+                const jsonString = JSON.stringify(data);
+                // 使用 encodeURIComponent 進行 UTF-8 編碼
+                const base64Data = btoa(encodeURIComponent(jsonString));
+                const currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.set('data', base64Data);
+
+                const shareUrl = currentUrl.toString();
+                alert('分享連結已複製到剪貼簿!\n' + shareUrl);
+                navigator.clipboard.writeText(shareUrl);
+            } catch (error) {
+                console.error('產生分享連結失敗:', error);
+                alert('產生分享連結失敗');
+            }
+        }
+
+        function toggleEditMode() {
+            if (!isEditMode) {
+                // 進入編輯模式時，備份當前資料
+                originalData = JSON.parse(JSON.stringify(data));
+            } else {
+                // 取消編輯時，恢復原始資料
+                if (originalData) {
+                    data.title = originalData.title;
+                    data.id = originalData.id;
+                    data.nickname = originalData.nickname;
+                    data.avatar = originalData.avatar;
+                    data.playStyles.styles = [...originalData.playStyles.styles];
+                    data.platforms.list = [...originalData.platforms.list];
+                    data.availableTimes.slots = originalData.availableTimes.slots.map(slot => ({ ...slot }));
+                    data.relationships.types = originalData.relationships.types.map(type => ({ ...type }));
+                    data.orientations.types = originalData.orientations.types.map(type => ({ ...type }));
+                    data.preferredModules.modules = originalData.preferredModules.modules.map(module => ({ ...module }));
+                    data.landmines.items = originalData.landmines.items.map(item => ({ ...item }));
+                    data.message.content = originalData.message.content;
+                }
+                originalData = null;
+            }
+            isEditMode = !isEditMode;
+            renderApp();
+        }
+
+        function saveData() {
+            // 保存標題
+            data.title = document.getElementById('edit-title').value;
+            data.id = document.getElementById('edit-id').value;
+            data.nickname = document.getElementById('edit-nickname').value;
+            data.avatar = document.getElementById('edit-avatar').value;
+
+            // 保存可約團時間
+            data.availableTimes.slots = Array.from(document.getElementsByClassName('time-slot-edit'))
+                .map(checkbox => ({
+                    text: checkbox.getAttribute('data-text'),
+                    filled: checkbox.checked
+                }));
+
+            // 保存遊玩方式 (過濾空白)
+            data.playStyles.styles = Array.from(document.getElementsByClassName('play-style-edit'))
+                .map(input => input.value.trim())
+                .filter(value => value !== '');
+
+            // 保存跑團平台 (過濾空白)
+            data.platforms.list = Array.from(document.getElementsByClassName('platform-edit'))
+                .map(input => input.value.trim())
+                .filter(value => value !== '');
+
+            // 保存關係扮演傾向
+            data.relationships.types = Array.from(document.getElementsByClassName('relationship-edit'))
+                .map(el => ({
+                    text: el.closest('.module-item').querySelector('.edit-input').value,
+                    fill: `filled-${el.value}`
+                }));
+
+            // 保存性向傾向
+            data.orientations.types = Array.from(document.getElementsByClassName('orientation-edit'))
+                .map(el => ({
+                    text: el.closest('.module-item').querySelector('.edit-input').value,
+                    percentage: parseInt(el.value)
+                }));
+
+            // 保存偏好模組類型
+            data.preferredModules.modules = Array.from(document.getElementsByClassName('module-edit'))
+                .map(el => ({
+                    text: el.closest('.module-item').querySelector('.edit-input').value,
+                    percentage: parseInt(el.value)
+                }));
+
+            // 保存喜好/地雷題材
+            data.landmines.items = Array.from(document.getElementsByClassName('landmine-edit'))
+                .map(el => ({
+                    text: el.closest('.module-item').querySelector('.edit-input').value,
+                    type: el.value
+                }));
+
+            // 保存想說的話內容
+            const messageTextarea = document.querySelector('textarea.edit-input');
+            if (messageTextarea) {
+                data.message.content = messageTextarea.value;
+            }
+
+            // 保存各個區塊的標題
+            data.availableTimes.title = document.getElementById('edit-availableTimes-title').value;
+            data.playStyles.title = document.getElementById('edit-playStyles-title').value;
+            data.platforms.title = document.getElementById('edit-platforms-title').value;
+            data.relationships.title = document.getElementById('edit-relationships-title').value;
+            data.orientations.title = document.getElementById('edit-orientations-title').value;
+            data.message.title = document.getElementById('edit-message-title').value;
+            data.preferredModules.title = document.getElementById('edit-preferredModules-title').value;
+            data.landmines.title = document.getElementById('edit-landmines-title').value;
+
+            isEditMode = false;
+            renderApp();
+        }
+        function deletePlayStyle(index) {
+            data.playStyles.styles.splice(index, 1);
+            renderApp();
+        }
+
+        function deletePlatform(index) {
+            data.platforms.list.splice(index, 1);
+            renderApp();
+        }
+
+        // 添加新增array
+        function addRelationshipType() {
+            saveCurrentFormState();
+            data.relationships.types.push({ text: "新關係", fill: "filled-0" });
+            renderApp();
+        }
+
+        function addOrientation() {
+            saveCurrentFormState();
+            data.orientations.types.push({ text: "新傾向", percentage: 50 });
+            renderApp();
+        }
+
+        function addPreferredModule() {
+            saveCurrentFormState();
+            data.preferredModules.modules.push({ text: "新偏好", percentage: 50 });
+            renderApp();
+        }
+
+        function addLandmine() {
+            saveCurrentFormState();
+            data.landmines.items.push({ text: "新題材", type: "fine-progress" });
+            renderApp();
+        }
+
+        // 添加刪除array
+        function deleteRelationshipType(index) {
+            data.relationships.types.splice(index, 1);
+            renderApp();
+        }
+
+        function deleteOrientation(index) {
+            data.orientations.types.splice(index, 1);
+            renderApp();
+        }
+
+        function deletePreferredModule(index) {
+            data.preferredModules.modules.splice(index, 1);
+            renderApp();
+        }
+
+        function deleteLandmine(index) {
+            data.landmines.items.splice(index, 1);
+            renderApp();
+        }
+
+
+
+        async function proxyImage(url) {
+            try {
+                const response = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(url));
+                const blob = await response.blob();
+                return await blobToBase64(blob);
+            } catch (error) {
+                console.error('Image proxy error:', error);
+                return null;
+            }
+        }
+
+        function blobToBase64(blob) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        // Add imageCache object
+        const imageCache = {
+            base64: null,
+            url: null
+        };
+
+
+        async function exportToPNG() {
+            const overlay = document.getElementById('progressOverlay');
+            const progressText = document.getElementById('progressText');
+            const progressBarFill = document.getElementById('progressBarFill');
+            const headerButtons = document.querySelector('.header-buttons');
+            const buttonsHTML = headerButtons.innerHTML;
+            headerButtons.innerHTML = '';
+
+            try {
+                overlay.style.display = 'flex';
+                updateProgress(10, '準備圖片資源...');
+
+                // Use cached image or fetch new one
+                if (!imageCache.base64 || imageCache.url !== data.avatar) {
+                    updateProgress(20, '載入頭像圖片...');
+                    imageCache.base64 = await proxyImage(data.avatar);
+                    imageCache.url = data.avatar;
+                }
+
+                updateProgress(40, '準備轉換為圖片...');
+                const container = document.querySelector('.container');
+                container.classList.add('exporting');
+                container.classList.add('no-animations');
+
+                updateProgress(60, '產生圖片中...');
+                const canvas = await html2canvas(container, {
+
+                    allowTaint: true,
+                    useCORS: true,
+                    backgroundColor: '#f3f3f3',
+                    scale: 2,
+                    onclone: (doc) => {
+                        const avatarImg = doc.querySelector('.avatar img');
+                        if (avatarImg && imageCache.base64) {
+                            avatarImg.src = imageCache.base64;
+                        }
+                    }
+                });
+
+                updateProgress(80, '準備下載...');
+                const link = document.createElement('a');
+                link.download = `${data.id}_TRPG_Card.png`;
+                link.href = canvas.toDataURL('image/png', 1.0);
+
+                updateProgress(90, '完成中...');
+                setTimeout(() => {
+                    link.click();
+                    updateProgress(100, '匯出完成！');
+                    setTimeout(() => {
+                        overlay.style.display = 'none';
+                        progressBarFill.style.width = '0%';
+                    }, 1000);
+                }, 500);
+
+            } catch (error) {
+                console.error('匯出失敗:', error);
+                alert('匯出失敗，請稍後再試。');
+                overlay.style.display = 'none';
+            } finally {
+                const container = document.querySelector('.container');
+                container.classList.remove('exporting');
+                container.classList.remove('no-animations');
+                headerButtons.innerHTML = buttonsHTML;
+            }
+        }
+
+        function updateProgress(percentage, text) {
+            const progressBarFill = document.getElementById('progressBarFill');
+            const progressText = document.getElementById('progressText');
+            progressBarFill.style.width = `${percentage}%`;
+            progressText.textContent = text;
+        }
+
+        // Update avatar image rendering in renderApp():
+
+        function renderApp() {
+            document.getElementById('app').innerHTML = `
+                <div class="header">
+                    <div class="avatar-section">
+                        <div class="avatar ${data.avatar ? '' : 'hidden'}">
+        <img src="${imageCache.base64 || data.avatar}" 
+             alt="Avatar" 
+             style="width: 100%; height: 100%; object-fit: cover;"
+             onerror="this.onerror=null; this.src='${data.avatar}';">
+    </div>
+                        ${isEditMode ? `
+                            <div class="avatar-input-group">
+                                <label class="avatar-label">頭像網址</label>
+                                <input type="text" id="edit-avatar" class="avatar-input" 
+                                    value="${data.avatar}" 
+                                    placeholder="輸入圖片網址">
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="title">
+                        ${isEditMode ? `
+                            <div class="header-input-group">
+                                <label class="input-label">
+                                    <span>標題:</span>
+                                    <input type="text" id="edit-title" class="header-input" value="${data.title}">
+                                </label>
+                            </div>
+                        ` : `
+                            <h1>${data.title}</h1>
+                        `}
+                        ${isEditMode ? `
+                            <div class="header-input-group">
+                                <label class="input-label">
+                                    <span>ID:</span>
+                                    <input type="text" id="edit-id" class="header-input" value="${data.id}">
+                                </label>
+                                <label class="input-label">
+                                    <span>暱稱:</span>
+                                    <input type="text" id="edit-nickname" class="header-input" value="${data.nickname}">
+                                </label>
+                            </div>
+                        ` : `
+                            <p style="margin-top: 0.5rem;">ID: ${data.id} | 暱稱: ${data.nickname}</p>
+                        `}
+                    </div>
+                    <div class="header-buttons">
+                        <button class="header-btn btn--export" onclick="exportToPNG()">
+                            匯出PNG
+                        </button>
+                        <button class="header-btn btn--share" onclick="generateShareLink()">
+                            分享連結
+                        </button>
+                        <button class="header-btn btn--edit" onclick="toggleEditMode()">
+                            ${isEditMode ? '取消編輯' : '編輯'}
+                        </button>
+                        ${isEditMode ? `
+                            <button class="header-btn save-btn" onclick="saveData()">儲存更改</button>
+                        ` : ''}
+                    </div>
+                </div>
+                <section class="section">
+                     <h2>
+                        ${isEditMode
+                    ? `<input type="text" id="edit-availableTimes-title" class="header-input" value="${data.availableTimes.title}">`
+                    : data.availableTimes.title}
+                    </h2>
+                    <div class="time-slots">
+                        ${data.availableTimes.slots.map(slot => `
+                            ${isEditMode ? `
+                                <label class="time-slot">
+                                    <input type="checkbox" class="time-slot-edit" 
+                                        data-text="${slot.text}"
+                                        ${slot.filled ? 'checked' : ''}>
+                                    ${slot.text}
+                                </label>
+                            ` : `
+                                <div class="time-slot ${slot.filled ? 'time-slot-filled' : ''}">${slot.text}</div>
+                            `}
+                        `).join('')}
+                    </div>
+                    <h2>
+                        ${isEditMode
+                    ? `<input type="text" id="edit-playStyles-title" class="header-input" value="${data.playStyles.title}">`
+                    : data.playStyles.title}
+                    </h2>
+                    <div class="modules">
+                        ${isEditMode ? `
+                            ${data.playStyles.styles.map((style, index) => `
+                                <div class="module-item editing">
+                                    <button class="delete-btn" onclick="deletePlayStyle(${index})">×</button>
+                                    <div class="edit-section">
+                                        <label class="edit-label">遊玩方式</label>
+                                        <input type="text" class="play-style-edit edit-input" value="${style}" 
+                                            onchange="data.playStyles.styles[${index}] = this.value">
+                                    </div>
+                                </div>
+                            `).join('')}
+                            <button class="add-button" onclick="addPlayStyle()">
+                                <i class="fas fa-plus"></i> 新增方式
+                            </button>
+                        ` : `
+                            ${data.playStyles.styles.filter(style => style.trim() !== '').map(style => `
+                                <div class="relationship-type">${style}</div>
+                            `).join('')}
+                        `}
+                    </div>
+                    
+                    <h2>
+                        ${isEditMode
+                    ? `<input type="text" id="edit-platforms-title" class="header-input" value="${data.platforms.title}">`
+                    : data.platforms.title}
+                    </h2>
+                    <div class="modules">
+                        ${isEditMode ? `
+                            ${data.platforms.list.map((platform, index) => `
+                                <div class="module-item editing">
+                                    <button class="delete-btn" onclick="deletePlatform(${index})">×</button>
+                                    <div class="edit-section">
+                                        <label class="edit-label">平台名稱</label>
+                                        <input type="text" class="platform-edit edit-input" value="${platform}"
+                                            onchange="data.platforms.list[${index}] = this.value">
+                                    </div>
+                                </div>
+                            `).join('')}
+                            <button class="add-button" onclick="addPlatform()">
+                                <i class="fas fa-plus"></i> 新增平台
+                            </button>
+                        ` : `
+                            ${data.platforms.list.filter(platform => platform.trim() !== '').map(platform => `
+                                <div class="relationship-type">${platform}</div>
+                            `).join('')}
+                        `}
+                    </div>
+                </section>
+               
+           
+                <section class="section">
+                    <h2>
+                        ${isEditMode
+                    ? `<input type="text" id="edit-relationships-title" class="header-input" value="${data.relationships.title}">`
+                    : data.relationships.title}
+                    </h2>
+                    <div class="modules">
+                        ${data.relationships.types.map((type, index) => `
+                            ${isEditMode ? `
+                                <div class="module-item editing">
+                                    <button class="delete-btn" onclick="deleteRelationshipType(${index})">×</button>
+                                    <div class="edit-section">
+                                        <label class="edit-label">關係名稱</label>
+                                        <input type="text" class="edit-input" value="${type.text}" 
+                                            onchange="data.relationships.types[${index}].text = this.value">
+                                    </div>
+                                    <div class="edit-section">
+                                        <label class="edit-label">關係程度</label>
+                                        <select class="edit-input relationship-edit" data-text="${type.text}">
+                                            <option value="0" ${type.fill === 'filled-0' ? 'selected' : ''}>無</option>
+                                            <option value="25" ${type.fill === 'filled-25' ? 'selected' : ''}>低</option>
+                                            <option value="50" ${type.fill === 'filled-50' ? 'selected' : ''}>中</option>
+                                            <option value="75" ${type.fill === 'filled-75' ? 'selected' : ''}>高</option>
+                                            <option value="100" ${type.fill === 'filled-100' ? 'selected' : ''}>極高</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            ` : `
+                                <div class="module-item">
+                                    <div class="progress-bar ${type.fill}"></div>
+                                    <span class="progress-text">${type.text}</span>
+                                </div>
+                            `}
+                        `).join('')}
+                        ${isEditMode ? `<button class="add-button" onclick="addRelationshipType()">
+                            <i class="fas fa-plus"></i> 新增關係
+                        </button>` : ''}
+                    </div>
+
+                    <h2>
+                        ${isEditMode
+                    ? `<input type="text" id="edit-orientations-title" class="header-input" value="${data.orientations.title}">`
+                    : data.orientations.title}
+                    </h2>
+                    <div class="modules">
+                        ${data.orientations.types.map((orientation, index) => `
+                            ${isEditMode ? `
+                                <div class="module-item editing">
+                                    <button class="delete-btn" onclick="deleteOrientation(${index})">×</button>
+                                    <div class="edit-section">
+                                        <label class="edit-label">性向名稱</label>
+                                        <input type="text" class="edit-input" value="${orientation.text}" 
+                                            onchange="data.orientations.types[${index}].text = this.value">
+                                    </div>
+                                    <div class="edit-section">
+                                        <label class="edit-label">傾向程度</label>
+                                        <input type="range" class="orientation-edit edit-slider" 
+                                            data-text="${orientation.text}"
+                                            value="${orientation.percentage}" 
+                                            min="0" max="100"
+                                            oninput="this.nextElementSibling.textContent = this.value + '%'">
+                                        <div class="percentage-display">${orientation.percentage}%</div>
+                                    </div>
+                                </div>
+                            ` : `
+                                <div class="module-item">
+                                    <div class="progress-bar" style="width: ${orientation.percentage}%;"></div>
+                                    <span class="progress-text">${orientation.text}</span>
+                                </div>
+                            `}
+                        `).join('')}
+                        ${isEditMode ? `<button class="add-button" onclick="addOrientation()">
+                            <i class="fas fa-plus"></i> 新增性向
+                        </button>` : ''}
+                    </div>
+                      <h2>
+                        ${isEditMode
+                    ? `<input type="text" id="edit-message-title" class="header-input" value="${data.message.title}">`
+                    : data.message.title}
+                    </h2>
+                    ${isEditMode ? `
+                        <div class="module-item editing">
+                            <div class="edit-section">
+                                <textarea class="edit-input" style="width: 100%; min-height: 60px;" 
+                                    onchange="data.message.content = this.value">${data.message.content}</textarea>
+                            </div>
+                        </div>
+                    ` : `
+                        <div class="module-item" style="text-align: left; padding: 1rem;">
+                            ${data.message.content}
+                        </div>
+                    `}
+                </section>
+                <section class="section">
+                    <h2>
+                        ${isEditMode
+                    ? `<input type="text" id="edit-preferredModules-title" class="header-input" value="${data.preferredModules.title}">`
+                    : data.preferredModules.title}
+                    </h2>
+                    <div class="modules">
+                        ${data.preferredModules.modules.map((module, index) => `
+                            ${isEditMode ? `
+                                <div class="module-item editing">
+                                    <button class="delete-btn" onclick="deletePreferredModule(${index})">×</button>
+                                    <div class="edit-section">
+                                        <label class="edit-label">模組名稱</label>
+                                        <input type="text" class="edit-input" value="${module.text}" 
+                                            onchange="data.preferredModules.modules[${index}].text = this.value">
+                                    </div>
+                                    <div class="edit-section">
+                                        <label class="edit-label">喜好程度</label>
+                                        <input type="range" class="module-edit edit-slider" 
+                                            data-text="${module.text}"
+                                            value="${module.percentage}" 
+                                            min="0" max="100"
+                                            oninput="this.nextElementSibling.textContent = this.value + '%'">
+                                        <div class="percentage-display">${module.percentage}%</div>
+                                    </div>
+                                </div>
+                            ` : `
+                                <div class="module-item">
+                                    <div class="progress-bar" style="width: ${module.percentage}%;"></div>
+                                    <span class="progress-text">${module.text} (${module.percentage}%)</span>
+                                </div>
+                            `}
+                        `).join('')}
+                        ${isEditMode ? `<button class="add-button" onclick="addPreferredModule()">
+                            <i class="fas fa-plus"></i> 新增模組
+                        </button>` : ''}
+                    </div>
+                    </section>
+<section class="section">
+                    <h2>
+                        ${isEditMode
+                    ? `<input type="text" id="edit-landmines-title" class="header-input" value="${data.landmines.title}">`
+                    : data.landmines.title}
+                    </h2>
+                    <p >
+                        <span style="background: var(--progress-mine);">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>代表NG, 
+                        <span style="background: var(--progress-fine);">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>代表接受, 
+                        <span style="background: var(--progress-gradient);">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>代表喜愛
+                    </p>
+                    <div class="modules">
+                        ${data.landmines.items.map((item, index) => `
+                            ${isEditMode ? `
+                                <div class="module-item editing">
+                                    <button class="delete-btn" onclick="deleteLandmine(${index})">×</button>
+                                    <div class="edit-section">
+                                        <label class="edit-label">題材名稱</label>
+                                        <input type="text" class="edit-input" value="${item.text}" 
+                                            onchange="data.landmines.items[${index}].text = this.value">
+                                    </div>
+                                    <div class="edit-section">
+                                        <label class="edit-label">接受程度</label>
+                                        <select class="edit-input landmine-edit" data-text="${item.text}">
+                                            <option value="mine-progress" ${item.type === 'mine-progress' ? 'selected' : ''}>NG</option>
+                                            <option value="fine-progress" ${item.type === 'fine-progress' ? 'selected' : ''}>接受</option>
+                                            <option value="like-progress" ${item.type === 'like-progress' ? 'selected' : ''}>喜愛</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            ` : `
+                                <div class="module-item">
+                                    <div class="progress-bar ${item.type}" style="width: 100%;"></div>
+                                    <span class="progress-text">${item.text}</span>
+                                </div>
+                            `}
+                        `).join('')}
+                        ${isEditMode ? `<button class="add-button" onclick="addLandmine()">
+                            <i class="fas fa-plus"></i> 新增題材
+                        </button>` : ''}
+                    </div>
+                </section>
+                <div class="footer">@player.HKTRPG.com 請隨意取用</div>
+            `;
+
+            if (document.getElementById('colorSettingsModal')) {
+                document.getElementById('primaryColor').value = data.colorSettings.primaryColor;
+                document.getElementById('bgGradientStart').value = data.colorSettings.background.start;
+                document.getElementById('bgGradientEnd').value = data.colorSettings.background.end;
+                document.getElementById('cardGradientStart').value = data.colorSettings.card.start;
+                document.getElementById('cardGradientEnd').value = data.colorSettings.card.end;
+                document.getElementById('likeGradientStart').value = data.colorSettings.progress.start;
+                document.getElementById('likeGradientEnd').value = data.colorSettings.progress.end;
+                document.getElementById('mineColor').value = data.colorSettings.progress.mine;
+                document.getElementById('fineColor').value = data.colorSettings.progress.fine;
+                document.getElementById('textPrimaryColor').value = data.colorSettings.textPrimary;
+                document.getElementById('textSecondaryColor').value = data.colorSettings.textSecondary;
+                document.getElementById('borderColor').value = data.colorSettings.borderColor;
+            }
+
+            applyColorSettings();
+        }
+
+        function saveCurrentFormState() {
+            // 保存頭像和基本資訊
+            data.title = document.getElementById('edit-title')?.value || data.title;
+            data.id = document.getElementById('edit-id')?.value || data.id;
+            data.nickname = document.getElementById('edit-nickname')?.value || data.nickname;
+            data.avatar = document.getElementById('edit-avatar')?.value || data.avatar;
+
+            // 保存區段標題
+            const sections = ['availableTimes', 'playStyles', 'platforms', 'relationships',
+                'orientations', 'message', 'preferredModules', 'landmines'];
+            sections.forEach(section => {
+                const titleInput = document.getElementById(`edit-${section}-title`);
+                if (titleInput) data[section].title = titleInput.value;
+            });
+
+            // 保存可約團時間
+            Array.from(document.getElementsByClassName('time-slot-edit')).forEach((checkbox, index) => {
+                if (index < data.availableTimes.slots.length) {
+                    data.availableTimes.slots[index].filled = checkbox.checked;
+                }
+            });
+
+            // 保存遊玩方式
+            const playStyles = Array.from(document.getElementsByClassName('play-style-edit'))
+                .map(input => input.value);
+            if (playStyles.length) data.playStyles.styles = playStyles;
+
+            // 保存跑團平台
+            const platforms = Array.from(document.getElementsByClassName('platform-edit'))
+                .map(input => input.value);
+            if (platforms.length) data.platforms.list = platforms;
+
+         
+        }
+
+        function addPlayStyle() {
+            saveCurrentFormState();
+            data.playStyles.styles.push('');
+            renderApp();
+        }
+
+        function addPlatform() {
+            saveCurrentFormState();
+            data.platforms.list.push('');
+            renderApp();
+        }
+
+        renderApp();
+
+        function openColorSettings() {
+            // document.getElementById('colorSettingsOverlay').style.display = 'block';
+            document.getElementById('colorSettingsModal').style.display = 'block';
+
+        }
+
+        function closeColorSettings() {
+            document.getElementById('colorSettingsOverlay').style.display = 'none';
+            document.getElementById('colorSettingsModal').style.display = 'none';
+        }
+
+        function updateColor(cssVar, colorValue) {
+            document.documentElement.style.setProperty(cssVar, colorValue);
+        }
+
+        function updateMainColor(variable, value) {
+            document.documentElement.style.setProperty(variable, value);
+            data.colorSettings.primaryColor = value;
+        }
+
+        function updateGradient(type, startColor, endColor) {
+            switch (type) {
+                case 'background':
+                    document.documentElement.style.setProperty('--background-gradient-2',
+                        `linear-gradient(to bottom, ${startColor}, ${endColor})`);
+                    data.colorSettings.background = { start: startColor, end: endColor };
+                    break;
+                case 'card':
+                    document.documentElement.style.setProperty('--card-background',
+                        `linear-gradient(to right, ${startColor}, ${endColor})`);
+                    data.colorSettings.card = { start: startColor, end: endColor };
+                    break;
+                case 'progress':
+                    document.documentElement.style.setProperty('--progress-gradient',
+                        `linear-gradient(to right, ${startColor}, ${endColor})`);
+                    data.colorSettings.progress.start = startColor;
+                    data.colorSettings.progress.end = endColor;
+                    break;
+            }
+        }
+
+        function updateProgressColor(type, color) {
+            if (type === 'mine') {
+                document.documentElement.style.setProperty('--progress-mine',
+                    `linear-gradient(to right, ${color}, ${adjustColor(color, -20)})`);
+                data.colorSettings.progress.mine = color;
+            } else if (type === 'fine') {
+                document.documentElement.style.setProperty('--progress-fine',
+                    `linear-gradient(to right, ${color}, ${adjustColor(color, 20)})`);
+                data.colorSettings.progress.fine = color;
+            }
+        }
+
+        function updateTextColor(type, color) {
+            if (type === 'primary') {
+                document.documentElement.style.setProperty('--color-text-primary', color);
+                data.colorSettings.textPrimary = color;
+            } else if (type === 'secondary') {
+                document.documentElement.style.setProperty('--color-text-secondary', color);
+                data.colorSettings.textSecondary = color;
+            }
+        }
+
+        function updateBorderColor(color) {
+            document.documentElement.style.setProperty('--color-border', color);
+            data.colorSettings.borderColor = color;
+        }
+
+        function adjustColor(color, amount) {
+            const hex = color.replace('#', '');
+            const num = parseInt(hex, 16);
+            const r = Math.min(255, Math.max(0, (num >> 16) + amount));
+            const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amount));
+            const b = Math.min(255, Math.max(0, (num & 0x0000FF) + amount));
+            return `#${(r << 16 | g << 8 | b).toString(16).padStart(6, '0')}`;
+        }
+
+        function applyColorSettings() {
+            const cs = data.colorSettings;
+            updateMainColor('--color-primary', cs.primaryColor);
+            updateGradient('background', cs.background.start, cs.background.end);
+            updateGradient('card', cs.card.start, cs.card.end);
+            updateGradient('progress', cs.progress.start, cs.progress.end);
+            updateProgressColor('mine', cs.progress.mine);
+            updateProgressColor('fine', cs.progress.fine);
+            updateTextColor('primary', cs.textPrimary);
+            updateTextColor('secondary', cs.textSecondary);
+            updateBorderColor(cs.borderColor);
+        }
+
+        document.addEventListener('DOMContentLoaded', applyColorSettings);
+    </script>
+</body>
+
+</html>

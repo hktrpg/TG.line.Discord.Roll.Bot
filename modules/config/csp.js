@@ -7,6 +7,8 @@ const cspConfig = {
         "'unsafe-hashes'",
         "https://unpkg.com",
         "https://code.jquery.com",
+        "https://fonts.googleapis.com/",
+        "https://cdnjs.cloudflare.com/",
         "https://cdn.jsdelivr.net",
         "https://code.iconify.design",
         "https://stackpath.bootstrapcdn.com",

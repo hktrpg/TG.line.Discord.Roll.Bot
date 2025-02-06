@@ -33,6 +33,8 @@
             --color-text-primary: #1f2937;
             /* **ID暱稱文字顏色** */
             --color-text-secondary: #4b5563;
+            /* border color */
+            --color-border: #e2e8f0;
 
             /* Colors */
             --color-primary-light: #b5e1fe;
@@ -68,7 +70,6 @@
             /* Borders & Shadows */
             --border-radius: 0.5rem;
             --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            --border-color: var(--color-primary);
 
             /* Fill Colors */
             --fill-color-50: var(--color-primary);
@@ -116,7 +117,7 @@
             align-items: center;
             gap: 1rem;
             padding-bottom: 1rem;
-            border-bottom: 2px solid var(--color-primary-light);
+            border-bottom: 2px solid var(--color-border);
         }
 
         .avatar-section {
@@ -124,7 +125,6 @@
             flex-direction: column;
             gap: 0.5rem;
             width: 250px;
-            /* 增加寬度 */
         }
 
         .no-animations {
@@ -139,17 +139,13 @@
 
         .avatar {
             width: 120px;
-            /* 增加尺寸 */
             height: 120px;
-            /* 增加尺寸 */
             border-radius: 50%;
             background: var(--color-sky);
             overflow: hidden;
             margin-bottom: 0.5rem;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-            /* 添加陰影 */
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            /* 添加過渡效果 */
         }
 
         .avatar img {
@@ -242,7 +238,7 @@
             padding: 0.5rem;
             border-radius: var(--border-radius);
             background: var(--background-color);
-            border: 1px solid var(--color-primary-light);
+            border: 1px solid var(--color-border);
             text-align: center;
             overflow: hidden;
             white-space: nowrap;
@@ -280,7 +276,7 @@
             border-radius: var(--border-radius);
             background: var(--color-slot);
             text-align: center;
-            border: 1px solid var(--color-primary-light);
+            border: 1px solid var(--color-border);
             transition: all 0.3s ease;
         }
 
@@ -315,7 +311,7 @@
             border-radius: var(--border-radius);
             background: var(--progress-gradient);
             font-size: 0.9rem;
-            border: 1px solid var(--color-primary-light);
+            border: 1px solid var(--color-border);
         }
 
         .text-middle {
@@ -436,7 +432,7 @@
         .edit-mode select {
             width: 100%;
             padding: 0.3rem;
-            border: 1px solid var(--color-primary-light);
+            border: 1px solid var(--color-border);
             border-radius: var(--border-radius);
             background: white;
         }
@@ -519,7 +515,7 @@
         .edit-input {
             width: 90%;
             padding: 0.5rem;
-            border: 1px solid var(--color-primary-light);
+            border: 1px solid var(--color-border);
             border-radius: var(--border-radius);
             margin-bottom: 0.5rem;
             font-size: 0.9rem;
@@ -631,7 +627,7 @@
 
         .header-input {
             padding: 0.5rem;
-            border: 1px solid var(--color-primary-light);
+            border: 1px solid var(--color-border);
             border-radius: var(--border-radius);
             background: white;
             font-size: 0.9rem;
@@ -654,7 +650,7 @@
             width: 200px;
             /* 調整輸入框寬度 */
             padding: 0.5rem;
-            border: 1px solid var(--color-primary-light);
+            border: 1px solid var(--color-border);
             border-radius: var(--border-radius);
             background: white;
             font-size: 0.9rem;
@@ -958,6 +954,14 @@
                         oninput="updateGradient('progress', document.getElementById('likeGradientStart').value, this.value)">
                 </div>
             </div>
+            <div class="color-group">
+                <h4>邊框顏色</h4>
+                <div class="color-picker-group">
+                    <label>邊框色調:</label>
+                    <input type="color" id="borderColor" value="#e2e8f0" 
+                        oninput="updateBorderColor(this.value)">
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1067,7 +1071,8 @@
                         end: '#cae1ff',
                         mine: '#f71414',
                         fine: '#ffcc00'
-                    }
+                    },
+                    borderColor: '#b5e1fe'  
                 }
             }
         }
@@ -1653,10 +1658,9 @@
                         </button>` : ''}
                     </div>
                 </section>
-                <div class="footer">@HKTRPG 請隨意取用</div>
+                <div class="footer">@player.HKTRPG.com 請隨意取用</div>
             `;
 
-            // 更新色彩設定面板的初始值
             if (document.getElementById('colorSettingsModal')) {
                 document.getElementById('primaryColor').value = data.colorSettings.primaryColor;
                 document.getElementById('bgGradientStart').value = data.colorSettings.background.start;
@@ -1669,6 +1673,7 @@
                 document.getElementById('fineColor').value = data.colorSettings.progress.fine;
                 document.getElementById('textPrimaryColor').value = data.colorSettings.textPrimary;
                 document.getElementById('textSecondaryColor').value = data.colorSettings.textSecondary;
+                document.getElementById('borderColor').value = data.colorSettings.borderColor;
             }
 
             applyColorSettings();
@@ -1786,6 +1791,11 @@
             }
         }
 
+        function updateBorderColor(color) {
+            document.documentElement.style.setProperty('--color-border', color);
+            data.colorSettings.borderColor = color;
+        }
+
         function adjustColor(color, amount) {
             const hex = color.replace('#', '');
             const num = parseInt(hex, 16);
@@ -1805,6 +1815,7 @@
             updateProgressColor('fine', cs.progress.fine);
             updateTextColor('primary', cs.textPrimary);
             updateTextColor('secondary', cs.textSecondary);
+            updateBorderColor(cs.borderColor);
         }
 
         document.addEventListener('DOMContentLoaded', applyColorSettings);

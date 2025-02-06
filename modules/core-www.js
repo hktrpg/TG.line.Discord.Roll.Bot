@@ -173,7 +173,12 @@ www.get('/signal', (req, res) => {
     res.sendFile(process.cwd() + '/views/signalToNoise.html');
 });
 
-
+www.get('/char', (req, res) => {
+    res.sendFile(process.cwd() + '/views/namecard/namecard_character.htmll');
+});
+www.get('/player', (req, res) => {
+    res.sendFile(process.cwd() + '/views/namecard/namecard_player.html');
+});
 
 
 www.get('/log/:id', (req, res) => {

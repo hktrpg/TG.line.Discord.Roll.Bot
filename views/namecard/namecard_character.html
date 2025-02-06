@@ -1272,7 +1272,7 @@
         async function exportToPNG() {
             const overlay = createProgressOverlay();
             const headerButtons = document.querySelector('.header-buttons');
-            const buttonsHTML = headerButtons.innerHTML;
+            const buttonsHTML = headerButtons.innerHTML || '';
             headerButtons.style.display = 'none';
 
             try {
@@ -1282,7 +1282,7 @@
                 const avatarImg = document.getElementById('avatarImage');
                 const data = {
                     avatar: avatarImg.src,
-                    id: document.getElementById('snsID').innerText
+                    id: document.getElementById('snsID')?.innerText || '',
                 };
 
                 // Update progress: Image processing

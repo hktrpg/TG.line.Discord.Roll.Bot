@@ -195,7 +195,7 @@ www.get('/signal', (req, res) => {
     res.sendFile(process.cwd() + '/views/signalToNoise.html');
 });
 
-www.get('/char', (req, res) => {
+www.get('/character', (req, res) => {
     res.sendFile(process.cwd() + '/views/namecard/namecard_character.htmll');
 });
 www.get('/player', (req, res) => {

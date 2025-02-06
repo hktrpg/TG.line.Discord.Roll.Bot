@@ -4,7 +4,7 @@ const cspConfig = {
         "'self'",
         "'unsafe-inline'",
         "https://unpkg.com",
-        "https://code.jquery.com", 
+        "https://code.jquery.com",
         "https://fonts.googleapis.com",
         "https://cdnjs.cloudflare.com",
         "https://cdn.jsdelivr.net",
@@ -30,7 +30,7 @@ const cspConfig = {
         "https://cdnjs.cloudflare.com",
         "https://cdn.jsdelivr.net",
         "https://code.jquery.com",
-        "https://code.iconify.design", 
+        "https://code.iconify.design",
         "https://stackpath.bootstrapcdn.com",
         "https://www.googletagmanager.com",
         "https://www.google-analytics.com",
@@ -78,7 +78,7 @@ const cspConfig = {
     mediaSrc: ["'self'"],
     frameSrc: ["'self'"],
     sandbox: ['allow-forms', 'allow-scripts', 'allow-same-origin',
-        'allow-downloads'],
+        'allow-downloads', 'allow-modals', 'allow-popups', 'allow-popups-to-escape-sandbox', 'allow-presentation'],
     childSrc: ["'self'"],
     workerSrc: ["'self'"]
 };

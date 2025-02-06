@@ -77,11 +77,23 @@
                 flex-direction: column;
                 gap: 0.5rem;
                 padding: 0.5rem;
+                margin-bottom: 1rem;
             }
 
             .header-buttons button {
                 width: 100%;
                 margin: 0;
+                padding: 0.8rem;
+                font-size: 1rem;
+                display: block;
+            }
+
+            .btn-edit,
+            .btn-export,
+            .btn-share {
+                margin-bottom: 0.5rem !important;
+                width: 100%;
+                display: block;
             }
 
             .avatar-container {
@@ -122,16 +134,60 @@
 
             .draggable {
                 margin-bottom: 1rem;
+                padding: 0.5rem;
+                border: 1px solid #e5e7eb;
+                border-radius: 0.5rem;
+                background: #fff;
             }
 
-            .personality-icon {
+            .draggable::before {
+                content: '⋮';
+                display: inline-block;
+                padding: 0.25rem 0.5rem;
+                cursor: grab;
+                color: #9ca3af;
+                font-size: 1.2rem;
+                margin-right: 0.5rem;
+            }
+
+            .draggable:active::before {
+                cursor: grabbing;
+            }
+
+            .draggable input[type="text"],
+            .draggable input[type="number"] {
+                width: calc(50% - 0.5rem);
+                margin-bottom: 0.5rem;
+                font-size: 0.9rem;
+            }
+
+            .draggable select {
+                width: calc(100% - 1rem);
+                margin: 0.5rem 0;
+            }
+
+            /* 調整標籤和輸入框的佈局 */
+            #editAttributesContainer,
+            #editSkillsContainer,
+            #editDiceRollsContainer,
+            #editNotesItemsContainer,
+            #editPersonalityContainer {
+                padding: 0.5rem;
+            }
+
+            /* 調整標題輸入框 */
+            label input[type="text"] {
                 width: 100%;
-                margin-top: 0.5rem;
+                margin: 0.5rem 0;
+                display: block;
             }
 
+            /* 調整移除按鈕 */
             .btn-remove {
-                width: 100%;
+                width: auto;
+                padding: 0.3rem 0.8rem;
                 margin-top: 0.5rem;
+                font-size: 0.8rem;
             }
 
             h2 {

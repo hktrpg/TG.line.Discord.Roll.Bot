@@ -3,8 +3,6 @@ const cspConfig = {
     scriptSrc: [
         "'self'",
         "'unsafe-inline'",
-        "'unsafe-eval'",
-        "'unsafe-hashes'",
         "https://unpkg.com",
         "https://code.jquery.com",
         "https://fonts.googleapis.com",

@@ -1840,11 +1840,18 @@
         }
 
         function saveCurrentFormState() {
+            if (!isEditMode) return;
+
             // 保存頭像和基本資訊
-            data.title = document.getElementById('edit-title')?.value || data.title;
-            data.id = document.getElementById('edit-id')?.value || data.id;
-            data.nickname = document.getElementById('edit-nickname')?.value || data.nickname;
-            data.avatar = document.getElementById('edit-avatar')?.value || data.avatar;
+            const titleInput = document.getElementById('edit-title');
+            const idInput = document.getElementById('edit-id');
+            const nicknameInput = document.getElementById('edit-nickname');
+            const avatarInput = document.getElementById('edit-avatar');
+
+            if (titleInput) data.title = titleInput.value;
+            if (idInput) data.id = idInput.value;
+            if (nicknameInput) data.nickname = nicknameInput.value;
+            if (avatarInput) data.avatar = avatarInput.value;
 
             // 保存區段標題
             const sections = ['availableTimes', 'playStyles', 'platforms', 'relationships',
@@ -1855,23 +1862,70 @@
             });
 
             // 保存可約團時間
-            Array.from(document.getElementsByClassName('time-slot-edit')).forEach((checkbox, index) => {
+            const timeSlots = document.getElementsByClassName('time-slot-edit');
+            Array.from(timeSlots).forEach((checkbox, index) => {
                 if (index < data.availableTimes.slots.length) {
                     data.availableTimes.slots[index].filled = checkbox.checked;
                 }
             });
 
             // 保存遊玩方式
-            const playStyles = Array.from(document.getElementsByClassName('play-style-edit'))
-                .map(input => input.value);
-            if (playStyles.length) data.playStyles.styles = playStyles;
+            const playStyleInputs = document.getElementsByClassName('play-style-edit');
+            if (playStyleInputs.length) {
+                data.playStyles.styles = Array.from(playStyleInputs).map(input => input.value);
+            }
 
             // 保存跑團平台
-            const platforms = Array.from(document.getElementsByClassName('platform-edit'))
-                .map(input => input.value);
-            if (platforms.length) data.platforms.list = platforms;
+            const platformInputs = document.getElementsByClassName('platform-edit');
+            if (platformInputs.length) {
+                data.platforms.list = Array.from(platformInputs).map(input => input.value);
+            }
 
+            // 保存關係扮演傾向
+            const relationshipEdits = document.getElementsByClassName('relationship-edit');
+            Array.from(relationshipEdits).forEach((select, index) => {
+                if (index < data.relationships.types.length) {
+                    const textInput = select.closest('.module-item').querySelector('.edit-input');
+                    data.relationships.types[index].text = textInput.value;
+                    data.relationships.types[index].fill = `filled-${select.value}`;
+                }
+            });
 
+            // 保存性向傾向
+            const orientationEdits = document.getElementsByClassName('orientation-edit');
+            Array.from(orientationEdits).forEach((range, index) => {
+                if (index < data.orientations.types.length) {
+                    const textInput = range.closest('.module-item').querySelector('.edit-input');
+                    data.orientations.types[index].text = textInput.value;
+                    data.orientations.types[index].percentage = parseInt(range.value);
+                }
+            });
+
+            // 保存偏好模組
+            const moduleEdits = document.getElementsByClassName('module-edit');
+            Array.from(moduleEdits).forEach((range, index) => {
+                if (index < data.preferredModules.modules.length) {
+                    const textInput = range.closest('.module-item').querySelector('.edit-input');
+                    data.preferredModules.modules[index].text = textInput.value;
+                    data.preferredModules.modules[index].percentage = parseInt(range.value);
+                }
+            });
+
+            // 保存地雷題材
+            const landmineEdits = document.getElementsByClassName('landmine-edit');
+            Array.from(landmineEdits).forEach((select, index) => {
+                if (index < data.landmines.items.length) {
+                    const textInput = select.closest('.module-item').querySelector('.edit-input');
+                    data.landmines.items[index].text = textInput.value;
+                    data.landmines.items[index].type = select.value;
+                }
+            });
+
+            // 保存留言內容
+            const messageTextarea = document.querySelector('textarea.edit-input');
+            if (messageTextarea) {
+                data.message.content = messageTextarea.value;
+            }
         }
 
         function addPlayStyle() {

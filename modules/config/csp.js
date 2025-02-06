@@ -16,6 +16,7 @@ const cspConfig = {
         "https://www.google-analytics.com",
         "https://static.cloudflareinsights.com",
         "https://api.iconify.design",
+        "https://html2canvas.hertzen.com",
         "wss://rollbot.hktrpg.com",
         "ws://rollbot.hktrpg.com",
         "wss://card.hktrpg.com",
@@ -53,10 +54,26 @@ const cspConfig = {
         "https://rollbot.hktrpg.com",
         "https://card.hktrpg.com"
     ],
-    styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://stackpath.bootstrapcdn.com", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
-    imgSrc: ["'self'", "data:", "https:", "https://avatars2.githubusercontent.com", "https://www.hktrpg.com"],
-    fontSrc: ["'self'", "data:", "https:", "https://fonts.googleapis.com",
+    styleSrc: ["'self'",
+        "'unsafe-inline'",
+        "https://cdn.jsdelivr.net",
+        "https://stackpath.bootstrapcdn.com",
+        "https://fonts.googleapis.com",
         "https://cdnjs.cloudflare.com"],
+    styleSrcElem: [
+        "'self'",
+        "'unsafe-inline'",
+        "https://cdn.jsdelivr.net",
+        "https://stackpath.bootstrapcdn.com",
+        "https://fonts.googleapis.com",
+        "https://cdnjs.cloudflare.com"
+    ],
+    imgSrc: ["'self'", "data:", "https:", "https://avatars2.githubusercontent.com", "https://www.hktrpg.com"],
+    fontSrc: [
+        "'self'",
+        "https://fonts.gstatic.com",
+        "https://cdnjs.cloudflare.com"
+    ],
     objectSrc: ["'none'"],
     mediaSrc: ["'self'"],
     frameSrc: ["'self'"],

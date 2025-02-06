@@ -406,8 +406,17 @@
             .container {
                 grid-template-columns: 1fr;
                 padding: 1rem;
-                width: calc(100% - 2rem);
-                margin: 1rem;
+                width: 90%; /* Changed from calc(100% - 2rem) */
+                max-width: 500px; /* Added max-width */
+                margin: 1rem auto; /* Changed from 1rem to center the container */
+            }
+
+            body {
+                padding: 0.5rem;
+                display: flex; /* Added */
+                justify-content: center; /* Added */
+                align-items: flex-start; /* Added */
+                min-height: 100vh;
             }
 
             .header {

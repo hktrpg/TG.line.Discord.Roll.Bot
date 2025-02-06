@@ -196,7 +196,7 @@ www.get('/signal', (req, res) => {
 });
 
 www.get('/character', (req, res) => {
-    res.sendFile(process.cwd() + '/views/namecard/namecard_character.htmll');
+    res.sendFile(process.cwd() + '/views/namecard/namecard_character.html');
 });
 www.get('/player', (req, res) => {
     res.sendFile(process.cwd() + '/views/namecard/namecard_player.html');

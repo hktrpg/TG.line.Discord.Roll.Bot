@@ -963,7 +963,7 @@
 
     <script>
         let isEditMode = false;
-        let originalData = null; // 新增: 用於儲存原始資料
+        let originalData = null; 
         function getDataFromUrl() {
             try {
                 const urlParams = new URLSearchParams(window.location.search);
@@ -983,16 +983,16 @@
                 title: "TRPG 遊玩喜好卡",
                 id: "HKTRPG",
                 nickname: "Sad",
-                avatar: "https://images2.imgbox.com/fe/48/hWl3l46t_o.png",
+                avatar: "https://images2.imgbox.com/ea/b2/Bn8DmRTW_o.png",
                 availableTimes: {
                     title: "可約團時間",
                     slots: [
-                        { text: "平日早上", filled: true },
-                        { text: "平日中午", filled: true },
-                        { text: "平日晚上", filled: false },
-                        { text: "周末早上", filled: true },
-                        { text: "周末中午", filled: false },
-                        { text: "周末晚上", filled: false }
+                        { text: "平日早上", filled: false },
+                        { text: "平日中午", filled: false },
+                        { text: "平日晚上", filled: true },
+                        { text: "周末早上", filled: false },
+                        { text: "周末中午", filled: true },
+                        { text: "周末晚上", filled: true }
                     ]
                 },
                 playStyles: {
@@ -1006,16 +1006,16 @@
                 relationships: {
                     title: "關係扮演傾向",
                     types: [
-                        { text: "友情關係", fill: "filled-0" },
-                        { text: "情人關係", fill: "filled-50" },
+                        { text: "友情關係", fill: "filled-100" },
+                        { text: "情人關係", fill: "filled-25" },
                         { text: "搭檔關係", fill: "filled-100" }
                     ]
                 },
                 orientations: {
                     title: "愛情傾向",
                     types: [
-                        { text: "NL", percentage: 75 },
-                        { text: "BL", percentage: 50 },
+                        { text: "NL", percentage: 100 },
+                        { text: "BL", percentage: 0 },
                         { text: "GL", percentage: 25 }
                     ]
                 },
@@ -1027,13 +1027,13 @@
                     title: "偏好模組類型",
                     modules: [
                         { text: "傳統經典", percentage: 75 },
-                        { text: "恐怖", percentage: 50 },
+                        { text: "恐怖", percentage: 100 },
                         { text: "懸疑推理", percentage: 75 },
                         { text: "戰鬥", percentage: 25 },
                         { text: "輕鬆歡樂", percentage: 60 },
-                        { text: "情感豐富", percentage: 90 },
-                        { text: "戀愛互動", percentage: 40 },
-                        { text: "都市", percentage: 25 },
+                        { text: "情感豐富", percentage: 40 },
+                        { text: "戀愛互動", percentage: 25 },
+                        { text: "現代怪談", percentage: 80 },
                         { text: "密室", percentage: 10 }
                     ]
                 },
@@ -1042,18 +1042,18 @@
                     items: [
                         { text: "PVP", type: "fine-progress" },
                         { text: "血腥", type: "like-progress" },
-                        { text: "性描述", type: "like-progress" },
+                        { text: "性描述", type: "fine-progress" },
                         { text: "獵奇", type: "fine-progress" },
                         { text: "虐待兒童", type: "mine-progress" },
                         { text: "LOST", type: "like-progress" },
                         { text: "精神疾病", type: "like-progress" },
-                        { text: "藥物", type: "mine-progress" }
+                        { text: "藥物", type: "fine-progress" }
                     ]
                 },
                 colorSettings: {
                     primaryColor: '#4c51bf',
-                    textPrimary: '#1f2937',    // 新增
-                    textSecondary: '#4b5563',  // 新增
+                    textPrimary: '#1f2937',    
+                    textSecondary: '#4b5563',  
                     background: {
                         start: '#b4ccf0',
                         end: '#f4f9ff'
@@ -1095,7 +1095,7 @@
             } else {
                 // 取消編輯時，恢復原始資料
                 if (originalData) {
-                    data.title = originalData.title; // 恢復標題
+                    data.title = originalData.title;
                     data.id = originalData.id;
                     data.nickname = originalData.nickname;
                     data.avatar = originalData.avatar;
@@ -1106,7 +1106,6 @@
                     data.orientations.types = originalData.orientations.types.map(type => ({ ...type }));
                     data.preferredModules.modules = originalData.preferredModules.modules.map(module => ({ ...module }));
                     data.landmines.items = originalData.landmines.items.map(item => ({ ...item }));
-                    // 新增：恢復想說的話的內容
                     data.message.content = originalData.message.content;
                 }
                 originalData = null;
@@ -1196,7 +1195,7 @@
             renderApp();
         }
 
-        // 添加新增函數
+        // 添加新增array
         function addRelationshipType() {
             saveCurrentFormState();
             data.relationships.types.push({ text: "新關係", fill: "filled-0" });
@@ -1221,7 +1220,7 @@
             renderApp();
         }
 
-        // 添加刪除函數
+        // 添加刪除array
         function deleteRelationshipType(index) {
             data.relationships.types.splice(index, 1);
             renderApp();
@@ -1242,8 +1241,7 @@
             renderApp();
         }
 
-        // Modify exportToPNG function
-        // Add these functions before renderApp():
+
 
         async function proxyImage(url) {
             try {
@@ -1271,7 +1269,6 @@
         };
 
 
-        // Modify exportToPNG function:
         async function exportToPNG() {
             const overlay = document.getElementById('progressOverlay');
             const progressText = document.getElementById('progressText');
@@ -1674,11 +1671,9 @@
                 document.getElementById('textSecondaryColor').value = data.colorSettings.textSecondary;
             }
 
-            // 應用色彩設定
             applyColorSettings();
         }
 
-        // 新增輔助函數來保存當前表單值
         function saveCurrentFormState() {
             // 保存頭像和基本資訊
             data.title = document.getElementById('edit-title')?.value || data.title;
@@ -1711,10 +1706,9 @@
                 .map(input => input.value);
             if (platforms.length) data.platforms.list = platforms;
 
-            // 保存其他區段...（類似邏輯）
+         
         }
 
-        // 修改現有的 add 函數
         function addPlayStyle() {
             saveCurrentFormState();
             data.playStyles.styles.push('');
@@ -1727,14 +1721,12 @@
             renderApp();
         }
 
-        // 初始渲染
         renderApp();
 
         function openColorSettings() {
             // document.getElementById('colorSettingsOverlay').style.display = 'block';
             document.getElementById('colorSettingsModal').style.display = 'block';
-            // Removed any blur effect on main view if it was present.
-            // For example: document.getElementById('app').style.filter = 'none';
+
         }
 
         function closeColorSettings() {
@@ -1815,7 +1807,6 @@
             updateTextColor('secondary', cs.textSecondary);
         }
 
-        // 在頁面載入時應用色彩設定
         document.addEventListener('DOMContentLoaded', applyColorSettings);
     </script>
 </body>

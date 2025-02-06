@@ -405,13 +405,105 @@
         @media (max-width: 768px) {
             .container {
                 grid-template-columns: 1fr;
-                height: auto;
-                width: 100%;
                 padding: 1rem;
+                width: calc(100% - 2rem);
+                margin: 1rem;
             }
 
             .header {
-                grid-column: span 1;
+                grid-column: 1;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 1rem;
+            }
+
+            .header-buttons {
+                width: 100%;
+                flex-direction: row;
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
+            .title {
+                align-items: center;
+                width: 100%;
+            }
+
+            .header-input-group {
+                width: 100%;
+                align-items: center;
+            }
+
+            .section {
+                grid-column: 1;
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            .modules {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .module-item {
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            body {
+                padding: 0.5rem;
+            }
+
+            .avatar-section {
+                width: 100%;
+                align-items: center;
+            }
+
+            .avatar-input-group {
+                width: 100%;
+            }
+
+            .avatar-input {
+                width: calc(100% - 1rem);
+            }
+
+            .header-input {
+                width: calc(100% - 1rem);
+            }
+
+            .time-slots {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .footer {
+                grid-column: 1;
+                text-align: center;
+                margin-top: 1rem;
+            }
+
+            #colorSettingsModal {
+                width: 90%;
+                max-width: 400px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .modules {
+                grid-template-columns: 1fr;
+            }
+
+            .time-slots {
+                grid-template-columns: 1fr;
+            }
+
+            .header-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .header-btn {
+                width: 100%;
             }
         }
 
@@ -574,7 +666,7 @@
 
         .header-buttons {
             display: flex;
-            gap: 0.5rem;
+            gap: 1rem;
 
             display: flex;
             flex-direction: column;

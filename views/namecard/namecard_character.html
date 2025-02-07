@@ -1701,7 +1701,7 @@
                 currentUrl.searchParams.set('data', base64Data);
                 const shareUrl = currentUrl.toString();
                 navigator.clipboard.writeText(shareUrl).then(() => {
-                    showPopup('分享連結已複製到剪貼簿!\n' + shareUrl);
+                    showPopup('分享連結已複製到剪貼簿!');
                 }).catch(err => {
                     console.error('複製到剪貼簿失敗:', err);
                     showPopup('產生分享連結失敗');

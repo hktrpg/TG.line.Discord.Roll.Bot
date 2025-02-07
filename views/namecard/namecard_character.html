@@ -48,6 +48,35 @@
             background: var(--container-bg);
         }
 
+        .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .popup-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .popup-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
         .grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -724,7 +753,14 @@
             </div>
         </div>
         <div class="footer">@character.HKTRPG.com 請隨意取用</div>
+        <div id="popup" class="popup" style="display: none;">
+            <div class="popup-content">
+                <span class="popup-close" onclick="closePopup()">&times;</span>
+                <p id="popup-message"></p>
+            </div>
+        </div>
     </div>
+
     <script>
         const icons = [
             'fas fa-check',
@@ -1502,7 +1538,8 @@
                 updateProgress(overlay, 70, '渲染圖片中...');
 
                 const canvas = await html2canvas(container, {
-                    width: container.offsetWidth,
+                    width: container.scrollWidth,
+                    height: container.scrollHeight,
                     allowTaint: true,
                     useCORS: true,
                     backgroundColor: '#f3f3f3',
@@ -1658,26 +1695,37 @@
         // NEW: Generate share link function
         function generateShareLink() {
             try {
-                // Convert character data to JSON string
                 const jsonString = JSON.stringify(character);
-                // Use encodeURIComponent for UTF-8 encoding
                 const base64Data = btoa(encodeURIComponent(jsonString));
-
-                // Create new URL with only base path (no parameters)
                 const currentUrl = new URL(window.location.href.split('?')[0]);
-                // Add only the JSON data parameter
                 currentUrl.searchParams.set('data', base64Data);
-
                 const shareUrl = currentUrl.toString();
-                alert('分享連結已複製到剪貼簿!\n' + shareUrl);
-                navigator.clipboard.writeText(shareUrl);
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    showPopup('分享連結已複製到剪貼簿!\n' + shareUrl);
+                }).catch(err => {
+                    console.error('複製到剪貼簿失敗:', err);
+                    showPopup('產生分享連結失敗');
+                });
             } catch (error) {
                 console.error('產生分享連結失敗:', error);
-                alert('產生分享連結失敗');
+                showPopup('產生分享連結失敗');
             }
         }
 
-        // NEW: On page load, if URL has shared data, update the character data accordingly
+
+        function showPopup(message) {
+            const popup = document.getElementById('popup');
+            const popupMessage = document.getElementById('popup-message');
+            popupMessage.innerText = message;
+            popup.style.display = 'block';
+        }
+
+
+        function closePopup() {
+            const popup = document.getElementById('popup');
+            popup.style.display = 'none';
+        }
+
         const sharedData = getDataFromUrl();
         if (sharedData) {
             character = sharedData;

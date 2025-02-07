@@ -1502,8 +1502,7 @@
                 updateProgress(overlay, 70, '渲染圖片中...');
 
                 const canvas = await html2canvas(container, {
-                    width: container.scrollWidth + 10,
-                    x: -5,
+                    width: container.offsetWidth,
                     allowTaint: true,
                     useCORS: true,
                     backgroundColor: '#f3f3f3',

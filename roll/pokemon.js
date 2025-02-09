@@ -377,10 +377,11 @@ function checkEffectiveness(moveType, enemyType) {
 
 
 function commandVS(mainMsg) {
+    let rply = {
+        text: ''
+    }
     try {
-        let rply = {
-            text: ''
-        }
+
         //招式名,屬性  VS  POKEMON名,POKEMON NO,屬性1,屬性2
         let attackerType = Moves.findTypeByCht(mainMsg[2]);
         let attacker = (attackerType) ? null : pokeMove.getVS(mainMsg[2]);

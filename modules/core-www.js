@@ -4,9 +4,12 @@ if (!process.env.mongoURL) {
 }
 const express = require('express');
 const www = express();
+const helmet = require('helmet');
+const cors = require('cors');
 const {
     RateLimiterMemory
 } = require('rate-limiter-flexible');
+const cspConfig = require('../modules/config/csp.js');
 //const loglink = (LOGLINK) ? LOGLINK + '/tmp/' : process.cwd() + '/tmp/';
 const LOGLINK = (process.env.LOGLINK) ? process.env.LOGLINK + '/tmp/' : process.cwd() + '/tmp/';
 const candle = require('../modules/candleDays.js');
@@ -104,6 +107,25 @@ const io = require('socket.io')(server);
 // 加入線上人數計數
 let onlineCount = 0;
 
+
+www.use(helmet({
+    contentSecurityPolicy: {
+        directives: cspConfig
+    }
+}));
+www.use(cors({
+    origin: /\.hktrpg\.com$/, // Accepts all subdomains of hktrpg.com
+    methods: ['GET', 'POST'],
+    allowedHeaders: [
+        'Content-Type',
+        'Authorization'
+    ],
+    credentials: true,
+    maxAge: 86400,
+    optionsSuccessStatus: 200
+}));
+
+
 www.get('/', (req, res) => {
     res.sendFile(process.cwd() + '/views/index.html');
 });
@@ -173,8 +195,8 @@ www.get('/signal', (req, res) => {
     res.sendFile(process.cwd() + '/views/signalToNoise.html');
 });
 
-www.get('/char', (req, res) => {
-    res.sendFile(process.cwd() + '/views/namecard/namecard_character.htmll');
+www.get('/character', (req, res) => {
+    res.sendFile(process.cwd() + '/views/namecard/namecard_character.html');
 });
 www.get('/player', (req, res) => {
     res.sendFile(process.cwd() + '/views/namecard/namecard_player.html');

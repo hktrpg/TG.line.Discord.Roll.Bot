@@ -1029,6 +1029,7 @@ function pushArrayInteractionCommands(arrayCommands) {
 }
 
 async function handlingResponMessage(message, answer = '') {
+	let inputStr = '';
 	try {
 		let hasSendPermission = true;
 		/**
@@ -1037,7 +1038,7 @@ async function handlingResponMessage(message, answer = '') {
 				}
 				 */
 		if (answer) message.content = answer;
-		let inputStr = message.content || '';
+		inputStr = message.content || '';
 		//DISCORD <@!USERID> <@!399923133368042763> <@!544563333488111636>
 		//LINE @名字
 		let mainMsg = inputStr.match(MESSAGE_SPLITOR); //定義輸入.字串
@@ -1491,20 +1492,22 @@ async function __handlingInteractionMessage(message) {
 					}
 
 				}
-				if (resultText) {
-					const content = handlingCountButton(message, 'roll');
-					handlingSendMessage(result);
-					try {
-						return await message.update({ content: content })
-					} catch (error) {
-						return
+
+				try {
+					if (resultText) {
+						const content = handlingCountButton(message, 'roll');
+						// 先更新原訊息
+						await message.update({ content: content }).catch(() => null);
+						// 再發送新訊息
+						await handlingSendMessage(result);
+					} else {
+						const content = handlingCountButton(message, 'count');
+						await message.update({ content: content }).catch(() => null);
 					}
+				} catch (error) {
+					console.error('Button interaction error:', error?.message || error);
 				}
-				else {
-					const content = handlingCountButton(message, 'count');
-					return await message.update({ content: content })
-						.catch(error => console.error('discord bot #192  error: ', (error && (error.name || error.message || error.reason)), content));
-				}
+				return;
 			}
 		default:
 			break;

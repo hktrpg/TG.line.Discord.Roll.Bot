@@ -405,13 +405,114 @@
         @media (max-width: 768px) {
             .container {
                 grid-template-columns: 1fr;
-                height: auto;
-                width: 100%;
                 padding: 1rem;
+                width: 90%; /* Changed from calc(100% - 2rem) */
+                max-width: 500px; /* Added max-width */
+                margin: 1rem auto; /* Changed from 1rem to center the container */
+            }
+
+            body {
+                padding: 0.5rem;
+                display: flex; /* Added */
+                justify-content: center; /* Added */
+                align-items: flex-start; /* Added */
+                min-height: 100vh;
             }
 
             .header {
-                grid-column: span 1;
+                grid-column: 1;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 1rem;
+            }
+
+            .header-buttons {
+                width: 100%;
+                flex-direction: row;
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
+            .title {
+                align-items: center;
+                width: 100%;
+            }
+
+            .header-input-group {
+                width: 100%;
+                align-items: center;
+            }
+
+            .section {
+                grid-column: 1;
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            .modules {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .module-item {
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            body {
+                padding: 0.5rem;
+            }
+
+            .avatar-section {
+                width: 100%;
+                align-items: center;
+            }
+
+            .avatar-input-group {
+                width: 100%;
+            }
+
+            .avatar-input {
+                width: calc(100% - 1rem);
+            }
+
+            .header-input {
+                width: calc(100% - 1rem);
+            }
+
+            .time-slots {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .footer {
+                grid-column: 1;
+                text-align: center;
+                margin-top: 1rem;
+            }
+
+            #colorSettingsModal {
+                width: 90%;
+                max-width: 400px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .modules {
+                grid-template-columns: 1fr;
+            }
+
+            .time-slots {
+                grid-template-columns: 1fr;
+            }
+
+            .header-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .header-btn {
+                width: 100%;
             }
         }
 
@@ -574,7 +675,7 @@
 
         .header-buttons {
             display: flex;
-            gap: 0.5rem;
+            gap: 1rem;
 
             display: flex;
             flex-direction: column;
@@ -982,8 +1083,7 @@
                 <h4>邊框顏色</h4>
                 <div class="color-picker-group">
                     <label>邊框色調:</label>
-                    <input type="color" id="borderColor" value="#e2e8f0" 
-                        oninput="updateBorderColor(this.value)">
+                    <input type="color" id="borderColor" value="#e2e8f0" oninput="updateBorderColor(this.value)">
                 </div>
             </div>
         </div>
@@ -1081,8 +1181,8 @@
                 },
                 colorSettings: {
                     primaryColor: '#4c51bf',
-                    textPrimary: '#1f2937',    
-                    textSecondary: '#4b5563',  
+                    textPrimary: '#1f2937',
+                    textSecondary: '#4b5563',
                     background: {
                         start: '#b4ccf0',
                         end: '#f4f9ff'
@@ -1097,7 +1197,7 @@
                         mine: '#f71414',
                         fine: '#ffcc00'
                     },
-                    borderColor: '#b5e1fe'  
+                    borderColor: '#b5e1fe'
                 }
             }
         }
@@ -1274,14 +1374,73 @@
 
 
 
-        async function proxyImage(url) {
+        const proxyServers = [
+            'https://api.allorigins.win/raw?url=',
+            'https://api.codetabs.com/v1/proxy?quest=',
+            'https://cors-anywhere.herokuapp.com/',
+            'https://proxy.cors.sh/',
+            'https://corsproxy.io/?'
+        ];
+
+        const proxyConfig = {
+            maxRetries: 3,
+            retryDelay: 1000,
+            timeout: 5000,
+            lastSuccessfulServer: null
+        };
+        // NEW: Export image helper functions and cache
+        async function proxyImage(url, attempt = 0) {
+            // Try last successful server first if available
+            const orderedServers = proxyConfig.lastSuccessfulServer
+                ? [proxyConfig.lastSuccessfulServer, ...proxyServers.filter(s => s !== proxyConfig.lastSuccessfulServer)]
+                : proxyServers;
+
+            // Try all servers in parallel with timeout
+            const fetchPromises = orderedServers.map(server => {
+                const proxyUrl = server + encodeURIComponent(url);
+                return fetchWithTimeout(proxyUrl);
+            });
+
             try {
-                const response = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(url));
+                // Race promises - use first successful response
+                const response = await Promise.any(fetchPromises);
                 const blob = await response.blob();
-                return await blobToBase64(blob);
+                const base64 = await blobToBase64(blob);
+
+                // Cache successful server
+                const successServer = orderedServers.find(server =>
+                    response.url.startsWith(server));
+                if (successServer) {
+                    proxyConfig.lastSuccessfulServer = successServer;
+                }
+
+                return base64;
+
             } catch (error) {
-                console.error('Image proxy error:', error);
+                // Retry logic
+                if (attempt < proxyConfig.maxRetries) {
+                    await new Promise(resolve =>
+                        setTimeout(resolve, proxyConfig.retryDelay));
+                    return proxyImage(url, attempt + 1);
+                }
+                console.error('All proxy attempts failed:', error);
                 return null;
+            }
+        }
+
+        // Helper function to add timeout to fetch
+        async function fetchWithTimeout(url) {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), proxyConfig.timeout);
+
+            try {
+                const response = await fetch(url, {
+                    signal: controller.signal
+                });
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response;
+            } finally {
+                clearTimeout(timeout);
             }
         }
 
@@ -1742,11 +1901,18 @@
         }
 
         function saveCurrentFormState() {
+            if (!isEditMode) return;
+
             // 保存頭像和基本資訊
-            data.title = document.getElementById('edit-title')?.value || data.title;
-            data.id = document.getElementById('edit-id')?.value || data.id;
-            data.nickname = document.getElementById('edit-nickname')?.value || data.nickname;
-            data.avatar = document.getElementById('edit-avatar')?.value || data.avatar;
+            const titleInput = document.getElementById('edit-title');
+            const idInput = document.getElementById('edit-id');
+            const nicknameInput = document.getElementById('edit-nickname');
+            const avatarInput = document.getElementById('edit-avatar');
+
+            if (titleInput) data.title = titleInput.value;
+            if (idInput) data.id = idInput.value;
+            if (nicknameInput) data.nickname = nicknameInput.value;
+            if (avatarInput) data.avatar = avatarInput.value;
 
             // 保存區段標題
             const sections = ['availableTimes', 'playStyles', 'platforms', 'relationships',
@@ -1757,23 +1923,70 @@
             });
 
             // 保存可約團時間
-            Array.from(document.getElementsByClassName('time-slot-edit')).forEach((checkbox, index) => {
+            const timeSlots = document.getElementsByClassName('time-slot-edit');
+            Array.from(timeSlots).forEach((checkbox, index) => {
                 if (index < data.availableTimes.slots.length) {
                     data.availableTimes.slots[index].filled = checkbox.checked;
                 }
             });
 
             // 保存遊玩方式
-            const playStyles = Array.from(document.getElementsByClassName('play-style-edit'))
-                .map(input => input.value);
-            if (playStyles.length) data.playStyles.styles = playStyles;
+            const playStyleInputs = document.getElementsByClassName('play-style-edit');
+            if (playStyleInputs.length) {
+                data.playStyles.styles = Array.from(playStyleInputs).map(input => input.value);
+            }
 
             // 保存跑團平台
-            const platforms = Array.from(document.getElementsByClassName('platform-edit'))
-                .map(input => input.value);
-            if (platforms.length) data.platforms.list = platforms;
+            const platformInputs = document.getElementsByClassName('platform-edit');
+            if (platformInputs.length) {
+                data.platforms.list = Array.from(platformInputs).map(input => input.value);
+            }
 
-         
+            // 保存關係扮演傾向
+            const relationshipEdits = document.getElementsByClassName('relationship-edit');
+            Array.from(relationshipEdits).forEach((select, index) => {
+                if (index < data.relationships.types.length) {
+                    const textInput = select.closest('.module-item').querySelector('.edit-input');
+                    data.relationships.types[index].text = textInput.value;
+                    data.relationships.types[index].fill = `filled-${select.value}`;
+                }
+            });
+
+            // 保存性向傾向
+            const orientationEdits = document.getElementsByClassName('orientation-edit');
+            Array.from(orientationEdits).forEach((range, index) => {
+                if (index < data.orientations.types.length) {
+                    const textInput = range.closest('.module-item').querySelector('.edit-input');
+                    data.orientations.types[index].text = textInput.value;
+                    data.orientations.types[index].percentage = parseInt(range.value);
+                }
+            });
+
+            // 保存偏好模組
+            const moduleEdits = document.getElementsByClassName('module-edit');
+            Array.from(moduleEdits).forEach((range, index) => {
+                if (index < data.preferredModules.modules.length) {
+                    const textInput = range.closest('.module-item').querySelector('.edit-input');
+                    data.preferredModules.modules[index].text = textInput.value;
+                    data.preferredModules.modules[index].percentage = parseInt(range.value);
+                }
+            });
+
+            // 保存地雷題材
+            const landmineEdits = document.getElementsByClassName('landmine-edit');
+            Array.from(landmineEdits).forEach((select, index) => {
+                if (index < data.landmines.items.length) {
+                    const textInput = select.closest('.module-item').querySelector('.edit-input');
+                    data.landmines.items[index].text = textInput.value;
+                    data.landmines.items[index].type = select.value;
+                }
+            });
+
+            // 保存留言內容
+            const messageTextarea = document.querySelector('textarea.edit-input');
+            if (messageTextarea) {
+                data.message.content = messageTextarea.value;
+            }
         }
 
         function addPlayStyle() {

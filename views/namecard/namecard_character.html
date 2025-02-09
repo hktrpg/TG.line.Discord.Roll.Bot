@@ -651,6 +651,55 @@
             margin: 0 0 0 0;
             font-family: "Rampart One", serif;
         }
+
+        /* Add new styles for drag-and-drop */
+        .avatar-upload-zone {
+            width: 12rem;
+            height: 12rem;
+            margin: 0 auto 1.5rem;
+            border: 3px dashed #60a5fa;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .avatar-upload-zone.drag-over {
+            background: rgba(96, 165, 250, 0.1);
+            border-color: #3b82f6;
+        }
+
+        .avatar-upload-zone i {
+            font-size: 2rem;
+            color: #60a5fa;
+            margin-bottom: 0.5rem;
+        }
+
+        .avatar-upload-zone .upload-text {
+            color: #60a5fa;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .avatar-upload-zone img {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .upload-hint {
+            color: #6b7280;
+            font-size: 0.8rem;
+            text-align: center;
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
     </style>
 </head>
 
@@ -674,7 +723,8 @@
                     </div>
                 </div>
                 <div class="avatar-container">
-                    <img id="avatarImage" src="" alt="角色頭像">
+                    <img id="avatarImage" alt="角色頭像">
+
                 </div>
                 <h3 id="attributeTitle">基本屬性</h3>
                 <div id="basic-attributes"></div>
@@ -741,8 +791,8 @@
         const avatarImageUrl = "https://images2.imgbox.com/ea/b2/Bn8DmRTW_o.png";
 
         let character = {
-            characterName: "泉心 懷仕",
-            playerName: "Sad",
+            characterName: "吾是 範例",
+            playerName: "範例君",
             id: "@HKTRPG",
             attributes: {
                 attributesList: {
@@ -945,7 +995,14 @@
     <label>角色名字: <input type="text" id="editCharacterName" value="${character.characterName}"></label>
     <label>玩家名字: <input type="text" id="editPlayerName" value="${character.playerName}"></label>
     <label>SNS ID: <input type="text" id="editsnsID" value="${character.id}"></label></br>
-    <label>頭像網址: <input type="text" id="editAvatar" value="${document.getElementById('avatarImage').src}"></label>
+    <div class="avatar-upload-zone" id="avatarUploadZone">
+        <input type="file" id="avatarFileInput" style="display: none" accept="image/*">
+        <i class="fas fa-cloud-upload-alt"></i>
+        <div class="upload-text">拖放圖片或點擊上傳</div>
+        ${document.getElementById('avatarImage').src ?
+                    `<img src="${document.getElementById('avatarImage').src}" alt="預覽">` : ''}
+    </div>
+    <div class="upload-hint">* 圖片僅用於預覽和匯出，不會保存在分享連結中</div>
   </div>
   <hr>
     <h2>可拖動項目以重新排序</h2>
@@ -956,12 +1013,12 @@
     <div id="editAttributesContainer">
       <div id="editAttributesList">
         ${character.attributes.attributesList.map(attr =>
-                `<div draggable="true" class="draggable">
+                        `<div draggable="true" class="draggable">
           <input type="text" class="attr-key" value="${attr.key}">
           : <input type="text" class="attr-value" value="${attr.value}">
           <button onclick="removeAttr('${attr.key}')" class="btn-remove">移除</button>
         </div>`
-            ).join('')}
+                    ).join('')}
       </div>
       <button onclick="addAttribute()" class="btn-add">新增屬性</button>
     </div>
@@ -973,12 +1030,12 @@
     <div id="editSkillsContainer">
       <div id="editSkillsList">
         ${character.skills.map((skill, index) =>
-                `<div draggable="true" class="draggable">
+                        `<div draggable="true" class="draggable">
           <input type="text" class="skill-type" value="${skill.type}">
           <input type="number" class="skill-value" value="${skill.value}">
           <button onclick="removeSkill(${index})" class="btn-remove">移除</button>
         </div>`
-            ).join('')}
+                    ).join('')}
       </div>
       <button onclick="addSkill()" class="btn-add">新增技能</button>
     </div>
@@ -990,12 +1047,12 @@
     <div id="editDiceRollsContainer">
       <div id="editDiceRollsList">
         ${character.diceRolls.map(dice =>
-                `<div draggable="true" class="draggable">
+                        `<div draggable="true" class="draggable">
           <input type="text" class="dice-key" value="${dice.key}">
           : <input type="text" class="dice-value" value="${dice.value}">
           <button onclick="removeDice('${dice.key}')" class="btn-remove">移除</button>
         </div>`
-            ).join('')}
+                    ).join('')}
       </div>
       <button onclick="addDice()" class="btn-add">新增技能</button>
     </div>
@@ -1007,12 +1064,12 @@
     <div id="editNotesItemsContainer">
       <div id="editNotesItemsList">
         ${character.notes.items.map((item, index) =>
-                `<div draggable="true" class="draggable">
+                        `<div draggable="true" class="draggable">
           <input type="text" class="note-label" value="${item.label}">
           : <input type="text" class="note-value" value="${item.value}">
           <button onclick="removeNote(${index})" class="btn-remove">移除</button>
         </div>`
-            ).join('')}
+                    ).join('')}
       </div>
       <button onclick="addNote()" class="btn-add">新增筆記</button>
     </div>
@@ -1024,7 +1081,7 @@
     <div id="editPersonalityContainer">
       <div id="editPersonalityList">
         ${character.personalityPreferences.items.map((item, index) =>
-                `<div draggable="true" class="draggable">
+                        `<div draggable="true" class="draggable">
           <input type="text" class="personality-label" value="${item.label}">
           <input type="number" class="personality-value" value="${item.value}">
           <input type="text" class="personality-alt" value="${item.alternative}">
@@ -1042,7 +1099,7 @@
           </select>
           <button onclick="removePersonality(${index})" class="btn-remove">移除</button>
         </div>`
-            ).join('')}
+                    ).join('')}
       </div>
       <button onclick="addPersonality()" class="btn-add">新增性格偏好</button>
     </div>
@@ -1069,6 +1126,66 @@
             Sortable.create(document.getElementById('editDiceRollsList'), sortableOptions);
             Sortable.create(document.getElementById('editNotesItemsList'), sortableOptions);
             Sortable.create(document.getElementById('editPersonalityList'), sortableOptions);
+
+            // Add drag-and-drop event listeners
+            const uploadZone = document.getElementById('avatarUploadZone');
+            const fileInput = document.getElementById('avatarFileInput');
+
+            uploadZone.addEventListener('click', () => fileInput.click());
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadZone.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadZone.addEventListener(eventName, () => {
+                    uploadZone.classList.add('drag-over');
+                });
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadZone.addEventListener(eventName, () => {
+                    uploadZone.classList.remove('drag-over');
+                });
+            });
+
+            uploadZone.addEventListener('drop', handleDrop);
+            fileInput.addEventListener('change', handleFileSelect);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                handleFiles(files);
+            }
+
+            function handleFileSelect(e) {
+                const files = e.target.files;
+                handleFiles(files);
+            }
+
+            function handleFiles(files) {
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            const img = document.createElement('img');
+                            img.src = e.target.result;
+                            uploadZone.innerHTML = '';
+                            uploadZone.appendChild(img);
+                            character.avatarTemp = e.target.result; // Store temporary image data
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        alert('請上傳圖片檔案');
+                    }
+                }
+            }
         }
 
         // NEW: Save edit form data back into character and re-render view
@@ -1077,7 +1194,6 @@
             character.characterName = document.getElementById('editCharacterName').value;
             character.playerName = document.getElementById('editPlayerName').value;
             character.id = document.getElementById('editsnsID').value;
-            let newAvatar = document.getElementById('editAvatar').value;
 
             // Save title changes
             character.attributeTitle = document.getElementById('editAttributeTitle').value;
@@ -1136,10 +1252,10 @@
             }).filter(item => item.label !== "" || item.alternative !== "");
             character.personalityPreferences.items = newPers;
 
-            // Update avatar image in character view, if present
-            const avatarContainer = document.querySelector('.avatar-container');
-            if (avatarContainer) {
-                avatarContainer.innerHTML = `<img id="avatarImage" src="${newAvatar}" alt="角色頭像">`;
+            // Handle temporary avatar by storing it in character object
+            if (character.avatarTemp) {
+                character.avatarUrl = character.avatarTemp;
+                delete character.avatarTemp;
             }
 
             // Re-render original view (using your existing code)
@@ -1254,6 +1370,7 @@
                 character.diceRolls = Object.entries(character.diceRolls).map(([key, value]) => ({ key, value }));
             }
             const container = document.querySelector('.container');
+            const avatarSrc = character.avatarUrl || character.avatarTemp || avatarImageUrl;
             container.innerHTML = `
   <!-- Rebuild the view mode using updated character data -->
   <div class="header-buttons">
@@ -1273,7 +1390,7 @@
               </div>
           </div>
           <div class="avatar-container">
-              <img id="avatarImage" src="${document.getElementById('editAvatar') ? document.getElementById('editAvatar').value : avatarImageUrl}" alt="角色頭像">
+              <img id="avatarImage" src="${avatarSrc}" alt="角色頭像">
           </div>
           <h3 id="attributeTitle">${character.attributeTitle}</h3>
           <div id="basic-attributes">
@@ -1467,7 +1584,6 @@
             }
         }
 
-        // MODIFIED: Export to PNG function with progress
         async function exportToPNG() {
             const overlay = createProgressOverlay();
             const headerButtons = document.querySelector('.header-buttons');
@@ -1487,8 +1603,15 @@
                 // Update progress: Image processing
                 updateProgress(overlay, 30, '處理圖片中...');
 
-                if (!imageCache.base64 || imageCache.url !== data.avatar) {
-                    imageCache.base64 = await proxyImage(data.avatar);
+                // 檢查是否為本地上傳的圖片（data:image 開頭）
+                if (!data.avatar.startsWith('data:image')) {
+                    if (!imageCache.base64 || imageCache.url !== data.avatar) {
+                        imageCache.base64 = await proxyImage(data.avatar);
+                        imageCache.url = data.avatar;
+                    }
+                } else {
+                    // 本地上傳的圖片直接使用
+                    imageCache.base64 = data.avatar;
                     imageCache.url = data.avatar;
                 }
 
@@ -1593,7 +1716,8 @@
                                 { label: '實事求是', value: 60, alternative: '敏銳直觀', icon: 'fas fa-star' },
                                 { label: '理性思維', value: 85, alternative: '情感共鳴', icon: 'fas fa-users' }
                             ]
-                        }
+                        },
+                        avatarUrl: avatarImageUrl, // Add default avatar
                     };
 
                     // Parse state section
@@ -1649,18 +1773,28 @@
                     return convertedData;
                 } else if (jsonData) {
                     // Handle existing JSON format
-                    return JSON.parse(decodeURIComponent(atob(jsonData)));
+                    const data = JSON.parse(decodeURIComponent(atob(jsonData)));
+                    // Ensure default avatar if none exists
+                    data.avatarUrl = data.avatarUrl || avatarImageUrl;
+                    return data;
                 }
             } catch (error) {
                 console.error('URL參數解析失敗:', error);
             }
             return null;
         }
+
         // NEW: Generate share link function
         function generateShareLink() {
             try {
+                // Create a copy of character data without avatar
+                const shareData = { ...character };
+                // Remove avatar related data
+                delete shareData.avatarTemp;
+                delete shareData.avatarUrl;
+
                 // Convert character data to JSON string
-                const jsonString = JSON.stringify(character);
+                const jsonString = JSON.stringify(shareData);
                 // Use encodeURIComponent for UTF-8 encoding
                 const base64Data = btoa(encodeURIComponent(jsonString));
 

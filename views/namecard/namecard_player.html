@@ -1210,11 +1210,11 @@
                 currentUrl.searchParams.set('data', base64Data);
 
                 const shareUrl = currentUrl.toString();
-                alert('分享連結已複製到剪貼簿!\n' + shareUrl);
+                alert('備份連結已複製到剪貼簿!\n' + shareUrl);
                 navigator.clipboard.writeText(shareUrl);
             } catch (error) {
-                console.error('產生分享連結失敗:', error);
-                alert('產生分享連結失敗');
+                console.error('產生備份連結失敗:', error);
+                alert('產生備份連結失敗');
             }
         }
 
@@ -1556,7 +1556,7 @@
                                     拖曳圖片至此或點擊上傳
                                     <input type="file" id="avatarInput" style="display: none" accept="image/*">
                                 </div>
-                                <div class="upload-hint">※上傳的圖片僅用於匯出PNG，不會保存在分享連結中</div>
+                                <div class="upload-hint">※上傳的圖片僅用於匯出PNG，不會保存在備份連結中</div>
                             </div>
                         ` : ''}
                     </div>
@@ -1591,7 +1591,7 @@
                             匯出PNG
                         </button>
                         <button class="header-btn btn--share" onclick="generateShareLink()">
-                            分享連結
+                            備份連結
                         </button>
                         <button class="header-btn btn--edit" onclick="toggleEditMode()">
                             ${isEditMode ? '取消編輯' : '編輯'}

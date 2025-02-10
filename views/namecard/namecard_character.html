@@ -710,7 +710,7 @@
             <!-- Replace old Edit button with new container -->
             <button id="editBtn" class="btn-edit" onclick="toggleEditMode()">編輯角色</button>
             <button id="exportBtn" class="btn-export" onclick="exportToPNG()">匯出 PNG</button>
-            <button id="shareBtn" class="btn-share" onclick="generateShareLink()">分享角色</button>
+            <button id="shareBtn" class="btn-share" onclick="generateShareLink()">備份角色</button>
         </div>
         <div class="grid">
             <div class="column">
@@ -1002,7 +1002,7 @@
         ${document.getElementById('avatarImage').src ?
                     `<img src="${document.getElementById('avatarImage').src}" alt="預覽">` : ''}
     </div>
-    <div class="upload-hint">* 圖片僅用於預覽和匯出，不會保存在分享連結中</div>
+    <div class="upload-hint">* 圖片僅用於預覽和匯出，不會保存在備份連結中</div>
   </div>
   <hr>
     <h2>可拖動項目以重新排序</h2>
@@ -1376,7 +1376,7 @@
   <div class="header-buttons">
       <button id="editBtn" class="btn-edit" onclick="toggleEditMode()">編輯角色</button>
       <button id="exportBtn" class="btn-export" onclick="exportToPNG()">匯出 PNG</button>
-      <button id="shareBtn" class="btn-share" onclick="generateShareLink()">分享角色</button>
+      <button id="shareBtn" class="btn-share" onclick="generateShareLink()">備份角色</button>
   </div>
   <div class="grid">
       <div class="column">
@@ -1804,11 +1804,11 @@
                 currentUrl.searchParams.set('data', base64Data);
 
                 const shareUrl = currentUrl.toString();
-                alert('分享連結已複製到剪貼簿!\n' + shareUrl);
+                alert('備份連結已複製到剪貼簿!\n' + shareUrl);
                 navigator.clipboard.writeText(shareUrl);
             } catch (error) {
-                console.error('產生分享連結失敗:', error);
-                alert('產生分享連結失敗');
+                console.error('產生備份連結失敗:', error);
+                alert('產生備份連結失敗');
             }
         }
 

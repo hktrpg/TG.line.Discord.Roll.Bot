@@ -90,7 +90,7 @@
 
             .btn-edit,
             .btn-export,
-            .btn-share {
+            .btn-backup {
                 margin-bottom: 0.5rem !important;
                 width: 100%;
                 display: block;
@@ -515,7 +515,7 @@
         }
 
         /* NEW: Share button styling */
-        .btn-share {
+        .btn-backup {
             background: linear-gradient(to right, #4ade80, #22d3ee);
             border: none;
             color: white;
@@ -527,7 +527,7 @@
             margin-bottom: 1rem;
         }
 
-        .btn-share:hover {
+        .btn-backup:hover {
             opacity: 0.8;
             transform: scale(1.05);
         }
@@ -710,7 +710,7 @@
             <!-- Replace old Edit button with new container -->
             <button id="editBtn" class="btn-edit" onclick="toggleEditMode()">編輯角色</button>
             <button id="exportBtn" class="btn-export" onclick="exportToPNG()">匯出 PNG</button>
-            <button id="shareBtn" class="btn-share" onclick="generateShareLink()">備份角色</button>
+            <button id="shareBtn" class="btn-backup" onclick="generateShareLink()">備份角色</button>
         </div>
         <div class="grid">
             <div class="column">
@@ -1376,7 +1376,7 @@
   <div class="header-buttons">
       <button id="editBtn" class="btn-edit" onclick="toggleEditMode()">編輯角色</button>
       <button id="exportBtn" class="btn-export" onclick="exportToPNG()">匯出 PNG</button>
-      <button id="shareBtn" class="btn-share" onclick="generateShareLink()">備份角色</button>
+      <button id="shareBtn" class="btn-backup" onclick="generateShareLink()">備份角色</button>
   </div>
   <div class="grid">
       <div class="column">

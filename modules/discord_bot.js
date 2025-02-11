@@ -1348,9 +1348,9 @@ async function handlingEditMessage(message, rplyVal) {
 		const editReply = rplyVal.discordEditMessage;
 		const channel = await client.channels.fetch(message.reference.channelId);
 		const editMessage = await channel.messages.fetch(message.reference.messageId)
-		//type 0 = textChannel , type 11 = threadChannel, 
+		//type 0 = textChannel , type 11 12 = threadChannel, 
 		let targetChannel = channel;
-		if (channel.type == 11) targetChannel = await client.channels.fetch(channel.parentId)
+		if (channel.type == 11 || channel.type == 12) targetChannel = await client.channels.fetch(channel.parentId)
 		if (editMessage.editable)
 			return editMessage.edit({ content: editReply });
 		else

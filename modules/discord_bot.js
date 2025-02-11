@@ -1343,27 +1343,33 @@ function handlingButtonCommand(message) {
 }
 async function handlingEditMessage(message, rplyVal) {
 	try {
-		//type = reply
 		if (message.type !== 19) return message.reply({ content: '請Reply 你所想要修改的指定訊息' });
 		if (message.channelId !== message.reference.channelId) return message.reply({ content: '請只修改同一個頻道的訊息' });
 		const editReply = rplyVal.discordEditMessage;
 		const channel = await client.channels.fetch(message.reference.channelId);
 		const editMessage = await channel.messages.fetch(message.reference.messageId)
+		//type 0 = textChannel , type 11 = threadChannel, 
+		let targetChannel = channel;
+		if (channel.type == 11) targetChannel = await client.channels.fetch(channel.parentId)
 		if (editMessage.editable)
 			return editMessage.edit({ content: editReply });
 		else
 			if (editMessage.webhookId) {
 				const messageid = editMessage.id;
-				const webhooks = await channel.fetchWebhooks();
+				const webhooks = await targetChannel.fetchWebhooks();
 				const webhook = webhooks.find(wh => wh.id == editMessage.webhookId);
 				if (!webhook) return message.reply({ content: '找不到這個訊息的webhook，所以不能修改' });
+				//if type ==11,  add  threadId: message.reference.channelId
 				return await webhook.editMessage(messageid, {
-					content: editReply
+					content: editReply,
+					threadId: (channel.type === 11) ? message.reference.channelId : null
 				});
+
+
 			} else
 				return message.reply({ content: '根據Discord的規則，只能修改此BOT(HKTRPG)和Webhook所發出的訊息，請重新檢查' });
 	} catch (error) {
-		console.error();
+		console.error(error);
 	}
 }
 

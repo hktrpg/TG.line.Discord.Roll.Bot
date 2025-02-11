@@ -367,7 +367,7 @@ async function privateMsgFinder(channelid) {
 		return groupInfo.trpgDarkRollingfunction
 	else return [];
 }
-async function SendToId(targetid, replyText, quotes) {
+async function SendToId(targetid, replyText, quotes = false) {
 	let user = await client.users.fetch(targetid);
 	if (typeof replyText === "string") {
 		let sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
@@ -1250,8 +1250,7 @@ async function handlingSendMessage(input) {
 			}
 			if (userid) {
 				sendText = "<@" + userid + "> 的暗骰\n" + sendText
-				SendToReply(
-					{ replyText: sendText, message });
+				SendToId(userid, sendText, true);
 			}
 			return;
 		case privatemsg == 2:
@@ -1267,7 +1266,7 @@ async function handlingSendMessage(input) {
 			if (userid) {
 				sendText = "<@" + userid + "> 的暗骰\n" + sendText;
 			}
-			SendToReply({ replyText: sendText, message });
+			SendToId(userid, sendText);
 			for (let i = 0; i < TargetGMTempID.length; i++) {
 				if (userid != TargetGMTempID[i]) {
 					SendToId(TargetGMTempID[i], sendText);
@@ -1296,7 +1295,8 @@ async function handlingSendMessage(input) {
 			if (groupid) {
 				await SendToReplychannel({ replyText: sendText, channelid, quotes: quotes, buttonCreate: buttonCreate });
 			} else {
-				SendToReply({ replyText: sendText, message, quotes: quotes, buttonCreate: buttonCreate });
+				//SendToReply({ replyText: sendText, message, quotes: quotes, buttonCreate: buttonCreate });
+				SendToId(userid, sendText, true);
 			}
 			return;
 	}

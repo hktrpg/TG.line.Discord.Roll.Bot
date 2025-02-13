@@ -707,10 +707,11 @@
     <div class="container">
         <!-- NEW: Wrap header buttons -->
         <div class="header-buttons">
-            <!-- Replace old Edit button with new container -->
             <button id="editBtn" class="btn-edit" onclick="toggleEditMode()">編輯角色</button>
-            <button id="exportBtn" class="btn-export" onclick="exportToPNG()">匯出 PNG</button>
+            <button id="exportBtn" class="btn-export" onclick="sendToServer()">匯出 PNG</button>
             <button id="shareBtn" class="btn-backup" onclick="generateShareLink()">備份角色</button>
+            <!-- 新增隱藏的本地匯出按鈕 -->
+            <button id="localExportBtn" class="btn-export" onclick="exportToPNG()" style="display:none;">本地匯出</button>
         </div>
         <div class="grid">
             <div class="column">
@@ -1584,6 +1585,85 @@
             }
         }
 
+
+        async function sendToServer() {
+            const overlay = createProgressOverlay();
+            try {
+                // Update progress
+                updateProgress(overlay, 10, '準備傳送資料...');
+
+                // 準備要傳送的資料
+                const container = document.querySelector('.container');
+                const styles = document.querySelector('style');
+                const data = {
+                    html: container.outerHTML,
+                    css: styles ? styles.textContent : '',
+                    avatarUrl: document.getElementById('avatarImage').src
+                };
+
+                // Update progress
+                updateProgress(overlay, 30, '傳送至伺服器...');
+
+                // 發送 POST 請求到 API，添加必要的 headers
+                const response = await fetch('/api/generate-png', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(data),
+                    credentials: 'same-origin'
+                });
+
+                // 檢查響應狀態
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => null);
+                    throw new Error(errorData?.message || '伺服器錯誤');
+                }
+
+                // 確認響應類型是否為圖片
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('image/')) {
+                    throw new Error('伺服器回應格式錯誤');
+                }
+
+                // 接收並處理二進位圖片資料
+                const blob = await response.blob();
+
+                // Update progress
+                updateProgress(overlay, 90, '下載圖片...');
+
+                // 建立下載連結
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                const id = document.getElementById('snsID')?.innerText || '';
+                a.href = url;
+                a.download = `${id}_TRPG_Card.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+
+                // 完成
+                updateProgress(overlay, 100, '匯出完成！');
+            } catch (error) {
+                console.error('匯出失敗:', error);
+                overlay.querySelector('.progress-text').textContent = '匯出失敗';
+                overlay.querySelector('.progress-status').textContent = error.message || '請稍後再試';
+
+                // 如果伺服器不可用，自動切換到本地匯出
+                if (error.message.includes('伺服器錯誤') || error.message.includes('伺服器回應格式錯誤')) {
+                    setTimeout(() => {
+                        overlay.remove();
+                        exportToPNG();
+                    }, 2000);
+                }
+            } finally {
+                if (!overlay.querySelector('.progress-text').textContent.includes('失敗')) {
+                    setTimeout(() => overlay.remove(), 1000);
+                }
+            }
+        }
         async function exportToPNG() {
             const overlay = createProgressOverlay();
             const headerButtons = document.querySelector('.header-buttons');

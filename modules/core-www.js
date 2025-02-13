@@ -2,6 +2,7 @@
 if (!process.env.mongoURL) {
     return;
 }
+const puppeteer = require('puppeteer');
 const express = require('express');
 const www = express();
 const helmet = require('helmet');
@@ -543,6 +544,73 @@ if (isMaster) {
         }
     });
 }
+
+www.post('/api/generate-png', async (req, res) => {
+    const { html, css, avatarUrl } = req.body;
+
+    try {
+        const browser = await puppeteer.launch({
+            headless: 'new',
+            args: ['--no-sandbox']
+        });
+
+        const page = await browser.newPage();
+
+        // 注入 HTML 和 CSS
+        await page.setContent(`
+            <style>${css}</style>
+            ${html}
+        `);
+
+        // 等待內容載入
+        await page.waitForSelector('.container');
+
+        // 隱藏編輯按鈕等UI元素
+        await page.evaluate(() => {
+            const headerButtons = document.querySelector('.header-buttons');
+            if (headerButtons) {
+                headerButtons.style.display = 'none';
+            }
+        });
+
+        // 設定視窗大小
+        await page.setViewport({
+            width: 1024,
+            height: 768,
+            deviceScaleFactor: 2
+        });
+
+        // 如果有外部圖片,等待載入
+        if (avatarUrl && !avatarUrl.startsWith('data:')) {
+            await page.evaluate(async (url) => {
+                const img = document.getElementById('avatarImage');
+                if (img) {
+                    await new Promise((resolve, reject) => {
+                        img.onload = resolve;
+                        img.onerror = reject;
+                        img.src = url;
+                    });
+                }
+            }, avatarUrl);
+        }
+
+        // 產生截圖
+        const screenshot = await page.screenshot({
+            fullPage: true,
+            type: 'png',
+            omitBackground: true
+        });
+
+        await browser.close();
+
+        // 傳送圖片
+        res.type('image/png').send(screenshot);
+
+    } catch (error) {
+        console.error('Screenshot generation failed:', error);
+        res.status(500).json({ error: 'Failed to generate image' });
+    }
+});
 
 function jsonEscape(str) {
     return str.replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/\t/g, "\\t");

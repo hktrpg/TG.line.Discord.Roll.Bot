@@ -545,70 +545,64 @@ if (isMaster) {
     });
 }
 
-www.post('/api/generate-png', async (req, res) => {
-    const { html, css, avatarUrl } = req.body;
+// Add near the existing www.post('/api/generate-png') endpoint
+// Add near the top with other requires
+const bodyParser = require('body-parser');
 
+// Add after other www.use() statements
+www.use(bodyParser.json({ limit: '50mb' }));
+
+// Replace the existing API endpoint
+www.post('/api/namecard', async (req, res) => {
     try {
+        // Initialize browser
         const browser = await puppeteer.launch({
-            headless: 'new',
-            args: ['--no-sandbox']
-        });
-
-        const page = await browser.newPage();
-
-        // 注入 HTML 和 CSS
-        await page.setContent(`
-            <style>${css}</style>
-            ${html}
-        `);
-
-        // 等待內容載入
-        await page.waitForSelector('.container');
-
-        // 隱藏編輯按鈕等UI元素
-        await page.evaluate(() => {
-            const headerButtons = document.querySelector('.header-buttons');
-            if (headerButtons) {
-                headerButtons.style.display = 'none';
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+            defaultViewport: {
+                width: 1200,
+                height: 800
             }
         });
 
-        // 設定視窗大小
-        await page.setViewport({
-            width: 1024,
-            height: 768,
-            deviceScaleFactor: 2
+        // Create new page and set content
+        const page = await browser.newPage();
+        
+        // Navigate to the character page with data
+        const encodedData = encodeURIComponent(JSON.stringify(req.body));
+        await page.goto(`${req.protocol}://${req.get('host')}/character?data=${encodedData}`);
+
+        // Wait for content to load
+        await page.waitForSelector('.container');
+
+        // Hide edit buttons before taking screenshot
+        await page.evaluate(() => {
+            const headerButtons = document.querySelector('.header-buttons');
+            if (headerButtons) headerButtons.style.display = 'none';
         });
 
-        // 如果有外部圖片,等待載入
-        if (avatarUrl && !avatarUrl.startsWith('data:')) {
-            await page.evaluate(async (url) => {
-                const img = document.getElementById('avatarImage');
-                if (img) {
-                    await new Promise((resolve, reject) => {
-                        img.onload = resolve;
-                        img.onerror = reject;
-                        img.src = url;
-                    });
-                }
-            }, avatarUrl);
-        }
-
-        // 產生截圖
+        // Take screenshot
         const screenshot = await page.screenshot({
-            fullPage: true,
             type: 'png',
-            omitBackground: true
+            fullPage: true,
+            encoding: 'binary'
         });
 
+        // Close browser
         await browser.close();
 
-        // 傳送圖片
-        res.type('image/png').send(screenshot);
+        // Send response
+        res.writeHead(200, {
+            'Content-Type': 'image/png',
+            'Content-Disposition': 'attachment; filename="character_card.png"'
+        });
+        res.end(screenshot, 'binary');
 
     } catch (error) {
-        console.error('Screenshot generation failed:', error);
-        res.status(500).json({ error: 'Failed to generate image' });
+        console.error('Screenshot generation error:', error);
+        res.status(500).json({ 
+            error: 'Failed to generate character card image',
+            message: error.message 
+        });
     }
 });
 

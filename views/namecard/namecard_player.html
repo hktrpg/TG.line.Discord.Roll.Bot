@@ -406,16 +406,22 @@
             .container {
                 grid-template-columns: 1fr;
                 padding: 1rem;
-                width: 90%; /* Changed from calc(100% - 2rem) */
-                max-width: 500px; /* Added max-width */
-                margin: 1rem auto; /* Changed from 1rem to center the container */
+                width: 90%;
+                /* Changed from calc(100% - 2rem) */
+                max-width: 500px;
+                /* Added max-width */
+                margin: 1rem auto;
+                /* Changed from 1rem to center the container */
             }
 
             body {
                 padding: 0.5rem;
-                display: flex; /* Added */
-                justify-content: center; /* Added */
-                align-items: flex-start; /* Added */
+                display: flex;
+                /* Added */
+                justify-content: center;
+                /* Added */
+                align-items: flex-start;
+                /* Added */
                 min-height: 100vh;
             }
 
@@ -1091,7 +1097,7 @@
 
     <script>
         let isEditMode = false;
-        let originalData = null; 
+        let originalData = null;
         let uploadedImage = null; // 新增上傳圖片相關變數
         function getDataFromUrl() {
             try {
@@ -1467,11 +1473,30 @@
             const buttonsHTML = headerButtons.innerHTML;
             headerButtons.innerHTML = '';
 
+            // Save original viewport
+            const viewport = document.querySelector('meta[name="viewport"]');
+            const originalViewport = viewport ? viewport.content : '';
+            const container = document.querySelector('.container');
+            const originalWidth = container.style.width || getComputedStyle(container).width;
+
             try {
                 overlay.style.display = 'flex';
                 updateProgress(10, '準備圖片資源...');
 
-                // 優先使用上傳的圖片，其次使用緩存或URL的圖片
+                // Force desktop viewport
+                if (viewport) {
+                    viewport.content = 'width=1024, initial-scale=1';
+                } else {
+                    const meta = document.createElement('meta');
+                    meta.name = 'viewport';
+                    meta.content = 'width=1024, initial-scale=1';
+                    document.head.appendChild(meta);
+                }
+
+                // Wait for layout adjustments
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                // Handle image preparation
                 if (!uploadedImage) {
                     if (!imageCache.base64 || imageCache.url !== data.avatar) {
                         updateProgress(20, '載入頭像圖片...');
@@ -1481,17 +1506,21 @@
                 }
 
                 updateProgress(40, '準備轉換為圖片...');
-                const container = document.querySelector('.container');
+
                 container.classList.add('exporting');
                 container.classList.add('no-animations');
 
+                // Force container width for consistent export
+
+                container.style.width = '1024px';
+
                 updateProgress(60, '產生圖片中...');
                 const canvas = await html2canvas(container, {
-
                     allowTaint: true,
                     useCORS: true,
                     backgroundColor: '#f3f3f3',
                     scale: 2,
+                    windowWidth: 1024,
                     onclone: (doc) => {
                         const avatarImg = doc.querySelector('.avatar img');
                         if (avatarImg) {
@@ -1520,12 +1549,22 @@
                 alert('匯出失敗，請稍後再試。');
                 overlay.style.display = 'none';
             } finally {
+                // Restore original viewport
+                if (viewport) {
+                    viewport.content = originalViewport;
+                }
+
+                // Restore container
                 const container = document.querySelector('.container');
+                container.style.width = originalWidth;
                 container.classList.remove('exporting');
                 container.classList.remove('no-animations');
+
+                // Restore header buttons
                 headerButtons.innerHTML = buttonsHTML;
             }
         }
+
 
         function updateProgress(percentage, text) {
             const progressBarFill = document.getElementById('progressBarFill');
@@ -2002,7 +2041,7 @@
         }
 
 
-        
+
         function handleFileSelect(e) {
             const file = e.target.files[0];
             if (file && file.type.startsWith('image/')) {

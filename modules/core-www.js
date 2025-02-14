@@ -571,29 +571,23 @@ www.post('/api/namecard', async (req, res) => {
         // Wait for content to load
         await page.waitForSelector('.container');
 
-        // Execute exportToPNG function in browser context
+        // Execute screenshot capture in browser context
         const imageData = await page.evaluate(async () => {
-            // Create progress overlay
-            const overlay = document.createElement('div');
-            overlay.className = 'progress-overlay';
-            overlay.innerHTML = `
-                <div class="progress-container">
-                    <div class="progress-text">正在匯出 PNG...</div>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar-fill" style="width: 0%"></div>
-                    </div>
-                    <div class="progress-status">準備中...</div>
-                </div>
-            `;
-            document.body.appendChild(overlay);
-
-            // Hide header buttons
-            const headerButtons = document.querySelector('.header-buttons');
-            if (headerButtons) headerButtons.style.display = 'none';
-
             try {
+                // Find the container element
                 const container = document.querySelector('.container');
-                container.classList.add('exporting', 'no-animations');
+                if (!container) {
+                    throw new Error('Container element not found');
+                }
+
+                // Add exporting class
+                container.classList.add('exporting');
+
+                // Hide header buttons if they exist
+                const headerButtons = document.querySelector('.header-buttons');
+                if (headerButtons) {
+                    headerButtons.style.display = 'none';
+                }
 
                 // Generate PNG using html2canvas
                 const canvas = await html2canvas(container, {
@@ -613,9 +607,14 @@ www.post('/api/namecard', async (req, res) => {
                 throw error;
             } finally {
                 // Clean up
-                overlay.remove();
-                container.classList.remove('exporting', 'no-animations');
-                if (headerButtons) headerButtons.style.display = 'block';
+                const container = document.querySelector('.container');
+                if (container) {
+                    container.classList.remove('exporting');
+                }
+                const headerButtons = document.querySelector('.header-buttons');
+                if (headerButtons) {
+                    headerButtons.style.display = 'block';
+                }
             }
         });
 

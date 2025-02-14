@@ -1589,7 +1589,12 @@
             const headerButtons = document.querySelector('.header-buttons');
             const buttonsHTML = headerButtons.innerHTML || '';
             headerButtons.style.display = 'none';
-
+            // Store original classes
+            const originalClasses = {
+                container: document.querySelector('.container')?.className,
+                grid: document.querySelector('.grid')?.className,
+                columns: Array.from(document.querySelectorAll('.column')).map(col => col.className)
+            };
             try {
                 updateProgress(overlay, 10, '準備匯出...');
 
@@ -1715,17 +1720,33 @@
                     overlay.remove();
                 }, 2000);
             } finally {
-                // 恢復所有原始樣式
+                // Restore original styles and classes
                 document.documentElement.style.setProperty('--transition', 'all 0.3s ease');
-                container.classList.remove('exporting', 'no-animations');
-                container.style.cssText = '';
 
-                const grid = container.querySelector('.grid');
-                if (grid) grid.style.cssText = '';
+                // Restore container classes
+                const container = document.querySelector('.container');
+                if (container) {
+                    container.className = originalClasses.container;
+                    container.style.cssText = '';
+                }
 
-                columns.forEach(column => {
-                    column.style.cssText = '';
-                });
+                // Restore grid classes
+                const grid = container?.querySelector('.grid');
+                if (grid) {
+                    grid.className = originalClasses.grid;
+                    grid.style.cssText = '';
+                }
+
+                // Restore column classes
+                const columns = container?.querySelectorAll('.column');
+                if (columns) {
+                    columns.forEach((column, index) => {
+                        if (originalClasses.columns[index]) {
+                            column.className = originalClasses.columns[index];
+                        }
+                        column.style.cssText = '';
+                    });
+                }
 
                 headerButtons.innerHTML = buttonsHTML;
                 headerButtons.style.display = 'block';

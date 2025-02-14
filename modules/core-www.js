@@ -547,15 +547,12 @@ if (isMaster) {
 
 // Add near the existing www.post('/api/generate-png') endpoint
 // Add near the top with other requires
-const bodyParser = require('body-parser');
 
-// Add after other www.use() statements
-www.use(bodyParser.json({ limit: '50mb' }));
 
 // Replace the existing API endpoint
 www.post('/api/namecard', async (req, res) => {
     try {
-        // Initialize browser
+        // Initialize browser with required configuration
         const browser = await puppeteer.launch({
             args: ['--no-sandbox', '--disable-setuid-sandbox'],
             defaultViewport: {
@@ -564,28 +561,67 @@ www.post('/api/namecard', async (req, res) => {
             }
         });
 
-        // Create new page and set content
+        // Create new page
         const page = await browser.newPage();
-        
-        // Navigate to the character page with data
+
+        // Navigate to character page with data
         const encodedData = encodeURIComponent(JSON.stringify(req.body));
         await page.goto(`${req.protocol}://${req.get('host')}/character?data=${encodedData}`);
 
         // Wait for content to load
         await page.waitForSelector('.container');
 
-        // Hide edit buttons before taking screenshot
-        await page.evaluate(() => {
+        // Execute exportToPNG function in browser context
+        const imageData = await page.evaluate(async () => {
+            // Create progress overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'progress-overlay';
+            overlay.innerHTML = `
+                <div class="progress-container">
+                    <div class="progress-text">正在匯出 PNG...</div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-status">準備中...</div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+
+            // Hide header buttons
             const headerButtons = document.querySelector('.header-buttons');
             if (headerButtons) headerButtons.style.display = 'none';
+
+            try {
+                const container = document.querySelector('.container');
+                container.classList.add('exporting', 'no-animations');
+
+                // Generate PNG using html2canvas
+                const canvas = await html2canvas(container, {
+                    width: container.scrollWidth + 10,
+                    x: -5,
+                    allowTaint: true,
+                    useCORS: true,
+                    backgroundColor: '#f3f3f3',
+                    scale: 2,
+                });
+
+                // Convert canvas to base64 PNG
+                return canvas.toDataURL('image/png', 1.0);
+
+            } catch (error) {
+                console.error('Export failed:', error);
+                throw error;
+            } finally {
+                // Clean up
+                overlay.remove();
+                container.classList.remove('exporting', 'no-animations');
+                if (headerButtons) headerButtons.style.display = 'block';
+            }
         });
 
-        // Take screenshot
-        const screenshot = await page.screenshot({
-            type: 'png',
-            fullPage: true,
-            encoding: 'binary'
-        });
+        // Convert base64 to binary
+        const base64Data = imageData.replace(/^data:image\/png;base64,/, "");
+        const binaryData = Buffer.from(base64Data, 'base64');
 
         // Close browser
         await browser.close();
@@ -595,13 +631,13 @@ www.post('/api/namecard', async (req, res) => {
             'Content-Type': 'image/png',
             'Content-Disposition': 'attachment; filename="character_card.png"'
         });
-        res.end(screenshot, 'binary');
+        res.end(binaryData);
 
     } catch (error) {
-        console.error('Screenshot generation error:', error);
-        res.status(500).json({ 
+        console.error('Character card generation error:', error);
+        res.status(500).json({
             error: 'Failed to generate character card image',
-            message: error.message 
+            message: error.message
         });
     }
 });

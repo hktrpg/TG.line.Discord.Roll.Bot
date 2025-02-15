@@ -1674,7 +1674,7 @@
                     onclone: (doc) => {
                         const avatarImgClone = doc.querySelector('.avatar-container img');
                         if (avatarImgClone && imageCache.base64) {
-                            if (imageCache.base64.startsWith('data:image')) {
+                            if (imageCache.url.startsWith('http')) {
                                 avatarImgClone.removeAttribute('crossOrigin');
                             } else {
                                 avatarImgClone.crossOrigin = 'anonymous';

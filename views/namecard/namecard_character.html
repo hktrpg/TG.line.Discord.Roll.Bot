@@ -995,6 +995,12 @@
     <label>角色名字: <input type="text" id="editCharacterName" value="${character.characterName}"></label>
     <label>玩家名字: <input type="text" id="editPlayerName" value="${character.playerName}"></label>
     <label>SNS ID: <input type="text" id="editsnsID" value="${character.id}"></label></br>
+     <label class="avatar-label">頭像網址: 
+        <input type="text" id="edit-avatar" class="avatar-input" 
+            value="${avatarImageUrl}" 
+            placeholder="輸入圖片網址"
+            onchange="previewAvatarFromUrl(this.value)">
+    </label>
     <div class="avatar-upload-zone" id="avatarUploadZone">
         <input type="file" id="avatarFileInput" style="display: none" accept="image/*">
         <i class="fas fa-cloud-upload-alt"></i>
@@ -1318,6 +1324,20 @@
                 <button onclick="this.parentElement.remove()" class="btn-remove">移除</button>
               </div>
             `);
+        }
+
+        function previewAvatarFromUrl(url) {
+            const uploadZone = document.getElementById('avatarUploadZone');
+            const img = document.createElement('img');
+            img.onload = () => {
+                uploadZone.innerHTML = '';
+                uploadZone.appendChild(img);
+                character.avatarTemp = url; // Store URL in temp storage
+            };
+            img.onerror = () => {
+                alert('圖片載入失敗，請確認網址是否正確');
+            };
+            img.src = url;
         }
         function removeNote(index) {
             const container = document.getElementById('editNotesItemsList');

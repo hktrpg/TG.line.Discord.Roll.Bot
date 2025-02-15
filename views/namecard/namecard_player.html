@@ -968,7 +968,7 @@
         }
 
         .avatar-drop-zone {
-            border: 2px dashed var(--color-border);
+            border: 2px dashed var(--color-blue);
             padding: 10px;
             text-align: center;
             cursor: pointer;
@@ -1318,7 +1318,13 @@
             data.message.title = document.getElementById('edit-message-title').value;
             data.preferredModules.title = document.getElementById('edit-preferredModules-title').value;
             data.landmines.title = document.getElementById('edit-landmines-title').value;
-
+            const newAvatarUrl = document.getElementById('edit-avatar').value;
+            if (newAvatarUrl !== data.avatar) {
+                uploadedImage = null; // 清除上傳的圖片
+                imageCache.base64 = null; // 清除快取
+                imageCache.url = null;
+            }
+            data.avatar = newAvatarUrl;
             isEditMode = false;
             renderApp();
         }
@@ -1381,11 +1387,9 @@
 
 
         const proxyServers = [
-            'https://api.allorigins.win/raw?url=',
             'https://api.codetabs.com/v1/proxy?quest=',
-            'https://cors-anywhere.herokuapp.com/',
-            'https://proxy.cors.sh/',
-            'https://corsproxy.io/?'
+            'https://corsproxy.io/?url=',
+            'https://cors-anywhere.herokuapp.com/'
         ];
 
         const proxyConfig = {
@@ -1403,7 +1407,7 @@
 
             // Try all servers in parallel with timeout
             const fetchPromises = orderedServers.map(server => {
-                const proxyUrl = server + encodeURIComponent(url);
+                const proxyUrl = server + (url);
                 return fetchWithTimeout(proxyUrl);
             });
 
@@ -1538,7 +1542,11 @@
                     onclone: (doc) => {
                         const avatarImg = doc.querySelector('.avatar img');
                         if (avatarImg) {
-                            avatarImg.crossOrigin = 'anonymous';
+                            if (avatarImg.src.startsWith('http')) {
+                                avatarImg.crossOrigin = 'anonymous';
+                            } else {
+                                avatarImg.removeAttribute('crossOrigin');
+                            }
                             avatarImg.src = imageSource;
                         }
                     }
@@ -1600,31 +1608,47 @@
         }
 
         // Update avatar image rendering in renderApp():
-
+        function handleAvatarUrlChange(input) {
+            if (input.value) {
+                uploadedImage = null; // 清除上傳的圖片
+                imageCache.base64 = null; // 清除快取
+                imageCache.url = null;
+                data.avatar = input.value;
+            }
+            renderApp();
+        }
         function renderApp() {
+            const getImageSource = () => {
+                if (uploadedImage) return uploadedImage;
+                if (imageCache.base64 && imageCache.url === data.avatar) return imageCache.base64;
+                return data.avatar;
+            };
+
+            // 在 avatar div 中使用新的圖片來源邏輯
             document.getElementById('app').innerHTML = `
-                <div class="header">
-                    <div class="avatar-section">
-                        <div class="avatar ${data.avatar ? '' : 'hidden'}">
-                            <img src="${uploadedImage || imageCache.base64 || data.avatar}" 
-                                 alt="Avatar" 
-                                 style="width: 100%; height: 100%; object-fit: cover;"
-                                 onerror="this.onerror=null; this.src='${data.avatar}';">
+        <div class="header">
+            <div class="avatar-section">
+                <div class="avatar ${data.avatar || uploadedImage ? '' : 'hidden'}">
+                    <img src="${getImageSource()}" 
+                         alt="Avatar" 
+                         style="width: 100%; height: 100%; object-fit: cover;"
+                         onerror="this.src='${data.avatar}';">
+                </div>
+                ${isEditMode ? `
+                    <div class="avatar-input-group">
+                        <label class="avatar-label">頭像網址</label>
+                        <input type="text" id="edit-avatar" class="avatar-input" 
+                            value="${data.avatar}" 
+                            onchange="handleAvatarUrlChange(this)"
+                            placeholder="輸入圖片網址">
+                        <div class="avatar-drop-zone" id="avatarDropZone">
+                            拖曳圖片至此或點擊上傳
+                            <input type="file" id="avatarInput" style="display: none" accept="image/*">
                         </div>
-                        ${isEditMode ? `
-                            <div class="avatar-input-group">
-                                <label class="avatar-label">頭像網址</label>
-                                <input type="text" id="edit-avatar" class="avatar-input" 
-                                    value="${data.avatar}" 
-                                    placeholder="輸入圖片網址">
-                                <div class="avatar-drop-zone" id="avatarDropZone">
-                                    拖曳圖片至此或點擊上傳
-                                    <input type="file" id="avatarInput" style="display: none" accept="image/*">
-                                </div>
-                                <div class="upload-hint">※上傳的圖片僅用於匯出PNG，不會保存在備份連結中</div>
-                            </div>
-                        ` : ''}
+                        <div class="upload-hint">※上傳的圖片僅用於匯出PNG，不會保存在備份連結中</div>
                     </div>
+                ` : ''}
+            </div>
                     <div class="title">
                         ${isEditMode ? `
                             <div class="header-input-group">
@@ -1652,19 +1676,21 @@
                         `}
                     </div>
                     <div class="header-buttons">
-                        <button class="header-btn btn--export" onclick="exportToPNG()">
-                            匯出PNG
-                        </button>
-                        <button class="header-btn btn--share" onclick="generateShareLink()">
-                            備份連結
-                        </button>
-                        <button class="header-btn btn--edit" onclick="toggleEditMode()">
-                            ${isEditMode ? '取消編輯' : '編輯'}
-                        </button>
-                        ${isEditMode ? `
-                            <button class="header-btn save-btn" onclick="saveData()">儲存更改</button>
-                        ` : ''}
-                    </div>
+    ${!isEditMode ? `
+        <button class="header-btn btn--export" onclick="exportToPNG()">
+            匯出PNG
+        </button>
+        <button class="header-btn btn--share" onclick="generateShareLink()">
+            備份連結
+        </button>
+    ` : ''}
+    <button class="header-btn btn--edit" onclick="toggleEditMode()">
+        ${isEditMode ? '取消編輯' : '編輯'}
+    </button>
+    ${isEditMode ? `
+        <button class="header-btn save-btn" onclick="saveData()">儲存更改</button>
+    ` : ''}
+</div>
                 </div>
                 <section class="section">
                      <h2>
@@ -2079,6 +2105,14 @@
             const reader = new FileReader();
             reader.onload = (e) => {
                 uploadedImage = e.target.result;
+                // 清除網址輸入
+                if (isEditMode) {
+                    const avatarInput = document.getElementById('edit-avatar');
+                    if (avatarInput) {
+                        avatarInput.value = '';
+                        data.avatar = ''; // 清除保存的網址
+                    }
+                }
                 renderApp();
             };
             reader.readAsDataURL(file);

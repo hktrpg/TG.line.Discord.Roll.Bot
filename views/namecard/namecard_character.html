@@ -995,6 +995,12 @@
     <label>角色名字: <input type="text" id="editCharacterName" value="${character.characterName}"></label>
     <label>玩家名字: <input type="text" id="editPlayerName" value="${character.playerName}"></label>
     <label>SNS ID: <input type="text" id="editsnsID" value="${character.id}"></label></br>
+     <label class="avatar-label">頭像網址: 
+        <input type="text" id="edit-avatar" class="avatar-input" 
+            value="${avatarImageUrl}" 
+            placeholder="輸入圖片網址"
+            onchange="previewAvatarFromUrl(this.value)">
+    </label>
     <div class="avatar-upload-zone" id="avatarUploadZone">
         <input type="file" id="avatarFileInput" style="display: none" accept="image/*">
         <i class="fas fa-cloud-upload-alt"></i>
@@ -1319,6 +1325,20 @@
               </div>
             `);
         }
+
+        function previewAvatarFromUrl(url) {
+            const uploadZone = document.getElementById('avatarUploadZone');
+            const img = document.createElement('img');
+            img.onload = () => {
+                uploadZone.innerHTML = '';
+                uploadZone.appendChild(img);
+                character.avatarTemp = url; // Store URL in temp storage
+            };
+            img.onerror = () => {
+                alert('圖片載入失敗，請確認網址是否正確');
+            };
+            img.src = url;
+        }
         function removeNote(index) {
             const container = document.getElementById('editNotesItemsList');
             container.removeChild(container.children[index]);
@@ -1475,11 +1495,10 @@
             });
         }
         const proxyServers = [
-            'https://api.allorigins.win/raw?url=',
             'https://api.codetabs.com/v1/proxy?quest=',
-            'https://cors-anywhere.herokuapp.com/',
-            'https://proxy.cors.sh/',
-            'https://corsproxy.io/?'
+            'https://corsproxy.io/?url=',
+            'https://cors-anywhere.herokuapp.com/'
+
         ];
 
         const proxyConfig = {
@@ -1497,7 +1516,7 @@
 
             // Try all servers in parallel with timeout
             const fetchPromises = orderedServers.map(server => {
-                const proxyUrl = server + encodeURIComponent(url);
+                const proxyUrl = server + (url);
                 return fetchWithTimeout(proxyUrl);
             });
 
@@ -1587,38 +1606,60 @@
         async function exportToPNG() {
             const overlay = createProgressOverlay();
             const headerButtons = document.querySelector('.header-buttons');
-            const buttonsHTML = headerButtons.innerHTML || '';
+            const buttonsHTML = headerButtons.innerHTML;
             headerButtons.style.display = 'none';
+
+            // Save original viewport and container state
+            const viewport = document.querySelector('meta[name="viewport"]');
+            const originalViewport = viewport ? viewport.content : '';
+            const container = document.querySelector('.container');
+            const originalWidth = container.style.width || getComputedStyle(container).width;
 
             try {
                 // Update progress: Start
                 updateProgress(overlay, 10, '準備匯出...');
 
+                // Force desktop viewport and width
+                if (viewport) {
+                    viewport.content = 'width=1024, initial-scale=1';
+                }
+                container.style.width = '1024px';
+
+                // Wait for layout adjustments
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                // Handle avatar image
                 const avatarImg = document.getElementById('avatarImage');
-                const data = {
-                    avatar: avatarImg.src,
-                    id: document.getElementById('snsID')?.innerText || '',
-                };
+                const currentSrc = avatarImg.src;
 
                 // Update progress: Image processing
                 updateProgress(overlay, 30, '處理圖片中...');
 
-                // 檢查是否為本地上傳的圖片（data:image 開頭）
-                if (!data.avatar.startsWith('data:image')) {
-                    if (!imageCache.base64 || imageCache.url !== data.avatar) {
-                        imageCache.base64 = await proxyImage(data.avatar);
-                        imageCache.url = data.avatar;
+                // Handle image caching and loading
+                if (!currentSrc.startsWith('data:image')) {
+                    if (!imageCache.base64 || imageCache.url !== currentSrc) {
+                        imageCache.base64 = await proxyImage(currentSrc);
+                        imageCache.url = currentSrc;
                     }
                 } else {
-                    // 本地上傳的圖片直接使用
-                    imageCache.base64 = data.avatar;
-                    imageCache.url = data.avatar;
+                    imageCache.base64 = currentSrc;
+                    imageCache.url = currentSrc;
                 }
+
+                // Pre-load image to ensure it's ready
+                await new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.onload = resolve;
+                    img.onerror = reject;
+                    img.crossOrigin = 'anonymous';
+                    img.src = imageCache.base64;
+                }).catch(error => {
+                    console.warn('Image pre-load failed:', error);
+                });
 
                 // Update progress: Preparing canvas
                 updateProgress(overlay, 50, '準備畫布...');
 
-                const container = document.querySelector('.container');
                 container.classList.add('exporting', 'no-animations');
 
                 // Update progress: Rendering
@@ -1629,29 +1670,48 @@
                     useCORS: true,
                     backgroundColor: '#f3f3f3',
                     scale: 2,
+                    windowWidth: 1024,
                     onclone: (doc) => {
                         const avatarImgClone = doc.querySelector('.avatar-container img');
                         if (avatarImgClone && imageCache.base64) {
+                            if (imageCache.url.startsWith('http')) {
+                                avatarImgClone.crossOrigin = 'anonymous';
+                            } else {
+                                avatarImgClone.removeAttribute('crossOrigin');
+                            }
                             avatarImgClone.src = imageCache.base64;
                         }
                     }
                 });
 
-                // Update progress: Finalizing
-                updateProgress(overlay, 90, '完成匯出...');
+                // Update progress: Creating blob
+                updateProgress(overlay, 85, '產生圖片檔案...');
 
+                // Convert to blob for better memory management
+                const blob = await new Promise(resolve => {
+                    canvas.toBlob(resolve, 'image/png', 1.0);
+                });
+
+                // Create and trigger download
+                const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
-                link.download = `${data.id}_TRPG_Card.png`;
-                link.href = canvas.toDataURL('image/png', 1.0);
-                link.click();
+                link.download = `${document.getElementById('snsID')?.innerText || 'character'}_TRPG_Card.png`;
+                link.href = url;
 
-                // Update progress: Complete
-                updateProgress(overlay, 100, '匯出完成！');
+                // Update progress: Finalizing
+                updateProgress(overlay, 95, '完成匯出...');
 
-                // Remove overlay after a short delay
+                // Trigger download and cleanup
                 setTimeout(() => {
-                    overlay.remove();
-                }, 1000);
+                    link.click();
+                    setTimeout(() => {
+                        URL.revokeObjectURL(url);
+                        updateProgress(overlay, 100, '匯出完成！');
+                        setTimeout(() => {
+                            overlay.remove();
+                        }, 1000);
+                    }, 100);
+                }, 500);
 
             } catch (error) {
                 console.error('匯出失敗:', error);
@@ -1663,14 +1723,17 @@
                     overlay.remove();
                 }, 2000);
             } finally {
-                const container = document.querySelector('.container');
+                // Restore original state
+                if (viewport) {
+                    viewport.content = originalViewport;
+                }
+                container.style.width = originalWidth;
                 container.classList.remove('exporting', 'no-animations');
                 headerButtons.innerHTML = buttonsHTML;
                 headerButtons.style.display = 'block';
             }
         }
 
-        // NEW: Get data from URL function
         function getDataFromUrl() {
             try {
                 const urlParams = new URLSearchParams(window.location.search);
@@ -1785,19 +1848,31 @@
         // NEW: Generate share link function
         function generateShareLink() {
             try {
-                // Create a copy of character data without avatar
+                // Create a copy of character data
                 const shareData = { ...character };
-                // Remove avatar related data
+
+                // Remove temporary avatar data
                 delete shareData.avatarTemp;
-                delete shareData.avatarUrl;
+
+                // Check if avatarUrl exists and is not a data URL
+                if (shareData.avatarUrl && shareData.avatarUrl.startsWith('data:')) {
+                    delete shareData.avatarUrl;
+                }
+
+                // If no valid avatarUrl exists, use default
+                if (!shareData.avatarUrl) {
+                    shareData.avatarUrl = avatarImageUrl;
+                }
 
                 // Convert character data to JSON string
                 const jsonString = JSON.stringify(shareData);
+
                 // Use encodeURIComponent for UTF-8 encoding
                 const base64Data = btoa(encodeURIComponent(jsonString));
 
                 // Create new URL with only base path (no parameters)
                 const currentUrl = new URL(window.location.href.split('?')[0]);
+
                 // Add only the JSON data parameter
                 currentUrl.searchParams.set('data', base64Data);
 

@@ -1178,17 +1178,15 @@
                 if (files.length > 0) {
                     const file = files[0];
                     if (file.type.startsWith('image/')) {
-                        // Use URL.createObjectURL for better mobile compatibility
-                        const imageURL = URL.createObjectURL(file);
-                        const img = document.createElement('img');
-                        img.src = imageURL;
-                        // Optionally, revoke the blob URL once loaded to free memory
-                        img.onload = () => {
-                            URL.revokeObjectURL(imageURL);
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            const img = document.createElement('img');
+                            img.src = e.target.result;
+                            uploadZone.innerHTML = '';
+                            uploadZone.appendChild(img);
+                            character.avatarTemp = e.target.result; // Store temporary image data
                         };
-                        uploadZone.innerHTML = '';
-                        uploadZone.appendChild(img);
-                        character.avatarTemp = imageURL; // Store temporary image URL
+                        reader.readAsDataURL(file);
                     } else {
                         alert('請上傳圖片檔案');
                     }
@@ -1676,7 +1674,11 @@
                     onclone: (doc) => {
                         const avatarImgClone = doc.querySelector('.avatar-container img');
                         if (avatarImgClone && imageCache.base64) {
-                            avatarImgClone.crossOrigin = 'anonymous';
+                            if (imageCache.base64.startsWith('data:image')) {
+                                avatarImgClone.removeAttribute('crossOrigin');
+                            } else {
+                                avatarImgClone.crossOrigin = 'anonymous';
+                            }
                             avatarImgClone.src = imageCache.base64;
                         }
                     }

@@ -1475,11 +1475,10 @@
             });
         }
         const proxyServers = [
-            'https://api.allorigins.win/raw?url=',
             'https://api.codetabs.com/v1/proxy?quest=',
-            'https://cors-anywhere.herokuapp.com/',
-            'https://proxy.cors.sh/',
-            'https://corsproxy.io/?'
+            'https://corsproxy.io/?url=',
+            'https://cors-anywhere.herokuapp.com/'
+
         ];
 
         const proxyConfig = {
@@ -1497,7 +1496,7 @@
 
             // Try all servers in parallel with timeout
             const fetchPromises = orderedServers.map(server => {
-                const proxyUrl = server + encodeURIComponent(url);
+                const proxyUrl = server + (url);
                 return fetchWithTimeout(proxyUrl);
             });
 
@@ -1709,7 +1708,8 @@
                 headerButtons.innerHTML = buttonsHTML;
                 headerButtons.style.display = 'block';
             }
-        }   // NEW: Get data from URL function
+        }
+
         function getDataFromUrl() {
             try {
                 const urlParams = new URLSearchParams(window.location.search);

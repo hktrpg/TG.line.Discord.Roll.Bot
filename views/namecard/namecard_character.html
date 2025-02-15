@@ -1178,16 +1178,15 @@
                 if (files.length > 0) {
                     const file = files[0];
                     if (file.type.startsWith('image/')) {
-                        imageUtils.blobToBase64(file)
-                            .then(base64 => {
-                                const img = document.createElement('img');
-                                img.src = base64;
-                                const uploadZone = document.getElementById('avatarUploadZone');
-                                uploadZone.innerHTML = '';
-                                uploadZone.appendChild(img);
-                                character.avatarTemp = base64; // Store as base64
-                            })
-                            .catch(error => console.error('Error processing file:', error));
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            const img = document.createElement('img');
+                            img.src = e.target.result;
+                            uploadZone.innerHTML = '';
+                            uploadZone.appendChild(img);
+                            character.avatarTemp = e.target.result; // Store temporary image data
+                        };
+                        reader.readAsDataURL(file);
                     } else {
                         alert('請上傳圖片檔案');
                     }
@@ -1262,7 +1261,6 @@
             // Handle temporary avatar by storing it in character object
             if (character.avatarTemp) {
                 character.avatarUrl = character.avatarTemp;
-                imageUtils.cache.set(character.avatarUrl, character.avatarUrl);
                 delete character.avatarTemp;
             }
 
@@ -1276,9 +1274,7 @@
             renderViewMode();
             isEditMode = false;
         }
-        function clearImageCache() {
-            imageUtils.cache.clear();
-        }
+
         // NEW: Helper functions for dynamic add/remove operations.
         function removeAttr(keyToRemove) {
             console.log('Removing attribute', keyToRemove);
@@ -1330,23 +1326,18 @@
             `);
         }
 
-        async function previewAvatarFromUrl(url) {
+        function previewAvatarFromUrl(url) {
             const uploadZone = document.getElementById('avatarUploadZone');
-            try {
-                const base64 = await imageUtils.getImage(url);
-                if (base64) {
-                    const img = document.createElement('img');
-                    img.src = base64;
-                    uploadZone.innerHTML = '';
-                    uploadZone.appendChild(img);
-                    character.avatarTemp = base64;
-                } else {
-                    alert('圖片載入失敗，請確認網址是否正確');
-                }
-            } catch (error) {
-                console.error('Error loading image:', error);
+            const img = document.createElement('img');
+            img.onload = () => {
+                uploadZone.innerHTML = '';
+                uploadZone.appendChild(img);
+                character.avatarTemp = url; // Store URL in temp storage
+            };
+            img.onerror = () => {
                 alert('圖片載入失敗，請確認網址是否正確');
-            }
+            };
+            img.src = url;
         }
         function removeNote(index) {
             const container = document.getElementById('editNotesItemsList');
@@ -1903,43 +1894,6 @@
                 `<p>${item.label}：<span style="color: var(--text-color);">${item.value}</span></p>`
             ).join('');
         }
-
-        const imageUtils = {
-            cache: new Map(),
-
-            async getImage(src) {
-                // Check cache first
-                if (this.cache.has(src)) {
-                    return this.cache.get(src);
-                }
-
-                // Handle base64 data
-                if (src.startsWith('data:')) {
-                    this.cache.set(src, src);
-                    return src;
-                }
-
-                try {
-                    const response = await fetch(src);
-                    const blob = await response.blob();
-                    const base64 = await this.blobToBase64(blob);
-                    this.cache.set(src, base64);
-                    return base64;
-                } catch (error) {
-                    console.error('Error loading image:', error);
-                    return null;
-                }
-            },
-
-            blobToBase64(blob) {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result);
-                    reader.onerror = reject;
-                    reader.readAsDataURL(blob);
-                });
-            }
-        };
     </script>
 </body>
 

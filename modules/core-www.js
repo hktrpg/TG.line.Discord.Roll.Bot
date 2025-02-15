@@ -126,6 +126,10 @@ www.use(cors({
     maxAge: 86400,
     optionsSuccessStatus: 200
 }));
+
+www.get('*/favicon.ico', (req, res) => {
+    res.sendFile(path.join(process.cwd(), 'views/image', 'favicon.ico'));
+});
 www.use(favicon(path.join(process.cwd(), 'views/image', 'favicon.ico')));
 
 www.get('/', (req, res) => {

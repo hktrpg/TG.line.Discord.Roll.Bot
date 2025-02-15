@@ -1650,19 +1650,21 @@
                         `}
                     </div>
                     <div class="header-buttons">
-                        <button class="header-btn btn--export" onclick="exportToPNG()">
-                            匯出PNG
-                        </button>
-                        <button class="header-btn btn--share" onclick="generateShareLink()">
-                            備份連結
-                        </button>
-                        <button class="header-btn btn--edit" onclick="toggleEditMode()">
-                            ${isEditMode ? '取消編輯' : '編輯'}
-                        </button>
-                        ${isEditMode ? `
-                            <button class="header-btn save-btn" onclick="saveData()">儲存更改</button>
-                        ` : ''}
-                    </div>
+    ${!isEditMode ? `
+        <button class="header-btn btn--export" onclick="exportToPNG()">
+            匯出PNG
+        </button>
+        <button class="header-btn btn--share" onclick="generateShareLink()">
+            備份連結
+        </button>
+    ` : ''}
+    <button class="header-btn btn--edit" onclick="toggleEditMode()">
+        ${isEditMode ? '取消編輯' : '編輯'}
+    </button>
+    ${isEditMode ? `
+        <button class="header-btn save-btn" onclick="saveData()">儲存更改</button>
+    ` : ''}
+</div>
                 </div>
                 <section class="section">
                      <h2>

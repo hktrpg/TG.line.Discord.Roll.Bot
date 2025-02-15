@@ -9,6 +9,8 @@ const cors = require('cors');
 const {
     RateLimiterMemory
 } = require('rate-limiter-flexible');
+const path = require('path');
+const favicon = require('serve-favicon');
 const cspConfig = require('../modules/config/csp.js');
 //const loglink = (LOGLINK) ? LOGLINK + '/tmp/' : process.cwd() + '/tmp/';
 const LOGLINK = (process.env.LOGLINK) ? process.env.LOGLINK + '/tmp/' : process.cwd() + '/tmp/';
@@ -124,7 +126,7 @@ www.use(cors({
     maxAge: 86400,
     optionsSuccessStatus: 200
 }));
-
+www.use(favicon(path.join(process.cwd(), 'views/image', 'favicon.ico')));
 
 www.get('/', (req, res) => {
     res.sendFile(process.cwd() + '/views/index.html');

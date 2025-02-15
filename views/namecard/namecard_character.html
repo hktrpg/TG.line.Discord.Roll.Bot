@@ -1844,19 +1844,31 @@
         // NEW: Generate share link function
         function generateShareLink() {
             try {
-                // Create a copy of character data without avatar
+                // Create a copy of character data
                 const shareData = { ...character };
-                // Remove avatar related data
+
+                // Remove temporary avatar data
                 delete shareData.avatarTemp;
-                delete shareData.avatarUrl;
+
+                // Check if avatarUrl exists and is not a data URL
+                if (shareData.avatarUrl && shareData.avatarUrl.startsWith('data:')) {
+                    delete shareData.avatarUrl;
+                }
+
+                // If no valid avatarUrl exists, use default
+                if (!shareData.avatarUrl) {
+                    shareData.avatarUrl = avatarImageUrl;
+                }
 
                 // Convert character data to JSON string
                 const jsonString = JSON.stringify(shareData);
+
                 // Use encodeURIComponent for UTF-8 encoding
                 const base64Data = btoa(encodeURIComponent(jsonString));
 
                 // Create new URL with only base path (no parameters)
                 const currentUrl = new URL(window.location.href.split('?')[0]);
+
                 // Add only the JSON data parameter
                 currentUrl.searchParams.set('data', base64Data);
 

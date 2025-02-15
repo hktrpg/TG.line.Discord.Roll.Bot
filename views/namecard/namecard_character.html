@@ -1178,15 +1178,17 @@
                 if (files.length > 0) {
                     const file = files[0];
                     if (file.type.startsWith('image/')) {
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                            const img = document.createElement('img');
-                            img.src = e.target.result;
-                            uploadZone.innerHTML = '';
-                            uploadZone.appendChild(img);
-                            character.avatarTemp = e.target.result; // Store temporary image data
+                        // Use URL.createObjectURL for better mobile compatibility
+                        const imageURL = URL.createObjectURL(file);
+                        const img = document.createElement('img');
+                        img.src = imageURL;
+                        // Optionally, revoke the blob URL once loaded to free memory
+                        img.onload = () => {
+                            URL.revokeObjectURL(imageURL);
                         };
-                        reader.readAsDataURL(file);
+                        uploadZone.innerHTML = '';
+                        uploadZone.appendChild(img);
+                        character.avatarTemp = imageURL; // Store temporary image URL
                     } else {
                         alert('請上傳圖片檔案');
                     }

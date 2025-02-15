@@ -1589,115 +1589,47 @@
             const headerButtons = document.querySelector('.header-buttons');
             const buttonsHTML = headerButtons.innerHTML || '';
             headerButtons.style.display = 'none';
-            // Store original classes
-            const originalClasses = {
-                container: document.querySelector('.container')?.className,
-                grid: document.querySelector('.grid')?.className,
-                columns: Array.from(document.querySelectorAll('.column')).map(col => col.className)
-            };
+
             try {
+                // Update progress: Start
                 updateProgress(overlay, 10, '準備匯出...');
 
-                // 保存原始容器寬度
-                const originalWidth = document.querySelector('.container').offsetWidth;
-                const container = document.querySelector('.container');
-                const columns = container.querySelectorAll('.column');
-
-                // 計算最佳容器寬度 (根據螢幕寬度調整，但確保最小寬度)
-                const minWidth = 1200;
-                const screenWidth = window.innerWidth;
-                const targetWidth = Math.max(minWidth, Math.min(screenWidth - 40, 1400));
-                const columnWidth = (targetWidth - 80 - 48) / 3; // 考慮padding和gap
-
-                // 關閉過渡動畫效果
-                document.documentElement.style.setProperty('--transition', 'none');
-                container.classList.add('exporting', 'no-animations');
-
-                // 應用臨時樣式
-                container.style.cssText = `
-            width: ${targetWidth}px !important;
-            max-width: ${targetWidth}px !important;
-            margin: 2rem auto !important;
-            padding: 2rem !important;
-            display: block !important;
-            box-sizing: border-box !important;
-            background: var(--container-bg) !important;
-        `;
-
-                const grid = container.querySelector('.grid');
-                grid.style.cssText = `
-            display: grid !important;
-            grid-template-columns: repeat(3, ${columnWidth}px) !important;
-            gap: 2rem !important;
-            width: 100% !important;
-            box-sizing: border-box !important;
-        `;
-
-                columns.forEach(column => {
-                    column.style.cssText = `
-                width: ${columnWidth}px !important;
-                margin: 0 !important;
-                padding: 1.5rem !important;
-                box-sizing: border-box !important;
-                background: var(--card-bg) !important;
-            `;
-                });
-
-                updateProgress(overlay, 30, '處理圖片中...');
-
-                // 處理圖片
                 const avatarImg = document.getElementById('avatarImage');
                 const data = {
                     avatar: avatarImg.src,
-                    id: document.getElementById('snsID')?.innerText || ''
+                    id: document.getElementById('snsID')?.innerText || '',
                 };
 
+                // Update progress: Image processing
+                updateProgress(overlay, 30, '處理圖片中...');
+
+                // 檢查是否為本地上傳的圖片（data:image 開頭）
                 if (!data.avatar.startsWith('data:image')) {
                     if (!imageCache.base64 || imageCache.url !== data.avatar) {
                         imageCache.base64 = await proxyImage(data.avatar);
                         imageCache.url = data.avatar;
                     }
                 } else {
+                    // 本地上傳的圖片直接使用
                     imageCache.base64 = data.avatar;
                     imageCache.url = data.avatar;
                 }
 
+                // Update progress: Preparing canvas
                 updateProgress(overlay, 50, '準備畫布...');
 
-                // 等待內容完全渲染
-                await new Promise((resolve, reject) => {
-                    const img = new Image();
-                    img.onload = resolve;
-                    img.onerror = reject;
-                    img.crossOrigin = 'anonymous';
-                    img.src = imageCache.base64 || data.avatar;
-                }).catch(error => {
-                    console.warn('Image pre-load failed:', error);
-                    // Continue anyway as we'll try with the original source
-                });
+                const container = document.querySelector('.container');
+                container.classList.add('exporting', 'no-animations');
 
+                // Update progress: Rendering
                 updateProgress(overlay, 70, '渲染圖片中...');
 
-                // 創建畫布
                 const canvas = await html2canvas(container, {
-                    width: targetWidth,
-                    height: container.scrollHeight,
                     allowTaint: true,
                     useCORS: true,
                     backgroundColor: '#f3f3f3',
                     scale: 2,
-                    logging: false,
                     onclone: (doc) => {
-                        const clonedContainer = doc.querySelector('.container');
-                        const clonedGrid = clonedContainer.querySelector('.grid');
-                        const clonedColumns = clonedContainer.querySelectorAll('.column');
-
-                        clonedContainer.style.cssText = container.style.cssText;
-                        clonedGrid.style.cssText = grid.style.cssText;
-                        clonedColumns.forEach((col, index) => {
-                            col.style.cssText = columns[index].style.cssText;
-                        });
-
                         const avatarImgClone = doc.querySelector('.avatar-container img');
                         if (avatarImgClone && imageCache.base64) {
                             avatarImgClone.src = imageCache.base64;
@@ -1705,16 +1637,18 @@
                     }
                 });
 
+                // Update progress: Finalizing
                 updateProgress(overlay, 90, '完成匯出...');
 
-                // 匯出圖片
                 const link = document.createElement('a');
                 link.download = `${data.id}_TRPG_Card.png`;
                 link.href = canvas.toDataURL('image/png', 1.0);
                 link.click();
 
+                // Update progress: Complete
                 updateProgress(overlay, 100, '匯出完成！');
 
+                // Remove overlay after a short delay
                 setTimeout(() => {
                     overlay.remove();
                 }, 1000);
@@ -1729,39 +1663,14 @@
                     overlay.remove();
                 }, 2000);
             } finally {
-                // Restore original styles and classes
-                document.documentElement.style.setProperty('--transition', 'all 0.3s ease');
-
-                // Restore container classes
                 const container = document.querySelector('.container');
-                if (container) {
-                    container.className = originalClasses.container;
-                    container.style.cssText = '';
-                }
-
-                // Restore grid classes
-                const grid = container?.querySelector('.grid');
-                if (grid) {
-                    grid.className = originalClasses.grid;
-                    grid.style.cssText = '';
-                }
-
-                // Restore column classes
-                const columns = container?.querySelectorAll('.column');
-                if (columns) {
-                    columns.forEach((column, index) => {
-                        if (originalClasses.columns[index]) {
-                            column.className = originalClasses.columns[index];
-                        }
-                        column.style.cssText = '';
-                    });
-                }
-
+                container.classList.remove('exporting', 'no-animations');
                 headerButtons.innerHTML = buttonsHTML;
                 headerButtons.style.display = 'block';
             }
         }
 
+        // NEW: Get data from URL function
         function getDataFromUrl() {
             try {
                 const urlParams = new URLSearchParams(window.location.search);

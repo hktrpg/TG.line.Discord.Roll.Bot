@@ -1542,7 +1542,11 @@
                     onclone: (doc) => {
                         const avatarImg = doc.querySelector('.avatar img');
                         if (avatarImg) {
-                            avatarImg.crossOrigin = 'anonymous';
+                            if (avatarImg.src.startsWith('http')) {
+                                avatarImg.crossOrigin = 'anonymous';
+                            } else {
+                                avatarImg.removeAttribute('crossOrigin');
+                            }
                             avatarImg.src = imageSource;
                         }
                     }

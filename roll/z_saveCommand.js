@@ -200,16 +200,14 @@ const handleDeleteSpecificCommand = (mainMsg, groupid, response, permissionError
     trpgCommandData.commands.forEach((entry) => {
         if (entry.groupid === groupid) {
             const index = parseInt(mainMsg[2]);
-            let target;
             if (index >= 0 && index < entry.trpgCommandfunction.length) {
+                const target = entry.trpgCommandfunction[index]; // get target before deletion
                 entry.trpgCommandfunction.splice(index, 1);
-                target = entry.trpgCommandfunction[index];
                 records.settrpgCommandfunction('trpgCommand', entry, () => {
                     updateCommandData();
                 });
                 response.text = `刪除成功: ${mainMsg[2]}: ${target.topic} \n ${target.contact}`;
-            }
-            else {
+            } else {
                 response.text = '沒有相關關鍵字. \n請使用.cmd show 顯示列表\n\n';
             }
         }

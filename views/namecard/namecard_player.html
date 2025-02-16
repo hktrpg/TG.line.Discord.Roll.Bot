@@ -234,15 +234,18 @@
         }
 
         .module-item {
-
             position: relative;
             padding: 0.5rem;
             border-radius: var(--border-radius);
             background: var(--background-color);
             border: 1px solid var(--color-border);
             text-align: center;
-            overflow: hidden;
-            white-space: nowrap;
+            overflow: visible;
+            /* Changed from hidden to visible to support multi-line text */
+            white-space: normal;
+            /* Allow text to wrap */
+            word-wrap: break-word;
+            /* Break long words if needed */
         }
 
         .progress-bar {

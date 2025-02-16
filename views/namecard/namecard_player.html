@@ -233,6 +233,16 @@
             font-family: "Rampart One", serif;
         }
 
+        .module-item textarea.edit-input {
+            font-family: inherit;
+            line-height: 1.5;
+            padding: 0.75rem;
+        }
+
+        .module-item[style*="white-space: pre-wrap"] {
+            line-height: 1.5;
+        }
+
         .module-item {
             position: relative;
             padding: 0.5rem;
@@ -1846,23 +1856,23 @@
                             <i class="fas fa-plus"></i> 新增性向
                         </button>` : ''}
                     </div>
-                      <h2>
-                        ${isEditMode
+                     <h2>
+    ${isEditMode
                     ? `<input type="text" id="edit-message-title" class="header-input" value="${data.message.title}">`
                     : data.message.title}
-                    </h2>
-                    ${isEditMode ? `
-                        <div class="module-item editing">
-                            <div class="edit-section">
-                                <textarea class="edit-input" style="width: 100%; min-height: 60px;" 
-                                    onchange="data.message.content = this.value">${data.message.content}</textarea>
-                            </div>
-                        </div>
-                    ` : `
-                        <div class="module-item" style="text-align: left; padding: 1rem;">
-                            ${data.message.content}
-                        </div>
-                    `}
+</h2>
+${isEditMode ? `
+    <div class="module-item editing">
+        <div class="edit-section">
+            <textarea class="edit-input" 
+                style="width: 100%; min-height: 100px; resize: vertical; white-space: pre-wrap;" 
+                onchange="data.message.content = this.value">${data.message.content}</textarea>
+        </div>
+    </div>
+` : `
+    <div class="module-item" style="text-align: left; padding: 1rem; white-space: pre-wrap;">${data.message.content}
+    </div>
+`}
                 </section>
                 <section class="section">
                     <h2>

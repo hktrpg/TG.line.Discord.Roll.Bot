@@ -239,10 +239,21 @@ const discordCommand = [
     }
 ]
 async function calldice(gameType, message) {
-    const loader = new DynamicLoader();
-    const GameSystem = await loader.dynamicLoad(gameType);
-    const result = GameSystem.eval(message);
-    return (result && result.text) ? result.text : null;
+    try {
+        const loader = new DynamicLoader();
+        const GameSystem = await loader.dynamicLoad(gameType);
+        const result = GameSystem.eval(message);
+        return (result && result.text) ? result.text : null;
+    } catch (error) {
+        console.error(
+            `[${new Date().toISOString()}] Error evaluating dice command for command "${message}" using gameType "${gameType}":`,
+            error?.stack || 'no stack'
+        );
+        return `錯誤：骰子指令運算失敗。
+請確認指令格式是否正確。
+輸入指令: ${message}
+錯誤訊息: ${error?.message || '無訊息'}`;
+    }
 }
 async function callHelp(gameType) {
     try {

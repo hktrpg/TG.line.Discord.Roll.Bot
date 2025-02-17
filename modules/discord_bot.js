@@ -1369,7 +1369,15 @@ async function handlingEditMessage(message, rplyVal) {
 			} else
 				return message.reply({ content: '根據Discord的規則，只能修改此BOT(HKTRPG)和Webhook所發出的訊息，請重新檢查' });
 	} catch (error) {
-		console.error(error);
+		const errorContext = {
+			message: error.message,
+			code: error.code,
+			status: error.status,
+			method: error.method,
+			url: error.url,
+			requestBody: error.requestBody
+		};
+		console.error("Error in handlingEditMessage:", JSON.stringify(errorContext, null, 4));
 	}
 }
 

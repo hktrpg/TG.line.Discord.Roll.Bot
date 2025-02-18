@@ -132,39 +132,13 @@
                 margin-bottom: 0.5rem;
             }
 
-            .draggable {
-                margin-bottom: 1rem;
-                padding: 0.5rem;
-                border: 1px solid #e5e7eb;
-                border-radius: 0.5rem;
-                background: #fff;
-            }
 
-            .draggable::before {
-                content: '⋮';
-                display: inline-block;
-                padding: 0.25rem 0.5rem;
-                cursor: grab;
-                color: #9ca3af;
-                font-size: 1.2rem;
-                margin-right: 0.5rem;
-            }
 
-            .draggable:active::before {
-                cursor: grabbing;
-            }
 
-            .draggable input[type="text"],
-            .draggable input[type="number"] {
-                width: calc(50% - 0.5rem);
-                margin-bottom: 0.5rem;
-                font-size: 0.9rem;
-            }
 
-            .draggable select {
-                width: calc(100% - 1rem);
-                margin: 0.5rem 0;
-            }
+
+
+
 
             /* 調整標籤和輸入框的佈局 */
             #editAttributesContainer,
@@ -392,14 +366,8 @@
             outline: none;
         }
 
-        /* NEW: Cursor change for draggable items */
-        .draggable {
-            cursor: grab;
-        }
 
-        .draggable:active {
-            cursor: grabbing;
-        }
+
 
         /* NEW: Drag visual feedback styles */
         .sortable-chosen {
@@ -699,6 +667,107 @@
             text-align: center;
             margin-top: 0.5rem;
             font-style: italic;
+        }
+
+        /* NEW: Drag handle styles */
+        .drag-handle {
+            cursor: move;
+            padding: 0 8px;
+            color: #6b7280;
+            touch-action: none;
+            display: inline-flex;
+            align-items: center;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+
+        .drag-handle:hover {
+            opacity: 1;
+        }
+
+        .draggable {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            margin: 4px 0;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            touch-action: pan-y;
+        }
+
+        .draggable.dragging {
+            opacity: 0.5;
+            background: #f3f4f6;
+        }
+
+        .draggable-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .drag-handle {
+                padding: 8px;
+            }
+
+            .draggable {
+                margin: 8px 0;
+            }
+
+            .draggable-content {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 4px;
+            }
+
+            .draggable-content input {
+                width: 100%;
+            }
+        }
+
+        /* Prevent text selection during drag operations */
+        .draggable,
+        .drag-handle,
+        .draggable * {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Update draggable content styles */
+        .draggable {
+            max-width: 600px;
+            margin: 4px auto;
+        }
+
+        .draggable-content {
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .draggable-content input,
+        .draggable-content select {
+            width: calc(100% - 16px);
+            margin: 2px 8px;
+        }
+
+        /* Add container width constraints */
+        #editAttributesContainer,
+        #editSkillsContainer,
+        #editDiceRollsContainer,
+        #editNotesItemsContainer,
+        #editPersonalityContainer {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .draggable {
+                max-width: 100%;
+            }
         }
     </style>
 </head>
@@ -1019,10 +1088,13 @@
     <div id="editAttributesContainer">
       <div id="editAttributesList">
         ${character.attributes.attributesList.map(attr =>
-                        `<div draggable="true" class="draggable">
-          <input type="text" class="attr-key" value="${attr.key}">
-          : <input type="text" class="attr-value" value="${attr.value}">
-          <button onclick="removeAttr('${attr.key}')" class="btn-remove">移除</button>
+                        `<div class="draggable">
+          <i class="fas fa-grip-vertical drag-handle"></i>
+          <div class="draggable-content">
+            <input type="text" class="attr-key" value="${attr.key}">
+            : <input type="text" class="attr-value" value="${attr.value}">
+          </div>
+          <button onclick="this.parentElement.remove()" class="btn-remove">移除</button>
         </div>`
                     ).join('')}
       </div>
@@ -1036,9 +1108,12 @@
     <div id="editSkillsContainer">
       <div id="editSkillsList">
         ${character.skills.map((skill, index) =>
-                        `<div draggable="true" class="draggable">
-          <input type="text" class="skill-type" value="${skill.type}">
-          <input type="number" class="skill-value" value="${skill.value}">
+                        `<div class="draggable">
+          <i class="fas fa-grip-vertical drag-handle"></i>
+          <div class="draggable-content">
+            <input type="text" class="skill-type" value="${skill.type}">
+            <input type="number" class="skill-value" value="${skill.value}">
+          </div>
           <button onclick="removeSkill(${index})" class="btn-remove">移除</button>
         </div>`
                     ).join('')}
@@ -1053,10 +1128,13 @@
     <div id="editDiceRollsContainer">
       <div id="editDiceRollsList">
         ${character.diceRolls.map(dice =>
-                        `<div draggable="true" class="draggable">
-          <input type="text" class="dice-key" value="${dice.key}">
-          : <input type="text" class="dice-value" value="${dice.value}">
-          <button onclick="removeDice('${dice.key}')" class="btn-remove">移除</button>
+                        `<div class="draggable">
+          <i class="fas fa-grip-vertical drag-handle"></i>
+          <div class="draggable-content">
+            <input type="text" class="dice-key" value="${dice.key}">
+            : <input type="text" class="dice-value" value="${dice.value}">
+          </div>
+          <button onclick="this.parentElement.remove()" class="btn-remove">移除</button>
         </div>`
                     ).join('')}
       </div>
@@ -1070,9 +1148,12 @@
     <div id="editNotesItemsContainer">
       <div id="editNotesItemsList">
         ${character.notes.items.map((item, index) =>
-                        `<div draggable="true" class="draggable">
-          <input type="text" class="note-label" value="${item.label}">
-          : <input type="text" class="note-value" value="${item.value}">
+                        `<div class="draggable">
+          <i class="fas fa-grip-vertical drag-handle"></i>
+          <div class="draggable-content">
+            <input type="text" class="note-label" value="${item.label}">
+            : <input type="text" class="note-value" value="${item.value}">
+          </div>
           <button onclick="removeNote(${index})" class="btn-remove">移除</button>
         </div>`
                     ).join('')}
@@ -1087,22 +1168,25 @@
     <div id="editPersonalityContainer">
       <div id="editPersonalityList">
         ${character.personalityPreferences.items.map((item, index) =>
-                        `<div draggable="true" class="draggable">
-          <input type="text" class="personality-label" value="${item.label}">
-          <input type="number" class="personality-value" value="${item.value}">
-          <input type="text" class="personality-alt" value="${item.alternative}">
-          <select class="personality-icon">
-            <option value="fas fa-check" ${item.icon === 'fas fa-check' ? 'selected' : ''}>打勾</option>
-            <option value="fas fa-star" ${item.icon === 'fas fa-star' ? 'selected' : ''}>星星</option>
-            <option value="fas fa-heart" ${item.icon === 'fas fa-heart' ? 'selected' : ''}>愛心</option>
-            <option value="fas fa-smile" ${item.icon === 'fas fa-smile' ? 'selected' : ''}>笑臉</option>
-            <option value="fas fa-thumbs-up" ${item.icon === 'fas fa-thumbs-up' ? 'selected' : ''}>讚</option>
-            <option value="fas fa-lightbulb" ${item.icon === 'fas fa-lightbulb' ? 'selected' : ''}>燈泡</option>
-            <option value="fas fa-user-friends" ${item.icon === 'fas fa-user-friends' ? 'selected' : ''}>好友</option>
-            <option value="fas fa-flag" ${item.icon === 'fas fa-flag' ? 'selected' : ''}>旗幟</option>
-            <option value="fas fa-clipboard-list" ${item.icon === 'fas fa-clipboard-list' ? 'selected' : ''}>清單</option>
-            <option value="fas fa-comment-dots" ${item.icon === 'fas fa-comment-dots' ? 'selected' : ''}>留言</option>
-          </select>
+                        `<div class="draggable">
+          <i class="fas fa-grip-vertical drag-handle"></i>
+          <div class="draggable-content">
+            <input type="text" class="personality-label" value="${item.label}">
+            <input type="number" class="personality-value" value="${item.value}">
+            <input type="text" class="personality-alt" value="${item.alternative}">
+            <select class="personality-icon">
+              <option value="fas fa-check" ${item.icon === 'fas fa-check' ? 'selected' : ''}>打勾</option>
+              <option value="fas fa-star" ${item.icon === 'fas fa-star' ? 'selected' : ''}>星星</option>
+              <option value="fas fa-heart" ${item.icon === 'fas fa-heart' ? 'selected' : ''}>愛心</option>
+              <option value="fas fa-smile" ${item.icon === 'fas fa-smile' ? 'selected' : ''}>笑臉</option>
+              <option value="fas fa-thumbs-up" ${item.icon === 'fas fa-thumbs-up' ? 'selected' : ''}>讚</option>
+              <option value="fas fa-lightbulb" ${item.icon === 'fas fa-lightbulb' ? 'selected' : ''}>燈泡</option>
+              <option value="fas fa-user-friends" ${item.icon === 'fas fa-user-friends' ? 'selected' : ''}>好友</option>
+              <option value="fas fa-flag" ${item.icon === 'fas fa-flag' ? 'selected' : ''}>旗幟</option>
+              <option value="fas fa-clipboard-list" ${item.icon === 'fas fa-clipboard-list' ? 'selected' : ''}>清單</option>
+              <option value="fas fa-comment-dots" ${item.icon === 'fas fa-comment-dots' ? 'selected' : ''}>留言</option>
+            </select>
+          </div>
           <button onclick="removePersonality(${index})" class="btn-remove">移除</button>
         </div>`
                     ).join('')}
@@ -1125,7 +1209,15 @@
                 onEnd: function (evt) {
                     evt.item.style.transform = 'scale(1)';
                     evt.item.title = '';
-                }
+                },
+                handle: '.drag-handle',
+                animation: 150,
+                dragClass: 'dragging',
+                forceFallback: true,
+                fallbackTolerance: 3,
+                touchStartThreshold: 3,
+                delayOnTouchOnly: true,
+                delay: 150
             };
             Sortable.create(document.getElementById('editAttributesList'), sortableOptions);
             Sortable.create(document.getElementById('editSkillsList'), sortableOptions);
@@ -1287,13 +1379,7 @@
         // Modified addAttribute() to insert new attribute directly into the list container
         function addAttribute() {
             const attributesList = document.getElementById('editAttributesList');
-            attributesList.insertAdjacentHTML('beforeend', `
-              <div draggable="true" class="draggable">
-                <input type="text" class="attr-key" placeholder="屬性名稱">
-                : <input type="text" class="attr-value" placeholder="屬性值">
-                <button onclick="this.parentElement.remove()" class="btn-remove">移除</button>
-              </div>
-            `);
+            attributesList.insertAdjacentHTML('beforeend', getAttributeTemplate());
         }
         function removeSkill(index) {
             const container = document.getElementById('editSkillsList');
@@ -1301,13 +1387,7 @@
         }
         function addSkill() {
             const container = document.getElementById('editSkillsList');
-            container.insertAdjacentHTML('beforeend', `
-              <div draggable="true" class="draggable">
-                <input type="text" class="skill-type" placeholder="技能名稱">
-                <input type="number" class="skill-value" placeholder="數值">
-                <button onclick="this.parentElement.remove()" class="btn-remove">移除</button>
-              </div>
-            `);
+            container.insertAdjacentHTML('beforeend', getSkillTemplate());
         }
         function removeDice(keyToRemove) {
             const container = document.getElementById('editDiceRollsList');
@@ -1317,13 +1397,7 @@
         }
         function addDice() {
             const container = document.getElementById('editDiceRollsList');
-            container.insertAdjacentHTML('beforeend', `
-              <div draggable="true" class="draggable">
-                <input type="text" class="dice-key" placeholder="骰項">
-                : <input type="text" class="dice-value" placeholder="數值">
-                <button onclick="this.parentElement.remove()" class="btn-remove">移除</button>
-              </div>
-            `);
+            container.insertAdjacentHTML('beforeend', getDiceTemplate());
         }
 
         function previewAvatarFromUrl(url) {
@@ -1345,13 +1419,7 @@
         }
         function addNote() {
             const container = document.getElementById('editNotesItemsList');
-            container.insertAdjacentHTML('beforeend', `
-              <div draggable="true" class="draggable">
-                <input type="text" class="note-label" placeholder="標籤">
-                : <input type="text" class="note-value" placeholder="內容">
-                <button onclick="this.parentElement.remove()" class="btn-remove">移除</button>
-              </div>
-            `);
+            container.insertAdjacentHTML('beforeend', getNoteTemplate());
         }
         function removePersonality(index) {
             const container = document.getElementById('editPersonalityList');
@@ -1360,22 +1428,25 @@
         function addPersonality() {
             const container = document.getElementById('editPersonalityList');
             container.insertAdjacentHTML('beforeend', `
-              <div draggable="true" class="draggable">
-                <input type="text" class="personality-label" placeholder="名稱">
-                <input type="number" class="personality-value" placeholder="數值">
-                <input type="text" class="personality-alt" placeholder="對立">
-                <select class="personality-icon">
-                    <option value="fas fa-check">打勾</option>
-                    <option value="fas fa-star">星星</option>
-                    <option value="fas fa-heart">愛心</option>
-                    <option value="fas fa-smile">笑臉</option>
-                    <option value="fas fa-thumbs-up">讚</option>
-                    <option value="fas fa-lightbulb">燈泡</option>
-                    <option value="fas fa-user-friends">好友</option>
-                    <option value="fas fa-flag">旗幟</option>
-                    <option value="fas fa-clipboard-list">清單</option>
-                    <option value="fas fa-comment-dots">留言</option>
-                </select>
+              <div class="draggable">
+                <i class="fas fa-grip-vertical drag-handle"></i>
+                <div class="draggable-content">
+                  <input type="text" class="personality-label" placeholder="名稱">
+                  <input type="number" class="personality-value" placeholder="數值">
+                  <input type="text" class="personality-alt" placeholder="對立">
+                  <select class="personality-icon">
+                      <option value="fas fa-check">打勾</option>
+                      <option value="fas fa-star">星星</option>
+                      <option value="fas fa-heart">愛心</option>
+                      <option value="fas fa-smile">笑臉</option>
+                      <option value="fas fa-thumbs-up">讚</option>
+                      <option value="fas fa-lightbulb">燈泡</option>
+                      <option value="fas fa-user-friends">好友</option>
+                      <option value="fas fa-flag">旗幟</option>
+                      <option value="fas fa-clipboard-list">清單</option>
+                      <option value="fas fa-comment-dots">留言</option>
+                  </select>
+                </div>
                 <button onclick="this.parentElement.remove()" class="btn-remove">移除</button>
               </div>
             `);

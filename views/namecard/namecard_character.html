@@ -409,6 +409,13 @@
             font-size: 0.9rem;
             cursor: pointer;
             transition: opacity 0.3s ease;
+            /* middle */
+            margin: 0 auto;
+            display: block;
+
+
+
+
         }
 
         .btn-add:hover {
@@ -441,6 +448,8 @@
             font-size: 1rem;
             cursor: pointer;
             transition: transform 0.3s ease, opacity 0.3s ease;
+            margin: 0 auto;
+            display: block;
         }
 
         .btn-save:hover {
@@ -457,6 +466,9 @@
             font-size: 1rem;
             cursor: pointer;
             transition: transform 0.3s ease, opacity 0.3s ease;
+            /* middle */
+            margin: 0 auto;
+            display: block;
         }
 
         .btn-cancel:hover {
@@ -769,6 +781,34 @@
                 max-width: 100%;
             }
         }
+
+        /* 新增：編輯模式下置中 label title */
+        .edit-form label {
+            display: block;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        /* 可依需求增添更多編輯模式美化樣式 */
+        /* NEW: Beautify input and select tags */
+        input[type="text"],
+        input[type="number"],
+        select {
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 0.4rem;
+            padding: 0.8rem;
+            font-size: 1rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+            outline: none;
+        }
     </style>
 </head>
 
@@ -1059,6 +1099,7 @@
                 character.diceRolls = Object.entries(character.diceRolls).map(([key, value]) => ({ key, value }));
             }
             document.querySelector('.container').innerHTML = `
+<div class="edit-form">
   <h2>編輯角色資料</h2>
   <div>
     <label>角色名字: <input type="text" id="editCharacterName" value="${character.characterName}"></label>
@@ -1197,6 +1238,7 @@
   <br>
   <button onclick="saveEdit()" class="btn-save">保存修改</button>
   <button onclick="cancelEdit()" class="btn-cancel">取消</button>
+</div>
             `;
             // NEW: Initialize Sortable with visual feedback settings
             const sortableOptions = {

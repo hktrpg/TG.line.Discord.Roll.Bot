@@ -705,12 +705,11 @@
 
 <body>
     <div class="container">
-        <!-- NEW: Wrap header buttons -->
-        <div class="header-buttons">
-            <!-- Replace old Edit button with new container -->
-            <button id="editBtn" class="btn-edit" onclick="toggleEditMode()">編輯角色</button>
-            <button id="exportBtn" class="btn-export" onclick="exportToPNG()">匯出 PNG</button>
-            <button id="shareBtn" class="btn-backup" onclick="generateShareLink()">備份角色</button>
+        <!-- Header buttons without inline onClick; using data-action -->
+        <div class="header-buttons" role="toolbar" aria-label="角色操作工具列">
+            <button id="editBtn" class="btn-edit" data-action="toggle-edit-mode" title="編輯角色" aria-label="編輯角色">編輯角色</button>
+            <button id="exportBtn" class="btn-export" data-action="export-to-png" title="匯出 PNG" aria-label="匯出 PNG">匯出 PNG</button>
+            <button id="shareBtn" class="btn-backup" data-action="generate-share-link" title="備份角色" aria-label="備份角色">備份角色</button>
         </div>
         <div class="grid">
             <div class="column">
@@ -723,7 +722,7 @@
                     </div>
                 </div>
                 <div class="avatar-container">
-                    <img id="avatarImage" alt="角色頭像">
+                    <img id="avatarImage" alt="角色頭像" title="角色頭像">
 
                 </div>
                 <h3 id="attributeTitle">基本屬性</h3>
@@ -1001,12 +1000,12 @@
             placeholder="輸入圖片網址"
             onchange="previewAvatarFromUrl(this.value)">
     </label>
-    <div class="avatar-upload-zone" id="avatarUploadZone">
-        <input type="file" id="avatarFileInput" style="display: none" accept="image/*">
+    <div class="avatar-upload-zone" id="avatarUploadZone" title="點擊以上傳頭像或拖放圖片">
+        <input type="file" id="avatarFileInput" style="display: none" accept="image/*" aria-label="選擇上傳頭像">
         <i class="fas fa-cloud-upload-alt"></i>
         <div class="upload-text">拖放圖片或點擊上傳</div>
         ${document.getElementById('avatarImage').src ?
-                    `<img src="${document.getElementById('avatarImage').src}" alt="預覽">` : ''}
+                    `<img src="${document.getElementById('avatarImage').src}" alt="預覽" title="頭像預覽">` : ''}
     </div>
     <div class="upload-hint">* 圖片僅用於預覽和匯出，不會保存在備份連結中</div>
   </div>
@@ -1022,11 +1021,11 @@
                         `<div draggable="true" class="draggable">
           <input type="text" class="attr-key" value="${attr.key}">
           : <input type="text" class="attr-value" value="${attr.value}">
-          <button onclick="removeAttr('${attr.key}')" class="btn-remove">移除</button>
+          <button data-action="remove-attr" data-key="${attr.key}" class="btn-remove">移除</button>
         </div>`
                     ).join('')}
       </div>
-      <button onclick="addAttribute()" class="btn-add">新增屬性</button>
+      <button data-action="add-attribute" class="btn-add">新增屬性</button>
     </div>
   </div>
   <hr>
@@ -1039,11 +1038,11 @@
                         `<div draggable="true" class="draggable">
           <input type="text" class="skill-type" value="${skill.type}">
           <input type="number" class="skill-value" value="${skill.value}">
-          <button onclick="removeSkill(${index})" class="btn-remove">移除</button>
+          <button data-action="remove-skill" data-index="${index}" class="btn-remove">移除</button>
         </div>`
                     ).join('')}
       </div>
-      <button onclick="addSkill()" class="btn-add">新增技能</button>
+      <button data-action="add-skill" class="btn-add">新增技能</button>
     </div>
   </div>
   <hr>
@@ -1056,11 +1055,11 @@
                         `<div draggable="true" class="draggable">
           <input type="text" class="dice-key" value="${dice.key}">
           : <input type="text" class="dice-value" value="${dice.value}">
-          <button onclick="removeDice('${dice.key}')" class="btn-remove">移除</button>
+          <button data-action="remove-dice" data-key="${dice.key}" class="btn-remove">移除</button>
         </div>`
                     ).join('')}
       </div>
-      <button onclick="addDice()" class="btn-add">新增技能</button>
+      <button data-action="add-dice" class="btn-add">新增技能</button>
     </div>
   </div>
   <hr>
@@ -1073,11 +1072,11 @@
                         `<div draggable="true" class="draggable">
           <input type="text" class="note-label" value="${item.label}">
           : <input type="text" class="note-value" value="${item.value}">
-          <button onclick="removeNote(${index})" class="btn-remove">移除</button>
+          <button data-action="remove-note" data-index="${index}" class="btn-remove">移除</button>
         </div>`
                     ).join('')}
       </div>
-      <button onclick="addNote()" class="btn-add">新增筆記</button>
+      <button data-action="add-note" class="btn-add">新增筆記</button>
     </div>
   </div>
   <hr>
@@ -1103,16 +1102,16 @@
             <option value="fas fa-clipboard-list" ${item.icon === 'fas fa-clipboard-list' ? 'selected' : ''}>清單</option>
             <option value="fas fa-comment-dots" ${item.icon === 'fas fa-comment-dots' ? 'selected' : ''}>留言</option>
           </select>
-          <button onclick="removePersonality(${index})" class="btn-remove">移除</button>
+          <button data-action="remove-personality" data-index="${index}" class="btn-remove">移除</button>
         </div>`
                     ).join('')}
       </div>
-      <button onclick="addPersonality()" class="btn-add">新增性格偏好</button>
+      <button data-action="add-personality" class="btn-add">新增性格偏好</button>
     </div>
   </div>
   <br>
-  <button onclick="saveEdit()" class="btn-save">保存修改</button>
-  <button onclick="cancelEdit()" class="btn-cancel">取消</button>
+  <button data-action="save-edit" class="btn-save">保存修改</button>
+  <button data-action="cancel-edit" class="btn-cancel">取消</button>
             `;
             // NEW: Initialize Sortable with visual feedback settings
             const sortableOptions = {
@@ -1291,7 +1290,7 @@
               <div draggable="true" class="draggable">
                 <input type="text" class="attr-key" placeholder="屬性名稱">
                 : <input type="text" class="attr-value" placeholder="屬性值">
-                <button onclick="this.parentElement.remove()" class="btn-remove">移除</button>
+                <button data-action="remove-attr" class="btn-remove">移除</button>
               </div>
             `);
         }
@@ -1305,7 +1304,7 @@
               <div draggable="true" class="draggable">
                 <input type="text" class="skill-type" placeholder="技能名稱">
                 <input type="number" class="skill-value" placeholder="數值">
-                <button onclick="this.parentElement.remove()" class="btn-remove">移除</button>
+                <button data-action="remove-skill" class="btn-remove">移除</button>
               </div>
             `);
         }
@@ -1321,7 +1320,7 @@
               <div draggable="true" class="draggable">
                 <input type="text" class="dice-key" placeholder="骰項">
                 : <input type="text" class="dice-value" placeholder="數值">
-                <button onclick="this.parentElement.remove()" class="btn-remove">移除</button>
+                <button data-action="remove-dice" class="btn-remove">移除</button>
               </div>
             `);
         }
@@ -1349,7 +1348,7 @@
               <div draggable="true" class="draggable">
                 <input type="text" class="note-label" placeholder="標籤">
                 : <input type="text" class="note-value" placeholder="內容">
-                <button onclick="this.parentElement.remove()" class="btn-remove">移除</button>
+                <button data-action="remove-note" class="btn-remove">移除</button>
               </div>
             `);
         }
@@ -1376,7 +1375,7 @@
                     <option value="fas fa-clipboard-list">清單</option>
                     <option value="fas fa-comment-dots">留言</option>
                 </select>
-                <button onclick="this.parentElement.remove()" class="btn-remove">移除</button>
+                <button data-action="remove-personality" class="btn-remove">移除</button>
               </div>
             `);
         }
@@ -1394,9 +1393,9 @@
             container.innerHTML = `
   <!-- Rebuild the view mode using updated character data -->
   <div class="header-buttons">
-      <button id="editBtn" class="btn-edit" onclick="toggleEditMode()">編輯角色</button>
-      <button id="exportBtn" class="btn-export" onclick="exportToPNG()">匯出 PNG</button>
-      <button id="shareBtn" class="btn-backup" onclick="generateShareLink()">備份角色</button>
+      <button id="editBtn" class="btn-edit" data-action="toggle-edit-mode">編輯角色</button>
+      <button id="exportBtn" class="btn-export" data-action="export-to-png">匯出 PNG</button>
+      <button id="shareBtn" class="btn-backup" data-action="generate-share-link">備份角色</button>
   </div>
   <div class="grid">
       <div class="column">
@@ -1898,6 +1897,62 @@
                 `<p>${item.label}：<span style="color: var(--text-color);">${item.value}</span></p>`
             ).join('');
         }
+
+        // Event delegation: add a single click handler for all buttons with data-action
+        document.addEventListener('click', function(event) {
+            const action = event.target.dataset.action;
+            if (action) {
+                event.preventDefault();
+                switch (action) {
+                    case "toggle-edit-mode":
+                        toggleEditMode();
+                        break;
+                    case "export-to-png":
+                        exportToPNG();
+                        break;
+                    case "generate-share-link":
+                        generateShareLink();
+                        break;
+                    case "remove-attr":
+                        removeAttr(event.target.dataset.key);
+                        break;
+                    case "add-attribute":
+                        addAttribute();
+                        break;
+                    case "remove-skill":
+                        removeSkill(parseInt(event.target.dataset.index, 10));
+                        break;
+                    case "add-skill":
+                        addSkill();
+                        break;
+                    case "remove-dice":
+                        removeDice(event.target.dataset.key);
+                        break;
+                    case "add-dice":
+                        addDice();
+                        break;
+                    case "remove-note":
+                        removeNote(parseInt(event.target.dataset.index, 10));
+                        break;
+                    case "add-note":
+                        addNote();
+                        break;
+                    case "remove-personality":
+                        removePersonality(parseInt(event.target.dataset.index, 10));
+                        break;
+                    case "add-personality":
+                        addPersonality();
+                        break;
+                    case "save-edit":
+                        saveEdit();
+                        break;
+                    case "cancel-edit":
+                        cancelEdit();
+                        break;
+                    // Default
+                }
+            }
+        });
     </script>
 </body>
 

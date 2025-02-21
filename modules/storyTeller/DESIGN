@@ -4,6 +4,12 @@
 // 顯示文本
 [text] 這是要顯示的故事文本
 
+
+//角色說話
+[character] npc_name
+這是NPC要說的話
+
+
 // 能力值顯示
 [stat_show] hp
 [stat_show] mp,str,int

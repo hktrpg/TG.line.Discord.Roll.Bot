@@ -103,18 +103,7 @@ function createWebServer(options = {}, www) {
     return server;
 }
 const server = createWebServer(options, www);
-const io = require('socket.io')(server, {
-    cors: {
-        origin: (origin, callback) => {
-            if (!origin || origin.match(/\.hktrpg\.com$/)) {
-                return callback(null, true);
-            }
-            callback(new Error("Not allowed by CORS"));
-        },
-        methods: ["GET", "POST"],
-        credentials: true
-    }
-});
+const io = require('socket.io')(server);
 
 
 // 加入線上人數計數

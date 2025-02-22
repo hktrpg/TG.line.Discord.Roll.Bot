@@ -3,6 +3,7 @@ const cspConfig = {
     scriptSrc: [
         "'self'",
         "'unsafe-inline'",
+        "'unsafe-eval'",
         "https://unpkg.com",
         "https://code.jquery.com",
         "https://fonts.googleapis.com",
@@ -25,6 +26,7 @@ const cspConfig = {
     scriptSrcElem: [
         "'self'",
         "'unsafe-inline'",
+        "'unsafe-eval'",
         "https://unpkg.com",
         "https://html2canvas.hertzen.com",
         "https://cdnjs.cloudflare.com",

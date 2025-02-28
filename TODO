@@ -50,3 +50,12 @@
 4. 維護性與可擴充性
 
 建議循序漸進地實施這些改進,每次改動後都進行充分測試。
+
+
+加入Patreon VIP 會員功能
+-> 經website 進行 OAuth 2.0 授權
+-> 透過patreon api 進行會員資料查詢
+-> Patreon 訂閱者能夠根據其贊助等級（Tier）自行提升指定用戶（id）或群組（gpid）的權限，取代原有的 .admin addVipGroup 和 .admin addVipUser 功能。
+
+
+

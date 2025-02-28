@@ -207,7 +207,8 @@ const veryImportantPerson = mongoose.model('veryImportantPerson', new mongoose.S
     name: String,
     notes: String,
     code: String,
-    switch: Boolean
+    switch: Boolean,
+    setter: { type: String, index: true }
 }));
 const codelist = mongoose.model('codelist', new mongoose.Schema({
     code: { type: String, index: true },

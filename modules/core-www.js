@@ -6,6 +6,8 @@ const express = require('express');
 const www = express();
 const helmet = require('helmet');
 const cors = require('cors');
+const csurf = require('csurf');
+const cookieParser = require('cookie-parser');
 const {
     RateLimiterMemory
 } = require('rate-limiter-flexible');
@@ -26,12 +28,15 @@ const salt = process.env.SALT;
 const crypto = require('crypto');
 const mainCharacter = require('../roll/z_character').mainCharacter;
 const fs = require('fs');
+const patreonAuth = require('./patreon/patreonAuth');
+const patreonAPI = require('./patreon/patreonAPI');
+const vipManager = require('./patreon/vipManager');
 let options = {
     key: null,
     cert: null,
     ca: null
 };
-
+const sessionStore = {};
 // Rate Limiter 整合
 const rateLimitConfig = {
     chatRoom: { points: 90, duration: 60 },
@@ -126,7 +131,10 @@ www.use(cors({
     maxAge: 86400,
     optionsSuccessStatus: 200
 }));
-
+www.use(cookieParser());
+www.use(express.urlencoded({ extended: true }));
+const csrfProtection = csurf({ cookie: true });
+www.use(csrfProtection);
 www.get('*/favicon.ico', (req, res) => {
     res.sendFile(path.join(process.cwd(), 'views/image', 'favicon.ico'));
 });
@@ -228,6 +236,113 @@ www.get('/log/:id', (req, res) => {
 www.get('/:xx', (req, res) => {
     res.sendFile(process.cwd() + '/views/index.html');
 });
+function ensureAuthenticated(req, res, next) {
+    const sessionId = req.cookies.sessionId;
+    if (!sessionId || !sessionStore[sessionId]) {
+        return res.redirect('/patreon/login');
+    }
+    const session = sessionStore[sessionId];
+    const now = Date.now();
+    if (now > session.expiresAt) {
+        patreonAuth.refreshToken(session.refreshToken)
+            .then(tokens => {
+                session.accessToken = tokens.accessToken;
+                session.refreshToken = tokens.refreshToken;
+                session.expiresAt = now + tokens.expiresIn * 1000;
+                next();
+            })
+            .catch(err => res.status(500).send('Token refresh failed: ' + err.message));
+    } else {
+        next();
+    }
+}
+
+// Patreon Routes
+www.get('/patreon/login', (req, res) => {
+    res.render(path.join(__dirname, 'patreon/views/login.ejs'), { loginUrl: patreonAuth.getLoginUrl() });
+});
+
+www.get('/patreon/  ', (req, res) => {
+    const code = req.query.code;
+    if (!code) return res.status(400).send('No authorization code provided');
+
+    patreonAuth.handleCallback(code)
+        .then(tokens => {
+            const sessionId = crypto.randomBytes(16).toString('hex');
+            sessionStore[sessionId] = {
+                accessToken: tokens.accessToken,
+                refreshToken: tokens.refreshToken,
+                expiresAt: Date.now() + tokens.expiresIn * 1000
+            };
+            res.cookie('sessionId', sessionId, { httpOnly: true, secure: true });
+            res.redirect('/patreon/vip');
+        })
+        .catch(err => res.status(500).send('OAuth failed: ' + err.message));
+});
+
+www.get('/patreon/vip', ensureAuthenticated, (req, res) => {
+    const sessionId = req.cookies.sessionId;
+    const session = sessionStore[sessionId];
+
+    patreonAPI.getPatreonUserData(session.accessToken)
+        .then(async data => {
+            const tier = data.tier;
+            const quota = config.tierQuotas[Math.min(3, tier)] || 0;
+            const vipList = await vipManager.getVipList(data.userId);
+            const currentCount = await vipManager.getVipCount(data.userId);
+
+            res.render(path.join(__dirname, 'patreon/views/vipManager.ejs'), {
+                tier,
+                quota,
+                currentCount,
+                vipList,
+                csrfToken: req.csrfToken(),
+                error: null
+            });
+        })
+        .catch(err => res.status(500).send('Failed to load VIP manager: ' + err.message));
+});
+
+www.post('/patreon/add-vip', ensureAuthenticated, csrfProtection, (req, res) => {
+    const sessionId = req.cookies.sessionId;
+    const session = sessionStore[sessionId];
+
+    patreonAPI.getPatreonUserData(session.accessToken)
+        .then(async data => {
+            const { targetId, type, level } = req.body;
+            try {
+                await vipManager.addVip(data.userId, targetId, parseInt(level), type);
+                res.redirect('/patreon/vip');
+            } catch (err) {
+                const vipList = await vipManager.getVipList(data.userId);
+                res.render(path.join(__dirname, 'patreon/views/vipManager.ejs'), {
+                    tier: data.tier,
+                    quota: config.tierQuotas[Math.min(3, data.tier)] || 0,
+                    currentCount: await vipManager.getVipCount(data.userId),
+                    vipList,
+                    csrfToken: req.csrfToken(),
+                    error: err.message
+                });
+            }
+        })
+        .catch(err => res.status(500).send('Failed to add VIP: ' + err.message));
+});
+
+www.post('/patreon/remove-vip', ensureAuthenticated, csrfProtection, (req, res) => {
+    const sessionId = req.cookies.sessionId;
+    const session = sessionStore[sessionId];
+
+    patreonAPI.getPatreonUserData(session.accessToken)
+        .then(async data => {
+            await vipManager.removeVip(data.userId, req.body.vipId);
+            res.redirect('/patreon/vip');
+        })
+        .catch(err => res.status(500).send('Failed to remove VIP: ' + err.message));
+});
+
+// Existing routes (e.g., '/', '/api', '/card', etc.) remain unchanged
+// Add EJS setup if not already present
+www.set('view engine', 'ejs');
 
 io.on('connection', async (socket) => {
     socket.on('getListInfo', async message => {

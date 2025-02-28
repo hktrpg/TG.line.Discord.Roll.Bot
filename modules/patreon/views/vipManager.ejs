@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>VIP Manager</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    <h1>VIP Manager</h1>
+    <p>Welcome, Patreon subscriber! Your tier: <%= tier %> (Quota: <%= quota %>)</p>
+    <p>Current VIPs: <%= currentCount %> / <%= quota %>
+    </p>
+
+    <% if (error) { %>
+        <p style="color: red;">
+            <%= error %>
+        </p>
+        <% } %>
+
+            <h2>Add VIP</h2>
+            <form method="POST" action="/patreon/add-vip">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <label>Target ID (Discord ID):</label>
+                <input type="text" name="targetId" required>
+                <label>Type:</label>
+                <select name="type">
+                    <option value="group">Group</option>
+                    <option value="user">User</option>
+                </select>
+                <label>VIP Level (1-5):</label>
+                <input type="number" name="level" min="1" max="5" required>
+                <button type="submit">Add VIP</button>
+            </form>
+
+            <h2>Your VIPs</h2>
+            <% if (vipList.length> 0) { %>
+                <ul>
+                    <% vipList.forEach(vip=> { %>
+                        <li>
+                            <%= vip.gpid || vip.id %> (Level: <%= vip.level %>)
+                                    <form method="POST" action="/patreon/remove-vip" style="display:inline;">
+                                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                        <input type="hidden" name="vipId" value="<%= vip._id %>">
+                                        <button type="submit">Remove</button>
+                                    </form>
+                        </li>
+                        <% }) %>
+                </ul>
+                <% } else { %>
+                    <p>No VIPs added yet.</p>
+                    <% } %>
+</body>
+
+</html>

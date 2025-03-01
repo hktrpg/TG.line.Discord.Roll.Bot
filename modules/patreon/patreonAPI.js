@@ -15,6 +15,7 @@ function getPatreonUserData(accessToken) {
     const patreonAPIClient = patreon.patreon(accessToken);
     return patreonAPIClient('/api/oauth2/v2/identity?include=memberships')
         .then(({ store }) => {
+            console.log(store);
             const user = store.findAll('user')[0];
             const membership = store.findAll('membership')[0];
             const tier = membership ? parseInt(membership.attributes.patron_status || '0') : 0;

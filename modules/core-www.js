@@ -262,7 +262,25 @@ www.get('/patreon/login', (req, res) => {
     res.render(path.join(__dirname, 'patreon/views/login.ejs'), { loginUrl: patreonAuth.getLoginUrl() });
 });
 
-www.get('/patreon/  ', (req, res) => {
+www.get('/patreon/', (req, res) => {
+    const code = req.query.code;
+    if (!code) return res.status(400).send('No authorization code provided');
+
+    patreonAuth.handleCallback(code)
+        .then(tokens => {
+            const sessionId = crypto.randomBytes(16).toString('hex');
+            sessionStore[sessionId] = {
+                accessToken: tokens.accessToken,
+                refreshToken: tokens.refreshToken,
+                expiresAt: Date.now() + tokens.expiresIn * 1000
+            };
+            res.cookie('sessionId', sessionId, { httpOnly: true, secure: true });
+            res.redirect('/patreon/vip');
+        })
+        .catch(err => res.status(500).send('OAuth failed: ' + err.message));
+});
+
+www.get('/patreon/callback', (req, res) => {
     const code = req.query.code;
     if (!code) return res.status(400).send('No authorization code provided');
 

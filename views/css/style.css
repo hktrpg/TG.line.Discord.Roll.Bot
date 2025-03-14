@@ -1,18 +1,19 @@
-.body {
+body {
     width: 100%;
-    height: 90%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
 }
 
 .footer {
     flex: 0 0 auto;
     width: 100%;
-    position: fixed;
+    /* Removed position: fixed which causes layout issues */
     z-index: 1000;
     padding: 0 !important;
-    height: 64 px;
-    bottom: 0;
+    height: 64px; /* Fixed space between 64 and px */
     background-color: white;
-
 }
 
 .card-body2 {
@@ -37,18 +38,18 @@
 }
 
 .middleBlock {
-    padding: 44pt 0;
+    padding: 0;
     max-height: 80vh;
-    padding-top: 0 !important;
     white-space: pre-wrap;
-
+    overflow: hidden; /* Prevent scrolling */
 }
 
 @media (max-width: 767.98px) {
     .middleBlock {
         padding-top: 0 !important;
         min-height: 80vh;
-        padding: 44pt 0;
+        padding: 0;
         white-space: pre-wrap;
+        overflow: hidden; /* Prevent scrolling */
     }
 }

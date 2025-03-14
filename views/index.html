@@ -14,6 +14,44 @@
         integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        #root {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .container-sm {
+            padding-top: 10px;
+            flex-shrink: 0;
+        }
+        
+        main {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #container-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        
+        .bottom-footer {
+            flex-shrink: 0;
+            padding: 10px 0;
+        }
+    </style>
 </head>
 
 <body>
@@ -56,12 +94,12 @@
             </div>
         </div>
         <main>
-            <div class="overflow-auto  middleBlock p-2" id="container-content">
+            <div class="overflow-auto p-2" id="container-content">
                 <div class="border" id="content">
                 </div>
             </div>
         </main>
-        <footer class="fixed-bottom bg-light py-2">
+        <footer class="bottom-footer bg-light">
             <div class="container">
                 <div class="row justify-content-center">
                     <div class="col-12 col-md-8">
@@ -75,8 +113,6 @@
                     </div>
                 </div>
             </div>
-        </footer>
-        <footer>
             <div id="footer"></div>
         </footer>
         <div class="modal fade" id="readmeModalCenter" tabindex="-1" role="dialog"

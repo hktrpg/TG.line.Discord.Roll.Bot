@@ -16,10 +16,10 @@ const rateLimitMap = new Map();
  */
 function sanitizeContent(content) {
     if (!content) return '';
-    
+
     // Convert to string if not already
     const str = String(content);
-    
+
     // Escape HTML to prevent XSS
     return validator.escape(str.trim());
 }
@@ -31,9 +31,9 @@ function sanitizeContent(content) {
  */
 function sanitizeMongoDbInput(input) {
     if (!input) return '';
-    
+
     const str = String(input);
-    
+
     // Remove MongoDB operators
     return str.replace(/\$|\{|\}|\[|\]|\(|\)|\.{2,}|^\.|\.$|\\|\/\//g, '');
 }
@@ -45,33 +45,33 @@ function sanitizeMongoDbInput(input) {
  */
 function validateChatMessage(msg) {
     if (!msg) throw new Error('Message cannot be empty');
-    
+
     const sanitized = {};
-    
+
     // Sanitize all fields
     if (typeof msg.name === 'string') {
         sanitized.name = sanitizeContent(msg.name).substring(0, 50);
     } else {
         sanitized.name = 'Anonymous';
     }
-    
+
     if (typeof msg.msg === 'string') {
         sanitized.msg = sanitizeContent(msg.msg).substring(0, 1000);
     } else {
         sanitized.msg = '';
     }
-    
+
     if (typeof msg.roomNumber === 'string') {
         sanitized.roomNumber = sanitizeMongoDbInput(msg.roomNumber).substring(0, 50);
     } else {
         sanitized.roomNumber = 'public';
     }
-    
+
     // Ensure time is a valid Date
-    sanitized.time = msg.time && new Date(msg.time).toString() !== 'Invalid Date' 
-        ? new Date(msg.time) 
+    sanitized.time = msg.time && new Date(msg.time).toString() !== 'Invalid Date'
+        ? new Date(msg.time)
         : new Date();
-        
+
     return sanitized;
 }
 
@@ -85,24 +85,24 @@ function validateChatMessage(msg) {
 function checkRateLimit(identifier, maxRequests = 5, windowMs = 5000) {
     const now = Date.now();
     const userLimit = rateLimitMap.get(identifier);
-    
+
     if (!userLimit) {
         rateLimitMap.set(identifier, { lastRequest: now, count: 1 });
         return true;
     }
-    
+
     // Reset counter if outside time window
     if (now - userLimit.lastRequest > windowMs) {
         rateLimitMap.set(identifier, { lastRequest: now, count: 1 });
         return true;
     }
-    
+
     // Increment counter if within window
     if (userLimit.count < maxRequests) {
         rateLimitMap.set(identifier, { lastRequest: now, count: userLimit.count + 1 });
         return true;
     }
-    
+
     // Rate limit exceeded
     return false;
 }

@@ -54,7 +54,8 @@ const cspConfig = {
         "ws://card.hktrpg.com",
         "https://www.google-analytics.com",
         "https://rollbot.hktrpg.com",
-        "https://card.hktrpg.com"
+        "https://card.hktrpg.com",
+        "https://static.cloudflareinsights.com"
     ],
     styleSrc: ["'self'",
         "'unsafe-inline'",

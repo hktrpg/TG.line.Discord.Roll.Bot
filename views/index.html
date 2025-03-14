@@ -6,47 +6,50 @@
     <meta charset="UTF-8">
     <meta content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no"
         name="viewport" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://code.jquery.com https://cdn.jsdelivr.net https://stackpath.bootstrapcdn.com https://code.iconify.design https://static.cloudflareinsights.com 'unsafe-inline'; style-src 'self' https://stackpath.bootstrapcdn.com 'unsafe-inline'; img-src 'self' data:; connect-src 'self' ws: wss:;">
     <title>HKTRPG 擲骰機器人及聊天室 1D100 2D6 查詢指令輸入Bothelp</title>
     <meta name="description" content="HKTRPG - 線上擲骰聊天室，支援多種TRPG系統">
     <meta name="theme-color" content="#343a40">
+    <!-- Added explicit CSP meta tag to ensure CloudFlare script loading -->
+    <meta http-equiv="Content-Security-Policy"
+        content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://code.jquery.com https://cdn.jsdelivr.net https://stackpath.bootstrapcdn.com https://code.iconify.design https://static.cloudflareinsights.com">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
         integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
     <style>
-        html, body {
+        html,
+        body {
             height: 100%;
             margin: 0;
             padding: 0;
             overflow: hidden;
         }
-        
+
         #root {
             display: flex;
             flex-direction: column;
             height: 100%;
             overflow: hidden;
         }
-        
+
         .container-sm {
             padding-top: 10px;
             flex-shrink: 0;
         }
-        
+
         main {
             flex: 1;
             overflow: hidden;
             display: flex;
             flex-direction: column;
         }
-        
+
         #container-content {
             flex: 1;
             overflow-y: auto;
             padding: 10px;
         }
-        
+
         .bottom-footer {
             flex-shrink: 0;
             padding: 10px 0;
@@ -66,13 +69,13 @@
                                 <span class="input-group-text">
                                     <span class="iconify" data-icon="bi:person-fill"></span>
                                 </span>
-                                <input type="text" class="form-control" name="name" id="name" 
-                                       placeholder="暱稱" maxlength="50" required>
+                                <input type="text" class="form-control" name="name" id="name" placeholder="暱稱"
+                                    maxlength="50" required>
                                 <span class="input-group-text">
                                     <span class="iconify" data-icon="bi:house-door"></span>
                                 </span>
-                                <input type="text" class="form-control" name="roomNumber" id="roomNumber"
-                                       value="公共房間" placeholder="房間名稱" maxlength="50" required>
+                                <input type="text" class="form-control" name="roomNumber" id="roomNumber" value="公共房間"
+                                    placeholder="房間名稱" maxlength="50" required>
                                 <button type="submit" class="btn btn-danger">變更</button>
                             </div>
                         </form>
@@ -90,7 +93,8 @@
                 <div class="badge-warning input-group-text font-weight-bold" id="status-box">
                     <span class="iconify" data-icon="bi:people" data-inline="false" style="color: black;"
                         data-width="22" data-height="22"></span>
-                    x <span id="online">0</span></div>
+                    x <span id="online">0</span>
+                </div>
             </div>
         </div>
         <main>
@@ -105,8 +109,8 @@
                     <div class="col-12 col-md-8">
                         <form id="send-form" class="needs-validation" novalidate>
                             <div class="input-group">
-                                <input type="text" class="form-control" name="msg" id="msg" 
-                                       value="1d100" placeholder="說點什麼？" maxlength="1000" required>
+                                <input type="text" class="form-control" name="msg" id="msg" value="1d100"
+                                    placeholder="說點什麼？" maxlength="1000" required>
                                 <button type="submit" class="btn btn-primary" onclick="genName()">送出</button>
                             </div>
                         </form>
@@ -141,13 +145,13 @@
     </section>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous">
-    </script>
+        </script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
         integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous">
-    </script>
+        </script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
         integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous">
-    </script>
+        </script>
     <script>
         // 全域設定和狀態
         const CONFIG = {
@@ -222,8 +226,8 @@
                 "content").innerText)
             let string = ('HKTRPG' + (roomText && (
                 roomText.value || ''))) + '\n' + (document.getElementById(
-                "content") && (document.getElementById(
-                "content").innerText || '')).replace(/(.*\d+:\d+:\d+)/g, '\n$1')
+                    "content") && (document.getElementById(
+                        "content").innerText || '')).replace(/(.*\d+:\d+:\d+)/g, '\n$1')
 
 
             let link = document.createElement('a');
@@ -254,23 +258,23 @@
         // Check rate limiting on the client side
         function checkRateLimit() {
             const now = Date.now();
-            
+
             // Reset message count if outside window
             if (now - state.lastMessageTime > CONFIG.MESSAGE_RATE_LIMIT.TIME_WINDOW_MS) {
                 state.messageCount = 0;
                 state.rateLimited = false;
             }
-            
+
             // Check if we're within rate limit
             if (state.messageCount >= CONFIG.MESSAGE_RATE_LIMIT.MAX_MESSAGES) {
                 state.rateLimited = true;
-                setTimeout(() => { 
-                    state.rateLimited = false; 
+                setTimeout(() => {
+                    state.rateLimited = false;
                     state.messageCount = 0;
                 }, CONFIG.MESSAGE_RATE_LIMIT.COOLDOWN_MS);
                 return false;
             }
-            
+
             // Update state
             state.lastMessageTime = now;
             state.messageCount++;
@@ -293,7 +297,7 @@
             changeRoomNumber.addEventListener("submit", async function (e) {
                 e.preventDefault();
                 state.color = 3;
-                
+
                 // Sanitize room value
                 const sanitizedRoom = validateInput(roomText.value, 50);
                 if (!sanitizedRoom) {
@@ -302,11 +306,11 @@
                 } else {
                     roomText.value = sanitizedRoom;
                 }
-                
+
                 if (roomText.value === state.currentRoom) {
                     return;
                 }
-                
+
                 await socket.off(state.currentRoom);
                 state.currentRoom = roomText.value;
                 document.getElementById("content").innerHTML = '';
@@ -320,26 +324,26 @@
                 const nameInputBox = document.getElementById("name");
                 $('#msg').focus();
                 if (!msgInputBox) return;
-                
+
                 // Rate limiting check
                 if (!checkRateLimit()) {
                     const temporaryMsg = document.createElement('div');
                     temporaryMsg.className = "alert alert-warning";
                     temporaryMsg.textContent = "訊息發送過於頻繁，請稍後再試";
-                    
+
                     // Show temporary warning
                     document.getElementById("container").appendChild(temporaryMsg);
                     setTimeout(() => temporaryMsg.remove(), 2000);
                     return;
                 }
-                
+
                 // Sanitize inputs
                 const sanitizedMsg = validateInput(msgInputBox.value, 1000);
                 const sanitizedName = validateInput(nameInputBox.value, 50) || CONFIG.DEFAULT_NAME_PREFIX + Math.floor(Math.random() * 1000);
-                
+
                 // Update name input box with sanitized value
                 nameInputBox.value = sanitizedName;
-                
+
                 const formData = {
                     time: new Date(),
                     msg: sanitizedMsg,
@@ -349,7 +353,7 @@
 
                 socket.emit("send", formData);
                 setLocalStorage("name", sanitizedName);
-                
+
                 // Clear message box
                 msgInputBox.value = "";
             });
@@ -376,7 +380,7 @@
 
         async function addMsgToBox(d) {
             state.color++;
-            
+
             // Sanitize all data coming from server
             const safeData = {
                 name: sanitizeHTML(d.name || 'Anonymous'),
@@ -384,7 +388,7 @@
                 msg: sanitizeHTML(d.msg || ''),
                 roomNumber: d.roomNumber
             };
-            
+
             let msgBox = document.createElement("div");
             msgBox.className = "card";
             let msgBoxHeader = document.createElement("div");
@@ -398,15 +402,15 @@
             nameBox.className = "badge badge-primary";
             let timeBox = document.createElement("span")
             timeBox.className = "badge badge-secondary";
-            
+
             // Use textContent instead of innerHTML to prevent XSS
             nameBox.textContent = safeData.name;
             timeBox.textContent = safeData.time.toLocaleString();
-            
+
             msgBoxHeader.appendChild(nameBox);
             msgBoxHeader.innerHTML += "&nbsp";
             msgBoxHeader.appendChild(timeBox);
-            
+
             // Use textContent for message to prevent XSS
             msgBoxBody.textContent = safeData.msg.replace(/^\n/, '');
             setTimeout(function () {

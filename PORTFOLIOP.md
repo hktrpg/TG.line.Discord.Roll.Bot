@@ -31,17 +31,17 @@ HKTRPG 興趣使然地創作及維護 TRPG 工具，包括多種平台與服務�
 
 除了可以在 Discord、Telegram、Line 上操作外，還可以在網站上使用，並把擲骰結果傳送到該聊天平台。
 
-<img src="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20charcard.jpg?raw=true" alt="角色卡" width="600"/>
+<img src="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20charcard.jpg?raw=true" alt="角色卡" height="200"/>
 
 ### 無限恐怖 TRPG 角色卡
 [無限恐怖角色卡連結](https://www.hktrpg.com/wiki/index.php/%E7%84%A1%E9%99%90%E6%81%90%E6%80%96)
 
-<img src="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20inf.jpg?raw=true" alt="無限恐怖角色卡" width="600"/>
+<img src="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20inf.jpg?raw=true" alt="無限恐怖角色卡" width="300"/>
 
 ### 其他角色卡分享
 [角色卡分享文檔](https://docs.google.com/document/d/1oNNbdZq0Vp66gCmY5C5Fmnqw-DR9TE-9jlFrJrMZ8SU/edit)
 
-<img src="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20othercard.jpg?raw=true" alt="其他角色卡" width="600"/>
+<img src="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20othercard.jpg?raw=true" alt="其他角色卡" width="300"/>
 
 ---
 
@@ -61,7 +61,7 @@ HKTRPG 興趣使然地創作及維護 TRPG 工具，包括多種平台與服務�
 > 暗骰、各類TRPG骰子擲骰、自定義骰子、頻道經驗值、頻道遊戲、占卜、先攻表、TRPG網上角色卡、搜圖、
 > 翻譯、Discord聊天紀錄匯出、數學計算、做筆記、隨機抽選、wiki查詢、資料庫快速查詢功能
 
-<img src="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20hktrpg.jpg?raw=true" alt="HKTRPG機器人" width="600"/>
+<img src="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20hktrpg.jpg?raw=true" alt="HKTRPG機器人" height="200"/>
 
 ---
 
@@ -70,12 +70,12 @@ HKTRPG 興趣使然地創作及維護 TRPG 工具，包括多種平台與服務�
 ### 手機擲骰
 [手機擲骰網站](https://roll.hktrpg.com/) - 為了可以不動腦擲骰而開發
 
-<img src="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20roll.jpg?raw=true" alt="手機擲骰" width="400"/>
+<img src="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20roll.jpg?raw=true" alt="手機擲骰" width="200"/>
 
 ### TRPG擲骰聊天室
 [聊天室網站](https://rollbot.hktrpg.com/) - 可以擲骰的聊天室
 
-<img src="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20chatroom.jpg?raw=true" alt="聊天室" width="600"/>
+<img src="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20chatroom.jpg?raw=true" alt="聊天室" width="200"/>
 
 ---
 
@@ -86,7 +86,7 @@ HKTRPG 興趣使然地創作及維護 TRPG 工具，包括多種平台與服務�
 
 2.5D的平台，FVTT以外我最愛的跑團平台，因為開發容易，所以我加了一些功能進去，也翻譯成中文。
 
-<img src="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20udo.png?raw=true" alt="烏冬平台" width="600"/>
+<img src="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20udo.png?raw=true" alt="烏冬平台" width="300"/>
 
 ### 冰丼
 [冰丼平台](https://z02.hktrpg.com)
@@ -158,7 +158,7 @@ HKTRPG 興趣使然地創作及維護 TRPG 工具，包括多種平台與服務�
 - [TRPG/CoC秘密團感想](https://www.patreon.com/posts/trpg-cocmi-mi-55569183)
 - [簡易Token製作教學](https://docs.google.com/document/d/1LEJAL8ckieSotkwM8Ri2F2qVPT7B3TOE-pPkKp_m1Q8/edit)
 
-<img src="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20token.png?raw=true" alt="Token製作教學" width="500"/>
+<img src="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20token.png?raw=true" alt="Token製作教學" width="250"/>
 
 ### 教學影片
 廣東話教學影片系列：
@@ -169,7 +169,7 @@ HKTRPG 興趣使然地創作及維護 TRPG 工具，包括多種平台與服務�
 - [更多教學影片...](https://www.youtube.com/playlist?list=PLcS__l3P8LYkXWF7et23MHmDl1OSrEGBS)
 
 ### 跑團紀錄
-<img src="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20youtube.jpg?raw=true" alt="YT跑團紀錄" width="500"/>
+<img src="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/blob/master/views/image/demo%20-%20youtube.jpg?raw=true" alt="YT跑團紀錄" width="250"/>
 
 - [圖片紀錄](https://docs.google.com/document/d/1poCQeL21Aeg_3p8N2lDn8LXki5v1UH5G4YZMmYeaes4/edit?usp=sharing)
 - [香港TRPG COC跑團YT紀錄](https://www.youtube.com/playlist?list=PLcS__l3P8LYmiJF_adeiySynbmum7I_aC)

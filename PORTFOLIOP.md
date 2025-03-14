@@ -1,6 +1,6 @@
 # HKTRPG作品集
 
-[![Discord](https://camo.githubusercontent.com/1ed68e831b9f36401679d31acfc1c7ba74c4223d2559192718f32d3e34ee3074/68747470733a2f2f696d672e736869656c64732e696f2f646973636f72642f3237383230323334373136353937343532393f6c6f676f3d646973636f7264)](https://support.hktrpg.com)
+[![Discord](https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png)](https://support.hktrpg.com)
 
 HKTRPG 興趣使然地創作及維護 TRPG工具，包括
 

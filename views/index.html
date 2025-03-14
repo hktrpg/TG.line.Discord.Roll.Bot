@@ -6,6 +6,7 @@
     <meta charset="UTF-8">
     <meta content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no"
         name="viewport" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://code.jquery.com https://cdn.jsdelivr.net https://stackpath.bootstrapcdn.com https://code.iconify.design 'unsafe-inline'; style-src 'self' https://stackpath.bootstrapcdn.com 'unsafe-inline'; img-src 'self' data:; connect-src 'self' ws: wss:;">
     <title>HKTRPG 擲骰機器人及聊天室 1D100 2D6 查詢指令輸入Bothelp</title>
     <meta name="description" content="HKTRPG - 線上擲骰聊天室，支援多種TRPG系統">
     <meta name="theme-color" content="#343a40">
@@ -103,7 +104,7 @@
         </div>
     </section>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
-        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous">
     </script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
         integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous">
@@ -116,16 +117,29 @@
         const CONFIG = {
             DEFAULT_ROOM: "公共房間",
             MAX_MESSAGES: 100,
-            DEFAULT_NAME_PREFIX: "調查員"
+            DEFAULT_NAME_PREFIX: "調查員",
+            MESSAGE_RATE_LIMIT: {
+                MAX_MESSAGES: 5,
+                TIME_WINDOW_MS: 5000, // 5 seconds
+                COOLDOWN_MS: 2000 // Additional cooldown after hitting limit
+            }
         };
 
         let state = {
             currentRoom: CONFIG.DEFAULT_ROOM,
             color: 3,
-            max_record: CONFIG.MAX_MESSAGES
+            max_record: CONFIG.MAX_MESSAGES,
+            lastMessageTime: 0,
+            messageCount: 0,
+            rateLimited: false
         };
 
-        const socket = io();
+        // Create a secure socket connection
+        const socket = io({
+            reconnectionAttempts: 5,
+            timeout: 10000,
+            transports: ['websocket', 'polling']
+        });
 
         // Google Analytics (可選)
         window.dataLayer = window.dataLayer || [];
@@ -194,46 +208,114 @@
             content.scrollTop = content.scrollHeight;
         }
 
+        // HTML Sanitizer function to prevent XSS
+        function sanitizeHTML(text) {
+            const temp = document.createElement('div');
+            temp.textContent = text;
+            return temp.innerHTML;
+        }
+
+        // Check rate limiting on the client side
+        function checkRateLimit() {
+            const now = Date.now();
+            
+            // Reset message count if outside window
+            if (now - state.lastMessageTime > CONFIG.MESSAGE_RATE_LIMIT.TIME_WINDOW_MS) {
+                state.messageCount = 0;
+                state.rateLimited = false;
+            }
+            
+            // Check if we're within rate limit
+            if (state.messageCount >= CONFIG.MESSAGE_RATE_LIMIT.MAX_MESSAGES) {
+                state.rateLimited = true;
+                setTimeout(() => { 
+                    state.rateLimited = false; 
+                    state.messageCount = 0;
+                }, CONFIG.MESSAGE_RATE_LIMIT.COOLDOWN_MS);
+                return false;
+            }
+            
+            // Update state
+            state.lastMessageTime = now;
+            state.messageCount++;
+            return true;
+        }
+
         function setupEventListeners() {
             const changeRoomNumber = document.getElementById("changeRoomNumber-form");
             const sendForm = document.getElementById("send-form");
             const roomText = document.getElementById("roomNumber");
             const room = document.getElementById("room");
+            const msgInputBox = document.getElementById("msg");
+
+            // Validate form inputs
+            function validateInput(input, maxLength) {
+                if (!input) return '';
+                return String(input).substring(0, maxLength);
+            }
 
             changeRoomNumber.addEventListener("submit", async function (e) {
                 e.preventDefault();
                 state.color = 3;
-                if (!roomText.value) {
+                
+                // Sanitize room value
+                const sanitizedRoom = validateInput(roomText.value, 50);
+                if (!sanitizedRoom) {
                     roomText.innerHTML = CONFIG.DEFAULT_ROOM;
                     roomText.value = CONFIG.DEFAULT_ROOM;
+                } else {
+                    roomText.value = sanitizedRoom;
                 }
+                
                 if (roomText.value === state.currentRoom) {
                     return;
                 }
+                
                 await socket.off(state.currentRoom);
                 state.currentRoom = roomText.value;
                 document.getElementById("content").innerHTML = '';
                 socket.emit("newRoom", state.currentRoom);
-                room.innerText = state.currentRoom;
+                room.innerText = sanitizeHTML(state.currentRoom);
                 await socket.on(state.currentRoom, addMsgToBox);
             });
 
             sendForm.addEventListener("submit", function (e) {
                 e.preventDefault();
-                const msgInputBox = document.getElementById("msg");
                 const nameInputBox = document.getElementById("name");
                 $('#msg').focus();
                 if (!msgInputBox) return;
-
+                
+                // Rate limiting check
+                if (!checkRateLimit()) {
+                    const temporaryMsg = document.createElement('div');
+                    temporaryMsg.className = "alert alert-warning";
+                    temporaryMsg.textContent = "訊息發送過於頻繁，請稍後再試";
+                    
+                    // Show temporary warning
+                    document.getElementById("container").appendChild(temporaryMsg);
+                    setTimeout(() => temporaryMsg.remove(), 2000);
+                    return;
+                }
+                
+                // Sanitize inputs
+                const sanitizedMsg = validateInput(msgInputBox.value, 1000);
+                const sanitizedName = validateInput(nameInputBox.value, 50) || CONFIG.DEFAULT_NAME_PREFIX + Math.floor(Math.random() * 1000);
+                
+                // Update name input box with sanitized value
+                nameInputBox.value = sanitizedName;
+                
                 const formData = {
                     time: new Date(),
-                    msg: msgInputBox.value,
-                    name: nameInputBox.value,
+                    msg: sanitizedMsg,
+                    name: sanitizedName,
                     roomNumber: state.currentRoom
                 };
 
                 socket.emit("send", formData);
-                setLocalStorage("name", nameInputBox.value);
+                setLocalStorage("name", sanitizedName);
+                
+                // Clear message box
+                msgInputBox.value = "";
             });
         }
 
@@ -258,6 +340,15 @@
 
         async function addMsgToBox(d) {
             state.color++;
+            
+            // Sanitize all data coming from server
+            const safeData = {
+                name: sanitizeHTML(d.name || 'Anonymous'),
+                time: d.time ? new Date(d.time) : new Date(),
+                msg: sanitizeHTML(d.msg || ''),
+                roomNumber: d.roomNumber
+            };
+            
             let msgBox = document.createElement("div");
             msgBox.className = "card";
             let msgBoxHeader = document.createElement("div");
@@ -271,20 +362,20 @@
             nameBox.className = "badge badge-primary";
             let timeBox = document.createElement("span")
             timeBox.className = "badge badge-secondary";
-            let name = document.createTextNode(d.name);
-
-            let time = document.createTextNode(new Date(d.time).toLocaleString());
-            let msg = document.createTextNode(d.msg.replace(/^\n/, ''), setTimeout(function () {
-                scorllToBottom();
-            }, 50));
-
-
-            nameBox.appendChild(name);
+            
+            // Use textContent instead of innerHTML to prevent XSS
+            nameBox.textContent = safeData.name;
+            timeBox.textContent = safeData.time.toLocaleString();
+            
             msgBoxHeader.appendChild(nameBox);
             msgBoxHeader.innerHTML += "&nbsp";
-            timeBox.appendChild(time);
             msgBoxHeader.appendChild(timeBox);
-            msgBoxBody.appendChild(msg);
+            
+            // Use textContent for message to prevent XSS
+            msgBoxBody.textContent = safeData.msg.replace(/^\n/, '');
+            setTimeout(function () {
+                scorllToBottom();
+            }, 50);
 
             msgBox.appendChild(msgBoxHeader);
             msgBox.appendChild(msgBoxBody);

@@ -256,26 +256,53 @@ const allowRolling = mongoose.model('allowRolling', new mongoose.Schema({
 
 
 const chatRoom = mongoose.model('chatRoom', new mongoose.Schema({
-    name: { // 欄位名稱
-        type: String, // 欄位資料型別
-        required: true, // 必須要有值
-        maxlength: 50
+    name: { 
+        type: String,
+        required: true, 
+        maxlength: 50,
+        trim: true,
+        validate: {
+            validator: function(v) {
+                return v.length > 0 && v.length <= 50;
+            },
+            message: 'Name must be between 1 and 50 characters'
+        }
     },
     msg: {
         type: String,
-        required: true
+        required: true,
+        maxlength: 1000,
+        validate: {
+            validator: function(v) {
+                return v.length <= 1000;
+            },
+            message: 'Message cannot exceed 1000 characters'
+        }
     },
     time: {
         type: Date,
         required: true,
-        index: true
+        index: true,
+        default: Date.now
     },
     roomNumber: {
         type: String,
         required: true,
         maxlength: 50,
-        index: true
+        trim: true,
+        index: true,
+        validate: {
+            validator: function(v) {
+                return v.length > 0 && v.length <= 50;
+            },
+            message: 'Room number must be between 1 and 50 characters'
+        }
     }
+}, {
+    // Add compound index for more efficient queries by roomNumber + time
+    indexes: [
+        { roomNumber: 1, time: 1 }
+    ]
 }));
 
 const characterCard = mongoose.model('characterCard', new mongoose.Schema({

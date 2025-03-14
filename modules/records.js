@@ -5,9 +5,13 @@ const {
 } = require("events");
 require('events').EventEmitter.defaultMaxListeners = Infinity;
 const schema = require('./schema.js');
+const security = require('./security-utils.js');
 let instance;
 let MAX = 100;
 const Message = schema.chatRoom;
+
+// User request tracker for rate limiting
+const userRequests = new Map();
 
 class Records extends EventEmitter {
     constructor() {
@@ -169,46 +173,117 @@ class Records extends EventEmitter {
         }, { upsert: true }, callback);
     }
 
-    async chatRoomPush(msg) {
-        const m = new Message(msg);
-        await m.save();
-        this.emit("new_message", msg);
-        let count = await Message.countDocuments({
-            'roomNumber': msg.roomNumber
-        });
-        if (count < MAX) return;
-        let over = count - MAX;
-        let d = await Message.find({
-            'roomNumber': msg.roomNumber
-        }).sort({
-            'time': 1,
-        })
-        if (!d[over - 1]) return;
-        await Message.deleteMany({
-            'roomNumber': msg.roomNumber,
-            time: {
-                $lt: d[over - 1].time
+    async chatRoomPush(msg, ip = null) {
+        try {
+            // Apply rate limiting if IP is provided
+            if (ip && !security.checkRateLimit(ip, 5, 5000)) {
+                const error = new Error('Too many requests');
+                error.statusCode = 429;
+                throw error;
             }
 
-        })
+            // Validate and sanitize message
+            const sanitizedMsg = security.validateChatMessage(msg);
+            
+            // Create and save the new message
+            const m = new Message(sanitizedMsg);
+            await m.save();
+            
+            // Notify subscribers but send the sanitized message
+            this.emit("new_message", sanitizedMsg);
+
+            // Get count of messages in this room with sanitized room number
+            const count = await Message.countDocuments({
+                'roomNumber': sanitizedMsg.roomNumber
+            });
+
+            // If under MAX, no cleanup needed
+            if (count <= MAX) return;
+            
+            // Find the cutoff timestamp and delete older messages in a single operation
+            const overdraft = count - MAX;
+            const cutoffMessages = await Message.find({
+                'roomNumber': sanitizedMsg.roomNumber
+            }).sort({
+                'time': 1
+            }).limit(overdraft);
+            
+            if (cutoffMessages.length > 0) {
+                const cutoffTime = cutoffMessages[cutoffMessages.length - 1].time;
+                await Message.deleteMany({
+                    'roomNumber': sanitizedMsg.roomNumber,
+                    'time': { $lte: cutoffTime }
+                });
+            }
+        } catch (error) {
+            console.error("Error in chatRoomPush:", error.message);
+            throw error; // Rethrow for proper handling upstream
+        }
     }
 
+    async chatRoomGetAsync(roomNumber, limit = MAX, skip = 0) {
+        try {
+            // Sanitize room number input
+            const sanitizedRoomNumber = security.sanitizeMongoDbInput(roomNumber);
+            
+            // Validate and constrain limit and skip parameters
+            const validatedLimit = Math.min(Math.max(1, parseInt(limit) || MAX), MAX);
+            const validatedSkip = Math.max(0, parseInt(skip) || 0);
+            
+            return await Message.find({
+                roomNumber: sanitizedRoomNumber
+            }).sort({
+                'time': -1
+            }).skip(validatedSkip).limit(validatedLimit);
+        } catch (error) {
+            console.error("Error in chatRoomGetAsync:", error.message);
+            return [];
+        }
+    }
+
+    // Legacy method for backward compatibility
     chatRoomGet(roomNumber, callback) {
-        Message.find({
-            roomNumber: roomNumber
-        }, (err, msgs) => {
-            callback(msgs);
-        });
+        if (typeof callback === 'function') {
+            // Sanitize inputs for backward compatibility
+            const sanitizedRoomNumber = security.sanitizeMongoDbInput(roomNumber);
+            
+            // Support original callback pattern with secure query
+            Message.find({
+                roomNumber: sanitizedRoomNumber
+            }).sort({'time': -1}).exec((err, msgs) => {
+                callback(msgs || []);
+            });
+        } else {
+            // Return a promise when no callback provided
+            return this.chatRoomGetAsync(roomNumber);
+        }
     }
 
     chatRoomSetMax(max) {
-        MAX = max;
+        // Make sure max is a reasonable number
+        const parsedMax = parseInt(max);
+        if (!isNaN(parsedMax) && parsedMax > 0 && parsedMax <= 1000) {
+            MAX = parsedMax;
+        }
     }
 
     chatRoomGetMax() {
         return MAX;
     }
 
+    // Add method to sanitize messages for display
+    sanitizeMessagesForDisplay(messages) {
+        if (!Array.isArray(messages)) return [];
+        
+        return messages.map(msg => {
+            return {
+                name: security.sanitizeContent(msg.name || ''),
+                msg: security.sanitizeContent(msg.msg || ''),
+                time: msg.time,
+                roomNumber: msg.roomNumber
+            };
+        });
+    }
 }
 
 module.exports = (function () {

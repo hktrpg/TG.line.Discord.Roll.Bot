@@ -105,6 +105,25 @@
                 </div>
             </div>
         </div>
+        <div class="quick-input-pad" id="quickInputPad">
+            <div class="toggle-button" onclick="quickInputPad.toggle()">
+                <span class="iconify" data-icon="bi:chevron-up"></span>
+                <span>快速輸入</span>
+            </div>
+            <div class="pad-header">
+                <span class="pad-title">常用指令</span>
+                <button class="btn btn-sm btn-outline-primary" onclick="quickInputPad.saveCustom()">
+                    <span class="iconify" data-icon="bi:save"></span>
+                </button>
+            </div>
+            <div class="pad-buttons" id="quickInputButtons">
+                <!-- 按鈕將由 JavaScript 動態生成 -->
+            </div>
+            <div class="custom-input">
+                <input type="text" id="customInput" placeholder="自訂指令">
+                <button class="btn btn-primary" onclick="quickInputPad.sendCustom()">送出</button>
+            </div>
+        </div>
     </section>
     <style>
         /* 主題相關樣式 */
@@ -429,6 +448,121 @@
                 margin: 0.5rem 0;
             }
         }
+
+        /* 快速輸入指令欄樣式 */
+        .quick-input-pad {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            padding: 15px;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            max-width: 300px;
+            width: 90%;
+        }
+
+        .quick-input-pad.collapsed {
+            transform: translateY(calc(100% + 20px));
+        }
+
+        .quick-input-pad .pad-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .quick-input-pad .pad-title {
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .quick-input-pad .pad-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .quick-input-pad .pad-button {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 6px;
+            padding: 8px;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .quick-input-pad .pad-button:hover {
+            background: var(--badge-bg);
+            color: var(--badge-text);
+            transform: translateY(-2px);
+        }
+
+        .quick-input-pad .custom-input {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .quick-input-pad .custom-input input {
+            flex: 1;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 6px;
+            padding: 8px;
+            color: var(--text-color);
+        }
+
+        .quick-input-pad .toggle-button {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 6px 6px 0 0;
+            padding: 5px 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--text-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .quick-input-pad .toggle-button .iconify {
+            transition: transform 0.3s ease;
+        }
+
+        .quick-input-pad.collapsed .toggle-button .iconify {
+            transform: rotate(180deg);
+        }
+
+        /* 響應式調整 */
+        @media (max-width: 768px) {
+            .quick-input-pad {
+                bottom: 70px;
+                right: 10px;
+                width: calc(100% - 20px);
+                max-width: none;
+            }
+
+            .quick-input-pad .pad-buttons {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .quick-input-pad .custom-input {
+                flex-direction: column;
+            }
+        }
     </style>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
@@ -644,11 +778,65 @@
             }
         };
 
+        // 在現有的 JavaScript 代碼中添加快速輸入指令欄管理模組
+        const quickInputPad = {
+            init: () => {
+                const savedCommands = JSON.parse(localStorage.getItem('quickCommands') || '["1D100", "1D20", "1D6", "2D6", "3D6", "1D4"]');
+                quickInputPad.renderButtons(savedCommands);
+            },
+
+            renderButtons: (commands) => {
+                const container = document.getElementById('quickInputButtons');
+                container.innerHTML = commands.map(cmd => `
+                    <button class="pad-button" onclick="quickInputPad.sendCommand('${cmd}')">
+                        ${cmd}
+                    </button>
+                `).join('');
+            },
+
+            sendCommand: (command) => {
+                const msgInput = document.getElementById('msg');
+                msgInput.value = command;
+                msgInput.focus();
+                // 觸發表單提交
+                document.getElementById('send-form').dispatchEvent(new Event('submit'));
+            },
+
+            sendCustom: () => {
+                const customInput = document.getElementById('customInput');
+                const command = customInput.value.trim();
+                if (command) {
+                    quickInputPad.sendCommand(command);
+                    customInput.value = '';
+                }
+            },
+
+            saveCustom: () => {
+                const customInput = document.getElementById('customInput');
+                const command = customInput.value.trim();
+                if (command) {
+                    const savedCommands = JSON.parse(localStorage.getItem('quickCommands') || '[]');
+                    if (!savedCommands.includes(command)) {
+                        savedCommands.push(command);
+                        localStorage.setItem('quickCommands', JSON.stringify(savedCommands));
+                        quickInputPad.renderButtons(savedCommands);
+                    }
+                    customInput.value = '';
+                }
+            },
+
+            toggle: () => {
+                const pad = document.getElementById('quickInputPad');
+                pad.classList.toggle('collapsed');
+            }
+        };
+
         // Initialize application
         document.addEventListener("DOMContentLoaded", () => {
             socketManager.init();
             uiManager.initialize();
             themeManager.init();
+            quickInputPad.init();
         });
 
         // Modal functions

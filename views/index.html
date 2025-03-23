@@ -104,7 +104,6 @@
     </section>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-    </script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
         integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous">
     </script>
@@ -112,200 +111,212 @@
         integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous">
     </script>
     <script>
-        // 全域設定和狀態
+        // Configuration and Constants
         const CONFIG = {
             DEFAULT_ROOM: "公共房間",
             MAX_MESSAGES: 100,
-            DEFAULT_NAME_PREFIX: "調查員"
+            DEFAULT_NAME_PREFIX: "調查員",
+            SOCKET_RECONNECT_ATTEMPTS: 5,
+            SOCKET_RECONNECT_DELAY: 1000,
+            MESSAGE_CHUNK_SIZE: 2000
         };
 
-        let state = {
+        // State Management
+        const state = {
             currentRoom: CONFIG.DEFAULT_ROOM,
             color: 3,
-            max_record: CONFIG.MAX_MESSAGES
+            max_record: CONFIG.MAX_MESSAGES,
+            socket: null,
+            reconnectAttempts: 0,
+            isConnected: false
         };
 
-        const socket = io();
-
-        // Google Analytics (可選)
-        window.dataLayer = window.dataLayer || [];
-        function gtag() {
-            dataLayer.push(arguments);
-        }
-        gtag('js', new Date());
-        gtag('config', 'UA-111430056-7', {
-            'anonymize_ip': true,
-            'send_page_view': false
-        });
-
-        document.addEventListener("DOMContentLoaded", () => {
-            initializeChat();
-        });
-
-        function initializeChat() {
-            setupEventListeners();
-            setupSocketListeners();
-            initializeUI();
-        }
-
-        function initializeUI() {
-            const name = getLocalStorage("name");
-            if (name) {
-                document.getElementById("name").value = name;
-            } else {
-                genName();
+        // Utility Functions
+        const utils = {
+            setLocalStorage: (key, value) => localStorage.setItem(key, value),
+            getLocalStorage: (key) => localStorage.getItem(key) || null,
+            generateName: () => CONFIG.DEFAULT_NAME_PREFIX + Math.floor(Math.random() * 1000) + 1,
+            scrollToBottom: () => {
+                const content = document.getElementById("container-content");
+                content.scrollTop = content.scrollHeight;
+            },
+            escapeHtml: (unsafe) => {
+                return unsafe
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
             }
-        }
+        };
 
+        // Socket.IO Management
+        const socketManager = {
+            init: () => {
+                state.socket = io({
+                    reconnection: true,
+                    reconnectionAttempts: CONFIG.SOCKET_RECONNECT_ATTEMPTS,
+                    reconnectionDelay: CONFIG.SOCKET_RECONNECT_DELAY
+                });
+
+                socketManager.setupEventListeners();
+            },
+
+            setupEventListeners: () => {
+                state.socket.on('connect', () => {
+                    state.isConnected = true;
+                    state.reconnectAttempts = 0;
+                    console.log('Connected to server');
+                });
+
+                state.socket.on('disconnect', () => {
+                    state.isConnected = false;
+                    console.log('Disconnected from server');
+                });
+
+                state.socket.on('connect_error', (error) => {
+                    console.error('Connection error:', error);
+                });
+
+                state.socket.on('online', (amount) => {
+                    document.getElementById("online").innerText = amount;
+                });
+
+                state.socket.on('maxRecord', (amount) => {
+                    state.max_record = amount;
+                });
+
+                state.socket.on('chatRecord', async (msgs) => {
+                    if (!Array.isArray(msgs)) return;
+                    msgs.sort((a, b) => new Date(a.time) - new Date(b.time));
+                    for (const msg of msgs) {
+                        await uiManager.addMessageToBox(msg);
+                    }
+                });
+
+                state.socket.on(state.currentRoom, uiManager.addMessageToBox);
+            }
+        };
+
+        // UI Management
+        const uiManager = {
+            initialize: () => {
+                const name = utils.getLocalStorage("name");
+                document.getElementById("name").value = name || utils.generateName();
+                uiManager.setupEventListeners();
+            },
+
+            setupEventListeners: () => {
+                const changeRoomForm = document.getElementById("changeRoomNumber-form");
+                const sendForm = document.getElementById("send-form");
+                const roomInput = document.getElementById("roomNumber");
+                const roomDisplay = document.getElementById("room");
+
+                changeRoomForm.addEventListener("submit", async (e) => {
+                    e.preventDefault();
+                    if (!roomInput.value) {
+                        roomInput.value = CONFIG.DEFAULT_ROOM;
+                    }
+                    if (roomInput.value === state.currentRoom) return;
+
+                    try {
+                        state.socket.off(state.currentRoom);
+                        state.currentRoom = roomInput.value;
+                        document.getElementById("content").innerHTML = '';
+                        state.socket.emit("newRoom", state.currentRoom);
+                        roomDisplay.innerText = state.currentRoom;
+                        state.socket.on(state.currentRoom, uiManager.addMessageToBox);
+                    } catch (error) {
+                        console.error('Error changing room:', error);
+                    }
+                });
+
+                sendForm.addEventListener("submit", (e) => {
+                    e.preventDefault();
+                    const msgInput = document.getElementById("msg");
+                    const nameInput = document.getElementById("name");
+                    
+                    if (!msgInput.value.trim()) return;
+
+                    const formData = {
+                        time: new Date(),
+                        msg: msgInput.value,
+                        name: nameInput.value,
+                        roomNumber: state.currentRoom
+                    };
+
+                    state.socket.emit("send", formData);
+                    utils.setLocalStorage("name", nameInput.value);
+                    msgInput.value = '';
+                    msgInput.focus();
+                });
+            },
+
+            addMessageToBox: async (message) => {
+                if (!message || !message.msg) return;
+
+                state.color++;
+                const msgBox = document.createElement("div");
+                msgBox.className = "card";
+
+                const msgBoxHeader = document.createElement("div");
+                msgBoxHeader.className = "card-header2";
+
+                const msgBoxBody = document.createElement("div");
+                msgBoxBody.classList.add("card-body2");
+
+                const nameBox = document.createElement("span");
+                nameBox.className = "badge badge-primary";
+                nameBox.textContent = utils.escapeHtml(message.name);
+
+                const timeBox = document.createElement("span");
+                timeBox.className = "badge badge-secondary";
+                timeBox.textContent = new Date(message.time).toLocaleString();
+
+                msgBoxHeader.appendChild(nameBox);
+                msgBoxHeader.innerHTML += "&nbsp;";
+                msgBoxHeader.appendChild(timeBox);
+                msgBoxBody.textContent = message.msg.replace(/^\n/, '');
+
+                msgBox.appendChild(msgBoxHeader);
+                msgBox.appendChild(msgBoxBody);
+
+                const content = document.getElementById("content");
+                content.appendChild(msgBox);
+
+                if (content.children.length > state.max_record) {
+                    content.removeChild(content.firstChild);
+                }
+
+                setTimeout(utils.scrollToBottom, 50);
+            }
+        };
+
+        // Initialize application
+        document.addEventListener("DOMContentLoaded", () => {
+            socketManager.init();
+            uiManager.initialize();
+        });
+
+        // Modal functions
         function readme() {
-            $('#readmeModalCenter').modal("show")
-        }
-
-        function genName() {
-            if (!document.getElementById("name").value)
-                document.getElementById("name").value = CONFIG.DEFAULT_NAME_PREFIX + Math.floor(Math.random() * 1000) + 1;
+            $('#readmeModalCenter').modal("show");
         }
 
         function save() {
-            let roomText = document.getElementById("roomNumber");
-            console.log('roomText', document.getElementById(
-                "content").innerText)
-            let string = ('HKTRPG' + (roomText && (
-                roomText.value || ''))) + '\n' + (document.getElementById(
-                "content") && (document.getElementById(
-                "content").innerText || '')).replace(/(.*\d+:\d+:\d+)/g, '\n$1')
-
-
-            let link = document.createElement('a');
-            link.download = 'HKTRPG' + (roomText.value || '');
-            let blob = new Blob([string], {
-                type: 'text/plain;charset=utf-8;'
-            });
-            link.href = window.URL.createObjectURL(blob);
-            console.log('blob', blob)
-            link.click();
-
-
-
-        }
-
-        function scorllToBottom() {
-            let content = document.getElementById("container-content");
-            content.scrollTop = content.scrollHeight;
-        }
-
-        function setupEventListeners() {
-            const changeRoomNumber = document.getElementById("changeRoomNumber-form");
-            const sendForm = document.getElementById("send-form");
             const roomText = document.getElementById("roomNumber");
-            const room = document.getElementById("room");
-
-            changeRoomNumber.addEventListener("submit", async function (e) {
-                e.preventDefault();
-                state.color = 3;
-                if (!roomText.value) {
-                    roomText.innerHTML = CONFIG.DEFAULT_ROOM;
-                    roomText.value = CONFIG.DEFAULT_ROOM;
-                }
-                if (roomText.value === state.currentRoom) {
-                    return;
-                }
-                await socket.off(state.currentRoom);
-                state.currentRoom = roomText.value;
-                document.getElementById("content").innerHTML = '';
-                socket.emit("newRoom", state.currentRoom);
-                room.innerText = state.currentRoom;
-                await socket.on(state.currentRoom, addMsgToBox);
-            });
-
-            sendForm.addEventListener("submit", function (e) {
-                e.preventDefault();
-                const msgInputBox = document.getElementById("msg");
-                const nameInputBox = document.getElementById("name");
-                $('#msg').focus();
-                if (!msgInputBox) return;
-
-                const formData = {
-                    time: new Date(),
-                    msg: msgInputBox.value,
-                    name: nameInputBox.value,
-                    roomNumber: state.currentRoom
-                };
-
-                socket.emit("send", formData);
-                setLocalStorage("name", nameInputBox.value);
-            });
-        }
-
-        function setupSocketListeners() {
-            socket.on("online", function (amount) {
-                document.getElementById("online").innerText = amount;
-            });
-
-            socket.on("maxRecord", function (amount) {
-                state.max_record = amount;
-            });
-
-            socket.on("chatRecord", async function (msgs) {
-                msgs.sort((a, b) => new Date(a.time) - new Date(b.time));
-                for (const msg of msgs) {
-                    await addMsgToBox(msg);
-                }
-            });
-
-            socket.on(state.currentRoom, addMsgToBox);
-        }
-
-        async function addMsgToBox(d) {
-            state.color++;
-            let msgBox = document.createElement("div");
-            msgBox.className = "card";
-            let msgBoxHeader = document.createElement("div");
-            msgBoxHeader.className = "card-header2";
-            let msgBoxBody = document.createElement("div");
-
-            msgBoxBody.classList.add("card-body2")
-
-            let space = document.createElement("span");
-            let nameBox = document.createElement("span");
-            nameBox.className = "badge badge-primary";
-            let timeBox = document.createElement("span")
-            timeBox.className = "badge badge-secondary";
-            let name = document.createTextNode(d.name);
-
-            let time = document.createTextNode(new Date(d.time).toLocaleString());
-            let msg = document.createTextNode(d.msg.replace(/^\n/, ''), setTimeout(function () {
-                scorllToBottom();
-            }, 50));
-
-
-            nameBox.appendChild(name);
-            msgBoxHeader.appendChild(nameBox);
-            msgBoxHeader.innerHTML += "&nbsp";
-            timeBox.appendChild(time);
-            msgBoxHeader.appendChild(timeBox);
-            msgBoxBody.appendChild(msg);
-
-            msgBox.appendChild(msgBoxHeader);
-            msgBox.appendChild(msgBoxBody);
-            content.appendChild(msgBox);
-
-            if (content.children.length > state.max_record) {
-                rmMsgFromBox();
-            }
-        }
-
-        function rmMsgFromBox() {
-            let childs = content.children;
-            childs[0].remove();
-        }
-
-        function setLocalStorage(cname, cvalue) {
-            localStorage.setItem(cname, cvalue);
-        }
-
-        function getLocalStorage(cname) {
-            return localStorage.getItem(cname) || null;
+            const content = document.getElementById("content");
+            const roomName = roomText.value || '';
+            const contentText = content.innerText || '';
+            
+            const string = `HKTRPG${roomName}\n${contentText.replace(/(.*\d+:\d+:\d+)/g, '\n$1')}`;
+            
+            const blob = new Blob([string], { type: 'text/plain;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = `HKTRPG${roomName}`;
+            link.click();
+            window.URL.revokeObjectURL(link.href);
         }
     </script>
     <script>

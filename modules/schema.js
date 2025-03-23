@@ -454,8 +454,9 @@ const multiServerSchema = mongoose.model('multiServer', new mongoose.Schema({
 // MongoDB state check function
 const getMongoDBState = async () => {
     try {
-        const status = await mongoose.connection.db.command({ serverStatus: 1 });
-        return status;
+        // Instead of using serverStatus, we'll do a simple ping to check connection
+        await mongoose.connection.db.command({ ping: 1 });
+        return { ok: 1, status: 'connected' };
     } catch (error) {
         console.error('Failed to get MongoDB state:', error);
         return null;

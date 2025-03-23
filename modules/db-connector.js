@@ -194,13 +194,9 @@ const restartMongo = schedule.scheduleJob(config.restartTime, restart);
 
 // 健康檢查
 function checkHealth() {
-    const client = mongoose.connection.getClient();
     return {
         isConnected,
         state: connectionStates[mongoose.connection.readyState],
-        poolSize: client.topology?.s?.poolSize || 0,
-        availableConnections: client.topology?.s?.available || 0,
-        pendingConnections: client.topology?.s?.pending || 0,
         connectionAttempts,
         lastError: mongoose.connection.error
     };

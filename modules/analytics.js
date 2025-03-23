@@ -24,25 +24,47 @@ const courtMessage = require('./logs').courtMessage || function () { };
 const getState = require('./logs').getState || function () { };
 const EXPUP = require('./level').EXPUP || function () { };
 
-//用來呼叫骰組,新增骰組的話,要寫條件式到下面呼叫
-//格式是 exports.骰組檔案名字.function名
-const parseInput = async (params) => {
-	const {
-		inputStr = "",
-		groupid = null,
-		userid = null,
-		userrole = 1,
-		botname = null,
-		displayname = null,
-		channelid = null,
-		displaynameDiscord = null,
-		membercount = 0,
-		discordClient,
-		discordMessage,
-		titleName = '',
-		tgDisplayname = ''
-	} = params;
+// 創建一個統一的上下文類來管理參數
+class RollContext {
+	constructor(params) {
+		this.inputStr = params.inputStr || "";
+		this.groupid = params.groupid || null;
+		this.userid = params.userid || null;
+		this.userrole = params.userrole || 1;
+		this.botname = params.botname || null;
+		this.displayname = params.displayname || null;
+		this.channelid = params.channelid || null;
+		this.displaynameDiscord = params.displaynameDiscord || null;
+		this.membercount = params.membercount || 0;
+		this.discordClient = params.discordClient || null;
+		this.discordMessage = params.discordMessage || null;
+		this.titleName = params.titleName || '';
+		this.tgDisplayname = params.tgDisplayname || '';
+		this.mainMsg = this.inputStr.replace(/^\s/g, '').match(MESSAGE_SPLITOR);
+	}
 
+	toParams() {
+		return {
+			inputStr: this.inputStr,
+			groupid: this.groupid,
+			userid: this.userid,
+			userrole: this.userrole,
+			mainMsg: this.mainMsg,
+			botname: this.botname,
+			displayname: this.displayname,
+			channelid: this.channelid,
+			displaynameDiscord: this.displaynameDiscord,
+			membercount: this.membercount,
+			discordClient: this.discordClient,
+			discordMessage: this.discordMessage,
+			titleName: this.titleName,
+			tgDisplayname: this.tgDisplayname
+		};
+	}
+}
+
+const parseInput = async (params) => {
+	const context = new RollContext(params);
 	let result = {
 		text: '',
 		type: 'text',
@@ -50,38 +72,29 @@ const parseInput = async (params) => {
 		statue: ''
 	};
 
-	let mainMsg = inputStr.replace(/^\s/g, '').match(MESSAGE_SPLITOR); // 定義輸入字串
-
 	// EXPUP 功能 + LevelUP 功能
-	if (groupid) {
-		let tempEXPUP = await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount, tgDisplayname, discordMessage);
+	if (context.groupid) {
+		let tempEXPUP = await EXPUP(
+			context.groupid, 
+			context.userid, 
+			context.displayname, 
+			context.displaynameDiscord, 
+			context.membercount, 
+			context.tgDisplayname, 
+			context.discordMessage
+		);
 		result.LevelUp = tempEXPUP?.text || '';
 		result.statue = tempEXPUP?.statue || '';
 	}
 
 	// 檢查是不是要停止 z_stop 功能
-	if (groupid && mainMsg[0] && z_stop(mainMsg, groupid)) {
+	if (context.groupid && context.mainMsg[0] && z_stop(context.mainMsg, context.groupid)) {
 		return result;
 	}
 
 	// rolldice 擲骰功能
 	try {
-		let rollDiceResult = await rolldice({
-			inputStr,
-			groupid,
-			userid,
-			userrole,
-			mainMsg,
-			botname,
-			displayname,
-			channelid,
-			displaynameDiscord,
-			membercount,
-			discordClient,
-			discordMessage,
-			titleName,
-			tgDisplayname
-		});
+		let rollDiceResult = await rolldice(context);
 		if (rollDiceResult) {
 			result = { ...result, ...rollDiceResult };
 		}
@@ -89,27 +102,16 @@ const parseInput = async (params) => {
 		console.error(`rolldice GET ERROR:
 			Stack: ${error.stack}
 			Name: ${error.name}
-			Input: ${inputStr}
-			Botname: ${botname}
+			Input: ${context.inputStr}
+			Botname: ${context.botname}
 			Time: ${new Date()}`);
 	}
 
 	// cmdfunction .cmd 功能 z_saveCommand 功能
 	if (result.cmd && result.text) {
 		let cmdFunctionResult = await cmdfunction({
-			inputStr,
-			groupid,
-			userid,
-			userrole,
-			mainMsg,
-			botname,
-			displayname,
-			channelid,
-			displaynameDiscord,
-			membercount,
-			result,
-			titleName,
-			tgDisplayname
+			...context.toParams(),
+			result
 		});
 		if (cmdFunctionResult) {
 			result = { ...result, ...cmdFunctionResult };
@@ -119,19 +121,8 @@ const parseInput = async (params) => {
 	// characterReRoll 功能
 	if (result.characterReRoll) {
 		let characterReRoll = await cmdfunction({
-			inputStr,
-			groupid,
-			userid,
-			userrole,
-			mainMsg,
-			botname,
-			displayname,
-			channelid,
-			displaynameDiscord,
-			membercount,
-			result,
-			titleName,
-			tgDisplayname
+			...context.toParams(),
+			result
 		});
 		if (result.text && characterReRoll.text) {
 			result.text = `${result.characterName} 投擲 ${result.characterReRollName}\n${characterReRoll.text}\n======\n${result.text}`;
@@ -149,85 +140,37 @@ const parseInput = async (params) => {
 	}
 
 	// courtMessage + saveLog
-	await courtMessage({ result, botname, inputStr });
+	await courtMessage({ result, botname: context.botname, inputStr: context.inputStr });
 	return result;
 }
 
-
-
-const rolldice = async ({
-	inputStr,
-	groupid,
-	userid,
-	userrole,
-	mainMsg,
-	botname,
-	displayname,
-	channelid,
-	displaynameDiscord,
-	membercount,
-	discordClient,
-	discordMessage,
-	titleName,
-	tgDisplayname
-}) => {
-	//在下面位置開始分析trigger
-	if (!groupid) {
-		groupid = '';
+const rolldice = async (context) => {
+	if (!context.groupid) {
+		context.groupid = '';
 	}
-	//把exports objest => Array
-	let target = findRollList(mainMsg);
+	
+	let target = findRollList(context.mainMsg);
 	if (!target) return null;
-	(debugMode) ? console.log('            trigger: ', inputStr) : '';
+	(debugMode) ? console.log('            trigger: ', context.inputStr) : '';
 
-	let rollTimes = inputStr.match(/^\.(\d{1,2})\s/);
+	let rollTimes = context.inputStr.match(/^\.(\d{1,2})\s/);
 	rollTimes ? rollTimes = rollTimes[1] : rollTimes = 1;
 	rollTimes > 10 ? rollTimes = 10 : null;
-	inputStr = inputStr.replace(/^\.\d{1,2}\s/, '');
+	context.inputStr = context.inputStr.replace(/^\.\d{1,2}\s/, '');
 
-	mainMsg[0].match(/^\.(\d{1,2})$/) ? mainMsg.shift() : null;
+	context.mainMsg[0].match(/^\.(\d{1,2})$/) ? context.mainMsg.shift() : null;
 
 	let retext = '';
 	let tempsave = {};
 	for (let index = 0; index < rollTimes; index++) {
 		if (rollTimes > 1 && /^dice|^funny/i.test(target.gameType())) {
-			let result = await target.rollDiceCommand({
-				inputStr: inputStr,
-				mainMsg: mainMsg,
-				groupid: groupid,
-				userid: userid,
-				userrole: userrole,
-				botname: botname,
-				displayname: displayname,
-				channelid: channelid,
-				displaynameDiscord: displaynameDiscord,
-				membercount: membercount,
-				discordClient: discordClient,
-				discordMessage: discordMessage,
-				titleName: titleName,
-				tgDisplayname: tgDisplayname
-			});
+			let result = await target.rollDiceCommand(context.toParams());
 			if (result && result.text) {
 				retext += `#${index + 1}： ${result.text.replace(/\n/g, '')}\n`;
 				tempsave = result;
 			}
 		} else {
-			let result = await target.rollDiceCommand({
-				inputStr: inputStr,
-				mainMsg: mainMsg,
-				groupid: groupid,
-				userid: userid,
-				userrole: userrole,
-				botname: botname,
-				displayname: displayname,
-				channelid: channelid,
-				displaynameDiscord: displaynameDiscord,
-				membercount: membercount,
-				discordClient: discordClient,
-				discordMessage: discordMessage,
-				titleName: titleName,
-				tgDisplayname: tgDisplayname
-			});
+			let result = await target.rollDiceCommand(context.toParams());
 			if (result) {
 				tempsave = result;
 			}
@@ -323,47 +266,25 @@ async function stateText() {
 ╰──────────────`;
 }
 
-
-
-async function cmdfunction({
-	groupid,
-	userid,
-	userrole,
-	botname,
-	displayname,
-	channelid,
-	displaynameDiscord,
-	membercount,
-	result,
-	titleName,
-	tgDisplayname
-}) {
+async function cmdfunction({ result, ...context }) {
 	let newInputStr = result.characterReRollItem || result.text;
-	let mainMsg = newInputStr.match(MESSAGE_SPLITOR); //定義輸入字串
-	//檢查是不是要停止
+	let mainMsg = newInputStr.match(MESSAGE_SPLITOR);
 	let tempResut = {};
+	
 	try {
-		tempResut = await rolldice({
+		tempResut = await rolldice(new RollContext({
+			...context,
 			inputStr: newInputStr,
-			groupid: groupid,
-			userid: userid,
-			userrole: userrole,
-			mainMsg: mainMsg,
-			botname: botname,
-			displayname: displayname,
-			channelid: channelid,
-			displaynameDiscord: displaynameDiscord,
-			membercount: membercount,
-			titleName: titleName,
-			tgDisplayname: tgDisplayname
-		})
+			mainMsg
+		}));
 	} catch (error) {
 		console.error(`cmdfunction GET ERROR:
 			Error: ${error}
 			Input: ${newInputStr}
-			Botname: ${botname}
+			Botname: ${context.botname}
 			Time: ${new Date()}`);
 	}
+	
 	(debugMode) ? console.log('            inputStr2: ', newInputStr) : '';
 	if (typeof tempResut === 'object' && tempResut !== null) {
 		if (result.characterName) tempResut.text = `${result.characterName} 進行 ${result.characterReRollName} 擲骰\n ${tempResut.text}`
@@ -371,7 +292,6 @@ async function cmdfunction({
 	}
 	return;
 }
-
 
 function z_stop(mainMsg, groupid) {
 	const zStopData = exports.z_stop.initialize().save;
@@ -387,8 +307,6 @@ function z_stop(mainMsg, groupid) {
 	}
 	return false;
 }
-
-
 
 module.exports.debugMode = debugMode;
 module.exports.parseInput = parseInput;

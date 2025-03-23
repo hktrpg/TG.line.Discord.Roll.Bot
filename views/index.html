@@ -112,15 +112,12 @@
             </div>
             <div class="pad-header">
                 <span class="pad-title">常用指令</span>
-                <button class="btn btn-sm btn-outline-primary" onclick="quickInputPad.saveCustom()">
-                    <span class="iconify" data-icon="bi:save"></span>
-                </button>
             </div>
             <div class="pad-buttons" id="quickInputButtons">
                 <!-- 按鈕將由 JavaScript 動態生成 -->
             </div>
             <div class="custom-input">
-                <input type="text" id="customInput" placeholder="自訂指令">
+                <input type="text" id="customInput" placeholder="自訂指令" onchange="quickInputPad.saveCustom()" onkeypress="if(event.key === 'Enter') quickInputPad.sendCustom()">
                 <button class="btn btn-primary" onclick="quickInputPad.sendCustom()">送出</button>
             </div>
         </div>
@@ -288,9 +285,10 @@
             transition: all 0.3s ease;
             box-shadow: var(--shadow-sm);
             height: var(--input-height);
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
+            white-space: nowrap;
         }
 
         .btn .iconify {
@@ -781,17 +779,30 @@
         // 在現有的 JavaScript 代碼中添加快速輸入指令欄管理模組
         const quickInputPad = {
             init: () => {
-                const savedCommands = JSON.parse(localStorage.getItem('quickCommands') || '["1D100", "1D20", "1D6", "2D6", "3D6", "1D4"]');
-                quickInputPad.renderButtons(savedCommands);
+                // 固定選項
+                const fixedCommands = ["1d2", "1d6", "1d8", "1d10", "1d12", "1d20", "1d100"];
+                // 自訂指令（最多保存5個不重複的指令）
+                const customCommands = JSON.parse(localStorage.getItem('quickCommands') || '[]');
+                quickInputPad.renderButtons(fixedCommands, customCommands);
             },
 
-            renderButtons: (commands) => {
+            renderButtons: (fixedCommands, customCommands) => {
                 const container = document.getElementById('quickInputButtons');
-                container.innerHTML = commands.map(cmd => `
+                // 渲染固定選項
+                const fixedButtons = fixedCommands.map(cmd => `
                     <button class="pad-button" onclick="quickInputPad.sendCommand('${cmd}')">
                         ${cmd}
                     </button>
                 `).join('');
+
+                // 渲染自訂指令
+                const customButtons = customCommands.map(cmd => `
+                    <button class="pad-button custom-command" onclick="quickInputPad.sendCommand('${cmd}')">
+                        ${cmd}
+                    </button>
+                `).join('');
+
+                container.innerHTML = fixedButtons + customButtons;
             },
 
             sendCommand: (command) => {
@@ -804,25 +815,45 @@
 
             sendCustom: () => {
                 const customInput = document.getElementById('customInput');
-                const command = customInput.value.trim();
+                const command = customInput.value.trim().toLowerCase();
                 if (command) {
+                    // 檢查是否為固定指令
+                    const fixedCommands = ["1d2", "1d6", "1d8", "1d10", "1d12", "1d20", "1d100"];
+                    if (!fixedCommands.includes(command)) {
+                        quickInputPad.saveCustom(command);
+                    }
                     quickInputPad.sendCommand(command);
                     customInput.value = '';
                 }
             },
 
-            saveCustom: () => {
-                const customInput = document.getElementById('customInput');
-                const command = customInput.value.trim();
-                if (command) {
-                    const savedCommands = JSON.parse(localStorage.getItem('quickCommands') || '[]');
-                    if (!savedCommands.includes(command)) {
-                        savedCommands.push(command);
-                        localStorage.setItem('quickCommands', JSON.stringify(savedCommands));
-                        quickInputPad.renderButtons(savedCommands);
-                    }
-                    customInput.value = '';
+            saveCustom: (command) => {
+                // 檢查是否為空值
+                if (!command) return;
+
+                // 檢查是否為固定指令
+                const fixedCommands = ["1d2", "1d6", "1d8", "1d10", "1d12", "1d20", "1d100"];
+                if (fixedCommands.includes(command)) {
+                    return; // 如果是固定指令，不保存
                 }
+
+                // 獲取現有的自訂指令
+                let customCommands = JSON.parse(localStorage.getItem('quickCommands') || '[]');
+                
+                // 移除相同的指令（不區分大小寫）
+                customCommands = customCommands.filter(cmd => cmd && cmd.toLowerCase() !== command.toLowerCase());
+                
+                // 將新指令加入開頭
+                customCommands.unshift(command);
+                
+                // 只保留前5個不重複的指令
+                customCommands = customCommands.slice(0, 5);
+                
+                // 儲存更新後的指令列表
+                localStorage.setItem('quickCommands', JSON.stringify(customCommands));
+                
+                // 重新渲染按鈕
+                quickInputPad.renderButtons(fixedCommands, customCommands);
             },
 
             toggle: () => {

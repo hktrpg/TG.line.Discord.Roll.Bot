@@ -16,46 +16,54 @@
 </head>
 
 <body>
+    <div class="header-toggle">
+        <span>HKTRPG 擲骰聊天室</span>
+        <button class="toggle-button" onclick="headerManager.toggle()">
+            <span class="iconify" data-icon="bi:chevron-up"></span>
+        </button>
+    </div>
     <section id="root">
         <div class="container-sm" id="container">
             <div id="header"></div>
-            <div class="row justify-content-end">
-                <div class="row justify-content-center center">
-                    <div class="col-12 col-md-auto">
-                        <form id="changeRoomNumber-form" class="needs-validation" novalidate>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <span class="iconify" data-icon="bi:person-fill"></span>
-                                </span>
-                                <input type="text" class="form-control" name="name" id="name" 
-                                       placeholder="暱稱" maxlength="50" required>
-                                <span class="input-group-text">
-                                    <span class="iconify" data-icon="bi:house-door"></span>
-                                </span>
-                                <input type="text" class="form-control" name="roomNumber" id="roomNumber"
-                                       value="公共房間" placeholder="房間名稱" maxlength="50" required>
-                                <button type="submit" class="btn btn-danger">變更</button>
-                            </div>
-                        </form>
+            <div class="header-content">
+                <div class="row justify-content-end">
+                    <div class="row justify-content-center center">
+                        <div class="col-12 col-md-auto">
+                            <form id="changeRoomNumber-form" class="needs-validation" novalidate>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <span class="iconify" data-icon="bi:person-fill"></span>
+                                    </span>
+                                    <input type="text" class="form-control" name="name" id="name" 
+                                           placeholder="暱稱" maxlength="50" required>
+                                    <span class="input-group-text">
+                                        <span class="iconify" data-icon="bi:house-door"></span>
+                                    </span>
+                                    <input type="text" class="form-control" name="roomNumber" id="roomNumber"
+                                           value="公共房間" placeholder="房間名稱" maxlength="50" required>
+                                    <button type="submit" class="btn btn-danger">變更</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
+                    <button type="button" class="btn btn-info float-right" onclick="save()">
+                        <span class="iconify" data-icon="gg:readme" data-inline="false"></span>儲存
+                    </button>
+                    <button type="button" class="btn btn-dark float-right" onclick="readme()">
+                        <span class="iconify" data-icon="gg:readme" data-inline="false"></span>說明
+                    </button>
+                    <button type="button" class="btn btn-secondary float-right mr-2" onclick="themeManager.toggleTheme()">
+                        <span class="iconify" data-icon="bi:moon-stars" data-inline="false"></span>
+                        <span class="theme-text">深色模式</span>
+                    </button>
+                    <div class="input-group-text font-weight-bold" id="status-box"> <span class="iconify"
+                            data-icon="bi:house-door-fill" data-inline="false" style="color: black;" data-width="22"
+                            data-height="22"></span><span id="room">公共房間</span></div>
+                    <div class="badge-warning input-group-text font-weight-bold" id="status-box">
+                        <span class="iconify" data-icon="bi:people" data-inline="false" style="color: black;"
+                            data-width="22" data-height="22"></span>
+                        x <span id="online">0</span></div>
                 </div>
-                <button type="button" class="btn btn-info float-right" onclick="save()">
-                    <span class="iconify" data-icon="gg:readme" data-inline="false"></span>儲存
-                </button>
-                <button type="button" class="btn btn-dark float-right" onclick="readme()">
-                    <span class="iconify" data-icon="gg:readme" data-inline="false"></span>說明
-                </button>
-                <button type="button" class="btn btn-secondary float-right mr-2" onclick="themeManager.toggleTheme()">
-                    <span class="iconify" data-icon="bi:moon-stars" data-inline="false"></span>
-                    <span class="theme-text">深色模式</span>
-                </button>
-                <div class="input-group-text font-weight-bold" id="status-box"> <span class="iconify"
-                        data-icon="bi:house-door-fill" data-inline="false" style="color: black;" data-width="22"
-                        data-height="22"></span><span id="room">公共房間</span></div>
-                <div class="badge-warning input-group-text font-weight-bold" id="status-box">
-                    <span class="iconify" data-icon="bi:people" data-inline="false" style="color: black;"
-                        data-width="22" data-height="22"></span>
-                    x <span id="online">0</span></div>
             </div>
         </div>
         <main>
@@ -462,24 +470,11 @@
             transition: all 0.3s ease;
             max-width: 300px;
             width: 90%;
+            transform: translateY(0);
         }
 
         .quick-input-pad.collapsed {
             transform: translateY(calc(100% + 20px));
-        }
-
-        .quick-input-pad .pad-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--card-border);
-        }
-
-        .quick-input-pad .pad-title {
-            font-weight: bold;
-            color: var(--text-color);
         }
 
         .quick-input-pad .pad-buttons {
@@ -553,14 +548,174 @@
                 right: 10px;
                 width: calc(100% - 20px);
                 max-width: none;
+                max-height: 25vh;
+                overflow-y: auto;
+                padding: 10px;
+            }
+
+            #container-content {
+                transition: transform 0.3s ease;
+                transform: translateY(0);
+            }
+
+            #container-content.quick-input-expanded {
+                transform: translateY(-25vh);
             }
 
             .quick-input-pad .pad-buttons {
                 grid-template-columns: repeat(2, 1fr);
+                max-height: 15vh;
+                overflow-y: auto;
+                gap: 6px;
+                margin-bottom: 8px;
+            }
+
+            .quick-input-pad .pad-button {
+                padding: 6px;
+                font-size: 0.85rem;
             }
 
             .quick-input-pad .custom-input {
                 flex-direction: column;
+                position: sticky;
+                bottom: 0;
+                background: var(--card-bg);
+                padding-top: 8px;
+                margin-top: 8px;
+                border-top: 1px solid var(--card-border);
+            }
+
+            .quick-input-pad .custom-input input {
+                padding: 6px;
+                font-size: 0.85rem;
+            }
+
+            #container-content {
+                margin-bottom: 25vh;
+                padding-bottom: 10px;
+            }
+
+            footer.fixed-bottom {
+                z-index: 1001;
+            }
+        }
+
+        /* Header Toggle Styles */
+        .header-toggle {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: var(--card-bg);
+            padding: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+            height: 40px;
+        }
+
+        .header-toggle .toggle-button {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            padding: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .header-toggle .toggle-button .iconify {
+            transition: transform 0.3s ease;
+        }
+
+        .header-toggle.collapsed .toggle-button .iconify {
+            transform: rotate(180deg);
+        }
+
+        #header {
+            transition: transform 0.3s ease;
+            background: var(--card-bg);
+            box-shadow: var(--shadow-md);
+            position: fixed;
+            top: 40px;
+            left: 0;
+            right: 0;
+            z-index: 999;
+            padding: 10px;
+        }
+
+        #header.collapsed {
+            transform: translateY(-100%);
+        }
+
+        .header-content {
+            transition: transform 0.3s ease;
+            background: var(--card-bg);
+            box-shadow: var(--shadow-md);
+            position: fixed;
+            top: 100px;
+            left: 0;
+            right: 0;
+            z-index: 998;
+            padding: 10px;
+        }
+
+        .header-content.collapsed {
+            transform: translateY(-100%);
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            #container {
+                padding: 0.5rem;
+                margin-top: 140px;
+            }
+
+            .header-toggle {
+                display: flex;
+            }
+
+            #container-content {
+                margin-top: 0;
+                height: calc(100vh - 440px);
+            }
+
+            /* 當 header 收起時，調整容器位置 */
+            #header.collapsed + .header-content.collapsed + #container {
+                margin-top: 40px;
+            }
+
+            #header.collapsed + .header-content.collapsed + #container #container-content {
+                height: calc(100vh - 340px);
+            }
+        }
+
+        @media (min-width: 769px) {
+            .header-toggle {
+                display: none;
+            }
+            
+            #container {
+                margin-top: 0;
+            }
+            
+            #container-content {
+                margin-top: 0;
+            }
+
+            #header {
+                position: relative;
+                top: 0;
+                padding: 0;
+            }
+
+            .header-content {
+                position: relative;
+                top: 0;
+                padding: 0;
             }
         }
     </style>
@@ -786,6 +941,15 @@
                 // 自訂指令（最多保存5個不重複的指令）
                 const customCommands = JSON.parse(localStorage.getItem('quickCommands') || '[]');
                 quickInputPad.renderButtons(fixedCommands, customCommands);
+                
+                // 恢復之前的收起狀態
+                const isCollapsed = localStorage.getItem('quickInputCollapsed') === 'true';
+                if (isCollapsed) {
+                    document.getElementById('quickInputPad').classList.add('collapsed');
+                    document.getElementById('container-content').classList.remove('quick-input-expanded');
+                } else {
+                    document.getElementById('container-content').classList.add('quick-input-expanded');
+                }
             },
 
             renderButtons: (fixedCommands, customCommands) => {
@@ -860,7 +1024,41 @@
 
             toggle: () => {
                 const pad = document.getElementById('quickInputPad');
-                pad.classList.toggle('collapsed');
+                const containerContent = document.getElementById('container-content');
+                const isCollapsed = pad.classList.toggle('collapsed');
+                
+                if (isCollapsed) {
+                    containerContent.classList.remove('quick-input-expanded');
+                } else {
+                    containerContent.classList.add('quick-input-expanded');
+                }
+                
+                localStorage.setItem('quickInputCollapsed', isCollapsed);
+            }
+        };
+
+        // Header Management
+        const headerManager = {
+            init: () => {
+                const isCollapsed = localStorage.getItem('headerCollapsed') === 'true';
+                if (isCollapsed) {
+                    document.getElementById('header').classList.add('collapsed');
+                    document.querySelector('.header-content').classList.add('collapsed');
+                    document.querySelector('.header-toggle').classList.add('collapsed');
+                }
+            },
+
+            toggle: () => {
+                const header = document.getElementById('header');
+                const headerContent = document.querySelector('.header-content');
+                const toggle = document.querySelector('.header-toggle');
+                const container = document.getElementById('container');
+                
+                const isCollapsed = header.classList.toggle('collapsed');
+                headerContent.classList.toggle('collapsed');
+                
+                localStorage.setItem('headerCollapsed', isCollapsed);
+                toggle.classList.toggle('collapsed');
             }
         };
 
@@ -870,6 +1068,7 @@
             uiManager.initialize();
             themeManager.init();
             quickInputPad.init();
+            headerManager.init();
         });
 
         // Modal functions

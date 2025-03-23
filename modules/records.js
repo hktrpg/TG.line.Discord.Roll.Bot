@@ -5,216 +5,351 @@ const {
 } = require("events");
 require('events').EventEmitter.defaultMaxListeners = Infinity;
 const schema = require('./schema.js');
-let instance;
-let MAX = 100;
-const Message = schema.chatRoom;
+const NodeCache = require('node-cache');
+const { validate } = require('jsonschema');
+
+// Cache configuration
+const CACHE_TTL = 300; // 5 minutes
+const cache = new NodeCache({ stdTTL: CACHE_TTL });
+
+// Validation schemas
+const validationSchemas = {
+    groupUpdate: {
+        type: "object",
+        required: ["groupid"],
+        properties: {
+            groupid: { type: "string" },
+            blockfunction: { type: "array" },
+            randomAnsfunction: { type: "array" },
+            trpgDatabasefunction: { type: "array" },
+            GroupSettingfunction: { type: "array" },
+            trpgCommandfunction: { type: "array" },
+            trpgDarkRollingfunction: { type: "array" },
+            trpgLevelSystemfunction: { type: "array" }
+        }
+    }
+};
+
+class DatabaseOperation {
+    constructor(schema) {
+        this.schema = schema;
+    }
+
+    async findOneAndUpdate(query, update, options = {}) {
+        try {
+            return await this.schema.findOneAndUpdate(query, update, {
+                new: true,
+                runValidators: true,
+                ...options
+            });
+        } catch (err) {
+            console.error(`Database operation failed: ${err.message}`);
+            throw err;
+        }
+    }
+
+    async find(query = {}, options = {}) {
+        try {
+            return await this.schema.find(query, options);
+        } catch (err) {
+            console.error(`Database find operation failed: ${err.message}`);
+            throw err;
+        }
+    }
+
+    async countDocuments(query = {}) {
+        try {
+            return await this.schema.countDocuments(query);
+        } catch (err) {
+            console.error(`Count documents operation failed: ${err.message}`);
+            throw err;
+        }
+    }
+
+    async deleteMany(query) {
+        try {
+            return await this.schema.deleteMany(query);
+        } catch (err) {
+            console.error(`Delete many operation failed: ${err.message}`);
+            throw err;
+        }
+    }
+}
 
 class Records extends EventEmitter {
     constructor() {
         super();
+        this.maxChatMessages = 100;
+        this.ChatRoomModel = schema.chatRoom;
+        this.dbOperations = {};
+        
+        // Initialize database operations for each schema
+        Object.keys(schema).forEach(key => {
+            this.dbOperations[key] = new DatabaseOperation(schema[key]);
+        });
     }
 
-    async updateRecord(dbbase, query, update, options, callback) {
+    async updateRecord(databaseName, query, update, options, callback) {
         try {
-            const doc = await schema[dbbase].findOneAndUpdate(query, update, options);
-            callback(doc);
+            // Validate input data if schema exists
+            if (validationSchemas[databaseName]) {
+                const validationResult = validate(query, validationSchemas[databaseName]);
+                if (!validationResult.valid) {
+                    throw new Error(`Validation failed: ${validationResult.errors.join(', ')}`);
+                }
+            }
+
+            // Check cache for existing record
+            const cacheKey = `${databaseName}:${JSON.stringify(query)}`;
+            const cachedResult = cache.get(cacheKey);
+            if (cachedResult) {
+                callback(cachedResult);
+                return;
+            }
+
+            const document = await this.dbOperations[databaseName].findOneAndUpdate(query, update, options);
+            
+            // Update cache
+            if (document) {
+                cache.set(cacheKey, document);
+            }
+
+            callback(document);
         } catch (err) {
-            console.error("Something wrong when updating data!", err);
+            console.error("Database operation failed:", err);
+            callback(null);
         }
     }
 
-    set(dbbase, msg, callback) {
-        this.updateRecord(dbbase, { groupid: msg.groupid }, { $set: { blockfunction: msg.blockfunction } }, { upsert: true }, callback);
+    // Group block function operations
+    setBlockFunction(databaseName, data, callback) {
+        this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { blockfunction: data.blockfunction } }, { upsert: true }, callback);
     }
 
-    pushblockfunction(dbbase, msg, callback) {
-        this.updateRecord(dbbase, { groupid: msg.groupid }, { $push: { blockfunction: msg.blockfunction } }, { new: true, upsert: true }, callback);
+    pushBlockFunction(databaseName, data, callback) {
+        this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { blockfunction: data.blockfunction } }, { new: true, upsert: true }, callback);
     }
 
-    pushrandomAnsfunction(dbbase, msg, callback) {
-        this.updateRecord(dbbase, { groupid: msg.groupid }, { $push: { randomAnsfunction: msg.randomAnsfunction } }, { new: true, upsert: true }, callback);
+    // Random answer operations
+    pushRandomAnswerFunction(databaseName, data, callback) {
+        this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { randomAnsfunction: data.randomAnsfunction } }, { new: true, upsert: true }, callback);
     }
 
-    setrandomAnsfunction(dbbase, msg, callback) {
-        this.updateRecord(dbbase, { groupid: msg.groupid }, { $set: { randomAnsfunction: msg.randomAnsfunction } }, { upsert: true }, callback);
+    setRandomAnswerFunction(databaseName, data, callback) {
+        this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { randomAnsfunction: data.randomAnsfunction } }, { upsert: true }, callback);
     }
 
-    pushrandomAnsAllgroup(dbbase, msg, callback) {
-        this.updateRecord(dbbase, {}, { $push: { randomAnsAllgroup: msg.randomAnsAllgroup } }, { new: true, upsert: true }, callback);
+    pushRandomAnswerAllGroup(databaseName, data, callback) {
+        this.updateRecord(databaseName, {}, { $push: { randomAnsAllgroup: data.randomAnsAllgroup } }, { new: true, upsert: true }, callback);
     }
 
-    setrandomAnsAllgroup(dbbase, msg, callback) {
-        this.updateRecord(dbbase, {}, { $set: { randomAnsAllgroup: msg.randomAnsAllgroup } }, { upsert: true }, callback);
+    setRandomAnswerAllGroup(databaseName, data, callback) {
+        this.updateRecord(databaseName, {}, { $set: { randomAnsAllgroup: data.randomAnsAllgroup } }, { upsert: true }, callback);
     }
 
-    get(target, callback) {
-        if (schema[target]) {
-            schema[target].find({}, (err, msgs) => {
-                callback(msgs);
-            });
+    // Generic get operation
+    async get(target, callback) {
+        try {
+            if (schema[target]) {
+                const documents = await schema[target].find({});
+                callback(documents);
+            }
+        } catch (err) {
+            console.error(`Failed to get documents from ${target}:`, err);
+            callback([]);
         }
     }
 
-    pushtrpgDatabasefunction(dbbase, msg, callback) {
-        this.updateRecord(dbbase, { groupid: msg.groupid }, { $push: { trpgDatabasefunction: msg.trpgDatabasefunction } }, { new: true, upsert: true }, callback);
+    // TRPG database operations
+    pushTrpgDatabaseFunction(databaseName, data, callback) {
+        this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { trpgDatabasefunction: data.trpgDatabasefunction } }, { new: true, upsert: true }, callback);
     }
 
-    settrpgDatabasefunction(dbbase, msg, callback) {
-        this.updateRecord(dbbase, { groupid: msg.groupid }, { $set: { trpgDatabasefunction: msg.trpgDatabasefunction } }, { upsert: true }, callback);
+    setTrpgDatabaseFunction(databaseName, data, callback) {
+        this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { trpgDatabasefunction: data.trpgDatabasefunction } }, { upsert: true }, callback);
     }
 
-    pushtrpgDatabaseAllgroup(dbbase, msg, callback) {
-        this.updateRecord(dbbase, {}, { $push: { trpgDatabaseAllgroup: msg.trpgDatabaseAllgroup } }, { new: true, upsert: true }, callback);
+    pushTrpgDatabaseAllGroup(databaseName, data, callback) {
+        this.updateRecord(databaseName, {}, { $push: { trpgDatabaseAllgroup: data.trpgDatabaseAllgroup } }, { new: true, upsert: true }, callback);
     }
 
-    settrpgDatabaseAllgroup(dbbase, msg, callback) {
-        this.updateRecord(dbbase, {}, { $set: { trpgDatabaseAllgroup: msg.trpgDatabaseAllgroup } }, { upsert: true }, callback);
+    setTrpgDatabaseAllGroup(databaseName, data, callback) {
+        this.updateRecord(databaseName, {}, { $set: { trpgDatabaseAllgroup: data.trpgDatabaseAllgroup } }, { upsert: true }, callback);
     }
 
-    pushGroupSettingfunction(dbbase, msg, callback) {
-        this.updateRecord(dbbase, { groupid: msg.groupid }, { $push: { GroupSettingfunction: msg.GroupSettingfunction } }, { new: true, upsert: true }, callback);
+    // Group settings operations
+    pushGroupSettingFunction(databaseName, data, callback) {
+        this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { GroupSettingfunction: data.GroupSettingfunction } }, { new: true, upsert: true }, callback);
     }
 
-    setGroupSettingfunction(dbbase, msg, callback) {
-        this.updateRecord(dbbase, { groupid: msg.groupid }, { $set: { GroupSettingfunction: msg.GroupSettingfunction } }, { upsert: true }, callback);
+    setGroupSettingFunction(databaseName, data, callback) {
+        this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { GroupSettingfunction: data.GroupSettingfunction } }, { upsert: true }, callback);
     }
 
-    pushtrpgCommandfunction(dbbase, msg, callback) {
-        this.updateRecord(dbbase, { groupid: msg.groupid }, { $push: { trpgCommandfunction: msg.trpgCommandfunction } }, { new: true, upsert: true }, callback);
+    // TRPG command operations
+    pushTrpgCommandFunction(databaseName, data, callback) {
+        this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { trpgCommandfunction: data.trpgCommandfunction } }, { new: true, upsert: true }, callback);
     }
 
-    settrpgCommandfunction(dbbase, msg, callback) {
-        this.updateRecord(dbbase, { groupid: msg.groupid }, { $set: { trpgCommandfunction: msg.trpgCommandfunction } }, { upsert: true }, callback);
+    setTrpgCommandFunction(databaseName, data, callback) {
+        this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { trpgCommandfunction: data.trpgCommandfunction } }, { upsert: true }, callback);
     }
 
-    editSettrpgCommandfunction(dbbase, msg, callback) {
-        const topicRegex = new RegExp(`^${msg.trpgCommandfunction[0]?.topic}$`, 'i');
-        this.updateRecord(dbbase, { groupid: msg.groupid, "trpgCommandfunction.topic": topicRegex }, { $set: { "trpgCommandfunction.$.contact": msg.trpgCommandfunction[0].contact } }, { new: true, upsert: false }, callback);
+    editSetTrpgCommandFunction(databaseName, data, callback) {
+        const topicRegex = new RegExp(`^${data.trpgCommandfunction[0]?.topic}$`, 'i');
+        this.updateRecord(databaseName, { groupid: data.groupid, "trpgCommandfunction.topic": topicRegex }, { $set: { "trpgCommandfunction.$.contact": data.trpgCommandfunction[0].contact } }, { new: true, upsert: false }, callback);
     }
 
-    pushtrpgDarkRollingfunction(dbbase, msg, callback) {
-        this.updateRecord(dbbase, { groupid: msg.groupid }, { $push: { trpgDarkRollingfunction: msg.trpgDarkRollingfunction } }, { new: true, upsert: true }, callback);
+    // TRPG dark rolling operations
+    pushTrpgDarkRollingFunction(databaseName, data, callback) {
+        this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { trpgDarkRollingfunction: data.trpgDarkRollingfunction } }, { new: true, upsert: true }, callback);
     }
 
-    settrpgDarkRollingfunction(dbbase, msg, callback) {
-        this.updateRecord(dbbase, { groupid: msg.groupid }, { $set: { trpgDarkRollingfunction: msg.trpgDarkRollingfunction } }, { upsert: true }, callback);
+    setTrpgDarkRollingFunction(databaseName, data, callback) {
+        this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { trpgDarkRollingfunction: data.trpgDarkRollingfunction } }, { upsert: true }, callback);
     }
 
-    pushtrpgLevelSystemfunction(dbbase, msg, callback) {
-        this.updateRecord(dbbase, { groupid: msg.groupid }, { $push: { trpgLevelSystemfunction: msg.trpgLevelSystemfunction } }, { new: true, upsert: true }, callback);
+    // TRPG level system operations
+    pushTrpgLevelSystemFunction(databaseName, data, callback) {
+        this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { trpgLevelSystemfunction: data.trpgLevelSystemfunction } }, { new: true, upsert: true }, callback);
     }
 
-    settrpgLevelSystemfunctionLevelUpWord(dbbase, msg, callback) {
-        this.updateRecord(dbbase, { groupid: msg.groupid }, { $set: { LevelUpWord: msg.LevelUpWord } }, { upsert: true, setDefaultsOnInsert: true }, callback);
+    setTrpgLevelSystemFunctionLevelUpWord(databaseName, data, callback) {
+        this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { LevelUpWord: data.LevelUpWord } }, { upsert: true, setDefaultsOnInsert: true }, callback);
     }
 
-    settrpgLevelSystemfunctionRankWord(dbbase, msg, callback) {
-        this.updateRecord(dbbase, { groupid: msg.groupid }, { $set: { RankWord: msg.RankWord } }, { upsert: true, setDefaultsOnInsert: true }, callback);
+    setTrpgLevelSystemFunctionRankWord(databaseName, data, callback) {
+        this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { RankWord: data.RankWord } }, { upsert: true, setDefaultsOnInsert: true }, callback);
     }
 
-    settrpgLevelSystemfunctionConfig(dbbase, msg, callback) {
-        this.updateRecord(dbbase, { groupid: msg.groupid }, { $set: { Switch: msg.Switch, Hidden: msg.Hidden } }, { upsert: true, setDefaultsOnInsert: true }, callback);
+    setTrpgLevelSystemFunctionConfig(databaseName, data, callback) {
+        this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { Switch: data.Switch, Hidden: data.Hidden } }, { upsert: true, setDefaultsOnInsert: true }, callback);
     }
 
-    settrpgLevelSystemfunctionNewUser(dbbase, msg, callback) {
-        this.updateRecord(dbbase, { groupid: msg.groupid }, { $push: { trpgLevelSystemfunction: msg.trpgLevelSystemfunction } }, { upsert: true }, callback);
+    setTrpgLevelSystemFunctionNewUser(databaseName, data, callback) {
+        this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { trpgLevelSystemfunction: data.trpgLevelSystemfunction } }, { upsert: true }, callback);
     }
 
-    settrpgLevelSystemfunctionTitleWord(dbbase, msg, callback) {
-        this.updateRecord(dbbase, { groupid: msg.groupid }, { $set: { Title: msg.Title } }, { upsert: true, setDefaultsOnInsert: true }, callback);
+    setTrpgLevelSystemFunctionTitleWord(databaseName, data, callback) {
+        this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { Title: data.Title } }, { upsert: true, setDefaultsOnInsert: true }, callback);
     }
 
-    settrpgLevelSystemfunctionEXPup(dbbase, msgA, msg, callback) {
-        this.updateRecord(dbbase, { groupid: msgA.groupid }, { $set: { trpgLevelSystemfunction: msg } }, {}, callback);
+    setTrpgLevelSystemFunctionExpUp(databaseName, groupData, levelData, callback) {
+        this.updateRecord(databaseName, { groupid: groupData.groupid }, { $set: { trpgLevelSystemfunction: levelData } }, {}, callback);
     }
 
-    maxtrpgLevelSystemfunctionEXPup(dbbase, userid, exp, lv, msgA, msg, callback) {
-        this.updateRecord(dbbase, { groupid: msgA.groupid, 'trpgLevelSystemfunction.userid': userid }, { $max: { 'trpgLevelSystemfunction.$.EXP': exp, 'trpgLevelSystemfunction.$.Level': lv } }, {}, callback);
+    maxTrpgLevelSystemFunctionExpUp(databaseName, userId, exp, level, groupData, levelData, callback) {
+        this.updateRecord(databaseName, { groupid: groupData.groupid, 'trpgLevelSystemfunction.userid': userId }, { $max: { 'trpgLevelSystemfunction.$.EXP': exp, 'trpgLevelSystemfunction.$.Level': level } }, {}, callback);
     }
 
-    settrpgSaveLogfunctionRealTime(dbbase, msg, callback) {
-        this.updateRecord(dbbase, {}, {
-            $setOnInsert: { "RealTimeRollingLogfunction.StartTime": msg.StartTime },
-            $set: { "RealTimeRollingLogfunction.LogTime": msg.LogTime, "RealTimeRollingLogfunction.LastTimeLog": msg.LastTimeLog },
+    // Logging operations
+    setTrpgSaveLogFunctionRealTime(databaseName, data, callback) {
+        this.updateRecord(databaseName, {}, {
+            $setOnInsert: { "RealTimeRollingLogfunction.StartTime": data.StartTime },
+            $set: { "RealTimeRollingLogfunction.LogTime": data.LogTime, "RealTimeRollingLogfunction.LastTimeLog": data.LastTimeLog },
             $max: {
-                "RealTimeRollingLogfunction.DiscordCountRoll": msg.DiscordCountRoll,
-                "RealTimeRollingLogfunction.DiscordCountText": msg.DiscordCountText,
-                "RealTimeRollingLogfunction.LineCountRoll": msg.LineCountRoll,
-                "RealTimeRollingLogfunction.LineCountText": msg.LineCountText,
-                "RealTimeRollingLogfunction.TelegramCountRoll": msg.TelegramCountRoll,
-                "RealTimeRollingLogfunction.TelegramCountText": msg.TelegramCountText,
-                "RealTimeRollingLogfunction.WhatsappCountRoll": msg.WhatsappCountRoll,
-                "RealTimeRollingLogfunction.WhatsappCountText": msg.WhatsappCountText,
-                "RealTimeRollingLogfunction.WWWCountRoll": msg.WWWCountRoll,
-                "RealTimeRollingLogfunction.WWWCountText": msg.WWWCountText
+                "RealTimeRollingLogfunction.DiscordCountRoll": data.DiscordCountRoll,
+                "RealTimeRollingLogfunction.DiscordCountText": data.DiscordCountText,
+                "RealTimeRollingLogfunction.LineCountRoll": data.LineCountRoll,
+                "RealTimeRollingLogfunction.LineCountText": data.LineCountText,
+                "RealTimeRollingLogfunction.TelegramCountRoll": data.TelegramCountRoll,
+                "RealTimeRollingLogfunction.TelegramCountText": data.TelegramCountText,
+                "RealTimeRollingLogfunction.WhatsappCountRoll": data.WhatsappCountRoll,
+                "RealTimeRollingLogfunction.WhatsappCountText": data.WhatsappCountText,
+                "RealTimeRollingLogfunction.WWWCountRoll": data.WWWCountRoll,
+                "RealTimeRollingLogfunction.WWWCountText": data.WWWCountText
             }
         }, { upsert: true, setDefaultsOnInsert: true }, callback);
     }
 
-    maxTrpgSaveLogfunction(dbbase, msg, callback) {
-        this.updateRecord(dbbase, { "RollingLogfunction.LogTime": { '$gte': msg.start, '$lte': msg.end } }, {
-            $set: { "RollingLogfunction.LogTime": msg.LogTime },
+    maxTrpgSaveLogFunction(databaseName, data, callback) {
+        this.updateRecord(databaseName, { "RollingLogfunction.LogTime": { '$gte': data.start, '$lte': data.end } }, {
+            $set: { "RollingLogfunction.LogTime": data.LogTime },
             $max: {
-                "RollingLogfunction.DiscordCountRoll": msg.DiscordCountRoll,
-                "RollingLogfunction.DiscordCountText": msg.DiscordCountText,
-                "RollingLogfunction.LineCountRoll": msg.LineCountRoll,
-                "RollingLogfunction.LineCountText": msg.LineCountText,
-                "RollingLogfunction.TelegramCountRoll": msg.TelegramCountRoll,
-                "RollingLogfunction.TelegramCountText": msg.TelegramCountText,
-                "RollingLogfunction.WhatsappCountRoll": msg.WhatsappCountRoll,
-                "RollingLogfunction.WhatsappCountText": msg.WhatsappCountText,
-                "RollingLogfunction.WWWCountRoll": msg.WWWCountRoll,
-                "RollingLogfunction.WWWCountText": msg.WWWCountText
+                "RollingLogfunction.DiscordCountRoll": data.DiscordCountRoll,
+                "RollingLogfunction.DiscordCountText": data.DiscordCountText,
+                "RollingLogfunction.LineCountRoll": data.LineCountRoll,
+                "RollingLogfunction.LineCountText": data.LineCountText,
+                "RollingLogfunction.TelegramCountRoll": data.TelegramCountRoll,
+                "RollingLogfunction.TelegramCountText": data.TelegramCountText,
+                "RollingLogfunction.WhatsappCountRoll": data.WhatsappCountRoll,
+                "RollingLogfunction.WhatsappCountText": data.WhatsappCountText,
+                "RollingLogfunction.WWWCountRoll": data.WWWCountRoll,
+                "RollingLogfunction.WWWCountText": data.WWWCountText
             }
         }, { upsert: true }, callback);
     }
 
-    async chatRoomPush(msg) {
-        const m = new Message(msg);
-        await m.save();
-        this.emit("new_message", msg);
-        let count = await Message.countDocuments({
-            'roomNumber': msg.roomNumber
-        });
-        if (count < MAX) return;
-        let over = count - MAX;
-        let d = await Message.find({
-            'roomNumber': msg.roomNumber
-        }).sort({
-            'time': 1,
-        })
-        if (!d[over - 1]) return;
-        await Message.deleteMany({
-            'roomNumber': msg.roomNumber,
-            time: {
-                $lt: d[over - 1].time
+    // Chat room operations
+    async chatRoomPush(message) {
+        try {
+            // Validate message
+            if (!message || !message.roomNumber) {
+                throw new Error('Invalid message format');
             }
 
-        })
+            const chatMessage = new this.ChatRoomModel(message);
+            await chatMessage.save();
+            this.emit("new_message", message);
+
+            // Clear cache for this room
+            cache.del(`chatRoom:${message.roomNumber}`);
+
+            const messageCount = await this.ChatRoomModel.countDocuments({ 'roomNumber': message.roomNumber });
+            if (messageCount < this.maxChatMessages) return;
+
+            const overflowCount = messageCount - this.maxChatMessages;
+            const oldestMessages = await this.ChatRoomModel.find({ 'roomNumber': message.roomNumber })
+                .sort({ 'time': 1 });
+
+            if (!oldestMessages[overflowCount - 1]) return;
+
+            await this.ChatRoomModel.deleteMany({
+                'roomNumber': message.roomNumber,
+                time: { $lt: oldestMessages[overflowCount - 1].time }
+            });
+        } catch (err) {
+            console.error('Chat room push failed:', err);
+            throw err;
+        }
     }
 
-    chatRoomGet(roomNumber, callback) {
-        Message.find({
-            roomNumber: roomNumber
-        }, (err, msgs) => {
-            callback(msgs);
-        });
+    async chatRoomGet(roomNumber, callback) {
+        try {
+            // Check cache first
+            const cacheKey = `chatRoom:${roomNumber}`;
+            const cachedMessages = cache.get(cacheKey);
+            if (cachedMessages) {
+                callback(cachedMessages);
+                return;
+            }
+
+            const messages = await this.ChatRoomModel.find({ roomNumber });
+            
+            // Update cache
+            cache.set(cacheKey, messages);
+            
+            callback(messages);
+        } catch (err) {
+            console.error('Chat room get failed:', err);
+            callback([]);
+        }
     }
 
     chatRoomSetMax(max) {
-        MAX = max;
+        this.maxChatMessages = max;
     }
 
     chatRoomGetMax() {
-        return MAX;
+        return this.maxChatMessages;
     }
-
 }
+
+let instance;
 
 module.exports = (function () {
     if (!instance) {
         instance = new Records();
     }
-
     return instance;
 })();

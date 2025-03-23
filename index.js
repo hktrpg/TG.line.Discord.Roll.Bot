@@ -4,85 +4,252 @@ require('dotenv').config({ override: true });
 const fs = require('fs').promises;
 const path = require('path');
 
-// 統一的錯誤處理函數
-const errorHandler = (error, context) => {
-  console.error(`[${new Date().toISOString()}] Error in ${context}:`);
-  console.error(error);
+// Configuration Management
+const config = {
+    modules: {
+        directory: path.join(__dirname, 'modules'),
+        pattern: /^core-.*\.js$/
+    },
+    logging: {
+        level: process.env.LOG_LEVEL || 'info',
+        logFile: 'app.log',
+        errorFile: 'error.log'
+    }
 };
 
-// 非同步模組載入
-async function loadModules() {
-  try {
-    const modulesDir = path.join(__dirname, 'modules');
-    const files = await fs.readdir(modulesDir);
-    
-    for (const file of files) {
-      if (file.match(/\.js$/) && file.match(/^core-/)) {
-        const name = file.replace('.js', '');
-        try {
-          exports[name] = require(path.join(modulesDir, file));
-          console.log(`[${new Date().toISOString()}] Successfully loaded module: ${name}`);
-        } catch (err) {
-          errorHandler(err, `Loading module ${name}`);
-        }
-      }
+// Logging System
+class Logger {
+    constructor() {
+        this.levels = {
+            error: 0,
+            warn: 1,
+            info: 2,
+            debug: 3
+        };
+        this.currentLevel = this.levels[config.logging.level] || this.levels.info;
     }
-  } catch (err) {
-    errorHandler(err, 'Reading modules directory');
-  }
+
+    formatMessage(level, message, meta = {}) {
+        const timestamp = new Date().toISOString();
+        const metaStr = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : '';
+        return `[${timestamp}] [${level.toUpperCase()}] ${message}${metaStr}`;
+    }
+
+    async writeToFile(message, isError = false) {
+        try {
+            const file = isError ? config.logging.errorFile : config.logging.logFile;
+            await fs.appendFile(file, message + '\n', 'utf8');
+        } catch (err) {
+            console.error('Failed to write to log file:', err);
+        }
+    }
+
+    error(message, meta = {}) {
+        if (this.currentLevel >= this.levels.error) {
+            const formattedMessage = this.formatMessage('error', message, meta);
+            console.error(formattedMessage);
+            this.writeToFile(formattedMessage, true);
+        }
+    }
+
+    warn(message, meta = {}) {
+        if (this.currentLevel >= this.levels.warn) {
+            const formattedMessage = this.formatMessage('warn', message, meta);
+            console.warn(formattedMessage);
+            this.writeToFile(formattedMessage);
+        }
+    }
+
+    info(message, meta = {}) {
+        if (this.currentLevel >= this.levels.info) {
+            const formattedMessage = this.formatMessage('info', message, meta);
+            console.info(formattedMessage);
+            this.writeToFile(formattedMessage);
+        }
+    }
+
+    debug(message, meta = {}) {
+        if (this.currentLevel >= this.levels.debug) {
+            const formattedMessage = this.formatMessage('debug', message, meta);
+            console.debug(formattedMessage);
+            this.writeToFile(formattedMessage);
+        }
+    }
 }
 
-// 啟動應用程式
+const logger = new Logger();
+
+// Unified Error Handler
+const errorHandler = (error, context) => {
+    logger.error(`Error in ${context}:`, {
+        error: error.message,
+        stack: error.stack,
+        context
+    });
+};
+
+// Module Management
+class ModuleManager {
+    constructor() {
+        this.modules = new Map();
+        this.loadedModules = new Set();
+    }
+
+    async loadModule(filePath, moduleName) {
+        try {
+            if (this.loadedModules.has(moduleName)) {
+                logger.warn(`Module ${moduleName} is already loaded`);
+                return;
+            }
+
+            const module = require(filePath);
+            this.modules.set(moduleName, module);
+            this.loadedModules.add(moduleName);
+            logger.info(`Successfully loaded module: ${moduleName}`);
+
+            // Call initialize method if available
+            if (typeof module.initialize === 'function') {
+                await module.initialize();
+            }
+        } catch (err) {
+            errorHandler(err, `Loading module ${moduleName}`);
+            throw err;
+        }
+    }
+
+    async unloadModule(moduleName) {
+        try {
+            const module = this.modules.get(moduleName);
+            if (module && typeof module.shutdown === 'function') {
+                await module.shutdown();
+            }
+            this.modules.delete(moduleName);
+            this.loadedModules.delete(moduleName);
+            logger.info(`Successfully unloaded module: ${moduleName}`);
+        } catch (err) {
+            errorHandler(err, `Unloading module ${moduleName}`);
+            throw err;
+        }
+    }
+
+    getModule(moduleName) {
+        return this.modules.get(moduleName);
+    }
+}
+
+// Asynchronous Module Loading
+async function loadModules(moduleManager) {
+    try {
+        const files = await fs.readdir(config.modules.directory);
+        
+        for (const file of files) {
+            if (file.match(config.modules.pattern)) {
+                const moduleName = file.replace('.js', '');
+                const filePath = path.join(config.modules.directory, file);
+                await moduleManager.loadModule(filePath, moduleName);
+            }
+        }
+    } catch (err) {
+        errorHandler(err, 'Reading modules directory');
+        throw err;
+    }
+}
+
+// Graceful Shutdown
+async function gracefulShutdown(moduleManager) {
+    logger.info('Starting graceful shutdown...');
+    
+    // Unload all loaded modules
+    for (const moduleName of moduleManager.loadedModules) {
+        await moduleManager.unloadModule(moduleName);
+    }
+
+    logger.info('Graceful shutdown completed');
+    process.exit(0);
+}
+
+// Application Initialization
 async function init() {
-  try {
-    await loadModules();
-    console.log(`[${new Date().toISOString()}] Application started successfully`);
-  } catch (err) {
-    errorHandler(err, 'Initialization');
-  }
+    const moduleManager = new ModuleManager();
+    
+    try {
+        // Load modules
+        await loadModules(moduleManager);
+        logger.info('Application started successfully');
+
+        // Setup shutdown handlers
+        process.on('SIGTERM', () => gracefulShutdown(moduleManager));
+        process.on('SIGINT', () => gracefulShutdown(moduleManager));
+
+        // Handle process warnings
+        process.on('warning', (warning) => {
+            errorHandler(warning, 'Process Warning');
+        });
+
+        // Handle stdout errors
+        process.stdout.on('error', (err) => {
+            if (err.code === "EPIPE") {
+                errorHandler(err, 'STDOUT EPIPE');
+            }
+        });
+
+        // Handle uncaught exceptions
+        process.on('uncaughtException', (err) => {
+            errorHandler(err, 'Uncaught Exception');
+            gracefulShutdown(moduleManager);
+        });
+
+        // Handle unhandled promise rejections
+        process.on('unhandledRejection', (reason, promise) => {
+            errorHandler(reason, 'Unhandled Promise Rejection');
+            gracefulShutdown(moduleManager);
+        });
+
+    } catch (err) {
+        errorHandler(err, 'Initialization');
+        process.exit(1);
+    }
 }
 
-// 處理程序級別的警告
-process.on('warning', (warning) => {
-  errorHandler(warning, 'Process Warning');
-});
-
-// 處理標準輸出錯誤
-process.stdout.on('error', (err) => {
-  if (err.code === "EPIPE") {
-    errorHandler(err, 'STDOUT EPIPE');
-  }
-});
-
-// 處理未捕獲的異常
-process.on('uncaughtException', (err) => {
-  errorHandler(err, 'Uncaught Exception');
-});
-
-// 處理未處理的 Promise 拒絕
-process.on('unhandledRejection', (reason, promise) => {
-  errorHandler(reason, 'Unhandled Promise Rejection');
-});
-
-// 啟動應用
+// Start Application
 init();
 
 /*
-流程解釋
+System Architecture Overview:
 
-首先這裡會call modules/中的Discord line Telegram 三個檔案
-如果在Heroku 有輸入它們各自的TOKEN 的話
-服務就會各自啓動
+1. Module Loading System
+   - Automatically loads all .js files starting with 'core-' from the modules directory
+   - Supports module initialization (initialize) and cleanup (shutdown) methods
+   - Prevents duplicate module loading
 
-Discord line Telegram三套BOT 都會統一呼叫analytics.js
-再由analytics.js 呼叫roll/ 中各個的骰檔
+2. Error Handling
+   - Unified error handling mechanism
+   - Detailed error logging
+   - Graceful error recovery
 
-所以基本上,要增加骰組
-參考/roll中的DEMO骰組就好
+3. Logging System
+   - Native console-based logging implementation
+   - Supports multiple log levels (error, warn, info, debug)
+   - Outputs to both console and files
+   - Separate error and general log files
 
-以上, 有不明可以在GITHUB問我
+4. Configuration Management
+   - Centralized system configuration
+   - Environment variable override support
+   - Extensible configuration structure
 
-另外, 使用或參考其中代碼的話, 請保持開源
-感謝
+5. Graceful Shutdown
+   - Handles SIGTERM and SIGINT signals
+   - Ensures proper module cleanup
+   - Prevents data loss
 
+Usage Instructions:
+1. Adding Dice Groups: Reference the DEMO dice group in the /roll directory
+2. All BOTs (Discord, Line, Telegram) are processed through analytics.js
+3. Ensure proper TOKEN environment variables are set
+
+Important Notes:
+1. Keep the code open source
+2. Follow modular design principles
+3. Ensure comprehensive error handling
 */

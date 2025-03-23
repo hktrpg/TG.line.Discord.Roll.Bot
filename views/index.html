@@ -266,8 +266,15 @@
         }
 
         .form-control:focus {
-            box-shadow: 0 0 0 2px var(--badge-bg);
+            background-color: var(--input-bg);
             border-color: var(--badge-bg);
+            color: var(--text-color);
+            box-shadow: 0 0 0 2px var(--badge-bg);
+        }
+
+        .form-control::placeholder {
+            color: var(--text-color);
+            opacity: 0.6;
         }
 
         .input-group-text {

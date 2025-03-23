@@ -45,6 +45,10 @@
                 <button type="button" class="btn btn-dark float-right" onclick="readme()">
                     <span class="iconify" data-icon="gg:readme" data-inline="false"></span>說明
                 </button>
+                <button type="button" class="btn btn-secondary float-right mr-2" onclick="themeManager.toggleTheme()">
+                    <span class="iconify" data-icon="bi:moon-stars" data-inline="false"></span>
+                    <span class="theme-text">深色模式</span>
+                </button>
                 <div class="input-group-text font-weight-bold" id="status-box"> <span class="iconify"
                         data-icon="bi:house-door-fill" data-inline="false" style="color: black;" data-width="22"
                         data-height="22"></span><span id="room">公共房間</span></div>
@@ -102,6 +106,330 @@
             </div>
         </div>
     </section>
+    <style>
+        /* 主題相關樣式 */
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --card-bg: #ffffff;
+            --card-border: #dee2e6;
+            --input-bg: #ffffff;
+            --input-border: #ced4da;
+            --badge-bg: #007bff;
+            --badge-text: #ffffff;
+            --footer-bg: #f8f9fa;
+            --scrollbar-track: #f1f1f1;
+            --scrollbar-thumb: #888;
+            --scrollbar-thumb-hover: #555;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+            --gradient-start: rgba(255,255,255,0.1);
+            --gradient-end: rgba(255,255,255,0.05);
+            --input-height: 38px;
+            --border-radius: 8px;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --text-color: #ffffff;
+            --card-bg: #2d2d2d;
+            --card-border: #404040;
+            --input-bg: #2d2d2d;
+            --input-border: #404040;
+            --badge-bg: #0056b3;
+            --badge-text: #ffffff;
+            --footer-bg: #2d2d2d;
+            --scrollbar-track: #2d2d2d;
+            --scrollbar-thumb: #666;
+            --scrollbar-thumb-hover: #888;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.2);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.3);
+            --shadow-lg: 0 10px 15px rgba(0,0,0,0.3);
+            --gradient-start: rgba(255,255,255,0.05);
+            --gradient-end: rgba(255,255,255,0.02);
+        }
+
+        /* 滾動條樣式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--scrollbar-track);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--scrollbar-thumb);
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--scrollbar-thumb-hover);
+        }
+
+        /* Firefox 滾動條樣式 */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 容器樣式優化 */
+        #container {
+            background: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end));
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 1rem;
+        }
+
+        /* 卡片樣式優化 */
+        .card {
+            background-color: var(--card-bg);
+            border-color: var(--card-border);
+            border-radius: 8px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            margin-bottom: 0.75rem;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .card-header2 {
+            background-color: var(--card-bg);
+            border-bottom-color: var(--card-border);
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-body2 {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            padding: 0.75rem 1rem;
+            line-height: 1.5;
+        }
+
+        /* 表單元素樣式優化 */
+        .form-control {
+            background-color: var(--input-bg);
+            border-color: var(--input-border);
+            color: var(--text-color);
+            border-radius: var(--border-radius);
+            padding: 0.5rem 0.75rem;
+            transition: all 0.3s ease;
+            height: var(--input-height);
+            line-height: 1.5;
+        }
+
+        .form-control:focus {
+            box-shadow: 0 0 0 2px var(--badge-bg);
+            border-color: var(--badge-bg);
+        }
+
+        .input-group-text {
+            background-color: var(--input-bg);
+            border-color: var(--input-border);
+            color: var(--text-color);
+            border-radius: var(--border-radius);
+            height: var(--input-height);
+            padding: 0 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .input-group .iconify {
+            font-size: 1.2rem;
+            width: 1.2rem;
+            height: 1.2rem;
+        }
+
+        /* 按鈕樣式優化 */
+        .btn {
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
+            height: var(--input-height);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn .iconify {
+            margin-right: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* 徽章樣式優化 */
+        .badge {
+            padding: 0.5em 0.75em;
+            border-radius: 4px;
+            font-weight: 500;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .badge-primary {
+            background-color: var(--badge-bg);
+            color: var(--badge-text);
+        }
+
+        .badge-secondary {
+            background-color: var(--badge-bg);
+            color: var(--badge-text);
+        }
+
+        /* 頁尾樣式優化 */
+        footer.fixed-bottom {
+            background-color: var(--footer-bg) !important;
+            box-shadow: var(--shadow-lg);
+            padding: 1rem 0;
+        }
+
+        /* 模態框樣式優化 */
+        .modal-content {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modal-header {
+            border-bottom-color: var(--card-border);
+            padding: 1.25rem;
+        }
+
+        .modal-footer {
+            border-top-color: var(--card-border);
+            padding: 1.25rem;
+        }
+
+        /* 聊天室容器樣式優化 */
+        #container-content {
+            height: calc(100vh - 200px);
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            background: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end));
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            box-shadow: var(--shadow-md);
+        }
+
+        #content {
+            padding: 1rem;
+            min-height: 100%;
+        }
+
+        /* 狀態框樣式優化 */
+        #status-box {
+            border-radius: var(--border-radius);
+            padding: 0.5rem 1rem;
+            margin-left: 0.5rem;
+            box-shadow: var(--shadow-sm);
+            height: var(--input-height);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #status-box .iconify {
+            margin-right: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        /* 輸入群組樣式優化 */
+        .input-group {
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        .input-group > .form-control:first-child {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .input-group > .form-control:last-child {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+        .input-group > .input-group-text:first-child {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .input-group > .input-group-text:last-child {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+        .input-group > .btn:first-child {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .input-group > .btn:last-child {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+        /* 房間符號特殊樣式 */
+        .input-group-text:has(.iconify[data-icon="bi:house-door"]) {
+            border-top-right-radius: 0 !important;
+            border-bottom-right-radius: 0 !important;
+        }
+
+        /* 響應式調整 */
+        @media (max-width: 768px) {
+            #container {
+                padding: 0.5rem;
+            }
+            
+            .card {
+                margin-bottom: 0.5rem;
+            }
+            
+            .input-group {
+                margin-bottom: 0.5rem;
+            }
+            
+            .btn {
+                padding: 0.4rem 0.8rem;
+            }
+            
+            #status-box {
+                margin: 0.5rem 0;
+            }
+        }
+    </style>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
@@ -139,14 +467,6 @@
             scrollToBottom: () => {
                 const content = document.getElementById("container-content");
                 content.scrollTop = content.scrollHeight;
-            },
-            escapeHtml: (unsafe) => {
-                return unsafe
-                    .replace(/&/g, "&amp;")
-                    .replace(/</g, "&lt;")
-                    .replace(/>/g, "&gt;")
-                    .replace(/"/g, "&quot;")
-                    .replace(/'/g, "&#039;");
             }
         };
 
@@ -267,7 +587,7 @@
 
                 const nameBox = document.createElement("span");
                 nameBox.className = "badge badge-primary";
-                nameBox.textContent = utils.escapeHtml(message.name);
+                nameBox.textContent = message.name;
 
                 const timeBox = document.createElement("span");
                 timeBox.className = "badge badge-secondary";
@@ -292,10 +612,43 @@
             }
         };
 
+        // 在現有的 JavaScript 代碼中加入主題管理模組
+        const themeManager = {
+            init: () => {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+                themeManager.updateThemeButton(savedTheme);
+            },
+
+            toggleTheme: () => {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+                
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                themeManager.updateThemeButton(newTheme);
+            },
+
+            updateThemeButton: (theme) => {
+                const button = document.querySelector('.btn-secondary');
+                const icon = button.querySelector('.iconify');
+                const text = button.querySelector('.theme-text');
+                
+                if (theme === 'dark') {
+                    icon.setAttribute('data-icon', 'bi:sun');
+                    text.textContent = '淺色模式';
+                } else {
+                    icon.setAttribute('data-icon', 'bi:moon-stars');
+                    text.textContent = '深色模式';
+                }
+            }
+        };
+
         // Initialize application
         document.addEventListener("DOMContentLoaded", () => {
             socketManager.init();
             uiManager.initialize();
+            themeManager.init();
         });
 
         // Modal functions

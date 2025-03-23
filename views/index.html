@@ -541,8 +541,93 @@
             transform: rotate(180deg);
         }
 
-        /* 響應式調整 */
+        .quick-input-toggle {
+            display: none;
+            position: fixed;
+            bottom: 70px;
+            right: 15px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--badge-bg);
+            color: var(--badge-text);
+            border: none;
+            box-shadow: var(--shadow-lg);
+            z-index: 1001;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .quick-input-toggle::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            padding: 2px;
+            background: linear-gradient(45deg, var(--badge-bg), var(--badge-text));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+
+        .quick-input-toggle:hover::before {
+            opacity: 0.8;
+        }
+
+        .quick-input-toggle:active {
+            transform: scale(0.95);
+        }
+
+        .quick-input-toggle .iconify {
+            font-size: 28px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+
+        .quick-input-toggle.active .iconify {
+            transform: rotate(180deg);
+        }
+
+        /* 深色模式特殊處理 */
+        [data-theme="dark"] .quick-input-toggle {
+            background: var(--badge-bg);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        [data-theme="dark"] .quick-input-toggle::before {
+            background: linear-gradient(45deg, var(--badge-bg), var(--badge-text));
+        }
+
+        [data-theme="dark"] .quick-input-toggle .iconify {
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+        }
+
+        /* 淺色模式特殊處理 */
+        [data-theme="light"] .quick-input-toggle {
+            background: var(--badge-bg);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        [data-theme="light"] .quick-input-toggle::before {
+            background: linear-gradient(45deg, var(--badge-bg), var(--badge-text));
+        }
+
+        [data-theme="light"] .quick-input-toggle .iconify {
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
         @media (max-width: 768px) {
+            .quick-input-toggle {
+                display: flex;
+            }
+
             .quick-input-pad {
                 bottom: 70px;
                 right: 10px;
@@ -551,10 +636,16 @@
                 max-height: 25vh;
                 overflow-y: auto;
                 padding: 10px;
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+            }
+
+            .quick-input-pad .toggle-button {
+                display: none;
             }
 
             #container-content {
-                transition: transform 0.3s ease;
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 transform: translateY(0);
             }
 
@@ -710,12 +801,22 @@
                 position: relative;
                 top: 0;
                 padding: 0;
+                transform: none !important;
             }
 
             .header-content {
                 position: relative;
                 top: 0;
                 padding: 0;
+                transform: none !important;
+            }
+
+            #header.collapsed {
+                transform: none !important;
+            }
+
+            .header-content.collapsed {
+                transform: none !important;
             }
         }
     </style>
@@ -942,14 +1043,25 @@
                 const customCommands = JSON.parse(localStorage.getItem('quickCommands') || '[]');
                 quickInputPad.renderButtons(fixedCommands, customCommands);
                 
+                // 創建浮動按鈕
+                const toggleButton = document.createElement('button');
+                toggleButton.className = 'quick-input-toggle';
+                toggleButton.innerHTML = '<span class="iconify" data-icon="bi:chevron-up"></span>';
+                document.body.appendChild(toggleButton);
+                
                 // 恢復之前的收起狀態
                 const isCollapsed = localStorage.getItem('quickInputCollapsed') === 'true';
                 if (isCollapsed) {
                     document.getElementById('quickInputPad').classList.add('collapsed');
                     document.getElementById('container-content').classList.remove('quick-input-expanded');
+                    toggleButton.classList.remove('active');
                 } else {
                     document.getElementById('container-content').classList.add('quick-input-expanded');
+                    toggleButton.classList.add('active');
                 }
+
+                // 添加按鈕點擊事件
+                toggleButton.addEventListener('click', quickInputPad.toggle);
             },
 
             renderButtons: (fixedCommands, customCommands) => {
@@ -1025,12 +1137,18 @@
             toggle: () => {
                 const pad = document.getElementById('quickInputPad');
                 const containerContent = document.getElementById('container-content');
+                const toggleButton = document.querySelector('.quick-input-toggle');
                 const isCollapsed = pad.classList.toggle('collapsed');
                 
-                if (isCollapsed) {
-                    containerContent.classList.remove('quick-input-expanded');
-                } else {
-                    containerContent.classList.add('quick-input-expanded');
+                // 只在手機版時調整容器內容的位置
+                if (window.innerWidth <= 768) {
+                    if (isCollapsed) {
+                        containerContent.classList.remove('quick-input-expanded');
+                        toggleButton.classList.remove('active');
+                    } else {
+                        containerContent.classList.add('quick-input-expanded');
+                        toggleButton.classList.add('active');
+                    }
                 }
                 
                 localStorage.setItem('quickInputCollapsed', isCollapsed);

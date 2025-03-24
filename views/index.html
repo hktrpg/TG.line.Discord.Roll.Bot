@@ -70,7 +70,8 @@
 
             <!-- Main Chat Area -->
             <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4 d-flex flex-column">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <div
+                    class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 </div>
 
                 <div class="chat-container flex-grow-1">
@@ -83,7 +84,7 @@
 
                 <!-- Quick Input Pad -->
                 <div class="quick-input-pad" id="quickInputPad">
-                  
+
                     <div class="pad-content">
                         <div class="pad-header">
                             <span class="pad-title">常用指令</span>
@@ -492,13 +493,16 @@
             padding: 0.3rem;
             margin: 0.2rem 0;
             box-shadow: var(--shadow-md);
-            height: calc(100vh - 200px);
+            height: calc(100vh - var(--header-height) - var(--footer-height));
+            position: relative;
+            bottom: var(--footer-height);
         }
 
         #container-content {
             flex: 1;
             overflow-y: auto;
             scroll-behavior: smooth;
+            position: relative;
         }
 
         #content {
@@ -632,7 +636,8 @@
             transform: translateY(0);
             opacity: 1;
             pointer-events: auto;
-            bottom: var(--footer-height); /* 網頁版時在 footer 頂部 */
+            bottom: calc(var(--footer-height) + 1rem);
+            /* 使用 CSS 變量計算 footer 高度 */
         }
 
         .quick-input-pad .pad-content {
@@ -656,7 +661,8 @@
             color: var(--text-color);
             box-shadow: var(--shadow-sm);
             z-index: 1001;
-            margin-bottom: -1px; /* 覆蓋邊框 */
+            margin-bottom: -1px;
+            /* 覆蓋邊框 */
         }
 
         .quick-input-pad .toggle-button .iconify {
@@ -721,12 +727,11 @@
             .sidebar {
                 position: fixed;
                 left: -240px;
-                top: 60px;
-                bottom: 0;
-                z-index: 1000;
-                height: calc(100vh - 60px);
+                top: var(--header-height);
+                bottom: var(--footer-height);
+                z-index: 1001;
+                height: calc(100vh - var(--header-height) - var(--footer-height));
                 overflow-y: auto;
-                padding-bottom: var(--footer-height); /* 添加底部 padding 以避免被 footer 遮擋 */
             }
 
             .sidebar.show {
@@ -736,25 +741,20 @@
             .main-content {
                 margin-left: 0;
                 margin-top: 0;
+                height: calc(100vh - var(--header-height) - var(--footer-height));
+
             }
 
             .chat-container {
-                margin-top: 60px;
-                margin-bottom: var(--footer-height); /* 添加底部 margin 以避免被 footer 遮擋 */
+                margin-top: 0;
+                border-radius: 0;
             }
 
-            .mobile-toggle {
-                display: block;
-                position: fixed;
-                left: 10px;
-                top: 10px;
-                z-index: 1001;
-                background: var(--badge-bg);
-                color: var(--badge-text);
-                border: none;
-                border-radius: 4px;
-                padding: 8px;
-                cursor: pointer;
+
+
+            #content {
+                bottom: var(--footer-height);
+                padding: 0.2rem;
             }
 
             /* 調整 footer 樣式 */
@@ -767,41 +767,31 @@
                 background: var(--footer-bg);
                 border-top: 1px solid var(--card-border);
                 padding: 0.5rem;
-            }
-
-            /* 調整聊天容器以避免被 footer 遮擋 */
-            .chat-container {
-                height: calc(100vh - 120px); /* 調整高度以適應 footer */
-            }
-
-            /* 調整側邊欄內容區域 */
-            .sidebar-sticky {
-                padding-bottom: calc(var(--footer-height) + 20px); /* 增加底部 padding */
+                height: var(--footer-height);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
             }
 
             /* 調整列表內容區域 */
             .list-content {
-                max-height: calc(100vh - 400px); /* 調整最大高度 */
+                max-height: calc(100vh - var(--header-height) - var(--footer-height) - 200px);
             }
         }
 
         /* 確保桌面版不受影響 */
         @media (min-width: 769px) {
+            .chat-container {
+                height: calc(100vh - var(--header-height) - var(--footer-height));
+            }
+
+            #container-content {
+                height: 100%;
+            }
+
             .footer {
                 position: sticky;
                 bottom: 0;
-            }
-
-            .chat-container {
-                margin-bottom: 0;
-            }
-
-            .sidebar {
-                padding-bottom: 0;
-            }
-
-            .sidebar-sticky {
-                padding-bottom: 0;
             }
         }
 
@@ -875,7 +865,7 @@
                 position: fixed;
                 left: 10px;
                 top: 10px;
-                z-index: 1001;
+                z-index: 1002;
                 background: var(--badge-bg);
                 color: var(--badge-text);
                 border: none;
@@ -972,7 +962,8 @@
             padding: 0.5rem;
             min-height: 0;
             background: var(--sidebar-bg);
-            max-height: calc(100vh - 350px); /* 增加聊天室列表的高度 */
+            max-height: calc(100vh - 350px);
+            /* 增加聊天室列表的高度 */
         }
 
         .sidebar-actions {
@@ -1218,7 +1209,7 @@
                 border-radius: 12px;
                 box-shadow: var(--shadow-lg);
                 padding: 15px;
-                z-index: 1000;
+                z-index: 998;
                 transition: all 0.3s ease;
                 max-width: 300px;
                 width: 90%;
@@ -1233,25 +1224,26 @@
             }
 
             .list-content {
-                max-height: calc(100vh - 300px); /* 移動端稍微調整最大高度 */
+                max-height: calc(100vh - 300px);
+                /* 移動端稍微調整最大高度 */
             }
-            
+
             .sidebar-sticky {
                 padding: 0.3rem;
             }
-            
+
             .sidebar-header {
                 margin-bottom: 0.3rem;
             }
-            
+
             .chatroom-list {
                 margin-bottom: 0.3rem;
             }
-            
+
             .sidebar-actions {
                 padding: 0.3rem;
             }
-            
+
             .sidebar-actions .btn {
                 padding: 5px 10px;
                 font-size: 0.8rem;
@@ -1311,11 +1303,12 @@
 
         .footer .container {
             padding: 0;
-            flex: 6;
+            flex: 1;
+            min-width: 0;
+            /* 防止 flex 項目溢出 */
         }
 
         .footer .toggle-button {
-            flex: 2;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1328,6 +1321,8 @@
             cursor: pointer;
             transition: all 0.2s ease;
             margin-left: 10px;
+            white-space: nowrap;
+            /* 防止文字換行 */
         }
 
         .footer .toggle-button:hover {
@@ -1347,25 +1342,52 @@
         /* 移動端樣式調整 */
         @media (max-width: 768px) {
             .footer {
-                flex-direction: column;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                z-index: 999;
+                background: var(--footer-bg);
+                border-top: 1px solid var(--card-border);
                 padding: 0.5rem;
+                height: var(--footer-height);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
             }
 
             .footer .container {
-                width: 100%;
-                margin-bottom: 10px;
+                flex: 1;
+                margin-right: 10px;
+                min-width: 0;
+                /* 防止 flex 項目溢出 */
             }
 
             .footer .toggle-button {
-                width: 100%;
+                flex-shrink: 0;
+                /* 防止按鈕被壓縮 */
+                padding: 6px 12px;
+                font-size: 0.9rem;
                 margin-left: 0;
             }
 
-            .quick-input-pad {
-                bottom: 80px;
-                right: 10px;
-                width: calc(100% - 20px);
-                max-width: none;
+            .footer .input-group {
+                width: 100%;
+            }
+
+            .footer .input-group .form-control {
+                width: 1%;
+                flex: 1;
+                min-width: 0;
+                /* 防止輸入框溢出 */
+            }
+        }
+
+        /* 確保桌面版不受影響 */
+        @media (min-width: 769px) {
+            .footer {
+                position: sticky;
+                bottom: 0;
             }
         }
 
@@ -1374,7 +1396,8 @@
             padding: 10px;
             border-top: 1px solid var(--card-border);
             background: var(--sidebar-bg);
-            flex-shrink: 0; /* 防止底部按鈕被壓縮 */
+            flex-shrink: 0;
+            /* 防止底部按鈕被壓縮 */
         }
 
         .sidebar-actions .btn {
@@ -1405,12 +1428,12 @@
             .sidebar-actions {
                 padding: 8px;
             }
-            
+
             .sidebar-actions .btn {
                 padding: 6px 12px;
                 font-size: 0.85rem;
             }
-            
+
             .sidebar-actions .btn .iconify {
                 font-size: 1.1rem;
             }
@@ -1969,5 +1992,7 @@
     </script>
 
 </body>
+
+</html>
 
 </html>

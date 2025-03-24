@@ -1,5 +1,5 @@
 // Common JavaScript code for character card pages
-const TITLE = "HKTRPG 角色卡";
+let TITLE = "HKTRPG 角色卡";
 
 // Debug logging
 function debugLog(message, type = 'info') {
@@ -13,170 +13,143 @@ let socket = io();
 let card = null;
 let cardList = null;
 
-function initializeVueApps() {
+function initializeVueApps(isPublic = false) {
     debugLog('Initializing Vue applications', 'info');
     try {
-        // Initialize main card app
-        card = Vue.createApp({
-            data() {
-                return {
-                    id: "",
-                    name: "",
-                    state: [],
-                    roll: [],
-                    notes: [],
-                    gpList: "",
-                    public: false,
-                    deleteMode: false
-                }
-            },
-            methods: {
-                addItem(form) {
-                    switch (form) {
-                        case 0:
-                            this.state.push({
-                                name: "",
-                                itemA: "",
-                                itemB: ""
-                            });
-                            break;
-                        case 1:
-                            this.roll.push({
-                                name: "",
-                                itemA: ""
-                            });
-                            break;
-                        case 2:
-                            this.notes.push({
-                                name: "",
-                                itemA: ""
-                            });
-                            break;
-                    }
-                },
-                removeLastItem(form) {
-                    switch (form) {
-                        case 0:
-                            if (this.state.length > 0) {
-                                this.state.pop();
-                            }
-                            break;
-                        case 1:
-                            if (this.roll.length > 0) {
-                                this.roll.pop();
-                            }
-                            break;
-                        case 2:
-                            if (this.notes.length > 0) {
-                                this.notes.pop();
-                            }
-                            break;
-                    }
-                },
-                toggleDeleteMode(form) {
-                    this.deleteMode = !this.deleteMode;
-                },
-                removeItem(index, form) {
-                    switch (form) {
-                        case 0:
-                            this.state.splice(index, 1);
-                            break;
-                        case 1:
-                            this.roll.splice(index, 1);
-                            break;
-                        case 2:
-                            this.notes.splice(index, 1);
-                            break;
-                        default:
-                            break;
-                    }
-                },
-                config() {
-                    for (let gp of this.gpList) {
-                        gp.showDeleteButton = !gp.showDeleteButton;
-                        gp.confirmDelete = false;
-                        gp.showCancelButton = (gp.showDeleteButton && gp.confirmDelete)
-                    }
-                },
-                cancelButton(gp) {
-                    gp.confirmDelete = false;
-                    gp.showCancelButton = false;
-                },
-                confirmRemoveChannel(gp) {
-                    if (gp.confirmDelete) {
-                        this.removeChannel(gp);
-                    } else {
-                        gp.confirmDelete = true;
-                        gp.showCancelButton = true;
-                    }
-                },
-                removeChannel(gp) {
-                    socket.emit('removeChannel', {
-                        botname: gp.botname,
-                        userName: userName,
-                        userPassword: userPassword,
-                        channelId: gp.id
-                    });
-                    location.reload();
-                },
-                rolling(item) {
-                    let obj = '';
-                    if (document.querySelector('input[name="gpListRadio"]:checked')) {
-                        let temp = document.querySelector('input[name="gpListRadio"]:checked').value;
-                        obj = card.gpList.find(function (item, index, array) {
-                            return item._id == temp;
-                        });
-                    }
-                    socket.emit('rolling', {
-                        item: item,
-                        userName: userName,
-                        userPassword: userPassword,
-                        rollTarget: obj,
-                        doc: {
-                            state: card.state,
-                            roll: card.roll,
-                            notes: card.notes
-                        },
-                        cardName: card.name
-                    });
-                }
-            }
-        }).mount('#array-rendering');
-
-        // Initialize card list app only if the element exists
-        const cardListElement = document.getElementById('array-cardList');
-        if (cardListElement) {
-            cardList = Vue.createApp({
+        // Set title based on card type
+        TITLE = isPublic ? "HKTRPG 公開角色卡" : "HKTRPG 私人角色卡";
+        
+        // Load common UI template
+        $("#array-rendering").load("/common/characterCardUI.html", function() {
+            debugLog('UI template loaded, initializing Vue apps', 'info');
+            
+            // Initialize main card app
+            card = Vue.createApp({
                 data() {
                     return {
-                        list: []
+                        id: "",
+                        name: "",
+                        state: [],
+                        roll: [],
+                        notes: [],
+                        gpList: [],
+                        public: isPublic,
+                        deleteMode: false,
+                        isPublic: isPublic
                     }
                 },
                 methods: {
-                    getTheSelectedOne(number) {
-                        if (!card) {
-                            debugLog('Card Vue app not initialized', 'error');
-                            return;
+                    addItem(form) {
+                        switch (form) {
+                            case 0:
+                                this.state.push({
+                                    name: "",
+                                    itemA: "",
+                                    itemB: ""
+                                });
+                                break;
+                            case 1:
+                                this.roll.push({
+                                    name: "",
+                                    itemA: ""
+                                });
+                                break;
+                            case 2:
+                                this.notes.push({
+                                    name: "",
+                                    itemA: ""
+                                });
+                                break;
+                            default:
+                                break;
                         }
-                        card._id = this.list[number]._id;
-                        card.id = this.list[number].id;
-                        card.name = this.list[number].name;
-                        card.notes = this.list[number].notes;
-                        card.roll = this.list[number].roll;
-                        card.state = this.list[number].state;
-                        card.public = this.list[number].public;
-                        $('#cardListModal').modal("hide");
+                    },
+                    removeItem(form) {
+                        switch (form) {
+                            case 0:
+                                this.state.pop();
+                                break;
+                            case 1:
+                                this.roll.pop();
+                                break;
+                            case 2:
+                                this.notes.pop();
+                                break;
+                            default:
+                                break;
+                        }
+                    },
+                    toggleDeleteMode() {
+                        this.deleteMode = !this.deleteMode;
+                    },
+                    removeChannel(channelId) {
+                        this.gpList = this.gpList.filter(channel => channel.id !== channelId);
+                    },
+                    rolling(name) {
+                        debugLog(`Rolling for ${name}`, 'info');
+                        if (this.isPublic) {
+                            socket.emit('publicRolling', {
+                                item: name,
+                                userName: localStorage.getItem("userName"),
+                                userPassword: localStorage.getItem("userPassword"),
+                                doc: {
+                                    name: this.name,
+                                    state: this.state,
+                                    roll: this.roll,
+                                    notes: this.notes
+                                }
+                            });
+                        } else {
+                            socket.emit('rolling', {
+                                item: name,
+                                userName: localStorage.getItem("userName"),
+                                userPassword: localStorage.getItem("userPassword"),
+                                cardName: this.name,
+                                doc: {
+                                    name: this.name,
+                                    state: this.state,
+                                    roll: this.roll,
+                                    notes: this.notes
+                                }
+                            });
+                        }
                     }
                 }
-            }).mount('#array-cardList');
-            debugLog('CardList Vue app initialized successfully', 'info');
-        } else {
-            debugLog('CardList element not found, skipping initialization', 'warn');
-        }
+            }).mount('#array-rendering');
 
-        debugLog('Vue applications initialized successfully', 'info');
+            debugLog('Main card Vue app initialized successfully', 'info');
+
+            // Initialize card list app if element exists
+            const cardListElement = document.getElementById('array-cardList');
+            if (cardListElement) {
+                cardList = Vue.createApp({
+                    data() {
+                        return {
+                            list: []
+                        }
+                    },
+                    methods: {
+                        getTheSelectedOne(index) {
+                            if (card) {
+                                card._id = this.list[index]._id;
+                                card.id = this.list[index].id;
+                                card.name = this.list[index].name;
+                                card.state = this.list[index].state;
+                                card.roll = this.list[index].roll;
+                                card.notes = this.list[index].notes;
+                                card.public = this.list[index].public;
+                                $('#cardListModal').modal("hide");
+                            }
+                        }
+                    }
+                }).mount('#array-cardList');
+                debugLog('CardList Vue app initialized successfully', 'info');
+            }
+
+            debugLog('Vue applications initialized successfully', 'info');
+        });
     } catch (error) {
-        debugLog(`Error initializing Vue applications: ${error.message}`, 'error');
+        debugLog(`Error initializing Vue apps: ${error.message}`, 'error');
     }
 }
 
@@ -191,13 +164,13 @@ $(function () {
 
 // Alert Functions
 function popup(result) {
+    debugLog(`Showing popup with result: ${result}`, 'info');
     if (result) {
-        $('#warning-update').show();
-        setTimeout(() => $('#warning-update').hide(), 5000);
-    }
-    if (!result) {
-        $('#warning-updateError').show();
-        setTimeout(() => $('#warning-updateError').hide(), 5000);
+        addElement("<strong>更新成功!</strong> 你可以在聊天平台上使用新資料了。", "success", 5000);
+        debugLog('Success alert shown', 'info');
+    } else {
+        addElement("<strong>更新失敗!</strong> 請檢查或向HKTRPG回報。", "danger", 5000);
+        debugLog('Error alert shown', 'info');
     }
 }
 
@@ -210,14 +183,15 @@ function addElement(message, type, closeDelay) {
                 width: "30%",
                 left: "60%",
                 top: "15%",
-                margin: "0 auto"
+                margin: "0 auto",
+                zIndex: "9999"
             })
             .appendTo($("body"));
     }
 
     type = type || "info";
     let alert = $('<div>')
-        .addClass("alert text-wrap text-break warning alert-dismissible fade show overlay alert-" + type)
+        .addClass("alert text-wrap text-break alert-dismissible fade show alert-" + type)
         .append($('<button type="button" class="close" data-dismiss="alert">').append("&times;"))
         .append(message);
 
@@ -238,15 +212,34 @@ function selectCard() {
 
 // Socket event handlers
 socket.on("rolling", function (result) {
+    debugLog(`Received rolling result: ${result}`, 'info');
     if (result) {
-        debugLog(`Rolling result: ${result}`, 'info');
         addElement("<strong>" + result + "</strong>", "warning", 4000);
+    } else {
+        addElement("<strong>擲骰失敗!</strong> 請檢查或向HKTRPG回報。", "danger", 4000);
+        debugLog('Rolling failed', 'error');
+    }
+});
+
+socket.on("publicRolling", function (result) {
+    debugLog(`Received public rolling result: ${result}`, 'info');
+    if (result) {
+        addElement("<strong>" + result + "</strong>", "warning", 4000);
+    } else {
+        addElement("<strong>擲骰失敗!</strong> 請檢查或向HKTRPG回報。", "danger", 4000);
+        debugLog('Public rolling failed', 'error');
     }
 });
 
 socket.on("updateCard", function (result) {
     debugLog(`Update card result: ${result}`, 'info');
-    popup(result);
+    if (result === true) {
+        popup(true);
+        debugLog('Card updated successfully', 'info');
+    } else {
+        popup(false);
+        debugLog('Card update failed', 'error');
+    }
 });
 
 // Export functions for use in other files

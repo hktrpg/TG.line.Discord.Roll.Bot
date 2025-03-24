@@ -1,0 +1,126 @@
+<!-- Main Content -->
+<main class="container" id="array-rendering">
+    <!-- Action Buttons Section -->
+    <section id="buttonlist">
+        <div class="button-group">
+            <!-- Private card specific buttons -->
+            <button type="button" class="btn btn-primary float-right" v-if="!isPublic" onclick="logout()">
+                <span class="iconify" data-icon="mdi:login" data-inline="false"></span>登入/登出
+            </button>
+            <button type="button" class="btn btn-warning float-right" v-if="name && !isPublic" @click="toggleDeleteMode(0)">
+                <span class="iconify" data-icon="carbon:column-delete" data-inline="false"></span>
+                {{ deleteMode ? '關閉刪除欄位模式' : '開啟刪除欄位模式' }}
+            </button>
+            <button type="button" class="btn btn-info float-right" v-if="name && !isPublic" onclick="updateCard()">
+                <span class="iconify" data-icon="ic:outline-save-alt" data-inline="false"></span>儲存角色卡
+            </button>
+            <!-- Common buttons -->
+            <button type="button" class="btn btn-secondary float-right" onclick="selectCard()">
+                <span class="iconify" data-icon="grommet-icons:select" data-inline="false"></span>選擇角色卡
+            </button>
+            <button type="button" class="btn btn-dark float-right" onclick="readme()">
+                <span class="iconify" data-icon="gg:readme" data-inline="false"></span>說明
+            </button>
+        </div>
+        <h3>
+            <span class="iconify" data-icon="wpf:name" data-inline="false"></span> {{name}}
+        </h3>
+        <!-- Public checkbox for private card -->
+        <div class="form-check" v-if="name && !isPublic">
+            <input class="form-check-input" type="checkbox" value="true" v-model="public" id="invalidCheck">
+            <label class="form-check-label" for="invalidCheck">
+                公開這角色卡
+            </label>
+        </div>
+    </section>
+
+    <!-- Group List Section (Private card only) -->
+    <section id="groupList" v-if="gpList && !isPublic">
+        <br>
+        <h4 class="bg-color3 p-1">
+            <span class="iconify" data-icon="grommet-icons:channel" data-inline="false" data-width="20px" data-height="20px"></span>擲骰頻道
+        </h4>
+        <button type="button" class="btn btn-warning float-right" v-on:click="config()">
+            設定
+        </button>
+        <label>
+            <input type="radio" name="gpListRadio" value="null" checked />
+            不進行群組擲骰
+        </label>
+        <div v-for="(gp, i) in gpList">
+            <label>
+                <input type="radio" name="gpListRadio" v-bind:value="gp._id" />
+                編號: {{i+1}} 平台: {{gp.botname}} 群組名稱: {{gp.titleName}}
+            </label>
+            <button type="button" class="btn btn-danger" v-if="gp.showDeleteButton" v-on:click="confirmRemoveChannel(gp)">
+                {{ gp.confirmDelete ? '確定' : '移除?' }}
+            </button>
+            <button type="button" class="btn btn-danger" v-if="gp.showCancelButton" v-on:click="cancelButton(gp)">
+                取消
+            </button>
+        </div>
+    </section>
+
+    <!-- Character Attributes Section -->
+    <section id="attributeList" class="mt-4">
+        <h4 class="bg-color3 p-1">
+            <span class="iconify" data-icon="carbon:data-base" data-inline="false" data-width="20px" data-height="20px"></span>基本屬性
+        </h4>
+        <!-- Add/Remove buttons for private card -->
+        <button type="button" class="btn btn-warning float-right" v-if="name && !isPublic" @click="addItem(0)">+</button>
+        <button type="button" class="btn btn-warning float-right" v-if="name && !isPublic" @click="removeLastItem(0)">-</button>
+        <div class="row align-items-start m-1 p-1">
+            <div v-for="(item, index) in state" class="board1" style="height: 36px;">
+                <div>
+                    <textarea :readonly="isPublic" class="textName" v-model="item.name" style="width:50px;padding: 1px;">{{item.name}}</textarea>
+                    <span class="centered-text">：</span>
+                    <textarea :readonly="isPublic" class="textState" v-model="item.itemA" style="width:55px;padding: 1px;">{{item.itemA}}</textarea>
+                    <span class="centered-text">／</span>
+                    <textarea :readonly="isPublic" class="textState" v-model="item.itemB" style="width:55px;padding: 1px;">{{item.itemB}}</textarea>
+                    <button type="button" class="btn btn-link" @click="rolling(item.name)">
+                        <span class="iconify" data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px" data-height="20px"></span>
+                    </button>
+                    <button type="button" class="btn btn-danger btn-delete" v-if="deleteMode && !isPublic" @click="removeItem(index, 0)">刪除</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dice Roll Section -->
+    <section id="rollList">
+        <h4 class="bg-color3 p-1">
+            <span class="iconify" data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px" data-height="20px"></span>擲骰
+        </h4>
+        <!-- Add/Remove buttons for private card -->
+        <button type="button" class="btn btn-warning float-right" v-if="name && !isPublic" onclick="newItem(1)">+</button>
+        <button type="button" class="btn btn-warning float-right" v-if="name && !isPublic" onclick="removeItem(1)">-</button>
+        <div class="row align-items-start m-1 p-1" id="roll">
+            <div v-for="(item, index) in roll" class="board1" style="height: 36px;padding: 1px 1px 1px 1px">
+                <textarea :readonly="isPublic" class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">{{item.name}}</textarea>
+                <span class="pb-2">:</span>
+                <textarea :readonly="isPublic" class="col textState" v-model="item.itemA" style="width:80px;padding: 1px 1px 1px 1px">{{item.itemA}}</textarea>
+                <button type="button" class="btn btn-link" v-on:click="rolling(item.name)">
+                    <span class="iconify" data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px" data-height="20px"></span>
+                </button>
+                <button type="button" class="btn btn-danger btn-delete" v-if="deleteMode && !isPublic" @click="removeItem(index, 1)">刪除</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Notes Section -->
+    <section id="noteList">
+        <h4 class="bg-color3 p-1">
+            <span class="iconify" data-icon="clarity:note-edit-line" data-inline="false" data-width="20px" data-height="20px"></span>筆記
+        </h4>
+        <!-- Add/Remove buttons for private card -->
+        <button type="button" class="btn btn-warning float-right" v-if="name && !isPublic" onclick="newItem(2)">+</button>
+        <button type="button" class="btn btn-warning float-right" v-if="name && !isPublic" onclick="removeItem(2)">-</button>
+        <div class="row align-items-end" id="notes">
+            <div v-for="(item, index) in notes" class="board1">
+                <textarea :readonly="isPublic" class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">{{item.name}}</textarea>：
+                <textarea :readonly="isPublic" class="col textNote" v-model="item.itemA" style="width:180px">{{item.itemA}}</textarea>
+                <button type="button" class="btn btn-danger btn-delete" v-if="deleteMode && !isPublic" @click="removeItem(index, 2)">刪除</button>
+            </div>
+        </div>
+    </section>
+</main> 

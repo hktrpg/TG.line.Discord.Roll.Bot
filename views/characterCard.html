@@ -25,15 +25,13 @@
     </header>
     <br>
     <div class="container" id="array-rendering">
-        <div class="alert alert-warning alert-dismissible fade show overlay" style="position: fixed;
-        z-index: 999;" role="alert" id="warning-update">
+        <div class="alert alert-warning alert-dismissible fade show overlay" style="position: fixed; z-index: 999; display: none;" role="alert" id="warning-update">
             <strong>更新成功!</strong> 你可以在聊天平台上使用新資料了。
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
-        <div class="alert alert-warning alert-dismissible fade show overlay" style="position: fixed;
-        z-index: 999;" role="alert" id="warning-updateError">
+        <div class="alert alert-warning alert-dismissible fade show overlay" style="position: fixed; z-index: 999; display: none;" role="alert" id="warning-updateError">
             <strong>更新失敗!</strong> 請檢查或向HKTRPG回報。
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
@@ -306,83 +304,113 @@
         <div id="footer"></div>
     </footer>
 
+    <!-- Common Modals -->
+    <div id="commonModals"></div>
+
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
         integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous">
-        </script>
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js"
         integrity="sha384-w1Q4orYjBQndcko6MimVbzY0tgp4pWB4lZ7lr30WKz0vr/aWKhXdBNmNb5D92v7s" crossorigin="anonymous">
-        </script>
-    <script>
-        const TITLE = "HKTRPG 私人角色卡";
-        $(function () {
-            $("#header").load("includes/header.html", function () {
-                $("#title").text(TITLE);
-            });
-            $("#footer").load("includes/footer.html");
-        });
-
-
     </script>
+
+    <!-- Common JavaScript -->
+    <script src="/common/characterCardCommon.js"></script>
+
+    <!-- Page Specific JavaScript -->
     <script>
-        $('#warning-update').hide();
-        $('#warning-updateError').hide();
-        let socket = io();
         let userName = localStorage.getItem("userName");
         let userPassword = localStorage.getItem("userPassword");
+
+        // Load common modals
+        $("#commonModals").load("/common/characterCardModals.html", function() {
+            debugLog('Modals loaded, initializing Vue apps', 'info');
+            initializeVueApps(false); // Initialize for private card
+        });
+
+        // Hide alerts initially
+        $('#warning-update').hide();
+        $('#warning-updateError').hide();
+
+        // Set up login form
         document.getElementById("userName_id").value = userName;
         document.getElementById("userPassword_id").value = userPassword;
         document.getElementById("body").onload = function () {
             login();
         };
 
-        function readme() {
-            $('#readmeModalCenter').modal("show")
+        // Login function
+        function login() {
+            userName = document.getElementById("userName_id").value;
+            userPassword = document.getElementById("userPassword_id").value;
+            localStorage.setItem('userName', userName);
+            localStorage.setItem('userPassword', userPassword);
+            if (userName && userName.length >= 4 && userPassword && userPassword.length >= 6) {
+                document.getElementById("userName_id").value = userName;
+                document.getElementById("userPassword_id").value = userPassword;
+                socket.emit('getListInfo', {
+                    userName: userName,
+                    userPassword: userPassword
+                });
+                socket.on("getListInfo", function (listInfo) {
+                    let list = listInfo.temp;
+                    if (listInfo && listInfo.id && listInfo.id.length > 0) {
+                        card.gpList = listInfo.id;
+                    }
+                    if (list) {
+                        document.getElementById("warning").style.display = "none";
+                        cardList.list = list;
+                        $('#loginModal').modal("hide");
+                        $('#cardListModal').modal("show");
+                    } else {
+                        document.getElementById("warning").style.display = "block";
+                        $('#loginModal').modal("show");
+                    }
+                });
+            } else {
+                $('#loginModal').modal("show");
+            }
         }
 
-        function popup(result) {
-            if (result) {
-                $('#warning-update').show();
-                setTimeout(function () {
-                    // Closing the alert 
-                    $('#warning-update').hide();
-                }, 5000);
-            }
-            if (!result) {
-                $('#warning-updateError').show();
-                setTimeout(function () {
-                    // Closing the alert 
-                    $('#warning-updateError').hide();
-                }, 5000);
-            }
-
+        // Logout function
+        function logout() {
+            document.getElementById("warning").style.display = "none";
+            $('#loginModal').modal("show");
+            card._id = "";
+            card.id = "";
+            card.name = "";
+            card.notes = "";
+            card.roll = "";
+            card.state = "";
+            card.public = false;
         }
 
+        // Update card function
         function updateCard() {
-            socket.emit('updateCard', {
+            debugLog('Attempting to update card with data:', 'info');
+            const updateData = {
                 userName: userName,
                 userPassword: userPassword,
                 card: {
                     _id: card._id,
                     id: card.id,
-                    name: card.name,
                     state: card.state,
                     roll: card.roll,
                     notes: card.notes,
-                    gpList: card.gpList,
-                    public: card.public,
-                    deleteMode: card.deleteMode
+                    public: card.public
                 }
-            });
+            };
+            debugLog('Card ID:', card.id, 'info');
+            debugLog('Card _ID:', card._id, 'info');
+            debugLog(JSON.stringify(updateData, null, 2), 'info');
+            socket.emit('updateCard', updateData);
         }
-        socket.on("updateCard", function (result) {
-            popup(result);
-        })
 
+        // Add/Remove item functions
         function newItem(form) {
             switch (form) {
                 case 0:
@@ -403,48 +431,7 @@
                 default:
                     break;
             }
-
         }
-        let divNumber = 0;
-
-        function addElement(message, type, closeDelay) {
-            let $cont = $("#alerts-container");
-            if ($cont.length == 0) {
-                // alerts-container does not exist, create it
-                $cont = $('<div id="alerts-container">')
-                    .css({
-                        position: "fixed",
-                        width: "30%",
-                        left: "60%",
-                        top: "15%",
-                        margin: "0 auto"
-                    })
-                    .appendTo($("body"));
-            }
-
-            // default to alert-info; other options include success, warning, danger
-            type = type || "info";
-
-            // create the alert div
-            let alert = $('<div>')
-                .addClass("alert text-wrap text-break warning alert-dismissible fade show overlay alert-" + type)
-                .append(
-                    $('<button type="button" class="close" data-dismiss="alert">')
-                        .append("&times;")
-                )
-                .append(message);
-
-            // add the alert div to top of alerts-container, use append() to add to bottom
-            $cont.prepend(alert);
-
-            // if closeDelay was passed - set a timeout to close the alert
-            if (closeDelay)
-                window.setTimeout(function () {
-                    alert.alert("close")
-                }, closeDelay);
-
-        }
-
 
         function removeItem(form) {
             switch (form) {
@@ -460,213 +447,7 @@
                 default:
                     break;
             }
-
         }
-
-        function logout() {
-            document.getElementById("warning").style.display = "none";
-            $('#loginModal').modal("show")
-            card._id = "";
-            card.id = "";
-            card.name = "";
-            card.notes = "";
-            card.roll = "";
-            card.state = "";
-            card.public = false;
-        }
-
-        function selectCard() {
-            $('#cardListModal').modal("show")
-        }
-
-        function login() {
-            userName = document.getElementById("userName_id").value;
-            userPassword = document.getElementById("userPassword_id").value;
-            localStorage.setItem('userName', userName);
-            localStorage.setItem('userPassword', userPassword);
-            if (userName && userName.length >= 4 && userPassword && userPassword.length >= 6) {
-                document.getElementById("userName_id").value = userName;
-                document.getElementById("userPassword_id").value = userPassword;
-                socket.emit('getListInfo', {
-                    userName: userName,
-                    userPassword: userPassword
-                })
-                socket.on("getListInfo", function (listInfo) {
-                    let list = listInfo.temp;
-                    if (listInfo && listInfo.id && listInfo.id.length > 0) {
-                        card.gpList = listInfo.id
-                    }
-                    if (list) {
-                        document.getElementById("warning").style.display = "none";
-                        cardList.list = list
-                        $('#loginModal').modal("hide");
-                        $('#cardListModal').modal("show");
-                    } else {
-                        document.getElementById("warning").style.display = "block";
-                        $('#loginModal').modal("show")
-                    }
-                });
-            } else {
-                $('#loginModal').modal("show")
-            }
-        }
-
-        let card = Vue.createApp({
-            data() {
-                return {
-                    id: "",
-                    name: "",
-                    state: [],
-                    roll: [],
-                    notes: [],
-                    gpList: "",
-                    public: false,
-                    deleteMode: false
-                }
-            },
-            methods: {
-                addItem(form) {
-                    switch (form) {
-                        case 0:
-                            this.state.push({
-                                name: "",
-                                itemA: "",
-                                itemB: ""
-                            });
-                            break;
-                        case 1:
-                            this.roll.push({
-                                name: "",
-                                itemA: ""
-                            });
-                            break;
-                        case 2:
-                            this.notes.push({
-                                name: "",
-                                itemA: ""
-                            });
-                            break;
-                    }
-                },
-                removeLastItem(form) {
-                    switch (form) {
-                        case 0:
-                            if (this.state.length > 0) {
-                                this.state.pop();
-                            }
-                            break;
-                        case 1:
-                            if (this.roll.length > 0) {
-                                this.roll.pop();
-                            }
-                            break;
-                        case 2:
-                            if (this.notes.length > 0) {
-                                this.notes.pop();
-                            }
-                            break;
-                    }
-                },
-                toggleDeleteMode(form) {
-                    this.deleteMode = !this.deleteMode; // 切換刪除模式
-
-                },
-                removeItem(index, form) {
-
-                    switch (form) {
-                        case 0:
-                            this.state.splice(index, 1); // 刪除基本屬性項目
-                            break;
-                        case 1:
-                            this.roll.splice(index, 1); // 刪除擲骰項目
-                            break;
-                        case 2:
-                            this.notes.splice(index, 1); // 刪除筆記項目
-                            break;
-                        default:
-                            break;
-                    }
-                },
-                config() {
-                    for (let gp of this.gpList) {
-                        gp.showDeleteButton = !gp.showDeleteButton;
-                        gp.confirmDelete = false;
-                        gp.showCancelButton = (gp.showDeleteButton && gp.confirmDelete)
-                    }
-                },
-                cancelButton(gp) {
-                    gp.confirmDelete = false;
-                    gp.showCancelButton = false;
-
-                },
-                confirmRemoveChannel(gp) {
-                    if (gp.confirmDelete) {
-                        this.removeChannel(gp);
-                    } else {
-                        gp.confirmDelete = true;
-                        gp.showCancelButton = true;
-                    }
-                },
-                removeChannel(gp) {
-                    socket.emit('removeChannel', {
-                        botname: gp.botname,
-                        userName: userName,
-                        userPassword: userPassword,
-                        channelId: gp.id
-                    });
-                    location.reload();
-                },
-                rolling(item) {
-                    let obj = '';
-                    if (document.querySelector('input[name="gpListRadio"]:checked')) {
-                        let temp = document.querySelector('input[name="gpListRadio"]:checked').value;
-                        obj = card.gpList.find(function (item, index, array) {
-                            return item._id == temp;
-                        });
-                    }
-                    socket.emit('rolling', {
-                        item: item,
-                        userName: userName,
-                        userPassword: userPassword,
-                        rollTarget: obj,
-                        doc: {
-                            state: card.state,
-                            roll: card.roll,
-                            notes: card.notes
-                        },
-                        cardName: card.name
-                    });
-
-
-                }
-            }
-        }).mount('#array-rendering')
-        socket.on("rolling", function (result) {
-            if (result) {
-                addElement("<strong>" + result +
-                    "</strong>", "warning", 4000);
-            }
-        })
-        let cardList = Vue.createApp({
-            data() {
-                return {
-                    list: []
-                }
-            },
-            methods: {
-                getTheSelectedOne(number) {
-                    // then number will be the number
-                    card._id = this.list[number]._id;
-                    card.id = this.list[number].id;
-                    card.name = this.list[number].name;
-                    card.notes = this.list[number].notes;
-                    card.roll = this.list[number].roll;
-                    card.state = this.list[number].state;
-                    card.public = this.list[number].public;
-                    $('#cardListModal').modal("hide")
-                }
-            }
-        }).mount('#array-cardList')
     </script>
 </body>
 <!-- HKTRPG Sad -- 20201221-->

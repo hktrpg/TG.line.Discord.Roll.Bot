@@ -9,16 +9,24 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form>
+                <form id="loginForm">
                     <div class="form-group">
                         <label for="userName">用戶名</label>
-                        <input type="text" class="form-control" id="userName" placeholder="Enter userName">
+                        <input type="text" 
+                               class="form-control" 
+                               id="userName" 
+                               autocomplete="username"
+                               placeholder="Enter userName">
                     </div>
                     <div class="form-group">
-                        <label for="userPassword">密碼</label>
-                        <input type="password" class="form-control" id="userPassword" placeholder="Enter userPassword">
+                        <label for="userPassword_id">密碼</label>
+                        <input type="password" 
+                               class="form-control" 
+                               id="userPassword_id"
+                               autocomplete="current-password"
+                               placeholder="Enter userPassword">
                     </div>
-                    <div class="alert alert-danger" id="loginWarning" style="display: none;">
+                    <div class="alert alert-danger" id="warning" style="display: none;">
                         <strong>登入失敗</strong> 請檢查用戶名和密碼是否正確
                     </div>
                 </form>
@@ -32,44 +40,55 @@
 </div>
 
 <!-- Card List Modal -->
-<div class="modal fade" id="cardListModal" tabindex="-1" role="dialog" aria-labelledby="cardListModalTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+<div class="modal fade" id="cardListModal" tabindex="-1" role="dialog" aria-labelledby="cardListModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="cardListModalTitle">選擇角色卡</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <h5 class="modal-title" id="cardListModalLabel">選擇角色卡</h5>
             </div>
             <div class="modal-body">
-                <!-- Card List Container -->
-                <div id="array-cardList">
-                    <div v-for="(item, index) in list" class="card mb-3">
-                        <div class="card-body">
-                            <h5 class="card-title">{{item.name}}</h5>
-                            <button class="btn btn-primary" @click="getTheSelectedOne(index)">選擇</button>
+                <form id="cardList-Form">
+                    <div class="form-group">
+                        <div id="array-cardList">
+                            <span v-for="(item,index) in list" :key="index" class="col">
+                                <button type="button" class="btn btn-warning m-1"
+                                    v-on:click="getTheSelectedOne(index)">
+                                    {{item.name}}</button>
+                            </span>
                         </div>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Readme Modal -->
-<div class="modal fade" id="readmeModalCenter" tabindex="-1" role="dialog" aria-labelledby="readmeModalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+<div class="modal fade" id="readmeModalCenter" tabindex="-1" role="dialog" aria-labelledby="readmeModalCenterTitle"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="readmeModalCenterTitle">使用說明</h5>
+                <h5 class="modal-title" id="readmeModalLongTitle">使用說明</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                <p>1. 選擇角色卡</p>
-                <p>2. 點擊骰子圖示進行擲骰</p>
-                <p>3. 點擊說明按鈕查看使用說明</p>
+                <div class="readme-content">
+                    <h6>基本使用步驟：</h6>
+                    <ol>
+                        <li>選擇角色卡</li>
+                        <li>點擊骰子圖示進行擲骰</li>
+                        <li>點擊說明按鈕查看使用說明</li>
+                    </ol>
+                    <h6>詳細說明：</h6>
+                    <p>請訪問 <a href="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/wiki/Character-Card" target="_blank">GitHub Wiki</a> 查看完整使用說明。</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>

@@ -3,165 +3,168 @@
 <!-- HKTRPG Sad-->
 
 <head>
-    <!-- Meta Tags -->
+    <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Character Card 公開角色卡 @ HKTRPG</title>
-    
-    <!-- Favicon -->
-    <link rel="icon" href="https://avatars2.githubusercontent.com/u/48795428?s=280&v=4" />
-    
-    <!-- Stylesheets -->
+    <!-- Bootstrap CSS -->
+    <script src="/socket.io/socket.io.js"></script>
     <link rel="stylesheet" href="css/card.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
         integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
-    
-    <!-- Scripts -->
-    <script src="/socket.io/socket.io.js"></script>
+    <!-- production version, optimized for size and speed -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <title>Character Card 角色卡 @ HKTRPG</title>
+    <link rel="icon" href="https://avatars2.githubusercontent.com/u/48795428?s=280&v=4" />
     <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
 </head>
 
 <body class="bg-color center container" id="body">
-    <!-- Header Section -->
     <header>
         <div id="header"></div>
     </header>
-
-    <!-- Main Content -->
-    <main class="container" id="array-rendering">
-        <!-- Action Buttons Section -->
-        <section id="buttonlist">
-            <div class="button-group">
-                <button type="button" class="btn btn-secondary float-right" onclick="selectCard()">
-                    <span class="iconify" data-icon="grommet-icons:select" data-inline="false"></span>選擇角色卡
-                </button>
-                <button type="button" class="btn btn-dark float-right" onclick="readme()">
-                    <span class="iconify" data-icon="gg:readme" data-inline="false"></span>說明
-                </button>
-            </div>
-            <h3>
-                <span class="iconify" data-icon="wpf:name" data-inline="false"></span> {{name}}
-            </h3>
-        </section>
-
-        <!-- Character Attributes Section -->
-        <section id="attributeList">
-            <h3 class="bg-color3 p-1">
-                <span class="iconify" data-icon="carbon:data-base" data-inline="false" data-width="20px" data-height="20px"></span>基本屬性
-            </h3>
-            <div class="row align-items-start">
-                <div v-for="item in state" class="board1" style="height: 36px;">
-                    <div>
-                        <textarea readonly class="textName" v-model="item.name" style="width:50px;padding: 1px 1px 1px 1px">{{item.name}}</textarea>
-                        <span style="height: 62px;">：</span>
-                        <textarea readonly class="textState" v-model="item.itemA" style="width:55px;padding: 1px 1px 1px 1px;">{{item.itemA}}</textarea>
-                        <span style="height: 32px;">／</span>
-                        <textarea readonly class="textState" v-model="item.itemB" style="width:55px;padding: 1px 1px 1px 1px">{{item.itemB}}</textarea>
-                        <button type="button" class="btn btn-link" v-on:click="rolling(item.name)">
-                            <span class="iconify" data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px" data-height="20px"></span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Dice Roll Section -->
-        <section id="rollList">
-            <h3 class="bg-color3 p-1">
-                <span class="iconify" data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px" data-height="20px"></span>擲骰
-            </h3>
-            <div class="row align-items-center" id="roll">
-                <div v-for="item in roll" class="board1" style="height: 36px;padding: 1px 1px 1px 1px">
-                    <textarea readonly class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">{{item.name}}</textarea>
-                    <span class="pb-2">:</span>
-                    <textarea readonly class="col textState" v-model="item.itemA" style="width:80px;padding: 1px 1px 1px 1px">{{item.itemA}}</textarea>
-                    <button type="button" class="btn btn-link" v-on:click="rolling(item.name)">
-                        <span class="iconify" data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px" data-height="20px"></span>
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- Notes Section -->
-        <section id="noteList">
-            <h3 class="bg-color3 p-1">
-                <span class="iconify" data-icon="clarity:note-edit-line" data-inline="false" data-width="20px" data-height="20px"></span>筆記
-            </h3>
-            <div class="row align-items-end" id="notes">
-                <div v-for="item in notes" class="board1">
-                    <textarea readonly class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">{{item.name}}</textarea>：
-                    <textarea readonly class="col textNote" v-model="item.itemA" style="width:180px">{{item.itemA}}</textarea>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- Include common modals -->
-    <div id="commonModals"></div>
-
-    <!-- Footer -->
+    <br>
+    <div class="container" id="array-rendering">
+        <!-- Alerts -->
+        <div class="alert alert-warning alert-dismissible fade show overlay" style="position: fixed; z-index: 999;" role="alert" id="warning-update">
+            <strong>更新成功!</strong> 你可以在聊天平台上使用新資料了。
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="alert alert-warning alert-dismissible fade show overlay" style="position: fixed; z-index: 999;" role="alert" id="warning-updateError">
+            <strong>更新失敗!</strong> 請檢查或向HKTRPG回報。
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    </div>
     <footer>
         <div id="footer"></div>
     </footer>
 
-    <!-- Scripts -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js"></script>
-    
-    <!-- Load common code -->
+    <!-- Common Modals -->
+    <div id="commonModals"></div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+        integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js"
+        integrity="sha384-w1Q4orYjBQndcko6MimVbzY0tgp4pWB4lZ7lr30WKz0vr/aWKhXdBNmNb5D92v7s" crossorigin="anonymous">
+    </script>
+
+    <!-- Common JavaScript -->
     <script src="/common/characterCardCommon.js"></script>
+
+    <!-- Page Specific JavaScript -->
     <script>
-        // Load common modals and initialize Vue after they're loaded
-        $(function() {
-            $("#commonModals").load("/common/characterCardModals.html", function() {
-                debugLog('Modals loaded, initializing Vue apps', 'info');
-                initializeVueApps();
-            });
+        // Load common modals
+        $("#commonModals").load("/common/characterCardModals.html", function() {
+            debugLog('Modals loaded, initializing Vue apps', 'info');
+            initializeVueApps(true); // Initialize for public card
         });
 
-        // Public card specific code
+        // Hide alerts initially
+        $('#warning-update').hide();
+        $('#warning-updateError').hide();
+
+        // Initialize on body load
         document.getElementById("body").onload = function () {
             debugLog('Body loaded, initializing public card', 'info');
-            login();
+            // Directly get public card list without login
+            socket.emit('getPublicListInfo');
         };
 
-        function login() {
-            debugLog('Attempting to get public list info', 'info');
-            socket.emit('getPublicListInfo');
-        }
-
-        // Socket event handlers
+        // Add socket event listener for public card list
         socket.on("getPublicListInfo", function (listInfo) {
-            debugLog('Received public list info', 'info');
-            if (!listInfo || !listInfo.temp) {
-                debugLog('No public list info received', 'error');
-                return;
-            }
-            
             let list = listInfo.temp;
             if (list) {
-                debugLog(`Found ${list.length} public cards`, 'info');
                 if (cardList && cardList.list) {
                     cardList.list = list;
-                    $('#loginModal').modal("hide");
                     $('#cardListModal').modal("show");
+                    debugLog('Public card list loaded successfully', 'info');
                 } else {
                     debugLog('CardList Vue app not initialized', 'error');
                 }
             } else {
-                debugLog('No public cards found', 'info');
+                debugLog('Failed to load public card list', 'error');
             }
         });
 
-        socket.on("publicRolling", function (result) {
-            if (result) {
-                debugLog(`Public rolling result: ${result}`, 'info');
-                addElement("<strong>" + result + "</strong>", "warning", 4000);
+        // Add socket event listener for card selection
+        socket.on("getPublicCardInfo", function (cardInfo) {
+            if (cardInfo && cardInfo.temp) {
+                const cardData = cardInfo.temp;
+                card._id = cardData._id;
+                card.id = cardData.id;
+                card.name = cardData.name;
+                card.state = cardData.state || [];
+                card.roll = cardData.roll || [];
+                card.notes = cardData.notes || [];
+                card.public = cardData.public || false;
+                $('#cardListModal').modal("hide");
+                debugLog('Card data loaded successfully', 'info');
+            } else {
+                debugLog('Failed to load card data', 'error');
             }
         });
+
+        // Update getTheSelectedOne function
+        function getTheSelectedOne(index) {
+            if (cardList && cardList.list && cardList.list[index]) {
+                const selectedCard = cardList.list[index];
+                socket.emit('getPublicCardInfo', {
+                    cardId: selectedCard._id
+                });
+            } else {
+                debugLog('Invalid card selection', 'error');
+            }
+        }
+
+        // Add/Remove item functions
+        function newItem(form) {
+            switch (form) {
+                case 0:
+                    card.state.push({
+                        itemA: ""
+                    });
+                    break;
+                case 1:
+                    card.roll.push({
+                        itemA: ""
+                    });
+                    break;
+                case 2:
+                    card.notes.push({
+                        itemA: ""
+                    });
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        function removeItem(form) {
+            switch (form) {
+                case 0:
+                    card.state.pop();
+                    break;
+                case 1:
+                    card.roll.pop();
+                    break;
+                case 2:
+                    card.notes.pop();
+                    break;
+                default:
+                    break;
+            }
+        }
     </script>
+
+    <!-- Remove duplicate modal since we're using the common one -->
 </body>
 <!-- HKTRPG Sad -- 20201221-->
 

@@ -66,13 +66,12 @@
             </div>
 
             <!-- Main Chat Area -->
-            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
-                <div
-                    class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4 d-flex flex-column">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 </div>
 
-                <div class="chat-container">
-                    <div class="overflow-auto" id="container-content" style="height: calc(100vh - 250px);">
+                <div class="chat-container flex-grow-1">
+                    <div class="overflow-auto" id="container-content">
                         <div id="content" class="p-2">
                             <!-- Messages will be added here -->
                         </div>
@@ -424,15 +423,22 @@
         }
 
         /* 聊天室容器樣式優化 */
-        #container-content {
-            height: calc(100vh - 160px);
-            overflow-y: auto;
-            scroll-behavior: smooth;
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
             background: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end));
             border-radius: 8px;
             padding: 0.3rem;
             margin: 0.2rem 0;
             box-shadow: var(--shadow-md);
+            height: calc(100vh - 200px); /* 調整高度以留出 footer 空間 */
+        }
+
+        #container-content {
+            flex: 1;
+            overflow-y: auto;
+            scroll-behavior: smooth;
         }
 
         #content {
@@ -548,15 +554,16 @@
         /* 快速輸入指令欄樣式 */
         .quick-input-pad {
             position: fixed;
-            bottom: 80px;
+            bottom: 0;
             right: 20px;
             background: var(--card-bg);
-            border-radius: 12px;
+            border-radius: 12px 12px 0 0;
             box-shadow: var(--shadow-lg);
             z-index: 1000;
             transition: all 0.3s ease;
             max-width: 300px;
             width: 90%;
+            transform: translateY(0);
         }
 
         .quick-input-pad .toggle-button {
@@ -587,13 +594,18 @@
         .quick-input-pad .pad-content {
             padding: 15px;
             background: var(--card-bg);
-            border-radius: 12px;
+            border-radius: 12px 12px 0 0;
             box-shadow: var(--shadow-lg);
             border: 1px solid var(--card-border);
+            transition: transform 0.3s ease;
         }
 
         .quick-input-pad.collapsed {
             transform: translateY(calc(100% - 40px));
+        }
+
+        .quick-input-pad.collapsed .pad-content {
+            transform: translateY(100%);
         }
 
         .quick-input-pad:not(.collapsed) {
@@ -648,12 +660,13 @@
         /* 移動端樣式調整 */
         @media (max-width: 768px) {
             .quick-input-pad {
-                bottom: 80px;
-                right: 10px;
-                width: calc(100% - 20px);
+                bottom: 0;
+                right: 0;
+                width: 100%;
                 max-width: none;
                 max-height: 25vh;
                 overflow: hidden;
+                border-radius: 12px 12px 0 0;
             }
 
             .quick-input-pad .toggle-button {
@@ -686,24 +699,21 @@
                 overflow-y: auto;
                 padding: 10px;
                 border: 1px solid var(--card-border);
+                transition: transform 0.3s ease;
+                border-radius: 12px 12px 0 0;
             }
 
             .quick-input-pad.collapsed {
                 transform: translateY(calc(100% - 40px));
             }
 
+            .quick-input-pad.collapsed .pad-content {
+                transform: translateY(100%);
+            }
+
             .quick-input-pad:not(.collapsed) {
                 bottom: 50%;
                 transform: translateY(50%);
-            }
-
-            #container-content {
-                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                transform: translateY(0);
-            }
-
-            #container-content.quick-input-expanded {
-                transform: translateY(-25vh);
             }
         }
 
@@ -1082,11 +1092,6 @@
             gap: 8px;
         }
 
-        .chat-container {
-            flex: 1;
-            overflow: hidden;
-        }
-
         #container-content {
             height: 100%;
             margin: 0;
@@ -1112,6 +1117,10 @@
             .main-content {
                 margin-left: 0;
                 margin-top: 0;
+            }
+
+            .chat-container {
+                margin-top: 60px;
             }
 
             .mobile-toggle {
@@ -1217,6 +1226,42 @@
         .modal .form-group label {
             color: var(--text-color);
             margin-bottom: 0.5rem;
+        }
+
+        /* Footer 樣式優化 */
+        .footer {
+            position: sticky;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            border-top: 1px solid var(--card-border);
+            z-index: 1000;
+            margin-top: auto;
+        }
+
+        .footer .container {
+            padding: 0.5rem;
+        }
+
+        /* 移動端樣式調整 */
+        @media (max-width: 768px) {
+            .chat-container {
+                height: calc(100vh - 160px);
+                margin-top: 60px;
+            }
+
+            .footer {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+            }
+
+            .footer .container {
+                padding: 0.5rem;
+            }
         }
     </style>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
@@ -1534,20 +1579,7 @@
                 const pad = document.getElementById('quickInputPad');
                 if (!pad) return; // 如果元素不存在，直接返回
 
-                const containerContent = document.getElementById('container-content');
                 const isCollapsed = pad.classList.toggle('collapsed');
-
-                // 只在手機版時調整容器內容的位置
-                if (window.innerWidth <= 768) {
-                    if (containerContent) {
-                        if (isCollapsed) {
-                            containerContent.classList.remove('quick-input-expanded');
-                        } else {
-                            containerContent.classList.add('quick-input-expanded');
-                        }
-                    }
-                }
-
                 localStorage.setItem('quickInputCollapsed', isCollapsed);
             }
         };

@@ -115,11 +115,10 @@ class DbWatchdog {
                     + currentdate.getMinutes() + ":"
                     + currentdate.getSeconds();
                 try {
-                    this.logger.info(`${datetime}  mongodbState: ${JSON.stringify(ans.connections)}`);
+                    this.logger.info(`${datetime}  mongodbState: ${JSON.stringify(ans)}`);
                 } catch (error) {
-
+                    this.logger.error(`Error logging MongoDB state: ${error.message}`);
                 }
-
             },
             CONFIG.MONGOD_CHECK_INTERVAL
         );

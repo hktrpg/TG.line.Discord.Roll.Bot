@@ -64,16 +64,28 @@ function initializeVueApps(isPublic = false) {
                                 break;
                         }
                     },
-                    removeItem(form) {
+                    removeItem(form, index = null) {
                         switch (form) {
                             case 0:
-                                this.state.pop();
+                                if (index !== null) {
+                                    this.state.splice(index, 1);
+                                } else {
+                                    this.state.pop();
+                                }
                                 break;
                             case 1:
-                                this.roll.pop();
+                                if (index !== null) {
+                                    this.roll.splice(index, 1);
+                                } else {
+                                    this.roll.pop();
+                                }
                                 break;
                             case 2:
-                                this.notes.pop();
+                                if (index !== null) {
+                                    this.notes.splice(index, 1);
+                                } else {
+                                    this.notes.pop();
+                                }
                                 break;
                             default:
                                 break;
@@ -84,6 +96,31 @@ function initializeVueApps(isPublic = false) {
                     },
                     removeChannel(channelId) {
                         this.gpList = this.gpList.filter(channel => channel.id !== channelId);
+                    },
+                    config() {
+                        debugLog('Configuring group list', 'info');
+                        // Check if delete mode is already active
+                        const isDeleteModeActive = this.gpList.length > 0 && this.gpList[0].showDeleteButton;
+                        
+                        // Toggle delete mode
+                        this.gpList = this.gpList.map(group => ({
+                            ...group,
+                            showDeleteButton: !isDeleteModeActive,
+                            showCancelButton: false,
+                            confirmDelete: false
+                        }));
+                    },
+                    confirmRemoveChannel(channel) {
+                        if (!channel.confirmDelete) {
+                            channel.confirmDelete = true;
+                        } else {
+                            this.removeChannel(channel._id);
+                        }
+                    },
+                    cancelButton(channel) {
+                        channel.showDeleteButton = true;
+                        channel.showCancelButton = false;
+                        channel.confirmDelete = false;
                     },
                     rolling(name) {
                         debugLog(`Rolling for ${name}`, 'info');

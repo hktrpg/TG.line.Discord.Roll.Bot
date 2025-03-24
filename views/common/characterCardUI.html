@@ -68,7 +68,7 @@
         </h4>
         <!-- Add/Remove buttons for private card -->
         <button type="button" class="btn btn-warning float-right" v-if="name && !isPublic" @click="addItem(0)">+</button>
-        <button type="button" class="btn btn-warning float-right" v-if="name && !isPublic" @click="removeLastItem(0)">-</button>
+        <button type="button" class="btn btn-warning float-right" v-if="name && !isPublic" @click="removeItem(0)">-</button>
         <div class="row align-items-start m-1 p-1">
             <div v-for="(item, index) in state" class="board1" style="height: 36px;">
                 <div>
@@ -80,7 +80,7 @@
                     <button type="button" class="btn btn-link" @click="rolling(item.name)">
                         <span class="iconify" data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px" data-height="20px"></span>
                     </button>
-                    <button type="button" class="btn btn-danger btn-delete" v-if="deleteMode && !isPublic" @click="removeItem(index, 0)">刪除</button>
+                    <button type="button" class="btn btn-danger btn-delete" v-if="deleteMode && !isPublic" @click="removeItem(0, index)">刪除</button>
                 </div>
             </div>
         </div>
@@ -92,8 +92,8 @@
             <span class="iconify" data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px" data-height="20px"></span>擲骰
         </h4>
         <!-- Add/Remove buttons for private card -->
-        <button type="button" class="btn btn-warning float-right" v-if="name && !isPublic" onclick="newItem(1)">+</button>
-        <button type="button" class="btn btn-warning float-right" v-if="name && !isPublic" onclick="removeItem(1)">-</button>
+        <button type="button" class="btn btn-warning float-right" v-if="name && !isPublic" @click="addItem(1)">+</button>
+        <button type="button" class="btn btn-warning float-right" v-if="name && !isPublic" @click="removeItem(1)">-</button>
         <div class="row align-items-start m-1 p-1" id="roll">
             <div v-for="(item, index) in roll" class="board1" style="height: 36px;padding: 1px 1px 1px 1px">
                 <textarea :readonly="isPublic" class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">{{item.name}}</textarea>
@@ -102,7 +102,7 @@
                 <button type="button" class="btn btn-link" v-on:click="rolling(item.name)">
                     <span class="iconify" data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px" data-height="20px"></span>
                 </button>
-                <button type="button" class="btn btn-danger btn-delete" v-if="deleteMode && !isPublic" @click="removeItem(index, 1)">刪除</button>
+                <button type="button" class="btn btn-danger btn-delete" v-if="deleteMode && !isPublic" @click="removeItem(1, index)">刪除</button>
             </div>
         </div>
     </section>
@@ -113,13 +113,13 @@
             <span class="iconify" data-icon="clarity:note-edit-line" data-inline="false" data-width="20px" data-height="20px"></span>筆記
         </h4>
         <!-- Add/Remove buttons for private card -->
-        <button type="button" class="btn btn-warning float-right" v-if="name && !isPublic" onclick="newItem(2)">+</button>
-        <button type="button" class="btn btn-warning float-right" v-if="name && !isPublic" onclick="removeItem(2)">-</button>
+        <button type="button" class="btn btn-warning float-right" v-if="name && !isPublic" @click="addItem(2)">+</button>
+        <button type="button" class="btn btn-warning float-right" v-if="name && !isPublic" @click="removeItem(2)">-</button>
         <div class="row align-items-end" id="notes">
             <div v-for="(item, index) in notes" class="board1">
                 <textarea :readonly="isPublic" class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">{{item.name}}</textarea>：
                 <textarea :readonly="isPublic" class="col textNote" v-model="item.itemA" style="width:180px">{{item.itemA}}</textarea>
-                <button type="button" class="btn btn-danger btn-delete" v-if="deleteMode && !isPublic" @click="removeItem(index, 2)">刪除</button>
+                <button type="button" class="btn btn-danger btn-delete" v-if="deleteMode && !isPublic" @click="removeItem(2, index)">刪除</button>
             </div>
         </div>
     </section>

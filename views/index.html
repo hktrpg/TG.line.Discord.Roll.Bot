@@ -1034,6 +1034,7 @@
             cursor: pointer;
             transition: all 0.2s ease;
             background: var(--card-bg);
+            position: relative;
         }
 
         .chatroom-item:hover {
@@ -1045,8 +1046,58 @@
             color: var(--badge-text);
         }
 
+        .chatroom-item.active .iconify {
+            color: var(--badge-text);
+        }
+
+        .chatroom-item.active .delete-btn {
+            color: var(--badge-text);
+        }
+
+        .chatroom-item.active .delete-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--badge-text);
+        }
+
         .chatroom-item .iconify {
             margin-right: 8px;
+            transition: color 0.2s ease;
+        }
+
+        .chatroom-item .room-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .chatroom-item .delete-btn {
+            opacity: 0;
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: all 0.2s ease;
+            background: transparent;
+            border: none;
+            padding: 4px;
+            border-radius: 4px;
+            color: var(--text-color);
+            cursor: pointer;
+        }
+
+        .chatroom-item:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .chatroom-item .delete-btn:hover {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+
+        .chatroom-item .delete-btn .iconify {
+            margin: 0;
+            font-size: 1rem;
         }
 
         .main-content {
@@ -1559,7 +1610,15 @@
             currentRoom: CONFIG.DEFAULT_ROOM,
 
             init: () => {
-                chatroomManager.rooms.add(CONFIG.DEFAULT_ROOM);
+                // 從 localStorage 加載房間列表
+                const savedRooms = JSON.parse(localStorage.getItem('chatRooms') || '[]');
+                savedRooms.forEach(room => chatroomManager.rooms.add(room));
+                
+                // 確保默認房間存在
+                if (!chatroomManager.rooms.has(CONFIG.DEFAULT_ROOM)) {
+                    chatroomManager.rooms.add(CONFIG.DEFAULT_ROOM);
+                }
+                
                 chatroomManager.renderRooms();
                 chatroomManager.setupEventListeners();
                 // 初始化時加入默認房間
@@ -1583,8 +1642,14 @@
                 }
             },
 
+            saveRooms: () => {
+                // 將房間列表保存到 localStorage
+                localStorage.setItem('chatRooms', JSON.stringify(Array.from(chatroomManager.rooms)));
+            },
+
             addRoom: (roomName) => {
                 chatroomManager.rooms.add(roomName);
+                chatroomManager.saveRooms(); // 保存更新後的房間列表
                 chatroomManager.renderRooms();
                 chatroomManager.switchRoom(roomName);
             },
@@ -1592,6 +1657,7 @@
             removeRoom: (roomName) => {
                 if (roomName === CONFIG.DEFAULT_ROOM) return;
                 chatroomManager.rooms.delete(roomName);
+                chatroomManager.saveRooms(); // 保存更新後的房間列表
                 chatroomManager.renderRooms();
                 if (chatroomManager.currentRoom === roomName) {
                     chatroomManager.switchRoom(CONFIG.DEFAULT_ROOM);
@@ -1606,9 +1672,15 @@
                     state.socket.off(chatroomManager.currentRoom);
                 }
                 
+                // 更新房間狀態
                 chatroomManager.currentRoom = roomName;
-                state.currentRoom = roomName; // 更新全局狀態
-                document.getElementById("content").innerHTML = '';
+                state.currentRoom = roomName;
+                
+                // 清空聊天內容
+                const content = document.getElementById("content");
+                if (content) {
+                    content.innerHTML = '';
+                }
                 
                 // 發送切換房間事件
                 if (state.socket) {
@@ -1617,7 +1689,13 @@
                     state.socket.on(roomName, uiManager.addMessageToBox);
                 }
                 
-                document.getElementById("room").innerText = roomName;
+                // 更新房間顯示
+                const roomElement = document.getElementById("room");
+                if (roomElement) {
+                    roomElement.innerText = roomName;
+                }
+                
+                // 重新渲染房間列表以更新活動狀態
                 chatroomManager.renderRooms();
             },
 
@@ -1629,10 +1707,9 @@
                     <div class="chatroom-item ${room === chatroomManager.currentRoom ? 'active' : ''}"
                          onclick="chatroomManager.switchRoom('${room}')">
                         <span class="iconify" data-icon="bi:chat-dots"></span>
-                        <span>${room}</span>
+                        <span class="room-name">${room}</span>
                         ${room !== CONFIG.DEFAULT_ROOM ? `
-                            <button class="btn btn-sm btn-danger ml-auto" 
-                                    onclick="event.stopPropagation(); chatroomManager.removeRoom('${room}')">
+                            <button class="delete-btn" onclick="event.stopPropagation(); chatroomManager.removeRoom('${room}')">
                                 <span class="iconify" data-icon="bi:x"></span>
                             </button>
                         ` : ''}

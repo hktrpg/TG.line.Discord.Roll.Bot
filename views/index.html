@@ -16,10 +16,6 @@
 </head>
 
 <body>
-    <button class="floating-toggle-button" onclick="headerManager.toggle()">
-        <span class="iconify" data-icon="bi:chevron-up"></span>
-    </button>
-
     <!-- Header -->
     <div id="header"></div>
 
@@ -718,111 +714,94 @@
 
         /* 移動端樣式調整 */
         @media (max-width: 768px) {
-            :root {
-                --footer-height: 120px; /* 移動端 footer 高度較大 */
-            }
-
-            .quick-input-pad {
-                right: 10px;
-                width: calc(100% - 20px);
-                max-width: none;
-                bottom: auto;
-                top: calc(var(--header-height) + 10px); /* 手機版時在頂部 */
-            }
-
-            .quick-input-pad.expanded {
-                transform: translateY(0);
-                bottom: auto; /* 覆蓋網頁版的 bottom 設置 */
-            }
-
-            /* 調整聊天容器以避免被快速輸入欄遮擋 */
-            .chat-container {
-                margin-top: calc(var(--header-height) + 200px); /* 使用固定高度 */
-            }
-
-            /* 當快速輸入欄收起時，恢復聊天容器的正常位置 */
-            .quick-input-pad:not(.expanded) + .chat-container {
-                margin-top: var(--header-height);
-            }
-        }
-
-        /* 移除桌面版隱藏手機版加入按鈕的樣式 */
-        @media (min-width: 769px) {
-            /* 確保網頁版時聊天容器沒有額外的 margin */
-            .chat-container {
+            .app-container {
                 margin-top: 0;
             }
-        }
 
-        /* Floating Toggle Button Styles */
-        .floating-toggle-button {
-            display: none;
-            /* Hide by default on desktop */
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: var(--badge-bg);
-            color: var(--badge-text);
-            border: none;
-            box-shadow: var(--shadow-lg);
-            z-index: 1002;
-            cursor: pointer;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-size: 20px;
-            font-weight: bold;
-        }
-
-        /* Show floating button only on mobile */
-        @media (max-width: 768px) {
-            .floating-toggle-button {
-                display: flex !important;
-                /* Force display on mobile */
-            }
-
-            /* Adjust header and content for mobile */
-            #header {
+            .sidebar {
                 position: fixed;
-                top: 0;
-                transform: translateY(0);
+                left: -240px;
+                top: 60px;
+                bottom: 0;
+                z-index: 1000;
+                height: calc(100vh - 60px);
+                overflow-y: auto;
+                padding-bottom: var(--footer-height); /* 添加底部 padding 以避免被 footer 遮擋 */
             }
 
-            .header-content {
+            .sidebar.show {
+                left: 0;
+            }
+
+            .main-content {
+                margin-left: 0;
+                margin-top: 0;
+            }
+
+            .chat-container {
+                margin-top: 60px;
+                margin-bottom: var(--footer-height); /* 添加底部 margin 以避免被 footer 遮擋 */
+            }
+
+            .mobile-toggle {
+                display: block;
                 position: fixed;
-                top: 28px;
-                transform: translateY(0);
+                left: 10px;
+                top: 10px;
+                z-index: 1001;
+                background: var(--badge-bg);
+                color: var(--badge-text);
+                border: none;
+                border-radius: 4px;
+                padding: 8px;
+                cursor: pointer;
             }
 
-            #header.collapsed {
-                transform: translateY(-100%);
+            /* 調整 footer 樣式 */
+            .footer {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                z-index: 999;
+                background: var(--footer-bg);
+                border-top: 1px solid var(--card-border);
+                padding: 0.5rem;
             }
 
-            .header-content.collapsed {
-                transform: translateY(-100%);
+            /* 調整聊天容器以避免被 footer 遮擋 */
+            .chat-container {
+                height: calc(100vh - 120px); /* 調整高度以適應 footer */
+            }
+
+            /* 調整側邊欄內容區域 */
+            .sidebar-sticky {
+                padding-bottom: calc(var(--footer-height) + 20px); /* 增加底部 padding */
+            }
+
+            /* 調整列表內容區域 */
+            .list-content {
+                max-height: calc(100vh - 400px); /* 調整最大高度 */
             }
         }
 
-        /* Desktop styles */
+        /* 確保桌面版不受影響 */
         @media (min-width: 769px) {
-            .floating-toggle-button {
-                display: none !important;
-                /* Force hide on desktop */
+            .footer {
+                position: sticky;
+                bottom: 0;
             }
 
-            #header {
-                position: relative;
-                top: 0;
-                transform: none !important;
+            .chat-container {
+                margin-bottom: 0;
             }
 
-            .header-content {
-                position: relative;
-                top: 0;
-                transform: none !important;
+            .sidebar {
+                padding-bottom: 0;
+            }
+
+            .sidebar-sticky {
+                padding-bottom: 0;
             }
         }
 
@@ -1757,37 +1736,20 @@
         // Header Management
         const headerManager = {
             init: () => {
-                // Create toggle button if it doesn't exist
-                if (!document.querySelector('.floating-toggle-button')) {
-                    const toggleButton = document.createElement('button');
-                    toggleButton.className = 'floating-toggle-button';
-                    toggleButton.textContent = '^';
-                    toggleButton.onclick = () => headerManager.toggle();
-                    document.body.appendChild(toggleButton);
-                }
-
                 // Initialize header state
                 const isCollapsed = localStorage.getItem('headerCollapsed') === 'true';
                 const header = document.getElementById('header');
-                const toggleButton = document.querySelector('.floating-toggle-button');
 
                 if (isCollapsed && header) {
                     header.classList.add('collapsed');
-                    if (toggleButton) {
-                        toggleButton.classList.add('collapsed');
-                        toggleButton.textContent = 'v';
-                    }
                 }
             },
 
             toggle: () => {
                 const header = document.getElementById('header');
-                const toggleButton = document.querySelector('.floating-toggle-button');
 
-                if (header && toggleButton) {
+                if (header) {
                     const isCollapsed = header.classList.toggle('collapsed');
-                    toggleButton.classList.toggle('collapsed');
-                    toggleButton.textContent = isCollapsed ? 'v' : '^';
                     localStorage.setItem('headerCollapsed', isCollapsed);
                 }
             }

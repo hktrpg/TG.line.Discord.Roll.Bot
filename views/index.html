@@ -202,7 +202,9 @@
             --gradient-end: rgba(255, 255, 255, 0.05);
             --input-height: 38px;
             --border-radius: 8px;
-            --footer-height: 60px; /* 新增：footer 高度變量 */
+            --footer-height: 60px;
+            --header-height: 60px; /* 新增：header 高度變量 */
+            --quick-input-height: 200px; /* 新增：快速輸入欄高度變量 */
         }
 
         [data-theme="dark"] {
@@ -572,7 +574,7 @@
             transform: translateY(0);
             opacity: 1;
             pointer-events: auto;
-            bottom: var(--footer-height); /* 使用變量計算位置 */
+            bottom: var(--footer-height); /* 網頁版時在 footer 頂部 */
         }
 
         .quick-input-pad .pad-content {
@@ -662,10 +664,23 @@
                 right: 10px;
                 width: calc(100% - 20px);
                 max-width: none;
+                bottom: auto;
+                top: calc(var(--header-height) + 10px); /* 手機版時在頂部 */
             }
 
             .quick-input-pad.expanded {
-                bottom: var(--footer-height); /* 使用變量計算位置 */
+                transform: translateY(0);
+                bottom: auto; /* 覆蓋網頁版的 bottom 設置 */
+            }
+
+            /* 調整聊天容器以避免被快速輸入欄遮擋 */
+            .chat-container {
+                margin-top: calc(var(--header-height) + 200px); /* 使用固定高度 */
+            }
+
+            /* 當快速輸入欄收起時，恢復聊天容器的正常位置 */
+            .quick-input-pad:not(.expanded) + .chat-container {
+                margin-top: var(--header-height);
             }
         }
 
@@ -673,6 +688,11 @@
         @media (min-width: 769px) {
             .mobile-join-button {
                 display: none;
+            }
+            
+            /* 確保網頁版時聊天容器沒有額外的 margin */
+            .chat-container {
+                margin-top: 0;
             }
         }
 

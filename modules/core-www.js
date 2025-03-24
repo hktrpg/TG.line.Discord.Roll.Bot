@@ -190,7 +190,9 @@ www.use('/:path/includes/', express.static(process.cwd() + '/views/includes/'));
 www.use('/:path/scripts/', express.static(process.cwd() + '/views/scripts/'));
 www.use('/includes/', express.static(process.cwd() + '/views/includes/'));
 www.use('/scripts/', express.static(process.cwd() + '/views/scripts/'));
-
+// Add common files route
+www.use('/:path/common/', express.static(process.cwd() + '/views/common/'));
+www.use('/common/', express.static(process.cwd() + '/views/common/'));
 
 www.get('/card', (req, res) => {
     res.sendFile(process.cwd() + '/views/characterCard.html');
@@ -208,6 +210,7 @@ www.get('/character', (req, res) => {
 www.get('/player', (req, res) => {
     res.sendFile(process.cwd() + '/views/namecard/namecard_player.html');
 });
+
 
 
 www.get('/log/:id', (req, res) => {

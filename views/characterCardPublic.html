@@ -3,29 +3,34 @@
 <!-- HKTRPG Sad-->
 
 <head>
-    <!-- Required meta tags -->
+    <!-- Meta Tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <!-- Bootstrap CSS -->
-    <script src="/socket.io/socket.io.js"></script>
+    <title>Character Card 公開角色卡 @ HKTRPG</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="https://avatars2.githubusercontent.com/u/48795428?s=280&v=4" />
+    
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="css/card.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
         integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
-    <!-- production version, optimized for size and speed -->
+    
+    <!-- Scripts -->
+    <script src="/socket.io/socket.io.js"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-    <title>Character Card 公開角色卡 @ HKTRPG</title>
-    <link rel="icon" href="https://avatars2.githubusercontent.com/u/48795428?s=280&v=4" />
     <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
-
-    <!--https://blog.gtwang.org/programming/javascript-aes-symmetric-encryption-tutorial/-->
 </head>
 
 <body class="bg-color center container" id="body">
+    <!-- Header Section -->
     <header>
         <div id="header"></div>
     </header>
-    <br>
+
+    <!-- Main Content -->
     <main class="container" id="array-rendering">
+        <!-- Action Buttons Section -->
         <section id="buttonlist">
             <div class="button-group">
                 <button type="button" class="btn btn-secondary float-right" onclick="selectCard()">
@@ -39,304 +44,123 @@
                 <span class="iconify" data-icon="wpf:name" data-inline="false"></span> {{name}}
             </h3>
         </section>
-        <br>
+
+        <!-- Character Attributes Section -->
         <section id="attributeList">
             <h3 class="bg-color3 p-1">
-                <span class="iconify" data-icon="carbon:data-base" data-inline="false" data-width="20px"
-                    data-height="20px"></span>基本屬性
+                <span class="iconify" data-icon="carbon:data-base" data-inline="false" data-width="20px" data-height="20px"></span>基本屬性
             </h3>
             <div class="row align-items-start">
-                <div v-for="item in state" id="state" class=" board1" style="height: 36px;">
+                <div v-for="item in state" class="board1" style="height: 36px;">
                     <div>
-                        <textarea readonly class=" textName" v-model="item.name"
-                            style="width:50px;padding: 1px 1px 1px 1px">
-                        {{item.name}}
-                    </textarea><span style="height: 62px;">：</span>
-                        <textarea readonly class=" textState" v-model="item.itemA"
-                            style="width:55px;padding: 1px 1px 1px 1px;">
-                        {{item.itemA}}
-                    </textarea>
-                        <span style="height: 32px;">／ </span>
-                        <textarea readonly class=" textState" v-model="item.itemB"
-                            style="width:55px;padding: 1px 1px 1px 1px">
-                        {{item.itemB}}
-                    </textarea>
-                        <button type="button" class="btn btn-link" v-on:click="rolling(item.name)"><span class="iconify "
-                                data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
-                                data-height="20px"></span></button>
+                        <textarea readonly class="textName" v-model="item.name" style="width:50px;padding: 1px 1px 1px 1px">{{item.name}}</textarea>
+                        <span style="height: 62px;">：</span>
+                        <textarea readonly class="textState" v-model="item.itemA" style="width:55px;padding: 1px 1px 1px 1px;">{{item.itemA}}</textarea>
+                        <span style="height: 32px;">／</span>
+                        <textarea readonly class="textState" v-model="item.itemB" style="width:55px;padding: 1px 1px 1px 1px">{{item.itemB}}</textarea>
+                        <button type="button" class="btn btn-link" v-on:click="rolling(item.name)">
+                            <span class="iconify" data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px" data-height="20px"></span>
+                        </button>
                     </div>
                 </div>
             </div>
         </section>
-        <br>
+
+        <!-- Dice Roll Section -->
         <section id="rollList">
             <h3 class="bg-color3 p-1">
-                <span class="iconify" data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
-                    data-height="20px"></span>擲骰
+                <span class="iconify" data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px" data-height="20px"></span>擲骰
             </h3>
             <div class="row align-items-center" id="roll">
                 <div v-for="item in roll" class="board1" style="height: 36px;padding: 1px 1px 1px 1px">
-                    <textarea readonly class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">
-                        {{item.name}}
-                    </textarea><span class="pb-2">:</span>
-                    <textarea readonly class="col textState" v-model="item.itemA"
-                        style="width:80px;padding: 1px 1px 1px 1px">
-                        {{item.itemA}}
-                    </textarea><button type="button" class="btn btn-link" v-on:click="rolling(item.name)"><span
-                            class="iconify " data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
-                            data-height="20px"></span></button>
+                    <textarea readonly class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">{{item.name}}</textarea>
+                    <span class="pb-2">:</span>
+                    <textarea readonly class="col textState" v-model="item.itemA" style="width:80px;padding: 1px 1px 1px 1px">{{item.itemA}}</textarea>
+                    <button type="button" class="btn btn-link" v-on:click="rolling(item.name)">
+                        <span class="iconify" data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px" data-height="20px"></span>
+                    </button>
                 </div>
             </div>
         </section>
-        <br>
+
+        <!-- Notes Section -->
         <section id="noteList">
             <h3 class="bg-color3 p-1">
-                <span class="iconify" data-icon="clarity:note-edit-line" data-inline="false" data-width="20px"
-                    data-height="20px"></span>筆記
+                <span class="iconify" data-icon="clarity:note-edit-line" data-inline="false" data-width="20px" data-height="20px"></span>筆記
             </h3>
             <div class="row align-items-end" id="notes">
                 <div v-for="item in notes" class="board1">
-                    <textarea readonly class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">
-                        {{item.name}}
-                    </textarea>：
-                    <textarea readonly class="col textNote" v-model="item.itemA" style="width:180px">
-                        {{item.itemA}}
-                    </textarea>
+                    <textarea readonly class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">{{item.name}}</textarea>：
+                    <textarea readonly class="col textNote" v-model="item.itemA" style="width:180px">{{item.itemA}}</textarea>
                 </div>
             </div>
         </section>
     </main>
-    <!-- Button trigger modal -->
 
-    <!-- Modal -->
-    <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="loginModalLabel">HKTRPG 角色卡登入系統</h5>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-dark float-right" onclick="readme()">
-                        <span class="iconify" data-icon="gg:readme" data-inline="false"></span>說明
-                    </button>
-                    <button type="button" class="btn btn-primary" onclick="login()">登入</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Include common modals -->
+    <div id="commonModals"></div>
 
-
-    <div class="modal fade" id="cardListModal" tabindex="-1" role="dialog" aria-labelledby="cardListModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="cardListModalLabel">選擇角色卡</h5>
-                </div>
-                <div class="modal-body">
-                    <form id="cardList-Form">
-                        <div class="form-group row">
-                            <div id="array-cardList">
-                                <span v-for="(item,index) in list" :key="index" class="col">
-                                    <button type="button" class="btn btn-warning" v-on:click="getTheSelectedOne(index)">
-                                        {{item.name}}</button>
-                                </span>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="readmeModalCenter" tabindex="-1" role="dialog" aria-labelledby="readmeModalCenterTitle"
-        aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="readmeModalLongTitle">使用說明</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    這是查看別人公開的角色卡的位置。 <br>
-                    可以在私人角色卡頁進行設定公開，<br>
-                    也可以對HKTRPG機械人輸入 .char public (名字)公開<br>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Footer -->
     <footer>
         <div id="footer"></div>
     </footer>
 
-    <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
-        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
-        integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous">
-        </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js"
-        integrity="sha384-w1Q4orYjBQndcko6MimVbzY0tgp4pWB4lZ7lr30WKz0vr/aWKhXdBNmNb5D92v7s" crossorigin="anonymous">
-        </script>
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js"></script>
+    
+    <!-- Load common code -->
+    <script src="/common/characterCardCommon.js"></script>
     <script>
-        const TITLE = "HKTRPG 公開角色卡";
-        $(function () {
-            $("#header").load("includes/header.html", function () {
-                $("#title").text(TITLE);
+        // Load common modals and initialize Vue after they're loaded
+        $(function() {
+            $("#commonModals").load("/common/characterCardModals.html", function() {
+                debugLog('Modals loaded, initializing Vue apps', 'info');
+                initializeVueApps();
             });
-            $("#footer").load("includes/footer.html");
         });
-    </script>
-    <script>
-        let socket = io();
+
+        // Public card specific code
         document.getElementById("body").onload = function () {
+            debugLog('Body loaded, initializing public card', 'info');
             login();
         };
 
-        function readme() {
-            $('#readmeModalCenter').modal("show")
-        }
-
-        function popup(result) {
-            if (result) {
-                $('#warning-update').show();
-                setTimeout(function () {
-                    // Closing the alert 
-                    $('#warning-update').hide();
-                }, 5000);
-            }
-            if (!result) {
-                $('#warning-updateError').show();
-                setTimeout(function () {
-                    // Closing the alert 
-                    $('#warning-updateError').hide();
-                }, 5000);
-            }
-
-        }
-
-
-
-        let divNumber = 0;
-
-
-        function addElement(message, type, closeDelay) {
-            let $cont = $("#alerts-container");
-            if ($cont.length == 0) {
-                // alerts-container does not exist, create it
-                $cont = $('<div id="alerts-container">')
-                    .css({
-                        position: "fixed",
-                        width: "30%",
-                        left: "60%",
-                        top: "15%",
-                        margin: "0 auto"
-                    })
-                    .appendTo($("body"));
-            }
-
-            // default to alert-info; other options include success, warning, danger
-            type = type || "info";
-
-            // create the alert div
-            let alert = $('<div>')
-                .addClass("alert text-wrap text-break warning alert-dismissible fade show overlay alert-" + type)
-                .append(
-                    $('<button type="button" class="close" data-dismiss="alert">')
-                        .append("&times;")
-                )
-                .append(message);
-
-            // add the alert div to top of alerts-container, use append() to add to bottom
-            $cont.prepend(alert);
-
-            // if closeDelay was passed - set a timeout to close the alert
-            if (closeDelay)
-                window.setTimeout(function () {
-                    alert.alert("close")
-                }, closeDelay);
-
-        }
-
-
-        function selectCard() {
-            $('#cardListModal').modal("show")
-        }
-
-
-        let card = Vue.createApp({
-            data() {
-                return {
-                    id: "",
-                    name: "",
-                    state: [],
-                    roll: [],
-                    notes: [],
-                    gpList: "",
-                    public: false
-                }
-            },
-            methods: {
-                rolling(item) {
-                    socket.emit('publicRolling', {
-                        item: item,
-                        doc: {
-                            state: card.state,
-                            roll: card.roll,
-                            notes: card.notes
-                        },
-                        cardName: card.name
-                    });
-                }
-            }
-        }).mount('#array-rendering')
-        socket.on("publicRolling", function (result) {
-            if (result) {
-                addElement("<strong>" + result +
-                    "</strong>", "warning", 4000);
-            }
-        })
-
         function login() {
+            debugLog('Attempting to get public list info', 'info');
+            socket.emit('getPublicListInfo');
+        }
 
-            socket.emit('getPublicListInfo')
-            socket.on("getPublicListInfo", function (listInfo) {
-                let list = listInfo.temp;
-                if (list) {
-                    cardList.list = list
+        // Socket event handlers
+        socket.on("getPublicListInfo", function (listInfo) {
+            debugLog('Received public list info', 'info');
+            if (!listInfo || !listInfo.temp) {
+                debugLog('No public list info received', 'error');
+                return;
+            }
+            
+            let list = listInfo.temp;
+            if (list) {
+                debugLog(`Found ${list.length} public cards`, 'info');
+                if (cardList && cardList.list) {
+                    cardList.list = list;
                     $('#loginModal').modal("hide");
                     $('#cardListModal').modal("show");
+                } else {
+                    debugLog('CardList Vue app not initialized', 'error');
                 }
-            });
-        }
-
-        let cardList = Vue.createApp({
-            data() {
-                return {
-                    list: []
-                }
-            },
-            methods: {
-                getTheSelectedOne(number) {
-                    // then number will be the number
-                    card._id = this.list[number]._id;
-                    card.id = this.list[number].id;
-                    card.name = this.list[number].name;
-                    card.notes = this.list[number].notes;
-                    card.roll = this.list[number].roll;
-                    card.state = this.list[number].state;
-                    card.public = this.list[number].public;
-                    $('#cardListModal').modal("hide")
-                }
+            } else {
+                debugLog('No public cards found', 'info');
             }
-        }).mount('#array-cardList')
+        });
+
+        socket.on("publicRolling", function (result) {
+            if (result) {
+                debugLog(`Public rolling result: ${result}`, 'info');
+                addElement("<strong>" + result + "</strong>", "warning", 4000);
+            }
+        });
     </script>
 </body>
 <!-- HKTRPG Sad -- 20201221-->

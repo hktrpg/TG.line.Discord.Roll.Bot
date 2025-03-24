@@ -632,7 +632,7 @@
             transform: translateY(0);
             opacity: 1;
             pointer-events: auto;
-            bottom: var(--footer-height); /* 網頁版時在 footer 頂部 */
+            bottom: calc(var(--footer-height) + 1rem); /* 使用 CSS 變量計算 footer 高度 */
         }
 
         .quick-input-pad .pad-content {

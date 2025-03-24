@@ -32,7 +32,7 @@
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+            <div class="col-md-3 col-lg-2 d-md-block sidebar collapse">
                 <div class="sidebar-sticky pt-3">
                     <div class="sidebar-header mb-3">
                         <div class="input-group">
@@ -61,6 +61,20 @@
                                 <span>加入聊天室</span>
                             </button>
                         </div>
+                    </div>
+                    <div class="sidebar-actions mt-3">
+                        <button class="btn btn-info w-100 mb-2" onclick="save()">
+                            <span class="iconify" data-icon="gg:readme"></span>
+                            <span>儲存</span>
+                        </button>
+                        <button class="btn btn-dark w-100 mb-2" onclick="readme()">
+                            <span class="iconify" data-icon="gg:readme"></span>
+                            <span>說明</span>
+                        </button>
+                        <button class="btn btn-secondary w-100" onclick="themeManager.toggleTheme()">
+                            <span class="iconify" data-icon="bi:moon-stars"></span>
+                            <span class="theme-text">深色模式</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -97,7 +111,7 @@
                 </div>
 
                 <!-- Message Input -->
-                <footer class="footer mt-auto py-3 bg-light">
+                <footer class="footer mt-auto py-3">
                     <div class="container">
                         <form id="send-form" class="needs-validation" novalidate>
                             <div class="input-group">
@@ -203,28 +217,62 @@
             --input-height: 38px;
             --border-radius: 8px;
             --footer-height: 60px;
-            --header-height: 60px; /* 新增：header 高度變量 */
-            --quick-input-height: 200px; /* 新增：快速輸入欄高度變量 */
+            --header-height: 60px;
+            --quick-input-height: 200px;
+            --sidebar-bg: #f8f9fa;
+            --sidebar-border: #dee2e6;
+            --chat-bg: #ffffff;
+            --message-hover: rgba(0, 0, 0, 0.05);
+            --active-item: #007bff;
+            --active-item-text: #ffffff;
+            --modal-bg: #ffffff;
+            --modal-border: #dee2e6;
+            --btn-info-bg: #17a2b8;
+            --btn-info-border: #17a2b8;
+            --btn-info-text: #ffffff;
+            --btn-dark-bg: #343a40;
+            --btn-dark-border: #343a40;
+            --btn-dark-text: #ffffff;
+            --btn-secondary-bg: #6c757d;
+            --btn-secondary-border: #6c757d;
+            --btn-secondary-text: #ffffff;
         }
 
         [data-theme="dark"] {
-            --bg-color: #1e1e1e;
-            --text-color: #d4d4d4;
-            --card-bg: #252526;
-            --card-border: #3c3c3c;
-            --input-bg: #3c3c3c;
-            --input-border: #3c3c3c;
-            --badge-bg: #0e639c;
+            --bg-color: #36393f;
+            --text-color: #dcddde;
+            --card-bg: #2f3136;
+            --card-border: #202225;
+            --input-bg: #40444b;
+            --input-border: #202225;
+            --badge-bg: #5865f2;
             --badge-text: #ffffff;
-            --footer-bg: #252526;
-            --scrollbar-track: #1e1e1e;
-            --scrollbar-thumb: #424242;
-            --scrollbar-thumb-hover: #4f4f4f;
-            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
-            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
-            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4);
-            --gradient-start: rgba(37, 37, 38, 0.8);
-            --gradient-end: rgba(37, 37, 38, 0.6);
+            --footer-bg: #2f3136;
+            --scrollbar-track: #2f3136;
+            --scrollbar-thumb: #202225;
+            --scrollbar-thumb-hover: #2f3136;
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3);
+            --gradient-start: rgba(47, 49, 54, 0.8);
+            --gradient-end: rgba(47, 49, 54, 0.6);
+            --sidebar-bg: #2f3136;
+            --sidebar-border: #202225;
+            --chat-bg: #36393f;
+            --message-hover: rgba(255, 255, 255, 0.05);
+            --active-item: #5865f2;
+            --active-item-text: #ffffff;
+            --modal-bg: #2f3136;
+            --modal-border: #202225;
+            --btn-info-bg: #2f3136;
+            --btn-info-border: #5865f2;
+            --btn-info-text: #dcddde;
+            --btn-dark-bg: #2f3136;
+            --btn-dark-border: #5865f2;
+            --btn-dark-text: #dcddde;
+            --btn-secondary-bg: #2f3136;
+            --btn-secondary-border: #5865f2;
+            --btn-secondary-text: #dcddde;
         }
 
         /* 滾動條樣式 */
@@ -282,10 +330,11 @@
             margin-bottom: 0.3rem;
             overflow: hidden;
             border: none;
-            background: linear-gradient(to right, var(--card-bg), var(--gradient-start));
+            background: var(--card-bg);
         }
 
         .card:hover {
+            background: var(--message-hover);
             transform: translateY(-1px);
             box-shadow: var(--shadow-md);
         }
@@ -353,30 +402,43 @@
         }
 
         /* 按鈕樣式優化 */
-        .btn {
-            border-radius: 6px;
-            padding: 0.5rem 1rem;
-            transition: all 0.3s ease;
-            box-shadow: var(--shadow-sm);
-            height: var(--input-height);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            white-space: nowrap;
+        .btn-info {
+            background-color: var(--btn-info-bg);
+            border-color: var(--btn-info-border);
+            color: var(--btn-info-text);
         }
 
-        .btn .iconify {
-            margin-right: 0.5rem;
-            font-size: 1.2rem;
+        .btn-info:hover {
+            background-color: var(--btn-info-bg);
+            border-color: var(--btn-info-border);
+            color: var(--btn-info-text);
+            opacity: 0.9;
         }
 
-        .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-md);
+        .btn-dark {
+            background-color: var(--btn-dark-bg);
+            border-color: var(--btn-dark-border);
+            color: var(--btn-dark-text);
         }
 
-        .btn:active {
-            transform: translateY(0);
+        .btn-dark:hover {
+            background-color: var(--btn-dark-bg);
+            border-color: var(--btn-dark-border);
+            color: var(--btn-dark-text);
+            opacity: 0.9;
+        }
+
+        .btn-secondary {
+            background-color: var(--btn-secondary-bg);
+            border-color: var(--btn-secondary-border);
+            color: var(--btn-secondary-text);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--btn-secondary-bg);
+            border-color: var(--btn-secondary-border);
+            color: var(--btn-secondary-text);
+            opacity: 0.9;
         }
 
         /* 徽章樣式優化 */
@@ -394,9 +456,8 @@
         }
 
         .badge-secondary {
-            background-color: var(--badge-bg);
-            color: var(--badge-text);
-            opacity: 0.8;
+            background-color: var(--input-bg);
+            color: var(--text-color);
         }
 
         /* 頁尾樣式優化 */
@@ -408,20 +469,28 @@
 
         /* 模態框樣式優化 */
         .modal-content {
-            background-color: var(--card-bg);
+            background-color: var(--modal-bg);
             color: var(--text-color);
             border-radius: 12px;
             box-shadow: var(--shadow-lg);
         }
 
         .modal-header {
-            border-bottom-color: var(--card-border);
+            border-bottom-color: var(--modal-border);
             padding: 1.25rem;
         }
 
         .modal-footer {
-            border-top-color: var(--card-border);
+            border-top-color: var(--modal-border);
             padding: 1.25rem;
+        }
+
+        .modal .close {
+            color: var(--text-color);
+        }
+
+        .modal .close:hover {
+            color: var(--badge-bg);
         }
 
         /* 聊天室容器樣式優化 */
@@ -429,12 +498,12 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            background: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end));
+            background: var(--chat-bg);
             border-radius: 8px;
             padding: 0.3rem;
             margin: 0.2rem 0;
             box-shadow: var(--shadow-md);
-            height: calc(100vh - 200px); /* 調整高度以留出 footer 空間 */
+            height: calc(100vh - 200px);
         }
 
         #container-content {
@@ -879,8 +948,8 @@
 
         .sidebar {
             width: 240px;
-            background: var(--card-bg);
-            border-right: 1px solid var(--card-border);
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--sidebar-border);
             display: flex;
             flex-direction: column;
             transition: all 0.3s ease;
@@ -957,25 +1026,25 @@
         }
 
         .chatroom-item:hover {
-            background: var(--input-bg);
+            background: var(--message-hover);
         }
 
         .chatroom-item.active {
-            background: var(--badge-bg);
-            color: var(--badge-text);
+            background: var(--active-item);
+            color: var(--active-item-text);
         }
 
         .chatroom-item.active .iconify {
-            color: var(--badge-text);
+            color: var(--active-item-text);
         }
 
         .chatroom-item.active .delete-btn {
-            color: var(--badge-text);
+            color: var(--active-item-text);
         }
 
         .chatroom-item.active .delete-btn:hover {
             background: rgba(255, 255, 255, 0.2);
-            color: var(--badge-text);
+            color: var(--active-item-text);
         }
 
         .chatroom-item .iconify {
@@ -1205,7 +1274,7 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: var(--card-bg);
+            background: var(--footer-bg);
             border-top: 1px solid var(--card-border);
             z-index: 1000;
             margin-top: auto;
@@ -1272,6 +1341,51 @@
                 right: 10px;
                 width: calc(100% - 20px);
                 max-width: none;
+            }
+        }
+
+        /* 側邊欄按鈕樣式 */
+        .sidebar-actions {
+            padding: 10px;
+            border-top: 1px solid var(--card-border);
+        }
+
+        .sidebar-actions .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-actions .btn .iconify {
+            font-size: 1.2rem;
+        }
+
+        .sidebar-actions .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .sidebar-actions .btn:active {
+            transform: translateY(0);
+        }
+
+        /* 移動端側邊欄按鈕樣式 */
+        @media (max-width: 768px) {
+            .sidebar-actions {
+                padding: 8px;
+            }
+            
+            .sidebar-actions .btn {
+                padding: 6px 12px;
+                font-size: 0.85rem;
+            }
+            
+            .sidebar-actions .btn .iconify {
+                font-size: 1.1rem;
             }
         }
     </style>

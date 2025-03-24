@@ -492,13 +492,15 @@
             padding: 0.3rem;
             margin: 0.2rem 0;
             box-shadow: var(--shadow-md);
-            height: calc(100vh - 200px);
+            height: calc(100vh - var(--header-height) - var(--footer-height));
+            position: relative;
         }
 
         #container-content {
             flex: 1;
             overflow-y: auto;
             scroll-behavior: smooth;
+            position: relative;
         }
 
         #content {
@@ -721,12 +723,11 @@
             .sidebar {
                 position: fixed;
                 left: -240px;
-                top: 60px;
-                bottom: 0;
+                top: var(--header-height);
+                bottom: var(--footer-height);
                 z-index: 1000;
-                height: calc(100vh - 60px);
+                height: calc(100vh - var(--header-height) - var(--footer-height));
                 overflow-y: auto;
-                padding-bottom: var(--footer-height); /* 添加底部 padding 以避免被 footer 遮擋 */
             }
 
             .sidebar.show {
@@ -736,25 +737,22 @@
             .main-content {
                 margin-left: 0;
                 margin-top: 0;
+                height: calc(100vh - var(--header-height) - var(--footer-height));
             }
 
             .chat-container {
-                margin-top: 60px;
-                margin-bottom: var(--footer-height); /* 添加底部 margin 以避免被 footer 遮擋 */
+                margin-top: 0;
+                height: 100%;
+                border-radius: 0;
             }
 
-            .mobile-toggle {
-                display: block;
-                position: fixed;
-                left: 10px;
-                top: 10px;
-                z-index: 1001;
-                background: var(--badge-bg);
-                color: var(--badge-text);
-                border: none;
-                border-radius: 4px;
-                padding: 8px;
-                cursor: pointer;
+            #container-content {
+                height: 100%;
+                margin: 0;
+            }
+
+            #content {
+                padding: 0.2rem;
             }
 
             /* 調整 footer 樣式 */
@@ -767,41 +765,31 @@
                 background: var(--footer-bg);
                 border-top: 1px solid var(--card-border);
                 padding: 0.5rem;
-            }
-
-            /* 調整聊天容器以避免被 footer 遮擋 */
-            .chat-container {
-                height: calc(100vh - 120px); /* 調整高度以適應 footer */
-            }
-
-            /* 調整側邊欄內容區域 */
-            .sidebar-sticky {
-                padding-bottom: calc(var(--footer-height) + 20px); /* 增加底部 padding */
+                height: var(--footer-height);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
             }
 
             /* 調整列表內容區域 */
             .list-content {
-                max-height: calc(100vh - 400px); /* 調整最大高度 */
+                max-height: calc(100vh - var(--header-height) - var(--footer-height) - 200px);
             }
         }
 
         /* 確保桌面版不受影響 */
         @media (min-width: 769px) {
+            .chat-container {
+                height: calc(100vh - var(--header-height) - var(--footer-height));
+            }
+
+            #container-content {
+                height: 100%;
+            }
+
             .footer {
                 position: sticky;
                 bottom: 0;
-            }
-
-            .chat-container {
-                margin-bottom: 0;
-            }
-
-            .sidebar {
-                padding-bottom: 0;
-            }
-
-            .sidebar-sticky {
-                padding-bottom: 0;
             }
         }
 
@@ -1311,11 +1299,11 @@
 
         .footer .container {
             padding: 0;
-            flex: 6;
+            flex: 1;
+            min-width: 0; /* 防止 flex 項目溢出 */
         }
 
         .footer .toggle-button {
-            flex: 2;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1328,6 +1316,7 @@
             cursor: pointer;
             transition: all 0.2s ease;
             margin-left: 10px;
+            white-space: nowrap; /* 防止文字換行 */
         }
 
         .footer .toggle-button:hover {
@@ -1347,25 +1336,49 @@
         /* 移動端樣式調整 */
         @media (max-width: 768px) {
             .footer {
-                flex-direction: column;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                z-index: 999;
+                background: var(--footer-bg);
+                border-top: 1px solid var(--card-border);
                 padding: 0.5rem;
+                height: var(--footer-height);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
             }
 
             .footer .container {
-                width: 100%;
-                margin-bottom: 10px;
+                flex: 1;
+                margin-right: 10px;
+                min-width: 0; /* 防止 flex 項目溢出 */
             }
 
             .footer .toggle-button {
-                width: 100%;
+                flex-shrink: 0; /* 防止按鈕被壓縮 */
+                padding: 6px 12px;
+                font-size: 0.9rem;
                 margin-left: 0;
             }
 
-            .quick-input-pad {
-                bottom: 80px;
-                right: 10px;
-                width: calc(100% - 20px);
-                max-width: none;
+            .footer .input-group {
+                width: 100%;
+            }
+
+            .footer .input-group .form-control {
+                width: 1%;
+                flex: 1;
+                min-width: 0; /* 防止輸入框溢出 */
+            }
+        }
+
+        /* 確保桌面版不受影響 */
+        @media (min-width: 769px) {
+            .footer {
+                position: sticky;
+                bottom: 0;
             }
         }
 
@@ -1970,4 +1983,5 @@
 
 </body>
 
+</html>
 </html>

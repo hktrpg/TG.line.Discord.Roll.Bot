@@ -19,116 +19,176 @@
     <button class="floating-toggle-button" onclick="headerManager.toggle()">
         <span class="iconify" data-icon="bi:chevron-up"></span>
     </button>
-    <section id="root">
-        <div class="container-sm" id="container">
-            <div id="header"></div>
-            <div class="header-content">
-                <div class="row justify-content-end">
-                    <div class="row justify-content-center center">
-                        <div class="col-12 col-md-auto">
-                            <form id="changeRoomNumber-form" class="needs-validation" novalidate>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <span class="iconify" data-icon="bi:person-fill"></span>
-                                    </span>
-                                    <input type="text" class="form-control" name="name" id="name" 
-                                           placeholder="暱稱" maxlength="50" required>
-                                    <span class="input-group-text">
-                                        <span class="iconify" data-icon="bi:house-door"></span>
-                                    </span>
-                                    <input type="text" class="form-control" name="roomNumber" id="roomNumber"
-                                           value="公共房間" placeholder="房間名稱" maxlength="50" required>
-                                    <button type="submit" class="btn btn-danger">變更</button>
-                                </div>
-                            </form>
+
+    <!-- Header -->
+    <div id="header"></div>
+
+    <!-- Main Content -->
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+                <div class="sidebar-sticky pt-3">
+                    <div class="sidebar-header mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <span class="iconify" data-icon="bi:person-fill"></span>
+                            </span>
+                            <input type="text" class="form-control" name="name" id="name" placeholder="暱稱"
+                                maxlength="50" required>
+                        </div>
+                        <div class="online-count mt-2">
+                            <span class="iconify" data-icon="bi:people"></span>
+                            <span id="online">0</span>
                         </div>
                     </div>
-                    <button type="button" class="btn btn-info float-right" onclick="save()">
-                        <span class="iconify" data-icon="gg:readme" data-inline="false"></span>儲存
-                    </button>
-                    <button type="button" class="btn btn-dark float-right" onclick="readme()">
-                        <span class="iconify" data-icon="gg:readme" data-inline="false"></span>說明
-                    </button>
-                    <button type="button" class="btn btn-secondary float-right mr-2" onclick="themeManager.toggleTheme()">
-                        <span class="iconify" data-icon="bi:moon-stars" data-inline="false"></span>
-                        <span class="theme-text">深色模式</span>
-                    </button>
-                    <div class="input-group-text font-weight-bold" id="status-box"> <span class="iconify"
-                            data-icon="bi:house-door-fill" data-inline="false" style="color: black;" data-width="22"
-                            data-height="22"></span><span id="room">公共房間</span></div>
-                    <div class="badge-warning input-group-text font-weight-bold" id="status-box">
-                        <span class="iconify" data-icon="bi:people" data-inline="false" style="color: black;"
-                            data-width="22" data-height="22"></span>
-                        x <span id="online">0</span></div>
-                </div>
-            </div>
-        </div>
-        <main>
-            <div class="container-sm">
-                <div class="overflow-auto middleBlock p-2" id="container-content">
-                    <div class="border" id="content">
+                    <div class="chatroom-list">
+                        <div class="list-header mb-2">
+                            <span class="iconify" data-icon="bi:chat-dots"></span>
+                            <span>聊天室列表</span>
+                        </div>
+                        <div class="list-content" id="chatroomList">
+                            <!-- Chatrooms will be added here dynamically -->
+                        </div>
+                        <div class="list-footer mt-3">
+                            <button class="btn btn-primary w-100" onclick="joinRoomModal.show()">
+                                <span class="iconify" data-icon="bi:plus-lg"></span>
+                                <span>加入聊天室</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="sidebar-actions mt-3">
+                        <button class="btn btn-info w-100 mb-2" onclick="save()">
+                            <span class="iconify" data-icon="gg:readme"></span>
+                            <span>儲存</span>
+                        </button>
+                        <button class="btn btn-dark w-100 mb-2" onclick="readme()">
+                            <span class="iconify" data-icon="gg:readme"></span>
+                            <span>說明</span>
+                        </button>
+                        <button class="btn btn-secondary w-100" onclick="themeManager.toggleTheme()">
+                            <span class="iconify" data-icon="bi:moon-stars"></span>
+                            <span class="theme-text">深色模式</span>
+                        </button>
                     </div>
                 </div>
             </div>
-        </main>
-        <footer class="fixed-bottom bg-light py-2">
-            <div class="container">
-                <div class="row justify-content-center">
-                    <div class="col-12 col-md-8">
+
+            <!-- Main Chat Area -->
+            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4 d-flex flex-column">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                </div>
+
+                <div class="chat-container flex-grow-1">
+                    <div class="overflow-auto" id="container-content">
+                        <div id="content" class="p-2">
+                            <!-- Messages will be added here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Input Pad -->
+                <div class="quick-input-pad" id="quickInputPad">
+                  
+                    <div class="pad-content">
+                        <div class="pad-header">
+                            <span class="pad-title">常用指令</span>
+                        </div>
+                        <div class="pad-buttons" id="quickInputButtons">
+                            <!-- Buttons will be added dynamically -->
+                        </div>
+                        <div class="custom-input">
+                            <input type="text" id="customInput" placeholder="自訂指令" onchange="quickInputPad.saveCustom()"
+                                onkeypress="if(event.key === 'Enter') quickInputPad.sendCustom()">
+                            <button class="btn btn-primary" onclick="quickInputPad.sendCustom()">送出</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Message Input -->
+                <footer class="footer mt-auto py-3">
+                    <div class="container">
                         <form id="send-form" class="needs-validation" novalidate>
                             <div class="input-group">
-                                <input type="text" class="form-control" name="msg" id="msg" 
-                                       value="1d100" placeholder="說點什麼？" maxlength="1000" required>
-                                <button type="submit" class="btn btn-primary" onclick="genName()">送出</button>
+                                <input type="text" class="form-control" name="msg" id="msg" value="1d100"
+                                    placeholder="說點什麼？" maxlength="1000" required>
+                                <button type="button" class="btn btn-secondary" onclick="genName()">
+                                    <span class="iconify" data-icon="bi:arrow-clockwise"></span>
+                                </button>
+                                <button type="submit" class="btn btn-primary">送出</button>
                             </div>
                         </form>
                     </div>
+                    <div class="toggle-button" onclick="quickInputPad.toggle()">
+                        <span class="iconify" data-icon="bi:chevron-up"></span>
+                        <span>快速輸入</span>
+                    </div>
+                </footer>
+            </main>
+        </div>
+    </div>
+
+    <!-- Footer -->
+
+
+    <!-- Readme Modal -->
+    <div class="modal fade" id="readmeModalCenter" tabindex="-1" role="dialog" aria-labelledby="readmeModalCenterTitle"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="readmeModalLongTitle">使用說明</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
-            </div>
-        </footer>
-        <footer>
-            <div id="footer"></div>
-        </footer>
-        <div class="modal fade" id="readmeModalCenter" tabindex="-1" role="dialog"
-            aria-labelledby="readmeModalCenterTitle" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="readmeModalLongTitle">使用說明</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        每間房間上限100條信息<br>
-                        輸入名字可以進入自定的房間<br>
-                        擲骰方法和HKTRPG骰子機械人一樣。<br>
-                        詳情可以點擊<br>
-                        <a href="https://bothelp.hktrpg.com/">HKTRPG使用教學!</a>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    </div>
+                <div class="modal-body">
+                    每間房間上限100條信息<br>
+                    輸入名字可以進入自定的房間<br>
+                    擲骰方法和HKTRPG骰子機械人一樣。<br>
+                    詳情可以點擊<br>
+                    <a href="https://bothelp.hktrpg.com/">HKTRPG使用教學!</a>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
-        <div class="quick-input-pad" id="quickInputPad">
-            <div class="toggle-button" onclick="quickInputPad.toggle()">
-                <span class="iconify" data-icon="bi:chevron-up"></span>
-                <span>快速輸入</span>
-            </div>
-            <div class="pad-header">
-                <span class="pad-title">常用指令</span>
-            </div>
-            <div class="pad-buttons" id="quickInputButtons">
-                <!-- 按鈕將由 JavaScript 動態生成 -->
-            </div>
-            <div class="custom-input">
-                <input type="text" id="customInput" placeholder="自訂指令" onchange="quickInputPad.saveCustom()" onkeypress="if(event.key === 'Enter') quickInputPad.sendCustom()">
-                <button class="btn btn-primary" onclick="quickInputPad.sendCustom()">送出</button>
+    </div>
+
+    <!-- Join Room Modal -->
+    <div class="modal fade" id="joinRoomModal" tabindex="-1" role="dialog" aria-labelledby="joinRoomModalTitle"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="joinRoomModalTitle">加入聊天室</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="joinRoom-form">
+                        <div class="form-group">
+                            <label for="joinRoomNumber">聊天室名稱</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <span class="iconify" data-icon="bi:box-arrow-in-right"></span>
+                                </span>
+                                <input type="text" class="form-control" name="joinRoomNumber" id="joinRoomNumber"
+                                    placeholder="輸入聊天室名稱" maxlength="50" required>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="joinRoomModal.submit()">加入</button>
+                </div>
             </div>
         </div>
-    </section>
+    </div>
+
     <style>
         /* 主題相關樣式 */
         :root {
@@ -144,33 +204,70 @@
             --scrollbar-track: #f1f1f1;
             --scrollbar-thumb: #888;
             --scrollbar-thumb-hover: #555;
-            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
-            --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
-            --gradient-start: rgba(255,255,255,0.1);
-            --gradient-end: rgba(255,255,255,0.05);
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+            --gradient-start: rgba(255, 255, 255, 0.1);
+            --gradient-end: rgba(255, 255, 255, 0.05);
             --input-height: 38px;
             --border-radius: 8px;
+            --footer-height: 60px;
+            --header-height: 60px;
+            --quick-input-height: 200px;
+            --sidebar-bg: #f8f9fa;
+            --sidebar-border: #dee2e6;
+            --chat-bg: #ffffff;
+            --message-hover: rgba(0, 0, 0, 0.05);
+            --active-item: #007bff;
+            --active-item-text: #ffffff;
+            --modal-bg: #ffffff;
+            --modal-border: #dee2e6;
+            --btn-info-bg: #17a2b8;
+            --btn-info-border: #17a2b8;
+            --btn-info-text: #ffffff;
+            --btn-dark-bg: #343a40;
+            --btn-dark-border: #343a40;
+            --btn-dark-text: #ffffff;
+            --btn-secondary-bg: #6c757d;
+            --btn-secondary-border: #6c757d;
+            --btn-secondary-text: #ffffff;
         }
 
         [data-theme="dark"] {
-            --bg-color: #1e1e1e;
-            --text-color: #d4d4d4;
-            --card-bg: #252526;
-            --card-border: #3c3c3c;
-            --input-bg: #3c3c3c;
-            --input-border: #3c3c3c;
-            --badge-bg: #0e639c;
+            --bg-color: #36393f;
+            --text-color: #dcddde;
+            --card-bg: #2f3136;
+            --card-border: #202225;
+            --input-bg: #40444b;
+            --input-border: #202225;
+            --badge-bg: #5865f2;
             --badge-text: #ffffff;
-            --footer-bg: #252526;
-            --scrollbar-track: #1e1e1e;
-            --scrollbar-thumb: #424242;
-            --scrollbar-thumb-hover: #4f4f4f;
-            --shadow-sm: 0 2px 4px rgba(0,0,0,0.3);
-            --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
-            --shadow-lg: 0 10px 15px rgba(0,0,0,0.4);
-            --gradient-start: rgba(37,37,38,0.8);
-            --gradient-end: rgba(37,37,38,0.6);
+            --footer-bg: #2f3136;
+            --scrollbar-track: #2f3136;
+            --scrollbar-thumb: #202225;
+            --scrollbar-thumb-hover: #2f3136;
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3);
+            --gradient-start: rgba(47, 49, 54, 0.8);
+            --gradient-end: rgba(47, 49, 54, 0.6);
+            --sidebar-bg: #2f3136;
+            --sidebar-border: #202225;
+            --chat-bg: #36393f;
+            --message-hover: rgba(255, 255, 255, 0.05);
+            --active-item: #5865f2;
+            --active-item-text: #ffffff;
+            --modal-bg: #2f3136;
+            --modal-border: #202225;
+            --btn-info-bg: #2f3136;
+            --btn-info-border: #5865f2;
+            --btn-info-text: #dcddde;
+            --btn-dark-bg: #2f3136;
+            --btn-dark-border: #5865f2;
+            --btn-dark-text: #dcddde;
+            --btn-secondary-bg: #2f3136;
+            --btn-secondary-border: #5865f2;
+            --btn-secondary-text: #dcddde;
         }
 
         /* 滾動條樣式 */
@@ -228,10 +325,11 @@
             margin-bottom: 0.3rem;
             overflow: hidden;
             border: none;
-            background: linear-gradient(to right, var(--card-bg), var(--gradient-start));
+            background: var(--card-bg);
         }
 
         .card:hover {
+            background: var(--message-hover);
             transform: translateY(-1px);
             box-shadow: var(--shadow-md);
         }
@@ -299,30 +397,43 @@
         }
 
         /* 按鈕樣式優化 */
-        .btn {
-            border-radius: 6px;
-            padding: 0.5rem 1rem;
-            transition: all 0.3s ease;
-            box-shadow: var(--shadow-sm);
-            height: var(--input-height);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            white-space: nowrap;
+        .btn-info {
+            background-color: var(--btn-info-bg);
+            border-color: var(--btn-info-border);
+            color: var(--btn-info-text);
         }
 
-        .btn .iconify {
-            margin-right: 0.5rem;
-            font-size: 1.2rem;
+        .btn-info:hover {
+            background-color: var(--btn-info-bg);
+            border-color: var(--btn-info-border);
+            color: var(--btn-info-text);
+            opacity: 0.9;
         }
 
-        .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-md);
+        .btn-dark {
+            background-color: var(--btn-dark-bg);
+            border-color: var(--btn-dark-border);
+            color: var(--btn-dark-text);
         }
 
-        .btn:active {
-            transform: translateY(0);
+        .btn-dark:hover {
+            background-color: var(--btn-dark-bg);
+            border-color: var(--btn-dark-border);
+            color: var(--btn-dark-text);
+            opacity: 0.9;
+        }
+
+        .btn-secondary {
+            background-color: var(--btn-secondary-bg);
+            border-color: var(--btn-secondary-border);
+            color: var(--btn-secondary-text);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--btn-secondary-bg);
+            border-color: var(--btn-secondary-border);
+            color: var(--btn-secondary-text);
+            opacity: 0.9;
         }
 
         /* 徽章樣式優化 */
@@ -340,9 +451,8 @@
         }
 
         .badge-secondary {
-            background-color: var(--badge-bg);
-            color: var(--badge-text);
-            opacity: 0.8;
+            background-color: var(--input-bg);
+            color: var(--text-color);
         }
 
         /* 頁尾樣式優化 */
@@ -354,32 +464,47 @@
 
         /* 模態框樣式優化 */
         .modal-content {
-            background-color: var(--card-bg);
+            background-color: var(--modal-bg);
             color: var(--text-color);
             border-radius: 12px;
             box-shadow: var(--shadow-lg);
         }
 
         .modal-header {
-            border-bottom-color: var(--card-border);
+            border-bottom-color: var(--modal-border);
             padding: 1.25rem;
         }
 
         .modal-footer {
-            border-top-color: var(--card-border);
+            border-top-color: var(--modal-border);
             padding: 1.25rem;
         }
 
+        .modal .close {
+            color: var(--text-color);
+        }
+
+        .modal .close:hover {
+            color: var(--badge-bg);
+        }
+
         /* 聊天室容器樣式優化 */
-        #container-content {
-            height: calc(100vh - 160px);
-            overflow-y: auto;
-            scroll-behavior: smooth;
-            background: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end));
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--chat-bg);
             border-radius: 8px;
             padding: 0.3rem;
             margin: 0.2rem 0;
             box-shadow: var(--shadow-md);
+            height: calc(100vh - 200px);
+        }
+
+        #container-content {
+            flex: 1;
+            overflow-y: auto;
+            scroll-behavior: smooth;
         }
 
         #content {
@@ -413,32 +538,32 @@
             overflow: hidden;
         }
 
-        .input-group > .form-control:first-child {
+        .input-group>.form-control:first-child {
             border-top-right-radius: 0;
             border-bottom-right-radius: 0;
         }
 
-        .input-group > .form-control:last-child {
+        .input-group>.form-control:last-child {
             border-top-left-radius: 0;
             border-bottom-left-radius: 0;
         }
 
-        .input-group > .input-group-text:first-child {
+        .input-group>.input-group-text:first-child {
             border-top-right-radius: 0;
             border-bottom-right-radius: 0;
         }
 
-        .input-group > .input-group-text:last-child {
+        .input-group>.input-group-text:last-child {
             border-top-left-radius: 0;
             border-bottom-left-radius: 0;
         }
 
-        .input-group > .btn:first-child {
+        .input-group>.btn:first-child {
             border-top-right-radius: 0;
             border-bottom-right-radius: 0;
         }
 
-        .input-group > .btn:last-child {
+        .input-group>.btn:last-child {
             border-top-left-radius: 0;
             border-bottom-left-radius: 0;
         }
@@ -455,38 +580,38 @@
                 padding: 0.3rem;
                 margin-top: 120px;
             }
-            
+
             .card {
                 margin-bottom: 0.4rem;
             }
-            
+
             .card-header2 {
                 padding: 0.3rem 0.5rem;
             }
-            
+
             .card-body2 {
                 padding: 0.3rem 0.5rem;
                 font-size: 0.9rem;
             }
-            
+
             .input-group {
                 margin-bottom: 0.5rem;
             }
-            
+
             .btn {
                 padding: 0.4rem 0.8rem;
             }
-            
+
             #status-box {
                 margin: 0.5rem 0;
             }
-            
+
             #container-content {
                 height: calc(100vh - 160px);
                 padding: 0.3rem;
                 margin: 0.2rem 0;
             }
-            
+
             #content {
                 padding: 0.2rem;
             }
@@ -495,21 +620,58 @@
         /* 快速輸入指令欄樣式 */
         .quick-input-pad {
             position: fixed;
-            bottom: 80px;
+            bottom: 0;
             right: 20px;
             background: var(--card-bg);
-            border-radius: 12px;
+            border-radius: 12px 12px 0 0;
             box-shadow: var(--shadow-lg);
-            padding: 15px;
             z-index: 1000;
             transition: all 0.3s ease;
             max-width: 300px;
             width: 90%;
-            transform: translateY(0);
+            transform: translateY(100%);
+            opacity: 0;
+            pointer-events: none;
         }
 
-        .quick-input-pad.collapsed {
-            transform: translateY(calc(100% + 20px));
+        .quick-input-pad.expanded {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+            bottom: var(--footer-height); /* 網頁版時在 footer 頂部 */
+        }
+
+        .quick-input-pad .pad-content {
+            padding: 15px;
+            background: var(--card-bg);
+            border-radius: 12px 12px 0 0;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--card-border);
+        }
+
+        .quick-input-pad .toggle-button {
+            position: relative;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 6px 6px 0 0;
+            padding: 8px 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--text-color);
+            box-shadow: var(--shadow-sm);
+            z-index: 1001;
+            margin-bottom: -1px; /* 覆蓋邊框 */
+        }
+
+        .quick-input-pad .toggle-button .iconify {
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+
+        .quick-input-pad.collapsed .toggle-button .iconify {
+            transform: rotate(180deg);
         }
 
         .quick-input-pad .pad-buttons {
@@ -552,214 +714,76 @@
             color: var(--text-color);
         }
 
-        .quick-input-pad .toggle-button {
-            position: absolute;
-            top: -40px;
-            right: 0;
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 6px 6px 0 0;
-            padding: 5px 15px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            color: var(--text-color);
-            box-shadow: var(--shadow-sm);
+        .quick-input-pad .pad-title {
+            font-weight: bold;
         }
 
-        .quick-input-pad .toggle-button .iconify {
-            transition: transform 0.3s ease;
-        }
-
-        .quick-input-pad.collapsed .toggle-button .iconify {
-            transform: rotate(180deg);
-        }
-
-        .quick-input-toggle {
-            display: none;
-            position: fixed;
-            bottom: 70px;
-            right: 15px;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: var(--badge-bg);
-            color: var(--badge-text);
-            border: none;
-            box-shadow: var(--shadow-lg);
-            z-index: 1001;
-            cursor: pointer;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-        }
-
-        .quick-input-toggle::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            padding: 2px;
-            background: linear-gradient(45deg, var(--badge-bg), var(--badge-text));
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            opacity: 0.5;
-            transition: opacity 0.3s ease;
-        }
-
-        .quick-input-toggle:hover::before {
-            opacity: 0.8;
-        }
-
-        .quick-input-toggle:active {
-            transform: scale(0.95);
-        }
-
-        .quick-input-toggle .iconify {
-            font-size: 28px;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-        }
-
-        .quick-input-toggle.active .iconify {
-            transform: rotate(180deg);
-        }
-
-        /* 深色模式特殊處理 */
-        [data-theme="dark"] .quick-input-toggle {
-            background: var(--badge-bg);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        [data-theme="dark"] .quick-input-toggle::before {
-            background: linear-gradient(45deg, var(--badge-bg), var(--badge-text));
-        }
-
-        [data-theme="dark"] .quick-input-toggle .iconify {
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
-        }
-
-        /* 淺色模式特殊處理 */
-        [data-theme="light"] .quick-input-toggle {
-            background: var(--badge-bg);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        [data-theme="light"] .quick-input-toggle::before {
-            background: linear-gradient(45deg, var(--badge-bg), var(--badge-text));
-        }
-
-        [data-theme="light"] .quick-input-toggle .iconify {
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-        }
-
+        /* 移動端樣式調整 */
         @media (max-width: 768px) {
-            .quick-input-toggle {
-                display: flex;
+            :root {
+                --footer-height: 120px; /* 移動端 footer 高度較大 */
             }
 
             .quick-input-pad {
-                bottom: 70px;
                 right: 10px;
                 width: calc(100% - 20px);
                 max-width: none;
-                max-height: 25vh;
-                overflow-y: auto;
-                padding: 10px;
-                backdrop-filter: blur(8px);
-                -webkit-backdrop-filter: blur(8px);
+                bottom: auto;
+                top: calc(var(--header-height) + 10px); /* 手機版時在頂部 */
             }
 
-            .quick-input-pad .toggle-button {
-                display: none;
-            }
-
-            #container-content {
-                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            .quick-input-pad.expanded {
                 transform: translateY(0);
+                bottom: auto; /* 覆蓋網頁版的 bottom 設置 */
             }
 
-            #container-content.quick-input-expanded {
-                transform: translateY(-25vh);
+            /* 調整聊天容器以避免被快速輸入欄遮擋 */
+            .chat-container {
+                margin-top: calc(var(--header-height) + 200px); /* 使用固定高度 */
             }
 
-            .quick-input-pad .pad-buttons {
-                grid-template-columns: repeat(2, 1fr);
-                max-height: 15vh;
-                overflow-y: auto;
-                gap: 6px;
-                margin-bottom: 8px;
+            /* 當快速輸入欄收起時，恢復聊天容器的正常位置 */
+            .quick-input-pad:not(.expanded) + .chat-container {
+                margin-top: var(--header-height);
             }
+        }
 
-            .quick-input-pad .pad-button {
-                padding: 6px;
-                font-size: 0.85rem;
-            }
-
-            .quick-input-pad .custom-input {
-                flex-direction: column;
-                position: sticky;
-                bottom: 0;
-                background: var(--card-bg);
-                padding-top: 8px;
-                margin-top: 8px;
-                border-top: 1px solid var(--card-border);
-            }
-
-            .quick-input-pad .custom-input input {
-                padding: 6px;
-                font-size: 0.85rem;
-            }
-
-            #container-content {
-                margin-bottom: 25vh;
-                padding-bottom: 10px;
-            }
-
-            footer.fixed-bottom {
-                z-index: 1001;
+        /* 移除桌面版隱藏手機版加入按鈕的樣式 */
+        @media (min-width: 769px) {
+            /* 確保網頁版時聊天容器沒有額外的 margin */
+            .chat-container {
+                margin-top: 0;
             }
         }
 
         /* Floating Toggle Button Styles */
         .floating-toggle-button {
-            display: none; /* Hide by default on desktop */
+            display: none;
+            /* Hide by default on desktop */
             position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 40px;
-            height: 40px;
+            top: 10px;
+            right: 10px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             background: var(--badge-bg);
             color: var(--badge-text);
             border: none;
             box-shadow: var(--shadow-lg);
-            z-index: 1001;
+            z-index: 1002;
             cursor: pointer;
             align-items: center;
             justify-content: center;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            font-size: 20px;
+            font-weight: bold;
         }
 
         /* Show floating button only on mobile */
         @media (max-width: 768px) {
             .floating-toggle-button {
-                display: flex;
-                top: 10px;
-                right: 10px;
-                width: 36px;
-                height: 36px;
-            }
-
-            .floating-toggle-button .iconify {
-                font-size: 20px;
+                display: flex !important;
+                /* Force display on mobile */
             }
 
             /* Adjust header and content for mobile */
@@ -786,6 +810,11 @@
 
         /* Desktop styles */
         @media (min-width: 769px) {
+            .floating-toggle-button {
+                display: none !important;
+                /* Force hide on desktop */
+            }
+
             #header {
                 position: relative;
                 top: 0;
@@ -796,14 +825,6 @@
                 position: relative;
                 top: 0;
                 transform: none !important;
-            }
-
-            #container {
-                margin-top: 0;
-            }
-            
-            #container-content {
-                height: calc(100vh - 160px);
             }
         }
 
@@ -828,27 +849,11 @@
             transform: translateY(-100%);
         }
 
-        .header-content {
-            transition: transform 0.3s ease;
-            background: var(--card-bg);
-            box-shadow: var(--shadow-md);
-            position: fixed;
-            top: 38px;
-            left: 0;
-            right: 0;
-            z-index: 998;
-            padding: 5px;
-        }
-
-        .header-content.collapsed {
-            transform: translateY(-100%);
-        }
-
         /* Mobile Optimizations */
         @media (max-width: 768px) {
             #container {
                 padding: 0.3rem;
-                margin-top: 120px;
+                margin-top: 60px;
             }
 
             #container-content {
@@ -857,27 +862,49 @@
                 margin: 0.2rem 0;
             }
 
-            #content {
-                padding: 0.2rem;
-            }
-
             #header {
                 top: 0;
                 padding: 3px;
             }
 
-            .header-content {
-                top: 28px;
-                padding: 3px;
-            }
-
             /* 當 header 收起時，調整容器位置 */
-            #header.collapsed + .header-content.collapsed + #container {
+            #header.collapsed+#container {
                 margin-top: 0;
             }
 
-            #header.collapsed + .header-content.collapsed + #container #container-content {
+            #header.collapsed+#container #container-content {
                 height: calc(100vh - 88px);
+            }
+
+            /* 側邊欄在移動端的樣式 */
+            .sidebar {
+                left: -240px;
+                top: 60px;
+                bottom: 0;
+                z-index: 1000;
+            }
+
+            .sidebar.show {
+                left: 0;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            /* 添加移動端側邊欄切換按鈕 */
+            .mobile-sidebar-toggle {
+                display: block;
+                position: fixed;
+                left: 10px;
+                top: 10px;
+                z-index: 1001;
+                background: var(--badge-bg);
+                color: var(--badge-text);
+                border: none;
+                border-radius: 4px;
+                padding: 8px;
+                cursor: pointer;
             }
         }
 
@@ -885,7 +912,7 @@
             #container {
                 margin-top: 0;
             }
-            
+
             #container-content {
                 height: calc(100vh - 160px);
             }
@@ -897,11 +924,459 @@
                 transform: none !important;
             }
 
-            .header-content {
-                position: relative;
-                top: 0;
-                padding: 5px;
-                transform: none !important;
+            .mobile-sidebar-toggle {
+                display: none;
+            }
+        }
+
+        /* Add new styles for Discord-like layout */
+        .app-container {
+            display: flex;
+            height: calc(100vh - 60px);
+            margin-top: 60px;
+            position: relative;
+        }
+
+        .sidebar {
+            width: 240px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--sidebar-border);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            position: fixed;
+            top: 60px;
+            bottom: 0;
+            left: 0;
+            z-index: 1000;
+            height: calc(100vh - 60px);
+            overflow: hidden;
+        }
+
+        .sidebar-sticky {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: var(--sidebar-bg);
+        }
+
+        .sidebar-header {
+            background: var(--sidebar-bg);
+            padding: 1rem;
+        }
+
+        .list-header {
+            background: var(--sidebar-bg);
+            padding: 10px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .list-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 5px;
+            min-height: 0;
+            background: var(--sidebar-bg);
+        }
+
+        .list-footer {
+            padding: 10px;
+            border-top: 1px solid var(--card-border);
+            background: var(--sidebar-bg);
+            position: sticky;
+            bottom: 0;
+            z-index: 1;
+        }
+
+        .join-room-section,
+        .create-room-section {
+            width: 100%;
+        }
+
+        .join-room-section .input-group,
+        .create-room-section .input-group {
+            width: 100%;
+        }
+
+        .chatroom-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            margin: 2px 0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--card-bg);
+            position: relative;
+        }
+
+        .chatroom-item:hover {
+            background: var(--message-hover);
+        }
+
+        .chatroom-item.active {
+            background: var(--active-item);
+            color: var(--active-item-text);
+        }
+
+        .chatroom-item.active .iconify {
+            color: var(--active-item-text);
+        }
+
+        .chatroom-item.active .delete-btn {
+            color: var(--active-item-text);
+        }
+
+        .chatroom-item.active .delete-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--active-item-text);
+        }
+
+        .chatroom-item .iconify {
+            margin-right: 8px;
+            transition: color 0.2s ease;
+        }
+
+        .chatroom-item .room-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .chatroom-item .delete-btn {
+            opacity: 0;
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: all 0.2s ease;
+            background: transparent;
+            border: none;
+            padding: 4px;
+            border-radius: 4px;
+            color: var(--text-color);
+            cursor: pointer;
+        }
+
+        .chatroom-item:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .chatroom-item .delete-btn:hover {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+
+        .chatroom-item .delete-btn .iconify {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            margin-left: 240px;
+            margin-top: 0;
+            /* 移除頂部間距 */
+        }
+
+        .main-header {
+            padding: 10px;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            /* 讓header固定在頂部 */
+            top: 0;
+            z-index: 999;
+        }
+
+        .room-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+        }
+
+        .online-count {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: var(--input-bg);
+            border-radius: 4px;
+            color: var(--text-color);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        #container-content {
+            height: 100%;
+            margin: 0;
+        }
+
+        /* Mobile responsive styles */
+        @media (max-width: 768px) {
+            .app-container {
+                margin-top: 0;
+            }
+
+            .sidebar {
+                position: fixed;
+                left: -240px;
+                top: 60px;
+                bottom: 0;
+            }
+
+            .sidebar.show {
+                left: 0;
+            }
+
+            .main-content {
+                margin-left: 0;
+                margin-top: 0;
+            }
+
+            .chat-container {
+                margin-top: 60px;
+            }
+
+            .mobile-toggle {
+                display: block;
+                position: fixed;
+                left: 10px;
+                top: 10px;
+                z-index: 1001;
+                background: var(--badge-bg);
+                color: var(--badge-text);
+                border: none;
+                border-radius: 4px;
+                padding: 8px;
+                cursor: pointer;
+            }
+
+            /* 添加手機版固定加入按鈕 */
+            .mobile-join-button {
+                display: flex;
+                position: fixed;
+                bottom: 80px;
+                left: 20px;
+                z-index: 1000;
+                background: var(--badge-bg);
+                color: var(--badge-text);
+                border: none;
+                border-radius: 50%;
+                width: 56px;
+                height: 56px;
+                align-items: center;
+                justify-content: center;
+                box-shadow: var(--shadow-lg);
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+
+            .mobile-join-button .iconify {
+                font-size: 24px;
+            }
+
+            .mobile-join-button:hover {
+                transform: scale(1.1);
+                box-shadow: var(--shadow-lg);
+            }
+
+            .mobile-join-button:active {
+                transform: scale(0.95);
+            }
+
+            /* 調整快速輸入欄的位置，保持在右側 */
+            .quick-input-pad {
+                position: fixed;
+                bottom: 80px;
+                right: 20px;
+                background: var(--card-bg);
+                border-radius: 12px;
+                box-shadow: var(--shadow-lg);
+                padding: 15px;
+                z-index: 1000;
+                transition: all 0.3s ease;
+                max-width: 300px;
+                width: 90%;
+                transform: translateY(0);
+            }
+
+            /* 在桌面版隱藏手機版加入按鈕 */
+            @media (min-width: 769px) {
+                .mobile-join-button {
+                    display: none;
+                }
+            }
+        }
+
+        /* 加入聊天室按鈕樣式 */
+        .list-footer .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+
+        .list-footer .btn .iconify {
+            font-size: 1.2rem;
+        }
+
+        /* Modal 樣式優化 */
+        .modal-content {
+            background: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--card-border);
+        }
+
+        .modal-header {
+            border-bottom-color: var(--card-border);
+        }
+
+        .modal-footer {
+            border-top-color: var(--card-border);
+        }
+
+        .modal .form-group label {
+            color: var(--text-color);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Footer 樣式優化 */
+        .footer {
+            position: sticky;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--footer-bg);
+            border-top: 1px solid var(--card-border);
+            z-index: 1000;
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            height: var(--footer-height);
+        }
+
+        .footer .container {
+            padding: 0;
+            flex: 6;
+        }
+
+        .footer .toggle-button {
+            flex: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: var(--border-radius);
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-left: 10px;
+        }
+
+        .footer .toggle-button:hover {
+            background: var(--badge-bg);
+            color: var(--badge-text);
+        }
+
+        .footer .toggle-button .iconify {
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+
+        .footer .toggle-button.collapsed .iconify {
+            transform: rotate(180deg);
+        }
+
+        /* 移動端樣式調整 */
+        @media (max-width: 768px) {
+            .footer {
+                flex-direction: column;
+                padding: 0.5rem;
+            }
+
+            .footer .container {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            .footer .toggle-button {
+                width: 100%;
+                margin-left: 0;
+            }
+
+            .quick-input-pad {
+                bottom: 80px;
+                right: 10px;
+                width: calc(100% - 20px);
+                max-width: none;
+            }
+        }
+
+        /* 側邊欄按鈕樣式 */
+        .sidebar-actions {
+            padding: 10px;
+            border-top: 1px solid var(--card-border);
+            background: var(--sidebar-bg);
+        }
+
+        .sidebar-actions .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-color);
+        }
+
+        .sidebar-actions .btn:hover {
+            background: var(--message-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .sidebar-actions .btn:active {
+            transform: translateY(0);
+        }
+
+        /* 移動端側邊欄按鈕樣式 */
+        @media (max-width: 768px) {
+            .sidebar-actions {
+                padding: 8px;
+            }
+            
+            .sidebar-actions .btn {
+                padding: 6px 12px;
+                font-size: 0.85rem;
+            }
+            
+            .sidebar-actions .btn .iconify {
+                font-size: 1.1rem;
             }
         }
     </style>
@@ -909,10 +1384,10 @@
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
         integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous">
-    </script>
+        </script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
         integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous">
-    </script>
+        </script>
     <script>
         // Configuration and Constants
         const CONFIG = {
@@ -1002,48 +1477,28 @@
             },
 
             setupEventListeners: () => {
-                const changeRoomForm = document.getElementById("changeRoomNumber-form");
                 const sendForm = document.getElementById("send-form");
-                const roomInput = document.getElementById("roomNumber");
-                const roomDisplay = document.getElementById("room");
-
-                changeRoomForm.addEventListener("submit", async (e) => {
-                    e.preventDefault();
-                    if (!roomInput.value) {
-                        roomInput.value = CONFIG.DEFAULT_ROOM;
-                    }
-                    if (roomInput.value === state.currentRoom) return;
-
-                    try {
-                        state.socket.off(state.currentRoom);
-                        state.currentRoom = roomInput.value;
-                        document.getElementById("content").innerHTML = '';
-                        state.socket.emit("newRoom", state.currentRoom);
-                        roomDisplay.innerText = state.currentRoom;
-                        state.socket.on(state.currentRoom, uiManager.addMessageToBox);
-                    } catch (error) {
-                        console.error('Error changing room:', error);
-                    }
-                });
+                const msgInput = document.getElementById("msg");
+                const nameInput = document.getElementById("name");
 
                 sendForm.addEventListener("submit", (e) => {
                     e.preventDefault();
-                    const msgInput = document.getElementById("msg");
-                    const nameInput = document.getElementById("name");
-                    
+
                     if (!msgInput.value.trim()) return;
 
                     const formData = {
                         time: new Date(),
                         msg: msgInput.value,
                         name: nameInput.value,
-                        roomNumber: state.currentRoom
+                        roomNumber: chatroomManager.currentRoom // 使用當前房間
                     };
 
-                    state.socket.emit("send", formData);
-                    utils.setLocalStorage("name", nameInput.value);
-                    msgInput.value = '';
-                    msgInput.focus();
+                    if (state.socket) {
+                        state.socket.emit("send", formData);
+                        utils.setLocalStorage("name", nameInput.value);
+                        msgInput.value = '';
+                        msgInput.focus();
+                    }
                 });
             },
 
@@ -1098,59 +1553,64 @@
             toggleTheme: () => {
                 const currentTheme = document.documentElement.getAttribute('data-theme');
                 const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-                
+
                 document.documentElement.setAttribute('data-theme', newTheme);
                 localStorage.setItem('theme', newTheme);
                 themeManager.updateThemeButton(newTheme);
             },
 
             updateThemeButton: (theme) => {
-                const button = document.querySelector('.btn-secondary');
-                const icon = button.querySelector('.iconify');
-                const text = button.querySelector('.theme-text');
-                
-                if (theme === 'dark') {
-                    icon.setAttribute('data-icon', 'bi:sun');
-                    text.textContent = '淺色模式';
-                } else {
-                    icon.setAttribute('data-icon', 'bi:moon-stars');
-                    text.textContent = '深色模式';
-                }
+                // 等待 DOM 完全加載
+                setTimeout(() => {
+                    const button = document.querySelector('.btn-secondary');
+                    if (!button) return; // 如果按鈕不存在，直接返回
+
+                    const icon = button.querySelector('.iconify');
+                    const text = button.querySelector('.theme-text');
+
+                    if (icon) {
+                        if (theme === 'dark') {
+                            icon.setAttribute('data-icon', 'bi:sun');
+                        } else {
+                            icon.setAttribute('data-icon', 'bi:moon-stars');
+                        }
+                    }
+
+                    if (text) {
+                        text.textContent = theme === 'dark' ? '淺色模式' : '深色模式';
+                    }
+                }, 100);
             }
         };
 
         // 在現有的 JavaScript 代碼中添加快速輸入指令欄管理模組
         const quickInputPad = {
             init: () => {
+                // 檢查元素是否存在
+                const quickInputPadElement = document.getElementById('quickInputPad');
+                if (!quickInputPadElement) return; // 如果元素不存在，直接返回
+
                 // 固定選項
                 const fixedCommands = ["1d2", "1d6", "1d8", "1d10", "1d12", "1d20", "1d100"];
                 // 自訂指令（最多保存5個不重複的指令）
                 const customCommands = JSON.parse(localStorage.getItem('quickCommands') || '[]');
                 quickInputPad.renderButtons(fixedCommands, customCommands);
-                
-                // 創建浮動按鈕
-                const toggleButton = document.createElement('button');
-                toggleButton.className = 'quick-input-toggle';
-                toggleButton.innerHTML = '<span class="iconify" data-icon="bi:chevron-up"></span>';
-                document.body.appendChild(toggleButton);
-                
-                // 恢復之前的收起狀態
-                const isCollapsed = localStorage.getItem('quickInputCollapsed') === 'true';
-                if (isCollapsed) {
-                    document.getElementById('quickInputPad').classList.add('collapsed');
-                    document.getElementById('container-content').classList.remove('quick-input-expanded');
-                    toggleButton.classList.remove('active');
-                } else {
-                    document.getElementById('container-content').classList.add('quick-input-expanded');
-                    toggleButton.classList.add('active');
-                }
 
-                // 添加按鈕點擊事件
-                toggleButton.addEventListener('click', quickInputPad.toggle);
+                // 恢復之前的展開狀態
+                const isExpanded = localStorage.getItem('quickInputExpanded') === 'true';
+                if (isExpanded) {
+                    quickInputPadElement.classList.add('expanded');
+                    const toggleButton = document.querySelector('.toggle-button');
+                    if (toggleButton) {
+                        toggleButton.classList.add('collapsed');
+                    }
+                }
             },
 
             renderButtons: (fixedCommands, customCommands) => {
                 const container = document.getElementById('quickInputButtons');
+                if (!container) return; // 如果元素不存在，直接返回
+
                 // 渲染固定選項
                 const fixedButtons = fixedCommands.map(cmd => `
                     <button class="pad-button" onclick="quickInputPad.sendCommand('${cmd}')">
@@ -1170,14 +1630,21 @@
 
             sendCommand: (command) => {
                 const msgInput = document.getElementById('msg');
+                if (!msgInput) return; // 如果元素不存在，直接返回
+
                 msgInput.value = command;
                 msgInput.focus();
                 // 觸發表單提交
-                document.getElementById('send-form').dispatchEvent(new Event('submit'));
+                const sendForm = document.getElementById('send-form');
+                if (sendForm) {
+                    sendForm.dispatchEvent(new Event('submit'));
+                }
             },
 
             sendCustom: () => {
                 const customInput = document.getElementById('customInput');
+                if (!customInput) return; // 如果元素不存在，直接返回
+
                 const command = customInput.value.trim().toLowerCase();
                 if (command) {
                     // 檢查是否為固定指令
@@ -1202,66 +1669,216 @@
 
                 // 獲取現有的自訂指令
                 let customCommands = JSON.parse(localStorage.getItem('quickCommands') || '[]');
-                
+
                 // 移除相同的指令（不區分大小寫）
                 customCommands = customCommands.filter(cmd => cmd && cmd.toLowerCase() !== command.toLowerCase());
-                
+
                 // 將新指令加入開頭
                 customCommands.unshift(command);
-                
+
                 // 只保留前5個不重複的指令
                 customCommands = customCommands.slice(0, 5);
-                
+
                 // 儲存更新後的指令列表
                 localStorage.setItem('quickCommands', JSON.stringify(customCommands));
-                
+
                 // 重新渲染按鈕
                 quickInputPad.renderButtons(fixedCommands, customCommands);
             },
 
             toggle: () => {
                 const pad = document.getElementById('quickInputPad');
-                const containerContent = document.getElementById('container-content');
-                const toggleButton = document.querySelector('.quick-input-toggle');
-                const isCollapsed = pad.classList.toggle('collapsed');
-                
-                // 只在手機版時調整容器內容的位置
-                if (window.innerWidth <= 768) {
-                    if (isCollapsed) {
-                        containerContent.classList.remove('quick-input-expanded');
-                        toggleButton.classList.remove('active');
-                    } else {
-                        containerContent.classList.add('quick-input-expanded');
-                        toggleButton.classList.add('active');
-                    }
-                }
-                
-                localStorage.setItem('quickInputCollapsed', isCollapsed);
+                const toggleButton = document.querySelector('.toggle-button');
+                if (!pad || !toggleButton) return; // 如果元素不存在，直接返回
+
+                const isExpanded = pad.classList.toggle('expanded');
+                toggleButton.classList.toggle('collapsed');
+                localStorage.setItem('quickInputExpanded', isExpanded);
             }
         };
 
         // Header Management
         const headerManager = {
             init: () => {
+                // Create toggle button if it doesn't exist
+                if (!document.querySelector('.floating-toggle-button')) {
+                    const toggleButton = document.createElement('button');
+                    toggleButton.className = 'floating-toggle-button';
+                    toggleButton.textContent = '^';
+                    toggleButton.onclick = () => headerManager.toggle();
+                    document.body.appendChild(toggleButton);
+                }
+
+                // Initialize header state
                 const isCollapsed = localStorage.getItem('headerCollapsed') === 'true';
+                const header = document.getElementById('header');
                 const toggleButton = document.querySelector('.floating-toggle-button');
-                if (isCollapsed) {
-                    document.getElementById('header').classList.add('collapsed');
-                    document.querySelector('.header-content').classList.add('collapsed');
-                    toggleButton.classList.add('collapsed');
+
+                if (isCollapsed && header) {
+                    header.classList.add('collapsed');
+                    if (toggleButton) {
+                        toggleButton.classList.add('collapsed');
+                        toggleButton.textContent = 'v';
+                    }
                 }
             },
 
             toggle: () => {
                 const header = document.getElementById('header');
-                const headerContent = document.querySelector('.header-content');
                 const toggleButton = document.querySelector('.floating-toggle-button');
-                
-                const isCollapsed = header.classList.toggle('collapsed');
-                headerContent.classList.toggle('collapsed');
-                toggleButton.classList.toggle('collapsed');
-                
-                localStorage.setItem('headerCollapsed', isCollapsed);
+
+                if (header && toggleButton) {
+                    const isCollapsed = header.classList.toggle('collapsed');
+                    toggleButton.classList.toggle('collapsed');
+                    toggleButton.textContent = isCollapsed ? 'v' : '^';
+                    localStorage.setItem('headerCollapsed', isCollapsed);
+                }
+            }
+        };
+
+        // Add new chatroom management functionality
+        const chatroomManager = {
+            rooms: new Set(),
+            currentRoom: CONFIG.DEFAULT_ROOM,
+
+            init: () => {
+                // 從 localStorage 加載房間列表
+                const savedRooms = JSON.parse(localStorage.getItem('chatRooms') || '[]');
+                savedRooms.forEach(room => chatroomManager.rooms.add(room));
+
+                // 確保默認房間存在
+                if (!chatroomManager.rooms.has(CONFIG.DEFAULT_ROOM)) {
+                    chatroomManager.rooms.add(CONFIG.DEFAULT_ROOM);
+                }
+
+                chatroomManager.renderRooms();
+                chatroomManager.setupEventListeners();
+                // 初始化時加入默認房間
+                chatroomManager.switchRoom(CONFIG.DEFAULT_ROOM);
+            },
+
+            setupEventListeners: () => {
+                // Join room form
+                const joinForm = document.getElementById("joinRoom-form");
+                if (joinForm) {
+                    joinForm.addEventListener("submit", (e) => {
+                        e.preventDefault();
+                        const input = document.getElementById("joinRoomNumber");
+                        const roomName = input.value.trim();
+
+                        if (roomName && !chatroomManager.rooms.has(roomName)) {
+                            chatroomManager.addRoom(roomName);
+                            input.value = '';
+                        }
+                    });
+                }
+            },
+
+            saveRooms: () => {
+                // 將房間列表保存到 localStorage
+                localStorage.setItem('chatRooms', JSON.stringify(Array.from(chatroomManager.rooms)));
+            },
+
+            addRoom: (roomName) => {
+                chatroomManager.rooms.add(roomName);
+                chatroomManager.saveRooms(); // 保存更新後的房間列表
+                chatroomManager.renderRooms();
+                chatroomManager.switchRoom(roomName);
+            },
+
+            removeRoom: (roomName) => {
+                if (roomName === CONFIG.DEFAULT_ROOM) return;
+                chatroomManager.rooms.delete(roomName);
+                chatroomManager.saveRooms(); // 保存更新後的房間列表
+                chatroomManager.renderRooms();
+                if (chatroomManager.currentRoom === roomName) {
+                    chatroomManager.switchRoom(CONFIG.DEFAULT_ROOM);
+                }
+            },
+
+            switchRoom: (roomName) => {
+                if (chatroomManager.currentRoom === roomName) return;
+
+                // 移除舊房間的事件監聽器
+                if (state.socket) {
+                    state.socket.off(chatroomManager.currentRoom);
+                }
+
+                // 更新房間狀態
+                chatroomManager.currentRoom = roomName;
+                state.currentRoom = roomName;
+
+                // 清空聊天內容
+                const content = document.getElementById("content");
+                if (content) {
+                    content.innerHTML = '';
+                }
+
+                // 發送切換房間事件
+                if (state.socket) {
+                    state.socket.emit("newRoom", roomName);
+                    // 添加新房間的事件監聽器
+                    state.socket.on(roomName, uiManager.addMessageToBox);
+                }
+
+                // 更新房間顯示
+                const roomElement = document.getElementById("room");
+                if (roomElement) {
+                    roomElement.innerText = roomName;
+                }
+
+                // 重新渲染房間列表以更新活動狀態
+                chatroomManager.renderRooms();
+            },
+
+            renderRooms: () => {
+                const container = document.getElementById("chatroomList");
+                if (!container) return;
+
+                container.innerHTML = Array.from(chatroomManager.rooms).map(room => `
+                    <div class="chatroom-item ${room === chatroomManager.currentRoom ? 'active' : ''}"
+                         onclick="chatroomManager.switchRoom('${room}')">
+                        <span class="iconify" data-icon="bi:chat-dots"></span>
+                        <span class="room-name">${room}</span>
+                        ${room !== CONFIG.DEFAULT_ROOM ? `
+                            <button class="delete-btn" onclick="event.stopPropagation(); chatroomManager.removeRoom('${room}')">
+                                <span class="iconify" data-icon="bi:x"></span>
+                            </button>
+                        ` : ''}
+                    </div>
+                `).join('');
+            }
+        };
+
+        // Add sidebar toggle functionality
+        const sidebarManager = {
+            init: () => {
+                // Create mobile sidebar toggle button
+                const toggleButton = document.createElement('button');
+                toggleButton.className = 'mobile-sidebar-toggle';
+                toggleButton.innerHTML = '<span class="iconify" data-icon="bi:list"></span>';
+                document.body.appendChild(toggleButton);
+
+                // Add click event
+                toggleButton.addEventListener('click', () => {
+                    const sidebar = document.querySelector('.sidebar');
+                    if (sidebar) {
+                        sidebar.classList.toggle('show');
+                    }
+                });
+
+                // Close sidebar when clicking outside
+                document.addEventListener('click', (e) => {
+                    const sidebar = document.querySelector('.sidebar');
+                    const toggleButton = document.querySelector('.mobile-sidebar-toggle');
+
+                    if (sidebar && toggleButton &&
+                        !sidebar.contains(e.target) &&
+                        !toggleButton.contains(e.target) &&
+                        window.innerWidth <= 768) {
+                        sidebar.classList.remove('show');
+                    }
+                });
             }
         };
 
@@ -1272,6 +1889,8 @@
             themeManager.init();
             quickInputPad.init();
             headerManager.init();
+            chatroomManager.init();
+            sidebarManager.init();
         });
 
         // Modal functions
@@ -1284,9 +1903,9 @@
             const content = document.getElementById("content");
             const roomName = roomText.value || '';
             const contentText = content.innerText || '';
-            
+
             const string = `HKTRPG${roomName}\n${contentText.replace(/(.*\d+:\d+:\d+)/g, '\n$1')}`;
-            
+
             const blob = new Blob([string], { type: 'text/plain;charset=utf-8;' });
             const link = document.createElement('a');
             link.href = window.URL.createObjectURL(blob);
@@ -1294,6 +1913,32 @@
             link.click();
             window.URL.revokeObjectURL(link.href);
         }
+
+        // Add genName function
+        function genName() {
+            const nameInput = document.getElementById("name");
+            if (nameInput) {
+                nameInput.value = utils.generateName();
+            }
+        }
+
+        // 加入聊天室 Modal 管理
+        const joinRoomModal = {
+            show: () => {
+                $('#joinRoomModal').modal('show');
+            },
+
+            submit: () => {
+                const input = document.getElementById("joinRoomNumber");
+                const roomName = input.value.trim();
+
+                if (roomName && !chatroomManager.rooms.has(roomName)) {
+                    chatroomManager.addRoom(roomName);
+                    input.value = '';
+                    $('#joinRoomModal').modal('hide');
+                }
+            }
+        };
     </script>
     <script>
         const TITLE = "HKTRPG 擲骰聊天室";
@@ -1304,5 +1949,7 @@
             $("#footer").load("includes/footer.html");
         });
     </script>
+
+</body>
 
 </html>

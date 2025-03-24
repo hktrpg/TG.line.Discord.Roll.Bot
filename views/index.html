@@ -80,10 +80,7 @@
 
                 <!-- Quick Input Pad -->
                 <div class="quick-input-pad" id="quickInputPad">
-                    <div class="toggle-button" onclick="quickInputPad.toggle()">
-                        <span class="iconify" data-icon="bi:chevron-up"></span>
-                        <span>快速輸入</span>
-                    </div>
+                  
                     <div class="pad-content">
                         <div class="pad-header">
                             <span class="pad-title">常用指令</span>
@@ -113,15 +110,17 @@
                             </div>
                         </form>
                     </div>
+                    <div class="toggle-button" onclick="quickInputPad.toggle()">
+                        <span class="iconify" data-icon="bi:chevron-up"></span>
+                        <span>快速輸入</span>
+                    </div>
                 </footer>
             </main>
         </div>
     </div>
 
     <!-- Footer -->
-    <footer>
-        <div id="footer"></div>
-    </footer>
+
 
     <!-- Readme Modal -->
     <div class="modal fade" id="readmeModalCenter" tabindex="-1" role="dialog" aria-labelledby="readmeModalCenterTitle"
@@ -203,6 +202,7 @@
             --gradient-end: rgba(255, 255, 255, 0.05);
             --input-height: 38px;
             --border-radius: 8px;
+            --footer-height: 60px; /* 新增：footer 高度變量 */
         }
 
         [data-theme="dark"] {
@@ -563,7 +563,24 @@
             transition: all 0.3s ease;
             max-width: 300px;
             width: 90%;
+            transform: translateY(100%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .quick-input-pad.expanded {
             transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+            bottom: var(--footer-height); /* 使用變量計算位置 */
+        }
+
+        .quick-input-pad .pad-content {
+            padding: 15px;
+            background: var(--card-bg);
+            border-radius: 12px 12px 0 0;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--card-border);
         }
 
         .quick-input-pad .toggle-button {
@@ -589,28 +606,6 @@
 
         .quick-input-pad.collapsed .toggle-button .iconify {
             transform: rotate(180deg);
-        }
-
-        .quick-input-pad .pad-content {
-            padding: 15px;
-            background: var(--card-bg);
-            border-radius: 12px 12px 0 0;
-            box-shadow: var(--shadow-lg);
-            border: 1px solid var(--card-border);
-            transition: transform 0.3s ease;
-        }
-
-        .quick-input-pad.collapsed {
-            transform: translateY(calc(100% - 40px));
-        }
-
-        .quick-input-pad.collapsed .pad-content {
-            transform: translateY(100%);
-        }
-
-        .quick-input-pad:not(.collapsed) {
-            bottom: 50%;
-            transform: translateY(50%);
         }
 
         .quick-input-pad .pad-buttons {
@@ -659,61 +654,18 @@
 
         /* 移動端樣式調整 */
         @media (max-width: 768px) {
+            :root {
+                --footer-height: 120px; /* 移動端 footer 高度較大 */
+            }
+
             .quick-input-pad {
-                bottom: 0;
-                right: 0;
-                width: 100%;
+                right: 10px;
+                width: calc(100% - 20px);
                 max-width: none;
-                max-height: 25vh;
-                overflow: hidden;
-                border-radius: 12px 12px 0 0;
             }
 
-            .quick-input-pad .toggle-button {
-                display: flex;
-                position: relative;
-                background: var(--card-bg);
-                border: 1px solid var(--card-border);
-                border-radius: 6px 6px 0 0;
-                padding: 8px 15px;
-                cursor: pointer;
-                align-items: center;
-                gap: 5px;
-                color: var(--text-color);
-                box-shadow: var(--shadow-sm);
-                z-index: 1001;
-                min-width: 100px;
-                margin-bottom: -1px;
-            }
-
-            .quick-input-pad .toggle-button .iconify {
-                font-size: 1.2rem;
-            }
-
-            .quick-input-pad.collapsed .toggle-button .iconify {
-                transform: rotate(180deg);
-            }
-
-            .quick-input-pad .pad-content {
-                max-height: 25vh;
-                overflow-y: auto;
-                padding: 10px;
-                border: 1px solid var(--card-border);
-                transition: transform 0.3s ease;
-                border-radius: 12px 12px 0 0;
-            }
-
-            .quick-input-pad.collapsed {
-                transform: translateY(calc(100% - 40px));
-            }
-
-            .quick-input-pad.collapsed .pad-content {
-                transform: translateY(100%);
-            }
-
-            .quick-input-pad:not(.collapsed) {
-                bottom: 50%;
-                transform: translateY(50%);
+            .quick-input-pad.expanded {
+                bottom: var(--footer-height); /* 使用變量計算位置 */
             }
         }
 
@@ -759,7 +711,6 @@
                 position: fixed;
                 top: 0;
                 transform: translateY(0);
-                z-index: 1000;
             }
 
             .header-content {
@@ -1238,29 +1189,69 @@
             border-top: 1px solid var(--card-border);
             z-index: 1000;
             margin-top: auto;
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            height: var(--footer-height); /* 使用變量設置高度 */
         }
 
         .footer .container {
-            padding: 0.5rem;
+            padding: 0;
+            flex: 6;
+        }
+
+        .footer .toggle-button {
+            flex: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: var(--border-radius);
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-left: 10px;
+        }
+
+        .footer .toggle-button:hover {
+            background: var(--badge-bg);
+            color: var(--badge-text);
+        }
+
+        .footer .toggle-button .iconify {
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+
+        .footer .toggle-button.collapsed .iconify {
+            transform: rotate(180deg);
         }
 
         /* 移動端樣式調整 */
         @media (max-width: 768px) {
-            .chat-container {
-                height: calc(100vh - 160px);
-                margin-top: 60px;
-            }
-
             .footer {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                z-index: 1000;
+                flex-direction: column;
+                padding: 0.5rem;
             }
 
             .footer .container {
-                padding: 0.5rem;
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            .footer .toggle-button {
+                width: 100%;
+                margin-left: 0;
+            }
+
+            .quick-input-pad {
+                bottom: 80px;
+                right: 10px;
+                width: calc(100% - 20px);
+                max-width: none;
             }
         }
     </style>
@@ -1480,18 +1471,13 @@
                 const customCommands = JSON.parse(localStorage.getItem('quickCommands') || '[]');
                 quickInputPad.renderButtons(fixedCommands, customCommands);
 
-                // 恢復之前的收起狀態
-                const isCollapsed = localStorage.getItem('quickInputCollapsed') === 'true';
-                if (isCollapsed) {
-                    quickInputPadElement.classList.add('collapsed');
-                    const containerContent = document.getElementById('container-content');
-                    if (containerContent) {
-                        containerContent.classList.remove('quick-input-expanded');
-                    }
-                } else {
-                    const containerContent = document.getElementById('container-content');
-                    if (containerContent) {
-                        containerContent.classList.add('quick-input-expanded');
+                // 恢復之前的展開狀態
+                const isExpanded = localStorage.getItem('quickInputExpanded') === 'true';
+                if (isExpanded) {
+                    quickInputPadElement.classList.add('expanded');
+                    const toggleButton = document.querySelector('.toggle-button');
+                    if (toggleButton) {
+                        toggleButton.classList.add('collapsed');
                     }
                 }
             },
@@ -1577,10 +1563,12 @@
 
             toggle: () => {
                 const pad = document.getElementById('quickInputPad');
-                if (!pad) return; // 如果元素不存在，直接返回
+                const toggleButton = document.querySelector('.toggle-button');
+                if (!pad || !toggleButton) return; // 如果元素不存在，直接返回
 
-                const isCollapsed = pad.classList.toggle('collapsed');
-                localStorage.setItem('quickInputCollapsed', isCollapsed);
+                const isExpanded = pad.classList.toggle('expanded');
+                toggleButton.classList.toggle('collapsed');
+                localStorage.setItem('quickInputExpanded', isExpanded);
             }
         };
 

@@ -25,79 +25,87 @@
         <div id="header"></div>
     </header>
     <br>
-    <div class="container" id="array-rendering">
-        <button type="button" class="btn btn-secondary float-right" onclick="selectCard()">
-            <span class="iconify" data-icon="grommet-icons:select" data-inline="false"></span>選擇角色卡
-        </button>
-
-        <button type="button" class="btn btn-dark float-right" onclick="readme()">
-            <span class="iconify" data-icon="gg:readme" data-inline="false"></span>說明
-        </button>
-        <h3>
-            <span class="iconify" data-icon="wpf:name" data-inline="false"></span> {{name}}
-        </h3>
+    <main class="container" id="array-rendering">
+        <section id="buttonlist">
+            <div class="button-group">
+                <button type="button" class="btn btn-secondary float-right" onclick="selectCard()">
+                    <span class="iconify" data-icon="grommet-icons:select" data-inline="false"></span>選擇角色卡
+                </button>
+                <button type="button" class="btn btn-dark float-right" onclick="readme()">
+                    <span class="iconify" data-icon="gg:readme" data-inline="false"></span>說明
+                </button>
+            </div>
+            <h3>
+                <span class="iconify" data-icon="wpf:name" data-inline="false"></span> {{name}}
+            </h3>
+        </section>
         <br>
-        <h3 class="bg-color3 p-1">
-            <span class="iconify" data-icon="carbon:data-base" data-inline="false" data-width="20px"
-                data-height="20px"></span>基本屬性
-        </h3>
-        <div class="row align-items-start">
-            <div v-for="item in state" id="state" class=" board1" style="height: 36px;">
-                <div>
-                    <textarea readonly class=" textName" v-model="item.name"
-                        style="width:50px;padding: 1px 1px 1px 1px">
-                    {{item.name}}
-                </textarea><span style="height: 62px;">：</span>
-                    <textarea readonly class=" textState" v-model="item.itemA"
-                        style="width:55px;padding: 1px 1px 1px 1px;">
-                    {{item.itemA}}
-                </textarea>
-                    <span style="height: 32px;">／ </span>
-                    <textarea readonly class=" textState" v-model="item.itemB"
-                        style="width:55px;padding: 1px 1px 1px 1px">
-                    {{item.itemB}}
-                </textarea>
-                    <button type="button" class="btn btn-link" v-on:click="rolling(item.name)"><span class="iconify "
-                            data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
+        <section id="attributeList">
+            <h3 class="bg-color3 p-1">
+                <span class="iconify" data-icon="carbon:data-base" data-inline="false" data-width="20px"
+                    data-height="20px"></span>基本屬性
+            </h3>
+            <div class="row align-items-start">
+                <div v-for="item in state" id="state" class=" board1" style="height: 36px;">
+                    <div>
+                        <textarea readonly class=" textName" v-model="item.name"
+                            style="width:50px;padding: 1px 1px 1px 1px">
+                        {{item.name}}
+                    </textarea><span style="height: 62px;">：</span>
+                        <textarea readonly class=" textState" v-model="item.itemA"
+                            style="width:55px;padding: 1px 1px 1px 1px;">
+                        {{item.itemA}}
+                    </textarea>
+                        <span style="height: 32px;">／ </span>
+                        <textarea readonly class=" textState" v-model="item.itemB"
+                            style="width:55px;padding: 1px 1px 1px 1px">
+                        {{item.itemB}}
+                    </textarea>
+                        <button type="button" class="btn btn-link" v-on:click="rolling(item.name)"><span class="iconify "
+                                data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
+                                data-height="20px"></span></button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <br>
+        <section id="rollList">
+            <h3 class="bg-color3 p-1">
+                <span class="iconify" data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
+                    data-height="20px"></span>擲骰
+            </h3>
+            <div class="row align-items-center" id="roll">
+                <div v-for="item in roll" class="board1" style="height: 36px;padding: 1px 1px 1px 1px">
+                    <textarea readonly class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">
+                        {{item.name}}
+                    </textarea><span class="pb-2">:</span>
+                    <textarea readonly class="col textState" v-model="item.itemA"
+                        style="width:80px;padding: 1px 1px 1px 1px">
+                        {{item.itemA}}
+                    </textarea><button type="button" class="btn btn-link" v-on:click="rolling(item.name)"><span
+                            class="iconify " data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
                             data-height="20px"></span></button>
                 </div>
             </div>
-        </div>
-
+        </section>
         <br>
-        <h3 class=" bg-color3 p-1">
-            <span class="iconify" data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
-                data-height="20px"></span>擲骰
-        </h3>
-        <div class="row align-items-center" id="roll">
-            <div v-for="item in roll" class="board1" style="height: 36px;padding: 1px 1px 1px 1px">
-                <textarea readonly class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">
-                    {{item.name}}
-                </textarea><span class="pb-2">:</span>
-                <textarea readonly class="col textState" v-model="item.itemA"
-                    style="width:80px;padding: 1px 1px 1px 1px">
-                    {{item.itemA}}
-                </textarea><button type="button" class="btn btn-link" v-on:click="rolling(item.name)"><span
-                        class="iconify " data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
-                        data-height="20px"></span></button>
+        <section id="noteList">
+            <h3 class="bg-color3 p-1">
+                <span class="iconify" data-icon="clarity:note-edit-line" data-inline="false" data-width="20px"
+                    data-height="20px"></span>筆記
+            </h3>
+            <div class="row align-items-end" id="notes">
+                <div v-for="item in notes" class="board1">
+                    <textarea readonly class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">
+                        {{item.name}}
+                    </textarea>：
+                    <textarea readonly class="col textNote" v-model="item.itemA" style="width:180px">
+                        {{item.itemA}}
+                    </textarea>
+                </div>
             </div>
-        </div>
-        <br>
-        <h3 class="bg-color3 p-1">
-            <span class="iconify" data-icon="clarity:note-edit-line" data-inline="false" data-width="20px"
-                data-height="20px"></span>筆記
-        </h3>
-        <div class="row align-items-end" id="notes">
-            <div v-for="item in notes" class="board1">
-                <textarea readonly class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">
-                    {{item.name}}
-                </textarea>：
-                <textarea readonly class="col textNote" v-model="item.itemA" style="width:180px">
-                    {{item.itemA}}
-                </textarea>
-            </div>
-        </div>
-    </div>
+        </section>
+    </main>
     <!-- Button trigger modal -->
 
     <!-- Modal -->

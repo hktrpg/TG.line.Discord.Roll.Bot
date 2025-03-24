@@ -32,7 +32,7 @@ let options = {
     ca: null
 };
 
-// Rate Limiter 整合
+// ============= Rate Limiter Configuration =============
 const rateLimitConfig = {
     chatRoom: { points: 90, duration: 60 },
     card: { points: 20, duration: 60 },
@@ -53,7 +53,7 @@ const checkRateLimit = async (type, address) => {
     }
 };
 
-// SSL相關功能整合
+// ============= SSL Configuration =============
 const initSSL = () => {
     if (!privateKey) return {};
     try {
@@ -88,6 +88,7 @@ const port = process.env.WWWPORT || 20721;
 const channelKeyword = '';
 exports.analytics = require('./analytics');
 
+// ============= Web Server Creation =============
 function createWebServer(options = {}, www) {
     if (!process.env.CREATEWEB) return;
     const server = options.key
@@ -479,9 +480,7 @@ function SHA(text) {
 }
 
 function checkNullItem(target) {
-    return target = target.filter(function (item) {
-        return item.name;
-    });
+    return target.filter(item => item.name);
 }
 async function loadb(io, records, rplyVal, message) {
     const unixTimeZero = message.time ? (Date.parse(message.time) + 50) : Date.now();

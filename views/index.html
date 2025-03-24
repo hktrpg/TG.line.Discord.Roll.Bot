@@ -50,19 +50,17 @@
                         <div class="list-content" id="chatroomList">
                             <!-- Chatrooms will be added here dynamically -->
                         </div>
-                        <div class="list-footer mt-3">
-                            <button class="btn btn-primary w-100" onclick="joinRoomModal.show()">
-                                <span class="iconify" data-icon="bi:plus-lg"></span>
-                                <span>加入聊天室</span>
-                            </button>
-                        </div>
                     </div>
                     <div class="sidebar-actions mt-3">
-                        <button class="btn btn-info w-100 mb-2" onclick="save()">
+                        <button class="btn btn-primary w-100" onclick="joinRoomModal.show()">
+                            <span class="iconify" data-icon="bi:plus-lg"></span>
+                            <span>加入聊天室</span>
+                        </button>
+                        <button class="btn btn-info w-100" onclick="save()">
                             <span class="iconify" data-icon="gg:readme"></span>
                             <span>儲存</span>
                         </button>
-                        <button class="btn btn-dark w-100 mb-2" onclick="readme()">
+                        <button class="btn btn-dark w-100" onclick="readme()">
                             <span class="iconify" data-icon="gg:readme"></span>
                             <span>說明</span>
                         </button>
@@ -958,38 +956,70 @@
             display: flex;
             flex-direction: column;
             background: var(--sidebar-bg);
+            overflow: hidden;
+            padding: 0.5rem;
         }
 
         .sidebar-header {
             background: var(--sidebar-bg);
-            padding: 1rem;
+            padding: 0;
+            margin-bottom: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .chatroom-list {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            background: var(--sidebar-bg);
+            margin-bottom: 0.5rem;
         }
 
         .list-header {
             background: var(--sidebar-bg);
-            padding: 10px;
+            padding: 0.5rem;
             font-weight: bold;
             display: flex;
             align-items: center;
             gap: 8px;
             border-bottom: 1px solid var(--card-border);
+            flex-shrink: 0;
         }
 
         .list-content {
             flex: 1;
             overflow-y: auto;
-            padding: 5px;
+            padding: 0.5rem;
             min-height: 0;
             background: var(--sidebar-bg);
+            max-height: calc(100vh - 350px); /* 增加聊天室列表的高度 */
         }
 
-        .list-footer {
-            padding: 10px;
+        .sidebar-actions {
+            padding: 0.5rem;
             border-top: 1px solid var(--card-border);
             background: var(--sidebar-bg);
-            position: sticky;
-            bottom: 0;
-            z-index: 1;
+            flex-shrink: 0;
+            margin-top: auto;
+        }
+
+        .sidebar-actions .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-actions .btn:last-child {
+            margin-bottom: 0;
         }
 
         .join-room-section,
@@ -1222,6 +1252,32 @@
                     display: none;
                 }
             }
+
+            .list-content {
+                max-height: calc(100vh - 300px); /* 移動端稍微調整最大高度 */
+            }
+            
+            .sidebar-sticky {
+                padding: 0.3rem;
+            }
+            
+            .sidebar-header {
+                margin-bottom: 0.3rem;
+            }
+            
+            .chatroom-list {
+                margin-bottom: 0.3rem;
+            }
+            
+            .sidebar-actions {
+                padding: 0.3rem;
+            }
+            
+            .sidebar-actions .btn {
+                padding: 5px 10px;
+                font-size: 0.8rem;
+                margin-bottom: 0.3rem;
+            }
         }
 
         /* 加入聊天室按鈕樣式 */
@@ -1339,6 +1395,7 @@
             padding: 10px;
             border-top: 1px solid var(--card-border);
             background: var(--sidebar-bg);
+            flex-shrink: 0; /* 防止底部按鈕被壓縮 */
         }
 
         .sidebar-actions .btn {
@@ -1899,9 +1956,8 @@
         }
 
         function save() {
-            const roomText = document.getElementById("roomNumber");
             const content = document.getElementById("content");
-            const roomName = roomText.value || '';
+            const roomName = chatroomManager.currentRoom || '';
             const contentText = content.innerText || '';
 
             const string = `HKTRPG${roomName}\n${contentText.replace(/(.*\d+:\d+:\d+)/g, '\n$1')}`;

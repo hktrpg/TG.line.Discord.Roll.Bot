@@ -49,16 +49,16 @@
                     </div>
                     <div class="sidebar-actions mt-3">
                         <button class="btn btn-primary w-100" onclick="joinRoomModal.show()">
-                            <span class="iconify" data-icon="bi:plus-lg"></span>
+                            <span class="iconify" data-icon="bi:plus-circle"></span>
                             <span>加入聊天室</span>
                         </button>
                         <button class="btn btn-info w-100" onclick="save()">
-                            <span class="iconify" data-icon="gg:readme"></span>
-                            <span>儲存</span>
+                            <span class="iconify" data-icon="bi:download"></span>
+                            <span>下載記錄</span>
                         </button>
                         <button class="btn btn-dark w-100" onclick="readme()">
-                            <span class="iconify" data-icon="gg:readme"></span>
-                            <span>說明</span>
+                            <span class="iconify" data-icon="bi:question-circle"></span>
+                            <span>使用教學</span>
                         </button>
                         <button class="btn btn-secondary w-100" onclick="themeManager.toggleTheme()">
                             <span class="iconify" data-icon="bi:moon-stars"></span>
@@ -115,8 +115,8 @@
                         </form>
                     </div>
                     <div class="toggle-button" onclick="quickInputPad.toggle()">
-                        <span class="iconify" data-icon="bi:chevron-up"></span>
-                        <span>快速輸入</span>
+                        <span class="iconify" data-icon="bi:keyboard"></span>
+                        <span>快速指令</span>
                     </div>
                 </footer>
             </main>
@@ -138,11 +138,71 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    每間房間上限100條信息<br>
-                    輸入名字可以進入自定的房間<br>
-                    擲骰方法和HKTRPG骰子機械人一樣。<br>
-                    詳情可以點擊<br>
-                    <a href="https://bothelp.hktrpg.com/">HKTRPG使用教學!</a>
+                    <h6>基本功能</h6>
+                    <ul>
+                        <li>支援多種擲骰指令：1d100、2d6、1d20 等</li>
+                        <li>可自訂聊天室名稱</li>
+                        <li>支援深色/淺色主題切換</li>
+                        <li>快速輸入常用指令</li>
+                        <li>可儲存聊天記錄</li>
+                        <li>支援多房間同時使用</li>
+                        <li>即時顯示在線人數</li>
+                        <li>支援自訂暱稱</li>
+                    </ul>
+
+                    <h6>使用方式</h6>
+                    <ol>
+                        <li>輸入暱稱（預設為「調查員」+隨機數字，可點擊重新生成按鈕更換）</li>
+                        <li>點擊「加入聊天室」或直接輸入房間名稱</li>
+                        <li>在輸入框輸入擲骰指令或聊天內容</li>
+                        <li>點擊「送出」或按 Enter 鍵發送訊息</li>
+                    </ol>
+
+                    <h6>擲骰指令格式</h6>
+                    <ul>
+                        <li>基本格式：<code>XdY</code>（X為骰子數量，Y為骰子面數）</li>
+                        <li>範例：
+                            <ul>
+                                <li><code>1d100</code>：擲一個100面骰</li>
+                                <li><code>2d6</code>：擲兩個6面骰</li>
+                                <li><code>1d20</code>：擲一個20面骰</li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <h6>快速指令功能</h6>
+                    <ul>
+                        <li>點擊「快速指令」按鈕展開常用指令面板</li>
+                        <li>預設提供常用擲骰指令：1d2、1d6、1d8、1d10、1d12、1d20、1d100</li>
+                        <li>可自訂最多5個常用指令</li>
+                        <li>點擊指令即可快速發送</li>
+                    </ul>
+
+                    <h6>其他功能</h6>
+                    <ul>
+                        <li>點擊「快速輸入」可展開常用指令面板</li>
+                        <li>點擊「儲存」可下載聊天記錄（格式：HKTRPG + 房間名稱）</li>
+                        <li>點擊「說明」可查看此使用說明</li>
+                        <li>點擊「深色模式」可切換主題</li>
+                        <li>點擊「重新生成」可隨機生成新暱稱</li>
+                    </ul>
+
+                    <h6>注意事項</h6>
+                    <ul>
+                        <li>每間房間上限100條訊息</li>
+                        <li>聊天室名稱不可重複</li>
+                        <li>預設房間「公共房間」不可刪除</li>
+                        <li>暱稱長度限制為50個字元</li>
+                        <li>訊息長度限制為1000個字元</li>
+                    </ul>
+
+                    <div class="mt-3">
+                        <p>更多詳細教學請參考：</p>
+                        <a href="https://bothelp.hktrpg.com/" target="_blank" class="btn btn-primary btn-sm">
+                            <span class="iconify" data-icon="bi:link-45deg"></span>
+                            HKTRPG使用教學
+                        </a>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -1992,7 +2052,5 @@
     </script>
 
 </body>
-
-</html>
 
 </html>

@@ -147,9 +147,140 @@ function initializeVueApps(isPublic = false) {
             }
 
             debugLog('Vue applications initialized successfully', 'info');
+
+            // Set up login form for private cards
+            if (!isPublic) {
+                setupLoginForm();
+            }
         });
     } catch (error) {
         debugLog(`Error initializing Vue apps: ${error.message}`, 'error');
+    }
+}
+
+// Login form setup
+function setupLoginForm() {
+    debugLog('Setting up login form', 'info');
+    let retryCount = 0;
+    const maxRetries = 5;
+    const retryInterval = 100; // ms
+
+    function trySetupLoginForm() {
+        const userNameInput = document.getElementById('userName');
+        const userPasswordInput = document.getElementById('userPassword_id');
+        const warningElement = document.getElementById('warning');
+
+        if (userNameInput && userPasswordInput && warningElement) {
+            // Set initial values from localStorage
+            const userName = localStorage.getItem("userName");
+            const userPassword = localStorage.getItem("userPassword");
+            
+            if (userName) userNameInput.value = userName;
+            if (userPassword) userPasswordInput.value = userPassword;
+
+            // Check if user is already logged in
+            if (userName && userPassword) {
+                debugLog('User already logged in, attempting to get card list', 'info');
+                socket.emit('getListInfo', {
+                    userName: userName,
+                    userPassword: userPassword
+                });
+
+                socket.once("getListInfo", function (listInfo) {
+                    let list = listInfo.temp;
+                    if (listInfo && listInfo.id && listInfo.id.length > 0) {
+                        card.gpList = listInfo.id;
+                    }
+                    if (list) {
+                        warningElement.style.display = "none";
+                        cardList.list = list;
+                        $('#cardListModal').modal("show");
+                    } else {
+                        // If login failed, show login modal
+                        $('#loginModalCenter').modal("show");
+                    }
+                });
+            } else {
+                // If no stored credentials, show login modal
+                $('#loginModalCenter').modal("show");
+            }
+            
+            debugLog('Login form setup completed successfully', 'info');
+            return true;
+        }
+
+        if (retryCount < maxRetries) {
+            retryCount++;
+            debugLog(`Login form elements not found, retrying (${retryCount}/${maxRetries})`, 'info');
+            setTimeout(trySetupLoginForm, retryInterval);
+            return false;
+        }
+
+        debugLog('Failed to find login form elements after maximum retries', 'error');
+        return false;
+    }
+
+    trySetupLoginForm();
+}
+
+// Login function
+function login() {
+    const userNameInput = document.getElementById('userName');
+    const userPasswordInput = document.getElementById('userPassword_id');
+    const warningElement = document.getElementById('warning');
+
+    if (!userNameInput || !userPasswordInput || !warningElement) {
+        debugLog('Login form elements not found', 'error');
+        return;
+    }
+
+    const userName = userNameInput.value;
+    const userPassword = userPasswordInput.value;
+
+    localStorage.setItem('userName', userName);
+    localStorage.setItem('userPassword', userPassword);
+
+    if (userName && userName.length >= 4 && userPassword && userPassword.length >= 6) {
+        socket.emit('getListInfo', {
+            userName: userName,
+            userPassword: userPassword
+        });
+
+        socket.on("getListInfo", function (listInfo) {
+            let list = listInfo.temp;
+            if (listInfo && listInfo.id && listInfo.id.length > 0) {
+                card.gpList = listInfo.id;
+            }
+            if (list) {
+                warningElement.style.display = "none";
+                cardList.list = list;
+                $('#loginModalCenter').modal("hide");
+                $('#cardListModal').modal("show");
+            } else {
+                warningElement.style.display = "block";
+                $('#loginModalCenter').modal("show");
+            }
+        });
+    } else {
+        $('#loginModalCenter').modal("show");
+    }
+}
+
+// Logout function
+function logout() {
+    const warningElement = document.getElementById('warning');
+    if (warningElement) {
+        warningElement.style.display = "none";
+    }
+    $('#loginModalCenter').modal("show");
+    if (card) {
+        card._id = "";
+        card.id = "";
+        card.name = "";
+        card.notes = "";
+        card.roll = "";
+        card.state = "";
+        card.public = false;
     }
 }
 
@@ -244,4 +375,8 @@ socket.on("updateCard", function (result) {
 
 // Export functions for use in other files
 window.initializeVueApps = initializeVueApps;
-window.debugLog = debugLog; 
+window.debugLog = debugLog;
+window.login = login;
+window.logout = logout;
+window.readme = readme;
+window.selectCard = selectCard; 

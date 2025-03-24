@@ -39,8 +39,8 @@
                             <span class="input-group-text">
                                 <span class="iconify" data-icon="bi:person-fill"></span>
                             </span>
-                            <input type="text" class="form-control" name="name" id="name" 
-                                   placeholder="暱稱" maxlength="50" required>
+                            <input type="text" class="form-control" name="name" id="name" placeholder="暱稱"
+                                maxlength="50" required>
                         </div>
                         <div class="online-count mt-2">
                             <span class="iconify" data-icon="bi:people"></span>
@@ -67,7 +67,8 @@
 
             <!-- Main Chat Area -->
             <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <div
+                    class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 </div>
 
                 <div class="chat-container">
@@ -84,15 +85,18 @@
                         <span class="iconify" data-icon="bi:chevron-up"></span>
                         <span>快速輸入</span>
                     </div>
-                    <div class="pad-header">
-                        <span class="pad-title">常用指令</span>
-                    </div>
-                    <div class="pad-buttons" id="quickInputButtons">
-                        <!-- Buttons will be added dynamically -->
-                    </div>
-                    <div class="custom-input">
-                        <input type="text" id="customInput" placeholder="自訂指令" onchange="quickInputPad.saveCustom()" onkeypress="if(event.key === 'Enter') quickInputPad.sendCustom()">
-                        <button class="btn btn-primary" onclick="quickInputPad.sendCustom()">送出</button>
+                    <div class="pad-content">
+                        <div class="pad-header">
+                            <span class="pad-title">常用指令</span>
+                        </div>
+                        <div class="pad-buttons" id="quickInputButtons">
+                            <!-- Buttons will be added dynamically -->
+                        </div>
+                        <div class="custom-input">
+                            <input type="text" id="customInput" placeholder="自訂指令" onchange="quickInputPad.saveCustom()"
+                                onkeypress="if(event.key === 'Enter') quickInputPad.sendCustom()">
+                            <button class="btn btn-primary" onclick="quickInputPad.sendCustom()">送出</button>
+                        </div>
                     </div>
                 </div>
 
@@ -101,8 +105,8 @@
                     <div class="container">
                         <form id="send-form" class="needs-validation" novalidate>
                             <div class="input-group">
-                                <input type="text" class="form-control" name="msg" id="msg" 
-                                       value="1d100" placeholder="說點什麼？" maxlength="1000" required>
+                                <input type="text" class="form-control" name="msg" id="msg" value="1d100"
+                                    placeholder="說點什麼？" maxlength="1000" required>
                                 <button type="button" class="btn btn-secondary" onclick="genName()">
                                     <span class="iconify" data-icon="bi:arrow-clockwise"></span>
                                 </button>
@@ -121,8 +125,8 @@
     </footer>
 
     <!-- Readme Modal -->
-    <div class="modal fade" id="readmeModalCenter" tabindex="-1" role="dialog"
-        aria-labelledby="readmeModalCenterTitle" aria-hidden="true">
+    <div class="modal fade" id="readmeModalCenter" tabindex="-1" role="dialog" aria-labelledby="readmeModalCenterTitle"
+        aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -146,8 +150,8 @@
     </div>
 
     <!-- Join Room Modal -->
-    <div class="modal fade" id="joinRoomModal" tabindex="-1" role="dialog"
-        aria-labelledby="joinRoomModalTitle" aria-hidden="true">
+    <div class="modal fade" id="joinRoomModal" tabindex="-1" role="dialog" aria-labelledby="joinRoomModalTitle"
+        aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -165,7 +169,7 @@
                                     <span class="iconify" data-icon="bi:box-arrow-in-right"></span>
                                 </span>
                                 <input type="text" class="form-control" name="joinRoomNumber" id="joinRoomNumber"
-                                       placeholder="輸入聊天室名稱" maxlength="50" required>
+                                    placeholder="輸入聊天室名稱" maxlength="50" required>
                             </div>
                         </div>
                     </form>
@@ -193,11 +197,11 @@
             --scrollbar-track: #f1f1f1;
             --scrollbar-thumb: #888;
             --scrollbar-thumb-hover: #555;
-            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
-            --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
-            --gradient-start: rgba(255,255,255,0.1);
-            --gradient-end: rgba(255,255,255,0.05);
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+            --gradient-start: rgba(255, 255, 255, 0.1);
+            --gradient-end: rgba(255, 255, 255, 0.05);
             --input-height: 38px;
             --border-radius: 8px;
         }
@@ -215,11 +219,11 @@
             --scrollbar-track: #1e1e1e;
             --scrollbar-thumb: #424242;
             --scrollbar-thumb-hover: #4f4f4f;
-            --shadow-sm: 0 2px 4px rgba(0,0,0,0.3);
-            --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
-            --shadow-lg: 0 10px 15px rgba(0,0,0,0.4);
-            --gradient-start: rgba(37,37,38,0.8);
-            --gradient-end: rgba(37,37,38,0.6);
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4);
+            --gradient-start: rgba(37, 37, 38, 0.8);
+            --gradient-end: rgba(37, 37, 38, 0.6);
         }
 
         /* 滾動條樣式 */
@@ -462,32 +466,32 @@
             overflow: hidden;
         }
 
-        .input-group > .form-control:first-child {
+        .input-group>.form-control:first-child {
             border-top-right-radius: 0;
             border-bottom-right-radius: 0;
         }
 
-        .input-group > .form-control:last-child {
+        .input-group>.form-control:last-child {
             border-top-left-radius: 0;
             border-bottom-left-radius: 0;
         }
 
-        .input-group > .input-group-text:first-child {
+        .input-group>.input-group-text:first-child {
             border-top-right-radius: 0;
             border-bottom-right-radius: 0;
         }
 
-        .input-group > .input-group-text:last-child {
+        .input-group>.input-group-text:last-child {
             border-top-left-radius: 0;
             border-bottom-left-radius: 0;
         }
 
-        .input-group > .btn:first-child {
+        .input-group>.btn:first-child {
             border-top-right-radius: 0;
             border-bottom-right-radius: 0;
         }
 
-        .input-group > .btn:last-child {
+        .input-group>.btn:last-child {
             border-top-left-radius: 0;
             border-bottom-left-radius: 0;
         }
@@ -504,38 +508,38 @@
                 padding: 0.3rem;
                 margin-top: 120px;
             }
-            
+
             .card {
                 margin-bottom: 0.4rem;
             }
-            
+
             .card-header2 {
                 padding: 0.3rem 0.5rem;
             }
-            
+
             .card-body2 {
                 padding: 0.3rem 0.5rem;
                 font-size: 0.9rem;
             }
-            
+
             .input-group {
                 margin-bottom: 0.5rem;
             }
-            
+
             .btn {
                 padding: 0.4rem 0.8rem;
             }
-            
+
             #status-box {
                 margin: 0.5rem 0;
             }
-            
+
             #container-content {
                 height: calc(100vh - 160px);
                 padding: 0.3rem;
                 margin: 0.2rem 0;
             }
-            
+
             #content {
                 padding: 0.2rem;
             }
@@ -549,36 +553,30 @@
             background: var(--card-bg);
             border-radius: 12px;
             box-shadow: var(--shadow-lg);
-            padding: 15px;
             z-index: 1000;
             transition: all 0.3s ease;
             max-width: 300px;
             width: 90%;
-            transform: translateY(0);
-        }
-
-        .quick-input-pad.collapsed {
-            transform: translateY(calc(100% + 40px)); /* 增加距離，確保完全隱藏 */
         }
 
         .quick-input-pad .toggle-button {
-            position: absolute;
-            top: -40px;
-            right: 0;
+            position: relative;
             background: var(--card-bg);
             border: 1px solid var(--card-border);
             border-radius: 6px 6px 0 0;
-            padding: 5px 15px;
+            padding: 8px 15px;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 5px;
             color: var(--text-color);
             box-shadow: var(--shadow-sm);
-            z-index: 1001; /* 確保按鈕始終可見 */
+            z-index: 1001;
+            margin-bottom: -1px; /* 覆蓋邊框 */
         }
 
         .quick-input-pad .toggle-button .iconify {
+            font-size: 1.2rem;
             transition: transform 0.3s ease;
         }
 
@@ -586,7 +584,18 @@
             transform: rotate(180deg);
         }
 
-        /* 在展開狀態時，將面板移到中間 */
+        .quick-input-pad .pad-content {
+            padding: 15px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--card-border);
+        }
+
+        .quick-input-pad.collapsed {
+            transform: translateY(calc(100% - 40px));
+        }
+
         .quick-input-pad:not(.collapsed) {
             bottom: 50%;
             transform: translateY(50%);
@@ -639,19 +648,48 @@
         /* 移動端樣式調整 */
         @media (max-width: 768px) {
             .quick-input-pad {
-                bottom: 70px;
+                bottom: 80px;
                 right: 10px;
                 width: calc(100% - 20px);
                 max-width: none;
                 max-height: 25vh;
+                overflow: hidden;
+            }
+
+            .quick-input-pad .toggle-button {
+                display: flex;
+                position: relative;
+                background: var(--card-bg);
+                border: 1px solid var(--card-border);
+                border-radius: 6px 6px 0 0;
+                padding: 8px 15px;
+                cursor: pointer;
+                align-items: center;
+                gap: 5px;
+                color: var(--text-color);
+                box-shadow: var(--shadow-sm);
+                z-index: 1001;
+                min-width: 100px;
+                margin-bottom: -1px;
+            }
+
+            .quick-input-pad .toggle-button .iconify {
+                font-size: 1.2rem;
+            }
+
+            .quick-input-pad.collapsed .toggle-button .iconify {
+                transform: rotate(180deg);
+            }
+
+            .quick-input-pad .pad-content {
+                max-height: 25vh;
                 overflow-y: auto;
                 padding: 10px;
-                backdrop-filter: blur(8px);
-                -webkit-backdrop-filter: blur(8px);
+                border: 1px solid var(--card-border);
             }
 
             .quick-input-pad.collapsed {
-                transform: translateY(calc(100% + 40px));
+                transform: translateY(calc(100% - 40px));
             }
 
             .quick-input-pad:not(.collapsed) {
@@ -669,40 +707,41 @@
             }
         }
 
+        /* 在桌面版隱藏手機版加入按鈕 */
+        @media (min-width: 769px) {
+            .mobile-join-button {
+                display: none;
+            }
+        }
+
         /* Floating Toggle Button Styles */
         .floating-toggle-button {
-            display: none; /* Hide by default on desktop */
+            display: none;
+            /* Hide by default on desktop */
             position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 40px;
-            height: 40px;
+            top: 10px;
+            right: 10px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             background: var(--badge-bg);
             color: var(--badge-text);
             border: none;
             box-shadow: var(--shadow-lg);
-            z-index: 1001;
+            z-index: 1002;
             cursor: pointer;
             align-items: center;
             justify-content: center;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            font-size: 20px;
+            font-weight: bold;
         }
 
         /* Show floating button only on mobile */
         @media (max-width: 768px) {
             .floating-toggle-button {
-                display: flex;
-                top: 10px;
-                right: 10px;
-                width: 36px;
-                height: 36px;
-            }
-
-            .floating-toggle-button .iconify {
-                font-size: 20px;
+                display: flex !important;
+                /* Force display on mobile */
             }
 
             /* Adjust header and content for mobile */
@@ -710,6 +749,7 @@
                 position: fixed;
                 top: 0;
                 transform: translateY(0);
+                z-index: 1000;
             }
 
             .header-content {
@@ -729,6 +769,11 @@
 
         /* Desktop styles */
         @media (min-width: 769px) {
+            .floating-toggle-button {
+                display: none !important;
+                /* Force hide on desktop */
+            }
+
             #header {
                 position: relative;
                 top: 0;
@@ -739,14 +784,6 @@
                 position: relative;
                 top: 0;
                 transform: none !important;
-            }
-
-            #container {
-                margin-top: 0;
-            }
-            
-            #container-content {
-                height: calc(100vh - 160px);
             }
         }
 
@@ -790,11 +827,11 @@
             }
 
             /* 當 header 收起時，調整容器位置 */
-            #header.collapsed + #container {
+            #header.collapsed+#container {
                 margin-top: 0;
             }
 
-            #header.collapsed + #container #container-content {
+            #header.collapsed+#container #container-content {
                 height: calc(100vh - 88px);
             }
 
@@ -834,7 +871,7 @@
             #container {
                 margin-top: 0;
             }
-            
+
             #container-content {
                 height: calc(100vh - 160px);
             }
@@ -886,7 +923,8 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            min-height: 0; /* 重要：允許flex子元素收縮 */
+            min-height: 0;
+            /* 重要：允許flex子元素收縮 */
         }
 
         .list-header {
@@ -902,7 +940,8 @@
             flex: 1;
             overflow-y: auto;
             padding: 5px;
-            min-height: 0; /* 重要：允許flex子元素收縮 */
+            min-height: 0;
+            /* 重要：允許flex子元素收縮 */
         }
 
         .list-footer {
@@ -1005,7 +1044,8 @@
             flex-direction: column;
             overflow: hidden;
             margin-left: 240px;
-            margin-top: 0; /* 移除頂部間距 */
+            margin-top: 0;
+            /* 移除頂部間距 */
         }
 
         .main-header {
@@ -1015,7 +1055,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            position: sticky; /* 讓header固定在頂部 */
+            position: sticky;
+            /* 讓header固定在頂部 */
             top: 0;
             z-index: 999;
         }
@@ -1092,7 +1133,7 @@
                 display: flex;
                 position: fixed;
                 bottom: 80px;
-                right: 20px;
+                left: 20px;
                 z-index: 1000;
                 background: var(--badge-bg);
                 color: var(--badge-text);
@@ -1120,16 +1161,27 @@
                 transform: scale(0.95);
             }
 
-            /* 調整快速輸入欄的位置，避免與加入按鈕重疊 */
+            /* 調整快速輸入欄的位置，保持在右側 */
             .quick-input-pad {
-                bottom: 150px;
+                position: fixed;
+                bottom: 80px;
+                right: 20px;
+                background: var(--card-bg);
+                border-radius: 12px;
+                box-shadow: var(--shadow-lg);
+                padding: 15px;
+                z-index: 1000;
+                transition: all 0.3s ease;
+                max-width: 300px;
+                width: 90%;
+                transform: translateY(0);
             }
-        }
 
-        /* 在桌面版隱藏手機版加入按鈕 */
-        @media (min-width: 769px) {
-            .mobile-join-button {
-                display: none;
+            /* 在桌面版隱藏手機版加入按鈕 */
+            @media (min-width: 769px) {
+                .mobile-join-button {
+                    display: none;
+                }
             }
         }
 
@@ -1171,10 +1223,10 @@
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
         integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous">
-    </script>
+        </script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
         integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous">
-    </script>
+        </script>
     <script>
         // Configuration and Constants
         const CONFIG = {
@@ -1270,7 +1322,7 @@
 
                 sendForm.addEventListener("submit", (e) => {
                     e.preventDefault();
-                    
+
                     if (!msgInput.value.trim()) return;
 
                     const formData = {
@@ -1340,7 +1392,7 @@
             toggleTheme: () => {
                 const currentTheme = document.documentElement.getAttribute('data-theme');
                 const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-                
+
                 document.documentElement.setAttribute('data-theme', newTheme);
                 localStorage.setItem('theme', newTheme);
                 themeManager.updateThemeButton(newTheme);
@@ -1354,7 +1406,7 @@
 
                     const icon = button.querySelector('.iconify');
                     const text = button.querySelector('.theme-text');
-                    
+
                     if (icon) {
                         if (theme === 'dark') {
                             icon.setAttribute('data-icon', 'bi:sun');
@@ -1362,7 +1414,7 @@
                             icon.setAttribute('data-icon', 'bi:moon-stars');
                         }
                     }
-                    
+
                     if (text) {
                         text.textContent = theme === 'dark' ? '淺色模式' : '深色模式';
                     }
@@ -1382,7 +1434,7 @@
                 // 自訂指令（最多保存5個不重複的指令）
                 const customCommands = JSON.parse(localStorage.getItem('quickCommands') || '[]');
                 quickInputPad.renderButtons(fixedCommands, customCommands);
-                
+
                 // 恢復之前的收起狀態
                 const isCollapsed = localStorage.getItem('quickInputCollapsed') === 'true';
                 if (isCollapsed) {
@@ -1461,19 +1513,19 @@
 
                 // 獲取現有的自訂指令
                 let customCommands = JSON.parse(localStorage.getItem('quickCommands') || '[]');
-                
+
                 // 移除相同的指令（不區分大小寫）
                 customCommands = customCommands.filter(cmd => cmd && cmd.toLowerCase() !== command.toLowerCase());
-                
+
                 // 將新指令加入開頭
                 customCommands.unshift(command);
-                
+
                 // 只保留前5個不重複的指令
                 customCommands = customCommands.slice(0, 5);
-                
+
                 // 儲存更新後的指令列表
                 localStorage.setItem('quickCommands', JSON.stringify(customCommands));
-                
+
                 // 重新渲染按鈕
                 quickInputPad.renderButtons(fixedCommands, customCommands);
             },
@@ -1484,7 +1536,7 @@
 
                 const containerContent = document.getElementById('container-content');
                 const isCollapsed = pad.classList.toggle('collapsed');
-                
+
                 // 只在手機版時調整容器內容的位置
                 if (window.innerWidth <= 768) {
                     if (containerContent) {
@@ -1495,7 +1547,7 @@
                         }
                     }
                 }
-                
+
                 localStorage.setItem('quickInputCollapsed', isCollapsed);
             }
         };
@@ -1503,14 +1555,25 @@
         // Header Management
         const headerManager = {
             init: () => {
+                // Create toggle button if it doesn't exist
+                if (!document.querySelector('.floating-toggle-button')) {
+                    const toggleButton = document.createElement('button');
+                    toggleButton.className = 'floating-toggle-button';
+                    toggleButton.textContent = '^';
+                    toggleButton.onclick = () => headerManager.toggle();
+                    document.body.appendChild(toggleButton);
+                }
+
+                // Initialize header state
                 const isCollapsed = localStorage.getItem('headerCollapsed') === 'true';
-                const toggleButton = document.querySelector('.floating-toggle-button');
                 const header = document.getElementById('header');
-                
+                const toggleButton = document.querySelector('.floating-toggle-button');
+
                 if (isCollapsed && header) {
                     header.classList.add('collapsed');
                     if (toggleButton) {
                         toggleButton.classList.add('collapsed');
+                        toggleButton.textContent = 'v';
                     }
                 }
             },
@@ -1518,12 +1581,11 @@
             toggle: () => {
                 const header = document.getElementById('header');
                 const toggleButton = document.querySelector('.floating-toggle-button');
-                
-                if (header) {
+
+                if (header && toggleButton) {
                     const isCollapsed = header.classList.toggle('collapsed');
-                    if (toggleButton) {
-                        toggleButton.classList.toggle('collapsed');
-                    }
+                    toggleButton.classList.toggle('collapsed');
+                    toggleButton.textContent = isCollapsed ? 'v' : '^';
                     localStorage.setItem('headerCollapsed', isCollapsed);
                 }
             }
@@ -1538,12 +1600,12 @@
                 // 從 localStorage 加載房間列表
                 const savedRooms = JSON.parse(localStorage.getItem('chatRooms') || '[]');
                 savedRooms.forEach(room => chatroomManager.rooms.add(room));
-                
+
                 // 確保默認房間存在
                 if (!chatroomManager.rooms.has(CONFIG.DEFAULT_ROOM)) {
                     chatroomManager.rooms.add(CONFIG.DEFAULT_ROOM);
                 }
-                
+
                 chatroomManager.renderRooms();
                 chatroomManager.setupEventListeners();
                 // 初始化時加入默認房間
@@ -1558,7 +1620,7 @@
                         e.preventDefault();
                         const input = document.getElementById("joinRoomNumber");
                         const roomName = input.value.trim();
-                        
+
                         if (roomName && !chatroomManager.rooms.has(roomName)) {
                             chatroomManager.addRoom(roomName);
                             input.value = '';
@@ -1591,35 +1653,35 @@
 
             switchRoom: (roomName) => {
                 if (chatroomManager.currentRoom === roomName) return;
-                
+
                 // 移除舊房間的事件監聽器
                 if (state.socket) {
                     state.socket.off(chatroomManager.currentRoom);
                 }
-                
+
                 // 更新房間狀態
                 chatroomManager.currentRoom = roomName;
                 state.currentRoom = roomName;
-                
+
                 // 清空聊天內容
                 const content = document.getElementById("content");
                 if (content) {
                     content.innerHTML = '';
                 }
-                
+
                 // 發送切換房間事件
                 if (state.socket) {
                     state.socket.emit("newRoom", roomName);
                     // 添加新房間的事件監聽器
                     state.socket.on(roomName, uiManager.addMessageToBox);
                 }
-                
+
                 // 更新房間顯示
                 const roomElement = document.getElementById("room");
                 if (roomElement) {
                     roomElement.innerText = roomName;
                 }
-                
+
                 // 重新渲染房間列表以更新活動狀態
                 chatroomManager.renderRooms();
             },
@@ -1627,7 +1689,7 @@
             renderRooms: () => {
                 const container = document.getElementById("chatroomList");
                 if (!container) return;
-                
+
                 container.innerHTML = Array.from(chatroomManager.rooms).map(room => `
                     <div class="chatroom-item ${room === chatroomManager.currentRoom ? 'active' : ''}"
                          onclick="chatroomManager.switchRoom('${room}')">
@@ -1664,10 +1726,10 @@
                 document.addEventListener('click', (e) => {
                     const sidebar = document.querySelector('.sidebar');
                     const toggleButton = document.querySelector('.mobile-sidebar-toggle');
-                    
-                    if (sidebar && toggleButton && 
-                        !sidebar.contains(e.target) && 
-                        !toggleButton.contains(e.target) && 
+
+                    if (sidebar && toggleButton &&
+                        !sidebar.contains(e.target) &&
+                        !toggleButton.contains(e.target) &&
                         window.innerWidth <= 768) {
                         sidebar.classList.remove('show');
                     }
@@ -1696,9 +1758,9 @@
             const content = document.getElementById("content");
             const roomName = roomText.value || '';
             const contentText = content.innerText || '';
-            
+
             const string = `HKTRPG${roomName}\n${contentText.replace(/(.*\d+:\d+:\d+)/g, '\n$1')}`;
-            
+
             const blob = new Blob([string], { type: 'text/plain;charset=utf-8;' });
             const link = document.createElement('a');
             link.href = window.URL.createObjectURL(blob);
@@ -1724,7 +1786,7 @@
             submit: () => {
                 const input = document.getElementById("joinRoomNumber");
                 const roomName = input.value.trim();
-                
+
                 if (roomName && !chatroomManager.rooms.has(roomName)) {
                     chatroomManager.addRoom(roomName);
                     input.value = '';
@@ -1744,4 +1806,5 @@
     </script>
 
 </body>
+
 </html>

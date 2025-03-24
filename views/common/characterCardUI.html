@@ -70,13 +70,13 @@
         <button type="button" class="btn btn-warning float-right" v-if="name && !isPublic" @click="addItem(0)">+</button>
         <button type="button" class="btn btn-warning float-right" v-if="name && !isPublic" @click="removeItem(0)">-</button>
         <div class="row align-items-start m-1 p-1">
-            <div v-for="(item, index) in state" class="board1" style="height: 36px;">
+            <div v-for="(item, index) in state" class="board1 attribute-item">
                 <div>
-                    <textarea :readonly="isPublic" class="textName" v-model="item.name" style="width:50px;padding: 1px;">{{item.name}}</textarea>
+                    <textarea :readonly="isPublic" class="textName attribute-name" v-model="item.name">{{item.name}}</textarea>
                     <span class="centered-text">：</span>
-                    <textarea :readonly="isPublic" class="textState" v-model="item.itemA" style="width:55px;padding: 1px;">{{item.itemA}}</textarea>
+                    <textarea :readonly="isPublic" class="textState attribute-value" v-model="item.itemA">{{item.itemA}}</textarea>
                     <span class="centered-text">／</span>
-                    <textarea :readonly="isPublic" class="textState" v-model="item.itemB" style="width:55px;padding: 1px;">{{item.itemB}}</textarea>
+                    <textarea :readonly="isPublic" class="textState attribute-value" v-model="item.itemB">{{item.itemB}}</textarea>
                     <button type="button" class="btn btn-link" @click="rolling(item.name)">
                         <span class="iconify" data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px" data-height="20px"></span>
                     </button>
@@ -95,10 +95,10 @@
         <button type="button" class="btn btn-warning float-right" v-if="name && !isPublic" @click="addItem(1)">+</button>
         <button type="button" class="btn btn-warning float-right" v-if="name && !isPublic" @click="removeItem(1)">-</button>
         <div class="row align-items-start m-1 p-1" id="roll">
-            <div v-for="(item, index) in roll" class="board1" style="height: 36px;padding: 1px 1px 1px 1px">
-                <textarea :readonly="isPublic" class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">{{item.name}}</textarea>
+            <div v-for="(item, index) in roll" class="board1 roll-item">
+                <textarea :readonly="isPublic" class="textName roll-name" v-model="item.name">{{item.name}}</textarea>
                 <span class="pb-2">:</span>
-                <textarea :readonly="isPublic" class="col textState" v-model="item.itemA" style="width:80px;padding: 1px 1px 1px 1px">{{item.itemA}}</textarea>
+                <textarea :readonly="isPublic" class="textState roll-value" v-model="item.itemA">{{item.itemA}}</textarea>
                 <button type="button" class="btn btn-link" v-on:click="rolling(item.name)">
                     <span class="iconify" data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px" data-height="20px"></span>
                 </button>
@@ -117,8 +117,8 @@
         <button type="button" class="btn btn-warning float-right" v-if="name && !isPublic" @click="removeItem(2)">-</button>
         <div class="row align-items-end" id="notes">
             <div v-for="(item, index) in notes" class="board1">
-                <textarea :readonly="isPublic" class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">{{item.name}}</textarea>：
-                <textarea :readonly="isPublic" class="col textNote" v-model="item.itemA" style="width:180px">{{item.itemA}}</textarea>
+                <textarea :readonly="isPublic" class="textName note-name" v-model="item.name">{{item.name}}</textarea>：
+                <textarea :readonly="isPublic" class="textNote note-content" v-model="item.itemA">{{item.itemA}}</textarea>
                 <button type="button" class="btn btn-danger btn-delete" v-if="deleteMode && !isPublic" @click="removeItem(2, index)">刪除</button>
             </div>
         </div>

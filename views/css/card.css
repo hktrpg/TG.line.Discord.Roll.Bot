@@ -11,19 +11,14 @@
     border-bottom: 00px !important;
     margin-bottom: 25px !important;
     height: 32px !important;
-
 }
-
 
 .btn-delete {
     font-weight: 400;
-
     text-decoration: none;
     padding: 0px 8px 0px 8px !important;
     border-bottom: 00px !important;
     margin-bottom: 25px !important;
-  
-
 }
 
 .btn-link:hover {
@@ -75,6 +70,19 @@
     border-radius: 8px;
 }
 
+.textState {
+    border: none;
+    padding: 1px 1px 1px 1px;
+    border-radius: 8px;
+    width: 153px;
+    height: 32px;
+    background-color: #FADCD9;
+    resize: none;
+    overflow: hidden;
+    white-space: nowrap;
+    text-align: center;
+}
+
 .textState:hover {
     background-color: #F79489;
 }
@@ -87,15 +95,40 @@
     background-color: #F79489;
 }
 
-.textState {
-    border: none;
-    padding: 1px 1px 1px 1px;
-    border-radius: 8px;
-    width: 153px;
-    height: 32px;
-    background-color: #FADCD9;
-    resize: none;
-    overflow: hidden;
-    white-space: nowrap;
-    text-align: center;
+.attribute-item {
+    height: 36px;
+}
+
+.roll-item {
+    height: 36px;
+    padding: 1px;
+}
+
+.attribute-name {
+    width: 50px;
+    padding: 1px;
+}
+
+.attribute-value {
+    width: 55px;
+    padding: 1px;
+}
+
+.roll-name {
+    width: 80px;
+    padding: 1px;
+}
+
+.roll-value {
+    width: 80px;
+    padding: 1px;
+}
+
+.note-name {
+    width: 80px;
+    padding: 1px;
+}
+
+.note-content {
+    width: 180px;
 }

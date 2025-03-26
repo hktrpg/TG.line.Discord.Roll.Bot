@@ -851,7 +851,7 @@
             }
 
             .sidebar-actions {
-                padding: 8px 4px;
+                padding: 12px 4px;
                 position: fixed;
                 bottom: 0;
                 left: 0;
@@ -861,9 +861,9 @@
                 z-index: 1007;
                 display: grid;
                 grid-template-columns: repeat(2, 1fr);
-                gap: 4px;
+                gap: 8px;
                 margin: 0;
-                padding-bottom: calc(env(safe-area-inset-bottom) + 8px);
+                padding-bottom: calc(env(safe-area-inset-bottom) + 20px);
             }
 
             .sidebar-actions .btn {
@@ -873,14 +873,14 @@
                 border: 1px solid var(--card-border);
                 color: var(--text-color);
                 margin: 2px 0;
-                padding: 8px 4px;
+                padding: 12px 4px;
                 font-size: 0.75rem;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 gap: 4px;
                 transition: all 0.2s ease;
-                height: 40px;
+                height: 48px;
             }
 
             .sidebar-actions .btn:hover {
@@ -900,12 +900,7 @@
 
             /* 確保側邊欄內容不會被按鈕遮擋 */
             .list-content {
-                padding-bottom: calc(env(safe-area-inset-bottom) + 60px);
-            }
-
-            /* 當側邊欄開啟時隱藏工具列 */
-            .sidebar.show ~ #header {
-                display: none;
+                padding-bottom: calc(env(safe-area-inset-bottom) + 80px);
             }
 
             /* 調整移動端側邊欄切換按鈕 */

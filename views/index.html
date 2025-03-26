@@ -552,7 +552,6 @@
             box-shadow: var(--shadow-md);
             height: calc(100vh - var(--header-height) - var(--footer-height));
             position: relative;
-            bottom: var(--footer-height);
         }
 
         #container-content {
@@ -842,6 +841,7 @@
                 border-radius: 0;
                 height: calc(100vh - var(--header-height) - var(--footer-height));
                 z-index: 998;
+                padding-bottom: 0;
             }
 
             #content {
@@ -864,48 +864,10 @@
                 justify-content: space-between;
             }
 
-            /* 調整列表內容區域 */
-            .list-content {
-                max-height: calc(100vh - 120px);
-            }
-
-            /* 調整 sidebar 內容區域 */
-            .sidebar-sticky {
-                height: 100%;
-                display: flex;
-                flex-direction: column;
-                padding: 0.2rem;
-                padding-bottom: calc(var(--footer-height) + 10px);
-            }
-
-            .sidebar-header {
-                margin-bottom: 0.2rem;
-            }
-
-            .chatroom-list {
-                flex: 1;
-                min-height: 0;
-                margin-bottom: 2px;
-            }
-
-            .sidebar-actions {
-                padding: 2px;
-                margin-top: auto;
-                position: sticky;
-                bottom: 0;
-                background: var(--sidebar-bg);
-                border-top: 1px solid var(--card-border);
-                z-index: 1007;
-            }
-
-            /* 確保快速輸入欄不會遮擋內容 */
-            .quick-input-pad {
-                z-index: 1001;
-            }
-
             /* 調整主內容區域的邊距 */
             .main-content {
                 padding-bottom: var(--footer-height);
+                height: calc(100vh - var(--header-height));
             }
 
             /* 當側邊欄開啟時隱藏工具列 */

@@ -983,13 +983,13 @@
             flex-direction: column;
             background: var(--sidebar-bg);
             overflow: hidden;
-            padding: 0.5rem;
+            padding: 0.3rem;
         }
 
         .sidebar-header {
             background: var(--sidebar-bg);
             padding: 0;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.3rem;
             flex-shrink: 0;
         }
 
@@ -999,12 +999,12 @@
             flex-direction: column;
             min-height: 0;
             background: var(--sidebar-bg);
-            margin-bottom: 0.5rem;
+            margin-bottom: 2px;
         }
 
         .list-header {
             background: var(--sidebar-bg);
-            padding: 0.5rem;
+            padding: 0.3rem;
             font-weight: bold;
             display: flex;
             align-items: center;
@@ -1016,18 +1016,20 @@
         .list-content {
             flex: 1;
             overflow-y: auto;
-            padding: 0.5rem;
+            padding: 2px;
             min-height: 0;
             background: var(--sidebar-bg);
-            max-height: calc(100vh - 350px);
-            /* 增加聊天室列表的高度 */
+            max-height: calc(100vh - 250px);
         }
 
         .sidebar-actions {
-            padding: 0.5rem;
+            padding: 4px;
             border-top: 1px solid var(--card-border);
             background: var(--sidebar-bg);
             flex-shrink: 0;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 4px;
             margin-top: auto;
         }
 
@@ -1035,18 +1037,36 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            padding: 6px 12px;
-            font-size: 0.85rem;
+            gap: 4px;
+            padding: 4px 2px;
+            font-size: 0.75rem;
             transition: all 0.2s ease;
             background: var(--card-bg);
             border: 1px solid var(--card-border);
             color: var(--text-color);
-            margin-bottom: 0.5rem;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .sidebar-actions .btn:last-child {
-            margin-bottom: 0;
+        .sidebar-actions .btn:hover {
+            background: var(--message-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .sidebar-actions .btn:active {
+            transform: translateY(0);
+        }
+
+        .sidebar-actions .btn .iconify {
+            font-size: 1.2rem;
+            min-width: 1.2rem;
+            height: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .join-room-section,
@@ -1062,8 +1082,8 @@
         .chatroom-item {
             display: flex;
             align-items: center;
-            padding: 8px;
-            margin: 2px 0;
+            padding: 4px;
+            margin: 1px 0;
             border-radius: 4px;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -1095,7 +1115,25 @@
 
         .chatroom-item .iconify {
             margin-right: 8px;
-            transition: color 0.2s ease;
+            transition: all 0.2s ease;
+            font-size: 1.2rem;
+            min-width: 1.2rem;
+            height: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--badge-bg);
+            opacity: 0.8;
+        }
+
+        .chatroom-item:hover .iconify {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .chatroom-item.active .iconify {
+            opacity: 1;
+            color: var(--active-item-text);
         }
 
         .chatroom-item .room-name {
@@ -1103,6 +1141,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            font-size: 0.9rem;
         }
 
         .chatroom-item .delete-btn {
@@ -1118,6 +1157,9 @@
             border-radius: 4px;
             color: var(--text-color);
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .chatroom-item:hover .delete-btn {
@@ -1130,181 +1172,32 @@
         }
 
         .chatroom-item .delete-btn .iconify {
-            margin: 0;
             font-size: 1rem;
-        }
-
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            margin-left: 240px;
-            margin-top: 0;
-            /* 移除頂部間距 */
-        }
-
-        .main-header {
-            padding: 10px;
-            background: var(--card-bg);
-            border-bottom: 1px solid var(--card-border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            /* 讓header固定在頂部 */
-            top: 0;
-            z-index: 999;
-        }
-
-        .room-info {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: bold;
-        }
-
-        .online-count {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            padding: 4px 8px;
-            background: var(--input-bg);
-            border-radius: 4px;
-            color: var(--text-color);
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        #container-content {
-            height: 100%;
             margin: 0;
+            color: inherit;
         }
 
-        /* Mobile responsive styles */
+        /* 移動端樣式調整 */
         @media (max-width: 768px) {
-            .app-container {
-                margin-top: 0;
+            .sidebar-sticky {
+                padding: 0.2rem;
             }
 
-            .sidebar {
-                position: fixed;
-                left: -240px;
-                top: 60px;
-                bottom: 0;
-            }
-
-            .sidebar.show {
-                left: 0;
-            }
-
-            .main-content {
-                margin-left: 0;
-                margin-top: 0;
-            }
-
-            .chat-container {
-                margin-top: 60px;
-            }
-
-            .mobile-toggle {
-                display: block;
-                position: fixed;
-                left: 10px;
-                top: 10px;
-                z-index: 1001;
-                background: var(--badge-bg);
-                color: var(--badge-text);
-                border: none;
-                border-radius: 4px;
-                padding: 8px;
-                cursor: pointer;
-            }
-
-            /* 添加手機版固定加入按鈕 */
-            .mobile-join-button {
-                display: flex;
-                position: fixed;
-                bottom: 80px;
-                left: 20px;
-                z-index: 1000;
-                background: var(--badge-bg);
-                color: var(--badge-text);
-                border: none;
-                border-radius: 50%;
-                width: 56px;
-                height: 56px;
-                align-items: center;
-                justify-content: center;
-                box-shadow: var(--shadow-lg);
-                cursor: pointer;
-                transition: all 0.3s ease;
-            }
-
-            .mobile-join-button .iconify {
-                font-size: 24px;
-            }
-
-            .mobile-join-button:hover {
-                transform: scale(1.1);
-                box-shadow: var(--shadow-lg);
-            }
-
-            .mobile-join-button:active {
-                transform: scale(0.95);
-            }
-
-            /* 調整快速輸入欄的位置，保持在右側 */
-            .quick-input-pad {
-                position: fixed;
-                bottom: 80px;
-                right: 20px;
-                background: var(--card-bg);
-                border-radius: 12px;
-                box-shadow: var(--shadow-lg);
-                padding: 15px;
-                z-index: 998;
-                transition: all 0.3s ease;
-                max-width: 300px;
-                width: 90%;
-                transform: translateY(0);
-            }
-
-            /* 在桌面版隱藏手機版加入按鈕 */
-            @media (min-width: 769px) {
-                .mobile-join-button {
-                    display: none;
-                }
+            .list-header {
+                padding: 0.2rem;
             }
 
             .list-content {
-                max-height: calc(100vh - 300px);
-                /* 移動端稍微調整最大高度 */
-            }
-
-            .sidebar-sticky {
-                padding: 0.3rem;
-            }
-
-            .sidebar-header {
-                margin-bottom: 0.3rem;
-            }
-
-            .chatroom-list {
-                margin-bottom: 0.3rem;
+                padding: 1px;
             }
 
             .sidebar-actions {
-                padding: 0.3rem;
+                padding: 2px;
             }
 
-            .sidebar-actions .btn {
-                padding: 5px 10px;
-                font-size: 0.8rem;
-                margin-bottom: 0.3rem;
+            .chatroom-item {
+                padding: 3px;
+                margin: 1px 0;
             }
         }
 
@@ -1445,54 +1338,6 @@
             .footer {
                 position: sticky;
                 bottom: 0;
-            }
-        }
-
-        /* 側邊欄按鈕樣式 */
-        .sidebar-actions {
-            padding: 10px;
-            border-top: 1px solid var(--card-border);
-            background: var(--sidebar-bg);
-            flex-shrink: 0;
-            /* 防止底部按鈕被壓縮 */
-        }
-
-        .sidebar-actions .btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 8px 16px;
-            font-size: 0.9rem;
-            transition: all 0.2s ease;
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            color: var(--text-color);
-        }
-
-        .sidebar-actions .btn:hover {
-            background: var(--message-hover);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .sidebar-actions .btn:active {
-            transform: translateY(0);
-        }
-
-        /* 移動端側邊欄按鈕樣式 */
-        @media (max-width: 768px) {
-            .sidebar-actions {
-                padding: 8px;
-            }
-
-            .sidebar-actions .btn {
-                padding: 6px 12px;
-                font-size: 0.85rem;
-            }
-
-            .sidebar-actions .btn .iconify {
-                font-size: 1.1rem;
             }
         }
     </style>

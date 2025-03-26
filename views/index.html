@@ -783,31 +783,34 @@
 
             .sidebar {
                 position: fixed;
-                left: -240px;
-                top: var(--header-height);
-                bottom: var(--footer-height);
+                left: -280px;
+                top: 0;
+                bottom: 0;
                 z-index: 1001;
-                height: calc(100vh - var(--header-height) - var(--footer-height));
+                height: 100vh;
                 overflow-y: auto;
+                background: var(--sidebar-bg);
+                transition: left 0.3s ease;
             }
 
             .sidebar.show {
                 left: 0;
             }
 
+            .sidebar.show + .main-content {
+                margin-left: 0;
+            }
+
             .main-content {
                 margin-left: 0;
                 margin-top: 0;
                 height: calc(100vh - var(--header-height) - var(--footer-height));
-
             }
 
             .chat-container {
                 margin-top: 0;
                 border-radius: 0;
             }
-
-
 
             #content {
                 bottom: var(--footer-height);
@@ -832,7 +835,72 @@
 
             /* 調整列表內容區域 */
             .list-content {
-                max-height: calc(100vh - var(--header-height) - var(--footer-height) - 200px);
+                max-height: calc(100vh - 120px);
+            }
+
+            /* 調整 sidebar 內容區域 */
+            .sidebar-sticky {
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                padding: 0.2rem;
+            }
+
+            .sidebar-header {
+                margin-bottom: 0.2rem;
+            }
+
+            .chatroom-list {
+                flex: 1;
+                min-height: 0;
+                margin-bottom: 2px;
+            }
+
+            .sidebar-actions {
+                padding: 2px;
+                margin-top: auto;
+            }
+
+            /* 確保快速輸入欄不會遮擋內容 */
+            .quick-input-pad.expanded {
+                bottom: calc(var(--footer-height) + 1rem);
+            }
+
+            /* 調整主內容區域的邊距 */
+            .main-content {
+                padding-bottom: var(--footer-height);
+            }
+
+            /* 當側邊欄開啟時隱藏工具列 */
+            .sidebar.show ~ #header {
+                display: none;
+            }
+
+            /* 調整移動端側邊欄切換按鈕 */
+            .mobile-sidebar-toggle {
+                position: fixed;
+                left: 10px;
+                top: 10px;
+                z-index: 1002;
+                background: var(--badge-bg);
+                color: var(--badge-text);
+                border: none;
+                border-radius: 4px;
+                padding: 8px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s ease;
+            }
+
+            .mobile-sidebar-toggle .iconify {
+                font-size: 1.5rem;
+            }
+
+            /* 當側邊欄開啟時調整切換按鈕位置 */
+            .sidebar.show ~ .mobile-sidebar-toggle {
+                left: 250px;
             }
         }
 
@@ -849,6 +917,14 @@
             .footer {
                 position: sticky;
                 bottom: 0;
+            }
+
+            .list-content {
+                max-height: calc(100vh - 250px);
+            }
+
+            .mobile-sidebar-toggle {
+                display: none;
             }
         }
 

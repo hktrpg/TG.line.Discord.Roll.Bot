@@ -845,16 +845,14 @@
             }
 
             .sidebar {
-                position: fixed;
-                left: -280px;
-                top: 0;
+                left: -240px;
+                top: 60px;
                 bottom: 0;
                 z-index: 1002;
-                height: 100vh;
+                height: calc(100dvh - 60px);
                 overflow-y: auto;
-                background: var(--sidebar-bg);
-                transition: left 0.3s ease;
-                padding-bottom: var(--footer-height);
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: env(safe-area-inset-bottom, 0); /* 支援 iOS 安全區域 */
             }
 
             .sidebar.show {
@@ -965,8 +963,8 @@
 
             /* 調整側邊欄內容的層級 */
             .sidebar-sticky {
-                position: relative;
-                z-index: 1006;
+                padding: 0.2rem;
+                padding-bottom: calc(var(--footer-height) + env(safe-area-inset-bottom, 10px)); /* 支援 iOS 安全區域 */
             }
 
             /* 確保側邊欄按鈕在工具列之上 */
@@ -975,8 +973,9 @@
                 bottom: 0;
                 z-index: 1007;
                 background: var(--sidebar-bg);
-                border-top: 1px solid var(--card-border);
-                padding: 8px 4px;
+                padding: 4px;
+                padding-bottom: calc(4px + env(safe-area-inset-bottom, 0)); /* 支援 iOS 安全區域 */
+                margin-top: auto;
             }
 
             /* 調整側邊欄按鈕的樣式 */
@@ -1160,7 +1159,7 @@
             bottom: 0;
             left: 0;
             z-index: 1001;
-            height: calc(100vh - 60px);
+            height: calc(100dvh - 60px);
             overflow: hidden;
         }
 
@@ -1171,6 +1170,7 @@
             background: var(--sidebar-bg);
             overflow: hidden;
             padding: 0.3rem;
+            padding-bottom: calc(var(--footer-height) + 10px); /* 為底部按鈕預留空間 */
         }
 
         .sidebar-header {
@@ -1218,6 +1218,10 @@
             grid-template-columns: repeat(2, 1fr);
             gap: 4px;
             margin-top: auto;
+            position: sticky;
+            bottom: 0;
+            z-index: 1007;
+            padding-bottom: env(safe-area-inset-bottom, 10px); /* 支援 iOS 安全區域 */
         }
 
         .sidebar-actions .btn {
@@ -1368,6 +1372,7 @@
         @media (max-width: 768px) {
             .sidebar-sticky {
                 padding: 0.2rem;
+                padding-bottom: calc(var(--footer-height) + env(safe-area-inset-bottom, 10px)); /* 支援 iOS 安全區域 */
             }
 
             .list-header {

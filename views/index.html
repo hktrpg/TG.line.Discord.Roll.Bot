@@ -677,9 +677,6 @@
             position: fixed;
             bottom: 0;
             right: 20px;
-            background: var(--card-bg);
-            border-radius: 12px 12px 0 0;
-            box-shadow: var(--shadow-lg);
             z-index: 1000;
             transition: all 0.3s ease;
             max-width: 300px;
@@ -694,7 +691,6 @@
             opacity: 1;
             pointer-events: auto;
             bottom: calc(var(--footer-height) + 1rem);
-            /* 使用 CSS 變量計算 footer 高度 */
         }
 
         .quick-input-pad .pad-content {
@@ -705,30 +701,29 @@
             border: 1px solid var(--card-border);
         }
 
-        .quick-input-pad .toggle-button {
-            position: relative;
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 6px 6px 0 0;
-            padding: 8px 15px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            color: var(--text-color);
-            box-shadow: var(--shadow-sm);
-            z-index: 1001;
-            margin-bottom: -1px;
-            /* 覆蓋邊框 */
-        }
+        /* 移動端樣式調整 */
+        @media (max-width: 768px) {
+            .quick-input-pad {
+                right: 50%;
+                transform: translateX(50%) translateY(100%);
+                width: 95%;
+                max-width: 400px;
+            }
 
-        .quick-input-pad .toggle-button .iconify {
-            font-size: 1.2rem;
-            transition: transform 0.3s ease;
-        }
+            .quick-input-pad.expanded {
+                transform: translateX(50%) translateY(-50%);
+                top: 50%;
+                bottom: auto;
+            }
 
-        .quick-input-pad.collapsed .toggle-button .iconify {
-            transform: rotate(180deg);
+            .quick-input-pad .pad-content {
+                border-radius: 12px;
+                margin: 0 10px;
+            }
+
+            .quick-input-pad .toggle-button {
+                display: none;
+            }
         }
 
         .quick-input-pad .pad-buttons {

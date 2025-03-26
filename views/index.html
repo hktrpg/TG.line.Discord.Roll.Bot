@@ -677,6 +677,9 @@
             position: fixed;
             bottom: 0;
             right: 20px;
+            background: var(--card-bg);
+            border-radius: 12px 12px 0 0;
+            box-shadow: var(--shadow-lg);
             z-index: 1000;
             transition: all 0.3s ease;
             max-width: 300px;
@@ -691,14 +694,6 @@
             opacity: 1;
             pointer-events: auto;
             bottom: calc(var(--footer-height) + 1rem);
-        }
-
-        .quick-input-pad .pad-content {
-            padding: 15px;
-            background: var(--card-bg);
-            border-radius: 12px 12px 0 0;
-            box-shadow: var(--shadow-lg);
-            border: 1px solid var(--card-border);
         }
 
         /* 移動端樣式調整 */
@@ -724,6 +719,40 @@
             .quick-input-pad .toggle-button {
                 display: none;
             }
+        }
+
+        .quick-input-pad .pad-content {
+            padding: 15px;
+            background: var(--card-bg);
+            border-radius: 12px 12px 0 0;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--card-border);
+        }
+
+        .quick-input-pad .toggle-button {
+            position: relative;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 6px 6px 0 0;
+            padding: 8px 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--text-color);
+            box-shadow: var(--shadow-sm);
+            z-index: 1001;
+            margin-bottom: -1px;
+            /* 覆蓋邊框 */
+        }
+
+        .quick-input-pad .toggle-button .iconify {
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+
+        .quick-input-pad.collapsed .toggle-button .iconify {
+            transform: rotate(180deg);
         }
 
         .quick-input-pad .pad-buttons {
@@ -804,12 +833,17 @@
             }
 
             .chat-container {
-                margin-top: 0;
+                height: calc(100vh - var(--header-height) - var(--footer-height));
+                margin: 0;
                 border-radius: 0;
+                position: fixed;
+                top: var(--header-height);
+                bottom: var(--footer-height);
+                left: 0;
+                right: 0;
             }
 
             #content {
-                bottom: var(--footer-height);
                 padding: 0.2rem;
             }
 
@@ -836,8 +870,11 @@
 
             /* 調整 sidebar 內容區域 */
             .sidebar-sticky {
+                height: 100%;
+                display: flex;
+                flex-direction: column;
                 padding: 0.2rem;
-                padding-bottom: calc(var(--footer-height) + 20px);
+                padding-bottom: calc(var(--footer-height) + 10px);
             }
 
             .sidebar-header {
@@ -851,56 +888,30 @@
             }
 
             .sidebar-actions {
-                padding: 12px 4px;
-                position: fixed;
+                padding: 2px;
+                margin-top: auto;
+                position: sticky;
                 bottom: 0;
-                left: 0;
-                right: 0;
                 background: var(--sidebar-bg);
                 border-top: 1px solid var(--card-border);
                 z-index: 1007;
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 8px;
-                margin: 0;
-                padding-bottom: calc(env(safe-area-inset-bottom) + 20px);
             }
 
-            .sidebar-actions .btn {
-                position: relative;
-                z-index: 1008;
-                background: var(--card-bg);
-                border: 1px solid var(--card-border);
-                color: var(--text-color);
-                margin: 2px 0;
-                padding: 12px 4px;
-                font-size: 0.75rem;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 4px;
-                transition: all 0.2s ease;
-                height: 48px;
+            /* 確保快速輸入欄不會遮擋內容 */
+            .quick-input-pad {
+                z-index: 1001;
             }
 
-            .sidebar-actions .btn:hover {
-                background: var(--message-hover);
-                transform: translateY(-1px);
-                box-shadow: var(--shadow-sm);
+   
+
+            /* 調整主內容區域的邊距 */
+            .main-content {
+                padding-bottom: var(--footer-height);
             }
 
-            .sidebar-actions .btn .iconify {
-                font-size: 1.2rem;
-                min-width: 1.2rem;
-                height: 1.2rem;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            /* 確保側邊欄內容不會被按鈕遮擋 */
-            .list-content {
-                padding-bottom: calc(env(safe-area-inset-bottom) + 80px);
+            /* 當側邊欄開啟時隱藏工具列 */
+            .sidebar.show ~ #header {
+                display: none;
             }
 
             /* 調整移動端側邊欄切換按鈕 */
@@ -959,7 +970,7 @@
                 border: 1px solid var(--card-border);
                 color: var(--text-color);
                 margin: 2px 0;
-                padding: 8px 4px;
+                padding: 6px 4px;
                 font-size: 0.75rem;
                 display: flex;
                 align-items: center;

@@ -798,38 +798,44 @@
                 height: 100%;
                 display: flex;
                 flex-direction: column;
+                background: var(--sidebar-bg);
                 overflow: hidden;
                 padding: 0.2rem;
-                padding-bottom: env(safe-area-inset-bottom);
+                position: relative;
+            }
+
+            .sidebar-header {
+                flex-shrink: 0;
+                margin-bottom: 0.2rem;
             }
 
             .chatroom-list {
                 flex: 1;
                 min-height: 0;
-                overflow: hidden;
                 display: flex;
                 flex-direction: column;
+                margin-bottom: 2px;
             }
 
             .list-content {
                 flex: 1;
                 overflow-y: auto;
-                padding: 1px;
+                padding: 2px;
                 min-height: 0;
+                background: var(--sidebar-bg);
             }
 
             .sidebar-actions {
-                padding: 2px;
-                border-top: 1px solid var(--card-border);
+                position: sticky;
+                bottom: 0;
                 background: var(--sidebar-bg);
-                flex-shrink: 0;
+                border-top: 1px solid var(--card-border);
+                padding: 4px;
+                z-index: 1007;
                 display: grid;
                 grid-template-columns: repeat(2, 1fr);
                 gap: 4px;
                 margin-top: auto;
-                position: sticky;
-                bottom: 0;
-                z-index: 1007;
             }
 
             .sidebar-actions .btn {
@@ -857,171 +863,6 @@
 
             .sidebar-actions .btn:active {
                 transform: translateY(0);
-            }
-
-            .sidebar-actions .btn .iconify {
-                font-size: 1.2rem;
-                min-width: 1.2rem;
-                height: 1.2rem;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            .main-content {
-                margin-left: 0;
-                margin-top: 0;
-                height: calc(100vh - var(--header-height) - var(--footer-height));
-            }
-
-            .chat-container {
-                margin-top: 0;
-                border-radius: 0;
-            }
-
-            #content {
-                bottom: var(--footer-height);
-                padding: 0.2rem;
-            }
-
-            /* 調整 footer 樣式 */
-            .footer {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                z-index: 999;
-                background: var(--footer-bg);
-                border-top: 1px solid var(--card-border);
-                padding: 0.5rem;
-                height: var(--footer-height);
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-            }
-
-            /* 調整列表內容區域 */
-            .list-content {
-                max-height: calc(100vh - 120px);
-            }
-
-            /* 調整 sidebar 內容區域 */
-            .sidebar-sticky {
-                height: 100%;
-                display: flex;
-                flex-direction: column;
-                padding: 0.2rem;
-                padding-bottom: calc(var(--footer-height) + 10px);
-            }
-
-            .sidebar-header {
-                margin-bottom: 0.2rem;
-            }
-
-            .chatroom-list {
-                flex: 1;
-                min-height: 0;
-                margin-bottom: 2px;
-            }
-
-            .sidebar-actions {
-                padding: 2px;
-                margin-top: auto;
-                position: sticky;
-                bottom: 0;
-                background: var(--sidebar-bg);
-                border-top: 1px solid var(--card-border);
-                z-index: 1007;
-            }
-
-            /* 確保快速輸入欄不會遮擋內容 */
-            .quick-input-pad {
-                z-index: 1001;
-            }
-
-            .quick-input-pad.expanded {
-                bottom: calc(var(--footer-height) + 1rem);
-            }
-
-            /* 調整主內容區域的邊距 */
-            .main-content {
-                padding-bottom: var(--footer-height);
-            }
-
-            /* 當側邊欄開啟時隱藏工具列 */
-            .sidebar.show ~ #header {
-                display: none;
-            }
-
-            /* 調整移動端側邊欄切換按鈕 */
-            .mobile-sidebar-toggle {
-                position: fixed;
-                left: 10px;
-                top: 10px;
-                z-index: 1004;
-                background: var(--badge-bg);
-                color: var(--badge-text);
-                border: none;
-                border-radius: 4px;
-                padding: 8px;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.3s ease;
-            }
-
-            .mobile-sidebar-toggle .iconify {
-                font-size: 1.5rem;
-            }
-
-            /* 當側邊欄開啟時調整切換按鈕位置 */
-            .sidebar.show ~ .mobile-sidebar-toggle {
-                left: 250px;
-            }
-
-            /* 確保側邊欄在工具列之上 */
-            .sidebar.show {
-                z-index: 1005;
-            }
-
-            /* 調整側邊欄內容的層級 */
-            .sidebar-sticky {
-                position: relative;
-                z-index: 1006;
-            }
-
-            /* 確保側邊欄按鈕在工具列之上 */
-            .sidebar-actions {
-                position: sticky;
-                bottom: 0;
-                z-index: 1007;
-                background: var(--sidebar-bg);
-                border-top: 1px solid var(--card-border);
-                padding: 8px 4px;
-            }
-
-            /* 調整側邊欄按鈕的樣式 */
-            .sidebar-actions .btn {
-                position: relative;
-                z-index: 1008;
-                background: var(--card-bg);
-                border: 1px solid var(--card-border);
-                color: var(--text-color);
-                margin: 2px 0;
-                padding: 6px 4px;
-                font-size: 0.75rem;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 4px;
-                transition: all 0.2s ease;
-            }
-
-            .sidebar-actions .btn:hover {
-                background: var(--message-hover);
-                transform: translateY(-1px);
-                box-shadow: var(--shadow-sm);
             }
 
             .sidebar-actions .btn .iconify {
@@ -2030,6 +1871,44 @@
             }
         };
 
+        // Add new sidebar height management functionality
+        const sidebarHeightManager = {
+            init: () => {
+                if (window.innerWidth <= 768) {
+                    sidebarHeightManager.updateHeight();
+                    window.addEventListener('resize', sidebarHeightManager.updateHeight);
+                    window.addEventListener('orientationchange', sidebarHeightManager.updateHeight);
+                }
+            },
+
+            updateHeight: () => {
+                const sidebar = document.querySelector('.sidebar');
+                const sidebarActions = document.querySelector('.sidebar-actions');
+                if (!sidebar || !sidebarActions) return;
+
+                // Get the viewport height
+                const vh = window.innerHeight;
+                
+                // Get the sidebar's current height
+                const sidebarHeight = sidebar.offsetHeight;
+                
+                // Get the actions height
+                const actionsHeight = sidebarActions.offsetHeight;
+                
+                // Calculate the available space for the content
+                const availableHeight = vh - actionsHeight;
+                
+                // Update the sidebar height
+                sidebar.style.height = `${vh}px`;
+                
+                // Update the list content height
+                const listContent = document.querySelector('.list-content');
+                if (listContent) {
+                    listContent.style.height = `${availableHeight}px`;
+                }
+            }
+        };
+
         // Initialize application
         document.addEventListener("DOMContentLoaded", () => {
             socketManager.init();
@@ -2039,6 +1918,7 @@
             headerManager.init();
             chatroomManager.init();
             sidebarManager.init();
+            sidebarHeightManager.init();
         });
 
         // Modal functions

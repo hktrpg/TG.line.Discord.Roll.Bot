@@ -833,14 +833,15 @@
             }
 
             .chat-container {
-                height: calc(100vh - var(--header-height) - var(--footer-height));
-                margin: 0;
-                border-radius: 0;
                 position: fixed;
                 top: var(--header-height);
                 bottom: var(--footer-height);
                 left: 0;
                 right: 0;
+                margin: 0;
+                border-radius: 0;
+                height: calc(100vh - var(--header-height) - var(--footer-height));
+                z-index: 998;
             }
 
             #content {
@@ -901,8 +902,6 @@
             .quick-input-pad {
                 z-index: 1001;
             }
-
-   
 
             /* 調整主內容區域的邊距 */
             .main-content {
@@ -998,7 +997,10 @@
         /* 確保桌面版不受影響 */
         @media (min-width: 769px) {
             .chat-container {
+                position: relative;
                 height: calc(100vh - var(--header-height) - var(--footer-height));
+                margin: 0.2rem 0;
+                border-radius: 8px;
             }
 
             #container-content {
@@ -1051,7 +1053,6 @@
                 height: calc(100vh - 160px);
                 padding: 0.3rem;
                 margin: 0.2rem 0;
-                bottom: 10px;
             }
 
             #header {

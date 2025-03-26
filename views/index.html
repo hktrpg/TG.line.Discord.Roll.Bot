@@ -1598,7 +1598,6 @@
                         state.socket.emit("send", formData);
                         utils.setLocalStorage("name", nameInput.value);
                         msgInput.value = '';
-                        msgInput.focus();
                     }
                 });
             },
@@ -1734,7 +1733,6 @@
                 if (!msgInput) return; // 如果元素不存在，直接返回
 
                 msgInput.value = command;
-                msgInput.focus();
                 // 觸發表單提交
                 const sendForm = document.getElementById('send-form');
                 if (sendForm) {

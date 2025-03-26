@@ -47,7 +47,7 @@
                             <!-- Chatrooms will be added here dynamically -->
                         </div>
                     </div>
-                    <div class="sidebar-actions mt-3">
+                    <div class="sidebar-actions">
                         <button class="btn btn-primary w-100" onclick="joinRoomModal.show()">
                             <span class="iconify" data-icon="bi:plus-circle"></span>
                             <span>加入聊天室</span>
@@ -782,8 +782,7 @@
                 top: 0;
                 bottom: 0;
                 z-index: 1002;
-                height: 100vh;
-                overflow: hidden;
+                width: 280px;
                 background: var(--sidebar-bg);
                 transition: left 0.3s ease;
                 display: flex;
@@ -826,8 +825,10 @@
             }
 
             .sidebar-actions {
-                position: sticky;
+                position: fixed;
                 bottom: 0;
+                left: 0;
+                width: 280px;
                 background: var(--sidebar-bg);
                 border-top: 1px solid var(--card-border);
                 padding: 4px;
@@ -835,7 +836,12 @@
                 display: grid;
                 grid-template-columns: repeat(2, 1fr);
                 gap: 4px;
-                margin-top: auto;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.show .sidebar-actions {
+                transform: translateX(0);
             }
 
             .sidebar-actions .btn {
@@ -1878,34 +1884,36 @@
                     sidebarHeightManager.updateHeight();
                     window.addEventListener('resize', sidebarHeightManager.updateHeight);
                     window.addEventListener('orientationchange', sidebarHeightManager.updateHeight);
+                    window.addEventListener('scroll', sidebarHeightManager.updateHeight);
                 }
             },
 
             updateHeight: () => {
                 const sidebar = document.querySelector('.sidebar');
                 const sidebarActions = document.querySelector('.sidebar-actions');
-                if (!sidebar || !sidebarActions) return;
+                const listContent = document.querySelector('.list-content');
+                
+                if (!sidebar || !sidebarActions || !listContent) return;
 
-                // Get the viewport height
+                // 獲取視窗高度
                 const vh = window.innerHeight;
                 
-                // Get the sidebar's current height
-                const sidebarHeight = sidebar.offsetHeight;
+                // 獲取工具列高度（如果有）
+                const toolbarHeight = window.visualViewport ? window.visualViewport.height : vh;
                 
-                // Get the actions height
-                const actionsHeight = sidebarActions.offsetHeight;
+                // 更新 sidebar 高度
+                sidebar.style.height = `${toolbarHeight}px`;
                 
-                // Calculate the available space for the content
-                const availableHeight = vh - actionsHeight;
-                
-                // Update the sidebar height
-                sidebar.style.height = `${vh}px`;
-                
-                // Update the list content height
-                const listContent = document.querySelector('.list-content');
-                if (listContent) {
-                    listContent.style.height = `${availableHeight}px`;
+                // 更新按鈕區域位置
+                if (sidebar.classList.contains('show')) {
+                    sidebarActions.style.transform = 'translateX(0)';
+                } else {
+                    sidebarActions.style.transform = 'translateX(-100%)';
                 }
+                
+                // 更新列表內容高度
+                const actionsHeight = sidebarActions.offsetHeight;
+                listContent.style.height = `${toolbarHeight - actionsHeight}px`;
             }
         };
 

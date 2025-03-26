@@ -550,7 +550,7 @@
             padding: 0.3rem;
             margin: 0.2rem 0;
             box-shadow: var(--shadow-md);
-            height: calc(100vh - var(--header-height) - var(--footer-height));
+            height: calc(100dvh - var(--header-height) - var(--footer-height));
             position: relative;
         }
 
@@ -661,13 +661,53 @@
             }
 
             #container-content {
-                height: calc(100vh - 160px);
+                height: calc(100dvh - 160px);
                 padding: 0.3rem;
-                margin: 0.2rem 0;
+                margin: 0;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch; /* 增加 iOS 滾動順暢度 */
             }
 
             #content {
                 padding: 0.2rem;
+            }
+
+            /* 調整 footer 樣式 */
+            .footer {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                z-index: 999;
+                background: var(--footer-bg);
+                border-top: 1px solid var(--card-border);
+                padding: 0.5rem;
+                height: var(--footer-height);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            /* 調整主內容區域的邊距 */
+            .main-content {
+                padding-bottom: var(--footer-height);
+                height: calc(100dvh - var(--header-height));
+                min-height: -webkit-fill-available; /* 支援 iOS Safari */
+            }
+
+            /* 確保 body 和 html 高度正確 */
+            html, body {
+                height: 100%;
+                height: -webkit-fill-available;
+                overflow: hidden;
+            }
+
+            body {
+                position: fixed;
+                width: 100%;
+                height: 100%;
+                height: -webkit-fill-available;
+                overflow: hidden;
             }
         }
 
@@ -839,7 +879,7 @@
                 right: 0;
                 margin: 0;
                 border-radius: 0;
-                height: calc(100vh - var(--header-height) - var(--footer-height));
+                height: calc(100dvh - var(--header-height) - var(--footer-height));
                 z-index: 998;
                 padding-bottom: 0;
             }
@@ -867,7 +907,23 @@
             /* 調整主內容區域的邊距 */
             .main-content {
                 padding-bottom: var(--footer-height);
-                height: calc(100vh - var(--header-height));
+                height: calc(100dvh - var(--header-height));
+                min-height: -webkit-fill-available; /* 支援 iOS Safari */
+            }
+
+            /* 確保 body 和 html 高度正確 */
+            html, body {
+                height: 100%;
+                height: -webkit-fill-available;
+                overflow: hidden;
+            }
+
+            body {
+                position: fixed;
+                width: 100%;
+                height: 100%;
+                height: -webkit-fill-available;
+                overflow: hidden;
             }
 
             /* 當側邊欄開啟時隱藏工具列 */

@@ -550,9 +550,8 @@
             padding: 0.3rem;
             margin: 0.2rem 0;
             box-shadow: var(--shadow-md);
-            height: calc(100vh - var(--header-height) - var(--footer-height));
+            height: calc(100dvh - var(--header-height) - var(--footer-height));
             position: relative;
-            bottom: var(--footer-height);
         }
 
         #container-content {
@@ -568,6 +567,7 @@
             display: flex;
             flex-direction: column;
             gap: 0.1rem;
+            margin-bottom: var(--footer-height);
         }
 
         /* 狀態框樣式優化 */
@@ -662,13 +662,54 @@
             }
 
             #container-content {
-                height: calc(100vh - 160px);
+                height: calc(100dvh - 160px);
                 padding: 0.3rem;
-                margin: 0.2rem 0;
+                margin: 0;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch; /* 增加 iOS 滾動順暢度 */
             }
 
             #content {
                 padding: 0.2rem;
+                margin-bottom: 0;
+            }
+
+            /* 調整 footer 樣式 */
+            .footer {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                z-index: 999;
+                background: var(--footer-bg);
+                border-top: 1px solid var(--card-border);
+                padding: 0.5rem;
+                height: var(--footer-height);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            /* 調整主內容區域的邊距 */
+            .main-content {
+                padding-bottom: var(--footer-height);
+                height: calc(100dvh - var(--header-height));
+                min-height: -webkit-fill-available; /* 支援 iOS Safari */
+            }
+
+            /* 確保 body 和 html 高度正確 */
+            html, body {
+                height: 100%;
+                height: -webkit-fill-available;
+                overflow: hidden;
+            }
+
+            body {
+                position: fixed;
+                width: 100%;
+                height: 100%;
+                height: -webkit-fill-available;
+                overflow: hidden;
             }
         }
 
@@ -694,7 +735,31 @@
             opacity: 1;
             pointer-events: auto;
             bottom: calc(var(--footer-height) + 1rem);
-            /* 使用 CSS 變量計算 footer 高度 */
+        }
+
+        /* 移動端樣式調整 */
+        @media (max-width: 768px) {
+            .quick-input-pad {
+                right: 50%;
+                transform: translateX(50%) translateY(100%);
+                width: 95%;
+                max-width: 400px;
+            }
+
+            .quick-input-pad.expanded {
+                transform: translateX(50%) translateY(-50%);
+                top: 50%;
+                bottom: auto;
+            }
+
+            .quick-input-pad .pad-content {
+                border-radius: 12px;
+                margin: 0 10px;
+            }
+
+            .quick-input-pad .toggle-button {
+                display: none;
+            }
         }
 
         .quick-input-pad .pad-content {
@@ -782,16 +847,14 @@
             }
 
             .sidebar {
-                position: fixed;
-                left: -280px;
-                top: 0;
+                left: -240px;
+                top: 60px;
                 bottom: 0;
                 z-index: 1002;
-                height: 100vh;
+                height: calc(100dvh - 60px);
                 overflow-y: auto;
-                background: var(--sidebar-bg);
-                transition: left 0.3s ease;
-                padding-bottom: var(--footer-height);
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: env(safe-area-inset-bottom, 0); /* 支援 iOS 安全區域 */
             }
 
             .sidebar.show {
@@ -809,12 +872,19 @@
             }
 
             .chat-container {
-                margin-top: 0;
+                position: fixed;
+                top: var(--header-height);
+                bottom: var(--footer-height);
+                left: 0;
+                right: 0;
+                margin: 0;
                 border-radius: 0;
+                height: calc(100dvh - var(--header-height) - var(--footer-height));
+                z-index: 998;
+                padding-bottom: 0;
             }
 
             #content {
-                bottom: var(--footer-height);
                 padding: 0.2rem;
             }
 
@@ -834,52 +904,26 @@
                 justify-content: space-between;
             }
 
-            /* 調整列表內容區域 */
-            .list-content {
-                max-height: calc(100vh - 120px);
-            }
-
-            /* 調整 sidebar 內容區域 */
-            .sidebar-sticky {
-                height: 100%;
-                display: flex;
-                flex-direction: column;
-                padding: 0.2rem;
-                padding-bottom: calc(var(--footer-height) + 10px);
-            }
-
-            .sidebar-header {
-                margin-bottom: 0.2rem;
-            }
-
-            .chatroom-list {
-                flex: 1;
-                min-height: 0;
-                margin-bottom: 2px;
-            }
-
-            .sidebar-actions {
-                padding: 2px;
-                margin-top: auto;
-                position: sticky;
-                bottom: 0;
-                background: var(--sidebar-bg);
-                border-top: 1px solid var(--card-border);
-                z-index: 1007;
-            }
-
-            /* 確保快速輸入欄不會遮擋內容 */
-            .quick-input-pad {
-                z-index: 1001;
-            }
-
-            .quick-input-pad.expanded {
-                bottom: calc(var(--footer-height) + 1rem);
-            }
-
             /* 調整主內容區域的邊距 */
             .main-content {
                 padding-bottom: var(--footer-height);
+                height: calc(100dvh - var(--header-height));
+                min-height: -webkit-fill-available; /* 支援 iOS Safari */
+            }
+
+            /* 確保 body 和 html 高度正確 */
+            html, body {
+                height: 100%;
+                height: -webkit-fill-available;
+                overflow: hidden;
+            }
+
+            body {
+                position: fixed;
+                width: 100%;
+                height: 100%;
+                height: -webkit-fill-available;
+                overflow: hidden;
             }
 
             /* 當側邊欄開啟時隱藏工具列 */
@@ -892,7 +936,7 @@
                 position: fixed;
                 left: 10px;
                 top: 10px;
-                z-index: 1004;
+                z-index: 1006; /* 提高 z-index 確保在 header 之上 */
                 background: var(--badge-bg);
                 color: var(--badge-text);
                 border: none;
@@ -921,8 +965,8 @@
 
             /* 調整側邊欄內容的層級 */
             .sidebar-sticky {
-                position: relative;
-                z-index: 1006;
+                padding: 0.2rem;
+                padding-bottom: calc(var(--footer-height) + env(safe-area-inset-bottom, 10px)); /* 支援 iOS 安全區域 */
             }
 
             /* 確保側邊欄按鈕在工具列之上 */
@@ -931,8 +975,9 @@
                 bottom: 0;
                 z-index: 1007;
                 background: var(--sidebar-bg);
-                border-top: 1px solid var(--card-border);
-                padding: 8px 4px;
+                padding: 4px;
+                padding-bottom: env(safe-area-inset-bottom, 10px);
+                margin-top: auto;
             }
 
             /* 調整側邊欄按鈕的樣式 */
@@ -958,6 +1003,19 @@
                 box-shadow: var(--shadow-sm);
             }
 
+            .sidebar-actions .btn:active {
+                transform: translateY(0);
+            }
+
+            .sidebar-actions .btn .iconify {
+                font-size: 1.2rem;
+                min-width: 1.2rem;
+                height: 1.2rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
             .sidebar-actions .btn .iconify {
                 font-size: 1.2rem;
                 min-width: 1.2rem;
@@ -970,25 +1028,44 @@
 
         /* 確保桌面版不受影響 */
         @media (min-width: 769px) {
-            .chat-container {
-                height: calc(100vh - var(--header-height) - var(--footer-height));
-            }
-
-            #container-content {
-                height: 100%;
-            }
-
             .footer {
                 position: sticky;
                 bottom: 0;
             }
 
-            .list-content {
-                max-height: calc(100vh - 250px);
+            .sidebar-sticky {
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                background: var(--sidebar-bg);
+                overflow: hidden;
+                padding: 0.3rem;
+                padding-bottom: 0; /* 移除底部padding */
+                position: relative; /* 添加相對定位 */
             }
 
-            .mobile-sidebar-toggle {
-                display: none;
+            .sidebar-actions {
+                position: absolute; /* 改為絕對定位 */
+                bottom: 0;
+                left: 0;
+                right: 0;
+                padding: 4px;
+                border-top: 1px solid var(--card-border);
+                background: var(--sidebar-bg);
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 4px;
+                z-index: 1007;
+            }
+
+            .list-content {
+                flex: 1;
+                overflow-y: auto;
+                padding: 2px;
+                min-height: 0;
+                background: var(--sidebar-bg);
+                max-height: calc(100vh - 250px);
+                margin-bottom: 120px; /* 為底部按鈕預留空間 */
             }
         }
 
@@ -1005,91 +1082,161 @@
             top: 0;
             left: 0;
             right: 0;
-            z-index: 1002;
+            z-index: 1005;
             padding: 5px;
+            width: 100%;
+            height: 60px;
+            display: flex;
+            align-items: center;
         }
 
-        #header.collapsed {
-            transform: translateY(-100%);
+        #header .navbar {
+            width: 100%;
+            padding: 0;
+            margin: 0;
+            background: var(--card-bg) !important;
+        }
+
+        #header .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #header .navbar-toggler {
+            border: none;
+            padding: 0.5rem;
+        }
+
+        #header .navbar-toggler:focus {
+            outline: none;
+        }
+
+        #header .navbar-nav {
+            display: flex;
+            align-items: center;
+        }
+
+        #header .nav-link {
+            color: var(--text-color) !important;
+            padding: 0.5rem 1rem;
+        }
+
+        #header .dropdown-menu {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+        }
+
+        #header .dropdown-item {
+            color: var(--text-color);
+        }
+
+        #header .dropdown-item:hover {
+            background: var(--message-hover);
         }
 
         /* Mobile Optimizations */
         @media (max-width: 768px) {
-            #container {
-                padding: 0.3rem;
-                margin-top: 60px;
-            }
-
-            #container-content {
-                height: calc(100vh - 160px);
-                padding: 0.3rem;
-                margin: 0.2rem 0;
-            }
-
             #header {
-                top: 0;
-                padding: 3px;
+                height: 60px;
+                padding: 0;
+                background: var(--card-bg);
+                box-shadow: var(--shadow-md);
             }
 
-            /* 當 header 收起時，調整容器位置 */
-            #header.collapsed+#container {
-                margin-top: 0;
+            #header .navbar {
+                padding: 0 10px;
             }
 
-            #header.collapsed+#container #container-content {
-                height: calc(100vh - 88px);
+            #header .navbar-brand {
+                font-size: 1rem;
             }
 
-            /* 側邊欄在移動端的樣式 */
-            .sidebar {
-                left: -240px;
+            #header .navbar-toggler {
+                margin-right: 10px;
+            }
+
+            #header .navbar-collapse {
+                position: absolute;
                 top: 60px;
-                bottom: 0;
-                z-index: 1002;
-            }
-
-            .sidebar.show {
                 left: 0;
+                right: 0;
+                background: var(--card-bg);
+                padding: 10px;
+                box-shadow: var(--shadow-md);
+                z-index: 1004;
             }
 
-            .main-content {
-                margin-left: 0;
+            #header .navbar-nav {
+                flex-direction: column;
+                align-items: flex-start;
             }
 
-            /* 添加移動端側邊欄切換按鈕 */
-            .mobile-sidebar-toggle {
-                display: block;
-                position: fixed;
-                left: 10px;
-                top: 10px;
-                z-index: 1002;
-                background: var(--badge-bg);
-                color: var(--badge-text);
+            #header .nav-item {
+                width: 100%;
+                margin: 5px 0;
+            }
+
+            #header .nav-link {
+                padding: 8px 0;
+            }
+
+            #header .dropdown-menu {
+                position: static !important;
+                transform: none !important;
                 border: none;
-                border-radius: 4px;
-                padding: 8px;
-                cursor: pointer;
+                box-shadow: none;
+                padding-left: 20px;
+            }
+
+            #header .dropdown-item {
+                padding: 8px 0;
+            }
+
+            /* 調整主容器位置 */
+            .app-container {
+                margin-top: 60px;
+                height: calc(100vh - 60px);
+            }
+
+            /* 調整側邊欄位置 */
+            .sidebar {
+                top: 60px;
+                height: calc(100vh - 60px);
+            }
+
+            /* 調整內容區域 */
+            .main-content {
+                margin-top: 60px;
+                height: calc(100vh - 120px);
+            }
+
+            /* 調整 footer 位置 */
+            .footer {
+                bottom: 0;
+                z-index: 1003;
             }
         }
 
+        /* Desktop styles */
         @media (min-width: 769px) {
-            #container {
+            #header {
+                position: relative;
+                height: auto;
+                padding: 5px;
+            }
+
+            .app-container {
                 margin-top: 0;
             }
 
-            #container-content {
-                height: calc(100vh - 160px);
-            }
-
-            #header {
-                position: relative;
+            .sidebar {
                 top: 0;
-                padding: 5px;
-                transform: none !important;
+                height: 100vh;
             }
 
-            .mobile-sidebar-toggle {
-                display: none;
+            .main-content {
+                margin-top: 0;
             }
         }
 
@@ -1113,7 +1260,7 @@
             bottom: 0;
             left: 0;
             z-index: 1001;
-            height: calc(100vh - 60px);
+            height: calc(100dvh - 60px);
             overflow: hidden;
         }
 
@@ -1124,6 +1271,8 @@
             background: var(--sidebar-bg);
             overflow: hidden;
             padding: 0.3rem;
+            padding-bottom: 0; /* 移除底部padding */
+            position: relative; /* 添加相對定位 */
         }
 
         .sidebar-header {
@@ -1171,6 +1320,10 @@
             grid-template-columns: repeat(2, 1fr);
             gap: 4px;
             margin-top: auto;
+            position: sticky;
+            bottom: 0;
+            z-index: 1007;
+            padding-bottom: env(safe-area-inset-bottom, 10px); /* 支援 iOS 安全區域 */
         }
 
         .sidebar-actions .btn {
@@ -1321,6 +1474,7 @@
         @media (max-width: 768px) {
             .sidebar-sticky {
                 padding: 0.2rem;
+                padding-bottom: calc(var(--footer-height) + env(safe-area-inset-bottom, 10px));
             }
 
             .list-header {
@@ -1338,6 +1492,24 @@
             .chatroom-item {
                 padding: 3px;
                 margin: 1px 0;
+            }
+
+            /* 確保移動端側邊欄按鈕始終可見 */
+            .mobile-sidebar-toggle {
+                display: flex;
+                z-index: 1006;
+            }
+
+            /* 當側邊欄開啟時，確保按鈕在側邊欄之上 */
+            .sidebar.show ~ .mobile-sidebar-toggle {
+                z-index: 1007;
+            }
+        }
+
+        /* 確保桌面版不受影響 */
+        @media (min-width: 769px) {
+            .mobile-sidebar-toggle {
+                display: none;
             }
         }
 
@@ -1598,7 +1770,6 @@
                         state.socket.emit("send", formData);
                         utils.setLocalStorage("name", nameInput.value);
                         msgInput.value = '';
-                        msgInput.focus();
                     }
                 });
             },
@@ -1734,7 +1905,6 @@
                 if (!msgInput) return; // 如果元素不存在，直接返回
 
                 msgInput.value = command;
-                msgInput.focus();
                 // 觸發表單提交
                 const sendForm = document.getElementById('send-form');
                 if (sendForm) {

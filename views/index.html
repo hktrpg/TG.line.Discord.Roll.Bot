@@ -786,11 +786,12 @@
                 left: -280px;
                 top: 0;
                 bottom: 0;
-                z-index: 1001;
+                z-index: 1002;
                 height: 100vh;
                 overflow-y: auto;
                 background: var(--sidebar-bg);
                 transition: left 0.3s ease;
+                padding-bottom: var(--footer-height);
             }
 
             .sidebar.show {
@@ -844,6 +845,7 @@
                 display: flex;
                 flex-direction: column;
                 padding: 0.2rem;
+                padding-bottom: calc(var(--footer-height) + 10px);
             }
 
             .sidebar-header {
@@ -859,9 +861,18 @@
             .sidebar-actions {
                 padding: 2px;
                 margin-top: auto;
+                position: sticky;
+                bottom: 0;
+                background: var(--sidebar-bg);
+                border-top: 1px solid var(--card-border);
+                z-index: 1003;
             }
 
             /* 確保快速輸入欄不會遮擋內容 */
+            .quick-input-pad {
+                z-index: 1001;
+            }
+
             .quick-input-pad.expanded {
                 bottom: calc(var(--footer-height) + 1rem);
             }
@@ -881,7 +892,7 @@
                 position: fixed;
                 left: 10px;
                 top: 10px;
-                z-index: 1002;
+                z-index: 1004;
                 background: var(--badge-bg);
                 color: var(--badge-text);
                 border: none;
@@ -901,6 +912,59 @@
             /* 當側邊欄開啟時調整切換按鈕位置 */
             .sidebar.show ~ .mobile-sidebar-toggle {
                 left: 250px;
+            }
+
+            /* 確保側邊欄在工具列之上 */
+            .sidebar.show {
+                z-index: 1005;
+            }
+
+            /* 調整側邊欄內容的層級 */
+            .sidebar-sticky {
+                position: relative;
+                z-index: 1006;
+            }
+
+            /* 確保側邊欄按鈕在工具列之上 */
+            .sidebar-actions {
+                position: sticky;
+                bottom: 0;
+                z-index: 1007;
+                background: var(--sidebar-bg);
+                border-top: 1px solid var(--card-border);
+                padding: 8px 4px;
+            }
+
+            /* 調整側邊欄按鈕的樣式 */
+            .sidebar-actions .btn {
+                position: relative;
+                z-index: 1008;
+                background: var(--card-bg);
+                border: 1px solid var(--card-border);
+                color: var(--text-color);
+                margin: 2px 0;
+                padding: 6px 4px;
+                font-size: 0.75rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                transition: all 0.2s ease;
+            }
+
+            .sidebar-actions .btn:hover {
+                background: var(--message-hover);
+                transform: translateY(-1px);
+                box-shadow: var(--shadow-sm);
+            }
+
+            .sidebar-actions .btn .iconify {
+                font-size: 1.2rem;
+                min-width: 1.2rem;
+                height: 1.2rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
         }
 

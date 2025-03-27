@@ -28,14 +28,63 @@ let trpgDatabasefunction = {
     trpgDatabaseAllgroup: null
 };
 
-// 初始化數據
-records.get('trpgDatabase', (msgs) => {
-    trpgDatabasefunction.trpgDatabasefunction = msgs;
-});
+/**
+ * 按需獲取群組數據庫
+ * @returns {Promise<Array>} 群組數據庫
+ */
+async function getGroupDatabase() {
+    if (!trpgDatabasefunction.trpgDatabasefunction) {
+        await new Promise((resolve) => {
+            records.get('trpgDatabase', (msgs) => {
+                trpgDatabasefunction.trpgDatabasefunction = msgs;
+                resolve();
+            });
+        });
+    }
+    return trpgDatabasefunction.trpgDatabasefunction;
+}
 
-records.get('trpgDatabaseAllgroup', (msgs) => {
-    trpgDatabasefunction.trpgDatabaseAllgroup = msgs;
-});
+/**
+ * 按需獲取全服數據庫
+ * @returns {Promise<Array>} 全服數據庫
+ */
+async function getGlobalDatabase() {
+    if (!trpgDatabasefunction.trpgDatabaseAllgroup) {
+        await new Promise((resolve) => {
+            records.get('trpgDatabaseAllgroup', (msgs) => {
+                trpgDatabasefunction.trpgDatabaseAllgroup = msgs;
+                resolve();
+            });
+        });
+    }
+    return trpgDatabasefunction.trpgDatabaseAllgroup;
+}
+
+/**
+ * 更新群組數據庫
+ * @returns {Promise<void>}
+ */
+async function updateGroupDatabase() {
+    await new Promise((resolve) => {
+        records.get('trpgDatabase', (msgs) => {
+            trpgDatabasefunction.trpgDatabasefunction = msgs;
+            resolve();
+        });
+    });
+}
+
+/**
+ * 更新全服數據庫
+ * @returns {Promise<void>}
+ */
+async function updateGlobalDatabase() {
+    await new Promise((resolve) => {
+        records.get('trpgDatabaseAllgroup', (msgs) => {
+            trpgDatabasefunction.trpgDatabaseAllgroup = msgs;
+            resolve();
+        });
+    });
+}
 
 /**
  * 遊戲功能名稱
@@ -296,8 +345,8 @@ async function replaceAsync(str, regex, asyncFn) {
  * @returns {boolean} 是否達到上限
  */
 function isGroupDatabaseFull(groupData, limit) {
-    return groupData && groupData.trpgDatabasefunction && 
-           groupData.trpgDatabasefunction.length >= limit;
+    return groupData && groupData.trpgDatabasefunction &&
+        groupData.trpgDatabasefunction.length >= limit;
 }
 
 /**
@@ -308,8 +357,8 @@ function isGroupDatabaseFull(groupData, limit) {
  */
 function isTopicExists(groupData, topic) {
     if (!groupData || !groupData.trpgDatabasefunction) return false;
-    
-    return groupData.trpgDatabasefunction.some(item => 
+
+    return groupData.trpgDatabasefunction.some(item =>
         item.topic === topic
     );
 }
@@ -353,7 +402,7 @@ async function deleteAllGroupData(groupid) {
     const groupData = trpgDatabasefunction.trpgDatabasefunction?.find(
         data => data.groupid === groupid
     );
-    
+
     if (groupData) {
         groupData.trpgDatabasefunction = [];
         await new Promise((resolve) => {
@@ -377,7 +426,7 @@ async function deleteGroupDataByIndex(groupid, index) {
     const groupData = trpgDatabasefunction.trpgDatabasefunction?.find(
         data => data.groupid === groupid
     );
-    
+
     if (groupData && index >= 0 && index < groupData.trpgDatabasefunction.length) {
         groupData.trpgDatabasefunction.splice(index, 1);
         await new Promise((resolve) => {
@@ -400,8 +449,8 @@ function formatDatabaseList(items) {
     if (!items || items.length === 0) {
         return '沒有已設定的關鍵字.';
     }
-    
-    return items.map((item, index) => 
+
+    return items.map((item, index) =>
         `${index % 2 === 0 ? '\n' : '       '}${index}: ${item.topic}`
     ).join('');
 }
@@ -414,7 +463,7 @@ function formatDatabaseList(items) {
  */
 function findTopicContent(database, topic) {
     if (!database || !topic) return null;
-    
+
     for (const group of database) {
         const item = group.trpgDatabasefunction.find(
             item => item.topic.toLowerCase() === topic.toLowerCase()
@@ -441,9 +490,9 @@ function isGlobalDatabaseFull(database) {
  */
 function isGlobalTopicExists(database, topic) {
     if (!database) return false;
-    
-    return database.some(group => 
-        group.trpgDatabaseAllgroup.some(item => 
+
+    return database.some(group =>
+        group.trpgDatabaseAllgroup.some(item =>
             item.topic.toLowerCase() === topic.toLowerCase()
         )
     );
@@ -474,8 +523,8 @@ function formatGlobalDatabaseList(database) {
         return '沒有已設定的關鍵字.';
     }
 
-    return database.map(group => 
-        group.trpgDatabaseAllgroup.map((item, index) => 
+    return database.map(group =>
+        group.trpgDatabaseAllgroup.map((item, index) =>
             `${index % 2 === 0 ? '\n' : '      '}${index}: ${item.topic}`
         ).join('')
     ).join('');
@@ -489,7 +538,7 @@ function formatGlobalDatabaseList(database) {
  */
 function findGlobalTopicContent(database, topic) {
     if (!database || !topic) return null;
-    
+
     for (const group of database) {
         const item = group.trpgDatabaseAllgroup.find(
             item => item.topic.toLowerCase() === topic.toLowerCase()
@@ -497,19 +546,6 @@ function findGlobalTopicContent(database, topic) {
         if (item) return item;
     }
     return null;
-}
-
-/**
- * 更新全服數據庫
- * @returns {Promise<void>}
- */
-async function updateGlobalDatabase() {
-    await new Promise((resolve) => {
-        records.get('trpgDatabaseAllgroup', (msgs) => {
-            trpgDatabasefunction.trpgDatabaseAllgroup = msgs;
-            resolve();
-        });
-    });
 }
 
 // eslint-disable-next-line no-unused-vars
@@ -545,7 +581,7 @@ const rollDiceCommand = async function ({
             // 驗證輸入
             if (!mainMsg[2]) rply.text += ' 沒有輸入標題。\n\n';
             if (!mainMsg[3]) rply.text += ' 沒有輸入內容。\n\n';
-            
+
             // 檢查權限
             if (rply.text += checkPermission({ groupid, userrole })) {
                 return rply;
@@ -555,10 +591,9 @@ const rollDiceCommand = async function ({
             lv = await VIP.viplevelCheckGroup(groupid);
             limit = FUNCTION_LIMIT[lv];
 
-            // 檢查群組數據庫
-            const groupData = trpgDatabasefunction.trpgDatabasefunction?.find(
-                data => data.groupid === groupid
-            );
+            // 獲取群組數據庫
+            const database = await getGroupDatabase();
+            const groupData = database?.find(data => data.groupid === groupid);
 
             // 檢查是否達到上限
             if (isGroupDatabaseFull(groupData, limit)) {
@@ -577,14 +612,12 @@ const rollDiceCommand = async function ({
                 .replace(/\.db\s+add\s+/i, '')
                 .replace(mainMsg[2], '')
                 .replace(/^\s+/, '');
-                
+
             const newEntry = createDatabaseEntry(groupid, mainMsg[2], content);
 
             // 保存到數據庫
             records.pushTrpgDatabaseFunction('trpgDatabase', newEntry, () => {
-                records.get('trpgDatabase', (msgs) => {
-                    trpgDatabasefunction.trpgDatabasefunction = msgs;
-                });
+                updateGroupDatabase();
             });
 
             rply.text = '新增成功: ' + mainMsg[2];
@@ -604,7 +637,7 @@ const rollDiceCommand = async function ({
         case /(^[.]db$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]): {
             // 驗證輸入
             if (!mainMsg[2]) rply.text += '沒有關鍵字. \n\n';
-            
+
             // 檢查權限
             if (rply.text += checkPermission({ groupid, userrole })) {
                 return rply;
@@ -616,24 +649,15 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /(^[.]db$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
-            // 更新數據
-            await new Promise((resolve) => {
-                records.get('trpgDatabase', (msgs) => {
-                    trpgDatabasefunction.trpgDatabasefunction = msgs;
-                    resolve();
-                });
-            });
+            // 獲取群組數據庫
+            const database = await getGroupDatabase();
+            const groupData = database?.find(data => data.groupid === groupid);
 
             // 檢查群組
             if (!groupid) {
                 rply.text = '不在群組.';
                 return rply;
             }
-
-            // 獲取群組數據
-            const groupData = trpgDatabasefunction.trpgDatabasefunction?.find(
-                data => data.groupid === groupid
-            );
 
             // 格式化並顯示列表
             rply.text = '資料庫列表:' + formatDatabaseList(groupData?.trpgDatabasefunction);
@@ -647,9 +671,12 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
+            // 獲取群組數據庫
+            const database = await getGroupDatabase();
+
             // 查找關鍵字內容
-            const content = findTopicContent(trpgDatabasefunction.trpgDatabasefunction, mainMsg[1]);
-            
+            const content = findTopicContent(database, mainMsg[1]);
+
             if (content) {
                 rply.text = `【${content.topic}】\n${content.contact}`;
             } else {
@@ -671,17 +698,17 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
-            // 更新數據庫
-            await updateGlobalDatabase();
+            // 獲取全服數據庫
+            const database = await getGlobalDatabase();
 
             // 檢查是否達到上限
-            if (isGlobalDatabaseFull(trpgDatabasefunction.trpgDatabaseAllgroup)) {
+            if (isGlobalDatabaseFull(database)) {
                 rply.text = '只可以有100個關鍵字啊';
                 return rply;
             }
 
             // 檢查關鍵字是否重複
-            if (isGlobalTopicExists(trpgDatabasefunction.trpgDatabaseAllgroup, mainMsg[2])) {
+            if (isGlobalTopicExists(database, mainMsg[2])) {
                 rply.text = '新增失敗. 重複關鍵字';
                 return rply;
             }
@@ -691,35 +718,33 @@ const rollDiceCommand = async function ({
                 .replace(/\.dbp add /i, '')
                 .replace(mainMsg[2], '')
                 .replace(/^\s+/, '');
-                
+
             const newEntry = createGlobalDatabaseEntry(mainMsg[2], content);
 
             // 保存到數據庫
             records.pushTrpgDatabaseAllGroup('trpgDatabaseAllgroup', newEntry, () => {
-                records.get('trpgDatabaseAllgroup', (msgs) => {
-                    trpgDatabasefunction.trpgDatabaseAllgroup = msgs;
-                });
+                updateGlobalDatabase();
             });
 
             rply.text = '新增成功: ' + mainMsg[2];
             return rply;
         }
         case /(^[.]dbp$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
-            // 更新數據庫
-            await updateGlobalDatabase();
+            // 獲取全服數據庫
+            const database = await getGlobalDatabase();
 
             // 格式化並顯示列表
-            rply.text = '資料庫列表:' + formatGlobalDatabaseList(trpgDatabasefunction.trpgDatabaseAllgroup);
+            rply.text = '資料庫列表:' + formatGlobalDatabaseList(database);
             rply.quotes = true;
             return rply;
         }
         case /(^[.]dbp$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[0]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]): {
-            // 更新數據庫
-            await updateGlobalDatabase();
+            // 獲取全服數據庫
+            const database = await getGlobalDatabase();
 
             // 查找關鍵字內容
-            const content = findGlobalTopicContent(trpgDatabasefunction.trpgDatabaseAllgroup, mainMsg[1]);
-            
+            const content = findGlobalTopicContent(database, mainMsg[1]);
+
             if (content) {
                 rply.text = `【${content.topic}】\n${content.contact}`;
             } else {

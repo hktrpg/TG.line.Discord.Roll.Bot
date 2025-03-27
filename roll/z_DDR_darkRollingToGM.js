@@ -170,7 +170,7 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
                 if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid) {
                     let temp = trpgDarkRollingfunction.trpgDarkRollingfunction[i]
                     temp.trpgDarkRollingfunction = []
-                    records.settrpgDarkRollingfunction('trpgDarkRolling', temp, () => {
+                    records.setTrpgDarkRollingfunction('trpgDarkRolling', temp, () => {
                         records.get('trpgDarkRolling', (msgs) => {
                             trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
                         })
@@ -199,7 +199,7 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
                 if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid && mainMsg[2] < trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length && mainMsg[2] >= 0) {
                     let temp = trpgDarkRollingfunction.trpgDarkRollingfunction[i]
                     temp.trpgDarkRollingfunction.splice(mainMsg[2], 1)
-                    records.settrpgDarkRollingfunction('trpgDarkRolling', temp, () => {
+                    records.setTrpgDarkRollingfunction('trpgDarkRolling', temp, () => {
                         records.get('trpgDarkRolling', (msgs) => {
                             trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
                         })

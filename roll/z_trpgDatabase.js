@@ -180,7 +180,7 @@ const rollDiceCommand = async function ({
                 if (trpgDatabasefunction.trpgDatabasefunction[i].groupid == groupid) {
                     let temp = trpgDatabasefunction.trpgDatabasefunction[i]
                     temp.trpgDatabasefunction = []
-                    records.settrpgDatabasefunction('trpgDatabase', temp, () => {
+                    records.setTrpgDatabaseFunction('trpgDatabase', temp, () => {
                         records.get('trpgDatabase', (msgs) => {
                             trpgDatabasefunction.trpgDatabasefunction = msgs
                         })
@@ -204,7 +204,7 @@ const rollDiceCommand = async function ({
                 if (trpgDatabasefunction.trpgDatabasefunction[i].groupid == groupid && mainMsg[2] < trpgDatabasefunction.trpgDatabasefunction[i].trpgDatabasefunction.length && mainMsg[2] >= 0) {
                     let temp = trpgDatabasefunction.trpgDatabasefunction[i]
                     temp.trpgDatabasefunction.splice(mainMsg[2], 1)
-                    records.settrpgDatabasefunction('trpgDatabase', temp, () => {
+                    records.setTrpgDatabaseFunction('trpgDatabase', temp, () => {
                         records.get('trpgDatabase', (msgs) => {
                             trpgDatabasefunction.trpgDatabasefunction = msgs
                         })
@@ -295,7 +295,7 @@ const rollDiceCommand = async function ({
                     }]
                 }
                 if (checkifsamenamegroup == 0) {
-                    records.pushtrpgDatabaseAllgroup('trpgDatabaseAllgroup', tempA, () => {
+                    records.pushTrpgDatabaseAllGroup('trpgDatabaseAllgroup', tempA, () => {
                         records.get('trpgDatabaseAllgroup', (msgs) => {
                             trpgDatabasefunction.trpgDatabaseAllgroup = msgs
                         });

@@ -4,7 +4,7 @@
 jest.mock('../modules/records.js', () => ({
     get: jest.fn((collection, callback) => callback([])),
     pushtrpgDarkRollingfunction: jest.fn((collection, data, callback) => callback()),
-    settrpgDarkRollingfunction: jest.fn((collection, data, callback) => callback())
+    setTrpgDarkRollingfunction: jest.fn((collection, data, callback) => callback())
 }));
 
 jest.mock('../modules/check.js', () => ({

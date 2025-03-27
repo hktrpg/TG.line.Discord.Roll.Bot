@@ -195,7 +195,7 @@ class Records extends EventEmitter {
         this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { trpgCommandfunction: data.trpgCommandfunction } }, { upsert: true }, callback);
     }
 
-    editSetTrpgCommandFunction(databaseName, data, callback) {
+    editsetTrpgCommandFunction(databaseName, data, callback) {
         const topicRegex = new RegExp(`^${data.trpgCommandfunction[0]?.topic}$`, 'i');
         this.updateRecord(databaseName, { groupid: data.groupid, "trpgCommandfunction.topic": topicRegex }, { $set: { "trpgCommandfunction.$.contact": data.trpgCommandfunction[0].contact } }, { new: true, upsert: false }, callback);
     }

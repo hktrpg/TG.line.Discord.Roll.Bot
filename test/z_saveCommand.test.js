@@ -8,9 +8,9 @@ jest.mock('../modules/check.js', () => ({
 
 jest.mock('../modules/records.js', () => ({
     get: jest.fn((type, callback) => callback([])),
-    pushtrpgCommandfunction: jest.fn((type, data, callback) => callback()),
-    editSettrpgCommandfunction: jest.fn((type, data, callback) => callback()),
-    settrpgCommandfunction: jest.fn((type, data, callback) => callback())
+    pushTrpgCommandFunction: jest.fn((type, data, callback) => callback()),
+    editsetTrpgCommandFunction: jest.fn((type, data, callback) => callback()),
+    setTrpgCommandFunction: jest.fn((type, data, callback) => callback())
 }));
 
 jest.mock('../modules/veryImportantPerson', () => ({

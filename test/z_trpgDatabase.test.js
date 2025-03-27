@@ -4,7 +4,7 @@ jest.mock('../modules/records.js', () => ({
     set: jest.fn((type, data, callback) => callback()),
     pushTrpgDatabaseFunction: jest.fn((type, data, callback) => callback()),
     pushtrpgDatabaseAllgroup: jest.fn((type, data, callback) => callback()),
-    settrpgDatabasefunction: jest.fn((type, data, callback) => callback())
+    setTrpgDatabaseFunction: jest.fn((type, data, callback) => callback())
 }));
 
 jest.mock('../modules/check.js', () => ({

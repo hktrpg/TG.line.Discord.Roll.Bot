@@ -99,11 +99,10 @@ const rollDiceCommand = async function ({
                 groupid: groupid,
                 blockfunction: mainMsg[2]
             }
-            records.pushblockfunction('block', temp, () => {
+            records.pushBlockFunction('block', temp, () => {
                 records.get('block', (msgs) => {
                     save.save = msgs
                 })
-
             })
             rply.text = '新增成功: ' + mainMsg[2]
 

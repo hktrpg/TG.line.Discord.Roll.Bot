@@ -124,7 +124,7 @@ const handleAddCommand = (inputStr, mainMsg, groupid, response, permissionError,
         }]
     };
 
-    records.pushtrpgCommandfunction('trpgCommand', newCommand, () => {
+    records.pushTrpgCommandFunction('trpgCommand', newCommand, () => {
         updateCommandData();
     });
 
@@ -158,12 +158,12 @@ const handleEditCommand = (mainMsg, groupid, response, permissionError, limit) =
     };
 
     if (existingCommand) {
-        records.editSettrpgCommandfunction('trpgCommand', updatedCommand, () => {
+        records.editsetTrpgCommandFunction('trpgCommand', updatedCommand, () => {
             updateCommandData();
         });
         response.text = `編輯成功: ${mainMsg[2]}\n${newContact}`;
     } else {
-        records.pushtrpgCommandfunction('trpgCommand', updatedCommand, () => {
+        records.pushTrpgCommandFunction('trpgCommand', updatedCommand, () => {
             updateCommandData();
         });
         response.text = `新增成功: ${mainMsg[2]}\n${newContact}`;
@@ -181,7 +181,7 @@ const handleDeleteAllCommands = (groupid, response, permissionError) => {
     trpgCommandData.commands.forEach((entry) => {
         if (entry.groupid === groupid) {
             entry.trpgCommandfunction = [];
-            records.settrpgCommandfunction('trpgCommand', entry, () => {
+            records.setTrpgCommandFunction('trpgCommand', entry, () => {
                 updateCommandData();
             });
             response.text = '已刪除所有關鍵字';
@@ -203,7 +203,7 @@ const handleDeleteSpecificCommand = (mainMsg, groupid, response, permissionError
             if (index >= 0 && index < entry.trpgCommandfunction.length) {
                 const target = entry.trpgCommandfunction[index]; // get target before deletion
                 entry.trpgCommandfunction.splice(index, 1);
-                records.settrpgCommandfunction('trpgCommand', entry, () => {
+                records.setTrpgCommandFunction('trpgCommand', entry, () => {
                     updateCommandData();
                 });
                 response.text = `刪除成功: ${mainMsg[2]}: ${target.topic} \n ${target.contact}`;

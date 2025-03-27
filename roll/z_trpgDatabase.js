@@ -360,9 +360,9 @@ const getHelpMessage = async () => {
 │   新增資料項目
 │ • .db show
 │   顯示資料清單
-│ • .db del 編號/all
-│   刪除指定/全部
-│ • .db 關鍵字
+│ • .db del 標題
+│   刪除指定標題
+│ • .db 關鍵字/index
 │   顯示資料內容
 │
 ├──── 🌐全服指令 ────

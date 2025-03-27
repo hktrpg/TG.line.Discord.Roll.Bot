@@ -142,11 +142,10 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
 
             }
             if (checkifsamename == 0) {
-                records.pushtrpgDarkRollingfunction('trpgDarkRolling', temp, () => {
+                records.pushTrpgDarkRollingFunction('trpgDarkRolling', temp, () => {
                     records.get('trpgDarkRolling', (msgs) => {
                         trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
                     })
-
                 })
                 rply.text = '新增成功: ' + (mainMsg[2] || displayname ||
                     "")
